@@ -1,0 +1,107 @@
+<div class="game-container">
+
+  <div class="bubbles-area">
+    @for (cat of allCategories(); track cat.id; let i = $index) {
+      <div class="category-bubble"
+           [style.top]="cat.top"
+           [style.left]="cat.left"
+           [class.spinning]="phase() === 'SPINNING' || phase() === 'IDLE'"
+           [class.is-selected]="selectedCatIndex() === i && phase() === 'SELECTED'"
+           [class.as-title]="selectedCatIndex() === i && phase() === 'QUESTION'"
+           [class.hidden]="selectedCatIndex() !== null && selectedCatIndex() !== i">
+        {{ cat.name }}
+      </div>
+    }
+  </div>
+
+  @if (phase() === 'IDLE' || (round() && round()?.status !== 'WAITING' && !isSpinning()) && !isPaused()) {
+    <div class="central-action">
+      @if (phase() === 'IDLE') {
+        <button (click)="startNewRound()" class="extract-btn">
+          <span class="icon">🚀</span> GIOCA ORA
+        </button>
+      }
+
+      @if (round()?.status === 'REVEAL' && !isSpinning()) {
+        <button (click)="startNewRound()" class="extract-btn" @fadeInOut>
+          <span class="icon">🎲</span> PROSSIMO ROUND
+        </button>
+      }
+    </div>
+  }
+
+  @if (showQuestion() && round(); as current) {
+    <div class="question-area" @fadeInOut>
+
+      <div class="timer-wrapper">
+        <div class="timer-bar"
+             [style.width.%]="current.status === 'REVEAL' ? 0 : timer() * 10">
+        </div>
+        <span class="timer-text">{{ current.status === 'REVEAL' ? 'Tempo Scaduto!' : timer() + 's' }}</span>
+      </div>
+
+      <h2 class="question-text">{{ current.payload.question }}</h2>
+
+      <div class="options-grid" [class.layout-quiz]="current.payload.type === 'QUIZ'"
+           [class.layout-tf]="current.payload.type === 'TRUE_FALSE'">
+        @for (opt of current.payload.options; track opt) {
+          <button class="option-btn"
+                  [class.correct]="current.status === 'REVEAL' && opt === current.payload.correctAnswer"
+                  [disabled]="current.status === 'REVEAL'">
+            {{ opt }}
+          </button>
+        }
+      </div>
+
+      @if (current.status === 'REVEAL') {
+        <div class="reveal-banner" @fadeInOut>
+          <div class="reveal-label">RISPOSTA ESATTA:</div>
+          <div class="reveal-value">{{ current.payload.correctAnswer }}</div>
+        </div>
+      }
+    </div>
+    <div class="live-feed-container">
+      <div class="feed-header">RISPOSTE RICEVUTE</div>
+      <div class="feed-list">
+        @for (res of ws.responses(); track res.playerName) {
+          <div class="feed-item" @fadeInOut>
+            <span class="player-name">{{ res.playerName }}</span>
+            <span class="player-time">{{ (res.responseTimeMs / 1000).toFixed(2) }}s</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+  <div class="controls-footer">
+    <button (click)="openResetModal()" class="control-btn reset">
+      <span class="icon">🔄</span> RESET
+    </button>
+
+    <button (click)="togglePause()" class="control-btn pause" [class.is-paused]="isPaused()">
+      <span class="icon">{{ isPaused() ? '▶️' : '⏸️' }}</span>
+      {{ isPaused() ? 'RIPRENDI' : 'PAUSA' }}
+    </button>
+  </div>
+
+  @if (showResetModal()) {
+    <div class="modal-overlay" @fadeInOut>
+      <div class="modal-content">
+        <h3>🚨 RESET PARTITA</h3>
+        <p>Sei sicuro di voler ricominciare? Tutti i progressi attuali andranno perduti.</p>
+        <div class="modal-actions">
+          <button class="modal-btn confirm" (click)="confirmReset()">SÌ, RESETTA</button>
+          <button class="modal-btn cancel" (click)="showResetModal.set(false)">ANNULLA</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (isPaused()) {
+    <div class="pause-overlay" @fadeInOut>
+      <div class="pause-card">
+        <h2>GIOCO IN PAUSA</h2>
+        <button (click)="togglePause()" class="extract-btn">RIPRENDI</button>
+      </div>
+    </div>
+  }
+</div>
