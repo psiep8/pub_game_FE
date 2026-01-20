@@ -8,16 +8,100 @@
   text-align: center;
 }
 
-.voting-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 20px;
-  flex-grow: 1;
-  margin-top: 20px;
+/* Aggiungi questo in remote-component.scss */
 
-  &.tf-layout {
-    grid-template-columns: 1fr;
+/* Messaggio Rotazione */
+.rotate-notice {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #0f0c29;
+  z-index: 9999;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+
+  .phone-icon {
+    font-size: 4rem;
+    animation: rotate 2s infinite;
+  }
+}
+
+@media (orientation: portrait) {
+  .rotate-notice {
+    display: flex;
+  }
+  .remote-container {
+    display: none;
+  }
+}
+
+/* Bottoni Giganti Joypad */
+//.voting-grid {
+//  display: grid;
+//  grid-template-columns: 1fr 1fr;
+//  gap: 15px;
+//  height: 70vh; /* Occupa quasi tutto lo schermo in orizzontale */
+//  padding: 10px;
+//
+//  .vote-btn {
+//    font-size: 2.5rem;
+//    font-weight: 900;
+//    border-radius: 20px;
+//    border: none;
+//    box-shadow: 0 8px 0 rgba(0, 0, 0, 0.3);
+//    color: white;
+//
+//    &:active {
+//      transform: translateY(4px);
+//      box-shadow: none;
+//    }
+//
+//    &.btn-a {
+//      background: #ff4757;
+//    }
+//
+//    &.btn-b {
+//      background: #2f3542;
+//    }
+//
+//    &.btn-c {
+//      background: #2ed573;
+//    }
+//
+//    &.btn-d {
+//      background: #ffa502;
+//    }
+//  }
+//}
+
+/* Layout VERO/FALSO orizzontale */
+.tf-layout {
+  grid-template-columns: 1fr 1fr !important;
+
+  .btn-true {
+    background: #2ed573;
+  }
+
+  .btn-false {
+    background: #ff4757;
+  }
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(90deg);
+  }
+  100% {
+    transform: rotate(0deg);
   }
 }
 
@@ -28,15 +112,36 @@
   font-weight: 900;
   color: white;
 
-  &.btn-a { background: #ff4444; }
-  &.btn-b { background: #4444ff; }
-  &.btn-c { background: #ffbb00; }
-  &.btn-d { background: #00cc66; }
+  &.btn-a {
+    background: #ff4444;
+  }
 
-  &.btn-true { background: #00cc66; font-size: 2rem; }
-  &.btn-false { background: #ff4444; font-size: 2rem; }
+  &.btn-b {
+    background: #4444ff;
+  }
 
-  &:active { transform: scale(0.9); opacity: 0.8; }
+  &.btn-c {
+    background: #ffbb00;
+  }
+
+  &.btn-d {
+    background: #00cc66;
+  }
+
+  &.btn-true {
+    background: #00cc66;
+    font-size: 2rem;
+  }
+
+  &.btn-false {
+    background: #ff4444;
+    font-size: 2rem;
+  }
+
+  &:active {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
 }
 
 .status-msg {
@@ -66,72 +171,173 @@
     margin-bottom: 20px;
   }
 
-// TASTONE BUZZER
-.buzz-layout {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  // TASTONE BUZZER
+  .buzz-layout {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-  .buzz-btn {
-    width: 250px;
-    height: 250px;
-    border-radius: 50%;
-    border: 10px solid #800000;
-    background: radial-gradient(circle, #ff0000 0%, #a30000 100%);
-    color: white;
-    font-size: 2rem;
-    font-weight: bold;
-    box-shadow: 0 15px 0 #660000, 0 20px 30px rgba(0,0,0,0.5);
-    cursor: pointer;
-    transition: all 0.1s;
+    .buzz-btn {
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      border: 10px solid #800000;
+      background: radial-gradient(circle, #ff0000 0%, #a30000 100%);
+      color: white;
+      font-size: 2rem;
+      font-weight: bold;
+      box-shadow: 0 15px 0 #660000, 0 20px 30px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      transition: all 0.1s;
 
-    &:active {
-      transform: translateY(10px);
-      box-shadow: 0 5px 0 #660000, 0 10px 20px rgba(0,0,0,0.5);
-    }
+      &:active {
+        transform: translateY(10px);
+        box-shadow: 0 5px 0 #660000, 0 10px 20px rgba(0, 0, 0, 0.5);
+      }
 
-    &.blur-theme {
-      background: radial-gradient(circle, #00d2ff 0%, #3a7bd5 100%);
-      border-color: #1e3c72;
-      box-shadow: 0 15px 0 #1e3c72;
+      &.blur-theme {
+        background: radial-gradient(circle, #00d2ff 0%, #3a7bd5 100%);
+        border-color: #1e3c72;
+        box-shadow: 0 15px 0 #1e3c72;
+      }
     }
   }
-}
 
-// SLIDER CHRONO
-.chrono-layout {
-  text-align: center;
-  .year-preview {
-    font-size: 4rem;
-    color: #00d2ff;
-    margin: 20px 0;
+  // SLIDER CHRONO
+  .chrono-layout {
+    text-align: center;
+
+    .year-preview {
+      font-size: 4rem;
+      color: #00d2ff;
+      margin: 20px 0;
+    }
+
+    .chrono-slider {
+      width: 100%;
+      height: 15px;
+      border-radius: 5px;
+      appearance: none;
+      background: #333;
+    }
   }
-  .chrono-slider {
+
+  // GRIGLIA QUIZ
+  /* remote-component.scss */
+
+  .voting-grid {
+    display: flex;
+    flex-direction: row; // Orizzontale
+    justify-content: stretch;
+    align-items: stretch;
+    gap: 10px;
+    height: 80vh; // Quasi tutto lo schermo
     width: 100%;
-    height: 15px;
-    border-radius: 5px;
-    appearance: none;
-    background: #333;
+
+    .vote-btn {
+      flex: 1; // Tutti i bottoni occupano lo stesso spazio
+      font-size: 3rem; // Testo enorme
+      border: none;
+      border-radius: 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 10px 0 rgba(0, 0, 0, 0.2);
+
+      &:active {
+        transform: translateY(5px);
+        box-shadow: none;
+      }
+    }
+  }
+
+  .horizontal-chrono {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    height: 80vh;
+
+    .year-preview {
+      font-size: 4rem;
+      color: gold;
+      font-weight: bold;
+    }
+
+    .modern-slider {
+      width: 90%;
+      height: 60px; // Area tocco enorme per il pollice
+    }
   }
 }
 
-// GRIGLIA QUIZ
-.voting-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-  .vote-btn {
-    height: 120px;
-    border-radius: 15px;
-    border: none;
-    font-size: 2rem;
-    font-weight: bold;
-    color: white;
-  }
-  .btn-a { background: #e91e63; }
-  .btn-b { background: #2196f3; }
-  .btn-c { background: #ffeb3b; color: #333; }
-  .btn-d { background: #4caf50; }
+/* Stile Gaming per il Telefono */
+.remote-container {
+  background: #0f0c29;
+  height: 100vh;
+  font-family: 'Inter', sans-serif;
+  color: white;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
+
+.year-display {
+  font-size: 5rem;
+  font-weight: 900;
+  color: #ffd700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  margin: 40px 0;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px 40px;
+  border-radius: 20px;
+  border: 2px solid gold;
+}
+
+.modern-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 15px;
+  border-radius: 10px;
+  background: #16213e;
+  outline: none;
+  margin: 20px 0;
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 40px;
+    height: 40px;
+    background: gold;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 15px gold;
+    border: 4px solid white;
+  }
+}
+
+.confirm-btn {
+  width: 100%;
+  padding: 20px;
+  background: #2ed573;
+  color: #1a1a2e;
+  border: none;
+  border-radius: 15px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-top: auto;
+  box-shadow: 0 5px 0 #1eb95d;
+
+  &:active {
+    transform: translateY(4px);
+    box-shadow: none;
+  }
+}
+
+.range-labels {
+  display: flex;
+  justify-content: space-between;
+  color: #999;
+  font-weight: bold;
 }

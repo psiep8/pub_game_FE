@@ -1,3 +1,8 @@
+<div class="rotate-notice">
+  <div class="phone-icon">📱🔄</div>
+  <h2>Ruota il telefono</h2>
+  <p>Per giocare al meglio, usa la modalità orizzontale</p>
+</div>
 <div class="remote-container">
 
   @if (!nickname()) {
@@ -27,7 +32,6 @@
             <p>In attesa della prossima sfida...</p>
           </div>
         }
-
         @case ('VOTING') {
           @switch (questionType()) {
 
@@ -39,49 +43,53 @@
                 <button (click)="sendVote(3)" class="vote-btn btn-d">D</button>
               </div>
             }
-
             @case ('TRUE_FALSE') {
               <div class="voting-grid tf-layout">
                 <button (click)="sendVote(0)" class="vote-btn btn-true">VERO</button>
                 <button (click)="sendVote(1)" class="vote-btn btn-false">FALSO</button>
               </div>
             }
-
+            @case ('CHRONO') {
+              <div class="chrono-player-area horizontal-chrono">
+                <div class="year-preview">{{ selectedYear() }}</div>
+                <input type="range" min="1000" max="2026"
+                       [value]="selectedYear()"
+                       (input)="onYearChange($event)"
+                       class="modern-slider">
+                <button (click)="sendChronoAnswer()" class="confirm-btn">INVIA ANNO</button>
+              </div>
+            }
             @case ('MUSIC') {
               <div class="buzz-layout">
                 <button (click)="sendBuzz()" class="buzz-btn">PRENOTA! (AUDIO)</button>
               </div>
             }
-
             @case ('IMAGE_BLUR') {
               <div class="buzz-layout">
                 <button (click)="sendBuzz()" class="buzz-btn blur-theme">CHI È?</button>
               </div>
             }
 
-<!--            @case ('CHRONO') {-->
-<!--              <div class="chrono-layout">-->
-<!--                <h3>Scegli l'anno:</h3>-->
-<!--                <div class="year-preview">{{ selectedYear }}</div>-->
-<!--                <input type="range" min="1900" max="2026" [(ngModel)]="selectedYear" class="chrono-slider">-->
-<!--                <button (click)="sendChronoVote()" class="confirm-btn">CONFERMA</button>-->
-<!--              </div>-->
-<!--            }-->
+            <!--            @case ('CHRONO') {-->
+              <!--              <div class="chrono-layout">-->
+              <!--                <h3>Scegli l'anno:</h3>-->
+              <!--                <div class="year-preview">{{ selectedYear }}</div>-->
+              <!--                <input type="range" min="1900" max="2026" [(ngModel)]="selectedYear" class="chrono-slider">-->
+              <!--                <button (click)="sendChronoVote()" class="confirm-btn">CONFERMA</button>-->
+              <!--              </div>-->
+              <!--            }-->
           }
         }
-
         @case ('LOCKED') {
           <div class="status-msg locked">
             <p>Prenotazione effettuata! Parla ora 🎤</p>
           </div>
         }
-
         @case ('WAITING_FOR_OTHER') {
           <div class="status-msg others">
             <p>Qualcuno è stato più veloce! 💨</p>
           </div>
         }
-
         @case ('BLOCKED_ERROR') {
           <div class="status-msg error">
             <p>Risposta errata! Sei fuori per questo round ❌</p>

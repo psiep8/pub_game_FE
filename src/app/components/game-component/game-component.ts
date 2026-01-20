@@ -2,6 +2,8 @@ import {Component, signal, inject, OnInit, HostListener} from '@angular/core';
 import {trigger, state, style, transition, animate} from '@angular/animations';
 import {GameRound, GameService} from '../../services/game.service';
 import {WebSocketService} from '../../services/web-socket.service';
+import {AiGeneratorService} from '../../services/ai-generator-service';
+import {firstValueFrom} from 'rxjs';
 
 @Component({
   selector: 'app-game-component',
@@ -27,7 +29,7 @@ export class GameComponent implements OnInit {
   // UI State
   isSpinning = signal(false);
   selectedCatIndex = signal<number | null>(null);
-  phase = signal<'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION'>('IDLE');
+  phase = signal<'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION' | 'CHRONO'>('IDLE');
   timer = signal(10);
   showQuestion = signal(false);
   isPaused = signal(false);
@@ -37,7 +39,7 @@ export class GameComponent implements OnInit {
   currentBlur = 40;
   blurInterval: any;
   playerWhoBuzzed: string | null = null;
-  roundResults = signal<any[]>([]);
+  showTypeReveal = signal<string | null>(null);
 
   // ALERT REFRESH: Blocca l'aggiornamento della pagina
   @HostListener('window:beforeunload', ['$event'])
@@ -53,7 +55,7 @@ export class GameComponent implements OnInit {
     }
   }
 
-  constructor(private gameService: GameService) {
+  constructor(private gameService: GameService, private aiService: AiGeneratorService) {
     this.ws.responses$.subscribe(res => {
       const currentRound = this.round();
       if (!currentRound) return;
@@ -135,8 +137,10 @@ export class GameComponent implements OnInit {
     console.log(`[BUZZ] Il giocatore ${playerName} si è prenotato!`);
   }
 
-  ngOnInit() {
-    this.gameService.getCategories().subscribe((cats: any[]) => {
+  async ngOnInit() {
+    try {
+      // 1. Carichiamo le categorie con await
+      const cats = await firstValueFrom(this.gameService.getCategories());
       const positioned = cats.map((c: any) => ({
         ...c,
         top: Math.random() * 80 + 10 + '%',
@@ -146,47 +150,180 @@ export class GameComponent implements OnInit {
         duration: (3 + Math.random() * 2) + 's'
       }));
       this.allCategories.set(positioned);
-    });
-    const savedId = localStorage.getItem('activeGameId');
-    if (savedId) {
-      this.currentGameId.set(+savedId);
-      console.log("Partita ripristinata ID:", savedId);
+
+      // 2. Ripristino ID Partita
+      const savedId = localStorage.getItem('activeGameId');
+      if (savedId) {
+        this.currentGameId.set(+savedId);
+        console.log("Partita ripristinata ID:", savedId);
+      }
+    } catch (err) {
+      console.error("Errore durante l'inizializzazione:", err);
     }
   }
 
-  startNewRound() {
+  async startNewRound() {
     if (this.isSpinning()) return;
 
-    // FIX GRAFICA: Resettiamo tutto prima di chiamare il backend
+    /* =========================
+       RESET UI / STATE
+       ========================= */
     this.showQuestion.set(false);
-    this.phase.set('IDLE');
+    this.round.set(null);
     this.selectedCatIndex.set(null);
+    this.playerWhoBuzzed = null;
+    this.timer.set(10);
     this.isPaused.set(false);
 
-    this.gameService.getNextRound(1).subscribe({
-      next: (newRound: any) => {
-        this.round.set(newRound);
-        this.runExtraction();
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+
+    /* =========================
+       GAME INIT
+       ========================= */
+    if (!this.currentGameId()) {
+      const newGame = await firstValueFrom(this.gameService.createGame());
+      this.currentGameId.set(newGame.id);
+      localStorage.setItem('activeGameId', newGame.id.toString());
+    }
+
+    /* =========================
+       ROUND PARAMS
+       ========================= */
+    const categories = this.allCategories();
+    const randomIndex = Math.floor(Math.random() * categories.length);
+    const selectedCat = categories[randomIndex];
+
+    const types = ['QUIZ', 'CHRONO', 'TRUE_FALSE'] as const;
+    const extractedType = types[Math.floor(Math.random() * types.length)];
+    const difficulty = ['facile', 'medio', 'difficile'][
+      Math.floor(Math.random() * 3)
+      ];
+
+    /* =========================
+       SHOW TYPE REVEAL
+       ========================= */
+    this.showTypeReveal.set(extractedType);
+    await new Promise(r => setTimeout(r, 2000));
+    this.showTypeReveal.set(null);
+
+    /* =========================
+       SPIN ANIMATION
+       ========================= */
+    this.phase.set('SPINNING');
+    this.isSpinning.set(true);
+
+    try {
+      /* =========================
+         AI ROUND GENERATION
+         ========================= */
+      const nextRound = await firstValueFrom(
+        this.aiService.triggerNewAiRound(
+          this.currentGameId()!,
+          selectedCat.name,
+          extractedType,
+          difficulty
+        )
+      );
+
+      /* =========================
+         STATE SYNC
+         ========================= */
+      if (typeof nextRound.payload === 'string') {
+        nextRound.payload = JSON.parse(nextRound.payload);
       }
-    });
+
+      this.round.set(nextRound);
+      /* =========================
+         STOP SPIN → SELECT
+         ========================= */
+      await new Promise(r => setTimeout(r, 1500));
+      this.selectedCatIndex.set(randomIndex);
+      this.phase.set('SELECTED');
+
+      /* =========================
+         SHOW QUESTION
+         ========================= */
+      await new Promise(r => setTimeout(r, 2000));
+      if (nextRound.type === 'CHRONO') {
+        this.phase.set('CHRONO');
+      } else {
+        this.phase.set('QUESTION');
+      }
+      this.showQuestion.set(true);
+      this.isSpinning.set(false);
+
+      this.startTimer();
+
+    } catch (err) {
+      console.error('Errore nel nuovo round:', err);
+      this.isSpinning.set(false);
+      this.phase.set('IDLE');
+    }
+  }
+
+
+  async selectCategoryAndGenerate(catIndex: number) {
+    this.selectedCatIndex.set(catIndex);
+    this.phase.set('SELECTED');
+
+    const selectedCatName = this.allCategories()[catIndex].name;
+    const currentType = this.round()?.type || 'QUIZ'; // O recuperalo da una variabile di appoggio
+
+    await new Promise(r => setTimeout(r, 1500));
+
+    try {
+      await firstValueFrom(this.aiService.triggerNewAiRound(this.currentGameId()!, selectedCatName, currentType, 'medio'));
+      const nextRound = await firstValueFrom(this.gameService.getCurrentRound(this.currentGameId()!));
+      this.round.set(nextRound);
+
+      if (nextRound.type === 'CHRONO') {
+        this.phase.set('CHRONO');
+      } else {
+        this.phase.set('QUESTION');
+      }
+
+      this.showQuestion.set(true);
+      this.startTimer();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async getNextRound() {
+    if (!this.currentGameId()) return null;
+
+    try {
+      // Chiamata al BE per ottenere il round corrente o il prossimo
+      const round = await firstValueFrom(this.gameService.getCurrentRound(this.currentGameId()!));
+
+      if (round && typeof round.payload === 'string') {
+        round.payload = JSON.parse(round.payload);
+      }
+
+      this.round.set(round);
+      return round;
+    } catch (err) {
+      console.error("Errore nel recupero del round:", err);
+      return null;
+    }
   }
 
   private async runExtraction() {
     this.isSpinning.set(true);
     this.phase.set('SPINNING');
-
-    await new Promise(r => setTimeout(r, 1500)); // Un po' di suspense in più
-
-    const targetName = this.round()?.payload.category;
-    const targetIdx = this.allCategories().findIndex(c => c.name === targetName);
-
-    this.selectedCatIndex.set(targetIdx);
-    this.phase.set('SELECTED'); // Qui scatta l'effetto giallo (is-selected)
-
     await new Promise(r => setTimeout(r, 2000));
-
-    this.phase.set('QUESTION');
-    this.showQuestion.set(true);
+    const targetName = this.round()?.payload.category;
+    const targetIdx = this.allCategories().findIndex(c => c.name.toUpperCase() === targetName?.toUpperCase());
+    if (targetIdx !== -1) {
+      this.selectedCatIndex.set(targetIdx);
+      this.phase.set('SELECTED');
+      await new Promise(r => setTimeout(r, 1500));
+      this.phase.set('QUESTION');
+      this.showQuestion.set(true);
+    }
     this.isSpinning.set(false);
     this.startTimer();
   }
@@ -196,7 +333,7 @@ export class GameComponent implements OnInit {
 
     this.ws.broadcastStatus(1, {
       action: 'START_VOTING',
-      type: this.round()?.payload.type
+      type: this.round()?.type
     });
     if (this.timerInterval) clearInterval(this.timerInterval);
     this.timer.set(10);
@@ -224,7 +361,7 @@ export class GameComponent implements OnInit {
     }
   }
 
-// 1. Gestione Risposte Standard (Quiz e Chrono)
+  // 1. Gestione Risposte Standard (Quiz e Chrono)
   processNormalAnswer(res: any) {
     const currentRound = this.round();
     if (!currentRound) return;
@@ -248,7 +385,7 @@ export class GameComponent implements OnInit {
     console.log(`Risposta da ${res.playerName}: ${isCorrect ? '✅' : '❌'} (${score} pt)`);
   }
 
-// 2. Effetto Blur Progressivo
+  // 2. Effetto Blur Progressivo
   startBlurEffect() {
     if (this.blurInterval) clearInterval(this.blurInterval);
 
@@ -262,7 +399,7 @@ export class GameComponent implements OnInit {
     }, 200); // Ogni 200ms diventa più nitida
   }
 
-// 3. Controllo Admin (Tastiera)
+  // 3. Controllo Admin (Tastiera)
   @HostListener('window:keyup', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
     if (!this.playerWhoBuzzed) return;
