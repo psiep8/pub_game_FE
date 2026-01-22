@@ -1,35 +1,72 @@
-.remote-container {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-  background: #121212;
-  color: white;
-  text-align: center;
+$primary-gold: #ffd700;
+$correct-green: #2ed573;
+$wrong-red: #ff4757;
+$bg-dark: #0f0c29;
+$card-bg: #16213e;
+
+/* ==========================================
+   BLOCCO SCROLL E SETUP BASE
+   ========================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-/* Aggiungi questo in remote-component.scss */
+html, body {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  touch-action: none; /* Blocca scroll, zoom, ecc */
+  overscroll-behavior: none;
+}
 
-/* Messaggio Rotazione */
+/* ==========================================
+   MESSAGGIO ROTAZIONE TELEFONO
+   ========================================== */
 .rotate-notice {
   display: none;
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: #0f0c29;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, $bg-dark 0%, #1a1a2e 100%);
   z-index: 9999;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
   padding: 20px;
+  color: white;
 
   .phone-icon {
-    font-size: 4rem;
-    animation: rotate 2s infinite;
+    font-size: 5rem;
+    margin-bottom: 20px;
+    animation: rotate-icon 2s ease-in-out infinite;
   }
+
+  h2 {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    color: $primary-gold;
+  }
+
+  p {
+    font-size: 1.2rem;
+    opacity: 0.8;
+  }
+}
+
+@keyframes rotate-icon {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-15deg); }
+  50% { transform: rotate(90deg); }
+  75% { transform: rotate(75deg); }
 }
 
 @media (orientation: portrait) {
@@ -37,307 +74,444 @@
     display: flex;
   }
   .remote-container {
-    display: none;
+    display: none !important;
   }
 }
 
-/* Bottoni Giganti Joypad */
-//.voting-grid {
-//  display: grid;
-//  grid-template-columns: 1fr 1fr;
-//  gap: 15px;
-//  height: 70vh; /* Occupa quasi tutto lo schermo in orizzontale */
-//  padding: 10px;
-//
-//  .vote-btn {
-//    font-size: 2.5rem;
-//    font-weight: 900;
-//    border-radius: 20px;
-//    border: none;
-//    box-shadow: 0 8px 0 rgba(0, 0, 0, 0.3);
-//    color: white;
-//
-//    &:active {
-//      transform: translateY(4px);
-//      box-shadow: none;
-//    }
-//
-//    &.btn-a {
-//      background: #ff4757;
-//    }
-//
-//    &.btn-b {
-//      background: #2f3542;
-//    }
-//
-//    &.btn-c {
-//      background: #2ed573;
-//    }
-//
-//    &.btn-d {
-//      background: #ffa502;
-//    }
-//  }
-//}
-
-/* Layout VERO/FALSO orizzontale */
-.tf-layout {
-  grid-template-columns: 1fr 1fr !important;
-
-  .btn-true {
-    background: #2ed573;
-  }
-
-  .btn-false {
-    background: #ff4757;
-  }
-}
-
-@keyframes rotate {
-  0% {
-    transform: rotate(0deg);
-  }
-  50% {
-    transform: rotate(90deg);
-  }
-  100% {
-    transform: rotate(0deg);
-  }
-}
-
-.vote-btn {
-  border: none;
-  border-radius: 20px;
-  font-size: 3rem;
-  font-weight: 900;
+/* ==========================================
+   CONTAINER PRINCIPALE
+   ========================================== */
+.remote-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, $bg-dark 0%, #1a1a2e 100%);
   color: white;
-
-  &.btn-a {
-    background: #ff4444;
-  }
-
-  &.btn-b {
-    background: #4444ff;
-  }
-
-  &.btn-c {
-    background: #ffbb00;
-  }
-
-  &.btn-d {
-    background: #00cc66;
-  }
-
-  &.btn-true {
-    background: #00cc66;
-    font-size: 2rem;
-  }
-
-  &.btn-false {
-    background: #ff4444;
-    font-size: 2rem;
-  }
-
-  &:active {
-    transform: scale(0.9);
-    opacity: 0.8;
-  }
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.status-msg {
-  flex-grow: 1;
+/* ==========================================
+   SCHERMATA SETUP (Inserimento Nickname)
+   ========================================== */
+.setup-screen {
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  font-size: 1.5rem;
-}
-
-.remote-container {
-  min-height: 100vh;
-  background: #1a1a2e;
-  color: white;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  font-family: 'Segoe UI', sans-serif;
-
-  .header {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 15px;
-    border-radius: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-
-  // TASTONE BUZZER
-  .buzz-layout {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    .buzz-btn {
-      width: 250px;
-      height: 250px;
-      border-radius: 50%;
-      border: 10px solid #800000;
-      background: radial-gradient(circle, #ff0000 0%, #a30000 100%);
-      color: white;
-      font-size: 2rem;
-      font-weight: bold;
-      box-shadow: 0 15px 0 #660000, 0 20px 30px rgba(0, 0, 0, 0.5);
-      cursor: pointer;
-      transition: all 0.1s;
-
-      &:active {
-        transform: translateY(10px);
-        box-shadow: 0 5px 0 #660000, 0 10px 20px rgba(0, 0, 0, 0.5);
-      }
-
-      &.blur-theme {
-        background: radial-gradient(circle, #00d2ff 0%, #3a7bd5 100%);
-        border-color: #1e3c72;
-        box-shadow: 0 15px 0 #1e3c72;
-      }
-    }
-  }
-
-  // SLIDER CHRONO
-  .chrono-layout {
-    text-align: center;
-
-    .year-preview {
-      font-size: 4rem;
-      color: #00d2ff;
-      margin: 20px 0;
-    }
-
-    .chrono-slider {
-      width: 100%;
-      height: 15px;
-      border-radius: 5px;
-      appearance: none;
-      background: #333;
-    }
-  }
-
-  // GRIGLIA QUIZ
-  /* remote-component.scss */
-
-  .voting-grid {
-    display: flex;
-    flex-direction: row; // Orizzontale
-    justify-content: stretch;
-    align-items: stretch;
-    gap: 10px;
-    height: 80vh; // Quasi tutto lo schermo
-    width: 100%;
-
-    .vote-btn {
-      flex: 1; // Tutti i bottoni occupano lo stesso spazio
-      font-size: 3rem; // Testo enorme
-      border: none;
-      border-radius: 15px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 10px 0 rgba(0, 0, 0, 0.2);
-
-      &:active {
-        transform: translateY(5px);
-        box-shadow: none;
-      }
-    }
-  }
-
-  .horizontal-chrono {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    height: 80vh;
-
-    .year-preview {
-      font-size: 4rem;
-      color: gold;
-      font-weight: bold;
-    }
-
-    .modern-slider {
-      width: 90%;
-      height: 60px; // Area tocco enorme per il pollice
-    }
-  }
-}
-
-/* Stile Gaming per il Telefono */
-.remote-container {
-  background: #0f0c29;
-  height: 100vh;
-  font-family: 'Inter', sans-serif;
-  color: white;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
   align-items: center;
+  padding: 30px;
+  text-align: center;
+
+  h1 {
+    font-size: 3rem;
+    color: $primary-gold;
+    margin-bottom: 20px;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  }
+
+  p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    opacity: 0.9;
+  }
+
+  input {
+    width: 100%;
+    max-width: 400px;
+    padding: 18px 25px;
+    font-size: 1.3rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    border-radius: 15px;
+    color: white;
+    text-align: center;
+    margin-bottom: 25px;
+    backdrop-filter: blur(10px);
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $primary-gold;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    }
+  }
+
+  .join-btn {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    font-size: 1.5rem;
+    font-weight: 900;
+    background: $primary-gold;
+    color: $bg-dark;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    box-shadow: 0 8px 0 #b8960a, 0 10px 25px rgba(0, 0, 0, 0.4);
+    transition: all 0.15s ease;
+
+    &:active {
+      transform: translateY(6px);
+      box-shadow: 0 2px 0 #b8960a, 0 4px 15px rgba(0, 0, 0, 0.4);
+    }
+  }
 }
 
-.year-display {
-  font-size: 5rem;
-  font-weight: 900;
-  color: #ffd700;
-  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-  margin: 40px 0;
+/* ==========================================
+   HEADER (Info Giocatore + Logout)
+   ========================================== */
+.header {
   background: rgba(255, 255, 255, 0.05);
-  padding: 20px 40px;
-  border-radius: 20px;
-  border: 2px solid gold;
+  backdrop-filter: blur(10px);
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+  flex-shrink: 0;
+
+  .player-info {
+    font-size: 1.1rem;
+
+    b {
+      color: $primary-gold;
+    }
+  }
+
+  .logout-btn {
+    background: rgba(255, 71, 87, 0.2);
+    border: 2px solid $wrong-red;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+
+    .icon {
+      font-size: 1.5rem;
+      line-height: 1;
+    }
+
+    &:active {
+      background: $wrong-red;
+      transform: scale(0.95);
+    }
+  }
 }
 
-.modern-slider {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 15px;
-  border-radius: 10px;
-  background: #16213e;
-  outline: none;
-  margin: 20px 0;
+/* ==========================================
+   CONTENUTO GIOCO
+   ========================================== */
+.game-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  padding: 15px;
+}
 
-  &::-webkit-slider-thumb {
+/* ==========================================
+   STATO: IN ATTESA
+   ========================================== */
+.status-msg {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.8rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 40px;
+
+  .loader {
+    width: 60px;
+    height: 60px;
+    border: 6px solid rgba(255, 215, 0, 0.2);
+    border-top-color: $primary-gold;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 25px;
+  }
+
+  p {
+    opacity: 0.9;
+    line-height: 1.5;
+  }
+
+  &.locked {
+    color: $correct-green;
+    animation: pulse-glow 1.5s ease-in-out infinite;
+  }
+
+  &.others {
+    color: #ffa502;
+  }
+
+  &.error {
+    color: $wrong-red;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ==========================================
+   GRIGLIA BOTTONI (QUIZ / VERO-FALSO)
+   ========================================== */
+.voting-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 15px;
+  width: 100%;
+  height: 100%;
+  max-height: calc(100vh - 100px); /* Sottrae header */
+  padding: 0 10px;
+
+  &.tf-layout {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+  }
+
+  .vote-btn {
+    border: none;
+    border-radius: 20px;
+    font-size: 4rem;
+    font-weight: 900;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 10px 0 rgba(0, 0, 0, 0.3);
+    transition: all 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+
+    &.btn-a {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+      box-shadow: 0 10px 0 #c94545;
+    }
+
+    &.btn-b {
+      background: linear-gradient(135deg, #4e73df 0%, #2e59d9 100%);
+      box-shadow: 0 10px 0 #1e3a8a;
+    }
+
+    &.btn-c {
+      background: linear-gradient(135deg, #f6b93b 0%, #e58e26 100%);
+      box-shadow: 0 10px 0 #b8750f;
+    }
+
+    &.btn-d {
+      background: linear-gradient(135deg, #38ada9 0%, #079992 100%);
+      box-shadow: 0 10px 0 #05706b;
+    }
+
+    &.btn-true {
+      background: linear-gradient(135deg, $correct-green 0%, #1eb95d 100%);
+      box-shadow: 0 10px 0 #128a43;
+      font-size: 2.5rem;
+    }
+
+    &.btn-false {
+      background: linear-gradient(135deg, $wrong-red 0%, #d63031 100%);
+      box-shadow: 0 10px 0 #a71d2a;
+      font-size: 2.5rem;
+    }
+
+    &:active {
+      transform: translateY(8px);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+/* ==========================================
+   LAYOUT CHRONO (Slider Anno)
+   ========================================== */
+.chrono-player-area.horizontal-chrono {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  max-height: calc(100vh - 100px);
+  padding: 20px;
+
+  .year-preview {
+    font-size: 5.5rem;
+    font-weight: 900;
+    color: $primary-gold;
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 25px 60px;
+    border-radius: 25px;
+    border: 3px solid $primary-gold;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+  }
+
+  .modern-slider {
     -webkit-appearance: none;
     appearance: none;
-    width: 40px;
-    height: 40px;
-    background: gold;
-    border-radius: 50%;
+    width: 100%;
+    max-width: 90vw;
+    height: 80px; /* Area touch enorme */
+    border-radius: 15px;
+    background: linear-gradient(to right,
+      rgba(255, 71, 87, 0.3) 0%,
+      rgba(255, 215, 0, 0.3) 50%,
+      rgba(46, 213, 115, 0.3) 100%
+    );
+    outline: none;
+    position: relative;
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.4);
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 70px;
+      height: 70px;
+      background: $primary-gold;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.8),
+      0 8px 16px rgba(0, 0, 0, 0.4);
+      border: 5px solid white;
+      transition: all 0.2s;
+
+      &:active {
+        transform: scale(1.1);
+        box-shadow: 0 0 30px rgba(255, 215, 0, 1);
+      }
+    }
+
+    &::-moz-range-thumb {
+      width: 70px;
+      height: 70px;
+      background: $primary-gold;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+      border: 5px solid white;
+    }
+  }
+
+  .confirm-btn {
+    width: 100%;
+    max-width: 90vw;
+    padding: 25px;
+    background: linear-gradient(135deg, $correct-green 0%, #1eb95d 100%);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 2rem;
+    font-weight: 900;
+    box-shadow: 0 10px 0 #128a43, 0 12px 30px rgba(0, 0, 0, 0.4);
     cursor: pointer;
-    box-shadow: 0 0 15px gold;
-    border: 4px solid white;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.15s ease;
+
+    &:active {
+      transform: translateY(8px);
+      box-shadow: 0 2px 0 #128a43, 0 4px 15px rgba(0, 0, 0, 0.4);
+    }
   }
 }
 
-.confirm-btn {
+/* ==========================================
+   LAYOUT BUZZ (Bottone Rosso Gigante)
+   ========================================== */
+.buzz-layout {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100%;
-  padding: 20px;
-  background: #2ed573;
-  color: #1a1a2e;
-  border: none;
-  border-radius: 15px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-top: auto;
-  box-shadow: 0 5px 0 #1eb95d;
+  height: 100%;
 
-  &:active {
-    transform: translateY(4px);
-    box-shadow: none;
+  .buzz-btn {
+    width: min(80vw, 80vh);
+    height: min(80vw, 80vh);
+    max-width: 400px;
+    max-height: 400px;
+    border-radius: 50%;
+    border: 12px solid #8b0000;
+    background: radial-gradient(circle at 30% 30%, #ff4444 0%, #cc0000 50%, #8b0000 100%);
+    color: white;
+    font-size: 2.2rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    box-shadow:
+      0 20px 0 #660000,
+      0 25px 40px rgba(0, 0, 0, 0.6),
+      inset 0 -10px 30px rgba(0, 0, 0, 0.3),
+      inset 0 10px 30px rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    line-height: 1.3;
+
+    &:active {
+      transform: translateY(15px);
+      box-shadow:
+        0 5px 0 #660000,
+        0 10px 25px rgba(0, 0, 0, 0.6),
+        inset 0 -5px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    &.blur-theme {
+      background: radial-gradient(circle at 30% 30%, #00d2ff 0%, #3a7bd5 50%, #1e3c72 100%);
+      border-color: #1e3c72;
+      box-shadow:
+        0 20px 0 #1e3c72,
+        0 25px 40px rgba(0, 0, 0, 0.6),
+        inset 0 -10px 30px rgba(0, 0, 0, 0.3);
+
+      &:active {
+        box-shadow:
+          0 5px 0 #1e3c72,
+          0 10px 25px rgba(0, 0, 0, 0.6);
+      }
+    }
   }
 }
 
+/* ==========================================
+   RANGE LABELS (Opzionale per Chrono)
+   ========================================== */
 .range-labels {
   display: flex;
   justify-content: space-between;
-  color: #999;
-  font-weight: bold;
+  width: 100%;
+  max-width: 90vw;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 700;
+  font-size: 1rem;
+  margin-top: -10px;
 }

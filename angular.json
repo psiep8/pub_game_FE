@@ -16,9 +16,14 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "polyfills": ["src/polyfills.ts"],
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "assets": [
+              "src/favicon.ico",
+              "src/assets",
+              "src/manifest.json",
+              "src/sw.js",
               {
                 "glob": "**/*",
                 "input": "public"
@@ -42,7 +47,8 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json"
             },
             "development": {
               "optimization": false,

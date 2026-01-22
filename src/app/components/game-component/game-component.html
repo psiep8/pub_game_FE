@@ -1,7 +1,15 @@
 <div class="game-container">
 
+  <!-- SCHERMATA INIZIALE CON QR CODE -->
   @if (phase() === 'IDLE' || (round()?.status === 'REVEAL' && !isSpinning())) {
     <div class="central-action" [class.full-screen]="phase() === 'IDLE'">
+      @if (phase() === 'IDLE') {
+        <div class="qr-section">
+          <h3>📱 SCANSIONA PER GIOCARE</h3>
+          <img [src]="qrCodeUrl" alt="QR Code per giocare" class="qr-code">
+          <p>Apri la camera e inquadra il QR</p>
+        </div>
+      }
       <button (click)="startNewRound()" class="extract-btn">
         <span class="icon">{{ phase() === 'IDLE' ? '🚀' : '🎲' }}</span>
         {{ phase() === 'IDLE' ? 'GIOCA ORA' : 'PROSSIMO ROUND' }}
@@ -9,6 +17,7 @@
     </div>
   }
 
+  <!-- MODALITÀ ESTRATTA -->
   @if (showTypeReveal()) {
     <div class="type-reveal-overlay" @fadeInOut>
       <div class="label">MODALITÀ ESTRATTA:</div>
@@ -16,11 +25,14 @@
     </div>
   }
 
+  <!-- BOLLE CATEGORIE -->
   <div class="bubbles-area">
     @for (cat of allCategories(); track cat.id; let i = $index) {
       <div class="category-bubble"
            [style.top]="cat.top"
            [style.left]="cat.left"
+           [style.--float-duration]="cat.duration"
+           [style.--float-delay]="cat.delay"
            [class.spinning]="phase() === 'SPINNING'"
            [class.is-selected]="selectedCatIndex() === i && phase() === 'SELECTED'"
            [class.as-title]="selectedCatIndex() === i && showQuestion()"
@@ -30,33 +42,36 @@
     }
   </div>
 
+  <!-- AREA DOMANDA -->
   @if (showQuestion() && round(); as current) {
     <div class="question-area" @fadeInOut>
+      <!-- TIMER -->
       <div class="timer-wrapper">
         <div class="timer-bar" [style.width.%]="current.status === 'REVEAL' ? 0 : timer() * 10"></div>
         <span class="timer-text">{{ current.status === 'REVEAL' ? 'Tempo Scaduto!' : timer() + 's' }}</span>
       </div>
+
+      <!-- DOMANDA -->
       <h2 class="question-text">
-        {{ current.payload?.question }}
+        {{ current.payload.question }}
       </h2>
-      @if (current.payload?.options && current.type !== 'CHRONO' && current.payload.options.length > 0) {
+
+      <!-- OPZIONI (QUIZ / TRUE_FALSE) -->
+      @if (current.payload.options && current.type !== 'CHRONO' && current.payload.options.length > 0) {
         <div class="options-grid"
              [class.layout-quiz]="current.type === 'QUIZ' || current.type === 'TRUE_FALSE'">
           @for (opt of current.payload.options; track opt) {
             <button
               class="option-btn"
               [disabled]="current.status === 'REVEAL'"
-              [class.correct]="
-    current.status === 'REVEAL' &&
-    opt === current.payload.correctAnswer
-  "
-            >
+              [class.correct]="current.status === 'REVEAL' && opt === current.payload.correctAnswer">
               {{ opt }}
             </button>
           }
         </div>
       }
 
+      <!-- CHRONO -->
       @if (current.type === 'CHRONO') {
         <div class="chrono-display">
           @if (current.status !== 'REVEAL') {
@@ -73,6 +88,7 @@
         </div>
       }
 
+      <!-- REVEAL RISPOSTA -->
       @if (current.status === 'REVEAL' && current.type !== 'CHRONO') {
         <div class="reveal-banner" @fadeInOut>
           <div class="reveal-label">RISPOSTA ESATTA:</div>
@@ -81,6 +97,7 @@
       }
     </div>
 
+    <!-- LIVE FEED RISPOSTE -->
     <div class="live-feed-container">
       <div class="feed-header">RISPOSTE RICEVUTE</div>
       <div class="feed-list">
@@ -94,6 +111,7 @@
     </div>
   }
 
+  <!-- CONTROLLI FOOTER -->
   <div class="controls-footer">
     <button (click)="openResetModal()" class="control-btn reset">🔄 RESET</button>
     <button (click)="togglePause()" class="control-btn pause" [class.is-paused]="isPaused()">
@@ -101,6 +119,7 @@
     </button>
   </div>
 
+  <!-- MODAL RESET -->
   @if (showResetModal()) {
     <div class="modal-overlay" @fadeInOut>
       <div class="modal-content">
@@ -114,11 +133,17 @@
     </div>
   }
 
+  <!-- OVERLAY PAUSA -->
   @if (isPaused()) {
     <div class="pause-overlay" @fadeInOut>
-      <div class="pause-card"><h2>GIOCO IN PAUSA</h2>
-        <button (click)="togglePause()" class="extract-btn">RIPRENDI</button>
+      <div class="pause-card">
+        <h2>⏸️ GIOCO IN PAUSA</h2>
+        <button (click)="togglePause()" class="extract-btn">
+          <span class="icon">▶️</span>
+          RIPRENDI
+        </button>
       </div>
     </div>
   }
+
 </div>

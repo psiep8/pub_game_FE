@@ -5,243 +5,109 @@ $bg-dark: #1a1a2e;
 $card-bg: #16213e;
 $text-light: #e9ecef;
 
-.game-container {
-  //max-width: 800px;
-  margin: 40px auto;
-  padding: 20px;
-  color: $text-light;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  font-family: 'Segoe UI', Roboto, sans-serif;
-  text-align: center;
-  position: relative;
-  height: 80vh;
-  overflow: hidden;
-  background: #0f0c29;
-}
-
-.category-grid {
+/* ==========================================
+   PWA INSTALL BANNER
+   ========================================== */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 15px 30px;
+  border-radius: 50px;
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+  z-index: 10000;
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-  margin-bottom: 30px;
-  padding: 10px;
+  align-items: center;
+  gap: 15px;
+  animation: slide-up-banner 0.5s ease-out, float-banner 3s ease-in-out infinite;
+  cursor: pointer;
+  transition: all 0.3s;
 
-  .category-card {
-    padding: 12px 20px;
-    background: $card-bg;
-    border: 2px solid #0f3460;
-    border-radius: 12px;
-    font-weight: 600;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    opacity: 0.4;
-    color: #999;
+  &:hover {
+    transform: translateX(-50%) translateY(-5px);
+    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.6);
+  }
 
-    // Classe applicata dall'animazione/logic
-    &[style*="background-color"] { // Rileva il cambio di stato dell'animazione
-      opacity: 1;
-      color: white;
+  .icon {
+    font-size: 2rem;
+  }
+
+  .text {
+    .title {
+      font-weight: 900;
+      font-size: 1.1rem;
+      margin-bottom: 3px;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+  }
+
+  .close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 10px;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: rotate(90deg);
     }
   }
 }
 
-.question-area {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 30px;
-  border-radius: 15px;
-  margin-top: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-
-  .question-text {
-    font-size: 1.8rem;
-    margin: 25px 0;
-    line-height: 1.4;
+@keyframes slide-up-banner {
+  from {
+    bottom: -100px;
+    opacity: 0;
+  }
+  to {
+    bottom: 20px;
+    opacity: 1;
   }
 }
 
-.timer-wrapper {
-  width: 100%;
-  height: 12px;
-  background: #0f3460;
-  border-radius: 6px;
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 10px;
-
-  .timer-bar {
-    height: 100%;
-    background: linear-gradient(90deg, $primary-gold, $wrong-red);
-    transition: width 1s linear; // Cruciale per il movimento fluido
-  }
-
-  .timer-text {
-    position: absolute;
-    right: 10px;
-    top: -20px;
-    font-size: 0.9rem;
-    color: $primary-gold;
-  }
-}
-
-.options-grid {
-  display: grid;
-  gap: 15px;
-  margin: 30px 0;
-
-  &.layout-quiz {
-    grid-template-columns: 1fr 1fr; // 2x2 per i Quiz
-  }
-
-  &.layout-tf {
-    grid-template-columns: 1fr; // Una sopra l'altra per Vero/Falso
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-}
-
-.option-btn {
-  padding: 20px;
-  background: $card-bg;
-  border: 2px solid #0f3460;
-  color: white;
-  border-radius: 12px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover:not(:disabled) {
-    border-color: $primary-gold;
-    background: #1b264f;
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: 0.8;
-  }
-
-  &.correct {
-    background-color: $correct-green !important;
-    border-color: #1eb95d;
-    color: #1a1a2e;
-    font-weight: bold;
-    animation: pulse-correct 1s infinite;
-  }
-}
-
-.reveal-banner {
-  margin-top: 20px;
-  padding: 15px;
-  background: rgba($correct-green, 0.2);
-  border: 1px solid $correct-green;
-  border-radius: 8px;
-  color: $correct-green;
-  font-size: 1.2rem;
-}
-
-.next-btn {
-  margin-top: 30px;
-  padding: 15px 40px;
-  background: $primary-gold;
-  border: none;
-  border-radius: 50px;
-  font-weight: bold;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: transform 0.2s;
-
-  &:hover {
-    transform: translateY(-3px) scale(1.05);
-  }
-
-  &:disabled {
-    background: #555;
-    cursor: not-allowed;
-  }
-}
-
-@keyframes pulse-correct {
-  0% {
-    transform: scale(1);
+@keyframes float-banner {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
   }
   50% {
-    transform: scale(1.03);
-  }
-  100% {
-    transform: scale(1);
+    transform: translateX(-50%) translateY(-8px);
   }
 }
 
-// Categorie che vagano
-.floating-container {
-  position: absolute;
-  width: 100%;
-  height: 60%;
-  top: 10%;
+/* ==========================================
+   GAME CONTAINER
+   ========================================== */
+.game-container {
+  margin: 0;
+  padding: 0;
+  color: $text-light;
+  border-radius: 0;
+  box-shadow: none;
+  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+  text-align: center;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0c29 50%, #080616 100%);
 }
 
-//.category-bubble {
-//  position: absolute;
-//  padding: 40px;
-//  background: rgba(255, 255, 255, 0.1);
-//  border: 2px solid rgba(255, 215, 0, 0.3);
-//  border-radius: 50px;
-//  color: white;
-//  font-weight: bold;
-//  font-size: 2vw;
-//  white-space: nowrap;
-//  transition: all 0.5s ease-in-out;
-//
-//  // Animazione di galleggiamento casuale
-//  animation: float-around 10s infinite alternate ease-in-out;
-//}
-
-// Effetto Selezione Gigantesca
-.category-bubble.selected {
-  position: fixed;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) scale(4); // Diventa enorme
-  background: #ffd700;
-  color: #000;
-  z-index: 999;
-  box-shadow: 0 0 100px #ffd700;
-  animation: none;
-}
-
-// Una volta scelta, si sposta in alto
-.category-bubble.move-up {
-  position: fixed;
-  top: 5% !important;
-  left: 50% !important;
-  transform: translate(-50%, 0) scale(1.2);
-  z-index: 100;
-}
-
-@keyframes float-around {
-  0% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-  33% {
-    transform: translate(30px, -50px) rotate(5deg);
-  }
-  66% {
-    transform: translate(-20px, 40px) rotate(-5deg);
-  }
-  100% {
-    transform: translate(10px, -10px) rotate(0deg);
-  }
-}
-
-//.game-container {
-//  position: relative;
-//  width: 100%;
-//  height: 90vh;
-//  overflow: hidden;
-//  background: radial-gradient(circle, #1a1a2e 0%, #0f0c29 100%);
-//}
-
+/* ==========================================
+   BUBBLES AREA
+   ========================================== */
 .bubbles-area {
   position: absolute;
   width: 100%;
@@ -250,34 +116,53 @@ $text-light: #e9ecef;
 
 .category-bubble {
   position: absolute;
-  padding: 20px 40px;
-  margin: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(255, 215, 0, 0.4);
+  padding: 18px 35px;
+  margin: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  border: 2px solid rgba(255, 215, 0, 0.5);
   border-radius: 100px;
-  color: white;
-  font-weight: 800;
-  font-size: 1.2rem;
-  transition: all 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  backdrop-filter: blur(5px);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+  transition: all 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4),
+  inset 0 1px 0 rgba(255, 255, 255, 0.1);
   pointer-events: none;
-  filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+  white-space: nowrap;
+  z-index: 10;
 
   &.spinning {
-    /* Animazione più fluida e meno "scattosa" */
-    animation: float-chaotic 15s infinite alternate ease-in-out;
+    will-change: transform;
+
+    &:nth-child(4n+1) {
+      animation: float-slow-1 var(--float-duration, 18s) infinite ease-in-out;
+      animation-delay: var(--float-delay, 0s);
+    }
+
+    &:nth-child(4n+2) {
+      animation: float-slow-2 var(--float-duration, 20s) infinite ease-in-out;
+      animation-delay: var(--float-delay, 0s);
+    }
+
+    &:nth-child(4n+3) {
+      animation: float-slow-3 var(--float-duration, 22s) infinite ease-in-out;
+      animation-delay: var(--float-delay, 0s);
+    }
+
+    &:nth-child(4n) {
+      animation: float-slow-4 var(--float-duration, 19s) infinite ease-in-out;
+      animation-delay: var(--float-delay, 0s);
+    }
   }
-  //&.spinning {
-  //  animation: bounce-random 3s infinite alternate;
-  //}
 
   &.hidden {
     opacity: 0;
     transform: scale(0.5);
   }
 
-  // EFFETTO ZOOM GIGANTE
+  // EFFETTO ZOOM GIGANTE - Animazione FLUIDA
   &.is-selected {
     top: 50% !important;
     left: 50% !important;
@@ -286,105 +171,119 @@ $text-light: #e9ecef;
     color: #1a1a2e;
     z-index: 1000;
     box-shadow: 0 0 100px rgba(255, 215, 0, 0.6);
+    animation: zoom-in-smooth 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
   }
 
-  // DIVENTA IL TITOLO
+  // DIVENTA IL TITOLO - CENTRATO PERFETTO
   &.as-title {
-    top: 5% !important;
+    top: 10% !important;
     left: 50% !important;
-    transform: translate(-50%, 0) scale(1);
+    transform: translate(-50%, -50%) scale(1.8) !important;
     background: transparent;
     border-color: #ffd700;
     color: #ffd700;
     z-index: 500;
+    animation: move-to-title 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
   }
 }
 
-.type-reveal-overlay {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%) scale(0.5);
-  background: linear-gradient(135deg, #ffd700, #ff8c00);
-  color: #1a1a2e;
-  padding: 40px 80px;
-  border-radius: 30px;
-  font-size: 4rem;
-  font-weight: 900;
-  box-shadow: 0 0 100px rgba(255, 215, 0, 0.8), inset 0 0 20px white;
-  z-index: 3000;
-  border: 8px solid white;
-  text-transform: uppercase;
-  letter-spacing: 5px;
-
-  /* Animazione d'ingresso */
-  animation: entrance-reveal 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-
-  .label {
-    font-size: 1rem;
-    letter-spacing: 2px;
-    opacity: 0.8;
-    margin-bottom: 10px;
-  }
-}
-
-@keyframes entrance-reveal {
-  0% { transform: translate(-50%, -50%) scale(0) rotate(-10deg); opacity: 0; }
-  100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
-}
-
-.question-area {
-  margin-top: 180px; // Spazio per la bubble-titolo
-  padding: 20px;
-  text-align: center;
-}
-
-.category-bubble.as-title,
-.category-bubble.is-selected {
-  animation: none !important;
-}
-
-@keyframes float-chaotic {
-  0% {
+/* Animazioni Float Lente */
+@keyframes float-slow-1 {
+  0%, 100% {
     transform: translate(0, 0) rotate(0deg);
   }
   25% {
-    transform: translate(30px, -40px) rotate(5deg);
+    transform: translate(15px, -20px) rotate(2deg);
   }
   50% {
-    transform: translate(-20px, 30px) rotate(-4deg);
+    transform: translate(-10px, 15px) rotate(-2deg);
   }
   75% {
-    transform: translate(40px, 20px) rotate(3deg);
+    transform: translate(20px, 10px) rotate(1deg);
   }
-  100% {
+}
+
+@keyframes float-slow-2 {
+  0%, 100% {
     transform: translate(0, 0) rotate(0deg);
   }
-}
-
-.category-bubble.spinning {
-  animation-name: float-chaotic;
-  animation-iteration-count: infinite;
-  animation-timing-function: ease-in-out;
-}
-
-// ... Mantieni gli stili precedenti per timer-wrapper e option-btn ...
-
-@keyframes bounce-random {
-  from {
-    transform: translate(0, 0);
+  25% {
+    transform: translate(-18px, 12px) rotate(-1deg);
   }
-  to {
-    transform: translate(20px, -20px);
+  50% {
+    transform: translate(12px, -18px) rotate(2deg);
+  }
+  75% {
+    transform: translate(-15px, -10px) rotate(-2deg);
   }
 }
 
-/* Posizionamento centrale del bottone */
+@keyframes float-slow-3 {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(10px, 18px) rotate(1deg);
+  }
+  50% {
+    transform: translate(-15px, -12px) rotate(-1deg);
+  }
+  75% {
+    transform: translate(18px, -15px) rotate(2deg);
+  }
+}
+
+@keyframes float-slow-4 {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(-12px, -15px) rotate(-2deg);
+  }
+  50% {
+    transform: translate(18px, 10px) rotate(1deg);
+  }
+  75% {
+    transform: translate(-10px, 20px) rotate(-1deg);
+  }
+}
+
+/* Animazione Zoom Smooth - NO SCATTI */
+@keyframes zoom-in-smooth {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(3.3);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(3);
+    opacity: 1;
+  }
+}
+
+/* Animazione Movimento a Titolo */
+@keyframes move-to-title {
+  0% {
+    top: 50% !important;
+    transform: translate(-50%, -50%) scale(3);
+  }
+  100% {
+    top: 8% !important;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+/* ==========================================
+   CENTRAL ACTION & QR CODE
+   ========================================== */
 .central-action {
-  position: absolute;
-  top: 90%;
+  position: fixed;
+  bottom: 5%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2000; // Sopra le bolle che vagano
+  transform: translateX(-50%);
+  z-index: 2000;
 }
 
 .extract-btn {
@@ -418,42 +317,244 @@ $text-light: #e9ecef;
   }
 }
 
-// Pulsante iniziale a tutto schermo
+// Schermata IDLE con QR Code
 .central-action.full-screen {
-  position: absolute;
+  position: fixed;
   top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  //left: 0;
+  width: 100vw;
+  height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 100;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  gap: 40px;
+
+  .qr-section {
+    background: white;
+    padding: 30px;
+    border-radius: 25px;
+    box-shadow: 0 0 50px rgba(255, 215, 0, 0.6);
+    text-align: center;
+    animation: float-qr 3s ease-in-out infinite;
+
+    h3 {
+      color: #1a1a2e;
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      font-weight: 900;
+    }
+
+    .qr-code {
+      width: 250px;
+      height: 250px;
+      margin: 0 auto;
+      background: white;
+      padding: 15px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    p {
+      color: #555;
+      font-size: 1.1rem;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+  }
 
   .extract-btn {
-    transform: scale(2); // Lo rende gigante
-    padding: 20px 40px;
+    transform: scale(1.5);
+    padding: 25px 60px;
+    animation: pulse-play 2s ease-in-out infinite;
   }
 }
 
-// Bolla centrale per il tipo di gioco
+@keyframes float-qr {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-play {
+  0%, 100% {
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 60px rgba(255, 215, 0, 0.8);
+  }
+}
+
+/* ==========================================
+   TYPE REVEAL OVERLAY
+   ========================================== */
 .type-reveal-overlay {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  background: gold;
-  color: black;
-  padding: 30px 60px;
-  border-radius: 50px;
-  font-size: 3rem;
-  font-weight: bold;
-  box-shadow: 0 0 50px gold;
-  z-index: 200;
-  border: 5px solid white;
+  transform: translate(-50%, -50%) scale(0.5);
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  color: #1a1a2e;
+  padding: 40px 80px;
+  border-radius: 30px;
+  font-size: 4rem;
+  font-weight: 900;
+  box-shadow: 0 0 100px rgba(255, 215, 0, 0.8), inset 0 0 20px white;
+  z-index: 3000;
+  border: 8px solid white;
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  animation: entrance-reveal 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+
+  .label {
+    font-size: 1rem;
+    letter-spacing: 2px;
+    opacity: 0.8;
+    margin-bottom: 10px;
+  }
 }
 
+@keyframes entrance-reveal {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(-10deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* ==========================================
+   QUESTION AREA
+   ========================================== */
+.question-area {
+  position: relative;
+  margin-top: 200px;
+  padding: 35px 50px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  backdrop-filter: blur(15px);
+  border-radius: 25px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+  inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  .question-text {
+    font-size: 1.9rem;
+    font-weight: 600;
+    margin: 30px 0;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ==========================================
+   TIMER
+   ========================================== */
+.timer-wrapper {
+  width: 100%;
+  height: 14px;
+  background: rgba(15, 52, 96, 0.5);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 15px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+
+  .timer-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #ffd700 0%, #ffed4e 50%, #ff6b6b 100%);
+    transition: width 1s linear;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  }
+
+  .timer-text {
+    position: absolute;
+    right: 15px;
+    top: -25px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: $primary-gold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* ==========================================
+   OPTIONS GRID
+   ========================================== */
+.options-grid {
+  display: grid;
+  gap: 15px;
+  margin: 30px 0;
+
+  &.layout-quiz {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.option-btn {
+  padding: 22px 28px;
+  background: linear-gradient(135deg, rgba(22, 33, 62, 0.9), rgba(15, 52, 96, 0.8));
+  border: 2px solid rgba(15, 52, 96, 0.6);
+  color: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
+
+  &:hover:not(:disabled) {
+    border-color: $primary-gold;
+    background: linear-gradient(135deg, rgba(27, 38, 79, 1), rgba(22, 33, 62, 0.95));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.7;
+  }
+
+  &.correct {
+    background: linear-gradient(135deg, $correct-green, #27ae60) !important;
+    border-color: #1eb95d;
+    color: #ffffff;
+    font-weight: 700;
+    transform: scale(1.02);
+    box-shadow: 0 0 25px rgba(46, 213, 115, 0.6);
+    animation: pulse-correct 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse-correct {
+  0%, 100% {
+    transform: scale(1.02);
+    box-shadow: 0 0 25px rgba(46, 213, 115, 0.6);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 35px rgba(46, 213, 115, 0.8);
+  }
+}
+
+/* ==========================================
+   REVEAL BANNER
+   ========================================== */
 .reveal-banner {
   margin-top: 30px;
   padding: 20px;
@@ -488,79 +589,54 @@ $text-light: #e9ecef;
   }
 }
 
-/* Stile per i bottoni disabilitati durante il reveal */
-.option-btn:disabled {
-  opacity: 0.6;
-
-  &.correct {
-    opacity: 1; // La risposta corretta deve brillare anche se disabilitata
-    transform: scale(1.05);
-  }
-}
-
-.pause-btn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  padding: 10px 20px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  border: 2px solid gold;
-  border-radius: 30px;
-  cursor: pointer;
-  z-index: 1000;
-  transition: all 0.3s;
-
-  &:hover {
-    background: gold;
-    color: black;
-  }
-
-  &.active {
-    background: #ff4444;
-    border-color: white;
-  }
-}
-
+/* ==========================================
+   PAUSE OVERLAY - CENTRATO
+   ========================================== */
 .pause-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.95);
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 999;
-  color: gold;
 
-  h2 {
-    font-size: 3rem;
-    text-shadow: 0 0 20px gold;
+  .pause-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+
+    h2 {
+      font-size: 4rem;
+      color: gold;
+      text-shadow: 0 0 30px gold;
+      margin: 0;
+    }
+
+    .extract-btn {
+      transform: scale(1);
+      margin: 0;
+    }
   }
 }
 
-// Assicurati che .category-bubble.is-selected abbia l'effetto desiderato
-.category-bubble.is-selected {
-  background: gold !important;
-  color: black !important;
-  box-shadow: 0 0 30px gold;
-  transform: scale(1.3);
-  z-index: 10;
-}
-
+/* ==========================================
+   CONTROLS FOOTER
+   ========================================== */
 .controls-footer {
   position: fixed;
   bottom: 20px;
   right: 20px;
   display: flex;
   gap: 15px;
+  z-index: 1000;
 }
 
 .control-btn {
-  // Ereditiamo lo stile del tuo extract-btn
   background: rgba(0, 0, 0, 0.8);
   border: 2px solid gold;
   color: gold;
@@ -594,7 +670,9 @@ $text-light: #e9ecef;
   }
 }
 
-/* MODALE STYLE */
+/* ==========================================
+   MODAL
+   ========================================== */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -651,35 +729,80 @@ $text-light: #e9ecef;
   }
 }
 
-.category-bubble.clickable {
-  cursor: pointer;
-  transition: transform 0.3s;
+/* ==========================================
+   LIVE FEED
+   ========================================== */
+.live-feed-container {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 15px;
+  padding: 15px;
+  max-width: 300px;
+  max-height: 300px;
+  overflow-y: auto;
 
-  &:hover {
-    transform: scale(1.2) !important;
-    border: 4px solid gold;
+  .feed-header {
+    color: gold;
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+  }
+
+  .feed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .feed-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .player-name {
+      color: white;
+      font-weight: 600;
+    }
+
+    .player-time {
+      color: gold;
+      font-size: 0.85rem;
+    }
   }
 }
 
-.select-hint {
-  position: absolute;
-  bottom: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: white;
-  color: black;
-  font-size: 0.8rem;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-weight: bold;
-}
+/* ==========================================
+   CHRONO DISPLAY
+   ========================================== */
+.chrono-display {
+  margin: 30px 0;
 
-.action-instruction {
-  position: absolute;
-  bottom: 100px;
-  width: 100%;
-  text-align: center;
-  color: white;
-  text-shadow: 2px 2px 10px black;
-  z-index: 50;
+  .chrono-waiting-box {
+    text-align: center;
+
+    .chrono-title {
+      color: gold;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+
+    .chrono-placeholder {
+      font-size: 2rem;
+      color: rgba(255, 255, 255, 0.5);
+    }
+  }
+
+  .reveal-banner.chrono-reveal {
+    .reveal-value-big {
+      font-size: 3rem;
+      font-weight: 900;
+      color: gold;
+    }
+  }
 }
