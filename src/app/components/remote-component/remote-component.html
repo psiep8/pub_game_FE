@@ -3,6 +3,41 @@
   <h2>Ruota il telefono</h2>
   <p>Per giocare al meglio, usa la modalità orizzontale</p>
 </div>
+
+<!-- BANNER INSTALLAZIONE PWA -->
+@if (showInstallBanner()) {
+  <div class="pwa-banner install-banner">
+    <div class="banner-content">
+      <span class="banner-icon">📱</span>
+      <div class="banner-text">
+        <strong>Installa PubGame</strong>
+        <p>Aggiungi alla home per un'esperienza migliore!</p>
+      </div>
+      <div class="banner-actions">
+        <button (click)="installPWA()" class="banner-btn install">Installa</button>
+        <button (click)="dismissInstallBanner()" class="banner-btn dismiss">×</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- BANNER AGGIORNAMENTO DISPONIBILE -->
+@if (showUpdateBanner()) {
+  <div class="pwa-banner update-banner">
+    <div class="banner-content">
+      <span class="banner-icon">🔄</span>
+      <div class="banner-text">
+        <strong>Aggiornamento disponibile</strong>
+        <p>Nuova versione pronta! Ricarica per aggiornare.</p>
+      </div>
+      <div class="banner-actions">
+        <button (click)="updateApp()" class="banner-btn update">Aggiorna</button>
+        <button (click)="dismissUpdateBanner()" class="banner-btn dismiss">×</button>
+      </div>
+    </div>
+  </div>
+}
+
 <div class="remote-container">
 
   @if (!nickname()) {
@@ -69,15 +104,6 @@
                 <button (click)="sendBuzz()" class="buzz-btn blur-theme">CHI È?</button>
               </div>
             }
-
-            <!--            @case ('CHRONO') {-->
-              <!--              <div class="chrono-layout">-->
-              <!--                <h3>Scegli l'anno:</h3>-->
-              <!--                <div class="year-preview">{{ selectedYear }}</div>-->
-              <!--                <input type="range" min="1900" max="2026" [(ngModel)]="selectedYear" class="chrono-slider">-->
-              <!--                <button (click)="sendChronoVote()" class="confirm-btn">CONFERMA</button>-->
-              <!--              </div>-->
-              <!--            }-->
           }
         }
         @case ('LOCKED') {

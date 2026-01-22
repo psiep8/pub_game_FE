@@ -1,10 +1,19 @@
 import { Routes } from '@angular/router';
-import {RemoteComponent} from './components/remote-component/remote-component';
-import {App} from './app';
 import {GameComponent} from './components/game-component/game-component';
+import {MobileOnlyGuard} from './guard/mobile-only.guard';
+import {DesktopOnlyGuard} from './guard/desktop-only.guard';
+import {RemoteComponent} from './components/remote-component/remote-component';
 
 export const routes: Routes = [
-  { path: 'tv', component: GameComponent },
-  { path: 'play', component: RemoteComponent },
+  {
+    path: 'tv',
+    component: GameComponent,
+    canActivate: [DesktopOnlyGuard]
+  },
+  {
+    path: 'play',
+    component: RemoteComponent,
+    canActivate: [MobileOnlyGuard]
+  },
   { path: '', redirectTo: 'tv', pathMatch: 'full' }
 ];

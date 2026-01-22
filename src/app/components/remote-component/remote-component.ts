@@ -1,6 +1,8 @@
 import {Component, inject, OnDestroy, OnInit, signal, HostListener} from '@angular/core';
 import {WebSocketService} from '../../services/web-socket.service';
 import {FormsModule} from '@angular/forms';
+import {SwUpdate, VersionReadyEvent} from '@angular/service-worker';
+import {filter} from 'rxjs/operators';
 
 @Component({
   selector: 'app-remote-component',
@@ -11,6 +13,7 @@ import {FormsModule} from '@angular/forms';
 export class RemoteComponent implements OnInit, OnDestroy {
 
   private ws = inject(WebSocketService);
+  private swUpdate = inject(SwUpdate);
 
   nickname = signal<string | null>(localStorage.getItem('nickname'));
   tempNickname = '';
@@ -26,11 +29,16 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   currentRoundType: string = '';
 
+  // PWA States
+  showInstallBanner = signal(false);
+  showUpdateBanner = signal(false);
+  private deferredPrompt: any;
+
   @HostListener('window:touchmove', ['$event'])
   onTouchMove(event: TouchEvent) {
     const target = event.target as HTMLElement;
     if (!target.classList.contains('modern-slider')) {
-      event.preventDefault(); // Blocca tutto tranne lo slider
+      event.preventDefault();
     }
   }
 
@@ -38,14 +46,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
   @HostListener('window:gesturechange', ['$event'])
   @HostListener('window:gestureend', ['$event'])
   onGesture(event: Event) {
-    event.preventDefault(); // Blocca zoom con pinch
+    event.preventDefault();
   }
 
   ngOnInit(): void {
-    // Registra il Service Worker per PWA
-    this.registerServiceWorker();
-
-    // Forza orientamento landscape se possibile
+    // Setup PWA
+    this.setupPWA();
+    this.checkForUpdates();
     this.lockOrientation();
 
     // WebSocket listeners
@@ -77,17 +84,86 @@ export class RemoteComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Registra Service Worker per PWA
-  private registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').then(
-        registration => console.log('SW registrato:', registration.scope),
-        error => console.log('SW fallito:', error)
-      );
-    }
+  // ========== PWA SETUP ==========
+
+  private setupPWA() {
+    // Intercetta evento di installazione
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      this.deferredPrompt = e;
+
+      // Mostra banner solo se non è già installata
+      if (!this.isAppInstalled()) {
+        this.showInstallBanner.set(true);
+      }
+    });
+
+    // Rileva quando l'app è stata installata
+    window.addEventListener('appinstalled', () => {
+      console.log('🎉 PWA installata con successo!');
+      this.showInstallBanner.set(false);
+      this.deferredPrompt = null;
+    });
   }
 
-  // Blocca l'orientamento in landscape (solo su alcuni browser)
+  private checkForUpdates() {
+    if (!this.swUpdate.isEnabled) {
+      console.log('⚠️ Service Worker disabilitato (probabilmente in dev mode)');
+      return;
+    }
+
+    // Controlla aggiornamenti ogni 30 minuti
+    setInterval(() => {
+      this.swUpdate.checkForUpdate();
+    }, 30 * 60 * 1000);
+
+    // Quando c'è un aggiornamento pronto
+    this.swUpdate.versionUpdates
+      .pipe(filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'))
+      .subscribe(() => {
+        this.showUpdateBanner.set(true);
+      });
+  }
+
+  private isAppInstalled(): boolean {
+    // Rileva se l'app è in modalità standalone (installata)
+    return window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true;
+  }
+
+  // Azioni PWA per l'utente
+  async installPWA() {
+    if (!this.deferredPrompt) return;
+
+    this.deferredPrompt.prompt();
+    const { outcome } = await this.deferredPrompt.userChoice;
+
+    if (outcome === 'accepted') {
+      console.log('✅ Utente ha accettato l\'installazione');
+    } else {
+      console.log('❌ Utente ha rifiutato l\'installazione');
+    }
+
+    this.deferredPrompt = null;
+    this.showInstallBanner.set(false);
+  }
+
+  dismissInstallBanner() {
+    this.showInstallBanner.set(false);
+  }
+
+  updateApp() {
+    this.swUpdate.activateUpdate().then(() => {
+      window.location.reload();
+    });
+  }
+
+  dismissUpdateBanner() {
+    this.showUpdateBanner.set(false);
+  }
+
+  // ========== BLOCCA ORIENTAMENTO ==========
+
   private async lockOrientation() {
     try {
       const screen = window.screen as any;
@@ -98,6 +174,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
       console.log('Orientamento non bloccabile su questo dispositivo');
     }
   }
+
+  // ========== GAME LOGIC (invariato) ==========
 
   setNickname() {
     if (this.tempNickname.trim()) {
@@ -111,8 +189,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.ws.sendAnswer(1, this.nickname()!, index, responseTimeMs);
     this.hasAnswered.set(true);
     this.gameState.set('LOCKED');
-
-    // Vibrazione feedback
     this.vibrate(50);
   }
 
@@ -120,8 +196,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const time = Date.now() - this.startTime;
     this.ws.sendAnswer(1, this.nickname()!, -1, time);
     this.gameState.set('LOCKED');
-
-    // Vibrazione forte per buzz
     this.vibrate([100, 50, 100]);
   }
 
@@ -136,13 +210,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   onYearChange(event: any) {
     this.selectedYear.set(parseInt(event.target.value));
-    // Vibrazione leggera mentre si muove lo slider
     this.vibrate(10);
-  }
-
-  private calculateResponseTime(): number {
-    if (this.startTime === 0) return 5000;
-    return Date.now() - this.startTime;
   }
 
   sendChronoAnswer() {
