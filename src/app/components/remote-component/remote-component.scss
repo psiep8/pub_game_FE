@@ -63,10 +63,18 @@ html, body {
 }
 
 @keyframes rotate-icon {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-15deg); }
-  50% { transform: rotate(90deg); }
-  75% { transform: rotate(75deg); }
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-15deg);
+  }
+  50% {
+    transform: rotate(90deg);
+  }
+  75% {
+    transform: rotate(75deg);
+  }
 }
 
 @media (orientation: portrait) {
@@ -267,12 +275,18 @@ html, body {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 /* ==========================================
@@ -463,11 +477,10 @@ html, body {
     font-size: 2.2rem;
     font-weight: 900;
     text-transform: uppercase;
-    box-shadow:
-      0 20px 0 #660000,
-      0 25px 40px rgba(0, 0, 0, 0.6),
-      inset 0 -10px 30px rgba(0, 0, 0, 0.3),
-      inset 0 10px 30px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 0 #660000,
+    0 25px 40px rgba(0, 0, 0, 0.6),
+    inset 0 -10px 30px rgba(0, 0, 0, 0.3),
+    inset 0 10px 30px rgba(255, 255, 255, 0.2);
     cursor: pointer;
     transition: all 0.15s ease;
     display: flex;
@@ -479,24 +492,21 @@ html, body {
 
     &:active {
       transform: translateY(15px);
-      box-shadow:
-        0 5px 0 #660000,
-        0 10px 25px rgba(0, 0, 0, 0.6),
-        inset 0 -5px 20px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 5px 0 #660000,
+      0 10px 25px rgba(0, 0, 0, 0.6),
+      inset 0 -5px 20px rgba(0, 0, 0, 0.3);
     }
 
     &.blur-theme {
       background: radial-gradient(circle at 30% 30%, #00d2ff 0%, #3a7bd5 50%, #1e3c72 100%);
       border-color: #1e3c72;
-      box-shadow:
-        0 20px 0 #1e3c72,
-        0 25px 40px rgba(0, 0, 0, 0.6),
-        inset 0 -10px 30px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 20px 0 #1e3c72,
+      0 25px 40px rgba(0, 0, 0, 0.6),
+      inset 0 -10px 30px rgba(0, 0, 0, 0.3);
 
       &:active {
-        box-shadow:
-          0 5px 0 #1e3c72,
-          0 10px 25px rgba(0, 0, 0, 0.6);
+        box-shadow: 0 5px 0 #1e3c72,
+        0 10px 25px rgba(0, 0, 0, 0.6);
       }
     }
   }
@@ -654,6 +664,171 @@ html, body {
     &.dismiss {
       width: 32px;
       height: 32px;
+    }
+  }
+}
+
+.buzz-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 40px;
+
+  .buzz-button {
+    position: relative;
+    width: 80vw;
+    max-width: 500px;
+    height: 80vw;
+    max-height: 500px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #ff0000, #cc0000);
+    box-shadow: 0 20px 60px rgba(255, 0, 0, 0.6),
+    inset 0 -10px 30px rgba(0, 0, 0, 0.3),
+    inset 0 10px 30px rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    color: white;
+    font-weight: 900;
+    text-transform: uppercase;
+
+    &:not(:disabled) {
+      animation: buzzPulse 1.5s ease-in-out infinite;
+
+      &:active {
+        transform: scale(0.95);
+        box-shadow: 0 10px 30px rgba(255, 0, 0, 0.8),
+        inset 0 5px 20px rgba(0, 0, 0, 0.5);
+      }
+    }
+
+    &:disabled {
+      background: linear-gradient(135deg, #666, #444);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      cursor: not-allowed;
+      animation: none;
+    }
+
+    .buzz-icon {
+      font-size: 6rem;
+      filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.5));
+    }
+
+    .buzz-text {
+      font-size: 3rem;
+      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      letter-spacing: 3px;
+    }
+  }
+}
+
+// ========== STATUS MESSAGES ==========
+
+.status-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 40px;
+  color: white;
+
+  .loader {
+    width: 60px;
+    height: 60px;
+    border: 6px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #00d9ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+  }
+
+  .locked-icon,
+  .blocked-icon,
+  .error-icon {
+    font-size: 8rem;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.5));
+  }
+
+  p {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 10px 0;
+  }
+
+  .sub-text {
+    font-size: 1.3rem;
+    opacity: 0.8;
+    font-weight: 400;
+  }
+
+  &.locked {
+    background: radial-gradient(circle, rgba(0, 217, 255, 0.2), transparent);
+    animation: lockedPulse 1s ease-in-out infinite;
+  }
+
+  &.others {
+    background: radial-gradient(circle, rgba(255, 165, 0, 0.2), transparent);
+  }
+
+  &.error {
+    background: radial-gradient(circle, rgba(255, 0, 0, 0.2), transparent);
+  }
+}
+
+// ========== ANIMAZIONI ==========
+
+@keyframes buzzPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 20px 60px rgba(255, 0, 0, 0.6),
+    inset 0 -10px 30px rgba(0, 0, 0, 0.3),
+    inset 0 10px 30px rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 30px 80px rgba(255, 0, 0, 0.8),
+    inset 0 -10px 30px rgba(0, 0, 0, 0.3),
+    inset 0 10px 30px rgba(255, 255, 255, 0.3);
+  }
+}
+
+@keyframes lockedPulse {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ========== RESPONSIVE ==========
+
+@media (max-width: 768px) and (orientation: portrait) {
+  .buzz-container .buzz-button {
+    width: 70vw;
+    height: 70vw;
+
+    .buzz-icon {
+      font-size: 4rem;
+    }
+
+    .buzz-text {
+      font-size: 2rem;
     }
   }
 }

@@ -25,77 +25,39 @@
     </div>
   }
 
-  <!-- BOLLE CATEGORIE -->
-  <div class="bubbles-area">
-    @for (cat of allCategories(); track cat.id; let i = $index) {
-      <div class="category-bubble"
-           [style.top]="cat.top"
-           [style.left]="cat.left"
-           [style.--float-duration]="cat.duration"
-           [style.--float-delay]="cat.delay"
-           [class.spinning]="phase() === 'SPINNING'"
-           [class.is-selected]="selectedCatIndex() === i && phase() === 'SELECTED'"
-           [class.as-title]="selectedCatIndex() === i && showQuestion()"
-           [class.hidden]="showTypeReveal() || phase() === 'IDLE' || (selectedCatIndex() !== null && selectedCatIndex() !== i)">
-        {{ cat.name }}
-      </div>
-    }
-  </div>
+  <!-- BOLLE CATEGORIE (nascoste se IMAGE_BLUR) -->
+  @if (round()?.type !== 'IMAGE_BLUR') {
+    <div class="bubbles-area">
+      @for (cat of allCategories(); track cat.id; let i = $index) {
+        <div class="category-bubble"
+             [style.top]="cat.top"
+             [style.left]="cat.left"
+             [style.--float-duration]="cat.duration"
+             [style.--float-delay]="cat.delay"
+             [class.spinning]="phase() === 'SPINNING'"
+             [class.is-selected]="selectedCatIndex() === i && phase() === 'SELECTED'"
+             [class.as-title]="selectedCatIndex() === i && showQuestion()"
+             [class.hidden]="showTypeReveal() || phase() === 'IDLE' || (selectedCatIndex() !== null && selectedCatIndex() !== i)">
+          {{ cat.name }}
+        </div>
+      }
+    </div>
+  }
 
   <!-- AREA DOMANDA -->
   @if (showQuestion() && round(); as current) {
     <div class="question-area" @fadeInOut>
-      <!-- TIMER -->
-      <div class="timer-wrapper">
-        <div class="timer-bar" [style.width.%]="current.status === 'REVEAL' ? 0 : timer() * 10"></div>
-        <span class="timer-text">{{ current.status === 'REVEAL' ? 'Tempo Scaduto!' : timer() + 's' }}</span>
-      </div>
 
-      <!-- DOMANDA -->
-      <h2 class="question-text">
-        {{ current.payload.question }}
-      </h2>
+      <!-- IMAGE_BLUR MODE -->
+      @if (current.type === 'IMAGE_BLUR') {
+        <div class="image-blur-layout">
 
-      <!-- OPZIONI (QUIZ / TRUE_FALSE) -->
-      @if (current.payload.options && current.type !== 'CHRONO' && current.payload.options.length > 0) {
-        <div class="options-grid"
-             [class.layout-quiz]="current.type === 'QUIZ' || current.type === 'TRUE_FALSE'">
-          @for (opt of current.payload.options; track opt) {
-            <button
-              class="option-btn"
-              [disabled]="current.status === 'REVEAL'"
-              [class.correct]="current.status === 'REVEAL' && opt === current.payload.correctAnswer">
-              {{ opt }}
-            </button>
-          }
-        </div>
-      }
+          <h1 class="blur-title">🎭 RICONOSCI LA CELEBRITÀ?</h1>
 
-      <!-- CHRONO -->
-      @if (current.type === 'CHRONO') {
-        <div class="chrono-display">
-          @if (current.status !== 'REVEAL') {
-            <div class="chrono-waiting-box">
-              <h3 class="chrono-title">INDIVIDUA L'ANNO!</h3>
-              <div class="chrono-placeholder">❓ Scegli sul telefono... ❓</div>
-            </div>
-          } @else {
-            <div class="reveal-banner chrono-reveal" @fadeInOut>
-              <div class="reveal-label">ANNO ESATTO:</div>
-              <div class="reveal-value-big">{{ current.payload.correctAnswer }}</div>
-            </div>
-          }
-        </div>
-      }
-
-      @if (showQuestion() && round()?.type === 'IMAGE_BLUR') {
-
-        <h1 class="blur-title">RICONOSCI LA CELEBRITÀ?</h1>
-
-        <div class="blur-main-container">
-          <div class="image-wrapper">
-            <img [src]="round()?.payload?.imageUrl"
+          <div class="blur-main-container">
+            <img [src]="getSafeUrl(round()?.payload?.imageUrl)"
                  [style.filter]="'blur(' + currentBlur + 'px)'"
+                 referrerpolicy="no-referrer"
                  class="blur-img">
 
             @if (playerWhoBuzzed) {
@@ -107,50 +69,121 @@
           </div>
 
           <div class="timer-dot-container">
-            <div class="timer-value">{{ timer() }}s</div>
+            <div class="timer-circle">
+              <span class="timer-value">{{ timer() }}s</span>
+            </div>
           </div>
-        </div>
 
-        <div class="mini-feed">
+          <!-- CONTROLLI PRESENTATORE -->
           @if (playerWhoBuzzed) {
-            <span>Prenotazione attiva!</span>
+            <div class="presenter-controls">
+              <button (click)="confirmCorrect()" class="control-correct">
+                ✅ RISPOSTA CORRETTA
+              </button>
+              <button (click)="confirmWrong()" class="control-wrong">
+                ❌ RISPOSTA ERRATA
+              </button>
+            </div>
           }
         </div>
       }
 
-      <!-- REVEAL RISPOSTA -->
-      @if (current.status === 'REVEAL' && current.type !== 'CHRONO') {
-        <div class="reveal-banner" @fadeInOut>
-          <div class="reveal-label">RISPOSTA ESATTA:</div>
-          <div class="reveal-value">{{ current.payload.correctAnswer }}</div>
+      <!-- ALTRI TIPI (QUIZ, TRUE_FALSE, CHRONO) -->
+      @if (current.type !== 'IMAGE_BLUR') {
+        <div class="timer-wrapper">
+          <div class="timer-bar" [style.width.%]="current.status === 'REVEAL' ? 0 : timer() * 10"></div>
+          <span class="timer-text">{{ current.status === 'REVEAL' ? 'Tempo Scaduto!' : timer() + 's' }}</span>
         </div>
-      }
-    </div>
 
-    <!-- LIVE FEED RISPOSTE -->
-    <div class="live-feed-container">
-      <div class="feed-header">RISPOSTE RICEVUTE</div>
-      <div class="feed-list">
-        @for (res of ws.responses(); track res.playerName) {
-          <div class="feed-item" @fadeInOut
-               [class.chrono-item]="round()?.type === 'CHRONO'">
+        <h2 class="question-text">{{ current.payload.question }}</h2>
 
-            <div class="player-info">
-              <span class="player-name">{{ res.playerName }}</span>
-              <span class="player-time">⏱️ {{ (res.responseTimeMs / 1000).toFixed(2) }}s</span>
-            </div>
+        @if (current.payload.options && current.type !== 'CHRONO' && current.payload.options.length > 0) {
+          <div class="options-grid"
+               [class.layout-quiz]="current.type === 'QUIZ' || current.type === 'TRUE_FALSE'">
+            @for (opt of current.payload.options; track opt) {
+              <button
+                class="option-btn"
+                [disabled]="current.status === 'REVEAL'"
+                [class.correct]="current.status === 'REVEAL' && opt === current.payload.correctAnswer">
+                {{ opt }}
+              </button>
+            }
+          </div>
+        }
 
-            @if (round()?.type === 'CHRONO' && round()?.status === 'REVEAL') {
-              <div class="chrono-details" @fadeInOut>
-            <span class="distance-badge">
-              偏差: {{ getYearDistance(res.answerIndex) }} anni
-            </span>
-                <span class="guessed-year">Scelto: {{ res.answerIndex }}</span>
+        @if (current.type === 'CHRONO') {
+          <div class="chrono-display">
+            @if (current.status !== 'REVEAL') {
+              <div class="chrono-waiting-box">
+                <h3 class="chrono-title">INDIVIDUA L'ANNO!</h3>
+                <div class="chrono-placeholder">❓ Scegli sul telefono... ❓</div>
+              </div>
+            } @else {
+              <div class="reveal-banner chrono-reveal" @fadeInOut>
+                <div class="reveal-label">ANNO ESATTO:</div>
+                <div class="reveal-value-big">{{ current.payload.correctAnswer }}</div>
               </div>
             }
           </div>
         }
+
+        @if (current.status === 'REVEAL' && current.type !== 'CHRONO') {
+          <div class="reveal-banner" @fadeInOut>
+            <div class="reveal-label">RISPOSTA ESATTA:</div>
+            <div class="reveal-value">{{ current.payload.correctAnswer }}</div>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- LIVE FEED RISPOSTE (non visibile in IMAGE_BLUR) -->
+    @if (current.type !== 'IMAGE_BLUR') {
+      <div class="live-feed-container">
+        <div class="feed-header">RISPOSTE RICEVUTE</div>
+        <div class="feed-list">
+          @for (res of ws.responses(); track res.playerName) {
+            <div class="feed-item" @fadeInOut
+                 [class.chrono-item]="current.type === 'CHRONO'">
+              <div class="player-info">
+                <span class="player-name">{{ res.playerName }}</span>
+                <span class="player-time">⏱️ {{ (res.responseTimeMs / 1000).toFixed(2) }}s</span>
+              </div>
+
+              @if (current.type === 'CHRONO' && current.status === 'REVEAL') {
+                <div class="chrono-details" @fadeInOut>
+                  <span class="distance-badge">
+                    偏差: {{ getYearDistance(res.answerIndex) }} anni
+                  </span>
+                  <span class="guessed-year">Scelto: {{ res.answerIndex }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
       </div>
+    }
+  }
+
+  <!-- POPUP RISULTATO -->
+  @if (showResultPopup()) {
+    <div class="result-popup" [class.correct]="resultType() === 'correct'" [class.wrong]="resultType() === 'wrong'"
+         @fadeInOut>
+      <div class="result-icon">
+        {{ resultType() === 'correct' ? '✅' : '❌' }}
+      </div>
+      <div class="result-title">
+        {{ resultType() === 'correct' ? 'RISPOSTA CORRETTA!' : 'RISPOSTA ERRATA!' }}
+      </div>
+      <div class="result-player">{{ resultPlayerName() }}</div>
+      <div class="result-points">
+        {{ resultPoints() > 0 ? '+' : '' }}{{ resultPoints() }} punti
+      </div>
+      @if (resultType() === 'correct' && round()) {
+        <div class="result-answer">
+          {{ round()!.payload.correctAnswer }}
+        </div>
+        <img [src]="round()!.payload.imageUrl" class="result-image">
+      }
     </div>
   }
 
