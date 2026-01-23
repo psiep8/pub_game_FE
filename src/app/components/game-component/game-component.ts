@@ -4,7 +4,7 @@ import {GameRound, GameService} from '../../services/game.service';
 import {WebSocketService} from '../../services/web-socket.service';
 import {AiGeneratorService} from '../../services/ai-generator-service';
 import {firstValueFrom} from 'rxjs';
-import {DomSanitizer} from '@angular/platform-browser';
+import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
 
 @Component({
   selector: 'app-game-component',
@@ -68,7 +68,11 @@ export class GameComponent implements OnInit {
     }
   }
 
-  constructor(private gameService: GameService, private aiService: AiGeneratorService, private sanitizer: DomSanitizer,) {
+  constructor(
+    private gameService: GameService,
+    private aiService: AiGeneratorService,
+    private sanitizer: DomSanitizer
+  ) {
     this.ws.responses$.subscribe(res => {
       const currentRound = this.round();
       if (!currentRound) return;
@@ -80,11 +84,6 @@ export class GameComponent implements OnInit {
         this.processNormalAnswer(res);
       }
     });
-  }
-  getSafeUrl(url: string | undefined | null) {
-    // Se l'url non esiste, restituiamo un'immagine trasparente o vuota
-    if (!url) return '';
-    return this.sanitizer.bypassSecurityTrustUrl(url);
   }
 
   calculateScore(isCorrect: boolean, timeMs: number): number {
@@ -213,8 +212,8 @@ export class GameComponent implements OnInit {
       localStorage.setItem('activeGameId', newGame.id.toString());
     }
 
-    const types = ['IMAGE_BLUR'] as const;
-    // const types = ['QUIZ', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR'] as const;
+    const types = ['QUIZ', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR'] as const;
+    // const types = ['IMAGE_BLUR'] as const;
     const extractedType = types[Math.floor(Math.random() * types.length)];
 
     this.phase.set('SPINNING');
@@ -304,6 +303,18 @@ export class GameComponent implements OnInit {
 
     if (this.blurInterval) {
       clearInterval(this.blurInterval);
+    }
+
+    // Se IMAGE_BLUR e nessuno ha risposto, mostra popup verde timeout
+    if (currentRound.type === 'IMAGE_BLUR' && !this.playerWhoBuzzed) {
+      this.resultType.set('correct');
+      this.resultPoints.set(0);
+      this.resultPlayerName.set('Tempo Scaduto!');
+      this.showResultPopup.set(true);
+
+      setTimeout(() => {
+        this.showResultPopup.set(false);
+      }, 5000);
     }
 
     setTimeout(() => {
@@ -402,9 +413,9 @@ export class GameComponent implements OnInit {
     this.resultPlayerName.set(loser);
     this.showResultPopup.set(true);
 
-    // Notifica telefoni: sblocca gli altri
+    // Notifica telefoni: BLOCCA definitivamente chi ha sbagliato
     this.ws.broadcastStatus(1, {
-      action: 'RESUME_AFTER_ERROR',
+      action: 'BLOCKED_ERROR',
       blockedPlayer: loser
     });
 
@@ -438,5 +449,10 @@ export class GameComponent implements OnInit {
   confirmReset() {
     this.showResetModal.set(false);
     location.reload();
+  }
+
+  getSafeUrl(url: string | undefined | null): SafeUrl | string {
+    if (!url) return '';
+    return this.sanitizer.bypassSecurityTrustUrl(url);
   }
 }

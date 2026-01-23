@@ -25,8 +25,8 @@
     </div>
   }
 
-  <!-- BOLLE CATEGORIE (nascoste se IMAGE_BLUR) -->
-  @if (round()?.type !== 'IMAGE_BLUR') {
+  <!-- BOLLE CATEGORIE (nascoste se IMAGE_BLUR o durante reveal/spinning) -->
+  @if (round()?.type !== 'IMAGE_BLUR' && !showTypeReveal()) {
     <div class="bubbles-area">
       @for (cat of allCategories(); track cat.id; let i = $index) {
         <div class="category-bubble"
@@ -37,7 +37,7 @@
              [class.spinning]="phase() === 'SPINNING'"
              [class.is-selected]="selectedCatIndex() === i && phase() === 'SELECTED'"
              [class.as-title]="selectedCatIndex() === i && showQuestion()"
-             [class.hidden]="showTypeReveal() || phase() === 'IDLE' || (selectedCatIndex() !== null && selectedCatIndex() !== i)">
+             [class.hidden]="phase() === 'IDLE' || (selectedCatIndex() !== null && selectedCatIndex() !== i)">
           {{ cat.name }}
         </div>
       }
@@ -53,6 +53,14 @@
         <div class="image-blur-layout">
 
           <h1 class="blur-title">🎭 RICONOSCI LA CELEBRITÀ?</h1>
+
+          <!-- ALERT PRENOTAZIONE ROSSO -->
+          @if (playerWhoBuzzed) {
+            <div class="reservation-alert" @fadeInOut>
+              <span class="alert-name">{{ playerWhoBuzzed }}</span>
+              <span class="alert-text">SI È PRENOTATO!</span>
+            </div>
+          }
 
           <div class="blur-main-container">
             <img [src]="getSafeUrl(round()?.payload?.imageUrl)"
@@ -166,8 +174,7 @@
 
   <!-- POPUP RISULTATO -->
   @if (showResultPopup()) {
-    <div class="result-popup" [class.correct]="resultType() === 'correct'" [class.wrong]="resultType() === 'wrong'"
-         @fadeInOut>
+    <div class="result-popup" [class.correct]="resultType() === 'correct'" [class.wrong]="resultType() === 'wrong'" @fadeInOut>
       <div class="result-icon">
         {{ resultType() === 'correct' ? '✅' : '❌' }}
       </div>
