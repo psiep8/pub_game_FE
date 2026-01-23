@@ -189,54 +189,46 @@ export class GameComponent implements OnInit {
   async startNewRound() {
     if (this.isSpinning()) return;
 
+    // Reset stati iniziali
+    this.ws.clearResponses();
     this.showQuestion.set(false);
     this.round.set(null);
     this.selectedCatIndex.set(null);
     this.playerWhoBuzzed = null;
-    this.timer.set(10);
+    this.timer.set(15); // Più tempo per il blur
     this.isPaused.set(false);
 
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-    }
-
-    // Rigenera posizioni casuali
-    const currentCats = this.allCategories();
-    const repositioned = this.generateNonOverlappingPositions(currentCats);
-    this.allCategories.set(repositioned);
-
-    if (!this.currentGameId()) {
-      const newGame = await firstValueFrom(this.gameService.createGame());
-      this.currentGameId.set(newGame.id);
-      localStorage.setItem('activeGameId', newGame.id.toString());
-    }
-
-    const categories = this.allCategories();
-    const randomIndex = Math.floor(Math.random() * categories.length);
-    const selectedCat = categories[randomIndex];
-
-    const types = ['QUIZ', 'CHRONO', 'TRUE_FALSE'] as const;
+    // Determiniamo il tipo
+    // const types = ['IMAGE_BLUR'] as const; // Per ora forzato come volevi
+    const types = ['QUIZ', 'CHRONO', 'TRUE_FALSE','IMAGE_BLUR'] as const;
     const extractedType = types[Math.floor(Math.random() * types.length)];
-    const difficulty = ['facile', 'medio', 'difficile'][
-      Math.floor(Math.random() * 3)
-      ];
-
-    // Nascondi subito la schermata IDLE e mostra il reveal
+    if (extractedType === 'IMAGE_BLUR') {
+      this.selectedCatIndex.set(null); // Nessuna bolla selezionata
+    }
     this.phase.set('SPINNING');
     this.showTypeReveal.set(extractedType);
-    await new Promise(r => setTimeout(r, 7000)); // Mostra per 3.5 secondi
+    await new Promise(r => setTimeout(r, 3000));
     this.showTypeReveal.set(null);
 
     this.isSpinning.set(true);
 
     try {
+      // SE È IMAGE_BLUR, NON SCEGLIAMO UNA BOLLA, MA USIAMO "Celebrità"
+      let categoryName = "Celebrità e Personaggi Famosi";
+
+      if (extractedType !== 'IMAGE_BLUR') {
+        const categories = this.allCategories();
+        const randomIndex = Math.floor(Math.random() * categories.length);
+        categoryName = categories[randomIndex].name;
+        this.selectedCatIndex.set(randomIndex);
+      }
+
       const nextRound = await firstValueFrom(
         this.aiService.triggerNewAiRound(
           this.currentGameId()!,
-          selectedCat.name,
+          categoryName,
           extractedType,
-          difficulty
+          'medio'
         )
       );
 
@@ -246,18 +238,21 @@ export class GameComponent implements OnInit {
 
       this.round.set(nextRound);
 
-      await new Promise(r => setTimeout(r, 4000));
-      this.selectedCatIndex.set(randomIndex);
-      this.phase.set('SELECTED');
-
-      await new Promise(r => setTimeout(r, 6000));
-      if (nextRound.type === 'CHRONO') {
-        this.phase.set('CHRONO');
-      } else {
-        this.phase.set('QUESTION');
+      // Se non è blur, mostriamo la bolla selezionata, altrimenti saltiamo
+      if (extractedType !== 'IMAGE_BLUR') {
+        await new Promise(r => setTimeout(r, 2000));
+        this.phase.set('SELECTED');
+        await new Promise(r => setTimeout(r, 2000));
       }
+
+      this.phase.set('QUESTION');
       this.showQuestion.set(true);
       this.isSpinning.set(false);
+
+      // LOGICA SPECIFICA BLUR
+      if (extractedType === 'IMAGE_BLUR') {
+        this.startBlurEffect();
+      }
 
       this.startTimer();
 
@@ -267,7 +262,6 @@ export class GameComponent implements OnInit {
       this.phase.set('IDLE');
     }
   }
-
   private startTimer() {
     this.ws.responses.set([]);
 
@@ -293,9 +287,20 @@ export class GameComponent implements OnInit {
 
   private revealAnswer() {
     const currentRound = this.round();
-    if (currentRound) {
-      this.round.set({...currentRound, status: 'REVEAL'});
+    if (!currentRound) return;
+
+    this.round.set({...currentRound, status: 'REVEAL'});
+    this.currentBlur = 0; // Rivela l'immagine completamente
+
+    if (currentRound.type === 'IMAGE_BLUR' && !this.playerWhoBuzzed) {
+      console.log("[ABSTAINED] Tempo scaduto, nessuno ha indovinato l'immagine.");
     }
+
+    // Notifica i telefoni di tornare in attesa
+    setTimeout(() => {
+      this.ws.broadcastStatus(this.currentGameId()!, { action: 'ROUND_ENDED' });
+      this.phase.set('IDLE');
+    }, 5000);
   }
 
   processNormalAnswer(res: any) {
@@ -304,19 +309,36 @@ export class GameComponent implements OnInit {
 
     let isCorrect = false;
     let score = 0;
+    let detailMsg = '';
 
     if (currentRound.type === 'CHRONO') {
       const realYear = parseInt(currentRound.payload.correctAnswer);
-      const distance = Math.abs(res.answerIndex - realYear);
+      const guessedYear = res.answerIndex;
+      const distance = Math.abs(guessedYear - realYear);
+
       isCorrect = distance <= 2;
-      score = this.calculateChronoScore(res.answerIndex, realYear, res.responseTimeMs);
+      score = this.calculateChronoScore(guessedYear, realYear, res.responseTimeMs);
+      detailMsg = `Scelta: ${guessedYear} (Distanza: ${distance} anni)`;
     } else {
       const playerChoiceText = currentRound.payload.options[res.answerIndex];
       isCorrect = playerChoiceText === currentRound.payload.correctAnswer;
       score = this.calculateScore(isCorrect, res.responseTimeMs);
+      detailMsg = `Scelta: ${playerChoiceText}`;
     }
 
-    console.log(`Risposta da ${res.playerName}: ${isCorrect ? '✅' : '❌'} (${score} pt)`);
+    // Se per qualche motivo il tempo è scaduto o l'indice è nullo (caso ipotetico)
+    if (res.answerIndex === null || res.answerIndex === undefined) {
+      score = 0;
+      console.log(`[ABSTAINED] ${res.playerName}: 0 punti.`);
+    } else {
+      console.log(`[RICEVUTO] ${res.playerName}: ${isCorrect ? '✅' : '❌'} | ${detailMsg} | Punti: ${score}`);
+    }
+  }
+
+  getYearDistance(guessedYear: number): number {
+    const correct = this.round()?.payload.correctAnswer;
+    if (!correct) return 0;
+    return Math.abs(guessedYear - parseInt(correct));
   }
 
   startBlurEffect() {
@@ -336,10 +358,10 @@ export class GameComponent implements OnInit {
   handleKeyboardEvent(event: KeyboardEvent) {
     if (!this.playerWhoBuzzed) return;
 
-    if (event.key === 'ArrowUp') {
-      this.confirmCorrect();
-    } else if (event.key === 'ArrowDown') {
-      this.confirmWrong();
+    if (event.key === 'Enter' || event.key === 'ArrowUp') {
+      this.confirmCorrect(); // Forza il reveal e assegna punti
+    } else if (event.key === 'Escape' || event.key === 'ArrowDown') {
+      this.confirmWrong(); // Toglie il blocco e fa ripartire il blur
     }
   }
 

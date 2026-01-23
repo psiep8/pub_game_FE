@@ -44,7 +44,7 @@ export class WebSocketService {
   sendAnswer(gameId: number, playerName: string, index: number, responseTimeMs: number) {
     this.client.publish({
       destination: `/app/game/${gameId}/answer`,
-      body: JSON.stringify({ playerName, answerIndex: index, responseTimeMs })
+      body: JSON.stringify({playerName, answerIndex: index, responseTimeMs})
     });
   }
 
@@ -69,6 +69,10 @@ export class WebSocketService {
       this.client.activate();
       console.log('Tentativo di riconnessione...');
     }
+  }
+
+  clearResponses() {
+    this.responses.set([]); // Svuota la lista per il nuovo round
   }
 
 

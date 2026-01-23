@@ -69,7 +69,6 @@
         }
         @case ('VOTING') {
           @switch (questionType()) {
-
             @case ('QUIZ') {
               <div class="voting-grid">
                 <button (click)="sendVote(0)" class="vote-btn btn-a">A</button>
@@ -100,8 +99,11 @@
               </div>
             }
             @case ('IMAGE_BLUR') {
-              <div class="buzz-layout">
-                <button (click)="sendBuzz()" class="buzz-btn blur-theme">CHI È?</button>
+              <div class="buzz-container">
+                <button class="buzz-button" (click)="sendBuzz()" [disabled]="hasAnswered()">
+                  <span class="buzz-icon">🔔</span>
+                  PRENOTATI!
+                </button>
               </div>
             }
           }

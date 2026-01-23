@@ -88,6 +88,36 @@
         </div>
       }
 
+      @if (showQuestion() && round()?.type === 'IMAGE_BLUR') {
+
+        <h1 class="blur-title">RICONOSCI LA CELEBRITÀ?</h1>
+
+        <div class="blur-main-container">
+          <div class="image-wrapper">
+            <img [src]="round()?.payload?.imageUrl"
+                 [style.filter]="'blur(' + currentBlur + 'px)'"
+                 class="blur-img">
+
+            @if (playerWhoBuzzed) {
+              <div class="buzz-announcement" @fadeInOut>
+                <div class="player-highlight">{{ playerWhoBuzzed }}</div>
+                <p>RISPONDI ORA!</p>
+              </div>
+            }
+          </div>
+
+          <div class="timer-dot-container">
+            <div class="timer-value">{{ timer() }}s</div>
+          </div>
+        </div>
+
+        <div class="mini-feed">
+          @if (playerWhoBuzzed) {
+            <span>Prenotazione attiva!</span>
+          }
+        </div>
+      }
+
       <!-- REVEAL RISPOSTA -->
       @if (current.status === 'REVEAL' && current.type !== 'CHRONO') {
         <div class="reveal-banner" @fadeInOut>
@@ -102,9 +132,22 @@
       <div class="feed-header">RISPOSTE RICEVUTE</div>
       <div class="feed-list">
         @for (res of ws.responses(); track res.playerName) {
-          <div class="feed-item" @fadeInOut>
-            <span class="player-name">{{ res.playerName }}</span>
-            <span class="player-time">{{ (res.responseTimeMs / 1000).toFixed(2) }}s</span>
+          <div class="feed-item" @fadeInOut
+               [class.chrono-item]="round()?.type === 'CHRONO'">
+
+            <div class="player-info">
+              <span class="player-name">{{ res.playerName }}</span>
+              <span class="player-time">⏱️ {{ (res.responseTimeMs / 1000).toFixed(2) }}s</span>
+            </div>
+
+            @if (round()?.type === 'CHRONO' && round()?.status === 'REVEAL') {
+              <div class="chrono-details" @fadeInOut>
+            <span class="distance-badge">
+              偏差: {{ getYearDistance(res.answerIndex) }} anni
+            </span>
+                <span class="guessed-year">Scelto: {{ res.answerIndex }}</span>
+              </div>
+            }
           </div>
         }
       </div>
