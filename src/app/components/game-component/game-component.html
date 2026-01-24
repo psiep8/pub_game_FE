@@ -46,7 +46,7 @@
 
   <!-- AREA DOMANDA -->
   @if (showQuestion() && round(); as current) {
-    <div class="question-area" @fadeInOut>
+    <div class="question-area" [class.blur-mode]="current.type === 'IMAGE_BLUR'" @fadeInOut>
 
       <!-- IMAGE_BLUR MODE -->
       @if (current.type === 'IMAGE_BLUR') {
@@ -63,10 +63,13 @@
           }
 
           <div class="blur-main-container">
-            <img [src]="getSafeUrl(round()?.payload?.imageUrl)"
-                 [style.filter]="'blur(' + currentBlur + 'px)'"
-                 referrerpolicy="no-referrer"
-                 class="blur-img">
+            @if (parsedPayload?.imageUrl) {
+              <img
+                [src]="getSafeImageUrl(parsedPayload.imageUrl)"
+                [style.filter]="'blur(' + currentBlur + 'px)'"
+                referrerpolicy="no-referrer"
+                class="blur-img">
+            }
 
             @if (playerWhoBuzzed) {
               <div class="buzz-announcement" @fadeInOut>
@@ -174,7 +177,8 @@
 
   <!-- POPUP RISULTATO -->
   @if (showResultPopup()) {
-    <div class="result-popup" [class.correct]="resultType() === 'correct'" [class.wrong]="resultType() === 'wrong'" @fadeInOut>
+    <div class="result-popup" [class.correct]="resultType() === 'correct'" [class.wrong]="resultType() === 'wrong'"
+         @fadeInOut>
       <div class="result-icon">
         {{ resultType() === 'correct' ? '✅' : '❌' }}
       </div>

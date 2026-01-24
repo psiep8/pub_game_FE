@@ -4,7 +4,7 @@ import {GameRound, GameService} from '../../services/game.service';
 import {WebSocketService} from '../../services/web-socket.service';
 import {AiGeneratorService} from '../../services/ai-generator-service';
 import {firstValueFrom} from 'rxjs';
-import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
+import {DomSanitizer, SafeResourceUrl, SafeUrl} from '@angular/platform-browser';
 
 @Component({
   selector: 'app-game-component',
@@ -212,8 +212,8 @@ export class GameComponent implements OnInit {
       localStorage.setItem('activeGameId', newGame.id.toString());
     }
 
-    const types = ['QUIZ', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR'] as const;
-    // const types = ['IMAGE_BLUR'] as const;
+    // const types = ['QUIZ', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR'] as const;
+    const types = ['IMAGE_BLUR'] as const;
     const extractedType = types[Math.floor(Math.random() * types.length)];
 
     this.phase.set('SPINNING');
@@ -451,8 +451,35 @@ export class GameComponent implements OnInit {
     location.reload();
   }
 
-  getSafeUrl(url: string | undefined | null): SafeUrl | string {
+  get parsedPayload(): any | null {
+    const payload = this.round()?.payload;
+
+    if (!payload) return null;
+
+    // Se è già un oggetto (sicurezza)
+    if (typeof payload === 'object') {
+      return payload;
+    }
+
+    // Se è stringa JSON → PARSE
+    try {
+      return JSON.parse(payload);
+    } catch (e) {
+      console.error('Errore parsing payload', payload);
+      return null;
+    }
+  }
+
+  getSafeImageUrl(url: string | null | undefined): SafeUrl {
     if (!url) return '';
+
+    // blocca Special:FilePath (NON è immagine)
+    if (url.includes('Special:FilePath')) {
+      console.error('URL NON IMMAGINE:', url);
+      return '';
+    }
+
     return this.sanitizer.bypassSecurityTrustUrl(url);
   }
+
 }

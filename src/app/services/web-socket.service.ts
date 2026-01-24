@@ -17,7 +17,8 @@ export class WebSocketService {
   constructor() {
     this.client = new Client({
       // Usa l'IP del tuo PC che abbiamo configurato prima!
-      webSocketFactory: () => new SockJS('http://192.168.1.3:8080/ws-pubgame'),
+      // webSocketFactory: () => new SockJS('http://192.168.1.3:8080/ws-pubgame'),
+      webSocketFactory: () => new SockJS('http://192.168.1.20:8080/ws-pubgame'),
       reconnectDelay: 5000, // Prova a riconnettersi ogni 5 secondi se cade la linea
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,

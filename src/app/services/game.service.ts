@@ -22,7 +22,7 @@ export interface GameRound {
 @Injectable({providedIn: 'root'})
 export class GameService {
   private http = inject(HttpClient);
-  private baseUrl = 'http://192.168.1.3:8080';
+  private baseUrl = 'http://192.168.1.20:8080';
 
   getCategories(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/categories`);
