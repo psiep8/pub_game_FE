@@ -17,7 +17,8 @@ export class WebSocketService {
   constructor() {
     this.client = new Client({
       // Usa l'IP del tuo PC che abbiamo configurato prima!
-      webSocketFactory: () => new SockJS('http://192.168.1.3:8080/ws-pubgame'),
+      // webSocketFactory: () => new SockJS('http://192.168.1.3:8080/ws-pubgame'),
+      webSocketFactory: () => new SockJS('http://192.168.1.20:8080/ws-pubgame'),
       reconnectDelay: 5000, // Prova a riconnettersi ogni 5 secondi se cade la linea
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
@@ -44,7 +45,7 @@ export class WebSocketService {
   sendAnswer(gameId: number, playerName: string, index: number, responseTimeMs: number) {
     this.client.publish({
       destination: `/app/game/${gameId}/answer`,
-      body: JSON.stringify({ playerName, answerIndex: index, responseTimeMs })
+      body: JSON.stringify({playerName, answerIndex: index, responseTimeMs})
     });
   }
 
@@ -69,6 +70,10 @@ export class WebSocketService {
       this.client.activate();
       console.log('Tentativo di riconnessione...');
     }
+  }
+
+  clearResponses() {
+    this.responses.set([]); // Svuota la lista per il nuovo round
   }
 
 

@@ -71,6 +71,9 @@
             },
             "development": {
               "buildTarget": "pubgameFE:build:development"
+            },
+            "pwa": {
+              "buildTarget": "pubgameFE:build:pwa"
             }
           },
           "defaultConfiguration": "development"

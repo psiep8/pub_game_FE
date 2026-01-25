@@ -1,9 +1,10 @@
 import {Component, signal, inject, OnInit, HostListener} from '@angular/core';
-import {trigger, state, style, transition, animate} from '@angular/animations';
+import {trigger, transition, style, animate} from '@angular/animations';
 import {GameRound, GameService} from '../../services/game.service';
 import {WebSocketService} from '../../services/web-socket.service';
 import {AiGeneratorService} from '../../services/ai-generator-service';
 import {firstValueFrom} from 'rxjs';
+import {DomSanitizer, SafeResourceUrl, SafeUrl} from '@angular/platform-browser';
 
 @Component({
   selector: 'app-game-component',
@@ -30,22 +31,30 @@ export class GameComponent implements OnInit {
   isSpinning = signal(false);
   selectedCatIndex = signal<number | null>(null);
   phase = signal<'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION' | 'CHRONO'>('IDLE');
-  timer = signal(10);
+  timer = signal(30); // 30 secondi per IMAGE_BLUR
   showQuestion = signal(false);
   isPaused = signal(false);
   private timerInterval: any;
   showResetModal = signal(false);
   currentGameId = signal<number | null>(null);
+
+  // IMAGE_BLUR specifico
   currentBlur = 40;
   blurInterval: any;
   playerWhoBuzzed: string | null = null;
+
   showTypeReveal = signal<string | null>(null);
 
-  // QR Code URL per i giocatori
-  remoteUrl = 'http://192.168.1.3:4200' + '/play';
+  // Popup risultato
+  showResultPopup = signal(false);
+  resultType = signal<'correct' | 'wrong'>('correct');
+  resultPoints = signal(0);
+  resultPlayerName = signal('');
+
+  // QR Code
+  remoteUrl = 'http://192.168.1.3:4200/play';
   qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(this.remoteUrl)}&bgcolor=ffffff&color=1a1a2e&margin=10&qzone=1`;
 
-  // ALERT REFRESH: Blocca l'aggiornamento della pagina
   @HostListener('window:beforeunload', ['$event'])
   unloadNotification($event: any) {
     if (this.phase() !== 'IDLE') {
@@ -54,24 +63,22 @@ export class GameComponent implements OnInit {
   }
 
   togglePause() {
-    // Permetti la pausa in qualsiasi fase del gioco tranne IDLE
     if (this.phase() !== 'IDLE' && this.showQuestion()) {
       this.isPaused.update(v => !v);
     }
   }
 
-  constructor(private gameService: GameService, private aiService: AiGeneratorService) {
+  constructor(
+    private gameService: GameService,
+    private aiService: AiGeneratorService,
+    private sanitizer: DomSanitizer
+  ) {
     this.ws.responses$.subscribe(res => {
       const currentRound = this.round();
       if (!currentRound) return;
 
-      const playerChoiceText = currentRound.payload.options[res.answerIndex];
-      const isCorrect = playerChoiceText === currentRound.payload.correctAnswer;
-      const score = this.calculateScore(isCorrect, res.responseTimeMs);
-
-      console.log(`[RICEVUTO] ${res.playerName}: ${isCorrect ? '✅' : '❌'} (${playerChoiceText}). Punti: ${score}`);
-
       if (res.answerIndex === -1) {
+        // È un BUZZ
         this.handleBuzz(res.playerName);
       } else {
         this.processNormalAnswer(res);
@@ -87,7 +94,7 @@ export class GameComponent implements OnInit {
     if (isCorrect) {
       return Math.round(1000 * ratio);
     } else {
-      return Math.round(-1000 * ratio);
+      return Math.round(-500 * ratio); // Penalità
     }
   }
 
@@ -103,43 +110,42 @@ export class GameComponent implements OnInit {
   }
 
   handleBuzz(playerName: string) {
-    if (this.playerWhoBuzzed) return;
+    if (this.playerWhoBuzzed) return; // Già qualcuno prenotato
+
     this.playerWhoBuzzed = playerName;
 
+    // PAUSA il timer e il blur
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+    }
     if (this.blurInterval) {
       clearInterval(this.blurInterval);
     }
 
+    // Notifica gli altri telefoni
     this.ws.broadcastStatus(1, {
       action: 'PLAYER_PRENOTATO',
       name: playerName
     });
 
-    console.log(`[BUZZ] Il giocatore ${playerName} si è prenotato!`);
+    console.log(`[BUZZ] ${playerName} si è prenotato!`);
   }
 
   async ngOnInit() {
     try {
-      // 1. Carichiamo le categorie con await
       const cats = await firstValueFrom(this.gameService.getCategories());
-
-      // 2. Genera posizioni non sovrapposte
       const positioned = this.generateNonOverlappingPositions(cats);
-
       this.allCategories.set(positioned);
 
-      // 3. Ripristino ID Partita
       const savedId = localStorage.getItem('activeGameId');
       if (savedId) {
         this.currentGameId.set(+savedId);
-        console.log("Partita ripristinata ID:", savedId);
       }
     } catch (err) {
       console.error("Errore durante l'inizializzazione:", err);
     }
   }
 
-  // Funzione per generare posizioni casuali senza sovrapposizioni
   private generateNonOverlappingPositions(categories: any[]) {
     const positioned: any[] = [];
     const minDistance = 180;
@@ -148,7 +154,7 @@ export class GameComponent implements OnInit {
     categories.forEach((cat: any) => {
       let validPosition = false;
       let attempts = 0;
-      let newPos = { top: 0, left: 0 };
+      let newPos = {top: 0, left: 0};
 
       while (!validPosition && attempts < maxAttempts) {
         newPos = {
@@ -179,7 +185,6 @@ export class GameComponent implements OnInit {
         rotate: (Math.random() * 6 - 3) + 'deg',
         delay: delay + 's',
         duration: duration + 's',
-        style: `--float-duration: ${duration}s; --float-delay: ${delay}s;`
       });
     });
 
@@ -189,22 +194,17 @@ export class GameComponent implements OnInit {
   async startNewRound() {
     if (this.isSpinning()) return;
 
+    this.ws.responses.set([]);
     this.showQuestion.set(false);
     this.round.set(null);
     this.selectedCatIndex.set(null);
     this.playerWhoBuzzed = null;
-    this.timer.set(10);
+    this.timer.set(30);
     this.isPaused.set(false);
+    this.showResultPopup.set(false);
 
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-    }
-
-    // Rigenera posizioni casuali
-    const currentCats = this.allCategories();
-    const repositioned = this.generateNonOverlappingPositions(currentCats);
-    this.allCategories.set(repositioned);
+    if (this.timerInterval) clearInterval(this.timerInterval);
+    if (this.blurInterval) clearInterval(this.blurInterval);
 
     if (!this.currentGameId()) {
       const newGame = await firstValueFrom(this.gameService.createGame());
@@ -212,31 +212,33 @@ export class GameComponent implements OnInit {
       localStorage.setItem('activeGameId', newGame.id.toString());
     }
 
-    const categories = this.allCategories();
-    const randomIndex = Math.floor(Math.random() * categories.length);
-    const selectedCat = categories[randomIndex];
-
-    const types = ['QUIZ', 'CHRONO', 'TRUE_FALSE'] as const;
+    // const types = ['QUIZ', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR'] as const;
+    const types = ['IMAGE_BLUR'] as const;
     const extractedType = types[Math.floor(Math.random() * types.length)];
-    const difficulty = ['facile', 'medio', 'difficile'][
-      Math.floor(Math.random() * 3)
-      ];
 
-    // Nascondi subito la schermata IDLE e mostra il reveal
     this.phase.set('SPINNING');
     this.showTypeReveal.set(extractedType);
-    await new Promise(r => setTimeout(r, 7000)); // Mostra per 3.5 secondi
+    await new Promise(r => setTimeout(r, 3000));
     this.showTypeReveal.set(null);
 
     this.isSpinning.set(true);
 
     try {
+      let categoryName = "Celebrità e Personaggi Famosi";
+
+      if (extractedType !== 'IMAGE_BLUR') {
+        const categories = this.allCategories();
+        const randomIndex = Math.floor(Math.random() * categories.length);
+        categoryName = categories[randomIndex].name;
+        this.selectedCatIndex.set(randomIndex);
+      }
+
       const nextRound = await firstValueFrom(
         this.aiService.triggerNewAiRound(
           this.currentGameId()!,
-          selectedCat.name,
+          categoryName,
           extractedType,
-          difficulty
+          'medio'
         )
       );
 
@@ -246,18 +248,19 @@ export class GameComponent implements OnInit {
 
       this.round.set(nextRound);
 
-      await new Promise(r => setTimeout(r, 4000));
-      this.selectedCatIndex.set(randomIndex);
-      this.phase.set('SELECTED');
-
-      await new Promise(r => setTimeout(r, 6000));
-      if (nextRound.type === 'CHRONO') {
-        this.phase.set('CHRONO');
-      } else {
-        this.phase.set('QUESTION');
+      if (extractedType !== 'IMAGE_BLUR') {
+        await new Promise(r => setTimeout(r, 2000));
+        this.phase.set('SELECTED');
+        await new Promise(r => setTimeout(r, 2000));
       }
+
+      this.phase.set('QUESTION');
       this.showQuestion.set(true);
       this.isSpinning.set(false);
+
+      if (extractedType === 'IMAGE_BLUR') {
+        this.startBlurEffect();
+      }
 
       this.startTimer();
 
@@ -269,18 +272,18 @@ export class GameComponent implements OnInit {
   }
 
   private startTimer() {
-    this.ws.responses.set([]);
-
     this.ws.broadcastStatus(1, {
       action: 'START_VOTING',
       type: this.round()?.type
     });
 
     if (this.timerInterval) clearInterval(this.timerInterval);
-    this.timer.set(10);
+
+    const isBlur = this.round()?.type === 'IMAGE_BLUR';
+    this.timer.set(isBlur ? 30 : 10);
 
     this.timerInterval = setInterval(() => {
-      if (this.isPaused()) return;
+      if (this.isPaused() || this.playerWhoBuzzed) return;
 
       if (this.timer() > 0) {
         this.timer.update(v => v - 1);
@@ -293,9 +296,30 @@ export class GameComponent implements OnInit {
 
   private revealAnswer() {
     const currentRound = this.round();
-    if (currentRound) {
-      this.round.set({...currentRound, status: 'REVEAL'});
+    if (!currentRound) return;
+
+    this.round.set({...currentRound, status: 'REVEAL'});
+    this.currentBlur = 0;
+
+    if (this.blurInterval) {
+      clearInterval(this.blurInterval);
     }
+
+    // Se IMAGE_BLUR e nessuno ha risposto, mostra popup verde timeout
+    if (currentRound.type === 'IMAGE_BLUR' && !this.playerWhoBuzzed) {
+      this.resultType.set('correct');
+      this.resultPoints.set(0);
+      this.resultPlayerName.set('Tempo Scaduto!');
+      this.showResultPopup.set(true);
+
+      setTimeout(() => {
+        this.showResultPopup.set(false);
+      }, 5000);
+    }
+
+    setTimeout(() => {
+      this.ws.broadcastStatus(this.currentGameId()!, {action: 'ROUND_ENDED'});
+    }, 5000);
   }
 
   processNormalAnswer(res: any) {
@@ -319,56 +343,103 @@ export class GameComponent implements OnInit {
     console.log(`Risposta da ${res.playerName}: ${isCorrect ? '✅' : '❌'} (${score} pt)`);
   }
 
+  getYearDistance(guessedYear: number): number {
+    const correct = this.round()?.payload.correctAnswer;
+    if (!correct) return 0;
+    return Math.abs(guessedYear - parseInt(correct));
+  }
+
   startBlurEffect() {
     if (this.blurInterval) clearInterval(this.blurInterval);
 
     this.currentBlur = 40;
     this.blurInterval = setInterval(() => {
-      if (this.currentBlur > 0) {
-        this.currentBlur -= 0.5;
-      } else {
+      if (this.currentBlur > 0 && !this.playerWhoBuzzed) {
+        this.currentBlur -= (40 / 30); // 40px blur in 30 secondi
+      } else if (this.currentBlur <= 0) {
         clearInterval(this.blurInterval);
       }
-    }, 200);
+    }, 1000);
   }
 
   @HostListener('window:keyup', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
     if (!this.playerWhoBuzzed) return;
 
-    if (event.key === 'ArrowUp') {
+    if (event.key === 'Enter' || event.key === 'ArrowUp') {
       this.confirmCorrect();
-    } else if (event.key === 'ArrowDown') {
+    } else if (event.key === 'Escape' || event.key === 'ArrowDown') {
       this.confirmWrong();
     }
   }
 
   confirmCorrect() {
-    const winner = this.playerWhoBuzzed;
+    const winner = this.playerWhoBuzzed!;
+    const points = 1000;
+
+    // Mostra popup verde
+    this.resultType.set('correct');
+    this.resultPoints.set(points);
+    this.resultPlayerName.set(winner);
+    this.showResultPopup.set(true);
+
+    // Rivela immagine
     this.currentBlur = 0;
     if (this.blurInterval) clearInterval(this.blurInterval);
+    if (this.timerInterval) clearInterval(this.timerInterval);
 
+    // Notifica telefoni
     this.ws.broadcastStatus(1, {
       action: 'ROUND_ENDED',
       winner: winner,
-      points: 1000
+      points: points
     });
 
     this.playerWhoBuzzed = null;
+
+    // Chiudi popup dopo 5 secondi
+    setTimeout(() => {
+      this.showResultPopup.set(false);
+    }, 5000);
   }
 
   confirmWrong() {
-    const loser = this.playerWhoBuzzed;
-    this.playerWhoBuzzed = null;
+    const loser = this.playerWhoBuzzed!;
+    const penalty = -500;
 
+    // Mostra popup rosso
+    this.resultType.set('wrong');
+    this.resultPoints.set(penalty);
+    this.resultPlayerName.set(loser);
+    this.showResultPopup.set(true);
+
+    // Notifica telefoni: BLOCCA definitivamente chi ha sbagliato
     this.ws.broadcastStatus(1, {
-      action: 'RESUME_AFTER_ERROR',
+      action: 'BLOCKED_ERROR',
       blockedPlayer: loser
     });
 
+    this.playerWhoBuzzed = null;
+
+    // Riprendi blur e timer
     if (this.round()?.type === 'IMAGE_BLUR') {
       this.startBlurEffect();
+
+      if (this.timerInterval) clearInterval(this.timerInterval);
+      this.timerInterval = setInterval(() => {
+        if (this.timer() > 0 && !this.playerWhoBuzzed) {
+          this.timer.update(v => v - 1);
+        } else if (this.timer() <= 0) {
+          clearInterval(this.timerInterval);
+          this.revealAnswer();
+        }
+      }, 1000);
     }
+
+    // Chiudi popup dopo 3 secondi
+    setTimeout(() => {
+      this.showResultPopup.set(false);
+    }, 3000);
   }
 
   openResetModal() {
@@ -379,4 +450,36 @@ export class GameComponent implements OnInit {
     this.showResetModal.set(false);
     location.reload();
   }
+
+  get parsedPayload(): any | null {
+    const payload = this.round()?.payload;
+
+    if (!payload) return null;
+
+    // Se è già un oggetto (sicurezza)
+    if (typeof payload === 'object') {
+      return payload;
+    }
+
+    // Se è stringa JSON → PARSE
+    try {
+      return JSON.parse(payload);
+    } catch (e) {
+      console.error('Errore parsing payload', payload);
+      return null;
+    }
+  }
+
+  getSafeImageUrl(url: string | null | undefined): SafeUrl {
+    if (!url) return '';
+
+    // blocca Special:FilePath (NON è immagine)
+    if (url.includes('Special:FilePath')) {
+      console.error('URL NON IMMAGINE:', url);
+      return '';
+    }
+
+    return this.sanitizer.bypassSecurityTrustUrl(url);
+  }
+
 }

@@ -8,9 +8,11 @@ export class DesktopOnlyGuard {
 
   canActivate(): boolean {
     if (this.device.isMobile()) {
+      console.log('❌ Mobile/Tablet detected, redirecting to /play');
       this.router.navigate(['/play']);
       return false;
     }
+    console.log('✅ Desktop detected, allowing /tv');
     return true;
   }
 }
