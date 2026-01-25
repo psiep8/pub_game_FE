@@ -67,9 +67,9 @@
             <p>In attesa della prossima sfida...</p>
           </div>
         }
+
         @case ('VOTING') {
           @switch (questionType()) {
-
             @case ('QUIZ') {
               <div class="voting-grid">
                 <button (click)="sendVote(0)" class="vote-btn btn-a">A</button>
@@ -78,12 +78,14 @@
                 <button (click)="sendVote(3)" class="vote-btn btn-d">D</button>
               </div>
             }
+
             @case ('TRUE_FALSE') {
               <div class="voting-grid tf-layout">
                 <button (click)="sendVote(0)" class="vote-btn btn-true">VERO</button>
                 <button (click)="sendVote(1)" class="vote-btn btn-false">FALSO</button>
               </div>
             }
+
             @case ('CHRONO') {
               <div class="chrono-player-area horizontal-chrono">
                 <div class="year-preview">{{ selectedYear() }}</div>
@@ -94,31 +96,43 @@
                 <button (click)="sendChronoAnswer()" class="confirm-btn">INVIA ANNO</button>
               </div>
             }
-            @case ('MUSIC') {
-              <div class="buzz-layout">
-                <button (click)="sendBuzz()" class="buzz-btn">PRENOTA! (AUDIO)</button>
-              </div>
-            }
+
             @case ('IMAGE_BLUR') {
-              <div class="buzz-layout">
-                <button (click)="sendBuzz()" class="buzz-btn blur-theme">CHI È?</button>
+              <div class="buzz-container">
+                <button
+                  class="buzz-button"
+                  (click)="sendBuzz()"
+                  [disabled]="hasAnswered()">
+                  <span class="buzz-icon">🔔</span>
+                  <span class="buzz-text">PRENOTATI!</span>
+                </button>
               </div>
             }
           }
         }
+
         @case ('LOCKED') {
           <div class="status-msg locked">
-            <p>Prenotazione effettuata! Parla ora 🎤</p>
+            <div class="locked-icon">🎤</div>
+            <p>Sei PRENOTATO!</p>
+            <p class="sub-text">Rispondi al presentatore</p>
           </div>
         }
+
         @case ('WAITING_FOR_OTHER') {
           <div class="status-msg others">
-            <p>Qualcuno è stato più veloce! 💨</p>
+            <div class="blocked-icon">⏸️</div>
+            <p>Qualcuno si è prenotato!</p>
+            <p class="sub-text">Attendi...</p>
           </div>
         }
+
         @case ('BLOCKED_ERROR') {
           <div class="status-msg error">
-            <p>Risposta errata! Sei fuori per questo round ❌</p>
+            <div class="error-icon">❌</div>
+            <p>HAI SBAGLIATO!</p>
+            <p class="sub-text">Sei fuori da questo round</p>
+            <p class="wait-text">Attendi la fine del round...</p>
           </div>
         }
       }

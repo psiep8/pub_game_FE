@@ -69,9 +69,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.gameState.set('WAITING');
           break;
 
-        case 'RESUME_AFTER_ERROR':
-          if (status.blockedPlayer !== this.nickname()) {
-            this.gameState.set('WAITING');
+        case 'BLOCKED_ERROR':
+          // Se sono io quello bloccato, resto bloccato fino alla fine
+          if (status.blockedPlayer === this.nickname()) {
+            this.gameState.set('BLOCKED_ERROR');
+          } else {
+            // Gli altri possono giocare di nuovo
+            this.gameState.set('VOTING');
           }
           break;
 

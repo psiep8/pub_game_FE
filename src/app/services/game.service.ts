@@ -1,13 +1,14 @@
-import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import {inject, Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {map, Observable} from 'rxjs';
 
 export interface GameRoundPayload {
   category: string;
   question: string;
-  type: 'QUIZ' | 'TRUE_FALSE' | 'CHRONO'; // Aggiunto CHRONO
+  type: 'QUIZ' | 'TRUE_FALSE' | 'CHRONO' | 'IMAGE_BLUR'; // Aggiunto CHRONO
   options: string[];
   correctAnswer: string;
+  imageUrl: string;
 }
 
 export interface GameRound {
@@ -18,10 +19,10 @@ export interface GameRound {
   roundIndex: number;
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({providedIn: 'root'})
 export class GameService {
   private http = inject(HttpClient);
-  private baseUrl = 'http://192.168.1.3:8080';
+  private baseUrl = 'http://192.168.1.20:8080';
 
   getCategories(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/categories`);
