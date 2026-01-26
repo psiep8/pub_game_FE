@@ -1,0 +1,128 @@
+
+
+<div class="admin-container">
+
+  <!-- HEADER ADMIN -->
+  <div class="header admin-header">
+    <div class="admin-badge">
+      <span class="crown">👑</span>
+      <span class="text">ADMIN PANEL</span>
+    </div>
+    <div class="game-status" [class.active]="gameState() === 'ACTIVE'">
+      {{ gameState() === 'WAITING' ? '⏳ In Attesa' : gameState() === 'ACTIVE' ? '🎮 Round Attivo' : '✅ Round Terminato' }}
+    </div>
+  </div>
+
+  <!-- RISPOSTA CORRETTA (sempre visibile quando disponibile) -->
+  @if (correctAnswer()) {
+    <div class="correct-answer-banner">
+      <div class="answer-label">📝 RISPOSTA CORRETTA</div>
+      <div class="answer-value">{{ correctAnswer() }}</div>
+    </div>
+  }
+
+  <!-- CONTENUTO PRINCIPALE -->
+  <div class="admin-content">
+
+    @switch (gameState()) {
+
+      <!-- IN ATTESA DI ROUND -->
+      @case ('WAITING') {
+        <div class="status-card waiting">
+          <div class="status-icon">⏳</div>
+          <h2>In Attesa del Prossimo Round</h2>
+          @if (correctAnswer()) {
+            <p class="sub-text">✓ Risposta caricata e pronta</p>
+          } @else {
+            <p class="sub-text">Attendi che la TV avvii un round</p>
+          }
+        </div>
+      }
+
+      <!-- ROUND ATTIVO -->
+      @case ('ACTIVE') {
+        @if (showAdminControls()) {
+          <!-- Modalità BUZZ attiva -->
+          <div class="admin-controls-wrapper">
+
+            @if (buzzedPlayer()) {
+              <!-- C'è un giocatore prenotato -->
+              <div class="buzzed-card">
+                <div class="buzzed-header">
+                  <div class="buzz-icon">🎤</div>
+                  <h2>Giocatore Prenotato!</h2>
+                </div>
+                <div class="buzzed-player-name">{{ buzzedPlayer() }}</div>
+                <p class="instruction">Ascolta la risposta e valuta:</p>
+              </div>
+
+              <!-- BOTTONI DECISIONE -->
+              <div class="decision-grid">
+                <button
+                  (click)="confirmCorrect()"
+                  class="decision-btn btn-correct">
+                  <span class="btn-icon">✅</span>
+                  <span class="btn-label">CORRETTO</span>
+                  <span class="btn-hint">+Punti</span>
+                </button>
+
+                <button
+                  (click)="confirmWrong()"
+                  class="decision-btn btn-wrong">
+                  <span class="btn-icon">❌</span>
+                  <span class="btn-label">SBAGLIATO</span>
+                  <span class="btn-hint">-Punti</span>
+                </button>
+              </div>
+
+            } @else {
+              <!-- Nessun giocatore prenotato ancora -->
+              <div class="status-card waiting-buzz">
+                <div class="status-icon pulse">📡</div>
+                <h2>In Attesa di Prenotazioni</h2>
+                <p class="sub-text">I giocatori possono prenotarsi ora</p>
+                <div class="hint-box">
+                  <span class="hint-icon">💡</span>
+                  <span>Sarai avvisato con vibrazione quando qualcuno si prenota</span>
+                </div>
+              </div>
+            }
+          </div>
+
+        } @else {
+          <!-- Modalità NON-BUZZ (Quiz, Chrono, ecc.) -->
+          <div class="status-card active">
+            <div class="status-icon">🎮</div>
+            <h2>Round in Corso</h2>
+            <p class="sub-text">Tipo: {{ currentQuestionType() }}</p>
+            <p class="info-text">Questa modalità non richiede validazione admin</p>
+          </div>
+        }
+      }
+
+      <!-- ROUND TERMINATO -->
+      @case ('ROUND_ENDED') {
+        <div class="status-card ended">
+          <div class="status-icon">✅</div>
+          <h2>Round Terminato!</h2>
+          <p class="sub-text">In attesa del prossimo round...</p>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- FOOTER INFO -->
+  <div class="admin-footer">
+    <div class="footer-item">
+      <span class="label">Tipo Round:</span>
+      <span class="value">{{ currentQuestionType() }}</span>
+    </div>
+    @if (buzzedPlayer()) {
+      <div class="footer-item highlight">
+        <span class="label">Prenotato:</span>
+        <span class="value">{{ buzzedPlayer() }}</span>
+      </div>
+    }
+  </div>
+
+</div>

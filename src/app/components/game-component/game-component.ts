@@ -174,7 +174,8 @@ export class GameComponent implements OnInit, OnDestroy {
               this.prestartAudio.currentTime = 0;
               const p = this.prestartAudio.play();
               if (p && typeof p.then === 'function') {
-                p.catch(() => {/* autoplay bloccato */});
+                p.catch(() => {/* autoplay bloccato */
+                });
               }
             } catch (e) {
               // ignore
@@ -184,7 +185,15 @@ export class GameComponent implements OnInit, OnDestroy {
         lastPreStart = cur;
       }
     }, 120); // polling leggero: 8 volte al secondo
+    this.ws.status$.subscribe((status: any) => {
+      if (!status) return;
 
+      if (status.action === 'ADMIN_CONFIRM_CORRECT') {
+        this.confirmCorrect();
+      } else if (status.action === 'ADMIN_CONFIRM_WRONG') {
+        this.confirmWrong();
+      }
+    });
   }
 
   ngOnDestroy() {
@@ -204,8 +213,6 @@ export class GameComponent implements OnInit, OnDestroy {
       localStorage.setItem('activeGameId', newGame.id.toString());
     }
 
-    // NON TOCCARE DEVO FARE TENTATIVI SINGOLI
-    // const types: GameModeType[] = ['QUIZ', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE'];
     const types: GameModeType[] = ['WHEEL_OF_FORTUNE'];
     const extractedType = types[Math.floor(Math.random() * types.length)];
 
@@ -251,14 +258,11 @@ export class GameComponent implements OnInit, OnDestroy {
         onBuzz: (playerName) => this.onPlayerBuzz(playerName)
       });
 
-      // Se la mode supporta preGame tick, configuriamo la callback in modo che
-      // il GameComponent tenga aggiornato il segnale preStartCountdown
       (mode as any).setConfig?.({
         ...((mode as any).config ?? {}),
         onPreGameTick: (sec: number) => this.preStartCountdown.set(sec)
       });
 
-      // Rendiamo la modalità corrente disponibile al template e alla logica dell'app
       this.currentMode.set(mode);
 
       // Mostra bolla fake per animazione
@@ -280,17 +284,24 @@ export class GameComponent implements OnInit, OnDestroy {
 
       // Imposta timer UI fermo durante fase lettura
       this.timer.set(mode.timerDuration);
-      // Notifica i remote che la domanda è visibile ma il voto NON è ancora aperto
-      this.ws.broadcastStatus(1, {action: 'SHOW_QUESTION', type: extractedType});
 
-      // 1️⃣ Avvia la modalità con pausa interna di 10s + popup VIA
-      await mode.start(); // mode.start() gestisce lettura, VIA e avvio timer
+      // 🔥 INVIO PAYLOAD ALL'ADMIN - PRIMA DI START_VOTING
+      this.ws.broadcastStatus(1, {
+        action: 'SHOW_QUESTION',
+        type: extractedType,
+        payload: nextRound.payload  // ✅ Invia la risposta corretta all'admin!
+      });
+
+      console.log('📤 Payload inviato all\'admin:', nextRound.payload);
+
+      // Avvia la modalità con pausa interna
+      await mode.start();
 
       this.ws.broadcastStatus(1, {
         action: 'START_VOTING',
         type: extractedType
       });
-      // Abbassiamo lo stato di spinning: la fase di scelta/animazione è terminata
+
       this.isSpinning.set(false);
 
     } catch (err) {
