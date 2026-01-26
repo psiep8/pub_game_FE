@@ -17,7 +17,9 @@ export class ImageBlurMode extends GameModeBase {
     this.currentBlur.set(40);
   }
 
-  protected onStart(): void {
+  protected async onStart(): Promise<void> {
+    // Prima la pausa di lettura + VIA, poi avvia l'effetto blur e timer
+    await this.runPreGameSequence(10000);
     this.startBlurEffect();
   }
 

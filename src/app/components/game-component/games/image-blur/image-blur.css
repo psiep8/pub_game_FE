@@ -49,44 +49,33 @@
 
 .blur-main-container {
   position: relative;
-  width: 700px;
-  height: 700px;
-  border: 10px solid #fff;
-  border-radius: 30px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+  width: min(680px, 84vw);
+  height: min(380px, 48vh);
+  border: 8px solid #fff;
+  border-radius: 20px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
   background: #000;
   overflow: hidden;
 
   .blur-img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain; /* evita che l'immagine sia troppo alta */
     transition: filter 0.3s linear;
   }
 
   .buzz-announcement {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(255, 0, 0, 0.95), rgba(139, 0, 0, 0.95));
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     color: white;
 
-    .player-highlight {
-      font-size: 5rem;
-      font-weight: 900;
-      text-transform: uppercase;
-      animation: playerPulse 0.8s infinite;
-      text-shadow: 0 0 30px rgba(255, 255, 0, 0.8);
-      margin-bottom: 20px;
-    }
+    .player-highlight { font-size: 2.4rem; font-weight: 900; margin-bottom: 8px; }
 
-    p {
-      font-size: 2.5rem;
-      font-weight: 700;
-    }
+    p { font-size: 1.25rem; font-weight: 700; }
   }
 }
 

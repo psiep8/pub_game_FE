@@ -16,7 +16,7 @@
         <div class="word-break"></div>
       } @else {
         <div class="letter-box" [class.revealed]="char !== '_'">
-          {{ char }}
+          {{ char | uppercase }}
         </div>
       }
     }

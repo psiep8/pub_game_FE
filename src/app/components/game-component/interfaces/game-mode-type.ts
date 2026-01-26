@@ -21,6 +21,7 @@ export interface GameModeConfig {
   onTimerEnd?: () => void;
   onBuzz?: (playerName: string) => void;
   onAnswerReceived?: (data: any) => void;
+  onPreGameTick?: (secondsRemaining: number) => void;
 }
 
 /**
@@ -63,6 +64,7 @@ export interface IGameMode {
   getDisplayData(): any;
   getTimerValue(): number;
   getShowGo?(): boolean;
+  getPreStartCountdown?(): number;
   canBuzz(): boolean;
   isRevealed(): boolean;
 }

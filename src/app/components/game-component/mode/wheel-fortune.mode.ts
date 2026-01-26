@@ -16,7 +16,8 @@ export class WheelOfFortuneMode extends GameModeBase { readonly type: GameModeTy
     this.revealedLetters.set(new Set());
   }
 
-  protected onStart(): void {
+  protected async onStart(): Promise<void> {
+    await this.runPreGameSequence(10000);
     this.startLetterReveal();
   }
 
