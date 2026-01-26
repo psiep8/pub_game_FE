@@ -1363,6 +1363,25 @@ $text-light: #e9ecef;
   font-weight: 900;
   box-shadow: 0 10px 40px rgba(255,200,0,0.35), inset 0 2px 0 rgba(255,255,255,0.6);
   transform-origin: center bottom;
+  flex-direction: column; /* valore e punteggio impilati */
+  gap: 6px;
+  padding: 10px;
+}
+
+.prestart-value {
+  font-size: 3.2rem;
+  line-height: 1;
+}
+
+.prestart-score {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: rgba(26,26,46,0.95);
+  background: rgba(255,255,255,0.85);
+  padding: 4px 8px;
+  border-radius: 10px;
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,0.08);
+  transform: translateY(2px);
 }
 
 /* Classe che applica un bounce ripetuto (ma non infinito: usiamo animazione breve con steps per farlo saltellare) */
@@ -1376,4 +1395,18 @@ $text-light: #e9ecef;
   50%  { transform: translateY(0) scale(1); }
   70%  { transform: translateY(-8px) scale(1.02); }
   100% { transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 880px) {
+  .prestart-timer {
+    width: 110px;
+    height: 110px;
+    font-size: 2.6rem;
+  }
+  .prestart-value { font-size: 2.2rem; }
+  .prestart-score { font-size: 0.8rem; padding: 3px 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bounce { animation: none; }
 }

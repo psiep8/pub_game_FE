@@ -34,11 +34,20 @@ export class TrueFalseMode extends GameModeBase {
     return { isCorrect, points, playerChoice };
   }
 
-  protected calculatePoints(isCorrect: boolean, timeMs: number): number {
-    const maxTime = this.timerDuration * 1000;
-    const safeTime = Math.min(timeMs, maxTime);
-    const ratio = (maxTime - safeTime) / maxTime;
-    return isCorrect ? Math.round(800 + 200 * ratio) : Math.round(-400 * ratio);
+  protected calculatePoints(isCorrect: boolean, elapsedMs: number): number {
+    const maxTimeMs = this.timerDuration * 1000;
+
+    // Calcoliamo il fattore di decadimento (da 1.0 a 0)
+    // Se elapsedMs è 0, ratio è 1. Se elapsedMs è maxTimeMs, ratio è 0.
+    const decayRatio = Math.max(0, 1 - (elapsedMs / maxTimeMs));
+
+    if (isCorrect) {
+      // Da +1000 (istante 0) a 0 (fine tempo)
+      return Math.round(1000 * decayRatio);
+    } else {
+      // Da -1000 (istante 0) a 0 (fine tempo)
+      return Math.round(-1000 * decayRatio);
+    }
   }
 
   getDisplayData() {
