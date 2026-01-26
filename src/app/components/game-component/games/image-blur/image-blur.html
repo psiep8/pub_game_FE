@@ -1,0 +1,48 @@
+<div class="image-blur-layout">
+  <h1 class="blur-title">🎭 RICONOSCI LA CELEBRITÀ?</h1>
+
+  @if (displayData.buzzedPlayer) {
+    <div class="reservation-alert" @fadeInOut>
+      <span class="alert-name">{{ displayData.buzzedPlayer }}</span>
+      <span class="alert-text">SI È PRENOTATO!</span>
+    </div>
+  }
+
+  <div class="blur-main-container">
+    <img
+      [src]="getSafeUrl(displayData.imageUrl)"
+      [style.filter]="'blur(' + displayData.blurAmount + 'px)'"
+      referrerpolicy="no-referrer"
+      class="blur-img">
+
+    @if (displayData.buzzedPlayer) {
+      <div class="buzz-announcement" @fadeInOut>
+        <div class="player-highlight">{{ displayData.buzzedPlayer }}</div>
+        <p>RISPONDI ORA!</p>
+      </div>
+    }
+  </div>
+
+  <div class="timer-dot-container">
+    <div class="timer-circle">
+      <span class="timer-value">{{ timer }}s</span>
+    </div>
+  </div>
+
+  @if (displayData.buzzedPlayer) {
+    <div class="presenter-controls">
+      <button (click)="onConfirmCorrect.emit()" class="control-correct">
+        ✅ RISPOSTA CORRETTA
+      </button>
+      <button (click)="onConfirmWrong.emit()" class="control-wrong">
+        ❌ RISPOSTA ERRATA
+      </button>
+    </div>
+  }
+
+  @if (displayData.correctAnswer) {
+    <div class="reveal-answer" @fadeInOut>
+      <h2>{{ displayData.correctAnswer }}</h2>
+    </div>
+  }
+</div>

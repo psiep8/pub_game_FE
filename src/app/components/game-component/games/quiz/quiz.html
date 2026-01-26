@@ -1,0 +1,23 @@
+<div class="quiz-container">
+  <h2 class="quiz-question">{{ displayData.question }}</h2>
+
+  <div class="quiz-options-grid">
+    @for (option of displayData.options; track option; let i = $index) {
+      <button
+        class="quiz-option-btn"
+        [attr.data-letter]="getLetter(i)"
+        [class.correct]="displayData.correctAnswer && option === displayData.correctAnswer"
+        [disabled]="!!displayData.correctAnswer">
+        <span class="option-letter">{{ getLetter(i) }}</span>
+        <span class="option-text">{{ option | uppercase }}</span>
+      </button>
+    }
+  </div>
+
+  @if (displayData.correctAnswer) {
+    <div class="reveal-banner quiz-reveal" @fadeInOut>
+      <div class="reveal-label">RISPOSTA ESATTA:</div>
+      <div class="reveal-value">{{ displayData.correctAnswer }}</div>
+    </div>
+  }
+</div>
