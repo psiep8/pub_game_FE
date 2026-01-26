@@ -38,9 +38,14 @@ export abstract class GameModeBase implements IGameMode {
   protected buzzedPlayer = signal<string | null>(null);
   public isReading = signal<boolean>(false);
   protected showGo: WritableSignal<boolean> = signal(false);
+  protected preStartCountdown = signal<number>(0);
 
   getShowGo() {
     return this.showGo();
+  }
+
+  getPreStartCountdown() {
+    return this.preStartCountdown();
   }
 
   getIsReading() {
@@ -48,6 +53,7 @@ export abstract class GameModeBase implements IGameMode {
   }
 
   private timerInterval?: any;
+  private preStartInterval?: any;
 
   constructor() {
   }
@@ -108,6 +114,8 @@ export abstract class GameModeBase implements IGameMode {
     this.isActive.set(false);
     this.revealed.set(true);
     this.stopTimer();
+    // Assicuriamoci che il giocatore prenotato venga resettato quando la modalità termina
+    this.buzzedPlayer.set(null);
     this.onStop();
     // Permetti di riavviare la stessa istanza se necessario
     this.started = false;
@@ -126,6 +134,22 @@ export abstract class GameModeBase implements IGameMode {
     this.isActive.set(false);      // blocca remote
     this.showGo.set(false);        // "VIA" nascosto
 
+    // Impostiamo countdown pre-start in secondi
+    const seconds = Math.floor(readingTime / 1000);
+    this.preStartCountdown.set(seconds);
+    if (this.preStartInterval) clearInterval(this.preStartInterval);
+    this.preStartInterval = setInterval(() => {
+      const cur = this.preStartCountdown();
+      if (cur > 0) {
+        this.preStartCountdown.set(cur - 1);
+        // Callback verso GameComponent se fornita
+        this.config.onPreGameTick?.(cur - 1);
+      } else {
+        clearInterval(this.preStartInterval);
+        this.preStartInterval = undefined;
+      }
+    }, 1000);
+
     // 1️⃣ Pausa lettura
     await new Promise(r => setTimeout(r, readingTime));
 
@@ -133,6 +157,9 @@ export abstract class GameModeBase implements IGameMode {
     this.showGo.set(true);
     await new Promise(r => setTimeout(r, 1400));
     this.showGo.set(false);
+
+    // reset countdown
+    this.preStartCountdown.set(0);
 
     // 3️⃣ Avvio reale del timer
     this.isReading.set(false);     // remote può rispondere
@@ -158,11 +185,19 @@ export abstract class GameModeBase implements IGameMode {
     }, 1000);
   }
 
+  private clearPreStartInterval() {
+    if (this.preStartInterval) {
+      clearInterval(this.preStartInterval);
+      this.preStartInterval = undefined;
+    }
+  }
+
   private stopTimer(): void {
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
       this.timerInterval = undefined;
     }
+    this.clearPreStartInterval();
   }
 
   private handleTimeout(): void {

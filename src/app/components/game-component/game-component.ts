@@ -57,6 +57,7 @@ export class GameComponent implements OnInit, OnDestroy {
   showQuestion = signal(false);
   showTypeReveal = signal<string | null>(null);
   timer = signal(0);
+  preStartCountdown = signal<number>(0);
   isPaused = signal(false);
   animatedCategoryId = signal<number | null>(null);
 
@@ -141,8 +142,8 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     // NON TOCCARE DEVO FARE TENTATIVI SINGOLI
-    // const types: GameModeType[] = ['QUIZ', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE'];
-    const types: GameModeType[] = ['TRUE_FALSE'];
+    const types: GameModeType[] = ['QUIZ', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE'];
+    // const types: GameModeType[] = ['TRUE_FALSE'];
     const extractedType = types[Math.floor(Math.random() * types.length)];
 
     // Animazione estrazione tipo
@@ -187,6 +188,14 @@ export class GameComponent implements OnInit, OnDestroy {
         onBuzz: (playerName) => this.onPlayerBuzz(playerName)
       });
 
+      // Se la mode supporta preGame tick, configuriamo la callback in modo che
+      // il GameComponent tenga aggiornato il segnale preStartCountdown
+      (mode as any).setConfig?.({
+        ...((mode as any).config ?? {}),
+        onPreGameTick: (sec: number) => this.preStartCountdown.set(sec)
+      });
+
+      // Rendiamo la modalità corrente disponibile al template e alla logica dell'app
       this.currentMode.set(mode);
 
       // Mostra bolla fake per animazione
@@ -380,12 +389,42 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   private generateNonOverlappingPositions(categories: any[]) {
-    // ... codice esistente ...
-    return categories.map(cat => ({
-      ...cat,
-      top: Math.random() * 70 + 10 + '%',
-      left: Math.random() * 80 + 5 + '%'
-    }));
+    // Genera posizioni con semplice avoidance: tenta posizionare ogni bubble lontano dalle altre
+    const placed: Array<{ top: number, left: number }> = [];
+    const results = categories.map(cat => ({...cat}));
+
+    const attemptsLimit = 300;
+    const minDistance = 18; // percentuale minima tra centri (più distanza per bolle più sparse)
+
+    for (let i = 0; i < results.length; i++) {
+      let attempts = 0;
+      let top = 0;
+      let left = 0;
+      do {
+        top = Math.random() * 70 + 10; // 10%..80%
+        left = Math.random() * 80 + 5; // 5%..85%
+        attempts++;
+        // verifica distanza da tutte quelle già piazzate
+        let ok = true;
+        for (const p of placed) {
+          const dy = Math.abs(p.top - top);
+          const dx = Math.abs(p.left - left);
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < minDistance) {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) break;
+      } while (attempts < attemptsLimit);
+
+      // registra
+      placed.push({top, left});
+      results[i].top = top + '%';
+      results[i].left = left + '%';
+    }
+
+    return results;
   }
 
   // Restituisce una versione "sicura" dei displayData per i componenti figlio:
@@ -404,5 +443,12 @@ export class GameComponent implements OnInit, OnDestroy {
     safe.options = Array.isArray(safe.options) ? safe.options : [];
     safe.correctAnswer = safe.correctAnswer ?? null;
     return safe;
+  }
+
+  // Ritorna le ultime risposte ricevute (max 6) per il box risposte
+  getRecentResponses(): any[] {
+    const all = this.ws.responses();
+    if (!Array.isArray(all)) return [];
+    return all.slice(-6).reverse();
   }
 }

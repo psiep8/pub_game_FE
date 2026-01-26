@@ -56,6 +56,15 @@
 
   <!-- AREA DOMANDA CON DISPLAY DINAMICO -->
   @if (showQuestion() && currentMode(); as mode) {
+    <!-- OROLOGIO SALTELLANTE: appare quando il pre-start countdown è tra 1 e 5 -->
+    @if (preStartCountdown() > 0 && preStartCountdown() <= 5) {
+      <div class="prestart-timer-wrapper">
+        <div class="prestart-timer bounce">
+          {{ preStartCountdown() }}
+        </div>
+      </div>
+    }
+
     <div class="question-area" [class.no-padding]="!mode.requiresBubbles">
 
       <!-- TIMER BAR (solo per modalità con bolle) -->
@@ -109,21 +118,21 @@
     </div>
 
     <!-- LIVE FEED RISPOSTE (solo per modalità senza buzz) -->
-    @if (!mode.requiresBuzz) {
-      <div class="live-feed-container">
-        <div class="feed-header">RISPOSTE RICEVUTE</div>
-        <div class="feed-list">
-          @for (res of ws.responses(); track res.playerName) {
-            <div class="feed-item">
-              <div class="player-info">
-                <span class="player-name">{{ res.playerName }}</span>
-                <span class="player-time">⏱️ {{ (res.responseTimeMs / 1000).toFixed(2) }}s</span>
-              </div>
-            </div>
-          }
-        </div>
-      </div>
-    }
+<!--    @if (!mode.requiresBuzz) {-->
+<!--      <div class="live-feed-container">-->
+<!--        <div class="feed-header">RISPOSTE RICEVUTE</div>-->
+<!--        <div class="feed-list">-->
+<!--          @for (res of ws.responses(); track res.playerName) {-->
+<!--            <div class="feed-item">-->
+<!--              <div class="player-info">-->
+<!--                <span class="player-name">{{ res.playerName }}</span>-->
+<!--                <span class="player-time">⏱️ {{ (res.responseTimeMs / 1000).toFixed(2) }}s</span>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          }-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    }-->
   }
 
   <!-- POPUP RISULTATO -->
@@ -144,12 +153,25 @@
     </div>
   }
 
-  <!-- CONTROLLI FOOTER -->
-  <div class="controls-footer">
-    <button (click)="openResetModal()" class="control-btn reset">🔄 RESET</button>
-    <button (click)="togglePause()" class="control-btn pause" [class.is-paused]="isPaused()">
-      {{ isPaused() ? '▶️ RIPRENDI' : '⏸️ PAUSA' }}
-    </button>
+<!--  &lt;!&ndash; CONTROLLI FOOTER &ndash;&gt;-->
+<!--  <div class="controls-footer">-->
+<!--    <button (click)="openResetModal()" class="control-btn reset">🔄 RESET</button>-->
+<!--    <button (click)="togglePause()" class="control-btn pause" [class.is-paused]="isPaused()">-->
+<!--      {{ isPaused() ? '▶️ RIPRENDI' : '⏸️ PAUSA' }}-->
+<!--    </button>-->
+<!--  </div>-->
+
+  <!-- BOX RISPOSTE RECENTI (basso-sinistra) -->
+  <div class="recent-responses" *ngIf="getRecentResponses().length">
+    <div class="recent-header">RISPOSTE</div>
+    <div class="recent-list">
+      @for (r of getRecentResponses(); track r.playerName) {
+        <div class="recent-item">
+          <div class="r-player">{{ r.playerName }}</div>
+          <div class="r-time">{{ (r.responseTimeMs / 1000).toFixed(2) }}s</div>
+        </div>
+      }
+    </div>
   </div>
 
   <!-- MODAL RESET -->
@@ -181,7 +203,9 @@
 
   <!-- PROSSIMO ROUND BUTTON (dopo reveal) -->
   @if (round()?.status === 'REVEAL' && !isSpinning()) {
-    <div class="central-action">
+    <!-- Posizioniamo il bottone a destra per lasciare spazio verticale al contenuto TV.
+         Non mostriamo il bottone se c'è ancora un giocatore prenotato. -->
+    <div class="central-action next-right">
       <button (click)="startNewRound()" class="extract-btn">
         <span class="icon">🎲</span>
         PROSSIMO ROUND
@@ -192,7 +216,7 @@
 </div>
 
 @if (currentMode(); as mode) {
-  @if (mode.type === 'QUIZ' && mode.getShowGo?.()) {
+  @if (mode.getShowGo?.()) {
     <div class="go-popup">🚦 VIA!</div>
   }
 }

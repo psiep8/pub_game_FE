@@ -3,10 +3,13 @@
    ================================ */
 
 .quiz-container {
+  box-sizing: border-box; /* evita che padding espanda oltre la viewport */
   width: 100%;
+  max-width: 100%;
   padding: 20px;
   text-align: center;
   color: #e9ecef;
+  overflow-x: hidden; /* protegge da sforamenti orizzontali */
 }
 
 /* ================================
@@ -14,12 +17,14 @@
    ================================ */
 
 .quiz-question {
-  font-size: 2rem;
+  font-size: clamp(1.4rem, 2.2vw, 2rem); /* scala su schermi stretti */
   font-weight: 700;
   margin-bottom: 35px;
   line-height: 1.4;
   color: rgba(255, 255, 255, 0.95);
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
 /* ================================
@@ -28,9 +33,11 @@
 
 .quiz-options-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* colonne responsiva: ogni colonna almeno 280px, altrimenti si impacchetta */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 18px;
   margin: 30px 0;
+  justify-items: stretch;
 }
 
 /* ================================
@@ -61,6 +68,9 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(6px);
   overflow: hidden;
+  white-space: normal; /* permette il wrap del testo, evita sforamenti */
+  word-break: break-word;
+  min-width: 0; /* permette al flex-item di ridursi dentro griglia */
 }
 
 /* Hover effect */
@@ -111,6 +121,8 @@
 .option-text {
   flex: 1;
   line-height: 1.4;
+  overflow-wrap: anywhere; /* abbrevia parole troppo lunghe */
+  min-width: 0; /* permette il corretto shrinking del contenuto flex */
 }
 
 /* ================================
@@ -212,3 +224,13 @@
     transform: translateY(0) scale(1);
   }
 }
+
+/* Mobile: forziamo una colonna se lo schermo è stretto */
+@media (max-width: 880px) {
+  .quiz-options-grid {
+    grid-template-columns: 1fr;
+   }
+  .quiz-option-btn { padding: 16px 14px; font-size: 1rem; }
+  .option-letter { min-width: 36px; height: 36px; font-size: 0.95rem; }
+  .quiz-question { margin-bottom: 20px; }
+ }

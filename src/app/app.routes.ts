@@ -15,5 +15,10 @@ export const routes: Routes = [
     component: RemoteComponent,
     canActivate: [MobileOnlyGuard]
   },
+  {
+    path: 'admin',
+    component: RemoteComponent,
+    canActivate: [MobileOnlyGuard]
+  },
   { path: '', redirectTo: 'tv', pathMatch: 'full' }
 ];
