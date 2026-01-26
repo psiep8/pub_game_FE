@@ -55,8 +55,10 @@ export class GameModeService {
         throw new Error(`Unknown game mode: ${config.type}`);
     }
 
-    // Inizializza la modalità
+    // Inizializza la modalità e passa la configurazione (callback) alla mode
     mode.initialize(config.payload);
+    // Se la mode implementa setConfig, passiamo la config (utile per onTimerTick/onTimerEnd callbacks)
+    (mode as any).setConfig?.(config);
 
     this.currentMode = mode;
     return mode;

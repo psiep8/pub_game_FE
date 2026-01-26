@@ -27,7 +27,7 @@
   @if (currentMode(); as mode) {
     @if (mode.requiresBubbles && !showTypeReveal() && phase() !== 'IDLE') {
       <div class="bubbles-area">
-        @for (cat of allCategories(); track cat.id; let i = $index) {
+        @for (cat of allCategories(); track cat.id) {
           <div class="category-bubble"
                [style.top]="cat.top"
                [style.left]="cat.left"
@@ -71,25 +71,27 @@
 
         @case ('QUIZ') {
           <app-quiz
-            [displayData]="mode.getDisplayData()"
-            [timer]="timer()" />
+            [displayData]="getSafeDisplayData()"
+            [timer]="timer()"
+            [safeOptions]="getSafeDisplayData().options" />
         }
 
         @case ('TRUE_FALSE') {
           <app-true-false
-            [displayData]="mode.getDisplayData()"
-            [timer]="timer()" />
+            [displayData]="getSafeDisplayData()"
+            [timer]="timer()"
+            [safeOptions]="getSafeDisplayData().options" />
         }
 
         @case ('CHRONO') {
           <app-chrono
-            [displayData]="mode.getDisplayData()"
+            [displayData]="getSafeDisplayData()"
             [timer]="timer()" />
         }
 
         @case ('IMAGE_BLUR') {
           <app-image-blur
-            [displayData]="mode.getDisplayData()"
+            [displayData]="getSafeDisplayData()"
             [timer]="timer()"
             (onConfirmCorrect)="confirmCorrect()"
             (onConfirmWrong)="confirmWrong()" />
@@ -97,7 +99,7 @@
 
         @case ('WHEEL_OF_FORTUNE') {
           <app-wheel-fortune
-            [displayData]="mode.getDisplayData()"
+            [displayData]="getSafeDisplayData()"
             [timer]="timer()"
             (onConfirmCorrect)="confirmCorrect()"
             (onConfirmWrong)="confirmWrong()" />

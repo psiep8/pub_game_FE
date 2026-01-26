@@ -129,9 +129,9 @@ export abstract class GameModeBase implements IGameMode {
     // 1️⃣ Pausa lettura
     await new Promise(r => setTimeout(r, readingTime));
 
-    // 2️⃣ Mostra popup VIA 0.8s
+    // 2️⃣ Mostra popup VIA ~1.4s per renderlo più evidente
     this.showGo.set(true);
-    await new Promise(r => setTimeout(r, 800));
+    await new Promise(r => setTimeout(r, 1400));
     this.showGo.set(false);
 
     // 3️⃣ Avvio reale del timer

@@ -1222,19 +1222,56 @@ $text-light: #e9ecef;
 }
 
 .go-popup {
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 4rem;
-  font-weight: bold;
-  color: #ff0000;
-  z-index: 1000;
+  transform: translate(-50%, -50%) translateZ(0);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ffef9f 0%, #ffd700 40%, #ffb84d 100%);
+  color: #1a1a2e;
+  font-size: 3.5rem;
+  font-weight: 900;
+  box-shadow: 0 30px 80px rgba(255, 183, 77, 0.35), inset 0 -6px 20px rgba(255,255,255,0.2);
+  border: 6px solid rgba(255,215,0,0.9);
+  animation: go-pulse 1.6s ease-in-out infinite, go-entrance 0.45s cubic-bezier(0.2,1,0.22,1);
   pointer-events: none;
-  animation: fadeOut 1s forwards;
 }
 
-@keyframes fadeOut {
-  0% { opacity: 1; }
-  100% { opacity: 0; }
+.go-popup::after {
+  content: '';
+  position: absolute;
+  inset: -18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, rgba(255,215,0,0.18), transparent 40%);
+  filter: blur(12px);
+  z-index: -1;
+  opacity: 0.9;
+  animation: go-glow 2s ease-in-out infinite;
 }
+
+@keyframes go-pulse {
+  0% { transform: translate(-50%, -50%) scale(0.98); }
+  50% { transform: translate(-50%, -50%) scale(1.06); }
+  100% { transform: translate(-50%, -50%) scale(0.98); }
+}
+
+@keyframes go-entrance {
+  0% { transform: translate(-50%, -70%) scale(0.5); opacity: 0; }
+  60% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+@keyframes go-glow {
+  0% { transform: scale(0.95); opacity: 0.6; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.6; }
+}
+
+/* Make sure central-action (PROSSIMO ROUND) is above other overlays when visible */
+.central-action { z-index: 12000; }

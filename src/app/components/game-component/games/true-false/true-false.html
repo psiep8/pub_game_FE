@@ -1,20 +1,19 @@
 <div class="true-false-container">
   <h2 class="tf-question">{{ displayData.question }}</h2>
 
-  <div class="tf-options-grid">
-    @for (option of displayData.options; track option) {
-      <button
-        class="tf-option-btn"
-        [class.option-true]="option === 'VERO'"
-        [class.option-false]="option === 'FALSO'"
-        [class.correct]="displayData.correctAnswer && option === displayData.correctAnswer"
-        [class.wrong]="displayData.correctAnswer && option !== displayData.correctAnswer"
-        [disabled]="!!displayData.correctAnswer">
-        <span class="option-icon">{{ option === 'VERO' ? '✓' : '✗' }}</span>
-        <span class="option-text">{{ option }}</span>
-      </button>
-    }
-  </div>
+  @if (!displayData.isReading && !displayData.correctAnswer) {
+    <div class="tf-options-grid">
+      @for (option of safeOptions; track option; let i = $index) {
+        <button
+          class="tf-option-btn"
+          [class.option-true]="option === 'VERO'"
+          [class.option-false]="option === 'FALSO'">
+          <span class="option-icon">{{ option === 'VERO' ? '✓' : '✗' }}</span>
+          <span class="option-text">{{ option }}</span>
+        </button>
+      }
+    </div>
+  }
 
   @if (displayData.correctAnswer) {
     <div class="reveal-banner tf-reveal" @fadeInOut>

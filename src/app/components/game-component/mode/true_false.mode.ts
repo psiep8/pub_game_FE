@@ -12,19 +12,7 @@ export class TrueFalseMode extends GameModeBase {
   }
 
   protected async onStart(): Promise<void> {
-    console.log('✓/✗ TRUE_FALSE Mode avviato - pausa lettura 10s');
-
-    this.isActive.set(false);
-    this.showGo.set(false);
-
-    await new Promise(r => setTimeout(r, 10000));
-
-    this.showGo.set(true);
-    await new Promise(r => setTimeout(r, 1000));
-    this.showGo.set(false);
-
-    this.isActive.set(true);
-    this.startTimer();
+    await this.runPreGameSequence(10000);
   }
 
   protected onPause(): void {}
