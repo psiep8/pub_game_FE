@@ -61,9 +61,18 @@ export class QuizMode extends GameModeBase {
   }
 
   protected calculatePoints(isCorrect: boolean, elapsedMs: number): number {
-    const maxTime = this.timerDuration * 1000;
-    const safeTime = Math.min(elapsedMs, maxTime);
-    const ratio = (maxTime - safeTime) / maxTime;
-    return isCorrect ? Math.round(1000 * ratio) : Math.round(-500 * ratio);
+    const maxTimeMs = this.timerDuration * 1000;
+
+    // Calcoliamo il fattore di decadimento (da 1.0 a 0)
+    // Se elapsedMs è 0, ratio è 1. Se elapsedMs è maxTimeMs, ratio è 0.
+    const decayRatio = Math.max(0, 1 - (elapsedMs / maxTimeMs));
+
+    if (isCorrect) {
+      // Da +1000 (istante 0) a 0 (fine tempo)
+      return Math.round(1000 * decayRatio);
+    } else {
+      // Da -1000 (istante 0) a 0 (fine tempo)
+      return Math.round(-1000 * decayRatio);
+    }
   }
 }

@@ -59,8 +59,8 @@
     <!-- OROLOGIO SALTELLANTE: appare quando il pre-start countdown è tra 1 e 5 -->
     @if (preStartCountdown() > 0 && preStartCountdown() <= 5) {
       <div class="prestart-timer-wrapper">
-        <div class="prestart-timer bounce">
-          {{ preStartCountdown() }}
+        <div #prestartTimer class="prestart-timer" role="status" aria-live="assertive">
+          <div class="prestart-value">{{ preStartCountdown() }}</div>
         </div>
       </div>
     }
@@ -82,57 +82,53 @@
           <app-quiz
             [displayData]="getSafeDisplayData()"
             [timer]="timer()"
-            [safeOptions]="getSafeDisplayData().options" />
+            [safeOptions]="getSafeDisplayData().options"/>
         }
-
         @case ('TRUE_FALSE') {
           <app-true-false
             [displayData]="getSafeDisplayData()"
             [timer]="timer()"
-            [safeOptions]="getSafeDisplayData().options" />
+            [safeOptions]="getSafeDisplayData().options"/>
         }
-
         @case ('CHRONO') {
           <app-chrono
             [displayData]="getSafeDisplayData()"
-            [timer]="timer()" />
+            [timer]="timer()"/>
         }
-
         @case ('IMAGE_BLUR') {
           <app-image-blur
             [displayData]="getSafeDisplayData()"
             [timer]="timer()"
             (onConfirmCorrect)="confirmCorrect()"
-            (onConfirmWrong)="confirmWrong()" />
+            (onConfirmWrong)="confirmWrong()"/>
         }
-
         @case ('WHEEL_OF_FORTUNE') {
           <app-wheel-fortune
             [displayData]="getSafeDisplayData()"
             [timer]="timer()"
             (onConfirmCorrect)="confirmCorrect()"
-            (onConfirmWrong)="confirmWrong()" />
+            (onConfirmWrong)="confirmWrong()"/>
         }
 
       }
     </div>
 
     <!-- LIVE FEED RISPOSTE (solo per modalità senza buzz) -->
-<!--    @if (!mode.requiresBuzz) {-->
-<!--      <div class="live-feed-container">-->
-<!--        <div class="feed-header">RISPOSTE RICEVUTE</div>-->
-<!--        <div class="feed-list">-->
-<!--          @for (res of ws.responses(); track res.playerName) {-->
-<!--            <div class="feed-item">-->
-<!--              <div class="player-info">-->
-<!--                <span class="player-name">{{ res.playerName }}</span>-->
-<!--                <span class="player-time">⏱️ {{ (res.responseTimeMs / 1000).toFixed(2) }}s</span>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          }-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    }-->
+      <!--    @if (!mode.requiresBuzz) {-->
+      <!--      <div class="live-feed-container">-->
+      <!--        <div class="feed-header">RISPOSTE RICEVUTE</div>-->
+      <!--        <div class="feed-list">-->
+      <!--          @for (res of ws.responses(); track res.playerName) {-->
+      <!--            <div class="feed-item">-->
+      <!--              <div class="player-info">-->
+      <!--                <span class="player-name">{{ res.playerName }}</span>-->
+      <!--                <span class="player-time">⏱️ {{ (res.responseTimeMs / 1000).toFixed(2) }}s</span>-->
+      <!--              </div>-->
+      <!--            </div>-->
+      <!--          }-->
+      <!--        </div>-->
+      <!--      </div>-->
+      <!--    }-->
   }
 
   <!-- POPUP RISULTATO -->
@@ -153,13 +149,13 @@
     </div>
   }
 
-<!--  &lt;!&ndash; CONTROLLI FOOTER &ndash;&gt;-->
-<!--  <div class="controls-footer">-->
-<!--    <button (click)="openResetModal()" class="control-btn reset">🔄 RESET</button>-->
-<!--    <button (click)="togglePause()" class="control-btn pause" [class.is-paused]="isPaused()">-->
-<!--      {{ isPaused() ? '▶️ RIPRENDI' : '⏸️ PAUSA' }}-->
-<!--    </button>-->
-<!--  </div>-->
+  <!--  &lt;!&ndash; CONTROLLI FOOTER &ndash;&gt;-->
+  <!--  <div class="controls-footer">-->
+  <!--    <button (click)="openResetModal()" class="control-btn reset">🔄 RESET</button>-->
+  <!--    <button (click)="togglePause()" class="control-btn pause" [class.is-paused]="isPaused()">-->
+  <!--      {{ isPaused() ? '▶️ RIPRENDI' : '⏸️ PAUSA' }}-->
+  <!--    </button>-->
+  <!--  </div>-->
 
   <!-- BOX RISPOSTE RECENTI (basso-sinistra) -->
   <div class="recent-responses" *ngIf="getRecentResponses().length">
@@ -203,14 +199,14 @@
 
   <!-- PROSSIMO ROUND BUTTON (dopo reveal) -->
   @if (round()?.status === 'REVEAL' && !isSpinning()) {
-    <!-- Posizioniamo il bottone a destra per lasciare spazio verticale al contenuto TV.
-         Non mostriamo il bottone se c'è ancora un giocatore prenotato. -->
-    <div class="central-action next-right">
-      <button (click)="startNewRound()" class="extract-btn">
-        <span class="icon">🎲</span>
-        PROSSIMO ROUND
-      </button>
-    </div>
+    @if (resultType() === 'correct' || resultPlayerName() === 'Tempo Scaduto!') {
+      <div class="central-action next-right">
+        <button (click)="startNewRound()" class="extract-btn">
+          <span class="icon">🎲</span>
+          PROSSIMO ROUND
+        </button>
+      </div>
+    }
   }
 
 </div>

@@ -1,7 +1,7 @@
 <div class="wheel-layout">
   <h1 class="wheel-title">🎡 LA RUOTA DELLA FORTUNA</h1>
 
-  <div class="wheel-hint">{{ displayData.hint }}</div>
+<!--  <div class="wheel-hint">{{ displayData.hint }}</div>-->
 
   @if (displayData.buzzedPlayer) {
     <div class="reservation-alert" @fadeInOut>
@@ -11,14 +11,14 @@
   }
 
   <div class="phrase-container">
-    @for (char of displayData.displayPhrase; track $index) {
-      @if (char === ' ') {
-        <div class="word-break"></div>
-      } @else {
-        <div class="letter-box" [class.revealed]="char !== '_'">
-          {{ char | uppercase }}
-        </div>
-      }
+    @for (word of displayData.displayWords; track wi; let wi = $index) {
+      <div class="word">
+        @for (ch of word; track ci; let ci = $index) {
+          <div class="letter-box" [class.revealed]="ch !== '_'">
+            {{ ch | uppercase }}
+          </div>
+        }
+      </div>
     }
   </div>
 

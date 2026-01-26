@@ -1,6 +1,6 @@
 // src/app/components/game/game.component.ts
 
-import {Component, signal, inject, OnInit, HostListener, OnDestroy} from '@angular/core';
+import {Component, signal, inject, OnInit, HostListener, OnDestroy, ElementRef, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {trigger, transition, style, animate} from '@angular/animations';
 import {firstValueFrom} from 'rxjs';
@@ -74,6 +74,12 @@ export class GameComponent implements OnInit, OnDestroy {
   remoteUrl = `${environment.frontendUrl}/play`;
   qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(this.remoteUrl)}&bgcolor=ffffff&color=1a1a2e&margin=10&qzone=1`;
 
+  @ViewChild('prestartTimer', {read: ElementRef, static: false}) prestartTimer?: ElementRef<HTMLElement>;
+
+  // Audio per pre-start (opzionale)
+  private prestartAudio?: HTMLAudioElement;
+  private audioAllowed = false; // diventa true dopo la prima interazione
+
   @HostListener('window:beforeunload', ['$event'])
   unloadNotification($event: any) {
     if (this.phase() !== 'IDLE') {
@@ -107,6 +113,23 @@ export class GameComponent implements OnInit, OnDestroy {
       console.error("Errore inizializzazione:", err);
     }
 
+    // Precarica audio se presente
+    try {
+      this.prestartAudio = new Audio('/sounds/prestart-beep.mp3');
+      this.prestartAudio.preload = 'auto';
+    } catch (e) {
+      this.prestartAudio = undefined;
+    }
+
+    // Intercettiamo la prima interazione dell'utente per abilitare l'audio (policy autoplay)
+    const allowAudioOnce = () => {
+      this.audioAllowed = true;
+      window.removeEventListener('click', allowAudioOnce);
+      window.removeEventListener('keydown', allowAudioOnce);
+    };
+    window.addEventListener('click', allowAudioOnce);
+    window.addEventListener('keydown', allowAudioOnce);
+
     // WebSocket responses: ignoriamo le risposte mentre la mode è in fase di lettura
     this.ws.responses$.subscribe(res => {
       const mode = this.currentMode();
@@ -122,6 +145,46 @@ export class GameComponent implements OnInit, OnDestroy {
         mode.handleBuzz(res.playerName);
       }
     });
+
+    // Effetto: osserva i cambi al preStartCountdown e riavvia l'animazione + suono
+    // Poiché usiamo segnali, usiamo un piccolo polling via setInterval per reattare ai cambi
+    let lastPreStart = this.preStartCountdown();
+    setInterval(() => {
+      const cur = this.preStartCountdown();
+      if (cur !== lastPreStart) {
+        // cambia valore
+        // se siamo nella finestra 1..5, proviamo a riprodurre l'audio e riavviare l'animazione
+        if (cur > 0 && cur <= 5) {
+          // Riavvia effetto bounce (rimuovi e riaggiungi classe) per forzare replay animation
+          try {
+            const el = this.prestartTimer?.nativeElement;
+            if (el) {
+              el.classList.remove('bounce');
+              // trigger reflow
+              void el.offsetWidth;
+              el.classList.add('bounce');
+            }
+          } catch (err) {
+            // ignore
+          }
+
+          if (this.audioAllowed && this.prestartAudio) {
+            try {
+              // play non in modo await per non bloccare
+              this.prestartAudio.currentTime = 0;
+              const p = this.prestartAudio.play();
+              if (p && typeof p.then === 'function') {
+                p.catch(() => {/* autoplay bloccato */});
+              }
+            } catch (e) {
+              // ignore
+            }
+          }
+        }
+        lastPreStart = cur;
+      }
+    }, 120); // polling leggero: 8 volte al secondo
+
   }
 
   ngOnDestroy() {
@@ -142,8 +205,8 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     // NON TOCCARE DEVO FARE TENTATIVI SINGOLI
-    const types: GameModeType[] = ['QUIZ', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE'];
-    // const types: GameModeType[] = ['TRUE_FALSE'];
+    // const types: GameModeType[] = ['QUIZ', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE'];
+    const types: GameModeType[] = ['WHEEL_OF_FORTUNE'];
     const extractedType = types[Math.floor(Math.random() * types.length)];
 
     // Animazione estrazione tipo
@@ -283,29 +346,34 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!mode) return;
 
     const playerName = mode.getDisplayData().buzzedPlayer;
-
     if (!playerName) return;
+
+    // 1. Recuperiamo il tempo trascorso (il mode tiene traccia di quando è iniziato il timer)
+    // Se il mode non ha un metodo per il tempo, usiamo la differenza dal timer attuale
+    const elapsedMs = (mode.timerDuration * 1000) - (this.timer() * 1000);
+
+    // 2. Usiamo la logica del mode per calcolare i punti REALI
+    const realPoints = (mode as any).calculatePoints(true, elapsedMs);
 
     mode.confirmCorrect(playerName);
 
-    // Imposta round come REVEAL
     const currentRound = this.round();
     if (currentRound) {
       this.round.set({...currentRound, status: 'REVEAL'});
     }
 
-    // Assicuriamoci che la fase di spinning sia rimossa (per mostrare il bottone "PROSSIMO ROUND")
     this.isSpinning.set(false);
 
+    // 3. Settiamo i punti reali per il popup e per il broadcast
     this.resultType.set('correct');
-    this.resultPoints.set(1000);
+    this.resultPoints.set(realPoints); // <--- DINAMICO
     this.resultPlayerName.set(playerName);
     this.showResultPopup.set(true);
 
     this.ws.broadcastStatus(1, {
       action: 'ROUND_ENDED',
       winner: playerName,
-      points: 1000
+      points: realPoints // <--- DINAMICO
     });
 
     setTimeout(() => this.showResultPopup.set(false), 5000);
@@ -316,28 +384,31 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!mode) return;
 
     const playerName = mode.getDisplayData().buzzedPlayer;
-
     if (!playerName) return;
+
+    const elapsedMs = (mode.timerDuration * 1000) - (this.timer() * 1000);
+
+    // Calcolo punti dinamico anche per l'errore
+    const realPoints = (mode as any).calculatePoints(false, elapsedMs);
 
     mode.confirmWrong(playerName);
 
-    // Imposta round come REVEAL (stesso comportamento di confirmCorrect)
     const currentRound = this.round();
     if (currentRound) {
       this.round.set({...currentRound, status: 'REVEAL'});
     }
 
-    // Assicuriamoci che la fase di spinning sia rimossa
     this.isSpinning.set(false);
 
     this.resultType.set('wrong');
-    this.resultPoints.set(-500);
+    this.resultPoints.set(realPoints); // <--- DINAMICO (-1000 a scalare)
     this.resultPlayerName.set(playerName);
     this.showResultPopup.set(true);
 
     this.ws.broadcastStatus(1, {
       action: 'BLOCKED_ERROR',
-      blockedPlayer: playerName
+      blockedPlayer: playerName,
+      points: realPoints // Passiamo i punti anche qui se serve al database/classifica
     });
 
     setTimeout(() => this.showResultPopup.set(false), 3000);
@@ -443,6 +514,37 @@ export class GameComponent implements OnInit, OnDestroy {
     safe.options = Array.isArray(safe.options) ? safe.options : [];
     safe.correctAnswer = safe.correctAnswer ?? null;
     return safe;
+  }
+
+  // Preview del punteggio per mostrare accanto al countdown pre-start
+  getPrestartPreview(): string {
+    const mode = this.currentMode();
+    if (!mode) return '';
+    // user may want to see potential positive/negative score based on speed
+    const seconds = this.preStartCountdown();
+    const duration = (mode as any).timerDuration ?? 10;
+
+    // Per quiz/true_false -> mostra +X / -X (velocità-based)
+    if (mode.type === 'QUIZ' || mode.type === 'TRUE_FALSE') {
+      const score = this.computePreviewScore(seconds, duration);
+      return `+${score} / -${score}`;
+    }
+
+    // Per chrono/wheel -> vittoria singola: mostra +X
+    if (mode.type === 'CHRONO' || mode.type === 'WHEEL_OF_FORTUNE') {
+      const score = this.computePreviewScore(seconds, duration);
+      return `+${score}`;
+    }
+
+    return '';
+  }
+
+  // Calcola il punteggio di preview basato sul tempo relativo (0..duration) -> 0..1000
+  private computePreviewScore(secondsFromNow: number, duration: number): number {
+    // Interpretazione: più veloce = valore più alto; normalizziamo usando (1 - t/d)
+    const t = Math.max(0, Math.min(duration, secondsFromNow));
+    const fraction = 1 - (t / Math.max(1, duration));
+    return Math.round(fraction * 1000);
   }
 
   // Ritorna le ultime risposte ricevute (max 6) per il box risposte

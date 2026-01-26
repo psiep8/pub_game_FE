@@ -3,7 +3,7 @@ import {GameModeBase} from '../interfaces/game-mode-base.class';
 
 export class ChronoMode extends GameModeBase {
   readonly type: GameModeType = 'CHRONO';
-  readonly timerDuration = 15;
+  readonly timerDuration = 20;
   readonly requiresBubbles = true;
   readonly requiresBuzz = false;
 
