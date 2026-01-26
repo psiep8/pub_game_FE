@@ -1,0 +1,214 @@
+/* ================================
+   QUIZ CONTAINER
+   ================================ */
+
+.quiz-container {
+  width: 100%;
+  padding: 20px;
+  text-align: center;
+  color: #e9ecef;
+}
+
+/* ================================
+   QUESTION
+   ================================ */
+
+.quiz-question {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 35px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+/* ================================
+   OPTIONS GRID
+   ================================ */
+
+.quiz-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin: 30px 0;
+}
+
+/* ================================
+   OPTION BUTTON
+   ================================ */
+
+.quiz-option-btn {
+  position: relative;
+  padding: 22px 26px;
+  background: linear-gradient(
+    135deg,
+    rgba(22, 33, 62, 0.95),
+    rgba(15, 52, 96, 0.9)
+  );
+  border: 2px solid rgba(255, 215, 0, 0.25);
+  border-radius: 16px;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 1.15rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  text-align: left;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  overflow: hidden;
+}
+
+/* Hover effect */
+.quiz-option-btn:hover:not(:disabled) {
+  border-color: #ffd700;
+  transform: translateY(-3px) scale(1.01);
+  box-shadow:
+    0 10px 28px rgba(255, 215, 0, 0.25),
+    0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+/* Active */
+.quiz-option-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Disabled */
+.quiz-option-btn:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+
+/* ================================
+   LETTER BADGE
+   ================================ */
+
+.option-letter {
+  min-width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #1a1a2e;
+  font-weight: 900;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 0 12px rgba(255, 215, 0, 0.6),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+/* ================================
+   OPTION TEXT
+   ================================ */
+
+.option-text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+/* ================================
+   CORRECT STATE
+   ================================ */
+
+.quiz-option-btn.correct {
+  background: linear-gradient(135deg, #2ed573, #27ae60) !important;
+  border-color: #1eb95d;
+  color: #ffffff;
+  font-weight: 700;
+  transform: scale(1.02);
+  box-shadow:
+    0 0 30px rgba(46, 213, 115, 0.7),
+    0 0 60px rgba(46, 213, 115, 0.4);
+  animation: pulse-correct 1.2s ease-in-out infinite;
+}
+
+.quiz-option-btn.correct .option-letter {
+  background: #ffffff;
+  color: #2ed573;
+}
+
+/* ================================
+   WRONG STATE
+   ================================ */
+
+.quiz-option-btn.wrong {
+  background: linear-gradient(135deg, #ff4757, #e84118) !important;
+  border-color: #ff6b6b;
+  color: #ffffff;
+  box-shadow:
+    0 0 25px rgba(255, 71, 87, 0.6);
+}
+
+.quiz-option-btn.wrong .option-letter {
+  background: #ffffff;
+  color: #ff4757;
+}
+
+/* ================================
+   REVEAL BANNER
+   ================================ */
+
+.quiz-reveal {
+  margin-top: 35px;
+  padding: 22px 30px;
+  background: rgba(46, 213, 115, 0.18);
+  border: 2px solid #2ed573;
+  border-radius: 18px;
+  box-shadow:
+    0 0 25px rgba(46, 213, 115, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: slide-up-glow 0.5s ease-out;
+}
+
+.quiz-reveal .reveal-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #2ed573;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.quiz-reveal .reveal-value {
+  font-size: 2rem;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 0 15px rgba(46, 213, 115, 0.8);
+}
+
+/* ================================
+   ANIMATIONS
+   ================================ */
+
+@keyframes pulse-correct {
+  0%, 100% {
+    transform: scale(1.02);
+    box-shadow:
+      0 0 30px rgba(46, 213, 115, 0.6),
+      0 0 60px rgba(46, 213, 115, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow:
+      0 0 40px rgba(46, 213, 115, 0.9),
+      0 0 80px rgba(46, 213, 115, 0.5);
+  }
+}
+
+@keyframes slide-up-glow {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

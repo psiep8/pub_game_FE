@@ -1,0 +1,19 @@
+<div class="chrono-container">
+  <h2 class="chrono-question">{{ displayData.question }}</h2>
+
+  <div class="chrono-hint">{{ displayData.hint }}</div>
+
+  @if (!displayData.correctAnswer) {
+    <div class="chrono-waiting-box">
+      <div class="year-icon">📅</div>
+      <p class="wait-text">I giocatori stanno scegliendo l'anno...</p>
+      <div class="timer-display">{{ timer }}s</div>
+    </div>
+  } @else {
+    <div class="reveal-banner chrono-reveal" @fadeInOut>
+      <div class="reveal-icon">✅</div>
+      <div class="reveal-label">ANNO ESATTO:</div>
+      <div class="reveal-value-big">{{ displayData.correctAnswer }}</div>
+    </div>
+  }
+</div>

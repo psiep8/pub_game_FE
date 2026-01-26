@@ -1,0 +1,129 @@
+
+.chrono-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  padding: 50px;
+  min-height: 60vh;
+}
+
+.chrono-question {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  text-align: center;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  margin: 0;
+}
+
+.chrono-hint {
+  font-size: 1.5rem;
+  color: rgba(255, 215, 0, 0.9);
+  background: rgba(255, 215, 0, 0.1);
+  padding: 15px 40px;
+  border-radius: 50px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.chrono-waiting-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  padding: 60px 80px;
+  border-radius: 30px;
+  border: 2px solid rgba(255, 215, 0, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+
+  .year-icon {
+    font-size: 6rem;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .wait-text {
+    font-size: 1.8rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    text-align: center;
+  }
+
+  .timer-display {
+    font-size: 4rem;
+    font-weight: 900;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    animation: pulse 1s ease-in-out infinite;
+  }
+}
+
+.reveal-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  background: linear-gradient(135deg, #11998e, #38ef7d);
+  padding: 50px 100px;
+  border-radius: 30px;
+  box-shadow: 0 15px 50px rgba(56, 239, 125, 0.4),
+  inset 0 -5px 20px rgba(0, 0, 0, 0.2);
+
+  &.chrono-reveal {
+    .reveal-icon {
+      font-size: 5rem;
+    }
+
+    .reveal-label {
+      font-size: 2rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.9);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+
+    .reveal-value-big {
+      font-size: 6rem;
+      font-weight: 900;
+      color: white;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
+      0 0 30px rgba(255, 255, 255, 0.5);
+      animation: revealPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes revealPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

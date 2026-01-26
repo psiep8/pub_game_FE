@@ -1,14 +1,33 @@
-import {Component, signal, inject, OnInit, HostListener} from '@angular/core';
+// src/app/components/game/game.component.ts
+
+import {Component, signal, inject, OnInit, HostListener, OnDestroy} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {trigger, transition, style, animate} from '@angular/animations';
+import {firstValueFrom} from 'rxjs';
+
 import {GameRound, GameService} from '../../services/game.service';
 import {WebSocketService} from '../../services/web-socket.service';
 import {AiGeneratorService} from '../../services/ai-generator-service';
-import {firstValueFrom} from 'rxjs';
-import {DomSanitizer, SafeResourceUrl, SafeUrl} from '@angular/platform-browser';
+import {GameModeService} from '../../services/game-mode-factory.service';
+import {ImageBlur} from './games/image-blur/image-blur';
+import {Quiz} from './games/quiz/quiz';
+import {WheelFortune} from './games/wheel-fortune/wheel-fortune';
+import {TrueFalse} from './games/true-false/true-false';
+import {Chrono} from './games/chrono/chrono';
+import {environment} from '../../environment/environment';
+import {GameModeType, IGameMode} from './interfaces/game-mode-type';
 
 @Component({
   selector: 'app-game-component',
-  imports: [],
+  standalone: true,
+  imports: [
+    CommonModule,
+    WheelFortune,
+    Chrono,
+    TrueFalse,
+    Quiz,
+    ImageBlur,
+  ],
   templateUrl: './game-component.html',
   styleUrl: './game-component.scss',
   animations: [
@@ -20,115 +39,59 @@ import {DomSanitizer, SafeResourceUrl, SafeUrl} from '@angular/platform-browser'
     ])
   ]
 })
-export class GameComponent implements OnInit {
+export class GameComponent implements OnInit, OnDestroy {
   public ws = inject(WebSocketService);
+  private gameService = inject(GameService);
+  private aiService = inject(AiGeneratorService);
+  private gameModeService = inject(GameModeService);
 
-  // Dati
+  // State
   allCategories = signal<any[]>([]);
   round = signal<GameRound | null>(null);
+  currentMode = signal<IGameMode | null>(null);
+  isReadingPhase = signal(false);
+  showGoPopup = signal(false);
 
   // UI State
+  phase = signal<'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION'>('IDLE');
   isSpinning = signal(false);
-  selectedCatIndex = signal<number | null>(null);
-  phase = signal<'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION' | 'CHRONO'>('IDLE');
-  timer = signal(30); // 30 secondi per IMAGE_BLUR
+  selectedCategoryId = signal<number | null>(null);
   showQuestion = signal(false);
-  isPaused = signal(false);
-  private timerInterval: any;
-  showResetModal = signal(false);
-  currentGameId = signal<number | null>(null);
-
-  // IMAGE_BLUR specifico
-  currentBlur = 40;
-  blurInterval: any;
-  playerWhoBuzzed: string | null = null;
-
   showTypeReveal = signal<string | null>(null);
+  timer = signal(0);
+  isPaused = signal(false);
+  animatedCategoryId = signal<number | null>(null);
 
-  // Popup risultato
+  // Modals
+  showResetModal = signal(false);
   showResultPopup = signal(false);
   resultType = signal<'correct' | 'wrong'>('correct');
   resultPoints = signal(0);
   resultPlayerName = signal('');
 
+  currentGameId = signal<number | null>(null);
+
   // QR Code
-  remoteUrl = 'http://192.168.1.3:4200/play';
+  remoteUrl = `${environment.frontendUrl}/play`;
   qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(this.remoteUrl)}&bgcolor=ffffff&color=1a1a2e&margin=10&qzone=1`;
 
   @HostListener('window:beforeunload', ['$event'])
   unloadNotification($event: any) {
     if (this.phase() !== 'IDLE') {
-      $event.returnValue = "Hai una partita in corso! Vuoi davvero uscire?";
+      $event.returnValue = "Hai una partita in corso!";
     }
   }
 
-  togglePause() {
-    if (this.phase() !== 'IDLE' && this.showQuestion()) {
-      this.isPaused.update(v => !v);
+  @HostListener('window:keyup', ['$event'])
+  handleKeyboard(event: KeyboardEvent) {
+    const mode = this.currentMode();
+    if (!mode || !mode.requiresBuzz) return;
+
+    if (event.key === 'Enter' || event.key === 'ArrowUp') {
+      this.confirmCorrect();
+    } else if (event.key === 'Escape' || event.key === 'ArrowDown') {
+      this.confirmWrong();
     }
-  }
-
-  constructor(
-    private gameService: GameService,
-    private aiService: AiGeneratorService,
-    private sanitizer: DomSanitizer
-  ) {
-    this.ws.responses$.subscribe(res => {
-      const currentRound = this.round();
-      if (!currentRound) return;
-
-      if (res.answerIndex === -1) {
-        // È un BUZZ
-        this.handleBuzz(res.playerName);
-      } else {
-        this.processNormalAnswer(res);
-      }
-    });
-  }
-
-  calculateScore(isCorrect: boolean, timeMs: number): number {
-    const maxTime = 10000;
-    const safeTime = Math.min(timeMs, maxTime);
-    const ratio = (maxTime - safeTime) / maxTime;
-
-    if (isCorrect) {
-      return Math.round(1000 * ratio);
-    } else {
-      return Math.round(-500 * ratio); // Penalità
-    }
-  }
-
-  calculateChronoScore(guessedYear: number, realYear: number, timeMs: number): number {
-    const distance = Math.abs(guessedYear - realYear);
-    if (distance > 100) return 0;
-
-    let baseScore = 1000 - (distance * 10);
-    const speedFactor = 1 - (timeMs / 20000);
-    const finalScore = Math.round(baseScore * Math.max(0.5, speedFactor));
-
-    return Math.max(0, finalScore);
-  }
-
-  handleBuzz(playerName: string) {
-    if (this.playerWhoBuzzed) return; // Già qualcuno prenotato
-
-    this.playerWhoBuzzed = playerName;
-
-    // PAUSA il timer e il blur
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-    }
-    if (this.blurInterval) {
-      clearInterval(this.blurInterval);
-    }
-
-    // Notifica gli altri telefoni
-    this.ws.broadcastStatus(1, {
-      action: 'PLAYER_PRENOTATO',
-      name: playerName
-    });
-
-    console.log(`[BUZZ] ${playerName} si è prenotato!`);
   }
 
   async ngOnInit() {
@@ -142,97 +105,62 @@ export class GameComponent implements OnInit {
         this.currentGameId.set(+savedId);
       }
     } catch (err) {
-      console.error("Errore durante l'inizializzazione:", err);
+      console.error("Errore inizializzazione:", err);
     }
+
+    // WebSocket responses
+    this.ws.responses$.subscribe(res => {
+      if (this.isReadingPhase()) return;
+
+      const mode = this.currentMode();
+      if (!mode) return;
+
+      if (!mode.requiresBuzz) {
+        mode.handleAnswer(res.playerName, res.answerIndex, res.responseTimeMs);
+      } else if (res.answerIndex === -1) {
+        mode.handleBuzz(res.playerName);
+      }
+    });
   }
 
-  private generateNonOverlappingPositions(categories: any[]) {
-    const positioned: any[] = [];
-    const minDistance = 180;
-    const maxAttempts = 100;
-
-    categories.forEach((cat: any) => {
-      let validPosition = false;
-      let attempts = 0;
-      let newPos = {top: 0, left: 0};
-
-      while (!validPosition && attempts < maxAttempts) {
-        newPos = {
-          top: Math.random() * 70 + 10,
-          left: Math.random() * 80 + 5
-        };
-
-        validPosition = positioned.every(existing => {
-          const distance = Math.sqrt(
-            Math.pow(newPos.top - existing.topNum, 2) +
-            Math.pow(newPos.left - existing.leftNum, 2)
-          );
-          return distance >= minDistance / 10;
-        });
-
-        attempts++;
-      }
-
-      const duration = 15 + Math.random() * 10;
-      const delay = Math.random() * 3;
-
-      positioned.push({
-        ...cat,
-        top: newPos.top + '%',
-        left: newPos.left + '%',
-        topNum: newPos.top,
-        leftNum: newPos.left,
-        rotate: (Math.random() * 6 - 3) + 'deg',
-        delay: delay + 's',
-        duration: duration + 's',
-      });
-    });
-
-    return positioned;
+  ngOnDestroy() {
+    this.gameModeService.cleanup();
   }
 
   async startNewRound() {
     if (this.isSpinning()) return;
 
-    this.ws.responses.set([]);
-    this.showQuestion.set(false);
-    this.round.set(null);
-    this.selectedCatIndex.set(null);
-    this.playerWhoBuzzed = null;
-    this.timer.set(30);
-    this.isPaused.set(false);
-    this.showResultPopup.set(false);
+    // Reset UI e segnali
+    this.reset();
 
-    if (this.timerInterval) clearInterval(this.timerInterval);
-    if (this.blurInterval) clearInterval(this.blurInterval);
-
+    // Crea gioco se non esiste
     if (!this.currentGameId()) {
       const newGame = await firstValueFrom(this.gameService.createGame());
       this.currentGameId.set(newGame.id);
       localStorage.setItem('activeGameId', newGame.id.toString());
     }
 
-    // const types = ['QUIZ', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR'] as const;
-    const types = ['IMAGE_BLUR'] as const;
+    // Estrai tipo casuale (QUI solo QUIZ per ora)
+    const types: GameModeType[] = ['QUIZ'];
     const extractedType = types[Math.floor(Math.random() * types.length)];
 
+    // Animazione estrazione tipo
     this.phase.set('SPINNING');
     this.showTypeReveal.set(extractedType);
-    await new Promise(r => setTimeout(r, 3000));
+    await new Promise(r => setTimeout(r, 5000));
     this.showTypeReveal.set(null);
 
     this.isSpinning.set(true);
 
     try {
-      let categoryName = "Celebrità e Personaggi Famosi";
+      const categoryName = this.getCategoryForType(extractedType);
 
-      if (extractedType !== 'IMAGE_BLUR') {
-        const categories = this.allCategories();
-        const randomIndex = Math.floor(Math.random() * categories.length);
-        categoryName = categories[randomIndex].name;
-        this.selectedCatIndex.set(randomIndex);
-      }
+      // Selezione categoria reale
+      const categories = this.allCategories();
+      const selectedCategory = categories.find(c => c.name === categoryName);
+      if (selectedCategory) this.selectedCategoryId.set(selectedCategory.id);
 
+      // Crea round AI
       const nextRound = await firstValueFrom(
         this.aiService.triggerNewAiRound(
           this.currentGameId()!,
@@ -248,198 +176,183 @@ export class GameComponent implements OnInit {
 
       this.round.set(nextRound);
 
-      if (extractedType !== 'IMAGE_BLUR') {
-        await new Promise(r => setTimeout(r, 2000));
+      // Crea modalità tramite factory
+      const mode = this.gameModeService.createMode({
+        type: extractedType,
+        payload: nextRound.payload,
+        gameId: this.currentGameId()!,
+        onTimerTick: (seconds) => this.timer.set(seconds),
+        onTimerEnd: () => this.onModeTimeout(),
+        onBuzz: (playerName) => this.onPlayerBuzz(playerName)
+      });
+
+      this.currentMode.set(mode);
+
+      // Mostra bolla fake per animazione
+      if (mode.requiresBubbles) {
+        const randomIndex = Math.floor(Math.random() * categories.length);
+        this.animatedCategoryId.set(categories[randomIndex].id);
+
+        this.phase.set('SPINNING');
+        await new Promise(r => setTimeout(r, 5000));
+
+        // Mostra categoria reale
         this.phase.set('SELECTED');
-        await new Promise(r => setTimeout(r, 2000));
+        this.animatedCategoryId.set(this.selectedCategoryId());
+        await new Promise(r => setTimeout(r, 5000));
       }
 
       this.phase.set('QUESTION');
       this.showQuestion.set(true);
-      this.isSpinning.set(false);
 
-      if (extractedType === 'IMAGE_BLUR') {
-        this.startBlurEffect();
-      }
+      // Imposta timer UI fermo durante fase lettura
+      this.timer.set(mode.timerDuration);
 
-      this.startTimer();
+      // 1️⃣ Avvia la modalità con pausa interna di 10s + popup VIA
+      await mode.start(); // mode.start() gestisce lettura, VIA e avvio timer
+
+      this.ws.broadcastStatus(1, {
+        action: 'START_VOTING',
+        type: extractedType
+      });
 
     } catch (err) {
-      console.error('Errore nel nuovo round:', err);
+      console.error('Errore nuovo round:', err);
       this.isSpinning.set(false);
       this.phase.set('IDLE');
     }
   }
 
-  private startTimer() {
+  private getCategoryForType(type: GameModeType): string {
+    switch (type) {
+      case 'IMAGE_BLUR':
+        return 'CELEBRITÀ';
+      case 'WHEEL_OF_FORTUNE':
+        return 'PROVERBI E MODI DI DIRE';
+      default:
+        const categories = this.allCategories();
+        const randomIndex = Math.floor(Math.random() * categories.length);
+        return categories[randomIndex].name;
+    }
+  }
+
+
+  private onModeTimeout() {
+    const mode = this.currentMode();
+    if (!mode) return;
+
+    // Imposta round come REVEAL
+    const currentRound = this.round();
+    if (currentRound) {
+      this.round.set({...currentRound, status: 'REVEAL'});
+    }
+
+    if (mode.type === 'IMAGE_BLUR' || mode.type === 'WHEEL_OF_FORTUNE') {
+      this.showTimeoutPopup();
+    }
+
+    // Notifica telefoni
+    this.ws.broadcastStatus(1, {action: 'ROUND_ENDED'});
+  }
+
+  private onPlayerBuzz(playerName: string) {
     this.ws.broadcastStatus(1, {
-      action: 'START_VOTING',
-      type: this.round()?.type
+      action: 'PLAYER_PRENOTATO',
+      name: playerName
     });
-
-    if (this.timerInterval) clearInterval(this.timerInterval);
-
-    const isBlur = this.round()?.type === 'IMAGE_BLUR';
-    this.timer.set(isBlur ? 30 : 10);
-
-    this.timerInterval = setInterval(() => {
-      if (this.isPaused() || this.playerWhoBuzzed) return;
-
-      if (this.timer() > 0) {
-        this.timer.update(v => v - 1);
-      } else {
-        clearInterval(this.timerInterval);
-        this.revealAnswer();
-      }
-    }, 1000);
-  }
-
-  private revealAnswer() {
-    const currentRound = this.round();
-    if (!currentRound) return;
-
-    this.round.set({...currentRound, status: 'REVEAL'});
-    this.currentBlur = 0;
-
-    if (this.blurInterval) {
-      clearInterval(this.blurInterval);
-    }
-
-    // Se IMAGE_BLUR e nessuno ha risposto, mostra popup verde timeout
-    if (currentRound.type === 'IMAGE_BLUR' && !this.playerWhoBuzzed) {
-      this.resultType.set('correct');
-      this.resultPoints.set(0);
-      this.resultPlayerName.set('Tempo Scaduto!');
-      this.showResultPopup.set(true);
-
-      setTimeout(() => {
-        this.showResultPopup.set(false);
-      }, 5000);
-    }
-
-    setTimeout(() => {
-      this.ws.broadcastStatus(this.currentGameId()!, {action: 'ROUND_ENDED'});
-    }, 5000);
-  }
-
-  processNormalAnswer(res: any) {
-    const currentRound = this.round();
-    if (!currentRound) return;
-
-    let isCorrect = false;
-    let score = 0;
-
-    if (currentRound.type === 'CHRONO') {
-      const realYear = parseInt(currentRound.payload.correctAnswer);
-      const distance = Math.abs(res.answerIndex - realYear);
-      isCorrect = distance <= 2;
-      score = this.calculateChronoScore(res.answerIndex, realYear, res.responseTimeMs);
-    } else {
-      const playerChoiceText = currentRound.payload.options[res.answerIndex];
-      isCorrect = playerChoiceText === currentRound.payload.correctAnswer;
-      score = this.calculateScore(isCorrect, res.responseTimeMs);
-    }
-
-    console.log(`Risposta da ${res.playerName}: ${isCorrect ? '✅' : '❌'} (${score} pt)`);
-  }
-
-  getYearDistance(guessedYear: number): number {
-    const correct = this.round()?.payload.correctAnswer;
-    if (!correct) return 0;
-    return Math.abs(guessedYear - parseInt(correct));
-  }
-
-  startBlurEffect() {
-    if (this.blurInterval) clearInterval(this.blurInterval);
-
-    this.currentBlur = 40;
-    this.blurInterval = setInterval(() => {
-      if (this.currentBlur > 0 && !this.playerWhoBuzzed) {
-        this.currentBlur -= (40 / 30); // 40px blur in 30 secondi
-      } else if (this.currentBlur <= 0) {
-        clearInterval(this.blurInterval);
-      }
-    }, 1000);
-  }
-
-  @HostListener('window:keyup', ['$event'])
-  handleKeyboardEvent(event: KeyboardEvent) {
-    if (!this.playerWhoBuzzed) return;
-
-    if (event.key === 'Enter' || event.key === 'ArrowUp') {
-      this.confirmCorrect();
-    } else if (event.key === 'Escape' || event.key === 'ArrowDown') {
-      this.confirmWrong();
-    }
   }
 
   confirmCorrect() {
-    const winner = this.playerWhoBuzzed!;
-    const points = 1000;
+    const mode = this.currentMode();
+    if (!mode) return;
 
-    // Mostra popup verde
+    const displayData = mode.getDisplayData();
+    const playerName = displayData.buzzedPlayer;
+
+    if (!playerName) return;
+
+    mode.confirmCorrect(playerName);
+
+    // Imposta round come REVEAL
+    const currentRound = this.round();
+    if (currentRound) {
+      this.round.set({...currentRound, status: 'REVEAL'});
+    }
+
     this.resultType.set('correct');
-    this.resultPoints.set(points);
-    this.resultPlayerName.set(winner);
+    this.resultPoints.set(1000);
+    this.resultPlayerName.set(playerName);
     this.showResultPopup.set(true);
 
-    // Rivela immagine
-    this.currentBlur = 0;
-    if (this.blurInterval) clearInterval(this.blurInterval);
-    if (this.timerInterval) clearInterval(this.timerInterval);
-
-    // Notifica telefoni
     this.ws.broadcastStatus(1, {
       action: 'ROUND_ENDED',
-      winner: winner,
-      points: points
+      winner: playerName,
+      points: 1000
     });
 
-    this.playerWhoBuzzed = null;
-
-    // Chiudi popup dopo 5 secondi
-    setTimeout(() => {
-      this.showResultPopup.set(false);
-    }, 5000);
+    setTimeout(() => this.showResultPopup.set(false), 5000);
   }
 
   confirmWrong() {
-    const loser = this.playerWhoBuzzed!;
-    const penalty = -500;
+    const mode = this.currentMode();
+    if (!mode) return;
 
-    // Mostra popup rosso
+    const displayData = mode.getDisplayData();
+    const playerName = displayData.buzzedPlayer;
+
+    if (!playerName) return;
+
+    mode.confirmWrong(playerName);
+
     this.resultType.set('wrong');
-    this.resultPoints.set(penalty);
-    this.resultPlayerName.set(loser);
+    this.resultPoints.set(-500);
+    this.resultPlayerName.set(playerName);
     this.showResultPopup.set(true);
 
-    // Notifica telefoni: BLOCCA definitivamente chi ha sbagliato
     this.ws.broadcastStatus(1, {
       action: 'BLOCKED_ERROR',
-      blockedPlayer: loser
+      blockedPlayer: playerName
     });
 
-    this.playerWhoBuzzed = null;
+    setTimeout(() => this.showResultPopup.set(false), 3000);
+  }
 
-    // Riprendi blur e timer
-    if (this.round()?.type === 'IMAGE_BLUR') {
-      this.startBlurEffect();
+  private showTimeoutPopup() {
+    const mode = this.currentMode();
+    if (!mode) return;
 
-      if (this.timerInterval) clearInterval(this.timerInterval);
-      this.timerInterval = setInterval(() => {
-        if (this.timer() > 0 && !this.playerWhoBuzzed) {
-          this.timer.update(v => v - 1);
-        } else if (this.timer() <= 0) {
-          clearInterval(this.timerInterval);
-          this.revealAnswer();
-        }
-      }, 1000);
+    const displayData = mode.getDisplayData();
+
+    this.resultType.set('correct');
+    this.resultPoints.set(0);
+    this.resultPlayerName.set('Tempo Scaduto!');
+    this.showResultPopup.set(true);
+
+    setTimeout(() => this.showResultPopup.set(false), 5000);
+  }
+
+  togglePause() {
+    const mode = this.currentMode();
+    if (!mode) return;
+
+    if (this.isPaused()) {
+      mode.resume();
+      this.isPaused.set(false);
+    } else {
+      mode.pause();
+      this.isPaused.set(true);
     }
+  }
 
-    // Chiudi popup dopo 3 secondi
-    setTimeout(() => {
-      this.showResultPopup.set(false);
-    }, 3000);
+  private reset() {
+    this.ws.responses.set([]);
+    this.showQuestion.set(false);
+    this.round.set(null);
+    this.selectedCategoryId.set(null);
+    this.timer.set(0);
+    this.isPaused.set(false);
+    this.showResultPopup.set(false);
+    this.currentMode.set(null);
   }
 
   openResetModal() {
@@ -451,35 +364,12 @@ export class GameComponent implements OnInit {
     location.reload();
   }
 
-  get parsedPayload(): any | null {
-    const payload = this.round()?.payload;
-
-    if (!payload) return null;
-
-    // Se è già un oggetto (sicurezza)
-    if (typeof payload === 'object') {
-      return payload;
-    }
-
-    // Se è stringa JSON → PARSE
-    try {
-      return JSON.parse(payload);
-    } catch (e) {
-      console.error('Errore parsing payload', payload);
-      return null;
-    }
+  private generateNonOverlappingPositions(categories: any[]) {
+    // ... codice esistente ...
+    return categories.map(cat => ({
+      ...cat,
+      top: Math.random() * 70 + 10 + '%',
+      left: Math.random() * 80 + 5 + '%'
+    }));
   }
-
-  getSafeImageUrl(url: string | null | undefined): SafeUrl {
-    if (!url) return '';
-
-    // blocca Special:FilePath (NON è immagine)
-    if (url.includes('Special:FilePath')) {
-      console.error('URL NON IMMAGINE:', url);
-      return '';
-    }
-
-    return this.sanitizer.bypassSecurityTrustUrl(url);
-  }
-
 }

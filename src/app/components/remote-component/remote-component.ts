@@ -14,13 +14,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   private ws = inject(WebSocketService);
   private swUpdate = inject(SwUpdate);
+  private updateCheckInterval?: any;
+  private versionUpdatesSub?: any;
 
   nickname = signal<string | null>(localStorage.getItem('nickname'));
   tempNickname = '';
   startTime: number = 0;
 
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR'>('WAITING');
-  questionType = signal<'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO'>('QUIZ');
+  questionType = signal<'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE'>('QUIZ');
   hasAnswered = signal(false);
   selectedYear = signal<number>(2000);
   private roundStartTime: number = 0;
@@ -117,12 +119,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
     }
 
     // Controlla aggiornamenti ogni 30 minuti
-    setInterval(() => {
+    this.updateCheckInterval = setInterval(() => {
       this.swUpdate.checkForUpdate();
     }, 30 * 60 * 1000);
 
     // Quando c'è un aggiornamento pronto
-    this.swUpdate.versionUpdates
+    this.versionUpdatesSub = this.swUpdate.versionUpdates
       .pipe(filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'))
       .subscribe(() => {
         this.showUpdateBanner.set(true);
@@ -205,7 +207,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   onStartVoting(type: string) {
     this.gameState.set('VOTING');
-    this.questionType.set(type as "QUIZ" | "TRUE_FALSE" | "MUSIC" | "IMAGE_BLUR" | "CHRONO");
+    this.questionType.set(type as "QUIZ" | "TRUE_FALSE" | "MUSIC" | "IMAGE_BLUR" | "CHRONO" | "WHEEL_OF_FORTUNE");
     this.roundStartTime = Date.now();
     this.startTime = Date.now();
     this.selectedYear.set(2000);
@@ -257,5 +259,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.ws.disconnect();
+    if (this.updateCheckInterval) {
+      clearInterval(this.updateCheckInterval);
+      this.updateCheckInterval = undefined;
+    }
+    if (this.versionUpdatesSub) {
+      this.versionUpdatesSub.unsubscribe();
+      this.versionUpdatesSub = undefined;
+    }
   }
 }

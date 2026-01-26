@@ -1,173 +1,122 @@
 <div class="game-container">
 
   <!-- SCHERMATA INIZIALE CON QR CODE -->
-  @if (phase() === 'IDLE' || (round()?.status === 'REVEAL' && !isSpinning())) {
-    <div class="central-action" [class.full-screen]="phase() === 'IDLE'">
-      @if (phase() === 'IDLE') {
-        <div class="qr-section">
-          <h3>📱 SCANSIONA PER GIOCARE</h3>
-          <img [src]="qrCodeUrl" alt="QR Code per giocare" class="qr-code">
-          <p>Apri la camera e inquadra il QR</p>
-        </div>
-      }
+  @if (phase() === 'IDLE') {
+    <div class="central-action full-screen">
+      <div class="qr-section">
+        <h3>📱 SCANSIONA PER GIOCARE</h3>
+        <img [src]="qrCodeUrl" alt="QR Code per giocare" class="qr-code">
+        <p>Apri la camera e inquadra il QR</p>
+      </div>
       <button (click)="startNewRound()" class="extract-btn">
-        <span class="icon">{{ phase() === 'IDLE' ? '🚀' : '🎲' }}</span>
-        {{ phase() === 'IDLE' ? 'GIOCA ORA' : 'PROSSIMO ROUND' }}
+        <span class="icon">🚀</span>
+        GIOCA ORA
       </button>
     </div>
   }
 
   <!-- MODALITÀ ESTRATTA -->
   @if (showTypeReveal()) {
-    <div class="type-reveal-overlay" @fadeInOut>
+    <div class="type-reveal-overlay">
       <div class="label">MODALITÀ ESTRATTA:</div>
       <div class="mode-name">{{ showTypeReveal() }}</div>
     </div>
   }
 
-  <!-- BOLLE CATEGORIE (nascoste se IMAGE_BLUR o durante reveal/spinning) -->
-  @if (round()?.type !== 'IMAGE_BLUR' && !showTypeReveal()) {
-    <div class="bubbles-area">
-      @for (cat of allCategories(); track cat.id; let i = $index) {
-        <div class="category-bubble"
-             [style.top]="cat.top"
-             [style.left]="cat.left"
-             [style.--float-duration]="cat.duration"
-             [style.--float-delay]="cat.delay"
-             [class.spinning]="phase() === 'SPINNING'"
-             [class.is-selected]="selectedCatIndex() === i && phase() === 'SELECTED'"
-             [class.as-title]="selectedCatIndex() === i && showQuestion()"
-             [class.hidden]="phase() === 'IDLE' || (selectedCatIndex() !== null && selectedCatIndex() !== i)">
-          {{ cat.name }}
-        </div>
-      }
-    </div>
+  <!-- BOLLE CATEGORIE -->
+  @if (currentMode(); as mode) {
+    @if (mode.requiresBubbles && !showTypeReveal() && phase() !== 'IDLE') {
+      <div class="bubbles-area">
+        @for (cat of allCategories(); track cat.id; let i = $index) {
+          <div class="category-bubble"
+               [style.top]="cat.top"
+               [style.left]="cat.left"
+               [class.spinning]="phase() === 'SPINNING'"
+               [class.is-selected]="
+  (animatedCategoryId() ?? selectedCategoryId()) === cat.id &&
+  phase() === 'SELECTED'
+"
+
+               [class.as-title]="
+  cat.id === selectedCategoryId() && showQuestion()
+"
+
+               [class.hidden]="
+  selectedCategoryId() !== null &&
+  cat.id !== (animatedCategoryId() ?? selectedCategoryId()) &&
+  phase() !== 'SPINNING'
+"
+          >
+            {{ cat.name }}
+          </div>
+        }
+      </div>
+    }
   }
 
-  <!-- AREA DOMANDA -->
-  @if (showQuestion() && round(); as current) {
-    <div class="question-area" [class.blur-mode]="current.type === 'IMAGE_BLUR'" @fadeInOut>
+  <!-- AREA DOMANDA CON DISPLAY DINAMICO -->
+  @if (showQuestion() && currentMode(); as mode) {
+    <div class="question-area" [class.no-padding]="!mode.requiresBubbles">
 
-      <!-- IMAGE_BLUR MODE -->
-      @if (current.type === 'IMAGE_BLUR') {
-        <div class="image-blur-layout">
-
-          <h1 class="blur-title">🎭 RICONOSCI LA CELEBRITÀ?</h1>
-
-          <!-- ALERT PRENOTAZIONE ROSSO -->
-          @if (playerWhoBuzzed) {
-            <div class="reservation-alert" @fadeInOut>
-              <span class="alert-name">{{ playerWhoBuzzed }}</span>
-              <span class="alert-text">SI È PRENOTATO!</span>
-            </div>
-          }
-
-          <div class="blur-main-container">
-            @if (parsedPayload?.imageUrl) {
-              <img
-                [src]="getSafeImageUrl(parsedPayload.imageUrl)"
-                [style.filter]="'blur(' + currentBlur + 'px)'"
-                referrerpolicy="no-referrer"
-                class="blur-img">
-            }
-
-            @if (playerWhoBuzzed) {
-              <div class="buzz-announcement" @fadeInOut>
-                <div class="player-highlight">{{ playerWhoBuzzed }}</div>
-                <p>RISPONDI ORA!</p>
-              </div>
-            }
-          </div>
-
-          <div class="timer-dot-container">
-            <div class="timer-circle">
-              <span class="timer-value">{{ timer() }}s</span>
-            </div>
-          </div>
-
-          <!-- CONTROLLI PRESENTATORE -->
-          @if (playerWhoBuzzed) {
-            <div class="presenter-controls">
-              <button (click)="confirmCorrect()" class="control-correct">
-                ✅ RISPOSTA CORRETTA
-              </button>
-              <button (click)="confirmWrong()" class="control-wrong">
-                ❌ RISPOSTA ERRATA
-              </button>
-            </div>
-          }
+      <!-- TIMER BAR (solo per modalità con bolle) -->
+      @if (mode.requiresBubbles) {
+        <div class="timer-wrapper">
+          <div class="timer-bar" [style.width.%]="(timer() / mode.timerDuration) * 100"></div>
+          <span class="timer-text">{{ timer() }}s</span>
         </div>
       }
 
-      <!-- ALTRI TIPI (QUIZ, TRUE_FALSE, CHRONO) -->
-      @if (current.type !== 'IMAGE_BLUR') {
-        <div class="timer-wrapper">
-          <div class="timer-bar" [style.width.%]="current.status === 'REVEAL' ? 0 : timer() * 10"></div>
-          <span class="timer-text">{{ current.status === 'REVEAL' ? 'Tempo Scaduto!' : timer() + 's' }}</span>
-        </div>
+      <!-- DISPLAY COMPONENTS DINAMICI -->
+      @switch (mode.type) {
 
-        <h2 class="question-text">{{ current.payload.question }}</h2>
-
-        @if (current.payload.options && current.type !== 'CHRONO' && current.payload.options.length > 0) {
-          <div class="options-grid"
-               [class.layout-quiz]="current.type === 'QUIZ' || current.type === 'TRUE_FALSE'">
-            @for (opt of current.payload.options; track opt) {
-              <button
-                class="option-btn"
-                [disabled]="current.status === 'REVEAL'"
-                [class.correct]="current.status === 'REVEAL' && opt === current.payload.correctAnswer">
-                {{ opt }}
-              </button>
-            }
-          </div>
+        @case ('QUIZ') {
+          <app-quiz
+            [displayData]="mode.getDisplayData()"
+            [timer]="timer()" />
         }
 
-        @if (current.type === 'CHRONO') {
-          <div class="chrono-display">
-            @if (current.status !== 'REVEAL') {
-              <div class="chrono-waiting-box">
-                <h3 class="chrono-title">INDIVIDUA L'ANNO!</h3>
-                <div class="chrono-placeholder">❓ Scegli sul telefono... ❓</div>
-              </div>
-            } @else {
-              <div class="reveal-banner chrono-reveal" @fadeInOut>
-                <div class="reveal-label">ANNO ESATTO:</div>
-                <div class="reveal-value-big">{{ current.payload.correctAnswer }}</div>
-              </div>
-            }
-          </div>
+        @case ('TRUE_FALSE') {
+          <app-true-false
+            [displayData]="mode.getDisplayData()"
+            [timer]="timer()" />
         }
 
-        @if (current.status === 'REVEAL' && current.type !== 'CHRONO') {
-          <div class="reveal-banner" @fadeInOut>
-            <div class="reveal-label">RISPOSTA ESATTA:</div>
-            <div class="reveal-value">{{ current.payload.correctAnswer }}</div>
-          </div>
+        @case ('CHRONO') {
+          <app-chrono
+            [displayData]="mode.getDisplayData()"
+            [timer]="timer()" />
         }
+
+        @case ('IMAGE_BLUR') {
+          <app-image-blur
+            [displayData]="mode.getDisplayData()"
+            [timer]="timer()"
+            (onConfirmCorrect)="confirmCorrect()"
+            (onConfirmWrong)="confirmWrong()" />
+        }
+
+        @case ('WHEEL_OF_FORTUNE') {
+          <app-wheel-fortune
+            [displayData]="mode.getDisplayData()"
+            [timer]="timer()"
+            (onConfirmCorrect)="confirmCorrect()"
+            (onConfirmWrong)="confirmWrong()" />
+        }
+
       }
     </div>
 
-    <!-- LIVE FEED RISPOSTE (non visibile in IMAGE_BLUR) -->
-    @if (current.type !== 'IMAGE_BLUR') {
+    <!-- LIVE FEED RISPOSTE (solo per modalità senza buzz) -->
+    @if (!mode.requiresBuzz) {
       <div class="live-feed-container">
         <div class="feed-header">RISPOSTE RICEVUTE</div>
         <div class="feed-list">
           @for (res of ws.responses(); track res.playerName) {
-            <div class="feed-item" @fadeInOut
-                 [class.chrono-item]="current.type === 'CHRONO'">
+            <div class="feed-item">
               <div class="player-info">
                 <span class="player-name">{{ res.playerName }}</span>
                 <span class="player-time">⏱️ {{ (res.responseTimeMs / 1000).toFixed(2) }}s</span>
               </div>
-
-              @if (current.type === 'CHRONO' && current.status === 'REVEAL') {
-                <div class="chrono-details" @fadeInOut>
-                  <span class="distance-badge">
-                    偏差: {{ getYearDistance(res.answerIndex) }} anni
-                  </span>
-                  <span class="guessed-year">Scelto: {{ res.answerIndex }}</span>
-                </div>
-              }
             </div>
           }
         </div>
@@ -177,8 +126,9 @@
 
   <!-- POPUP RISULTATO -->
   @if (showResultPopup()) {
-    <div class="result-popup" [class.correct]="resultType() === 'correct'" [class.wrong]="resultType() === 'wrong'"
-         @fadeInOut>
+    <div class="result-popup"
+         [class.correct]="resultType() === 'correct'"
+         [class.wrong]="resultType() === 'wrong'">
       <div class="result-icon">
         {{ resultType() === 'correct' ? '✅' : '❌' }}
       </div>
@@ -189,12 +139,6 @@
       <div class="result-points">
         {{ resultPoints() > 0 ? '+' : '' }}{{ resultPoints() }} punti
       </div>
-      @if (resultType() === 'correct' && round()) {
-        <div class="result-answer">
-          {{ round()!.payload.correctAnswer }}
-        </div>
-        <img [src]="round()!.payload.imageUrl" class="result-image">
-      }
     </div>
   }
 
@@ -208,7 +152,7 @@
 
   <!-- MODAL RESET -->
   @if (showResetModal()) {
-    <div class="modal-overlay" @fadeInOut>
+    <div class="modal-overlay">
       <div class="modal-content">
         <h3>🚨 RESET PARTITA</h3>
         <p>Sei sicuro di voler ricominciare?</p>
@@ -222,7 +166,7 @@
 
   <!-- OVERLAY PAUSA -->
   @if (isPaused()) {
-    <div class="pause-overlay" @fadeInOut>
+    <div class="pause-overlay">
       <div class="pause-card">
         <h2>⏸️ GIOCO IN PAUSA</h2>
         <button (click)="togglePause()" class="extract-btn">
@@ -233,4 +177,20 @@
     </div>
   }
 
+  <!-- PROSSIMO ROUND BUTTON (dopo reveal) -->
+  @if (round()?.status === 'REVEAL' && !isSpinning()) {
+    <div class="central-action">
+      <button (click)="startNewRound()" class="extract-btn">
+        <span class="icon">🎲</span>
+        PROSSIMO ROUND
+      </button>
+    </div>
+  }
+
 </div>
+
+@if (currentMode(); as mode) {
+  @if (mode.type === 'QUIZ' && mode.getShowGo?.()) {
+    <div class="go-popup">🚦 VIA!</div>
+  }
+}
