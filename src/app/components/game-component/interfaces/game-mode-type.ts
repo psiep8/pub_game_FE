@@ -47,7 +47,7 @@ export interface IGameMode {
 
   // Lifecycle
   initialize(payload: any): void;
-  start(): void;
+  start(): Promise<void> | void;
   pause(): void;
   resume(): void;
   stop(): void;

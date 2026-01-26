@@ -20,6 +20,7 @@ import {UpperCasePipe} from '@angular/common';
 export class Quiz {
   @Input() displayData: any;
   @Input() timer: number = 0;
+  @Input() safeOptions: any[] = [];
 
   getLetter(index: number): string {
     return ['A', 'B', 'C', 'D'][index];

@@ -17,4 +17,5 @@ import {animate, style, transition, trigger} from '@angular/animations';
 export class TrueFalse {
   @Input() displayData: any;
   @Input() timer: number = 0;
+  @Input() safeOptions: any[] = [];
 }

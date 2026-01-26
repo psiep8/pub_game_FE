@@ -62,6 +62,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
       if (!status) return;
 
       switch (status.action) {
+        case 'SHOW_QUESTION':
+          // La TV mostra la domanda ma il voting non è ancora aperto: nascondi i bottoni
+          this.gameState.set('WAITING');
+          this.questionType.set(status.type);
+          break;
+
         case 'START_VOTING':
           this.onStartVoting(status.type);
           break;

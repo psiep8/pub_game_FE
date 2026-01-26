@@ -49,8 +49,6 @@ export class GameComponent implements OnInit, OnDestroy {
   allCategories = signal<any[]>([]);
   round = signal<GameRound | null>(null);
   currentMode = signal<IGameMode | null>(null);
-  isReadingPhase = signal(false);
-  showGoPopup = signal(false);
 
   // UI State
   phase = signal<'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION'>('IDLE');
@@ -108,12 +106,14 @@ export class GameComponent implements OnInit, OnDestroy {
       console.error("Errore inizializzazione:", err);
     }
 
-    // WebSocket responses
+    // WebSocket responses: ignoriamo le risposte mentre la mode è in fase di lettura
     this.ws.responses$.subscribe(res => {
-      if (this.isReadingPhase()) return;
-
       const mode = this.currentMode();
       if (!mode) return;
+
+      // Se la modalità espone getIsReading e la fase di lettura è attiva, ignoriamo le risposte
+      const isReading = (mode as any).getIsReading?.() ?? false;
+      if (isReading) return;
 
       if (!mode.requiresBuzz) {
         mode.handleAnswer(res.playerName, res.answerIndex, res.responseTimeMs);
@@ -140,8 +140,9 @@ export class GameComponent implements OnInit, OnDestroy {
       localStorage.setItem('activeGameId', newGame.id.toString());
     }
 
-    // Estrai tipo casuale (QUI solo QUIZ per ora)
-    const types: GameModeType[] = ['QUIZ'];
+    // NON TOCCARE DEVO FARE TENTATIVI SINGOLI
+    // const types: GameModeType[] = ['QUIZ', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE'];
+    const types: GameModeType[] = ['TRUE_FALSE'];
     const extractedType = types[Math.floor(Math.random() * types.length)];
 
     // Animazione estrazione tipo
@@ -207,6 +208,8 @@ export class GameComponent implements OnInit, OnDestroy {
 
       // Imposta timer UI fermo durante fase lettura
       this.timer.set(mode.timerDuration);
+      // Notifica i remote che la domanda è visibile ma il voto NON è ancora aperto
+      this.ws.broadcastStatus(1, {action: 'SHOW_QUESTION', type: extractedType});
 
       // 1️⃣ Avvia la modalità con pausa interna di 10s + popup VIA
       await mode.start(); // mode.start() gestisce lettura, VIA e avvio timer
@@ -215,6 +218,8 @@ export class GameComponent implements OnInit, OnDestroy {
         action: 'START_VOTING',
         type: extractedType
       });
+      // Abbassiamo lo stato di spinning: la fase di scelta/animazione è terminata
+      this.isSpinning.set(false);
 
     } catch (err) {
       console.error('Errore nuovo round:', err);
@@ -253,6 +258,8 @@ export class GameComponent implements OnInit, OnDestroy {
 
     // Notifica telefoni
     this.ws.broadcastStatus(1, {action: 'ROUND_ENDED'});
+    // Assicuriamoci che la fase di spinning sia disattivata quando il round finisce
+    this.isSpinning.set(false);
   }
 
   private onPlayerBuzz(playerName: string) {
@@ -266,8 +273,7 @@ export class GameComponent implements OnInit, OnDestroy {
     const mode = this.currentMode();
     if (!mode) return;
 
-    const displayData = mode.getDisplayData();
-    const playerName = displayData.buzzedPlayer;
+    const playerName = mode.getDisplayData().buzzedPlayer;
 
     if (!playerName) return;
 
@@ -278,6 +284,9 @@ export class GameComponent implements OnInit, OnDestroy {
     if (currentRound) {
       this.round.set({...currentRound, status: 'REVEAL'});
     }
+
+    // Assicuriamoci che la fase di spinning sia rimossa (per mostrare il bottone "PROSSIMO ROUND")
+    this.isSpinning.set(false);
 
     this.resultType.set('correct');
     this.resultPoints.set(1000);
@@ -297,12 +306,20 @@ export class GameComponent implements OnInit, OnDestroy {
     const mode = this.currentMode();
     if (!mode) return;
 
-    const displayData = mode.getDisplayData();
-    const playerName = displayData.buzzedPlayer;
+    const playerName = mode.getDisplayData().buzzedPlayer;
 
     if (!playerName) return;
 
     mode.confirmWrong(playerName);
+
+    // Imposta round come REVEAL (stesso comportamento di confirmCorrect)
+    const currentRound = this.round();
+    if (currentRound) {
+      this.round.set({...currentRound, status: 'REVEAL'});
+    }
+
+    // Assicuriamoci che la fase di spinning sia rimossa
+    this.isSpinning.set(false);
 
     this.resultType.set('wrong');
     this.resultPoints.set(-500);
@@ -320,8 +337,6 @@ export class GameComponent implements OnInit, OnDestroy {
   private showTimeoutPopup() {
     const mode = this.currentMode();
     if (!mode) return;
-
-    const displayData = mode.getDisplayData();
 
     this.resultType.set('correct');
     this.resultPoints.set(0);
@@ -371,5 +386,23 @@ export class GameComponent implements OnInit, OnDestroy {
       top: Math.random() * 70 + 10 + '%',
       left: Math.random() * 80 + 5 + '%'
     }));
+  }
+
+  // Restituisce una versione "sicura" dei displayData per i componenti figlio:
+  // evita che la `correctAnswer` venga esposta finché la mode non è rivelata
+  getSafeDisplayData(): any {
+    const mode = this.currentMode();
+    const data = mode ? (mode.getDisplayData() || {}) : {};
+    // Se la mode non è rivelata, assicuriamoci che correctAnswer non sia presente
+    const isReading = mode ? ((mode as any).getIsReading?.() ?? false) : false;
+    const safe = {...data, isReading} as any;
+    if (!mode || !mode.isRevealed()) {
+      safe.correctAnswer = null;
+    }
+    // defaults
+    safe.question = safe.question ?? '';
+    safe.options = Array.isArray(safe.options) ? safe.options : [];
+    safe.correctAnswer = safe.correctAnswer ?? null;
+    return safe;
   }
 }

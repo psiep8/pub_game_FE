@@ -13,7 +13,11 @@ export class QuizMode extends GameModeBase {
   }
 
   override getDisplayData(): any {
-    return {...this.payload, buzzedPlayer: this.buzzedPlayer()};
+    return {
+      ...this.payload,
+      buzzedPlayer: this.buzzedPlayer(),
+      correctAnswer: this.revealed() ? this.payload.correctAnswer : null
+    };
   }
 
   // ================= HOOKS =================
