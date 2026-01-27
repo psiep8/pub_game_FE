@@ -213,7 +213,7 @@ export class GameComponent implements OnInit, OnDestroy {
       localStorage.setItem('activeGameId', newGame.id.toString());
     }
 
-    const types: GameModeType[] = ['WHEEL_OF_FORTUNE'];
+    const types: GameModeType[] = ['IMAGE_BLUR'];
     const extractedType = types[Math.floor(Math.random() * types.length)];
 
     // Animazione estrazione tipo
@@ -278,38 +278,35 @@ export class GameComponent implements OnInit, OnDestroy {
         this.animatedCategoryId.set(this.selectedCategoryId());
         await new Promise(r => setTimeout(r, 5000));
       }
-
       this.phase.set('QUESTION');
       this.showQuestion.set(true);
-
-      // Imposta timer UI fermo durante fase lettura
       this.timer.set(mode.timerDuration);
 
-      // 🔥 INVIO PAYLOAD ALL'ADMIN - PRIMA DI START_VOTING
+// Prepariamo il payload per il broadcast (deve essere una stringa per il BE)
+      const payloadString = typeof nextRound.payload === 'string'
+        ? nextRound.payload
+        : JSON.stringify(nextRound.payload);
+
+      console.log('📤 Invio SHOW_QUESTION con payload stringa:', payloadString);
+
       this.ws.broadcastStatus(1, {
         action: 'SHOW_QUESTION',
         type: extractedType,
-        payload: nextRound.payload  // ✅ Invia la risposta corretta all'admin!
+        payload: payloadString // ✅ ORA È UNA STRINGA, IL BE SARÀ FELICE
       });
 
-      console.log('📤 Payload inviato all\'admin (SHOW_QUESTION):', nextRound.payload);
-
-      // Avvia la modalità con pausa interna
       await mode.start();
 
-      // 🔥 INVIO PAYLOAD ANCHE CON START_VOTING (per sicurezza)
       this.ws.broadcastStatus(1, {
         action: 'START_VOTING',
         type: extractedType,
-        payload: nextRound.payload  // ✅ Invia ANCORA il payload!
+        payload: payloadString // ✅ ANCHE QUI STRINGA
       });
-
-      console.log('📤 Payload inviato all\'admin (START_VOTING):', nextRound.payload);
 
       this.isSpinning.set(false);
 
     } catch (err) {
-      console.error('Errore nuovo round:', err);
+      console.error('❌ Errore nuovo round:', err);
       this.isSpinning.set(false);
       this.phase.set('IDLE');
     }
