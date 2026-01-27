@@ -59,7 +59,10 @@ export class RouletteMode extends GameModeBase {
       await new Promise(r => setTimeout(r, 1000));
     }
 
+    // 🔥 FIX: Resetta ESPLICITAMENTE a 0
     this.preStartCountdown.set(0);
+    this.config.onPreGameTick?.(0);
+    console.log('⏰ Countdown terminato, resettato a 0');
 
     // FASE 3: Mostra VIA!
     console.log('🚦 VIA!');
@@ -69,8 +72,8 @@ export class RouletteMode extends GameModeBase {
 
     console.log('🎰 La ruota gira...');
 
-    // FASE 4: Spin della ruota (12 secondi)
-    await new Promise(r => setTimeout(r, 12000));
+    // FASE 4: Spin della ruota - ESATTAMENTE 12 secondi
+    await new Promise(r => setTimeout(r, 18000));
 
     // FASE 5: Fine - mostra vincitore
     console.log('🏁 FINE - Mostra vincitore');
