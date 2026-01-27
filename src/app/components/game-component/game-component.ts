@@ -292,15 +292,19 @@ export class GameComponent implements OnInit, OnDestroy {
         payload: nextRound.payload  // ✅ Invia la risposta corretta all'admin!
       });
 
-      console.log('📤 Payload inviato all\'admin:', nextRound.payload);
+      console.log('📤 Payload inviato all\'admin (SHOW_QUESTION):', nextRound.payload);
 
       // Avvia la modalità con pausa interna
       await mode.start();
 
+      // 🔥 INVIO PAYLOAD ANCHE CON START_VOTING (per sicurezza)
       this.ws.broadcastStatus(1, {
         action: 'START_VOTING',
-        type: extractedType
+        type: extractedType,
+        payload: nextRound.payload  // ✅ Invia ANCORA il payload!
       });
+
+      console.log('📤 Payload inviato all\'admin (START_VOTING):', nextRound.payload);
 
       this.isSpinning.set(false);
 
