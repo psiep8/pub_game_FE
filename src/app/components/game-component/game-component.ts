@@ -16,6 +16,7 @@ import {TrueFalse} from './games/true-false/true-false';
 import {Chrono} from './games/chrono/chrono';
 import {environment} from '../../environment/environment';
 import {GameModeType, IGameMode} from './interfaces/game-mode-type';
+import {Roulette} from './games/roulette/roulette';
 
 @Component({
   selector: 'app-game-component',
@@ -27,6 +28,7 @@ import {GameModeType, IGameMode} from './interfaces/game-mode-type';
     TrueFalse,
     Quiz,
     ImageBlur,
+    Roulette,
   ],
   templateUrl: './game-component.html',
   styleUrl: './game-component.scss',
@@ -213,7 +215,8 @@ export class GameComponent implements OnInit, OnDestroy {
       localStorage.setItem('activeGameId', newGame.id.toString());
     }
 
-    const types: GameModeType[] = ['IMAGE_BLUR'];
+    // const types: GameModeType[] = ['QUIZ', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE', 'ROULETTE'];
+    const types: GameModeType[] = ['ROULETTE'];
     const extractedType = types[Math.floor(Math.random() * types.length)];
 
     // Animazione estrazione tipo
@@ -318,6 +321,8 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'CELEBRITÀ';
       case 'WHEEL_OF_FORTUNE':
         return 'PROVERBI E MODI DI DIRE';
+      case 'ROULETTE':
+        return 'FORTUNA'; // <-- AGGIUNGI QUESTO
       default:
         const categories = this.allCategories();
         const randomIndex = Math.floor(Math.random() * categories.length);
@@ -565,4 +570,5 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!Array.isArray(all)) return [];
     return all.slice(-6).reverse();
   }
+
 }
