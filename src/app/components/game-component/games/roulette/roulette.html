@@ -1,0 +1,42 @@
+<div class="roulette-screen">
+
+  <div class="roulette-stage">
+    <div class="pointer">▼</div>
+
+    <div class="main-container">
+      <svg class="wheel-svg" viewBox="0 0 100 100" [style.transform]="'rotate(' + wheelRotation() + 'deg)'">
+        <g>
+          @for (seg of segments(); track $index) {
+            <path
+              [attr.d]="getSlicePath($index, segments().length)"
+              [attr.fill]="seg.colorHex"
+              class="segment-path"
+            />
+          }
+        </g>
+        <g>
+          @for (seg of segments(); track $index) {
+            <line x1="50" y1="50" [attr.x2]="getLineX2($index, segments().length)" [attr.y2]="getLineY2($index, segments().length)" stroke="#ffd700" stroke-width="0.2" opacity="0.4" />
+          }
+        </g>
+      </svg>
+
+      <div class="wheel-center">
+        <div class="inner-hub">
+          <span class="hub-text">CASINO</span>
+        </div>
+      </div>
+
+      <div class="ball-track" [style.transform]="'rotate(' + ballRotation() + 'deg)'">
+        <div class="ball" *ngIf="isSpinning() || showWinner()"></div>
+      </div>
+    </div>
+  </div>
+
+  @if (showWinner()) {
+    <div class="winner-overlay animate-win">
+      <h2 [style.color]="colorMap[winningColor()!]">{{ winningColor() }}</h2>
+      <p>WINNER</p>
+    </div>
+  }
+</div>
