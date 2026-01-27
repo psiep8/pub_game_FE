@@ -3,6 +3,7 @@ import {GameComponent} from './components/game-component/game-component';
 import {MobileOnlyGuard} from './guard/mobile-only.guard';
 import {DesktopOnlyGuard} from './guard/desktop-only.guard';
 import {RemoteComponent} from './components/remote-component/remote-component';
+import {Admin} from './components/admin/admin';
 
 export const routes: Routes = [
   {
@@ -17,7 +18,7 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
-    component: RemoteComponent,
+    component: Admin,
     canActivate: [MobileOnlyGuard]
   },
   { path: '', redirectTo: 'tv', pathMatch: 'full' }
