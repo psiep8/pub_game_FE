@@ -1,5 +1,5 @@
-import { Component, Input, signal, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {Component, Input, signal, OnInit, OnDestroy, SimpleChanges, OnChanges} from '@angular/core';
+import {CommonModule} from '@angular/common';
 
 interface RouletteSegment {
   color: string;
@@ -14,95 +14,161 @@ interface RouletteSegment {
   templateUrl: './roulette.html',
   styleUrl: './roulette.css',
 })
-export class Roulette implements OnInit, OnDestroy {
+export class Roulette implements OnInit, OnDestroy, OnChanges {
   @Input() displayData: any;
   @Input() timer: number = 0;
 
+  // 🔥 NUOVO: Riceviamo anche lo stato showGo dalla mode
+  private lastShowGo = false;
+
   isSpinning = signal(false);
-  wheelRotation = signal(0); // Rotazione della ruota (lenta o ferma)
-  ballRotation = signal(0);  // Rotazione della pallina (veloce)
+  wheelRotation = signal(0);
   showWinner = signal(false);
   winningColor = signal<string | null>(null);
 
   colorMap: Record<string, string> = {
-    ROSSO: '#e74c3c',
-    NERO: '#2c3e50',
-    VERDE: '#27ae60',
-    BLU: '#2980b9',
-    ORO: '#f1c40f',
-    VIOLA: '#8e44ad'
+    'ROSSO': '#e74c3c',
+    'NERO': '#2c3e50',
+    'VERDE': '#27ae60',
+    'BLU': '#2980b9',
+    'GIALLO': '#f39c12',
+    'BIANCO': '#ecf0f1'
   };
 
-  segments = signal<RouletteSegment[]>([]);
+  segments = signal<string[]>([]);
+  Math = Math; // Esponi Math al template
+
   private spinTimeout: any;
+  private hasStartedSpin = false;
 
   ngOnInit() {
     this.generateSegments();
-    // Avvio automatico dopo la fase di scelta
-    setTimeout(() => this.startSpin(), 10000);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    // Reset quando arriva un nuovo displayData
+    if (changes['displayData'] && !changes['displayData'].firstChange) {
+      console.log('🔄 Nuovo round - Reset roulette');
+      this.resetRoulette();
+      this.generateSegments();
+    }
+
+    // 🔥 NUOVO: Rileva quando appare il VIA (showGo passa da false a true)
+    if (this.displayData) {
+      const currentShowGo = this.displayData.showGo || false;
+
+      // Se showGo passa da false a true, il VIA è apparso
+      if (!this.lastShowGo && currentShowGo && !this.hasStartedSpin) {
+        console.log('🚦 VIA rilevato - Avvio spin tra 1.5s');
+        setTimeout(() => {
+          this.startSpin();
+        }, 1500);
+        this.hasStartedSpin = true;
+      }
+
+      this.lastShowGo = currentShowGo;
+    }
   }
 
   ngOnDestroy() {
     if (this.spinTimeout) clearTimeout(this.spinTimeout);
   }
 
+  private resetRoulette() {
+    this.isSpinning.set(false);
+    this.wheelRotation.set(0);
+    this.showWinner.set(false);
+    this.winningColor.set(null);
+    this.hasStartedSpin = false;
+    this.lastShowGo = false; // 🔥 Reset anche questo
+    if (this.spinTimeout) {
+      clearTimeout(this.spinTimeout);
+      this.spinTimeout = null;
+    }
+  }
+
   private generateSegments() {
     const colors = Object.keys(this.colorMap);
-    const segmentCount = 24;
+    const segmentCount = 24; // 4 ripetizioni per colore
     const sequence: string[] = [];
 
     for (let i = 0; i < segmentCount; i++) {
-      let lastColor = sequence[i - 1];
+      const lastColor = sequence[i - 1];
       let availableColors = colors.filter(c => c !== lastColor);
-      // Evita che l'ultimo sia uguale al primo
+
       if (i === segmentCount - 1) {
         availableColors = availableColors.filter(c => c !== sequence[0]);
       }
+
       const nextColor = availableColors[Math.floor(Math.random() * availableColors.length)];
       sequence.push(nextColor);
     }
 
-    this.segments.set(sequence.map((color, i) => ({
-      color,
-      colorHex: this.colorMap[color],
-      rotation: i * (360 / segmentCount)
-    })));
+    this.segments.set(sequence);
+    console.log('🎰 Segmenti generati:', sequence);
   }
 
   private startSpin() {
     this.isSpinning.set(true);
+
     const winningColor = this.displayData?.correctAnswer || 'ROSSO';
+    console.log('🎯 Colore vincente dal BE:', winningColor);
 
-    // Trova i segmenti vincenti e scegline uno
-    const winners = this.segments().filter(s => s.color === winningColor);
-    const targetSegment = winners[Math.floor(Math.random() * winners.length)];
+    // Trova TUTTI i segmenti con il colore vincente
+    const segments = this.segments();
+    const winningIndices = segments
+      .map((color, idx) => color === winningColor ? idx : -1)
+      .filter(idx => idx !== -1);
 
-    // FISICA: La ruota gira piano in un senso, la pallina fortissimo nell'altro
-    const wheelTarget = -360 * 2; // 2 giri lenti orari
-    const ballTarget = (360 * 8) + (360 - targetSegment.rotation); // 8 giri antiorari + target
+    console.log('🎯 Indici con colore vincente:', winningIndices);
 
-    this.wheelRotation.set(wheelTarget);
-    this.ballRotation.set(ballTarget);
+    if (winningIndices.length === 0) {
+      console.error('❌ ERRORE: Nessun segmento con colore', winningColor);
+      return;
+    }
 
+    // Scegline uno casuale
+    const targetIndex = winningIndices[Math.floor(Math.random() * winningIndices.length)];
+    const degreesPerSegment = 360 / segments.length;
+    const targetRotation = targetIndex * degreesPerSegment;
+
+    // Effetto suspense: velocità iniziale alta (8-12 giri), poi rallenta piano piano
+    const initialSpins = 8 + Math.random() * 4; // 8-12 giri
+    const fullSpins = initialSpins * 360;
+
+    // Offset per centrare la pallina sullo spicchio
+    const centerOffset = degreesPerSegment / 2;
+
+    // Variazione casuale per realismo (±20% larghezza spicchio)
+    const randomOffset = (Math.random() - 0.5) * degreesPerSegment * 0.4;
+
+    // Rotazione finale: giri completi + rotazione target + offset
+    const finalRotation = fullSpins + (360 - targetRotation) + centerOffset + randomOffset;
+
+    console.log('🎯 Target index:', targetIndex);
+    console.log('🎯 Target rotation:', targetRotation);
+    console.log('🎯 Final rotation:', finalRotation);
+
+    this.wheelRotation.set(finalRotation);
+
+    // Mostra vincitore dopo 8 secondi (tempo di spin lungo per suspense)
     this.spinTimeout = setTimeout(() => {
       this.isSpinning.set(false);
       this.winningColor.set(winningColor);
       this.showWinner.set(true);
-    }, 6000);
+    }, 8000);
   }
 
-  // Aggiungi questi metodi nella classe Roulette
   getSlicePath(index: number, total: number): string {
     const angle = 360 / total;
-    const startAngle = index * angle;
-    const endAngle = (index + 1) * angle;
+    const startAngle = index * angle - 90;
+    const endAngle = (index + 1) * angle - 90;
 
-    // Funzione helper per coordinate polari -> cartesiane
     const polarToCartesian = (deg: number, radius: number) => {
-      const rad = (deg - 90) * Math.PI / 180.0;
+      const rad = deg * Math.PI / 180;
       return {
-        x: 50 + (radius * Math.cos(rad)),
-        y: 50 + (radius * Math.sin(rad))
+        x: 50 + radius * Math.cos(rad),
+        y: 50 + radius * Math.sin(rad)
       };
     };
 
@@ -116,13 +182,5 @@ export class Roulette implements OnInit, OnDestroy {
       "A", 50, 50, 0, largeArcFlag, 1, end.x, end.y,
       "Z"
     ].join(" ");
-  }
-
-  getLineX2(index: number, total: number): number {
-    return 50 + 50 * Math.cos(((index * (360 / total)) - 90) * Math.PI / 180);
-  }
-
-  getLineY2(index: number, total: number): number {
-    return 50 + 50 * Math.sin(((index * (360 / total)) - 90) * Math.PI / 180);
   }
 }

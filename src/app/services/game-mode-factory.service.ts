@@ -52,7 +52,7 @@ export class GameModeService {
         mode = new TrueFalseMode();
         break;
       case 'ROULETTE':
-        mode = new RouletteMode(config);
+        mode = new RouletteMode();
         break;
       default:
         throw new Error(`Unknown game mode: ${config.type}`);

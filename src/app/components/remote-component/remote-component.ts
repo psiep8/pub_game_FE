@@ -22,7 +22,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR'>('WAITING');
-  questionType = signal<'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE'>('QUIZ');
+  questionType = signal<'ROULETTE' | 'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE'>('QUIZ');
   hasAnswered = signal(false);
   selectedYear = signal<number>(2000);
   private roundStartTime: number = 0;
@@ -148,7 +148,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (!this.deferredPrompt) return;
 
     this.deferredPrompt.prompt();
-    const { outcome } = await this.deferredPrompt.userChoice;
+    const {outcome} = await this.deferredPrompt.userChoice;
 
     if (outcome === 'accepted') {
       console.log('✅ Utente ha accettato l\'installazione');
@@ -213,7 +213,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   onStartVoting(type: string) {
     this.gameState.set('VOTING');
-    this.questionType.set(type as "QUIZ" | "TRUE_FALSE" | "MUSIC" | "IMAGE_BLUR" | "CHRONO" | "WHEEL_OF_FORTUNE");
+    this.questionType.set(type as 'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE' | 'ROULETTE');
     this.roundStartTime = Date.now();
     this.startTime = Date.now();
     this.selectedYear.set(2000);

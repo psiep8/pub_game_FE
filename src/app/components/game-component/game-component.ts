@@ -244,17 +244,25 @@ export class GameComponent implements OnInit, OnDestroy {
           'medio'
         )
       );
+      console.log('📦 Round ricevuto dal BE:', nextRound);
+      console.log('📦 Payload RAW:', nextRound.payload);
 
       if (typeof nextRound.payload === 'string') {
+        console.log('📦 Payload è stringa, faccio parse...');
         nextRound.payload = JSON.parse(nextRound.payload);
+        console.log('📦 Payload dopo parse:', nextRound.payload);
       }
+
+      console.log('🎯 correctAnswer nel payload:', nextRound.payload.correctAnswer);
+      console.log('🎨 options nel payload:', nextRound.payload.options);
+
 
       this.round.set(nextRound);
 
       // Crea modalità tramite factory
       const mode = this.gameModeService.createMode({
         type: extractedType,
-        payload: nextRound.payload,
+        payload: nextRound.payload,  // <-- Assicurati che sia il payload PARSATO
         gameId: this.currentGameId()!,
         onTimerTick: (seconds) => this.timer.set(seconds),
         onTimerEnd: () => this.onModeTimeout(),
@@ -520,16 +528,22 @@ export class GameComponent implements OnInit, OnDestroy {
   getSafeDisplayData(): any {
     const mode = this.currentMode();
     const data = mode ? (mode.getDisplayData() || {}) : {};
-    // Se la mode non è rivelata, assicuriamoci che correctAnswer non sia presente
     const isReading = mode ? ((mode as any).getIsReading?.() ?? false) : false;
     const safe = {...data, isReading} as any;
-    if (!mode || !mode.isRevealed()) {
-      safe.correctAnswer = null;
+
+    // 🔥 PER ROULETTE: NON nascondere correctAnswer perché serve per lo spin!
+    if (mode?.type !== 'ROULETTE') {
+      if (!mode || !mode.isRevealed()) {
+        safe.correctAnswer = null;
+      }
     }
+
     // defaults
     safe.question = safe.question ?? '';
     safe.options = Array.isArray(safe.options) ? safe.options : [];
-    safe.correctAnswer = safe.correctAnswer ?? null;
+
+    console.log('📊 SafeDisplayData per', mode?.type, ':', safe);
+
     return safe;
   }
 
