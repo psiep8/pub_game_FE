@@ -11,6 +11,7 @@ import {CommonModule} from '@angular/common';
   styleUrl: './admin.css',
 })
 export class Admin implements OnInit, OnDestroy {
+
   private ws = inject(WebSocketService);
 
   // Admin state
@@ -34,15 +35,26 @@ export class Admin implements OnInit, OnDestroy {
         case 'SHOW_QUESTION':
           // La domanda è mostrata: mostra risposta corretta all'admin
           console.log('🔍 ADMIN riceve SHOW_QUESTION:', status);
-          console.log('📦 Payload ricevuto:', status.payload);
+          console.log('📦 Payload ricevuto (RAW):', status.payload);
 
           this.gameState.set('WAITING');
           this.currentQuestionType.set(status.type);
 
           // Salva il payload (contiene la risposta corretta)
           if (status.payload) {
-            this.payload.set(status.payload);
-            this.extractCorrectAnswer(status.payload, status.type);
+            // 🔥 PARSE SE È STRINGA JSON
+            let parsedPayload = status.payload;
+            if (typeof status.payload === 'string') {
+              try {
+                parsedPayload = JSON.parse(status.payload);
+                console.log('📦 Payload dopo parse:', parsedPayload);
+              } catch (e) {
+                console.error('❌ Errore parse payload:', e);
+              }
+            }
+
+            this.payload.set(parsedPayload);
+            this.extractCorrectAnswer(parsedPayload, status.type);
             console.log('✅ Risposta estratta:', this.correctAnswer());
           } else {
             console.warn('⚠️ Nessun payload ricevuto!');
@@ -53,8 +65,28 @@ export class Admin implements OnInit, OnDestroy {
           break;
 
         case 'START_VOTING':
+          console.log('🎮 ADMIN riceve START_VOTING:', status);
+          console.log('📦 Payload in START_VOTING:', status.payload);
+
           this.gameState.set('ACTIVE');
           this.currentQuestionType.set(status.type);
+
+          // 🔥 SE C'È IL PAYLOAD, ESTRAIAMO LA RISPOSTA ANCHE QUI
+          if (status.payload) {
+            let parsedPayload = status.payload;
+            if (typeof status.payload === 'string') {
+              try {
+                parsedPayload = JSON.parse(status.payload);
+                console.log('📦 Payload dopo parse (START_VOTING):', parsedPayload);
+              } catch (e) {
+                console.error('❌ Errore parse payload:', e);
+              }
+            }
+
+            this.payload.set(parsedPayload);
+            this.extractCorrectAnswer(parsedPayload, status.type);
+            console.log('✅ Risposta estratta da START_VOTING:', this.correctAnswer());
+          }
 
           // Mostra controlli solo per modalità BUZZ
           const isBuzzMode = status.type === 'IMAGE_BLUR' || status.type === 'WHEEL_OF_FORTUNE';
@@ -101,16 +133,22 @@ export class Admin implements OnInit, OnDestroy {
       case 'TRUE_FALSE':
       case 'CHRONO':
       case 'IMAGE_BLUR':
+        // Per questi tipi la risposta è in correctAnswer
         answer = payload.correctAnswer || 'N/A';
+        console.log(`📝 ${type} risposta:`, answer);
         break;
 
       case 'WHEEL_OF_FORTUNE':
-        // Per WHEEL_OF_FORTUNE il proverbio può essere in payload.payload o payload.proverb
-        answer = payload.payload || payload.proverb || payload.correctAnswer || 'N/A';
+        // Per WHEEL_OF_FORTUNE cercalo in questo ordine:
+        // 1. payload.proverb (formato backend)
+        // 2. payload.payload (formato alternativo)
+        // 3. payload.correctAnswer (fallback)
+        answer = payload.proverb || payload.payload || payload.correctAnswer || 'N/A';
         console.log('🎡 WHEEL_OF_FORTUNE risposta:', answer);
         break;
 
       default:
+        console.warn('⚠️ Tipo sconosciuto:', type);
         answer = 'N/A';
     }
 
