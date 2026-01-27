@@ -7,97 +7,74 @@ import {Subject} from 'rxjs';
 export class WebSocketService {
   private client: Client;
 
+  // Per la TV: segnale per vedere le risposte in tempo reale
   responses = signal<any[]>([]);
+
+  // Per i Telefoni: stream per reagire ai cambi di stato della TV
   status$ = new Subject<any>();
   responses$ = new Subject<any>();
 
   constructor() {
     this.client = new Client({
-      // webSocketFactory: () => new SockJS('http://192.168.1.20:8080/ws-pubgame'),
+      // Usa l'IP del tuo PC che abbiamo configurato prima!
       webSocketFactory: () => new SockJS('http://192.168.1.3:8080/ws-pubgame'),
-      reconnectDelay: 5000,
+      // webSocketFactory: () => new SockJS('http://192.168.1.20:8080/ws-pubgame'),
+      reconnectDelay: 5000, // Prova a riconnettersi ogni 5 secondi se cade la linea
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
-
       onConnect: () => {
-        console.log('✅ WebSocket CONNESSO');
+        console.log('Connesso al WebSocket');
 
-        // Iscrizione RISPOSTE
+        // 1. Iscrizione alle RISPOSTE (usata dalla TV)
         this.client.subscribe('/topic/game/1/responses', (msg) => {
-          console.log('📨 [RESPONSES] Ricevuto:', msg.body);
           const data = JSON.parse(msg.body);
           this.responses.update(prev => [...prev, data]);
-          this.responses$.next(data);
+          this.responses$.next(data); // Notifica il Subject
         });
 
-        // Iscrizione STATUS
+        // 2. Iscrizione allo STATO (usata dai TELEFONI)
         this.client.subscribe('/topic/game/1/status', (msg) => {
-          console.log('📨 [STATUS] Ricevuto RAW:', msg.body);
-          try {
-            const parsed = JSON.parse(msg.body);
-            console.log('📨 [STATUS] Parsed:', parsed);
-            this.status$.next(parsed);
-          } catch (e) {
-            console.error('❌ Errore parse STATUS:', e);
-          }
+          this.status$.next(JSON.parse(msg.body));
         });
-
-        console.log('✅ Iscrizioni WebSocket completate');
-      },
-
-      onStompError: (frame) => {
-        console.error('❌ STOMP Error:', frame);
-      },
-
-      onWebSocketError: (event) => {
-        console.error('❌ WebSocket Error:', event);
-      },
-
-      onDisconnect: () => {
-        console.warn('⚠️ WebSocket DISCONNESSO');
       }
     });
-
-    console.log('🔌 Attivazione WebSocket...');
     this.client.activate();
   }
 
+  // Metodo per i TELEFONI: invia la risposta
   sendAnswer(gameId: number, playerName: string, index: number, responseTimeMs: number) {
-    console.log('📤 Invio risposta:', {gameId, playerName, index, responseTimeMs});
     this.client.publish({
       destination: `/app/game/${gameId}/answer`,
       body: JSON.stringify({playerName, answerIndex: index, responseTimeMs})
     });
   }
 
+  // Metodo per la TV: invia lo stato (quello che ti mancava)
   broadcastStatus(gameId: number, payload: any) {
-    console.log('📤📤📤 BROADCAST STATUS:', payload);
-    console.log('📤 Destination:', `/app/game/${gameId}/status`);
-    console.log('📤 Body:', JSON.stringify(payload));
-
     this.client.publish({
       destination: `/app/game/${gameId}/status`,
       body: JSON.stringify(payload)
     });
-
-    console.log('✅ Messaggio inviato al server!');
   }
 
   disconnect() {
     if (this.client) {
       this.client.deactivate();
-      console.log('🔌 WebSocket disconnesso');
+      console.log('WebSocket disconnesso manualmente.');
     }
   }
 
+  // Metodo per ricollegarsi (puoi chiamarlo se vuoi forzare un reconnect)
   connect() {
     if (!this.client.active) {
       this.client.activate();
-      console.log('🔌 Tentativo riconnessione...');
+      console.log('Tentativo di riconnessione...');
     }
   }
 
   clearResponses() {
-    this.responses.set([]);
+    this.responses.set([]); // Svuota la lista per il nuovo round
   }
+
+
 }
