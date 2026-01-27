@@ -97,6 +97,29 @@
               </div>
             }
 
+            @case ('ROULETTE') {
+              <div class="roulette-grid">
+                <button (click)="sendVote(0)" class="color-btn rosso" [disabled]="hasAnswered()">
+                  <span class="color-name">ROSSO</span>
+                </button>
+                <button (click)="sendVote(1)" class="color-btn nero" [disabled]="hasAnswered()">
+                  <span class="color-name">NERO</span>
+                </button>
+                <button (click)="sendVote(2)" class="color-btn verde" [disabled]="hasAnswered()">
+                  <span class="color-name">VERDE</span>
+                </button>
+                <button (click)="sendVote(3)" class="color-btn blu" [disabled]="hasAnswered()">
+                  <span class="color-name">BLU</span>
+                </button>
+                <button (click)="sendVote(4)" class="color-btn giallo" [disabled]="hasAnswered()">
+                  <span class="color-name">GIALLO</span>
+                </button>
+                <button (click)="sendVote(5)" class="color-btn bianco" [disabled]="hasAnswered()">
+                  <span class="color-name">BIANCO</span>
+                </button>
+              </div>
+            }
+
             @case ('IMAGE_BLUR') {
               <div class="buzz-container">
                 <button

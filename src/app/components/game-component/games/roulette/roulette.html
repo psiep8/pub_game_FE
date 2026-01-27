@@ -1,42 +1,106 @@
-<div class="roulette-screen">
+<!-- src/app/components/game/games/roulette/roulette.html -->
+<div class="roulette-container">
 
+  <!-- ISTRUZIONI FASE SCELTA -->
+  @if (!isSpinning() && !showWinner() && timer > 0) {
+    <div class="instructions">
+      <h2>🎰 SCEGLI IL TUO COLORE!</h2>
+      <p class="timer-text">{{ timer }} secondi rimanenti</p>
+      <div class="color-preview">
+        @for (color of segments() | slice:0:6; track color) {
+          <div class="color-dot" [style.background]="colorMap[color]"></div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ROULETTE STAGE -->
   <div class="roulette-stage">
-    <div class="pointer">▼</div>
 
-    <div class="main-container">
-      <svg class="wheel-svg" viewBox="0 0 100 100" [style.transform]="'rotate(' + wheelRotation() + 'deg)'">
-        <g>
-          @for (seg of segments(); track $index) {
+    <!-- Indicatore superiore -->
+    <div class="pointer-container">
+      <div class="pointer">▼</div>
+    </div>
+
+    <!-- Ruota principale -->
+    <div class="wheel-wrapper">
+      <svg
+        class="wheel-svg"
+        viewBox="0 0 100 100"
+        [class.spinning]="isSpinning()"
+        [style.transform]="'rotate(' + wheelRotation() + 'deg)'">
+
+        <!-- Segmenti colorati -->
+        <g class="segments-group">
+          @for (color of segments(); track $index) {
             <path
               [attr.d]="getSlicePath($index, segments().length)"
-              [attr.fill]="seg.colorHex"
+              [attr.fill]="colorMap[color]"
               class="segment-path"
             />
           }
         </g>
-        <g>
+
+        <!-- Linee divisorie -->
+        <g class="dividers-group">
           @for (seg of segments(); track $index) {
-            <line x1="50" y1="50" [attr.x2]="getLineX2($index, segments().length)" [attr.y2]="getLineY2($index, segments().length)" stroke="#ffd700" stroke-width="0.2" opacity="0.4" />
+            <line
+              x1="50"
+              y1="50"
+              [attr.x2]="50 + 50 * Math.cos(($index * (360 / segments().length) - 90) * Math.PI / 180)"
+              [attr.y2]="50 + 50 * Math.sin(($index * (360 / segments().length) - 90) * Math.PI / 180)"
+              stroke="#ffd700"
+              stroke-width="0.3"
+              opacity="0.6"
+            />
           }
         </g>
       </svg>
 
+      <!-- Centro decorativo -->
       <div class="wheel-center">
-        <div class="inner-hub">
-          <span class="hub-text">CASINO</span>
+        <div class="center-inner">
+          <div class="center-icon">🎲</div>
+          <div class="center-text">CASINO</div>
         </div>
       </div>
 
-      <div class="ball-track" [style.transform]="'rotate(' + ballRotation() + 'deg)'">
-        <div class="ball" *ngIf="isSpinning() || showWinner()"></div>
-      </div>
+      <!-- Bordo esterno dorato -->
+      <div class="wheel-border"></div>
     </div>
+
+    <!-- Pallina (visibile durante lo spin) -->
+    @if (isSpinning()) {
+      <div class="ball-container">
+        <div class="ball"></div>
+      </div>
+    }
   </div>
 
-  @if (showWinner()) {
-    <div class="winner-overlay animate-win">
-      <h2 [style.color]="colorMap[winningColor()!]">{{ winningColor() }}</h2>
-      <p>WINNER</p>
+  <!-- STATUS SPIN -->
+  @if (isSpinning()) {
+    <div class="spin-status">
+      <div class="spin-loader"></div>
+      <p>La ruota sta girando...</p>
     </div>
   }
+
+  <!-- VINCITORE -->
+  @if (showWinner()) {
+    <div class="winner-announcement">
+      <div class="winner-burst">
+        <div class="burst-icon">🎉</div>
+        <div class="burst-icon">🎊</div>
+        <div class="burst-icon">✨</div>
+      </div>
+      <div class="winner-title">COLORE VINCENTE!</div>
+      <div
+        class="winner-color"
+        [style.background]="colorMap[winningColor()!]"
+        [style.box-shadow]="'0 0 50px ' + colorMap[winningColor()!]">
+        {{ winningColor() }}
+      </div>
+    </div>
+  }
+
 </div>
