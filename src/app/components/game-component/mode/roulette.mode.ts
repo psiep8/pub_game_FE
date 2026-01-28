@@ -73,7 +73,7 @@ export class RouletteMode extends GameModeBase {
     console.log('🎰 La ruota gira...');
 
     // FASE 4: Spin della ruota - ESATTAMENTE 12 secondi
-    await new Promise(r => setTimeout(r, 18000));
+    await new Promise(r => setTimeout(r, 9000));
 
     // FASE 5: Fine - mostra vincitore
     console.log('🏁 FINE - Mostra vincitore');

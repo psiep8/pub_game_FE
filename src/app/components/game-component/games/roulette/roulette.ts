@@ -18,13 +18,13 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
   @Input() displayData: any;
   @Input() timer: number = 0;
 
-  // 🔥 NUOVO: Riceviamo anche lo stato showGo dalla mode
-  private lastShowGo = false;
-
   isSpinning = signal(false);
   wheelRotation = signal(0);
   showWinner = signal(false);
   winningColor = signal<string | null>(null);
+
+  // 🔥 Effetto pointer che urta le stecchette
+  pointerShaking = signal(false);
 
   colorMap: Record<string, string> = {
     'ROSSO': '#e74c3c',
@@ -36,13 +36,27 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
   };
 
   segments = signal<string[]>([]);
-  Math = Math; // Esponi Math al template
+  Math = Math;
 
   private spinTimeout: any;
+  private clickInterval: any;
   private hasStartedSpin = false;
+  private lastShowGo = false;
+  private spinStartTime = 0;
+
+  // Audio per il click
+  private clickSound?: HTMLAudioElement;
 
   ngOnInit() {
     this.generateSegments();
+
+    try {
+      this.clickSound = new Audio();
+      this.clickSound.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+      this.clickSound.volume = 0.3;
+    } catch (e) {
+      console.log('Audio non disponibile');
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -72,6 +86,7 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
 
   ngOnDestroy() {
     if (this.spinTimeout) clearTimeout(this.spinTimeout);
+    if (this.clickInterval) clearInterval(this.clickInterval);
   }
 
   private resetRoulette() {
@@ -79,11 +94,18 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
     this.wheelRotation.set(0);
     this.showWinner.set(false);
     this.winningColor.set(null);
+    this.pointerShaking.set(false); // 🔥 Reset shake
     this.hasStartedSpin = false;
-    this.lastShowGo = false; // 🔥 Reset anche questo
+    this.lastShowGo = false;
+
     if (this.spinTimeout) {
       clearTimeout(this.spinTimeout);
       this.spinTimeout = null;
+    }
+
+    if (this.clickInterval) {
+      clearInterval(this.clickInterval);
+      this.clickInterval = null;
     }
   }
 
@@ -110,6 +132,7 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
 
   private startSpin() {
     this.isSpinning.set(true);
+    this.spinStartTime = Date.now(); // 🔥 Timestamp inizio spin
 
     const winningColor = this.displayData?.correctAnswer || 'ROSSO';
     console.log('🎯 Colore vincente dal BE:', winningColor);

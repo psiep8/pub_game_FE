@@ -17,12 +17,12 @@
   <!-- ROULETTE STAGE -->
   <div class="roulette-stage">
 
-    <!-- Indicatore superiore -->
+    <!-- 🔥 POINTER FISSO IN ALTO (vibra quando urta le stecchette) -->
     <div class="pointer-container">
-      <div class="pointer">▼</div>
+      <div class="pointer" [class.shaking]="pointerShaking()">▼</div>
     </div>
 
-    <!-- Ruota principale -->
+    <!-- RUOTA PRINCIPALE (questa gira) -->
     <div class="wheel-wrapper">
       <svg
         class="wheel-svg"
@@ -68,13 +68,6 @@
       <!-- Bordo esterno dorato -->
       <div class="wheel-border"></div>
     </div>
-
-    <!-- Pallina (visibile durante lo spin) -->
-    @if (isSpinning()) {
-      <div class="ball-container">
-        <div class="ball"></div>
-      </div>
-    }
   </div>
 
   <!-- STATUS SPIN -->
