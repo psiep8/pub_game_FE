@@ -43,6 +43,7 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
   private hasStartedSpin = false;
   private lastShowGo = false;
   private spinStartTime = 0;
+  private hasFinishedSpinning = false; // 🔥 NUOVO: previene spin multipli
 
   // Audio per il click
   private clickSound?: HTMLAudioElement;
@@ -50,29 +51,38 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
   ngOnInit() {
     this.generateSegments();
 
+    // 🔥 MIGLIORATO: Audio più realistico per il "tic"
     try {
       this.clickSound = new Audio();
-      this.clickSound.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
-      this.clickSound.volume = 0.3;
+      // Suono di click più pronunciato - puoi sostituire con un file audio reale
+      // Per ora usiamo un beep sintetico
+      this.clickSound.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZSA==';
+      this.clickSound.volume = 0.2; // Volume ridotto per non essere invasivo
     } catch (e) {
       console.log('Audio non disponibile');
     }
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    // Reset quando arriva un nuovo displayData
+    // ✅ FIX: Reset SOLO quando è veramente un nuovo round (non durante lo stesso round)
     if (changes['displayData'] && !changes['displayData'].firstChange) {
-      console.log('🔄 Nuovo round - Reset roulette');
-      this.resetRoulette();
-      this.generateSegments();
+      const oldData = changes['displayData'].previousValue;
+      const newData = changes['displayData'].currentValue;
+
+      // Reset solo se cambia il correctAnswer (nuovo round)
+      if (oldData?.correctAnswer !== newData?.correctAnswer) {
+        console.log('🔄 Nuovo round REALE - Reset roulette');
+        this.resetRoulette();
+        this.generateSegments();
+      }
     }
 
-    // 🔥 NUOVO: Rileva quando appare il VIA (showGo passa da false a true)
+    // 🔥 Rileva quando appare il VIA (showGo passa da false a true)
     if (this.displayData) {
       const currentShowGo = this.displayData.showGo || false;
 
-      // Se showGo passa da false a true, il VIA è apparso
-      if (!this.lastShowGo && currentShowGo && !this.hasStartedSpin) {
+      // ✅ Controlla anche che non abbia già finito di girare
+      if (!this.lastShowGo && currentShowGo && !this.hasStartedSpin && !this.hasFinishedSpinning) {
         console.log('🚦 VIA rilevato - Avvio spin tra 1.5s');
         setTimeout(() => {
           this.startSpin();
@@ -94,9 +104,10 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
     this.wheelRotation.set(0);
     this.showWinner.set(false);
     this.winningColor.set(null);
-    this.pointerShaking.set(false); // 🔥 Reset shake
+    this.pointerShaking.set(false);
     this.hasStartedSpin = false;
     this.lastShowGo = false;
+    this.hasFinishedSpinning = false; // 🔥 Reset flag
 
     if (this.spinTimeout) {
       clearTimeout(this.spinTimeout);
@@ -131,8 +142,15 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
   }
 
   private startSpin() {
+    // ✅ FIX: Previene avvio multiplo
+    if (this.isSpinning() || this.hasFinishedSpinning) {
+      console.log('⚠️ Spin già in corso o già completato, ignoro');
+      return;
+    }
+
+    console.log('🎰 === INIZIO SPIN ===');
     this.isSpinning.set(true);
-    this.spinStartTime = Date.now(); // 🔥 Timestamp inizio spin
+    this.spinStartTime = Date.now();
 
     const winningColor = this.displayData?.correctAnswer || 'ROSSO';
     console.log('🎯 Colore vincente dal BE:', winningColor);
@@ -144,6 +162,7 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
       .filter(idx => idx !== -1);
 
     console.log('🎯 Indici con colore vincente:', winningIndices);
+    console.log('🎨 Tutti i segmenti:', segments);
 
     if (winningIndices.length === 0) {
       console.error('❌ ERRORE: Nessun segmento con colore', winningColor);
@@ -153,33 +172,53 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
     // Scegline uno casuale
     const targetIndex = winningIndices[Math.floor(Math.random() * winningIndices.length)];
     const degreesPerSegment = 360 / segments.length;
-    const targetRotation = targetIndex * degreesPerSegment;
 
-    // Effetto suspense: velocità iniziale alta (8-12 giri), poi rallenta piano piano
+    // 🔥 FIX CRITICO: Il puntatore è in alto (270°), quindi calcoliamo la rotazione
+    // necessaria affinché lo spicchio targetIndex finisca sotto il puntatore
+    // La ruota parte da 0° con il primo segmento in alto, poi gira in senso orario
+    const targetAngle = targetIndex * degreesPerSegment;
+
+    // Effetto suspense: velocità iniziale alta (8-12 giri)
     const initialSpins = 8 + Math.random() * 4; // 8-12 giri
     const fullSpins = initialSpins * 360;
 
-    // Offset per centrare la pallina sullo spicchio
-    const centerOffset = degreesPerSegment / 2;
+    // 🔥 FIX: Invertiamo la logica - la ruota deve girare in modo che targetIndex
+    // finisca sotto il puntatore (che è fisso in alto a 270°)
+    // Aggiungiamo 270° per compensare il fatto che il puntatore è in alto
+    // e sottraiamo targetAngle per portare lo spicchio sotto il puntatore
+    const finalRotation = fullSpins + (270 - targetAngle);
 
-    // Variazione casuale per realismo (±20% larghezza spicchio)
-    const randomOffset = (Math.random() - 0.5) * degreesPerSegment * 0.4;
-
-    // Rotazione finale: giri completi + rotazione target + offset
-    const finalRotation = fullSpins + (360 - targetRotation) + centerOffset + randomOffset;
+    // Variazione casuale per realismo (±30% larghezza spicchio per più varietà)
+    const randomOffset = (Math.random() - 0.5) * degreesPerSegment * 0.6;
+    const finalWithOffset = finalRotation + randomOffset;
 
     console.log('🎯 Target index:', targetIndex);
-    console.log('🎯 Target rotation:', targetRotation);
-    console.log('🎯 Final rotation:', finalRotation);
+    console.log('🎯 Degrees per segment:', degreesPerSegment);
+    console.log('🎯 Target angle:', targetAngle);
+    console.log('🎯 Full spins rotations:', fullSpins);
+    console.log('🎯 Final rotation:', finalWithOffset + '°');
+    console.log('⏱️ Durata spin: 9000ms');
 
-    this.wheelRotation.set(finalRotation);
+    this.wheelRotation.set(finalWithOffset);
 
-    // Mostra vincitore dopo 8 secondi (tempo di spin lungo per suspense)
+    // 🔥 NUOVO: Effetto "tic-tic-tic" mentre gira
+    this.startTickingEffect(segments.length);
+
+    // ✅ FIX: Aspetta ESATTAMENTE la durata della transizione CSS (9000ms) prima di mostrare il vincitore
     this.spinTimeout = setTimeout(() => {
+      console.log('✅ === FINE SPIN - Rotazione completata ===');
+      console.log('🏆 Mostro vincitore:', winningColor);
       this.isSpinning.set(false);
+      this.hasFinishedSpinning = true;
       this.winningColor.set(winningColor);
       this.showWinner.set(true);
-    }, 8000);
+
+      // Ferma il ticking
+      if (this.clickInterval) {
+        clearInterval(this.clickInterval);
+        this.clickInterval = null;
+      }
+    }, 9000);
   }
 
   getSlicePath(index: number, total: number): string {
@@ -205,5 +244,69 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
       "A", 50, 50, 0, largeArcFlag, 1, end.x, end.y,
       "Z"
     ].join(" ");
+  }
+
+  // 🔥 NUOVO: Effetto tic-tic-tic mentre la ruota gira
+  private startTickingEffect(segmentCount: number): void {
+    if (this.clickInterval) {
+      clearInterval(this.clickInterval);
+    }
+
+    const startTime = Date.now();
+    const spinDuration = 9000; // 9 secondi
+    const degreesPerSegment = 360 / segmentCount;
+
+    // Calcoliamo quanti segmenti attraverserà la ruota
+    const totalRotation = this.wheelRotation();
+    const segmentsCrossed = Math.floor(totalRotation / degreesPerSegment);
+
+    let lastSegment = -1;
+
+    this.clickInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / spinDuration, 1);
+
+      // Calcola la rotazione attuale basata sul tempo trascorso
+      // Usiamo easing cubic-bezier(0.17, 0.89, 0.32, 0.99) simulato
+      const easedProgress = this.cubicBezierEasing(progress, 0.17, 0.89, 0.32, 0.99);
+      const currentRotation = totalRotation * easedProgress;
+      const currentSegment = Math.floor(currentRotation / degreesPerSegment);
+
+      // Quando passiamo a un nuovo segmento, facciamo "tic"
+      if (currentSegment !== lastSegment) {
+        lastSegment = currentSegment;
+
+        // Effetto shake sul pointer
+        this.pointerShaking.set(true);
+        setTimeout(() => this.pointerShaking.set(false), 80);
+
+        // Suono click (se disponibile)
+        if (this.clickSound) {
+          try {
+            this.clickSound.currentTime = 0;
+            this.clickSound.play().catch(() => {});
+          } catch (e) {}
+        }
+      }
+
+      // Stoppa quando finisce lo spin
+      if (elapsed >= spinDuration) {
+        clearInterval(this.clickInterval);
+        this.clickInterval = null;
+      }
+    }, 16); // ~60fps
+  }
+
+  // Funzione di easing per simulare il cubic-bezier CSS
+  private cubicBezierEasing(t: number, p1x: number, p1y: number, p2x: number, p2y: number): number {
+    // Semplificazione: approssimazione cubica
+    const cx = 3 * p1x;
+    const bx = 3 * (p2x - p1x) - cx;
+    const ax = 1 - cx - bx;
+    const cy = 3 * p1y;
+    const by = 3 * (p2y - p1y) - cy;
+    const ay = 1 - cy - by;
+
+    return ((ay * t + by) * t + cy) * t;
   }
 }
