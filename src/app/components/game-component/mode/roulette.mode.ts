@@ -9,17 +9,17 @@ export class RouletteMode extends GameModeBase {
   readonly requiresBuzz = false;
 
   private playerChoices = new Map<string, string>();
+  private spinCompleted = false; // 🔥 NUOVO: traccia se lo spin è completato
 
   protected onInitialize(): void {
     console.log('🎰 ROULETTE Mode inizializzato');
     console.log('🎯 Colore vincente:', this.payload.correctAnswer);
     console.log('🎨 Opzioni:', this.payload.options);
+    this.spinCompleted = false; // Reset
   }
 
   protected async onStart(): Promise<void> {
     // FASE 1: Mostra istruzioni + tempo di scelta (10 secondi)
-    // NON usiamo runPreGameSequence qui perché vogliamo gestire tutto custom
-
     console.log('⏱️ Fase scelta colore - 10 secondi');
     this.isActive.set(true);
     this.isReading.set(false); // I giocatori possono già votare
@@ -43,6 +43,7 @@ export class RouletteMode extends GameModeBase {
 
   protected onCleanup(): void {
     this.playerChoices.clear();
+    this.spinCompleted = false;
   }
 
   protected async onTimeout(): Promise<void> {
@@ -72,12 +73,19 @@ export class RouletteMode extends GameModeBase {
 
     console.log('🎰 La ruota gira...');
 
-    // FASE 4: Spin della ruota - ESATTAMENTE 12 secondi
+    // ✅ FIX: Aspetta che lo spin finisca (9 secondi = transizione CSS)
+    // NON chiamare più this.revealed.set(true) qui, lo farà il componente roulette
     await new Promise(r => setTimeout(r, 9000));
 
-    // FASE 5: Fine - mostra vincitore
-    console.log('🏁 FINE - Mostra vincitore');
+    // FASE 5: Fine - mostra vincitore (adesso il componente ha finito)
+    console.log('🏁 FINE - Attendo che il componente mostri il vincitore');
+
+    // Aspetta ancora 3 secondi per mostrare il vincitore
+    await new Promise(r => setTimeout(r, 3000));
+
+    // Ora sì, segnala la fine
     this.revealed.set(true);
+    this.spinCompleted = true;
     this.config.onTimerEnd?.();
   }
 

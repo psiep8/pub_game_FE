@@ -1,4 +1,3 @@
-
 .roulette-container {
   width: 100%;
   height: 100%;
@@ -54,10 +53,12 @@
 
 .roulette-stage {
   position: relative;
-  width: 70vh;
-  height: 70vh;
+  width: 90vmin;
+  height: 90vmin;
+  max-width: 800px;
+  max-height: 800px;
   transform-style: preserve-3d;
-  transform: rotateX(5deg);
+  margin: 0 auto;
 }
 
 .pointer-container {
@@ -77,10 +78,10 @@
   0 5px 20px rgba(0, 0, 0, 0.8);
   animation: pointerPulse 1.5s ease-in-out infinite;
   filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.8));
-  transition: transform 0.1s ease-out;
+  transition: transform 0.05s ease-out;
 
   &.shaking {
-    animation: pointerShake 0.15s ease-in-out, pointerPulse 1.5s ease-in-out infinite;
+    animation: pointerShake 0.08s ease-in-out, pointerPulse 1.5s ease-in-out infinite;
   }
 }
 
@@ -100,10 +101,10 @@
     transform: translateX(0) rotate(0deg);
   }
   25% {
-    transform: translateX(-3px) rotate(-2deg);
+    transform: translateX(-5px) rotate(-4deg);
   }
   75% {
-    transform: translateX(3px) rotate(2deg);
+    transform: translateX(5px) rotate(4deg);
   }
 }
 
