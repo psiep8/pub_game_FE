@@ -142,87 +142,53 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
   }
 
   private startSpin() {
-    // ✅ FIX: Previene avvio multiplo
-    if (this.isSpinning() || this.hasFinishedSpinning) {
-      console.log('⚠️ Spin già in corso o già completato, ignoro');
-      return;
-    }
+    if (this.isSpinning() || this.hasFinishedSpinning) return;
 
-    console.log('🎰 === INIZIO SPIN ===');
     this.isSpinning.set(true);
-    this.spinStartTime = Date.now();
-
     const winningColor = this.displayData?.correctAnswer || 'ROSSO';
-    console.log('🎯 Colore vincente dal BE:', winningColor);
-
-    // Trova TUTTI i segmenti con il colore vincente
     const segments = this.segments();
+
+    // 1. Trova gli indici del colore vincente
     const winningIndices = segments
       .map((color, idx) => color === winningColor ? idx : -1)
       .filter(idx => idx !== -1);
 
-    console.log('🎯 Indici con colore vincente:', winningIndices);
-    console.log('🎨 Tutti i segmenti:', segments);
-
-    if (winningIndices.length === 0) {
-      console.error('❌ ERRORE: Nessun segmento con colore', winningColor);
-      return;
-    }
-
-    // Scegline uno casuale
+    // 2. Scegli uno spicchio target casuale tra quelli del colore vincente
     const targetIndex = winningIndices[Math.floor(Math.random() * winningIndices.length)];
     const degreesPerSegment = 360 / segments.length;
 
-    // 🔥 FIX CRITICO: Il puntatore è in alto (270°), quindi calcoliamo la rotazione
-    // necessaria affinché lo spicchio targetIndex finisca sotto il puntatore
-    // La ruota parte da 0° con il primo segmento in alto, poi gira in senso orario
-    const targetAngle = targetIndex * degreesPerSegment;
+    // 3. CALCOLO ROTAZIONE (Puntatore a 0°/Top)
+    // Per portare l'indice N in cima, la ruota deve ruotare di: 360 - (N * degreesPerSegment)
+    // Aggiungiamo degreesPerSegment / 2 per fermarci al CENTRO dello spicchio
+    const offsetToCenter = degreesPerSegment / 2;
+    const rotationToTarget = 360 - (targetIndex * degreesPerSegment) - offsetToCenter;
 
-    // Effetto suspense: velocità iniziale alta (8-12 giri)
-    const initialSpins = 8 + Math.random() * 4; // 8-12 giri
-    const fullSpins = initialSpins * 360;
+    // 4. SUSPENSE: Molti giri (es. 12-15) + la rotazione verso il target
+    const extraSpins = (12 + Math.floor(Math.random() * 4)) * 360;
 
-    // 🔥 FIX: Invertiamo la logica - la ruota deve girare in modo che targetIndex
-    // finisca sotto il puntatore (che è fisso in alto a 270°)
-    // Aggiungiamo 270° per compensare il fatto che il puntatore è in alto
-    // e sottraiamo targetAngle per portare lo spicchio sotto il puntatore
-    const finalRotation = fullSpins + (270 - targetAngle);
+    // 5. CASUALITÀ FINALE: un piccolo offset casuale dentro lo spicchio
+    // (per non fermarsi sempre esattamente al centro perfetto)
+    const randomness = (Math.random() - 0.5) * (degreesPerSegment * 0.4);
 
-    // Variazione casuale per realismo (±30% larghezza spicchio per più varietà)
-    const randomOffset = (Math.random() - 0.5) * degreesPerSegment * 0.6;
-    const finalWithOffset = finalRotation + randomOffset;
+    const totalRotation = extraSpins + rotationToTarget + randomness;
 
-    console.log('🎯 Target index:', targetIndex);
-    console.log('🎯 Degrees per segment:', degreesPerSegment);
-    console.log('🎯 Target angle:', targetAngle);
-    console.log('🎯 Full spins rotations:', fullSpins);
-    console.log('🎯 Final rotation:', finalWithOffset + '°');
-    console.log('⏱️ Durata spin: 9000ms');
+    this.wheelRotation.set(totalRotation);
 
-    this.wheelRotation.set(finalWithOffset);
+    // Avvia il ticking (tic-tic) sincronizzato con i 12 secondi
+    this.startTickingEffect(segments.length, 12000, totalRotation);
 
-    // 🔥 NUOVO: Effetto "tic-tic-tic" mentre gira
-    this.startTickingEffect(segments.length);
-
-    // ✅ FIX: Aspetta ESATTAMENTE la durata della transizione CSS (9000ms) prima di mostrare il vincitore
     this.spinTimeout = setTimeout(() => {
-      console.log('✅ === FINE SPIN - Rotazione completata ===');
-      console.log('🏆 Mostro vincitore:', winningColor);
       this.isSpinning.set(false);
       this.hasFinishedSpinning = true;
       this.winningColor.set(winningColor);
       this.showWinner.set(true);
-
-      // Ferma il ticking
-      if (this.clickInterval) {
-        clearInterval(this.clickInterval);
-        this.clickInterval = null;
-      }
-    }, 9000);
+    }, 12000); // Deve coincidere con il CSS
   }
 
+// All'interno della classe Roulette
   getSlicePath(index: number, total: number): string {
     const angle = 360 / total;
+    // Sottraiamo 90 per far partire il primo spicchio dall'alto (ore 12)
     const startAngle = index * angle - 90;
     const endAngle = (index + 1) * angle - 90;
 
@@ -247,54 +213,38 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
   }
 
   // 🔥 NUOVO: Effetto tic-tic-tic mentre la ruota gira
-  private startTickingEffect(segmentCount: number): void {
-    if (this.clickInterval) {
-      clearInterval(this.clickInterval);
-    }
+  private startTickingEffect(segmentCount: number, duration: number, totalRotation: number): void {
+    if (this.clickInterval) clearInterval(this.clickInterval);
 
     const startTime = Date.now();
-    const spinDuration = 9000; // 9 secondi
     const degreesPerSegment = 360 / segmentCount;
-
-    // Calcoliamo quanti segmenti attraverserà la ruota
-    const totalRotation = this.wheelRotation();
-    const segmentsCrossed = Math.floor(totalRotation / degreesPerSegment);
-
     let lastSegment = -1;
 
     this.clickInterval = setInterval(() => {
       const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / spinDuration, 1);
+      const progress = Math.min(elapsed / duration, 1);
 
-      // Calcola la rotazione attuale basata sul tempo trascorso
-      // Usiamo easing cubic-bezier(0.17, 0.89, 0.32, 0.99) simulato
-      const easedProgress = this.cubicBezierEasing(progress, 0.17, 0.89, 0.32, 0.99);
+      // Simuliamo l'easing cubic-bezier(0.15, 0, 0.2, 1.05)
+      const easedProgress = this.cubicBezierEasing(progress, 0.15, 0, 0.2, 1.05);
       const currentRotation = totalRotation * easedProgress;
-      const currentSegment = Math.floor(currentRotation / degreesPerSegment);
 
-      // Quando passiamo a un nuovo segmento, facciamo "tic"
+      // Calcoliamo quale piolo sta passando sotto il puntatore (in alto a 0°)
+      const currentSegment = Math.floor((currentRotation + (degreesPerSegment / 2)) / degreesPerSegment);
+
       if (currentSegment !== lastSegment) {
         lastSegment = currentSegment;
-
-        // Effetto shake sul pointer
         this.pointerShaking.set(true);
-        setTimeout(() => this.pointerShaking.set(false), 80);
+        setTimeout(() => this.pointerShaking.set(false), 60);
 
-        // Suono click (se disponibile)
         if (this.clickSound) {
-          try {
-            this.clickSound.currentTime = 0;
-            this.clickSound.play().catch(() => {});
-          } catch (e) {}
+          this.clickSound.currentTime = 0;
+          this.clickSound.play().catch(() => {
+          });
         }
       }
 
-      // Stoppa quando finisce lo spin
-      if (elapsed >= spinDuration) {
-        clearInterval(this.clickInterval);
-        this.clickInterval = null;
-      }
-    }, 16); // ~60fps
+      if (progress === 1) clearInterval(this.clickInterval);
+    }, 16);
   }
 
   // Funzione di easing per simulare il cubic-bezier CSS
