@@ -73,17 +73,16 @@ export class RouletteMode extends GameModeBase {
 
     console.log('🎰 La ruota gira...');
 
-    // ✅ FIX: Aspetta che lo spin finisca (9 secondi = transizione CSS)
-    // NON chiamare più this.revealed.set(true) qui, lo farà il componente roulette
-    await new Promise(r => setTimeout(r, 9000));
+    // ✅ FIX: Aspetta che lo spin finisca (12 secondi = transizione CSS)
+    await new Promise(r => setTimeout(r, 12000));
 
-    // FASE 5: Fine - mostra vincitore (adesso il componente ha finito)
-    console.log('🏁 FINE - Attendo che il componente mostri il vincitore');
+    console.log('⏱️ Spin completato, mostro vincitore...');
 
-    // Aspetta ancora 3 secondi per mostrare il vincitore
+    // Aspetta che il vincitore sia visibile (3 secondi)
     await new Promise(r => setTimeout(r, 3000));
 
-    // Ora sì, segnala la fine
+    // ✅ SOLO ADESSO segnala la fine e mostra il bottone
+    console.log('🏁 FINE - Revealed = true, bottone apparirà');
     this.revealed.set(true);
     this.spinCompleted = true;
     this.config.onTimerEnd?.();

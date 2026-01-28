@@ -34,21 +34,6 @@
     font-weight: 600;
     margin: 1rem 0;
   }
-
-  .color-preview {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    margin-top: 1.5rem;
-
-    .color-dot {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    }
-  }
 }
 
 .roulette-stage {
@@ -61,62 +46,51 @@
   margin: 0 auto;
 }
 
+/* 🎯 POINTER MIGLIORATO (ma semplice) */
 .pointer-container {
   position: absolute;
-  top: -45px; /* Posizionalo in modo che la punta tocchi i pioli dorati */
+  top: -45px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
-  transform-origin: top center; /* Ruota dalla base superiore */
+  pointer-events: none;
 }
 
 .pointer {
-  font-size: 5rem;
+  font-size: 5.5rem;
   color: #ffd700;
-  transition: transform 0.1s cubic-bezier(0.1, 0.7, 1.0, 0.1); /* Ritorno elastico */
-
-  /* Quando colpisce un piolo */
+  text-shadow:
+    0 0 20px rgba(255, 215, 0, 0.9),
+    0 0 40px rgba(255, 215, 0, 0.6),
+    0 4px 12px rgba(0, 0, 0, 0.8);
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.7));
+  transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
   &.hitting {
-    transform: rotate(-20deg) scale(1.1); /* Si piega verso sinistra come se spinto dal piolo che arriva da destra */
-    color: #fff; /* Flash luminoso al tocco */
+    transform: rotate(-8deg) scale(1.05);
+    color: #ffffff;
+    text-shadow:
+      0 0 25px rgba(255, 255, 255, 1),
+      0 0 50px rgba(255, 215, 0, 0.8);
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9)) brightness(1.2);
   }
 }
 
+/* Perno decorativo */
 .pointer-container::after {
   content: '';
   position: absolute;
-  top: 10px;
+  top: 8px;
   left: 50%;
   transform: translateX(-50%);
-  width: 20px;
-  height: 20px;
-  background: #444;
+  width: 24px;
+  height: 24px;
+  background: radial-gradient(circle, #2a2a2a 0%, #1a1a1a 100%);
   border-radius: 50%;
-  border: 3px solid gold;
-}
-
-@keyframes pointerPulse {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: translateY(8px) scale(1.05);
-    opacity: 0.9;
-  }
-}
-
-@keyframes pointerShake {
-  0%, 100% {
-    transform: translateX(0) rotate(0deg);
-  }
-  25% {
-    transform: translateX(-5px) rotate(-4deg);
-  }
-  75% {
-    transform: translateX(5px) rotate(4deg);
-  }
+  border: 3px solid #b8860b;
+  box-shadow:
+    0 0 12px rgba(184, 134, 11, 0.5),
+    inset 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
 .wheel-wrapper {
@@ -129,8 +103,6 @@
   width: 100%;
   height: 100%;
   filter: drop-shadow(0 20px 50px #000);
-  /* 12 secondi di durata per la massima tensione */
-  /* Il finale 1.05 indica l'overshoot (va oltre e torna indietro) */
   transition: transform 12s cubic-bezier(0.15, 0, 0.2, 1.05);
   will-change: transform;
 }
@@ -193,12 +165,8 @@
 }
 
 @keyframes rotateSlow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .spin-status {
@@ -226,9 +194,7 @@
 }
 
 @keyframes spinLoader {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 .winner-announcement {
@@ -257,17 +223,9 @@
     opacity: 0;
     animation-fill-mode: forwards;
 
-    &:nth-child(1) {
-      animation-delay: 0.1s;
-    }
-
-    &:nth-child(2) {
-      animation-delay: 0.3s;
-    }
-
-    &:nth-child(3) {
-      animation-delay: 0.5s;
-    }
+    &:nth-child(1) { animation-delay: 0.1s; }
+    &:nth-child(2) { animation-delay: 0.3s; }
+    &:nth-child(3) { animation-delay: 0.5s; }
   }
 }
 
@@ -276,9 +234,7 @@
     transform: scale(0) rotate(0deg);
     opacity: 0;
   }
-  50% {
-    opacity: 1;
-  }
+  50% { opacity: 1; }
   100% {
     transform: scale(1.5) rotate(360deg);
     opacity: 0.8;
@@ -297,12 +253,8 @@
 }
 
 @keyframes titlePulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 .winner-color {
@@ -340,12 +292,8 @@
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes zoomIn {
