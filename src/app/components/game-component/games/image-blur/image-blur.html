@@ -16,10 +16,10 @@
       class="blur-img">
 
     @if (displayData.buzzedPlayer) {
-      <div class="buzz-announcement" @fadeInOut>
-        <div class="player-highlight">{{ displayData.buzzedPlayer }}</div>
-        <p>RISPONDI ORA!</p>
-      </div>
+<!--      <div class="buzz-announcement" @fadeInOut>-->
+<!--        <div class="player-highlight">{{ displayData.buzzedPlayer }}</div>-->
+<!--        <p>RISPONDI ORA!</p>-->
+<!--      </div>-->
     }
   </div>
 
@@ -30,14 +30,14 @@
   </div>
 
   @if (displayData.buzzedPlayer) {
-    <div class="presenter-controls">
-      <button (click)="onConfirmCorrect.emit()" class="control-correct">
-        ✅ RISPOSTA CORRETTA
-      </button>
-      <button (click)="onConfirmWrong.emit()" class="control-wrong">
-        ❌ RISPOSTA ERRATA
-      </button>
-    </div>
+<!--    <div class="presenter-controls">-->
+<!--      <button (click)="onConfirmCorrect.emit()" class="control-correct">-->
+<!--        ✅ RISPOSTA CORRETTA-->
+<!--      </button>-->
+<!--      <button (click)="onConfirmWrong.emit()" class="control-wrong">-->
+<!--        ❌ RISPOSTA ERRATA-->
+<!--      </button>-->
+<!--    </div>-->
   }
 
   @if (displayData.correctAnswer) {

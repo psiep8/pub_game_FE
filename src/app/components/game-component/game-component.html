@@ -57,9 +57,18 @@
   <!-- AREA DOMANDA CON DISPLAY DINAMICO -->
   @if (showQuestion() && currentMode(); as mode) {
     <!-- OROLOGIO SALTELLANTE: appare quando il pre-start countdown è tra 1 e 5 -->
+<!--    @if (preStartCountdown() >= 1 && preStartCountdown() <= 5) {-->
+<!--      <div class="prestart-timer-wrapper">-->
+<!--        <div #prestartTimer class="prestart-timer bounce" role="status" aria-live="assertive">-->
+<!--          <div class="prestart-value">{{ preStartCountdown() }}</div>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    }-->
+
+    <!-- Oppure ancora meglio, nascondi quando è esattamente 0: -->
     @if (preStartCountdown() > 0 && preStartCountdown() <= 5) {
       <div class="prestart-timer-wrapper">
-        <div #prestartTimer class="prestart-timer" role="status" aria-live="assertive">
+        <div #prestartTimer class="prestart-timer bounce" role="status" aria-live="assertive">
           <div class="prestart-value">{{ preStartCountdown() }}</div>
         </div>
       </div>
@@ -109,7 +118,11 @@
             (onConfirmCorrect)="confirmCorrect()"
             (onConfirmWrong)="confirmWrong()"/>
         }
-
+        @case ('ROULETTE') {
+          <app-roulette
+            [displayData]="getSafeDisplayData()"
+            [timer]="timer()"/>
+        }
       }
     </div>
 

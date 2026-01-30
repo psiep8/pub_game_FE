@@ -22,7 +22,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR'>('WAITING');
-  questionType = signal<'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE'>('QUIZ');
+  questionType = signal<'ROULETTE' | 'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE'>('QUIZ');
   hasAnswered = signal(false);
   selectedYear = signal<number>(2000);
   private roundStartTime: number = 0;
@@ -52,20 +52,26 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Setup PWA
     this.setupPWA();
     this.checkForUpdates();
     this.lockOrientation();
 
-    // WebSocket listeners
     this.ws.status$.subscribe((status: any) => {
       if (!status) return;
 
       switch (status.action) {
         case 'SHOW_QUESTION':
-          // La TV mostra la domanda ma il voting non è ancora aperto: nascondi i bottoni
-          this.gameState.set('WAITING');
+          // ✅ FIX: Per ROULETTE, mostra subito i bottoni!
           this.questionType.set(status.type);
+          if (status.type === 'ROULETTE') {
+            console.log('📱 ROULETTE - Bottoni attivi SUBITO');
+            this.gameState.set('VOTING');
+            this.hasAnswered.set(false);
+            this.startTime = Date.now();
+          } else {
+            // Per altri giochi, aspetta START_VOTING
+            this.gameState.set('WAITING');
+          }
           break;
 
         case 'START_VOTING':
@@ -75,14 +81,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
         case 'ROUND_ENDED':
         case 'REVEAL':
           this.gameState.set('WAITING');
+          this.hasAnswered.set(false);
           break;
 
         case 'BLOCKED_ERROR':
-          // Se sono io quello bloccato, resto bloccato fino alla fine
           if (status.blockedPlayer === this.nickname()) {
             this.gameState.set('BLOCKED_ERROR');
           } else {
-            // Gli altri possono giocare di nuovo
             this.gameState.set('VOTING');
           }
           break;
@@ -96,21 +101,16 @@ export class RemoteComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ========== PWA SETUP ==========
-
   private setupPWA() {
-    // Intercetta evento di installazione
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       this.deferredPrompt = e;
 
-      // Mostra banner solo se non è già installata
       if (!this.isAppInstalled()) {
         this.showInstallBanner.set(true);
       }
     });
 
-    // Rileva quando l'app è stata installata
     window.addEventListener('appinstalled', () => {
       console.log('🎉 PWA installata con successo!');
       this.showInstallBanner.set(false);
@@ -124,12 +124,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Controlla aggiornamenti ogni 30 minuti
     this.updateCheckInterval = setInterval(() => {
       this.swUpdate.checkForUpdate();
     }, 30 * 60 * 1000);
 
-    // Quando c'è un aggiornamento pronto
     this.versionUpdatesSub = this.swUpdate.versionUpdates
       .pipe(filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'))
       .subscribe(() => {
@@ -138,17 +136,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   private isAppInstalled(): boolean {
-    // Rileva se l'app è in modalità standalone (installata)
     return window.matchMedia('(display-mode: standalone)').matches ||
       (window.navigator as any).standalone === true;
   }
 
-  // Azioni PWA per l'utente
   async installPWA() {
     if (!this.deferredPrompt) return;
 
     this.deferredPrompt.prompt();
-    const { outcome } = await this.deferredPrompt.userChoice;
+    const {outcome} = await this.deferredPrompt.userChoice;
 
     if (outcome === 'accepted') {
       console.log('✅ Utente ha accettato l\'installazione');
@@ -174,8 +170,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.showUpdateBanner.set(false);
   }
 
-  // ========== BLOCCA ORIENTAMENTO ==========
-
   private async lockOrientation() {
     try {
       const screen = window.screen as any;
@@ -186,8 +180,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
       console.log('Orientamento non bloccabile su questo dispositivo');
     }
   }
-
-  // ========== GAME LOGIC (invariato) ==========
 
   setNickname() {
     if (this.tempNickname.trim()) {
@@ -202,6 +194,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.hasAnswered.set(true);
     this.gameState.set('LOCKED');
     this.vibrate(50);
+    console.log(`📱 Voto inviato: ${index}, tempo: ${responseTimeMs}ms`);
   }
 
   sendBuzz() {
@@ -212,8 +205,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   onStartVoting(type: string) {
+    console.log(`📱 START_VOTING ricevuto per ${type}`);
     this.gameState.set('VOTING');
-    this.questionType.set(type as "QUIZ" | "TRUE_FALSE" | "MUSIC" | "IMAGE_BLUR" | "CHRONO" | "WHEEL_OF_FORTUNE");
+    this.questionType.set(type as any);
     this.roundStartTime = Date.now();
     this.startTime = Date.now();
     this.selectedYear.set(2000);
@@ -240,6 +234,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   onRoundEnd() {
     this.gameState.set('WAITING');
     this.selectedYear.set(2000);
+    this.hasAnswered.set(false);
   }
 
   setupNewRound(type: string) {
