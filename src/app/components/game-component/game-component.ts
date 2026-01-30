@@ -216,7 +216,7 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     // const types: GameModeType[] = ['QUIZ', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE', 'ROULETTE'];
-    const types: GameModeType[] = ['ROULETTE'];
+    const types: GameModeType[] = ['WHEEL_OF_FORTUNE'];
     const extractedType = types[Math.floor(Math.random() * types.length)];
 
     // Animazione estrazione tipo
@@ -523,8 +523,6 @@ export class GameComponent implements OnInit, OnDestroy {
     return results;
   }
 
-  // Restituisce una versione "sicura" dei displayData per i componenti figlio:
-  // evita che la `correctAnswer` venga esposta finché la mode non è rivelata
   getSafeDisplayData(): any {
     const mode = this.currentMode();
     const data = mode ? (mode.getDisplayData() || {}) : {};
