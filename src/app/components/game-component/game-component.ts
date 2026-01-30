@@ -16,6 +16,7 @@ import {TrueFalse} from './games/true-false/true-false';
 import {Chrono} from './games/chrono/chrono';
 import {environment} from '../../environment/environment';
 import {GameModeType, IGameMode} from './interfaces/game-mode-type';
+import {Roulette} from './games/roulette/roulette';
 
 @Component({
   selector: 'app-game-component',
@@ -27,6 +28,7 @@ import {GameModeType, IGameMode} from './interfaces/game-mode-type';
     TrueFalse,
     Quiz,
     ImageBlur,
+    Roulette,
   ],
   templateUrl: './game-component.html',
   styleUrl: './game-component.scss',
@@ -213,7 +215,8 @@ export class GameComponent implements OnInit, OnDestroy {
       localStorage.setItem('activeGameId', newGame.id.toString());
     }
 
-    const types: GameModeType[] = ['IMAGE_BLUR'];
+    // const types: GameModeType[] = ['QUIZ', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE', 'ROULETTE'];
+    const types: GameModeType[] = ['WHEEL_OF_FORTUNE'];
     const extractedType = types[Math.floor(Math.random() * types.length)];
 
     // Animazione estrazione tipo
@@ -241,17 +244,25 @@ export class GameComponent implements OnInit, OnDestroy {
           'medio'
         )
       );
+      console.log('📦 Round ricevuto dal BE:', nextRound);
+      console.log('📦 Payload RAW:', nextRound.payload);
 
       if (typeof nextRound.payload === 'string') {
+        console.log('📦 Payload è stringa, faccio parse...');
         nextRound.payload = JSON.parse(nextRound.payload);
+        console.log('📦 Payload dopo parse:', nextRound.payload);
       }
+
+      console.log('🎯 correctAnswer nel payload:', nextRound.payload.correctAnswer);
+      console.log('🎨 options nel payload:', nextRound.payload.options);
+
 
       this.round.set(nextRound);
 
       // Crea modalità tramite factory
       const mode = this.gameModeService.createMode({
         type: extractedType,
-        payload: nextRound.payload,
+        payload: nextRound.payload,  // <-- Assicurati che sia il payload PARSATO
         gameId: this.currentGameId()!,
         onTimerTick: (seconds) => this.timer.set(seconds),
         onTimerEnd: () => this.onModeTimeout(),
@@ -318,6 +329,8 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'CELEBRITÀ';
       case 'WHEEL_OF_FORTUNE':
         return 'PROVERBI E MODI DI DIRE';
+      case 'ROULETTE':
+        return 'FORTUNA'; // <-- AGGIUNGI QUESTO
       default:
         const categories = this.allCategories();
         const randomIndex = Math.floor(Math.random() * categories.length);
@@ -510,21 +523,25 @@ export class GameComponent implements OnInit, OnDestroy {
     return results;
   }
 
-  // Restituisce una versione "sicura" dei displayData per i componenti figlio:
-  // evita che la `correctAnswer` venga esposta finché la mode non è rivelata
   getSafeDisplayData(): any {
     const mode = this.currentMode();
     const data = mode ? (mode.getDisplayData() || {}) : {};
-    // Se la mode non è rivelata, assicuriamoci che correctAnswer non sia presente
     const isReading = mode ? ((mode as any).getIsReading?.() ?? false) : false;
     const safe = {...data, isReading} as any;
-    if (!mode || !mode.isRevealed()) {
-      safe.correctAnswer = null;
+
+    // 🔥 PER ROULETTE: NON nascondere correctAnswer perché serve per lo spin!
+    if (mode?.type !== 'ROULETTE') {
+      if (!mode || !mode.isRevealed()) {
+        safe.correctAnswer = null;
+      }
     }
+
     // defaults
     safe.question = safe.question ?? '';
     safe.options = Array.isArray(safe.options) ? safe.options : [];
-    safe.correctAnswer = safe.correctAnswer ?? null;
+
+    console.log('📊 SafeDisplayData per', mode?.type, ':', safe);
+
     return safe;
   }
 
@@ -565,4 +582,5 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!Array.isArray(all)) return [];
     return all.slice(-6).reverse();
   }
+
 }
