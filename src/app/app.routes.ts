@@ -4,6 +4,7 @@ import {MobileOnlyGuard} from './guard/mobile-only.guard';
 import {DesktopOnlyGuard} from './guard/desktop-only.guard';
 import {RemoteComponent} from './components/remote-component/remote-component';
 import {Admin} from './components/admin/admin';
+import {Deezer} from './test/deezer/deezer';
 
 export const routes: Routes = [
   {
@@ -21,5 +22,6 @@ export const routes: Routes = [
     component: Admin,
     canActivate: [MobileOnlyGuard]
   },
+  { path: 'test-deezer', component: Deezer },
   { path: '', redirectTo: 'tv', pathMatch: 'full' }
 ];

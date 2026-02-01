@@ -6,8 +6,8 @@ import {Observable} from 'rxjs';
   providedIn: 'root'
 })
 export class AiGeneratorService {
-  private baseUrl = 'http://192.168.1.3:8080/games';
-  // private baseUrl = 'http://192.168.1.20:8080/games';
+  // private baseUrl = 'http://192.168.1.3:8080/games';
+  private baseUrl = 'http://192.168.1.20:8080/games';
 
   constructor(private http: HttpClient) {
   }
