@@ -188,7 +188,14 @@ export class Admin implements OnInit, OnDestroy {
           answer = payload.proverb || payload.payload || payload.correctAnswer || 'N/A';
           console.log('🎡 WHEEL_OF_FORTUNE risposta:', answer);
           break;
-
+        case 'MUSIC':
+          // Per la musica cerchiamo il titolo della canzone
+          // Aggiungiamo anche l'artista se disponibile per completezza
+          const title = payload.songTitle || payload.correctAnswer || 'N/A';
+          const artist = payload.artist ? ` - ${payload.artist}` : '';
+          answer = title + artist;
+          console.log('🎵 MUSIC risposta:', answer);
+          break;
         default:
           console.warn('⚠️ Tipo sconosciuto:', type);
           answer = payload.correctAnswer || 'N/A';

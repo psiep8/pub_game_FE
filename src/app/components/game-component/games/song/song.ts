@@ -44,29 +44,49 @@ export class Song implements OnInit, OnDestroy, OnChanges {
 
   // Animation
   private vinylAnimationFrame?: number;
+  private audioUnlocked = false; // Flag per sapere se AudioContext è stato sbloccato
 
   ngOnInit() {
     console.log('🎵 Song component init');
-    this.initAudio();
+
+    // 🔥 LISTENER GLOBALE per sbloccare audio al primo click
+    window.addEventListener('click', this.unlockAudioContext.bind(this), {once: true});
+    window.addEventListener('keydown', this.unlockAudioContext.bind(this), {once: true});
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['displayData'] && this.displayData) {
+      const prevData = changes['displayData'].previousValue;
 
-      // 1. Se l'URL cambia, resetta tutto l'audio
-      if (changes['displayData'].previousValue?.previewUrl !== this.displayData.previewUrl) {
-        this.initAudio(); // Carica la nuova canzone
+      // 1. CARICA AUDIO: Solo se l'URL cambia davvero
+      if (prevData?.previewUrl !== this.displayData.previewUrl) {
+        console.log("🎵 Nuovo URL rilevato, inizializzo audio...");
+        this.initAudio().then(() => {
+          console.log('✅ Audio inizializzato');
+          // 🔥 Sblocca subito se non già fatto
+          if (!this.audioUnlocked) {
+            this.unlockAudioContext();
+          }
+        });
       }
 
-      // 2. Gestione Play/Pause basata sul flag del backend
-      const playing = this.displayData.audioPlaying;
-      if (playing && !this.isPlaying()) {
-        this.playAudio();
-      } else if (!playing && this.isPlaying()) {
-        this.pauseAudio();
-      }
+      // 2. GESTIONE PLAY/PAUSA
+      const shouldBePlaying = this.displayData.audioPlaying;
+      const isActuallyPlaying = this.isPlaying();
 
-      // 3. Aggiorna la distorsione se la fase è cambiata
+      // Buzz ha priorità
+      // if (this.displayData.buzzedPlayer && isActuallyPlaying) {
+      //   this.pauseAudio();
+      // } else if (shouldBePlaying !== isActuallyPlaying) {
+      //   if (shouldBePlaying) {
+      //     this.playAudio();
+      //   } else {
+      //     this.pauseAudio();
+      //   }
+      // }
+      this.playAudio();
+
+      // 3. DISTORSIONE: Solo se fase cambiata
       const phase = this.displayData.currentPhase || 0;
       if (this.currentPhase() !== phase) {
         this.currentPhase.set(phase);
@@ -76,145 +96,165 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   }
 
   /**
-   * Setup audio con Web Audio API
+   * 🔓 SBLOCCA AudioContext (richiesto da browser policy)
    */
-  private async initAudio() {
-    // Se c'è già un audio che suona, fermalo e pulisci
-    if (this.audio) {
-      this.audio.pause();
-      this.audio.src = '';
-      this.audio.load();
-    }
-
-    if (!this.displayData?.previewUrl) return;
+  private async unlockAudioContext() {
+    if (this.audioUnlocked) return;
 
     try {
-      this.audio = new Audio(this.displayData.previewUrl);
-      this.audio.crossOrigin = 'anonymous';
-      this.audio.loop = true;
-
-      // Inizializza il contesto solo se non esiste
       if (!this.audioContext) {
         this.audioContext = new AudioContext();
       }
 
-      // Disconnetti i vecchi nodi se esistono
-      this.sourceNode?.disconnect();
-
-      this.sourceNode = this.audioContext.createMediaElementSource(this.audio);
-
-      // Re-inizializza i filtri
-      this.setupAudioFilters();
-
-      // Riconnetti la catena
-      this.sourceNode
-        .connect(this.bandpassFilter!)
-        .connect(this.highpassFilter!)
-        .connect(this.lowpassFilter!)
-        .connect(this.distortionNode!)
-        .connect(this.gainNode!) // gainNode deve essere creato in setupAudioFilters
-        .connect(this.audioContext.destination);
-
-      this.audioReady.set(true);
-
-      // Se il backend dice che deve già suonare, prova il play
-      if (this.displayData.audioPlaying) {
-        this.playAudio();
+      // Resume se sospeso
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+        console.log('🔓 AudioContext resumed');
       }
 
-    } catch (error) {
-      console.error('❌ Errore inizializzazione audio:', error);
+      // Play/pause trick per sbloccare autoplay
+      if (this.audio) {
+        this.audio.muted = true;
+        await this.audio.play();
+        this.audio.pause();
+        this.audio.muted = false;
+        this.audio.currentTime = 0;
+        console.log('🔓 Audio unlocked');
+      }
+
+      this.audioUnlocked = true;
+      console.log('✅ Audio completamente sbloccato');
+
+    } catch (err) {
+      console.warn('⚠️ Unlock audio failed (potrebbe servire click utente):', err);
     }
   }
+
   /**
-   * 🎛️ Setup filtri audio per distorsione
+   * Setup audio con Web Audio API
    */
+  private async initAudio() {
+    if (!this.displayData?.previewUrl) return;
+
+    // Distruggi eventuale audio precedente
+    this.audio?.pause();
+
+    this.audio = new Audio(this.displayData.previewUrl);
+    this.audio.crossOrigin = 'anonymous';
+    this.audio.loop = true;
+
+    if (!this.audioContext) {
+      this.audioContext = new AudioContext();
+    }
+
+    // 🔥 NESSUN PROBLEMA CON APPLE MUSIC
+    this.sourceNode = this.audioContext.createMediaElementSource(this.audio);
+    this.gainNode = this.audioContext.createGain();
+    this.gainNode.gain.value = 1;
+
+    this.sourceNode
+      .connect(this.gainNode)
+      .connect(this.audioContext.destination);
+
+    this.audioReady.set(true);
+    console.log('✅ Audio Apple Music pronto');
+  }
+
   private setupAudioFilters() {
     if (!this.audioContext) return;
 
-    // Bandpass filter (isola frequenze centrali)
+    // Inizializza tutti i nodi
     this.bandpassFilter = this.audioContext.createBiquadFilter();
     this.bandpassFilter.type = 'bandpass';
-    this.bandpassFilter.frequency.value = 1000;
-    this.bandpassFilter.Q.value = 1;
 
-    // Highpass filter (taglia bassi)
     this.highpassFilter = this.audioContext.createBiquadFilter();
     this.highpassFilter.type = 'highpass';
-    this.highpassFilter.frequency.value = 200;
 
-    // Lowpass filter (taglia alti)
     this.lowpassFilter = this.audioContext.createBiquadFilter();
     this.lowpassFilter.type = 'lowpass';
-    this.lowpassFilter.frequency.value = 4000;
 
-    // Distortion (waveshaper)
     this.distortionNode = this.audioContext.createWaveShaper();
-    this.distortionNode!.curve =
-      this.makeDistortionCurve(0) as Float32Array<ArrayBuffer>;
     this.distortionNode.oversample = '4x';
+
+    this.gainNode = this.audioContext.createGain();
+    this.gainNode.gain.value = 0; // Parte da 0, verrà settato dalla fase
+
+    // Applica valori iniziali
+    this.updateAudioDistortion(this.currentPhase());
+  }
+
+  /**
+   * 🔥 FORZA START AUDIO (chiamato da bottone debug)
+   */
+  public async forceStartAudio() {
+    console.log('🔥 Force start audio...');
+    await this.unlockAudioContext();
+
+    if (this.audio && this.audioReady()) {
+      try {
+        await this.audio.play();
+        this.isPlaying.set(true);
+        this.startVinylAnimation();
+        console.log('✅ Audio forzato a partire');
+      } catch (err) {
+        console.error('❌ Force play failed:', err);
+      }
+    }
   }
 
   /**
    * 🎵 AGGIORNA DISTORSIONE in base alla fase
    */
   private updateAudioDistortion(phase: number) {
-    if (!this.audioContext) return;
+    if (!this.audioContext || !this.gainNode) return;
+
+    if (phase === 0) {
+      this.gainNode.gain.value = 0;
+      console.log('🔇 Phase 0: audio spento');
+      return;
+    }
 
     console.log(`🎛️ Updating distortion for phase ${phase}`);
 
     switch (phase) {
-      case 0:
-        // Silenzio / non iniziato
-        this.gainNode!.gain.value = 0;
-        break;
-
       case 1:
-        // FASE 1 (25%) - MOLTO DISTORTO
-        this.gainNode!.gain.value = 0.3;
+        this.gainNode.gain.value = 0.3;
         this.bandpassFilter!.frequency.value = 800;
-        this.bandpassFilter!.Q.value = 10; // Molto stretto
+        this.bandpassFilter!.Q.value = 10;
         this.highpassFilter!.frequency.value = 600;
         this.lowpassFilter!.frequency.value = 1500;
-        this.distortionNode!.curve =
-          this.makeDistortionCurve(80) as Float32Array<ArrayBuffer>;
-        console.log('🎛️ Fase 1: Audio MOLTO distorto (25%)');
+        this.distortionNode!.curve = this.makeDistortionCurve(80) as any;
+        console.log('🎛️ Fase 1: MOLTO distorto (25%)');
         break;
 
       case 2:
-        // FASE 2 (50%) - DISTORTO
-        this.gainNode!.gain.value = 0.5;
+        this.gainNode.gain.value = 0.5;
         this.bandpassFilter!.frequency.value = 1200;
         this.bandpassFilter!.Q.value = 5;
         this.highpassFilter!.frequency.value = 300;
         this.lowpassFilter!.frequency.value = 2500;
-        this.distortionNode!.curve =
-          this.makeDistortionCurve(40) as Float32Array<ArrayBuffer>;
-        console.log('🎛️ Fase 2: Audio distorto (50%)');
+        this.distortionNode!.curve = this.makeDistortionCurve(40) as any;
+        console.log('🎛️ Fase 2: Distorto (50%)');
         break;
 
       case 3:
-        // FASE 3 (75%) - QUASI CHIARO
-        this.gainNode!.gain.value = 0.7;
+        this.gainNode.gain.value = 0.7;
         this.bandpassFilter!.frequency.value = 1500;
         this.bandpassFilter!.Q.value = 2;
         this.highpassFilter!.frequency.value = 150;
         this.lowpassFilter!.frequency.value = 4000;
-        this.distortionNode!.curve =
-          this.makeDistortionCurve(15) as Float32Array<ArrayBuffer>;
-        console.log('🎛️ Fase 3: Audio quasi chiaro (75%)');
+        this.distortionNode!.curve = this.makeDistortionCurve(15) as any;
+        console.log('🎛️ Fase 3: Quasi chiaro (75%)');
         break;
 
       case 4:
-        // FASE 4 (100%) - CHIARO
-        this.gainNode!.gain.value = 1.0;
+        this.gainNode.gain.value = 1.0;
         this.bandpassFilter!.frequency.value = 2000;
-        this.bandpassFilter!.Q.value = 0.5; // Quasi flat
+        this.bandpassFilter!.Q.value = 0.5;
         this.highpassFilter!.frequency.value = 50;
         this.lowpassFilter!.frequency.value = 8000;
-        this.distortionNode!.curve =
-          this.makeDistortionCurve(0) as Float32Array<ArrayBuffer>;
-        console.log('🎛️ Fase 4: Audio CHIARO (100%)');
+        this.distortionNode!.curve = null; // PULITO!
+        console.log('🎛️ Fase 4: CHIARO (100%)');
         break;
     }
   }
@@ -222,42 +262,50 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   /**
    * Crea curva di distorsione
    */
+  /**
+   * Crea curva di distorsione
+   */
   private makeDistortionCurve(amount: number): Float32Array {
     const samples = 44100;
-    const buffer = new ArrayBuffer(samples * Float32Array.BYTES_PER_ELEMENT);
-    const curve = new Float32Array(buffer);
-
+    const curve = new Float32Array(samples);
     const deg = Math.PI / 180;
 
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
-      curve[i] =
-        ((3 + amount) * x * 20 * deg) /
-        (Math.PI + amount * Math.abs(x));
+      // Formula classica per la distorsione soft-clipping
+      curve[i] = ((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));
     }
-
     return curve;
   }
-
 
   /**
    * ▶️ Play audio
    */
-  private playAudio() {
-    if (!this.audio || !this.audioContext) return;
-
-    // Resume AudioContext (browser policy)
-    if (this.audioContext.state === 'suspended') {
-      this.audioContext.resume();
+  private async playAudio() {
+    if (!this.audio || !this.audioContext) {
+      console.warn('⚠️ Audio non inizializzato');
+      return;
     }
 
-    this.audio.play().then(() => {
+    // 🔥 SBLOCCA se necessario
+    if (!this.audioUnlocked) {
+      await this.unlockAudioContext();
+    }
+
+    // Resume AudioContext
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
+
+    try {
+      await this.audio.play();
       this.isPlaying.set(true);
       this.startVinylAnimation();
       console.log('▶️ Audio playing');
-    }).catch(err => {
+    } catch (err) {
       console.error('❌ Play error:', err);
-    });
+      console.log('💡 Potrebbe servire interazione utente - clicca il bottone!');
+    }
   }
 
   /**
@@ -265,7 +313,6 @@ export class Song implements OnInit, OnDestroy, OnChanges {
    */
   private pauseAudio() {
     if (!this.audio) return;
-
     this.audio.pause();
     this.isPlaying.set(false);
     this.stopVinylAnimation();
@@ -273,18 +320,14 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   }
 
   /**
-   * 🎵 Animazione vinile (gira quando suona)
+   * 🎵 Animazione vinile
    */
   private startVinylAnimation() {
     const animate = () => {
       if (!this.isPlaying()) return;
-
-      // Ruota di 1 grado per frame (360° = 1 rotazione completa)
       this.vinylRotation.update(r => (r + 1) % 360);
-
       this.vinylAnimationFrame = requestAnimationFrame(animate);
     };
-
     animate();
   }
 
@@ -299,6 +342,10 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     this.pauseAudio();
     this.stopVinylAnimation();
     this.audioContext?.close();
+
+    // Rimuovi listeners
+    window.removeEventListener('click', this.unlockAudioContext.bind(this));
+    window.removeEventListener('keydown', this.unlockAudioContext.bind(this));
   }
 
   // 🎨 HELPERS per template
@@ -306,10 +353,10 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   getPhaseColor(): string {
     const phase = this.currentPhase();
     if (phase === 0) return '#666';
-    if (phase === 1) return '#e74c3c'; // Rosso (difficile)
-    if (phase === 2) return '#f39c12'; // Arancione
-    if (phase === 3) return '#3498db'; // Blu
-    return '#27ae60'; // Verde (facile)
+    if (phase === 1) return '#e74c3c';
+    if (phase === 2) return '#f39c12';
+    if (phase === 3) return '#3498db';
+    return '#27ae60';
   }
 
   getPhaseLabel(): string {

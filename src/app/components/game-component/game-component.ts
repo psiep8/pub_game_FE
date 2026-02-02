@@ -509,19 +509,14 @@ export class GameComponent implements OnInit, OnDestroy {
     const isReading = mode ? ((mode as any).getIsReading?.() ?? false) : false;
     const safe = {...data, isReading} as any;
 
-    // 🔥 PER ROULETTE: NON nascondere correctAnswer perché serve per lo spin!
     if (mode?.type !== 'ROULETTE') {
       if (!mode || !mode.isRevealed()) {
         safe.correctAnswer = null;
       }
     }
-
     // defaults
     safe.question = safe.question ?? '';
     safe.options = Array.isArray(safe.options) ? safe.options : [];
-
-    console.log('📊 SafeDisplayData per', mode?.type, ':', safe);
-
     return safe;
   }
 
