@@ -1,0 +1,126 @@
+<!-- src/app/components/game/games/song/song.html -->
+<div class="song-container">
+
+  <!-- TITOLO -->
+  <div class="song-header">
+    <div class="music-icon">🎤</div>
+    <h1 class="song-title">{{ displayData?.question || 'Indovina la canzone!' }}</h1>
+  </div>
+
+  <!-- PLAYER PRENOTATO (se c'è) -->
+  @if (displayData?.buzzedPlayer) {
+    <div class="buzz-alert">
+      <div class="alert-icon">🔔</div>
+      <div class="alert-content">
+        <span class="alert-name">{{ displayData.buzzedPlayer }}</span>
+        <span class="alert-text">SI È PRENOTATO!</span>
+      </div>
+    </div>
+  }
+
+  <!-- VINILE CENTRALE ANIMATO -->
+  <div class="vinyl-stage">
+
+    <div class="vinyl-disc"
+         [class.spinning]="isPlaying()"
+         [style.transform]="'rotate(' + vinylRotation() + 'deg)'">
+
+      <!-- Grooves vinile -->
+      <div class="vinyl-grooves"></div>
+
+      <!-- Etichetta centrale con album cover -->
+      <div class="vinyl-label">
+        @if (displayData?.albumCover) {
+          <img [src]="displayData.albumCover"
+               [alt]="displayData.songTitle"
+               class="album-cover">
+        } @else {
+          <div class="label-content">
+            <div class="label-icon">🎵</div>
+            <div class="label-text">SONG</div>
+          </div>
+        }
+      </div>
+
+      <!-- Centro vinile -->
+      <div class="vinyl-center"></div>
+    </div>
+
+    <!-- Braccio giradischi (si muove quando suona) -->
+    <div class="tonearm" [class.playing]="isPlaying()"></div>
+  </div>
+
+  <!-- INDICATORE FASI (4 pallini) -->
+  <div class="phases-indicator">
+    <div class="phases-track">
+      @for (phase of [1, 2, 3, 4]; track phase) {
+        <div class="phase-dot"
+             [class.active]="currentPhase() >= phase"
+             [class.current]="currentPhase() === phase"
+             [style.background]="currentPhase() >= phase ? getPhaseColor() : '#ddd'">
+
+          <div class="phase-icon">{{ getPhaseIcon() }}</div>
+
+          <div class="phase-label">
+            @switch(phase) {
+              @case(1) { <span>25%</span> }
+              @case(2) { <span>50%</span> }
+              @case(3) { <span>75%</span> }
+              @case(4) { <span>100%</span> }
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-bar">
+      <div class="progress-fill"
+           [style.width.%]="(currentPhase() / 4) * 100"
+           [style.background]="getPhaseColor()"></div>
+    </div>
+
+    <!-- Label fase corrente -->
+    <div class="current-phase-label" [style.color]="getPhaseColor()">
+      {{ getPhaseLabel() }}
+    </div>
+  </div>
+
+  <!-- STATO AUDIO -->
+  @if (isPlaying()) {
+    <div class="audio-status playing">
+      <div class="equalizer">
+        @for (bar of [1,2,3,4,5]; track bar) {
+          <div class="eq-bar" [style.animation-delay]="(bar * 0.1) + 's'"></div>
+        }
+      </div>
+      <p>🎵 In riproduzione...</p>
+    </div>
+  }
+
+  <!-- REVEAL (quando finisce) -->
+  @if (displayData?.revealed) {
+    <div class="song-reveal">
+      <div class="reveal-card">
+        <div class="reveal-icon">🎵</div>
+        <h2 class="reveal-title">{{ displayData.songTitle }}</h2>
+        <p class="reveal-artist">{{ displayData.artist }}</p>
+        @if (displayData.year) {
+          <p class="reveal-year">{{ displayData.year }}</p>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- TIMER -->
+  <div class="timer-circle" [class.warning]="timer <= 30">
+    <svg width="100" height="100">
+      <circle cx="50" cy="50" r="45" class="timer-bg"></circle>
+      <circle cx="50" cy="50" r="45"
+              class="timer-progress"
+              [style.stroke-dashoffset]="283 - (283 * timer / 120)"></circle>
+    </svg>
+    <div class="timer-value">{{ timer }}</div>
+  </div>
+
+</div>

@@ -123,6 +123,13 @@
             [displayData]="getSafeDisplayData()"
             [timer]="timer()"/>
         }
+        @case ('MUSIC') {
+          <app-song
+            [displayData]="getSafeDisplayData()"
+            [timer]="timer()"
+            (onConfirmCorrect)="confirmCorrect()"
+            (onConfirmWrong)="confirmWrong()"/>
+        }
       }
     </div>
 

@@ -143,6 +143,17 @@
                 </button>
               </div>
             }
+            @case ('MUSIC') {
+              <div class="buzz-container">
+                <button
+                  class="buzz-button music-theme"
+                  (click)="sendBuzz()"
+                  [disabled]="hasAnswered()">
+                  <span class="buzz-icon">🎶</span>
+                  <span class="buzz-text">PRENOTA E RISPONDI!</span>
+                </button>
+              </div>
+            }
           }
         }
 

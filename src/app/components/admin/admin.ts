@@ -131,7 +131,7 @@ export class Admin implements OnInit, OnDestroy {
     }
 
     // Mostra controlli solo per modalità BUZZ
-    const isBuzzMode = status.type === 'IMAGE_BLUR' || status.type === 'WHEEL_OF_FORTUNE';
+    const isBuzzMode = status.type === 'IMAGE_BLUR' || status.type === 'WHEEL_OF_FORTUNE' || status.type === 'MUSIC';
     this.showAdminControls.set(isBuzzMode);
 
     console.log('🎮 GameState settato ad ACTIVE:', this.gameState());
