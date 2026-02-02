@@ -13,25 +13,43 @@
   overflow: hidden;
 }
 
-/* 🎵 Note musicali fluttuanti background */
-.song-container::before {
-  content: '🎵 🎶 🎤 🎧 🎸';
+/* ================= COUNTDOWN OVERLAY ================= */
+
+.countdown-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  font-size: 60px;
-  opacity: 0.05;
-  pointer-events: none;
-  animation: floatingNotes 30s infinite linear;
-  white-space: pre;
-  line-height: 200px;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s;
 }
 
-@keyframes floatingNotes {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-100%); }
+.countdown-circle {
+  text-align: center;
+  animation: pulse 1s infinite;
+}
+
+.countdown-number {
+  font-size: 180px;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 0 60px rgba(255, 255, 255, 0.8);
+  line-height: 1;
+  margin-bottom: 20px;
+}
+
+.countdown-label {
+  font-size: 32px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* ================= HEADER ================= */
@@ -46,11 +64,6 @@
   font-size: 80px;
   margin-bottom: 20px;
   animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
 }
 
 .song-title {
@@ -77,7 +90,7 @@
   align-items: center;
   gap: 20px;
   z-index: 100;
-  animation: slideDown 0.5s ease-out, shake 0.5s 0.5s;
+  animation: slideDown 0.5s ease-out;
 }
 
 @keyframes slideDown {
@@ -89,12 +102,6 @@
     opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(-50%) rotate(0deg); }
-  25% { transform: translateX(-50%) rotate(-5deg); }
-  75% { transform: translateX(-50%) rotate(5deg); }
 }
 
 .alert-icon {
@@ -126,7 +133,7 @@
   font-weight: 600;
 }
 
-/* ================= VINILE CENTRALE ================= */
+/* ================= VINILE (PERFETTAMENTE ROTONDO) ================= */
 
 .vinyl-stage {
   position: relative;
@@ -136,21 +143,16 @@
   z-index: 10;
 }
 
-/* Disco vinile */
 .vinyl-disc {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 50%, #1a1a1a 0%, #0a0a0a 40%, #000 100%);
+  background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #0a0a0a 40%, #000 100%);
   position: relative;
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.6),
-    inset 0 0 100px rgba(255, 255, 255, 0.05);
-  transition: transform 0.3s ease;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6),
+  inset 0 0 100px rgba(255, 255, 255, 0.05);
 }
 
-/* Rotazione vinile quando suona */
 .vinyl-disc.spinning {
   animation: spin 3s linear infinite;
 }
@@ -160,7 +162,6 @@
   to { transform: rotate(360deg); }
 }
 
-/* Grooves del vinile (solchi) */
 .vinyl-grooves {
   position: absolute;
   inset: 0;
@@ -174,7 +175,7 @@
   );
 }
 
-/* Etichetta centrale del vinile */
+/* 🔥 LABEL CENTRALE PERFETTAMENTE ROTONDA */
 .vinyl-label {
   position: absolute;
   top: 50%;
@@ -184,20 +185,21 @@
   height: 200px;
   border-radius: 50%;
   background: linear-gradient(135deg, #667eea, #764ba2);
-  box-shadow:
-    0 0 30px rgba(102, 126, 234, 0.5),
-    inset 0 0 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 30px rgba(102, 126, 234, 0.5),
+  inset 0 0 20px rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
 }
 
+/* 🔥 COVER con BLUR PROGRESSIVO */
 .album-cover {
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
+  transition: filter 2s ease; /* Transizione smooth del blur */
 }
 
 .label-content {
@@ -216,7 +218,6 @@
   letter-spacing: 2px;
 }
 
-/* Centro vinile (foro) */
 .vinyl-center {
   position: absolute;
   top: 50%;
@@ -226,9 +227,8 @@
   height: 40px;
   border-radius: 50%;
   background: #000;
-  box-shadow:
-    inset 0 0 10px rgba(255, 255, 255, 0.3),
-    0 0 20px rgba(0, 0, 0, 0.8);
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3),
+  0 0 20px rgba(0, 0, 0, 0.8);
 }
 
 /* ================= BRACCIO GIRADISCHI ================= */
@@ -257,7 +257,6 @@
   height: 30px;
   background: #555;
   border-radius: 50%;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .tonearm::after {
@@ -272,12 +271,11 @@
   border-radius: 50%;
 }
 
-/* Braccio si abbassa quando suona */
 .tonearm.playing {
   transform: rotate(-5deg);
 }
 
-/* ================= INDICATORE FASI ================= */
+/* ================= INDICATORE MANCHES ================= */
 
 .phases-indicator {
   margin: 40px 0;
@@ -346,7 +344,6 @@
   color: white;
 }
 
-/* Progress bar */
 .progress-bar {
   width: 100%;
   height: 15px;
@@ -372,7 +369,7 @@
   margin-top: 10px;
 }
 
-/* ================= STATO AUDIO ================= */
+/* ================= EQUALIZER ================= */
 
 .audio-status {
   margin: 20px 0;
@@ -393,7 +390,6 @@
   color: white;
 }
 
-/* Equalizzatore animato */
 .equalizer {
   display: flex;
   gap: 5px;
@@ -419,25 +415,28 @@
   50% { height: 50px; }
 }
 
-/* ================= REVEAL ================= */
+/* ================= REVEAL FINALE ================= */
 
 .song-reveal {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 200;
-  animation: revealPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  animation: revealFadeIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-@keyframes revealPop {
+@keyframes revealFadeIn {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.5);
+    transform: scale(0.5);
   }
   100% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: scale(1);
   }
 }
 
@@ -447,7 +446,7 @@
   border-radius: 30px;
   box-shadow: 0 20px 80px rgba(0, 0, 0, 0.4);
   text-align: center;
-  min-width: 500px;
+  max-width: 600px;
 }
 
 .reveal-icon {
@@ -479,6 +478,18 @@
   font-size: 24px;
   color: #95a5a6;
   margin: 10px 0;
+}
+
+.reveal-cover {
+  margin-top: 30px;
+}
+
+.reveal-cover img {
+  width: 300px;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 15px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
 /* ================= TIMER ================= */
@@ -575,11 +586,11 @@
     height: 60px;
   }
 
-  .phase-icon {
-    font-size: 24px;
+  .countdown-number {
+    font-size: 120px;
   }
 
-  .phase-label {
-    font-size: 14px;
+  .countdown-label {
+    font-size: 24px;
   }
 }
