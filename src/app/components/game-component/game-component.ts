@@ -1,6 +1,16 @@
 // src/app/components/game/game.component.ts
 
-import {Component, signal, inject, OnInit, HostListener, OnDestroy, ElementRef, ViewChild} from '@angular/core';
+import {
+  Component,
+  signal,
+  inject,
+  OnInit,
+  HostListener,
+  OnDestroy,
+  ElementRef,
+  ViewChild,
+  ChangeDetectorRef
+} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {trigger, transition, style, animate} from '@angular/animations';
 import {firstValueFrom} from 'rxjs';
@@ -49,6 +59,8 @@ export class GameComponent implements OnInit, OnDestroy {
   private gameService = inject(GameService);
   private aiService = inject(AiGeneratorService);
   private gameModeService = inject(GameModeService);
+  private cdr = inject(ChangeDetectorRef);
+  private displayDataInterval?: any;
 
   // State
   allCategories = signal<any[]>([]);
@@ -200,10 +212,20 @@ export class GameComponent implements OnInit, OnDestroy {
         this.confirmWrong();
       }
     });
+    this.displayDataInterval = setInterval(() => {
+      const mode = this.currentMode();
+      if (mode && mode.type === 'MUSIC') {
+        // Force change detection
+        this.cdr.detectChanges();
+      }
+    }, 100);
   }
 
   ngOnDestroy() {
     this.gameModeService.cleanup();
+    if (this.displayDataInterval) {
+      clearInterval(this.displayDataInterval);
+    }
   }
 
   async startNewRound() {

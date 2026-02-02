@@ -6,26 +6,20 @@ export class MusicMode extends GameModeBase {
       throw new Error("Method not implemented.");
   }
   readonly type: GameModeType = 'MUSIC';
-  readonly timerDuration = 160; // 10s attesa + 4x(30s+20s) = 10 + 200 = 210s totali
+  readonly timerDuration = 200;
   readonly requiresBubbles = false;
   readonly requiresBuzz = true;
 
-  // 🎵 GESTIONE MANCHES
-  private currentManche = 0; // 0 = attesa iniziale, 1-4 = manches
+  private currentManche = 0;
   private mancheTimer: any;
-  private preStartTimer: any;
-  private mancheStartTime = 0;
-
-  // Stati
   private audioPlaying = false;
   private inCountdown = false;
   private countdownValue = 0;
+  private countdownTimer: any;
 
   protected onInitialize(): void {
     console.log('🎤 MUSIC Mode inizializzato');
     console.log('🎵 Canzone:', this.payload.songTitle);
-    console.log('🎨 Artista:', this.payload.artist);
-    console.log('🔊 Preview URL:', this.payload.previewUrl);
 
     this.currentManche = 0;
     this.audioPlaying = false;
@@ -34,110 +28,80 @@ export class MusicMode extends GameModeBase {
   protected async onStart(): Promise<void> {
     console.log('🎤 Avvio modalità MUSIC');
 
-    // 🔥 COUNTDOWN INIZIALE 10 SECONDI
-    await this.initialCountdown();
-
-    // 🔥 AVVIA MANCHE 1
-    this.startManche(1);
-  }
-
-  /**
-   * 🔥 Countdown iniziale 10 secondi
-   */
-  private async initialCountdown(): Promise<void> {
-    console.log('⏰ Countdown iniziale 10 secondi...');
-    this.inCountdown = true;
-
-    return new Promise(resolve => {
-      this.countdownValue = 10;
-
-      const interval = setInterval(() => {
-        this.countdownValue--;
-
-        if (this.countdownValue <= 0) {
-          clearInterval(interval);
-          this.inCountdown = false;
-          console.log('✅ Countdown completato!');
-          resolve();
-        }
-      }, 1000);
+    // 🔥 Countdown iniziale
+    this.startCountdown(10, () => {
+      console.log('✅ Countdown completato → Manche 1');
+      this.startManche(1);
     });
   }
 
   /**
-   * 🔥 AVVIA MANCHE (1-4)
+   * 🔥 Countdown NON bloccante
+   */
+  private startCountdown(seconds: number, onComplete: () => void) {
+    this.inCountdown = true;
+    this.countdownValue = seconds;
+
+    console.log(`⏰ Countdown START: ${seconds}s`);
+
+    this.countdownTimer = setInterval(() => {
+      this.countdownValue--;
+      console.log(`⏰ Countdown: ${this.countdownValue}`);
+
+      if (this.countdownValue <= 0) {
+        clearInterval(this.countdownTimer);
+        this.countdownTimer = null;
+        this.inCountdown = false;
+        onComplete();
+      }
+    }, 1000);
+  }
+
+  /**
+   * 🔥 AVVIA MANCHE
    */
   private startManche(mancheNumber: number) {
     if (mancheNumber > 4) {
-      console.log('🏁 Tutte le manches completate - TIMEOUT');
+      console.log('🏁 Fine manches');
       this.onTimeout();
       return;
     }
 
     this.currentManche = mancheNumber;
-    this.mancheStartTime = Date.now();
     this.playAudio();
 
-    console.log(`🎮 MANCHE ${mancheNumber}/4 avviata`);
+    console.log(`🎮 ========== MANCHE ${mancheNumber}/4 ==========`);
 
-    // 🔥 Auto-pausa dopo 30 secondi
+    // Auto-pausa dopo 30s
     this.mancheTimer = setTimeout(() => {
       if (!this.buzzedPlayer()) {
-        console.log(`⏸️ Manche ${mancheNumber} completata - avvio pausa`);
+        console.log(`⏸️ Manche ${mancheNumber} terminata`);
         this.pauseAudio();
-        this.startMancheBreak(mancheNumber + 1);
+
+        // Pausa 20s
+        console.log('💤 Pausa 20 secondi...');
+        setTimeout(() => {
+          // Countdown 5s
+          this.startCountdown(5, () => {
+            this.startManche(mancheNumber + 1);
+          });
+        }, 20000);
       }
-    }, 30000); // 30 secondi
-  }
-
-  /**
-   * 🔥 PAUSA tra manches: 20s silenziosi + 5s countdown
-   */
-  private startMancheBreak(nextManche: number) {
-    if (nextManche > 4) {
-      console.log('🏁 Fine gioco');
-      this.onTimeout();
-      return;
-    }
-
-    console.log(`⏸️ Pausa 20 secondi prima manche ${nextManche}`);
-
-    // 20 secondi di pausa
-    setTimeout(() => {
-      console.log('⏰ Countdown 5 secondi...');
-      this.inCountdown = true;
-      this.countdownValue = 5;
-
-      this.preStartTimer = setInterval(() => {
-        this.countdownValue--;
-
-        if (this.countdownValue <= 0) {
-          clearInterval(this.preStartTimer);
-          this.inCountdown = false;
-          // 🔥 AVVIA MANCHE SUCCESSIVA
-          this.startManche(nextManche);
-        }
-      }, 1000);
-
-    }, 20000); // 20 secondi pausa
+    }, 30000);
   }
 
   protected onPause(): void {
-    console.log('⏸️ MUSIC in pausa');
     this.stopAllTimers();
     this.pauseAudio();
   }
 
   protected onResume(): void {
-    console.log('▶️ MUSIC ripresa');
-    // Riprendi dalla manche corrente
     if (this.currentManche > 0) {
       this.playAudio();
     }
   }
 
   protected onStop(): void {
-    console.log('🛑 MUSIC terminata');
     this.stopAllTimers();
     this.pauseAudio();
   }
@@ -150,7 +114,7 @@ export class MusicMode extends GameModeBase {
   }
 
   protected async onTimeout(): Promise<void> {
-    console.log('⏰ Tempo scaduto - Nessuno ha indovinato');
+    console.log('⏰ TIMEOUT');
     this.stopAllTimers();
     this.pauseAudio();
     this.revealed.set(true);
@@ -158,62 +122,59 @@ export class MusicMode extends GameModeBase {
   }
 
   protected onBuzz(playerName: string): void {
-    console.log(`🎤 ${playerName} si è prenotato!`);
-    // 🔥 FERMA TUTTO quando qualcuno buzza
+    console.log(`🎤 ${playerName} BUZZ!`);
     this.stopAllTimers();
     this.pauseAudio();
   }
 
   protected onConfirmCorrect(result: GameModeResult): void {
-    console.log(`✅ ${result.playerName} ha indovinato!`);
+    console.log(`✅ CORRETTO: ${result.playerName}`);
     this.stopAllTimers();
     this.pauseAudio();
     this.revealed.set(true);
 
-    // 🔥 Riproduci canzone chiara per reveal
+    // Audio chiaro per reveal
     setTimeout(() => {
-      this.currentManche = 4; // Fase 100% chiara
+      this.currentManche = 4;
       this.playAudio();
     }, 1000);
   }
 
   protected onConfirmWrong(result: GameModeResult): void {
-    console.log(`❌ ${result.playerName} ha sbagliato`);
-    // 🔥 RIPRENDI dalla manche corrente
-    if (this.currentManche > 0 && this.currentManche <= 4) {
-      this.startManche(this.currentManche);
-    }
+    console.log(`❌ SBAGLIATO: ${result.playerName}`);
+
+    // Riprendi dopo 1s
+    setTimeout(() => {
+      if (this.currentManche > 0) {
+        this.playAudio();
+      }
+    }, 1000);
   }
 
   protected validateAnswer(answer: any, timeMs: number): any {
-    return {
-      isCorrect: false,
-      points: 0,
-      timeMs
-    };
+    return { isCorrect: false, points: 0, timeMs };
   }
 
   protected calculatePoints(isCorrect: boolean, elapsedMs: number): number {
     if (!isCorrect) return -1000;
 
-    // Punti basati sulla manche
     switch(this.currentManche) {
-      case 1: return 2000; // Manche 1 - Difficilissimo!
-      case 2: return 1500; // Manche 2 - Difficile
-      case 3: return 1000; // Manche 3 - Medio
-      case 4: return 500;  // Manche 4 - Facile
+      case 1: return 2000;
+      case 2: return 1500;
+      case 3: return 1000;
+      case 4: return 500;
       default: return 0;
     }
   }
 
   private playAudio(): void {
     this.audioPlaying = true;
-    console.log(`▶️ Audio playing - Manche ${this.currentManche}`);
+    console.log(`▶️ PLAY - Manche ${this.currentManche}`);
   }
 
   private pauseAudio(): void {
     this.audioPlaying = false;
-    console.log('⏸️ Audio paused');
+    console.log('⏸️ PAUSE');
   }
 
   private stopAllTimers(): void {
@@ -221,36 +182,44 @@ export class MusicMode extends GameModeBase {
       clearTimeout(this.mancheTimer);
       this.mancheTimer = null;
     }
-    if (this.preStartTimer) {
-      clearInterval(this.preStartTimer);
-      this.preStartTimer = null;
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer);
+      this.countdownTimer = null;
     }
   }
 
   getDisplayData() {
-    return {
+    const data = {
       question: 'Indovina la canzone!',
       songTitle: this.payload.songTitle,
       artist: this.payload.artist,
       previewUrl: this.payload.previewUrl,
       albumCover: this.payload.albumCover,
 
-      // Stato manches
+      // 🔥 STATI che devono aggiornarsi
       currentPhase: this.currentManche,
       totalPhases: 4,
-
-      // Stato audio
       audioPlaying: this.audioPlaying,
       buzzedPlayer: this.buzzedPlayer(),
 
-      // Countdown
+      // 🔥 COUNTDOWN
       inCountdown: this.inCountdown,
       countdownValue: this.countdownValue,
 
-      // Metadati
+      // Meta
       year: this.payload.year,
       source: this.payload.source || 'apple-music',
       revealed: this.isRevealed()
     };
+
+    // Log per debug
+    console.log('📊 DisplayData:', {
+      manche: data.currentPhase,
+      audioPlaying: data.audioPlaying,
+      inCountdown: data.inCountdown,
+      countdownValue: data.countdownValue
+    });
+
+    return data;
   }
 }

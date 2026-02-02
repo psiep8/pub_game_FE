@@ -26,7 +26,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   private sourceNode?: MediaElementAudioSourceNode;
   private gainNode?: GainNode;
 
-  // 🔥 FILTRI per distorsione
+  // Filtri
   private bandpassFilter?: BiquadFilterNode;
   private highpassFilter?: BiquadFilterNode;
   private lowpassFilter?: BiquadFilterNode;
@@ -36,31 +36,50 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   isPlaying = signal(false);
   currentPhase = signal(0);
   vinylRotation = signal(0);
-
-  // 🔥 BLUR cover (20px = molto blur, 0px = chiaro)
   blurAmount = signal(20);
 
   private vinylAnimationFrame?: number;
   private audioUnlocked = false;
+  private lastPhase = 0; // Track last phase to detect changes
 
   ngOnInit() {
-    console.log('🎵 Song component init');
-    window.addEventListener('click', this.unlockAudioContext.bind(this), {once: true});
+    console.log('🎵 Song init');
+
+    // 🔥 AUTO-UNLOCK al primo click GLOBALE
+    const autoUnlock = async () => {
+      console.log('🔓 Auto-unlocking audio...');
+      await this.unlockAudioContext();
+      window.removeEventListener('click', autoUnlock);
+      window.removeEventListener('keydown', autoUnlock);
+    };
+
+    window.addEventListener('click', autoUnlock);
+    window.addEventListener('keydown', autoUnlock);
+
+    // 🔥 UNLOCK anche subito (tenta)
+    setTimeout(() => this.unlockAudioContext(), 100);
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['displayData'] && this.displayData) {
       const prevData = changes['displayData'].previousValue;
 
-      // 🔥 NUOVO URL = NUOVA CANZONE
+      // 🔥 NUOVA CANZONE
       if (prevData?.previewUrl !== this.displayData.previewUrl) {
-        console.log("🎵 Nuova canzone, init audio...");
-        this.blurAmount.set(20); // Reset blur
-        this.initAudio().then(() => {
-          if (!this.audioUnlocked) {
-            this.unlockAudioContext();
-          }
-        });
+        console.log("🎵 Nuova canzone!");
+        this.blurAmount.set(20);
+        this.currentPhase.set(0);
+        this.lastPhase = 0;
+        this.initAudio();
+      }
+
+      // 🔥 CAMBIO FASE = APPLICA FILTRI
+      const phase = this.displayData.currentPhase || 0;
+      if (this.lastPhase !== phase && phase > 0) {
+        console.log(`🎛️ Fase cambiata: ${this.lastPhase} → ${phase}`);
+        this.lastPhase = phase;
+        this.currentPhase.set(phase);
+        this.applyFilters(phase);
       }
 
       // 🔥 PLAY/PAUSE
@@ -73,14 +92,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
         this.pauseAudio();
       }
 
-      // 🔥 AGGIORNA FASE E FILTRI
-      const phase = this.displayData.currentPhase || 0;
-      if (this.currentPhase() !== phase) {
-        this.currentPhase.set(phase);
-        this.applyAudioFilters(phase);
-      }
-
-      // 🔥 REVEAL = RIMUOVI BLUR
+      // 🔥 REVEAL
       if (this.displayData.revealed && this.blurAmount() > 0) {
         this.blurAmount.set(0);
       }
@@ -88,7 +100,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   }
 
   /**
-   * 🔓 Unlock AudioContext
+   * 🔓 UNLOCK AudioContext
    */
   private async unlockAudioContext() {
     if (this.audioUnlocked) return;
@@ -100,21 +112,26 @@ export class Song implements OnInit, OnDestroy, OnChanges {
 
       if (this.audioContext.state === 'suspended') {
         await this.audioContext.resume();
+        console.log('✅ AudioContext resumed');
       }
 
-      if (this.audio) {
+      if (this.audio && this.audio.paused) {
         this.audio.muted = true;
-        await this.audio.play();
-        this.audio.pause();
+        try {
+          await this.audio.play();
+          this.audio.pause();
+        } catch (e) {
+          // Ignore
+        }
         this.audio.muted = false;
         this.audio.currentTime = 0;
       }
 
       this.audioUnlocked = true;
-      console.log('✅ Audio sbloccato');
+      console.log('✅ Audio SBLOCCATO');
 
     } catch (err) {
-      console.warn('⚠️ Unlock failed:', err);
+      console.warn('⚠️ Unlock failed (normale):', err);
     }
   }
 
@@ -124,105 +141,124 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   private async initAudio() {
     if (!this.displayData?.previewUrl) return;
 
-    this.audio?.pause();
-    this.audio = new Audio(this.displayData.previewUrl);
-    this.audio.crossOrigin = 'anonymous';
-    this.audio.loop = true;
+    try {
+      // Cleanup
+      if (this.audio) {
+        this.audio.pause();
+        this.audio.src = '';
+      }
 
-    if (!this.audioContext) {
-      this.audioContext = new AudioContext();
-    }
+      if (this.sourceNode) {
+        this.sourceNode.disconnect();
+      }
 
-    // 🔥 CREA TUTTI I FILTRI
-    this.bandpassFilter = this.audioContext.createBiquadFilter();
-    this.bandpassFilter.type = 'bandpass';
+      this.audio = new Audio(this.displayData.previewUrl);
+      this.audio.crossOrigin = 'anonymous';
+      this.audio.loop = true;
+      this.audio.preload = 'auto';
 
-    this.highpassFilter = this.audioContext.createBiquadFilter();
-    this.highpassFilter.type = 'highpass';
+      if (!this.audioContext) {
+        this.audioContext = new AudioContext();
+      }
 
-    this.lowpassFilter = this.audioContext.createBiquadFilter();
-    this.lowpassFilter.type = 'lowpass';
+      // 🔥 CREA FILTRI
+      this.bandpassFilter = this.audioContext.createBiquadFilter();
+      this.bandpassFilter.type = 'bandpass';
 
-    this.distortionNode = this.audioContext.createWaveShaper();
-    this.distortionNode.oversample = '4x';
+      this.highpassFilter = this.audioContext.createBiquadFilter();
+      this.highpassFilter.type = 'highpass';
 
-    this.gainNode = this.audioContext.createGain();
-    this.gainNode.gain.value = 0; // Parte da 0
+      this.lowpassFilter = this.audioContext.createBiquadFilter();
+      this.lowpassFilter.type = 'lowpass';
 
-    // 🔥 CATENA: Source → Bandpass → Highpass → Lowpass → Distortion → Gain → Destination
-    this.sourceNode = this.audioContext.createMediaElementSource(this.audio);
+      this.distortionNode = this.audioContext.createWaveShaper();
+      this.distortionNode.oversample = '4x';
 
-    this.sourceNode
-      .connect(this.bandpassFilter)
-      .connect(this.highpassFilter)
-      .connect(this.lowpassFilter)
-      .connect(this.distortionNode)
-      .connect(this.gainNode)
-      .connect(this.audioContext.destination);
+      this.gainNode = this.audioContext.createGain();
+      this.gainNode.gain.value = 0;
 
-    this.audioReady.set(true);
-    console.log('✅ Catena audio con filtri pronta');
-  }
+      // 🔥 CATENA
+      this.sourceNode = this.audioContext.createMediaElementSource(this.audio);
 
-  /**
-   * 🔥 APPLICA FILTRI in base alla manche
-   */
-  private applyAudioFilters(manche: number) {
-    if (!this.audioContext || !this.gainNode) return;
+      this.sourceNode
+        .connect(this.bandpassFilter)
+        .connect(this.highpassFilter)
+        .connect(this.lowpassFilter)
+        .connect(this.distortionNode)
+        .connect(this.gainNode)
+        .connect(this.audioContext.destination);
 
-    console.log(`🎛️ Applicando filtri MANCHE ${manche}`);
+      this.audioReady.set(true);
+      console.log('✅ Audio ready con filtri');
 
-    switch (manche) {
-      case 0:
-        // Attesa iniziale
-        this.gainNode.gain.value = 0;
-        break;
+      // 🔥 AUTO-UNLOCK se non già fatto
+      if (!this.audioUnlocked) {
+        await this.unlockAudioContext();
+      }
 
-      case 1: // 25% - MOLTO DISTORTO
-        this.gainNode.gain.value = 0.3;
-        this.bandpassFilter!.frequency.value = 800;
-        this.bandpassFilter!.Q.value = 10;
-        this.highpassFilter!.frequency.value = 600;
-        this.lowpassFilter!.frequency.value = 1500;
-        this.distortionNode!.curve = this.makeDistortionCurve(80) as any
-        console.log('🎛️ Manche 1: MOLTO distorto (25%)');
-        break;
-
-      case 2: // 50% - DISTORTO
-        this.gainNode.gain.value = 0.5;
-        this.bandpassFilter!.frequency.value = 1200;
-        this.bandpassFilter!.Q.value = 5;
-        this.highpassFilter!.frequency.value = 300;
-        this.lowpassFilter!.frequency.value = 2500;
-        this.distortionNode!.curve = this.makeDistortionCurve(40) as any
-        console.log('🎛️ Manche 2: Distorto (50%)');
-        break;
-
-      case 3: // 75% - QUASI CHIARO
-        this.gainNode.gain.value = 0.7;
-        this.bandpassFilter!.frequency.value = 1500;
-        this.bandpassFilter!.Q.value = 2;
-        this.highpassFilter!.frequency.value = 150;
-        this.lowpassFilter!.frequency.value = 4000;
-        this.distortionNode!.curve = this.makeDistortionCurve(15) as any
-        console.log('🎛️ Manche 3: Quasi chiaro (75%)');
-        break;
-
-      case 4: // 100% - CHIARO
-        this.gainNode.gain.value = 1.0;
-        this.bandpassFilter!.frequency.value = 2000;
-        this.bandpassFilter!.Q.value = 0.5;
-        this.highpassFilter!.frequency.value = 50;
-        this.lowpassFilter!.frequency.value = 8000;
-        this.distortionNode!.curve = null; // PULITO!
-        console.log('🎛️ Manche 4: CHIARO (100%)');
-        break;
+    } catch (error) {
+      console.error('❌ Init audio error:', error);
     }
   }
 
   /**
-   * Curva distorsione
+   * 🔥 APPLICA FILTRI (chiamato quando fase CAMBIA)
    */
+  private applyFilters(phase: number) {
+    if (!this.audioContext || !this.gainNode) {
+      console.warn('⚠️ Audio context non pronto');
+      return;
+    }
+
+    console.log(`🎛️ APPLICANDO FILTRI FASE ${phase}`);
+
+    switch (phase) {
+      case 1: // MOLTO DISTORTO
+        this.gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+        this.bandpassFilter!.frequency.setValueAtTime(800, this.audioContext.currentTime);
+        this.bandpassFilter!.Q.setValueAtTime(10, this.audioContext.currentTime);
+        this.highpassFilter!.frequency.setValueAtTime(600, this.audioContext.currentTime);
+        this.lowpassFilter!.frequency.setValueAtTime(1500, this.audioContext.currentTime);
+        this.distortionNode!.curve = this.makeDistortionCurve(80) as any;
+        console.log('🎛️ Fase 1: MOLTO distorto');
+        break;
+
+      case 2: // DISTORTO
+        this.gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
+        this.bandpassFilter!.frequency.setValueAtTime(1200, this.audioContext.currentTime);
+        this.bandpassFilter!.Q.setValueAtTime(5, this.audioContext.currentTime);
+        this.highpassFilter!.frequency.setValueAtTime(300, this.audioContext.currentTime);
+        this.lowpassFilter!.frequency.setValueAtTime(2500, this.audioContext.currentTime);
+        this.distortionNode!.curve = this.makeDistortionCurve(40) as any;
+        console.log('🎛️ Fase 2: Distorto');
+        break;
+
+      case 3: // QUASI CHIARO
+        this.gainNode.gain.setValueAtTime(0.7, this.audioContext.currentTime);
+        this.bandpassFilter!.frequency.setValueAtTime(1500, this.audioContext.currentTime);
+        this.bandpassFilter!.Q.setValueAtTime(2, this.audioContext.currentTime);
+        this.highpassFilter!.frequency.setValueAtTime(150, this.audioContext.currentTime);
+        this.lowpassFilter!.frequency.setValueAtTime(4000, this.audioContext.currentTime);
+        this.distortionNode!.curve = this.makeDistortionCurve(15) as any;
+        console.log('🎛️ Fase 3: Quasi chiaro');
+        break;
+
+      case 4: // CHIARO
+        this.gainNode.gain.setValueAtTime(1.0, this.audioContext.currentTime);
+        this.bandpassFilter!.frequency.setValueAtTime(2000, this.audioContext.currentTime);
+        this.bandpassFilter!.Q.setValueAtTime(0.5, this.audioContext.currentTime);
+        this.highpassFilter!.frequency.setValueAtTime(50, this.audioContext.currentTime);
+        this.lowpassFilter!.frequency.setValueAtTime(8000, this.audioContext.currentTime);
+        this.distortionNode!.curve = null;
+        console.log('🎛️ Fase 4: CHIARO');
+        break;
+
+      default:
+        this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+        break;
+    }
+  }
+
   private makeDistortionCurve(amount: number): Float32Array | null {
     const samples = 44100;
     const curve = new Float32Array(samples);
@@ -239,7 +275,10 @@ export class Song implements OnInit, OnDestroy, OnChanges {
    * ▶️ PLAY
    */
   private async playAudio() {
-    if (!this.audio || !this.audioContext) return;
+    if (!this.audio || !this.audioContext) {
+      console.warn('⚠️ Audio non pronto');
+      return;
+    }
 
     if (!this.audioUnlocked) {
       await this.unlockAudioContext();
@@ -253,7 +292,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
       await this.audio.play();
       this.isPlaying.set(true);
       this.startVinylAnimation();
-      console.log('▶️ Audio playing');
+      console.log('▶️ Audio PLAYING');
     } catch (err) {
       console.error('❌ Play error:', err);
     }
@@ -267,12 +306,9 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     this.audio.pause();
     this.isPlaying.set(false);
     this.stopVinylAnimation();
-    console.log('⏸️ Audio paused');
+    console.log('⏸️ Audio PAUSED');
   }
 
-  /**
-   * 🎵 ANIMAZIONE VINILE
-   */
   private startVinylAnimation() {
     const animate = () => {
       if (!this.isPlaying()) return;
