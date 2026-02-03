@@ -4,7 +4,8 @@ import { signal } from '@angular/core'
 import {GameModeBase} from '../interfaces/game-mode-base.class';
 import {GameModeResult, GameModeType} from '../interfaces/game-mode-type';
 
-export class WheelOfFortuneMode extends GameModeBase { readonly type: GameModeType = 'WHEEL_OF_FORTUNE';
+export class WheelOfFortuneMode extends GameModeBase {
+  readonly type: GameModeType = 'WHEEL_OF_FORTUNE';
   readonly timerDuration = 120;
   readonly requiresBubbles = false;
   readonly requiresBuzz = true;

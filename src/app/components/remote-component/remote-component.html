@@ -67,7 +67,6 @@
             <p>In attesa della prossima sfida...</p>
           </div>
         }
-
         @case ('VOTING') {
           @switch (questionType()) {
             @case ('QUIZ') {
@@ -78,14 +77,12 @@
                 <button (click)="sendVote(3)" class="vote-btn btn-d">D</button>
               </div>
             }
-
             @case ('TRUE_FALSE') {
               <div class="voting-grid tf-layout">
                 <button (click)="sendVote(0)" class="vote-btn btn-true">VERO</button>
                 <button (click)="sendVote(1)" class="vote-btn btn-false">FALSO</button>
               </div>
             }
-
             @case ('CHRONO') {
               <div class="chrono-player-area horizontal-chrono">
                 <div class="year-preview">{{ selectedYear() }}</div>
@@ -96,7 +93,6 @@
                 <button (click)="sendChronoAnswer()" class="confirm-btn">INVIA ANNO</button>
               </div>
             }
-
             @case ('ROULETTE') {
               <div class="roulette-grid">
                 <button (click)="sendVote(0)" class="color-btn rosso" [disabled]="hasAnswered()">
@@ -119,7 +115,6 @@
                 </button>
               </div>
             }
-
             @case ('IMAGE_BLUR') {
               <div class="buzz-container">
                 <button
@@ -131,7 +126,6 @@
                 </button>
               </div>
             }
-
             @case ('WHEEL_OF_FORTUNE') {
               <div class="buzz-container">
                 <button
@@ -143,9 +137,19 @@
                 </button>
               </div>
             }
+            @case ('MUSIC') {
+              <div class="buzz-container">
+                <button
+                  class="buzz-button music-theme"
+                  (click)="sendBuzz()"
+                  [disabled]="hasAnswered()">
+                  <span class="buzz-icon">🎶</span>
+                  <span class="buzz-text">PRENOTA E RISPONDI!</span>
+                </button>
+              </div>
+            }
           }
         }
-
         @case ('LOCKED') {
           <div class="status-msg locked">
             <div class="locked-icon">🎤</div>
@@ -153,7 +157,6 @@
             <p class="sub-text">Rispondi al presentatore</p>
           </div>
         }
-
         @case ('WAITING_FOR_OTHER') {
           <div class="status-msg others">
             <div class="blocked-icon">⏸️</div>
@@ -161,7 +164,6 @@
             <p class="sub-text">Attendi...</p>
           </div>
         }
-
         @case ('BLOCKED_ERROR') {
           <div class="status-msg error">
             <div class="error-icon">❌</div>

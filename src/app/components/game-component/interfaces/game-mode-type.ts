@@ -9,6 +9,7 @@ export type GameModeType =
   | 'CHRONO'
   | 'IMAGE_BLUR'
   | 'ROULETTE'
+  | 'MUSIC'
   | 'WHEEL_OF_FORTUNE';
 
 /**

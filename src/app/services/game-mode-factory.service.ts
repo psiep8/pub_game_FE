@@ -8,6 +8,7 @@ import {ChronoMode} from '../components/game-component/mode/chrono.mode';
 import {TrueFalseMode} from '../components/game-component/mode/true_false.mode';
 import {GameModeConfig, IGameMode} from '../components/game-component/interfaces/game-mode-type';
 import {RouletteMode} from '../components/game-component/mode/roulette.mode';
+import {MusicMode} from '../components/game-component/mode/music.mode';
 
 /**
  * Factory Service per creare modalità di gioco
@@ -53,6 +54,9 @@ export class GameModeService {
         break;
       case 'ROULETTE':
         mode = new RouletteMode();
+        break;
+      case 'MUSIC':
+        mode = new MusicMode();
         break;
       default:
         throw new Error(`Unknown game mode: ${config.type}`);
