@@ -131,9 +131,8 @@ export class Admin implements OnInit, OnDestroy {
     }
 
     // Mostra controlli solo per modalità BUZZ
-    const isBuzzMode = status.type === 'IMAGE_BLUR' || status.type === 'WHEEL_OF_FORTUNE';
+    const isBuzzMode = status.type === 'IMAGE_BLUR' || status.type === 'WHEEL_OF_FORTUNE' || status.type === 'MUSIC';
     this.showAdminControls.set(isBuzzMode);
-
     console.log('🎮 GameState settato ad ACTIVE:', this.gameState());
     console.log('🎮 ShowAdminControls:', this.showAdminControls());
   }
@@ -172,7 +171,6 @@ export class Admin implements OnInit, OnDestroy {
     }
 
     let answer = 'N/A';
-
     try {
       switch (type) {
         case 'QUIZ':
@@ -188,7 +186,15 @@ export class Admin implements OnInit, OnDestroy {
           answer = payload.proverb || payload.payload || payload.correctAnswer || 'N/A';
           console.log('🎡 WHEEL_OF_FORTUNE risposta:', answer);
           break;
-
+        case 'MUSIC':
+          // Per la musica cerchiamo il titolo della canzone
+          // Aggiungiamo anche l'artista se disponibile per completezza
+          const song = payload.payload;
+          const title = song.songTitle || song.correctAnswer || 'N/A';
+          const artist = song.artist ? ` - ${song.artist}` : '';
+          answer = title + artist;
+          console.log('🎵 MUSIC risposta:', answer);
+          break;
         default:
           console.warn('⚠️ Tipo sconosciuto:', type);
           answer = payload.correctAnswer || 'N/A';
