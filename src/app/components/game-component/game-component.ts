@@ -231,33 +231,28 @@ export class GameComponent implements OnInit, OnDestroy {
   async startNewRound() {
     if (this.isSpinning()) return;
 
-    // Reset UI e segnali
     this.reset();
 
-    // Crea gioco se non esiste
     if (!this.currentGameId()) {
       const newGame = await firstValueFrom(this.gameService.createGame());
       this.currentGameId.set(newGame.id);
       localStorage.setItem('activeGameId', newGame.id.toString());
     }
 
-    // const types: GameModeType[] = ['QUIZ', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE', 'ROULETTE', 'MUSIC'];
     const extractedType: GameModeType = 'MUSIC';
 
-    // Animazione estrazione tipo
     this.phase.set('SPINNING');
     this.showTypeReveal.set(extractedType);
-    await new Promise(r => setTimeout(r, 2000)); // breve animazione
+    await new Promise(r => setTimeout(r, 2000));
     this.showTypeReveal.set(null);
 
     this.isSpinning.set(true);
 
     try {
-      // Creazione round AI dal BE
       const nextRound = await firstValueFrom(
         this.aiService.triggerNewAiRound(
           this.currentGameId()!,
-          '', // puoi usare un category di default per MUSIC
+          '',
           extractedType,
           'medio'
         )
@@ -265,7 +260,6 @@ export class GameComponent implements OnInit, OnDestroy {
 
       console.log('📦 Round ricevuto dal BE:', nextRound);
 
-      // 🔹 Parse payload se è stringa
       let parsedPayload: any = nextRound.payload;
       if (typeof parsedPayload === 'string') {
         parsedPayload = JSON.parse(parsedPayload);
@@ -273,20 +267,17 @@ export class GameComponent implements OnInit, OnDestroy {
 
       console.log('📦 Payload parsato:', parsedPayload);
 
-      // Imposta il round nel signal
       this.round.set(nextRound);
 
-      // Crea modalità tramite factory
       const mode = this.gameModeService.createMode({
-        type: parsedPayload.type,          // 'MUSIC'
-        payload: parsedPayload.payload,    // oggetto con songTitle, previewUrl, artist...
+        type: parsedPayload.type,
+        payload: parsedPayload.payload,
         gameId: this.currentGameId()!,
         onTimerTick: (seconds) => this.timer.set(seconds),
         onTimerEnd: () => this.onModeTimeout(),
         onBuzz: (playerName) => this.onPlayerBuzz(playerName)
       });
 
-      // Se il mode supporta preStartCountdown
       (mode as any).setConfig?.({
         ...((mode as any).config ?? {}),
         onPreGameTick: (sec: number) => this.preStartCountdown.set(sec)
@@ -294,22 +285,24 @@ export class GameComponent implements OnInit, OnDestroy {
 
       this.currentMode.set(mode);
 
-      // Aggiorna fase UI e mostra domanda
       this.phase.set('QUESTION');
       this.showQuestion.set(true);
-      this.timer.set(mode.timerDuration ?? 30); // fallback 30 sec se non definito
+      this.timer.set(mode.timerDuration ?? 30);
 
-      // 🔹 Invia broadcast SHOW_QUESTION al BE
+      // 🔥 SHOW_QUESTION per Admin/Remote (vede tipo ma bottoni disabilitati)
       this.ws.broadcastStatus(1, {
         action: 'SHOW_QUESTION',
         type: parsedPayload.type,
         payload: JSON.stringify(parsedPayload.payload)
       });
 
-      // Avvia il round
+      // 🔥 AVVIA MODE (countdown 10s interno)
       await mode.start();
 
-      // 🔹 Inizia votazione
+      // 🔥 DOPO il countdown (10s), manda START_VOTING!
+      // Il mode ha già avviato il timer e la manche 1
+      // Ora mandiamo START_VOTING per attivare i bottoni remote
+      console.log('🚀 Broadcast START_VOTING per attivare remote');
       this.ws.broadcastStatus(1, {
         action: 'START_VOTING',
         type: parsedPayload.type,

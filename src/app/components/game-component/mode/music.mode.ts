@@ -3,8 +3,9 @@ import {GameModeResult, GameModeType} from '../interfaces/game-mode-type';
 
 export class MusicMode extends GameModeBase {
   protected override onAnswer(playerName: string, answer: any, result: any): void {
-      throw new Error("Method not implemented.");
+    // Non serve per MUSIC (è buzz mode)
   }
+
   readonly type: GameModeType = 'MUSIC';
   readonly timerDuration = 200;
   readonly requiresBubbles = false;
@@ -17,10 +18,11 @@ export class MusicMode extends GameModeBase {
   private countdownValue = 0;
   private countdownTimer: any;
 
+  // 🔥 CALLBACK per notificare fine countdown
+  private onCountdownComplete?: () => void;
+
   protected onInitialize(): void {
     console.log('🎤 MUSIC Mode inizializzato');
-    console.log('🎵 Canzone:', this.payload.songTitle);
-
     this.currentManche = 0;
     this.audioPlaying = false;
   }
@@ -28,16 +30,17 @@ export class MusicMode extends GameModeBase {
   protected async onStart(): Promise<void> {
     console.log('🎤 Avvio modalità MUSIC');
 
-    // 🔥 Countdown iniziale
-    this.startCountdown(10, () => {
-      console.log('✅ Countdown completato → Manche 1');
-      this.startManche(1);
+    // 🔥 Ritorna Promise che si risolve quando countdown finisce
+    return new Promise((resolve) => {
+      this.startCountdown(10, () => {
+        console.log('✅ Countdown completato → Manche 1');
+        this.startTimer(); // Timer principale del GameModeBase
+        this.startManche(1);
+        resolve(); // 🔥 RISOLVI PROMISE = notifica GameComponent
+      });
     });
   }
 
-  /**
-   * 🔥 Countdown NON bloccante
-   */
   private startCountdown(seconds: number, onComplete: () => void) {
     this.inCountdown = true;
     this.countdownValue = seconds;
@@ -57,9 +60,6 @@ export class MusicMode extends GameModeBase {
     }, 1000);
   }
 
-  /**
-   * 🔥 AVVIA MANCHE
-   */
   private startManche(mancheNumber: number) {
     if (mancheNumber > 4) {
       console.log('🏁 Fine manches');
@@ -78,11 +78,9 @@ export class MusicMode extends GameModeBase {
         console.log(`⏸️ Manche ${mancheNumber} terminata`);
         this.pauseAudio();
 
-        // Pausa 20s
         console.log('💤 Pausa 20 secondi...');
         setTimeout(() => {
-          // Countdown 5s
-          this.startCountdown(5, () => {
+          this.startCountdown(10, () => {
             this.startManche(mancheNumber + 1);
           });
         }, 20000);
@@ -133,7 +131,6 @@ export class MusicMode extends GameModeBase {
     this.pauseAudio();
     this.revealed.set(true);
 
-    // Audio chiaro per reveal
     setTimeout(() => {
       this.currentManche = 4;
       this.playAudio();
@@ -143,7 +140,6 @@ export class MusicMode extends GameModeBase {
   protected onConfirmWrong(result: GameModeResult): void {
     console.log(`❌ SBAGLIATO: ${result.playerName}`);
 
-    // Riprendi dopo 1s
     setTimeout(() => {
       if (this.currentManche > 0) {
         this.playAudio();
@@ -189,37 +185,24 @@ export class MusicMode extends GameModeBase {
   }
 
   getDisplayData() {
-    const data = {
+    return {
       question: 'Indovina la canzone!',
       songTitle: this.payload.songTitle,
       artist: this.payload.artist,
       previewUrl: this.payload.previewUrl,
       albumCover: this.payload.albumCover,
 
-      // 🔥 STATI che devono aggiornarsi
       currentPhase: this.currentManche,
       totalPhases: 4,
       audioPlaying: this.audioPlaying,
       buzzedPlayer: this.buzzedPlayer(),
 
-      // 🔥 COUNTDOWN
       inCountdown: this.inCountdown,
       countdownValue: this.countdownValue,
 
-      // Meta
       year: this.payload.year,
       source: this.payload.source || 'apple-music',
       revealed: this.isRevealed()
     };
-
-    // Log per debug
-    console.log('📊 DisplayData:', {
-      manche: data.currentPhase,
-      audioPlaying: data.audioPlaying,
-      inCountdown: data.inCountdown,
-      countdownValue: data.countdownValue
-    });
-
-    return data;
   }
 }

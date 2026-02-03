@@ -118,7 +118,6 @@ export class Admin implements OnInit, OnDestroy {
     this.gameState.set('ACTIVE');
     this.currentQuestionType.set(status.type || 'QUIZ');
 
-    // Se c'è il payload, estraiamo la risposta
     if (status.payload) {
       const parsed = this.parsePayload(status.payload);
       if (parsed) {
@@ -130,12 +129,16 @@ export class Admin implements OnInit, OnDestroy {
       console.warn('⚠️ Nessun payload in START_VOTING');
     }
 
-    // Mostra controlli solo per modalità BUZZ
-    const isBuzzMode = status.type === 'IMAGE_BLUR' || status.type === 'WHEEL_OF_FORTUNE' || status.type === 'MUSIC';
+    // 🔥 MUSIC è un buzz mode!
+    const isBuzzMode = status.type === 'IMAGE_BLUR' ||
+      status.type === 'WHEEL_OF_FORTUNE' ||
+      status.type === 'MUSIC'; // <-- IMPORTANTE!
+
     this.showAdminControls.set(isBuzzMode);
 
     console.log('🎮 GameState settato ad ACTIVE:', this.gameState());
     console.log('🎮 ShowAdminControls:', this.showAdminControls());
+    console.log('🎮 isBuzzMode:', isBuzzMode, 'type:', status.type);
   }
 
   private parsePayload(payload: any): any {

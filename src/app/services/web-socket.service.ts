@@ -23,8 +23,8 @@ export class WebSocketService {
   constructor() {
     this.client = new Client({
       // Assicurati che l'IP sia corretto per la tua rete locale
-      // webSocketFactory: () => new SockJS('http://192.168.1.3:8080/ws-pubgame'),
-      webSocketFactory: () => new SockJS('http://192.168.1.20:8080/ws-pubgame'),
+      webSocketFactory: () => new SockJS('http://192.168.1.3:8080/ws-pubgame'),
+      // webSocketFactory: () => new SockJS('http://192.168.1.20:8080/ws-pubgame'),
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,

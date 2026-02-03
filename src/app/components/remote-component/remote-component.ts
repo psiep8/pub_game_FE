@@ -59,17 +59,24 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.ws.status$.subscribe((status: any) => {
       if (!status) return;
 
+      console.log('📱 Remote riceve:', status);
+
       switch (status.action) {
         case 'SHOW_QUESTION':
-          // ✅ FIX: Per ROULETTE, mostra subito i bottoni!
           this.questionType.set(status.type);
+
+          // 🔥 Per ROULETTE, attiva subito i bottoni
           if (status.type === 'ROULETTE') {
             console.log('📱 ROULETTE - Bottoni attivi SUBITO');
             this.gameState.set('VOTING');
             this.hasAnswered.set(false);
             this.startTime = Date.now();
+          }
+          // 🔥 Per MUSIC/IMAGE_BLUR/WHEEL - mostra subito bottone BUZZ ma disabilitato
+          else if (status.type === 'MUSIC' || status.type === 'IMAGE_BLUR' || status.type === 'WHEEL_OF_FORTUNE') {
+            console.log('📱 Buzz mode - Attendo START_VOTING');
+            this.gameState.set('WAITING'); // Aspetta START_VOTING
           } else {
-            // Per altri giochi, aspetta START_VOTING
             this.gameState.set('WAITING');
           }
           break;
@@ -206,12 +213,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   onStartVoting(type: string) {
     console.log(`📱 START_VOTING ricevuto per ${type}`);
+
     this.gameState.set('VOTING');
     this.questionType.set(type as any);
     this.roundStartTime = Date.now();
     this.startTime = Date.now();
     this.selectedYear.set(2000);
     this.hasAnswered.set(false);
+
+    console.log('📱 GameState → VOTING, Bottoni ATTIVI');
   }
 
   onYearChange(event: any) {
