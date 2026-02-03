@@ -148,18 +148,23 @@ export class MusicMode extends GameModeBase {
   }
 
   protected validateAnswer(answer: any, timeMs: number): any {
-    return { isCorrect: false, points: 0, timeMs };
+    return {isCorrect: false, points: 0, timeMs};
   }
 
   protected calculatePoints(isCorrect: boolean, elapsedMs: number): number {
     if (!isCorrect) return -1000;
 
-    switch(this.currentManche) {
-      case 1: return 2000;
-      case 2: return 1500;
-      case 3: return 1000;
-      case 4: return 500;
-      default: return 0;
+    switch (this.currentManche) {
+      case 1:
+        return 2000;
+      case 2:
+        return 1500;
+      case 3:
+        return 1000;
+      case 4:
+        return 500;
+      default:
+        return 0;
     }
   }
 
@@ -185,12 +190,13 @@ export class MusicMode extends GameModeBase {
   }
 
   getDisplayData() {
+    let song = this.payload.payload;
     return {
       question: 'Indovina la canzone!',
-      songTitle: this.payload.songTitle,
-      artist: this.payload.artist,
-      previewUrl: this.payload.previewUrl,
-      albumCover: this.payload.albumCover,
+      songTitle: song.songTitle,
+      artist: song.artist,
+      previewUrl: song.previewUrl,
+      albumCover: song.albumCover,
 
       currentPhase: this.currentManche,
       totalPhases: 4,
@@ -200,8 +206,8 @@ export class MusicMode extends GameModeBase {
       inCountdown: this.inCountdown,
       countdownValue: this.countdownValue,
 
-      year: this.payload.year,
-      source: this.payload.source || 'apple-music',
+      year: song.year,
+      source: song.source || 'apple-music',
       revealed: this.isRevealed()
     };
   }

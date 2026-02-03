@@ -214,6 +214,7 @@ export class GameComponent implements OnInit, OnDestroy {
       const mode = this.currentMode();
       if (mode && mode.type === 'MUSIC') {
         // Force change detection
+        this.cdr.detectChanges();
       }
     }, 100);
   }
@@ -267,25 +268,26 @@ export class GameComponent implements OnInit, OnDestroy {
           'medio'
         )
       );
+
       console.log('📦 Round ricevuto dal BE:', nextRound);
       console.log('📦 Payload RAW:', nextRound.payload);
-
+      let parsedPayload;
       if (typeof nextRound.payload === 'string') {
         console.log('📦 Payload è stringa, faccio parse...');
         nextRound.payload = JSON.parse(nextRound.payload);
         console.log('📦 Payload dopo parse:', nextRound.payload);
+        if (this.showTypeReveal() === 'MUSIC') {
+          parsedPayload = nextRound.payload;
+        }
       }
 
-      console.log('🎯 correctAnswer nel payload:', nextRound.payload.correctAnswer);
-      console.log('🎨 options nel payload:', nextRound.payload.options);
-
-
+      console.log(nextRound)
       this.round.set(nextRound);
 
       // Crea modalità tramite factory
       const mode = this.gameModeService.createMode({
-        type: extractedType,
-        payload: nextRound.payload,  // <-- Assicurati che sia il payload PARSATO
+        type: this.showTypeReveal() === 'MUSIC' ? parsedPayload.type : extractedType,
+        payload: this.showTypeReveal() === 'MUSIC' ? parsedPayload.payload : nextRound.payload,
         gameId: this.currentGameId()!,
         onTimerTick: (seconds) => this.timer.set(seconds),
         onTimerEnd: () => this.onModeTimeout(),
@@ -325,16 +327,16 @@ export class GameComponent implements OnInit, OnDestroy {
 
       this.ws.broadcastStatus(1, {
         action: 'SHOW_QUESTION',
-        type: extractedType,
-        payload: payloadString // ✅ ORA È UNA STRINGA, IL BE SARÀ FELICE
+        type: this.showTypeReveal() === 'MUSIC' ? parsedPayload.type : extractedType,
+        payload: this.showTypeReveal() === 'MUSIC' ? parsedPayload.payload : payloadString,
       });
 
       await mode.start();
 
       this.ws.broadcastStatus(1, {
         action: 'START_VOTING',
-        type: extractedType,
-        payload: payloadString // ✅ ANCHE QUI STRINGA
+        type: this.showTypeReveal() === 'MUSIC' ? parsedPayload.type : extractedType,
+        payload: this.showTypeReveal() === 'MUSIC' ? parsedPayload.payload : payloadString,
       });
 
       this.isSpinning.set(false);
@@ -552,19 +554,15 @@ export class GameComponent implements OnInit, OnDestroy {
     const isReading = mode ? ((mode as any).getIsReading?.() ?? false) : false;
     const safe = {...data, isReading} as any;
 
-    // 🔥 PER ROULETTE: NON nascondere correctAnswer perché serve per lo spin!
     if (mode?.type !== 'ROULETTE') {
       if (!mode || !mode.isRevealed()) {
         safe.correctAnswer = null;
       }
     }
-
     // defaults
     safe.question = safe.question ?? '';
     safe.options = Array.isArray(safe.options) ? safe.options : [];
-
-    console.log('📊 SafeDisplayData per', mode?.type, ':', safe);
-
+    console.log(safe)
     return safe;
   }
 
