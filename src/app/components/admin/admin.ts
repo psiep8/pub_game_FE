@@ -189,9 +189,8 @@ export class Admin implements OnInit, OnDestroy {
         case 'MUSIC':
           // Per la musica cerchiamo il titolo della canzone
           // Aggiungiamo anche l'artista se disponibile per completezza
-          const song = payload.payload;
-          const title = song.songTitle || song.correctAnswer || 'N/A';
-          const artist = song.artist ? ` - ${song.artist}` : '';
+          const title = payload.songTitle || payload.correctAnswer || 'N/A';
+          const artist = payload.artist ? ` - ${payload.artist}` : '';
           answer = title + artist;
           console.log('🎵 MUSIC risposta:', answer);
           break;

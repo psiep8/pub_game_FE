@@ -154,7 +154,7 @@ export class GameComponent implements OnInit, OnDestroy {
       // Se la modalità espone getIsReading e la fase di lettura è attiva, ignoriamo le risposte
       const isReading = (mode as any).getIsReading?.() ?? false;
       if (isReading) return;
-
+      console.log(res)
       if (!mode.requiresBuzz) {
         mode.handleAnswer(res.playerName, res.answerIndex, res.responseTimeMs);
       } else if (res.answerIndex === -1) {
@@ -210,6 +210,15 @@ export class GameComponent implements OnInit, OnDestroy {
         this.confirmWrong();
       }
     });
+    this.ws.responses$.subscribe(res => {
+      const mode = this.currentMode();
+      if (!mode) return;
+
+      // 🔥 BUZZ = answerIndex === -1
+      if (res.answerIndex === -1) {
+        mode.handleBuzz(res.playerName);
+      }
+    });
     this.displayDataInterval = setInterval(() => {
       const mode = this.currentMode();
       if (mode && mode.type === 'MUSIC') {
@@ -229,21 +238,18 @@ export class GameComponent implements OnInit, OnDestroy {
   async startNewRound() {
     if (this.isSpinning()) return;
 
-    // Reset UI e segnali
     this.reset();
 
-    // Crea gioco se non esiste
     if (!this.currentGameId()) {
       const newGame = await firstValueFrom(this.gameService.createGame());
       this.currentGameId.set(newGame.id);
       localStorage.setItem('activeGameId', newGame.id.toString());
     }
 
-    // const types: GameModeType[] = ['QUIZ', 'MUSIC', 'CHRONO', 'TRUE_FALSE', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE', 'ROULETTE'];
-    const types: GameModeType[] = ['MUSIC'];
+    // const types: GameModeType[] = ['MUSIC'];
+    const types: GameModeType[] = ['WHEEL_OF_FORTUNE'];
     const extractedType = types[Math.floor(Math.random() * types.length)];
 
-    // Animazione estrazione tipo
     this.phase.set('SPINNING');
     this.showTypeReveal.set(extractedType);
     await new Promise(r => setTimeout(r, 5000));
@@ -253,13 +259,10 @@ export class GameComponent implements OnInit, OnDestroy {
 
     try {
       const categoryName = this.getCategoryForType(extractedType);
-
-      // Selezione categoria reale
       const categories = this.allCategories();
       const selectedCategory = categories.find(c => c.name === categoryName);
       if (selectedCategory) this.selectedCategoryId.set(selectedCategory.id);
 
-      // Crea round AI
       const nextRound = await firstValueFrom(
         this.aiService.triggerNewAiRound(
           this.currentGameId()!,
@@ -271,23 +274,20 @@ export class GameComponent implements OnInit, OnDestroy {
 
       console.log('📦 Round ricevuto dal BE:', nextRound);
       console.log('📦 Payload RAW:', nextRound.payload);
-      let parsedPayload;
-      if (typeof nextRound.payload === 'string') {
-        console.log('📦 Payload è stringa, faccio parse...');
-        nextRound.payload = JSON.parse(nextRound.payload);
-        console.log('📦 Payload dopo parse:', nextRound.payload);
-        if (this.showTypeReveal() === 'MUSIC') {
-          parsedPayload = nextRound.payload;
-        }
+
+      // 🔥 Parse payload se è stringa
+      let parsedPayload = nextRound.payload;
+      if (typeof parsedPayload === 'string') {
+        parsedPayload = JSON.parse(parsedPayload);
       }
 
-      console.log(nextRound)
+      console.log('📦 Payload parsato:', parsedPayload);
       this.round.set(nextRound);
 
-      // Crea modalità tramite factory
+      // 🔥 CREA MODE con payload PIATTO (no .payload.payload)
       const mode = this.gameModeService.createMode({
-        type: this.showTypeReveal() === 'MUSIC' ? parsedPayload.type : extractedType,
-        payload: this.showTypeReveal() === 'MUSIC' ? parsedPayload.payload : nextRound.payload,
+        type: parsedPayload.type || extractedType,
+        payload: parsedPayload,  // 🔥 Passa tutto il payload direttamente
         gameId: this.currentGameId()!,
         onTimerTick: (seconds) => this.timer.set(seconds),
         onTimerEnd: () => this.onModeTimeout(),
@@ -301,42 +301,25 @@ export class GameComponent implements OnInit, OnDestroy {
 
       this.currentMode.set(mode);
 
-      // Mostra bolla fake per animazione
-      if (mode.requiresBubbles) {
-        const randomIndex = Math.floor(Math.random() * categories.length);
-        this.animatedCategoryId.set(categories[randomIndex].id);
-
-        this.phase.set('SPINNING');
-        await new Promise(r => setTimeout(r, 5000));
-
-        // Mostra categoria reale
-        this.phase.set('SELECTED');
-        this.animatedCategoryId.set(this.selectedCategoryId());
-        await new Promise(r => setTimeout(r, 5000));
-      }
       this.phase.set('QUESTION');
       this.showQuestion.set(true);
       this.timer.set(mode.timerDuration);
 
-// Prepariamo il payload per il broadcast (deve essere una stringa per il BE)
-      const payloadString = typeof nextRound.payload === 'string'
-        ? nextRound.payload
-        : JSON.stringify(nextRound.payload);
-
-      console.log('📤 Invio SHOW_QUESTION con payload stringa:', payloadString);
-
+      // 🔥 SHOW_QUESTION
       this.ws.broadcastStatus(1, {
         action: 'SHOW_QUESTION',
-        type: this.showTypeReveal() === 'MUSIC' ? parsedPayload.type : extractedType,
-        payload: this.showTypeReveal() === 'MUSIC' ? parsedPayload.payload : payloadString,
+        type: parsedPayload.type || extractedType,
+        payload: JSON.stringify(parsedPayload)
       });
 
+      // 🔥 AWAIT mode.start() (aspetta countdown)
       await mode.start();
 
+      // 🔥 START_VOTING dopo countdown
       this.ws.broadcastStatus(1, {
         action: 'START_VOTING',
-        type: this.showTypeReveal() === 'MUSIC' ? parsedPayload.type : extractedType,
-        payload: this.showTypeReveal() === 'MUSIC' ? parsedPayload.payload : payloadString,
+        type: parsedPayload.type || extractedType,
+        payload: JSON.stringify(parsedPayload)
       });
 
       this.isSpinning.set(false);
@@ -385,10 +368,23 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   private onPlayerBuzz(playerName: string) {
+    console.log(`🎤 BUZZ ricevuto nel GameComponent: ${playerName}`);
+
+    const mode = this.currentMode();
+    if (!mode) {
+      console.warn('⚠️ Nessun mode attivo');
+      return;
+    }
+
+    mode.handleBuzz(playerName);
+
+    // 🔥 Broadcast a tutti
     this.ws.broadcastStatus(1, {
       action: 'PLAYER_PRENOTATO',
       name: playerName
     });
+
+    console.log(`✅ Broadcast PLAYER_PRENOTATO: ${playerName}`);
   }
 
   confirmCorrect() {
@@ -562,7 +558,6 @@ export class GameComponent implements OnInit, OnDestroy {
     // defaults
     safe.question = safe.question ?? '';
     safe.options = Array.isArray(safe.options) ? safe.options : [];
-    console.log(safe)
     return safe;
   }
 
