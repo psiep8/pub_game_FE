@@ -28,7 +28,7 @@ export class RoundManagerService {
     'IMAGE_BLUR': 10,
     'CHRONO': 5,
     'ROULETTE': 5,
-    '1VS1': 10
+    'ONE_VS_ONE': 10
   };
 
   constructor() {

@@ -11,7 +11,7 @@ interface Match {
 }
 
 export class OneVsOneMode extends GameModeBase {
-  readonly type: GameModeType = '1VS1';
+  readonly type: GameModeType = 'ONE_VS_ONE';
   readonly timerDuration = 30;
   readonly requiresBubbles = false;
   readonly requiresBuzz = true;
