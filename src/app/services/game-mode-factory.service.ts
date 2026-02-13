@@ -9,6 +9,7 @@ import {TrueFalseMode} from '../components/game-component/mode/true_false.mode';
 import {GameModeConfig, IGameMode} from '../components/game-component/interfaces/game-mode-type';
 import {RouletteMode} from '../components/game-component/mode/roulette.mode';
 import {MusicMode} from '../components/game-component/mode/music.mode';
+import {OneVsOneMode} from '../components/game-component/mode/1vs1.mode';
 
 /**
  * Factory Service per creare modalità di gioco
@@ -57,6 +58,9 @@ export class GameModeService {
         break;
       case 'MUSIC':
         mode = new MusicMode();
+        break;
+      case '1VS1':
+        mode = new OneVsOneMode();
         break;
       default:
         throw new Error(`Unknown game mode: ${config.type}`);
