@@ -14,7 +14,24 @@
       </button>
     </div>
   }
+  <div class="round-info">
+    <div class="round-text">Round: {{ roundInfo() }}</div>
+    <div class="round-progress" [style.width.%]="roundManager.getProgress().percentage"></div>
+  </div>
 
+  <!-- CLASSIFICA RAPIDA -->
+  @if (showLeaderboardQuick()) {
+    <app-leaderboard-quick
+      (onComplete)="onLeaderboardComplete()">
+    </app-leaderboard-quick>
+  }
+
+  <!-- CLASSIFICA DETTAGLIATA -->
+  @if (showLeaderboardDetailed()) {
+    <app-leaderboard-detailed
+      (onComplete)="onLeaderboardComplete()">
+    </app-leaderboard-detailed>
+  }
   <!-- MODALITÀ ESTRATTA -->
   @if (showTypeReveal()) {
     <div class="type-reveal-overlay">
@@ -57,15 +74,15 @@
   <!-- AREA DOMANDA CON DISPLAY DINAMICO -->
   @if (showQuestion() && currentMode(); as mode) {
     <!-- OROLOGIO SALTELLANTE: appare quando il pre-start countdown è tra 1 e 5 -->
-<!--    @if (preStartCountdown() >= 1 && preStartCountdown() <= 5) {-->
-<!--      <div class="prestart-timer-wrapper">-->
-<!--        <div #prestartTimer class="prestart-timer bounce" role="status" aria-live="assertive">-->
-<!--          <div class="prestart-value">{{ preStartCountdown() }}</div>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    }-->
+      <!--    @if (preStartCountdown() >= 1 && preStartCountdown() <= 5) {-->
+      <!--      <div class="prestart-timer-wrapper">-->
+      <!--        <div #prestartTimer class="prestart-timer bounce" role="status" aria-live="assertive">-->
+      <!--          <div class="prestart-value">{{ preStartCountdown() }}</div>-->
+      <!--        </div>-->
+      <!--      </div>-->
+      <!--    }-->
 
-    <!-- Oppure ancora meglio, nascondi quando è esattamente 0: -->
+      <!-- Oppure ancora meglio, nascondi quando è esattamente 0: -->
     @if (preStartCountdown() > 0 && preStartCountdown() <= 5) {
       <div class="prestart-timer-wrapper">
         <div #prestartTimer class="prestart-timer bounce" role="status" aria-live="assertive">
@@ -130,6 +147,13 @@
             [displayData]="getSafeDisplayData()"
             [timer]="timer()"/>
         }
+        @case ('1VS1') {
+          <app-one-vs-one-component
+            [displayData]="getSafeDisplayData()"
+            [timer]="timer()"
+            (onConfirmCorrect)="confirmCorrect()"
+            (onConfirmWrong)="confirmWrong()"/>
+        }
       }
     </div>
 
@@ -169,13 +193,13 @@
     </div>
   }
 
-  <!--  &lt;!&ndash; CONTROLLI FOOTER &ndash;&gt;-->
-  <!--  <div class="controls-footer">-->
-  <!--    <button (click)="openResetModal()" class="control-btn reset">🔄 RESET</button>-->
-  <!--    <button (click)="togglePause()" class="control-btn pause" [class.is-paused]="isPaused()">-->
-  <!--      {{ isPaused() ? '▶️ RIPRENDI' : '⏸️ PAUSA' }}-->
-  <!--    </button>-->
-  <!--  </div>-->
+    <!-- CONTROLLI FOOTER -->
+    <div class="controls-footer">
+      <button (click)="openResetModal()" class="control-btn reset">🔄 RESET</button>
+      <button (click)="togglePause()" class="control-btn pause" [class.is-paused]="isPaused()">
+        {{ isPaused() ? '▶️ RIPRENDI' : '⏸️ PAUSA' }}
+      </button>
+    </div>
 
   <!-- BOX RISPOSTE RECENTI (basso-sinistra) -->
   <div class="recent-responses" *ngIf="getRecentResponses().length">

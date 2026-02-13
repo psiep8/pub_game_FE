@@ -940,7 +940,11 @@ $text-light: #e9ecef;
       text-transform: uppercase;
     }
 
-    .alert-text { font-size: 1.1rem; font-weight: 700; color: #ffd700; }
+    .alert-text {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffd700;
+    }
   }
 
   .blur-main-container {
@@ -949,7 +953,7 @@ $text-light: #e9ecef;
     height: min(360px, 45vh); /* ancora ridotta per evitare overflow verticale */
     border: 6px solid #fff;
     border-radius: 18px;
-    box-shadow: 0 18px 40px rgba(0,0,0,0.55);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
     background: #000;
     overflow: hidden;
 
@@ -971,8 +975,17 @@ $text-light: #e9ecef;
       color: white;
       z-index: 10;
 
-      .player-highlight { font-size: 2.2rem; font-weight: 900; margin-bottom: 8px; }
-      p { font-size: 1.25rem; font-weight: 700; margin: 0; }
+      .player-highlight {
+        font-size: 2.2rem;
+        font-weight: 900;
+        margin-bottom: 8px;
+      }
+
+      p {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0;
+      }
     }
   }
 
@@ -985,9 +998,13 @@ $text-light: #e9ecef;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 26px rgba(0,0,0,0.45);
+      box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
 
-      .timer-value { font-size: 1.6rem; font-weight: 900; color: white; }
+      .timer-value {
+        font-size: 1.6rem;
+        font-weight: 900;
+        color: white;
+      }
     }
   }
 
@@ -996,10 +1013,20 @@ $text-light: #e9ecef;
     gap: 12px;
     margin-top: 8px;
 
-    button { padding: 10px 18px; font-size: 1rem; font-weight: 800; border-radius: 12px; }
+    button {
+      padding: 10px 18px;
+      font-size: 1rem;
+      font-weight: 800;
+      border-radius: 12px;
+    }
 
-    .control-correct { background: linear-gradient(135deg,#11998e,#38ef7d); }
-    .control-wrong { background: linear-gradient(135deg,#eb3349,#f45c43); }
+    .control-correct {
+      background: linear-gradient(135deg, #11998e, #38ef7d);
+    }
+
+    .control-wrong {
+      background: linear-gradient(135deg, #eb3349, #f45c43);
+    }
   }
 }
 
@@ -1235,9 +1262,9 @@ $text-light: #e9ecef;
   color: #1a1a2e;
   font-size: 3.5rem;
   font-weight: 900;
-  box-shadow: 0 30px 80px rgba(255, 183, 77, 0.35), inset 0 -6px 20px rgba(255,255,255,0.2);
-  border: 6px solid rgba(255,215,0,0.9);
-  animation: go-pulse 1.6s ease-in-out infinite, go-entrance 0.45s cubic-bezier(0.2,1,0.22,1);
+  box-shadow: 0 30px 80px rgba(255, 183, 77, 0.35), inset 0 -6px 20px rgba(255, 255, 255, 0.2);
+  border: 6px solid rgba(255, 215, 0, 0.9);
+  animation: go-pulse 1.6s ease-in-out infinite, go-entrance 0.45s cubic-bezier(0.2, 1, 0.22, 1);
   pointer-events: none;
 }
 
@@ -1246,7 +1273,7 @@ $text-light: #e9ecef;
   position: absolute;
   inset: -18px;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, rgba(255,215,0,0.18), transparent 40%);
+  background: radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.18), transparent 40%);
   filter: blur(12px);
   z-index: -1;
   opacity: 0.9;
@@ -1254,25 +1281,51 @@ $text-light: #e9ecef;
 }
 
 @keyframes go-pulse {
-  0% { transform: translate(-50%, -50%) scale(0.98); }
-  50% { transform: translate(-50%, -50%) scale(1.06); }
-  100% { transform: translate(-50%, -50%) scale(0.98); }
+  0% {
+    transform: translate(-50%, -50%) scale(0.98);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.98);
+  }
 }
 
 @keyframes go-entrance {
-  0% { transform: translate(-50%, -70%) scale(0.5); opacity: 0; }
-  60% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  0% {
+    transform: translate(-50%, -70%) scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes go-glow {
-  0% { transform: scale(0.95); opacity: 0.6; }
-  50% { transform: scale(1.05); opacity: 1; }
-  100% { transform: scale(0.95); opacity: 0.6; }
+  0% {
+    transform: scale(0.95);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.6;
+  }
 }
 
 /* Make sure central-action (PROSSIMO ROUND) is above other overlays when visible */
-.central-action { z-index: 12000; }
+.central-action {
+  z-index: 12000;
+}
 
 /* Variante: posiziona il bottone PROSSIMO ROUND a destra in verticale (utile per TV) */
 .central-action.next-right {
@@ -1296,8 +1349,8 @@ $text-light: #e9ecef;
   left: 20px;
   bottom: 20px;
   width: 220px;
-  background: rgba(0,0,0,0.6);
-  border: 2px solid rgba(255,215,0,0.12);
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 215, 0, 0.12);
   padding: 10px;
   border-radius: 10px;
   z-index: 11000;
@@ -1325,10 +1378,16 @@ $text-light: #e9ecef;
     color: white;
     padding: 6px 8px;
     border-radius: 6px;
-    background: rgba(255,255,255,0.02);
+    background: rgba(255, 255, 255, 0.02);
 
-    .r-player { font-size: 0.9rem; }
-    .r-time { font-size: 0.8rem; color: rgba(255,215,0,0.9); }
+    .r-player {
+      font-size: 0.9rem;
+    }
+
+    .r-time {
+      font-size: 0.8rem;
+      color: rgba(255, 215, 0, 0.9);
+    }
   }
 }
 
@@ -1343,10 +1402,15 @@ $text-light: #e9ecef;
   padding: 30px 40px;
 }
 
-.chrono-hint { font-size: 1.1rem; }
+.chrono-hint {
+  font-size: 1.1rem;
+}
 
 /* TRUE_FALSE adjustments for TV and remotes */
-.tf-option-btn { padding: 24px 20px; font-size: 1.4rem; }
+.tf-option-btn {
+  padding: 24px 20px;
+  font-size: 1.4rem;
+}
 
 /* IMAGE_BLUR ensure blur effect starts when mode starts: nothing CSS-specific here */
 
@@ -1364,14 +1428,14 @@ $text-light: #e9ecef;
   width: 140px;
   height: 140px;
   border-radius: 50%;
-  background: linear-gradient(180deg, rgba(255,215,0,1), rgba(255,200,0,0.9));
+  background: linear-gradient(180deg, rgba(255, 215, 0, 1), rgba(255, 200, 0, 0.9));
   color: #1a1a2e;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 3.5rem;
   font-weight: 900;
-  box-shadow: 0 10px 40px rgba(255,200,0,0.35), inset 0 2px 0 rgba(255,255,255,0.6);
+  box-shadow: 0 10px 40px rgba(255, 200, 0, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.6);
   transform-origin: center bottom;
   flex-direction: column; /* valore e punteggio impilati */
   gap: 6px;
@@ -1386,25 +1450,35 @@ $text-light: #e9ecef;
 .prestart-score {
   font-size: 0.85rem;
   font-weight: 800;
-  color: rgba(26,26,46,0.95);
-  background: rgba(255,255,255,0.85);
+  color: rgba(26, 26, 46, 0.95);
+  background: rgba(255, 255, 255, 0.85);
   padding: 4px 8px;
   border-radius: 10px;
-  box-shadow: inset 0 -1px 0 rgba(0,0,0,0.08);
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.08);
   transform: translateY(2px);
 }
 
 /* Classe che applica un bounce ripetuto (ma non infinito: usiamo animazione breve con steps per farlo saltellare) */
 .bounce {
-  animation: prestart-bounce 0.9s cubic-bezier(.36,.07,.19,.97) infinite;
+  animation: prestart-bounce 0.9s cubic-bezier(.36, .07, .19, .97) infinite;
 }
 
 @keyframes prestart-bounce {
-  0%   { transform: translateY(0) scale(1); }
-  30%  { transform: translateY(-18px) scale(1.06); }
-  50%  { transform: translateY(0) scale(1); }
-  70%  { transform: translateY(-8px) scale(1.02); }
-  100% { transform: translateY(0) scale(1); }
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  30% {
+    transform: translateY(-18px) scale(1.06);
+  }
+  50% {
+    transform: translateY(0) scale(1);
+  }
+  70% {
+    transform: translateY(-8px) scale(1.02);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
 }
 
 @media (max-width: 880px) {
@@ -1413,10 +1487,42 @@ $text-light: #e9ecef;
     height: 110px;
     font-size: 2.6rem;
   }
-  .prestart-value { font-size: 2.2rem; }
-  .prestart-score { font-size: 0.8rem; padding: 3px 6px; }
+  .prestart-value {
+    font-size: 2.2rem;
+  }
+  .prestart-score {
+    font-size: 0.8rem;
+    padding: 3px 6px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bounce { animation: none; }
+  .bounce {
+    animation: none;
+  }
+}
+
+.round-info {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 15px 30px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  z-index: 100;
+}
+
+.round-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 10px;
+}
+
+.round-progress {
+  height: 6px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 5px;
+  transition: width 0.5s ease;
 }

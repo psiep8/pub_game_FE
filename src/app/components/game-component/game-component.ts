@@ -28,6 +28,11 @@ import {environment} from '../../environment/environment';
 import {GameModeType, IGameMode} from './interfaces/game-mode-type';
 import {Roulette} from './games/roulette/roulette';
 import {Song} from './games/song/song';
+import {LeaderboardDetailed} from '../leaderboard/leaderboard-detailed-component/leaderboard-detailed-component';
+import {LeaderboardQuick} from '../leaderboard/leaderboard-quick-component/leaderboard-quick-component';
+import {OneVsOne} from './games/one-vs-one/one-vs-one';
+import {LeaderboardService} from '../../services/leaderboard.service';
+import {RoundManagerService} from '../../services/round-manager.service';
 
 @Component({
   selector: 'app-game-component',
@@ -41,6 +46,9 @@ import {Song} from './games/song/song';
     ImageBlur,
     Roulette,
     Song,
+    LeaderboardQuick,
+    OneVsOne,
+    LeaderboardDetailed,
   ],
   templateUrl: './game-component.html',
   styleUrl: './game-component.scss',
@@ -59,6 +67,8 @@ export class GameComponent implements OnInit, OnDestroy {
   private aiService = inject(AiGeneratorService);
   private gameModeService = inject(GameModeService);
   private cdr = inject(ChangeDetectorRef);
+  roundManager = inject(RoundManagerService);
+  private leaderboardService = inject(LeaderboardService);
 
   // State
   allCategories = signal<any[]>([]);
@@ -82,6 +92,9 @@ export class GameComponent implements OnInit, OnDestroy {
   resultType = signal<'correct' | 'wrong'>('correct');
   resultPoints = signal(0);
   resultPlayerName = signal('');
+  showLeaderboardQuick = signal(false);
+  showLeaderboardDetailed = signal(false);
+  roundInfo = signal<string>('');
 
   currentGameId = signal<number | null>(null);
 
@@ -125,6 +138,9 @@ export class GameComponent implements OnInit, OnDestroy {
       if (savedId) {
         this.currentGameId.set(+savedId);
       }
+      const progress = this.roundManager.getProgress();
+      this.roundInfo.set(progress.text);
+      console.log(`📊 Round Progress: ${progress.text} (${progress.percentage.toFixed(0)}%)`);
     } catch (err) {
       console.error("Errore inizializzazione:", err);
     }
@@ -237,7 +253,10 @@ export class GameComponent implements OnInit, OnDestroy {
 
   async startNewRound() {
     if (this.isSpinning()) return;
-
+    if (this.roundManager.isGameOver()) {
+      alert('🏁 Partita completata! Resetta per ricominciare.');
+      return;
+    }
     this.reset();
 
     if (!this.currentGameId()) {
@@ -246,23 +265,19 @@ export class GameComponent implements OnInit, OnDestroy {
       localStorage.setItem('activeGameId', newGame.id.toString());
     }
 
-    // const types: GameModeType[] = ['MUSIC'];
-    const types: GameModeType[] = ['WHEEL_OF_FORTUNE'];
-    const extractedType = types[Math.floor(Math.random() * types.length)];
-
+    const extractedType = this.roundManager.startNewRound();
+    const progress = this.roundManager.getProgress();
+    this.roundInfo.set(progress.text);
     this.phase.set('SPINNING');
     this.showTypeReveal.set(extractedType);
     await new Promise(r => setTimeout(r, 5000));
     this.showTypeReveal.set(null);
-
     this.isSpinning.set(true);
-
     try {
       const categoryName = this.getCategoryForType(extractedType);
       const categories = this.allCategories();
       const selectedCategory = categories.find(c => c.name === categoryName);
       if (selectedCategory) this.selectedCategoryId.set(selectedCategory.id);
-
       const nextRound = await firstValueFrom(
         this.aiService.triggerNewAiRound(
           this.currentGameId()!,
@@ -274,17 +289,11 @@ export class GameComponent implements OnInit, OnDestroy {
 
       console.log('📦 Round ricevuto dal BE:', nextRound);
       console.log('📦 Payload RAW:', nextRound.payload);
-
-      // 🔥 Parse payload se è stringa
       let parsedPayload = nextRound.payload;
       if (typeof parsedPayload === 'string') {
         parsedPayload = JSON.parse(parsedPayload);
       }
-
-      console.log('📦 Payload parsato:', parsedPayload);
       this.round.set(nextRound);
-
-      // 🔥 CREA MODE con payload PIATTO (no .payload.payload)
       const mode = this.gameModeService.createMode({
         type: parsedPayload.type || extractedType,
         payload: parsedPayload,  // 🔥 Passa tutto il payload direttamente
@@ -293,14 +302,12 @@ export class GameComponent implements OnInit, OnDestroy {
         onTimerEnd: () => this.onModeTimeout(),
         onBuzz: (playerName) => this.onPlayerBuzz(playerName)
       });
-
       (mode as any).setConfig?.({
         ...((mode as any).config ?? {}),
         onPreGameTick: (sec: number) => this.preStartCountdown.set(sec)
       });
 
       this.currentMode.set(mode);
-
       this.phase.set('QUESTION');
       this.showQuestion.set(true);
       this.timer.set(mode.timerDuration);
@@ -321,9 +328,8 @@ export class GameComponent implements OnInit, OnDestroy {
         type: parsedPayload.type || extractedType,
         payload: JSON.stringify(parsedPayload)
       });
-
+      this.roundManager.completeRound(extractedType);
       this.isSpinning.set(false);
-
     } catch (err) {
       console.error('❌ Errore nuovo round:', err);
       this.isSpinning.set(false);
@@ -363,8 +369,13 @@ export class GameComponent implements OnInit, OnDestroy {
 
     // Notifica telefoni
     this.ws.broadcastStatus(1, {action: 'ROUND_ENDED'});
-    // Assicuriamoci che la fase di spinning sia disattivata quando il round finisce
     this.isSpinning.set(false);
+    this.roundManager.completeRound(mode.type);
+
+    // 🔥 CONTROLLA CLASSIFICA
+    setTimeout(() => {
+      this.checkLeaderboardDisplay();
+    }, 2000);
   }
 
   private onPlayerBuzz(playerName: string) {
@@ -390,53 +401,49 @@ export class GameComponent implements OnInit, OnDestroy {
   confirmCorrect() {
     const mode = this.currentMode();
     if (!mode) return;
-
     const playerName = mode.getDisplayData().buzzedPlayer;
     if (!playerName) return;
-
-    // 1. Recuperiamo il tempo trascorso (il mode tiene traccia di quando è iniziato il timer)
-    // Se il mode non ha un metodo per il tempo, usiamo la differenza dal timer attuale
     const elapsedMs = (mode.timerDuration * 1000) - (this.timer() * 1000);
-
-    // 2. Usiamo la logica del mode per calcolare i punti REALI
     const realPoints = (mode as any).calculatePoints(true, elapsedMs);
 
-    mode.confirmCorrect(playerName);
+    this.leaderboardService.addPoints(playerName, realPoints, true);
 
+    mode.confirmCorrect(playerName);
     const currentRound = this.round();
+
     if (currentRound) {
       this.round.set({...currentRound, status: 'REVEAL'});
     }
 
     this.isSpinning.set(false);
 
-    // 3. Settiamo i punti reali per il popup e per il broadcast
     this.resultType.set('correct');
-    this.resultPoints.set(realPoints); // <--- DINAMICO
+    this.resultPoints.set(realPoints);
     this.resultPlayerName.set(playerName);
     this.showResultPopup.set(true);
 
     this.ws.broadcastStatus(1, {
       action: 'ROUND_ENDED',
       winner: playerName,
-      points: realPoints // <--- DINAMICO
+      points: realPoints
     });
 
     setTimeout(() => this.showResultPopup.set(false), 5000);
+    this.roundManager.completeRound(mode.type);
+    setTimeout(() => {
+      this.checkLeaderboardDisplay();
+    }, 5500);
   }
 
   confirmWrong() {
     const mode = this.currentMode();
     if (!mode) return;
-
     const playerName = mode.getDisplayData().buzzedPlayer;
     if (!playerName) return;
-
     const elapsedMs = (mode.timerDuration * 1000) - (this.timer() * 1000);
-
-    // Calcolo punti dinamico anche per l'errore
     const realPoints = (mode as any).calculatePoints(false, elapsedMs);
 
+    this.leaderboardService.addPoints(playerName, realPoints, false);
     mode.confirmWrong(playerName);
 
     const currentRound = this.round();
@@ -456,8 +463,28 @@ export class GameComponent implements OnInit, OnDestroy {
       blockedPlayer: playerName,
       points: realPoints // Passiamo i punti anche qui se serve al database/classifica
     });
-
     setTimeout(() => this.showResultPopup.set(false), 3000);
+  }
+
+  private checkLeaderboardDisplay() {
+    const round = this.roundManager.getCurrentRound();
+    const type = this.roundManager.shouldShowLeaderboard();
+    console.log(`📊 Round ${round}: Check → ${type}`);
+    if (type === 'QUICK') {
+      this.showLeaderboardQuick.set(true);
+    } else if (type === 'DETAILED') {
+      this.showLeaderboardDetailed.set(true);
+    }
+  }
+
+  onLeaderboardComplete() {
+    this.showLeaderboardQuick.set(false);
+    this.showLeaderboardDetailed.set(false);
+    console.log('📊 Classifica chiusa, prossimo round');
+    if (this.roundManager.isGameOver()) {
+      alert('🏁 PARTITA COMPLETATA!');
+      // TODO: Mostra classifica finale elaborata
+    }
   }
 
   private showTimeoutPopup() {
@@ -502,6 +529,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
   confirmReset() {
     this.showResetModal.set(false);
+    this.roundManager.resetGame();
+    this.leaderboardService.reset();
+
     location.reload();
   }
 

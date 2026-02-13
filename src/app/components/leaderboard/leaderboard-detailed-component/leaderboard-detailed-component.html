@@ -1,0 +1,51 @@
+<div class="detailed-leaderboard-overlay">
+
+  @if (currentPlayer(); as player) {
+    <div class="player-spotlight"
+         [class.podium]="player.position <= 3"
+         [@spotlight]>
+
+      <!-- Posizione -->
+      <div class="position-display"
+           [class.gold]="player.position === 1"
+           [class.silver]="player.position === 2"
+           [class.bronze]="player.position === 3">
+        <div class="position-number">{{ player.position }}°</div>
+        @if (player.position === 1) {
+          <div class="crown">👑</div>
+        }
+      </div>
+
+      <!-- Nome giocatore -->
+      <div class="player-name">{{ player.playerName }}</div>
+
+      <!-- Punti -->
+      <div class="player-points">
+        <span class="points-value">{{ player.totalPoints }}</span>
+        <span class="points-label">PUNTI</span>
+      </div>
+
+      <!-- Statistiche -->
+      <div class="player-stats">
+        <div class="stat">
+          <div class="stat-value">{{ player.correctAnswers }}</div>
+          <div class="stat-label">Corrette</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">{{ player.wrongAnswers }}</div>
+          <div class="stat-label">Sbagliate</div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Progress -->
+  <div class="reveal-progress">
+    <div class="progress-text">{{ revealedCount() }} / {{ totalPlayers() }}</div>
+    <div class="progress-bar-container">
+      <div class="progress-bar"
+           [style.width.%]="(revealedCount() / totalPlayers()) * 100"></div>
+    </div>
+  </div>
+
+</div>
