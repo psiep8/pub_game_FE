@@ -35,8 +35,11 @@
   <!-- MODALITÀ ESTRATTA -->
   @if (showTypeReveal()) {
     <div class="type-reveal-overlay">
+      <div class="round-badge">
+        ROUND {{ roundManager.getCurrentRound() }}/{{ roundManager.getTotalRounds() }}
+      </div>
       <div class="label">MODALITÀ ESTRATTA:</div>
-      <div class="mode-name">{{ showTypeReveal() }}</div>
+      <div class="mode-name">{{ getModeName(showTypeReveal()!) }}</div>
     </div>
   }
 
@@ -192,14 +195,20 @@
       </div>
     </div>
   }
-
-    <!-- CONTROLLI FOOTER -->
-    <div class="controls-footer">
-      <button (click)="openResetModal()" class="control-btn reset">🔄 RESET</button>
-      <button (click)="togglePause()" class="control-btn pause" [class.is-paused]="isPaused()">
-        {{ isPaused() ? '▶️ RIPRENDI' : '⏸️ PAUSA' }}
-      </button>
-    </div>
+  <button class="audio-toggle" (click)="audioService.toggleAudio()">
+    @if (audioService.isEnabled()) {
+      🔊
+    } @else {
+      🔇
+    }
+  </button>
+  <!-- CONTROLLI FOOTER -->
+  <div class="controls-footer">
+    <button (click)="openResetModal()" class="control-btn reset">🔄 RESET</button>
+    <button (click)="togglePause()" class="control-btn pause" [class.is-paused]="isPaused()">
+      {{ isPaused() ? '▶️ RIPRENDI' : '⏸️ PAUSA' }}
+    </button>
+  </div>
 
   <!-- BOX RISPOSTE RECENTI (basso-sinistra) -->
   <div class="recent-responses" *ngIf="getRecentResponses().length">

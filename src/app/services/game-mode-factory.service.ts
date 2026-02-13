@@ -59,7 +59,7 @@ export class GameModeService {
       case 'MUSIC':
         mode = new MusicMode();
         break;
-      case '1VS1':
+      case 'ONE_VS_ONE':
         mode = new OneVsOneMode();
         break;
       default:
