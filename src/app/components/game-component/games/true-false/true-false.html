@@ -1,24 +1,48 @@
-<div class="true-false-container">
-  <h2 class="tf-question">{{ displayData.question }}</h2>
+<div class="truefalse-container">
 
-  @if (!displayData.isReading && !displayData.correctAnswer) {
-    <div class="tf-options-grid">
-      @for (option of safeOptions; track option; let i = $index) {
-        <button
-          class="tf-option-btn"
-          [class.option-true]="option === 'VERO'"
-          [class.option-false]="option === 'FALSO'">
-          <span class="option-icon">{{ option === 'VERO' ? '✓' : '✗' }}</span>
-          <span class="option-text">{{ option }}</span>
-        </button>
-      }
+  <!-- Domanda -->
+  <div class="question-box">
+    <h2 class="question-text">{{ displayData?.question }}</h2>
+  </div>
+
+  <!-- Opzioni -->
+  <div class="options-grid">
+    @for (option of safeOptions; track $index) {
+      <div class="option-card"
+           [class.correct]="displayData?.correctAnswer === option"
+           [class.wrong]="displayData?.correctAnswer && displayData?.correctAnswer !== option">
+        <div class="option-icon">
+          @if (option === 'VERO') {
+            ✓
+          } @else {
+            ✗
+          }
+        </div>
+        <div class="option-text">{{ option }}</div>
+      </div>
+    }
+  </div>
+
+  <!-- 🔥 EXPLANATION quando revealed e risposta è FALSO -->
+  @if (displayData?.correctAnswer === 'FALSO' && displayData?.explanation) {
+    <div class="explanation-box">
+      <div class="explanation-icon">💡</div>
+      <div class="explanation-title">PERCHÉ È FALSO:</div>
+      <div class="explanation-text">{{ displayData.explanation }}</div>
     </div>
   }
 
-  @if (displayData.correctAnswer) {
-    <div class="reveal-banner tf-reveal" @fadeInOut>
-      <div class="reveal-label">RISPOSTA ESATTA:</div>
-      <div class="reveal-value">{{ displayData.correctAnswer }}</div>
+  <!-- Timer -->
+  <div class="timer-display">
+    <div class="timer-circle">
+      <svg width="120" height="120">
+        <circle cx="60" cy="60" r="54" class="timer-bg"></circle>
+        <circle cx="60" cy="60" r="54"
+                class="timer-progress"
+                [style.stroke-dashoffset]="339 - (339 * timer / 30)"></circle>
+      </svg>
+      <div class="timer-value">{{ timer }}</div>
     </div>
-  }
+  </div>
+
 </div>
