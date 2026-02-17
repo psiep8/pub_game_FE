@@ -1,50 +1,27 @@
 <div class="chrono-container">
-
-  <!-- Domanda -->
-  <div class="question-box">
-    <h2 class="question-text">{{ displayData?.question }}</h2>
-  </div>
-
-  <!-- Slider Anno -->
-  <div class="year-selector">
-    <div class="year-display">
-      <span class="year-value">{{ selectedYear }}</span>
+  @if (displayData.isReading) {
+    <!-- Fase di lettura prima del VIA: mostriamo solo il titolo centrato -->
+    <div class="chrono-reading-center">
+      <h2 class="chrono-question">{{ displayData.question }}</h2>
     </div>
+  } @else {
+    <h2 class="chrono-question">{{ displayData.question }}</h2>
 
-    <input
-      type="range"
-      class="year-slider"
-      [min]="displayData?.minYear || 1900"
-      [max]="displayData?.maxYear || 2024"
-      [step]="displayData?.step || 1"
-      [(ngModel)]="selectedYear"
-    />
+    <!-- chrono-hint e waiting box visibili solo DOPO il VIA (isReading=false) e prima del reveal -->
+    @if (!displayData.correctAnswer) {
+      <div class="chrono-hint">{{ displayData.hint }}</div>
 
-    <div class="year-range-labels">
-      <span>{{ displayData?.minYear || 1900 }}</span>
-      <span>{{ displayData?.maxYear || 2024 }}</span>
-    </div>
-  </div>
-
-  <!-- Risposta corretta -->
-  @if (displayData?.correctAnswer) {
-    <div class="correct-answer-box">
-      <div class="answer-label">ANNO CORRETTO:</div>
-      <div class="answer-value">{{ displayData.correctAnswer }}</div>
-    </div>
+      <div class="chrono-waiting-box">
+        <div class="year-icon">📅</div>
+        <p class="wait-text">I giocatori stanno scegliendo l'anno...</p>
+        <div class="timer-display">{{ timer }}s</div>
+      </div>
+    } @else {
+      <div class="reveal-banner chrono-reveal" @fadeInOut>
+        <div class="reveal-icon">✅</div>
+        <div class="reveal-label">ANNO ESATTO:</div>
+        <div class="reveal-value-big">{{ displayData.correctAnswer }}</div>
+      </div>
+    }
   }
-
-  <!-- Timer -->
-  <div class="timer-display">
-    <div class="timer-circle">
-      <svg width="120" height="120">
-        <circle cx="60" cy="60" r="54" class="timer-bg"></circle>
-        <circle cx="60" cy="60" r="54"
-                class="timer-progress"
-                [style.stroke-dashoffset]="339 - (339 * timer / 30)"></circle>
-      </svg>
-      <div class="timer-value">{{ timer }}</div>
-    </div>
-  </div>
-
 </div>

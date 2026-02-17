@@ -17,32 +17,19 @@ export class ChronoMode extends GameModeBase {
     await this.runPreGameSequence(10000);
   }
 
-  protected onPause(): void {
-    // Niente da fare
-  }
-
-  protected onResume(): void {
-    // Niente da fare
-  }
-
-  protected onStop(): void {
-    // Niente da fare
-  }
-
-  protected onCleanup(): void {
-    // Niente da fare
-  }
+  protected onPause(): void {}
+  protected onResume(): void {}
+  protected onStop(): void {}
+  protected onCleanup(): void {}
 
   protected onTimeout(): void {
-    console.log('⏰ Tempo scaduto per CHRONO');
+    console.log('⏰ Tempo scaduto');
   }
 
-  protected onBuzz(playerName: string): void {
-    // Non usato
-  }
+  protected onBuzz(playerName: string): void {}
 
   protected onAnswer(playerName: string, answer: any, result: any): void {
-    console.log(`📅 ${playerName} risponde: ${answer}`);
+    console.log(`📅 ${playerName}: ${answer}`);
   }
 
   protected onConfirmCorrect(result: GameModeResult): void {
@@ -58,7 +45,6 @@ export class ChronoMode extends GameModeBase {
     const userYear = parseInt(answer);
     const diff = Math.abs(correctYear - userYear);
 
-    // ✅ Esatto
     if (diff === 0) {
       return {
         isCorrect: true,
@@ -68,7 +54,6 @@ export class ChronoMode extends GameModeBase {
       };
     }
 
-    // ⚠️ Vicino (entro 3 anni)
     if (diff <= 3) {
       return {
         isCorrect: false,
@@ -79,7 +64,6 @@ export class ChronoMode extends GameModeBase {
       };
     }
 
-    // ❌ Sbagliato
     return {
       isCorrect: false,
       correctAnswer: this.payload.correctAnswer,
@@ -92,71 +76,82 @@ export class ChronoMode extends GameModeBase {
     const maxTimeMs = this.timerDuration * 1000;
     const ratio = Math.max(0, 1 - (elapsedMs / maxTimeMs));
 
-    if (isCorrect) {
-      return Math.round(1000 * ratio);
-    } else {
-      return Math.round(-500 * ratio);
-    }
+    return isCorrect ? Math.round(1000 * ratio) : Math.round(-500 * ratio);
   }
 
   /**
-   * 🔥 Calcola range dinamico basato sull'anno corretto
+   * 🔥 Range ASIMMETRICO - Risposta NON al centro!
    */
-  private calculateDynamicRange(): { min: number; max: number; step: number } {
+  private calculateAsymmetricRange(): { min: number; max: number; step: number } {
     const correctYear = parseInt(this.payload.correctAnswer);
+    const random = Math.random();
 
-    // Eventi ANTICHI (prima del 1500)
+    // < 1500: Range 1000 anni
     if (correctYear < 1500) {
+      const totalRange = 1000;
+      const minOffset = Math.floor(totalRange * random * 0.7);
+
       return {
-        min: Math.max(0, correctYear - 500),
-        max: correctYear + 500,
-        step: 10 // Step più ampio
+        min: Math.max(0, correctYear - minOffset),
+        max: correctYear + (totalRange - minOffset),
+        step: 10
       };
     }
 
-    // Eventi STORICI (1500-1800)
+    // 1500-1800: Range 400 anni
     if (correctYear < 1800) {
+      const totalRange = 400;
+      const minOffset = Math.floor(totalRange * random * 0.65);
+
       return {
-        min: correctYear - 200,
-        max: correctYear + 200,
+        min: correctYear - minOffset,
+        max: correctYear + (totalRange - minOffset),
         step: 5
       };
     }
 
-    // Eventi MODERNI (1800-1950)
+    // 1800-1950: Range 200 anni
     if (correctYear < 1950) {
+      const totalRange = 200;
+      const minOffset = Math.floor(totalRange * random * 0.6);
+
       return {
-        min: correctYear - 100,
-        max: correctYear + 100,
+        min: correctYear - minOffset,
+        max: correctYear + (totalRange - minOffset),
         step: 1
       };
     }
 
-    // Eventi CONTEMPORANEI (1950-2000)
+    // 1950-2000: Range 100 anni
     if (correctYear < 2000) {
+      const totalRange = 100;
+      const minOffset = Math.floor(totalRange * random * 0.55);
+
       return {
-        min: correctYear - 50,
-        max: correctYear + 50,
+        min: correctYear - minOffset,
+        max: correctYear + (totalRange - minOffset),
         step: 1
       };
     }
 
-    // Eventi RECENTI (2000+)
+    // 2000+: Range 60 anni
+    const totalRange = 60;
+    const minOffset = Math.floor(totalRange * random * 0.5);
+
     return {
-      min: correctYear - 30,
-      max: Math.min(new Date().getFullYear() + 5, correctYear + 30),
+      min: correctYear - minOffset,
+      max: Math.min(new Date().getFullYear() + 5, correctYear + (totalRange - minOffset)),
       step: 1
     };
   }
 
   getDisplayData() {
-    const range = this.calculateDynamicRange();
+    const range = this.calculateAsymmetricRange();
 
     return {
       question: this.payload.question || '',
       correctAnswer: this.revealed() ? this.payload.correctAnswer : null,
       isReading: this.isReading(),
-      // 🔥 Range dinamico
       minYear: range.min,
       maxYear: range.max,
       step: range.step
