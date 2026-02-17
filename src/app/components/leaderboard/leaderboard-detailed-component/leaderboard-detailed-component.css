@@ -16,7 +16,6 @@
   padding: 40px;
 }
 
-/* Particles per top 5 */
 .particles {
   position: absolute;
   inset: -50%;
@@ -46,7 +45,6 @@
   50% { transform: translateY(-30px) scale(1.5); opacity: 1; }
 }
 
-/* Corona massiva */
 .crown-massive {
   position: absolute;
   top: -180px;
@@ -79,7 +77,6 @@
   50% { transform: scale(1.2); opacity: 1; }
 }
 
-/* Posizione */
 .position-massive {
   margin-bottom: 40px;
 }
@@ -125,7 +122,6 @@
   letter-spacing: 8px;
 }
 
-/* Nome */
 .player-name-massive {
   font-size: 80px;
   font-weight: 900;
@@ -145,7 +141,6 @@
   50% { text-shadow: 0 6px 50px rgba(255, 255, 255, 0.8); }
 }
 
-/* Punti */
 .points-showcase {
   margin: 50px 0;
 }
@@ -176,7 +171,6 @@
   letter-spacing: 4px;
 }
 
-/* Stats dettagliate */
 .detailed-stats {
   display: flex;
   gap: 60px;
@@ -220,7 +214,6 @@
   font-weight: 600;
 }
 
-/* Medaglie */
 .medal {
   position: absolute;
   bottom: -100px;
@@ -235,7 +228,6 @@
   50% { transform: translateX(-50%) translateY(-30px) rotate(15deg); }
 }
 
-/* Progress */
 .reveal-progress {
   position: absolute;
   bottom: 60px;
@@ -265,6 +257,6 @@
 .progress-bar {
   height: 100%;
   background: linear-gradient(90deg, #00c9ff, #92fe9d);
-  transition: width 0.8s ease;
+  transition: width 1s ease;
   box-shadow: 0 0 20px rgba(0, 201, 255, 0.5);
 }

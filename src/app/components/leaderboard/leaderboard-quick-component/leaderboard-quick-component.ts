@@ -25,8 +25,8 @@ import {LeaderboardService, PlayerScore} from '../../../services/leaderboard.ser
     ]),
     trigger('fadeIn', [
       transition(':enter', [
-        style({ opacity: 0 }),
-        animate('400ms', style({ opacity: 1 }))
+        style({opacity: 0}),
+        animate('400ms', style({opacity: 1}))
       ])
     ])
   ],
@@ -44,45 +44,40 @@ export class LeaderboardQuick implements OnInit {
   totalPlayers = signal(0);
 
   ngOnInit() {
-    const players = this.leaderboard.getLeaderboard();
+    // 🔥 FILTRA SOLO punteggi >= 0
+    const players = this.leaderboard.getLeaderboard()
 
     if (players.length === 0) {
-      console.warn('⚠️ Nessun giocatore in classifica');
+      console.warn('⚠️ Nessun giocatore con punti >= 0');
       setTimeout(() => this.onComplete.emit(), 1000);
       return;
     }
 
-    // Ultimo → Primo (come Kahoot)
     this.allPlayers.set(players.reverse());
     this.totalPlayers.set(players.length);
     this.animateReveal();
   }
 
-  /**
-   * 🎬 Animazione stile Kahoot - scroll dall'ultimo al primo
-   */
   private async animateReveal() {
     const players = this.allPlayers();
     const total = players.length;
 
     for (let i = 0; i < total; i++) {
-      // Timing progressivamente più lento per top 3
-      let delay = 1200; // Default: 1.2s per player
+      // 🔥 TIMING MOLTO PIÙ LENTI (2-5 secondi per player)
+      let delay = 2500; // Default: 2.5s
 
-      if (players[i].position === 3) delay = 2000; // 2s per bronzo
-      if (players[i].position === 2) delay = 2500; // 2.5s per argento
-      if (players[i].position === 1) delay = 3500; // 3.5s per ORO
+      if (players[i].position === 3) delay = 4000; // 4s bronzo
+      if (players[i].position === 2) delay = 5000; // 5s argento
+      if (players[i].position === 1) delay = 6000; // 6s ORO
 
-      // Aggiungi player
       this.visiblePlayers.update(list => [...list, players[i]]);
       this.progress.set(((i + 1) / total) * 100);
 
-      // Attendi
       await new Promise(resolve => setTimeout(resolve, delay));
     }
 
-    // Pausa finale sul vincitore
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Pausa finale 5s
+    await new Promise(resolve => setTimeout(resolve, 5000));
     this.onComplete.emit();
   }
 }

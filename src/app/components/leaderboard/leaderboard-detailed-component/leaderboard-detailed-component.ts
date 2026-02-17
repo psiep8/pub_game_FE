@@ -50,7 +50,7 @@ export class LeaderboardDetailed implements OnInit {
     const players = this.leaderboard.getLeaderboard();
 
     if (players.length === 0) {
-      console.warn('⚠️ Nessun giocatore in classifica');
+      console.warn('⚠️ Nessun giocatore con punti >= 0');
       setTimeout(() => this.onComplete.emit(), 1000);
       return;
     }
@@ -60,9 +60,6 @@ export class LeaderboardDetailed implements OnInit {
     this.animateReveal();
   }
 
-  /**
-   * 🎬 Rivelazione SCENICA - timing lunghissimi per top 5
-   */
   private async animateReveal() {
     const players = this.allPlayers();
 
@@ -75,22 +72,18 @@ export class LeaderboardDetailed implements OnInit {
       await new Promise(resolve => setTimeout(resolve, delay));
     }
 
-    // Pausa LUNGHISSIMA sul vincitore
-    await new Promise(resolve => setTimeout(resolve, 6000));
+    await new Promise(resolve => setTimeout(resolve, 8000));
     this.onComplete.emit();
   }
 
-  /**
-   * ⏱️ Timing SCENICI
-   */
   private getDelay(position: number): number {
-    if (position > 5) return 800;   // 6° in giù: veloce
-    if (position === 5) return 4000; // 5°: 4 secondi
-    if (position === 4) return 5000; // 4°: 5 secondi
-    if (position === 3) return 6000; // 3° BRONZO: 6 secondi
-    if (position === 2) return 7000; // 2° ARGENTO: 7 secondi
-    if (position === 1) return 8000; // 1° ORO: 8 secondi
+    if (position > 5) return 1500;  // 1.5s (veloce)
+    if (position === 5) return 6000; // 6s
+    if (position === 4) return 7000; // 7s
+    if (position === 3) return 9000; // 9s BRONZO
+    if (position === 2) return 10000; // 10s ARGENTO
+    if (position === 1) return 12000; // 12s ORO!!!
 
-    return 1000;
+    return 2000;
   }
 }

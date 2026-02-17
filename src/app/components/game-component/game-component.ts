@@ -102,6 +102,7 @@ export class GameComponent implements OnInit, OnDestroy {
   showLeaderboardQuick = signal(false);
   showLeaderboardDetailed = signal(false);
   roundInfo = signal<string>('');
+  private isShowingLeaderboard = signal(false);
 
   currentGameId = signal<number | null>(null);
 
@@ -198,16 +199,19 @@ export class GameComponent implements OnInit, OnDestroy {
               void el.offsetWidth;
               el.classList.add('bounce');
             }
-          } catch (err) {}
+          } catch (err) {
+          }
 
           if (this.audioAllowed && this.prestartAudio) {
             try {
               this.prestartAudio.currentTime = 0;
               const p = this.prestartAudio.play();
               if (p && typeof p.then === 'function') {
-                p.catch(() => {});
+                p.catch(() => {
+                });
               }
-            } catch (e) {}
+            } catch (e) {
+            }
           }
         }
         lastPreStart = cur;
@@ -247,6 +251,11 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   async startNewRound() {
+    if (this.isShowingLeaderboard()) {
+      console.warn('⚠️ Classifica in corso, attendi...');
+      return;
+    }
+
     if (this.isSpinning()) return;
 
     // 🔥 Controlla se il gioco è finito
@@ -303,6 +312,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
       this.round.set(nextRound);
+      const activePlayers = this.leaderboardService.getLeaderboard().map(p => p.playerName);
 
       const mode = this.gameModeService.createMode({
         type: parsedPayload.type || extractedType,
@@ -310,7 +320,8 @@ export class GameComponent implements OnInit, OnDestroy {
         gameId: this.currentGameId()!,
         onTimerTick: (seconds) => this.timer.set(seconds),
         onTimerEnd: () => this.onModeTimeout(),
-        onBuzz: (playerName) => this.onPlayerBuzz(playerName)
+        onBuzz: (playerName) => this.onPlayerBuzz(playerName),
+        activePlayers: activePlayers
       });
 
       (mode as any).setConfig?.({
@@ -387,15 +398,24 @@ export class GameComponent implements OnInit, OnDestroy {
    */
   getModeName(type: string): string {
     switch (type) {
-      case 'QUIZ': return 'QUIZ';
-      case 'TRUE_FALSE': return 'VERO O FALSO';
-      case 'MUSIC': return 'INDOVINA LA CANZONE';
-      case 'WHEEL_OF_FORTUNE': return 'RUOTA DELLA FORTUNA';
-      case 'IMAGE_BLUR': return 'INDOVINA CHI';
-      case 'CHRONO': return 'CHRONO';
-      case 'ROULETTE': return 'ROULETTE';
-      case '1VS1': return '1 CONTRO 1';
-      default: return type;
+      case 'QUIZ':
+        return 'QUIZ';
+      case 'TRUE_FALSE':
+        return 'VERO O FALSO';
+      case 'MUSIC':
+        return 'INDOVINA LA CANZONE';
+      case 'WHEEL_OF_FORTUNE':
+        return 'RUOTA DELLA FORTUNA';
+      case 'IMAGE_BLUR':
+        return 'INDOVINA CHI';
+      case 'CHRONO':
+        return 'CHRONO';
+      case 'ROULETTE':
+        return 'ROULETTE';
+      case '1VS1':
+        return '1 CONTRO 1';
+      default:
+        return type;
     }
   }
 
@@ -557,7 +577,6 @@ export class GameComponent implements OnInit, OnDestroy {
    * 📊 Controlla e mostra classifica
    */
   private checkLeaderboardDisplay() {
-    // 🔥 FERMA TUTTI I SUONI
     this.audioService.stopAll();
 
     const leaderboardType = this.roundManager.shouldShowLeaderboard();
@@ -567,23 +586,22 @@ export class GameComponent implements OnInit, OnDestroy {
 
     if (leaderboardType === 'QUICK') {
       console.log('📊 Mostra classifica RAPIDA');
+      this.isShowingLeaderboard.set(true); // 🔥 BLOCCA GIOCO
       this.showLeaderboardQuick.set(true);
     } else if (leaderboardType === 'DETAILED') {
       console.log('📊 Mostra classifica DETTAGLIATA');
+      this.isShowingLeaderboard.set(true); // 🔥 BLOCCA GIOCO
       this.showLeaderboardDetailed.set(true);
     }
   }
 
-  /**
-   * ✅ Classifica completata
-   */
   onLeaderboardComplete() {
     this.showLeaderboardQuick.set(false);
     this.showLeaderboardDetailed.set(false);
+    this.isShowingLeaderboard.set(false); // 🔥 SBLOCCA GIOCO
 
-    console.log('📊 Classifica chiusa');
+    console.log('📊 Classifica chiusa - Gioco sbloccato');
 
-    // 🔥 RIAVVIA HEARTBEAT se torniamo a IDLE
     if (this.phase() === 'IDLE') {
       this.audioService.startHeartbeat();
     }

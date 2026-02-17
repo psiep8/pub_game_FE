@@ -1,12 +1,10 @@
 <div class="kahoot-leaderboard" [@fadeIn]>
 
-  <!-- Header -->
   <div class="header">
     <h1 class="title">CLASSIFICA</h1>
     <div class="subtitle">Dal peggiore al migliore...</div>
   </div>
 
-  <!-- Lista scrollabile -->
   <div class="players-container">
     @for (player of visiblePlayers(); track player.playerName) {
       <div class="player-row"
@@ -16,21 +14,17 @@
            [class.bronze]="player.position === 3"
            [@slideUp]>
 
-        <!-- Posizione -->
         <div class="position-badge" [class.podium]="player.position <= 3">
           {{ player.position }}
         </div>
 
-        <!-- Nome -->
         <div class="player-name">{{ player.playerName }}</div>
 
-        <!-- Punti -->
         <div class="player-points">
           <span class="points-value">{{ player.totalPoints }}</span>
           <span class="points-label">pts</span>
         </div>
 
-        <!-- Podio icon -->
         @if (player.position === 1) {
           <div class="podium-icon">🥇</div>
         } @else if (player.position === 2) {
@@ -42,7 +36,6 @@
     }
   </div>
 
-  <!-- Progress bar -->
   <div class="progress-container">
     <div class="progress-bar" [style.width.%]="progress()"></div>
     <div class="progress-text">{{ visiblePlayers().length }} / {{ totalPlayers() }}</div>
