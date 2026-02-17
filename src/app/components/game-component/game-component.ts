@@ -30,11 +30,10 @@ import {TrueFalse} from './games/true-false/true-false';
 import {Chrono} from './games/chrono/chrono';
 import {Roulette} from './games/roulette/roulette';
 import {Song} from './games/song/song';
-
 import {environment} from '../../environment/environment';
 import {GameModeType, IGameMode} from './interfaces/game-mode-type';
-import {LeaderboardQuick} from '../leaderboard/leaderboard-quick-component/leaderboard-quick-component';
 import {OneVsOne} from './games/one-vs-one/one-vs-one';
+import {LeaderboardQuick} from '../leaderboard/leaderboard-quick-component/leaderboard-quick-component';
 import {LeaderboardDetailed} from '../leaderboard/leaderboard-detailed-component/leaderboard-detailed-component';
 
 @Component({
@@ -199,19 +198,16 @@ export class GameComponent implements OnInit, OnDestroy {
               void el.offsetWidth;
               el.classList.add('bounce');
             }
-          } catch (err) {
-          }
+          } catch (err) {}
 
           if (this.audioAllowed && this.prestartAudio) {
             try {
               this.prestartAudio.currentTime = 0;
               const p = this.prestartAudio.play();
               if (p && typeof p.then === 'function') {
-                p.catch(() => {
-                });
+                p.catch(() => {});
               }
-            } catch (e) {
-            }
+            } catch (e) {}
           }
         }
         lastPreStart = cur;
@@ -391,24 +387,15 @@ export class GameComponent implements OnInit, OnDestroy {
    */
   getModeName(type: string): string {
     switch (type) {
-      case 'QUIZ':
-        return 'QUIZ';
-      case 'TRUE_FALSE':
-        return 'VERO O FALSO';
-      case 'MUSIC':
-        return 'INDOVINA LA CANZONE';
-      case 'WHEEL_OF_FORTUNE':
-        return 'RUOTA DELLA FORTUNA';
-      case 'IMAGE_BLUR':
-        return 'INDOVINA CHI';
-      case 'CHRONO':
-        return 'CHRONO';
-      case 'ROULETTE':
-        return 'ROULETTE';
-      case '1VS1':
-        return '1 CONTRO 1';
-      default:
-        return type;
+      case 'QUIZ': return 'QUIZ';
+      case 'TRUE_FALSE': return 'VERO O FALSO';
+      case 'MUSIC': return 'INDOVINA LA CANZONE';
+      case 'WHEEL_OF_FORTUNE': return 'RUOTA DELLA FORTUNA';
+      case 'IMAGE_BLUR': return 'INDOVINA CHI';
+      case 'CHRONO': return 'CHRONO';
+      case 'ROULETTE': return 'ROULETTE';
+      case '1VS1': return '1 CONTRO 1';
+      default: return type;
     }
   }
 

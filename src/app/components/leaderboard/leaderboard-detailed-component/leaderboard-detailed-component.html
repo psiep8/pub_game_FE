@@ -1,47 +1,98 @@
-<div class="detailed-leaderboard-overlay">
+<div class="grand-leaderboard" @fadeIn>
 
   @if (currentPlayer(); as player) {
-    <div class="player-spotlight"
-         [class.podium]="player.position <= 3"
-         [@spotlight]>
+    <div class="player-showcase"
+         [class.top5]="player.position <= 5"
+         [class.top3]="player.position <= 3"
+         [class.winner]="player.position === 1"
+         [@spotlightEnter]>
+
+      <!-- Background particles per top 5 -->
+      @if (player.position <= 5) {
+        <div class="particles">
+          @for (i of [1,2,3,4,5,6,7,8]; track i) {
+            <div class="particle"></div>
+          }
+        </div>
+      }
+
+      <!-- Corona animata per vincitore -->
+      @if (player.position === 1) {
+        <div class="crown-massive" [@explosionEnter]>
+          <div class="crown-inner">👑</div>
+          <div class="crown-glow"></div>
+        </div>
+      }
 
       <!-- Posizione -->
-      <div class="position-display"
+      <div class="position-massive"
            [class.gold]="player.position === 1"
            [class.silver]="player.position === 2"
-           [class.bronze]="player.position === 3">
+           [class.bronze]="player.position === 3"
+           [class.top5]="player.position <= 5">
+
         <div class="position-number">{{ player.position }}°</div>
-        @if (player.position === 1) {
-          <div class="crown">👑</div>
+
+        @if (player.position <= 3) {
+          <div class="position-label">
+            @if (player.position === 1) {
+              VINCITORE
+            } @else if (player.position === 2) {
+              SECONDO
+            } @else {
+              TERZO
+            }
+          </div>
         }
       </div>
 
       <!-- Nome giocatore -->
-      <div class="player-name">{{ player.playerName }}</div>
+      <div class="player-name-massive"
+           [class.top3]="player.position <= 3">
+        {{ player.playerName }}
+      </div>
 
       <!-- Punti -->
-      <div class="player-points">
-        <span class="points-value">{{ player.totalPoints }}</span>
-        <span class="points-label">PUNTI</span>
+      <div class="points-showcase">
+        <div class="points-container">
+          <div class="points-value">{{ player.totalPoints }}</div>
+          <div class="points-label">PUNTI</div>
+        </div>
+
+        <!-- Stats dettagliate per top 5 -->
+        @if (player.position <= 5) {
+          <div class="detailed-stats">
+            <div class="stat-box correct">
+              <div class="stat-icon">✓</div>
+              <div class="stat-number">{{ player.correctAnswers }}</div>
+              <div class="stat-label">Corrette</div>
+            </div>
+            <div class="stat-box wrong">
+              <div class="stat-icon">✗</div>
+              <div class="stat-number">{{ player.wrongAnswers }}</div>
+              <div class="stat-label">Sbagliate</div>
+            </div>
+          </div>
+        }
       </div>
 
-      <!-- Statistiche -->
-      <div class="player-stats">
-        <div class="stat">
-          <div class="stat-value">{{ player.correctAnswers }}</div>
-          <div class="stat-label">Corrette</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value">{{ player.wrongAnswers }}</div>
-          <div class="stat-label">Sbagliate</div>
-        </div>
-      </div>
+      <!-- Medaglia per podio -->
+      @if (player.position === 1) {
+        <div class="medal gold-medal">🥇</div>
+      } @else if (player.position === 2) {
+        <div class="medal silver-medal">🥈</div>
+      } @else if (player.position === 3) {
+        <div class="medal bronze-medal">🥉</div>
+      }
+
     </div>
   }
 
   <!-- Progress -->
   <div class="reveal-progress">
-    <div class="progress-text">{{ revealedCount() }} / {{ totalPlayers() }}</div>
+    <div class="progress-text">
+      Giocatore {{ revealedCount() }} di {{ totalPlayers() }}
+    </div>
     <div class="progress-bar-container">
       <div class="progress-bar"
            [style.width.%]="(revealedCount() / totalPlayers()) * 100"></div>

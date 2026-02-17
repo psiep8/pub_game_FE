@@ -1,23 +1,51 @@
-<div class="quick-leaderboard-overlay">
-  <div class="quick-container">
-    <h1 class="quick-title">📊 CLASSIFICA</h1>
+<div class="kahoot-leaderboard" [@fadeIn]>
 
-    <div class="quick-list">
-      @for (player of visiblePlayers(); track player.playerName) {
-        <div class="quick-item"
-             [class.gold]="player.position === 1"
-             [class.silver]="player.position === 2"
-             [class.bronze]="player.position === 3"
-             [@slideIn]>
-          <div class="position">{{ player.position }}°</div>
-          <div class="name">{{ player.playerName }}</div>
-          <div class="points">{{ player.totalPoints }} pts</div>
-        </div>
-      }
-    </div>
-
-    <div class="quick-progress">
-      <div class="progress-bar" [style.width.%]="progress()"></div>
-    </div>
+  <!-- Header -->
+  <div class="header">
+    <h1 class="title">CLASSIFICA</h1>
+    <div class="subtitle">Dal peggiore al migliore...</div>
   </div>
+
+  <!-- Lista scrollabile -->
+  <div class="players-container">
+    @for (player of visiblePlayers(); track player.playerName) {
+      <div class="player-row"
+           [class.top3]="player.position <= 3"
+           [class.gold]="player.position === 1"
+           [class.silver]="player.position === 2"
+           [class.bronze]="player.position === 3"
+           [@slideUp]>
+
+        <!-- Posizione -->
+        <div class="position-badge" [class.podium]="player.position <= 3">
+          {{ player.position }}
+        </div>
+
+        <!-- Nome -->
+        <div class="player-name">{{ player.playerName }}</div>
+
+        <!-- Punti -->
+        <div class="player-points">
+          <span class="points-value">{{ player.totalPoints }}</span>
+          <span class="points-label">pts</span>
+        </div>
+
+        <!-- Podio icon -->
+        @if (player.position === 1) {
+          <div class="podium-icon">🥇</div>
+        } @else if (player.position === 2) {
+          <div class="podium-icon">🥈</div>
+        } @else if (player.position === 3) {
+          <div class="podium-icon">🥉</div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress-container">
+    <div class="progress-bar" [style.width.%]="progress()"></div>
+    <div class="progress-text">{{ visiblePlayers().length }} / {{ totalPlayers() }}</div>
+  </div>
+
 </div>
