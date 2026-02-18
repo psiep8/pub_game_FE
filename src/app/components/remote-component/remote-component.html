@@ -86,10 +86,17 @@
             @case ('CHRONO') {
               <div class="chrono-player-area horizontal-chrono">
                 <div class="year-preview">{{ selectedYear() }}</div>
-                <input type="range" min="1000" max="2026"
+                <input type="range"
+                       [min]="minYear()"
+                       [max]="maxYear()"
+                       [step]="yearStep()"
                        [value]="selectedYear()"
                        (input)="onYearChange($event)"
                        class="modern-slider">
+                <div class="year-range-labels">
+                  <span>{{ minYear() }}</span>
+                  <span>{{ maxYear() }}</span>
+                </div>
                 <button (click)="sendChronoAnswer()" class="confirm-btn">INVIA ANNO</button>
               </div>
             }
