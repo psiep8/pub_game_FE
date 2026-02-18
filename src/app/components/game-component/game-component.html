@@ -210,14 +210,18 @@
     </button>
   </div>
 
-  <!-- BOX RISPOSTE RECENTI (basso-sinistra) -->
-  <div class="recent-responses" *ngIf="getRecentResponses().length">
+
+  <div class="recent-responses" *ngIf="getRecentResponsesWithScores().length">
     <div class="recent-header">RISPOSTE</div>
     <div class="recent-list">
-      @for (r of getRecentResponses(); track r.playerName) {
+      @for (r of getRecentResponsesWithScores(); track r.playerName) {
         <div class="recent-item">
           <div class="r-player">{{ r.playerName }}</div>
           <div class="r-time">{{ (r.responseTimeMs / 1000).toFixed(2) }}s</div>
+          <div class="r-points" [class.positive]="r.lastPoints > 0" [class.negative]="r.lastPoints < 0">
+            {{ r.lastPoints > 0 ? '+' : '' }}{{ r.lastPoints }}
+            <span class="total-points">({{ r.totalPoints }})</span>
+          </div>
         </div>
       }
     </div>

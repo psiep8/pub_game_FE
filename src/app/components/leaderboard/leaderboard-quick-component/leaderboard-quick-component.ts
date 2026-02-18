@@ -44,11 +44,10 @@ export class LeaderboardQuick implements OnInit {
   totalPlayers = signal(0);
 
   ngOnInit() {
-    // 🔥 FILTRA SOLO punteggi >= 0
-    const players = this.leaderboard.getLeaderboard()
+    const players = this.leaderboard.getLeaderboard();
 
     if (players.length === 0) {
-      console.warn('⚠️ Nessun giocatore con punti >= 0');
+      console.warn('⚠️ Nessun giocatore');
       setTimeout(() => this.onComplete.emit(), 1000);
       return;
     }
@@ -63,12 +62,11 @@ export class LeaderboardQuick implements OnInit {
     const total = players.length;
 
     for (let i = 0; i < total; i++) {
-      // 🔥 TIMING MOLTO PIÙ LENTI (2-5 secondi per player)
-      let delay = 2500; // Default: 2.5s
+      let delay = 2500;
 
-      if (players[i].position === 3) delay = 4000; // 4s bronzo
-      if (players[i].position === 2) delay = 5000; // 5s argento
-      if (players[i].position === 1) delay = 6000; // 6s ORO
+      if (players[i].position === 3) delay = 4000;
+      if (players[i].position === 2) delay = 5000;
+      if (players[i].position === 1) delay = 6000;
 
       this.visiblePlayers.update(list => [...list, players[i]]);
       this.progress.set(((i + 1) / total) * 100);
@@ -76,7 +74,6 @@ export class LeaderboardQuick implements OnInit {
       await new Promise(resolve => setTimeout(resolve, delay));
     }
 
-    // Pausa finale 5s
     await new Promise(resolve => setTimeout(resolve, 5000));
     this.onComplete.emit();
   }

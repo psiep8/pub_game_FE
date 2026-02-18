@@ -735,4 +735,20 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!Array.isArray(all)) return [];
     return all.slice(-6).reverse();
   }
+
+  getRecentResponsesWithScores(): any[] {
+    const all = this.ws.responses();
+    if (!Array.isArray(all)) return [];
+
+    return all.slice(-6).reverse().map(r => {
+      const playerScore = this.leaderboardService.getLeaderboard()
+        .find(p => p.playerName === r.playerName);
+
+      return {
+        ...r,
+        lastPoints: r.points || 0, // Punti dell'ultima risposta
+        totalPoints: playerScore?.totalPoints || 0 // Totale accumulato
+      };
+    });
+  }
 }

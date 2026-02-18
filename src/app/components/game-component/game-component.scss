@@ -1616,3 +1616,26 @@ $text-light: #e9ecef;
 .audio-toggle:active {
   transform: scale(0.95);
 }
+
+
+.r-points {
+  font-size: 24px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.r-points.positive {
+  color: #2ecc71;
+}
+
+.r-points.negative {
+  color: #e74c3c;
+}
+
+.total-points {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+}

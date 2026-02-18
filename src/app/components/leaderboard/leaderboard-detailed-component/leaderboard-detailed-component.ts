@@ -47,10 +47,11 @@ export class LeaderboardDetailed implements OnInit {
   totalPlayers = signal(0);
 
   ngOnInit() {
+    // 🔥 MOSTRA TUTTI (anche negativi)
     const players = this.leaderboard.getLeaderboard();
 
     if (players.length === 0) {
-      console.warn('⚠️ Nessun giocatore con punti >= 0');
+      console.warn('⚠️ Nessun giocatore');
       setTimeout(() => this.onComplete.emit(), 1000);
       return;
     }
@@ -77,13 +78,14 @@ export class LeaderboardDetailed implements OnInit {
   }
 
   private getDelay(position: number): number {
-    if (position > 5) return 1500;  // 1.5s (veloce)
-    if (position === 5) return 6000; // 6s
-    if (position === 4) return 7000; // 7s
-    if (position === 3) return 9000; // 9s BRONZO
-    if (position === 2) return 10000; // 10s ARGENTO
-    if (position === 1) return 12000; // 12s ORO!!!
+    if (position > 5) return 1500;
+    if (position === 5) return 6000;
+    if (position === 4) return 7000;
+    if (position === 3) return 9000;
+    if (position === 2) return 10000;
+    if (position === 1) return 12000;
 
     return 2000;
   }
+
 }
