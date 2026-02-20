@@ -1,9 +1,11 @@
-import {GameModeResult, GameModeType} from '../interfaces/game-mode-type';
+// src/app/core/game-modes/chrono/chrono.mode.ts
+
 import {GameModeBase} from '../interfaces/game-mode-base.class';
+import {GameModeResult, GameModeType} from '../interfaces/game-mode-type';
 
 export class ChronoMode extends GameModeBase {
   readonly type: GameModeType = 'CHRONO';
-  readonly timerDuration = 20;
+  readonly timerDuration = 30;
   readonly requiresBubbles = true;
   readonly requiresBuzz = false;
 
@@ -12,7 +14,6 @@ export class ChronoMode extends GameModeBase {
   }
 
   protected async onStart(): Promise<void> {
-    // Usa il flusso condiviso di pre-game (reading + VIA + start timer)
     await this.runPreGameSequence(10000);
   }
 
@@ -20,41 +21,140 @@ export class ChronoMode extends GameModeBase {
   protected onResume(): void {}
   protected onStop(): void {}
   protected onCleanup(): void {}
+
   protected onTimeout(): void {
-    console.log('⏰ Tempo scaduto per CHRONO');
+    console.log('⏰ Tempo scaduto');
   }
+
   protected onBuzz(playerName: string): void {}
-  protected onAnswer(playerName: string, answer: any, result: any): void {}
-  protected onConfirmCorrect(result: GameModeResult): void {}
-  protected onConfirmWrong(result: GameModeResult): void {}
 
-  protected validateAnswer(guessedYear: number, timeMs: number): any {
-    const realYear = parseInt(this.payload.correctAnswer);
-    const distance = Math.abs(guessedYear - realYear);
-    const isCorrect = distance <= 2;
-    const points = this.calculateChronoPoints(guessedYear, realYear, timeMs);
+  protected onAnswer(playerName: string, answer: any, result: any): void {
+    console.log(`📅 ${playerName}: ${answer}`);
+  }
 
-    return { isCorrect, points, guessedYear, realYear, distance };
+  protected onConfirmCorrect(result: GameModeResult): void {
+    console.log(`✅ ${result.playerName}: ${result.correctAnswer}`);
+  }
+
+  protected onConfirmWrong(result: GameModeResult): void {
+    console.log(`❌ ${result.playerName} sbagliato`);
+  }
+
+  protected validateAnswer(answer: any, timeMs: number): any {
+    const correctYear = parseInt(this.payload.correctAnswer);
+    const userYear = parseInt(answer);
+    const diff = Math.abs(correctYear - userYear);
+
+    if (diff === 0) {
+      return {
+        isCorrect: true,
+        correctAnswer: this.payload.correctAnswer,
+        difference: 0,
+        timeMs
+      };
+    }
+
+    if (diff <= 3) {
+      return {
+        isCorrect: false,
+        isClose: true,
+        correctAnswer: this.payload.correctAnswer,
+        difference: diff,
+        timeMs
+      };
+    }
+
+    return {
+      isCorrect: false,
+      correctAnswer: this.payload.correctAnswer,
+      difference: diff,
+      timeMs
+    };
   }
 
   protected calculatePoints(isCorrect: boolean, elapsedMs: number): number {
-    return 0;
+    const maxTimeMs = this.timerDuration * 1000;
+    const ratio = Math.max(0, 1 - (elapsedMs / maxTimeMs));
+
+    return isCorrect ? Math.round(1000 * ratio) : Math.round(-500 * ratio);
   }
 
-  private calculateChronoPoints(guessedYear: number, realYear: number, timeMs: number): number {
-    const distance = Math.abs(guessedYear - realYear);
-    if (distance > 100) return 0;
-    let baseScore = 1000 - (distance * 10);
-    const maxTime = this.timerDuration * 1000;
-    const speedFactor = 1 - (Math.min(timeMs, maxTime) / maxTime);
-    return Math.round(baseScore * Math.max(0.5, speedFactor));
+  /**
+   * 🔥 Range ASIMMETRICO - Risposta NON al centro!
+   */
+  private calculateAsymmetricRange(): { min: number; max: number; step: number } {
+    const correctYear = parseInt(this.payload.correctAnswer);
+    const random = Math.random();
+
+    // < 1500: Range 1000 anni
+    if (correctYear < 1500) {
+      const totalRange = 1000;
+      const minOffset = Math.floor(totalRange * random * 0.7);
+
+      return {
+        min: Math.max(0, correctYear - minOffset),
+        max: correctYear + (totalRange - minOffset),
+        step: 10
+      };
+    }
+
+    // 1500-1800: Range 400 anni
+    if (correctYear < 1800) {
+      const totalRange = 400;
+      const minOffset = Math.floor(totalRange * random * 0.65);
+
+      return {
+        min: correctYear - minOffset,
+        max: correctYear + (totalRange - minOffset),
+        step: 5
+      };
+    }
+
+    // 1800-1950: Range 200 anni
+    if (correctYear < 1950) {
+      const totalRange = 200;
+      const minOffset = Math.floor(totalRange * random * 0.6);
+
+      return {
+        min: correctYear - minOffset,
+        max: correctYear + (totalRange - minOffset),
+        step: 1
+      };
+    }
+
+    // 1950-2000: Range 100 anni
+    if (correctYear < 2000) {
+      const totalRange = 100;
+      const minOffset = Math.floor(totalRange * random * 0.55);
+
+      return {
+        min: correctYear - minOffset,
+        max: correctYear + (totalRange - minOffset),
+        step: 1
+      };
+    }
+
+    // 2000+: Range 60 anni
+    const totalRange = 60;
+    const minOffset = Math.floor(totalRange * random * 0.5);
+
+    return {
+      min: correctYear - minOffset,
+      max: Math.min(new Date().getFullYear() + 5, correctYear + (totalRange - minOffset)),
+      step: 1
+    };
   }
 
   getDisplayData() {
+    const range = this.calculateAsymmetricRange();
+
     return {
-      question: this.payload.question,
+      question: this.payload.question || '',
       correctAnswer: this.revealed() ? this.payload.correctAnswer : null,
-      hint: this.payload.hint || "Scegli l'anno sul tuo telefono"
+      isReading: this.isReading(),
+      minYear: range.min,
+      maxYear: range.max,
+      step: range.step
     };
   }
 }

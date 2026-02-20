@@ -9,6 +9,7 @@ import {TrueFalseMode} from '../components/game-component/mode/true_false.mode';
 import {GameModeConfig, IGameMode} from '../components/game-component/interfaces/game-mode-type';
 import {RouletteMode} from '../components/game-component/mode/roulette.mode';
 import {MusicMode} from '../components/game-component/mode/music.mode';
+import {OneVsOneMode} from '../components/game-component/mode/one_vs_one.mode';
 
 /**
  * Factory Service per creare modalità di gioco
@@ -23,7 +24,15 @@ export class GameModeService {
   /**
    * Crea una nuova modalità di gioco
    */
-  createMode(config: GameModeConfig): IGameMode {
+  createMode(config: {
+    type: "QUIZ" | "TRUE_FALSE" | "CHRONO" | "IMAGE_BLUR" | "ROULETTE" | "MUSIC" | "ONE_VS_ONE" | "WHEEL_OF_FORTUNE";
+    payload: any;
+    gameId: number;
+    onTimerTick: (seconds: any) => void;
+    onTimerEnd: () => void;
+    onBuzz: (playerName: any) => void;
+    activePlayers: string[]
+  }): IGameMode {
     // Cleanup modalità precedente
     if (this.currentMode) {
       this.currentMode.cleanup();
@@ -57,6 +66,9 @@ export class GameModeService {
         break;
       case 'MUSIC':
         mode = new MusicMode();
+        break;
+      case 'ONE_VS_ONE':
+        mode = new OneVsOneMode();
         break;
       default:
         throw new Error(`Unknown game mode: ${config.type}`);

@@ -1,5 +1,5 @@
-import {Component, Input, signal, OnInit, OnDestroy, SimpleChanges, OnChanges} from '@angular/core';
-import {CommonModule} from '@angular/common';
+import { Component, Input, signal, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-roulette',
@@ -16,7 +16,11 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
   wheelRotation = signal(0);
   showWinner = signal(false);
   winningColor = signal<string | null>(null);
-  pointerShaking = signal(false);
+
+  // Pointer physics signals
+  pointerAngle = signal(0);        // angolo reale del pointer in gradi
+  pointerVelocity = signal(0);     // quanto "sbatte" forte
+  pointerSuspense = signal(false);
 
   colorMap: Record<string, string> = {
     'ROSSO': '#e74c3c',
@@ -31,31 +35,30 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
   Math = Math;
 
   private spinTimeout: any;
-  private clickInterval: any;
+  private tickInterval: any;
+  private pointerReturnTimeout: any;
   private hasStartedSpin = false;
   private lastShowGo = false;
   private hasFinishedSpinning = false;
-  private clickSound?: HTMLAudioElement;
+  private audioCtx: AudioContext | null = null;
+
+  // Stato interno spin
+  private spinStartTime = 0;
+  private spinDuration = 18000;
+  private totalRotation = 0;
 
   ngOnInit() {
     this.generateSegments();
-
     try {
-      this.clickSound = new Audio();
-      this.clickSound.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZSA==';
-      this.clickSound.volume = 0.15;
-    } catch (e) {
-      console.log('Audio non disponibile');
-    }
+      this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    } catch (e) {}
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['displayData'] && !changes['displayData'].firstChange) {
       const oldData = changes['displayData'].previousValue;
       const newData = changes['displayData'].currentValue;
-
       if (oldData?.correctAnswer !== newData?.correctAnswer) {
-        console.log('🔄 Nuovo round REALE - Reset roulette');
         this.resetRoulette();
         this.generateSegments();
       }
@@ -63,182 +66,250 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
 
     if (this.displayData) {
       const currentShowGo = this.displayData.showGo || false;
-
       if (!this.lastShowGo && currentShowGo && !this.hasStartedSpin && !this.hasFinishedSpinning) {
-        console.log('🚦 VIA rilevato - Avvio spin tra 1.5s');
-        setTimeout(() => {
-          this.startSpin();
-        }, 1500);
+        setTimeout(() => this.startSpin(), 1500);
         this.hasStartedSpin = true;
       }
-
       this.lastShowGo = currentShowGo;
     }
   }
 
   ngOnDestroy() {
+    this.clearAllTimers();
+    if (this.audioCtx) { this.audioCtx.close(); this.audioCtx = null; }
+  }
+
+  private clearAllTimers() {
     if (this.spinTimeout) clearTimeout(this.spinTimeout);
-    if (this.clickInterval) clearInterval(this.clickInterval);
+    if (this.tickInterval) clearInterval(this.tickInterval);
+    if (this.pointerReturnTimeout) clearTimeout(this.pointerReturnTimeout);
   }
 
   private resetRoulette() {
+    this.clearAllTimers();
     this.isSpinning.set(false);
     this.wheelRotation.set(0);
     this.showWinner.set(false);
     this.winningColor.set(null);
-    this.pointerShaking.set(false);
+    this.pointerAngle.set(0);
+    this.pointerVelocity.set(0);
+    this.pointerSuspense.set(false);
     this.hasStartedSpin = false;
     this.lastShowGo = false;
     this.hasFinishedSpinning = false;
-
-    if (this.spinTimeout) {
-      clearTimeout(this.spinTimeout);
-      this.spinTimeout = null;
-    }
-
-    if (this.clickInterval) {
-      clearInterval(this.clickInterval);
-      this.clickInterval = null;
-    }
   }
 
   private generateSegments() {
     const colors = Object.keys(this.colorMap);
     const segmentCount = 24;
     const sequence: string[] = [];
-
     for (let i = 0; i < segmentCount; i++) {
       const lastColor = sequence[i - 1];
-      let availableColors = colors.filter(c => c !== lastColor);
-
-      if (i === segmentCount - 1) {
-        availableColors = availableColors.filter(c => c !== sequence[0]);
-      }
-
-      const nextColor = availableColors[Math.floor(Math.random() * availableColors.length)];
-      sequence.push(nextColor);
+      let available = colors.filter(c => c !== lastColor);
+      if (i === segmentCount - 1) available = available.filter(c => c !== sequence[0]);
+      sequence.push(available[Math.floor(Math.random() * available.length)]);
     }
-
     this.segments.set(sequence);
-    console.log('🎰 Segmenti generati:', sequence);
   }
 
   private startSpin() {
     if (this.isSpinning() || this.hasFinishedSpinning) return;
 
-    console.log('🎰 === INIZIO SPIN ===');
     this.isSpinning.set(true);
 
     const winningColor = this.displayData?.correctAnswer || 'ROSSO';
     const segments = this.segments();
+    const segCount = segments.length;
+    const degreesPerSegment = 360 / segCount;
+
+    // Scegli un segmento vincente casuale
     const winningIndices = segments
-      .map((color, idx) => color === winningColor ? idx : -1)
-      .filter(idx => idx !== -1);
-
+      .map((c, i) => c === winningColor ? i : -1)
+      .filter(i => i !== -1);
     const targetIndex = winningIndices[Math.floor(Math.random() * winningIndices.length)];
-    const degreesPerSegment = 360 / segments.length;
 
-    // TUA FORMULA FUNZIONANTE
-    const offsetToCenter = degreesPerSegment / 2;
-    const rotationToTarget = 360 - (targetIndex * degreesPerSegment) - offsetToCenter;
-    const extraSpins = (12 + Math.floor(Math.random() * 4)) * 360;
+    // Calcola rotazione: il pointer è in alto (0°), vogliamo che il segmento target arrivi lì
+    // La ruota gira in senso orario visivamente, quindi in CSS rotate(+deg)
+    // Per portare il segmento targetIndex sotto il pointer:
+    // angolo del centro del segmento = targetIndex * degreesPerSegment + degreesPerSegment/2
+    // dobbiamo ruotare la ruota di: -(angolo) mod 360 + giri extra
+    const segmentCenterAngle = targetIndex * degreesPerSegment + degreesPerSegment / 2;
+    const rotationToAlign = (360 - segmentCenterAngle) % 360;
+    const extraSpins = (10 + Math.floor(Math.random() * 5)) * 360;
+    // Piccola randomness dentro il segmento (max 35% del segmento)
+    const jitter = (Math.random() - 0.5) * degreesPerSegment * 0.7;
 
-    // 🔥 MIGLIORIA: Casualità più ampia per finale imprevedibile
-    const randomness = (Math.random() - 0.5) * (degreesPerSegment * 0.8);
-    const totalRotation = extraSpins + rotationToTarget + randomness;
+    this.totalRotation = extraSpins + rotationToAlign + jitter;
+    this.spinDuration = 18000;
+    this.spinStartTime = Date.now();
 
-    console.log('🎯 Target:', targetIndex, '/', segments[targetIndex]);
-    console.log('🎯 Rotazione:', totalRotation.toFixed(2) + '°');
+    // Applica la rotazione CSS
+    this.wheelRotation.set(this.totalRotation);
 
-    this.wheelRotation.set(totalRotation);
+    // Avvia il loop di fisica del pointer
+    this.startPhysicsLoop(segCount, winningColor);
 
-    // 🔥 TICKING MIGLIORATO (ma semplice)
-    this.startTickingEffect(segments.length, 12000, totalRotation);
-
+    // Fine spin
     this.spinTimeout = setTimeout(() => {
-      console.log('✅ SPIN COMPLETATO');
       this.isSpinning.set(false);
       this.hasFinishedSpinning = true;
       this.winningColor.set(winningColor);
-      this.showWinner.set(true);
 
-      if (this.clickInterval) {
-        clearInterval(this.clickInterval);
-        this.clickInterval = null;
+      if (this.tickInterval) { clearInterval(this.tickInterval); this.tickInterval = null; }
+
+      // Settle pointer to 0
+      this.pointerAngle.set(0);
+      this.pointerVelocity.set(0);
+      this.pointerSuspense.set(false);
+
+      setTimeout(() => this.showWinner.set(true), 500);
+    }, this.spinDuration);
+  }
+
+  private startPhysicsLoop(segCount: number, winningColor: string) {
+    if (this.tickInterval) clearInterval(this.tickInterval);
+
+    const degreesPerSegment = 360 / segCount;
+
+    // Traccia il numero ASSOLUTO di confini attraversati.
+    // Usando Math.floor(rotazioneAssoluta / degreesPerSegment) non si perde
+    // mai un piolo, nemmeno a velocità minima (0.001°/frame).
+    let lastBoundaryCount = Math.floor(0 / degreesPerSegment);
+
+    // Velocità di picco = derivata dell'easing a t=0, moltiplicata per totalRotation/duration
+    // easeOutQuint derivative a t=0: 5*(1-0)^4 = 5
+    const peakVelocityDegPerSec = (this.totalRotation / this.spinDuration) * 1000 * 5;
+
+    this.tickInterval = setInterval(() => {
+      const elapsed = Date.now() - this.spinStartTime;
+      const progress = Math.min(elapsed / this.spinDuration, 1);
+      const easedProgress = this.easeOutQuint(progress);
+      const currentRotation = this.totalRotation * easedProgress;
+
+      // Numero di confini attraversati dall'inizio (valore assoluto, sempre crescente)
+      const currentBoundaryCount = Math.floor(currentRotation / degreesPerSegment);
+
+      // Quanti nuovi confini abbiamo attraversato in questo frame?
+      const newBoundaries = currentBoundaryCount - lastBoundaryCount;
+
+      if (newBoundaries > 0) {
+        lastBoundaryCount = currentBoundaryCount;
+
+        // Velocità angolare istantanea: derivata easeOutQuint = 5*(1-t)^4
+        const derivative = 5 * Math.pow(1 - progress, 4);
+        const velocityDegPerSec = (this.totalRotation / this.spinDuration) * 1000 * derivative;
+        const normalizedVel = Math.min(velocityDegPerSec / peakVelocityDegPerSec, 1);
+
+        const inSuspense = progress > 0.62;
+        this.pointerSuspense.set(inSuspense);
+
+        // Se in un frame lento saltassimo più di 1 confine (raro ma possibile),
+        // triggeriamo comunque solo 1 hit per non sovraccaricare
+        this.triggerPointerHit(normalizedVel, inSuspense);
+        this.playTick(velocityDegPerSec, inSuspense);
       }
-    }, 12000);
+
+      // Aggiorna suspense anche senza hit
+      if (newBoundaries === 0) {
+        this.pointerSuspense.set(progress > 0.62);
+      }
+
+      if (progress >= 1) {
+        clearInterval(this.tickInterval);
+        this.tickInterval = null;
+        this.pointerSuspense.set(false);
+      }
+    }, 8); // ~120fps
+  }
+
+  private triggerPointerHit(normalizedVel: number, inSuspense: boolean) {
+    // Durante spin veloce: deflessione forte ma breve
+    // Durante suspense: deflessione più lenta e drammatica, con rimbalzo
+    const deflectionAngle = inSuspense
+      ? 12 + (1 - normalizedVel) * 8   // 12°–20° in suspense (più grande perché lento = più visibile)
+      : 4 + normalizedVel * 18;          // 4°–22° in spin veloce
+
+    // Cancella qualsiasi ritorno precedente in corso
+    if (this.pointerReturnTimeout) clearTimeout(this.pointerReturnTimeout);
+
+    // Impatto istantaneo: il CSS transition è disabilitato durante l'impatto
+    // perché impostiamo direttamente il valore target
+    this.pointerAngle.set(-deflectionAngle);
+
+    // Tempo di ritorno: inversamente proporzionale alla velocità
+    // Veloce → ritorna subito (30ms), lento → ritorna piano (200ms)
+    const returnMs = inSuspense
+      ? 180 + (1 - normalizedVel) * 120  // 180–300ms in suspense
+      : 30 + normalizedVel * 50;          // 30–80ms in spin veloce
+
+    this.pointerReturnTimeout = setTimeout(() => {
+      // Micro-rimbalzo oltre lo zero (effetto molla)
+      const bounceAngle = deflectionAngle * (inSuspense ? 0.3 : 0.15);
+      this.pointerAngle.set(bounceAngle);
+
+      setTimeout(() => {
+        this.pointerAngle.set(0);
+      }, returnMs * 0.5);
+    }, returnMs);
   }
 
   getSlicePath(index: number, total: number): string {
     const angle = 360 / total;
     const startAngle = index * angle - 90;
     const endAngle = (index + 1) * angle - 90;
-
-    const polarToCartesian = (deg: number, radius: number) => {
-      const rad = deg * Math.PI / 180;
-      return {
-        x: 50 + radius * Math.cos(rad),
-        y: 50 + radius * Math.sin(rad)
-      };
-    };
-
+    const polarToCartesian = (deg: number, r: number) => ({
+      x: 50 + r * Math.cos(deg * Math.PI / 180),
+      y: 50 + r * Math.sin(deg * Math.PI / 180)
+    });
     const start = polarToCartesian(startAngle, 50);
     const end = polarToCartesian(endAngle, 50);
     const largeArcFlag = angle <= 180 ? "0" : "1";
-
-    return [
-      "M", 50, 50,
-      "L", start.x, start.y,
-      "A", 50, 50, 0, largeArcFlag, 1, end.x, end.y,
-      "Z"
-    ].join(" ");
+    return `M 50 50 L ${start.x} ${start.y} A 50 50 0 ${largeArcFlag} 1 ${end.x} ${end.y} Z`;
   }
 
-  // 🔥 TICKING SEMPLIFICATO MA EFFICACE
-  private startTickingEffect(segmentCount: number, duration: number, totalRotation: number): void {
-    if (this.clickInterval) clearInterval(this.clickInterval);
+  private playTick(angularVelocityDegPerSec: number, inSuspense: boolean): void {
+    if (!this.audioCtx) return;
+    if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
 
-    const startTime = Date.now();
-    const degreesPerSegment = 360 / segmentCount;
-    let lastSegment = -1;
+    const ctx = this.audioCtx;
+    const now = ctx.currentTime;
 
-    this.clickInterval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
+    // Normalizza velocità per il volume
+    const maxVel = (this.totalRotation / this.spinDuration) * 1000 * 5;
+    const velNorm = Math.min(angularVelocityDegPerSec / maxVel, 1);
+    const volume = inSuspense
+      ? 0.15 + Math.random() * 0.08
+      : 0.05 + velNorm * 0.25;
 
-      // Easing semplice ma efficace
-      const easedProgress = this.easeOutCubic(progress);
-      const currentRotation = totalRotation * easedProgress;
-      const currentSegment = Math.floor((currentRotation + (degreesPerSegment / 2)) / degreesPerSegment);
+    // Oscillatore: suono di piolo meccanico
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(inSuspense ? 160 : 300 + velNorm * 150, now);
+    osc.frequency.exponentialRampToValueAtTime(inSuspense ? 55 : 70, now + 0.07);
+    gain.gain.setValueAtTime(volume, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + (inSuspense ? 0.22 : 0.08));
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + (inSuspense ? 0.25 : 0.09));
 
-      if (currentSegment !== lastSegment) {
-        lastSegment = currentSegment;
-
-        // 🔥 Volume dinamico: forte all'inizio, delicato alla fine
-        const velocity = 1 - progress;
-        const volume = 0.08 + (velocity * 0.12);
-
-        // Shake
-        this.pointerShaking.set(true);
-        setTimeout(() => this.pointerShaking.set(false), 60);
-
-        // Click
-        if (this.clickSound) {
-          this.clickSound.volume = volume;
-          this.clickSound.currentTime = 0;
-          this.clickSound.play().catch(() => {});
-        }
-      }
-
-      if (progress >= 1) {
-        clearInterval(this.clickInterval);
-        this.clickInterval = null;
-      }
-    }, 16); // 60fps
+    // Noise percussivo
+    const bufSize = Math.floor(ctx.sampleRate * 0.05);
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufSize);
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(volume * 0.5, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+    noise.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noise.start(now);
   }
 
-  // Easing semplice
-  private easeOutCubic(t: number): number {
-    return 1 - Math.pow(1 - t, 3);
+  private easeOutQuint(t: number): number {
+    return 1 - Math.pow(1 - t, 5);
   }
 }
