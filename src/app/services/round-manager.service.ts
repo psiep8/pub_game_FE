@@ -21,14 +21,22 @@ export class RoundManagerService {
   });
 
   private readonly GAME_PROBABILITIES: Record<GameModeType, number> = {
-    'QUIZ': 25,
-    'TRUE_FALSE': 15,
-    'WHEEL_OF_FORTUNE': 10,
-    'MUSIC': 20,
-    'IMAGE_BLUR': 10,
-    'CHRONO': 5,
-    'ROULETTE': 5,
-    'ONE_VS_ONE': 10
+    // 'QUIZ': 25,
+    // 'TRUE_FALSE': 15,
+    // 'WHEEL_OF_FORTUNE': 10,
+    // 'MUSIC': 20,
+    // 'IMAGE_BLUR': 10,
+    // 'CHRONO': 5,
+    // 'ROULETTE': 5,
+    // 'ONE_VS_ONE': 10
+    'QUIZ': 0,
+    'TRUE_FALSE': 0,
+    'WHEEL_OF_FORTUNE': 0,
+    'MUSIC': 100,
+    'IMAGE_BLUR': 0,
+    'CHRONO': 0,
+    'ROULETTE': 0,
+    'ONE_VS_ONE': 0
   };
 
   constructor() {
