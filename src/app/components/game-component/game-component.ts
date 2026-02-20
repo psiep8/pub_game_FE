@@ -11,23 +11,30 @@ import {
   ViewChild,
   ChangeDetectorRef
 } from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {trigger, transition, style, animate} from '@angular/animations';
-import {firstValueFrom} from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { trigger, transition, style, animate } from '@angular/animations';
+import { firstValueFrom } from 'rxjs';
 
-import {GameRound, GameService} from '../../services/game.service';
-import {WebSocketService} from '../../services/web-socket.service';
-import {AiGeneratorService} from '../../services/ai-generator-service';
-import {GameModeService} from '../../services/game-mode-factory.service';
-import {ImageBlur} from './games/image-blur/image-blur';
-import {Quiz} from './games/quiz/quiz';
-import {WheelFortune} from './games/wheel-fortune/wheel-fortune';
-import {TrueFalse} from './games/true-false/true-false';
-import {Chrono} from './games/chrono/chrono';
-import {environment} from '../../environment/environment';
-import {GameModeType, IGameMode} from './interfaces/game-mode-type';
-import {Roulette} from './games/roulette/roulette';
-import {Song} from './games/song/song';
+import { GameRound, GameService } from '../../services/game.service';
+import { WebSocketService } from '../../services/web-socket.service';
+import { AiGeneratorService } from '../../services/ai-generator-service';
+import { GameModeService } from '../../services/game-mode-factory.service';
+import { RoundManagerService } from '../../services/round-manager.service';
+import { LeaderboardService } from '../../services/leaderboard.service';
+import { AudioService } from '../../services/audio.service';
+
+import { ImageBlur } from './games/image-blur/image-blur';
+import { Quiz } from './games/quiz/quiz';
+import { WheelFortune } from './games/wheel-fortune/wheel-fortune';
+import { TrueFalse } from './games/true-false/true-false';
+import { Chrono } from './games/chrono/chrono';
+import { Roulette } from './games/roulette/roulette';
+import { Song } from './games/song/song';
+import { environment } from '../../environment/environment';
+import { GameModeType, IGameMode } from './interfaces/game-mode-type';
+import { OneVsOne } from './games/one-vs-one/one-vs-one';
+import { LeaderboardQuick } from '../leaderboard/leaderboard-quick-component/leaderboard-quick-component';
+import { LeaderboardDetailed } from '../leaderboard/leaderboard-detailed-component/leaderboard-detailed-component';
 
 @Component({
   selector: 'app-game-component',
@@ -41,14 +48,17 @@ import {Song} from './games/song/song';
     ImageBlur,
     Roulette,
     Song,
+    OneVsOne,
+    LeaderboardQuick,
+    LeaderboardDetailed
   ],
   templateUrl: './game-component.html',
   styleUrl: './game-component.scss',
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [
-        style({opacity: 0, transform: 'scale(0.8)'}),
-        animate('300ms ease-out', style({opacity: 1, transform: 'scale(1)'}))
+        style({ opacity: 0, transform: 'scale(0.8)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'scale(1)' }))
       ])
     ])
   ]
@@ -59,6 +69,11 @@ export class GameComponent implements OnInit, OnDestroy {
   private aiService = inject(AiGeneratorService);
   private gameModeService = inject(GameModeService);
   private cdr = inject(ChangeDetectorRef);
+
+  // 🔥 NUOVI SERVICES
+  public roundManager = inject(RoundManagerService);
+  private leaderboardService = inject(LeaderboardService);
+  public audioService = inject(AudioService);
 
   // State
   allCategories = signal<any[]>([]);
@@ -83,17 +98,23 @@ export class GameComponent implements OnInit, OnDestroy {
   resultPoints = signal(0);
   resultPlayerName = signal('');
 
+  // 🔥 CLASSIFICHE
+  showLeaderboardQuick = signal(false);
+  showLeaderboardDetailed = signal(false);
+  roundInfo = signal<string>('');
+  isShowingLeaderboard = signal(false);
+  pendingLeaderboardType = signal<'QUICK' | 'DETAILED' | null>(null);
+
   currentGameId = signal<number | null>(null);
 
   // QR Code
   remoteUrl = `${environment.frontendUrl}/play`;
   qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(this.remoteUrl)}&bgcolor=ffffff&color=1a1a2e&margin=10&qzone=1`;
 
-  @ViewChild('prestartTimer', {read: ElementRef, static: false}) prestartTimer?: ElementRef<HTMLElement>;
+  @ViewChild('prestartTimer', { read: ElementRef, static: false }) prestartTimer?: ElementRef<HTMLElement>;
 
-  // Audio per pre-start (opzionale)
   private prestartAudio?: HTMLAudioElement;
-  private audioAllowed = false; // diventa true dopo la prima interazione
+  private audioAllowed = false;
   private displayDataInterval?: any;
 
   @HostListener('window:beforeunload', ['$event'])
@@ -129,7 +150,12 @@ export class GameComponent implements OnInit, OnDestroy {
       console.error("Errore inizializzazione:", err);
     }
 
-    // Precarica audio se presente
+    // 🔥 INFO ROUND
+    const progress = this.roundManager.getProgress();
+    this.roundInfo.set(progress.text);
+    console.log(`📊 Round Progress: ${progress.text} (${progress.percentage.toFixed(0)}%)`);
+
+    // Precarica audio
     try {
       this.prestartAudio = new Audio('/sounds/prestart-beep.mp3');
       this.prestartAudio.preload = 'auto';
@@ -137,7 +163,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.prestartAudio = undefined;
     }
 
-    // Intercettiamo la prima interazione dell'utente per abilitare l'audio (policy autoplay)
+    // Audio unlock
     const allowAudioOnce = () => {
       this.audioAllowed = true;
       window.removeEventListener('click', allowAudioOnce);
@@ -146,15 +172,14 @@ export class GameComponent implements OnInit, OnDestroy {
     window.addEventListener('click', allowAudioOnce);
     window.addEventListener('keydown', allowAudioOnce);
 
-    // WebSocket responses: ignoriamo le risposte mentre la mode è in fase di lettura
+    // WebSocket responses
     this.ws.responses$.subscribe(res => {
       const mode = this.currentMode();
       if (!mode) return;
 
-      // Se la modalità espone getIsReading e la fase di lettura è attiva, ignoriamo le risposte
       const isReading = (mode as any).getIsReading?.() ?? false;
       if (isReading) return;
-      console.log(res)
+
       if (!mode.requiresBuzz) {
         mode.handleAnswer(res.playerName, res.answerIndex, res.responseTimeMs);
       } else if (res.answerIndex === -1) {
@@ -162,45 +187,39 @@ export class GameComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Effetto: osserva i cambi al preStartCountdown e riavvia l'animazione + suono
-    // Poiché usiamo segnali, usiamo un piccolo polling via setInterval per reattare ai cambi
+    // Pre-start countdown animation
     let lastPreStart = this.preStartCountdown();
     setInterval(() => {
       const cur = this.preStartCountdown();
       if (cur !== lastPreStart) {
-        // cambia valore
-        // se siamo nella finestra 1..5, proviamo a riprodurre l'audio e riavviare l'animazione
         if (cur > 0 && cur <= 5) {
-          // Riavvia effetto bounce (rimuovi e riaggiungi classe) per forzare replay animation
           try {
             const el = this.prestartTimer?.nativeElement;
             if (el) {
               el.classList.remove('bounce');
-              // trigger reflow
               void el.offsetWidth;
               el.classList.add('bounce');
             }
           } catch (err) {
-            // ignore
           }
 
           if (this.audioAllowed && this.prestartAudio) {
             try {
-              // play non in modo await per non bloccare
               this.prestartAudio.currentTime = 0;
               const p = this.prestartAudio.play();
               if (p && typeof p.then === 'function') {
-                p.catch(() => {/* autoplay bloccato */
+                p.catch(() => {
                 });
               }
             } catch (e) {
-              // ignore
             }
           }
         }
         lastPreStart = cur;
       }
-    }, 120); // polling leggero: 8 volte al secondo
+    }, 120);
+
+    // Admin controls
     this.ws.status$.subscribe((status: any) => {
       if (!status) return;
 
@@ -210,22 +229,17 @@ export class GameComponent implements OnInit, OnDestroy {
         this.confirmWrong();
       }
     });
-    this.ws.responses$.subscribe(res => {
-      const mode = this.currentMode();
-      if (!mode) return;
 
-      // 🔥 BUZZ = answerIndex === -1
-      if (res.answerIndex === -1) {
-        mode.handleBuzz(res.playerName);
-      }
-    });
+    // Change detection for MUSIC
     this.displayDataInterval = setInterval(() => {
       const mode = this.currentMode();
       if (mode && mode.type === 'MUSIC') {
-        // Force change detection
         this.cdr.detectChanges();
       }
     }, 100);
+
+    // 🔥 AVVIA HEARTBEAT in IDLE
+    this.audioService.startHeartbeat();
   }
 
   ngOnDestroy() {
@@ -233,10 +247,23 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.displayDataInterval) {
       clearInterval(this.displayDataInterval);
     }
+    // 🔥 FERMA TUTTI I SUONI
+    this.audioService.stopAll();
   }
 
   async startNewRound() {
+    if (this.isShowingLeaderboard()) {
+      console.warn('⚠️ Classifica in corso, attendi...');
+      return;
+    }
+
     if (this.isSpinning()) return;
+
+    // 🔥 Controlla se il gioco è finito
+    if (this.roundManager.isGameOver()) {
+      alert('🏁 Partita completata! Resetta per ricominciare.');
+      return;
+    }
 
     this.reset();
 
@@ -246,13 +273,19 @@ export class GameComponent implements OnInit, OnDestroy {
       localStorage.setItem('activeGameId', newGame.id.toString());
     }
 
-    // const types: GameModeType[] = ['MUSIC'];
-    const types: GameModeType[] = ['WHEEL_OF_FORTUNE'];
-    const extractedType = types[Math.floor(Math.random() * types.length)];
+    // 🔥 ESTRAI TIPO DAL ROUND MANAGER (non più random)
+    const extractedType = this.roundManager.startNewRound();
+
+    // 🔥 Aggiorna info round
+    const progress = this.roundManager.getProgress();
+    this.roundInfo.set(progress.text);
+
+    // 🔥 FERMA HEARTBEAT
+    this.audioService.stopHeartbeat();
 
     this.phase.set('SPINNING');
     this.showTypeReveal.set(extractedType);
-    await new Promise(r => setTimeout(r, 5000));
+    await new Promise(r => setTimeout(r, 3000));
     this.showTypeReveal.set(null);
 
     this.isSpinning.set(true);
@@ -272,26 +305,24 @@ export class GameComponent implements OnInit, OnDestroy {
         )
       );
 
-      console.log('📦 Round ricevuto dal BE:', nextRound);
-      console.log('📦 Payload RAW:', nextRound.payload);
+      console.log('📦 Round ricevuto:', nextRound);
 
-      // 🔥 Parse payload se è stringa
       let parsedPayload = nextRound.payload;
       if (typeof parsedPayload === 'string') {
         parsedPayload = JSON.parse(parsedPayload);
       }
 
-      console.log('📦 Payload parsato:', parsedPayload);
       this.round.set(nextRound);
+      const activePlayers = this.leaderboardService.getLeaderboard().map(p => p.playerName);
 
-      // 🔥 CREA MODE con payload PIATTO (no .payload.payload)
       const mode = this.gameModeService.createMode({
         type: parsedPayload.type || extractedType,
-        payload: parsedPayload,  // 🔥 Passa tutto il payload direttamente
+        payload: parsedPayload,
         gameId: this.currentGameId()!,
         onTimerTick: (seconds) => this.timer.set(seconds),
         onTimerEnd: () => this.onModeTimeout(),
-        onBuzz: (playerName) => this.onPlayerBuzz(playerName)
+        onBuzz: (playerName) => this.onPlayerBuzz(playerName),
+        activePlayers: activePlayers
       });
 
       (mode as any).setConfig?.({
@@ -301,25 +332,41 @@ export class GameComponent implements OnInit, OnDestroy {
 
       this.currentMode.set(mode);
 
+      if (mode.requiresBubbles) {
+        const randomIndex = Math.floor(Math.random() * categories.length);
+        this.animatedCategoryId.set(categories[randomIndex].id);
+
+        this.phase.set('SPINNING');
+        await new Promise(r => setTimeout(r, 5000));
+
+        this.phase.set('SELECTED');
+        this.animatedCategoryId.set(this.selectedCategoryId());
+        await new Promise(r => setTimeout(r, 5000));
+      }
+
       this.phase.set('QUESTION');
       this.showQuestion.set(true);
       this.timer.set(mode.timerDuration);
 
-      // 🔥 SHOW_QUESTION
+      const payloadString = typeof nextRound.payload === 'string'
+        ? nextRound.payload
+        : JSON.stringify(nextRound.payload);
+
       this.ws.broadcastStatus(1, {
         action: 'SHOW_QUESTION',
         type: parsedPayload.type || extractedType,
-        payload: JSON.stringify(parsedPayload)
+        payload: payloadString
       });
 
-      // 🔥 AWAIT mode.start() (aspetta countdown)
+      // 🔥 AVVIA CLOCK
+      this.audioService.startClock();
+
       await mode.start();
 
-      // 🔥 START_VOTING dopo countdown
       this.ws.broadcastStatus(1, {
         action: 'START_VOTING',
         type: parsedPayload.type || extractedType,
-        payload: JSON.stringify(parsedPayload)
+        payload: payloadString
       });
 
       this.isSpinning.set(false);
@@ -328,6 +375,7 @@ export class GameComponent implements OnInit, OnDestroy {
       console.error('❌ Errore nuovo round:', err);
       this.isSpinning.set(false);
       this.phase.set('IDLE');
+      this.audioService.stopClock();
     }
   }
 
@@ -338,7 +386,7 @@ export class GameComponent implements OnInit, OnDestroy {
       case 'WHEEL_OF_FORTUNE':
         return 'PROVERBI E MODI DI DIRE';
       case 'ROULETTE':
-        return 'FORTUNA'; // <-- AGGIUNGI QUESTO
+        return 'FORTUNA';
       default:
         const categories = this.allCategories();
         const randomIndex = Math.floor(Math.random() * categories.length);
@@ -346,47 +394,90 @@ export class GameComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * 🎮 Ottieni nome italiano del mode
+   */
+  getModeName(type: string): string {
+    switch (type) {
+      case 'QUIZ':
+        return 'QUIZ';
+      case 'TRUE_FALSE':
+        return 'VERO O FALSO';
+      case 'MUSIC':
+        return 'INDOVINA LA CANZONE';
+      case 'WHEEL_OF_FORTUNE':
+        return 'RUOTA DELLA FORTUNA';
+      case 'IMAGE_BLUR':
+        return 'INDOVINA CHI';
+      case 'CHRONO':
+        return 'CHRONO';
+      case 'ROULETTE':
+        return 'ROULETTE';
+      case '1VS1':
+        return '1 CONTRO 1';
+      default:
+        return type;
+    }
+  }
 
+  /**
+   * ⏰ Timeout mode
+   */
   private onModeTimeout() {
     const mode = this.currentMode();
     if (!mode) return;
 
-    // Imposta round come REVEAL
+    // 🔥 FERMA CLOCK
+    this.audioService.stopClock();
+
     const currentRound = this.round();
     if (currentRound) {
-      this.round.set({...currentRound, status: 'REVEAL'});
+      this.round.set({ ...currentRound, status: 'REVEAL' });
     }
 
     if (mode.type === 'IMAGE_BLUR' || mode.type === 'WHEEL_OF_FORTUNE') {
       this.showTimeoutPopup();
     }
 
-    // Notifica telefoni
-    this.ws.broadcastStatus(1, {action: 'ROUND_ENDED'});
-    // Assicuriamoci che la fase di spinning sia disattivata quando il round finisce
+    // 🔥 SUONO REVEAL
+    this.audioService.playReveal();
+
+    this.ws.broadcastStatus(1, { action: 'ROUND_ENDED' });
+
     this.isSpinning.set(false);
+
+    // 🔥 COMPLETA ROUND
+    this.roundManager.completeRound(mode.type);
+
+    // 🔥 CONTROLLA CLASSIFICA
+    setTimeout(() => {
+      this.checkLeaderboardDisplay();
+    }, 2000);
   }
 
+  /**
+   * 🎤 Buzz giocatore
+   */
   private onPlayerBuzz(playerName: string) {
-    console.log(`🎤 BUZZ ricevuto nel GameComponent: ${playerName}`);
+    console.log(`🎤 BUZZ: ${playerName}`);
 
     const mode = this.currentMode();
-    if (!mode) {
-      console.warn('⚠️ Nessun mode attivo');
-      return;
-    }
+    if (!mode) return;
+
+    // 🔥 SUONO CAMPANELLA
+    this.audioService.playBell();
 
     mode.handleBuzz(playerName);
 
-    // 🔥 Broadcast a tutti
     this.ws.broadcastStatus(1, {
       action: 'PLAYER_PRENOTATO',
       name: playerName
     });
-
-    console.log(`✅ Broadcast PLAYER_PRENOTATO: ${playerName}`);
   }
 
+  /**
+   * ✅ Conferma corretto
+   */
   confirmCorrect() {
     const mode = this.currentMode();
     if (!mode) return;
@@ -394,37 +485,54 @@ export class GameComponent implements OnInit, OnDestroy {
     const playerName = mode.getDisplayData().buzzedPlayer;
     if (!playerName) return;
 
-    // 1. Recuperiamo il tempo trascorso (il mode tiene traccia di quando è iniziato il timer)
-    // Se il mode non ha un metodo per il tempo, usiamo la differenza dal timer attuale
     const elapsedMs = (mode.timerDuration * 1000) - (this.timer() * 1000);
-
-    // 2. Usiamo la logica del mode per calcolare i punti REALI
     const realPoints = (mode as any).calculatePoints(true, elapsedMs);
+
+    // 🔥 AGGIUNGI PUNTI
+    this.leaderboardService.addPoints(playerName, realPoints, true);
 
     mode.confirmCorrect(playerName);
 
+    // 🔥 SUONO CORRETTO
+    this.audioService.playCorrect();
+
     const currentRound = this.round();
     if (currentRound) {
-      this.round.set({...currentRound, status: 'REVEAL'});
+      this.round.set({ ...currentRound, status: 'REVEAL' });
     }
 
     this.isSpinning.set(false);
 
-    // 3. Settiamo i punti reali per il popup e per il broadcast
     this.resultType.set('correct');
-    this.resultPoints.set(realPoints); // <--- DINAMICO
+    this.resultPoints.set(realPoints);
     this.resultPlayerName.set(playerName);
     this.showResultPopup.set(true);
 
     this.ws.broadcastStatus(1, {
       action: 'ROUND_ENDED',
       winner: playerName,
-      points: realPoints // <--- DINAMICO
+      points: realPoints
     });
 
-    setTimeout(() => this.showResultPopup.set(false), 5000);
+    setTimeout(() => {
+      this.showResultPopup.set(false);
+
+      // 🔥 SUONO REVEAL
+      this.audioService.playReveal();
+    }, 3000);
+
+    // 🔥 COMPLETA ROUND
+    this.roundManager.completeRound(mode.type);
+
+    // 🔥 CONTROLLA CLASSIFICA
+    setTimeout(() => {
+      this.checkLeaderboardDisplay();
+    }, 5500);
   }
 
+  /**
+   * ❌ Conferma sbagliato
+   */
   confirmWrong() {
     const mode = this.currentMode();
     if (!mode) return;
@@ -433,43 +541,84 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!playerName) return;
 
     const elapsedMs = (mode.timerDuration * 1000) - (this.timer() * 1000);
-
-    // Calcolo punti dinamico anche per l'errore
     const realPoints = (mode as any).calculatePoints(false, elapsedMs);
+
+    // 🔥 SOTTRAI PUNTI
+    this.leaderboardService.addPoints(playerName, realPoints, false);
 
     mode.confirmWrong(playerName);
 
-    const currentRound = this.round();
-    if (currentRound) {
-      this.round.set({...currentRound, status: 'REVEAL'});
-    }
-
-    this.isSpinning.set(false);
+    // 🔥 SUONO SBAGLIATO
+    this.audioService.playWrong();
 
     this.resultType.set('wrong');
-    this.resultPoints.set(realPoints); // <--- DINAMICO (-1000 a scalare)
+    this.resultPoints.set(realPoints);
     this.resultPlayerName.set(playerName);
     this.showResultPopup.set(true);
 
     this.ws.broadcastStatus(1, {
       action: 'BLOCKED_ERROR',
       blockedPlayer: playerName,
-      points: realPoints // Passiamo i punti anche qui se serve al database/classifica
+      points: realPoints
     });
 
     setTimeout(() => this.showResultPopup.set(false), 3000);
   }
 
   private showTimeoutPopup() {
-    const mode = this.currentMode();
-    if (!mode) return;
-
     this.resultType.set('correct');
     this.resultPoints.set(0);
     this.resultPlayerName.set('Tempo Scaduto!');
     this.showResultPopup.set(true);
 
     setTimeout(() => this.showResultPopup.set(false), 5000);
+  }
+
+  /**
+   * 📊 Controlla e mostra classifica
+   */
+  private checkLeaderboardDisplay() {
+    this.audioService.stopAll();
+
+    const leaderboardType = this.roundManager.shouldShowLeaderboard();
+    const round = this.roundManager.getCurrentRound();
+
+    console.log(`📊 Round ${round}: Check classifica → ${leaderboardType}`);
+
+    if (leaderboardType) {
+      console.log(`📊 Mostra bottone classifica ${leaderboardType}`);
+      this.pendingLeaderboardType.set(leaderboardType);
+    }
+  }
+
+  showPendingLeaderboard() {
+    const type = this.pendingLeaderboardType();
+    if (type === 'QUICK') {
+      console.log('📊 Mostra classifica RAPIDA');
+      this.isShowingLeaderboard.set(true); // 🔥 BLOCCA GIOCO
+      this.showLeaderboardQuick.set(true);
+    } else if (type === 'DETAILED') {
+      console.log('📊 Mostra classifica DETTAGLIATA');
+      this.isShowingLeaderboard.set(true); // 🔥 BLOCCA GIOCO
+      this.showLeaderboardDetailed.set(true);
+    }
+    this.pendingLeaderboardType.set(null);
+  }
+
+  onLeaderboardComplete() {
+    this.showLeaderboardQuick.set(false);
+    this.showLeaderboardDetailed.set(false);
+    this.isShowingLeaderboard.set(false); // 🔥 SBLOCCA GIOCO
+
+    console.log('📊 Classifica chiusa - Gioco sbloccato');
+
+    if (this.phase() === 'IDLE') {
+      this.audioService.startHeartbeat();
+    }
+
+    if (this.roundManager.isGameOver()) {
+      alert('🏁 PARTITA COMPLETATA!');
+    }
   }
 
   togglePause() {
@@ -502,26 +651,31 @@ export class GameComponent implements OnInit, OnDestroy {
 
   confirmReset() {
     this.showResetModal.set(false);
+
+    // 🔥 RESET ROUND MANAGER
+    this.roundManager.resetGame();
+
+    // 🔥 RESET CLASSIFICA
+    this.leaderboardService.reset();
+
     location.reload();
   }
 
   private generateNonOverlappingPositions(categories: any[]) {
-    // Genera posizioni con semplice avoidance: tenta posizionare ogni bubble lontano dalle altre
     const placed: Array<{ top: number, left: number }> = [];
-    const results = categories.map(cat => ({...cat}));
+    const results = categories.map(cat => ({ ...cat }));
 
     const attemptsLimit = 300;
-    const minDistance = 18; // percentuale minima tra centri (più distanza per bolle più sparse)
+    const minDistance = 18;
 
     for (let i = 0; i < results.length; i++) {
       let attempts = 0;
       let top = 0;
       let left = 0;
       do {
-        top = Math.random() * 70 + 10; // 10%..80%
-        left = Math.random() * 80 + 5; // 5%..85%
+        top = Math.random() * 70 + 10;
+        left = Math.random() * 80 + 5;
         attempts++;
-        // verifica distanza da tutte quelle già piazzate
         let ok = true;
         for (const p of placed) {
           const dy = Math.abs(p.top - top);
@@ -535,8 +689,7 @@ export class GameComponent implements OnInit, OnDestroy {
         if (ok) break;
       } while (attempts < attemptsLimit);
 
-      // registra
-      placed.push({top, left});
+      placed.push({ top, left });
       results[i].top = top + '%';
       results[i].left = left + '%';
     }
@@ -548,34 +701,31 @@ export class GameComponent implements OnInit, OnDestroy {
     const mode = this.currentMode();
     const data = mode ? (mode.getDisplayData() || {}) : {};
     const isReading = mode ? ((mode as any).getIsReading?.() ?? false) : false;
-    const safe = {...data, isReading} as any;
+    const safe = { ...data, isReading } as any;
 
     if (mode?.type !== 'ROULETTE') {
       if (!mode || !mode.isRevealed()) {
         safe.correctAnswer = null;
       }
     }
-    // defaults
+
     safe.question = safe.question ?? '';
     safe.options = Array.isArray(safe.options) ? safe.options : [];
     return safe;
   }
 
-  // Preview del punteggio per mostrare accanto al countdown pre-start
   getPrestartPreview(): string {
     const mode = this.currentMode();
     if (!mode) return '';
-    // user may want to see potential positive/negative score based on speed
+
     const seconds = this.preStartCountdown();
     const duration = (mode as any).timerDuration ?? 10;
 
-    // Per quiz/true_false -> mostra +X / -X (velocità-based)
     if (mode.type === 'QUIZ' || mode.type === 'TRUE_FALSE') {
       const score = this.computePreviewScore(seconds, duration);
       return `+${score} / -${score}`;
     }
 
-    // Per chrono/wheel -> vittoria singola: mostra +X
     if (mode.type === 'CHRONO' || mode.type === 'WHEEL_OF_FORTUNE') {
       const score = this.computePreviewScore(seconds, duration);
       return `+${score}`;
@@ -584,19 +734,31 @@ export class GameComponent implements OnInit, OnDestroy {
     return '';
   }
 
-  // Calcola il punteggio di preview basato sul tempo relativo (0..duration) -> 0..1000
   private computePreviewScore(secondsFromNow: number, duration: number): number {
-    // Interpretazione: più veloce = valore più alto; normalizziamo usando (1 - t/d)
     const t = Math.max(0, Math.min(duration, secondsFromNow));
     const fraction = 1 - (t / Math.max(1, duration));
     return Math.round(fraction * 1000);
   }
 
-  // Ritorna le ultime risposte ricevute (max 6) per il box risposte
   getRecentResponses(): any[] {
     const all = this.ws.responses();
     if (!Array.isArray(all)) return [];
     return all.slice(-6).reverse();
   }
 
+  getRecentResponsesWithScores(): any[] {
+    const all = this.ws.responses();
+    if (!Array.isArray(all)) return [];
+
+    return all.slice(-6).reverse().map(r => {
+      const playerScore = this.leaderboardService.getLeaderboard()
+        .find(p => p.playerName === r.playerName);
+
+      return {
+        ...r,
+        lastPoints: r.points || 0, // Punti dell'ultima risposta
+        totalPoints: playerScore?.totalPoints || 0 // Totale accumulato
+      };
+    });
+  }
 }

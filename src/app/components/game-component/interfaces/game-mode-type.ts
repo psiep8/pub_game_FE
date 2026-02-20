@@ -10,6 +10,7 @@ export type GameModeType =
   | 'IMAGE_BLUR'
   | 'ROULETTE'
   | 'MUSIC'
+  | 'ONE_VS_ONE'
   | 'WHEEL_OF_FORTUNE';
 
 /**

@@ -1,6 +1,6 @@
 // src/app/components/game/modes/roulette-mode.ts
-import {GameModeBase} from '../interfaces/game-mode-base.class';
-import {GameModeResult, GameModeType} from '../interfaces/game-mode-type';
+import { GameModeBase } from '../interfaces/game-mode-base.class';
+import { GameModeResult, GameModeType } from '../interfaces/game-mode-type';
 
 export class RouletteMode extends GameModeBase {
   readonly type: GameModeType = 'ROULETTE';
@@ -10,6 +10,7 @@ export class RouletteMode extends GameModeBase {
 
   private playerChoices = new Map<string, string>();
   private spinCompleted = false; // 🔥 NUOVO: traccia se lo spin è completato
+  private rouletteTimerInterval?: any;
 
   protected onInitialize(): void {
     console.log('🎰 ROULETTE Mode inizializzato');
@@ -24,8 +25,21 @@ export class RouletteMode extends GameModeBase {
     this.isActive.set(true);
     this.isReading.set(false); // I giocatori possono già votare
 
-    // Avvia timer normale
-    this.startTimer();
+    // Custom timer per evitare che la base class chiami prematuramente 'stop()' e 'onTimerEnd()'
+    return new Promise(resolve => {
+      this.rouletteTimerInterval = setInterval(() => {
+        if (this.isPaused() || !this.isActive()) return;
+
+        const current = this.timer();
+        if (current > 0) {
+          this.timer.set(current - 1);
+          this.config.onTimerTick?.(current - 1);
+        } else {
+          clearInterval(this.rouletteTimerInterval);
+          this.runRouletteSequence().then(resolve);
+        }
+      }, 1000);
+    });
   }
 
   protected onPause(): void {
@@ -44,12 +58,17 @@ export class RouletteMode extends GameModeBase {
   protected onCleanup(): void {
     this.playerChoices.clear();
     this.spinCompleted = false;
+    if (this.rouletteTimerInterval) clearInterval(this.rouletteTimerInterval);
   }
 
-  protected async onTimeout(): Promise<void> {
+  protected onTimeout(): void {
+    // Non usato più! La base class non lo chiamerà mai perché startTimer() non viene mai chiamato.
+  }
+
+  private async runRouletteSequence(): Promise<void> {
     console.log('⏰ Timer scelta terminato - FERMO TUTTO');
 
-    // 🔥 IMPORTANTE: Ferma il timer della classe base
+    // 🔥 IMPORTANTE: Ferma le votazioni
     this.isActive.set(false);
 
     // FASE 2: Countdown 5-1 DOPO la scelta
@@ -73,19 +92,17 @@ export class RouletteMode extends GameModeBase {
 
     console.log('🎰 La ruota gira...');
 
-    // ✅ FIX: Aspetta che lo spin finisca (12 secondi = transizione CSS)
-    await new Promise(r => setTimeout(r, 12000));
+    // ✅ FIX: Aspetta che lo spin finisca (18 secondi = transizione CSS)
+    await new Promise(r => setTimeout(r, 18000));
 
-    console.log('⏱️ Spin completato, mostro vincitore...');
-
-    // Aspetta che il vincitore sia visibile (3 secondi)
-    await new Promise(r => setTimeout(r, 3000));
-
-    // ✅ SOLO ADESSO segnala la fine e mostra il bottone
-    console.log('🏁 FINE - Revealed = true, bottone apparirà');
+    // ✅ SOLO ADESSO (appena esce il colore vincente) segnala la fine e mostra il bottone
+    console.log('🏁 FINE SPIN - Revealed = true, bottone PROSSIMO ROUND appare ora');
     this.revealed.set(true);
     this.spinCompleted = true;
     this.config.onTimerEnd?.();
+
+    // Aspetta che il vincitore sia visibile per qualche secondo
+    await new Promise(r => setTimeout(r, 3000));
   }
 
   protected onBuzz(playerName: string): void {
