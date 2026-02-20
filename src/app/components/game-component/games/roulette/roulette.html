@@ -7,24 +7,31 @@
   }
 
   <div class="roulette-stage">
+
+    <!-- POINTER: emoji originale + fisica di rotazione -->
     <div class="pointer-container">
-      <div class="pointer" [class.hitting]="pointerShaking()">▼</div>
+      <div
+        class="pointer"
+        [class.suspense]="pointerSuspense()"
+        [style.transform]="'rotate(' + pointerAngle() + 'deg)'"
+      >▼
+      </div>
     </div>
 
     <div class="wheel-wrapper">
       <svg class="wheel-svg" viewBox="0 0 100 100" [style.transform]="'rotate(' + wheelRotation() + 'deg)'">
         <g>
           @for (color of segments(); track $index) {
-            <path [attr.d]="getSlicePath($index, segments().length)" [attr.fill]="colorMap[color]" class="segment-path" />
+            <path [attr.d]="getSlicePath($index, segments().length)" [attr.fill]="colorMap[color]"
+                  class="segment-path"/>
           }
         </g>
 
         <g>
           @for (seg of segments(); track $index) {
-            <circle
-              [attr.cx]="50 + 47 * Math.cos(($index * (360 / segments().length) - 90) * Math.PI / 180)"
-              [attr.cy]="50 + 47 * Math.sin(($index * (360 / segments().length) - 90) * Math.PI / 180)"
-              r="1" fill="#ffd700" stroke="#444" stroke-width="0.2" />
+            <circle [attr.cx]="50 + 47 * Math.cos(($index * (360 / segments().length) - 90) * Math.PI / 180)"
+                    [attr.cy]="50 + 47 * Math.sin(($index * (360 / segments().length) - 90) * Math.PI / 180)" r="1"
+                    fill="#ffd700" stroke="#444" stroke-width="0.2"/>
           }
         </g>
 
@@ -33,7 +40,7 @@
             <line x1="50" y1="50"
                   [attr.x2]="50 + 50 * Math.cos(($index * (360 / segments().length) - 90) * Math.PI / 180)"
                   [attr.y2]="50 + 50 * Math.sin(($index * (360 / segments().length) - 90) * Math.PI / 180)"
-                  stroke="rgba(255,215,0,0.3)" stroke-width="0.2" />
+                  stroke="rgba(255,215,0,0.3)" stroke-width="0.2"/>
           }
         </g>
       </svg>
@@ -52,7 +59,8 @@
   @if (showWinner()) {
     <div class="winner-announcement">
       <div class="winner-title">COLORE VINCENTE!</div>
-      <div class="winner-color" [style.background]="colorMap[winningColor()!]" [style.box-shadow]="'0 0 50px ' + colorMap[winningColor()!]">
+      <div class="winner-color" [style.background]="colorMap[winningColor()!]"
+           [style.box-shadow]="'0 0 50px ' + colorMap[winningColor()!]">
         {{ winningColor() }}
       </div>
     </div>

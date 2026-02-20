@@ -11,30 +11,30 @@ import {
   ViewChild,
   ChangeDetectorRef
 } from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {trigger, transition, style, animate} from '@angular/animations';
-import {firstValueFrom} from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { trigger, transition, style, animate } from '@angular/animations';
+import { firstValueFrom } from 'rxjs';
 
-import {GameRound, GameService} from '../../services/game.service';
-import {WebSocketService} from '../../services/web-socket.service';
-import {AiGeneratorService} from '../../services/ai-generator-service';
-import {GameModeService} from '../../services/game-mode-factory.service';
-import {RoundManagerService} from '../../services/round-manager.service';
-import {LeaderboardService} from '../../services/leaderboard.service';
-import {AudioService} from '../../services/audio.service';
+import { GameRound, GameService } from '../../services/game.service';
+import { WebSocketService } from '../../services/web-socket.service';
+import { AiGeneratorService } from '../../services/ai-generator-service';
+import { GameModeService } from '../../services/game-mode-factory.service';
+import { RoundManagerService } from '../../services/round-manager.service';
+import { LeaderboardService } from '../../services/leaderboard.service';
+import { AudioService } from '../../services/audio.service';
 
-import {ImageBlur} from './games/image-blur/image-blur';
-import {Quiz} from './games/quiz/quiz';
-import {WheelFortune} from './games/wheel-fortune/wheel-fortune';
-import {TrueFalse} from './games/true-false/true-false';
-import {Chrono} from './games/chrono/chrono';
-import {Roulette} from './games/roulette/roulette';
-import {Song} from './games/song/song';
-import {environment} from '../../environment/environment';
-import {GameModeType, IGameMode} from './interfaces/game-mode-type';
-import {OneVsOne} from './games/one-vs-one/one-vs-one';
-import {LeaderboardQuick} from '../leaderboard/leaderboard-quick-component/leaderboard-quick-component';
-import {LeaderboardDetailed} from '../leaderboard/leaderboard-detailed-component/leaderboard-detailed-component';
+import { ImageBlur } from './games/image-blur/image-blur';
+import { Quiz } from './games/quiz/quiz';
+import { WheelFortune } from './games/wheel-fortune/wheel-fortune';
+import { TrueFalse } from './games/true-false/true-false';
+import { Chrono } from './games/chrono/chrono';
+import { Roulette } from './games/roulette/roulette';
+import { Song } from './games/song/song';
+import { environment } from '../../environment/environment';
+import { GameModeType, IGameMode } from './interfaces/game-mode-type';
+import { OneVsOne } from './games/one-vs-one/one-vs-one';
+import { LeaderboardQuick } from '../leaderboard/leaderboard-quick-component/leaderboard-quick-component';
+import { LeaderboardDetailed } from '../leaderboard/leaderboard-detailed-component/leaderboard-detailed-component';
 
 @Component({
   selector: 'app-game-component',
@@ -57,8 +57,8 @@ import {LeaderboardDetailed} from '../leaderboard/leaderboard-detailed-component
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [
-        style({opacity: 0, transform: 'scale(0.8)'}),
-        animate('300ms ease-out', style({opacity: 1, transform: 'scale(1)'}))
+        style({ opacity: 0, transform: 'scale(0.8)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'scale(1)' }))
       ])
     ])
   ]
@@ -102,7 +102,8 @@ export class GameComponent implements OnInit, OnDestroy {
   showLeaderboardQuick = signal(false);
   showLeaderboardDetailed = signal(false);
   roundInfo = signal<string>('');
-  private isShowingLeaderboard = signal(false);
+  isShowingLeaderboard = signal(false);
+  pendingLeaderboardType = signal<'QUICK' | 'DETAILED' | null>(null);
 
   currentGameId = signal<number | null>(null);
 
@@ -110,7 +111,7 @@ export class GameComponent implements OnInit, OnDestroy {
   remoteUrl = `${environment.frontendUrl}/play`;
   qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(this.remoteUrl)}&bgcolor=ffffff&color=1a1a2e&margin=10&qzone=1`;
 
-  @ViewChild('prestartTimer', {read: ElementRef, static: false}) prestartTimer?: ElementRef<HTMLElement>;
+  @ViewChild('prestartTimer', { read: ElementRef, static: false }) prestartTimer?: ElementRef<HTMLElement>;
 
   private prestartAudio?: HTMLAudioElement;
   private audioAllowed = false;
@@ -431,7 +432,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
     const currentRound = this.round();
     if (currentRound) {
-      this.round.set({...currentRound, status: 'REVEAL'});
+      this.round.set({ ...currentRound, status: 'REVEAL' });
     }
 
     if (mode.type === 'IMAGE_BLUR' || mode.type === 'WHEEL_OF_FORTUNE') {
@@ -441,7 +442,7 @@ export class GameComponent implements OnInit, OnDestroy {
     // 🔥 SUONO REVEAL
     this.audioService.playReveal();
 
-    this.ws.broadcastStatus(1, {action: 'ROUND_ENDED'});
+    this.ws.broadcastStatus(1, { action: 'ROUND_ENDED' });
 
     this.isSpinning.set(false);
 
@@ -497,7 +498,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
     const currentRound = this.round();
     if (currentRound) {
-      this.round.set({...currentRound, status: 'REVEAL'});
+      this.round.set({ ...currentRound, status: 'REVEAL' });
     }
 
     this.isSpinning.set(false);
@@ -584,15 +585,24 @@ export class GameComponent implements OnInit, OnDestroy {
 
     console.log(`📊 Round ${round}: Check classifica → ${leaderboardType}`);
 
-    if (leaderboardType === 'QUICK') {
+    if (leaderboardType) {
+      console.log(`📊 Mostra bottone classifica ${leaderboardType}`);
+      this.pendingLeaderboardType.set(leaderboardType);
+    }
+  }
+
+  showPendingLeaderboard() {
+    const type = this.pendingLeaderboardType();
+    if (type === 'QUICK') {
       console.log('📊 Mostra classifica RAPIDA');
       this.isShowingLeaderboard.set(true); // 🔥 BLOCCA GIOCO
       this.showLeaderboardQuick.set(true);
-    } else if (leaderboardType === 'DETAILED') {
+    } else if (type === 'DETAILED') {
       console.log('📊 Mostra classifica DETTAGLIATA');
       this.isShowingLeaderboard.set(true); // 🔥 BLOCCA GIOCO
       this.showLeaderboardDetailed.set(true);
     }
+    this.pendingLeaderboardType.set(null);
   }
 
   onLeaderboardComplete() {
@@ -653,7 +663,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private generateNonOverlappingPositions(categories: any[]) {
     const placed: Array<{ top: number, left: number }> = [];
-    const results = categories.map(cat => ({...cat}));
+    const results = categories.map(cat => ({ ...cat }));
 
     const attemptsLimit = 300;
     const minDistance = 18;
@@ -679,7 +689,7 @@ export class GameComponent implements OnInit, OnDestroy {
         if (ok) break;
       } while (attempts < attemptsLimit);
 
-      placed.push({top, left});
+      placed.push({ top, left });
       results[i].top = top + '%';
       results[i].left = left + '%';
     }
@@ -691,7 +701,7 @@ export class GameComponent implements OnInit, OnDestroy {
     const mode = this.currentMode();
     const data = mode ? (mode.getDisplayData() || {}) : {};
     const isReading = mode ? ((mode as any).getIsReading?.() ?? false) : false;
-    const safe = {...data, isReading} as any;
+    const safe = { ...data, isReading } as any;
 
     if (mode?.type !== 'ROULETTE') {
       if (!mode || !mode.isRevealed()) {
