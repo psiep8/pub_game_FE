@@ -1,11 +1,12 @@
-import {inject, Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
-import {map, Observable} from 'rxjs';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { map, Observable } from 'rxjs';
+import { environment } from '../environment/environment';
 
 export interface GameRoundPayload {
   category: string;
   question: string;
-  type: 'QUIZ' | 'TRUE_FALSE' | 'CHRONO' | 'IMAGE_BLUR'; 
+  type: 'QUIZ' | 'TRUE_FALSE' | 'CHRONO' | 'IMAGE_BLUR';
   options: string[];
   correctAnswer: string;
   imageUrl: string;
@@ -19,35 +20,35 @@ export interface GameRound {
   roundIndex: number;
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class GameService {
   private http = inject(HttpClient);
-  
-  private baseUrl = 'http://192.168.1.3:8080';
+
+  private baseUrl = environment.apiUrl;
 
   getCategories(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/categories`);
   }
 
   createGame(): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/games`, {}); 
+    return this.http.post<any>(`${this.baseUrl}/games`, {});
   }
 
-  
+
   getNextRound(gameId: number): Observable<GameRound> {
     return this.http.post<any>(`${this.baseUrl}/games/${gameId}/round`, {}).pipe(
       map(res => this.parseRoundPayload(res))
     );
   }
 
-  
+
   getCurrentRound(gameId: number): Observable<GameRound> {
     return this.http.get<any>(`${this.baseUrl}/games/${gameId}/current-round`).pipe(
       map(res => this.parseRoundPayload(res))
     );
   }
 
-  
+
   private parseRoundPayload(res: any): GameRound {
     return {
       ...res,

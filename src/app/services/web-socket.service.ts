@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { Subject } from 'rxjs';
+import { environment } from '../environment/environment';
 
 @Injectable({ providedIn: 'root' })
 export class WebSocketService {
@@ -24,7 +25,7 @@ export class WebSocketService {
 
   constructor() {
     this.client = new Client({
-      webSocketFactory: () => new SockJS('http://192.168.1.3:8080/ws-pubgame'),
+      webSocketFactory: () => new SockJS(environment.wsUrl),
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
