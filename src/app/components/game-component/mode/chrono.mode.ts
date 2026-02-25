@@ -1,4 +1,4 @@
-// src/app/core/game-modes/chrono/chrono.mode.ts
+
 
 import { GameModeBase } from '../interfaces/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../interfaces/game-mode-type';
@@ -10,7 +10,7 @@ export class ChronoMode extends GameModeBase {
   readonly requiresBuzz = false;
 
   protected onInitialize(): void {
-    console.log('📅 CHRONO Mode inizializzato');
+    
   }
 
   protected async onStart(): Promise<void> {
@@ -23,21 +23,21 @@ export class ChronoMode extends GameModeBase {
   protected onCleanup(): void { }
 
   protected onTimeout(): void {
-    console.log('⏰ Tempo scaduto');
+    
   }
 
   protected onBuzz(playerName: string): void { }
 
   protected onAnswer(playerName: string, answer: any, result: any): void {
-    console.log(`📅 ${playerName}: ${answer}`);
+    
   }
 
   protected onConfirmCorrect(result: GameModeResult): void {
-    console.log(`✅ ${result.playerName}: ${result.correctAnswer}`);
+    
   }
 
   protected onConfirmWrong(result: GameModeResult): void {
-    console.log(`❌ ${result.playerName} sbagliato`);
+    
   }
 
   protected validateAnswer(answer: any, timeMs: number): any {
@@ -57,8 +57,8 @@ export class ChronoMode extends GameModeBase {
     }
 
     if (diff <= 3) {
-      // Per il "quasi preso" diamo comunque 0 punti o una piccola penalità se vuoi,
-      // ma qui lo contiamo come errore per semplicità di classifica.
+      
+      
       const points = this.calculatePoints(false, timeMs);
       return {
         isCorrect: false,
@@ -100,7 +100,7 @@ export class ChronoMode extends GameModeBase {
     const correctYear = parseInt(this.payload.correctAnswer);
     const random = Math.random();
 
-    // < 1500: Range 1000 anni
+    
     if (correctYear < 1500) {
       const totalRange = 1000;
       const minOffset = Math.floor(totalRange * random * 0.7);
@@ -113,7 +113,7 @@ export class ChronoMode extends GameModeBase {
       return this.cachedRange;
     }
 
-    // 1500-1800: Range 400 anni
+    
     if (correctYear < 1800) {
       const totalRange = 400;
       const minOffset = Math.floor(totalRange * random * 0.65);
@@ -126,7 +126,7 @@ export class ChronoMode extends GameModeBase {
       return this.cachedRange;
     }
 
-    // 1800-1950: Range 200 anni
+    
     if (correctYear < 1950) {
       const totalRange = 200;
       const minOffset = Math.floor(totalRange * random * 0.6);
@@ -139,7 +139,7 @@ export class ChronoMode extends GameModeBase {
       return this.cachedRange;
     }
 
-    // 1950-2000: Range 100 anni
+    
     if (correctYear < 2000) {
       const totalRange = 100;
       const minOffset = Math.floor(totalRange * random * 0.55);
@@ -152,7 +152,7 @@ export class ChronoMode extends GameModeBase {
       return this.cachedRange;
     }
 
-    // 2000+: Range 60 anni
+    
     const totalRange = 60;
     const minOffset = Math.floor(totalRange * random * 0.5);
 

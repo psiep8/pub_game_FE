@@ -50,10 +50,7 @@
   flex-shrink: 0;
 }
 
-/* =============================================
-   POINTER - identico all'originale visivamente,
-   ma con transform-origin correto per la fisica
-   ============================================= */
+
 .pointer-container {
   position: absolute;
   top: -45px;
@@ -72,18 +69,9 @@
     0 4px 12px rgba(0, 0, 0, 0.8);
   filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.7));
 
-  /*
-   * CHIAVE FISICA: la punta dell'emoji ▼ è in BASSO.
-   * Il perno attorno a cui oscilla è in ALTO (la base del triangolo).
-   * transform-origin: 50% 15% = circa la punta superiore del ▼
-   * Così il colpo del piolo sulla punta bassa genera la rotazione giusta.
-   */
+  
   transform-origin: 50% 15%;
-  /*
-   * La transition qui gestisce il RITORNO allo zero dopo l'impatto.
-   * L'impatto stesso è istantaneo (JS setta direttamente il valore).
-   * 0.06s = abbastanza veloce da sembrare fisico, abbastanza lento da vedersi.
-   */
+  
   transition: transform 0.06s cubic-bezier(0.34, 1.56, 0.64, 1),
   color 0.25s ease,
   text-shadow 0.25s ease,
@@ -97,7 +85,7 @@
   }
 }
 
-/* Perno decorativo - stesso dell'originale */
+
 .pointer-container::after {
   content: '';
   position: absolute;

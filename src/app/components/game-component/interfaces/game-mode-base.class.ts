@@ -1,4 +1,4 @@
-// src/app/core/game-modes/base/game-mode-base.class.ts
+
 
 import {signal, Signal, WritableSignal} from '@angular/core';
 import {GameModeConfig, GameModeResult, GameModeType, IGameMode} from './game-mode-type';
@@ -30,7 +30,7 @@ export abstract class GameModeBase implements IGameMode {
 
   protected payload: any;
 
-  // State signals
+  
   protected timer = signal<number>(0);
   protected isActive = signal<boolean>(false);
   protected isPaused = signal<boolean>(false);
@@ -58,7 +58,7 @@ export abstract class GameModeBase implements IGameMode {
   constructor() {
   }
 
-  // ========== LIFECYCLE ==========
+  
 
   initialize(payload: any): void {
     this.payload = payload;
@@ -73,28 +73,28 @@ export abstract class GameModeBase implements IGameMode {
     this.config = config;
   }
 
-  // Rendiamo start asincrono così chi chiama può awaitare l'intero flusso onStart()
+  
   async start(): Promise<void> {
     if (this.started) return;
     this.started = true;
-    // Se onStart restituisce una Promise la attendiamo, altrimenti proseguiamo subito
-    await Promise.resolve(this.onStart()); // permette onStart essere sync o async
+    
+    await Promise.resolve(this.onStart()); 
   }
 
   private async preTimerDelay() {
-    // 10 secondi di pausa
+    
     await new Promise(r => setTimeout(r, 10000));
 
-    // Mostra popup "VIA" velocissimo
+    
     this.showGoPopup();
 
-    // poi parte il timer vero
+    
     this.startTimer();
   }
 
   private showGoPopup() {
-    // Qui puoi triggerare un segnale o evento UI veloce per mostrare "VIA"
-    console.log('🚦 VIA!'); // esempio console, puoi usare signal per il template
+    
+     
   }
 
 
@@ -114,27 +114,27 @@ export abstract class GameModeBase implements IGameMode {
     this.isActive.set(false);
     this.revealed.set(true);
     this.stopTimer();
-    // Assicuriamoci che il giocatore prenotato venga resettato quando la modalità termina
+    
     this.buzzedPlayer.set(null);
     this.onStop();
-    // Permetti di riavviare la stessa istanza se necessario
+    
     this.started = false;
   }
 
   cleanup(): void {
     this.stopTimer();
     this.onCleanup();
-    // Assicuriamoci che lo stato di started sia resettato
+    
     this.started = false;
   }
 
-  // ========== TIMER MANAGEMENT ==========
+  
   protected async runPreGameSequence(readingTime: number = 10000) {
-    this.isReading.set(true);      // fase lettura
-    this.isActive.set(false);      // blocca remote
-    this.showGo.set(false);        // "VIA" nascosto
+    this.isReading.set(true);      
+    this.isActive.set(false);      
+    this.showGo.set(false);        
 
-    // Impostiamo countdown pre-start in secondi
+    
     const seconds = Math.floor(readingTime / 1000);
     this.preStartCountdown.set(seconds);
     if (this.preStartInterval) clearInterval(this.preStartInterval);
@@ -142,7 +142,7 @@ export abstract class GameModeBase implements IGameMode {
       const cur = this.preStartCountdown();
       if (cur > 0) {
         this.preStartCountdown.set(cur - 1);
-        // Callback verso GameComponent se fornita
+        
         this.config.onPreGameTick?.(cur - 1);
       } else {
         clearInterval(this.preStartInterval);
@@ -150,19 +150,19 @@ export abstract class GameModeBase implements IGameMode {
       }
     }, 1000);
 
-    // 1️⃣ Pausa lettura
+    
     await new Promise(r => setTimeout(r, readingTime));
 
-    // 2️⃣ Mostra popup VIA ~1.4s per renderlo più evidente
+    
     this.showGo.set(true);
     await new Promise(r => setTimeout(r, 1400));
     this.showGo.set(false);
 
-    // reset countdown
+    
     this.preStartCountdown.set(0);
 
-    // 3️⃣ Avvio reale del timer
-    this.isReading.set(false);     // remote può rispondere
+    
+    this.isReading.set(false);     
     this.isActive.set(true);
     this.startTimer();
   }
@@ -206,7 +206,7 @@ export abstract class GameModeBase implements IGameMode {
     this.onTimeout();
   }
 
-  // ========== INTERACTIONS ==========
+  
 
   handleBuzz(playerName: string): void {
     if (!this.canBuzz()) return;
@@ -247,7 +247,7 @@ export abstract class GameModeBase implements IGameMode {
     this.onConfirmWrong(result);
   }
 
-  // ========== STATE GETTERS ==========
+  
 
   getTimerValue(): number {
     return this.timer();
@@ -263,11 +263,11 @@ export abstract class GameModeBase implements IGameMode {
 
   abstract getDisplayData(): any;
 
-  // ========== ABSTRACT HOOKS (Template Method Pattern) ==========
+  
 
   protected abstract onInitialize(): void;
 
-  // Permetti onStart asincrono
+  
   protected abstract onStart(): Promise<void> | void;
 
   protected abstract onPause(): void;

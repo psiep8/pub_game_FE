@@ -17,9 +17,9 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
   showWinner = signal(false);
   winningColor = signal<string | null>(null);
 
-  // Pointer physics signals
-  pointerAngle = signal(0);        // angolo reale del pointer in gradi
-  pointerVelocity = signal(0);     // quanto "sbatte" forte
+  
+  pointerAngle = signal(0);        
+  pointerVelocity = signal(0);     
   pointerSuspense = signal(false);
 
   colorMap: Record<string, string> = {
@@ -42,7 +42,7 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
   private hasFinishedSpinning = false;
   private audioCtx: AudioContext | null = null;
 
-  // Stato interno spin
+  
   private spinStartTime = 0;
   private spinDuration = 18000;
   private totalRotation = 0;
@@ -122,34 +122,34 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
     const segCount = segments.length;
     const degreesPerSegment = 360 / segCount;
 
-    // Scegli un segmento vincente casuale
+    
     const winningIndices = segments
       .map((c, i) => c === winningColor ? i : -1)
       .filter(i => i !== -1);
     const targetIndex = winningIndices[Math.floor(Math.random() * winningIndices.length)];
 
-    // Calcola rotazione: il pointer è in alto (0°), vogliamo che il segmento target arrivi lì
-    // La ruota gira in senso orario visivamente, quindi in CSS rotate(+deg)
-    // Per portare il segmento targetIndex sotto il pointer:
-    // angolo del centro del segmento = targetIndex * degreesPerSegment + degreesPerSegment/2
-    // dobbiamo ruotare la ruota di: -(angolo) mod 360 + giri extra
+    
+    
+    
+    
+    
     const segmentCenterAngle = targetIndex * degreesPerSegment + degreesPerSegment / 2;
     const rotationToAlign = (360 - segmentCenterAngle) % 360;
     const extraSpins = (10 + Math.floor(Math.random() * 5)) * 360;
-    // Piccola randomness dentro il segmento (max 35% del segmento)
+    
     const jitter = (Math.random() - 0.5) * degreesPerSegment * 0.7;
 
     this.totalRotation = extraSpins + rotationToAlign + jitter;
     this.spinDuration = 18000;
     this.spinStartTime = Date.now();
 
-    // Applica la rotazione CSS
+    
     this.wheelRotation.set(this.totalRotation);
 
-    // Avvia il loop di fisica del pointer
+    
     this.startPhysicsLoop(segCount, winningColor);
 
-    // Fine spin
+    
     this.spinTimeout = setTimeout(() => {
       this.isSpinning.set(false);
       this.hasFinishedSpinning = true;
@@ -157,7 +157,7 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
 
       if (this.tickInterval) { clearInterval(this.tickInterval); this.tickInterval = null; }
 
-      // Settle pointer to 0
+      
       this.pointerAngle.set(0);
       this.pointerVelocity.set(0);
       this.pointerSuspense.set(false);
@@ -171,13 +171,13 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
 
     const degreesPerSegment = 360 / segCount;
 
-    // Traccia il numero ASSOLUTO di confini attraversati.
-    // Usando Math.floor(rotazioneAssoluta / degreesPerSegment) non si perde
-    // mai un piolo, nemmeno a velocità minima (0.001°/frame).
+    
+    
+    
     let lastBoundaryCount = Math.floor(0 / degreesPerSegment);
 
-    // Velocità di picco = derivata dell'easing a t=0, moltiplicata per totalRotation/duration
-    // easeOutQuint derivative a t=0: 5*(1-0)^4 = 5
+    
+    
     const peakVelocityDegPerSec = (this.totalRotation / this.spinDuration) * 1000 * 5;
 
     this.tickInterval = setInterval(() => {
@@ -186,16 +186,16 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
       const easedProgress = this.easeOutQuint(progress);
       const currentRotation = this.totalRotation * easedProgress;
 
-      // Numero di confini attraversati dall'inizio (valore assoluto, sempre crescente)
+      
       const currentBoundaryCount = Math.floor(currentRotation / degreesPerSegment);
 
-      // Quanti nuovi confini abbiamo attraversato in questo frame?
+      
       const newBoundaries = currentBoundaryCount - lastBoundaryCount;
 
       if (newBoundaries > 0) {
         lastBoundaryCount = currentBoundaryCount;
 
-        // Velocità angolare istantanea: derivata easeOutQuint = 5*(1-t)^4
+        
         const derivative = 5 * Math.pow(1 - progress, 4);
         const velocityDegPerSec = (this.totalRotation / this.spinDuration) * 1000 * derivative;
         const normalizedVel = Math.min(velocityDegPerSec / peakVelocityDegPerSec, 1);
@@ -203,13 +203,13 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
         const inSuspense = progress > 0.62;
         this.pointerSuspense.set(inSuspense);
 
-        // Se in un frame lento saltassimo più di 1 confine (raro ma possibile),
-        // triggeriamo comunque solo 1 hit per non sovraccaricare
+        
+        
         this.triggerPointerHit(normalizedVel, inSuspense);
         this.playTick(velocityDegPerSec, inSuspense);
       }
 
-      // Aggiorna suspense anche senza hit
+      
       if (newBoundaries === 0) {
         this.pointerSuspense.set(progress > 0.62);
       }
@@ -219,31 +219,31 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
         this.tickInterval = null;
         this.pointerSuspense.set(false);
       }
-    }, 8); // ~120fps
+    }, 8); 
   }
 
   private triggerPointerHit(normalizedVel: number, inSuspense: boolean) {
-    // Durante spin veloce: deflessione forte ma breve
-    // Durante suspense: deflessione più lenta e drammatica, con rimbalzo
+    
+    
     const deflectionAngle = inSuspense
-      ? 12 + (1 - normalizedVel) * 8   // 12°–20° in suspense (più grande perché lento = più visibile)
-      : 4 + normalizedVel * 18;          // 4°–22° in spin veloce
+      ? 12 + (1 - normalizedVel) * 8   
+      : 4 + normalizedVel * 18;          
 
-    // Cancella qualsiasi ritorno precedente in corso
+    
     if (this.pointerReturnTimeout) clearTimeout(this.pointerReturnTimeout);
 
-    // Impatto istantaneo: il CSS transition è disabilitato durante l'impatto
-    // perché impostiamo direttamente il valore target
+    
+    
     this.pointerAngle.set(-deflectionAngle);
 
-    // Tempo di ritorno: inversamente proporzionale alla velocità
-    // Veloce → ritorna subito (30ms), lento → ritorna piano (200ms)
+    
+    
     const returnMs = inSuspense
-      ? 180 + (1 - normalizedVel) * 120  // 180–300ms in suspense
-      : 30 + normalizedVel * 50;          // 30–80ms in spin veloce
+      ? 180 + (1 - normalizedVel) * 120  
+      : 30 + normalizedVel * 50;          
 
     this.pointerReturnTimeout = setTimeout(() => {
-      // Micro-rimbalzo oltre lo zero (effetto molla)
+      
       const bounceAngle = deflectionAngle * (inSuspense ? 0.3 : 0.15);
       this.pointerAngle.set(bounceAngle);
 
@@ -274,14 +274,14 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
     const ctx = this.audioCtx;
     const now = ctx.currentTime;
 
-    // Normalizza velocità per il volume
+    
     const maxVel = (this.totalRotation / this.spinDuration) * 1000 * 5;
     const velNorm = Math.min(angularVelocityDegPerSec / maxVel, 1);
     const volume = inSuspense
       ? 0.15 + Math.random() * 0.08
       : 0.05 + velNorm * 0.25;
 
-    // Oscillatore: suono di piolo meccanico
+    
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'triangle';
@@ -294,7 +294,7 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
     osc.start(now);
     osc.stop(now + (inSuspense ? 0.25 : 0.09));
 
-    // Noise percussivo
+    
     const bufSize = Math.floor(ctx.sampleRate * 0.05);
     const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
     const data = buf.getChannelData(0);

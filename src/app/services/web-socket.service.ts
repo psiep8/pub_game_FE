@@ -7,32 +7,32 @@ import {Subject} from 'rxjs';
 export class WebSocketService {
   private client: Client;
 
-  // Per la TV: segnale per vedere le risposte in tempo reale
+  
   responses = signal<any[]>([]);
 
-  // Per i Telefoni: stream per reagire ai cambi di stato della TV
+  
   status$ = new Subject<any>();
   responses$ = new Subject<any>();
 
   constructor() {
     this.client = new Client({
-      // Usa l'IP del tuo PC che abbiamo configurato prima!
+      
       webSocketFactory: () => new SockJS('http://192.168.1.3:8080/ws-pubgame'),
-      // webSocketFactory: () => new SockJS('http://192.168.1.20:8080/ws-pubgame'),
-      reconnectDelay: 5000, // Prova a riconnettersi ogni 5 secondi se cade la linea
+      
+      reconnectDelay: 5000, 
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
       onConnect: () => {
-        console.log('Connesso al WebSocket');
+        
 
-        // 1. Iscrizione alle RISPOSTE (usata dalla TV)
+        
         this.client.subscribe('/topic/game/1/responses', (msg) => {
           const data = JSON.parse(msg.body);
           this.responses.update(prev => [...prev, data]);
-          this.responses$.next(data); // Notifica il Subject
+          this.responses$.next(data); 
         });
 
-        // 2. Iscrizione allo STATO (usata dai TELEFONI)
+        
         this.client.subscribe('/topic/game/1/status', (msg) => {
           this.status$.next(JSON.parse(msg.body));
         });
@@ -41,7 +41,7 @@ export class WebSocketService {
     this.client.activate();
   }
 
-  // Metodo per i TELEFONI: invia la risposta
+  
   sendAnswer(gameId: number, playerName: string, index: number, responseTimeMs: number) {
     this.client.publish({
       destination: `/app/game/${gameId}/answer`,
@@ -49,7 +49,7 @@ export class WebSocketService {
     });
   }
 
-  // Metodo per la TV: invia lo stato (quello che ti mancava)
+  
   broadcastStatus(gameId: number, payload: any) {
     this.client.publish({
       destination: `/app/game/${gameId}/status`,
@@ -60,20 +60,20 @@ export class WebSocketService {
   disconnect() {
     if (this.client) {
       this.client.deactivate();
-      console.log('WebSocket disconnesso manualmente.');
+      
     }
   }
 
-  // Metodo per ricollegarsi (puoi chiamarlo se vuoi forzare un reconnect)
+  
   connect() {
     if (!this.client.active) {
       this.client.activate();
-      console.log('Tentativo di riconnessione...');
+      
     }
   }
 
   clearResponses() {
-    this.responses.set([]); // Svuota la lista per il nuovo round
+    this.responses.set([]); 
   }
 
 

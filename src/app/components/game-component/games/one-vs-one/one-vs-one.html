@@ -1,70 +1,66 @@
 <div class="vs-container">
 
-  <!-- VS Header -->
+
   <div class="vs-header">
     <h1 class="vs-title">⚔️ SFIDA DIRETTA ⚔️</h1>
   </div>
 
-  <!-- Players VS -->
+
   <div class="vs-players">
-    <div class="player-card"
-         [class.active]="displayData?.buzzedPlayer === displayData?.player1">
+    <div class="player-card" [class.active]="displayData?.buzzedPlayer === displayData?.player1">
       <div class="player-name">{{ displayData?.player1 }}</div>
       @if (displayData?.buzzedPlayer === displayData?.player1) {
-        <div class="buzzed-indicator">🔔 PRENOTATO</div>
+      <div class="buzzed-indicator">🔔 PRENOTATO</div>
       }
     </div>
 
     <div class="vs-badge">VS</div>
 
-    <div class="player-card"
-         [class.active]="displayData?.buzzedPlayer === displayData?.player2">
+    <div class="player-card" [class.active]="displayData?.buzzedPlayer === displayData?.player2">
       <div class="player-name">{{ displayData?.player2 }}</div>
       @if (displayData?.buzzedPlayer === displayData?.player2) {
-        <div class="buzzed-indicator">🔔 PRENOTATO</div>
+      <div class="buzzed-indicator">🔔 PRENOTATO</div>
       }
     </div>
   </div>
 
-  <!-- Domanda -->
+
   <div class="question-box">
     <h2 class="question-text">{{ displayData?.question }}</h2>
   </div>
 
-  <!-- Opzioni -->
-  @if (displayData?.options?.length) {
-    <div class="options-grid">
-      @for (option of displayData.options; track $index) {
-        <div class="option-card"
-             [class.correct]="displayData?.correctAnswer === option">
-          <div class="option-label">{{ String.fromCharCode(65 + $index) }}</div>
-          <div class="option-text">{{ option }}</div>
-        </div>
-      }
+
+  @if (safeOptions?.length) {
+  <div class="options-grid">
+    @for (option of safeOptions; track $index) {
+    <div class="option-card" [class.correct]="displayData?.correctAnswer === option">
+      <div class="option-label">{{ String.fromCharCode(65 + $index) }}</div>
+      <div class="option-text">{{ option }}</div>
     </div>
+    }
+  </div>
   }
 
-  <!-- Timer -->
+
   <div class="timer-circle">
     <svg width="100" height="100">
       <circle cx="50" cy="50" r="45" class="timer-bg"></circle>
-      <circle cx="50" cy="50" r="45"
-              class="timer-progress"
-              [style.stroke-dashoffset]="283 - (283 * timer / 30)"></circle>
+      <circle cx="50" cy="50" r="45" class="timer-progress" [style.stroke-dashoffset]="283 - (283 * timer / 30)">
+      </circle>
     </svg>
     <div class="timer-value">{{ timer }}</div>
   </div>
 
-  <!-- Admin Controls -->
+
   @if (displayData?.buzzedPlayer) {
-    <div class="admin-controls">
-      <button (click)="onConfirmCorrect.emit()" class="control-btn correct">
-        ✅ CORRETTO
-      </button>
-      <button (click)="onConfirmWrong.emit()" class="control-btn wrong">
-        ❌ SBAGLIATO
-      </button>
-    </div>
+  <div class="admin-controls">
+    <button (click)="onConfirmCorrect.emit()" class="control-btn correct">
+      ✅ CORRETTO
+    </button>
+    <button (click)="onConfirmWrong.emit()" class="control-btn wrong">
+      ❌ SBAGLIATO
+    </button>
+  </div>
   }
 
 </div>

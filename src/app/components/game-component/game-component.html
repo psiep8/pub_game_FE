@@ -1,60 +1,59 @@
 <div class="game-container">
 
-  <!-- SCHERMATA INIZIALE CON QR CODE -->
+
   @if (phase() === 'IDLE') {
-    <div class="central-action full-screen">
-      <div class="qr-section">
-        <h3>📱 SCANSIONA PER GIOCARE</h3>
-        <img [src]="qrCodeUrl" alt="QR Code per giocare" class="qr-code">
-        <p>Apri la camera e inquadra il QR</p>
-      </div>
-      <button (click)="startNewRound()" class="extract-btn">
-        <span class="icon">🚀</span>
-        GIOCA ORA
-      </button>
-      <div class="controls-footer">
-        <button (click)="openResetModal()" class="control-btn reset">🔄 RESET</button>
-        <button (click)="togglePause()" class="control-btn pause" [class.is-paused]="isPaused()">
-          {{ isPaused() ? '▶️ RIPRENDI' : '⏸️ PAUSA' }}
-        </button>
-      </div>
+  <div class="central-action full-screen">
+    <div class="qr-section">
+      <h3>📱 SCANSIONA PER GIOCARE</h3>
+      <img [src]="qrCodeUrl" alt="QR Code per giocare" class="qr-code">
+      <p>Apri la camera e inquadra il QR</p>
     </div>
+    <button (click)="startNewRound()" class="extract-btn">
+      <span class="icon">🚀</span>
+      GIOCA ORA
+    </button>
+    <div class="controls-footer">
+      <button (click)="openResetModal()" class="control-btn reset">🔄 RESET</button>
+      <button (click)="togglePause()" class="control-btn pause" [class.is-paused]="isPaused()">
+        {{ isPaused() ? '▶️ RIPRENDI' : '⏸️ PAUSA' }}
+      </button>
+    </div>
+  </div>
   }
   <div class="round-info">
     <div class="round-text">Round: {{ roundInfo() }}</div>
     <div class="round-progress" [style.width.%]="roundManager.getProgress().percentage"></div>
   </div>
 
-  <!-- CLASSIFICA RAPIDA -->
+
   @if (showLeaderboardQuick()) {
-    <app-leaderboard-quick (onComplete)="onLeaderboardComplete()">
-    </app-leaderboard-quick>
+  <app-leaderboard-quick (onComplete)="onLeaderboardComplete()">
+  </app-leaderboard-quick>
   }
 
-  <!-- CLASSIFICA DETTAGLIATA -->
+
   @if (showLeaderboardDetailed()) {
-    <app-leaderboard-detailed (onComplete)="onLeaderboardComplete()">
-    </app-leaderboard-detailed>
-  }
-  <!-- MODALITÀ ESTRATTA -->
-  @if (showTypeReveal()) {
-    <div class="type-reveal-overlay">
-      <div class="round-badge">
-        ROUND {{ roundManager.getCurrentRound() }}/{{ roundManager.getTotalRounds() }}
-      </div>
-      <div class="label">MODALITÀ ESTRATTA:</div>
-      <div class="mode-name">{{ getModeName(showTypeReveal()!) }}</div>
-    </div>
+  <app-leaderboard-detailed (onComplete)="onLeaderboardComplete()">
+  </app-leaderboard-detailed>
   }
 
-  <!-- BOLLE CATEGORIE -->
+  @if (showTypeReveal()) {
+  <div class="type-reveal-overlay">
+    <div class="round-badge">
+      ROUND {{ roundManager.getCurrentRound() }}/{{ roundManager.getTotalRounds() }}
+    </div>
+    <div class="label">MODALITÀ ESTRATTA:</div>
+    <div class="mode-name">{{ getModeName(showTypeReveal()!) }}</div>
+  </div>
+  }
+
+
   @if (currentMode(); as mode) {
-    @if (mode.requiresBubbles && !showTypeReveal() && phase() !== 'IDLE') {
-      <div class="bubbles-area">
-        @for (cat of allCategories(); track cat.id) {
-          <div class="category-bubble" [style.top]="cat.top" [style.left]="cat.left"
-               [class.spinning]="phase() === 'SPINNING'"
-               [class.is-selected]="
+  @if (mode.requiresBubbles && !showTypeReveal() && phase() !== 'IDLE') {
+  <div class="bubbles-area">
+    @for (cat of allCategories(); track cat.id) {
+    <div class="category-bubble" [style.top]="cat.top" [style.left]="cat.left" [class.spinning]="phase() === 'SPINNING'"
+      [class.is-selected]="
   (animatedCategoryId() ?? selectedCategoryId()) === cat.id &&
   phase() === 'SELECTED'
 " [class.as-title]="
@@ -64,196 +63,192 @@
   cat.id !== (animatedCategoryId() ?? selectedCategoryId()) &&
   phase() !== 'SPINNING'
 ">
-            {{ cat.name }}
-          </div>
-        }
-      </div>
+      {{ cat.name }}
+    </div>
     }
+  </div>
+  }
   }
 
-  <!-- AREA DOMANDA CON DISPLAY DINAMICO -->
+
   @if (showQuestion() && currentMode(); as mode) {
-    <!-- OROLOGIO SALTELLANTE: appare quando il pre-start countdown è tra 1 e 5 -->
-      <!--    @if (preStartCountdown() >= 1 && preStartCountdown() <= 5) {-->
-      <!--      <div class="prestart-timer-wrapper">-->
-      <!--        <div #prestartTimer class="prestart-timer bounce" role="status" aria-live="assertive">-->
-      <!--          <div class="prestart-value">{{ preStartCountdown() }}</div>-->
-      <!--        </div>-->
-      <!--      </div>-->
-      <!--    }-->
 
-      <!-- Oppure ancora meglio, nascondi quando è esattamente 0: -->
-    @if (preStartCountdown() > 0 && preStartCountdown() <= 5) {
-      <div class="prestart-timer-wrapper">
-        <div #prestartTimer class="prestart-timer bounce" role="status" aria-live="assertive">
-          <div class="prestart-value">{{ preStartCountdown() }}</div>
-        </div>
-      </div>
-    }
 
-    <div class="question-area" [class.no-padding]="!mode.requiresBubbles">
 
-      <!-- TIMER BAR (solo per modalità con bolle) -->
-      @if (mode.requiresBubbles) {
-        <div class="timer-wrapper">
-          <div class="timer-bar" [style.width.%]="(timer() / mode.timerDuration) * 100"></div>
-          <span class="timer-text">{{ timer() }}s</span>
-        </div>
-      }
 
-      <!-- DISPLAY COMPONENTS DINAMICI -->
-      @switch (mode.type) {
 
-        @case ('QUIZ') {
-          <app-quiz [displayData]="getSafeDisplayData()" [timer]="timer()"
-                    [safeOptions]="getSafeDisplayData().options"/>
-        }
-        @case ('TRUE_FALSE') {
-          <app-true-false [displayData]="getSafeDisplayData()" [timer]="timer()"
-                          [safeOptions]="getSafeDisplayData().options"/>
-        }
-        @case ('CHRONO') {
-          <app-chrono [displayData]="getSafeDisplayData()" [timer]="timer()"/>
-        }
-        @case ('IMAGE_BLUR') {
-          <app-image-blur [displayData]="getSafeDisplayData()" [timer]="timer()" (onConfirmCorrect)="confirmCorrect()"
-                          (onConfirmWrong)="confirmWrong()"/>
-        }
-        @case ('WHEEL_OF_FORTUNE') {
-          <app-wheel-fortune [displayData]="getSafeDisplayData()" [timer]="timer()"
-                             (onConfirmCorrect)="confirmCorrect()"
-                             (onConfirmWrong)="confirmWrong()"/>
-        }
-        @case ('MUSIC') {
-          <app-song [displayData]="getSafeDisplayData()" [timer]="timer()" (onConfirmCorrect)="confirmCorrect()"
-                    (onConfirmWrong)="confirmWrong()"/>
-        }
-        @case ('ROULETTE') {
-          <app-roulette [displayData]="getSafeDisplayData()" [timer]="timer()"/>
-        }
-        @case ('ONE_VS_ONE') {
-          <app-one-vs-one-component [displayData]="getSafeDisplayData()" [timer]="timer()"
-                                    (onConfirmCorrect)="confirmCorrect()"
-                                    (onConfirmWrong)="confirmWrong()"/>
-        }
-      }
+
+
+
+
+
+  @if (preStartCountdown() > 0 && preStartCountdown() <= 5) { <div class="prestart-timer-wrapper">
+    <div #prestartTimer class="prestart-timer bounce" role="status" aria-live="assertive">
+      <div class="prestart-value">{{ preStartCountdown() }}</div>
     </div>
+</div>
+}
 
-    <!-- LIVE FEED RISPOSTE (solo per modalità senza buzz) -->
-      <!--    @if (!mode.requiresBuzz) {-->
-      <!--      <div class="live-feed-container">-->
-      <!--        <div class="feed-header">RISPOSTE RICEVUTE</div>-->
-      <!--        <div class="feed-list">-->
-      <!--          @for (res of ws.responses(); track res.playerName) {-->
-      <!--            <div class="feed-item">-->
-      <!--              <div class="player-info">-->
-      <!--                <span class="player-name">{{ res.playerName }}</span>-->
-      <!--                <span class="player-time">⏱️ {{ (res.responseTimeMs / 1000).toFixed(2) }}s</span>-->
-      <!--              </div>-->
-      <!--            </div>-->
-      <!--          }-->
-      <!--        </div>-->
-      <!--      </div>-->
-      <!--    }-->
+<div class="question-area" [class.no-padding]="!mode.requiresBubbles">
+
+
+  @if (mode.requiresBubbles) {
+  <div class="timer-wrapper">
+    <div class="timer-bar" [style.width.%]="(timer() / mode.timerDuration) * 100"></div>
+    <span class="timer-text">{{ timer() }}s</span>
+  </div>
   }
 
-  <!-- POPUP RISULTATO -->
-  @if (showResultPopup()) {
-    <div class="result-popup" [class.correct]="resultType() === 'correct'" [class.wrong]="resultType() === 'wrong'">
-      <div class="result-icon">
-        {{ resultType() === 'correct' ? '✅' : '❌' }}
-      </div>
-      <div class="result-title">
-        {{ resultType() === 'correct' ? 'RISPOSTA CORRETTA!' : 'RISPOSTA ERRATA!' }}
-      </div>
-      <div class="result-player">{{ resultPlayerName() }}</div>
-      <div class="result-points">
-        {{ resultPoints() > 0 ? '+' : '' }}{{ resultPoints() }} punti
-      </div>
-    </div>
+
+  @switch (mode.type) {
+
+  @case ('QUIZ') {
+  <app-quiz [displayData]="getSafeDisplayData()" [timer]="timer()" [safeOptions]="getSafeDisplayData().options" />
   }
-  <button class="audio-toggle" (click)="audioService.toggleAudio()">
-    @if (audioService.isEnabled()) {
-      🔊
-    } @else {
-      🔇
-    }
+  @case ('TRUE_FALSE') {
+  <app-true-false [displayData]="getSafeDisplayData()" [timer]="timer()" [safeOptions]="getSafeDisplayData().options" />
+  }
+  @case ('CHRONO') {
+  <app-chrono [displayData]="getSafeDisplayData()" [timer]="timer()" />
+  }
+  @case ('IMAGE_BLUR') {
+  <app-image-blur [displayData]="getSafeDisplayData()" [timer]="timer()" (onConfirmCorrect)="confirmCorrect()"
+    (onConfirmWrong)="confirmWrong()" />
+  }
+  @case ('WHEEL_OF_FORTUNE') {
+  <app-wheel-fortune [displayData]="getSafeDisplayData()" [timer]="timer()" (onConfirmCorrect)="confirmCorrect()"
+    (onConfirmWrong)="confirmWrong()" />
+  }
+  @case ('MUSIC') {
+  <app-song [displayData]="getSafeDisplayData()" [timer]="timer()" (onConfirmCorrect)="confirmCorrect()"
+    (onConfirmWrong)="confirmWrong()" />
+  }
+  @case ('ROULETTE') {
+  <app-roulette [displayData]="getSafeDisplayData()" [timer]="timer()" />
+  }
+  @case ('ONE_VS_ONE') {
+  <app-one-vs-one-component [displayData]="getSafeDisplayData()" [timer]="timer()"
+    [safeOptions]="getSafeDisplayData().options" (onConfirmCorrect)="confirmCorrect()"
+    (onConfirmWrong)="confirmWrong()" />
+  }
+  }
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+@if (showResultPopup()) {
+<div class="result-popup" [class.correct]="resultType() === 'correct'" [class.wrong]="resultType() === 'wrong'">
+  <div class="result-icon">
+    {{ resultType() === 'correct' ? '✅' : '❌' }}
+  </div>
+  <div class="result-title">
+    {{ resultType() === 'correct' ? 'RISPOSTA CORRETTA!' : 'RISPOSTA ERRATA!' }}
+  </div>
+  <div class="result-player">{{ resultPlayerName() }}</div>
+  <div class="result-points">
+    {{ resultPoints() > 0 ? '+' : '' }}{{ resultPoints() }} punti
+  </div>
+</div>
+}
+<button class="audio-toggle" (click)="audioService.toggleAudio()">
+  @if (audioService.isEnabled()) {
+  🔊
+  } @else {
+  🔇
+  }
+</button>
+
+<div class="controls-footer">
+  <button (click)="openResetModal()" class="control-btn reset">🔄 RESET</button>
+  <button (click)="togglePause()" class="control-btn pause" [class.is-paused]="isPaused()">
+    {{ isPaused() ? '▶️ RIPRENDI' : '⏸️ PAUSA' }}
   </button>
-  <!-- CONTROLLI FOOTER -->
-  <div class="controls-footer">
-    <button (click)="openResetModal()" class="control-btn reset">🔄 RESET</button>
-    <button (click)="togglePause()" class="control-btn pause" [class.is-paused]="isPaused()">
-      {{ isPaused() ? '▶️ RIPRENDI' : '⏸️ PAUSA' }}
+</div>
+
+
+<div class="recent-responses" *ngIf="getRecentResponsesWithScores().length">
+  <div class="recent-header">RISPOSTE</div>
+  <div class="recent-list">
+    @for (r of getRecentResponsesWithScores(); track r.playerName) {
+    <div class="recent-item">
+      <div class="r-player">{{ r.playerName }}</div>
+      <div class="r-time">{{ (r.responseTimeMs / 1000).toFixed(2) }}s</div>
+      <div class="r-points" [class.positive]="r.lastPoints > 0" [class.negative]="r.lastPoints < 0">
+        {{ r.lastPoints > 0 ? '+' : '' }}{{ r.lastPoints }}
+        <span class="total-points">({{ r.totalPoints }})</span>
+      </div>
+    </div>
+    }
+  </div>
+</div>
+
+
+@if (showResetModal()) {
+<div class="modal-overlay">
+  <div class="modal-content">
+    <h3>🚨 RESET PARTITA</h3>
+    <p>Sei sicuro di voler ricominciare?</p>
+    <div class="modal-actions">
+      <button class="modal-btn confirm" (click)="confirmReset()">SÌ, RESETTA</button>
+      <button class="modal-btn cancel" (click)="showResetModal.set(false)">ANNULLA</button>
+    </div>
+  </div>
+</div>
+}
+
+
+@if (isPaused()) {
+<div class="pause-overlay">
+  <div class="pause-card">
+    <h2>⏸️ GIOCO IN PAUSA</h2>
+    <button (click)="togglePause()" class="extract-btn">
+      <span class="icon">▶️</span>
+      RIPRENDI
     </button>
   </div>
+</div>
+}
 
 
-  <div class="recent-responses" *ngIf="getRecentResponsesWithScores().length">
-    <div class="recent-header">RISPOSTE</div>
-    <div class="recent-list">
-      @for (r of getRecentResponsesWithScores(); track r.playerName) {
-        <div class="recent-item">
-          <div class="r-player">{{ r.playerName }}</div>
-          <div class="r-time">{{ (r.responseTimeMs / 1000).toFixed(2) }}s</div>
-          <div class="r-points" [class.positive]="r.lastPoints > 0" [class.negative]="r.lastPoints < 0">
-            {{ r.lastPoints > 0 ? '+' : '' }}{{ r.lastPoints }}
-            <span class="total-points">({{ r.totalPoints }})</span>
-          </div>
-        </div>
-      }
-    </div>
-  </div>
-
-  <!-- MODAL RESET -->
-  @if (showResetModal()) {
-    <div class="modal-overlay">
-      <div class="modal-content">
-        <h3>🚨 RESET PARTITA</h3>
-        <p>Sei sicuro di voler ricominciare?</p>
-        <div class="modal-actions">
-          <button class="modal-btn confirm" (click)="confirmReset()">SÌ, RESETTA</button>
-          <button class="modal-btn cancel" (click)="showResetModal.set(false)">ANNULLA</button>
-        </div>
-      </div>
-    </div>
+@if (round()?.status === 'REVEAL' && !isSpinning() && currentMode()?.isRevealed() && !isShowingLeaderboard()) {
+@if (resultType() === 'correct' || resultPlayerName() === 'Tempo Scaduto!' || currentMode()?.type === 'ROULETTE') {
+<div class="central-action next-right">
+  @if (pendingLeaderboardType()) {
+  <button (click)="showPendingLeaderboard()" class="extract-btn classifica">
+    <span class="icon">🏆</span>
+    CLASSIFICA
+  </button>
+  } @else {
+  <button (click)="startNewRound()" class="extract-btn">
+    <span class="icon">🎲</span>
+    PROSSIMO ROUND
+  </button>
   }
-
-  <!-- OVERLAY PAUSA -->
-  @if (isPaused()) {
-    <div class="pause-overlay">
-      <div class="pause-card">
-        <h2>⏸️ GIOCO IN PAUSA</h2>
-        <button (click)="togglePause()" class="extract-btn">
-          <span class="icon">▶️</span>
-          RIPRENDI
-        </button>
-      </div>
-    </div>
-  }
-
-  <!-- PROSSIMO ROUND BUTTON (dopo reveal) -->
-  @if (round()?.status === 'REVEAL' && !isSpinning() && currentMode()?.isRevealed() && !isShowingLeaderboard()) {
-    @if (resultType() === 'correct' || resultPlayerName() === 'Tempo Scaduto!' || currentMode()?.type === 'ROULETTE') {
-      <div class="central-action next-right">
-        @if (pendingLeaderboardType()) {
-          <button (click)="showPendingLeaderboard()" class="extract-btn classifica">
-            <span class="icon">🏆</span>
-            CLASSIFICA
-          </button>
-        } @else {
-          <button (click)="startNewRound()" class="extract-btn">
-            <span class="icon">🎲</span>
-            PROSSIMO ROUND
-          </button>
-        }
-      </div>
-    }
-  }
+</div>
+}
+}
 
 </div>
 
 @if (currentMode(); as mode) {
-  @if (mode.getShowGo?.()) {
-    <div class="go-popup">🚦 VIA!</div>
-  }
+@if (mode.getShowGo?.()) {
+<div class="go-popup">🚦 VIA!</div>
+}
 }

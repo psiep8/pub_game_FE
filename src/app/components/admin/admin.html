@@ -1,5 +1,5 @@
 <div class="admin-container">
-  <!-- HEADER ADMIN -->
+  
   <div class="header admin-header">
     <div class="admin-badge">
       <span class="crown">👑</span>
@@ -10,7 +10,7 @@
     </div>
   </div>
 
-  <!-- RISPOSTA CORRETTA (sempre visibile quando disponibile) -->
+  
   @if (correctAnswer()) {
     <div class="correct-answer-banner">
       <div class="answer-label">📝 RISPOSTA CORRETTA</div>
@@ -18,12 +18,12 @@
     </div>
   }
 
-  <!-- CONTENUTO PRINCIPALE -->
+  
   <div class="admin-content">
 
     @switch (gameState()) {
 
-      <!-- IN ATTESA DI ROUND -->
+      
       @case ('WAITING') {
         <div class="status-card waiting">
           <div class="status-icon">⏳</div>
@@ -36,14 +36,14 @@
         </div>
       }
 
-      <!-- ROUND ATTIVO -->
+      
       @case ('ACTIVE') {
         @if (showAdminControls()) {
-          <!-- Modalità BUZZ attiva -->
+          
           <div class="admin-controls-wrapper">
 
             @if (buzzedPlayer()) {
-              <!-- C'è un giocatore prenotato -->
+              
               <div class="buzzed-card">
                 <div class="buzzed-header">
                   <div class="buzz-icon">🎤</div>
@@ -53,7 +53,7 @@
                 <p class="instruction">Ascolta la risposta e valuta:</p>
               </div>
 
-              <!-- BOTTONI DECISIONE -->
+              
               <div class="decision-grid">
                 <button
                   (click)="confirmCorrect()"
@@ -73,7 +73,7 @@
               </div>
 
             } @else {
-              <!-- Nessun giocatore prenotato ancora -->
+              
               <div class="status-card waiting-buzz">
                 <div class="status-icon pulse">📡</div>
                 <h2>In Attesa di Prenotazioni</h2>
@@ -87,7 +87,7 @@
           </div>
 
         } @else {
-          <!-- Modalità NON-BUZZ (Quiz, Chrono, ecc.) -->
+          
           <div class="status-card active">
             <div class="status-icon">🎮</div>
             <h2>Round in Corso</h2>
@@ -97,7 +97,7 @@
         }
       }
 
-      <!-- ROUND TERMINATO -->
+      
       @case ('ROUND_ENDED') {
         <div class="status-card ended">
           <div class="status-icon">✅</div>
@@ -108,7 +108,7 @@
     }
   </div>
 
-  <!-- FOOTER INFO -->
+  
   <div class="admin-footer">
     <div class="footer-item">
       <span class="label">Tipo Round:</span>

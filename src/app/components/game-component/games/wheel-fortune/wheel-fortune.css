@@ -64,13 +64,13 @@
   max-width: 1200px;
   padding: 30px;
 
-  /* Wrapper per parola: mantiene la parola intera e non la spezza su più righe */
+  
   .word {
     display: inline-flex;
     gap: 8px;
     align-items: center;
-    white-space: nowrap; /* evita che la parola venga spezzata */
-    margin: 12px; /* un po' di breathing space */
+    white-space: nowrap; 
+    margin: 12px; 
   }
 
   .letter-box {

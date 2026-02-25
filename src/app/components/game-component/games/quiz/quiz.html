@@ -1,7 +1,7 @@
 <div class="quiz-container">
   <h2 class="quiz-question">{{ displayData.question }}</h2>
 
-  <!-- Mostra le opzioni SOLO se non siamo in fase di reading e la risposta corretta non è ancora stata rivelata -->
+  
   @if (!displayData.isReading && !displayData.correctAnswer) {
     <div class="quiz-options-grid">
       @for (option of safeOptions; track option; let i = $index) {

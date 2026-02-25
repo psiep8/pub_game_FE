@@ -5,9 +5,7 @@ $bg-dark: #1a1a2e;
 $card-bg: #16213e;
 $text-light: #e9ecef;
 
-/* ==========================================
-   PWA INSTALL BANNER
-   ========================================== */
+
 .pwa-install-banner {
   position: fixed;
   bottom: 20px;
@@ -87,9 +85,7 @@ $text-light: #e9ecef;
   }
 }
 
-/* ==========================================
-   GAME CONTAINER
-   ========================================== */
+
 .game-container {
   margin: 0;
   padding: 0;
@@ -105,9 +101,7 @@ $text-light: #e9ecef;
   background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0c29 50%, #080616 100%);
 }
 
-/* ==========================================
-   BUBBLES AREA
-   ========================================== */
+
 .bubbles-area {
   position: absolute;
   width: 100%;
@@ -128,7 +122,7 @@ $text-light: #e9ecef;
   backdrop-filter: blur(8px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4),
   inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  padding: 12px 24px; // meno ingombranti
+  padding: 12px 24px; 
   pointer-events: none;
   white-space: nowrap;
   z-index: 10;
@@ -163,7 +157,7 @@ $text-light: #e9ecef;
     transform: scale(0.5);
   }
 
-  // EFFETTO ZOOM GIGANTE - Animazione FLUIDA
+  
   &.is-selected {
     top: 50% !important;
     left: 50% !important;
@@ -175,7 +169,7 @@ $text-light: #e9ecef;
     animation: zoom-in-smooth 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
   }
 
-  // DIVENTA IL TITOLO - CENTRATO PERFETTO
+  
   &.as-title {
     top: 10% !important;
     left: 50% !important;
@@ -188,7 +182,7 @@ $text-light: #e9ecef;
   }
 }
 
-/* Animazioni Float Lente */
+
 @keyframes float-slow-1 {
   0%, 100% {
     transform: translate(0, 0) rotate(0deg);
@@ -249,7 +243,7 @@ $text-light: #e9ecef;
   }
 }
 
-/* Animazione Zoom Smooth - NO SCATTI */
+
 @keyframes zoom-in-smooth {
   0% {
     transform: translate(-50%, -50%) scale(1);
@@ -264,7 +258,7 @@ $text-light: #e9ecef;
   }
 }
 
-/* Animazione Movimento a Titolo */
+
 @keyframes move-to-title {
   0% {
     top: 50% !important;
@@ -276,9 +270,7 @@ $text-light: #e9ecef;
   }
 }
 
-/* ==========================================
-   CENTRAL ACTION & QR CODE
-   ========================================== */
+
 .central-action {
   position: fixed;
   bottom: 5%;
@@ -318,11 +310,11 @@ $text-light: #e9ecef;
   }
 }
 
-// Schermata IDLE con QR Code
+
 .central-action.full-screen {
   position: fixed;
   top: 0;
-  //left: 0;
+  
   width: 100vw;
   height: 100vh;
   display: flex;
@@ -391,9 +383,7 @@ $text-light: #e9ecef;
   }
 }
 
-/* ==========================================
-   TYPE REVEAL OVERLAY
-   ========================================== */
+
 .type-reveal-overlay {
   position: absolute;
   top: 50%;
@@ -431,19 +421,17 @@ $text-light: #e9ecef;
   }
 }
 
-/* ==========================================
-   QUESTION AREA
-   ========================================== */
+
 .question-area {
-  box-sizing: border-box; /* assicurarsi che padding non aumenti la larghezza totale */
+  box-sizing: border-box; 
   width: min(920px, 96vw);
-  max-width: 100vw; /* non superare la viewport orizzontale */
-  overflow-x: hidden; /* evita sforamenti orizzontali */
-  overflow-y: auto; /* permette scroll verticale se necessario */
+  max-width: 100vw; 
+  overflow-x: hidden; 
+  overflow-y: auto; 
   position: relative;
-  margin-top: 200px; /* ulteriormente ridotto */
+  margin-top: 200px; 
   padding: 10px 12px;
-  //max-width: calc(100vw - 40px); /* sicurezza aggiuntiva */
+  
   margin-left: auto;
   margin-right: auto;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01));
@@ -451,9 +439,9 @@ $text-light: #e9ecef;
   border-radius: 18px;
   border: 1px solid rgba(255, 215, 0, 0.12);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  max-height: calc(100vh - 140px); /* evita overflow verticale */
+  max-height: calc(100vh - 140px); 
 
-  // ✅ FIX: Modalità senza bolle (IMAGE_BLUR, WHEEL) - fullscreen
+  
   &.no-padding {
     position: fixed !important;
     top: 0 !important;
@@ -476,7 +464,7 @@ $text-light: #e9ecef;
     justify-content: center !important;
   }
 
-  /* Assicuriamo che tutti i figli non superino la larghezza del contenitore */
+  
   & * {
     box-sizing: inherit;
     max-width: 100%;
@@ -493,7 +481,7 @@ $text-light: #e9ecef;
   }
 }
 
-/* Immagini, video e media dentro la question-area responsivi */
+
 .question-area img,
 .question-area video,
 .question-area canvas,
@@ -503,7 +491,7 @@ $text-light: #e9ecef;
   display: block;
 }
 
-/* Opzioni: su schermi stretti impilare la grid in 1 colonna */
+
 .options-grid {
   width: 100%;
 }
@@ -525,9 +513,7 @@ $text-light: #e9ecef;
   }
 }
 
-/* ==========================================
-   TIMER
-   ========================================== */
+
 .timer-wrapper {
   width: 100%;
   height: 14px;
@@ -556,9 +542,7 @@ $text-light: #e9ecef;
   }
 }
 
-/* ==========================================
-   OPTIONS GRID
-   ========================================== */
+
 .options-grid {
   display: grid;
   gap: 15px;
@@ -620,9 +604,7 @@ $text-light: #e9ecef;
   }
 }
 
-/* ==========================================
-   REVEAL BANNER
-   ========================================== */
+
 .reveal-banner {
   margin-top: 30px;
   padding: 20px;
@@ -657,9 +639,7 @@ $text-light: #e9ecef;
   }
 }
 
-/* ==========================================
-   PAUSE OVERLAY - CENTRATO
-   ========================================== */
+
 .pause-overlay {
   position: fixed;
   top: 0;
@@ -692,9 +672,7 @@ $text-light: #e9ecef;
   }
 }
 
-/* ==========================================
-   CONTROLS FOOTER
-   ========================================== */
+
 .controls-footer {
   position: fixed;
   bottom: 20px;
@@ -738,9 +716,7 @@ $text-light: #e9ecef;
   }
 }
 
-/* ==========================================
-   MODAL
-   ========================================== */
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -797,9 +773,7 @@ $text-light: #e9ecef;
   }
 }
 
-/* ==========================================
-   LIVE FEED
-   ========================================== */
+
 .live-feed-container {
   position: fixed;
   bottom: 80px;
@@ -834,7 +808,7 @@ $text-light: #e9ecef;
     align-items: center;
 
     &.chrono-item {
-      flex-direction: column; // Mette i dettagli sotto il nome
+      flex-direction: column; 
       align-items: flex-start;
       gap: 5px;
     }
@@ -846,7 +820,7 @@ $text-light: #e9ecef;
       font-size: 0.85rem;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
       padding-top: 4px;
-      color: #ffcc00; // Colore oro per i dettagli chrono
+      color: #ffcc00; 
     }
 
     .distance-badge {
@@ -868,9 +842,7 @@ $text-light: #e9ecef;
   }
 }
 
-/* ==========================================
-   CHRONO DISPLAY
-   ========================================== */
+
 .chrono-display {
   margin: 30px 0;
 
@@ -898,7 +870,7 @@ $text-light: #e9ecef;
   }
 }
 
-// ========== IMAGE_BLUR LAYOUT ==========
+
 
 .image-blur-layout {
   position: fixed;
@@ -950,7 +922,7 @@ $text-light: #e9ecef;
   .blur-main-container {
     position: relative;
     width: min(720px, 86vw);
-    height: min(360px, 45vh); /* ancora ridotta per evitare overflow verticale */
+    height: min(360px, 45vh); 
     border: 6px solid #fff;
     border-radius: 18px;
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
@@ -960,7 +932,7 @@ $text-light: #e9ecef;
     .blur-img {
       width: 100%;
       height: 100%;
-      object-fit: contain; /* evita ritagli troppo alti */
+      object-fit: contain; 
       transition: filter 0.3s linear;
       background: #000;
     }
@@ -1030,7 +1002,7 @@ $text-light: #e9ecef;
   }
 }
 
-// ========== POPUP RISULTATO ==========
+
 
 .result-popup {
   position: fixed;
@@ -1105,7 +1077,7 @@ $text-light: #e9ecef;
   }
 }
 
-// ========== ANIMAZIONI ==========
+
 
 @keyframes titlePulse {
   0%, 100% {
@@ -1169,7 +1141,7 @@ $text-light: #e9ecef;
   }
 }
 
-// ========== WHEEL OF FORTUNE LAYOUT ==========
+
 
 .wheel-layout {
   position: fixed;
@@ -1322,12 +1294,12 @@ $text-light: #e9ecef;
   }
 }
 
-/* Make sure central-action (PROSSIMO ROUND) is above other overlays when visible */
+
 .central-action {
   z-index: 12000;
 }
 
-/* Variante: posiziona il bottone PROSSIMO ROUND a destra in verticale (utile per TV) */
+
 .central-action.next-right {
   left: auto;
   right: 32px;
@@ -1343,7 +1315,7 @@ $text-light: #e9ecef;
   font-size: 1.2rem;
 }
 
-/* Recent responses box (bottom-left) */
+
 .recent-responses {
   position: fixed;
   left: 20px;
@@ -1391,7 +1363,7 @@ $text-light: #e9ecef;
   }
 }
 
-/* CHRONO UI LESS INVASIVE */
+
 .chrono-container {
   padding: 20px;
   gap: 20px;
@@ -1406,15 +1378,15 @@ $text-light: #e9ecef;
   font-size: 1.1rem;
 }
 
-/* TRUE_FALSE adjustments for TV and remotes */
+
 .tf-option-btn {
   padding: 24px 20px;
   font-size: 1.4rem;
 }
 
-/* IMAGE_BLUR ensure blur effect starts when mode starts: nothing CSS-specific here */
 
-/* OROLOGIO PRE-START SALTELLANTE */
+
+
 .prestart-timer-wrapper {
   position: absolute;
   top: 20%;
@@ -1437,7 +1409,7 @@ $text-light: #e9ecef;
   font-weight: 900;
   box-shadow: 0 10px 40px rgba(255, 200, 0, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.6);
   transform-origin: center bottom;
-  flex-direction: column; /* valore e punteggio impilati */
+  flex-direction: column; 
   gap: 6px;
   padding: 10px;
 }
@@ -1458,7 +1430,7 @@ $text-light: #e9ecef;
   transform: translateY(2px);
 }
 
-/* Classe che applica un bounce ripetuto (ma non infinito: usiamo animazione breve con steps per farlo saltellare) */
+
 .bounce {
   animation: prestart-bounce 0.9s cubic-bezier(.36, .07, .19, .97) infinite;
 }
@@ -1527,66 +1499,66 @@ $text-light: #e9ecef;
   transition: width 0.5s ease;
 }
 
-//.type-reveal-overlay {
-//  position: fixed;
-//  inset: 0;
-//  background: linear-gradient(135deg, #1a1a2e, #16213e);
-//  display: flex;
-//  flex-direction: column;
-//  align-items: center;
-//  justify-content: center;
-//  z-index: 9999;
-//  animation: fadeIn 0.5s;
-//}
-//
-//.round-badge {
-//  font-size: 48px;
-//  font-weight: 900;
-//  color: #667eea;
-//  margin-bottom: 30px;
-//  padding: 20px 40px;
-//  background: rgba(102, 126, 234, 0.2);
-//  border-radius: 20px;
-//  border: 3px solid #667eea;
-//  animation: pulse 2s infinite;
-//}
-//
-//.label {
-//  font-size: 32px;
-//  color: rgba(255, 255, 255, 0.7);
-//  margin-bottom: 20px;
-//  font-weight: 600;
-//}
-//
-//.mode-name {
-//  font-size: 96px;
-//  font-weight: 900;
-//  color: white;
-//  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-//  animation: scaleIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-//}
-//
-//@keyframes pulse {
-//  0%, 100% {
-//    transform: scale(1);
-//    box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
-//  }
-//  50% {
-//    transform: scale(1.05);
-//    box-shadow: 0 0 40px rgba(102, 126, 234, 0.6);
-//  }
-//}
-//
-//@keyframes scaleIn {
-//  from {
-//    opacity: 0;
-//    transform: scale(0.5);
-//  }
-//  to {
-//    opacity: 1;
-//    transform: scale(1);
-//  }
-//}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 .audio-toggle {
   position: fixed;
