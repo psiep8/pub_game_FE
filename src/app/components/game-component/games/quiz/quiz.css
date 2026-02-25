@@ -1,23 +1,19 @@
-/* ================================
-   QUIZ CONTAINER
-   ================================ */
+
 
 .quiz-container {
-  box-sizing: border-box; /* evita che padding espanda oltre la viewport */
+  box-sizing: border-box; 
   width: 100%;
   max-width: 100%;
   padding: 20px;
   text-align: center;
   color: #e9ecef;
-  overflow-x: hidden; /* protegge da sforamenti orizzontali */
+  overflow-x: hidden; 
 }
 
-/* ================================
-   QUESTION
-   ================================ */
+
 
 .quiz-question {
-  font-size: clamp(1.4rem, 2.2vw, 2rem); /* scala su schermi stretti */
+  font-size: clamp(1.4rem, 2.2vw, 2rem); 
   font-weight: 700;
   margin-bottom: 35px;
   line-height: 1.4;
@@ -27,22 +23,18 @@
   overflow-wrap: anywhere;
 }
 
-/* ================================
-   OPTIONS GRID
-   ================================ */
+
 
 .quiz-options-grid {
   display: grid;
-  /* colonne responsiva: ogni colonna almeno 280px, altrimenti si impacchetta */
+  
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 18px;
   margin: 30px 0;
   justify-items: stretch;
 }
 
-/* ================================
-   OPTION BUTTON
-   ================================ */
+
 
 .quiz-option-btn {
   position: relative;
@@ -68,12 +60,12 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(6px);
   overflow: hidden;
-  white-space: normal; /* permette il wrap del testo, evita sforamenti */
+  white-space: normal; 
   word-break: break-word;
-  min-width: 0; /* permette al flex-item di ridursi dentro griglia */
+  min-width: 0; 
 }
 
-/* Hover effect */
+
 .quiz-option-btn:hover:not(:disabled) {
   border-color: #ffd700;
   transform: translateY(-3px) scale(1.01);
@@ -82,20 +74,18 @@
     0 0 20px rgba(255, 215, 0, 0.2);
 }
 
-/* Active */
+
 .quiz-option-btn:active:not(:disabled) {
   transform: translateY(0) scale(0.98);
 }
 
-/* Disabled */
+
 .quiz-option-btn:disabled {
   cursor: default;
   opacity: 0.75;
 }
 
-/* ================================
-   LETTER BADGE
-   ================================ */
+
 
 .option-letter {
   min-width: 42px;
@@ -114,20 +104,16 @@
   flex-shrink: 0;
 }
 
-/* ================================
-   OPTION TEXT
-   ================================ */
+
 
 .option-text {
   flex: 1;
   line-height: 1.4;
-  overflow-wrap: anywhere; /* abbrevia parole troppo lunghe */
-  min-width: 0; /* permette il corretto shrinking del contenuto flex */
+  overflow-wrap: anywhere; 
+  min-width: 0; 
 }
 
-/* ================================
-   CORRECT STATE
-   ================================ */
+
 
 .quiz-option-btn.correct {
   background: linear-gradient(135deg, #2ed573, #27ae60) !important;
@@ -146,9 +132,7 @@
   color: #2ed573;
 }
 
-/* ================================
-   WRONG STATE
-   ================================ */
+
 
 .quiz-option-btn.wrong {
   background: linear-gradient(135deg, #ff4757, #e84118) !important;
@@ -163,9 +147,7 @@
   color: #ff4757;
 }
 
-/* ================================
-   REVEAL BANNER
-   ================================ */
+
 
 .quiz-reveal {
   margin-top: 35px;
@@ -195,9 +177,7 @@
   text-shadow: 0 0 15px rgba(46, 213, 115, 0.8);
 }
 
-/* ================================
-   ANIMATIONS
-   ================================ */
+
 
 @keyframes pulse-correct {
   0%, 100% {
@@ -225,7 +205,7 @@
   }
 }
 
-/* Mobile: forziamo una colonna se lo schermo è stretto */
+
 @media (max-width: 880px) {
   .quiz-options-grid {
     grid-template-columns: 1fr;

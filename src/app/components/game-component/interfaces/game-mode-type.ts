@@ -1,4 +1,4 @@
-// src/app/core/game-modes/interfaces/game-round.interface.ts
+
 
 /**
  * Tipi di modalità disponibili
@@ -44,12 +44,12 @@ export interface GameModeResult {
 export interface IGameMode {
   readonly type: GameModeType;
 
-  // Configurazione
+  
   readonly timerDuration: number;
   readonly requiresBubbles: boolean;
   readonly requiresBuzz: boolean;
 
-  // Lifecycle
+  
   initialize(payload: any): void;
   start(): Promise<void> | void;
   pause(): void;
@@ -57,13 +57,13 @@ export interface IGameMode {
   stop(): void;
   cleanup(): void;
 
-  // Interazioni
+  
   handleBuzz(playerName: string): void;
   handleAnswer(playerName: string, answer: any, timeMs: number): void;
   confirmCorrect(playerName: string): void;
   confirmWrong(playerName: string): void;
 
-  // State
+  
   getDisplayData(): any;
   getTimerValue(): number;
   getShowGo?(): boolean;

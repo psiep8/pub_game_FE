@@ -1,4 +1,4 @@
-// src/app/core/game-modes/wheel-fortune/wheel-fortune.mode.ts
+
 
 import { signal } from '@angular/core'
 import {GameModeBase} from '../interfaces/game-mode-base.class';
@@ -71,26 +71,26 @@ export class WheelOfFortuneMode extends GameModeBase {
   }
 
   protected onTimeout(): void {
-    console.log('⏰ Tempo scaduto! Rivelo tutte le lettere.');
+    
     this.revealAllLetters();
   }
 
   protected onBuzz(playerName: string): void {
-    console.log(`🎡 ${playerName} si è prenotato!`);
+    
   }
 
   protected onAnswer(playerName: string, answer: any, result: any): void {
-    // Non usato
+    
   }
 
   protected onConfirmCorrect(result: GameModeResult): void {
-    console.log(`✅ ${result.playerName} ha vinto ${result.points} punti!`);
-    // 🔥 RIVELA TUTTE LE LETTERE quando indovina
+    
+    
     this.revealAllLetters();
   }
 
   protected onConfirmWrong(result: GameModeResult): void {
-    console.log(`❌ ${result.playerName} ha sbagliato! Perde ${result.points} punti.`);
+    
   }
 
   protected validateAnswer(answer: any, timeMs: number): any {
@@ -117,7 +117,7 @@ export class WheelOfFortuneMode extends GameModeBase {
       phrase.toUpperCase().split('').filter((c: string) => c !== ' ')
     );
     this.revealedLetters.set(allLetters);
-    console.log('🔓 Tutte le lettere rivelate!');
+    
   }
 
   private startLetterReveal(): void {

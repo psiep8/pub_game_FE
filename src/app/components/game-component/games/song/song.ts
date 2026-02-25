@@ -44,7 +44,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   private lastPhase = 0;
 
   ngOnInit() {
-    console.log('🎵 Song init');
+    
 
     const autoUnlock = async () => {
       await this.unlockAudioContext();
@@ -62,7 +62,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
       const prevData = changes['displayData'].previousValue;
 
       if (prevData?.previewUrl !== this.displayData.previewUrl) {
-        console.log("🎵 Nuova canzone!");
+        
         this.blurAmount.set(20);
         this.currentPhase.set(0);
         this.lastPhase = 0;
@@ -71,7 +71,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
 
       const phase = this.displayData.currentPhase || 0;
       if (this.lastPhase !== phase && phase > 0) {
-        console.log(`🎛️ Fase cambiata: ${this.lastPhase} → ${phase}`);
+        
         this.lastPhase = phase;
         this.currentPhase.set(phase);
         this.applyFilters(phase);
@@ -116,7 +116,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
       }
 
       this.audioUnlocked = true;
-      console.log('✅ Audio SBLOCCATO');
+      
 
     } catch (err) {
       console.warn('⚠️ Unlock failed:', err);
@@ -171,7 +171,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
         .connect(this.audioContext.destination);
 
       this.audioReady.set(true);
-      console.log('✅ Audio ready');
+      
 
       if (!this.audioUnlocked) {
         await this.unlockAudioContext();
@@ -188,52 +188,52 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   private applyFilters(phase: number) {
     if (!this.audioContext || !this.gainNode) return;
 
-    console.log(`🎛️ APPLICANDO FILTRI FASE ${phase}`);
+    
 
     switch (phase) {
-      case 1: // 🔥 MANCHE 1: QUASI INCOMPRENSIBILE
+      case 1: 
         this.gainNode.gain.setValueAtTime(0.25, this.audioContext.currentTime);
-        // Banda STRETTISSIMA = voce robotica alienata
+        
         this.bandpassFilter!.frequency.setValueAtTime(750, this.audioContext.currentTime);
-        this.bandpassFilter!.Q.setValueAtTime(18, this.audioContext.currentTime); // Q ALTISSIMO
+        this.bandpassFilter!.Q.setValueAtTime(18, this.audioContext.currentTime); 
         this.highpassFilter!.frequency.setValueAtTime(650, this.audioContext.currentTime);
         this.lowpassFilter!.frequency.setValueAtTime(1100, this.audioContext.currentTime);
-        // Distorsione MOLTO PESANTE
+        
         this.distortionNode!.curve = this.makeDistortionCurve(70) as any;
-        console.log('🔥 Fase 1: QUASI INCOMPRENSIBILE - voce robotica aliena');
+        
         break;
 
-      case 2: // 🔥 MANCHE 2: MOLTO DIFFICILE
+      case 2: 
         this.gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
-        // Banda ancora stretta
+        
         this.bandpassFilter!.frequency.setValueAtTime(950, this.audioContext.currentTime);
         this.bandpassFilter!.Q.setValueAtTime(12, this.audioContext.currentTime);
         this.highpassFilter!.frequency.setValueAtTime(550, this.audioContext.currentTime);
         this.lowpassFilter!.frequency.setValueAtTime(1600, this.audioContext.currentTime);
-        // Distorsione PESANTE
+        
         this.distortionNode!.curve = this.makeDistortionCurve(50) as any;
-        console.log('🔥 Fase 2: MOLTO DIFFICILE - telefono rotto');
+        
         break;
 
-      case 3: // 🔥 MANCHE 3: DIFFICILE
+      case 3: 
         this.gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
         this.bandpassFilter!.frequency.setValueAtTime(1300, this.audioContext.currentTime);
         this.bandpassFilter!.Q.setValueAtTime(7, this.audioContext.currentTime);
         this.highpassFilter!.frequency.setValueAtTime(400, this.audioContext.currentTime);
         this.lowpassFilter!.frequency.setValueAtTime(2400, this.audioContext.currentTime);
-        // Distorsione MEDIA
+        
         this.distortionNode!.curve = this.makeDistortionCurve(25) as any;
-        console.log('🔥 Fase 3: DIFFICILE - radio interferenze');
+        
         break;
 
-      case 4: // ✅ MANCHE 4: CHIARO
+      case 4: 
         this.gainNode.gain.setValueAtTime(1.0, this.audioContext.currentTime);
         this.bandpassFilter!.frequency.setValueAtTime(2000, this.audioContext.currentTime);
         this.bandpassFilter!.Q.setValueAtTime(0.5, this.audioContext.currentTime);
         this.highpassFilter!.frequency.setValueAtTime(50, this.audioContext.currentTime);
         this.lowpassFilter!.frequency.setValueAtTime(8000, this.audioContext.currentTime);
-        this.distortionNode!.curve = null; // NESSUNA distorsione
-        console.log('✅ Fase 4: CHIARO');
+        this.distortionNode!.curve = null; 
+        
         break;
 
       default:
@@ -269,7 +269,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
       await this.audio.play();
       this.isPlaying.set(true);
       this.startVinylAnimation();
-      console.log('▶️ Audio PLAYING');
+      
     } catch (err) {
       console.error('❌ Play error:', err);
     }
@@ -280,7 +280,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     this.audio.pause();
     this.isPlaying.set(false);
     this.stopVinylAnimation();
-    console.log('⏸️ Audio PAUSED');
+    
   }
 
   private startVinylAnimation() {

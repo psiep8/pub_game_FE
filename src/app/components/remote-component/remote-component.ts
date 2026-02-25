@@ -1,10 +1,10 @@
-// src/app/components/remote/remote-component.ts
 
-import {Component, inject, OnDestroy, OnInit, signal, HostListener} from '@angular/core';
-import {WebSocketService} from '../../services/web-socket.service';
-import {FormsModule} from '@angular/forms';
-import {SwUpdate, VersionReadyEvent} from '@angular/service-worker';
-import {filter} from 'rxjs/operators';
+
+import { Component, inject, OnDestroy, OnInit, signal, HostListener } from '@angular/core';
+import { WebSocketService } from '../../services/web-socket.service';
+import { FormsModule } from '@angular/forms';
+import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-remote-component',
@@ -26,9 +26,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR'>('WAITING');
   questionType = signal<'ROULETTE' | 'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE'>('QUIZ');
   hasAnswered = signal(false);
+  isBlocked = signal(false); 
   selectedYear = signal<number>(2000);
 
-  // 🔥 Range dinamico da backend
+  
   minYear = signal<number>(1000);
   maxYear = signal<number>(2026);
   yearStep = signal<number>(1);
@@ -69,30 +70,25 @@ export class RemoteComponent implements OnInit, OnDestroy {
       switch (status.action) {
         case 'SHOW_QUESTION':
           this.questionType.set(status.type);
-
-          // 🔥 Per CHRONO, estrai range dinamico dal payload
+          this.isBlocked.set(false); 
           if (status.type === 'CHRONO' && status.payload) {
             try {
               const payload = typeof status.payload === 'string'
                 ? JSON.parse(status.payload)
                 : status.payload;
-
-              this.minYear.set(payload.minYear || 1000);
-              this.maxYear.set(payload.maxYear || 2026);
-              this.yearStep.set(payload.step || 1);
-
-              // Inizializza slider al centro
+              this.minYear.set(payload.minYear ?? 1000);
+              this.maxYear.set(payload.maxYear ?? 2026);
+              this.yearStep.set(payload.step ?? 1);
               const center = Math.floor((this.minYear() + this.maxYear()) / 2);
               this.selectedYear.set(center);
-
-              console.log(`📅 CHRONO Range: ${this.minYear()}-${this.maxYear()}, step: ${this.yearStep()}`);
+              
             } catch (e) {
               console.error('❌ Errore parsing CHRONO payload:', e);
             }
           }
 
           if (status.type === 'ROULETTE') {
-            console.log('📱 ROULETTE - Bottoni attivi SUBITO');
+            
             this.gameState.set('VOTING');
             this.hasAnswered.set(false);
             this.startTime = Date.now();
@@ -102,6 +98,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
 
         case 'START_VOTING':
+          this.isBlocked.set(false); 
           this.onStartVoting(status.type, status.payload);
           break;
 
@@ -109,19 +106,27 @@ export class RemoteComponent implements OnInit, OnDestroy {
         case 'REVEAL':
           this.gameState.set('WAITING');
           this.hasAnswered.set(false);
+          this.isBlocked.set(false); 
           break;
 
         case 'BLOCKED_ERROR':
           if (status.blockedPlayer === this.nickname()) {
+            this.isBlocked.set(true); 
             this.gameState.set('BLOCKED_ERROR');
           } else {
-            this.gameState.set('VOTING');
+            
+            if (!this.isBlocked()) {
+              this.gameState.set('VOTING');
+            }
           }
           break;
 
         case 'PLAYER_PRENOTATO':
           if (status.name !== this.nickname()) {
-            this.gameState.set('WAITING_FOR_OTHER');
+            
+            if (!this.isBlocked()) {
+              this.gameState.set('WAITING_FOR_OTHER');
+            }
           }
           break;
       }
@@ -139,7 +144,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     });
 
     window.addEventListener('appinstalled', () => {
-      console.log('🎉 PWA installata');
+      
       this.showInstallBanner.set(false);
       this.deferredPrompt = null;
     });
@@ -147,7 +152,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   private checkForUpdates() {
     if (!this.swUpdate.isEnabled) {
-      console.log('⚠️ Service Worker disabilitato');
+      
       return;
     }
 
@@ -171,12 +176,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (!this.deferredPrompt) return;
 
     this.deferredPrompt.prompt();
-    const {outcome} = await this.deferredPrompt.userChoice;
+    const { outcome } = await this.deferredPrompt.userChoice;
 
     if (outcome === 'accepted') {
-      console.log('✅ Installazione accettata');
+      
     } else {
-      console.log('❌ Installazione rifiutata');
+      
     }
 
     this.deferredPrompt = null;
@@ -204,7 +209,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         await screen.orientation.lock('landscape');
       }
     } catch (err) {
-      console.log('Orientamento non bloccabile');
+      
     }
   }
 
@@ -221,7 +226,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.hasAnswered.set(true);
     this.gameState.set('LOCKED');
     this.vibrate(50);
-    console.log(`📱 Voto: ${index}, tempo: ${responseTimeMs}ms`);
+    
   }
 
   sendBuzz() {
@@ -232,7 +237,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   onStartVoting(type: string, payload?: any) {
-    console.log(`📱 START_VOTING: ${type}`);
+    
 
     this.gameState.set('VOTING');
     this.questionType.set(type as any);
@@ -240,14 +245,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.startTime = Date.now();
     this.hasAnswered.set(false);
 
-    // 🔥 Per CHRONO, aggiorna range se presente nel payload
+    
     if (type === 'CHRONO' && payload) {
       try {
         const data = typeof payload === 'string' ? JSON.parse(payload) : payload;
 
-        if (data.minYear) this.minYear.set(data.minYear);
-        if (data.maxYear) this.maxYear.set(data.maxYear);
-        if (data.step) this.yearStep.set(data.step);
+        if (data.minYear !== undefined) this.minYear.set(data.minYear);
+        if (data.maxYear !== undefined) this.maxYear.set(data.maxYear);
+        if (data.step !== undefined) this.yearStep.set(data.step);
 
         const center = Math.floor((this.minYear() + this.maxYear()) / 2);
         this.selectedYear.set(center);

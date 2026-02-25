@@ -4,182 +4,162 @@
   <p>Per giocare al meglio, usa la modalità orizzontale</p>
 </div>
 
-<!-- BANNER INSTALLAZIONE PWA -->
+
 @if (showInstallBanner()) {
-  <div class="pwa-banner install-banner">
-    <div class="banner-content">
-      <span class="banner-icon">📱</span>
-      <div class="banner-text">
-        <strong>Installa PubGame</strong>
-        <p>Aggiungi alla home per un'esperienza migliore!</p>
-      </div>
-      <div class="banner-actions">
-        <button (click)="installPWA()" class="banner-btn install">Installa</button>
-        <button (click)="dismissInstallBanner()" class="banner-btn dismiss">×</button>
-      </div>
+<div class="pwa-banner install-banner">
+  <div class="banner-content">
+    <span class="banner-icon">📱</span>
+    <div class="banner-text">
+      <strong>Installa PubGame</strong>
+      <p>Aggiungi alla home per un'esperienza migliore!</p>
+    </div>
+    <div class="banner-actions">
+      <button (click)="installPWA()" class="banner-btn install">Installa</button>
+      <button (click)="dismissInstallBanner()" class="banner-btn dismiss">×</button>
     </div>
   </div>
+</div>
 }
 
-<!-- BANNER AGGIORNAMENTO DISPONIBILE -->
+
 @if (showUpdateBanner()) {
-  <div class="pwa-banner update-banner">
-    <div class="banner-content">
-      <span class="banner-icon">🔄</span>
-      <div class="banner-text">
-        <strong>Aggiornamento disponibile</strong>
-        <p>Nuova versione pronta! Ricarica per aggiornare.</p>
-      </div>
-      <div class="banner-actions">
-        <button (click)="updateApp()" class="banner-btn update">Aggiorna</button>
-        <button (click)="dismissUpdateBanner()" class="banner-btn dismiss">×</button>
-      </div>
+<div class="pwa-banner update-banner">
+  <div class="banner-content">
+    <span class="banner-icon">🔄</span>
+    <div class="banner-text">
+      <strong>Aggiornamento disponibile</strong>
+      <p>Nuova versione pronta! Ricarica per aggiornare.</p>
+    </div>
+    <div class="banner-actions">
+      <button (click)="updateApp()" class="banner-btn update">Aggiorna</button>
+      <button (click)="dismissUpdateBanner()" class="banner-btn dismiss">×</button>
     </div>
   </div>
+</div>
 }
 
 <div class="remote-container">
 
   @if (!nickname()) {
-    <div class="setup-screen">
-      <h1>Pub Game</h1>
-      <p>Inserisci il tuo Nickname per giocare</p>
-      <input [(ngModel)]="tempNickname" placeholder="Es: SuperMario88">
-      <button (click)="setNickname()" class="join-btn">ENTRA IN PARTITA</button>
-    </div>
+  <div class="setup-screen">
+    <h1>Pub Game</h1>
+    <p>Inserisci il tuo Nickname per giocare</p>
+    <input [(ngModel)]="tempNickname" placeholder="Es: SuperMario88">
+    <button (click)="setNickname()" class="join-btn">ENTRA IN PARTITA</button>
+  </div>
   } @else {
 
-    <div class="header">
-      <div class="player-info">
-        <span>Giocatore: <b>{{ nickname() }}</b></span>
-      </div>
-      <button class="logout-btn" (click)="logout()">
-        <span class="icon">×</span> Esci
+  <div class="header">
+    <div class="player-info">
+      <span>Giocatore: <b>{{ nickname() }}</b></span>
+    </div>
+    <button class="logout-btn" (click)="logout()">
+      <span class="icon">×</span> Esci
+    </button>
+  </div>
+  <div class="game-content">
+    @switch (gameState()) {
+    @case ('WAITING') {
+    <div class="status-msg">
+      <div class="loader"></div>
+      <p>In attesa della prossima sfida...</p>
+    </div>
+    }
+    @case ('VOTING') {
+    @switch (questionType()) {
+    @case ('QUIZ') {
+    <div class="voting-grid">
+      <button (click)="sendVote(0)" class="vote-btn btn-a">A</button>
+      <button (click)="sendVote(1)" class="vote-btn btn-b">B</button>
+      <button (click)="sendVote(2)" class="vote-btn btn-c">C</button>
+      <button (click)="sendVote(3)" class="vote-btn btn-d">D</button>
+    </div>
+    }
+    @case ('TRUE_FALSE') {
+    <div class="voting-grid tf-layout">
+      <button (click)="sendVote(0)" class="vote-btn btn-true">VERO</button>
+      <button (click)="sendVote(1)" class="vote-btn btn-false">FALSO</button>
+    </div>
+    }
+    @case ('CHRONO') {
+    <div class="chrono-player-area horizontal-chrono">
+      <div class="year-preview">{{ selectedYear() }}</div>
+      <input type="range" [min]="minYear()" [max]="maxYear()" [step]="yearStep()" [value]="selectedYear()"
+        (input)="onYearChange($event)" class="modern-slider">
+      <button (click)="sendChronoAnswer()" class="confirm-btn">INVIA ANNO</button>
+    </div>
+    }
+    @case ('ROULETTE') {
+    <div class="roulette-grid">
+      <button (click)="sendVote(0)" class="color-btn rosso" [disabled]="hasAnswered()">
+        <span class="color-name">ROSSO</span>
+      </button>
+      <button (click)="sendVote(1)" class="color-btn nero" [disabled]="hasAnswered()">
+        <span class="color-name">NERO</span>
+      </button>
+      <button (click)="sendVote(2)" class="color-btn verde" [disabled]="hasAnswered()">
+        <span class="color-name">VERDE</span>
+      </button>
+      <button (click)="sendVote(3)" class="color-btn blu" [disabled]="hasAnswered()">
+        <span class="color-name">BLU</span>
+      </button>
+      <button (click)="sendVote(4)" class="color-btn giallo" [disabled]="hasAnswered()">
+        <span class="color-name">GIALLO</span>
+      </button>
+      <button (click)="sendVote(5)" class="color-btn bianco" [disabled]="hasAnswered()">
+        <span class="color-name">BIANCO</span>
       </button>
     </div>
-
-    <div class="game-content">
-      @switch (gameState()) {
-
-        @case ('WAITING') {
-          <div class="status-msg">
-            <div class="loader"></div>
-            <p>In attesa della prossima sfida...</p>
-          </div>
-        }
-        @case ('VOTING') {
-          @switch (questionType()) {
-            @case ('QUIZ') {
-              <div class="voting-grid">
-                <button (click)="sendVote(0)" class="vote-btn btn-a">A</button>
-                <button (click)="sendVote(1)" class="vote-btn btn-b">B</button>
-                <button (click)="sendVote(2)" class="vote-btn btn-c">C</button>
-                <button (click)="sendVote(3)" class="vote-btn btn-d">D</button>
-              </div>
-            }
-            @case ('TRUE_FALSE') {
-              <div class="voting-grid tf-layout">
-                <button (click)="sendVote(0)" class="vote-btn btn-true">VERO</button>
-                <button (click)="sendVote(1)" class="vote-btn btn-false">FALSO</button>
-              </div>
-            }
-            @case ('CHRONO') {
-              <div class="chrono-player-area horizontal-chrono">
-                <div class="year-preview">{{ selectedYear() }}</div>
-                <input type="range"
-                       [min]="minYear()"
-                       [max]="maxYear()"
-                       [step]="yearStep()"
-                       [value]="selectedYear()"
-                       (input)="onYearChange($event)"
-                       class="modern-slider">
-                <div class="year-range-labels">
-                  <span>{{ minYear() }}</span>
-                  <span>{{ maxYear() }}</span>
-                </div>
-                <button (click)="sendChronoAnswer()" class="confirm-btn">INVIA ANNO</button>
-              </div>
-            }
-            @case ('ROULETTE') {
-              <div class="roulette-grid">
-                <button (click)="sendVote(0)" class="color-btn rosso" [disabled]="hasAnswered()">
-                  <span class="color-name">ROSSO</span>
-                </button>
-                <button (click)="sendVote(1)" class="color-btn nero" [disabled]="hasAnswered()">
-                  <span class="color-name">NERO</span>
-                </button>
-                <button (click)="sendVote(2)" class="color-btn verde" [disabled]="hasAnswered()">
-                  <span class="color-name">VERDE</span>
-                </button>
-                <button (click)="sendVote(3)" class="color-btn blu" [disabled]="hasAnswered()">
-                  <span class="color-name">BLU</span>
-                </button>
-                <button (click)="sendVote(4)" class="color-btn giallo" [disabled]="hasAnswered()">
-                  <span class="color-name">GIALLO</span>
-                </button>
-                <button (click)="sendVote(5)" class="color-btn bianco" [disabled]="hasAnswered()">
-                  <span class="color-name">BIANCO</span>
-                </button>
-              </div>
-            }
-            @case ('IMAGE_BLUR') {
-              <div class="buzz-container">
-                <button
-                  class="buzz-button"
-                  (click)="sendBuzz()"
-                  [disabled]="hasAnswered()">
-                  <span class="buzz-icon">🔔</span>
-                  <span class="buzz-text">PRENOTATI!</span>
-                </button>
-              </div>
-            }
-            @case ('WHEEL_OF_FORTUNE') {
-              <div class="buzz-container">
-                <button
-                  class="buzz-button wheel-theme"
-                  (click)="sendBuzz()"
-                  [disabled]="hasAnswered()">
-                  <span class="buzz-icon">🎡</span>
-                  <span class="buzz-text">PRENOTA E RISPONDI!</span>
-                </button>
-              </div>
-            }
-            @case ('MUSIC') {
-              <div class="buzz-container">
-                <button
-                  class="buzz-button music-theme"
-                  (click)="sendBuzz()"
-                  [disabled]="hasAnswered()">
-                  <span class="buzz-icon">🎶</span>
-                  <span class="buzz-text">PRENOTA E RISPONDI!</span>
-                </button>
-              </div>
-            }
-          }
-        }
-        @case ('LOCKED') {
-          <div class="status-msg locked">
-            <div class="locked-icon">🎤</div>
-            <p>Sei PRENOTATO!</p>
-            <p class="sub-text">Rispondi al presentatore</p>
-          </div>
-        }
-        @case ('WAITING_FOR_OTHER') {
-          <div class="status-msg others">
-            <div class="blocked-icon">⏸️</div>
-            <p>Qualcuno si è prenotato!</p>
-            <p class="sub-text">Attendi...</p>
-          </div>
-        }
-        @case ('BLOCKED_ERROR') {
-          <div class="status-msg error">
-            <div class="error-icon">❌</div>
-            <p>HAI SBAGLIATO!</p>
-            <p class="sub-text">Sei fuori da questo round</p>
-            <p class="wait-text">Attendi la fine del round...</p>
-          </div>
-        }
-      }
+    }
+    @case ('IMAGE_BLUR') {
+    <div class="buzz-container">
+      <button class="buzz-button" (click)="sendBuzz()" [disabled]="hasAnswered()">
+        <span class="buzz-icon">🔔</span>
+        <span class="buzz-text">PRENOTATI!</span>
+      </button>
     </div>
+    }
+    @case ('WHEEL_OF_FORTUNE') {
+    <div class="buzz-container">
+      <button class="buzz-button wheel-theme" (click)="sendBuzz()" [disabled]="hasAnswered()">
+        <span class="buzz-icon">🎡</span>
+        <span class="buzz-text">PRENOTA E RISPONDI!</span>
+      </button>
+    </div>
+    }
+    @case ('MUSIC') {
+    <div class="buzz-container">
+      <button class="buzz-button music-theme" (click)="sendBuzz()" [disabled]="hasAnswered()">
+        <span class="buzz-icon">🎶</span>
+        <span class="buzz-text">PRENOTA E RISPONDI!</span>
+      </button>
+    </div>
+    }
+    }
+    }
+    @case ('LOCKED') {
+    <div class="status-msg locked">
+      <div class="locked-icon">🎤</div>
+      <p>Sei PRENOTATO!</p>
+      <p class="sub-text">Rispondi al presentatore</p>
+    </div>
+    }
+    @case ('WAITING_FOR_OTHER') {
+    <div class="status-msg others">
+      <div class="blocked-icon">⏸️</div>
+      <p>Qualcuno si è prenotato!</p>
+      <p class="sub-text">Attendi...</p>
+    </div>
+    }
+    @case ('BLOCKED_ERROR') {
+    <div class="status-msg error">
+      <div class="error-icon">❌</div>
+      <p>HAI SBAGLIATO!</p>
+      <p class="sub-text">Sei fuori da questo round</p>
+      <p class="wait-text">Attendi la fine del round...</p>
+    </div>
+    }
+    }
+  </div>
   }
 </div>
