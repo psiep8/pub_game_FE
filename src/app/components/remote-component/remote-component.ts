@@ -26,6 +26,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR'>('WAITING');
   questionType = signal<'ROULETTE' | 'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE'>('QUIZ');
   hasAnswered = signal(false);
+  isBlocked = signal(false); // 🔥 Nuovo segnale persistente per il round
   selectedYear = signal<number>(2000);
 
   // 🔥 Range dinamico da backend
@@ -69,6 +70,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       switch (status.action) {
         case 'SHOW_QUESTION':
           this.questionType.set(status.type);
+          this.isBlocked.set(false); // 🔥 Reset blocco a nuova domanda
           if (status.type === 'CHRONO' && status.payload) {
             try {
               const payload = typeof status.payload === 'string'
@@ -96,6 +98,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
 
         case 'START_VOTING':
+          this.isBlocked.set(false); // 🔥 Reset blocco a inizio votazione
           this.onStartVoting(status.type, status.payload);
           break;
 
@@ -103,19 +106,27 @@ export class RemoteComponent implements OnInit, OnDestroy {
         case 'REVEAL':
           this.gameState.set('WAITING');
           this.hasAnswered.set(false);
+          this.isBlocked.set(false); // 🔥 Sblocca per il prossimo turno
           break;
 
         case 'BLOCKED_ERROR':
           if (status.blockedPlayer === this.nickname()) {
+            this.isBlocked.set(true); // 🔥 Mi segna come bloccato definitivamente per questo round
             this.gameState.set('BLOCKED_ERROR');
           } else {
-            this.gameState.set('VOTING');
+            // Se qualcun altro ha sbagliato, torniamo a VOTING solo se non siamo NOI quelli già bloccati
+            if (!this.isBlocked()) {
+              this.gameState.set('VOTING');
+            }
           }
           break;
 
         case 'PLAYER_PRENOTATO':
           if (status.name !== this.nickname()) {
-            this.gameState.set('WAITING_FOR_OTHER');
+            // Se qualcun altro si è prenotato, mostriamo "attendi" solo se non siamo già bloccati per errore
+            if (!this.isBlocked()) {
+              this.gameState.set('WAITING_FOR_OTHER');
+            }
           }
           break;
       }
