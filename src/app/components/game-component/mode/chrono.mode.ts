@@ -46,8 +46,10 @@ export class ChronoMode extends GameModeBase {
     const diff = Math.abs(correctYear - userYear);
 
     if (diff === 0) {
+      const points = this.calculatePoints(true, timeMs);
       return {
         isCorrect: true,
+        points,
         correctAnswer: this.payload.correctAnswer,
         difference: 0,
         timeMs
@@ -55,17 +57,23 @@ export class ChronoMode extends GameModeBase {
     }
 
     if (diff <= 3) {
+      // Per il "quasi preso" diamo comunque 0 punti o una piccola penalità se vuoi,
+      // ma qui lo contiamo come errore per semplicità di classifica.
+      const points = this.calculatePoints(false, timeMs);
       return {
         isCorrect: false,
         isClose: true,
+        points,
         correctAnswer: this.payload.correctAnswer,
         difference: diff,
         timeMs
       };
     }
 
+    const points = this.calculatePoints(false, timeMs);
     return {
       isCorrect: false,
+      points,
       correctAnswer: this.payload.correctAnswer,
       difference: diff,
       timeMs
