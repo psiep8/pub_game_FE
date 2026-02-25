@@ -1,7 +1,7 @@
-// src/app/core/game-modes/chrono/chrono.mode.ts
 
-import {GameModeBase} from '../interfaces/game-mode-base.class';
-import {GameModeResult, GameModeType} from '../interfaces/game-mode-type';
+
+import { GameModeBase } from '../interfaces/game-mode-base.class';
+import { GameModeResult, GameModeType } from '../interfaces/game-mode-type';
 
 export class ChronoMode extends GameModeBase {
   readonly type: GameModeType = 'CHRONO';
@@ -10,34 +10,34 @@ export class ChronoMode extends GameModeBase {
   readonly requiresBuzz = false;
 
   protected onInitialize(): void {
-    console.log('📅 CHRONO Mode inizializzato');
+    
   }
 
   protected async onStart(): Promise<void> {
     await this.runPreGameSequence(10000);
   }
 
-  protected onPause(): void {}
-  protected onResume(): void {}
-  protected onStop(): void {}
-  protected onCleanup(): void {}
+  protected onPause(): void { }
+  protected onResume(): void { }
+  protected onStop(): void { }
+  protected onCleanup(): void { }
 
   protected onTimeout(): void {
-    console.log('⏰ Tempo scaduto');
+    
   }
 
-  protected onBuzz(playerName: string): void {}
+  protected onBuzz(playerName: string): void { }
 
   protected onAnswer(playerName: string, answer: any, result: any): void {
-    console.log(`📅 ${playerName}: ${answer}`);
+    
   }
 
   protected onConfirmCorrect(result: GameModeResult): void {
-    console.log(`✅ ${result.playerName}: ${result.correctAnswer}`);
+    
   }
 
   protected onConfirmWrong(result: GameModeResult): void {
-    console.log(`❌ ${result.playerName} sbagliato`);
+    
   }
 
   protected validateAnswer(answer: any, timeMs: number): any {
@@ -46,8 +46,10 @@ export class ChronoMode extends GameModeBase {
     const diff = Math.abs(correctYear - userYear);
 
     if (diff === 0) {
+      const points = this.calculatePoints(true, timeMs);
       return {
         isCorrect: true,
+        points,
         correctAnswer: this.payload.correctAnswer,
         difference: 0,
         timeMs
@@ -55,17 +57,23 @@ export class ChronoMode extends GameModeBase {
     }
 
     if (diff <= 3) {
+      
+      
+      const points = this.calculatePoints(false, timeMs);
       return {
         isCorrect: false,
         isClose: true,
+        points,
         correctAnswer: this.payload.correctAnswer,
         difference: diff,
         timeMs
       };
     }
 
+    const points = this.calculatePoints(false, timeMs);
     return {
       isCorrect: false,
+      points,
       correctAnswer: this.payload.correctAnswer,
       difference: diff,
       timeMs
@@ -80,69 +88,80 @@ export class ChronoMode extends GameModeBase {
   }
 
   /**
-   * 🔥 Range ASIMMETRICO - Risposta NON al centro!
+   * 🔥 Range ASIMMETRICO cache
    */
+  private cachedRange: { min: number; max: number; step: number } | null = null;
+
   private calculateAsymmetricRange(): { min: number; max: number; step: number } {
+    if (this.cachedRange) {
+      return this.cachedRange;
+    }
+
     const correctYear = parseInt(this.payload.correctAnswer);
     const random = Math.random();
 
-    // < 1500: Range 1000 anni
+    
     if (correctYear < 1500) {
       const totalRange = 1000;
       const minOffset = Math.floor(totalRange * random * 0.7);
 
-      return {
+      this.cachedRange = {
         min: Math.max(0, correctYear - minOffset),
         max: correctYear + (totalRange - minOffset),
         step: 10
       };
+      return this.cachedRange;
     }
 
-    // 1500-1800: Range 400 anni
+    
     if (correctYear < 1800) {
       const totalRange = 400;
       const minOffset = Math.floor(totalRange * random * 0.65);
 
-      return {
+      this.cachedRange = {
         min: correctYear - minOffset,
         max: correctYear + (totalRange - minOffset),
         step: 5
       };
+      return this.cachedRange;
     }
 
-    // 1800-1950: Range 200 anni
+    
     if (correctYear < 1950) {
       const totalRange = 200;
       const minOffset = Math.floor(totalRange * random * 0.6);
 
-      return {
+      this.cachedRange = {
         min: correctYear - minOffset,
         max: correctYear + (totalRange - minOffset),
         step: 1
       };
+      return this.cachedRange;
     }
 
-    // 1950-2000: Range 100 anni
+    
     if (correctYear < 2000) {
       const totalRange = 100;
       const minOffset = Math.floor(totalRange * random * 0.55);
 
-      return {
+      this.cachedRange = {
         min: correctYear - minOffset,
         max: correctYear + (totalRange - minOffset),
         step: 1
       };
+      return this.cachedRange;
     }
 
-    // 2000+: Range 60 anni
+    
     const totalRange = 60;
     const minOffset = Math.floor(totalRange * random * 0.5);
 
-    return {
+    this.cachedRange = {
       min: correctYear - minOffset,
       max: Math.min(new Date().getFullYear() + 5, correctYear + (totalRange - minOffset)),
       step: 1
     };
+    return this.cachedRange;
   }
 
   getDisplayData() {

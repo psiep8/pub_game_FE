@@ -1,7 +1,7 @@
-// src/app/components/admin-component/admin-component.ts
-import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
-import {WebSocketService} from '../../services/web-socket.service';
-import {CommonModule} from '@angular/common';
+
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { WebSocketService } from '../../services/web-socket.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-admin-component',
@@ -14,7 +14,7 @@ export class Admin implements OnInit, OnDestroy {
 
   private ws = inject(WebSocketService);
 
-  // Admin state
+  
   correctAnswer = signal<string | null>(null);
   currentQuestionType = signal<string>('QUIZ');
   buzzedPlayer = signal<string | null>(null);
@@ -22,7 +22,7 @@ export class Admin implements OnInit, OnDestroy {
   gameState = signal<'WAITING' | 'ACTIVE' | 'ROUND_ENDED'>('WAITING');
   payload = signal<any>(null);
 
-  // Color map per visualizzare bene i colori
+  
   colorMap: { [key: string]: string } = {
     'ROSSO': '#e74c3c',
     'BLU': '#3498db',
@@ -37,32 +37,32 @@ export class Admin implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.lockOrientation();
 
-    console.log('🔌 Admin WebSocket connesso');
+    
 
-    // Ascolta gli aggiornamenti dalla TV
+    
     this.ws.status$.subscribe((status: any) => {
       if (!status) {
         console.warn('⚠️ Status ricevuto è null');
         return;
       }
 
-      console.log('📡 Admin riceve:', status);
+      
 
       try {
         switch (status.action) {
           case 'SHOW_QUESTION':
-            console.log('🔍 SHOW_QUESTION ricevuto');
+            
             this.handleShowQuestion(status);
             break;
 
           case 'START_VOTING':
-            console.log('🎮 START_VOTING ricevuto');
+            
             this.handleStartVoting(status);
             break;
 
           case 'ROUND_ENDED':
           case 'REVEAL':
-            console.log('🏁 ROUND_ENDED ricevuto');
+            
             this.gameState.set('ROUND_ENDED');
             this.buzzedPlayer.set(null);
             this.showAdminControls.set(false);
@@ -71,13 +71,13 @@ export class Admin implements OnInit, OnDestroy {
             break;
 
           case 'PLAYER_PRENOTATO':
-            console.log('🎤 PLAYER_PRENOTATO:', status.name);
+            
             this.buzzedPlayer.set(status.name);
             this.vibrate(100);
             break;
 
           case 'BLOCKED_ERROR':
-            console.log('❌ BLOCKED_ERROR');
+            
             this.buzzedPlayer.set(null);
             break;
 
@@ -94,14 +94,16 @@ export class Admin implements OnInit, OnDestroy {
     this.gameState.set('WAITING');
     this.currentQuestionType.set(status.type || 'QUIZ');
 
-    console.log('📦 Payload RAW:', status.payload);
+    
 
-    if (status.payload) {
-      const parsed = this.parsePayload(status.payload);
+    const sourcePayload = status.rawPayload || status.payload;
+
+    if (sourcePayload) {
+      const parsed = this.parsePayload(sourcePayload);
       if (parsed) {
         this.payload.set(parsed);
         this.extractCorrectAnswer(parsed, status.type);
-        console.log('✅ Risposta estratta:', this.correctAnswer());
+        
       }
     } else {
       console.warn('⚠️ Nessun payload in SHOW_QUESTION');
@@ -112,45 +114,46 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   private handleStartVoting(status: any) {
-    console.log('🎮 Gestendo START_VOTING');
-    console.log('📦 Payload in START_VOTING:', status.payload);
+    
+    
 
     this.gameState.set('ACTIVE');
     this.currentQuestionType.set(status.type || 'QUIZ');
 
-    // Se c'è il payload, estraiamo la risposta
-    if (status.payload) {
-      const parsed = this.parsePayload(status.payload);
+    const sourcePayload = status.rawPayload || status.payload;
+
+    if (sourcePayload) {
+      const parsed = this.parsePayload(sourcePayload);
       if (parsed) {
         this.payload.set(parsed);
         this.extractCorrectAnswer(parsed, status.type);
-        console.log('✅ Risposta estratta da START_VOTING:', this.correctAnswer());
+        
       }
     } else {
       console.warn('⚠️ Nessun payload in START_VOTING');
     }
 
-    // Mostra controlli solo per modalità BUZZ
+    
     const isBuzzMode = status.type === 'IMAGE_BLUR' || status.type === 'WHEEL_OF_FORTUNE' || status.type === 'MUSIC';
     this.showAdminControls.set(isBuzzMode);
-    console.log('🎮 GameState settato ad ACTIVE:', this.gameState());
-    console.log('🎮 ShowAdminControls:', this.showAdminControls());
+    
+    
   }
 
   private parsePayload(payload: any): any {
     if (!payload) return null;
 
-    // Se è già un oggetto, ritorna così com'è
+    
     if (typeof payload === 'object') {
-      console.log('📦 Payload è già oggetto');
+      
       return payload;
     }
 
-    // Se è una stringa, prova a fare il parse
+    
     if (typeof payload === 'string') {
       try {
         const parsed = JSON.parse(payload);
-        console.log('📦 Payload parsato da stringa:', parsed);
+        
         return parsed;
       } catch (e) {
         console.error('❌ Errore parse JSON:', e);
@@ -161,13 +164,49 @@ export class Admin implements OnInit, OnDestroy {
     return null;
   }
 
-  private extractCorrectAnswer(payload: any, type: string) {
-    console.log('🔎 Estraendo risposta da:', payload, 'tipo:', type);
+  private extractCorrectAnswer(rawPayload: any, type: string) {
+    
 
-    if (!payload) {
+    if (!rawPayload) {
       console.warn('⚠️ Payload vuoto!');
       this.correctAnswer.set(null);
       return;
+    }
+
+    
+    
+    
+    let payload = rawPayload;
+
+    
+    if (rawPayload.payload !== undefined && rawPayload.payload !== null) {
+      if (typeof rawPayload.payload === 'string') {
+        try {
+          payload = JSON.parse(rawPayload.payload);
+        } catch (e) {
+          console.error('Errore parsing inner payload', e);
+        }
+      } else {
+        payload = rawPayload.payload;
+      }
+    } else {
+      
+      if (typeof rawPayload === 'string') {
+        try {
+          payload = JSON.parse(rawPayload);
+        } catch (e) {
+          console.error('Errore parsing rawPayload', e);
+        }
+      }
+    }
+
+    
+    if (typeof payload === 'string') {
+      try {
+        payload = JSON.parse(payload);
+      } catch (e) {
+        
+      }
     }
 
     let answer = 'N/A';
@@ -177,37 +216,36 @@ export class Admin implements OnInit, OnDestroy {
         case 'TRUE_FALSE':
         case 'CHRONO':
         case 'IMAGE_BLUR':
-          answer = payload.correctAnswer || 'N/A';
-          console.log(`📝 ${type} risposta:`, answer);
+          answer = payload.correctAnswer !== undefined ? String(payload.correctAnswer) : 'N/A';
+          
           break;
 
         case 'WHEEL_OF_FORTUNE':
-          // Cerca in questo ordine: proverb -> payload -> correctAnswer
-          answer = payload.proverb || payload.payload || payload.correctAnswer || 'N/A';
-          console.log('🎡 WHEEL_OF_FORTUNE risposta:', answer);
+          answer = payload.proverb || payload.correctAnswer || 'N/A';
+          
           break;
+
         case 'MUSIC':
-          // Per la musica cerchiamo il titolo della canzone
-          // Aggiungiamo anche l'artista se disponibile per completezza
           const title = payload.songTitle || payload.correctAnswer || 'N/A';
           const artist = payload.artist ? ` - ${payload.artist}` : '';
           answer = title + artist;
-          console.log('🎵 MUSIC risposta:', answer);
+          
           break;
+
         default:
           console.warn('⚠️ Tipo sconosciuto:', type);
-          answer = payload.correctAnswer || 'N/A';
+          answer = payload.correctAnswer !== undefined ? String(payload.correctAnswer) : 'N/A';
       }
     } catch (error) {
       console.error('❌ Errore estrazione risposta:', error);
       answer = 'ERRORE';
     }
 
-    console.log('✅ Risposta finale:', answer);
+    
     this.correctAnswer.set(answer);
   }
 
-  // ========== CONTROLLI ADMIN ==========
+  
 
   confirmCorrect() {
     const player = this.buzzedPlayer();
@@ -216,7 +254,7 @@ export class Admin implements OnInit, OnDestroy {
       return;
     }
 
-    console.log('✅ Admin conferma CORRETTA per:', player);
+    
 
     this.ws.broadcastStatus(1, {
       action: 'ADMIN_CONFIRM_CORRECT',
@@ -234,7 +272,7 @@ export class Admin implements OnInit, OnDestroy {
       return;
     }
 
-    console.log('❌ Admin conferma SBAGLIATA per:', player);
+    
 
     this.ws.broadcastStatus(1, {
       action: 'ADMIN_CONFIRM_WRONG',
@@ -245,7 +283,7 @@ export class Admin implements OnInit, OnDestroy {
     this.buzzedPlayer.set(null);
   }
 
-  // ========== UTILITY ==========
+  
 
   private async lockOrientation() {
     try {
@@ -254,7 +292,7 @@ export class Admin implements OnInit, OnDestroy {
         await screen.orientation.lock('landscape');
       }
     } catch (err) {
-      console.log('Orientamento non bloccabile');
+      
     }
   }
 
@@ -265,6 +303,6 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    console.log('🔌 Admin disconnesso');
+    
   }
 }

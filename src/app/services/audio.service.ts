@@ -8,7 +8,7 @@ export class AudioService {
   private audioEnabled = signal(true);
   private audioContext?: AudioContext;
 
-  // Audio elements
+  
   private heartbeatAudio?: HTMLAudioElement;
   private clockAudio?: HTMLAudioElement;
   private bellAudio?: HTMLAudioElement;
@@ -16,7 +16,7 @@ export class AudioService {
   private wrongAudio?: HTMLAudioElement;
   private revealAudio?: HTMLAudioElement;
 
-  // Loops
+  
   private heartbeatLoopInterval?: any;
   private clockLoopInterval?: any;
 
@@ -29,33 +29,33 @@ export class AudioService {
    */
   private loadAudio() {
     try {
-      // Heartbeat (battito cardiaco) per attesa
+      
       this.heartbeatAudio = new Audio('assets/audio/heartbeat.mp3');
       this.heartbeatAudio.loop = false;
       this.heartbeatAudio.volume = 0.3;
 
-      // Clock (tic tac) per round
+      
       this.clockAudio = new Audio('assets/audio/clock.mp3');
       this.clockAudio.loop = false;
       this.clockAudio.volume = 0.4;
 
-      // Bell (campanella) per prenotazione
+      
       this.bellAudio = new Audio('assets/audio/bell.mp3');
       this.bellAudio.volume = 0.6;
 
-      // Correct (vittoria)
+      
       this.correctAudio = new Audio('assets/audio/correct.mp3');
       this.correctAudio.volume = 0.7;
 
-      // Wrong (errore)
+      
       this.wrongAudio = new Audio('assets/audio/wrong.mp3');
       this.wrongAudio.volume = 0.7;
 
-      // Reveal (rivelazione risposta)
+      
       this.revealAudio = new Audio('assets/audio/reveal.mp3');
       this.revealAudio.volume = 0.6;
 
-      console.log('🔊 Audio caricati');
+      
     } catch (e) {
       console.warn('⚠️ Errore caricamento audio:', e);
     }
@@ -67,13 +67,13 @@ export class AudioService {
   startHeartbeat() {
     if (!this.audioEnabled() || !this.heartbeatAudio) return;
 
-    console.log('💓 Heartbeat START');
+    
 
-    // Play immediato
+    
     this.heartbeatAudio.currentTime = 0;
     this.heartbeatAudio.play().catch(() => {});
 
-    // Loop ogni 1.5 secondi
+    
     this.heartbeatLoopInterval = setInterval(() => {
       if (this.heartbeatAudio) {
         this.heartbeatAudio.currentTime = 0;
@@ -94,7 +94,7 @@ export class AudioService {
       this.heartbeatAudio.pause();
       this.heartbeatAudio.currentTime = 0;
     }
-    console.log('💓 Heartbeat STOP');
+    
   }
 
   /**
@@ -103,13 +103,13 @@ export class AudioService {
   startClock() {
     if (!this.audioEnabled() || !this.clockAudio) return;
 
-    console.log('🕐 Clock START');
+    
 
-    // Play immediato
+    
     this.clockAudio.currentTime = 0;
     this.clockAudio.play().catch(() => {});
 
-    // Loop ogni 1 secondo (tic tac)
+    
     this.clockLoopInterval = setInterval(() => {
       if (this.clockAudio) {
         this.clockAudio.currentTime = 0;
@@ -130,7 +130,7 @@ export class AudioService {
       this.clockAudio.pause();
       this.clockAudio.currentTime = 0;
     }
-    console.log('🕐 Clock STOP');
+    
   }
 
   /**
@@ -139,7 +139,7 @@ export class AudioService {
   playBell() {
     if (!this.audioEnabled() || !this.bellAudio) return;
 
-    console.log('🔔 Bell');
+    
     this.bellAudio.currentTime = 0;
     this.bellAudio.play().catch(() => {});
   }
@@ -150,8 +150,8 @@ export class AudioService {
   playCorrect() {
     if (!this.audioEnabled() || !this.correctAudio) return;
 
-    console.log('✅ Correct sound');
-    this.stopClock(); // Ferma clock
+    
+    this.stopClock(); 
     this.correctAudio.currentTime = 0;
     this.correctAudio.play().catch(() => {});
   }
@@ -162,7 +162,7 @@ export class AudioService {
   playWrong() {
     if (!this.audioEnabled() || !this.wrongAudio) return;
 
-    console.log('❌ Wrong sound');
+    
     this.wrongAudio.currentTime = 0;
     this.wrongAudio.play().catch(() => {});
   }
@@ -173,8 +173,8 @@ export class AudioService {
   playReveal() {
     if (!this.audioEnabled() || !this.revealAudio) return;
 
-    console.log('🎊 Reveal sound');
-    this.stopClock(); // Ferma clock
+    
+    this.stopClock(); 
     this.revealAudio.currentTime = 0;
     this.revealAudio.play().catch(() => {});
   }
@@ -193,7 +193,7 @@ export class AudioService {
       }
     });
 
-    console.log('🔇 Tutti i suoni fermati');
+    
   }
 
   /**
@@ -206,7 +206,7 @@ export class AudioService {
       this.stopAll();
     }
 
-    console.log(`🔊 Audio: ${this.audioEnabled() ? 'ON' : 'OFF'}`);
+    
   }
 
   /**

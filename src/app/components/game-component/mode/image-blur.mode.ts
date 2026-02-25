@@ -1,4 +1,4 @@
-// src/app/core/game-modes/image-blur/image-blur.mode.ts
+
 
 import {signal} from '@angular/core';
 import {GameModeBase} from '../interfaces/game-mode-base.class';
@@ -18,7 +18,7 @@ export class ImageBlurMode extends GameModeBase {
   }
 
   protected async onStart(): Promise<void> {
-    // Prima la pausa di lettura + VIA, poi avvia l'effetto blur e timer
+    
     await this.runPreGameSequence(10000);
     this.startBlurEffect();
   }
@@ -33,7 +33,7 @@ export class ImageBlurMode extends GameModeBase {
 
   protected onStop(): void {
     this.stopBlurEffect();
-    this.currentBlur.set(0); // Rivela immagine completamente
+    this.currentBlur.set(0); 
   }
 
   protected onCleanup(): void {
@@ -41,23 +41,23 @@ export class ImageBlurMode extends GameModeBase {
   }
 
   protected onTimeout(): void {
-    console.log('⏰ Tempo scaduto! Immagine rivelata.');
+    
   }
 
   protected onBuzz(playerName: string): void {
-    console.log(`📸 ${playerName} ha buzzato!`);
+    
   }
 
   protected onAnswer(playerName: string, answer: any, result: any): void {
-    // Non usato - risposta vocale
+    
   }
 
   protected onConfirmCorrect(result: GameModeResult): void {
-    console.log(`✅ ${result.playerName}: ${result.correctAnswer} - ${result.points} punti`);
+    
   }
 
   protected onConfirmWrong(result: GameModeResult): void {
-    console.log(`❌ ${result.playerName} ha sbagliato!`);
+    
   }
 
   protected validateAnswer(answer: any, timeMs: number): any {
@@ -67,25 +67,25 @@ export class ImageBlurMode extends GameModeBase {
   protected calculatePoints(isCorrect: boolean, elapsedMs: number): number {
     const maxTimeMs = this.timerDuration * 1000;
 
-    // Calcoliamo il fattore di decadimento (da 1.0 a 0)
-    // Se elapsedMs è 0, ratio è 1. Se elapsedMs è maxTimeMs, ratio è 0.
+    
+    
     const decayRatio = Math.max(0, 1 - (elapsedMs / maxTimeMs));
 
     if (isCorrect) {
-      // Da +1000 (istante 0) a 0 (fine tempo)
+      
       return Math.round(1000 * decayRatio);
     } else {
-      // Da -1000 (istante 0) a 0 (fine tempo)
+      
       return Math.round(-1000 * decayRatio);
     }
   }
 
-  // ========== BLUR-SPECIFIC LOGIC ==========
+  
 
   private startBlurEffect(): void {
     if (this.blurInterval) clearInterval(this.blurInterval);
 
-    const blurStep = 40 / this.timerDuration; // Diminuisce uniformemente
+    const blurStep = 40 / this.timerDuration; 
 
     this.blurInterval = setInterval(() => {
       if (this.buzzedPlayer()) return;

@@ -1,11 +1,11 @@
 <div class="truefalse-container">
 
-  <!-- Domanda -->
+  
   <div class="question-box">
     <h2 class="question-text">{{ displayData?.question }}</h2>
   </div>
 
-  <!-- Opzioni -->
+  
   <div class="options-grid">
     @for (option of safeOptions; track $index) {
       <div class="option-card"
@@ -23,7 +23,7 @@
     }
   </div>
 
-  <!-- 🔥 EXPLANATION quando revealed e risposta è FALSO -->
+  
   @if (displayData?.correctAnswer === 'FALSO' && displayData?.explanation) {
     <div class="explanation-box">
       <div class="explanation-icon">💡</div>
@@ -32,7 +32,7 @@
     </div>
   }
 
-  <!-- Timer -->
+  
   <div class="timer-display">
     <div class="timer-circle">
       <svg width="120" height="120">
