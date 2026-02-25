@@ -1,10 +1,10 @@
 // src/app/components/remote/remote-component.ts
 
-import {Component, inject, OnDestroy, OnInit, signal, HostListener} from '@angular/core';
-import {WebSocketService} from '../../services/web-socket.service';
-import {FormsModule} from '@angular/forms';
-import {SwUpdate, VersionReadyEvent} from '@angular/service-worker';
-import {filter} from 'rxjs/operators';
+import { Component, inject, OnDestroy, OnInit, signal, HostListener } from '@angular/core';
+import { WebSocketService } from '../../services/web-socket.service';
+import { FormsModule } from '@angular/forms';
+import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-remote-component',
@@ -69,22 +69,16 @@ export class RemoteComponent implements OnInit, OnDestroy {
       switch (status.action) {
         case 'SHOW_QUESTION':
           this.questionType.set(status.type);
-
-          // 🔥 Per CHRONO, estrai range dinamico dal payload
           if (status.type === 'CHRONO' && status.payload) {
             try {
               const payload = typeof status.payload === 'string'
                 ? JSON.parse(status.payload)
                 : status.payload;
-
-              this.minYear.set(payload.minYear || 1000);
-              this.maxYear.set(payload.maxYear || 2026);
-              this.yearStep.set(payload.step || 1);
-
-              // Inizializza slider al centro
+              this.minYear.set(payload.minYear ?? 1000);
+              this.maxYear.set(payload.maxYear ?? 2026);
+              this.yearStep.set(payload.step ?? 1);
               const center = Math.floor((this.minYear() + this.maxYear()) / 2);
               this.selectedYear.set(center);
-
               console.log(`📅 CHRONO Range: ${this.minYear()}-${this.maxYear()}, step: ${this.yearStep()}`);
             } catch (e) {
               console.error('❌ Errore parsing CHRONO payload:', e);
@@ -171,7 +165,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (!this.deferredPrompt) return;
 
     this.deferredPrompt.prompt();
-    const {outcome} = await this.deferredPrompt.userChoice;
+    const { outcome } = await this.deferredPrompt.userChoice;
 
     if (outcome === 'accepted') {
       console.log('✅ Installazione accettata');
@@ -245,9 +239,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
       try {
         const data = typeof payload === 'string' ? JSON.parse(payload) : payload;
 
-        if (data.minYear) this.minYear.set(data.minYear);
-        if (data.maxYear) this.maxYear.set(data.maxYear);
-        if (data.step) this.yearStep.set(data.step);
+        if (data.minYear !== undefined) this.minYear.set(data.minYear);
+        if (data.maxYear !== undefined) this.maxYear.set(data.maxYear);
+        if (data.step !== undefined) this.yearStep.set(data.step);
 
         const center = Math.floor((this.minYear() + this.maxYear()) / 2);
         this.selectedYear.set(center);

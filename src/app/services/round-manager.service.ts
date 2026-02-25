@@ -29,13 +29,13 @@ export class RoundManagerService {
     // 'CHRONO': 5,
     // 'ROULETTE': 5,
     // 'ONE_VS_ONE': 10
-    'QUIZ': 0,
-    'TRUE_FALSE': 0,
-    'WHEEL_OF_FORTUNE': 0,
-    'MUSIC': 100,
-    'IMAGE_BLUR': 0,
-    'CHRONO': 0,
-    'ROULETTE': 0,
+    'QUIZ': 16,
+    'TRUE_FALSE': 14,
+    'WHEEL_OF_FORTUNE': 14,
+    'MUSIC': 14,
+    'IMAGE_BLUR': 14,
+    'CHRONO': 14,
+    'ROULETTE': 14,
     'ONE_VS_ONE': 0
   };
 
