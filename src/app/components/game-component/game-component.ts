@@ -348,14 +348,18 @@ export class GameComponent implements OnInit, OnDestroy {
       this.showQuestion.set(true);
       this.timer.set(mode.timerDuration);
 
-      const payloadString = typeof nextRound.payload === 'string'
+      const safeData = this.getSafeDisplayData();
+      const payloadString = JSON.stringify(safeData);
+
+      const rawPayloadString = typeof nextRound.payload === 'string'
         ? nextRound.payload
         : JSON.stringify(nextRound.payload);
 
       this.ws.broadcastStatus(1, {
         action: 'SHOW_QUESTION',
         type: parsedPayload.type || extractedType,
-        payload: payloadString
+        payload: payloadString,
+        rawPayload: rawPayloadString
       });
 
       // 🔥 AVVIA CLOCK
@@ -366,7 +370,8 @@ export class GameComponent implements OnInit, OnDestroy {
       this.ws.broadcastStatus(1, {
         action: 'START_VOTING',
         type: parsedPayload.type || extractedType,
-        payload: payloadString
+        payload: payloadString,
+        rawPayload: rawPayloadString
       });
 
       this.isSpinning.set(false);
@@ -491,6 +496,9 @@ export class GameComponent implements OnInit, OnDestroy {
     // 🔥 AGGIUNGI PUNTI
     this.leaderboardService.addPoints(playerName, realPoints, true);
 
+    // 🔥 AGGIUNGI PUNTI ALL'ELENCO RISPOSTE RECENTI
+    this.ws.responses.update(res => res.map(r => r.playerName === playerName ? { ...r, points: realPoints } : r));
+
     mode.confirmCorrect(playerName);
 
     // 🔥 SUONO CORRETTO
@@ -545,6 +553,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
     // 🔥 SOTTRAI PUNTI
     this.leaderboardService.addPoints(playerName, realPoints, false);
+
+    // 🔥 AGGIUNGI PUNTI ALL'ELENCO RISPOSTE RECENTI
+    this.ws.responses.update(res => res.map(r => r.playerName === playerName ? { ...r, points: realPoints } : r));
 
     mode.confirmWrong(playerName);
 

@@ -1,7 +1,7 @@
 // src/app/components/admin-component/admin-component.ts
-import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
-import {WebSocketService} from '../../services/web-socket.service';
-import {CommonModule} from '@angular/common';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { WebSocketService } from '../../services/web-socket.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-admin-component',
@@ -96,8 +96,10 @@ export class Admin implements OnInit, OnDestroy {
 
     console.log('📦 Payload RAW:', status.payload);
 
-    if (status.payload) {
-      const parsed = this.parsePayload(status.payload);
+    const sourcePayload = status.rawPayload || status.payload;
+
+    if (sourcePayload) {
+      const parsed = this.parsePayload(sourcePayload);
       if (parsed) {
         this.payload.set(parsed);
         this.extractCorrectAnswer(parsed, status.type);
@@ -118,9 +120,10 @@ export class Admin implements OnInit, OnDestroy {
     this.gameState.set('ACTIVE');
     this.currentQuestionType.set(status.type || 'QUIZ');
 
-    // Se c'è il payload, estraiamo la risposta
-    if (status.payload) {
-      const parsed = this.parsePayload(status.payload);
+    const sourcePayload = status.rawPayload || status.payload;
+
+    if (sourcePayload) {
+      const parsed = this.parsePayload(sourcePayload);
       if (parsed) {
         this.payload.set(parsed);
         this.extractCorrectAnswer(parsed, status.type);
@@ -161,13 +164,49 @@ export class Admin implements OnInit, OnDestroy {
     return null;
   }
 
-  private extractCorrectAnswer(payload: any, type: string) {
-    console.log('🔎 Estraendo risposta da:', payload, 'tipo:', type);
+  private extractCorrectAnswer(rawPayload: any, type: string) {
+    console.log('🔎 Estraendo risposta da:', rawPayload, 'tipo:', type);
 
-    if (!payload) {
+    if (!rawPayload) {
       console.warn('⚠️ Payload vuoto!');
       this.correctAnswer.set(null);
       return;
+    }
+
+    // Il backend invia a volte il payload nidificato come stringa dentro payload.payload
+    // Oppure rawPayload stesso è il vero payload.
+    // Dobbiamo estrarre il VERO payload contenente correctAnswer e options.
+    let payload = rawPayload;
+
+    // CASO 1: Esiste rawPayload.payload (ex: quiz, chrono, image blur, wheel of fortune)
+    if (rawPayload.payload !== undefined && rawPayload.payload !== null) {
+      if (typeof rawPayload.payload === 'string') {
+        try {
+          payload = JSON.parse(rawPayload.payload);
+        } catch (e) {
+          console.error('Errore parsing inner payload', e);
+        }
+      } else {
+        payload = rawPayload.payload;
+      }
+    } else {
+      // CASO 2: rawPayload è GIA' il vero payload (ex: true false)
+      if (typeof rawPayload === 'string') {
+        try {
+          payload = JSON.parse(rawPayload);
+        } catch (e) {
+          console.error('Errore parsing rawPayload', e);
+        }
+      }
+    }
+
+    // Se a questo punto payload è ancora una stringa (es doppio stringify), ri-parsiamo
+    if (typeof payload === 'string') {
+      try {
+        payload = JSON.parse(payload);
+      } catch (e) {
+        // ignore
+      }
     }
 
     let answer = 'N/A';
@@ -177,26 +216,25 @@ export class Admin implements OnInit, OnDestroy {
         case 'TRUE_FALSE':
         case 'CHRONO':
         case 'IMAGE_BLUR':
-          answer = payload.correctAnswer || 'N/A';
+          answer = payload.correctAnswer !== undefined ? String(payload.correctAnswer) : 'N/A';
           console.log(`📝 ${type} risposta:`, answer);
           break;
 
         case 'WHEEL_OF_FORTUNE':
-          // Cerca in questo ordine: proverb -> payload -> correctAnswer
-          answer = payload.proverb || payload.payload || payload.correctAnswer || 'N/A';
+          answer = payload.proverb || payload.correctAnswer || 'N/A';
           console.log('🎡 WHEEL_OF_FORTUNE risposta:', answer);
           break;
+
         case 'MUSIC':
-          // Per la musica cerchiamo il titolo della canzone
-          // Aggiungiamo anche l'artista se disponibile per completezza
           const title = payload.songTitle || payload.correctAnswer || 'N/A';
           const artist = payload.artist ? ` - ${payload.artist}` : '';
           answer = title + artist;
           console.log('🎵 MUSIC risposta:', answer);
           break;
+
         default:
           console.warn('⚠️ Tipo sconosciuto:', type);
-          answer = payload.correctAnswer || 'N/A';
+          answer = payload.correctAnswer !== undefined ? String(payload.correctAnswer) : 'N/A';
       }
     } catch (error) {
       console.error('❌ Errore estrazione risposta:', error);
