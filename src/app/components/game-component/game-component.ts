@@ -322,7 +322,29 @@ export class GameComponent implements OnInit, OnDestroy {
         onTimerTick: (seconds) => this.timer.set(seconds),
         onTimerEnd: () => this.onModeTimeout(),
         onBuzz: (playerName) => this.onPlayerBuzz(playerName),
-        activePlayers: activePlayers
+        activePlayers: activePlayers,
+        onAnswerReceived: (result: any) => {
+          // 🔥 CALCOLO AUTOMATICO PUNTI (Per QUIZ, TRUE_FALSE, CHRONO, ROULETTE)
+          if (result && result.playerName) {
+            console.log(`🎯 Risposta ricevuta da ${result.playerName}:`, result);
+
+            const points = result.points || 0;
+            const isCorrect = !!result.isCorrect;
+
+            // 1. Aggiungi punti alla classifica reale
+            this.leaderboardService.addPoints(result.playerName, points, isCorrect);
+
+            // 2. Aggiorna visivamente il box delle "Ultime Risposte" in basso
+            this.ws.responses.update(list => {
+              return list.map(r => {
+                if (r.playerName === result.playerName) {
+                  return { ...r, points: points };
+                }
+                return r;
+              });
+            });
+          }
+        }
       });
 
       (mode as any).setConfig?.({

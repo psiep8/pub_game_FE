@@ -1,15 +1,15 @@
 // src/app/core/services/game-mode.service.ts
 
-import {Injectable} from '@angular/core';
-import {ImageBlurMode} from '../components/game-component/mode/image-blur.mode';
-import {QuizMode} from '../components/game-component/mode/quiz.mode';
-import {WheelOfFortuneMode} from '../components/game-component/mode/wheel-fortune.mode';
-import {ChronoMode} from '../components/game-component/mode/chrono.mode';
-import {TrueFalseMode} from '../components/game-component/mode/true_false.mode';
-import {GameModeConfig, IGameMode} from '../components/game-component/interfaces/game-mode-type';
-import {RouletteMode} from '../components/game-component/mode/roulette.mode';
-import {MusicMode} from '../components/game-component/mode/music.mode';
-import {OneVsOneMode} from '../components/game-component/mode/one_vs_one.mode';
+import { Injectable } from '@angular/core';
+import { ImageBlurMode } from '../components/game-component/mode/image-blur.mode';
+import { QuizMode } from '../components/game-component/mode/quiz.mode';
+import { WheelOfFortuneMode } from '../components/game-component/mode/wheel-fortune.mode';
+import { ChronoMode } from '../components/game-component/mode/chrono.mode';
+import { TrueFalseMode } from '../components/game-component/mode/true_false.mode';
+import { GameModeConfig, IGameMode } from '../components/game-component/interfaces/game-mode-type';
+import { RouletteMode } from '../components/game-component/mode/roulette.mode';
+import { MusicMode } from '../components/game-component/mode/music.mode';
+import { OneVsOneMode } from '../components/game-component/mode/one_vs_one.mode';
 
 /**
  * Factory Service per creare modalità di gioco
@@ -31,6 +31,7 @@ export class GameModeService {
     onTimerTick: (seconds: any) => void;
     onTimerEnd: () => void;
     onBuzz: (playerName: any) => void;
+    onAnswerReceived?: (result: any) => void;
     activePlayers: string[]
   }): IGameMode {
     // Cleanup modalità precedente
