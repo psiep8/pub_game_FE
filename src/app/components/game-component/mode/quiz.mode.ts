@@ -1,11 +1,11 @@
-import {GameModeResult, GameModeType} from '../interfaces/game-mode-type';
-import {GameModeBase} from '../interfaces/game-mode-base.class';
+import { GameModeResult, GameModeType } from '../interfaces/game-mode-type';
+import { GameModeBase } from '../interfaces/game-mode-base.class';
 
 export class QuizMode extends GameModeBase {
   readonly type: GameModeType = 'QUIZ';
   readonly timerDuration = 10;
   readonly requiresBubbles = true;
-  readonly requiresBuzz = true;
+  readonly requiresBuzz = false;
 
   // ================= FLUSSO =================
   override async onStart(): Promise<void> {
@@ -57,7 +57,7 @@ export class QuizMode extends GameModeBase {
     const playerChoice = this.payload.options[answer as number];
     const isCorrect = playerChoice === this.payload.correctAnswer;
     const points = this.calculatePoints(isCorrect, timeMs);
-    return {isCorrect, points, playerChoice};
+    return { isCorrect, points, playerChoice };
   }
 
   protected calculatePoints(isCorrect: boolean, elapsedMs: number): number {
