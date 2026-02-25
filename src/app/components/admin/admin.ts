@@ -1,4 +1,4 @@
-// src/app/components/admin-component/admin-component.ts
+
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { WebSocketService } from '../../services/web-socket.service';
 import { CommonModule } from '@angular/common';
@@ -14,7 +14,7 @@ export class Admin implements OnInit, OnDestroy {
 
   private ws = inject(WebSocketService);
 
-  // Admin state
+  
   correctAnswer = signal<string | null>(null);
   currentQuestionType = signal<string>('QUIZ');
   buzzedPlayer = signal<string | null>(null);
@@ -22,7 +22,7 @@ export class Admin implements OnInit, OnDestroy {
   gameState = signal<'WAITING' | 'ACTIVE' | 'ROUND_ENDED'>('WAITING');
   payload = signal<any>(null);
 
-  // Color map per visualizzare bene i colori
+  
   colorMap: { [key: string]: string } = {
     'ROSSO': '#e74c3c',
     'BLU': '#3498db',
@@ -37,32 +37,32 @@ export class Admin implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.lockOrientation();
 
-    console.log('🔌 Admin WebSocket connesso');
+    
 
-    // Ascolta gli aggiornamenti dalla TV
+    
     this.ws.status$.subscribe((status: any) => {
       if (!status) {
         console.warn('⚠️ Status ricevuto è null');
         return;
       }
 
-      console.log('📡 Admin riceve:', status);
+      
 
       try {
         switch (status.action) {
           case 'SHOW_QUESTION':
-            console.log('🔍 SHOW_QUESTION ricevuto');
+            
             this.handleShowQuestion(status);
             break;
 
           case 'START_VOTING':
-            console.log('🎮 START_VOTING ricevuto');
+            
             this.handleStartVoting(status);
             break;
 
           case 'ROUND_ENDED':
           case 'REVEAL':
-            console.log('🏁 ROUND_ENDED ricevuto');
+            
             this.gameState.set('ROUND_ENDED');
             this.buzzedPlayer.set(null);
             this.showAdminControls.set(false);
@@ -71,13 +71,13 @@ export class Admin implements OnInit, OnDestroy {
             break;
 
           case 'PLAYER_PRENOTATO':
-            console.log('🎤 PLAYER_PRENOTATO:', status.name);
+            
             this.buzzedPlayer.set(status.name);
             this.vibrate(100);
             break;
 
           case 'BLOCKED_ERROR':
-            console.log('❌ BLOCKED_ERROR');
+            
             this.buzzedPlayer.set(null);
             break;
 
@@ -94,7 +94,7 @@ export class Admin implements OnInit, OnDestroy {
     this.gameState.set('WAITING');
     this.currentQuestionType.set(status.type || 'QUIZ');
 
-    console.log('📦 Payload RAW:', status.payload);
+    
 
     const sourcePayload = status.rawPayload || status.payload;
 
@@ -103,7 +103,7 @@ export class Admin implements OnInit, OnDestroy {
       if (parsed) {
         this.payload.set(parsed);
         this.extractCorrectAnswer(parsed, status.type);
-        console.log('✅ Risposta estratta:', this.correctAnswer());
+        
       }
     } else {
       console.warn('⚠️ Nessun payload in SHOW_QUESTION');
@@ -114,8 +114,8 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   private handleStartVoting(status: any) {
-    console.log('🎮 Gestendo START_VOTING');
-    console.log('📦 Payload in START_VOTING:', status.payload);
+    
+    
 
     this.gameState.set('ACTIVE');
     this.currentQuestionType.set(status.type || 'QUIZ');
@@ -127,33 +127,33 @@ export class Admin implements OnInit, OnDestroy {
       if (parsed) {
         this.payload.set(parsed);
         this.extractCorrectAnswer(parsed, status.type);
-        console.log('✅ Risposta estratta da START_VOTING:', this.correctAnswer());
+        
       }
     } else {
       console.warn('⚠️ Nessun payload in START_VOTING');
     }
 
-    // Mostra controlli solo per modalità BUZZ
+    
     const isBuzzMode = status.type === 'IMAGE_BLUR' || status.type === 'WHEEL_OF_FORTUNE' || status.type === 'MUSIC';
     this.showAdminControls.set(isBuzzMode);
-    console.log('🎮 GameState settato ad ACTIVE:', this.gameState());
-    console.log('🎮 ShowAdminControls:', this.showAdminControls());
+    
+    
   }
 
   private parsePayload(payload: any): any {
     if (!payload) return null;
 
-    // Se è già un oggetto, ritorna così com'è
+    
     if (typeof payload === 'object') {
-      console.log('📦 Payload è già oggetto');
+      
       return payload;
     }
 
-    // Se è una stringa, prova a fare il parse
+    
     if (typeof payload === 'string') {
       try {
         const parsed = JSON.parse(payload);
-        console.log('📦 Payload parsato da stringa:', parsed);
+        
         return parsed;
       } catch (e) {
         console.error('❌ Errore parse JSON:', e);
@@ -165,7 +165,7 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   private extractCorrectAnswer(rawPayload: any, type: string) {
-    console.log('🔎 Estraendo risposta da:', rawPayload, 'tipo:', type);
+    
 
     if (!rawPayload) {
       console.warn('⚠️ Payload vuoto!');
@@ -173,12 +173,12 @@ export class Admin implements OnInit, OnDestroy {
       return;
     }
 
-    // Il backend invia a volte il payload nidificato come stringa dentro payload.payload
-    // Oppure rawPayload stesso è il vero payload.
-    // Dobbiamo estrarre il VERO payload contenente correctAnswer e options.
+    
+    
+    
     let payload = rawPayload;
 
-    // CASO 1: Esiste rawPayload.payload (ex: quiz, chrono, image blur, wheel of fortune)
+    
     if (rawPayload.payload !== undefined && rawPayload.payload !== null) {
       if (typeof rawPayload.payload === 'string') {
         try {
@@ -190,7 +190,7 @@ export class Admin implements OnInit, OnDestroy {
         payload = rawPayload.payload;
       }
     } else {
-      // CASO 2: rawPayload è GIA' il vero payload (ex: true false)
+      
       if (typeof rawPayload === 'string') {
         try {
           payload = JSON.parse(rawPayload);
@@ -200,12 +200,12 @@ export class Admin implements OnInit, OnDestroy {
       }
     }
 
-    // Se a questo punto payload è ancora una stringa (es doppio stringify), ri-parsiamo
+    
     if (typeof payload === 'string') {
       try {
         payload = JSON.parse(payload);
       } catch (e) {
-        // ignore
+        
       }
     }
 
@@ -217,19 +217,19 @@ export class Admin implements OnInit, OnDestroy {
         case 'CHRONO':
         case 'IMAGE_BLUR':
           answer = payload.correctAnswer !== undefined ? String(payload.correctAnswer) : 'N/A';
-          console.log(`📝 ${type} risposta:`, answer);
+          
           break;
 
         case 'WHEEL_OF_FORTUNE':
           answer = payload.proverb || payload.correctAnswer || 'N/A';
-          console.log('🎡 WHEEL_OF_FORTUNE risposta:', answer);
+          
           break;
 
         case 'MUSIC':
           const title = payload.songTitle || payload.correctAnswer || 'N/A';
           const artist = payload.artist ? ` - ${payload.artist}` : '';
           answer = title + artist;
-          console.log('🎵 MUSIC risposta:', answer);
+          
           break;
 
         default:
@@ -241,11 +241,11 @@ export class Admin implements OnInit, OnDestroy {
       answer = 'ERRORE';
     }
 
-    console.log('✅ Risposta finale:', answer);
+    
     this.correctAnswer.set(answer);
   }
 
-  // ========== CONTROLLI ADMIN ==========
+  
 
   confirmCorrect() {
     const player = this.buzzedPlayer();
@@ -254,7 +254,7 @@ export class Admin implements OnInit, OnDestroy {
       return;
     }
 
-    console.log('✅ Admin conferma CORRETTA per:', player);
+    
 
     this.ws.broadcastStatus(1, {
       action: 'ADMIN_CONFIRM_CORRECT',
@@ -272,7 +272,7 @@ export class Admin implements OnInit, OnDestroy {
       return;
     }
 
-    console.log('❌ Admin conferma SBAGLIATA per:', player);
+    
 
     this.ws.broadcastStatus(1, {
       action: 'ADMIN_CONFIRM_WRONG',
@@ -283,7 +283,7 @@ export class Admin implements OnInit, OnDestroy {
     this.buzzedPlayer.set(null);
   }
 
-  // ========== UTILITY ==========
+  
 
   private async lockOrientation() {
     try {
@@ -292,7 +292,7 @@ export class Admin implements OnInit, OnDestroy {
         await screen.orientation.lock('landscape');
       }
     } catch (err) {
-      console.log('Orientamento non bloccabile');
+      
     }
   }
 
@@ -303,6 +303,6 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    console.log('🔌 Admin disconnesso');
+    
   }
 }

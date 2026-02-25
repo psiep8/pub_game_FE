@@ -43,7 +43,7 @@
   .timer-display { font-size: 1.6rem; font-weight: 900; color: #ffd700; }
 }
 
-/* Titolo centrato nella fase di reading (prima del VIA) */
+
 .chrono-reading-center {
   display: flex;
   align-items: center;
@@ -52,7 +52,7 @@
   height: calc(40vh - 20px);
 }
 
-/* Nasconde hint/waiting quando siamo nella fase reading (visibilità gestita dal template) */
+
 .chrono-hint, .chrono-waiting-box { transition: opacity 180ms ease; }
 
 .reveal-banner {

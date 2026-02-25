@@ -1,7 +1,7 @@
-<!-- src/app/components/game/games/song/song.html -->
+
 <div class="song-container">
 
-  <!-- 🔥 COUNTDOWN INIZIALE / TRA MANCHES -->
+  
   @if (displayData?.inCountdown) {
     <div class="countdown-overlay">
       <div class="countdown-circle">
@@ -13,13 +13,13 @@
     </div>
   }
 
-  <!-- TITOLO -->
+  
   <div class="song-header">
     <div class="music-icon">🎤</div>
     <h1 class="song-title">{{ displayData?.question || 'Indovina la canzone!' }}</h1>
   </div>
 
-  <!-- BUZZ ALERT -->
+  
   @if (displayData?.buzzedPlayer) {
     <div class="buzz-alert">
       <div class="alert-icon">🔔</div>
@@ -30,7 +30,7 @@
     </div>
   }
 
-  <!-- VINILE CENTRALE -->
+  
   <div class="vinyl-stage">
     <div class="vinyl-disc"
          [class.spinning]="isPlaying()"
@@ -38,7 +38,7 @@
 
       <div class="vinyl-grooves"></div>
 
-      <!-- 🔥 COVER con BLUR PROGRESSIVO -->
+      
       <div class="vinyl-label">
         @if (displayData?.albumCover) {
           <img [src]="displayData.albumCover"
@@ -56,11 +56,11 @@
       <div class="vinyl-center"></div>
     </div>
 
-    <!-- Braccio giradischi -->
+    
     <div class="tonearm" [class.playing]="isPlaying()"></div>
   </div>
 
-  <!-- INDICATORE MANCHES -->
+  
   <div class="phases-indicator">
     <div class="phases-track">
       @for (phase of [1, 2, 3, 4]; track phase) {
@@ -94,7 +94,7 @@
     </div>
   </div>
 
-  <!-- EQUALIZER quando suona -->
+  
   @if (isPlaying()) {
     <div class="audio-status playing">
       <div class="equalizer">
@@ -106,7 +106,7 @@
     </div>
   }
 
-  <!-- 🔥 REVEAL FINALE (quando indovinano) -->
+  
   @if (displayData?.revealed) {
     <div class="song-reveal">
       <div class="reveal-card">
@@ -123,7 +123,7 @@
     </div>
   }
 
-  <!-- TIMER -->
+  
   <div class="timer-circle" [class.warning]="timer <= 30">
     <svg width="100" height="100">
       <circle cx="50" cy="50" r="45" class="timer-bg"></circle>

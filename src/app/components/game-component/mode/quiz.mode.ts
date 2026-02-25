@@ -7,9 +7,9 @@ export class QuizMode extends GameModeBase {
   readonly requiresBubbles = true;
   readonly requiresBuzz = false;
 
-  // ================= FLUSSO =================
+  
   override async onStart(): Promise<void> {
-    await this.runPreGameSequence(10000); // isReading + showGo + timer
+    await this.runPreGameSequence(10000); 
   }
 
   override getDisplayData(): any {
@@ -20,9 +20,9 @@ export class QuizMode extends GameModeBase {
     };
   }
 
-  // ================= HOOKS =================
+  
   protected onInitialize(): void {
-    console.log('✓ QuizMode inizializzato');
+    
   }
 
   protected onPause(): void {
@@ -38,7 +38,7 @@ export class QuizMode extends GameModeBase {
   }
 
   protected onTimeout(): void {
-    console.log('⏰ Tempo scaduto!');
+    
   }
 
   protected onBuzz(playerName: string): void {
@@ -63,15 +63,15 @@ export class QuizMode extends GameModeBase {
   protected calculatePoints(isCorrect: boolean, elapsedMs: number): number {
     const maxTimeMs = this.timerDuration * 1000;
 
-    // Calcoliamo il fattore di decadimento (da 1.0 a 0)
-    // Se elapsedMs è 0, ratio è 1. Se elapsedMs è maxTimeMs, ratio è 0.
+    
+    
     const decayRatio = Math.max(0, 1 - (elapsedMs / maxTimeMs));
 
     if (isCorrect) {
-      // Da +1000 (istante 0) a 0 (fine tempo)
+      
       return Math.round(1000 * decayRatio);
     } else {
-      // Da -1000 (istante 0) a 0 (fine tempo)
+      
       return Math.round(-1000 * decayRatio);
     }
   }

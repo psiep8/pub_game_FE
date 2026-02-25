@@ -1,4 +1,4 @@
-// src/app/components/game/mode/one_vs_one.mode.ts
+
 
 import {GameModeBase} from '../interfaces/game-mode-base.class';
 import {GameModeResult, GameModeType} from '../interfaces/game-mode-type';
@@ -6,7 +6,7 @@ import {GameModeResult, GameModeType} from '../interfaces/game-mode-type';
 interface Match {
   player1: string;
   player2: string;
-  currentPlayer: string | null; // Chi ha buzzato
+  currentPlayer: string | null; 
   winner: string | null;
 }
 
@@ -20,13 +20,13 @@ export class OneVsOneMode extends GameModeBase {
   private currentMatchIndex = 0;
 
   protected onInitialize(): void {
-    // 🔥 Genera match tra giocatori REALI
+    
     this.matches = this.generateRealMatches();
 
     if (this.matches.length > 0) {
-      console.log(`⚔️ 1vs1: ${this.matches.length} match generati`);
+      
       this.matches.forEach((match, i) => {
-        console.log(`  ${i + 1}. ${match.player1} VS ${match.player2}`);
+        
       });
     } else {
       console.warn('⚠️ Servono almeno 2 giocatori');
@@ -51,11 +51,11 @@ export class OneVsOneMode extends GameModeBase {
   }
 
   protected onTimeout(): void {
-    console.log('⏰ Tempo scaduto');
+    
   }
 
   protected onBuzz(playerName: string): void {
-    console.log(`⚔️ ${playerName} BUZZ`);
+    
 
     const match = this.getCurrentMatch();
     if (!match) return;
@@ -75,7 +75,7 @@ export class OneVsOneMode extends GameModeBase {
     const match = this.getCurrentMatch();
     if (!match) return;
 
-    console.log(`✅ ${result.playerName} vince!`);
+    
     match.winner = result.playerName;
     this.currentMatchIndex++;
   }
@@ -84,13 +84,13 @@ export class OneVsOneMode extends GameModeBase {
     const match = this.getCurrentMatch();
     if (!match) return;
 
-    console.log(`❌ ${result.playerName} sbagliato`);
+    
 
     const opponent = result.playerName === match.player1
       ? match.player2
       : match.player1;
 
-    console.log(`🎯 ${opponent} può rispondere`);
+    
     this.buzzedPlayer.set(null);
   }
 

@@ -1,4 +1,4 @@
-// src/app/services/leaderboard.service.ts
+
 
 import {Injectable, signal} from '@angular/core';
 
@@ -44,7 +44,7 @@ export class LeaderboardService {
     this.updatePositions();
     this.saveScores();
 
-    console.log(`📊 ${playerName}: ${points > 0 ? '+' : ''}${points} punti (Totale: ${playersMap.get(playerName)?.totalPoints})`);
+    
   }
 
   getLeaderboard(): PlayerScore[] {
@@ -69,7 +69,7 @@ export class LeaderboardService {
   reset() {
     this.players.set(new Map());
     localStorage.removeItem('leaderboard');
-    console.log('🔄 Classifica resettata');
+    
   }
 
   private updatePositions() {
@@ -96,7 +96,7 @@ export class LeaderboardService {
         const data: [string, PlayerScore][] = JSON.parse(saved);
         this.players.set(new Map(data));
         this.updatePositions();
-        console.log('📂 Classifica caricata:', this.getLeaderboard());
+        
       } catch (e) {
         console.error('❌ Errore caricamento classifica');
       }

@@ -1,4 +1,4 @@
-// src/app/components/leaderboard-detailed/leaderboard-detailed.component.ts
+
 
 import {Component, OnInit, signal, inject, Output, EventEmitter} from '@angular/core';
 import {CommonModule} from '@angular/common';
@@ -47,7 +47,7 @@ export class LeaderboardDetailed implements OnInit {
   totalPlayers = signal(0);
 
   ngOnInit() {
-    // 🔥 MOSTRA TUTTI (anche negativi)
+    
     const players = this.leaderboard.getLeaderboard();
 
     if (players.length === 0) {

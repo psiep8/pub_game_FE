@@ -1,13 +1,13 @@
 <div class="chrono-container">
   @if (displayData.isReading) {
-    <!-- Fase di lettura prima del VIA: mostriamo solo il titolo centrato -->
+    
     <div class="chrono-reading-center">
       <h2 class="chrono-question">{{ displayData.question }}</h2>
     </div>
   } @else {
     <h2 class="chrono-question">{{ displayData.question }}</h2>
 
-    <!-- chrono-hint e waiting box visibili solo DOPO il VIA (isReading=false) e prima del reveal -->
+    
     @if (!displayData.correctAnswer) {
       <div class="chrono-hint">{{ displayData.hint }}</div>
 

@@ -1,4 +1,4 @@
-// src/app/components/remote/remote-component.ts
+
 
 import { Component, inject, OnDestroy, OnInit, signal, HostListener } from '@angular/core';
 import { WebSocketService } from '../../services/web-socket.service';
@@ -26,10 +26,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR'>('WAITING');
   questionType = signal<'ROULETTE' | 'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE'>('QUIZ');
   hasAnswered = signal(false);
-  isBlocked = signal(false); // 🔥 Nuovo segnale persistente per il round
+  isBlocked = signal(false); 
   selectedYear = signal<number>(2000);
 
-  // 🔥 Range dinamico da backend
+  
   minYear = signal<number>(1000);
   maxYear = signal<number>(2026);
   yearStep = signal<number>(1);
@@ -70,7 +70,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       switch (status.action) {
         case 'SHOW_QUESTION':
           this.questionType.set(status.type);
-          this.isBlocked.set(false); // 🔥 Reset blocco a nuova domanda
+          this.isBlocked.set(false); 
           if (status.type === 'CHRONO' && status.payload) {
             try {
               const payload = typeof status.payload === 'string'
@@ -81,14 +81,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
               this.yearStep.set(payload.step ?? 1);
               const center = Math.floor((this.minYear() + this.maxYear()) / 2);
               this.selectedYear.set(center);
-              console.log(`📅 CHRONO Range: ${this.minYear()}-${this.maxYear()}, step: ${this.yearStep()}`);
+              
             } catch (e) {
               console.error('❌ Errore parsing CHRONO payload:', e);
             }
           }
 
           if (status.type === 'ROULETTE') {
-            console.log('📱 ROULETTE - Bottoni attivi SUBITO');
+            
             this.gameState.set('VOTING');
             this.hasAnswered.set(false);
             this.startTime = Date.now();
@@ -98,7 +98,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
 
         case 'START_VOTING':
-          this.isBlocked.set(false); // 🔥 Reset blocco a inizio votazione
+          this.isBlocked.set(false); 
           this.onStartVoting(status.type, status.payload);
           break;
 
@@ -106,15 +106,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
         case 'REVEAL':
           this.gameState.set('WAITING');
           this.hasAnswered.set(false);
-          this.isBlocked.set(false); // 🔥 Sblocca per il prossimo turno
+          this.isBlocked.set(false); 
           break;
 
         case 'BLOCKED_ERROR':
           if (status.blockedPlayer === this.nickname()) {
-            this.isBlocked.set(true); // 🔥 Mi segna come bloccato definitivamente per questo round
+            this.isBlocked.set(true); 
             this.gameState.set('BLOCKED_ERROR');
           } else {
-            // Se qualcun altro ha sbagliato, torniamo a VOTING solo se non siamo NOI quelli già bloccati
+            
             if (!this.isBlocked()) {
               this.gameState.set('VOTING');
             }
@@ -123,7 +123,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'PLAYER_PRENOTATO':
           if (status.name !== this.nickname()) {
-            // Se qualcun altro si è prenotato, mostriamo "attendi" solo se non siamo già bloccati per errore
+            
             if (!this.isBlocked()) {
               this.gameState.set('WAITING_FOR_OTHER');
             }
@@ -144,7 +144,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     });
 
     window.addEventListener('appinstalled', () => {
-      console.log('🎉 PWA installata');
+      
       this.showInstallBanner.set(false);
       this.deferredPrompt = null;
     });
@@ -152,7 +152,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   private checkForUpdates() {
     if (!this.swUpdate.isEnabled) {
-      console.log('⚠️ Service Worker disabilitato');
+      
       return;
     }
 
@@ -179,9 +179,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const { outcome } = await this.deferredPrompt.userChoice;
 
     if (outcome === 'accepted') {
-      console.log('✅ Installazione accettata');
+      
     } else {
-      console.log('❌ Installazione rifiutata');
+      
     }
 
     this.deferredPrompt = null;
@@ -209,7 +209,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         await screen.orientation.lock('landscape');
       }
     } catch (err) {
-      console.log('Orientamento non bloccabile');
+      
     }
   }
 
@@ -226,7 +226,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.hasAnswered.set(true);
     this.gameState.set('LOCKED');
     this.vibrate(50);
-    console.log(`📱 Voto: ${index}, tempo: ${responseTimeMs}ms`);
+    
   }
 
   sendBuzz() {
@@ -237,7 +237,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   onStartVoting(type: string, payload?: any) {
-    console.log(`📱 START_VOTING: ${type}`);
+    
 
     this.gameState.set('VOTING');
     this.questionType.set(type as any);
@@ -245,7 +245,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.startTime = Date.now();
     this.hasAnswered.set(false);
 
-    // 🔥 Per CHRONO, aggiorna range se presente nel payload
+    
     if (type === 'CHRONO' && payload) {
       try {
         const data = typeof payload === 'string' ? JSON.parse(payload) : payload;

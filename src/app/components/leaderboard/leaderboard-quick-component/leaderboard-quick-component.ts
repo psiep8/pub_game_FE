@@ -1,4 +1,4 @@
-// src/app/components/leaderboard-quick/leaderboard-quick.component.ts
+
 
 import {Component, OnInit, signal, inject, Output, EventEmitter} from '@angular/core';
 import {CommonModule} from '@angular/common';
@@ -10,7 +10,7 @@ import {LeaderboardService, PlayerScore} from '../../../services/leaderboard.ser
   standalone: true,
   imports: [CommonModule],
   animations: [
-    // 🔥 Nome animazione: 'slideUp' (senza @)
+    
     trigger('slideUp', [
       transition(':enter', [
         style({
