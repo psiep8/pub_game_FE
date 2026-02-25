@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'app-one-vs-one-component',
@@ -10,6 +10,7 @@ import {Component, EventEmitter, Input, Output} from '@angular/core';
 export class OneVsOne {
   @Input() displayData: any;
   @Input() timer: number = 0;
+  @Input() safeOptions: any[] = [];
 
   @Output() onConfirmCorrect = new EventEmitter<void>();
   @Output() onConfirmWrong = new EventEmitter<void>();
