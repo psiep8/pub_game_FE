@@ -1,0 +1,65 @@
+<div class="scream-race-container">
+
+    <div class="race-header">
+        <h1 class="race-title">🎤 GARA DI URLA! 🏁</h1>
+        <div class="race-instruction">URLA PIÙ FORTE CHE PUOI PER VINCERE!</div>
+    </div>
+
+    <div class="race-track-container">
+        <!-- Strada unica per tutti -->
+        <div class="main-track">
+            @for (team of displayData?.teams || []; track team.playerName) {
+            <div class="runner-container" [style.left.%]="team.progress" [style.top.%]="10 + ($index * 15)"
+                [class.finished]="team.finished">
+
+                <div class="runner-info">
+                    <span class="runner-label">{{ team.playerName }}</span>
+                    <div class="runner-emoji" [style.filter]="getRunnerFilter($index)">
+                        {{ getRunnerEmoji($index) }}
+                    </div>
+                </div>
+
+                @if (team.position) {
+                <div class="mini-position" [class.gold]="team.position === 1" [class.silver]="team.position === 2"
+                    [class.bronze]="team.position === 3">
+                    {{ team.position }}°
+                </div>
+                }
+            </div>
+            }
+
+            <div class="finish-line-marker">
+                <div class="finish-flag-icon">🏁</div>
+            </div>
+        </div>
+    </div>
+
+    @if (displayData?.raceEnded) {
+    <div class="race-ended">
+        <h2>🏆 PODIO FINALE 🏆</h2>
+        <div class="podium">
+            @for (player of displayData?.winners?.slice(0, 3) || []; track $index) {
+            <div class="podium-place" [class]="'place-' + ($index + 1)">
+                <div class="podium-emoji">
+                    @if ($index === 0) { 🥇 }
+                    @else if ($index === 1) { 🥈 }
+                    @else { 🥉 }
+                </div>
+                <div class="podium-name">{{ player }}</div>
+            </div>
+            }
+        </div>
+    </div>
+    }
+
+    <div class="legend-container">
+        @for (team of displayData?.teams || []; track team.playerName) {
+        <div class="legend-item">
+            <span class="legend-emoji" [style.filter]="getRunnerFilter($index)">{{ getRunnerEmoji($index) }}</span>
+            <span class="legend-name">{{ team.playerName }}</span>
+            <span class="legend-progress">{{ team.progress.toFixed(0) }}%</span>
+        </div>
+        }
+    </div>
+
+</div>
