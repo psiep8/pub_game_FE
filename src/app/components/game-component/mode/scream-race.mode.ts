@@ -4,11 +4,17 @@ import { signal } from '@angular/core';
 import { GameModeBase } from '../interfaces/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../interfaces/game-mode-type';
 
-interface TeamProgress {
+export interface TeamProgress {
   playerName: string;
   progress: number;
   position?: number;
   finished: boolean;
+}
+
+export interface ScreamRaceDisplayData {
+  teams: TeamProgress[];
+  winners: string[];
+  raceEnded: boolean;
 }
 
 export class ScreamRaceMode extends GameModeBase {
