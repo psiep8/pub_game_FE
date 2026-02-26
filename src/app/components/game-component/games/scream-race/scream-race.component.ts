@@ -1,7 +1,6 @@
-// src/app/components/game/games/scream-race/scream-race.ts
-
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ScreamRaceDisplayData } from '../../mode/scream-race.mode';
 
 @Component({
   selector: 'app-scream-race',
@@ -54,7 +53,7 @@ import { CommonModule } from '@angular/common';
         <div class="race-ended">
           <h2>🏆 GARA TERMINATA! 🏆</h2>
           <div class="podium">
-            @for (player of (displayData?.winners || []).slice(0, 3); track $index) {
+            @for (player of displayData?.winners?.slice(0, 3) || []; track $index) {
               <div class="podium-place" [class]="'place-' + ($index + 1)">
                 <div class="podium-emoji">
                   @if ($index === 0) { 🥇 }
@@ -334,6 +333,6 @@ import { CommonModule } from '@angular/common';
   `]
 })
 export class ScreamRace {
-  @Input() displayData: any;
+  @Input() displayData?: ScreamRaceDisplayData;
   @Input() timer: number = 0;
 }
