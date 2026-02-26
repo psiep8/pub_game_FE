@@ -4,11 +4,19 @@
   @if (phase() === 'IDLE') {
   <div class="central-action full-screen">
     <div class="qr-section">
+      @if (currentGameId()) {
       <h3>📱 SCANSIONA PER GIOCARE</h3>
-      <img [src]="qrCodeUrl" alt="QR Code per giocare" class="qr-code">
+      <img [src]="qrCodeUrl()" alt="QR Code per giocare" class="qr-code">
       <p>Apri la camera e inquadra il QR</p>
+      <div class="game-id-badge">ID PARTITA: {{ currentGameId() }}</div>
+      } @else {
+      <div class="setup-loader">
+        <div class="loader"></div>
+        <h3>Creazione partita in corso...</h3>
+      </div>
+      }
     </div>
-    <button (click)="startNewRound()" class="extract-btn">
+    <button (click)="startNewRound()" class="extract-btn" [disabled]="!currentGameId()">
       <span class="icon">🚀</span>
       GIOCA ORA
     </button>
@@ -74,14 +82,6 @@
   @if (showQuestion() && currentMode(); as mode) {
 
 
-
-
-
-
-
-
-
-
   @if (preStartCountdown() > 0 && preStartCountdown() <= 5) { <div class="prestart-timer-wrapper">
     <div #prestartTimer class="prestart-timer bounce" role="status" aria-live="assertive">
       <div class="prestart-value">{{ preStartCountdown() }}</div>
@@ -126,28 +126,18 @@
   @case ('ROULETTE') {
   <app-roulette [displayData]="getSafeDisplayData()" [timer]="timer()" />
   }
-  @case ('ONE_VS_ONE') {
-  <app-one-vs-one-component [displayData]="getSafeDisplayData()" [timer]="timer()"
-    [safeOptions]="getSafeDisplayData().options" (onConfirmCorrect)="confirmCorrect()"
-    (onConfirmWrong)="confirmWrong()" />
+  @case ('SCREAM_RACE') {
+  <app-scream-race [displayData]="getSafeDisplayData()" [timer]="timer()">
+  </app-scream-race>
   }
+
+  <!--  @case ('ONE_VS_ONE') {-->
+  <!--  <app-one-vs-one-component [displayData]="getSafeDisplayData()" [timer]="timer()"-->
+  <!--    [safeOptions]="getSafeDisplayData().options" (onConfirmCorrect)="confirmCorrect()"-->
+  <!--    (onConfirmWrong)="confirmWrong()" />-->
+  <!--  }-->
   }
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }

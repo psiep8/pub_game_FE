@@ -10,7 +10,7 @@
     <div class="player-card" [class.active]="displayData?.buzzedPlayer === displayData?.player1">
       <div class="player-name">{{ displayData?.player1 }}</div>
       @if (displayData?.buzzedPlayer === displayData?.player1) {
-      <div class="buzzed-indicator">🔔 PRENOTATO</div>
+        <div class="buzzed-indicator">🔔 PRENOTATO</div>
       }
     </div>
 
@@ -19,7 +19,7 @@
     <div class="player-card" [class.active]="displayData?.buzzedPlayer === displayData?.player2">
       <div class="player-name">{{ displayData?.player2 }}</div>
       @if (displayData?.buzzedPlayer === displayData?.player2) {
-      <div class="buzzed-indicator">🔔 PRENOTATO</div>
+        <div class="buzzed-indicator">🔔 PRENOTATO</div>
       }
     </div>
   </div>
@@ -30,16 +30,16 @@
   </div>
 
 
-  @if (safeOptions?.length) {
-  <div class="options-grid">
-    @for (option of safeOptions; track $index) {
-    <div class="option-card" [class.correct]="displayData?.correctAnswer === option">
-      <div class="option-label">{{ String.fromCharCode(65 + $index) }}</div>
-      <div class="option-text">{{ option }}</div>
-    </div>
-    }
-  </div>
-  }
+<!--  @if (safeOptions?.length) {-->
+<!--    <div class="options-grid">-->
+<!--      @for (option of safeOptions; track $index) {-->
+<!--        <div class="option-card" [class.correct]="displayData?.correctAnswer === option">-->
+<!--          <div class="option-label">{{ String.fromCharCode(65 + $index) }}</div>-->
+<!--          <div class="option-text">{{ option }}</div>-->
+<!--        </div>-->
+<!--      }-->
+<!--    </div>-->
+<!--  }-->
 
 
   <div class="timer-circle">
@@ -53,14 +53,14 @@
 
 
   @if (displayData?.buzzedPlayer) {
-  <div class="admin-controls">
-    <button (click)="onConfirmCorrect.emit()" class="control-btn correct">
-      ✅ CORRETTO
-    </button>
-    <button (click)="onConfirmWrong.emit()" class="control-btn wrong">
-      ❌ SBAGLIATO
-    </button>
-  </div>
+    <div class="admin-controls">
+      <button (click)="onConfirmCorrect.emit()" class="control-btn correct">
+        ✅ CORRETTO
+      </button>
+      <button (click)="onConfirmWrong.emit()" class="control-btn wrong">
+        ❌ SBAGLIATO
+      </button>
+    </div>
   }
 
 </div>
