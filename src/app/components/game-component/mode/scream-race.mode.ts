@@ -19,7 +19,7 @@ export interface ScreamRaceDisplayData {
 
 export class ScreamRaceMode extends GameModeBase {
   readonly type: GameModeType = 'SCREAM_RACE';
-  readonly timerDuration = 30;
+  readonly timerDuration = 3600; // Fondamentalmente infinito, finisce quando qualcuno vince
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
 
@@ -133,11 +133,25 @@ export class ScreamRaceMode extends GameModeBase {
       const noiseGate = 5;
 
       if (intensity > noiseGate) {
-        // Accumuliamo il progresso
-        const delta = (intensity / 100) * speedFactor * 100;
-        team.progress = Math.min(99.9, Number(team.progress || 0) + delta);
+        // 📈 LOGICA DI CRESCITA: Usiamo una funzione che premia i suoni forti
+        // delta = (intensità / costante) ^ esponente * fattore_velocità
+        // In questo modo 80-100 dà molta più spinta di 40-50
+        const normalizedIntensity = Math.max(0, intensity - noiseGate);
+        const delta = Math.pow(normalizedIntensity / 50, 1.5) * 0.5;
 
-        console.log(`%c 🏃 MOVE: ${playerName} -> ${team.progress.toFixed(1)}% `, 'color: #ff00ff; font-weight: bold;');
+        team.progress = Math.min(100, Number(team.progress || 0) + delta);
+
+        console.log(`%c 🏃 MOVE: ${playerName} -> ${team.progress.toFixed(1)}% (delta: ${delta.toFixed(2)}) `, 'color: #ff00ff; font-weight: bold;');
+
+        // 🏁 Se qualcuno arriva a 100, la gara finisce per lui e potenzialmente per tutti
+        if (team.progress >= 100) {
+          team.progress = 100;
+          const winnersCount = this.winners().length;
+          this.markTeamFinished(playerName, winnersCount + 1);
+
+          // Se vogliamo che la gara finisca appena il PRIMO vince:
+          // this.stop(); 
+        }
       }
     }
 
