@@ -18,7 +18,7 @@ export class ScreamRaceMode extends GameModeBase {
   readonly requiresBuzz = false;
 
   private teams = signal<Map<string, TeamProgress>>(new Map());
-  private finishOrder = signal<string[]>([]);
+  private winners = signal<string[]>([]);
 
   protected onInitialize(): void {
     console.log('🎤 SCREAM RACE inizializzato');
@@ -59,7 +59,7 @@ export class ScreamRaceMode extends GameModeBase {
 
   protected onCleanup(): void {
     this.teams.set(new Map());
-    this.finishOrder.set([]);
+    this.winners.set([]);
   }
 
   protected onTimeout(): void {
@@ -154,10 +154,10 @@ export class ScreamRaceMode extends GameModeBase {
       this.teams.set(currentTeams);
     }
 
-    const order = [...this.finishOrder()];
+    const order = [...this.winners()];
     if (!order.includes(playerName)) {
       order.push(playerName);
-      this.finishOrder.set(order);
+      this.winners.set(order);
     }
 
     console.log(`🏆 ${playerName} finito in posizione ${position}`);
@@ -168,11 +168,11 @@ export class ScreamRaceMode extends GameModeBase {
       .sort((a, b) => b.progress - a.progress); // Ordina per progresso
 
     const activePlayersCount = (this.config as any).activePlayers?.length || 0;
-    const raceEnded = this.finishOrder().length >= activePlayersCount && activePlayersCount > 0;
+    const raceEnded = this.winners().length >= activePlayersCount && activePlayersCount > 0;
 
     return {
       teams: teamsArray,
-      finishOrder: this.finishOrder(),
+      winners: this.winners(),
       raceEnded: raceEnded
     };
   }
