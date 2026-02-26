@@ -1,7 +1,7 @@
 // src/app/components/game/games/scream-race/scream-race.ts
 
-import {Component, Input} from '@angular/core';
-import {CommonModule} from '@angular/common';
+import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-scream-race',
@@ -54,11 +54,11 @@ import {CommonModule} from '@angular/common';
         <div class="race-ended">
           <h2>🏆 GARA TERMINATA! 🏆</h2>
           <div class="podium">
-            @for (player of displayData.finishOrder.slice(0, 3); track player; let i = $index) {
-              <div class="podium-place" [class]="'place-' + (i + 1)">
+            @for (player of (displayData?.winners || []).slice(0, 3); track $index) {
+              <div class="podium-place" [class]="'place-' + ($index + 1)">
                 <div class="podium-emoji">
-                  @if (i === 0) { 🥇 }
-                  @else if (i === 1) { 🥈 }
+                  @if ($index === 0) { 🥇 }
+                  @else if ($index === 1) { 🥈 }
                   @else { 🥉 }
                 </div>
                 <div class="podium-name">{{ player }}</div>
