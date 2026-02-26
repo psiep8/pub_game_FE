@@ -1,6 +1,5 @@
-
-
 import { Component, inject, OnDestroy, OnInit, signal, HostListener } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { WebSocketService } from '../../services/web-socket.service';
 import { FormsModule } from '@angular/forms';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
@@ -8,13 +7,14 @@ import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-remote-component',
-  imports: [FormsModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './remote-component.html',
   styleUrl: './remote-component.scss',
 })
 export class RemoteComponent implements OnInit, OnDestroy {
 
-  private ws = inject(WebSocketService);
+  public ws = inject(WebSocketService);
   private swUpdate = inject(SwUpdate);
   private updateCheckInterval?: any;
   private versionUpdatesSub?: any;
@@ -24,12 +24,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR'>('WAITING');
-  questionType = signal<'ROULETTE' | 'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE'>('QUIZ');
+  questionType = signal<'ROULETTE' | 'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE' | 'SCREAM_RACE'>('QUIZ');
   hasAnswered = signal(false);
-  isBlocked = signal(false); 
+  isBlocked = signal(false);
   selectedYear = signal<number>(2000);
 
-  
   minYear = signal<number>(1000);
   maxYear = signal<number>(2026);
   yearStep = signal<number>(1);
@@ -59,10 +58,34 @@ export class RemoteComponent implements OnInit, OnDestroy {
     event.preventDefault();
   }
 
+  private audioContext?: AudioContext;
+  private analyser?: AnalyserNode;
+  private microphone?: MediaStreamAudioSourceNode;
+  private mediaStream?: MediaStream;
+  private animationFrameId?: number;
+
+  isListening = signal(false);
+  currentVolume = signal(0);
+  isScreaming = signal(false);
+  microphoneError = signal<string | null>(null);
+
   ngOnInit(): void {
     this.setupPWA();
     this.checkForUpdates();
     this.lockOrientation();
+
+    // 🔥 [ROLLBACK] ID fisso 1 per stabilità
+    this.gameId.set(1);
+    console.log('🎮 [ROLLBACK] Remote ID forzato a 1');
+
+    // Se il giocatore è già loggato, notifico la TV
+    if (this.nickname()) {
+      setTimeout(() => {
+        if (this.ws.connected()) {
+          this.ws.broadcastStatus(1, { action: 'JOIN_GAME', playerName: this.nickname() });
+        }
+      }, 2000);
+    }
 
     this.ws.status$.subscribe((status: any) => {
       if (!status) return;
@@ -70,7 +93,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       switch (status.action) {
         case 'SHOW_QUESTION':
           this.questionType.set(status.type);
-          this.isBlocked.set(false); 
+          this.isBlocked.set(false);
           if (status.type === 'CHRONO' && status.payload) {
             try {
               const payload = typeof status.payload === 'string'
@@ -81,24 +104,32 @@ export class RemoteComponent implements OnInit, OnDestroy {
               this.yearStep.set(payload.step ?? 1);
               const center = Math.floor((this.minYear() + this.maxYear()) / 2);
               this.selectedYear.set(center);
-              
+
             } catch (e) {
               console.error('❌ Errore parsing CHRONO payload:', e);
             }
           }
 
           if (status.type === 'ROULETTE') {
-            
+
             this.gameState.set('VOTING');
             this.hasAnswered.set(false);
             this.startTime = Date.now();
           } else {
             this.gameState.set('WAITING');
           }
+          if (status.type === 'SCREAM_RACE') {
+            console.log('🎤 SCREAM_RACE rilevato - Attivo microfono...');
+            this.gameState.set('WAITING'); // Mostra UI attivazione
+
+            setTimeout(() => {
+              this.startMicrophoneListening();
+            }, 500); // Piccolo delay per evitare race condition
+          }
           break;
 
         case 'START_VOTING':
-          this.isBlocked.set(false); 
+          this.isBlocked.set(false);
           this.onStartVoting(status.type, status.payload);
           break;
 
@@ -106,15 +137,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
         case 'REVEAL':
           this.gameState.set('WAITING');
           this.hasAnswered.set(false);
-          this.isBlocked.set(false); 
+          this.isBlocked.set(false);
           break;
 
         case 'BLOCKED_ERROR':
           if (status.blockedPlayer === this.nickname()) {
-            this.isBlocked.set(true); 
+            this.isBlocked.set(true);
             this.gameState.set('BLOCKED_ERROR');
           } else {
-            
+
             if (!this.isBlocked()) {
               this.gameState.set('VOTING');
             }
@@ -123,7 +154,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'PLAYER_PRENOTATO':
           if (status.name !== this.nickname()) {
-            
+
             if (!this.isBlocked()) {
               this.gameState.set('WAITING_FOR_OTHER');
             }
@@ -144,7 +175,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     });
 
     window.addEventListener('appinstalled', () => {
-      
+
       this.showInstallBanner.set(false);
       this.deferredPrompt = null;
     });
@@ -152,7 +183,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   private checkForUpdates() {
     if (!this.swUpdate.isEnabled) {
-      
+
       return;
     }
 
@@ -179,9 +210,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const { outcome } = await this.deferredPrompt.userChoice;
 
     if (outcome === 'accepted') {
-      
+
     } else {
-      
+
     }
 
     this.deferredPrompt = null;
@@ -198,6 +229,167 @@ export class RemoteComponent implements OnInit, OnDestroy {
     });
   }
 
+  async startMicrophoneListening() {
+    try {
+      this.microphoneError.set(null);
+
+      // 🔥 Il microfono RICHIEDE HTTPS su Chrome/Mobile (tranne localhost)
+      if (!window.isSecureContext) {
+        this.microphoneError.set('❌ Errore Sicurezza: Il microfono richiede una connessione protetta (HTTPS). Se stai testando in locale, usa localhost o attiva HTTPS.');
+        console.error('🎤 getUserMedia non disponibile in contesti non sicuri (HTTP)');
+        return;
+      }
+
+      const hasGetUserMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+      if (!hasGetUserMedia) {
+        this.microphoneError.set('❌ Il tuo browser non supporta l\'accesso al microfono o la versione di Chrome è troppo vecchia.');
+        return;
+      }
+
+      console.log('🎤 Richiedo permesso microfono...');
+
+      // 🔥 Richiedi permesso microfono con constraints ottimizzati
+      this.mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: false, // Vogliamo sentire il VOLUME!
+          autoGainControl: false,
+          sampleRate: 48000,
+          channelCount: 1
+        }
+      });
+
+      console.log('✅ Permesso microfono concesso!');
+
+      // 🔥 Setup Web Audio API con controlli compatibilità
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+
+      if (!AudioContextClass) {
+        this.microphoneError.set('Web Audio API non supportato. Aggiorna il browser.');
+        this.stopMicrophoneListening();
+        return;
+      }
+
+      // Se esiste già un context disattivato, proviamo a riattivarlo
+      if (this.audioContext && this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      } else {
+        this.audioContext = new AudioContextClass();
+      }
+
+      // IMPORTANTE: Su molti browser l'AudioContext parte 'suspended' finché non c'è un click
+      if (this.audioContext.state === 'suspended') {
+        console.warn('⚠️ AudioContext sospeso. Richiedo attivazione manuale...');
+        await this.audioContext.resume();
+      }
+
+      this.analyser = this.audioContext.createAnalyser();
+      this.analyser.fftSize = 256;
+      this.analyser.smoothingTimeConstant = 0.8;
+
+      this.microphone = this.audioContext.createMediaStreamSource(this.mediaStream);
+      this.microphone.connect(this.analyser);
+
+      this.isListening.set(true);
+
+      console.log('🎤 Microfono attivo! Inizio rilevazione volume...');
+
+      // Avvia rilevazione volume
+      this.detectVolume();
+
+      // Vibrazione feedback
+      this.vibrate(50);
+
+    } catch (error: any) {
+      console.error('❌ Errore microfono:', error);
+
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        this.microphoneError.set('❌ Permesso microfono negato. Clicca sulla barra degli indirizzi per abilitarlo.');
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        this.microphoneError.set('❌ Nessun microfono trovato. Collega un microfono o usa un altro dispositivo.');
+      } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+        this.microphoneError.set('❌ Microfono in uso da un\'altra app. Chiudi altre app che usano il microfono.');
+      } else if (error.name === 'SecurityError') {
+        this.microphoneError.set('❌ Accesso negato per motivi di sicurezza. Usa HTTPS.');
+      } else {
+        this.microphoneError.set(`❌ Errore microfono: ${error.message || 'Sconosciuto'}`);
+      }
+
+      this.stopMicrophoneListening();
+    }
+  }
+  /**
+   * 🔊 Rileva volume in tempo reale
+   */
+  private detectVolume() {
+    if (!this.analyser || !this.isListening()) {
+      return;
+    }
+
+    const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+    this.analyser.getByteFrequencyData(dataArray);
+
+    // Calcola volume medio (0-255)
+    const sum = dataArray.reduce((a, b) => a + b, 0);
+    const average = sum / dataArray.length;
+
+    // Converti in intensità 0-100 con boost per microfoni meno sensibili
+    const intensity = Math.min(100, (average / 100) * 100); // Boost da /128 a /100
+
+    this.currentVolume.set(intensity);
+    this.isScreaming.set(intensity > 25); // Abbassata soglia da 30 a 25
+
+    // 📡 Invia al backend (con micro-throttling di 100ms per non saturare il WS)
+    const now = Date.now();
+    const nickname = (this.nickname() || '').trim();
+
+    if (intensity > 5 && nickname && (!this.lastScreamTime || now - this.lastScreamTime > 100)) {
+      this.ws.sendScream(this.gameId(), nickname, intensity);
+      this.lastScreamTime = now;
+    }
+
+    // Continua il loop
+    this.animationFrameId = requestAnimationFrame(() => this.detectVolume());
+  }
+
+  private lastScreamTime: number = 0;
+
+  stopMicrophoneListening() {
+    // Ferma animation frame
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = undefined;
+    }
+
+    // Chiudi stream
+    if (this.mediaStream) {
+      this.mediaStream.getTracks().forEach(track => {
+        track.stop();
+        console.log('🛑 Track microfono fermato:', track.label);
+      });
+      this.mediaStream = undefined;
+    }
+
+    // Chiudi audio context
+    if (this.audioContext && this.audioContext.state !== 'closed') {
+      this.audioContext.close().then(() => {
+        console.log('🛑 AudioContext chiuso');
+      }).catch(err => {
+        console.error('❌ Errore chiusura AudioContext:', err);
+      });
+      this.audioContext = undefined;
+    }
+
+    this.analyser = undefined;
+    this.microphone = undefined;
+    this.isListening.set(false);
+    this.currentVolume.set(0);
+    this.isScreaming.set(false);
+
+    console.log('🛑 Microfono disattivato');
+  }
+
   dismissUpdateBanner() {
     this.showUpdateBanner.set(false);
   }
@@ -209,7 +401,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         await screen.orientation.lock('landscape');
       }
     } catch (err) {
-      
+
     }
   }
 
@@ -217,35 +409,38 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (this.tempNickname.trim()) {
       this.nickname.set(this.tempNickname);
       localStorage.setItem('nickname', this.tempNickname);
+
+      // Notify the TV that a new player joined
+      this.ws.broadcastStatus(this.gameId(), {
+        action: 'JOIN_GAME',
+        playerName: this.tempNickname
+      });
     }
   }
 
   sendVote(index: number) {
     const responseTimeMs = Date.now() - this.startTime;
-    this.ws.sendAnswer(1, this.nickname()!, index, responseTimeMs);
+    this.ws.sendAnswer(this.gameId(), this.nickname()!, index, responseTimeMs);
     this.hasAnswered.set(true);
     this.gameState.set('LOCKED');
     this.vibrate(50);
-    
   }
 
   sendBuzz() {
     const time = Date.now() - this.startTime;
-    this.ws.sendAnswer(1, this.nickname()!, -1, time);
+    this.ws.sendAnswer(this.gameId(), this.nickname()!, -1, time);
     this.gameState.set('LOCKED');
     this.vibrate([100, 50, 100]);
   }
 
   onStartVoting(type: string, payload?: any) {
-    
-
     this.gameState.set('VOTING');
     this.questionType.set(type as any);
     this.roundStartTime = Date.now();
     this.startTime = Date.now();
     this.hasAnswered.set(false);
 
-    
+
     if (type === 'CHRONO' && payload) {
       try {
         const data = typeof payload === 'string' ? JSON.parse(payload) : payload;
@@ -309,6 +504,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.ws.disconnect();
+    this.stopMicrophoneListening();
     if (this.updateCheckInterval) {
       clearInterval(this.updateCheckInterval);
       this.updateCheckInterval = undefined;

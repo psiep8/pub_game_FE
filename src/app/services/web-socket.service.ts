@@ -1,55 +1,97 @@
-import {Injectable, signal} from '@angular/core';
-import {Client} from '@stomp/stompjs';
+import { Injectable, signal } from '@angular/core';
+import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import {Subject} from 'rxjs';
+import { Subject } from 'rxjs';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class WebSocketService {
-  private client: Client;
+  private readonly client: Client;
 
-  
+
   responses = signal<any[]>([]);
+  connected = signal(false);
 
-  
+
   status$ = new Subject<any>();
   responses$ = new Subject<any>();
 
+  /**
+   * 📡 Si sottoscrive ai topic di un gioco specifico
+   */
+  subscribeToGame(gameId: number) {
+    console.log('📡 [REVERT] Sottoscrizione dinamica ignorata, uso ID 1');
+  }
+
   constructor() {
     this.client = new Client({
-      
       webSocketFactory: () => new SockJS('http://192.168.1.3:8080/ws-pubgame'),
-      
-      reconnectDelay: 5000, 
+      reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
       onConnect: () => {
-        
+        this.connected.set(true);
+        console.log('✅ WebSocket Connesso (ID Fisso: 1)');
 
-        
+        // 📡 Ripristino sottoscrizioni FISSE (Pre-Scream Mode)
+        // 📡 Sottoscrizione a TUTTI i canali possibili (ID 1)
+
         this.client.subscribe('/topic/game/1/responses', (msg) => {
-          const data = JSON.parse(msg.body);
-          this.responses.update(prev => [...prev, data]);
-          this.responses$.next(data); 
+          console.log('%c 📥 WS RESPONSES: ', 'background: #0277bd; color: #fff', msg.body);
+          try {
+            const data = JSON.parse(msg.body);
+            this.responses.update(prev => [...prev, data]);
+            this.responses$.next(data);
+          } catch (e) { }
         });
 
-        
         this.client.subscribe('/topic/game/1/status', (msg) => {
-          this.status$.next(JSON.parse(msg.body));
+          console.log('%c 📥 WS STATUS: ', 'background: #2e7d32; color: #fff', msg.body);
+          try {
+            this.status$.next(JSON.parse(msg.body));
+          } catch (e) { }
         });
+      },
+      onDisconnect: () => {
+        this.connected.set(false);
+        console.log('❌ WebSocket Disconnesso!');
       }
     });
     this.client.activate();
   }
 
-  
+
   sendAnswer(gameId: number, playerName: string, index: number, responseTimeMs: number) {
     this.client.publish({
       destination: `/app/game/${gameId}/answer`,
-      body: JSON.stringify({playerName, answerIndex: index, responseTimeMs})
+      body: JSON.stringify({ playerName, answerIndex: index, responseTimeMs })
     });
   }
 
-  
+  sendScream(gameId: number, playerName: string, intensity: number) {
+    if (!this.client.active) { // ✅ Usa client.active per check connessione
+      console.warn('⚠️ WebSocket non connesso');
+      return;
+    }
+
+    const payload = {
+      action: 'SCREAM',
+      playerName,
+      intensity: Math.min(100, Math.max(0, intensity)),
+      timestamp: Date.now()
+    };
+
+    try {
+      // 🔥 [FIX] Uso lo stesso canale di JOIN_GAME che sappiamo funzionare!
+      this.client.publish({
+        destination: `/app/game/${gameId}/status`,
+        body: JSON.stringify(payload)
+      });
+    } catch (error) {
+      console.error('❌ Errore invio scream:', error);
+    }
+  }
+
+
   broadcastStatus(gameId: number, payload: any) {
     this.client.publish({
       destination: `/app/game/${gameId}/status`,
@@ -58,22 +100,24 @@ export class WebSocketService {
   }
 
   disconnect() {
+    this.connected.set(false); // ✅ Traccia connessione
+
     if (this.client) {
       this.client.deactivate();
-      
+
     }
   }
 
-  
+
   connect() {
     if (!this.client.active) {
       this.client.activate();
-      
+
     }
   }
 
   clearResponses() {
-    this.responses.set([]); 
+    this.responses.set([]);
   }
 
 

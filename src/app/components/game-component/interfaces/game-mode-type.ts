@@ -11,6 +11,7 @@ export type GameModeType =
   | 'ROULETTE'
   | 'MUSIC'
   | 'ONE_VS_ONE'
+  | 'SCREAM_RACE'
   | 'WHEEL_OF_FORTUNE';
 
 /**
@@ -44,12 +45,12 @@ export interface GameModeResult {
 export interface IGameMode {
   readonly type: GameModeType;
 
-  
+
   readonly timerDuration: number;
   readonly requiresBubbles: boolean;
   readonly requiresBuzz: boolean;
 
-  
+
   initialize(payload: any): void;
   start(): Promise<void> | void;
   pause(): void;
@@ -57,13 +58,13 @@ export interface IGameMode {
   stop(): void;
   cleanup(): void;
 
-  
+
   handleBuzz(playerName: string): void;
   handleAnswer(playerName: string, answer: any, timeMs: number): void;
   confirmCorrect(playerName: string): void;
   confirmWrong(playerName: string): void;
 
-  
+
   getDisplayData(): any;
   getTimerValue(): number;
   getShowGo?(): boolean;

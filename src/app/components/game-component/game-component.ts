@@ -9,7 +9,8 @@ import {
   OnDestroy,
   ElementRef,
   ViewChild,
-  ChangeDetectorRef
+  ChangeDetectorRef,
+  computed
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -35,6 +36,7 @@ import { GameModeType, IGameMode } from './interfaces/game-mode-type';
 import { OneVsOne } from './games/one-vs-one/one-vs-one';
 import { LeaderboardQuick } from '../leaderboard/leaderboard-quick-component/leaderboard-quick-component';
 import { LeaderboardDetailed } from '../leaderboard/leaderboard-detailed-component/leaderboard-detailed-component';
+import { ScreamRace } from './games/scream-race/scream-race.component';
 
 @Component({
   selector: 'app-game-component',
@@ -48,9 +50,9 @@ import { LeaderboardDetailed } from '../leaderboard/leaderboard-detailed-compone
     ImageBlur,
     Roulette,
     Song,
-    OneVsOne,
     LeaderboardQuick,
-    LeaderboardDetailed
+    LeaderboardDetailed,
+    ScreamRace
   ],
   templateUrl: './game-component.html',
   styleUrl: './game-component.scss',
@@ -70,17 +72,17 @@ export class GameComponent implements OnInit, OnDestroy {
   private gameModeService = inject(GameModeService);
   private cdr = inject(ChangeDetectorRef);
 
-  
+
   public roundManager = inject(RoundManagerService);
   private leaderboardService = inject(LeaderboardService);
   public audioService = inject(AudioService);
 
-  
+
   allCategories = signal<any[]>([]);
   round = signal<GameRound | null>(null);
   currentMode = signal<IGameMode | null>(null);
 
-  
+
   phase = signal<'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION'>('IDLE');
   isSpinning = signal(false);
   selectedCategoryId = signal<number | null>(null);
@@ -91,25 +93,26 @@ export class GameComponent implements OnInit, OnDestroy {
   isPaused = signal(false);
   animatedCategoryId = signal<number | null>(null);
 
-  
+
   showResetModal = signal(false);
   showResultPopup = signal(false);
   resultType = signal<'correct' | 'wrong'>('correct');
   resultPoints = signal(0);
   resultPlayerName = signal('');
 
-  
+
   showLeaderboardQuick = signal(false);
   showLeaderboardDetailed = signal(false);
   roundInfo = signal<string>('');
   isShowingLeaderboard = signal(false);
   pendingLeaderboardType = signal<'QUICK' | 'DETAILED' | null>(null);
 
-  currentGameId = signal<number | null>(null);
+  currentGameId = signal<number>(1);
 
-  
   remoteUrl = `${environment.frontendUrl}/play`;
-  qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(this.remoteUrl)}&bgcolor=ffffff&color=1a1a2e&margin=10&qzone=1`;
+
+  // 🔥 [ROLLBACK] QR Code statico che punta a /play senza parametri
+  qrCodeUrl = signal(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(this.remoteUrl)}&bgcolor=ffffff&color=1a1a2e&margin=10&qzone=1`);
 
   @ViewChild('prestartTimer', { read: ElementRef, static: false }) prestartTimer?: ElementRef<HTMLElement>;
 
@@ -142,20 +145,19 @@ export class GameComponent implements OnInit, OnDestroy {
       const positioned = this.generateNonOverlappingPositions(cats);
       this.allCategories.set(positioned);
 
-      const savedId = localStorage.getItem('activeGameId');
-      if (savedId) {
-        this.currentGameId.set(+savedId);
-      }
+      // [ROLLBACK] Forza ID 1
+      this.currentGameId.set(1);
+      console.log('📺 [ROLLBACK] GameID forzato a 1');
     } catch (err) {
       console.error("Errore inizializzazione:", err);
     }
 
-    
+
     const progress = this.roundManager.getProgress();
     this.roundInfo.set(progress.text);
-    
 
-    
+
+
     try {
       this.prestartAudio = new Audio('/sounds/prestart-beep.mp3');
       this.prestartAudio.preload = 'auto';
@@ -163,7 +165,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.prestartAudio = undefined;
     }
 
-    
+
     const allowAudioOnce = () => {
       this.audioAllowed = true;
       window.removeEventListener('click', allowAudioOnce);
@@ -172,22 +174,88 @@ export class GameComponent implements OnInit, OnDestroy {
     window.addEventListener('click', allowAudioOnce);
     window.addEventListener('keydown', allowAudioOnce);
 
-    
-    this.ws.responses$.subscribe(res => {
+
+    // 📨 SOTTOSCRIZIONE RESPONSES (Per azioni veloci come urla)
+    this.ws.responses$.subscribe((resp: any) => {
+      console.log('%c 📥 GameComponent: Messaggio fast-track ricevuto: ', 'background: #333; color: #fff', resp);
+      if (!resp) return;
+
       const mode = this.currentMode();
-      if (!mode) return;
+      if (mode?.type === 'SCREAM_RACE') {
+        const intensity = resp.intensity ?? resp.progress;
+        const playerName = (resp.playerName || resp.name || 'Sconosciuto').trim();
 
-      const isReading = (mode as any).getIsReading?.() ?? false;
-      if (isReading) return;
-
-      if (!mode.requiresBuzz) {
-        mode.handleAnswer(res.playerName, res.answerIndex, res.responseTimeMs);
-      } else if (res.answerIndex === -1) {
-        mode.handleBuzz(res.playerName);
+        if (intensity !== undefined && intensity > 5) {
+          console.log(`%c 🎤 Urlo TV -> Mode Update: ${playerName} (${intensity}%) `, 'background: #1b5e20; color: #bada55; font-weight: bold;');
+          (mode as any).updateTeamProgress?.(playerName, intensity);
+          this.cdr.detectChanges();
+        } else {
+          console.log('%c 🎤 Urlo ignorato in GameComponent: ', 'color: #ff9800', intensity);
+        }
+      } else {
+        console.warn('%c 🎤 Urlo ricevuto ma MODE NON È SCREAM_RACE! ', 'background: #b71c1c; color: #fff', mode?.type);
       }
     });
 
-    
+    this.ws.status$.subscribe((status: any) => {
+      if (!status) return;
+
+      const mode = this.currentMode();
+
+      // 🎤 Debug Log per Urla su Status
+      if ((status.action === 'SCREAM_UPDATE' || status.action === 'SCREAM')) {
+        console.log('🎤 Urlo ricevuto su STATUS:', status);
+      }
+
+      // 🤝 Nuovo giocatore si è unito
+      if (status.action === 'JOIN_GAME' && status.playerName) {
+        const normalizedName = status.playerName.trim();
+        console.log(`🤝 Nuovo giocatore unito: ${normalizedName}`);
+        this.leaderboardService.addPoints(normalizedName, 0, false);
+
+        // Se siamo in Scream Race, aggiungiamo il giocatore alla gara istantaneamente
+        if (mode?.type === 'SCREAM_RACE') {
+          (mode as any).updateTeamProgress?.(normalizedName, 0);
+          this.cdr.detectChanges();
+        }
+      }
+
+      // 🎤 Aggiornamento progresso squadra (Cerca LOG VIOLA sulla TV!)
+      const data = status.progress ?? status.intensity;
+      const pName = status.playerName || status.name;
+
+      if (pName && data !== undefined && mode?.type === 'SCREAM_RACE') {
+        const normalizedName = pName.trim();
+        console.log(`%c 🎤 Urlo TV -> Status Match: ${normalizedName} (${data}%) `, 'background: #1b5e20; color: #fff');
+        (mode as any).updateTeamProgress?.(normalizedName, data);
+        this.cdr.detectChanges();
+      }
+
+      // 🏆 Giocatore ha finito
+      if ((status.action === 'PLAYER_FINISHED' || status.action === 'FINISH') && mode?.type === 'SCREAM_RACE') {
+        (mode as any).markTeamFinished?.(status.playerName, status.position);
+
+        // Aggiungi punti al leaderboard
+        this.leaderboardService.addPoints(
+          status.playerName,
+          status.points || 0,
+          true
+        );
+
+        console.log(`🏆 ${status.playerName} finito in pos ${status.position}: +${status.points} punti`);
+        this.cdr.detectChanges();
+      }
+
+      // 🏁 Gara terminata
+      if ((status.action === 'RACE_ENDED' || status.action === 'GAME_OVER') && mode?.type === 'SCREAM_RACE') {
+        console.log('🏁 GARA TERMINATA!');
+        setTimeout(() => {
+          this.roundManager.completeRound('SCREAM_RACE');
+          this.checkLeaderboardDisplay();
+          this.cdr.detectChanges();
+        }, 5000);
+      }
+    });
     let lastPreStart = this.preStartCountdown();
     setInterval(() => {
       const cur = this.preStartCountdown();
@@ -219,7 +287,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
     }, 120);
 
-    
+
     this.ws.status$.subscribe((status: any) => {
       if (!status) return;
 
@@ -230,7 +298,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
     });
 
-    
+
     this.displayDataInterval = setInterval(() => {
       const mode = this.currentMode();
       if (mode && mode.type === 'MUSIC') {
@@ -238,7 +306,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
     }, 100);
 
-    
+
     this.audioService.startHeartbeat();
   }
 
@@ -247,7 +315,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.displayDataInterval) {
       clearInterval(this.displayDataInterval);
     }
-    
+
     this.audioService.stopAll();
   }
 
@@ -259,7 +327,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
     if (this.isSpinning()) return;
 
-    
+
     if (this.roundManager.isGameOver()) {
       alert('🏁 Partita completata! Resetta per ricominciare.');
       return;
@@ -271,16 +339,19 @@ export class GameComponent implements OnInit, OnDestroy {
       const newGame = await firstValueFrom(this.gameService.createGame());
       this.currentGameId.set(newGame.id);
       localStorage.setItem('activeGameId', newGame.id.toString());
+
+      // Sottoscrivi ai topic del nuovo gioco
+      this.ws.subscribeToGame(newGame.id);
     }
 
-    
+
     const extractedType = this.roundManager.startNewRound();
 
-    
+
     const progress = this.roundManager.getProgress();
     this.roundInfo.set(progress.text);
 
-    
+
     this.audioService.stopHeartbeat();
 
     this.phase.set('SPINNING');
@@ -305,7 +376,7 @@ export class GameComponent implements OnInit, OnDestroy {
         )
       );
 
-      
+
 
       let parsedPayload = nextRound.payload;
       if (typeof parsedPayload === 'string') {
@@ -324,17 +395,17 @@ export class GameComponent implements OnInit, OnDestroy {
         onBuzz: (playerName) => this.onPlayerBuzz(playerName),
         activePlayers: activePlayers,
         onAnswerReceived: (result: any) => {
-          
+
           if (result && result.playerName) {
-            
+
 
             const points = result.points || 0;
             const isCorrect = !!result.isCorrect;
 
-            
+
             this.leaderboardService.addPoints(result.playerName, points, isCorrect);
 
-            
+
             this.ws.responses.update(list => {
               return list.map(r => {
                 if (r.playerName === result.playerName) {
@@ -377,19 +448,19 @@ export class GameComponent implements OnInit, OnDestroy {
         ? nextRound.payload
         : JSON.stringify(nextRound.payload);
 
-      this.ws.broadcastStatus(1, {
+      this.ws.broadcastStatus(this.currentGameId()!, {
         action: 'SHOW_QUESTION',
         type: parsedPayload.type || extractedType,
         payload: payloadString,
         rawPayload: rawPayloadString
       });
 
-      
+
       this.audioService.startClock();
 
       await mode.start();
 
-      this.ws.broadcastStatus(1, {
+      this.ws.broadcastStatus(this.currentGameId()!, {
         action: 'START_VOTING',
         type: parsedPayload.type || extractedType,
         payload: payloadString,
@@ -454,7 +525,7 @@ export class GameComponent implements OnInit, OnDestroy {
     const mode = this.currentMode();
     if (!mode) return;
 
-    
+
     this.audioService.stopClock();
 
     const currentRound = this.round();
@@ -466,17 +537,17 @@ export class GameComponent implements OnInit, OnDestroy {
       this.showTimeoutPopup();
     }
 
-    
+
     this.audioService.playReveal();
 
-    this.ws.broadcastStatus(1, { action: 'ROUND_ENDED' });
+    this.ws.broadcastStatus(this.currentGameId()!, { action: 'ROUND_ENDED' });
 
     this.isSpinning.set(false);
 
-    
+
     this.roundManager.completeRound(mode.type);
 
-    
+
     setTimeout(() => {
       this.checkLeaderboardDisplay();
     }, 2000);
@@ -486,17 +557,17 @@ export class GameComponent implements OnInit, OnDestroy {
    * 🎤 Buzz giocatore
    */
   private onPlayerBuzz(playerName: string) {
-    
+
 
     const mode = this.currentMode();
     if (!mode) return;
 
-    
+
     this.audioService.playBell();
 
     mode.handleBuzz(playerName);
 
-    this.ws.broadcastStatus(1, {
+    this.ws.broadcastStatus(this.currentGameId()!, {
       action: 'PLAYER_PRENOTATO',
       name: playerName
     });
@@ -515,15 +586,15 @@ export class GameComponent implements OnInit, OnDestroy {
     const elapsedMs = (mode.timerDuration * 1000) - (this.timer() * 1000);
     const realPoints = (mode as any).calculatePoints(true, elapsedMs);
 
-    
+
     this.leaderboardService.addPoints(playerName, realPoints, true);
 
-    
+
     this.ws.responses.update(res => res.map(r => r.playerName === playerName ? { ...r, points: realPoints } : r));
 
     mode.confirmCorrect(playerName);
 
-    
+
     this.audioService.playCorrect();
 
     const currentRound = this.round();
@@ -538,7 +609,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.resultPlayerName.set(playerName);
     this.showResultPopup.set(true);
 
-    this.ws.broadcastStatus(1, {
+    this.ws.broadcastStatus(this.currentGameId()!, {
       action: 'ROUND_ENDED',
       winner: playerName,
       points: realPoints
@@ -547,14 +618,14 @@ export class GameComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.showResultPopup.set(false);
 
-      
+
       this.audioService.playReveal();
     }, 3000);
 
-    
+
     this.roundManager.completeRound(mode.type);
 
-    
+
     setTimeout(() => {
       this.checkLeaderboardDisplay();
     }, 5500);
@@ -573,15 +644,15 @@ export class GameComponent implements OnInit, OnDestroy {
     const elapsedMs = (mode.timerDuration * 1000) - (this.timer() * 1000);
     const realPoints = (mode as any).calculatePoints(false, elapsedMs);
 
-    
+
     this.leaderboardService.addPoints(playerName, realPoints, false);
 
-    
+
     this.ws.responses.update(res => res.map(r => r.playerName === playerName ? { ...r, points: realPoints } : r));
 
     mode.confirmWrong(playerName);
 
-    
+
     this.audioService.playWrong();
 
     this.resultType.set('wrong');
@@ -589,7 +660,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.resultPlayerName.set(playerName);
     this.showResultPopup.set(true);
 
-    this.ws.broadcastStatus(1, {
+    this.ws.broadcastStatus(this.currentGameId()!, {
       action: 'BLOCKED_ERROR',
       blockedPlayer: playerName,
       points: realPoints
@@ -616,10 +687,10 @@ export class GameComponent implements OnInit, OnDestroy {
     const leaderboardType = this.roundManager.shouldShowLeaderboard();
     const round = this.roundManager.getCurrentRound();
 
-    
+
 
     if (leaderboardType) {
-      
+
       this.pendingLeaderboardType.set(leaderboardType);
     }
   }
@@ -627,12 +698,12 @@ export class GameComponent implements OnInit, OnDestroy {
   showPendingLeaderboard() {
     const type = this.pendingLeaderboardType();
     if (type === 'QUICK') {
-      
-      this.isShowingLeaderboard.set(true); 
+
+      this.isShowingLeaderboard.set(true);
       this.showLeaderboardQuick.set(true);
     } else if (type === 'DETAILED') {
-      
-      this.isShowingLeaderboard.set(true); 
+
+      this.isShowingLeaderboard.set(true);
       this.showLeaderboardDetailed.set(true);
     }
     this.pendingLeaderboardType.set(null);
@@ -641,9 +712,9 @@ export class GameComponent implements OnInit, OnDestroy {
   onLeaderboardComplete() {
     this.showLeaderboardQuick.set(false);
     this.showLeaderboardDetailed.set(false);
-    this.isShowingLeaderboard.set(false); 
+    this.isShowingLeaderboard.set(false);
 
-    
+
 
     if (this.phase() === 'IDLE') {
       this.audioService.startHeartbeat();
@@ -685,10 +756,10 @@ export class GameComponent implements OnInit, OnDestroy {
   confirmReset() {
     this.showResetModal.set(false);
 
-    
+
     this.roundManager.resetGame();
 
-    
+
     this.leaderboardService.reset();
 
     location.reload();
@@ -789,8 +860,8 @@ export class GameComponent implements OnInit, OnDestroy {
 
       return {
         ...r,
-        lastPoints: r.points || 0, 
-        totalPoints: playerScore?.totalPoints || 0 
+        lastPoints: r.points || 0,
+        totalPoints: playerScore?.totalPoints || 0
       };
     });
   }

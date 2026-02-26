@@ -21,22 +21,24 @@ export class RoundManagerService {
   });
 
   private readonly GAME_PROBABILITIES: Record<GameModeType, number> = {
-    
-    
-    
-    
-    
-    
-    
-    
-    'QUIZ': 16,
-    'TRUE_FALSE': 14,
-    'WHEEL_OF_FORTUNE': 14,
-    'MUSIC': 14,
-    'IMAGE_BLUR': 14,
-    'CHRONO': 14,
-    'ROULETTE': 14,
-    'ONE_VS_ONE': 0
+    // 'QUIZ': 14,
+    // 'TRUE_FALSE': 14,
+    // 'WHEEL_OF_FORTUNE': 12,
+    // 'MUSIC': 12,
+    // 'IMAGE_BLUR': 12,
+    // 'CHRONO': 12,
+    // 'ROULETTE': 12,
+    // 'SCREAM_RACE': 12,
+    // 'ONE_VS_ONE':0
+    'QUIZ': 0,
+    'TRUE_FALSE': 0,
+    'WHEEL_OF_FORTUNE': 0,
+    'MUSIC': 0,
+    'IMAGE_BLUR': 0,
+    'CHRONO': 0,
+    'ROULETTE': 0,
+    'SCREAM_RACE': 100,
+    'ONE_VS_ONE':0
   };
 
   constructor() {
@@ -75,7 +77,7 @@ export class RoundManagerService {
 
     this.saveProgress();
 
-    
+
 
     return gameType;
   }
@@ -95,15 +97,15 @@ export class RoundManagerService {
 
     if (round === 0) return null;
 
-    
+
     if (round % 6 === 0) {
-      
+
       return 'DETAILED';
     }
 
-    
+
     if (round % 3 === 0) {
-      
+
       return 'QUICK';
     }
 
@@ -123,7 +125,7 @@ export class RoundManagerService {
       nextRoundType: null
     });
     localStorage.removeItem('roundProgress');
-    
+
   }
 
   getRoundStats() {
@@ -157,7 +159,7 @@ export class RoundManagerService {
     };
   }
 
-  
+
   private saveProgress() {
     localStorage.setItem('roundProgress', JSON.stringify(this.roundConfig()));
   }
@@ -167,7 +169,7 @@ export class RoundManagerService {
     if (saved) {
       try {
         this.roundConfig.set(JSON.parse(saved));
-        
+
       } catch (e) {
         console.error('❌ Errore caricamento progresso');
       }

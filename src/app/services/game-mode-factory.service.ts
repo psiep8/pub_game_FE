@@ -10,6 +10,7 @@ import { GameModeConfig, IGameMode } from '../components/game-component/interfac
 import { RouletteMode } from '../components/game-component/mode/roulette.mode';
 import { MusicMode } from '../components/game-component/mode/music.mode';
 import { OneVsOneMode } from '../components/game-component/mode/one_vs_one.mode';
+import {ScreamRaceMode} from '../components/game-component/mode/scream-race.mode';
 
 /**
  * Factory Service per creare modalità di gioco
@@ -25,7 +26,7 @@ export class GameModeService {
    * Crea una nuova modalità di gioco
    */
   createMode(config: {
-    type: "QUIZ" | "TRUE_FALSE" | "CHRONO" | "IMAGE_BLUR" | "ROULETTE" | "MUSIC" | "ONE_VS_ONE" | "WHEEL_OF_FORTUNE";
+    type: "QUIZ" | "TRUE_FALSE" | "CHRONO" | "IMAGE_BLUR" | "ROULETTE" | "MUSIC" | "ONE_VS_ONE" | "WHEEL_OF_FORTUNE" | "SCREAM_RACE";
     payload: any;
     gameId: number;
     onTimerTick: (seconds: any) => void;
@@ -34,12 +35,12 @@ export class GameModeService {
     onAnswerReceived?: (result: any) => void;
     activePlayers: string[]
   }): IGameMode {
-    
+
     if (this.currentMode) {
       this.currentMode.cleanup();
     }
 
-    
+
     let mode: IGameMode;
 
     switch (config.type) {
@@ -71,13 +72,16 @@ export class GameModeService {
       case 'ONE_VS_ONE':
         mode = new OneVsOneMode();
         break;
+      case 'SCREAM_RACE':
+        mode = new ScreamRaceMode();
+        break;
       default:
         throw new Error(`Unknown game mode: ${config.type}`);
     }
 
-    
+
     mode.initialize(config.payload);
-    
+
     (mode as any).setConfig?.(config);
 
     this.currentMode = mode;
