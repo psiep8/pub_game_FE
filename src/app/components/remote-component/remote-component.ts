@@ -39,10 +39,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   // ARENA STATE
   arenaQuestion = signal<{ text: string, options?: string[], isTrueFalse: boolean, correctIndex: number } | null>(null);
+  arenaQuestionsPool = signal<any[]>([]);
+  private arenaCurrentIndex = 0;
 
   currentRoundType: string = '';
 
   showInstallBanner = signal(false);
+  showIosInstallBanner = signal(false);
   showUpdateBanner = signal(false);
   private deferredPrompt: any;
 
@@ -168,6 +171,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   private setupPWA() {
+    // Detect Standard PWA (Android/Chrome)
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       this.deferredPrompt = e;
@@ -177,9 +181,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
       }
     });
 
-    window.addEventListener('appinstalled', () => {
+    // Detect iOS (Manual instructions needed)
+    if (this.isIos() && !this.isAppInstalled()) {
+      this.showIosInstallBanner.set(true);
+    }
 
+    window.addEventListener('appinstalled', () => {
       this.showInstallBanner.set(false);
+      this.showIosInstallBanner.set(false);
       this.deferredPrompt = null;
     });
   }
@@ -224,6 +233,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   dismissInstallBanner() {
     this.showInstallBanner.set(false);
+  }
+
+  dismissIosInstallBanner() {
+    this.showIosInstallBanner.set(false);
+  }
+
+  private isIos(): boolean {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
   }
 
   updateApp() {
@@ -458,12 +475,40 @@ export class RemoteComponent implements OnInit, OnDestroy {
         console.error('❌ Errore payload CHRONO:', e);
       }
     } else if (type === 'ARENA') {
+      if (payload) {
+        try {
+          const data = typeof payload === 'string' ? JSON.parse(payload) : payload;
+          if (data.questions && Array.isArray(data.questions)) {
+            this.arenaQuestionsPool.set(data.questions);
+            this.arenaCurrentIndex = 0;
+            console.log(`🏟️ Arena: Caricate ${data.questions.length} domande dal backend`);
+          }
+        } catch (e) {
+          console.error('❌ Errore parsing ARENA payload:', e);
+        }
+      }
       this.generateNextArenaQuestion();
     }
   }
 
   generateNextArenaQuestion() {
-    // Generate simple random math or logic questions for rapid fire!
+    const pool = this.arenaQuestionsPool();
+
+    // Se abbiamo domande dal backend e non le abbiamo finite
+    if (pool.length > 0 && this.arenaCurrentIndex < pool.length) {
+      const q = pool[this.arenaCurrentIndex];
+      this.arenaCurrentIndex++;
+
+      this.arenaQuestion.set({
+        text: q.question,
+        options: q.options,
+        isTrueFalse: q.options && q.options.length === 2 && (q.options.includes('VERO') || q.options.includes('FALSO')),
+        correctIndex: q.options ? q.options.indexOf(q.correctAnswer) : -1
+      });
+      return;
+    }
+
+    // FALLBACK: Generazione Client-side (Matematica/Colori)
     const isMath = Math.random() > 0.5;
 
     if (isMath) {

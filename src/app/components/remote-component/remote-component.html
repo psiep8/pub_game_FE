@@ -6,288 +6,303 @@
 
 
 @if (showInstallBanner()) {
-  <div class="pwa-banner install-banner">
-    <div class="banner-content">
-      <span class="banner-icon">📱</span>
-      <div class="banner-text">
-        <strong>Installa PubGame</strong>
-        <p>Aggiungi alla home per un'esperienza migliore!</p>
-      </div>
-      <div class="banner-actions">
-        <button (click)="installPWA()" class="banner-btn install">Installa</button>
-        <button (click)="dismissInstallBanner()" class="banner-btn dismiss">×</button>
-      </div>
+<div class="pwa-banner install-banner">
+  <div class="banner-content">
+    <span class="banner-icon">📱</span>
+    <div class="banner-text">
+      <strong>Installa PubGame</strong>
+      <p>Aggiungi alla home per un'esperienza migliore!</p>
+    </div>
+    <div class="banner-actions">
+      <button (click)="installPWA()" class="banner-btn install">Installa</button>
+      <button (click)="dismissInstallBanner()" class="banner-btn dismiss">×</button>
     </div>
   </div>
+</div>
+}
+
+@if (showIosInstallBanner()) {
+<div class="pwa-banner ios-banner">
+  <div class="banner-content">
+    <span class="banner-icon">🍏</span>
+    <div class="banner-text">
+      <strong>Installa su iPhone</strong>
+      <p>Tocca <span class="ios-icon">⎋</span> poi <b>"Aggiungi a Home"</b></p>
+    </div>
+    <div class="banner-actions">
+      <button (click)="dismissIosInstallBanner()" class="banner-btn dismiss">×</button>
+    </div>
+  </div>
+</div>
 }
 
 
 @if (showUpdateBanner()) {
-  <div class="pwa-banner update-banner">
-    <div class="banner-content">
-      <span class="banner-icon">🔄</span>
-      <div class="banner-text">
-        <strong>Aggiornamento disponibile</strong>
-        <p>Nuova versione pronta! Ricarica per aggiornare.</p>
-      </div>
-      <div class="banner-actions">
-        <button (click)="updateApp()" class="banner-btn update">Aggiorna</button>
-        <button (click)="dismissUpdateBanner()" class="banner-btn dismiss">×</button>
-      </div>
+<div class="pwa-banner update-banner">
+  <div class="banner-content">
+    <span class="banner-icon">🔄</span>
+    <div class="banner-text">
+      <strong>Aggiornamento disponibile</strong>
+      <p>Nuova versione pronta! Ricarica per aggiornare.</p>
+    </div>
+    <div class="banner-actions">
+      <button (click)="updateApp()" class="banner-btn update">Aggiorna</button>
+      <button (click)="dismissUpdateBanner()" class="banner-btn dismiss">×</button>
     </div>
   </div>
+</div>
 }
 
 <div class="remote-container">
 
   @if (!nickname()) {
-    <div class="setup-screen">
-      <h1>Pub Game</h1>
-      <p>Inserisci il tuo Nickname per giocare</p>
-      <input [(ngModel)]="tempNickname" placeholder="Es: SuperMario88">
-      <button (click)="setNickname()" class="join-btn">ENTRA IN PARTITA</button>
-    </div>
+  <div class="setup-screen">
+    <h1>Pub Game</h1>
+    <p>Inserisci il tuo Nickname per giocare</p>
+    <input [(ngModel)]="tempNickname" placeholder="Es: SuperMario88">
+    <button (click)="setNickname()" class="join-btn">ENTRA IN PARTITA</button>
+  </div>
   } @else {
 
-    <div class="header">
-      <div class="player-info">
-        <span>Giocatore: <b>{{ nickname() }}</b></span>
+  <div class="header">
+    <div class="player-info">
+      <span>Giocatore: <b>{{ nickname() }}</b></span>
+    </div>
+    <button class="logout-btn" (click)="logout()">
+      <span class="icon">×</span> Esci
+    </button>
+  </div>
+  <div class="game-content">
+    @switch (gameState()) {
+    @case ('WAITING') {
+    <div class="status-msg">
+      <div class="loader"></div>
+      <p>In attesa della prossima sfida...</p>
+    </div>
+    }
+    @case ('VOTING') {
+    @switch (questionType()) {
+    @case ('QUIZ') {
+    <div class="voting-grid">
+      <button (click)="sendVote(0)" class="vote-btn btn-a">A</button>
+      <button (click)="sendVote(1)" class="vote-btn btn-b">B</button>
+      <button (click)="sendVote(2)" class="vote-btn btn-c">C</button>
+      <button (click)="sendVote(3)" class="vote-btn btn-d">D</button>
+    </div>
+    }
+    @case ('TRUE_FALSE') {
+    <div class="voting-grid tf-layout">
+      <button (click)="sendVote(0)" class="vote-btn btn-true">VERO</button>
+      <button (click)="sendVote(1)" class="vote-btn btn-false">FALSO</button>
+    </div>
+    }
+    @case ('CHRONO') {
+    <div class="chrono-player-area horizontal-chrono">
+      <div class="year-preview">{{ selectedYear() }}</div>
+      <input type="range" [min]="minYear()" [max]="maxYear()" [step]="yearStep()" [value]="selectedYear()"
+        (input)="onYearChange($event)" class="modern-slider">
+      <button (click)="sendChronoAnswer()" class="confirm-btn">INVIA ANNO</button>
+    </div>
+    }
+    @case ('SCREAM_RACE') {
+    <div class="scream-race-remote-modern">
+
+      @if (!isListening() && !microphoneError()) {
+      <div class="glass-card setup-card">
+        <div class="icon-orb">🎤</div>
+        <h2>GARA DI URLA!</h2>
+        <p>Preparati a usare la voce per vincere la gara!</p>
+
+        <button (click)="startMicrophoneListening()" class="premium-btn primary-pulsing">
+          <span class="btn-text">ATTIVA MICROFONO</span>
+          <span class="btn-glow"></span>
+        </button>
+
+        <div class="hints">
+          <span>💡 Tieni il telefono vicino</span>
+          <span>💡 Consenti l'accesso al mic</span>
+        </div>
       </div>
-      <button class="logout-btn" (click)="logout()">
-        <span class="icon">×</span> Esci
+      } @else if (microphoneError()) {
+      <div class="glass-card error-card">
+        <div class="icon-orb error">❌</div>
+        <h2>OPS! QUALCOSA NON VA</h2>
+        <p class="error-text">{{ microphoneError() }}</p>
+
+        @if (microphoneError()?.includes('HTTPS')) {
+        <div class="http-warning"
+          style="background: rgba(255,165,0,0.1); padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; font-size: 0.9rem;">
+          <p>Google Chrome richiede <b>HTTPS</b> per usare il microfono.</p>
+          <ul style="padding-left: 20px; margin-top: 10px;">
+            <li>🔗 Assicurati che l'indirizzo inizi con <code>https://</code></li>
+            <li>🔒 Clicca sul lucchetto accanto all'indirizzo per verificare</li>
+          </ul>
+        </div>
+        }
+
+        <button (click)="startMicrophoneListening()" class="premium-btn retry">
+          <span class="btn-text">RIPROVA</span>
+        </button>
+      </div>
+      } @else if (isListening() && gameState() === 'WAITING') {
+      <div class="glass-card ready-card">
+        <div class="icon-orb success ripple">🎤</div>
+        <div class="status-badge">PRONTO</div>
+        <h2>MICROFONO CONNESSO</h2>
+        <p>Fai un test rapido del volume!</p>
+
+        <div class="test-area">
+          <div class="meter-container">
+            <div class="meter-bar" [style.width.%]="currentVolume()"></div>
+            <div class="meter-markers">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+          <div class="volume-label" [class.active]="currentVolume() > 10">
+            {{ currentVolume() > 10 ? 'TI SENTO!' : 'PROVA A PARLARE...' }}
+          </div>
+        </div>
+
+        <div class="waiting-instruction">
+          La gara inizierà a breve... 🏁
+        </div>
+      </div>
+      } @else if (isListening() && gameState() === 'VOTING') {
+      <div class="race-active-interface">
+        <div class="visualizer-orb" [class.screaming]="isScreaming()"
+          [style.transform]="'scale(' + (1 + currentVolume()/200) + ')'">
+          <div class="mic-glyph">🎤</div>
+          <div class="waves">
+            <div class="wave-circle" [style.opacity]="currentVolume()/100"></div>
+            <div class="wave-circle delayed" [style.opacity]="currentVolume()/150"></div>
+          </div>
+        </div>
+
+        <div class="action-header">
+          <h2 class="shout-text" [class.fire]="isScreaming()">
+            {{ isScreaming() ? '🔥 URLA FORTE! 🔥' : 'VAI! URLA!' }}
+          </h2>
+        </div>
+
+        <div class="intensity-meter">
+          <div class="meter-header">
+            <span>INTENSITÀ</span>
+            <span class="value">{{ currentVolume().toFixed(0) }}%</span>
+          </div>
+          <div class="full-meter">
+            <div class="fill" [style.width.%]="currentVolume()" [class.max]="currentVolume() > 80"></div>
+          </div>
+        </div>
+
+        <div class="pro-tips">
+          <div class="tip"><span class="emoji">💨</span> Più fiato = Più velocità</div>
+          <div class="tip"><span class="emoji">📱</span> Parla nel microfono</div>
+        </div>
+      </div>
+      }
+
+    </div>
+    }
+    @case ('ROULETTE') {
+    <div class="roulette-grid">
+      <button (click)="sendVote(0)" class="color-btn rosso" [disabled]="hasAnswered()">
+        <span class="color-name">ROSSO</span>
+      </button>
+      <button (click)="sendVote(1)" class="color-btn nero" [disabled]="hasAnswered()">
+        <span class="color-name">NERO</span>
+      </button>
+      <button (click)="sendVote(2)" class="color-btn verde" [disabled]="hasAnswered()">
+        <span class="color-name">VERDE</span>
+      </button>
+      <button (click)="sendVote(3)" class="color-btn blu" [disabled]="hasAnswered()">
+        <span class="color-name">BLU</span>
+      </button>
+      <button (click)="sendVote(4)" class="color-btn giallo" [disabled]="hasAnswered()">
+        <span class="color-name">GIALLO</span>
+      </button>
+      <button (click)="sendVote(5)" class="color-btn bianco" [disabled]="hasAnswered()">
+        <span class="color-name">BIANCO</span>
       </button>
     </div>
-    <div class="game-content">
-      @switch (gameState()) {
-        @case ('WAITING') {
-          <div class="status-msg">
-            <div class="loader"></div>
-            <p>In attesa della prossima sfida...</p>
-          </div>
+    }
+    @case ('IMAGE_BLUR') {
+    <div class="buzz-container">
+      <button class="buzz-button" (click)="sendBuzz()" [disabled]="hasAnswered()">
+        <span class="buzz-icon">🔔</span>
+        <span class="buzz-text">PRENOTATI!</span>
+      </button>
+    </div>
+    }
+    @case ('WHEEL_OF_FORTUNE') {
+    <div class="buzz-container">
+      <button class="buzz-button wheel-theme" (click)="sendBuzz()" [disabled]="hasAnswered()">
+        <span class="buzz-icon">🎡</span>
+        <span class="buzz-text">PRENOTA E RISPONDI!</span>
+      </button>
+    </div>
+    }
+    @case ('MUSIC') {
+    <div class="buzz-container">
+      <button class="buzz-button music-theme" (click)="sendBuzz()" [disabled]="hasAnswered()">
+        <span class="buzz-icon">🎶</span>
+        <span class="buzz-text">PRENOTA E RISPONDI!</span>
+      </button>
+    </div>
+    }
+    @case ('ARENA') {
+    <div class="arena-remote-container">
+      @if (arenaQuestion()) {
+      <div class="arena-question-card">
+        <h3>{{ arenaQuestion()?.text }}</h3>
+      </div>
+      @if (arenaQuestion()?.isTrueFalse) {
+      <div class="voting-grid tf-layout arena-grid">
+        <button (click)="sendArenaAnswer(0)" class="vote-btn btn-true pulse-anim">VERO</button>
+        <button (click)="sendArenaAnswer(1)" class="vote-btn btn-false pulse-anim">FALSO</button>
+      </div>
+      } @else {
+      <div class="voting-grid arena-grid">
+        @for (opt of arenaQuestion()?.options; track opt; let i = $index) {
+        <button (click)="sendArenaAnswer(i)" class="vote-btn" [ngClass]="'btn-' + ['a','b','c','d'][i]">
+          {{ opt }}
+        </button>
         }
-        @case ('VOTING') {
-          @switch (questionType()) {
-            @case ('QUIZ') {
-              <div class="voting-grid">
-                <button (click)="sendVote(0)" class="vote-btn btn-a">A</button>
-                <button (click)="sendVote(1)" class="vote-btn btn-b">B</button>
-                <button (click)="sendVote(2)" class="vote-btn btn-c">C</button>
-                <button (click)="sendVote(3)" class="vote-btn btn-d">D</button>
-              </div>
-            }
-            @case ('TRUE_FALSE') {
-              <div class="voting-grid tf-layout">
-                <button (click)="sendVote(0)" class="vote-btn btn-true">VERO</button>
-                <button (click)="sendVote(1)" class="vote-btn btn-false">FALSO</button>
-              </div>
-            }
-            @case ('CHRONO') {
-              <div class="chrono-player-area horizontal-chrono">
-                <div class="year-preview">{{ selectedYear() }}</div>
-                <input type="range" [min]="minYear()" [max]="maxYear()" [step]="yearStep()" [value]="selectedYear()"
-                       (input)="onYearChange($event)" class="modern-slider">
-                <button (click)="sendChronoAnswer()" class="confirm-btn">INVIA ANNO</button>
-              </div>
-            }
-            @case ('SCREAM_RACE') {
-              <div class="scream-race-remote-modern">
-
-                @if (!isListening() && !microphoneError()) {
-                  <div class="glass-card setup-card">
-                    <div class="icon-orb">🎤</div>
-                    <h2>GARA DI URLA!</h2>
-                    <p>Preparati a usare la voce per vincere la gara!</p>
-
-                    <button (click)="startMicrophoneListening()" class="premium-btn primary-pulsing">
-                      <span class="btn-text">ATTIVA MICROFONO</span>
-                      <span class="btn-glow"></span>
-                    </button>
-
-                    <div class="hints">
-                      <span>💡 Tieni il telefono vicino</span>
-                      <span>💡 Consenti l'accesso al mic</span>
-                    </div>
-                  </div>
-                } @else if (microphoneError()) {
-                  <div class="glass-card error-card">
-                    <div class="icon-orb error">❌</div>
-                    <h2>OPS! QUALCOSA NON VA</h2>
-                    <p class="error-text">{{ microphoneError() }}</p>
-
-                    @if (microphoneError()?.includes('HTTPS')) {
-                      <div class="http-warning"
-                           style="background: rgba(255,165,0,0.1); padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; font-size: 0.9rem;">
-                        <p>Google Chrome richiede <b>HTTPS</b> per usare il microfono.</p>
-                        <ul style="padding-left: 20px; margin-top: 10px;">
-                          <li>🔗 Assicurati che l'indirizzo inizi con <code>https://</code></li>
-                          <li>🔒 Clicca sul lucchetto accanto all'indirizzo per verificare</li>
-                        </ul>
-                      </div>
-                    }
-
-                    <button (click)="startMicrophoneListening()" class="premium-btn retry">
-                      <span class="btn-text">RIPROVA</span>
-                    </button>
-                  </div>
-                } @else if (isListening() && gameState() === 'WAITING') {
-                  <div class="glass-card ready-card">
-                    <div class="icon-orb success ripple">🎤</div>
-                    <div class="status-badge">PRONTO</div>
-                    <h2>MICROFONO CONNESSO</h2>
-                    <p>Fai un test rapido del volume!</p>
-
-                    <div class="test-area">
-                      <div class="meter-container">
-                        <div class="meter-bar" [style.width.%]="currentVolume()"></div>
-                        <div class="meter-markers">
-                          <span></span><span></span><span></span><span></span><span></span>
-                        </div>
-                      </div>
-                      <div class="volume-label" [class.active]="currentVolume() > 10">
-                        {{ currentVolume() > 10 ? 'TI SENTO!' : 'PROVA A PARLARE...' }}
-                      </div>
-                    </div>
-
-                    <div class="waiting-instruction">
-                      La gara inizierà a breve... 🏁
-                    </div>
-                  </div>
-                } @else if (isListening() && gameState() === 'VOTING') {
-                  <div class="race-active-interface">
-                    <div class="visualizer-orb" [class.screaming]="isScreaming()"
-                         [style.transform]="'scale(' + (1 + currentVolume()/200) + ')'">
-                      <div class="mic-glyph">🎤</div>
-                      <div class="waves">
-                        <div class="wave-circle" [style.opacity]="currentVolume()/100"></div>
-                        <div class="wave-circle delayed" [style.opacity]="currentVolume()/150"></div>
-                      </div>
-                    </div>
-
-                    <div class="action-header">
-                      <h2 class="shout-text" [class.fire]="isScreaming()">
-                        {{ isScreaming() ? '🔥 URLA FORTE! 🔥' : 'VAI! URLA!' }}
-                      </h2>
-                    </div>
-
-                    <div class="intensity-meter">
-                      <div class="meter-header">
-                        <span>INTENSITÀ</span>
-                        <span class="value">{{ currentVolume().toFixed(0) }}%</span>
-                      </div>
-                      <div class="full-meter">
-                        <div class="fill" [style.width.%]="currentVolume()" [class.max]="currentVolume() > 80"></div>
-                      </div>
-                    </div>
-
-                    <div class="pro-tips">
-                      <div class="tip"><span class="emoji">💨</span> Più fiato = Più velocità</div>
-                      <div class="tip"><span class="emoji">📱</span> Parla nel microfono</div>
-                    </div>
-                  </div>
-                }
-
-              </div>
-            }
-            @case ('ROULETTE') {
-              <div class="roulette-grid">
-                <button (click)="sendVote(0)" class="color-btn rosso" [disabled]="hasAnswered()">
-                  <span class="color-name">ROSSO</span>
-                </button>
-                <button (click)="sendVote(1)" class="color-btn nero" [disabled]="hasAnswered()">
-                  <span class="color-name">NERO</span>
-                </button>
-                <button (click)="sendVote(2)" class="color-btn verde" [disabled]="hasAnswered()">
-                  <span class="color-name">VERDE</span>
-                </button>
-                <button (click)="sendVote(3)" class="color-btn blu" [disabled]="hasAnswered()">
-                  <span class="color-name">BLU</span>
-                </button>
-                <button (click)="sendVote(4)" class="color-btn giallo" [disabled]="hasAnswered()">
-                  <span class="color-name">GIALLO</span>
-                </button>
-                <button (click)="sendVote(5)" class="color-btn bianco" [disabled]="hasAnswered()">
-                  <span class="color-name">BIANCO</span>
-                </button>
-              </div>
-            }
-            @case ('IMAGE_BLUR') {
-              <div class="buzz-container">
-                <button class="buzz-button" (click)="sendBuzz()" [disabled]="hasAnswered()">
-                  <span class="buzz-icon">🔔</span>
-                  <span class="buzz-text">PRENOTATI!</span>
-                </button>
-              </div>
-            }
-            @case ('WHEEL_OF_FORTUNE') {
-              <div class="buzz-container">
-                <button class="buzz-button wheel-theme" (click)="sendBuzz()" [disabled]="hasAnswered()">
-                  <span class="buzz-icon">🎡</span>
-                  <span class="buzz-text">PRENOTA E RISPONDI!</span>
-                </button>
-              </div>
-            }
-            @case ('MUSIC') {
-              <div class="buzz-container">
-                <button class="buzz-button music-theme" (click)="sendBuzz()" [disabled]="hasAnswered()">
-                  <span class="buzz-icon">🎶</span>
-                  <span class="buzz-text">PRENOTA E RISPONDI!</span>
-                </button>
-              </div>
-            }
-            @case ('ARENA') {
-              <div class="arena-remote-container">
-                @if (arenaQuestion()) {
-                  <div class="arena-question-card">
-                    <h3>{{ arenaQuestion()?.text }}</h3>
-                  </div>
-                  @if (arenaQuestion()?.isTrueFalse) {
-                    <div class="voting-grid tf-layout arena-grid">
-                      <button (click)="sendArenaAnswer(0)" class="vote-btn btn-true pulse-anim">VERO</button>
-                      <button (click)="sendArenaAnswer(1)" class="vote-btn btn-false pulse-anim">FALSO</button>
-                    </div>
-                  } @else {
-                    <div class="voting-grid arena-grid">
-                      @for (opt of arenaQuestion()?.options; track opt; let i = $index) {
-                        <button (click)="sendArenaAnswer(i)" class="vote-btn" [ngClass]="'btn-' + ['a','b','c','d'][i]">
-                          {{ opt }}
-                        </button>
-                      }
-                    </div>
-                  }
-                } @else {
-                  <div class="status-msg">
-                    <div class="loader"></div>
-                    <p>Preparazione battaglia...</p>
-                  </div>
-                }
-              </div>
-            }
-
-          }
-        }
-        @case ('LOCKED') {
-          <div class="status-msg locked">
-            <div class="locked-icon">🎤</div>
-            <p>Sei PRENOTATO!</p>
-            <p class="sub-text">Rispondi al presentatore</p>
-          </div>
-        }
-        @case ('WAITING_FOR_OTHER') {
-          <div class="status-msg others">
-            <div class="blocked-icon">⏸️</div>
-            <p>Qualcuno si è prenotato!</p>
-            <p class="sub-text">Attendi...</p>
-          </div>
-        }
-        @case ('BLOCKED_ERROR') {
-          <div class="status-msg error">
-            <div class="error-icon">❌</div>
-            <p>HAI SBAGLIATO!</p>
-            <p class="sub-text">Sei fuori da questo round</p>
-            <p class="wait-text">Attendi la fine del round...</p>
-          </div>
-        }
+      </div>
+      }
+      } @else {
+      <div class="status-msg">
+        <div class="loader"></div>
+        <p>Preparazione battaglia...</p>
+      </div>
       }
     </div>
+    }
+
+    }
+    }
+    @case ('LOCKED') {
+    <div class="status-msg locked">
+      <div class="locked-icon">🎤</div>
+      <p>Sei PRENOTATO!</p>
+      <p class="sub-text">Rispondi al presentatore</p>
+    </div>
+    }
+    @case ('WAITING_FOR_OTHER') {
+    <div class="status-msg others">
+      <div class="blocked-icon">⏸️</div>
+      <p>Qualcuno si è prenotato!</p>
+      <p class="sub-text">Attendi...</p>
+    </div>
+    }
+    @case ('BLOCKED_ERROR') {
+    <div class="status-msg error">
+      <div class="error-icon">❌</div>
+      <p>HAI SBAGLIATO!</p>
+      <p class="sub-text">Sei fuori da questo round</p>
+      <p class="wait-text">Attendi la fine del round...</p>
+    </div>
+    }
+    }
+  </div>
   }
 </div>
