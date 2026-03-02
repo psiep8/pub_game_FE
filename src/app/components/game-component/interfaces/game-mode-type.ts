@@ -12,7 +12,8 @@ export type GameModeType =
   | 'MUSIC'
   | 'ONE_VS_ONE'
   | 'SCREAM_RACE'
-  | 'WHEEL_OF_FORTUNE';
+  | 'WHEEL_OF_FORTUNE'
+  | 'ARENA';
 
 /**
  * Configurazione per creare una modalità

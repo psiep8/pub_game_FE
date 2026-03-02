@@ -24,7 +24,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR'>('WAITING');
-  questionType = signal<'ROULETTE' | 'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE' | 'SCREAM_RACE'>('QUIZ');
+  questionType = signal<'ROULETTE' | 'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE' | 'SCREAM_RACE' | 'ARENA'>('QUIZ');
   hasAnswered = signal(false);
   isBlocked = signal(false);
   selectedYear = signal<number>(2000);
@@ -36,6 +36,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private roundStartTime: number = 0;
   playerName = signal<string>(localStorage.getItem('playerName') || '');
   gameId = signal<number>(1);
+
+  // ARENA STATE
+  arenaQuestion = signal<{ text: string, options?: string[], isTrueFalse: boolean, correctIndex: number } | null>(null);
 
   currentRoundType: string = '';
 
@@ -454,7 +457,82 @@ export class RemoteComponent implements OnInit, OnDestroy {
       } catch (e) {
         console.error('❌ Errore payload CHRONO:', e);
       }
+    } else if (type === 'ARENA') {
+      this.generateNextArenaQuestion();
     }
+  }
+
+  generateNextArenaQuestion() {
+    // Generate simple random math or logic questions for rapid fire!
+    const isMath = Math.random() > 0.5;
+
+    if (isMath) {
+      const a = Math.floor(Math.random() * 20) + 1;
+      const b = Math.floor(Math.random() * 20) + 1;
+      const isPlus = Math.random() > 0.5;
+      const actualAns = isPlus ? a + b : a - b;
+
+      const isTrueFalse = Math.random() > 0.5;
+      if (isTrueFalse) {
+        const isTrue = Math.random() > 0.5;
+        const shownAns = isTrue ? actualAns : actualAns + Math.floor(Math.random() * 5) + 1;
+        this.arenaQuestion.set({
+          text: `${a} ${isPlus ? '+' : '-'} ${b} = ${shownAns}`,
+          isTrueFalse: true,
+          correctIndex: isTrue ? 0 : 1 // 0 = VERO, 1 = FALSO
+        });
+      } else {
+        // Quiz 4 options
+        const answers = [actualAns, actualAns + 1, actualAns - 1, actualAns + 2].sort(() => Math.random() - 0.5);
+        this.arenaQuestion.set({
+          text: `Quanto fa ${a} ${isPlus ? '+' : '-'} ${b}?`,
+          isTrueFalse: false,
+          options: answers.map(x => x.toString()),
+          correctIndex: answers.indexOf(actualAns)
+        });
+      }
+    } else {
+      // Logic / Color / Trivia
+      const colors = [
+        { name: 'ROSSO', hex: 'red' },
+        { name: 'BLU', hex: 'blue' },
+        { name: 'VERDE', hex: 'green' },
+        { name: 'GIALLO', hex: 'yellow' }
+      ];
+      const wordColor = colors[Math.floor(Math.random() * colors.length)];
+      const inkColor = colors[Math.floor(Math.random() * colors.length)];
+
+      const isTrueFalse = true; // For colors, true false is better
+      const isTrue = Math.random() > 0.5;
+
+      let questionBase = `Il colore del testo è ${inkColor.name}?`;
+
+      this.arenaQuestion.set({
+        // We can format it using HTML in the template, but for simple text:
+        text: `Questo testo è scritto in ${isTrue ? inkColor.name : colors.find(c => c.name !== inkColor.name)?.name}`,
+        isTrueFalse: true, // We'll just ask if the statement is true
+        correctIndex: isTrue ? 0 : 1
+      });
+    }
+  }
+
+  sendArenaAnswer(index: number) {
+    const q = this.arenaQuestion();
+    if (!q) return;
+
+    const isCorrect = index === q.correctIndex;
+
+    this.ws.broadcastStatus(this.gameId(), {
+      action: 'ARENA_ANSWER',
+      playerName: this.nickname(),
+      isCorrect: isCorrect
+    });
+
+    this.vibrate(isCorrect ? 50 : [50, 50, 50]);
+
+    // Slight dealy to show correct/wrong feedback maybe? 
+    // Just immediately next question for rapid fire!
+    this.generateNextArenaQuestion();
   }
 
   onYearChange(event: any) {
