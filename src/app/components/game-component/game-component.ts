@@ -37,6 +37,7 @@ import { OneVsOne } from './games/one-vs-one/one-vs-one';
 import { LeaderboardQuick } from '../leaderboard/leaderboard-quick-component/leaderboard-quick-component';
 import { LeaderboardDetailed } from '../leaderboard/leaderboard-detailed-component/leaderboard-detailed-component';
 import { ScreamRace } from './games/scream-race/scream-race.component';
+import { ArenaComponent } from './games/arena/arena.component';
 
 @Component({
   selector: 'app-game-component',
@@ -52,7 +53,8 @@ import { ScreamRace } from './games/scream-race/scream-race.component';
     Song,
     LeaderboardQuick,
     LeaderboardDetailed,
-    ScreamRace
+    ScreamRace,
+    ArenaComponent
   ],
   templateUrl: './game-component.html',
   styleUrl: './game-component.scss',
@@ -192,8 +194,17 @@ export class GameComponent implements OnInit, OnDestroy {
         } else {
           console.log('%c 🎤 Urlo ignorato in GameComponent: ', 'color: #ff9800', intensity);
         }
+      } else if (mode?.type === 'ARENA' && resp.action === 'ARENA_ANSWER') {
+        const playerName = (resp.playerName || resp.name || 'Sconosciuto').trim();
+        const isCorrect = !!resp.isCorrect;
+        const points = isCorrect ? 10 : -10;
+        console.log(`%c 🏟️ Arena TV -> Risposta rapida: ${playerName} (corretta: ${isCorrect}) `, 'background: #3f51b5; color: #fff;');
+
+        // Use fast-track update
+        (mode as any).updateTeamProgress?.(playerName, isCorrect, points);
+        this.cdr.detectChanges();
       } else {
-        console.warn('%c 🎤 Urlo ricevuto ma MODE NON È SCREAM_RACE! ', 'background: #b71c1c; color: #fff', mode?.type);
+        console.warn('%c 🎤 Azione rapida non gestita! ', 'background: #b71c1c; color: #fff', mode?.type);
       }
     });
 
@@ -485,6 +496,8 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'PROVERBI E MODI DI DIRE';
       case 'ROULETTE':
         return 'FORTUNA';
+      case 'ARENA':
+        return 'ARENA';
       default:
         const categories = this.allCategories();
         const randomIndex = Math.floor(Math.random() * categories.length);
@@ -513,6 +526,8 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'ROULETTE';
       case '1VS1':
         return '1 CONTRO 1';
+      case 'ARENA':
+        return 'ARENA BATTLE ROYALE';
       default:
         return type;
     }
