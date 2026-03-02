@@ -609,6 +609,23 @@ body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
+.ios-banner {
+  bottom: 20px;
+  background: linear-gradient(135deg, #1d1d1f 0%, #3a3a3c 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  .ios-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 0 4px;
+    font-weight: bold;
+    margin: 0 4px;
+  }
+}
+
 .update-banner {
   top: 20px;
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
