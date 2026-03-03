@@ -37,7 +37,7 @@ export class RoundManagerService {
     'IMAGE_BLUR': 0,
     'CHRONO': 0,
     'ROULETTE': 0,
-    'SCREAM_RACE': 100,
+    'SCREAM_RACE': 0,
     'ARENA': 100,
     'ONE_VS_ONE': 0
   };

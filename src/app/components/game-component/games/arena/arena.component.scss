@@ -47,11 +47,11 @@
   box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.7);
   overflow: visible; // Allows eliminated particles to fly out potentially
   margin-top: 20px;
-  
+
   // Radar grid background
-  background-image: 
-    linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
@@ -64,7 +64,7 @@
   border: 4px solid #ff3366;
   transition: width 1s linear, height 1s linear; // Smooth transition for the shrink
   z-index: 5;
-  box-shadow: 
+  box-shadow:
     0 0 30px rgba(255, 51, 102, 0.5),
     inset 0 0 30px rgba(255, 51, 102, 0.3);
   background: rgba(255, 51, 102, 0.05);
@@ -79,8 +79,13 @@
 }
 
 @keyframes pulse-border {
-  from { box-shadow: 0 0 15px #ff3366 inset; }
-  to { box-shadow: 0 0 30px #ff3366 inset, 0 0 20px #ff3366; }
+  from {
+    box-shadow: 0 0 15px #ff3366 inset;
+  }
+
+  to {
+    box-shadow: 0 0 30px #ff3366 inset, 0 0 20px #ff3366;
+  }
 }
 
 .arena-center {
@@ -94,7 +99,7 @@
   border-radius: 50%;
   box-shadow: 0 0 20px #00ffff;
   z-index: 10;
-  
+
   &::after {
     content: '';
     position: absolute;
@@ -109,8 +114,15 @@
 }
 
 @keyframes ripple {
-  0% { transform: scale(1); opacity: 1; }
-  100% { transform: scale(3); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
 }
 
 .team-node {
@@ -120,9 +132,9 @@
   flex-direction: column;
   align-items: center;
   z-index: 15;
-  transition: left 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
-              top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-              
+  transition: left 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
   &.eliminated {
     pointer-events: none;
     z-index: 2;
@@ -133,10 +145,127 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  box-shadow: 0 0 10px rgba(255,255,255,0.6);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
   position: relative;
-  border: 3px solid rgba(0,0,0,0.5);
+  border: 3px solid rgba(0, 0, 0, 0.5);
   background-color: #ffffff; // default overridden
+  transition: transform 0.2s ease-out;
+}
+
+// Direzioni di movimento (Effetti visivi temporanei)
+.move-in .team-dot {
+  animation: flash-green 1s ease-out forwards;
+}
+
+.move-out .team-dot {
+  animation: flash-red 1s ease-out forwards;
+}
+
+@keyframes flash-green {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+  }
+
+  50% {
+    transform: scale(1.4);
+    box-shadow: 0 0 30px #4caf50, 0 0 50px #4caf50;
+    border-color: #ffffff;
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+  }
+}
+
+@keyframes flash-red {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+  }
+
+  50% {
+    transform: scale(0.8);
+    box-shadow: 0 0 30px #f44336, 0 0 50px #f44336;
+    border-color: #ffffff;
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+  }
+}
+
+.movement-indicator {
+  position: absolute;
+  top: -20px;
+  font-size: 20px;
+  font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.move-in .movement-indicator {
+  color: #4caf50;
+  opacity: 1;
+  animation: slide-in-arrow 1s forwards;
+}
+
+.move-out .movement-indicator {
+  color: #f44336;
+  opacity: 1;
+  animation: slide-out-arrow 1s forwards;
+}
+
+@keyframes slide-in-arrow {
+  0% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+
+  20% {
+    transform: translateY(0);
+    opacity: 1;
+    text-shadow: 0 0 10px #4caf50;
+  }
+
+  80% {
+    transform: translateY(0);
+    opacity: 1;
+    text-shadow: 0 0 10px #4caf50;
+  }
+
+  100% {
+    transform: translateY(-5px);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-out-arrow {
+  0% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+
+  20% {
+    transform: translateY(0);
+    opacity: 1;
+    text-shadow: 0 0 10px #f44336;
+  }
+
+  80% {
+    transform: translateY(0);
+    opacity: 1;
+    text-shadow: 0 0 10px #f44336;
+  }
+
+  100% {
+    transform: translateY(5px);
+    opacity: 0;
+  }
 }
 
 .team-pulse.active-pulse {
@@ -148,8 +277,15 @@
 }
 
 @keyframes pulse-happy {
-  from { transform: scale(1); opacity: 0.8;}
-  to { transform: scale(1.3); opacity: 0;}
+  from {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  to {
+    transform: scale(1.3);
+    opacity: 0;
+  }
 }
 
 .team-label {
@@ -179,7 +315,7 @@
   justify-content: center;
   font-size: 14px;
   font-weight: 900;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 .arena-ended-overlay {
@@ -192,7 +328,7 @@
   justify-content: center;
   z-index: 2000;
   backdrop-filter: blur(15px);
-  
+
   h2 {
     font-size: 80px;
     color: #FFD700;
@@ -213,48 +349,60 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   padding: 20px 40px;
   border-radius: 20px;
-  border: 2px solid rgba(255,255,255,0.2);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   min-width: 400px;
   animation: slide-up 0.5s ease-out forwards;
   opacity: 0;
   transform: translateY(30px);
-  
+
   .medal {
     font-size: 40px;
   }
-  
+
   .name {
     font-size: 36px;
     font-weight: 800;
     color: white;
   }
-  
+
   &.place-1 {
     background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3));
     border-color: #FFD700;
     transform: scale(1.1);
     animation-delay: 0.1s;
-    
-    .name { color: #FFD700; }
+
+    .name {
+      color: #FFD700;
+    }
   }
-  
+
   &.place-2 {
     animation-delay: 0.3s;
   }
-  
+
   &.place-3 {
     animation-delay: 0.5s;
   }
 }
 
 @keyframes pop-in {
-  from { transform: scale(0.5); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes slide-up {
-  to { transform: translateY(0); opacity: 1; }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }

@@ -27,6 +27,10 @@ export class ArenaComponent {
     // We assign a random angle to each team so they distribute nicely around the circle
     private teamAngles = new Map<string, number>();
 
+    // Track previous distances to determine movement direction
+    private previousDistances = new Map<string, number>();
+    public movementDirections = new Map<string, 'in' | 'out'>();
+
     ngOnChanges() {
         if (this.displayData && this.displayData.teams) {
             this.displayData.teams.forEach(team => {
@@ -34,6 +38,21 @@ export class ArenaComponent {
                     // Assign random angle between 0 and 360 degrees
                     this.teamAngles.set(team.playerName, Math.random() * 360);
                 }
+
+                // Track distance changes for animations
+                const prevDist = this.previousDistances.get(team.playerName);
+                if (prevDist !== undefined && prevDist !== team.distance) {
+                    const direction = team.distance < prevDist ? 'in' : 'out';
+                    this.movementDirections.set(team.playerName, direction);
+
+                    // Clear the animation class after 1 second so it can be re-applied later
+                    setTimeout(() => {
+                        if (this.movementDirections.get(team.playerName) === direction) {
+                            this.movementDirections.delete(team.playerName);
+                        }
+                    }, 1000);
+                }
+                this.previousDistances.set(team.playerName, team.distance);
             });
         }
     }

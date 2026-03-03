@@ -1,6 +1,6 @@
 ﻿export const environment = {
   production: false,
-  apiUrl: 'https://investing-lone-fog-electro.trycloudflare.com',
-  wsUrl: 'https://investing-lone-fog-electro.trycloudflare.com/ws-pubgame',
-  frontendUrl: 'https://proceed-sponsors-material-stretch.trycloudflare.com'
+  apiUrl: 'https://psychology-friendly-reef-northern.trycloudflare.com',
+  wsUrl: 'https://psychology-friendly-reef-northern.trycloudflare.com/ws-pubgame',
+  frontendUrl: 'https://watt-poll-correspondence-relative.trycloudflare.com'
 };

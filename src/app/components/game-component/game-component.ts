@@ -194,15 +194,6 @@ export class GameComponent implements OnInit, OnDestroy {
         } else {
           console.log('%c 🎤 Urlo ignorato in GameComponent: ', 'color: #ff9800', intensity);
         }
-      } else if (mode?.type === 'ARENA' && resp.action === 'ARENA_ANSWER') {
-        const playerName = (resp.playerName || resp.name || 'Sconosciuto').trim();
-        const isCorrect = !!resp.isCorrect;
-        const points = isCorrect ? 10 : -10;
-        console.log(`%c 🏟️ Arena TV -> Risposta rapida: ${playerName} (corretta: ${isCorrect}) `, 'background: #3f51b5; color: #fff;');
-
-        // Use fast-track update
-        (mode as any).updateTeamProgress?.(playerName, isCorrect, points);
-        this.cdr.detectChanges();
       } else {
         console.warn('%c 🎤 Azione rapida non gestita! ', 'background: #b71c1c; color: #fff', mode?.type);
       }
@@ -239,6 +230,21 @@ export class GameComponent implements OnInit, OnDestroy {
         const normalizedName = pName.trim();
         console.log(`%c 🎤 Urlo TV -> Status Match: ${normalizedName} (${data}%) `, 'background: #1b5e20; color: #fff');
         (mode as any).updateTeamProgress?.(normalizedName, data);
+        this.cdr.detectChanges();
+      }
+
+      // 🏟️ ARENA ANSWER dal Remote (inviato via broadcastStatus)
+      if (mode?.type === 'ARENA' && status.action === 'ARENA_ANSWER') {
+        const playerName = (status.playerName || status.name || 'Sconosciuto').trim();
+        const isCorrect = !!status.isCorrect;
+        const points = isCorrect ? 10 : -10;
+        console.log(`%c 🏟️ Arena TV -> Risposta rapida: ${playerName} (corretta: ${isCorrect}) `, 'background: #3f51b5; color: #fff;');
+
+        // Add points to leaderboard immediately
+        this.leaderboardService.addPoints(playerName, points, isCorrect);
+
+        // Update mode logic (dot movement)
+        (mode as any).updateTeamProgress?.(playerName, isCorrect, points);
         this.cdr.detectChanges();
       }
 
