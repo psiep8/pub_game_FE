@@ -4,6 +4,7 @@ import { WebSocketService } from '../../services/web-socket.service';
 import { FormsModule } from '@angular/forms';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { filter } from 'rxjs/operators';
+import { GameService } from '../../services/game.service';
 
 @Component({
   selector: 'app-remote-component',
@@ -15,6 +16,7 @@ import { filter } from 'rxjs/operators';
 export class RemoteComponent implements OnInit, OnDestroy {
 
   public ws = inject(WebSocketService);
+  private gameService = inject(GameService);
   private swUpdate = inject(SwUpdate);
   private updateCheckInterval?: any;
   private versionUpdatesSub?: any;
@@ -39,8 +41,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   // ARENA STATE
   arenaQuestion = signal<{ text: string, options?: string[], isTrueFalse: boolean, correctIndex: number } | null>(null);
-  arenaQuestionsPool = signal<any[]>([]);
-  private arenaCurrentIndex = 0;
+  isFetchingQuestion = signal(false);
+  categories = signal<any[]>([]);
 
   currentRoundType: string = '';
 
@@ -83,6 +85,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // 🔥 [ROLLBACK] ID fisso 1 per stabilità
     this.gameId.set(1);
     console.log('🎮 [ROLLBACK] Remote ID forzato a 1');
+
+    this.gameService.getCategories().subscribe({
+      next: (cats) => {
+        this.categories.set(cats.filter(c => c.active));
+      }
+    });
 
     // Se il giocatore è già loggato, notifico la TV
     if (this.nickname()) {
@@ -475,90 +483,43 @@ export class RemoteComponent implements OnInit, OnDestroy {
         console.error('❌ Errore payload CHRONO:', e);
       }
     } else if (type === 'ARENA') {
-      if (payload) {
-        try {
-          const data = typeof payload === 'string' ? JSON.parse(payload) : payload;
-          if (data.questions && Array.isArray(data.questions)) {
-            this.arenaQuestionsPool.set(data.questions);
-            this.arenaCurrentIndex = 0;
-            console.log(`🏟️ Arena: Caricate ${data.questions.length} domande dal backend`);
-          }
-        } catch (e) {
-          console.error('❌ Errore parsing ARENA payload:', e);
-        }
-      }
       this.generateNextArenaQuestion();
     }
   }
 
   generateNextArenaQuestion() {
-    const pool = this.arenaQuestionsPool();
+    this.isFetchingQuestion.set(true);
+    this.arenaQuestion.set(null); // Show loading state if template supports it
 
-    // Se abbiamo domande dal backend e non le abbiamo finite
-    if (pool.length > 0 && this.arenaCurrentIndex < pool.length) {
-      const q = pool[this.arenaCurrentIndex];
-      this.arenaCurrentIndex++;
-
-      this.arenaQuestion.set({
-        text: q.question,
-        options: q.options,
-        isTrueFalse: q.options && q.options.length === 2 && (q.options.includes('VERO') || q.options.includes('FALSO')),
-        correctIndex: q.options ? q.options.indexOf(q.correctAnswer) : -1
-      });
-      return;
+    const cats = this.categories();
+    let selectedCategory = "Scienza"; // fallback
+    if (cats && cats.length > 0) {
+      const idx = Math.floor(Math.random() * cats.length);
+      selectedCategory = cats[idx].name;
     }
 
-    // FALLBACK: Generazione Client-side (Matematica/Colori)
-    const isMath = Math.random() > 0.5;
-
-    if (isMath) {
-      const a = Math.floor(Math.random() * 20) + 1;
-      const b = Math.floor(Math.random() * 20) + 1;
-      const isPlus = Math.random() > 0.5;
-      const actualAns = isPlus ? a + b : a - b;
-
-      const isTrueFalse = Math.random() > 0.5;
-      if (isTrueFalse) {
-        const isTrue = Math.random() > 0.5;
-        const shownAns = isTrue ? actualAns : actualAns + Math.floor(Math.random() * 5) + 1;
+    this.gameService.getArenaQuestion(this.gameId(), selectedCategory).subscribe({
+      next: (q: any) => {
         this.arenaQuestion.set({
-          text: `${a} ${isPlus ? '+' : '-'} ${b} = ${shownAns}`,
-          isTrueFalse: true,
-          correctIndex: isTrue ? 0 : 1 // 0 = VERO, 1 = FALSO
+          text: q.question,
+          options: q.options,
+          isTrueFalse: q.options && q.options.length === 2 && (q.options.includes('VERO') || q.options.includes('FALSO')),
+          correctIndex: q.options ? q.options.indexOf(q.correctAnswer) : -1
         });
-      } else {
-        // Quiz 4 options
-        const answers = [actualAns, actualAns + 1, actualAns - 1, actualAns + 2].sort(() => Math.random() - 0.5);
+        this.isFetchingQuestion.set(false);
+      },
+      error: (err: any) => {
+        console.error('❌ Fallito recupero domanda arena:', err);
+        // Fallback locale in caso di errore di rete
         this.arenaQuestion.set({
-          text: `Quanto fa ${a} ${isPlus ? '+' : '-'} ${b}?`,
+          text: "Domanda di riserva: 5 + 5?",
+          options: ["8", "10", "12", "15"],
           isTrueFalse: false,
-          options: answers.map(x => x.toString()),
-          correctIndex: answers.indexOf(actualAns)
+          correctIndex: 1
         });
+        this.isFetchingQuestion.set(false);
       }
-    } else {
-      // Logic / Color / Trivia
-      const colors = [
-        { name: 'ROSSO', hex: 'red' },
-        { name: 'BLU', hex: 'blue' },
-        { name: 'VERDE', hex: 'green' },
-        { name: 'GIALLO', hex: 'yellow' }
-      ];
-      const wordColor = colors[Math.floor(Math.random() * colors.length)];
-      const inkColor = colors[Math.floor(Math.random() * colors.length)];
-
-      const isTrueFalse = true; // For colors, true false is better
-      const isTrue = Math.random() > 0.5;
-
-      let questionBase = `Il colore del testo è ${inkColor.name}?`;
-
-      this.arenaQuestion.set({
-        // We can format it using HTML in the template, but for simple text:
-        text: `Questo testo è scritto in ${isTrue ? inkColor.name : colors.find(c => c.name !== inkColor.name)?.name}`,
-        isTrueFalse: true, // We'll just ask if the statement is true
-        correctIndex: isTrue ? 0 : 1
-      });
-    }
+    });
   }
 
   sendArenaAnswer(index: number) {
