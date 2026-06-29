@@ -1,14 +1,13 @@
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { environment } from '../environment/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AiGeneratorService {
-  // private baseUrl = 'http://192.168.1.3:8080/games';
-  private baseUrl = 'http://192.168.1.20:8080/games';
-
+  private baseUrl = `${environment.apiUrl}/games`;
 
   constructor(private http: HttpClient) {
   }
@@ -22,6 +21,6 @@ export class AiGeneratorService {
       .set('type', type)
       .set('difficulty', difficulty);
 
-    return this.http.get(`${this.baseUrl}/${gameId}/generate-ai-round`, {params});
+    return this.http.get(`${this.baseUrl}/${gameId}/generate-ai-round`, { params });
   }
 }

@@ -1,5 +1,5 @@
-import {Injectable, signal} from '@angular/core';
-import {GameModeType} from '../components/game-component/interfaces/game-mode-type';
+import { Injectable, signal } from '@angular/core';
+import { GameModeType } from '../components/game-component/interfaces/game-mode-type';
 
 interface RoundConfig {
   totalRounds: number;
@@ -30,15 +30,16 @@ export class RoundManagerService {
     // 'ROULETTE': 12,
     // 'SCREAM_RACE': 12,
     // 'ONE_VS_ONE':0
-    'QUIZ': 0,
-    'TRUE_FALSE': 0,
-    'WHEEL_OF_FORTUNE': 0,
-    'MUSIC': 0,
-    'IMAGE_BLUR': 0,
-    'CHRONO': 0,
-    'ROULETTE': 0,
-    'SCREAM_RACE': 100,
-    'ONE_VS_ONE':0
+    'QUIZ': 12,
+    'TRUE_FALSE': 12,
+    'WHEEL_OF_FORTUNE': 10,
+    'MUSIC': 10,
+    'IMAGE_BLUR': 10,
+    'CHRONO': 10,
+    'ROULETTE': 10,
+    'SCREAM_RACE': 10,
+    'ONE_VS_ONE': 2,
+    'ARENA': 14
   };
 
   constructor() {

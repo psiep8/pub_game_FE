@@ -37,6 +37,7 @@ import { OneVsOne } from './games/one-vs-one/one-vs-one';
 import { LeaderboardQuick } from '../leaderboard/leaderboard-quick-component/leaderboard-quick-component';
 import { LeaderboardDetailed } from '../leaderboard/leaderboard-detailed-component/leaderboard-detailed-component';
 import { ScreamRace } from './games/scream-race/scream-race.component';
+import { ArenaComponent } from './games/arena/arena.component';
 
 @Component({
   selector: 'app-game-component',
@@ -52,7 +53,8 @@ import { ScreamRace } from './games/scream-race/scream-race.component';
     Song,
     LeaderboardQuick,
     LeaderboardDetailed,
-    ScreamRace
+    ScreamRace,
+    ArenaComponent
   ],
   templateUrl: './game-component.html',
   styleUrl: './game-component.scss',
@@ -145,9 +147,7 @@ export class GameComponent implements OnInit, OnDestroy {
       const positioned = this.generateNonOverlappingPositions(cats);
       this.allCategories.set(positioned);
 
-      // [ROLLBACK] Forza ID 1
-      this.currentGameId.set(1);
-      console.log('📺 [ROLLBACK] GameID forzato a 1');
+
     } catch (err) {
       console.error("Errore inizializzazione:", err);
     }
@@ -159,7 +159,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
 
     try {
-      this.prestartAudio = new Audio('/sounds/prestart-beep.mp3');
+      this.prestartAudio = new Audio('assets/audio/prestart-beep.mp3');
       this.prestartAudio.preload = 'auto';
     } catch (e) {
       this.prestartAudio = undefined;
@@ -193,7 +193,7 @@ export class GameComponent implements OnInit, OnDestroy {
           console.log('%c 🎤 Urlo ignorato in GameComponent: ', 'color: #ff9800', intensity);
         }
       } else {
-        console.warn('%c 🎤 Urlo ricevuto ma MODE NON È SCREAM_RACE! ', 'background: #b71c1c; color: #fff', mode?.type);
+        console.warn('%c 🎤 Azione rapida non gestita! ', 'background: #b71c1c; color: #fff', mode?.type);
       }
     });
 
@@ -228,6 +228,21 @@ export class GameComponent implements OnInit, OnDestroy {
         const normalizedName = pName.trim();
         console.log(`%c 🎤 Urlo TV -> Status Match: ${normalizedName} (${data}%) `, 'background: #1b5e20; color: #fff');
         (mode as any).updateTeamProgress?.(normalizedName, data);
+        this.cdr.detectChanges();
+      }
+
+      // 🏟️ ARENA ANSWER dal Remote (inviato via broadcastStatus)
+      if (mode?.type === 'ARENA' && status.action === 'ARENA_ANSWER') {
+        const playerName = (status.playerName || status.name || 'Sconosciuto').trim();
+        const isCorrect = !!status.isCorrect;
+        const points = isCorrect ? 10 : -10;
+        console.log(`%c 🏟️ Arena TV -> Risposta rapida: ${playerName} (corretta: ${isCorrect}) `, 'background: #3f51b5; color: #fff;');
+
+        // Add points to leaderboard immediately
+        this.leaderboardService.addPoints(playerName, points, isCorrect);
+
+        // Update mode logic (dot movement)
+        (mode as any).updateTeamProgress?.(playerName, isCorrect, points);
         this.cdr.detectChanges();
       }
 
@@ -425,7 +440,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
       this.currentMode.set(mode);
 
-      if (mode.requiresBubbles) {
+      if (mode.requiresBubbles && categories.length > 0) {
         const randomIndex = Math.floor(Math.random() * categories.length);
         this.animatedCategoryId.set(categories[randomIndex].id);
 
@@ -479,14 +494,25 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private getCategoryForType(type: GameModeType): string {
     switch (type) {
+      case 'QUIZ':
+      case 'TRUE_FALSE':
+      case 'CHRONO':
+      case 'ONE_VS_ONE':
+      case 'SCREAM_RACE':
+        return 'CULTURA GENERALE';
+      case 'MUSIC':
+        return 'MUSICA';
       case 'IMAGE_BLUR':
         return 'CELEBRITÀ';
       case 'WHEEL_OF_FORTUNE':
         return 'PROVERBI E MODI DI DIRE';
       case 'ROULETTE':
         return 'FORTUNA';
+      case 'ARENA':
+        return 'ARENA';
       default:
         const categories = this.allCategories();
+        if (categories.length === 0) return 'CULTURA GENERALE';
         const randomIndex = Math.floor(Math.random() * categories.length);
         return categories[randomIndex].name;
     }
@@ -513,6 +539,8 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'ROULETTE';
       case '1VS1':
         return '1 CONTRO 1';
+      case 'ARENA':
+        return 'ARENA BATTLE ROYALE';
       default:
         return type;
     }

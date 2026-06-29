@@ -48,6 +48,9 @@ export class GameService {
     );
   }
 
+  getArenaQuestion(gameId: number, category: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/games/${gameId}/arena-question?category=${encodeURIComponent(category)}`);
+  }
 
   private parseRoundPayload(res: any): GameRound {
     return {

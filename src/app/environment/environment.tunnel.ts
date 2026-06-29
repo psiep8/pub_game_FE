@@ -1,6 +1,6 @@
-﻿export const environment = {
+export const environment = {
   production: false,
-  apiUrl: 'https://investing-lone-fog-electro.trycloudflare.com',
-  wsUrl: 'https://investing-lone-fog-electro.trycloudflare.com/ws-pubgame',
-  frontendUrl: 'https://proceed-sponsors-material-stretch.trycloudflare.com'
+  apiUrl: 'https://derek-fantastic-written-reform.trycloudflare.com',
+  wsUrl: 'https://derek-fantastic-written-reform.trycloudflare.com/ws-pubgame',
+  frontendUrl: 'https://stock-indices-belfast-conference.trycloudflare.com'
 };

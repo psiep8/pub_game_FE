@@ -1,69 +1,94 @@
-# PubgameFE
+# PubGame FE — Frontend Angular
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.0.
+Frontend Angular 21 per il gioco da pub multigiocatore con supporto AI, WebSocket e tunnel Cloudflare.
 
-## Development server
+## Requisiti
 
-To start a local development server, run:
+- Node.js 18+
+- Angular CLI 21 (`npm install -g @angular/cli`)
+- Cloudflared (solo per tunnel)
 
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Sviluppo locale
 
 ```bash
-ng generate component component-name
-```
+# Installa dipendenze
+npm install
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
-
-# Sviluppo locale (PC 1.3)
+# Avvia in sviluppo (backend locale su 192.168.1.20:8080)
 ng serve --host 0.0.0.0
+```
 
-# Build PWA (per PC 1.20)
-ng build --configuration pwa
+Apri `http://localhost:4200` dal browser sul PC, oppure dal telefono con `http://192.168.1.20:4200`.
 
-# Build Produzione (futuro)
+## Accessi
+
+| Route | Dispositivo | Descrizione |
+|---|---|---|
+| `/tv` | Desktop | Schermata principale del gioco |
+| `/play` | Mobile | Telefono concorrenti (rispondono alle domande) |
+| `/admin` | Mobile | Pannello admin / votante (conferma risposte) |
+
+## Build
+
+```bash
+# Build produzione
 ng build --configuration production
 
+# Build PWA (rete locale)
+ng build --configuration pwa
+
+# Build tunnel
+ng build --configuration tunnel
+```
+
+## Tunnel Cloudflare
+
+Esponi frontend e backend su internet per test da dispositivi esterni:
+
+### Windows
+```powershell
+.\start-tunnel.ps1
+```
+
+### Linux / WSL
+```bash
+chmod +x start-tunnel.sh
+./start-tunnel.sh
+```
+
+Poi in un altro terminale:
+```bash
+ng serve -c tunnel
+```
+
+Lo script aggiorna automaticamente `environment.tunnel.ts` con gli URL pubblici `.trycloudflare.com`.
+I 3 accessi diventano:
+- `https://{fe-tunnel}.trycloudflare.com/tv`
+- `https://{fe-tunnel}.trycloudflare.com/play`
+- `https://{fe-tunnel}.trycloudflare.com/admin`
+
+## Configurazioni ambiente
+
+| File | Uso |
+|---|---|
+| `environment.ts` | Default / produzione |
+| `environment.development.ts` | Sviluppo locale (`ng serve`) |
+| `environment.tunnel.ts` | Tunnel Cloudflare (`ng serve -c tunnel`) |
+| `environment.pwa.ts` | Build PWA (`ng build -c pwa`) |
+
+## Struttura
+
+```
+src/
+├── app/
+│   ├── components/
+│   │   ├── admin/          # Pannello admin/votante
+│   │   ├── game-component/ # Schermata TV (tutti i giochi)
+│   │   ├── leaderboard/    # Classifiche
+│   │   └── remote-component/ # Telecomando concorrenti
+│   ├── services/           # WebSocket, Game, AI, Audio, etc.
+│   ├── guard/              # Route guards (mobile/desktop)
+│   └── environment/        # Configurazioni ambiente
+└── start-tunnel.ps1        # Script tunnel Windows
+└── start-tunnel.sh         # Script tunnel Linux/WSL
+```

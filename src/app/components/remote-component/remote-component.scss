@@ -366,6 +366,53 @@ body {
   }
 }
 
+.arena-remote-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  gap: 20px;
+  padding: 10px;
+
+  .arena-question-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 2px solid #ff3366;
+    border-radius: 20px;
+    padding: 20px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(255, 51, 102, 0.3);
+
+    h3 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: white;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  .arena-grid {
+    flex: 1;
+    max-height: calc(100vh - 200px);
+  }
+}
+
+.pulse-anim {
+  animation: slight-pulse 2s infinite alternate;
+}
+
+@keyframes slight-pulse {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.02);
+  }
+}
+
 
 .chrono-player-area.horizontal-chrono {
   display: flex;
@@ -560,6 +607,23 @@ body {
 .install-banner {
   bottom: 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.ios-banner {
+  bottom: 20px;
+  background: linear-gradient(135deg, #1d1d1f 0%, #3a3a3c 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  .ios-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 0 4px;
+    font-weight: bold;
+    margin: 0 4px;
+  }
 }
 
 .update-banner {

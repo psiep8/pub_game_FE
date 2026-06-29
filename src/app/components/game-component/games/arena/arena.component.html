@@ -1,0 +1,57 @@
+<div class="arena-container">
+  <div class="arena-header">
+    <h1 class="arena-title">BATTLE ROYALE ARENA</h1>
+    <div class="arena-instruction">RISPONDI CORRETTAMENTE PER AVVICINARTI AL CENTRO ED EVITARE L'ELIMINAZIONE!</div>
+  </div>
+
+  <div class="arena-battlefield">
+    <!-- Outer Safe Zone / Shrinking Circle -->
+    <div class="shrinking-circle" [style.width.%]="displayData?.circleRadius"
+      [style.height.%]="displayData?.circleRadius">
+      <div class="circle-glow"></div>
+    </div>
+
+    <!-- Pulse Center -->
+    <div class="arena-center"></div>
+
+    <!-- Teams Nodes -->
+    @for (team of displayData?.teams || []; track team.playerName) {
+    <div class="team-node" [style.left]="getTeamLeft(team)" [style.top]="getTeamTop(team)"
+      [class.eliminated]="team.eliminated"
+      [ngClass]="movementDirections.get(team.playerName) === 'in' ? 'move-in' : (movementDirections.get(team.playerName) === 'out' ? 'move-out' : '')"
+      [@eliminateAnimation]="team.eliminated ? 'eliminated' : 'alive'">
+
+      <div class="movement-indicator">
+        {{ movementDirections.get(team.playerName) === 'in' ? '▲' : '▼' }}
+      </div>
+
+      <div class="team-dot" [style.backgroundColor]="getTeamColor(team.score)">
+        <div class="team-pulse" [class.active-pulse]="team.score > 0"></div>
+      </div>
+      <div class="team-label">{{ team.playerName }}</div>
+
+      @if (team.position) {
+      <div class="team-rank">#{{ team.position }}</div>
+      }
+    </div>
+    }
+  </div>
+
+  @if (displayData?.gameEnded) {
+  <div class="arena-ended-overlay">
+    <h2>🏆 BATTAGLIA CONCLUSA 🏆</h2>
+    <div class="survivors-list">
+      @for (player of displayData?.winners?.slice(0, 3) || []; track $index) {
+      <div class="survivor" [class]="'place-' + ($index + 1)">
+        <span class="medal">
+          @if ($index === 0) { 👑 }
+          @else if ($index === 1) { 🥈 }
+          @else { 🥉 }
+        </span>
+        <span class="name">{{ player }}</span>
+      </div>
+      }
+    </div>
+  </div>
+  }
+</div>

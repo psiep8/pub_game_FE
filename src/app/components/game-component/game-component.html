@@ -130,6 +130,10 @@
   <app-scream-race [displayData]="getSafeDisplayData()" [timer]="timer()">
   </app-scream-race>
   }
+  @case ('ARENA') {
+  <app-arena [displayData]="getSafeDisplayData()" [timer]="timer()">
+  </app-arena>
+  }
 
   <!--  @case ('ONE_VS_ONE') {-->
   <!--  <app-one-vs-one-component [displayData]="getSafeDisplayData()" [timer]="timer()"-->
