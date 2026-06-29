@@ -7,7 +7,7 @@ import { ScreamRaceDisplayData } from '../../mode/scream-race.mode';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './scream-race.component.html',
-  styleUrl: './scream-race.component.scss'
+  styleUrl: './scream-race.component.css'
 })
 export class ScreamRace {
   @Input() displayData?: ScreamRaceDisplayData;

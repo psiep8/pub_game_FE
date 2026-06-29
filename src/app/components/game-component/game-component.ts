@@ -33,7 +33,7 @@ import { Roulette } from './games/roulette/roulette';
 import { Song } from './games/song/song';
 import { environment } from '../../environment/environment';
 import { GameModeType, IGameMode } from './interfaces/game-mode-type';
-import { OneVsOne } from './games/one-vs-one/one-vs-one';
+// import { OneVsOne } from './games/one-vs-one/one-vs-one';
 import { LeaderboardQuick } from '../leaderboard/leaderboard-quick-component/leaderboard-quick-component';
 import { LeaderboardDetailed } from '../leaderboard/leaderboard-detailed-component/leaderboard-detailed-component';
 import { ScreamRace } from './games/scream-race/scream-race.component';
@@ -57,7 +57,7 @@ import { ArenaComponent } from './games/arena/arena.component';
     ArenaComponent
   ],
   templateUrl: './game-component.html',
-  styleUrl: './game-component.scss',
+  styleUrl: './game-component.css',
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [
@@ -497,7 +497,7 @@ export class GameComponent implements OnInit, OnDestroy {
       case 'QUIZ':
       case 'TRUE_FALSE':
       case 'CHRONO':
-      case 'ONE_VS_ONE':
+      // case 'ONE_VS_ONE':
       case 'SCREAM_RACE':
         return 'CULTURA GENERALE';
       case 'MUSIC':
@@ -537,8 +537,8 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'CHRONO';
       case 'ROULETTE':
         return 'ROULETTE';
-      case '1VS1':
-        return '1 CONTRO 1';
+      // case '1VS1':
+      //   return '1 CONTRO 1';
       case 'ARENA':
         return 'ARENA BATTLE ROYALE';
       default:
