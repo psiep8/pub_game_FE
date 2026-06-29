@@ -147,9 +147,7 @@ export class GameComponent implements OnInit, OnDestroy {
       const positioned = this.generateNonOverlappingPositions(cats);
       this.allCategories.set(positioned);
 
-      // [ROLLBACK] Forza ID 1
-      this.currentGameId.set(1);
-      console.log('📺 [ROLLBACK] GameID forzato a 1');
+
     } catch (err) {
       console.error("Errore inizializzazione:", err);
     }
@@ -161,7 +159,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
 
     try {
-      this.prestartAudio = new Audio('/sounds/prestart-beep.mp3');
+      this.prestartAudio = new Audio('assets/audio/prestart-beep.mp3');
       this.prestartAudio.preload = 'auto';
     } catch (e) {
       this.prestartAudio = undefined;
@@ -442,7 +440,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
       this.currentMode.set(mode);
 
-      if (mode.requiresBubbles) {
+      if (mode.requiresBubbles && categories.length > 0) {
         const randomIndex = Math.floor(Math.random() * categories.length);
         this.animatedCategoryId.set(categories[randomIndex].id);
 
@@ -496,6 +494,14 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private getCategoryForType(type: GameModeType): string {
     switch (type) {
+      case 'QUIZ':
+      case 'TRUE_FALSE':
+      case 'CHRONO':
+      case 'ONE_VS_ONE':
+      case 'SCREAM_RACE':
+        return 'CULTURA GENERALE';
+      case 'MUSIC':
+        return 'MUSICA';
       case 'IMAGE_BLUR':
         return 'CELEBRITÀ';
       case 'WHEEL_OF_FORTUNE':
@@ -506,6 +512,7 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'ARENA';
       default:
         const categories = this.allCategories();
+        if (categories.length === 0) return 'CULTURA GENERALE';
         const randomIndex = Math.floor(Math.random() * categories.length);
         return categories[randomIndex].name;
     }

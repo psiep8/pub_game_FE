@@ -60,7 +60,7 @@ wait_for_url() {
             local url
             url=$(grep -oP 'https://[a-zA-Z0-9\-]+\.trycloudflare\.com' "$log_file" | head -1)
             if [ -n "$url" ]; then
-                echo "  $name tunnel: $url"
+                echo "  $name tunnel: $url" >&2
                 echo "$url"
                 return 0
             fi
