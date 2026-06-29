@@ -66,6 +66,19 @@
                   "with": "src/app/environment/environment.tunnel.ts"
                 }
               ]
+            },
+            "pwa": {
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractLicenses": true,
+              "serviceWorker": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/app/environment/environment.ts",
+                  "with": "src/app/environment/environment.pwa.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
