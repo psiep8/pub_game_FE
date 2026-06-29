@@ -4,6 +4,7 @@ import { WebSocketService } from '../../services/web-socket.service';
 import { FormsModule } from '@angular/forms';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { filter } from 'rxjs/operators';
+import { GameService } from '../../services/game.service';
 
 @Component({
   selector: 'app-remote-component',
@@ -15,6 +16,7 @@ import { filter } from 'rxjs/operators';
 export class RemoteComponent implements OnInit, OnDestroy {
 
   public ws = inject(WebSocketService);
+  private gameService = inject(GameService);
   private swUpdate = inject(SwUpdate);
   private updateCheckInterval?: any;
   private versionUpdatesSub?: any;
@@ -24,7 +26,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR'>('WAITING');
-  questionType = signal<'ROULETTE' | 'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE' | 'SCREAM_RACE'>('QUIZ');
+  questionType = signal<'ROULETTE' | 'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE' | 'SCREAM_RACE' | 'ARENA'>('QUIZ');
   hasAnswered = signal(false);
   isBlocked = signal(false);
   selectedYear = signal<number>(2000);
@@ -37,9 +39,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
   playerName = signal<string>(localStorage.getItem('playerName') || '');
   gameId = signal<number>(1);
 
+  // ARENA STATE
+  arenaQuestion = signal<{ text: string, options?: string[], isTrueFalse: boolean, correctIndex: number } | null>(null);
+  isFetchingQuestion = signal(false);
+  categories = signal<any[]>([]);
+
   currentRoundType: string = '';
 
   showInstallBanner = signal(false);
+  showIosInstallBanner = signal(false);
   showUpdateBanner = signal(false);
   private deferredPrompt: any;
 
@@ -77,6 +85,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // 🔥 [ROLLBACK] ID fisso 1 per stabilità
     this.gameId.set(1);
     console.log('🎮 [ROLLBACK] Remote ID forzato a 1');
+
+    this.gameService.getCategories().subscribe({
+      next: (cats) => {
+        this.categories.set(cats.filter(c => c.active));
+      }
+    });
 
     // Se il giocatore è già loggato, notifico la TV
     if (this.nickname()) {
@@ -165,6 +179,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   private setupPWA() {
+    // Detect Standard PWA (Android/Chrome)
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       this.deferredPrompt = e;
@@ -174,9 +189,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
       }
     });
 
-    window.addEventListener('appinstalled', () => {
+    // Detect iOS (Manual instructions needed)
+    if (this.isIos() && !this.isAppInstalled()) {
+      this.showIosInstallBanner.set(true);
+    }
 
+    window.addEventListener('appinstalled', () => {
       this.showInstallBanner.set(false);
+      this.showIosInstallBanner.set(false);
       this.deferredPrompt = null;
     });
   }
@@ -221,6 +241,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   dismissInstallBanner() {
     this.showInstallBanner.set(false);
+  }
+
+  dismissIosInstallBanner() {
+    this.showIosInstallBanner.set(false);
+  }
+
+  private isIos(): boolean {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
   }
 
   updateApp() {
@@ -454,7 +482,63 @@ export class RemoteComponent implements OnInit, OnDestroy {
       } catch (e) {
         console.error('❌ Errore payload CHRONO:', e);
       }
+    } else if (type === 'ARENA') {
+      this.generateNextArenaQuestion();
     }
+  }
+
+  generateNextArenaQuestion() {
+    this.isFetchingQuestion.set(true);
+    this.arenaQuestion.set(null); // Show loading state if template supports it
+
+    const cats = this.categories();
+    let selectedCategory = "Scienza"; // fallback
+    if (cats && cats.length > 0) {
+      const idx = Math.floor(Math.random() * cats.length);
+      selectedCategory = cats[idx].name;
+    }
+
+    this.gameService.getArenaQuestion(this.gameId(), selectedCategory).subscribe({
+      next: (q: any) => {
+        this.arenaQuestion.set({
+          text: q.question,
+          options: q.options,
+          isTrueFalse: q.options && q.options.length === 2 && (q.options.includes('VERO') || q.options.includes('FALSO')),
+          correctIndex: q.options ? q.options.indexOf(q.correctAnswer) : -1
+        });
+        this.isFetchingQuestion.set(false);
+      },
+      error: (err: any) => {
+        console.error('❌ Fallito recupero domanda arena:', err);
+        // Fallback locale in caso di errore di rete
+        this.arenaQuestion.set({
+          text: "Domanda di riserva: 5 + 5?",
+          options: ["8", "10", "12", "15"],
+          isTrueFalse: false,
+          correctIndex: 1
+        });
+        this.isFetchingQuestion.set(false);
+      }
+    });
+  }
+
+  sendArenaAnswer(index: number) {
+    const q = this.arenaQuestion();
+    if (!q) return;
+
+    const isCorrect = index === q.correctIndex;
+
+    this.ws.broadcastStatus(this.gameId(), {
+      action: 'ARENA_ANSWER',
+      playerName: this.nickname(),
+      isCorrect: isCorrect
+    });
+
+    this.vibrate(isCorrect ? 50 : [50, 50, 50]);
+
+    // Slight dealy to show correct/wrong feedback maybe? 
+    // Just immediately next question for rapid fire!
+    this.generateNextArenaQuestion();
   }
 
   onYearChange(event: any) {

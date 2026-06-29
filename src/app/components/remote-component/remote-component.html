@@ -21,6 +21,21 @@
 </div>
 }
 
+@if (showIosInstallBanner()) {
+<div class="pwa-banner ios-banner">
+  <div class="banner-content">
+    <span class="banner-icon">🍏</span>
+    <div class="banner-text">
+      <strong>Installa su iPhone</strong>
+      <p>Tocca <span class="ios-icon">⎋</span> poi <b>"Aggiungi a Home"</b></p>
+    </div>
+    <div class="banner-actions">
+      <button (click)="dismissIosInstallBanner()" class="banner-btn dismiss">×</button>
+    </div>
+  </div>
+</div>
+}
+
 
 @if (showUpdateBanner()) {
 <div class="pwa-banner update-banner">
@@ -108,9 +123,7 @@
           <span>💡 Consenti l'accesso al mic</span>
         </div>
       </div>
-      }
-
-      @else if (microphoneError()) {
+      } @else if (microphoneError()) {
       <div class="glass-card error-card">
         <div class="icon-orb error">❌</div>
         <h2>OPS! QUALCOSA NON VA</h2>
@@ -131,9 +144,7 @@
           <span class="btn-text">RIPROVA</span>
         </button>
       </div>
-      }
-
-      @else if (isListening() && gameState() === 'WAITING') {
+      } @else if (isListening() && gameState() === 'WAITING') {
       <div class="glass-card ready-card">
         <div class="icon-orb success ripple">🎤</div>
         <div class="status-badge">PRONTO</div>
@@ -156,9 +167,7 @@
           La gara inizierà a breve... 🏁
         </div>
       </div>
-      }
-
-      @else if (isListening() && gameState() === 'VOTING') {
+      } @else if (isListening() && gameState() === 'VOTING') {
       <div class="race-active-interface">
         <div class="visualizer-orb" [class.screaming]="isScreaming()"
           [style.transform]="'scale(' + (1 + currentVolume()/200) + ')'">
@@ -240,6 +249,35 @@
       </button>
     </div>
     }
+    @case ('ARENA') {
+    <div class="arena-remote-container">
+      @if (arenaQuestion()) {
+      <div class="arena-question-card">
+        <h3>{{ arenaQuestion()?.text }}</h3>
+      </div>
+      @if (arenaQuestion()?.isTrueFalse) {
+      <div class="voting-grid tf-layout arena-grid">
+        <button (click)="sendArenaAnswer(0)" class="vote-btn btn-true pulse-anim">VERO</button>
+        <button (click)="sendArenaAnswer(1)" class="vote-btn btn-false pulse-anim">FALSO</button>
+      </div>
+      } @else {
+      <div class="voting-grid arena-grid">
+        @for (opt of arenaQuestion()?.options; track opt; let i = $index) {
+        <button (click)="sendArenaAnswer(i)" class="vote-btn" [ngClass]="'btn-' + ['a','b','c','d'][i]">
+          {{ opt }}
+        </button>
+        }
+      </div>
+      }
+      } @else {
+      <div class="status-msg">
+        <div class="loader"></div>
+        <p>Preparazione battaglia...</p>
+      </div>
+      }
+    </div>
+    }
+
     }
     }
     @case ('LOCKED') {
