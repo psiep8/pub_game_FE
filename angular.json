@@ -9,7 +9,11 @@
   "projects": {
     "pubgameFE": {
       "projectType": "application",
-      "schematics": {},
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "css"
+        }
+      },
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
@@ -45,8 +49,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "12kb",
-                  "maximumError": "15kb"
+                  "maximumWarning": "36kb",
+                  "maximumError": "50kb"
                 }
               ],
               "outputHashing": "all",

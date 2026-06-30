@@ -1,8 +1,9 @@
 .scream-race-container {
     width: 100%;
-    min-height: 100vh;
+    height: 100vh;
+    box-sizing: border-box;
     background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
-    padding: 40px;
+    padding: min(1.5vh, 20px) min(2vw, 30px);
     position: relative;
     overflow: hidden;
     display: flex;
@@ -12,35 +13,38 @@
 
 .race-header {
     text-align: center;
-    margin-bottom: 60px;
+    margin-bottom: clamp(10px, 2vh, 30px);
+    flex-shrink: 0;
 }
 
 .race-title {
-    font-size: 80px;
+    font-size: clamp(1.5rem, 5vw, 3.5rem);
     font-weight: 900;
     color: #FFD700;
     text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
     margin: 0;
-    letter-spacing: 4px;
+    letter-spacing: 2px;
+    line-height: 1.2;
 }
 
 .race-instruction {
-    font-size: 32px;
+    font-size: clamp(0.7rem, 1.8vw, 1.5rem);
     color: #00f2fe;
     font-weight: 700;
-    margin-top: 10px;
+    margin-top: clamp(4px, 0.8vh, 10px);
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
 }
 
 .race-track-container {
-    width: 95%;
-    height: 480px;
+    width: min(95%, 1200px);
+    flex: 1;
+    min-height: 0;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 30px;
-    padding: 40px;
+    border-radius: clamp(12px, 2vh, 30px);
+    padding: clamp(10px, 2vh, 30px);
     position: relative;
-    border: 4px solid rgba(255, 255, 255, 0.1);
+    border: 3px solid rgba(255, 255, 255, 0.1);
     box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
 }
 
@@ -74,16 +78,16 @@
 .runner-label {
     background: rgba(0, 0, 0, 0.7);
     color: white;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 18px;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: clamp(0.6rem, 1.3vw, 1rem);
     font-weight: 700;
     white-space: nowrap;
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .runner-emoji {
-    font-size: 70px;
+    font-size: clamp(1.8rem, 5vw, 4rem);
     filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.5));
     transition: transform 0.2s;
 }
@@ -171,41 +175,43 @@
 }
 
 .legend-container {
-    margin-top: 50px;
+    margin-top: clamp(10px, 2vh, 30px);
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: clamp(8px, 1.5vh, 16px);
     justify-content: center;
     width: 100%;
     max-width: 1200px;
+    flex-shrink: 0;
 }
 
 .legend-item {
     background: rgba(255, 255, 255, 0.1);
-    padding: 15px 25px;
-    border-radius: 20px;
+    padding: clamp(6px, 1vh, 12px) clamp(12px, 2vw, 20px);
+    border-radius: 12px;
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: clamp(8px, 1.5vw, 12px);
     backdrop-filter: blur(10px);
     border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .legend-emoji {
-    font-size: 40px;
+    font-size: clamp(1.2rem, 3vw, 2.2rem);
 }
 
 .legend-name {
-    font-size: 24px;
+    font-size: clamp(0.8rem, 2vw, 1.4rem);
     font-weight: 800;
     color: white;
 }
 
 .legend-progress {
-    font-size: 24px;
+    font-size: clamp(0.8rem, 2vw, 1.4rem);
     font-weight: 900;
     color: #FFD700;
-    width: 70px;
+    width: auto;
+    min-width: 40px;
 }
 
 .race-ended {
@@ -221,51 +227,52 @@
 }
 
 .race-ended h2 {
-    font-size: 96px;
+    font-size: clamp(1.8rem, 7vw, 5rem);
     color: #FFD700;
-    margin-bottom: 60px;
+    margin-bottom: clamp(20px, 4vh, 60px);
     text-shadow: 0 0 50px rgba(255, 215, 0, 0.6);
 }
 
 .podium {
     display: flex;
-    gap: 40px;
+    gap: clamp(10px, 3vw, 40px);
     align-items: flex-end;
+    max-width: 90vw;
 }
 
 .podium-place {
     text-align: center;
-    padding: 40px;
-    border-radius: 30px;
-    min-width: 280px;
+    padding: clamp(15px, 3vw, 40px);
+    border-radius: 20px;
+    min-width: clamp(100px, 25vw, 280px);
 }
 
 .podium-place.place-1 {
     order: 2;
-    height: 450px;
+    height: clamp(180px, 40vh, 450px);
     background: linear-gradient(135deg, #FFD700, #FFA500);
     transform: scale(1.1);
 }
 
 .podium-place.place-2 {
     order: 1;
-    height: 350px;
+    height: clamp(140px, 30vh, 350px);
     background: linear-gradient(135deg, #C0C0C0, #E8E8E8);
 }
 
 .podium-place.place-3 {
     order: 3;
-    height: 280px;
+    height: clamp(100px, 25vh, 280px);
     background: linear-gradient(135deg, #CD7F32, #E8A76F);
 }
 
 .podium-emoji {
-    font-size: 150px;
-    margin-bottom: 20px;
+    font-size: clamp(2rem, 12vw, 8rem);
+    margin-bottom: clamp(8px, 2vh, 20px);
 }
 
 .podium-name {
-    font-size: 48px;
+    font-size: clamp(1rem, 4vw, 2.8rem);
     font-weight: 900;
     color: #000;
 }

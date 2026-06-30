@@ -1,5 +1,5 @@
 
-
+/*
 import {GameModeBase} from '../interfaces/game-mode-base.class';
 import {GameModeResult, GameModeType} from '../interfaces/game-mode-type';
 
@@ -146,3 +146,4 @@ export class OneVsOneMode extends GameModeBase {
     };
   }
 }
+*/

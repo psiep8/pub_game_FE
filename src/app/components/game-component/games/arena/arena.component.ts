@@ -8,7 +8,7 @@ import { ArenaDisplayData, ArenaTeamProgress } from '../../mode/arena.mode';
     standalone: true,
     imports: [CommonModule],
     templateUrl: './arena.component.html',
-    styleUrl: './arena.component.scss',
+    styleUrl: './arena.component.css',
     animations: [
         trigger('eliminateAnimation', [
             transition(':enter', [

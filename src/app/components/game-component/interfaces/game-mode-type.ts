@@ -10,7 +10,7 @@ export type GameModeType =
   | 'IMAGE_BLUR'
   | 'ROULETTE'
   | 'MUSIC'
-  | 'ONE_VS_ONE'
+  // | 'ONE_VS_ONE'
   | 'SCREAM_RACE'
   | 'WHEEL_OF_FORTUNE'
   | 'ARENA';
