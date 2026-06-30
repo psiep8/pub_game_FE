@@ -4,10 +4,10 @@
   box-sizing: border-box; 
   width: 100%;
   max-width: 100%;
-  padding: 20px;
+  padding: clamp(10px, 2vh, 20px);
   text-align: center;
   color: #e9ecef;
-  overflow-x: hidden; 
+  overflow: hidden;
 }
 
 
@@ -27,10 +27,9 @@
 
 .quiz-options-grid {
   display: grid;
-  
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 18px;
-  margin: 30px 0;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: clamp(10px, 2vh, 18px);
+  margin: clamp(12px, 2vh, 30px) 0;
   justify-items: stretch;
 }
 
@@ -38,7 +37,7 @@
 
 .quiz-option-btn {
   position: relative;
-  padding: 22px 26px;
+  padding: clamp(12px, 2vh, 22px) clamp(14px, 2vw, 26px);
   background: linear-gradient(
     135deg,
     rgba(22, 33, 62, 0.95),
@@ -88,8 +87,8 @@
 
 
 .option-letter {
-  min-width: 42px;
-  height: 42px;
+  min-width: clamp(32px, 5vmin, 42px);
+  height: clamp(32px, 5vmin, 42px);
   border-radius: 50%;
   background: linear-gradient(135deg, #ffd700, #ffed4e);
   color: #1a1a2e;
@@ -171,7 +170,7 @@
 }
 
 .quiz-reveal .reveal-value {
-  font-size: 2rem;
+  font-size: clamp(1.2rem, 4vw, 2rem);
   font-weight: 900;
   color: white;
   text-shadow: 0 0 15px rgba(46, 213, 115, 0.8);
@@ -206,11 +205,10 @@
 }
 
 
-@media (max-width: 880px) {
+@media (max-width: 600px) {
   .quiz-options-grid {
     grid-template-columns: 1fr;
    }
-  .quiz-option-btn { padding: 16px 14px; font-size: 1rem; }
-  .option-letter { min-width: 36px; height: 36px; font-size: 0.95rem; }
-  .quiz-question { margin-bottom: 20px; }
+  .quiz-option-btn { padding: 12px 12px; font-size: 0.95rem; }
+  .quiz-question { margin-bottom: 16px; }
  }

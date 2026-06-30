@@ -38,7 +38,7 @@ export class RoundManagerService {
     'CHRONO': 10,
     'ROULETTE': 10,
     'SCREAM_RACE': 10,
-    'ONE_VS_ONE': 2,
+    // 'ONE_VS_ONE': 2,
     'ARENA': 14
   };
 

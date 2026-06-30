@@ -11,7 +11,7 @@ import { GameService } from '../../services/game.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './remote-component.html',
-  styleUrl: './remote-component.scss',
+  styleUrl: './remote-component.css',
 })
 export class RemoteComponent implements OnInit, OnDestroy {
 

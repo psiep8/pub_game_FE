@@ -2,26 +2,27 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  min-height: 30vh;
+  gap: clamp(6px, 1.5vh, 12px);
+  padding: clamp(8px, 1.5vh, 14px);
 }
 
 .chrono-question {
-  font-size: 1.6rem;
+  font-size: clamp(1rem, 3vw, 1.6rem);
   font-weight: 700;
   color: rgba(255, 255, 255, 0.95);
   text-align: center;
   margin: 0;
+  flex-shrink: 0;
 }
 
 .chrono-hint {
-  font-size: 1rem;
+  font-size: clamp(0.8rem, 2vw, 1rem);
   color: rgba(255, 215, 0, 0.9);
   background: rgba(255, 215, 0, 0.06);
-  padding: 8px 12px;
+  padding: 6px 12px;
   border-radius: 14px;
   border: 1px solid rgba(255, 215, 0, 0.12);
+  flex-shrink: 0;
 }
 
 .chrono-waiting-box {
@@ -49,7 +50,8 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: calc(40vh - 20px);
+  flex: 1;
+  min-height: 0;
 }
 
 
@@ -59,28 +61,28 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: clamp(8px, 2vh, 20px);
   background: linear-gradient(135deg, #11998e, #38ef7d);
-  padding: 50px 100px;
-  border-radius: 30px;
+  padding: clamp(20px, 5vh, 50px) clamp(30px, 8vw, 100px);
+  border-radius: clamp(15px, 3vw, 30px);
   box-shadow: 0 15px 50px rgba(56, 239, 125, 0.4),
   inset 0 -5px 20px rgba(0, 0, 0, 0.2);
 
   &.chrono-reveal {
     .reveal-icon {
-      font-size: 5rem;
+      font-size: clamp(2rem, 8vw, 5rem);
     }
 
     .reveal-label {
-      font-size: 2rem;
+      font-size: clamp(0.9rem, 3vw, 1.8rem);
       font-weight: 700;
       color: rgba(255, 255, 255, 0.9);
       text-transform: uppercase;
-      letter-spacing: 3px;
+      letter-spacing: 2px;
     }
 
     .reveal-value-big {
-      font-size: 6rem;
+      font-size: clamp(2rem, 8vw, 5rem);
       font-weight: 900;
       color: white;
       text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),

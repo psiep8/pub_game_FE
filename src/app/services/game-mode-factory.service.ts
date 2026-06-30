@@ -6,10 +6,10 @@ import { QuizMode } from '../components/game-component/mode/quiz.mode';
 import { WheelOfFortuneMode } from '../components/game-component/mode/wheel-fortune.mode';
 import { ChronoMode } from '../components/game-component/mode/chrono.mode';
 import { TrueFalseMode } from '../components/game-component/mode/true_false.mode';
-import { GameModeConfig, IGameMode } from '../components/game-component/interfaces/game-mode-type';
+import { GameModeConfig, GameModeType, IGameMode } from '../components/game-component/interfaces/game-mode-type';
 import { RouletteMode } from '../components/game-component/mode/roulette.mode';
 import { MusicMode } from '../components/game-component/mode/music.mode';
-import { OneVsOneMode } from '../components/game-component/mode/one_vs_one.mode';
+// import { OneVsOneMode } from '../components/game-component/mode/one_vs_one.mode';
 import { ScreamRaceMode } from '../components/game-component/mode/scream-race.mode';
 import { ArenaMode } from '../components/game-component/mode/arena.mode';
 
@@ -27,7 +27,7 @@ export class GameModeService {
    * Crea una nuova modalità di gioco
    */
   createMode(config: {
-    type: "QUIZ" | "TRUE_FALSE" | "CHRONO" | "IMAGE_BLUR" | "ROULETTE" | "MUSIC" | "ONE_VS_ONE" | "WHEEL_OF_FORTUNE" | "SCREAM_RACE" | "ARENA";
+    type: GameModeType;
     payload: any;
     gameId: number;
     onTimerTick: (seconds: any) => void;
@@ -70,15 +70,18 @@ export class GameModeService {
       case 'MUSIC':
         mode = new MusicMode();
         break;
-      case 'ONE_VS_ONE':
-        mode = new OneVsOneMode();
-        break;
+      // case 'ONE_VS_ONE':
+      //   mode = new OneVsOneMode();
+      //   break;
       case 'SCREAM_RACE':
         mode = new ScreamRaceMode();
         break;
       case 'ARENA':
         mode = new ArenaMode();
         break;
+      // case 'ONE_VS_ONE':
+      //   mode = new OneVsOneMode();
+      //   break;
       default:
         throw new Error(`Unknown game mode: ${config.type}`);
     }

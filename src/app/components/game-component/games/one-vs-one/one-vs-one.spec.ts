@@ -1,3 +1,4 @@
+/*
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { OneVsOne } from './one-vs-one';
@@ -21,3 +22,4 @@ describe('OneVsOne', () => {
     expect(component).toBeTruthy();
   });
 });
+*/
