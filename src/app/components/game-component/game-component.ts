@@ -310,6 +310,8 @@ export class GameComponent implements OnInit, OnDestroy {
         this.confirmCorrect();
       } else if (status.action === 'ADMIN_CONFIRM_WRONG') {
         this.confirmWrong();
+      } else if (status.action === 'ADMIN_REJOIN') {
+        this.rebroadcastCurrentState();
       }
     });
 
@@ -439,16 +441,19 @@ export class GameComponent implements OnInit, OnDestroy {
       });
 
       this.currentMode.set(mode);
+      this.cdr.detectChanges();
 
       if (mode.requiresBubbles && categories.length > 0) {
         const randomIndex = Math.floor(Math.random() * categories.length);
         this.animatedCategoryId.set(categories[randomIndex].id);
 
         this.phase.set('SPINNING');
+        this.cdr.detectChanges();
         await new Promise(r => setTimeout(r, 5000));
 
         this.phase.set('SELECTED');
         this.animatedCategoryId.set(this.selectedCategoryId());
+        this.cdr.detectChanges();
         await new Promise(r => setTimeout(r, 5000));
       }
 
@@ -579,6 +584,45 @@ export class GameComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.checkLeaderboardDisplay();
     }, 2000);
+  }
+
+  /**
+   * 🔄 Ribuyscast stato corrente a admin/player che si sono riconnessi
+   */
+  private rebroadcastCurrentState() {
+    const mode = this.currentMode();
+    if (!mode) {
+      console.log('🔄 Nessun mode attivo da rebroadcastare');
+      return;
+    }
+
+    console.log('🔄 Ribuyscast stato corrente per riconnessione...');
+
+    const safeData = this.getSafeDisplayData();
+    const payloadString = JSON.stringify(safeData);
+
+    const currentRound = this.round();
+    const rawPayloadString = currentRound
+      ? (typeof currentRound.payload === 'string' ? currentRound.payload : JSON.stringify(currentRound.payload))
+      : payloadString;
+
+    this.ws.broadcastStatus(this.currentGameId()!, {
+      action: 'SHOW_QUESTION',
+      type: mode.type,
+      payload: payloadString,
+      rawPayload: rawPayloadString
+    });
+
+    if (mode.requiresBuzz || mode.type === 'ROULETTE') {
+      setTimeout(() => {
+        this.ws.broadcastStatus(this.currentGameId()!, {
+          action: 'START_VOTING',
+          type: mode.type,
+          payload: payloadString,
+          rawPayload: rawPayloadString
+        });
+      }, 500);
+    }
   }
 
   /**

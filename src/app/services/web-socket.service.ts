@@ -11,14 +11,13 @@ export class WebSocketService {
 
   responses = signal<any[]>([]);
   connected = signal(false);
+  private wasConnected = false;
 
 
   status$ = new Subject<any>();
   responses$ = new Subject<any>();
+  reconnected$ = new Subject<void>();
 
-  /**
-   * 📡 Si sottoscrive ai topic di un gioco specifico
-   */
   subscribeToGame(gameId: number) {
     console.log('📡 [REVERT] Sottoscrizione dinamica ignorata, uso ID 1');
   }
@@ -26,15 +25,18 @@ export class WebSocketService {
   constructor() {
     this.client = new Client({
       webSocketFactory: () => new SockJS(environment.wsUrl),
-      reconnectDelay: 5000,
+      reconnectDelay: 3000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
       onConnect: () => {
+        const isReconnect = this.wasConnected;
         this.connected.set(true);
-        console.log('✅ WebSocket Connesso (ID Fisso: 1)');
+        this.wasConnected = true;
+        console.log(isReconnect ? '🔄 WebSocket Riconnesso!' : '✅ WebSocket Connesso (ID Fisso: 1)');
 
-        // 📡 Ripristino sottoscrizioni FISSE (Pre-Scream Mode)
-        // 📡 Sottoscrizione a TUTTI i canali possibili (ID 1)
+        if (isReconnect) {
+          this.reconnected$.next();
+        }
 
         this.client.subscribe('/topic/game/1/responses', (msg) => {
           console.log('%c 📥 WS RESPONSES: ', 'background: #0277bd; color: #fff', msg.body);

@@ -6,6 +6,8 @@ import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { filter } from 'rxjs/operators';
 import { GameService } from '../../services/game.service';
 
+const REMOTE_STATE_KEY = 'remote_player_state';
+
 @Component({
   selector: 'app-remote-component',
   standalone: true,
@@ -20,6 +22,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private swUpdate = inject(SwUpdate);
   private updateCheckInterval?: any;
   private versionUpdatesSub?: any;
+  private reconnectedSub?: any;
+  private wakeLock: WakeLockSentinel | null = null;
+  private visibilityHandler?: () => void;
 
   nickname = signal<string | null>(localStorage.getItem('nickname'));
   tempNickname = '';
@@ -81,10 +86,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.setupPWA();
     this.checkForUpdates();
     this.lockOrientation();
+    this.setupWakeLock();
+    this.setupVisibilityHandler();
 
-    // 🔥 [ROLLBACK] ID fisso 1 per stabilità
     this.gameId.set(1);
-    console.log('🎮 [ROLLBACK] Remote ID forzato a 1');
+    console.log('🎮 Remote ID forzato a 1');
 
     this.gameService.getCategories().subscribe({
       next: (cats) => {
@@ -92,14 +98,19 @@ export class RemoteComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Se il giocatore è già loggato, notifico la TV
+    this.restoreState();
+
     if (this.nickname()) {
-      setTimeout(() => {
-        if (this.ws.connected()) {
-          this.ws.broadcastStatus(1, { action: 'JOIN_GAME', playerName: this.nickname() });
-        }
-      }, 2000);
+      this.joinGameWithDelay(2000);
     }
+
+    this.reconnectedSub = this.ws.reconnected$.subscribe(() => {
+      if (this.nickname()) {
+        console.log('🔄 Riconnessione rilevata, ri-join del giocatore...');
+        this.restoreState();
+        this.joinGameWithDelay(500);
+      }
+    });
 
     this.ws.status$.subscribe((status: any) => {
       if (!status) return;
@@ -118,14 +129,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
               this.yearStep.set(payload.step ?? 1);
               const center = Math.floor((this.minYear() + this.maxYear()) / 2);
               this.selectedYear.set(center);
-
             } catch (e) {
               console.error('❌ Errore parsing CHRONO payload:', e);
             }
           }
 
           if (status.type === 'ROULETTE') {
-
             this.gameState.set('VOTING');
             this.hasAnswered.set(false);
             this.startTime = Date.now();
@@ -134,17 +143,18 @@ export class RemoteComponent implements OnInit, OnDestroy {
           }
           if (status.type === 'SCREAM_RACE') {
             console.log('🎤 SCREAM_RACE rilevato - Attivo microfono...');
-            this.gameState.set('WAITING'); // Mostra UI attivazione
-
+            this.gameState.set('WAITING');
             setTimeout(() => {
               this.startMicrophoneListening();
-            }, 500); // Piccolo delay per evitare race condition
+            }, 500);
           }
+          this.saveState();
           break;
 
         case 'START_VOTING':
           this.isBlocked.set(false);
           this.onStartVoting(status.type, status.payload);
+          this.saveState();
           break;
 
         case 'ROUND_ENDED':
@@ -152,6 +162,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.gameState.set('WAITING');
           this.hasAnswered.set(false);
           this.isBlocked.set(false);
+          this.saveState();
           break;
 
         case 'BLOCKED_ERROR':
@@ -159,16 +170,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
             this.isBlocked.set(true);
             this.gameState.set('BLOCKED_ERROR');
           } else {
-
             if (!this.isBlocked()) {
               this.gameState.set('VOTING');
             }
           }
+          this.saveState();
           break;
 
         case 'PLAYER_PRENOTATO':
           if (status.name !== this.nickname()) {
-
             if (!this.isBlocked()) {
               this.gameState.set('WAITING_FOR_OTHER');
             }
@@ -574,6 +584,103 @@ export class RemoteComponent implements OnInit, OnDestroy {
     }
   }
 
+  private joinGameWithDelay(delayMs: number) {
+    setTimeout(() => {
+      if (this.ws.connected()) {
+        this.ws.broadcastStatus(1, { action: 'JOIN_GAME', playerName: this.nickname() });
+        console.log('🤝 JOIN_GAME inviato');
+      } else {
+        console.warn('⚠️ WS non connesso, riprovo...');
+        setTimeout(() => {
+          if (this.ws.connected()) {
+            this.ws.broadcastStatus(1, { action: 'JOIN_GAME', playerName: this.nickname() });
+          }
+        }, 3000);
+      }
+    }, delayMs);
+  }
+
+  private saveState() {
+    try {
+      const state = {
+        gameState: this.gameState(),
+        questionType: this.questionType(),
+        hasAnswered: this.hasAnswered(),
+        isBlocked: this.isBlocked(),
+        selectedYear: this.selectedYear(),
+        minYear: this.minYear(),
+        maxYear: this.maxYear(),
+        yearStep: this.yearStep(),
+        timestamp: Date.now()
+      };
+      localStorage.setItem(REMOTE_STATE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.warn('⚠️ Errore salvataggio stato player:', e);
+    }
+  }
+
+  private restoreState() {
+    try {
+      const raw = localStorage.getItem(REMOTE_STATE_KEY);
+      if (!raw) return;
+      const state = JSON.parse(raw);
+      if (Date.now() - state.timestamp > 120000) {
+        localStorage.removeItem(REMOTE_STATE_KEY);
+        return;
+      }
+      this.questionType.set(state.questionType || 'QUIZ');
+      this.selectedYear.set(state.selectedYear || 2000);
+      this.minYear.set(state.minYear || 1000);
+      this.maxYear.set(state.maxYear || 2026);
+      this.yearStep.set(state.yearStep || 1);
+      console.log('♻️ Stato player ripristinato da localStorage');
+    } catch (e) {
+      console.warn('⚠️ Errore ripristino stato player:', e);
+    }
+  }
+
+  private setupVisibilityHandler() {
+    this.visibilityHandler = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('👁️ App tornata visibile, controllo connessione...');
+        if (!this.ws.connected()) {
+          console.log('🔄 WS non connesso, riconnessione...');
+          this.ws.connect();
+        }
+        if (this.nickname() && this.ws.connected()) {
+          this.joinGameWithDelay(1000);
+        }
+        this.requestWakeLock();
+      } else {
+        this.saveState();
+      }
+    };
+    document.addEventListener('visibilitychange', this.visibilityHandler);
+  }
+
+  private async setupWakeLock() {
+    if (!('wakeLock' in navigator)) {
+      console.log('⚠️ Wake Lock API non supportata');
+      return;
+    }
+    await this.requestWakeLock();
+  }
+
+  private async requestWakeLock() {
+    try {
+      if (document.visibilityState !== 'visible') return;
+      if (this.wakeLock) return;
+      this.wakeLock = await navigator.wakeLock.request('screen');
+      console.log('🔋 Wake Lock attivato');
+      this.wakeLock.addEventListener('release', () => {
+        this.wakeLock = null;
+        console.log('🔋 Wake Lock rilasciato');
+      });
+    } catch (e) {
+      console.warn('⚠️ Wake Lock non attivabile:', e);
+    }
+  }
+
   private vibrate(pattern: number | number[]) {
     if ('vibrate' in navigator) {
       navigator.vibrate(pattern);
@@ -583,12 +690,24 @@ export class RemoteComponent implements OnInit, OnDestroy {
   logout() {
     this.ws.disconnect();
     localStorage.removeItem('nickname');
+    localStorage.removeItem(REMOTE_STATE_KEY);
     location.reload();
   }
 
   ngOnDestroy() {
+    this.saveState();
     this.ws.disconnect();
     this.stopMicrophoneListening();
+    if (this.visibilityHandler) {
+      document.removeEventListener('visibilitychange', this.visibilityHandler);
+    }
+    if (this.wakeLock) {
+      this.wakeLock.release().catch(() => {});
+      this.wakeLock = null;
+    }
+    if (this.reconnectedSub) {
+      this.reconnectedSub.unsubscribe();
+    }
     if (this.updateCheckInterval) {
       clearInterval(this.updateCheckInterval);
       this.updateCheckInterval = undefined;
