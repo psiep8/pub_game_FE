@@ -5,6 +5,10 @@
   z-index: 50;
 }
 
+/* ============================================================
+   BASE / STAGE
+   ============================================================ */
+
 .roulette-container {
   width: 100vw;
   height: 100vh;
@@ -13,8 +17,20 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1e 100%);
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(255, 215, 0, 0.06) 0%, transparent 55%),
+    radial-gradient(circle at center, #1b1c34 0%, #0c0c18 65%, #060609 100%);
   overflow: hidden;
+}
+
+/* soft vignette so the wheel always reads as the visual focus */
+.roulette-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.55) 100%);
 }
 
 .instructions {
@@ -38,6 +54,7 @@
     color: #fff;
     font-weight: 600;
     margin: 0.3rem 0;
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -48,59 +65,161 @@
   transform-style: preserve-3d;
   margin: 0 auto;
   flex-shrink: 0;
+  z-index: 2;
 }
 
+/* slow ambient halo behind the whole wheel, always on — reads as
+   studio/table lighting rather than a "spin" cue, so it never looks
+   wrong whether the wheel is idle, spinning or stopped */
+.roulette-stage::before {
+  content: '';
+  position: absolute;
+  inset: -12%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 215, 0, 0.12),
+    rgba(255, 215, 0, 0.02) 25%,
+    rgba(255, 215, 0, 0.12) 50%,
+    rgba(255, 215, 0, 0.02) 75%,
+    rgba(255, 215, 0, 0.12) 100%
+  );
+  filter: blur(18px);
+  animation: rotateSlow 22s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ============================================================
+   POINTER / CLAPPER
+   The single biggest source of "cheap" vs "real" feeling roulette
+   graphics is the striker. It's rebuilt here as a weighted metal
+   flapper on a hinge, instead of a flat glyph, using only CSS
+   (the markup/glyph is visually collapsed, the shape is drawn with
+   pseudo-elements so no HTML change is needed).
+   ============================================================ */
 
 .pointer-container {
   position: absolute;
-  top: -45px;
+  top: -38px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
   pointer-events: none;
+  width: 46px;
+  height: 90px;
 }
 
 .pointer {
-  font-size: clamp(3rem, 7vmin, 5.5rem);
-  color: #ffd700;
-  text-shadow:
-    0 0 20px rgba(255, 215, 0, 0.9),
-    0 0 40px rgba(255, 215, 0, 0.6),
-    0 4px 12px rgba(0, 0, 0, 0.8);
-  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.7));
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* collapse the ▼ glyph completely — shape is drawn below */
+  font-size: 0;
+  color: transparent;
+  transform-origin: 50% 14%;
 
-  
-  transform-origin: 50% 15%;
-  
-  transition: transform 0.06s cubic-bezier(0.34, 1.56, 0.64, 1),
-  color 0.25s ease,
-  text-shadow 0.25s ease,
-  filter 0.25s ease;
-
-  &.suspense {
-    color: #ff6b6b;
-    text-shadow:
-      0 0 30px rgba(255, 107, 107, 0.9),
-      0 0 60px rgba(255, 107, 107, 0.5);
-  }
+  /* the JS now recomputes this angle every ~8ms as a continuous cam
+     profile (rising as a peg approaches, kicked forward the instant
+     it clears), so the CSS only needs to smooth over that ~8ms step
+     — not perform its own big snap animation, or the two fight
+     each other and the lift looks disconnected from the peg */
+  transition:
+    transform 0.045s linear,
+    filter 0.2s ease;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.65));
 }
 
+/* the flapper blade: tapered, metallic, slightly domed via layered
+   gradients so it reads as a real physical part catching light */
+.pointer::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 14%;
+  width: 14px;
+  height: 62%;
+  transform: translateX(-50%);
+  border-radius: 3px 3px 40% 40%;
+  background:
+    linear-gradient(90deg,
+    #7a5a05 0%, #f6d354 22%, #fff6d1 45%, #f0c331 60%, #8a6408 100%);
+  box-shadow:
+    inset 0 0 3px rgba(255, 255, 255, 0.6),
+    inset 0 -6px 6px rgba(0, 0, 0, 0.35),
+    0 2px 3px rgba(0, 0, 0, 0.5);
+}
 
+/* the contact tip that actually strikes the pegs — rounded like a
+   real leaf-spring flapper tip, brighter to sell the impact point */
+.pointer::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 22%;
+  width: 20px;
+  height: 20px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff8dd 0%, #ffd54f 40%, #b8860b 100%);
+  box-shadow:
+    0 0 8px rgba(255, 215, 0, 0.55),
+    0 3px 4px rgba(0, 0, 0, 0.6),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* during the final stretch the strike carries more visible energy:
+   a warmer, heavier-looking impact and a slower, "weighted" snap so
+   each hit feels like it's really fighting the peg rather than
+   flicking past it */
+.pointer.suspense {
+  filter: drop-shadow(0 8px 14px rgba(255, 90, 60, 0.35))
+  drop-shadow(0 0 10px rgba(255, 120, 80, 0.35));
+  /* still linear/continuous like the base state — the "heavier, slower"
+     feeling now comes from the lean profile itself (a wider, more
+     gradual rise as the peg approaches) rather than from a slow CSS
+     transition fighting the per-tick updates */
+  transition:
+    transform 0.07s linear,
+    filter 0.2s ease;
+}
+
+.pointer.suspense::before {
+  background:
+    linear-gradient(90deg,
+    #7a2b05 0%, #ff8a3d 22%, #ffe3c4 45%, #ff7a2e 60%, #7a2b05 100%);
+}
+
+.pointer.suspense::after {
+  background: radial-gradient(circle at 35% 30%, #fff0e0 0%, #ff8a3d 45%, #b8460b 100%);
+  box-shadow:
+    0 0 14px rgba(255, 110, 50, 0.75),
+    0 3px 4px rgba(0, 0, 0, 0.6),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* hinge pivot: the fixed pin the flapper rocks on */
 .pointer-container::after {
   content: '';
   position: absolute;
-  top: 8px;
+  top: 4px;
   left: 50%;
   transform: translateX(-50%);
-  width: 24px;
-  height: 24px;
-  background: radial-gradient(circle, #2a2a2a 0%, #1a1a1a 100%);
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle at 35% 30%, #4a4a4a 0%, #1a1a1a 70%, #000 100%);
   border-radius: 50%;
-  border: 3px solid #b8860b;
+  border: 2px solid #8a6408;
   box-shadow:
-    0 0 12px rgba(184, 134, 11, 0.5),
-    inset 0 2px 4px rgba(0, 0, 0, 0.6);
+    0 0 10px rgba(184, 134, 11, 0.45),
+    inset 0 2px 3px rgba(255, 255, 255, 0.15),
+    inset 0 -3px 4px rgba(0, 0, 0, 0.7);
+  z-index: 2;
 }
+
+/* ============================================================
+   WHEEL
+   ============================================================ */
 
 .wheel-wrapper {
   position: relative;
@@ -111,32 +230,94 @@
 .wheel-svg {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 20px 50px #000);
-  transition: transform 18s cubic-bezier(0.05, 0.0, 0.1, 1.0);
+  filter: drop-shadow(0 20px 50px #000) drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
   will-change: transform;
+
+  /*
+   * The spin now follows a custom multi-phase "human push" curve
+   * (gentle start → second harder push → long quintic decay), which
+   * a single CSS cubic-bezier cannot represent (it only has one
+   * inflection). So rotation is driven directly every ~8ms from JS
+   * (easeHumanSpin), exactly like the pointer lean — this transition
+   * only smooths that ~8ms step, it doesn't animate the spin itself.
+   */
+  transition: transform 0.05s linear;
 }
 
 .segment-path {
-  stroke: rgba(0, 0, 0, 0.4);
-  stroke-width: 0.15;
+  stroke: rgba(0, 0, 0, 0.45);
+  stroke-width: 0.18;
   transition: filter 0.3s;
 
   &:hover {
-    filter: brightness(1.2);
+    filter: brightness(1.15);
   }
 }
 
-.dividers-group line {
+/* subtle glossy sheen across the whole face, fixed relative to the
+   viewer (not spinning with the wheel) — sells a curved glass/resin
+   surface instead of a flat printed circle */
+.wheel-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  pointer-events: none;
+  background: linear-gradient(160deg,
+  rgba(255, 255, 255, 0.18) 0%,
+  rgba(255, 255, 255, 0.05) 18%,
+  transparent 38%,
+  transparent 70%,
+  rgba(0, 0, 0, 0.18) 100%);
+  z-index: 40;
+}
+
+/* pegs: styled generically so no markup changes are required */
+.wheel-svg circle {
+  filter:
+    drop-shadow(0 1px 1px rgba(0, 0, 0, 0.65))
+    drop-shadow(0 0 2px rgba(255, 215, 0, 0.5));
+}
+
+.wheel-svg line {
   pointer-events: none;
 }
 
 .wheel-border {
   position: absolute;
-  inset: -15px;
-  border: 12px solid #b8860b;
+  inset: -16px;
   border-radius: 50%;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), inset 0 0 20px #000;
+  padding: 12px;
+  background:
+    linear-gradient(#1c1c1c, #1c1c1c) content-box,
+    linear-gradient(135deg, #ffe27a 0%, #b8860b 35%, #6b4e05 50%, #b8860b 65%, #ffe27a 100%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  box-shadow:
+    0 0 30px rgba(0, 0, 0, 0.8),
+    0 0 18px rgba(255, 215, 0, 0.25),
+    inset 0 0 20px rgba(0, 0, 0, 0.6);
   pointer-events: none;
+}
+
+/* small "bulbs" set into the rim, like a real casino wheel — pure
+   CSS via repeating box-shadow dots, no extra markup */
+.wheel-border::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background-image: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 244, 200, 0.95) 0deg 2.2deg,
+    transparent 2.2deg 15deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 5px) calc(100% - 2px), transparent calc(100% - 1px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 5px) calc(100% - 2px), transparent calc(100% - 1px));
+  opacity: 0.85;
 }
 
 .wheel-center {
@@ -146,13 +327,18 @@
   transform: translate(-50%, -50%);
   width: 20%;
   height: 20%;
-  background: radial-gradient(circle, #333, #000);
-  border: 5px solid gold;
+  background: radial-gradient(circle at 35% 30%, #4a4a4a, #222 55%, #000 100%);
+  border: 5px solid;
+  border-image: linear-gradient(135deg, #ffe27a, #b8860b, #6b4e05) 1;
   border-radius: 50%;
   z-index: 50;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.7),
+    inset 0 2px 4px rgba(255, 255, 255, 0.12),
+    inset 0 -6px 10px rgba(0, 0, 0, 0.6);
 }
 
 .center-inner {
@@ -161,6 +347,7 @@
   .center-icon {
     font-size: 2.5rem;
     animation: rotateSlow 6s linear infinite;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
   }
 
   .center-text {
@@ -178,6 +365,42 @@
   to { transform: rotate(360deg); }
 }
 
+/* ============================================================
+   SUSPENSE STATE — ambient reaction to the pointer's own
+   .suspense class, purely via :has(), no extra bindings needed
+   ============================================================ */
+
+.roulette-stage:has(.pointer.suspense) .wheel-border {
+  box-shadow:
+    0 0 30px rgba(0, 0, 0, 0.8),
+    0 0 34px rgba(255, 100, 60, 0.45),
+    inset 0 0 20px rgba(0, 0, 0, 0.6);
+  transition: box-shadow 0.4s ease;
+}
+
+.roulette-stage:has(.pointer.suspense)::before {
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 90, 60, 0.16),
+    rgba(255, 90, 60, 0.02) 25%,
+    rgba(255, 90, 60, 0.16) 50%,
+    rgba(255, 90, 60, 0.02) 75%,
+    rgba(255, 90, 60, 0.16) 100%
+  );
+  animation-duration: 5s;
+}
+
+/* when the winner overlay appears, gently recede the wheel behind
+   it instead of a hard cut — the "settle" reads as more deliberate */
+.roulette-container:has(.winner-announcement) .roulette-stage {
+  filter: blur(2px) brightness(0.45) saturate(0.7);
+  transition: filter 0.6s ease;
+}
+
+/* ============================================================
+   WINNER ANNOUNCEMENT
+   ============================================================ */
+
 .winner-announcement {
   position: absolute;
   inset: 0;
@@ -185,35 +408,23 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.82);
   z-index: 100;
-  animation: zoomIn 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  animation: zoomIn 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.winner-burst {
+/* radial light-ray burst behind the announcement, pure CSS */
+.winner-announcement::before {
+  content: '';
   position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 25%;
-
-  .burst-icon {
-    font-size: 8rem;
-    animation: burstPop 0.8s ease-out;
-    opacity: 0;
-    animation-fill-mode: forwards;
-
-    &:nth-child(1) { animation-delay: 0.1s; }
-    &:nth-child(2) { animation-delay: 0.3s; }
-    &:nth-child(3) { animation-delay: 0.5s; }
-  }
-}
-
-@keyframes burstPop {
-  0% { transform: scale(0) rotate(0deg); opacity: 0; }
-  50% { opacity: 1; }
-  100% { transform: scale(1.5) rotate(360deg); opacity: 0.8; }
+  width: 160vmax;
+  height: 160vmax;
+  background: repeating-conic-gradient(
+    rgba(255, 215, 0, 0.10) 0deg 4deg,
+    transparent 4deg 16deg
+  );
+  animation: rotateSlow 40s linear infinite;
+  z-index: -1;
 }
 
 .winner-title {
@@ -232,12 +443,13 @@
 }
 
 .winner-color {
+  position: relative;
   font-size: 5rem;
   font-weight: 900;
   color: #fff;
   padding: 2rem 4rem;
   border-radius: 30px;
-  border: 6px solid rgba(255, 255, 255, 0.3);
+  border: 6px solid rgba(255, 255, 255, 0.35);
   text-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
   animation: colorGlow 1.5s ease-in-out infinite;
   z-index: 10;
@@ -245,7 +457,7 @@
 
 @keyframes colorGlow {
   0%, 100% { transform: scale(1); filter: brightness(1); }
-  50% { transform: scale(1.08); filter: brightness(1.3); }
+  50% { transform: scale(1.06); filter: brightness(1.25); }
 }
 
 @keyframes fadeInDown {

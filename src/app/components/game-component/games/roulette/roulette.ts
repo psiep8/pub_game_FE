@@ -17,9 +17,9 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
   showWinner = signal(false);
   winningColor = signal<string | null>(null);
 
-  
-  pointerAngle = signal(0);        
-  pointerVelocity = signal(0);     
+
+  pointerAngle = signal(0);
+  pointerVelocity = signal(0);
   pointerSuspense = signal(false);
 
   colorMap: Record<string, string> = {
@@ -36,13 +36,13 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
 
   private spinTimeout: any;
   private tickInterval: any;
-  private pointerReturnTimeout: any;
+  private snapKick = 0; // decaying "just released" whip, layered on top of the continuous lean
   private hasStartedSpin = false;
   private lastShowGo = false;
   private hasFinishedSpinning = false;
   private audioCtx: AudioContext | null = null;
 
-  
+
   private spinStartTime = 0;
   private spinDuration = 18000;
   private totalRotation = 0;
@@ -82,7 +82,6 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
   private clearAllTimers() {
     if (this.spinTimeout) clearTimeout(this.spinTimeout);
     if (this.tickInterval) clearInterval(this.tickInterval);
-    if (this.pointerReturnTimeout) clearTimeout(this.pointerReturnTimeout);
   }
 
   private resetRoulette() {
@@ -94,6 +93,7 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
     this.pointerAngle.set(0);
     this.pointerVelocity.set(0);
     this.pointerSuspense.set(false);
+    this.snapKick = 0;
     this.hasStartedSpin = false;
     this.lastShowGo = false;
     this.hasFinishedSpinning = false;
@@ -122,34 +122,44 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
     const segCount = segments.length;
     const degreesPerSegment = 360 / segCount;
 
-    
+
     const winningIndices = segments
       .map((c, i) => c === winningColor ? i : -1)
       .filter(i => i !== -1);
     const targetIndex = winningIndices[Math.floor(Math.random() * winningIndices.length)];
 
-    
-    
-    
-    
-    
+
+
+
+
+
     const segmentCenterAngle = targetIndex * degreesPerSegment + degreesPerSegment / 2;
     const rotationToAlign = (360 - segmentCenterAngle) % 360;
     const extraSpins = (10 + Math.floor(Math.random() * 5)) * 360;
-    
+
     const jitter = (Math.random() - 0.5) * degreesPerSegment * 0.7;
 
     this.totalRotation = extraSpins + rotationToAlign + jitter;
-    this.spinDuration = 18000;
+    /*
+     * Longer than before to make room for a believable "human push":
+     * a gentle start, a second harder push, then the long graceful
+     * decay to a stop. See easeHumanSpin() for the phase breakdown.
+     */
+    this.spinDuration = 23000;
     this.spinStartTime = Date.now();
 
-    
-    this.wheelRotation.set(this.totalRotation);
+    /*
+     * wheelRotation is no longer set once and handed to a CSS
+     * transition — it's now driven every tick from easeHumanSpin(),
+     * exactly like pointerAngle, so the visible wheel position, the
+     * peg-strike sound/lean and the custom multi-phase motion curve
+     * can never drift out of sync with each other.
+     */
 
-    
+
     this.startPhysicsLoop(segCount, winningColor);
 
-    
+
     this.spinTimeout = setTimeout(() => {
       this.isSpinning.set(false);
       this.hasFinishedSpinning = true;
@@ -157,7 +167,7 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
 
       if (this.tickInterval) { clearInterval(this.tickInterval); this.tickInterval = null; }
 
-      
+
       this.pointerAngle.set(0);
       this.pointerVelocity.set(0);
       this.pointerSuspense.set(false);
@@ -171,86 +181,111 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
 
     const degreesPerSegment = 360 / segCount;
 
-    
-    
-    
-    let lastBoundaryCount = Math.floor(0 / degreesPerSegment);
+    let lastBoundaryCount = 0;
+    let previousRotation = 0;
+    let previousTime = this.spinStartTime;
+    let peakVelocitySoFar = 1; // seed >0 to avoid a divide-by-zero on the very first tick
 
-    
-    
-    const peakVelocityDegPerSec = (this.totalRotation / this.spinDuration) * 1000 * 5;
+
+    const decelStart = 0.32; // must match the phase-3 boundary in easeHumanSpin()
 
     this.tickInterval = setInterval(() => {
-      const elapsed = Date.now() - this.spinStartTime;
+      const now = Date.now();
+      const elapsed = now - this.spinStartTime;
       const progress = Math.min(elapsed / this.spinDuration, 1);
-      const easedProgress = this.easeOutQuint(progress);
+      const easedProgress = this.easeHumanSpin(progress);
       const currentRotation = this.totalRotation * easedProgress;
 
-      
-      const currentBoundaryCount = Math.floor(currentRotation / degreesPerSegment);
 
-      
+      this.wheelRotation.set(currentRotation);
+
+
+      const dt = Math.max(now - previousTime, 1) / 1000;
+      const velocityDegPerSec = (currentRotation - previousRotation) / dt;
+      previousRotation = currentRotation;
+      previousTime = now;
+      peakVelocitySoFar = Math.max(peakVelocitySoFar, velocityDegPerSec);
+
+
+      const decelProgress = Math.max(0, (progress - decelStart) / (1 - decelStart));
+      const inSuspense = decelProgress > 0.62;
+      this.pointerSuspense.set(inSuspense);
+
+      const currentBoundaryCount = Math.floor(currentRotation / degreesPerSegment);
       const newBoundaries = currentBoundaryCount - lastBoundaryCount;
 
       if (newBoundaries > 0) {
         lastBoundaryCount = currentBoundaryCount;
 
-        
-        const derivative = 5 * Math.pow(1 - progress, 4);
-        const velocityDegPerSec = (this.totalRotation / this.spinDuration) * 1000 * derivative;
-        const normalizedVel = Math.min(velocityDegPerSec / peakVelocityDegPerSec, 1);
+        const normalizedVel = Math.min(velocityDegPerSec / peakVelocitySoFar, 1);
 
-        const inSuspense = progress > 0.62;
-        this.pointerSuspense.set(inSuspense);
 
-        
-        
-        this.triggerPointerHit(normalizedVel, inSuspense);
-        this.playTick(velocityDegPerSec, inSuspense);
+        this.snapKick = (inSuspense ? 9 : 5) + (1 - normalizedVel) * (inSuspense ? 6 : 3);
+        this.playTick(normalizedVel, inSuspense);
       }
 
-      
-      if (newBoundaries === 0) {
-        this.pointerSuspense.set(progress > 0.62);
-      }
+
+
+
+      const segFrac = (currentRotation % degreesPerSegment) / degreesPerSegment;
+      const approach = Math.max(0, (segFrac - 0.55) / 0.45);
+      const shaped = Math.pow(approach, inSuspense ? 2.4 : 1.6);
+      const leanMax = inSuspense ? 15 : 9;
+      const leanAngle = shaped * leanMax;
+
+
+      this.snapKick *= inSuspense ? 0.88 : 0.7;
+      if (this.snapKick < 0.05) this.snapKick = 0;
+
+
+      this.pointerAngle.set(this.snapKick - leanAngle);
 
       if (progress >= 1) {
         clearInterval(this.tickInterval);
         this.tickInterval = null;
         this.pointerSuspense.set(false);
+        this.snapKick = 0;
+        this.pointerAngle.set(0);
+        this.wheelRotation.set(this.totalRotation);
       }
-    }, 8); 
+    }, 8);
   }
 
-  private triggerPointerHit(normalizedVel: number, inSuspense: boolean) {
-    
-    
-    const deflectionAngle = inSuspense
-      ? 12 + (1 - normalizedVel) * 8   
-      : 4 + normalizedVel * 18;          
+  /**
+   * Human-push motion profile instead of a single monotonic ease-out.
+   * Returns the fraction (0..1) of totalRotation completed at
+   * normalized time t (0..1):
+   *
+   *  - phase 1  [0    → 0.18]: gentle ramp-up, like a hand starting
+   *             to push the wheel — reaches only 5% of the rotation.
+   *  - phase 2  [0.18 → 0.32]: a second, harder push — a visible
+   *             jump in speed rather than a smooth continuation,
+   *             reaching 24% of the rotation.
+   *  - phase 3  [0.32 → 1.00]: long, smooth quintic decay from that
+   *             peak speed down to a full stop — this is the same
+   *             "crawl to the winning slice" shape as before, just
+   *             confined to the back 68% of a longer total duration.
+   *
+   * Tune t1/r1/t2/r2 to taste; keep decelStart in startPhysicsLoop()
+   * equal to t2 so the suspense window stays anchored to phase 3.
+   */
+  private easeHumanSpin(t: number): number {
+    const t1 = 0.18, r1 = 0.05;
+    const t2 = 0.32, r2 = 0.24;
 
-    
-    if (this.pointerReturnTimeout) clearTimeout(this.pointerReturnTimeout);
+    if (t <= t1) {
+      const u = t / t1;
+      return r1 * (u * u);
+    }
 
-    
-    
-    this.pointerAngle.set(-deflectionAngle);
+    if (t <= t2) {
+      const u = (t - t1) / (t2 - t1);
+      return r1 + (r2 - r1) * (u * u);
+    }
 
-    
-    
-    const returnMs = inSuspense
-      ? 180 + (1 - normalizedVel) * 120  
-      : 30 + normalizedVel * 50;          
-
-    this.pointerReturnTimeout = setTimeout(() => {
-      
-      const bounceAngle = deflectionAngle * (inSuspense ? 0.3 : 0.15);
-      this.pointerAngle.set(bounceAngle);
-
-      setTimeout(() => {
-        this.pointerAngle.set(0);
-      }, returnMs * 0.5);
-    }, returnMs);
+    const u = (t - t2) / (1 - t2);
+    const quintOut = 1 - Math.pow(1 - u, 5);
+    return r2 + (1 - r2) * quintOut;
   }
 
   getSlicePath(index: number, total: number): string {
@@ -267,21 +302,18 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
     return `M 50 50 L ${start.x} ${start.y} A 50 50 0 ${largeArcFlag} 1 ${end.x} ${end.y} Z`;
   }
 
-  private playTick(angularVelocityDegPerSec: number, inSuspense: boolean): void {
+  private playTick(velNorm: number, inSuspense: boolean): void {
     if (!this.audioCtx) return;
     if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
 
     const ctx = this.audioCtx;
     const now = ctx.currentTime;
 
-    
-    const maxVel = (this.totalRotation / this.spinDuration) * 1000 * 5;
-    const velNorm = Math.min(angularVelocityDegPerSec / maxVel, 1);
     const volume = inSuspense
       ? 0.15 + Math.random() * 0.08
       : 0.05 + velNorm * 0.25;
 
-    
+
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'triangle';
@@ -294,7 +326,7 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
     osc.start(now);
     osc.stop(now + (inSuspense ? 0.25 : 0.09));
 
-    
+
     const bufSize = Math.floor(ctx.sampleRate * 0.05);
     const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
     const data = buf.getChannelData(0);
@@ -309,7 +341,4 @@ export class Roulette implements OnInit, OnDestroy, OnChanges {
     noise.start(now);
   }
 
-  private easeOutQuint(t: number): number {
-    return 1 - Math.pow(1 - t, 5);
-  }
 }
