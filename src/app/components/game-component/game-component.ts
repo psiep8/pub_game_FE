@@ -181,6 +181,14 @@ export class GameComponent implements OnInit, OnDestroy {
       if (!resp) return;
 
       const mode = this.currentMode();
+
+      // 🎤 Buzz per tutti i modi che richiedono buzz (WHEEL_OF_FORTUNE, IMAGE_BLUR, MUSIC)
+      if (resp.answerIndex === -1 && resp.playerName && mode?.requiresBuzz) {
+        console.log(`%c 🎤 Buzz ricevuto da ${resp.playerName} (via responses)`, 'background: #e65100; color: #fff; font-weight: bold;');
+        this.onPlayerBuzz(resp.playerName);
+        return;
+      }
+
       if (mode?.type === 'SCREAM_RACE') {
         const intensity = resp.intensity ?? resp.progress;
         const playerName = (resp.playerName || resp.name || 'Sconosciuto').trim();
@@ -384,12 +392,22 @@ export class GameComponent implements OnInit, OnDestroy {
       const selectedCategory = categories.find(c => c.name === categoryName);
       if (selectedCategory) this.selectedCategoryId.set(selectedCategory.id);
 
+      const currentRoundNum = this.roundManager.getCurrentRound();
+      let difficulty: string;
+      if (currentRoundNum <= 7) {
+        difficulty = 'facile';
+      } else if (currentRoundNum <= 15) {
+        difficulty = 'medio';
+      } else {
+        difficulty = 'difficile';
+      }
+
       const nextRound = await firstValueFrom(
         this.aiService.triggerNewAiRound(
           this.currentGameId()!,
           categoryName,
           extractedType,
-          'medio'
+          difficulty
         )
       );
 
@@ -480,12 +498,14 @@ export class GameComponent implements OnInit, OnDestroy {
 
       await mode.start();
 
-      this.ws.broadcastStatus(this.currentGameId()!, {
-        action: 'START_VOTING',
-        type: parsedPayload.type || extractedType,
-        payload: payloadString,
-        rawPayload: rawPayloadString
-      });
+      if (!mode.isRevealed()) {
+        this.ws.broadcastStatus(this.currentGameId()!, {
+          action: 'START_VOTING',
+          type: parsedPayload.type || extractedType,
+          payload: payloadString,
+          rawPayload: rawPayloadString
+        });
+      }
 
       this.isSpinning.set(false);
 
@@ -498,29 +518,10 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   private getCategoryForType(type: GameModeType): string {
-    switch (type) {
-      case 'QUIZ':
-      case 'TRUE_FALSE':
-      case 'CHRONO':
-      // case 'ONE_VS_ONE':
-      case 'SCREAM_RACE':
-        return 'CULTURA GENERALE';
-      case 'MUSIC':
-        return 'MUSICA';
-      case 'IMAGE_BLUR':
-        return 'CELEBRITÀ';
-      case 'WHEEL_OF_FORTUNE':
-        return 'PROVERBI E MODI DI DIRE';
-      case 'ROULETTE':
-        return 'FORTUNA';
-      case 'ARENA':
-        return 'ARENA';
-      default:
-        const categories = this.allCategories();
-        if (categories.length === 0) return 'CULTURA GENERALE';
-        const randomIndex = Math.floor(Math.random() * categories.length);
-        return categories[randomIndex].name;
-    }
+    const categories = this.allCategories();
+    if (categories.length === 0) return 'CULTURA GENERALE';
+    const randomIndex = Math.floor(Math.random() * categories.length);
+    return categories[randomIndex].name;
   }
 
   /**
@@ -798,15 +799,14 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   togglePause() {
-    const mode = this.currentMode();
-    if (!mode) return;
-
     if (this.isPaused()) {
-      mode.resume();
       this.isPaused.set(false);
+      const mode = this.currentMode();
+      if (mode) mode.resume();
     } else {
-      mode.pause();
       this.isPaused.set(true);
+      const mode = this.currentMode();
+      if (mode) mode.pause();
     }
   }
 

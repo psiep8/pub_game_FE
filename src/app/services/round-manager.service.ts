@@ -30,16 +30,16 @@ export class RoundManagerService {
     // 'ROULETTE': 12,
     // 'SCREAM_RACE': 12,
     // 'ONE_VS_ONE':0
-    'QUIZ': 12,
-    'TRUE_FALSE': 12,
-    'WHEEL_OF_FORTUNE': 10,
-    'MUSIC': 10,
-    'IMAGE_BLUR': 10,
-    'CHRONO': 10,
-    'ROULETTE': 10,
-    'SCREAM_RACE': 10,
-    // 'ONE_VS_ONE': 2,
-    'ARENA': 14
+    'QUIZ': 34,
+    'TRUE_FALSE': 33,
+    'CHRONO': 33,
+    'WHEEL_OF_FORTUNE': 0,
+    'MUSIC': 0,
+    'IMAGE_BLUR': 0,
+    'ROULETTE': 0,
+    'SCREAM_RACE': 0,
+    // 'ONE_VS_ONE': 0,
+    'ARENA': 0
   };
 
   constructor() {

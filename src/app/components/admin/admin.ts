@@ -1,5 +1,5 @@
 
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { WebSocketService } from '../../services/web-socket.service';
 import { CommonModule } from '@angular/common';
 
@@ -26,6 +26,22 @@ export class Admin implements OnInit, OnDestroy {
   private wakeLock: WakeLockSentinel | null = null;
   private visibilityHandler?: () => void;
   private reconnectedSub?: any;
+  private firstJoinDone = false;
+
+  constructor() {
+    // 🔄 Al primo connect (incluso dopo reload), chiedi stato corrente alla TV
+    effect(() => {
+      const isConnected = this.ws.connected();
+      if (isConnected && !this.firstJoinDone) {
+        this.firstJoinDone = true;
+        setTimeout(() => {
+          this.restoreState();
+          this.ws.broadcastStatus(1, { action: 'ADMIN_REJOIN' });
+          console.log('🔄 Admin re-join iniziale inviato dopo caricamento');
+        }, 1000);
+      }
+    });
+  }
 
   colorMap: { [key: string]: string } = {
     'ROSSO': '#e74c3c',
