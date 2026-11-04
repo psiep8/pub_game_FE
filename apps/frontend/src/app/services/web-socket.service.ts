@@ -1,27 +1,30 @@
 import { Injectable, signal } from '@angular/core';
-import { Client } from '@stomp/stompjs';
+import { Client, StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { Subject } from 'rxjs';
 import { environment } from '../environment/environment';
 
+/** La TV crea una sola partita per sessione: il backend la espone con id 1. */
+const DEFAULT_GAME_ID = 1;
+
+/**
+ * Canale STOMP/SockJS verso il backend.
+ *
+ * Espone due flussi:
+ * - `responses$` per le azioni rapide dei telefoni (risposte e urla);
+ * - `status$` per gli eventi di gioco (domanda, voting, fine round).
+ */
 @Injectable({ providedIn: 'root' })
 export class WebSocketService {
+  readonly responses = signal<any[]>([]);
+  readonly connected = signal(false);
+
+  readonly status$ = new Subject<any>();
+  readonly responses$ = new Subject<any>();
+
   private readonly client: Client;
-
-
-  responses = signal<any[]>([]);
-  connected = signal(false);
-
-
-  status$ = new Subject<any>();
-  responses$ = new Subject<any>();
-
-  /**
-   * 📡 Si sottoscrive ai topic di un gioco specifico
-   */
-  subscribeToGame(gameId: number) {
-    console.log('📡 [REVERT] Sottoscrizione dinamica ignorata, uso ID 1');
-  }
+  private activeGameId = DEFAULT_GAME_ID;
+  private subscriptions: StompSubscription[] = [];
 
   constructor() {
     this.client = new Client({
@@ -31,95 +34,101 @@ export class WebSocketService {
       heartbeatOutgoing: 4000,
       onConnect: () => {
         this.connected.set(true);
-        console.log('✅ WebSocket Connesso (ID Fisso: 1)');
-
-        // 📡 Ripristino sottoscrizioni FISSE (Pre-Scream Mode)
-        // 📡 Sottoscrizione a TUTTI i canali possibili (ID 1)
-
-        this.client.subscribe('/topic/game/1/responses', (msg) => {
-          console.log('%c 📥 WS RESPONSES: ', 'background: #0277bd; color: #fff', msg.body);
-          try {
-            const data = JSON.parse(msg.body);
-            this.responses.update(prev => [...prev, data]);
-            this.responses$.next(data);
-          } catch (e) { }
-        });
-
-        this.client.subscribe('/topic/game/1/status', (msg) => {
-          console.log('%c 📥 WS STATUS: ', 'background: #2e7d32; color: #fff', msg.body);
-          try {
-            this.status$.next(JSON.parse(msg.body));
-          } catch (e) { }
-        });
+        this.subscribeToActiveGame();
       },
-      onDisconnect: () => {
-        this.connected.set(false);
-        console.log('❌ WebSocket Disconnesso!');
-      }
+      onDisconnect: () => this.connected.set(false),
+      onWebSocketClose: () => this.connected.set(false),
     });
+
     this.client.activate();
   }
 
+  /** Cambia la partita a cui sono sottoscritti i topic (idempotente). */
+  subscribeToGame(gameId: number): void {
+    if (this.activeGameId === gameId) return;
 
-  sendAnswer(gameId: number, playerName: string, index: number, responseTimeMs: number) {
+    this.activeGameId = gameId;
+    if (this.connected()) this.subscribeToActiveGame();
+  }
+
+  sendAnswer(gameId: number, playerName: string, index: number, responseTimeMs: number): void {
     this.client.publish({
       destination: `/app/game/${gameId}/answer`,
-      body: JSON.stringify({ playerName, answerIndex: index, responseTimeMs })
+      body: JSON.stringify({ playerName, answerIndex: index, responseTimeMs }),
     });
   }
 
-  sendScream(gameId: number, playerName: string, intensity: number) {
-    if (!this.client.active) { // ✅ Usa client.active per check connessione
-      console.warn('⚠️ WebSocket non connesso');
-      return;
-    }
+  sendScream(gameId: number, playerName: string, intensity: number): void {
+    if (!this.client.active) return;
 
-    const payload = {
-      action: 'SCREAM',
-      playerName,
-      intensity: Math.min(100, Math.max(0, intensity)),
-      timestamp: Date.now()
-    };
-
-    try {
-      // 🔥 [FIX] Uso lo stesso canale di JOIN_GAME che sappiamo funzionare!
-      this.client.publish({
-        destination: `/app/game/${gameId}/status`,
-        body: JSON.stringify(payload)
-      });
-    } catch (error) {
-      console.error('❌ Errore invio scream:', error);
-    }
-  }
-
-
-  broadcastStatus(gameId: number, payload: any) {
     this.client.publish({
       destination: `/app/game/${gameId}/status`,
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        action: 'SCREAM',
+        playerName,
+        intensity: Math.min(100, Math.max(0, intensity)),
+        timestamp: Date.now(),
+      }),
     });
   }
 
-  disconnect() {
-    this.connected.set(false); // ✅ Traccia connessione
-
-    if (this.client) {
-      this.client.deactivate();
-
-    }
+  broadcastStatus(gameId: number, payload: any): void {
+    this.client.publish({
+      destination: `/app/game/${gameId}/status`,
+      body: JSON.stringify(payload),
+    });
   }
 
-
-  connect() {
-    if (!this.client.active) {
-      this.client.activate();
-
-    }
+  connect(): void {
+    if (!this.client.active) this.client.activate();
   }
 
-  clearResponses() {
+  disconnect(): void {
+    this.unsubscribeAll();
+    this.connected.set(false);
+    this.client.deactivate();
+  }
+
+  clearResponses(): void {
     this.responses.set([]);
   }
 
+  private subscribeToActiveGame(): void {
+    this.unsubscribeAll();
 
+    const topic = `/topic/game/${this.activeGameId}`;
+
+    this.subscriptions = [
+      this.client.subscribe(`${topic}/responses`, (message) => {
+        const data = this.parse(message.body);
+        if (!data) return;
+
+        this.responses.update((prev) => [...prev, data]);
+        this.responses$.next(data);
+      }),
+      this.client.subscribe(`${topic}/status`, (message) => {
+        const data = this.parse(message.body);
+        if (data) this.status$.next(data);
+      }),
+    ];
+  }
+
+  private unsubscribeAll(): void {
+    for (const subscription of this.subscriptions) {
+      try {
+        subscription.unsubscribe();
+      } catch {
+        // La connessione potrebbe essere già chiusa: niente da fare.
+      }
+    }
+    this.subscriptions = [];
+  }
+
+  private parse(body: string): any | null {
+    try {
+      return JSON.parse(body);
+    } catch {
+      return null;
+    }
+  }
 }

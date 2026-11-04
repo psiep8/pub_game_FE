@@ -1,6 +1,4 @@
-
-
-import {Injectable, signal} from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 export interface PlayerScore {
   playerName: string;
@@ -10,47 +8,44 @@ export interface PlayerScore {
   position: number;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
-export class LeaderboardService {
+const STORAGE_KEY = 'leaderboard';
 
+@Injectable({ providedIn: 'root' })
+export class LeaderboardService {
   private players = signal<Map<string, PlayerScore>>(new Map());
 
   constructor() {
     this.loadScores();
   }
 
-  addPoints(playerName: string, points: number, isCorrect: boolean) {
-    const playersMap = new Map(this.players());
+  addPoints(playerName: string, points: number, isCorrect: boolean): void {
+    const players = new Map(this.players());
+    const existing = players.get(playerName);
 
-    const existing = playersMap.get(playerName);
+    players.set(
+      playerName,
+      existing
+        ? {
+            ...existing,
+            totalPoints: existing.totalPoints + points,
+            correctAnswers: existing.correctAnswers + (isCorrect ? 1 : 0),
+            wrongAnswers: existing.wrongAnswers + (isCorrect ? 0 : 1),
+          }
+        : {
+            playerName,
+            totalPoints: points,
+            correctAnswers: isCorrect ? 1 : 0,
+            wrongAnswers: isCorrect ? 0 : 1,
+            position: 0,
+          },
+    );
 
-    if (existing) {
-      existing.totalPoints += points;
-      existing.correctAnswers += isCorrect ? 1 : 0;
-      existing.wrongAnswers += !isCorrect ? 1 : 0;
-    } else {
-      playersMap.set(playerName, {
-        playerName,
-        totalPoints: points,
-        correctAnswers: isCorrect ? 1 : 0,
-        wrongAnswers: !isCorrect ? 1 : 0,
-        position: 0
-      });
-    }
-
-    this.players.set(playersMap);
-    this.updatePositions();
+    this.players.set(this.withPositions(players));
     this.saveScores();
-
-    
   }
 
   getLeaderboard(): PlayerScore[] {
-    const sorted = Array.from(this.players().values())
-      .sort((a, b) => b.totalPoints - a.totalPoints);
-    return sorted;
+    return Array.from(this.players().values()).sort((a, b) => b.totalPoints - a.totalPoints);
   }
 
   getTop3(): PlayerScore[] {
@@ -58,60 +53,52 @@ export class LeaderboardService {
   }
 
   getPlayerPosition(playerName: string): number {
-    const leaderboard = this.getLeaderboard();
-    return leaderboard.findIndex(p => p.playerName === playerName) + 1;
+    return this.getLeaderboard().findIndex((p) => p.playerName === playerName) + 1;
   }
 
   getPlayerStats(playerName: string): PlayerScore | null {
-    return this.players().get(playerName) || null;
+    return this.players().get(playerName) ?? null;
   }
 
-  reset() {
+  reset(): void {
     this.players.set(new Map());
-    localStorage.removeItem('leaderboard');
-    
-  }
-
-  private updatePositions() {
-    const sorted = this.getLeaderboard();
-    const playersMap = new Map(this.players());
-    sorted.forEach((player, index) => {
-      const p = playersMap.get(player.playerName);
-      if (p) {
-        p.position = index + 1;
-      }
-    });
-    this.players.set(playersMap);
-  }
-
-  private saveScores() {
-    const data = Array.from(this.players().entries());
-    localStorage.setItem('leaderboard', JSON.stringify(data));
-  }
-
-  private loadScores() {
-    const saved = localStorage.getItem('leaderboard');
-    if (saved) {
-      try {
-        const data: [string, PlayerScore][] = JSON.parse(saved);
-        this.players.set(new Map(data));
-        this.updatePositions();
-        
-      } catch (e) {
-        console.error('❌ Errore caricamento classifica');
-      }
-    }
+    localStorage.removeItem(STORAGE_KEY);
   }
 
   getStats() {
     const leaderboard = this.getLeaderboard();
+    const totalPoints = leaderboard.reduce((sum, player) => sum + player.totalPoints, 0);
+
     return {
       totalPlayers: leaderboard.length,
-      totalPoints: leaderboard.reduce((sum, p) => sum + p.totalPoints, 0),
-      averagePoints: leaderboard.length > 0
-        ? leaderboard.reduce((sum, p) => sum + p.totalPoints, 0) / leaderboard.length
-        : 0,
-      leader: leaderboard[0] || null
+      totalPoints,
+      averagePoints: leaderboard.length > 0 ? totalPoints / leaderboard.length : 0,
+      leader: leaderboard[0] ?? null,
     };
+  }
+
+  /** Ricalcola le posizioni in modo immutabile, senza mutare gli oggetti salvati. */
+  private withPositions(players: Map<string, PlayerScore>): Map<string, PlayerScore> {
+    const ranked = Array.from(players.values()).sort((a, b) => b.totalPoints - a.totalPoints);
+
+    return new Map(
+      ranked.map((player, index) => [player.playerName, { ...player, position: index + 1 }]),
+    );
+  }
+
+  private saveScores(): void {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(this.players().entries())));
+  }
+
+  private loadScores(): void {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+
+    try {
+      const data: [string, PlayerScore][] = JSON.parse(saved);
+      this.players.set(this.withPositions(new Map(data)));
+    } catch {
+      console.error('❌ Errore caricamento classifica');
+    }
   }
 }

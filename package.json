@@ -17,5 +17,8 @@
     "test:frontend": "npm run test --workspace pubgame-fe",
     "test:backend": "node scripts/mvn.mjs test"
   },
+  "devDependencies": {
+    "vitest": "4.0.8"
+  },
   "packageManager": "npm@11.6.2"
 }

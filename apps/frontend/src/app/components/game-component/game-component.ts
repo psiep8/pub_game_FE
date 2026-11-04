@@ -10,11 +10,13 @@ import {
   ElementRef,
   ViewChild,
   ChangeDetectorRef,
+  DestroyRef,
   computed
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { firstValueFrom } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { GameRound, GameService } from '../../services/game.service';
 import { WebSocketService } from '../../services/web-socket.service';
@@ -33,7 +35,6 @@ import { Roulette } from './games/roulette/roulette';
 import { Song } from './games/song/song';
 import { environment } from '../../environment/environment';
 import { GameModeType, IGameMode } from './interfaces/game-mode-type';
-// import { OneVsOne } from './games/one-vs-one/one-vs-one';
 import { LeaderboardQuick } from '../leaderboard/leaderboard-quick-component/leaderboard-quick-component';
 import { LeaderboardDetailed } from '../leaderboard/leaderboard-detailed-component/leaderboard-detailed-component';
 import { ScreamRace } from './games/scream-race/scream-race.component';
@@ -120,7 +121,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private prestartAudio?: HTMLAudioElement;
   private audioAllowed = false;
-  private displayDataInterval?: any;
+  private displayDataInterval?: ReturnType<typeof setInterval>;
+  private prestartMonitorInterval?: ReturnType<typeof setInterval>;
+  private destroyRef = inject(DestroyRef);
 
   @HostListener('window:beforeunload', ['$event'])
   unloadNotification($event: any) {
@@ -176,7 +179,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
 
     // 📨 SOTTOSCRIZIONE RESPONSES (Per azioni veloci come urla)
-    this.ws.responses$.subscribe((resp: any) => {
+    this.ws.responses$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((resp: any) => {
       console.log('%c 📥 GameComponent: Messaggio fast-track ricevuto: ', 'background: #333; color: #fff', resp);
       if (!resp) return;
 
@@ -187,7 +190,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
         if (intensity !== undefined && intensity > 5) {
           console.log(`%c 🎤 Urlo TV -> Mode Update: ${playerName} (${intensity}%) `, 'background: #1b5e20; color: #bada55; font-weight: bold;');
-          (mode as any).updateTeamProgress?.(playerName, intensity);
+          mode.applyScreamIntensity?.(playerName, intensity);
           this.cdr.detectChanges();
         } else {
           console.log('%c 🎤 Urlo ignorato in GameComponent: ', 'color: #ff9800', intensity);
@@ -197,7 +200,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.ws.status$.subscribe((status: any) => {
+    this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       if (!status) return;
 
       const mode = this.currentMode();
@@ -215,7 +218,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
         // Se siamo in Scream Race, aggiungiamo il giocatore alla gara istantaneamente
         if (mode?.type === 'SCREAM_RACE') {
-          (mode as any).updateTeamProgress?.(normalizedName, 0);
+          mode.applyScreamIntensity?.(normalizedName, 0);
           this.cdr.detectChanges();
         }
       }
@@ -227,7 +230,7 @@ export class GameComponent implements OnInit, OnDestroy {
       if (pName && data !== undefined && mode?.type === 'SCREAM_RACE') {
         const normalizedName = pName.trim();
         console.log(`%c 🎤 Urlo TV -> Status Match: ${normalizedName} (${data}%) `, 'background: #1b5e20; color: #fff');
-        (mode as any).updateTeamProgress?.(normalizedName, data);
+        mode.applyScreamIntensity?.(normalizedName, data);
         this.cdr.detectChanges();
       }
 
@@ -242,13 +245,13 @@ export class GameComponent implements OnInit, OnDestroy {
         this.leaderboardService.addPoints(playerName, points, isCorrect);
 
         // Update mode logic (dot movement)
-        (mode as any).updateTeamProgress?.(playerName, isCorrect, points);
+        mode.applyArenaAnswer?.(playerName, isCorrect, points);
         this.cdr.detectChanges();
       }
 
       // 🏆 Giocatore ha finito
       if ((status.action === 'PLAYER_FINISHED' || status.action === 'FINISH') && mode?.type === 'SCREAM_RACE') {
-        (mode as any).markTeamFinished?.(status.playerName, status.position);
+        mode.markTeamFinished?.(status.playerName, status.position);
 
         // Aggiungi punti al leaderboard
         this.leaderboardService.addPoints(
@@ -272,7 +275,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
     });
     let lastPreStart = this.preStartCountdown();
-    setInterval(() => {
+    this.prestartMonitorInterval = setInterval(() => {
       const cur = this.preStartCountdown();
       if (cur !== lastPreStart) {
         if (cur > 0 && cur <= 5) {
@@ -303,7 +306,7 @@ export class GameComponent implements OnInit, OnDestroy {
     }, 120);
 
 
-    this.ws.status$.subscribe((status: any) => {
+    this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       if (!status) return;
 
       if (status.action === 'ADMIN_CONFIRM_CORRECT') {
@@ -329,6 +332,9 @@ export class GameComponent implements OnInit, OnDestroy {
     this.gameModeService.cleanup();
     if (this.displayDataInterval) {
       clearInterval(this.displayDataInterval);
+    }
+    if (this.prestartMonitorInterval) {
+      clearInterval(this.prestartMonitorInterval);
     }
 
     this.audioService.stopAll();
@@ -409,6 +415,7 @@ export class GameComponent implements OnInit, OnDestroy {
         onTimerEnd: () => this.onModeTimeout(),
         onBuzz: (playerName) => this.onPlayerBuzz(playerName),
         activePlayers: activePlayers,
+        onPreGameTick: (seconds) => this.preStartCountdown.set(seconds),
         onAnswerReceived: (result: any) => {
 
           if (result && result.playerName) {
@@ -431,11 +438,6 @@ export class GameComponent implements OnInit, OnDestroy {
             });
           }
         }
-      });
-
-      (mode as any).setConfig?.({
-        ...((mode as any).config ?? {}),
-        onPreGameTick: (sec: number) => this.preStartCountdown.set(sec)
       });
 
       this.currentMode.set(mode);
@@ -612,7 +614,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!playerName) return;
 
     const elapsedMs = (mode.timerDuration * 1000) - (this.timer() * 1000);
-    const realPoints = (mode as any).calculatePoints(true, elapsedMs);
+    const realPoints = mode.pointsFor(true, elapsedMs);
 
 
     this.leaderboardService.addPoints(playerName, realPoints, true);
@@ -670,7 +672,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!playerName) return;
 
     const elapsedMs = (mode.timerDuration * 1000) - (this.timer() * 1000);
-    const realPoints = (mode as any).calculatePoints(false, elapsedMs);
+    const realPoints = mode.pointsFor(false, elapsedMs);
 
 
     this.leaderboardService.addPoints(playerName, realPoints, false);
@@ -832,7 +834,7 @@ export class GameComponent implements OnInit, OnDestroy {
   getSafeDisplayData(): any {
     const mode = this.currentMode();
     const data = mode ? (mode.getDisplayData() || {}) : {};
-    const isReading = mode ? ((mode as any).getIsReading?.() ?? false) : false;
+    const isReading = mode ? (mode.getIsReading?.() ?? false) : false;
     const safe = { ...data, isReading } as any;
 
     if (mode?.type !== 'ROULETTE') {
@@ -851,7 +853,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!mode) return '';
 
     const seconds = this.preStartCountdown();
-    const duration = (mode as any).timerDuration ?? 10;
+    const duration = mode.timerDuration;
 
     if (mode.type === 'QUIZ' || mode.type === 'TRUE_FALSE') {
       const score = this.computePreviewScore(seconds, duration);

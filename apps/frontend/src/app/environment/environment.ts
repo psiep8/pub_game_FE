@@ -8,13 +8,19 @@
  * - `frontendUrl` segue l'host con cui il browser ha aperto la pagina, così il QR
  *   code punta automaticamente all'IP giusto.
  */
+export interface AppEnvironment {
+  /** Base delle API REST: relativa, così vale per qualunque host e porta. */
+  apiUrl: string;
+  /** WebSocket STOMP/SockJS: stessa origine, inoltrata dal proxy in sviluppo. */
+  wsUrl: string;
+  /** URL pubblico del frontend (QR code, link ai telefoni). */
+  frontendUrl: string;
+}
+
 const origin = typeof window !== 'undefined' ? window.location.origin : '';
 
-export const environment = {
-  /** Base delle API REST: relativa, così vale per qualunque host e porta. */
+export const environment: AppEnvironment = {
   apiUrl: '',
-  /** WebSocket STOMP/SockJS: stessa origine, inoltrata dal proxy in sviluppo. */
   wsUrl: `${origin}/ws-pubgame`,
-  /** URL pubblico del frontend (QR code, link ai telefoni). */
-  frontendUrl: origin
+  frontendUrl: origin,
 };

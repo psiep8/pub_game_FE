@@ -1,114 +1,68 @@
-
-
 import { Injectable } from '@angular/core';
 import { ImageBlurMode } from '../components/game-component/mode/image-blur.mode';
 import { QuizMode } from '../components/game-component/mode/quiz.mode';
 import { WheelOfFortuneMode } from '../components/game-component/mode/wheel-fortune.mode';
 import { ChronoMode } from '../components/game-component/mode/chrono.mode';
 import { TrueFalseMode } from '../components/game-component/mode/true_false.mode';
-import { GameModeConfig, GameModeType, IGameMode } from '../components/game-component/interfaces/game-mode-type';
+import {
+  GameModeConfig,
+  GameModeType,
+  IGameMode,
+} from '../components/game-component/interfaces/game-mode-type';
 import { RouletteMode } from '../components/game-component/mode/roulette.mode';
 import { MusicMode } from '../components/game-component/mode/music.mode';
-// import { OneVsOneMode } from '../components/game-component/mode/one_vs_one.mode';
 import { ScreamRaceMode } from '../components/game-component/mode/scream-race.mode';
 import { ArenaMode } from '../components/game-component/mode/arena.mode';
 
+type ModeFactory = (config: GameModeConfig) => IGameMode;
+
 /**
- * Factory Service per creare modalità di gioco
- * Pattern: Factory + Strategy
+ * Factory delle modalità di gioco (Factory + Strategy).
+ *
+ * Ogni modalità è una strategia autonoma: la TV riceve un `IGameMode` e non
+ * deve conoscere quale implementazione stia usando.
  */
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class GameModeService {
   private currentMode: IGameMode | null = null;
 
-  /**
-   * Crea una nuova modalità di gioco
-   */
-  createMode(config: {
-    type: GameModeType;
-    payload: any;
-    gameId: number;
-    onTimerTick: (seconds: any) => void;
-    onTimerEnd: () => void;
-    onBuzz: (playerName: any) => void;
-    onAnswerReceived?: (result: any) => void;
-    activePlayers: string[]
-  }): IGameMode {
+  private readonly factories: Record<GameModeType, ModeFactory> = {
+    QUIZ: (config) => this.withConfig(new QuizMode(), config),
+    TRUE_FALSE: (config) => this.withConfig(new TrueFalseMode(), config),
+    CHRONO: (config) => this.withConfig(new ChronoMode(), config),
+    IMAGE_BLUR: (config) => this.withConfig(new ImageBlurMode(), config),
+    WHEEL_OF_FORTUNE: (config) => this.withConfig(new WheelOfFortuneMode(), config),
+    ROULETTE: (config) => this.withConfig(new RouletteMode(), config),
+    MUSIC: (config) => this.withConfig(new MusicMode(), config),
+    SCREAM_RACE: (config) => this.withConfig(new ScreamRaceMode(), config),
+    ARENA: (config) => this.withConfig(new ArenaMode(), config),
+  };
 
-    if (this.currentMode) {
-      this.currentMode.cleanup();
-    }
+  createMode(config: GameModeConfig): IGameMode {
+    this.currentMode?.cleanup();
 
+    const factory = this.factories[config.type];
+    if (!factory) throw new Error(`Unknown game mode: ${config.type}`);
 
-    let mode: IGameMode;
-
-    switch (config.type) {
-      case 'QUIZ':
-        mode = new QuizMode();
-        break;
-
-      case 'IMAGE_BLUR':
-        mode = new ImageBlurMode();
-        break;
-
-      case 'WHEEL_OF_FORTUNE':
-        mode = new WheelOfFortuneMode();
-        break;
-
-      case 'CHRONO':
-        mode = new ChronoMode();
-        break;
-
-      case 'TRUE_FALSE':
-        mode = new TrueFalseMode();
-        break;
-      case 'ROULETTE':
-        mode = new RouletteMode();
-        break;
-      case 'MUSIC':
-        mode = new MusicMode();
-        break;
-      // case 'ONE_VS_ONE':
-      //   mode = new OneVsOneMode();
-      //   break;
-      case 'SCREAM_RACE':
-        mode = new ScreamRaceMode();
-        break;
-      case 'ARENA':
-        mode = new ArenaMode();
-        break;
-      // case 'ONE_VS_ONE':
-      //   mode = new OneVsOneMode();
-      //   break;
-      default:
-        throw new Error(`Unknown game mode: ${config.type}`);
-    }
-
-
-    mode.initialize(config.payload);
-
-    (mode as any).setConfig?.(config);
-
+    const mode = factory(config);
     this.currentMode = mode;
     return mode;
   }
 
-  /**
-   * Ottiene la modalità corrente
-   */
   getCurrentMode(): IGameMode | null {
     return this.currentMode;
   }
 
-  /**
-   * Cleanup
-   */
   cleanup(): void {
-    if (this.currentMode) {
-      this.currentMode.cleanup();
-      this.currentMode = null;
-    }
+    if (!this.currentMode) return;
+
+    this.currentMode.cleanup();
+    this.currentMode = null;
+  }
+
+  private withConfig(mode: IGameMode, config: GameModeConfig): IGameMode {
+    mode.initialize(config.payload);
+    mode.setConfig(config);
+    return mode;
   }
 }

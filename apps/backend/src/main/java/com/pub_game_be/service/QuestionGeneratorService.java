@@ -19,16 +19,16 @@ public class QuestionGeneratorService {
 
     private final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
-    @Value("${groq.api.key}")
+    @Value("${groq.api.key:}")
     private String apiKey;
 
-    @Value("${groq.api.model}")
+    @Value("${groq.api.model:llama-3.3-70b-versatile}")
     private String model;
 
-    @Value("${groq.api.temperature}")
+    @Value("${groq.api.temperature:0.7}")
     private double defaultTemperature;
 
-    @Value("${groq.api.image-blur-temperature}")
+    @Value("${groq.api.image-blur-temperature:1.3}")
     private double imageBlurTemperature;
 
     private final RestTemplate restTemplate;

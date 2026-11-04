@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: pub_game_BE
   datasource:
     url: jdbc:h2:mem:pub_game;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
@@ -22,9 +24,10 @@ server:
   port: ${SERVER_PORT:8080}
   address: ${SERVER_ADDRESS:0.0.0.0}
 
+# Le chiavi sono opzionali: senza chiave il backend usa i fallback locali.
 groq:
   api:
-    key: ${GROQ_API_KEY}
+    key: ${GROQ_API_KEY:}
     model: "llama-3.3-70b-versatile"
     temperature: 0.7
     image-blur-temperature: 1.3

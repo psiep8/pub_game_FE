@@ -1,11 +1,11 @@
 # PubGame BE — Backend Spring Boot
 
-Backend Spring Boot 3.x per il gioco da pub multigiocatore.
+Backend Spring Boot 4 (Java 17) per il gioco da pub multigiocatore.
 Gestisce REST API, WebSocket (STOMP/SockJS), generazione domande AI via Groq, e integrazione con TMDB e iTunes.
 
 ## Requisiti
 
-- JDK 21+
+- JDK 17+
 - Maven 3.8+ (incluso `./mvnw`)
 - MySQL 8+ (solo per profilo `mysql`)
 
@@ -37,6 +37,7 @@ export TMDB_API_KEY="..."         # Per immagini celebrity
 ```
 
 Se non impostate, l'AI e TMDB vengono saltati e si usano i fallback locali (versione free).
+La configurazione vive in `src/main/resources/application.yml` (e `application-mysql.yml` per il profilo `mysql`), così finisce anche nel jar.
 
 ## API principali
 
@@ -70,7 +71,6 @@ Broadcast su `/topic/game/{id}`, `/topic/game/{id}/responses`, `/topic/game/{id}
 | `TRUE_FALSE` | Vero/Falso con spiegazione | Groq |
 | `CHRONO` | Indovina l'anno storico | Groq |
 | `IMAGE_BLUR` | Riconosci il celebrity | Groq + TMDB |
-| `ONE_VS_ONE` | Sfida 1vs1 | Groq |
 | `MUSIC` | Indovina la canzone | iTunes API |
 | `ROULETTE` | Scegli un colore | Random |
 | `WHEEL_OF_FORTUNE` | Proverbio casuale | Lista locale |

@@ -8,16 +8,40 @@ describe('Song', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Song]
-    })
-    .compileComponents();
+      imports: [Song],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(Song);
     component = fixture.componentInstance;
+    fixture.detectChanges();
     await fixture.whenStable();
+  });
+
+  afterEach(() => {
+    fixture.destroy();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should describe every phase', () => {
+    expect(component.getPhaseLabel()).toBe('In attesa...');
+
+    component.currentPhase.set(1);
+    expect(component.getPhaseLabel()).toContain('telefono');
+    expect(component.getPhaseColor()).toBe('#e74c3c');
+
+    component.currentPhase.set(4);
+    expect(component.getPhaseLabel()).toContain('Chiaro');
+    expect(component.getPhaseColor()).toBe('#27ae60');
+  });
+
+  it('should expose an icon per phase', () => {
+    component.currentPhase.set(0);
+    expect(component.getPhaseIcon()).toBe('⏳');
+
+    component.currentPhase.set(4);
+    expect(component.getPhaseIcon()).toBe('📢');
   });
 });

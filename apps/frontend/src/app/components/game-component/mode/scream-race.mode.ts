@@ -1,5 +1,3 @@
-// src/app/core/game-modes/scream-race/scream-race.mode.ts
-
 import { signal } from '@angular/core';
 import { GameModeBase } from '../interfaces/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../interfaces/game-mode-type';
@@ -17,9 +15,13 @@ export interface ScreamRaceDisplayData {
   raceEnded: boolean;
 }
 
+const NOISE_GATE = 5;
+const GOAL = 100;
+
 export class ScreamRaceMode extends GameModeBase {
   readonly type: GameModeType = 'SCREAM_RACE';
-  readonly timerDuration = 3600; // Fondamentalmente infinito, finisce quando qualcuno vince
+  /** Praticamente infinito: la gara finisce quando qualcuno taglia il traguardo. */
+  readonly timerDuration = 3600;
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
 
@@ -27,130 +29,91 @@ export class ScreamRaceMode extends GameModeBase {
   private winners = signal<string[]>([]);
 
   protected onInitialize(): void {
-    console.log('🎤 SCREAM RACE inizializzato');
-  }
-
-  private initializeTeams() {
-    const activePlayers = (this.config as any).activePlayers || [];
-    const initialTeams = new Map<string, TeamProgress>();
-
-    activePlayers.forEach((playerName: string) => {
-      initialTeams.set(playerName, {
-        playerName,
-        progress: 0,
-        finished: false
-      });
-    });
-
-    this.teams.set(initialTeams);
-    console.log(`🎤 Team inizializzati: ${activePlayers.length} giocatori`);
+    // Le squadre si creano in onStart, quando la configurazione è già applicata.
   }
 
   protected async onStart(): Promise<void> {
     this.initializeTeams();
-    await this.runPreGameSequence(5000); // 5s countdown
+    await this.runPreGameSequence(5000);
   }
 
-  protected onPause(): void {
-    // Non serve pause per scream race
-  }
+  protected onPause(): void {}
 
-  protected onResume(): void {
-    // Non serve resume
-  }
+  protected onResume(): void {}
 
-  protected onStop(): void {
-    console.log('🏁 Gara terminata');
-  }
+  protected onStop(): void {}
 
   protected onCleanup(): void {
     this.teams.set(new Map());
     this.winners.set([]);
   }
 
-  protected onTimeout(): void {
-    console.log('⏰ Tempo scaduto! Fine gara.');
-  }
+  protected onTimeout(): void {}
 
-  protected onBuzz(playerName: string): void {
-    // Non usato
-  }
+  protected onBuzz(_playerName: string): void {}
 
-  protected onAnswer(playerName: string, answer: any, result: any): void {
-    // Non usato
-  }
+  protected onAnswer(_playerName: string, _answer: any, _result: any): void {}
 
-  protected onConfirmCorrect(result: GameModeResult): void {
-    // Non usato
-  }
+  protected onConfirmCorrect(_result: GameModeResult): void {}
 
-  protected onConfirmWrong(result: GameModeResult): void {
-    // Non usato
-  }
+  protected onConfirmWrong(_result: GameModeResult): void {}
 
-  protected validateAnswer(answer: any, timeMs: number): any {
+  protected validateAnswer(_answer: any, _timeMs: number): any {
     return { isCorrect: false };
   }
 
-  protected calculatePoints(isCorrect: boolean, elapsedMs: number): number {
-    return 0; // Punti calcolati dal backend in base alla posizione
+  protected calculatePoints(_isCorrect: boolean, _elapsedMs: number): number {
+    // I punti dipendono dalla posizione d'arrivo, calcolata dal backend.
+    return 0;
   }
 
-  /**
-   * 🎤 Aggiorna progresso squadra (con accumulo migliorato)
-   */
-  updateTeamProgress(playerName: string, value: number) {
+  private initializeTeams(): void {
+    const activePlayers = this.config.activePlayers ?? [];
+    const initialTeams = new Map<string, TeamProgress>();
+
+    activePlayers.forEach((playerName) => {
+      initialTeams.set(playerName, { playerName, progress: 0, finished: false });
+    });
+
+    this.teams.set(initialTeams);
+  }
+
+  /** Avanza il giocatore in base all'intensità dell'urlo (0-100). */
+  applyScreamIntensity(playerName: string, intensity: number): void {
     const currentTeams = new Map(this.teams());
     const key = playerName.trim().toLowerCase();
 
-    // Cerchiamo il team con una logica più permissiva
-    let teamKey = Array.from(currentTeams.keys()).find(k =>
-      k.toLowerCase() === key ||
-      k.toLowerCase().includes(key) ||
-      key.includes(k.toLowerCase())
-    ) || playerName;
+    const teamKey =
+      Array.from(currentTeams.keys()).find(
+        (name) =>
+          name.toLowerCase() === key ||
+          name.toLowerCase().includes(key) ||
+          key.includes(name.toLowerCase()),
+      ) ?? playerName;
 
-    let team = currentTeams.get(teamKey);
-
-    if (!team) {
-      team = {
-        playerName,
-        progress: 0,
-        finished: false
-      };
-      teamKey = playerName;
-      currentTeams.set(teamKey, team);
-    } else {
-      team = { ...team };
-    }
+    const existing = currentTeams.get(teamKey) ?? {
+      playerName,
+      progress: 0,
+      finished: false,
+    };
+    const team: TeamProgress = { ...existing };
 
     if (!team.finished) {
-      // 🚀 LOGICA DI MOVIMENTO (Corretta e Potenziata)
-      // Assicuriamoci che 'value' sia un numero per evitare errori toFixed
-      const intensity = Number(value) || 0;
+      const value = Number(intensity) || 0;
 
-      const speedFactor = 0.05; // Gara veloce!
-      const noiseGate = 5;
+      if (value > NOISE_GATE) {
+        // Curva non lineare: gli urli forti spingono molto più dei medi.
+        const normalized = value - NOISE_GATE;
+        const delta = Math.pow(normalized / 50, 1.5) * 0.5;
 
-      if (intensity > noiseGate) {
-        // 📈 LOGICA DI CRESCITA: Usiamo una funzione che premia i suoni forti
-        // delta = (intensità / costante) ^ esponente * fattore_velocità
-        // In questo modo 80-100 dà molta più spinta di 40-50
-        const normalizedIntensity = Math.max(0, intensity - noiseGate);
-        const delta = Math.pow(normalizedIntensity / 50, 1.5) * 0.5;
+        team.progress = Math.min(GOAL, team.progress + delta);
 
-        team.progress = Math.min(100, Number(team.progress || 0) + delta);
-
-        console.log(`%c 🏃 MOVE: ${playerName} -> ${team.progress.toFixed(1)}% (delta: ${delta.toFixed(2)}) `, 'color: #ff00ff; font-weight: bold;');
-
-        // 🏁 Se qualcuno arriva a 100, la gara finisce per lui e potenzialmente per tutti
-        if (team.progress >= 100) {
-          team.progress = 100;
-          const winnersCount = this.winners().length;
-          this.markTeamFinished(playerName, winnersCount + 1);
-
-          // Se vogliamo che la gara finisca appena il PRIMO vince:
-          // this.stop(); 
+        if (team.progress >= GOAL) {
+          team.progress = GOAL;
+          currentTeams.set(teamKey, team);
+          this.teams.set(currentTeams);
+          this.markTeamFinished(playerName, this.winners().length + 1);
+          return;
         }
       }
     }
@@ -159,41 +122,31 @@ export class ScreamRaceMode extends GameModeBase {
     this.teams.set(currentTeams);
   }
 
-  /**
-   * 🏆 Segna squadra come finita (forza 100%)
-   */
-  markTeamFinished(playerName: string, position: number) {
+  markTeamFinished(playerName: string, position: number): void {
     const currentTeams = new Map(this.teams());
     const key = playerName.trim().toLowerCase();
-    let teamKey = Array.from(currentTeams.keys()).find(k => k.toLowerCase() === key) || playerName;
-    let team = currentTeams.get(teamKey);
+    const teamKey =
+      Array.from(currentTeams.keys()).find((name) => name.toLowerCase() === key) ?? playerName;
+    const team = currentTeams.get(teamKey);
 
     if (team) {
-      team = { ...team, finished: true, position: position, progress: 100 };
-      currentTeams.set(teamKey, team);
+      currentTeams.set(teamKey, { ...team, finished: true, position, progress: GOAL });
       this.teams.set(currentTeams);
     }
 
-    const order = [...this.winners()];
-    if (!order.includes(playerName)) {
-      order.push(playerName);
-      this.winners.set(order);
+    if (!this.winners().includes(playerName)) {
+      this.winners.set([...this.winners(), playerName]);
     }
-
-    console.log(`🏆 ${playerName} finito in posizione ${position}`);
   }
 
-  getDisplayData() {
-    const teamsArray = Array.from(this.teams().values())
-      .sort((a, b) => b.progress - a.progress); // Ordina per progresso
-
-    const activePlayersCount = (this.config as any).activePlayers?.length || 0;
-    const raceEnded = this.winners().length >= activePlayersCount && activePlayersCount > 0;
+  getDisplayData(): ScreamRaceDisplayData {
+    const teams = Array.from(this.teams().values()).sort((a, b) => b.progress - a.progress);
+    const activePlayersCount = this.config.activePlayers?.length ?? 0;
 
     return {
-      teams: teamsArray,
+      teams,
       winners: this.winners(),
-      raceEnded: raceEnded
+      raceEnded: activePlayersCount > 0 && this.winners().length >= activePlayersCount,
     };
   }
 }

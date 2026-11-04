@@ -1,64 +1,56 @@
-
-
-import {signal, Signal, WritableSignal} from '@angular/core';
-import {GameModeConfig, GameModeResult, GameModeType, IGameMode} from './game-mode-type';
+import { signal, Signal, WritableSignal } from '@angular/core';
+import { GameModeConfig, GameModeResult, GameModeType, IGameMode } from './game-mode-type';
 
 /**
- * Classe base astratta per tutte le modalità di gioco
- * Implementa logica comune e pattern Template Method
+ * Classe base per tutte le modalità di gioco (Template Method).
+ *
+ * Gestisce timer, pre-start e ciclo di vita; le sottoclassi implementano solo
+ * i comportamenti specifiche tramite gli hook `on*`.
  */
 export abstract class GameModeBase implements IGameMode {
   abstract readonly type: GameModeType;
   abstract readonly timerDuration: number;
   abstract readonly requiresBubbles: boolean;
   abstract readonly requiresBuzz: boolean;
+
   protected started = false;
   protected paused = false;
+  protected payload: any;
+
   protected config: GameModeConfig = {
     type: 'QUIZ',
     payload: {},
     gameId: 0,
-    onTimerTick: () => {
-    },
-    onTimerEnd: () => {
-    },
-    onBuzz: () => {
-    },
-    onAnswerReceived: () => {
-    }
   };
 
-  protected payload: any;
-
-  
   protected timer = signal<number>(0);
   protected isActive = signal<boolean>(false);
   protected isPaused = signal<boolean>(false);
   protected revealed = signal<boolean>(false);
   protected buzzedPlayer = signal<string | null>(null);
-  public isReading = signal<boolean>(false);
+  protected isReading = signal<boolean>(false);
   protected showGo: WritableSignal<boolean> = signal(false);
   protected preStartCountdown = signal<number>(0);
 
-  getShowGo() {
+  protected timerInterval?: ReturnType<typeof setInterval>;
+  private preStartInterval?: ReturnType<typeof setInterval>;
+
+  getShowGo(): boolean {
     return this.showGo();
   }
 
-  getPreStartCountdown() {
+  getPreStartCountdown(): number {
     return this.preStartCountdown();
   }
 
-  getIsReading() {
+  getIsReading(): boolean {
     return this.isReading();
   }
 
-  private timerInterval?: any;
-  private preStartInterval?: any;
-
-  constructor() {
+  /** Punteggio calcolato dalla modalità specifica. */
+  pointsFor(isCorrect: boolean, elapsedMs: number): number {
+    return this.calculatePoints(isCorrect, elapsedMs);
   }
-
-  
 
   initialize(payload: any): void {
     this.payload = payload;
@@ -73,30 +65,12 @@ export abstract class GameModeBase implements IGameMode {
     this.config = config;
   }
 
-  
   async start(): Promise<void> {
     if (this.started) return;
     this.started = true;
-    
-    await Promise.resolve(this.onStart()); 
+
+    await Promise.resolve(this.onStart());
   }
-
-  private async preTimerDelay() {
-    
-    await new Promise(r => setTimeout(r, 10000));
-
-    
-    this.showGoPopup();
-
-    
-    this.startTimer();
-  }
-
-  private showGoPopup() {
-    
-     
-  }
-
 
   pause(): void {
     this.isPaused.set(true);
@@ -114,59 +88,54 @@ export abstract class GameModeBase implements IGameMode {
     this.isActive.set(false);
     this.revealed.set(true);
     this.stopTimer();
-    
+
     this.buzzedPlayer.set(null);
     this.onStop();
-    
+
     this.started = false;
   }
 
   cleanup(): void {
     this.stopTimer();
     this.onCleanup();
-    
+
     this.started = false;
   }
 
-  
-  protected async runPreGameSequence(readingTime: number = 10000) {
-    this.isReading.set(true);      
-    this.isActive.set(false);      
-    this.showGo.set(false);        
+  /**
+   * Fasi comuni prima della domanda: lettura, countdown e "VIA!".
+   * Al termine il timer parte e la modalità diventa attiva.
+   */
+  protected async runPreGameSequence(readingTime: number = 10000): Promise<void> {
+    this.isReading.set(true);
+    this.isActive.set(false);
+    this.showGo.set(false);
 
-    
     const seconds = Math.floor(readingTime / 1000);
     this.preStartCountdown.set(seconds);
     if (this.preStartInterval) clearInterval(this.preStartInterval);
     this.preStartInterval = setInterval(() => {
-      const cur = this.preStartCountdown();
-      if (cur > 0) {
-        this.preStartCountdown.set(cur - 1);
-        
-        this.config.onPreGameTick?.(cur - 1);
+      const current = this.preStartCountdown();
+      if (current > 0) {
+        this.preStartCountdown.set(current - 1);
+        this.config.onPreGameTick?.(current - 1);
       } else {
-        clearInterval(this.preStartInterval);
-        this.preStartInterval = undefined;
+        this.stopPreStartInterval();
       }
     }, 1000);
 
-    
-    await new Promise(r => setTimeout(r, readingTime));
+    await new Promise((resolve) => setTimeout(resolve, readingTime));
 
-    
     this.showGo.set(true);
-    await new Promise(r => setTimeout(r, 1400));
+    await new Promise((resolve) => setTimeout(resolve, 1400));
     this.showGo.set(false);
 
-    
     this.preStartCountdown.set(0);
 
-    
-    this.isReading.set(false);     
+    this.isReading.set(false);
     this.isActive.set(true);
     this.startTimer();
   }
-
 
   protected startTimer(): void {
     if (this.timerInterval) clearInterval(this.timerInterval);
@@ -185,28 +154,26 @@ export abstract class GameModeBase implements IGameMode {
     }, 1000);
   }
 
-  private clearPreStartInterval() {
+  protected stopTimer(): void {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = undefined;
+    }
+    this.stopPreStartInterval();
+  }
+
+  private stopPreStartInterval(): void {
     if (this.preStartInterval) {
       clearInterval(this.preStartInterval);
       this.preStartInterval = undefined;
     }
   }
 
-  private stopTimer(): void {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = undefined;
-    }
-    this.clearPreStartInterval();
-  }
-
-  private handleTimeout(): void {
+  protected handleTimeout(): void {
     this.stop();
     this.config.onTimerEnd?.();
     this.onTimeout();
   }
-
-  
 
   handleBuzz(playerName: string): void {
     if (!this.canBuzz()) return;
@@ -219,7 +186,7 @@ export abstract class GameModeBase implements IGameMode {
 
   handleAnswer(playerName: string, answer: any, timeMs: number): void {
     const result = this.validateAnswer(answer, timeMs);
-    this.config.onAnswerReceived?.({playerName, ...result});
+    this.config.onAnswerReceived?.({ playerName, ...result });
     this.onAnswer(playerName, answer, result);
   }
 
@@ -228,7 +195,7 @@ export abstract class GameModeBase implements IGameMode {
       success: true,
       playerName,
       points: this.calculatePoints(true, this.timerDuration - this.timer()),
-      correctAnswer: this.payload.correctAnswer
+      correctAnswer: this.payload.correctAnswer,
     };
 
     this.stop();
@@ -247,8 +214,6 @@ export abstract class GameModeBase implements IGameMode {
     this.onConfirmWrong(result);
   }
 
-  
-
   getTimerValue(): number {
     return this.timer();
   }
@@ -261,13 +226,14 @@ export abstract class GameModeBase implements IGameMode {
     return this.revealed();
   }
 
-  abstract getDisplayData(): any;
+  protected timerSignal(): Signal<number> {
+    return this.timer;
+  }
 
-  
+  abstract getDisplayData(): any;
 
   protected abstract onInitialize(): void;
 
-  
   protected abstract onStart(): Promise<void> | void;
 
   protected abstract onPause(): void;

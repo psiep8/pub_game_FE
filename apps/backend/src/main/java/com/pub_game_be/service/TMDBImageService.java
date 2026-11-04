@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 @Service
 public class TMDBImageService {
 
-    @Value("${tmdb.api.key}")
+    @Value("${tmdb.api.key:}")
     private String tmdbApiKey;
 
     private final String TMDB_SEARCH_URL = "https://api.themoviedb.org/3/search/person";

@@ -72,6 +72,12 @@ npm run test:frontend
 npm run test:backend
 ```
 
+I test del frontend girano con Vitest tramite `ng test` e usano `apps/frontend/vitest.config.ts`:
+il pool è `vmThreads` perché i pool `forks`/`threads` di Vitest 4 hanno un timeout fisso
+di 5s per l'avvio del worker, più corto del bootstrap di jsdom + TestBed su Windows.
+Le spec dei componenti usano i doppi condivisi in `src/app/testing/` (nessuna WebSocket,
+nessuna chiamata HTTP e nessun elemento `Audio` reale).
+
 ## Variabili del backend (opzionali)
 
 `GROQ_API_KEY` per le domande AI, `TMDB_API_KEY` per le immagini. Senza chiavi il backend usa i fallback locali.
