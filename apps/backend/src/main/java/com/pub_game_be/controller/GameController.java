@@ -311,6 +311,19 @@ public class GameController {
                         .body(Map.of("error", "Domanda non trovata per questo giocatore")));
     }
 
+    /**
+     * Punteggi dell'arena calcolati dal server.
+     *
+     * La TV li legge da qui invece di fidarsi del messaggio del telefono: un
+     * dispositivo non può più dichiararsi vincente.
+     */
+    @GetMapping("/{gameId}/arena/scores")
+    public Map<String, Object> arenaScores(@PathVariable("gameId") Long gameId) {
+        Map<String, Integer> scores = questionHistory.scores(gameId);
+        int bestScore = scores.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        return Map.of("gameId", gameId, "scores", scores, "bestScore", bestScore);
+    }
+
     /** Azzera memoria e punteggi dell'arena (nuova partita o reset dalla TV). */
     @PostMapping("/{gameId}/arena/reset")
     public Map<String, Object> resetArena(@PathVariable("gameId") Long gameId) {

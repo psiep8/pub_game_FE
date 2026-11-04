@@ -96,6 +96,11 @@ public class QuestionHistoryService {
         return Optional.of(new ArenaResult(correct, assignment.correctAnswer(), points, totalScore));
     }
 
+    /** Punteggi correnti della partita: è la verità che legge la TV. */
+    public Map<String, Integer> scores(long gameId) {
+        return Map.copyOf(scores.getOrDefault(gameId, Map.of()));
+    }
+
     /** Dimentica tutto di una partita (nuova arena o reset dalla TV). */
     public void forget(long gameId) {
         usedKeys.remove(gameId);

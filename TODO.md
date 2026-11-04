@@ -38,6 +38,9 @@ Ultimo aggiornamento: 4 novembre 2026.
 - [x] `scripts/generate-questions/README.md` — procedura completa, incluse le sezioni per il
       modello locale (Qwen) e per la banca media.
 - [x] `scripts/checks/arena_check.py` e `scripts/checks/rounds_check.py` — verifiche live.
+- [x] `scripts/checks/simulate_arena.py` — simula N telefoni in parallelo (nessun telefono
+      vero necessario): domande distinte sotto concorrenza, esiti e punteggi.
+- [x] `GET /games/{id}/arena/scores` — punteggi dell'arena calcolati dal server.
 
 ## ✅ Fatto (frontend, minimo indispensabile)
 
@@ -67,3 +70,10 @@ Ultimo aggiornamento: 4 novembre 2026.
 - `TMDB_API_KEY` serve solo a migliorare le foto di IMAGE_BLUR (e a generarle).
 - Build backend: `cd apps/backend && ./mvnw -B clean package` (serve JDK 25).
 - Build frontend: `cd apps/frontend && npm run build`.
+
+## Come provare (tutto dall'altra macchina)
+
+- Backend: `cd apps/backend && ./mvnw -B clean package` (serve JDK 25).
+- N telefoni simulati in parallelo: `python scripts/checks/simulate_arena.py http://<ip>:8080 10 3 --prepare`
+- Verifiche puntuali: `python scripts/checks/arena_check.py <url> <categoria> <n>` e `python scripts/checks/rounds_check.py <url>`.
+- Con 10 dispositivi e 3 round servono almeno 30 domande giocabili (QUIZ + VERO/FALSO) nella banca.
