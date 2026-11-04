@@ -109,6 +109,9 @@ public class QuestionBankService {
     private final String configuredMediaBaseUrl;
     private final Random random = new Random();
 
+    /** Sotto questo numero di domande l'arena finisce le scorte della categoria. */
+    private static final int MIN_ARENA_QUESTIONS = 8;
+
     public QuestionBankService(TMDBImageService tmdbImageService,
             AppleMusicCuratorService appleMusicCuratorService,
             @Value("${game.media-base-url:}") String mediaBaseUrl) {
@@ -120,6 +123,8 @@ public class QuestionBankService {
         MediaBank media = loadMedia();
         this.musicTracks = media.tracks();
         this.celebrityPhotos = media.people();
+
+        logBankSummary();
     }
 
     /** Payload del round: le domande vengono dalla banca, gli altri tipi sono locali. */
@@ -237,6 +242,28 @@ public class QuestionBankService {
         StringBuilder summary = new StringBuilder("banca domande: ").append(bank.size()).append(" totali");
         perCategory.forEach((category, total) -> summary.append(" | ").append(category).append(' ').append(total));
         return summary.toString();
+    }
+
+    /** Avvisi all'avvio: meglio scoprire una categoria povera adesso che al pub. */
+    private void logBankSummary() {
+        System.out.println(bankSummary());
+        if (bank.isEmpty()) {
+            return;
+        }
+
+        Map<String, Integer> playable = new TreeMap<>();
+        for (BankQuestion question : bank) {
+            if ("QUIZ".equals(question.type()) || "TRUE_FALSE".equals(question.type())) {
+                playable.merge(question.category(), 1, Integer::sum);
+            }
+        }
+        playable.forEach((category, total) -> {
+            if (total < MIN_ARENA_QUESTIONS) {
+                System.out.println("⚠️ " + category + ": " + total
+                        + " domande giocabili in arena (sotto le " + MIN_ARENA_QUESTIONS
+                        + "): alcune arriveranno da altre categorie.");
+            }
+        });
     }
 
     private List<BankQuestion> allQuestions() {

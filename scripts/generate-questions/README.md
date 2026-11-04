@@ -16,11 +16,13 @@ API sul computer che proietta il gioco.
 
 - **Python 3.9 o superiore** (`python --version`; su Windows va bene anche `py --version`).
   Nessun pacchetto da installare: lo script usa solo la libreria standard.
-- Una **chiave Groq** gratuita: https://console.groq.com/keys (inizia con `gsk_...`).
+- Un modello che risponde in JSON: **Groq** con una chiave gratuita
+  (https://console.groq.com/keys, inizia con `gsk_...`) **oppure un modello locale**
+  tipo Qwen su Ollama / LM Studio, senza chiave (vedi sezione 10).
 - Il file `generate.py`: basta copiare la cartella `scripts/generate-questions`, non serve
   tutto il repository.
 
-## 2. Impostare la chiave (senza scriverla nel codice)
+## 2. Impostare la chiave (serve solo con Groq)
 
 PowerShell:
 
@@ -68,6 +70,8 @@ Opzioni utili:
 | `--with-chrono` | chiedere anche domande "in che anno...?" |
 | `--merge` | **aggiungere** alla banca esistente invece di sostituirla |
 | `--out percorso.json` | scrivere altrove |
+| `--base-url URL` | endpoint OpenAI-compatibile (Groq, Ollama, LM Studio) |
+| `--model nome` | modello da usare (default `openai/gpt-oss-120b` su Groq) |
 | `--model nome` | cambiare modello Groq (default `openai/gpt-oss-120b`) |
 
 Lo script stampa un riepilogo finale con il totale e le domande per categoria; se una
@@ -186,3 +190,50 @@ Dettagli utili:
   `.mp4` nell'indice (è lo stesso contenitore MP4);
 - i file media e l'indice sono in `.gitignore`: si copiano sulla macchina che
   proietta il gioco, non nel repository.
+
+---
+
+## 10. Modello locale (Qwen su Ollama, LM Studio, llama.cpp)
+
+Lo script parla con qualsiasi endpoint compatibile OpenAI: basta cambiare
+`--base-url` e `--model`. Con un modello locale non serve nessuna chiave e non
+c'è rate limit (utile per 400+ domande in una volta).
+
+Ollama, modello Qwen:
+
+```bash
+ollama pull qwen2.5:14b
+python generate.py --per-category 40 \
+    --base-url http://localhost:11434/v1/chat/completions \
+    --model qwen2.5:14b --delay 0 --batch 8
+```
+
+LM Studio (server locale attivo sulla porta 1234):
+
+```bash
+python generate.py --per-category 40 \
+    --base-url http://localhost:1234/v1/chat/completions \
+    --model qwen2.5-14b-instruct --delay 0 --batch 6
+```
+
+llama.cpp (`llama-server`):
+
+```bash
+python generate.py --per-category 20 \
+    --base-url http://127.0.0.1:8080/v1/chat/completions \
+    --model locale --delay 0 --batch 4
+```
+
+Note pratiche:
+
+- **`--delay 0`** con i modelli locali: non c'è limite al minuto da rispettare.
+- **`--batch 4` o `--batch 6`** se il modello tronca le risposte: i modelli locali
+  hanno finestre di contesto più corte e rispondono meglio a pacchetti piccoli.
+- Il modello deve essere buono in italiano: `qwen2.5:14b` è il compromesso
+  ragionevole; sotto i 7B la qualità delle domande e delle opzioni sbagliate cala.
+- Lo script tollera le risposte con i recinti markdown e riprova senza
+  `response_format` se il server non lo supporta, quindi funziona anche con
+  server che ignorano la modalità JSON.
+- Se una categoria resta corta, rilanciare solo quella:
+  `python generate.py --merge --categories Geografia --per-category 40`.
+- Se non raccoglie **niente**, esce con errore e **non tocca** la banca esistente.

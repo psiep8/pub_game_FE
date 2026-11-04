@@ -2,9 +2,14 @@
 
 Non ha dipendenze: solo Python 3.9+ e la libreria standard.
 
+Con Groq:
     export GROQ_API_KEY="gsk_..."          # macOS/Linux
     $env:GROQ_API_KEY="gsk_..."            # Windows PowerShell
     python generate.py --per-category 40
+
+Con un modello locale (Ollama + Qwen), nessuna chiave:
+    python generate.py --per-category 40 \\
+        --base-url http://localhost:11434/v1/chat/completions --model qwen2.5:14b --delay 0
 
 Il file prodotto va messo in apps/backend/src/main/resources/questions/questions-it.json
 e da quel momento il backend non chiama più nessun modello.
@@ -27,8 +32,8 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 
-GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-DEFAULT_MODEL = "openai/gpt-oss-120b"
+DEFAULT_BASE_URL = os.environ.get("LLM_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
+DEFAULT_MODEL = os.environ.get("LLM_MODEL", os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b"))
 
 CATEGORIES = [
     "Storia", "Scienza", "Sport", "Cinema", "Geografia", "Musica",
@@ -59,27 +64,69 @@ def looks_english(text: str) -> bool:
     return any(m in low for m in markers)
 
 
-def post_groq(api_key: str, model: str, prompt: str, max_tokens: int, temperature: float) -> str:
-    payload = json.dumps({
-        "model": model,
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": temperature,
-        "max_completion_tokens": max_tokens,
-        "response_format": {"type": "json_object"},
-    }).encode("utf-8")
+def clean_json_text(content: str) -> str:
+    """Toglie i recinti markdown: i modelli locali li aggiungono spesso."""
+    text = (content or "").strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```[a-zA-Z]*\s*", "", text)
+        text = re.sub(r"\s*```$", "", text)
+    start, end = text.find("{"), text.rfind("}")
+    if start >= 0 and end > start:
+        return text[start:end + 1]
+    start, end = text.find("["), text.rfind("]")
+    if start >= 0 and end > start:
+        return text[start:end + 1]
+    return text
 
-    req = urllib.request.Request(
-        GROQ_URL,
-        data=payload,
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=180) as response:
-        body = json.loads(response.read().decode("utf-8"))
-    return body["choices"][0]["message"]["content"]
+
+def post_llm(base_url: str, api_key: str, model: str, prompt: str,
+             max_tokens: int, temperature: float) -> str:
+    """Chiama un endpoint OpenAI-compatibile: Groq, Ollama, LM Studio, llama.cpp.
+
+    I server locali non accettano tutti gli stessi campi: si prova la variante
+    moderna (max_completion_tokens + response_format) e poi quelle permissive.
+    """
+    variants = [
+        (True, "max_completion_tokens"),
+        (True, "max_tokens"),
+        (False, "max_tokens"),
+    ]
+    last_error: Exception | None = None
+
+    for json_mode, token_field in variants:
+        body: dict[str, object] = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": temperature,
+            token_field: max_tokens,
+        }
+        if json_mode:
+            body["response_format"] = {"type": "json_object"}
+
+        headers = {"Content-Type": "application/json"}
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+
+        request = urllib.request.Request(
+            base_url,
+            data=json.dumps(body).encode("utf-8"),
+            headers=headers,
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=300) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            return payload["choices"][0]["message"]["content"]
+        except urllib.error.HTTPError as error:
+            last_error = error
+            # 429 = limite di richieste: non è un campo sbagliato, non ritentare qui.
+            if error.code == 429 or error.code not in (400, 404, 422, 500):
+                raise
+        except (KeyError, json.JSONDecodeError) as error:
+            last_error = error
+            break
+
+    raise last_error if last_error else RuntimeError("risposta del modello non valida")
 
 
 def build_prompt(category: str, count: int, difficulty: str, with_chrono: bool, avoid: list[str]) -> str:
@@ -163,7 +210,9 @@ def main() -> int:
     parser.add_argument("--out", default="apps/backend/src/main/resources/questions/questions-it.json")
     parser.add_argument("--per-category", type=int, default=40, help="domande richieste per categoria")
     parser.add_argument("--batch", type=int, default=12, help="domande per singola chiamata")
-    parser.add_argument("--model", default=os.environ.get("GROQ_MODEL", DEFAULT_MODEL))
+    parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument("--base-url", default=DEFAULT_BASE_URL,
+                        help="endpoint OpenAI-compatibile (Groq, Ollama, LM Studio, llama.cpp)")
     parser.add_argument("--delay", type=float, default=6.0, help="secondi tra una chiamata e l'altra")
     parser.add_argument("--difficulty", default="medio", choices=list(DIFFICULTY_HINT))
     parser.add_argument("--with-chrono", action="store_true", help="chiedi anche domande CHRONO")
@@ -172,9 +221,11 @@ def main() -> int:
     parser.add_argument("--merge", action="store_true", help="aggiunge alla banca già esistente invece di sostituirla")
     args = parser.parse_args()
 
-    api_key = os.environ.get("GROQ_API_KEY", "").strip()
-    if not api_key:
-        print("ERRORE: variabile GROQ_API_KEY assente.", file=sys.stderr)
+    api_key = (os.environ.get("LLM_API_KEY") or os.environ.get("GROQ_API_KEY") or "").strip()
+    is_local = any(token in args.base_url for token in
+                   ("localhost", "127.0.0.1", "0.0.0.0", "192.168.", "10.", "host.docker.internal"))
+    if not api_key and not is_local:
+        print("ERRORE: per un endpoint remoto serve LLM_API_KEY (o GROQ_API_KEY).", file=sys.stderr)
         return 2
 
     if args.seed is not None:
@@ -201,7 +252,8 @@ def main() -> int:
             want = min(args.batch, args.per_category - produced)
             prompt = build_prompt(category, want, args.difficulty, args.with_chrono, avoid)
             try:
-                raw = post_groq(api_key, args.model, prompt, max_tokens=max(900, want * 220), temperature=0.7)
+                raw = clean_json_text(post_llm(args.base_url, api_key, args.model, prompt,
+                                               max_tokens=max(900, want * 220), temperature=0.7))
             except urllib.error.HTTPError as error:
                 if error.code == 429:
                     print("  429: attendo 20s e riprovo")
@@ -272,12 +324,16 @@ def main() -> int:
         if produced < args.per_category:
             print(f"  ATTENZIONE: {category} ferma a {produced} domande")
 
+    if not collected:
+        print("ERRORE: nessuna domanda raccolta, la banca NON è stata toccata.", file=sys.stderr)
+        return 1
+
     collected.sort(key=lambda q: (q["category"], q["type"], q["question"]))
     bank = {
         "version": 1,
         "language": "it",
         "generatedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "source": f"groq:{args.model}",
+        "source": f"{args.base_url.split('/v1')[0]}:{args.model}",
         "questions": collected,
     }
 
