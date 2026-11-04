@@ -1,73 +1,62 @@
-# PubGame FE — Frontend Angular
+# PubGame — Monorepo
 
-Frontend Angular 21 per il gioco da pub multigiocatore con supporto AI, WebSocket e tunnel Cloudflare.
+Un unico repository per il gioco da pub multigiocatore: **frontend Angular** e **backend Spring Boot** convivono qui dentro.
+
+## Struttura
+
+```
+apps/
+├── frontend/   Angular 21 + PWA — /tv (schermo), /admin (votante), /play (telefono)
+└── backend/    Spring Boot 4 / Java 17 — REST, WebSocket STOMP/SockJS, AI Groq, H2 o MySQL
+scripts/        Utility per avviare Maven in modo cross-platform
+```
 
 ## Requisiti
 
-- Node.js 18+
-- Angular CLI 21 (`npm install -g @angular/cli`)
-- Cloudflared (solo per tunnel)
+- Node.js 18+ e npm 11
+- JDK 17+ (il backend dichiara Java 17)
+- `cloudflared` solo se usi i tunnel
 
-## Sviluppo locale
+## Installazione
 
 ```bash
-# Installa dipendenze
 npm install
-
-# Avvia in sviluppo (backend locale su 192.168.1.20:8080)
-ng serve --host 0.0.0.0
 ```
 
-Apri `http://localhost:4200` dal browser sul PC, oppure dal telefono con `http://192.168.1.20:4200`.
+Installa le dipendenze del frontend nel workspace `apps/frontend` (finiscono in `node_modules/` alla radice).
+Le dipendenze Java le scarica Maven al primo avvio.
 
-## Accessi
+## Sviluppo
+
+```bash
+# Frontend + backend insieme
+npm run dev
+
+# Oppure separati
+npm run dev:backend     # spring-boot:run dentro apps/backend  → http://localhost:8080
+npm run dev:frontend    # ng serve --host 0.0.0.0             → http://localhost:4200
+```
+
+Accessi dal browser:
 
 | Route | Dispositivo | Descrizione |
 |---|---|---|
 | `/tv` | Desktop | Schermata principale del gioco |
-| `/play` | Mobile | Telefono concorrenti (rispondono alle domande) |
-| `/admin` | Mobile | Pannello admin / votante (conferma risposte) |
+| `/play` | Mobile | Telefono dei concorrenti |
+| `/admin` | Mobile | Pannello admin / votante |
 
-## Build
+## Build e test
 
 ```bash
-# Build produzione
-ng build --configuration production
-
-# Build PWA (rete locale)
-ng build --configuration pwa
-
-# Build tunnel
-ng build --configuration tunnel
+npm run build:frontend    # ng build (produzione) → apps/frontend/dist
+npm run build:backend     # mvnw package -DskipTests → apps/backend/target
+npm run test:frontend
+npm run test:backend
 ```
 
-## Tunnel Cloudflare
+## Configurazione
 
-Esponi frontend e backend su internet per test da dispositivi esterni:
-
-### Windows
-```powershell
-.\start-tunnel.ps1
-```
-
-### Linux / WSL
-```bash
-chmod +x start-tunnel.sh
-./start-tunnel.sh
-```
-
-Poi in un altro terminale:
-```bash
-ng serve -c tunnel
-```
-
-Lo script aggiorna automaticamente `environment.tunnel.ts` con gli URL pubblici `.trycloudflare.com`.
-I 3 accessi diventano:
-- `https://{fe-tunnel}.trycloudflare.com/tv`
-- `https://{fe-tunnel}.trycloudflare.com/play`
-- `https://{fe-tunnel}.trycloudflare.com/admin`
-
-## Configurazioni ambiente
+**Frontend** — `apps/frontend/src/app/environment/`:
 
 | File | Uso |
 |---|---|
@@ -76,19 +65,23 @@ I 3 accessi diventano:
 | `environment.tunnel.ts` | Tunnel Cloudflare (`ng serve -c tunnel`) |
 | `environment.pwa.ts` | Build PWA (`ng build -c pwa`) |
 
-## Struttura
+**Backend** — `apps/backend/application.yml` (porta 8080, H2 in memoria di default).
+Variabili opzionali: `GROQ_API_KEY` (domande AI), `TMDB_API_KEY` (immagini). Senza chiavi il backend usa i fallback locali.
+Profilo MySQL: `node scripts/mvn.mjs spring-boot:run -Dspring-boot.run.profiles=mysql`.
 
+## Tunnel Cloudflare
+
+Espone frontend (4200) e backend (8080) su internet:
+
+```bash
+cd apps/frontend
+./start-tunnel.sh          # Linux/WSL
+.\start-tunnel.ps1         # Windows PowerShell
 ```
-src/
-├── app/
-│   ├── components/
-│   │   ├── admin/          # Pannello admin/votante
-│   │   ├── game-component/ # Schermata TV (tutti i giochi)
-│   │   ├── leaderboard/    # Classifiche
-│   │   └── remote-component/ # Telecomando concorrenti
-│   ├── services/           # WebSocket, Game, AI, Audio, etc.
-│   ├── guard/              # Route guards (mobile/desktop)
-│   └── environment/        # Configurazioni ambiente
-└── start-tunnel.ps1        # Script tunnel Windows
-└── start-tunnel.sh         # Script tunnel Linux/WSL
+
+Lo script aggiorna `apps/frontend/src/app/environment/environment.tunnel.ts` con gli URL `.trycloudflare.com`.
+Poi avvia il frontend in modalità tunnel:
+
+```bash
+cd apps/frontend && npx ng serve -c tunnel
 ```
