@@ -7,7 +7,7 @@ Un unico repository per il gioco da pub multigiocatore: **frontend Angular** e *
 ```
 apps/
 ├── frontend/   Angular 22 + PWA — /tv (schermo), /admin (votante), /play (telefono)
-└── backend/    Spring Boot 4 / Java 21 — REST, WebSocket STOMP, AI Groq, H2 o MySQL
+└── backend/    Spring Boot 4 / Java 25 — REST, WebSocket STOMP, AI Groq, H2 o MySQL
 scripts/        Avvio unificato (dev, Maven) e lettura di .env
 .env            Configurazione locale: porte e host
 ```
@@ -15,7 +15,7 @@ scripts/        Avvio unificato (dev, Maven) e lettura di .env
 ## Requisiti
 
 - Node.js 22.22+ (oppure 24.15+ / 26+) e npm 11 — requisito di Angular 22
-- JDK 21+ (il pom compila per la 21 installata; con la 25, ultima LTS, basta cambiare `java.version`)
+- JDK 25 obbligatorio (ultima LTS): `maven-enforcer` ferma la build con un messaggio esplicito se `JAVA_HOME` punta a una versione precedente
 - `cloudflared` solo se usi i tunnel
 
 ## Installazione

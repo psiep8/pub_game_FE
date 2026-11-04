@@ -14,8 +14,8 @@
     <name>pub_game_BE</name>
     <description>pub_game_BE</description>
     <properties>
-        <!-- Java 21 LTS installata sulla macchina; con un JDK 25 (ultima LTS) basta portare java.version a 25 -->
-        <java.version>21</java.version>
+        <!-- Ultima LTS: la 25 è obbligatoria, maven-enforcer blocca la build con JDK precedenti -->
+        <java.version>25</java.version>
     </properties>
     <dependencies>
         <dependency>
@@ -105,6 +105,32 @@
                         </exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+                <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.6.3</version>
+                <executions>
+                    <execution>
+                        <id>enforce-java</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>[25,)</version>
+                                    <message>Serve JDK 25 o superiore (ultima LTS): installa la 25 e imposta JAVA_HOME prima di compilare.</message>
+                                </requireJavaVersion>
+                                <requireMavenVersion>
+                                    <version>[3.9,)</version>
+                                    <message>Serve Maven 3.9 o superiore: usa ./mvnw, che scarica la versione corretta.</message>
+                                </requireMavenVersion>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
