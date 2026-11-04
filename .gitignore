@@ -29,3 +29,7 @@ Thumbs.db
 !.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/mcp.json
+
+# Script Python di utilità
+__pycache__/
+*.pyc
