@@ -13,6 +13,26 @@ import { GameService } from '../../services/game.service';
   templateUrl: './remote-component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './remote-component.css',
+  styles: [`
+    .timeline-remote, .price-remote, .speed-remote, .ping-remote {
+      display: flex; flex-direction: column; gap: 14px; padding: 16px; height: 100%; justify-content: center;
+    }
+    .party-instruction { text-align: center; font-size: .95rem; opacity: .85; margin: 0; }
+    .party-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .party-card { position: relative; padding: 14px 10px; border-radius: 14px; border: 2px solid rgba(255,255,255,.15); background: rgba(255,255,255,.06); color: #fff; font-size: .9rem; text-align: left; }
+    .party-card.selected { border-color: #a78bfa; background: rgba(167,139,250,.25); }
+    .party-badge { display: inline-block; width: 20px; height: 20px; line-height: 20px; border-radius: 50%; background: #a78bfa; color: #1e1b4b; font-weight: 800; font-size: .75rem; text-align: center; margin-right: 6px; }
+    .price-product { display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 700; }
+    .price-emoji { font-size: 2rem; }
+    .price-display { text-align: center; font-size: 2.4rem; font-weight: 900; letter-spacing: 2px; }
+    .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .key { padding: 16px; font-size: 1.3rem; border-radius: 12px; border: none; background: rgba(255,255,255,.12); color: #fff; }
+    .key:active { background: rgba(255,255,255,.3); }
+    .speed-big { width: 100%; min-height: 150px; font-size: 2rem; font-weight: 900; border-radius: 20px; border: none; background: linear-gradient(135deg,#f97316,#fbbf24); color: #1f2937; }
+    .emoji-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .emoji-btn { padding: 22px; font-size: 2rem; border-radius: 16px; border: none; background: rgba(255,255,255,.12); color: #fff; }
+    .ping-hit { width: 100%; min-height: 200px; font-size: 2.4rem; font-weight: 900; border-radius: 24px; border: none; background: linear-gradient(135deg,#22d3ee,#a78bfa); color: #0f172a; }
+  `],
 })
 export class RemoteComponent implements OnInit, OnDestroy {
 
@@ -27,7 +47,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR'>('WAITING');
-  questionType = signal<'ROULETTE' | 'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE' | 'SCREAM_RACE' | 'ARENA'>('QUIZ');
+  questionType = signal<'ROULETTE' | 'QUIZ' | 'TRUE_FALSE' | 'MUSIC' | 'IMAGE_BLUR' | 'CHRONO' | 'WHEEL_OF_FORTUNE' | 'SCREAM_RACE' | 'ARENA' | 'TIMELINE' | 'PRICE' | 'SPEED_RUSH' | 'PING_PONG'>('QUIZ');
   hasAnswered = signal(false);
   isBlocked = signal(false);
   selectedYear = signal<number>(2000);
@@ -46,6 +66,25 @@ export class RemoteComponent implements OnInit, OnDestroy {
   categories = signal<any[]>([]);
 
   currentRoundType: string = '';
+
+  // ---- Giochi simultanei: stato locale del telefono ----
+  timelineCards = signal<Array<{ id: number; label: string }>>([]);
+  timelineOrder = signal<number[]>([]);
+
+  priceEstimate = signal<string>('');
+  priceName = signal<string>('');
+  priceEmoji = signal<string>('🛒');
+  priceKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', '⌫'];
+
+  speedKind = signal<'idle' | 'tap' | 'odd' | 'order'>('idle');
+  speedTapCount = signal(0);
+  speedOdd = signal<string[]>([]);
+  private speedOddAnswer = '';
+  speedSequence = signal<number[]>([]);
+  speedPicked = signal<number[]>([]);
+
+  pingHits = signal(0);
+  private lastPingAt = 0;
 
   showInstallBanner = signal(false);
   showIosInstallBanner = signal(false);
@@ -150,6 +189,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'ROUND_ENDED':
         case 'REVEAL':
+          this.speedKind.set('idle');
+          this.timelineOrder.set([]);
+          this.priceEstimate.set('');
           // Round chiuso: spegni il microfono, altrimenti il telefono continua
           // a inviare urli (10 messaggi/s) anche nei round successivi.
           this.stopMicrophoneListening();
@@ -488,7 +530,163 @@ export class RemoteComponent implements OnInit, OnDestroy {
       }
     } else if (type === 'ARENA') {
       this.generateNextArenaQuestion();
+    } else if (type === 'TIMELINE') {
+      const data = this.parsePayload(payload);
+      this.timelineCards.set(data?.items ?? []);
+      this.timelineOrder.set([]);
+    } else if (type === 'PRICE') {
+      const data = this.parsePayload(payload);
+      this.priceName.set(data?.name ?? '');
+      this.priceEmoji.set(data?.emoji ?? '🛒');
+      this.priceEstimate.set('');
+    } else if (type === 'SPEED_RUSH') {
+      this.startSpeedRush();
+    } else if (type === 'PING_PONG') {
+      this.pingHits.set(0);
     }
+  }
+
+  // ------------------------------------------------- Giochi simultanei
+
+  private parsePayload(payload: any): any {
+    if (!payload) return {};
+    if (typeof payload === 'string') {
+      try {
+        return JSON.parse(payload);
+      } catch {
+        return {};
+      }
+    }
+    return payload;
+  }
+
+  toggleTimelineCard(id: number): void {
+    const order = this.timelineOrder();
+    this.timelineOrder.set(order.includes(id) ? order.filter((value) => value !== id) : [...order, id]);
+    this.vibrate(10);
+  }
+
+  sendTimelineAnswer(): void {
+    const playerName = this.nickname();
+    if (!playerName || this.timelineOrder().length !== this.timelineCards().length) return;
+
+    this.hasAnswered.set(true);
+    this.gameService.submitTimeline(this.gameId(), playerName, this.timelineOrder()).subscribe({
+      next: () => this.gameState.set('WAITING'),
+      error: () => this.gameState.set('WAITING'),
+    });
+    this.vibrate(40);
+  }
+
+  pricePress(key: string): void {
+    const current = this.priceEstimate();
+    if (current.length >= 8) return;
+    if (key === '.' && current.includes('.')) return;
+    this.priceEstimate.set(current + key);
+    this.vibrate(8);
+  }
+
+  priceBackspace(): void {
+    this.priceEstimate.set(this.priceEstimate().slice(0, -1));
+  }
+
+  sendPriceAnswer(): void {
+    const playerName = this.nickname();
+    const value = parseFloat(this.priceEstimate().replace(',', '.'));
+    if (!playerName || !isFinite(value) || value <= 0) return;
+
+    this.hasAnswered.set(true);
+    this.gameService.submitPrice(this.gameId(), playerName, value).subscribe({
+      next: () => this.gameState.set('WAITING'),
+      error: () => this.gameState.set('WAITING'),
+    });
+    this.vibrate(40);
+  }
+
+  startSpeedRush(): void {
+    this.speedPicked.set([]);
+    this.nextSpeedTask();
+  }
+
+  private nextSpeedTask(): void {
+    const kinds = ['tap', 'odd', 'order'] as const;
+    const kind = kinds[Math.floor(Math.random() * kinds.length)];
+    this.speedKind.set(kind);
+
+    if (kind === 'tap') {
+      this.speedTapCount.set(0);
+      return;
+    }
+
+    if (kind === 'odd') {
+      const base = ['🍎', '🍌', '🍇', '🍒'];
+      const odd = '🍋';
+      const set = [...base];
+      set[Math.floor(Math.random() * set.length)] = odd;
+      this.speedOdd.set(set);
+      this.speedOddAnswer = odd;
+      return;
+    }
+
+    const numbers = [1, 2, 3].sort(() => Math.random() - 0.5);
+    this.speedSequence.set(numbers);
+    this.speedPicked.set([]);
+  }
+
+  speedTap(): void {
+    const next = this.speedTapCount() + 1;
+    this.vibrate(8);
+    if (next >= 8) {
+      this.completeSpeedTask(true);
+      return;
+    }
+    this.speedTapCount.set(next);
+  }
+
+  speedPickOdd(emoji: string): void {
+    this.completeSpeedTask(emoji === this.speedOddAnswer);
+  }
+
+  speedPickNumber(value: number): void {
+    const expected = [...this.speedPicked(), value];
+    const sorted = [...this.speedSequence()].sort((a, b) => a - b);
+    const stillRight = expected.every((picked, index) => picked === sorted[index]);
+
+    if (!stillRight) {
+      this.completeSpeedTask(false);
+      return;
+    }
+
+    this.vibrate(10);
+    this.speedPicked.set(expected);
+
+    if (expected.length === sorted.length) {
+      this.completeSpeedTask(true);
+    }
+  }
+
+  private completeSpeedTask(correct: boolean): void {
+    this.ws.broadcastStatus(this.gameId(), {
+      action: 'SPEED_RUSH_PROGRESS',
+      playerName: this.nickname(),
+      correct,
+    });
+    this.vibrate(correct ? 30 : [40, 40, 40]);
+    this.speedKind.set('idle');
+    setTimeout(() => this.nextSpeedTask(), 300);
+  }
+
+  sendPingPongHit(): void {
+    const now = Date.now();
+    if (now - this.lastPingAt < 180 || !this.nickname()) return;
+    this.lastPingAt = now;
+
+    this.pingHits.update((value) => value + 1);
+    this.ws.broadcastStatus(this.gameId(), {
+      action: 'PING_PONG_HIT',
+      playerName: this.nickname(),
+    });
+    this.vibrate(20);
   }
 
   generateNextArenaQuestion() {
@@ -534,16 +732,19 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.gameService
       .answerArenaQuestion(this.gameId(), playerName, q.questionId, q.options[index])
       .subscribe({
-        next: (res) => {
+        next: (res: any) => {
           const isCorrect = !!res.correct;
+          const points = typeof res.points === 'number' ? res.points : (isCorrect ? 10 : -10);
           this.ws.broadcastStatus(this.gameId(), {
             action: 'ARENA_ANSWER',
             playerName,
             isCorrect,
-            points: isCorrect ? 10 : -10
+            points
           });
           this.vibrate(isCorrect ? 50 : [50, 50, 50]);
-          this.generateNextArenaQuestion();
+          this.arenaQuestion.set(null);
+          // Dopo un errore 1,5 s di blocco: rispondere a caso non conviene più.
+          setTimeout(() => this.generateNextArenaQuestion(), isCorrect ? 0 : 1500);
         },
         error: (err: any) => {
           console.error('❌ Risposta arena rifiutata dal server:', err);

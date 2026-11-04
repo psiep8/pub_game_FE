@@ -13,6 +13,10 @@ import { RouletteMode } from '../components/game-component/mode/roulette.mode';
 import { MusicMode } from '../components/game-component/mode/music.mode';
 import { ScreamRaceMode } from '../components/game-component/mode/scream-race.mode';
 import { ArenaMode } from '../components/game-component/mode/arena.mode';
+import { TimelineMode } from '../components/game-component/mode/timeline.mode';
+import { PriceMode } from '../components/game-component/mode/price.mode';
+import { SpeedRushMode } from '../components/game-component/mode/speed-rush.mode';
+import { PingPongMode } from '../components/game-component/mode/ping-pong.mode';
 
 type ModeFactory = (config: GameModeConfig) => IGameMode;
 
@@ -36,6 +40,10 @@ export class GameModeService {
     MUSIC: (config) => this.withConfig(new MusicMode(), config),
     SCREAM_RACE: (config) => this.withConfig(new ScreamRaceMode(), config),
     ARENA: (config) => this.withConfig(new ArenaMode(), config),
+    TIMELINE: (config) => this.withConfig(new TimelineMode(), config),
+    PRICE: (config) => this.withConfig(new PriceMode(), config),
+    SPEED_RUSH: (config) => this.withConfig(new SpeedRushMode(), config),
+    PING_PONG: (config) => this.withConfig(new PingPongMode(), config),
   };
 
   createMode(config: GameModeConfig): IGameMode {

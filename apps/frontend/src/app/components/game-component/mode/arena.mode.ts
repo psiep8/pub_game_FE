@@ -156,7 +156,9 @@ export class ArenaMode extends GameModeBase {
     const team = currentTeams.get(teamKey);
     if (!team || team.eliminated) return;
 
-    const movement = isCorrect ? -15 : 10;
+    // Bilanciamento: con il 50% di risposte a caso il movimento atteso deve
+    // essere negativo. Giusta -10, sbagliata +15: pareggio al 60% di esatte.
+    const movement = isCorrect ? -10 : 15;
     currentTeams.set(teamKey, {
       ...team,
       distance: Math.max(0, Math.min(100, team.distance + movement)),

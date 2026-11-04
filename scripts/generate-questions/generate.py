@@ -156,8 +156,9 @@ def build_prompt(category: str, count: int, difficulty: str, with_chrono: bool, 
         "7. Scrivi domanda, opzioni e risposte SOLO in italiano.\n"
         f"{avoid_block}"
         "Formato di risposta (solo JSON):\n"
-        '{"questions": [{"question": "...", "type": "QUIZ", "options": ["A","B","C","D"], '
-        '"correctAnswer": "A", "difficulty": "medio"}, '
+        '{"questions": [{"question": "Qual e la capitale d Italia?", "type": "QUIZ", '
+        '"options": ["Roma", "Milano", "Napoli", "Torino"], '
+        '"correctAnswer": "Roma", "difficulty": "medio"}, '
         '{"question": "...", "type": "TRUE_FALSE", "options": ["VERO","FALSO"], '
         '"correctAnswer": "VERO", "difficulty": "facile", "explanation": "..."}]}'
     )
@@ -198,6 +199,8 @@ def validate(item: dict, category: str, difficulty: str) -> tuple[bool, str]:
 
     if len(options) != 4:
         return False, "QUIZ con un numero di opzioni diverso da 4"
+    if all(len(str(o).strip()) <= 1 for o in options):
+        return False, "QUIZ con opzioni segnaposto (A/B/C/D)"
     if len({normalize(o) for o in options}) != 4:
         return False, "QUIZ con opzioni duplicate"
     if answer not in options:
@@ -251,6 +254,10 @@ def main() -> int:
             attempts += 1
             want = min(args.batch, args.per_category - produced)
             prompt = build_prompt(category, want, args.difficulty, args.with_chrono, avoid)
+            if args.model.lower().startswith("qwen3"):
+                # Qwen3 ragiona prima di rispondere: su CPU raddoppia i tempi e
+                # il ragionamento non serve per un quiz. "/no_think" lo spegne.
+                prompt += "\n/no_think"
             try:
                 raw = clean_json_text(post_llm(args.base_url, api_key, args.model, prompt,
                                                max_tokens=max(900, want * 220), temperature=0.7))
@@ -305,7 +312,7 @@ def main() -> int:
                     "id": f"{slug(category)}-{len(collected) + 1:04d}",
                     "category": category,
                     "type": qtype,
-                    "difficulty": item.get("difficulty", args.difficulty),
+                    "difficulty": args.difficulty,
                     "question": question,
                     "correctAnswer": answer,
                     "options": options,

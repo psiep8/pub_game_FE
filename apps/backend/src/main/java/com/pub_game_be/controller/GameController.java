@@ -10,6 +10,7 @@ import com.pub_game_be.repository.GameRoundRepository;
 import com.pub_game_be.service.GameService;
 import com.pub_game_be.service.QuestionHistoryService;
 import com.pub_game_be.service.QuestionPoolService;
+import com.pub_game_be.service.PartyGameService;
 import com.pub_game_be.service.QuestionBankService;
 import com.pub_game_be.service.SimpleRoundService;
 import org.json.JSONObject;
@@ -33,6 +34,7 @@ public class GameController {
     private final SimpMessagingTemplate messagingTemplate;
     private final QuestionHistoryService questionHistory;
     private final QuestionPoolService questionPoolService;
+    private final PartyGameService partyGameService;
 
     public GameController(GameRepository gameRepo,
             GameRoundRepository gameRoundRepository,
@@ -41,7 +43,8 @@ public class GameController {
             QuestionBankService questionBank,
             SimpMessagingTemplate messagingTemplate,
             QuestionHistoryService questionHistory,
-            QuestionPoolService questionPoolService) {
+            QuestionPoolService questionPoolService,
+            PartyGameService partyGameService) {
         this.gameRepo = gameRepo;
         this.gameRoundRepository = gameRoundRepository;
         this.simpleRoundService = simpleRoundService;
@@ -50,6 +53,7 @@ public class GameController {
         this.messagingTemplate = messagingTemplate;
         this.questionHistory = questionHistory;
         this.questionPoolService = questionPoolService;
+        this.partyGameService = partyGameService;
     }
 
     @PostMapping
@@ -70,10 +74,20 @@ public class GameController {
             @RequestParam("type") String type,
             @RequestParam("difficulty") String difficulty) {
 
-        // La deduplica la fa la banca: se la domanda è già uscita ne pesca un'altra.
-        String aiPayload = questionBank.generateQuestionJson(category, type, difficulty,
-                key -> !questionHistory.isUsed(gameId, key));
-        questionHistory.claim(gameId, QuestionBankService.payloadDedupeKey(aiPayload));
+        String aiPayload;
+        if (partyGameService.handles(type)) {
+            // Timeline, Quanto costa, Speed Rush e Ping Pong non usano la banca
+            // domande: il payload (e lo stato del round) vive nel servizio party.
+            aiPayload = partyGameService.startRound(gameId, type);
+            if (aiPayload == null) {
+                throw new RuntimeException("Tipo di gioco non gestito: " + type);
+            }
+        } else {
+            // La deduplica la fa la banca: se la domanda è già uscita ne pesca un'altra.
+            aiPayload = questionBank.generateQuestionJson(category, type, difficulty,
+                    key -> !questionHistory.isUsed(gameId, key));
+            questionHistory.claim(gameId, QuestionBankService.payloadDedupeKey(aiPayload));
+        }
 
         Game game = gameRepo.findById(gameId)
                 .orElseThrow(() -> new RuntimeException("Gioco non trovato"));
@@ -115,15 +129,38 @@ public class GameController {
 
         QuestionBankService.ArenaQuestion question = questionPoolService
                 .poll(gameId, category)
-                .or(() -> questionBank.generateArenaQuestion(category, isAvailable))
-                .or(() -> questionBank.fallbackArenaQuestion(category, isAvailable))
-                .or(() -> questionBank.fallbackArenaQuestion(isAvailable))
-                .or(() -> questionBank.fallbackArenaQuestion(candidate -> true))
-                .orElseThrow(() -> new RuntimeException("Nessuna domanda disponibile per la categoria " + category));
+                .orElse(null);
+
+        if (question == null) {
+            // Alternanza VERO/FALSO per partita: la banca pende verso VERO, così
+            // indovinare sempre VERO non conviene più. Se il lato richiesto è
+            // esaurito nella categoria si allarga alle altre, invece di servire
+            // sempre lo stesso lato fino a fine partita.
+            boolean preferTrue = questionHistory.preferTrueSide(gameId);
+            question = pickPreferredSide(questionBank.generateArenaBatch(category, 8, isAvailable), preferTrue);
+
+            if (question == null) {
+                List<QuestionBankService.ArenaQuestion> anyCategory = questionBank
+                        .generateArenaBatch(null, 8, isAvailable);
+                question = pickPreferredSide(anyCategory, preferTrue);
+                if (question == null && !anyCategory.isEmpty()) {
+                    question = anyCategory.get(0);
+                }
+            }
+        }
+
+        if (question == null) {
+            question = questionBank.fallbackArenaQuestion(category, isAvailable)
+                    .or(() -> questionBank.fallbackArenaQuestion(isAvailable))
+                    .or(() -> questionBank.fallbackArenaQuestion(candidate -> true))
+                    .orElseThrow(() -> new RuntimeException(
+                            "Nessuna domanda disponibile per la categoria " + category));
+        }
 
         // Segna il fatto come uscito: nessun altro dispositivo riceverà la stessa domanda.
         questionHistory.claim(gameId, question.key());
         questionHistory.claim(gameId, question.answerKey());
+        questionHistory.countArenaSide(gameId, "VERO".equalsIgnoreCase(question.correctAnswer()));
 
         String questionId = questionHistory.nextQuestionId(gameId);
         questionHistory.assign(gameId, new QuestionHistoryService.ArenaAssignment(questionId, playerId,
@@ -133,6 +170,15 @@ public class GameController {
         response.put("questionId", questionId);
         response.put("playerId", playerId);
         return response.toString();
+    }
+
+    /** Prima domanda del lato richiesto, se disponibile. */
+    private QuestionBankService.ArenaQuestion pickPreferredSide(
+            List<QuestionBankService.ArenaQuestion> candidates, boolean preferTrue) {
+        return candidates.stream()
+                .filter(candidate -> "VERO".equalsIgnoreCase(candidate.correctAnswer()) == preferTrue)
+                .findFirst()
+                .orElse(null);
     }
 
     private String normalizeWheelPayload(String aiPayload) {

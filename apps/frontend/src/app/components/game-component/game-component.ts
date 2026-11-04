@@ -40,6 +40,10 @@ import { LeaderboardQuick } from '../leaderboard/leaderboard-quick-component/lea
 import { LeaderboardDetailed } from '../leaderboard/leaderboard-detailed-component/leaderboard-detailed-component';
 import { ScreamRace } from './games/scream-race/scream-race.component';
 import { ArenaComponent } from './games/arena/arena.component';
+import { Timeline } from './games/timeline/timeline';
+import { Price } from './games/price/price';
+import { SpeedRush } from './games/speed-rush/speed-rush';
+import { PingPong } from './games/ping-pong/ping-pong';
 
 @Component({
   selector: 'app-game-component',
@@ -56,7 +60,11 @@ import { ArenaComponent } from './games/arena/arena.component';
     LeaderboardQuick,
     LeaderboardDetailed,
     ScreamRace,
-    ArenaComponent
+    ArenaComponent,
+    Timeline,
+    Price,
+    SpeedRush,
+    PingPong
   ],
   templateUrl: './game-component.html',
   styleUrl: './game-component.css',
@@ -197,8 +205,22 @@ export class GameComponent implements OnInit, OnDestroy {
         } else {
           console.log('%c 🎤 Urlo ignorato in GameComponent: ', 'color: #ff9800', intensity);
         }
-      } else {
-        console.warn('%c 🎤 Azione rapida non gestita! ', 'background: #b71c1c; color: #fff', mode?.type);
+        return;
+      }
+
+      // Voti e prenotazioni dei telefoni: prima finivano solo nel log, quindi
+      // Quiz non assegnava punti e i giochi a prenotazione non si chiudevano.
+      const playerName = String(resp.playerName || resp.name || '').trim();
+      if (!mode || !playerName) return;
+
+      if (resp.answerIndex === -1) {
+        this.onPlayerBuzz(playerName);
+        return;
+      }
+
+      if (typeof resp.answerIndex === 'number') {
+        mode.handleAnswer(playerName, resp.answerIndex, Number(resp.responseTimeMs) || 0);
+        this.cdr.detectChanges();
       }
     });
 
@@ -240,7 +262,8 @@ export class GameComponent implements OnInit, OnDestroy {
       if (mode?.type === 'ARENA' && status.action === 'ARENA_ANSWER') {
         const playerName = (status.playerName || status.name || 'Sconosciuto').trim();
         const isCorrect = !!status.isCorrect;
-        const points = isCorrect ? 10 : -10;
+        // Il server ora assegna +10/-10: usiamo i suoi punti se presenti.
+        const points = typeof status.points === 'number' ? status.points : (isCorrect ? 10 : -10);
         console.log(`%c 🏟️ Arena TV -> Risposta rapida: ${playerName} (corretta: ${isCorrect}) `, 'background: #3f51b5; color: #fff;');
 
         // Add points to leaderboard immediately
@@ -248,6 +271,12 @@ export class GameComponent implements OnInit, OnDestroy {
 
         // Update mode logic (dot movement)
         mode.applyArenaAnswer?.(playerName, isCorrect, points);
+        this.cdr.detectChanges();
+      }
+
+      // 🆕 Giochi simultanei: risultati dal server e progressi dai telefoni.
+      if (mode && ['TIMELINE_RESULT', 'PRICE_ANSWER', 'SPEED_RUSH_PROGRESS', 'PING_PONG_HIT'].includes(status.action)) {
+        mode.handlePartyEvent?.(status);
         this.cdr.detectChanges();
       }
 
@@ -514,6 +543,11 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'FORTUNA';
       case 'ARENA':
         return 'ARENA';
+      case 'TIMELINE':
+      case 'PRICE':
+      case 'SPEED_RUSH':
+      case 'PING_PONG':
+        return 'CULTURA GENERALE';
       default:
         const categories = this.allCategories();
         if (categories.length === 0) return 'CULTURA GENERALE';
@@ -545,6 +579,14 @@ export class GameComponent implements OnInit, OnDestroy {
       //   return '1 CONTRO 1';
       case 'ARENA':
         return 'ARENA BATTLE ROYALE';
+      case 'TIMELINE':
+        return 'TIMELINE';
+      case 'PRICE':
+        return 'QUANTO COSTA?';
+      case 'SPEED_RUSH':
+        return 'SPEED RUSH';
+      case 'PING_PONG':
+        return 'PING PONG';
       default:
         return type;
     }

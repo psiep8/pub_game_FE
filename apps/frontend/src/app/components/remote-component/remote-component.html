@@ -104,6 +104,78 @@
       <button (click)="sendChronoAnswer()" class="confirm-btn">INVIA ANNO</button>
     </div>
     }
+    @case ('TIMELINE') {
+    <div class="timeline-remote">
+      <p class="party-instruction">
+        Tocca le carte dalla più antica alla più recente ({{ timelineOrder().length }}/{{ timelineCards().length }})
+      </p>
+      <div class="party-grid">
+        @for (card of timelineCards(); track card.id) {
+        <button class="party-card" [class.selected]="timelineOrder().includes(card.id)"
+          (click)="toggleTimelineCard(card.id)">
+          @if (timelineOrder().includes(card.id)) {
+          <span class="party-badge">{{ timelineOrder().indexOf(card.id) + 1 }}</span>
+          }
+          {{ card.label }}
+        </button>
+        }
+      </div>
+      <button class="confirm-btn" [disabled]="timelineOrder().length !== timelineCards().length"
+        (click)="sendTimelineAnswer()">INVIA ORDINE</button>
+    </div>
+    }
+    @case ('PRICE') {
+    <div class="price-remote">
+      <div class="price-product">
+        <span class="price-emoji">{{ priceEmoji() }}</span>
+        <span>{{ priceName() }}</span>
+      </div>
+      <div class="price-display">{{ priceEstimate() || '0' }} €</div>
+      <div class="keypad">
+        @for (key of priceKeys; track key) {
+        <button class="key" (click)="key === '⌫' ? priceBackspace() : pricePress(key)">{{ key }}</button>
+        }
+      </div>
+      <button class="confirm-btn" [disabled]="!priceEstimate()" (click)="sendPriceAnswer()">INVIA STIMA</button>
+    </div>
+    }
+    @case ('SPEED_RUSH') {
+    <div class="speed-remote">
+      @switch (speedKind()) {
+      @case ('tap') {
+      <button class="speed-big" (click)="speedTap()">TAP! {{ speedTapCount() }}/8</button>
+      }
+      @case ('odd') {
+      <p class="party-instruction">Tocca l'intruso</p>
+      <div class="emoji-grid">
+        @for (emoji of speedOdd(); track $index) {
+        <button class="emoji-btn" (click)="speedPickOdd(emoji)">{{ emoji }}</button>
+        }
+      </div>
+      }
+      @case ('order') {
+      <p class="party-instruction">Tocca i numeri dal più piccolo</p>
+      <div class="emoji-grid">
+        @for (number of speedSequence(); track number) {
+        <button class="emoji-btn" (click)="speedPickNumber(number)">{{ number }}</button>
+        }
+      </div>
+      }
+      @default {
+      <div class="status-msg">
+        <div class="loader"></div>
+        <p>Preparazione prova...</p>
+      </div>
+      }
+      }
+    </div>
+    }
+    @case ('PING_PONG') {
+    <div class="ping-remote">
+      <button class="ping-hit" (click)="sendPingPongHit()">COLPO! 🏓</button>
+      <p class="party-instruction">Colpi: {{ pingHits() }}</p>
+    </div>
+    }
     @case ('SCREAM_RACE') {
     <div class="scream-race-remote-modern">
 

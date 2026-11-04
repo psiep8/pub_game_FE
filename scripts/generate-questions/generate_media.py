@@ -34,6 +34,7 @@ ITUNES = "https://itunes.apple.com/search"
 TMDB_PERSON = "https://api.themoviedb.org/3/search/person"
 TMDB_IMAGE = "https://image.tmdb.org/t/p/w500"
 WIKI_SUMMARY = "https://it.wikipedia.org/api/rest_v1/page/summary/{}"
+WIKI_API = "https://it.wikipedia.org/w/api.php"
 
 MUSIC_SEARCHES = [
     "Vasco Rossi", "Ligabue", "Eros Ramazzotti", "Laura Pausini", "Zucchero",
@@ -58,6 +59,21 @@ PEOPLE = [
     ("LeBron James", "Sport"), ("Michael Jordan", "Sport"), ("Diego Armando Maradona", "Sport"),
     ("Gerry Scotti", "Televisione"), ("Maria De Filippi", "Televisione"), ("Paolo Bonolis", "Televisione"),
     ("Federica Sciarelli", "Televisione"), ("Carlo Conti", "Televisione"), ("Amadeus", "Televisione"),
+    ("Sofia Vergara", "Cinema"), ("Penelope Cruz", "Cinema"), ("Javier Bardem", "Cinema"),
+    ("Scarlett Johansson", "Cinema"), ("Tom Hanks", "Cinema"), ("Julia Roberts", "Cinema"),
+    ("Cate Blanchett", "Cinema"), ("Denzel Washington", "Cinema"), ("Emma Watson", "Cinema"),
+    ("Vin Diesel", "Cinema"), ("Margot Robbie", "Cinema"), ("Dwayne Johnson", "Cinema"),
+    ("Adele", "Musica"), ("Shakira", "Musica"), ("Rihanna", "Musica"),
+    ("Bruce Springsteen", "Musica"), ("David Bowie", "Musica"), ("Lady Gaga", "Musica"),
+    ("Bob Dylan", "Musica"), ("Marco Mengoni", "Musica"), ("Elisa", "Musica"),
+    ("Tiziano Ferro", "Musica"), ("Annalisa", "Musica"),
+    ("Federica Pellegrini", "Sport"), ("Jannik Sinner", "Sport"), ("Rafael Nadal", "Sport"),
+    ("Usain Bolt", "Sport"), ("Serena Williams", "Sport"), ("Paolo Maldini", "Sport"),
+    ("Gianluigi Buffon", "Sport"), ("Alberto Tomba", "Sport"), ("Simone Biles", "Sport"),
+    ("Fiorello", "Televisione"), ("Bruno Vespa", "Televisione"), ("Milly Carlucci", "Televisione"),
+    ("Mara Venier", "Televisione"), ("Pippo Baudo", "Televisione"), ("Alfonso Signorini", "Televisione"),
+    ("Lewis Hamilton", "Motori"), ("Charles Leclerc", "Motori"), ("Michael Schumacher", "Motori"),
+    ("Ayrton Senna", "Motori"), ("Max Verstappen", "Motori"), ("Sebastian Vettel", "Motori"),
 ]
 
 IMAGE_EXTENSIONS = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
@@ -69,24 +85,65 @@ def slug(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", value).strip("-")[:60] or "file"
 
 
-def get_json(url: str, timeout: int = 30):
-    request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 PubGame"})
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        return json.loads(response.read().decode("utf-8"))
+def load_env_file() -> None:
+    """Legge .env (root del repo o cartella corrente) senza sovrascrivere l'ambiente."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    candidates = [
+        os.path.join(os.path.dirname(os.path.dirname(here)), ".env"),
+        os.path.join(os.getcwd(), ".env"),
+    ]
+    for candidate in candidates:
+        if not os.path.exists(candidate):
+            continue
+        try:
+            with open(candidate, encoding="utf-8") as handle:
+                for line in handle:
+                    line = line.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    key, value = line.split("=", 1)
+                    key = key.strip()
+                    value = value.strip().strip('"').strip("'")
+                    if key and value and key not in os.environ:
+                        os.environ[key] = value
+        except Exception:
+            continue
+
+
+def get_json(url: str, timeout: int = 30, attempts: int = 3):
+    """Con una rete instabile una singola richiesta fallisce spesso: si ritenta."""
+    last_error = None
+    for attempt in range(attempts):
+        try:
+            request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 PubGame"})
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except Exception as error:
+            last_error = error
+            time.sleep(1.5 * (attempt + 1))
+    raise last_error
 
 
 def download(url: str, destination: str) -> str:
-    request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 PubGame"})
-    with urllib.request.urlopen(request, timeout=60) as response:
-        content_type = (response.headers.get("Content-Type") or "").split(";")[0].strip().lower()
-        data = response.read()
-    if len(data) < 3000:
-        raise ValueError("file troppo piccolo")
-    if destination.endswith("."):
-        destination = destination + (IMAGE_EXTENSIONS.get(content_type, ".jpg").lstrip("."))
-    with open(destination, "wb") as handle:
-        handle.write(data)
-    return destination
+    last_error = None
+    for attempt in range(3):
+        try:
+            request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 PubGame"})
+            with urllib.request.urlopen(request, timeout=60) as response:
+                content_type = (response.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+                data = response.read()
+            if len(data) < 3000:
+                raise ValueError("file troppo piccolo")
+            target = destination
+            if target.endswith("."):
+                target = target + (IMAGE_EXTENSIONS.get(content_type, ".jpg").lstrip("."))
+            with open(target, "wb") as handle:
+                handle.write(data)
+            return target
+        except Exception as error:
+            last_error = error
+            time.sleep(1.5 * (attempt + 1))
+    raise last_error
 
 
 def grab_music(static_dir: str, count: int) -> list[dict]:
@@ -99,7 +156,7 @@ def grab_music(static_dir: str, count: int) -> list[dict]:
         if len(tracks) >= count:
             break
         query = urllib.parse.urlencode({
-            "term": term, "media": "music", "entity": "song", "country": "IT", "limit": 3,
+            "term": term, "media": "music", "entity": "song", "country": "IT", "limit": 5,
         })
         try:
             results = get_json(f"{ITUNES}?{query}").get("results", [])
@@ -161,19 +218,53 @@ def wiki_photo(name: str) -> str | None:
         return None
     original = (summary.get("originalimage") or {}).get("source")
     thumbnail = (summary.get("thumbnail") or {}).get("source")
-    return original or thumbnail
+    # Preferire il thumbnail: Wikimedia limita i download degli originali (429).
+    if thumbnail or original:
+        return thumbnail or original
+
+    # Ripiego: ricerca per titolo (gestisce redirect e titoli non esatti).
+    query = urllib.parse.urlencode({
+        "action": "query", "format": "json", "generator": "search",
+        "gsrsearch": name, "gsrlimit": 1, "prop": "pageimages",
+        "piprop": "original", "redirects": 1,
+    })
+    try:
+        results = get_json(f"{WIKI_API}?{query}")
+    except Exception:
+        return None
+    pages = (results.get("query") or {}).get("pages") or {}
+    for page_data in pages.values():
+        source = (page_data.get("original") or {}).get("source")
+        if source:
+            return source
+    return None
 
 
-def grab_people(static_dir: str, limit: int | None) -> list[dict]:
+def grab_people(static_dir: str, limit: int | None, force: bool = False) -> list[dict]:
     people_dir = os.path.join(static_dir, "media", "people")
     os.makedirs(people_dir, exist_ok=True)
     api_key = os.environ.get("TMDB_API_KEY", "").strip()
     people: list[dict] = []
-    names = PEOPLE if not limit else PEOPLE[:limit]
+    names = PEOPLE
 
     for name, category in names:
+        if limit and len(people) >= limit:
+            break
         file_name = f"people/{slug(name)}"
         path = os.path.join(people_dir, slug(name))
+
+        # Già scaricato in un giro precedente: si indicizza senza rifare la richiesta.
+        reused = None if force else next(
+            (ext for ext in (".jpg", ".png", ".webp") if os.path.exists(path + ext)), None)
+        if reused:
+            people.append({
+                "type": "IMAGE_BLUR",
+                "name": name,
+                "category": category,
+                "file": f"/media/{file_name}{reused}",
+            })
+            print(f"  ok (gia presente) {name}")
+            continue
 
         url = None
         if api_key:
@@ -202,12 +293,13 @@ def grab_people(static_dir: str, limit: int | None) -> list[dict]:
             "file": f"/media/{file_name}{extension}",
         })
         print(f"  ok {name}")
-        time.sleep(0.4)
+        time.sleep(1.2)
 
     return people
 
 
 def main() -> int:
+    load_env_file()
     parser = argparse.ArgumentParser(description="Scarica canzoni e volti per giocare offline.")
     parser.add_argument("--static-dir", default="apps/backend/src/main/resources/static")
     parser.add_argument("--out", default="apps/backend/src/main/resources/questions/media-it.json")
@@ -215,6 +307,7 @@ def main() -> int:
     parser.add_argument("--count-people", type=int, default=None)
     parser.add_argument("--music-only", action="store_true")
     parser.add_argument("--people-only", action="store_true")
+    parser.add_argument("--force", action="store_true", help="riscarica anche i file già presenti")
     args = parser.parse_args()
 
     music: list[dict] = []
@@ -226,7 +319,19 @@ def main() -> int:
 
     if not args.music_only:
         print("== volti")
-        people = grab_people(args.static_dir, args.count_people)
+        people = grab_people(args.static_dir, args.count_people, args.force)
+
+    # Un aggiornamento parziale non deve cancellare l'altra metà della banca.
+    if os.path.exists(args.out):
+        try:
+            with open(args.out, encoding="utf-8") as handle:
+                previous = json.load(handle)
+            if args.people_only and not music:
+                music = previous.get("music", [])
+            if args.music_only and not people:
+                people = previous.get("people", [])
+        except Exception:
+            pass
 
     if not music and not people:
         print("ERRORE: non ho scaricato nulla.", file=sys.stderr)

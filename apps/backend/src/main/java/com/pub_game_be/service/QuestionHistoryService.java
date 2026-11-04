@@ -33,6 +33,8 @@ public class QuestionHistoryService {
     private final Map<Long, Map<String, ArenaAssignment>> assignments = new ConcurrentHashMap<>();
     private final Map<Long, Map<String, Integer>> scores = new ConcurrentHashMap<>();
     private final Map<Long, AtomicLong> questionCounters = new ConcurrentHashMap<>();
+    /** Quante VERO e quante FALSO sono già uscite: [vero, falso]. */
+    private final Map<Long, int[]> arenaSides = new ConcurrentHashMap<>();
 
     /** Minuscole, senza accenti e senza punteggiatura: confronto tollerante. */
     public static String normalize(String text) {
@@ -62,12 +64,39 @@ public class QuestionHistoryService {
     }
 
     public boolean isUsed(long gameId, String key) {
+        // Le Vero/Falso non hanno chiave di risposta: "vero" e "falso" sono le
+        // uniche due risposte, quindi deduplicarle per risposta bloccherebbe
+        // tutta la banca dopo due domande.
+        if (key == null || key.isBlank()) {
+            return false;
+        }
         return usedKeys.getOrDefault(gameId, Set.of()).contains(key);
     }
 
     /** Registra una domanda come uscita; false se era già stata servita. */
     public boolean claim(long gameId, String key) {
+        if (key == null || key.isBlank()) {
+            return true;
+        }
         return usedKeys.computeIfAbsent(gameId, id -> ConcurrentHashMap.newKeySet()).add(key);
+    }
+
+    /**
+     * Lato da servire adesso: si alterna per pareggiare VERO e FALSO anche se
+     * la banca non è bilanciata (indovinare sempre VERO non deve convenire).
+     */
+    public boolean preferTrueSide(long gameId) {
+        int[] counts = arenaSides.computeIfAbsent(gameId, id -> new int[2]);
+        synchronized (counts) {
+            return counts[0] <= counts[1];
+        }
+    }
+
+    public void countArenaSide(long gameId, boolean isTrue) {
+        int[] counts = arenaSides.computeIfAbsent(gameId, id -> new int[2]);
+        synchronized (counts) {
+            counts[isTrue ? 0 : 1]++;
+        }
     }
 
     public String nextQuestionId(long gameId) {
@@ -90,7 +119,8 @@ public class QuestionHistoryService {
             return Optional.empty();
         }
         boolean correct = normalize(assignment.correctAnswer()).equals(normalize(answer));
-        int points = correct ? 100 : 0;
+        // Allineato alla TV: +10 per risposta esatta, -10 per errore.
+        int points = correct ? 10 : -10;
         int totalScore = scores.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>())
                 .merge(playerId, points, Integer::sum);
         return Optional.of(new ArenaResult(correct, assignment.correctAnswer(), points, totalScore));
@@ -107,5 +137,6 @@ public class QuestionHistoryService {
         assignments.remove(gameId);
         scores.remove(gameId);
         questionCounters.remove(gameId);
+        arenaSides.remove(gameId);
     }
 }

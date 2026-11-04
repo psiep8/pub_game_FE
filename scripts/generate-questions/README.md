@@ -193,47 +193,100 @@ Dettagli utili:
 
 ---
 
-## 10. Modello locale (Qwen su Ollama, LM Studio, llama.cpp)
+## 10. Modello locale (Ollama su questa macchina)
 
-Lo script parla con qualsiasi endpoint compatibile OpenAI: basta cambiare
-`--base-url` e `--model`. Con un modello locale non serve nessuna chiave e non
-c'è rate limit (utile per 400+ domande in una volta).
+Il backend non chiama nessun modello: serve solo a generare la banca domande una
+volta. Lo script parla con qualsiasi endpoint compatibile OpenAI, quindi con un
+modello locale non serve nessuna chiave e non c'è rate limit.
 
-Ollama, modello Qwen:
+### 10.1 Installare Ollama (Windows)
 
 ```bash
-ollama pull qwen2.5:14b
+winget install --id Ollama.Ollama --exact
+ollama --version
+curl http://localhost:11434/api/tags
+```
+
+Il server ascolta su `127.0.0.1:11434`. Se risponde `"models":[]` è pronto e
+vuoto; se la connessione viene rifiutata, aprire l'app Ollama (oppure
+`ollama serve`).
+
+### 10.2 Quale modello su questa macchina
+
+Scheda video **Radeon RX 580**: Ollama su Windows non usa ROCm per le GPU
+Polaris, quindi l'inferenza gira su **CPU** con 31,8 GB di RAM.
+
+| Modello | Download | Note |
+| --- | --- | --- |
+| `qwen3:8b` | 5,2 GB | scelta consigliata: buon italiano, entra nel disco |
+| `qwen3:14b` | 9,3 GB | qualità migliore, circa il doppio del tempo |
+| `qwen2.5:14b` | 9,0 GB | non-thinking: JSON più prevedibile, italiano solido |
+
+Attenzione al disco: su questo PC restano pochi GB liberi, quindi un modello da
+20-27B non è un'opzione.
+
+```bash
+ollama pull qwen3:8b
+```
+
+Se compare `part stalled`, rilanciare lo stesso comando: riprende dai pezzi già
+scaricati (`ollama list` mostra il modello solo a download completo).
+
+### 10.3 Prima prova
+
+```bash
+python generate.py --per-category 5 --categories Storia Sport \
+    --base-url http://localhost:11434/v1/chat/completions \
+    --model qwen3:8b --delay 0 --batch 4 --out prova.json
+```
+
+Controllare che `prova.json` contenga domande in italiano, con 4 opzioni, e che
+`correctAnswer` sia identica a una di esse. I modelli locali sbagliano più spesso
+dei provider grossi: le domande rotte vengono scartate da sole, ma vale la pena
+leggere le prime righe a mano.
+
+### 10.4 Banca completa
+
+```bash
 python generate.py --per-category 40 \
     --base-url http://localhost:11434/v1/chat/completions \
-    --model qwen2.5:14b --delay 0 --batch 8
+    --model qwen3:8b --delay 0 --batch 4
 ```
 
-LM Studio (server locale attivo sulla porta 1234):
+Aggiungere --merge per non perdere le domande gia presenti (comprese le IMAGE_BLUR scritte a mano) e --with-chrono per avere anche le domande "in che anno...".
+
+Su CPU sono **ore**, non minuti: conviene lanciarlo la sera. Per non perdere il
+lavoro fatto, procedere a blocchi di categorie con `--merge`:
 
 ```bash
-python generate.py --per-category 40 \
-    --base-url http://localhost:1234/v1/chat/completions \
-    --model qwen2.5-14b-instruct --delay 0 --batch 6
+python generate.py --per-category 40 --merge --categories Storia Geografia \
+    --base-url http://localhost:11434/v1/chat/completions \
+    --model qwen3:8b --delay 0 --batch 4
 ```
 
-llama.cpp (`llama-server`):
+Consigli pratici con i modelli locali:
+
+- `--delay 0`: nessun limite al minuto da rispettare.
+- `--batch 4` (o 6): pacchetti piccoli, meno risposte troncate.
+- `qwen3` ragiona prima di rispondere: se le risposte arrivano vuote o contengono
+  solo il ragionamento, passare a `qwen2.5:14b`, che non è un modello "thinking".
+- Se una categoria resta corta: rilanciare `--merge --categories <quella>`.
+- Se non raccoglie niente, esce con errore e **non tocca** la banca esistente.
+
+### 10.5 Musica e volti (nessun modello)
+
+`generate_media.py` non usa LLM: scarica da iTunes e da Wikipedia/TMDB.
 
 ```bash
-python generate.py --per-category 20 \
-    --base-url http://127.0.0.1:8080/v1/chat/completions \
-    --model locale --delay 0 --batch 4
+python scripts/generate-questions/generate_media.py --count-music 24
 ```
 
-Note pratiche:
+Produce `static/media/music/*.m4a`, `static/media/people/*.jpg` e l'indice
+`questions/media-it.json` (tutti in `.gitignore`: si copiano a mano sulla
+macchina che proietta il gioco).
 
-- **`--delay 0`** con i modelli locali: non c'è limite al minuto da rispettare.
-- **`--batch 4` o `--batch 6`** se il modello tronca le risposte: i modelli locali
-  hanno finestre di contesto più corte e rispondono meglio a pacchetti piccoli.
-- Il modello deve essere buono in italiano: `qwen2.5:14b` è il compromesso
-  ragionevole; sotto i 7B la qualità delle domande e delle opzioni sbagliate cala.
-- Lo script tollera le risposte con i recinti markdown e riprova senza
-  `response_format` se il server non lo supporta, quindi funziona anche con
-  server che ignorano la modalità JSON.
-- Se una categoria resta corta, rilanciare solo quella:
-  `python generate.py --merge --categories Geografia --per-category 40`.
-- Se non raccoglie **niente**, esce con errore e **non tocca** la banca esistente.
+### 10.6 Alternative
+
+Vanno bene anche LM Studio (`http://localhost:1234/v1/chat/completions`) e
+llama.cpp (`http://127.0.0.1:8080/v1/chat/completions`): cambiano solo
+`--base-url` e `--model`.

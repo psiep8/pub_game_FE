@@ -158,7 +158,9 @@ public class QuestionBankService {
     public List<ArenaQuestion> generateArenaBatch(String category, int count, Predicate<ArenaQuestion> isAvailable) {
         List<BankQuestion> candidates = new ArrayList<>();
         for (BankQuestion question : allQuestions()) {
-            if (!"QUIZ".equals(question.type()) && !"TRUE_FALSE".equals(question.type())) {
+            // Arena è solo Vero/Falso: una domanda con quattro opzioni non è
+            // giocabile sul telefono mentre il cerchio si stringe.
+            if (!"TRUE_FALSE".equals(question.type())) {
                 continue;
             }
             if (category != null && !question.category().equalsIgnoreCase(category)) {
@@ -169,9 +171,42 @@ public class QuestionBankService {
 
         Collections.shuffle(candidates, random);
 
+        // La banca non ha lo stesso numero di VERO e FALSO: servirla così com'è
+        // renderebbe conveniente indovinare sempre VERO. Il pacchetto arena
+        // alterna le due risposte, così in partita il 50% resta vero.
+        List<BankQuestion> trueQuestions = new ArrayList<>();
+        List<BankQuestion> falseQuestions = new ArrayList<>();
+        for (BankQuestion question : candidates) {
+            if ("VERO".equalsIgnoreCase(question.correctAnswer())) {
+                trueQuestions.add(question);
+            } else if ("FALSO".equalsIgnoreCase(question.correctAnswer())) {
+                falseQuestions.add(question);
+            }
+        }
+
+        boolean startWithTrue = random.nextBoolean();
+        List<BankQuestion> balanced = new ArrayList<>();
+        for (int index = 0; index < Math.max(trueQuestions.size(), falseQuestions.size()); index++) {
+            if (startWithTrue) {
+                if (index < trueQuestions.size()) {
+                    balanced.add(trueQuestions.get(index));
+                }
+                if (index < falseQuestions.size()) {
+                    balanced.add(falseQuestions.get(index));
+                }
+            } else {
+                if (index < falseQuestions.size()) {
+                    balanced.add(falseQuestions.get(index));
+                }
+                if (index < trueQuestions.size()) {
+                    balanced.add(trueQuestions.get(index));
+                }
+            }
+        }
+
         List<ArenaQuestion> accepted = new ArrayList<>();
         Set<String> seen = new HashSet<>();
-        for (BankQuestion question : candidates) {
+        for (BankQuestion question : balanced) {
             if (accepted.size() >= count) {
                 break;
             }
@@ -179,10 +214,16 @@ public class QuestionBankService {
             if (payload.isEmpty()) {
                 continue;
             }
+            // Le Vero/Falso non hanno una chiave di risposta utile: la sola
+            // risposta possibile è "vero" o "falso", e usarla come chiave
+            // esaurirebbe la banca dopo due domande.
+            String answerKey = "TRUE_FALSE".equals(question.type())
+                    ? ""
+                    : QuestionHistoryService.answerKey(question.correctAnswer(), question.category());
             ArenaQuestion arena = new ArenaQuestion(payload.get(), question.question(), question.correctAnswer(),
                     question.category(),
                     QuestionHistoryService.key(question.question(), question.correctAnswer(), question.category()),
-                    QuestionHistoryService.answerKey(question.correctAnswer(), question.category()));
+                    answerKey);
             if (seen.add(arena.key()) && isAvailable.test(arena)) {
                 accepted.add(arena);
             }
@@ -253,7 +294,7 @@ public class QuestionBankService {
 
         Map<String, Integer> playable = new TreeMap<>();
         for (BankQuestion question : bank) {
-            if ("QUIZ".equals(question.type()) || "TRUE_FALSE".equals(question.type())) {
+            if ("TRUE_FALSE".equals(question.type())) {
                 playable.merge(question.category(), 1, Integer::sum);
             }
         }

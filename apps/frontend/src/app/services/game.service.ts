@@ -6,10 +6,24 @@ import { environment } from '../environment/environment';
 export interface GameRoundPayload {
   category: string;
   question: string;
-  type: 'QUIZ' | 'TRUE_FALSE' | 'CHRONO' | 'IMAGE_BLUR';
+  type:
+    | 'QUIZ'
+    | 'TRUE_FALSE'
+    | 'CHRONO'
+    | 'IMAGE_BLUR'
+    | 'TIMELINE'
+    | 'PRICE'
+    | 'SPEED_RUSH'
+    | 'PING_PONG';
   options: string[];
   correctAnswer: string;
   imageUrl: string;
+  /** Campi specifici dei giochi nuovi (carte, prodotto, durata). */
+  items?: Array<{ id: number; label: string }>;
+  name?: string;
+  emoji?: string;
+  unit?: string;
+  duration?: number;
 }
 
 export interface GameRound {
@@ -60,12 +74,40 @@ export class GameService {
     playerId: string,
     questionId: string,
     answer: string
-  ): Observable<{ correct: boolean; totalScore?: number; correctAnswer?: string }> {
+  ): Observable<{ correct: boolean; points?: number; totalScore?: number; correctAnswer?: string }> {
     return this.http.post<any>(`${this.baseUrl}/games/${gameId}/arena-answer`, {
       playerId,
       questionId,
       answer,
     });
+  }
+
+  /** Timeline: ordine scelto dalla squadra, punteggio calcolato dal server. */
+  submitTimeline(gameId: number, playerName: string, order: number[]): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/timeline-answer`, {
+      playerName,
+      order,
+    });
+  }
+
+  /** Quanto costa: stima in euro, punteggio calcolato dal server. */
+  submitPrice(gameId: number, playerName: string, estimate: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/price-answer`, {
+      playerName,
+      estimate,
+    });
+  }
+
+  getTimelineReveal(gameId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/games/${gameId}/timeline/reveal`);
+  }
+
+  getPriceReveal(gameId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/games/${gameId}/price/reveal`);
+  }
+
+  resetPartyGames(gameId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/party/reset`, {});
   }
 
   private parseRoundPayload(res: any): GameRound {

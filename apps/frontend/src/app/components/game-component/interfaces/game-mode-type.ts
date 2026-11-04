@@ -14,7 +14,11 @@ export type GameModeType =
   | 'MUSIC'
   | 'SCREAM_RACE'
   | 'WHEEL_OF_FORTUNE'
-  | 'ARENA';
+  | 'ARENA'
+  | 'TIMELINE'
+  | 'PRICE'
+  | 'SPEED_RUSH'
+  | 'PING_PONG';
 
 export interface GameModeConfig {
   type: GameModeType;
@@ -74,4 +78,6 @@ export interface IGameMode {
   markTeamFinished?(playerName: string, position: number): void;
   /** Arena: esito di una domanda a risposta rapida. */
   applyArenaAnswer?(playerName: string, isCorrect: boolean, points: number): void;
+  /** Timeline, Quanto costa, Speed Rush, Ping Pong: eventi dal server o dai telefoni. */
+  handlePartyEvent?(event: any): void;
 }

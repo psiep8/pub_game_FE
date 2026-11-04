@@ -8,24 +8,26 @@ export interface RoundConfig {
   nextRoundType: GameModeType | null;
 }
 
-const TOTAL_ROUNDS = 30;
+const TOTAL_ROUNDS = 24;
 const STORAGE_KEY = 'roundProgress';
 
-/** Pesi percentuali di estrazione: la somma deve fare 100. */
-const GAME_WEIGHTS: Record<GameModeType, number> = {
-  QUIZ: 12,
-  TRUE_FALSE: 12,
-  WHEEL_OF_FORTUNE: 10,
-  MUSIC: 10,
-  IMAGE_BLUR: 10,
-  CHRONO: 10,
-  ROULETTE: 10,
-  SCREAM_RACE: 10,
-  ARENA: 14,
-};
+/**
+ * Scaletta in tre atti da otto round.
+ *
+ * L'ordine è fisso e già verificato rispetto ai vincoli: mai due giochi in
+ * tempo reale di fila (Arena, Speed Rush, Ping Pong), mai due giochi a
+ * prenotazione consecutivi (Musica, Indovina chi), il primo round di ogni atto
+ * è sempre Quiz.
+ */
+const ACT_DECKS: GameModeType[][] = [
+  ['QUIZ', 'MUSIC', 'PRICE', 'WHEEL_OF_FORTUNE', 'IMAGE_BLUR', 'TIMELINE', 'QUIZ', 'SPEED_RUSH'],
+  ['QUIZ', 'IMAGE_BLUR', 'TIMELINE', 'ARENA', 'MUSIC', 'PRICE', 'WHEEL_OF_FORTUNE', 'PING_PONG'],
+  ['QUIZ', 'TIMELINE', 'MUSIC', 'SPEED_RUSH', 'PRICE', 'PING_PONG', 'WHEEL_OF_FORTUNE', 'ARENA'],
+];
 
-/** Ogni quante partite mostrare la classifica. */
-const LEADERBOARD_EVERY = { QUICK: 3, DETAILED: 6 } as const;
+/** Classifiche: rapida a metà atto, dettagliata a fine atto. */
+const QUICK_LEADERBOARD_ROUNDS = [4, 12, 20];
+const DETAILED_LEADERBOARD_ROUNDS = [8, 16, 24];
 
 /**
  * Gestisce l'avanzamento della partita: quanti round mancano, quale modalità
@@ -45,17 +47,12 @@ export class RoundManagerService {
     this.loadProgress();
   }
 
-  /** Estrae il tipo di gioco in base ai pesi configurati. */
+  /** Tipo previsto dalla scaletta per il round corrente (indice 0-based). */
   extractGameType(): GameModeType {
-    const roll = Math.random() * 100;
-    let cumulative = 0;
-
-    for (const [type, weight] of Object.entries(GAME_WEIGHTS) as [GameModeType, number][]) {
-      cumulative += weight;
-      if (roll <= cumulative) return type;
-    }
-
-    return 'QUIZ';
+    const round = this.roundConfig().currentRound;
+    const act = Math.min(ACT_DECKS.length - 1, Math.floor(round / 8));
+    const deck = ACT_DECKS[act];
+    return deck[round % deck.length];
   }
 
   startNewRound(): GameModeType {
@@ -73,6 +70,16 @@ export class RoundManagerService {
     return gameType;
   }
 
+  /**
+   * Bonus Roulette: non consuma un round della scaletta. Serve dopo la
+   * classifica di fine atto, senza rubare il posto a un gioco vero.
+   */
+  startBonusRound(): GameModeType {
+    this.roundConfig.update((config) => ({ ...config, nextRoundType: 'ROULETTE' }));
+    this.saveProgress();
+    return 'ROULETTE';
+  }
+
   completeRound(gameType: GameModeType): void {
     this.roundConfig.update((config) => ({
       ...config,
@@ -86,8 +93,8 @@ export class RoundManagerService {
     const round = this.roundConfig().currentRound;
     if (round === 0) return null;
 
-    if (round % LEADERBOARD_EVERY.DETAILED === 0) return 'DETAILED';
-    if (round % LEADERBOARD_EVERY.QUICK === 0) return 'QUICK';
+    if (DETAILED_LEADERBOARD_ROUNDS.includes(round)) return 'DETAILED';
+    if (QUICK_LEADERBOARD_ROUNDS.includes(round)) return 'QUICK';
 
     return null;
   }
@@ -95,6 +102,11 @@ export class RoundManagerService {
   isGameOver(): boolean {
     const config = this.roundConfig();
     return config.currentRound >= config.totalRounds;
+  }
+
+  isActEnd(): boolean {
+    const round = this.roundConfig().currentRound;
+    return round > 0 && round % 8 === 0;
   }
 
   resetGame(): void {
@@ -150,7 +162,11 @@ export class RoundManagerService {
     if (!saved) return;
 
     try {
-      this.roundConfig.set(JSON.parse(saved));
+      const parsed = JSON.parse(saved) as RoundConfig;
+      // Una scaletta vecchia (30 round) non deve trascinarsi dietro indici
+      // fuori range: in quel caso si riparte puliti.
+      if (parsed?.totalRounds !== TOTAL_ROUNDS) return;
+      this.roundConfig.set(parsed);
     } catch {
       console.error('❌ Errore caricamento progresso');
     }
