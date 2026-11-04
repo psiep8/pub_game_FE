@@ -8,13 +8,18 @@ import com.pub_game_be.domain.game_round.GameRound;
 import com.pub_game_be.repository.GameRepository;
 import com.pub_game_be.repository.GameRoundRepository;
 import com.pub_game_be.service.GameService;
-import com.pub_game_be.service.QuestionGeneratorService;
+import com.pub_game_be.service.QuestionHistoryService;
+import com.pub_game_be.service.QuestionPoolService;
+import com.pub_game_be.service.QuestionBankService;
 import com.pub_game_be.service.SimpleRoundService;
 import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 @RestController
 @RequestMapping("/games")
@@ -24,21 +29,27 @@ public class GameController {
     private final GameRoundRepository gameRoundRepository;
     private final SimpleRoundService simpleRoundService;
     private final GameService gameService;
-    private final QuestionGeneratorService questionGeneratorService;
+    private final QuestionBankService questionBank;
     private final SimpMessagingTemplate messagingTemplate;
+    private final QuestionHistoryService questionHistory;
+    private final QuestionPoolService questionPoolService;
 
     public GameController(GameRepository gameRepo,
             GameRoundRepository gameRoundRepository,
             SimpleRoundService simpleRoundService,
             GameService gameService,
-            QuestionGeneratorService questionGeneratorService,
-            SimpMessagingTemplate messagingTemplate) {
+            QuestionBankService questionBank,
+            SimpMessagingTemplate messagingTemplate,
+            QuestionHistoryService questionHistory,
+            QuestionPoolService questionPoolService) {
         this.gameRepo = gameRepo;
         this.gameRoundRepository = gameRoundRepository;
         this.simpleRoundService = simpleRoundService;
         this.gameService = gameService;
-        this.questionGeneratorService = questionGeneratorService;
+        this.questionBank = questionBank;
         this.messagingTemplate = messagingTemplate;
+        this.questionHistory = questionHistory;
+        this.questionPoolService = questionPoolService;
     }
 
     @PostMapping
@@ -59,8 +70,10 @@ public class GameController {
             @RequestParam("type") String type,
             @RequestParam("difficulty") String difficulty) {
 
-        String aiPayload = questionGeneratorService
-                .generateQuestionJson(category, type, difficulty);
+        // La deduplica la fa la banca: se la domanda è già uscita ne pesca un'altra.
+        String aiPayload = questionBank.generateQuestionJson(category, type, difficulty,
+                key -> !questionHistory.isUsed(gameId, key));
+        questionHistory.claim(gameId, QuestionBankService.payloadDedupeKey(aiPayload));
 
         Game game = gameRepo.findById(gameId)
                 .orElseThrow(() -> new RuntimeException("Gioco non trovato"));
@@ -95,8 +108,31 @@ public class GameController {
 
     @GetMapping("/{gameId}/arena-question")
     public String getArenaQuestion(@PathVariable("gameId") Long gameId,
-            @RequestParam("category") String category) {
-        return questionGeneratorService.generateSingleArenaQuestion(category);
+            @RequestParam("category") String category,
+            @RequestParam(value = "playerId", defaultValue = "anonimo") String playerId) {
+        Predicate<QuestionBankService.ArenaQuestion> isAvailable = candidate -> !questionHistory.isUsed(gameId, candidate.key())
+                && !questionHistory.isUsed(gameId, candidate.answerKey());
+
+        QuestionBankService.ArenaQuestion question = questionPoolService
+                .poll(gameId, category)
+                .or(() -> questionBank.generateArenaQuestion(category, isAvailable))
+                .or(() -> questionBank.fallbackArenaQuestion(category, isAvailable))
+                .or(() -> questionBank.fallbackArenaQuestion(isAvailable))
+                .or(() -> questionBank.fallbackArenaQuestion(candidate -> true))
+                .orElseThrow(() -> new RuntimeException("Nessuna domanda disponibile per la categoria " + category));
+
+        // Segna il fatto come uscito: nessun altro dispositivo riceverà la stessa domanda.
+        questionHistory.claim(gameId, question.key());
+        questionHistory.claim(gameId, question.answerKey());
+
+        String questionId = questionHistory.nextQuestionId(gameId);
+        questionHistory.assign(gameId, new QuestionHistoryService.ArenaAssignment(questionId, playerId,
+                question.question(), question.correctAnswer(), question.category()));
+
+        JSONObject response = new JSONObject(question.json());
+        response.put("questionId", questionId);
+        response.put("playerId", playerId);
+        return response.toString();
     }
 
     private String normalizeWheelPayload(String aiPayload) {
@@ -232,6 +268,68 @@ public class GameController {
         messagingTemplate.convertAndSend("/topic/game/" + id, round);
 
         return round;
+    }
+
+    /**
+     * Prepara il pacchetto di domande del round: una sola chiamata AI per tutti
+     * i telefoni, che poi pescano dal pool senza toccare il provider.
+     */
+    @GetMapping("/{gameId}/arena/prepare")
+    public Map<String, Object> prepareArena(@PathVariable("gameId") Long gameId,
+            @RequestParam("category") String category,
+            @RequestParam(value = "count", defaultValue = "20") int count) {
+        int wanted = Math.max(1, Math.min(30, count));
+        Predicate<QuestionBankService.ArenaQuestion> isAvailable = candidate -> !questionHistory.isUsed(gameId, candidate.key())
+                && !questionHistory.isUsed(gameId, candidate.answerKey());
+
+        List<QuestionBankService.ArenaQuestion> generated = questionBank
+                .generateArenaBatch(category, wanted, isAvailable);
+
+        for (QuestionBankService.ArenaQuestion candidate : generated) {
+            questionHistory.claim(gameId, candidate.key());
+            questionHistory.claim(gameId, candidate.answerKey());
+            questionPoolService.offer(gameId, category, candidate);
+        }
+
+        return Map.of(
+                "category", category,
+                "generated", generated.size(),
+                "pool", questionPoolService.size(gameId, category));
+    }
+
+    /** Il giusto/sbagliato lo decide il server, non il telefono. */
+    @PostMapping("/{gameId}/arena-answer")
+    public ResponseEntity<Object> answerArenaQuestion(@PathVariable("gameId") Long gameId,
+            @RequestBody Map<String, Object> body) {
+        String playerId = String.valueOf(body.getOrDefault("playerId", "anonimo"));
+        String questionId = String.valueOf(body.getOrDefault("questionId", ""));
+        String answer = String.valueOf(body.getOrDefault("answer", ""));
+
+        return questionHistory.answer(gameId, playerId, questionId, answer)
+                .<ResponseEntity<Object>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.badRequest()
+                        .body(Map.of("error", "Domanda non trovata per questo giocatore")));
+    }
+
+    /**
+     * Punteggi dell'arena calcolati dal server.
+     *
+     * La TV li legge da qui invece di fidarsi del messaggio del telefono: un
+     * dispositivo non può più dichiararsi vincente.
+     */
+    @GetMapping("/{gameId}/arena/scores")
+    public Map<String, Object> arenaScores(@PathVariable("gameId") Long gameId) {
+        Map<String, Integer> scores = questionHistory.scores(gameId);
+        int bestScore = scores.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        return Map.of("gameId", gameId, "scores", scores, "bestScore", bestScore);
+    }
+
+    /** Azzera memoria e punteggi dell'arena (nuova partita o reset dalla TV). */
+    @PostMapping("/{gameId}/arena/reset")
+    public Map<String, Object> resetArena(@PathVariable("gameId") Long gameId) {
+        questionHistory.forget(gameId);
+        questionPoolService.clear(gameId);
+        return Map.of("reset", true, "gameId", gameId);
     }
 
     @GetMapping("/{gameId}/current-round")

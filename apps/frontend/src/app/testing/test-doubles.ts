@@ -83,8 +83,23 @@ export class FakeGameService {
     return of({ id: 1, status: 'ACTIVE', roundIndex: 0, type: 'QUIZ', payload: {} });
   }
 
-  getArenaQuestion(_gameId: number, _category: string): Observable<any> {
-    return of({ question: 'Domanda di prova?', options: ['A', 'B'], correctAnswer: 'A' });
+  getArenaQuestion(_gameId: number, _category: string, playerId: string): Observable<any> {
+    return of({
+      question: 'Domanda di prova?',
+      options: ['A', 'B'],
+      correctAnswer: 'A',
+      questionId: 'q-test',
+      playerId,
+    });
+  }
+
+  answerArenaQuestion(
+    _gameId: number,
+    _playerId: string,
+    _questionId: string,
+    answer: string,
+  ): Observable<any> {
+    return of({ correct: answer === 'A', totalScore: 10, correctAnswer: 'A' });
   }
 }
 
