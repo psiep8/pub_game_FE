@@ -33,3 +33,6 @@ game:
     facile: "domande per bambini o cultura generale molto basilare. Risposte ovvie."
     medio: "domande per adulti mediamente istruiti. Richiedono riflessione."
     difficile: "domande da esperti, dettagli storici precisi, concetti scientifici avanzati."
+  # URL pubblico del backend per servire canzoni e foto locali.
+  # Di norma viene ricavato dalla richiesta in corso; questo è il ripiego.
+  media-base-url: ${MEDIA_BASE_URL:}

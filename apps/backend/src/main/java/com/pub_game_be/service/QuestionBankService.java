@@ -1,17 +1,21 @@
 package com.pub_game_be.service;
 
 import com.pub_game_be.dto.MusicTrackDto;
+import jakarta.servlet.http.HttpServletRequest;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.io.InputStream;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -39,6 +43,10 @@ public class QuestionBankService {
     /** Riga della banca domande. */
     private record BankQuestion(String id, String category, String type, String difficulty,
             String question, String correctAnswer, List<String> options, String explanation) {
+    }
+
+    /** Brano della banca media: il file audio vive in resources/static/media/music. */
+    private record MediaTrack(String title, String artist, String year, String albumCover, String file) {
     }
 
     private static final List<String> COLORS = List.of("ROSSO", "NERO", "VERDE", "BLU", "GIALLO", "BIANCO");
@@ -96,13 +104,22 @@ public class QuestionBankService {
     private final List<BankQuestion> bank;
     private final TMDBImageService tmdbImageService;
     private final AppleMusicCuratorService appleMusicCuratorService;
+    private final List<MediaTrack> musicTracks;
+    private final Map<String, String> celebrityPhotos;
+    private final String configuredMediaBaseUrl;
     private final Random random = new Random();
 
     public QuestionBankService(TMDBImageService tmdbImageService,
-            AppleMusicCuratorService appleMusicCuratorService) {
+            AppleMusicCuratorService appleMusicCuratorService,
+            @Value("${game.media-base-url:}") String mediaBaseUrl) {
         this.tmdbImageService = tmdbImageService;
         this.appleMusicCuratorService = appleMusicCuratorService;
+        this.configuredMediaBaseUrl = mediaBaseUrl == null ? "" : mediaBaseUrl.trim();
         this.bank = loadBank();
+
+        MediaBank media = loadMedia();
+        this.musicTracks = media.tracks();
+        this.celebrityPhotos = media.people();
     }
 
     /** Payload del round: le domande vengono dalla banca, gli altri tipi sono locali. */
@@ -286,15 +303,18 @@ public class QuestionBankService {
         return Optional.of(payload.toString());
     }
 
-    /** TMDB per primo, poi Wikipedia: una domanda senza foto è ingiocabile. */
+    /**
+     * Foto del personaggio: prima quella scaricata in locale dalla banca media,
+     * poi TMDB. Senza foto la domanda viene scartata: l'immagine è il gioco.
+     */
     private String resolveCelebrityImage(String celebrity) {
-        String imageUrl = tmdbImageService.getCelebrityImageUrl(celebrity);
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            return imageUrl;
+        String localPhoto = celebrityPhotos.get(QuestionHistoryService.normalize(celebrity));
+        if (localPhoto != null && !localPhoto.isBlank()) {
+            return mediaUrl(localPhoto);
         }
-        String wikiName = celebrity.trim().replaceAll("\\s+", "_");
-        return "https://it.wikipedia.org/wiki/Special:FilePath/"
-                + URLEncoder.encode(wikiName, StandardCharsets.UTF_8);
+
+        String imageUrl = tmdbImageService.getCelebrityImageUrl(celebrity);
+        return imageUrl == null || imageUrl.isBlank() ? null : imageUrl;
     }
 
     private String roulettePayload() {
@@ -326,6 +346,22 @@ public class QuestionBankService {
     }
 
     private String musicPayload() {
+        if (!musicTracks.isEmpty()) {
+            MediaTrack localTrack = musicTracks.get(random.nextInt(musicTracks.size()));
+
+            JSONObject payload = new JSONObject();
+            payload.put("type", "MUSIC");
+            payload.put("songTitle", localTrack.title());
+            payload.put("artist", localTrack.artist());
+            payload.put("previewUrl", mediaUrl(localTrack.file()));
+            payload.put("albumCover",
+                    localTrack.albumCover() == null ? JSONObject.NULL : localTrack.albumCover());
+            payload.put("year", localTrack.year());
+            payload.put("source", "banca-media");
+            payload.put("payload", JSONObject.NULL);
+            return payload.toString();
+        }
+
         MusicTrackDto track = appleMusicCuratorService.getFamousSong();
 
         JSONObject payload = new JSONObject();
@@ -397,5 +433,88 @@ public class QuestionBankService {
             System.out.println("⚠️ Banca domande illeggibile (" + error.getMessage() + "): uso le domande di emergenza.");
             return List.of();
         }
+    }
+
+    private record MediaBank(List<MediaTrack> tracks, Map<String, String> people) {
+    }
+
+    /**
+     * Banca media: canzoni e foto scaricate in locale da generate_media.py.
+     * Se il file non c'è si continua con iTunes e TMDB come prima.
+     */
+    private MediaBank loadMedia() {
+        ClassPathResource resource = new ClassPathResource("questions/media-it.json");
+        if (!resource.exists()) {
+            return new MediaBank(List.of(), Map.of());
+        }
+        try (InputStream stream = resource.getInputStream()) {
+            JSONObject root = new JSONObject(new String(stream.readAllBytes(), StandardCharsets.UTF_8));
+
+            List<MediaTrack> tracks = new ArrayList<>();
+            JSONArray music = root.optJSONArray("music");
+            if (music != null) {
+                for (int index = 0; index < music.length(); index++) {
+                    JSONObject item = music.optJSONObject(index);
+                    if (item == null || item.optString("file", "").isBlank()) {
+                        continue;
+                    }
+                    tracks.add(new MediaTrack(
+                            item.optString("title", ""),
+                            item.optString("artist", ""),
+                            item.optString("year", ""),
+                            item.optString("albumCover", null),
+                            item.optString("file", "")));
+                }
+            }
+
+            Map<String, String> people = new LinkedHashMap<>();
+            JSONArray persons = root.optJSONArray("people");
+            if (persons != null) {
+                for (int index = 0; index < persons.length(); index++) {
+                    JSONObject item = persons.optJSONObject(index);
+                    if (item == null || item.optString("file", "").isBlank()) {
+                        continue;
+                    }
+                    people.put(QuestionHistoryService.normalize(item.optString("name", "")),
+                            item.optString("file", ""));
+                }
+            }
+
+            System.out.println("Banca media: " + tracks.size() + " brani, " + people.size() + " volti.");
+            return new MediaBank(List.copyOf(tracks), Map.copyOf(people));
+        } catch (Exception error) {
+            System.out.println("⚠️ Banca media illeggibile (" + error.getMessage()
+                    + "): si torna a iTunes/TMDB.");
+            return new MediaBank(List.of(), Map.of());
+        }
+    }
+
+    /**
+     * URL servibile del file locale. Il frontend usa previewUrl e imageUrl
+     * direttamente, quindi serve un URL assoluto: lo ricava dalla richiesta in
+     * corso (funziona anche via IP di rete), con MEDIA_BASE_URL come ripiego.
+     */
+    private String mediaUrl(String file) {
+        if (file == null || file.isBlank()) {
+            return null;
+        }
+        if (file.startsWith("http://") || file.startsWith("https://")) {
+            return file;
+        }
+        String path = file.startsWith("/") ? file : "/" + file;
+        String baseUrl = currentBaseUrl();
+        return baseUrl.isBlank() ? path : baseUrl + path;
+    }
+
+    private String currentBaseUrl() {
+        try {
+            if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes) {
+                HttpServletRequest request = attributes.getRequest();
+                return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+            }
+        } catch (RuntimeException ignored) {
+            // fuori da una richiesta HTTP: si usa la configurazione
+        }
+        return configuredMediaBaseUrl;
     }
 }

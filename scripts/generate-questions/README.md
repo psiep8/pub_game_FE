@@ -152,3 +152,37 @@ rilanciare `--merge --categories <quella categoria>`.
 `--merge` aggiunge senza toccare il resto: si può far crescere la banca nel tempo
 (`--per-category 20 --merge`) senza mai perdere le domande già buone. La deduplica è
 globale, quindi i doppioni non entrano anche se si rilanciano le stesse categorie.
+
+---
+
+## 9. Canzoni e volti (banca media)
+
+Anche musica e immagini possono stare in locale: `generate_media.py` scarica le
+anteprime di 30 secondi da iTunes (nessuna chiave) e le foto dei personaggi da
+TMDB (se c'è `TMDB_API_KEY`) o da Wikipedia, mettendole dentro il backend.
+
+```bash
+python generate_media.py --count-music 24 --count-people 40
+```
+
+Produce:
+
+- `apps/backend/src/main/resources/static/media/music/*.m4a`
+- `apps/backend/src/main/resources/static/media/people/*.jpg`
+- `apps/backend/src/main/resources/questions/media-it.json` (l'indice)
+
+All'avvio il backend scrive `Banca media: N brani, M volti.` e serve i file su
+`/media/...`. Se l'indice non c'è torna a iTunes e TMDB in tempo reale come
+prima: la banca media è un'aggiunta, non un obbligo.
+
+Dettagli utili:
+
+- gli URL restituiti sono assoluti, ricavati dalla richiesta: funzionano sia da
+  `localhost` sia dall'IP di rete della TV;
+- `--music-only` / `--people-only` per rifare solo una delle due parti;
+- rilanciandolo i file con lo stesso nome vengono sovrascritti e l'indice
+  riscritto;
+- se un browser rifiuta l'anteprima `.m4a`, basta cambiare l'estensione in
+  `.mp4` nell'indice (è lo stesso contenitore MP4);
+- i file media e l'indice sono in `.gitignore`: si copiano sulla macchina che
+  proietta il gioco, non nel repository.
