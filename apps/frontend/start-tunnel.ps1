@@ -10,8 +10,6 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$envFile = "$PSScriptRoot\src\app\environment\environment.tunnel.ts"
-
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  PubGame Tunnel Starter" -ForegroundColor Cyan
@@ -85,21 +83,6 @@ if (-not $beUrl -or -not $feUrl) {
     exit 1
 }
 
-# --- Aggiorna environment.tunnel.ts ---
-Write-Host ""
-Write-Host "Aggiorno environment.tunnel.ts..." -ForegroundColor Yellow
-
-$envContent = @"
-export const environment = {
-  production: false,
-  apiUrl: '$beUrl',
-  wsUrl: '$beUrl/ws-pubgame',
-  frontendUrl: '$feUrl'
-};
-"@
-
-Set-Content -Path $envFile -Value $envContent -Encoding UTF8
-Write-Host "  environment.tunnel.ts aggiornato!" -ForegroundColor Green
 
 # --- Istruzioni finali ---
 Write-Host ""
@@ -110,8 +93,8 @@ Write-Host ""
 Write-Host "  Frontend: $feUrl" -ForegroundColor White
 Write-Host "  Backend:  $beUrl" -ForegroundColor White
 Write-Host ""
-Write-Host "  Ora avvia Angular con:" -ForegroundColor Yellow
-Write-Host "    ng serve -c tunnel" -ForegroundColor White
+Write-Host "  Ora avvia il frontend con:" -ForegroundColor Yellow
+Write-Host "    npm run dev" -ForegroundColor White
 Write-Host ""
 Write-Host "  Per aprire dal telefono, scansiona questo URL:" -ForegroundColor Yellow
 Write-Host "    $feUrl" -ForegroundColor Cyan

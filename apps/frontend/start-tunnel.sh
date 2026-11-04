@@ -9,8 +9,6 @@ set -euo pipefail
 FE_PORT=${1:-4200}
 BE_PORT=${2:-8080}
 
-ENV_FILE="$(dirname "$0")/src/app/environment/environment.tunnel.ts"
-
 echo ""
 echo "========================================"
 echo "  PubGame Tunnel Starter"
@@ -82,20 +80,6 @@ if [ -z "$BE_URL" ] || [ -z "$FE_URL" ]; then
     exit 1
 fi
 
-# --- Aggiorna environment.tunnel.ts ---
-echo ""
-echo "Aggiorno environment.tunnel.ts..."
-
-cat > "$ENV_FILE" << EOF
-export const environment = {
-  production: false,
-  apiUrl: '$BE_URL',
-  wsUrl: '$BE_URL/ws-pubgame',
-  frontendUrl: '$FE_URL'
-};
-EOF
-
-echo "  environment.tunnel.ts aggiornato!"
 echo ""
 echo "========================================"
 echo "  TUNNEL PRONTI!"
@@ -104,8 +88,8 @@ echo ""
 echo "  Frontend: $FE_URL"
 echo "  Backend:  $BE_URL"
 echo ""
-echo "  Ora avvia Angular con:"
-echo "    ng serve -c tunnel"
+echo "  Ora avvia il frontend con:"
+echo "    npm run dev"
 echo ""
 echo "  Accessi:"
 echo "    TV (schermo):       $FE_URL/tv"

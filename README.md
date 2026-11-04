@@ -8,13 +8,14 @@ Un unico repository per il gioco da pub multigiocatore: **frontend Angular** e *
 apps/
 ├── frontend/   Angular 21 + PWA — /tv (schermo), /admin (votante), /play (telefono)
 └── backend/    Spring Boot 4 / Java 17 — REST, WebSocket STOMP/SockJS, AI Groq, H2 o MySQL
-scripts/        Utility per avviare Maven in modo cross-platform
+scripts/        Avvio unificato (dev, Maven) e lettura di .env
+.env            Configurazione locale: porte e host
 ```
 
 ## Requisiti
 
 - Node.js 18+ e npm 11
-- JDK 17+ (il backend dichiara Java 17)
+- JDK 17+
 - `cloudflared` solo se usi i tunnel
 
 ## Installazione
@@ -23,21 +24,38 @@ scripts/        Utility per avviare Maven in modo cross-platform
 npm install
 ```
 
-Installa le dipendenze del frontend nel workspace `apps/frontend` (finiscono in `node_modules/` alla radice).
-Le dipendenze Java le scarica Maven al primo avvio.
+## Configurazione: un solo file
+
+Tutta la configurazione locale sta in `.env` alla radice (copiato da `.env.example`):
+
+| Variabile | Default | Uso |
+|---|---|---|
+| `FE_PORT` | `4200` | Porta del dev-server Angular |
+| `BE_PORT` | `8080` | Porta del backend Spring Boot |
+| `HOST` | `0.0.0.0` | Interfaccia di ascolto (`0.0.0.0` = visibile dal telefono) |
+
+**Nel codice non esiste alcun IP.** Il frontend chiama sempre la propria origine e il dev-server inoltra `/games`, `/categories`, `/questions` e `/ws-pubgame` al backend tramite `apps/frontend/proxy.conf.mjs`, che legge `BE_PORT`. Quindi:
+
+- funziona da `localhost`, dall'IP LAN di qualsiasi macchina e via tunnel;
+- se cambi porta, cambi `.env` e riavvii: non ci sono file da rincorrere;
+- il QR code di `/tv` usa l'host con cui hai aperto la pagina, quindi punta automaticamente all'IP giusto per i telefoni.
+
+Lato backend `application.yml` legge `SERVER_PORT` e `SERVER_ADDRESS` (passati dagli script), con default 8080 e `0.0.0.0`.
 
 ## Sviluppo
 
 ```bash
-# Frontend + backend insieme
-npm run dev
-
-# Oppure separati
-npm run dev:backend     # spring-boot:run dentro apps/backend  → http://localhost:8080
-npm run dev:frontend    # ng serve --host 0.0.0.0             → http://localhost:4200
+npm run dev             # backend + frontend insieme
+npm run dev:frontend    # solo ng serve
+npm run dev:backend     # solo spring-boot:run
 ```
 
-Accessi dal browser:
+All'avvio viene stampato l'URL per il PC e quello per il telefono:
+
+```
+PC:       http://localhost:4200/tv
+Telefono: http://192.168.1.3:4200/play
+```
 
 | Route | Dispositivo | Descrizione |
 |---|---|---|
@@ -48,30 +66,18 @@ Accessi dal browser:
 ## Build e test
 
 ```bash
-npm run build:frontend    # ng build (produzione) → apps/frontend/dist
+npm run build:frontend    # ng build → apps/frontend/dist
 npm run build:backend     # mvnw package -DskipTests → apps/backend/target
 npm run test:frontend
 npm run test:backend
 ```
 
-## Configurazione
+## Variabili del backend (opzionali)
 
-**Frontend** — `apps/frontend/src/app/environment/`:
-
-| File | Uso |
-|---|---|
-| `environment.ts` | Default / produzione |
-| `environment.development.ts` | Sviluppo locale (`ng serve`) |
-| `environment.tunnel.ts` | Tunnel Cloudflare (`ng serve -c tunnel`) |
-| `environment.pwa.ts` | Build PWA (`ng build -c pwa`) |
-
-**Backend** — `apps/backend/application.yml` (porta 8080, H2 in memoria di default).
-Variabili opzionali: `GROQ_API_KEY` (domande AI), `TMDB_API_KEY` (immagini). Senza chiavi il backend usa i fallback locali.
+`GROQ_API_KEY` per le domande AI, `TMDB_API_KEY` per le immagini. Senza chiavi il backend usa i fallback locali.
 Profilo MySQL: `node scripts/mvn.mjs spring-boot:run -Dspring-boot.run.profiles=mysql`.
 
 ## Tunnel Cloudflare
-
-Espone frontend (4200) e backend (8080) su internet:
 
 ```bash
 cd apps/frontend
@@ -79,9 +85,8 @@ cd apps/frontend
 .\start-tunnel.ps1         # Windows PowerShell
 ```
 
-Lo script aggiorna `apps/frontend/src/app/environment/environment.tunnel.ts` con gli URL `.trycloudflare.com`.
-Poi avvia il frontend in modalità tunnel:
+Apre un tunnel per il frontend e uno per il backend e stampa gli URL pubblici. Il frontend continua a usare la propria origine, quindi non serve aggiornare nessun file di configurazione.
 
-```bash
-cd apps/frontend && npx ng serve -c tunnel
-```
+## Nota sul deploy statico
+
+Con gli URL relativi, un deploy che serve solo i file statici (senza `ng serve`) richiede un reverse proxy che inoltri `/games`, `/categories`, `/questions` e `/ws-pubgame` al backend.

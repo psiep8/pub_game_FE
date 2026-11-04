@@ -7,9 +7,9 @@
     "apps/frontend"
   ],
   "scripts": {
-    "dev": "node scripts/dev.mjs",
-    "dev:frontend": "npm run start --workspace pubgame-fe",
-    "dev:backend": "node scripts/mvn.mjs spring-boot:run",
+    "dev": "node scripts/dev.mjs all",
+    "dev:frontend": "node scripts/dev.mjs frontend",
+    "dev:backend": "node scripts/dev.mjs backend",
     "build": "npm run build:frontend",
     "build:frontend": "npm run build --workspace pubgame-fe",
     "build:backend": "node scripts/mvn.mjs -DskipTests package",

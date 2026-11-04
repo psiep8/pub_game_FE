@@ -64,26 +64,14 @@
             "tunnel": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true,
-              "fileReplacements": [
-                {
-                  "replace": "src/app/environment/environment.ts",
-                  "with": "src/app/environment/environment.tunnel.ts"
-                }
-              ]
+              "sourceMap": true
             },
             "pwa": {
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
               "extractLicenses": true,
-              "serviceWorker": true,
-              "fileReplacements": [
-                {
-                  "replace": "src/app/environment/environment.ts",
-                  "with": "src/app/environment/environment.pwa.ts"
-                }
-              ]
+              "serviceWorker": true
             }
           },
           "defaultConfiguration": "production"
@@ -92,6 +80,7 @@
           "options": {
             "host": "0.0.0.0",
             "port": 4200,
+            "proxyConfig": "proxy.conf.mjs",
             "allowedHosts": [
               ".trycloudflare.com"
             ]
