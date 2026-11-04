@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 @Service
 public class QuestionGeneratorService {
@@ -34,6 +35,7 @@ public class QuestionGeneratorService {
     private final RestTemplate restTemplate;
     private final TMDBImageService tmdbImageService;
     private final AppleMusicCuratorService appleMusicCuratorService;
+    private final CelebrityImageService celebrityImageService;
     private final com.pub_game_be.repository.CategoryRepository categoryRepository;
 
     private final Set<String> recentCelebrities = ConcurrentHashMap.newKeySet();
@@ -42,10 +44,12 @@ public class QuestionGeneratorService {
     public QuestionGeneratorService(RestTemplate restTemplate,
             TMDBImageService tmdbImageService,
             AppleMusicCuratorService appleMusicCuratorService,
+            CelebrityImageService celebrityImageService,
             com.pub_game_be.repository.CategoryRepository categoryRepository) {
         this.restTemplate = restTemplate;
         this.tmdbImageService = tmdbImageService;
         this.appleMusicCuratorService = appleMusicCuratorService;
+        this.celebrityImageService = celebrityImageService;
         this.categoryRepository = categoryRepository;
     }
 
@@ -193,53 +197,15 @@ public class QuestionGeneratorService {
                     category, difficulty, difficultyContext, category, category);
         }
         if ("ARENA".equalsIgnoreCase(type)) {
-            prompt = String.format(
-                    "Sei il presentatore di un quiz televisivo.\n" +
-                            "Genera una lista di 40 domande miste per la modalità ARENA (Battle Royale).\n" +
-                            "⚠️ REGOLE RIGIDE:\n" +
-                            "1. Alterna diverse categorie (Scienza, Storia, Sport, Cinema, Geografia, Curiosità, ecc.).\n"
-                            +
-                            "2. Usa un mix di tipi: 70%% tipo 'QUIZ' (4 opzioni) e 30%% tipo 'TRUE_FALSE' (2 opzioni: VERO, FALSO).\n"
-                            +
-                            "3. Le prime 20 domande devono essere FACILI, le restanti 20 di DIFFICOLTÀ MEDIA.\n" +
-                            "4. Ogni oggetto JSON deve avere: \"question\", \"options\" (array di stringhe), \"correctAnswer\" (valore esatto presente in options), \"difficulty\" (\"easy\" o \"medium\"), \"category\" (nome categoria).\n"
-                            +
-                            "5. Per le domande TRUE_FALSE, 'options' deve essere [\"VERO\", \"FALSO\"].\n" +
-                            "6. Rispondi SOLO con un array JSON valido, senza testo extra.\n\n" +
-                            "Esempio formato:\n" +
-                            "[\n" +
-                            "  { \"question\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"correctAnswer\": \"A\", \"difficulty\": \"easy\", \"category\": \"Storia\" },\n"
-                            +
-                            "  { \"question\": \"...\", \"options\": [\"VERO\",\"FALSO\"], \"correctAnswer\": \"VERO\", \"difficulty\": \"easy\", \"category\": \"Scienza\" }\n"
-                            +
-                            "]");
-
-        Map<String, Object> request = new HashMap<>();
-        request.put("model", model);
-        request.put("messages", List.of(Map.of("role", "user", "content", prompt)));
-            request.put("temperature", defaultTemperature);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(apiKey);
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
-
-            try {
-                ResponseEntity<String> response = restTemplate.postForEntity(GROQ_API_URL, entity, String.class);
-                String rawContent = parseJsonResponse(response.getBody());
-                String cleanedJson = cleanAiJson(rawContent);
-
-                JSONObject wrapper = new JSONObject();
-                wrapper.put("type", "ARENA");
-                wrapper.put("questions", new JSONArray()); // Return empty array to TV, devices will fetch individually
-                return wrapper.toString();
-
-            } catch (Exception e) {
-                return getFallbackJson("ARENA", category);
-            }
-
+            // Le domande dell'arena si generano una per dispositivo tramite
+            // /games/{id}/arena-question: qui non serve nessuna chiamata AI
+            // (prima ne partiva una con 40 domande, subito scartate).
+            JSONObject wrapper = new JSONObject();
+            wrapper.put("type", "ARENA");
+            wrapper.put("questions", new JSONArray());
+            return wrapper.toString();
         }
+
         /*} else if ("ONE_VS_ONE".equalsIgnoreCase(type) || "1VS1".equalsIgnoreCase(type)) {
             prompt = String.format(
                     "Sei il presentatore di un quiz televisivo.\n" +
@@ -261,7 +227,7 @@ public class QuestionGeneratorService {
                     category, difficulty, difficultyContext);
         }*/
 
-        String systemMsg = "Sei un generatore di domande quiz. GENERA SOLO DOMANDE SULLA CATEGORIA INDICATA NEL MESSAGGIO UTENTE. Se la categoria è 'Natura' parla di animali/piante/ecosistemi. Se 'Sport' parla di sport. Se 'Scienza' parla di fisica/chimica/biologia. Se 'Storia' parla di eventi storici. Se 'Cinema' parla di film/attori. Se 'Geografia' parla di paesi/capitali. Se 'Curiosita' parla di fatti insoluti. Se 'Arte' parla di pittura/scultura. Se 'Fumetti' parla di fumetti/manga. Se 'Letteratura' parla di scrittori/libri. Se 'Matematica' parla di numeri/formule. NON GENERARE MAI DOMANDE SUL TOPIC SBAGLIATO.";
+        String systemMsg = "Sei un generatore di domande quiz. GENERA SOLO DOMANDE SULLA CATEGORIA INDICATA NEL MESSAGGIO UTENTE. Se la categoria è 'Natura' parla di animali/piante/ecosistemi. Se 'Sport' parla di sport. Se 'Scienza' parla di fisica/chimica/biologia. Se 'Storia' parla di eventi storici. Se 'Cinema' parla di film/attori. Se 'Geografia' parla di paesi/capitali. Se 'Curiosita' parla di fatti insoluti. Se 'Arte' parla di pittura/scultura. Se 'Fumetti' parla di fumetti/manga. Se 'Letteratura' parla di scrittori/libri. Se 'Matematica' parla di numeri/formule. NON GENERARE MAI DOMANDE SUL TOPIC SBAGLIATO. Scrivi domanda, opzioni e risposte SEMPRE in italiano.";
 
         if (apiKey == null || apiKey.isBlank()) { System.out.println("GROQ_API_KEY assente: uso il fallback locale per " + type); return getFallbackJson(type, category); }
         int maxAttempts = 3;
@@ -296,7 +262,7 @@ public class QuestionGeneratorService {
                     if ("QUIZ".equalsIgnoreCase(type) || "TRUE_FALSE".equalsIgnoreCase(type) || "IMAGE_BLUR".equalsIgnoreCase(type)) {
                         if (validateQuizJson(jsonObj, type)) {
                             if ("IMAGE_BLUR".equalsIgnoreCase(type) && jsonObj.has("correctAnswer")) {
-                                String imageUrl = tmdbImageService.getCelebrityImageUrl(jsonObj.getString("correctAnswer"));
+                                String imageUrl = resolveCelebrityImage(jsonObj.getString("correctAnswer"));
                                 if (imageUrl != null && !imageUrl.isEmpty()) {
                                     jsonObj.put("imageUrl", imageUrl);
                                     addToRecentCelebrities(jsonObj.getString("correctAnswer"));
@@ -412,7 +378,7 @@ public class QuestionGeneratorService {
         }
     }
 
-    public String generateSingleArenaQuestion(String category) {
+    private String requestSingleArenaQuestion(String category) {
         String prompt = "Sei il presentatore di un quiz televisivo.\n" +
                 "Genera UNA singola domanda casuale per la modalità ARENA (Battle Royale).\n" +
                 "⚠️ REGOLE RIGIDE:\n" +
@@ -462,6 +428,92 @@ public class QuestionGeneratorService {
             System.err.println("❌ Eccezione durante la generazione AI Arena: " + e.getMessage());
             return getSingleFallbackArenaQuestion();
         }
+    }
+
+    /** Domanda arena pronta per un dispositivo, con le chiavi usate per la deduplica. */
+    public record ArenaQuestion(String json, String question, String correctAnswer, String category,
+            String key, String answerKey) {
+    }
+
+    /**
+     * Genera una domanda arena solo se non è già uscita in questa partita.
+     * Riprova fino a 3 volte: la generazione AI tende a insistere sullo stesso fatto.
+     */
+    public Optional<ArenaQuestion> generateArenaQuestion(String category, Predicate<ArenaQuestion> isAvailable) {
+        for (int attempt = 0; attempt < 3; attempt++) {
+            Optional<ArenaQuestion> candidate = toArenaQuestion(requestSingleArenaQuestion(category), category);
+            if (candidate.isPresent() && isAvailable.test(candidate.get())) {
+                return candidate;
+            }
+        }
+        return Optional.empty();
+    }
+
+    /** Ripiego locale: pesca dal catalogo finché trova una domanda non ancora uscita. */
+    public Optional<ArenaQuestion> fallbackArenaQuestion(String category, Predicate<ArenaQuestion> isAvailable) {
+        String wanted = QuestionHistoryService.normalize(category);
+        for (int attempt = 0; attempt < 24; attempt++) {
+            Optional<ArenaQuestion> candidate = toArenaQuestion(getSingleFallbackArenaQuestion(), null);
+            if (candidate.isPresent()
+                    && wanted.equals(QuestionHistoryService.normalize(candidate.get().category()))
+                    && isAvailable.test(candidate.get())) {
+                return candidate;
+            }
+        }
+        return Optional.empty();
+    }
+
+    /** Ripiego locale su tutto il catalogo. */
+    public Optional<ArenaQuestion> fallbackArenaQuestion(Predicate<ArenaQuestion> isAvailable) {
+        for (int attempt = 0; attempt < 24; attempt++) {
+            Optional<ArenaQuestion> candidate = toArenaQuestion(getSingleFallbackArenaQuestion(), null);
+            if (candidate.isPresent() && isAvailable.test(candidate.get())) {
+                return candidate;
+            }
+        }
+        return toArenaQuestion(getSingleFallbackArenaQuestion(), null);
+    }
+
+    /** Chiave di deduplica per un payload già generato (round non-arena). */
+    public static String payloadDedupeKey(String jsonPayload) {
+        try {
+            JSONObject obj = new JSONObject(jsonPayload);
+            String question = obj.optString("question", "");
+            String answer = obj.optString("correctAnswer", obj.optString("songTitle", ""));
+            String category = obj.optString("category", "");
+            if (!question.isBlank() || !answer.isBlank()) {
+                return QuestionHistoryService.key(question, answer, category);
+            }
+        } catch (Exception ignored) {
+            // payload non JSON (es. proverbio): si usa il testo normalizzato
+        }
+        return "raw|" + QuestionHistoryService.normalize(jsonPayload);
+    }
+
+    private Optional<ArenaQuestion> toArenaQuestion(String raw, String requestedCategory) {
+        try {
+            JSONObject obj = new JSONObject(raw);
+            String question = obj.optString("question", "");
+            String correctAnswer = obj.optString("correctAnswer", "");
+            if (question.isBlank() || correctAnswer.isBlank() || !obj.has("options")) {
+                return Optional.empty();
+            }
+            String category = requestedCategory != null ? requestedCategory : obj.optString("category", "");
+            return Optional.of(new ArenaQuestion(obj.toString(), question, correctAnswer, category,
+                    QuestionHistoryService.key(question, correctAnswer, category),
+                    QuestionHistoryService.answerKey(correctAnswer, category)));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    /** TMDB per primo, poi il ripiego: una domanda senza immagine è ingiocabile. */
+    private String resolveCelebrityImage(String celebrity) {
+        String imageUrl = tmdbImageService.getCelebrityImageUrl(celebrity);
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            imageUrl = celebrityImageService.getReliableImageUrl(celebrity);
+        }
+        return imageUrl;
     }
 
     private String getSingleFallbackArenaQuestion() {

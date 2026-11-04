@@ -42,12 +42,13 @@ public class SimpleRoundService {
                 .orElseThrow(() -> new RuntimeException("Nessuna domanda trovata per la categoria "
                         + randomCat.getName() + " con difficoltà " + difficulty));
 
-        GameRound round = getGameRound(game, question);
+        int roundIndex = (int) gameRoundRepository.countByGameId(game.getId()) + 1;
+        GameRound round = getGameRound(game, question, roundIndex);
 
         return gameRoundRepository.save(round);
     }
 
-    private static @NonNull GameRound getGameRound(Game game, Question question) {
+    private static @NonNull GameRound getGameRound(Game game, Question question, int roundIndex) {
         GameRound round = new GameRound();
         round.setGame(game);
         round.setQuestion(question);
@@ -55,7 +56,7 @@ public class SimpleRoundService {
 
         round.setStatus(RoundStatus.CREATED);
         round.setType(GameType.QUIZ);
-        round.setRoundIndex(1);
+        round.setRoundIndex(roundIndex);
         return round;
     }
 }

@@ -8,6 +8,7 @@ import com.pub_game_be.domain.game_round.GameRound;
 import com.pub_game_be.repository.GameRepository;
 import com.pub_game_be.repository.GameRoundRepository;
 import com.pub_game_be.service.GameService;
+import com.pub_game_be.service.QuestionHistoryService;
 import com.pub_game_be.service.QuestionGeneratorService;
 import com.pub_game_be.service.SimpleRoundService;
 import org.json.JSONObject;
@@ -15,6 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 @RestController
 @RequestMapping("/games")
@@ -26,19 +30,22 @@ public class GameController {
     private final GameService gameService;
     private final QuestionGeneratorService questionGeneratorService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final QuestionHistoryService questionHistory;
 
     public GameController(GameRepository gameRepo,
             GameRoundRepository gameRoundRepository,
             SimpleRoundService simpleRoundService,
             GameService gameService,
             QuestionGeneratorService questionGeneratorService,
-            SimpMessagingTemplate messagingTemplate) {
+            SimpMessagingTemplate messagingTemplate,
+            QuestionHistoryService questionHistory) {
         this.gameRepo = gameRepo;
         this.gameRoundRepository = gameRoundRepository;
         this.simpleRoundService = simpleRoundService;
         this.gameService = gameService;
         this.questionGeneratorService = questionGeneratorService;
         this.messagingTemplate = messagingTemplate;
+        this.questionHistory = questionHistory;
     }
 
     @PostMapping
@@ -61,6 +68,13 @@ public class GameController {
 
         String aiPayload = questionGeneratorService
                 .generateQuestionJson(category, type, difficulty);
+
+        // Deduplica: la stessa domanda non deve uscire due volte nella stessa partita.
+        for (int attempt = 0; attempt < 3
+                && questionHistory.isUsed(gameId, QuestionGeneratorService.payloadDedupeKey(aiPayload)); attempt++) {
+            aiPayload = questionGeneratorService.generateQuestionJson(category, type, difficulty);
+        }
+        questionHistory.claim(gameId, QuestionGeneratorService.payloadDedupeKey(aiPayload));
 
         Game game = gameRepo.findById(gameId)
                 .orElseThrow(() -> new RuntimeException("Gioco non trovato"));
@@ -95,8 +109,30 @@ public class GameController {
 
     @GetMapping("/{gameId}/arena-question")
     public String getArenaQuestion(@PathVariable("gameId") Long gameId,
-            @RequestParam("category") String category) {
-        return questionGeneratorService.generateSingleArenaQuestion(category);
+            @RequestParam("category") String category,
+            @RequestParam(value = "playerId", defaultValue = "anonimo") String playerId) {
+        Predicate<QuestionGeneratorService.ArenaQuestion> isAvailable = candidate -> !questionHistory.isUsed(gameId, candidate.key())
+                && !questionHistory.isUsed(gameId, candidate.answerKey());
+
+        QuestionGeneratorService.ArenaQuestion question = questionGeneratorService
+                .generateArenaQuestion(category, isAvailable)
+                .or(() -> questionGeneratorService.fallbackArenaQuestion(category, isAvailable))
+                .or(() -> questionGeneratorService.fallbackArenaQuestion(isAvailable))
+                .or(() -> questionGeneratorService.fallbackArenaQuestion(candidate -> true))
+                .orElseThrow(() -> new RuntimeException("Nessuna domanda disponibile per la categoria " + category));
+
+        // Segna il fatto come uscito: nessun altro dispositivo riceverà la stessa domanda.
+        questionHistory.claim(gameId, question.key());
+        questionHistory.claim(gameId, question.answerKey());
+
+        String questionId = questionHistory.nextQuestionId(gameId);
+        questionHistory.assign(gameId, new QuestionHistoryService.ArenaAssignment(questionId, playerId,
+                question.question(), question.correctAnswer(), question.category()));
+
+        JSONObject response = new JSONObject(question.json());
+        response.put("questionId", questionId);
+        response.put("playerId", playerId);
+        return response.toString();
     }
 
     private String normalizeWheelPayload(String aiPayload) {
@@ -232,6 +268,27 @@ public class GameController {
         messagingTemplate.convertAndSend("/topic/game/" + id, round);
 
         return round;
+    }
+
+    /** Il giusto/sbagliato lo decide il server, non il telefono. */
+    @PostMapping("/{gameId}/arena-answer")
+    public ResponseEntity<Object> answerArenaQuestion(@PathVariable("gameId") Long gameId,
+            @RequestBody Map<String, Object> body) {
+        String playerId = String.valueOf(body.getOrDefault("playerId", "anonimo"));
+        String questionId = String.valueOf(body.getOrDefault("questionId", ""));
+        String answer = String.valueOf(body.getOrDefault("answer", ""));
+
+        return questionHistory.answer(gameId, playerId, questionId, answer)
+                .<ResponseEntity<Object>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.badRequest()
+                        .body(Map.of("error", "Domanda non trovata per questo giocatore")));
+    }
+
+    /** Azzera memoria e punteggi dell'arena (nuova partita o reset dalla TV). */
+    @PostMapping("/{gameId}/arena/reset")
+    public Map<String, Object> resetArena(@PathVariable("gameId") Long gameId) {
+        questionHistory.forget(gameId);
+        return Map.of("reset", true, "gameId", gameId);
     }
 
     @GetMapping("/{gameId}/current-round")
