@@ -6,16 +6,16 @@ Un unico repository per il gioco da pub multigiocatore: **frontend Angular** e *
 
 ```
 apps/
-├── frontend/   Angular 21 + PWA — /tv (schermo), /admin (votante), /play (telefono)
-└── backend/    Spring Boot 4 / Java 17 — REST, WebSocket STOMP/SockJS, AI Groq, H2 o MySQL
+├── frontend/   Angular 22 + PWA — /tv (schermo), /admin (votante), /play (telefono)
+└── backend/    Spring Boot 4 / Java 25 — REST, WebSocket STOMP/SockJS, AI Groq, H2 o MySQL
 scripts/        Avvio unificato (dev, Maven) e lettura di .env
 .env            Configurazione locale: porte e host
 ```
 
 ## Requisiti
 
-- Node.js 18+ e npm 11
-- JDK 17+
+- Node.js 22.22+ (oppure 24.15+ / 26+) e npm 11 — requisito di Angular 22
+- JDK 25+
 - `cloudflared` solo se usi i tunnel
 
 ## Installazione

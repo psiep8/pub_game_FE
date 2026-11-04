@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { ArenaDisplayData, ArenaTeamProgress } from '../../mode/arena.mode';
@@ -9,6 +9,7 @@ import { ArenaDisplayData, ArenaTeamProgress } from '../../mode/arena.mode';
     imports: [CommonModule],
     templateUrl: './arena.component.html',
     styleUrl: './arena.component.css',
+    changeDetection: ChangeDetectionStrategy.Eager,
     animations: [
         trigger('eliminateAnimation', [
             transition(':enter', [

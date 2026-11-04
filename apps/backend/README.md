@@ -1,12 +1,12 @@
 # PubGame BE — Backend Spring Boot
 
-Backend Spring Boot 4 (Java 17) per il gioco da pub multigiocatore.
+Backend Spring Boot 4.1 (Java 25) per il gioco da pub multigiocatore.
 Gestisce REST API, WebSocket (STOMP/SockJS), generazione domande AI via Groq, e integrazione con TMDB e iTunes.
 
 ## Requisiti
 
-- JDK 17+
-- Maven 3.8+ (incluso `./mvnw`)
+- JDK 25+
+- Maven 3.9+ (incluso `./mvnw`)
 - MySQL 8+ (solo per profilo `mysql`)
 
 ## Avvio rapido (H2 embedded — nessun database esterno)

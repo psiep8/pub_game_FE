@@ -11,7 +11,8 @@ import {
   ViewChild,
   ChangeDetectorRef,
   DestroyRef,
-  computed
+  computed,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -59,6 +60,7 @@ import { ArenaComponent } from './games/arena/arena.component';
   ],
   templateUrl: './game-component.html',
   styleUrl: './game-component.css',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [

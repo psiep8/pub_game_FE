@@ -18,7 +18,7 @@
     "test:backend": "node scripts/mvn.mjs test"
   },
   "devDependencies": {
-    "vitest": "4.0.8"
+    "vitest": "^5.1.0"
   },
   "packageManager": "npm@11.6.2"
 }

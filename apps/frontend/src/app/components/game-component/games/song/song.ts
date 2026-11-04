@@ -6,6 +6,7 @@ import {
   signal,
   SimpleChanges,
   OnChanges, EventEmitter, Output,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 
@@ -14,6 +15,7 @@ import {CommonModule} from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './song.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './song.css',
 })
 export class Song implements OnInit, OnDestroy, OnChanges {

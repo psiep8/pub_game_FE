@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ScreamRaceDisplayData } from '../../mode/scream-race.mode';
 
@@ -7,6 +7,7 @@ import { ScreamRaceDisplayData } from '../../mode/scream-race.mode';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './scream-race.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './scream-race.component.css'
 })
 export class ScreamRace {

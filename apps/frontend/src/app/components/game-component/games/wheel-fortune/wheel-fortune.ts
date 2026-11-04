@@ -1,6 +1,6 @@
 
 
-import {Component, Input, Output, EventEmitter} from '@angular/core';
+import {Component, Input, Output, EventEmitter, ChangeDetectionStrategy} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {trigger, transition, style, animate} from '@angular/animations';
 
@@ -10,6 +10,7 @@ import {trigger, transition, style, animate} from '@angular/animations';
   imports: [CommonModule],
   templateUrl: './wheel-fortune.html',
   styleUrl: './wheel-fortune.css',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [

@@ -1,6 +1,6 @@
 
 
-import {Component, OnInit, signal, inject, Output, EventEmitter} from '@angular/core';
+import {Component, OnInit, signal, inject, Output, EventEmitter, ChangeDetectionStrategy} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {trigger, transition, style, animate} from '@angular/animations';
 import {LeaderboardService, PlayerScore} from '../../../services/leaderboard.service';
@@ -31,6 +31,7 @@ import {LeaderboardService, PlayerScore} from '../../../services/leaderboard.ser
     ])
   ],
   templateUrl: 'leaderboard-quick-component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: 'leaderboard-quick-component.css'
 })
 export class LeaderboardQuick implements OnInit {

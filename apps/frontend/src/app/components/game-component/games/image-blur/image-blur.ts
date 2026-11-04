@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output, ChangeDetectionStrategy} from '@angular/core';
 import {animate, style, transition, trigger} from '@angular/animations';
 import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
 
@@ -7,6 +7,7 @@ import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
   imports: [],
   templateUrl: './image-blur.html',
   styleUrl: './image-blur.css',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [

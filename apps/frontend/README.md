@@ -1,6 +1,6 @@
 # PubGame FE — Frontend Angular
 
-Frontend Angular 21 per il gioco da pub multigiocatore con supporto AI, WebSocket e tunnel Cloudflare.
+Frontend Angular 22 per il gioco da pub multigiocatore con supporto AI, WebSocket e tunnel Cloudflare.
 
 > Vive in `apps/frontend` del monorepo PubGame. `npm install` e gli script (`npm run dev`, `npm run build`) si lanciano dalla **radice** del repo.
 

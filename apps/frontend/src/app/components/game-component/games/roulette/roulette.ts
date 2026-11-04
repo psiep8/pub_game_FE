@@ -1,4 +1,4 @@
-import { Component, Input, signal, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, signal, OnInit, OnDestroy, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './roulette.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './roulette.css',
 })
 export class Roulette implements OnInit, OnDestroy, OnChanges {

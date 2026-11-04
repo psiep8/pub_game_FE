@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, signal, HostListener } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WebSocketService } from '../../services/web-socket.service';
 import { FormsModule } from '@angular/forms';
@@ -11,6 +11,7 @@ import { GameService } from '../../services/game.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './remote-component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './remote-component.css',
 })
 export class RemoteComponent implements OnInit, OnDestroy {
