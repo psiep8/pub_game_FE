@@ -48,8 +48,24 @@ export class GameService {
     );
   }
 
-  getArenaQuestion(gameId: number, category: string): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/games/${gameId}/arena-question?category=${encodeURIComponent(category)}`);
+  getArenaQuestion(gameId: number, category: string, playerId: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/games/${gameId}/arena-question?category=${encodeURIComponent(category)}&playerId=${encodeURIComponent(playerId)}`
+    );
+  }
+
+  /** L'esito della risposta arena lo calcola il backend, non il telefono. */
+  answerArenaQuestion(
+    gameId: number,
+    playerId: string,
+    questionId: string,
+    answer: string
+  ): Observable<{ correct: boolean; totalScore?: number; correctAnswer?: string }> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/arena-answer`, {
+      playerId,
+      questionId,
+      answer,
+    });
   }
 
   private parseRoundPayload(res: any): GameRound {

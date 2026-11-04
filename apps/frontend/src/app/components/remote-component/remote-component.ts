@@ -41,7 +41,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   gameId = signal<number>(1);
 
   // ARENA STATE
-  arenaQuestion = signal<{ text: string, options?: string[], isTrueFalse: boolean, correctIndex: number } | null>(null);
+  arenaQuestion = signal<{ text: string, options?: string[], isTrueFalse: boolean, questionId: string } | null>(null);
   isFetchingQuestion = signal(false);
   categories = signal<any[]>([]);
 
@@ -502,25 +502,24 @@ export class RemoteComponent implements OnInit, OnDestroy {
       selectedCategory = cats[idx].name;
     }
 
-    this.gameService.getArenaQuestion(this.gameId(), selectedCategory).subscribe({
+    const playerId = this.nickname() || 'anonimo';
+
+    this.gameService.getArenaQuestion(this.gameId(), selectedCategory, playerId).subscribe({
       next: (q: any) => {
         this.arenaQuestion.set({
           text: q.question,
           options: q.options,
           isTrueFalse: q.options && q.options.length === 2 && (q.options.includes('VERO') || q.options.includes('FALSO')),
-          correctIndex: q.options ? q.options.indexOf(q.correctAnswer) : -1
+          // Serve al server per sapere a quale domanda stiamo rispondendo.
+          questionId: q.questionId
         });
         this.isFetchingQuestion.set(false);
       },
       error: (err: any) => {
         console.error('❌ Fallito recupero domanda arena:', err);
-        // Fallback locale in caso di errore di rete
-        this.arenaQuestion.set({
-          text: "Domanda di riserva: 5 + 5?",
-          options: ["8", "10", "12", "15"],
-          isTrueFalse: false,
-          correctIndex: 1
-        });
+        // Senza questionId il server non può validare la risposta: meglio
+        // restare in attesa che mandare in giro un esito calcolato qui.
+        this.arenaQuestion.set(null);
         this.isFetchingQuestion.set(false);
       }
     });
@@ -528,21 +527,29 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   sendArenaAnswer(index: number) {
     const q = this.arenaQuestion();
-    if (!q) return;
+    const playerName = this.nickname();
+    if (!q || !q.options || !playerName) return;
 
-    const isCorrect = index === q.correctIndex;
-
-    this.ws.broadcastStatus(this.gameId(), {
-      action: 'ARENA_ANSWER',
-      playerName: this.nickname(),
-      isCorrect: isCorrect
-    });
-
-    this.vibrate(isCorrect ? 50 : [50, 50, 50]);
-
-    // Slight dealy to show correct/wrong feedback maybe? 
-    // Just immediately next question for rapid fire!
-    this.generateNextArenaQuestion();
+    // Il telefono manda solo la risposta scelta: giusto/sbagliato lo decide il backend.
+    this.gameService
+      .answerArenaQuestion(this.gameId(), playerName, q.questionId, q.options[index])
+      .subscribe({
+        next: (res) => {
+          const isCorrect = !!res.correct;
+          this.ws.broadcastStatus(this.gameId(), {
+            action: 'ARENA_ANSWER',
+            playerName,
+            isCorrect,
+            points: isCorrect ? 10 : -10
+          });
+          this.vibrate(isCorrect ? 50 : [50, 50, 50]);
+          this.generateNextArenaQuestion();
+        },
+        error: (err: any) => {
+          console.error('❌ Risposta arena rifiutata dal server:', err);
+          this.generateNextArenaQuestion();
+        }
+      });
   }
 
   onYearChange(event: any) {
