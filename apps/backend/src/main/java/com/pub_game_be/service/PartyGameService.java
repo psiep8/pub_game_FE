@@ -11,20 +11,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Giochi simultanei che non vivono nella banca domande: Timeline e Quanto costa.
+ * Giochi simultanei che non vivono nella banca domande: Timeline, Quanto costa,
+ * Speed Rush e Ping Pong.
  *
- * Le risposte corrette (ordine degli anni, prezzo) restano sul server: il
- * telefono riceve solo le carte mescolate o il nome del prodotto, e il
- * punteggio lo calcola qui. Così nessun dispositivo può leggersi la soluzione
- * dal payload.
+ * Le soluzioni restano sul server: il telefono riceve solo le carte mescolate o
+ * i prodotti senza prezzo, e il punteggio lo calcola qui.
  */
 @Service
 public class PartyGameService {
@@ -38,18 +39,18 @@ public class PartyGameService {
     public record TimelineSubmission(String playerName, int correctPairs, int totalPairs, int score) {
     }
 
-    public record PriceSubmission(String playerName, double estimate, int score, boolean closest) {
+    public record PriceEntry(String playerName, List<Double> estimates) {
     }
 
     private record TimelineRound(String token, List<TimelineEvent> ordered, Map<Integer, Integer> ranks) {
     }
 
-    private record PriceRound(String token, PriceItem item) {
+    private record PriceRound(String token, List<PriceItem> items) {
     }
 
-    /** Quante carte si ordinano: 6 nei primi atti, 8 nel finale. */
     private static final int TIMELINE_CARDS = 6;
     private static final int TIMELINE_CARDS_FINAL = 8;
+    private static final int PRICE_ITEMS = 3;
 
     /** Oltre questo scarto la stima vale zero (prezzo triplo o un terzo). */
     private static final double PRICE_TOLERANCE = Math.log(3);
@@ -60,7 +61,7 @@ public class PartyGameService {
     private final Map<Long, TimelineRound> timelineRounds = new ConcurrentHashMap<>();
     private final Map<Long, PriceRound> priceRounds = new ConcurrentHashMap<>();
     private final Map<Long, Map<String, TimelineSubmission>> timelineAnswers = new ConcurrentHashMap<>();
-    private final Map<Long, Map<String, PriceSubmission>> priceAnswers = new ConcurrentHashMap<>();
+    private final Map<Long, Map<String, PriceEntry>> priceAnswers = new ConcurrentHashMap<>();
     private final Map<Long, Boolean> lastTimelineRounds = new ConcurrentHashMap<>();
     private final Random random = new Random();
 
@@ -70,7 +71,6 @@ public class PartyGameService {
         System.out.println("Banca party: " + events.size() + " eventi timeline, " + items.size() + " prezzi.");
     }
 
-    /** I tipi gestiti da questo servizio invece che dalla banca domande. */
     public boolean handles(String type) {
         if (type == null) {
             return false;
@@ -81,7 +81,6 @@ public class PartyGameService {
         };
     }
 
-    /** Payload di apertura del round; null se il tipo non è di questo servizio. */
     public String startRound(long gameId, String type) {
         return switch (type.toUpperCase(Locale.ROOT)) {
             case "TIMELINE" -> startTimeline(gameId);
@@ -123,6 +122,8 @@ public class PartyGameService {
         payload.put("question", "Metti le carte in ordine, dalla più antica alla più recente");
         payload.put("items", cards);
         payload.put("count", ordered.size());
+        payload.put("explain", "Ogni coppia di carte nell'ordine giusto vale punti. "
+                + "Con 6 carte le coppie sono 15, con 8 sono 28. Ordine perfetto: +200 bonus.");
 
         timelineRounds.put(gameId, new TimelineRound(payload.getString("roundId"), ordered, ranks));
         timelineAnswers.put(gameId, new ConcurrentHashMap<>());
@@ -130,7 +131,6 @@ public class PartyGameService {
         return payload.toString();
     }
 
-    /** Sei-otto eventi con almeno tre anni di distanza: niente ordini ambigui. */
     private List<TimelineEvent> sampleTimeline(int count) {
         List<TimelineEvent> pool = new ArrayList<>(events);
         Collections.shuffle(pool, random);
@@ -187,7 +187,6 @@ public class PartyGameService {
         return Optional.of(submission);
     }
 
-    /** Soluzione e classifica del round: la TV la chiede solo al reveal. */
     public JSONObject timelineReveal(long gameId) {
         TimelineRound round = timelineRounds.get(gameId);
         JSONObject result = new JSONObject();
@@ -222,43 +221,66 @@ public class PartyGameService {
 
     // ------------------------------------------------------------------- Price
 
+    /**
+     * Tre oggetti per round. I telefoni mandano tre stime; al reveal il peggior
+     * giocatore di ogni oggetto viene eliminato e i superstiti si spartiscono i
+     * punti in base alla distanza totale dal prezzo reale.
+     */
     private String startPrice(long gameId) {
         if (items.isEmpty()) {
-            return configPayload("PRICE", 30);
+            return configPayload("PRICE", 45);
         }
-        PriceItem item = items.get(random.nextInt(items.size()));
+
+        List<PriceItem> pool = new ArrayList<>(items);
+        Collections.shuffle(pool, random);
+        List<PriceItem> picked = new ArrayList<>(pool.subList(0, Math.min(PRICE_ITEMS, pool.size())));
+
+        JSONArray cards = new JSONArray();
+        for (PriceItem item : picked) {
+            cards.put(new JSONObject()
+                    .put("name", item.name())
+                    .put("emoji", item.emoji())
+                    .put("category", item.category()));
+        }
 
         JSONObject payload = new JSONObject();
         payload.put("type", "PRICE");
         payload.put("roundId", "pr-" + System.currentTimeMillis());
-        payload.put("question", "Quanto costa?");
-        payload.put("name", item.name());
-        payload.put("emoji", item.emoji());
-        payload.put("category", item.category());
+        payload.put("question", "Quanto costano questi tre oggetti?");
+        payload.put("items", cards);
+        payload.put("count", picked.size());
         payload.put("unit", "€");
+        payload.put("explain", "Dopo ogni oggetto il peggior giocatore viene eliminato. "
+                + "Gli ultimi rimasti prendono punti in base a quanto sono stati vicini.");
+        if (!picked.isEmpty()) {
+            payload.put("name", picked.get(0).name());
+            payload.put("emoji", picked.get(0).emoji());
+            payload.put("category", picked.get(0).category());
+        }
 
-        priceRounds.put(gameId, new PriceRound(payload.getString("roundId"), item));
+        priceRounds.put(gameId, new PriceRound(payload.getString("roundId"), List.copyOf(picked)));
         priceAnswers.put(gameId, new ConcurrentHashMap<>());
         return payload.toString();
     }
 
-    public Optional<PriceSubmission> submitPrice(long gameId, String playerName, double estimate) {
+    public Optional<PriceEntry> submitPrice(long gameId, String playerName, List<Double> estimates) {
         PriceRound round = priceRounds.get(gameId);
-        if (round == null || playerName == null || playerName.isBlank() || estimate <= 0) {
+        if (round == null || playerName == null || playerName.isBlank() || estimates == null
+                || estimates.size() != round.items().size()) {
             return Optional.empty();
         }
+        for (Double estimate : estimates) {
+            if (estimate == null || estimate <= 0 || !Double.isFinite(estimate)) {
+                return Optional.empty();
+            }
+        }
 
-        PriceSubmission submission = new PriceSubmission(playerName.trim(), estimate,
-                scoreForPrice(round.item().price(), estimate), false);
+        PriceEntry entry = new PriceEntry(playerName.trim(), List.copyOf(estimates));
         priceAnswers.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>())
-                .put(submission.playerName(), submission);
-        return Optional.of(submission);
+                .put(entry.playerName(), entry);
+        return Optional.of(entry);
     }
 
-    /**
-     * Punteggio logaritmico: stima esatta 1000, doppia o dimezzata circa 370,
-     * fuori di un fattore tre zero. La TV usa la stessa formula per l'anteprima.
-     */
     public static int scoreForPrice(double price, double estimate) {
         if (price <= 0 || estimate <= 0) {
             return 0;
@@ -270,49 +292,127 @@ public class PartyGameService {
     public JSONObject priceReveal(long gameId) {
         PriceRound round = priceRounds.get(gameId);
         JSONObject result = new JSONObject();
+        JSONArray itemsJson = new JSONArray();
+        JSONArray resultsJson = new JSONArray();
+        JSONArray eliminationsJson = new JSONArray();
+
         if (round == null) {
-            result.put("results", new JSONArray());
+            result.put("items", itemsJson);
+            result.put("results", resultsJson);
+            result.put("eliminations", eliminationsJson);
             return result;
         }
 
-        Map<String, PriceSubmission> answers = priceAnswers.getOrDefault(gameId, Map.of());
-        String closest = null;
-        double closestDistance = Double.MAX_VALUE;
-        for (PriceSubmission submission : answers.values()) {
-            double distance = Math.abs(Math.log(submission.estimate() / round.item().price()));
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closest = submission.playerName();
+        Map<String, PriceEntry> answers = priceAnswers.getOrDefault(gameId, Map.of());
+        List<String> players = new ArrayList<>(answers.keySet());
+        Collections.sort(players);
+
+        Map<String, double[]> errors = new HashMap<>();
+        for (PriceEntry entry : answers.values()) {
+            double[] row = new double[round.items().size()];
+            for (int index = 0; index < row.length; index++) {
+                double price = round.items().get(index).price();
+                row[index] = Math.abs(Math.log(entry.estimates().get(index) / price)) / PRICE_TOLERANCE;
+            }
+            errors.put(entry.playerName(), row);
+        }
+
+        Set<String> eliminated = new HashSet<>();
+        for (int index = 0; index < round.items().size(); index++) {
+            PriceItem item = round.items().get(index);
+            JSONArray itemResults = new JSONArray();
+            String worst = null;
+            double worstError = -1;
+
+            for (String player : players) {
+                PriceEntry entry = answers.get(player);
+                if (entry == null) {
+                    continue;
+                }
+                double estimate = entry.estimates().get(index);
+                double error = errors.get(player)[index];
+                itemResults.put(new JSONObject()
+                        .put("playerName", player)
+                        .put("estimate", estimate)
+                        .put("error", Math.round(error * 100.0) / 100.0));
+
+                if (!eliminated.contains(player) && error > worstError) {
+                    worstError = error;
+                    worst = player;
+                }
+            }
+
+            String eliminatedThisItem = null;
+            if (worst != null && players.size() - eliminated.size() > 1) {
+                eliminated.add(worst);
+                eliminatedThisItem = worst;
+                eliminationsJson.put(new JSONObject()
+                        .put("itemIndex", index)
+                        .put("playerName", worst));
+            }
+
+            JSONObject itemJson = new JSONObject()
+                    .put("name", item.name())
+                    .put("emoji", item.emoji())
+                    .put("category", item.category())
+                    .put("price", item.price())
+                    .put("source", item.source())
+                    .put("results", itemResults);
+            itemJson.put("eliminated", eliminatedThisItem == null ? JSONObject.NULL : eliminatedThisItem);
+            itemsJson.put(itemJson);
+        }
+
+        List<String> survivors = new ArrayList<>();
+        for (String player : players) {
+            if (!eliminated.contains(player)) {
+                survivors.add(player);
             }
         }
+        survivors.sort(Comparator.comparingDouble(player -> mean(errors.get(player))));
 
-        List<PriceSubmission> submissions = new ArrayList<>();
-        for (PriceSubmission submission : answers.values()) {
-            boolean isClosest = submission.playerName().equals(closest);
-            submissions.add(new PriceSubmission(submission.playerName(), submission.estimate(),
-                    submission.score() + (isClosest ? 300 : 0), isClosest));
+        int[] bonus = {500, 350, 250, 150, 100};
+        Map<String, Integer> scores = new HashMap<>();
+        for (int index = 0; index < survivors.size(); index++) {
+            scores.put(survivors.get(index), bonus[Math.min(index, bonus.length - 1)]);
         }
-        submissions.sort(Comparator.comparingInt(PriceSubmission::score).reversed());
-
-        JSONArray results = new JSONArray();
-        for (PriceSubmission submission : submissions) {
-            results.put(new JSONObject()
-                    .put("playerName", submission.playerName())
-                    .put("estimate", submission.estimate())
-                    .put("score", submission.score())
-                    .put("closest", submission.closest()));
+        for (String player : players) {
+            scores.putIfAbsent(player, 0);
         }
 
-        result.put("name", round.item().name());
-        result.put("emoji", round.item().emoji());
-        result.put("price", round.item().price());
-        result.put("source", round.item().source());
-        result.put("closest", closest == null ? JSONObject.NULL : closest);
-        result.put("results", results);
+        List<JSONObject> rows = new ArrayList<>();
+        for (String player : players) {
+            rows.add(new JSONObject()
+                    .put("playerName", player)
+                    .put("totalError", Math.round(mean(errors.get(player)) * 100.0) / 100.0)
+                    .put("score", scores.get(player))
+                    .put("survivor", survivors.contains(player)));
+        }
+        rows.sort((left, right) -> {
+            int byScore = Integer.compare(right.optInt("score"), left.optInt("score"));
+            return byScore != 0 ? byScore : Double.compare(left.optDouble("totalError"), right.optDouble("totalError"));
+        });
+        for (JSONObject row : rows) {
+            resultsJson.put(row);
+        }
+
+        result.put("items", itemsJson);
+        result.put("eliminations", eliminationsJson);
+        result.put("results", resultsJson);
+        result.put("survivors", new JSONArray(survivors));
         return result;
     }
 
-    /** Dimentica il round: nuova partita o reset dalla TV. */
+    private double mean(double[] values) {
+        if (values == null || values.length == 0) {
+            return 0;
+        }
+        double sum = 0;
+        for (double value : values) {
+            sum += value;
+        }
+        return sum / values.length;
+    }
+
     public void forget(long gameId) {
         timelineRounds.remove(gameId);
         priceRounds.remove(gameId);
@@ -376,9 +476,8 @@ public class PartyGameService {
         }
         try (InputStream stream = resource.getInputStream()) {
             String json = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
-            return new JSONObject(json).optJSONArray(field) == null
-                    ? new JSONArray()
-                    : new JSONObject(json).optJSONArray(field);
+            JSONObject root = new JSONObject(json);
+            return root.optJSONArray(field) == null ? new JSONArray() : root.optJSONArray(field);
         } catch (Exception error) {
             System.out.println("⚠️ " + resourcePath + " illeggibile: " + error.getMessage());
             return new JSONArray();

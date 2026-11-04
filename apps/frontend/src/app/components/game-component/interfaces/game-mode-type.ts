@@ -7,8 +7,6 @@
 
 export type GameModeType =
   | 'QUIZ'
-  | 'TRUE_FALSE'
-  | 'CHRONO'
   | 'IMAGE_BLUR'
   | 'ROULETTE'
   | 'MUSIC'
@@ -30,7 +28,13 @@ export interface GameModeConfig {
   onTimerEnd?: () => void;
   onBuzz?: (playerName: string) => void;
   onAnswerReceived?: (data: any) => void;
+  /** Messaggio da mandare ai telefoni (es. nuova domanda del Ping Pong). */
+  onBroadcast?: (event: any) => void;
   onPreGameTick?: (secondsRemaining: number) => void;
+  /** Arena: una squadra è appena uscita dal cerchio. */
+  onPlayerEliminated?: (playerName: string) => void;
+  /** Arena: la partita è finita (rimasto un solo giocatore o tempo scaduto). */
+  onRoundEnded?: () => void;
 }
 
 export interface GameModeResult {

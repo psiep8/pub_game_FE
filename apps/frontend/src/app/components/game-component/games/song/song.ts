@@ -39,11 +39,14 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   isPlaying = signal(false);
   currentPhase = signal(0);
   vinylRotation = signal(0);
-  blurAmount = signal(20);
+  blurAmount = signal(28);
+  scratching = signal(false);
 
   private vinylAnimationFrame?: number;
   private audioUnlocked = false;
   private lastPhase = 0;
+  private lastBuzz: string | null = null;
+  private scratchTimeout?: ReturnType<typeof setTimeout>;
 
   ngOnInit() {
     
@@ -63,9 +66,17 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     if (changes['displayData'] && this.displayData) {
       const prevData = changes['displayData'].previousValue;
 
+      // Prenotazione: la puntina "strappa" il disco.
+      const nextBuzz = this.displayData.buzzedPlayer ?? null;
+      const prevBuzz = prevData?.buzzedPlayer ?? null;
+      if (nextBuzz && nextBuzz !== prevBuzz) {
+        this.scratch();
+      }
+      this.lastBuzz = nextBuzz;
+
       if (prevData?.previewUrl !== this.displayData.previewUrl) {
         
-        this.blurAmount.set(20);
+        this.blurAmount.set(28);
         this.currentPhase.set(0);
         this.lastPhase = 0;
         this.initAudio();
@@ -77,6 +88,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
         this.lastPhase = phase;
         this.currentPhase.set(phase);
         this.applyFilters(phase);
+        this.applyBlur(phase);
       }
 
       const shouldPlay = this.displayData.audioPlaying;
@@ -194,37 +206,39 @@ export class Song implements OnInit, OnDestroy, OnChanges {
 
     switch (phase) {
       case 1: 
-        this.gainNode.gain.setValueAtTime(0.25, this.audioContext.currentTime);
+        // Prima manche volutamente irriconoscibile: banda strettissima,
+        // saturazione alta e volume basso. Si capisce solo il ritmo.
+        this.gainNode.gain.setValueAtTime(0.16, this.audioContext.currentTime);
         
-        this.bandpassFilter!.frequency.setValueAtTime(750, this.audioContext.currentTime);
-        this.bandpassFilter!.Q.setValueAtTime(18, this.audioContext.currentTime); 
-        this.highpassFilter!.frequency.setValueAtTime(650, this.audioContext.currentTime);
-        this.lowpassFilter!.frequency.setValueAtTime(1100, this.audioContext.currentTime);
+        this.bandpassFilter!.frequency.setValueAtTime(620, this.audioContext.currentTime);
+        this.bandpassFilter!.Q.setValueAtTime(28, this.audioContext.currentTime);
+        this.highpassFilter!.frequency.setValueAtTime(740, this.audioContext.currentTime);
+        this.lowpassFilter!.frequency.setValueAtTime(880, this.audioContext.currentTime);
         
-        this.distortionNode!.curve = this.makeDistortionCurve(70) as any;
+        this.distortionNode!.curve = this.makeDistortionCurve(320) as any;
         
         break;
 
       case 2: 
-        this.gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+        this.gainNode.gain.setValueAtTime(0.24, this.audioContext.currentTime);
         
-        this.bandpassFilter!.frequency.setValueAtTime(950, this.audioContext.currentTime);
-        this.bandpassFilter!.Q.setValueAtTime(12, this.audioContext.currentTime);
-        this.highpassFilter!.frequency.setValueAtTime(550, this.audioContext.currentTime);
-        this.lowpassFilter!.frequency.setValueAtTime(1600, this.audioContext.currentTime);
+        this.bandpassFilter!.frequency.setValueAtTime(820, this.audioContext.currentTime);
+        this.bandpassFilter!.Q.setValueAtTime(18, this.audioContext.currentTime);
+        this.highpassFilter!.frequency.setValueAtTime(600, this.audioContext.currentTime);
+        this.lowpassFilter!.frequency.setValueAtTime(1250, this.audioContext.currentTime);
         
-        this.distortionNode!.curve = this.makeDistortionCurve(50) as any;
+        this.distortionNode!.curve = this.makeDistortionCurve(150) as any;
         
         break;
 
       case 3: 
-        this.gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
-        this.bandpassFilter!.frequency.setValueAtTime(1300, this.audioContext.currentTime);
-        this.bandpassFilter!.Q.setValueAtTime(7, this.audioContext.currentTime);
-        this.highpassFilter!.frequency.setValueAtTime(400, this.audioContext.currentTime);
-        this.lowpassFilter!.frequency.setValueAtTime(2400, this.audioContext.currentTime);
+        this.gainNode.gain.setValueAtTime(0.45, this.audioContext.currentTime);
+        this.bandpassFilter!.frequency.setValueAtTime(1400, this.audioContext.currentTime);
+        this.bandpassFilter!.Q.setValueAtTime(8, this.audioContext.currentTime);
+        this.highpassFilter!.frequency.setValueAtTime(380, this.audioContext.currentTime);
+        this.lowpassFilter!.frequency.setValueAtTime(2600, this.audioContext.currentTime);
         
-        this.distortionNode!.curve = this.makeDistortionCurve(25) as any;
+        this.distortionNode!.curve = this.makeDistortionCurve(45) as any;
         
         break;
 
@@ -242,6 +256,12 @@ export class Song implements OnInit, OnDestroy, OnChanges {
         this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
         break;
     }
+  }
+
+  /** La copertina segue le manche: quasi illeggibile all'inizio, nitida alla fine. */
+  private applyBlur(phase: number): void {
+    const blur = phase === 1 ? 30 : phase === 2 ? 18 : phase === 3 ? 8 : 0;
+    this.blurAmount.set(blur);
   }
 
   private makeDistortionCurve(amount: number): Float32Array | null {
@@ -300,9 +320,59 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     }
   }
 
+  /** Scratch: il disco torna indietro di colpo e la puntina graffia la traccia. */
+  private scratch(): void {
+    this.scratching.set(true);
+    if (this.scratchTimeout) clearTimeout(this.scratchTimeout);
+    this.scratchTimeout = setTimeout(() => this.scratching.set(false), 560);
+
+    if (!this.audioContext) return;
+    const ctx = this.audioContext;
+    if (ctx.state === 'suspended') ctx.resume();
+
+    const now = ctx.currentTime;
+    const duration = 0.45;
+    const frames = Math.floor(ctx.sampleRate * duration);
+    const buffer = ctx.createBuffer(1, frames, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < frames; i++) {
+      const env = Math.pow(1 - i / frames, 1.5);
+      data[i] = (Math.random() * 2 - 1) * env;
+    }
+
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+
+    const band = ctx.createBiquadFilter();
+    band.type = 'bandpass';
+    band.Q.value = 1.3;
+    band.frequency.setValueAtTime(2900, now);
+    band.frequency.exponentialRampToValueAtTime(380, now + duration);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.28, now + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    source.connect(band);
+    band.connect(gain);
+    gain.connect(ctx.destination);
+    source.start(now);
+
+    // Il brano "inciampa" mentre il disco torna indietro.
+    if (this.audio) {
+      const previousRate = this.audio.playbackRate || 1;
+      this.audio.playbackRate = 0.25;
+      setTimeout(() => {
+        if (this.audio) this.audio.playbackRate = previousRate;
+      }, 140);
+    }
+  }
+
   ngOnDestroy() {
     this.pauseAudio();
     this.stopVinylAnimation();
+    if (this.scratchTimeout) clearTimeout(this.scratchTimeout);
     this.audioContext?.close();
   }
 
@@ -321,7 +391,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
       case 0:
         return 'In attesa...';
       case 1:
-        return 'Manche 1 - Effetto telefono (25%)';
+        return 'Manche 1 - Irriconoscibile (25%)';
       case 2:
         return 'Manche 2 - Radio AM (50%)';
       case 3:

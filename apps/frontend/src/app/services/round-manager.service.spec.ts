@@ -3,11 +3,9 @@ import { RoundManagerService } from './round-manager.service';
 
 const PLAYABLE_TYPES: GameModeType[] = [
   'QUIZ',
-  'TRUE_FALSE',
   'WHEEL_OF_FORTUNE',
   'MUSIC',
   'IMAGE_BLUR',
-  'CHRONO',
   'ROULETTE',
   'SCREAM_RACE',
   'ARENA',

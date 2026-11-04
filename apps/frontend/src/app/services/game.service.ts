@@ -8,8 +8,6 @@ export interface GameRoundPayload {
   question: string;
   type:
     | 'QUIZ'
-    | 'TRUE_FALSE'
-    | 'CHRONO'
     | 'IMAGE_BLUR'
     | 'TIMELINE'
     | 'PRICE'
@@ -90,11 +88,11 @@ export class GameService {
     });
   }
 
-  /** Quanto costa: stima in euro, punteggio calcolato dal server. */
-  submitPrice(gameId: number, playerName: string, estimate: number): Observable<any> {
+  /** Quanto costa: tre stime in euro, punteggio calcolato dal server. */
+  submitPrice(gameId: number, playerName: string, estimates: number[]): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/games/${gameId}/price-answer`, {
       playerName,
-      estimate,
+      estimates,
     });
   }
 

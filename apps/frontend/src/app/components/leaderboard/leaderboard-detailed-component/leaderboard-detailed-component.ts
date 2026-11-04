@@ -4,6 +4,7 @@ import {Component, OnInit, signal, inject, Output, EventEmitter, ChangeDetection
 import {CommonModule} from '@angular/common';
 import {trigger, transition, style, animate, keyframes} from '@angular/animations';
 import {LeaderboardService, PlayerScore} from '../../../services/leaderboard.service';
+import {AudioService} from '../../../services/audio.service';
 
 @Component({
   selector: 'app-leaderboard-detailed',
@@ -35,10 +36,11 @@ import {LeaderboardService, PlayerScore} from '../../../services/leaderboard.ser
   ],
   templateUrl: 'leaderboard-detailed-component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrl: 'leaderboard-detailed-component.css'
+  styleUrls: ['leaderboard-detailed-component.css', 'restyle.css']
 })
 export class LeaderboardDetailed implements OnInit {
   private leaderboard = inject(LeaderboardService);
+  private audio = inject(AudioService);
 
   @Output() onComplete = new EventEmitter<void>();
 
@@ -57,8 +59,9 @@ export class LeaderboardDetailed implements OnInit {
       return;
     }
 
-    this.allPlayers.set(players.reverse());
+    this.allPlayers.set([...players].reverse());
     this.totalPlayers.set(players.length);
+    this.audio.playDrumroll(1.6);
     this.animateReveal();
   }
 
@@ -69,6 +72,10 @@ export class LeaderboardDetailed implements OnInit {
       const player = players[i];
       this.currentPlayer.set(player);
       this.revealedCount.set(i + 1);
+      this.audio.playTick();
+      if (player.position === 1) {
+        this.audio.playPodium();
+      }
 
       const delay = this.getDelay(player.position);
       await new Promise(resolve => setTimeout(resolve, delay));
@@ -79,14 +86,14 @@ export class LeaderboardDetailed implements OnInit {
   }
 
   private getDelay(position: number): number {
-    if (position > 5) return 1500;
-    if (position === 5) return 6000;
-    if (position === 4) return 7000;
-    if (position === 3) return 9000;
-    if (position === 2) return 10000;
-    if (position === 1) return 12000;
+    if (position > 5) return 1200;
+    if (position === 5) return 2000;
+    if (position === 4) return 2300;
+    if (position === 3) return 2600;
+    if (position === 2) return 3000;
+    if (position === 1) return 3600;
 
-    return 2000;
+    return 1500;
   }
 
 }

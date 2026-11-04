@@ -59,24 +59,24 @@ public class PartyGamesController {
     public ResponseEntity<Object> priceAnswer(@PathVariable("gameId") Long gameId,
             @RequestBody Map<String, Object> body) {
         String playerName = String.valueOf(body.getOrDefault("playerName", "")).trim();
-        double estimate;
-        try {
-            estimate = Double.parseDouble(String.valueOf(body.getOrDefault("estimate", "0")));
-        } catch (NumberFormatException error) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Stima non numerica"));
+        List<Double> estimates = readEstimates(body);
+        if (estimates.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Stime mancanti"));
         }
 
-        return partyGameService.submitPrice(gameId, playerName, estimate)
+        return partyGameService.submitPrice(gameId, playerName, estimates)
                 .<ResponseEntity<Object>>map(submission -> {
                     messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", new JSONObject()
                             .put("action", "PRICE_ANSWER")
                             .put("playerName", submission.playerName())
-                            .put("estimate", submission.estimate())
+                            .put("count", submission.estimates().size())
                             .toString());
-                    return ResponseEntity.ok(Map.of("playerName", submission.playerName()));
+                    return ResponseEntity.ok(Map.of(
+                            "playerName", submission.playerName(),
+                            "count", submission.estimates().size()));
                 })
                 .orElseGet(() -> ResponseEntity.badRequest()
-                        .body(Map.of("error", "Round scaduto o stima non valida")));
+                        .body(Map.of("error", "Round scaduto o stime non valide")));
     }
 
     /** Soluzione del round: solo la TV la chiede, al momento del reveal. */
@@ -95,6 +95,32 @@ public class PartyGamesController {
     public Map<String, Object> reset(@PathVariable("gameId") Long gameId) {
         partyGameService.forget(gameId);
         return Map.of("reset", true, "gameId", gameId);
+    }
+
+    private List<Double> readEstimates(Map<String, Object> body) {
+        List<Double> estimates = new ArrayList<>();
+        Object raw = body.get("estimates");
+        if (raw instanceof List<?> list) {
+            for (Object value : list) {
+                try {
+                    estimates.add(Double.parseDouble(String.valueOf(value)));
+                } catch (NumberFormatException ignored) {
+                    return List.of();
+                }
+            }
+            return estimates;
+        }
+
+        // Compatibilità con il vecchio invio singolo.
+        Object single = body.get("estimate");
+        if (single != null) {
+            try {
+                estimates.add(Double.parseDouble(String.valueOf(single)));
+            } catch (NumberFormatException ignored) {
+                return List.of();
+            }
+        }
+        return estimates;
     }
 
     private List<Integer> readOrder(Object raw) {

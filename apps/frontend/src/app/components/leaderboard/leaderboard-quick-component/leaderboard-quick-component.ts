@@ -4,6 +4,7 @@ import {Component, OnInit, signal, inject, Output, EventEmitter, ChangeDetection
 import {CommonModule} from '@angular/common';
 import {trigger, transition, style, animate} from '@angular/animations';
 import {LeaderboardService, PlayerScore} from '../../../services/leaderboard.service';
+import {AudioService} from '../../../services/audio.service';
 
 @Component({
   selector: 'app-leaderboard-quick',
@@ -32,10 +33,11 @@ import {LeaderboardService, PlayerScore} from '../../../services/leaderboard.ser
   ],
   templateUrl: 'leaderboard-quick-component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrl: 'leaderboard-quick-component.css'
+  styleUrls: ['leaderboard-quick-component.css', 'restyle.css']
 })
 export class LeaderboardQuick implements OnInit {
   private leaderboard = inject(LeaderboardService);
+  private audio = inject(AudioService);
 
   @Output() onComplete = new EventEmitter<void>();
 
@@ -53,8 +55,9 @@ export class LeaderboardQuick implements OnInit {
       return;
     }
 
-    this.allPlayers.set(players.reverse());
+    this.allPlayers.set([...players].reverse());
     this.totalPlayers.set(players.length);
+    this.audio.playWhoosh();
     this.animateReveal();
   }
 
@@ -71,6 +74,10 @@ export class LeaderboardQuick implements OnInit {
 
       this.visiblePlayers.update(list => [...list, players[i]]);
       this.progress.set(((i + 1) / total) * 100);
+      this.audio.playTick();
+      if (players[i].position === 1) {
+        this.audio.playPodium();
+      }
 
       await new Promise(resolve => setTimeout(resolve, delay));
     }

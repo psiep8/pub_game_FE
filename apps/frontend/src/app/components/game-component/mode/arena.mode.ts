@@ -19,13 +19,14 @@ export interface ArenaDisplayData {
   winners: string[];
 }
 
-const MIN_RADIUS = 20;
-const SHRINK_GRACE_SECONDS = 10;
+const MIN_RADIUS = 14;
+/** Quarantacinque secondi di respiro prima che il cerchio inizi a chiudersi. */
+const SHRINK_GRACE_SECONDS = 45;
 const TICK_MS = 1000;
 
 export class ArenaMode extends GameModeBase {
   readonly type: GameModeType = 'ARENA';
-  readonly timerDuration = 90;
+  readonly timerDuration = 130;
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
 
@@ -186,6 +187,7 @@ export class ArenaMode extends GameModeBase {
         currentTeams.set(key, { ...team, eliminated: true });
         eliminated.push(team.playerName);
         newlyEliminated = true;
+        this.config.onPlayerEliminated?.(team.playerName);
       } else {
         stillInGame++;
       }
@@ -226,6 +228,7 @@ export class ArenaMode extends GameModeBase {
     this.teams.set(new Map(ranked.map((team) => [team.playerName, team])));
 
     if (this.isActive()) this.stop();
+    this.config.onRoundEnded?.();
   }
 
   getDisplayData(): ArenaDisplayData {

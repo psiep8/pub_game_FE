@@ -5,8 +5,13 @@
       <span class="crown">👑</span>
       <span class="text">ADMIN PANEL</span>
     </div>
-    <div class="game-status" [class.active]="gameState() === 'ACTIVE'">
-      {{ gameState() === 'WAITING' ? '⏳ In Attesa' : gameState() === 'ACTIVE' ? '🎮 Round Attivo' : '✅ Round Terminato' }}
+    <div class="admin-header-actions">
+      <div class="game-status" [class.active]="gameState() === 'ACTIVE'">
+        {{ gameState() === 'WAITING' ? '⏳ In Attesa' : gameState() === 'ACTIVE' ? '🎮 Round Attivo' : '✅ Round Terminato' }}
+      </div>
+      <button class="theme-btn" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
+        🎨 <span>{{ theme.label() }}</span>
+      </button>
     </div>
   </div>
 

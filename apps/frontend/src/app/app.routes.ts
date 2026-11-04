@@ -18,8 +18,7 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
-    component: Admin,
-    canActivate: [MobileOnlyGuard]
+    component: Admin
   },
   { path: '', redirectTo: 'tv', pathMatch: 'full' }
 ];

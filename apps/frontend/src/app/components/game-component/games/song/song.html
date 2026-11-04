@@ -31,7 +31,7 @@
   }
 
   
-  <div class="vinyl-stage">
+  <div class="vinyl-stage" [class.scratching]="scratching()">
     <div class="vinyl-disc"
          [class.spinning]="isPlaying()"
          [style.transform]="'rotate(' + vinylRotation() + 'deg)'">

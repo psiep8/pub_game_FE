@@ -2,6 +2,7 @@
 
 Verifica che:
 - Timeline e Quanto costa non mandino la soluzione ai telefoni;
+- Quanto costa serva 3 oggetti, elimini i peggiori e premi i superstiti;
 - il server calcoli i punteggi e li restituisca al reveal;
 - l'arena serva solo Vero/Falso e non esaurisca la banca dopo due domande.
 
@@ -87,15 +88,42 @@ def main():
         )
     )
     assert price_round["type"] == "PRICE", price_round
-    assert "price" not in price_round, "il prezzo viaggia verso i telefoni"
-    print("PRICE:", price_round.get("name"))
+    items = price_round["items"]
+    assert len(items) == 3, f"attesi 3 oggetti, trovati {len(items)}"
+    assert all("price" not in item for item in items), "il prezzo viaggia verso i telefoni"
+    print("PRICE:", [item["name"] for item in items])
 
-    call("POST", f"/games/{game_id}/price-answer", {"playerName": "Squadra Test", "estimate": 2})
-    call("POST", f"/games/{game_id}/price-answer", {"playerName": "Squadra Due", "estimate": 999})
+    call(
+        "POST",
+        f"/games/{game_id}/price-answer",
+        {"playerName": "Squadra Test", "estimates": [2, 20, 200]},
+    )
+    call(
+        "POST",
+        f"/games/{game_id}/price-answer",
+        {"playerName": "Squadra Due", "estimates": [3, 25, 250]},
+    )
     price_reveal = call("GET", f"/games/{game_id}/price/reveal")
-    assert price_reveal["price"] > 0, "prezzo assente nel reveal"
-    assert price_reveal["results"][0]["closest"] is True, "la stima più vicina non è premiata"
-    print("price reveal:", price_reveal["price"], "€, closest:", price_reveal["closest"])
+    assert len(price_reveal["items"]) == 3, "reveal senza 3 oggetti"
+    assert all(item["price"] > 0 for item in price_reveal["items"]), "prezzo assente nel reveal"
+    assert price_reveal["eliminations"], "nessuna eliminazione calcolata"
+    print(
+        "price reveal:",
+        [(item["name"], item["price"], item["eliminated"]) for item in price_reveal["items"]],
+    )
+
+    survivors = [row for row in price_reveal["results"] if row.get("survivor")]
+    eliminated = [row for row in price_reveal["results"] if not row.get("survivor")]
+    assert survivors, "nessun superstite premiato"
+    assert all(row["score"] > 0 for row in survivors), "i superstiti non hanno punti positivi"
+    assert all(row["score"] == 0 for row in eliminated), "gli eliminati hanno punti"
+    assert set(price_reveal["survivors"]) == {row["playerName"] for row in survivors}
+    for item in price_reveal["items"]:
+        if item.get("eliminated"):
+            assert item["eliminated"] not in price_reveal["survivors"], (
+                f"il superstite {item['eliminated']} è marcato eliminato su {item['name']}"
+            )
+    print("price superstiti:", [(row["playerName"], row["score"]) for row in survivors])
 
     # ------------------------------------------- Speed Rush e Ping Pong
     for game_type in ("SPEED_RUSH", "PING_PONG"):

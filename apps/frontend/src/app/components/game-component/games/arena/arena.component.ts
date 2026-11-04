@@ -58,6 +58,10 @@ export class ArenaComponent {
         }
     }
 
+    aliveCount(): number {
+        return (this.displayData?.teams || []).filter((team) => !team.eliminated).length;
+    }
+
     getTeamAngle(playerName: string): number {
         return this.teamAngles.get(playerName) || 0;
     }

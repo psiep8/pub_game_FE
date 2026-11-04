@@ -26,12 +26,11 @@ import { GameModeService } from '../../services/game-mode-factory.service';
 import { RoundManagerService } from '../../services/round-manager.service';
 import { LeaderboardService } from '../../services/leaderboard.service';
 import { AudioService } from '../../services/audio.service';
+import { ThemeService } from '../../services/theme.service';
 
 import { ImageBlur } from './games/image-blur/image-blur';
 import { Quiz } from './games/quiz/quiz';
 import { WheelFortune } from './games/wheel-fortune/wheel-fortune';
-import { TrueFalse } from './games/true-false/true-false';
-import { Chrono } from './games/chrono/chrono';
 import { Roulette } from './games/roulette/roulette';
 import { Song } from './games/song/song';
 import { environment } from '../../environment/environment';
@@ -51,8 +50,6 @@ import { PingPong } from './games/ping-pong/ping-pong';
   imports: [
     CommonModule,
     WheelFortune,
-    Chrono,
-    TrueFalse,
     Quiz,
     ImageBlur,
     Roulette,
@@ -67,7 +64,7 @@ import { PingPong } from './games/ping-pong/ping-pong';
     PingPong
   ],
   templateUrl: './game-component.html',
-  styleUrl: './game-component.css',
+  styleUrls: ['./game-component.css', './restyle.css'],
   changeDetection: ChangeDetectionStrategy.Eager,
   animations: [
     trigger('fadeInOut', [
@@ -89,6 +86,7 @@ export class GameComponent implements OnInit, OnDestroy {
   public roundManager = inject(RoundManagerService);
   private leaderboardService = inject(LeaderboardService);
   public audioService = inject(AudioService);
+  public theme = inject(ThemeService);
 
 
   allCategories = signal<any[]>([]);
@@ -121,6 +119,13 @@ export class GameComponent implements OnInit, OnDestroy {
   pendingLeaderboardType = signal<'QUICK' | 'DETAILED' | null>(null);
 
   currentGameId = signal<number>(1);
+
+  categoryName = computed(() => {
+    const id = this.selectedCategoryId();
+    return this.allCategories().find((cat) => cat.id === id)?.name ?? '';
+  });
+
+  private arenaFinished = false;
 
   remoteUrl = `${environment.frontendUrl}/play`;
 
@@ -181,6 +186,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
     const allowAudioOnce = () => {
       this.audioAllowed = true;
+      this.audioService.startAmbient();
       window.removeEventListener('click', allowAudioOnce);
       window.removeEventListener('keydown', allowAudioOnce);
     };
@@ -238,6 +244,7 @@ export class GameComponent implements OnInit, OnDestroy {
       if (status.action === 'JOIN_GAME' && status.playerName) {
         const normalizedName = status.playerName.trim();
         console.log(`🤝 Nuovo giocatore unito: ${normalizedName}`);
+        this.audioService.playJoin();
         this.leaderboardService.addPoints(normalizedName, 0, false);
 
         // Se siamo in Scream Race, aggiungiamo il giocatore alla gara istantaneamente
@@ -275,7 +282,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
       // 🆕 Giochi simultanei: risultati dal server e progressi dai telefoni.
-      if (mode && ['TIMELINE_RESULT', 'PRICE_ANSWER', 'SPEED_RUSH_PROGRESS', 'PING_PONG_HIT'].includes(status.action)) {
+      if (mode && ['TIMELINE_RESULT', 'PRICE_ANSWER', 'SPEED_RUSH_PROGRESS', 'PING_PONG_ANSWER'].includes(status.action)) {
         mode.handlePartyEvent?.(status);
         this.cdr.detectChanges();
       }
@@ -447,6 +454,9 @@ export class GameComponent implements OnInit, OnDestroy {
         onBuzz: (playerName) => this.onPlayerBuzz(playerName),
         activePlayers: activePlayers,
         onPreGameTick: (seconds) => this.preStartCountdown.set(seconds),
+        onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
+        onRoundEnded: () => this.onArenaEnded(),
+        onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!, event),
         onAnswerReceived: (result: any) => {
 
           if (result && result.playerName) {
@@ -528,8 +538,6 @@ export class GameComponent implements OnInit, OnDestroy {
   private getCategoryForType(type: GameModeType): string {
     switch (type) {
       case 'QUIZ':
-      case 'TRUE_FALSE':
-      case 'CHRONO':
       // case 'ONE_VS_ONE':
       case 'SCREAM_RACE':
         return 'CULTURA GENERALE';
@@ -563,16 +571,12 @@ export class GameComponent implements OnInit, OnDestroy {
     switch (type) {
       case 'QUIZ':
         return 'QUIZ';
-      case 'TRUE_FALSE':
-        return 'VERO O FALSO';
       case 'MUSIC':
         return 'INDOVINA LA CANZONE';
       case 'WHEEL_OF_FORTUNE':
         return 'RUOTA DELLA FORTUNA';
       case 'IMAGE_BLUR':
         return 'INDOVINA CHI';
-      case 'CHRONO':
-        return 'CHRONO';
       case 'ROULETTE':
         return 'ROULETTE';
       // case '1VS1':
@@ -595,9 +599,51 @@ export class GameComponent implements OnInit, OnDestroy {
   /**
    * ⏰ Timeout mode
    */
+  /** Una squadra è uscita dal cerchio: la TV avvisa il telefono interessato. */
+  private onArenaEliminated(playerName: string): void {
+    this.audioService.playElimination();
+    this.ws.broadcastStatus(this.currentGameId(), {
+      action: 'ARENA_ELIMINATED',
+      playerName,
+    });
+  }
+
+  /**
+   * Arena finita: niente pulsante nascosto, il round si chiude da solo e la
+   * classifica (se prevista) parte in automatico dopo qualche secondo.
+   */
+  private onArenaEnded(): void {
+    if (this.arenaFinished) return;
+    this.arenaFinished = true;
+
+    const winners = this.currentMode()?.getDisplayData?.()?.winners ?? [];
+    this.ws.broadcastStatus(this.currentGameId(), { action: 'ARENA_ENDED', winners });
+
+    this.audioService.stopClock();
+    this.audioService.playPodium();
+
+    const currentRound = this.round();
+    if (currentRound) {
+      this.round.set({ ...currentRound, status: 'REVEAL' });
+    }
+
+    this.roundManager.completeRound('ARENA');
+    this.checkLeaderboardDisplay();
+
+    setTimeout(() => {
+      if (this.pendingLeaderboardType()) {
+        this.showPendingLeaderboard();
+      }
+    }, 6500);
+  }
+
   private onModeTimeout() {
     const mode = this.currentMode();
     if (!mode) return;
+
+    // L'Arena chiude da sola il round quando resta un solo giocatore:
+    // evitiamo di completare il round due volte.
+    if (mode.type === 'ARENA') return;
 
 
     this.audioService.stopClock();
@@ -817,6 +863,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   private reset() {
+    this.arenaFinished = false;
     this.ws.responses.set([]);
     this.showQuestion.set(false);
     this.round.set(null);
@@ -903,12 +950,12 @@ export class GameComponent implements OnInit, OnDestroy {
     const seconds = this.preStartCountdown();
     const duration = mode.timerDuration;
 
-    if (mode.type === 'QUIZ' || mode.type === 'TRUE_FALSE') {
+    if (mode.type === 'QUIZ') {
       const score = this.computePreviewScore(seconds, duration);
       return `+${score} / -${score}`;
     }
 
-    if (mode.type === 'CHRONO' || mode.type === 'WHEEL_OF_FORTUNE') {
+    if (mode.type === 'WHEEL_OF_FORTUNE') {
       const score = this.computePreviewScore(seconds, duration);
       return `+${score}`;
     }

@@ -62,7 +62,6 @@ describe('GameComponent', () => {
   });
 
   it('should translate game types into Italian labels', () => {
-    expect(component.getModeName('TRUE_FALSE')).toBe('VERO O FALSO');
     expect(component.getModeName('WHEEL_OF_FORTUNE')).toBe('RUOTA DELLA FORTUNA');
     expect(component.getModeName('ARENA')).toBe('ARENA BATTLE ROYALE');
     expect(component.getModeName('UNKNOWN')).toBe('UNKNOWN');

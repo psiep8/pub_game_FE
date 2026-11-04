@@ -2,8 +2,6 @@ import { Injectable } from '@angular/core';
 import { ImageBlurMode } from '../components/game-component/mode/image-blur.mode';
 import { QuizMode } from '../components/game-component/mode/quiz.mode';
 import { WheelOfFortuneMode } from '../components/game-component/mode/wheel-fortune.mode';
-import { ChronoMode } from '../components/game-component/mode/chrono.mode';
-import { TrueFalseMode } from '../components/game-component/mode/true_false.mode';
 import {
   GameModeConfig,
   GameModeType,
@@ -32,8 +30,6 @@ export class GameModeService {
 
   private readonly factories: Record<GameModeType, ModeFactory> = {
     QUIZ: (config) => this.withConfig(new QuizMode(), config),
-    TRUE_FALSE: (config) => this.withConfig(new TrueFalseMode(), config),
-    CHRONO: (config) => this.withConfig(new ChronoMode(), config),
     IMAGE_BLUR: (config) => this.withConfig(new ImageBlurMode(), config),
     WHEEL_OF_FORTUNE: (config) => this.withConfig(new WheelOfFortuneMode(), config),
     ROULETTE: (config) => this.withConfig(new RouletteMode(), config),

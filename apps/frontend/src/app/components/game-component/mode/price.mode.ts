@@ -4,20 +4,26 @@ import { GameModeResult, GameModeType } from '../interfaces/game-mode-type';
 import { environment } from '../../../environment/environment';
 
 /**
- * Quanto costa: le squadre stimano il prezzo, la TV mostra le stime in diretta
- * e al reveal il prezzo vero con l'asse logaritmico.
+ * Quanto costa: tre oggetti per round.
+ *
+ * I telefoni mandano tre stime; il server elimina il peggiore di ogni oggetto
+ * e assegna i punti ai superstiti in base alla distanza totale dal prezzo.
+ * La soluzione non viaggia mai nel payload iniziale.
  */
 export class PriceMode extends GameModeBase {
   readonly type: GameModeType = 'PRICE';
-  readonly timerDuration = 30;
+  readonly timerDuration = 45;
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
 
-  private guesses = signal<Array<{ playerName: string; estimate: number }>>([]);
+  private items = signal<Array<{ name: string; emoji: string; category: string }>>([]);
+  private guesses = signal<Array<{ playerName: string; count: number }>>([]);
   private revealData = signal<any | null>(null);
   private pointsApplied = false;
 
   protected onInitialize(): void {
+    const payloadItems = Array.isArray(this.payload?.items) ? this.payload.items : [];
+    this.items.set(payloadItems);
     this.guesses.set([]);
     this.revealData.set(null);
     this.pointsApplied = false;
@@ -33,6 +39,7 @@ export class PriceMode extends GameModeBase {
   protected onStop(): void {}
 
   protected onCleanup(): void {
+    this.items.set([]);
     this.guesses.set([]);
     this.revealData.set(null);
   }
@@ -46,13 +53,15 @@ export class PriceMode extends GameModeBase {
 
     this.guesses.update((list) => [
       ...list.filter((item) => item.playerName !== event.playerName),
-      { playerName: event.playerName, estimate: Number(event.estimate) || 0 },
-    ].sort((a, b) => a.estimate - b.estimate));
+      {
+        playerName: event.playerName,
+        count: Number(event.count) || this.items().length,
+      },
+    ].sort((a, b) => a.playerName.localeCompare(b.playerName)));
   }
 
   private async reveal(): Promise<void> {
     if (this.revealData()) return;
-
     await new Promise((resolve) => setTimeout(resolve, 600));
 
     try {
@@ -61,7 +70,7 @@ export class PriceMode extends GameModeBase {
       this.revealData.set(data);
       this.applyPoints(data);
     } catch {
-      this.revealData.set({ price: null, results: [] });
+      this.revealData.set({ items: [], results: [], eliminations: [] });
     }
   }
 
@@ -73,17 +82,14 @@ export class PriceMode extends GameModeBase {
       this.config.onAnswerReceived?.({
         playerName: result.playerName,
         points: Number(result.score) || 0,
-        isCorrect: true,
+        isCorrect: Number(result.score) > 0,
       });
     }
   }
 
   protected onBuzz(_playerName: string): void {}
-
   protected onAnswer(_playerName: string, _answer: any, _result: any): void {}
-
   protected onConfirmCorrect(_result: GameModeResult): void {}
-
   protected onConfirmWrong(_result: GameModeResult): void {}
 
   protected validateAnswer(answer: any, _timeMs: number): any {
@@ -97,12 +103,12 @@ export class PriceMode extends GameModeBase {
   getDisplayData() {
     return {
       question: this.payload?.question ?? 'Quanto costa?',
-      name: this.payload?.name ?? '',
-      emoji: this.payload?.emoji ?? '🛒',
-      category: this.payload?.category ?? '',
+      items: this.items(),
+      count: this.items().length,
       unit: this.payload?.unit ?? '€',
       guesses: this.guesses(),
       reveal: this.revealData(),
+      explain: this.payload?.explain ?? '',
       isReading: this.isReading(),
       correctAnswer: this.revealed() ? this.payload?.correctAnswer ?? null : null,
     };

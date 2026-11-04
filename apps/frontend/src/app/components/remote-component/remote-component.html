@@ -1,10 +1,3 @@
-<div class="rotate-notice">
-  <div class="phone-icon">📱🔄</div>
-  <h2>Ruota il telefono</h2>
-  <p>Per giocare al meglio, usa la modalità orizzontale</p>
-</div>
-
-
 @if (showInstallBanner()) {
 <div class="pwa-banner install-banner">
   <div class="banner-content">
@@ -57,93 +50,108 @@
 
   @if (!nickname()) {
   <div class="setup-screen">
-    <h1>Pub Game</h1>
-    <p>Inserisci il tuo Nickname per giocare</p>
-    <input [(ngModel)]="tempNickname" placeholder="Es: SuperMario88">
+    <button class="theme-corner" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
+      🎨 <span>{{ theme.label() }}</span>
+    </button>
+    <div class="setup-orb">🎉</div>
+    <div class="setup-kicker">IL GIOCO DEL PUB</div>
+    <h1>PUB GAME</h1>
+    <p>Come ti chiami stasera?</p>
+    <input [(ngModel)]="tempNickname" placeholder="Il tuo nickname" (keyup.enter)="setNickname()">
     <button (click)="setNickname()" class="join-btn">ENTRA IN PARTITA</button>
+    <div class="setup-foot">4 squadre · 24 round · 1 TV</div>
   </div>
   } @else {
 
   <div class="header">
+    <div class="brand-mini"><span class="brand-dot"></span> PUB GAME</div>
     <div class="player-info">
-      <span>Giocatore: <b>{{ nickname() }}</b></span>
+      <span class="player-avatar">{{ nickname()?.charAt(0) }}</span>
+      <b>{{ nickname() }}</b>
     </div>
+    <button class="header-theme-btn" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
+      🎨
+    </button>
     <button class="logout-btn" (click)="logout()">
-      <span class="icon">×</span> Esci
+      <span class="icon">×</span>
     </button>
   </div>
   <div class="game-content">
     @switch (gameState()) {
     @case ('WAITING') {
     <div class="status-msg">
-      <div class="loader"></div>
+      <div class="wait-orb">
+        <div class="wait-ring"></div>
+        <div class="wait-core">🎲</div>
+      </div>
       <p>In attesa della prossima sfida...</p>
+      <span class="sub-text">Guarda la TV e tieni il telefono pronto</span>
     </div>
     }
     @case ('VOTING') {
     @switch (questionType()) {
     @case ('QUIZ') {
-    <div class="voting-grid">
-      <button (click)="sendVote(0)" class="vote-btn btn-a">A</button>
-      <button (click)="sendVote(1)" class="vote-btn btn-b">B</button>
-      <button (click)="sendVote(2)" class="vote-btn btn-c">C</button>
-      <button (click)="sendVote(3)" class="vote-btn btn-d">D</button>
-    </div>
-    }
-    @case ('TRUE_FALSE') {
-    <div class="voting-grid tf-layout">
-      <button (click)="sendVote(0)" class="vote-btn btn-true">VERO</button>
-      <button (click)="sendVote(1)" class="vote-btn btn-false">FALSO</button>
-    </div>
-    }
-    @case ('CHRONO') {
-    <div class="chrono-player-area horizontal-chrono">
-      <div class="year-preview">{{ selectedYear() }}</div>
-      <input type="range" [min]="minYear()" [max]="maxYear()" [step]="yearStep()" [value]="selectedYear()"
-        (input)="onYearChange($event)" class="modern-slider">
-      <button (click)="sendChronoAnswer()" class="confirm-btn">INVIA ANNO</button>
+    <div class="game-head"><span class="game-tag quiz">QUIZ</span><span class="game-tip">Scegli la risposta</span></div>
+    <div class="voting-grid quiz-grid">
+      <button (click)="sendVote(0)" class="vote-btn btn-a"><span class="vote-letter">A</span><span class="vote-shape">▲</span></button>
+      <button (click)="sendVote(1)" class="vote-btn btn-b"><span class="vote-letter">B</span><span class="vote-shape">◆</span></button>
+      <button (click)="sendVote(2)" class="vote-btn btn-c"><span class="vote-letter">C</span><span class="vote-shape">●</span></button>
+      <button (click)="sendVote(3)" class="vote-btn btn-d"><span class="vote-letter">D</span><span class="vote-shape">■</span></button>
     </div>
     }
     @case ('TIMELINE') {
     <div class="timeline-remote">
-      <p class="party-instruction">
-        Tocca le carte dalla più antica alla più recente ({{ timelineOrder().length }}/{{ timelineCards().length }})
-      </p>
-      <div class="party-grid">
-        @for (card of timelineCards(); track card.id) {
-        <button class="party-card" [class.selected]="timelineOrder().includes(card.id)"
-          (click)="toggleTimelineCard(card.id)">
-          @if (timelineOrder().includes(card.id)) {
-          <span class="party-badge">{{ timelineOrder().indexOf(card.id) + 1 }}</span>
-          }
-          {{ card.label }}
+      <div class="game-head"><span class="game-tag tl">TIMELINE</span><span class="game-tip">Trascina le carte</span></div>
+      <p class="party-instruction">Dalla più antica alla più recente</p>
+      <div class="tl-drag-list" (pointermove)="onDragMove($event)" (pointerup)="endDrag()" (pointercancel)="endDrag()">
+        @for (card of orderedCards(); track card.id; let i = $index) {
+        <button class="tl-drag-card" [class.dragging]="draggingId() === card.id" [attr.data-index]="i"
+          (pointerdown)="startDrag($event, card.id)">
+          <span class="tl-handle">⠿</span>
+          <span class="tl-pos">{{ i + 1 }}</span>
+          <span class="tl-text">{{ card.label }}</span>
         </button>
         }
       </div>
-      <button class="confirm-btn" [disabled]="timelineOrder().length !== timelineCards().length"
+      <p class="tl-pair-hint">
+        {{ timelineCards().length }} carte = {{ (timelineCards().length * (timelineCards().length - 1)) / 2 }} coppie.
+        Ogni coppia nell'ordine giusto vale punti.
+      </p>
+      <button class="confirm-btn" [disabled]="timelineOrder().length !== timelineCards().length || hasAnswered()"
         (click)="sendTimelineAnswer()">INVIA ORDINE</button>
     </div>
     }
     @case ('PRICE') {
     <div class="price-remote">
-      <div class="price-product">
-        <span class="price-emoji">{{ priceEmoji() }}</span>
-        <span>{{ priceName() }}</span>
+      <div class="game-head"><span class="game-tag price">QUANTO COSTA?</span><span class="game-tip">3 stime</span></div>
+      <div class="price-tabs">
+        @for (item of priceItems(); track item.name; let i = $index) {
+        <button class="price-tab" [class.active]="priceIndex() === i" (click)="priceSelect(i)">
+          <span class="price-tab-emoji">{{ item.emoji }}</span>
+          <span class="price-tab-name">{{ item.name }}</span>
+          <span class="price-tab-value">{{ priceValue(i) || '—' }} €</span>
+        </button>
+        }
       </div>
-      <div class="price-display">{{ priceEstimate() || '0' }} €</div>
+      <div class="price-editor">
+        <span class="price-editor-emoji">{{ priceItems()[priceIndex()]?.emoji }}</span>
+        <span class="price-display">{{ priceValue(priceIndex()) || '0' }} €</span>
+        <span class="price-target">{{ priceItems()[priceIndex()]?.name }}</span>
+      </div>
       <div class="keypad">
         @for (key of priceKeys; track key) {
         <button class="key" (click)="key === '⌫' ? priceBackspace() : pricePress(key)">{{ key }}</button>
         }
       </div>
-      <button class="confirm-btn" [disabled]="!priceEstimate()" (click)="sendPriceAnswer()">INVIA STIMA</button>
+      <button class="confirm-btn" [disabled]="!priceReady() || hasAnswered()" (click)="sendPriceAnswer()">INVIA 3 STIME</button>
     </div>
     }
     @case ('SPEED_RUSH') {
     <div class="speed-remote">
+      <div class="game-head"><span class="game-tag speed">SPEED RUSH</span><span class="game-tip">Più veloce = più punti</span></div>
       @switch (speedKind()) {
       @case ('tap') {
-      <button class="speed-big" (click)="speedTap()">TAP! {{ speedTapCount() }}/8</button>
+      <button class="speed-big" (click)="speedTap()">TAP!<span class="speed-counter">{{ speedTapCount() }}/8</span></button>
       }
       @case ('odd') {
       <p class="party-instruction">Tocca l'intruso</p>
@@ -161,9 +169,15 @@
         }
       </div>
       }
+      @case ('reaction') {
+      <p class="party-instruction">Tocca appena diventa verde. Non prima!</p>
+      <button class="speed-big reaction" [class.go]="speedReaction() === 'go'" (click)="speedReactionTap()">
+        {{ speedReaction() === 'go' ? 'ORA!' : 'ASPETTA...' }}
+      </button>
+      }
       @default {
       <div class="status-msg">
-        <div class="loader"></div>
+        <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">⚡</div></div>
         <p>Preparazione prova...</p>
       </div>
       }
@@ -172,8 +186,45 @@
     }
     @case ('PING_PONG') {
     <div class="ping-remote">
-      <button class="ping-hit" (click)="sendPingPongHit()">COLPO! 🏓</button>
-      <p class="party-instruction">Colpi: {{ pingHits() }}</p>
+      <div class="ping-score">
+        <div class="ping-side" [class.active]="pingMyTurn()">
+          <span class="ping-side-name">{{ nickname() }}</span>
+          <span class="ping-side-score">{{ pingMyScore() }}</span>
+        </div>
+        <span class="ping-vs">VS</span>
+        <div class="ping-side right" [class.active]="!pingMyTurn()">
+          <span class="ping-side-name">{{ pingOpponent() || 'Avversario' }}</span>
+          <span class="ping-side-score">{{ pingOpponentScore() }}</span>
+        </div>
+      </div>
+
+      @if (pingMyTurn() && pingQuestion(); as q) {
+      <div class="ping-card">
+        <div class="ping-head">
+          <span class="ping-tag">TOCCA A TE</span>
+          <span class="ping-clock" [class.hot]="pingServeLeft() <= 4">{{ pingServeLeft() }}s</span>
+        </div>
+        <p class="ping-question">{{ q.text }}</p>
+        <div class="ping-options">
+          @for (option of q.options; track $index) {
+          <button class="ping-option" [disabled]="hasAnswered()" (click)="sendPingAnswer($index)">
+            <span class="ping-letter">{{ letter($index) }}</span>{{ option }}
+          </button>
+          }
+        </div>
+      </div>
+      } @else {
+      <div class="ping-wait">
+        <div class="ping-wait-icon">🏓</div>
+        <h2>PALLA ALL'AVVERSARIO</h2>
+        <p>{{ pingOpponent() || 'L\'avversario' }} deve rispondere. Tieni il telefono pronto per rimandarla!</p>
+        <div class="ping-wait-score">SET {{ pingMyScore() }} - {{ pingOpponentScore() }}</div>
+      </div>
+      }
+
+      @if (pingLastResult()) {
+      <div class="ping-result">{{ pingLastResult() }}</div>
+      }
     </div>
     }
     @case ('SCREAM_RACE') {
@@ -323,7 +374,14 @@
     }
     @case ('ARENA') {
     <div class="arena-remote-container">
-      @if (arenaQuestion()) {
+      @if (arenaEliminated()) {
+      <div class="eliminated-card">
+        <div class="eliminated-icon">💀</div>
+        <h2>SEI FUORI</h2>
+        <p>Il cerchio ti ha superato. Guarda la TV.</p>
+      </div>
+      } @else if (arenaQuestion()) {
+      <div class="game-head"><span class="game-tag arena">ARENA</span><span class="game-tip">Rispondi per restare dentro</span></div>
       <div class="arena-question-card">
         <h3>{{ arenaQuestion()?.text }}</h3>
       </div>
@@ -372,6 +430,13 @@
       <p>HAI SBAGLIATO!</p>
       <p class="sub-text">Sei fuori da questo round</p>
       <p class="wait-text">Attendi la fine del round...</p>
+    </div>
+    }
+    @case ('ELIMINATED') {
+    <div class="status-msg eliminated">
+      <div class="blocked-icon">💀</div>
+      <p>SEI FUORI DALL'ARENA</p>
+      <p class="sub-text">Resta a guardare la TV: il gioco continua</p>
     </div>
     }
     }

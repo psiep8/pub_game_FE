@@ -1,7 +1,13 @@
 <div class="arena-container">
   <div class="arena-header">
-    <h1 class="arena-title">BATTLE ROYALE ARENA</h1>
-    <div class="arena-instruction">RISPONDI CORRETTAMENTE PER AVVICINARTI AL CENTRO ED EVITARE L'ELIMINAZIONE!</div>
+    <div class="arena-kicker">🏟️ BATTLE ROYALE</div>
+    <h1 class="arena-title">ARENA</h1>
+    <div class="arena-meta">
+      <span class="arena-chip alive">IN GARA: {{ aliveCount() }}</span>
+      <span class="arena-chip timer">⏱️ {{ timer }}s</span>
+      <span class="arena-chip rule">Fuori dal cerchio = eliminato</span>
+    </div>
+    <div class="arena-instruction">RISPONDI CORRETTAMENTE PER AVVICINARTI AL CENTRO</div>
   </div>
 
   <div class="arena-battlefield">
@@ -30,7 +36,9 @@
       </div>
       <div class="team-label">{{ team.playerName }}</div>
 
-      @if (team.position) {
+      @if (team.eliminated) {
+      <div class="team-out">FUORI</div>
+      } @else if (team.position) {
       <div class="team-rank">#{{ team.position }}</div>
       }
     </div>

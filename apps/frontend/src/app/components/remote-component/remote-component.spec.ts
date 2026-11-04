@@ -70,21 +70,6 @@ describe('RemoteComponent', () => {
     expect(component.gameState()).toBe('LOCKED');
   });
 
-  it('should configure the year slider from the chrono payload', async () => {
-    ws.status$.next({
-      action: 'START_VOTING',
-      type: 'CHRONO',
-      payload: JSON.stringify({ minYear: 1900, maxYear: 2000, step: 5 }),
-    });
-    await fixture.whenStable();
-
-    expect(component.minYear()).toBe(1900);
-    expect(component.maxYear()).toBe(2000);
-    expect(component.yearStep()).toBe(5);
-    expect(component.selectedYear()).toBe(1950);
-    expect(component.gameState()).toBe('VOTING');
-  });
-
   it('should block only the player named in the error', async () => {
     component.tempNickname = 'Anna';
     component.setNickname();

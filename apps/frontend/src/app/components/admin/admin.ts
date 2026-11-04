@@ -3,6 +3,7 @@ import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WebSocketService } from '../../services/web-socket.service';
 import { CommonModule } from '@angular/common';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-admin-component',
@@ -16,6 +17,7 @@ export class Admin implements OnInit, OnDestroy {
 
   private ws = inject(WebSocketService);
   private destroyRef = inject(DestroyRef);
+  public theme = inject(ThemeService);
 
   
   correctAnswer = signal<string | null>(null);
@@ -38,8 +40,6 @@ export class Admin implements OnInit, OnDestroy {
   };
 
   ngOnInit(): void {
-    this.lockOrientation();
-
     
 
     
@@ -216,8 +216,6 @@ export class Admin implements OnInit, OnDestroy {
     try {
       switch (type) {
         case 'QUIZ':
-        case 'TRUE_FALSE':
-        case 'CHRONO':
         case 'IMAGE_BLUR':
           answer = payload.correctAnswer !== undefined ? String(payload.correctAnswer) : 'N/A';
           
@@ -287,17 +285,6 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   
-
-  private async lockOrientation() {
-    try {
-      const screen = window.screen as any;
-      if (screen.orientation && screen.orientation.lock) {
-        await screen.orientation.lock('landscape');
-      }
-    } catch (err) {
-      
-    }
-  }
 
   private vibrate(pattern: number | number[]) {
     if ('vibrate' in navigator) {
