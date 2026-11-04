@@ -9,98 +9,90 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Gara di urla: ogni partita ha la sua classifica.
+ *
+ * Prima lo stato era unico per tutto il backend, quindi due tavoli che
+ * giocavano insieme si mescolavano (e un reset cancellava anche la gara
+ * dell'altro).
+ */
 @Controller
 public class ScreamRaceController {
 
+    private static final int FINISHERS_TO_END = 3;
+
+    private static final class RaceState {
+        final Map<String, Double> progress = new ConcurrentHashMap<>();
+        final Map<String, Integer> finishOrder = new ConcurrentHashMap<>();
+        final AtomicInteger finishCounter = new AtomicInteger();
+        volatile boolean ended;
+    }
+
     private final SimpMessagingTemplate messagingTemplate;
-    
-    // Track progress: playerName -> progress (0-100)
-    private final Map<String, Double> teamProgress = new ConcurrentHashMap<>();
-    
-    // Track position: playerName -> position (1st, 2nd, 3rd...)
-    private final Map<String, Integer> finishOrder = new ConcurrentHashMap<>();
-    
-    private int finishCounter = 0;
-    private boolean raceEnded = false;
+    private final Map<Integer, RaceState> races = new ConcurrentHashMap<>();
 
     public ScreamRaceController(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
     }
 
-    /**
-     * 🎤 Riceve urlo dal giocatore
-     */
+    /** Riceve l'urlo di un giocatore e aggiorna solo la gara di quella partita. */
     @MessageMapping("/scream")
     public void handleScream(ScreamDto scream) {
-        if (raceEnded) {
-            return; // Gara finita, ignora urli
+        int gameId = scream.gameId;
+        RaceState state = races.computeIfAbsent(gameId, id -> new RaceState());
+        if (state.ended) {
+            return;
         }
 
-        String playerName = scream.playerName;
-        double intensity = Math.max(0, Math.min(100, scream.intensity)); // Clamp 0-100
+        String playerName = scream.playerName == null || scream.playerName.isBlank()
+                ? "anonimo"
+                : scream.playerName;
+        double intensity = Double.isNaN(scream.intensity) ? 0 : Math.max(0, Math.min(100, scream.intensity));
 
-        // 🏃 Calcola avanzamento (intensity / 20 = max 5% per urlo)
-        double currentProgress = teamProgress.getOrDefault(playerName, 0.0);
-        double increment = intensity / 20.0; // Max 5% per urlo forte
-        double newProgress = Math.min(100.0, currentProgress + increment);
-        
-        teamProgress.put(playerName, newProgress);
+        double currentProgress = state.progress.getOrDefault(playerName, 0.0);
+        double newProgress = Math.min(100.0, currentProgress + intensity / 20.0);
+        state.progress.put(playerName, newProgress);
 
-        System.out.println("🎤 " + playerName + " urla! Intensità: " + 
-                          String.format("%.1f", intensity) + 
-                          " → Progresso: " + String.format("%.1f%%", newProgress));
+        System.out.println("🎤 gioco " + gameId + " - " + playerName + " urla ("
+                + String.format("%.1f", intensity) + ") → " + String.format("%.1f%%", newProgress));
 
-        // 🏁 Check se ha raggiunto il traguardo
-        if (newProgress >= 100.0 && !finishOrder.containsKey(playerName)) {
-            finishCounter++;
-            finishOrder.put(playerName, finishCounter);
-            
-            System.out.println("🏆 " + playerName + " ha finito in posizione " + finishCounter + "!");
+        if (newProgress >= 100.0 && !state.finishOrder.containsKey(playerName)) {
+            int position = state.finishCounter.incrementAndGet();
+            state.finishOrder.put(playerName, position);
 
-            // Broadcast vincitore
             Map<String, Object> winnerMsg = new HashMap<>();
             winnerMsg.put("action", "PLAYER_FINISHED");
             winnerMsg.put("playerName", playerName);
-            winnerMsg.put("position", finishCounter);
-            winnerMsg.put("points", calculatePoints(finishCounter));
-            
-            messagingTemplate.convertAndSend("/topic/game/" + scream.gameId, Optional.of(winnerMsg));
+            winnerMsg.put("position", position);
+            winnerMsg.put("points", calculatePoints(position));
+            messagingTemplate.convertAndSend("/topic/game/" + gameId, Optional.of(winnerMsg));
 
-            // Se 3 squadre hanno finito, termina la gara
-            if (finishCounter >= 3) {
-                endRace(scream.gameId);
+            if (position >= FINISHERS_TO_END) {
+                endRace(gameId, state);
             }
         }
 
-        // 📡 Broadcast aggiornamento posizione a tutti
         Map<String, Object> updateMsg = new HashMap<>();
         updateMsg.put("action", "SCREAM_UPDATE");
         updateMsg.put("playerName", playerName);
         updateMsg.put("progress", newProgress);
         updateMsg.put("intensity", intensity);
-        
-        messagingTemplate.convertAndSend("/topic/game/" + scream.gameId, Optional.of(updateMsg));
+        messagingTemplate.convertAndSend("/topic/game/" + gameId, Optional.of(updateMsg));
     }
 
-    /**
-     * 🏁 Termina la gara
-     */
-    private void endRace(int gameId) {
-        raceEnded = true;
-        
+    private void endRace(int gameId, RaceState state) {
+        state.ended = true;
+
         Map<String, Object> endMsg = new HashMap<>();
         endMsg.put("action", "RACE_ENDED");
-        endMsg.put("finalStandings", finishOrder);
-        
+        endMsg.put("finalStandings", state.finishOrder);
         messagingTemplate.convertAndSend("/topic/game/" + gameId, Optional.of(endMsg));
-        
-        System.out.println("🏁 Gara terminata! Classifica finale: " + finishOrder);
+
+        System.out.println("🏁 gioco " + gameId + " - gara terminata: " + state.finishOrder);
     }
 
-    /**
-     * 🎯 Calcola punti in base alla posizione
-     */
     private int calculatePoints(int position) {
         return switch (position) {
             case 1 -> 1000;
@@ -110,23 +102,18 @@ public class ScreamRaceController {
         };
     }
 
-    /**
-     * 🔄 Reset per nuova gara
-     */
+    /** Reset della sola partita indicata (nuova gara o ritorno alla lobby). */
     @MessageMapping("/scream/reset")
     public void resetRace(Map<String, Object> payload) {
-        teamProgress.clear();
-        finishOrder.clear();
-        finishCounter = 0;
-        raceEnded = false;
-        
-        int gameId = (int) payload.getOrDefault("gameId", 1);
-        
+        Object rawGameId = payload.getOrDefault("gameId", 1);
+        int gameId = rawGameId instanceof Number number ? number.intValue() : 1;
+
+        races.remove(gameId);
+
         Map<String, Object> resetMsg = new HashMap<>();
         resetMsg.put("action", "RACE_RESET");
-        
         messagingTemplate.convertAndSend("/topic/game/" + gameId, Optional.of(resetMsg));
-        
-        System.out.println("🔄 Gara resettata!");
+
+        System.out.println("🔄 gioco " + gameId + " - gara resettata");
     }
 }

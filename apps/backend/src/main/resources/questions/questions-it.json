@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "language": "it",
+  "generatedAt": "2026-11-04T00:00:00+00:00",
+  "source": "starter (scritta a mano: rimpiazzala con scripts/generate-questions/generate.py)",
+  "questions": [
+    { "id": "storia-0001", "category": "Storia", "type": "QUIZ", "difficulty": "medio", "question": "In che anno è iniziata la Rivoluzione francese?", "correctAnswer": "1789", "options": ["1789", "1776", "1815", "1848"], "explanation": null },
+    { "id": "storia-0002", "category": "Storia", "type": "TRUE_FALSE", "difficulty": "facile", "question": "La Prima Guerra Mondiale è iniziata nel 1914.", "correctAnswer": "VERO", "options": ["VERO", "FALSO"], "explanation": "L'attentato di Sarajevo è del giugno 1914." },
+    { "id": "storia-0003", "category": "Storia", "type": "CHRONO", "difficulty": "medio", "question": "In che anno è caduto il Muro di Berlino?", "correctAnswer": "1989", "options": null, "explanation": null },
+
+    { "id": "scienza-0001", "category": "Scienza", "type": "QUIZ", "difficulty": "facile", "question": "Qual è l'elemento chimico con simbolo Fe?", "correctAnswer": "Ferro", "options": ["Ferro", "Fluoro", "Fosforo", "Francio"], "explanation": null },
+    { "id": "scienza-0002", "category": "Scienza", "type": "TRUE_FALSE", "difficulty": "facile", "question": "L'acqua bolle a 100 gradi Celsius al livello del mare.", "correctAnswer": "VERO", "options": ["VERO", "FALSO"], "explanation": "Alla pressione atmosferica standard." },
+    { "id": "scienza-0003", "category": "Scienza", "type": "CHRONO", "difficulty": "facile", "question": "In che anno l'uomo è sbarcato sulla Luna?", "correctAnswer": "1969", "options": null, "explanation": null },
+
+    { "id": "sport-0001", "category": "Sport", "type": "QUIZ", "difficulty": "facile", "question": "Quanti giocatori per squadra scendono in campo nel calcio?", "correctAnswer": "11", "options": ["11", "10", "12", "9"], "explanation": null },
+    { "id": "sport-0002", "category": "Sport", "type": "TRUE_FALSE", "difficulty": "medio", "question": "Una partita di basket NBA si gioca in quattro quarti.", "correctAnswer": "VERO", "options": ["VERO", "FALSO"], "explanation": "Quattro quarti da dodici minuti." },
+    { "id": "sport-0003", "category": "Sport", "type": "CHRONO", "difficulty": "medio", "question": "In che anno l'Italia ha vinto il suo quarto Mondiale di calcio?", "correctAnswer": "2006", "options": null, "explanation": null },
+
+    { "id": "cinema-0001", "category": "Cinema", "type": "QUIZ", "difficulty": "medio", "question": "Chi ha diretto Il Padrino?", "correctAnswer": "Francis Ford Coppola", "options": ["Francis Ford Coppola", "Martin Scorsese", "Sergio Leone", "Brian De Palma"], "explanation": null },
+    { "id": "cinema-0002", "category": "Cinema", "type": "TRUE_FALSE", "difficulty": "facile", "question": "Il film Il Padrino è ambientato a Napoli.", "correctAnswer": "FALSO", "options": ["VERO", "FALSO"], "explanation": "È ambientato a New York e in Sicilia." },
+    { "id": "cinema-0003", "category": "Cinema", "type": "CHRONO", "difficulty": "medio", "question": "In che anno è uscito il film Titanic?", "correctAnswer": "1997", "options": null, "explanation": null },
+    { "id": "cinema-0004", "category": "Cinema", "type": "IMAGE_BLUR", "difficulty": "facile", "question": "Chi è questa persona?", "correctAnswer": "Sophia Loren", "options": null, "explanation": null },
+    { "id": "cinema-0005", "category": "Cinema", "type": "IMAGE_BLUR", "difficulty": "facile", "question": "Chi è questa persona?", "correctAnswer": "Roberto Benigni", "options": null, "explanation": null },
+    { "id": "cinema-0006", "category": "Cinema", "type": "IMAGE_BLUR", "difficulty": "facile", "question": "Chi è questa persona?", "correctAnswer": "Tom Cruise", "options": null, "explanation": null },
+    { "id": "cinema-0007", "category": "Cinema", "type": "IMAGE_BLUR", "difficulty": "facile", "question": "Chi è questa persona?", "correctAnswer": "Meryl Streep", "options": null, "explanation": null },
+
+    { "id": "geografia-0001", "category": "Geografia", "type": "QUIZ", "difficulty": "medio", "question": "Qual è la capitale dell'Australia?", "correctAnswer": "Canberra", "options": ["Canberra", "Sydney", "Melbourne", "Perth"], "explanation": null },
+    { "id": "geografia-0002", "category": "Geografia", "type": "TRUE_FALSE", "difficulty": "facile", "question": "Il Po è il fiume più lungo d'Italia.", "correctAnswer": "VERO", "options": ["VERO", "FALSO"], "explanation": "Circa 652 km." },
+
+    { "id": "musica-0001", "category": "Musica", "type": "QUIZ", "difficulty": "medio", "question": "Chi ha composto La Traviata?", "correctAnswer": "Giuseppe Verdi", "options": ["Giuseppe Verdi", "Gioachino Rossini", "Giacomo Puccini", "Vincenzo Bellini"], "explanation": null },
+    { "id": "musica-0002", "category": "Musica", "type": "TRUE_FALSE", "difficulty": "facile", "question": "Il pianoforte ha 88 tasti.", "correctAnswer": "VERO", "options": ["VERO", "FALSO"], "explanation": "52 bianchi e 36 neri." },
+    { "id": "musica-0003", "category": "Musica", "type": "IMAGE_BLUR", "difficulty": "facile", "question": "Chi è questa persona?", "correctAnswer": "Vasco Rossi", "options": null, "explanation": null },
+    { "id": "musica-0004", "category": "Musica", "type": "IMAGE_BLUR", "difficulty": "facile", "question": "Chi è questa persona?", "correctAnswer": "Taylor Swift", "options": null, "explanation": null },
+
+    { "id": "arte-0001", "category": "Arte", "type": "QUIZ", "difficulty": "facile", "question": "Chi ha dipinto la Gioconda?", "correctAnswer": "Leonardo da Vinci", "options": ["Leonardo da Vinci", "Michelangelo", "Raffaello", "Caravaggio"], "explanation": null },
+    { "id": "arte-0002", "category": "Arte", "type": "TRUE_FALSE", "difficulty": "facile", "question": "Il David di Michelangelo è conservato a Firenze.", "correctAnswer": "VERO", "options": ["VERO", "FALSO"], "explanation": "Alla Galleria dell'Accademia." },
+
+    { "id": "politica-0001", "category": "Politica", "type": "QUIZ", "difficulty": "medio", "question": "In quale anno è entrata in vigore la Costituzione italiana?", "correctAnswer": "1948", "options": ["1948", "1946", "1945", "1950"], "explanation": null },
+    { "id": "politica-0002", "category": "Politica", "type": "TRUE_FALSE", "difficulty": "medio", "question": "In Italia il voto è obbligatorio per legge.", "correctAnswer": "FALSO", "options": ["VERO", "FALSO"], "explanation": "È un dovere civico, ma non è sanzionato." },
+    { "id": "politica-0003", "category": "Politica", "type": "CHRONO", "difficulty": "medio", "question": "In che anno gli italiani scelsero la Repubblica con il referendum?", "correctAnswer": "1946", "options": null, "explanation": null },
+
+    { "id": "motori-0001", "category": "Motori", "type": "QUIZ", "difficulty": "facile", "question": "Quale casa automobilistica produce la Golf?", "correctAnswer": "Volkswagen", "options": ["Volkswagen", "Fiat", "Renault", "Peugeot"], "explanation": null },
+    { "id": "motori-0002", "category": "Motori", "type": "TRUE_FALSE", "difficulty": "medio", "question": "Un motore diesel non ha candele di accensione.", "correctAnswer": "VERO", "options": ["VERO", "FALSO"], "explanation": "Il gasolio si accende per compressione." },
+
+    { "id": "cibo-0001", "category": "Cibo e Gastronomia", "type": "QUIZ", "difficulty": "facile", "question": "Qual è l'ingrediente principale del pesto genovese?", "correctAnswer": "Basilico", "options": ["Basilico", "Prezzemolo", "Rosmarino", "Salvia"], "explanation": null },
+    { "id": "cibo-0002", "category": "Cibo e Gastronomia", "type": "TRUE_FALSE", "difficulty": "facile", "question": "La pizza margherita prende il nome da una regina d'Italia.", "correctAnswer": "VERO", "options": ["VERO", "FALSO"], "explanation": "Il nome omaggia la regina Margherita di Savoia." },
+
+    { "id": "tv-0001", "category": "Televisione", "type": "QUIZ", "difficulty": "medio", "question": "Su quale rete va in onda Striscia la notizia?", "correctAnswer": "Canale 5", "options": ["Canale 5", "Rai 1", "Rai 3", "La7"], "explanation": null },
+    { "id": "tv-0002", "category": "Televisione", "type": "TRUE_FALSE", "difficulty": "facile", "question": "Il Festival di Sanremo si svolge ogni anno a luglio.", "correctAnswer": "FALSO", "options": ["VERO", "FALSO"], "explanation": "Si svolge a febbraio." },
+
+    { "id": "lingue-0001", "category": "Lingue e Parole", "type": "QUIZ", "difficulty": "facile", "question": "Qual è un sinonimo di veloce?", "correctAnswer": "Rapido", "options": ["Rapido", "Lento", "Pesante", "Fragile"], "explanation": null },
+    { "id": "lingue-0002", "category": "Lingue e Parole", "type": "TRUE_FALSE", "difficulty": "facile", "question": "Il congiuntivo è un modo verbale.", "correctAnswer": "VERO", "options": ["VERO", "FALSO"], "explanation": "Insieme a indicativo, condizionale e imperativo." }
+  ]
+}
