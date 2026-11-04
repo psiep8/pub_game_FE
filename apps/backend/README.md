@@ -74,7 +74,6 @@ Broadcast su `/topic/game/{id}`, `/topic/game/{id}/responses`, `/topic/game/{id}
 | `MUSIC` | Indovina la canzone | iTunes API |
 | `ROULETTE` | Scegli un colore | Random |
 | `WHEEL_OF_FORTUNE` | Proverbio casuale | Lista locale |
-| `SCREAM_RACE` | Gara di urla | Microfono |
 
 Se l'AI non risponde o il JSON non è valido, viene usato un fallback locale (funziona anche senza chiave Groq).
 

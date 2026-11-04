@@ -37,7 +37,6 @@ import { environment } from '../../environment/environment';
 import { GameModeType, IGameMode } from './interfaces/game-mode-type';
 import { LeaderboardQuick } from '../leaderboard/leaderboard-quick-component/leaderboard-quick-component';
 import { LeaderboardDetailed } from '../leaderboard/leaderboard-detailed-component/leaderboard-detailed-component';
-import { ScreamRace } from './games/scream-race/scream-race.component';
 import { ArenaComponent } from './games/arena/arena.component';
 import { Timeline } from './games/timeline/timeline';
 import { Price } from './games/price/price';
@@ -56,7 +55,6 @@ import { PingPong } from './games/ping-pong/ping-pong';
     Song,
     LeaderboardQuick,
     LeaderboardDetailed,
-    ScreamRace,
     ArenaComponent,
     Timeline,
     Price,
@@ -200,20 +198,6 @@ export class GameComponent implements OnInit, OnDestroy {
       if (!resp) return;
 
       const mode = this.currentMode();
-      if (mode?.type === 'SCREAM_RACE') {
-        const intensity = resp.intensity ?? resp.progress;
-        const playerName = (resp.playerName || resp.name || 'Sconosciuto').trim();
-
-        if (intensity !== undefined && intensity > 5) {
-          console.log(`%c 🎤 Urlo TV -> Mode Update: ${playerName} (${intensity}%) `, 'background: #1b5e20; color: #bada55; font-weight: bold;');
-          mode.applyScreamIntensity?.(playerName, intensity);
-          this.cdr.detectChanges();
-        } else {
-          console.log('%c 🎤 Urlo ignorato in GameComponent: ', 'color: #ff9800', intensity);
-        }
-        return;
-      }
-
       // Voti e prenotazioni dei telefoni: prima finivano solo nel log, quindi
       // Quiz non assegnava punti e i giochi a prenotazione non si chiudevano.
       const playerName = String(resp.playerName || resp.name || '').trim();
@@ -247,22 +231,6 @@ export class GameComponent implements OnInit, OnDestroy {
         this.audioService.playJoin();
         this.leaderboardService.addPoints(normalizedName, 0, false);
 
-        // Se siamo in Scream Race, aggiungiamo il giocatore alla gara istantaneamente
-        if (mode?.type === 'SCREAM_RACE') {
-          mode.applyScreamIntensity?.(normalizedName, 0);
-          this.cdr.detectChanges();
-        }
-      }
-
-      // 🎤 Aggiornamento progresso squadra (Cerca LOG VIOLA sulla TV!)
-      const data = status.progress ?? status.intensity;
-      const pName = status.playerName || status.name;
-
-      if (pName && data !== undefined && mode?.type === 'SCREAM_RACE') {
-        const normalizedName = pName.trim();
-        console.log(`%c 🎤 Urlo TV -> Status Match: ${normalizedName} (${data}%) `, 'background: #1b5e20; color: #fff');
-        mode.applyScreamIntensity?.(normalizedName, data);
-        this.cdr.detectChanges();
       }
 
       // 🏟️ ARENA ANSWER dal Remote (inviato via broadcastStatus)
@@ -287,30 +255,6 @@ export class GameComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
 
-      // 🏆 Giocatore ha finito
-      if ((status.action === 'PLAYER_FINISHED' || status.action === 'FINISH') && mode?.type === 'SCREAM_RACE') {
-        mode.markTeamFinished?.(status.playerName, status.position);
-
-        // Aggiungi punti al leaderboard
-        this.leaderboardService.addPoints(
-          status.playerName,
-          status.points || 0,
-          true
-        );
-
-        console.log(`🏆 ${status.playerName} finito in pos ${status.position}: +${status.points} punti`);
-        this.cdr.detectChanges();
-      }
-
-      // 🏁 Gara terminata
-      if ((status.action === 'RACE_ENDED' || status.action === 'GAME_OVER') && mode?.type === 'SCREAM_RACE') {
-        console.log('🏁 GARA TERMINATA!');
-        setTimeout(() => {
-          this.roundManager.completeRound('SCREAM_RACE');
-          this.checkLeaderboardDisplay();
-          this.cdr.detectChanges();
-        }, 5000);
-      }
     });
     let lastPreStart = this.preStartCountdown();
     this.prestartMonitorInterval = setInterval(() => {
@@ -539,7 +483,6 @@ export class GameComponent implements OnInit, OnDestroy {
     switch (type) {
       case 'QUIZ':
       // case 'ONE_VS_ONE':
-      case 'SCREAM_RACE':
         return 'CULTURA GENERALE';
       case 'MUSIC':
         return 'MUSICA';
@@ -590,7 +533,7 @@ export class GameComponent implements OnInit, OnDestroy {
       case 'SPEED_RUSH':
         return 'SPEED RUSH';
       case 'PING_PONG':
-        return 'PING PONG';
+        return 'AIR HOCKEY';
       default:
         return type;
     }

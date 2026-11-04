@@ -941,277 +941,6 @@ body {
   max-width: 500px;
 }
 
-.scream-race-remote-modern {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  background: radial-gradient(circle at center, rgba(255, 215, 0, 0.05) 0%, transparent 70%);
-}
-.scream-race-remote-modern .glass-card {
-  background: rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 30px;
-  padding: 40px;
-  width: 100%;
-  max-width: 500px;
-  text-align: center;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-  animation: cardEntrance 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-}
-.scream-race-remote-modern .glass-card h2 {
-  font-size: 2.2rem;
-  font-weight: 900;
-  margin-bottom: 10px;
-  letter-spacing: 1px;
-  background: linear-gradient(to bottom, #fff, #bbb);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.scream-race-remote-modern .glass-card p {
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 30px;
-}
-.scream-race-remote-modern .icon-orb {
-  width: 100px;
-  height: 100px;
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 255, 255, 0.1));
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 3.5rem;
-  margin: 0 auto 25px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-.scream-race-remote-modern .icon-orb.success {
-  background: linear-gradient(135deg, rgba(46, 213, 115, 0.3), rgba(46, 213, 115, 0.1));
-  border-color: rgba(46, 213, 115, 0.4);
-}
-.scream-race-remote-modern .icon-orb.error {
-  background: linear-gradient(135deg, rgba(255, 71, 87, 0.3), rgba(255, 71, 87, 0.1));
-  border-color: rgba(255, 71, 87, 0.4);
-}
-.scream-race-remote-modern .icon-orb.ripple {
-  position: relative;
-}
-.scream-race-remote-modern .icon-orb.ripple::after {
-  content: "";
-  position: absolute;
-  inset: -10px;
-  border-radius: 50%;
-  border: 2px solid rgba(46, 213, 115, 0.3);
-  animation: ripple 1.5s infinite;
-}
-.scream-race-remote-modern .premium-btn {
-  width: 100%;
-  padding: 20px 30px;
-  border: none;
-  border-radius: 20px;
-  font-size: 1.3rem;
-  font-weight: 900;
-  color: #000;
-  background: #ffd700;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s;
-  box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
-}
-.scream-race-remote-modern .premium-btn .btn-text {
-  position: relative;
-  z-index: 1;
-}
-.scream-race-remote-modern .premium-btn:active {
-  transform: scale(0.96);
-  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
-}
-.scream-race-remote-modern .premium-btn.primary-pulsing {
-  animation: btnPulse 2s infinite;
-}
-.scream-race-remote-modern .premium-btn.retry {
-  background: #ff4757;
-  color: white;
-  box-shadow: 0 10px 30px rgba(255, 71, 87, 0.3);
-}
-.scream-race-remote-modern .hints {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 25px;
-  flex-wrap: wrap;
-}
-.scream-race-remote-modern .hints span {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.05);
-  padding: 6px 12px;
-  border-radius: 10px;
-}
-.scream-race-remote-modern .status-badge {
-  background: #2ecc71;
-  color: #fff;
-  font-size: 0.8rem;
-  font-weight: 900;
-  padding: 4px 12px;
-  border-radius: 20px;
-  display: inline-block;
-  margin-bottom: 10px;
-  letter-spacing: 1px;
-}
-.scream-race-remote-modern .test-area {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 20px;
-  padding: 20px;
-  margin-bottom: 25px;
-}
-.scream-race-remote-modern .test-area .meter-container {
-  height: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 12px;
-}
-.scream-race-remote-modern .test-area .meter-container .meter-bar {
-  height: 100%;
-  background: linear-gradient(to right, #2ecc71, #f1c40f);
-  border-radius: 10px;
-  transition: width 0.1s ease-out;
-}
-.scream-race-remote-modern .test-area .volume-label {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.4);
-  font-weight: 600;
-  transition: all 0.3s;
-}
-.scream-race-remote-modern .test-area .volume-label.active {
-  color: #2ecc71;
-  transform: scale(1.05);
-}
-.scream-race-remote-modern .waiting-instruction {
-  font-size: 1rem;
-  color: #ffd700;
-  font-style: italic;
-  animation: blink 1.5s infinite;
-}
-.scream-race-remote-modern .race-active-interface {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.scream-race-remote-modern .race-active-interface .visualizer-orb {
-  width: 160px;
-  height: 160px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  margin-bottom: 40px;
-  transition: transform 0.1s ease-out;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-}
-.scream-race-remote-modern .race-active-interface .visualizer-orb .mic-glyph {
-  font-size: 5rem;
-  z-index: 2;
-}
-.scream-race-remote-modern .race-active-interface .visualizer-orb.screaming {
-  border-color: #ffd700;
-  box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
-}
-.scream-race-remote-modern .race-active-interface .visualizer-orb .waves {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-.scream-race-remote-modern .race-active-interface .visualizer-orb .waves .wave-circle {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 4px solid #ffd700;
-  animation: waveOut 1.5s infinite;
-}
-.scream-race-remote-modern .race-active-interface .visualizer-orb .waves .wave-circle.delayed {
-  animation-delay: 0.7s;
-}
-.scream-race-remote-modern .race-active-interface .action-header {
-  margin-bottom: 30px;
-  text-align: center;
-}
-.scream-race-remote-modern .race-active-interface .action-header .shout-text {
-  font-size: 3rem;
-  font-weight: 900;
-  color: white;
-  text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  transition: all 0.2s;
-}
-.scream-race-remote-modern .race-active-interface .action-header .shout-text.fire {
-  color: #ff9f43;
-  transform: scale(1.1);
-  text-shadow: 0 0 20px rgba(255, 159, 67, 0.6);
-}
-.scream-race-remote-modern .race-active-interface .intensity-meter {
-  width: 100%;
-  max-width: 400px;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 20px;
-  border-radius: 25px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-.scream-race-remote-modern .race-active-interface .intensity-meter .meter-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px;
-  font-weight: 900;
-  font-size: 0.9rem;
-  letter-spacing: 1px;
-  color: rgba(255, 255, 255, 0.6);
-}
-.scream-race-remote-modern .race-active-interface .intensity-meter .meter-header .value {
-  color: #ffd700;
-}
-.scream-race-remote-modern .race-active-interface .intensity-meter .full-meter {
-  height: 24px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 12px;
-  overflow: hidden;
-  position: relative;
-}
-.scream-race-remote-modern .race-active-interface .intensity-meter .full-meter .fill {
-  height: 100%;
-  background: linear-gradient(to right, #ff9f43, #ff6b6b);
-  border-radius: 12px;
-  transition: width 0.1s ease-out;
-}
-.scream-race-remote-modern .race-active-interface .intensity-meter .full-meter .fill.max {
-  background: linear-gradient(to right, #ff6b6b, #ee5253);
-  box-shadow: 0 0 15px rgba(238, 82, 83, 0.5);
-}
-.scream-race-remote-modern .race-active-interface .pro-tips {
-  margin-top: 40px;
-  display: flex;
-  gap: 20px;
-}
-.scream-race-remote-modern .race-active-interface .pro-tips .tip {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.5);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.scream-race-remote-modern .race-active-interface .pro-tips .tip .emoji {
-  font-size: 1.2rem;
-}
 
 @keyframes cardEntrance {
   from {
@@ -1264,3 +993,97 @@ body {
 }
 
 /*# sourceMappingURL=remote-component.css.map */
+
+/* ------------------------------------------------------------
+   QA stile carta/inchiostro: buzzer, roulette, tastierino, timeline
+   ------------------------------------------------------------ */
+
+.game-content .buzz-container .buzz-button,
+.game-content .buzz-container .buzz-button.wheel-theme,
+.game-content .buzz-container .buzz-button.music-theme {
+  width: min(86vw, 340px);
+  height: auto;
+  min-height: 220px;
+  border-radius: 0;
+  border: 5px solid var(--coal);
+  background: var(--paper-hi);
+  color: var(--coal);
+  box-shadow: 10px 10px 0 var(--tomato);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px 18px;
+  animation: none;
+}
+.game-content .buzz-container .buzz-button.wheel-theme { box-shadow: 10px 10px 0 var(--acid); }
+.game-content .buzz-container .buzz-button.music-theme { box-shadow: 10px 10px 0 var(--grass, #456b45); }
+.game-content .buzz-container .buzz-button .buzz-icon { font-size: 3.4rem; filter: none; }
+.game-content .buzz-container .buzz-button .buzz-text {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  line-height: 1.05;
+  letter-spacing: .04em;
+  text-shadow: none;
+  color: var(--coal);
+}
+
+/* Roulette: 6 tasti distribuiti su tutta l'altezza, palette mutata */
+.game-content .roulette-grid {
+  flex: 1;
+  align-content: center;
+  gap: 12px;
+  padding: 12px;
+  max-width: 460px;
+}
+.game-content .roulette-grid .color-btn {
+  min-height: clamp(84px, 15vh, 128px);
+  border-radius: 0;
+  border: 4px solid var(--coal);
+  box-shadow: 6px 6px 0 var(--coal);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: .06em;
+  text-shadow: none;
+}
+.game-content .roulette-grid .color-btn.rosso { background: #b23b2e; }
+.game-content .roulette-grid .color-btn.nero { background: #211a14; }
+.game-content .roulette-grid .color-btn.verde { background: #456b45; }
+.game-content .roulette-grid .color-btn.blu { background: #345a72; }
+.game-content .roulette-grid .color-btn.giallo { background: #d6a441; color: #211a14; }
+.game-content .roulette-grid .color-btn.bianco { background: #efe2c9; color: #211a14; }
+
+/* Price: numeri leggibili */
+.game-content .price-remote .keypad { width: 100%; gap: 8px; }
+.game-content .price-remote .key {
+  color: var(--coal) !important;
+  background: var(--paper-hi) !important;
+  border: 2px solid var(--coal) !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0 var(--coal) !important;
+  font-family: var(--font-mono);
+  font-size: 1.45rem;
+  font-weight: 800;
+  min-height: 54px;
+}
+.game-content .price-remote .key:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--coal) !important; }
+.game-content .price-remote .price-display { color: var(--coal); font-family: var(--font-display); font-size: 2.2rem; }
+.game-content .price-remote .price-editor { gap: 10px; align-items: center; }
+.game-content .price-remote .price-target { color: rgba(30, 25, 20, .7); }
+
+/* Timeline: frecce per ordinare senza drag */
+.game-content .tl-drag-list { width: 100%; gap: 8px; max-height: 52vh; overflow-y: auto; padding-right: 2px; }
+.game-content .tl-row { display: flex; gap: 8px; width: 100%; align-items: stretch; }
+.game-content .tl-row .tl-drag-card { flex: 1; min-width: 0; }
+.game-content .tl-move {
+  width: 46px;
+  flex: 0 0 46px;
+  border: 2px solid var(--coal);
+  background: var(--paper-hi);
+  color: var(--coal);
+  font-size: 1rem;
+  box-shadow: 3px 3px 0 var(--coal);
+  cursor: pointer;
+}
+.game-content .tl-move:disabled { opacity: .3; box-shadow: none; }

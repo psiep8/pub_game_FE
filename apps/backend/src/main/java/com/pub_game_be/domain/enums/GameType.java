@@ -9,7 +9,6 @@ public enum GameType {
     CHRONO,
     WHEEL_OF_FORTUNE,
     // ONE_VS_ONE,
-    SCREAM_RACE,
     ARENA,
     TIMELINE,
     PRICE,

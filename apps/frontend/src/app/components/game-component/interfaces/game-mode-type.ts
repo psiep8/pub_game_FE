@@ -10,7 +10,6 @@ export type GameModeType =
   | 'IMAGE_BLUR'
   | 'ROULETTE'
   | 'MUSIC'
-  | 'SCREAM_RACE'
   | 'WHEEL_OF_FORTUNE'
   | 'ARENA'
   | 'TIMELINE'
@@ -77,9 +76,7 @@ export interface IGameMode {
   pointsFor(isCorrect: boolean, elapsedMs: number): number;
 
   /** Scream Race: avanzamento spinto dall'intensità del microfono. */
-  applyScreamIntensity?(playerName: string, intensity: number): void;
   /** Scream Race: il giocatore ha tagliato il traguardo. */
-  markTeamFinished?(playerName: string, position: number): void;
   /** Arena: esito di una domanda a risposta rapida. */
   applyArenaAnswer?(playerName: string, isCorrect: boolean, points: number): void;
   /** Timeline, Quanto costa, Speed Rush, Ping Pong: eventi dal server o dai telefoni. */

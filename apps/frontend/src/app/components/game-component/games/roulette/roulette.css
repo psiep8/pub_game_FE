@@ -51,7 +51,7 @@
 
 .roulette-stage {
   position: relative;
-  --wheel-size: min(66vmin, calc(100vh - 240px), 660px);
+  --wheel-size: min(76vmin, calc(100vh - 200px), 800px);
   width: var(--wheel-size);
   height: var(--wheel-size);
   transform-style: preserve-3d;

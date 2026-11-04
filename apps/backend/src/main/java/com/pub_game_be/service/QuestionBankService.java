@@ -145,7 +145,6 @@ public class QuestionBankService {
             case "ROULETTE" -> roulettePayload();
             case "WHEEL_OF_FORTUNE", "WHEEL_FORTUNE", "PROVERB" -> pickRandomProverb();
             case "MUSIC" -> musicPayload();
-            case "SCREAM_RACE" -> screamPayload();
             case "ARENA" -> arenaWrapper();
             default -> fromBank(category, requested, isAvailable);
         };
@@ -396,14 +395,6 @@ public class QuestionBankService {
 
     private String pickRandomProverb() {
         return PROVERBS[random.nextInt(PROVERBS.length)];
-    }
-
-    private String screamPayload() {
-        JSONObject payload = new JSONObject();
-        payload.put("type", "SCREAM_RACE");
-        payload.put("duration", 30);
-        payload.put("instructions", "Urla nel microfono per far avanzare la tua squadra!");
-        return payload.toString();
     }
 
     private String arenaWrapper() {

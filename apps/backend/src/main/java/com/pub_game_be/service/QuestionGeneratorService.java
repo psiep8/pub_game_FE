@@ -84,16 +84,6 @@ public class QuestionGeneratorService {
         };
 
         String prompt = "Genera una domanda per la categoria " + category + " di tipo " + type;
-        if ("SCREAM_RACE".equalsIgnoreCase(type)) {
-            return """
-                    {
-                        "type": "SCREAM_RACE",
-                        "duration": 30,
-                        "instructions": "Urla nel microfono per far avanzare la tua squadra!"
-                    }
-                    """;
-        }
-
         if ("IMAGE_BLUR".equalsIgnoreCase(type)) {
             String recentList = recentCelebrities.isEmpty()
                     ? "nessuno"
@@ -542,9 +532,6 @@ public class QuestionGeneratorService {
                 if (imageUrl != null) obj.put("imageUrl", imageUrl);
             } catch (Exception e) {}
             return obj.toString();
-        }
-        if ("SCREAM_RACE".equalsIgnoreCase(type)) {
-            return "{\"type\":\"SCREAM_RACE\",\"duration\":30,\"instructions\":\"Urla nel microfono!\"}";
         }
         if ("WHEEL_OF_FORTUNE".equalsIgnoreCase(type) || "WHEEL_FORTUNE".equalsIgnoreCase(type) || "PROVERB".equalsIgnoreCase(type)) {
             return pickRandomProverb();

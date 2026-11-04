@@ -24,6 +24,13 @@ export class ImageBlur {
   @Output() onConfirmCorrect = new EventEmitter<void>();
   @Output() onConfirmWrong = new EventEmitter<void>();
 
+  isPortrait = false;
+
+  onImgLoad(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    this.isPortrait = img.naturalHeight > img.naturalWidth;
+  }
+
   constructor(private sanitizer: DomSanitizer) {}
 
   getSafeUrl(url: string | undefined | null): SafeUrl | string {

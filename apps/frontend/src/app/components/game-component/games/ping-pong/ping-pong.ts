@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
     <div class="pp-wrap">
       <div class="pp-head">
         <div>
-          <h2 class="pp-title">PING PONG</h2>
+          <h2 class="pp-title">AIR HOCKEY</h2>
           <div class="pp-kicker">⚡ DUELLO A COLPI DI RISPOSTA</div>
         </div>
         <div class="pp-head-right">
@@ -42,8 +42,8 @@ import { CommonModule } from '@angular/common';
               <div class="pp-goal right"></div>
               <div class="pp-center"></div>
               <div class="pp-puck" [class.to-a]="court.turn === 'a'" [class.to-b]="court.turn === 'b'"></div>
-              <div class="pp-paddle left" [class.active]="court.turn === 'a'">🏓</div>
-              <div class="pp-paddle right" [class.active]="court.turn === 'b'">🏓</div>
+              <div class="pp-paddle left" [class.active]="court.turn === 'a'">🏒</div>
+              <div class="pp-paddle right" [class.active]="court.turn === 'b'">🏒</div>
 
               @if (court.question === null && court.lastEvent?.kind === 'goal') {
                 <div class="pp-goal-flash">

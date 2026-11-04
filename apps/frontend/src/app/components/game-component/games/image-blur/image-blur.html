@@ -8,12 +8,12 @@
     </div>
   }
 
-  <div class="blur-main-container">
+  <div class="blur-main-container" [class.portrait]="isPortrait">
     <img
       [src]="getSafeUrl(displayData.imageUrl)"
       [style.filter]="'blur(' + displayData.blurAmount + 'px)'"
       referrerpolicy="no-referrer"
-      class="blur-img">
+      class="blur-img" (load)="onImgLoad($event)">
 
     @if (displayData.buzzedPlayer) {
 

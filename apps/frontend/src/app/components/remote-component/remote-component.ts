@@ -89,8 +89,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   tempNickname = '';
   startTime: number = 0;
 
-  gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR' | 'ELIMINATED'>('WAITING');
-  questionType = signal<'ROULETTE' | 'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'SCREAM_RACE' | 'ARENA' | 'TIMELINE' | 'PRICE' | 'SPEED_RUSH' | 'PING_PONG'>('QUIZ');
+  gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR' | 'PRICE_OUT' | 'ELIMINATED'>('WAITING');
+  questionType = signal<'ROULETTE' | 'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'PRICE' | 'SPEED_RUSH' | 'PING_PONG'>('QUIZ');
   hasAnswered = signal(false);
   isBlocked = signal(false);
 
@@ -214,19 +214,23 @@ export class RemoteComponent implements OnInit, OnDestroy {
           } else {
             this.gameState.set('WAITING');
           }
-          if (status.type === 'SCREAM_RACE') {
-            console.log('🎤 SCREAM_RACE rilevato - Attivo microfono...');
-            this.gameState.set('WAITING'); // Mostra UI attivazione
-
-            setTimeout(() => {
-              this.startMicrophoneListening();
-            }, 500); // Piccolo delay per evitare race condition
-          }
           break;
 
         case 'START_VOTING':
           this.isBlocked.set(false);
           this.onStartVoting(status.type, status.payload);
+          break;
+
+        case 'PRICE_STATE':
+          if (status.state) {
+            const state = status.state;
+            this.priceItems.set(state.item ? [state.item] : []);
+            this.priceIndex.set(0);
+            this.priceEstimates.set(['']);
+            this.hasAnswered.set(false);
+            this.priceEliminated.set(!!state.eliminated?.includes?.(this.nickname()));
+            this.gameState.set(this.priceEliminated() ? 'PRICE_OUT' : (state.reveal ? 'WAITING' : 'VOTING'));
+          }
           break;
 
         case 'PING_PONG_STATE':
@@ -488,10 +492,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
     
     const nickname = (this.nickname() || '').trim();
 
-    if (intensity > 5 && nickname && this.questionType() === 'SCREAM_RACE' && this.gameState() === 'VOTING') {
-      this.ws.sendScream(this.gameId(), nickname, intensity);
-      
-    }
 
     // Campionamento a 10 Hz: stabile anche quando la pagina non ridisegna.
   }
@@ -648,6 +648,16 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.draggingId.set(null);
   }
 
+  moveCard(id: number, delta: number): void {
+    const order = [...this.timelineOrder()];
+    const from = order.indexOf(id);
+    const to = from + delta;
+    if (from < 0 || to < 0 || to >= order.length) return;
+    [order[from], order[to]] = [order[to], order[from]];
+    this.timelineOrder.set(order);
+    this.vibrate(10);
+  }
+
   sendTimelineAnswer(): void {
     const playerName = this.nickname();
     if (!playerName || this.timelineOrder().length !== this.timelineCards().length) return;
@@ -692,16 +702,16 @@ export class RemoteComponent implements OnInit, OnDestroy {
       && this.priceEstimates().every((value) => isFinite(parseFloat(value)) && parseFloat(value) > 0);
   }
 
+  priceEliminated = signal(false);
+
   sendPriceAnswer(): void {
     const playerName = this.nickname();
-    if (!playerName || !this.priceReady()) return;
+    const value = parseFloat(this.priceEstimates()[0] ?? '');
+    if (!playerName || !Number.isFinite(value) || value <= 0) return;
 
-    const values = this.priceEstimates().map((value) => parseFloat(value));
     this.hasAnswered.set(true);
-    this.gameService.submitPrice(this.gameId(), playerName, values).subscribe({
-      next: () => this.gameState.set('WAITING'),
-      error: () => this.gameState.set('WAITING'),
-    });
+    this.ws.broadcastStatus(this.gameId(), { action: 'PRICE_ANSWER', playerName, value });
+    this.gameState.set('WAITING');
     this.vibrate(40);
   }
 

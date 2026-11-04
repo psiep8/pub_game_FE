@@ -9,7 +9,6 @@ import {
 } from '../components/game-component/interfaces/game-mode-type';
 import { RouletteMode } from '../components/game-component/mode/roulette.mode';
 import { MusicMode } from '../components/game-component/mode/music.mode';
-import { ScreamRaceMode } from '../components/game-component/mode/scream-race.mode';
 import { ArenaMode } from '../components/game-component/mode/arena.mode';
 import { TimelineMode } from '../components/game-component/mode/timeline.mode';
 import { PriceMode } from '../components/game-component/mode/price.mode';
@@ -34,7 +33,6 @@ export class GameModeService {
     WHEEL_OF_FORTUNE: (config) => this.withConfig(new WheelOfFortuneMode(), config),
     ROULETTE: (config) => this.withConfig(new RouletteMode(), config),
     MUSIC: (config) => this.withConfig(new MusicMode(), config),
-    SCREAM_RACE: (config) => this.withConfig(new ScreamRaceMode(), config),
     ARENA: (config) => this.withConfig(new ArenaMode(), config),
     TIMELINE: (config) => this.withConfig(new TimelineMode(), config),
     PRICE: (config) => this.withConfig(new PriceMode(), config),

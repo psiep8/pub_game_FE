@@ -7,7 +7,6 @@ const PLAYABLE_TYPES: GameModeType[] = [
   'MUSIC',
   'IMAGE_BLUR',
   'ROULETTE',
-  'SCREAM_RACE',
   'ARENA',
   'TIMELINE',
   'PRICE',
