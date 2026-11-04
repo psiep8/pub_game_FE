@@ -14,8 +14,8 @@
     <name>pub_game_BE</name>
     <description>pub_game_BE</description>
     <properties>
-        <!-- Ultima LTS supportata dal JDK: Spring Boot 4 richiede almeno Java 17 -->
-        <java.version>25</java.version>
+        <!-- Java 21 LTS installata sulla macchina; con un JDK 25 (ultima LTS) basta portare java.version a 25 -->
+        <java.version>21</java.version>
     </properties>
     <dependencies>
         <dependency>

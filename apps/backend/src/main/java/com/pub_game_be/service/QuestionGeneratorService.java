@@ -22,7 +22,7 @@ public class QuestionGeneratorService {
     @Value("${groq.api.key:}")
     private String apiKey;
 
-    @Value("${groq.api.model:llama-3.3-70b-versatile}")
+    @Value("${groq.api.model:openai/gpt-oss-120b}")
     private String model;
 
     @Value("${groq.api.temperature:0.7}")
@@ -263,6 +263,7 @@ public class QuestionGeneratorService {
 
         String systemMsg = "Sei un generatore di domande quiz. GENERA SOLO DOMANDE SULLA CATEGORIA INDICATA NEL MESSAGGIO UTENTE. Se la categoria è 'Natura' parla di animali/piante/ecosistemi. Se 'Sport' parla di sport. Se 'Scienza' parla di fisica/chimica/biologia. Se 'Storia' parla di eventi storici. Se 'Cinema' parla di film/attori. Se 'Geografia' parla di paesi/capitali. Se 'Curiosita' parla di fatti insoluti. Se 'Arte' parla di pittura/scultura. Se 'Fumetti' parla di fumetti/manga. Se 'Letteratura' parla di scrittori/libri. Se 'Matematica' parla di numeri/formule. NON GENERARE MAI DOMANDE SUL TOPIC SBAGLIATO.";
 
+        if (apiKey == null || apiKey.isBlank()) { System.out.println("GROQ_API_KEY assente: uso il fallback locale per " + type); return getFallbackJson(type, category); }
         int maxAttempts = 3;
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
             if (attempt > 0) {
@@ -276,6 +277,8 @@ public class QuestionGeneratorService {
                     Map.of("role", "user", "content",
                             "IMPORTANTE: La categoria è " + category + ". La domanda DEVE riguardare ESCLUSIVAMENTE la categoria '" + category + "'.\n\n" + prompt)));
             request.put("temperature", "IMAGE_BLUR".equalsIgnoreCase(type) ? imageBlurTemperature : 0.5);
+            // gpt-oss-120b: forza un oggetto JSON valido, niente testo attorno.
+            request.put("response_format", Map.of("type", "json_object"));
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(apiKey);
@@ -290,7 +293,7 @@ public class QuestionGeneratorService {
                 JSONObject jsonObj = new JSONObject(cleanedJson);
 
                 if (jsonObj.has("question") && jsonObj.has("correctAnswer")) {
-                    if ("QUIZ".equalsIgnoreCase(type) || "TRUE_FALSE".equalsIgnoreCase(type)) {
+                    if ("QUIZ".equalsIgnoreCase(type) || "TRUE_FALSE".equalsIgnoreCase(type) || "IMAGE_BLUR".equalsIgnoreCase(type)) {
                         if (validateQuizJson(jsonObj, type)) {
                             if ("IMAGE_BLUR".equalsIgnoreCase(type) && jsonObj.has("correctAnswer")) {
                                 String imageUrl = tmdbImageService.getCelebrityImageUrl(jsonObj.getString("correctAnswer"));
@@ -308,7 +311,7 @@ public class QuestionGeneratorService {
 
                 System.out.println("Tentativo " + (attempt + 1) + ": JSON non valido o non rispetta le regole, riprovo...");
             } catch (Exception e) {
-                System.out.println("Tentativo " + (attempt + 1) + ": errore Groq - " + e.getMessage());
+                if (e instanceof org.springframework.web.client.HttpClientErrorException.TooManyRequests || String.valueOf(e.getMessage()).contains("429")) { System.out.println("⚠️ Rate limit Groq (429): uso il fallback locale."); break; } System.out.println("Tentativo " + (attempt + 1) + ": errore Groq - " + e.getMessage());
             }
         }
 
@@ -317,7 +320,7 @@ public class QuestionGeneratorService {
 
     private boolean validateQuizJson(JSONObject jsonObj, String type) {
         try {
-            if (!jsonObj.has("correctAnswer") || !jsonObj.has("options")) {
+            if ("IMAGE_BLUR".equalsIgnoreCase(type)) { return jsonObj.has("correctAnswer") && !jsonObj.getString("correctAnswer").isBlank(); } if (!jsonObj.has("correctAnswer") || !jsonObj.has("options")) {
                 return false;
             }
 

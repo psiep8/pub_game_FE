@@ -71,7 +71,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private analyser?: AnalyserNode;
   private microphone?: MediaStreamAudioSourceNode;
   private mediaStream?: MediaStream;
-  private animationFrameId?: number;
+  private volumeTimer?: ReturnType<typeof setInterval>;
 
   isListening = signal(false);
   currentVolume = signal(0);
@@ -150,6 +150,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'ROUND_ENDED':
         case 'REVEAL':
+          // Round chiuso: spegni il microfono, altrimenti il telefono continua
+          // a inviare urli (10 messaggi/s) anche nei round successivi.
+          this.stopMicrophoneListening();
           this.gameState.set('WAITING');
           this.hasAnswered.set(false);
           this.isBlocked.set(false);
@@ -325,7 +328,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
       console.log('🎤 Microfono attivo! Inizio rilevazione volume...');
 
       // Avvia rilevazione volume
-      this.detectVolume();
+      if (this.volumeTimer) clearInterval(this.volumeTimer);
+      this.volumeTimer = setInterval(() => this.sampleVolume(), 100);
 
       // Vibrazione feedback
       this.vibrate(50);
@@ -351,7 +355,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   /**
    * 🔊 Rileva volume in tempo reale
    */
-  private detectVolume() {
+  private sampleVolume() {
     if (!this.analyser || !this.isListening()) {
       return;
     }
@@ -369,26 +373,25 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.currentVolume.set(intensity);
     this.isScreaming.set(intensity > 25); // Abbassata soglia da 30 a 25
 
-    // 📡 Invia al backend (con micro-throttling di 100ms per non saturare il WS)
-    const now = Date.now();
+    // 📡 Invia al backend solo durante la gara di urla (10 campioni/s).
+    
     const nickname = (this.nickname() || '').trim();
 
-    if (intensity > 5 && nickname && (!this.lastScreamTime || now - this.lastScreamTime > 100)) {
+    if (intensity > 5 && nickname && this.questionType() === 'SCREAM_RACE' && this.gameState() === 'VOTING') {
       this.ws.sendScream(this.gameId(), nickname, intensity);
-      this.lastScreamTime = now;
+      
     }
 
-    // Continua il loop
-    this.animationFrameId = requestAnimationFrame(() => this.detectVolume());
+    // Campionamento a 10 Hz: stabile anche quando la pagina non ridisegna.
   }
 
-  private lastScreamTime: number = 0;
+  
 
   stopMicrophoneListening() {
-    // Ferma animation frame
-    if (this.animationFrameId) {
-      cancelAnimationFrame(this.animationFrameId);
-      this.animationFrameId = undefined;
+    // Ferma il campionamento del volume
+    if (this.volumeTimer) {
+      clearInterval(this.volumeTimer);
+      this.volumeTimer = undefined;
     }
 
     // Chiudi stream

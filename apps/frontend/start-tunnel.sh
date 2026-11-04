@@ -1,13 +1,33 @@
 #!/usr/bin/env bash
 # ============================================================
-# 🚇 PubGame Tunnel Starter (Linux/WSL)
-# Avvia 2 tunnel Cloudflare (FE + BE) e aggiorna gli environment
+# 🚇 PubGame — Tunnel Cloudflare (un solo tunnel)
+#
+# Il frontend chiama sempre la propria origine: /games, /categories,
+# /questions e /ws-pubgame vengono inoltrati dal dev-server al backend
+# (proxy.conf.mjs). Un tunnel verso la porta del frontend basta quindi per
+# TV, admin e per tutti i telefoni: un URL solo, nessun tunnel backend.
+#
+# Uso:  npm run dev          (in un terminale)
+#       ./start-tunnel.sh    (in un altro)
 # ============================================================
 
 set -euo pipefail
 
-FE_PORT=${1:-4200}
-BE_PORT=${2:-8080}
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ENV_FILE="$ROOT_DIR/.env"
+
+env_value() {
+    [ -f "$ENV_FILE" ] || return 0
+
+    local value
+    value=$(grep -E "^[[:space:]]*$1[[:space:]]*=" "$ENV_FILE" | tail -n1 | cut -d= -f2- | tr -d '\r') || true
+    value="${value%\"}"; value="${value#\"}"
+    value="${value%\'}"; value="${value#\'}"
+    printf '%s' "$value"
+}
+
+FE_PORT="${1:-$(env_value FE_PORT)}"
+FE_PORT="${FE_PORT:-4200}"
 
 echo ""
 echo "========================================"
@@ -15,7 +35,6 @@ echo "  PubGame Tunnel Starter"
 echo "========================================"
 echo ""
 
-# Verifica che cloudflared sia installato
 if ! command -v cloudflared &>/dev/null; then
     echo "cloudflared non trovato! Installalo con:"
     echo "  curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /usr/local/bin/cloudflared"
@@ -23,86 +42,65 @@ if ! command -v cloudflared &>/dev/null; then
     exit 1
 fi
 
+# Fail fast: un tunnel verso una porta spenta risponde 502 e fa perdere minuti.
+echo "Verifico il dev-server su http://localhost:$FE_PORT ..."
+if ! curl -fsS -m 3 -o /dev/null "http://localhost:$FE_PORT"; then
+    echo "  Nessuna risposta su http://localhost:$FE_PORT"
+    echo "  Avvia prima il progetto con 'npm run dev' in un altro terminale."
+    exit 1
+fi
+echo "  dev-server attivo"
+
+TUNNEL_LOG="${TMPDIR:-/tmp}/pubgame-tunnel.log"
+rm -f "$TUNNEL_LOG"
+
 cleanup() {
     echo ""
     echo "Chiusura tunnel..."
-    [ -n "${BE_PID:-}" ] && kill "$BE_PID" 2>/dev/null || true
-    [ -n "${FE_PID:-}" ] && kill "$FE_PID" 2>/dev/null || true
-    rm -f /tmp/cloudflared_be.log /tmp/cloudflared_fe.log
-    echo "Tunnel chiusi. Arrivederci!"
+    [ -n "${TUNNEL_PID:-}" ] && kill "$TUNNEL_PID" 2>/dev/null || true
+    rm -f "$TUNNEL_LOG"
+    echo "Tunnel chiuso. Arrivederci!"
 }
 trap cleanup EXIT INT TERM
 
-# --- Avvia tunnel per il Backend ---
-echo "Avvio tunnel per Backend (porta $BE_PORT)..."
-cloudflared tunnel --url "http://localhost:$BE_PORT" --no-autoupdate > /tmp/cloudflared_be.log 2>&1 &
-BE_PID=$!
-
-# --- Avvia tunnel per il Frontend ---
-echo "Avvio tunnel per Frontend (porta $FE_PORT)..."
-cloudflared tunnel --url "http://localhost:$FE_PORT" --no-autoupdate > /tmp/cloudflared_fe.log 2>&1 &
-FE_PID=$!
-
-# --- Attendi che i tunnel siano pronti ---
 echo ""
-echo "Attendo che i tunnel siano pronti..."
+echo "Avvio il tunnel verso il frontend (porta $FE_PORT)..."
+cloudflared tunnel --url "http://localhost:$FE_PORT" --no-autoupdate > "$TUNNEL_LOG" 2>&1 &
+TUNNEL_PID=$!
 
-wait_for_url() {
-    local log_file=$1
-    local name=$2
-    local timeout=${3:-30}
-    local elapsed=0
+PUBLIC_URL=""
+for _ in $(seq 1 60); do
+    if [ -f "$TUNNEL_LOG" ]; then
+        PUBLIC_URL=$(grep -oE 'https://[a-zA-Z0-9-]+\.trycloudflare\.com' "$TUNNEL_LOG" | head -1 || true)
+        [ -n "$PUBLIC_URL" ] && break
+    fi
+    sleep 0.5
+done
 
-    while [ $elapsed -lt $timeout ]; do
-        if [ -f "$log_file" ]; then
-            local url
-            url=$(grep -oP 'https://[a-zA-Z0-9\-]+\.trycloudflare\.com' "$log_file" | head -1)
-            if [ -n "$url" ]; then
-                echo "  $name tunnel: $url" >&2
-                echo "$url"
-                return 0
-            fi
-        fi
-        sleep 0.5
-        elapsed=$((elapsed + 1))
-    done
-
-    echo "  Timeout per il tunnel $name!" >&2
-    return 1
-}
-
-BE_URL=$(wait_for_url /tmp/cloudflared_be.log "Backend")
-FE_URL=$(wait_for_url /tmp/cloudflared_fe.log "Frontend")
-
-if [ -z "$BE_URL" ] || [ -z "$FE_URL" ]; then
+if [ -z "$PUBLIC_URL" ]; then
     echo ""
-    echo "Errore: uno o entrambi i tunnel non sono partiti." >&2
+    echo "Tunnel non avviato. Controlla il log: $TUNNEL_LOG"
     exit 1
 fi
 
 echo ""
 echo "========================================"
-echo "  TUNNEL PRONTI!"
+echo "  TUNNEL PRONTO!"
 echo "========================================"
 echo ""
-echo "  Frontend: $FE_URL"
-echo "  Backend:  $BE_URL"
+echo "  TV (schermo):  $PUBLIC_URL/tv"
+echo "  Admin:         $PUBLIC_URL/admin"
+echo "  Telefoni:      $PUBLIC_URL/play"
 echo ""
-echo "  Ora avvia il frontend con:"
-echo "    npm run dev"
+echo "  Lo stesso URL vale per tutti i telefoni: aprono /play"
+echo "  o inquadrano il QR mostrato dalla TV."
 echo ""
-echo "  Accessi:"
-echo "    TV (schermo):       $FE_URL/tv"
-echo "    Admin/Votante:      $FE_URL/admin"
-echo "    Concorrenti:        $FE_URL/play"
-echo ""
-echo "  Premi CTRL+C per chiudere i tunnel"
+echo "  Premi CTRL+C per chiudere il tunnel"
 echo ""
 
-# --- Mantieni lo script attivo ---
 while true; do
-    if ! kill -0 "$BE_PID" 2>/dev/null || ! kill -0 "$FE_PID" 2>/dev/null; then
-        echo "Un tunnel si e' chiuso inaspettatamente!" >&2
+    if ! kill -0 "$TUNNEL_PID" 2>/dev/null; then
+        echo "Il tunnel si e' chiuso inaspettatamente!" >&2
         break
     fi
     sleep 5

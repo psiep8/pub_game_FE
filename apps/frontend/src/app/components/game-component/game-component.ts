@@ -595,6 +595,10 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!mode) return;
 
 
+    // Prenotazione: vince solo il primo telefono che arriva; i buzz successivi
+    // non devono sovrascrivere il nome mostrato su TV e admin.
+    if (!mode.canBuzz()) return;
+
     this.audioService.playBell();
 
     mode.handleBuzz(playerName);

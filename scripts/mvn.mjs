@@ -10,7 +10,9 @@ const backendDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'apps', '
 const isWindows = process.platform === 'win32';
 const { bePort } = loadEnv();
 
-const child = spawn(isWindows ? 'mvnw.cmd' : './mvnw', process.argv.slice(2), {
+// Su Windows il wrapper va invocato con il percorso relativo: `mvnw.cmd`
+// nudo non viene risolto da cmd quando la cwd del figlio è apps/backend.
+const child = spawn(isWindows ? '.\\mvnw.cmd' : './mvnw', process.argv.slice(2), {
   cwd: backendDir,
   stdio: 'inherit',
   shell: isWindows,

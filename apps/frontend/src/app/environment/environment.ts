@@ -18,9 +18,12 @@ export interface AppEnvironment {
 }
 
 const origin = typeof window !== 'undefined' ? window.location.origin : '';
+const wsProtocol =
+  typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const wsHost = typeof window !== 'undefined' ? window.location.host : '';
 
 export const environment: AppEnvironment = {
   apiUrl: '',
-  wsUrl: `${origin}/ws-pubgame`,
+  wsUrl: wsHost ? `${wsProtocol}//${wsHost}/ws-pubgame` : '',
   frontendUrl: origin,
 };

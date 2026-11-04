@@ -1,14 +1,43 @@
 # ============================================================
-# 🚇 PubGame Tunnel Starter
-# Avvia 2 tunnel Cloudflare (FE + BE) e aggiorna gli environment
+#  PubGame — Tunnel Cloudflare (un solo tunnel)
+#
+#  Il frontend chiama sempre la propria origine: /games, /categories,
+#  /questions e /ws-pubgame vengono inoltrati dal dev-server al backend
+#  (proxy.conf.mjs). Un tunnel verso la porta del frontend basta quindi per
+#  TV, admin e per tutti i telefoni: un URL solo, nessun tunnel backend.
+#
+#  Uso:  npm run dev            (in un terminale)
+#        .\start-tunnel.ps1     (in un altro)
 # ============================================================
 
 param(
-    [int]$FePort = 4200,
-    [int]$BePort = 8080
+    [int]$FePort = 0
 )
 
 $ErrorActionPreference = "Stop"
+
+$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$envFile = Join-Path $repoRoot ".env"
+
+function Get-EnvValue {
+    param([string]$Key)
+
+    if (-not (Test-Path $envFile)) { return $null }
+
+    foreach ($line in Get-Content $envFile) {
+        $trimmed = $line.Trim()
+        if (-not $trimmed -or $trimmed.StartsWith("#")) { continue }
+        if ($trimmed -match "^\s*$([regex]::Escape($Key))\s*=\s*(.*)$") {
+            return $Matches[1].Trim().Trim('"').Trim("'")
+        }
+    }
+    return $null
+}
+
+if ($FePort -le 0) {
+    $envPort = Get-EnvValue "FE_PORT"
+    if (-not [int]::TryParse($envPort, [ref]$FePort)) { $FePort = 4200 }
+}
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
@@ -16,7 +45,6 @@ Write-Host "  PubGame Tunnel Starter" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Verifica che cloudflared sia installato
 try {
     $null = Get-Command cloudflared -ErrorAction Stop
 } catch {
@@ -25,89 +53,68 @@ try {
     exit 1
 }
 
-# --- Avvia tunnel per il Backend ---
-Write-Host "Avvio tunnel per Backend (porta $BePort)..." -ForegroundColor Yellow
-$beTunnelLog = "$env:TEMP\cloudflared_be.log"
-$beTunnelProcess = Start-Process -FilePath "cloudflared" `
-    -ArgumentList "tunnel", "--url", "http://localhost:$BePort", "--no-autoupdate" `
-    -RedirectStandardError $beTunnelLog `
-    -PassThru -WindowStyle Hidden
+# Fail fast: un tunnel verso una porta spenta risponde 502 e fa perdere minuti.
+Write-Host "Verifico il dev-server su http://localhost:$FePort ..." -ForegroundColor Yellow
+try {
+    $null = Invoke-WebRequest -Uri "http://localhost:$FePort" -UseBasicParsing -TimeoutSec 3
+} catch {
+    Write-Host "  Nessuna risposta su http://localhost:$FePort" -ForegroundColor Red
+    Write-Host "  Avvia prima il progetto con 'npm run dev' in un altro terminale." -ForegroundColor Yellow
+    exit 1
+}
+Write-Host "  dev-server attivo" -ForegroundColor Green
 
-# --- Avvia tunnel per il Frontend ---
-Write-Host "Avvio tunnel per Frontend (porta $FePort)..." -ForegroundColor Yellow
-$feTunnelLog = "$env:TEMP\cloudflared_fe.log"
-$feTunnelProcess = Start-Process -FilePath "cloudflared" `
-    -ArgumentList "tunnel", "--url", "http://localhost:$FePort", "--no-autoupdate" `
-    -RedirectStandardError $feTunnelLog `
-    -PassThru -WindowStyle Hidden
+$tunnelLog = Join-Path $env:TEMP "pubgame-tunnel.log"
+if (Test-Path $tunnelLog) { Remove-Item $tunnelLog -Force }
 
-# --- Attendi che i tunnel siano pronti ---
 Write-Host ""
-Write-Host "Attendo che i tunnel siano pronti..." -ForegroundColor Yellow
+Write-Host "Avvio il tunnel verso il frontend (porta $FePort)..." -ForegroundColor Yellow
+$tunnelProcess = Start-Process -FilePath "cloudflared" `
+    -ArgumentList "tunnel", "--url", "http://localhost:$FePort", "--no-autoupdate" `
+    -RedirectStandardError $tunnelLog `
+    -PassThru -WindowStyle Hidden
 
-function Wait-ForTunnelUrl {
-    param([string]$LogFile, [string]$Name, [int]$TimeoutSec = 30)
-    
-    $elapsed = 0
-    while ($elapsed -lt $TimeoutSec) {
-        Start-Sleep -Milliseconds 500
-        $elapsed += 0.5
-        
-        if (Test-Path $LogFile) {
-            $content = Get-Content $LogFile -Raw -ErrorAction SilentlyContinue
-            if ($content -match 'https://[a-zA-Z0-9\-]+\.trycloudflare\.com') {
-                $url = $Matches[0]
-                Write-Host "  $Name tunnel: $url" -ForegroundColor Green
-                return $url
-            }
+$publicUrl = $null
+$elapsed = 0
+while ($elapsed -lt 30 -and -not $publicUrl) {
+    Start-Sleep -Milliseconds 500
+    $elapsed += 0.5
+
+    if (Test-Path $tunnelLog) {
+        $content = Get-Content $tunnelLog -Raw -ErrorAction SilentlyContinue
+        if ($content -match 'https://[a-zA-Z0-9\-]+\.trycloudflare\.com') {
+            $publicUrl = $Matches[0]
         }
     }
-    
-    Write-Host "  Timeout per il tunnel $Name!" -ForegroundColor Red
-    return $null
 }
 
-$beUrl = Wait-ForTunnelUrl -LogFile $beTunnelLog -Name "Backend"
-$feUrl = Wait-ForTunnelUrl -LogFile $feTunnelLog -Name "Frontend"
-
-if (-not $beUrl -or -not $feUrl) {
+if (-not $publicUrl) {
     Write-Host ""
-    Write-Host "Errore: uno o entrambi i tunnel non sono partiti." -ForegroundColor Red
-    Write-Host "Controlla i log:" -ForegroundColor Yellow
-    Write-Host "  BE: $beTunnelLog" -ForegroundColor Yellow
-    Write-Host "  FE: $feTunnelLog" -ForegroundColor Yellow
-    
-    # Cleanup
-    if ($beTunnelProcess -and !$beTunnelProcess.HasExited) { $beTunnelProcess.Kill() }
-    if ($feTunnelProcess -and !$feTunnelProcess.HasExited) { $feTunnelProcess.Kill() }
+    Write-Host "Tunnel non avviato. Controlla il log:" -ForegroundColor Red
+    Write-Host "  $tunnelLog" -ForegroundColor Yellow
+    if ($tunnelProcess -and !$tunnelProcess.HasExited) { $tunnelProcess.Kill() }
     exit 1
 }
 
-
-# --- Istruzioni finali ---
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  TUNNEL PRONTI!" -ForegroundColor Green
+Write-Host "  TUNNEL PRONTO!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  Frontend: $feUrl" -ForegroundColor White
-Write-Host "  Backend:  $beUrl" -ForegroundColor White
+Write-Host "  TV (schermo):  $publicUrl/tv" -ForegroundColor White
+Write-Host "  Admin:         $publicUrl/admin" -ForegroundColor White
+Write-Host "  Telefoni:      $publicUrl/play" -ForegroundColor White
 Write-Host ""
-Write-Host "  Ora avvia il frontend con:" -ForegroundColor Yellow
-Write-Host "    npm run dev" -ForegroundColor White
+Write-Host "  Lo stesso URL vale per tutti i telefoni: aprono /play" -ForegroundColor Gray
+Write-Host "  o inquadrano il QR mostrato dalla TV." -ForegroundColor Gray
 Write-Host ""
-Write-Host "  Per aprire dal telefono, scansiona questo URL:" -ForegroundColor Yellow
-Write-Host "    $feUrl" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "  Premi CTRL+C per chiudere i tunnel" -ForegroundColor Gray
+Write-Host "  Premi CTRL+C per chiudere il tunnel" -ForegroundColor Gray
 Write-Host ""
 
-# --- Mantieni lo script attivo e gestisci cleanup ---
 try {
     while ($true) {
-        # Controlla che i processi siano ancora attivi
-        if ($beTunnelProcess.HasExited -or $feTunnelProcess.HasExited) {
-            Write-Host "Un tunnel si e' chiuso inaspettatamente!" -ForegroundColor Red
+        if ($tunnelProcess.HasExited) {
+            Write-Host "Il tunnel si e' chiuso inaspettatamente!" -ForegroundColor Red
             break
         }
         Start-Sleep -Seconds 5
@@ -115,12 +122,7 @@ try {
 } finally {
     Write-Host ""
     Write-Host "Chiusura tunnel..." -ForegroundColor Yellow
-    if ($beTunnelProcess -and !$beTunnelProcess.HasExited) { $beTunnelProcess.Kill() }
-    if ($feTunnelProcess -and !$feTunnelProcess.HasExited) { $feTunnelProcess.Kill() }
-    
-    # Cleanup log files
-    Remove-Item $beTunnelLog -ErrorAction SilentlyContinue
-    Remove-Item $feTunnelLog -ErrorAction SilentlyContinue
-    
-    Write-Host "Tunnel chiusi. Arrivederci!" -ForegroundColor Green
+    if ($tunnelProcess -and !$tunnelProcess.HasExited) { $tunnelProcess.Kill() }
+    Remove-Item $tunnelLog -ErrorAction SilentlyContinue
+    Write-Host "Tunnel chiuso. Arrivederci!" -ForegroundColor Green
 }

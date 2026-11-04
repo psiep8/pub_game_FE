@@ -1,5 +1,6 @@
 
-import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WebSocketService } from '../../services/web-socket.service';
 import { CommonModule } from '@angular/common';
 
@@ -14,6 +15,7 @@ import { CommonModule } from '@angular/common';
 export class Admin implements OnInit, OnDestroy {
 
   private ws = inject(WebSocketService);
+  private destroyRef = inject(DestroyRef);
 
   
   correctAnswer = signal<string | null>(null);
@@ -41,7 +43,7 @@ export class Admin implements OnInit, OnDestroy {
     
 
     
-    this.ws.status$.subscribe((status: any) => {
+    this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       if (!status) {
         console.warn('⚠️ Status ricevuto è null');
         return;

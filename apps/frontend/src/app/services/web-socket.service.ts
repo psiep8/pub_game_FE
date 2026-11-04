@@ -1,6 +1,5 @@
 import { Injectable, signal } from '@angular/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
 import { Subject } from 'rxjs';
 import { environment } from '../environment/environment';
 
@@ -8,7 +7,11 @@ import { environment } from '../environment/environment';
 const DEFAULT_GAME_ID = 1;
 
 /**
- * Canale STOMP/SockJS verso il backend.
+ * Canale STOMP su WebSocket nativo (niente SockJS).
+ *
+ * Con molti telefoni collegati il fallback XHR di SockJS raddoppiava le
+ * connessioni e aggiungeva l'handshake `/info`; il WebSocket nativo tiene una
+ * sola socket per dispositivo e passa anche dai tunnel Cloudflare.
  *
  * Espone due flussi:
  * - `responses$` per le azioni rapide dei telefoni (risposte e urla);
@@ -28,19 +31,25 @@ export class WebSocketService {
 
   constructor() {
     this.client = new Client({
-      webSocketFactory: () => new SockJS(environment.wsUrl),
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
+      brokerURL: environment.wsUrl,
+      reconnectDelay: 3000,
+      connectionTimeout: 8000,
+      // Heartbeat allineati al server (10s): meno frame con molti telefoni.
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
       onConnect: () => {
         this.connected.set(true);
         this.subscribeToActiveGame();
       },
       onDisconnect: () => this.connected.set(false),
       onWebSocketClose: () => this.connected.set(false),
+      onWebSocketError: () => this.connected.set(false),
+      onStompError: (frame) => {
+        console.error('❌ STOMP error:', frame.headers['message']);
+      },
     });
 
-    this.client.activate();
+    if (environment.wsUrl) this.client.activate();
   }
 
   /** Cambia la partita a cui sono sottoscritti i topic (idempotente). */
@@ -52,31 +61,20 @@ export class WebSocketService {
   }
 
   sendAnswer(gameId: number, playerName: string, index: number, responseTimeMs: number): void {
-    this.client.publish({
-      destination: `/app/game/${gameId}/answer`,
-      body: JSON.stringify({ playerName, answerIndex: index, responseTimeMs }),
-    });
+    this.publish(`/app/game/${gameId}/answer`, { playerName, answerIndex: index, responseTimeMs });
   }
 
   sendScream(gameId: number, playerName: string, intensity: number): void {
-    if (!this.client.active) return;
-
-    this.client.publish({
-      destination: `/app/game/${gameId}/status`,
-      body: JSON.stringify({
-        action: 'SCREAM',
-        playerName,
-        intensity: Math.min(100, Math.max(0, intensity)),
-        timestamp: Date.now(),
-      }),
+    this.publish(`/app/game/${gameId}/status`, {
+      action: 'SCREAM',
+      playerName,
+      intensity: Math.min(100, Math.max(0, intensity)),
+      timestamp: Date.now(),
     });
   }
 
   broadcastStatus(gameId: number, payload: any): void {
-    this.client.publish({
-      destination: `/app/game/${gameId}/status`,
-      body: JSON.stringify(payload),
-    });
+    this.publish(`/app/game/${gameId}/status`, payload);
   }
 
   connect(): void {
@@ -91,6 +89,16 @@ export class WebSocketService {
 
   clearResponses(): void {
     this.responses.set([]);
+  }
+
+  /**
+   * Unico punto di invio: se la socket non è ancora connessa il messaggio
+   * viene scartato invece di far esplodere StompJS a metà round.
+   */
+  private publish(destination: string, payload: any): void {
+    if (!this.client.connected) return;
+
+    this.client.publish({ destination, body: JSON.stringify(payload) });
   }
 
   private subscribeToActiveGame(): void {

@@ -15,7 +15,7 @@ spring:
 groq:
   api:
     key: ${GROQ_API_KEY:}
-    model: "llama-3.3-70b-versatile"
+    model: "${GROQ_MODEL:openai/gpt-oss-120b}"
     temperature: 0.7
     image-blur-temperature: 1.3
 

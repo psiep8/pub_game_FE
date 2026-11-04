@@ -7,7 +7,7 @@ Un unico repository per il gioco da pub multigiocatore: **frontend Angular** e *
 ```
 apps/
 ├── frontend/   Angular 22 + PWA — /tv (schermo), /admin (votante), /play (telefono)
-└── backend/    Spring Boot 4 / Java 25 — REST, WebSocket STOMP/SockJS, AI Groq, H2 o MySQL
+└── backend/    Spring Boot 4 / Java 21 — REST, WebSocket STOMP, AI Groq, H2 o MySQL
 scripts/        Avvio unificato (dev, Maven) e lettura di .env
 .env            Configurazione locale: porte e host
 ```
@@ -15,7 +15,7 @@ scripts/        Avvio unificato (dev, Maven) e lettura di .env
 ## Requisiti
 
 - Node.js 22.22+ (oppure 24.15+ / 26+) e npm 11 — requisito di Angular 22
-- JDK 25+
+- JDK 21+ (il pom compila per la 21 installata; con la 25, ultima LTS, basta cambiare `java.version`)
 - `cloudflared` solo se usi i tunnel
 
 ## Installazione
@@ -33,6 +33,9 @@ Tutta la configurazione locale sta in `.env` alla radice (copiato da `.env.examp
 | `FE_PORT` | `4200` | Porta del dev-server Angular |
 | `BE_PORT` | `8080` | Porta del backend Spring Boot |
 | `HOST` | `0.0.0.0` | Interfaccia di ascolto (`0.0.0.0` = visibile dal telefono) |
+| `GROQ_API_KEY` | *(vuota)* | Domande AI; senza chiave si usano le domande di riserva locali |
+| `GROQ_MODEL` | `openai/gpt-oss-120b` | Modello Groq (sostituto ufficiale di `llama-3.3-70b-versatile`, spento il 16/08/2026) |
+| `TMDB_API_KEY` | *(vuota)* | Foto per “Indovina chi”; senza chiave la domanda resta senza immagine |
 
 **Nel codice non esiste alcun IP.** Il frontend chiama sempre la propria origine e il dev-server inoltra `/games`, `/categories`, `/questions` e `/ws-pubgame` al backend tramite `apps/frontend/proxy.conf.mjs`, che legge `BE_PORT`. Quindi:
 
@@ -80,7 +83,7 @@ nessuna chiamata HTTP e nessun elemento `Audio` reale).
 
 ## Variabili del backend (opzionali)
 
-`GROQ_API_KEY` per le domande AI, `TMDB_API_KEY` per le immagini. Senza chiavi il backend usa i fallback locali.
+`GROQ_API_KEY` per le domande AI (modello in `GROQ_MODEL`, default `openai/gpt-oss-120b`) e `TMDB_API_KEY` per le immagini. Senza chiavi il backend usa i fallback locali. La musica non richiede chiavi: usa le anteprime da 30 secondi dell'iTunes Search API.
 Profilo MySQL: `node scripts/mvn.mjs spring-boot:run -Dspring-boot.run.profiles=mysql`.
 
 ## Tunnel Cloudflare
@@ -91,7 +94,7 @@ cd apps/frontend
 .\start-tunnel.ps1         # Windows PowerShell
 ```
 
-Apre un tunnel per il frontend e uno per il backend e stampa gli URL pubblici. Il frontend continua a usare la propria origine, quindi non serve aggiornare nessun file di configurazione.
+Apre un solo tunnel verso il frontend e stampa gli URL pubblici: `/tv`, `/admin` e `/play` per tutti i telefoni. Il dev-server inoltra API e WebSocket al backend, quindi non serve un secondo tunnel né aggiornare nessun file di configurazione.
 
 ## Nota sul deploy statico
 
