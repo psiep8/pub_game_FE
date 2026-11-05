@@ -91,12 +91,12 @@ public class QuestionBankService {
 
     /** Tenuta di sicurezza: se la banca non è ancora stata generata, il gioco resta vivo. */
     private static final List<BankQuestion> EMERGENCY = List.of(
-            new BankQuestion("em-1", "Geografia", "QUIZ", "facile", "Qual è la capitale d'Italia?",
+            new BankQuestion("em-1", "Geografia e Viaggi", "QUIZ", "facile", "Qual è la capitale d'Italia?",
                     "Roma", List.of("Milano", "Roma", "Napoli", "Torino"), null),
-            new BankQuestion("em-2", "Scienza", "TRUE_FALSE", "facile",
+            new BankQuestion("em-2", "Scienza e Spazio", "TRUE_FALSE", "facile",
                     "L'acqua bolle a 100 gradi Celsius al livello del mare.",
                     "VERO", List.of("VERO", "FALSO"), "Alla pressione atmosferica standard."),
-            new BankQuestion("em-3", "Arte", "QUIZ", "facile", "Chi ha dipinto la Gioconda?",
+            new BankQuestion("em-3", "Arte e Architettura", "QUIZ", "facile", "Chi ha dipinto la Gioconda?",
                     "Leonardo da Vinci",
                     List.of("Michelangelo", "Raffaello", "Leonardo da Vinci", "Caravaggio"), null)
     );
@@ -110,7 +110,7 @@ public class QuestionBankService {
     private final Random random = new Random();
 
     /** Sotto questo numero di domande l'arena finisce le scorte della categoria. */
-    private static final int MIN_ARENA_QUESTIONS = 8;
+    private static final int MIN_ARENA_QUESTIONS = 10;
 
     public QuestionBankService(TMDBImageService tmdbImageService,
             AppleMusicCuratorService appleMusicCuratorService,
@@ -273,7 +273,9 @@ public class QuestionBankService {
     public List<Map<String, Object>> quizBatch(String difficulty, int count) {
         List<BankQuestion> candidates = new ArrayList<>();
         for (BankQuestion question : allQuestions()) {
-            if (!"QUIZ".equals(question.type()) || question.options().size() != 4) {
+            // Air Hockey ha una banca dedicata di domande corte: se manca
+            // qualcosa si completa con i QUIZ normali, non viceversa.
+            if (!"AIR_HOCKEY".equals(question.type()) || question.options().size() != 4) {
                 continue;
             }
             if (difficulty != null && !difficulty.isBlank()
@@ -282,6 +284,21 @@ public class QuestionBankService {
                 continue;
             }
             candidates.add(question);
+        }
+
+        if (candidates.size() < count) {
+            for (BankQuestion question : allQuestions()) {
+                if (!"QUIZ".equals(question.type()) || question.options().size() != 4) {
+                    continue;
+                }
+                if (difficulty != null && !difficulty.isBlank()
+                        && !"MIXED".equalsIgnoreCase(difficulty)
+                        && !question.difficulty().equalsIgnoreCase(difficulty)
+                        && !airHockeyDifficulty(question.difficulty()).equalsIgnoreCase(difficulty)) {
+                    continue;
+                }
+                candidates.add(question);
+            }
         }
 
         Collections.shuffle(candidates, random);
@@ -295,9 +312,19 @@ public class QuestionBankService {
                     "question", question.question(),
                     "options", question.options(),
                     "correctAnswer", question.correctAnswer(),
-                    "difficulty", question.difficulty().toUpperCase(Locale.ROOT)));
+                    "correctIndex", Math.max(0, question.options().indexOf(question.correctAnswer())),
+                    "difficulty", airHockeyDifficulty(question.difficulty())));
         }
         return rows;
+    }
+
+    /** Le difficoltà della banca sono in italiano; l'Air Hockey usa le sigle. */
+    private String airHockeyDifficulty(String difficulty) {
+        return switch (difficulty == null ? "" : difficulty.toLowerCase(Locale.ROOT)) {
+            case "easy", "facile" -> "EASY";
+            case "hard", "difficile" -> "HARD";
+            default -> "MEDIUM";
+        };
     }
 
     public int bankSize() {
@@ -311,10 +338,14 @@ public class QuestionBankService {
         }
         Map<String, Integer> perCategory = new TreeMap<>();
         for (BankQuestion question : bank) {
-            perCategory.merge(question.category(), 1, Integer::sum);
+            if (!"AIR_HOCKEY".equals(question.type())) {
+                perCategory.merge(question.category(), 1, Integer::sum);
+            }
         }
+        long airHockey = bank.stream().filter(question -> "AIR_HOCKEY".equals(question.type())).count();
         StringBuilder summary = new StringBuilder("banca domande: ").append(bank.size()).append(" totali");
         perCategory.forEach((category, total) -> summary.append(" | ").append(category).append(' ').append(total));
+        summary.append(" | Air Hockey ").append(airHockey);
         return summary.toString();
     }
 

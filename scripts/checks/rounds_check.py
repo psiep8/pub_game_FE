@@ -40,7 +40,7 @@ types = ["QUIZ", "TRUE_FALSE", "CHRONO", "IMAGE_BLUR", "MUSIC",
 payloads = {}
 
 for game_type in types:
-    status, raw = call("GET", f"/games/{game_id}/generate-ai-round?category=Scienza&type={game_type}&difficulty=EASY")
+    status, raw = call("GET", f"/games/{game_id}/generate-ai-round?category=Scienza%20e%20Spazio&type={game_type}&difficulty=EASY")
     if status != 200:
         check(False, f"{game_type}: HTTP {status}", raw[:200])
         continue
@@ -101,7 +101,7 @@ print("\n== nessun doppione nella stessa partita")
 seen = set()
 repeated = []
 for _ in range(6):
-    status, raw = call("GET", f"/games/{game_id}/generate-ai-round?category=Cinema&type=QUIZ&difficulty=EASY")
+    status, raw = call("GET", f"/games/{game_id}/generate-ai-round?category=Cinema%2C%20Serie%20TV&type=QUIZ&difficulty=EASY")
     if status != 200:
         continue
     payload = json.loads(json.loads(raw)["payload"])

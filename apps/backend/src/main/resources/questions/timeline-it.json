@@ -1,55 +1,573 @@
 {
-  "version": 1,
+  "version": 2,
   "language": "it",
-  "source": "timeline",
+  "generatedAt": "2026-11-05T11:17:59.660606+00:00",
+  "source": "curated-timeline",
   "events": [
-    { "label": "Caduta dell'Impero romano d'Occidente", "year": 476, "category": "Storia" },
-    { "label": "Incoronazione di Carlo Magno", "year": 800, "category": "Storia" },
-    { "label": "Prima crociata", "year": 1096, "category": "Storia" },
-    { "label": "Magna Carta in Inghilterra", "year": 1215, "category": "Storia" },
-    { "label": "Peste nera in Europa", "year": 1347, "category": "Storia" },
-    { "label": "Stampa a caratteri mobili di Gutenberg", "year": 1450, "category": "Tecnologia" },
-    { "label": "Scoperta dell'America", "year": 1492, "category": "Storia" },
-    { "label": "Tesi di Lutero a Wittenberg", "year": 1517, "category": "Storia" },
-    { "label": "Copernico pubblica le rivoluzioni celesti", "year": 1543, "category": "Scienza" },
-    { "label": "Rogo di Giordano Bruno", "year": 1600, "category": "Storia" },
-    { "label": "Prima edizione del Vocabolario della Crusca", "year": 1612, "category": "Lingua" },
-    { "label": "Newton pubblica i Principia", "year": 1687, "category": "Scienza" },
-    { "label": "Terremoto di Lisbona", "year": 1755, "category": "Storia" },
-    { "label": "Rivoluzione francese", "year": 1789, "category": "Storia" },
-    { "label": "Napoleone imperatore dei francesi", "year": 1804, "category": "Storia" },
-    { "label": "Congresso di Vienna", "year": 1815, "category": "Storia" },
-    { "label": "Prima ferrovia a vapore Stockton-Darlington", "year": 1825, "category": "Tecnologia" },
-    { "label": "Moti rivoluzionari in Europa", "year": 1848, "category": "Storia" },
-    { "label": "Unità d'Italia", "year": 1861, "category": "Storia" },
-    { "label": "Apertura del Canale di Suez", "year": 1869, "category": "Storia" },
-    { "label": "Invenzione del telefono", "year": 1876, "category": "Tecnologia" },
-    { "label": "Inaugurazione della Torre Eiffel", "year": 1889, "category": "Arte" },
-    { "label": "Prima proiezione dei fratelli Lumière", "year": 1895, "category": "Cinema" },
-    { "label": "Primo volo dei fratelli Wright", "year": 1903, "category": "Tecnologia" },
-    { "label": "Naufragio del Titanic", "year": 1912, "category": "Storia" },
-    { "label": "Inizio della Prima guerra mondiale", "year": 1914, "category": "Storia" },
-    { "label": "Rivoluzione russa d'Ottobre", "year": 1917, "category": "Storia" },
-    { "label": "Scoperta della penicillina", "year": 1928, "category": "Scienza" },
-    { "label": "Crollo di Wall Street", "year": 1929, "category": "Storia" },
-    { "label": "Inizio della Seconda guerra mondiale", "year": 1939, "category": "Storia" },
-    { "label": "Bomba atomica su Hiroshima", "year": 1945, "category": "Storia" },
-    { "label": "Primo computer ENIAC", "year": 1946, "category": "Tecnologia" },
-    { "label": "Entrata in vigore della Costituzione italiana", "year": 1948, "category": "Politica" },
-    { "label": "Inizio delle trasmissioni Rai", "year": 1954, "category": "Televisione" },
-    { "label": "Lancio dello Sputnik", "year": 1957, "category": "Scienza" },
-    { "label": "Assassinio di John Fitzgerald Kennedy", "year": 1963, "category": "Storia" },
-    { "label": "Sbarco dell'uomo sulla Luna", "year": 1969, "category": "Scienza" },
-    { "label": "Fine della guerra del Vietnam", "year": 1975, "category": "Storia" },
-    { "label": "Disastro di Chernobyl", "year": 1986, "category": "Storia" },
-    { "label": "Caduta del Muro di Berlino", "year": 1989, "category": "Storia" },
-    { "label": "Dissoluzione dell'Unione Sovietica", "year": 1991, "category": "Storia" },
-    { "label": "Trattato di Maastricht", "year": 1992, "category": "Politica" },
-    { "label": "Morte di Lady Diana", "year": 1997, "category": "Storia" },
-    { "label": "Attentato alle Torri Gemelle", "year": 2001, "category": "Storia" },
-    { "label": "Nascita di Sky Italia", "year": 2003, "category": "Televisione" },
-    { "label": "Fallimento di Lehman Brothers", "year": 2008, "category": "Storia" },
-    { "label": "Referendum britannico sulla Brexit", "year": 2016, "category": "Politica" },
-    { "label": "Inizio della pandemia di COVID-19", "year": 2020, "category": "Scienza" }
+    {
+      "label": "Caduta dell'Impero romano d'Occidente",
+      "year": 476,
+      "category": "Storia"
+    },
+    {
+      "label": "Incoronazione di Carlo Magno",
+      "year": 800,
+      "category": "Storia"
+    },
+    {
+      "label": "Battaglia di Hastings",
+      "year": 1066,
+      "category": "Storia"
+    },
+    {
+      "label": "Scoperta dell'America",
+      "year": 1492,
+      "category": "Storia"
+    },
+    {
+      "label": "Rivoluzione francese",
+      "year": 1789,
+      "category": "Storia"
+    },
+    {
+      "label": "Congresso di Vienna",
+      "year": 1815,
+      "category": "Storia"
+    },
+    {
+      "label": "Inizio della Prima guerra mondiale",
+      "year": 1914,
+      "category": "Storia"
+    },
+    {
+      "label": "Caduta del Muro di Berlino",
+      "year": 1989,
+      "category": "Storia"
+    },
+    {
+      "label": "Vasco da Gama arriva in India",
+      "year": 1498,
+      "category": "Geografia e Viaggi"
+    },
+    {
+      "label": "Apertura del Canale di Suez",
+      "year": 1869,
+      "category": "Geografia e Viaggi"
+    },
+    {
+      "label": "Naufragio del Titanic",
+      "year": 1912,
+      "category": "Geografia e Viaggi"
+    },
+    {
+      "label": "Primo volo transatlantico senza scalo",
+      "year": 1919,
+      "category": "Geografia e Viaggi"
+    },
+    {
+      "label": "Amelia Earhart attraversa l'Atlantico in solitaria",
+      "year": 1932,
+      "category": "Geografia e Viaggi"
+    },
+    {
+      "label": "Hillary e Tenzing raggiungono l'Everest",
+      "year": 1953,
+      "category": "Geografia e Viaggi"
+    },
+    {
+      "label": "Apertura del Tunnel della Manica",
+      "year": 1994,
+      "category": "Geografia e Viaggi"
+    },
+    {
+      "label": "La nave Ever Given blocca il Canale di Suez",
+      "year": 2021,
+      "category": "Geografia e Viaggi"
+    },
+    {
+      "label": "Copernico pubblica le rivoluzioni celesti",
+      "year": 1543,
+      "category": "Scienza e Spazio"
+    },
+    {
+      "label": "Newton pubblica i Principia",
+      "year": 1687,
+      "category": "Scienza e Spazio"
+    },
+    {
+      "label": "Einstein pubblica la relatività ristretta",
+      "year": 1905,
+      "category": "Scienza e Spazio"
+    },
+    {
+      "label": "Scoperta della penicillina",
+      "year": 1928,
+      "category": "Scienza e Spazio"
+    },
+    {
+      "label": "Scoperta della struttura del DNA",
+      "year": 1953,
+      "category": "Scienza e Spazio"
+    },
+    {
+      "label": "Lancio dello Sputnik",
+      "year": 1957,
+      "category": "Scienza e Spazio"
+    },
+    {
+      "label": "Sbarco dell'uomo sulla Luna",
+      "year": 1969,
+      "category": "Scienza e Spazio"
+    },
+    {
+      "label": "Conferma del bosone di Higgs",
+      "year": 2012,
+      "category": "Scienza e Spazio"
+    },
+    {
+      "label": "Inizio della pandemia di COVID-19",
+      "year": 2020,
+      "category": "Scienza e Spazio"
+    },
+    {
+      "label": "Prime Olimpiadi moderne ad Atene",
+      "year": 1896,
+      "category": "Sport"
+    },
+    {
+      "label": "Primo Tour de France",
+      "year": 1903,
+      "category": "Sport"
+    },
+    {
+      "label": "Primo Mondiale di calcio in Uruguay",
+      "year": 1930,
+      "category": "Sport"
+    },
+    {
+      "label": "Jesse Owens vince quattro ori a Berlino",
+      "year": 1936,
+      "category": "Sport"
+    },
+    {
+      "label": "Olimpiadi di Roma",
+      "year": 1960,
+      "category": "Sport"
+    },
+    {
+      "label": "Il Dream Team vince l'oro olimpico",
+      "year": 1992,
+      "category": "Sport"
+    },
+    {
+      "label": "Usain Bolt stabilisce il record dei 100 metri",
+      "year": 2008,
+      "category": "Sport"
+    },
+    {
+      "label": "L'Italia vince il Campionato europeo di calcio",
+      "year": 2021,
+      "category": "Sport"
+    },
+    {
+      "label": "Prima proiezione cinematografica dei fratelli Lumière",
+      "year": 1895,
+      "category": "Cinema, Serie TV"
+    },
+    {
+      "label": "Esce Il cantante di jazz, primo film sonoro",
+      "year": 1927,
+      "category": "Cinema, Serie TV"
+    },
+    {
+      "label": "Biancaneve e i sette nani, primo lungometraggio animato Disney",
+      "year": 1937,
+      "category": "Cinema, Serie TV"
+    },
+    {
+      "label": "Esce Quarto potere di Orson Welles",
+      "year": 1941,
+      "category": "Cinema, Serie TV"
+    },
+    {
+      "label": "Esce Guerre stellari",
+      "year": 1977,
+      "category": "Cinema, Serie TV"
+    },
+    {
+      "label": "Esce Matrix",
+      "year": 1999,
+      "category": "Cinema, Serie TV"
+    },
+    {
+      "label": "Esce Avatar",
+      "year": 2009,
+      "category": "Cinema, Serie TV"
+    },
+    {
+      "label": "Parasite vince la Palma d'Oro",
+      "year": 2019,
+      "category": "Cinema, Serie TV"
+    },
+    {
+      "label": "Prima edizione del Festival di Sanremo",
+      "year": 1951,
+      "category": "TV e Spettacolo"
+    },
+    {
+      "label": "Inizio delle trasmissioni Rai",
+      "year": 1954,
+      "category": "TV e Spettacolo"
+    },
+    {
+      "label": "Nasce CNN",
+      "year": 1980,
+      "category": "TV e Spettacolo"
+    },
+    {
+      "label": "Nasce MTV",
+      "year": 1981,
+      "category": "TV e Spettacolo"
+    },
+    {
+      "label": "Debutta I Simpson",
+      "year": 1989,
+      "category": "TV e Spettacolo"
+    },
+    {
+      "label": "Nasce Sky Italia",
+      "year": 2003,
+      "category": "TV e Spettacolo"
+    },
+    {
+      "label": "Netflix lancia lo streaming",
+      "year": 2007,
+      "category": "TV e Spettacolo"
+    },
+    {
+      "label": "House of Cards, prima serie originale Netflix",
+      "year": 2013,
+      "category": "TV e Spettacolo"
+    },
+    {
+      "label": "Prima de Le nozze di Figaro di Mozart",
+      "year": 1786,
+      "category": "Musica"
+    },
+    {
+      "label": "Prima della Nona sinfonia di Beethoven",
+      "year": 1824,
+      "category": "Musica"
+    },
+    {
+      "label": "Apertura del Festival di Bayreuth",
+      "year": 1876,
+      "category": "Musica"
+    },
+    {
+      "label": "Elvis Presley incide That's All Right",
+      "year": 1954,
+      "category": "Musica"
+    },
+    {
+      "label": "I Beatles pubblicano Love Me Do",
+      "year": 1962,
+      "category": "Musica"
+    },
+    {
+      "label": "Esce Sgt. Pepper's Lonely Hearts Club Band",
+      "year": 1967,
+      "category": "Musica"
+    },
+    {
+      "label": "Live Aid",
+      "year": 1985,
+      "category": "Musica"
+    },
+    {
+      "label": "Apple lancia l'iTunes Store",
+      "year": 2001,
+      "category": "Musica"
+    },
+    {
+      "label": "Completa la cupola del Duomo di Firenze",
+      "year": 1436,
+      "category": "Arte e Architettura"
+    },
+    {
+      "label": "Viene inaugurato il David di Michelangelo",
+      "year": 1504,
+      "category": "Arte e Architettura"
+    },
+    {
+      "label": "Michelangelo completa la volta della Cappella Sistina",
+      "year": 1512,
+      "category": "Arte e Architettura"
+    },
+    {
+      "label": "Inaugurazione della Torre Eiffel",
+      "year": 1889,
+      "category": "Arte e Architettura"
+    },
+    {
+      "label": "Nasce il cubismo con Les Demoiselles d'Avignon",
+      "year": 1907,
+      "category": "Arte e Architettura"
+    },
+    {
+      "label": "Apre il Museum of Modern Art di New York",
+      "year": 1929,
+      "category": "Arte e Architettura"
+    },
+    {
+      "label": "Picasso dipinge Guernica",
+      "year": 1937,
+      "category": "Arte e Architettura"
+    },
+    {
+      "label": "Inaugura la Sydney Opera House",
+      "year": 1973,
+      "category": "Arte e Architettura"
+    },
+    {
+      "label": "Magna Carta in Inghilterra",
+      "year": 1215,
+      "category": "Politica e Attualità"
+    },
+    {
+      "label": "Dichiarazione d'indipendenza degli Stati Uniti",
+      "year": 1776,
+      "category": "Politica e Attualità"
+    },
+    {
+      "label": "Dichiarazione dei diritti dell'uomo e del cittadino",
+      "year": 1789,
+      "category": "Politica e Attualità"
+    },
+    {
+      "label": "Fondazione delle Nazioni Unite",
+      "year": 1945,
+      "category": "Politica e Attualità"
+    },
+    {
+      "label": "Entrata in vigore della Costituzione italiana",
+      "year": 1948,
+      "category": "Politica e Attualità"
+    },
+    {
+      "label": "Trattato di Maastricht",
+      "year": 1992,
+      "category": "Politica e Attualità"
+    },
+    {
+      "label": "Attentato alle Torri Gemelle",
+      "year": 2001,
+      "category": "Politica e Attualità"
+    },
+    {
+      "label": "Uscita del Regno Unito dall'Unione Europea",
+      "year": 2020,
+      "category": "Politica e Attualità"
+    },
+    {
+      "label": "Karl Benz brevetta la prima automobile a motore",
+      "year": 1886,
+      "category": "Motori"
+    },
+    {
+      "label": "Ford lancia il Model T",
+      "year": 1908,
+      "category": "Motori"
+    },
+    {
+      "label": "Prima 24 Ore di Le Mans",
+      "year": 1923,
+      "category": "Motori"
+    },
+    {
+      "label": "Primo campionato mondiale di Formula 1",
+      "year": 1950,
+      "category": "Motori"
+    },
+    {
+      "label": "Debutta la Volkswagen Golf",
+      "year": 1974,
+      "category": "Motori"
+    },
+    {
+      "label": "Toyota lancia la Prius",
+      "year": 1997,
+      "category": "Motori"
+    },
+    {
+      "label": "Tesla lancia il Model S",
+      "year": 2012,
+      "category": "Motori"
+    },
+    {
+      "label": "Max Verstappen vince il mondiale di Formula 1",
+      "year": 2021,
+      "category": "Motori"
+    },
+    {
+      "label": "Nasce la Coca-Cola",
+      "year": 1886,
+      "category": "Cibo e Gastronomia"
+    },
+    {
+      "label": "La pizza Margherita viene servita a Napoli",
+      "year": 1889,
+      "category": "Cibo e Gastronomia"
+    },
+    {
+      "label": "Prima guida Michelin",
+      "year": 1900,
+      "category": "Cibo e Gastronomia"
+    },
+    {
+      "label": "Momofuku Ando inventa i noodles istantanei",
+      "year": 1958,
+      "category": "Cibo e Gastronomia"
+    },
+    {
+      "label": "Apre il primo Starbucks a Seattle",
+      "year": 1971,
+      "category": "Cibo e Gastronomia"
+    },
+    {
+      "label": "Nasce il movimento Slow Food a Bra",
+      "year": 1986,
+      "category": "Cibo e Gastronomia"
+    },
+    {
+      "label": "La dieta mediterranea entra nel patrimonio UNESCO",
+      "year": 2010,
+      "category": "Cibo e Gastronomia"
+    },
+    {
+      "label": "L'arte del pizzaiolo napoletano entra nel patrimonio UNESCO",
+      "year": 2017,
+      "category": "Cibo e Gastronomia"
+    },
+    {
+      "label": "Muore Dante e circola la Divina Commedia",
+      "year": 1321,
+      "category": "Lingua e Letteratura"
+    },
+    {
+      "label": "Pubblicato il Vocabolario della Crusca",
+      "year": 1612,
+      "category": "Lingua e Letteratura"
+    },
+    {
+      "label": "Pubblicati I promessi sposi",
+      "year": 1827,
+      "category": "Lingua e Letteratura"
+    },
+    {
+      "label": "Pubblicati I Malavoglia",
+      "year": 1881,
+      "category": "Lingua e Letteratura"
+    },
+    {
+      "label": "Pubblicato La strada di Swann di Proust",
+      "year": 1913,
+      "category": "Lingua e Letteratura"
+    },
+    {
+      "label": "Pubblicato 1984 di Orwell",
+      "year": 1949,
+      "category": "Lingua e Letteratura"
+    },
+    {
+      "label": "Pubblicato Lolita di Nabokov",
+      "year": 1955,
+      "category": "Lingua e Letteratura"
+    },
+    {
+      "label": "Pubblicato Harry Potter e la pietra filosofale",
+      "year": 1997,
+      "category": "Lingua e Letteratura"
+    },
+    {
+      "label": "Inizia il manga Astro Boy",
+      "year": 1952,
+      "category": "Anime e manga"
+    },
+    {
+      "label": "Debutta l'anime Astro Boy",
+      "year": 1963,
+      "category": "Anime e manga"
+    },
+    {
+      "label": "Inizia il manga Doraemon",
+      "year": 1969,
+      "category": "Anime e manga"
+    },
+    {
+      "label": "Inizia il manga Dragon Ball",
+      "year": 1984,
+      "category": "Anime e manga"
+    },
+    {
+      "label": "Fondazione dello Studio Ghibli",
+      "year": 1985,
+      "category": "Anime e manga"
+    },
+    {
+      "label": "Inizia il manga One Piece",
+      "year": 1997,
+      "category": "Anime e manga"
+    },
+    {
+      "label": "Inizia il manga Naruto",
+      "year": 1999,
+      "category": "Anime e manga"
+    },
+    {
+      "label": "La città incantata vince l'Orso d'oro",
+      "year": 2001,
+      "category": "Anime e manga"
+    },
+    {
+      "label": "ENIAC, primo computer elettronico general-purpose",
+      "year": 1946,
+      "category": "Gaming e Tecnologia"
+    },
+    {
+      "label": "Tennis for Two, primo videogioco",
+      "year": 1958,
+      "category": "Gaming e Tecnologia"
+    },
+    {
+      "label": "Primo collegamento ARPANET",
+      "year": 1969,
+      "category": "Gaming e Tecnologia"
+    },
+    {
+      "label": "Atari lancia Pong",
+      "year": 1972,
+      "category": "Gaming e Tecnologia"
+    },
+    {
+      "label": "Nintendo pubblica Mario Bros.",
+      "year": 1983,
+      "category": "Gaming e Tecnologia"
+    },
+    {
+      "label": "Tim Berners-Lee presenta il World Wide Web",
+      "year": 1991,
+      "category": "Gaming e Tecnologia"
+    },
+    {
+      "label": "Apple presenta il primo iPhone",
+      "year": 2007,
+      "category": "Gaming e Tecnologia"
+    },
+    {
+      "label": "Nintendo lancia Switch",
+      "year": 2017,
+      "category": "Gaming e Tecnologia"
+    }
   ]
 }

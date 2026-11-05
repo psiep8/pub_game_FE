@@ -35,7 +35,7 @@ public class SimpleRoundService {
     }
 
     public GameRound createRound(Game game, String difficulty) {
-        List<Category> categories = categoryRepository.findAll();
+        List<Category> categories = categoryRepository.findByActiveTrueOrderBySortOrderAscNameAsc();
         if (categories.isEmpty()) {
             throw new RuntimeException("Nessuna categoria trovata nel database!");
         }

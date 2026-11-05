@@ -46,11 +46,16 @@ La chiave resta solo nella sessione del terminale: non finisce in nessun file.
 
 ## 3. Generare
 
-Comando standard (40 domande per ognuna delle 12 categorie, circa 480 domande):
+Comando standard (10 quiz per ognuna delle 16 categorie, 160 quiz):
 
 ```bash
-python generate.py --per-category 40
+python generate.py --per-category 10
 ```
+
+La banca ufficiale del gioco è più ampia e viene rigenerata senza modello da
+`build_curated_bank.py`: 10 quiz e 10 Vero/Falso per categoria, più 30 domande
+brevi per Air Hockey (10 EASY, 10 MEDIUM, 10 HARD). Gli eventi Timeline vengono
+da `build_timeline.py`. Usa `generate.py` solo per espandere i quiz con un LLM.
 
 Prima prova veloce (2 minuti, per vedere che tutto funzioni):
 
@@ -62,8 +67,8 @@ Opzioni utili:
 
 | Opzione | A cosa serve |
 | --- | --- |
-| `--per-category 40` | quante domande per categoria (default 40) |
-| `--categories Storia Sport Cinema` | limitare le categorie |
+| `--per-category 10` | quante domande per categoria (default 10) |
+| `--categories Storia Sport "TV e Spettacolo"` | limitare le categorie |
 | `--batch 12` | domande chieste per singola chiamata (alzarlo = meno chiamate) |
 | `--delay 6` | secondi di pausa tra le chiamate (alzarlo se compaiono 429) |
 | `--difficulty facile\|medio\|difficile` | difficoltà richiesta |
@@ -154,7 +159,7 @@ rilanciare `--merge --categories <quella categoria>`.
 ## 8. Rigenerare più avanti
 
 `--merge` aggiunge senza toccare il resto: si può far crescere la banca nel tempo
-(`--per-category 20 --merge`) senza mai perdere le domande già buone. La deduplica è
+(`--per-category 10 --merge`) senza mai perdere le domande già buone. La deduplica è
 globale, quindi i doppioni non entrano anche se si rilanciano le stesse categorie.
 
 ---
@@ -248,7 +253,7 @@ leggere le prime righe a mano.
 ### 10.4 Banca completa
 
 ```bash
-python generate.py --per-category 40 \
+python generate.py --per-category 10 \
     --base-url http://localhost:11434/v1/chat/completions \
     --model qwen3:8b --delay 0 --batch 4
 ```
@@ -259,7 +264,7 @@ Su CPU sono **ore**, non minuti: conviene lanciarlo la sera. Per non perdere il
 lavoro fatto, procedere a blocchi di categorie con `--merge`:
 
 ```bash
-python generate.py --per-category 40 --merge --categories Storia Geografia \
+python generate.py --per-category 10 --merge --categories Storia "Geografia e Viaggi" \
     --base-url http://localhost:11434/v1/chat/completions \
     --model qwen3:8b --delay 0 --batch 4
 ```

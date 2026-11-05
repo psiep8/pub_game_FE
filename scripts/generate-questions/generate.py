@@ -5,10 +5,10 @@ Non ha dipendenze: solo Python 3.9+ e la libreria standard.
 Con Groq:
     export GROQ_API_KEY="gsk_..."          # macOS/Linux
     $env:GROQ_API_KEY="gsk_..."            # Windows PowerShell
-    python generate.py --per-category 40
+    python generate.py --per-category 10
 
 Con un modello locale (Ollama + Qwen), nessuna chiave:
-    python generate.py --per-category 40 \\
+    python generate.py --per-category 10 \\
         --base-url http://localhost:11434/v1/chat/completions --model qwen2.5:14b --delay 0
 
 Il file prodotto va messo in apps/backend/src/main/resources/questions/questions-it.json
@@ -36,9 +36,11 @@ DEFAULT_BASE_URL = os.environ.get("LLM_BASE_URL", "https://api.groq.com/openai/v
 DEFAULT_MODEL = os.environ.get("LLM_MODEL", os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b"))
 
 CATEGORIES = [
-    "Storia", "Scienza", "Sport", "Cinema", "Geografia", "Musica",
-    "Arte", "Politica", "Motori", "Cibo e Gastronomia", "Televisione",
-    "Lingue e Parole",
+    "Storia", "Geografia e Viaggi", "Scienza e Spazio", "Natura e Animali",
+    "Sport", "Cinema, Serie TV", "TV e Spettacolo", "Musica",
+    "Arte e Architettura", "Politica e Attualità", "Motori",
+    "Cibo e Gastronomia", "Lingua e Letteratura", "Anime e manga",
+    "Gaming e Tecnologia", "Curiosità",
 ]
 
 DIFFICULTY_HINT = {
@@ -211,7 +213,7 @@ def validate(item: dict, category: str, difficulty: str) -> tuple[bool, str]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Genera la banca domande di PubGame.")
     parser.add_argument("--out", default="apps/backend/src/main/resources/questions/questions-it.json")
-    parser.add_argument("--per-category", type=int, default=40, help="domande richieste per categoria")
+    parser.add_argument("--per-category", type=int, default=10, help="domande richieste per categoria")
     parser.add_argument("--batch", type=int, default=12, help="domande per singola chiamata")
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--base-url", default=DEFAULT_BASE_URL,

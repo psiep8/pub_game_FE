@@ -143,7 +143,7 @@ def main():
     for index in range(10):
         raw = call(
             "GET",
-            f"/games/{game_id}/arena-question?category=Scienza&playerId=p{index}",
+            f"/games/{game_id}/arena-question?category=Scienza%20e%20Spazio&playerId=p{index}",
         )
         question = json.loads(raw) if isinstance(raw, str) else raw
         assert question["type"] == "TRUE_FALSE", f"arena non Vero/Falso: {question['type']}"

@@ -194,7 +194,7 @@ async function playRound(team, stomp, message) {
     case 'ARENA': {
       for (let index = 0; index < 5; index += 1) {
         const question = await api(
-          `/games/${GAME_ID}/arena-question?category=Scienza&playerId=${encodeURIComponent(team)}`,
+          `/games/${GAME_ID}/arena-question?category=Scienza%20e%20Spazio&playerId=${encodeURIComponent(team)}`,
         );
         // Alterna giusto/sbagliato: così il cerchio si muove in entrambi i versi.
         const answer =

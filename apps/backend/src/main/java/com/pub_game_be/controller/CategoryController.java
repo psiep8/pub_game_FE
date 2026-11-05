@@ -18,6 +18,6 @@ public class CategoryController {
 
     @GetMapping
     public List<Category> getAll() {
-        return categoryRepo.findAll();
+        return categoryRepo.findByActiveTrueOrderBySortOrderAscNameAsc();
     }
 }

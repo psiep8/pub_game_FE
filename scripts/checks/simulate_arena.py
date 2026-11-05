@@ -130,7 +130,7 @@ def main() -> int:
           f"{' (categoria ' + CATEGORY + ')' if CATEGORY else ' (categorie miste)'}")
 
     if USE_PREPARE:
-        category = CATEGORY or "Scienza"
+        category = CATEGORY or "Scienza e Spazio"
         status, prepared = call("GET", f"/games/{game_id}/arena/prepare?category={category}&count=20")
         print(f"== prepare {category}: {prepared}")
 

@@ -589,11 +589,14 @@ export class GameComponent implements OnInit, OnDestroy {
   private getCategoryForType(type: GameModeType): string {
     switch (type) {
       case 'QUIZ':
-      // case 'ONE_VS_ONE':
-        return 'CULTURA GENERALE';
+        // Il Quiz usa davvero la categoria estratta: la banca ha 10 domande
+        // per ognuna delle 16 categorie ufficiali.
+        return this.pickCategoryName();
       case 'MUSIC':
-        return 'MUSICA';
+        return 'Musica';
       case 'IMAGE_BLUR':
+        // Le foto sono trasversali (cinema, musica, sport): la categoria
+        // serve solo al filtro della banca, che cade sulle altre se vuota.
         return 'CELEBRITÀ';
       case 'WHEEL_OF_FORTUNE':
         return 'PROVERBI E MODI DI DIRE';
@@ -602,16 +605,30 @@ export class GameComponent implements OnInit, OnDestroy {
       case 'ARENA':
         return 'ARENA';
       case 'TIMELINE':
+        // Timeline pesca solo categorie con eventi catalogabili in ordine
+        // temporale; il backend filtra gli eventi su questa categoria.
+        return this.pickTimelineCategoryName();
       case 'TIME_BUZZER':
       case 'SPEED_RUSH':
       case 'AIR_HOCKEY_BATTLE':
         return 'CULTURA GENERALE';
       default:
-        const categories = this.allCategories();
-        if (categories.length === 0) return 'CULTURA GENERALE';
-        const randomIndex = Math.floor(Math.random() * categories.length);
-        return categories[randomIndex].name;
+        return this.pickCategoryName();
     }
+  }
+
+  private pickCategoryName(): string {
+    const categories = this.allCategories();
+    if (categories.length === 0) return 'CULTURA GENERALE';
+    const randomIndex = Math.floor(Math.random() * categories.length);
+    return categories[randomIndex].name;
+  }
+
+  private pickTimelineCategoryName(): string {
+    const categories = this.allCategories().filter((category) => category.timeline);
+    if (categories.length === 0) return this.pickCategoryName();
+    const randomIndex = Math.floor(Math.random() * categories.length);
+    return categories[randomIndex].name;
   }
 
   /**

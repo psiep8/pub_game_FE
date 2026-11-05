@@ -1056,7 +1056,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.arenaQuestion.set(null); // Show loading state if template supports it
 
     const cats = this.categories();
-    let selectedCategory = "Scienza"; // fallback
+    let selectedCategory = "Scienza e Spazio"; // fallback
     if (cats && cats.length > 0) {
       const idx = Math.floor(Math.random() * cats.length);
       selectedCategory = cats[idx].name;

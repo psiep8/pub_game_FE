@@ -78,7 +78,7 @@ public class GameController {
         if (partyGameService.handles(type)) {
             // Timeline, Quanto costa, Speed Rush e Air Hockey Battle non usano la banca
             // domande: il payload (e lo stato del round) vive nel servizio party.
-            aiPayload = partyGameService.startRound(gameId, type);
+            aiPayload = partyGameService.startRound(gameId, type, category);
             if (aiPayload == null) {
                 throw new RuntimeException("Tipo di gioco non gestito: " + type);
             }

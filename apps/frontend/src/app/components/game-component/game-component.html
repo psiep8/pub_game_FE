@@ -68,9 +68,12 @@
   @if (mode.requiresBubbles && !showTypeReveal() && phase() !== 'IDLE' && !showQuestion()) {
   <div class="bubbles-area">
     @for (cat of allCategories(); track cat.id) {
-    <div class="category-bubble" [style.top]="cat.top" [style.left]="cat.left" [class.spinning]="phase() === 'SPINNING'"
+    <div class="category-bubble" [style.top]="cat.top" [style.left]="cat.left"
+      [style.--cat-accent]="cat.color || '#ffd700'"
+      [class.spinning]="phase() === 'SPINNING'"
       [class.is-selected]="(animatedCategoryId() ?? selectedCategoryId()) === cat.id && phase() === 'SELECTED'"
       [class.hidden]="selectedCategoryId() !== null && cat.id !== (animatedCategoryId() ?? selectedCategoryId()) && phase() !== 'SPINNING'">
+      @if (cat.emoji) { <span class="category-emoji">{{ cat.emoji }}</span> }
       {{ cat.name }}
     </div>
     }

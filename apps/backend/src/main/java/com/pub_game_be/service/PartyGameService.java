@@ -82,8 +82,12 @@ public class PartyGameService {
     }
 
     public String startRound(long gameId, String type) {
+        return startRound(gameId, type, null);
+    }
+
+    public String startRound(long gameId, String type, String category) {
         return switch (type.toUpperCase(Locale.ROOT)) {
-            case "TIMELINE" -> startTimeline(gameId);
+            case "TIMELINE" -> startTimeline(gameId, category);
             case "TIME_BUZZER" -> configPayload("TIME_BUZZER", 45);
             case "SPEED_RUSH" -> configPayload("SPEED_RUSH", 60);
             case "AIR_HOCKEY_BATTLE" -> configPayload("AIR_HOCKEY_BATTLE", 60);
@@ -93,9 +97,9 @@ public class PartyGameService {
 
     // ---------------------------------------------------------------- Timeline
 
-    private String startTimeline(long gameId) {
+    private String startTimeline(long gameId, String category) {
         int size = Boolean.TRUE.equals(lastTimelineRounds.get(gameId)) ? TIMELINE_CARDS_FINAL : TIMELINE_CARDS;
-        List<TimelineEvent> ordered = sampleTimeline(size);
+        List<TimelineEvent> ordered = sampleTimeline(size, category);
 
         List<Integer> ids = new ArrayList<>();
         for (int index = 0; index < ordered.size(); index++) {
@@ -119,6 +123,7 @@ public class PartyGameService {
         JSONObject payload = new JSONObject();
         payload.put("type", "TIMELINE");
         payload.put("roundId", "tl-" + System.currentTimeMillis());
+        payload.put("category", category == null ? "" : category);
         payload.put("question", "Metti le carte in ordine, dalla più antica alla più recente");
         payload.put("items", cards);
         payload.put("count", ordered.size());
@@ -131,12 +136,23 @@ public class PartyGameService {
         return payload.toString();
     }
 
-    private List<TimelineEvent> sampleTimeline(int count) {
-        List<TimelineEvent> pool = new ArrayList<>(events);
-        Collections.shuffle(pool, random);
+    /**
+     * Se la categoria ha abbastanza eventi chiediamo solo quelli; altrimenti
+     * (categoria vecchia o senza eventi) si torna alla banca completa, così
+     * una Timeline non resta mai vuota.
+     */
+    private List<TimelineEvent> sampleTimeline(int count, String category) {
+        List<TimelineEvent> categoryEvents = events.stream()
+                .filter(event -> category != null && !category.isBlank()
+                        && event.category().equalsIgnoreCase(category))
+                .toList();
+        List<TimelineEvent> source = categoryEvents.size() >= count
+                ? new ArrayList<>(categoryEvents)
+                : new ArrayList<>(events);
+        Collections.shuffle(source, random);
 
         List<TimelineEvent> picked = new ArrayList<>();
-        for (TimelineEvent candidate : pool) {
+        for (TimelineEvent candidate : source) {
             boolean tooClose = picked.stream()
                     .anyMatch(event -> Math.abs(event.year() - candidate.year()) < 3);
             if (!tooClose) {
@@ -144,6 +160,19 @@ public class PartyGameService {
             }
             if (picked.size() >= count) {
                 break;
+            }
+        }
+
+        // Le date ravvicinate possono ridurre il mazzo: completa con gli
+        // eventi rimasti invece di consegnare un round più corto del previsto.
+        if (picked.size() < count) {
+            for (TimelineEvent candidate : source) {
+                if (!picked.contains(candidate)) {
+                    picked.add(candidate);
+                }
+                if (picked.size() >= count) {
+                    break;
+                }
             }
         }
 

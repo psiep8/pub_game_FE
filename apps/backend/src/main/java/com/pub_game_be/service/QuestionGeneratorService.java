@@ -187,7 +187,7 @@ public class QuestionGeneratorService {
                     "Sei il presentatore di un quiz televisivo.\n" +
                             "Genera una lista di 40 domande miste per la modalità ARENA (Battle Royale).\n" +
                             "⚠️ REGOLE RIGIDE:\n" +
-                            "1. Alterna diverse categorie (Scienza, Storia, Sport, Cinema, Geografia, Curiosità, ecc.).\n"
+                            "1. Alterna diverse categorie (Scienza e Spazio, Storia, Sport, Cinema, Serie TV, Geografia e Viaggi, Curiosità, ecc.).\n"
                             +
                             "2. Usa un mix di tipi: 70%% tipo 'QUIZ' (4 opzioni) e 30%% tipo 'TRUE_FALSE' (2 opzioni: VERO, FALSO).\n"
                             +
@@ -200,7 +200,7 @@ public class QuestionGeneratorService {
                             "[\n" +
                             "  { \"question\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"correctAnswer\": \"A\", \"difficulty\": \"easy\", \"category\": \"Storia\" },\n"
                             +
-                            "  { \"question\": \"...\", \"options\": [\"VERO\",\"FALSO\"], \"correctAnswer\": \"VERO\", \"difficulty\": \"easy\", \"category\": \"Scienza\" }\n"
+                            "  { \"question\": \"...\", \"options\": [\"VERO\",\"FALSO\"], \"correctAnswer\": \"VERO\", \"difficulty\": \"easy\", \"category\": \"Scienza e Spazio\" }\n"
                             +
                             "]");
 
@@ -251,7 +251,7 @@ public class QuestionGeneratorService {
                     category, difficulty, difficultyContext);
         }*/
 
-        String systemMsg = "Sei un generatore di domande quiz. GENERA SOLO DOMANDE SULLA CATEGORIA INDICATA NEL MESSAGGIO UTENTE. Se la categoria è 'Natura' parla di animali/piante/ecosistemi. Se 'Sport' parla di sport. Se 'Scienza' parla di fisica/chimica/biologia. Se 'Storia' parla di eventi storici. Se 'Cinema' parla di film/attori. Se 'Geografia' parla di paesi/capitali. Se 'Curiosita' parla di fatti insoluti. Se 'Arte' parla di pittura/scultura. Se 'Fumetti' parla di fumetti/manga. Se 'Letteratura' parla di scrittori/libri. Se 'Matematica' parla di numeri/formule. NON GENERARE MAI DOMANDE SUL TOPIC SBAGLIATO.";
+        String systemMsg = "Sei un generatore di domande quiz. GENERA SOLO DOMANDE SULLA CATEGORIA INDICATA NEL MESSAGGIO UTENTE. Se la categoria è 'Natura e Animali' parla di animali/piante/ecosistemi. Se 'Sport' parla di sport. Se 'Scienza e Spazio' parla di fisica/chimica/biologia/astronomia. Se 'Storia' parla di eventi storici. Se 'Cinema, Serie TV' parla di film e serie. Se 'TV e Spettacolo' parla di programmi TV e spettacoli. Se 'Geografia e Viaggi' parla di paesi/capitali. Se 'Curiosità' parla di fatti insoliti. Se 'Arte e Architettura' parla di pittura/scultura/architettura. Se 'Anime e manga' parla di anime e manga. Se 'Lingua e Letteratura' parla di scrittori/libri/grammatica. Se 'Gaming e Tecnologia' parla di videogiochi e tecnologia. NON GENERARE MAI DOMANDE SUL TOPIC SBAGLIATO.";
 
         if (apiKey == null || apiKey.isBlank()) { System.out.println("GROQ_API_KEY assente: uso il fallback locale per " + type); return getFallbackJson(type, category); }
         int maxAttempts = 3;
@@ -416,10 +416,11 @@ public class QuestionGeneratorService {
                 "6. Rispondi SOLO con un oggetto JSON valido, senza list, senza array attorno, nessun testo extra.\n\n"
                 +
                 "Esempio QUIZ:\n" +
-                "{ \"question\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"correctAnswer\": \"A\", \"difficulty\": \"easy\", \"category\": \"Storia\" }\n\n"
+                "  { \"question\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"correctAnswer\": \"A\", \"difficulty\": \"easy\", \"category\": \"Storia\" }\n\n"
                 +
-                "Esempio TRUE_FALSE:\n" +
-                "{ \"question\": \"...\", \"options\": [\"VERO\",\"FALSO\"], \"correctAnswer\": \"VERO\", \"difficulty\": \"medium\", \"category\": \"Scienza\" }";
+                "Esempio TRUE_FALSE:\n"
+                +
+                "{ \"question\": \"...\", \"options\": [\"VERO\",\"FALSO\"], \"correctAnswer\": \"VERO\", \"difficulty\": \"medium\", \"category\": \"Scienza e Spazio\" }";
 
         Map<String, Object> request = new HashMap<>();
         request.put("model", model);
@@ -456,21 +457,21 @@ public class QuestionGeneratorService {
 
     private String getSingleFallbackArenaQuestion() {
         String[] safeFallbacks = {
-                "{ \"question\": \"Quanto fa 5 + 5?\", \"options\": [\"8\", \"10\", \"12\", \"15\"], \"correctAnswer\": \"10\", \"difficulty\": \"easy\", \"category\": \"Matematica\" }",
-                "{ \"question\": \"Qual è la capitale d'Italia?\", \"options\": [\"Milano\", \"Roma\", \"Napoli\", \"Torino\"], \"correctAnswer\": \"Roma\", \"difficulty\": \"easy\", \"category\": \"Geografia\" }",
-                "{ \"question\": \"Qual è il fiume più lungo del mondo?\", \"options\": [\"Nilo\", \"Rio delle Amazzoni\", \"Gange\", \"Mississippi\"], \"correctAnswer\": \"Rio delle Amazzoni\", \"difficulty\": \"medium\", \"category\": \"Geografia\" }",
-                "{ \"question\": \"Chi ha dipinto la Gioconda?\", \"options\": [\"Michelangelo\", \"Raffaello\", \"Munch\", \"Leonardo Da Vinci\"], \"correctAnswer\": \"Leonardo Da Vinci\", \"difficulty\": \"easy\", \"category\": \"Arte\" }",
-                "{ \"question\": \"Qual è il pianeta più grande del sistema solare?\", \"options\": [\"Giove\", \"Saturno\", \"Terra\", \"Marte\"], \"correctAnswer\": \"Giove\", \"difficulty\": \"easy\", \"category\": \"Scienza\" }",
-                "{ \"question\": \"La Terra è piatta?\", \"options\": [\"VERO\", \"FALSO\"], \"correctAnswer\": \"FALSO\", \"difficulty\": \"easy\", \"category\": \"Geografia\" }",
-                "{ \"question\": \"L'acqua bolle a 100 gradi Celsius?\", \"options\": [\"VERO\", \"FALSO\"], \"correctAnswer\": \"VERO\", \"difficulty\": \"easy\", \"category\": \"Scienza\" }",
-                "{ \"question\": \"Roma è la capitale della Francia?\", \"options\": [\"VERO\", \"FALSO\"], \"correctAnswer\": \"FALSO\", \"difficulty\": \"easy\", \"category\": \"Geografia\" }",
-                "{ \"question\": \"Il sole è una stella?\", \"options\": [\"VERO\", \"FALSO\"], \"correctAnswer\": \"VERO\", \"difficulty\": \"easy\", \"category\": \"Scienza\" }",
+                "{ \"question\": \"Quanto fa 5 + 5?\", \"options\": [\"8\", \"10\", \"12\", \"15\"], \"correctAnswer\": \"10\", \"difficulty\": \"easy\", \"category\": \"Curiosità\" }",
+                "{ \"question\": \"Qual è la capitale d'Italia?\", \"options\": [\"Milano\", \"Roma\", \"Napoli\", \"Torino\"], \"correctAnswer\": \"Roma\", \"difficulty\": \"easy\", \"category\": \"Geografia e Viaggi\" }",
+                "{ \"question\": \"Qual è il fiume più lungo del mondo?\", \"options\": [\"Nilo\", \"Rio delle Amazzoni\", \"Gange\", \"Mississippi\"], \"correctAnswer\": \"Rio delle Amazzoni\", \"difficulty\": \"medium\", \"category\": \"Geografia e Viaggi\" }",
+                "{ \"question\": \"Chi ha dipinto la Gioconda?\", \"options\": [\"Michelangelo\", \"Raffaello\", \"Munch\", \"Leonardo Da Vinci\"], \"correctAnswer\": \"Leonardo Da Vinci\", \"difficulty\": \"easy\", \"category\": \"Arte e Architettura\" }",
+                "{ \"question\": \"Qual è il pianeta più grande del sistema solare?\", \"options\": [\"Giove\", \"Saturno\", \"Terra\", \"Marte\"], \"correctAnswer\": \"Giove\", \"difficulty\": \"easy\", \"category\": \"Scienza e Spazio\" }",
+                "{ \"question\": \"La Terra è piatta?\", \"options\": [\"VERO\", \"FALSO\"], \"correctAnswer\": \"FALSO\", \"difficulty\": \"easy\", \"category\": \"Geografia e Viaggi\" }",
+                "{ \"question\": \"L'acqua bolle a 100 gradi Celsius?\", \"options\": [\"VERO\", \"FALSO\"], \"correctAnswer\": \"VERO\", \"difficulty\": \"easy\", \"category\": \"Scienza e Spazio\" }",
+                "{ \"question\": \"Roma è la capitale della Francia?\", \"options\": [\"VERO\", \"FALSO\"], \"correctAnswer\": \"FALSO\", \"difficulty\": \"easy\", \"category\": \"Geografia e Viaggi\" }",
+                "{ \"question\": \"Il sole è una stella?\", \"options\": [\"VERO\", \"FALSO\"], \"correctAnswer\": \"VERO\", \"difficulty\": \"easy\", \"category\": \"Scienza e Spazio\" }",
                 "{ \"question\": \"In che anno è iniziata la Prima Guerra Mondiale?\", \"options\": [\"1914\", \"1918\", \"1939\", \"1945\"], \"correctAnswer\": \"1914\", \"difficulty\": \"medium\", \"category\": \"Storia\" }",
-                "{ \"question\": \"Chi ha scritto la Divina Commedia?\", \"options\": [\"Boccaccio\", \"Petrarca\", \"Dante Alighieri\", \"Machiavelli\"], \"correctAnswer\": \"Dante Alighieri\", \"difficulty\": \"easy\", \"category\": \"Letteratura\" }",
-                "{ \"question\": \"Quale animale è conosciuto come il miglior amico dell'uomo?\", \"options\": [\"Gatto\", \"Cane\", \"Cavallo\", \"Delfino\"], \"correctAnswer\": \"Cane\", \"difficulty\": \"easy\", \"category\": \"Natura\" }",
-                "{ \"question\": \"Il ragno è un insetto?\", \"options\": [\"VERO\", \"FALSO\"], \"correctAnswer\": \"FALSO\", \"difficulty\": \"medium\", \"category\": \"Natura\" }",
+                "{ \"question\": \"Chi ha scritto la Divina Commedia?\", \"options\": [\"Boccaccio\", \"Petrarca\", \"Dante Alighieri\", \"Machiavelli\"], \"correctAnswer\": \"Dante Alighieri\", \"difficulty\": \"easy\", \"category\": \"Lingua e Letteratura\" }",
+                "{ \"question\": \"Quale animale è conosciuto come il miglior amico dell'uomo?\", \"options\": [\"Gatto\", \"Cane\", \"Cavallo\", \"Delfino\"], \"correctAnswer\": \"Cane\", \"difficulty\": \"easy\", \"category\": \"Natura e Animali\" }",
+                "{ \"question\": \"Il ragno è un insetto?\", \"options\": [\"VERO\", \"FALSO\"], \"correctAnswer\": \"FALSO\", \"difficulty\": \"medium\", \"category\": \"Natura e Animali\" }",
                 "{ \"question\": \"Qual è lo sport più popolare al mondo?\", \"options\": [\"Basket\", \"Tennis\", \"Calcio\", \"Rugby\"], \"correctAnswer\": \"Calcio\", \"difficulty\": \"easy\", \"category\": \"Sport\" }",
-                "{ \"question\": \"L'Uomo Ragno fa parte della DC Comics?\", \"options\": [\"VERO\", \"FALSO\"], \"correctAnswer\": \"FALSO\", \"difficulty\": \"medium\", \"category\": \"Fumetti\" }",
+                "{ \"question\": \"L'Uomo Ragno fa parte della DC Comics?\", \"options\": [\"VERO\", \"FALSO\"], \"correctAnswer\": \"FALSO\", \"difficulty\": \"medium\", \"category\": \"Anime e manga\" }",
                 "{ \"question\": \"Quanti giorni ci sono in un anno bisestile?\", \"options\": [\"364\", \"365\", \"366\", \"367\"], \"correctAnswer\": \"366\", \"difficulty\": \"easy\", \"category\": \"Curiosità\" }"
         };
         return safeFallbacks[new Random().nextInt(safeFallbacks.length)];
