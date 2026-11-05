@@ -893,3 +893,55 @@ app-remote-component .bomba-flash { animation: m-pop var(--motion-fast) var(--ea
 
 app-remote-component .arena-question-card { animation: m-rise var(--motion-base) var(--ease-out) backwards; }
 app-remote-component .hockey-card { animation: m-rise var(--motion-base) var(--ease-out) backwards; }
+
+/* ============================================================
+   MOTION — SECONDO BLOCCO
+   Tabelloni TV rimanenti e podio. Dove un elemento ha già una
+   sua animazione (disco, equalizzatore, timer, buzz) qui si
+   tocca solo l'opacità, così le due cose convivono.
+   ============================================================ */
+app-song .song-container { animation: m-fade var(--motion-base) var(--ease-out) backwards; }
+app-song .song-title { animation: m-drop var(--motion-cinema) var(--ease-out) backwards; }
+app-song .phase-dot { animation: m-appear var(--motion-base) var(--ease-out) backwards; }
+app-song .phase-dot:nth-child(1) { animation-delay: 60ms; }
+app-song .phase-dot:nth-child(2) { animation-delay: 130ms; }
+app-song .phase-dot:nth-child(3) { animation-delay: 200ms; }
+app-song .current-phase-label { animation: m-fade var(--motion-fast) var(--ease-out) backwards; }
+
+app-wheel-fortune .wheel-title,
+app-image-blur .blur-title,
+app-roulette .instructions h2,
+app-chrono .chrono-question { animation: m-drop var(--motion-cinema) var(--ease-out) backwards; }
+app-wheel-fortune .letter-box { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
+app-wheel-fortune .letter-box:nth-child(2n) { animation-delay: 60ms; }
+app-wheel-fortune .letter-box:nth-child(3n) { animation-delay: 110ms; }
+app-image-blur .blur-main-container { animation: m-zoom-in var(--motion-cinema) var(--ease-out) backwards; }
+
+app-air-hockey-battle .ahb-title { animation: m-drop var(--motion-cinema) var(--ease-out) backwards; }
+app-air-hockey-battle .ahb-court { animation: m-appear var(--motion-base) var(--ease-out) backwards; }
+app-air-hockey-battle .ahb-court:nth-child(2) { animation-delay: 90ms; }
+app-air-hockey-battle .ahb-court:nth-child(3) { animation-delay: 140ms; }
+app-air-hockey-battle .ahb-court:nth-child(4) { animation-delay: 190ms; }
+
+app-speed-rush .sr-title { animation: m-drop var(--motion-cinema) var(--ease-out) backwards; }
+
+app-timeline .tl-card { animation: m-appear var(--motion-base) var(--ease-out) backwards; }
+app-timeline .tl-card:nth-child(2) { animation-delay: 80ms; }
+app-timeline .tl-card:nth-child(3) { animation-delay: 130ms; }
+app-timeline .tl-card:nth-child(4) { animation-delay: 180ms; }
+
+app-arena .team-node { animation: m-appear var(--motion-base) var(--ease-out) backwards; }
+
+app-leaderboard-quick .position-badge { animation: m-bump var(--motion-base) var(--ease-spring) backwards; }
+app-leaderboard-quick .points-value { animation: m-pop var(--motion-base) var(--ease-spring) 80ms backwards; }
+app-leaderboard-detailed .position-number { animation: m-bump var(--motion-base) var(--ease-spring) backwards; }
+app-leaderboard-detailed .points-value { animation: m-pop var(--motion-base) var(--ease-spring) 100ms backwards; }
+
+app-remote-component .color-btn,
+app-remote-component .buzz-button,
+app-remote-component .speed-big,
+app-remote-component .confirm-btn,
+app-remote-component .tl-move,
+app-remote-component .hockey-side { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
+app-remote-component .color-btn:nth-child(2n) { animation-delay: 60ms; }
+app-remote-component .color-btn:nth-child(3n) { animation-delay: 110ms; }
