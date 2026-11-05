@@ -6,7 +6,7 @@ import {GameModeResult, GameModeType} from '../interfaces/game-mode-type';
 
 export class WheelOfFortuneMode extends GameModeBase {
   readonly type: GameModeType = 'WHEEL_OF_FORTUNE';
-  readonly timerDuration = 120;
+  readonly timerDuration = 75;
   readonly requiresBubbles = false;
   readonly requiresBuzz = true;
 
@@ -21,13 +21,13 @@ export class WheelOfFortuneMode extends GameModeBase {
 
     const counts: Record<string, number> = {};
     for (const ch of phrase.split('')) {
-      if (ch === ' ') continue;
+      if (!this.isPlayableLetter(ch)) continue;
       counts[ch] = (counts[ch] || 0) + 1;
     }
 
     const unrevealedSet = new Set<string>();
     for (const ch of phrase.split('')) {
-      if (ch === ' ') continue;
+      if (!this.isPlayableLetter(ch)) continue;
       if (!revealed.has(ch)) unrevealedSet.add(ch);
     }
 
@@ -40,8 +40,12 @@ export class WheelOfFortuneMode extends GameModeBase {
       if (c < minCount) minCount = c;
     }
 
-    const candidates = unrevealed.filter(l => (counts[l] ?? 0) === minCount);
-    return candidates[Math.floor(Math.random() * candidates.length)];
+    const candidates = unrevealed
+      .filter(l => (counts[l] ?? 0) === minCount)
+      .sort((a, b) => a.localeCompare(b, 'it'));
+
+    // Ordine deterministico: la stessa frase rivela sempre le stesse lettere.
+    return candidates[0] ?? null;
   }
 
   protected onInitialize(): void {
@@ -49,7 +53,7 @@ export class WheelOfFortuneMode extends GameModeBase {
   }
 
   protected async onStart(): Promise<void> {
-    await this.runPreGameSequence(10000);
+    await this.runPreGameSequence(3000);
     this.startLetterReveal();
   }
 
@@ -114,10 +118,15 @@ export class WheelOfFortuneMode extends GameModeBase {
   private revealAllLetters(): void {
     const phrase = this.payload.proverb || '';
     const allLetters = new Set<string>(
-      phrase.toUpperCase().split('').filter((c: string) => c !== ' ')
+      phrase.toUpperCase().split('').filter((c: string) => this.isPlayableLetter(c))
     );
     this.revealedLetters.set(allLetters);
     
+  }
+
+  /** Lettere giocabili: l'apostrofo e la punteggiatura restano sempre visibili. */
+  private isPlayableLetter(ch: string): boolean {
+    return /[A-ZÀÈÉÌÒÙ]/.test(ch);
   }
 
   private startLetterReveal(): void {
@@ -152,7 +161,7 @@ export class WheelOfFortuneMode extends GameModeBase {
             this.letterRevealInterval = undefined;
           }
         }
-      }, 10000);
+      }, 8000);
     }, 1000);
   }
 
@@ -176,11 +185,14 @@ export class WheelOfFortuneMode extends GameModeBase {
       displayWords: phrase.split(' ').map((word: string) => {
         return word.split('').map((char: string) => {
           const cu = char.toUpperCase();
+          if (!this.isPlayableLetter(cu)) return char;
           return revealed.has(cu) ? char : '_';
         });
       }),
       revealedCount: revealed.size,
-      totalLetters: new Set(phrase.toUpperCase().split('').filter((c: string) => c !== ' ')).size,
+      totalLetters: new Set(
+        phrase.toUpperCase().split('').filter((c: string) => this.isPlayableLetter(c))
+      ).size,
       buzzedPlayer: this.buzzedPlayer()
     };
   }

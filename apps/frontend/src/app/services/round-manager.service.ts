@@ -20,11 +20,11 @@ const STORAGE_KEY = 'roundProgress';
  * è sempre Quiz.
  */
 const ACT_DECKS: GameModeType[][] = [
-  ['QUIZ', 'MUSIC', 'TIME_BUZZER', 'WHEEL_OF_FORTUNE', 'IMAGE_BLUR', 'TIMELINE', 'QUIZ', 'SPEED_RUSH'],
-  ['QUIZ', 'IMAGE_BLUR', 'TIMELINE', 'ARENA', 'MUSIC', 'TIME_BUZZER', 'WHEEL_OF_FORTUNE', 'AIR_HOCKEY_BATTLE'],
+  ['QUIZ', 'MUSIC', 'TIME_BUZZER', 'IMAGE_BLUR', 'TIMELINE', 'WHEEL_OF_FORTUNE', 'QUIZ', 'SPEED_RUSH'],
+  ['QUIZ', 'IMAGE_BLUR', 'TIMELINE', 'ARENA', 'MUSIC', 'TIME_BUZZER', 'TIMELINE', 'AIR_HOCKEY_BATTLE'],
   ['QUIZ', 'TIMELINE', 'MUSIC', 'SPEED_RUSH', 'TIME_BUZZER', 'AIR_HOCKEY_BATTLE', 'WHEEL_OF_FORTUNE', 'ARENA'],
-  ['QUIZ', 'MUSIC', 'TIME_BUZZER', 'IMAGE_BLUR', 'ARENA', 'TIMELINE', 'WHEEL_OF_FORTUNE', 'SPEED_RUSH'],
-  ['QUIZ', 'TIMELINE', 'MUSIC', 'SPEED_RUSH', 'IMAGE_BLUR', 'AIR_HOCKEY_BATTLE', 'WHEEL_OF_FORTUNE', 'TIME_BUZZER'],
+  ['QUIZ', 'MUSIC', 'TIME_BUZZER', 'IMAGE_BLUR', 'ARENA', 'TIMELINE', 'IMAGE_BLUR', 'SPEED_RUSH'],
+  ['QUIZ', 'TIMELINE', 'MUSIC', 'SPEED_RUSH', 'TIME_BUZZER', 'AIR_HOCKEY_BATTLE', 'WHEEL_OF_FORTUNE', 'ARENA'],
 ];
 
 /** Classifiche: rapida a metà atto, dettagliata a fine atto. */
@@ -76,10 +76,21 @@ export class RoundManagerService {
    * Bonus Roulette: non consuma un round della scaletta. Serve dopo la
    * classifica di fine atto, senza rubare il posto a un gioco vero.
    */
-  startBonusRound(): GameModeType {
-    this.roundConfig.update((config) => ({ ...config, nextRoundType: 'ROULETTE' }));
+  startBonusRound(type: GameModeType = 'ROULETTE'): GameModeType {
+    this.roundConfig.update((config) => ({ ...config, nextRoundType: type }));
     this.saveProgress();
-    return 'ROULETTE';
+    return type;
+  }
+
+  /**
+   * Bonus previsto dopo l'atto appena concluso (0-based), se esiste.
+   * Rotazione attuale: roulette dopo l'atto 1, basket dopo il 2.
+   */
+  bonusAfterAct(): 'ROULETTE' | 'BASKET' | null {
+    const act = Math.floor(this.roundConfig().currentRound / 8) - 1;
+    if (act === 0) return 'ROULETTE';
+    if (act === 1) return 'BASKET';
+    return null;
   }
 
   completeRound(gameType: GameModeType): void {

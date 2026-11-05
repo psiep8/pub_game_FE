@@ -96,6 +96,17 @@ export class GameService {
     });
   }
 
+  /** Air Hockey: domande quiz dalla banca, con la difficoltà richiesta. */
+  getAirHockeyQuestions(
+    gameId: number,
+    difficulty: string,
+    count: number
+  ): Observable<Array<{ question: string; options: string[]; correctAnswer: string; difficulty: string }>> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/games/${gameId}/air-hockey/questions?difficulty=${encodeURIComponent(difficulty)}&count=${count}`
+    );
+  }
+
   getTimelineReveal(gameId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/games/${gameId}/timeline/reveal`);
   }

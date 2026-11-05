@@ -127,6 +127,10 @@ export class FakeAiGeneratorService {
 export class FakeAudioService {
   readonly played: string[] = [];
 
+  readonly startAmbient = () => this.played.push('ambient');
+  readonly playJoin = () => this.played.push('join');
+  readonly playElimination = () => this.played.push('elimination');
+  readonly playPodium = () => this.played.push('podium');
   readonly startHeartbeat = () => this.played.push('heartbeat');
   readonly stopHeartbeat = () => this.played.push('stop-heartbeat');
   readonly startClock = () => this.played.push('clock');

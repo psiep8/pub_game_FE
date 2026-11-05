@@ -1542,3 +1542,77 @@
 .demo-foot { padding: 8px 18px; border-top: 3px solid var(--coal); text-align: center; font-family: var(--font-mono); font-size: .7rem; color: rgba(30, 25, 20, .6); }
 @keyframes demoFloat { to { transform: translateY(-10px) rotate(-3deg); } }
 @keyframes demoPulse { 50% { opacity: .4; } }
+
+/* Bonus (roulette/basket) e countdown di avanzamento */
+.bonus-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 20, .82);
+  backdrop-filter: blur(6px);
+}
+
+.bonus-card {
+  min-width: min(680px, 86vw);
+  padding: 32px 40px;
+  border-radius: 24px;
+  background: linear-gradient(160deg, #1b1b2f, #12121f);
+  border: 1px solid rgba(255, 255, 255, .12);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .5);
+  color: #fff;
+  text-align: center;
+}
+
+.bonus-kicker {
+  font-size: 12px;
+  letter-spacing: .3em;
+  color: #8b8bff;
+}
+
+.bonus-card h2 {
+  margin: 8px 0 18px;
+  font-size: 40px;
+}
+
+.bonus-timer {
+  font-size: 56px;
+  font-weight: 800;
+  color: #ffd166;
+}
+
+.bonus-hint {
+  color: #b9b9cc;
+}
+
+.bonus-scores {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.bonus-scores div {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .06);
+}
+
+.auto-advance {
+  position: fixed;
+  right: 24px;
+  bottom: 84px;
+  z-index: 55;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(20, 20, 35, .9);
+  border: 1px solid rgba(255, 255, 255, .15);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: .08em;
+}

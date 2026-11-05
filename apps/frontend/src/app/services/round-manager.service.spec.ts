@@ -64,6 +64,24 @@ describe('RoundManagerService', () => {
     }
   });
 
+  it('should never schedule two booking games back to back', () => {
+    const booking: GameModeType[] = ['MUSIC', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE'];
+    const types: GameModeType[] = [];
+    for (let i = 0; i < 40; i++) types.push(service.startNewRound());
+
+    for (let i = 1; i < types.length; i++) {
+      expect(booking.includes(types[i]) && booking.includes(types[i - 1])).toBe(false);
+    }
+  });
+
+  it('should play the wheel three times and close with the arena', () => {
+    const types: GameModeType[] = [];
+    for (let i = 0; i < 40; i++) types.push(service.startNewRound());
+
+    expect(types.filter((type) => type === 'WHEEL_OF_FORTUNE')).toHaveLength(3);
+    expect(types[39]).toBe('ARENA');
+  });
+
   it('should show a quick leaderboard mid-act and a detailed one at the end of the act', () => {
     for (let i = 0; i < 4; i++) service.startNewRound();
     expect(service.shouldShowLeaderboard()).toBe('QUICK');

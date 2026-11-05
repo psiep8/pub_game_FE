@@ -10,6 +10,8 @@ interface BuzzGuess {
 interface BuzzResult extends BuzzGuess {
   error: number;
   eliminated: boolean;
+  /** Chi non ha premuto: sempre ultimo, eliminato per primo. */
+  missed?: boolean;
 }
 
 const MANCHES = 3;
@@ -120,13 +122,26 @@ export class TimeBuzzerMode extends GameModeBase {
     this.clearTimers();
 
     const target = this.targetMs();
-    const results: BuzzResult[] = this.guesses()
-      .map((guess) => ({
+    const missing = this.remaining().filter(
+      (name) => !this.guesses().some((guess) => guess.playerName === name),
+    );
+
+    // Chi non preme non sparisce dai risultati: prende l'errore massimo e
+    // viene eliminato per primo. Altrimenti converrebbe non giocare.
+    const results: BuzzResult[] = [
+      ...this.guesses().map((guess) => ({
         ...guess,
         error: Math.abs(guess.ms - target),
         eliminated: false,
-      }))
-      .sort((a, b) => a.error - b.error);
+      })),
+      ...missing.map((playerName) => ({
+        playerName,
+        ms: 0,
+        error: Number.MAX_SAFE_INTEGER,
+        eliminated: false,
+        missed: true,
+      })),
+    ].sort((a, b) => a.error - b.error);
 
     const survivors = this.remaining().length;
     const eliminateCount = this.mancheIndex() < MANCHES - 1

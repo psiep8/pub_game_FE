@@ -132,6 +132,13 @@
       <p class="buzz-hint">Nessun cronometro: fermalo quando pensi sia giusto.</p>
     </div>
     }
+    @case ('BONUS_BASKET') {
+    <div class="buzz-remote">
+      <div class="game-head"><span class="game-tag buzz">BONUS</span><span class="game-tip">30 secondi</span></div>
+      <p class="party-instruction">Apri il canestro e fai più punti che puoi.</p>
+      <a class="confirm-btn" [href]="getBasketUrl()">APRI IL CANESTRO</a>
+    </div>
+    }
     @case ('SPEED_RUSH') {
     <div class="speed-remote">
       <div class="game-head"><span class="game-tag speed">SPEED RUSH</span><span class="game-tip">Più veloce = più punti</span></div>

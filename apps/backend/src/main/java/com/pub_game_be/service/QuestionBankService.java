@@ -266,6 +266,40 @@ public class QuestionBankService {
         return "raw|" + QuestionHistoryService.normalize(jsonPayload);
     }
 
+    /**
+     * Domande quiz per l'Air Hockey: quattro opzioni, difficoltà richiesta.
+     * Restituisce righe pronte per il frontend (nessun payload AI a runtime).
+     */
+    public List<Map<String, Object>> quizBatch(String difficulty, int count) {
+        List<BankQuestion> candidates = new ArrayList<>();
+        for (BankQuestion question : allQuestions()) {
+            if (!"QUIZ".equals(question.type()) || question.options().size() != 4) {
+                continue;
+            }
+            if (difficulty != null && !difficulty.isBlank()
+                    && !"MIXED".equalsIgnoreCase(difficulty)
+                    && !question.difficulty().equalsIgnoreCase(difficulty)) {
+                continue;
+            }
+            candidates.add(question);
+        }
+
+        Collections.shuffle(candidates, random);
+
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (BankQuestion question : candidates) {
+            if (rows.size() >= count) {
+                break;
+            }
+            rows.add(Map.of(
+                    "question", question.question(),
+                    "options", question.options(),
+                    "correctAnswer", question.correctAnswer(),
+                    "difficulty", question.difficulty().toUpperCase(Locale.ROOT)));
+        }
+        return rows;
+    }
+
     public int bankSize() {
         return bank.size();
     }

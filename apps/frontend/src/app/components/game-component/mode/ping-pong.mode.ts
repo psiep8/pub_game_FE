@@ -117,8 +117,36 @@ export class AirHockeyBattleMode extends GameModeBase {
   }
 
   protected async onStart(): Promise<void> {
+    await this.loadBankQuestions();
     this.startMatch();
     await this.runPreGameSequence(3000);
+  }
+
+  /**
+   * Le domande vere vengono dalla banca (con la difficoltà). Gli elenchi
+   * scritti qui sotto restano solo come riserva se il backend non risponde.
+   */
+  private async loadBankQuestions(): Promise<void> {
+    const loader = this.config.loadAirHockeyQuestions;
+    if (!loader) return;
+
+    try {
+      const rows = await loader('MIXED');
+      const fromBank: PingQuestion[] = rows
+        .filter((row) => Array.isArray(row.options) && row.options.length >= 2)
+        .map((row) => ({
+          text: row.text,
+          options: row.options,
+          correctIndex: row.correctIndex >= 0 ? row.correctIndex : 0,
+          difficulty: row.difficulty,
+        }));
+
+      if (fromBank.length > 0) {
+        this.questions = [...fromBank, ...this.questions];
+      }
+    } catch {
+      // Banca irraggiungibile: si continua con le domande di riserva.
+    }
   }
 
   /** Esposto per il QA: accoppia i giocatori e serve la prima palla. */

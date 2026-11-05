@@ -2,7 +2,7 @@
 
 Ultimo aggiornamento: 5 novembre 2026
 Ultimo commit: `9e1d023` (Speed Rush, Time Buzzer, Air Hockey).
-Le modifiche a flusso admin e overlay demo sono **non committate**.
+Le modifiche P0 (scaletta 40 round, bonus, Ruota, Time Buzzer, Air Hockey, auto-avanzamento) sono **non committate**.
 
 ---
 
@@ -54,6 +54,17 @@ La pausa ha un overlay a schermo intero: il gioco non è visibile dietro.
 
 **Nota:** la demo non parte da sola alla prima apparizione; per ora la apre l'admin. Con il flusso manuale è coerente, ma si può automatizzare dopo.
 
+### Flusso serata a 40 round (P0, 5 novembre)
+- Scaletta fissa in 5 atti da 8 round: il primo round di ogni atto è Quiz, l'Arena chiude solo l'ultimo round.
+- `ACT_DECKS` in `round-manager.service.ts`: Ruota 3 volte su 40 (atti 1, 3, 5), mai adiacente a Indovina chi.
+- Bonus Roulette e Basket lanciabili dall'admin: non consumano un round.
+  - `BONUS_RESULT` dal telefono; premi +300 / +150 / +75 ai primi tre.
+  - Basket: pagina `/basket?player=...`, 30 s di gioco e 40 s di countdown in TV (margine per l'ultimo tiro).
+- Time Buzzer: chi non preme entra con errore massimo ed è eliminato per primo.
+- Ruota della Fortuna: lettere deterministiche (prima le più rare), timer 75 s, 3/40.
+- Air Hockey: domande dalla banca (`GET /games/{id}/air-hockey/questions`), hardcoded solo come fallback.
+- Avanzamento automatico dopo 10 s, annullato da pausa, classifica, demo o Prossimo round.
+
 ---
 
 ## Da fare domani
@@ -61,12 +72,12 @@ La pausa ha un overlay a schermo intero: il gioco non è visibile dietro.
 1. **Caricare i video demo** in `apps/frontend/public/assets/demos/`
    (`quiz.mp4`, `music.mp4`, `image_blur.mp4`, `timeline.mp4`, `roulette.mp4`, `arena.mp4`, `speed_rush.mp4`, `time_buzzer.mp4`, `air_hockey_battle.mp4`, `wheel_of_fortune.mp4`).
 2. **QA dal vivo con backend acceso** (`127.0.0.1:8080`):
-   - flusso admin: prossimo round, classifica, pausa, demo;
+   - flusso admin: prossimo round, classifica, pausa, demo, bonus roulette/basket;
    - Time Buzzer e Air Hockey in TV + remote;
-   - verifica che in pausa la TV non mostri il gioco.
-3. **Prototipo bonus basket** (vedi brief sotto).
-4. **Altri 3 giochi bonus** da abbinare alla roulette.
-5. **Commit** delle modifiche attuali (admin flow + demo + README), poi push.
+   - verifica che in pausa la TV non mostri il gioco e che l'auto-avanzamento si fermi.
+3. **Altri 2 giochi bonus** (Memory, Tap/Swipe) da alternare a Roulette e Basket.
+4. **Ruota**: separare la fase di lancio dalla rivelazione (oggi le lettere si aprono durante il timer).
+5. **Commit** delle modifiche attuali, poi push.
 
 ---
 
@@ -114,14 +125,27 @@ Primo passo consigliato: solo canvas + canestro + punteggio, senza premio birra,
 
 ## File toccati (non committati)
 
-- `apps/frontend/src/app/components/admin/admin.ts`
-- `apps/frontend/src/app/components/admin/admin.html`
-- `apps/frontend/src/app/components/admin/admin.css`
-- `apps/frontend/src/app/components/game-component/game-component.ts`
-- `apps/frontend/src/app/components/game-component/game-component.html`
-- `apps/frontend/src/app/components/game-component/game-component.css`
+- `apps/frontend/src/app/services/round-manager.service.ts` (+ spec)
+- `apps/frontend/src/app/components/game-component/game-component.ts/.html/.css`
+- `apps/frontend/src/app/components/game-component/mode/time-buzzer.mode.ts`
+- `apps/frontend/src/app/components/game-component/mode/wheel-fortune.mode.ts`
+- `apps/frontend/src/app/components/game-component/mode/ping-pong.mode.ts`
+- `apps/frontend/src/app/components/game-component/interfaces/game-mode-type.ts`
+- `apps/frontend/src/app/components/admin/admin.ts/.html`
+- `apps/frontend/src/app/components/basket-bonus/basket-bonus.ts`
+- `apps/frontend/src/app/components/remote-component/remote-component.ts/.html`
+- `apps/frontend/src/app/services/game.service.ts`
+- `apps/frontend/src/app/testing/test-doubles.ts`
+- `apps/backend/src/main/java/com/pub_game_be/service/QuestionBankService.java`
+- `apps/backend/src/main/java/com/pub_game_be/controller/PartyGamesController.java`
 - `apps/frontend/public/assets/demos/README.md`
+- `BRIEF-GIOCHI-MANCANTI.md` (non tracciato)
 - `README_LAVORI.md` (questo file)
 
-Build FE verificata: `npx ng build` → exit 0.
-`git diff --check` → pulito.
+Verifiche del 5 novembre:
+- Build FE `npx ng build` → exit 0.
+- Build BE `./mvnw -B -DskipTests package` (JDK 25) → exit 0.
+- Test FE: 62/64. Restano 2 fallimenti preesistenti e non collegati al P0:
+  `LeaderboardDetailed` (spotlight dopo 9 s) e `Song` (etichetta fase 1).
+- Le spec di `RoundManagerService`, `GameComponent` e `RemoteComponent` passano.
+- Nessun test dal vivo: backend/WebSocket non avviati in questa sessione.

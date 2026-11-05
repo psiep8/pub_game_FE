@@ -37,8 +37,11 @@
       <button class="flow-btn" (click)="toggleGamePause()">⏸️ PAUSA / RIPRENDI</button>
       <button class="flow-btn" (click)="showDemo()">🎥 DEMO GIOCO</button>
       <button class="flow-btn ghost" (click)="hideDemo()">✖️ CHIUDI DEMO</button>
+      <button class="flow-btn" (click)="startBonus('ROULETTE')">🎰 BONUS ROULETTE</button>
+      <button class="flow-btn" (click)="startBonus('BASKET')">🏀 BONUS BASKET</button>
+      <button class="flow-btn ghost" (click)="stopBonus()">✖️ CHIUDI BONUS</button>
     </div>
-    <div class="flow-note">Nessun avanzamento automatico: la TV aspetta i comandi qui.</div>
+    <div class="flow-note">Avanzamento automatico dopo 10 s, fermabile con PAUSA o PROSSIMO ROUND.</div>
   </div>
 
   

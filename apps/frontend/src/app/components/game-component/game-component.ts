@@ -101,6 +101,14 @@ export class GameComponent implements OnInit, OnDestroy {
   preStartCountdown = signal<number>(0);
   isPaused = signal(false);
   demoType = signal<string | null>(null);
+  bonusActive = signal(false);
+  bonusType = signal<string | null>(null);
+  bonusScores = signal<Array<{ playerName: string; score: number }>>([]);
+  bonusSecondsLeft = signal(0);
+  bonusShowResult = signal(false);
+  bonusResult = signal<Array<{ playerName: string; score: number }>>([]);
+  autoAdvanceSeconds = signal(0);
+  autoAdvanceEnabled = signal(true);
   animatedCategoryId = signal<number | null>(null);
 
 
@@ -125,6 +133,10 @@ export class GameComponent implements OnInit, OnDestroy {
   });
 
   private arenaFinished = false;
+  private bonusScoresMap = new Map<string, number>();
+  private bonusAwarded = false;
+  private bonusTimer?: ReturnType<typeof setInterval>;
+  private autoAdvanceTimer?: ReturnType<typeof setInterval>;
 
   remoteUrl = `${environment.frontendUrl}/play`;
 
@@ -306,6 +318,12 @@ export class GameComponent implements OnInit, OnDestroy {
         this.demoType.set(status.type || this.currentMode()?.type || 'QUIZ');
       } else if (status.action === 'ADMIN_HIDE_DEMO') {
         this.demoType.set(null);
+      } else if (status.action === 'ADMIN_START_BONUS') {
+        void this.startBonus(status.type || 'ROULETTE');
+      } else if (status.action === 'ADMIN_STOP_BONUS') {
+        this.finishBonus();
+      } else if (status.action === 'BONUS_RESULT') {
+        this.recordBonusResult(status.playerName, Number(status.score) || 0);
       }
     });
 
@@ -350,6 +368,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
     if (this.isSpinning()) return;
 
+    this.cancelAutoAdvance();
 
     if (this.roundManager.isGameOver()) {
       alert('🏁 Partita completata! Resetta per ricominciare.');
@@ -421,6 +440,19 @@ export class GameComponent implements OnInit, OnDestroy {
         onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
         onRoundEnded: () => this.onArenaEnded(),
         onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!, event),
+        loadAirHockeyQuestions: async (difficulty: string) => {
+          const rows = await firstValueFrom(
+            this.gameService.getAirHockeyQuestions(this.currentGameId()!, difficulty, 12),
+          );
+          return rows.map((row) => ({
+            text: row.question,
+            options: row.options,
+            correctIndex: Math.max(0, row.options.indexOf(row.correctAnswer)),
+            difficulty: (row.difficulty === 'MEDIUM' || row.difficulty === 'HARD'
+              ? row.difficulty
+              : 'EASY') as 'EASY' | 'MEDIUM' | 'HARD',
+          }));
+        },
         onAnswerReceived: (result: any) => {
 
           if (result && result.playerName) {
@@ -428,6 +460,13 @@ export class GameComponent implements OnInit, OnDestroy {
 
             const points = result.points || 0;
             const isCorrect = !!result.isCorrect;
+
+            // Durante un bonus i punti del round non contano: si classifica
+            // il risultato del bonus e si premiano solo i primi tre.
+            if (this.bonusActive()) {
+              this.recordBonusResult(result.playerName, isCorrect ? 1 : 0);
+              return;
+            }
 
 
             this.leaderboardService.addPoints(result.playerName, points, isCorrect);
@@ -596,6 +635,11 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   private onModeTimeout() {
+    if (this.bonusActive()) {
+      this.finishBonus();
+      return;
+    }
+
     const mode = this.currentMode();
     if (!mode) return;
 
@@ -768,9 +812,11 @@ export class GameComponent implements OnInit, OnDestroy {
 
 
     if (leaderboardType) {
-
       this.pendingLeaderboardType.set(leaderboardType);
+      return;
     }
+
+    this.startAutoAdvance();
   }
 
   showPendingLeaderboard() {
@@ -795,6 +841,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   adminNextRound(): void {
+    this.cancelAutoAdvance();
     this.showLeaderboardQuick.set(false);
     this.showLeaderboardDetailed.set(false);
     this.isShowingLeaderboard.set(false);
@@ -804,6 +851,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   adminShowLeaderboard(): void {
+    this.cancelAutoAdvance();
     if (this.isSpinning()) return;
 
     const type = this.pendingLeaderboardType()
@@ -823,6 +871,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   togglePause() {
+    this.cancelAutoAdvance();
     const mode = this.currentMode();
     if (!mode) return;
 
@@ -835,8 +884,192 @@ export class GameComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Bonus: parte dalla TV su comando admin e non consuma un round. */
+  async startBonus(type: string): Promise<void> {
+    if (this.isSpinning() || this.bonusActive()) return;
+
+    this.cancelAutoAdvance();
+    this.showLeaderboardQuick.set(false);
+    this.showLeaderboardDetailed.set(false);
+    this.isShowingLeaderboard.set(false);
+    this.pendingLeaderboardType.set(null);
+    this.reset();
+
+    this.bonusActive.set(true);
+    this.bonusType.set(type);
+    this.bonusAwarded = false;
+    this.bonusScoresMap.clear();
+    this.bonusScores.set([]);
+    this.bonusResult.set([]);
+    this.bonusShowResult.set(false);
+
+    if (!this.currentGameId()) {
+      const game = await firstValueFrom(this.gameService.createGame());
+      this.currentGameId.set(game.id);
+      this.ws.subscribeToGame(game.id);
+    }
+
+    if (type === 'BASKET') {
+      this.ws.broadcastStatus(this.currentGameId(), {
+        action: 'SHOW_QUESTION',
+        type: 'BONUS_BASKET',
+        payload: JSON.stringify({ type: 'BONUS_BASKET', question: 'BONUS BASKET' }),
+      });
+      this.startBasketCountdown();
+      return;
+    }
+
+    const colors = ['ROSSO', 'NERO', 'VERDE', 'BLU', 'GIALLO', 'BIANCO'];
+    const payload = {
+      type: 'ROULETTE',
+      question: 'Scegli un colore!',
+      options: colors,
+      correctAnswer: colors[Math.floor(Math.random() * colors.length)],
+    };
+
+    const mode = this.gameModeService.createMode({
+      type: 'ROULETTE',
+      payload,
+      gameId: this.currentGameId()!,
+      onTimerTick: (seconds: number) => this.timer.set(seconds),
+      onTimerEnd: () => this.onModeTimeout(),
+      onAnswerReceived: (result: any) => {
+        if (result?.playerName) {
+          this.recordBonusResult(result.playerName, result.isCorrect ? 1 : 0);
+        }
+      },
+      onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!, event),
+    });
+
+    this.currentMode.set(mode);
+    this.phase.set('QUESTION');
+    this.showQuestion.set(true);
+    this.timer.set(mode.timerDuration);
+
+    // Al telefono arrivano solo le opzioni: il colore vincente resta sul server/TV.
+    const publicPayload = JSON.stringify({
+      type: 'ROULETTE',
+      question: payload.question,
+      options: payload.options,
+    });
+    this.ws.broadcastStatus(this.currentGameId()!, {
+      action: 'SHOW_QUESTION',
+      type: 'ROULETTE',
+      payload: publicPayload,
+      rawPayload: publicPayload,
+    });
+
+    await mode.start();
+  }
+
+  private startBasketCountdown(): void {
+    this.clearBonusTimer();
+    this.bonusSecondsLeft.set(40);
+    this.bonusTimer = setInterval(() => {
+      const next = this.bonusSecondsLeft() - 1;
+      this.bonusSecondsLeft.set(Math.max(0, next));
+      if (next <= 0) this.finishBonus();
+    }, 1000);
+  }
+
+  private recordBonusResult(playerName: string, score: number): void {
+    const name = String(playerName || '').trim();
+    if (!name) return;
+
+    const value = Number.isFinite(score) ? score : 0;
+    const previous = this.bonusScoresMap.get(name) ?? 0;
+    this.bonusScoresMap.set(name, Math.max(previous, value));
+    this.bonusScores.set(
+      [...this.bonusScoresMap.entries()]
+        .map(([player, points]) => ({ playerName: player, score: points }))
+        .sort((a, b) => b.score - a.score),
+    );
+  }
+
+  private finishBonus(): void {
+    if (!this.bonusActive() || this.bonusAwarded) return;
+    this.bonusAwarded = true;
+    this.clearBonusTimer();
+
+    const ranking = [...this.bonusScoresMap.entries()]
+      .filter(([, score]) => score > 0)
+      .sort((a, b) => b[1] - a[1]);
+
+    const prizes = [300, 150, 75];
+    ranking.slice(0, prizes.length).forEach(([playerName], index) => {
+      this.leaderboardService.addPoints(playerName, prizes[index], true);
+    });
+
+    const summary = ranking.slice(0, 5).map(([playerName, score]) => ({ playerName, score }));
+    this.bonusResult.set(summary);
+    this.bonusShowResult.set(true);
+
+    this.ws.broadcastStatus(this.currentGameId(), {
+      action: 'BONUS_ENDED',
+      ranking: summary,
+    });
+
+    this.bonusActive.set(false);
+    this.currentMode.set(null);
+    this.showQuestion.set(false);
+    this.phase.set('QUESTION');
+    this.bonusSecondsLeft.set(0);
+
+    // Il tipo resta per il riepilogo; non azzerarlo se nel frattempo parte un altro bonus.
+    setTimeout(() => {
+      if (this.bonusActive()) return;
+      this.bonusShowResult.set(false);
+      this.bonusType.set(null);
+    }, 6000);
+  }
+
+  private startAutoAdvance(): void {
+    if (!this.autoAdvanceEnabled() || this.bonusActive()) return;
+
+    this.cancelAutoAdvance();
+    this.autoAdvanceSeconds.set(10);
+    this.autoAdvanceTimer = setInterval(() => {
+      if (this.isPaused() || this.isShowingLeaderboard() || this.demoType()) {
+        this.cancelAutoAdvance();
+        return;
+      }
+
+      const next = this.autoAdvanceSeconds() - 1;
+      this.autoAdvanceSeconds.set(Math.max(0, next));
+      if (next <= 0) {
+        this.cancelAutoAdvance();
+        this.adminNextRound();
+      }
+    }, 1000);
+  }
+
+  private cancelAutoAdvance(): void {
+    if (this.autoAdvanceTimer) {
+      clearInterval(this.autoAdvanceTimer);
+      this.autoAdvanceTimer = undefined;
+    }
+    this.autoAdvanceSeconds.set(0);
+  }
+
+  private clearBonusTimer(): void {
+    if (this.bonusTimer) {
+      clearInterval(this.bonusTimer);
+      this.bonusTimer = undefined;
+    }
+  }
+
   private reset() {
     this.arenaFinished = false;
+    this.cancelAutoAdvance();
+    this.clearBonusTimer();
+    this.bonusActive.set(false);
+    this.bonusType.set(null);
+    this.bonusScores.set([]);
+    this.bonusResult.set([]);
+    this.bonusShowResult.set(false);
+    this.bonusSecondsLeft.set(0);
+    this.bonusScoresMap.clear();
+    this.bonusAwarded = false;
     this.ws.responses.set([]);
     this.showQuestion.set(false);
     this.round.set(null);

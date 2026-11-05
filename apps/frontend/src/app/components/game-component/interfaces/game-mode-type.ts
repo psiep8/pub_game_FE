@@ -34,6 +34,13 @@ export interface GameModeConfig {
   onPlayerEliminated?: (playerName: string) => void;
   /** Arena: la partita è finita (rimasto un solo giocatore o tempo scaduto). */
   onRoundEnded?: () => void;
+  /** Air Hockey: domande pescate dalla banca all'avvio del round. */
+  loadAirHockeyQuestions?: (difficulty: string) => Promise<Array<{
+    text: string;
+    options: string[];
+    correctIndex: number;
+    difficulty: 'EASY' | 'MEDIUM' | 'HARD';
+  }>>;
 }
 
 export interface GameModeResult {

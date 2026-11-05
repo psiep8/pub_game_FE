@@ -106,7 +106,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR' | 'BUZZ_OUT' | 'ELIMINATED'>('WAITING');
-  questionType = signal<'ROULETTE' | 'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE'>('QUIZ');
+  questionType = signal<'ROULETTE' | 'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'BONUS_BASKET'>('QUIZ');
   hasAnswered = signal(false);
   isBlocked = signal(false);
 
@@ -210,6 +210,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
   isScreaming = signal(false);
   microphoneError = signal<string | null>(null);
 
+  getBasketUrl(): string {
+    return '/basket?player=' + encodeURIComponent(this.nickname() ?? '');
+  }
+
   ngOnInit(): void {
     this.setupPWA();
     this.checkForUpdates();
@@ -240,8 +244,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         case 'SHOW_QUESTION':
           this.questionType.set(status.type);
           this.isBlocked.set(false);
-          if (status.type === 'ROULETTE') {
-
+          if (status.type === 'ROULETTE' || status.type === 'BONUS_BASKET') {
             this.gameState.set('VOTING');
             this.hasAnswered.set(false);
             this.startTime = Date.now();
@@ -270,6 +273,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'AIR_HOCKEY_BATTLE_STATE':
           this.handleAirHockeyBattleState(status);
+          break;
+
+        case 'BONUS_ENDED':
+          this.questionType.set('QUIZ');
+          this.gameState.set('WAITING');
           break;
 
         case 'ROUND_ENDED':

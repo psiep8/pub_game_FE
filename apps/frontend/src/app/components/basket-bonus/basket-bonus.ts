@@ -5,8 +5,10 @@ import {
   ElementRef,
   OnDestroy,
   ViewChild,
+  inject,
   signal,
 } from '@angular/core';
+import { WebSocketService } from '../../services/web-socket.service';
 
 type GameState = 'READY' | 'PLAYING' | 'OVER';
 
@@ -262,6 +264,8 @@ const MAX_SPEED = 1600;
 })
 export class BasketBonus implements AfterViewInit, OnDestroy {
   @ViewChild('court') private canvasRef!: ElementRef<HTMLCanvasElement>;
+
+  private ws = inject(WebSocketService);
 
   readonly score = signal(0);
   readonly shots = signal(0);
@@ -728,6 +732,18 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     this.state.set('OVER');
     this.message.set(null);
 
+    // Il punteggio del bonus entra nella partita: la TV premia i primi tre.
+    const playerName = this.resolvePlayerName();
+    if (playerName) {
+      const gameId = Number(localStorage.getItem('activeGameId')) || 1;
+      this.ws.subscribeToGame(gameId);
+      this.ws.broadcastStatus(gameId, {
+        action: 'BONUS_RESULT',
+        playerName,
+        score: this.score(),
+      });
+    }
+
     if (this.score() > this.best()) {
       this.best.set(this.score());
       try {
@@ -749,6 +765,16 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     this.message.set(text);
     if (this.messageTimer) clearTimeout(this.messageTimer);
     this.messageTimer = setTimeout(() => this.message.set(null), 1100);
+  }
+
+  private resolvePlayerName(): string {
+    try {
+      const fromQuery = (new URLSearchParams(window.location.search).get('player') || '').trim();
+      if (fromQuery) return fromQuery;
+      return (localStorage.getItem('nickname') || localStorage.getItem('playerName') || '').trim();
+    } catch {
+      return '';
+    }
   }
 
   private readBest(): number {

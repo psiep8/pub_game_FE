@@ -1,6 +1,7 @@
 package com.pub_game_be.controller;
 
 import com.pub_game_be.service.PartyGameService;
+import com.pub_game_be.service.QuestionBankService;
 import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -21,11 +22,22 @@ import java.util.Map;
 public class PartyGamesController {
 
     private final PartyGameService partyGameService;
+    private final QuestionBankService questionBank;
     private final SimpMessagingTemplate messagingTemplate;
 
-    public PartyGamesController(PartyGameService partyGameService, SimpMessagingTemplate messagingTemplate) {
+    public PartyGamesController(PartyGameService partyGameService, QuestionBankService questionBank,
+            SimpMessagingTemplate messagingTemplate) {
         this.partyGameService = partyGameService;
+        this.questionBank = questionBank;
         this.messagingTemplate = messagingTemplate;
+    }
+
+    /** Domande dell'Air Hockey dalla banca, mai scritte nel codice del client. */
+    @GetMapping("/{gameId}/air-hockey/questions")
+    public List<Map<String, Object>> airHockeyQuestions(@PathVariable("gameId") Long gameId,
+            @RequestParam(name = "difficulty", defaultValue = "MIXED") String difficulty,
+            @RequestParam(name = "count", defaultValue = "12") int count) {
+        return questionBank.quizBatch(difficulty, Math.max(1, Math.min(30, count)));
     }
 
     @PostMapping("/{gameId}/timeline-answer")

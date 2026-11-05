@@ -326,6 +326,15 @@ export class Admin implements OnInit, OnDestroy {
     this.ws.broadcastStatus(this.activeGameId(), { action: 'ADMIN_HIDE_DEMO' });
   }
 
+  startBonus(type: 'ROULETTE' | 'BASKET'): void {
+    this.ws.broadcastStatus(this.activeGameId(), { action: 'ADMIN_START_BONUS', type });
+    this.vibrate(30);
+  }
+
+  stopBonus(): void {
+    this.ws.broadcastStatus(this.activeGameId(), { action: 'ADMIN_STOP_BONUS' });
+  }
+
   private vibrate(pattern: number | number[]) {
     if ('vibrate' in navigator) {
       navigator.vibrate(pattern);
