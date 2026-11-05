@@ -59,7 +59,7 @@
     <p>Come ti chiami stasera?</p>
     <input [(ngModel)]="tempNickname" placeholder="Il tuo nickname" (keyup.enter)="setNickname()">
     <button (click)="setNickname()" class="join-btn">ENTRA IN PARTITA</button>
-    <div class="setup-foot">4 squadre · 24 round · 1 TV</div>
+    <div class="setup-foot">4 squadre · 40 round · 1 TV</div>
   </div>
   } @else {
 
@@ -218,6 +218,14 @@
     }
     @case ('AIR_HOCKEY_BATTLE') {
     <div class="ping-remote">
+      @if (pingGoal(); as goal) {
+      <div class="ping-goal-overlay" [class.conceded]="!goal.scored">
+        <span class="ping-goal-kicker">{{ goal.scored ? 'L\'AVVERSARIO HA SBAGLIATO' : 'HAI SBAGLIATO' }}</span>
+        <span class="ping-goal-word">{{ goal.scored ? 'GOAL FATTO!' : 'GOAL SUBITO' }}</span>
+        <span class="ping-goal-score">{{ goal.mine }} – {{ goal.opponent }}</span>
+        <span class="ping-goal-note">{{ goal.scored ? 'Punto per te' : 'Punto per l\'avversario' }}</span>
+      </div>
+      }
       <div class="ping-score">
         <div class="ping-side" [class.active]="pingMyTurn()">
           <span class="ping-side-name">{{ nickname() }}</span>
@@ -234,6 +242,7 @@
       <div class="ping-card">
         <div class="ping-head">
           <span class="ping-tag">TOCCA A TE</span>
+          <span class="ping-diff">{{ difficultyLabel(q.difficulty) }}</span>
           <span class="ping-clock" [class.hot]="pingServeLeft() <= 4">{{ pingServeLeft() }}s</span>
         </div>
         <p class="ping-question">{{ q.text }}</p>

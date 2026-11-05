@@ -9,7 +9,7 @@
     <header class="lobby-brand">
       <div class="lobby-kicker">IL GIOCO DEL PUB</div>
       <h1 class="lobby-title">PUB <span>GAME</span></h1>
-      <p class="lobby-sub">4 squadre · 1 TV · 24 round</p>
+      <p class="lobby-sub">4 squadre · 1 TV · 40 round</p>
     </header>
 
     <div class="lobby-grid">
@@ -20,21 +20,18 @@
         <p>Inquadra il QR con la camera</p>
         <div class="game-id-badge">PARTITA #{{ currentGameId() }}</div>
         } @else {
-        <div class="setup-loader">
-          <div class="loader"></div>
-          <h3>Creazione partita in corso...</h3>
-        </div>
+        <button (click)="openLobby()" class="extract-btn lobby-play">
+          <span class="icon">📱</span>
+          APRI LOBBY
+        </button>
         }
       </div>
 
       <div class="lobby-steps">
         <div class="lobby-step"><span>1</span><div><b>Entra col telefono</b><small>Nickname, poi sei in squadra</small></div></div>
         <div class="lobby-step"><span>2</span><div><b>Ascolta la TV</b><small>Rispondi, prenota, trascina</small></div></div>
-        <div class="lobby-step"><span>3</span><div><b>Scala la classifica</b><small>24 round in tre atti</small></div></div>
-        <button (click)="startNewRound()" class="extract-btn lobby-play" [disabled]="!currentGameId()">
-          <span class="icon">🚀</span>
-          GIOCA ORA
-        </button>
+        <div class="lobby-step"><span>3</span><div><b>Scala la classifica</b><small>40 round in cinque atti</small></div></div>
+        <div class="lobby-wait">Il presentatore avvia il round dall'admin.</div>
       </div>
     </div>
   </div>
@@ -197,6 +194,27 @@
 </div>
 
 
+@if (demoType(); as demo) {
+<div class="demo-overlay">
+  <div class="demo-frame">
+    <div class="demo-head">
+      <span class="demo-badge">🎬 COME SI GIOCA</span>
+      <span class="demo-name">{{ getModeName(demo) }}</span>
+      <span class="demo-live">LOOP</span>
+    </div>
+    <div class="demo-stage">
+      <video class="demo-video" [src]="'/assets/demos/' + demo.toLowerCase() + '.mp4'" autoplay muted loop playsinline></video>
+      <div class="demo-fallback">
+        <div class="demo-orb">🎮</div>
+        <div class="demo-fallback-title">{{ getModeName(demo) }}</div>
+        <div class="demo-fallback-sub">Demo video non ancora caricata</div>
+      </div>
+    </div>
+    <div class="demo-foot">Il presentatore spiega dal vivo · video muto in loop</div>
+  </div>
+</div>
+}
+
 @if (showResetModal()) {
 <div class="modal-overlay">
   <div class="modal-content">
@@ -216,33 +234,14 @@
   <div class="pause-card">
     <h2>⏸️ GIOCO IN PAUSA</h2>
     <div class="pause-actions">
-      <button (click)="togglePause()" class="extract-btn">
-        <span class="icon">▶️</span>
-        RIPRENDI
-      </button>
+      <p class="pause-hint">Riprendi dall'admin quando il presentatore è pronto.</p>
     </div>
   </div>
 </div>
 }
 
 
-@if (round()?.status === 'REVEAL' && !isSpinning() && currentMode()?.isRevealed() && !isShowingLeaderboard()) {
-@if (resultType() === 'correct' || resultPlayerName() === 'Tempo Scaduto!' || currentMode()?.type === 'ROULETTE' || (currentMode()?.type === 'ARENA' && currentMode()?.getDisplayData()?.gameEnded)) {
-<div class="central-action next-right">
-  @if (pendingLeaderboardType()) {
-  <button (click)="showPendingLeaderboard()" class="extract-btn classifica">
-    <span class="icon">🏆</span>
-    CLASSIFICA
-  </button>
-  } @else {
-  <button (click)="startNewRound()" class="extract-btn">
-    <span class="icon">🎲</span>
-    PROSSIMO ROUND
-  </button>
-  }
-</div>
-}
-}
+<!-- Avanzamento e classifica sono controllati dall'admin: nessun pulsante in TV. -->
 
 </div>
 

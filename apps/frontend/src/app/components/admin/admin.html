@@ -23,6 +23,24 @@
     </div>
   }
 
+  <div class="flow-panel">
+    <div class="flow-title">🎬 CONTROLLO FLUSSO — decide il presentatore</div>
+    <div class="flow-row">
+      <label class="flow-id">PARTITA #
+        <input type="number" min="1" [value]="gameIdInput()" (input)="setGameId($event)" />
+      </label>
+      <span class="flow-id-hint">Il numero mostrato sulla lobby TV</span>
+    </div>
+    <div class="flow-grid">
+      <button class="flow-btn primary" (click)="nextRound()">▶️ PROSSIMO ROUND</button>
+      <button class="flow-btn" (click)="showLeaderboard()">🏆 MOSTRA CLASSIFICA</button>
+      <button class="flow-btn" (click)="toggleGamePause()">⏸️ PAUSA / RIPRENDI</button>
+      <button class="flow-btn" (click)="showDemo()">🎥 DEMO GIOCO</button>
+      <button class="flow-btn ghost" (click)="hideDemo()">✖️ CHIUDI DEMO</button>
+    </div>
+    <div class="flow-note">Nessun avanzamento automatico: la TV aspetta i comandi qui.</div>
+  </div>
+
   
   <div class="admin-content">
 

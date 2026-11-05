@@ -4,6 +4,7 @@ import {MobileOnlyGuard} from './guard/mobile-only.guard';
 import {DesktopOnlyGuard} from './guard/desktop-only.guard';
 import {RemoteComponent} from './components/remote-component/remote-component';
 import {Admin} from './components/admin/admin';
+import {BasketBonus} from './components/basket-bonus/basket-bonus';
 
 export const routes: Routes = [
   {
@@ -19,6 +20,10 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: Admin
+  },
+  {
+    path: 'basket',
+    component: BasketBonus
   },
   { path: '', redirectTo: 'tv', pathMatch: 'full' }
 ];

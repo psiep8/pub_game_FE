@@ -26,6 +26,7 @@ export class Admin implements OnInit, OnDestroy {
   showAdminControls = signal(false);
   gameState = signal<'WAITING' | 'ACTIVE' | 'ROUND_ENDED'>('WAITING');
   payload = signal<any>(null);
+  gameIdInput = signal<number>(Number(localStorage.getItem('activeGameId')) || 1);
 
   
   colorMap: { [key: string]: string } = {
@@ -257,7 +258,7 @@ export class Admin implements OnInit, OnDestroy {
 
     
 
-    this.ws.broadcastStatus(1, {
+    this.ws.broadcastStatus(this.activeGameId(), {
       action: 'ADMIN_CONFIRM_CORRECT',
       playerName: player
     });
@@ -275,7 +276,7 @@ export class Admin implements OnInit, OnDestroy {
 
     
 
-    this.ws.broadcastStatus(1, {
+    this.ws.broadcastStatus(this.activeGameId(), {
       action: 'ADMIN_CONFIRM_WRONG',
       playerName: player
     });
@@ -285,6 +286,45 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   
+
+  private activeGameId(): number {
+    const value = Number(this.gameIdInput());
+    return Number.isFinite(value) && value > 0 ? value : 1;
+  }
+
+  setGameId(event: Event): void {
+    const value = Number((event.target as HTMLInputElement).value);
+    if (!Number.isFinite(value) || value <= 0) return;
+    this.gameIdInput.set(value);
+    localStorage.setItem('activeGameId', String(value));
+  }
+
+  nextRound(): void {
+    this.ws.broadcastStatus(this.activeGameId(), { action: 'ADMIN_NEXT_ROUND' });
+    this.vibrate(30);
+  }
+
+  showLeaderboard(): void {
+    this.ws.broadcastStatus(this.activeGameId(), { action: 'ADMIN_SHOW_LEADERBOARD' });
+    this.vibrate(30);
+  }
+
+  toggleGamePause(): void {
+    this.ws.broadcastStatus(this.activeGameId(), { action: 'ADMIN_TOGGLE_PAUSE' });
+    this.vibrate(30);
+  }
+
+  showDemo(): void {
+    this.ws.broadcastStatus(this.activeGameId(), {
+      action: 'ADMIN_SHOW_DEMO',
+      type: this.currentQuestionType(),
+    });
+    this.vibrate(30);
+  }
+
+  hideDemo(): void {
+    this.ws.broadcastStatus(this.activeGameId(), { action: 'ADMIN_HIDE_DEMO' });
+  }
 
   private vibrate(pattern: number | number[]) {
     if ('vibrate' in navigator) {

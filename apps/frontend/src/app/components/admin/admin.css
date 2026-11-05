@@ -407,3 +407,17 @@
   .decision-btn .btn-label { font-size: 1.15rem; }
   .admin-footer { padding: 6px 12px; }
 }
+
+/* Controllo flusso del presentatore */
+.flow-panel { margin: 0 18px 18px; padding: 14px 16px; background: #fff7e6; color: #1e1914; border: 3px solid #1e1914; box-shadow: 6px 6px 0 #d94f2b; }
+.flow-title { font-family: var(--font-mono, monospace); font-size: .72rem; font-weight: 800; letter-spacing: .12em; margin-bottom: 10px; }
+.flow-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.flow-btn { padding: 12px 10px; background: #f5efe3; color: #1e1914; border: 2px solid #1e1914; box-shadow: 3px 3px 0 #1e1914; font-family: var(--font-mono, monospace); font-size: .72rem; font-weight: 800; letter-spacing: .04em; cursor: pointer; }
+.flow-btn.primary { background: #b8e04a; }
+.flow-btn.ghost { background: transparent; box-shadow: none; }
+.flow-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #1e1914; }
+.flow-note { margin-top: 10px; font-family: var(--font-mono, monospace); font-size: .68rem; opacity: .65; }
+.flow-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.flow-id { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono, monospace); font-size: .72rem; font-weight: 800; }
+.flow-id input { width: 90px; padding: 6px 8px; border: 2px solid #1e1914; background: #fff; font: inherit; font-size: .9rem; }
+.flow-id-hint { font-family: var(--font-mono, monospace); font-size: .66rem; opacity: .6; }

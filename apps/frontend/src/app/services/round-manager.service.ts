@@ -8,14 +8,14 @@ export interface RoundConfig {
   nextRoundType: GameModeType | null;
 }
 
-const TOTAL_ROUNDS = 24;
+const TOTAL_ROUNDS = 40;
 const STORAGE_KEY = 'roundProgress';
 
 /**
- * Scaletta in tre atti da otto round.
+ * Scaletta in cinque atti da otto round.
  *
  * L'ordine è fisso e già verificato rispetto ai vincoli: mai due giochi in
- * tempo reale di fila (Arena, Speed Rush, Ping Pong), mai due giochi a
+ * tempo reale di fila (Arena, Speed Rush, Air Hockey), mai due giochi a
  * prenotazione consecutivi (Musica, Indovina chi), il primo round di ogni atto
  * è sempre Quiz.
  */
@@ -23,11 +23,13 @@ const ACT_DECKS: GameModeType[][] = [
   ['QUIZ', 'MUSIC', 'TIME_BUZZER', 'WHEEL_OF_FORTUNE', 'IMAGE_BLUR', 'TIMELINE', 'QUIZ', 'SPEED_RUSH'],
   ['QUIZ', 'IMAGE_BLUR', 'TIMELINE', 'ARENA', 'MUSIC', 'TIME_BUZZER', 'WHEEL_OF_FORTUNE', 'AIR_HOCKEY_BATTLE'],
   ['QUIZ', 'TIMELINE', 'MUSIC', 'SPEED_RUSH', 'TIME_BUZZER', 'AIR_HOCKEY_BATTLE', 'WHEEL_OF_FORTUNE', 'ARENA'],
+  ['QUIZ', 'MUSIC', 'TIME_BUZZER', 'IMAGE_BLUR', 'ARENA', 'TIMELINE', 'WHEEL_OF_FORTUNE', 'SPEED_RUSH'],
+  ['QUIZ', 'TIMELINE', 'MUSIC', 'SPEED_RUSH', 'IMAGE_BLUR', 'AIR_HOCKEY_BATTLE', 'WHEEL_OF_FORTUNE', 'TIME_BUZZER'],
 ];
 
 /** Classifiche: rapida a metà atto, dettagliata a fine atto. */
-const QUICK_LEADERBOARD_ROUNDS = [4, 12, 20];
-const DETAILED_LEADERBOARD_ROUNDS = [8, 16, 24];
+const QUICK_LEADERBOARD_ROUNDS = [4, 12, 20, 28, 36];
+const DETAILED_LEADERBOARD_ROUNDS = [8, 16, 24, 32, 40];
 
 /**
  * Gestisce l'avanzamento della partita: quanti round mancano, quale modalità
@@ -163,7 +165,7 @@ export class RoundManagerService {
 
     try {
       const parsed = JSON.parse(saved) as RoundConfig;
-      // Una scaletta vecchia (30 round) non deve trascinarsi dietro indici
+      // Una scaletta vecchia (es. 24 round) non deve trascinarsi dietro indici
       // fuori range: in quel caso si riparte puliti.
       if (parsed?.totalRounds !== TOTAL_ROUNDS) return;
       this.roundConfig.set(parsed);

@@ -3,17 +3,20 @@ import { GameModeBase } from '../interfaces/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../interfaces/game-mode-type';
 
 type Side = 'a' | 'b';
+type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
 interface CourtSide {
   playerName: string;
   score: number;
   isBot: boolean;
+  shots: number;
 }
 
 interface PingQuestion {
   text: string;
   options: string[];
   correctIndex: number;
+  difficulty: Difficulty;
 }
 
 interface CourtEvent {
@@ -37,26 +40,56 @@ interface Court {
   zigzag: boolean;
 }
 
-const POINTS_TO_WIN = 5;
+const POINTS_TO_WIN = 7;
 const SERVE_SECONDS = 12;
 
-const QUESTION_BANK: PingQuestion[] = [
-  { text: "Qual è la capitale dell'Australia?", options: ['Canberra', 'Sydney', 'Melbourne', 'Perth'], correctIndex: 0 },
-  { text: 'Chi ha dipinto la Gioconda?', options: ['Leonardo da Vinci', 'Michelangelo', 'Raffaello', 'Caravaggio'], correctIndex: 0 },
-  { text: 'Quante corde ha un violino?', options: ['4', '5', '6', '3'], correctIndex: 0 },
-  { text: 'In che anno è caduto il Muro di Berlino?', options: ['1989', '1991', '1987', '1985'], correctIndex: 0 },
-  { text: "Qual è il fiume più lungo d'Italia?", options: ['Po', 'Tevere', 'Adige', 'Arno'], correctIndex: 0 },
-  { text: 'Quale pianeta è il più vicino al Sole?', options: ['Mercurio', 'Venere', 'Marte', 'Terra'], correctIndex: 0 },
-  { text: 'Chi ha scritto la Divina Commedia?', options: ['Dante Alighieri', 'Petrarca', 'Boccaccio', 'Manzoni'], correctIndex: 0 },
-  { text: 'Quante sono le regioni italiane?', options: ['20', '19', '21', '18'], correctIndex: 0 },
-  { text: 'Quale elemento chimico ha simbolo Au?', options: ['Oro', 'Argento', 'Rame', 'Alluminio'], correctIndex: 0 },
-  { text: 'In quale sport si usa il termine "ace"?', options: ['Tennis', 'Calcio', 'Basket', 'Rugby'], correctIndex: 0 },
-  { text: 'Qual è il mare più salato?', options: ['Mar Morto', 'Mediterraneo', 'Mar Rosso', 'Adriatico'], correctIndex: 0 },
-  { text: 'Chi ha composto la Nona Sinfonia?', options: ['Beethoven', 'Mozart', 'Bach', 'Chopin'], correctIndex: 0 },
-  { text: 'Qual è la moneta del Giappone?', options: ['Yen', 'Won', 'Yuan', 'Ringgit'], correctIndex: 0 },
-  { text: 'Quanti giocatori ha una squadra di rugby in campo?', options: ['15', '11', '13', '7'], correctIndex: 0 },
-  { text: 'Mescolando blu e giallo si ottiene...', options: ['Verde', 'Viola', 'Arancione', 'Marrone'], correctIndex: 0 },
-  { text: 'Chi ha scritto "1984"?', options: ['George Orwell', 'Aldous Huxley', 'Ray Bradbury', 'Franz Kafka'], correctIndex: 0 },
+const question = (
+  difficulty: Difficulty,
+  text: string,
+  options: string[],
+  correctIndex = 0
+): PingQuestion => ({ difficulty, text, options, correctIndex });
+
+/** Primi 3 tiri a testa: domande facili. */
+const EASY_QUESTIONS: PingQuestion[] = [
+  question('EASY', "Qual è la capitale d'Italia?", ['Roma', 'Milano', 'Napoli', 'Torino']),
+  question('EASY', 'Quanti giorni ha una settimana?', ['7', '5', '10', '12']),
+  question('EASY', 'Di che colore è il cielo in una giornata serena?', ['Azzurro', 'Verde', 'Rosso', 'Nero']),
+  question('EASY', 'Quanto fa 2 + 2?', ['4', '5', '3', '6']),
+  question('EASY', 'Quante zampe ha un ragno?', ['8', '6', '4', '10']),
+  question('EASY', 'Su quale pianeta viviamo?', ['Terra', 'Marte', 'Luna', 'Venere']),
+  question('EASY', 'Qual è il giorno dopo lunedì?', ['Martedì', 'Domenica', 'Venerdì', 'Mercoledì']),
+  question('EASY', 'Quanti mesi ha un anno?', ['12', '10', '11', '13']),
+  question('EASY', 'Qual è il colore del latte?', ['Bianco', 'Nero', 'Rosso', 'Blu']),
+  question('EASY', 'In quale stagione di solito nevica?', ['Inverno', 'Estate', 'Primavera', 'Autunno']),
+];
+
+/** Poi 5 tiri a testa: domande medie. */
+const MEDIUM_QUESTIONS: PingQuestion[] = [
+  question('MEDIUM', 'Qual è la capitale della Francia?', ['Parigi', 'Lione', 'Marsiglia', 'Nizza']),
+  question('MEDIUM', 'Chi ha dipinto la Gioconda?', ['Leonardo da Vinci', 'Michelangelo', 'Raffaello', 'Caravaggio']),
+  question('MEDIUM', 'Quante corde ha un violino?', ['4', '5', '6', '3']),
+  question('MEDIUM', "Qual è il fiume più lungo d'Italia?", ['Po', 'Tevere', 'Adige', 'Arno']),
+  question('MEDIUM', 'Quale pianeta è il più vicino al Sole?', ['Mercurio', 'Venere', 'Marte', 'Terra']),
+  question('MEDIUM', 'Chi ha scritto la Divina Commedia?', ['Dante Alighieri', 'Petrarca', 'Boccaccio', 'Manzoni']),
+  question('MEDIUM', 'Quale elemento chimico ha simbolo Au?', ['Oro', 'Argento', 'Rame', 'Alluminio']),
+  question('MEDIUM', 'Qual è la moneta del Giappone?', ['Yen', 'Won', 'Yuan', 'Ringgit']),
+  question('MEDIUM', 'Quante sono le regioni italiane?', ['20', '19', '21', '18']),
+  question('MEDIUM', 'In che anno è caduto il Muro di Berlino?', ['1989', '1991', '1987', '1985']),
+];
+
+/** Dopo 8 tiri a testa: tutte difficili. */
+const HARD_QUESTIONS: PingQuestion[] = [
+  question('HARD', "Qual è la capitale dell'Australia?", ['Canberra', 'Sydney', 'Melbourne', 'Perth']),
+  question('HARD', 'Chi ha composto la Nona Sinfonia?', ['Beethoven', 'Mozart', 'Bach', 'Chopin']),
+  question('HARD', 'Qual è il mare più salato?', ['Mar Morto', 'Mediterraneo', 'Mar Rosso', 'Adriatico']),
+  question('HARD', 'Quanti giocatori ha una squadra di rugby in campo?', ['15', '11', '13', '7']),
+  question('HARD', 'Chi ha scritto "1984"?', ['George Orwell', 'Aldous Huxley', 'Ray Bradbury', 'Franz Kafka']),
+  question('HARD', 'Qual è la capitale del Canada?', ['Ottawa', 'Toronto', 'Montreal', 'Vancouver']),
+  question('HARD', 'Quante ossa ha il corpo umano adulto?', ['206', '186', '226', '246']),
+  question('HARD', "Qual è l'unità di misura della forza?", ['Newton', 'Joule', 'Watt', 'Pascal']),
+  question('HARD', "Qual è l'elemento chimico con simbolo W?", ['Tungsteno', 'Titanio', 'Tallio', 'Tennesso']),
+  question('HARD', 'Qual è il deserto più grande del mondo?', ['Antartico', 'Sahara', 'Gobi', 'Kalahari']),
 ];
 
 /**
@@ -68,7 +101,7 @@ const QUESTION_BANK: PingQuestion[] = [
  */
 export class AirHockeyBattleMode extends GameModeBase {
   readonly type: GameModeType = 'AIR_HOCKEY_BATTLE';
-  readonly timerDuration = 180;
+  readonly timerDuration = 300;
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
 
@@ -76,6 +109,7 @@ export class AirHockeyBattleMode extends GameModeBase {
   private eventCounter = 0;
   private tickInterval?: ReturnType<typeof setInterval>;
   private questions: PingQuestion[] = [];
+  private lastQuestionText = '';
 
   protected onInitialize(): void {
     this.courts.set([]);
@@ -102,8 +136,8 @@ export class AirHockeyBattleMode extends GameModeBase {
       const last = players[players.length - 1];
       next.push({
         id: next.length,
-        a: { playerName: last, score: POINTS_TO_WIN, isBot: false },
-        b: { playerName: 'RIPOSO', score: 0, isBot: true },
+        a: { playerName: last, score: POINTS_TO_WIN, isBot: false, shots: 0 },
+        b: { playerName: 'RIPOSO', score: 0, isBot: true, shots: 0 },
         winner: last,
         turn: 'a',
         serveLeft: 0,
@@ -123,15 +157,14 @@ export class AirHockeyBattleMode extends GameModeBase {
   }
 
   private createCourt(id: number, a: string, b: string): Court {
-    const question = this.nextQuestion();
     return {
       id,
-      a: { playerName: a, score: 0, isBot: false },
-      b: { playerName: b, score: 0, isBot: false },
+      a: { playerName: a, score: 0, isBot: false, shots: 0 },
+      b: { playerName: b, score: 0, isBot: false, shots: 0 },
       winner: null,
       turn: 'a',
       serveLeft: SERVE_SECONDS,
-      question,
+      question: this.nextQuestion('EASY'),
       lastEvent: null,
       awarded: false,
       questionAt: Date.now(),
@@ -150,18 +183,43 @@ export class AirHockeyBattleMode extends GameModeBase {
         text: String(payload.question),
         options: payload.options.map((o: any) => String(o)),
         correctIndex: correct >= 0 ? correct : 0,
+        difficulty: 'MEDIUM',
       });
     }
 
-    return [...custom, ...QUESTION_BANK];
+    return [...custom, ...EASY_QUESTIONS, ...MEDIUM_QUESTIONS, ...HARD_QUESTIONS];
   }
 
-  private nextQuestion(): PingQuestion {
+  private nextQuestion(difficulty: Difficulty = 'EASY'): PingQuestion {
     if (this.questions.length === 0) this.questions = this.buildQuestions();
-    const index = Math.floor(Math.random() * this.questions.length);
-    const [question] = this.questions.splice(index, 1);
-    this.questions.push(question);
-    return question;
+
+    const pool = this.questions.filter((q) => q.difficulty === difficulty);
+    const source = pool.length > 0 ? pool : this.questions;
+    let index = Math.floor(Math.random() * source.length);
+    if (source.length > 1 && source[index].text === this.lastQuestionText) {
+      index = (index + 1) % source.length;
+    }
+
+    const picked = source[index];
+    this.lastQuestionText = picked.text;
+    return this.shuffleQuestion(picked);
+  }
+
+  /** Le opzioni vengono mescolate a ogni tiro: la risposta non è sempre la A. */
+  private shuffleQuestion(q: PingQuestion): PingQuestion {
+    const correct = q.options[q.correctIndex] ?? q.options[0];
+    const options = [...q.options];
+    for (let i = options.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [options[i], options[j]] = [options[j], options[i]];
+    }
+    return { ...q, options, correctIndex: Math.max(0, options.indexOf(correct)) };
+  }
+
+  private difficultyFor(shots: number): Difficulty {
+    if (shots < 3) return 'EASY';
+    if (shots < 8) return 'MEDIUM';
+    return 'HARD';
   }
 
   private tickServes(): void {
@@ -227,9 +285,10 @@ export class AirHockeyBattleMode extends GameModeBase {
       if (court.id !== courtId || court.winner) return court;
       return {
         ...court,
+        [side]: { ...court[side], shots: court[side].shots + 1 },
         turn: other,
         serveLeft,
-        question: this.nextQuestion(),
+        question: this.nextQuestion(this.difficultyFor(court[other].shots)),
         questionAt: Date.now(),
         shotMs,
         zigzag,
@@ -254,6 +313,7 @@ export class AirHockeyBattleMode extends GameModeBase {
       const updated: Court = {
         ...court,
         [other]: { ...scorer, score },
+        [side]: { ...court[side], shots: court[side].shots + 1 },
         turn: side,
         serveLeft: SERVE_SECONDS,
         question: null,
@@ -272,9 +332,11 @@ export class AirHockeyBattleMode extends GameModeBase {
 
     // Un attimo per vedere il gol, poi nuova palla al giocatore che l'ha subito.
     setTimeout(() => {
-      if (!court || court.winner) return;
+      const latest = this.courts().find((c) => c.id === courtId);
+      if (!latest || latest.winner) return;
+      const difficulty = this.difficultyFor(latest[side].shots);
       this.courts.update((courts) => courts.map((c) => c.id === courtId
-        ? { ...c, question: this.nextQuestion(), serveLeft: SERVE_SECONDS, questionAt: Date.now(), shotMs: 450, zigzag: false }
+        ? { ...c, question: this.nextQuestion(difficulty), serveLeft: SERVE_SECONDS, questionAt: Date.now(), shotMs: 450, zigzag: false }
         : c));
       this.broadcast();
     }, 1400);

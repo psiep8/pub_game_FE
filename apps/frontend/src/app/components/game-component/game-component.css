@@ -1521,3 +1521,24 @@
   color: rgba(255, 255, 255, 0.6);
   font-weight: 600;
 }
+
+/* Pausa: la TV non mostra il gioco */
+.pause-overlay { position: fixed; inset: 0; z-index: 5500; display: flex; align-items: center; justify-content: center; background: rgba(20, 16, 12, .94); }
+.pause-hint { max-width: 420px; margin: 0; text-align: center; color: var(--ink-dim); font-family: var(--font-mono); font-size: .9rem; }
+
+/* Demo TV in loop */
+.demo-overlay { position: fixed; inset: 0; z-index: 6000; display: flex; align-items: center; justify-content: center; padding: 4vh 4vw; background: rgba(20, 16, 12, .94); }
+.demo-frame { width: min(1400px, 92vw); height: min(760px, 82vh); display: flex; flex-direction: column; background: var(--paper); color: var(--coal); border: 4px solid var(--coal); box-shadow: 12px 12px 0 var(--tomato); }
+.demo-head { display: flex; align-items: center; gap: 14px; padding: 12px 18px; border-bottom: 3px solid var(--coal); }
+.demo-badge { padding: 3px 10px; background: var(--tomato); color: var(--paper-hi); font-family: var(--font-mono); font-size: .7rem; font-weight: 700; letter-spacing: .14em; }
+.demo-name { font-family: var(--font-display); font-size: clamp(1.2rem, 2vw, 2rem); text-transform: uppercase; }
+.demo-live { margin-left: auto; padding: 2px 8px; border: 2px solid var(--tomato); color: var(--tomato); font-family: var(--font-mono); font-size: .7rem; font-weight: 700; animation: demoPulse 1s infinite; }
+.demo-stage { position: relative; flex: 1; min-height: 0; overflow: hidden; background: var(--paper-hi); }
+.demo-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; }
+.demo-fallback { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+.demo-orb { font-size: clamp(3rem, 8vw, 6rem); animation: demoFloat 2s infinite alternate; }
+.demo-fallback-title { font-family: var(--font-display); font-size: clamp(1.6rem, 3vw, 2.6rem); text-transform: uppercase; }
+.demo-fallback-sub { font-family: var(--font-mono); font-size: .8rem; color: rgba(30, 25, 20, .55); }
+.demo-foot { padding: 8px 18px; border-top: 3px solid var(--coal); text-align: center; font-family: var(--font-mono); font-size: .7rem; color: rgba(30, 25, 20, .6); }
+@keyframes demoFloat { to { transform: translateY(-10px) rotate(-3deg); } }
+@keyframes demoPulse { 50% { opacity: .4; } }

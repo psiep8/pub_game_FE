@@ -100,6 +100,7 @@ export class GameComponent implements OnInit, OnDestroy {
   timer = signal(0);
   preStartCountdown = signal<number>(0);
   isPaused = signal(false);
+  demoType = signal<string | null>(null);
   animatedCategoryId = signal<number | null>(null);
 
 
@@ -295,6 +296,16 @@ export class GameComponent implements OnInit, OnDestroy {
         this.confirmCorrect();
       } else if (status.action === 'ADMIN_CONFIRM_WRONG') {
         this.confirmWrong();
+      } else if (status.action === 'ADMIN_NEXT_ROUND') {
+        this.adminNextRound();
+      } else if (status.action === 'ADMIN_SHOW_LEADERBOARD') {
+        this.adminShowLeaderboard();
+      } else if (status.action === 'ADMIN_TOGGLE_PAUSE') {
+        this.togglePause();
+      } else if (status.action === 'ADMIN_SHOW_DEMO') {
+        this.demoType.set(status.type || this.currentMode()?.type || 'QUIZ');
+      } else if (status.action === 'ADMIN_HIDE_DEMO') {
+        this.demoType.set(null);
       }
     });
 
@@ -320,6 +331,15 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     this.audioService.stopAll();
+  }
+
+  async openLobby(): Promise<void> {
+    if (this.currentGameId()) return;
+
+    const newGame = await firstValueFrom(this.gameService.createGame());
+    this.currentGameId.set(newGame.id);
+    localStorage.setItem('activeGameId', newGame.id.toString());
+    this.ws.subscribeToGame(newGame.id);
   }
 
   async startNewRound() {
@@ -573,11 +593,6 @@ export class GameComponent implements OnInit, OnDestroy {
     this.roundManager.completeRound('ARENA');
     this.checkLeaderboardDisplay();
 
-    setTimeout(() => {
-      if (this.pendingLeaderboardType()) {
-        this.showPendingLeaderboard();
-      }
-    }, 6500);
   }
 
   private onModeTimeout() {
@@ -611,9 +626,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.roundManager.completeRound(mode.type);
 
 
-    setTimeout(() => {
-      this.checkLeaderboardDisplay();
-    }, 2000);
+    this.checkLeaderboardDisplay();
   }
 
   /**
@@ -693,9 +706,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.roundManager.completeRound(mode.type);
 
 
-    setTimeout(() => {
-      this.checkLeaderboardDisplay();
-    }, 5500);
+    this.checkLeaderboardDisplay();
   }
 
   /**
@@ -777,18 +788,37 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   onLeaderboardComplete() {
-    this.showLeaderboardQuick.set(false);
-    this.showLeaderboardDetailed.set(false);
-    this.isShowingLeaderboard.set(false);
-
-
-
+    // Manuale: la classifica resta in TV finché l'admin non avanza.
     if (this.phase() === 'IDLE') {
       this.audioService.startHeartbeat();
     }
+  }
 
-    if (this.roundManager.isGameOver()) {
-      alert('🏁 PARTITA COMPLETATA!');
+  adminNextRound(): void {
+    this.showLeaderboardQuick.set(false);
+    this.showLeaderboardDetailed.set(false);
+    this.isShowingLeaderboard.set(false);
+    this.pendingLeaderboardType.set(null);
+    this.demoType.set(null);
+    void this.startNewRound();
+  }
+
+  adminShowLeaderboard(): void {
+    if (this.isSpinning()) return;
+
+    const type = this.pendingLeaderboardType()
+      ?? this.roundManager.shouldShowLeaderboard()
+      ?? 'QUICK';
+
+    this.pendingLeaderboardType.set(null);
+    this.isShowingLeaderboard.set(true);
+
+    if (type === 'DETAILED') {
+      this.showLeaderboardQuick.set(false);
+      this.showLeaderboardDetailed.set(true);
+    } else {
+      this.showLeaderboardDetailed.set(false);
+      this.showLeaderboardQuick.set(true);
     }
   }
 
@@ -815,6 +845,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.isPaused.set(false);
     this.showResultPopup.set(false);
     this.currentMode.set(null);
+    this.demoType.set(null);
   }
 
   openResetModal() {

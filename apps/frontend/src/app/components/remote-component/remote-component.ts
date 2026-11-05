@@ -18,6 +18,22 @@ import { ThemeService } from '../../services/theme.service';
     .timeline-remote, .price-remote, .speed-remote, .ping-remote {
       display: flex; flex-direction: column; gap: 14px; padding: 16px; height: 100%; justify-content: center;
     }
+    .ping-remote { position: relative; }
+    .ping-diff {
+      padding: 2px 7px; border: 1px solid var(--tomato); color: var(--tomato);
+      font-family: var(--font-mono); font-size: .6rem; font-weight: 700; letter-spacing: .1em;
+    }
+    .ping-goal-overlay {
+      position: fixed; inset: 0; z-index: 80; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 6px; text-align: center;
+      padding: 24px; background: #15803d; color: #fff; animation: pingGoalIn .22s ease-out;
+    }
+    .ping-goal-overlay.conceded { background: #b91c1c; }
+    .ping-goal-kicker { font-family: var(--font-mono); font-size: .72rem; font-weight: 700; letter-spacing: .18em; opacity: .85; }
+    .ping-goal-word { font-family: var(--font-display); font-size: clamp(2.6rem, 12vw, 4.6rem); line-height: .95; text-transform: uppercase; }
+    .ping-goal-score { font-family: var(--font-display); font-size: clamp(3.4rem, 18vw, 6rem); line-height: 1; }
+    .ping-goal-note { font-family: var(--font-mono); font-size: .8rem; letter-spacing: .12em; opacity: .9; }
+    @keyframes pingGoalIn { from { transform: scale(.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     .party-instruction { text-align: center; font-size: .95rem; opacity: .85; margin: 0; }
     .party-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .party-card { position: relative; padding: 14px 10px; border-radius: 14px; border: 2px solid rgba(255,255,255,.15); background: rgba(255,255,255,.06); color: #fff; font-size: .9rem; text-align: left; }
@@ -94,13 +110,16 @@ export class RemoteComponent implements OnInit, OnDestroy {
   hasAnswered = signal(false);
   isBlocked = signal(false);
 
-  pingQuestion = signal<{ text: string; options: string[] } | null>(null);
+  pingQuestion = signal<{ text: string; options: string[]; difficulty?: string } | null>(null);
   pingMyTurn = signal(false);
   pingMyScore = signal(0);
   pingOpponentScore = signal(0);
   pingOpponent = signal('');
   pingServeLeft = signal(0);
   pingLastResult = signal<string | null>(null);
+  pingGoal = signal<{ id: number; scored: boolean; mine: number; opponent: number } | null>(null);
+  private pingLastGoalId = 0;
+  private pingGoalTimer?: ReturnType<typeof setTimeout>;
 
 
   private roundStartTime: number = 0;
@@ -262,6 +281,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.priceItems.set([]);
           this.arenaEliminated.set(false);
           this.arenaQuestion.set(null);
+          this.pingGoal.set(null);
+          this.pingLastGoalId = 0;
+          if (this.pingGoalTimer) {
+            clearTimeout(this.pingGoalTimer);
+            this.pingGoalTimer = undefined;
+          }
           // Round chiuso: spegni il microfono, altrimenti il telefono continua
           // a inviare urli (10 messaggi/s) anche nei round successivi.
           this.stopMicrophoneListening();
@@ -606,6 +631,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.startSpeedRush();
     } else if (type === 'AIR_HOCKEY_BATTLE') {
       this.pingHits.set(0);
+      this.pingGoal.set(null);
+      this.pingLastGoalId = 0;
     }
   }
 
@@ -958,6 +985,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
     return String.fromCharCode(65 + index);
   }
 
+  difficultyLabel(difficulty?: string): string {
+    if (difficulty === 'EASY') return 'FACILE';
+    if (difficulty === 'HARD') return 'DIFFICILE';
+    return 'MEDIA';
+  }
+
   private handleAirHockeyBattleState(status: any): void {
     const me = (this.nickname() ?? '').trim().toLowerCase();
     const court = (status.courts ?? []).find((c: any) =>
@@ -977,6 +1010,21 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.pingMyTurn.set(!court.winner && court.turn === mine);
     this.hasAnswered.set(false);
 
+    const event = court.lastEvent;
+    if (event?.kind === 'goal' && event.id !== this.pingLastGoalId) {
+      this.pingLastGoalId = event.id;
+      const scored = event.side === mine;
+      this.pingGoal.set({
+        id: event.id,
+        scored,
+        mine: court[mine].score,
+        opponent: court[other].score,
+      });
+      this.vibrate(scored ? [60, 40, 60] : [140, 60, 140]);
+      if (this.pingGoalTimer) clearTimeout(this.pingGoalTimer);
+      this.pingGoalTimer = setTimeout(() => this.pingGoal.set(null), 2400);
+    }
+
     if (court.winner) {
       this.pingLastResult.set(court.winner === court[mine].playerName ? 'HAI VINTO IL SET!' : 'SET PERSO');
       this.gameState.set('WAITING');
@@ -985,7 +1033,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
     this.gameState.set('VOTING');
 
-    const event = court.lastEvent;
     if (event?.kind === 'return') {
       this.pingLastResult.set(event.side === mine ? 'PALLA RIMANDATA!' : 'PALLA IN ARRIVO');
     } else if (event?.kind === 'goal') {
@@ -1087,6 +1134,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.ws.disconnect();
     this.stopMicrophoneListening();
     this.clearMemoryTimer();
+    if (this.pingGoalTimer) clearTimeout(this.pingGoalTimer);
     if (this.updateCheckInterval) {
       clearInterval(this.updateCheckInterval);
       this.updateCheckInterval = undefined;

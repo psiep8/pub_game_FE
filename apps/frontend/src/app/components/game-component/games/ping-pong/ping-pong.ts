@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
           <div class="pp-kicker">⚡ BATTAGLIA A COLPI DI RISPOSTA</div>
         </div>
         <div class="pp-head-right">
-          <span class="pp-target">PRIMO A {{ displayData?.target ?? 5 }}</span>
+          <span class="pp-target">PRIMO A {{ displayData?.target ?? 7 }}</span>
           <span class="pp-timer" [class.hot]="timer <= 20">{{ timer }}s</span>
         </div>
       </div>
@@ -68,6 +68,7 @@ import { CommonModule } from '@angular/common';
               } @else if (court.question) {
                 <div class="pp-q-head">
                   <span class="pp-defender">{{ sideName(court, court.turn) }} DIFENDE</span>
+                  <span class="pp-diff">{{ difficultyLabel(court.question.difficulty) }}</span>
                   <span class="pp-clock" [class.hot]="court.serveLeft <= 4">{{ court.serveLeft }}s</span>
                 </div>
                 <p class="pp-q-text">{{ court.question.text }}</p>
@@ -184,6 +185,7 @@ import { CommonModule } from '@angular/common';
     .pp-question { flex: 0 0 auto; min-height: clamp(148px, 23vh, 210px); display: flex; flex-direction: column; gap: clamp(8px, 1.2vh, 14px); justify-content: center; }
     .pp-q-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .pp-defender { font-family: var(--font-mono); font-size: clamp(.72rem, 1vw, .95rem); font-weight: 700; letter-spacing: .16em; color: var(--tomato); }
+    .pp-diff { margin-left: auto; margin-right: 10px; padding: 1px 7px; border: 1px solid var(--tomato); color: var(--tomato); font-family: var(--font-mono); font-size: .58rem; font-weight: 700; letter-spacing: .12em; }
     .pp-clock { font-family: var(--font-mono); font-size: clamp(1.7rem, 2.4vw, 2.3rem); font-weight: 700; color: var(--coal); font-variant-numeric: tabular-nums; }
     .pp-clock.hot { color: var(--tomato); animation: ppPulse .7s infinite; }
     @keyframes ppPulse { 50% { opacity: .45; } }
@@ -211,5 +213,11 @@ export class AirHockeyBattle {
 
   letter(index: number): string {
     return String.fromCharCode(65 + index);
+  }
+
+  difficultyLabel(difficulty?: string): string {
+    if (difficulty === 'EASY') return 'FACILE';
+    if (difficulty === 'HARD') return 'DIFFICILE';
+    return 'MEDIA';
   }
 }

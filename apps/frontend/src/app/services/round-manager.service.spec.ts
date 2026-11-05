@@ -26,25 +26,25 @@ describe('RoundManagerService', () => {
 
   it('should start from round zero', () => {
     expect(service.getCurrentRound()).toBe(0);
-    expect(service.getTotalRounds()).toBe(24);
-    expect(service.getProgress()).toEqual({ percentage: 0, text: '0/24' });
+    expect(service.getTotalRounds()).toBe(40);
+    expect(service.getProgress()).toEqual({ percentage: 0, text: '0/40' });
     expect(service.shouldShowLeaderboard()).toBeNull();
     expect(service.isGameOver()).toBe(false);
   });
 
   it('should always draw a playable game type', () => {
-    for (let i = 0; i < 24; i++) {
+    for (let i = 0; i < 40; i++) {
       expect(PLAYABLE_TYPES).toContain(service.extractGameType());
       service.startNewRound();
     }
   });
 
   it('should open every act with a quiz', () => {
-    [0, 8, 16].forEach((round) => {
+    [0, 8, 16, 24, 32].forEach((round) => {
       const fresh = new RoundManagerService();
       localStorage.setItem(
         'roundProgress',
-        JSON.stringify({ totalRounds: 24, currentRound: round, completedRounds: [], nextRoundType: null })
+        JSON.stringify({ totalRounds: 40, currentRound: round, completedRounds: [], nextRoundType: null })
       );
       const restarted = new RoundManagerService();
       expect(restarted.extractGameType()).toBe('QUIZ');
@@ -54,7 +54,7 @@ describe('RoundManagerService', () => {
 
   it('should never schedule two realtime games back to back', () => {
     const types: GameModeType[] = [];
-    for (let i = 0; i < 24; i++) {
+    for (let i = 0; i < 40; i++) {
       types.push(service.startNewRound());
     }
 
@@ -89,7 +89,7 @@ describe('RoundManagerService', () => {
   });
 
   it('should refuse to start a round once the game is over', () => {
-    for (let i = 0; i < 24; i++) service.startNewRound();
+    for (let i = 0; i < 40; i++) service.startNewRound();
 
     expect(service.isGameOver()).toBe(true);
     expect(() => service.startNewRound()).toThrowError('Tutti i round completati!');

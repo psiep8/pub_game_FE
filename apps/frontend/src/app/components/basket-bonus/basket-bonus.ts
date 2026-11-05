@@ -1,0 +1,766 @@
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnDestroy,
+  ViewChild,
+  signal,
+} from '@angular/core';
+
+type GameState = 'READY' | 'PLAYING' | 'OVER';
+
+interface Ball {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  r: number;
+}
+
+const GAME_SECONDS = 30;
+const GRAVITY = 1500;
+const LAUNCH_POWER = 4.2;
+const MAX_SPEED = 1600;
+
+@Component({
+  selector: 'app-basket-bonus',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <div class="basket-page">
+      <header class="basket-head">
+        <div class="basket-brand">
+          <span class="brand-ball">🏀</span>
+          <div>
+            <h1>BONUS BASKET</h1>
+            <p>30 secondi · tiri liberi</p>
+          </div>
+        </div>
+        <div class="basket-stats">
+          <div class="stat">
+            <span>PUNTI</span>
+            <b>{{ score() }}</b>
+          </div>
+          <div class="stat time" [class.hot]="timeLeft() <= 5">
+            <span>TEMPO</span>
+            <b>{{ timeLeft() }}s</b>
+          </div>
+        </div>
+      </header>
+
+      <div class="court-wrap">
+        <canvas
+          #court
+          (pointerdown)="onPointerDown($event)"
+          (pointermove)="onPointerMove($event)"
+          (pointerup)="onPointerUp($event)"
+          (pointercancel)="onPointerUp($event)"
+        ></canvas>
+
+        @if (message(); as msg) {
+          <div class="basket-toast">{{ msg }}</div>
+        }
+
+        @if (state() === 'READY') {
+          <div class="basket-overlay">
+            <span class="overlay-ball">🏀</span>
+            <h2>Fai canestro!</h2>
+            <p>
+              Trascina la palla verso il basso e rilascia.<br />
+              Canestro = 2 punti · Swish senza ferro = 3 punti.
+            </p>
+            <button class="basket-play" (click)="startGame()">GIOCA 30s</button>
+          </div>
+        }
+
+        @if (state() === 'OVER') {
+          <div class="basket-overlay over">
+            <span class="overlay-kicker">TEMPO SCADUTO</span>
+            <div class="final-score">{{ score() }}</div>
+            <p>punti · {{ shots() }} tiri</p>
+            <p class="record">Record: {{ best() }}</p>
+            <button class="basket-play" (click)="startGame()">RIPROVA</button>
+          </div>
+        }
+      </div>
+
+      <footer class="basket-foot">
+        <span>Trascina la palla e rilascia per tirare</span>
+        <a href="/play">Torna al party</a>
+      </footer>
+    </div>
+  `,
+  styles: [
+    `
+      :host {
+        display: block;
+        height: 100dvh;
+        overflow: hidden;
+        background: #0b1220;
+        color: #f8fafc;
+      }
+      * { box-sizing: border-box; }
+      .basket-page {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: max(10px, env(safe-area-inset-top)) 12px max(10px, env(safe-area-inset-bottom));
+      }
+      .basket-head {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .basket-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+      .brand-ball {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: #f97316;
+        font-size: 1.35rem;
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, .25);
+      }
+      .basket-brand h1 {
+        margin: 0;
+        font-size: clamp(1.05rem, 4.4vw, 1.45rem);
+        letter-spacing: .04em;
+        line-height: 1;
+      }
+      .basket-brand p {
+        margin: 4px 0 0;
+        color: #94a3b8;
+        font-size: .66rem;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+      .basket-stats { display: flex; align-items: stretch; gap: 8px; flex: 0 0 auto; }
+      .stat {
+        min-width: 58px;
+        padding: 6px 9px;
+        border: 2px solid #334155;
+        border-radius: 10px;
+        background: #111827;
+        text-align: center;
+      }
+      .stat span {
+        display: block;
+        color: #94a3b8;
+        font-size: .52rem;
+        font-weight: 700;
+        letter-spacing: .14em;
+      }
+      .stat b {
+        display: block;
+        margin-top: 1px;
+        font-size: 1.2rem;
+        line-height: 1.1;
+        font-variant-numeric: tabular-nums;
+      }
+      .stat.time b { color: #a3e635; }
+      .stat.time.hot b { color: #f87171; animation: pulse .7s infinite; }
+      @keyframes pulse { 50% { opacity: .4; } }
+
+      .court-wrap {
+        position: relative;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+        border: 3px solid #334155;
+        border-radius: 18px;
+        background: #0f172a;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, .35);
+      }
+      canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+      canvas:active { cursor: grabbing; }
+
+      .basket-toast {
+        position: absolute;
+        top: 12%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: #a3e635;
+        color: #1a2e05;
+        font-size: .9rem;
+        font-weight: 900;
+        letter-spacing: .06em;
+        white-space: nowrap;
+        animation: toastIn .2s ease-out;
+      }
+      @keyframes toastIn { from { transform: translate(-50%, -8px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+      .basket-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 26px;
+        text-align: center;
+        background: rgba(2, 6, 23, .78);
+        backdrop-filter: blur(3px);
+      }
+      .overlay-ball { font-size: 3.2rem; animation: float 1.4s ease-in-out infinite alternate; }
+      @keyframes float { to { transform: translateY(-8px) rotate(-6deg); } }
+      .basket-overlay h2 {
+        margin: 0;
+        font-size: clamp(1.7rem, 8vw, 2.4rem);
+        line-height: 1;
+        text-transform: uppercase;
+      }
+      .basket-overlay p {
+        max-width: 310px;
+        margin: 0;
+        color: #cbd5e1;
+        font-size: .86rem;
+        line-height: 1.45;
+      }
+      .overlay-kicker { color: #f97316; font-size: .68rem; font-weight: 800; letter-spacing: .2em; }
+      .final-score {
+        font-size: clamp(4rem, 26vw, 7rem);
+        font-weight: 900;
+        line-height: .9;
+        color: #f97316;
+        font-variant-numeric: tabular-nums;
+      }
+      .record { color: #a3e635 !important; font-weight: 700; }
+      .basket-play {
+        margin-top: 8px;
+        padding: 14px 26px;
+        border: 0;
+        border-radius: 14px;
+        background: #a3e635;
+        color: #1a2e05;
+        font-size: 1rem;
+        font-weight: 900;
+        letter-spacing: .06em;
+        box-shadow: 0 5px 0 #4d7c0f;
+      }
+      .basket-play:active { transform: translateY(3px); box-shadow: 0 2px 0 #4d7c0f; }
+
+      .basket-foot {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        color: #64748b;
+        font-size: .66rem;
+      }
+      .basket-foot a { color: #94a3b8; text-decoration: none; border-bottom: 1px solid #475569; }
+    `,
+  ],
+})
+export class BasketBonus implements AfterViewInit, OnDestroy {
+  @ViewChild('court') private canvasRef!: ElementRef<HTMLCanvasElement>;
+
+  readonly score = signal(0);
+  readonly shots = signal(0);
+  readonly timeLeft = signal(GAME_SECONDS);
+  readonly state = signal<GameState>('READY');
+  readonly best = signal(this.readBest());
+  readonly message = signal<string | null>(null);
+
+  private ctx: CanvasRenderingContext2D | null = null;
+  private raf = 0;
+  private timer: ReturnType<typeof setInterval> | undefined;
+  private resizeObserver: ResizeObserver | undefined;
+  private messageTimer: ReturnType<typeof setTimeout> | undefined;
+  private lastTs = 0;
+
+  private w = 0;
+  private h = 0;
+  private dpr = 1;
+  private floorY = 0;
+  private hoopX = 0;
+  private hoopY = 0;
+  private rimR = 40;
+  private backX = 0;
+  private backTop = 0;
+  private backBottom = 0;
+  private startX = 0;
+  private startY = 0;
+
+  private ball: Ball = { x: 0, y: 0, vx: 0, vy: 0, r: 20 };
+  private drag = false;
+  private dragX = 0;
+  private dragY = 0;
+  private shot = false;
+  private touchedRim = false;
+  private scoredThisShot = false;
+  private resetAfter = 0;
+  private restTime = 0;
+
+  ngAfterViewInit(): void {
+    const canvas = this.canvasRef.nativeElement;
+    this.ctx = canvas.getContext('2d');
+    this.resize();
+    this.resizeObserver = new ResizeObserver(() => this.resize());
+    this.resizeObserver.observe(canvas);
+    this.raf = requestAnimationFrame(this.frame);
+  }
+
+  ngOnDestroy(): void {
+    cancelAnimationFrame(this.raf);
+    this.stopTimer();
+    this.resizeObserver?.disconnect();
+    if (this.messageTimer) clearTimeout(this.messageTimer);
+  }
+
+  startGame(): void {
+    this.stopTimer();
+    this.score.set(0);
+    this.shots.set(0);
+    this.timeLeft.set(GAME_SECONDS);
+    this.state.set('PLAYING');
+    this.message.set(null);
+    this.lastTs = 0;
+    this.placeBall();
+
+    this.timer = setInterval(() => {
+      const next = this.timeLeft() - 1;
+      this.timeLeft.set(Math.max(0, next));
+      if (next <= 0) this.endGame();
+    }, 1000);
+
+    this.vibrate(20);
+  }
+
+  onPointerDown(event: PointerEvent): void {
+    if (this.state() !== 'PLAYING' || this.shot) return;
+
+    const point = this.toLocal(event);
+    if (Math.hypot(point.x - this.ball.x, point.y - this.ball.y) > this.ball.r * 3.2) return;
+
+    event.preventDefault();
+    this.drag = true;
+    this.dragX = point.x;
+    this.dragY = point.y;
+    this.canvasRef.nativeElement.setPointerCapture(event.pointerId);
+    this.vibrate(8);
+  }
+
+  onPointerMove(event: PointerEvent): void {
+    if (!this.drag) return;
+
+    event.preventDefault();
+    const point = this.toLocal(event);
+    this.dragX = point.x;
+    this.dragY = point.y;
+  }
+
+  onPointerUp(event: PointerEvent): void {
+    if (!this.drag) return;
+
+    event.preventDefault();
+    this.drag = false;
+
+    let vx = (this.ball.x - this.dragX) * LAUNCH_POWER;
+    let vy = (this.ball.y - this.dragY) * LAUNCH_POWER;
+    const speed = Math.hypot(vx, vy);
+    if (speed < 180) return;
+
+    if (speed > MAX_SPEED) {
+      vx = (vx / speed) * MAX_SPEED;
+      vy = (vy / speed) * MAX_SPEED;
+    }
+
+    this.ball.vx = vx;
+    this.ball.vy = vy;
+    this.shot = true;
+    this.scoredThisShot = false;
+    this.touchedRim = false;
+    this.restTime = 0;
+    this.resetAfter = 0;
+    this.shots.update((value) => value + 1);
+    this.vibrate(20);
+  }
+
+  private frame = (ts: number): void => {
+    const dt = this.lastTs > 0 ? Math.min(0.033, (ts - this.lastTs) / 1000) : 0;
+    this.lastTs = ts;
+
+    if (this.state() === 'PLAYING') this.update(dt);
+    this.draw();
+
+    this.raf = requestAnimationFrame(this.frame);
+  };
+
+  private update(dt: number): void {
+    if (dt <= 0 || !this.shot) return;
+
+    const b = this.ball;
+    if (this.resetAfter > 0) {
+      this.resetAfter -= dt;
+      if (this.resetAfter <= 0) {
+        this.placeBall();
+        return;
+      }
+    }
+
+    const prevY = b.y;
+    b.vy += GRAVITY * dt;
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
+
+    // Canestro: la palla attraversa il ferro dall'alto verso il basso.
+    if (
+      !this.scoredThisShot &&
+      prevY < this.hoopY &&
+      b.y >= this.hoopY &&
+      b.vy > 0 &&
+      Math.abs(b.x - this.hoopX) < this.rimR - b.r * 0.15
+    ) {
+      const points = this.touchedRim ? 2 : 3;
+      this.score.update((value) => value + points);
+      this.scoredThisShot = true;
+      this.flash(this.touchedRim ? 'CANESTRO +2' : 'SWISH! +3');
+      this.vibrate(60);
+      this.resetAfter = 1.1;
+    }
+
+    this.hitRim(this.hoopX - this.rimR, this.hoopY);
+    this.hitRim(this.hoopX + this.rimR, this.hoopY);
+    this.hitBackboard();
+
+    if (b.x < b.r) {
+      b.x = b.r;
+      b.vx = Math.abs(b.vx) * 0.55;
+    }
+    if (b.x > this.w - b.r) {
+      b.x = this.w - b.r;
+      b.vx = -Math.abs(b.vx) * 0.55;
+    }
+
+    if (b.y > this.floorY - b.r) {
+      b.y = this.floorY - b.r;
+      if (b.vy > 90) {
+        b.vy = -b.vy * 0.42;
+        this.vibrate(8);
+      } else {
+        b.vy = 0;
+      }
+      b.vx *= 0.82;
+      if (Math.abs(b.vx) < 18) b.vx = 0;
+    }
+
+    const resting =
+      b.y >= this.floorY - b.r - 1 && Math.abs(b.vy) < 40 && Math.abs(b.vx) < 30;
+    if (resting && !this.scoredThisShot) {
+      this.restTime += dt;
+      if (this.restTime > 0.6) this.placeBall();
+    } else {
+      this.restTime = 0;
+    }
+
+    if (b.y > this.h + b.r * 4 || b.x < -b.r * 4 || b.x > this.w + b.r * 4) {
+      this.resetAfter = 0.25;
+    }
+  }
+
+  private hitRim(cx: number, cy: number): void {
+    const b = this.ball;
+    const dx = b.x - cx;
+    const dy = b.y - cy;
+    const dist = Math.hypot(dx, dy);
+    const min = b.r + 6;
+    if (dist >= min || dist < 0.001) return;
+
+    const nx = dx / dist;
+    const ny = dy / dist;
+    b.x = cx + nx * min;
+    b.y = cy + ny * min;
+
+    const dot = b.vx * nx + b.vy * ny;
+    if (dot < 0) {
+      b.vx -= 1.55 * dot * nx;
+      b.vy -= 1.55 * dot * ny;
+    }
+    this.touchedRim = true;
+  }
+
+  private hitBackboard(): void {
+    const b = this.ball;
+    const boardWidth = 10;
+    if (b.x + b.r < this.backX || b.x - b.r > this.backX + boardWidth) return;
+    if (b.y + b.r < this.backTop || b.y - b.r > this.backBottom) return;
+    if (b.vx <= 0) return;
+
+    b.x = this.backX - b.r;
+    b.vx = -b.vx * 0.55;
+    b.vy *= 0.92;
+    this.touchedRim = true;
+  }
+
+  private draw(): void {
+    const ctx = this.ctx;
+    if (!ctx || this.w <= 0 || this.h <= 0) return;
+
+    ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    ctx.clearRect(0, 0, this.w, this.h);
+
+    const bg = ctx.createLinearGradient(0, 0, 0, this.h);
+    bg.addColorStop(0, '#0b1220');
+    bg.addColorStop(0.55, '#111c31');
+    bg.addColorStop(1, '#172033');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, this.w, this.h);
+
+    // Pubblico stilizzato
+    for (let i = 0; i < 26; i++) {
+      const x = ((i * 73) % 100) / 100 * this.w;
+      const y = 18 + ((i * 37) % 60);
+      ctx.fillStyle = i % 3 === 0 ? 'rgba(249,115,22,.28)' : 'rgba(148,163,184,.18)';
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Pavimento
+    ctx.fillStyle = '#7c3f1d';
+    ctx.fillRect(0, this.floorY, this.w, this.h - this.floorY);
+    ctx.strokeStyle = 'rgba(41, 20, 8, .45)';
+    ctx.lineWidth = 2;
+    for (let x = 0; x < this.w; x += 38) {
+      ctx.beginPath();
+      ctx.moveTo(x, this.floorY);
+      ctx.lineTo(x, this.h);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = '#f97316';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, this.floorY);
+    ctx.lineTo(this.w, this.floorY);
+    ctx.stroke();
+
+    this.drawHoop(ctx);
+
+    if (this.drag && !this.shot) this.drawAim(ctx);
+
+    const b = this.ball;
+    const grad = ctx.createRadialGradient(
+      b.x - b.r * 0.35,
+      b.y - b.r * 0.35,
+      b.r * 0.2,
+      b.x,
+      b.y,
+      b.r
+    );
+    grad.addColorStop(0, '#fdba74');
+    grad.addColorStop(0.55, '#f97316');
+    grad.addColorStop(1, '#c2410c');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#431407';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.strokeStyle = '#431407';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(b.x - b.r, b.y);
+    ctx.quadraticCurveTo(b.x, b.y - b.r * 0.45, b.x + b.r, b.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(b.x, b.y - b.r);
+    ctx.quadraticCurveTo(b.x - b.r * 0.45, b.y, b.x, b.y + b.r);
+    ctx.stroke();
+  }
+
+  private drawHoop(ctx: CanvasRenderingContext2D): void {
+    // Palo e base
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = Math.max(4, this.w * 0.012);
+    ctx.beginPath();
+    ctx.moveTo(this.backX + 4, this.backBottom);
+    ctx.lineTo(this.backX + 4, this.floorY);
+    ctx.stroke();
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(this.backX - 18, this.floorY - 8, 44, 8);
+
+    // Tabellone
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(this.backX, this.backTop, 10, this.backBottom - this.backTop);
+    ctx.strokeStyle = '#f97316';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(this.backX, this.backTop, 10, this.backBottom - this.backTop);
+
+    // Ferro
+    ctx.strokeStyle = '#f97316';
+    ctx.lineWidth = Math.max(4, this.w * 0.014);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(this.hoopX - this.rimR, this.hoopY);
+    ctx.lineTo(this.hoopX + this.rimR, this.hoopY);
+    ctx.stroke();
+
+    // Rete
+    const netBottom = this.hoopY + this.rimR * 0.85;
+    ctx.strokeStyle = 'rgba(248, 250, 252, .55)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 6; i++) {
+      const x = this.hoopX - this.rimR + (this.rimR * 2 * i) / 6;
+      ctx.beginPath();
+      ctx.moveTo(x, this.hoopY);
+      ctx.lineTo(this.hoopX + (x - this.hoopX) * 0.35, netBottom);
+      ctx.stroke();
+    }
+    for (let j = 1; j <= 3; j++) {
+      const t = j / 3;
+      const y = this.hoopY + (netBottom - this.hoopY) * t;
+      const half = this.rimR * (1 - t * 0.65);
+      ctx.beginPath();
+      ctx.moveTo(this.hoopX - half, y);
+      ctx.lineTo(this.hoopX + half, y);
+      ctx.stroke();
+    }
+
+    // Estremità del ferro
+    ctx.fillStyle = '#fb923c';
+    for (const x of [this.hoopX - this.rimR, this.hoopX + this.rimR]) {
+      ctx.beginPath();
+      ctx.arc(x, this.hoopY, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  private drawAim(ctx: CanvasRenderingContext2D): void {
+    const dx = this.ball.x - this.dragX;
+    const dy = this.ball.y - this.dragY;
+    const speed = Math.hypot(dx, dy);
+
+    ctx.strokeStyle = 'rgba(251, 191, 36, .55)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 7]);
+    ctx.beginPath();
+    ctx.moveTo(this.ball.x, this.ball.y);
+    ctx.lineTo(this.dragX, this.dragY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    if (speed < 10) return;
+
+    let vx = dx * LAUNCH_POWER;
+    let vy = dy * LAUNCH_POWER;
+    const total = Math.hypot(vx, vy);
+    if (total > MAX_SPEED) {
+      vx = (vx / total) * MAX_SPEED;
+      vy = (vy / total) * MAX_SPEED;
+    }
+
+    let x = this.ball.x;
+    let y = this.ball.y;
+    for (let i = 0; i < 30; i++) {
+      vy += GRAVITY * 0.035;
+      x += vx * 0.035;
+      y += vy * 0.035;
+      if (y > this.floorY || x < 0 || x > this.w) break;
+
+      ctx.globalAlpha = Math.max(0.08, 0.55 - i * 0.015);
+      ctx.fillStyle = '#fbbf24';
+      ctx.beginPath();
+      ctx.arc(x, y, 2.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  private toLocal(event: PointerEvent): { x: number; y: number } {
+    const rect = this.canvasRef.nativeElement.getBoundingClientRect();
+    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+  }
+
+  private layout(): void {
+    this.floorY = this.h - Math.max(46, this.h * 0.075);
+    this.hoopX = this.w * 0.72;
+    this.hoopY = this.h * 0.33;
+    this.rimR = Math.min(this.w * 0.12, 46);
+    this.ball.r = Math.min(this.w * 0.065, 24);
+    this.startX = this.w * 0.24;
+    this.startY = this.floorY - this.ball.r - 8;
+    this.backX = this.hoopX + this.rimR + 10;
+    this.backTop = this.hoopY - this.rimR * 2.1;
+    this.backBottom = this.hoopY + this.rimR * 0.45;
+  }
+
+  private placeBall(): void {
+    this.ball.x = this.startX;
+    this.ball.y = this.startY;
+    this.ball.vx = 0;
+    this.ball.vy = 0;
+    this.shot = false;
+    this.touchedRim = false;
+    this.scoredThisShot = false;
+    this.drag = false;
+    this.resetAfter = 0;
+    this.restTime = 0;
+  }
+
+  private resize(): void {
+    const canvas = this.canvasRef.nativeElement;
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width < 10 || rect.height < 10) return;
+
+    this.w = rect.width;
+    this.h = rect.height;
+    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(rect.width * this.dpr);
+    canvas.height = Math.round(rect.height * this.dpr);
+    this.layout();
+
+    if (!this.shot) this.placeBall();
+  }
+
+  private endGame(): void {
+    this.stopTimer();
+    this.state.set('OVER');
+    this.message.set(null);
+
+    if (this.score() > this.best()) {
+      this.best.set(this.score());
+      try {
+        localStorage.setItem('basketBest', String(this.score()));
+      } catch {
+        // localStorage può essere bloccato: il record resta solo in memoria.
+      }
+    }
+  }
+
+  private stopTimer(): void {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = undefined;
+    }
+  }
+
+  private flash(text: string): void {
+    this.message.set(text);
+    if (this.messageTimer) clearTimeout(this.messageTimer);
+    this.messageTimer = setTimeout(() => this.message.set(null), 1100);
+  }
+
+  private readBest(): number {
+    try {
+      const value = Number(localStorage.getItem('basketBest'));
+      return Number.isFinite(value) && value > 0 ? value : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  private vibrate(pattern: number | number[]): void {
+    if ('vibrate' in navigator) navigator.vibrate(pattern);
+  }
+}
