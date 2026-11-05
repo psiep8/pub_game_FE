@@ -137,6 +137,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR' | 'BUZZ_OUT' | 'ELIMINATED'>('WAITING');
   questionType = signal<'ROULETTE' | 'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO'>('QUIZ');
   hasAnswered = signal(false);
+  /** Ultima risposta toccata: solo promemoria visivo, l'esito lo decide il server. */
+  selectedAnswer = signal<number | null>(null);
   isBlocked = signal(false);
 
   hockeyQuestion = signal<{ text: string; options: string[]; difficulty?: string } | null>(null);
@@ -302,6 +304,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
               || status.type === 'BONUS_CASINO' || status.type === 'BONUS_CAVALLO') {
             this.gameState.set('VOTING');
             this.hasAnswered.set(false);
+            this.selectedAnswer.set(null);
             this.startTime = Date.now();
           } else {
             this.gameState.set('WAITING');
@@ -383,6 +386,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.cavalloCategory.set(null);
           this.gameState.set('WAITING');
           this.hasAnswered.set(false);
+          this.selectedAnswer.set(null);
           this.isBlocked.set(false);
           break;
 
@@ -683,6 +687,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   sendVote(index: number) {
+    this.selectedAnswer.set(index);
     const responseTimeMs = Date.now() - this.startTime;
     this.ws.sendAnswer(this.gameId(), this.nickname()!, index, responseTimeMs);
     this.hasAnswered.set(true);
@@ -703,6 +708,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.roundStartTime = Date.now();
     this.startTime = Date.now();
     this.hasAnswered.set(false);
+    this.selectedAnswer.set(null);
 
 
     if (type === 'ARENA') {
@@ -883,11 +889,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
       if (key !== this.bombaQuestionKey) {
         this.bombaQuestionKey = key;
         this.hasAnswered.set(false);
+        this.selectedAnswer.set(null);
         this.vibrate(20);
       }
     } else {
       this.bombaQuestionKey = '';
       this.hasAnswered.set(false);
+      this.selectedAnswer.set(null);
     }
 
     const explosions = Array.isArray(state.events)
@@ -919,6 +927,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       next: (result: any) => {
         if (result?.correct) {
           this.hasAnswered.set(false);
+          this.selectedAnswer.set(null);
           if (result.passOptions?.length) {
             this.bombaView.update((current: any) => ({
               ...current,
@@ -947,6 +956,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         this.hasAnswered.set(false);
+        this.selectedAnswer.set(null);
         this.flashBomba(error?.error?.error ?? 'Riprova');
         this.pollBombaState();
       },
@@ -962,12 +972,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.gameService.passBomba(this.gameId(), player, view.bombId, target).subscribe({
       next: (state: any) => {
         this.hasAnswered.set(false);
+        this.selectedAnswer.set(null);
         this.bombaFirstState = true;
         this.applyBombaState(state);
         this.vibrate(40);
       },
       error: (error: any) => {
         this.hasAnswered.set(false);
+        this.selectedAnswer.set(null);
         this.flashBomba(error?.error?.error ?? 'Passaggio non riuscito');
         this.pollBombaState();
       },
@@ -1341,6 +1353,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.vibrate(40);
   }
 
+  /** Lettera della risposta scelta, vuota se il giocatore non ha ancora toccato nulla. */
+  chosenLetter(): string {
+    const index = this.selectedAnswer();
+    return index === null ? '' : this.letter(index);
+  }
+
   letter(index: number): string {
     return String.fromCharCode(65 + index);
   }
@@ -1369,6 +1387,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.hockeyQuestion.set(court.question ?? null);
     this.hockeyMyTurn.set(!court.winner && court.turn === mine);
     this.hasAnswered.set(false);
+    this.selectedAnswer.set(null);
 
     const event = court.lastEvent;
     if (event?.kind === 'goal' && event.id !== this.hockeyLastGoalId) {
@@ -1509,11 +1528,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
   onRoundEnd() {
     this.gameState.set('WAITING');
     this.hasAnswered.set(false);
+    this.selectedAnswer.set(null);
   }
 
   setupNewRound(type: string) {
     this.currentRoundType = type;
     this.hasAnswered.set(false);
+    this.selectedAnswer.set(null);
     this.startTime = Date.now();
   }
 

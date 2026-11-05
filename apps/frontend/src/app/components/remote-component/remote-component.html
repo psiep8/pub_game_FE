@@ -481,6 +481,9 @@
       <div class="locked-icon">🎤</div>
       <p>Sei PRENOTATO!</p>
       <p class="sub-text">Rispondi al presentatore</p>
+      @if (chosenLetter()) {
+      <p class="sub-text">Hai scelto: {{ chosenLetter() }}</p>
+      }
     </div>
     }
     @case ('WAITING_FOR_OTHER') {
