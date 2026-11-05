@@ -700,3 +700,196 @@ app-image-blur .blur-main-container .blur-img {
   max-height: 62vh;
   object-fit: contain;
 }
+
+
+/* ============================================================
+   SISTEMA DI MOTION — token, utility, transizioni di pagina.
+   Stile e tema non cambiano: qui si decide solo come si muovono
+   le cose. Solo transform e opacity, niente animazioni su
+   proprietà che forzano layout o repaint continui.
+   Fill-mode "backwards": a fine animazione la proprietà torna
+   al CSS dell'elemento, così hover e :active restano intatti.
+   ============================================================ */
+:root {
+  --motion-micro: 140ms;
+  --motion-fast: 220ms;
+  --motion-base: 340ms;
+  --motion-cinema: 620ms;
+  --motion-special: 900ms;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-snap: cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
+@keyframes m-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes m-appear { from { opacity: 0; } to { opacity: 1; } }
+@keyframes m-rise {
+  from { opacity: 0; transform: translate3d(0, 18px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes m-drop {
+  from { opacity: 0; transform: translate3d(0, -18px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes m-slide-right {
+  from { opacity: 0; transform: translate3d(-36px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes m-slide-left {
+  from { opacity: 0; transform: translate3d(36px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes m-zoom-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes m-zoom-out {
+  from { opacity: 0; transform: scale(1.12); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes m-pop {
+  0% { opacity: 0; transform: scale(0.78); }
+  62% { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes m-page-in {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes m-bump {
+  0% { transform: scale(1); }
+  38% { transform: scale(1.14); }
+  100% { transform: scale(1); }
+}
+@keyframes m-shake {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  20% { transform: translate3d(-6px, 0, 0); }
+  40% { transform: translate3d(6px, 0, 0); }
+  60% { transform: translate3d(-4px, 0, 0); }
+  80% { transform: translate3d(4px, 0, 0); }
+}
+
+/* Utility riusabili nei template TV e remote. */
+.m-fade-in { animation: m-fade var(--motion-fast) var(--ease-out) backwards; }
+.m-rise { animation: m-rise var(--motion-base) var(--ease-out) backwards; }
+.m-drop-in { animation: m-drop var(--motion-base) var(--ease-out) backwards; }
+.m-slide-right { animation: m-slide-right var(--motion-base) var(--ease-out) backwards; }
+.m-slide-left { animation: m-slide-left var(--motion-base) var(--ease-out) backwards; }
+.m-zoom-in { animation: m-zoom-in var(--motion-base) var(--ease-out) backwards; }
+.m-zoom-out { animation: m-zoom-out var(--motion-base) var(--ease-out) backwards; }
+.m-pop { animation: m-pop var(--motion-fast) var(--ease-spring) backwards; }
+
+/* Transizioni tra schermate: View Transitions dove il browser le
+   supporta, altrimenti entra il fallback qui sotto. */
+::view-transition-old(root) { animation: m-fade 160ms var(--ease-in-out) both; }
+::view-transition-new(root) { animation: m-page-in 320ms var(--ease-out) both; }
+router-outlet + * { animation: m-page-in var(--motion-base) var(--ease-out) backwards; }
+
+/* ============================================================
+   TV — il palcoscenico
+   ============================================================ */
+app-game-component .lobby-brand { animation: m-drop var(--motion-cinema) var(--ease-out) backwards; }
+app-game-component .lobby-grid > * { animation: m-rise var(--motion-cinema) var(--ease-out) backwards; }
+app-game-component .lobby-grid > *:nth-child(2) { animation-delay: 110ms; }
+app-game-component .lobby-step { animation: m-fade var(--motion-base) var(--ease-out) backwards; }
+app-game-component .lobby-step:nth-child(1) { animation-delay: 150ms; }
+app-game-component .lobby-step:nth-child(2) { animation-delay: 220ms; }
+app-game-component .lobby-step:nth-child(3) { animation-delay: 290ms; }
+app-game-component .lobby-step:nth-child(4) { animation-delay: 360ms; }
+
+app-game-component .round-text { animation: m-slide-right var(--motion-base) var(--ease-out) backwards; }
+
+app-game-component .type-reveal-overlay { animation: m-fade var(--motion-fast) var(--ease-out) backwards; }
+app-game-component .type-reveal-overlay .round-badge { animation: m-drop var(--motion-base) var(--ease-out) backwards; }
+app-game-component .type-reveal-overlay .label { animation: m-fade var(--motion-base) var(--ease-out) 120ms backwards; }
+app-game-component .type-reveal-overlay .mode-name { animation: m-zoom-out var(--motion-cinema) var(--ease-spring) 140ms backwards; }
+
+app-game-component .question-area { animation: m-rise var(--motion-base) var(--ease-out) backwards; }
+app-game-component .question-category { animation: m-drop var(--motion-fast) var(--ease-out) backwards; }
+app-quiz .quiz-question { animation: m-rise var(--motion-base) var(--ease-out) backwards; }
+app-quiz .quiz-options-grid > * { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
+app-quiz .quiz-options-grid > *:nth-child(1) { animation-delay: 40ms; }
+app-quiz .quiz-options-grid > *:nth-child(2) { animation-delay: 90ms; }
+app-quiz .quiz-options-grid > *:nth-child(3) { animation-delay: 140ms; }
+app-quiz .quiz-options-grid > *:nth-child(4) { animation-delay: 190ms; }
+app-true-false .options-grid > * { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
+app-true-false .options-grid > *:nth-child(1) { animation-delay: 40ms; }
+app-true-false .options-grid > *:nth-child(2) { animation-delay: 110ms; }
+
+app-game-component .result-popup { animation: m-pop var(--motion-fast) var(--ease-spring) backwards; }
+app-game-component .result-popup .result-icon { animation: m-pop var(--motion-base) var(--ease-spring) 60ms backwards; }
+app-game-component .result-popup .result-points { animation: m-bump var(--motion-base) var(--ease-spring) 160ms backwards; }
+app-game-component .result-popup.wrong { animation: m-pop var(--motion-fast) var(--ease-spring) backwards, m-shake var(--motion-base) var(--ease-in-out) 160ms backwards; }
+
+app-game-component .recent-item { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
+app-game-component .auto-advance { animation: m-drop var(--motion-base) var(--ease-out) backwards; }
+
+app-game-component .bonus-overlay,
+app-game-component .modal-overlay,
+app-game-component .pause-overlay,
+app-game-component .demo-overlay { animation: m-fade var(--motion-fast) var(--ease-out) backwards; }
+app-game-component .bonus-card,
+app-game-component .modal-content,
+app-game-component .pause-card,
+app-game-component .demo-frame { animation: m-zoom-in var(--motion-base) var(--ease-out) backwards; }
+app-game-component .demo-panel { animation: m-rise var(--motion-base) var(--ease-out) 60ms backwards; }
+
+app-arena .arena-title,
+app-arena .arena-kicker { animation: m-drop var(--motion-base) var(--ease-out) backwards; }
+
+/* ============================================================
+   REMOTE — immediato, senza attese artificiali
+   ============================================================ */
+app-remote-component .setup-screen > * { animation: m-rise var(--motion-base) var(--ease-out) backwards; }
+app-remote-component .setup-screen > *:nth-child(1) { animation-delay: 0ms; }
+app-remote-component .setup-screen > *:nth-child(2) { animation-delay: 40ms; }
+app-remote-component .setup-screen > *:nth-child(3) { animation-delay: 80ms; }
+app-remote-component .setup-screen > *:nth-child(4) { animation-delay: 120ms; }
+app-remote-component .setup-screen > *:nth-child(5) { animation-delay: 160ms; }
+app-remote-component .setup-screen > *:nth-child(6) { animation-delay: 200ms; }
+app-remote-component .setup-screen > *:nth-child(7) { animation-delay: 240ms; }
+
+app-remote-component .game-content > * { animation: m-rise var(--motion-fast) var(--ease-out) backwards; }
+app-remote-component .game-head { animation: m-drop var(--motion-fast) var(--ease-out) backwards; }
+
+app-remote-component .voting-grid > *,
+app-remote-component .roulette-grid > *,
+app-remote-component .emoji-grid > *,
+app-remote-component .bomba-options > *,
+app-remote-component .bomba-pass-options > *,
+app-remote-component .cavallo-options > *,
+app-remote-component .cavallo-categories > *,
+app-remote-component .hockey-options > *,
+app-remote-component .casino-colors > *,
+app-remote-component .casino-numbers > *,
+app-remote-component .tl-drag-list > *,
+app-remote-component .flip-grid > * { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
+
+app-remote-component .voting-grid > *:nth-child(1),
+app-remote-component .roulette-grid > *:nth-child(1),
+app-remote-component .emoji-grid > *:nth-child(1),
+app-remote-component .bomba-options > *:nth-child(1),
+app-remote-component .tl-drag-list > *:nth-child(1) { animation-delay: 30ms; }
+app-remote-component .voting-grid > *:nth-child(2),
+app-remote-component .roulette-grid > *:nth-child(2),
+app-remote-component .emoji-grid > *:nth-child(2),
+app-remote-component .bomba-options > *:nth-child(2),
+app-remote-component .tl-drag-list > *:nth-child(2) { animation-delay: 70ms; }
+app-remote-component .voting-grid > *:nth-child(3),
+app-remote-component .roulette-grid > *:nth-child(3),
+app-remote-component .emoji-grid > *:nth-child(3),
+app-remote-component .bomba-options > *:nth-child(3),
+app-remote-component .tl-drag-list > *:nth-child(3) { animation-delay: 110ms; }
+app-remote-component .voting-grid > *:nth-child(4),
+app-remote-component .roulette-grid > *:nth-child(4),
+app-remote-component .emoji-grid > *:nth-child(4),
+app-remote-component .tl-drag-list > *:nth-child(4) { animation-delay: 150ms; }
+
+app-remote-component .eliminated-card,
+app-remote-component .hockey-goal-overlay,
+app-remote-component .bomba-flash { animation: m-pop var(--motion-fast) var(--ease-spring) backwards; }
+
+app-remote-component .arena-question-card { animation: m-rise var(--motion-base) var(--ease-out) backwards; }
+app-remote-component .hockey-card { animation: m-rise var(--motion-base) var(--ease-out) backwards; }

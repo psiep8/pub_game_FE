@@ -91,6 +91,29 @@ La pausa ha un overlay a schermo intero: il gioco non è visibile dietro.
 - L'equalizzatore della canzone anima `transform: scaleY()` invece di `height`, così non forza il ricalcolo del layout a ogni fotogramma.
 - Dove una proprietà di layout è voluta (il padding delle righe del podio) la transizione resta, ma dichiarata una per una.
 
+### Sistema di motion (5 novembre)
+Stile e tema restano quelli di ieri: cambia solo il movimento. Tutto vive in
+`styles.css`, così TV, remote e admin condividono lo stesso linguaggio.
+
+- **Token** in `:root`: `--motion-micro/fast/base/cinema/special` e le curve
+  `--ease-out`, `--ease-in-out`, `--ease-spring`, `--ease-snap`.
+- **Utility**: `.m-fade-in`, `.m-rise`, `.m-drop-in`, `.m-slide-right/left`,
+  `.m-zoom-in/out`, `.m-pop` (tutte con fill-mode `backwards`, così hover e
+  `:active` esistenti non vengono sovrascritti a fine animazione).
+- **Transizioni di pagina**: `withViewTransitions()` nel router, con
+  `::view-transition-old/new(root)` e il fallback `router-outlet + *`.
+- **TV**: ingresso lobby con titolo e card progressivi, badge round, overlay
+  modalità estratta, area domanda, comparsa sfalsata delle opzioni di quiz e
+  vero/falso, popup risultato (pop + shake sull'errore), righe delle risposte
+  recenti, bonus, demo, modale di reset, pausa, titolo Arena.
+- **Remote**: ingresso del setup sfalsato, cambio di stato del round, testata
+  del gioco, comparsa sfalsata delle griglie (quiz, colori, emoji, bomba,
+  cavallo, hockey, casinò, timeline), overlay di eliminazione e goal.
+- Solo `transform` e `opacity`; `prefers-reduced-motion` continua a spegnere
+  tutto tramite la regola globale con `!important`.
+- Nessuna modifica a logica di gioco, punteggi, API o WebSocket: le animazioni
+  partono dallo stato che il server ha già reso visibile.
+
 ---
 
 ## Da fare domani

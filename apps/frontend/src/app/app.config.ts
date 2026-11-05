@@ -3,7 +3,7 @@ import {
   provideBrowserGlobalErrorListeners,
   isDevMode,
 } from '@angular/core';
-import {provideRouter} from '@angular/router';
+import {provideRouter, withViewTransitions} from '@angular/router';
 
 import {routes} from './app.routes';
 import {provideServiceWorker} from '@angular/service-worker';
@@ -13,7 +13,9 @@ import {provideHttpClient, withXhr} from '@angular/common/http';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
+    // Transizioni tra schermate native del browser; se non supportate resta il
+    // fallback CSS (router-outlet + *).
+    provideRouter(routes, withViewTransitions()),
     provideHttpClient(withXhr()),
     provideAnimationsAsync(),
     provideServiceWorker('ngsw-worker.js', {
