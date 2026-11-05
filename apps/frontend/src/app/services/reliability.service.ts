@@ -128,6 +128,7 @@ export class ReliabilityService {
       this.lastError.set(null);
       return true;
     } catch (error) {
+      this.online.set(false);
       this.lastError.set('Sessione non disponibile');
       return false;
     }
@@ -147,6 +148,7 @@ export class ReliabilityService {
       const snapshot = response?.snapshot ?? {};
       this.stateVersion.set(Number(snapshot.version ?? 0));
       this.seq.set(Number(response?.toSeq ?? this.seq()));
+      this.online.set(true);
       this.lastSyncAt.set(Date.now());
       this.lastError.set(null);
 
@@ -155,6 +157,7 @@ export class ReliabilityService {
       }
       this.syncState$.next(snapshot);
     } catch (error) {
+      this.online.set(false);
       this.lastError.set('Sincronizzazione non riuscita');
     } finally {
       this.syncing.set(false);
@@ -176,7 +179,9 @@ export class ReliabilityService {
         })
       );
       this.applyTiming(response);
-      this.online.set(this.ws.connected() || this.online());
+      // Un heartbeat riuscito significa che il backend risponde, anche se la
+      // socket STOMP sta ancora riaprendo.
+      this.online.set(true);
       if (Number(response?.stateVersion ?? 0) > this.stateVersion()) {
         this.stateVersion.set(Number(response.stateVersion));
       }
@@ -195,6 +200,7 @@ export class ReliabilityService {
         await this.sync();
         return;
       }
+      this.online.set(false);
       this.lastError.set('Heartbeat non riuscito');
     }
   }
