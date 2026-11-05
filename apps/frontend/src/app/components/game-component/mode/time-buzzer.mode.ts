@@ -9,58 +9,56 @@ interface BuzzGuess {
 
 interface BuzzResult extends BuzzGuess {
   error: number;
-  eliminated: boolean;
-  /** Chi non ha premuto: sempre ultimo, eliminato per primo. */
+  /** Chi non ha premuto: prende zero punti per quella manche. */
   missed?: boolean;
 }
 
-const MANCHES = 3;
+const MANCHES = 5;
 const MIN_MS = 5000;
 const MAX_MS = 30000;
-const MANCHE_MS = 45000;
+const MANCHE_SECONDS = 30;
+const REVEAL_MS = 5000;
 
 /**
- * Time Buzzer — tre manche a tempo.
+ * Time Buzzer — cinque manche a tempo.
  *
  * La TV mostra un tempo bersaglio casuale (5–30 s). Ogni telefono ha solo un
  * pulsante verde: START quando vuole, STOP quando pensa di essere arrivato.
- * Nessun cronometro sul remote. Il peggior terzo esce a ogni manche.
+ * Nessun cronometro sul remote. Ogni manche assegna punti a chi ci va più
+ * vicino: i bonus sono unici di fine atto e non eliminano nessuno.
  */
 export class TimeBuzzerMode extends GameModeBase {
   readonly type: GameModeType = 'TIME_BUZZER';
-  readonly timerDuration = 45;
+  readonly timerDuration = MANCHE_SECONDS;
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
 
+  private players: string[] = [];
   private mancheIndex = signal(0);
-  private remaining = signal<string[]>([]);
-  private eliminatedNames = signal<string[]>([]);
   private guesses = signal<BuzzGuess[]>([]);
   private targetMs = signal(0);
   private revealData = signal<any | null>(null);
   private finished = signal(false);
+  private secondsLeft = 0;
 
-  private initialCount = 0;
-  private timerHandle?: ReturnType<typeof setTimeout>;
+  private clock?: ReturnType<typeof setInterval>;
   private advanceHandle?: ReturnType<typeof setTimeout>;
 
   protected onInitialize(): void {
-    const players = this.config.activePlayers ?? [];
-    this.initialCount = players.length;
-    this.remaining.set([...players]);
-    this.eliminatedNames.set([]);
-    this.mancheIndex.set(0);
-    this.guesses.set([]);
-    this.revealData.set(null);
-    this.targetMs.set(0);
-    this.finished.set(false);
-    this.timer.set(this.timerDuration);
+    this.resetState();
   }
 
   protected async onStart(): Promise<void> {
+    // setConfig arriva dopo initialize: i giocatori si leggono qui, altrimenti
+    // la lista è sempre vuota e la prima manche non può chiudersi.
+    this.players = [...(this.config.activePlayers ?? [])];
+    this.resetState();
     await this.runPreGameSequence(2500);
     this.beginManche();
   }
+
+  /** Il countdown delle manche è gestito da questo gioco, non dal timer base. */
+  protected override startTimer(): void {}
 
   protected onPause(): void {}
 
@@ -78,6 +76,16 @@ export class TimeBuzzerMode extends GameModeBase {
     this.revealManche();
   }
 
+  private resetState(): void {
+    this.mancheIndex.set(0);
+    this.guesses.set([]);
+    this.revealData.set(null);
+    this.targetMs.set(0);
+    this.finished.set(false);
+    this.secondsLeft = this.timerDuration;
+    this.timer.set(this.timerDuration);
+  }
+
   private beginManche(): void {
     if (this.finished()) return;
     if (this.mancheIndex() >= MANCHES) {
@@ -88,11 +96,28 @@ export class TimeBuzzerMode extends GameModeBase {
     this.guesses.set([]);
     this.revealData.set(null);
     this.targetMs.set(Math.round((MIN_MS + Math.random() * (MAX_MS - MIN_MS)) / 10) * 10);
+    this.secondsLeft = this.timerDuration;
     this.timer.set(this.timerDuration);
+    this.config.onTimerTick?.(this.timerDuration);
 
-    this.clearTimers();
-    this.timerHandle = setTimeout(() => this.revealManche(), MANCHE_MS);
+    this.startClock();
     this.broadcast();
+  }
+
+  private startClock(): void {
+    this.clearClock();
+    this.clock = setInterval(() => {
+      if (this.isPaused()) return;
+
+      this.secondsLeft -= 1;
+      this.timer.set(Math.max(0, this.secondsLeft));
+      this.config.onTimerTick?.(Math.max(0, this.secondsLeft));
+
+      if (this.secondsLeft <= 0) {
+        this.clearClock();
+        this.revealManche();
+      }
+    }, 1000);
   }
 
   handlePartyEvent(event: any): void {
@@ -100,7 +125,7 @@ export class TimeBuzzerMode extends GameModeBase {
     if (this.revealData() || this.finished()) return;
 
     const playerName = String(event.playerName);
-    if (!this.remaining().includes(playerName)) return;
+    if (!this.players.includes(playerName)) return;
 
     const ms = Number(event.ms);
     if (!Number.isFinite(ms) || ms <= 0 || ms > 120000) return;
@@ -110,7 +135,7 @@ export class TimeBuzzerMode extends GameModeBase {
       { playerName, ms: Math.round(ms) },
     ]);
 
-    if (this.guesses().length >= this.remaining().length) {
+    if (this.guesses().length >= this.players.length) {
       this.revealManche();
     } else {
       this.broadcast();
@@ -119,68 +144,49 @@ export class TimeBuzzerMode extends GameModeBase {
 
   private revealManche(): void {
     if (this.revealData() || this.finished()) return;
-    this.clearTimers();
+    this.clearClock();
 
     const target = this.targetMs();
-    const missing = this.remaining().filter(
+    const missing = this.players.filter(
       (name) => !this.guesses().some((guess) => guess.playerName === name),
     );
 
-    // Chi non preme non sparisce dai risultati: prende l'errore massimo e
-    // viene eliminato per primo. Altrimenti converrebbe non giocare.
+    // Chi non preme resta in classifica con zero punti: non sparisce dai
+    // risultati e non viene eliminato, si gioca tutte e cinque le manche.
     const results: BuzzResult[] = [
       ...this.guesses().map((guess) => ({
         ...guess,
         error: Math.abs(guess.ms - target),
-        eliminated: false,
       })),
       ...missing.map((playerName) => ({
         playerName,
         ms: 0,
         error: Number.MAX_SAFE_INTEGER,
-        eliminated: false,
         missed: true,
       })),
     ].sort((a, b) => a.error - b.error);
 
-    const survivors = this.remaining().length;
-    const eliminateCount = this.mancheIndex() < MANCHES - 1
-      ? Math.min(
-          Math.max(1, Math.ceil(this.initialCount / 3)),
-          Math.max(0, survivors - 3),
-        )
-      : 0;
-
-    for (let i = 0; i < eliminateCount && i < results.length; i++) {
-      results[results.length - 1 - i].eliminated = true;
-    }
-
-    const out = results.filter((result) => result.eliminated).map((result) => result.playerName);
-    if (out.length) {
-      this.eliminatedNames.update((list) => [...list, ...out]);
-      this.remaining.update((list) => list.filter((name) => !out.includes(name)));
-    }
-
     results.forEach((result, position) => {
-      if (result.eliminated) return;
+      if (result.missed) return;
+      const points = Math.max(20, 100 - position * 20);
       this.config.onAnswerReceived?.({
         playerName: result.playerName,
-        points: Math.max(50, 300 - position * 100),
+        points,
         isCorrect: position === 0,
       });
     });
 
-    this.revealData.set({ target, results, eliminated: out });
+    this.revealData.set({ target, results, eliminated: [] });
     this.broadcast();
 
     this.advanceHandle = setTimeout(() => {
-      if (this.mancheIndex() + 1 >= MANCHES || this.remaining().length <= 1) {
+      if (this.mancheIndex() + 1 >= MANCHES) {
         this.finish();
       } else {
         this.mancheIndex.update((value) => value + 1);
         this.beginManche();
       }
-    }, 6000);
+    }, REVEAL_MS);
   }
 
   private finish(): void {
@@ -188,19 +194,18 @@ export class TimeBuzzerMode extends GameModeBase {
     this.finished.set(true);
     this.clearTimers();
 
-    const best = this.revealData()?.results?.find((result: BuzzResult) => !result.eliminated);
-    if (best) {
-      this.config.onAnswerReceived?.({ playerName: best.playerName, points: 500, isCorrect: true });
-    }
-
     this.broadcast();
     this.config.onTimerEnd?.();
   }
 
+  private clearClock(): void {
+    if (this.clock) clearInterval(this.clock);
+    this.clock = undefined;
+  }
+
   private clearTimers(): void {
-    if (this.timerHandle) clearTimeout(this.timerHandle);
+    this.clearClock();
     if (this.advanceHandle) clearTimeout(this.advanceHandle);
-    this.timerHandle = undefined;
     this.advanceHandle = undefined;
   }
 
@@ -225,10 +230,10 @@ export class TimeBuzzerMode extends GameModeBase {
     return {
       question: this.payload?.question ?? 'Quanto ci metti?',
       targetMs: this.targetMs(),
-      manche: this.mancheIndex() + 1,
+      manche: Math.min(this.mancheIndex() + 1, MANCHES),
       total: MANCHES,
-      remaining: this.remaining(),
-      eliminated: this.eliminatedNames(),
+      remaining: this.players,
+      eliminated: [],
       guesses: this.guesses(),
       reveal: this.revealData(),
       finished: this.finished(),

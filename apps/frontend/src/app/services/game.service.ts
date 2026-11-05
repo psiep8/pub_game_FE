@@ -108,6 +108,17 @@ export class GameService {
     );
   }
 
+  /** Cavallo di Battaglia: otto domande difficili della categoria scelta. */
+  getCavalloQuestions(
+    gameId: number,
+    category: string,
+    count: number
+  ): Observable<Array<{ question: string; options: string[]; correctIndex: number; category: string; difficulty: string }>> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/games/${gameId}/cavallo/questions?category=${encodeURIComponent(category)}&count=${count}`
+    );
+  }
+
   // ---------------------------------------------------------------- Bomba
 
   startBomba(gameId: number, players: string[], act: number): Observable<any> {

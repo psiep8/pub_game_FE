@@ -321,6 +321,70 @@ public class QuestionBankService {
     }
 
     /**
+     * Cavallo di Battaglia: otto domande flash della categoria scelta dalla
+     * squadra, preferendo le difficili. La risposta corretta viaggia con la
+     * domanda perché è la TV a validare i tocchi dei telefoni.
+     */
+    public List<Map<String, Object>> cavalloQuestions(String category, int count) {
+        int wanted = Math.max(1, Math.min(20, count));
+        List<BankQuestion> hard = new ArrayList<>();
+        List<BankQuestion> medium = new ArrayList<>();
+        List<BankQuestion> otherCategories = new ArrayList<>();
+
+        for (BankQuestion question : allQuestions()) {
+            if (!isCavalloPlayable(question)) {
+                continue;
+            }
+            boolean sameCategory = category == null || category.isBlank()
+                    || question.category().equalsIgnoreCase(category);
+            if (!sameCategory) {
+                if (isHardDifficulty(question.difficulty())) {
+                    otherCategories.add(question);
+                }
+                continue;
+            }
+            if (isHardDifficulty(question.difficulty())) {
+                hard.add(question);
+            } else {
+                medium.add(question);
+            }
+        }
+
+        Collections.shuffle(hard, random);
+        Collections.shuffle(medium, random);
+        Collections.shuffle(otherCategories, random);
+
+        List<BankQuestion> pool = new ArrayList<>(hard);
+        pool.addAll(medium);
+        pool.addAll(otherCategories);
+
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (BankQuestion question : pool) {
+            if (rows.size() >= wanted) {
+                break;
+            }
+            List<String> options = new ArrayList<>(question.options());
+            Collections.shuffle(options, random);
+            rows.add(Map.of(
+                    "question", question.question(),
+                    "options", options,
+                    "correctAnswer", question.correctAnswer(),
+                    "correctIndex", Math.max(0, options.indexOf(question.correctAnswer())),
+                    "category", question.category(),
+                    "difficulty", question.difficulty()));
+        }
+        return rows;
+    }
+
+    /** Il Cavallo usa solo domande con opzioni toccabili dal telefono. */
+    private boolean isCavalloPlayable(BankQuestion question) {
+        if (!"QUIZ".equals(question.type()) && !"TRUE_FALSE".equals(question.type())) {
+            return false;
+        }
+        return question.options().size() >= 2 && question.options().contains(question.correctAnswer());
+    }
+
+    /**
      * Domande Bomba per atto: Vero/Falso nei primi due, tre opzioni nei
      * centrali, difficili e più rapide nell'ultimo. La risposta corretta resta
      * nel servizio e non viene mai serializzata verso TV o telefoni.

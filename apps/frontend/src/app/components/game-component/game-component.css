@@ -1624,6 +1624,22 @@
   letter-spacing: .08em;
 }
 
+.bonus-live-tag {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 58;
+  padding: 8px 18px;
+  border: 2px solid #ffd166;
+  border-radius: 999px;
+  background: rgba(10, 10, 20, .85);
+  color: #ffd166;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .18em;
+}
+
 /* Demo animate: TV, remote e punteggio in tre scene */
 .demo-stage.demo-animated {
   display: flex;

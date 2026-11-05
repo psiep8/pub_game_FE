@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { WebSocketService } from '../../services/web-socket.service';
 
-type GameState = 'READY' | 'PLAYING' | 'OVER';
+type GameState = 'READY' | 'PLAYING' | 'MANCHE_END' | 'OVER';
 
 interface Ball {
   x: number;
@@ -20,7 +20,13 @@ interface Ball {
   r: number;
 }
 
-const GAME_SECONDS = 30;
+const MANCHE_COUNT = 3;
+const MANCHE_SECONDS = 20;
+const MANCHE_LABELS = ['CANESTRO GRANDE', 'CANESTRO MEDIO', 'CANESTRO PICCOLO'];
+/** Premio per canestro: cresce quando il ferro si stringe. */
+const MANCHE_POINTS = [2, 3, 5];
+/** Il ferro si rimpicciolisce a ogni manche. */
+const RIM_SCALES = [1.35, 1, 0.72];
 const GRAVITY = 1500;
 const LAUNCH_POWER = 4.2;
 const MAX_SPEED = 1600;
@@ -36,13 +42,17 @@ const MAX_SPEED = 1600;
           <span class="brand-ball">🏀</span>
           <div>
             <h1>BONUS BASKET</h1>
-            <p>30 secondi · tiri liberi</p>
+            <p>3 manche · {{ mancheLabel() }}</p>
           </div>
         </div>
         <div class="basket-stats">
           <div class="stat">
             <span>PUNTI</span>
             <b>{{ score() }}</b>
+          </div>
+          <div class="stat manche">
+            <span>MANCHE</span>
+            <b>{{ manche() + 1 }}/{{ mancheCount }}</b>
           </div>
           <div class="stat time" [class.hot]="timeLeft() <= 5">
             <span>TEMPO</span>
@@ -67,21 +77,38 @@ const MAX_SPEED = 1600;
         @if (state() === 'READY') {
           <div class="basket-overlay">
             <span class="overlay-ball">🏀</span>
-            <h2>Fai canestro!</h2>
+            <h2>Tre manche al canestro</h2>
             <p>
               Trascina la palla verso il basso e rilascia.<br />
-              Canestro = 2 punti · Swish senza ferro = 3 punti.
+              Manche 1 grande (+2) · Manche 2 media (+3) · Manche 3 piccola (+5).<br />
+              Swish senza ferro: un punto in più.
             </p>
-            <button class="basket-play" (click)="startGame()">GIOCA 30s</button>
+            <button class="basket-play" (click)="startGame()">GIOCA 3 MANCHE</button>
+          </div>
+        }
+
+        @if (state() === 'MANCHE_END') {
+          <div class="basket-overlay over">
+            <span class="overlay-kicker">MANCHE {{ manche() + 1 }} FINITA</span>
+            <div class="final-score">{{ mancheScore() }}</div>
+            <p>punti in questa manche · {{ mancheLabel() }}</p>
+            <p class="record">
+              {{ manche() < mancheCount - 1 ? 'Prossima: ' + MANCHE_LABELS[manche() + 1] : 'Bonus completato' }}
+            </p>
           </div>
         }
 
         @if (state() === 'OVER') {
           <div class="basket-overlay over">
-            <span class="overlay-kicker">TEMPO SCADUTO</span>
+            <span class="overlay-kicker">BONUS COMPLETATO</span>
             <div class="final-score">{{ score() }}</div>
-            <p>punti · {{ shots() }} tiri</p>
-            <p class="record">Record: {{ best() }}</p>
+            <p>punti totali · {{ shots() }} tiri</p>
+            <div class="manche-breakdown">
+              @for (value of mancheScores(); track $index; let i = $index) {
+                <div><span>{{ MANCHE_LABELS[i] }}</span><b>{{ value }}</b></div>
+              }
+            </div>
+            <p class="record">Record personale: {{ best() }}</p>
             <button class="basket-play" (click)="startGame()">RIPROVA</button>
           </div>
         }
@@ -143,7 +170,7 @@ const MAX_SPEED = 1600;
       }
       .basket-stats { display: flex; align-items: stretch; gap: 8px; flex: 0 0 auto; }
       .stat {
-        min-width: 58px;
+        min-width: 54px;
         padding: 6px 9px;
         border: 2px solid #334155;
         border-radius: 10px;
@@ -164,6 +191,7 @@ const MAX_SPEED = 1600;
         line-height: 1.1;
         font-variant-numeric: tabular-nums;
       }
+      .stat.manche b { color: #f97316; font-size: 1rem; }
       .stat.time b { color: #a3e635; }
       .stat.time.hot b { color: #f87171; animation: pulse .7s infinite; }
       @keyframes pulse { 50% { opacity: .4; } }
@@ -220,7 +248,7 @@ const MAX_SPEED = 1600;
         text-transform: uppercase;
       }
       .basket-overlay p {
-        max-width: 310px;
+        max-width: 330px;
         margin: 0;
         color: #cbd5e1;
         font-size: .86rem;
@@ -235,6 +263,25 @@ const MAX_SPEED = 1600;
         font-variant-numeric: tabular-nums;
       }
       .record { color: #a3e635 !important; font-weight: 700; }
+      .manche-breakdown {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        width: min(280px, 80vw);
+        margin: 6px 0;
+      }
+      .manche-breakdown div {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 4px 10px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, .08);
+        color: #e2e8f0;
+        font-size: .78rem;
+        letter-spacing: .06em;
+      }
+      .manche-breakdown b { color: #f97316; }
       .basket-play {
         margin-top: 8px;
         padding: 14px 26px;
@@ -267,9 +314,15 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
 
   private ws = inject(WebSocketService);
 
+  readonly mancheCount = MANCHE_COUNT;
+  readonly MANCHE_LABELS = MANCHE_LABELS;
+
   readonly score = signal(0);
+  readonly mancheScore = signal(0);
+  readonly mancheScores = signal<number[]>([0, 0, 0]);
+  readonly manche = signal(0);
   readonly shots = signal(0);
-  readonly timeLeft = signal(GAME_SECONDS);
+  readonly timeLeft = signal(MANCHE_SECONDS);
   readonly state = signal<GameState>('READY');
   readonly best = signal(this.readBest());
   readonly message = signal<string | null>(null);
@@ -277,6 +330,7 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
   private ctx: CanvasRenderingContext2D | null = null;
   private raf = 0;
   private timer: ReturnType<typeof setInterval> | undefined;
+  private mancheTimer: ReturnType<typeof setTimeout> | undefined;
   private resizeObserver: ResizeObserver | undefined;
   private messageTimer: ReturnType<typeof setTimeout> | undefined;
   private lastTs = 0;
@@ -288,6 +342,7 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
   private hoopX = 0;
   private hoopY = 0;
   private rimR = 40;
+  private rimScale = RIM_SCALES[0];
   private backX = 0;
   private backTop = 0;
   private backBottom = 0;
@@ -316,27 +371,100 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     cancelAnimationFrame(this.raf);
     this.stopTimer();
+    if (this.mancheTimer) clearTimeout(this.mancheTimer);
     this.resizeObserver?.disconnect();
     if (this.messageTimer) clearTimeout(this.messageTimer);
   }
 
+  mancheLabel(index = this.manche()): string {
+    return MANCHE_LABELS[index] ?? MANCHE_LABELS[0];
+  }
+
   startGame(): void {
     this.stopTimer();
+    if (this.mancheTimer) {
+      clearTimeout(this.mancheTimer);
+      this.mancheTimer = undefined;
+    }
+
     this.score.set(0);
+    this.mancheScore.set(0);
+    this.mancheScores.set([0, 0, 0]);
     this.shots.set(0);
-    this.timeLeft.set(GAME_SECONDS);
+    this.message.set(null);
+    this.startManche(0);
+  }
+
+  private startManche(index: number): void {
+    this.stopTimer();
+    this.manche.set(index);
+    this.mancheScore.set(0);
+    this.timeLeft.set(MANCHE_SECONDS);
     this.state.set('PLAYING');
     this.message.set(null);
+    this.rimScale = RIM_SCALES[index] ?? 1;
     this.lastTs = 0;
+    this.layout();
     this.placeBall();
 
     this.timer = setInterval(() => {
       const next = this.timeLeft() - 1;
       this.timeLeft.set(Math.max(0, next));
-      if (next <= 0) this.endGame();
+      if (next <= 0) this.endManche();
     }, 1000);
 
     this.vibrate(20);
+  }
+
+  private endManche(): void {
+    if (this.state() !== 'PLAYING') return;
+    this.stopTimer();
+
+    const gained = this.mancheScore();
+    const scores = [...this.mancheScores()];
+    scores[this.manche()] = gained;
+    this.mancheScores.set(scores);
+    this.score.update((value) => value + gained);
+    this.state.set('MANCHE_END');
+    this.sendResult(gained);
+    this.vibrate(60);
+
+    this.mancheTimer = setTimeout(() => {
+      if (this.manche() < MANCHE_COUNT - 1) {
+        this.startManche(this.manche() + 1);
+      } else {
+        this.finishGame();
+      }
+    }, 2600);
+  }
+
+  private finishGame(): void {
+    this.state.set('OVER');
+    this.message.set(null);
+
+    if (this.score() > this.best()) {
+      this.best.set(this.score());
+      try {
+        localStorage.setItem('basketBest', String(this.score()));
+      } catch {
+        // localStorage può essere bloccato: il record resta solo in memoria.
+      }
+    }
+  }
+
+  /** Ogni manche invia il proprio punteggio: la TV li somma nel bonus. */
+  private sendResult(score: number): void {
+    const playerName = this.resolvePlayerName();
+    if (!playerName) return;
+
+    const gameId = Number(localStorage.getItem('activeGameId')) || 1;
+    this.ws.subscribeToGame(gameId);
+    this.ws.broadcastStatus(gameId, {
+      action: 'BONUS_RESULT',
+      playerName,
+      score,
+      manche: this.manche() + 1,
+    });
   }
 
   onPointerDown(event: PointerEvent): void {
@@ -424,10 +552,11 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
       b.vy > 0 &&
       Math.abs(b.x - this.hoopX) < this.rimR - b.r * 0.15
     ) {
-      const points = this.touchedRim ? 2 : 3;
-      this.score.update((value) => value + points);
+      const base = MANCHE_POINTS[this.manche()] ?? 2;
+      const points = base + (this.touchedRim ? 0 : 1);
+      this.mancheScore.update((value) => value + points);
       this.scoredThisShot = true;
-      this.flash(this.touchedRim ? 'CANESTRO +2' : 'SWISH! +3');
+      this.flash(this.touchedRim ? `CANESTRO +${points}` : `SWISH! +${points}`);
       this.vibrate(60);
       this.resetAfter = 1.1;
     }
@@ -690,12 +819,12 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     this.floorY = this.h - Math.max(46, this.h * 0.075);
     this.hoopX = this.w * 0.72;
     this.hoopY = this.h * 0.33;
-    this.rimR = Math.min(this.w * 0.12, 46);
+    this.rimR = Math.min(this.w * 0.12, 46) * this.rimScale;
     this.ball.r = Math.min(this.w * 0.065, 24);
     this.startX = this.w * 0.24;
     this.startY = this.floorY - this.ball.r - 8;
     this.backX = this.hoopX + this.rimR + 10;
-    this.backTop = this.hoopY - this.rimR * 2.1;
+    this.backTop = this.hoopY - this.rimR * 1.9;
     this.backBottom = this.hoopY + this.rimR * 0.45;
   }
 
@@ -725,33 +854,6 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     this.layout();
 
     if (!this.shot) this.placeBall();
-  }
-
-  private endGame(): void {
-    this.stopTimer();
-    this.state.set('OVER');
-    this.message.set(null);
-
-    // Il punteggio del bonus entra nella partita: la TV premia i primi tre.
-    const playerName = this.resolvePlayerName();
-    if (playerName) {
-      const gameId = Number(localStorage.getItem('activeGameId')) || 1;
-      this.ws.subscribeToGame(gameId);
-      this.ws.broadcastStatus(gameId, {
-        action: 'BONUS_RESULT',
-        playerName,
-        score: this.score(),
-      });
-    }
-
-    if (this.score() > this.best()) {
-      this.best.set(this.score());
-      try {
-        localStorage.setItem('basketBest', String(this.score()));
-      } catch {
-        // localStorage può essere bloccato: il record resta solo in memoria.
-      }
-    }
   }
 
   private stopTimer(): void {

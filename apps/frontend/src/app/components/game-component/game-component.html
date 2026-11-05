@@ -200,35 +200,48 @@
 </div>
 
 
-@if (bonusActive() || bonusShowResult()) {
+@if (bonusActive()) {
+  @switch (bonusType()) {
+    @case ('CASINO') {
+      <app-casino-bonus
+        [gameId]="currentGameId()"
+        [players]="bonusPlayers()"
+        (result)="onBonusResult($event)"
+        (finished)="finishBonus()" />
+    }
+    @case ('BASKET') {
+      <app-basket-bonus-stage
+        [secondsLeft]="bonusSecondsLeft()"
+        [scores]="bonusScores()" />
+    }
+    @case ('CAVALLO') {
+      <app-cavallo-bonus
+        [gameId]="currentGameId()"
+        [players]="bonusPlayers()"
+        [categories]="allCategories()"
+        (result)="onBonusResult($event)"
+        (finished)="finishBonus()" />
+    }
+    @case ('TIME_BUZZER') {
+      <div class="bonus-live-tag">⏱️ BONUS DI FINE ATTO · TIME BUZZER</div>
+    }
+  }
+}
+
+@if (bonusShowResult()) {
 <div class="bonus-overlay">
   <div class="bonus-card">
-    <div class="bonus-kicker">BONUS</div>
-    <h2>{{ bonusType() === 'BASKET' ? '🏀 BONUS BASKET' : '🎰 BONUS ROULETTE' }}</h2>
-
-    @if (bonusActive() && bonusType() === 'BASKET') {
-      <div class="bonus-timer">{{ bonusSecondsLeft() }}s</div>
-      <p class="bonus-hint">Apri il canestro dal telefono: ogni canestro vale punti bonus.</p>
-    } @else if (bonusActive()) {
-      <p class="bonus-hint">Scegli un colore sul telefono. Il colore vincente resta in TV.</p>
-    }
-
-    @if (bonusActive() && bonusScores().length) {
-      <div class="bonus-scores">
-        @for (row of bonusScores(); track row.playerName) {
-          <div><span>{{ row.playerName }}</span><b>{{ row.score }}</b></div>
-        }
-      </div>
-    }
-
-    @if (bonusShowResult()) {
-      <p class="bonus-hint">Premi: +300 / +150 / +75 ai primi tre.</p>
-      <div class="bonus-scores">
-        @for (row of bonusResult(); track row.playerName) {
-          <div><span>{{ row.playerName }}</span><b>{{ row.score }}</b></div>
-        }
-      </div>
-    }
+    <div class="bonus-kicker">BONUS CONCLUSO</div>
+    <h2>{{ bonusLabel() }}</h2>
+    <p class="bonus-hint">Classifica del bonus</p>
+    <div class="bonus-scores">
+      @for (row of bonusResult(); track row.playerName; let i = $index) {
+        <div><span>{{ i + 1 }}. {{ row.playerName }}</span><b>{{ row.score }}</b></div>
+      }
+      @if (!bonusResult().length) {
+        <p class="bonus-hint">Nessun punto registrato.</p>
+      }
+    </div>
   </div>
 </div>
 }

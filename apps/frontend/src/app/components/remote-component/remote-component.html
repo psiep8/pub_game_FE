@@ -124,7 +124,7 @@
     }
     @case ('TIME_BUZZER') {
     <div class="buzz-remote">
-      <div class="game-head"><span class="game-tag buzz">TIME BUZZER</span><span class="game-tip">Vai a sensazione</span></div>
+      <div class="game-head"><span class="game-tag buzz">TIME BUZZER</span><span class="game-tip">Manche {{ buzzManche() || 1 }}/5</span></div>
       <button class="buzz-btn" [class.running]="buzzPhase() === 'running'" [class.sent]="buzzPhase() === 'sent'"
         [disabled]="buzzPhase() === 'sent'" (click)="toggleBuzz()">
         {{ buzzPhase() === 'running' ? 'STOP' : buzzPhase() === 'sent' ? 'INVIATO' : 'START' }}
@@ -179,9 +179,77 @@
     }
     @case ('BONUS_BASKET') {
     <div class="buzz-remote">
-      <div class="game-head"><span class="game-tag buzz">BONUS</span><span class="game-tip">30 secondi</span></div>
-      <p class="party-instruction">Apri il canestro e fai più punti che puoi.</p>
+      <div class="game-head"><span class="game-tag buzz">BONUS</span><span class="game-tip">3 manche</span></div>
+      <p class="party-instruction">Apri il canestro: grande, medio, piccolo. Ogni manche vale di più.</p>
       <a class="confirm-btn" [href]="getBasketUrl()">APRI IL CANESTRO</a>
+    </div>
+    }
+    @case ('BONUS_CASINO') {
+    <div class="bonus-remote">
+      <div class="game-head"><span class="game-tag buzz">🎰 CASINO</span><span class="game-tip">Manche {{ casinoState()?.manche || 1 }}/3</span></div>
+
+      @if (casinoState()?.phase === 'COLORS_PICK') {
+      <p class="party-instruction">Scegli un colore</p>
+      <div class="casino-colors">
+        @for (color of casinoState()?.options ?? []; track color) {
+        <button class="casino-color" [class.picked]="casinoChoice() === color" [disabled]="casinoChoice() !== null" (click)="casinoAct(color)">{{ color }}</button>
+        }
+      </div>
+      } @else if (casinoState()?.phase === 'NUMBERS_PICK') {
+      <p class="party-instruction">Scegli un numero da 0 a 36</p>
+      <div class="casino-numbers">
+        @for (number of casinoState()?.options ?? []; track number) {
+        <button class="casino-number" [class.picked]="casinoChoice() === number" [disabled]="casinoChoice() !== null" (click)="casinoAct(number)">{{ number }}</button>
+        }
+      </div>
+      } @else if (casinoState()?.phase === 'BJ_PICK') {
+      <div class="casino-hand">
+        <span class="casino-hand-label">LA TUA MANO</span>
+        <div class="casino-cards">
+          @for (card of casinoHand()?.cards ?? []; track $index) {
+          <span class="casino-card" [class.red]="card.includes('♥') || card.includes('♦')">{{ card }}</span>
+          }
+        </div>
+        <b class="casino-hand-total" [class.bust]="(casinoHand()?.total ?? 0) > 21">{{ casinoHand()?.total ?? 0 }}</b>
+      </div>
+      <div class="casino-bj-actions">
+        <button class="casino-hit" [disabled]="casinoChoice() !== null" (click)="casinoAct('HIT')">CARTA</button>
+        <button class="casino-stand" [disabled]="casinoChoice() !== null" (click)="casinoAct('STAND')">STO</button>
+      </div>
+      } @else {
+      <div class="status-msg">
+        <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🎰</div></div>
+        <p>{{ casinoState()?.reveal?.heading || 'Manche in corso...' }}</p>
+      </div>
+      }
+    </div>
+    }
+    @case ('BONUS_CAVALLO') {
+    <div class="bonus-remote">
+      <div class="game-head"><span class="game-tag buzz">🐎 CAVALLO</span><span class="game-tip">{{ cavalloState()?.chosenCategory || 'Scegli la categoria' }}</span></div>
+
+      @if (cavalloState()?.phase === 'CATEGORY') {
+      <p class="party-instruction">Scegli la categoria della sfida</p>
+      <div class="cavallo-categories">
+        @for (category of cavalloState()?.categories ?? []; track category) {
+        <button class="cavallo-category" [class.picked]="cavalloCategory() === category" [disabled]="cavalloCategory() !== null" (click)="cavalloPickCategory(category)">{{ category }}</button>
+        }
+      </div>
+      } @else if (cavalloState()?.phase === 'QUESTION') {
+      <p class="cavallo-question">{{ cavalloState()?.question?.text }}</p>
+      <div class="cavallo-options">
+        @for (option of cavalloState()?.question?.options ?? []; track $index; let i = $index) {
+        <button class="cavallo-option" [disabled]="cavalloChoice() !== null" (click)="cavalloAnswer(i)">
+          <span class="cavallo-letter">{{ letter(i) }}</span><span>{{ option }}</span>
+        </button>
+        }
+      </div>
+      } @else {
+      <div class="status-msg">
+        <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🐎</div></div>
+        <p>{{ cavalloState()?.reveal?.heading || 'Preparazione...' }}</p>
+      </div>
+      }
     </div>
     }
     @case ('SPEED_RUSH') {

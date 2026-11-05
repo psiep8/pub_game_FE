@@ -90,6 +90,32 @@ import { ThemeService } from '../../services/theme.service';
     .hockey-wait-score { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: var(--tomato); }
     .hockey-result { text-align: center; font-family: var(--font-mono); font-size: .8rem; font-weight: 700; letter-spacing: .16em; color: var(--tomato); }
     @keyframes hockeyBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    .bonus-remote { display: flex; flex-direction: column; gap: 14px; padding: 16px; height: 100%; justify-content: center; }
+    .casino-colors { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .casino-color { padding: 18px 10px; border-radius: 14px; border: 2px solid rgba(255,255,255,.2); background: rgba(255,255,255,.08); color: #fff; font-weight: 800; letter-spacing: .06em; }
+    .casino-color.picked { border-color: #fbbf24; background: rgba(251,191,36,.25); }
+    .casino-numbers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-height: 52vh; overflow: auto; }
+    .casino-number { padding: 12px 0; border-radius: 10px; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: #fff; font-weight: 700; font-family: var(--font-mono, monospace); }
+    .casino-number.picked { border-color: #fbbf24; background: rgba(251,191,36,.25); color: #fbbf24; }
+    .casino-hand { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px; border-radius: 14px; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); }
+    .casino-hand-label { font-size: .66rem; letter-spacing: .18em; color: #fbbf24; font-weight: 800; }
+    .casino-cards { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+    .casino-card { display: inline-grid; place-items: center; min-width: 38px; height: 50px; padding: 0 4px; border-radius: 8px; background: #f8fafc; color: #0f172a; font-family: var(--font-mono, monospace); font-weight: 800; }
+    .casino-card.red { color: #dc2626; }
+    .casino-hand-total { font-size: 1.8rem; font-weight: 900; }
+    .casino-hand-total.bust { color: #f87171; }
+    .casino-bj-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .casino-hit, .casino-stand { padding: 20px 10px; border: 0; border-radius: 14px; font-size: 1rem; font-weight: 900; letter-spacing: .06em; }
+    .casino-hit { background: #fbbf24; color: #111827; }
+    .casino-stand { background: rgba(255,255,255,.16); color: #fff; }
+    .cavallo-categories { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 56vh; overflow: auto; }
+    .cavallo-category { padding: 12px 10px; border-radius: 12px; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: #fff; font-size: .8rem; font-weight: 700; text-align: left; }
+    .cavallo-category.picked { border-color: #f59e0b; background: rgba(245,158,11,.25); }
+    .cavallo-question { margin: 0; font-size: 1.02rem; font-weight: 800; line-height: 1.3; }
+    .cavallo-options { display: flex; flex-direction: column; gap: 8px; }
+    .cavallo-option { display: flex; align-items: center; gap: 10px; padding: 14px 12px; border-radius: 12px; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: #fff; text-align: left; font-size: .92rem; font-weight: 700; }
+    .cavallo-option:disabled { opacity: .55; }
+    .cavallo-letter { display: grid; place-items: center; width: 24px; height: 24px; flex: 0 0 auto; border-radius: 6px; background: #f59e0b; color: #111827; font-size: .72rem; font-weight: 900; }
   `],
 })
 export class RemoteComponent implements OnInit, OnDestroy {
@@ -106,7 +132,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR' | 'BUZZ_OUT' | 'ELIMINATED'>('WAITING');
-  questionType = signal<'ROULETTE' | 'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'BONUS_BASKET'>('QUIZ');
+  questionType = signal<'ROULETTE' | 'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO'>('QUIZ');
   hasAnswered = signal(false);
   isBlocked = signal(false);
 
@@ -152,6 +178,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
   bombaState = signal<any>(null);
   bombaView = signal<any>(null);
   bombaFlash = signal<string | null>(null);
+  casinoState = signal<any>(null);
+  casinoChoice = signal<string | null>(null);
+  cavalloState = signal<any>(null);
+  cavalloChoice = signal<string | null>(null);
+  cavalloCategory = signal<string | null>(null);
+  private casinoKey = '';
+  private cavalloKey = '';
   private bombaPoll?: ReturnType<typeof setInterval>;
   private bombaPollBusy = false;
   private bombaStarted = false;
@@ -257,7 +290,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
         case 'SHOW_QUESTION':
           this.questionType.set(status.type);
           this.isBlocked.set(false);
-          if (status.type === 'ROULETTE' || status.type === 'BONUS_BASKET') {
+          if (status.type === 'ROULETTE' || status.type === 'BONUS_BASKET'
+              || status.type === 'BONUS_CASINO' || status.type === 'BONUS_CAVALLO') {
             this.gameState.set('VOTING');
             this.hasAnswered.set(false);
             this.startTime = Date.now();
@@ -288,6 +322,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
           }
           break;
 
+        case 'CASINO_STATE':
+          this.applyCasinoState(status.state);
+          break;
+
+        case 'CAVALLO_STATE':
+          this.applyCavalloState(status.state);
+          break;
+
         case 'AIR_HOCKEY_BATTLE_STATE':
           this.handleAirHockeyBattleState(status);
           break;
@@ -295,6 +337,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
         case 'BONUS_ENDED':
           this.questionType.set('QUIZ');
           this.gameState.set('WAITING');
+          this.casinoState.set(null);
+          this.cavalloState.set(null);
+          this.casinoChoice.set(null);
+          this.cavalloChoice.set(null);
+          this.cavalloCategory.set(null);
           break;
 
         case 'ROUND_ENDED':
@@ -321,6 +368,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.bombaView.set(null);
           this.bombaFlash.set(null);
           this.bombaFirstState = true;
+          this.casinoState.set(null);
+          this.cavalloState.set(null);
+          this.casinoChoice.set(null);
+          this.cavalloChoice.set(null);
+          this.cavalloCategory.set(null);
           this.gameState.set('WAITING');
           this.hasAnswered.set(false);
           this.isBlocked.set(false);
@@ -666,6 +718,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.bombaQuestionKey = '';
       this.bombaStarted = true;
       this.startBombaPolling();
+    } else if (type === 'BONUS_CASINO') {
+      this.casinoState.set(null);
+      this.casinoChoice.set(null);
+    } else if (type === 'BONUS_CAVALLO') {
+      this.cavalloState.set(null);
+      this.cavalloChoice.set(null);
+      this.cavalloCategory.set(null);
     } else if (type === 'SPEED_RUSH') {
       this.startSpeedRush();
     } else if (type === 'AIR_HOCKEY_BATTLE') {
@@ -676,6 +735,91 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   // ---------------------------------------------------------------- BOMBA
+
+  private applyCasinoState(state: any): void {
+    if (!state) return;
+
+    this.casinoState.set(state);
+    this.questionType.set('BONUS_CASINO');
+    const key = `${state.manche}:${state.phase}`;
+    if (key !== this.casinoKey) {
+      this.casinoKey = key;
+      this.casinoChoice.set(null);
+    }
+    this.gameState.set(state.phase === 'FINALE' ? 'WAITING' : 'VOTING');
+  }
+
+  private applyCavalloState(state: any): void {
+    if (!state) return;
+
+    this.cavalloState.set(state);
+    this.questionType.set('BONUS_CAVALLO');
+    const key = `${state.phase}:${state.question?.index ?? 0}`;
+    if (key !== this.cavalloKey) {
+      this.cavalloKey = key;
+      this.cavalloChoice.set(null);
+      if (state.phase === 'CATEGORY') this.cavalloCategory.set(null);
+    }
+    this.gameState.set(state.phase === 'FINALE' ? 'WAITING' : 'VOTING');
+  }
+
+  casinoAct(choice: string): void {
+    const state = this.casinoState();
+    const player = this.nickname();
+    if (!state || !player || this.casinoChoice() !== null) return;
+
+    const options: string[] = state.options ?? [];
+    if (!options.includes(choice)) return;
+
+    this.casinoChoice.set(choice);
+    this.ws.broadcastStatus(this.gameId(), {
+      action: 'CASINO_ACTION',
+      playerName: player,
+      manche: state.manche,
+      choice,
+    });
+    this.vibrate(30);
+  }
+
+  casinoHand(): any {
+    const state = this.casinoState();
+    const me = this.nickname();
+    return state?.hands && me ? state.hands[me] ?? null : null;
+  }
+
+  cavalloPickCategory(category: string): void {
+    const state = this.cavalloState();
+    const player = this.nickname();
+    if (!state || state.phase !== 'CATEGORY' || !player || this.cavalloCategory() !== null) return;
+    if (!(state.categories ?? []).includes(category)) return;
+
+    this.cavalloCategory.set(category);
+    this.ws.broadcastStatus(this.gameId(), {
+      action: 'CAVALLO_ACTION',
+      playerName: player,
+      kind: 'CATEGORY',
+      value: category,
+    });
+    this.vibrate(30);
+  }
+
+  cavalloAnswer(index: number): void {
+    const state = this.cavalloState();
+    const player = this.nickname();
+    if (!state || state.phase !== 'QUESTION' || !player || this.cavalloChoice() !== null) return;
+
+    const options: string[] = state.question?.options ?? [];
+    if (!Number.isInteger(index) || index < 0 || index >= options.length) return;
+
+    this.cavalloChoice.set(String(index));
+    this.ws.broadcastStatus(this.gameId(), {
+      action: 'CAVALLO_ACTION',
+      playerName: player,
+      kind: 'ANSWER',
+      value: index,
+    });
+    this.vibrate(30);
+  }
 
   private startBombaPolling(): void {
     this.stopBombaPolling();

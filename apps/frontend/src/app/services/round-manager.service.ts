@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { GameModeType } from '../components/game-component/interfaces/game-mode-type';
+import { BonusType } from '../components/game-component/interfaces/bonus-type';
 
 export interface RoundConfig {
   totalRounds: number;
@@ -82,15 +83,29 @@ export class RoundManagerService {
     return type;
   }
 
+  /** Atto appena concluso (0-based). */
+  getCurrentAct(): number {
+    return Math.floor(this.roundConfig().currentRound / 8) - 1;
+  }
+
   /**
-   * Bonus previsto dopo l'atto appena concluso (0-based), se esiste.
-   * Rotazione attuale: roulette dopo l'atto 1, basket dopo il 2.
+   * Bonus unico previsto dopo l'atto appena concluso, se esiste.
+   * Rotazione: Casino, Basket, Cavallo di Battaglia, Time Buzzer. Dopo il
+   * quinto atto non c'è bonus: si chiude con la classifica finale.
    */
-  bonusAfterAct(): 'ROULETTE' | 'BASKET' | null {
-    const act = Math.floor(this.roundConfig().currentRound / 8) - 1;
-    if (act === 0) return 'ROULETTE';
-    if (act === 1) return 'BASKET';
-    return null;
+  bonusAfterAct(): BonusType | null {
+    switch (this.getCurrentAct()) {
+      case 0:
+        return 'CASINO';
+      case 1:
+        return 'BASKET';
+      case 2:
+        return 'CAVALLO';
+      case 3:
+        return 'TIME_BUZZER';
+      default:
+        return null;
+    }
   }
 
   completeRound(gameType: GameModeType): void {

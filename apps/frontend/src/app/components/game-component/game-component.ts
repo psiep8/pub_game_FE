@@ -46,6 +46,10 @@ import { SpeedRush } from './games/speed-rush/speed-rush';
 import { AirHockeyBattle } from './games/air-hockey-battle/air-hockey-battle';
 import { DEMO_SCRIPTS, DEMO_SCENE_COUNT, DemoScript } from './demo-scripts';
 import { scoringRuleFor } from './interfaces/scoring-rules';
+import { BonusType, BONUS_LABELS } from './interfaces/bonus-type';
+import { CasinoBonus } from '../bonus/casino-bonus/casino-bonus';
+import { CavalloBonus } from '../bonus/cavallo-bonus/cavallo-bonus';
+import { BasketBonusStage } from '../bonus/basket-bonus-stage/basket-bonus-stage';
 
 @Component({
   selector: 'app-game-component',
@@ -64,7 +68,10 @@ import { scoringRuleFor } from './interfaces/scoring-rules';
     TimeBuzzer,
     Bomba,
     SpeedRush,
-    AirHockeyBattle
+    AirHockeyBattle,
+    CasinoBonus,
+    CavalloBonus,
+    BasketBonusStage
   ],
   templateUrl: './game-component.html',
   styleUrls: ['./game-component.css', './restyle.css'],
@@ -108,7 +115,7 @@ export class GameComponent implements OnInit, OnDestroy {
   demoType = signal<string | null>(null);
   demoScene = signal(0);
   bonusActive = signal(false);
-  bonusType = signal<string | null>(null);
+  bonusType = signal<BonusType | null>(null);
   bonusScores = signal<Array<{ playerName: string; score: number }>>([]);
   bonusSecondsLeft = signal(0);
   bonusShowResult = signal(false);
@@ -139,6 +146,7 @@ export class GameComponent implements OnInit, OnDestroy {
   });
 
   private arenaFinished = false;
+  private readonly bonusActsStarted = new Set<number>();
   private bonusScoresMap = new Map<string, number>();
   private bonusAwarded = false;
   private bonusTimer?: ReturnType<typeof setInterval>;
@@ -366,7 +374,7 @@ export class GameComponent implements OnInit, OnDestroy {
       } else if (status.action === 'ADMIN_HIDE_DEMO') {
         this.stopDemo();
       } else if (status.action === 'ADMIN_START_BONUS') {
-        void this.startBonus(status.type || 'ROULETTE');
+        void this.startBonus(status.type || 'CASINO');
       } else if (status.action === 'ADMIN_STOP_BONUS') {
         this.finishBonus();
       } else if (status.action === 'BONUS_RESULT') {
@@ -930,6 +938,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
     if (leaderboardType) {
       this.pendingLeaderboardType.set(leaderboardType);
+      this.showPendingLeaderboard();
       return;
     }
 
@@ -951,6 +960,17 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   onLeaderboardComplete() {
+    // Fine atto: la classifica dettagliata lancia il bonus unico dell'atto.
+    const bonus = this.showLeaderboardDetailed() ? this.roundManager.bonusAfterAct() : null;
+    if (bonus) {
+      const act = this.roundManager.getCurrentAct();
+      if (!this.bonusActsStarted.has(act)) {
+        this.bonusActsStarted.add(act);
+        void this.startBonus(bonus);
+        return;
+      }
+    }
+
     // Manuale: la classifica resta in TV finché l'admin non avanza.
     if (this.phase() === 'IDLE') {
       this.audioService.startHeartbeat();
@@ -1005,8 +1025,8 @@ export class GameComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Bonus: parte dalla TV su comando admin e non consuma un round. */
-  async startBonus(type: string): Promise<void> {
+  /** Bonus: parte dalla TV a fine atto (o su comando admin) e non consuma un round. */
+  async startBonus(type: BonusType): Promise<void> {
     if (this.isSpinning() || this.bonusActive()) return;
 
     this.cancelAutoAdvance();
@@ -1030,6 +1050,11 @@ export class GameComponent implements OnInit, OnDestroy {
       this.ws.subscribeToGame(game.id);
     }
 
+    if (type === 'TIME_BUZZER') {
+      await this.startTimeBuzzerBonus();
+      return;
+    }
+
     if (type === 'BASKET') {
       this.ws.broadcastStatus(this.currentGameId(), {
         action: 'SHOW_QUESTION',
@@ -1040,27 +1065,34 @@ export class GameComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const colors = ['ROSSO', 'NERO', 'VERDE', 'BLU', 'GIALLO', 'BIANCO'];
-    const payload = {
-      type: 'ROULETTE',
-      question: 'Scegli un colore!',
-      options: colors,
-      correctAnswer: colors[Math.floor(Math.random() * colors.length)],
-    };
+    // Casino e Cavallo hanno una schermata TV dedicata che parla direttamente
+    // con i telefoni tramite CASINO_STATE / CAVALLO_STATE.
+    const phoneType = type === 'CASINO' ? 'BONUS_CASINO' : 'BONUS_CAVALLO';
+    const publicPayload = JSON.stringify({ type: phoneType, question: BONUS_LABELS[type] });
+    this.ws.broadcastStatus(this.currentGameId(), {
+      action: 'SHOW_QUESTION',
+      type: phoneType,
+      payload: publicPayload,
+      rawPayload: publicPayload,
+    });
+  }
 
+  private async startTimeBuzzerBonus(): Promise<void> {
+    const payload = { type: 'TIME_BUZZER', question: 'Quanto ci metti?', options: [], correctAnswer: null };
     const mode = this.gameModeService.createMode({
-      type: 'ROULETTE',
+      type: 'TIME_BUZZER',
       payload,
       gameId: this.currentGameId()!,
+      activePlayers: this.bonusPlayers(),
       onTimerTick: (seconds: number) => this.timer.set(seconds),
       onTimerEnd: () => this.onModeTimeout(),
       onPreGameTick: (seconds) => this.preStartCountdown.set(seconds),
+      onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!, event),
       onAnswerReceived: (result: any) => {
         if (result?.playerName) {
-          this.recordBonusResult(result.playerName, result.isCorrect ? 1 : 0);
+          this.recordBonusResult(result.playerName, Number(result.points) || 0);
         }
       },
-      onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!, event),
     });
 
     this.currentMode.set(mode);
@@ -1068,17 +1100,17 @@ export class GameComponent implements OnInit, OnDestroy {
     this.showQuestion.set(true);
     this.timer.set(mode.timerDuration);
 
-    // Al telefono arrivano solo le opzioni: il colore vincente resta sul server/TV.
-    const publicPayload = JSON.stringify({
-      type: 'ROULETTE',
-      question: payload.question,
-      options: payload.options,
-    });
+    const publicPayload = JSON.stringify({ type: 'TIME_BUZZER', question: payload.question });
     this.ws.broadcastStatus(this.currentGameId()!, {
       action: 'SHOW_QUESTION',
-      type: 'ROULETTE',
+      type: 'TIME_BUZZER',
       payload: publicPayload,
       rawPayload: publicPayload,
+    });
+    this.ws.broadcastStatus(this.currentGameId()!, {
+      action: 'START_VOTING',
+      type: 'TIME_BUZZER',
+      payload: publicPayload,
     });
 
     await mode.start();
@@ -1086,7 +1118,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private startBasketCountdown(): void {
     this.clearBonusTimer();
-    this.bonusSecondsLeft.set(40);
+    this.bonusSecondsLeft.set(90);
     this.bonusTimer = setInterval(() => {
       const next = this.bonusSecondsLeft() - 1;
       this.bonusSecondsLeft.set(Math.max(0, next));
@@ -1094,13 +1126,14 @@ export class GameComponent implements OnInit, OnDestroy {
     }, 1000);
   }
 
+  /** I bonus sommano i punti delle manche; nessun punto va ancora in classifica. */
   private recordBonusResult(playerName: string, score: number): void {
     const name = String(playerName || '').trim();
     if (!name) return;
 
     const value = Number.isFinite(score) ? score : 0;
     const previous = this.bonusScoresMap.get(name) ?? 0;
-    this.bonusScoresMap.set(name, Math.max(previous, value));
+    this.bonusScoresMap.set(name, previous + value);
     this.bonusScores.set(
       [...this.bonusScoresMap.entries()]
         .map(([player, points]) => ({ playerName: player, score: points }))
@@ -1117,21 +1150,18 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     const ranking = [...this.bonusScoresMap.entries()]
-      .filter(([, score]) => score > 0)
-      .sort((a, b) => b[1] - a[1]);
+      .map(([playerName, score]) => ({ playerName, score }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
 
-    const prizes = [300, 150, 75];
-    ranking.slice(0, prizes.length).forEach(([playerName], index) => {
-      this.leaderboardService.addPoints(playerName, prizes[index], true);
-    });
-
-    const summary = ranking.slice(0, 5).map(([playerName, score]) => ({ playerName, score }));
-    this.bonusResult.set(summary);
+    // Nessun premio automatico: la politica premio/punti dei bonus sarà
+    // decisa a parte, quindi qui si registra solo la classifica del bonus.
+    this.bonusResult.set(ranking);
     this.bonusShowResult.set(true);
 
     this.ws.broadcastStatus(this.currentGameId(), {
       action: 'BONUS_ENDED',
-      ranking: summary,
+      ranking,
     });
 
     this.bonusActive.set(false);
@@ -1145,7 +1175,21 @@ export class GameComponent implements OnInit, OnDestroy {
       if (this.bonusActive()) return;
       this.bonusShowResult.set(false);
       this.bonusType.set(null);
-    }, 6000);
+    }, 8000);
+  }
+
+  /** Giocatori in classifica, usati dai bonus per raccogliere i tocchi. */
+  bonusPlayers(): string[] {
+    return this.leaderboardService.getLeaderboard().map((player) => player.playerName);
+  }
+
+  bonusLabel(): string {
+    const type = this.bonusType();
+    return type ? BONUS_LABELS[type] : 'BONUS';
+  }
+
+  onBonusResult(event: { playerName: string; score: number }): void {
+    this.recordBonusResult(event?.playerName, Number(event?.score) || 0);
   }
 
   private startAutoAdvance(): void {

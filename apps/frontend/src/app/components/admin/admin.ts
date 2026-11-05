@@ -5,6 +5,7 @@ import { WebSocketService } from '../../services/web-socket.service';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../services/theme.service';
 import { scoringRuleFor, ScoringRule } from '../game-component/interfaces/scoring-rules';
+import { BonusType } from '../game-component/interfaces/bonus-type';
 
 @Component({
   selector: 'app-admin-component',
@@ -378,7 +379,7 @@ export class Admin implements OnInit, OnDestroy {
     this.ws.broadcastStatus(this.activeGameId(), { action: 'ADMIN_HIDE_DEMO' });
   }
 
-  startBonus(type: 'ROULETTE' | 'BASKET'): void {
+  startBonus(type: BonusType): void {
     this.ws.broadcastStatus(this.activeGameId(), { action: 'ADMIN_START_BONUS', type });
     this.vibrate(30);
   }

@@ -40,6 +40,14 @@ public class PartyGamesController {
         return questionBank.quizBatch(difficulty, Math.max(1, Math.min(30, count)));
     }
 
+    /** Domande del Cavallo di Battaglia: difficili, della categoria scelta. */
+    @GetMapping("/{gameId}/cavallo/questions")
+    public List<Map<String, Object>> cavalloQuestions(@PathVariable("gameId") Long gameId,
+            @RequestParam(name = "category", defaultValue = "") String category,
+            @RequestParam(name = "count", defaultValue = "8") int count) {
+        return questionBank.cavalloQuestions(category, Math.max(1, Math.min(20, count)));
+    }
+
     @PostMapping("/{gameId}/timeline-answer")
     public ResponseEntity<Object> timelineAnswer(@PathVariable("gameId") Long gameId,
             @RequestBody Map<String, Object> body) {

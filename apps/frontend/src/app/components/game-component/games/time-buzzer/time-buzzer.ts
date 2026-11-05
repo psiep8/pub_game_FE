@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
     <div class="tb-wrap">
       <header class="tb-head">
         <div class="tb-kicker">⏱️ TIME BUZZER</div>
-        <h2 class="tb-title">MANCHE {{ displayData?.manche || 1 }} / {{ displayData?.total || 3 }}</h2>
+        <h2 class="tb-title">MANCHE {{ displayData?.manche || 1 }} / {{ displayData?.total || 5 }}</h2>
         <div class="tb-timer" [class.hot]="timer <= 10">{{ timer }}s</div>
       </header>
 
@@ -47,7 +47,7 @@ import { CommonModule } from '@angular/common';
         </div>
       }
 
-      @if (displayData?.reveal && displayData?.remaining?.length) {
+      @if (displayData?.reveal && displayData?.eliminated?.length) {
         <div class="tb-pass">
           <span class="tb-pass-label">PASSANO</span>
           @for (name of displayData.remaining; track name) {
