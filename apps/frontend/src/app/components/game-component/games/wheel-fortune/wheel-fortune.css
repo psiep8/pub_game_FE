@@ -89,7 +89,7 @@
     font-size: clamp(1rem, 4vmin, 2.2rem);
     font-weight: 900;
     color: transparent;
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), background-color 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), color 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), border-color 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), box-shadow 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2),
     inset 0 2px 5px rgba(255, 255, 255, 0.5);
 
@@ -140,7 +140,7 @@
     border: none;
     border-radius: 15px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 
     &.control-correct {
       background: linear-gradient(135deg, #11998e, #38ef7d);

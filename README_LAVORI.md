@@ -85,6 +85,12 @@ La pausa ha un overlay a schermo intero: il gioco non è visibile dietro.
 - Nei giochi a conto alla rovescia (tranne Time Buzzer, che va in avanti) il round ≥ 20 avvia un heartbeat di suspense, con intensità che sale gradualmente dal round 20 al round 40.
 - L'heartbeat si ferma a fine round, timeout, fine Arena, risposta corretta, pausa, classifica, reset e uscita dalla TV; riprende se il round viene ripreso.
 
+### Fluidità delle animazioni (5 novembre)
+- Nessun cambiamento di stile o tema: carta, inchiostro, colori, tipografia e ombre restano quelli di ieri sera.
+- Ogni `transition: all` è stata sostituita dalla lista esatta delle proprietà che cambiano davvero (trasformazioni, ombre, colori): niente più transizioni su proprietà di layout non volute.
+- L'equalizzatore della canzone anima `transform: scaleY()` invece di `height`, così non forza il ricalcolo del layout a ogni fotogramma.
+- Dove una proprietà di layout è voluta (il padding delle righe del podio) la transizione resta, ma dichiarata una per una.
+
 ---
 
 ## Da fare domani
