@@ -1,0 +1,329 @@
+package com.pub_game_be.reliability;
+
+import com.pub_game_be.domain.game_round.GameRound;
+import com.pub_game_be.reliability.domain.GameEventEntity;
+import com.pub_game_be.reliability.domain.GameStateEntity;
+import com.pub_game_be.reliability.repository.GameEventRepository;
+import com.pub_game_be.reliability.repository.GameStateRepository;
+import com.pub_game_be.repository.GameRoundRepository;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Consumer;
+
+/**
+ * Stato autorevole della partita, event log e snapshot.
+ *
+ * <p>Ogni mutazione significativa passa da qui: lo stato e l'evento vengono
+ * scritti nella stessa transazione, quindi non esiste un evento pubblicato per
+ * una modifica che il database non ha confermato. La sequenza per partita è
+ * univoca e permette al client di chiedere esattamente gli eventi mancanti.</p>
+ */
+@Service
+public class GameStateService {
+
+    /** Esito di una mutazione: cosa dire al client per allinearlo. */
+    public record Change(long version, long seq, String eventId) {
+    }
+
+    private final GameStateRepository states;
+    private final GameEventRepository events;
+    private final GameRoundRepository rounds;
+    private final ReliabilityProperties props;
+    private final TransactionTemplate tx;
+
+    public GameStateService(GameStateRepository states, GameEventRepository events,
+            GameRoundRepository rounds, ReliabilityProperties props,
+            PlatformTransactionManager transactionManager) {
+        this.states = states;
+        this.events = events;
+        this.rounds = rounds;
+        this.props = props;
+        this.tx = new TransactionTemplate(transactionManager);
+    }
+
+    // ------------------------------------------------------------------ Stato
+
+    public GameStateEntity state(long gameId) {
+        return states.findById(gameId).orElseGet(() -> ensureState(gameId));
+    }
+
+    private GameStateEntity ensureState(long gameId) {
+        return tx.execute(status -> states.findById(gameId).orElseGet(() -> {
+            GameStateEntity fresh = new GameStateEntity();
+            fresh.setGameId(gameId);
+            fresh.setVersion(1);
+            fresh.setSeq(0);
+            fresh.setStatus("CREATED");
+            fresh.setUpdatedAt(System.currentTimeMillis());
+            return states.save(fresh);
+        }));
+    }
+
+    /**
+     * Apre un round con riferimenti temporali del server: la scadenza non è
+     * calcolata dal telefono e resta valida anche dopo un riavvio.
+     */
+    public Change startRound(long gameId, String type, int roundIndex, String roundKey, String payload) {
+        long now = System.currentTimeMillis();
+        long deadline = now + windowSecondsFor(type) * 1000L;
+        JSONObject event = new JSONObject()
+                .put("type", type)
+                .put("roundIndex", roundIndex)
+                .put("roundKey", roundKey)
+                .put("startedAt", now)
+                .put("deadlineAt", deadline);
+        return appendEvent(gameId, "ROUND_STARTED", event.toString(), gameId + "-r" + roundIndex, null,
+                state -> {
+                    state.setStatus("RUNNING");
+                    state.setRoundType(type);
+                    state.setRoundIndex(roundIndex);
+                    state.setRoundKey(roundKey);
+                    state.setPayload(payload);
+                    state.setRoundStartedAt(now);
+                    state.setRoundDeadlineAt(deadline);
+                });
+    }
+
+    /** Il round accetta ancora risposte? Se nessun round è stato aperto, sì. */
+    public boolean isRoundOpen(long gameId) {
+        Optional<GameStateEntity> found = states.findById(gameId);
+        if (found.isEmpty()) {
+            return true;
+        }
+        GameStateEntity state = found.get();
+        Long deadline = state.getRoundDeadlineAt();
+        return deadline == null || System.currentTimeMillis() <= deadline;
+    }
+
+    public Optional<Long> roundDeadline(long gameId) {
+        return states.findById(gameId).map(GameStateEntity::getRoundDeadlineAt);
+    }
+
+    /** Chiude esplicitamente il round: nessuna risposta tardiva accettata. */
+    public Change closeRound(long gameId, String reason) {
+        return appendEvent(gameId, "ROUND_CLOSED",
+                new JSONObject().put("reason", reason).toString(), null, null,
+                state -> {
+                    state.setStatus("WAITING");
+                    state.setRoundDeadlineAt(System.currentTimeMillis());
+                });
+    }
+
+    /**
+     * Registra un evento e la mutazione di stato nello stesso commit.
+     *
+     * <p>Se il database rifiuta (sequenza già occupata da un altro processo) si
+     * ritenta con la sequenza successiva: lo stato non può divergere dal log.</p>
+     */
+    public Change appendEvent(long gameId, String type, String payload, String roundKey, String deviceId,
+            Consumer<GameStateEntity> mutation) {
+        for (int attempt = 0; attempt < 3; attempt++) {
+            try {
+                return tx.execute(status -> {
+                    GameStateEntity state = states.findById(gameId).orElseGet(() -> newState(gameId));
+                    long nextSeq = state.getSeq() + 1;
+
+                    GameEventEntity event = new GameEventEntity();
+                    event.setGameId(gameId);
+                    event.setSeq(nextSeq);
+                    event.setEventId(UUID.randomUUID().toString());
+                    event.setType(type);
+                    event.setPayload(payload);
+                    event.setRoundKey(roundKey);
+                    event.setDeviceId(deviceId);
+                    event.setCreatedAt(System.currentTimeMillis());
+
+                    if (mutation != null) {
+                        mutation.accept(state);
+                    }
+                    state.setSeq(nextSeq);
+                    state.setVersion(state.getVersion() + 1);
+                    state.setUpdatedAt(System.currentTimeMillis());
+                    state.setLastSnapshotAt(state.getUpdatedAt());
+
+                    states.save(state);
+                    events.saveAndFlush(event);
+                    return new Change(state.getVersion(), nextSeq, event.getEventId());
+                });
+            } catch (DataIntegrityViolationException conflict) {
+                // Un altro scrittore ha preso la stessa sequenza: si riprova.
+            }
+        }
+        throw new IllegalStateException("Impossibile registrare l'evento " + type + " per la partita " + gameId);
+    }
+
+    public Change appendEvent(long gameId, String type, String payload) {
+        return appendEvent(gameId, type, payload, null, null, null);
+    }
+
+    // -------------------------------------------------- Snapshot e sincronizzazione
+
+    /** Snapshot completo: è ciò che un client chiede quando torna online. */
+    public JSONObject snapshot(long gameId) {
+        JSONObject out = new JSONObject();
+        GameStateEntity state = states.findById(gameId).orElse(null);
+
+        out.put("gameId", gameId);
+        out.put("serverTime", System.currentTimeMillis());
+        if (state == null) {
+            out.put("version", 0);
+            out.put("seq", 0);
+            out.put("status", "CREATED");
+            out.put("roundIndex", 0);
+            out.put("hasState", false);
+        } else {
+            out.put("hasState", true);
+            out.put("version", state.getVersion());
+            out.put("seq", state.getSeq());
+            out.put("status", state.getStatus());
+            out.put("roundIndex", state.getRoundIndex());
+            out.put("roundType", state.getRoundType());
+            out.put("roundKey", state.getRoundKey());
+            out.put("roundStartedAt", state.getRoundStartedAt() == null ? JSONObject.NULL : state.getRoundStartedAt());
+            out.put("roundDeadlineAt", state.getRoundDeadlineAt() == null ? JSONObject.NULL : state.getRoundDeadlineAt());
+            out.put("updatedAt", state.getUpdatedAt() == null ? JSONObject.NULL : state.getUpdatedAt());
+            out.put("payload", parseOrNull(state.getPayload()));
+        }
+
+        Optional<GameRound> current = rounds.findFirstByGameIdOrderByRoundIndexDesc(gameId);
+        out.put("currentRound", current.map(this::roundJson).orElse(null));
+        return out;
+    }
+
+    /** Eventi successivi alla sequenza del client, in ordine. */
+    public JSONArray eventsSince(long gameId, long sinceSeq) {
+        List<GameEventEntity> found = events
+                .findByGameIdAndSeqGreaterThanOrderBySeqAsc(gameId, sinceSeq);
+        JSONArray array = new JSONArray();
+        int limit = Math.max(1, props.getEventHistoryLimit());
+        for (GameEventEntity event : found) {
+            if (array.length() >= limit) {
+                break;
+            }
+            array.put(eventJson(event));
+        }
+        return array;
+    }
+
+    /** Risposta completa alla riconnessione: snapshot + eventi mancanti. */
+    public JSONObject sync(long gameId, long sinceSeq) {
+        JSONObject snapshot = snapshot(gameId);
+        long currentSeq = snapshot.optLong("seq", 0);
+        boolean reset = sinceSeq > currentSeq;
+        long from = reset ? 0 : Math.max(0, sinceSeq);
+        JSONArray missed = eventsSince(gameId, from);
+
+        JSONObject out = new JSONObject();
+        out.put("snapshot", snapshot);
+        out.put("events", missed);
+        out.put("fromSeq", from);
+        out.put("toSeq", currentSeq);
+        // complete = il client ha ricevuto tutto ciò che serve per allinearsi.
+        out.put("complete", true);
+        out.put("stale", reset);
+        out.put("serverTime", System.currentTimeMillis());
+        return out;
+    }
+
+    public long currentSeq(long gameId) {
+        return states.findById(gameId).map(GameStateEntity::getSeq).orElse(0L);
+    }
+
+    public long currentVersion(long gameId) {
+        return states.findById(gameId).map(GameStateEntity::getVersion).orElse(0L);
+    }
+
+    // --------------------------------------------------------------- Diagnostica
+
+    public Optional<GameEventEntity> lastEvent(long gameId) {
+        return events.findFirstByGameIdOrderBySeqDesc(gameId);
+    }
+
+    public long eventCount(long gameId) {
+        return events.countByGameId(gameId);
+    }
+
+    public JSONArray recentEvents(long gameId, int limit) {
+        JSONArray array = new JSONArray();
+        List<GameEventEntity> recent = events.findTop50ByGameIdOrderBySeqDesc(gameId);
+        for (GameEventEntity event : recent) {
+            if (array.length() >= limit) {
+                break;
+            }
+            array.put(eventJson(event));
+        }
+        return array;
+    }
+
+    // ------------------------------------------------------------------ Interni
+
+    private int windowSecondsFor(String type) {
+        if (type == null) {
+            return props.getAnswerWindowSeconds();
+        }
+        return switch (type.toUpperCase(Locale.ROOT)) {
+            case "BOMBA" -> Math.min(props.getAnswerWindowSeconds(), 105);
+            case "SPEED_RUSH" -> Math.min(props.getAnswerWindowSeconds(), 75);
+            case "TIME_BUZZER" -> Math.min(props.getAnswerWindowSeconds(), 60);
+            default -> props.getAnswerWindowSeconds();
+        };
+    }
+
+    private GameStateEntity newState(long gameId) {
+        GameStateEntity fresh = new GameStateEntity();
+        fresh.setGameId(gameId);
+        fresh.setVersion(1);
+        fresh.setSeq(0);
+        fresh.setStatus("CREATED");
+        fresh.setUpdatedAt(System.currentTimeMillis());
+        return fresh;
+    }
+
+    private JSONObject roundJson(GameRound round) {
+        JSONObject json = new JSONObject();
+        json.put("id", round.getId());
+        json.put("type", round.getType() == null ? null : round.getType().name());
+        json.put("status", round.getStatus() == null ? null : round.getStatus().name());
+        json.put("roundIndex", round.getRoundIndex());
+        json.put("payload", parseOrNull(round.getPayload()));
+        return json;
+    }
+
+    private JSONObject eventJson(GameEventEntity event) {
+        return new JSONObject()
+                .put("seq", event.getSeq())
+                .put("eventId", event.getEventId())
+                .put("type", event.getType())
+                .put("payload", parseOrNull(event.getPayload()))
+                .put("roundKey", event.getRoundKey())
+                .put("deviceId", event.getDeviceId())
+                .put("createdAt", event.getCreatedAt());
+    }
+
+    private Object parseOrNull(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return JSONObject.NULL;
+        }
+        try {
+            String trimmed = raw.trim();
+            if (trimmed.startsWith("{")) {
+                return new JSONObject(trimmed);
+            }
+            if (trimmed.startsWith("[")) {
+                return new JSONArray(trimmed);
+            }
+        } catch (Exception ignored) {
+            // Payload non JSON (testo semplice): si restituisce la stringa.
+        }
+        return raw;
+    }
+}

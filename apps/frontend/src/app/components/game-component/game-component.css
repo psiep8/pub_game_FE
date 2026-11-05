@@ -1710,3 +1710,11 @@
   .demo-note { font-size: .72rem; }
   .demo-tv-mock { width: 100%; }
 }
+
+/* Stato connessione della TV: sempre visibile, mai invadente. */
+.conn-shell {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 60;
+}

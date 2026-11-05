@@ -6,11 +6,13 @@ import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../services/theme.service';
 import { scoringRuleFor, ScoringRule } from '../game-component/interfaces/scoring-rules';
 import { BonusType } from '../game-component/interfaces/bonus-type';
+import { ReliabilityService } from '../../services/reliability.service';
+import { ConnectionBadge } from '../connection-badge/connection-badge';
 
 @Component({
   selector: 'app-admin-component',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ConnectionBadge],
   templateUrl: './admin.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './admin.css',
@@ -18,6 +20,9 @@ import { BonusType } from '../game-component/interfaces/bonus-type';
 export class Admin implements OnInit, OnDestroy {
 
   private ws = inject(WebSocketService);
+  readonly reliability = inject(ReliabilityService);
+  diagnostics = signal<any | null>(null);
+  private diagTimer?: ReturnType<typeof setInterval>;
   private destroyRef = inject(DestroyRef);
   public theme = inject(ThemeService);
 
@@ -47,6 +52,10 @@ export class Admin implements OnInit, OnDestroy {
   };
 
   ngOnInit(): void {
+    this.reliability.start(this.activeGameId(), 'ADMIN');
+    void this.refreshDiagnostics();
+    this.diagTimer = setInterval(() => void this.refreshDiagnostics(), 5000);
+
     
 
     
@@ -336,6 +345,12 @@ export class Admin implements OnInit, OnDestroy {
 
   
 
+  /** Foto delle connessioni e dell'ultimo salvataggio: serve al presentatore. */
+  async refreshDiagnostics(): Promise<void> {
+    const data = await this.reliability.diagnostics(this.activeGameId());
+    this.diagnostics.set(data);
+  }
+
   private activeGameId(): number {
     const value = Number(this.gameIdInput());
     return Number.isFinite(value) && value > 0 ? value : 1;
@@ -346,6 +361,8 @@ export class Admin implements OnInit, OnDestroy {
     if (!Number.isFinite(value) || value <= 0) return;
     this.gameIdInput.set(value);
     localStorage.setItem('activeGameId', String(value));
+    this.reliability.start(value, 'ADMIN');
+    void this.refreshDiagnostics();
   }
 
   nextRound(): void {
@@ -395,6 +412,7 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.diagTimer) clearInterval(this.diagTimer);
     
   }
 }

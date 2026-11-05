@@ -654,3 +654,11 @@
   .key { padding: 9px; }
   .price-display { font-size: 2rem; }
 }
+
+/* Stato connessione: discreto, in alto a destra, non copre il gioco. */
+.conn-shell {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  z-index: 90;
+}

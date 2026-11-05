@@ -23,6 +23,37 @@
     </div>
   }
 
+  <div class="diag-panel">
+    <div class="diag-title">
+      <span>📡 CONNESSIONI & SALVATAGGIO</span>
+      <app-connection-badge role="admin"></app-connection-badge>
+    </div>
+    @if (diagnostics(); as d) {
+      <div class="diag-grid">
+        <span>Stato partita: <b>{{ d.status }}</b></span>
+        <span>Round: <b>{{ d.roundIndex }}</b> {{ d.roundType }}</span>
+        <span>Versione stato: <b>{{ d.stateVersion }}</b></span>
+        <span>Eventi salvati: <b>{{ d.events }}</b></span>
+        <span>Round aperto: <b>{{ d.roundOpen ? "sì" : "no" }}</b></span>
+        <span>Domande usate: <b>{{ d.questionsUsed }}</b></span>
+        <span>Dispositivi online: <b>{{ d.devices?.connected }}/{{ d.devices?.devices }}</b></span>
+        <span>Ultimo evento: {{ d.lastEventType || "—" }}</span>
+      </div>
+      <div class="diag-devices">
+        @for (dev of (d.presence ?? []); track dev.deviceId + dev.role) {
+          <div class="diag-device" [class.offline]="!dev.connected">
+            <b>{{ dev.role }}</b>
+            <span class="diag-name">{{ dev.playerName || dev.deviceId }}</span>
+            <span class="diag-state">{{ dev.connected ? "online" : "offline" }}</span>
+            <small>{{ dev.reconnections }} riconnessioni</small>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="diag-empty">Diagnostica non disponibile: backend non raggiungibile.</div>
+    }
+  </div>
+
   <div class="flow-panel">
     <div class="flow-title">🎬 CONTROLLO FLUSSO — decide il presentatore</div>
     <div class="flow-row">

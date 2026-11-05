@@ -1,5 +1,7 @@
 package com.pub_game_be.controller;
 
+import com.pub_game_be.reliability.GameStateService;
+import com.pub_game_be.reliability.IdempotencyService;
 import com.pub_game_be.service.PartyGameService;
 import com.pub_game_be.service.QuestionBankService;
 import org.json.JSONObject;
@@ -8,14 +10,19 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Risposte dei telefoni per i giochi simultanei.
  *
- * Il punteggio lo calcola il server; l'esito viene anche trasmesso sul topic
- * di stato così la TV aggiorna la classifica del round senza polling.
+ * <p>Il punteggio lo calcola il server; l'esito viene anche trasmesso sul topic
+ * di stato così la TV aggiorna la classifica del round senza polling.</p>
+ *
+ * <p>Le risposte passano da {@link IdempotencyService}: un retry per Wi-Fi
+ * instabile non può assegnare due volte lo stesso punteggio, e la trasmissione
+ * alla TV avviene solo dopo il commit.</p>
  */
 @RestController
 @RequestMapping("/games")
@@ -24,12 +31,17 @@ public class PartyGamesController {
     private final PartyGameService partyGameService;
     private final QuestionBankService questionBank;
     private final SimpMessagingTemplate messagingTemplate;
+    private final GameStateService gameStateService;
+    private final IdempotencyService idempotencyService;
 
     public PartyGamesController(PartyGameService partyGameService, QuestionBankService questionBank,
-            SimpMessagingTemplate messagingTemplate) {
+            SimpMessagingTemplate messagingTemplate, GameStateService gameStateService,
+            IdempotencyService idempotencyService) {
         this.partyGameService = partyGameService;
         this.questionBank = questionBank;
         this.messagingTemplate = messagingTemplate;
+        this.gameStateService = gameStateService;
+        this.idempotencyService = idempotencyService;
     }
 
     /** Domande dell'Air Hockey dalla banca, mai scritte nel codice del client. */
@@ -56,23 +68,42 @@ public class PartyGamesController {
         if (order.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Ordine mancante"));
         }
+        if (!gameStateService.isRoundOpen(gameId)) {
+            return ResponseEntity.status(409).body(closedRound(gameId));
+        }
 
-        return partyGameService.submitTimeline(gameId, playerName, order)
-                .<ResponseEntity<Object>>map(submission -> {
-                    messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", new JSONObject()
-                            .put("action", "TIMELINE_RESULT")
-                            .put("playerName", submission.playerName())
-                            .put("score", submission.score())
-                            .put("correctPairs", submission.correctPairs())
-                            .put("totalPairs", submission.totalPairs())
-                            .toString());
-                    return ResponseEntity.ok(Map.of(
-                            "correctPairs", submission.correctPairs(),
-                            "totalPairs", submission.totalPairs(),
-                            "score", submission.score()));
-                })
-                .orElseGet(() -> ResponseEntity.badRequest()
-                        .body(Map.of("error", "Round scaduto o ordine non valido")));
+        String idempotencyKey = keyOf(body);
+        Map<String, Object> result = idempotencyService.executeOnce(gameId, idempotencyKey,
+                "TIMELINE_ANSWER", playerName, () -> partyGameService
+                        .submitTimeline(gameId, playerName, order)
+                        .map(submission -> {
+                            gameStateService.appendEvent(gameId, "TIMELINE_ANSWER", new JSONObject()
+                                    .put("playerName", submission.playerName())
+                                    .put("score", submission.score())
+                                    .put("correctPairs", submission.correctPairs())
+                                    .put("totalPairs", submission.totalPairs())
+                                    .toString());
+                            messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", new JSONObject()
+                                    .put("action", "TIMELINE_RESULT")
+                                    .put("playerName", submission.playerName())
+                                    .put("score", submission.score())
+                                    .put("correctPairs", submission.correctPairs())
+                                    .put("totalPairs", submission.totalPairs())
+                                    .toString());
+                            Map<String, Object> ok = new LinkedHashMap<>();
+                            ok.put("playerName", submission.playerName());
+                            ok.put("correctPairs", submission.correctPairs());
+                            ok.put("totalPairs", submission.totalPairs());
+                            ok.put("score", submission.score());
+                            return ok;
+                        })
+                        .orElse(null));
+
+        if (result == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Round scaduto o ordine non valido"));
+        }
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/{gameId}/price-answer")
@@ -83,20 +114,35 @@ public class PartyGamesController {
         if (estimates.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Stime mancanti"));
         }
+        if (!gameStateService.isRoundOpen(gameId)) {
+            return ResponseEntity.status(409).body(closedRound(gameId));
+        }
 
-        return partyGameService.submitPrice(gameId, playerName, estimates)
-                .<ResponseEntity<Object>>map(submission -> {
-                    messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", new JSONObject()
-                            .put("action", "PRICE_ANSWER")
-                            .put("playerName", submission.playerName())
-                            .put("count", submission.estimates().size())
-                            .toString());
-                    return ResponseEntity.ok(Map.of(
-                            "playerName", submission.playerName(),
-                            "count", submission.estimates().size()));
-                })
-                .orElseGet(() -> ResponseEntity.badRequest()
-                        .body(Map.of("error", "Round scaduto o stime non valide")));
+        Map<String, Object> result = idempotencyService.executeOnce(gameId, keyOf(body),
+                "PRICE_ANSWER", playerName, () -> partyGameService
+                        .submitPrice(gameId, playerName, estimates)
+                        .map(entry -> {
+                            gameStateService.appendEvent(gameId, "PRICE_ANSWER", new JSONObject()
+                                    .put("playerName", entry.playerName())
+                                    .put("count", entry.estimates().size())
+                                    .toString());
+                            messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", new JSONObject()
+                                    .put("action", "PRICE_ANSWER")
+                                    .put("playerName", entry.playerName())
+                                    .put("count", entry.estimates().size())
+                                    .toString());
+                            Map<String, Object> ok = new LinkedHashMap<>();
+                            ok.put("playerName", entry.playerName());
+                            ok.put("count", entry.estimates().size());
+                            return ok;
+                        })
+                        .orElse(null));
+
+        if (result == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Round scaduto o stime non valide"));
+        }
+        return ResponseEntity.ok(result);
     }
 
     /** Soluzione del round: solo la TV la chiede, al momento del reveal. */
@@ -115,6 +161,18 @@ public class PartyGamesController {
     public Map<String, Object> reset(@PathVariable("gameId") Long gameId) {
         partyGameService.forget(gameId);
         return Map.of("reset", true, "gameId", gameId);
+    }
+
+    private Map<String, Object> closedRound(long gameId) {
+        return Map.of(
+                "error", "round-closed",
+                "message", "Il round è scaduto: la risposta non è stata registrata.",
+                "deadlineAt", gameStateService.roundDeadline(gameId).orElse(0L));
+    }
+
+    private String keyOf(Map<String, Object> body) {
+        Object raw = body.get("idempotencyKey");
+        return raw == null ? null : String.valueOf(raw);
     }
 
     private List<Double> readEstimates(Map<String, Object> body) {

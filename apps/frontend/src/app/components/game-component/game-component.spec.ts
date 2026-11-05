@@ -13,6 +13,8 @@ import {
   FakeGameService,
   FakeWebSocketService,
 } from '../../testing/test-doubles';
+import { FakeReliabilityService } from '../../testing/test-doubles';
+import { ReliabilityService } from '../../services/reliability.service';
 
 describe('GameComponent', () => {
   let component: GameComponent;
@@ -28,6 +30,7 @@ describe('GameComponent', () => {
       providers: [
         provideNoopAnimations(),
         { provide: WebSocketService, useClass: FakeWebSocketService },
+        { provide: ReliabilityService, useClass: FakeReliabilityService as any },
         { provide: GameService, useClass: FakeGameService },
         { provide: AiGeneratorService, useClass: FakeAiGeneratorService },
         { provide: AudioService, useClass: FakeAudioService },

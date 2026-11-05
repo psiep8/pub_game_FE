@@ -1,5 +1,7 @@
 package com.pub_game_be.service;
 
+import com.pub_game_be.reliability.QuestionUsageService;
+import com.pub_game_be.reliability.StateBlobService;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.core.io.ClassPathResource;
@@ -24,8 +26,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * Giochi simultanei che non vivono nella banca domande: Timeline, Quanto costa,
  * Speed Rush e Air Hockey Battle.
  *
- * Le soluzioni restano sul server: il telefono riceve solo le carte mescolate o
- * i prodotti senza prezzo, e il punteggio lo calcola qui.
+ * <p>Le soluzioni restano sul server: il telefono riceve solo le carte mescolate o
+ * i prodotti senza prezzo, e il punteggio lo calcola qui.</p>
+ *
+ * <p>Round e risposte vengono salvati su database ({@link StateBlobService}) a ogni
+ * mutazione, quindi un riavvio del backend non cancella la Timeline in corso né i
+ * punti già assegnati. Gli eventi Timeline usati sono tracciati in
+ * {@link QuestionUsageService}: la stessa carta non torna sul palco.</p>
  */
 @Service
 public class PartyGameService {
@@ -52,8 +59,16 @@ public class PartyGameService {
     private static final int TIMELINE_CARDS_FINAL = 8;
     private static final int PRICE_ITEMS = 3;
 
+    private static final String TIMELINE_BLOB = "timeline-round";
+    private static final String TIMELINE_ANSWERS_BLOB = "timeline-answers";
+    private static final String PRICE_BLOB = "price-round";
+    private static final String PRICE_ANSWERS_BLOB = "price-answers";
+
     /** Oltre questo scarto la stima vale zero (prezzo triplo o un terzo). */
     private static final double PRICE_TOLERANCE = Math.log(3);
+
+    private final StateBlobService stateBlobs;
+    private final QuestionUsageService questionUsage;
 
     private final List<TimelineEvent> events;
     private final List<PriceItem> items;
@@ -65,7 +80,9 @@ public class PartyGameService {
     private final Map<Long, Boolean> lastTimelineRounds = new ConcurrentHashMap<>();
     private final Random random = new Random();
 
-    public PartyGameService() {
+    public PartyGameService(StateBlobService stateBlobs, QuestionUsageService questionUsage) {
+        this.stateBlobs = stateBlobs;
+        this.questionUsage = questionUsage;
         this.events = loadTimeline();
         this.items = loadPrices();
         System.out.println("Banca party: " + events.size() + " eventi timeline, " + items.size() + " prezzi.");
@@ -104,7 +121,26 @@ public class PartyGameService {
 
     private String startTimeline(long gameId, String category) {
         int size = Boolean.TRUE.equals(lastTimelineRounds.get(gameId)) ? TIMELINE_CARDS_FINAL : TIMELINE_CARDS;
-        List<TimelineEvent> ordered = sampleTimeline(size, category);
+        List<TimelineEvent> pool = timelinePool(category);
+
+        // Anti-ripetizione: prima le carte mai uscite in questa partita.
+        List<TimelineEvent> available = new ArrayList<>();
+        for (TimelineEvent event : pool) {
+            if (!questionUsage.isUsed(gameId, timelineKey(event))) {
+                available.add(event);
+            }
+        }
+
+        List<TimelineEvent> ordered = sampleTimeline(available, size);
+        boolean repeatedContent = false;
+        if (ordered.size() < size) {
+            // Pool esaurito: non si finge che sia tutto nuovo, lo dichiara la TV.
+            ordered = sampleTimeline(pool, size);
+            repeatedContent = true;
+        }
+        for (TimelineEvent event : ordered) {
+            questionUsage.claim(gameId, timelineKey(event), null, "TIMELINE", null);
+        }
 
         List<Integer> ids = new ArrayList<>();
         for (int index = 0; index < ordered.size(); index++) {
@@ -134,26 +170,36 @@ public class PartyGameService {
         payload.put("count", ordered.size());
         payload.put("explain", "Ogni coppia di carte nell'ordine giusto vale punti. "
                 + "Con 6 carte le coppie sono 15, con 8 sono 28. Ordine perfetto: +200 bonus.");
+        if (repeatedContent) {
+            payload.put("poolWarning", "Pool Timeline esaurito: alcune carte sono già uscite in questa partita.");
+        }
 
         timelineRounds.put(gameId, new TimelineRound(payload.getString("roundId"), ordered, ranks));
         timelineAnswers.put(gameId, new ConcurrentHashMap<>());
+        persistTimeline(gameId);
         lastTimelineRounds.put(gameId, !Boolean.TRUE.equals(lastTimelineRounds.get(gameId)) && size == TIMELINE_CARDS);
         return payload.toString();
     }
 
-    /**
-     * Se la categoria ha abbastanza eventi chiediamo solo quelli; altrimenti
-     * (categoria vecchia o senza eventi) si torna alla banca completa, così
-     * una Timeline non resta mai vuota.
-     */
-    private List<TimelineEvent> sampleTimeline(int count, String category) {
-        List<TimelineEvent> categoryEvents = events.stream()
+    /** Carte della categoria richiesta, o banca intera se non bastano. */
+    private List<TimelineEvent> timelinePool(String category) {
+        List<TimelineEvent> byCategory = events.stream()
                 .filter(event -> category != null && !category.isBlank()
                         && event.category().equalsIgnoreCase(category))
                 .toList();
-        List<TimelineEvent> source = categoryEvents.size() >= count
-                ? new ArrayList<>(categoryEvents)
-                : new ArrayList<>(events);
+        return byCategory.size() >= TIMELINE_CARDS ? new ArrayList<>(byCategory) : new ArrayList<>(events);
+    }
+
+    private String timelineKey(TimelineEvent event) {
+        return "timeline|" + QuestionHistoryService.normalize(event.label());
+    }
+
+    /**
+     * Mescola e sceglie le carte evitando anni troppo vicini. Se il mazzo non
+     * basta restituisce quello che c'è: meglio un round più corto che uno vuoto.
+     */
+    private List<TimelineEvent> sampleTimeline(List<TimelineEvent> pool, int count) {
+        List<TimelineEvent> source = new ArrayList<>(pool);
         Collections.shuffle(source, random);
 
         List<TimelineEvent> picked = new ArrayList<>();
@@ -186,6 +232,7 @@ public class PartyGameService {
     }
 
     public Optional<TimelineSubmission> submitTimeline(long gameId, String playerName, List<Integer> order) {
+        hydrateTimeline(gameId);
         TimelineRound round = timelineRounds.get(gameId);
         if (round == null || playerName == null || playerName.isBlank() || order == null) {
             return Optional.empty();
@@ -218,10 +265,12 @@ public class PartyGameService {
         TimelineSubmission submission = new TimelineSubmission(playerName.trim(), correctPairs, totalPairs, score);
         timelineAnswers.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>())
                 .put(submission.playerName(), submission);
+        persistTimeline(gameId);
         return Optional.of(submission);
     }
 
     public JSONObject timelineReveal(long gameId) {
+        hydrateTimeline(gameId);
         TimelineRound round = timelineRounds.get(gameId);
         JSONObject result = new JSONObject();
         if (round == null) {
@@ -294,10 +343,12 @@ public class PartyGameService {
 
         priceRounds.put(gameId, new PriceRound(payload.getString("roundId"), List.copyOf(picked)));
         priceAnswers.put(gameId, new ConcurrentHashMap<>());
+        persistPrice(gameId);
         return payload.toString();
     }
 
     public Optional<PriceEntry> submitPrice(long gameId, String playerName, List<Double> estimates) {
+        hydratePrice(gameId);
         PriceRound round = priceRounds.get(gameId);
         if (round == null || playerName == null || playerName.isBlank() || estimates == null
                 || estimates.size() != round.items().size()) {
@@ -312,6 +363,7 @@ public class PartyGameService {
         PriceEntry entry = new PriceEntry(playerName.trim(), List.copyOf(estimates));
         priceAnswers.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>())
                 .put(entry.playerName(), entry);
+        persistPrice(gameId);
         return Optional.of(entry);
     }
 
@@ -324,6 +376,7 @@ public class PartyGameService {
     }
 
     public JSONObject priceReveal(long gameId) {
+        hydratePrice(gameId);
         PriceRound round = priceRounds.get(gameId);
         JSONObject result = new JSONObject();
         JSONArray itemsJson = new JSONArray();
@@ -404,7 +457,7 @@ public class PartyGameService {
         }
         survivors.sort(Comparator.comparingDouble(player -> mean(errors.get(player))));
 
-        int[] bonus = {500, 350, 250, 150, 100};
+        int[] bonus = { 500, 350, 250, 150, 100 };
         Map<String, Integer> scores = new HashMap<>();
         for (int index = 0; index < survivors.size(); index++) {
             scores.put(survivors.get(index), bonus[Math.min(index, bonus.length - 1)]);
@@ -453,6 +506,157 @@ public class PartyGameService {
         timelineAnswers.remove(gameId);
         priceAnswers.remove(gameId);
         lastTimelineRounds.remove(gameId);
+        stateBlobs.forget(gameId, TIMELINE_BLOB);
+        stateBlobs.forget(gameId, TIMELINE_ANSWERS_BLOB);
+        stateBlobs.forget(gameId, PRICE_BLOB);
+        stateBlobs.forget(gameId, PRICE_ANSWERS_BLOB);
+    }
+
+    // ------------------------------------------------------------- Persistenza
+
+    /**
+     * Ricarica il round Timeline dal database, una sola volta per partita e per
+     * processo: dopo un riavvio le risposte già date restano valide.
+     */
+    private void hydrateTimeline(long gameId) {
+        if (timelineRounds.containsKey(gameId)) {
+            return;
+        }
+        Optional<String> blob = stateBlobs.load(gameId, TIMELINE_BLOB);
+        if (blob.isEmpty()) {
+            return;
+        }
+        try {
+            JSONObject json = new JSONObject(blob.get());
+            List<TimelineEvent> ordered = new ArrayList<>();
+            JSONArray orderedJson = json.optJSONArray("ordered");
+            for (int index = 0; orderedJson != null && index < orderedJson.length(); index++) {
+                JSONObject row = orderedJson.optJSONObject(index);
+                if (row == null) {
+                    continue;
+                }
+                ordered.add(new TimelineEvent(row.optString("label", ""), row.optInt("year", 0),
+                        row.optString("category", "Storia")));
+            }
+            Map<Integer, Integer> ranks = new HashMap<>();
+            JSONObject ranksJson = json.optJSONObject("ranks");
+            Set<String> rankKeys = ranksJson == null ? Set.of() : ranksJson.keySet();
+            for (String key : rankKeys) {
+                ranks.put(Integer.parseInt(key), ranksJson.optInt(key, 0));
+            }
+            timelineRounds.put(gameId, new TimelineRound(json.optString("token", "tl-restored"), ordered, ranks));
+
+            Map<String, TimelineSubmission> answers = new ConcurrentHashMap<>();
+            JSONObject answersJson = stateBlobs.load(gameId, TIMELINE_ANSWERS_BLOB)
+                    .map(JSONObject::new)
+                    .orElseGet(JSONObject::new);
+            for (String player : answersJson.keySet()) {
+                JSONObject row = answersJson.optJSONObject(player);
+                if (row == null) {
+                    continue;
+                }
+                answers.put(player, new TimelineSubmission(player, row.optInt("correctPairs", 0),
+                        row.optInt("totalPairs", 0), row.optInt("score", 0)));
+            }
+            timelineAnswers.put(gameId, answers);
+            System.out.println("♻️ Timeline ripristinata per la partita " + gameId
+                    + " (" + answers.size() + " risposte già salvate).");
+        } catch (Exception malformed) {
+            System.out.println("⚠️ Round Timeline illeggibile per la partita " + gameId + ": "
+                    + malformed.getMessage());
+        }
+    }
+
+    private void hydratePrice(long gameId) {
+        if (priceRounds.containsKey(gameId)) {
+            return;
+        }
+        Optional<String> blob = stateBlobs.load(gameId, PRICE_BLOB);
+        if (blob.isEmpty()) {
+            return;
+        }
+        try {
+            JSONObject json = new JSONObject(blob.get());
+            List<PriceItem> restored = new ArrayList<>();
+            JSONArray itemsJson = json.optJSONArray("items");
+            for (int index = 0; itemsJson != null && index < itemsJson.length(); index++) {
+                JSONObject row = itemsJson.optJSONObject(index);
+                if (row == null) {
+                    continue;
+                }
+                restored.add(new PriceItem(row.optString("name", ""), row.optString("emoji", "🛒"),
+                        row.optDouble("price", 0), row.optString("category", "Varie"),
+                        row.optString("source", "")));
+            }
+            priceRounds.put(gameId, new PriceRound(json.optString("token", "pr-restored"), restored));
+
+            Map<String, PriceEntry> answers = new ConcurrentHashMap<>();
+            JSONObject answersJson = stateBlobs.load(gameId, PRICE_ANSWERS_BLOB)
+                    .map(JSONObject::new)
+                    .orElseGet(JSONObject::new);
+            for (String player : answersJson.keySet()) {
+                JSONArray values = answersJson.optJSONArray(player);
+                List<Double> estimates = new ArrayList<>();
+                for (int index = 0; values != null && index < values.length(); index++) {
+                    estimates.add(values.optDouble(index, 0));
+                }
+                answers.put(player, new PriceEntry(player, List.copyOf(estimates)));
+            }
+            priceAnswers.put(gameId, answers);
+        } catch (Exception malformed) {
+            System.out.println("⚠️ Round prezzi illeggibile per la partita " + gameId + ": "
+                    + malformed.getMessage());
+        }
+    }
+
+    private void persistTimeline(long gameId) {
+        TimelineRound round = timelineRounds.get(gameId);
+        if (round != null) {
+            JSONArray ordered = new JSONArray();
+            for (TimelineEvent event : round.ordered()) {
+                ordered.put(new JSONObject().put("label", event.label()).put("year", event.year())
+                        .put("category", event.category()));
+            }
+            JSONObject ranks = new JSONObject();
+            round.ranks().forEach((id, rank) -> ranks.put(String.valueOf(id), rank));
+            stateBlobs.save(gameId, TIMELINE_BLOB, new JSONObject()
+                    .put("token", round.token())
+                    .put("ordered", ordered)
+                    .put("ranks", ranks)
+                    .toString());
+        }
+
+        JSONObject answers = new JSONObject();
+        timelineAnswers.getOrDefault(gameId, Map.of()).forEach((player, submission) ->
+                answers.put(player, new JSONObject()
+                        .put("correctPairs", submission.correctPairs())
+                        .put("totalPairs", submission.totalPairs())
+                        .put("score", submission.score())));
+        stateBlobs.save(gameId, TIMELINE_ANSWERS_BLOB, answers.toString());
+    }
+
+    private void persistPrice(long gameId) {
+        PriceRound round = priceRounds.get(gameId);
+        if (round != null) {
+            JSONArray itemsJson = new JSONArray();
+            for (PriceItem item : round.items()) {
+                itemsJson.put(new JSONObject()
+                        .put("name", item.name())
+                        .put("emoji", item.emoji())
+                        .put("price", item.price())
+                        .put("category", item.category())
+                        .put("source", item.source()));
+            }
+            stateBlobs.save(gameId, PRICE_BLOB, new JSONObject()
+                    .put("token", round.token())
+                    .put("items", itemsJson)
+                    .toString());
+        }
+
+        JSONObject answers = new JSONObject();
+        priceAnswers.getOrDefault(gameId, Map.of()).forEach((player, entry) ->
+                answers.put(player, new JSONArray(entry.estimates())));
+        stateBlobs.save(gameId, PRICE_ANSWERS_BLOB, answers.toString());
     }
 
     // ------------------------------------------------------------------ Banche

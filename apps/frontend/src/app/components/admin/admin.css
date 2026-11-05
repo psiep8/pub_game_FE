@@ -442,3 +442,63 @@
   .scoring-row { align-items: flex-start; flex-direction: column; gap: 2px; }
   .scoring-row b { text-align: left; }
 }
+
+/* Diagnostica di serata: chi è online e cosa è stato salvato. */
+.diag-panel {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 2px solid rgba(148, 163, 184, 0.35);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.diag-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+.diag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 6px 12px;
+  font-size: 0.76rem;
+}
+.diag-devices {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.diag-device {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.74rem;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(134, 239, 172, 0.12);
+}
+.diag-device.offline {
+  background: rgba(248, 113, 113, 0.14);
+}
+.diag-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.diag-state {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+.diag-empty {
+  font-size: 0.76rem;
+  opacity: 0.75;
+}

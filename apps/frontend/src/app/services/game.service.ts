@@ -72,28 +72,44 @@ export class GameService {
     gameId: number,
     playerId: string,
     questionId: string,
-    answer: string
+    answer: string,
+    idempotencyKey?: string,
+    deviceId?: string
   ): Observable<{ correct: boolean; points?: number; totalScore?: number; correctAnswer?: string }> {
     return this.http.post<any>(`${this.baseUrl}/games/${gameId}/arena-answer`, {
       playerId,
       questionId,
       answer,
+      idempotencyKey,
+      deviceId,
     });
   }
 
   /** Timeline: ordine scelto dalla squadra, punteggio calcolato dal server. */
-  submitTimeline(gameId: number, playerName: string, order: number[]): Observable<any> {
+  submitTimeline(
+    gameId: number,
+    playerName: string,
+    order: number[],
+    idempotencyKey?: string
+  ): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/games/${gameId}/timeline-answer`, {
       playerName,
       order,
+      idempotencyKey,
     });
   }
 
   /** Quanto costa: tre stime in euro, punteggio calcolato dal server. */
-  submitPrice(gameId: number, playerName: string, estimates: number[]): Observable<any> {
+  submitPrice(
+    gameId: number,
+    playerName: string,
+    estimates: number[],
+    idempotencyKey?: string
+  ): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/games/${gameId}/price-answer`, {
       playerName,
       estimates,
+      idempotencyKey,
     });
   }
 

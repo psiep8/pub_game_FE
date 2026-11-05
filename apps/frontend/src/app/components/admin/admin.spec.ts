@@ -3,6 +3,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Admin } from './admin';
 import { WebSocketService } from '../../services/web-socket.service';
 import { FakeWebSocketService } from '../../testing/test-doubles';
+import { FakeReliabilityService } from '../../testing/test-doubles';
+import { ReliabilityService } from '../../services/reliability.service';
 
 describe('Admin', () => {
   let component: Admin;
@@ -12,7 +14,8 @@ describe('Admin', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Admin],
-      providers: [{ provide: WebSocketService, useClass: FakeWebSocketService }],
+      providers: [{ provide: WebSocketService, useClass: FakeWebSocketService },
+        { provide: ReliabilityService, useClass: FakeReliabilityService as any }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Admin);

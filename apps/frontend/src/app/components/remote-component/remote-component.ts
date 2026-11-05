@@ -6,11 +6,13 @@ import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { filter } from 'rxjs/operators';
 import { GameService } from '../../services/game.service';
 import { ThemeService } from '../../services/theme.service';
+import { ReliabilityService } from '../../services/reliability.service';
+import { ConnectionBadge } from '../connection-badge/connection-badge';
 
 @Component({
   selector: 'app-remote-component',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConnectionBadge],
   templateUrl: './remote-component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./remote-component.css', './restyle.css'],
@@ -121,6 +123,7 @@ import { ThemeService } from '../../services/theme.service';
 export class RemoteComponent implements OnInit, OnDestroy {
 
   public ws = inject(WebSocketService);
+  readonly reliability = inject(ReliabilityService);
   private gameService = inject(GameService);
   private swUpdate = inject(SwUpdate);
   public theme = inject(ThemeService);
@@ -267,6 +270,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // 🔥 [ROLLBACK] ID fisso 1 per stabilità
     this.gameId.set(1);
     console.log('🎮 [ROLLBACK] Remote ID forzato a 1');
+
+    // Sessione + heartbeat: al riaggancio il telefono riprende la stessa
+    // squadra e richiede lo stato autorevole, senza ricaricare la pagina.
+    this.reliability.start(1, 'REMOTE', this.nickname() ?? '');
+    this.reliability.syncState$.subscribe((snapshot: any) => this.applyServerSnapshot(snapshot));
 
     this.gameService.getCategories().subscribe({
       next: (cats) => {
@@ -1055,7 +1063,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (!playerName || this.timelineOrder().length !== this.timelineCards().length) return;
 
     this.hasAnswered.set(true);
-    this.gameService.submitTimeline(this.gameId(), playerName, this.timelineOrder()).subscribe({
+    const key = this.reliability.idempotencyKey('timeline', `${playerName}:${this.timelineOrder().join(',')}`);
+    this.gameService.submitTimeline(this.gameId(), playerName, this.timelineOrder(), key).subscribe({
       next: () => this.gameState.set('WAITING'),
       error: () => this.gameState.set('WAITING'),
     });
@@ -1434,8 +1443,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (!q || !q.options || !playerName || this.arenaEliminated()) return;
 
     // Il telefono manda solo la risposta scelta: giusto/sbagliato lo decide il backend.
+    // La chiave di idempotenza è stabile: se il Wi-Fi cade e il telefono
+    // ritenta, il server risponde con l'esito già registrato.
+    const key = this.reliability.idempotencyKey('arena', `${playerName}:${q.questionId}`);
     this.gameService
-      .answerArenaQuestion(this.gameId(), playerName, q.questionId, q.options[index])
+      .answerArenaQuestion(this.gameId(), playerName, q.questionId, q.options[index], key, this.reliability.deviceId())
       .subscribe({
         next: (res: any) => {
           const isCorrect = !!res.correct;
@@ -1453,9 +1465,45 @@ export class RemoteComponent implements OnInit, OnDestroy {
         },
         error: (err: any) => {
           console.error('❌ Risposta arena rifiutata dal server:', err);
+          // Round chiuso o scaduto: non si insiste, si aspetta la TV.
+          if (err?.status === 409) {
+            this.arenaQuestion.set(null);
+            this.gameState.set('WAITING');
+            return;
+          }
           this.generateNextArenaQuestion();
         }
       });
+  }
+
+  /**
+   * Stato autorevole tornato dal server dopo una riconnessione: ripristina la
+   * schermata giusta senza inventare nulla. Le risposte già date restano date.
+   */
+  private applyServerSnapshot(snapshot: any): void {
+    if (!snapshot || !snapshot.hasState) return;
+
+    const deadline = Number(snapshot.roundDeadlineAt ?? 0);
+    const open = !deadline || deadline > this.reliability.serverNow();
+    const round = snapshot.currentRound;
+    const type = round?.type ?? snapshot.roundType;
+    if (!open || !type) return;
+
+    this.questionType.set(type);
+    if (type === 'ARENA') {
+      if (!this.arenaQuestion() && !this.isFetchingQuestion()) this.generateNextArenaQuestion();
+      return;
+    }
+    if (this.hasAnswered()) return;
+
+    // Round con stato locale guidato dalla TV: non si ricostruisce a mano,
+    // si aspetta il prossimo START_VOTING invece di rischiare doppioni.
+    if (['TIMELINE', 'TIME_BUZZER', 'BOMBA', 'SPEED_RUSH', 'AIR_HOCKEY_BATTLE'].includes(type)) return;
+
+    const payload = round?.payload ?? snapshot.payload;
+    if (payload && this.gameState() === 'WAITING') {
+      this.onStartVoting(type, payload);
+    }
   }
 
   onRoundEnd() {

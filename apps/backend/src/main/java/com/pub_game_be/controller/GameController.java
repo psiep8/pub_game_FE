@@ -5,6 +5,8 @@ import com.pub_game_be.domain.enums.GameType;
 import com.pub_game_be.domain.enums.RoundStatus;
 import com.pub_game_be.domain.game.Game;
 import com.pub_game_be.domain.game_round.GameRound;
+import com.pub_game_be.reliability.GameStateService;
+import com.pub_game_be.reliability.IdempotencyService;
 import com.pub_game_be.repository.GameRepository;
 import com.pub_game_be.repository.GameRoundRepository;
 import com.pub_game_be.service.GameService;
@@ -17,7 +19,9 @@ import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -35,6 +39,8 @@ public class GameController {
     private final QuestionHistoryService questionHistory;
     private final QuestionPoolService questionPoolService;
     private final PartyGameService partyGameService;
+    private final GameStateService gameStateService;
+    private final IdempotencyService idempotencyService;
 
     public GameController(GameRepository gameRepo,
             GameRoundRepository gameRoundRepository,
@@ -44,7 +50,9 @@ public class GameController {
             SimpMessagingTemplate messagingTemplate,
             QuestionHistoryService questionHistory,
             QuestionPoolService questionPoolService,
-            PartyGameService partyGameService) {
+            PartyGameService partyGameService,
+            GameStateService gameStateService,
+            IdempotencyService idempotencyService) {
         this.gameRepo = gameRepo;
         this.gameRoundRepository = gameRoundRepository;
         this.simpleRoundService = simpleRoundService;
@@ -54,6 +62,8 @@ public class GameController {
         this.questionHistory = questionHistory;
         this.questionPoolService = questionPoolService;
         this.partyGameService = partyGameService;
+        this.gameStateService = gameStateService;
+        this.idempotencyService = idempotencyService;
     }
 
     @PostMapping
@@ -89,7 +99,19 @@ public class GameController {
             // La deduplica la fa la banca: se la domanda è già uscita ne pesca un'altra.
             aiPayload = questionBank.generateQuestionJson(category, type, difficulty,
                     key -> !questionHistory.isUsed(gameId, key));
-            questionHistory.claim(gameId, QuestionBankService.payloadDedupeKey(aiPayload));
+            // Prenotazione atomica: la domanda risulta uscita solo quando il
+            // database conferma. Se un'altra richiesta l'ha presa nello stesso
+            // istante si ripesca, invece di mostrarla due volte.
+            String questionKey = QuestionBankService.payloadDedupeKey(aiPayload);
+            if (!questionHistory.claim(gameId, questionKey, questionKey, type)) {
+                aiPayload = questionBank.generateQuestionJson(category, type, difficulty,
+                        key -> !questionHistory.isUsed(gameId, key));
+                questionKey = QuestionBankService.payloadDedupeKey(aiPayload);
+                if (!questionHistory.claim(gameId, questionKey, questionKey, type)) {
+                    throw new IllegalStateException("Nessuna domanda nuova disponibile per la categoria "
+                            + category + ": il pool è esaurito.");
+                }
+            }
         }
 
         Game game = gameRepo.findById(gameId)
@@ -115,6 +137,12 @@ public class GameController {
 
         GameRound savedRound = gameRoundRepository.save(round);
 
+        // Il round è aperto solo ora: domanda riservata e round salvato. La
+        // scadenza è calcolata dal server e resta valida dopo un riavvio.
+        gameStateService.startRound(gameId,
+                type == null ? "QUIZ" : type.toUpperCase(Locale.ROOT),
+                roundIndex, "g" + gameId + "-r" + roundIndex, normalizedPayload);
+
         messagingTemplate.convertAndSend(
                 "/topic/game/" + gameId,
                 savedRound);
@@ -123,9 +151,16 @@ public class GameController {
     }
 
     @GetMapping("/{gameId}/arena-question")
-    public String getArenaQuestion(@PathVariable("gameId") Long gameId,
+    public ResponseEntity<String> getArenaQuestion(@PathVariable("gameId") Long gameId,
             @RequestParam("category") String category,
             @RequestParam(value = "playerId", defaultValue = "anonimo") String playerId) {
+        if (!gameStateService.isRoundOpen(gameId)) {
+            return ResponseEntity.status(409).body(new JSONObject()
+                    .put("error", "round-closed")
+                    .put("deadlineAt", gameStateService.roundDeadline(gameId).orElse(0L))
+                    .toString());
+        }
+
         Predicate<QuestionBankService.ArenaQuestion> isAvailable = candidate -> !questionHistory.isUsed(gameId, candidate.key())
                 && !questionHistory.isUsed(gameId, candidate.answerKey());
 
@@ -171,7 +206,8 @@ public class GameController {
         JSONObject response = new JSONObject(question.json());
         response.put("questionId", questionId);
         response.put("playerId", playerId);
-        return response.toString();
+        response.put("deadlineAt", gameStateService.roundDeadline(gameId).orElse(0L));
+        return ResponseEntity.ok(response.toString());
     }
 
     /** Prima domanda del lato richiesto, se disponibile. */
@@ -313,6 +349,10 @@ public class GameController {
 
         GameRound round = simpleRoundService.createRound(game, difficulty);
 
+        gameStateService.startRound(id,
+                round.getType() == null ? "QUIZ" : round.getType().name(),
+                round.getRoundIndex(), "g" + id + "-r" + round.getRoundIndex(), round.getPayload());
+
         messagingTemplate.convertAndSend("/topic/game/" + id, round);
 
         return round;
@@ -352,11 +392,45 @@ public class GameController {
         String playerId = String.valueOf(body.getOrDefault("playerId", "anonimo"));
         String questionId = String.valueOf(body.getOrDefault("questionId", ""));
         String answer = String.valueOf(body.getOrDefault("answer", ""));
+        Object rawKey = body.get("idempotencyKey");
+        String idempotencyKey = rawKey == null ? null : String.valueOf(rawKey);
+        String deviceId = body.get("deviceId") == null ? playerId : String.valueOf(body.get("deviceId"));
 
-        return questionHistory.answer(gameId, playerId, questionId, answer)
-                .<ResponseEntity<Object>>map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.badRequest()
-                        .body(Map.of("error", "Domanda non trovata per questo giocatore")));
+        if (!gameStateService.isRoundOpen(gameId)) {
+            return ResponseEntity.status(409).body(Map.of(
+                    "error", "round-closed",
+                    "message", "Il round è scaduto: la risposta non è stata registrata.",
+                    "deadlineAt", gameStateService.roundDeadline(gameId).orElse(0L)));
+        }
+
+        // Idempotenza + ACK dopo il commit: se la transazione non conferma il
+        // telefono non riceve una conferma, e il retry non duplica i punti.
+        Map<String, Object> result = idempotencyService.executeOnce(gameId, idempotencyKey,
+                "ARENA_ANSWER", deviceId, () -> questionHistory
+                        .answer(gameId, playerId, questionId, answer)
+                        .map(arena -> {
+                            gameStateService.appendEvent(gameId, "ARENA_ANSWER", new JSONObject()
+                                    .put("playerName", playerId)
+                                    .put("questionId", questionId)
+                                    .put("correct", arena.correct())
+                                    .put("points", arena.points())
+                                    .put("totalScore", arena.totalScore())
+                                    .toString());
+                            Map<String, Object> ok = new LinkedHashMap<>();
+                            ok.put("playerName", playerId);
+                            ok.put("correct", arena.correct());
+                            ok.put("correctAnswer", arena.correctAnswer());
+                            ok.put("points", arena.points());
+                            ok.put("totalScore", arena.totalScore());
+                            return ok;
+                        })
+                        .orElse(null));
+
+        if (result == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Domanda non trovata per questo giocatore"));
+        }
+        return ResponseEntity.ok(result);
     }
 
     /**

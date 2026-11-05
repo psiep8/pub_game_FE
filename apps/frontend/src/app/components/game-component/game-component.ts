@@ -28,6 +28,8 @@ import { RoundManagerService } from '../../services/round-manager.service';
 import { LeaderboardService } from '../../services/leaderboard.service';
 import { AudioService } from '../../services/audio.service';
 import { ThemeService } from '../../services/theme.service';
+import { ReliabilityService } from '../../services/reliability.service';
+import { ConnectionBadge } from '../connection-badge/connection-badge';
 
 import { ImageBlur } from './games/image-blur/image-blur';
 import { Quiz } from './games/quiz/quiz';
@@ -56,6 +58,7 @@ import { BasketBonusStage } from '../bonus/basket-bonus-stage/basket-bonus-stage
   standalone: true,
   imports: [
     CommonModule,
+    ConnectionBadge,
     WheelFortune,
     Quiz,
     ImageBlur,
@@ -138,6 +141,7 @@ export class GameComponent implements OnInit, OnDestroy {
   isShowingLeaderboard = signal(false);
   pendingLeaderboardType = signal<'QUICK' | 'DETAILED' | null>(null);
 
+  readonly reliability = inject(ReliabilityService);
   currentGameId = signal<number>(1);
 
   categoryName = computed(() => {
@@ -252,6 +256,10 @@ export class GameComponent implements OnInit, OnDestroy {
       console.error("Errore inizializzazione:", err);
     }
 
+
+    // La TV mantiene viva la propria sessione: se il Wi-Fi cade torna
+    // online da sola e riallinea versione ed eventi al server.
+    this.reliability.start(this.currentGameId() ?? 1, 'TV');
 
     const progress = this.roundManager.getProgress();
     this.roundInfo.set(progress.text);
@@ -445,6 +453,10 @@ export class GameComponent implements OnInit, OnDestroy {
 
     const extractedType = this.roundManager.startNewRound();
 
+
+    // La TV mantiene viva la propria sessione: se il Wi-Fi cade torna
+    // online da sola e riallinea versione ed eventi al server.
+    this.reliability.start(this.currentGameId() ?? 1, 'TV');
 
     const progress = this.roundManager.getProgress();
     this.roundInfo.set(progress.text);

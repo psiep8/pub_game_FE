@@ -2,14 +2,17 @@ spring:
   application:
     name: pub_game_BE
   datasource:
-    url: jdbc:h2:mem:pub_game;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    # File H2, non in memoria: un riavvio del backend ritrova partita, round,
+    # risposte confermate e storico delle domande. Il percorso è relativo alla
+    # cartella di avvio del backend (apps/backend/data).
+    url: ${DB_URL:jdbc:h2:file:./data/pubgame;DB_CLOSE_DELAY=-1}
     username: sa
     password:
     driver-class-name: org.h2.Driver
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -29,6 +32,12 @@ tmdb:
     key: ${TMDB_API_KEY:}
 
 game:
+  # Affidabilità: la finestra di risposta è decisa dal server, l'heartbeat
+  # distingue un telefono collegato da uno che ha perso il Wi-Fi.
+  reliability:
+    answer-window-seconds: ${ANSWER_WINDOW_SECONDS:300}
+    heartbeat-timeout-seconds: ${HEARTBEAT_TIMEOUT_SECONDS:25}
+    event-history-limit: 200
   difficulty-levels:
     facile: "domande per bambini o cultura generale molto basilare. Risposte ovvie."
     medio: "domande per adulti mediamente istruiti. Richiedono riflessione."

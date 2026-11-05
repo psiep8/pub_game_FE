@@ -17,6 +17,10 @@ export interface BroadcastedStatus {
 export class FakeWebSocketService {
   readonly responses: WritableSignal<any[]> = signal<any[]>([]);
   readonly connected = signal(false);
+  readonly connectionState = signal<'online' | 'reconnecting' | 'offline'>('online');
+  readonly reconnectAttempts = signal(0);
+  readonly lastConnectedAt = signal<number | null>(null);
+  readonly connectedAt$ = new Subject<number>();
 
   readonly status$ = new Subject<any>();
   readonly responses$ = new Subject<any>();
@@ -161,4 +165,55 @@ export class FakeSwUpdate {
   readonly versionUpdates = EMPTY;
   readonly activateUpdate = () => Promise.resolve(false);
   readonly checkForUpdate = () => Promise.resolve(false);
+}
+
+/**
+ * Doppio del livello di affidabilità: nessuna HTTP, nessun localStorage.
+ * La spec verifica il comportamento del componente, non la rete.
+ */
+export class FakeReliabilityService {
+  readonly online = signal(true);
+  readonly syncing = signal(false);
+  readonly stateVersion = signal(0);
+  readonly seq = signal(0);
+  readonly lastSyncAt = signal<number | null>(null);
+  readonly sessionToken = signal<string | null>(null);
+  readonly resumedSession = signal(false);
+  readonly duplicateDisplay = signal(false);
+  readonly serverSkewMs = signal(0);
+  readonly lastError = signal<string | null>(null);
+  readonly reconnectCount = signal(0);
+  readonly syncState$ = new Subject<any>();
+  readonly syncEvent$ = new Subject<any>();
+  readonly started: Array<{ gameId: number; role: string; playerName?: string }> = [];
+
+  start(gameId: number, role: string, playerName = ""): void {
+    this.started.push({ gameId, role, playerName });
+  }
+
+  stop(): void {}
+
+  serverNow(): number {
+    return Date.now();
+  }
+
+  deviceId(): string {
+    return 'device-test';
+  }
+
+  idempotencyKey(kind: string, discriminator: string): string {
+    return `${kind}:${discriminator}`;
+  }
+
+  async ensureSession(): Promise<boolean> {
+    return true;
+  }
+
+  async sync(): Promise<void> {}
+
+  async heartbeat(): Promise<void> {}
+
+  async diagnostics(): Promise<any | null> {
+    return null;
+  }
 }

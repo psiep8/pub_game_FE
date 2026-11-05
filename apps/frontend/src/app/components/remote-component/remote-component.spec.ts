@@ -5,6 +5,8 @@ import { RemoteComponent } from './remote-component';
 import { GameService } from '../../services/game.service';
 import { WebSocketService } from '../../services/web-socket.service';
 import { FakeGameService, FakeSwUpdate, FakeWebSocketService } from '../../testing/test-doubles';
+import { FakeReliabilityService } from '../../testing/test-doubles';
+import { ReliabilityService } from '../../services/reliability.service';
 
 describe('RemoteComponent', () => {
   let component: RemoteComponent;
@@ -18,6 +20,7 @@ describe('RemoteComponent', () => {
       imports: [RemoteComponent],
       providers: [
         { provide: WebSocketService, useClass: FakeWebSocketService },
+        { provide: ReliabilityService, useClass: FakeReliabilityService as any },
         { provide: GameService, useClass: FakeGameService },
         { provide: SwUpdate, useClass: FakeSwUpdate },
       ],

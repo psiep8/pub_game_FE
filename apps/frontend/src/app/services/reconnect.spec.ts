@@ -1,0 +1,35 @@
+import { describe, expect, it } from 'vitest';
+import { backoffDelay } from './reconnect';
+
+describe('backoffDelay', () => {
+  it('cresce in modo esponenziale', () => {
+    const first = backoffDelay(0, 500, 15000, () => 0.5);
+    const second = backoffDelay(1, 500, 15000, () => 0.5);
+    const third = backoffDelay(2, 500, 15000, () => 0.5);
+
+    expect(second).toBeGreaterThan(first);
+    expect(third).toBeGreaterThan(second);
+  });
+
+  it('non supera mai il tetto massimo', () => {
+    for (let attempt = 0; attempt < 20; attempt++) {
+      expect(backoffDelay(attempt, 500, 2000, () => 1)).toBeLessThanOrEqual(2000);
+    }
+  });
+
+  it('usa il jitter per non far riprovare tutti i telefoni insieme', () => {
+    const low = backoffDelay(3, 500, 15000, () => 0);
+    const high = backoffDelay(3, 500, 15000, () => 1);
+
+    expect(high).toBeGreaterThan(low);
+    // Il jitter resta dentro una finestra ragionevole, non raddoppia l'attesa.
+    expect(high).toBeLessThanOrEqual(low * 2);
+  });
+
+  it('tratta tentativi negativi e non numerici come primo tentativo', () => {
+    expect(backoffDelay(-3, 500, 15000, () => 0.5)).toBe(backoffDelay(0, 500, 15000, () => 0.5));
+    expect(backoffDelay(Number.NaN, 500, 15000, () => 0.5)).toBe(
+      backoffDelay(0, 500, 15000, () => 0.5)
+    );
+  });
+});

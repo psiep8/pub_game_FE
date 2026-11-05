@@ -2,9 +2,12 @@ import { Injectable, signal } from '@angular/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
 import { Subject } from 'rxjs';
 import { environment } from '../environment/environment';
+import { backoffDelay } from './reconnect';
 
 /** La TV crea una sola partita per sessione: il backend la espone con id 1. */
 const DEFAULT_GAME_ID = 1;
+
+export type ConnectionState = 'online' | 'reconnecting' | 'offline';
 
 /**
  * Canale STOMP su WebSocket nativo (niente SockJS).
@@ -16,40 +19,60 @@ const DEFAULT_GAME_ID = 1;
  * Espone due flussi:
  * - `responses$` per le azioni rapide dei telefoni (risposte e urla);
  * - `status$` per gli eventi di gioco (domanda, voting, fine round).
+ *
+ * La riconnessione non è più un retry a intervallo fisso: `backoffDelay`
+ * allarga l'attesa a ogni tentativo e la spalma con jitter, così venti telefoni
+ * che perdono il Wi-Fi insieme non tornano tutti nello stesso istante.
+ * Ogni riaggancio emette su `connectedAt$`: chi ascolta riprende la sessione e
+ * richiede lo stato autorevole al server.
  */
 @Injectable({ providedIn: 'root' })
 export class WebSocketService {
   readonly responses = signal<any[]>([]);
   readonly connected = signal(false);
+  readonly connectionState = signal<ConnectionState>('offline');
+  readonly reconnectAttempts = signal(0);
+  readonly lastConnectedAt = signal<number | null>(null);
 
   readonly status$ = new Subject<any>();
   readonly responses$ = new Subject<any>();
+  /** Emesso a ogni connessione riuscita (anche la prima). */
+  readonly connectedAt$ = new Subject<number>();
 
   private readonly client: Client;
   private activeGameId = DEFAULT_GAME_ID;
   private subscriptions: StompSubscription[] = [];
+  private retryTimer?: ReturnType<typeof setTimeout>;
+  private attempts = 0;
 
   constructor() {
     this.client = new Client({
       brokerURL: environment.wsUrl,
-      reconnectDelay: 3000,
+      // Riconnessione gestita qui: serve il backoff, non un intervallo fisso.
+      reconnectDelay: 0,
       connectionTimeout: 8000,
       // Heartbeat allineati al server (10s): meno frame con molti telefoni.
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
       onConnect: () => {
+        this.attempts = 0;
+        this.reconnectAttempts.set(0);
         this.connected.set(true);
+        this.connectionState.set('online');
+        this.lastConnectedAt.set(Date.now());
         this.subscribeToActiveGame();
+        this.connectedAt$.next(Date.now());
       },
-      onDisconnect: () => this.connected.set(false),
-      onWebSocketClose: () => this.connected.set(false),
-      onWebSocketError: () => this.connected.set(false),
+      onDisconnect: () => this.markOffline(),
+      onWebSocketClose: () => this.markOffline(),
+      onWebSocketError: () => this.markOffline(),
       onStompError: (frame) => {
         console.error('❌ STOMP error:', frame.headers['message']);
+        this.markOffline();
       },
     });
 
-    if (environment.wsUrl) this.client.activate();
+    if (environment.wsUrl) this.scheduleReconnect(0);
   }
 
   /** Cambia la partita a cui sono sottoscritti i topic (idempotente). */
@@ -60,12 +83,16 @@ export class WebSocketService {
     if (this.connected()) this.subscribeToActiveGame();
   }
 
-  sendAnswer(gameId: number, playerName: string, index: number, responseTimeMs: number): void {
-    this.publish(`/app/game/${gameId}/answer`, { playerName, answerIndex: index, responseTimeMs });
+  sendAnswer(gameId: number, playerName: string, index: number, responseTimeMs: number): boolean {
+    return this.publish(`/app/game/${gameId}/answer`, {
+      playerName,
+      answerIndex: index,
+      responseTimeMs,
+    });
   }
 
-  sendScream(gameId: number, playerName: string, intensity: number): void {
-    this.publish(`/app/game/${gameId}/status`, {
+  sendScream(gameId: number, playerName: string, intensity: number): boolean {
+    return this.publish(`/app/game/${gameId}/status`, {
       action: 'SCREAM',
       playerName,
       intensity: Math.min(100, Math.max(0, intensity)),
@@ -73,17 +100,19 @@ export class WebSocketService {
     });
   }
 
-  broadcastStatus(gameId: number, payload: any): void {
-    this.publish(`/app/game/${gameId}/status`, payload);
+  broadcastStatus(gameId: number, payload: any): boolean {
+    return this.publish(`/app/game/${gameId}/status`, payload);
   }
 
   connect(): void {
-    if (!this.client.active) this.client.activate();
+    if (!this.client.active) this.scheduleReconnect(0);
   }
 
   disconnect(): void {
+    this.clearRetryTimer();
     this.unsubscribeAll();
     this.connected.set(false);
+    this.connectionState.set('offline');
     this.client.deactivate();
   }
 
@@ -91,14 +120,53 @@ export class WebSocketService {
     this.responses.set([]);
   }
 
-  /**
-   * Unico punto di invio: se la socket non è ancora connessa il messaggio
-   * viene scartato invece di far esplodere StompJS a metà round.
-   */
-  private publish(destination: string, payload: any): void {
-    if (!this.client.connected) return;
+  /** true se il messaggio è partito: chi chiama sa se serve un fallback REST. */
+  private publish(destination: string, payload: any): boolean {
+    if (!this.client.connected) return false;
 
-    this.client.publish({ destination, body: JSON.stringify(payload) });
+    try {
+      this.client.publish({ destination, body: JSON.stringify(payload) });
+      return true;
+    } catch (error) {
+      console.error('❌ Invio STOMP fallito:', error);
+      this.markOffline();
+      return false;
+    }
+  }
+
+  private markOffline(): void {
+    const wasOnline = this.connected();
+    this.connected.set(false);
+    if (wasOnline) {
+      // Un dispositivo che si scollega non deve restare "online" nella UI né
+      // nella diagnostica dell'admin.
+      this.connectionState.set('reconnecting');
+    }
+    if (this.client.active) this.scheduleReconnect(this.attempts);
+  }
+
+  private scheduleReconnect(attempt: number): void {
+    if (this.retryTimer) return;
+    const delay = backoffDelay(attempt);
+    this.attempts = attempt + 1;
+    this.reconnectAttempts.set(this.attempts);
+    if (!this.connected()) {
+      this.connectionState.set(this.attempts > 8 ? 'offline' : 'reconnecting');
+    }
+    this.retryTimer = setTimeout(() => {
+      this.retryTimer = undefined;
+      if (this.connected()) return;
+      if (!this.client.active) {
+        this.client.activate();
+      }
+    }, delay);
+  }
+
+  private clearRetryTimer(): void {
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = undefined;
+    }
   }
 
   private subscribeToActiveGame(): void {

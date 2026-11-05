@@ -11,8 +11,8 @@ import java.nio.file.Path;
 import java.util.Map;
 
 @SpringBootApplication
-@EntityScan("com.pub_game_be.domain")
-@EnableJpaRepositories(basePackages = "com.pub_game_be.repository")
+@EntityScan({ "com.pub_game_be.domain", "com.pub_game_be.reliability.domain" })
+@EnableJpaRepositories(basePackages = { "com.pub_game_be.repository", "com.pub_game_be.reliability.repository" })
 public class PubGameBeApplication {
 
     public static void main(String[] args) throws IOException {

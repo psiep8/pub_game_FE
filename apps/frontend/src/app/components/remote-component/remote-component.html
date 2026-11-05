@@ -48,6 +48,10 @@
 
 <div class="remote-container">
 
+  <div class="conn-shell">
+    <app-connection-badge role="remote"></app-connection-badge>
+  </div>
+
   @if (!nickname()) {
   <div class="setup-screen">
     <button class="theme-corner" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">

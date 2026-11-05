@@ -11,6 +11,8 @@ __screenshots__/
 # --- Build backend (Maven / Java) ---
 target/
 *.class
+# Database H2 su file: sopravvive al riavvio, non va versionato.
+apps/backend/data/
 
 # --- Env e segreti ---
 .env
