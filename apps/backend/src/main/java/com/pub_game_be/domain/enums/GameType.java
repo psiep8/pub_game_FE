@@ -12,6 +12,7 @@ public enum GameType {
     ARENA,
     TIMELINE,
     TIME_BUZZER,
+    BOMBA,
     SPEED_RUSH,
     AIR_HOCKEY_BATTLE
 }

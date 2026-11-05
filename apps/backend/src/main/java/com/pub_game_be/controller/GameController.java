@@ -74,11 +74,14 @@ public class GameController {
             @RequestParam("type") String type,
             @RequestParam("difficulty") String difficulty) {
 
+        int roundIndex = (int) gameRoundRepository.countByGameId(gameId);
+        int act = Math.min(5, (roundIndex / 8) + 1);
+
         String aiPayload;
         if (partyGameService.handles(type)) {
-            // Timeline, Quanto costa, Speed Rush e Air Hockey Battle non usano la banca
+            // Timeline, Bomba, Speed Rush e Air Hockey Battle non usano la banca
             // domande: il payload (e lo stato del round) vive nel servizio party.
-            aiPayload = partyGameService.startRound(gameId, type, category);
+            aiPayload = partyGameService.startRound(gameId, type, category, act);
             if (aiPayload == null) {
                 throw new RuntimeException("Tipo di gioco non gestito: " + type);
             }
@@ -108,8 +111,7 @@ public class GameController {
 
         round.setPayload(normalizedPayload);
 
-        int nextIndex = (int) gameRoundRepository.countByGameId(gameId);
-        round.setRoundIndex(nextIndex);
+        round.setRoundIndex(roundIndex);
 
         GameRound savedRound = gameRoundRepository.save(round);
 

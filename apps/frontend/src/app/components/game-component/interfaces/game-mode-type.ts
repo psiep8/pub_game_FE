@@ -14,8 +14,19 @@ export type GameModeType =
   | 'ARENA'
   | 'TIMELINE'
   | 'TIME_BUZZER'
+  | 'BOMBA'
   | 'SPEED_RUSH'
   | 'AIR_HOCKEY_BATTLE';
+
+export interface BombaApi {
+  start(players: string[], act: number): Promise<any>;
+  state(player?: string): Promise<any>;
+  answer(playerName: string, bombId: number, answerIndex: number): Promise<any>;
+  pass(playerName: string, bombId: number, target: string): Promise<any>;
+  pause(): Promise<any>;
+  resume(): Promise<any>;
+  reset(): Promise<any>;
+}
 
 export interface GameModeConfig {
   type: GameModeType;
@@ -36,6 +47,8 @@ export interface GameModeConfig {
   onPlayerEliminated?: (playerName: string) => void;
   /** Arena: la partita è finita (rimasto un solo giocatore o tempo scaduto). */
   onRoundEnded?: () => void;
+  /** Bomba: API server-authoritative condivisa da TV e telefoni. */
+  bomba?: BombaApi;
   /** Air Hockey: domande pescate dalla banca all'avvio del round. */
   loadAirHockeyQuestions?: (difficulty: string) => Promise<Array<{
     text: string;

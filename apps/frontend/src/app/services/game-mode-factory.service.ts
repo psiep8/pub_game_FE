@@ -12,6 +12,7 @@ import { MusicMode } from '../components/game-component/mode/music.mode';
 import { ArenaMode } from '../components/game-component/mode/arena.mode';
 import { TimelineMode } from '../components/game-component/mode/timeline.mode';
 import { TimeBuzzerMode } from '../components/game-component/mode/time-buzzer.mode';
+import { BombaMode } from '../components/game-component/mode/bomba.mode';
 import { SpeedRushMode } from '../components/game-component/mode/speed-rush.mode';
 import { AirHockeyBattleMode } from '../components/game-component/mode/air-hockey-battle.mode';
 
@@ -36,6 +37,7 @@ export class GameModeService {
     ARENA: (config) => this.withConfig(new ArenaMode(), config),
     TIMELINE: (config) => this.withConfig(new TimelineMode(), config),
     TIME_BUZZER: (config) => this.withConfig(new TimeBuzzerMode(), config),
+    BOMBA: (config) => this.withConfig(new BombaMode(), config),
     SPEED_RUSH: (config) => this.withConfig(new SpeedRushMode(), config),
     AIR_HOCKEY_BATTLE: (config) => this.withConfig(new AirHockeyBattleMode(), config),
   };

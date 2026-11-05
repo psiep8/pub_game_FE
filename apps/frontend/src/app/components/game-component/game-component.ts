@@ -41,6 +41,7 @@ import { LeaderboardDetailed } from '../leaderboard/leaderboard-detailed-compone
 import { ArenaComponent } from './games/arena/arena.component';
 import { Timeline } from './games/timeline/timeline';
 import { TimeBuzzer } from './games/time-buzzer/time-buzzer';
+import { Bomba } from './games/bomba/bomba';
 import { SpeedRush } from './games/speed-rush/speed-rush';
 import { AirHockeyBattle } from './games/air-hockey-battle/air-hockey-battle';
 import { DEMO_SCRIPTS, DEMO_SCENE_COUNT, DemoScript } from './demo-scripts';
@@ -61,6 +62,7 @@ import { scoringRuleFor } from './interfaces/scoring-rules';
     ArenaComponent,
     Timeline,
     TimeBuzzer,
+    Bomba,
     SpeedRush,
     AirHockeyBattle
   ],
@@ -155,6 +157,7 @@ export class GameComponent implements OnInit, OnDestroy {
     'WHEEL_OF_FORTUNE',
     'ROULETTE',
     'TIMELINE',
+    'BOMBA',
     'SPEED_RUSH',
     'AIR_HOCKEY_BATTLE',
     'ARENA',
@@ -499,6 +502,23 @@ export class GameComponent implements OnInit, OnDestroy {
               : 'EASY') as 'EASY' | 'MEDIUM' | 'HARD',
           }));
         },
+        bomba: {
+          start: (players: string[], act: number) => firstValueFrom(
+            this.gameService.startBomba(this.currentGameId()!, players, act),
+          ),
+          state: (player?: string) => firstValueFrom(
+            this.gameService.getBombaState(this.currentGameId()!, player),
+          ),
+          answer: (playerName: string, bombId: number, answerIndex: number) => firstValueFrom(
+            this.gameService.answerBomba(this.currentGameId()!, playerName, bombId, answerIndex),
+          ),
+          pass: (playerName: string, bombId: number, target: string) => firstValueFrom(
+            this.gameService.passBomba(this.currentGameId()!, playerName, bombId, target),
+          ),
+          pause: () => firstValueFrom(this.gameService.pauseBomba(this.currentGameId()!)),
+          resume: () => firstValueFrom(this.gameService.resumeBomba(this.currentGameId()!)),
+          reset: () => firstValueFrom(this.gameService.resetBomba(this.currentGameId()!)),
+        },
         onAnswerReceived: (result: any) => {
 
           if (result && result.playerName) {
@@ -609,6 +629,7 @@ export class GameComponent implements OnInit, OnDestroy {
         // temporale; il backend filtra gli eventi su questa categoria.
         return this.pickTimelineCategoryName();
       case 'TIME_BUZZER':
+      case 'BOMBA':
       case 'SPEED_RUSH':
       case 'AIR_HOCKEY_BATTLE':
         return 'CULTURA GENERALE';
@@ -654,6 +675,8 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'TIMELINE';
       case 'TIME_BUZZER':
         return 'TIME BUZZER';
+      case 'BOMBA':
+        return 'BOMBA';
       case 'SPEED_RUSH':
         return 'SPEED RUSH';
       case 'AIR_HOCKEY_BATTLE':
@@ -1302,6 +1325,8 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'Ordine corretto mostrato in TV al reveal';
       case 'TIME_BUZZER':
         return 'Tempo bersaglio mostrato in TV';
+      case 'BOMBA':
+        return 'Bombe, passaggi e scoppi in TV; risposte sul telefono';
       case 'AIR_HOCKEY_BATTLE':
         return 'Domande e set in TV; risposte sul telefono';
       case 'SPEED_RUSH':

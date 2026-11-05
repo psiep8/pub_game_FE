@@ -76,21 +76,26 @@ public class PartyGameService {
             return false;
         }
         return switch (type.toUpperCase(Locale.ROOT)) {
-            case "TIMELINE", "TIME_BUZZER", "SPEED_RUSH", "AIR_HOCKEY_BATTLE" -> true;
+            case "TIMELINE", "TIME_BUZZER", "BOMBA", "SPEED_RUSH", "AIR_HOCKEY_BATTLE" -> true;
             default -> false;
         };
     }
 
     public String startRound(long gameId, String type) {
-        return startRound(gameId, type, null);
+        return startRound(gameId, type, null, 1);
     }
 
     public String startRound(long gameId, String type, String category) {
+        return startRound(gameId, type, category, 1);
+    }
+
+    public String startRound(long gameId, String type, String category, int act) {
         return switch (type.toUpperCase(Locale.ROOT)) {
             case "TIMELINE" -> startTimeline(gameId, category);
-            case "TIME_BUZZER" -> configPayload("TIME_BUZZER", 45);
-            case "SPEED_RUSH" -> configPayload("SPEED_RUSH", 60);
-            case "AIR_HOCKEY_BATTLE" -> configPayload("AIR_HOCKEY_BATTLE", 60);
+            case "TIME_BUZZER" -> configPayload("TIME_BUZZER", 45, act);
+            case "BOMBA" -> configPayload("BOMBA", 90, act);
+            case "SPEED_RUSH" -> configPayload("SPEED_RUSH", 60, act);
+            case "AIR_HOCKEY_BATTLE" -> configPayload("AIR_HOCKEY_BATTLE", 60, act);
             default -> null;
         };
     }
@@ -453,10 +458,19 @@ public class PartyGameService {
     // ------------------------------------------------------------------ Banche
 
     private String configPayload(String type, int durationSeconds) {
+        return configPayload(type, durationSeconds, 1);
+    }
+
+    private String configPayload(String type, int durationSeconds, int act) {
         JSONObject payload = new JSONObject();
         payload.put("type", type);
-        payload.put("question", type.equals("SPEED_RUSH") ? "Speed Rush!" : "Air Hockey Battle!");
+        payload.put("question", switch (type) {
+            case "SPEED_RUSH" -> "Speed Rush!";
+            case "BOMBA" -> "Passa la bomba!";
+            default -> "Air Hockey Battle!";
+        });
         payload.put("duration", durationSeconds);
+        payload.put("act", Math.max(1, Math.min(5, act)));
         return payload.toString();
     }
 

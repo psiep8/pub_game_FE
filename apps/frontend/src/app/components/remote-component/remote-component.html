@@ -132,6 +132,51 @@
       <p class="buzz-hint">Nessun cronometro: fermalo quando pensi sia giusto.</p>
     </div>
     }
+    @case ('BOMBA') {
+    <div class="bomba-remote">
+      @if (bombaFlash()) {
+      <div class="bomba-flash">{{ bombaFlash() }}</div>
+      }
+      @if (bombaView()?.question) {
+      <div class="game-head">
+        <span class="game-tag bomba">💣 BOMBA</span>
+        <span class="game-tip">{{ bombaView().questionSecondsLeft }}s</span>
+      </div>
+      <p class="bomba-question">{{ bombaView().question }}</p>
+      <div class="bomba-options">
+        @for (option of bombaView().options; track option; let index = $index) {
+        <button class="bomba-option" [disabled]="hasAnswered()" (click)="answerBomba(index)">
+          <span class="bomba-option-letter">{{ index === 0 ? 'A' : index === 1 ? 'B' : 'C' }}</span>
+          <span>{{ option }}</span>
+        </button>
+        }
+      </div>
+      <p class="bomba-hint">Risposta giusta = passa la bomba. Sbagliata o tempo scaduto = miccia −3s.</p>
+      } @else if (bombaView()?.passOptions?.length) {
+      <div class="game-head">
+        <span class="game-tag bomba">💣 PASSA</span>
+        <span class="game-tip">{{ bombaView().passSecondsLeft }}s</span>
+      </div>
+      <p class="bomba-pass-title">A chi la passi?</p>
+      <div class="bomba-pass-options">
+        @for (target of bombaView().passOptions; track target) {
+        <button class="bomba-pass" [disabled]="hasAnswered()" (click)="passBomba(target)">
+          {{ target }}
+        </button>
+        }
+      </div>
+      <p class="bomba-hint">Il tavolo scelto non può essere chi te l'ha appena passata.</p>
+      } @else {
+      <div class="bomba-wait">
+        <div class="bomba-big">💣</div>
+        <h2>BOMBA IN GIOCO</h2>
+        <p>La tiene: <b>{{ bombaHolderNames() }}</b></p>
+        <p class="bomba-hint">Tieni il telefono pronto: quando arriva a te hai 5 secondi per rispondere.</p>
+        <div class="bomba-score">I tuoi punti: <b>{{ bombaMyScore() }}</b></div>
+      </div>
+      }
+    </div>
+    }
     @case ('BONUS_BASKET') {
     <div class="buzz-remote">
       <div class="game-head"><span class="game-tag buzz">BONUS</span><span class="game-tip">30 secondi</span></div>

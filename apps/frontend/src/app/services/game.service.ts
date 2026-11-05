@@ -11,6 +11,7 @@ export interface GameRoundPayload {
     | 'IMAGE_BLUR'
     | 'TIMELINE'
     | 'TIME_BUZZER'
+    | 'BOMBA'
     | 'SPEED_RUSH'
     | 'AIR_HOCKEY_BATTLE';
   options: string[];
@@ -105,6 +106,50 @@ export class GameService {
     return this.http.get<any[]>(
       `${this.baseUrl}/games/${gameId}/air-hockey/questions?difficulty=${encodeURIComponent(difficulty)}&count=${count}`
     );
+  }
+
+  // ---------------------------------------------------------------- Bomba
+
+  startBomba(gameId: number, players: string[], act: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/bomba/start`, { players, act });
+  }
+
+  getBombaState(gameId: number, player?: string): Observable<any> {
+    const query = player ? `?player=${encodeURIComponent(player)}` : '';
+    return this.http.get<any>(`${this.baseUrl}/games/${gameId}/bomba/state${query}`);
+  }
+
+  answerBomba(
+    gameId: number,
+    playerName: string,
+    bombId: number,
+    answerIndex: number
+  ): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/bomba/answer`, {
+      playerName,
+      bombId,
+      answerIndex,
+    });
+  }
+
+  passBomba(gameId: number, playerName: string, bombId: number, target: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/bomba/pass`, {
+      playerName,
+      bombId,
+      target,
+    });
+  }
+
+  pauseBomba(gameId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/bomba/pause`, {});
+  }
+
+  resumeBomba(gameId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/bomba/resume`, {});
+  }
+
+  resetBomba(gameId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/bomba/reset`, {});
   }
 
   getTimelineReveal(gameId: number): Observable<any> {

@@ -9,12 +9,12 @@ const PLAYABLE_TYPES: GameModeType[] = [
   'ROULETTE',
   'ARENA',
   'TIMELINE',
-  'TIME_BUZZER',
+  'BOMBA',
   'SPEED_RUSH',
   'AIR_HOCKEY_BATTLE',
 ];
 
-const REALTIME_TYPES: GameModeType[] = ['ARENA', 'SPEED_RUSH', 'AIR_HOCKEY_BATTLE'];
+const REALTIME_TYPES: GameModeType[] = ['BOMBA', 'ARENA', 'SPEED_RUSH', 'AIR_HOCKEY_BATTLE'];
 
 describe('RoundManagerService', () => {
   let service: RoundManagerService;

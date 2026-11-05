@@ -262,6 +262,10 @@ export class Admin implements OnInit, OnDestroy {
           answer = 'Tempo bersaglio in TV';
           break;
 
+        case 'BOMBA':
+          answer = 'Bombe, micce e passaggi in TV; risposte sul telefono';
+          break;
+
         case 'SPEED_RUSH':
           answer = 'Classifica finale in TV';
           break;

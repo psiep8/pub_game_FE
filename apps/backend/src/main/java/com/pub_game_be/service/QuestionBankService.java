@@ -40,6 +40,11 @@ public class QuestionBankService {
             String key, String answerKey) {
     }
 
+    /** Domanda breve per la Bomba: il server tiene la risposta corretta. */
+    public record BombaQuestion(String id, String question, List<String> options,
+            String correctAnswer, String kind) {
+    }
+
     /** Riga della banca domande. */
     private record BankQuestion(String id, String category, String type, String difficulty,
             String question, String correctAnswer, List<String> options, String explanation) {
@@ -62,7 +67,6 @@ public class QuestionBankService {
             "Meglio un uovo oggi che una gallina domani",
             "Tanto va la gatta al lardo che ci lascia lo zampino",
             "Meglio soli che male accompagnati",
-            "Non si può avere la botte piena e la moglie ubriaca",
             "Tra moglie e marito non mettere il dito",
             "Chi troppo vuole nulla stringe",
             "Il lupo perde il pelo ma non il vizio",
@@ -81,8 +85,6 @@ public class QuestionBankService {
             "Chi non risica non rosica",
             "Meglio prevenire che curare",
             "Chi di spada ferisce di spada perisce",
-            "Il diavolo fa le pentole ma non i coperchi",
-            "Acqua passata non macina più",
             "Chi di speranza vive disperato muore",
             "Non tutto il male viene per nuocere",
             "Chi ha orecchie per intendere intenda",
@@ -316,6 +318,115 @@ public class QuestionBankService {
                     "difficulty", airHockeyDifficulty(question.difficulty())));
         }
         return rows;
+    }
+
+    /**
+     * Domande Bomba per atto: Vero/Falso nei primi due, tre opzioni nei
+     * centrali, difficili e più rapide nell'ultimo. La risposta corretta resta
+     * nel servizio e non viene mai serializzata verso TV o telefoni.
+     */
+    public List<BombaQuestion> bombaQuestions(int act, int count) {
+        int safeAct = Math.max(1, Math.min(5, act));
+        int wanted = Math.max(1, Math.min(120, count));
+        boolean trueFalse = safeAct <= 2;
+
+        List<BankQuestion> primary = bombaCandidates(trueFalse, safeAct, true);
+        if (primary.size() < wanted) {
+            List<BankQuestion> fallback = bombaCandidates(trueFalse, safeAct, false);
+            Set<String> seen = new HashSet<>();
+            for (BankQuestion question : primary) {
+                seen.add(question.id());
+            }
+            for (BankQuestion question : fallback) {
+                if (seen.add(question.id())) {
+                    primary.add(question);
+                }
+            }
+        }
+
+        Collections.shuffle(primary, random);
+        List<BombaQuestion> result = new ArrayList<>();
+        Set<String> used = new HashSet<>();
+        for (BankQuestion question : primary) {
+            if (result.size() >= wanted) {
+                break;
+            }
+            if (!used.add(question.id())) {
+                continue;
+            }
+
+            List<String> options;
+            if (trueFalse) {
+                options = question.options().stream()
+                        .filter(option -> "VERO".equalsIgnoreCase(option) || "FALSO".equalsIgnoreCase(option))
+                        .toList();
+                if (options.size() < 2) {
+                    continue;
+                }
+            } else {
+                options = threeOptions(question);
+                if (options == null) {
+                    continue;
+                }
+            }
+
+            result.add(new BombaQuestion(
+                    question.id(),
+                    question.question(),
+                    List.copyOf(options),
+                    question.correctAnswer(),
+                    trueFalse ? "VERO_FALSO" : "TRE_OPZIONI"));
+        }
+        return result;
+    }
+
+    private List<BankQuestion> bombaCandidates(boolean trueFalse, int act, boolean strict) {
+        List<BankQuestion> candidates = new ArrayList<>();
+        for (BankQuestion question : allQuestions()) {
+            if (trueFalse) {
+                if (!"TRUE_FALSE".equals(question.type())) {
+                    continue;
+                }
+                if (strict && question.question().length() > 110) {
+                    continue;
+                }
+            } else {
+                if (!"QUIZ".equals(question.type()) || question.options().size() < 3
+                        || !question.options().contains(question.correctAnswer())) {
+                    continue;
+                }
+                if (strict && question.question().length() > 120) {
+                    continue;
+                }
+                if (strict && act >= 5 && !isHardDifficulty(question.difficulty())) {
+                    continue;
+                }
+            }
+            candidates.add(question);
+        }
+        return candidates;
+    }
+
+    private boolean isHardDifficulty(String difficulty) {
+        return "difficile".equalsIgnoreCase(difficulty) || "hard".equalsIgnoreCase(difficulty);
+    }
+
+    private List<String> threeOptions(BankQuestion question) {
+        String correct = question.correctAnswer();
+        List<String> distractors = question.options().stream()
+                .filter(option -> !option.equalsIgnoreCase(correct))
+                .distinct()
+                .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
+        if (distractors.size() < 2) {
+            return null;
+        }
+        Collections.shuffle(distractors, random);
+        List<String> options = new ArrayList<>();
+        options.add(correct);
+        options.add(distractors.get(0));
+        options.add(distractors.get(1));
+        Collections.shuffle(options, random);
+        return options;
     }
 
     /** Le difficoltà della banca sono in italiano; l'Air Hockey usa le sigle. */

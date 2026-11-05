@@ -57,6 +57,12 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     missed: '0, ma sei eliminato per primo',
     note: 'Vince chi si avvicina di più al tempo bersaglio; chi non preme esce.',
   },
+  BOMBA: {
+    correct: '+50 per passaggio (max +500)',
+    wrong: 'miccia −3s',
+    missed: 'miccia −3s',
+    note: 'Ogni squadra parte da 1000: lo scoppio costa −300, il delta entra in classifica.',
+  },
   SPEED_RUSH: {
     correct: '+1000 / +900 / +800 …',
     wrong: '0 (la corsia arretra)',

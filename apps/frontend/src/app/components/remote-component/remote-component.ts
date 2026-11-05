@@ -106,7 +106,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR' | 'BUZZ_OUT' | 'ELIMINATED'>('WAITING');
-  questionType = signal<'ROULETTE' | 'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'BONUS_BASKET'>('QUIZ');
+  questionType = signal<'ROULETTE' | 'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'BONUS_BASKET'>('QUIZ');
   hasAnswered = signal(false);
   isBlocked = signal(false);
 
@@ -146,6 +146,19 @@ export class RemoteComponent implements OnInit, OnDestroy {
   buzzEliminated = signal(false);
   buzzManche = signal(0);
   private buzzStartedAt = 0;
+
+  // BOMBA: lo stato pubblico e la vista privata del possessore arrivano dal
+  // backend. Il telefono non calcola mai micce né punteggi.
+  bombaState = signal<any>(null);
+  bombaView = signal<any>(null);
+  bombaFlash = signal<string | null>(null);
+  private bombaPoll?: ReturnType<typeof setInterval>;
+  private bombaPollBusy = false;
+  private bombaStarted = false;
+  private bombaFirstState = true;
+  private bombaLastExplosion = 0;
+  private bombaQuestionKey = '';
+  private bombaFlashTimer?: ReturnType<typeof setTimeout>;
 
   draggingId = signal<number | null>(null);
   private dragId: number | null = null;
@@ -258,6 +271,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.onStartVoting(status.type, status.payload);
           break;
 
+        case 'BOMBA_STATE':
+          this.applyBombaState(status.state);
+          break;
+
         case 'TIME_BUZZER_STATE':
           if (status.state) {
             const state = status.state;
@@ -298,6 +315,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
           // Round chiuso: spegni il microfono, altrimenti il telefono continua
           // a inviare urli (10 messaggi/s) anche nei round successivi.
           this.stopMicrophoneListening();
+          this.stopBombaPolling();
+          this.bombaStarted = false;
+          this.bombaState.set(null);
+          this.bombaView.set(null);
+          this.bombaFlash.set(null);
+          this.bombaFirstState = true;
           this.gameState.set('WAITING');
           this.hasAnswered.set(false);
           this.isBlocked.set(false);
@@ -635,6 +658,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.buzzPhase.set('idle');
       this.buzzEliminated.set(false);
       this.buzzManche.set(0);
+    } else if (type === 'BOMBA') {
+      this.bombaState.set(null);
+      this.bombaView.set(null);
+      this.bombaFlash.set(null);
+      this.bombaFirstState = true;
+      this.bombaQuestionKey = '';
+      this.bombaStarted = true;
+      this.startBombaPolling();
     } else if (type === 'SPEED_RUSH') {
       this.startSpeedRush();
     } else if (type === 'AIR_HOCKEY_BATTLE') {
@@ -642,6 +673,174 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.hockeyGoal.set(null);
       this.hockeyLastGoalId = 0;
     }
+  }
+
+  // ---------------------------------------------------------------- BOMBA
+
+  private startBombaPolling(): void {
+    this.stopBombaPolling();
+    this.bombaPoll = setInterval(() => this.pollBombaState(), 600);
+    this.pollBombaState();
+  }
+
+  private stopBombaPolling(): void {
+    if (this.bombaPoll) {
+      clearInterval(this.bombaPoll);
+      this.bombaPoll = undefined;
+    }
+  }
+
+  private pollBombaState(): void {
+    const player = this.nickname();
+    if (!this.bombaStarted || this.bombaPollBusy || !player) return;
+
+    this.bombaPollBusy = true;
+    this.gameService.getBombaState(this.gameId(), player).subscribe({
+      next: (state) => {
+        this.applyBombaState(state);
+        this.bombaPollBusy = false;
+      },
+      error: () => {
+        this.bombaPollBusy = false;
+      },
+    });
+  }
+
+  private applyBombaState(state: any): void {
+    if (!state) return;
+
+    this.bombaState.set(state);
+    if (state.active === false) {
+      this.stopBombaPolling();
+      this.bombaView.set(null);
+      this.gameState.set('WAITING');
+      return;
+    }
+
+    if (state.paused) {
+      this.gameState.set('WAITING');
+      return;
+    }
+
+    const you = state.you ?? null;
+    this.bombaView.set(you);
+    this.gameState.set('VOTING');
+
+    if (you?.question) {
+      const key = `${you.bombId}:${you.question}`;
+      if (key !== this.bombaQuestionKey) {
+        this.bombaQuestionKey = key;
+        this.hasAnswered.set(false);
+        this.vibrate(20);
+      }
+    } else {
+      this.bombaQuestionKey = '';
+      this.hasAnswered.set(false);
+    }
+
+    const explosions = Array.isArray(state.events)
+      ? state.events.filter((event: any) => event.kind === 'explode')
+      : [];
+    if (this.bombaFirstState) {
+      this.bombaLastExplosion = explosions.at(-1)?.id ?? 0;
+      this.bombaFirstState = false;
+    }
+    const explosion = explosions.find((event: any) => event.id > this.bombaLastExplosion);
+    if (explosion) {
+      this.bombaLastExplosion = explosion.id;
+      if (explosion.player === this.nickname()) {
+        this.flashBomba('💥 BOOM! −300');
+        this.vibrate([160, 60, 160]);
+      } else {
+        this.flashBomba(`💥 ${explosion.player} −300`);
+      }
+    }
+  }
+
+  answerBomba(index: number): void {
+    const view = this.bombaView();
+    const player = this.nickname();
+    if (!view?.question || !player || this.hasAnswered()) return;
+
+    this.hasAnswered.set(true);
+    this.gameService.answerBomba(this.gameId(), player, view.bombId, index).subscribe({
+      next: (result: any) => {
+        if (result?.correct) {
+          this.hasAnswered.set(false);
+          if (result.passOptions?.length) {
+            this.bombaView.update((current: any) => ({
+              ...current,
+              question: null,
+              options: [],
+              questionSecondsLeft: 0,
+              passOptions: result.passOptions,
+              passSecondsLeft: 5,
+            }));
+            this.vibrate(30);
+          } else {
+            this.flashBomba('Nessun tavolo libero: miccia −3s');
+            this.pollBombaState();
+          }
+        } else {
+          // Blocca la vecchia domanda finché non arriva quella nuova: evita
+          // che un secondo tocco finisca sulla domanda già sostituita.
+          this.hasAnswered.set(true);
+          this.bombaView.update((current: any) =>
+            current ? { ...current, question: null, options: [], questionSecondsLeft: 0 } : current,
+          );
+          this.flashBomba(result?.exploded ? '💥 BOOM! −300' : 'MICCIA −3s');
+          this.vibrate([80, 40, 80]);
+          this.pollBombaState();
+        }
+      },
+      error: (error: any) => {
+        this.hasAnswered.set(false);
+        this.flashBomba(error?.error?.error ?? 'Riprova');
+        this.pollBombaState();
+      },
+    });
+  }
+
+  passBomba(target: string): void {
+    const view = this.bombaView();
+    const player = this.nickname();
+    if (!view?.passOptions?.includes(target) || !player || this.hasAnswered()) return;
+
+    this.hasAnswered.set(true);
+    this.gameService.passBomba(this.gameId(), player, view.bombId, target).subscribe({
+      next: (state: any) => {
+        this.hasAnswered.set(false);
+        this.bombaFirstState = true;
+        this.applyBombaState(state);
+        this.vibrate(40);
+      },
+      error: (error: any) => {
+        this.hasAnswered.set(false);
+        this.flashBomba(error?.error?.error ?? 'Passaggio non riuscito');
+        this.pollBombaState();
+      },
+    });
+  }
+
+  private flashBomba(text: string): void {
+    this.bombaFlash.set(text);
+    if (this.bombaFlashTimer) clearTimeout(this.bombaFlashTimer);
+    this.bombaFlashTimer = setTimeout(() => {
+      this.bombaFlash.set(null);
+      this.bombaFlashTimer = undefined;
+    }, 2400);
+  }
+
+
+  bombaHolderNames(): string {
+    const bombs = this.bombaState()?.bombs ?? [];
+    return bombs.map((bomb: any) => bomb.holder).filter(Boolean).join(' · ') || 'in caricamento';
+  }
+
+  bombaMyScore(): number {
+    const player = this.nickname();
+    const score = player ? this.bombaState()?.scores?.[player] : null;
+    return Number(score ?? this.bombaView()?.score ?? 1000);
   }
 
   // ------------------------------------------------- Giochi simultanei
@@ -1141,6 +1340,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.ws.disconnect();
     this.stopMicrophoneListening();
+    this.stopBombaPolling();
+    if (this.bombaFlashTimer) clearTimeout(this.bombaFlashTimer);
     this.clearMemoryTimer();
     if (this.hockeyGoalTimer) clearTimeout(this.hockeyGoalTimer);
     if (this.updateCheckInterval) {

@@ -106,6 +106,18 @@ export const DEMO_SCRIPTS: Record<string, DemoScript> = {
     ],
     note: 'Chi non preme prende l’errore massimo ed esce per primo: non conviene stare fermi.',
   },
+  BOMBA: {
+    title: 'BOMBA',
+    icon: '💣',
+    tv: ['Due o tre bombe tra i tavoli', 'Miccia nascosta: solo scintille', 'Scoppio, −300 e nuova bomba'],
+    remote: ['Rispondi in 5 secondi', 'Se giusto scegli a chi passarla', 'La miccia perde 3 secondi se sbagli'],
+    scoring: [
+      { label: 'Passaggio riuscito', value: '+50 (max +500)', tone: 'good' },
+      { label: 'Scoppio', value: '−300', tone: 'bad' },
+      { label: 'Base round', value: '1000 punti', tone: 'neutral' },
+    ],
+    note: 'La bomba non torna subito a chi l\'ha passata; la miccia non si resetta mai.',
+  },
   SPEED_RUSH: {
     title: 'SPEED RUSH',
     icon: '⚡',
