@@ -1,6 +1,8 @@
 
 import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { firstValueFrom } from 'rxjs';
+import { CategoryRow, GameService } from '../../services/game.service';
 import { WebSocketService } from '../../services/web-socket.service';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../services/theme.service';
@@ -20,8 +22,15 @@ import { ConnectionBadge } from '../connection-badge/connection-badge';
 export class Admin implements OnInit, OnDestroy {
 
   private ws = inject(WebSocketService);
+  private games = inject(GameService);
   readonly reliability = inject(ReliabilityService);
   diagnostics = signal<any | null>(null);
+
+  /** Categorie ufficiali: qui l'admin accende/spegne e gestisce il flag Timeline. */
+  readonly categories = signal<CategoryRow[]>([]);
+  readonly categoriesError = signal<string | null>(null);
+  readonly newCategoryName = signal('');
+  readonly newCategoryEmoji = signal('');
   private diagTimer?: ReturnType<typeof setInterval>;
   private destroyRef = inject(DestroyRef);
   public theme = inject(ThemeService);
@@ -54,6 +63,7 @@ export class Admin implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.reliability.start(this.activeGameId(), 'ADMIN');
     void this.refreshDiagnostics();
+    void this.loadCategories();
     this.diagTimer = setInterval(() => void this.refreshDiagnostics(), 5000);
 
     
@@ -349,6 +359,69 @@ export class Admin implements OnInit, OnDestroy {
   async refreshDiagnostics(): Promise<void> {
     const data = await this.reliability.diagnostics(this.activeGameId());
     this.diagnostics.set(data);
+  }
+
+  // -------------------------------------------------------------- Categorie
+
+  /** Elenco completo, comprese le categorie spente. */
+  async loadCategories(): Promise<void> {
+    try {
+      this.categories.set((await firstValueFrom(this.games.adminCategories())) ?? []);
+      this.categoriesError.set(null);
+    } catch {
+      this.categoriesError.set('Categorie non disponibili: backend non raggiungibile.');
+    }
+  }
+
+  setNewCategoryName(event: Event): void {
+    this.newCategoryName.set((event.target as HTMLInputElement).value);
+  }
+
+  setNewCategoryEmoji(event: Event): void {
+    this.newCategoryEmoji.set((event.target as HTMLInputElement).value);
+  }
+
+  async addCategory(): Promise<void> {
+    const name = this.newCategoryName().trim();
+    if (!name) return;
+    try {
+      const emoji = this.newCategoryEmoji().trim();
+      const created = await firstValueFrom(this.games.createCategory({ name, emoji: emoji || undefined }));
+      this.categories.update((list) => [...list, created]);
+      this.newCategoryName.set('');
+      this.newCategoryEmoji.set('');
+      this.categoriesError.set(null);
+    } catch {
+      this.categoriesError.set('Creazione non riuscita: nome già usato o backend offline.');
+    }
+  }
+
+  /** Timeline sì/no: decide se la categoria può ospitare un round Timeline. */
+  async toggleTimeline(category: CategoryRow): Promise<void> {
+    try {
+      const updated = await firstValueFrom(this.games.setCategoryTimeline(category.id, !category.timeline));
+      this.categories.update((list) => list.map((row) => (row.id === category.id ? { ...row, ...updated } : row)));
+      this.categoriesError.set(null);
+    } catch {
+      this.categoriesError.set('Modifica del flag Timeline non riuscita.');
+    }
+  }
+
+  /** Spegnere una categoria la toglie dalla TV senza cancellare lo storico. */
+  async toggleActive(category: CategoryRow): Promise<void> {
+    try {
+      if (category.active) {
+        await firstValueFrom(this.games.deactivateCategory(category.id));
+      } else {
+        await firstValueFrom(this.games.activateCategory(category.id));
+      }
+      this.categories.update((list) =>
+        list.map((row) => (row.id === category.id ? { ...row, active: !category.active } : row))
+      );
+      this.categoriesError.set(null);
+    } catch {
+      this.categoriesError.set('Attivazione della categoria non riuscita.');
+    }
   }
 
   private activeGameId(): number {

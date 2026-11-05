@@ -1,0 +1,132 @@
+"""Espansione della banca domande - blocco 1.
+
+Contenuti aggiunti per portare ogni categoria a 15 domande per fascia di
+difficolta (Cinema, Serie TV a 20). Il blocco 1 copre Storia, Geografia e
+Viaggi, Scienza e Spazio, Natura e Animali.
+
+Formato QUIZ: (domanda, risposta corretta, tre risposte sbagliate, difficolta)
+Formato Vero/Falso: (affermazione, "VERO" | "FALSO", difficolta)
+"""
+
+from __future__ import annotations
+
+EXTRA_QUIZ: dict[str, list[tuple[str, str, list[str], str]]] = {
+    "Storia": [
+        ("In che anno è caduto il Muro di Berlino?", "1989", ["1961", "1975", "1991"], "facile"),
+        ("Chi fu il primo uomo a mettere piede sulla Luna?", "Neil Armstrong", ["Buzz Aldrin", "Yuri Gagarin", "Michael Collins"], "facile"),
+        ("Quale regina britannica regnò per 63 anni nell'Ottocento?", "Vittoria", ["Elisabetta I", "Anna", "Maria Stuarda"], "facile"),
+        ("Quale battaglia del 1815 segnò la sconfitta definitiva di Napoleone?", "Waterloo", ["Austerlitz", "Borodino", "Trafalgar"], "medio"),
+        ("Chi guidò la spedizione dei Mille nel 1860?", "Giuseppe Garibaldi", ["Camillo Benso di Cavour", "Giuseppe Mazzini", "Vittorio Emanuele II"], "medio"),
+        ("Quale dinastia regnò in Francia dal 987 al 1328?", "I Capetingi", ["I Valois", "I Borbone", "I Merovingi"], "medio"),
+        ("In che anno l'Italia entrò nella Prima guerra mondiale?", "1915", ["1914", "1916", "1917"], "medio"),
+        ("Quale imperatore bizantino fece redigere il Corpus Iuris Civilis?", "Giustiniano", ["Eraclio", "Basilio II", "Leone III"], "difficile"),
+        ("Chi fu il primo califfo dopo la morte di Maometto?", "Abu Bakr", ["Alì", "Omar", "Othman"], "difficile"),
+        ("Quale trattato del 1648 chiuse la Guerra dei Trent'anni?", "La pace di Westfalia", ["Il trattato di Utrecht", "La pace di Cateau-Cambrésis", "Il trattato di Rastatt"], "difficile"),
+        ("Chi fu il fondatore della dinastia dei Tudor sul trono d'Inghilterra?", "Enrico VII", ["Enrico VIII", "Riccardo III", "Edoardo IV"], "difficile"),
+        ("Quale città fu capitale dell'Impero bizantino?", "Costantinopoli", ["Nicea", "Trebisonda", "Antiochia"], "difficile"),
+        ("Quale rivolta contadina scosse l'Inghilterra nel 1381?", "La rivolta di Wat Tyler", ["La rivolta di Jack Cade", "La guerra delle Due Rose", "La rivolta dei Lollardi"], "difficile"),
+        ("Chi fu proclamato imperatore tedesco nella Sala degli Specchi nel 1871?", "Guglielmo I", ["Ottone von Bismarck", "Federico III", "Guglielmo II"], "difficile"),
+        ("Quale civiltà precolombiana costruì Machu Picchu?", "Gli Inca", ["Gli Aztechi", "I Maya", "Gli Olmechi"], "difficile"),
+    ],
+    "Geografia e Viaggi": [
+        ("Qual è la capitale della Spagna?", "Madrid", ["Barcellona", "Siviglia", "Valencia"], "facile"),
+        ("Qual è il fiume più lungo d'Italia?", "Il Po", ["Il Tevere", "L'Adige", "L'Arno"], "facile"),
+        ("In quale continente si trova il deserto del Sahara?", "Africa", ["Asia", "Oceania", "America meridionale"], "facile"),
+        ("Qual è la capitale del Portogallo?", "Lisbona", ["Porto", "Coimbra", "Faro"], "medio"),
+        ("Quale mare bagna la costa di Napoli?", "Il mar Tirreno", ["Il mar Adriatico", "Il mar Ionio", "Il mar Ligure"], "medio"),
+        ("Qual è la valuta ufficiale del Regno Unito?", "La sterlina", ["L'euro", "Il dollaro", "La corona danese"], "medio"),
+        ("Quale Stato africano è il più esteso per superficie?", "L'Algeria", ["La Libia", "Il Sudan", "La Repubblica Democratica del Congo"], "medio"),
+        ("Quale catena montuosa separa l'Italia dalla Francia a ovest?", "Le Alpi", ["Gli Appennini", "I Pirenei", "I Carpazi"], "medio"),
+        ("Qual è la capitale del Kazakistan?", "Astana", ["Almaty", "Bishkek", "Tashkent"], "difficile"),
+        ("Quale fiume attraversa Baghdad?", "Il Tigri", ["L'Eufrate", "Il Giordano", "Il Karun"], "difficile"),
+        ("Quale Paese copre il maggior numero di fusi orari?", "La Francia", ["La Russia", "Gli Stati Uniti", "La Cina"], "difficile"),
+        ("Quale lago è il più salato del mondo?", "Il Mar Morto", ["Il Mar Caspio", "Il Mar d'Aral", "Il lago Titicaca"], "difficile"),
+        ("Qual è la capitale della Nuova Zelanda?", "Wellington", ["Auckland", "Christchurch", "Dunedin"], "difficile"),
+        ("Quale stretto separa l'Asia dall'America?", "Lo stretto di Bering", ["Lo stretto di Magellano", "Lo stretto di Hormuz", "Lo stretto di Malacca"], "difficile"),
+        ("Quale deserto si estende nel nord del Cile?", "L'Atacama", ["Il Namib", "Il Thar", "Il Mojave"], "difficile"),
+    ],
+    "Scienza e Spazio": [
+        ("Quanti pianeti ha il sistema solare?", "Otto", ["Nove", "Sette", "Dieci"], "facile"),
+        ("Quale gas respirano gli esseri umani per vivere?", "L'ossigeno", ["L'azoto", "L'idrogeno", "L'elio"], "facile"),
+        ("Qual è l'unità di misura della forza nel Sistema Internazionale?", "Il newton", ["Il joule", "Il watt", "Il pascal"], "medio"),
+        ("Quale pianeta è celebre per i suoi anelli?", "Saturno", ["Giove", "Urano", "Nettuno"], "medio"),
+        ("Qual è il simbolo chimico dell'oro?", "Au", ["Ag", "Fe", "Cu"], "medio"),
+        ("Quante camere ha il cuore umano?", "Quattro", ["Due", "Tre", "Cinque"], "medio"),
+        ("Chi formulò le tre leggi del moto?", "Isaac Newton", ["Galileo Galilei", "Albert Einstein", "Giovanni Keplero"], "medio"),
+        ("Quale organulo cellulare produce energia?", "Il mitocondrio", ["Il nucleo", "Il ribosoma", "Il lisosoma"], "medio"),
+        ("Qual è l'elemento più abbondante nell'universo?", "L'idrogeno", ["L'elio", "L'ossigeno", "Il carbonio"], "difficile"),
+        ("Che cosa misura l'unità astronomica?", "La distanza media tra Terra e Sole", ["La distanza tra Terra e Luna", "La distanza percorsa dalla luce in un anno", "Il diametro del Sole"], "difficile"),
+        ("Chi scoprì la penicillina?", "Alexander Fleming", ["Louis Pasteur", "Robert Koch", "Jonas Salk"], "difficile"),
+        ("Quale legge lega pressione e volume di un gas a temperatura costante?", "La legge di Boyle", ["La legge di Charles", "La legge di Avogadro", "La legge di Dalton"], "difficile"),
+        ("Quale pianeta ha la rotazione più lenta del sistema solare?", "Venere", ["Mercurio", "Marte", "Giove"], "difficile"),
+        ("Qual è il pH di una soluzione neutra a 25 gradi?", "7", ["0", "14", "1"], "difficile"),
+        ("Quale particella ha carica elettrica negativa?", "L'elettrone", ["Il protone", "Il neutrone", "Il positrone"], "difficile"),
+        ("Chi propose il modello eliocentrico nel Cinquecento?", "Niccolò Copernico", ["Tolomeo", "Tycho Brahe", "Giordano Bruno"], "difficile"),
+    ],
+    "Natura e Animali": [
+        ("Quante zampe ha un ragno?", "Otto", ["Sei", "Dieci", "Quattro"], "facile"),
+        ("Qual è l'uccello più grande del mondo?", "Lo struzzo", ["L'emu", "L'albatros", "Il condor"], "medio"),
+        ("Come si chiama il gruppo di leoni che vive insieme?", "Il branco", ["Il gregge", "Lo stormo", "La muta"], "medio"),
+        ("Quale albero produce il sughero?", "La quercia da sughero", ["Il pino marittimo", "Il faggio", "Il castagno"], "medio"),
+        ("Quale mammifero ha la gestazione più lunga tra quelli terrestri?", "L'elefante", ["La giraffa", "Il rinoceronte", "Il cammello"], "medio"),
+        ("Qual è il mammifero più piccolo del mondo?", "Il pipistrello calabrone", ["Il toporagno etrusco", "Il topolino delle risaie", "Il criceto nano"], "difficile"),
+        ("Quale ordine di mammiferi depone le uova?", "I monotremi", ["I marsupiali", "I placentati", "I chirotteri"], "difficile"),
+        ("Quale pianta vive come parassita su altri alberi?", "Il vischio", ["L'edera", "L'ortica", "Il trifoglio"], "difficile"),
+        ("Qual è il serpente velenoso più lungo del mondo?", "Il cobra reale", ["Il mamba nero", "La vipera del Gabon", "Il taipan"], "difficile"),
+        ("Quali organismi costruiscono le barriere coralline?", "I polipi del corallo", ["Le spugne", "I molluschi bivalvi", "I ricci di mare"], "difficile"),
+        ("Quale uccello è capace di volare all'indietro?", "Il colibrì", ["Il picchio", "Il martin pescatore", "Il rondone"], "difficile"),
+        ("Come si chiama la larva della rana?", "Il girino", ["La ninfa", "La crisalide", "Il bruco"], "difficile"),
+        ("Quale felino vive ad alta quota sull'Himalaya?", "Il leopardo delle nevi", ["Il leopardo africano", "Il puma", "Il giaguaro"], "difficile"),
+        ("Quale organo permette ai serpenti di percepire il calore?", "Le fossette termorecettrici", ["La lingua biforcuta", "Le squame ventrali", "I polmoni"], "difficile"),
+    ],
+}
+
+EXTRA_TF: dict[str, list[tuple[str, str, str]]] = {
+    "Storia": [
+        ("La Rivoluzione francese iniziò nel 1789.", "VERO", "facile"),
+        ("Giulio Cesare fu il primo imperatore romano.", "FALSO", "facile"),
+        ("La Prima guerra mondiale terminò nel 1918.", "VERO", "facile"),
+        ("Cristoforo Colombo arrivò in America nel 1492.", "VERO", "medio"),
+        ("La Guerra dei Cent'anni durò esattamente cento anni.", "FALSO", "medio"),
+        ("L'Impero romano d'Occidente cadde nel 476 dopo Cristo.", "VERO", "medio"),
+        ("Il Sacro Romano Impero fu fondato da Carlo Magno nell'800.", "VERO", "difficile"),
+        ("La battaglia di Lepanto fu combattuta nel 1521.", "FALSO", "difficile"),
+        ("La bolla Inter cetera del 1493 divise il Nuovo Mondo tra Spagna e Portogallo.", "VERO", "difficile"),
+        ("La dinastia Ming salì al potere in Cina nel 1644.", "FALSO", "difficile"),
+    ],
+    "Geografia e Viaggi": [
+        ("Il Nilo attraversa l'Egitto.", "VERO", "facile"),
+        ("La Groenlandia è considerata un continente.", "FALSO", "facile"),
+        ("La capitale del Canada è Toronto.", "FALSO", "medio"),
+        ("Il Danubio sfocia nel Mar Nero.", "VERO", "medio"),
+        ("Il Giappone è un arcipelago di isole.", "VERO", "medio"),
+        ("Il Monte Bianco è la vetta più alta delle Alpi.", "VERO", "medio"),
+        ("Istanbul si estende su due continenti.", "VERO", "difficile"),
+        ("Il fiume più lungo del mondo è il Mississippi.", "FALSO", "difficile"),
+        ("Il Kirghizistan confina con la Cina.", "VERO", "difficile"),
+        ("Il Capo di Buona Speranza è il punto più meridionale dell'Africa.", "FALSO", "difficile"),
+    ],
+    "Scienza e Spazio": [
+        ("A pressione atmosferica standard l'acqua bolle a 100 gradi.", "VERO", "facile"),
+        ("La Terra impiega circa 365 giorni a completare un'orbita attorno al Sole.", "VERO", "medio"),
+        ("Il DNA ha una struttura a doppia elica.", "VERO", "medio"),
+        ("Nel vuoto la luce viaggia a circa 300.000 chilometri al secondo.", "VERO", "medio"),
+        ("I protoni hanno carica elettrica negativa.", "FALSO", "medio"),
+        ("Il bosone di Higgs è stato osservato per la prima volta al CERN nel 2012.", "VERO", "difficile"),
+        ("L'anno luce è un'unità di tempo.", "FALSO", "difficile"),
+        ("Il numero atomico indica il numero di protoni di un elemento.", "VERO", "difficile"),
+        ("L'RNA contiene la timina al posto dell'uracile.", "FALSO", "difficile"),
+    ],
+    "Natura e Animali": [
+        ("Gli squali sono pesci.", "VERO", "facile"),
+        ("Il panda gigante si nutre quasi esclusivamente di bambù.", "VERO", "medio"),
+        ("Le balene sono pesci.", "FALSO", "medio"),
+        ("Le api producono miele dal nettare dei fiori.", "VERO", "medio"),
+        ("Il ghepardo è il felino più veloce sulla terraferma.", "VERO", "medio"),
+        ("Il polpo ha tre cuori.", "VERO", "difficile"),
+        ("Le lucciole producono luce grazie alla bioluminescenza.", "VERO", "difficile"),
+        ("Il kiwi è un mammifero.", "FALSO", "difficile"),
+        ("Gli anfibi respirano anche attraverso la pelle.", "VERO", "difficile"),
+        ("I pinguini vivono esclusivamente al Polo Nord.", "FALSO", "difficile"),
+    ],
+}

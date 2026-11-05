@@ -25,6 +25,10 @@ public class QuestionPoolService {
         poolOf(gameId, category).addLast(question);
     }
 
+    public void offerFirst(long gameId, String category, ArenaQuestion question) {
+        poolOf(gameId, category).addFirst(question);
+    }
+
     public Optional<ArenaQuestion> poll(long gameId, String category) {
         Deque<ArenaQuestion> pool = pools.getOrDefault(gameId, Map.of())
                 .get(QuestionHistoryService.normalize(category));

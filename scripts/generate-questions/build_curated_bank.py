@@ -485,6 +485,18 @@ AIR_HOCKEY: list[tuple[str, str, list[str], int]] = [
     ("HARD", "Qual è il deserto più grande del mondo?", ["Antartico", "Sahara", "Gobi", "Kalahari"], 0),
 ]
 
+# ---------------------------------------------------------------------------
+# Espansione della banca: contenuti aggiunti per portare ogni fascia di
+# difficolta a 15 domande (20 per le categorie a doppio tema come Cinema,
+# Serie TV). I blocchi vivono in bank_extra_N.py.
+from bank_extra import EXTRA_QUIZ as _EXTRA_QUIZ, EXTRA_TF as _EXTRA_TF
+
+for _category, _rows in _EXTRA_QUIZ.items():
+    QUIZ.setdefault(_category, []).extend(_rows)
+for _category, _rows in _EXTRA_TF.items():
+    TF.setdefault(_category, []).extend(_rows)
+
+
 IMAGE_BLUR = [
     ("cin-0004", "Cinema, Serie TV", "Sophia Loren"),
     ("cin-0005", "Cinema, Serie TV", "Roberto Benigni"),
@@ -559,10 +571,39 @@ def build() -> dict:
     }
 
 
-def main() -> None:
+DIFFICULTY_BANDS = ("facile", "medio", "difficile")
+
+# Ogni fascia di difficolta deve avere almeno questo numero di domande
+# (QUIZ + Vero/Falso). Le categorie a doppio tema ne vogliono di piu.
+BAND_TARGETS = {"__default__": 15, "Cinema, Serie TV": 20}
+
+
+def band_totals(category: str) -> dict[str, int]:
+    totals = {band: 0 for band in DIFFICULTY_BANDS}
+    for row in QUIZ.get(category, []):
+        totals[row[3]] = totals.get(row[3], 0) + 1
+    for row in TF.get(category, []):
+        totals[row[2]] = totals.get(row[2], 0) + 1
+    return totals
+
+
+def check_coverage() -> None:
+    problems: list[str] = []
+    print("Copertura per categoria e difficolta (QUIZ + Vero/Falso):")
     for category in CATEGORIES:
-        assert len(QUIZ[category]) == 10, f"QUIZ non hanno 10 domande: {category}"
-        assert len(TF[category]) == 10, f"Vero/Falso non hanno 10 domande: {category}"
+        target = BAND_TARGETS.get(category, BAND_TARGETS["__default__"])
+        totals = band_totals(category)
+        line = " | ".join(f"{band} {totals.get(band, 0)}/{target}" for band in DIFFICULTY_BANDS)
+        print(f"  {category}: {line}")
+        for band in DIFFICULTY_BANDS:
+            if totals.get(band, 0) < target:
+                problems.append(f"{category} - {band}: {totals.get(band, 0)} < {target}")
+    if problems:
+        raise SystemExit("Fasce di difficolta incomplete:\n  " + "\n  ".join(problems))
+
+
+def main() -> None:
+    check_coverage()
 
     bank = build()
     OUT.parent.mkdir(parents=True, exist_ok=True)

@@ -53,9 +53,20 @@ python generate.py --per-category 10
 ```
 
 La banca ufficiale del gioco è più ampia e viene rigenerata senza modello da
-`build_curated_bank.py`: 10 quiz e 10 Vero/Falso per categoria, più 30 domande
-brevi per Air Hockey (10 EASY, 10 MEDIUM, 10 HARD). Gli eventi Timeline vengono
-da `build_timeline.py`. Usa `generate.py` solo per espandere i quiz con un LLM.
+`build_curated_bank.py`: **15 domande per ogni fascia di difficoltà in ogni categoria**
+(45 per categoria, divise tra QUIZ e Vero/Falso), **20 per fascia in Cinema, Serie TV**
+(dieci di film e dieci di serie), più 30 domande brevi per Air Hockey (10 EASY,
+10 MEDIUM, 10 HARD). Gli eventi Timeline vengono da `build_timeline.py`.
+
+I contenuti aggiuntivi stanno nei blocchi `bank_extra_N.py` (uno per gruppo di
+categorie) e vengono scoperti automaticamente da `bank_extra.py`. Lo script
+**si rifiuta di scrivere il file** se una categoria resta sotto il numero
+richiesto per una fascia: la copertura non può degradare in silenzio. La stessa
+regola è verificata dal backend nel test `QuestionBankCoverageTest`, che
+controlla anche Cavallo di Battaglia (otto domande per categoria) e Bomba
+(dodici domande per ciascuno dei cinque atti).
+
+Usa `generate.py` solo per espandere i quiz con un LLM.
 
 Prima prova veloce (2 minuti, per vedere che tutto funzioni):
 

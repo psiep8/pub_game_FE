@@ -54,6 +54,51 @@
     }
   </div>
 
+  <div class="flow-panel categories-panel">
+    <div class="flow-title">🗂️ CATEGORIE &amp; TIMELINE — gestione diretta</div>
+    <p class="flow-note">
+      Il flag Timeline abilita la modalità Timeline per quella categoria. Le categorie spente
+      restano nello storico ma spariscono dalla TV.
+    </p>
+    <div class="cat-add">
+      <input
+        class="cat-input"
+        type="text"
+        placeholder="Nome categoria"
+        [value]="newCategoryName()"
+        (input)="setNewCategoryName($event)"
+      />
+      <input
+        class="cat-input emoji"
+        type="text"
+        maxlength="4"
+        placeholder="🙂"
+        [value]="newCategoryEmoji()"
+        (input)="setNewCategoryEmoji($event)"
+      />
+      <button class="flow-btn primary" (click)="addCategory()">➕ AGGIUNGI</button>
+    </div>
+    @if (categoriesError()) {
+      <div class="cat-error">{{ categoriesError() }}</div>
+    }
+    <div class="cat-list">
+      @for (cat of categories(); track cat.id) {
+        <div class="cat-row" [class.off]="!cat.active">
+          <span class="cat-emoji">{{ cat.emoji }}</span>
+          <span class="cat-name">{{ cat.name }}</span>
+          <button class="cat-toggle" [class.on]="cat.timeline" (click)="toggleTimeline(cat)">
+            🕒 Timeline {{ cat.timeline ? 'ON' : 'OFF' }}
+          </button>
+          <button class="cat-toggle" [class.on]="cat.active" (click)="toggleActive(cat)">
+            {{ cat.active ? '✅ Attiva' : '🚫 Spenta' }}
+          </button>
+        </div>
+      } @empty {
+        <div class="cat-empty">Nessuna categoria letta dal backend.</div>
+      }
+    </div>
+  </div>
+
   <div class="flow-panel">
     <div class="flow-title">🎬 CONTROLLO FLUSSO — decide il presentatore</div>
     <div class="flow-row">

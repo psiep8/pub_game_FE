@@ -5,6 +5,18 @@ import { WebSocketService } from '../../services/web-socket.service';
 import { FakeWebSocketService } from '../../testing/test-doubles';
 import { FakeReliabilityService } from '../../testing/test-doubles';
 import { ReliabilityService } from '../../services/reliability.service';
+import { GameService } from '../../services/game.service';
+import { of } from 'rxjs';
+
+/** Doppio minimo: al pannello bastano le categorie, il resto non viene usato. */
+const gameServiceDouble = {
+  adminCategories: () => of([]),
+  createCategory: () => of({}),
+  updateCategory: () => of({}),
+  setCategoryTimeline: () => of({}),
+  deactivateCategory: () => of({}),
+  activateCategory: () => of({}),
+};
 
 describe('Admin', () => {
   let component: Admin;
@@ -15,7 +27,8 @@ describe('Admin', () => {
     await TestBed.configureTestingModule({
       imports: [Admin],
       providers: [{ provide: WebSocketService, useClass: FakeWebSocketService },
-        { provide: ReliabilityService, useClass: FakeReliabilityService as any }],
+        { provide: ReliabilityService, useClass: FakeReliabilityService as any },
+        { provide: GameService, useValue: gameServiceDouble }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Admin);

@@ -37,7 +37,7 @@ public class QuestionBankService {
 
     /** Domanda arena pronta per un dispositivo, con le chiavi di deduplica. */
     public record ArenaQuestion(String json, String question, String correctAnswer, String category,
-            String key, String answerKey) {
+            String key, String answerKey, String difficulty) {
     }
 
     /** Domanda breve per la Bomba: il server tiene la risposta corretta. */
@@ -224,7 +224,8 @@ public class QuestionBankService {
             ArenaQuestion arena = new ArenaQuestion(payload.get(), question.question(), question.correctAnswer(),
                     question.category(),
                     QuestionHistoryService.key(question.question(), question.correctAnswer(), question.category()),
-                    answerKey);
+                    answerKey,
+                    normalizeArenaDifficulty(question.difficulty()));
             if (seen.add(arena.key()) && isAvailable.test(arena)) {
                 accepted.add(arena);
             }
@@ -491,6 +492,16 @@ public class QuestionBankService {
         options.add(distractors.get(1));
         Collections.shuffle(options, random);
         return options;
+    }
+
+    /** Difficolta della banca normalizzata: facile, medio, difficile. */
+    private String normalizeArenaDifficulty(String difficulty) {
+        String value = difficulty == null ? "" : difficulty.toLowerCase(Locale.ROOT);
+        return switch (value) {
+            case "facile", "easy" -> "facile";
+            case "difficile", "hard" -> "difficile";
+            default -> "medio";
+        };
     }
 
     /** Le difficoltà della banca sono in italiano; l'Air Hockey usa le sigle. */

@@ -27,6 +27,9 @@ public class ReliabilityProperties {
     /** Quanti eventi restituire al massimo in una sincronizzazione. */
     private int eventHistoryLimit = 200;
 
+    /** Durata di riferimento dell'Arena: base della rampa facile/media/difficile. */
+    private int arenaSeconds = 130;
+
     /** Quante sessioni per dispositivo conservare nella diagnostica. */
     private int sessionHistoryLimit = 20;
 }

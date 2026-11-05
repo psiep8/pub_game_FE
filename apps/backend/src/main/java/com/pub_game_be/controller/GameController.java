@@ -19,6 +19,8 @@ import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -164,22 +166,24 @@ public class GameController {
         Predicate<QuestionBankService.ArenaQuestion> isAvailable = candidate -> !questionHistory.isUsed(gameId, candidate.key())
                 && !questionHistory.isUsed(gameId, candidate.answerKey());
 
-        QuestionBankService.ArenaQuestion question = questionPoolService
-                .poll(gameId, category)
-                .orElse(null);
+        // Rampa di difficolta decisa dal server: primo quarto facile, meta
+        // centrale media, ultimo quarto difficile. Il lato VERO/FALSO si alterna
+        // per partita, cosi indovinare sempre VERO non conviene.
+        String band = gameStateService.arenaDifficultyBand(gameId);
+        boolean preferTrue = questionHistory.preferTrueSide(gameId);
+
+        QuestionBankService.ArenaQuestion question = pollForBand(gameId, category, band);
 
         if (question == null) {
-            // Alternanza VERO/FALSO per partita: la banca pende verso VERO, così
-            // indovinare sempre VERO non conviene più. Se il lato richiesto è
-            // esaurito nella categoria si allarga alle altre, invece di servire
-            // sempre lo stesso lato fino a fine partita.
-            boolean preferTrue = questionHistory.preferTrueSide(gameId);
-            question = pickPreferredSide(questionBank.generateArenaBatch(category, 8, isAvailable), preferTrue);
+            question = pickForBand(questionBank.generateArenaBatch(category, 10, isAvailable), band, preferTrue);
 
             if (question == null) {
                 List<QuestionBankService.ArenaQuestion> anyCategory = questionBank
-                        .generateArenaBatch(null, 8, isAvailable);
-                question = pickPreferredSide(anyCategory, preferTrue);
+                        .generateArenaBatch(null, 10, isAvailable);
+                question = pickForBand(anyCategory, band, preferTrue);
+                if (question == null) {
+                    question = pickPreferredSide(anyCategory, preferTrue);
+                }
                 if (question == null && !anyCategory.isEmpty()) {
                     question = anyCategory.get(0);
                 }
@@ -217,6 +221,64 @@ public class GameController {
                 .filter(candidate -> "VERO".equalsIgnoreCase(candidate.correctAnswer()) == preferTrue)
                 .findFirst()
                 .orElse(null);
+    }
+
+    /** Prima domanda della fascia attesa, preferendo il lato VERO/FALSO corrente. */
+    private QuestionBankService.ArenaQuestion pickForBand(
+            List<QuestionBankService.ArenaQuestion> candidates, String band, boolean preferTrue) {
+        if (candidates == null || candidates.isEmpty() || band == null) {
+            return null;
+        }
+        QuestionBankService.ArenaQuestion sameSide = candidates.stream()
+                .filter(candidate -> band.equalsIgnoreCase(candidate.difficulty()))
+                .filter(candidate -> "VERO".equalsIgnoreCase(candidate.correctAnswer()) == preferTrue)
+                .findFirst()
+                .orElse(null);
+        if (sameSide != null) {
+            return sameSide;
+        }
+        return candidates.stream()
+                .filter(candidate -> band.equalsIgnoreCase(candidate.difficulty()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Pesca dal pool la prima domanda della fascia attesa, rimettendo davanti le
+     * altre: il pacchetto preparato per il round resta disponibile per dopo.
+     */
+    private QuestionBankService.ArenaQuestion pollForBand(long gameId, String category, String band) {
+        List<QuestionBankService.ArenaQuestion> skipped = new ArrayList<>();
+        QuestionBankService.ArenaQuestion match = null;
+        for (int attempt = 0; attempt < 8; attempt++) {
+            QuestionBankService.ArenaQuestion candidate = questionPoolService
+                    .poll(gameId, category)
+                    .orElse(null);
+            if (candidate == null) {
+                break;
+            }
+            if (band != null && band.equalsIgnoreCase(candidate.difficulty())) {
+                match = candidate;
+                break;
+            }
+            skipped.add(candidate);
+        }
+        for (int index = skipped.size() - 1; index >= 0; index--) {
+            questionPoolService.offerFirst(gameId, category, skipped.get(index));
+        }
+        return match;
+    }
+
+    /** Ordine della rampa: le facili escono prima, le difficili chiudono il round. */
+    private int bandOrder(String difficulty) {
+        if (difficulty == null) {
+            return 1;
+        }
+        return switch (difficulty.toLowerCase(Locale.ROOT)) {
+            case "facile", "easy" -> 0;
+            case "difficile", "hard" -> 2;
+            default -> 1;
+        };
     }
 
     private String normalizeWheelPayload(String aiPayload) {
@@ -370,8 +432,11 @@ public class GameController {
         Predicate<QuestionBankService.ArenaQuestion> isAvailable = candidate -> !questionHistory.isUsed(gameId, candidate.key())
                 && !questionHistory.isUsed(gameId, candidate.answerKey());
 
-        List<QuestionBankService.ArenaQuestion> generated = questionBank
-                .generateArenaBatch(category, wanted, isAvailable);
+        // Il pacchetto del round esce in ordine di difficolta: la rampa facile ->
+        // media -> difficile e gia rispettata quando i telefoni pescano dal pool.
+        List<QuestionBankService.ArenaQuestion> generated = new ArrayList<>(questionBank
+                .generateArenaBatch(category, wanted, isAvailable));
+        generated.sort(Comparator.comparingInt(candidate -> bandOrder(candidate.difficulty())));
 
         for (QuestionBankService.ArenaQuestion candidate : generated) {
             questionHistory.claim(gameId, candidate.key());

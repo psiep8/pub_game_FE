@@ -242,6 +242,44 @@ public class GameStateService {
         return states.findById(gameId).map(GameStateEntity::getVersion).orElse(0L);
     }
 
+    /**
+     * Fascia di difficolta delle domande Arena in base al tempo trascorso.
+     *
+     * <p>Primo quarto facile, meta centrale media, ultimo quarto difficile: il
+     * riferimento e il timer del server, non quello del telefono, cosi la rampa
+     * resta la stessa anche se un dispositivo si e appena riconnesso.</p>
+     */
+    public String arenaDifficultyBand(long gameId) {
+        Optional<GameStateEntity> found = states.findById(gameId);
+        if (found.isEmpty()) {
+            return "medio";
+        }
+        GameStateEntity state = found.get();
+        Long started = state.getRoundStartedAt();
+        if (started == null) {
+            return "medio";
+        }
+
+        long windowMs = Math.max(30, props.getArenaSeconds()) * 1000L;
+        Long deadline = state.getRoundDeadlineAt();
+        if (deadline != null && deadline > started) {
+            windowMs = Math.min(windowMs, deadline - started);
+        }
+
+        long elapsed = System.currentTimeMillis() - started;
+        if (elapsed <= 0) {
+            return "facile";
+        }
+        double ratio = (double) elapsed / (double) windowMs;
+        if (ratio <= 0.25) {
+            return "facile";
+        }
+        if (ratio <= 0.75) {
+            return "medio";
+        }
+        return "difficile";
+    }
+
     // --------------------------------------------------------------- Diagnostica
 
     public Optional<GameEventEntity> lastEvent(long gameId) {

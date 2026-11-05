@@ -33,6 +33,22 @@ export interface GameRound {
   roundIndex: number;
 }
 
+/** Categoria come la vede l'admin: nome, emoji e flag Timeline. */
+export interface CategoryRow {
+  id: number;
+  name: string;
+  emoji: string;
+  description?: string | null;
+  timeline: boolean;
+  sortOrder: number;
+  color: string;
+  active: boolean;
+}
+
+export type CategoryPayload = Partial<
+  Pick<CategoryRow, 'name' | 'emoji' | 'description' | 'timeline' | 'sortOrder' | 'color' | 'active'>
+>;
+
 @Injectable({ providedIn: 'root' })
 export class GameService {
   private http = inject(HttpClient);
@@ -41,6 +57,34 @@ export class GameService {
 
   getCategories(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/categories`);
+  }
+
+  // -------------------------------------------------------------- Categorie
+
+  /** Tutte le categorie, comprese quelle spente: vista del pannello admin. */
+  adminCategories(): Observable<CategoryRow[]> {
+    return this.http.get<CategoryRow[]>(`${this.baseUrl}/categories/admin`);
+  }
+
+  createCategory(body: CategoryPayload): Observable<CategoryRow> {
+    return this.http.post<CategoryRow>(`${this.baseUrl}/categories`, body);
+  }
+
+  updateCategory(id: number, body: CategoryPayload): Observable<CategoryRow> {
+    return this.http.put<CategoryRow>(`${this.baseUrl}/categories/${id}`, body);
+  }
+
+  setCategoryTimeline(id: number, timeline: boolean): Observable<CategoryRow> {
+    return this.http.patch<CategoryRow>(`${this.baseUrl}/categories/${id}/timeline`, { timeline });
+  }
+
+  /** Spegne la categoria: resta nello storico, sparisce dalla TV. */
+  deactivateCategory(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/categories/${id}`);
+  }
+
+  activateCategory(id: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/categories/${id}/activate`, {});
   }
 
   createGame(): Observable<any> {
