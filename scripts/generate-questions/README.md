@@ -53,18 +53,36 @@ python generate.py --per-category 10
 ```
 
 La banca ufficiale del gioco è più ampia e viene rigenerata senza modello da
-`build_curated_bank.py`: **15 domande per ogni fascia di difficoltà in ogni categoria**
-(45 per categoria, divise tra QUIZ e Vero/Falso), **20 per fascia in Cinema, Serie TV**
-(dieci di film e dieci di serie), più 30 domande brevi per Air Hockey (10 EASY,
-10 MEDIUM, 10 HARD). Gli eventi Timeline vengono da `build_timeline.py`.
+`build_curated_bank.py`. La regola è per **branca**, non per categoria:
+
+| Tipo di categoria | Domande richieste per ogni fascia (facile / medio / difficile) |
+| --- | --- |
+| branca unica (Storia, Sport, Musica, Motori, Curiosità) | 15 in tutto |
+| due branche (Geografia e Viaggi, Scienza e Spazio, ...) | 10 della prima branca **+** 10 della seconda |
+
+Esempio: `Geografia e Viaggi` ha 10 domande di Geografia e 10 di Viaggi per la fascia
+facile, e lo stesso per medio e difficile. In partita il tema non cambia nulla: la
+categoria pesca da tutto il suo mazzo, il tema serve a garantire che nessuna delle due
+anime della categoria resti scoperta. Oltre alle domande da gioco ci sono 30 domande
+brevi per Air Hockey (10 EASY, 10 MEDIUM, 10 HARD). Gli eventi Timeline vengono da
+`build_timeline.py`.
+
+Ogni domanda porta il campo `theme`: per i contenuti nuovi è dichiarato nel blocco
+tematico, per quelli storici lo ricava `themes.py` dalle parole chiave (in modo
+conservativo: se la domanda parla di un viaggio o di un monumento è Viaggi, altrimenti
+Geografia).
 
 I contenuti aggiuntivi stanno nei blocchi `bank_extra_N.py` (uno per gruppo di
-categorie) e vengono scoperti automaticamente da `bank_extra.py`. Lo script
-**si rifiuta di scrivere il file** se una categoria resta sotto il numero
-richiesto per una fascia: la copertura non può degradare in silenzio. La stessa
-regola è verificata dal backend nel test `QuestionBankCoverageTest`, che
-controlla anche Cavallo di Battaglia (otto domande per categoria) e Bomba
-(dodici domande per ciascuno dei cinque atti).
+categorie) e vengono scoperti automaticamente da `bank_extra.py`. Ogni blocco può
+esportare quattro dizionari: `EXTRA_QUIZ` e `EXTRA_TF` per categoria e
+`EXTRA_THEMED_QUIZ` / `EXTRA_THEMED_TF` con chiave `"Categoria|Branca"` quando il tema
+va dichiarato a mano.
+
+Lo script **si rifiuta di scrivere la banca incompleta**: stampa il report di copertura
+per branca (e per categoria) e termina con errore se una branca resta sotto le dieci
+domande in una fascia. La stessa regola è verificata dal backend in
+`QuestionBankCoverageTest`, che controlla anche Cavallo di Battaglia (otto domande per
+categoria) e Bomba (dodici domande per ciascuno dei cinque atti).
 
 Usa `generate.py` solo per espandere i quiz con un LLM.
 

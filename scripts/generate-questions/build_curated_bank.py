@@ -490,11 +490,27 @@ AIR_HOCKEY: list[tuple[str, str, list[str], int]] = [
 # difficolta a 15 domande (20 per le categorie a doppio tema come Cinema,
 # Serie TV). I blocchi vivono in bank_extra_N.py.
 from bank_extra import EXTRA_QUIZ as _EXTRA_QUIZ, EXTRA_TF as _EXTRA_TF
+from themes import THEME_SPLIT, theme_for
 
 for _category, _rows in _EXTRA_QUIZ.items():
     QUIZ.setdefault(_category, []).extend(_rows)
 for _category, _rows in _EXTRA_TF.items():
     TF.setdefault(_category, []).extend(_rows)
+
+from bank_extra import EXTRA_THEMED_QUIZ as _THEMED_QUIZ, EXTRA_THEMED_TF as _THEMED_TF
+
+# Blocchi con il tema dichiarato: "Categoria|Tema" -> righe.
+THEMED_QUIZ: list[tuple[str, str, tuple[str, str, list[str], str]]] = []
+for _key, _rows in _THEMED_QUIZ.items():
+    _category, _theme = _key.split("|")
+    for _row in _rows:
+        THEMED_QUIZ.append((_category.strip(), _theme.strip(), _row))
+
+THEMED_TF: list[tuple[str, str, tuple[str, str, str]]] = []
+for _key, _rows in _THEMED_TF.items():
+    _category, _theme = _key.split("|")
+    for _row in _rows:
+        THEMED_TF.append((_category.strip(), _theme.strip(), _row))
 
 
 IMAGE_BLUR = [
@@ -505,6 +521,10 @@ IMAGE_BLUR = [
     ("mus-0003", "Musica", "Vasco Rossi"),
     ("mus-0004", "Musica", "Taylor Swift"),
 ]
+
+
+def theme_slug(theme: str) -> str:
+    return "".join(character if character.isalnum() else "-" for character in theme.lower()).strip("-")
 
 
 def build() -> dict:
@@ -523,6 +543,7 @@ def build() -> dict:
                 "question": question,
                 "correctAnswer": correct,
                 "options": options,
+                "theme": theme_for(category, question, correct),
                 "explanation": None,
             })
 
@@ -535,8 +556,44 @@ def build() -> dict:
                 "question": question,
                 "correctAnswer": answer,
                 "options": ["VERO", "FALSO"],
+                "theme": theme_for(category, question, answer),
                 "explanation": None,
             })
+
+    # Domande con tema esplicito: stesso formato, ma la branca e dichiarata.
+    theme_counters: dict[tuple[str, str], int] = {}
+
+    for category, theme, (question, correct, wrong, difficulty) in THEMED_QUIZ:
+        options = [correct, *wrong]
+        rng.shuffle(options)
+        counter = theme_counters.get((category, theme), 0) + 1
+        theme_counters[(category, theme)] = counter
+        questions.append({
+            "id": f"quiz-{SLUG[category]}-{theme_slug(theme)}-{counter:02d}",
+            "category": category,
+            "type": "QUIZ",
+            "difficulty": difficulty,
+            "question": question,
+            "correctAnswer": correct,
+            "options": options,
+            "theme": theme,
+            "explanation": None,
+        })
+
+    for category, theme, (statement, answer, difficulty) in THEMED_TF:
+        counter = theme_counters.get((category, theme), 0) + 1
+        theme_counters[(category, theme)] = counter
+        questions.append({
+            "id": f"tf-{SLUG[category]}-{theme_slug(theme)}-{counter:02d}",
+            "category": category,
+            "type": "TRUE_FALSE",
+            "difficulty": difficulty,
+            "question": statement,
+            "correctAnswer": answer,
+            "options": ["VERO", "FALSO"],
+            "theme": theme,
+            "explanation": None,
+        })
 
     for index, (difficulty, question, options, correct_index) in enumerate(AIR_HOCKEY, 1):
         questions.append({
@@ -602,6 +659,53 @@ def check_coverage() -> None:
         raise SystemExit("Fasce di difficolta incomplete:\n  " + "\n  ".join(problems))
 
 
+# Regola della serata, per fascia di difficolta:
+# - categorie a branca unica: 15 domande in tutto;
+# - categorie a due branche: 10 domande per branca (10 + 10).
+THEME_TARGET = 10
+
+
+def theme_report(bank: dict) -> tuple[list[str], list[str]]:
+    per_theme: dict[tuple[str, str, str], int] = {}
+    for item in bank["questions"]:
+        if item.get("type") not in ("QUIZ", "TRUE_FALSE"):
+            continue
+        theme = item.get("theme")
+        if not theme:
+            continue
+        key = (item["category"], theme, item["difficulty"])
+        per_theme[key] = per_theme.get(key, 0) + 1
+
+    rows: list[str] = []
+    gaps: list[str] = []
+    for category in CATEGORIES:
+        split = THEME_SPLIT.get(category)
+        if split is None:
+            continue
+        parts = []
+        for band in DIFFICULTY_BANDS:
+            band_parts = []
+            for theme in (split[0], split[1]):
+                found = per_theme.get((category, theme, band), 0)
+                band_parts.append(f"{theme} {found}/{THEME_TARGET}")
+                if found < THEME_TARGET:
+                    gaps.append(f"{category} - {theme} - {band}: {found}/{THEME_TARGET}")
+            parts.append(f"{band}: " + " + ".join(band_parts))
+        rows.append(f"  {category}: " + " | ".join(parts))
+    return rows, gaps
+
+
+def print_theme_report(bank: dict) -> None:
+    rows, gaps = theme_report(bank)
+    print("Copertura per branca e difficolta:")
+    for row in rows:
+        print(row)
+    if gaps:
+        print(f"Mancano domande in {len(gaps)} combinazioni branca/difficolta.")
+    else:
+        print("Tutte le branche sono coperte.")
+
+
 def main() -> None:
     check_coverage()
 
@@ -612,6 +716,13 @@ def main() -> None:
     for category in CATEGORIES:
         total = sum(1 for item in bank["questions"] if item["category"] == category)
         print(f"{category}: {total} domande")
+
+    _, theme_gaps = theme_report(bank)
+    print_theme_report(bank)
+    if theme_gaps:
+        raise SystemExit(
+            "Copertura per branca incompleta: " + f"{len(theme_gaps)} combinazioni branca/difficolta senza 10 domande."
+        )
 
 
 if __name__ == "__main__":

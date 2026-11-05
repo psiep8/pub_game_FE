@@ -22,10 +22,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Copertura della banca domande.
  *
- * <p>La regola della serata: ogni categoria deve avere almeno 15 domande per
- * fascia di difficoltà (20 per le categorie a doppio tema come Cinema, Serie
- * TV), e le modalità che pescano dalla banca — Arena, Cavallo di Battaglia,
- * Bomba — devono poter partire senza restare a secco.</p>
+ * <p>La regola della serata: le categorie a branca unica hanno 15 domande per
+ * fascia di difficoltà, le categorie a due branche ne hanno 10 per branca e per
+ * fascia (10 Geografia + 10 Viaggi, 10 Scienza + 10 Spazio, ...). Le modalità
+ * che pescano dalla banca — Arena, Cavallo di Battaglia, Bomba — devono poter
+ * partire senza restare a secco.</p>
  */
 @SpringBootTest
 @TestPropertySource(properties = {
@@ -54,6 +55,20 @@ class QuestionBankCoverageTest {
 
     private static final List<String> BANDS = List.of("facile", "medio", "difficile");
 
+    /** Categorie a due branche: il tema dichiarato nella domanda decide la copertura. */
+    private static final Map<String, List<String>> BRANCHES = Map.ofEntries(
+            Map.entry("Geografia e Viaggi", List.of("Geografia", "Viaggi")),
+            Map.entry("Scienza e Spazio", List.of("Scienza", "Spazio")),
+            Map.entry("Natura e Animali", List.of("Natura", "Animali")),
+            Map.entry("Cinema, Serie TV", List.of("Cinema", "Serie TV")),
+            Map.entry("TV e Spettacolo", List.of("TV", "Spettacolo")),
+            Map.entry("Arte e Architettura", List.of("Arte", "Architettura")),
+            Map.entry("Politica e Attualità", List.of("Politica", "Attualità")),
+            Map.entry("Cibo e Gastronomia", List.of("Cibo", "Gastronomia")),
+            Map.entry("Lingua e Letteratura", List.of("Lingua", "Letteratura")),
+            Map.entry("Anime e manga", List.of("Anime", "Manga")),
+            Map.entry("Gaming e Tecnologia", List.of("Gaming", "Tecnologia")));
+
     @Autowired
     private QuestionBankService bank;
 
@@ -76,13 +91,30 @@ class QuestionBankCoverageTest {
         }
     }
 
+    /** Regola 10 + 10: ogni branca ha dieci domande in ognuna delle tre fasce. */
+    @Test
+    void ogniBrancaHaDieciDomandePerFascia() throws Exception {
+        Map<String, Map<String, Integer>> counts = themeCounts();
+
+        for (Map.Entry<String, List<String>> category : BRANCHES.entrySet()) {
+            for (String branch : category.getValue()) {
+                Map<String, Integer> perBand = counts.getOrDefault(category.getKey() + "|" + branch, Map.of());
+                for (String band : BANDS) {
+                    assertThat(perBand.getOrDefault(band, 0))
+                            .as("%s - %s - %s", category.getKey(), branch, band)
+                            .isGreaterThanOrEqualTo(10);
+                }
+            }
+        }
+    }
+
     @Test
     void laBancaCopreTutteLeCategorieUfficiali() throws Exception {
         Map<String, Map<String, Integer>> counts = bandCounts();
         for (String category : CATEGORIES) {
             assertThat(counts).as("categoria %s", category).containsKey(category);
         }
-        assertThat(bank.bankSize()).isGreaterThanOrEqualTo(700);
+        assertThat(bank.bankSize()).isGreaterThanOrEqualTo(950);
     }
 
     /** Arena: ogni categoria ha abbastanza Vero/Falso per un round intero. */
@@ -123,24 +155,47 @@ class QuestionBankCoverageTest {
         }
     }
 
+    /** Conteggio per categoria + branca e fascia, letto dal file della banca. */
+    private Map<String, Map<String, Integer>> themeCounts() throws Exception {
+        Map<String, Map<String, Integer>> counts = new HashMap<>();
+        for (JSONObject item : readQuestions()) {
+            String theme = item.optString("theme", "");
+            if (theme.isEmpty()) {
+                continue;
+            }
+            String key = item.optString("category", "") + "|" + theme;
+            String band = item.optString("difficulty", "").toLowerCase(Locale.ROOT);
+            counts.computeIfAbsent(key, ignored -> new HashMap<>()).merge(band, 1, Integer::sum);
+        }
+        return counts;
+    }
+
     /** Conteggio per categoria e fascia letto direttamente dal file della banca. */
     private Map<String, Map<String, Integer>> bandCounts() throws Exception {
         Map<String, Map<String, Integer>> counts = new HashMap<>();
+        for (JSONObject item : readQuestions()) {
+            String category = item.optString("category", "");
+            String band = item.optString("difficulty", "").toLowerCase(Locale.ROOT);
+            counts.computeIfAbsent(category, key -> new HashMap<>())
+                    .merge(band, 1, Integer::sum);
+        }
+        return counts;
+    }
+
+    /** Domande giocabili (QUIZ e Vero/Falso) presenti nel file della banca. */
+    private List<JSONObject> readQuestions() throws Exception {
         try (InputStream stream = new ClassPathResource("questions/questions-it.json").getInputStream()) {
             JSONObject root = new JSONObject(new String(stream.readAllBytes(), StandardCharsets.UTF_8));
             JSONArray questions = root.getJSONArray("questions");
+            List<JSONObject> playable = new java.util.ArrayList<>();
             for (int index = 0; index < questions.length(); index++) {
                 JSONObject item = questions.getJSONObject(index);
                 String type = item.optString("type", "").toUpperCase(Locale.ROOT);
-                if (!"QUIZ".equals(type) && !"TRUE_FALSE".equals(type)) {
-                    continue;
+                if ("QUIZ".equals(type) || "TRUE_FALSE".equals(type)) {
+                    playable.add(item);
                 }
-                String category = item.optString("category", "");
-                String band = item.optString("difficulty", "").toLowerCase(Locale.ROOT);
-                counts.computeIfAbsent(category, key -> new HashMap<>())
-                        .merge(band, 1, Integer::sum);
             }
+            return playable;
         }
-        return counts;
     }
 }

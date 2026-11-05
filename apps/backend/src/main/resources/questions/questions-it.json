@@ -1,7 +1,7 @@
 {
   "version": 2,
   "language": "it",
-  "generatedAt": "2026-11-05T15:53:09.524132+00:00",
+  "generatedAt": "2026-11-05T16:17:05.003542+00:00",
   "source": "curated-16-categories",
   "questions": [
     {
@@ -17,6 +17,7 @@
         "1815",
         "1776"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -32,6 +33,7 @@
         "Abraham Lincoln",
         "George Washington"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -47,6 +49,7 @@
         "La Muraglia cinese",
         "Il Vallo Antonino"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -62,6 +65,7 @@
         "Carlo Magno",
         "Robespierre"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -77,6 +81,7 @@
         "Quella egizia",
         "Quella maya"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -92,6 +97,7 @@
         "Giulio Cesare",
         "Nerone"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -107,6 +113,7 @@
         "Il trattato di Vienna",
         "Il trattato di Versailles"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -122,6 +129,7 @@
         "Vasco da Gama",
         "James Cook"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -137,6 +145,7 @@
         "Vittorio Emanuele II",
         "Napoleone III"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -152,6 +161,7 @@
         "Diocleziano",
         "Costantino"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -167,6 +177,7 @@
         "1989",
         "1991"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -182,6 +193,7 @@
         "Buzz Aldrin",
         "Neil Armstrong"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -197,6 +209,7 @@
         "Anna",
         "Maria Stuarda"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -212,6 +225,7 @@
         "Waterloo",
         "Austerlitz"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -227,6 +241,7 @@
         "Giuseppe Garibaldi",
         "Camillo Benso di Cavour"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -242,6 +257,7 @@
         "I Borbone",
         "I Valois"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -257,6 +273,7 @@
         "1914",
         "1917"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -272,6 +289,7 @@
         "Leone III",
         "Giustiniano"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -287,6 +305,7 @@
         "Othman",
         "Omar"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -302,6 +321,7 @@
         "Il trattato di Rastatt",
         "La pace di Cateau-Cambrésis"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -317,6 +337,7 @@
         "Enrico VIII",
         "Edoardo IV"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -332,6 +353,7 @@
         "Costantinopoli",
         "Nicea"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -347,6 +369,7 @@
         "La rivolta di Wat Tyler",
         "La rivolta dei Lollardi"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -362,6 +385,7 @@
         "Guglielmo I",
         "Ottone von Bismarck"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -377,6 +401,7 @@
         "Gli Aztechi",
         "Gli Olmechi"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -390,6 +415,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -403,6 +429,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -416,6 +443,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -429,6 +457,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -442,6 +471,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -455,6 +485,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -468,6 +499,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -481,6 +513,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -494,6 +527,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -507,6 +541,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -520,6 +555,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -533,6 +569,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -546,6 +583,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -559,6 +597,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -572,6 +611,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -585,6 +625,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -598,6 +639,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -611,6 +653,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -624,6 +667,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -637,6 +681,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -652,6 +697,7 @@
         "Sydney",
         "Perth"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -667,6 +713,7 @@
         "Bordeaux",
         "Parigi"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -682,6 +729,7 @@
         "Il Monte Bianco",
         "L'Everest"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -697,6 +745,7 @@
         "L'Atlantico",
         "Il Pacifico"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -712,6 +761,7 @@
         "Osaka",
         "Seul"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -727,6 +777,7 @@
         "Il lago Superiore",
         "Il lago Bajkal"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -742,6 +793,7 @@
         "Lo stretto di Messina",
         "Lo stretto di Bering"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -757,6 +809,7 @@
         "Bratislava",
         "Budapest"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -772,6 +825,7 @@
         "La fossa delle Marianne",
         "La fossa di Porto Rico"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -787,6 +841,7 @@
         "Il Liechtenstein",
         "San Marino"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -802,6 +857,7 @@
         "Barcellona",
         "Valencia"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -817,6 +873,7 @@
         "Il Tevere",
         "L'Arno"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -832,6 +889,7 @@
         "America meridionale",
         "Asia"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -847,6 +905,7 @@
         "Faro",
         "Lisbona"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -862,6 +921,7 @@
         "Il mar Ligure",
         "Il mar Adriatico"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -877,6 +937,7 @@
         "Il dollaro",
         "La corona danese"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -892,6 +953,7 @@
         "L'Algeria",
         "Il Sudan"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -907,6 +969,7 @@
         "I Carpazi",
         "I Pirenei"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -922,6 +985,7 @@
         "Tashkent",
         "Bishkek"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -937,6 +1001,7 @@
         "L'Eufrate",
         "Il Tigri"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -952,6 +1017,7 @@
         "La Cina",
         "Gli Stati Uniti"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -967,6 +1033,7 @@
         "Il lago Titicaca",
         "Il Mar Morto"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -982,6 +1049,7 @@
         "Wellington",
         "Auckland"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -997,6 +1065,7 @@
         "Lo stretto di Magellano",
         "Lo stretto di Bering"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1012,6 +1081,7 @@
         "L'Atacama",
         "Il Mojave"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1025,6 +1095,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1038,6 +1109,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1051,6 +1123,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1064,6 +1137,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1077,6 +1151,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1090,6 +1165,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1103,6 +1179,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1116,6 +1193,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1129,6 +1207,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1142,6 +1221,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1155,6 +1235,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1168,6 +1249,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1181,6 +1263,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1194,6 +1277,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1207,6 +1291,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1220,6 +1305,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1233,6 +1319,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1246,6 +1333,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1259,6 +1347,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1272,6 +1361,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Geografia",
       "explanation": null
     },
     {
@@ -1287,6 +1377,7 @@
         "Fluoro",
         "Fosforo"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1302,6 +1393,7 @@
         "Venere",
         "Marte"
       ],
+      "theme": "Spazio",
       "explanation": null
     },
     {
@@ -1317,6 +1409,7 @@
         "Oro",
         "Osmio"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1332,6 +1425,7 @@
         "206",
         "306"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1347,6 +1441,7 @@
         "L'idrogeno",
         "L'ossigeno"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1362,6 +1457,7 @@
         "Il mercurio",
         "L'alluminio"
       ],
+      "theme": "Spazio",
       "explanation": null
     },
     {
@@ -1377,6 +1473,7 @@
         "I polmoni",
         "Il cuore"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1392,6 +1489,7 @@
         "Max Planck",
         "Isaac Newton"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1407,6 +1505,7 @@
         "Saturno",
         "Nettuno"
       ],
+      "theme": "Spazio",
       "explanation": null
     },
     {
@@ -1422,6 +1521,7 @@
         "Il neutrino tau",
         "Il gravitone"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1437,6 +1537,7 @@
         "Otto",
         "Dieci"
       ],
+      "theme": "Spazio",
       "explanation": null
     },
     {
@@ -1452,6 +1553,7 @@
         "L'azoto",
         "L'idrogeno"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1467,6 +1569,7 @@
         "Il newton",
         "Il watt"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1482,6 +1585,7 @@
         "Saturno",
         "Giove"
       ],
+      "theme": "Spazio",
       "explanation": null
     },
     {
@@ -1497,6 +1601,7 @@
         "Fe",
         "Ag"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1512,6 +1617,7 @@
         "Cinque",
         "Quattro"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1527,6 +1633,7 @@
         "Giovanni Keplero",
         "Isaac Newton"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1542,6 +1649,7 @@
         "Il lisosoma",
         "Il nucleo"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1557,6 +1665,7 @@
         "L'ossigeno",
         "L'idrogeno"
       ],
+      "theme": "Spazio",
       "explanation": null
     },
     {
@@ -1572,6 +1681,7 @@
         "La distanza media tra Terra e Sole",
         "La distanza tra Terra e Luna"
       ],
+      "theme": "Spazio",
       "explanation": null
     },
     {
@@ -1587,6 +1697,7 @@
         "Jonas Salk",
         "Alexander Fleming"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1602,6 +1713,7 @@
         "La legge di Charles",
         "La legge di Boyle"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1617,6 +1729,7 @@
         "Venere",
         "Giove"
       ],
+      "theme": "Spazio",
       "explanation": null
     },
     {
@@ -1632,6 +1745,7 @@
         "1",
         "14"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1647,6 +1761,7 @@
         "Il neutrone",
         "Il protone"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1662,6 +1777,7 @@
         "Tycho Brahe",
         "Giordano Bruno"
       ],
+      "theme": "Spazio",
       "explanation": null
     },
     {
@@ -1675,6 +1791,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1688,6 +1805,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Spazio",
       "explanation": null
     },
     {
@@ -1701,6 +1819,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1714,6 +1833,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1727,6 +1847,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1740,6 +1861,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1753,6 +1875,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1766,6 +1889,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1779,6 +1903,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Spazio",
       "explanation": null
     },
     {
@@ -1792,6 +1917,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Spazio",
       "explanation": null
     },
     {
@@ -1805,6 +1931,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1818,6 +1945,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Spazio",
       "explanation": null
     },
     {
@@ -1831,6 +1959,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1844,6 +1973,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1857,6 +1987,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1870,6 +2001,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1883,6 +2015,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Spazio",
       "explanation": null
     },
     {
@@ -1896,6 +2029,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1909,6 +2043,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Scienza",
       "explanation": null
     },
     {
@@ -1924,6 +2059,7 @@
         "Il rinoceronte bianco",
         "La giraffa"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -1939,6 +2075,7 @@
         "Il panda",
         "Il koala"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -1954,6 +2091,7 @@
         "I polmoni",
         "Le branchie"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -1969,6 +2107,7 @@
         "La betulla",
         "La quercia"
       ],
+      "theme": "Natura",
       "explanation": null
     },
     {
@@ -1984,6 +2123,7 @@
         "Gli uccelli",
         "I rettili"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -1999,6 +2139,7 @@
         "Il ghepardo",
         "Il leone"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2014,6 +2155,7 @@
         "Lo squalo",
         "Il polpo"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2029,6 +2171,7 @@
         "Il Gobi",
         "Il Sahara"
       ],
+      "theme": "Natura",
       "explanation": null
     },
     {
@@ -2044,6 +2187,7 @@
         "Il fiore",
         "Il fusto"
       ],
+      "theme": "Natura",
       "explanation": null
     },
     {
@@ -2059,6 +2203,7 @@
         "Lo squalo balena",
         "Lo squalo bianco"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2074,6 +2219,7 @@
         "Dieci",
         "Otto"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2089,6 +2235,7 @@
         "L'emu",
         "L'albatros"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2104,6 +2251,7 @@
         "Il branco",
         "La muta"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2119,6 +2267,7 @@
         "Il faggio",
         "Il castagno"
       ],
+      "theme": "Natura",
       "explanation": null
     },
     {
@@ -2134,6 +2283,7 @@
         "Il rinoceronte",
         "La giraffa"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2149,6 +2299,7 @@
         "Il pipistrello calabrone",
         "Il criceto nano"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2164,6 +2315,7 @@
         "I chirotteri",
         "I placentati"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2179,6 +2331,7 @@
         "Il vischio",
         "Il trifoglio"
       ],
+      "theme": "Natura",
       "explanation": null
     },
     {
@@ -2194,6 +2347,7 @@
         "La vipera del Gabon",
         "Il cobra reale"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2209,6 +2363,7 @@
         "I ricci di mare",
         "Le spugne"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2224,6 +2379,7 @@
         "Il picchio",
         "Il rondone"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2239,6 +2395,7 @@
         "La crisalide",
         "Il bruco"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2254,6 +2411,7 @@
         "Il leopardo africano",
         "Il giaguaro"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2269,6 +2427,7 @@
         "Le squame ventrali",
         "Le fossette termorecettrici"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2282,6 +2441,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2295,6 +2455,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2308,6 +2469,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Natura",
       "explanation": null
     },
     {
@@ -2321,6 +2483,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Natura",
       "explanation": null
     },
     {
@@ -2334,6 +2497,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2347,6 +2511,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2360,6 +2525,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2373,6 +2539,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2386,6 +2553,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Natura",
       "explanation": null
     },
     {
@@ -2399,6 +2567,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2412,6 +2581,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2425,6 +2595,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Natura",
       "explanation": null
     },
     {
@@ -2438,6 +2609,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2451,6 +2623,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Natura",
       "explanation": null
     },
     {
@@ -2464,6 +2637,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2477,6 +2651,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2490,6 +2665,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2503,6 +2679,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2516,6 +2693,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2529,6 +2707,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Animali",
       "explanation": null
     },
     {
@@ -2542,6 +2721,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Natura",
       "explanation": null
     },
     {
@@ -2557,6 +2737,7 @@
         "12",
         "11"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2572,6 +2753,7 @@
         "Il padel",
         "Il tennis"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2587,6 +2769,7 @@
         "L'Argentina",
         "Il Brasile"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2602,6 +2785,7 @@
         "30 chilometri",
         "21,097 chilometri"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2617,6 +2801,7 @@
         "Gialla",
         "Rosa"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2632,6 +2817,7 @@
         "Due",
         "Tre"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2647,6 +2833,7 @@
         "L'Italia",
         "L'Uruguay"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2662,6 +2849,7 @@
         "La Milano-Sanremo",
         "La Strade Bianche"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2677,6 +2865,7 @@
         "L'Inter",
         "La Juventus"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2692,6 +2881,7 @@
         "Muhammad Ali",
         "Joe Frazier"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2707,6 +2897,7 @@
         "Quattro",
         "Due"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2722,6 +2913,7 @@
         "Nel biliardo",
         "Nel bowling"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2737,6 +2929,7 @@
         "Tre",
         "Cinque"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2752,6 +2945,7 @@
         "In Inghilterra",
         "In Francia"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2767,6 +2961,7 @@
         "Quattro",
         "Cinque"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2782,6 +2977,7 @@
         "Novak Djokovic",
         "Roger Federer"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2797,6 +2993,7 @@
         "A Imola",
         "Al Mugello"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2812,6 +3009,7 @@
         "L'Italia",
         "La Spagna"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2827,6 +3025,7 @@
         "Asafa Powell",
         "Yohan Blake"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2842,6 +3041,7 @@
         "Sedici",
         "Quindici"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2857,6 +3057,7 @@
         "Il Sudafrica",
         "La Nuova Zelanda"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2872,6 +3073,7 @@
         "Nella pallamano",
         "Nel rugby"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2887,6 +3089,7 @@
         "Barcellona",
         "Sydney"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2902,6 +3105,7 @@
         "750 m nuoto, 20 km bici, 5 km corsa",
         "1000 m nuoto, 30 km bici, 10 km corsa"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2917,6 +3121,7 @@
         "Charles Leclerc",
         "Lewis Hamilton"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2932,6 +3137,7 @@
         "La Juventus",
         "Il Napoli"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2947,6 +3153,7 @@
         "L'Argentina",
         "L'Olanda"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2960,6 +3167,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2973,6 +3181,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2986,6 +3195,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -2999,6 +3209,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -3012,6 +3223,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -3025,6 +3237,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -3038,6 +3251,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -3051,6 +3265,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -3064,6 +3279,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -3077,6 +3293,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -3090,6 +3307,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -3103,6 +3321,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -3116,6 +3335,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -3129,6 +3349,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -3142,6 +3363,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -3155,6 +3377,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -3168,6 +3391,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -3181,6 +3405,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -3196,6 +3421,7 @@
         "Sergio Leone",
         "Martin Scorsese"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3211,6 +3437,7 @@
         "Steven Spielberg",
         "Martin Scorsese"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3226,6 +3453,7 @@
         "Orlando Bloom",
         "Keanu Reeves"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3241,6 +3469,7 @@
         "Simba",
         "Mufasa"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3256,6 +3485,7 @@
         "Nuovo Cinema Paradiso",
         "La vita è bella"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3271,6 +3501,7 @@
         "Quentin Tarantino",
         "David Fincher"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3286,6 +3517,7 @@
         "Full Metal Jacket",
         "Eyes Wide Shut"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3301,6 +3533,7 @@
         "Il Trono di Spade",
         "The Witcher"
       ],
+      "theme": "Serie TV",
       "explanation": null
     },
     {
@@ -3316,6 +3549,7 @@
         "Il grande sonno",
         "Il monello"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3331,6 +3565,7 @@
         "Glenn Close",
         "Susan Sarandon"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3346,6 +3581,7 @@
         "Rupert Grint",
         "Tom Felton"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3361,6 +3597,7 @@
         "Cars",
         "Toy Story"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3376,6 +3613,7 @@
         "How I Met Your Mother",
         "Seinfeld"
       ],
+      "theme": "Serie TV",
       "explanation": null
     },
     {
@@ -3391,6 +3629,7 @@
         "Ridley Scott",
         "Steven Spielberg"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3406,6 +3645,7 @@
         "Chris Evans",
         "Mark Ruffalo"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3421,6 +3661,7 @@
         "Riverdale",
         "Derry"
       ],
+      "theme": "Serie TV",
       "explanation": null
     },
     {
@@ -3436,6 +3677,7 @@
         "Joker",
         "Once Upon a Time in Hollywood"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3451,6 +3693,7 @@
         "Scarlett Johansson",
         "Angelina Jolie"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3466,6 +3709,7 @@
         "Narcos",
         "Ozark"
       ],
+      "theme": "Serie TV",
       "explanation": null
     },
     {
@@ -3481,6 +3725,7 @@
         "Paul Thomas Anderson",
         "I fratelli Coen"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3496,6 +3741,7 @@
         "Heath Ledger",
         "Joaquin Phoenix"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3511,6 +3757,7 @@
         "Outlander",
         "Downton Abbey"
       ],
+      "theme": "Serie TV",
       "explanation": null
     },
     {
@@ -3526,6 +3773,7 @@
         "Luchino Visconti",
         "Vittorio De Sica"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3541,6 +3789,7 @@
         "Il re leone",
         "Aladdin"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3556,6 +3805,7 @@
         "Piero Piccioni",
         "Luis Bacalov"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3571,6 +3821,7 @@
         "Mad Men",
         "Billions"
       ],
+      "theme": "Serie TV",
       "explanation": null
     },
     {
@@ -3586,6 +3837,7 @@
         "Arancia meccanica",
         "Shining"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3601,6 +3853,7 @@
         "Emma Stone",
         "Glenn Close"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3616,6 +3869,7 @@
         "Oz",
         "Boardwalk Empire"
       ],
+      "theme": "Serie TV",
       "explanation": null
     },
     {
@@ -3631,6 +3885,7 @@
         "Il Padrino",
         "C'era una volta in America"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3646,6 +3901,7 @@
         "J. J. Abrams",
         "Ridley Scott"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3661,6 +3917,7 @@
         "Altered Carbon",
         "The Handmaid's Tale"
       ],
+      "theme": "Serie TV",
       "explanation": null
     },
     {
@@ -3676,6 +3933,7 @@
         "Ponyo",
         "Principessa Mononoke"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3691,6 +3949,7 @@
         "Mel Gibson",
         "Gerard Butler"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3704,6 +3963,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3717,6 +3977,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3730,6 +3991,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3743,6 +4005,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3756,6 +4019,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3769,6 +4033,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3782,6 +4047,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3795,6 +4061,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3808,6 +4075,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3821,6 +4089,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3834,6 +4103,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3847,6 +4117,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3860,6 +4131,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Serie TV",
       "explanation": null
     },
     {
@@ -3873,6 +4145,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Serie TV",
       "explanation": null
     },
     {
@@ -3886,6 +4159,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3899,6 +4173,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3912,6 +4187,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Serie TV",
       "explanation": null
     },
     {
@@ -3925,6 +4201,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3938,6 +4215,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Serie TV",
       "explanation": null
     },
     {
@@ -3951,6 +4229,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3964,6 +4243,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3977,6 +4257,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -3990,6 +4271,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -4003,6 +4285,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Serie TV",
       "explanation": null
     },
     {
@@ -4016,6 +4299,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Serie TV",
       "explanation": null
     },
     {
@@ -4029,6 +4313,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cinema",
       "explanation": null
     },
     {
@@ -4044,6 +4329,7 @@
         "Lascia o raddoppia?",
         "Il gioco dei pacchi"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4059,6 +4345,7 @@
         "Un telegiornale",
         "Un talk show"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4074,6 +4361,7 @@
         "Rai 1",
         "Rete 4"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4089,6 +4377,7 @@
         "4 Ristoranti",
         "Bake Off"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4104,6 +4393,7 @@
         "Il Concerto del Primo Maggio",
         "Il Festivalbar"
       ],
+      "theme": "Spettacolo",
       "explanation": null
     },
     {
@@ -4119,6 +4409,7 @@
         "Pippo Baudo",
         "Fabio Fazio"
       ],
+      "theme": "Spettacolo",
       "explanation": null
     },
     {
@@ -4134,6 +4425,7 @@
         "Piazzapulita",
         "Report"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4149,6 +4441,7 @@
         "Le Iene",
         "Presadiretta"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4164,6 +4457,7 @@
         "Reazione a catena",
         "Affari tuoi"
       ],
+      "theme": "Spettacolo",
       "explanation": null
     },
     {
@@ -4179,6 +4473,7 @@
         "Barbara D'Urso",
         "Mara Venier"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4194,6 +4489,7 @@
         "Amadeus",
         "Carlo Conti"
       ],
+      "theme": "Spettacolo",
       "explanation": null
     },
     {
@@ -4209,6 +4505,7 @@
         "In Liguria",
         "In Emilia-Romagna"
       ],
+      "theme": "Spettacolo",
       "explanation": null
     },
     {
@@ -4224,6 +4521,7 @@
         "L'eredità",
         "Affari tuoi"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4239,6 +4537,7 @@
         "Maurizio Costanzo",
         "Bruno Vespa"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4254,6 +4553,7 @@
         "L'isola dei famosi",
         "Ciao Darwin"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4269,6 +4569,7 @@
         "Gomorra",
         "Suburra"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4284,6 +4585,7 @@
         "L'Orso d'oro",
         "L'Oscar"
       ],
+      "theme": "Spettacolo",
       "explanation": null
     },
     {
@@ -4299,6 +4601,7 @@
         "Federica Sciarelli",
         "Lilli Gruber"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4314,6 +4617,7 @@
         "Rome",
         "Il Trono di Spade"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4329,6 +4633,7 @@
         "1990",
         "2000"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4344,6 +4649,7 @@
         "Benedict Cumberbatch",
         "Hugh Laurie"
       ],
+      "theme": "Spettacolo",
       "explanation": null
     },
     {
@@ -4359,6 +4665,7 @@
         "Gomorra",
         "Il capo dei capi"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4374,6 +4681,7 @@
         "Tale e quale show",
         "Amici"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4389,6 +4697,7 @@
         "Vis a vis",
         "Narcos"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4404,6 +4713,7 @@
         "Michele Placido",
         "Luca Zingaretti"
       ],
+      "theme": "Spettacolo",
       "explanation": null
     },
     {
@@ -4419,6 +4729,7 @@
         "Sabrina Ferilli",
         "Teo Mammucari"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4432,6 +4743,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Spettacolo",
       "explanation": null
     },
     {
@@ -4445,6 +4757,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4458,6 +4771,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4471,6 +4785,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4484,6 +4799,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Spettacolo",
       "explanation": null
     },
     {
@@ -4497,6 +4813,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4510,6 +4827,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4523,6 +4841,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4536,6 +4855,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4549,6 +4869,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4562,6 +4883,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Spettacolo",
       "explanation": null
     },
     {
@@ -4575,6 +4897,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4588,6 +4911,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Spettacolo",
       "explanation": null
     },
     {
@@ -4601,6 +4925,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4614,6 +4939,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4627,6 +4953,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4640,6 +4967,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4653,6 +4981,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Spettacolo",
       "explanation": null
     },
     {
@@ -4666,6 +4995,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "TV",
       "explanation": null
     },
     {
@@ -4681,6 +5011,7 @@
         "Gioachino Rossini",
         "Giuseppe Verdi"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4696,6 +5027,7 @@
         "I Led Zeppelin",
         "I Beatles"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4711,6 +5043,7 @@
         "L'organo",
         "Il clavicembalo"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4726,6 +5059,7 @@
         "Domenico Modugno",
         "Lucio Battisti"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4741,6 +5075,7 @@
         "I Beatles",
         "Gli Who"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4756,6 +5091,7 @@
         "Gli Eurythmics",
         "Il Volo"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4771,6 +5107,7 @@
         "Ai legni",
         "Alle percussioni"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4786,6 +5123,7 @@
         "Johann Sebastian Bach",
         "Wolfgang Amadeus Mozart"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4801,6 +5139,7 @@
         "Animals",
         "The Dark Side of the Moon"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4816,6 +5155,7 @@
         "Giuseppe Verdi",
         "Richard Wagner"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4831,6 +5171,7 @@
         "L'organo",
         "La fisarmonica"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4846,6 +5187,7 @@
         "Il clarinetto",
         "Il flauto"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4861,6 +5203,7 @@
         "Vincenzo Bellini",
         "Giacomo Puccini"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4876,6 +5219,7 @@
         "I Led Zeppelin",
         "I Queen"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4891,6 +5235,7 @@
         "Franz Schubert",
         "Johann Sebastian Bach"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4906,6 +5251,7 @@
         "L'ottavino",
         "Il clarinetto"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4921,6 +5267,7 @@
         "David Bowie",
         "Robert Plant"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4936,6 +5283,7 @@
         "Antonio Vivaldi",
         "Georg Friedrich Händel"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4951,6 +5299,7 @@
         "New York",
         "Memphis"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4966,6 +5315,7 @@
         "Erik Satie",
         "Maurice Ravel"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4981,6 +5331,7 @@
         "La scala pentatonica",
         "La scala blues"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -4996,6 +5347,7 @@
         "La Columbia",
         "La Decca"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5011,6 +5363,7 @@
         "Giuseppe Verdi",
         "Wolfgang Amadeus Mozart"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5026,6 +5379,7 @@
         "Il corno inglese",
         "Il sassofono"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5041,6 +5395,7 @@
         "Do maggiore",
         "La maggiore"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5054,6 +5409,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5067,6 +5423,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5080,6 +5437,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5093,6 +5451,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5106,6 +5465,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5119,6 +5479,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5132,6 +5493,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5145,6 +5507,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5158,6 +5521,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5171,6 +5535,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5184,6 +5549,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5197,6 +5563,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5210,6 +5577,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5223,6 +5591,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5236,6 +5605,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5249,6 +5619,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5262,6 +5633,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5275,6 +5647,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5288,6 +5661,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5301,6 +5675,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -5316,6 +5691,7 @@
         "Leonardo da Vinci",
         "Raffaello"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5331,6 +5707,7 @@
         "Canova",
         "Bernini"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5346,6 +5723,7 @@
         "Agli Uffizi",
         "Al British Museum"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5361,6 +5739,7 @@
         "Paul Gauguin",
         "Paul Cézanne"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5376,6 +5755,7 @@
         "Michelangelo",
         "Raffaello"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5391,6 +5771,7 @@
         "Edvard Munch",
         "Egon Schiele"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5406,6 +5787,7 @@
         "Verrocchio",
         "Michelangelo"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5421,6 +5803,7 @@
         "Leon Battista Alberti",
         "Giotto"
       ],
+      "theme": "Architettura",
       "explanation": null
     },
     {
@@ -5436,6 +5819,7 @@
         "Pablo Picasso",
         "Salvador Dalí"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5451,6 +5835,7 @@
         "Il dadaismo",
         "Il simbolismo"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5466,6 +5851,7 @@
         "Paul Gauguin",
         "Vincent van Gogh"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5481,6 +5867,7 @@
         "A Verona",
         "Ad Atene"
       ],
+      "theme": "Architettura",
       "explanation": null
     },
     {
@@ -5496,6 +5883,7 @@
         "Gian Lorenzo Bernini",
         "Donatello"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5511,6 +5899,7 @@
         "L'impressionismo",
         "Il cubismo"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5526,6 +5915,7 @@
         "Filippo Brunelleschi",
         "Giotto"
       ],
+      "theme": "Architettura",
       "explanation": null
     },
     {
@@ -5541,6 +5931,7 @@
         "Il Musée d'Orsay",
         "Il Louvre"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5556,6 +5947,7 @@
         "Salvador Dalí",
         "Joan Miró"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5571,6 +5963,7 @@
         "Il romanico",
         "Il barocco"
       ],
+      "theme": "Architettura",
       "explanation": null
     },
     {
@@ -5586,6 +5979,7 @@
         "Masaccio",
         "Piero della Francesca"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5601,6 +5995,7 @@
         "Mies van der Rohe",
         "Frank Lloyd Wright"
       ],
+      "theme": "Architettura",
       "explanation": null
     },
     {
@@ -5616,6 +6011,7 @@
         "Il dadaismo",
         "Il futurismo"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5631,6 +6027,7 @@
         "Michelangelo",
         "Gian Lorenzo Bernini"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5646,6 +6043,7 @@
         "Il Giardino delle delizie",
         "Las Meninas"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5661,6 +6059,7 @@
         "Il chiaroscuro a olio",
         "La prospettiva geometrica"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5676,6 +6075,7 @@
         "La Basilica Palladiana",
         "Palazzo Grassi"
       ],
+      "theme": "Architettura",
       "explanation": null
     },
     {
@@ -5691,6 +6091,7 @@
         "Pieter Bruegel il Vecchio",
         "Hieronymus Bosch"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5704,6 +6105,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5717,6 +6119,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Architettura",
       "explanation": null
     },
     {
@@ -5730,6 +6133,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5743,6 +6147,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5756,6 +6161,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5769,6 +6175,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Architettura",
       "explanation": null
     },
     {
@@ -5782,6 +6189,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5795,6 +6203,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5808,6 +6217,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5821,6 +6231,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Architettura",
       "explanation": null
     },
     {
@@ -5834,6 +6245,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5847,6 +6259,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Architettura",
       "explanation": null
     },
     {
@@ -5860,6 +6273,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Architettura",
       "explanation": null
     },
     {
@@ -5873,6 +6287,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5886,6 +6301,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5899,6 +6315,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5912,6 +6329,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5925,6 +6343,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5938,6 +6357,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Arte",
       "explanation": null
     },
     {
@@ -5953,6 +6373,7 @@
         "1945",
         "1946"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -5968,6 +6389,7 @@
         "Lo stato federale",
         "La monarchia costituzionale"
       ],
+      "theme": "Attualità",
       "explanation": null
     },
     {
@@ -5983,6 +6405,7 @@
         "Il Presidente del Consiglio",
         "Il Presidente della Corte costituzionale"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -5998,6 +6421,7 @@
         "25",
         "28"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6013,6 +6437,7 @@
         "L'Eurocorps",
         "L'ONU"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6028,6 +6453,7 @@
         "Il Presidente del Senato",
         "La Corte costituzionale"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6043,6 +6469,7 @@
         "Il trattato di Amsterdam",
         "Il trattato di Roma"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6058,6 +6485,7 @@
         "Sette",
         "Sei"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6073,6 +6501,7 @@
         "L'Assemblea generale",
         "Il Segretariato"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6088,6 +6517,7 @@
         "Ventuno",
         "Nove"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6103,6 +6533,7 @@
         "Il Presidente del Consiglio",
         "Il Presidente della Repubblica"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6118,6 +6549,7 @@
         "A New York",
         "A Bruxelles"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6133,6 +6565,7 @@
         "30",
         "28"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6148,6 +6581,7 @@
         "Il franco",
         "La lira"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6163,6 +6597,7 @@
         "1946",
         "1948"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6178,6 +6613,7 @@
         "La Banca centrale europea",
         "Il Parlamento europeo"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6193,6 +6629,7 @@
         "Il corpo elettorale",
         "La Corte costituzionale"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6208,6 +6645,7 @@
         "Il Consiglio d'Europa",
         "L'ONU"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6223,6 +6661,7 @@
         "Dieci",
         "Cinque"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6238,6 +6677,7 @@
         "Il trattato di Maastricht",
         "L'Atto unico europeo"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6253,6 +6693,7 @@
         "1987",
         "1993"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6268,6 +6709,7 @@
         "Kurt Waldheim",
         "Dag Hammarskjöld"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6283,6 +6725,7 @@
         "La Svizzera",
         "Il Regno Unito"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6298,6 +6741,7 @@
         "120",
         "100"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6313,6 +6757,7 @@
         "Il trattato di Nanchino",
         "L'accordo di Shanghai"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6328,6 +6773,7 @@
         "Il Consiglio di Stato",
         "Il Consiglio superiore della magistratura"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6341,6 +6787,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6354,6 +6801,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6367,6 +6815,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6380,6 +6829,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6393,6 +6843,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6406,6 +6857,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6419,6 +6871,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6432,6 +6885,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6445,6 +6899,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6458,6 +6913,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6471,6 +6927,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6484,6 +6941,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6497,6 +6955,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6510,6 +6969,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6523,6 +6983,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6536,6 +6997,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6549,6 +7011,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6562,6 +7025,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6575,6 +7039,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Politica",
       "explanation": null
     },
     {
@@ -6590,6 +7055,7 @@
         "Volkswagen",
         "Fiat"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6605,6 +7071,7 @@
         "La Lamborghini",
         "La Porsche"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6620,6 +7087,7 @@
         "La Targa Florio",
         "La 24 Ore di Le Mans"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6635,6 +7103,7 @@
         "Tre",
         "Cinque"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6650,6 +7119,7 @@
         "Fernando Alonso",
         "Sebastian Vettel"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6665,6 +7135,7 @@
         "La Mercedes",
         "La Williams"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6680,6 +7151,7 @@
         "Michael Schumacher",
         "Alain Prost"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6695,6 +7167,7 @@
         "Otto",
         "Quattro"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6710,6 +7183,7 @@
         "Stirling Moss",
         "Juan Manuel Fangio"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6725,6 +7199,7 @@
         "Lewis Hamilton",
         "Valtteri Bottas"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6740,6 +7215,7 @@
         "La Lamborghini",
         "La Porsche"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6755,6 +7231,7 @@
         "In Germania",
         "In Italia"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6770,6 +7247,7 @@
         "La Williams",
         "La Ferrari"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6785,6 +7263,7 @@
         "Il Gran Premio di Francia",
         "Il Rally di Monte Carlo"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6800,6 +7279,7 @@
         "La Mercedes-Benz",
         "La Porsche"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6815,6 +7295,7 @@
         "Quattro",
         "Sei"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6830,6 +7311,7 @@
         "Valentino Rossi",
         "Casey Stoner"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6845,6 +7327,7 @@
         "Battista Pininfarina",
         "Marcello Gandini"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6860,6 +7343,7 @@
         "1950",
         "1961"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6875,6 +7359,7 @@
         "La Maserati",
         "La Ferrari"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6890,6 +7375,7 @@
         "MDE",
         "TDI"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6905,6 +7391,7 @@
         "Franco Morbidelli",
         "Andrea Dovizioso"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6920,6 +7407,7 @@
         "La Bugatti EB110",
         "La McLaren F1"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6935,6 +7423,7 @@
         "L'Aprilia",
         "La Honda"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6950,6 +7439,7 @@
         "Sébastien Loeb",
         "Walter Röhrl"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6963,6 +7453,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6976,6 +7467,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -6989,6 +7481,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7002,6 +7495,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7015,6 +7509,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7028,6 +7523,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7041,6 +7537,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7054,6 +7551,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7067,6 +7565,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7080,6 +7579,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7093,6 +7593,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7106,6 +7607,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7119,6 +7621,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7132,6 +7635,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7145,6 +7649,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7158,6 +7663,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7171,6 +7677,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7184,6 +7691,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7197,6 +7705,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7210,6 +7719,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -7225,6 +7735,7 @@
         "La salvia",
         "Il basilico"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7240,6 +7751,7 @@
         "Dal grano",
         "Dal mais"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7255,6 +7767,7 @@
         "La mozzarella",
         "Il pecorino"
       ],
+      "theme": "Gastronomia",
       "explanation": null
     },
     {
@@ -7270,6 +7783,7 @@
         "Genova",
         "Napoli"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7285,6 +7799,7 @@
         "Dal fico",
         "Dall'uva"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7300,6 +7815,7 @@
         "Il guanciale",
         "La pancetta"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7315,6 +7831,7 @@
         "Il Barolo",
         "Il Nero d'Avola"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7330,6 +7847,7 @@
         "Il babà",
         "La sfogliatella"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7345,6 +7863,7 @@
         "Il philadelphia",
         "Il mascarpone"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7360,6 +7879,7 @@
         "Il chiodino",
         "Il finferlo"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7375,6 +7895,7 @@
         "Uova e pancetta affumicata",
         "Uova e guanciale"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7390,6 +7911,7 @@
         "La pera",
         "Il fico"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7405,6 +7927,7 @@
         "Il grano",
         "Il mais"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7420,6 +7943,7 @@
         "Il gorgonzola",
         "Il taleggio"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7435,6 +7959,7 @@
         "Lo zafferano",
         "Il pepe nero"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7450,6 +7975,7 @@
         "Il pesto",
         "La salsa aurora"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7465,6 +7991,7 @@
         "Il ristretto",
         "Il macchiato"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7480,6 +8007,7 @@
         "Il panettone",
         "La sfogliatella"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7495,6 +8023,7 @@
         "La salsa tartara",
         "La salsa verde"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7510,6 +8039,7 @@
         "Il sangiovese",
         "Il barbera"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7525,6 +8055,7 @@
         "Dal croco",
         "Dal girasole"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7540,6 +8071,7 @@
         "Sous vide",
         "Confit"
       ],
+      "theme": "Gastronomia",
       "explanation": null
     },
     {
@@ -7555,6 +8087,7 @@
         "La mozzarella di bufala",
         "Il provolone"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7570,6 +8103,7 @@
         "In Catalogna",
         "Nei Paesi Baschi e nella Rioja"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7585,6 +8119,7 @@
         "Il fruttosio",
         "Il saccarosio"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7598,6 +8133,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7611,6 +8147,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7624,6 +8161,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7637,6 +8175,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7650,6 +8189,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7663,6 +8203,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7676,6 +8217,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7689,6 +8231,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7702,6 +8245,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7715,6 +8259,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7728,6 +8273,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7741,6 +8287,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Gastronomia",
       "explanation": null
     },
     {
@@ -7754,6 +8301,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7767,6 +8315,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7780,6 +8329,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7793,6 +8343,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7806,6 +8357,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Gastronomia",
       "explanation": null
     },
     {
@@ -7819,6 +8371,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7832,6 +8385,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Gastronomia",
       "explanation": null
     },
     {
@@ -7845,6 +8399,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Cibo",
       "explanation": null
     },
     {
@@ -7860,6 +8415,7 @@
         "Il",
         "Lo"
       ],
+      "theme": "Lingua",
       "explanation": null
     },
     {
@@ -7875,6 +8431,7 @@
         "L'ossimoro",
         "La metafora"
       ],
+      "theme": "Lingua",
       "explanation": null
     },
     {
@@ -7890,6 +8447,7 @@
         "Congiuntivo presente",
         "Indicativo imperfetto"
       ],
+      "theme": "Lingua",
       "explanation": null
     },
     {
@@ -7905,6 +8463,7 @@
         "Casa",
         "Anna"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -7920,6 +8479,7 @@
         "La sintassi",
         "La semantica"
       ],
+      "theme": "Lingua",
       "explanation": null
     },
     {
@@ -7935,6 +8495,7 @@
         "Francesco Petrarca",
         "Dante Alighieri"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -7950,6 +8511,7 @@
         "Il Gattopardo",
         "I Malavoglia"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -7965,6 +8527,7 @@
         "George Orwell",
         "Ray Bradbury"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -7980,6 +8543,7 @@
         "Giacomo Leopardi",
         "Giuseppe Ungaretti"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -7995,6 +8559,7 @@
         "Gabriel García Márquez",
         "Julio Cortázar"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8010,6 +8575,7 @@
         "Ludovico Ariosto",
         "Francesco Petrarca"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8025,6 +8591,7 @@
         "Sette",
         "Cinque"
       ],
+      "theme": "Lingua",
       "explanation": null
     },
     {
@@ -8040,6 +8607,7 @@
         "Emilio Salgari",
         "Edmondo De Amicis"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8055,6 +8623,7 @@
         "La virgola",
         "I due punti"
       ],
+      "theme": "Lingua",
       "explanation": null
     },
     {
@@ -8070,6 +8639,7 @@
         "Giacomo Leopardi",
         "Alessandro Manzoni"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8085,6 +8655,7 @@
         "La litote",
         "La metafora"
       ],
+      "theme": "Lingua",
       "explanation": null
     },
     {
@@ -8100,6 +8671,7 @@
         "Italo Calvino",
         "Primo Levi"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8115,6 +8687,7 @@
         "Giacomo Leopardi",
         "Gabriele D'Annunzio"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8130,6 +8703,7 @@
         "Carlo Levi",
         "Italo Calvino"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8145,6 +8719,7 @@
         "Marcovaldo",
         "Il barone rampante"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8160,6 +8735,7 @@
         "Il crepuscolarismo",
         "Il futurismo"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8175,6 +8751,7 @@
         "Elsa Morante",
         "Giuseppe Tomasi di Lampedusa"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8190,6 +8767,7 @@
         "La metonimia",
         "La sineddoche"
       ],
+      "theme": "Lingua",
       "explanation": null
     },
     {
@@ -8205,6 +8783,7 @@
         "Alessandro Manzoni",
         "Vittorio Alfieri"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8220,6 +8799,7 @@
         "Lev Tolstoj",
         "Anton Čechov"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8235,6 +8815,7 @@
         "L'Orlando innamorato",
         "La Gerusalemme liberata"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8248,6 +8829,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Lingua",
       "explanation": null
     },
     {
@@ -8261,6 +8843,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8274,6 +8857,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8287,6 +8871,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Lingua",
       "explanation": null
     },
     {
@@ -8300,6 +8885,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8313,6 +8899,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8326,6 +8913,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8339,6 +8927,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8352,6 +8941,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8365,6 +8955,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8378,6 +8969,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8391,6 +8983,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Lingua",
       "explanation": null
     },
     {
@@ -8404,6 +8997,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Lingua",
       "explanation": null
     },
     {
@@ -8417,6 +9011,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8430,6 +9025,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8443,6 +9039,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8456,6 +9053,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8469,6 +9067,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8482,6 +9081,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Letteratura",
       "explanation": null
     },
     {
@@ -8497,6 +9097,7 @@
         "Akira Toriyama",
         "Naoko Takeuchi"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8512,6 +9113,7 @@
         "Naruto Uzumaki",
         "Itachi Uchiha"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8527,6 +9129,7 @@
         "One Piece",
         "Fairy Tail"
       ],
+      "theme": "Manga",
       "explanation": null
     },
     {
@@ -8542,6 +9145,7 @@
         "Mikasa Ackerman",
         "Levi Ackerman"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8557,6 +9161,7 @@
         "Madhouse",
         "Kyoto Animation"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8572,6 +9177,7 @@
         "Rumiko Takahashi",
         "Naoko Takeuchi"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8587,6 +9193,7 @@
         "Sword Art Online",
         "Death Note"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8602,6 +9209,7 @@
         "Death Note",
         "Tokyo Ghoul"
       ],
+      "theme": "Manga",
       "explanation": null
     },
     {
@@ -8617,6 +9225,7 @@
         "La città incantata",
         "Howl's Moving Castle"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8632,6 +9241,7 @@
         "Squirtle",
         "Bulbasaur"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8647,6 +9257,7 @@
         "Akira Toriyama",
         "Eiichiro Oda"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8662,6 +9273,7 @@
         "Naruto Uzumaki",
         "Ichigo Kurosaki"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8677,6 +9289,7 @@
         "Kyoto Animation",
         "Studio Ghibli"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8692,6 +9305,7 @@
         "Isao Takahata",
         "Mamoru Hosoda"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8707,6 +9321,7 @@
         "Sanji",
         "Monkey D. Luffy"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8722,6 +9337,7 @@
         "Bleach",
         "Fairy Tail"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8737,6 +9353,7 @@
         "20th Century Boys",
         "Pluto"
       ],
+      "theme": "Manga",
       "explanation": null
     },
     {
@@ -8752,6 +9369,7 @@
         "1984",
         "1990"
       ],
+      "theme": "Manga",
       "explanation": null
     },
     {
@@ -8767,6 +9385,7 @@
         "Osaka-2",
         "Tokyo-1"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8782,6 +9401,7 @@
         "Rumiko Takahashi",
         "Mamoru Oshii"
       ],
+      "theme": "Manga",
       "explanation": null
     },
     {
@@ -8797,6 +9417,7 @@
         "Captain Tsubasa",
         "Slam Dunk"
       ],
+      "theme": "Manga",
       "explanation": null
     },
     {
@@ -8812,6 +9433,7 @@
         "Yoshihiro Togashi",
         "Kentaro Miura"
       ],
+      "theme": "Manga",
       "explanation": null
     },
     {
@@ -8827,6 +9449,7 @@
         "La ragazza che saltava nel tempo",
         "Your Name"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8842,6 +9465,7 @@
         "Claymore",
         "Sword Art Online"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8857,6 +9481,7 @@
         "Real",
         "Slam Dunk"
       ],
+      "theme": "Manga",
       "explanation": null
     },
     {
@@ -8870,6 +9495,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8883,6 +9509,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8896,6 +9523,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8909,6 +9537,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8922,6 +9551,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8935,6 +9565,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Manga",
       "explanation": null
     },
     {
@@ -8948,6 +9579,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8961,6 +9593,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8974,6 +9607,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -8987,6 +9621,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -9000,6 +9635,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -9013,6 +9649,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Manga",
       "explanation": null
     },
     {
@@ -9026,6 +9663,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -9039,6 +9677,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -9052,6 +9691,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -9065,6 +9705,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -9078,6 +9719,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -9091,6 +9733,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Anime",
       "explanation": null
     },
     {
@@ -9104,6 +9747,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Manga",
       "explanation": null
     },
     {
@@ -9117,6 +9761,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Manga",
       "explanation": null
     },
     {
@@ -9132,6 +9777,7 @@
         "Sega",
         "Sony"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9147,6 +9793,7 @@
         "Wii U",
         "GameCube"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9162,6 +9809,7 @@
         "Android",
         "Windows Phone"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9177,6 +9825,7 @@
         "Bill Gates",
         "Steve Wozniak"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9192,6 +9841,7 @@
         "GOG",
         "Steam"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9207,6 +9857,7 @@
         "Il processore",
         "La memoria RAM"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9222,6 +9873,7 @@
         "Facebook",
         "TikTok"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9237,6 +9889,7 @@
         "Warzone",
         "Fortnite"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9252,6 +9905,7 @@
         "Sega",
         "Nintendo"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9267,6 +9921,7 @@
         "2007",
         "2009"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9282,6 +9937,7 @@
         "Sony",
         "Microsoft"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9297,6 +9953,7 @@
         "Twitter",
         "Instagram"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9312,6 +9969,7 @@
         "Apple",
         "Google"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9327,6 +9985,7 @@
         "Link",
         "Navi"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9342,6 +10001,7 @@
         "Chrome",
         "Safari"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9357,6 +10017,7 @@
         "Il pixel",
         "Il watt"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9372,6 +10033,7 @@
         "Nintendo 3DS",
         "GameCube"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9387,6 +10049,7 @@
         "Java",
         "Ruby"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9402,6 +10065,7 @@
         "Unity Technologies",
         "id Software"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9417,6 +10081,7 @@
         "SMTP",
         "DNS"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9432,6 +10097,7 @@
         "Otto",
         "Sedici"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9447,6 +10113,7 @@
         "PUBG",
         "Apex Legends"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9462,6 +10129,7 @@
         "YouTube",
         "TikTok"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9477,6 +10145,7 @@
         "802.11g",
         "802.11ac"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9492,6 +10161,7 @@
         "AMD",
         "Qualcomm"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9507,6 +10177,7 @@
         "BERT",
         "ResNet"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9522,6 +10193,7 @@
         "Mega Drive",
         "Game Gear"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9535,6 +10207,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9548,6 +10221,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9561,6 +10235,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9574,6 +10249,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9587,6 +10263,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9600,6 +10277,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9613,6 +10291,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9626,6 +10305,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9639,6 +10319,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9652,6 +10333,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9665,6 +10347,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9678,6 +10361,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9691,6 +10375,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9704,6 +10389,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9717,6 +10403,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9730,6 +10417,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9743,6 +10431,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9756,6 +10445,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
@@ -9771,6 +10461,7 @@
         "L'aquila reale",
         "L'albatro"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -9786,6 +10477,7 @@
         "Marte",
         "Giove"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -9801,6 +10493,7 @@
         "La mela",
         "La fragola"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -9816,6 +10509,7 @@
         "Il pipistrello",
         "Il delfino"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -9831,6 +10525,7 @@
         "Il fegato",
         "La cornea"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -9846,6 +10541,7 @@
         "La carne cruda",
         "Il pane"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -9861,6 +10557,7 @@
         "Lo squalo",
         "Il polpo"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -9876,6 +10573,7 @@
         "La Cina",
         "La Russia"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -9891,6 +10589,7 @@
         "Il cactus",
         "L'ulivo"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -9906,6 +10605,7 @@
         "La coccinella",
         "La libellula"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -9921,6 +10621,7 @@
         "Il gabbiano",
         "Il falco pellegrino"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -9936,6 +10637,7 @@
         "Il ferro",
         "Il piombo"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -9951,6 +10653,7 @@
         "364",
         "367"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -9966,6 +10669,7 @@
         "Il viola",
         "Il verde"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -9981,6 +10685,7 @@
         "Nettuno",
         "Saturno"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -9996,6 +10701,7 @@
         "Sei",
         "Tre"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10011,6 +10717,7 @@
         "La giraffa",
         "Il formichiere"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10026,6 +10733,7 @@
         "Dieci grammi",
         "Un chilogrammo"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10041,6 +10749,7 @@
         "Il One World Trade Center",
         "Il Burj Khalifa"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10056,6 +10765,7 @@
         "18",
         "32"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10071,6 +10781,7 @@
         "L'argento",
         "Il palladio"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10086,6 +10797,7 @@
         "L'Artico",
         "L'Atlantico"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10101,6 +10813,7 @@
         "48",
         "52"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10116,6 +10829,7 @@
         "Il Canada",
         "L'Indonesia"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10131,6 +10845,7 @@
         "GMT+1",
         "UTC"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10144,6 +10859,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10157,6 +10873,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10170,6 +10887,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10183,6 +10901,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10196,6 +10915,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10209,6 +10929,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10222,6 +10943,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10235,6 +10957,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10248,6 +10971,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10261,6 +10985,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10274,6 +10999,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10287,6 +11013,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10300,6 +11027,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10313,6 +11041,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10326,6 +11055,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10339,6 +11069,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10352,6 +11083,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10365,6 +11097,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10378,6 +11111,7 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
       "explanation": null
     },
     {
@@ -10391,6 +11125,3417 @@
         "VERO",
         "FALSO"
       ],
+      "theme": null,
+      "explanation": null
+    },
+    {
+      "id": "quiz-geografia-viaggi-01",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale monumento simbolo di Parigi è una torre di ferro?",
+      "correctAnswer": "La Torre Eiffel",
+      "options": [
+        "Notre-Dame",
+        "Il Sacro Cuore",
+        "La Torre Eiffel",
+        "L'Arco di Trionfo"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "quiz-geografia-viaggi-02",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale monumento italiano è una torre pendente meta di turisti?",
+      "correctAnswer": "La Torre di Pisa",
+      "options": [
+        "Castel del Monte",
+        "Il Ponte Vecchio",
+        "Il Duomo di Milano",
+        "La Torre di Pisa"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "quiz-geografia-viaggi-03",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale città è famosa per i canali e le gondole?",
+      "correctAnswer": "Venezia",
+      "options": [
+        "Trieste",
+        "Genova",
+        "Venezia",
+        "Bari"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "quiz-geografia-viaggi-04",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "In quale città si trova il Colosseo, meta turistica di Roma?",
+      "correctAnswer": "Roma",
+      "options": [
+        "Siviglia",
+        "Roma",
+        "Atene",
+        "Istanbul"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "quiz-geografia-viaggi-05",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale struttura turistica offre pernottamento e colazione?",
+      "correctAnswer": "Il bed and breakfast",
+      "options": [
+        "Il campeggio",
+        "Il resort",
+        "L'ostello della gioventù",
+        "Il bed and breakfast"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "quiz-geografia-viaggi-06",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale città spagnola è celebre per la Sagrada Família?",
+      "correctAnswer": "Barcellona",
+      "options": [
+        "Siviglia",
+        "Madrid",
+        "Valencia",
+        "Barcellona"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "quiz-geografia-viaggi-07",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale monumento di Agra è patrimonio UNESCO e mausoleo?",
+      "correctAnswer": "Il Taj Mahal",
+      "options": [
+        "Il Forte Rosso",
+        "Il Qutb Minar",
+        "Il Taj Mahal",
+        "Il palazzo di Jaipur"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "quiz-geografia-viaggi-08",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale città europea è nota per il Ponte Carlo e il castello?",
+      "correctAnswer": "Praga",
+      "options": [
+        "Budapest",
+        "Vienna",
+        "Praga",
+        "Cracovia"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "quiz-geografia-viaggi-09",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale isola italiana è meta di turismo vulcanico con l'Etna?",
+      "correctAnswer": "La Sicilia",
+      "options": [
+        "L'Elba",
+        "La Sardegna",
+        "Capri",
+        "La Sicilia"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "quiz-geografia-viaggi-10",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale città giapponese è celebre per i templi vicino al monte Fuji?",
+      "correctAnswer": "Kyoto",
+      "options": [
+        "Sapporo",
+        "Nagoya",
+        "Kyoto",
+        "Osaka"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "quiz-geografia-viaggi-11",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale sito turco è famoso per le rocce a cono della Cappadocia?",
+      "correctAnswer": "Göreme",
+      "options": [
+        "Göreme",
+        "Troia",
+        "Pamukkale",
+        "Efeso"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "quiz-geografia-viaggi-12",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale parco nazionale africano è celebre per la migrazione degli gnu?",
+      "correctAnswer": "Il Serengeti",
+      "options": [
+        "Il Kruger",
+        "Il Serengeti",
+        "L'Etosha",
+        "Il Chobe"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "quiz-geografia-viaggi-13",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale capitale europea è attraversata dal Danubio e ha il castello di Buda?",
+      "correctAnswer": "Budapest",
+      "options": [
+        "Bratislava",
+        "Belgrado",
+        "Budapest",
+        "Vienna"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "quiz-geografia-viaggi-14",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale treno turistico svizzero attraversa il passo del Bernina?",
+      "correctAnswer": "Il Bernina Express",
+      "options": [
+        "Il Treno Rosso",
+        "Il Glacier Express",
+        "Il Bernina Express",
+        "L'Orient Express"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "quiz-geografia-viaggi-15",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale arcipelago norvegese è noto per il sole di mezzanotte e i fiordi?",
+      "correctAnswer": "Le Lofoten",
+      "options": [
+        "Le Shetland",
+        "Le Orcadi",
+        "Le Ebridi",
+        "Le Lofoten"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "quiz-scienza-scienza-01",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale strumento misura la temperatura?",
+      "correctAnswer": "Il termometro",
+      "options": [
+        "L'anemometro",
+        "L'igrometro",
+        "Il termometro",
+        "Il barometro"
+      ],
+      "theme": "Scienza",
+      "explanation": null
+    },
+    {
+      "id": "quiz-scienza-spazio-01",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Qual è il satellite naturale della Terra?",
+      "correctAnswer": "La Luna",
+      "options": [
+        "Titano",
+        "Europa",
+        "La Luna",
+        "Marte"
+      ],
+      "theme": "Spazio",
+      "explanation": null
+    },
+    {
+      "id": "quiz-scienza-spazio-02",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale pianeta è noto come pianeta rosso?",
+      "correctAnswer": "Marte",
+      "options": [
+        "Giove",
+        "Marte",
+        "Venere",
+        "Mercurio"
+      ],
+      "theme": "Spazio",
+      "explanation": null
+    },
+    {
+      "id": "quiz-scienza-spazio-03",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale agenzia spaziale portò l'uomo sulla Luna nel 1969?",
+      "correctAnswer": "La NASA",
+      "options": [
+        "JAXA",
+        "L'ESA",
+        "La NASA",
+        "Roscosmos"
+      ],
+      "theme": "Spazio",
+      "explanation": null
+    },
+    {
+      "id": "quiz-scienza-spazio-04",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Qual è la stella più vicina alla Terra dopo il Sole?",
+      "correctAnswer": "Proxima Centauri",
+      "options": [
+        "Betelgeuse",
+        "Alpha Centauri A",
+        "Proxima Centauri",
+        "Sirio"
+      ],
+      "theme": "Spazio",
+      "explanation": null
+    },
+    {
+      "id": "quiz-scienza-spazio-05",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale pianeta ha il periodo orbitale più lungo del sistema solare?",
+      "correctAnswer": "Nettuno",
+      "options": [
+        "Nettuno",
+        "Giove",
+        "Saturno",
+        "Urano"
+      ],
+      "theme": "Spazio",
+      "explanation": null
+    },
+    {
+      "id": "quiz-scienza-spazio-06",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Come si chiama la galassia in cui si trova il sistema solare?",
+      "correctAnswer": "La Via Lattea",
+      "options": [
+        "La Via Lattea",
+        "Il Triangolo",
+        "Andromeda",
+        "La galassia del Sombrero"
+      ],
+      "theme": "Spazio",
+      "explanation": null
+    },
+    {
+      "id": "quiz-scienza-spazio-07",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale missione portò per la prima volta un rover su Marte nel 1997?",
+      "correctAnswer": "Pathfinder",
+      "options": [
+        "Opportunity",
+        "Spirit",
+        "Curiosity",
+        "Pathfinder"
+      ],
+      "theme": "Spazio",
+      "explanation": null
+    },
+    {
+      "id": "quiz-scienza-spazio-08",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Qual è il nome del telescopio spaziale lanciato nel 2021?",
+      "correctAnswer": "James Webb",
+      "options": [
+        "Spitzer",
+        "James Webb",
+        "Keplero",
+        "Hubble"
+      ],
+      "theme": "Spazio",
+      "explanation": null
+    },
+    {
+      "id": "quiz-scienza-spazio-09",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale temperatura ha approssimativamente la superficie del Sole?",
+      "correctAnswer": "Circa 5.500 °C",
+      "options": [
+        "Circa 55.000 °C",
+        "Circa 5.500 °C",
+        "Circa 150 °C",
+        "Circa 500 °C"
+      ],
+      "theme": "Spazio",
+      "explanation": null
+    },
+    {
+      "id": "quiz-natura-natura-01",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale parte della pianta produce i semi?",
+      "correctAnswer": "Il fiore",
+      "options": [
+        "La radice",
+        "La foglia",
+        "Il fusto",
+        "Il fiore"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-natura-natura-02",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale gas rilasciano le piante durante la fotosintesi?",
+      "correctAnswer": "L'ossigeno",
+      "options": [
+        "L'anidride carbonica",
+        "L'ossigeno",
+        "L'azoto",
+        "Il metano"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-natura-natura-03",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale foresta pluviale è la più estesa del pianeta?",
+      "correctAnswer": "L'Amazzonia",
+      "options": [
+        "L'Amazzonia",
+        "La Nuova Guinea",
+        "Il Borneo",
+        "Il Congo"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-natura-natura-04",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale fenomeno atmosferico è legato ai gas serra?",
+      "correctAnswer": "L'effetto serra",
+      "options": [
+        "L'aurora boreale",
+        "La marea",
+        "Il vento solare",
+        "L'effetto serra"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-natura-natura-05",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale processo trasforma l'azoto atmosferico in forme usabili dalle piante?",
+      "correctAnswer": "La fissazione dell'azoto",
+      "options": [
+        "La fissazione dell'azoto",
+        "La respirazione",
+        "La traspirazione",
+        "La fotosintesi"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-natura-natura-06",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale biome è caratterizzato da permafrost e vegetazione bassa?",
+      "correctAnswer": "La tundra",
+      "options": [
+        "La savana",
+        "La tundra",
+        "La steppa",
+        "La taiga"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-natura-natura-07",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale pianta carnivora cattura gli insetti con foglie a trappola?",
+      "correctAnswer": "La dionea",
+      "options": [
+        "La nepente",
+        "La drosera",
+        "La sarracenia",
+        "La dionea"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-natura-natura-08",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale livello trofico occupano i funghi decompositori?",
+      "correctAnswer": "I decompositori",
+      "options": [
+        "I decompositori",
+        "I consumatori primari",
+        "I consumatori secondari",
+        "I produttori"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-natura-natura-09",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale accordo internazionale del 1997 riguarda la riduzione dei gas serra?",
+      "correctAnswer": "Il protocollo di Kyoto",
+      "options": [
+        "Il protocollo di Kyoto",
+        "La convenzione di Ramsar",
+        "L'accordo di Parigi",
+        "Il protocollo di Montreal"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-arte-architettura-01",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale ingegnere ha progettato la Torre Eiffel?",
+      "correctAnswer": "Gustave Eiffel",
+      "options": [
+        "Santiago Calatrava",
+        "Le Corbusier",
+        "Gustave Eiffel",
+        "Antoni Gaudí"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-arte-architettura-02",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale monumento romano era un anfiteatro per i gladiatori?",
+      "correctAnswer": "Il Colosseo",
+      "options": [
+        "Le Terme di Caracalla",
+        "Il Foro Romano",
+        "Il Pantheon",
+        "Il Colosseo"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-arte-architettura-03",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Come si chiama la cupola di Brunelleschi a Firenze?",
+      "correctAnswer": "La cupola di Santa Maria del Fiore",
+      "options": [
+        "La cupola di San Marco",
+        "La cupola di San Pietro",
+        "La cupola di Santa Maria del Fiore",
+        "La cupola del Pantheon"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-arte-architettura-04",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale stile architettonico usa archi a tutto sesto e volte a crociera?",
+      "correctAnswer": "Il romanico",
+      "options": [
+        "Il liberty",
+        "Il gotico",
+        "Il romanico",
+        "Il barocco"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-arte-architettura-05",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale architetto ha progettato il Padiglione di Barcellona?",
+      "correctAnswer": "Mies van der Rohe",
+      "options": [
+        "Antoni Gaudí",
+        "Mies van der Rohe",
+        "Frank Lloyd Wright",
+        "Le Corbusier"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-arte-architettura-06",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale cattedrale gotica ha le guglie più alte di Francia?",
+      "correctAnswer": "Notre-Dame di Rouen",
+      "options": [
+        "Notre-Dame di Rouen",
+        "La cattedrale di Reims",
+        "Notre-Dame di Parigi",
+        "La cattedrale di Chartres"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-arte-architettura-07",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale grattacielo di New York fu il più alto del mondo negli anni Trenta?",
+      "correctAnswer": "L'Empire State Building",
+      "options": [
+        "Il Woolworth Building",
+        "Il Rockefeller Center",
+        "Il Chrysler Building",
+        "L'Empire State Building"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-arte-architettura-08",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale architetto progettò Villa Savoye?",
+      "correctAnswer": "Le Corbusier",
+      "options": [
+        "Le Corbusier",
+        "Mies van der Rohe",
+        "Walter Gropius",
+        "Alvar Aalto"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-arte-architettura-09",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale ponte veneziano in legno attraversa il Canal Grande?",
+      "correctAnswer": "Il ponte dell'Accademia",
+      "options": [
+        "Il ponte di Rialto",
+        "Il ponte della Costituzione",
+        "Il ponte degli Scalzi",
+        "Il ponte dell'Accademia"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-arte-architettura-10",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale architetto ha progettato il Museo Guggenheim di New York?",
+      "correctAnswer": "Frank Lloyd Wright",
+      "options": [
+        "Renzo Piano",
+        "Ieoh Ming Pei",
+        "Frank Gehry",
+        "Frank Lloyd Wright"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cibo-gastronomia-01",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale attrezzo si usa per mescolare i cibi sul fuoco?",
+      "correctAnswer": "Il mestolo",
+      "options": [
+        "Lo schiacciapatate",
+        "Il mestolo",
+        "Il tagliere",
+        "Il mattarello"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cibo-gastronomia-02",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale piatto si prepara con uova sbattute e formaggio in padella?",
+      "correctAnswer": "La frittata",
+      "options": [
+        "La polenta",
+        "Il risotto",
+        "La frittata",
+        "La carbonara"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cibo-gastronomia-03",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale ingrediente rende soffice un impasto da forno?",
+      "correctAnswer": "Il lievito",
+      "options": [
+        "Lo zucchero a velo",
+        "Il sale",
+        "Il lievito",
+        "L'aceto"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cibo-gastronomia-04",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale coltello si usa per tagliare il pane?",
+      "correctAnswer": "Il coltello seghettato",
+      "options": [
+        "Lo spelucchino",
+        "Il trinciante",
+        "Il coltello seghettato",
+        "Il coltello da burro"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cibo-gastronomia-05",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale tecnica rosola la carne e poi la cuoce lentamente con liquidi?",
+      "correctAnswer": "La brasatura",
+      "options": [
+        "La frittura",
+        "La brasatura",
+        "La scottatura",
+        "La marinatura"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cibo-gastronomia-06",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale salsa si prepara con burro, farina e latte?",
+      "correctAnswer": "La besciamella",
+      "options": [
+        "La maionese",
+        "La salsa di soia",
+        "Il ragù",
+        "La besciamella"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cibo-gastronomia-07",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale metodo conserva i cibi sottaceto?",
+      "correctAnswer": "La conservazione in aceto",
+      "options": [
+        "La liofilizzazione",
+        "L'affumicatura",
+        "La surgelazione",
+        "La conservazione in aceto"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cibo-gastronomia-08",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale strumento controlla la temperatura interna degli alimenti in cottura?",
+      "correctAnswer": "Il termometro da cucina",
+      "options": [
+        "Il timer",
+        "Il termometro da cucina",
+        "La schiumarola",
+        "Il mestolo"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cibo-gastronomia-09",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale tecnica cuoce gli alimenti sfruttando il vapore?",
+      "correctAnswer": "La cottura a vapore",
+      "options": [
+        "La frittura",
+        "La gratinatura",
+        "La brasatura",
+        "La cottura a vapore"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cibo-gastronomia-10",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale reazione chimica dà la crosta bruna alla carne arrostita?",
+      "correctAnswer": "La reazione di Maillard",
+      "options": [
+        "La caramellizzazione",
+        "La saponificazione",
+        "La fermentazione",
+        "La reazione di Maillard"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cibo-gastronomia-11",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale tecnica separa i grassi solidi per ottenere il burro chiarificato?",
+      "correctAnswer": "La chiarificazione",
+      "options": [
+        "La riduzione",
+        "La chiarificazione",
+        "L'emulsione",
+        "La decantazione"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cibo-gastronomia-12",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale coltura batterica è usata per produrre lo yogurt?",
+      "correctAnswer": "I lattobacilli",
+      "options": [
+        "Gli stafilococchi",
+        "I lattobacilli",
+        "I lieviti",
+        "Gli acetobatteri"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cibo-gastronomia-13",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale salsa madre francese si prepara con roux scuro e brodo?",
+      "correctAnswer": "La salsa spagnola",
+      "options": [
+        "La salsa olandese",
+        "La velouté",
+        "La salsa spagnola",
+        "La salsa bernese"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-politica-attualità-01",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale strumento permette di pagare contactless in negozio?",
+      "correctAnswer": "La carta con NFC",
+      "options": [
+        "La carta con NFC",
+        "La banconota da 500 euro",
+        "Il vaglia postale",
+        "Il libretto degli assegni"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "quiz-politica-attualità-02",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale piattaforma è usata per riunioni di lavoro a distanza?",
+      "correctAnswer": "Zoom",
+      "options": [
+        "Spotify",
+        "Netflix",
+        "Zoom",
+        "Steam"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "quiz-politica-attualità-03",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale fonte rinnovabile sfrutta il sole per produrre elettricità?",
+      "correctAnswer": "Il fotovoltaico",
+      "options": [
+        "Il gas naturale",
+        "Il fotovoltaico",
+        "Il nucleare a fissione",
+        "Il carbone"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "quiz-politica-attualità-04",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Che cosa misura l'inflazione?",
+      "correctAnswer": "L'aumento dei prezzi",
+      "options": [
+        "Il prodotto interno lordo",
+        "La disoccupazione",
+        "Il debito pubblico",
+        "L'aumento dei prezzi"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "quiz-politica-attualità-05",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale accordo internazionale del 2015 riguarda il clima?",
+      "correctAnswer": "L'accordo di Parigi",
+      "options": [
+        "Il protocollo di Kyoto",
+        "La convenzione dell'Aia",
+        "L'accordo di Parigi",
+        "Il trattato di Maastricht"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "quiz-politica-attualità-06",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale organizzazione raccoglie i dati sanitari globali?",
+      "correctAnswer": "L'OMS",
+      "options": [
+        "L'OMS",
+        "L'ILO",
+        "L'UNESCO",
+        "La FAO"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "quiz-politica-attualità-07",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale materia prima ha visto forti rincari dopo il 2021?",
+      "correctAnswer": "Il gas naturale",
+      "options": [
+        "Il sale",
+        "Il gas naturale",
+        "La carta",
+        "L'acqua potabile"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "quiz-politica-attualità-08",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale tipo di energia è al centro della transizione energetica?",
+      "correctAnswer": "Le rinnovabili",
+      "options": [
+        "Il petrolio",
+        "Il carbone",
+        "Le rinnovabili",
+        "Lo scisto bituminoso"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "quiz-politica-attualità-09",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale social network è tra i più usati per informarsi, secondo le ricerche di settore?",
+      "correctAnswer": "Facebook",
+      "options": [
+        "Flickr",
+        "MySpace",
+        "Facebook",
+        "LinkedIn"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "quiz-politica-attualità-10",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale indice diffuso dall'ISTAT misura il costo della vita?",
+      "correctAnswer": "L'indice dei prezzi al consumo",
+      "options": [
+        "Il PIL pro capite",
+        "L'indice dei prezzi al consumo",
+        "Il tasso di cambio",
+        "Lo spread"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "quiz-politica-attualità-11",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale strumento di politica monetaria alza il costo del credito?",
+      "correctAnswer": "L'aumento dei tassi di interesse",
+      "options": [
+        "La svalutazione della moneta",
+        "La riduzione della spesa pubblica",
+        "L'aumento delle imposte",
+        "L'aumento dei tassi di interesse"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "quiz-politica-attualità-12",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale patto europeo disciplina la stabilità dei bilanci nazionali?",
+      "correctAnswer": "Il patto di stabilità",
+      "options": [
+        "La convenzione di Lomé",
+        "Il patto di stabilità",
+        "Il trattato di Schengen",
+        "Il regolamento Dublino"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "quiz-politica-attualità-13",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale istituto italiano produce le statistiche ufficiali del Paese?",
+      "correctAnswer": "L'ISTAT",
+      "options": [
+        "L'ISTAT",
+        "La Corte dei Conti",
+        "La Banca d'Italia",
+        "Il Ministero dell'Economia"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "quiz-politica-attualità-14",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale programma europeo finanzia ricerca e innovazione dal 2021?",
+      "correctAnswer": "Horizon Europe",
+      "options": [
+        "LIFE",
+        "Horizon Europe",
+        "Erasmus+",
+        "Europa Creativa"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cinema-serie-tv-01",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale serie italiana racconta le indagini di un prete di paese?",
+      "correctAnswer": "Don Matteo",
+      "options": [
+        "Il commissario Montalbano",
+        "Un posto al sole",
+        "La piovra",
+        "Don Matteo"
+      ],
+      "theme": "Serie TV",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cinema-serie-tv-02",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale serie animata racconta le vicende della famiglia Simpson?",
+      "correctAnswer": "I Simpson",
+      "options": [
+        "South Park",
+        "I Griffin",
+        "I Simpson",
+        "Beavis and Butt-Head"
+      ],
+      "theme": "Serie TV",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cinema-serie-tv-03",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale serie racconta un gruppo di ragazzi in una cittadina con un mondo parallelo?",
+      "correctAnswer": "Stranger Things",
+      "options": [
+        "Dark",
+        "Locke & Key",
+        "The OA",
+        "Stranger Things"
+      ],
+      "theme": "Serie TV",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cinema-serie-tv-04",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale serie racconta le indagini di Sherlock Holmes nella Londra moderna?",
+      "correctAnswer": "Sherlock",
+      "options": [
+        "Luther",
+        "Broadchurch",
+        "Sherlock",
+        "Elementary"
+      ],
+      "theme": "Serie TV",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cinema-serie-tv-05",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale serie racconta la vita di una regina d'Inghilterra dal secondo dopoguerra?",
+      "correctAnswer": "The Crown",
+      "options": [
+        "The Tudors",
+        "Victoria",
+        "The Crown",
+        "Downton Abbey"
+      ],
+      "theme": "Serie TV",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cinema-serie-tv-06",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale serie è ambientata nella tenuta di Downton Abbey all'inizio del Novecento?",
+      "correctAnswer": "Downton Abbey",
+      "options": [
+        "Belgravia",
+        "Downton Abbey",
+        "Poldark",
+        "The Crown"
+      ],
+      "theme": "Serie TV",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cinema-serie-tv-07",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale serie spagnola racconta una banda con le maschere di Dalí?",
+      "correctAnswer": "La casa di carta",
+      "options": [
+        "Élite",
+        "Vis a vis",
+        "Narcos",
+        "La casa di carta"
+      ],
+      "theme": "Serie TV",
+      "explanation": null
+    },
+    {
+      "id": "quiz-cinema-serie-tv-08",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale serie antologica racconta storie distopiche autonome?",
+      "correctAnswer": "Black Mirror",
+      "options": [
+        "American Horror Story",
+        "Fargo",
+        "The Twilight Zone",
+        "Black Mirror"
+      ],
+      "theme": "Serie TV",
+      "explanation": null
+    },
+    {
+      "id": "quiz-tv-spettacolo-01",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale arte performativa si svolge su un palco davanti al pubblico?",
+      "correctAnswer": "Il teatro",
+      "options": [
+        "La scultura",
+        "La pittura",
+        "Il teatro",
+        "La fotografia"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "quiz-tv-spettacolo-02",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Come si chiama lo spettacolo con musica e canto in un teatro?",
+      "correctAnswer": "L'opera lirica",
+      "options": [
+        "Il concerto rock",
+        "La maratona",
+        "Il reading",
+        "L'opera lirica"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "quiz-tv-spettacolo-03",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale premio italiano è dedicato al teatro?",
+      "correctAnswer": "Il premio Ubu",
+      "options": [
+        "Il David di Donatello",
+        "Il Telegatto",
+        "Il Nastro d'argento",
+        "Il premio Ubu"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "quiz-tv-spettacolo-04",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale festival teatrale si tiene ogni anno a Spoleto?",
+      "correctAnswer": "Il Festival dei Due Mondi",
+      "options": [
+        "La Biennale di Venezia",
+        "Il Festival di Sanremo",
+        "Il festival di Ravello",
+        "Il Festival dei Due Mondi"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "quiz-tv-spettacolo-05",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Chi ha scritto la commedia Sei personaggi in cerca d'autore?",
+      "correctAnswer": "Luigi Pirandello",
+      "options": [
+        "Eduardo De Filippo",
+        "Luigi Pirandello",
+        "Carlo Goldoni",
+        "Dario Fo"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "quiz-tv-spettacolo-06",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale drammaturgo napoletano è autore di Filumena Marturano?",
+      "correctAnswer": "Eduardo De Filippo",
+      "options": [
+        "Dario Fo",
+        "Luigi Pirandello",
+        "Eduardo De Filippo",
+        "Carlo Goldoni"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "quiz-tv-spettacolo-07",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale regista ha fondato il Piccolo Teatro di Milano?",
+      "correctAnswer": "Giorgio Strehler",
+      "options": [
+        "Carmelo Bene",
+        "Luca Ronconi",
+        "Giorgio Strehler",
+        "Eduardo De Filippo"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "quiz-lingua-lingua-01",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale articolo indeterminativo maschile si usa davanti a 'amico'?",
+      "correctAnswer": "Un",
+      "options": [
+        "Un",
+        "Lo",
+        "Uno",
+        "Il"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "quiz-lingua-lingua-02",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale parte della frase indica l'azione?",
+      "correctAnswer": "Il verbo",
+      "options": [
+        "Il verbo",
+        "L'aggettivo",
+        "L'avverbio",
+        "Il nome"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "quiz-lingua-lingua-03",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale tempo verbale esprime un'azione conclusa nel passato?",
+      "correctAnswer": "Il passato prossimo",
+      "options": [
+        "Il passato prossimo",
+        "L'imperfetto",
+        "Il presente",
+        "Il futuro semplice"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "quiz-lingua-lingua-04",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale complemento risponde alla domanda 'a chi?'",
+      "correctAnswer": "Il complemento di termine",
+      "options": [
+        "Il complemento di mezzo",
+        "Il complemento oggetto",
+        "Il complemento di termine",
+        "Il complemento di luogo"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "quiz-lingua-lingua-05",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale parola è un pronome personale?",
+      "correctAnswer": "Lui",
+      "options": [
+        "Correre",
+        "Velocemente",
+        "Lui",
+        "Bello"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "quiz-lingua-lingua-06",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale figura retorica ripete una parola all'inizio di più versi?",
+      "correctAnswer": "L'anafora",
+      "options": [
+        "L'anafora",
+        "Il chiasmo",
+        "L'antitesi",
+        "L'epifora"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "quiz-lingua-lingua-07",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale caso latino esprime il complemento oggetto?",
+      "correctAnswer": "L'accusativo",
+      "options": [
+        "Il dativo",
+        "L'accusativo",
+        "Il genitivo",
+        "Il nominativo"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "quiz-lingua-lingua-08",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale tempo verbale indica un'azione futura rispetto al passato?",
+      "correctAnswer": "Il futuro anteriore",
+      "options": [
+        "Il congiuntivo imperfetto",
+        "Il condizionale passato",
+        "Il trapassato prossimo",
+        "Il futuro anteriore"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "quiz-lingua-lingua-09",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale tipo di proposizione è introdotta da 'benché'?",
+      "correctAnswer": "Una subordinata concessiva",
+      "options": [
+        "Una subordinata finale",
+        "Una subordinata causale",
+        "Una subordinata concessiva",
+        "Una coordinata avversativa"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "quiz-lingua-letteratura-01",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale poeta ha scritto la canzone Italia mia?",
+      "correctAnswer": "Francesco Petrarca",
+      "options": [
+        "Ludovico Ariosto",
+        "Francesco Petrarca",
+        "Giovanni Boccaccio",
+        "Dante Alighieri"
+      ],
+      "theme": "Letteratura",
+      "explanation": null
+    },
+    {
+      "id": "quiz-anime-anime-01",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale anime del 1995 è stato diretto da Hideaki Anno?",
+      "correctAnswer": "Neon Genesis Evangelion",
+      "options": [
+        "Cowboy Bebop",
+        "Neon Genesis Evangelion",
+        "Akira",
+        "Ghost in the Shell"
+      ],
+      "theme": "Anime",
+      "explanation": null
+    },
+    {
+      "id": "quiz-anime-anime-02",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale studio ha animato Demon Slayer?",
+      "correctAnswer": "Ufotable",
+      "options": [
+        "Ufotable",
+        "MAPPA",
+        "Madhouse",
+        "Bones"
+      ],
+      "theme": "Anime",
+      "explanation": null
+    },
+    {
+      "id": "quiz-anime-manga-01",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Come si chiama il volume che raccoglie i capitoli di un manga?",
+      "correctAnswer": "Tankobon",
+      "options": [
+        "Artbook",
+        "Tankobon",
+        "Light novel",
+        "Fanbook"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "quiz-anime-manga-02",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale manga racconta le avventure di un ninja con una volpe dentro?",
+      "correctAnswer": "Naruto",
+      "options": [
+        "Bleach",
+        "One Piece",
+        "Fairy Tail",
+        "Naruto"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "quiz-anime-manga-03",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale manga ha come protagonista Son Goku?",
+      "correctAnswer": "Dragon Ball",
+      "options": [
+        "Bleach",
+        "Yu-Gi-Oh!",
+        "Naruto",
+        "Dragon Ball"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "quiz-anime-manga-04",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Su quale rivista giapponese viene pubblicato One Piece?",
+      "correctAnswer": "Weekly Shonen Jump",
+      "options": [
+        "Weekly Shonen Jump",
+        "Nakayoshi",
+        "Ribon",
+        "Weekly Young Jump"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "quiz-anime-manga-05",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Chi ha creato il manga Bleach?",
+      "correctAnswer": "Tite Kubo",
+      "options": [
+        "Eiichiro Oda",
+        "Tite Kubo",
+        "Yoshihiro Togashi",
+        "Masashi Kishimoto"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "quiz-anime-manga-06",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale manga racconta le vicende di un ragazzo che diventa uno shinigami?",
+      "correctAnswer": "Bleach",
+      "options": [
+        "Naruto",
+        "Fairy Tail",
+        "Bleach",
+        "One Piece"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "quiz-anime-manga-07",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale rivista pubblica manga per ragazze ed è nota come shōjo?",
+      "correctAnswer": "Ribon",
+      "options": [
+        "Ribon",
+        "Weekly Shonen Jump",
+        "Big Comic",
+        "Afternoon"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "quiz-anime-manga-08",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Chi ha creato il manga Hunter x Hunter?",
+      "correctAnswer": "Yoshihiro Togashi",
+      "options": [
+        "Yoshihiro Togashi",
+        "Naoko Takeuchi",
+        "Tite Kubo",
+        "Akira Toriyama"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "quiz-anime-manga-09",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale autore ha creato il manga 20th Century Boys?",
+      "correctAnswer": "Naoki Urasawa",
+      "options": [
+        "Hajime Isayama",
+        "Takehiko Inoue",
+        "Tsugumi Ohba",
+        "Naoki Urasawa"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "quiz-gaming-gaming-01",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale gioco è ambientato nel regno di Hyrule?",
+      "correctAnswer": "The Legend of Zelda",
+      "options": [
+        "Metroid",
+        "Star Fox",
+        "Kirby",
+        "The Legend of Zelda"
+      ],
+      "theme": "Gaming",
+      "explanation": null
+    },
+    {
+      "id": "quiz-gaming-gaming-02",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale gioco di ruolo ha vinto il premio di gioco dell'anno nel 2023?",
+      "correctAnswer": "Baldur's Gate 3",
+      "options": [
+        "Baldur's Gate 3",
+        "Final Fantasy XVI",
+        "Diablo IV",
+        "Starfield"
+      ],
+      "theme": "Gaming",
+      "explanation": null
+    },
+    {
+      "id": "quiz-gaming-gaming-03",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale software house ha sviluppato Dark Souls?",
+      "correctAnswer": "FromSoftware",
+      "options": [
+        "FromSoftware",
+        "BioWare",
+        "Bethesda",
+        "CD Projekt"
+      ],
+      "theme": "Gaming",
+      "explanation": null
+    },
+    {
+      "id": "quiz-gaming-tecnologia-01",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale dispositivo stampa documenti su carta?",
+      "correctAnswer": "La stampante",
+      "options": [
+        "Il router",
+        "La stampante",
+        "Il monitor",
+        "La tastiera"
+      ],
+      "theme": "Tecnologia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-gaming-tecnologia-02",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale apparecchio collega la rete locale a internet?",
+      "correctAnswer": "Il router",
+      "options": [
+        "La stampante",
+        "Il router",
+        "Lo scanner",
+        "Il proiettore"
+      ],
+      "theme": "Tecnologia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-gaming-tecnologia-03",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Quale memoria conserva i dati anche senza alimentazione?",
+      "correctAnswer": "La memoria di massa",
+      "options": [
+        "La RAM",
+        "Il registro",
+        "La memoria di massa",
+        "La cache"
+      ],
+      "theme": "Tecnologia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-gaming-tecnologia-04",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale formato di immagine supporta la trasparenza?",
+      "correctAnswer": "PNG",
+      "options": [
+        "PNG",
+        "TXT",
+        "JPG",
+        "BMP"
+      ],
+      "theme": "Tecnologia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-gaming-tecnologia-05",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "Quale rete sociale è usata per i contenuti professionali?",
+      "correctAnswer": "LinkedIn",
+      "options": [
+        "Snapchat",
+        "Discord",
+        "LinkedIn",
+        "TikTok"
+      ],
+      "theme": "Tecnologia",
+      "explanation": null
+    },
+    {
+      "id": "quiz-gaming-tecnologia-06",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "question": "Quale algoritmo di crittografia asimmetrica usa una coppia di chiavi?",
+      "correctAnswer": "RSA",
+      "options": [
+        "AES",
+        "DES",
+        "RSA",
+        "MD5"
+      ],
+      "theme": "Tecnologia",
+      "explanation": null
+    },
+    {
+      "id": "tf-geografia-viaggi-16",
+      "category": "Geografia e Viaggi",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Il Colosseo è una delle mete turistiche più visitate d'Italia.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "tf-geografia-viaggi-17",
+      "category": "Geografia e Viaggi",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "La Torre Eiffel si trova a Londra.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "tf-geografia-viaggi-18",
+      "category": "Geografia e Viaggi",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Un volo diretto non prevede scali intermedi.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "tf-geografia-viaggi-19",
+      "category": "Geografia e Viaggi",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Il passaporto serve per i viaggi verso molti Paesi extraeuropei.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "tf-geografia-viaggi-20",
+      "category": "Geografia e Viaggi",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Il turismo religioso porta visitatori a Lourdes e a Fatima.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "tf-geografia-viaggi-21",
+      "category": "Geografia e Viaggi",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Il Machu Picchu si trova in Perù.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "tf-geografia-viaggi-22",
+      "category": "Geografia e Viaggi",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Il Canale di Panama collega l'Atlantico al Pacifico.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "tf-geografia-viaggi-23",
+      "category": "Geografia e Viaggi",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "La Cappadocia è famosa per le sue mongolfiere.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "tf-geografia-viaggi-24",
+      "category": "Geografia e Viaggi",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Il museo del Louvre si trova a Londra.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "tf-geografia-viaggi-25",
+      "category": "Geografia e Viaggi",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Il Cammino di Santiago termina a Santiago de Compostela.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "tf-geografia-viaggi-26",
+      "category": "Geografia e Viaggi",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il Glacier Express collega Zermatt a Sankt Moritz.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "tf-geografia-viaggi-27",
+      "category": "Geografia e Viaggi",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il Parco nazionale di Yellowstone si trova negli Stati Uniti.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "tf-geografia-viaggi-28",
+      "category": "Geografia e Viaggi",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il deserto del Wadi Rum è in Giordania.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "tf-geografia-viaggi-29",
+      "category": "Geografia e Viaggi",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il Machu Picchu è stato costruito dai Maya.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "tf-geografia-viaggi-30",
+      "category": "Geografia e Viaggi",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "L'isola di Pasqua appartiene al Cile.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
+    },
+    {
+      "id": "tf-scienza-spazio-10",
+      "category": "Scienza e Spazio",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Il sistema solare ha otto pianeti.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spazio",
+      "explanation": null
+    },
+    {
+      "id": "tf-scienza-spazio-11",
+      "category": "Scienza e Spazio",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "La Luna è più grande della Terra.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spazio",
+      "explanation": null
+    },
+    {
+      "id": "tf-scienza-spazio-12",
+      "category": "Scienza e Spazio",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "La luce del Sole impiega circa otto minuti a raggiungere la Terra.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spazio",
+      "explanation": null
+    },
+    {
+      "id": "tf-scienza-spazio-13",
+      "category": "Scienza e Spazio",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Plutone è ancora considerato un pianeta del sistema solare.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spazio",
+      "explanation": null
+    },
+    {
+      "id": "tf-scienza-spazio-14",
+      "category": "Scienza e Spazio",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Un'eclissi solare avviene quando la Luna si frappone tra Sole e Terra.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spazio",
+      "explanation": null
+    },
+    {
+      "id": "tf-scienza-spazio-15",
+      "category": "Scienza e Spazio",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il buco nero al centro della Via Lattea si chiama Sagittarius A*.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spazio",
+      "explanation": null
+    },
+    {
+      "id": "tf-scienza-spazio-16",
+      "category": "Scienza e Spazio",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "La sonda Voyager 1 ha superato l'eliopausa.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spazio",
+      "explanation": null
+    },
+    {
+      "id": "tf-natura-natura-10",
+      "category": "Natura e Animali",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Le foglie servono alla pianta per la fotosintesi.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "tf-natura-natura-11",
+      "category": "Natura e Animali",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Il bambù è una pianta che cresce molto lentamente.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "tf-natura-natura-12",
+      "category": "Natura e Animali",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Le radici assorbono acqua e sali minerali.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "tf-natura-natura-13",
+      "category": "Natura e Animali",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Le foreste tropicali ospitano gran parte della biodiversità terrestre.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "tf-natura-natura-14",
+      "category": "Natura e Animali",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "La deforestazione aumenta la capacità del suolo di trattenere acqua.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "tf-natura-natura-15",
+      "category": "Natura e Animali",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Il Sahara era una savana verde migliaia di anni fa.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "tf-natura-natura-16",
+      "category": "Natura e Animali",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il permafrost è un terreno ghiacciato per almeno due anni consecutivi.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "tf-natura-natura-17",
+      "category": "Natura e Animali",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "La tundra si trova solo nell'emisfero australe.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "tf-natura-natura-18",
+      "category": "Natura e Animali",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "I licheni sono organismi simbiotici tra funghi e alghe.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "tf-natura-natura-19",
+      "category": "Natura e Animali",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Le piante carnivore ricavano l'energia dagli insetti e non dalla fotosintesi.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Natura",
+      "explanation": null
+    },
+    {
+      "id": "tf-arte-architettura-11",
+      "category": "Arte e Architettura",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Il Ponte Vecchio è un ponte di Firenze.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "tf-arte-architettura-12",
+      "category": "Arte e Architettura",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "La Torre di Pisa è un campanile.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "tf-arte-architettura-13",
+      "category": "Arte e Architettura",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Il Partenone è un palazzo rinascimentale.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "tf-arte-architettura-14",
+      "category": "Arte e Architettura",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Il Duomo di Milano è in stile gotico.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "tf-arte-architettura-15",
+      "category": "Arte e Architettura",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "La Sagrada Família è opera di Antoni Gaudí.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "tf-arte-architettura-16",
+      "category": "Arte e Architettura",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "La cupola del Pantheon di Roma è chiusa da vetrate.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "tf-arte-architettura-17",
+      "category": "Arte e Architettura",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il Bauhaus fu fondato da Walter Gropius a Weimar.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "tf-arte-architettura-18",
+      "category": "Arte e Architettura",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "La cupola di San Pietro è opera di Michelangelo.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "tf-arte-architettura-19",
+      "category": "Arte e Architettura",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il ponte di Rialto è stato costruito in cemento armato.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Architettura",
+      "explanation": null
+    },
+    {
+      "id": "tf-cibo-gastronomia-14",
+      "category": "Cibo e Gastronomia",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "La ricetta elenca ingredienti e passaggi di un piatto.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "tf-cibo-gastronomia-15",
+      "category": "Cibo e Gastronomia",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Per cuocere la pasta si usa acqua fredda.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "tf-cibo-gastronomia-16",
+      "category": "Cibo e Gastronomia",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Il tagliere serve ad appoggiare gli alimenti da tagliare.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "tf-cibo-gastronomia-17",
+      "category": "Cibo e Gastronomia",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "La bilancia da cucina misura i liquidi in litri.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "tf-cibo-gastronomia-18",
+      "category": "Cibo e Gastronomia",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "La mise en place è la preparazione degli ingredienti prima della cottura.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "tf-cibo-gastronomia-19",
+      "category": "Cibo e Gastronomia",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "La cottura sous vide usa temperature molto alte.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "tf-cibo-gastronomia-20",
+      "category": "Cibo e Gastronomia",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "La maionese è un'emulsione di olio e tuorlo d'uovo.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "tf-cibo-gastronomia-21",
+      "category": "Cibo e Gastronomia",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Il brodo si ottiene cuocendo carne o verdure in acqua.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "tf-cibo-gastronomia-22",
+      "category": "Cibo e Gastronomia",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "La frollatura serve a rendere la carne più dura.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "tf-cibo-gastronomia-23",
+      "category": "Cibo e Gastronomia",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il roux è un composto di farina e burro usato per addensare le salse.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "tf-cibo-gastronomia-24",
+      "category": "Cibo e Gastronomia",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "La pastorizzazione elimina tutti i microrganismi, comprese le spore.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "tf-cibo-gastronomia-25",
+      "category": "Cibo e Gastronomia",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "La fermentazione lattica è alla base della produzione dei crauti.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Gastronomia",
+      "explanation": null
+    },
+    {
+      "id": "tf-politica-attualità-15",
+      "category": "Politica e Attualità",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Oggi molte riunioni di lavoro si tengono in videoconferenza.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "tf-politica-attualità-16",
+      "category": "Politica e Attualità",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "L'inflazione indica la crescita dei prezzi nel tempo.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "tf-politica-attualità-17",
+      "category": "Politica e Attualità",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Il riscaldamento climatico è un tema discusso a livello internazionale.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "tf-politica-attualità-18",
+      "category": "Politica e Attualità",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Le borse valori aprono solo nel fine settimana.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "tf-politica-attualità-19",
+      "category": "Politica e Attualità",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Le elezioni politiche si svolgono periodicamente secondo la legge.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "tf-politica-attualità-20",
+      "category": "Politica e Attualità",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "L'accordo di Parigi fissa un obiettivo di limitazione del riscaldamento globale.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "tf-politica-attualità-21",
+      "category": "Politica e Attualità",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "La Banca centrale europea ha sede a Londra.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "tf-politica-attualità-22",
+      "category": "Politica e Attualità",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Il PNRR è un piano di investimenti finanziato dall'Unione europea.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "tf-politica-attualità-23",
+      "category": "Politica e Attualità",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Il prezzo del petrolio influisce sul costo della benzina.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "tf-politica-attualità-24",
+      "category": "Politica e Attualità",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "L'OMS ha sede a Ginevra.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "tf-politica-attualità-25",
+      "category": "Politica e Attualità",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Lo spread misura la differenza di rendimento tra titoli di Stato.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "tf-politica-attualità-26",
+      "category": "Politica e Attualità",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il tasso di disoccupazione rapporta i senza lavoro alla forza lavoro.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "tf-politica-attualità-27",
+      "category": "Politica e Attualità",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "L'ISTAT è un'agenzia dell'Unione europea.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "tf-politica-attualità-28",
+      "category": "Politica e Attualità",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "La Banca centrale europea ha il compito di mantenere la stabilità dei prezzi.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "tf-politica-attualità-29",
+      "category": "Politica e Attualità",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il debito pubblico italiano è espresso in dollari.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Attualità",
+      "explanation": null
+    },
+    {
+      "id": "tf-cinema-serie-tv-09",
+      "category": "Cinema, Serie TV",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "I Simpson sono una serie animata americana.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Serie TV",
+      "explanation": null
+    },
+    {
+      "id": "tf-cinema-serie-tv-10",
+      "category": "Cinema, Serie TV",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Don Matteo è ambientato a Milano.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Serie TV",
+      "explanation": null
+    },
+    {
+      "id": "tf-cinema-serie-tv-11",
+      "category": "Cinema, Serie TV",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Una serie tv è composta da episodi.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Serie TV",
+      "explanation": null
+    },
+    {
+      "id": "tf-cinema-serie-tv-12",
+      "category": "Cinema, Serie TV",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Dark è una serie tedesca.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Serie TV",
+      "explanation": null
+    },
+    {
+      "id": "tf-cinema-serie-tv-13",
+      "category": "Cinema, Serie TV",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "I Soprano raccontano le vicende di una famiglia mafiosa del New Jersey.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Serie TV",
+      "explanation": null
+    },
+    {
+      "id": "tf-cinema-serie-tv-14",
+      "category": "Cinema, Serie TV",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Modern Family è una serie drammatica ambientata in ospedale.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Serie TV",
+      "explanation": null
+    },
+    {
+      "id": "tf-cinema-serie-tv-15",
+      "category": "Cinema, Serie TV",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Game of Thrones è tratto dai romanzi di George R. R. Martin.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Serie TV",
+      "explanation": null
+    },
+    {
+      "id": "tf-cinema-serie-tv-16",
+      "category": "Cinema, Serie TV",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "The Wire racconta il mondo della finanza di Wall Street.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Serie TV",
+      "explanation": null
+    },
+    {
+      "id": "tf-tv-spettacolo-08",
+      "category": "TV e Spettacolo",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Il concerto è uno spettacolo musicale dal vivo.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "tf-tv-spettacolo-09",
+      "category": "TV e Spettacolo",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Il teatro greco era all'aperto.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "tf-tv-spettacolo-10",
+      "category": "TV e Spettacolo",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Un festival può durare più giorni.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "tf-tv-spettacolo-11",
+      "category": "TV e Spettacolo",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Il musical unisce recitazione, canto e danza.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "tf-tv-spettacolo-12",
+      "category": "TV e Spettacolo",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "La Biennale di Venezia riguarda solo la pittura.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "tf-tv-spettacolo-13",
+      "category": "TV e Spettacolo",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Il palcoscenico è la parte del teatro dove si esibiscono gli attori.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "tf-tv-spettacolo-14",
+      "category": "TV e Spettacolo",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Dario Fo ha vinto il premio Nobel per la letteratura.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "tf-tv-spettacolo-15",
+      "category": "TV e Spettacolo",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "La Scala è un teatro di opera lirica a Milano.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "tf-tv-spettacolo-16",
+      "category": "TV e Spettacolo",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il teatro dell'opera di Sydney ha una copertura a forma di vela.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "tf-tv-spettacolo-17",
+      "category": "TV e Spettacolo",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il festival di Edimburgo è dedicato solo al cinema.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Spettacolo",
+      "explanation": null
+    },
+    {
+      "id": "tf-lingua-lingua-10",
+      "category": "Lingua e Letteratura",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Il punto fermo chiude una frase.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "tf-lingua-lingua-11",
+      "category": "Lingua e Letteratura",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "In italiano gli aggettivi non concordano mai con il nome.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "tf-lingua-lingua-12",
+      "category": "Lingua e Letteratura",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Il congiuntivo si usa spesso nelle frasi subordinate.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "tf-lingua-lingua-13",
+      "category": "Lingua e Letteratura",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "'Qual è' si scrive senza apostrofo.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "tf-lingua-lingua-14",
+      "category": "Lingua e Letteratura",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il predicato nominale è formato dal verbo essere più un nome o un aggettivo.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "tf-lingua-lingua-15",
+      "category": "Lingua e Letteratura",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "L'italiano ha sette modi verbali.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "tf-lingua-lingua-16",
+      "category": "Lingua e Letteratura",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il chiasmo è una figura retorica di suono.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "tf-lingua-lingua-17",
+      "category": "Lingua e Letteratura",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "I verbi transitivi reggono il complemento oggetto.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "tf-lingua-lingua-18",
+      "category": "Lingua e Letteratura",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "L'accento circonflesso è usato comunemente nell'italiano moderno.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Lingua",
+      "explanation": null
+    },
+    {
+      "id": "tf-anime-anime-03",
+      "category": "Anime e manga",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il film Akira è tratto da un manga di Katsuhiro Otomo.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Anime",
+      "explanation": null
+    },
+    {
+      "id": "tf-anime-manga-10",
+      "category": "Anime e manga",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Il manga è un fumetto giapponese.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "tf-anime-manga-11",
+      "category": "Anime e manga",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Un tankobon raccoglie più capitoli di un manga.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "tf-anime-manga-12",
+      "category": "Anime e manga",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "In Giappone il manga si legge da sinistra verso destra.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "tf-anime-manga-13",
+      "category": "Anime e manga",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Il termine shonen indica un manga per ragazzi.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "tf-anime-manga-14",
+      "category": "Anime e manga",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Il manga viene pubblicato a puntate su riviste prima dei volumi.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "tf-anime-manga-15",
+      "category": "Anime e manga",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Il termine seinen indica manga destinati a un pubblico adulto.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "tf-anime-manga-16",
+      "category": "Anime e manga",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "One Piece è pubblicato su Weekly Shonen Jump.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "tf-anime-manga-17",
+      "category": "Anime e manga",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "I manga sono sempre a colori.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "tf-anime-manga-18",
+      "category": "Anime e manga",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Naoki Urasawa è l'autore di Monster.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Manga",
+      "explanation": null
+    },
+    {
+      "id": "tf-gaming-gaming-04",
+      "category": "Gaming e Tecnologia",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Tetris è un gioco di puzzle con blocchi che cadono.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Gaming",
+      "explanation": null
+    },
+    {
+      "id": "tf-gaming-gaming-05",
+      "category": "Gaming e Tecnologia",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Il primo videogioco commerciale di grande successo fu Pong.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Gaming",
+      "explanation": null
+    },
+    {
+      "id": "tf-gaming-tecnologia-07",
+      "category": "Gaming e Tecnologia",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "Il monitor è un dispositivo di output.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Tecnologia",
+      "explanation": null
+    },
+    {
+      "id": "tf-gaming-tecnologia-08",
+      "category": "Gaming e Tecnologia",
+      "type": "TRUE_FALSE",
+      "difficulty": "facile",
+      "question": "La tastiera serve a stampare i documenti.",
+      "correctAnswer": "FALSO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Tecnologia",
+      "explanation": null
+    },
+    {
+      "id": "tf-gaming-tecnologia-09",
+      "category": "Gaming e Tecnologia",
+      "type": "TRUE_FALSE",
+      "difficulty": "medio",
+      "question": "Il backup serve a conservare una copia dei dati.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Tecnologia",
+      "explanation": null
+    },
+    {
+      "id": "tf-gaming-tecnologia-10",
+      "category": "Gaming e Tecnologia",
+      "type": "TRUE_FALSE",
+      "difficulty": "difficile",
+      "question": "Un firewall filtra il traffico di rete in base a regole.",
+      "correctAnswer": "VERO",
+      "options": [
+        "VERO",
+        "FALSO"
+      ],
+      "theme": "Tecnologia",
       "explanation": null
     },
     {
