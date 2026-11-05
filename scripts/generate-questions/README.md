@@ -78,9 +78,16 @@ esportare quattro dizionari: `EXTRA_QUIZ` e `EXTRA_TF` per categoria e
 `EXTRA_THEMED_QUIZ` / `EXTRA_THEMED_TF` con chiave `"Categoria|Branca"` quando il tema
 va dichiarato a mano.
 
+Prima di contare, la banca viene **deduplicata**: due domande con la stessa categoria,
+lo stesso tipo, lo stesso testo e la stessa risposta non possono entrarci entrambe, e la
+seconda viene scartata (a fine build lo script stampa l'elenco dei doppioni rimossi). Se
+togliere un doppione lascia una branca sotto le dieci domande, la domanda che manca va
+scritta in un blocco, non ricopiata: i blocchi `bank_extra_9.py`, `_10.py` e `_11.py`
+esistono proprio per questo.
+
 Lo script **si rifiuta di scrivere la banca incompleta**: stampa il report di copertura
-per branca (e per categoria) e termina con errore se una branca resta sotto le dieci
-domande in una fascia. La stessa regola è verificata dal backend in
+per branca (e per categoria) calcolato sulla banca finale e termina con errore se una
+branca resta sotto le dieci domande in una fascia. La stessa regola è verificata dal backend in
 `QuestionBankCoverageTest`, che controlla anche Cavallo di Battaglia (otto domande per
 categoria) e Bomba (dodici domande per ciascuno dei cinque atti).
 

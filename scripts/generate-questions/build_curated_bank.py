@@ -523,6 +523,26 @@ IMAGE_BLUR = [
 ]
 
 
+def dedupe(items: list[dict]) -> tuple[list[dict], list[str]]:
+    """Tiene la prima occorrenza: un doppione non deve entrare due volte in partita."""
+    seen: set[tuple[str, str, str, str]] = set()
+    unique: list[dict] = []
+    removed: list[str] = []
+    for item in items:
+        key = (
+            item["category"],
+            item["type"],
+            " ".join(str(item["question"]).split()).lower(),
+            " ".join(str(item["correctAnswer"]).split()).lower(),
+        )
+        if key in seen:
+            removed.append(f"{item['category']}: {item['question']}")
+            continue
+        seen.add(key)
+        unique.append(item)
+    return unique, removed
+
+
 def theme_slug(theme: str) -> str:
     return "".join(character if character.isalnum() else "-" for character in theme.lower()).strip("-")
 
@@ -619,6 +639,12 @@ def build() -> dict:
             "explanation": None,
         })
 
+    questions, removed_duplicates = dedupe(questions)
+    if removed_duplicates:
+        print(f"Doppioni rimossi: {len(removed_duplicates)}")
+        for duplicate in removed_duplicates:
+            print(f"  - {duplicate}")
+
     return {
         "version": 2,
         "language": "it",
@@ -635,33 +661,33 @@ DIFFICULTY_BANDS = ("facile", "medio", "difficile")
 BAND_TARGETS = {"__default__": 15, "Cinema, Serie TV": 20}
 
 
-def band_totals(category: str) -> dict[str, int]:
-    totals = {band: 0 for band in DIFFICULTY_BANDS}
-    for row in QUIZ.get(category, []):
-        totals[row[3]] = totals.get(row[3], 0) + 1
-    for row in TF.get(category, []):
-        totals[row[2]] = totals.get(row[2], 0) + 1
+def band_totals(bank: dict) -> dict[str, dict[str, int]]:
+    totals: dict[str, dict[str, int]] = {}
+    for item in bank["questions"]:
+        if item.get("type") not in ("QUIZ", "TRUE_FALSE"):
+            continue
+        bucket = totals.setdefault(item["category"], {band: 0 for band in DIFFICULTY_BANDS})
+        bucket[item["difficulty"]] = bucket.get(item["difficulty"], 0) + 1
     return totals
 
 
-def check_coverage() -> None:
+def check_coverage(bank: dict) -> None:
     problems: list[str] = []
+    totals = band_totals(bank)
     print("Copertura per categoria e difficolta (QUIZ + Vero/Falso):")
     for category in CATEGORIES:
         target = BAND_TARGETS.get(category, BAND_TARGETS["__default__"])
-        totals = band_totals(category)
-        line = " | ".join(f"{band} {totals.get(band, 0)}/{target}" for band in DIFFICULTY_BANDS)
+        per_band = totals.get(category, {})
+        line = " | ".join(f"{band} {per_band.get(band, 0)}/{target}" for band in DIFFICULTY_BANDS)
         print(f"  {category}: {line}")
         for band in DIFFICULTY_BANDS:
-            if totals.get(band, 0) < target:
-                problems.append(f"{category} - {band}: {totals.get(band, 0)} < {target}")
+            if per_band.get(band, 0) < target:
+                problems.append(f"{category} - {band}: {per_band.get(band, 0)}/{target}")
     if problems:
-        raise SystemExit("Fasce di difficolta incomplete:\n  " + "\n  ".join(problems))
+        raise SystemExit("Copertura incompleta:\n  " + "\n  ".join(problems))
 
 
-# Regola della serata, per fascia di difficolta:
-# - categorie a branca unica: 15 domande in tutto;
-# - categorie a due branche: 10 domande per branca (10 + 10).
+# Ogni branca deve avere questo numero di domande in ognuna delle tre fasce.
 THEME_TARGET = 10
 
 
@@ -707,9 +733,8 @@ def print_theme_report(bank: dict) -> None:
 
 
 def main() -> None:
-    check_coverage()
-
     bank = build()
+    check_coverage(bank)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(bank, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
