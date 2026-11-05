@@ -632,11 +632,11 @@ app-speed-rush .sr-name { font-size: clamp(1.05rem, 1.25vw, 1.28rem) !important;
 app-speed-rush .sr-pct { font-size: clamp(0.95rem, 1.1vw, 1.1rem) !important; }
 app-speed-rush .sr-timer { font-size: clamp(1.45rem, 2.2vw, 2.1rem) !important; }
 
-app-air-hockey-battle .pp-title { font-size: clamp(2.2rem, 4vw, 3.4rem) !important; }
-app-air-hockey-battle .pp-timer { font-size: clamp(1.5rem, 2vw, 1.9rem) !important; }
-app-air-hockey-battle .pp-score { font-size: clamp(2rem, 2.8vw, 2.8rem) !important; }
-app-air-hockey-battle .pp-name,
-app-air-hockey-battle .pp-winner { font-size: clamp(0.95rem, 1.2vw, 1.15rem) !important; }
+app-air-hockey-battle .ahb-title { font-size: clamp(2.2rem, 4vw, 3.4rem) !important; }
+app-air-hockey-battle .ahb-timer { font-size: clamp(1.5rem, 2vw, 1.9rem) !important; }
+app-air-hockey-battle .ahb-score { font-size: clamp(2rem, 2.8vw, 2.8rem) !important; }
+app-air-hockey-battle .ahb-name,
+app-air-hockey-battle .ahb-winner-name { font-size: clamp(0.95rem, 1.2vw, 1.15rem) !important; }
 
 app-timeline .tl-legend { font-size: clamp(0.88rem, 1vw, 1rem) !important; }
 app-timeline .tl-card { font-size: clamp(1.02rem, 1.2vw, 1.22rem) !important; }
@@ -657,12 +657,11 @@ app-song .current-phase-label { font-size: clamp(18px, 1.9vw, 26px) !important; 
 }
 
 /* ============================================================
-   AIR HOCKEY — solo partite in TV, niente domande
+   AIR HOCKEY — pista e domanda in TV
    ============================================================ */
-app-air-hockey-battle .pp-question { display: none !important; }
-app-air-hockey-battle .pp-rink { flex: 1 1 auto !important; min-height: 0 !important; }
-app-air-hockey-battle .pp-courts { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important; align-content: center; }
-app-air-hockey-battle .pp-court { height: auto !important; }
+app-air-hockey-battle .ahb-rink { flex: 1 1 auto !important; min-height: 0 !important; }
+app-air-hockey-battle .ahb-courts { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important; align-content: center; }
+app-air-hockey-battle .ahb-court { height: auto !important; }
 
 /* ============================================================
    SPEED RUSH — pista in carta e inchiostro

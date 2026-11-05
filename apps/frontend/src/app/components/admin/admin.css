@@ -421,3 +421,24 @@
 .flow-id { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono, monospace); font-size: .72rem; font-weight: 800; }
 .flow-id input { width: 90px; padding: 6px 8px; border: 2px solid #1e1914; background: #fff; font: inherit; font-size: .9rem; }
 .flow-id-hint { font-family: var(--font-mono, monospace); font-size: .66rem; opacity: .6; }
+
+/* Anteprima punti e tabella punteggi per il presentatore */
+.points-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 14px; }
+.preview-item { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; background: var(--paper-hi); border: 2px solid var(--coal); }
+.preview-item.correct { border-left: 8px solid var(--acid); }
+.preview-item.wrong { border-left: 8px solid var(--tomato); }
+.preview-item span { font-family: var(--font-mono); font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+.preview-item b { font-family: var(--font-display); font-size: clamp(1.3rem, 3vw, 1.9rem); font-weight: 400; line-height: 1; }
+.solution-line { margin: 10px 0 0; padding: 8px 10px; background: var(--paper-hi); border-left: 4px solid var(--tomato); font-family: var(--font-mono); font-size: .78rem; line-height: 1.3; color: var(--coal); }
+.solution-line b { color: var(--tomato); }
+.scoring-card { width: 100%; max-width: 620px; margin-top: 16px; padding: 14px 16px; background: var(--paper-hi); border: 2px solid var(--coal); }
+.scoring-title { margin-bottom: 8px; font-family: var(--font-mono); font-size: .7rem; font-weight: 800; letter-spacing: .12em; color: var(--tomato); }
+.scoring-row { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding: 5px 0; border-bottom: 1px dashed rgba(30, 25, 20, .22); font-family: var(--font-mono); font-size: .74rem; }
+.scoring-row span { opacity: .7; }
+.scoring-row b { text-align: right; font-weight: 800; }
+.scoring-note { margin: 9px 0 0; font-family: var(--font-mono); font-size: .68rem; line-height: 1.35; opacity: .7; }
+@media (max-width: 420px) {
+  .points-preview { grid-template-columns: 1fr; }
+  .scoring-row { align-items: flex-start; flex-direction: column; gap: 2px; }
+  .scoring-row b { text-align: left; }
+}

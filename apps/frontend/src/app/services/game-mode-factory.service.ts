@@ -13,7 +13,7 @@ import { ArenaMode } from '../components/game-component/mode/arena.mode';
 import { TimelineMode } from '../components/game-component/mode/timeline.mode';
 import { TimeBuzzerMode } from '../components/game-component/mode/time-buzzer.mode';
 import { SpeedRushMode } from '../components/game-component/mode/speed-rush.mode';
-import { AirHockeyBattleMode } from '../components/game-component/mode/ping-pong.mode';
+import { AirHockeyBattleMode } from '../components/game-component/mode/air-hockey-battle.mode';
 
 type ModeFactory = (config: GameModeConfig) => IGameMode;
 

@@ -232,24 +232,73 @@
 }
 
 @if (demoType(); as demo) {
+@if (getDemoScript(demo); as script) {
 <div class="demo-overlay">
   <div class="demo-frame">
     <div class="demo-head">
       <span class="demo-badge">🎬 COME SI GIOCA</span>
-      <span class="demo-name">{{ getModeName(demo) }}</span>
-      <span class="demo-live">LOOP</span>
+      <span class="demo-name">{{ script.icon }} {{ script.title }}</span>
+      <span class="demo-live">SCENA {{ demoScene() + 1 }}/3</span>
     </div>
-    <div class="demo-stage">
-      <video class="demo-video" [src]="'/assets/demos/' + demo.toLowerCase() + '.mp4'" autoplay muted loop playsinline></video>
-      <div class="demo-fallback">
-        <div class="demo-orb">🎮</div>
-        <div class="demo-fallback-title">{{ getModeName(demo) }}</div>
-        <div class="demo-fallback-sub">Demo video non ancora caricata</div>
+    <div class="demo-stage demo-animated">
+      <div class="demo-progress">
+        @for (scene of [0, 1, 2]; track scene) {
+          <button class="demo-dot" [class.active]="demoScene() === scene" (click)="goDemoScene(scene)"
+            [attr.aria-label]="'Scena ' + (scene + 1)"></button>
+        }
       </div>
+
+      @if (demoScene() === 0) {
+        <div class="demo-panel">
+          <div class="demo-panel-head">📺 INTERFACCIA TV</div>
+          <ul class="demo-list">
+            @for (line of script.tv; track line) { <li>{{ line }}</li> }
+          </ul>
+          <div class="demo-tv-mock">
+            <span class="demo-tv-icon">{{ script.icon }}</span>
+            <span class="demo-tv-title">{{ script.title }}</span>
+            <span class="demo-tv-bar"></span>
+          </div>
+        </div>
+      } @else if (demoScene() === 1) {
+        <div class="demo-panel">
+          <div class="demo-panel-head">📱 INTERFACCIA REMOTE</div>
+          <ul class="demo-list">
+            @for (line of script.remote; track line) { <li>{{ line }}</li> }
+          </ul>
+          <div class="demo-phone-mock">
+            <span class="demo-phone-kicker">PUB GAME</span>
+            <span class="demo-phone-name">{{ script.title }}</span>
+            <span class="demo-phone-btn">TOCCA QUI</span>
+          </div>
+        </div>
+      } @else {
+        <div class="demo-panel">
+          <div class="demo-panel-head">🏆 PUNTEGGIO</div>
+          <div class="demo-score-list">
+            @for (row of script.scoring; track row.label) {
+              <div class="demo-score-row">
+                <span>{{ row.label }}</span>
+                <b [class.good]="row.tone === 'good'" [class.bad]="row.tone === 'bad'">{{ row.value }}</b>
+              </div>
+            } @empty {
+              <div class="demo-score-row"><span>Punteggio</span><b>calcolato dal gioco</b></div>
+            }
+          </div>
+          <div class="demo-score-legend">✅ corretto · ❌ errore · ⏱️ non risposta</div>
+        </div>
+      }
+
+      <p class="demo-note">{{ script.note }}</p>
     </div>
-    <div class="demo-foot">Il presentatore spiega dal vivo · video muto in loop</div>
+    <div class="demo-foot">
+      <button class="demo-nav" (click)="prevDemoScene()" aria-label="Scena precedente">◀</button>
+      <span>Il presentatore spiega dal vivo · 3 scene in loop</span>
+      <button class="demo-nav" (click)="nextDemoScene()" aria-label="Scena successiva">▶</button>
+    </div>
   </div>
 </div>
+}
 }
 
 @if (showResetModal()) {

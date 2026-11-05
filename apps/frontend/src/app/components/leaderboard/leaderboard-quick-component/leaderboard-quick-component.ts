@@ -74,9 +74,14 @@ export class LeaderboardQuick implements OnInit {
 
       this.visiblePlayers.update(list => [...list, players[i]]);
       this.progress.set(((i + 1) / total) * 100);
-      this.audio.playTick();
-      if (players[i].position === 1) {
-        this.audio.playPodium();
+
+      // Podio: il rullo cresce dal terzo al primo posto, con festeggiamento
+      // e botticelle/botti per i gradini alti.
+      const position = players[i].position;
+      if (position <= 3) {
+        this.audio.playPodiumReveal(position);
+      } else {
+        this.audio.playTick();
       }
 
       await new Promise(resolve => setTimeout(resolve, delay));

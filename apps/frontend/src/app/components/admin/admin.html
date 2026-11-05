@@ -18,7 +18,7 @@
   
   @if (correctAnswer()) {
     <div class="correct-answer-banner">
-      <div class="answer-label">📝 RISPOSTA CORRETTA</div>
+      <div class="answer-label">✅ SOLUZIONE</div>
       <div class="answer-value">{{ correctAnswer() }}</div>
     </div>
   }
@@ -39,6 +39,8 @@
       <button class="flow-btn ghost" (click)="hideDemo()">✖️ CHIUDI DEMO</button>
       <button class="flow-btn" (click)="startBonus('ROULETTE')">🎰 BONUS ROULETTE</button>
       <button class="flow-btn" (click)="startBonus('BASKET')">🏀 BONUS BASKET</button>
+      <button class="flow-btn" (click)="showDemoOf('BONUS_ROULETTE')">🎥 DEMO BONUS ROULETTE</button>
+      <button class="flow-btn" (click)="showDemoOf('BONUS_BASKET')">🎥 DEMO BONUS BASKET</button>
       <button class="flow-btn ghost" (click)="stopBonus()">✖️ CHIUDI BONUS</button>
     </div>
     <div class="flow-note">Avanzamento automatico dopo 10 s, fermabile con PAUSA o PROSSIMO ROUND.</div>
@@ -77,7 +79,23 @@
                 </div>
                 <div class="buzzed-player-name">{{ buzzedPlayer() }}</div>
                 <p class="instruction">Ascolta la risposta e valuta:</p>
+                @if (solution()) {
+                  <p class="solution-line"><b>Soluzione:</b> {{ solution() }}</p>
+                }
               </div>
+
+              @if (correctPoints() !== null && wrongPoints() !== null) {
+              <div class="points-preview">
+                <div class="preview-item correct">
+                  <span>✅ Se corretto</span>
+                  <b>{{ (correctPoints() ?? 0) >= 0 ? '+' : '' }}{{ correctPoints() }}</b>
+                </div>
+                <div class="preview-item wrong">
+                  <span>❌ Se sbagliato</span>
+                  <b>{{ (wrongPoints() ?? 0) > 0 ? '+' : '' }}{{ wrongPoints() }}</b>
+                </div>
+              </div>
+              }
 
               
               <div class="decision-grid">
@@ -120,6 +138,16 @@
             <p class="sub-text">Tipo: {{ currentQuestionType() }}</p>
             <p class="info-text">Questa modalità non richiede validazione admin</p>
           </div>
+        }
+
+        @if (scoringRules(); as rules) {
+        <div class="scoring-card">
+          <div class="scoring-title">PUNTI — {{ currentQuestionType() }}</div>
+          <div class="scoring-row"><span>Corretto</span><b>{{ rules.correct }}</b></div>
+          <div class="scoring-row"><span>Sbagliato</span><b>{{ rules.wrong }}</b></div>
+          <div class="scoring-row"><span>Non risposta</span><b>{{ rules.missed }}</b></div>
+          <p class="scoring-note">{{ rules.note }}</p>
+        </div>
         }
       }
 

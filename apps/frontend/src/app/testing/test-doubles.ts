@@ -129,10 +129,18 @@ export class FakeAudioService {
 
   readonly startAmbient = () => this.played.push('ambient');
   readonly playJoin = () => this.played.push('join');
+  readonly playCountdownTick = () => this.played.push('countdown-tick');
+  readonly playCountdownBong = () => this.played.push('countdown-bong');
   readonly playElimination = () => this.played.push('elimination');
   readonly playPodium = () => this.played.push('podium');
-  readonly startHeartbeat = () => this.played.push('heartbeat');
+  readonly playPodiumReveal = (position: number) => this.played.push(`podium-reveal-${position}`);
+  readonly playDrumroll = (_seconds = 2, _strength = 0.6) => this.played.push('drumroll');
+  readonly playTick = () => this.played.push('tick');
+  readonly playWhoosh = () => this.played.push('whoosh');
+  readonly startHeartbeat = (_intensity = 0) => this.played.push('heartbeat');
   readonly stopHeartbeat = () => this.played.push('stop-heartbeat');
+  readonly startSuspense = (round: number) => this.played.push(`suspense-${round}`);
+  readonly stopSuspense = () => this.played.push('stop-suspense');
   readonly startClock = () => this.played.push('clock');
   readonly stopClock = () => this.played.push('stop-clock');
   readonly playBell = () => this.played.push('bell');

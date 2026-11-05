@@ -1,5 +1,7 @@
 # Brief operativo PubGame — correzioni, video demo, bonus e giochi nuovi
 
+> **Aggiornamento 5/11:** le demo sono state realizzate come tre scene animate in TV (interfaccia TV, remote e punteggio) per ogni gioco e per i bonus; gli mp4 non sono più necessari. La specifica storica sotto resta come riferimento.
+
 > **A chi è rivolto:** a un agente di coding con ragionamento alto, che lavora sul repository `pub_game` senza aver visto la conversazione da cui nasce questo documento. È autoportante.
 >
 > **Stato del repository a cui si riferisce:** branch `main`, HEAD `76a5cc2` (*feat(party): flusso admin, 40 turni e bonus basket*), allineato a `origin/main`. Working tree pulito tranne questo file, non tracciato.
@@ -174,7 +176,7 @@ Giochi di round oggi: `QUIZ`, `MUSIC`, `TIME_BUZZER`, `WHEEL_OF_FORTUNE`, `IMAGE
 - Porta la modalità a due fasi come deciso: prima la ruota/lettere, poi la prenotazione e la risposta. Il timer attuale è 120 s: riducilo a 60-75 s.
 - Correggi apostrofi e accenti nel confronto della frase (normalizza con `QuestionHistoryService.normalize` lato server, o equivalente lato client).
 
-**Air Hockey (`ping-pong.mode.ts`).**
+**Air Hockey (`air-hockey-battle.mode.ts`).**
 
 - Oggi le domande sono **scritte nel codice** (`question('EASY', 'Quanto fa 2 + 2?', ...)`, riga ~58). Vanno pescate dalla banca con il campo `difficulty`, con un endpoint dedicato o con il pool esistente.
 - La difficoltà deve crescere con il livello della partita (es. `EASY` → `MEDIUM` → `HARD`), non essere fissa.

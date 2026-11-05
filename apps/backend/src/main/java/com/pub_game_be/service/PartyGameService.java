@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Giochi simultanei che non vivono nella banca domande: Timeline, Quanto costa,
- * Speed Rush e Ping Pong.
+ * Speed Rush e Air Hockey Battle.
  *
  * Le soluzioni restano sul server: il telefono riceve solo le carte mescolate o
  * i prodotti senza prezzo, e il punteggio lo calcola qui.
@@ -426,7 +426,7 @@ public class PartyGameService {
     private String configPayload(String type, int durationSeconds) {
         JSONObject payload = new JSONObject();
         payload.put("type", type);
-        payload.put("question", type.equals("SPEED_RUSH") ? "Speed Rush!" : "Ping Pong!");
+        payload.put("question", type.equals("SPEED_RUSH") ? "Speed Rush!" : "Air Hockey Battle!");
         payload.put("duration", durationSeconds);
         return payload.toString();
     }

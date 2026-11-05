@@ -12,7 +12,7 @@ interface CourtSide {
   shots: number;
 }
 
-interface PingQuestion {
+interface AirHockeyQuestion {
   text: string;
   options: string[];
   correctIndex: number;
@@ -32,7 +32,7 @@ interface Court {
   winner: string | null;
   turn: Side;
   serveLeft: number;
-  question: PingQuestion | null;
+  question: AirHockeyQuestion | null;
   lastEvent: CourtEvent | null;
   awarded: boolean;
   questionAt: number;
@@ -48,10 +48,10 @@ const question = (
   text: string,
   options: string[],
   correctIndex = 0
-): PingQuestion => ({ difficulty, text, options, correctIndex });
+): AirHockeyQuestion => ({ difficulty, text, options, correctIndex });
 
 /** Primi 3 tiri a testa: domande facili. */
-const EASY_QUESTIONS: PingQuestion[] = [
+const EASY_QUESTIONS: AirHockeyQuestion[] = [
   question('EASY', "Qual è la capitale d'Italia?", ['Roma', 'Milano', 'Napoli', 'Torino']),
   question('EASY', 'Quanti giorni ha una settimana?', ['7', '5', '10', '12']),
   question('EASY', 'Di che colore è il cielo in una giornata serena?', ['Azzurro', 'Verde', 'Rosso', 'Nero']),
@@ -65,7 +65,7 @@ const EASY_QUESTIONS: PingQuestion[] = [
 ];
 
 /** Poi 5 tiri a testa: domande medie. */
-const MEDIUM_QUESTIONS: PingQuestion[] = [
+const MEDIUM_QUESTIONS: AirHockeyQuestion[] = [
   question('MEDIUM', 'Qual è la capitale della Francia?', ['Parigi', 'Lione', 'Marsiglia', 'Nizza']),
   question('MEDIUM', 'Chi ha dipinto la Gioconda?', ['Leonardo da Vinci', 'Michelangelo', 'Raffaello', 'Caravaggio']),
   question('MEDIUM', 'Quante corde ha un violino?', ['4', '5', '6', '3']),
@@ -79,7 +79,7 @@ const MEDIUM_QUESTIONS: PingQuestion[] = [
 ];
 
 /** Dopo 8 tiri a testa: tutte difficili. */
-const HARD_QUESTIONS: PingQuestion[] = [
+const HARD_QUESTIONS: AirHockeyQuestion[] = [
   question('HARD', "Qual è la capitale dell'Australia?", ['Canberra', 'Sydney', 'Melbourne', 'Perth']),
   question('HARD', 'Chi ha composto la Nona Sinfonia?', ['Beethoven', 'Mozart', 'Bach', 'Chopin']),
   question('HARD', 'Qual è il mare più salato?', ['Mar Morto', 'Mediterraneo', 'Mar Rosso', 'Adriatico']),
@@ -108,7 +108,7 @@ export class AirHockeyBattleMode extends GameModeBase {
   private courts = signal<Court[]>([]);
   private eventCounter = 0;
   private tickInterval?: ReturnType<typeof setInterval>;
-  private questions: PingQuestion[] = [];
+  private questions: AirHockeyQuestion[] = [];
   private lastQuestionText = '';
 
   protected onInitialize(): void {
@@ -132,7 +132,7 @@ export class AirHockeyBattleMode extends GameModeBase {
 
     try {
       const rows = await loader('MIXED');
-      const fromBank: PingQuestion[] = rows
+      const fromBank: AirHockeyQuestion[] = rows
         .filter((row) => Array.isArray(row.options) && row.options.length >= 2)
         .map((row) => ({
           text: row.text,
@@ -201,8 +201,8 @@ export class AirHockeyBattleMode extends GameModeBase {
     };
   }
 
-  private buildQuestions(): PingQuestion[] {
-    const custom: PingQuestion[] = [];
+  private buildQuestions(): AirHockeyQuestion[] {
+    const custom: AirHockeyQuestion[] = [];
     const payload = this.payload ?? {};
 
     if (payload.question && Array.isArray(payload.options) && payload.options.length >= 2) {
@@ -218,7 +218,7 @@ export class AirHockeyBattleMode extends GameModeBase {
     return [...custom, ...EASY_QUESTIONS, ...MEDIUM_QUESTIONS, ...HARD_QUESTIONS];
   }
 
-  private nextQuestion(difficulty: Difficulty = 'EASY'): PingQuestion {
+  private nextQuestion(difficulty: Difficulty = 'EASY'): AirHockeyQuestion {
     if (this.questions.length === 0) this.questions = this.buildQuestions();
 
     const pool = this.questions.filter((q) => q.difficulty === difficulty);
@@ -234,7 +234,7 @@ export class AirHockeyBattleMode extends GameModeBase {
   }
 
   /** Le opzioni vengono mescolate a ogni tiro: la risposta non è sempre la A. */
-  private shuffleQuestion(q: PingQuestion): PingQuestion {
+  private shuffleQuestion(q: AirHockeyQuestion): AirHockeyQuestion {
     const correct = q.options[q.correctIndex] ?? q.options[0];
     const options = [...q.options];
     for (let i = options.length - 1; i > 0; i--) {

@@ -1,8 +1,7 @@
 # Lavori in corso — pub_game_FE
 
 Ultimo aggiornamento: 5 novembre 2026
-Ultimo commit: `9e1d023` (Speed Rush, Time Buzzer, Air Hockey).
-Le modifiche P0 (scaletta 40 round, bonus, Ruota, Time Buzzer, Air Hockey, auto-avanzamento) sono **non committate**.
+Ultimo commit: `2193fd5` (P0). Le modifiche successive (rename, punti, demo animate, audio) sono **non committate**.
 
 ---
 
@@ -22,7 +21,7 @@ Le modifiche P0 (scaletta 40 round, bonus, Ruota, Time Buzzer, Air Hockey, auto-
 - Gli eliminati restano bloccati.
 
 ### Air Hockey Battle
-- Enum `PING_PONG` → `AIR_HOCKEY_BATTLE` ovunque.
+- Enum `AIR_HOCKEY_BATTLE` allineato tra frontend e backend.
 - Il tempo di risposta decide il tempo dell'avversario e la "secchezza" del tiro:
   - risposta veloce → avversario ~4s, tiro ~0,58s dritto;
   - risposta lenta → fino a ~12s, tiro ~2,6s a zig-zag.
@@ -45,15 +44,6 @@ Rimosso:
 
 La pausa ha un overlay a schermo intero: il gioco non è visibile dietro.
 
-### Demo TV
-- Overlay a schermo intero con `<video autoplay muted loop playsinline>`.
-- Path: `/assets/demos/<tipo>.mp4` (es. `quiz.mp4`, `time_buzzer.mp4`, `air_hockey_battle.mp4`).
-- Video **muto**: la spiegazione la fa il presentatore dal vivo.
-- Se il file manca, resta l'animazione di fallback con il nome del gioco.
-- I nomi dei file sono elencati in `apps/frontend/public/assets/demos/README.md`.
-
-**Nota:** la demo non parte da sola alla prima apparizione; per ora la apre l'admin. Con il flusso manuale è coerente, ma si può automatizzare dopo.
-
 ### Flusso serata a 40 round (P0, 5 novembre)
 - Scaletta fissa in 5 atti da 8 round: il primo round di ogni atto è Quiz, l'Arena chiude solo l'ultimo round.
 - `ACT_DECKS` in `round-manager.service.ts`: Ruota 3 volte su 40 (atti 1, 3, 5), mai adiacente a Indovina chi.
@@ -65,18 +55,48 @@ La pausa ha un overlay a schermo intero: il gioco non è visibile dietro.
 - Air Hockey: domande dalla banca (`GET /games/{id}/air-hockey/questions`), hardcoded solo come fallback.
 - Avanzamento automatico dopo 10 s, annullato da pausa, classifica, demo o Prossimo round.
 
+### Air Hockey Battle: rename completo (5 novembre)
+- File rinominati: `mode/air-hockey-battle.mode.ts` e `games/air-hockey-battle/air-hockey-battle.ts`.
+- Classi e interfacce `AirHockeyQuestion`/`AirHockeyBattle`; CSS TV `ahb-*` e remote `hockey-*`.
+- Aggiornati import, script di QA, backend e documentazione: nel sorgente non resta nessun residuo del vecchio nome.
+
+### Punti e aiuto al presentatore (5 novembre)
+- Tabella unica in `interfaces/scoring-rules.ts`: corretto, sbagliato e non risposta per ogni gioco.
+- Admin: al buzz mostra i punti che il giocatore sta per guadagnare o perdere, la soluzione e la tabella punti della modalità.
+- Arena: i punti di piazzamento (1000/500/−300) vengono versati in classifica; prima restavano solo in TV.
+- Timeline: una submission vale come corretta solo se ha almeno una coppia giusta.
+- Roulette: colore giusto +1000, sbagliato 0 (nessun malus, è il gioco di fortuna).
+
+### Demo animate (5 novembre)
+- L’overlay demo non dipende più da un mp4: tre scene animate (TV, remote, punteggio) per tutti i 10 giochi e per i bonus Roulette/Basket.
+- Il presentatore commenta dal vivo; i pulsanti admin `DEMO BONUS ROULETTE` e `DEMO BONUS BASKET` aprono le demo dei bonus.
+- Gli mp4 restano opzionali: se un giorno vengono caricati, si può rimettere il tag `<video>`.
+
+### Audio dei countdown (5 novembre)
+- Tick sintetico a basso volume sui countdown (timer di gioco, pre-start, pausa tra le manche, bonus basket, auto-avanzamento).
+- Bong grave alla fine del countdown; non ferma la musica e non usa asset esterni.
+
+### Audio del podio e suspense (5 novembre)
+- Classifica rapida e dettagliata: quando si scoprono i top 3 parte il rullo, poi il festeggiamento.
+  - 3° posto: rullo lieve e festeggiamento lieve.
+  - 2° posto: rullo medio, festeggiamento medio e botticelle.
+  - 1° posto: rullo prolungato e forte, festeggiamento pieno e botti.
+- I suoni del podio sono sintetizzati con Web Audio; non servono nuovi mp3.
+- Nei giochi a conto alla rovescia (tranne Time Buzzer, che va in avanti) il round ≥ 20 avvia un heartbeat di suspense, con intensità che sale gradualmente dal round 20 al round 40.
+- L'heartbeat si ferma a fine round, timeout, fine Arena, risposta corretta, pausa, classifica, reset e uscita dalla TV; riprende se il round viene ripreso.
+
 ---
 
 ## Da fare domani
 
-1. **Caricare i video demo** in `apps/frontend/public/assets/demos/`
-   (`quiz.mp4`, `music.mp4`, `image_blur.mp4`, `timeline.mp4`, `roulette.mp4`, `arena.mp4`, `speed_rush.mp4`, `time_buzzer.mp4`, `air_hockey_battle.mp4`, `wheel_of_fortune.mp4`).
-2. **QA dal vivo con backend acceso** (`127.0.0.1:8080`):
+1. **QA dal vivo con backend acceso** (`127.0.0.1:8080`):
    - flusso admin: prossimo round, classifica, pausa, demo, bonus roulette/basket;
    - Time Buzzer e Air Hockey in TV + remote;
-   - verifica che in pausa la TV non mostri il gioco e che l'auto-avanzamento si fermi.
-3. **Altri 2 giochi bonus** (Memory, Tap/Swipe) da alternare a Roulette e Basket.
-4. **Ruota**: separare la fase di lancio dalla rivelazione (oggi le lettere si aprono durante il timer).
+   - verifica che in pausa la TV non mostri il gioco e che l'auto-avanzamento si fermi;
+   - ascolto del podio in classifica e dell'heartbeat nei round 20–40.
+2. **Altri 2 giochi bonus** (Memory, Tap/Swipe) da alternare a Roulette e Basket.
+3. **Ruota**: separare la fase di lancio dalla rivelazione (oggi le lettere si aprono durante il timer).
+4. **Eventuale mp4 demo**: le demo animate sono già utilizzabili; i video registrati restano opzionali.
 5. **Commit** delle modifiche attuali, poi push.
 
 ---
@@ -102,15 +122,15 @@ Limiti noti:
 
 ---
 
-## Brief: bonus basket
+## Bonus basket (codificato)
 
-Non è ancora codificato. È una mini-app a sé, non un minigioco da poche righe.
+Pagina `/basket?player=...`, canvas 2D, 30 s di gioco e 40 s di countdown in TV.
 
 - **Telefono**: canvas 2D con palla, canestro, backboard e due ferri.
 - **Controllo**: si trascina indietro la palla e si rilascia (o swipe) per il tiro.
 - **Fisica**: gravità, rimbalzo su ferro/backboard, detezione del canestro.
 - **Durata**: 20–30 secondi, tiri illimitati; ogni canestro vale punti bonus.
-- **Premio**: punti bonus in classifica, oppure "gettone birra" gestito dall'admin a fine partita (serve una tabella di riscatto, non solo il punteggio).
+- **Premio**: +300 / +150 / +75 ai primi tre; il "gettone birra" resta opzionale e richiede una tabella di riscatto.
 - **Integrazione**: mode `BONUS_BASKET` o evento `BONUS_GAME` lanciato dall'admin; il risultato entra con `onAnswerReceived` e non consuma un round della scaletta.
 
 ### 4 bonus game in rotazione
@@ -119,33 +139,49 @@ Non è ancora codificato. È una mini-app a sé, non un minigioco da poche righe
 3. Memory
 4. Tap/Swipe
 
-Primo passo consigliato: solo canvas + canestro + punteggio, senza premio birra, per valutare il feeling del tiro.
+Stato: canvas, canestro, punteggio e premi sono implementati; il gettone birra resta opzionale.
 
 ---
 
-## File toccati (non committati)
+## File toccati (P0 e questa tornata)
 
 - `apps/frontend/src/app/services/round-manager.service.ts` (+ spec)
 - `apps/frontend/src/app/components/game-component/game-component.ts/.html/.css`
 - `apps/frontend/src/app/components/game-component/mode/time-buzzer.mode.ts`
 - `apps/frontend/src/app/components/game-component/mode/wheel-fortune.mode.ts`
-- `apps/frontend/src/app/components/game-component/mode/ping-pong.mode.ts`
+- `apps/frontend/src/app/components/game-component/mode/air-hockey-battle.mode.ts`
+- `apps/frontend/src/app/components/game-component/games/air-hockey-battle/air-hockey-battle.ts`
+- `apps/frontend/src/app/components/game-component/demo-scripts.ts`
+- `apps/frontend/src/app/components/game-component/interfaces/scoring-rules.ts`
+- `apps/frontend/src/app/components/game-component/mode/music.mode.ts`
 - `apps/frontend/src/app/components/game-component/interfaces/game-mode-type.ts`
-- `apps/frontend/src/app/components/admin/admin.ts/.html`
+- `apps/frontend/src/app/services/audio.service.ts`
+- `apps/frontend/src/app/components/leaderboard/leaderboard-quick-component/leaderboard-quick-component.ts`
+- `apps/frontend/src/app/components/leaderboard/leaderboard-detailed-component/leaderboard-detailed-component.ts`
+- `apps/frontend/src/styles.css`
+- `apps/frontend/src/app/components/admin/admin.ts/.html/.css`
 - `apps/frontend/src/app/components/basket-bonus/basket-bonus.ts`
 - `apps/frontend/src/app/components/remote-component/remote-component.ts/.html`
 - `apps/frontend/src/app/services/game.service.ts`
+- `apps/frontend/src/app/services/game-mode-factory.service.ts`
+- `apps/frontend/src/app/components/remote-component/restyle.css`
 - `apps/frontend/src/app/testing/test-doubles.ts`
 - `apps/backend/src/main/java/com/pub_game_be/service/QuestionBankService.java`
 - `apps/backend/src/main/java/com/pub_game_be/controller/PartyGamesController.java`
+- `apps/backend/src/main/java/com/pub_game_be/controller/GameController.java`
+- `apps/backend/src/main/java/com/pub_game_be/service/PartyGameService.java`
+- `scripts/checks/live_devices_check.js`
+- `scripts/checks/party_games_check.py`
 - `apps/frontend/public/assets/demos/README.md`
-- `BRIEF-GIOCHI-MANCANTI.md` (non tracciato)
+- `BRIEF-GIOCHI-MANCANTI.md`
 - `README_LAVORI.md` (questo file)
 
 Verifiche del 5 novembre:
-- Build FE `npx ng build` → exit 0.
+- Build FE `npm run build` → exit 0.
 - Build BE `./mvnw -B -DskipTests package` (JDK 25) → exit 0.
-- Test FE: 62/64. Restano 2 fallimenti preesistenti e non collegati al P0:
+- Test FE: 62/64. Restano 2 fallimenti preesistenti e non collegati a queste modifiche:
   `LeaderboardDetailed` (spotlight dopo 9 s) e `Song` (etichetta fase 1).
+- Dopo le ultime modifiche audio: build FE → exit 0; test FE → 62/64, stessi due fallimenti.
 - Le spec di `RoundManagerService`, `GameComponent` e `RemoteComponent` passano.
+- `git diff --check` pulito; nessun residuo del vecchio nome nel sorgente.
 - Nessun test dal vivo: backend/WebSocket non avviati in questa sessione.

@@ -180,10 +180,10 @@ async function playRound(team, stomp, message) {
       break;
     }
 
-    case 'PING_PONG': {
+    case 'AIR_HOCKEY_BATTLE': {
       for (let hit = 0; hit < 6; hit += 1) {
         stomp.send(`/app/game/${GAME_ID}/status`, {
-          action: 'PING_PONG_HIT',
+          action: 'AIR_HOCKEY_BATTLE_ANSWER',
           playerName: team,
         });
         await sleep(260);

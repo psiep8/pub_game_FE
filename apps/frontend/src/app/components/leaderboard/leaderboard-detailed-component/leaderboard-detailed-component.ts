@@ -61,7 +61,6 @@ export class LeaderboardDetailed implements OnInit {
 
     this.allPlayers.set([...players].reverse());
     this.totalPlayers.set(players.length);
-    this.audio.playDrumroll(1.6);
     this.animateReveal();
   }
 
@@ -72,9 +71,13 @@ export class LeaderboardDetailed implements OnInit {
       const player = players[i];
       this.currentPlayer.set(player);
       this.revealedCount.set(i + 1);
-      this.audio.playTick();
-      if (player.position === 1) {
-        this.audio.playPodium();
+
+      // Rullo e festeggiamento solo quando il gradino del podio è scoperto:
+      // lieve al terzo, medio con botticelle al secondo, pieno al primo.
+      if (player.position <= 3) {
+        this.audio.playPodiumReveal(player.position);
+      } else {
+        this.audio.playTick();
       }
 
       const delay = this.getDelay(player.position);

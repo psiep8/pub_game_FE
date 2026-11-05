@@ -12,7 +12,8 @@ import {
   ChangeDetectorRef,
   DestroyRef,
   computed,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  effect
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -41,7 +42,9 @@ import { ArenaComponent } from './games/arena/arena.component';
 import { Timeline } from './games/timeline/timeline';
 import { TimeBuzzer } from './games/time-buzzer/time-buzzer';
 import { SpeedRush } from './games/speed-rush/speed-rush';
-import { AirHockeyBattle } from './games/ping-pong/ping-pong';
+import { AirHockeyBattle } from './games/air-hockey-battle/air-hockey-battle';
+import { DEMO_SCRIPTS, DEMO_SCENE_COUNT, DemoScript } from './demo-scripts';
+import { scoringRuleFor } from './interfaces/scoring-rules';
 
 @Component({
   selector: 'app-game-component',
@@ -101,6 +104,7 @@ export class GameComponent implements OnInit, OnDestroy {
   preStartCountdown = signal<number>(0);
   isPaused = signal(false);
   demoType = signal<string | null>(null);
+  demoScene = signal(0);
   bonusActive = signal(false);
   bonusType = signal<string | null>(null);
   bonusScores = signal<Array<{ playerName: string; score: number }>>([]);
@@ -137,6 +141,24 @@ export class GameComponent implements OnInit, OnDestroy {
   private bonusAwarded = false;
   private bonusTimer?: ReturnType<typeof setInterval>;
   private autoAdvanceTimer?: ReturnType<typeof setInterval>;
+  private demoTimer?: ReturnType<typeof setInterval>;
+  private lastTimerTick = -1;
+  private lastBonusTick = -1;
+  private lastAutoTick = -1;
+  private lastMusicTick = -1;
+
+  /** Giochi con un conto alla rovescia: qui parte il heartbeat di suspense. */
+  private readonly countdownModes = new Set<GameModeType>([
+    'QUIZ',
+    'IMAGE_BLUR',
+    'MUSIC',
+    'WHEEL_OF_FORTUNE',
+    'ROULETTE',
+    'TIMELINE',
+    'SPEED_RUSH',
+    'AIR_HOCKEY_BATTLE',
+    'ARENA',
+  ]);
 
   remoteUrl = `${environment.frontendUrl}/play`;
 
@@ -145,7 +167,6 @@ export class GameComponent implements OnInit, OnDestroy {
 
   @ViewChild('prestartTimer', { read: ElementRef, static: false }) prestartTimer?: ElementRef<HTMLElement>;
 
-  private prestartAudio?: HTMLAudioElement;
   private audioAllowed = false;
   private displayDataInterval?: ReturnType<typeof setInterval>;
   private prestartMonitorInterval?: ReturnType<typeof setInterval>;
@@ -170,6 +191,45 @@ export class GameComponent implements OnInit, OnDestroy {
     }
   }
 
+  constructor() {
+    // Tick e bong dei countdown: toni brevi, così non coprono musica e voce.
+    effect(() => {
+      const t = this.timer();
+      if (this.showQuestion() && !this.bonusActive() && !this.isPaused()) {
+        if (t > 5) {
+          this.lastTimerTick = -1;
+        } else if (t > 0 && t !== this.lastTimerTick) {
+          this.lastTimerTick = t;
+          this.audioService.playCountdownTick();
+        } else if (t === 0 && this.lastTimerTick > 0) {
+          this.lastTimerTick = 0;
+          this.audioService.playCountdownBong();
+        }
+      }
+
+      const basket = this.bonusSecondsLeft();
+      if (this.bonusActive() && this.bonusType() === 'BASKET') {
+        if (basket > 5) {
+          this.lastBonusTick = -1;
+        } else if (basket > 0 && basket !== this.lastBonusTick) {
+          this.lastBonusTick = basket;
+          this.audioService.playCountdownTick();
+        } else if (basket === 0 && this.lastBonusTick > 0) {
+          this.lastBonusTick = 0;
+          this.audioService.playCountdownBong();
+        }
+      }
+
+      const auto = this.autoAdvanceSeconds();
+      if (auto > 5 || auto === 0) {
+        this.lastAutoTick = -1;
+      } else if (auto !== this.lastAutoTick) {
+        this.lastAutoTick = auto;
+        this.audioService.playCountdownTick();
+      }
+    });
+  }
+
   async ngOnInit() {
     try {
       const cats = await firstValueFrom(this.gameService.getCategories());
@@ -185,14 +245,6 @@ export class GameComponent implements OnInit, OnDestroy {
     const progress = this.roundManager.getProgress();
     this.roundInfo.set(progress.text);
 
-
-
-    try {
-      this.prestartAudio = new Audio('assets/audio/prestart-beep.mp3');
-      this.prestartAudio.preload = 'auto';
-    } catch (e) {
-      this.prestartAudio = undefined;
-    }
 
 
     const allowAudioOnce = () => {
@@ -284,17 +336,9 @@ export class GameComponent implements OnInit, OnDestroy {
           } catch (err) {
           }
 
-          if (this.audioAllowed && this.prestartAudio) {
-            try {
-              this.prestartAudio.currentTime = 0;
-              const p = this.prestartAudio.play();
-              if (p && typeof p.then === 'function') {
-                p.catch(() => {
-                });
-              }
-            } catch (e) {
-            }
-          }
+          this.audioService.playCountdownTick();
+        } else if (cur === 0 && lastPreStart > 0) {
+          this.audioService.playCountdownBong();
         }
         lastPreStart = cur;
       }
@@ -315,9 +359,9 @@ export class GameComponent implements OnInit, OnDestroy {
       } else if (status.action === 'ADMIN_TOGGLE_PAUSE') {
         this.togglePause();
       } else if (status.action === 'ADMIN_SHOW_DEMO') {
-        this.demoType.set(status.type || this.currentMode()?.type || 'QUIZ');
+        this.startDemo(status.type || this.currentMode()?.type || 'QUIZ');
       } else if (status.action === 'ADMIN_HIDE_DEMO') {
-        this.demoType.set(null);
+        this.stopDemo();
       } else if (status.action === 'ADMIN_START_BONUS') {
         void this.startBonus(status.type || 'ROULETTE');
       } else if (status.action === 'ADMIN_STOP_BONUS') {
@@ -347,6 +391,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.prestartMonitorInterval) {
       clearInterval(this.prestartMonitorInterval);
     }
+    this.stopDemoTimer();
 
     this.audioService.stopAll();
   }
@@ -394,7 +439,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.roundInfo.set(progress.text);
 
 
-    this.audioService.stopHeartbeat();
+    this.audioService.stopSuspense();
 
     this.phase.set('SPINNING');
     this.showTypeReveal.set(extractedType);
@@ -437,6 +482,7 @@ export class GameComponent implements OnInit, OnDestroy {
         onBuzz: (playerName) => this.onPlayerBuzz(playerName),
         activePlayers: activePlayers,
         onPreGameTick: (seconds) => this.preStartCountdown.set(seconds),
+        onCountdownTick: (seconds) => this.onCountdownTick(seconds),
         onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
         onRoundEnded: () => this.onArenaEnded(),
         onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!, event),
@@ -518,6 +564,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
 
       this.audioService.startClock();
+      this.startRoundSuspense(mode.type);
 
       await mode.start();
 
@@ -535,6 +582,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.isSpinning.set(false);
       this.phase.set('IDLE');
       this.audioService.stopClock();
+      this.audioService.stopSuspense();
     }
   }
 
@@ -592,7 +640,11 @@ export class GameComponent implements OnInit, OnDestroy {
       case 'SPEED_RUSH':
         return 'SPEED RUSH';
       case 'AIR_HOCKEY_BATTLE':
-        return 'AIR HOCKEY';
+        return 'AIR HOCKEY BATTLE';
+      case 'BONUS_ROULETTE':
+        return 'BONUS ROULETTE';
+      case 'BONUS_BASKET':
+        return 'BONUS BASKET';
       default:
         return type;
     }
@@ -618,10 +670,21 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.arenaFinished) return;
     this.arenaFinished = true;
 
-    const winners = this.currentMode()?.getDisplayData?.()?.winners ?? [];
+    const data = this.currentMode()?.getDisplayData?.();
+    const winners = data?.winners ?? [];
+
+    // I punti di piazzamento dell'Arena (1000/500/−300) non venivano mai
+    // versati in classifica: entrano qui una sola volta, prima della classifica.
+    for (const team of data?.teams ?? []) {
+      if (team?.score) {
+        this.leaderboardService.addPoints(team.playerName, team.score, team.score > 0);
+      }
+    }
+
     this.ws.broadcastStatus(this.currentGameId(), { action: 'ARENA_ENDED', winners });
 
     this.audioService.stopClock();
+    this.audioService.stopSuspense();
     this.audioService.playPodium();
 
     const currentRound = this.round();
@@ -644,11 +707,16 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!mode) return;
 
     // L'Arena chiude da sola il round quando resta un solo giocatore:
-    // evitiamo di completare il round due volte.
-    if (mode.type === 'ARENA') return;
+    // evitiamo di completare il round due volte, ma il timer scaduto deve
+    // comunque spegnere la suspense.
+    if (mode.type === 'ARENA') {
+      this.audioService.stopSuspense();
+      return;
+    }
 
 
     this.audioService.stopClock();
+    this.audioService.stopSuspense();
 
     const currentRound = this.round();
     if (currentRound) {
@@ -691,9 +759,18 @@ export class GameComponent implements OnInit, OnDestroy {
 
     mode.handleBuzz(playerName);
 
+    // Anteprima per il presentatore: i punti dipendono dal tempo congelato
+    // dal buzz, quindi il valore mostrato è quello che verrà applicato.
+    const elapsedMs = (mode.timerDuration * 1000) - (this.timer() * 1000);
+    const payload = this.currentRoundPayload();
     this.ws.broadcastStatus(this.currentGameId()!, {
       action: 'PLAYER_PRENOTATO',
-      name: playerName
+      name: playerName,
+      type: mode.type,
+      correctPoints: mode.pointsFor(true, elapsedMs),
+      wrongPoints: mode.pointsFor(false, elapsedMs),
+      solution: this.solutionFor(mode.type, payload),
+      scoring: scoringRuleFor(mode.type),
     });
   }
 
@@ -718,7 +795,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
     mode.confirmCorrect(playerName);
 
-
+    this.audioService.stopSuspense();
     this.audioService.playCorrect();
 
     const currentRound = this.round();
@@ -846,12 +923,14 @@ export class GameComponent implements OnInit, OnDestroy {
     this.showLeaderboardDetailed.set(false);
     this.isShowingLeaderboard.set(false);
     this.pendingLeaderboardType.set(null);
-    this.demoType.set(null);
+    this.stopDemo();
     void this.startNewRound();
   }
 
   adminShowLeaderboard(): void {
     this.cancelAutoAdvance();
+    this.stopDemo();
+    this.audioService.stopSuspense();
     if (this.isSpinning()) return;
 
     const type = this.pendingLeaderboardType()
@@ -878,7 +957,9 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.isPaused()) {
       mode.resume();
       this.isPaused.set(false);
+      this.resumeRoundSuspense();
     } else {
+      this.audioService.stopSuspense();
       mode.pause();
       this.isPaused.set(true);
     }
@@ -933,6 +1014,7 @@ export class GameComponent implements OnInit, OnDestroy {
       gameId: this.currentGameId()!,
       onTimerTick: (seconds: number) => this.timer.set(seconds),
       onTimerEnd: () => this.onModeTimeout(),
+      onPreGameTick: (seconds) => this.preStartCountdown.set(seconds),
       onAnswerReceived: (result: any) => {
         if (result?.playerName) {
           this.recordBonusResult(result.playerName, result.isCorrect ? 1 : 0);
@@ -990,6 +1072,9 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!this.bonusActive() || this.bonusAwarded) return;
     this.bonusAwarded = true;
     this.clearBonusTimer();
+    if (this.bonusType() === 'BASKET' && this.bonusSecondsLeft() <= 1) {
+      this.audioService.playCountdownBong();
+    }
 
     const ranking = [...this.bonusScoresMap.entries()]
       .filter(([, score]) => score > 0)
@@ -1037,6 +1122,7 @@ export class GameComponent implements OnInit, OnDestroy {
       const next = this.autoAdvanceSeconds() - 1;
       this.autoAdvanceSeconds.set(Math.max(0, next));
       if (next <= 0) {
+        this.audioService.playCountdownBong();
         this.cancelAutoAdvance();
         this.adminNextRound();
       }
@@ -1060,6 +1146,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private reset() {
     this.arenaFinished = false;
+    this.audioService.stopSuspense();
     this.cancelAutoAdvance();
     this.clearBonusTimer();
     this.bonusActive.set(false);
@@ -1078,7 +1165,8 @@ export class GameComponent implements OnInit, OnDestroy {
     this.isPaused.set(false);
     this.showResultPopup.set(false);
     this.currentMode.set(null);
-    this.demoType.set(null);
+    this.stopDemo();
+    this.demoScene.set(0);
   }
 
   openResetModal() {
@@ -1095,6 +1183,117 @@ export class GameComponent implements OnInit, OnDestroy {
     this.leaderboardService.reset();
 
     location.reload();
+  }
+
+  // ── Demo animate (TV, remote, punti) ────────────────────────────────
+  startDemo(type: string): void {
+    this.stopDemoTimer();
+    this.demoType.set(type);
+    this.demoScene.set(0);
+    this.demoTimer = setInterval(() => {
+      if (!this.demoType()) return;
+      this.demoScene.update((scene) => (scene + 1) % DEMO_SCENE_COUNT);
+    }, 5000);
+  }
+
+  stopDemo(): void {
+    this.stopDemoTimer();
+    this.demoType.set(null);
+  }
+
+  goDemoScene(scene: number): void {
+    this.demoScene.set(((scene % DEMO_SCENE_COUNT) + DEMO_SCENE_COUNT) % DEMO_SCENE_COUNT);
+  }
+
+  nextDemoScene(): void {
+    this.goDemoScene(this.demoScene() + 1);
+  }
+
+  prevDemoScene(): void {
+    this.goDemoScene(this.demoScene() - 1);
+  }
+
+  getDemoScript(type: string): DemoScript {
+    return DEMO_SCRIPTS[type] ?? {
+      title: this.getModeName(type),
+      icon: '🎮',
+      tv: ['La TV mostra il gioco', 'Il presentatore spiega dal vivo'],
+      remote: ['Il telefono mostra i comandi', 'Segui le istruzioni in TV'],
+      scoring: [],
+      note: 'Demo non ancora disponibile per questo gioco.',
+    };
+  }
+
+  /** Countdown interno di una modalità (pausa tra le manche di Music). */
+  private onCountdownTick(seconds: number): void {
+    if (seconds > 5) {
+      this.lastMusicTick = -1;
+    } else if (seconds > 0) {
+      this.lastMusicTick = seconds;
+      this.audioService.playCountdownTick();
+    } else if (seconds === 0 && this.lastMusicTick > 0) {
+      this.lastMusicTick = 0;
+      this.audioService.playCountdownBong();
+    }
+  }
+
+  /** Avvia il heartbeat di suspense solo nei countdown e dal round 20. */
+  private startRoundSuspense(type: GameModeType): void {
+    if (!this.countdownModes.has(type)) return;
+    const round = this.roundManager.getCurrentRound();
+    if (round < 20) return;
+    this.audioService.startSuspense(round);
+  }
+
+  private resumeRoundSuspense(): void {
+    const mode = this.currentMode();
+    if (!mode || this.bonusActive() || this.isShowingLeaderboard()) return;
+    this.startRoundSuspense(mode.type);
+  }
+
+  private stopDemoTimer(): void {
+    if (this.demoTimer) {
+      clearInterval(this.demoTimer);
+      this.demoTimer = undefined;
+    }
+  }
+
+  private currentRoundPayload(): any {
+    const payload = this.round()?.payload;
+    if (typeof payload === 'string') {
+      try {
+        return JSON.parse(payload);
+      } catch {
+        return {};
+      }
+    }
+    return payload ?? {};
+  }
+
+  /** Soluzione leggibile per il presentatore, senza svelarla ai telefoni. */
+  private solutionFor(type: GameModeType, payload: any): string {
+    switch (type) {
+      case 'QUIZ':
+      case 'IMAGE_BLUR':
+      case 'ROULETTE':
+        return String(payload?.correctAnswer ?? 'Soluzione in TV');
+      case 'WHEEL_OF_FORTUNE':
+        return String(payload?.proverb ?? 'Soluzione in TV');
+      case 'MUSIC':
+        return [payload?.songTitle, payload?.artist].filter(Boolean).join(' — ') || 'Soluzione in TV';
+      case 'TIMELINE':
+        return 'Ordine corretto mostrato in TV al reveal';
+      case 'TIME_BUZZER':
+        return 'Tempo bersaglio mostrato in TV';
+      case 'AIR_HOCKEY_BATTLE':
+        return 'Domande e set in TV; risposte sul telefono';
+      case 'SPEED_RUSH':
+        return 'Classifica finale in TV';
+      case 'ARENA':
+        return 'Podio finale in TV';
+      default:
+        return 'Soluzione in TV';
+    }
   }
 
   private generateNonOverlappingPositions(categories: any[]) {

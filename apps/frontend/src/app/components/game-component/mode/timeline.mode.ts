@@ -92,7 +92,7 @@ export class TimelineMode extends GameModeBase {
       this.config.onAnswerReceived?.({
         playerName: result.playerName,
         points: result.score,
-        isCorrect: true,
+        isCorrect: result.score > 0,
       });
     }
   }

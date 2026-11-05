@@ -15,25 +15,25 @@ import { ThemeService } from '../../services/theme.service';
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./remote-component.css', './restyle.css'],
   styles: [`
-    .timeline-remote, .price-remote, .speed-remote, .ping-remote {
+    .timeline-remote, .price-remote, .speed-remote, .hockey-remote {
       display: flex; flex-direction: column; gap: 14px; padding: 16px; height: 100%; justify-content: center;
     }
-    .ping-remote { position: relative; }
-    .ping-diff {
+    .hockey-remote { position: relative; }
+    .hockey-diff {
       padding: 2px 7px; border: 1px solid var(--tomato); color: var(--tomato);
       font-family: var(--font-mono); font-size: .6rem; font-weight: 700; letter-spacing: .1em;
     }
-    .ping-goal-overlay {
+    .hockey-goal-overlay {
       position: fixed; inset: 0; z-index: 80; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 6px; text-align: center;
-      padding: 24px; background: #15803d; color: #fff; animation: pingGoalIn .22s ease-out;
+      padding: 24px; background: #15803d; color: #fff; animation: hockeyGoalIn .22s ease-out;
     }
-    .ping-goal-overlay.conceded { background: #b91c1c; }
-    .ping-goal-kicker { font-family: var(--font-mono); font-size: .72rem; font-weight: 700; letter-spacing: .18em; opacity: .85; }
-    .ping-goal-word { font-family: var(--font-display); font-size: clamp(2.6rem, 12vw, 4.6rem); line-height: .95; text-transform: uppercase; }
-    .ping-goal-score { font-family: var(--font-display); font-size: clamp(3.4rem, 18vw, 6rem); line-height: 1; }
-    .ping-goal-note { font-family: var(--font-mono); font-size: .8rem; letter-spacing: .12em; opacity: .9; }
-    @keyframes pingGoalIn { from { transform: scale(.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .hockey-goal-overlay.conceded { background: #b91c1c; }
+    .hockey-goal-kicker { font-family: var(--font-mono); font-size: .72rem; font-weight: 700; letter-spacing: .18em; opacity: .85; }
+    .hockey-goal-word { font-family: var(--font-display); font-size: clamp(2.6rem, 12vw, 4.6rem); line-height: .95; text-transform: uppercase; }
+    .hockey-goal-score { font-family: var(--font-display); font-size: clamp(3.4rem, 18vw, 6rem); line-height: 1; }
+    .hockey-goal-note { font-family: var(--font-mono); font-size: .8rem; letter-spacing: .12em; opacity: .9; }
+    @keyframes hockeyGoalIn { from { transform: scale(.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     .party-instruction { text-align: center; font-size: .95rem; opacity: .85; margin: 0; }
     .party-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .party-card { position: relative; padding: 14px 10px; border-radius: 14px; border: 2px solid rgba(255,255,255,.15); background: rgba(255,255,255,.06); color: #fff; font-size: .9rem; text-align: left; }
@@ -48,48 +48,48 @@ import { ThemeService } from '../../services/theme.service';
     .speed-big { width: 100%; min-height: 150px; font-size: 2rem; font-weight: 900; border-radius: 20px; border: none; background: linear-gradient(135deg,#f97316,#fbbf24); color: #1f2937; }
     .emoji-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .emoji-btn { padding: 22px; font-size: 2rem; border-radius: 16px; border: none; background: rgba(255,255,255,.12); color: #fff; }
-    .ping-score {
+    .hockey-score {
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
       background: var(--paper-hi); color: var(--coal); border: 3px solid var(--coal);
       box-shadow: 5px 5px 0 var(--coal); padding: 10px 12px;
     }
-    .ping-side { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-    .ping-side.right { align-items: flex-end; text-align: right; }
-    .ping-side-name { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .ping-side.active .ping-side-name { color: var(--tomato); font-weight: 700; }
-    .ping-side-score { font-family: var(--font-display); font-size: 2rem; line-height: 1; }
-    .ping-vs { font-family: var(--font-mono); font-size: .7rem; color: var(--tomato); }
-    .ping-card {
+    .hockey-side { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+    .hockey-side.right { align-items: flex-end; text-align: right; }
+    .hockey-side-name { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hockey-side.active .hockey-side-name { color: var(--tomato); font-weight: 700; }
+    .hockey-side-score { font-family: var(--font-display); font-size: 2rem; line-height: 1; }
+    .hockey-vs { font-family: var(--font-mono); font-size: .7rem; color: var(--tomato); }
+    .hockey-card {
       background: var(--paper); color: var(--coal); border: 3px solid var(--coal);
       box-shadow: 8px 8px 0 var(--tomato); padding: 14px;
       display: flex; flex-direction: column; gap: 10px;
     }
-    .ping-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .ping-tag { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .2em; color: var(--tomato); font-weight: 700; }
-    .ping-clock { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .ping-clock.hot { color: var(--tomato); }
-    .ping-question { margin: 0; font-size: 1.08rem; font-weight: 800; line-height: 1.25; }
-    .ping-options { display: flex; flex-direction: column; gap: 8px; }
-    .ping-option {
+    .hockey-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .hockey-tag { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .2em; color: var(--tomato); font-weight: 700; }
+    .hockey-clock { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .hockey-clock.hot { color: var(--tomato); }
+    .hockey-question { margin: 0; font-size: 1.08rem; font-weight: 800; line-height: 1.25; }
+    .hockey-options { display: flex; flex-direction: column; gap: 8px; }
+    .hockey-option {
       display: flex; align-items: center; gap: 10px; padding: 13px 12px;
       background: var(--paper-hi); color: var(--coal); border: 2px solid var(--coal);
       box-shadow: 3px 3px 0 var(--coal); font-family: var(--font); font-size: 1rem;
       font-weight: 700; text-align: left;
     }
-    .ping-option:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--coal); }
-    .ping-option:disabled { opacity: .5; }
-    .ping-letter { font-family: var(--font-mono); font-weight: 700; color: var(--tomato); }
-    .ping-wait {
+    .hockey-option:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--coal); }
+    .hockey-option:disabled { opacity: .5; }
+    .hockey-letter { font-family: var(--font-mono); font-weight: 700; color: var(--tomato); }
+    .hockey-wait {
       display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
       padding: 16px 14px; background: var(--paper-hi); color: var(--coal);
       border: 3px solid var(--coal); box-shadow: 6px 6px 0 var(--tomato);
     }
-    .ping-wait-icon { font-size: 3rem; animation: pingBounce 1.2s infinite; }
-    .ping-wait h2 { margin: 0; font-family: var(--font-display); font-size: 1.5rem; color: var(--coal); }
-    .ping-wait p { margin: 0; font-size: .95rem; color: rgba(30, 25, 20, .72); }
-    .ping-wait-score { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: var(--tomato); }
-    .ping-result { text-align: center; font-family: var(--font-mono); font-size: .8rem; font-weight: 700; letter-spacing: .16em; color: var(--tomato); }
-    @keyframes pingBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    .hockey-wait-icon { font-size: 3rem; animation: hockeyBounce 1.2s infinite; }
+    .hockey-wait h2 { margin: 0; font-family: var(--font-display); font-size: 1.5rem; color: var(--coal); }
+    .hockey-wait p { margin: 0; font-size: .95rem; color: rgba(30, 25, 20, .72); }
+    .hockey-wait-score { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: var(--tomato); }
+    .hockey-result { text-align: center; font-family: var(--font-mono); font-size: .8rem; font-weight: 700; letter-spacing: .16em; color: var(--tomato); }
+    @keyframes hockeyBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
   `],
 })
 export class RemoteComponent implements OnInit, OnDestroy {
@@ -110,16 +110,16 @@ export class RemoteComponent implements OnInit, OnDestroy {
   hasAnswered = signal(false);
   isBlocked = signal(false);
 
-  pingQuestion = signal<{ text: string; options: string[]; difficulty?: string } | null>(null);
-  pingMyTurn = signal(false);
-  pingMyScore = signal(0);
-  pingOpponentScore = signal(0);
-  pingOpponent = signal('');
-  pingServeLeft = signal(0);
-  pingLastResult = signal<string | null>(null);
-  pingGoal = signal<{ id: number; scored: boolean; mine: number; opponent: number } | null>(null);
-  private pingLastGoalId = 0;
-  private pingGoalTimer?: ReturnType<typeof setTimeout>;
+  hockeyQuestion = signal<{ text: string; options: string[]; difficulty?: string } | null>(null);
+  hockeyMyTurn = signal(false);
+  hockeyMyScore = signal(0);
+  hockeyOpponentScore = signal(0);
+  hockeyOpponent = signal('');
+  hockeyServeLeft = signal(0);
+  hockeyLastResult = signal<string | null>(null);
+  hockeyGoal = signal<{ id: number; scored: boolean; mine: number; opponent: number } | null>(null);
+  private hockeyLastGoalId = 0;
+  private hockeyGoalTimer?: ReturnType<typeof setTimeout>;
 
 
   private roundStartTime: number = 0;
@@ -171,8 +171,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   speedCount = signal<{ items: string[]; options: number[]; answer: number }>({ items: [], options: [], answer: 0 });
   readonly speedCountEmojis = ['🍒', '🍋', '🍇', '🍎', '⭐', '🍩'];
 
-  pingHits = signal(0);
-  private lastPingAt = 0;
+  hockeyHits = signal(0);
+  private lastHockeyAt = 0;
 
   showInstallBanner = signal(false);
   showIosInstallBanner = signal(false);
@@ -289,11 +289,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.priceItems.set([]);
           this.arenaEliminated.set(false);
           this.arenaQuestion.set(null);
-          this.pingGoal.set(null);
-          this.pingLastGoalId = 0;
-          if (this.pingGoalTimer) {
-            clearTimeout(this.pingGoalTimer);
-            this.pingGoalTimer = undefined;
+          this.hockeyGoal.set(null);
+          this.hockeyLastGoalId = 0;
+          if (this.hockeyGoalTimer) {
+            clearTimeout(this.hockeyGoalTimer);
+            this.hockeyGoalTimer = undefined;
           }
           // Round chiuso: spegni il microfono, altrimenti il telefono continua
           // a inviare urli (10 messaggi/s) anche nei round successivi.
@@ -638,9 +638,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
     } else if (type === 'SPEED_RUSH') {
       this.startSpeedRush();
     } else if (type === 'AIR_HOCKEY_BATTLE') {
-      this.pingHits.set(0);
-      this.pingGoal.set(null);
-      this.pingLastGoalId = 0;
+      this.hockeyHits.set(0);
+      this.hockeyGoal.set(null);
+      this.hockeyLastGoalId = 0;
     }
   }
 
@@ -977,8 +977,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
     }
   }
 
-  sendPingAnswer(index: number): void {
-    if (this.hasAnswered() || !this.pingMyTurn() || !this.nickname()) return;
+  sendHockeyAnswer(index: number): void {
+    if (this.hasAnswered() || !this.hockeyMyTurn() || !this.nickname()) return;
 
     this.ws.broadcastStatus(this.gameId(), {
       action: 'AIR_HOCKEY_BATTLE_ANSWER',
@@ -1010,31 +1010,31 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const other: 'a' | 'b' = mine === 'a' ? 'b' : 'a';
 
     this.questionType.set('AIR_HOCKEY_BATTLE');
-    this.pingMyScore.set(court[mine].score);
-    this.pingOpponentScore.set(court[other].score);
-    this.pingOpponent.set(court[other].playerName);
-    this.pingServeLeft.set(court.serveLeft ?? 0);
-    this.pingQuestion.set(court.question ?? null);
-    this.pingMyTurn.set(!court.winner && court.turn === mine);
+    this.hockeyMyScore.set(court[mine].score);
+    this.hockeyOpponentScore.set(court[other].score);
+    this.hockeyOpponent.set(court[other].playerName);
+    this.hockeyServeLeft.set(court.serveLeft ?? 0);
+    this.hockeyQuestion.set(court.question ?? null);
+    this.hockeyMyTurn.set(!court.winner && court.turn === mine);
     this.hasAnswered.set(false);
 
     const event = court.lastEvent;
-    if (event?.kind === 'goal' && event.id !== this.pingLastGoalId) {
-      this.pingLastGoalId = event.id;
+    if (event?.kind === 'goal' && event.id !== this.hockeyLastGoalId) {
+      this.hockeyLastGoalId = event.id;
       const scored = event.side === mine;
-      this.pingGoal.set({
+      this.hockeyGoal.set({
         id: event.id,
         scored,
         mine: court[mine].score,
         opponent: court[other].score,
       });
       this.vibrate(scored ? [60, 40, 60] : [140, 60, 140]);
-      if (this.pingGoalTimer) clearTimeout(this.pingGoalTimer);
-      this.pingGoalTimer = setTimeout(() => this.pingGoal.set(null), 2400);
+      if (this.hockeyGoalTimer) clearTimeout(this.hockeyGoalTimer);
+      this.hockeyGoalTimer = setTimeout(() => this.hockeyGoal.set(null), 2400);
     }
 
     if (court.winner) {
-      this.pingLastResult.set(court.winner === court[mine].playerName ? 'HAI VINTO IL SET!' : 'SET PERSO');
+      this.hockeyLastResult.set(court.winner === court[mine].playerName ? 'HAI VINTO IL SET!' : 'SET PERSO');
       this.gameState.set('WAITING');
       return;
     }
@@ -1042,11 +1042,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.gameState.set('VOTING');
 
     if (event?.kind === 'return') {
-      this.pingLastResult.set(event.side === mine ? 'PALLA RIMANDATA!' : 'PALLA IN ARRIVO');
+      this.hockeyLastResult.set(event.side === mine ? 'PALLA RIMANDATA!' : 'PALLA IN ARRIVO');
     } else if (event?.kind === 'goal') {
-      this.pingLastResult.set(event.side === mine ? 'GOL PER TE!' : 'GOL SUBITO');
+      this.hockeyLastResult.set(event.side === mine ? 'GOL PER TE!' : 'GOL SUBITO');
     } else {
-      this.pingLastResult.set(null);
+      this.hockeyLastResult.set(null);
     }
   }
 
@@ -1142,7 +1142,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.ws.disconnect();
     this.stopMicrophoneListening();
     this.clearMemoryTimer();
-    if (this.pingGoalTimer) clearTimeout(this.pingGoalTimer);
+    if (this.hockeyGoalTimer) clearTimeout(this.hockeyGoalTimer);
     if (this.updateCheckInterval) {
       clearInterval(this.updateCheckInterval);
       this.updateCheckInterval = undefined;

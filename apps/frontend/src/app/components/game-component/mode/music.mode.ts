@@ -73,13 +73,14 @@ export class MusicMode extends GameModeBase {
   private startVisibleCountdown(seconds: number, onComplete: () => void) {
     this.inCountdown.set(true);
     this.countdownValue.set(seconds);
+    this.config.onCountdownTick?.(seconds);
 
     
 
     this.countdownTimer = setInterval(() => {
       const current = this.countdownValue();
       this.countdownValue.set(current - 1);
-      
+      this.config.onCountdownTick?.(this.countdownValue());
 
       if (this.countdownValue() <= 0) {
         clearInterval(this.countdownTimer);

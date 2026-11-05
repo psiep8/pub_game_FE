@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WebSocketService } from '../../services/web-socket.service';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../services/theme.service';
+import { scoringRuleFor, ScoringRule } from '../game-component/interfaces/scoring-rules';
 
 @Component({
   selector: 'app-admin-component',
@@ -21,6 +22,10 @@ export class Admin implements OnInit, OnDestroy {
 
   
   correctAnswer = signal<string | null>(null);
+  correctPoints = signal<number | null>(null);
+  wrongPoints = signal<number | null>(null);
+  solution = signal<string | null>(null);
+  scoringRules = signal<ScoringRule | null>(null);
   currentQuestionType = signal<string>('QUIZ');
   buzzedPlayer = signal<string | null>(null);
   showAdminControls = signal(false);
@@ -71,12 +76,19 @@ export class Admin implements OnInit, OnDestroy {
             this.buzzedPlayer.set(null);
             this.showAdminControls.set(false);
             this.correctAnswer.set(null);
+            this.correctPoints.set(null);
+            this.wrongPoints.set(null);
+            this.solution.set(null);
+            this.scoringRules.set(null);
             this.payload.set(null);
             break;
 
           case 'PLAYER_PRENOTATO':
-            
             this.buzzedPlayer.set(status.name);
+            this.correctPoints.set(typeof status.correctPoints === 'number' ? status.correctPoints : null);
+            this.wrongPoints.set(typeof status.wrongPoints === 'number' ? status.wrongPoints : null);
+            this.solution.set(status.solution ?? this.correctAnswer());
+            this.scoringRules.set(status.scoring ?? scoringRuleFor(this.currentQuestionType()));
             this.vibrate(100);
             break;
 
@@ -97,6 +109,7 @@ export class Admin implements OnInit, OnDestroy {
   private handleShowQuestion(status: any) {
     this.gameState.set('WAITING');
     this.currentQuestionType.set(status.type || 'QUIZ');
+    this.scoringRules.set(scoringRuleFor(status.type));
 
     
 
@@ -115,6 +128,8 @@ export class Admin implements OnInit, OnDestroy {
 
     this.buzzedPlayer.set(null);
     this.showAdminControls.set(false);
+    this.correctPoints.set(null);
+    this.wrongPoints.set(null);
   }
 
   private handleStartVoting(status: any) {
@@ -123,6 +138,7 @@ export class Admin implements OnInit, OnDestroy {
 
     this.gameState.set('ACTIVE');
     this.currentQuestionType.set(status.type || 'QUIZ');
+    this.scoringRules.set(scoringRuleFor(status.type));
 
     const sourcePayload = status.rawPayload || status.payload;
 
@@ -234,6 +250,34 @@ export class Admin implements OnInit, OnDestroy {
           
           break;
 
+        case 'ROULETTE':
+          answer = payload.correctAnswer !== undefined ? String(payload.correctAnswer) : 'Colore in TV';
+          break;
+
+        case 'TIMELINE':
+          answer = 'Ordine corretto in TV al reveal';
+          break;
+
+        case 'TIME_BUZZER':
+          answer = 'Tempo bersaglio in TV';
+          break;
+
+        case 'SPEED_RUSH':
+          answer = 'Classifica finale in TV';
+          break;
+
+        case 'AIR_HOCKEY_BATTLE':
+          answer = payload.question || 'Domande e set in TV';
+          break;
+
+        case 'ARENA':
+          answer = 'Podio finale in TV';
+          break;
+
+        case 'BONUS_BASKET':
+          answer = 'Tiri dal telefono, premi ai primi tre';
+          break;
+
         default:
           console.warn('⚠️ Tipo sconosciuto:', type);
           answer = payload.correctAnswer !== undefined ? String(payload.correctAnswer) : 'N/A';
@@ -315,9 +359,13 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   showDemo(): void {
+    this.showDemoOf(this.currentQuestionType());
+  }
+
+  showDemoOf(type: string): void {
     this.ws.broadcastStatus(this.activeGameId(), {
       action: 'ADMIN_SHOW_DEMO',
-      type: this.currentQuestionType(),
+      type,
     });
     this.vibrate(30);
   }

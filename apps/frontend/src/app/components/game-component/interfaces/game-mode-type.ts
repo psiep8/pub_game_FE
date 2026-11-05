@@ -27,9 +27,11 @@ export interface GameModeConfig {
   onTimerEnd?: () => void;
   onBuzz?: (playerName: string) => void;
   onAnswerReceived?: (data: any) => void;
-  /** Messaggio da mandare ai telefoni (es. nuova domanda del Ping Pong). */
+  /** Messaggio da mandare ai telefoni (es. nuova domanda dell'Air Hockey). */
   onBroadcast?: (event: any) => void;
   onPreGameTick?: (secondsRemaining: number) => void;
+  /** Countdown visibili dentro una modalità (es. pausa tra le manche). */
+  onCountdownTick?: (secondsRemaining: number) => void;
   /** Arena: una squadra è appena uscita dal cerchio. */
   onPlayerEliminated?: (playerName: string) => void;
   /** Arena: la partita è finita (rimasto un solo giocatore o tempo scaduto). */
@@ -86,6 +88,6 @@ export interface IGameMode {
   /** Scream Race: il giocatore ha tagliato il traguardo. */
   /** Arena: esito di una domanda a risposta rapida. */
   applyArenaAnswer?(playerName: string, isCorrect: boolean, points: number): void;
-  /** Timeline, Quanto costa, Speed Rush, Ping Pong: eventi dal server o dai telefoni. */
+  /** Timeline, Speed Rush, Air Hockey: eventi dal server o dai telefoni. */
   handlePartyEvent?(event: any): void;
 }

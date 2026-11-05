@@ -28,6 +28,7 @@ export class AudioService {
   private revealAudio?: HTMLAudioElement;
 
   private heartbeatLoopInterval?: any;
+  private heartbeatIntensity = 0;
   private clockLoopInterval?: any;
   private ambientInterval?: any;
   private ambientNodes: OscillatorNode[] = [];
@@ -61,16 +62,26 @@ export class AudioService {
     }
   }
 
-  startHeartbeat(): void {
+  /**
+   * Heartbeat della serata. `intensity` va da 0 (lobby) a 1 (round 40):
+   * più si alza, più il battito è frequente e presente.
+   */
+  startHeartbeat(intensity = 0): void {
+    this.stopHeartbeat();
     if (!this.audioEnabled() || !this.heartbeatAudio) return;
+
+    this.heartbeatIntensity = Math.max(0, Math.min(1, intensity));
+    this.heartbeatAudio.volume = 0.18 + this.heartbeatIntensity * 0.16;
     this.heartbeatAudio.currentTime = 0;
     this.heartbeatAudio.play().catch(() => {});
+
+    const interval = Math.round(1500 - this.heartbeatIntensity * 650);
     this.heartbeatLoopInterval = setInterval(() => {
       if (this.heartbeatAudio) {
         this.heartbeatAudio.currentTime = 0;
         this.heartbeatAudio.play().catch(() => {});
       }
-    }, 1500);
+    }, interval);
   }
 
   stopHeartbeat(): void {
@@ -78,10 +89,30 @@ export class AudioService {
       clearInterval(this.heartbeatLoopInterval);
       this.heartbeatLoopInterval = undefined;
     }
+    this.heartbeatIntensity = 0;
     if (this.heartbeatAudio) {
       this.heartbeatAudio.pause();
       this.heartbeatAudio.currentTime = 0;
     }
+  }
+
+  /**
+   * Suspense dei giochi a conto alla rovescia: parte dal round 20 e sale
+   * gradualmente fino al round 40. Il battito cresce con la serata.
+   */
+  startSuspense(round: number): void {
+    const level = Math.max(0, Math.min(1, (round - 19) / 21));
+    if (level <= 0) {
+      this.stopSuspense();
+      return;
+    }
+
+    this.startHeartbeat(level);
+    this.playSuspenseSting(level);
+  }
+
+  stopSuspense(): void {
+    this.stopHeartbeat();
   }
 
   startClock(): void {
@@ -146,6 +177,17 @@ export class AudioService {
     this.tone({ freq: 880, duration: 0.06, type: 'triangle', gain: 0.035 });
   }
 
+  /** Tick del countdown: legno secco e bassissimo, sotto la musica. */
+  playCountdownTick(): void {
+    this.tone({ freq: 1180, duration: 0.035, type: 'triangle', gain: 0.022 });
+  }
+
+  /** Bong di fine countdown: campana grave con coda breve. */
+  playCountdownBong(): void {
+    this.tone({ freq: 196, duration: 0.55, type: 'sine', gain: 0.055, slideTo: 130 });
+    this.tone({ freq: 392, duration: 0.35, type: 'sine', gain: 0.022, delay: 0.02 });
+  }
+
   /** Transizione tra schermate. */
   playWhoosh(): void {
     this.tone({ freq: 220, duration: 0.35, type: 'sine', gain: 0.05, slideTo: 1320 });
@@ -167,19 +209,113 @@ export class AudioService {
     this.tone({ freq: 1567.98, duration: 0.5, type: 'sine', gain: 0.045, delay: 0.7 });
   }
 
-  /** Rullo di tamburi sintetico per la classifica dettagliata. */
-  playDrumroll(seconds = 2): void {
+  /** Rullo di tamburi sintetico; `strength` regola volume e presenza. */
+  playDrumroll(seconds = 2, strength = 0.6): void {
     if (!this.audioEnabled()) return;
-    const hits = Math.floor(seconds * 14);
+    const hits = Math.max(1, Math.floor(seconds * 14));
+    const baseGain = 0.012 + Math.max(0, Math.min(1, strength)) * 0.03;
     for (let i = 0; i < hits; i++) {
       this.tone({
         freq: 90 + (i % 3) * 8,
         duration: 0.045,
         type: 'square',
-        gain: 0.025 + i / hits * 0.02,
+        gain: baseGain * (0.85 + (i / hits) * 0.35),
         delay: i / 14,
       });
     }
+  }
+
+  /**
+   * Podio della classifica: il rullo sale dal terzo al primo posto e lascia
+   * spazio al festeggiamento. Al secondo si aggiungono le botticelle, al
+   * primo i botti pieni.
+   */
+  playPodiumReveal(position: number): void {
+    const place = Math.max(1, Math.min(3, Math.round(position)));
+
+    if (place === 3) {
+      this.playDrumroll(0.8, 0.45);
+      this.playCelebration(1, 0.8);
+      return;
+    }
+
+    if (place === 2) {
+      this.playDrumroll(1.4, 0.7);
+      this.playCelebration(2, 1.4);
+      this.playFireworks(2, 1.5);
+      return;
+    }
+
+    this.playDrumroll(2.6, 1);
+    this.playCelebration(3, 2.6);
+    this.playFireworks(3, 2.7);
+  }
+
+  private playCelebration(level: 1 | 2 | 3, delay: number): void {
+    const notes = level === 1
+      ? [523.25, 659.25, 783.99]
+      : level === 2
+        ? [392, 523.25, 659.25, 783.99]
+        : [392, 523.25, 659.25, 783.99, 1046.5];
+    const step = level === 1 ? 0.11 : level === 2 ? 0.12 : 0.14;
+    const gain = level === 1 ? 0.022 : level === 2 ? 0.03 : 0.038;
+
+    notes.forEach((freq, index) => {
+      this.tone({
+        freq,
+        duration: level === 1 ? 0.18 : 0.24,
+        type: 'triangle',
+        gain,
+        delay: delay + index * step,
+      });
+    });
+    this.chord(notes.slice(-3), 0.7 + level * 0.15, delay + notes.length * step);
+  }
+
+  private playFireworks(level: 2 | 3, delay: number): void {
+    const pops = level === 2 ? 6 : 12;
+    for (let i = 0; i < pops; i++) {
+      const at = delay + i * 0.09 + (i % 4) * 0.02;
+      this.tone({
+        freq: 620 + (i % 5) * 180,
+        duration: 0.025,
+        type: 'square',
+        gain: 0.012 + (level === 3 ? 0.006 : 0),
+        delay: at,
+      });
+      if (i % 3 === 0) {
+        this.tone({
+          freq: 90 - (i % 2) * 15,
+          duration: 0.16,
+          type: 'sine',
+          gain: 0.018 + level * 0.004,
+          delay: at,
+        });
+      }
+    }
+
+    if (level === 3) {
+      this.tone({ freq: 1567.98, duration: 0.5, type: 'sine', gain: 0.03, delay: delay + 0.3 });
+    }
+  }
+
+  /** Richiamo breve all'inizio di un gioco in suspense. */
+  private playSuspenseSting(level: number): void {
+    this.tone({
+      freq: 110,
+      duration: 0.7,
+      type: 'sine',
+      gain: 0.008 + level * 0.014,
+      slideTo: 55,
+    });
+    this.tone({
+      freq: 220,
+      duration: 0.5,
+      type: 'triangle',
+      gain: 0.006 + level * 0.01,
+      delay: 0.04,
+      slideTo: 110,
+    });
   }
 
   /** Tappeto lounge molto leggero: accordi lunghi e arpeggi random. */
@@ -236,7 +372,7 @@ export class AudioService {
   }
 
   stopAll(): void {
-    this.stopHeartbeat();
+    this.stopSuspense();
     this.stopClock();
     this.stopAmbient();
     [this.bellAudio, this.correctAudio, this.wrongAudio, this.revealAudio].forEach((audio) => {

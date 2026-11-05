@@ -76,7 +76,7 @@ public class GameController {
 
         String aiPayload;
         if (partyGameService.handles(type)) {
-            // Timeline, Quanto costa, Speed Rush e Ping Pong non usano la banca
+            // Timeline, Quanto costa, Speed Rush e Air Hockey Battle non usano la banca
             // domande: il payload (e lo stato del round) vive nel servizio party.
             aiPayload = partyGameService.startRound(gameId, type);
             if (aiPayload == null) {

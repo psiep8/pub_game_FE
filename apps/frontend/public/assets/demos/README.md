@@ -1,8 +1,11 @@
-# Demo TV (loop)
+# Demo TV
 
-Caricare qui un video muto per ogni gioco, 8-15 secondi, 1280x720, H.264 mp4.
+Le demo sono **animate direttamente in TV**: `game-component` mostra tre scene
+(interfaccia TV, interfaccia remote, punteggio) per ognuno dei 10 giochi e per
+i bonus Roulette/Basket. Non serve caricare mp4: il presentatore commenta dal
+vivo.
 
-Nomi richiesti (minuscolo, come il tipo del mode):
+Gli mp4 restano opzionali. Se in futuro si vogliono usare, i nomi sono:
 
 - quiz.mp4
 - music.mp4
@@ -15,6 +18,5 @@ Nomi richiesti (minuscolo, come il tipo del mode):
 - air_hockey_battle.mp4
 - wheel_of_fortune.mp4
 
-URL usato dalla TV: `/assets/demos/<tipo>.mp4`.
-
-Il video è muto e in loop: la voce è quella del presentatore dal vivo.
+Il tag `<video>` non è attivo in questa versione: l'overlay usa le scene
+animate definite in `demo-scripts.ts`.

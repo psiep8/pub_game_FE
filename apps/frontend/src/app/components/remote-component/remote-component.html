@@ -224,54 +224,54 @@
     </div>
     }
     @case ('AIR_HOCKEY_BATTLE') {
-    <div class="ping-remote">
-      @if (pingGoal(); as goal) {
-      <div class="ping-goal-overlay" [class.conceded]="!goal.scored">
-        <span class="ping-goal-kicker">{{ goal.scored ? 'L\'AVVERSARIO HA SBAGLIATO' : 'HAI SBAGLIATO' }}</span>
-        <span class="ping-goal-word">{{ goal.scored ? 'GOAL FATTO!' : 'GOAL SUBITO' }}</span>
-        <span class="ping-goal-score">{{ goal.mine }} – {{ goal.opponent }}</span>
-        <span class="ping-goal-note">{{ goal.scored ? 'Punto per te' : 'Punto per l\'avversario' }}</span>
+    <div class="hockey-remote">
+      @if (hockeyGoal(); as goal) {
+      <div class="hockey-goal-overlay" [class.conceded]="!goal.scored">
+        <span class="hockey-goal-kicker">{{ goal.scored ? 'L\'AVVERSARIO HA SBAGLIATO' : 'HAI SBAGLIATO' }}</span>
+        <span class="hockey-goal-word">{{ goal.scored ? 'GOAL FATTO!' : 'GOAL SUBITO' }}</span>
+        <span class="hockey-goal-score">{{ goal.mine }} – {{ goal.opponent }}</span>
+        <span class="hockey-goal-note">{{ goal.scored ? 'Punto per te' : 'Punto per l\'avversario' }}</span>
       </div>
       }
-      <div class="ping-score">
-        <div class="ping-side" [class.active]="pingMyTurn()">
-          <span class="ping-side-name">{{ nickname() }}</span>
-          <span class="ping-side-score">{{ pingMyScore() }}</span>
+      <div class="hockey-score">
+        <div class="hockey-side" [class.active]="hockeyMyTurn()">
+          <span class="hockey-side-name">{{ nickname() }}</span>
+          <span class="hockey-side-score">{{ hockeyMyScore() }}</span>
         </div>
-        <span class="ping-vs">VS</span>
-        <div class="ping-side right" [class.active]="!pingMyTurn()">
-          <span class="ping-side-name">{{ pingOpponent() || 'Avversario' }}</span>
-          <span class="ping-side-score">{{ pingOpponentScore() }}</span>
+        <span class="hockey-vs">VS</span>
+        <div class="hockey-side right" [class.active]="!hockeyMyTurn()">
+          <span class="hockey-side-name">{{ hockeyOpponent() || 'Avversario' }}</span>
+          <span class="hockey-side-score">{{ hockeyOpponentScore() }}</span>
         </div>
       </div>
 
-      @if (pingMyTurn() && pingQuestion(); as q) {
-      <div class="ping-card">
-        <div class="ping-head">
-          <span class="ping-tag">TOCCA A TE</span>
-          <span class="ping-diff">{{ difficultyLabel(q.difficulty) }}</span>
-          <span class="ping-clock" [class.hot]="pingServeLeft() <= 4">{{ pingServeLeft() }}s</span>
+      @if (hockeyMyTurn() && hockeyQuestion(); as q) {
+      <div class="hockey-card">
+        <div class="hockey-head">
+          <span class="hockey-tag">TOCCA A TE</span>
+          <span class="hockey-diff">{{ difficultyLabel(q.difficulty) }}</span>
+          <span class="hockey-clock" [class.hot]="hockeyServeLeft() <= 4">{{ hockeyServeLeft() }}s</span>
         </div>
-        <p class="ping-question">{{ q.text }}</p>
-        <div class="ping-options">
+        <p class="hockey-question">{{ q.text }}</p>
+        <div class="hockey-options">
           @for (option of q.options; track $index) {
-          <button class="ping-option" [disabled]="hasAnswered()" (click)="sendPingAnswer($index)">
-            <span class="ping-letter">{{ letter($index) }}</span>{{ option }}
+          <button class="hockey-option" [disabled]="hasAnswered()" (click)="sendHockeyAnswer($index)">
+            <span class="hockey-letter">{{ letter($index) }}</span>{{ option }}
           </button>
           }
         </div>
       </div>
       } @else {
-      <div class="ping-wait">
-        <div class="ping-wait-icon">🏒</div>
+      <div class="hockey-wait">
+        <div class="hockey-wait-icon">🏒</div>
         <h2>PALLA ALL'AVVERSARIO</h2>
-        <p>{{ pingOpponent() || 'L\'avversario' }} deve rispondere. Tieni il telefono pronto per rimandarla!</p>
-        <div class="ping-wait-score">SET {{ pingMyScore() }} - {{ pingOpponentScore() }}</div>
+        <p>{{ hockeyOpponent() || 'L\'avversario' }} deve rispondere. Tieni il telefono pronto per rimandarla!</p>
+        <div class="hockey-wait-score">SET {{ hockeyMyScore() }} - {{ hockeyOpponentScore() }}</div>
       </div>
       }
 
-      @if (pingLastResult()) {
-      <div class="ping-result">{{ pingLastResult() }}</div>
+      @if (hockeyLastResult()) {
+      <div class="hockey-result">{{ hockeyLastResult() }}</div>
       }
     </div>
     }
