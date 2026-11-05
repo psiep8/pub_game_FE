@@ -76,7 +76,7 @@ public class PartyGameService {
             return false;
         }
         return switch (type.toUpperCase(Locale.ROOT)) {
-            case "TIMELINE", "PRICE", "SPEED_RUSH", "PING_PONG" -> true;
+            case "TIMELINE", "TIME_BUZZER", "SPEED_RUSH", "AIR_HOCKEY_BATTLE" -> true;
             default -> false;
         };
     }
@@ -84,9 +84,9 @@ public class PartyGameService {
     public String startRound(long gameId, String type) {
         return switch (type.toUpperCase(Locale.ROOT)) {
             case "TIMELINE" -> startTimeline(gameId);
-            case "PRICE" -> startPrice(gameId);
+            case "TIME_BUZZER" -> configPayload("TIME_BUZZER", 45);
             case "SPEED_RUSH" -> configPayload("SPEED_RUSH", 60);
-            case "PING_PONG" -> configPayload("PING_PONG", 60);
+            case "AIR_HOCKEY_BATTLE" -> configPayload("AIR_HOCKEY_BATTLE", 60);
             default -> null;
         };
     }

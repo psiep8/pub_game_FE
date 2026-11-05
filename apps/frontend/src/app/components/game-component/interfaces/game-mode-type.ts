@@ -13,9 +13,9 @@ export type GameModeType =
   | 'WHEEL_OF_FORTUNE'
   | 'ARENA'
   | 'TIMELINE'
-  | 'PRICE'
+  | 'TIME_BUZZER'
   | 'SPEED_RUSH'
-  | 'PING_PONG';
+  | 'AIR_HOCKEY_BATTLE';
 
 export interface GameModeConfig {
   type: GameModeType;

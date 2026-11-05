@@ -11,7 +11,7 @@ public enum GameType {
     // ONE_VS_ONE,
     ARENA,
     TIMELINE,
-    PRICE,
+    TIME_BUZZER,
     SPEED_RUSH,
-    PING_PONG
+    AIR_HOCKEY_BATTLE
 }

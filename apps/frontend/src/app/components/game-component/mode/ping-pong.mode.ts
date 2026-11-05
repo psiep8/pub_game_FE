@@ -32,6 +32,9 @@ interface Court {
   question: PingQuestion | null;
   lastEvent: CourtEvent | null;
   awarded: boolean;
+  questionAt: number;
+  shotMs: number;
+  zigzag: boolean;
 }
 
 const POINTS_TO_WIN = 5;
@@ -57,14 +60,14 @@ const QUESTION_BANK: PingQuestion[] = [
 ];
 
 /**
- * Ping Pong "air hockey a domande".
+ * Air Hockey Battle: duello a domande.
  *
  * La palla è sempre da un lato: chi la riceve ha SERVE_SECONDS per rispondere
  * dal telefono. Risposta giusta = palla rimandata di là (nessun punto).
  * Risposta sbagliata o tempo scaduto = gol per l'avversario. Primo a 5.
  */
-export class PingPongMode extends GameModeBase {
-  readonly type: GameModeType = 'PING_PONG';
+export class AirHockeyBattleMode extends GameModeBase {
+  readonly type: GameModeType = 'AIR_HOCKEY_BATTLE';
   readonly timerDuration = 180;
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
@@ -107,6 +110,9 @@ export class PingPongMode extends GameModeBase {
         question: null,
         lastEvent: null,
         awarded: false,
+        questionAt: Date.now(),
+        shotMs: 450,
+        zigzag: false,
       });
       this.awardCourt(next[next.length - 1]);
     }
@@ -128,6 +134,9 @@ export class PingPongMode extends GameModeBase {
       question,
       lastEvent: null,
       awarded: false,
+      questionAt: Date.now(),
+      shotMs: 450,
+      zigzag: false,
     };
   }
 
@@ -177,9 +186,9 @@ export class PingPongMode extends GameModeBase {
     }
   }
 
-  /** Evento dal telefono: PING_PONG_ANSWER con l'indice scelto. */
+  /** Evento dal telefono: AIR_HOCKEY_BATTLE_ANSWER con l'indice scelto. */
   handlePartyEvent(event: any): void {
-    if (event?.action !== 'PING_PONG_ANSWER' || !event.playerName) return;
+    if (event?.action !== 'AIR_HOCKEY_BATTLE_ANSWER' || !event.playerName) return;
 
     const playerKey = String(event.playerName).trim().toLowerCase();
     const index = Number(event.answerIndex);
@@ -192,26 +201,38 @@ export class PingPongMode extends GameModeBase {
     const side: Side = court.a.playerName.trim().toLowerCase() === playerKey ? 'a' : 'b';
     if (court.turn !== side) return;
 
+    const elapsedMs = Math.max(200, Date.now() - court.questionAt);
+
     if (index === court.question.correctIndex) {
-      this.returnBall(court.id, side);
+      this.returnBall(court.id, side, elapsedMs);
     } else {
       this.concede(court.id, side);
     }
   }
 
   /** Palla rimandata: cambia lato, nuova domanda, nessun punto. */
-  private returnBall(courtId: number, side: Side): void {
+  private returnBall(courtId: number, side: Side, elapsedMs: number): void {
     const other: Side = side === 'a' ? 'b' : 'a';
     this.eventCounter += 1;
     const eventId = this.eventCounter;
+
+    // Risposta rapida = tiro secco e meno tempo all'avversario.
+    // Risposta lenta = tiro a zig-zag e più tempo all'avversario.
+    const seconds = Math.max(1, Math.min(20, Math.round(elapsedMs / 1000)));
+    const serveLeft = Math.max(4, Math.min(SERVE_SECONDS, 3 + seconds));
+    const shotMs = Math.max(420, Math.min(2600, Math.round(400 + elapsedMs * 0.18)));
+    const zigzag = elapsedMs >= 4500;
 
     this.courts.update((courts) => courts.map((court) => {
       if (court.id !== courtId || court.winner) return court;
       return {
         ...court,
         turn: other,
-        serveLeft: SERVE_SECONDS,
+        serveLeft,
         question: this.nextQuestion(),
+        questionAt: Date.now(),
+        shotMs,
+        zigzag,
         lastEvent: { kind: 'return', side, id: eventId },
       };
     }));
@@ -253,7 +274,7 @@ export class PingPongMode extends GameModeBase {
     setTimeout(() => {
       if (!court || court.winner) return;
       this.courts.update((courts) => courts.map((c) => c.id === courtId
-        ? { ...c, question: this.nextQuestion(), serveLeft: SERVE_SECONDS }
+        ? { ...c, question: this.nextQuestion(), serveLeft: SERVE_SECONDS, questionAt: Date.now(), shotMs: 450, zigzag: false }
         : c));
       this.broadcast();
     }, 1400);
@@ -285,7 +306,7 @@ export class PingPongMode extends GameModeBase {
 
   private broadcast(): void {
     this.config.onBroadcast?.({
-      action: 'PING_PONG_STATE',
+      action: 'AIR_HOCKEY_BATTLE_STATE',
       target: POINTS_TO_WIN,
       courts: this.courts().map((court) => ({
         id: court.id,
@@ -296,6 +317,8 @@ export class PingPongMode extends GameModeBase {
         serveLeft: court.serveLeft,
         question: court.question,
         lastEvent: court.lastEvent,
+        shotMs: court.shotMs,
+        zigzag: court.zigzag,
       })),
     });
   }
@@ -357,7 +380,7 @@ export class PingPongMode extends GameModeBase {
 
   getDisplayData() {
     return {
-      question: 'Ping Pong!',
+      question: 'Air Hockey Battle!',
       courts: this.courts(),
       target: POINTS_TO_WIN,
       isReading: this.isReading(),

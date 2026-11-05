@@ -122,29 +122,14 @@
         (click)="sendTimelineAnswer()">INVIA ORDINE</button>
     </div>
     }
-    @case ('PRICE') {
-    <div class="price-remote">
-      <div class="game-head"><span class="game-tag price">QUANTO COSTA?</span><span class="game-tip">3 stime</span></div>
-      <div class="price-tabs">
-        @for (item of priceItems(); track item.name; let i = $index) {
-        <button class="price-tab" [class.active]="priceIndex() === i" (click)="priceSelect(i)">
-          <span class="price-tab-emoji">{{ item.emoji }}</span>
-          <span class="price-tab-name">{{ item.name }}</span>
-          <span class="price-tab-value">{{ priceValue(i) || '—' }} €</span>
-        </button>
-        }
-      </div>
-      <div class="price-editor">
-        <span class="price-editor-emoji">{{ priceItems()[priceIndex()]?.emoji }}</span>
-        <span class="price-display">{{ priceValue(priceIndex()) || '0' }} €</span>
-        <span class="price-target">{{ priceItems()[priceIndex()]?.name }}</span>
-      </div>
-      <div class="keypad">
-        @for (key of priceKeys; track key) {
-        <button class="key" (click)="key === '⌫' ? priceBackspace() : pricePress(key)">{{ key }}</button>
-        }
-      </div>
-      <button class="confirm-btn" [disabled]="!priceReady() || hasAnswered()" (click)="sendPriceAnswer()">INVIA 3 STIME</button>
+    @case ('TIME_BUZZER') {
+    <div class="buzz-remote">
+      <div class="game-head"><span class="game-tag buzz">TIME BUZZER</span><span class="game-tip">Vai a sensazione</span></div>
+      <button class="buzz-btn" [class.running]="buzzPhase() === 'running'" [class.sent]="buzzPhase() === 'sent'"
+        [disabled]="buzzPhase() === 'sent'" (click)="toggleBuzz()">
+        {{ buzzPhase() === 'running' ? 'STOP' : buzzPhase() === 'sent' ? 'INVIATO' : 'START' }}
+      </button>
+      <p class="buzz-hint">Nessun cronometro: fermalo quando pensi sia giusto.</p>
     </div>
     }
     @case ('SPEED_RUSH') {
@@ -170,11 +155,57 @@
         }
       </div>
       }
-      @case ('reaction') {
-      <p class="party-instruction">Tocca appena diventa verde. Non prima!</p>
-      <button class="speed-big reaction" [class.go]="speedReaction() === 'go'" (click)="speedReactionTap()">
-        {{ speedReaction() === 'go' ? 'ORA!' : 'ASPETTA...' }}
-      </button>
+      @case ('flip') {
+      <p class="party-instruction" [class.flip-rule-small]="speedFlip().rule === 'small'">
+        TOCCA IL {{ speedFlip().rule === 'big' ? 'PIÙ GRANDE' : 'PIÙ PICCOLO' }}
+      </p>
+      <div class="flip-grid">
+        <button class="flip-btn" (click)="speedPickFlip(speedFlip().a)">{{ speedFlip().a }}</button>
+        <button class="flip-btn" (click)="speedPickFlip(speedFlip().b)">{{ speedFlip().b }}</button>
+      </div>
+      }
+      @case ('count') {
+      <p class="party-instruction">Quante ne vedi? Conta in fretta</p>
+      <div class="count-board">
+        @for (item of speedCount().items; track $index) {
+        <span>{{ item }}</span>
+        }
+      </div>
+      <div class="emoji-grid">
+        @for (option of speedCount().options; track option) {
+        <button class="emoji-btn" (click)="speedPickCount(option)">{{ option }}</button>
+        }
+      </div>
+      }
+      @case ('math') {
+      <p class="party-instruction">Rispondi al volo: {{ speedMath().text }} = ?</p>
+      <div class="emoji-grid">
+        @for (option of speedMath().options; track option) {
+        <button class="emoji-btn" (click)="speedPickMath(option)">{{ option }}</button>
+        }
+      </div>
+      }
+      @case ('stroop') {
+      <p class="party-instruction">Tocca il COLORE dell'inchiostro, non la parola</p>
+      <div class="stroop-word" [style.color]="speedStroop().ink">{{ speedStroop().word }}</div>
+      <div class="emoji-grid">
+        @for (option of speedStroop().options; track option) {
+        <button class="emoji-btn" (click)="speedPickStroop(option)">{{ option }}</button>
+        }
+      </div>
+      }
+      @case ('memory') {
+      @if (speedMemoryPhase() === 'show') {
+      <p class="party-instruction">Memorizza la sequenza</p>
+      <div class="speed-memory-seq">{{ speedMemory().join(' ') }}</div>
+      } @else {
+      <p class="party-instruction">Ripeti la sequenza</p>
+      <div class="emoji-grid">
+        @for (emoji of speedMemoryOptions; track emoji) {
+        <button class="emoji-btn" (click)="speedMemoryTap(emoji)">{{ emoji }}</button>
+        }
+      </div>
+      }
       }
       @default {
       <div class="status-msg">
@@ -185,7 +216,7 @@
       }
     </div>
     }
-    @case ('PING_PONG') {
+    @case ('AIR_HOCKEY_BATTLE') {
     <div class="ping-remote">
       <div class="ping-score">
         <div class="ping-side" [class.active]="pingMyTurn()">
@@ -334,11 +365,11 @@
       <p class="wait-text">Attendi la fine del round...</p>
     </div>
     }
-    @case ('PRICE_OUT') {
+    @case ('BUZZ_OUT') {
     <div class="status-msg">
       <div class="blocked-icon">🚫</div>
       <p>SEI FUORI</p>
-      <p class="sub-text">La tua stima era la più lontana. Guarda la TV.</p>
+      <p class="sub-text">Il tuo tempo era troppo lontano. Guarda la TV.</p>
     </div>
     }
     @case ('ELIMINATED') {

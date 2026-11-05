@@ -20,9 +20,9 @@ const STORAGE_KEY = 'roundProgress';
  * è sempre Quiz.
  */
 const ACT_DECKS: GameModeType[][] = [
-  ['QUIZ', 'MUSIC', 'PRICE', 'WHEEL_OF_FORTUNE', 'IMAGE_BLUR', 'TIMELINE', 'QUIZ', 'SPEED_RUSH'],
-  ['QUIZ', 'IMAGE_BLUR', 'TIMELINE', 'ARENA', 'MUSIC', 'PRICE', 'WHEEL_OF_FORTUNE', 'PING_PONG'],
-  ['QUIZ', 'TIMELINE', 'MUSIC', 'SPEED_RUSH', 'PRICE', 'PING_PONG', 'WHEEL_OF_FORTUNE', 'ARENA'],
+  ['QUIZ', 'MUSIC', 'TIME_BUZZER', 'WHEEL_OF_FORTUNE', 'IMAGE_BLUR', 'TIMELINE', 'QUIZ', 'SPEED_RUSH'],
+  ['QUIZ', 'IMAGE_BLUR', 'TIMELINE', 'ARENA', 'MUSIC', 'TIME_BUZZER', 'WHEEL_OF_FORTUNE', 'AIR_HOCKEY_BATTLE'],
+  ['QUIZ', 'TIMELINE', 'MUSIC', 'SPEED_RUSH', 'TIME_BUZZER', 'AIR_HOCKEY_BATTLE', 'WHEEL_OF_FORTUNE', 'ARENA'],
 ];
 
 /** Classifiche: rapida a metà atto, dettagliata a fine atto. */

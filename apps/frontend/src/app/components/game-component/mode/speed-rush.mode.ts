@@ -7,6 +7,8 @@ interface Lane {
   progress: number;
   finished: boolean;
   position: number | null;
+  streak: number;
+  multiplier: number;
 }
 
 const STEP_FORWARD = 9;
@@ -35,6 +37,8 @@ export class SpeedRushMode extends GameModeBase {
       progress: 0,
       finished: false,
       position: null,
+      streak: 0,
+      multiplier: 1,
     })));
     this.finishedCount = 0;
     this.pointsApplied = false;
@@ -67,6 +71,8 @@ export class SpeedRushMode extends GameModeBase {
       progress: 0,
       finished: false,
       position: null,
+      streak: 0,
+      multiplier: 1,
     })));
   }
 
@@ -79,12 +85,32 @@ export class SpeedRushMode extends GameModeBase {
     this.lanes.update((lanes) => lanes.map((lane) => {
       if (lane.playerName.trim().toLowerCase() !== key || lane.finished) return lane;
 
-      const progress = Math.max(0, Math.min(100, lane.progress + (correct ? STEP_FORWARD : -STEP_BACK)));
-      if (progress < 100) return { ...lane, progress };
+      if (!correct) {
+        return {
+          ...lane,
+          progress: Math.max(0, lane.progress - STEP_BACK),
+          streak: 0,
+          multiplier: 1,
+        };
+      }
+
+      const streak = lane.streak + 1;
+      const multiplier = this.multiplierFor(streak);
+      const progress = Math.min(100, lane.progress + STEP_FORWARD * multiplier);
+
+      if (progress < 100) return { ...lane, progress, streak, multiplier };
 
       this.finishedCount += 1;
-      return { ...lane, progress: 100, finished: true, position: this.finishedCount };
+      return { ...lane, progress: 100, streak, multiplier, finished: true, position: this.finishedCount };
     }));
+  }
+
+  /** Catena di risposte giuste: 2 → x2, 5 → x3, 10 → x4. Un errore azzera. */
+  private multiplierFor(streak: number): number {
+    if (streak >= 10) return 4;
+    if (streak >= 5) return 3;
+    if (streak >= 2) return 2;
+    return 1;
   }
 
   private finishRace(): void {

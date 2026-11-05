@@ -21,10 +21,13 @@ import { CommonModule } from '@angular/common';
             <div class="sr-name">
               <span class="sr-pos">{{ lane.finished ? lane.position : i + 1 }}</span>
               <span class="sr-player">{{ lane.playerName }}</span>
+              @if (lane.multiplier > 1) {
+                <span class="sr-combo" [class.x3]="lane.multiplier === 3" [class.x4]="lane.multiplier === 4">🔥×{{ lane.multiplier }}</span>
+              }
             </div>
-            <div class="sr-track">
+            <div class="sr-track" [class.boost]="lane.multiplier > 1">
               <div class="sr-fill" [style.width.%]="lane.progress"></div>
-              <div class="sr-runner" [style.left.%]="lane.progress">🏃</div>
+              <div class="sr-runner" [class.boost]="lane.multiplier > 1" [style.left.%]="lane.progress">🏃</div>
               <div class="sr-checker"></div>
             </div>
             <div class="sr-pct">{{ lane.progress }}%</div>
@@ -56,6 +59,12 @@ import { CommonModule } from '@angular/common';
     .sr-lane.finished .sr-pct { color: #86efac; font-weight: 900; }
     .sr-lane.finished .sr-pos { background: #fde68a; color: #422006; }
     .sr-empty { text-align: center; opacity: .6; font-size: clamp(1rem, 1.6vw, 1.3rem); }
+    .sr-combo { flex: 0 0 auto; padding: 2px 7px; background: var(--acid); color: var(--coal); border: 2px solid var(--coal); box-shadow: 2px 2px 0 var(--coal); font-family: var(--font-mono); font-size: clamp(.62rem, .78vw, .76rem); font-weight: 900; line-height: 1.2; white-space: nowrap; }
+    .sr-combo.x3 { background: var(--mustard); }
+    .sr-combo.x4 { background: var(--tomato); color: var(--paper-hi); animation: sr-flame .35s infinite alternate; }
+    .sr-track.boost { filter: drop-shadow(0 0 10px rgba(249, 115, 22, .75)); }
+    .sr-runner.boost::after { content: '🔥'; position: absolute; left: 50%; top: 50%; transform: translate(-165%, -60%) scale(.9); font-size: .9em; animation: sr-flame .4s infinite alternate; filter: drop-shadow(0 0 6px rgba(255, 120, 30, .9)); }
+    @keyframes sr-flame { to { transform: translate(-165%, -78%) scale(1.15) rotate(7deg); } }
     @keyframes sr-pulse { 50% { transform: scale(1.08); opacity: .7; } }
     @media (max-width: 800px) { .sr-name { width: 120px; font-size: .72rem; } .sr-pct { width: 44px; font-size: .7rem; } }
   `]

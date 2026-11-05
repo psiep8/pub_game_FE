@@ -10,9 +10,9 @@ export interface GameRoundPayload {
     | 'QUIZ'
     | 'IMAGE_BLUR'
     | 'TIMELINE'
-    | 'PRICE'
+    | 'TIME_BUZZER'
     | 'SPEED_RUSH'
-    | 'PING_PONG';
+    | 'AIR_HOCKEY_BATTLE';
   options: string[];
   correctAnswer: string;
   imageUrl: string;

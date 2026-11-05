@@ -2,15 +2,15 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-ping-pong',
+  selector: 'app-air-hockey-battle',
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <div class="pp-wrap">
       <div class="pp-head">
         <div>
-          <h2 class="pp-title">AIR HOCKEY</h2>
-          <div class="pp-kicker">⚡ DUELLO A COLPI DI RISPOSTA</div>
+          <h2 class="pp-title">AIR HOCKEY BATTLE</h2>
+          <div class="pp-kicker">⚡ BATTAGLIA A COLPI DI RISPOSTA</div>
         </div>
         <div class="pp-head-right">
           <span class="pp-target">PRIMO A {{ displayData?.target ?? 5 }}</span>
@@ -38,10 +38,15 @@ import { CommonModule } from '@angular/common';
             </div>
 
             <div class="pp-rink">
-              <div class="pp-goal left"></div>
-              <div class="pp-goal right"></div>
+              <div class="pp-goal-frame left"></div>
+              <div class="pp-goal-frame right"></div>
+              <div class="pp-laser left"></div>
+              <div class="pp-laser right"></div>
               <div class="pp-center"></div>
-              <div class="pp-puck" [class.to-a]="court.turn === 'a'" [class.to-b]="court.turn === 'b'"></div>
+              <div class="pp-puck" [class.to-a]="court.turn === 'a'" [class.to-b]="court.turn === 'b'"
+                [class.zigzag]="court.zigzag"
+                [style.transition-duration.ms]="court.shotMs || 450"
+                [style.animation-duration.ms]="court.shotMs || 450"></div>
               <div class="pp-paddle left" [class.active]="court.turn === 'a'">🏒</div>
               <div class="pp-paddle right" [class.active]="court.turn === 'b'">🏒</div>
 
@@ -138,9 +143,13 @@ import { CommonModule } from '@angular/common';
       border: 3px solid var(--coal); overflow: hidden;
     }
     .pp-center { position: absolute; left: 50%; top: 8%; bottom: 8%; width: 3px; margin-left: -1.5px; background: rgba(30, 25, 20, .25); }
-    .pp-goal { position: absolute; top: 18%; bottom: 18%; width: 12px; background: repeating-linear-gradient(90deg, var(--coal) 0 3px, var(--paper-hi) 3px 6px); }
-    .pp-goal.left { left: 0; border-right: 2px solid var(--coal); }
-    .pp-goal.right { right: 0; border-left: 2px solid var(--coal); }
+    .pp-goal-frame { position: absolute; top: 14%; bottom: 14%; width: 10px; background: repeating-linear-gradient(180deg, rgba(30,25,20,.35) 0 4px, transparent 4px 8px); }
+    .pp-goal-frame.left { left: 0; border-right: 2px solid var(--coal); }
+    .pp-goal-frame.right { right: 0; border-left: 2px solid var(--coal); }
+    .pp-laser { position: absolute; top: 33%; height: 34%; width: 7px; border-radius: 999px; z-index: 3; }
+    .pp-laser::after { content: ''; position: absolute; inset: -8px -3px; background: inherit; opacity: .22; filter: blur(5px); }
+    .pp-laser.left { left: 7px; background: var(--cobalt); box-shadow: 0 0 10px var(--cobalt), 0 0 22px rgba(37, 99, 235, .55); }
+    .pp-laser.right { right: 7px; background: var(--tomato); box-shadow: 0 0 10px var(--tomato), 0 0 22px rgba(220, 70, 45, .55); }
     .pp-paddle { position: absolute; top: 50%; transform: translateY(-50%); font-size: clamp(1.4rem, 2.4vw, 2.2rem); opacity: .45; transition: opacity .2s ease; }
     .pp-paddle.left { left: 8%; }
     .pp-paddle.right { right: 8%; }
@@ -154,6 +163,14 @@ import { CommonModule } from '@angular/common';
     }
     .pp-puck.to-a { left: 20%; }
     .pp-puck.to-b { left: calc(80% - clamp(14px, 1.8vw, 22px)); }
+    .pp-puck.zigzag { animation-name: ppZigzag; animation-timing-function: ease-in-out; animation-fill-mode: both; }
+    @keyframes ppZigzag {
+      0%, 100% { transform: translateY(0); }
+      20% { transform: translateY(-75%); }
+      40% { transform: translateY(60%); }
+      60% { transform: translateY(-60%); }
+      80% { transform: translateY(45%); }
+    }
 
     .pp-goal-flash {
       position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -184,7 +201,7 @@ import { CommonModule } from '@angular/common';
     .pp-empty { grid-column: 1 / -1; align-self: center; color: var(--ink-dim); text-align: center; font-family: var(--font-mono); }
   `]
 })
-export class PingPong {
+export class AirHockeyBattle {
   @Input() displayData: any;
   @Input() timer = 0;
 

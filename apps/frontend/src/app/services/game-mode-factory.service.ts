@@ -11,9 +11,9 @@ import { RouletteMode } from '../components/game-component/mode/roulette.mode';
 import { MusicMode } from '../components/game-component/mode/music.mode';
 import { ArenaMode } from '../components/game-component/mode/arena.mode';
 import { TimelineMode } from '../components/game-component/mode/timeline.mode';
-import { PriceMode } from '../components/game-component/mode/price.mode';
+import { TimeBuzzerMode } from '../components/game-component/mode/time-buzzer.mode';
 import { SpeedRushMode } from '../components/game-component/mode/speed-rush.mode';
-import { PingPongMode } from '../components/game-component/mode/ping-pong.mode';
+import { AirHockeyBattleMode } from '../components/game-component/mode/ping-pong.mode';
 
 type ModeFactory = (config: GameModeConfig) => IGameMode;
 
@@ -35,9 +35,9 @@ export class GameModeService {
     MUSIC: (config) => this.withConfig(new MusicMode(), config),
     ARENA: (config) => this.withConfig(new ArenaMode(), config),
     TIMELINE: (config) => this.withConfig(new TimelineMode(), config),
-    PRICE: (config) => this.withConfig(new PriceMode(), config),
+    TIME_BUZZER: (config) => this.withConfig(new TimeBuzzerMode(), config),
     SPEED_RUSH: (config) => this.withConfig(new SpeedRushMode(), config),
-    PING_PONG: (config) => this.withConfig(new PingPongMode(), config),
+    AIR_HOCKEY_BATTLE: (config) => this.withConfig(new AirHockeyBattleMode(), config),
   };
 
   createMode(config: GameModeConfig): IGameMode {

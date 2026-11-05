@@ -1,67 +1,62 @@
 import { signal } from '@angular/core';
 import { GameModeBase } from '../interfaces/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../interfaces/game-mode-type';
-import { environment } from '../../../environment/environment';
 
-interface PriceItem {
-  name: string;
-  emoji: string;
-  category: string;
-  price?: number;
-  source?: string;
-}
-
-interface MancheGuess {
+interface BuzzGuess {
   playerName: string;
-  value: number;
+  ms: number;
 }
 
-interface MancheResult extends MancheGuess {
+interface BuzzResult extends BuzzGuess {
   error: number;
   eliminated: boolean;
 }
 
+const MANCHES = 3;
+const MIN_MS = 5000;
+const MAX_MS = 30000;
+const MANCHE_MS = 45000;
+
 /**
- * Quanto costa — a manche.
+ * Time Buzzer — tre manche a tempo.
  *
- * Ogni oggetto è una manche: solo chi è ancora in gara manda una stima, il
- * prezzo non viaggia mai nel payload (viene letto dal server e mostrato solo
- * al reveal). Il peggiore di ogni manche esce; vince chi resta in piedi.
+ * La TV mostra un tempo bersaglio casuale (5–30 s). Ogni telefono ha solo un
+ * pulsante verde: START quando vuole, STOP quando pensa di essere arrivato.
+ * Nessun cronometro sul remote. Il peggior terzo esce a ogni manche.
  */
-export class PriceMode extends GameModeBase {
-  readonly type: GameModeType = 'PRICE';
-  readonly timerDuration = 30;
+export class TimeBuzzerMode extends GameModeBase {
+  readonly type: GameModeType = 'TIME_BUZZER';
+  readonly timerDuration = 45;
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
 
-  private items = signal<PriceItem[]>([]);
   private mancheIndex = signal(0);
   private remaining = signal<string[]>([]);
   private eliminatedNames = signal<string[]>([]);
-  private guesses = signal<MancheGuess[]>([]);
+  private guesses = signal<BuzzGuess[]>([]);
+  private targetMs = signal(0);
   private revealData = signal<any | null>(null);
   private finished = signal(false);
 
-  private solution: PriceItem[] = [];
+  private initialCount = 0;
   private timerHandle?: ReturnType<typeof setTimeout>;
   private advanceHandle?: ReturnType<typeof setTimeout>;
 
   protected onInitialize(): void {
-    const payloadItems = Array.isArray(this.payload?.items) ? this.payload.items : [];
-    this.items.set(payloadItems);
-    this.solution = payloadItems.map((item: PriceItem) => ({ ...item }));
-    this.mancheIndex.set(0);
-    this.remaining.set([...(this.config.activePlayers ?? [])]);
+    const players = this.config.activePlayers ?? [];
+    this.initialCount = players.length;
+    this.remaining.set([...players]);
     this.eliminatedNames.set([]);
+    this.mancheIndex.set(0);
     this.guesses.set([]);
     this.revealData.set(null);
+    this.targetMs.set(0);
     this.finished.set(false);
     this.timer.set(this.timerDuration);
   }
 
   protected async onStart(): Promise<void> {
-    await this.runPreGameSequence(3000);
-    await this.loadSolution();
+    await this.runPreGameSequence(2500);
     this.beginManche();
   }
 
@@ -81,48 +76,36 @@ export class PriceMode extends GameModeBase {
     this.revealManche();
   }
 
-  private async loadSolution(): Promise<void> {
-    try {
-      const response = await fetch(`${environment.apiUrl}/games/${this.config.gameId}/price/reveal`);
-      const data = await response.json();
-      if (Array.isArray(data?.items) && data.items.length) {
-        this.solution = data.items;
-      }
-    } catch {
-      // Senza backend restano i prezzi eventualmente presenti nel payload.
-    }
-  }
-
   private beginManche(): void {
     if (this.finished()) return;
-
-    if (this.mancheIndex() >= this.items().length) {
+    if (this.mancheIndex() >= MANCHES) {
       this.finish();
       return;
     }
 
     this.guesses.set([]);
     this.revealData.set(null);
+    this.targetMs.set(Math.round((MIN_MS + Math.random() * (MAX_MS - MIN_MS)) / 10) * 10);
     this.timer.set(this.timerDuration);
 
     this.clearTimers();
-    this.timerHandle = setTimeout(() => this.revealManche(), this.timerDuration * 1000);
+    this.timerHandle = setTimeout(() => this.revealManche(), MANCHE_MS);
     this.broadcast();
   }
 
   handlePartyEvent(event: any): void {
-    if (event?.action !== 'PRICE_ANSWER' || !event.playerName) return;
+    if (event?.action !== 'TIME_BUZZER_ANSWER' || !event.playerName) return;
     if (this.revealData() || this.finished()) return;
 
     const playerName = String(event.playerName);
-    if (this.eliminatedNames().includes(playerName)) return;
+    if (!this.remaining().includes(playerName)) return;
 
-    const value = Number(event.value ?? event.price);
-    if (!Number.isFinite(value) || value <= 0) return;
+    const ms = Number(event.ms);
+    if (!Number.isFinite(ms) || ms <= 0 || ms > 120000) return;
 
     this.guesses.update((list) => [
       ...list.filter((guess) => guess.playerName !== playerName),
-      { playerName, value },
+      { playerName, ms: Math.round(ms) },
     ]);
 
     if (this.guesses().length >= this.remaining().length) {
@@ -134,51 +117,55 @@ export class PriceMode extends GameModeBase {
 
   private revealManche(): void {
     if (this.revealData() || this.finished()) return;
-
     this.clearTimers();
 
-    const index = this.mancheIndex();
-    const item = this.items()[index];
-    const price = Number(this.solution[index]?.price ?? item?.price ?? 0);
-
-    const results: MancheResult[] = this.guesses()
+    const target = this.targetMs();
+    const results: BuzzResult[] = this.guesses()
       .map((guess) => ({
         ...guess,
-        error: price > 0 ? Math.abs(guess.value - price) : 0,
+        error: Math.abs(guess.ms - target),
         eliminated: false,
       }))
       .sort((a, b) => a.error - b.error);
 
-    if (results.length > 1) {
-      results[results.length - 1].eliminated = true;
+    const survivors = this.remaining().length;
+    const eliminateCount = this.mancheIndex() < MANCHES - 1
+      ? Math.min(
+          Math.max(1, Math.ceil(this.initialCount / 3)),
+          Math.max(0, survivors - 3),
+        )
+      : 0;
+
+    for (let i = 0; i < eliminateCount && i < results.length; i++) {
+      results[results.length - 1 - i].eliminated = true;
     }
 
-    const out = results.find((result) => result.eliminated)?.playerName ?? null;
-    if (out) {
-      this.eliminatedNames.update((list) => [...list, out]);
-      this.remaining.update((list) => list.filter((name) => name !== out));
+    const out = results.filter((result) => result.eliminated).map((result) => result.playerName);
+    if (out.length) {
+      this.eliminatedNames.update((list) => [...list, ...out]);
+      this.remaining.update((list) => list.filter((name) => !out.includes(name)));
     }
 
     results.forEach((result, position) => {
       if (result.eliminated) return;
       this.config.onAnswerReceived?.({
         playerName: result.playerName,
-        points: Math.max(50, 250 - position * 50),
+        points: Math.max(50, 300 - position * 100),
         isCorrect: position === 0,
       });
     });
 
-    this.revealData.set({ price, results, eliminated: out, item });
+    this.revealData.set({ target, results, eliminated: out });
     this.broadcast();
 
     this.advanceHandle = setTimeout(() => {
-      if (this.remaining().length <= 1 || index + 1 >= this.items().length) {
+      if (this.mancheIndex() + 1 >= MANCHES || this.remaining().length <= 1) {
         this.finish();
       } else {
         this.mancheIndex.update((value) => value + 1);
         this.beginManche();
       }
-    }, 5500);
+    }, 6000);
   }
 
   private finish(): void {
@@ -186,9 +173,9 @@ export class PriceMode extends GameModeBase {
     this.finished.set(true);
     this.clearTimers();
 
-    const winner = this.remaining()[0];
-    if (winner) {
-      this.config.onAnswerReceived?.({ playerName: winner, points: 500, isCorrect: true });
+    const best = this.revealData()?.results?.find((result: BuzzResult) => !result.eliminated);
+    if (best) {
+      this.config.onAnswerReceived?.({ playerName: best.playerName, points: 500, isCorrect: true });
     }
 
     this.broadcast();
@@ -203,7 +190,7 @@ export class PriceMode extends GameModeBase {
   }
 
   private broadcast(): void {
-    this.config.onBroadcast?.({ action: 'PRICE_STATE', state: this.getDisplayData() });
+    this.config.onBroadcast?.({ action: 'TIME_BUZZER_STATE', state: this.getDisplayData() });
   }
 
   protected onBuzz(_playerName: string): void {}
@@ -221,11 +208,10 @@ export class PriceMode extends GameModeBase {
 
   getDisplayData() {
     return {
-      question: this.payload?.question ?? 'Quanto costa?',
-      unit: this.payload?.unit ?? '€',
-      item: this.items()[this.mancheIndex()] ?? null,
+      question: this.payload?.question ?? 'Quanto ci metti?',
+      targetMs: this.targetMs(),
       manche: this.mancheIndex() + 1,
-      total: this.items().length,
+      total: MANCHES,
       remaining: this.remaining(),
       eliminated: this.eliminatedNames(),
       guesses: this.guesses(),

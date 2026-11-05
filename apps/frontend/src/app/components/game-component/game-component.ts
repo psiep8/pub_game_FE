@@ -39,9 +39,9 @@ import { LeaderboardQuick } from '../leaderboard/leaderboard-quick-component/lea
 import { LeaderboardDetailed } from '../leaderboard/leaderboard-detailed-component/leaderboard-detailed-component';
 import { ArenaComponent } from './games/arena/arena.component';
 import { Timeline } from './games/timeline/timeline';
-import { Price } from './games/price/price';
+import { TimeBuzzer } from './games/time-buzzer/time-buzzer';
 import { SpeedRush } from './games/speed-rush/speed-rush';
-import { PingPong } from './games/ping-pong/ping-pong';
+import { AirHockeyBattle } from './games/ping-pong/ping-pong';
 
 @Component({
   selector: 'app-game-component',
@@ -57,9 +57,9 @@ import { PingPong } from './games/ping-pong/ping-pong';
     LeaderboardDetailed,
     ArenaComponent,
     Timeline,
-    Price,
+    TimeBuzzer,
     SpeedRush,
-    PingPong
+    AirHockeyBattle
   ],
   templateUrl: './game-component.html',
   styleUrls: ['./game-component.css', './restyle.css'],
@@ -250,7 +250,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
       // 🆕 Giochi simultanei: risultati dal server e progressi dai telefoni.
-      if (mode && ['TIMELINE_RESULT', 'PRICE_ANSWER', 'SPEED_RUSH_PROGRESS', 'PING_PONG_ANSWER'].includes(status.action)) {
+      if (mode && ['TIMELINE_RESULT', 'TIME_BUZZER_ANSWER', 'SPEED_RUSH_PROGRESS', 'AIR_HOCKEY_BATTLE_ANSWER'].includes(status.action)) {
         mode.handlePartyEvent?.(status);
         this.cdr.detectChanges();
       }
@@ -495,9 +495,9 @@ export class GameComponent implements OnInit, OnDestroy {
       case 'ARENA':
         return 'ARENA';
       case 'TIMELINE':
-      case 'PRICE':
+      case 'TIME_BUZZER':
       case 'SPEED_RUSH':
-      case 'PING_PONG':
+      case 'AIR_HOCKEY_BATTLE':
         return 'CULTURA GENERALE';
       default:
         const categories = this.allCategories();
@@ -528,11 +528,11 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'ARENA BATTLE ROYALE';
       case 'TIMELINE':
         return 'TIMELINE';
-      case 'PRICE':
-        return 'QUANTO COSTA?';
+      case 'TIME_BUZZER':
+        return 'TIME BUZZER';
       case 'SPEED_RUSH':
         return 'SPEED RUSH';
-      case 'PING_PONG':
+      case 'AIR_HOCKEY_BATTLE':
         return 'AIR HOCKEY';
       default:
         return type;

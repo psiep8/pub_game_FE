@@ -89,8 +89,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   tempNickname = '';
   startTime: number = 0;
 
-  gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR' | 'PRICE_OUT' | 'ELIMINATED'>('WAITING');
-  questionType = signal<'ROULETTE' | 'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'PRICE' | 'SPEED_RUSH' | 'PING_PONG'>('QUIZ');
+  gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR' | 'BUZZ_OUT' | 'ELIMINATED'>('WAITING');
+  questionType = signal<'ROULETTE' | 'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE'>('QUIZ');
   hasAnswered = signal(false);
   isBlocked = signal(false);
 
@@ -123,19 +123,34 @@ export class RemoteComponent implements OnInit, OnDestroy {
   priceEstimates = signal<string[]>([]);
   priceKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', '⌫'];
 
+  buzzPhase = signal<'idle' | 'running' | 'sent'>('idle');
+  buzzEliminated = signal(false);
+  buzzManche = signal(0);
+  private buzzStartedAt = 0;
+
   draggingId = signal<number | null>(null);
   private dragId: number | null = null;
 
   arenaEliminated = signal(false);
 
-  speedKind = signal<'idle' | 'tap' | 'odd' | 'order' | 'reaction'>('idle');
-  speedReaction = signal<'wait' | 'go'>('wait');
-  private reactionTimer?: ReturnType<typeof setTimeout>;
+  speedKind = signal<'idle' | 'tap' | 'odd' | 'order' | 'math' | 'stroop' | 'memory' | 'flip' | 'count'>('idle');
   speedTapCount = signal(0);
   speedOdd = signal<string[]>([]);
   private speedOddAnswer = '';
   speedSequence = signal<number[]>([]);
   speedPicked = signal<number[]>([]);
+  speedMath = signal<{ text: string; options: number[]; answer: number }>({ text: '', options: [], answer: 0 });
+  speedStroop = signal<{ word: string; ink: string; answer: string; options: string[] }>({ word: '', ink: '', answer: '', options: [] });
+  speedMemory = signal<string[]>([]);
+  speedMemoryPhase = signal<'show' | 'input'>('input');
+  speedMemoryPicked = signal<string[]>([]);
+  readonly speedMemoryOptions = ['🍎', '🍌', '🍇', '🍒', '🍋', '🥝'];
+  private memoryTimer?: ReturnType<typeof setTimeout>;
+
+  speedFlip = signal<{ a: number; b: number; rule: 'big' | 'small' }>({ a: 0, b: 0, rule: 'big' });
+
+  speedCount = signal<{ items: string[]; options: number[]; answer: number }>({ items: [], options: [], answer: 0 });
+  readonly speedCountEmojis = ['🍒', '🍋', '🍇', '🍎', '⭐', '🍩'];
 
   pingHits = signal(0);
   private lastPingAt = 0;
@@ -221,26 +236,27 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.onStartVoting(status.type, status.payload);
           break;
 
-        case 'PRICE_STATE':
+        case 'TIME_BUZZER_STATE':
           if (status.state) {
             const state = status.state;
-            this.priceItems.set(state.item ? [state.item] : []);
-            this.priceIndex.set(0);
-            this.priceEstimates.set(['']);
-            this.hasAnswered.set(false);
-            this.priceEliminated.set(!!state.eliminated?.includes?.(this.nickname()));
-            this.gameState.set(this.priceEliminated() ? 'PRICE_OUT' : (state.reveal ? 'WAITING' : 'VOTING'));
+            const manche = Number(state.manche ?? 0);
+            if (manche !== this.buzzManche()) {
+              this.buzzManche.set(manche);
+              this.buzzPhase.set('idle');
+            }
+            this.buzzEliminated.set(!!state.eliminated?.includes?.(this.nickname()));
+            this.gameState.set(this.buzzEliminated() ? 'BUZZ_OUT' : 'VOTING');
           }
           break;
 
-        case 'PING_PONG_STATE':
-          this.handlePingPongState(status);
+        case 'AIR_HOCKEY_BATTLE_STATE':
+          this.handleAirHockeyBattleState(status);
           break;
 
         case 'ROUND_ENDED':
         case 'REVEAL':
           this.speedKind.set('idle');
-          this.clearReaction();
+          this.clearMemoryTimer();
           this.timelineOrder.set([]);
           this.priceEstimates.set([]);
           this.priceItems.set([]);
@@ -582,15 +598,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.timelineCards.set(cards);
       // Si parte dall'ordine mostrato: si trascina per correggerlo.
       this.timelineOrder.set(cards.map((card: any) => card.id));
-    } else if (type === 'PRICE') {
-      const data = this.parsePayload(payload);
-      const items = data?.items ?? [];
-      this.priceItems.set(items);
-      this.priceEstimates.set(new Array(items.length).fill(''));
-      this.priceIndex.set(0);
+    } else if (type === 'TIME_BUZZER') {
+      this.buzzPhase.set('idle');
+      this.buzzEliminated.set(false);
+      this.buzzManche.set(0);
     } else if (type === 'SPEED_RUSH') {
       this.startSpeedRush();
-    } else if (type === 'PING_PONG') {
+    } else if (type === 'AIR_HOCKEY_BATTLE') {
       this.pingHits.set(0);
     }
   }
@@ -715,13 +729,34 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.vibrate(40);
   }
 
+  toggleBuzz(): void {
+    if (this.buzzEliminated() || this.buzzPhase() === 'sent') return;
+
+    if (this.buzzPhase() === 'idle') {
+      this.buzzStartedAt = performance.now();
+      this.buzzPhase.set('running');
+      this.vibrate(20);
+      return;
+    }
+
+    const ms = Math.round(performance.now() - this.buzzStartedAt);
+    this.buzzPhase.set('sent');
+    this.vibrate([20, 30, 20]);
+    this.ws.broadcastStatus(this.gameId(), {
+      action: 'TIME_BUZZER_ANSWER',
+      playerName: this.nickname(),
+      ms,
+    });
+  }
+
   startSpeedRush(): void {
     this.speedPicked.set([]);
     this.nextSpeedTask();
   }
 
   private nextSpeedTask(): void {
-    const kinds = ['tap', 'odd', 'order', 'reaction'] as const;
+    this.clearMemoryTimer();
+    const kinds = ['tap', 'odd', 'order', 'math', 'stroop', 'memory', 'flip', 'count'] as const;
     const kind = kinds[Math.floor(Math.random() * kinds.length)];
     this.speedKind.set(kind);
 
@@ -740,8 +775,79 @@ export class RemoteComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (kind === 'reaction') {
-      this.startReaction();
+    if (kind === 'math') {
+      const a = 3 + Math.floor(Math.random() * 9);
+      const b = 2 + Math.floor(Math.random() * 9);
+      const answer = a + b;
+      const options = new Set<number>([answer]);
+      while (options.size < 3) {
+        const delta = [-2, -1, 1, 2][Math.floor(Math.random() * 4)];
+        const candidate = answer + delta;
+        if (candidate > 0) options.add(candidate);
+      }
+      this.speedMath.set({
+        text: `${a} + ${b}`,
+        answer,
+        options: [...options].sort(() => Math.random() - 0.5),
+      });
+      return;
+    }
+
+    if (kind === 'stroop') {
+      const colors = [
+        { name: 'ROSSO', ink: '#e63946' },
+        { name: 'BLU', ink: '#2563eb' },
+        { name: 'VERDE', ink: '#15803d' },
+      ];
+      const word = colors[Math.floor(Math.random() * colors.length)];
+      let ink = colors[Math.floor(Math.random() * colors.length)];
+      if (ink.name === word.name) {
+        ink = colors[(colors.indexOf(ink) + 1) % colors.length];
+      }
+      this.speedStroop.set({
+        word: word.name,
+        ink: ink.ink,
+        answer: ink.name,
+        options: colors.map((color) => color.name).sort(() => Math.random() - 0.5),
+      });
+      return;
+    }
+
+    if (kind === 'memory') {
+      const sequence = Array.from({ length: 3 }, () =>
+        this.speedMemoryOptions[Math.floor(Math.random() * this.speedMemoryOptions.length)]
+      );
+      this.speedMemory.set(sequence);
+      this.speedMemoryPicked.set([]);
+      this.speedMemoryPhase.set('show');
+      this.clearMemoryTimer();
+      this.memoryTimer = setTimeout(() => this.speedMemoryPhase.set('input'), 1500);
+      return;
+    }
+
+    if (kind === 'flip') {
+      const a = 2 + Math.floor(Math.random() * 97);
+      let b = 2 + Math.floor(Math.random() * 97);
+      while (b === a) b = 2 + Math.floor(Math.random() * 97);
+      this.speedFlip.set({ a, b, rule: Math.random() < 0.5 ? 'big' : 'small' });
+      return;
+    }
+
+    if (kind === 'count') {
+      const emoji = this.speedCountEmojis[Math.floor(Math.random() * this.speedCountEmojis.length)];
+      const answer = 6 + Math.floor(Math.random() * 6);
+      const items = Array.from({ length: answer }, () => emoji);
+      const options = new Set<number>([answer]);
+      while (options.size < 3) {
+        const delta = [-2, -1, 1, 2][Math.floor(Math.random() * 4)];
+        const candidate = answer + delta;
+        if (candidate > 0) options.add(candidate);
+      }
+      this.speedCount.set({
+        items,
+        answer,
+        options: [...options].sort(() => Math.random() - 0.5),
+      });
       return;
     }
 
@@ -750,32 +856,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.speedPicked.set([]);
   }
 
-  private startReaction(): void {
-    this.clearReaction();
-    this.speedReaction.set('wait');
-    const delay = 900 + Math.random() * 2200;
-    this.reactionTimer = setTimeout(() => {
-      this.speedReaction.set('go');
-      this.vibrate(30);
-    }, delay);
+  speedPickCount(value: number): void {
+    this.completeSpeedTask(value === this.speedCount().answer);
   }
 
-  speedReactionTap(): void {
-    if (this.speedReaction() === 'go') {
-      this.clearReaction();
-      this.completeSpeedTask(true);
-    } else {
-      this.clearReaction();
-      this.completeSpeedTask(false);
-    }
-  }
-
-  private clearReaction(): void {
-    if (this.reactionTimer) {
-      clearTimeout(this.reactionTimer);
-      this.reactionTimer = undefined;
-    }
-    this.speedReaction.set('wait');
+  speedPickFlip(value: number): void {
+    const { a, b, rule } = this.speedFlip();
+    const target = rule === 'big' ? Math.max(a, b) : Math.min(a, b);
+    this.completeSpeedTask(value === target);
   }
 
   speedTap(): void {
@@ -811,7 +899,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   private completeSpeedTask(correct: boolean): void {
-    this.clearReaction();
+    this.clearMemoryTimer();
     this.ws.broadcastStatus(this.gameId(), {
       action: 'SPEED_RUSH_PROGRESS',
       playerName: this.nickname(),
@@ -822,11 +910,43 @@ export class RemoteComponent implements OnInit, OnDestroy {
     setTimeout(() => this.nextSpeedTask(), 300);
   }
 
+  speedPickMath(value: number): void {
+    this.completeSpeedTask(value === this.speedMath().answer);
+  }
+
+  speedPickStroop(name: string): void {
+    this.completeSpeedTask(name === this.speedStroop().answer);
+  }
+
+  speedMemoryTap(emoji: string): void {
+    const expected = [...this.speedMemoryPicked(), emoji];
+    const sequence = this.speedMemory();
+
+    if (!expected.every((value, index) => value === sequence[index])) {
+      this.completeSpeedTask(false);
+      return;
+    }
+
+    this.vibrate(10);
+    this.speedMemoryPicked.set(expected);
+
+    if (expected.length === sequence.length) {
+      this.completeSpeedTask(true);
+    }
+  }
+
+  private clearMemoryTimer(): void {
+    if (this.memoryTimer) {
+      clearTimeout(this.memoryTimer);
+      this.memoryTimer = undefined;
+    }
+  }
+
   sendPingAnswer(index: number): void {
     if (this.hasAnswered() || !this.pingMyTurn() || !this.nickname()) return;
 
     this.ws.broadcastStatus(this.gameId(), {
-      action: 'PING_PONG_ANSWER',
+      action: 'AIR_HOCKEY_BATTLE_ANSWER',
       playerName: this.nickname(),
       answerIndex: index,
     });
@@ -838,7 +958,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     return String.fromCharCode(65 + index);
   }
 
-  private handlePingPongState(status: any): void {
+  private handleAirHockeyBattleState(status: any): void {
     const me = (this.nickname() ?? '').trim().toLowerCase();
     const court = (status.courts ?? []).find((c: any) =>
       c.a.playerName.trim().toLowerCase() === me || c.b.playerName.trim().toLowerCase() === me
@@ -848,7 +968,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const mine: 'a' | 'b' = court.a.playerName.trim().toLowerCase() === me ? 'a' : 'b';
     const other: 'a' | 'b' = mine === 'a' ? 'b' : 'a';
 
-    this.questionType.set('PING_PONG');
+    this.questionType.set('AIR_HOCKEY_BATTLE');
     this.pingMyScore.set(court[mine].score);
     this.pingOpponentScore.set(court[other].score);
     this.pingOpponent.set(court[other].playerName);
@@ -966,7 +1086,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.ws.disconnect();
     this.stopMicrophoneListening();
-    this.clearReaction();
+    this.clearMemoryTimer();
     if (this.updateCheckInterval) {
       clearInterval(this.updateCheckInterval);
       this.updateCheckInterval = undefined;
