@@ -13,6 +13,7 @@ const PLAYABLE_TYPES: GameModeType[] = [
   'AIR_HOCKEY_BATTLE',
   'TIME_BUZZER',
   'SCOMMESSA',
+  'QUOTA',
 ];
 
 const REALTIME_TYPES: GameModeType[] = ['BOMBA', 'ARENA', 'SPEED_RUSH', 'AIR_HOCKEY_BATTLE'];
@@ -124,6 +125,8 @@ describe('RoundManagerService', () => {
     expect(types.filter((type) => type === 'QUIZ')).toHaveLength(6);
     expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(3);
     expect(types.filter((type) => type === 'SCOMMESSA')).toHaveLength(1);
+    expect(types.filter((type) => type === 'QUOTA')).toHaveLength(1);
+    expect(types.filter((type) => type === 'BOMBA')).toHaveLength(4);
   });
 
   it('should track how many times each mode has been played', () => {

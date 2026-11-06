@@ -69,6 +69,12 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     missed: 'gol per l’avversario',
     note: 'Il set si chiude a 7 gol; il perdente riceve +200 di consolazione. Risposte rapide accorciano il tempo dell’avversario.',
   },
+  QUOTA: {
+    correct: 'gettoni × quota (max 500 per domanda)',
+    wrong: '0: si perdono solo i gettoni giocati',
+    missed: '25 gettoni per fascia, poi si paga come gli altri',
+    note: 'Quattro domande numeriche, 100 gettoni da distribuire sulle fasce; solo quella che contiene il valore paga.',
+  },
   SCOMMESSA: {
     correct: '+banca incassata (100 → 400 → 800)',
     wrong: '0: la banca si brucia',

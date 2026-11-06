@@ -155,6 +155,18 @@ export const DEMO_SCRIPTS: Record<string, DemoScript> = {
     ],
     note: 'Otto domande flash sulla categoria votata: il podio del bonus premia i primi tre.',
   },
+  QUOTA: {
+    title: 'QUOTA',
+    icon: '📊',
+    tv: ['Quattro domande numeriche', 'Fasce con quote diverse', 'Valore, pubblico e cecchino al reveal'],
+    remote: ['Distribuisci 100 gettoni', 'Tocca una fascia e usa +/−', 'Tutto, 50-50 o spalma'],
+    scoring: [
+      { label: 'Fascia vincente', value: 'gettoni × quota', tone: 'good' },
+      { label: 'Altre fasce', value: 'gettoni persi', tone: 'bad' },
+      { label: 'Tetto per domanda', value: '500', tone: 'neutral' },
+    ],
+    note: 'Più stretta è la fascia, più alta è la quota: conviene rischiare su un intervallo piccolo.',
+  },
   SCOMMESSA: {
     title: 'LA SCOMMESSA',
     icon: '🎲',

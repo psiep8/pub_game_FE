@@ -113,6 +113,49 @@ public class QuestionBankService {
     /** Sotto questo numero di domande l'arena finisce le scorte della categoria. */
     private static final int MIN_ARENA_QUESTIONS = 10;
     private static final int SCOMMESSA_QUESTIONS = 3;
+    private static final int QUOTA_QUESTIONS = 4;
+
+    /** Banca numerica di Quota: valore e intervallo plausibile per le fasce. */
+    private record NumericQuestion(String category, String question, String unit,
+            double value, double min, double max) {
+    }
+
+    private static final List<NumericQuestion> NUMERIC_QUESTIONS = List.of(
+            new NumericQuestion("Storia", "In che anno è caduto il Muro di Berlino?", "anno", 1989, 1900, 2000),
+            new NumericQuestion("Storia", "In che anno Colombo arrivò in America?", "anno", 1492, 1400, 1600),
+            new NumericQuestion("Geografia e Viaggi", "Quanti metri è alto l'Everest?", "metri", 8849, 7000, 9500),
+            new NumericQuestion("Geografia e Viaggi", "Quanti chilometri è lungo il Nilo?", "km", 6650, 4000, 8000),
+            new NumericQuestion("Geografia e Viaggi", "Quanti milioni di abitanti ha l'Italia?", "milioni", 59, 40, 80),
+            new NumericQuestion("Scienza e Spazio", "Qual è la velocità della luce in km/s?", "km/s", 299792, 200000, 400000),
+            new NumericQuestion("Scienza e Spazio", "A quanti gradi bolle l'acqua a livello del mare?", "°C", 100, 80, 120),
+            new NumericQuestion("Scienza e Spazio", "Quanti pianeti ci sono nel Sistema Solare?", "pianeti", 8, 5, 12),
+            new NumericQuestion("Sport", "Quanti Mondiali di calcio ha vinto l'Italia?", "titoli", 4, 1, 8),
+            new NumericQuestion("Sport", "Quanti chilometri è lunga una maratona?", "km", 42.195, 30, 60),
+            new NumericQuestion("Sport", "In che anno si sono tenute le Olimpiadi di Parigi?", "anno", 2024, 1990, 2030),
+            new NumericQuestion("Cinema", "In che anno è uscito Titanic?", "anno", 1997, 1980, 2010),
+            new NumericQuestion("Cinema", "Quanti Oscar ha vinto Ben-Hur?", "Oscar", 11, 5, 15),
+            new NumericQuestion("Musica", "Quante corde ha una chitarra classica?", "corde", 6, 4, 12),
+            new NumericQuestion("Musica", "In che anno si è tenuto Woodstock?", "anno", 1969, 1950, 2000),
+            new NumericQuestion("Arte e Architettura", "In che anno è stata dipinta la Gioconda?", "anno", 1503, 1400, 1600),
+            new NumericQuestion("Arte e Architettura", "Quanti metri è alto il David di Michelangelo?", "metri", 5.17, 3, 8),
+            new NumericQuestion("Cibo e Gastronomia", "In che anno è nata la pizza Margherita?", "anno", 1889, 1800, 1950),
+            new NumericQuestion("Lingua e Letteratura", "Quante lettere ha l'alfabeto italiano?", "lettere", 21, 18, 30),
+            new NumericQuestion("Lingua e Letteratura", "Quanti canti ha la Divina Commedia?", "canti", 100, 50, 150),
+            new NumericQuestion("Anime e manga", "In che anno è iniziato Dragon Ball?", "anno", 1984, 1970, 2000),
+            new NumericQuestion("Anime e manga", "In che anno è iniziato One Piece?", "anno", 1997, 1980, 2010),
+            new NumericQuestion("Gaming e Tecnologia", "In che anno è uscito Tetris?", "anno", 1984, 1970, 2000),
+            new NumericQuestion("Gaming e Tecnologia", "In che anno è uscito Minecraft?", "anno", 2011, 1995, 2025),
+            new NumericQuestion("Motori", "Quanti chilometri è lungo il circuito di Monza?", "km", 5.793, 3, 8),
+            new NumericQuestion("Motori", "In che anno è stata fondata la Ferrari?", "anno", 1947, 1900, 2000),
+            new NumericQuestion("Politica e Attualità", "In che anno è nata l'ONU?", "anno", 1945, 1900, 2000),
+            new NumericQuestion("Politica e Attualità", "In che anno è nata la Repubblica Italiana?", "anno", 1946, 1900, 2000),
+            new NumericQuestion("Natura e Animali", "Quanti metri è lunga la balenottera azzurra?", "metri", 30, 15, 40),
+            new NumericQuestion("Natura e Animali", "Quanti metri è alta una giraffa?", "metri", 5.5, 3, 8),
+            new NumericQuestion("Serie TV", "In che anno è iniziato Friends?", "anno", 1994, 1980, 2010),
+            new NumericQuestion("TV e Spettacolo", "In che anno è iniziato il Festival di Sanremo?", "anno", 1951, 1900, 2000),
+            new NumericQuestion("Curiosità", "Quanti giorni ha un anno bisestile?", "giorni", 366, 360, 370),
+            new NumericQuestion("Curiosità", "Quante erano le meraviglie del mondo antico?", "meraviglie", 7, 3, 12)
+    );
 
     public QuestionBankService(TMDBImageService tmdbImageService,
             AppleMusicCuratorService appleMusicCuratorService,
@@ -148,6 +191,7 @@ public class QuestionBankService {
             case "MUSIC" -> musicPayload();
             case "ARENA" -> arenaWrapper();
             case "SCOMMESSA" -> scommessaPayload(category, isAvailable);
+            case "QUOTA" -> quotaPayload(category, isAvailable);
             default -> fromBank(category, requested, isAvailable);
         };
     }
@@ -559,6 +603,82 @@ public class QuestionBankService {
 
     private List<BankQuestion> allQuestions() {
         return bank.isEmpty() ? EMERGENCY : bank;
+    }
+
+    /**
+     * Quattro domande numeriche con quattro fasce e quote, per il round Quota.
+     * Le fasce coprono un intervallo plausibile e il valore cade in una sola;
+     * la quota è circa il 10% sotto il rapporto giusto tra intervallo e fascia.
+     */
+    private String quotaPayload(String category, Predicate<String> isAvailable) {
+        List<NumericQuestion> pool = new ArrayList<>();
+        for (NumericQuestion question : NUMERIC_QUESTIONS) {
+            if (category == null || question.category().equalsIgnoreCase(category)) {
+                pool.add(question);
+            }
+        }
+        if (pool.size() < QUOTA_QUESTIONS) {
+            pool = new ArrayList<>(NUMERIC_QUESTIONS);
+        }
+        Collections.shuffle(pool, random);
+
+        JSONArray questions = new JSONArray();
+        for (int i = 0; i < Math.min(QUOTA_QUESTIONS, pool.size()); i++) {
+            questions.put(quotaQuestionPayload(pool.get(i)));
+        }
+
+        JSONObject payload = new JSONObject();
+        payload.put("type", "QUOTA");
+        payload.put("question", questions.isEmpty() ? "Quota" : questions.getJSONObject(0).getString("question"));
+        payload.put("category", category == null ? "" : category);
+        payload.put("questions", questions);
+        payload.put("explain", "Quattro domande numeriche: distribuisci 100 gettoni sulle fasce. "
+                + "La fascia che contiene il valore paga la quota, le altre perdono i gettoni.");
+        return payload.toString();
+    }
+
+    private JSONObject quotaQuestionPayload(NumericQuestion question) {
+        double span = Math.max(0.0001, question.max() - question.min());
+        int[] baseWidths = { 1, 2, 3, 5 };
+        int offset = random.nextInt(baseWidths.length);
+        double unit = span / 11.0;
+
+        JSONArray bands = new JSONArray();
+        double from = question.min();
+        int correct = -1;
+        for (int i = 0; i < baseWidths.length; i++) {
+            double width = baseWidths[(i + offset) % baseWidths.length] * unit;
+            double to = i == baseWidths.length - 1 ? question.max() : from + width;
+            double odds = 0.9 * span / Math.max(0.0001, to - from);
+            odds = Math.max(1.2, Math.min(20.0, Math.round(odds * 10) / 10.0));
+
+            JSONObject band = new JSONObject();
+            band.put("from", round1(from));
+            band.put("to", round1(to));
+            band.put("odds", odds);
+            bands.put(band);
+
+            if (correct < 0 && question.value() >= from && question.value() < to) {
+                correct = i;
+            }
+            from = to;
+        }
+        if (correct < 0) {
+            correct = baseWidths.length - 1;
+        }
+
+        JSONObject payload = new JSONObject();
+        payload.put("question", question.question());
+        payload.put("category", question.category());
+        payload.put("unit", question.unit());
+        payload.put("value", question.value());
+        payload.put("bands", bands);
+        payload.put("correctBand", correct);
+        return payload;
+    }
+
+    private double round1(double value) {
+        return Math.round(value * 10) / 10.0;
     }
 
     private String fromBank(String category, String type, Predicate<String> isAvailable) {

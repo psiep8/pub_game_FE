@@ -25,12 +25,12 @@ const STORAGE_KEY = 'roundProgress';
  *
  * Cavallo di Battaglia è tornato bonus di fine atto: non compare più nella
  * scaletta. L'atto 1 chiude con un Quiz, l'atto 5 usa il Time Buzzer. Quota
- * non è ancora implementata: il sesto round dell'atto 2 resta Bomba finché la
- * modalità non esiste. La Scommessa chiude l'atto 4 prima dello Speed Rush.
+ * occupa il sesto round dell'atto 2 al posto della Bomba. La Scommessa chiude
+ * l'atto 4 prima dello Speed Rush.
  */
 const ACT_DECKS: GameModeType[][] = [
   ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'TIMELINE', 'WHEEL_OF_FORTUNE', 'QUIZ', 'SPEED_RUSH'],
-  ['QUIZ', 'IMAGE_BLUR', 'TIMELINE', 'ARENA', 'MUSIC', 'BOMBA', 'TIME_BUZZER', 'AIR_HOCKEY_BATTLE'],
+  ['QUIZ', 'IMAGE_BLUR', 'TIMELINE', 'ARENA', 'MUSIC', 'QUOTA', 'TIME_BUZZER', 'AIR_HOCKEY_BATTLE'],
   ['QUIZ', 'BOMBA', 'TIMELINE', 'SPEED_RUSH', 'MUSIC', 'AIR_HOCKEY_BATTLE', 'WHEEL_OF_FORTUNE', 'ARENA'],
   ['IMAGE_BLUR', 'QUIZ', 'BOMBA', 'MUSIC', 'TIME_BUZZER', 'TIMELINE', 'SCOMMESSA', 'SPEED_RUSH'],
   ['WHEEL_OF_FORTUNE', 'QUIZ', 'BOMBA', 'TIME_BUZZER', 'TIMELINE', 'AIR_HOCKEY_BATTLE', 'MUSIC', 'ARENA'],

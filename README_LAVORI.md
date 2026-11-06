@@ -1,7 +1,7 @@
 # Lavori in corso — pub_game_FE
 
 Ultimo aggiornamento: 6 novembre 2026
-Ultimo commit: 6 novembre — scaletta a 5 atti, Cavallo tornato bonus, Scommessa round vero, pulizia di Chrono/Vero-Falso/Roulette. I commit precedenti sono del 5 novembre.
+Ultimo commit: 6 novembre — scaletta a 5 atti, Cavallo tornato bonus, Scommessa e Quota round veri, pulizia di Chrono/Vero-Falso/Roulette. I commit precedenti sono del 5 novembre.
 
 ---
 
@@ -15,7 +15,7 @@ Ultimo commit: 6 novembre — scaletta a 5 atti, Cavallo tornato bonus, Scommess
 | Atto | Round | Sequenza |
 | --- | --- | --- |
 | 1 | 1–8 | Quiz · Musica · Bomba · Indovina chi · Timeline · Ruota · Quiz · Speed Rush |
-| 2 | 9–16 | Quiz · Indovina chi · Timeline · Arena · Musica · Bomba · Time Buzzer · Air Hockey |
+| 2 | 9–16 | Quiz · Indovina chi · Timeline · Arena · Musica · Quota · Time Buzzer · Air Hockey |
 | 3 | 17–24 | Quiz · Bomba · Timeline · Speed Rush · Musica · Air Hockey · Ruota · Arena |
 | 4 | 25–32 | Indovina chi · Quiz · Bomba · Musica · Time Buzzer · Timeline · Scommessa · Speed Rush |
 | 5 | 33–40 | Ruota · Quiz · Bomba · Time Buzzer · Timeline · Air Hockey · Musica · Arena |
@@ -52,6 +52,13 @@ Ultimo commit: 6 novembre — scaletta a 5 atti, Cavallo tornato bonus, Scommess
 - TV `games/scommessa/scommessa.ts`: banca, moltiplicatore (×2, ×4, ×8), reveal e stato di ogni squadra.
 - Remote: gettoni, tre domande e i due pulsanti INCASSA / RISCHIA; la banca corrente arriva con `SCOMMESSA_STATE`.
 - `scoring-rules.ts` e demo aggiornati: non ci sono più punti negativi, si rischia solo la banca potenziale.
+
+### Quota (quattro domande numeriche)
+- Quattro domande con risposta numerica, ognuna con quattro fasce e una quota: più stretta è la fascia, più alta è la quota.
+- Ogni squadra distribuisce 100 gettoni dal telefono; solo la fascia che contiene il valore paga i gettoni × quota, con tetto di 500 per domanda. Chi non invia gioca 25 gettoni per fascia.
+- La banca numerica (34 domande) e il calcolo di fasce e quote vivono in `QuestionBankService`: le risposte non arrivano ai telefoni prima del reveal.
+- La TV mostra valore, distribuzione del pubblico e il “cecchino” della domanda; il remote ha +/−, TUTTO, 50-50 e SPALMA.
+- Il round occupa il sesto posto dell'atto 2 al posto della Bomba, che resta quattro volte in scaletta.
 
 ---
 
@@ -170,12 +177,13 @@ Stile e tema restano quelli di ieri: cambia solo il movimento. Tutto vive in
 
 1. **QA dal vivo con backend acceso** (`127.0.0.1:8080`):
    - Cavallo bonus: voto categoria, otto domande, podio +300/+150/+75;
+   - Quota: fasce, gettoni, quote e cecchino;
    - Scommessa: gettoni, tre domande, banca che raddoppia e scelta INCASSA/RISCHIA;
    - bonus spalmato: una manche per atto, mai tre di fila;
    - pausa, classifica, demo e auto-avanzamento come prima.
 2. **Ruota**: separare la fase di lancio dalla rivelazione (oggi le lettere si aprono durante il timer).
 3. **Altri 2 giochi bonus** (Memory, Tap/Swipe) se il Casino spalmato non basta.
-4. **Quota**: implementare il round dell'atto 2 (fasce, quote, gettoni).
+4. **Quota**: QA dal vivo di fasce, gettoni e quote.
 
 ---
 
@@ -274,7 +282,8 @@ Verifiche del 6 novembre:
   (`LeaderboardDetailed` spotlight dopo 9 s, `Song` etichetta fase 1); i test Roulette sono
   stati rimossi insieme al round.
 - `RoundManagerService`: 13 test verdi, inclusi scaletta variata, Cavallo fuori dai round
-  con bonus dopo l'atto 3, Scommessa una volta e bonus spalmato sui quattro atti.
+  con bonus dopo l'atto 3, Scommessa e Quota una volta, bonus spalmato sui quattro atti.
+- Quota: build e test verdi; la banca numerica ha 34 domande in `QuestionBankService`.
 - Nessun test dal vivo: Cavallo bonus e Scommessa sono compilati ma **non osservati in esecuzione**.
 
 ### Nota sulla Scommessa

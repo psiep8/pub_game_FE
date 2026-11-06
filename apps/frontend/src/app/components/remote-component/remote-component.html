@@ -225,6 +225,50 @@
       }
     </div>
     }
+    @case ('QUOTA') {
+    <div class="bonus-remote">
+      <div class="game-head">
+        <span class="game-tag buzz">📊 QUOTA</span>
+        <span class="game-tip">{{ quotaState()?.phase === 'BET' ? 'Distribuisci 100 gettoni' : 'Il valore è in TV' }}</span>
+      </div>
+
+      @if (quotaState()?.phase === 'BET') {
+      <p class="cavallo-question">{{ quotaState()?.question }}</p>
+      <p class="buzz-hint">Unità: {{ quotaState()?.unit }} · rimasti: <b>{{ quotaRemaining() }}</b></p>
+      <div class="quota-list">
+        @for (band of quotaState()?.bands ?? []; track $index; let i = $index) {
+        <div class="quota-band" [class.selected]="quotaSelected() === i" (click)="quotaSelect(i)">
+          <div class="quota-band-info">
+            <b>{{ band.from }}–{{ band.to }}</b>
+            <span>×{{ band.odds }}</span>
+          </div>
+          <div class="quota-tokens">{{ quotaTokens()[i] }}</div>
+          <button class="quota-step" (click)="quotaAdd(i, -25); $event.stopPropagation()">−</button>
+          <button class="quota-step" (click)="quotaAdd(i, 25); $event.stopPropagation()">+</button>
+        </div>
+        }
+      </div>
+      <div class="quota-shortcuts">
+        <button (click)="quotaShortcut('ALL')">TUTTO</button>
+        <button (click)="quotaShortcut('HALF')">50-50</button>
+        <button (click)="quotaShortcut('SPREAD')">SPALMA</button>
+      </div>
+      <button class="quota-submit" [disabled]="quotaRemaining() !== 0 || quotaSent()" (click)="quotaSubmit()">
+        {{ quotaSent() ? 'PUNTATA INVIATA' : 'CONFERMA' }}
+      </button>
+      } @else if (quotaState()?.phase === 'REVEAL') {
+      <div class="status-msg">
+        <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">📊</div></div>
+        <p>{{ quotaState()?.value }} {{ quotaState()?.unit }}</p>
+      </div>
+      @if (quotaRow(); as row) {
+      <p class="buzz-hint">La tua puntata: {{ row.payout }} punti · totale {{ row.total }}</p>
+      }
+      } @else {
+      <div class="status-msg"><p>Classifica in TV.</p></div>
+      }
+    </div>
+    }
     @case ('BONUS_BASKET') {
     <div class="buzz-remote">
       <div class="game-head"><span class="game-tag buzz">BONUS</span><span class="game-tip">3 manche</span></div>

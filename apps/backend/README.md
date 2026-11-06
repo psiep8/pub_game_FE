@@ -72,6 +72,7 @@ Broadcast su `/topic/game/{id}`, `/topic/game/{id}/responses`, `/topic/game/{id}
 | `MUSIC` | Indovina la canzone | iTunes API |
 | `WHEEL_OF_FORTUNE` | Proverbio casuale | Lista locale |
 | `SCOMMESSA` | Punta i gettoni, poi rispondi | Banca domande |
+| `QUOTA` | Quattro domande numeriche con fasce e gettoni | Banca numerica |
 
 Se l'AI non risponde o il JSON non è valido, viene usato un fallback locale (funziona anche senza chiave Groq).
 

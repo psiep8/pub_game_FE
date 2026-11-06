@@ -1,7 +1,7 @@
 # PubGame — descrizione del gioco
 
 > Documento per chi arriva sul repository o deve spiegare PubGame a qualcun altro.
-> Aggiornato al 6 novembre 2026. Il codice è allineato alle "Decisioni definitive" tranne Quota, che non esiste ancora: al suo posto resta la Bomba.
+> Aggiornato al 6 novembre 2026. Il codice è allineato alle "Decisioni definitive".
 
 ---
 
@@ -30,7 +30,7 @@ Vincoli: mai due giochi in tempo reale di fila (Bomba, Arena, Speed Rush, Air Ho
 
 - **Bomba** (4 volte). Round di 90 s. Bombe: 2 per 4-6 squadre, 3 per 7-10. Chi la tiene risponde a una domanda a tempo (5 s): se giusta la passa a uno di 3 tavoli casuali, altrimenti la bomba resta e la miccia perde 3 s. La miccia dura 20-30 s ed è nascosta (solo scintille e battiti più veloci). All'esplosione chi la tiene perde 300 punti e una nuova bomba parte da un altro tavolo. Ogni squadra parte da 1000 punti di round, +50 per passaggio fino a +500, mai sotto zero. La bomba non torna subito a chi l'ha passata. Domande Vero/Falso negli atti 1 e 3, a 3 opzioni negli atti 4 e 5, difficili con miccia più corta nell'atto 5.
 - **Scommessa** (1 volta, atto 4). 3 domande a quattro risposte. Si punta prima della prima domanda (100, 200 o 300); ogni risposta giusta raddoppia la banca, sbagliare la brucia; dopo la prima e la seconda si può incassare (chi non sceglie in 8 s incassa).
-- **Quota** (1 volta, atto 2, da implementare). 4 domande con risposta numerica. Per ogni domanda la TV mostra 4 fasce con la quota (più stretta è la fascia, più è alta). Ogni squadra distribuisce 100 gettoni nuovi sulle fasce dal telefono; scorciatoie "Tutto su una", "50-50", "Spalma". La TV svela il valore: i gettoni sulla fascia giusta pagano la quota (tetto 500 per domanda), gli altri sono persi, nessun punteggio negativo. Senza puntata, 25 gettoni per fascia. Le quote dipendono dall'ampiezza e dalla plausibilità, non da dove cade il valore, e sono tarate circa il 10% sotto il giusto. La TV mostra dove ha puntato il pubblico e nomina "il cecchino". Serve una banca di circa 60 domande numeriche con valori verificati.
+- **Quota** (1 volta, atto 2). 4 domande con risposta numerica. Per ogni domanda la TV mostra 4 fasce con la quota (più stretta è la fascia, più è alta). Ogni squadra distribuisce 100 gettoni nuovi sulle fasce dal telefono; scorciatoie "Tutto su una", "50-50", "Spalma". La TV svela il valore: i gettoni sulla fascia giusta pagano la quota (tetto 500 per domanda), gli altri sono persi, nessun punteggio negativo. Senza puntata, 25 gettoni per fascia. Le quote dipendono dall'ampiezza e dalla plausibilità, non da dove cade il valore, e sono tarate circa il 10% sotto il giusto. La TV mostra dove ha puntato il pubblico e nomina "il cecchino". Serve una banca di circa 60 domande numeriche con valori verificati.
 
 ### Da fare prima di tutto
 
@@ -92,7 +92,7 @@ flowchart LR
 
 ## 3. La scaletta: 40 round in 5 atti
 
-La scaletta definitiva è la tabella in "Decisioni definitive". Nel codice (`round-manager.service.ts`) è già allineata tranne un punto: **Quota non esiste ancora**, quindi il sesto round dell'atto 2 resta la Bomba. Il Cavallo non è più in scaletta (è tornato bonus dopo l'atto 3) e al suo posto ci sono un Quiz nell'atto 1 (round 7) e il Time Buzzer nell'atto 5 (round 4). Classifiche: rapida ai round 4, 12, 20, 28, 36; dettagliata ai round 8, 16, 24, 32, 40.
+La scaletta definitiva è la tabella in "Decisioni definitive". Nel codice (`round-manager.service.ts`) è già allineata: il Cavallo non è più in scaletta (è tornato bonus dopo l'atto 3), al suo posto ci sono un Quiz nell'atto 1 (round 7) e il Time Buzzer nell'atto 5 (round 4), e Quota occupa il sesto round dell'atto 2. Classifiche: rapida ai round 4, 12, 20, 28, 36; dettagliata ai round 8, 16, 24, 32, 40.
 
 ## 4. I giochi di round
 
@@ -148,8 +148,8 @@ Regole in "Decisioni definitive". È in scaletta 5 volte; diventa 4.
 ### Scommessa — rischio (nel codice)
 Tre domande a quattro risposte, banca che raddoppia, scelta di incassare dopo la prima e la seconda. Compare una volta (atto 4).
 
-### Quota — gestire il rischio (da fare)
-Quattro domande numeriche con fasce e quote, gettoni distribuiti dal telefono. Regole in "Decisioni definitive". Una volta, nell'atto 2.
+### Quota — gestire il rischio (nel codice)
+Quattro domande numeriche con quattro fasce e quote; 100 gettoni per domanda distribuiti dal telefono, tetto di 500 punti. La quota è calcolata dal backend (~10% sotto il giusto) e le risposte non arrivano ai telefoni prima del reveal. Una volta, nell'atto 2.
 
 ## 5. Bonus
 
@@ -187,6 +187,7 @@ Tutti i contenuti sono **pre-generati e salvati in file JSON**: durante la serat
 | Personaggi (Indovina chi) | 6, con foto TMDB/Wikipedia | `questions-it.json` + `static/media` |
 | Eventi Timeline | 113 | `timeline-it.json` |
 | Frasi della Ruota | 35 proverbi nel codice | `QuestionBankService` |
+| Domande numeriche Quota | 34 | `QuestionBankService` |
 | Musica | anteprime iTunes o brani in locale | `static/media` |
 
 **Le 16 categorie:** Storia, Geografia e Viaggi, Scienza e Spazio, Natura e Animali, Sport, Cinema, Serie TV, TV e Spettacolo, Musica, Arte e Architettura, Politica e Attualità, Motori, Cibo e Gastronomia, Lingua e Letteratura, Anime e manga, Gaming e Tecnologia, Curiosità.

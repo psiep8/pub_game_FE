@@ -118,6 +118,17 @@ import { ConnectionBadge } from '../connection-badge/connection-badge';
     .cavallo-option { display: flex; align-items: center; gap: 10px; padding: 14px 12px; border-radius: 12px; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: #fff; text-align: left; font-size: .92rem; font-weight: 700; }
     .cavallo-option:disabled { opacity: .55; }
     .cavallo-letter { display: grid; place-items: center; width: 24px; height: 24px; flex: 0 0 auto; border-radius: 6px; background: #f59e0b; color: #111827; font-size: .72rem; font-weight: 900; }
+    .quota-list { display: flex; flex-direction: column; gap: 6px; }
+    .quota-band { display: grid; grid-template-columns: 1fr auto auto auto; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 10px; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); }
+    .quota-band.selected { border-color: #f59e0b; background: rgba(245,158,11,.2); }
+    .quota-band-info { display: flex; flex-direction: column; gap: 2px; font-size: .78rem; }
+    .quota-band-info span { color: #f59e0b; font-weight: 700; }
+    .quota-tokens { font-family: monospace; font-size: 1.05rem; font-weight: 800; min-width: 34px; text-align: center; }
+    .quota-step { width: 34px; height: 34px; border-radius: 8px; border: 2px solid rgba(255,255,255,.2); background: rgba(255,255,255,.08); color: #fff; font-size: 1.05rem; font-weight: 800; }
+    .quota-shortcuts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .quota-shortcuts button { padding: 9px 4px; border-radius: 10px; border: 2px solid rgba(255,255,255,.16); background: rgba(255,255,255,.06); color: #fff; font-size: .72rem; font-weight: 700; }
+    .quota-submit { padding: 14px; border-radius: 12px; border: 2px solid #f59e0b; background: #f59e0b; color: #111827; font-weight: 800; }
+    .quota-submit:disabled { opacity: .45; }
   `],
 })
 export class RemoteComponent implements OnInit, OnDestroy {
@@ -135,7 +146,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR' | 'BUZZ_OUT' | 'ELIMINATED'>('WAITING');
-  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'CAVALLO' | 'SCOMMESSA' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO'>('QUIZ');
+  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'CAVALLO' | 'SCOMMESSA' | 'QUOTA' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO'>('QUIZ');
   hasAnswered = signal(false);
   /** Ultima risposta toccata: solo promemoria visivo, l'esito lo decide il server. */
   selectedAnswer = signal<number | null>(null);
@@ -185,6 +196,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
   bombaFlash = signal<string | null>(null);
   casinoState = signal<any>(null);
   casinoChoice = signal<string | null>(null);
+  quotaState = signal<any>(null);
+  quotaTokens = signal<number[]>([25, 25, 25, 25]);
+  quotaSelected = signal(0);
+  quotaSent = signal(false);
+  private quotaKey = '';
   cavalloState = signal<any>(null);
   cavalloChoice = signal<string | null>(null);
   cavalloCategory = signal<string | null>(null);
@@ -302,7 +318,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.isBlocked.set(false);
           if (status.type === 'BONUS_BASKET'
               || status.type === 'BONUS_CASINO' || status.type === 'BONUS_CAVALLO'
-              || status.type === 'SCOMMESSA' || status.type === 'CAVALLO') {
+              || status.type === 'SCOMMESSA' || status.type === 'QUOTA' || status.type === 'CAVALLO') {
             this.gameState.set('VOTING');
             this.hasAnswered.set(false);
             this.selectedAnswer.set(null);
@@ -346,6 +362,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.applyScommessaState(status.state);
           break;
 
+        case 'QUOTA_STATE':
+          this.applyQuotaState(status.state);
+          break;
+
         case 'AIR_HOCKEY_BATTLE_STATE':
           this.handleAirHockeyBattleState(status);
           break;
@@ -355,6 +375,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.gameState.set('WAITING');
           this.casinoState.set(null);
           this.cavalloState.set(null);
+          this.quotaState.set(null);
           this.casinoChoice.set(null);
           this.cavalloChoice.set(null);
           this.cavalloCategory.set(null);
@@ -386,6 +407,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.bombaFirstState = true;
           this.casinoState.set(null);
           this.cavalloState.set(null);
+          this.quotaState.set(null);
           this.casinoChoice.set(null);
           this.cavalloChoice.set(null);
           this.cavalloCategory.set(null);
@@ -807,6 +829,23 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.gameState.set(state.phase === 'REVEAL' || state.phase === 'CASHOUT' ? 'WAITING' : 'VOTING');
   }
 
+  private applyQuotaState(state: any): void {
+    if (!state) return;
+
+    this.quotaState.set(state);
+    this.questionType.set('QUOTA');
+    const key = `${state.phase}:${state.index ?? 0}`;
+    if (key !== this.quotaKey) {
+      this.quotaKey = key;
+      if (state.phase === 'BET') {
+        this.quotaTokens.set([25, 25, 25, 25]);
+        this.quotaSelected.set(0);
+        this.quotaSent.set(false);
+      }
+    }
+    this.gameState.set(state.phase === 'BET' ? 'VOTING' : 'WAITING');
+  }
+
   scommessaPickStake(stake: number): void {
     const player = this.nickname();
     if (!player || this.scommessaStake() !== null) return;
@@ -854,6 +893,71 @@ export class RemoteComponent implements OnInit, OnDestroy {
       value: choice,
     });
     this.vibrate(30);
+  }
+
+  quotaRemaining(): number {
+    return 100 - this.quotaTokens().reduce((sum, value) => sum + value, 0);
+  }
+
+  quotaSelect(index: number): void {
+    this.quotaSelected.set(index);
+  }
+
+  quotaAdd(index: number, delta: number): void {
+    if (this.quotaSent()) return;
+    const tokens = [...this.quotaTokens()];
+    const current = tokens[index] ?? 0;
+    const max = current + this.quotaRemaining();
+    tokens[index] = Math.max(0, Math.min(max, current + delta));
+    this.quotaTokens.set(tokens);
+    this.vibrate(15);
+  }
+
+  quotaShortcut(kind: 'ALL' | 'HALF' | 'SPREAD'): void {
+    if (this.quotaSent()) return;
+    if (kind === 'SPREAD') {
+      this.quotaTokens.set([25, 25, 25, 25]);
+      return;
+    }
+
+    const selected = this.quotaSelected();
+    const tokens = [0, 0, 0, 0];
+    if (kind === 'ALL') {
+      tokens[selected] = 100;
+      this.quotaTokens.set(tokens);
+      return;
+    }
+
+    tokens[selected] = 50;
+    const bands = this.quotaState()?.bands ?? [];
+    let other = -1;
+    bands.forEach((band: any, index: number) => {
+      if (index === selected) return;
+      if (other < 0 || Number(band.odds) > Number(bands[other]?.odds ?? 0)) {
+        other = index;
+      }
+    });
+    tokens[other < 0 ? (selected + 1) % 4 : other] = 50;
+    this.quotaTokens.set(tokens);
+  }
+
+  quotaSubmit(): void {
+    const player = this.nickname();
+    if (!player || this.quotaSent() || this.quotaRemaining() !== 0) return;
+
+    this.quotaSent.set(true);
+    this.ws.broadcastStatus(this.gameId(), {
+      action: 'QUOTA_ACTION',
+      playerName: player,
+      kind: 'BET',
+      value: this.quotaTokens(),
+    });
+    this.vibrate(30);
+  }
+
+  quotaRow(): any {
+    const player = this.nickname();
+    return (this.quotaState()?.rows ?? []).find((row: any) => row.playerName === player) ?? null;
   }
 
   casinoAct(choice: string): void {

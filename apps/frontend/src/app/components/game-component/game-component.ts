@@ -46,6 +46,7 @@ import { Bomba } from './games/bomba/bomba';
 import { SpeedRush } from './games/speed-rush/speed-rush';
 import { AirHockeyBattle } from './games/air-hockey-battle/air-hockey-battle';
 import { Scommessa } from './games/scommessa/scommessa';
+import { Quota } from './games/quota/quota';
 import { DEMO_SCRIPTS, DEMO_SCENE_COUNT, DemoScript } from './demo-scripts';
 import { scoringRuleFor } from './interfaces/scoring-rules';
 import { BonusType, BONUS_LABELS } from './interfaces/bonus-type';
@@ -72,6 +73,7 @@ import { BasketBonusStage } from '../bonus/basket-bonus-stage/basket-bonus-stage
     SpeedRush,
     AirHockeyBattle,
     Scommessa,
+    Quota,
     CasinoBonus,
     CavalloBonus,
     BasketBonusStage
@@ -187,6 +189,7 @@ export class GameComponent implements OnInit, OnDestroy {
     'AIR_HOCKEY_BATTLE',
     'ARENA',
     'SCOMMESSA',
+    'QUOTA',
   ]);
 
   remoteUrl = `${environment.frontendUrl}/play`;
@@ -348,7 +351,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
       // 🆕 Giochi simultanei: risultati dal server e progressi dai telefoni.
-      if (mode && ['TIMELINE_RESULT', 'TIME_BUZZER_ANSWER', 'SPEED_RUSH_PROGRESS', 'AIR_HOCKEY_BATTLE_ANSWER', 'SCOMMESSA_ACTION'].includes(status.action)) {
+      if (mode && ['TIMELINE_RESULT', 'TIME_BUZZER_ANSWER', 'SPEED_RUSH_PROGRESS', 'AIR_HOCKEY_BATTLE_ANSWER', 'SCOMMESSA_ACTION', 'QUOTA_ACTION'].includes(status.action)) {
         mode.handlePartyEvent?.(status);
         this.cdr.detectChanges();
       }
@@ -662,6 +665,7 @@ export class GameComponent implements OnInit, OnDestroy {
         return this.pickTimelineCategoryName();
       case 'TIME_BUZZER':
       case 'SCOMMESSA':
+      case 'QUOTA':
       case 'BOMBA':
       case 'SPEED_RUSH':
       case 'AIR_HOCKEY_BATTLE':
@@ -708,6 +712,8 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'TIME BUZZER';
       case 'SCOMMESSA':
         return 'LA SCOMMESSA';
+      case 'QUOTA':
+        return 'QUOTA';
       case 'BOMBA':
         return 'BOMBA';
       case 'SPEED_RUSH':
@@ -1364,6 +1370,8 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'Tempo bersaglio mostrato in TV';
       case 'SCOMMESSA':
         return 'La TV svela la risposta dopo ogni domanda';
+      case 'QUOTA':
+        return 'La TV svela il valore e la fascia che paga';
       case 'BOMBA':
         return 'Bombe, passaggi e scoppi in TV; risposte sul telefono';
       case 'AIR_HOCKEY_BATTLE':
