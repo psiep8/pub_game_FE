@@ -642,9 +642,9 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     ctx.clearRect(0, 0, this.w, this.h);
 
     const bg = ctx.createLinearGradient(0, 0, 0, this.h);
-    bg.addColorStop(0, '#0b1220');
-    bg.addColorStop(0.55, '#111c31');
-    bg.addColorStop(1, '#172033');
+    bg.addColorStop(0, '#f1e4c9');
+    bg.addColorStop(0.55, '#e3d2ae');
+    bg.addColorStop(1, '#d4bc97');
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, this.w, this.h);
 
@@ -652,16 +652,16 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     for (let i = 0; i < 26; i++) {
       const x = ((i * 73) % 100) / 100 * this.w;
       const y = 18 + ((i * 37) % 60);
-      ctx.fillStyle = i % 3 === 0 ? 'rgba(249,115,22,.28)' : 'rgba(148,163,184,.18)';
+      ctx.fillStyle = i % 3 === 0 ? 'rgba(255,77,46,.22)' : 'rgba(21,21,15,.14)';
       ctx.beginPath();
       ctx.arc(x, y, 3, 0, Math.PI * 2);
       ctx.fill();
     }
 
     // Pavimento
-    ctx.fillStyle = '#7c3f1d';
+    ctx.fillStyle = '#b07a45';
     ctx.fillRect(0, this.floorY, this.w, this.h - this.floorY);
-    ctx.strokeStyle = 'rgba(41, 20, 8, .45)';
+    ctx.strokeStyle = 'rgba(21, 21, 15, .18)';
     ctx.lineWidth = 2;
     for (let x = 0; x < this.w; x += 38) {
       ctx.beginPath();
@@ -669,7 +669,7 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
       ctx.lineTo(x, this.h);
       ctx.stroke();
     }
-    ctx.strokeStyle = '#f97316';
+    ctx.strokeStyle = '#ff4d2e';
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(0, this.floorY);
@@ -689,18 +689,18 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
       b.y,
       b.r
     );
-    grad.addColorStop(0, '#fdba74');
-    grad.addColorStop(0.55, '#f97316');
-    grad.addColorStop(1, '#c2410c');
+    grad.addColorStop(0, '#ff8a6a');
+    grad.addColorStop(0.55, '#ff4d2e');
+    grad.addColorStop(1, '#b32d16');
     ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#431407';
+    ctx.strokeStyle = '#15150f';
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    ctx.strokeStyle = '#431407';
+    ctx.strokeStyle = '#15150f';
     ctx.lineWidth = 1.6;
     ctx.beginPath();
     ctx.moveTo(b.x - b.r, b.y);
@@ -714,24 +714,24 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
 
   private drawHoop(ctx: CanvasRenderingContext2D): void {
     // Palo e base
-    ctx.strokeStyle = '#94a3b8';
+    ctx.strokeStyle = '#8a7a5a';
     ctx.lineWidth = Math.max(4, this.w * 0.012);
     ctx.beginPath();
     ctx.moveTo(this.backX + 4, this.backBottom);
     ctx.lineTo(this.backX + 4, this.floorY);
     ctx.stroke();
-    ctx.fillStyle = '#334155';
+    ctx.fillStyle = '#15150f';
     ctx.fillRect(this.backX - 18, this.floorY - 8, 44, 8);
 
     // Tabellone
-    ctx.fillStyle = '#f8fafc';
+    ctx.fillStyle = '#fff8e8';
     ctx.fillRect(this.backX, this.backTop, 10, this.backBottom - this.backTop);
-    ctx.strokeStyle = '#f97316';
+    ctx.strokeStyle = '#ff4d2e';
     ctx.lineWidth = 3;
     ctx.strokeRect(this.backX, this.backTop, 10, this.backBottom - this.backTop);
 
     // Ferro
-    ctx.strokeStyle = '#f97316';
+    ctx.strokeStyle = '#ff4d2e';
     ctx.lineWidth = Math.max(4, this.w * 0.014);
     ctx.lineCap = 'round';
     ctx.beginPath();
@@ -741,7 +741,7 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
 
     // Rete
     const netBottom = this.hoopY + this.rimR * 0.85;
-    ctx.strokeStyle = 'rgba(248, 250, 252, .55)';
+    ctx.strokeStyle = 'rgba(21, 21, 15, .45)';
     ctx.lineWidth = 1;
     for (let i = 0; i <= 6; i++) {
       const x = this.hoopX - this.rimR + (this.rimR * 2 * i) / 6;
@@ -761,7 +761,7 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     }
 
     // Estremità del ferro
-    ctx.fillStyle = '#fb923c';
+    ctx.fillStyle = '#15150f';
     for (const x of [this.hoopX - this.rimR, this.hoopX + this.rimR]) {
       ctx.beginPath();
       ctx.arc(x, this.hoopY, 3.5, 0, Math.PI * 2);
@@ -774,7 +774,7 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     const dy = this.ball.y - this.dragY;
     const speed = Math.hypot(dx, dy);
 
-    ctx.strokeStyle = 'rgba(251, 191, 36, .55)';
+    ctx.strokeStyle = 'rgba(255, 77, 46, .55)';
     ctx.lineWidth = 2;
     ctx.setLineDash([4, 7]);
     ctx.beginPath();
@@ -802,7 +802,7 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
       if (y > this.floorY || x < 0 || x > this.w) break;
 
       ctx.globalAlpha = Math.max(0.08, 0.55 - i * 0.015);
-      ctx.fillStyle = '#fbbf24';
+      ctx.fillStyle = '#ff4d2e';
       ctx.beginPath();
       ctx.arc(x, y, 2.6, 0, Math.PI * 2);
       ctx.fill();

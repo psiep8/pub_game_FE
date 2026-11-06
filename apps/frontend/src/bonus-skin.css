@@ -1,0 +1,614 @@
+/* ============================================================
+   BONUS — CASINO, CAVALLO, BASKET, BIGLIE
+   Stessa carta, stesso inchiostro dei giochi TV. Le schermate
+   bonus non sono dashboard: sono tabelloni stampati.
+   ============================================================ */
+
+/* ------------------------------------------------------------ CASINO */
+app-casino-bonus .casino-overlay {
+  background-color: var(--bg-0) !important;
+  background-image:
+    radial-gradient(rgba(244, 232, 206, 0.09) 1px, transparent 1px),
+    linear-gradient(115deg, transparent 0 62%, rgba(255, 77, 46, 0.08) 62% 63%, transparent 63%) !important;
+  background-size: 16px 16px, 100% 100% !important;
+  color: var(--paper) !important;
+}
+app-casino-bonus .casino-card {
+  background: var(--paper) !important;
+  color: var(--coal) !important;
+  border: 4px solid var(--coal) !important;
+  border-radius: 0 !important;
+  box-shadow: 14px 14px 0 var(--tomato) !important;
+}
+app-casino-bonus .casino-kicker {
+  display: inline-block;
+  padding: 3px 10px;
+  background: var(--tomato);
+  color: var(--paper-hi);
+  border: 2px solid var(--coal);
+  font-family: var(--font-mono);
+  font-size: clamp(0.6rem, 0.9vw, 0.78rem);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  transform: rotate(-1.4deg);
+}
+app-casino-bonus .casino-head h1 {
+  color: var(--coal) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.03em !important;
+  text-transform: uppercase;
+}
+app-casino-bonus .casino-rule {
+  color: rgba(21, 21, 15, 0.64) !important;
+  font-family: var(--font-mono);
+}
+app-casino-bonus .casino-timer {
+  background: var(--acid) !important;
+  color: var(--coal) !important;
+  border: 3px solid var(--coal) !important;
+  border-radius: 0 !important;
+  box-shadow: 5px 5px 0 var(--coal);
+  font-family: var(--font-mono) !important;
+}
+app-casino-bonus .casino-manches {
+  gap: 6px;
+}
+app-casino-bonus .casino-manche {
+  background: var(--paper-hi) !important;
+  color: rgba(21, 21, 15, 0.5) !important;
+  border: 2px solid var(--coal) !important;
+  border-radius: 0 !important;
+  font-family: var(--font-mono) !important;
+}
+app-casino-bonus .casino-manche.done {
+  background: var(--paper-2) !important;
+  color: var(--coal) !important;
+}
+app-casino-bonus .casino-manche.on {
+  background: var(--acid) !important;
+  border-color: var(--coal) !important;
+  color: var(--coal) !important;
+  box-shadow: 4px 4px 0 var(--tomato);
+}
+app-casino-bonus .casino-wheel {
+  filter: drop-shadow(10px 10px 0 rgba(21, 21, 15, 0.85)) !important;
+}
+app-casino-bonus #casinoRim stop:nth-child(1) { stop-color: #ffc53d !important; }
+app-casino-bonus #casinoRim stop:nth-child(2) { stop-color: #d9a227 !important; }
+app-casino-bonus #casinoRim stop:nth-child(3) { stop-color: #8a6512 !important; }
+app-casino-bonus #casinoRim stop:nth-child(4) { stop-color: #3a2a0a !important; }
+app-casino-bonus #casinoSteel stop:nth-child(1) { stop-color: #fff8e8 !important; }
+app-casino-bonus #casinoSteel stop:nth-child(2) { stop-color: #d7c6a2 !important; }
+app-casino-bonus #casinoSteel stop:nth-child(3) { stop-color: #fff8e8 !important; }
+app-casino-bonus #casinoSteel stop:nth-child(4) { stop-color: #8a7a5a !important; }
+app-casino-bonus #casinoSteel stop:nth-child(5) { stop-color: #e3d2ae !important; }
+app-casino-bonus #pocketRed stop:nth-child(1) { stop-color: #ff6a4d !important; }
+app-casino-bonus #pocketRed stop:nth-child(2) { stop-color: #ff4d2e !important; }
+app-casino-bonus #pocketRed stop:nth-child(3) { stop-color: #9b2a16 !important; }
+app-casino-bonus #pocketBlack stop:nth-child(1) { stop-color: #35352a !important; }
+app-casino-bonus #pocketBlack stop:nth-child(2) { stop-color: #23231a !important; }
+app-casino-bonus #pocketBlack stop:nth-child(3) { stop-color: #0c0c08 !important; }
+app-casino-bonus #pocketGreen stop:nth-child(1) { stop-color: #b6f0d8 !important; }
+app-casino-bonus #pocketGreen stop:nth-child(2) { stop-color: #8be3c4 !important; }
+app-casino-bonus #pocketGreen stop:nth-child(3) { stop-color: #2c6e56 !important; }
+app-casino-bonus #innerCone stop:nth-child(1) { stop-color: #15150f !important; }
+app-casino-bonus #innerCone stop:nth-child(2) { stop-color: #23231a !important; }
+app-casino-bonus #innerCone stop:nth-child(3) { stop-color: #3a3a2c !important; }
+app-casino-bonus #casinoHub stop:nth-child(1) { stop-color: #4a4a38 !important; }
+app-casino-bonus #casinoHub stop:nth-child(2) { stop-color: #23231a !important; }
+app-casino-bonus #casinoHub stop:nth-child(3) { stop-color: #15150f !important; }
+app-casino-bonus #ballPaint stop:nth-child(1) { stop-color: #fff8e8 !important; }
+app-casino-bonus #ballPaint stop:nth-child(2) { stop-color: #f1e4c9 !important; }
+app-casino-bonus #ballPaint stop:nth-child(3) { stop-color: #c9b892 !important; }
+app-casino-bonus .casino-wheel circle[fill="#071019"],
+app-casino-bonus .casino-wheel circle[fill="#0b0f19"],
+app-casino-bonus .casino-wheel circle[fill="#0b1020"] {
+  fill: var(--coal) !important;
+}
+app-casino-bonus .casino-wheel circle[fill="url(#casinoGloss)"] {
+  display: none !important;
+}
+app-casino-bonus .casino-wheel [stroke="#2a1708"] { stroke: var(--coal) !important; }
+app-casino-bonus .casino-wheel [stroke="#d6a25c"] { stroke: var(--mustard) !important; }
+app-casino-bonus .casino-wheel [stroke="#8a6a1f"] { stroke: var(--coal) !important; }
+app-casino-bonus .casino-wheel [fill="#fbbf24"] { fill: var(--tomato) !important; }
+app-casino-bonus .casino-wheel [stroke="#64748b"] { stroke: var(--coal) !important; }
+app-casino-bonus .pocket-label {
+  fill: var(--paper-hi) !important;
+  font-family: var(--font-mono) !important;
+  filter: drop-shadow(1px 1px 0 var(--coal));
+}
+app-casino-bonus .pocket-win {
+  stroke: var(--acid) !important;
+  stroke-width: 5 !important;
+}
+app-casino-bonus .casino-panel { color: var(--coal) !important; }
+app-casino-bonus .casino-grid { gap: 8px; }
+app-casino-bonus .casino-cell {
+  background: var(--paper-hi) !important;
+  color: var(--coal) !important;
+  border: 3px solid var(--coal) !important;
+  border-radius: 0 !important;
+  box-shadow: 3px 3px 0 var(--coal);
+  font-family: var(--font-mono) !important;
+}
+app-casino-bonus .casino-grid.numbers .casino-cell {
+  border-width: 2px !important;
+  box-shadow: 2px 2px 0 rgba(21, 21, 15, 0.7);
+}
+app-casino-bonus .casino-cell.picked {
+  background: var(--acid) !important;
+  color: var(--coal) !important;
+  box-shadow: 4px 4px 0 var(--tomato);
+}
+app-casino-bonus .casino-cell b {
+  background: var(--tomato) !important;
+  color: var(--paper-hi) !important;
+  border: 2px solid var(--coal);
+  border-radius: 0 !important;
+  font-family: var(--font-mono);
+}
+app-casino-bonus .casino-hint,
+app-casino-bonus .casino-rule {
+  color: rgba(21, 21, 15, 0.62) !important;
+  font-family: var(--font-mono);
+}
+app-casino-bonus .casino-intro {
+  color: var(--coal) !important;
+}
+app-casino-bonus .casino-dice {
+  animation: none !important;
+  transform: rotate(-6deg);
+  filter: grayscale(0.15);
+}
+app-casino-bonus .casino-spin {
+  color: var(--coal) !important;
+}
+app-casino-bonus .casino-spin p {
+  color: var(--coal) !important;
+  font-family: var(--font-mono) !important;
+}
+app-casino-bonus .casino-ball-icon {
+  animation: none !important;
+}
+app-casino-bonus .casino-win {
+  background: var(--acid) !important;
+  border: 3px solid var(--coal) !important;
+  border-radius: 0 !important;
+  box-shadow: 6px 6px 0 var(--tomato);
+}
+app-casino-bonus .casino-win-label {
+  color: rgba(21, 21, 15, 0.62) !important;
+  font-family: var(--font-mono) !important;
+}
+app-casino-bonus .casino-win-value {
+  color: var(--coal) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+}
+app-casino-bonus .casino-win-value.number {
+  color: var(--tomato) !important;
+  font-family: var(--font-mono) !important;
+}
+app-casino-bonus .casino-win-cell {
+  color: var(--tomato) !important;
+  font-family: var(--font-mono) !important;
+}
+app-casino-bonus .casino-reveal-head {
+  color: var(--tomato) !important;
+  font-family: var(--font-mono) !important;
+  font-weight: 800 !important;
+}
+app-casino-bonus .casino-row {
+  background: var(--paper-hi) !important;
+  border: 2px solid var(--coal) !important;
+  border-radius: 0 !important;
+}
+app-casino-bonus .casino-row.win {
+  background: var(--acid) !important;
+  border-color: var(--coal) !important;
+}
+app-casino-bonus .casino-row-label {
+  color: rgba(21, 21, 15, 0.6) !important;
+  font-family: var(--font-mono) !important;
+}
+app-casino-bonus .casino-row b {
+  color: var(--tomato) !important;
+  font-family: var(--font-mono) !important;
+}
+app-casino-bonus .casino-totals {
+  border-top: 2px dashed rgba(21, 21, 15, 0.3) !important;
+}
+app-casino-bonus .casino-total {
+  background: var(--paper-hi) !important;
+  border: 2px solid var(--coal) !important;
+  border-radius: 0 !important;
+}
+app-casino-bonus .casino-total b {
+  color: var(--tomato) !important;
+  font-family: var(--font-mono) !important;
+}
+app-casino-bonus .casino-finale-kicker {
+  color: var(--tomato) !important;
+  font-family: var(--font-mono) !important;
+  font-weight: 800 !important;
+}
+app-casino-bonus .casino-finale-row {
+  background: var(--paper-hi) !important;
+  border: 2px solid var(--coal) !important;
+  border-radius: 0 !important;
+}
+app-casino-bonus .casino-finale-row.top {
+  background: var(--acid) !important;
+  border-color: var(--coal) !important;
+  box-shadow: 5px 5px 0 var(--tomato);
+}
+app-casino-bonus .casino-finale-row b {
+  color: var(--tomato) !important;
+  font-family: var(--font-mono) !important;
+}
+
+/* ----------------------------------------------------------- CAVALLO */
+app-cavallo-bonus .cav-overlay {
+  background-color: var(--bg-0) !important;
+  background-image:
+    radial-gradient(rgba(244, 232, 206, 0.09) 1px, transparent 1px),
+    linear-gradient(115deg, transparent 0 62%, rgba(255, 77, 46, 0.08) 62% 63%, transparent 63%) !important;
+  background-size: 16px 16px, 100% 100% !important;
+  color: var(--paper) !important;
+}
+app-cavallo-bonus .cav-card {
+  background: var(--paper) !important;
+  color: var(--coal) !important;
+  border: 4px solid var(--coal) !important;
+  border-radius: 0 !important;
+  box-shadow: 14px 14px 0 var(--tomato) !important;
+}
+app-cavallo-bonus .cav-kicker {
+  display: inline-block;
+  padding: 3px 10px;
+  background: var(--tomato);
+  color: var(--paper-hi);
+  border: 2px solid var(--coal);
+  font-family: var(--font-mono) !important;
+  font-size: clamp(0.6rem, 0.9vw, 0.78rem);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  transform: rotate(-1.4deg);
+}
+app-cavallo-bonus .cav-head h1 {
+  color: var(--coal) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.03em !important;
+}
+app-cavallo-bonus .cav-sub {
+  color: rgba(21, 21, 15, 0.62) !important;
+  font-family: var(--font-mono);
+}
+app-cavallo-bonus .cav-round {
+  background: var(--paper-hi) !important;
+  border: 2px solid var(--coal) !important;
+  border-radius: 0 !important;
+  box-shadow: 3px 3px 0 var(--coal);
+}
+app-cavallo-bonus .cav-round span {
+  color: rgba(21, 21, 15, 0.6) !important;
+  font-family: var(--font-mono) !important;
+}
+app-cavallo-bonus .cav-round b {
+  color: var(--tomato) !important;
+  font-family: var(--font-mono) !important;
+}
+app-cavallo-bonus .cav-clock {
+  background: var(--acid) !important;
+  border: 4px solid var(--coal) !important;
+  box-shadow: 8px 8px 0 var(--tomato) !important;
+}
+app-cavallo-bonus .cav-clock b {
+  color: var(--coal) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+}
+app-cavallo-bonus .cav-clock span {
+  color: rgba(21, 21, 15, 0.62) !important;
+  font-family: var(--font-mono) !important;
+}
+app-cavallo-bonus .cav-clock.hot {
+  background: var(--tomato) !important;
+  border-color: var(--coal) !important;
+  box-shadow: 8px 8px 0 var(--coal) !important;
+  animation: none !important;
+}
+app-cavallo-bonus .cav-clock.hot b,
+app-cavallo-bonus .cav-clock.hot span {
+  color: var(--paper-hi) !important;
+}
+app-cavallo-bonus .cav-call {
+  color: var(--coal) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+}
+app-cavallo-bonus .cav-cat {
+  color: var(--tomato) !important;
+  font-family: var(--font-mono) !important;
+}
+app-cavallo-bonus .cav-board-head {
+  color: rgba(21, 21, 15, 0.6) !important;
+  font-family: var(--font-mono) !important;
+}
+app-cavallo-bonus .cav-board-state { color: var(--tomato) !important; }
+app-cavallo-bonus .cav-row {
+  background: var(--paper-hi) !important;
+  border: 2px solid var(--coal) !important;
+  border-radius: 0 !important;
+  box-shadow: 3px 3px 0 rgba(21, 21, 15, 0.65);
+}
+app-cavallo-bonus .cav-row.lead {
+  background: var(--acid) !important;
+  border-color: var(--coal) !important;
+  box-shadow: 5px 5px 0 var(--tomato);
+}
+app-cavallo-bonus .cav-row.gain {
+  animation: bonus-gain 0.9s ease-out !important;
+}
+@keyframes bonus-gain {
+  0% { background: var(--acid); border-color: var(--tomato); }
+  100% { background: var(--paper-hi); border-color: var(--coal); }
+}
+app-cavallo-bonus .cav-pos {
+  background: var(--coal) !important;
+  color: var(--paper-hi) !important;
+  border-radius: 0 !important;
+  font-family: var(--font-mono) !important;
+}
+app-cavallo-bonus .cav-row.lead .cav-pos {
+  background: var(--tomato) !important;
+  color: var(--paper-hi) !important;
+}
+app-cavallo-bonus .cav-name {
+  color: var(--coal) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+  text-transform: uppercase;
+}
+app-cavallo-bonus .cav-gain {
+  color: var(--tomato) !important;
+  font-family: var(--font-mono) !important;
+}
+app-cavallo-bonus .cav-score {
+  color: var(--coal) !important;
+  font-family: var(--font-mono) !important;
+}
+app-cavallo-bonus .cav-finale {
+  border-top: 2px dashed rgba(21, 21, 15, 0.3) !important;
+}
+app-cavallo-bonus .cav-finale span {
+  color: var(--tomato) !important;
+  font-family: var(--font-mono) !important;
+}
+app-cavallo-bonus .cav-finale p {
+  color: rgba(21, 21, 15, 0.62) !important;
+}
+
+/* ------------------------------------------------------------ BASKET TV */
+app-basket-bonus-stage .bbs-overlay {
+  background-color: var(--bg-0) !important;
+  background-image:
+    radial-gradient(rgba(244, 232, 206, 0.09) 1px, transparent 1px),
+    linear-gradient(115deg, transparent 0 62%, rgba(255, 77, 46, 0.08) 62% 63%, transparent 63%) !important;
+  background-size: 16px 16px, 100% 100% !important;
+  color: var(--paper) !important;
+}
+app-basket-bonus-stage .bbs-card {
+  background: var(--paper) !important;
+  color: var(--coal) !important;
+  border: 4px solid var(--coal) !important;
+  border-radius: 0 !important;
+  box-shadow: 14px 14px 0 var(--tomato) !important;
+}
+app-basket-bonus-stage .bbs-kicker {
+  display: inline-block;
+  padding: 3px 10px;
+  background: var(--tomato);
+  color: var(--paper-hi);
+  border: 2px solid var(--coal);
+  font-family: var(--font-mono) !important;
+  font-size: clamp(0.6rem, 0.9vw, 0.78rem);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  transform: rotate(-1.4deg);
+}
+app-basket-bonus-stage .bbs-card h1 {
+  color: var(--coal) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+}
+app-basket-bonus-stage .bbs-sub {
+  color: rgba(21, 21, 15, 0.62) !important;
+  font-family: var(--font-mono);
+}
+app-basket-bonus-stage .bbs-manche {
+  background: var(--paper-hi) !important;
+  border: 2px solid var(--coal) !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0 rgba(21, 21, 15, 0.65);
+}
+app-basket-bonus-stage .bbs-manche b {
+  color: var(--tomato) !important;
+  font-family: var(--font-mono) !important;
+}
+app-basket-bonus-stage .bbs-manche span:not(.bbs-hoop) {
+  color: var(--coal) !important;
+}
+app-basket-bonus-stage .bbs-manche em {
+  color: rgba(21, 21, 15, 0.6) !important;
+  font-family: var(--font-mono);
+}
+app-basket-bonus-stage .bbs-hoop {
+  border-color: var(--tomato) !important;
+  background: transparent !important;
+}
+app-basket-bonus-stage .bbs-timer {
+  background: var(--acid) !important;
+  color: var(--coal) !important;
+  border: 3px solid var(--coal) !important;
+  border-radius: 0 !important;
+  box-shadow: 6px 6px 0 var(--tomato);
+  font-family: var(--font-mono) !important;
+}
+app-basket-bonus-stage .bbs-hint {
+  color: rgba(21, 21, 15, 0.62) !important;
+  font-family: var(--font-mono);
+}
+app-basket-bonus-stage .bbs-row {
+  background: var(--paper-hi) !important;
+  border: 2px solid var(--coal) !important;
+  border-radius: 0 !important;
+}
+app-basket-bonus-stage .bbs-row.top {
+  background: var(--acid) !important;
+  border-color: var(--coal) !important;
+  box-shadow: 5px 5px 0 var(--tomato);
+}
+app-basket-bonus-stage .bbs-row b {
+  color: var(--tomato) !important;
+  font-family: var(--font-mono) !important;
+}
+
+/* ------------------------------------------------------- BASKET /BASKET */
+app-basket-bonus {
+  background-color: var(--bg-0) !important;
+  background-image:
+    radial-gradient(rgba(244, 232, 206, 0.09) 1px, transparent 1px),
+    linear-gradient(115deg, transparent 0 62%, rgba(255, 77, 46, 0.08) 62% 63%, transparent 63%) !important;
+  background-size: 16px 16px, 100% 100% !important;
+  color: var(--paper) !important;
+}
+app-basket-bonus .basket-brand h1 {
+  color: var(--paper) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+  text-transform: uppercase;
+}
+app-basket-bonus .brand-ball {
+  background: var(--tomato) !important;
+  border: 2px solid var(--coal);
+  box-shadow: 4px 4px 0 var(--paper);
+}
+app-basket-bonus .basket-brand p {
+  color: var(--ink-dim) !important;
+  font-family: var(--font-mono);
+}
+app-basket-bonus .stat {
+  background: var(--paper) !important;
+  border: 2px solid var(--coal) !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0 var(--coal);
+}
+app-basket-bonus .stat span {
+  color: rgba(21, 21, 15, 0.6) !important;
+  font-family: var(--font-mono);
+}
+app-basket-bonus .stat b { color: var(--coal) !important; }
+app-basket-bonus .stat.manche b { color: var(--tomato) !important; }
+app-basket-bonus .stat.time b { color: var(--tomato) !important; }
+app-basket-bonus .stat.time.hot {
+  background: var(--tomato) !important;
+  box-shadow: 4px 4px 0 var(--paper);
+}
+app-basket-bonus .stat.time.hot b,
+app-basket-bonus .stat.time.hot span { color: var(--paper-hi) !important; }
+app-basket-bonus .court-wrap {
+  background: var(--paper) !important;
+  border: 4px solid var(--coal) !important;
+  border-radius: 0 !important;
+  box-shadow: 10px 10px 0 var(--tomato);
+}
+app-basket-bonus .basket-toast {
+  background: var(--acid) !important;
+  color: var(--coal) !important;
+  border: 3px solid var(--coal);
+  border-radius: 0 !important;
+  box-shadow: 5px 5px 0 var(--coal);
+  font-family: var(--font-mono);
+}
+app-basket-bonus .basket-overlay {
+  background: rgba(17, 17, 9, 0.88) !important;
+  backdrop-filter: none !important;
+}
+app-basket-bonus .overlay-ball {
+  animation: none !important;
+  transform: rotate(-6deg);
+}
+app-basket-bonus .basket-overlay h2 {
+  color: var(--paper) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+}
+app-basket-bonus .basket-overlay p {
+  color: rgba(244, 232, 206, 0.78) !important;
+  font-family: var(--font-mono);
+}
+app-basket-bonus .overlay-kicker {
+  color: var(--acid) !important;
+  font-family: var(--font-mono);
+}
+app-basket-bonus .final-score {
+  color: var(--acid) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+}
+app-basket-bonus .record { color: var(--mint) !important; }
+app-basket-bonus .manche-breakdown div {
+  background: var(--paper) !important;
+  color: var(--coal) !important;
+  border: 2px solid var(--coal);
+  border-radius: 0 !important;
+  font-family: var(--font-mono);
+}
+app-basket-bonus .manche-breakdown b { color: var(--tomato) !important; }
+app-basket-bonus .basket-play {
+  background: var(--acid) !important;
+  color: var(--coal) !important;
+  border: 3px solid var(--coal);
+  border-radius: 0 !important;
+  box-shadow: 6px 6px 0 var(--paper);
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+app-basket-bonus .basket-play:active {
+  transform: translate(3px, 3px);
+  box-shadow: 3px 3px 0 var(--paper);
+}
+app-basket-bonus .basket-foot {
+  color: var(--ink-dim) !important;
+  font-family: var(--font-mono);
+}
+app-basket-bonus .basket-foot a {
+  color: var(--paper) !important;
+  border-bottom-color: var(--paper) !important;
+}
+
+/* --------------------------------------------------- RESIDUI LEGACY */
+app-arena .team-label {
+  backdrop-filter: none !important;
+  box-shadow: 2px 2px 0 var(--coal);
+}
+app-arena .team-dot { box-shadow: none !important; }
+app-arena .team-rank { box-shadow: 2px 2px 0 var(--coal); }
+app-arena .arena-ended-overlay { backdrop-filter: none !important; }
+app-image-blur .reservation-alert { animation: none !important; }
+app-image-blur .timer-circle { animation: none !important; }
+app-image-blur .presenter-controls button {
+  border: 3px solid var(--coal) !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0 var(--coal);
+  font-family: var(--font-mono) !important;
+  color: var(--coal) !important;
+}
+app-image-blur .presenter-controls .control-correct { background: var(--acid) !important; }
+app-image-blur .presenter-controls .control-wrong { background: var(--tomato) !important; color: var(--paper-hi) !important; }

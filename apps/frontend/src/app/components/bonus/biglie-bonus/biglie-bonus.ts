@@ -224,9 +224,14 @@ const FINALE_SECONDS = 7;
           }
 
           @case ('FINALE') {
-            <div class="bg-results">
+            <div class="bg-finale">
+              <div class="bg-finale-head">
+                <span class="bg-finale-kicker">CLASSIFICA FINALE</span>
+                <span class="bg-finale-note">4 GARE · PUNTI CUMULATIVI</span>
+              </div>
+              <div class="bg-results">
               @for (row of standings(); track row.playerName; let i = $index) {
-                <div class="bg-row" [class.paid]="i === 0">
+                <div class="bg-row bg-final-row" [class.paid]="i === 0">
                   <span class="bg-row-pos">{{ i + 1 }}</span>
                   <span class="bg-row-name">{{ row.playerName }}</span>
                   <span class="bg-row-marble">{{ marbleEmoji(row.marbleId) }} {{ marbleName(row.marbleId) }}</span>
@@ -236,6 +241,7 @@ const FINALE_SECONDS = 7;
               @if (!standings().length) {
                 <p class="bg-hint">Nessun tavolo in gara.</p>
               }
+              </div>
             </div>
           }
         }
@@ -278,6 +284,16 @@ const FINALE_SECONDS = 7;
     .bg-row-marble { font-size: .82em; opacity: .7; }
     .bg-row-points { font-size: 1.05em; }
     .bg-row-total { min-width: 42px; text-align: right; font-weight: 800; }
+    .bg-finale { display: flex; flex-direction: column; gap: 10px; }
+    .bg-finale-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 3px solid var(--coal); }
+    .bg-finale-kicker { display: inline-block; padding: 3px 10px; background: var(--tomato); color: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.6rem, .9vw, .8rem); font-weight: 800; letter-spacing: .16em; transform: rotate(-1.2deg); }
+    .bg-finale-note { color: rgba(30, 25, 20, .62); font-family: var(--font-mono); font-size: clamp(.58rem, .85vw, .74rem); letter-spacing: .12em; text-align: right; }
+    .bg-final-row { grid-template-columns: 46px 1fr auto auto !important; padding: clamp(8px, 1.2vh, 12px) clamp(12px, 1.4vw, 18px); }
+    .bg-final-row.paid { box-shadow: 6px 6px 0 var(--tomato); }
+    .bg-final-row .bg-row-pos { display: grid; place-items: center; width: 32px; height: 32px; background: var(--coal); color: var(--paper-hi); font-family: var(--font-mono); }
+    .bg-final-row.paid .bg-row-pos { background: var(--tomato); }
+    .bg-final-row .bg-row-points { color: var(--coal); font-size: clamp(1rem, 1.5vw, 1.35rem); }
+    .bg-final-row.paid .bg-row-name::after { content: 'VINCITORE'; display: inline-block; margin-left: 10px; padding: 2px 7px; background: var(--tomato); color: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: .55em; letter-spacing: .12em; vertical-align: middle; }
     @keyframes bg-pulse { 50% { transform: scale(1.08); opacity: .7; } }
   `],
 })
@@ -1104,35 +1120,38 @@ export class BiglieBonus implements OnInit, OnDestroy {
     });
     const rowHeight = 17;
     const boxWidth = Math.min(232, Math.max(176, w * 0.24));
-    const boxHeight = 30 + ranked.length * rowHeight;
+    const boxHeight = 40 + ranked.length * rowHeight;
     ctx.save();
-    ctx.fillStyle = 'rgba(7, 11, 17, .7)';
-    ctx.strokeStyle = 'rgba(255, 255, 255, .16)';
-    ctx.lineWidth = 1;
+    ctx.fillStyle = 'rgba(241, 228, 201, .96)';
+    ctx.strokeStyle = '#15150f';
+    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.roundRect(12, 12, boxWidth, boxHeight, 10);
+    ctx.rect(12, 12, boxWidth, boxHeight);
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = '#fbbf24';
+    ctx.fillStyle = '#ff4d2e';
+    ctx.fillRect(12, 12, boxWidth, 26);
+
+    ctx.fillStyle = '#fff8e8';
     ctx.font = '800 10px ui-monospace, monospace';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText('ORDINE DI CORSA', 24, 28);
+    ctx.fillText('ORDINE DI CORSA', 24, 26);
 
     ranked.forEach((marble, index) => {
       const body = this.marbleById(marble.marbleId);
-      const y = 44 + index * rowHeight;
+      const y = 50 + index * rowHeight;
       ctx.fillStyle = body?.color ?? '#94a3b8';
       ctx.beginPath();
       ctx.arc(27, y, 4, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = '#e7e5e4';
-      ctx.font = '600 11px ui-monospace, monospace';
+      ctx.fillStyle = '#15150f';
+      ctx.font = '700 11px ui-monospace, monospace';
       const name =
         marble.playerName.length > 15 ? `${marble.playerName.slice(0, 14)}…` : marble.playerName;
       ctx.fillText(name, 37, y);
-      ctx.fillStyle = 'rgba(231, 229, 228, .55)';
+      ctx.fillStyle = 'rgba(21, 21, 15, .56)';
       ctx.textAlign = 'right';
       ctx.fillText(
         marble.finished ? `P${marble.position}` : `${Math.round(Math.min(100, marble.x))}%`,
