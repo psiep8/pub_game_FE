@@ -9,6 +9,7 @@ import { GameService } from '../../services/game.service';
 import { ThemeService } from '../../services/theme.service';
 import { ReliabilityService } from '../../services/reliability.service';
 import { PlayerAvatarService } from '../../services/player-avatar.service';
+import { AudioService } from '../../services/audio.service';
 import { ConnectionBadge } from '../connection-badge/connection-badge';
 
 @Component({
@@ -153,6 +154,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   readonly playerAvatars = inject(PlayerAvatarService);
   private destroyRef = inject(DestroyRef);
   private gameService = inject(GameService);
+  private audio = inject(AudioService);
   private swUpdate = inject(SwUpdate);
   public theme = inject(ThemeService);
   private updateCheckInterval?: any;
@@ -835,6 +837,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.hasAnswered.set(true);
     this.gameState.set('LOCKED');
     this.vibrate(50);
+    this.audio.playConfirm();
   }
 
   sendBuzz() {
@@ -842,6 +845,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.ws.sendAnswer(this.gameId(), this.nickname()!, -1, time);
     this.gameState.set('LOCKED');
     this.vibrate([100, 50, 100]);
+    this.audio.playConfirm();
   }
 
   onStartVoting(type: string, payload?: any) {
@@ -1020,6 +1024,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       value: stake,
     });
     this.vibrate(20);
+    this.audio.playConfirm();
   }
 
   scommessaAnswer(index: number): void {
@@ -1034,6 +1039,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       value: index,
     });
     this.vibrate(30);
+    this.audio.playConfirm();
   }
 
   /** Banca corrente della squadra, arrivata con lo stato del round. */
@@ -1055,6 +1061,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       value: choice,
     });
     this.vibrate(30);
+    this.audio.playConfirm();
   }
 
   quotaRemaining(): number {
@@ -1115,6 +1122,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       value: this.quotaTokens(),
     });
     this.vibrate(30);
+    this.audio.playConfirm();
   }
 
   quotaRow(): any {
@@ -1161,6 +1169,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       kind,
     });
     this.vibrate(kind === 'STAND' ? 30 : 20);
+    this.audio.playConfirm();
   }
 
   isRedCard(card: string): boolean {
@@ -1297,6 +1306,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       if (explosion.player === this.nickname()) {
         this.flashBomba('💥 BOOM! −300');
         this.vibrate([160, 60, 160]);
+        this.audio.playError();
       } else {
         this.flashBomba(`💥 ${explosion.player} −300`);
       }
@@ -1314,6 +1324,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         if (result?.correct) {
           this.hasAnswered.set(false);
           this.selectedAnswer.set(null);
+          this.audio.playConfirm();
           if (result.passOptions?.length) {
             this.bombaView.update((current: any) => ({
               ...current,
@@ -1337,6 +1348,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           );
           this.flashBomba(result?.exploded ? '💥 BOOM! −300' : 'MICCIA −3s');
           this.vibrate([80, 40, 80]);
+          this.audio.playError();
           this.pollBombaState();
         }
       },
@@ -1344,6 +1356,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         this.hasAnswered.set(false);
         this.selectedAnswer.set(null);
         this.flashBomba(error?.error?.error ?? 'Riprova');
+        this.audio.playError();
         this.pollBombaState();
       },
     });
@@ -1362,11 +1375,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
         this.bombaFirstState = true;
         this.applyBombaState(state);
         this.vibrate(40);
+        this.audio.playConfirm();
       },
       error: (error: any) => {
         this.hasAnswered.set(false);
         this.selectedAnswer.set(null);
         this.flashBomba(error?.error?.error ?? 'Passaggio non riuscito');
+        this.audio.playError();
         this.pollBombaState();
       },
     });
@@ -1518,6 +1533,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.ws.broadcastStatus(this.gameId(), { action: 'PRICE_ANSWER', playerName, value });
     this.gameState.set('WAITING');
     this.vibrate(40);
+    this.audio.playConfirm();
   }
 
   toggleBuzz(): void {
@@ -1533,6 +1549,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const ms = Math.round(performance.now() - this.buzzStartedAt);
     this.buzzPhase.set('sent');
     this.vibrate([20, 30, 20]);
+    this.audio.playConfirm();
     this.ws.broadcastStatus(this.gameId(), {
       action: 'TIME_BUZZER_ANSWER',
       playerName: this.nickname(),
@@ -1743,6 +1760,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     });
     this.hasAnswered.set(true);
     this.vibrate(40);
+    this.audio.playConfirm();
   }
 
   /** Lettera della risposta scelta, vuota se il giocatore non ha ancora toccato nulla. */
@@ -1870,12 +1888,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
             points
           });
           this.vibrate(isCorrect ? 50 : [50, 50, 50]);
+          if (isCorrect) this.audio.playCorrect();
+          else this.audio.playWrong();
           this.arenaQuestion.set(null);
           // Dopo un errore 1,5 s di blocco: rispondere a caso non conviene più.
           setTimeout(() => this.generateNextArenaQuestion(), isCorrect ? 0 : 1500);
         },
         error: (err: any) => {
           console.error('❌ Risposta arena rifiutata dal server:', err);
+          this.audio.playError();
           // Round chiuso o scaduto: non si insiste, si aspetta la TV.
           if (err?.status === 409) {
             this.arenaQuestion.set(null);

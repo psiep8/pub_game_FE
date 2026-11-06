@@ -159,6 +159,24 @@ export class AudioService {
     this.tone({ freq: 196, duration: 0.45, type: 'sawtooth', gain: 0.05, slideTo: 110 });
   }
 
+  /**
+   * Conferma globale: risposta registrata o azione accettata dal server.
+   * Suono breve, due note in salita, pensato per il telefono.
+   */
+  playConfirm(): void {
+    this.tone({ freq: 740, duration: 0.07, type: 'triangle', gain: 0.05 });
+    this.tone({ freq: 1108.73, duration: 0.1, type: 'triangle', gain: 0.04, delay: 0.06 });
+  }
+
+  /**
+   * Errore globale: risposta rifiutata, azione non valida o tempo scaduto.
+   * Suono corto e grave, distinto dal «sbagliato» della TV.
+   */
+  playError(): void {
+    this.tone({ freq: 220, duration: 0.16, type: 'square', gain: 0.035, slideTo: 140 });
+    this.tone({ freq: 165, duration: 0.18, type: 'square', gain: 0.03, delay: 0.08, slideTo: 110 });
+  }
+
   playReveal(): void {
     if (!this.audioEnabled() || !this.revealAudio) return;
     this.stopClock();

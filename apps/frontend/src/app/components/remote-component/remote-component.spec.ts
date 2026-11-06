@@ -4,7 +4,8 @@ import { SwUpdate } from '@angular/service-worker';
 import { RemoteComponent } from './remote-component';
 import { GameService } from '../../services/game.service';
 import { WebSocketService } from '../../services/web-socket.service';
-import { FakeGameService, FakeSwUpdate, FakeWebSocketService } from '../../testing/test-doubles';
+import { AudioService } from '../../services/audio.service';
+import { FakeAudioService, FakeGameService, FakeSwUpdate, FakeWebSocketService } from '../../testing/test-doubles';
 import { FakeReliabilityService } from '../../testing/test-doubles';
 import { ReliabilityService } from '../../services/reliability.service';
 
@@ -22,6 +23,7 @@ describe('RemoteComponent', () => {
         { provide: WebSocketService, useClass: FakeWebSocketService },
         { provide: ReliabilityService, useClass: FakeReliabilityService as any },
         { provide: GameService, useClass: FakeGameService },
+        { provide: AudioService, useClass: FakeAudioService },
         { provide: SwUpdate, useClass: FakeSwUpdate },
       ],
     }).compileComponents();
