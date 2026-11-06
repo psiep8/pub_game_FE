@@ -97,11 +97,11 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
 
 /** I bonus non sono modalità della scaletta: hanno regole proprie. */
 export const BONUS_SCORING: Record<string, ScoringRule> = {
-  BONUS_ROULETTE: {
-    correct: '+300 / +150 / +75 ai primi tre',
+  BONUS_CASINO: {
+    correct: '+100 / +150 / +200 / +300 a manche',
     wrong: '0',
     missed: '0',
-    note: 'Il colore vincente resta in TV; il telefono sceglie solo il colore.',
+    note: 'Colore, dozzina, sestina e numero secco: ogni manche si chiude con un giro della roulette in TV. Sullo zero il banco incassa; sul numero secco si rigira finché almeno un tavolo vince.',
   },
   BONUS_BASKET: {
     correct: '+300 / +150 / +75 ai primi tre',

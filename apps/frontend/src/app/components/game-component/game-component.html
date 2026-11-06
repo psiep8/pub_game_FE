@@ -212,19 +212,10 @@
 
 @if (bonusActive()) {
   @switch (bonusType()) {
-    @case ('ROULETTE_COLORATA') {
+    @case ('CASINO') {
       <app-casino-bonus
         [gameId]="currentGameId()"
         [players]="bonusPlayers()"
-        [variant]="1"
-        (result)="onBonusResult($event)"
-        (finished)="finishBonus()" />
-    }
-    @case ('ROULETTE_NUMERATA') {
-      <app-casino-bonus
-        [gameId]="currentGameId()"
-        [players]="bonusPlayers()"
-        [variant]="2"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
     }

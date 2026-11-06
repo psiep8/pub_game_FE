@@ -278,35 +278,34 @@
     }
     @case ('BONUS_CASINO') {
     <div class="bonus-remote">
-      <div class="game-head"><span class="game-tag buzz">🎰 CASINO</span><span class="game-tip">Manche {{ casinoState()?.manche || 1 }}/3</span></div>
+      <div class="game-head">
+        <span class="game-tag buzz">🎰 CASINO</span>
+        <span class="game-tip">Manche {{ casinoState()?.manche || 1 }}/{{ casinoState()?.totalManches || 4 }}</span>
+      </div>
 
-      @if (casinoState()?.phase === 'COLORS_PICK') {
-      <p class="party-instruction">Scegli un colore</p>
-      <div class="casino-colors">
-        @for (color of casinoState()?.options ?? []; track color) {
-        <button class="casino-color" [class.picked]="casinoChoice() === color" [disabled]="casinoChoice() !== null" (click)="casinoAct(color)">{{ color }}</button>
+      @if (casinoState()?.phase === 'PICK') {
+      <p class="party-instruction">{{ casinoState()?.rule }}</p>
+      <div class="casino-grid">
+        @for (option of casinoState()?.options ?? []; track option) {
+        <button class="casino-cell" [class.picked]="casinoChoice() === option" [disabled]="casinoChoice() !== null" (click)="casinoAct(option)">{{ option }}</button>
         }
       </div>
-      } @else if (casinoState()?.phase === 'NUMBERS_PICK') {
-      <p class="party-instruction">Scegli un numero da 0 a 36</p>
-      <div class="casino-numbers">
-        @for (number of casinoState()?.options ?? []; track number) {
-        <button class="casino-number" [class.picked]="casinoChoice() === number" [disabled]="casinoChoice() !== null" (click)="casinoAct(number)">{{ number }}</button>
-        }
+      } @else if (casinoState()?.phase === 'SPIN') {
+      <div class="status-msg">
+        <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🎰</div></div>
+        <p>La pallina gira...</p>
       </div>
-      } @else if (casinoState()?.phase === 'BJ_PICK') {
-      <div class="casino-hand">
-        <span class="casino-hand-label">LA TUA MANO</span>
-        <div class="casino-cards">
-          @for (card of casinoHand()?.cards ?? []; track $index) {
-          <span class="casino-card" [class.red]="card.includes('♥') || card.includes('♦')">{{ card }}</span>
-          }
-        </div>
-        <b class="casino-hand-total" [class.bust]="(casinoHand()?.total ?? 0) > 21">{{ casinoHand()?.total ?? 0 }}</b>
+      } @else if (casinoState()?.phase === 'RESPIN') {
+      <div class="status-msg">
+        <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🎰</div></div>
+        <p>Nessuno sul {{ casinoState()?.number }}</p>
+        <p class="sub-text">Si rigira...</p>
       </div>
-      <div class="casino-bj-actions">
-        <button class="casino-hit" [disabled]="casinoChoice() !== null" (click)="casinoAct('HIT')">CARTA</button>
-        <button class="casino-stand" [disabled]="casinoChoice() !== null" (click)="casinoAct('STAND')">STO</button>
+      } @else if (casinoState()?.phase === 'REVEAL') {
+      <div class="status-msg">
+        <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🎰</div></div>
+        <p>Esce il {{ casinoState()?.number }}</p>
+        <p class="sub-text">Casella vincente: {{ casinoState()?.winner }}</p>
       </div>
       } @else {
       <div class="status-msg">

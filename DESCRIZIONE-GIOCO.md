@@ -157,7 +157,7 @@ I bonus **non consumano un round**: si giocano dopo la classifica di fine atto, 
 
 | Dopo l'atto | Bonus definitivo | Stato nel codice |
 |---|---|---|
-| 1 | Roulette (colorata + numerata, due manche) | Colorata e numerata esistono come bonus separati: da unire |
+| 1 | Casino: colore, dozzina, sestina e numero secco, ognuna chiusa da un giro di roulette vera | Implementato: ruota a 37 caselle con pallina animata in TV, una griglia sola su TV e telefono, 100/150/200/300 punti |
 | 2 | Basket (3 manche, premio a scaletta) | Esiste come bonus, 30 s di tiri liberi: da portare a 3 manche |
 | 3 | Cavallo di battaglia (categoria scelta da ogni squadra) | Ricollegato ai bonus: parte dopo l'atto 3 o dall'admin |
 | 4 | Biglie: quattro gare (terra, asfalto, neve, acqua), una biglia per tavolo | Implementato in `BiglieBonus`: scelta unica in ordine sorteggiato, 150/100/60/30 a gara |

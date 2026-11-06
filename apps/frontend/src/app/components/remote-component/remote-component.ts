@@ -120,6 +120,10 @@ import { ConnectionBadge } from '../connection-badge/connection-badge';
     .biglie-head { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 1rem; }
     .biglie-bar { height: 16px; background: rgba(30, 25, 20, .12); border: 2px solid var(--coal); overflow: hidden; }
     .biglie-fill { height: 100%; transition: width .2s linear; }
+    .casino-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 6px; max-height: 62vh; overflow: auto; }
+    .casino-cell { padding: 11px 6px; background: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: .9rem; font-weight: 800; letter-spacing: .04em; }
+    .casino-cell.picked { background: var(--acid); }
+    .casino-cell:disabled { opacity: .5; }
     .cavallo-category { padding: 12px 10px; border-radius: 12px; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: #fff; font-size: .8rem; font-weight: 700; text-align: left; }
     .cavallo-category.picked { border-color: #f59e0b; background: rgba(245,158,11,.25); }
     .cavallo-question { margin: 0; font-size: 1.02rem; font-weight: 800; line-height: 1.3; }
@@ -1073,12 +1077,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
       choice,
     });
     this.vibrate(30);
-  }
-
-  casinoHand(): any {
-    const state = this.casinoState();
-    const me = this.nickname();
-    return state?.hands && me ? state.hands[me] ?? null : null;
   }
 
   // ------------------------------------------------------------- BLACK JACK

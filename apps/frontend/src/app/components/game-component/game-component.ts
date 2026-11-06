@@ -155,16 +155,6 @@ export class GameComponent implements OnInit, OnDestroy {
     return this.allCategories().find((cat) => cat.id === id)?.name ?? '';
   });
 
-  /** Manche del bonus Casino: 1 colori, 2 numeri. Il Black Jack è un round. */
-  casinoVariant = computed(() => {
-    switch (this.bonusType()) {
-      case 'ROULETTE_NUMERATA':
-        return 2;
-      default:
-        return 1;
-    }
-  });
-
   private arenaFinished = false;
   private readonly bonusActsStarted = new Set<number>();
   private bonusScoresMap = new Map<string, number>();
@@ -1121,9 +1111,9 @@ export class GameComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Le tre varianti del Casino hanno una schermata TV dedicata che parla
-    // direttamente con i telefoni tramite CASINO_STATE. La manche la decide la
-    // variante, non più una sequenza interna di tre manche.
+    // Il Casino ha una schermata TV dedicata che parla direttamente con i
+    // telefoni tramite CASINO_STATE: quattro manche a difficoltà crescente su
+    // una sola griglia di scelta.
     const publicPayload = JSON.stringify({ type: 'BONUS_CASINO', question: BONUS_LABELS[type] });
     this.ws.broadcastStatus(this.currentGameId(), {
       action: 'SHOW_QUESTION',

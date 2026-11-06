@@ -96,7 +96,7 @@ describe('RoundManagerService', () => {
 
   it('should spread the casino variants across the acts', () => {
     const expected: Array<string | null> = [
-      'ROULETTE_COLORATA',
+      'CASINO',
       'BASKET',
       'CAVALLO',
       'BIGLIE',

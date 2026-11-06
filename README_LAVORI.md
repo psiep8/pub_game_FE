@@ -10,7 +10,7 @@ Ultimo commit: 6 novembre — scaletta a 5 atti, Cavallo tornato bonus, Scommess
 ### Scaletta: il Cavallo torna bonus, dentro Quiz e Time Buzzer
 - `ACT_DECKS` aggiornata come da descrizione: il Cavallo non è più un round, al suo posto l'atto 1 chiude con un Quiz e l'atto 5 usa il Time Buzzer.
 - Quota non è ancora implementata: il sesto round dell'atto 2 resta la Bomba finché la modalità non esiste.
-- `BonusType` contiene `CAVALLO` (atto 3) e `BIGLIE` (atto 4); restano Roulette Colorata, Roulette Numerata e Basket. Il Black Jack non è più un bonus: è diventato un round a turni.
+- `BonusType` contiene `CASINO` (atto 1), `CAVALLO` (atto 3) e `BIGLIE` (atto 4), più `BASKET`. Il Black Jack non è più un bonus: è diventato un round a turni.
 
 | Atto | Round | Sequenza |
 | --- | --- | --- |
@@ -20,17 +20,17 @@ Ultimo commit: 6 novembre — scaletta a 5 atti, Cavallo tornato bonus, Scommess
 | 4 | 25–32 | Indovina chi · Quiz · Bomba · Musica · Time Buzzer · Timeline · Scommessa · Speed Rush |
 | 5 | 33–40 | Ruota · Quiz · Bomba · Time Buzzer · Timeline · Air Hockey · Musica · Arena |
 
-### Casino spalmato in tre bonus
+### Casino: quattro manche in un solo bonus
 
 | Dopo l'atto | Bonus |
 | --- | --- |
-| 1 | Roulette Colorata |
+| 1 | Casino (colore, dozzina, sestina, numero secco) |
 | 2 | Basket |
 | 3 | Cavallo di Battaglia |
 | 4 | Biglie |
 | 5 | nessuno, classifica finale |
 
-`CasinoBonus` ha un input `variant` (1/2/3) e fa girare **una sola manche**, non più le tre in sequenza. La numerata resta un bonus manuale dall'admin, il Black Jack (`variant` 3) non è più raggiungibile dalla serata perché è diventato un round.
+`CasinoBonus` fa girare **quattro manche a difficoltà crescente**: colore (2 caselle, 100 punti), dozzina (3, 150), sestina (6, 200), numero secco (37, 300). Ogni manche si chiude con un giro della **roulette vera in TV**: ruota europea a 37 caselle nell'ordine reale, pallina lanciata sul bordo, orbita, discesa, rimbalzi sui vani e atterraggio. Il numero esce sul componente TV quando chiudono le puntate e l'animazione è calcolata per atterrare lì: il punto pagato è sempre il numero che si vede. Sullo zero il banco incassa e nessuno prende punti. Sul **numero secco** la manche deve avere almeno un vincitore: se il numero uscito non è stato puntato da nessun tavolo, la ruota rigira (dopo quindici giri senza fortuna il numero viene scelto tra quelli giocati, per garantire la regola). TV e telefono usano **una sola griglia**: cambia solo l'elenco delle caselle. Niente più Black Jack nel bonus: è un round.
 
 ### Bonus biglie (atto 4)
 - Nuovo `bonus/biglie-bonus/biglie-bonus.ts` (classe `BiglieBonus`, selector `app-biglie-bonus`): quattro gare su terra, asfalto, neve e acqua.
