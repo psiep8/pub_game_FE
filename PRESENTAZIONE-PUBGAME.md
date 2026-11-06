@@ -222,8 +222,9 @@ alta l'attenzione dopo la classifica.
   una volta sola e vale per tutte e quattro le gare.
 - I fondi cambiano: **terra, asfalto, neve, acqua**. Ogni biglia ha velocità, accelerazione
   e tenuta diverse, e ogni fondo premia una qualità.
-- La TV mostra la corsa con la fisica: salti, attrito, scie diverse per ogni terreno. Il
-  vincitore non è deciso prima: esce dalla gara.
+- La TV segue la corsa con una camera laterale su un unico tracciato di curve e dossi:
+  salti, attrito e scie diverse per ogni terreno. Ogni gara dura circa 30 secondi e il
+  vincitore non è deciso prima.
 - **Punti**: 150 / 100 / 60 / 30 a ogni gara, cumulativi (massimo 600).
 - *Da dire:* «Non esiste la biglia perfetta: scegliete quella giusta per i quattro fondi.»
 

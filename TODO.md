@@ -53,8 +53,8 @@ Ultimo aggiornamento: 6 novembre 2026.
 ## ✅ Fatto (6 novembre)
 
 - [x] Cavallo: TV solo countdown e tabellone continuo; domande sul telefono, 8 × 15 s.
-- [x] Biglie: quattro gare con punti 150 / 100 / 60 / 30, corsa su canvas con fisica,
-      salti, attrito e scie per fondo; il vincitore esce dalla simulazione.
+- [x] Biglie: quattro gare da 30 s su un unico tracciato a scorrimento laterale, con
+      camera sul leader, curve, dossi e scie per fondo; punti 150 / 100 / 60 / 30 cumulativi.
 - [x] Avatar di squadra: foto da fotocamera o galleria, compressa a 192 px e mostrata
       nelle classifiche in TV.
 - [x] Roulette: tick della pallina che rallentano e accento all'atterraggio.
