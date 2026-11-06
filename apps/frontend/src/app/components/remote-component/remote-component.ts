@@ -60,6 +60,7 @@ import { ConnectionBadge } from '../connection-badge/connection-badge';
     }
     .hockey-side { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
     .hockey-side.right { align-items: flex-end; text-align: right; }
+    .hockey-where { margin: 0; font-family: var(--font-mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--coal); background: var(--mustard); border: 2px solid var(--coal); padding: 4px 8px; box-shadow: 3px 3px 0 var(--coal); }
     .hockey-side-name { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .hockey-side.active .hockey-side-name { color: var(--tomato); font-weight: 700; }
     .hockey-side-score { font-family: var(--font-display); font-size: 2rem; line-height: 1; }
@@ -178,6 +179,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   hockeyMyScore = signal(0);
   hockeyOpponentScore = signal(0);
   hockeyOpponent = signal('');
+  hockeyCourtIndex = signal(0);
+  hockeyCourtTotal = signal(0);
   hockeyServeLeft = signal(0);
   hockeyLastResult = signal<string | null>(null);
   hockeyGoal = signal<{ id: number; scored: boolean; mine: number; opponent: number } | null>(null);
@@ -373,6 +376,18 @@ export class RemoteComponent implements OnInit, OnDestroy {
         case 'START_VOTING':
           this.isBlocked.set(false);
           this.onStartVoting(status.type, status.payload);
+          break;
+
+        case 'QUIZ_STATE':
+          // Una manche nuova riapre i voti; il reveal invece blocca i telefoni.
+          if (status.state?.mancheReveal || status.state?.revealed) {
+            this.gameState.set('WAITING');
+          } else {
+            this.hasAnswered.set(false);
+            this.selectedAnswer.set(null);
+            this.startTime = Date.now();
+            this.gameState.set('VOTING');
+          }
           break;
 
         case 'BOMBA_STATE':
@@ -1750,6 +1765,20 @@ export class RemoteComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Dove guardare la TV: la mia partita e il suo angolo nel multiview. */
+  hockeyCorner(): string {
+    const index = this.hockeyCourtIndex();
+    const total = this.hockeyCourtTotal();
+    if (!index || !total) return 'CAMPO IN TV';
+    if (total === 1) return 'SCHERMO INTERO';
+    if (total === 2) return index === 1 ? 'ALTO' : 'BASSO';
+    if (total <= 4) {
+      return ['ALTO SINISTRA', 'ALTO DESTRA', 'BASSO SINISTRA', 'BASSO DESTRA'][index - 1]
+        ?? `CAMPO ${index}`;
+    }
+    return `CAMPO ${index} DI ${total}`;
+  }
+
   sendHockeyAnswer(index: number): void {
     if (this.hasAnswered() || !this.hockeyMyTurn() || !this.nickname()) return;
 
@@ -1793,6 +1822,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.hockeyMyScore.set(court[mine].score);
     this.hockeyOpponentScore.set(court[other].score);
     this.hockeyOpponent.set(court[other].playerName);
+    this.hockeyCourtIndex.set(Number(court.index ?? court.id + 1));
+    this.hockeyCourtTotal.set(Number(status.courts?.length ?? 0));
     this.hockeyServeLeft.set(court.serveLeft ?? 0);
     this.hockeyQuestion.set(court.question ?? null);
     this.hockeyMyTurn.set(!court.winner && court.turn === mine);

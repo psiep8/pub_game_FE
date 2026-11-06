@@ -168,8 +168,9 @@ public class PartyGameService {
         payload.put("question", "Metti le carte in ordine, dalla più antica alla più recente");
         payload.put("items", cards);
         payload.put("count", ordered.size());
-        payload.put("explain", "Ogni coppia di carte nell'ordine giusto vale punti. "
-                + "Con 6 carte le coppie sono 15, con 8 sono 28. Ordine perfetto: +200 bonus.");
+        payload.put("explain", "Conta la posizione: ogni carta nel posto giusto vale un punto. "
+                + "Da meta classifica in su il punteggio e positivo (fino a 1200), sotto si perde "
+                + "al massimo 400 punti.");
         if (repeatedContent) {
             payload.put("poolWarning", "Pool Timeline esaurito: alcune carte sono già uscite in questa partita.");
         }
@@ -247,20 +248,28 @@ public class PartyGameService {
             }
         }
 
-        int totalPairs = size * (size - 1) / 2;
+        // Non si contano le coppie in ordine: conta la posizione della carta.
+        // Ogni carta nel posto giusto vale un punto, come una fila di caselle.
         int correctPairs = 0;
         for (int i = 0; i < order.size(); i++) {
-            for (int j = i + 1; j < order.size(); j++) {
-                if (round.ranks().get(order.get(i)) < round.ranks().get(order.get(j))) {
-                    correctPairs++;
-                }
+            if (round.ranks().getOrDefault(order.get(i), -1) == i) {
+                correctPairs++;
             }
         }
+        int totalPairs = size;
 
-        int score = totalPairs == 0 ? 0 : (int) Math.round(1000.0 * correctPairs / totalPairs);
-        if (correctPairs == totalPairs) {
-            score += 200;
+        // Soglia: da n/2 - 1 posizioni giuste in su il round e positivo.
+        // Sotto soglia si perde, ma mai piu di 400 punti; sopra, il massimo e
+        // 1200 per un ordine perfetto.
+        int threshold = Math.max(0, size / 2 - 1);
+        int score;
+        if (correctPairs >= threshold) {
+            score = (int) Math.round(1200.0 * correctPairs / Math.max(1, size));
+        } else {
+            score = threshold == 0 ? 0
+                    : -(int) Math.round(400.0 * (threshold - correctPairs) / threshold);
         }
+        score = Math.max(-400, Math.min(1200, score));
 
         TimelineSubmission submission = new TimelineSubmission(playerName.trim(), correctPairs, totalPairs, score);
         timelineAnswers.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>())

@@ -114,6 +114,16 @@ public class QuestionBankService {
     private static final int MIN_ARENA_QUESTIONS = 10;
     private static final int SCOMMESSA_QUESTIONS = 3;
     private static final int QUOTA_QUESTIONS = 4;
+    private static final int QUIZ_QUESTIONS = 3;
+
+    /** Le cinque combinazioni di difficolta del Quiz, una per round. */
+    private static final String[][] QUIZ_PATTERNS = {
+            { "facile", "facile", "medio" },
+            { "facile", "medio", "medio" },
+            { "facile", "medio", "difficile" },
+            { "medio", "medio", "difficile" },
+            { "medio", "difficile", "difficile" }
+    };
 
     /** Banca numerica di Quota: valore e intervallo plausibile per le fasce. */
     private record NumericQuestion(String category, String question, String unit,
@@ -192,6 +202,7 @@ public class QuestionBankService {
             case "ARENA" -> arenaWrapper();
             case "SCOMMESSA" -> scommessaPayload(category, isAvailable);
             case "QUOTA" -> quotaPayload(category, isAvailable);
+            case "QUIZ" -> quizPayload(category, isAvailable);
             default -> fromBank(category, requested, isAvailable);
         };
     }
@@ -786,6 +797,129 @@ public class QuestionBankService {
         payload.put("questions", questions);
         payload.put("explain", "Tre domande: ogni esatta raddoppia la banca, una sbagliata la brucia. Tra una e l'altra scegli se incassare.");
         return payload.toString();
+    }
+
+    /**
+     * Quiz a tre manches: tre domande della stessa categoria con la
+     * combinazione di difficolta del round. Ogni domanda porta con se il tetto
+     * punti, calcolato sul peso della difficolta, cosi tre risposte esatte a
+     * tempo zero valgono esattamente 1000 punti.
+     */
+    private String quizPayload(String category, Predicate<String> isAvailable) {
+        String[] pattern = QUIZ_PATTERNS[random.nextInt(QUIZ_PATTERNS.length)];
+        List<BankQuestion> picked = new ArrayList<>();
+        Set<String> used = new HashSet<>();
+
+        for (String difficulty : pattern) {
+            BankQuestion question = pickQuizQuestion(category, difficulty, isAvailable, used);
+            if (question == null) {
+                question = pickQuizQuestion(null, difficulty, isAvailable, used);
+            }
+            if (question == null) {
+                // Banca corta: si accetta anche una difficolta diversa, ma la
+                // domanda resta nuova e giocabile.
+                question = pickQuizQuestion(category, null, isAvailable, used);
+            }
+            if (question == null) {
+                question = pickQuizQuestion(null, null, isAvailable, used);
+            }
+            if (question == null) {
+                break;
+            }
+            picked.add(question);
+            used.add(QuestionHistoryService.key(question.question(), question.correctAnswer(), question.category()));
+        }
+
+        if (picked.isEmpty()) {
+            return emergencyPayload("QUIZ", category);
+        }
+
+        double totalWeight = 0;
+        for (BankQuestion question : picked) {
+            totalWeight += quizWeight(question.difficulty());
+        }
+
+        JSONArray questions = new JSONArray();
+        int assigned = 0;
+        for (int index = 0; index < picked.size(); index++) {
+            BankQuestion question = picked.get(index);
+            int maxPoints = index == picked.size() - 1
+                    ? Math.max(0, 1000 - assigned)
+                    : (int) Math.round(1000.0 * quizWeight(question.difficulty()) / totalWeight);
+            assigned += maxPoints;
+
+            List<String> options = new ArrayList<>(question.options());
+            Collections.shuffle(options, random);
+            questions.put(new JSONObject()
+                    .put("question", question.question())
+                    .put("options", new JSONArray(options))
+                    .put("correctAnswer", question.correctAnswer())
+                    .put("difficulty", normalizeQuizDifficulty(question.difficulty()))
+                    .put("maxPoints", maxPoints)
+                    .put("category", question.category()));
+        }
+
+        JSONObject first = questions.getJSONObject(0);
+        JSONObject payload = new JSONObject();
+        payload.put("type", "QUIZ");
+        payload.put("question", first.getString("question"));
+        payload.put("options", first.getJSONArray("options"));
+        payload.put("correctAnswer", first.getString("correctAnswer"));
+        payload.put("category", first.optString("category", category == null ? "" : category));
+        payload.put("difficulty", normalizeQuizDifficulty(picked.get(0).difficulty()));
+        payload.put("questions", questions);
+        payload.put("manches", questions.length());
+        payload.put("explain", "Tre manches: ogni domanda vale fino a 1000 diviso per il peso "
+                + "della sua difficolta. Rispondere subito vale il massimo, il tempo taglia i punti.");
+        return payload.toString();
+    }
+
+    /** Una domanda Quiz mai usata, preferendo la categoria e la difficolta richieste. */
+    private BankQuestion pickQuizQuestion(String category, String difficulty,
+            Predicate<String> isAvailable, Set<String> used) {
+        List<BankQuestion> candidates = new ArrayList<>();
+        for (BankQuestion question : allQuestions()) {
+            if (!"QUIZ".equals(question.type()) || question.options().size() != 4
+                    || question.options().isEmpty()) {
+                continue;
+            }
+            if (category != null && !question.category().equalsIgnoreCase(category)) {
+                continue;
+            }
+            if (difficulty != null && !question.difficulty().equalsIgnoreCase(difficulty)) {
+                continue;
+            }
+            String key = QuestionHistoryService.key(question.question(), question.correctAnswer(), question.category());
+            if (used.contains(key)) {
+                continue;
+            }
+            Optional<String> payload = toPayload(question);
+            if (payload.isPresent() && isAvailable.test(payloadDedupeKey(payload.get()))) {
+                candidates.add(question);
+            }
+        }
+        if (candidates.isEmpty()) {
+            return null;
+        }
+        return candidates.get(random.nextInt(candidates.size()));
+    }
+
+    private double quizWeight(String difficulty) {
+        String value = difficulty == null ? "" : difficulty.toLowerCase(Locale.ROOT);
+        return switch (value) {
+            case "facile", "easy" -> 1.0;
+            case "difficile", "hard" -> 3.0;
+            default -> 2.0;
+        };
+    }
+
+    private String normalizeQuizDifficulty(String difficulty) {
+        String value = difficulty == null ? "" : difficulty.toLowerCase(Locale.ROOT);
+        return switch (value) {
+            case "facile", "easy" -> "facile";
+            case "difficile", "hard" -> "difficile";
+            default -> "medio";
+        };
     }
 
     private String pickRandomProverb() {

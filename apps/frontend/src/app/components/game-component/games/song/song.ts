@@ -47,6 +47,9 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   private lastPhase = 0;
   private lastBuzz: string | null = null;
   private scratchTimeout?: ReturnType<typeof setTimeout>;
+  private fullPlaybackActive = false;
+  private fullPlaybackDone = false;
+  private fullPlaybackTimer?: ReturnType<typeof setTimeout>;
 
   ngOnInit() {
     
@@ -79,7 +82,15 @@ export class Song implements OnInit, OnDestroy, OnChanges {
         this.blurAmount.set(28);
         this.currentPhase.set(0);
         this.lastPhase = 0;
+        this.stopFullPlayback();
         this.initAudio();
+      }
+
+      const fullPlayback = !!this.displayData.fullPlayback;
+      if (fullPlayback && !this.fullPlaybackDone) {
+        this.startFullPlayback();
+      } else if (!fullPlayback && this.fullPlaybackActive) {
+        this.stopFullPlayback();
       }
 
       const phase = this.displayData.currentPhase || 0;
@@ -91,13 +102,15 @@ export class Song implements OnInit, OnDestroy, OnChanges {
         this.applyBlur(phase);
       }
 
-      const shouldPlay = this.displayData.audioPlaying;
-      const actuallyPlaying = this.isPlaying();
+      if (!fullPlayback) {
+        const shouldPlay = this.displayData.audioPlaying;
+        const actuallyPlaying = this.isPlaying();
 
-      if (shouldPlay && !actuallyPlaying) {
-        this.playAudio();
-      } else if (!shouldPlay && actuallyPlaying) {
-        this.pauseAudio();
+        if (shouldPlay && !actuallyPlaying) {
+          this.playAudio();
+        } else if (!shouldPlay && actuallyPlaying) {
+          this.pauseAudio();
+        }
       }
 
       if (this.displayData.revealed && this.blurAmount() > 0) {
@@ -276,6 +289,52 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     return curve;
   }
 
+  /**
+   * Reveal: la traccia riparte dall'inizio, senza filtri e a volume pieno.
+   * Dopo 30 secondi si ferma da sola, anche se la preview fosse piu lunga.
+   */
+  private async startFullPlayback(): Promise<void> {
+    if (this.fullPlaybackActive || this.fullPlaybackDone || !this.audio || !this.audioContext) return;
+
+    this.fullPlaybackActive = true;
+    this.fullPlaybackDone = false;
+    if (this.fullPlaybackTimer) clearTimeout(this.fullPlaybackTimer);
+
+    this.audio.loop = false;
+    this.audio.currentTime = 0;
+    this.applyFilters(4);
+    this.blurAmount.set(0);
+
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
+
+    try {
+      await this.audio.play();
+      this.isPlaying.set(true);
+      this.startVinylAnimation();
+    } catch (err) {
+      console.error('❌ Play full error:', err);
+    }
+
+    this.fullPlaybackTimer = setTimeout(() => {
+      this.fullPlaybackDone = true;
+      this.fullPlaybackActive = false;
+      // Il prossimo ascolto torna in loop: la pausa del reveal non spegne il
+      // comportamento delle manche successive.
+      if (this.audio) this.audio.loop = true;
+      this.pauseAudio();
+    }, 30000);
+  }
+
+  private stopFullPlayback(): void {
+    if (this.fullPlaybackTimer) clearTimeout(this.fullPlaybackTimer);
+    this.fullPlaybackTimer = undefined;
+    this.fullPlaybackActive = false;
+    this.fullPlaybackDone = false;
+    if (this.audio) this.audio.loop = true;
+  }
+
   private async playAudio() {
     if (!this.audio || !this.audioContext) return;
 
@@ -371,6 +430,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
 
   ngOnDestroy() {
     this.pauseAudio();
+    this.stopFullPlayback();
     this.stopVinylAnimation();
     if (this.scratchTimeout) clearTimeout(this.scratchTimeout);
     this.audioContext?.close();

@@ -80,7 +80,7 @@ export const DEMO_SCRIPTS: Record<string, DemoScript> = {
       { label: 'Errore', value: '0', tone: 'neutral' },
       { label: 'Non invio', value: '0', tone: 'neutral' },
     ],
-    note: 'Meglio un ordine completo che due carte giuste: il punteggio è sulle coppie.',
+    note: 'Contano le posizioni esatte: da metà classifica in su il round è positivo.',
   },
   TIME_BUZZER: {
     title: 'TIME BUZZER',

@@ -60,6 +60,7 @@ export class TimelineMode extends GameModeBase {
         score: Number(event.score) || 0,
         correctPairs: Number(event.correctPairs) || 0,
         totalPairs: Number(event.totalPairs) || 0,
+        correctPositions: Number(event.correctPairs) || 0,
       },
     ].sort((a, b) => b.score - a.score));
   }

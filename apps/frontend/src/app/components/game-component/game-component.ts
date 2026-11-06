@@ -875,7 +875,14 @@ export class GameComponent implements OnInit, OnDestroy {
     mode.confirmCorrect(playerName);
 
     this.audioService.stopSuspense();
-    this.audioService.playCorrect();
+    // Music: il suono "corretto" arriva dopo i 4 secondi di intro a basso
+    // volume, insieme alla ripartenza a tutto volume. Negli altri giochi resta
+    // immediato.
+    if (mode.type === 'MUSIC') {
+      setTimeout(() => this.audioService.playCorrect(), 4000);
+    } else {
+      this.audioService.playCorrect();
+    }
 
     const currentRound = this.round();
     if (currentRound) {
@@ -1472,8 +1479,9 @@ export class GameComponent implements OnInit, OnDestroy {
     const duration = mode.timerDuration;
 
     if (mode.type === 'QUIZ') {
-      const score = this.computePreviewScore(seconds, duration);
-      return `+${score} / -${score}`;
+      // Tre manches, 1000 punti in tutto: il preview del singolo timer non
+      // rappresenta piu il valore della domanda.
+      return '3 MANCHES · 1000 PT';
     }
 
     if (mode.type === 'WHEEL_OF_FORTUNE') {

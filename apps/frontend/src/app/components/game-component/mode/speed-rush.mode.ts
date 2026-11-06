@@ -9,6 +9,8 @@ interface Lane {
   position: number | null;
   streak: number;
   multiplier: number;
+  /** Millisecondi dal via, valorizzati solo all'arrivo. */
+  finishedAt: number | null;
 }
 
 const STEP_FORWARD = 9;
@@ -29,6 +31,7 @@ export class SpeedRushMode extends GameModeBase {
   private lanes = signal<Lane[]>([]);
   private finishedCount = 0;
   private pointsApplied = false;
+  private startedAt = 0;
 
   protected onInitialize(): void {
     const players = this.config.activePlayers ?? [];
@@ -39,15 +42,18 @@ export class SpeedRushMode extends GameModeBase {
       position: null,
       streak: 0,
       multiplier: 1,
+      finishedAt: null,
     })));
     this.finishedCount = 0;
     this.pointsApplied = false;
+    this.startedAt = 0;
     this.timer.set(this.timerDuration);
   }
 
   protected async onStart(): Promise<void> {
     this.initializeLanes();
     await this.runPreGameSequence(3000);
+    this.startedAt = Date.now();
   }
 
   protected onPause(): void {}
@@ -73,6 +79,7 @@ export class SpeedRushMode extends GameModeBase {
       position: null,
       streak: 0,
       multiplier: 1,
+      finishedAt: null,
     })));
   }
 
@@ -101,7 +108,15 @@ export class SpeedRushMode extends GameModeBase {
       if (progress < 100) return { ...lane, progress, streak, multiplier };
 
       this.finishedCount += 1;
-      return { ...lane, progress: 100, streak, multiplier, finished: true, position: this.finishedCount };
+      return {
+        ...lane,
+        progress: 100,
+        streak,
+        multiplier,
+        finished: true,
+        position: this.finishedCount,
+        finishedAt: this.startedAt ? Date.now() - this.startedAt : null,
+      };
     }));
   }
 
@@ -123,12 +138,30 @@ export class SpeedRushMode extends GameModeBase {
       return b.progress - a.progress;
     });
 
+    // Prendono punti solo i primi n/2 arrivati. Il primo vale 500, gli altri
+    // scalano in base al distacco in millesimi dal suo tempo d'arrivo, con un
+    // minimo di 100 per non annullare la qualificazione.
+    const qualifiers = Math.max(1, Math.ceil(ranked.length / 2));
+    const firstTime = ranked.find((lane) => lane.finishedAt !== null)?.finishedAt
+      ?? Math.max(1, Date.now() - (this.startedAt || Date.now()));
+
     ranked.forEach((lane, index) => {
-      const points = Math.max(0, 1000 - index * 100);
+      if (index >= qualifiers) {
+        this.config.onAnswerReceived?.({
+          playerName: lane.playerName,
+          points: 0,
+          isCorrect: false,
+        });
+        return;
+      }
+
+      const points = index === 0
+        ? 500
+        : Math.max(100, Math.round((500 * firstTime) / Math.max(1, lane.finishedAt ?? firstTime)));
       this.config.onAnswerReceived?.({
         playerName: lane.playerName,
         points,
-        isCorrect: index === 0,
+        isCorrect: true,
       });
     });
   }

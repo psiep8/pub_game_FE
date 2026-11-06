@@ -19,13 +19,25 @@ const MAX_MS = 30000;
 const MANCHE_SECONDS = 30;
 const REVEAL_MS = 5000;
 
+/** Bonus per posizione: la forbice si allarga manche dopo manche. */
+const BANDS = [
+  [300, 220, 150, 90, 50],
+  [400, 300, 200, 120, 70],
+  [500, 380, 260, 160, 100],
+];
+
+const ELIMINATION_PENALTY = [-250, -100];
+const FINALIST_BONUS = 150;
+
 /**
- * Time Buzzer — tre manche a tempo.
+ * Time Buzzer — tre manche a tempo, con tagli tra una manche e l'altra.
  *
  * La TV mostra un tempo bersaglio casuale (5–30 s). Ogni telefono ha solo un
  * pulsante verde: START quando vuole, STOP quando pensa di essere arrivato.
- * Nessun cronometro sul remote. Ogni manche assegna punti a chi ci va più
- * vicino: i bonus sono unici di fine atto e non eliminano nessuno.
+ * Dopo la prima manche esce il terzo più lento (chi non preme è ultimo), dopo
+ * la seconda escono gli ultimi due: quelli restano in negativo e devono
+ * recuperare. I finalisti prendono un bonus, chi è arrivato in fondo non paga
+ * penalità.
  */
 export class TimeBuzzerMode extends GameModeBase {
   readonly type: GameModeType = 'TIME_BUZZER';
@@ -38,6 +50,7 @@ export class TimeBuzzerMode extends GameModeBase {
   private guesses = signal<BuzzGuess[]>([]);
   private targetMs = signal(0);
   private revealData = signal<any | null>(null);
+  private eliminated = signal<string[]>([]);
   private finished = signal(false);
   private secondsLeft = 0;
 
@@ -49,8 +62,6 @@ export class TimeBuzzerMode extends GameModeBase {
   }
 
   protected async onStart(): Promise<void> {
-    // setConfig arriva dopo initialize: i giocatori si leggono qui, altrimenti
-    // la lista è sempre vuota e la prima manche non può chiudersi.
     this.players = [...(this.config.activePlayers ?? [])];
     this.resetState();
     await this.runPreGameSequence(2500);
@@ -81,9 +92,15 @@ export class TimeBuzzerMode extends GameModeBase {
     this.guesses.set([]);
     this.revealData.set(null);
     this.targetMs.set(0);
+    this.eliminated.set([]);
     this.finished.set(false);
     this.secondsLeft = this.timerDuration;
     this.timer.set(this.timerDuration);
+  }
+
+  private activePlayers(): string[] {
+    const out = new Set(this.eliminated());
+    return this.players.filter((name) => !out.has(name));
   }
 
   private beginManche(): void {
@@ -125,7 +142,7 @@ export class TimeBuzzerMode extends GameModeBase {
     if (this.revealData() || this.finished()) return;
 
     const playerName = String(event.playerName);
-    if (!this.players.includes(playerName)) return;
+    if (!this.activePlayers().includes(playerName)) return;
 
     const ms = Number(event.ms);
     if (!Number.isFinite(ms) || ms <= 0 || ms > 120000) return;
@@ -135,7 +152,7 @@ export class TimeBuzzerMode extends GameModeBase {
       { playerName, ms: Math.round(ms) },
     ]);
 
-    if (this.guesses().length >= this.players.length) {
+    if (this.guesses().length >= this.activePlayers().length) {
       this.revealManche();
     } else {
       this.broadcast();
@@ -147,12 +164,13 @@ export class TimeBuzzerMode extends GameModeBase {
     this.clearClock();
 
     const target = this.targetMs();
-    const missing = this.players.filter(
+    const active = this.activePlayers();
+    const missing = active.filter(
       (name) => !this.guesses().some((guess) => guess.playerName === name),
     );
 
-    // Chi non preme resta in classifica con zero punti: non sparisce dai
-    // risultati e non viene eliminato, si giocano tutte e tre le manche.
+    // Chi non preme è ultimo: entra nella coda delle eliminazioni e non prende
+    // punti per la manche.
     const results: BuzzResult[] = [
       ...this.guesses().map((guess) => ({
         ...guess,
@@ -166,9 +184,10 @@ export class TimeBuzzerMode extends GameModeBase {
       })),
     ].sort((a, b) => a.error - b.error);
 
+    const bands = BANDS[this.mancheIndex()] ?? BANDS[BANDS.length - 1];
     results.forEach((result, position) => {
       if (result.missed) return;
-      const points = Math.max(20, 100 - position * 20);
+      const points = bands[Math.min(position, bands.length - 1)];
       this.config.onAnswerReceived?.({
         playerName: result.playerName,
         points,
@@ -176,7 +195,38 @@ export class TimeBuzzerMode extends GameModeBase {
       });
     });
 
-    this.revealData.set({ target, results, eliminated: [] });
+    let eliminatedNow: string[] = [];
+    if (this.mancheIndex() < MANCHES - 1) {
+      const cuts = this.mancheIndex() === 0
+        ? Math.max(1, Math.ceil(active.length / 3))
+        : Math.min(2, Math.max(0, active.length - 1));
+      eliminatedNow = results.slice(-cuts).map((result) => result.playerName).filter(Boolean);
+
+      const penalty = ELIMINATION_PENALTY[this.mancheIndex()] ?? -100;
+      for (const playerName of eliminatedNow) {
+        this.config.onAnswerReceived?.({
+          playerName,
+          points: penalty,
+          isCorrect: false,
+        });
+      }
+      this.eliminated.update((list) => [...new Set([...list, ...eliminatedNow])]);
+    } else {
+      // Chi arriva alla terza manche ha già pagato i tagli: bonus finale.
+      for (const playerName of active) {
+        this.config.onAnswerReceived?.({
+          playerName,
+          points: FINALIST_BONUS,
+          isCorrect: true,
+        });
+      }
+    }
+
+    const markedResults = results.map((result) => ({
+      ...result,
+      eliminated: eliminatedNow.includes(result.playerName),
+    }));
+    this.revealData.set({ target, results: markedResults, eliminated: this.eliminated(), eliminatedNow });
     this.broadcast();
 
     this.advanceHandle = setTimeout(() => {
@@ -232,8 +282,8 @@ export class TimeBuzzerMode extends GameModeBase {
       targetMs: this.targetMs(),
       manche: Math.min(this.mancheIndex() + 1, MANCHES),
       total: MANCHES,
-      remaining: this.players,
-      eliminated: [],
+      remaining: this.activePlayers(),
+      eliminated: this.eliminated(),
       guesses: this.guesses(),
       reveal: this.revealData(),
       finished: this.finished(),

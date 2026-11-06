@@ -112,6 +112,6 @@ describe('GameComponent', () => {
     component.currentMode.set(mode as any);
     component.preStartCountdown.set(5);
 
-    expect(component.getPrestartPreview()).toBe('+500 / -500');
+    expect(component.getPrestartPreview()).toBe('3 MANCHES · 1000 PT');
   });
 });

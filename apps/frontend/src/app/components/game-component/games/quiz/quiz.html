@@ -1,10 +1,14 @@
 <div class="quiz-container">
+  <div class="quiz-manche-line">
+    <span class="quiz-manche-tag">MANCHE {{ displayData.manche || 1 }}/{{ displayData.totalManches || 3 }}</span>
+    <span class="quiz-manche-meta">{{ displayData.difficulty | uppercase }} · fino a {{ displayData.maxPoints || 0 }} pt</span>
+  </div>
+
   <h2 class="quiz-question">{{ displayData.question }}</h2>
 
-  
-  @if (!displayData.isReading && !displayData.correctAnswer) {
+  @if (!displayData.isReading && !displayData.mancheReveal && !displayData.revealed) {
     <div class="quiz-options-grid">
-      @for (option of safeOptions; track option; let i = $index) {
+      @for (option of (displayData.options || safeOptions); track option; let i = $index) {
         <button
           class="quiz-option-btn"
           [attr.data-letter]="getLetter(i)">
@@ -15,10 +19,22 @@
     </div>
   }
 
-  @if (displayData.correctAnswer) {
-    <div class="reveal-banner quiz-reveal" @fadeInOut>
-      <div class="reveal-label">RISPOSTA ESATTA:</div>
-      <div class="reveal-value">{{ displayData.correctAnswer }}</div>
+  @if (displayData.mancheReveal; as reveal) {
+    <div class="reveal-banner quiz-reveal">
+      <div class="reveal-label">RISPOSTA ESATTA</div>
+      <div class="reveal-value">{{ reveal.correctAnswer }}</div>
+    </div>
+  }
+
+  @if (displayData.revealed) {
+    <div class="quiz-solution">
+      @for (row of displayData.solution; track row.question; let i = $index) {
+        <div class="quiz-solution-row">
+          <span class="quiz-solution-num">{{ i + 1 }}</span>
+          <span class="quiz-solution-question">{{ row.question }}</span>
+          <span class="quiz-solution-answer">{{ row.correctAnswer }}</span>
+        </div>
+      }
     </div>
   }
 </div>

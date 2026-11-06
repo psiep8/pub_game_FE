@@ -143,8 +143,8 @@
         }
       </div>
       <p class="tl-pair-hint">
-        {{ timelineCards().length }} carte = {{ (timelineCards().length * (timelineCards().length - 1)) / 2 }} coppie.
-        Ogni coppia nell'ordine giusto vale punti.
+        {{ timelineCards().length }} carte: ogni carta nel posto giusto vale un punto.
+        Da metà classifica in su il punteggio è positivo.
       </p>
       <button class="confirm-btn" [disabled]="timelineOrder().length !== timelineCards().length || hasAnswered()"
         (click)="sendTimelineAnswer()">INVIA ORDINE</button>
@@ -575,6 +575,7 @@
         <span class="hockey-goal-note">{{ goal.scored ? 'Punto per te' : 'Punto per l\'avversario' }}</span>
       </div>
       }
+      <p class="hockey-where">TV: {{ hockeyCorner() }} · campo {{ hockeyCourtIndex() }}/{{ hockeyCourtTotal() }}</p>
       <div class="hockey-score">
         <div class="hockey-side" [class.active]="hockeyMyTurn()">
           <span class="hockey-side-name">{{ nickname() }}</span>

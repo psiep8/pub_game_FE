@@ -1,24 +1,87 @@
 
 
 .quiz-container {
-  box-sizing: border-box; 
+  box-sizing: border-box;
   width: 100%;
   max-width: 100%;
   padding: clamp(10px, 2vh, 20px);
   text-align: center;
-  color: #e9ecef;
+  color: var(--paper);
   overflow: hidden;
+}
+
+.quiz-manche-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.quiz-manche-tag,
+.quiz-manche-meta {
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border: 2px solid var(--coal);
+  background: var(--mustard);
+  color: var(--coal);
+  box-shadow: 4px 4px 0 var(--coal);
+}
+
+.quiz-manche-meta { background: var(--paper); }
+
+.quiz-solution {
+  margin-top: 20px;
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
+
+.quiz-solution-row {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--paper);
+  color: var(--coal);
+  border: 2px solid var(--coal);
+  box-shadow: 4px 4px 0 var(--coal);
+}
+
+.quiz-solution-num {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--tomato);
+}
+
+.quiz-solution-question { font-size: .94rem; line-height: 1.3; }
+
+.quiz-solution-answer {
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  background: var(--mint);
+  border: 2px solid var(--coal);
+  white-space: nowrap;
 }
 
 
 
 .quiz-question {
-  font-size: clamp(1.4rem, 2.2vw, 2rem); 
-  font-weight: 700;
-  margin-bottom: 35px;
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.95);
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.2vw, 2rem);
+  font-weight: 400;
+  letter-spacing: .02em;
+  margin-bottom: 28px;
+  line-height: 1.15;
+  color: var(--paper);
   word-wrap: break-word;
   overflow-wrap: anywhere;
 }
@@ -149,31 +212,29 @@
 
 
 .quiz-reveal {
-  margin-top: 35px;
-  padding: 22px 30px;
-  background: rgba(46, 213, 115, 0.18);
-  border: 2px solid #2ed573;
-  border-radius: 18px;
-  box-shadow:
-    0 0 25px rgba(46, 213, 115, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  margin-top: 28px;
+  padding: 20px 26px;
+  background: var(--mint);
+  color: var(--coal);
+  border: 3px solid var(--coal);
+  box-shadow: 8px 8px 0 var(--coal);
   animation: slide-up-glow 0.5s ease-out;
 }
 
 .quiz-reveal .reveal-label {
-  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
   text-transform: uppercase;
   letter-spacing: 3px;
-  color: #2ed573;
+  color: var(--coal);
   margin-bottom: 8px;
   font-weight: 700;
 }
 
 .quiz-reveal .reveal-value {
+  font-family: var(--font-display);
   font-size: clamp(1.2rem, 4vw, 2rem);
-  font-weight: 900;
-  color: white;
-  text-shadow: 0 0 15px rgba(46, 213, 115, 0.8);
+  color: var(--coal);
 }
 
 

@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 
 /**
  * TV della Timeline. Al reveal mostra l'asse degli anni e spiega il punteggio:
- * ogni coppia di carte messa nell'ordine giusto vale punti, non solo le
- * adiacenti. Con 6 carte le coppie sono 15, con 8 sono 28.
+ * conta la posizione esatta di ogni carta, non le coppie in ordine.
  */
 @Component({
   selector: 'app-timeline',
@@ -23,7 +22,7 @@ import { CommonModule } from '@angular/common';
       @if (!displayData?.revealed) {
         <p class="tl-hint">
           Ordinate le {{ displayData?.count }} carte sul telefono, trascinandole.
-          <b>Più coppie metti nell'ordine giusto, più punti prendi.</b>
+          <b>Più carte metti nel posto giusto, più punti prendi.</b>
         </p>
 
         <div class="tl-cards">
@@ -36,7 +35,7 @@ import { CommonModule } from '@angular/common';
         </div>
 
         <div class="tl-legend">
-          {{ displayData?.count }} carte = {{ totalPairs() }} coppie in gioco · ordine perfetto +200
+          {{ displayData?.count }} carte = {{ totalPairs() }} posizioni · massimo 1200 punti
         </div>
       } @else {
         <p class="tl-hint">La soluzione, dal passato al presente</p>
@@ -52,15 +51,15 @@ import { CommonModule } from '@angular/common';
         </div>
 
         <div class="tl-explain">
-          <span>Coppie corrette</span>
-          <span>Ogni coppia nell'ordine giusto vale punti · il 100% vale 1000 + 200 bonus</span>
+          <span>Posizioni esatte</span>
+          <span>Ogni carta nel posto giusto vale un punto · massimo 1200, sotto soglia fino a −400</span>
         </div>
 
         <div class="tl-results">
           @for (r of displayData?.results; track r.playerName) {
             <div class="tl-result">
               <span class="tl-name">{{ r.playerName }}</span>
-              <span class="tl-pairs">{{ r.correctPairs }}/{{ r.totalPairs }} coppie</span>
+              <span class="tl-pairs">{{ r.correctPairs }}/{{ r.totalPairs }} posizioni</span>
               <span class="tl-bar"><i [style.width.%]="r.totalPairs ? (r.correctPairs / r.totalPairs) * 100 : 0"></i></span>
               <span class="tl-score">+{{ r.score }}</span>
             </div>
@@ -110,7 +109,6 @@ export class Timeline {
   @Input() timer = 0;
 
   totalPairs(): number {
-    const count = Number(this.displayData?.count) || 0;
-    return count * (count - 1) / 2;
+    return Number(this.displayData?.count) || 0;
   }
 }

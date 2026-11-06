@@ -28,7 +28,8 @@ const REVEAL_SECONDS = 4;
 const FINALE_SECONDS = 6;
 const MAX_TABLES = 8;
 
-const POINTS = { WIN: 200, PUSH: 80, BLACKJACK: 500 } as const;
+const POINTS = { WIN: 250 } as const;
+const REPEAT_WIN = 500;
 
 /**
  * BLACK JACK — il tavolo gioca la sua mano contro un banco nuovo.
@@ -38,8 +39,10 @@ const POINTS = { WIN: 200, PUSH: 80, BLACKJACK: 500 } as const;
  * le stesse condizioni e nessuno può decidere sapendo già il totale del banco.
  *
  * Il tavolo può chiedere carte quante ne vuole dentro il cronometro: allo
- * scadere la mano si chiude in automatico con «stai». Vince la mano più alta
- * del banco, il pari paga 80, il black jack servito paga 500.
+ * scadere la mano si chiude in automatico con «stai». Ogni vittoria vale 250
+ * punti la prima volta; chi ha già vinto in un round precedente della stessa
+ * serata porta a casa 500. Perdere non toglie nulla, ma non cancella la
+ * vittoria già in memoria.
  */
 export class BlackjackMode extends GameModeBase {
   readonly type: GameModeType = 'BLACKJACK';
@@ -66,6 +69,8 @@ export class BlackjackMode extends GameModeBase {
 
   private finished = false;
   private clock?: ReturnType<typeof setInterval>;
+  private wonBefore = new Set<string>();
+  private storageKey = 'pubgame.blackjack.won';
 
   protected onInitialize(): void {
     this.players = [];
@@ -75,6 +80,8 @@ export class BlackjackMode extends GameModeBase {
   protected async onStart(): Promise<void> {
     // `activePlayers` arriva dopo `initialize`: si rilegge qui, come la Quota.
     this.players = [...(this.config.activePlayers ?? [])];
+    this.storageKey = `pubgame.blackjack.won.${this.config.gameId || 0}`;
+    this.loadWins();
     this.resetRound();
 
     await this.runPreGameSequence(3000);
@@ -209,15 +216,13 @@ export class BlackjackMode extends GameModeBase {
 
     if (bust) {
       outcome = 'BUST';
-    } else if (cards.length === 2 && handTotal === 21) {
-      outcome = 'BLACKJACK';
-      points = POINTS.BLACKJACK;
     } else if (bankTotal > 21 || handTotal > bankTotal) {
-      outcome = 'WIN';
-      points = POINTS.WIN;
+      outcome = cards.length === 2 && handTotal === 21 ? 'BLACKJACK' : 'WIN';
+      points = this.wonBefore.has(playerName) ? REPEAT_WIN : POINTS.WIN;
+      this.rememberWin(playerName);
     } else if (handTotal === bankTotal) {
       outcome = 'PUSH';
-      points = POINTS.PUSH;
+      points = 0;
     }
 
     this.bank.set({ cards: [...this.bankCards], total: bankTotal, hidden: false });
@@ -246,6 +251,29 @@ export class BlackjackMode extends GameModeBase {
     this.clearClock();
     this.revealed.set(true);
     this.config.onTimerEnd?.();
+  }
+
+  /** Vittorie già ottenute in questa partita: restano anche dopo una sconfitta. */
+  private loadWins(): void {
+    this.wonBefore.clear();
+    try {
+      const raw = localStorage.getItem(this.storageKey);
+      const names = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(names)) {
+        names.forEach((name) => this.wonBefore.add(String(name)));
+      }
+    } catch {
+      // Storage non disponibile: la memoria vale solo per il round corrente.
+    }
+  }
+
+  private rememberWin(playerName: string): void {
+    this.wonBefore.add(playerName);
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify([...this.wonBefore]));
+    } catch {
+      // Nessuna persistenza: il round successivo ripartirà da 250.
+    }
   }
 
   private setRow(playerName: string, status: BlackjackStatus, points: number): void {

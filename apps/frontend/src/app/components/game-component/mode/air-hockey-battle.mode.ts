@@ -107,6 +107,7 @@ export class AirHockeyBattleMode extends GameModeBase {
 
   private courts = signal<Court[]>([]);
   private eventCounter = 0;
+  private pairsKey = 'pubgame.hockey.pairs';
   private tickInterval?: ReturnType<typeof setInterval>;
   private questions: AirHockeyQuestion[] = [];
   private lastQuestionText = '';
@@ -153,15 +154,28 @@ export class AirHockeyBattleMode extends GameModeBase {
   startMatch(): void {
     if (this.courts().length > 0) return;
 
-    const players = this.config.activePlayers ?? [];
+    const players = this.shufflePlayers(this.config.activePlayers ?? []);
+    this.pairsKey = `pubgame.hockey.pairs.${this.config.gameId || 0}`;
+    const usedPairs = this.loadPairs();
     const next: Court[] = [];
+    const waiting = [...players];
 
-    for (let index = 0; index + 1 < players.length; index += 2) {
-      next.push(this.createCourt(next.length, players[index], players[index + 1]));
+    // Accoppiamenti casuali e mai uguali due volte nella stessa serata: si
+    // ripesca solo quando tutte le combinazioni possibili sono esaurite.
+    while (waiting.length >= 2) {
+      const first = waiting.shift()!;
+      let opponentIndex = waiting.findIndex((name) => !usedPairs.has(this.pairKey(first, name)));
+      if (opponentIndex < 0) {
+        usedPairs.clear();
+        opponentIndex = 0;
+      }
+      const opponent = waiting.splice(opponentIndex, 1)[0];
+      usedPairs.add(this.pairKey(first, opponent));
+      next.push(this.createCourt(next.length, first, opponent));
     }
 
-    if (players.length % 2 === 1) {
-      const last = players[players.length - 1];
+    if (waiting.length === 1) {
+      const last = waiting[0];
       next.push({
         id: next.length,
         a: { playerName: last, score: POINTS_TO_WIN, isBot: false, shots: 0 },
@@ -179,9 +193,41 @@ export class AirHockeyBattleMode extends GameModeBase {
       this.awardCourt(next[next.length - 1]);
     }
 
+    this.savePairs(usedPairs);
     this.courts.set(next);
     this.tickInterval = setInterval(() => this.tickServes(), 1000);
     this.broadcast();
+  }
+
+  private shufflePlayers(players: string[]): string[] {
+    const copy = [...players];
+    for (let index = copy.length - 1; index > 0; index--) {
+      const swap = Math.floor(Math.random() * (index + 1));
+      [copy[index], copy[swap]] = [copy[swap], copy[index]];
+    }
+    return copy;
+  }
+
+  private pairKey(first: string, second: string): string {
+    return [first.trim().toLowerCase(), second.trim().toLowerCase()].sort().join('|');
+  }
+
+  private loadPairs(): Set<string> {
+    try {
+      const raw = localStorage.getItem(this.pairsKey);
+      const rows = raw ? JSON.parse(raw) : [];
+      return new Set(Array.isArray(rows) ? rows.map((row) => String(row)) : []);
+    } catch {
+      return new Set();
+    }
+  }
+
+  private savePairs(pairs: Set<string>): void {
+    try {
+      localStorage.setItem(this.pairsKey, JSON.stringify([...pairs]));
+    } catch {
+      // Senza storage si riparte dalle combinazioni libere al prossimo round.
+    }
   }
 
   private createCourt(id: number, a: string, b: string): Court {
@@ -400,6 +446,8 @@ export class AirHockeyBattleMode extends GameModeBase {
       target: POINTS_TO_WIN,
       courts: this.courts().map((court) => ({
         id: court.id,
+        index: court.id + 1,
+        total: this.courts().length,
         a: { playerName: court.a.playerName, score: court.a.score },
         b: { playerName: court.b.playerName, score: court.b.score },
         winner: court.winner,

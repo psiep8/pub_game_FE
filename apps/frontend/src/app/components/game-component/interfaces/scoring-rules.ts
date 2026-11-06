@@ -16,10 +16,10 @@ export interface ScoringRule {
 
 export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
   QUIZ: {
-    correct: '+1000 × tempo rimasto',
-    wrong: '−1000 × tempo rimasto',
+    correct: 'fino a +1000 in 3 manches',
+    wrong: '−quota della domanda, in base al tempo',
     missed: '0 (nessun malus)',
-    note: 'Rispondere presto vale di più; sbagliare costa in proporzione al tempo.',
+    note: 'Facile ×1, media ×2, difficile ×3: tre esatte a tempo zero valgono 1000.',
   },
   IMAGE_BLUR: {
     correct: '+1000 × tempo rimasto',
@@ -28,10 +28,10 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     note: 'L’immagine si schiarisce con il tempo: prima si prenota, più punti vale.',
   },
   MUSIC: {
-    correct: '+2000 / +1500 / +1000 / +500',
+    correct: '+1000',
     wrong: '−1000',
     missed: '0 (nessun malus)',
-    note: 'Il valore scende a ogni manche: la prima è quella che pesa di più.',
+    note: 'Il brano vale sempre uguale; dopo la prenotazione si riascolta intero a volume pieno.',
   },
   WHEEL_OF_FORTUNE: {
     correct: '+1000 × tempo rimasto',
@@ -41,15 +41,15 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
   },
   TIMELINE: {
     correct: 'fino a +1200',
-    wrong: '0',
-    missed: '0',
-    note: '1000 × coppie corrette, +200 se l’ordine è perfetto.',
+    wrong: 'fino a −400 sotto soglia',
+    missed: '0 (nessun malus)',
+    note: '1200 × posizioni esatte / n; sotto n/2 − 1 si perde, fino a −400.',
   },
   TIME_BUZZER: {
-    correct: '+300 / +200 / +100 / +50',
-    wrong: '0',
-    missed: '0, ma sei eliminato per primo',
-    note: 'Vince chi si avvicina di più al tempo bersaglio; chi non preme esce.',
+    correct: '+300…+500 a fascia, manche dopo manche',
+    wrong: '−250 / −100 se tagliato',
+    missed: 'ultimo: esce per primo',
+    note: 'Tre manche; dopo la prima esce il terzo più lento, dopo la seconda gli ultimi due. I finalisti prendono +150.',
   },
   BOMBA: {
     correct: '+50 per passaggio (max +500)',
@@ -58,10 +58,10 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     note: 'Ogni squadra parte da 1000: lo scoppio costa −300, il delta entra in classifica.',
   },
   SPEED_RUSH: {
-    correct: '+1000 / +900 / +800 …',
+    correct: '500 al primo, poi a scalare',
     wrong: '0 (la corsia arretra)',
-    missed: 'punti per posizione',
-    note: 'Il piazzamento decide i punti, anche per chi non taglia il traguardo; ogni errore fa perdere terreno.',
+    missed: '0 sotto la metà',
+    note: 'Prendono punti solo i primi n/2 arrivati; il distacco in millesimi dal primo riduce il bonus, minimo 100.',
   },
   AIR_HOCKEY_BATTLE: {
     correct: '+1000 al vincitore',
@@ -82,10 +82,10 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     note: 'Tre domande: ogni esatta raddoppia la banca, tra una e l’altra si sceglie se incassare o rischiare.',
   },
   BLACKJACK: {
-    correct: '+500 black jack, +200 mano battuta, +80 pari',
-    wrong: '0 (sballo o mano persa)',
+    correct: '+250 alla prima vittoria, +500 se hai già vinto',
+    wrong: '0 (sballo, pari o mano persa)',
     missed: '0 (allo scadere si sta)',
-    note: 'Un tavolo alla volta contro un banco nuovo: 15 secondi per chiedere carte o stare.',
+    note: 'Le vittorie restano in memoria per tutta la serata: perdere non cancella il +500 delle mani successive.',
   },
   ARENA: {
     correct: '+10 a risposta; +1000/+500 piazzamento',

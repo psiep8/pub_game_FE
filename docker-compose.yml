@@ -1,0 +1,24 @@
+services:
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    image: pubgame-backend:latest
+    container_name: pubgame-backend
+    restart: unless-stopped
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    environment:
+      SERVER_PORT: 8080
+      SERVER_ADDRESS: 0.0.0.0
+      DB_URL: "jdbc:h2:file:/app/data/pubgame;DB_CLOSE_DELAY=-1"
+      MEDIA_BASE_URL: "${MEDIA_BASE_URL:-}"
+      TMDB_API_KEY: "${TMDB_API_KEY:-}"
+      ANSWER_WINDOW_SECONDS: "${ANSWER_WINDOW_SECONDS:-300}"
+      HEARTBEAT_TIMEOUT_SECONDS: "${HEARTBEAT_TIMEOUT_SECONDS:-25}"
+      JAVA_OPTS: "${JAVA_OPTS:--XX:MaxRAMPercentage=75.0}"
+    volumes:
+      - pubgame-data:/app/data
+
+volumes:
+  pubgame-data:
