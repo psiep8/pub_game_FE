@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PubGame — Manuale della serata</title>
+<style>
+  :root{
+    --paper:#fbf4e4;
+    --paper-hi:#fffdf7;
+    --coal:#15150f;
+    --muted:#5e594d;
+    --line:#15150f;
+    --tomato:#d9482b;
+    --mustard:#c79a24;
+    --cobalt:#244fc4;
+    --mint:#3f9d78;
+    --mono:"Consolas","Courier New",monospace;
+    --sans:"Trebuchet MS","Segoe UI",Arial,sans-serif;
+    --display:Impact,"Arial Black","Arial Narrow",sans-serif;
+  }
+  @page{size:A4 portrait;margin:12mm 13mm 13mm}
+  *{box-sizing:border-box}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{margin:0;background:#d9d3c4;color:var(--coal);font-family:var(--sans);font-size:9.2pt;line-height:1.34}
+  .screen-hint{position:fixed;right:16px;bottom:14px;z-index:10;padding:8px 12px;border:2px solid var(--coal);background:var(--paper-hi);font:700 9px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;box-shadow:4px 4px 0 var(--coal)}
+  .page{position:relative;width:210mm;min-height:297mm;margin:10mm auto;padding:12mm 13mm 13mm;background:var(--paper);border:1px solid #9e9788;box-shadow:8px 8px 0 rgba(21,21,15,.18);page-break-after:always;overflow:hidden}
+  .page:last-child{page-break-after:auto}
+  .page::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(rgba(21,21,15,.16) .55px,transparent .65px);background-size:4.5mm 4.5mm;opacity:.36}
+  .page > *{position:relative;z-index:1}
+  .topline{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-bottom:2px solid var(--coal);padding-bottom:2.5mm;margin-bottom:4mm;font:700 7.6pt/1.2 var(--mono);letter-spacing:.11em;text-transform:uppercase}
+  .topline .tag{color:var(--tomato)}
+  .folio{font:700 7.4pt/1 var(--mono);letter-spacing:.12em;white-space:nowrap;color:var(--muted)}
+  h1,h2,h3{margin:0;font-family:var(--display);font-weight:900;letter-spacing:.015em;text-transform:uppercase;line-height:.94}
+  h2{font-size:25pt;margin-bottom:1.5mm}
+  h3{font-size:12.2pt;line-height:1.02}
+  p{margin:0 0 2.2mm}
+  b,strong{font-weight:800}
+  .kicker{font:700 7.8pt/1.2 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--tomato);margin-bottom:2.5mm}
+  .lede{font-size:11pt;line-height:1.38;max-width:160mm}
+  .small{font-size:8.2pt;line-height:1.32;color:var(--muted)}
+  .mono{font-family:var(--mono)}
+  .accent{color:var(--tomato)}
+  .rule{height:3px;background:var(--coal);margin:3mm 0}
+  .rule-thin{height:1px;background:rgba(21,21,15,.35);margin:3mm 0}
+  .stamp{display:inline-block;border:2px solid var(--coal);padding:1.2mm 2.4mm;font:700 7pt/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;transform:rotate(-1.5deg);background:var(--paper-hi)}
+  .stamp.tomato{border-color:var(--tomato);color:var(--tomato)}
+  .masthead{font:900 12pt/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+  .cover{padding-top:14mm}
+  .cover .cover-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:22mm}
+  .cover h1{font-size:64pt;line-height:.86;max-width:175mm}
+  .cover h1 span{color:var(--tomato)}
+  .cover .subtitle{margin-top:4mm;max-width:145mm;font:800 12.5pt/1.18 var(--mono);text-transform:uppercase;letter-spacing:.03em}
+  .cover .lede{margin-top:7mm;max-width:155mm}
+  .cover-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;margin:9mm 0 7mm;max-width:174mm}
+  .cover-grid > div{border-top:3px solid var(--coal);border-bottom:1px solid var(--coal);padding:2.5mm 0 2mm}
+  .cover-grid b{display:block;font:900 25pt/.9 var(--display);letter-spacing:.01em}
+  .cover-grid span{display:block;margin-top:1.5mm;font:700 7.2pt/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .cover-quote{border-left:5px solid var(--tomato);padding:2mm 0 2mm 4mm;font:700 10.5pt/1.35 var(--mono);max-width:155mm;margin:3mm 0 8mm}
+  .cover-index{border-top:2px solid var(--coal);padding-top:3mm;display:grid;grid-template-columns:1fr 1fr;gap:1.5mm 8mm;max-width:174mm}
+  .cover-index a,.cover-index span{display:flex;justify-content:space-between;gap:10px;color:var(--coal);text-decoration:none;font:700 8pt/1.35 var(--mono);letter-spacing:.04em;text-transform:uppercase;border-bottom:1px dotted rgba(21,21,15,.45);padding-bottom:1.2mm}
+  .cover-index em{font-style:normal;color:var(--tomato)}
+  .cover-foot{position:absolute;left:13mm;right:13mm;bottom:10mm;display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--coal);padding-top:2mm;font:700 7pt/1.2 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:3.5mm}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm}
+  .card{border:2px solid var(--coal);background:rgba(255,253,247,.55);padding:3mm 3.2mm;break-inside:avoid}
+  .card h3{margin-bottom:1.5mm}
+  .card p{margin-bottom:1.2mm;font-size:8.55pt;line-height:1.31}
+  .card p:last-child{margin-bottom:0}
+  .card .tagline{font:700 7pt/1.3 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--tomato);margin-bottom:1.2mm}
+  .card .pts{border-top:1px solid rgba(21,21,15,.35);padding-top:1.2mm;margin-top:1.6mm;font:700 7.8pt/1.3 var(--mono)}
+  .card .pts b{color:var(--cobalt)}
+  .role{border-left:5px solid var(--tomato);min-height:31mm}
+  .role:nth-child(2){border-left-color:var(--cobalt)}
+  .role:nth-child(3){border-left-color:var(--mustard)}
+  .role:nth-child(4){border-left-color:var(--mint)}
+  .role .role-label{font:700 7pt/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:1mm}
+  .role .url{font:700 7.6pt/1.2 var(--mono);color:var(--tomato);margin-top:1.6mm}
+  .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border:2px solid var(--coal);margin:4mm 0}
+  .flow > div{padding:2.7mm 2.5mm;border-right:1px solid var(--coal);min-height:28mm}
+  .flow > div:last-child{border-right:0}
+  .flow .n{display:block;font:900 15pt/.9 var(--display);color:var(--tomato);margin-bottom:1.2mm}
+  .flow b{display:block;font:800 8pt/1.2 var(--mono);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1mm}
+  .flow span{display:block;font-size:7.55pt;line-height:1.25;color:var(--muted)}
+  .checklist{margin:0;padding:0;list-style:none}
+  .checklist li{position:relative;padding-left:5mm;margin:0 0 1.25mm;font-size:8.45pt;line-height:1.3}
+  .checklist li::before{content:"";position:absolute;left:0;top:.55mm;width:2.7mm;height:2.7mm;border:2px solid var(--coal);background:var(--paper-hi)}
+  .checklist li b{color:var(--coal)}
+  .mini-table{width:100%;border-collapse:collapse;font-size:7.8pt;line-height:1.25}
+  .mini-table th{font:700 6.8pt/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;text-align:left;border-bottom:2px solid var(--coal);padding:1.3mm 1mm;background:rgba(21,21,15,.06)}
+  .mini-table td{border-bottom:1px solid rgba(21,21,15,.28);padding:1.25mm 1mm;vertical-align:top}
+  .mini-table td:first-child{font-weight:800;white-space:nowrap}
+  .kick-list{margin:0;padding:0;list-style:none}
+  .kick-list li{position:relative;padding-left:4mm;margin-bottom:1mm;font-size:8.25pt;line-height:1.3}
+  .kick-list li::before{content:"→";position:absolute;left:0;top:0;font-family:var(--mono);font-weight:700;color:var(--tomato)}
+  .note{border:2px solid var(--coal);background:var(--paper-hi);padding:2.6mm 3mm;font-size:8.3pt;line-height:1.32;break-inside:avoid}
+  .note.warn{border-color:var(--tomato);background:#fff8f2}
+  .note .note-title{display:block;font:800 7.1pt/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--tomato);margin-bottom:1mm}
+  .schedule{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7.9pt;line-height:1.15}
+  .schedule th{font:700 6.6pt/1.15 var(--mono);letter-spacing:.04em;text-transform:uppercase;text-align:left;padding:1.4mm 1mm;border:1px solid var(--coal);background:var(--coal);color:var(--paper)}
+  .schedule td{border:1px solid var(--coal);padding:1.4mm 1mm;vertical-align:top;background:rgba(255,253,247,.45)}
+  .schedule tr:nth-child(even) td{background:rgba(21,21,15,.035)}
+  .schedule .act{font:900 9pt/1 var(--display);letter-spacing:.02em;color:var(--tomato)}
+  .schedule .round{display:block;font:700 6.3pt/1.2 var(--mono);color:var(--muted);letter-spacing:.02em;margin-bottom:.7mm}
+  .schedule .game{display:block;font-weight:800;font-size:7.55pt;line-height:1.12}
+  .schedule .bonus{font:700 7.1pt/1.2 var(--mono);color:var(--cobalt);text-transform:uppercase}
+  .schedule .bonus.empty{color:var(--muted)}
+  .legend{display:flex;flex-wrap:wrap;gap:3mm 7mm;margin:2mm 0 3mm;font:700 7.3pt/1.3 var(--mono);letter-spacing:.04em;text-transform:uppercase}
+  .legend span{display:inline-flex;align-items:center;gap:1.5mm}
+  .dot{width:2.5mm;height:2.5mm;display:inline-block;background:var(--tomato)}
+  .dot.cobalt{background:var(--cobalt)}
+  .dot.mustard{background:var(--mustard)}
+  .dot.mint{background:var(--mint)}
+  .game-grid{display:grid;grid-template-columns:1fr 1fr;gap:3mm}
+  .game-card{border:2px solid var(--coal);background:rgba(255,253,247,.55);padding:2.8mm 3mm;break-inside:avoid;min-height:46mm}
+  .game-card .game-top{display:flex;justify-content:space-between;align-items:baseline;gap:2mm;border-bottom:1px solid var(--coal);padding-bottom:1.3mm;margin-bottom:1.6mm}
+  .game-card h3{font-size:13.2pt}
+  .game-card .time{font:700 7pt/1 var(--mono);letter-spacing:.04em;color:var(--tomato);white-space:nowrap}
+  .game-card p{font-size:8.25pt;line-height:1.28;margin-bottom:1.1mm}
+  .game-card .where{font:700 6.8pt/1.25 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:1.2mm}
+  .game-card .where b{color:var(--coal)}
+  .game-card .scoreline{font:700 7.65pt/1.28 var(--mono);border-top:1px solid rgba(21,21,15,.35);padding-top:1.2mm;margin-top:1.4mm}
+  .game-card .scoreline b{color:var(--cobalt)}
+  .bonus-card{min-height:39mm}
+  .bonus-card h3{font-size:12.5pt}
+  .bonus-card p{font-size:8.05pt;line-height:1.27}
+  .bonus-card .scoreline{font-size:7.35pt}
+  .score-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7.1pt;line-height:1.2}
+  .score-table th{font:700 6.3pt/1.15 var(--mono);letter-spacing:.05em;text-transform:uppercase;text-align:left;padding:1.15mm .9mm;border:1px solid var(--coal);background:var(--coal);color:var(--paper)}
+  .score-table td{border:1px solid rgba(21,21,15,.55);padding:1.05mm .9mm;vertical-align:top}
+  .score-table tr:nth-child(even) td{background:rgba(21,21,15,.035)}
+  .score-table td:first-child{font-weight:800}
+  .score-table .zero{color:var(--muted)}
+  .closing{border-top:3px solid var(--coal);margin-top:3mm;padding-top:2.5mm;display:grid;grid-template-columns:1fr 1fr;gap:4mm}
+  .closing p{font-size:8.2pt;line-height:1.3;margin:0}
+  .closing b{color:var(--tomato)}
+  .footer{position:absolute;left:13mm;right:13mm;bottom:8mm;display:flex;justify-content:space-between;gap:10px;border-top:1px solid rgba(21,21,15,.6);padding-top:1.7mm;font:700 6.6pt/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  @media print{
+    body{background:#fff}
+    .screen-hint{display:none}
+    .page{width:auto;min-height:0;margin:0;padding:0;border:0;box-shadow:none;overflow:visible;page-break-after:always}
+    .page:last-child{page-break-after:auto}
+    .footer,.cover-foot{position:static}
+  }
+</style>
+</head>
+<body>
+<div class="screen-hint">Stampa A4 · margini predefiniti · grafica inclusa</div>
+
+<!-- 01 COPERTINA -->
+<section class="page cover">
+  <div class="cover-top">
+    <span class="stamp">PubGame / documento operativo</span>
+    <span class="stamp tomato">06.11.2026 · v1.0</span>
+  </div>
+
+  <div class="kicker">La serata, spiegata a chi la fa</div>
+  <h1>MANUALE<br><span>DELLA SERATA</span></h1>
+  <p class="subtitle">40 round · 5 atti · 4 bonus · una regia sola</p>
+  <p class="lede">Tutto quello che serve a <b>presentatore, regia e staff</b> per far girare PubGame dall’apertura alla classifica finale. Non è un regolamento da leggere ad alta voce: è il foglio di lavoro della serata.</p>
+
+  <div class="cover-grid">
+    <div><b>40</b><span>round in scaletta</span></div>
+    <div><b>5</b><span>atti da 8 round</span></div>
+    <div><b>4</b><span>bonus, uno per atto</span></div>
+    <div><b>1</b><span>TV che conduce</span></div>
+  </div>
+
+  <div class="cover-quote">“La TV mostra, il telefono fa toccare, il presentatore racconta. L’admin decide quando si passa avanti.”</div>
+
+  <div class="cover-index">
+    <span><b>01</b> Chi fa cosa, flusso e preparazione <em>p. 2</em></span>
+    <span><b>02</b> La scaletta dei 40 round <em>p. 3</em></span>
+    <span><b>03</b> I giochi · parte prima <em>p. 4</em></span>
+    <span><b>04</b> I giochi · parte seconda <em>p. 5</em></span>
+    <span><b>05</b> I quattro bonus <em>p. 6</em></span>
+    <span><b>06</b> Punteggi e chiusura <em>p. 6</em></span>
+  </div>
+
+  <div class="cover-foot">
+    <span>PubGame · serata dal vivo</span>
+    <span>Documento per presentatore e staff · non distribuire ai tavoli</span>
+  </div>
+</section>
+
+<!-- 02 RUOLI E FLUSSO -->
+<section class="page">
+  <div class="topline"><span><b class="tag">01</b> / La macchina della serata</span><span class="folio">02 / 06</span></div>
+  <h2>CHI FA COSA</h2>
+  <p class="lede" style="font-size:9.6pt;margin-bottom:4mm">Quattro ruoli, un solo ritmo. Se ognuno resta nel suo ruolo, la serata non si inceppa.</p>
+
+  <div class="grid-2">
+    <article class="card role">
+      <div class="role-label">Il palcoscenico</div>
+      <h3>TV</h3>
+      <p>Mostra lobby, domande, timer, risposte, classifica e bonus. È la fonte di verità per tutti: se la TV non lo mostra, non è ancora successo.</p>
+      <div class="url">/tv · schermo grande, audio acceso</div>
+    </article>
+    <article class="card role">
+      <div class="role-label">Il pulsante</div>
+      <h3>TELEFONO</h3>
+      <p>Ogni tavolo risponde, prenota e gioca i bonus da qui. Un telefono per tavolo, connesso alla stessa partita mostrata in TV.</p>
+      <div class="url">/play · QR in lobby + numero partita</div>
+    </article>
+    <article class="card role">
+      <div class="role-label">La regia</div>
+      <h3>ADMIN</h3>
+      <p>Decide il ritmo: prossimo round, classifica, pausa, demo e bonus. Non gioca: guarda la TV e anticipa il presentatore.</p>
+      <div class="url">/admin · stesso “PARTITA #” della TV</div>
+    </article>
+    <article class="card role">
+      <div class="role-label">La voce</div>
+      <h3>PRESENTATORE</h3>
+      <p>Legge, chiama i tempi, convalida le prenotazioni, commenta i risultati e annuncia podio e bonus. Tiene il pubblico dentro il gioco.</p>
+      <div class="url">Microfono + foglio + occhio sulla TV</div>
+    </article>
+  </div>
+
+  <div class="rule"></div>
+
+  <h3 style="font-size:11pt;margin-bottom:1.5mm">IL FLUSSO, IN CINQUE MOSSE</h3>
+  <div class="flow">
+    <div><span class="n">1</span><b>Lobby</b><span>La TV mostra QR e numero partita. I tavoli entrano da /play, scelgono il nome e si vedono in lobby.</span></div>
+    <div><span class="n">2</span><b>Round</b><span>L’admin preme PROSSIMO ROUND. La TV mostra il gioco; i telefoni si accendono.</span></div>
+    <div><span class="n">3</span><b>Esito</b><span>La TV rivela la soluzione e i punti. Il presentatore commenta, non anticipa.</span></div>
+    <div><span class="n">4</span><b>Classifica</b><span>Ai traguardi previsti parte la classifica. L’admin la chiude quando il presentatore ha finito.</span></div>
+    <div><span class="n">5</span><b>Bonus</b><span>Dopo gli atti 1–4 c’è un bonus. Dopo l’atto 5 si chiude con la finale.</span></div>
+  </div>
+
+  <div class="grid-2" style="margin-top:3mm">
+    <div class="card">
+      <div class="tagline">Prima di aprire le porte</div>
+      <h3 style="font-size:10.5pt;margin-bottom:2mm">CHECKLIST DI REGIA</h3>
+      <ul class="checklist">
+        <li><b>Backend e frontend accesi.</b> Apri TV, admin e un telefono di prova.</li>
+        <li><b>TV in full screen</b> su /tv, audio del dispositivo alzato.</li>
+        <li><b>Admin sullo stesso numero</b> di “PARTITA #” mostrato in lobby.</li>
+        <li><b>Un telefono di prova</b> entra da /play: se entra lui, entrano tutti.</li>
+        <li><b>Conta i tavoli e i nomi</b> prima del primo round.</li>
+        <li><b>QR e numero partita visibili</b> per chi arriva in ritardo.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="tagline">I comandi che contano</div>
+      <h3 style="font-size:10.5pt;margin-bottom:2mm">LA REGIA IN UNA RIGA</h3>
+      <table class="mini-table">
+        <tr><th>Comando</th><th>A cosa serve</th></tr>
+        <tr><td>PROSSIMO ROUND</td><td>Avanza la scaletta. Non usarlo durante una risposta.</td></tr>
+        <tr><td>MOSTRA CLASSIFICA</td><td>Apre la classifica; resta finché non avanzi.</td></tr>
+        <tr><td>PAUSA / RIPRENDI</td><td>Ghiaccia tutto. Usalo per problemi tecnici o cambio palco.</td></tr>
+        <tr><td>BONUS …</td><td>Lancia un bonus senza consumare un round.</td></tr>
+        <tr><td>CHIUDI BONUS</td><td>Chiude il bonus e torna al flusso normale.</td></tr>
+      </table>
+      <p class="small" style="margin-top:2mm">L’avanzamento automatico è di <b>10 secondi</b>: pausa, classifica, demo e “Prossimo round” lo fermano.</p>
+    </div>
+  </div>
+
+  <div class="note warn" style="margin-top:3mm">
+    <span class="note-title">Se qualcosa non va</span>
+    <b>Telefono che non entra:</b> stessa rete della TV, numero partita giusto, ricarica la pagina. <b>TV ferma:</b> non resettare la partita; ricarica /tv, il progresso è salvato. <b>Classifica sbagliata:</b> controlla che l’admin punti allo stesso “PARTITA #” e rilancia “Mostra classifica”.
+  </div>
+
+  <div class="footer"><span>PubGame · Manuale della serata</span><span>La macchina della serata · 02/06</span></div>
+</section>
+
+<!-- 03 SCALETTA -->
+<section class="page">
+  <div class="topline"><span><b class="tag">02</b> / La scaletta</span><span class="folio">03 / 06</span></div>
+  <h2>40 ROUND,<br>CINQUE ATTI</h2>
+  <p class="lede" style="font-size:9.6pt;margin-bottom:3mm">L’ordine è fisso: non si estrae a caso. Ogni atto ha otto round; dopo gli atti 1–4 c’è un bonus, dopo il quinto la classifica finale.</p>
+
+  <table class="schedule">
+    <thead>
+      <tr>
+        <th style="width:8.5%">Atto</th>
+        <th style="width:10.2%">Round 1</th><th style="width:10.2%">Round 2</th><th style="width:10.2%">Round 3</th><th style="width:10.2%">Round 4</th>
+        <th style="width:10.2%">Round 5</th><th style="width:10.2%">Round 6</th><th style="width:10.2%">Round 7</th><th style="width:10.2%">Round 8</th>
+        <th style="width:9.9%">Dopo l’atto</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="act">01</span><span class="round">1–8</span></td>
+        <td><span class="round">01</span><span class="game">QUIZ</span></td>
+        <td><span class="round">02</span><span class="game">MUSICA</span></td>
+        <td><span class="round">03</span><span class="game">BOMBA</span></td>
+        <td><span class="round">04</span><span class="game">INDOVINA CHI</span></td>
+        <td><span class="round">05</span><span class="game">BLACK JACK</span></td>
+        <td><span class="round">06</span><span class="game">TIMELINE</span></td>
+        <td><span class="round">07</span><span class="game">RUOTA</span></td>
+        <td><span class="round">08</span><span class="game">SPEED RUSH</span></td>
+        <td><span class="bonus">🎰 CASINO</span></td>
+      </tr>
+      <tr>
+        <td><span class="act">02</span><span class="round">9–16</span></td>
+        <td><span class="round">09</span><span class="game">QUOTA</span></td>
+        <td><span class="round">10</span><span class="game">QUIZ</span></td>
+        <td><span class="round">11</span><span class="game">INDOVINA CHI</span></td>
+        <td><span class="round">12</span><span class="game">BLACK JACK</span></td>
+        <td><span class="round">13</span><span class="game">MUSICA</span></td>
+        <td><span class="round">14</span><span class="game">TIMELINE</span></td>
+        <td><span class="round">15</span><span class="game">TIME BUZZER</span></td>
+        <td><span class="round">16</span><span class="game">AIR HOCKEY</span></td>
+        <td><span class="bonus">🏀 BASKET</span></td>
+      </tr>
+      <tr>
+        <td><span class="act">03</span><span class="round">17–24</span></td>
+        <td><span class="round">17</span><span class="game">TIMELINE</span></td>
+        <td><span class="round">18</span><span class="game">BLACK JACK</span></td>
+        <td><span class="round">19</span><span class="game">MUSICA</span></td>
+        <td><span class="round">20</span><span class="game">SPEED RUSH</span></td>
+        <td><span class="round">21</span><span class="game">INDOVINA CHI</span></td>
+        <td><span class="round">22</span><span class="game">QUIZ</span></td>
+        <td><span class="round">23</span><span class="game">RUOTA</span></td>
+        <td><span class="round">24</span><span class="game">ARENA</span></td>
+        <td><span class="bonus">🐎 CAVALLO</span></td>
+      </tr>
+      <tr>
+        <td><span class="act">04</span><span class="round">25–32</span></td>
+        <td><span class="round">25</span><span class="game">INDOVINA CHI</span></td>
+        <td><span class="round">26</span><span class="game">QUIZ</span></td>
+        <td><span class="round">27</span><span class="game">BOMBA</span></td>
+        <td><span class="round">28</span><span class="game">MUSICA</span></td>
+        <td><span class="round">29</span><span class="game">TIME BUZZER</span></td>
+        <td><span class="round">30</span><span class="game">TIMELINE</span></td>
+        <td><span class="round">31</span><span class="game">SCOMMESSA</span></td>
+        <td><span class="round">32</span><span class="game">SPEED RUSH</span></td>
+        <td><span class="bonus">🎱 BIGLIE</span></td>
+      </tr>
+      <tr>
+        <td><span class="act">05</span><span class="round">33–40</span></td>
+        <td><span class="round">33</span><span class="game">RUOTA</span></td>
+        <td><span class="round">34</span><span class="game">QUIZ</span></td>
+        <td><span class="round">35</span><span class="game">BOMBA</span></td>
+        <td><span class="round">36</span><span class="game">TIME BUZZER</span></td>
+        <td><span class="round">37</span><span class="game">QUOTA</span></td>
+        <td><span class="round">38</span><span class="game">AIR HOCKEY</span></td>
+        <td><span class="round">39</span><span class="game">MUSICA</span></td>
+        <td><span class="round">40</span><span class="game">ARENA</span></td>
+        <td><span class="bonus empty">Nessuno<br>classifica finale</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="legend">
+    <span><i class="dot"></i> QUIZ / INDOVINA CHI / TIMELINE / RUOTA / MUSICA: prenotazione o risposta</span>
+    <span><i class="dot cobalt"></i> BOMBA / SPEED RUSH / AIR HOCKEY / ARENA / BLACK JACK / SCOMMESSA / QUOTA: round tecnici</span>
+    <span><i class="dot mustard"></i> Bonus: non consumano un round</span>
+  </div>
+
+  <div class="grid-3" style="margin-top:3mm">
+    <div class="card">
+      <div class="tagline">Quando si respira</div>
+      <h3 style="font-size:10.4pt">CLASSIFICHE</h3>
+      <p><b>Rapide</b> dopo i round <b>4, 12, 20, 28, 36</b>: top 3, lettura veloce, si riparte.</p>
+      <p><b>Dettagliate</b> dopo i round <b>8, 16, 24, 32, 40</b>: tutta la classifica, con calma.</p>
+      <p>La classifica resta in TV finché l’admin non avanza: il presentatore ha tutto il tempo per commentarla.</p>
+    </div>
+    <div class="card">
+      <div class="tagline">I quattro fuori scaletta</div>
+      <h3 style="font-size:10.4pt">BONUS</h3>
+      <p><b>Casino</b> dopo l’atto 1 · <b>Basket</b> dopo l’atto 2 · <b>Cavallo</b> dopo l’atto 3 · <b>Biglie</b> dopo l’atto 4.</p>
+      <p>Non sono round: non spostano il contatore 1–40. Si possono lanciare anche a mano dall’admin.</p>
+      <p>Dopo l’atto 5 non c’è bonus: si chiude con la classifica finale.</p>
+    </div>
+    <div class="card">
+      <div class="tagline">Perché questo ordine</div>
+      <h3 style="font-size:10.4pt">LA LOGICA</h3>
+      <p>Mai due giochi in tempo reale di fila. Black Jack tre volte, uno per atto, nei primi tre atti.</p>
+      <p>L’Arena chiude l’atto 3 e l’intera serata. Quota apre l’atto 2 e torna al 37, quando chi è indietro deve rischiare.</p>
+      <p>La Ruota esce tre volte e non è mai adiacente a Indovina Chi.</p>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:3mm">
+    <span class="note-title">Regola d’oro del presentatore</span>
+    Non annunciare il gioco successivo prima che la TV lo mostri. La scaletta la conosce la regia; al pubblico si racconta un round alla volta.
+  </div>
+
+  <div class="footer"><span>PubGame · Manuale della serata</span><span>La scaletta · 03/06</span></div>
+</section>
+
+<!-- 04 GIOCHI 1 -->
+<section class="page">
+  <div class="topline"><span><b class="tag">03</b> / I giochi · parte prima</span><span class="folio">04 / 06</span></div>
+  <h2>LA TV CHIEDE,<br>IL TELEFONO RISPONDE</h2>
+  <p class="lede" style="font-size:9.6pt;margin-bottom:3mm">Sette giochi di apertura. Per ognuno: cosa vedono i tavoli, cosa devono fare e quanto vale. I dettagli operativi sono nella tavola dei punteggi a pagina 6.</p>
+
+  <div class="game-grid">
+    <article class="game-card">
+      <div class="game-top"><h3>QUIZ</h3><span class="time">10 SEC</span></div>
+      <div class="where"><b>TV</b> domanda + 4 opzioni · <b>TEL</b> tocco</div>
+      <p>Il classico di apertura: una domanda, quattro risposte, timer breve. La TV mostra la soluzione appena si chiude.</p>
+      <p>Il presentatore legge la domanda e lascia respirare le opzioni; non suggerisce con la voce.</p>
+      <div class="scoreline">Giusto <b>+1000 × secondi rimasti</b> · Sbagliato <b>−1000 × secondi rimasti</b> · Nessuna risposta <b>0</b></div>
+    </article>
+
+    <article class="game-card">
+      <div class="game-top"><h3>INDOVINA CHI</h3><span class="time">30 SEC</span></div>
+      <div class="where"><b>TV</b> immagine sfocata + 4 nomi · <b>TEL</b> prenotazione</div>
+      <p>L’immagine si schiarisce un poco alla volta. Il tavolo preme quando riconosce il personaggio; il presentatore convalida la risposta.</p>
+      <p>Più si aspetta, più l’immagine è chiara — e meno vale la risposta.</p>
+      <div class="scoreline">Giusto <b>+1000 × secondi rimasti</b> · Sbagliato <b>−1000 × secondi rimasti</b></div>
+    </article>
+
+    <article class="game-card">
+      <div class="game-top"><h3>MUSICA</h3><span class="time">4 MANCHE</span></div>
+      <div class="where"><b>TV</b> brano + 4 manche · <b>TEL</b> prenotazione</div>
+      <p>Quattro manche, una canzone per volta. La prima vale più delle altre: il valore scende manche dopo manche.</p>
+      <p>Il tavolo prenota, il presentatore ascolta il titolo e convalida. La TV fa il resto.</p>
+      <div class="scoreline">Giusto <b>+2000 / +1500 / +1000 / +500</b> · Sbagliato <b>−1000</b> · Nessuna <b>0</b></div>
+    </article>
+
+    <article class="game-card">
+      <div class="game-top"><h3>TIMELINE</h3><span class="time">45 SEC</span></div>
+      <div class="where"><b>TV</b> eventi da ordinare · <b>TEL</b> trascina / invia</div>
+      <p>Sei o otto eventi da mettere in ordine cronologico. Non serve essere perfetti: ogni coppia giusta porta punti.</p>
+      <p>L’ordine perfetto vale il bonus pieno. La TV mostra l’ordine corretto al reveal.</p>
+      <div class="scoreline">Fino a <b>+1200</b>: 1000 × coppie corrette + 200 se l’ordine è perfetto · Errore <b>0</b></div>
+    </article>
+
+    <article class="game-card">
+      <div class="game-top"><h3>RUOTA DELLA FORTUNA</h3><span class="time">75 SEC</span></div>
+      <div class="where"><b>TV</b> ruota + lettere · <b>TEL</b> prenotazione</div>
+      <p>Il proverbio si scopre lettera dopo lettera. Il tavolo prenota quando pensa di averlo; il presentatore convalida la lettura.</p>
+      <p>Le lettere si aprono nel tempo: chi rischia prima, rischia di più — e guadagna di più.</p>
+      <div class="scoreline">Giusto <b>+1000 × secondi rimasti</b> · Sbagliato <b>−1000 × secondi rimasti</b></div>
+    </article>
+
+    <article class="game-card">
+      <div class="game-top"><h3>TIME BUZZER</h3><span class="time">3 MANCHE</span></div>
+      <div class="where"><b>TV</b> cronometro · <b>TEL</b> solo START / STOP</div>
+      <p>Il timer parte e il tavolo deve fermarlo al momento giusto. Il bersaglio è nascosto: vince chi si avvicina di più, non chi va più veloce.</p>
+      <p>Tre manche, eliminazioni progressive. Chi non preme resta fuori.</p>
+      <div class="scoreline">Più vicino <b>+300 / +200 / +100 / +50</b> · Chi non preme <b>eliminato</b></div>
+    </article>
+
+    <article class="game-card">
+      <div class="game-top"><h3>BOMBA</h3><span class="time">90 SEC</span></div>
+      <div class="where"><b>TV</b> bomba + miccia · <b>TEL</b> risposta / passaggio</div>
+      <p>La bomba passa da un tavolo all’altro. Ogni risposta sbagliata o mancata accorcia la miccia; ogni passaggio riuscito dà punti.</p>
+      <p>Con 4–6 tavoli ci sono 2 bombe; con 7–10 tavoli, 3. Lo scoppio costa caro.</p>
+      <div class="scoreline">Passaggio <b>+50</b> (max +500) · Scoppio <b>−300</b> · Errore <b>−3 sec</b></div>
+    </article>
+
+    <article class="game-card" style="background:rgba(217,72,43,.07)">
+      <div class="game-top"><h3>REGOLA COMUNE</h3><span class="time">SEMPRE</span></div>
+      <div class="where"><b>TV</b> mostra la soluzione · <b>HOST</b> convalida dove serve</div>
+      <p>Nei giochi a prenotazione il telefono non decide: chiama il tavolo. Il presentatore ascolta, poi conferma “corretto” o “sbagliato”.</p>
+      <p>Nei giochi a tocco la risposta è già chiusa: il presentatore commenta, non corregge.</p>
+      <div class="scoreline">Se un tavolo non risponde, prende <b>0</b>: non perde punti, salvo i malus espliciti.</div>
+    </article>
+  </div>
+
+  <div class="footer"><span>PubGame · Manuale della serata</span><span>I giochi · 04/06</span></div>
+</section>
+
+<!-- 05 GIOCHI 2 -->
+<section class="page">
+  <div class="topline"><span><b class="tag">04</b> / I giochi · parte seconda</span><span class="folio">05 / 06</span></div>
+  <h2>IL COLPO<br>GROSSO</h2>
+  <p class="lede" style="font-size:9.6pt;margin-bottom:3mm">Sei giochi che cambiano la classifica: soldi, tempo, sopravvivenza e un tavolo alla volta. Qui il presentatore deve tenere il pubblico attaccato al timer.</p>
+
+  <div class="game-grid">
+    <article class="game-card">
+      <div class="game-top"><h3>SPEED RUSH</h3><span class="time">60 SEC</span></div>
+      <div class="where"><b>TV</b> corsia / minigioco · <b>TEL</b> tocco rapido</div>
+      <p>Otto minigiochi in un minuto: tap, stranezze, ordine, matematica, memoria. Ogni errore fa arretrare la corsia.</p>
+      <p>La catena di risposte giuste moltiplica: ×2 a 2 di fila, ×3 a 5, ×4 a 10.</p>
+      <div class="scoreline">Piazzamento <b>+1000 / +900 / +800 …</b> · Errore <b>nessun malus, ma perdi terreno</b></div>
+    </article>
+
+    <article class="game-card">
+      <div class="game-top"><h3>BLACK JACK</h3><span class="time">3 ROUND</span></div>
+      <div class="where"><b>TV</b> tavolo + banco · <b>TEL</b> carta / stai</div>
+      <p>Un tavolo alla volta contro il banco. Il banco si ferma a 17; il tavolo ha 15 secondi per chiedere un’altra carta o stare.</p>
+      <p>Si gioca tre volte, una per atto, nei primi tre atti: è il momento di vetrina di un tavolo.</p>
+      <div class="scoreline">Black Jack <b>+500</b> · Mano vinta <b>+200</b> · Pari <b>+80</b> · Mano persa <b>0</b></div>
+    </article>
+
+    <article class="game-card">
+      <div class="game-top"><h3>QUOTA</h3><span class="time">4 DOMANDE</span></div>
+      <div class="where"><b>TV</b> valore + fasce · <b>TEL</b> distribuisci 100 gettoni</div>
+      <p>Quattro domande numeriche. Ogni tavolo distribuisce 100 gettoni su quattro fasce: più stretta è la fascia, più alta è la quota.</p>
+      <p>Solo la fascia che contiene il valore paga. Chi non invia gioca 25 gettoni per fascia.</p>
+      <div class="scoreline">Gettoni <b>× quota</b> · Tetto <b>500 per domanda</b> · Errore <b>perdi solo i gettoni giocati</b></div>
+    </article>
+
+    <article class="game-card">
+      <div class="game-top"><h3>LA SCOMMESSA</h3><span class="time">3 DOMANDE</span></div>
+      <div class="where"><b>TV</b> banca + domanda · <b>TEL</b> incassa / rischia</div>
+      <p>La banca parte da 100, 200 o 300 e raddoppia a ogni risposta esatta: 100 → 200 → 400 → 800. Dopo ogni domanda si sceglie se incassare o rischiare.</p>
+      <p>Una risposta sbagliata brucia la banca. Chi non sceglie entro 8 secondi incassa d’ufficio.</p>
+      <div class="scoreline">Banca incassata <b>fino a 800</b> · Errore <b>0: si perde solo la banca potenziale</b></div>
+    </article>
+
+    <article class="game-card">
+      <div class="game-top"><h3>AIR HOCKEY</h3><span class="time">7 GOL</span></div>
+      <div class="where"><b>TV</b> pista 1v1 · <b>TEL</b> risposta / tiro</div>
+      <p>Due tavoli, una pista, una domanda alla volta. La risposta corretta manda il disco verso l’avversario; la velocità decide quanto tempo gli lasci per rispondere.</p>
+      <p>Vince chi arriva a 7 gol. Il perdente non esce a mani vuote.</p>
+      <div class="scoreline">Vincitore <b>+1000</b> · Perdente <b>+200</b> · Errore <b>gol per l’avversario</b></div>
+    </article>
+
+    <article class="game-card">
+      <div class="game-top"><h3>ARENA</h3><span class="time">130 SEC</span></div>
+      <div class="where"><b>TV</b> arena che si chiude · <b>TEL</b> risposta / movimento</div>
+      <p>Battle royale: ogni risposta giusta vale +10, ogni errore −10. L’arena si stringe dopo 45 secondi e chi resta fuori paga.</p>
+      <p>Chiude l’atto 3 e chiude la serata. Il piazzamento finale è la parte più pesante del gioco.</p>
+      <div class="scoreline">Risposte <b>+10 / −10</b> · Podio <b>+1000 / +500</b> · Fuori dal podio <b>−300</b></div>
+    </article>
+  </div>
+
+  <div class="note" style="margin-top:3mm">
+    <span class="note-title">Come si racconta un round tecnico</span>
+    Prima del via: “<b>Guardate la TV, non il telefono</b>”. Durante: il presentatore chiama solo i secondi che contano (10, 5, 3). Dopo: legge il risultato dalla TV e passa alla classifica solo quando l’admin la apre.
+  </div>
+
+  <div class="footer"><span>PubGame · Manuale della serata</span><span>I giochi · 05/06</span></div>
+</section>
+
+<!-- 06 BONUS E PUNTEGGI -->
+<section class="page">
+  <div class="topline"><span><b class="tag">05</b> / Bonus e punteggi</span><span class="folio">06 / 06</span></div>
+  <h2>QUATTRO BONUS,<br>UNA CLASSIFICA A PARTE</h2>
+  <p class="lede" style="font-size:9.3pt;margin-bottom:2.6mm">I bonus non sono round: non spostano il contatore 1–40 e non si giocano “al posto” di un gioco. Sono il momento spettacolare di fine atto. La loro classifica è separata da quella principale.</p>
+
+  <div class="grid-2">
+    <article class="card bonus-card">
+      <div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.4mm"><h3>🎰 CASINO</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">DOPO ATTO 1</span></div>
+      <p><b>Quattro manche:</b> colore (100), dozzina (150), sestina (200), numero secco (300). Ogni manche chiude con la roulette europea in TV.</p>
+      <p>Sullo zero il banco incassa. Sul numero secco si rigira finché almeno un tavolo vince.</p>
+      <div class="scoreline">Punti interni <b>100 / 150 / 200 / 300</b> a manche · Vince chi somma più punti</div>
+    </article>
+
+    <article class="card bonus-card">
+      <div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.4mm"><h3>🏀 BASKET</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">DOPO ATTO 2</span></div>
+      <p><b>Tre manche da 20 secondi</b>, ferro sempre più piccolo: 2 punti, poi 3, poi 5. Swish senza ferro: +1.</p>
+      <p>Si tira dal telefono trascinando la palla; la TV riempie la fila dei canestri e somma i punti.</p>
+      <div class="scoreline">Punti interni <b>2 / 3 / 5 + swish</b> · Vince chi somma più punti</div>
+    </article>
+
+    <article class="card bonus-card">
+      <div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.4mm"><h3>🐎 CAVALLO</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">DOPO ATTO 3</span></div>
+      <p><b>La categoria la vota il telefono</b> (15 sec). Poi otto domande difficili, 15 secondi ciascuna; le domande vivono sul telefono, la TV fa cronometro e tabellone.</p>
+      <p>Risposta esatta <b>+100</b>; la prima esatta della domanda vale <b>+50</b> in più.</p>
+      <div class="scoreline">Punti interni <b>+100 / +50</b> · Vince chi somma più punti</div>
+    </article>
+
+    <article class="card bonus-card">
+      <div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.4mm"><h3>🎱 BIGLIE</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">DOPO ATTO 4</span></div>
+      <p><b>Quattro gare da 30 secondi</b> su terra, asfalto, neve e acqua. Una biglia per tavolo, scelta una volta sola; ogni fondo premia una caratteristica diversa.</p>
+      <p>Punti cumulativi a ogni gara; la TV segue il leader con la camera laterale.</p>
+      <div class="scoreline">Punti interni <b>150 / 100 / 60 / 30</b> a gara · Massimo <b>600</b></div>
+    </article>
+  </div>
+
+  <div class="note warn" style="margin-top:2.4mm;padding:2.2mm 3mm">
+    <span class="note-title">Come funziona il podio bonus — importante</span>
+    I bonus mostrano una <b>classifica propria</b>. La tabella premio prevede <b>300 / 150 / 75</b> per i primi tre; in questa versione la classifica principale dei 40 round <b>non</b> somma automaticamente quei punti. Il presentatore annuncia i tre nomi e il premio; la regia li registra a parte se devono contare per un premio finale. <b>Non dire</b> “questi punti vanno in classifica”: non è vero finché non vengono registrati.
+  </div>
+
+  <h3 style="font-size:11pt;margin:3mm 0 1.8mm">PUNTEGGI UFFICIALI IN UNA TAVOLA</h3>
+  <table class="score-table">
+    <thead><tr><th style="width:20%">Gioco</th><th style="width:31%">Risposta corretta</th><th style="width:22%">Errore / mancata</th><th style="width:27%">Note</th></tr></thead>
+    <tbody>
+      <tr><td>QUIZ</td><td>+1000 × secondi rimasti</td><td>−1000 × secondi rimasti</td><td>Nessuna risposta: 0.</td></tr>
+      <tr><td>INDOVINA CHI</td><td>+1000 × secondi rimasti</td><td>−1000 × secondi rimasti</td><td>Prenotazione + convalida host.</td></tr>
+      <tr><td>MUSICA</td><td>+2000 / +1500 / +1000 / +500</td><td>−1000</td><td>Il valore scende a ogni manche.</td></tr>
+      <tr><td>TIMELINE</td><td>Fino a +1200</td><td>0</td><td>1000 × coppie + 200 se perfetto.</td></tr>
+      <tr><td>RUOTA</td><td>+1000 × secondi rimasti</td><td>−1000 × secondi rimasti</td><td>Prenotazione + convalida host.</td></tr>
+      <tr><td>TIME BUZZER</td><td>+300 / +200 / +100 / +50</td><td>0, ma eliminato</td><td>Vince chi si avvicina al bersaglio.</td></tr>
+      <tr><td>BOMBA</td><td>+50 per passaggio (max 500)</td><td>−3 sec di miccia</td><td>Scoppio: −300; si parte da 1000.</td></tr>
+      <tr><td>SPEED RUSH</td><td>+1000 / +900 / +800 …</td><td>Nessun malus, si arretra</td><td>Combo ×2 / ×3 / ×4.</td></tr>
+      <tr><td>BLACK JACK</td><td>+500 naturale; +200 mano; +80 pari</td><td>0</td><td>Banco a 17; 15 sec per decidere.</td></tr>
+      <tr><td>QUOTA</td><td>Gettoni × quota (max 500)</td><td>Perdi i gettoni giocati</td><td>4 domande, 100 gettoni, 4 fasce.</td></tr>
+      <tr><td>SCOMMESSA</td><td>Banca incassata (100 → 800)</td><td>0: si brucia la banca</td><td>3 domande; incassa o rischia.</td></tr>
+      <tr><td>AIR HOCKEY</td><td>+1000 vincitore; +200 perdente</td><td>Gol per l’avversario</td><td>Primo a 7 gol.</td></tr>
+      <tr><td>ARENA</td><td>+10 a risposta; +1000 / +500 podio</td><td>−10; −300 fuori podio</td><td>L’arena si stringe dopo 45 sec.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="closing">
+    <p><b>Chiusura della serata.</b> Dopo il round 40 non c’è bonus: l’admin apre la classifica finale, il presentatore annuncia il podio e ringrazia i tavoli. La TV resta sulla classifica finché non si chiude la partita.</p>
+    <p><b>Prima di spegnere.</b> Verifica che la classifica finale sia quella che vuoi consegnare, salva una foto del podio e controlla che l’admin non abbia un bonus ancora aperto. Poi si può chiudere.</p>
+  </div>
+
+  <div class="footer"><span>PubGame · Manuale della serata</span><span>Bonus e punteggi · 06/06</span></div>
+</section>
+
+</body>
+</html>
