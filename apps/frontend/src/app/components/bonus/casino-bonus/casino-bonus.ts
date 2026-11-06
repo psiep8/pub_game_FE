@@ -132,15 +132,16 @@ const MANCHES: Manche[] = [
 ];
 
 const THROW_MS = 350;
-const ORBIT_MS = 1500;
-const DROP_MS = 1400;
-const BOUNCE_MS = 950;
-const SETTLE_MS = 300;
+const ORBIT_MS = 1600;
+const DROP_MS = 2200;
+const BOUNCE_MS = 2000;
+const SETTLE_MS = 600;
 const ROTOR_MS = THROW_MS + ORBIT_MS + DROP_MS;
 const SPIN_MS = ROTOR_MS + BOUNCE_MS + SETTLE_MS;
 const REVEAL_MS = 4200;
 
 const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
+const easeOutQuart = (p: number): number => 1 - Math.pow(1 - p, 4);
 
 /**
  * CASINO — bonus di fine atto 1, quattro manche e una roulette vera in TV.
@@ -153,6 +154,11 @@ const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
  * "decide" niente, è calcolata per atterrare esattamente in quel numero, con
  * lancio e rimbalzi diversi a ogni giro. Una simulazione libera avrebbe potuto
  * fermare la pallina in una casella diversa da quella pagata.
+ *
+ * La ruota si ferma su un angolo casuale: il vano vincente può cadere in
+ * qualunque punto del cerchio, non sempre in alto. L'ultimo tratto è volutamente
+ * lento — discesa che striscia e rimbalzi smorzati — per tenere il bar col fiato
+ * sospeso fino all'ultimo istante.
  */
 @Component({
   selector: 'app-casino-bonus',
@@ -317,8 +323,8 @@ const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
               @case ('SPIN') {
                 <div class="casino-spin">
                   <span class="casino-ball-icon">⚪</span>
-                  <p>Pallina in giro...</p>
-                  <span class="casino-hint">Puntate chiuse per la manche {{ manche() }}.</span>
+                  <p>{{ slowMotion() ? 'Dove si ferma?' : 'Pallina in giro...' }}</p>
+                  <span class="casino-hint">{{ slowMotion() ? 'La pallina sta cercando il vano...' : 'Puntate chiuse per la manche ' + manche() }}.</span>
                 </div>
               }
 
@@ -638,6 +644,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
   readonly ballRadius = signal(POCKET_R);
   readonly ballScale = signal(1);
   readonly settled = signal(false);
+  readonly slowMotion = signal(false);
   readonly spinNumber = signal<number | null>(null);
 
   readonly rotorTransform = computed(
@@ -774,16 +781,22 @@ export class CasinoBonus implements OnInit, OnDestroy {
   private animateWheel(number: number): Promise<void> {
     const targetIndex = WHEEL_ORDER.indexOf(number);
     const rotorStart = this.rotorAngle();
-    const rotorDelta = ((-targetIndex * SEG - rotorStart) % 360 + 360) % 360;
-    const rotorFinal = rotorStart + 4 * 360 + rotorDelta;
+    // Angolo finale libero: il vano vincente non deve per forza finire in alto.
+    const rotorFinal = rotorStart + 4 * 360 + Math.random() * 360;
 
     const ballStart = this.ballAngle();
     const ballThrow = ballStart + 0.6;
     const ballOrbit = ballStart + 3.5 * TAU;
-    const ballLand = ballStart + 5 * TAU;
+
+    const targetAbs = ((targetIndex * SEG + rotorFinal) * Math.PI) / 180;
+    let ballLand = targetAbs;
+    while (ballLand < ballOrbit + 1.2 * TAU) ballLand += TAU;
+
+    const overshoot = 0.55;
     const radiusStart = this.ballRadius();
 
     this.settled.set(false);
+    this.slowMotion.set(false);
 
     return new Promise((resolve) => {
       const start = performance.now();
@@ -800,10 +813,11 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
         const t = now - start;
         this.rotorAngle.set(rotorStart + (rotorFinal - rotorStart) * easeOutCubic(Math.min(1, t / ROTOR_MS)));
+        this.slowMotion.set(t >= t2);
 
         let angle = ballLand;
         let radius = POCKET_R;
-        let scale = 0.86;
+        let scale = 0.87;
 
         if (t <= t1) {
           const p = Math.min(1, t / t1);
@@ -817,15 +831,15 @@ export class CasinoBonus implements OnInit, OnDestroy {
           scale = 1;
         } else if (t <= t3) {
           const p = (t - t2) / DROP_MS;
-          angle = ballOrbit + (ballLand - ballOrbit) * easeOutCubic(p);
-          radius = ORBIT_R + (POCKET_R - ORBIT_R) * Math.pow(p, 1.7);
-          scale = 1 - 0.14 * p;
+          angle = ballOrbit + (ballLand + overshoot - ballOrbit) * easeOutQuart(p);
+          radius = ORBIT_R + (POCKET_R - ORBIT_R) * Math.pow(p, 1.6);
+          scale = 1 - 0.13 * p;
         } else if (t <= t4) {
           const p = (t - t3) / BOUNCE_MS;
           const decay = Math.pow(1 - p, 2);
-          angle = ballLand + 0.5 * Math.sin(p * Math.PI * 5.2) * decay;
-          radius = POCKET_R + 9 * Math.abs(Math.sin(p * Math.PI * 4.4)) * decay;
-          scale = 0.86 + 0.04 * Math.abs(Math.sin(p * Math.PI * 4.4)) * decay;
+          angle = ballLand + overshoot * decay * Math.cos(p * Math.PI * 4.8);
+          radius = POCKET_R + 10 * Math.abs(Math.sin(p * Math.PI * 4.8)) * decay;
+          scale = 0.87 + 0.05 * Math.abs(Math.sin(p * Math.PI * 4.8)) * decay;
         }
 
         this.ballAngle.set(angle);
@@ -836,7 +850,8 @@ export class CasinoBonus implements OnInit, OnDestroy {
           this.rotorAngle.set(rotorFinal);
           this.ballAngle.set(ballLand);
           this.ballRadius.set(POCKET_R);
-          this.ballScale.set(0.86);
+          this.ballScale.set(0.87);
+          this.slowMotion.set(false);
           this.settled.set(true);
           resolve();
           return;
