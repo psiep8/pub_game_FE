@@ -1137,6 +1137,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.vibrate(30);
   }
 
+  cavalloMyRow(): any {
+    const player = this.nickname();
+    return (this.cavalloState()?.reveal?.rows ?? []).find((row: any) => row.playerName === player) ?? null;
+  }
+
   cavalloAnswer(index: number): void {
     const state = this.cavalloState();
     const player = this.nickname();

@@ -37,15 +37,18 @@ interface Category {
 
 const FLASH_QUESTIONS = 8;
 const CATEGORY_SECONDS = 15;
-const QUESTION_SECONDS = 10;
+const QUESTION_SECONDS = 15;
 const REVEAL_MS = 4500;
+/** Passo tra due righe del tabellone: la differenza è lo spazio vuoto. */
+const ROW_HEIGHT = 84;
+const ROW_BODY = 68;
 
 /**
- * CAVALLO DI BATTAGLIA — bonus unico di fine atto.
+ * CAVALLO DI BATTAGLIA — bonus di fine atto.
  *
- * Prima del round la squadra sceglie una categoria (voto dai telefoni); poi
- * arrivano otto domande flash difficili di quella categoria. Ogni risposta
- * esatta vale 100 punti, la prima esatta della manche altri 50.
+ * La TV è solo cronometro e tabellone: il testo e le opzioni delle domande
+ * vivono sul telefono. Il tabellone resta in scena dall'inizio alla fine e si
+ * riordina a ogni reveal, così la classifica del bonus è sempre leggibile.
  */
 @Component({
   selector: 'app-cavallo-bonus',
@@ -56,111 +59,64 @@ const REVEAL_MS = 4500;
     <div class="cav-overlay">
       <div class="cav-card">
         <header class="cav-head">
-          <div>
-            <div class="cav-kicker">🐎 CAVALLO DI BATTAGLIA · BONUS DI FINE ATTO</div>
-            @if (phase() === 'QUESTION' || phase() === 'REVEAL') {
-              <h1>DOMANDA {{ index() + 1 }} / {{ total() }}</h1>
-              <p class="cav-sub">{{ chosenCategory() }}</p>
-            } @else {
-              <h1>OTTO DOMANDE FLASH</h1>
-              <p class="cav-sub">Una categoria scelta dalla squadra, poi si corre.</p>
-            }
+          <div class="cav-title">
+            <div class="cav-kicker">🐎 BONUS DI FINE ATTO</div>
+            <h1>CAVALLO DI BATTAGLIA</h1>
+            <p class="cav-sub">{{ subtitle() }}</p>
           </div>
-          @if (secondsLeft() > 0) {
-            <div class="cav-timer">{{ secondsLeft() }}s</div>
+          @if (phase() === 'QUESTION' || phase() === 'REVEAL') {
+            <div class="cav-round">
+              <span>DOMANDA</span>
+              <b>{{ index() + 1 }} / {{ total() }}</b>
+            </div>
           }
         </header>
 
-        @switch (phase()) {
-          @case ('INTRO') {
-            <div class="cav-intro">
-              <span class="cav-horse">🐎</span>
-              <p>La squadra sceglie la categoria. Poi otto domande difficili, una dopo l'altra.</p>
-            </div>
-          }
-
-          @case ('CATEGORY') {
-            <p class="cav-prompt">Scegli la categoria sul telefono</p>
-            <div class="cav-categories">
-              @for (category of categoryNames(); track category) {
-                <div class="cav-category" [class.voted]="categoryVotes(category) > 0">
-                  <span>{{ category }}</span>
-                  @if (categoryVotes(category) > 0) {
-                    <b>{{ categoryVotes(category) }}</b>
-                  }
-                </div>
+        <div class="cav-body">
+          <section class="cav-clock-panel">
+            <div class="cav-clock" [class.hot]="phase() === 'QUESTION' && secondsLeft() <= 3">
+              @if (secondsLeft() > 0) {
+                <b>{{ secondsLeft() }}</b>
+                <span>SECONDI</span>
+              } @else {
+                <b class="cav-clock-word">{{ clockWord() }}</b>
               }
             </div>
-          }
+            <p class="cav-call">{{ call() }}</p>
+            <p class="cav-cat">{{ chosenCategory() || 'Categoria da scegliere' }}</p>
+          </section>
 
-          @case ('LOADING') {
-            <div class="cav-intro">
-              <span class="cav-horse run">🐎</span>
-              <p>Preparo otto domande difficili di {{ chosenCategory() }}…</p>
+          <section class="cav-board-panel">
+            <div class="cav-board-head">
+              <span>TABELLONE BONUS</span>
+              <span class="cav-board-state">{{ boardState() }}</span>
             </div>
-          }
 
-          @case ('QUESTION') {
-            @if (question(); as q) {
-              <div class="cav-question">{{ q.text }}</div>
-              <div class="cav-options" [class.two]="q.options.length <= 2">
-                @for (option of q.options; track $index; let i = $index) {
-                  <div class="cav-option">
-                    <span class="cav-letter">{{ letter(i) }}</span>
-                    <span>{{ option }}</span>
-                  </div>
-                }
-              </div>
-              <p class="cav-hint">Rispondi sul telefono. Prima risposta esatta: +50.</p>
-            } @else {
-              <div class="cav-intro"><p>Preparazione domanda…</p></div>
-            }
-          }
-
-          @case ('REVEAL') {
-            @if (reveal(); as rev) {
-              <div class="cav-reveal-head">{{ rev.heading }}</div>
-              <div class="cav-rows">
-                @for (row of rev.rows; track row.playerName) {
-                  <div class="cav-row" [class.win]="row.points > 0">
-                    <span class="cav-row-name">{{ row.playerName }}</span>
-                    <span class="cav-row-label">{{ row.label }}</span>
-                    <b>{{ row.points > 0 ? '+' : '' }}{{ row.points }}</b>
-                  </div>
-                }
-                @if (!rev.rows.length) {
-                  <p class="cav-hint">Nessuna risposta registrata.</p>
-                }
-              </div>
-            }
-          }
-
-          @case ('FINALE') {
-            <div class="cav-finale">
-              <span class="cav-finale-kicker">CLASSIFICA BONUS</span>
-              @if (message()) {
-                <p class="cav-hint">{{ message() }}</p>
-              }
+            <div class="cav-board" [style.height.px]="boardHeight()">
               @for (row of totals(); track row.playerName; let i = $index) {
-                <div class="cav-finale-row" [class.top]="i === 0">
-                  <span>{{ i + 1 }}. {{ row.playerName }}</span>
-                  <b>{{ row.score }}</b>
+                <div
+                  class="cav-row"
+                  [class.lead]="i === 0 && row.score > 0"
+                  [class.gain]="deltaFor(row.playerName) > 0"
+                  [style.top.px]="i * rowHeight"
+                >
+                  <span class="cav-pos">{{ i + 1 }}</span>
+                  <span class="cav-name">{{ row.playerName }}</span>
+                  @if (deltaFor(row.playerName) > 0) {
+                    <span class="cav-gain">+{{ deltaFor(row.playerName) }}</span>
+                  }
+                  <b class="cav-score">{{ row.score }}</b>
                 </div>
               }
-              @if (!totals().length) {
-                <p class="cav-hint">Nessun punto registrato.</p>
-              }
             </div>
-          }
-        }
+          </section>
+        </div>
 
-        @if (totals().length && phase() !== 'FINALE') {
-          <footer class="cav-totals">
-            @for (row of totals(); track row.playerName) {
-              <div class="cav-total">
-                <span>{{ row.playerName }}</span>
-                <b>{{ row.score }}</b>
-              </div>
+        @if (phase() === 'FINALE') {
+          <footer class="cav-finale">
+            <span>BONUS CHIUSO</span>
+            @if (message()) {
+              <p>{{ message() }}</p>
             }
           </footer>
         }
@@ -181,79 +137,122 @@ const REVEAL_MS = 4500;
       color: #fafaf9;
     }
     .cav-card {
-      width: min(1320px, 96vw);
+      display: flex;
+      flex-direction: column;
+      width: min(1500px, 97vw);
       max-height: 94vh;
-      overflow: auto;
-      padding: clamp(16px, 2.4vw, 34px);
+      overflow: hidden;
+      padding: clamp(16px, 2.2vw, 32px);
       border: 3px solid #44403c;
-      border-radius: 24px;
+      border-radius: 26px;
       background: linear-gradient(165deg, #1c1917, #0c0a09);
       box-shadow: 0 30px 90px rgba(0, 0, 0, .6);
     }
-    .cav-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 16px; }
-    .cav-kicker { color: #f59e0b; font-family: var(--font-mono, monospace); font-size: clamp(.6rem, .9vw, .78rem); font-weight: 700; letter-spacing: .2em; }
-    .cav-head h1 { margin: 6px 0 4px; font-family: var(--font-display, inherit); font-size: clamp(1.5rem, 3.2vw, 2.6rem); line-height: 1; text-transform: uppercase; }
-    .cav-sub { margin: 0; color: #a8a29e; font-size: clamp(.8rem, 1.1vw, 1rem); }
-    .cav-timer { flex: 0 0 auto; padding: 10px 18px; border: 2px solid #f59e0b; border-radius: 14px; background: rgba(245, 158, 11, .12); color: #f59e0b; font-family: var(--font-mono, monospace); font-size: clamp(1.4rem, 2.4vw, 2.2rem); font-weight: 800; font-variant-numeric: tabular-nums; }
-    .cav-prompt { margin: 0 0 12px; color: #e7e5e4; font-size: clamp(.9rem, 1.2vw, 1.1rem); text-align: center; }
-    .cav-categories { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-    .cav-category {
+    .cav-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+    .cav-kicker { color: #f59e0b; font-family: var(--font-mono, monospace); font-size: clamp(.6rem, .9vw, .78rem); font-weight: 700; letter-spacing: .22em; }
+    .cav-head h1 { margin: 6px 0 4px; font-family: var(--font-display, inherit); font-size: clamp(1.5rem, 3vw, 2.5rem); line-height: 1; text-transform: uppercase; }
+    .cav-sub { min-height: 1.2em; margin: 0; color: #a8a29e; font-size: clamp(.8rem, 1.1vw, 1rem); }
+    .cav-round {
+      flex: 0 0 auto;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      min-height: clamp(46px, 6vh, 64px);
-      padding: 10px 14px;
-      border: 2px solid #44403c;
-      border-radius: 12px;
+      flex-direction: column;
+      align-items: flex-end;
+      padding: 8px 16px;
+      border: 2px solid #57534e;
+      border-radius: 14px;
       background: #1c1917;
-      font-size: clamp(.78rem, 1vw, .95rem);
-      font-weight: 700;
     }
-    .cav-category.voted { border-color: #f59e0b; background: rgba(245, 158, 11, .12); color: #fcd34d; }
-    .cav-category b { display: grid; place-items: center; min-width: 22px; height: 22px; border-radius: 50%; background: #f59e0b; color: #1c1917; font-size: .72rem; }
-    .cav-intro { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 40px 20px; text-align: center; color: #d6d3d1; }
-    .cav-horse { font-size: clamp(3.4rem, 8vw, 6rem); animation: cavGallop 1.1s ease-in-out infinite alternate; }
-    .cav-horse.run { animation-duration: .5s; }
-    @keyframes cavGallop { to { transform: translateX(14px) rotate(-6deg); } }
-    .cav-question {
-      margin: 10px auto 18px;
-      max-width: 1100px;
-      color: #fafaf9;
-      font-family: var(--font-display, inherit);
-      font-size: clamp(1.3rem, 3vw, 2.4rem);
-      line-height: 1.2;
+    .cav-round span { color: #a8a29e; font-family: var(--font-mono, monospace); font-size: .62rem; letter-spacing: .18em; }
+    .cav-round b { color: #f59e0b; font-family: var(--font-mono, monospace); font-size: clamp(1.1rem, 1.8vw, 1.5rem); font-variant-numeric: tabular-nums; }
+    .cav-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+      gap: clamp(16px, 2.4vw, 36px);
+      margin-top: clamp(12px, 2vw, 24px);
+      min-height: 0;
+    }
+    .cav-clock-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      min-height: 0;
+    }
+    .cav-clock {
+      display: grid;
+      place-content: center;
+      gap: 2px;
+      width: min(44vh, 400px);
+      max-width: 100%;
+      aspect-ratio: 1;
+      border: 4px solid #f59e0b;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 35%, #292524 0%, #171412 65%, #0c0a09 100%);
+      box-shadow: inset 0 0 60px rgba(245, 158, 11, .12), 0 0 70px rgba(245, 158, 11, .16);
       text-align: center;
     }
-    .cav-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 1100px; margin: 0 auto; }
-    .cav-options.two { grid-template-columns: 1fr 1fr; max-width: 700px; }
-    .cav-option {
-      display: flex;
+    .cav-clock b {
+      color: #fcd34d;
+      font-family: var(--font-mono, monospace);
+      font-size: clamp(5rem, 15vh, 12rem);
+      font-weight: 800;
+      line-height: .92;
+      font-variant-numeric: tabular-nums;
+    }
+    .cav-clock span { color: #a8a29e; font-family: var(--font-mono, monospace); font-size: clamp(.6rem, 1vw, .82rem); letter-spacing: .32em; }
+    .cav-clock-word { font-size: clamp(2rem, 5.4vh, 3.4rem) !important; letter-spacing: .12em; }
+    .cav-clock.hot { border-color: #ef4444; box-shadow: inset 0 0 60px rgba(239, 68, 68, .18), 0 0 70px rgba(239, 68, 68, .25); animation: cavPulse .8s ease-in-out infinite; }
+    .cav-clock.hot b { color: #fca5a5; }
+    @keyframes cavPulse { 50% { transform: scale(1.03); } }
+    .cav-call { margin: 0; color: #fafaf9; font-family: var(--font-display, inherit); font-size: clamp(1rem, 1.8vw, 1.6rem); font-weight: 800; letter-spacing: .14em; text-align: center; }
+    .cav-cat { margin: 0; color: #f59e0b; font-family: var(--font-mono, monospace); font-size: clamp(.7rem, 1vw, .9rem); letter-spacing: .18em; text-align: center; }
+    .cav-board-panel { display: flex; flex-direction: column; min-height: 0; }
+    .cav-board-head { display: flex; align-items: center; justify-content: space-between; padding: 0 6px 10px; color: #a8a29e; font-family: var(--font-mono, monospace); font-size: clamp(.6rem, .9vw, .74rem); font-weight: 700; letter-spacing: .22em; }
+    .cav-board-state { color: #f59e0b; }
+    .cav-board { position: relative; width: 100%; }
+    .cav-row {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr) auto auto;
       align-items: center;
       gap: 12px;
-      padding: clamp(10px, 1.4vw, 16px);
-      border: 2px solid #57534e;
-      border-radius: 12px;
-      background: #1c1917;
-      font-size: clamp(.85rem, 1.2vw, 1.1rem);
-      font-weight: 700;
+      height: 68px;
+      padding: 0 clamp(10px, 1.4vw, 18px);
+      border: 2px solid #44403c;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #1f1b18, #171412);
+      transition: top .55s cubic-bezier(.22, 1, .36, 1), border-color .25s ease, background .25s ease;
     }
-    .cav-letter { display: grid; place-items: center; width: 30px; height: 30px; flex: 0 0 auto; border-radius: 8px; background: #f59e0b; color: #1c1917; font-family: var(--font-mono, monospace); font-size: .85rem; }
-    .cav-hint { margin: 14px 0 0; color: #a8a29e; font-size: clamp(.76rem, 1vw, .92rem); text-align: center; }
-    .cav-reveal-head { margin: 6px 0 12px; color: #a3e635; font-family: var(--font-mono, monospace); font-size: clamp(.78rem, 1.2vw, 1rem); font-weight: 700; letter-spacing: .1em; text-align: center; }
-    .cav-rows { display: flex; flex-direction: column; gap: 6px; max-width: 900px; margin: 0 auto; }
-    .cav-row { display: grid; grid-template-columns: 1.4fr 1fr auto; gap: 12px; align-items: center; padding: 8px 14px; border: 1px solid #44403c; border-radius: 10px; background: #1c1917; font-size: clamp(.78rem, 1vw, .95rem); }
-    .cav-row.win { border-color: #a3e635; background: rgba(163, 230, 53, .1); }
-    .cav-row-label { color: #a8a29e; font-family: var(--font-mono, monospace); }
-    .cav-row b { color: #f59e0b; font-family: var(--font-mono, monospace); }
-    .cav-totals { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; padding-top: 12px; border-top: 1px solid #292524; }
-    .cav-total { display: flex; align-items: center; gap: 10px; padding: 5px 12px; border: 1px solid #44403c; border-radius: 999px; background: #1c1917; font-size: .84rem; }
-    .cav-total b { color: #f59e0b; font-family: var(--font-mono, monospace); }
-    .cav-finale { display: flex; flex-direction: column; gap: 8px; max-width: 760px; margin: 0 auto; }
-    .cav-finale-kicker { color: #f59e0b; font-family: var(--font-mono, monospace); font-size: .72rem; letter-spacing: .2em; text-align: center; }
-    .cav-finale-row { display: flex; justify-content: space-between; gap: 16px; padding: 10px 16px; border: 1px solid #44403c; border-radius: 10px; background: #1c1917; font-size: clamp(.9rem, 1.3vw, 1.2rem); }
-    .cav-finale-row.top { border-color: #f59e0b; background: rgba(245, 158, 11, .12); }
-    .cav-finale-row b { color: #f59e0b; font-family: var(--font-mono, monospace); }
+    .cav-row.lead { border-color: #f59e0b; background: linear-gradient(180deg, rgba(245, 158, 11, .16), rgba(245, 158, 11, .04)); }
+    .cav-row.gain { animation: cavGain .9s ease-out; }
+    @keyframes cavGain {
+      0% { border-color: #a3e635; background: rgba(163, 230, 53, .22); }
+      100% { border-color: #44403c; background: linear-gradient(180deg, #1f1b18, #171412); }
+    }
+    .cav-pos {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #292524;
+      color: #d6d3d1;
+      font-family: var(--font-mono, monospace);
+      font-size: .9rem;
+      font-weight: 800;
+    }
+    .cav-row.lead .cav-pos { background: #f59e0b; color: #1c1917; }
+    .cav-name { overflow: hidden; color: #fafaf9; font-family: var(--font-display, inherit); font-size: clamp(1rem, 1.6vw, 1.45rem); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .cav-gain { color: #a3e635; font-family: var(--font-mono, monospace); font-size: clamp(.8rem, 1.1vw, 1rem); font-weight: 800; }
+    .cav-score { color: #fcd34d; font-family: var(--font-mono, monospace); font-size: clamp(1.3rem, 2.2vw, 2rem); font-variant-numeric: tabular-nums; }
+    .cav-finale { display: flex; align-items: center; gap: 14px; margin-top: 16px; padding-top: 12px; border-top: 1px solid #292524; }
+    .cav-finale span { color: #f59e0b; font-family: var(--font-mono, monospace); font-size: .72rem; letter-spacing: .22em; }
+    .cav-finale p { margin: 0; color: #a8a29e; font-size: .9rem; }
   `],
 })
 export class CavalloBonus implements OnInit, OnDestroy {
@@ -267,6 +266,8 @@ export class CavalloBonus implements OnInit, OnDestroy {
   private gameService = inject(GameService);
   private destroyRef = inject(DestroyRef);
 
+  readonly rowHeight = ROW_HEIGHT;
+
   readonly phase = signal<Phase>('INTRO');
   readonly secondsLeft = signal(0);
   readonly chosenCategory = signal('');
@@ -275,6 +276,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
   readonly question = signal<{ text: string; options: string[] } | null>(null);
   readonly reveal = signal<Reveal | null>(null);
   readonly totals = signal<Array<{ playerName: string; score: number }>>([]);
+  readonly deltas = signal<Record<string, number>>({});
   readonly message = signal('');
 
   private readonly categoryPicks = new Map<string, string>();
@@ -289,6 +291,11 @@ export class CavalloBonus implements OnInit, OnDestroy {
   readonly categoryVoteCounts = signal<Record<string, number>>({});
 
   ngOnInit(): void {
+    this.players.forEach((playerName) => {
+      if (!this.scoreMap.has(playerName)) this.scoreMap.set(playerName, 0);
+    });
+    this.refreshTotals();
+
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       this.onStatus(status);
     });
@@ -313,6 +320,75 @@ export class CavalloBonus implements OnInit, OnDestroy {
 
   categoryVotes(category: string): number {
     return this.categoryVoteCounts()[category] ?? 0;
+  }
+
+  /** Riga del tabellone per il tavolo, 0 se non ha guadagnato nell'ultimo reveal. */
+  deltaFor(playerName: string): number {
+    return this.deltas()[playerName] ?? 0;
+  }
+
+  boardHeight(): number {
+    const rows = this.totals().length;
+    return rows > 0 ? rows * ROW_HEIGHT - (ROW_HEIGHT - ROW_BODY) : 0;
+  }
+
+  subtitle(): string {
+    const category = this.chosenCategory();
+    switch (this.phase()) {
+      case 'CATEGORY':
+        return 'La categoria la sceglie la squadra dal telefono.';
+      case 'LOADING':
+        return 'Preparo otto domande difficili.';
+      case 'QUESTION':
+        return category ? 'Categoria ' + category + ' · risposta sul telefono.' : 'Risposta sul telefono.';
+      case 'REVEAL':
+        return 'Punteggi aggiornati.';
+      case 'FINALE':
+        return 'Classifica del bonus.';
+      default:
+        return 'Otto domande flash, una dopo l\'altra.';
+    }
+  }
+
+  call(): string {
+    switch (this.phase()) {
+      case 'CATEGORY':
+        return 'VOTATE SUL TELEFONO';
+      case 'LOADING':
+        return 'PREPARO LE DOMANDE';
+      case 'QUESTION':
+        return 'RISPONDETE';
+      case 'REVEAL':
+        return 'RISPOSTE CHIUSE';
+      case 'FINALE':
+        return 'BONUS CHIUSO';
+      default:
+        return 'SI PARTE';
+    }
+  }
+
+  clockWord(): string {
+    switch (this.phase()) {
+      case 'LOADING':
+        return '···';
+      case 'REVEAL':
+        return 'PUNTI';
+      case 'FINALE':
+        return 'FINE';
+      default:
+        return 'VIA';
+    }
+  }
+
+  boardState(): string {
+    switch (this.phase()) {
+      case 'REVEAL':
+        return 'AGGIORNATO';
+      case 'FINALE':
+        return 'FINALE';
+      default:
+        return 'IN DIRETTA';
+    }
   }
 
   private onStatus(status: any): void {
@@ -429,6 +505,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.phase.set('QUESTION');
     this.answers.clear();
     this.reveal.set(null);
+    this.deltas.set({});
     this.question.set({ text: question.question, options: question.options });
     this.questionStartedAt = Date.now();
     this.startClock(QUESTION_SECONDS, () => this.revealQuestion());
@@ -447,6 +524,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
     const ordered = [...this.answers.entries()].sort((a, b) => a[1].at - b[1].at);
     const firstCorrect = ordered.find(([, answer]) => answer.index === current.correctIndex)?.[0] ?? '';
 
+    const gained: Record<string, number> = {};
     const rows: Row[] = this.players.map((playerName) => {
       const answer = this.answers.get(playerName);
       let points = 0;
@@ -454,7 +532,10 @@ export class CavalloBonus implements OnInit, OnDestroy {
         points = 100;
         if (playerName === firstCorrect) points += 50;
       }
-      if (points) this.addPoints(playerName, points);
+      if (points) {
+        gained[playerName] = points;
+        this.addPoints(playerName, points);
+      }
       return {
         playerName,
         label: answer ? current.options[answer.index] ?? '—' : '—',
@@ -464,6 +545,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
 
     this.phase.set('REVEAL');
     this.secondsLeft.set(0);
+    this.deltas.set(gained);
     this.reveal.set({ heading: `RISPOSTA ESATTA: ${current.options[current.correctIndex]}`, rows });
     this.publish();
     this.emitRows(rows);
@@ -481,6 +563,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.phase.set('FINALE');
     this.secondsLeft.set(0);
     this.question.set(null);
+    this.deltas.set({});
     if (empty) {
       this.total.set(0);
     }
@@ -506,9 +589,13 @@ export class CavalloBonus implements OnInit, OnDestroy {
 
   private addPoints(playerName: string, points: number): void {
     this.scoreMap.set(playerName, (this.scoreMap.get(playerName) ?? 0) + points);
+    this.refreshTotals();
+  }
+
+  private refreshTotals(): void {
     this.totals.set(
       [...this.scoreMap.entries()]
-        .map(([name, score]) => ({ playerName: name, score }))
+        .map(([playerName, score]) => ({ playerName, score }))
         .sort((a, b) => b.score - a.score),
     );
   }
