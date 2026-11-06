@@ -16,7 +16,6 @@ export type GameModeType =
   | 'BOMBA'
   | 'SPEED_RUSH'
   | 'AIR_HOCKEY_BATTLE'
-  | 'CAVALLO'
   | 'SCOMMESSA';
 
 export interface BombaApi {

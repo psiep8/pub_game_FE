@@ -1,24 +1,24 @@
 # Lavori in corso — pub_game_FE
 
 Ultimo aggiornamento: 6 novembre 2026
-Ultimo commit: 6 novembre — scaletta a 5 atti, Cavallo e Scommessa come round veri, pulizia di Chrono/Vero-Falso/Roulette. I commit precedenti sono del 5 novembre.
+Ultimo commit: 6 novembre — scaletta a 5 atti, Cavallo tornato bonus, Scommessa round vero, pulizia di Chrono/Vero-Falso/Roulette. I commit precedenti sono del 5 novembre.
 
 ---
 
 ## Cosa è cambiato il 6 novembre
 
-### Scaletta: Cavallo e Time Buzzer diventano round
-- `ACT_DECKS` riscritta. Cavallo compare due volte (atti 1 e 5), Time Buzzer due (atti 2 e 4), la Scommessa chiude l'atto 4.
-- Nessun atto è più il replay di un altro: l'atto 4 parte da Indovina chi, l'atto 5 dalla Ruota.
-- `BonusType` non contiene più `CASINO`, `CAVALLO` e `TIME_BUZZER`: restano solo i bonus veri.
+### Scaletta: il Cavallo torna bonus, dentro Quiz e Time Buzzer
+- `ACT_DECKS` aggiornata come da descrizione: il Cavallo non è più un round, al suo posto l'atto 1 chiude con un Quiz e l'atto 5 usa il Time Buzzer.
+- Quota non è ancora implementata: il sesto round dell'atto 2 resta la Bomba finché la modalità non esiste.
+- `BonusType` contiene di nuovo `CAVALLO`, che si gioca dopo l'atto 3; restano Roulette Colorata, Basket e Black Jack.
 
 | Atto | Round | Sequenza |
 | --- | --- | --- |
-| 1 | 1–8 | Quiz · Musica · Bomba · Indovina chi · Timeline · Ruota · Cavallo · Speed Rush |
+| 1 | 1–8 | Quiz · Musica · Bomba · Indovina chi · Timeline · Ruota · Quiz · Speed Rush |
 | 2 | 9–16 | Quiz · Indovina chi · Timeline · Arena · Musica · Bomba · Time Buzzer · Air Hockey |
 | 3 | 17–24 | Quiz · Bomba · Timeline · Speed Rush · Musica · Air Hockey · Ruota · Arena |
 | 4 | 25–32 | Indovina chi · Quiz · Bomba · Musica · Time Buzzer · Timeline · Scommessa · Speed Rush |
-| 5 | 33–40 | Ruota · Quiz · Bomba · Cavallo · Timeline · Air Hockey · Musica · Arena |
+| 5 | 33–40 | Ruota · Quiz · Bomba · Time Buzzer · Timeline · Air Hockey · Musica · Arena |
 
 ### Casino spalmato in tre bonus
 
@@ -30,18 +30,18 @@ Ultimo commit: 6 novembre — scaletta a 5 atti, Cavallo e Scommessa come round 
 | 4 | Black Jack |
 | 5 | nessuno, classifica finale |
 
-`CasinoBonus` ha un input `variant` (1/2/3) e fa girare **una sola manche**, non più le tre in sequenza. L'admin ha quattro pulsanti separati.
+`CasinoBonus` ha un input `variant` (1/2/3) e fa girare **una sola manche**, non più le tre in sequenza. L'admin ha i pulsanti separati, più quello del Cavallo.
 
-### Cavallo di Battaglia come round
-- Nuova `mode/cavallo.mode.ts`: contratto del round e timer di sicurezza (240 s).
-- La logica resta nel componente TV `games/cavallo/cavallo.ts` (classe `Cavallo`, selector `app-cavallo`): scrive i punti in classifica, niente riepilogo bonus.
-- Backend: `GameType.CAVALLO` e payload di configurazione da `PartyGameService`.
+### Cavallo di Battaglia torna bonus
+- Ripristinato `bonus/cavallo-bonus/cavallo-bonus.ts` (classe `CavalloBonus`, selector `app-cavallo-bonus`): categoria votata dai telefoni, otto domande, podio bonus.
+- Eliminati `mode/cavallo.mode.ts` e `games/cavallo/cavallo.ts`; il Cavallo non è più in `GameModeType`, nella factory né in `GameType`.
+- Si lancia dall'admin (`BONUS CAVALLO`) e parte da solo dopo l'atto 3; il backend non ha più un tipo di round dedicato.
 
 ### Codice ripulito: via Chrono, Vero/Falso e Roulette round
 - Rimossa la modalità singola Chrono e Vero/Falso da frontend e backend (`GameModeType`, `GameType`, `QuestionGeneratorService`). Il Vero/Falso resta solo come tipo di domanda della banca usato da Arena e Cavallo, che non sono state toccate.
 - La Roulette non è più un round vero: eliminati `mode/roulette.mode.ts`, `games/roulette/*`, i rami in TV/remote/admin, i punti in `scoring-rules.ts`, la demo e tutti gli stili (`app-roulette`, `roulette-grid`, `color-btn`). Restano i bonus Roulette Colorata e Numerata dentro `CasinoBonus`.
 - Rimosso `startBonusRound()` da `RoundManagerService`: non aveva più chiamanti.
-- Rinominato `bonus/cavallo-bonus/cavallo-bonus.ts` → `game-component/games/cavallo/cavallo.ts` (classe `Cavallo`): il Cavallo è un round, non un bonus. Aggiornati import, template e documento del round.
+- Il Cavallo è tornato nel file bonus: `bonus/cavallo-bonus/cavallo-bonus.ts` (classe `CavalloBonus`). Il giro come round (`mode/cavallo.mode.ts`, `games/cavallo/cavallo.ts`) è stato rimosso con import, template e tipo backend.
 - Script allineati: `rounds_check.py`, `live_devices_check.js`, `generate.py` e `merge_domande.py` non gestiscono più Chrono e Roulette.
 
 ### La Scommessa (tre domande con incasso)
@@ -169,13 +169,13 @@ Stile e tema restano quelli di ieri: cambia solo il movimento. Tutto vive in
 ## Da fare domani
 
 1. **QA dal vivo con backend acceso** (`127.0.0.1:8080`):
-   - Cavallo come round: voto categoria, otto domande, punti in classifica;
+   - Cavallo bonus: voto categoria, otto domande, podio +300/+150/+75;
    - Scommessa: gettoni, tre domande, banca che raddoppia e scelta INCASSA/RISCHIA;
    - bonus spalmato: una manche per atto, mai tre di fila;
    - pausa, classifica, demo e auto-avanzamento come prima.
 2. **Ruota**: separare la fase di lancio dalla rivelazione (oggi le lettere si aprono durante il timer).
 3. **Altri 2 giochi bonus** (Memory, Tap/Swipe) se il Casino spalmato non basta.
-4. **Cavallo**: decidere se implementare la struttura a due manches con pausa e volata.
+4. **Quota**: implementare il round dell'atto 2 (fasce, quote, gettoni).
 
 ---
 
@@ -273,9 +273,9 @@ Verifiche del 6 novembre:
 - Test FE: 64 passati, 2 falliti. I fallimenti sono gli stessi due preesistenti e non collegati
   (`LeaderboardDetailed` spotlight dopo 9 s, `Song` etichetta fase 1); i test Roulette sono
   stati rimossi insieme al round.
-- `RoundManagerService`: 13 test verdi, inclusi scaletta variata, Cavallo due volte,
-  Scommessa una volta e bonus spalmato sui quattro atti.
-- Nessun test dal vivo: Cavallo e Scommessa sono compilati ma **non osservati in esecuzione**.
+- `RoundManagerService`: 13 test verdi, inclusi scaletta variata, Cavallo fuori dai round
+  con bonus dopo l'atto 3, Scommessa una volta e bonus spalmato sui quattro atti.
+- Nessun test dal vivo: Cavallo bonus e Scommessa sono compilati ma **non osservati in esecuzione**.
 
 ### Nota sulla Scommessa
 Il formato attuale è a **tre domande con incasso**: puntata (10 s), poi per ogni

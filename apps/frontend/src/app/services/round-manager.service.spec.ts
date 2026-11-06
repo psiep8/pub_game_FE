@@ -12,7 +12,6 @@ const PLAYABLE_TYPES: GameModeType[] = [
   'SPEED_RUSH',
   'AIR_HOCKEY_BATTLE',
   'TIME_BUZZER',
-  'CAVALLO',
   'SCOMMESSA',
 ];
 
@@ -97,7 +96,7 @@ describe('RoundManagerService', () => {
     const expected: Array<string | null> = [
       'ROULETTE_COLORATA',
       'BASKET',
-      'ROULETTE_NUMERATA',
+      'CAVALLO',
       'BLACKJACK',
       null,
     ];
@@ -117,11 +116,13 @@ describe('RoundManagerService', () => {
     });
   });
 
-  it('should play the horse twice as a real round', () => {
+  it('should keep the horse out of the round deck and play it as a bonus', () => {
     const types: GameModeType[] = [];
     for (let i = 0; i < 40; i++) types.push(service.startNewRound());
 
-    expect(types.filter((type) => type === 'CAVALLO')).toHaveLength(2);
+    expect(types.filter((type) => (type as string) === 'CAVALLO')).toHaveLength(0);
+    expect(types.filter((type) => type === 'QUIZ')).toHaveLength(6);
+    expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(3);
     expect(types.filter((type) => type === 'SCOMMESSA')).toHaveLength(1);
   });
 

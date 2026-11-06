@@ -23,16 +23,17 @@ const STORAGE_KEY = 'roundProgress';
  * Solo i primi tre atti si aprono con Quiz: gli atti 4 e 5 partono da Indovina
  * chi e dalla Ruota, così il finale non è il replay dell'atto 3.
  *
- * Cavallo di Battaglia e Time Buzzer sono round veri e propri: il Cavallo
- * compare due volte (atti 1 e 5), Time Buzzer due (atti 2 e 4). La Scommessa
- * chiude l'atto 4 subito prima dello Speed Rush.
+ * Cavallo di Battaglia è tornato bonus di fine atto: non compare più nella
+ * scaletta. L'atto 1 chiude con un Quiz, l'atto 5 usa il Time Buzzer. Quota
+ * non è ancora implementata: il sesto round dell'atto 2 resta Bomba finché la
+ * modalità non esiste. La Scommessa chiude l'atto 4 prima dello Speed Rush.
  */
 const ACT_DECKS: GameModeType[][] = [
-  ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'TIMELINE', 'WHEEL_OF_FORTUNE', 'CAVALLO', 'SPEED_RUSH'],
+  ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'TIMELINE', 'WHEEL_OF_FORTUNE', 'QUIZ', 'SPEED_RUSH'],
   ['QUIZ', 'IMAGE_BLUR', 'TIMELINE', 'ARENA', 'MUSIC', 'BOMBA', 'TIME_BUZZER', 'AIR_HOCKEY_BATTLE'],
   ['QUIZ', 'BOMBA', 'TIMELINE', 'SPEED_RUSH', 'MUSIC', 'AIR_HOCKEY_BATTLE', 'WHEEL_OF_FORTUNE', 'ARENA'],
   ['IMAGE_BLUR', 'QUIZ', 'BOMBA', 'MUSIC', 'TIME_BUZZER', 'TIMELINE', 'SCOMMESSA', 'SPEED_RUSH'],
-  ['WHEEL_OF_FORTUNE', 'QUIZ', 'BOMBA', 'CAVALLO', 'TIMELINE', 'AIR_HOCKEY_BATTLE', 'MUSIC', 'ARENA'],
+  ['WHEEL_OF_FORTUNE', 'QUIZ', 'BOMBA', 'TIME_BUZZER', 'TIMELINE', 'AIR_HOCKEY_BATTLE', 'MUSIC', 'ARENA'],
 ];
 
 /** Classifiche: rapida a metà atto, dettagliata a fine atto. */
@@ -88,10 +89,9 @@ export class RoundManagerService {
   /**
    * Bonus previsto dopo l'atto appena concluso, se esiste.
    *
-   * Il vecchio Casino unico è spalmato in tre varianti distanziate: roulette
-   * colorata dopo l'atto 1, Basket dopo il 2, roulette numerata dopo il 3,
-   * Black Jack dopo il 4. Dopo il quinto atto non c'è bonus: si chiude con la
-   * classifica finale.
+   * Dopo l'atto 1 la roulette colorata, dopo il 2 il Basket, dopo il 3 il
+   * Cavallo di Battaglia (tornato bonus) e dopo il 4 il Black Jack. Dopo il
+   * quinto atto non c'è bonus: si chiude con la classifica finale.
    */
   bonusAfterAct(): BonusType | null {
     switch (this.getCurrentAct()) {
@@ -100,7 +100,7 @@ export class RoundManagerService {
       case 1:
         return 'BASKET';
       case 2:
-        return 'ROULETTE_NUMERATA';
+        return 'CAVALLO';
       case 3:
         return 'BLACKJACK';
       default:

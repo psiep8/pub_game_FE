@@ -147,14 +147,6 @@
   @case ('AIR_HOCKEY_BATTLE') {
   <app-air-hockey-battle [displayData]="getSafeDisplayData()" [timer]="timer()" />
   }
-  @case ('CAVALLO') {
-  <app-cavallo
-    [gameId]="currentGameId()"
-    [players]="bonusPlayers()"
-    [categories]="allCategories()"
-    (result)="onCavalloRoundResult($event)"
-    (finished)="finishCavalloRound()" />
-  }
   @case ('SCOMMESSA') {
   <app-scommessa [displayData]="getSafeDisplayData()" [timer]="timer()" />
   }
@@ -242,6 +234,14 @@
       <app-basket-bonus-stage
         [secondsLeft]="bonusSecondsLeft()"
         [scores]="bonusScores()" />
+    }
+    @case ('CAVALLO') {
+      <app-cavallo-bonus
+        [gameId]="currentGameId()"
+        [players]="bonusPlayers()"
+        [categories]="allCategories()"
+        (result)="onBonusResult($event)"
+        (finished)="finishBonus()" />
     }
   }
 }

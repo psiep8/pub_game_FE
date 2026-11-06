@@ -50,7 +50,7 @@ import { DEMO_SCRIPTS, DEMO_SCENE_COUNT, DemoScript } from './demo-scripts';
 import { scoringRuleFor } from './interfaces/scoring-rules';
 import { BonusType, BONUS_LABELS } from './interfaces/bonus-type';
 import { CasinoBonus } from '../bonus/casino-bonus/casino-bonus';
-import { Cavallo } from './games/cavallo/cavallo';
+import { CavalloBonus } from '../bonus/cavallo-bonus/cavallo-bonus';
 import { BasketBonusStage } from '../bonus/basket-bonus-stage/basket-bonus-stage';
 
 @Component({
@@ -73,7 +73,7 @@ import { BasketBonusStage } from '../bonus/basket-bonus-stage/basket-bonus-stage
     AirHockeyBattle,
     Scommessa,
     CasinoBonus,
-    Cavallo,
+    CavalloBonus,
     BasketBonusStage
   ],
   templateUrl: './game-component.html',
@@ -164,7 +164,6 @@ export class GameComponent implements OnInit, OnDestroy {
   });
 
   private arenaFinished = false;
-  private cavalloFinished = false;
   private readonly bonusActsStarted = new Set<number>();
   private bonusScoresMap = new Map<string, number>();
   private bonusAwarded = false;
@@ -662,7 +661,6 @@ export class GameComponent implements OnInit, OnDestroy {
         // temporale; il backend filtra gli eventi su questa categoria.
         return this.pickTimelineCategoryName();
       case 'TIME_BUZZER':
-      case 'CAVALLO':
       case 'SCOMMESSA':
       case 'BOMBA':
       case 'SPEED_RUSH':
@@ -708,8 +706,6 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'TIMELINE';
       case 'TIME_BUZZER':
         return 'TIME BUZZER';
-      case 'CAVALLO':
-        return 'CAVALLO DI BATTAGLIA';
       case 'SCOMMESSA':
         return 'LA SCOMMESSA';
       case 'BOMBA':
@@ -788,13 +784,6 @@ export class GameComponent implements OnInit, OnDestroy {
     // comunque spegnere la suspense.
     if (mode.type === 'ARENA') {
       this.audioService.stopSuspense();
-      return;
-    }
-
-    // Il Cavallo si chiude quando la TV finisce il finale: se arriva prima il
-    // timer di sicurezza, si passa dallo stesso percorso.
-    if (mode.type === 'CAVALLO') {
-      this.finishCavalloRound();
       return;
     }
 
@@ -1096,6 +1085,19 @@ export class GameComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Il Cavallo ha una schermata TV dedicata che parla direttamente con i
+    // telefoni tramite CAVALLO_STATE, come il Casino.
+    if (type === 'CAVALLO') {
+      const publicPayload = JSON.stringify({ type: 'BONUS_CAVALLO', question: BONUS_LABELS[type] });
+      this.ws.broadcastStatus(this.currentGameId(), {
+        action: 'SHOW_QUESTION',
+        type: 'BONUS_CAVALLO',
+        payload: publicPayload,
+        rawPayload: publicPayload,
+      });
+      return;
+    }
+
     // Le tre varianti del Casino hanno una schermata TV dedicata che parla
     // direttamente con i telefoni tramite CASINO_STATE. La manche la decide la
     // variante, non più una sequenza interna di tre manche.
@@ -1106,37 +1108,6 @@ export class GameComponent implements OnInit, OnDestroy {
       payload: publicPayload,
       rawPayload: publicPayload,
     });
-  }
-
-  /** Cavallo come round: i punti finiscono subito in classifica, non nel bonus. */
-  onCavalloRoundResult(event: { playerName: string; score: number }): void {
-    const name = String(event?.playerName ?? '').trim();
-    const points = Number(event?.score) || 0;
-    if (!name || !points) return;
-
-    this.leaderboardService.addPoints(name, points, points > 0);
-  }
-
-  /** Il componente TV del Cavallo ha chiuso il finale: si chiude il round. */
-  finishCavalloRound(): void {
-    if (this.cavalloFinished) return;
-    this.cavalloFinished = true;
-
-    this.audioService.stopClock();
-    this.audioService.stopSuspense();
-    this.audioService.playReveal();
-
-    this.currentMode()?.stop();
-
-    const currentRound = this.round();
-    if (currentRound) {
-      this.round.set({ ...currentRound, status: 'REVEAL' });
-    }
-
-    this.showQuestion.set(false);
-    this.ws.broadcastStatus(this.currentGameId()!, { action: 'ROUND_ENDED' });
-    this.roundManager.completeRound('CAVALLO');
-    this.checkLeaderboardDisplay();
   }
 
   private startBasketCountdown(): void {
@@ -1253,7 +1224,6 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private reset() {
     this.arenaFinished = false;
-    this.cavalloFinished = false;
     this.audioService.stopSuspense();
     this.cancelAutoAdvance();
     this.clearBonusTimer();
@@ -1392,8 +1362,6 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'Ordine corretto mostrato in TV al reveal';
       case 'TIME_BUZZER':
         return 'Tempo bersaglio mostrato in TV';
-      case 'CAVALLO':
-        return 'Categoria votata dai telefoni, otto domande flash in TV';
       case 'SCOMMESSA':
         return 'La TV svela la risposta dopo ogni domanda';
       case 'BOMBA':

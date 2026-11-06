@@ -1,7 +1,7 @@
 # PubGame — descrizione del gioco
 
 > Documento per chi arriva sul repository o deve spiegare PubGame a qualcun altro.
-> Aggiornato al 6 novembre 2026 (codice al commit `b7a9048`). Le sezioni dopo "Decisioni definitive" distinguono ciò che è **già nel codice** da ciò che è **deciso ma da fare**.
+> Aggiornato al 6 novembre 2026. Il codice è allineato alle "Decisioni definitive" tranne Quota, che non esiste ancora: al suo posto resta la Bomba.
 
 ---
 
@@ -92,17 +92,7 @@ flowchart LR
 
 ## 3. La scaletta: 40 round in 5 atti
 
-La scaletta definitiva è la tabella in "Decisioni definitive". Nel codice (`round-manager.service.ts`, commit `b7a9048`) oggi c'è questa versione, che differisce così:
-
-| Atto | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
-|---|---|---|---|---|---|---|---|---|
-| 1 | Quiz | Musica | Bomba | Indovina chi | Timeline | Ruota | Cavallo | Speed Rush |
-| 2 | Quiz | Indovina chi | Timeline | Arena | Musica | Bomba | Time Buzzer | Air Hockey |
-| 3 | Quiz | Bomba | Timeline | Speed Rush | Musica | Air Hockey | Ruota | Arena |
-| 4 | Indovina chi | Quiz | Bomba | Musica | Time Buzzer | Timeline | Scommessa | Speed Rush |
-| 5 | Ruota | Quiz | Bomba | Cavallo | Timeline | Air Hockey | Musica | Arena |
-
-Da cambiare: Cavallo (atto 1 round 7 e atto 5 round 4) diventa bonus e lascia il posto a Quiz e Time Buzzer; Bomba nell'atto 2 round 6 lascia il posto a Quota. Classifiche: rapida ai round 4, 12, 20, 28, 36; dettagliata ai round 8, 16, 24, 32, 40. L'ordine è fisso e rispetta i vincoli (mai due giochi in tempo reale di fila, mai due a prenotazione consecutivi).
+La scaletta definitiva è la tabella in "Decisioni definitive". Nel codice (`round-manager.service.ts`) è già allineata tranne un punto: **Quota non esiste ancora**, quindi il sesto round dell'atto 2 resta la Bomba. Il Cavallo non è più in scaletta (è tornato bonus dopo l'atto 3) e al suo posto ci sono un Quiz nell'atto 1 (round 7) e il Time Buzzer nell'atto 5 (round 4). Classifiche: rapida ai round 4, 12, 20, 28, 36; dettagliata ai round 8, 16, 24, 32, 40.
 
 ## 4. I giochi di round
 
@@ -169,7 +159,7 @@ I bonus **non consumano un round**: si giocano dopo la classifica di fine atto, 
 |---|---|---|
 | 1 | Roulette (colorata + numerata, due manche) | Colorata e numerata esistono come bonus separati: da unire |
 | 2 | Basket (3 manche, premio a scaletta) | Esiste come bonus, 30 s di tiri liberi: da portare a 3 manche |
-| 3 | Cavallo di battaglia (categoria scelta da ogni squadra) | Esiste come round: da ricollegare ai bonus |
+| 3 | Cavallo di battaglia (categoria scelta da ogni squadra) | Ricollegato ai bonus: parte dopo l'atto 3 o dall'admin |
 | 4 | Blackjack a turni contro il banco (TV) | Tipo `BLACKJACK` presente: da verificare |
 
 Premi dei bonus: punti al podio (+300, +150, +75) più i premi fisici (consumazione) decisi con il locale. Rimane da controllare che i pari merito non dipendano dall'ordine di risposta.

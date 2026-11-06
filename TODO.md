@@ -51,8 +51,8 @@ Ultimo aggiornamento: 4 novembre 2026.
 
 ## ⏳ In corso / da fare
 
-- [ ] **QA dei round nuovi**: Cavallo (atti 1 e 5), Scommessa (atto 4) e bonus Casino
-      spalmato su quattro atti. Compilati, mai visti dal vivo.
+- [ ] **QA dei round nuovi**: Cavallo (bonus dopo l'atto 3), Scommessa (atto 4) e bonus
+      Casino spalmato su quattro atti. Compilati, mai visti dal vivo.
 - [ ] **Generare la banca vera sull'altra macchina** (Qwen locale, `--per-category 40`),
       copiare `questions-it.json`, controllare il log d'avvio
       che nessuna categoria abbia il warning, poi lanciare `arena_check.py` e

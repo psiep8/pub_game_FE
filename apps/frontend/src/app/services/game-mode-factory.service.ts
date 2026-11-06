@@ -14,7 +14,6 @@ import { TimeBuzzerMode } from '../components/game-component/mode/time-buzzer.mo
 import { BombaMode } from '../components/game-component/mode/bomba.mode';
 import { SpeedRushMode } from '../components/game-component/mode/speed-rush.mode';
 import { AirHockeyBattleMode } from '../components/game-component/mode/air-hockey-battle.mode';
-import { CavalloMode } from '../components/game-component/mode/cavallo.mode';
 import { ScommessaMode } from '../components/game-component/mode/scommessa.mode';
 
 type ModeFactory = (config: GameModeConfig) => IGameMode;
@@ -40,7 +39,6 @@ export class GameModeService {
     BOMBA: (config) => this.withConfig(new BombaMode(), config),
     SPEED_RUSH: (config) => this.withConfig(new SpeedRushMode(), config),
     AIR_HOCKEY_BATTLE: (config) => this.withConfig(new AirHockeyBattleMode(), config),
-    CAVALLO: (config) => this.withConfig(new CavalloMode(), config),
     SCOMMESSA: (config) => this.withConfig(new ScommessaMode(), config),
   };
 

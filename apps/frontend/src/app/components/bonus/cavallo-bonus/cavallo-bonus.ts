@@ -12,8 +12,8 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { GameService } from '../../../../services/game.service';
-import { WebSocketService } from '../../../../services/web-socket.service';
+import { GameService } from '../../../services/game.service';
+import { WebSocketService } from '../../../services/web-socket.service';
 
 type Phase = 'INTRO' | 'CATEGORY' | 'LOADING' | 'QUESTION' | 'REVEAL' | 'FINALE';
 
@@ -41,14 +41,14 @@ const QUESTION_SECONDS = 10;
 const REVEAL_MS = 4500;
 
 /**
- * CAVALLO DI BATTAGLIA — round a squadre.
+ * CAVALLO DI BATTAGLIA — bonus unico di fine atto.
  *
  * Prima del round la squadra sceglie una categoria (voto dai telefoni); poi
  * arrivano otto domande flash difficili di quella categoria. Ogni risposta
  * esatta vale 100 punti, la prima esatta della manche altri 50.
  */
 @Component({
-  selector: 'app-cavallo',
+  selector: 'app-cavallo-bonus',
   standalone: true,
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -57,7 +57,7 @@ const REVEAL_MS = 4500;
       <div class="cav-card">
         <header class="cav-head">
           <div>
-            <div class="cav-kicker">🐎 CAVALLO DI BATTAGLIA · ROUND</div>
+            <div class="cav-kicker">🐎 CAVALLO DI BATTAGLIA · BONUS DI FINE ATTO</div>
             @if (phase() === 'QUESTION' || phase() === 'REVEAL') {
               <h1>DOMANDA {{ index() + 1 }} / {{ total() }}</h1>
               <p class="cav-sub">{{ chosenCategory() }}</p>
@@ -137,7 +137,7 @@ const REVEAL_MS = 4500;
 
           @case ('FINALE') {
             <div class="cav-finale">
-              <span class="cav-finale-kicker">CLASSIFICA DEL ROUND</span>
+              <span class="cav-finale-kicker">CLASSIFICA BONUS</span>
               @if (message()) {
                 <p class="cav-hint">{{ message() }}</p>
               }
@@ -256,7 +256,7 @@ const REVEAL_MS = 4500;
     .cav-finale-row b { color: #f59e0b; font-family: var(--font-mono, monospace); }
   `],
 })
-export class Cavallo implements OnInit, OnDestroy {
+export class CavalloBonus implements OnInit, OnDestroy {
   @Input({ required: true }) gameId = 1;
   @Input() players: string[] = [];
   @Input() categories: Category[] = [];
@@ -412,7 +412,7 @@ export class Cavallo implements OnInit, OnDestroy {
         this.startQuestion(0);
       },
       error: () => {
-        this.message.set('Domande non disponibili: riprova ad avviare il round.');
+        this.message.set('Domande non disponibili: riprova dal bonus.');
         this.finale(true);
       },
     });

@@ -143,17 +143,17 @@ export const DEMO_SCRIPTS: Record<string, DemoScript> = {
     ],
     note: 'Il piazzamento finale conta più delle singole risposte: resta dentro al cerchio.',
   },
-  CAVALLO: {
-    title: 'CAVALLO DI BATTAGLIA',
+  BONUS_CAVALLO: {
+    title: 'BONUS CAVALLO',
     icon: '🐎',
-    tv: ['Otto domande flash della categoria scelta', 'Punteggio in classifica a ogni risposta', 'Finale con i totali'],
+    tv: ['Otto domande flash della categoria votata', 'Podio del bonus in TV', 'Premi ai primi tre'],
     remote: ['Vota la categoria', 'Tocca la risposta giusta', 'La prima esatta della manche vale +50'],
     scoring: [
+      { label: '1° / 2° / 3°', value: '+300 / +150 / +75', tone: 'good' },
       { label: 'Risposta esatta', value: '+100', tone: 'good' },
-      { label: 'Prima esatta della manche', value: '+50', tone: 'good' },
-      { label: 'Errore', value: '0', tone: 'neutral' },
+      { label: 'Errore o non risposta', value: '0', tone: 'neutral' },
     ],
-    note: 'La squadra sceglie la categoria: conta conoscere il tema, non correre.',
+    note: 'Otto domande flash sulla categoria votata: il podio del bonus premia i primi tre.',
   },
   SCOMMESSA: {
     title: 'LA SCOMMESSA',

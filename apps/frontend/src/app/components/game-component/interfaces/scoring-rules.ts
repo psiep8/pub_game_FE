@@ -69,12 +69,6 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     missed: 'gol per l’avversario',
     note: 'Il set si chiude a 7 gol; il perdente riceve +200 di consolazione. Risposte rapide accorciano il tempo dell’avversario.',
   },
-  CAVALLO: {
-    correct: '+100 a risposta; +50 alla prima esatta della manche',
-    wrong: '0',
-    missed: '0',
-    note: 'Otto domande flash sulla categoria scelta dalla squadra: conta rispondere, non correre.',
-  },
   SCOMMESSA: {
     correct: '+banca incassata (100 → 400 → 800)',
     wrong: '0: la banca si brucia',
@@ -102,6 +96,12 @@ export const BONUS_SCORING: Record<string, ScoringRule> = {
     wrong: '0',
     missed: '0',
     note: '30 secondi di tiri; il punteggio del canestro decide il podio bonus.',
+  },
+  BONUS_CAVALLO: {
+    correct: '+300 / +150 / +75 ai primi tre',
+    wrong: '0',
+    missed: '0',
+    note: 'Otto domande flash sulla categoria votata dai telefoni; il podio del bonus premia i primi tre.',
   },
 };
 
