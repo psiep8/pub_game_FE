@@ -92,8 +92,9 @@ export class RoundManagerService {
    * Bonus previsto dopo l'atto appena concluso, se esiste.
    *
    * Dopo l'atto 1 la roulette colorata, dopo il 2 il Basket, dopo il 3 il
-   * Cavallo di Battaglia (tornato bonus) e dopo il 4 il Black Jack. Dopo il
-   * quinto atto non c'è bonus: si chiude con la classifica finale.
+   * Cavallo di Battaglia e dopo il 4 le Biglie: il Black Jack è diventato un
+   * round, quindi il suo vecchio bonus non ha più un posto. Dopo il quinto
+   * atto non c'è bonus: si chiude con la classifica finale.
    */
   bonusAfterAct(): BonusType | null {
     switch (this.getCurrentAct()) {
@@ -104,7 +105,7 @@ export class RoundManagerService {
       case 2:
         return 'CAVALLO';
       case 3:
-        return 'BLACKJACK';
+        return 'BIGLIE';
       default:
         return null;
     }

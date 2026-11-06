@@ -99,7 +99,7 @@ describe('RoundManagerService', () => {
       'ROULETTE_COLORATA',
       'BASKET',
       'CAVALLO',
-      'BLACKJACK',
+      'BIGLIE',
       null,
     ];
 

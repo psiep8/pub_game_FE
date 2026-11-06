@@ -160,7 +160,7 @@ I bonus **non consumano un round**: si giocano dopo la classifica di fine atto, 
 | 1 | Roulette (colorata + numerata, due manche) | Colorata e numerata esistono come bonus separati: da unire |
 | 2 | Basket (3 manche, premio a scaletta) | Esiste come bonus, 30 s di tiri liberi: da portare a 3 manche |
 | 3 | Cavallo di battaglia (categoria scelta da ogni squadra) | Ricollegato ai bonus: parte dopo l'atto 3 o dall'admin |
-| 4 | Blackjack a turni contro il banco (TV) | Tipo `BLACKJACK` presente: da verificare |
+| 4 | Biglie: quattro gare (terra, asfalto, neve, acqua), una biglia per tavolo | Implementato in `BiglieBonus`: scelta unica in ordine sorteggiato, 150/100/60/30 a gara |
 
 Premi dei bonus: punti al podio (+300, +150, +75) più i premi fisici (consumazione) decisi con il locale. Rimane da controllare che i pari merito non dipendano dall'ordine di risposta.
 

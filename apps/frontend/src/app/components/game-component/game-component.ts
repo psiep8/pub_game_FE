@@ -54,6 +54,7 @@ import { BonusType, BONUS_LABELS } from './interfaces/bonus-type';
 import { CasinoBonus } from '../bonus/casino-bonus/casino-bonus';
 import { CavalloBonus } from '../bonus/cavallo-bonus/cavallo-bonus';
 import { BasketBonusStage } from '../bonus/basket-bonus-stage/basket-bonus-stage';
+import { BiglieBonus } from '../bonus/biglie-bonus/biglie-bonus';
 
 @Component({
   selector: 'app-game-component',
@@ -78,7 +79,8 @@ import { BasketBonusStage } from '../bonus/basket-bonus-stage/basket-bonus-stage
     Blackjack,
     CasinoBonus,
     CavalloBonus,
-    BasketBonusStage
+    BasketBonusStage,
+    BiglieBonus
   ],
   templateUrl: './game-component.html',
   styleUrls: ['./game-component.css', './restyle.css'],
@@ -153,15 +155,11 @@ export class GameComponent implements OnInit, OnDestroy {
     return this.allCategories().find((cat) => cat.id === id)?.name ?? '';
   });
 
-  /** Manche del bonus Casino: 1 colori, 2 numeri, 3 Black Jack. */
+  /** Manche del bonus Casino: 1 colori, 2 numeri. Il Black Jack è un round. */
   casinoVariant = computed(() => {
     switch (this.bonusType()) {
-      case 'ROULETTE_COLORATA':
-        return 1;
       case 'ROULETTE_NUMERATA':
         return 2;
-      case 'BLACKJACK':
-        return 3;
       default:
         return 1;
     }
@@ -1103,6 +1101,20 @@ export class GameComponent implements OnInit, OnDestroy {
       this.ws.broadcastStatus(this.currentGameId(), {
         action: 'SHOW_QUESTION',
         type: 'BONUS_CAVALLO',
+        payload: publicPayload,
+        rawPayload: publicPayload,
+      });
+      return;
+    }
+
+    // Le Biglie hanno una schermata TV dedicata che parla con i telefoni
+    // tramite BIGLIE_STATE: la scelta della biglia è unica e in ordine
+    // sorteggiato, quindi non può passare dal flusso delle domande.
+    if (type === 'BIGLIE') {
+      const publicPayload = JSON.stringify({ type: 'BONUS_BIGLIE', question: BONUS_LABELS[type] });
+      this.ws.broadcastStatus(this.currentGameId(), {
+        action: 'SHOW_QUESTION',
+        type: 'BONUS_BIGLIE',
         payload: publicPayload,
         rawPayload: publicPayload,
       });

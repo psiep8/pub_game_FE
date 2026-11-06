@@ -111,6 +111,15 @@ import { ConnectionBadge } from '../connection-badge/connection-badge';
     .casino-hit { background: #fbbf24; color: #111827; }
     .casino-stand { background: rgba(255,255,255,.16); color: #fff; }
     .cavallo-categories { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 56vh; overflow: auto; }
+    .biglie-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 8px; background: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); }
+    .biglie-card.picked { background: var(--acid); }
+    .biglie-card:disabled { opacity: .5; }
+    .biglie-dot { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--coal); font-size: 1rem; }
+    .biglie-prof { font-size: .58rem; letter-spacing: .06em; opacity: .6; }
+    .biglie-mine { display: flex; flex-direction: column; gap: 10px; padding: 14px; background: var(--paper-hi); border: 2px solid var(--coal); }
+    .biglie-head { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 1rem; }
+    .biglie-bar { height: 16px; background: rgba(30, 25, 20, .12); border: 2px solid var(--coal); overflow: hidden; }
+    .biglie-fill { height: 100%; transition: width .2s linear; }
     .cavallo-category { padding: 12px 10px; border-radius: 12px; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: #fff; font-size: .8rem; font-weight: 700; text-align: left; }
     .cavallo-category.picked { border-color: #f59e0b; background: rgba(245,158,11,.25); }
     .cavallo-question { margin: 0; font-size: 1.02rem; font-weight: 800; line-height: 1.3; }
@@ -146,7 +155,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR' | 'BUZZ_OUT' | 'ELIMINATED'>('WAITING');
-  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'CAVALLO' | 'SCOMMESSA' | 'QUOTA' | 'BLACKJACK' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO'>('QUIZ');
+  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'CAVALLO' | 'SCOMMESSA' | 'QUOTA' | 'BLACKJACK' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO' | 'BONUS_BIGLIE'>('QUIZ');
   hasAnswered = signal(false);
   /** Ultima risposta toccata: solo promemoria visivo, l'esito lo decide il server. */
   selectedAnswer = signal<number | null>(null);
@@ -206,9 +215,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
   cavalloState = signal<any>(null);
   cavalloChoice = signal<string | null>(null);
   cavalloCategory = signal<string | null>(null);
+  biglieState = signal<any>(null);
+  biglieChoice = signal<string | null>(null);
   private casinoKey = '';
   private blackjackKey = '';
   private cavalloKey = '';
+  private biglieKey = '';
   private bombaPoll?: ReturnType<typeof setInterval>;
   private bombaPollBusy = false;
   private bombaStarted = false;
@@ -326,6 +338,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           }
           if (status.type === 'BONUS_BASKET'
               || status.type === 'BONUS_CASINO' || status.type === 'BONUS_CAVALLO'
+              || status.type === 'BONUS_BIGLIE'
               || status.type === 'SCOMMESSA' || status.type === 'QUOTA' || status.type === 'CAVALLO'
               || status.type === 'BLACKJACK') {
             this.gameState.set('VOTING');
@@ -379,6 +392,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.applyBlackjackState(status.state);
           break;
 
+        case 'BIGLIE_STATE':
+          this.applyBiglieState(status.state);
+          break;
+
         case 'AIR_HOCKEY_BATTLE_STATE':
           this.handleAirHockeyBattleState(status);
           break;
@@ -388,6 +405,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.gameState.set('WAITING');
           this.casinoState.set(null);
           this.cavalloState.set(null);
+          this.biglieState.set(null);
+          this.biglieChoice.set(null);
           this.quotaState.set(null);
           this.casinoChoice.set(null);
           this.cavalloChoice.set(null);
@@ -422,6 +441,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.bombaFirstState = true;
           this.casinoState.set(null);
           this.cavalloState.set(null);
+          this.biglieState.set(null);
+          this.biglieChoice.set(null);
           this.quotaState.set(null);
           this.casinoChoice.set(null);
           this.cavalloChoice.set(null);
@@ -777,6 +798,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
     } else if (type === 'BONUS_CASINO') {
       this.casinoState.set(null);
       this.casinoChoice.set(null);
+    } else if (type === 'BONUS_BIGLIE') {
+      this.biglieState.set(null);
+      this.biglieChoice.set(null);
+      this.biglieKey = '';
     } else if (type === 'BONUS_CAVALLO' || type === 'CAVALLO') {
       // Il Cavallo gioca la stessa schermata in round e in bonus: la TV manda
       // CAVALLO_STATE, quindi qui basta azzerare lo stato della sfida.
@@ -831,6 +856,58 @@ export class RemoteComponent implements OnInit, OnDestroy {
       if (state.phase === 'CATEGORY') this.cavalloCategory.set(null);
     }
     this.gameState.set(state.phase === 'FINALE' ? 'WAITING' : 'VOTING');
+  }
+
+  private applyBiglieState(state: any): void {
+    if (!state) return;
+
+    this.biglieState.set(state);
+    this.questionType.set('BONUS_BIGLIE');
+    // Ogni turno di scelta è un momento nuovo: la vecchia scelta va scartata.
+    const key = `${state.phase}:${state.raceIndex ?? 0}:${state.currentPlayer ?? ''}`;
+    if (key !== this.biglieKey) {
+      this.biglieKey = key;
+      this.biglieChoice.set(null);
+    }
+    this.gameState.set(state.phase === 'FINALE' ? 'WAITING' : 'VOTING');
+  }
+
+  bigliePick(marbleId: string): void {
+    const player = this.nickname();
+    const state = this.biglieState();
+    if (!player || !state || this.biglieChoice() !== null) return;
+    if (state.phase !== 'PICK' || state.currentPlayer !== player) return;
+
+    const marble = (state.marbles ?? []).find((entry: any) => entry.id === marbleId && !entry.owner);
+    if (!marble) return;
+
+    this.biglieChoice.set(marbleId);
+    this.ws.broadcastStatus(this.gameId(), {
+      action: 'BIGLIE_ACTION',
+      playerName: player,
+      kind: 'PICK',
+      value: marbleId,
+    });
+    this.vibrate(30);
+  }
+
+  biglieMyLane(): any {
+    const player = this.nickname();
+    return (this.biglieState()?.lanes ?? []).find((lane: any) => lane.playerName === player) ?? null;
+  }
+
+  biglieMyMarble(): any {
+    const marbleId = this.biglieMyLane()?.marbleId;
+    return (this.biglieState()?.marbles ?? []).find((marble: any) => marble.id === marbleId) ?? null;
+  }
+
+  biglieMyRow(): any {
+    const player = this.nickname();
+    return (this.biglieState()?.standings ?? []).find((row: any) => row.playerName === player) ?? null;
+  }
+
+  bigliePct(): number {
+    return Math.round(Number(this.biglieMyLane()?.progress ?? 0));
   }
 
   private applyScommessaState(state: any): void {

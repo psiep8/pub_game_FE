@@ -316,6 +316,57 @@
       }
     </div>
     }
+    @case ('BONUS_BIGLIE') {
+    <div class="bonus-remote">
+      <div class="game-head">
+        <span class="game-tag buzz">🎱 BIGLIE</span>
+        <span class="game-tip">Gara {{ (biglieState()?.raceIndex ?? 0) + 1 }}/{{ biglieState()?.races ?? 4 }} · {{ biglieState()?.track?.surface || 'Scelta' }}</span>
+      </div>
+
+      @if (biglieState()?.phase === 'PICK') {
+      @if (biglieState()?.currentPlayer === nickname()) {
+      <p class="party-instruction">Scegli la tua biglia: una a testa, e non si cambia più.</p>
+      <div class="cavallo-categories">
+        @for (marble of biglieState()?.marbles ?? []; track marble.id) {
+        @if (!marble.owner) {
+        <button class="biglie-card" [class.picked]="biglieChoice() === marble.id" [disabled]="biglieChoice() !== null" (click)="bigliePick(marble.id)">
+          <span class="biglie-dot" [style.background]="marble.color">{{ marble.emoji }}</span>
+          <b>{{ marble.name }}</b>
+          <span class="biglie-prof">V{{ marble.speed }} · A{{ marble.accel }} · T{{ marble.grip }}</span>
+        </button>
+        }
+        }
+      </div>
+      @if (biglieChoice() !== null) {
+      <p class="buzz-hint">Scelta inviata. Attendi gli altri tavoli.</p>
+      }
+      } @else {
+      <div class="status-msg">
+        <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🎱</div></div>
+        <p>Sceglie {{ biglieState()?.currentPlayer }}</p>
+      </div>
+      }
+      } @else if (biglieState()?.phase === 'RACE') {
+      <div class="biglie-mine">
+        <div class="biglie-head">
+          <span class="biglie-dot" [style.background]="biglieMyMarble()?.color">{{ biglieMyMarble()?.emoji }}</span>
+          <b>{{ biglieMyMarble()?.name || '—' }}</b>
+        </div>
+        <div class="biglie-bar">
+          <div class="biglie-fill" [style.width.%]="biglieMyLane()?.progress ?? 0" [style.background]="biglieMyMarble()?.color"></div>
+        </div>
+        <p class="buzz-hint">Posizione {{ biglieMyLane()?.position || '—' }} · {{ bigliePct() }}%</p>
+      </div>
+      } @else {
+      <div class="status-msg">
+        <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🎱</div></div>
+        <p>{{ biglieState()?.phase === 'FINALE' ? 'Classifica finale in TV' : 'Prossima gara in arrivo' }}</p>
+      </div>
+      }
+
+      <p class="buzz-hint">Totale bonus: {{ biglieMyRow()?.total ?? 0 }} punti</p>
+    </div>
+    }
     @case ('BONUS_CAVALLO') {
     <div class="bonus-remote">
       <div class="game-head"><span class="game-tag buzz">🐎 CAVALLO</span><span class="game-tip">{{ cavalloState()?.chosenCategory || 'Scegli la categoria' }}</span></div>

@@ -115,6 +115,12 @@ export const BONUS_SCORING: Record<string, ScoringRule> = {
     missed: '0',
     note: 'Otto domande flash sulla categoria votata dai telefoni; il podio del bonus premia i primi tre.',
   },
+  BONUS_BIGLIE: {
+    correct: '+150 / +100 / +60 / +30 a gara',
+    wrong: '0',
+    missed: '0',
+    note: 'Quattro gare su fondi diversi, punti cumulativi: una biglia per tavolo scelta una volta sola.',
+  },
 };
 
 export function scoringRuleFor(type: string | null | undefined): ScoringRule | null {

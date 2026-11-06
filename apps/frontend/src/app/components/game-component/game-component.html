@@ -228,11 +228,10 @@
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
     }
-    @case ('BLACKJACK') {
-      <app-casino-bonus
+    @case ('BIGLIE') {
+      <app-biglie-bonus
         [gameId]="currentGameId()"
         [players]="bonusPlayers()"
-        [variant]="3"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
     }

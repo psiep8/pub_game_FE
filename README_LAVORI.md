@@ -10,7 +10,7 @@ Ultimo commit: 6 novembre — scaletta a 5 atti, Cavallo tornato bonus, Scommess
 ### Scaletta: il Cavallo torna bonus, dentro Quiz e Time Buzzer
 - `ACT_DECKS` aggiornata come da descrizione: il Cavallo non è più un round, al suo posto l'atto 1 chiude con un Quiz e l'atto 5 usa il Time Buzzer.
 - Quota non è ancora implementata: il sesto round dell'atto 2 resta la Bomba finché la modalità non esiste.
-- `BonusType` contiene di nuovo `CAVALLO`, che si gioca dopo l'atto 3; restano Roulette Colorata, Basket e Black Jack.
+- `BonusType` contiene `CAVALLO` (atto 3) e `BIGLIE` (atto 4); restano Roulette Colorata, Roulette Numerata e Basket. Il Black Jack non è più un bonus: è diventato un round a turni.
 
 | Atto | Round | Sequenza |
 | --- | --- | --- |
@@ -26,11 +26,17 @@ Ultimo commit: 6 novembre — scaletta a 5 atti, Cavallo tornato bonus, Scommess
 | --- | --- |
 | 1 | Roulette Colorata |
 | 2 | Basket |
-| 3 | Roulette Numerata |
-| 4 | Black Jack |
+| 3 | Cavallo di Battaglia |
+| 4 | Biglie |
 | 5 | nessuno, classifica finale |
 
-`CasinoBonus` ha un input `variant` (1/2/3) e fa girare **una sola manche**, non più le tre in sequenza. L'admin ha i pulsanti separati, più quello del Cavallo.
+`CasinoBonus` ha un input `variant` (1/2/3) e fa girare **una sola manche**, non più le tre in sequenza. La numerata resta un bonus manuale dall'admin, il Black Jack (`variant` 3) non è più raggiungibile dalla serata perché è diventato un round.
+
+### Bonus biglie (atto 4)
+- Nuovo `bonus/biglie-bonus/biglie-bonus.ts` (classe `BiglieBonus`, selector `app-biglie-bonus`): quattro gare su terra, asfalto, neve e acqua.
+- Una biglia per tavolo, tutte diverse. La scelta si fa una volta sola in ordine sorteggiato, 10 s per tavolo; allo scadere il sistema assegna la prima biglia libera.
+- Punti cumulativi 150 / 100 / 60 / 30 a gara (massimo 600). Ogni biglia ha un profilo velocità / accelerazione / tenuta e ogni fondo ne premia uno diverso, quindi nessuna biglia domina tutte e quattro le gare.
+- TV su `BIGLIE_STATE`, telefono su `BIGLIE_ACTION`. Parte da solo dopo l'atto 4 o dal pulsante `BONUS BIGLIE` in admin.
 
 ### Cavallo di Battaglia torna bonus
 - Ripristinato `bonus/cavallo-bonus/cavallo-bonus.ts` (classe `CavalloBonus`, selector `app-cavallo-bonus`): categoria votata dai telefoni, otto domande, podio bonus.
