@@ -166,6 +166,45 @@ export class AudioService {
     this.revealAudio.play().catch(() => {});
   }
 
+  /**
+   * Tick della pallina sui separatori della roulette: partono fitti e
+   * rallentano fino al fermo, con un tonfo quando la pallina scende sul rotore.
+   */
+  playRouletteTicks(durationMs = 6750): void {
+    if (!this.audioEnabled()) return;
+    if (!this.ensureContext()) return;
+
+    let elapsed = 0;
+    while (elapsed < durationMs - 120) {
+      const progress = elapsed / durationMs;
+      this.tone({
+        freq: 1680 - progress * 520,
+        duration: 0.026,
+        type: 'triangle',
+        gain: 0.03 * (1 - progress * 0.45),
+        delay: elapsed / 1000,
+      });
+      elapsed += 26 + Math.pow(progress, 2.4) * 340;
+    }
+
+    this.tone({
+      freq: 92,
+      duration: 0.22,
+      type: 'sine',
+      gain: 0.055,
+      delay: (durationMs * 0.29) / 1000,
+    });
+  }
+
+  /** Atterraggio della roulette: tonfo grave e accento luminoso. */
+  playRouletteLanding(): void {
+    if (!this.audioEnabled()) return;
+    this.tone({ freq: 120, duration: 0.32, type: 'sine', gain: 0.075, slideTo: 58 });
+    this.tone({ freq: 1046.5, duration: 0.16, type: 'triangle', gain: 0.04, delay: 0.02 });
+    this.chord([523.25, 659.25, 783.99], 0.75, 0.06);
+    this.tone({ freq: 1567.98, duration: 0.42, type: 'sine', gain: 0.032, delay: 0.16 });
+  }
+
   /** Nuova squadra collegata: bip luminoso a due note. */
   playJoin(): void {
     this.tone({ freq: 659.25, duration: 0.12, type: 'sine', gain: 0.06 });

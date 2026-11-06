@@ -122,6 +122,16 @@
   letter-spacing: 8px;
 }
 
+.showcase-avatar {
+  width: clamp(90px, 13vh, 140px);
+  height: clamp(90px, 13vh, 140px);
+  border: 4px solid var(--coal, #15150f);
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 5px 5px 0 var(--tomato, #e0472f);
+  background: rgba(0, 0, 0, .12);
+}
+
 .player-name-massive {
   font-size: 80px;
   font-weight: 900;

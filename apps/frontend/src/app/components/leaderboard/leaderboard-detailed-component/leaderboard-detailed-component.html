@@ -43,6 +43,10 @@
         }
       </div>
 
+      @if (avatars.avatarFor(player.playerName); as avatar) {
+        <img class="showcase-avatar" [src]="avatar" alt="">
+      }
+
       <div class="player-name-massive"
            [class.top3]="player.position <= 3">
         {{ player.playerName }}

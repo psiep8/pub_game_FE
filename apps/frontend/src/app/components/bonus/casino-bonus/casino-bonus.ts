@@ -14,6 +14,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WebSocketService } from '../../../services/web-socket.service';
+import { AudioService } from '../../../services/audio.service';
 
 type Phase = 'INTRO' | 'PICK' | 'SPIN' | 'RESPIN' | 'REVEAL' | 'FINALE';
 
@@ -624,6 +625,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
   @Output() finished = new EventEmitter<void>();
 
   private ws = inject(WebSocketService);
+  private audio = inject(AudioService);
   private destroyRef = inject(DestroyRef);
 
   readonly manches = MANCHES;
@@ -769,7 +771,9 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.phase.set('SPIN');
     this.secondsLeft.set(0);
     this.publish();
+    this.audio.playRouletteTicks(SPIN_MS);
     await this.animateWheel(number);
+    this.audio.playRouletteLanding();
   }
 
   private pause(ms: number): Promise<void> {

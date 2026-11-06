@@ -1,4 +1,5 @@
-import { Component, inject, OnDestroy, OnInit, signal, HostListener, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, OnDestroy, OnInit, signal, HostListener, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { WebSocketService } from '../../services/web-socket.service';
 import { FormsModule } from '@angular/forms';
@@ -7,6 +8,7 @@ import { filter } from 'rxjs/operators';
 import { GameService } from '../../services/game.service';
 import { ThemeService } from '../../services/theme.service';
 import { ReliabilityService } from '../../services/reliability.service';
+import { PlayerAvatarService } from '../../services/player-avatar.service';
 import { ConnectionBadge } from '../connection-badge/connection-badge';
 
 @Component({
@@ -148,6 +150,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   public ws = inject(WebSocketService);
   readonly reliability = inject(ReliabilityService);
+  readonly playerAvatars = inject(PlayerAvatarService);
+  private destroyRef = inject(DestroyRef);
   private gameService = inject(GameService);
   private swUpdate = inject(SwUpdate);
   public theme = inject(ThemeService);
@@ -156,6 +160,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   nickname = signal<string | null>(localStorage.getItem('nickname'));
   tempNickname = '';
+  avatarPreview = signal<string | null>(null);
+  private pendingAvatar: string | null = null;
   startTime: number = 0;
 
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR' | 'BUZZ_OUT' | 'ELIMINATED'>('WAITING');
@@ -301,6 +307,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.playerAvatars.connect(this.ws);
     this.setupPWA();
     this.checkForUpdates();
 
@@ -319,14 +326,21 @@ export class RemoteComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Se il giocatore è già loggato, notifico la TV
+    // Se il giocatore è già loggato, notifico la TV e rimando l'avatar.
     if (this.nickname()) {
+      this.avatarPreview.set(this.playerAvatars.avatarFor(this.nickname()!));
       setTimeout(() => {
         if (this.ws.connected()) {
           this.ws.broadcastStatus(1, { action: 'JOIN_GAME', playerName: this.nickname() });
+          this.playerAvatars.publish(this.nickname()!, this.gameId());
         }
       }, 2000);
     }
+
+    this.ws.connectedAt$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      const name = this.nickname();
+      if (name) this.playerAvatars.publish(name, this.gameId());
+    });
 
     this.ws.status$.subscribe((status: any) => {
       if (!status) return;
@@ -750,7 +764,68 @@ export class RemoteComponent implements OnInit, OnDestroy {
         action: 'JOIN_GAME',
         playerName: this.tempNickname
       });
+
+      this.applyAvatar(this.tempNickname, this.pendingAvatar);
+      this.pendingAvatar = null;
     }
+  }
+
+  private applyAvatar(
+    name: string,
+    avatar: string | null = this.playerAvatars.avatarFor(name),
+  ): void {
+    if (!avatar) return;
+    this.playerAvatars.setAvatar(name, avatar);
+    this.avatarPreview.set(avatar);
+    this.playerAvatars.publish(name, this.gameId());
+  }
+
+  onAvatarFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    this.resizeAvatar(file)
+      .then((avatar) => {
+        this.avatarPreview.set(avatar);
+        const name = this.nickname()?.trim();
+        if (name) this.applyAvatar(name, avatar);
+        else this.pendingAvatar = avatar;
+      })
+      .catch(() => {
+        // File illeggibile o canvas bloccato: si resta senza avatar.
+      });
+  }
+
+  /** Ritaglia al centro e comprime: la foto viaggia nel WebSocket, deve restare leggera. */
+  private resizeAvatar(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('read'));
+      reader.onload = () => {
+        const image = new Image();
+        image.onerror = () => reject(new Error('image'));
+        image.onload = () => {
+          const size = 192;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('canvas'));
+            return;
+          }
+          const side = Math.min(image.width, image.height);
+          const sx = (image.width - side) / 2;
+          const sy = (image.height - side) / 2;
+          ctx.drawImage(image, sx, sy, side, side, 0, 0, size, size);
+          resolve(canvas.toDataURL('image/jpeg', 0.72));
+        };
+        image.src = String(reader.result);
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
   sendVote(index: number) {

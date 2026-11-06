@@ -5,6 +5,7 @@ import {CommonModule} from '@angular/common';
 import {trigger, transition, style, animate, keyframes} from '@angular/animations';
 import {LeaderboardService, PlayerScore} from '../../../services/leaderboard.service';
 import {AudioService} from '../../../services/audio.service';
+import {PlayerAvatarService} from '../../../services/player-avatar.service';
 
 @Component({
   selector: 'app-leaderboard-detailed',
@@ -41,6 +42,7 @@ import {AudioService} from '../../../services/audio.service';
 export class LeaderboardDetailed implements OnInit {
   private leaderboard = inject(LeaderboardService);
   private audio = inject(AudioService);
+  readonly avatars = inject(PlayerAvatarService);
 
   @Output() onComplete = new EventEmitter<void>();
 

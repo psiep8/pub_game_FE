@@ -18,7 +18,12 @@
           {{ player.position }}
         </div>
 
-        <div class="player-name">{{ player.playerName }}</div>
+        <div class="player-name">
+          @if (avatars.avatarFor(player.playerName); as avatar) {
+            <img class="player-avatar" [src]="avatar" alt="">
+          }
+          <span>{{ player.playerName }}</span>
+        </div>
 
         <div class="player-points">
           <span class="points-value">{{ player.totalPoints }}</span>

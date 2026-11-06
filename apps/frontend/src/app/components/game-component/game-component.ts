@@ -27,6 +27,7 @@ import { GameModeService } from '../../services/game-mode-factory.service';
 import { RoundManagerService } from '../../services/round-manager.service';
 import { LeaderboardService } from '../../services/leaderboard.service';
 import { AudioService } from '../../services/audio.service';
+import { PlayerAvatarService } from '../../services/player-avatar.service';
 import { ThemeService } from '../../services/theme.service';
 import { ReliabilityService } from '../../services/reliability.service';
 import { ConnectionBadge } from '../connection-badge/connection-badge';
@@ -106,6 +107,8 @@ export class GameComponent implements OnInit, OnDestroy {
   private leaderboardService = inject(LeaderboardService);
   public audioService = inject(AudioService);
   public theme = inject(ThemeService);
+  // La TV tiene vivo il canale avatar per tutta la serata, non solo in classifica.
+  readonly playerAvatars = inject(PlayerAvatarService);
 
 
   allCategories = signal<any[]>([]);
@@ -253,6 +256,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    this.playerAvatars.connect(this.ws);
     try {
       const cats = await firstValueFrom(this.gameService.getCategories());
       const positioned = this.generateNonOverlappingPositions(cats);
@@ -713,8 +717,6 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'SPEED RUSH';
       case 'AIR_HOCKEY_BATTLE':
         return 'AIR HOCKEY BATTLE';
-      case 'BONUS_ROULETTE':
-        return 'BONUS ROULETTE';
       case 'BONUS_BASKET':
         return 'BONUS BASKET';
       default:

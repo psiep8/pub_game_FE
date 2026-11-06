@@ -185,10 +185,10 @@ Stile e tema restano quelli di ieri: cambia solo il movimento. Tutto vive in
    - Cavallo bonus: voto categoria, otto domande, podio +300/+150/+75;
    - Quota: fasce, gettoni, quote e cecchino;
    - Scommessa: gettoni, tre domande, banca che raddoppia e scelta INCASSA/RISCHIA;
-   - bonus spalmato: una manche per atto, mai tre di fila;
+   - Casino: quattro manche in un solo bonus, dopo l'atto 1;
    - pausa, classifica, demo e auto-avanzamento come prima.
 2. **Ruota**: separare la fase di lancio dalla rivelazione (oggi le lettere si aprono durante il timer).
-3. **Altri 2 giochi bonus** (Memory, Tap/Swipe) se il Casino spalmato non basta.
+3. **Altri 2 giochi bonus** (Memory, Tap/Swipe) se i quattro bonus non bastano.
 4. **Quota**: QA dal vivo di fasce, gettoni e quote.
 
 ---
@@ -288,7 +288,7 @@ Verifiche del 6 novembre:
   (`LeaderboardDetailed` spotlight dopo 9 s, `Song` etichetta fase 1); i test Roulette sono
   stati rimossi insieme al round.
 - `RoundManagerService`: 13 test verdi, inclusi scaletta variata, Cavallo fuori dai round
-  con bonus dopo l'atto 3, Scommessa e Quota una volta, bonus spalmato sui quattro atti.
+  con bonus dopo l'atto 3, Scommessa e Quota una volta, Casino in quattro manche dopo l'atto 1.
 - Quota: build e test verdi; la banca numerica ha 34 domande in `QuestionBankService`.
 - Nessun test dal vivo: Cavallo bonus e Scommessa sono compilati ma **non osservati in esecuzione**.
 

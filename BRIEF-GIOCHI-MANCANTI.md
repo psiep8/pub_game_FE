@@ -2,7 +2,7 @@
 
 > **Aggiornamento 5/11:** le demo sono state realizzate come tre scene animate in TV (interfaccia TV, remote e punteggio) per ogni gioco e per i bonus; gli mp4 non sono più necessari. La specifica storica sotto resta come riferimento.
 >
-> **Aggiornamento 6/11:** la scaletta a 40 round è cambiata e le sezioni §1.1 e §3.3 sono superate. Time Buzzer è un round vero, il Cavallo è tornato bonus, il Casino è spalmato in tre bonus, e c'è un round nuovo (La Scommessa). Lo stato aggiornato è in `README_LAVORI.md`.
+> **Aggiornamento 6/11:** la scaletta a 40 round è cambiata e le sezioni §1.1 e §3.3 sono superate. Time Buzzer è un round vero, il Cavallo è tornato bonus, il Casino è un bonus unico in quattro manche, e c'è un round nuovo (La Scommessa). Lo stato aggiornato è in `README_LAVORI.md`.
 
 > **A chi è rivolto:** a un agente di coding con ragionamento alto, che lavora sul repository `pub_game` senza aver visto la conversazione da cui nasce questo documento. È autoportante.
 >

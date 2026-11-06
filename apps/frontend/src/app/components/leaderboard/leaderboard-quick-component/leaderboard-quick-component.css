@@ -101,10 +101,30 @@
 }
 
 .player-name {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
   font-size: 42px;
   font-weight: 800;
   color: white;
   letter-spacing: 2px;
+}
+
+.player-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-avatar {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  border: 3px solid currentColor;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(255, 255, 255, .2);
 }
 
 .player-row.top3 .player-name {

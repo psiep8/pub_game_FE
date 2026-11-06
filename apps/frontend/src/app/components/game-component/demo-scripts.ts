@@ -179,18 +179,6 @@ export const DEMO_SCRIPTS: Record<string, DemoScript> = {
     ],
     note: 'Non conta solo sapere: conta quando fermarsi. È il round del coraggio.',
   },
-  BONUS_ROULETTE: {
-    title: 'BONUS ROULETTE',
-    icon: '🎰',
-    tv: ['Overlay bonus a tutto schermo', 'Il colore vincente resta in TV', 'Premi ai primi tre'],
-    remote: ['Scegli un colore', 'Nessun round consumato', 'Il risultato entra in classifica'],
-    scoring: [
-      { label: '1° / 2° / 3°', value: '+300 / +150 / +75', tone: 'good' },
-      { label: 'Colore sbagliato', value: '0', tone: 'neutral' },
-      { label: 'Non risposta', value: '0', tone: 'neutral' },
-    ],
-    note: 'Bonus di intervallo: la serata riparte senza consumare un round della scaletta.',
-  },
   BONUS_BASKET: {
     title: 'BONUS BASKET',
     icon: '🏀',

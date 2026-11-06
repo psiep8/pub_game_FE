@@ -62,6 +62,24 @@
     <h1>PUB GAME</h1>
     <p>Come ti chiami stasera?</p>
     <input [(ngModel)]="tempNickname" placeholder="Il tuo nickname" (keyup.enter)="setNickname()">
+
+    <input #cameraInput type="file" accept="image/*" capture="user" hidden (change)="onAvatarFile($event)">
+    <input #galleryInput type="file" accept="image/*" hidden (change)="onAvatarFile($event)">
+    <div class="avatar-pick">
+      <div class="avatar-preview">
+        @if (avatarPreview(); as avatar) {
+        <img [src]="avatar" alt="Avatar squadra">
+        } @else {
+        <span>📷</span>
+        }
+      </div>
+      <div class="avatar-actions">
+        <button type="button" class="avatar-btn" (click)="cameraInput.click()">📸 SCATTA</button>
+        <button type="button" class="avatar-btn" (click)="galleryInput.click()">🖼️ GALLERIA</button>
+        <span class="avatar-hint">La foto della squadra, per riconoscervi tutta la sera</span>
+      </div>
+    </div>
+
     <button (click)="setNickname()" class="join-btn">ENTRA IN PARTITA</button>
     <div class="setup-foot">4 squadre · 40 round · 1 TV</div>
   </div>
@@ -70,7 +88,11 @@
   <div class="header">
     <div class="brand-mini"><span class="brand-dot"></span> PUB GAME</div>
     <div class="player-info">
+      @if (avatarPreview()) {
+      <img class="player-avatar avatar-photo" [src]="avatarPreview()!" alt="Avatar squadra">
+      } @else {
       <span class="player-avatar">{{ nickname()?.charAt(0) }}</span>
+      }
       <b>{{ nickname() }}</b>
     </div>
     <button class="header-theme-btn" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">

@@ -29,7 +29,7 @@ describe('Song', () => {
     expect(component.getPhaseLabel()).toBe('In attesa...');
 
     component.currentPhase.set(1);
-    expect(component.getPhaseLabel()).toContain('telefono');
+    expect(component.getPhaseLabel()).toContain('Irriconoscibile');
     expect(component.getPhaseColor()).toBe('#e74c3c');
 
     component.currentPhase.set(4);

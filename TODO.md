@@ -1,6 +1,6 @@
 # Stato del progetto
 
-Ultimo aggiornamento: 4 novembre 2026.
+Ultimo aggiornamento: 6 novembre 2026.
 
 ## ✅ Fatto (backend)
 
@@ -17,8 +17,9 @@ Ultimo aggiornamento: 4 novembre 2026.
       `CelebrityImageService` (chiave Pexels hardcoded); `groq:` tolta dalle config.
 - [x] **Round classico riparato**: `POST /games/{id}/round` rispondeva 500 perché la tabella
       `questions` nasce vuota; ora pesca dalla banca.
-- [x] **9 tipi di gioco verificati**: QUIZ, TRUE_FALSE, CHRONO, IMAGE_BLUR, MUSIC, ROULETTE,
-      WHEEL_OF_FORTUNE, SCREAM_RACE, ARENA.
+- [x] **Tipi di gioco allineati al frontend**: QUIZ, IMAGE_BLUR, MUSIC, WHEEL_OF_FORTUNE,
+      TIMELINE, BOMBA, SPEED_RUSH, AIR_HOCKEY, ARENA, TIME_BUZZER, BLACKJACK, SCOMMESSA,
+      QUOTA. Chrono, Vero/Falso e Roulette non sono più round; il Cavallo è tornato bonus.
 - [x] **Gara di urla per partita**: stato e reset separati per `gameId` (prima due tavoli si
       mescolavano).
 - [x] **WebSocket non rimbalza più l'esito del telefono**: passano solo `playerName`,
@@ -49,10 +50,20 @@ Ultimo aggiornamento: 4 novembre 2026.
       non più calcolato sul telefono.
 - [x] Rimossa la "domanda di riserva" locale: senza `questionId` non si può validare.
 
+## ✅ Fatto (6 novembre)
+
+- [x] Cavallo: TV solo countdown e tabellone continuo; domande sul telefono, 8 × 15 s.
+- [x] Biglie: quattro gare con punti 150 / 100 / 60 / 30, corsa su canvas con fisica,
+      salti, attrito e scie per fondo; il vincitore esce dalla simulazione.
+- [x] Avatar di squadra: foto da fotocamera o galleria, compressa a 192 px e mostrata
+      nelle classifiche in TV.
+- [x] Roulette: tick della pallina che rallentano e accento all'atterraggio.
+
 ## ⏳ In corso / da fare
 
-- [ ] **QA dei round nuovi**: Cavallo (bonus dopo l'atto 3), Scommessa (atto 4), Quota
-      (atto 2) e bonus Casino spalmato su quattro atti. Compilati, mai visti dal vivo.
+- [ ] **QA dei round nuovi**: Cavallo (bonus dopo l'atto 3, 8 domande da 15 s con TV a
+      countdown e tabellone), Scommessa (atto 4), Quota (atto 2) e Casino (quattro manche
+      in un solo bonus, dopo l'atto 1). Compilati, mai visti dal vivo.
 - [ ] **Generare la banca vera sull'altra macchina** (Qwen locale, `--per-category 40`),
       copiare `questions-it.json`, controllare il log d'avvio
       che nessuna categoria abbia il warning, poi lanciare `arena_check.py` e

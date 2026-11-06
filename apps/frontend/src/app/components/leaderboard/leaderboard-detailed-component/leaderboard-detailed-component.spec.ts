@@ -55,10 +55,10 @@ describe('LeaderboardDetailed', () => {
     vi.useFakeTimers();
     create(players);
 
-    await vi.advanceTimersByTimeAsync(9000);
+    await vi.advanceTimersByTimeAsync(3000);
     expect(component.currentPlayer()?.playerName).toBe('Bruno');
 
-    await vi.advanceTimersByTimeAsync(10000);
+    await vi.advanceTimersByTimeAsync(3000);
     expect(component.currentPlayer()?.playerName).toBe('Anna');
   });
 
@@ -66,7 +66,7 @@ describe('LeaderboardDetailed', () => {
     vi.useFakeTimers();
     create(players);
 
-    await vi.advanceTimersByTimeAsync(9000 + 10000 + 12000 + 8000);
+    await vi.advanceTimersByTimeAsync(2600 + 3000 + 3600 + 8000);
 
     expect(onComplete).toHaveBeenCalledTimes(1);
   });

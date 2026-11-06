@@ -22,6 +22,8 @@ conoscere il codice. Le parti in *corsivo* sono suggerimenti, non obblighi.
    ordinabili nel tempo (Storia, Sport, Cinema, Musica…).
 6. Fai un giro di prova: una squadra si collega, invia una risposta, la TV la mostra.
    Se funziona, siete pronti.
+7. Ogni squadra può scattare o caricare una foto dal telefono: l'avatar compare in
+   classifica per tutta la serata.
 
 > *Frase di apertura:* «Benvenuti al PubGame. Da adesso stasera la TV non è più una TV:
 > è il tabellone. Ogni squadra ha un telefono: quello è il vostro pulsante.»
@@ -33,7 +35,7 @@ conoscere il codice. Le parti in *corsivo* sono suggerimenti, non obblighi.
 - La partita dura **40 round**, divisi in **5 atti da 8 round**.
 - Ogni round è **un gioco diverso**: quiz, musica, immagini, timeline, bomba, arena…
 - Le squadre rispondono **dal telefono**; la TV mostra domanda, tempo e classifica.
-- Il **primo round di ogni atto è sempre un Quiz**: serve a scaldare il pubblico.
+- La scaletta mescola i giochi: ogni atto ha un ritmo suo e l'**Arena** chiude l'atto 3 e la serata.
 - Alla fine di ogni atto c'è una **classifica** e, dopo i primi quattro atti, un **bonus**.
 - L'ultimo round del quinto atto è l'**Arena**: tutti insieme, e chi resta in piedi vince.
 
@@ -63,11 +65,11 @@ propria memoria.
 
 | Atto | Round | Giochi in ordine |
 | --- | --- | --- |
-| **1** | 1–8 | Quiz · Musica · Bomba · Indovina chi · Timeline · Ruota della Fortuna · Quiz · Speed Rush |
-| **2** | 9–16 | Quiz · Indovina chi · Timeline · **Arena** · Musica · Bomba · Timeline · Air Hockey |
-| **3** | 17–24 | Quiz · Bomba · Timeline · Speed Rush · Musica · Air Hockey · Ruota della Fortuna · **Arena** |
-| **4** | 25–32 | Quiz · Musica · Bomba · Indovina chi · **Arena** · Timeline · Indovina chi · Speed Rush |
-| **5** | 33–40 | Quiz · Bomba · Timeline · Speed Rush · Musica · Air Hockey · Ruota della Fortuna · **Arena** |
+| **1** | 1–8 | Quiz · Musica · Bomba · Indovina chi · Black Jack · Timeline · Ruota della Fortuna · Speed Rush |
+| **2** | 9–16 | Quota · Quiz · Indovina chi · Black Jack · Musica · Timeline · Time Buzzer · Air Hockey |
+| **3** | 17–24 | Timeline · Black Jack · Musica · Speed Rush · Indovina chi · Quiz · Ruota della Fortuna · **Arena** |
+| **4** | 25–32 | Indovina chi · Quiz · Bomba · Musica · Time Buzzer · Timeline · Scommessa · Speed Rush |
+| **5** | 33–40 | Ruota della Fortuna · Quiz · Bomba · Time Buzzer · Quota · Air Hockey · Musica · **Arena** |
 
 Classifiche:
 
@@ -78,10 +80,10 @@ Bonus, uno dopo ciascuno dei primi quattro atti:
 
 | Dopo l'atto | Bonus |
 | --- | --- |
-| 1 | 🎰 Casino (roulette bonus) |
-| 2 | 🏀 Basket |
+| 1 | 🎰 Casino (quattro manche, roulette vera) |
+| 2 | 🏀 Basket (tre manche) |
 | 3 | 🐎 Cavallo di Battaglia |
-| 4 | ⏱️ Time Buzzer bonus |
+| 4 | 🎱 Biglie (quattro gare) |
 
 Dopo il quinto atto non c'è bonus: si chiude con la classifica finale.
 
@@ -186,35 +188,44 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 Non consumano un round della scaletta: si lanciano dal pannello admin e servono a tenere
 alta l'attenzione dopo la classifica.
 
-### 🎰 Casino — la roulette bonus
+### 🎰 Casino — quattro manche, una roulette vera
 
-- Ogni squadra sceglie un colore dal telefono; la TV estrae il colore vincente.
-- **Punti**: **+300 / +150 / +75** ai primi tre che indovinano. Sbagliare non toglie nulla.
-- *Da dire:* «Qui non serve sapere niente: serve fortuna. È il momento della birra.»
+- Quattro manche a difficoltà crescente: **colore** (2 caselle, 100 punti), **dozzina**
+  (3 caselle, 150), **sestina** (6 caselle, 200), **numero secco** (37 caselle, 300).
+- Ogni manche si chiude con un giro della roulette europea in TV: la pallina parte,
+  rallenta e si ferma sul numero. Sullo zero incassa il banco.
+- Sul numero secco la ruota rigira finché almeno un tavolo ha puntato il numero uscito.
+- **Punti**: +100 / +150 / +200 / +300 a chi indovina la manche. Sbagliare non toglie nulla.
+- *Da dire:* «Qui non serve sapere niente: serve fegato. Più stretta la casella, più alta la posta.»
 
-### 🏀 Basket — trenta secondi di tiri
+### 🏀 Basket — tre manche al canestro
 
 - Pagina `/basket` sul telefono: si trascina indietro la palla e si rilascia per tirare.
-- **Durata**: 30 secondi di gioco, con 40 secondi di countdown in TV (margine per l'ultimo
-  tiro).
-- **Punti**: **+300 / +150 / +75** ai primi tre per numero di canestri.
-- *Da dire:* «Tiri illimitati, trenta secondi. Il canestro non perdona.»
+- **Tre manche da 20 secondi**: canestro grande (+2), medio (+3), piccolo (+5). Il ferro
+  si stringe a ogni manche; chi fa swish senza toccare il ferro prende un punto in più.
+- I punti delle tre manche si sommano e entrano in classifica.
+- *Da dire:* «Il canestro grande è facile ma paga poco: il vero malloppo è nel piccolo.»
 
-### 🐎 Cavallo di Battaglia — otto domande flash
+### 🐎 Cavallo di Battaglia — otto domande, il tabellone in TV
 
-- La squadra sceglie una categoria; arrivano **otto domande difficili** di quella
-  categoria, una dietro l'altra.
-- I telefoni toccano la risposta; la TV valida e mostra il ritmo.
-- *Da dire:* «Avete scelto la vostra categoria: adesso dimostrate di saperne più degli
-  altri, e in fretta.»
+- La squadra sceglie una categoria dal telefono; arrivano **otto domande difficili** di
+  quella categoria, una dietro l'altra, con **15 secondi** per rispondere.
+- Domanda e opzioni stanno **solo sul telefono**. La TV mostra il countdown e il
+  **tabellone del bonus**, sempre in scena: a ogni reveal si riordina e segna i punti.
+- **Punti**: +100 per risposta esatta, +50 alla prima esatta della manche.
+- *Da dire:* «La TV non vi aiuta: la domanda è sul telefono. Guardate il tabellone e
+  correte.»
 
-### ⏱️ Time Buzzer bonus — fermare il cronometro al momento giusto
+### 🎱 Biglie — quattro gare, una biglia per tavolo
 
-- Tre manche con un tempo bersaglio segreto tra 5 e 30 secondi.
-- Il telefono ha un solo pulsante **START/STOP**, senza cronometro visibile.
-- **Punti**: **+300 / +200 / +100 / +50** ai più vicini al bersaglio; chi non preme viene
-  considerato il più lontano ed è eliminato per primo.
-- *Da dire:* «Contate nella testa. Chi non preme affatto parte già sconfitto.»
+- Ogni tavolo sceglie **una biglia** dal telefono, in ordine sorteggiato: la scelta si fa
+  una volta sola e vale per tutte e quattro le gare.
+- I fondi cambiano: **terra, asfalto, neve, acqua**. Ogni biglia ha velocità, accelerazione
+  e tenuta diverse, e ogni fondo premia una qualità.
+- La TV mostra la corsa con la fisica: salti, attrito, scie diverse per ogni terreno. Il
+  vincitore non è deciso prima: esce dalla gara.
+- **Punti**: 150 / 100 / 60 / 30 a ogni gara, cumulativi (massimo 600).
+- *Da dire:* «Non esiste la biglia perfetta: scegliete quella giusta per i quattro fondi.»
 
 ---
 
@@ -240,7 +251,7 @@ alta l'attenzione dopo la classifica.
 | ⏸️ **PAUSA / RIPRENDI** | per fermare tutto: in pausa la TV copre il gioco e i timer si fermano |
 | 🎥 **DEMO GIOCO** | per spiegare un gioco prima di giocarlo (demo animata, senza mp4) |
 | ✖️ **CHIUDI DEMO** | per tornare alla partita |
-| 🎰 🏀 🐎 ⏱️ **BONUS** | per lanciare il bonus di fine atto |
+| 🎰 🏀 🐎 🎱 **BONUS** | per lanciare il bonus di fine atto |
 | **PARTITA #** | per puntare la TV giusta se l'admin è su un altro dispositivo |
 
 Nel riquadro **CONNESSIONI & SALVATAGGIO** trovi, per ogni dispositivo: ruolo, nome,

@@ -3,11 +3,14 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
   EventEmitter,
   Input,
+  NgZone,
   OnDestroy,
   OnInit,
   Output,
+  ViewChild,
   inject,
   signal,
 } from '@angular/core';
@@ -45,6 +48,22 @@ interface Lane {
   progress: number;
   finished: boolean;
   position: number | null;
+}
+
+/** Stato fisico della biglia in corsa: vive solo sulla TV. */
+interface RaceMarble {
+  playerName: string;
+  marbleId: string;
+  x: number;
+  v: number;
+  y: number;
+  vy: number;
+  finished: boolean;
+  position: number | null;
+  trail: Array<{ x: number; y: number }>;
+  bumps: number[];
+  nextBump: number;
+  wobble: number;
 }
 
 interface RaceRow {
@@ -108,7 +127,6 @@ const PICK_SECONDS = 10;
 const RACE_SECONDS = 18;
 const BETWEEN_SECONDS = 4;
 const FINALE_SECONDS = 7;
-const TICK_MS = 250;
 
 /**
  * BIGLIE — bonus di fine atto 4.
@@ -181,20 +199,10 @@ const TICK_MS = 250;
               <span class="bg-surface" [style.background]="currentTrack()?.tint">
                 {{ currentTrack()?.emoji }} {{ currentTrack()?.surface }}
               </span>
-              <span class="bg-hint">Punti gara: 150 · 100 · 60 · 30</span>
+              <span class="bg-hint">Punti gara: 150 · 100 · 60 · 30 · il vincitore esce dalla corsa</span>
             </div>
-            <div class="bg-lanes">
-              @for (lane of lanes(); track lane.playerName; let i = $index) {
-                <div class="bg-lane" [class.done]="lane.finished">
-                  <span class="bg-pos">{{ lane.position ?? i + 1 }}</span>
-                  <span class="bg-lane-name">{{ lane.playerName }}</span>
-                  <div class="bg-bar">
-                    <div class="bg-fill" [style.width.%]="lane.progress" [style.background]="marbleColor(lane.marbleId)"></div>
-                    <span class="bg-bead" [style.left.%]="lane.progress">{{ marbleEmoji(lane.marbleId) }}</span>
-                  </div>
-                  <span class="bg-pct">{{ pct(lane.progress) }}%</span>
-                </div>
-              }
+            <div class="bg-race-stage">
+              <canvas #raceCanvas></canvas>
             </div>
           }
 
@@ -257,15 +265,8 @@ const TICK_MS = 250;
     .bg-owner { position: absolute; inset: auto 4px 4px auto; padding: 1px 6px; background: var(--coal); color: var(--paper-hi); font-size: .6rem; letter-spacing: .06em; }
     .bg-track-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .bg-surface { padding: 4px 12px; color: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.62rem, .92vw, .8rem); font-weight: 800; letter-spacing: .16em; }
-    .bg-lanes { display: flex; flex-direction: column; gap: clamp(5px, .8vh, 10px); }
-    .bg-lane { display: flex; align-items: center; gap: clamp(8px, 1vw, 16px); }
-    .bg-pos { width: 26px; text-align: center; font-family: var(--font-mono); font-weight: 800; font-size: .85rem; opacity: .7; }
-    .bg-lane.done .bg-pos { background: var(--acid); border: 2px solid var(--coal); opacity: 1; }
-    .bg-lane-name { width: clamp(110px, 10vw, 190px); font-family: var(--font-mono); font-size: clamp(.66rem, .95vw, .84rem); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .bg-bar { position: relative; flex: 1; height: clamp(22px, 3vh, 30px); background: rgba(30, 25, 20, .1); border: 2px solid var(--coal); overflow: hidden; }
-    .bg-fill { position: absolute; inset: 0 auto 0 0; opacity: .55; transition: width .2s linear; }
-    .bg-bead { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: clamp(.9rem, 1.3vw, 1.2rem); transition: left .2s linear; }
-    .bg-pct { width: 46px; text-align: right; font-family: var(--font-mono); font-size: .72rem; opacity: .7; }
+    .bg-race-stage { position: relative; flex: 1; min-height: clamp(300px, 50vh, 560px); background: #101418; border: 3px solid var(--coal); overflow: hidden; }
+    .bg-race-stage canvas { display: block; width: 100%; height: 100%; }
     .bg-results { display: flex; flex-direction: column; gap: 5px; }
     .bg-row { display: grid; grid-template-columns: 30px 1fr auto auto auto; gap: 12px; align-items: center; padding: 7px 12px; background: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.72rem, 1vw, .92rem); }
     .bg-row.paid { background: var(--acid); }
@@ -280,11 +281,14 @@ const TICK_MS = 250;
 export class BiglieBonus implements OnInit, OnDestroy {
   private ws = inject(WebSocketService);
   private destroyRef = inject(DestroyRef);
+  private ngZone = inject(NgZone);
 
   @Input({ required: true }) gameId = 1;
   @Input() players: string[] = [];
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
+
+  @ViewChild('raceCanvas') private raceCanvas?: ElementRef<HTMLCanvasElement>;
 
   readonly tracks = TRACKS;
 
@@ -303,10 +307,20 @@ export class BiglieBonus implements OnInit, OnDestroy {
   private marbleSet: Marble[] = [];
   private totals = new Map<string, number>();
   private finishCount = 0;
-  private raceTicks = 0;
   private clock?: ReturnType<typeof setInterval>;
-  private raceClock?: ReturnType<typeof setInterval>;
   private timers: Array<ReturnType<typeof setTimeout>> = [];
+
+  private raceMarbles: RaceMarble[] = [];
+  private raceElapsed = 0;
+  private publishAcc = 0;
+  private raceEnding = false;
+  private frame = 0;
+  private lastFrame = 0;
+  private raceCtx: CanvasRenderingContext2D | null = null;
+  private raceW = 0;
+  private raceH = 0;
+  private raceDpr = 1;
+  private raceResize?: ResizeObserver;
 
   ngOnInit(): void {
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
@@ -317,7 +331,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.clearClock();
-    this.clearRaceClock();
+    if (this.frame) cancelAnimationFrame(this.frame);
+    this.raceResize?.disconnect();
     this.timers.forEach((timer) => clearTimeout(timer));
     this.timers = [];
   }
@@ -438,88 +453,197 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
     this.raceIndex.set(index);
     this.finishCount = 0;
-    this.raceTicks = 0;
     this.raceResult.set(null);
     this.currentPlayer.set(null);
-    this.phase.set('RACE');
-    this.secondsLeft.set(RACE_SECONDS);
-    this.lanes.set(this.players.map((playerName) => ({
+    this.raceMarbles = this.players.map((playerName) => ({
       playerName,
       marbleId: this.assignments.get(playerName) ?? '',
+      x: 0,
+      v: 0,
+      y: 0,
+      vy: 0,
+      finished: false,
+      position: null,
+      trail: [],
+      // Quattro dossi per corsia: la biglia salta e perde un filo di velocità.
+      bumps: [
+        10 + Math.random() * 12,
+        32 + Math.random() * 12,
+        55 + Math.random() * 12,
+        78 + Math.random() * 12,
+      ],
+      nextBump: 0,
+      wobble: Math.random() * Math.PI * 2,
+    }));
+    this.raceElapsed = 0;
+    this.publishAcc = 0;
+    this.raceEnding = false;
+    this.lastFrame = 0;
+    this.phase.set('RACE');
+    this.secondsLeft.set(RACE_SECONDS);
+    this.lanes.set(this.raceMarbles.map((marble) => ({
+      playerName: marble.playerName,
+      marbleId: marble.marbleId,
       progress: 0,
       finished: false,
       position: null,
     })));
     this.publish();
-    this.startRaceClock();
+    requestAnimationFrame(() => this.attachCanvas());
   }
 
-  private startRaceClock(): void {
-    this.clearRaceClock();
+  private attachCanvas(attempt = 0): void {
+    const canvas = this.raceCanvas?.nativeElement;
+    if (!canvas) {
+      if (attempt < 10) requestAnimationFrame(() => this.attachCanvas(attempt + 1));
+      return;
+    }
 
-    this.raceClock = setInterval(() => {
-      this.raceTicks += 1;
-      this.stepRace();
+    this.raceCtx = canvas.getContext('2d');
+    this.raceResize?.disconnect();
+    this.raceResize = new ResizeObserver(() => this.resizeRaceCanvas());
+    this.raceResize.observe(canvas);
+    this.resizeRaceCanvas();
 
-      const elapsed = this.raceTicks * TICK_MS;
-      this.secondsLeft.set(Math.max(0, Math.ceil((RACE_SECONDS * 1000 - elapsed) / 1000)));
-      this.publish();
-
-      if (this.lanes().every((lane) => lane.finished) || elapsed >= RACE_SECONDS * 1000) {
-        this.clearRaceClock();
-        this.endRace();
-      }
-    }, TICK_MS);
+    if (!this.frame) {
+      this.ngZone.runOutsideAngular(() => {
+        this.frame = requestAnimationFrame(this.loop);
+      });
+    }
   }
 
-  private stepRace(): void {
+  private resizeRaceCanvas(): void {
+    const canvas = this.raceCanvas?.nativeElement;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width < 20 || rect.height < 20) return;
+
+    this.raceDpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.raceW = rect.width;
+    this.raceH = rect.height;
+    canvas.width = Math.round(rect.width * this.raceDpr);
+    canvas.height = Math.round(rect.height * this.raceDpr);
+  }
+
+  private loop = (now: number): void => {
+    const dt = this.lastFrame ? Math.min(0.05, (now - this.lastFrame) / 1000) : 0;
+    this.lastFrame = now;
+
+    if (this.phase() === 'RACE' && !this.raceEnding) {
+      this.advanceRace(dt);
+    }
+    if (this.phase() === 'RACE') {
+      this.drawRace(now);
+    }
+
+    this.frame = requestAnimationFrame(this.loop);
+  };
+
+  /** Fisica della corsa: ogni biglia accelera, subisce l'attrito del fondo e salta sui dossi. */
+  private advanceRace(dt: number): void {
     const track = this.currentTrack();
-    if (!track) return;
+    if (!track || dt <= 0) return;
 
-    const dt = TICK_MS / 1000;
+    this.raceElapsed += dt;
 
-    this.lanes.update((lanes) => lanes.map((lane) => {
-      if (lane.finished) return lane;
+    for (const marble of this.raceMarbles) {
+      if (marble.finished) continue;
 
-      const marble = this.marbleById(lane.marbleId);
-      if (!marble) return lane;
+      const body = this.marbleById(marble.marbleId);
+      if (!body) continue;
 
       const profile =
-        (marble.speed * track.weights.speed
-          + marble.accel * track.weights.accel
-          + marble.grip * track.weights.grip) / 10;
-      const pace = (5 + 3 * profile) * (0.92 + Math.random() * 0.16);
-      const progress = Math.min(100, lane.progress + pace * dt);
+        (body.speed * track.weights.speed
+          + body.accel * track.weights.accel
+          + body.grip * track.weights.grip) / 10;
+      const accel = 1.35 + profile * 0.2;
+      const drag = this.surfaceDrag(track) + (10 - body.grip) * 0.014;
+      marble.v = Math.max(0, Math.min(15, marble.v + (accel - drag * marble.v) * dt));
+      marble.x += marble.v * dt;
 
-      if (progress < 100) return { ...lane, progress };
+      if (marble.nextBump < marble.bumps.length && marble.x >= marble.bumps[marble.nextBump]) {
+        marble.nextBump += 1;
+        marble.vy = Math.max(0, 120 + Math.random() * 150 - body.grip * 8);
+        marble.v *= 0.955;
+      }
 
-      this.finishCount += 1;
-      return { ...lane, progress: 100, finished: true, position: this.finishCount };
-    }));
+      if (marble.y > 0 || marble.vy !== 0) {
+        marble.vy -= 820 * dt;
+        marble.y += marble.vy * dt;
+        if (marble.y <= 0) {
+          marble.y = 0;
+          marble.vy = Math.abs(marble.vy) > 90 ? -marble.vy * 0.3 : 0;
+        }
+      }
+
+      marble.trail.push({ x: marble.x, y: marble.y });
+      if (marble.trail.length > 30) marble.trail.shift();
+
+      if (marble.x >= 100) {
+        marble.x = 100;
+        marble.finished = true;
+        this.finishCount += 1;
+        marble.position = this.finishCount;
+      }
+    }
+
+    this.publishAcc += dt;
+    if (this.publishAcc >= 0.16) {
+      this.publishAcc = 0;
+      this.ngZone.run(() => this.syncRaceView());
+    }
+
+    if (this.raceMarbles.every((marble) => marble.finished) || this.raceElapsed >= RACE_SECONDS) {
+      this.raceEnding = true;
+      this.ngZone.run(() => this.endRace());
+    }
+  }
+
+  private surfaceDrag(track: Track): number {
+    switch (track.id) {
+      case 'acqua':
+        return 0.52;
+      case 'neve':
+        return 0.4;
+      case 'rally':
+        return 0.3;
+      default:
+        return 0.22;
+    }
+  }
+
+  private syncRaceView(): void {
+    this.secondsLeft.set(Math.max(0, Math.ceil(RACE_SECONDS - this.raceElapsed)));
+    this.lanes.set(this.raceMarbles.map((marble) => ({
+      playerName: marble.playerName,
+      marbleId: marble.marbleId,
+      progress: Math.min(100, marble.x),
+      finished: marble.finished,
+      position: marble.position,
+    })));
+    this.publish();
   }
 
   private endRace(): void {
-    this.clearRaceClock();
-
-    const ranked = [...this.lanes()].sort((a, b) => {
+    const ranked = [...this.raceMarbles].sort((a, b) => {
       const positionA = a.position ?? 999;
       const positionB = b.position ?? 999;
       if (positionA !== positionB) return positionA - positionB;
-      return b.progress - a.progress;
+      return b.x - a.x;
     });
 
-    const rows: RaceRow[] = ranked.map((lane, index) => {
+    const rows: RaceRow[] = ranked.map((marble, index) => {
       const points = RACE_POINTS[index] ?? 0;
-      const total = (this.totals.get(lane.playerName) ?? 0) + points;
-      this.totals.set(lane.playerName, total);
+      const total = (this.totals.get(marble.playerName) ?? 0) + points;
+      this.totals.set(marble.playerName, total);
 
       if (points > 0) {
-        this.result.emit({ playerName: lane.playerName, score: points });
+        this.result.emit({ playerName: marble.playerName, score: points });
       }
 
       return {
-        playerName: lane.playerName,
-        marbleId: lane.marbleId,
+        playerName: marble.playerName,
+        marbleId: marble.marbleId,
         position: index + 1,
         points,
         total,
@@ -535,9 +659,251 @@ export class BiglieBonus implements OnInit, OnDestroy {
     this.startClock(BETWEEN_SECONDS, () => this.startRace(this.raceIndex() + 1));
   }
 
+  private drawRace(now: number): void {
+    const ctx = this.raceCtx;
+    const track = this.currentTrack();
+    if (!ctx || !track || this.raceW < 20 || this.raceH < 20) return;
+
+    const w = this.raceW;
+    const h = this.raceH;
+    ctx.setTransform(this.raceDpr, 0, 0, this.raceDpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    const bg = ctx.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, '#151a1f');
+    bg.addColorStop(1, '#0b0e12');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    const count = Math.max(1, this.raceMarbles.length);
+    const laneH = h / count;
+    const left = 112;
+    const right = w - 22;
+    const trackW = Math.max(60, right - left);
+
+    for (let i = 0; i < count; i++) {
+      this.drawLane(ctx, track, left, i * laneH, trackW, laneH, now, i);
+    }
+
+    ctx.fillStyle = 'rgba(255, 255, 255, .4)';
+    ctx.fillRect(left, 0, 2, h);
+
+    const cell = Math.max(6, Math.min(12, laneH * 0.16));
+    for (let y = 0; y < h; y += cell) {
+      for (let c = 0; c < 2; c++) {
+        ctx.fillStyle = (Math.floor(y / cell) + c) % 2 === 0 ? '#f8fafc' : '#111827';
+        ctx.fillRect(right - 2 + c * cell, y, cell, cell);
+      }
+    }
+
+    const leader = [...this.raceMarbles].sort((a, b) => {
+      const positionA = a.position ?? 999;
+      const positionB = b.position ?? 999;
+      if (positionA !== positionB) return positionA - positionB;
+      return b.x - a.x;
+    })[0];
+
+    this.raceMarbles.forEach((marble, index) => {
+      this.drawMarble(ctx, marble, index, laneH, left, trackW, now, marble === leader);
+    });
+  }
+
+  private drawLane(
+    ctx: CanvasRenderingContext2D,
+    track: Track,
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    now: number,
+    index: number,
+  ): void {
+    const pad = 6;
+    const y = top + pad;
+    const laneHeight = height - pad * 2;
+    const palette = this.surfacePalette(track.id);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(left, y, width, laneHeight, 10);
+    ctx.clip();
+
+    const fill = ctx.createLinearGradient(0, y, 0, y + laneHeight);
+    fill.addColorStop(0, palette.top);
+    fill.addColorStop(1, palette.bottom);
+    ctx.fillStyle = fill;
+    ctx.fillRect(left, y, width, laneHeight);
+
+    for (let i = 0; i < 70; i++) {
+      const px = left + (((i * 97 + index * 43) % 100) / 100) * width;
+      const py = y + (((i * 53 + index * 71) % 100) / 100) * laneHeight;
+      ctx.fillStyle = palette.speck;
+      ctx.beginPath();
+      ctx.arc(px, py, 1 + ((i * 13) % 3), 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if (track.id === 'f1') {
+      ctx.strokeStyle = 'rgba(255, 255, 255, .2)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([16, 18]);
+      ctx.beginPath();
+      ctx.moveTo(left, y + laneHeight / 2);
+      ctx.lineTo(left + width, y + laneHeight / 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    } else if (track.id === 'acqua') {
+      ctx.strokeStyle = 'rgba(186, 230, 253, .32)';
+      ctx.lineWidth = 1.5;
+      for (let row = 0; row < 3; row++) {
+        ctx.beginPath();
+        for (let px = 0; px <= width; px += 8) {
+          const wy = y + laneHeight * (0.25 + row * 0.25) + Math.sin(px / 26 + now / 420 + row) * 3;
+          if (px === 0) ctx.moveTo(left + px, wy);
+          else ctx.lineTo(left + px, wy);
+        }
+        ctx.stroke();
+      }
+    } else if (track.id === 'neve') {
+      ctx.fillStyle = 'rgba(255, 255, 255, .8)';
+      for (let i = 0; i < 26; i++) {
+        const px = left + (((i * 61 + index * 29) % 100) / 100) * width;
+        const py = y + (((i * 37 + 11) % 100) / 100) * laneHeight;
+        ctx.beginPath();
+        ctx.arc(px, py, 1.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+
+    ctx.strokeStyle = 'rgba(0, 0, 0, .45)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(left, y, width, laneHeight, 10);
+    ctx.stroke();
+  }
+
+  private drawMarble(
+    ctx: CanvasRenderingContext2D,
+    marble: RaceMarble,
+    index: number,
+    laneH: number,
+    left: number,
+    trackW: number,
+    now: number,
+    leader: boolean,
+  ): void {
+    const body = this.marbleById(marble.marbleId);
+    const color = body?.color ?? '#94a3b8';
+    const laneY = index * laneH + laneH / 2;
+    const radius = Math.max(10, Math.min(22, laneH * 0.2));
+    const progress = Math.min(100, marble.x);
+    const x = left + (progress / 100) * trackW;
+    const lift = marble.y * 0.5;
+    const y = laneY - radius - lift + Math.sin(now / 130 + index) * 1.2;
+
+    // Scia: polvere, fumo, neve o schizzi a seconda del fondo.
+    const trail = this.trailStyle(this.currentTrack()?.id ?? 'rally');
+    marble.trail.forEach((point, i) => {
+      const t = i / Math.max(1, marble.trail.length);
+      const tx = left + (Math.min(100, point.x) / 100) * trackW;
+      const ty = laneY - radius - point.y * 0.5 + Math.sin(now / 130 + index) * 1.2;
+      ctx.globalAlpha = t * 0.34;
+      ctx.fillStyle = trail.color;
+      ctx.beginPath();
+      ctx.arc(tx, ty + radius * 0.25, radius * (0.16 + t * trail.scale), 0, Math.PI * 2);
+      ctx.fill();
+
+      if (i % 3 === 0) {
+        ctx.globalAlpha = t * 0.22;
+        ctx.beginPath();
+        ctx.arc(tx + Math.sin(i * 2.1 + index) * 5, ty + radius * 0.4, radius * 0.12, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+    ctx.globalAlpha = 1;
+
+    const shadowScale = 1 - Math.min(0.55, lift / 60);
+    ctx.fillStyle = `rgba(0, 0, 0, ${0.34 * shadowScale})`;
+    ctx.beginPath();
+    ctx.ellipse(x, laneY + radius * 0.6, radius * 0.9 * shadowScale, radius * 0.28 * shadowScale, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const shine = ctx.createRadialGradient(x - radius * 0.35, y - radius * 0.4, radius * 0.15, x, y, radius);
+    shine.addColorStop(0, '#ffffff');
+    shine.addColorStop(0.3, color);
+    shine.addColorStop(1, this.shade(color, 0.55));
+    ctx.fillStyle = shine;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0, 0, 0, .5)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.font = `${Math.round(radius * 1.05)}px system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(body?.emoji ?? '⚪', x, y + 1);
+
+    if (leader && progress > 2 && !marble.finished) {
+      ctx.font = `${Math.round(radius * 1.1)}px system-ui, sans-serif`;
+      ctx.fillText('👑', x, y - radius - 9);
+    }
+
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(18, laneY, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#e7e5e4';
+    ctx.font = '600 13px ui-monospace, monospace';
+    const name = marble.playerName.length > 12 ? `${marble.playerName.slice(0, 11)}…` : marble.playerName;
+    ctx.fillText(name, 30, laneY - 7);
+    ctx.fillStyle = 'rgba(231, 229, 228, .55)';
+    ctx.font = '700 11px ui-monospace, monospace';
+    ctx.fillText(`${Math.round(progress)}%`, 30, laneY + 9);
+  }
+
+  private trailStyle(id: string): { color: string; scale: number } {
+    switch (id) {
+      case 'rally':
+        return { color: 'rgba(180, 120, 60, .65)', scale: 0.38 };
+      case 'f1':
+        return { color: 'rgba(203, 213, 225, .65)', scale: 0.3 };
+      case 'neve':
+        return { color: 'rgba(248, 250, 252, .85)', scale: 0.34 };
+      default:
+        return { color: 'rgba(125, 211, 252, .7)', scale: 0.28 };
+    }
+  }
+
+  private surfacePalette(id: string): { top: string; bottom: string; speck: string } {
+    switch (id) {
+      case 'rally':
+        return { top: '#7c4a21', bottom: '#4b2a11', speck: 'rgba(30, 16, 6, .35)' };
+      case 'f1':
+        return { top: '#3b424d', bottom: '#232830', speck: 'rgba(255, 255, 255, .08)' };
+      case 'neve':
+        return { top: '#e2e8f0', bottom: '#b8c6d9', speck: 'rgba(255, 255, 255, .8)' };
+      default:
+        return { top: '#0b4a6f', bottom: '#06283d', speck: 'rgba(125, 211, 252, .22)' };
+    }
+  }
+
+  private shade(hex: string, factor: number): string {
+    const value = hex.replace('#', '');
+    const full = value.length === 3 ? value.split('').map((c) => c + c).join('') : value;
+    const num = parseInt(full, 16);
+    const r = Math.round(((num >> 16) & 255) * factor);
+    const g = Math.round(((num >> 8) & 255) * factor);
+    const b = Math.round((num & 255) * factor);
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
   private finale(): void {
     this.clearClock();
-    this.clearRaceClock();
     this.phase.set('FINALE');
     this.secondsLeft.set(FINALE_SECONDS);
     this.publish();
@@ -619,11 +985,6 @@ export class BiglieBonus implements OnInit, OnDestroy {
   private clearClock(): void {
     if (this.clock) clearInterval(this.clock);
     this.clock = undefined;
-  }
-
-  private clearRaceClock(): void {
-    if (this.raceClock) clearInterval(this.raceClock);
-    this.raceClock = undefined;
   }
 
   private later(ms: number, action: () => void): void {
