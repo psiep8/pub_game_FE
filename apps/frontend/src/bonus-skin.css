@@ -72,7 +72,35 @@ app-casino-bonus .casino-manche.on {
   box-shadow: 4px 4px 0 var(--tomato);
 }
 app-casino-bonus .casino-wheel {
-  filter: drop-shadow(10px 10px 0 rgba(21, 21, 15, 0.85)) !important;
+  width: min(100%, 52vh) !important;
+  filter: none !important;
+}
+app-casino-bonus .casino-wheel-wrap {
+  position: relative;
+  padding: clamp(16px, 2vw, 26px) clamp(10px, 1.4vw, 18px);
+  background:
+    radial-gradient(rgba(21, 21, 15, 0.14) 1px, transparent 1px),
+    var(--paper-2) !important;
+  background-size: 13px 13px !important;
+  border: 3px solid var(--coal);
+  box-shadow: 10px 10px 0 var(--mustard);
+}
+app-casino-bonus .casino-wheel-wrap::before {
+  content: 'ROULETTE · 37';
+  position: absolute;
+  top: 9px;
+  left: 50%;
+  z-index: 1;
+  transform: translateX(-50%) rotate(-1.5deg);
+  padding: 3px 10px;
+  background: var(--tomato);
+  color: var(--paper-hi);
+  border: 2px solid var(--coal);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
 }
 app-casino-bonus #casinoRim stop:nth-child(1) { stop-color: #ffc53d !important; }
 app-casino-bonus #casinoRim stop:nth-child(2) { stop-color: #d9a227 !important; }
@@ -116,8 +144,10 @@ app-casino-bonus .casino-wheel [fill="#fbbf24"] { fill: var(--tomato) !important
 app-casino-bonus .casino-wheel [stroke="#64748b"] { stroke: var(--coal) !important; }
 app-casino-bonus .pocket-label {
   fill: var(--paper-hi) !important;
+  stroke: var(--coal) !important;
+  stroke-width: 1.4px !important;
+  paint-order: stroke fill;
   font-family: var(--font-mono) !important;
-  filter: drop-shadow(1px 1px 0 var(--coal));
 }
 app-casino-bonus .pocket-win {
   stroke: var(--acid) !important;
@@ -392,6 +422,39 @@ app-cavallo-bonus .cav-finale p {
   color: rgba(21, 21, 15, 0.62) !important;
 }
 
+/* ------------------------------------------- BONUS PREVIEW (SOLO BANCO DI PROVA) */
+app-bonus-preview .bp-live {
+  position: relative;
+}
+app-bonus-preview .bp-live .casino-overlay,
+app-bonus-preview .bp-live .bbs-overlay,
+app-bonus-preview .bp-live .cav-overlay,
+app-bonus-preview .bp-live .bg-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+}
+
+/* ------------------------------------------------------ TELEFONO / TV STRETTA */
+@media (max-width: 900px) {
+  app-casino-bonus .casino-overlay { align-items: flex-start !important; }
+  app-casino-bonus .casino-card { max-height: none !important; }
+  app-casino-bonus .casino-stage { grid-template-columns: minmax(0, 1fr) !important; }
+  app-casino-bonus .casino-wheel { width: min(100%, 44vh) !important; }
+  app-casino-bonus .casino-manches { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+
+  app-biglie-bonus .bg-card { max-height: none !important; overflow: visible !important; }
+  app-biglie-bonus .bg-race-stage { min-height: min(58vh, 430px) !important; }
+
+  app-basket-bonus-stage .bbs-overlay { align-items: flex-start !important; overflow-y: auto !important; }
+  app-basket-bonus-stage .bbs-card { max-height: none !important; overflow: visible !important; }
+  app-basket-bonus-stage .bbs-manches { grid-template-columns: 1fr !important; }
+
+  app-cavallo-bonus .cav-overlay { align-items: flex-start !important; }
+  app-cavallo-bonus .cav-card { max-height: none !important; }
+  app-cavallo-bonus .cav-body { grid-template-columns: minmax(0, 1fr) !important; }
+  app-cavallo-bonus .cav-clock { width: min(36vh, 240px) !important; }
+}
+
 /* ------------------------------------------------------------ BASKET TV */
 app-basket-bonus-stage .bbs-overlay {
   background-color: var(--bg-0) !important;
@@ -412,7 +475,7 @@ app-basket-bonus-stage .bbs-kicker {
   display: inline-block;
   padding: 3px 10px;
   background: var(--tomato);
-  color: var(--paper-hi);
+  color: var(--paper-hi) !important;
   border: 2px solid var(--coal);
   font-family: var(--font-mono) !important;
   font-size: clamp(0.6rem, 0.9vw, 0.78rem);

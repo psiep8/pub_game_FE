@@ -970,23 +970,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.vibrate(30);
   }
 
-  biglieMyLane(): any {
-    const player = this.nickname();
-    return (this.biglieState()?.lanes ?? []).find((lane: any) => lane.playerName === player) ?? null;
-  }
-
-  biglieMyMarble(): any {
-    const marbleId = this.biglieMyLane()?.marbleId;
-    return (this.biglieState()?.marbles ?? []).find((marble: any) => marble.id === marbleId) ?? null;
-  }
-
   biglieMyRow(): any {
     const player = this.nickname();
     return (this.biglieState()?.standings ?? []).find((row: any) => row.playerName === player) ?? null;
-  }
-
-  bigliePct(): number {
-    return Math.round(Number(this.biglieMyLane()?.progress ?? 0));
   }
 
   private applyScommessaState(state: any): void {

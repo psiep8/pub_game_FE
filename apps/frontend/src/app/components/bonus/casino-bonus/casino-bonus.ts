@@ -42,6 +42,8 @@ interface Pocket {
   number: number;
   fill: string;
   path: string;
+  labelX: number;
+  labelY: number;
   labelTransform: string;
 }
 
@@ -93,6 +95,8 @@ const POCKETS: Pocket[] = WHEEL_ORDER.map((number, index) => {
     number,
     fill: pocketFill(number),
     path,
+    labelX: lx,
+    labelY: ly,
     labelTransform: `rotate(${center.toFixed(2)} ${lx.toFixed(2)} ${ly.toFixed(2)})`,
   };
 });
@@ -132,17 +136,21 @@ const MANCHES: Manche[] = [
   },
 ];
 
-const THROW_MS = 350;
-const ORBIT_MS = 1600;
-const DROP_MS = 2200;
-const BOUNCE_MS = 2000;
-const SETTLE_MS = 600;
+const THROW_MS = 280;
+const ORBIT_MS = 1400;
+const DROP_MS = 1650;
+const BOUNCE_MS = 850;
+const SETTLE_MS = 320;
 const ROTOR_MS = THROW_MS + ORBIT_MS + DROP_MS;
 const SPIN_MS = ROTOR_MS + BOUNCE_MS + SETTLE_MS;
-const REVEAL_MS = 4200;
+const REVEAL_MS = 3600;
+const BALL_R = 10.5;
+/** Raggio di riposo: la pallina sta appena fuori dai separatori dei vani. */
+const REST_R = POCKET_R + 6;
+const WALL_R = 280;
+const DEFLECTOR_R = 222;
 
 const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
-const easeOutQuart = (p: number): number => 1 - Math.pow(1 - p, 4);
 
 /**
  * CASINO — bonus di fine atto 1, quattro manche e una roulette vera in TV.
@@ -221,11 +229,6 @@ const easeOutQuart = (p: number): number => 1 - Math.pow(1 - p, 4);
                   <stop offset="50%" stop-color="#15803d" />
                   <stop offset="100%" stop-color="#14532d" />
                 </linearGradient>
-                <radialGradient id="casinoGloss" cx="36%" cy="16%" r="82%">
-                  <stop offset="0%" stop-color="#ffffff" stop-opacity=".42" />
-                  <stop offset="42%" stop-color="#ffffff" stop-opacity=".1" />
-                  <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
-                </radialGradient>
                 <radialGradient id="innerCone" cx="50%" cy="46%" r="55%">
                   <stop offset="0%" stop-color="#0b1020" />
                   <stop offset="55%" stop-color="#182233" />
@@ -241,9 +244,6 @@ const easeOutQuart = (p: number): number => 1 - Math.pow(1 - p, 4);
                   <stop offset="55%" stop-color="#f1f5f9" />
                   <stop offset="100%" stop-color="#8b9bb4" />
                 </radialGradient>
-                <filter id="softShadow" x="-60%" y="-60%" width="220%" height="220%">
-                  <feGaussianBlur stdDeviation="4" />
-                </filter>
               </defs>
 
               <circle cx="300" cy="300" r="300" fill="#071019" />
@@ -264,11 +264,14 @@ const easeOutQuart = (p: number): number => 1 - Math.pow(1 - p, 4);
                     [class.pocket-win]="settled() && pocket.number === spinNumber()"
                     stroke="url(#casinoSteel)"
                     stroke-width="1" />
-                  <text class="pocket-label" [attr.transform]="pocket.labelTransform">{{ pocket.number }}</text>
+                  <text
+                    class="pocket-label"
+                    [attr.x]="pocket.labelX"
+                    [attr.y]="pocket.labelY"
+                    [attr.transform]="pocket.labelTransform">{{ pocket.number }}</text>
                 }
               </g>
 
-              <circle cx="300" cy="300" r="240" fill="url(#casinoGloss)" pointer-events="none" />
               <circle cx="300" cy="300" r="148" fill="url(#innerCone)" />
               <circle cx="300" cy="300" r="148" fill="none" stroke="#0a0f18" stroke-width="5" />
 
@@ -283,11 +286,10 @@ const easeOutQuart = (p: number): number => 1 - Math.pow(1 - p, 4);
               <polygon points="292,16 308,16 300,40" fill="#fbbf24" opacity=".9" />
 
               <circle
-                [attr.cx]="ballX()"
-                [attr.cy]="ballY() + 5"
+                [attr.cx]="ballX() + 3"
+                [attr.cy]="ballY() + 4"
                 [attr.r]="ballSize()"
-                fill="rgba(0, 0, 0, .55)"
-                filter="url(#softShadow)" />
+                fill="rgba(21, 21, 15, .38)" />
               <circle
                 [attr.cx]="ballX()"
                 [attr.cy]="ballY()"
@@ -486,16 +488,18 @@ const easeOutQuart = (p: number): number => 1 - Math.pow(1 - p, 4);
       filter: drop-shadow(0 18px 40px rgba(0, 0, 0, .6));
     }
     .pocket-label {
-      fill: #f8fafc;
+      fill: #fff8e8;
+      stroke: #15150f;
+      stroke-width: 1.4px;
+      paint-order: stroke fill;
       font-family: var(--font-mono, monospace);
-      font-size: 14px;
+      font-size: 15.5px;
       font-weight: 800;
       text-anchor: middle;
       dominant-baseline: central;
       pointer-events: none;
-      filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .9));
     }
-    .pocket-win { stroke: #fbbf24; stroke-width: 4; }
+    .pocket-win { stroke: #ff4d2e; stroke-width: 5; }
     .casino-panel { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
     .casino-grid {
       display: grid;
@@ -621,6 +625,8 @@ const easeOutQuart = (p: number): number => 1 - Math.pow(1 - p, 4);
 export class CasinoBonus implements OnInit, OnDestroy {
   @Input({ required: true }) gameId = 1;
   @Input() players: string[] = [];
+  /** Banco di prova: manche da 2 secondi, voti demo e reveal accorciato. */
+  @Input() preview = false;
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
 
@@ -642,9 +648,9 @@ export class CasinoBonus implements OnInit, OnDestroy {
   readonly votesView = signal<Array<{ playerName: string; choice: string }>>([]);
 
   readonly rotorAngle = signal(0);
-  readonly ballAngle = signal(0);
-  readonly ballRadius = signal(POCKET_R);
-  readonly ballScale = signal(1);
+  readonly ballX = signal(CX);
+  readonly ballY = signal(CY - REST_R);
+  readonly ballSize = signal(BALL_R);
   readonly settled = signal(false);
   readonly slowMotion = signal(false);
   readonly spinNumber = signal<number | null>(null);
@@ -652,13 +658,12 @@ export class CasinoBonus implements OnInit, OnDestroy {
   readonly rotorTransform = computed(
     () => `rotate(${this.rotorAngle().toFixed(2)} ${CX} ${CY})`,
   );
-  readonly ballX = computed(
-    () => CX + this.ballRadius() * Math.sin(this.ballAngle()),
-  );
-  readonly ballY = computed(
-    () => CY - this.ballRadius() * Math.cos(this.ballAngle()),
-  );
-  readonly ballSize = computed(() => 13 * this.ballScale());
+
+  private matter?: any;
+  private engine?: any;
+  private ballBody?: any;
+  /** Angolo della pallina nel sistema della ruota: da qui riparte il giro dopo. */
+  private ballLocalAngle = 0;
 
   private readonly votes = new Map<string, string>();
   private readonly scoreMap = new Map<string, number>();
@@ -673,12 +678,13 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       this.onStatus(status);
     });
-    this.later(2500, () => this.startManche(0));
+    this.later(this.preview ? 300 : 2500, () => this.startManche(0));
   }
 
   ngOnDestroy(): void {
     this.destroyed = true;
     this.clearClock();
+    this.destroyPhysics();
     if (this.frame) cancelAnimationFrame(this.frame);
     this.timers.forEach((timer) => clearTimeout(timer));
     this.timers = [];
@@ -720,7 +726,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.reveal.set(null);
     this.settled.set(false);
     this.spinNumber.set(null);
-    this.beginVote('PICK', manche.seconds, () => {
+    this.beginVote('PICK', this.preview ? 2 : manche.seconds, () => {
       void this.spinManche();
     });
   }
@@ -735,7 +741,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
     const manche = MANCHES[this.manche() - 1];
     const chosen = new Set([...this.votes.values()]);
-    const mustWin = manche.id === 'NUMBER' && chosen.size > 0;
+    const mustWin = !this.preview && manche.id === 'NUMBER' && chosen.size > 0;
     const labels = [...chosen];
 
     let number = Math.floor(Math.random() * 37);
@@ -782,90 +788,259 @@ export class CasinoBonus implements OnInit, OnDestroy {
     });
   }
 
-  private animateWheel(number: number): Promise<void> {
+  /**
+   * Giro fisico: la pallina vive in un mondo Matter nel sistema della ruota
+   * (muro, deflettori e separatori dei vani sono corpi statici) e in scena
+   * viene disegnata ruotata dell'angolo del rotore. Una guida morbida la
+   * accompagna verso il vano pagato, ma urti e rimbalzi sono del motore.
+   */
+  private async animateWheel(number: number): Promise<void> {
+    const Matter = await this.ensureMatter();
+    if (this.destroyed) return;
+
     const targetIndex = WHEEL_ORDER.indexOf(number);
+    const targetLocal = (targetIndex * SEG * Math.PI) / 180;
+    const startLocal = this.ballLocalAngle;
     const rotorStart = this.rotorAngle();
     // Angolo finale libero: il vano vincente non deve per forza finire in alto.
-    const rotorFinal = rotorStart + 4 * 360 + Math.random() * 360;
+    const rotorFinal = rotorStart + (4 + Math.random()) * 360;
 
-    const ballStart = this.ballAngle();
-    const ballThrow = ballStart + 0.6;
-    const ballOrbit = ballStart + 3.5 * TAU;
+    // Giri nel sistema della ruota: somma il giro del tavolo e quello visto dal
+    // pubblico, in senso antiorario.
+    const localTurns = 5.8 + Math.random() * 0.8;
+    let endLocal = targetLocal;
+    while (endLocal > startLocal - localTurns * TAU) endLocal -= TAU;
+    const delta = endLocal - startLocal;
 
-    const targetAbs = ((targetIndex * SEG + rotorFinal) * Math.PI) / 180;
-    let ballLand = targetAbs;
-    while (ballLand < ballOrbit + 1.2 * TAU) ballLand += TAU;
+    const engine = this.createWheelPhysics(Matter, startLocal);
+    const body = this.ballBody;
+    if (!body) return;
 
-    const overshoot = 0.55;
-    const radiusStart = this.ballRadius();
+    const t1 = THROW_MS;
+    const t2 = t1 + ORBIT_MS;
+    const t3 = t2 + DROP_MS;
+    const stepMs = 1000 / 60;
+
+    // Raggio guidato: uscita sul bordo, orbita, poi discesa nel vano.
+    const guide = (t: number): number => {
+      if (t <= t1) return REST_R + (ORBIT_R - REST_R) * easeOutCubic(t / t1);
+      if (t <= t2) return ORBIT_R;
+      if (t <= t3) {
+        const p = (t - t2) / DROP_MS;
+        return ORBIT_R + (REST_R - ORBIT_R) * p * p;
+      }
+      return REST_R;
+    };
+
+    // Frenata morbida: parte decisa e si spegne sul vano, senza inchiodare.
+    const plan = (t: number): number => {
+      const p = Math.min(1, t / ROTOR_MS);
+      return startLocal + delta * (1 - Math.pow(1 - p, 1.7));
+    };
 
     this.settled.set(false);
     this.slowMotion.set(false);
 
-    return new Promise((resolve) => {
-      const start = performance.now();
-      const t1 = THROW_MS;
-      const t2 = t1 + ORBIT_MS;
-      const t3 = t2 + DROP_MS;
-      const t4 = t3 + BOUNCE_MS;
+    await new Promise<void>((resolve) => {
+      let sim = 0;
+      let acc = 0;
+      let last = performance.now();
 
-      const step = (now: number) => {
+      const sync = (): void => {
+        const rad = (this.rotorAngle() * Math.PI) / 180;
+        const dx = body.position.x - CX;
+        const dy = body.position.y - CY;
+        this.ballX.set(CX + dx * Math.cos(rad) - dy * Math.sin(rad));
+        this.ballY.set(CY + dx * Math.sin(rad) + dy * Math.cos(rad));
+      };
+
+      const step = (now: number): void => {
         if (this.destroyed) {
           resolve();
           return;
         }
 
-        const t = now - start;
-        this.rotorAngle.set(rotorStart + (rotorFinal - rotorStart) * easeOutCubic(Math.min(1, t / ROTOR_MS)));
-        this.slowMotion.set(t >= t2);
+        acc += Math.min(80, now - last);
+        last = now;
 
-        let angle = ballLand;
-        let radius = POCKET_R;
-        let scale = 0.87;
+        let ran = 0;
+        while (acc >= stepMs && sim < SPIN_MS && ran < 6) {
+          sim = Math.min(SPIN_MS, sim + stepMs);
+          acc -= stepMs;
+          ran += 1;
 
-        if (t <= t1) {
-          const p = Math.min(1, t / t1);
-          angle = ballStart + 0.6 * easeOutCubic(p);
-          radius = radiusStart + (ORBIT_R - radiusStart) * easeOutCubic(p);
-          scale = 1;
-        } else if (t <= t2) {
-          const p = (t - t1) / ORBIT_MS;
-          angle = ballThrow + (ballOrbit - ballThrow) * p;
-          radius = ORBIT_R;
-          scale = 1;
-        } else if (t <= t3) {
-          const p = (t - t2) / DROP_MS;
-          angle = ballOrbit + (ballLand + overshoot - ballOrbit) * easeOutQuart(p);
-          radius = ORBIT_R + (POCKET_R - ORBIT_R) * Math.pow(p, 1.6);
-          scale = 1 - 0.13 * p;
-        } else if (t <= t4) {
-          const p = (t - t3) / BOUNCE_MS;
-          const decay = Math.pow(1 - p, 2);
-          angle = ballLand + overshoot * decay * Math.cos(p * Math.PI * 4.8);
-          radius = POCKET_R + 10 * Math.abs(Math.sin(p * Math.PI * 4.8)) * decay;
-          scale = 0.87 + 0.05 * Math.abs(Math.sin(p * Math.PI * 4.8)) * decay;
+          this.rotorAngle.set(
+            rotorStart + (rotorFinal - rotorStart) * easeOutCubic(Math.min(1, sim / ROTOR_MS)),
+          );
+
+          // Velocità del piano + richiamo sull'errore: la traiettoria resta
+          // precisa anche dopo un urto, che quindi si vede e si recupera.
+          const angleNow = plan(sim);
+          const radiusNow = guide(sim);
+          const nextAngle = plan(sim + stepMs);
+          const nextRadius = guide(sim + stepMs);
+          const x0 = CX + radiusNow * Math.sin(angleNow);
+          const y0 = CY - radiusNow * Math.cos(angleNow);
+          const x1 = CX + nextRadius * Math.sin(nextAngle);
+          const y1 = CY - nextRadius * Math.cos(nextAngle);
+
+          const gain = sim > ROTOR_MS ? 0.22 : 0.11;
+          let vx = (x1 - x0) / stepMs + (x0 - body.position.x) * gain;
+          let vy = (y1 - y0) / stepMs + (y0 - body.position.y) * gain;
+          const speed = Math.hypot(vx, vy);
+          if (speed > 96) {
+            vx = (vx / speed) * 96;
+            vy = (vy / speed) * 96;
+          }
+
+          const blend = sim > ROTOR_MS ? 0.3 : 0.2;
+          Matter.Body.setVelocity(body, {
+            x: body.velocity.x + (vx - body.velocity.x) * blend,
+            y: body.velocity.y + (vy - body.velocity.y) * blend,
+          });
+
+          Matter.Engine.update(engine, stepMs);
+
+          // Limite duro del tavolo: la pallina non esce né finisce nel cono.
+          const dx = body.position.x - CX;
+          const dy = body.position.y - CY;
+          const radius = Math.hypot(dx, dy) || 1;
+          if (radius > WALL_R - BALL_R - 1.5) {
+            const max = WALL_R - BALL_R - 1.5;
+            Matter.Body.setPosition(body, {
+              x: CX + (dx / radius) * max,
+              y: CY + (dy / radius) * max,
+            });
+          } else if (radius < REST_R - 1) {
+            Matter.Body.setPosition(body, {
+              x: CX + (dx / radius) * (REST_R - 1),
+              y: CY + (dy / radius) * (REST_R - 1),
+            });
+          }
+
+          const slow = sim >= t2;
+          if (this.slowMotion() !== slow) this.slowMotion.set(slow);
         }
 
-        this.ballAngle.set(angle);
-        this.ballRadius.set(radius);
-        this.ballScale.set(scale);
-
-        if (t >= SPIN_MS) {
-          this.rotorAngle.set(rotorFinal);
-          this.ballAngle.set(ballLand);
-          this.ballRadius.set(POCKET_R);
-          this.ballScale.set(0.87);
-          this.slowMotion.set(false);
-          this.settled.set(true);
-          resolve();
+        if (sim < SPIN_MS) {
+          sync();
+          this.frame = requestAnimationFrame(step);
           return;
         }
 
-        this.frame = requestAnimationFrame(step);
+        Matter.Body.setPosition(body, {
+          x: CX + REST_R * Math.sin(targetLocal),
+          y: CY - REST_R * Math.cos(targetLocal),
+        });
+        this.ballLocalAngle = targetLocal;
+        this.rotorAngle.set(rotorFinal);
+        sync();
+        this.slowMotion.set(false);
+        this.settled.set(true);
+        resolve();
       };
 
       this.frame = requestAnimationFrame(step);
     });
+  }
+
+  private async ensureMatter(): Promise<any> {
+    if (!this.matter) {
+      const module: any = await import('matter-js');
+      this.matter = module.default?.default ?? module.default ?? module;
+    }
+    return this.matter;
+  }
+
+  /** Pista fisica nel sistema della ruota: muro, deflettori e separator di vano. */
+  private createWheelPhysics(Matter: any, localAngle: number): any {
+    this.destroyPhysics();
+
+    const { Engine, Bodies, Composite } = Matter;
+    const engine = Engine.create({ enableSleeping: false });
+    engine.gravity.x = 0;
+    engine.gravity.y = 0;
+    engine.gravity.scale = 0;
+    const world = engine.world;
+
+    const ring = (radius: number, thickness: number, segments: number, restitution: number): void => {
+      for (let i = 0; i < segments; i++) {
+        const a0 = (i / segments) * TAU;
+        const a1 = ((i + 1) / segments) * TAU;
+        const x0 = CX + radius * Math.sin(a0);
+        const y0 = CY - radius * Math.cos(a0);
+        const x1 = CX + radius * Math.sin(a1);
+        const y1 = CY - radius * Math.cos(a1);
+        Composite.add(
+          world,
+          Bodies.rectangle(
+            (x0 + x1) / 2,
+            (y0 + y1) / 2,
+            Math.hypot(x1 - x0, y1 - y0) + thickness,
+            thickness,
+            {
+              isStatic: true,
+              angle: Math.atan2(y1 - y0, x1 - x0),
+              restitution,
+            },
+          ),
+        );
+      }
+    };
+
+    ring(WALL_R, 10, 56, 0.34);
+    ring(INNER_R + 2, 8, 40, 0.3);
+
+    // Separatori dei 37 vani: la pallina ci sbatte e si incastra nel vano.
+    for (let i = 0; i < 37; i++) {
+      const angle = ((i + 0.5) * SEG * Math.PI) / 180;
+      Composite.add(
+        world,
+        Bodies.circle(
+          CX + POCKET_R * Math.sin(angle),
+          CY - POCKET_R * Math.cos(angle),
+          4,
+          { isStatic: true, restitution: 0.3 },
+        ),
+      );
+    }
+
+    // Deflettori della pista: deviano la pallina durante la discesa.
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * TAU + 0.18;
+      Composite.add(
+        world,
+        Bodies.circle(
+          CX + DEFLECTOR_R * Math.sin(angle),
+          CY - DEFLECTOR_R * Math.cos(angle),
+          6,
+          { isStatic: true, restitution: 0.46 },
+        ),
+      );
+    }
+
+    const ball = Bodies.circle(
+      CX + REST_R * Math.sin(localAngle),
+      CY - REST_R * Math.cos(localAngle),
+      BALL_R,
+      { friction: 0.002, frictionAir: 0, restitution: 0.38, density: 0.004 },
+    );
+    Composite.add(world, ball);
+
+    this.engine = engine;
+    this.ballBody = ball;
+    return engine;
+  }
+
+  private destroyPhysics(): void {
+    if (!this.engine) return;
+    if (this.matter) {
+      this.matter.Events.off(this.engine);
+      this.matter.Composite.clear(this.engine.world, false, true);
+      this.matter.Engine.clear(this.engine);
+    }
+    this.engine = undefined;
+    this.ballBody = undefined;
   }
 
   private showReveal(number: number): void {
@@ -884,7 +1059,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.reveal.set({ heading: `MANCHE ${this.manche()} · ESCE ${number} · ${winner}`, rows });
     this.publish();
     this.emitRows(rows);
-    this.later(REVEAL_MS, () => this.startManche(this.manche()));
+    this.later(this.preview ? 1500 : REVEAL_MS, () => this.startManche(this.manche()));
   }
 
   private labelFor(manche: Manche['id'], number: number): string {
@@ -908,7 +1083,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.rule.set('Quattro manche chiuse: classifica del bonus.');
     this.secondsLeft.set(0);
     this.publish();
-    this.later(7000, () => this.finished.emit());
+    this.later(this.preview ? 4000 : 7000, () => this.finished.emit());
   }
 
   private beginVote(phase: Phase, seconds: number, onEnd: () => void): void {
@@ -920,6 +1095,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.phase.set(phase);
     this.secondsLeft.set(seconds);
     this.publish();
+    if (this.preview) this.seedPreviewVotes(seconds);
 
     this.clock = setInterval(() => {
       const next = Math.max(0, this.secondsLeft() - 1);
@@ -930,6 +1106,22 @@ export class CasinoBonus implements OnInit, OnDestroy {
         this.closeVote();
       }
     }, 1000);
+  }
+
+  /** Nel banco di prova i voti arrivano da soli: la ruota deve girare subito. */
+  private seedPreviewVotes(seconds: number): void {
+    if (!this.players.length) return;
+    this.later(Math.min(800, seconds * 350), () => {
+      if (this.voteClosed || this.phase() !== 'PICK') return;
+      const options = this.options();
+      if (!options.length) return;
+      for (const playerName of this.players) {
+        if (!this.votes.has(playerName)) {
+          this.votes.set(playerName, options[Math.floor(Math.random() * options.length)]);
+        }
+      }
+      this.publish();
+    });
   }
 
   private finishVoteEarly(): void {

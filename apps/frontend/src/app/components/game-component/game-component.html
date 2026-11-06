@@ -229,7 +229,8 @@
     @case ('BASKET') {
       <app-basket-bonus-stage
         [secondsLeft]="bonusSecondsLeft()"
-        [scores]="bonusScores()" />
+        [scores]="bonusScores()"
+        [players]="bonusPlayers()" />
     }
     @case ('CAVALLO') {
       <app-cavallo-bonus

@@ -319,6 +319,7 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
 
   readonly score = signal(0);
   readonly mancheScore = signal(0);
+  readonly mancheBaskets = signal(0);
   readonly mancheScores = signal<number[]>([0, 0, 0]);
   readonly manche = signal(0);
   readonly shots = signal(0);
@@ -334,6 +335,12 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
   private resizeObserver: ResizeObserver | undefined;
   private messageTimer: ReturnType<typeof setTimeout> | undefined;
   private lastTs = 0;
+  private physAcc = 0;
+  private matter?: any;
+  private engine?: any;
+  private ballBody?: any;
+  private destroyed = false;
+  private mancheToken = 0;
 
   private w = 0;
   private h = 0;
@@ -366,14 +373,19 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(canvas);
     this.raf = requestAnimationFrame(this.frame);
+    void this.ensureMatter().catch((error) =>
+      console.error('Basket: impossibile caricare Matter.js', error),
+    );
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     cancelAnimationFrame(this.raf);
     this.stopTimer();
     if (this.mancheTimer) clearTimeout(this.mancheTimer);
     this.resizeObserver?.disconnect();
     if (this.messageTimer) clearTimeout(this.messageTimer);
+    this.destroyPhysics();
   }
 
   mancheLabel(index = this.manche()): string {
@@ -389,22 +401,33 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
 
     this.score.set(0);
     this.mancheScore.set(0);
+    this.mancheBaskets.set(0);
     this.mancheScores.set([0, 0, 0]);
     this.shots.set(0);
     this.message.set(null);
-    this.startManche(0);
+    void this.startManche(0);
   }
 
-  private startManche(index: number): void {
+  private async startManche(index: number): Promise<void> {
     this.stopTimer();
+    const token = ++this.mancheToken;
+    const Matter = await this.ensureMatter().catch(() => null);
+    if (this.destroyed || token !== this.mancheToken) return;
+    if (!Matter) {
+      this.flash('Fisica non disponibile');
+      return;
+    }
+
     this.manche.set(index);
     this.mancheScore.set(0);
+    this.mancheBaskets.set(0);
     this.timeLeft.set(MANCHE_SECONDS);
     this.state.set('PLAYING');
     this.message.set(null);
     this.rimScale = RIM_SCALES[index] ?? 1;
     this.lastTs = 0;
     this.layout();
+    this.createPhysics(Matter);
     this.placeBall();
 
     this.timer = setInterval(() => {
@@ -426,12 +449,11 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     this.mancheScores.set(scores);
     this.score.update((value) => value + gained);
     this.state.set('MANCHE_END');
-    this.sendResult(gained);
     this.vibrate(60);
 
     this.mancheTimer = setTimeout(() => {
       if (this.manche() < MANCHE_COUNT - 1) {
-        this.startManche(this.manche() + 1);
+        void this.startManche(this.manche() + 1);
       } else {
         this.finishGame();
       }
@@ -452,8 +474,8 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     }
   }
 
-  /** Ogni manche invia il proprio punteggio: la TV li somma nel bonus. */
-  private sendResult(score: number): void {
+  /** Ogni canestro aggiorna subito la TV: un pallone e i punti della manche. */
+  private sendBasket(points: number): void {
     const playerName = this.resolvePlayerName();
     if (!playerName) return;
 
@@ -462,7 +484,8 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     this.ws.broadcastStatus(gameId, {
       action: 'BONUS_RESULT',
       playerName,
-      score,
+      score: points,
+      baskets: 1,
       manche: this.manche() + 1,
     });
   }
@@ -513,8 +536,17 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     this.touchedRim = false;
     this.restTime = 0;
     this.resetAfter = 0;
+    this.physAcc = 0;
     this.shots.update((value) => value + 1);
+    this.launchBody(vx, vy);
     this.vibrate(20);
+  }
+
+  /** La velocità del tiro è in px/s: Matter lavora in px per passo (1/60 s). */
+  private launchBody(vx: number, vy: number): void {
+    if (!this.matter || !this.ballBody) return;
+    this.matter.Body.setVelocity(this.ballBody, { x: vx / 60, y: vy / 60 });
+    this.matter.Body.setAngularVelocity(this.ballBody, (vx / 60) * 0.02);
   }
 
   private frame = (ts: number): void => {
@@ -528,9 +560,8 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
   };
 
   private update(dt: number): void {
-    if (dt <= 0 || !this.shot) return;
+    if (dt <= 0) return;
 
-    const b = this.ball;
     if (this.resetAfter > 0) {
       this.resetAfter -= dt;
       if (this.resetAfter <= 0) {
@@ -539,55 +570,47 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
       }
     }
 
-    const prevY = b.y;
-    b.vy += GRAVITY * dt;
-    b.x += b.vx * dt;
-    b.y += b.vy * dt;
+    const engine = this.engine;
+    const body = this.ballBody;
+    if (!this.shot || !engine || !body || !this.matter) return;
+
+    const prevY = body.position.y;
+    this.physAcc += Math.min(dt, 0.05) * 1000;
+    const step = 1000 / 60;
+    let steps = 0;
+    while (this.physAcc >= step && steps < 4) {
+      this.matter.Engine.update(engine, step);
+      this.physAcc -= step;
+      steps += 1;
+    }
+    if (steps === 0) return;
+    if (steps === 4) this.physAcc = 0;
+
+    this.ball.x = body.position.x;
+    this.ball.y = body.position.y;
+    this.ball.vx = body.velocity.x * 60;
+    this.ball.vy = body.velocity.y * 60;
 
     // Canestro: la palla attraversa il ferro dall'alto verso il basso.
     if (
       !this.scoredThisShot &&
       prevY < this.hoopY &&
-      b.y >= this.hoopY &&
-      b.vy > 0 &&
-      Math.abs(b.x - this.hoopX) < this.rimR - b.r * 0.15
+      body.position.y >= this.hoopY &&
+      body.velocity.y > 0 &&
+      Math.abs(body.position.x - this.hoopX) < this.rimR - this.ball.r * 0.15
     ) {
       const base = MANCHE_POINTS[this.manche()] ?? 2;
       const points = base + (this.touchedRim ? 0 : 1);
       this.mancheScore.update((value) => value + points);
+      this.mancheBaskets.update((value) => value + 1);
+      this.sendBasket(points);
       this.scoredThisShot = true;
       this.flash(this.touchedRim ? `CANESTRO +${points}` : `SWISH! +${points}`);
       this.vibrate(60);
       this.resetAfter = 1.1;
     }
 
-    this.hitRim(this.hoopX - this.rimR, this.hoopY);
-    this.hitRim(this.hoopX + this.rimR, this.hoopY);
-    this.hitBackboard();
-
-    if (b.x < b.r) {
-      b.x = b.r;
-      b.vx = Math.abs(b.vx) * 0.55;
-    }
-    if (b.x > this.w - b.r) {
-      b.x = this.w - b.r;
-      b.vx = -Math.abs(b.vx) * 0.55;
-    }
-
-    if (b.y > this.floorY - b.r) {
-      b.y = this.floorY - b.r;
-      if (b.vy > 90) {
-        b.vy = -b.vy * 0.42;
-        this.vibrate(8);
-      } else {
-        b.vy = 0;
-      }
-      b.vx *= 0.82;
-      if (Math.abs(b.vx) < 18) b.vx = 0;
-    }
-
-    const resting =
-      b.y >= this.floorY - b.r - 1 && Math.abs(b.vy) < 40 && Math.abs(b.vx) < 30;
+    const resting = body.position.y >= this.floorY - this.ball.r - 2 && body.speed < 0.6;
     if (resting && !this.scoredThisShot) {
       this.restTime += dt;
       if (this.restTime > 0.6) this.placeBall();
@@ -595,43 +618,110 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
       this.restTime = 0;
     }
 
-    if (b.y > this.h + b.r * 4 || b.x < -b.r * 4 || b.x > this.w + b.r * 4) {
+    if (
+      body.position.y > this.h + this.ball.r * 4 ||
+      body.position.x < -this.ball.r * 4 ||
+      body.position.x > this.w + this.ball.r * 4
+    ) {
       this.resetAfter = 0.25;
     }
   }
 
-  private hitRim(cx: number, cy: number): void {
-    const b = this.ball;
-    const dx = b.x - cx;
-    const dy = b.y - cy;
-    const dist = Math.hypot(dx, dy);
-    const min = b.r + 6;
-    if (dist >= min || dist < 0.001) return;
-
-    const nx = dx / dist;
-    const ny = dy / dist;
-    b.x = cx + nx * min;
-    b.y = cy + ny * min;
-
-    const dot = b.vx * nx + b.vy * ny;
-    if (dot < 0) {
-      b.vx -= 1.55 * dot * nx;
-      b.vy -= 1.55 * dot * ny;
+  private async ensureMatter(): Promise<any> {
+    if (!this.matter) {
+      const module: any = await import('matter-js');
+      this.matter = module.default?.default ?? module.default ?? module;
     }
-    this.touchedRim = true;
+    return this.matter;
   }
 
-  private hitBackboard(): void {
-    const b = this.ball;
-    const boardWidth = 10;
-    if (b.x + b.r < this.backX || b.x - b.r > this.backX + boardWidth) return;
-    if (b.y + b.r < this.backTop || b.y - b.r > this.backBottom) return;
-    if (b.vx <= 0) return;
+  /** Campo fisico: pavimento, tetto, pareti, tabellone e i due ferri. */
+  private createPhysics(Matter: any): void {
+    this.destroyPhysics();
 
-    b.x = this.backX - b.r;
-    b.vx = -b.vx * 0.55;
-    b.vy *= 0.92;
-    this.touchedRim = true;
+    const { Engine, Bodies, Composite, Events } = Matter;
+    const engine = Engine.create({ enableSleeping: false });
+    engine.gravity.y = 1.5;
+    engine.gravity.scale = 0.001;
+    const world = engine.world;
+    const boardHeight = Math.max(10, this.backBottom - this.backTop);
+
+    Composite.add(world, [
+      Bodies.rectangle(this.w / 2, this.floorY + 60, this.w * 2, 120, {
+        isStatic: true,
+        restitution: 0.42,
+        friction: 0.9,
+        label: 'floor',
+      }),
+      Bodies.rectangle(this.w / 2, -60, this.w * 2, 120, {
+        isStatic: true,
+        restitution: 0.3,
+        label: 'ceiling',
+      }),
+      Bodies.rectangle(-30, this.h / 2, 60, this.h * 2, {
+        isStatic: true,
+        restitution: 0.5,
+        label: 'wall-left',
+      }),
+      Bodies.rectangle(this.w + 30, this.h / 2, 60, this.h * 2, {
+        isStatic: true,
+        restitution: 0.5,
+        label: 'wall-right',
+      }),
+      Bodies.rectangle(this.backX + 5, (this.backTop + this.backBottom) / 2, 10, boardHeight, {
+        isStatic: true,
+        restitution: 0.5,
+        friction: 0.2,
+        label: 'backboard',
+      }),
+    ]);
+
+    // Ferro in due corpi: il centro resta aperto al passaggio della palla.
+    const rimRadius = Math.max(4, this.rimR * 0.12);
+    for (const x of [this.hoopX - this.rimR, this.hoopX + this.rimR]) {
+      Composite.add(
+        world,
+        Bodies.circle(x, this.hoopY, rimRadius, {
+          isStatic: true,
+          restitution: 0.62,
+          friction: 0.1,
+          label: 'rim',
+        }),
+      );
+    }
+
+    const ball = Bodies.circle(this.startX, this.startY, this.ball.r, {
+      label: 'ball',
+      restitution: 0.46,
+      friction: 0.02,
+      frictionAir: 0.002,
+      density: 0.002,
+    });
+    Composite.add(world, ball);
+
+    Events.on(engine, 'collisionStart', (event: any) => {
+      for (const pair of event.pairs) {
+        const labels = [pair.bodyA.label, pair.bodyB.label];
+        if (labels.includes('ball') && (labels.includes('rim') || labels.includes('backboard'))) {
+          this.touchedRim = true;
+        }
+      }
+    });
+
+    this.engine = engine;
+    this.ballBody = ball;
+    this.physAcc = 0;
+  }
+
+  private destroyPhysics(): void {
+    if (!this.engine) return;
+    if (this.matter) {
+      this.matter.Events.off(this.engine);
+      this.matter.Composite.clear(this.engine.world, false, true);
+      this.matter.Engine.clear(this.engine);
+    }
+    this.engine = undefined;
+    this.ballBody = undefined;
   }
 
   private draw(): void {
@@ -839,6 +929,14 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     this.drag = false;
     this.resetAfter = 0;
     this.restTime = 0;
+    this.physAcc = 0;
+
+    if (this.matter && this.ballBody) {
+      this.matter.Body.setPosition(this.ballBody, { x: this.startX, y: this.startY });
+      this.matter.Body.setVelocity(this.ballBody, { x: 0, y: 0 });
+      this.matter.Body.setAngularVelocity(this.ballBody, 0);
+      this.matter.Body.setAngle(this.ballBody, 0);
+    }
   }
 
   private resize(): void {
@@ -853,7 +951,22 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     canvas.height = Math.round(rect.height * this.dpr);
     this.layout();
 
-    if (!this.shot) this.placeBall();
+    if (!this.matter || !this.engine) {
+      if (!this.shot) this.placeBall();
+      return;
+    }
+
+    // Il campo è cambiato: si ricostruiscono i corpi statici e si tiene la
+    // palla dov'è se un tiro è ancora in volo.
+    const position = this.ballBody ? { ...this.ballBody.position } : null;
+    const velocity = this.ballBody ? { ...this.ballBody.velocity } : null;
+    this.createPhysics(this.matter);
+    if (this.shot && position && velocity && this.ballBody) {
+      this.matter.Body.setPosition(this.ballBody, position);
+      this.matter.Body.setVelocity(this.ballBody, velocity);
+    } else {
+      this.placeBall();
+    }
   }
 
   private stopTimer(): void {

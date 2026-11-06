@@ -56,14 +56,45 @@ interface RaceMarble {
   marbleId: string;
   x: number;
   v: number;
-  y: number;
-  vy: number;
+  body: any;
   finished: boolean;
   position: number | null;
   trail: Array<{ x: number; y: number }>;
-  bumps: number[];
-  nextBump: number;
-  wobble: number;
+  bumped: Set<string>;
+  /** Effetti di pista attivi, misurati in secondi di gara. */
+  slowUntil: number;
+  boostUntil: number;
+}
+
+type HazardKind =
+  | 'fango'
+  | 'pozzanghera'
+  | 'sasso'
+  | 'cordolo'
+  | 'cumulo'
+  | 'ghiaccio'
+  | 'onda'
+  | 'boa'
+  | 'scoglio';
+
+interface Hazard {
+  id: string;
+  kind: HazardKind;
+  progress: number;
+  offset: number;
+  radius: number;
+  patch: boolean;
+}
+
+interface ImpactParticle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  max: number;
+  color: string;
+  size: number;
 }
 
 interface RaceRow {
@@ -127,7 +158,35 @@ const PICK_SECONDS = 10;
 const RACE_SECONDS = 30;
 const TRACK_START_X = 140;
 const TRACK_WORLD_LENGTH = 3600;
-const TRACK_END_PADDING = 160;
+/** Ostacoli per fondo: cambiano la gara, non solo il colore dell'asfalto. */
+const HAZARD_PLANS: Record<string, HazardKind[]> = {
+  rally: ['fango', 'pozzanghera', 'sasso', 'sasso', 'fango', 'pozzanghera', 'sasso', 'fango', 'pozzanghera', 'sasso', 'fango', 'pozzanghera', 'sasso', 'fango'],
+  f1: ['cordolo', 'cordolo', 'cordolo', 'cordolo', 'cordolo', 'cordolo', 'cordolo', 'cordolo', 'cordolo', 'cordolo', 'cordolo', 'cordolo'],
+  neve: ['cumulo', 'ghiaccio', 'cumulo', 'ghiaccio', 'cumulo', 'ghiaccio', 'cumulo', 'ghiaccio', 'cumulo', 'ghiaccio', 'cumulo', 'ghiaccio'],
+  acqua: ['onda', 'boa', 'scoglio', 'onda', 'boa', 'scoglio', 'onda', 'boa', 'scoglio', 'onda', 'boa', 'scoglio'],
+};
+
+/** Ondulazione dentro i rettilinei: più onde, più curvoni e chicanes. */
+const TRACK_SHAPES: Record<string, { waves: number; amp: number }> = {
+  rally: { waves: 3.0, amp: 0.12 },
+  f1: { waves: 1.8, amp: 0.07 },
+  neve: { waves: 3.3, amp: 0.12 },
+  acqua: { waves: 2.4, amp: 0.1 },
+};
+
+/** Palette carta/inchiostro usata su tela per gli ostacoli. */
+const INK = '#15150f';
+const PAPER = '#f1e4c9';
+const PAPER_HI = '#fff8e8';
+const TOMATO = '#ff4d2e';
+const MUSTARD = '#ffc53d';
+const COBALT = '#2f5bff';
+const MINT = '#8be3c4';
+const ACID = '#d9ff43';
+const PHYSICS_STEP = 1000 / 60;
+const TRACK_END_PADDING = 80;
+/** Centro verticale della pista disegnata: alza il serpentone e libera il bordo basso. */
+const TRACK_VIEW_CENTER = 0.51;
 const BETWEEN_SECONDS = 4;
 const FINALE_SECONDS = 7;
 
@@ -145,8 +204,9 @@ const FINALE_SECONDS = 7;
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.Eager,
   template: `
-    <div class="bg-overlay">
-      <div class="bg-card">
+    <div class="bg-overlay" [class.racing-overlay]="phase() === 'RACE'">
+      <div class="bg-card" [class.racing]="phase() === 'RACE'">
+        @if (phase() !== 'RACE') {
         <header class="bg-head">
           <div>
             <div class="bg-kicker">🎱 BIGLIE · BONUS DI FINE ATTO</div>
@@ -157,6 +217,7 @@ const FINALE_SECONDS = 7;
             <div class="bg-timer" [class.hot]="secondsLeft() <= 4">{{ secondsLeft() }}s</div>
           }
         </header>
+        }
 
         @switch (phase()) {
           @case ('INTRO') {
@@ -203,6 +264,7 @@ const FINALE_SECONDS = 7;
                 {{ currentTrack()?.emoji }} {{ currentTrack()?.surface }}
               </span>
               <span class="bg-hint">Punti gara: 150 · 100 · 60 · 30 · punti cumulativi su quattro gare</span>
+              <span class="bg-race-clock" [class.hot]="secondsLeft() <= 4">{{ secondsLeft() }}s</span>
             </div>
             <div class="bg-race-stage">
               <canvas #raceCanvas></canvas>
@@ -211,6 +273,13 @@ const FINALE_SECONDS = 7;
 
           @case ('RACE_END') {
             <div class="bg-results">
+              <div class="bg-result-head">
+                <span class="bg-result-kicker">LEGENDA · ORDINE D'ARRIVO</span>
+                <span class="bg-result-track">{{ currentTrack()?.emoji }} GARA {{ raceIndex() + 1 }} · {{ currentTrack()?.name }}</span>
+              </div>
+              <div class="bg-result-columns">
+                <span>POS</span><span>TAVOLO</span><span>BIGLIA</span><span>PUNTI</span><span>TOTALE</span>
+              </div>
               @for (row of raceResult() ?? []; track row.playerName; let i = $index) {
                 <div class="bg-row" [class.paid]="row.points > 0">
                   <span class="bg-row-pos">{{ i + 1 }}</span>
@@ -275,7 +344,18 @@ const FINALE_SECONDS = 7;
     .bg-track-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .bg-surface { padding: 4px 12px; color: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.62rem, .92vw, .8rem); font-weight: 800; letter-spacing: .16em; }
     .bg-race-stage { position: relative; flex: 1; min-height: clamp(340px, 56vh, 640px); background: #101418; border: 3px solid var(--coal); overflow: hidden; }
-    .bg-race-stage canvas { display: block; width: 100%; height: 100%; }
+    .bg-race-stage canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+    .bg-overlay.racing-overlay { padding: 0; place-items: stretch; background: var(--bg-0); }
+    .bg-card.racing { width: 100vw; height: 100dvh; max-height: none; padding: 8px 10px 10px; border: 0; box-shadow: none; gap: 6px; }
+    .bg-card.racing .bg-track-head { flex: 0 0 auto; padding: 2px 2px 0; }
+    .bg-card.racing .bg-race-stage { flex: 1; min-height: 0; border-width: 2px; }
+    .bg-race-clock { display: inline-grid; place-items: center; min-width: 58px; padding: 3px 9px; background: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.9rem, 1.6vw, 1.35rem); font-weight: 800; font-variant-numeric: tabular-nums; }
+    .bg-race-clock.hot { background: var(--tomato); color: var(--paper-hi); }
+    .bg-result-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 3px; padding-bottom: 6px; border-bottom: 3px solid var(--coal); }
+    .bg-result-kicker { display: inline-block; padding: 3px 10px; background: var(--tomato); color: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.58rem, .86vw, .76rem); font-weight: 800; letter-spacing: .16em; transform: rotate(-1.2deg); }
+    .bg-result-track { color: rgba(30, 25, 20, .66); font-family: var(--font-mono); font-size: clamp(.55rem, .82vw, .7rem); font-weight: 800; letter-spacing: .08em; text-align: right; }
+    .bg-result-columns { display: grid; grid-template-columns: 30px 1fr auto auto auto; gap: 12px; padding: 0 12px; color: rgba(30, 25, 20, .55); font-family: var(--font-mono); font-size: clamp(.46rem, .7vw, .58rem); font-weight: 800; letter-spacing: .12em; }
+    .bg-result-columns span:nth-child(n + 3) { text-align: right; }
     .bg-results { display: flex; flex-direction: column; gap: 5px; }
     .bg-row { display: grid; grid-template-columns: 30px 1fr auto auto auto; gap: 12px; align-items: center; padding: 7px 12px; background: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.72rem, 1vw, .92rem); }
     .bg-row.paid { background: var(--acid); }
@@ -304,6 +384,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
   @Input({ required: true }) gameId = 1;
   @Input() players: string[] = [];
+  /** Banco di prova: intro breve, scelta automatica e gare senza attese. */
+  @Input() preview = false;
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
 
@@ -330,6 +412,12 @@ export class BiglieBonus implements OnInit, OnDestroy {
   private timers: Array<ReturnType<typeof setTimeout>> = [];
 
   private raceMarbles: RaceMarble[] = [];
+  private matter?: any;
+  private engine?: any;
+  private destroyed = false;
+  private physicsAccumulator = 0;
+  private particles: ImpactParticle[] = [];
+  private cameraShake = 0;
   private raceElapsed = 0;
   private publishAcc = 0;
   private raceEnding = false;
@@ -342,16 +430,21 @@ export class BiglieBonus implements OnInit, OnDestroy {
   private raceResize?: ResizeObserver;
   private cameraX = 0;
   private cameraReady = false;
+  private trackSamples: Array<{ x: number; y: number }> = [];
+  private trackSeed = 0;
+  private hazards: Hazard[] = [];
 
   ngOnInit(): void {
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       this.onStatus(status);
     });
-    this.later(700, () => this.startIntro());
+    this.later(this.preview ? 200 : 700, () => this.startIntro());
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.clearClock();
+    this.destroyPhysics();
     if (this.frame) cancelAnimationFrame(this.frame);
     this.raceResize?.disconnect();
     this.timers.forEach((timer) => clearTimeout(timer));
@@ -410,10 +503,11 @@ export class BiglieBonus implements OnInit, OnDestroy {
   }
 
   private startIntro(): void {
+    const seconds = this.preview ? 1 : INTRO_SECONDS;
     this.phase.set('INTRO');
-    this.secondsLeft.set(INTRO_SECONDS);
+    this.secondsLeft.set(seconds);
     this.publish();
-    this.startClock(INTRO_SECONDS, () => this.preparePick());
+    this.startClock(seconds, () => this.preparePick());
   }
 
   private preparePick(): void {
@@ -432,15 +526,39 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
   private startPick(): void {
     if (this.pickCursor >= this.pickOrder.length) {
-      this.startRace(0);
+      void this.startRace(0);
       return;
     }
 
     this.phase.set('PICK');
     this.currentPlayer.set(this.pickOrder[this.pickCursor]);
+
+    if (this.preview) {
+      this.secondsLeft.set(0);
+      this.publish();
+      this.later(220, () => this.previewPick());
+      return;
+    }
+
     this.secondsLeft.set(PICK_SECONDS);
     this.publish();
     this.startClock(PICK_SECONDS, () => this.autoPick());
+  }
+
+  /** Scelta demo: biglia libera a caso, così la preview mostra subito la gara. */
+  private previewPick(): void {
+    const player = this.currentPlayer();
+    if (!player || this.phase() !== 'PICK') return;
+
+    const taken = new Set(this.assignments.values());
+    const free = this.marbleSet.filter((marble) => !taken.has(marble.id));
+    if (!free.length) {
+      this.pickCursor += 1;
+      this.startPick();
+      return;
+    }
+
+    this.assignMarble(player, free[Math.floor(Math.random() * free.length)].id);
   }
 
   private autoPick(): void {
@@ -464,7 +582,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
     this.startPick();
   }
 
-  private startRace(index: number): void {
+  private async startRace(index: number): Promise<void> {
     this.clearClock();
 
     if (index >= TRACKS.length) {
@@ -473,6 +591,9 @@ export class BiglieBonus implements OnInit, OnDestroy {
     }
 
     this.raceIndex.set(index);
+    this.trackSeed = Math.floor(Math.random() * 0xffffffff);
+    this.layoutTrack(TRACKS[index]);
+    this.generateHazards(TRACKS[index]);
     this.finishCount = 0;
     this.raceResult.set(null);
     this.currentPlayer.set(null);
@@ -481,20 +602,13 @@ export class BiglieBonus implements OnInit, OnDestroy {
       marbleId: this.assignments.get(playerName) ?? '',
       x: 0,
       v: 0,
-      y: 0,
-      vy: 0,
+      body: null,
       finished: false,
       position: null,
       trail: [],
-      // Quattro dossi per corsia: la biglia salta e perde un filo di velocità.
-      bumps: [
-        10 + Math.random() * 12,
-        32 + Math.random() * 12,
-        55 + Math.random() * 12,
-        78 + Math.random() * 12,
-      ],
-      nextBump: 0,
-      wobble: Math.random() * Math.PI * 2,
+      bumped: new Set<string>(),
+      slowUntil: 0,
+      boostUntil: 0,
     }));
     this.raceElapsed = 0;
     this.publishAcc = 0;
@@ -502,6 +616,9 @@ export class BiglieBonus implements OnInit, OnDestroy {
     this.cameraX = 0;
     this.cameraReady = false;
     this.lastFrame = 0;
+    this.physicsAccumulator = 0;
+    this.particles = [];
+    this.cameraShake = 0;
     this.phase.set('RACE');
     this.secondsLeft.set(RACE_SECONDS);
     this.lanes.set(this.raceMarbles.map((marble) => ({
@@ -512,7 +629,257 @@ export class BiglieBonus implements OnInit, OnDestroy {
       position: null,
     })));
     this.publish();
-    requestAnimationFrame(() => this.attachCanvas());
+
+    try {
+      const Matter = await this.ensureMatter();
+      if (this.destroyed || this.phase() !== 'RACE' || this.raceIndex() !== index) return;
+      this.createPhysics(Matter);
+      requestAnimationFrame(() => this.attachCanvas());
+    } catch (error) {
+      console.error('Biglie: impossibile caricare Matter.js', error);
+    }
+  }
+
+  private async ensureMatter(): Promise<any> {
+    if (!this.matter) {
+      const module: any = await import('matter-js');
+      this.matter = module.default?.default ?? module.default ?? module;
+    }
+    return this.matter;
+  }
+
+  /**
+   * Corridoio fisico rettilineo: x = progresso, y = lato della pista.
+   * La pista disegnata è curva, ma la simulazione vive in coordinate di pista:
+   * così le biglie sono cerchi veri che si urtano, si spintonano e si superano.
+   */
+  private createPhysics(Matter: any): void {
+    this.destroyPhysics();
+
+    const { Engine, Bodies, Body, Composite, Events } = Matter;
+    const engine = Engine.create({ enableSleeping: false });
+    engine.gravity.x = 0;
+    engine.gravity.y = 0;
+    engine.gravity.scale = 0;
+    const world = engine.world;
+    const count = Math.max(1, this.raceMarbles.length);
+    const trackWidth = this.raceTrackWidth(count);
+    const radius = this.marbleRadius(count, trackWidth);
+    const half = trackWidth / 2;
+    const laneLength = TRACK_WORLD_LENGTH + 500;
+
+    Composite.add(world, [
+      Bodies.rectangle(TRACK_START_X + TRACK_WORLD_LENGTH / 2, -half - 12, laneLength, 24, {
+        isStatic: true,
+        restitution: 0.42,
+        friction: 0.02,
+        label: 'wall-up',
+      }),
+      Bodies.rectangle(TRACK_START_X + TRACK_WORLD_LENGTH / 2, half + 12, laneLength, 24, {
+        isStatic: true,
+        restitution: 0.42,
+        friction: 0.02,
+        label: 'wall-down',
+      }),
+      Bodies.rectangle(TRACK_START_X - 46, 0, 42, half * 2 + 90, {
+        isStatic: true,
+        restitution: 0.3,
+        label: 'wall-back',
+      }),
+    ]);
+
+    for (const hazard of this.hazards) {
+      const lateral = hazard.offset * trackWidth * 0.3;
+      const x = TRACK_START_X + hazard.progress * TRACK_WORLD_LENGTH;
+      Composite.add(
+        world,
+        Bodies.circle(x, lateral, hazard.radius + 1, {
+          isStatic: true,
+          isSensor: true,
+          label: hazard.id,
+        }),
+      );
+
+      // Sassoi e scogli sono solidi: non solo effetto, deviano davvero.
+      if (hazard.kind === 'sasso' || hazard.kind === 'scoglio') {
+        Composite.add(
+          world,
+          Bodies.circle(x, lateral, hazard.radius * 0.82, {
+            isStatic: true,
+            restitution: 0.46,
+            friction: 0.08,
+            label: `rock-${hazard.id}`,
+          }),
+        );
+      }
+    }
+
+    // Griglia di partenza: colonne sulla larghezza, file dietro la linea.
+    const cols = Math.min(4, count);
+    const laneStep = cols <= 1 ? 0 : (trackWidth - radius * 2 - 14) / (cols - 1);
+    this.raceMarbles.forEach((marble, index) => {
+      const col = index % cols;
+      const row = Math.floor(index / cols);
+      const lateral = -half + radius + 7 + col * laneStep;
+      const x = TRACK_START_X + 18 + row * (radius * 2 + 14);
+      const body = Bodies.circle(x, lateral, radius, {
+        label: `marble-${index}`,
+        friction: 0.02,
+        frictionAir: 0,
+        restitution: 0.52,
+        density: 0.002,
+      });
+      marble.body = body;
+      marble.x = 0;
+      Composite.add(world, body);
+    });
+
+    Events.on(engine, 'collisionStart', (event: any) => {
+      for (const pair of event.pairs) {
+        const first = this.marbleForBody(pair.bodyA);
+        const second = this.marbleForBody(pair.bodyB);
+
+        // Biglia contro biglia: scintille nel punto di contatto.
+        if (first && second) {
+          if (!first.finished && !second.finished) {
+            const support = pair.collision?.supports?.[0];
+            this.spawnClash(
+              support?.x ?? (pair.bodyA.position.x + pair.bodyB.position.x) / 2,
+              support?.y ?? (pair.bodyA.position.y + pair.bodyB.position.y) / 2,
+            );
+          }
+          continue;
+        }
+
+        const marble = first ?? second;
+        if (!marble || marble.finished) continue;
+
+        const hazardBody = pair.bodyA.label?.startsWith('hazard-')
+          ? pair.bodyA
+          : pair.bodyB.label?.startsWith('hazard-')
+            ? pair.bodyB
+            : null;
+        if (!hazardBody) continue;
+        if (marble.bumped.has(hazardBody.label)) continue;
+
+        const hazard = this.hazards.find((item) => item.id === hazardBody.label);
+        if (!hazard) continue;
+
+        marble.bumped.add(hazard.id);
+        const body = marble.body;
+
+        if (hazard.kind === 'fango' || hazard.kind === 'pozzanghera') {
+          marble.slowUntil = this.raceElapsed + (hazard.kind === 'fango' ? 1.1 : 0.7);
+          Body.setVelocity(body, {
+            x: body.velocity.x * (hazard.kind === 'fango' ? 0.6 : 0.82),
+            y: Math.min(body.velocity.y, -0.7),
+          });
+        } else if (hazard.kind === 'ghiaccio') {
+          marble.boostUntil = this.raceElapsed + 0.9;
+          Body.setVelocity(body, {
+            x: body.velocity.x * 1.08,
+            y: body.velocity.y,
+          });
+        } else if (hazard.kind === 'onda') {
+          Body.setVelocity(body, {
+            x: body.velocity.x * 0.94,
+            y: Math.min(body.velocity.y, -3.1 - Math.random() * 0.8),
+          });
+        } else if (hazard.kind === 'cordolo') {
+          Body.setVelocity(body, {
+            x: body.velocity.x * 0.96,
+            y: Math.min(body.velocity.y, -1.9 - Math.random() * 0.5),
+          });
+        } else {
+          Body.setVelocity(body, {
+            x: body.velocity.x * 0.985,
+            y: Math.min(body.velocity.y, -2.6 - Math.random() * 0.7),
+          });
+        }
+
+        this.spawnImpact(marble, hazard.kind);
+      }
+    });
+
+    this.engine = engine;
+  }
+
+  private marbleForBody(body: any): RaceMarble | undefined {
+    return this.raceMarbles.find((marble) => marble.body === body);
+  }
+
+  private spawnImpact(marble: RaceMarble, hazard?: HazardKind): void {
+    const body = marble.body;
+    if (!body) return;
+
+    const palette = hazard
+      ? this.hazardPalette(hazard)
+      : this.surfacePalette(this.currentTrack()?.id ?? 'rally');
+    const at = this.simToView(body.position.x, body.position.y);
+    for (let index = 0; index < 9; index++) {
+      const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.8;
+      const speed = 30 + Math.random() * 95;
+      this.particles.push({
+        x: at.x,
+        y: at.y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 0.35 + Math.random() * 0.4,
+        max: 0.75,
+        color: index % 2 === 0 ? palette.top : palette.speck,
+        size: 1.5 + Math.random() * 2.5,
+      });
+    }
+    if (this.particles.length > 220) {
+      this.particles.splice(0, this.particles.length - 220);
+    }
+    this.cameraShake = Math.min(6, this.cameraShake + 2.4);
+  }
+
+  /** Scintille e colpo di camera quando due biglie si scontrano davvero. */
+  private spawnClash(x: number, lateral: number): void {
+    const at = this.simToView(x, lateral);
+    for (let index = 0; index < 7; index++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 40 + Math.random() * 90;
+      this.particles.push({
+        x: at.x,
+        y: at.y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 0.2 + Math.random() * 0.25,
+        max: 0.45,
+        color: index % 2 === 0 ? PAPER_HI : MUSTARD,
+        size: 1.4 + Math.random() * 2,
+      });
+    }
+    if (this.particles.length > 220) {
+      this.particles.splice(0, this.particles.length - 220);
+    }
+    this.cameraShake = Math.min(7, this.cameraShake + 1.8);
+  }
+
+  /** Da coordinate di pista (x, lato) al punto disegnato sulla pista curva. */
+  private simToView(x: number, lateral: number): { x: number; y: number } {
+    const progress = Math.max(
+      0,
+      Math.min(1, (x - TRACK_START_X) / TRACK_WORLD_LENGTH),
+    );
+    const point = this.trackPoint(progress);
+    return {
+      x: point.x - Math.sin(point.angle) * lateral,
+      y: point.y + Math.cos(point.angle) * lateral,
+    };
+  }
+
+  private destroyPhysics(): void {
+    if (!this.engine) return;
+    if (this.matter) {
+      this.matter.Events.off(this.engine);
+      this.matter.Composite.clear(this.engine.world, false, true);
+      this.matter.Engine.clear(this.engine);
+    }
+    this.engine = undefined;
   }
 
   private attachCanvas(attempt = 0): void {
@@ -546,6 +913,10 @@ export class BiglieBonus implements OnInit, OnDestroy {
     this.raceH = rect.height;
     canvas.width = Math.round(rect.width * this.raceDpr);
     canvas.height = Math.round(rect.height * this.raceDpr);
+
+    // La pista è solo disegno: si può ridimensionare senza toccare la fisica.
+    const track = this.currentTrack();
+    if (track && this.trackSeed) this.layoutTrack(track);
   }
 
   private loop = (now: number): void => {
@@ -562,54 +933,22 @@ export class BiglieBonus implements OnInit, OnDestroy {
     this.frame = requestAnimationFrame(this.loop);
   };
 
-  /** Fisica della corsa: ogni biglia accelera, subisce l'attrito del fondo e salta sui dossi. */
+  /** Passo fisso: la simulazione non dipende dal refresh della TV. */
   private advanceRace(dt: number): void {
     const track = this.currentTrack();
     if (!track || dt <= 0) return;
 
     this.raceElapsed += dt;
 
-    for (const marble of this.raceMarbles) {
-      if (marble.finished) continue;
-
-      const body = this.marbleById(marble.marbleId);
-      if (!body) continue;
-
-      const profile =
-        (body.speed * track.weights.speed
-          + body.accel * track.weights.accel
-          + body.grip * track.weights.grip) / 10;
-      // Il fondo premia un profilo diverso: la velocità converge al passo
-      // della biglia senza far dominare sempre la stessa su tutte le piste.
-      const cruise = 2.75 + profile * 1.25;
-      const response = 1.15 + body.accel * 0.11;
-      marble.v = Math.max(0, Math.min(6, marble.v + (cruise - marble.v) * response * dt));
-      marble.x += marble.v * dt;
-
-      if (marble.nextBump < marble.bumps.length && marble.x >= marble.bumps[marble.nextBump]) {
-        marble.nextBump += 1;
-        marble.vy = Math.max(0, 120 + Math.random() * 150 - body.grip * 8);
-        marble.v *= 0.955;
+    if (this.engine) {
+      this.physicsAccumulator = Math.min(250, this.physicsAccumulator + dt * 1000);
+      let steps = 0;
+      while (this.physicsAccumulator >= PHYSICS_STEP && steps < 4) {
+        this.stepPhysics();
+        this.physicsAccumulator -= PHYSICS_STEP;
+        steps += 1;
       }
-
-      if (marble.y > 0 || marble.vy !== 0) {
-        marble.vy -= 820 * dt;
-        marble.y += marble.vy * dt;
-        if (marble.y <= 0) {
-          marble.y = 0;
-          marble.vy = Math.abs(marble.vy) > 90 ? -marble.vy * 0.3 : 0;
-        }
-      }
-
-      marble.trail.push({ x: marble.x, y: marble.y });
-      if (marble.trail.length > 30) marble.trail.shift();
-
-      if (marble.x >= 100) {
-        marble.x = 100;
-        marble.finished = true;
-        this.finishCount += 1;
-        marble.position = this.finishCount;
-      }
+      this.stepParticles(dt);
     }
 
     this.publishAcc += dt;
@@ -622,6 +961,70 @@ export class BiglieBonus implements OnInit, OnDestroy {
       this.raceEnding = true;
       this.ngZone.run(() => this.endRace());
     }
+  }
+
+  private stepPhysics(): void {
+    const track = this.currentTrack();
+    if (!track || !this.engine || !this.matter) return;
+
+    const { Engine, Body, Composite } = this.matter;
+    const count = Math.max(1, this.raceMarbles.length);
+    const radius = this.marbleRadius(count, this.raceTrackWidth(count));
+
+    for (const marble of this.raceMarbles) {
+      if (marble.finished || !marble.body) continue;
+
+      const data = this.marbleById(marble.marbleId);
+      if (!data) continue;
+
+      const profile =
+        (data.speed * track.weights.speed
+          + data.accel * track.weights.accel
+          + data.grip * track.weights.grip) / 10;
+      let target = 3.1 + profile * 1.15;
+      if (marble.slowUntil > this.raceElapsed) target *= 0.52;
+      if (marble.boostUntil > this.raceElapsed) target *= 1.12;
+      const body = marble.body;
+      Body.setVelocity(body, {
+        x: body.velocity.x + (target - body.velocity.x) * 0.1,
+        y: body.velocity.y,
+      });
+    }
+
+    Engine.update(this.engine, PHYSICS_STEP);
+
+    const finishX = TRACK_START_X + TRACK_WORLD_LENGTH - radius;
+    for (const marble of this.raceMarbles) {
+      if (marble.finished || !marble.body) continue;
+
+      const body = marble.body;
+      marble.x = Math.max(
+        0,
+        Math.min(100, ((body.position.x - TRACK_START_X) / TRACK_WORLD_LENGTH) * 100),
+      );
+      marble.v = body.velocity.x;
+      marble.trail.push({ x: body.position.x, y: body.position.y });
+      if (marble.trail.length > 30) marble.trail.shift();
+
+      if (body.position.x >= finishX) {
+        marble.x = 100;
+        marble.finished = true;
+        this.finishCount += 1;
+        marble.position = this.finishCount;
+        Composite.remove(this.engine.world, body);
+      }
+    }
+  }
+
+  private stepParticles(dt: number): void {
+    for (const particle of this.particles) {
+      particle.life -= dt;
+      particle.x += particle.vx * dt;
+      particle.y += particle.vy * dt;
+      particle.vy += 220 * dt;
+    }
+    this.particles = this.particles.filter((particle) => particle.life > 0);
+    this.cameraShake = Math.max(0, this.cameraShake - dt * 22);
   }
 
   private syncRaceView(): void {
@@ -668,7 +1071,9 @@ export class BiglieBonus implements OnInit, OnDestroy {
     this.secondsLeft.set(BETWEEN_SECONDS);
     this.publish();
 
-    this.startClock(BETWEEN_SECONDS, () => this.startRace(this.raceIndex() + 1));
+    this.startClock(this.preview ? 1 : BETWEEN_SECONDS, () => {
+      void this.startRace(this.raceIndex() + 1);
+    });
   }
 
   private drawRace(now: number): void {
@@ -687,7 +1092,10 @@ export class BiglieBonus implements OnInit, OnDestroy {
     const trackWidth = this.raceTrackWidth(count);
     const leader = this.leaderMarble();
     const leaderPoint = this.trackPoint(Math.max(0, Math.min(1, (leader?.x ?? 0) / 100)));
-    const maxCamera = Math.max(0, TRACK_START_X + TRACK_WORLD_LENGTH + TRACK_END_PADDING - w);
+    const maxTrackX = this.trackSamples.length
+      ? Math.max(...this.trackSamples.map((sample) => sample.x))
+      : TRACK_START_X + TRACK_WORLD_LENGTH;
+    const maxCamera = Math.max(0, maxTrackX + TRACK_END_PADDING - w);
     const targetCamera = Math.max(0, Math.min(maxCamera, leaderPoint.x - w * 0.36));
     if (!this.cameraReady) {
       this.cameraX = targetCamera;
@@ -695,6 +1103,12 @@ export class BiglieBonus implements OnInit, OnDestroy {
     } else {
       this.cameraX += (targetCamera - this.cameraX) * 0.09;
     }
+
+    const shake = this.cameraShake;
+    const shakeX = shake > 0.1 ? (Math.random() - 0.5) * shake : 0;
+    const shakeY = shake > 0.1 ? (Math.random() - 0.5) * shake : 0;
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
 
     this.drawTrack(ctx, track, w, h, trackWidth, now);
 
@@ -709,7 +1123,29 @@ export class BiglieBonus implements OnInit, OnDestroy {
       this.drawRacer(ctx, marble, index, count, trackWidth, h, now, marble === leader);
     }
 
+    this.drawParticles(ctx, w, h);
+    ctx.restore();
     this.drawRaceHud(ctx, w);
+  }
+
+  private drawParticles(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+    if (!this.particles.length) return;
+
+    ctx.save();
+    for (const particle of this.particles) {
+      const x = particle.x - this.cameraX;
+      if (x < -20 || x > w + 20) continue;
+      const y = h * TRACK_VIEW_CENTER + particle.y;
+      ctx.globalAlpha = Math.max(0, particle.life / particle.max);
+      ctx.fillStyle = particle.color;
+      ctx.fillRect(
+        x - particle.size / 2,
+        y - particle.size / 2,
+        particle.size,
+        particle.size,
+      );
+    }
+    ctx.restore();
   }
 
   private leaderMarble(): RaceMarble | null {
@@ -723,29 +1159,207 @@ export class BiglieBonus implements OnInit, OnDestroy {
     );
   }
 
-  /** Punto della pista unica: curve e dossi disegnati in coordinate mondo. */
+  /**
+   * Pista a tornanti: tre rettilinei alternati (basso, centro, alto) uniti da
+   * due ferri di cavallo. Riempe l'altezza dello schermo e lascia spazio ai
+   * sorpassi laterali. I campioni sono rispaziati per lunghezza d'arco, così
+   * il progresso della simulazione e il disegno restano sincronizzati.
+   */
+  private layoutTrack(track: Track): void {
+    const shape = TRACK_SHAPES[track.id] ?? TRACK_SHAPES['rally'];
+    const rng = this.seededRandom(this.trackSeed);
+    const h = this.raceH > 20 ? this.raceH : 720;
+    const yScale = h * 0.395;
+    const leg = Math.max(820, Math.min(1380, h * 1.37));
+    const startX = 300;
+    const turn = 0.33 * yScale;
+    const bottom = 0.86 * yScale;
+    const top = -0.86 * yScale;
+    const phase = rng() * Math.PI * 2;
+    const points: Array<{ x: number; y: number }> = [];
+
+    // Onda principale + armonica: chicane strette dentro i rettilinei.
+    const wave = (t: number): number => {
+      const envelope = Math.sin(Math.PI * t);
+      const main = Math.sin(t * Math.PI * shape.waves + phase);
+      const kink = 0.32 * Math.sin(t * Math.PI * shape.waves * 2.6 + phase * 1.7);
+      return (main + kink) * shape.amp * yScale * envelope;
+    };
+
+    const pushLeg = (fromX: number, toX: number, baseY: number): void => {
+      for (let i = 0; i <= 96; i++) {
+        const t = i / 96;
+        points.push({ x: fromX + (toX - fromX) * t, y: baseY + wave(t) });
+      }
+    };
+
+    // Rettilineo basso, poi ferro di cavallo a destra.
+    pushLeg(startX, startX + leg, bottom);
+    for (let i = 1; i <= 26; i++) {
+      const a = Math.PI / 2 - (i / 26) * Math.PI;
+      points.push({
+        x: startX + leg + Math.cos(a) * turn,
+        y: bottom - turn + Math.sin(a) * turn,
+      });
+    }
+
+    // Rettilineo centrale al contrario, poi ferro di cavallo a sinistra.
+    pushLeg(startX + leg, startX, 0);
+    for (let i = 1; i <= 26; i++) {
+      const a = Math.PI / 2 + (i / 26) * Math.PI;
+      points.push({
+        x: startX + Math.cos(a) * turn,
+        y: -turn + Math.sin(a) * turn,
+      });
+    }
+
+    // Rettilineo alto verso il traguardo.
+    pushLeg(startX, startX + leg, top);
+
+    // Ricampionamento a lunghezza d'arco costante.
+    const lengths: number[] = [0];
+    for (let i = 1; i < points.length; i++) {
+      lengths.push(
+        lengths[i - 1] +
+          Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y),
+      );
+    }
+    const total = lengths[lengths.length - 1] || 1;
+    const count = 901;
+    const samples: Array<{ x: number; y: number }> = [];
+    let cursor = 0;
+
+    for (let i = 0; i < count; i++) {
+      const target = (total * i) / (count - 1);
+      while (cursor < lengths.length - 2 && lengths[cursor + 1] < target) cursor += 1;
+      const span = lengths[cursor + 1] - lengths[cursor] || 1;
+      const t = Math.max(0, Math.min(1, (target - lengths[cursor]) / span));
+      samples.push({
+        x: points[cursor].x + (points[cursor + 1].x - points[cursor].x) * t,
+        y: points[cursor].y + (points[cursor + 1].y - points[cursor].y) * t,
+      });
+    }
+
+    this.trackSamples = samples;
+  }
+
+  private seededRandom(seed: number): () => number {
+    let state = seed >>> 0;
+    return () => {
+      state = (state + 0x6d2b79f5) >>> 0;
+      let t = state;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  private generateHazards(track: Track): void {
+    const rng = this.seededRandom(Math.floor(Math.random() * 0xffffffff));
+    const plan = HAZARD_PLANS[track.id] ?? HAZARD_PLANS['rally'];
+    const hazards: Hazard[] = [];
+    const used: number[] = [];
+
+    plan.forEach((kind, index) => {
+      let progress = 0;
+      for (let attempt = 0; attempt < 40; attempt++) {
+        progress = 0.09 + rng() * 0.82;
+        if (used.every((value) => Math.abs(value - progress) > 0.05)) break;
+      }
+      used.push(progress);
+
+      const patch = kind === 'fango' || kind === 'pozzanghera' || kind === 'ghiaccio';
+      hazards.push({
+        id: `hazard-${track.id}-${index}`,
+        kind,
+        progress,
+        offset:
+          kind === 'cordolo'
+            ? index % 2 === 0
+              ? 0.84
+              : -0.84
+            : (rng() * 2 - 1) * 0.62,
+        radius: patch
+          ? kind === 'ghiaccio'
+            ? 17
+            : 15
+          : kind === 'scoglio'
+            ? 11
+            : kind === 'cumulo'
+              ? 10
+              : 9,
+        patch,
+      });
+    });
+
+    this.hazards = hazards;
+  }
+
+  private hazardLane(
+    hazard: Hazard,
+    trackWidth: number,
+  ): { x: number; y: number; angle: number } {
+    const point = this.trackPoint(hazard.progress);
+    const lateral = hazard.offset * trackWidth * 0.3;
+    const nx = -Math.sin(point.angle);
+    const ny = Math.cos(point.angle);
+    return {
+      x: point.x + nx * lateral,
+      y: point.y + ny * lateral,
+      angle: point.angle,
+    };
+  }
+
+  private hazardPalette(kind: HazardKind): { top: string; bottom: string; speck: string } {
+    switch (kind) {
+      case 'fango':
+        return { top: '#6b3a12', bottom: '#3f210a', speck: '#c08b4a' };
+      case 'pozzanghera':
+        return { top: COBALT, bottom: '#1d3ba8', speck: MINT };
+      case 'ghiaccio':
+        return { top: PAPER_HI, bottom: MINT, speck: COBALT };
+      case 'cumulo':
+        return { top: PAPER_HI, bottom: '#c9d8e8', speck: COBALT };
+      case 'onda':
+        return { top: MINT, bottom: COBALT, speck: PAPER_HI };
+      case 'boa':
+        return { top: TOMATO, bottom: '#b32714', speck: PAPER_HI };
+      case 'scoglio':
+        return { top: '#3a3a2c', bottom: INK, speck: '#6f6652' };
+      case 'cordolo':
+        return { top: TOMATO, bottom: PAPER, speck: INK };
+      default:
+        return { top: MUSTARD, bottom: '#b07a12', speck: PAPER_HI };
+    }
+  }
+
+  /** Punto campionato della pista: curve corte, senza salti tra i tratti. */
   private trackPoint(progress: number): { x: number; y: number; angle: number } {
     const p = Math.max(0, Math.min(1, progress));
-    const waveA = Math.PI * 2 * 1.05;
-    const waveB = Math.PI * 2 * 2.65;
-    const waveC = Math.PI * 2 * 4.3;
-    const y =
-      Math.sin(p * waveA + 0.55) * 72 +
-      Math.sin(p * waveB + 0.2) * 22 +
-      Math.sin(p * waveC) * 7;
-    const slope =
-      Math.cos(p * waveA + 0.55) * 72 * waveA +
-      Math.cos(p * waveB + 0.2) * 22 * waveB +
-      Math.cos(p * waveC) * 7 * waveC;
+    const samples = this.trackSamples;
+
+    if (samples.length < 2) {
+      return { x: TRACK_START_X + p * TRACK_WORLD_LENGTH, y: 0, angle: 0 };
+    }
+
+    const exact = p * (samples.length - 1);
+    const index = Math.min(samples.length - 2, Math.floor(exact));
+    const local = exact - index;
+    const start = samples[index];
+    const end = samples[index + 1];
     return {
-      x: TRACK_START_X + p * TRACK_WORLD_LENGTH,
-      y,
-      angle: Math.atan2(slope, TRACK_WORLD_LENGTH),
+      x: start.x + (end.x - start.x) * local,
+      y: start.y + (end.y - start.y) * local,
+      angle: Math.atan2(end.y - start.y, Math.max(0.001, end.x - start.x)),
     };
   }
 
   private raceTrackWidth(count: number): number {
-    return Math.max(88, Math.min(210, 30 + count * 17));
+    return Math.max(96, Math.min(180, 18 + count * 15.25));
+  }
+
+  private marbleRadius(count: number, trackWidth: number): number {
+    return Math.max(7, Math.min(9, trackWidth / Math.max(10, count * 1.9)));
   }
 
   private drawBackdrop(
@@ -874,7 +1488,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
       const point = this.trackPoint(index / 280);
       points.push({
         x: point.x - this.cameraX,
-        y: h * 0.55 + point.y,
+        y: h * TRACK_VIEW_CENTER + point.y,
         nx: -Math.sin(point.angle),
         ny: Math.cos(point.angle),
       });
@@ -926,7 +1540,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
       const point = this.trackPoint((index * 0.0067) % 1);
       const side = Math.sin(index * 12.9898) * 0.5;
       const px = point.x - this.cameraX + Math.cos(point.angle) * side * trackWidth * 0.86;
-      const py = h * 0.55 + point.y - Math.sin(point.angle) * side * trackWidth * 0.86;
+      const py = h * TRACK_VIEW_CENTER + point.y - Math.sin(point.angle) * side * trackWidth * 0.86;
       ctx.globalAlpha = 0.22 + (index % 3) * 0.08;
       ctx.fillStyle = palette.speck;
       ctx.beginPath();
@@ -943,7 +1557,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
         for (let index = 0; index <= 120; index++) {
           const point = this.trackPoint(index / 120);
           const px = point.x - this.cameraX;
-          const py = h * 0.55 + point.y + Math.sin(index / 8 + now / 360 + row) * 4 + (row - 1) * 14;
+          const py = h * TRACK_VIEW_CENTER + point.y + Math.sin(index / 8 + now / 360 + row) * 4 + (row - 1) * 14;
           if (index === 0) ctx.moveTo(px, py);
           else ctx.lineTo(px, py);
         }
@@ -951,8 +1565,285 @@ export class BiglieBonus implements OnInit, OnDestroy {
       }
     }
 
+    if (track.id === 'f1') this.drawCurbs(ctx, points, trackWidth);
+    if (track.id === 'neve') this.drawSnowbanks(ctx, points, trackWidth);
+
+    this.drawHazards(ctx, w, h, trackWidth, now);
+
     this.drawGate(ctx, 0, 'START', w, h, trackWidth);
     this.drawGate(ctx, 1, 'TRAGUARDO', w, h, trackWidth);
+  }
+
+  /** Ostacoli disegnati a terra, con ombre piatte e inchiostro pieno. */
+  private drawHazards(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    trackWidth: number,
+    now: number,
+  ): void {
+    for (const hazard of this.hazards) {
+      const lane = this.hazardLane(hazard, trackWidth);
+      const x = lane.x - this.cameraX;
+      if (x < -90 || x > w + 90) continue;
+
+      const y = h * TRACK_VIEW_CENTER + lane.y - 4;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(lane.angle);
+
+      switch (hazard.kind) {
+        case 'fango':
+          this.drawPatch(ctx, 24, 10, '#5a3315', '#8a5a2b');
+          break;
+        case 'pozzanghera':
+          this.drawPatch(ctx, 21, 9, COBALT, MINT, 0.55);
+          break;
+        case 'ghiaccio':
+          this.drawPatch(ctx, 23, 9, PAPER_HI, ACID, 0.7);
+          ctx.strokeStyle = COBALT;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(-12, 0);
+          ctx.lineTo(-2, -3);
+          ctx.lineTo(7, 2);
+          ctx.moveTo(2, -6);
+          ctx.lineTo(9, -2);
+          ctx.stroke();
+          break;
+        case 'sasso':
+          this.drawRock(ctx, 9, '#6f6652', '#3a3a2c');
+          break;
+        case 'cordolo':
+          this.drawCurb(ctx, trackWidth);
+          break;
+        case 'cumulo':
+          this.drawSnowMound(ctx);
+          break;
+        case 'onda':
+          this.drawWave(ctx, trackWidth, now);
+          break;
+        case 'boa':
+          this.drawBuoy(ctx);
+          break;
+        case 'scoglio':
+          this.drawRock(ctx, 11, '#3a3a2c', INK);
+          this.drawWave(ctx, trackWidth * 0.7, now, true);
+          break;
+      }
+
+      ctx.restore();
+    }
+  }
+
+  private drawPatch(
+    ctx: CanvasRenderingContext2D,
+    rx: number,
+    ry: number,
+    fill: string,
+    highlight: string,
+    highlightAlpha = 0.4,
+  ): void {
+    ctx.fillStyle = fill;
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.globalAlpha = highlightAlpha;
+    ctx.strokeStyle = highlight;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(-rx * 0.18, -ry * 0.2, rx * 0.55, ry * 0.4, -0.2, 0, Math.PI);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  private drawRock(
+    ctx: CanvasRenderingContext2D,
+    radius: number,
+    fill: string,
+    shade: string,
+  ): void {
+    ctx.fillStyle = 'rgba(0, 0, 0, .38)';
+    ctx.beginPath();
+    ctx.ellipse(2, radius * 0.7, radius * 0.95, radius * 0.32, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = shade;
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-radius, 2);
+    ctx.lineTo(-radius * 0.55, -radius * 0.7);
+    ctx.lineTo(radius * 0.15, -radius);
+    ctx.lineTo(radius * 0.9, -radius * 0.35);
+    ctx.lineTo(radius, radius * 0.45);
+    ctx.lineTo(radius * 0.25, radius * 0.7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    ctx.moveTo(-radius * 0.45, -radius * 0.35);
+    ctx.lineTo(radius * 0.1, -radius * 0.85);
+    ctx.lineTo(radius * 0.55, -radius * 0.25);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  private drawCurb(ctx: CanvasRenderingContext2D, trackWidth: number): void {
+    const length = Math.max(22, Math.min(40, trackWidth * 0.28));
+    ctx.fillStyle = 'rgba(0, 0, 0, .35)';
+    ctx.fillRect(-length / 2 + 2, -1, length, 12);
+
+    for (let index = 0; index < 4; index++) {
+      ctx.fillStyle = index % 2 === 0 ? TOMATO : PAPER_HI;
+      ctx.fillRect(-length / 2 + (length / 4) * index, -7, length / 4, 12);
+    }
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-length / 2, -7, length, 12);
+  }
+
+  private drawSnowMound(ctx: CanvasRenderingContext2D): void {
+    ctx.fillStyle = 'rgba(0, 0, 0, .22)';
+    ctx.beginPath();
+    ctx.ellipse(1, 7, 13, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = PAPER_HI;
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-13, 5);
+    ctx.quadraticCurveTo(-9, -8, -1, -7);
+    ctx.quadraticCurveTo(7, -10, 12, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(47, 91, 255, .4)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-6, 2);
+    ctx.quadraticCurveTo(0, -2, 6, 1);
+    ctx.stroke();
+  }
+
+  private drawWave(
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    now: number,
+    foamOnly = false,
+  ): void {
+    const span = Math.max(28, Math.min(64, width * 0.45));
+    ctx.strokeStyle = foamOnly ? MINT : COBALT;
+    ctx.lineWidth = 2.4;
+    for (let row = 0; row < 3; row++) {
+      ctx.beginPath();
+      for (let index = 0; index <= 14; index++) {
+        const t = index / 14;
+        const x = -span / 2 + span * t;
+        const y = row * 4 - 4 + Math.sin(t * Math.PI * 3 + now / 170 + row) * 2.2;
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = PAPER_HI;
+    for (let index = 0; index < 3; index++) {
+      const x = -span / 2 + ((now / 22 + index * 19) % span);
+      ctx.beginPath();
+      ctx.arc(x, -6 + index * 3, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  private drawBuoy(ctx: CanvasRenderingContext2D): void {
+    ctx.fillStyle = 'rgba(0, 0, 0, .35)';
+    ctx.beginPath();
+    ctx.ellipse(1, 7, 9, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 3);
+    ctx.lineTo(0, -14);
+    ctx.stroke();
+
+    ctx.fillStyle = TOMATO;
+    ctx.beginPath();
+    ctx.moveTo(0, -14);
+    ctx.lineTo(10, -10);
+    ctx.lineTo(0, -6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(0, 3, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = PAPER_HI;
+    ctx.beginPath();
+    ctx.arc(0, 3, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  private drawCurbs(
+    ctx: CanvasRenderingContext2D,
+    points: Array<{ x: number; y: number; nx: number; ny: number }>,
+    trackWidth: number,
+  ): void {
+    const half = trackWidth / 2 - 7;
+    const step = 6;
+    for (const side of [-1, 1]) {
+      for (let index = 0; index + step < points.length; index += step) {
+        const a = points[index];
+        const b = points[index + step];
+        const x = (a.x + b.x) / 2 + a.nx * half * side;
+        const y = (a.y + b.y) / 2 + a.ny * half * side;
+        const angle = Math.atan2(b.y - a.y, b.x - a.x);
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.fillStyle = (index / step) % 2 === 0 ? TOMATO : PAPER_HI;
+        ctx.fillRect(-7, -4.5, 14, 9);
+        ctx.strokeStyle = INK;
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(-7, -4.5, 14, 9);
+        ctx.restore();
+      }
+    }
+  }
+
+  private drawSnowbanks(
+    ctx: CanvasRenderingContext2D,
+    points: Array<{ x: number; y: number; nx: number; ny: number }>,
+    trackWidth: number,
+  ): void {
+    const half = trackWidth / 2 + 8;
+    for (let index = 8; index < points.length; index += 20) {
+      for (const side of [-1, 1]) {
+        const point = points[index];
+        const x = point.x + point.nx * half * side;
+        const y = point.y + point.ny * half * side;
+        ctx.fillStyle = 'rgba(241, 228, 201, .85)';
+        ctx.strokeStyle = 'rgba(21, 21, 15, .45)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.ellipse(x, y, 15, 6, Math.atan2(point.ny, point.nx), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
   }
 
   private trackPath(
@@ -981,7 +1872,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
     const x = point.x - this.cameraX;
     if (x < -180 || x > w + 180) return;
 
-    const y = h * 0.55 + point.y;
+    const y = h * TRACK_VIEW_CENTER + point.y;
     const half = trackWidth / 2 + 18;
     const blocks = 14;
     const block = (half * 2) / blocks;
@@ -1015,27 +1906,35 @@ export class BiglieBonus implements OnInit, OnDestroy {
     now: number,
     leader: boolean,
   ): void {
-    const body = this.marbleById(marble.marbleId);
-    const color = body?.color ?? '#94a3b8';
-    const radius = Math.max(8, Math.min(15, trackWidth / Math.max(10, count * 1.55)));
-    const progress = Math.max(0, Math.min(1, marble.x / 100));
+    const body = marble.body;
+    const data = this.marbleById(marble.marbleId);
+    if (!body || !data) return;
+
+    const color = data.color;
+    const radius = this.marbleRadius(count, trackWidth);
+    const progress = Math.max(
+      0,
+      Math.min(1, (body.position.x - TRACK_START_X) / TRACK_WORLD_LENGTH),
+    );
     const point = this.trackPoint(progress);
     const nx = -Math.sin(point.angle);
     const ny = Math.cos(point.angle);
-    const spread = count <= 1 ? 0 : trackWidth * 0.72;
-    const offset = ((index + 0.5) / count - 0.5) * spread;
-    const baseX = point.x - this.cameraX + nx * offset;
-    const baseY = h * 0.55 + point.y + ny * offset;
-    const lift = marble.y * 0.9;
-    const x = baseX;
-    const y = baseY - lift + Math.sin(now / 130 + index) * 1.1;
+    const lateral = body.position.y;
+    const x = point.x - this.cameraX + nx * lateral;
+    const bob = marble.finished ? Math.sin(now / 180 + index) * 0.8 : 0;
+    const y = h * TRACK_VIEW_CENTER + point.y + ny * lateral + bob;
+    const floorY = y + radius * 0.82;
 
     const trail = this.trailStyle(this.currentTrack()?.id ?? 'rally');
     marble.trail.forEach((trailPoint, trailIndex) => {
       const t = trailIndex / Math.max(1, marble.trail.length);
-      const tp = this.trackPoint(Math.max(0, Math.min(1, trailPoint.x / 100)));
-      const tx = tp.x - this.cameraX - Math.sin(tp.angle) * offset;
-      const ty = h * 0.55 + tp.y + Math.cos(tp.angle) * offset - trailPoint.y * 0.9;
+      const tp = this.trackPoint(
+        Math.max(0, Math.min(1, (trailPoint.x - TRACK_START_X) / TRACK_WORLD_LENGTH)),
+      );
+      const tnx = -Math.sin(tp.angle);
+      const tny = Math.cos(tp.angle);
+      const tx = tp.x - this.cameraX + tnx * trailPoint.y;
+      const ty = h * TRACK_VIEW_CENTER + tp.y + tny * trailPoint.y;
       ctx.globalAlpha = t * 0.34;
       ctx.fillStyle = trail.color;
       ctx.beginPath();
@@ -1056,18 +1955,9 @@ export class BiglieBonus implements OnInit, OnDestroy {
     });
     ctx.globalAlpha = 1;
 
-    const shadowScale = 1 - Math.min(0.55, lift / 60);
-    ctx.fillStyle = `rgba(0, 0, 0, ${0.34 * shadowScale})`;
+    ctx.fillStyle = 'rgba(0, 0, 0, .34)';
     ctx.beginPath();
-    ctx.ellipse(
-      baseX,
-      baseY + radius * 0.6,
-      radius * 0.9 * shadowScale,
-      radius * 0.28 * shadowScale,
-      0,
-      0,
-      Math.PI * 2,
-    );
+    ctx.ellipse(x, floorY + 2, radius * 0.9, radius * 0.28, 0, 0, Math.PI * 2);
     ctx.fill();
 
     const shine = ctx.createRadialGradient(
@@ -1092,7 +1982,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
     ctx.font = `${Math.round(radius * 1.05)}px system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(body?.emoji ?? '⚪', x, y + 1);
+    ctx.fillText(data.emoji, x, y + 1);
 
     if (leader && !marble.finished) {
       ctx.font = `${Math.round(radius * 1.1)}px system-ui, sans-serif`;

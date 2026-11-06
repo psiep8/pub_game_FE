@@ -43,6 +43,18 @@ const REVEAL_MS = 4500;
 const ROW_HEIGHT = 84;
 const ROW_BODY = 68;
 
+/** Domande locali per il banco di prova: la preview non dipende dal backend. */
+const PREVIEW_QUESTIONS = [
+  { question: 'Qual è la capitale del Giappone?', options: ['Pechino', 'Tokyo', 'Seul', 'Hanoi'], correctIndex: 1, category: 'GEOGRAFIA' },
+  { question: 'Chi ha dipinto la Gioconda?', options: ['Michelangelo', 'Raffaello', 'Leonardo da Vinci', 'Caravaggio'], correctIndex: 2, category: 'ARTE' },
+  { question: 'Quanto fa 12 × 12?', options: ['124', '144', '132', '154'], correctIndex: 1, category: 'MATEMATICA' },
+  { question: 'Quale pianeta è conosciuto come pianeta rosso?', options: ['Venere', 'Giove', 'Marte', 'Mercurio'], correctIndex: 2, category: 'SCIENZA' },
+  { question: 'In quale anno è caduto il muro di Berlino?', options: ['1987', '1989', '1991', '1993'], correctIndex: 1, category: 'STORIA' },
+  { question: 'Chi ha scritto la Divina Commedia?', options: ['Dante Alighieri', 'Petrarca', 'Boccaccio', 'Manzoni'], correctIndex: 0, category: 'LETTERATURA' },
+  { question: 'Qual è il fiume più lungo del mondo?', options: ['Nilo', 'Amazzoni', 'Danubio', 'Mississippi'], correctIndex: 0, category: 'GEOGRAFIA' },
+  { question: 'Quante corde ha un violino?', options: ['4', '5', '6', '7'], correctIndex: 0, category: 'MUSICA' },
+];
+
 /**
  * CAVALLO DI BATTAGLIA — bonus di fine atto.
  *
@@ -259,6 +271,8 @@ export class CavalloBonus implements OnInit, OnDestroy {
   @Input({ required: true }) gameId = 1;
   @Input() players: string[] = [];
   @Input() categories: Category[] = [];
+  /** Banco di prova: domande locali, voti demo e tempi ridotti. */
+  @Input() preview = false;
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
 
@@ -299,7 +313,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       this.onStatus(status);
     });
-    this.later(2500, () => this.startCategoryVote());
+    this.later(this.preview ? 300 : 2500, () => this.startCategoryVote());
   }
 
   ngOnDestroy(): void {
@@ -432,7 +446,21 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.refreshCategoryVotes();
     this.chosenCategory.set('');
     this.message.set('');
-    this.startClock(CATEGORY_SECONDS, () => this.closeCategoryVote());
+    if (this.preview) this.seedPreviewCategoryVotes();
+    this.startClock(this.preview ? 2 : CATEGORY_SECONDS, () => this.closeCategoryVote());
+  }
+
+  private seedPreviewCategoryVotes(): void {
+    const names = this.categoryNames();
+    if (!names.length) return;
+    this.later(500, () => {
+      if (this.phase() !== 'CATEGORY') return;
+      for (const playerName of this.players) {
+        this.categoryPicks.set(playerName, names[Math.floor(Math.random() * names.length)]);
+      }
+      this.refreshCategoryVotes();
+      this.publish();
+    });
   }
 
   private refreshCategoryVotes(): void {
@@ -476,6 +504,13 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.secondsLeft.set(0);
     this.publish();
 
+    if (this.preview) {
+      this.questions = PREVIEW_QUESTIONS.slice(0, FLASH_QUESTIONS);
+      this.total.set(this.questions.length);
+      this.later(350, () => this.startQuestion(0));
+      return;
+    }
+
     this.gameService.getCavalloQuestions(this.gameId, winner, FLASH_QUESTIONS).subscribe({
       next: (rows) => {
         this.questions = (rows ?? []).slice(0, FLASH_QUESTIONS);
@@ -508,7 +543,24 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.deltas.set({});
     this.question.set({ text: question.question, options: question.options });
     this.questionStartedAt = Date.now();
-    this.startClock(QUESTION_SECONDS, () => this.revealQuestion());
+    if (this.preview) this.seedPreviewAnswers();
+    this.startClock(this.preview ? 2 : QUESTION_SECONDS, () => this.revealQuestion());
+  }
+
+  private seedPreviewAnswers(): void {
+    const current = this.questions[this.index()];
+    if (!current) return;
+    this.later(650, () => {
+      if (this.phase() !== 'QUESTION') return;
+      for (const playerName of this.players) {
+        if (this.answers.has(playerName)) continue;
+        const index =
+          Math.random() < 0.45
+            ? current.correctIndex
+            : Math.floor(Math.random() * current.options.length);
+        this.answers.set(playerName, { index, at: Date.now() - this.questionStartedAt });
+      }
+    });
   }
 
   private revealQuestion(): void {
@@ -550,7 +602,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.publish();
     this.emitRows(rows);
 
-    this.later(REVEAL_MS, () => {
+    this.later(this.preview ? 1400 : REVEAL_MS, () => {
       if (this.index() + 1 >= this.questions.length) {
         this.finale(false);
       } else {
@@ -568,7 +620,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
       this.total.set(0);
     }
     this.publish();
-    this.later(empty ? 5000 : 7000, () => this.finished.emit());
+    this.later(this.preview ? 4000 : empty ? 5000 : 7000, () => this.finished.emit());
   }
 
   private startClock(seconds: number, onEnd: () => void): void {

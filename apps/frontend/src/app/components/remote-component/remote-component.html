@@ -48,9 +48,11 @@
 
 <div class="remote-container">
 
+  @if (nickname()) {
   <div class="conn-shell">
     <app-connection-badge role="remote"></app-connection-badge>
   </div>
+  }
 
   @if (!nickname()) {
   <div class="setup-screen">
@@ -368,15 +370,10 @@
       </div>
       }
       } @else if (biglieState()?.phase === 'RACE') {
-      <div class="biglie-mine">
-        <div class="biglie-head">
-          <span class="biglie-dot" [style.background]="biglieMyMarble()?.color">{{ biglieMyMarble()?.emoji }}</span>
-          <b>{{ biglieMyMarble()?.name || '—' }}</b>
-        </div>
-        <div class="biglie-bar">
-          <div class="biglie-fill" [style.width.%]="biglieMyLane()?.progress ?? 0" [style.background]="biglieMyMarble()?.color"></div>
-        </div>
-        <p class="buzz-hint">Posizione {{ biglieMyLane()?.position || '—' }} · {{ bigliePct() }}%</p>
+      <div class="status-msg">
+        <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🎱</div></div>
+        <p>Gara in corso in TV</p>
+        <span class="sub-text">Guarda i percorsi: la tua biglia corre per te.</span>
       </div>
       } @else {
       <div class="status-msg">
@@ -385,7 +382,9 @@
       </div>
       }
 
+      @if (biglieState()?.phase === 'RACE_END' || biglieState()?.phase === 'FINALE') {
       <p class="buzz-hint">Totale bonus: {{ biglieMyRow()?.total ?? 0 }} punti</p>
+      }
     </div>
     }
     @case ('BONUS_CAVALLO') {

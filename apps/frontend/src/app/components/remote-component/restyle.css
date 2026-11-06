@@ -723,10 +723,11 @@
   .price-display { font-size: 2rem; }
 }
 
-/* Stato connessione: discreto, in alto a destra, non copre il gioco. */
+/* Stato connessione: riga discreta sopra l'header, non copre il gioco. */
 .conn-shell {
-  position: fixed;
-  top: 8px;
-  right: 8px;
+  position: static;
+  align-self: flex-end;
+  flex: 0 0 auto;
+  margin: 0 2px -2px;
   z-index: 90;
 }
