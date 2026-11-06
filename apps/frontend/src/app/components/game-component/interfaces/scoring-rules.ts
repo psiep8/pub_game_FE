@@ -39,12 +39,6 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     missed: '0 (nessun malus)',
     note: 'Le lettere si aprono nel tempo: chi prenota prima rischia meno.',
   },
-  ROULETTE: {
-    correct: '+1000',
-    wrong: '0',
-    missed: '0',
-    note: 'Fortuna pura: sbagliare colore non toglie punti.',
-  },
   TIMELINE: {
     correct: 'fino a +1200',
     wrong: '0',
@@ -74,6 +68,18 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     wrong: 'gol per l’avversario',
     missed: 'gol per l’avversario',
     note: 'Il set si chiude a 7 gol; il perdente riceve +200 di consolazione. Risposte rapide accorciano il tempo dell’avversario.',
+  },
+  CAVALLO: {
+    correct: '+100 a risposta; +50 alla prima esatta della manche',
+    wrong: '0',
+    missed: '0',
+    note: 'Otto domande flash sulla categoria scelta dalla squadra: conta rispondere, non correre.',
+  },
+  SCOMMESSA: {
+    correct: '+banca incassata (100 → 400 → 800)',
+    wrong: '0: la banca si brucia',
+    missed: '0: la banca si brucia',
+    note: 'Tre domande: ogni esatta raddoppia la banca, tra una e l’altra si sceglie se incassare o rischiare.',
   },
   ARENA: {
     correct: '+10 a risposta; +1000/+500 piazzamento',

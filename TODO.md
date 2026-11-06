@@ -51,8 +51,10 @@ Ultimo aggiornamento: 4 novembre 2026.
 
 ## ⏳ In corso / da fare
 
-- [ ] **Generare la banca vera sull'altra macchina** (Qwen locale, `--per-category 40`,
-      eventualmente `--with-chrono`), copiare `questions-it.json`, controllare il log d'avvio
+- [ ] **QA dei round nuovi**: Cavallo (atti 1 e 5), Scommessa (atto 4) e bonus Casino
+      spalmato su quattro atti. Compilati, mai visti dal vivo.
+- [ ] **Generare la banca vera sull'altra macchina** (Qwen locale, `--per-category 40`),
+      copiare `questions-it.json`, controllare il log d'avvio
       che nessuna categoria abbia il warning, poi lanciare `arena_check.py` e
       `rounds_check.py` con 12 telefoni.
 - [ ] **Banca media** sull'altra macchina: `python generate_media.py --count-music 24 --count-people 40`,

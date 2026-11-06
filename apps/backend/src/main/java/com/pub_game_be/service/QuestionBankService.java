@@ -54,7 +54,6 @@ public class QuestionBankService {
     private record MediaTrack(String title, String artist, String year, String albumCover, String file) {
     }
 
-    private static final List<String> COLORS = List.of("ROSSO", "NERO", "VERDE", "BLU", "GIALLO", "BIANCO");
 
     private static final String[] PROVERBS = {
             "Chi dorme non piglia pesci",
@@ -113,6 +112,7 @@ public class QuestionBankService {
 
     /** Sotto questo numero di domande l'arena finisce le scorte della categoria. */
     private static final int MIN_ARENA_QUESTIONS = 10;
+    private static final int SCOMMESSA_QUESTIONS = 3;
 
     public QuestionBankService(TMDBImageService tmdbImageService,
             AppleMusicCuratorService appleMusicCuratorService,
@@ -144,10 +144,10 @@ public class QuestionBankService {
         String requested = type == null ? "QUIZ" : type.toUpperCase(Locale.ROOT);
 
         return switch (requested) {
-            case "ROULETTE" -> roulettePayload();
             case "WHEEL_OF_FORTUNE", "WHEEL_FORTUNE", "PROVERB" -> pickRandomProverb();
             case "MUSIC" -> musicPayload();
             case "ARENA" -> arenaWrapper();
+            case "SCOMMESSA" -> scommessaPayload(category, isAvailable);
             default -> fromBank(category, requested, isAvailable);
         };
     }
@@ -635,12 +635,36 @@ public class QuestionBankService {
         return imageUrl == null || imageUrl.isBlank() ? null : imageUrl;
     }
 
-    private String roulettePayload() {
+    /**
+     * La Scommessa gioca tre domande di fila: pesca tre Quiz distinti della
+     * stessa categoria (o delle altre, se la categoria è esaurita). Le risposte
+     * restano nel payload perché è la TV a condurre banca e reveal.
+     */
+    private String scommessaPayload(String category, Predicate<String> isAvailable) {
+        JSONArray questions = new JSONArray();
+        List<String> picked = new ArrayList<>();
+
+        for (int i = 0; i < SCOMMESSA_QUESTIONS; i++) {
+            String raw = fromBank(category, "QUIZ", key -> !picked.contains(key) && isAvailable.test(key));
+            questions.put(new JSONObject(raw));
+            picked.add(payloadDedupeKey(raw));
+        }
+
+        String firstCategory = category == null ? "" : category;
+        String firstQuestion = "La Scommessa";
+        if (!questions.isEmpty()) {
+            JSONObject first = questions.getJSONObject(0);
+            firstCategory = first.optString("category", firstCategory);
+            firstQuestion = first.optString("question", firstQuestion);
+        }
+
         JSONObject payload = new JSONObject();
-        payload.put("question", "Scegli un colore!");
-        payload.put("options", new JSONArray(COLORS));
-        payload.put("correctAnswer", COLORS.get(random.nextInt(COLORS.size())));
-        payload.put("type", "ROULETTE");
+        payload.put("type", "SCOMMESSA");
+        payload.put("category", firstCategory);
+        // Serve alla deduplica della partita e all'anteprima del presentatore.
+        payload.put("question", firstQuestion);
+        payload.put("questions", questions);
+        payload.put("explain", "Tre domande: ogni esatta raddoppia la banca, una sbagliata la brucia. Tra una e l'altra scegli se incassare.");
         return payload.toString();
     }
 

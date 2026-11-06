@@ -1,6 +1,8 @@
 # Brief operativo PubGame — correzioni, video demo, bonus e giochi nuovi
 
 > **Aggiornamento 5/11:** le demo sono state realizzate come tre scene animate in TV (interfaccia TV, remote e punteggio) per ogni gioco e per i bonus; gli mp4 non sono più necessari. La specifica storica sotto resta come riferimento.
+>
+> **Aggiornamento 6/11:** la scaletta a 40 round è cambiata e le sezioni §1.1 e §3.3 sono superate. Cavallo di Battaglia e Time Buzzer sono round veri, il Casino è spalmato in tre bonus, e c'è un round nuovo (La Scommessa). Lo stato aggiornato è in `README_LAVORI.md`.
 
 > **A chi è rivolto:** a un agente di coding con ragionamento alto, che lavora sul repository `pub_game` senza aver visto la conversazione da cui nasce questo documento. È autoportante.
 >
@@ -65,7 +67,7 @@ Giochi di round oggi: `QUIZ`, `MUSIC`, `TIME_BUZZER`, `WHEEL_OF_FORTUNE`, `IMAGE
 
 ### 1.4 Residui da ripulire (bassa priorità, non ora)
 
-- `GameType.java` contiene ancora `CHRONO` e `TRUE_FALSE`, non più usati come modalità (il frontend non li ha nell'unione `GameModeType`).
+- Dal 6/11 `GameType.java` non ha più `CHRONO`, `TRUE_FALSE` e `ROULETTE`: restano solo i tipi giocabili (il Cavallo e la Scommessa sono round veri).
 - Esistono ancora `QuestionGeneratorService` e `CelebrityImageService` nel backend; verificare se sono codice morto prima di rimuoverli.
 - Il backend ha ancora endpoint `price-answer` / `price/reveal` in `PartyGamesController` mentre il frontend ha sostituito Price con Time Buzzer.
 

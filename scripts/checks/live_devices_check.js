@@ -123,11 +123,8 @@ async function playRound(team, stomp, message) {
   log(team, `gioca ${type}`);
 
   switch (type) {
-    case 'QUIZ':
-    case 'TRUE_FALSE':
-    case 'ROULETTE':
-    case 'CHRONO': {
-      const index = type === 'CHRONO' ? 1980 : Math.floor(Math.random() * 2);
+    case 'QUIZ': {
+      const index = Math.floor(Math.random() * 2);
       stomp.send(`/app/game/${GAME_ID}/answer`, {
         playerName: team,
         answerIndex: index,

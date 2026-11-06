@@ -108,7 +108,6 @@ Opzioni utili:
 | `--batch 12` | domande chieste per singola chiamata (alzarlo = meno chiamate) |
 | `--delay 6` | secondi di pausa tra le chiamate (alzarlo se compaiono 429) |
 | `--difficulty facile\|medio\|difficile` | difficoltà richiesta |
-| `--with-chrono` | chiedere anche domande "in che anno...?" |
 | `--merge` | **aggiungere** alla banca esistente invece di sostituirla |
 | `--out percorso.json` | scrivere altrove |
 | `--base-url URL` | endpoint OpenAI-compatibile (Groq, Ollama, LM Studio) |
@@ -142,7 +141,7 @@ categoria resta sotto il numero richiesto lo segnala.
 ```
 
 Tipi ammessi: `QUIZ` (4 opzioni, `correctAnswer` identica a una di esse), `TRUE_FALSE`
-(`options` = `["VERO","FALSO"]`), `CHRONO` (anno a 4 cifre, `options` = `null`),
+(`options` = `["VERO","FALSO"]`),
 `IMAGE_BLUR` (solo `correctAnswer` col nome del personaggio: la foto la risolve il backend).
 
 Lo script scarta da solo le domande rotte (opzioni sbagliate, risposta non presente,
@@ -170,8 +169,8 @@ Se compare `Banca domande assente`, il file non è finito nel posto giusto (deve
 ## 6. Come si comporta il backend
 
 - `POST /games/{id}/round`: pesca dalla banca la domanda del tipo richiesto (QUIZ,
-  TRUE_FALSE, CHRONO, IMAGE_BLUR). `ROULETTE`, `WHEEL_OF_FORTUNE`, `MUSIC` e `SCREAM_RACE`
-  restano generati in locale perché non sono domande di cultura.
+  TRUE_FALSE, IMAGE_BLUR). `WHEEL_OF_FORTUNE`, `MUSIC` e `SCREAM_RACE` restano generati
+  in locale perché non sono domande di cultura.
 - `GET /games/{id}/arena/prepare?category=...&count=20`: riempie il pool della partita.
 - `GET /games/{id}/arena-question?playerId=...`: serve un telefono dal pool, in modo che
   ogni dispositivo abbia la sua domanda e nessuna esca due volte.
@@ -294,7 +293,7 @@ python generate.py --per-category 10 \
     --model qwen3:8b --delay 0 --batch 4
 ```
 
-Aggiungere --merge per non perdere le domande gia presenti (comprese le IMAGE_BLUR scritte a mano) e --with-chrono per avere anche le domande "in che anno...".
+Aggiungere --merge per non perdere le domande gia presenti (comprese le IMAGE_BLUR scritte a mano).
 
 Su CPU sono **ore**, non minuti: conviene lanciarlo la sera. Per non perdere il
 lavoro fatto, procedere a blocchi di categorie con `--merge`:

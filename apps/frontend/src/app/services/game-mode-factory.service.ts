@@ -7,7 +7,6 @@ import {
   GameModeType,
   IGameMode,
 } from '../components/game-component/interfaces/game-mode-type';
-import { RouletteMode } from '../components/game-component/mode/roulette.mode';
 import { MusicMode } from '../components/game-component/mode/music.mode';
 import { ArenaMode } from '../components/game-component/mode/arena.mode';
 import { TimelineMode } from '../components/game-component/mode/timeline.mode';
@@ -15,6 +14,8 @@ import { TimeBuzzerMode } from '../components/game-component/mode/time-buzzer.mo
 import { BombaMode } from '../components/game-component/mode/bomba.mode';
 import { SpeedRushMode } from '../components/game-component/mode/speed-rush.mode';
 import { AirHockeyBattleMode } from '../components/game-component/mode/air-hockey-battle.mode';
+import { CavalloMode } from '../components/game-component/mode/cavallo.mode';
+import { ScommessaMode } from '../components/game-component/mode/scommessa.mode';
 
 type ModeFactory = (config: GameModeConfig) => IGameMode;
 
@@ -32,7 +33,6 @@ export class GameModeService {
     QUIZ: (config) => this.withConfig(new QuizMode(), config),
     IMAGE_BLUR: (config) => this.withConfig(new ImageBlurMode(), config),
     WHEEL_OF_FORTUNE: (config) => this.withConfig(new WheelOfFortuneMode(), config),
-    ROULETTE: (config) => this.withConfig(new RouletteMode(), config),
     MUSIC: (config) => this.withConfig(new MusicMode(), config),
     ARENA: (config) => this.withConfig(new ArenaMode(), config),
     TIMELINE: (config) => this.withConfig(new TimelineMode(), config),
@@ -40,6 +40,8 @@ export class GameModeService {
     BOMBA: (config) => this.withConfig(new BombaMode(), config),
     SPEED_RUSH: (config) => this.withConfig(new SpeedRushMode(), config),
     AIR_HOCKEY_BATTLE: (config) => this.withConfig(new AirHockeyBattleMode(), config),
+    CAVALLO: (config) => this.withConfig(new CavalloMode(), config),
+    SCOMMESSA: (config) => this.withConfig(new ScommessaMode(), config),
   };
 
   createMode(config: GameModeConfig): IGameMode {

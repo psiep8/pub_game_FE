@@ -181,6 +181,50 @@
       }
     </div>
     }
+    @case ('SCOMMESSA') {
+    <div class="bonus-remote">
+      <div class="game-head">
+        <span class="game-tag buzz">🎲 LA SCOMMESSA</span>
+        <span class="game-tip">{{ scommessaState()?.phase === 'BET' ? 'Punta' : scommessaState()?.phase === 'CASHOUT' ? 'Incassa o rischia' : scommessaState()?.phase === 'QUESTION' ? 'Rispondi' : 'Reveal' }}</span>
+      </div>
+
+      @if (scommessaState()?.phase === 'BET') {
+      <p class="party-instruction">Quanto rischi? Tre domande, banca che raddoppia.</p>
+      <div class="cavallo-categories">
+        @for (stake of [100, 200, 300]; track stake) {
+        <button class="cavallo-category" [class.picked]="scommessaStake() === stake" [disabled]="scommessaStake() !== null"
+          (click)="scommessaPickStake(stake)">
+          {{ stake }} · {{ stake === 300 ? 'tutto' : stake === 200 ? 'deciso' : 'cauto' }}
+        </button>
+        }
+      </div>
+      } @else if (scommessaState()?.phase === 'QUESTION') {
+      <p class="cavallo-question">{{ scommessaState()?.question }}</p>
+      <div class="cavallo-options">
+        @for (option of scommessaState()?.options ?? []; track $index; let i = $index) {
+        <button class="cavallo-option" [disabled]="scommessaChoice() !== null" (click)="scommessaAnswer(i)">
+          <span class="cavallo-letter">{{ letter(i) }}</span><span>{{ option }}</span>
+        </button>
+        }
+      </div>
+      <p class="buzz-hint">Banca: {{ scommessaBank() }} punti · domanda {{ scommessaState()?.index ?? 1 }}/{{ scommessaState()?.total ?? 3 }}</p>
+      } @else if (scommessaState()?.phase === 'CASHOUT') {
+      <p class="party-instruction">Banca: <b>{{ scommessaBank() }}</b> punti. Incassi o rischi il raddoppio?</p>
+      <div class="cavallo-categories">
+        <button class="cavallo-category" [class.picked]="scommessaCashout() === 'CASH'" [disabled]="scommessaCashout() !== null"
+          (click)="scommessaCashoutChoice('CASH')">💰 INCASSA {{ scommessaBank() }}</button>
+        <button class="cavallo-category" [class.picked]="scommessaCashout() === 'RISK'" [disabled]="scommessaCashout() !== null"
+          (click)="scommessaCashoutChoice('RISK')">🎲 RISCHIA</button>
+      </div>
+      <p class="buzz-hint">Se non scegli entro otto secondi incassi.</p>
+      } @else {
+      <div class="status-msg">
+        <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🎲</div></div>
+        <p>Il banco paga in TV.</p>
+      </div>
+      }
+    </div>
+    }
     @case ('BONUS_BASKET') {
     <div class="buzz-remote">
       <div class="game-head"><span class="game-tag buzz">BONUS</span><span class="game-tip">3 manche</span></div>
@@ -390,28 +434,6 @@
       @if (hockeyLastResult()) {
       <div class="hockey-result">{{ hockeyLastResult() }}</div>
       }
-    </div>
-    }
-    @case ('ROULETTE') {
-    <div class="roulette-grid">
-      <button (click)="sendVote(0)" class="color-btn rosso" [disabled]="hasAnswered()">
-        <span class="color-name">ROSSO</span>
-      </button>
-      <button (click)="sendVote(1)" class="color-btn nero" [disabled]="hasAnswered()">
-        <span class="color-name">NERO</span>
-      </button>
-      <button (click)="sendVote(2)" class="color-btn verde" [disabled]="hasAnswered()">
-        <span class="color-name">VERDE</span>
-      </button>
-      <button (click)="sendVote(3)" class="color-btn blu" [disabled]="hasAnswered()">
-        <span class="color-name">BLU</span>
-      </button>
-      <button (click)="sendVote(4)" class="color-btn giallo" [disabled]="hasAnswered()">
-        <span class="color-name">GIALLO</span>
-      </button>
-      <button (click)="sendVote(5)" class="color-btn bianco" [disabled]="hasAnswered()">
-        <span class="color-name">BIANCO</span>
-      </button>
     </div>
     }
     @case ('IMAGE_BLUR') {

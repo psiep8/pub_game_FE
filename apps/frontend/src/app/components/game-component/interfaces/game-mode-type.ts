@@ -8,7 +8,6 @@
 export type GameModeType =
   | 'QUIZ'
   | 'IMAGE_BLUR'
-  | 'ROULETTE'
   | 'MUSIC'
   | 'WHEEL_OF_FORTUNE'
   | 'ARENA'
@@ -16,7 +15,9 @@ export type GameModeType =
   | 'TIME_BUZZER'
   | 'BOMBA'
   | 'SPEED_RUSH'
-  | 'AIR_HOCKEY_BATTLE';
+  | 'AIR_HOCKEY_BATTLE'
+  | 'CAVALLO'
+  | 'SCOMMESSA';
 
 export interface BombaApi {
   start(players: string[], act: number): Promise<any>;

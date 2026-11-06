@@ -19,7 +19,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 BANK = os.path.join(REPO, "apps", "backend", "src", "main", "resources", "questions", "questions-it.json")
 
-VALID_TYPES = ("QUIZ", "TRUE_FALSE", "CHRONO", "IMAGE_BLUR")
+VALID_TYPES = ("QUIZ", "TRUE_FALSE", "IMAGE_BLUR")
 VALID_DIFFICULTY = ("facile", "medio", "difficile")
 
 
@@ -53,13 +53,6 @@ def validate(item: dict) -> str | None:
         return "risposta mancante"
     if not item.get("category"):
         return "categoria mancante"
-
-    if qtype == "CHRONO":
-        if not re.fullmatch(r"\d{3,4}", answer):
-            return "CHRONO senza anno valido"
-        if options not in (None, []):
-            return "CHRONO con opzioni"
-        return None
 
     if not isinstance(options, list) or len(options) < 2:
         return "opzioni mancanti"
@@ -109,8 +102,6 @@ def main() -> int:
             options = item.get("options")
             if (item.get("type") or "").upper() == "TRUE_FALSE":
                 options = ["VERO", "FALSO"]
-            if (item.get("type") or "").upper() == "CHRONO":
-                options = None
             existing.append({
                 "id": "tmp",
                 "category": item["category"],

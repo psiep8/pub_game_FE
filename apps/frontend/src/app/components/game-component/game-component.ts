@@ -34,7 +34,6 @@ import { ConnectionBadge } from '../connection-badge/connection-badge';
 import { ImageBlur } from './games/image-blur/image-blur';
 import { Quiz } from './games/quiz/quiz';
 import { WheelFortune } from './games/wheel-fortune/wheel-fortune';
-import { Roulette } from './games/roulette/roulette';
 import { Song } from './games/song/song';
 import { environment } from '../../environment/environment';
 import { GameModeType, IGameMode } from './interfaces/game-mode-type';
@@ -46,11 +45,12 @@ import { TimeBuzzer } from './games/time-buzzer/time-buzzer';
 import { Bomba } from './games/bomba/bomba';
 import { SpeedRush } from './games/speed-rush/speed-rush';
 import { AirHockeyBattle } from './games/air-hockey-battle/air-hockey-battle';
+import { Scommessa } from './games/scommessa/scommessa';
 import { DEMO_SCRIPTS, DEMO_SCENE_COUNT, DemoScript } from './demo-scripts';
 import { scoringRuleFor } from './interfaces/scoring-rules';
 import { BonusType, BONUS_LABELS } from './interfaces/bonus-type';
 import { CasinoBonus } from '../bonus/casino-bonus/casino-bonus';
-import { CavalloBonus } from '../bonus/cavallo-bonus/cavallo-bonus';
+import { Cavallo } from './games/cavallo/cavallo';
 import { BasketBonusStage } from '../bonus/basket-bonus-stage/basket-bonus-stage';
 
 @Component({
@@ -62,7 +62,6 @@ import { BasketBonusStage } from '../bonus/basket-bonus-stage/basket-bonus-stage
     WheelFortune,
     Quiz,
     ImageBlur,
-    Roulette,
     Song,
     LeaderboardQuick,
     LeaderboardDetailed,
@@ -72,8 +71,9 @@ import { BasketBonusStage } from '../bonus/basket-bonus-stage/basket-bonus-stage
     Bomba,
     SpeedRush,
     AirHockeyBattle,
+    Scommessa,
     CasinoBonus,
-    CavalloBonus,
+    Cavallo,
     BasketBonusStage
   ],
   templateUrl: './game-component.html',
@@ -149,7 +149,22 @@ export class GameComponent implements OnInit, OnDestroy {
     return this.allCategories().find((cat) => cat.id === id)?.name ?? '';
   });
 
+  /** Manche del bonus Casino: 1 colori, 2 numeri, 3 Black Jack. */
+  casinoVariant = computed(() => {
+    switch (this.bonusType()) {
+      case 'ROULETTE_COLORATA':
+        return 1;
+      case 'ROULETTE_NUMERATA':
+        return 2;
+      case 'BLACKJACK':
+        return 3;
+      default:
+        return 1;
+    }
+  });
+
   private arenaFinished = false;
+  private cavalloFinished = false;
   private readonly bonusActsStarted = new Set<number>();
   private bonusScoresMap = new Map<string, number>();
   private bonusAwarded = false;
@@ -167,12 +182,12 @@ export class GameComponent implements OnInit, OnDestroy {
     'IMAGE_BLUR',
     'MUSIC',
     'WHEEL_OF_FORTUNE',
-    'ROULETTE',
     'TIMELINE',
     'BOMBA',
     'SPEED_RUSH',
     'AIR_HOCKEY_BATTLE',
     'ARENA',
+    'SCOMMESSA',
   ]);
 
   remoteUrl = `${environment.frontendUrl}/play`;
@@ -334,7 +349,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
       // 🆕 Giochi simultanei: risultati dal server e progressi dai telefoni.
-      if (mode && ['TIMELINE_RESULT', 'TIME_BUZZER_ANSWER', 'SPEED_RUSH_PROGRESS', 'AIR_HOCKEY_BATTLE_ANSWER'].includes(status.action)) {
+      if (mode && ['TIMELINE_RESULT', 'TIME_BUZZER_ANSWER', 'SPEED_RUSH_PROGRESS', 'AIR_HOCKEY_BATTLE_ANSWER', 'SCOMMESSA_ACTION'].includes(status.action)) {
         mode.handlePartyEvent?.(status);
         this.cdr.detectChanges();
       }
@@ -382,7 +397,7 @@ export class GameComponent implements OnInit, OnDestroy {
       } else if (status.action === 'ADMIN_HIDE_DEMO') {
         this.stopDemo();
       } else if (status.action === 'ADMIN_START_BONUS') {
-        void this.startBonus(status.type || 'CASINO');
+        void this.startBonus(status.type || 'BASKET');
       } else if (status.action === 'ADMIN_STOP_BONUS') {
         this.finishBonus();
       } else if (status.action === 'BONUS_RESULT') {
@@ -640,8 +655,6 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'CELEBRITÀ';
       case 'WHEEL_OF_FORTUNE':
         return 'PROVERBI E MODI DI DIRE';
-      case 'ROULETTE':
-        return 'FORTUNA';
       case 'ARENA':
         return 'ARENA';
       case 'TIMELINE':
@@ -649,6 +662,8 @@ export class GameComponent implements OnInit, OnDestroy {
         // temporale; il backend filtra gli eventi su questa categoria.
         return this.pickTimelineCategoryName();
       case 'TIME_BUZZER':
+      case 'CAVALLO':
+      case 'SCOMMESSA':
       case 'BOMBA':
       case 'SPEED_RUSH':
       case 'AIR_HOCKEY_BATTLE':
@@ -685,8 +700,6 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'RUOTA DELLA FORTUNA';
       case 'IMAGE_BLUR':
         return 'INDOVINA CHI';
-      case 'ROULETTE':
-        return 'ROULETTE';
       // case '1VS1':
       //   return '1 CONTRO 1';
       case 'ARENA':
@@ -695,6 +708,10 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'TIMELINE';
       case 'TIME_BUZZER':
         return 'TIME BUZZER';
+      case 'CAVALLO':
+        return 'CAVALLO DI BATTAGLIA';
+      case 'SCOMMESSA':
+        return 'LA SCOMMESSA';
       case 'BOMBA':
         return 'BOMBA';
       case 'SPEED_RUSH':
@@ -771,6 +788,13 @@ export class GameComponent implements OnInit, OnDestroy {
     // comunque spegnere la suspense.
     if (mode.type === 'ARENA') {
       this.audioService.stopSuspense();
+      return;
+    }
+
+    // Il Cavallo si chiude quando la TV finisce il finale: se arriva prima il
+    // timer di sicurezza, si passa dallo stesso percorso.
+    if (mode.type === 'CAVALLO') {
+      this.finishCavalloRound();
       return;
     }
 
@@ -1062,11 +1086,6 @@ export class GameComponent implements OnInit, OnDestroy {
       this.ws.subscribeToGame(game.id);
     }
 
-    if (type === 'TIME_BUZZER') {
-      await this.startTimeBuzzerBonus();
-      return;
-    }
-
     if (type === 'BASKET') {
       this.ws.broadcastStatus(this.currentGameId(), {
         action: 'SHOW_QUESTION',
@@ -1077,55 +1096,47 @@ export class GameComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Casino e Cavallo hanno una schermata TV dedicata che parla direttamente
-    // con i telefoni tramite CASINO_STATE / CAVALLO_STATE.
-    const phoneType = type === 'CASINO' ? 'BONUS_CASINO' : 'BONUS_CAVALLO';
-    const publicPayload = JSON.stringify({ type: phoneType, question: BONUS_LABELS[type] });
+    // Le tre varianti del Casino hanno una schermata TV dedicata che parla
+    // direttamente con i telefoni tramite CASINO_STATE. La manche la decide la
+    // variante, non più una sequenza interna di tre manche.
+    const publicPayload = JSON.stringify({ type: 'BONUS_CASINO', question: BONUS_LABELS[type] });
     this.ws.broadcastStatus(this.currentGameId(), {
       action: 'SHOW_QUESTION',
-      type: phoneType,
+      type: 'BONUS_CASINO',
       payload: publicPayload,
       rawPayload: publicPayload,
     });
   }
 
-  private async startTimeBuzzerBonus(): Promise<void> {
-    const payload = { type: 'TIME_BUZZER', question: 'Quanto ci metti?', options: [], correctAnswer: null };
-    const mode = this.gameModeService.createMode({
-      type: 'TIME_BUZZER',
-      payload,
-      gameId: this.currentGameId()!,
-      activePlayers: this.bonusPlayers(),
-      onTimerTick: (seconds: number) => this.timer.set(seconds),
-      onTimerEnd: () => this.onModeTimeout(),
-      onPreGameTick: (seconds) => this.preStartCountdown.set(seconds),
-      onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!, event),
-      onAnswerReceived: (result: any) => {
-        if (result?.playerName) {
-          this.recordBonusResult(result.playerName, Number(result.points) || 0);
-        }
-      },
-    });
+  /** Cavallo come round: i punti finiscono subito in classifica, non nel bonus. */
+  onCavalloRoundResult(event: { playerName: string; score: number }): void {
+    const name = String(event?.playerName ?? '').trim();
+    const points = Number(event?.score) || 0;
+    if (!name || !points) return;
 
-    this.currentMode.set(mode);
-    this.phase.set('QUESTION');
-    this.showQuestion.set(true);
-    this.timer.set(mode.timerDuration);
+    this.leaderboardService.addPoints(name, points, points > 0);
+  }
 
-    const publicPayload = JSON.stringify({ type: 'TIME_BUZZER', question: payload.question });
-    this.ws.broadcastStatus(this.currentGameId()!, {
-      action: 'SHOW_QUESTION',
-      type: 'TIME_BUZZER',
-      payload: publicPayload,
-      rawPayload: publicPayload,
-    });
-    this.ws.broadcastStatus(this.currentGameId()!, {
-      action: 'START_VOTING',
-      type: 'TIME_BUZZER',
-      payload: publicPayload,
-    });
+  /** Il componente TV del Cavallo ha chiuso il finale: si chiude il round. */
+  finishCavalloRound(): void {
+    if (this.cavalloFinished) return;
+    this.cavalloFinished = true;
 
-    await mode.start();
+    this.audioService.stopClock();
+    this.audioService.stopSuspense();
+    this.audioService.playReveal();
+
+    this.currentMode()?.stop();
+
+    const currentRound = this.round();
+    if (currentRound) {
+      this.round.set({ ...currentRound, status: 'REVEAL' });
+    }
+
+    this.showQuestion.set(false);
+    this.ws.broadcastStatus(this.currentGameId()!, { action: 'ROUND_ENDED' });
+    this.roundManager.completeRound('CAVALLO');
+    this.checkLeaderboardDisplay();
   }
 
   private startBasketCountdown(): void {
@@ -1242,6 +1253,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private reset() {
     this.arenaFinished = false;
+    this.cavalloFinished = false;
     this.audioService.stopSuspense();
     this.cancelAutoAdvance();
     this.clearBonusTimer();
@@ -1371,7 +1383,6 @@ export class GameComponent implements OnInit, OnDestroy {
     switch (type) {
       case 'QUIZ':
       case 'IMAGE_BLUR':
-      case 'ROULETTE':
         return String(payload?.correctAnswer ?? 'Soluzione in TV');
       case 'WHEEL_OF_FORTUNE':
         return String(payload?.proverb ?? 'Soluzione in TV');
@@ -1381,6 +1392,10 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'Ordine corretto mostrato in TV al reveal';
       case 'TIME_BUZZER':
         return 'Tempo bersaglio mostrato in TV';
+      case 'CAVALLO':
+        return 'Categoria votata dai telefoni, otto domande flash in TV';
+      case 'SCOMMESSA':
+        return 'La TV svela la risposta dopo ogni domanda';
       case 'BOMBA':
         return 'Bombe, passaggi e scoppi in TV; risposte sul telefono';
       case 'AIR_HOCKEY_BATTLE':
@@ -1436,10 +1451,13 @@ export class GameComponent implements OnInit, OnDestroy {
     const isReading = mode ? (mode.getIsReading?.() ?? false) : false;
     const safe = { ...data, isReading } as any;
 
-    if (mode?.type !== 'ROULETTE') {
-      if (!mode || !mode.isRevealed()) {
-        safe.correctAnswer = null;
-      }
+    if (!mode || !mode.isRevealed()) {
+      safe.correctAnswer = null;
+    }
+
+    // La banca della Scommessa viaggia con le risposte: ai telefoni non servono.
+    if (Array.isArray(safe.questions)) {
+      safe.questions = safe.questions.map((question: any) => ({ ...question, correctAnswer: null }));
     }
 
     safe.question = safe.question ?? '';

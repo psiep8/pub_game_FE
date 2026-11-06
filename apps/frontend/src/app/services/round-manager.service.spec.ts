@@ -6,12 +6,14 @@ const PLAYABLE_TYPES: GameModeType[] = [
   'WHEEL_OF_FORTUNE',
   'MUSIC',
   'IMAGE_BLUR',
-  'ROULETTE',
   'ARENA',
   'TIMELINE',
   'BOMBA',
   'SPEED_RUSH',
   'AIR_HOCKEY_BATTLE',
+  'TIME_BUZZER',
+  'CAVALLO',
+  'SCOMMESSA',
 ];
 
 const REALTIME_TYPES: GameModeType[] = ['BOMBA', 'ARENA', 'SPEED_RUSH', 'AIR_HOCKEY_BATTLE'];
@@ -39,17 +41,17 @@ describe('RoundManagerService', () => {
     }
   });
 
-  it('should open every act with a quiz', () => {
-    [0, 8, 16, 24, 32].forEach((round) => {
-      const fresh = new RoundManagerService();
-      localStorage.setItem(
-        'roundProgress',
-        JSON.stringify({ totalRounds: 40, currentRound: round, completedRounds: [], nextRoundType: null })
-      );
-      const restarted = new RoundManagerService();
-      expect(restarted.extractGameType()).toBe('QUIZ');
-      fresh.resetGame();
-    });
+  it('should never replay a whole act and should vary the act openers', () => {
+    const types: GameModeType[] = [];
+    for (let i = 0; i < 40; i++) types.push(service.startNewRound());
+
+    const acts = [0, 1, 2, 3, 4].map((act) => types.slice(act * 8, act * 8 + 8));
+
+    expect(acts[0][0]).toBe('QUIZ');
+    for (let i = 1; i < acts.length; i++) {
+      expect(acts[i]).not.toEqual(acts[i - 1]);
+    }
+    expect(acts.every((act) => act[0] === 'QUIZ')).toBe(false);
   });
 
   it('should never schedule two realtime games back to back', () => {
@@ -91,11 +93,36 @@ describe('RoundManagerService', () => {
     expect(service.isActEnd()).toBe(true);
   });
 
-  it('should not consume a round for the bonus roulette', () => {
-    const before = service.getCurrentRound();
+  it('should spread the casino variants across the acts', () => {
+    const expected: Array<string | null> = [
+      'ROULETTE_COLORATA',
+      'BASKET',
+      'ROULETTE_NUMERATA',
+      'BLACKJACK',
+      null,
+    ];
 
-    expect(service.startBonusRound()).toBe('ROULETTE');
-    expect(service.getCurrentRound()).toBe(before);
+    expected.forEach((bonus, act) => {
+      localStorage.setItem(
+        'roundProgress',
+        JSON.stringify({
+          totalRounds: 40,
+          currentRound: (act + 1) * 8,
+          completedRounds: [],
+          nextRoundType: null,
+        })
+      );
+      const restarted = new RoundManagerService();
+      expect(restarted.bonusAfterAct()).toBe(bonus);
+    });
+  });
+
+  it('should play the horse twice as a real round', () => {
+    const types: GameModeType[] = [];
+    for (let i = 0; i < 40; i++) types.push(service.startNewRound());
+
+    expect(types.filter((type) => type === 'CAVALLO')).toHaveLength(2);
+    expect(types.filter((type) => type === 'SCOMMESSA')).toHaveLength(1);
   });
 
   it('should track how many times each mode has been played', () => {

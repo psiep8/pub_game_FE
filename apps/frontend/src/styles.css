@@ -114,11 +114,8 @@ button:disabled {
 
 /* I titoli dei giochi seguono la voce poster anche nei componenti figli. */
 app-quiz h2,
-app-true-false h2,
-app-chrono h2,
 app-wheel-fortune h2,
 app-song h2,
-app-roulette h2,
 app-arena h2,
 app-timeline h2,
 app-price h2,
@@ -222,84 +219,6 @@ app-quiz .quiz-reveal .reveal-value {
   font-weight: 400;
   text-shadow: none;
   text-transform: uppercase;
-}
-
-app-true-false .truefalse-container {
-  width: 100%;
-  height: auto !important;
-  min-height: 100%;
-  background: transparent !important;
-  color: var(--paper);
-}
-app-true-false .question-box {
-  margin-bottom: clamp(14px, 2.6vh, 30px);
-  padding: 0 !important;
-  background: transparent !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  backdrop-filter: none !important;
-}
-app-true-false .question-text {
-  color: var(--paper) !important;
-  font-family: var(--font-display);
-  font-size: clamp(1.4rem, 3vw, 2.8rem);
-  font-weight: 400;
-  line-height: 1.05;
-  text-transform: uppercase;
-  text-shadow: 3px 3px 0 var(--tomato);
-}
-app-true-false .options-grid {
-  gap: clamp(12px, 2vw, 26px);
-}
-app-true-false .option-card {
-  background: var(--paper) !important;
-  color: var(--coal) !important;
-  border: 3px solid var(--coal) !important;
-  border-radius: 0 !important;
-  box-shadow: 8px 8px 0 var(--tomato) !important;
-  backdrop-filter: none !important;
-}
-app-true-false .option-card:first-child { border-top: 10px solid var(--mint) !important; }
-app-true-false .option-card:last-child { border-top: 10px solid var(--tomato) !important; }
-app-true-false .option-icon,
-app-true-false .option-text {
-  color: var(--coal) !important;
-}
-app-true-false .option-icon { font-family: var(--font-mono); }
-app-true-false .option-text {
-  font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: 0.04em;
-}
-app-true-false .option-card.correct {
-  background: var(--acid) !important;
-  border-color: var(--coal) !important;
-  box-shadow: 8px 8px 0 var(--coal) !important;
-}
-app-true-false .option-card.wrong {
-  background: var(--paper-2) !important;
-  border-color: var(--coal) !important;
-  opacity: 0.45;
-  box-shadow: 5px 5px 0 var(--coal) !important;
-}
-app-true-false .explanation-box {
-  padding: 14px 22px !important;
-  background: var(--paper) !important;
-  border: 3px solid var(--coal) !important;
-  border-radius: 0 !important;
-  box-shadow: 7px 7px 0 var(--tomato) !important;
-}
-app-true-false .explanation-icon { margin-bottom: 4px; }
-app-true-false .explanation-title,
-app-true-false .explanation-text {
-  color: var(--coal) !important;
-  font-family: var(--font);
-}
-app-true-false .explanation-title { font-family: var(--font-mono); }
-app-true-false .timer-progress { stroke: var(--tomato) !important; }
-app-true-false .timer-value {
-  color: var(--paper) !important;
-  font-family: var(--font-mono);
 }
 
 app-song .song-container {
@@ -425,17 +344,13 @@ app-song .timer-value {
    SKIN DEI TABELLONI LEGACY — stessa carta, stesso inchiostro.
    ============================================================ */
 app-wheel-fortune .wheel-layout,
-app-image-blur .image-blur-layout,
-app-chrono .chrono-container,
-app-roulette .roulette-container {
+app-image-blur .image-blur-layout{
   background: transparent !important;
   color: var(--paper) !important;
   font-family: var(--font) !important;
 }
 app-wheel-fortune .wheel-title,
-app-image-blur .blur-title,
-app-roulette .instructions h2,
-app-chrono .chrono-question {
+app-image-blur .blur-title{
   color: var(--paper) !important;
   font-family: var(--font-display) !important;
   font-weight: 400 !important;
@@ -443,8 +358,7 @@ app-chrono .chrono-question {
   letter-spacing: 0.02em !important;
   text-transform: uppercase;
 }
-app-wheel-fortune .wheel-hint,
-app-roulette .timer-text {
+app-wheel-fortune .wheel-hint{
   background: transparent !important;
   color: var(--acid) !important;
   border: 0 !important;
@@ -506,20 +420,6 @@ app-image-blur .reveal-answer h2 {
   font-family: var(--font-display) !important;
   font-weight: 400 !important;
 }
-app-chrono .chrono-hint { color: var(--ink-dim) !important; font-family: var(--font-mono) !important; }
-app-chrono .chrono-waiting-box {
-  background: var(--paper) !important;
-  color: var(--coal) !important;
-  border: 3px solid var(--coal) !important;
-  border-radius: 0 !important;
-  box-shadow: 7px 7px 0 var(--tomato) !important;
-}
-app-chrono .wait-text { color: var(--coal) !important; font-family: var(--font-mono) !important; }
-app-chrono .timer-display { color: var(--tomato) !important; font-family: var(--font-mono) !important; }
-app-roulette .wheel-center { background: var(--coal) !important; border-color: var(--paper) !important; }
-app-roulette .center-text,
-app-roulette .center-icon { color: var(--paper) !important; }
-app-roulette .winner-title { color: var(--paper) !important; font-family: var(--font-display) !important; }
 
 /* ============================================================
    TEMA SABBIA — espresso, sabbia, panna e antracite.
@@ -580,8 +480,6 @@ app-game-component .modal-btn { font-size: clamp(0.95rem, 1.1vw, 1.1rem) !import
 
 app-quiz .quiz-question { font-size: clamp(1.8rem, 3.4vw, 3.2rem) !important; }
 app-quiz .quiz-option-btn { font-size: clamp(1.05rem, 1.5vw, 1.4rem) !important; }
-app-true-false .question-text { font-size: clamp(1.75rem, 3.2vw, 3rem) !important; }
-app-true-false .option-text { font-size: clamp(1.4rem, 2.6vw, 2.4rem) !important; }
 
 app-arena .arena-kicker,
 app-arena .arena-chip { font-size: clamp(0.82rem, 1.05vw, 1rem) !important; }
@@ -814,9 +712,6 @@ app-quiz .quiz-options-grid > *:nth-child(1) { animation-delay: 40ms; }
 app-quiz .quiz-options-grid > *:nth-child(2) { animation-delay: 90ms; }
 app-quiz .quiz-options-grid > *:nth-child(3) { animation-delay: 140ms; }
 app-quiz .quiz-options-grid > *:nth-child(4) { animation-delay: 190ms; }
-app-true-false .options-grid > * { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
-app-true-false .options-grid > *:nth-child(1) { animation-delay: 40ms; }
-app-true-false .options-grid > *:nth-child(2) { animation-delay: 110ms; }
 
 app-game-component .result-popup { animation: m-pop var(--motion-fast) var(--ease-spring) backwards; }
 app-game-component .result-popup .result-icon { animation: m-pop var(--motion-base) var(--ease-spring) 60ms backwards; }
@@ -855,7 +750,6 @@ app-remote-component .game-content > * { animation: m-rise var(--motion-fast) va
 app-remote-component .game-head { animation: m-drop var(--motion-fast) var(--ease-out) backwards; }
 
 app-remote-component .voting-grid > *,
-app-remote-component .roulette-grid > *,
 app-remote-component .emoji-grid > *,
 app-remote-component .bomba-options > *,
 app-remote-component .bomba-pass-options > *,
@@ -868,22 +762,18 @@ app-remote-component .tl-drag-list > *,
 app-remote-component .flip-grid > * { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
 
 app-remote-component .voting-grid > *:nth-child(1),
-app-remote-component .roulette-grid > *:nth-child(1),
 app-remote-component .emoji-grid > *:nth-child(1),
 app-remote-component .bomba-options > *:nth-child(1),
 app-remote-component .tl-drag-list > *:nth-child(1) { animation-delay: 30ms; }
 app-remote-component .voting-grid > *:nth-child(2),
-app-remote-component .roulette-grid > *:nth-child(2),
 app-remote-component .emoji-grid > *:nth-child(2),
 app-remote-component .bomba-options > *:nth-child(2),
 app-remote-component .tl-drag-list > *:nth-child(2) { animation-delay: 70ms; }
 app-remote-component .voting-grid > *:nth-child(3),
-app-remote-component .roulette-grid > *:nth-child(3),
 app-remote-component .emoji-grid > *:nth-child(3),
 app-remote-component .bomba-options > *:nth-child(3),
 app-remote-component .tl-drag-list > *:nth-child(3) { animation-delay: 110ms; }
 app-remote-component .voting-grid > *:nth-child(4),
-app-remote-component .roulette-grid > *:nth-child(4),
 app-remote-component .emoji-grid > *:nth-child(4),
 app-remote-component .tl-drag-list > *:nth-child(4) { animation-delay: 150ms; }
 
@@ -909,9 +799,7 @@ app-song .phase-dot:nth-child(3) { animation-delay: 200ms; }
 app-song .current-phase-label { animation: m-fade var(--motion-fast) var(--ease-out) backwards; }
 
 app-wheel-fortune .wheel-title,
-app-image-blur .blur-title,
-app-roulette .instructions h2,
-app-chrono .chrono-question { animation: m-drop var(--motion-cinema) var(--ease-out) backwards; }
+app-image-blur .blur-title{ animation: m-drop var(--motion-cinema) var(--ease-out) backwards; }
 app-wheel-fortune .letter-box { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
 app-wheel-fortune .letter-box:nth-child(2n) { animation-delay: 60ms; }
 app-wheel-fortune .letter-box:nth-child(3n) { animation-delay: 110ms; }
@@ -936,12 +824,8 @@ app-leaderboard-quick .position-badge { animation: m-bump var(--motion-base) var
 app-leaderboard-quick .points-value { animation: m-pop var(--motion-base) var(--ease-spring) 80ms backwards; }
 app-leaderboard-detailed .position-number { animation: m-bump var(--motion-base) var(--ease-spring) backwards; }
 app-leaderboard-detailed .points-value { animation: m-pop var(--motion-base) var(--ease-spring) 100ms backwards; }
-
-app-remote-component .color-btn,
 app-remote-component .buzz-button,
 app-remote-component .speed-big,
 app-remote-component .confirm-btn,
 app-remote-component .tl-move,
 app-remote-component .hockey-side { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
-app-remote-component .color-btn:nth-child(2n) { animation-delay: 60ms; }
-app-remote-component .color-btn:nth-child(3n) { animation-delay: 110ms; }

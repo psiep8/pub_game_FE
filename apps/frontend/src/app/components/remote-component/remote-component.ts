@@ -135,7 +135,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR' | 'BUZZ_OUT' | 'ELIMINATED'>('WAITING');
-  questionType = signal<'ROULETTE' | 'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO'>('QUIZ');
+  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'CAVALLO' | 'SCOMMESSA' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO'>('QUIZ');
   hasAnswered = signal(false);
   /** Ultima risposta toccata: solo promemoria visivo, l'esito lo decide il server. */
   selectedAnswer = signal<number | null>(null);
@@ -300,8 +300,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
         case 'SHOW_QUESTION':
           this.questionType.set(status.type);
           this.isBlocked.set(false);
-          if (status.type === 'ROULETTE' || status.type === 'BONUS_BASKET'
-              || status.type === 'BONUS_CASINO' || status.type === 'BONUS_CAVALLO') {
+          if (status.type === 'BONUS_BASKET'
+              || status.type === 'BONUS_CASINO' || status.type === 'BONUS_CAVALLO'
+              || status.type === 'SCOMMESSA' || status.type === 'CAVALLO') {
             this.gameState.set('VOTING');
             this.hasAnswered.set(false);
             this.selectedAnswer.set(null);
@@ -339,6 +340,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'CAVALLO_STATE':
           this.applyCavalloState(status.state);
+          break;
+
+        case 'SCOMMESSA_STATE':
+          this.applyScommessaState(status.state);
           break;
 
         case 'AIR_HOCKEY_BATTLE_STATE':
@@ -735,10 +740,19 @@ export class RemoteComponent implements OnInit, OnDestroy {
     } else if (type === 'BONUS_CASINO') {
       this.casinoState.set(null);
       this.casinoChoice.set(null);
-    } else if (type === 'BONUS_CAVALLO') {
+    } else if (type === 'BONUS_CAVALLO' || type === 'CAVALLO') {
+      // Il Cavallo gioca la stessa schermata in round e in bonus: la TV manda
+      // CAVALLO_STATE, quindi qui basta azzerare lo stato della sfida.
       this.cavalloState.set(null);
       this.cavalloChoice.set(null);
       this.cavalloCategory.set(null);
+      this.questionType.set('BONUS_CAVALLO');
+    } else if (type === 'SCOMMESSA') {
+      this.scommessaState.set(null);
+      this.scommessaStake.set(null);
+      this.scommessaChoice.set(null);
+      this.scommessaCashout.set(null);
+      this.scommessaKey = '';
     } else if (type === 'SPEED_RUSH') {
       this.startSpeedRush();
     } else if (type === 'AIR_HOCKEY_BATTLE') {
@@ -775,6 +789,71 @@ export class RemoteComponent implements OnInit, OnDestroy {
       if (state.phase === 'CATEGORY') this.cavalloCategory.set(null);
     }
     this.gameState.set(state.phase === 'FINALE' ? 'WAITING' : 'VOTING');
+  }
+
+  private applyScommessaState(state: any): void {
+    if (!state) return;
+
+    this.scommessaState.set(state);
+    this.questionType.set('SCOMMESSA');
+    // La fase da sola non basta: QUESTION si ripete per tre domande.
+    const key = `${state.phase}:${state.index ?? 0}`;
+    if (key !== this.scommessaKey) {
+      this.scommessaKey = key;
+      if (state.phase === 'BET') this.scommessaStake.set(null);
+      if (state.phase === 'QUESTION') this.scommessaChoice.set(null);
+      if (state.phase === 'CASHOUT') this.scommessaCashout.set(null);
+    }
+    this.gameState.set(state.phase === 'REVEAL' || state.phase === 'CASHOUT' ? 'WAITING' : 'VOTING');
+  }
+
+  scommessaPickStake(stake: number): void {
+    const player = this.nickname();
+    if (!player || this.scommessaStake() !== null) return;
+
+    this.scommessaStake.set(stake);
+    this.ws.broadcastStatus(this.gameId(), {
+      action: 'SCOMMESSA_ACTION',
+      playerName: player,
+      kind: 'STAKE',
+      value: stake,
+    });
+    this.vibrate(20);
+  }
+
+  scommessaAnswer(index: number): void {
+    const player = this.nickname();
+    if (!player || this.scommessaChoice() !== null) return;
+
+    this.scommessaChoice.set(index);
+    this.ws.broadcastStatus(this.gameId(), {
+      action: 'SCOMMESSA_ACTION',
+      playerName: player,
+      kind: 'ANSWER',
+      value: index,
+    });
+    this.vibrate(30);
+  }
+
+  /** Banca corrente della squadra, arrivata con lo stato del round. */
+  scommessaBank(): number {
+    const player = this.nickname();
+    const row = (this.scommessaState()?.rows ?? []).find((entry: any) => entry.playerName === player);
+    return Number(row?.bank ?? 0);
+  }
+
+  scommessaCashoutChoice(choice: 'CASH' | 'RISK'): void {
+    const player = this.nickname();
+    if (!player || this.scommessaCashout() !== null) return;
+
+    this.scommessaCashout.set(choice);
+    this.ws.broadcastStatus(this.gameId(), {
+      action: 'SCOMMESSA_ACTION',
+      playerName: player,
+      kind: 'CASHOUT',
+      value: choice,
+    });
+    this.vibrate(30);
   }
 
   casinoAct(choice: string): void {
@@ -1116,6 +1195,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   priceEliminated = signal(false);
+
+  scommessaState = signal<any>(null);
+  scommessaStake = signal<number | null>(null);
+  scommessaChoice = signal<number | null>(null);
+  scommessaCashout = signal<'CASH' | 'RISK' | null>(null);
+  private scommessaKey = '';
 
   sendPriceAnswer(): void {
     const playerName = this.nickname();
@@ -1517,7 +1602,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
     // Round con stato locale guidato dalla TV: non si ricostruisce a mano,
     // si aspetta il prossimo START_VOTING invece di rischiare doppioni.
-    if (['TIMELINE', 'TIME_BUZZER', 'BOMBA', 'SPEED_RUSH', 'AIR_HOCKEY_BATTLE'].includes(type)) return;
+    if (['TIMELINE', 'TIME_BUZZER', 'BOMBA', 'SPEED_RUSH', 'AIR_HOCKEY_BATTLE', 'CAVALLO', 'SCOMMESSA'].includes(type)) return;
 
     const payload = round?.payload ?? snapshot.payload;
     if (payload && this.gameState() === 'WAITING') {

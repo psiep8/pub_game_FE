@@ -68,12 +68,11 @@ Broadcast su `/topic/game/{id}`, `/topic/game/{id}/responses`, `/topic/game/{id}
 | Tipo | Descrizione | AI |
 |---|---|---|
 | `QUIZ` | 4 opzioni, una corretta | Groq |
-| `TRUE_FALSE` | Vero/Falso con spiegazione | Groq |
-| `CHRONO` | Indovina l'anno storico | Groq |
 | `IMAGE_BLUR` | Riconosci il celebrity | Groq + TMDB |
 | `MUSIC` | Indovina la canzone | iTunes API |
-| `ROULETTE` | Scegli un colore | Random |
 | `WHEEL_OF_FORTUNE` | Proverbio casuale | Lista locale |
+| `CAVALLO` | Cavallo di battaglia: 8 domande flash | Banca domande |
+| `SCOMMESSA` | Punta i gettoni, poi rispondi | Banca domande |
 
 Se l'AI non risponde o il JSON non è valido, viene usato un fallback locale (funziona anche senza chiave Groq).
 

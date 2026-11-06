@@ -1,7 +1,57 @@
 # Lavori in corso — pub_game_FE
 
-Ultimo aggiornamento: 5 novembre 2026
-Ultimo commit: `2193fd5` (P0). Le modifiche successive (rename, punti, demo animate, audio) sono **non committate**.
+Ultimo aggiornamento: 6 novembre 2026
+Ultimo commit: 6 novembre — scaletta a 5 atti, Cavallo e Scommessa come round veri, pulizia di Chrono/Vero-Falso/Roulette. I commit precedenti sono del 5 novembre.
+
+---
+
+## Cosa è cambiato il 6 novembre
+
+### Scaletta: Cavallo e Time Buzzer diventano round
+- `ACT_DECKS` riscritta. Cavallo compare due volte (atti 1 e 5), Time Buzzer due (atti 2 e 4), la Scommessa chiude l'atto 4.
+- Nessun atto è più il replay di un altro: l'atto 4 parte da Indovina chi, l'atto 5 dalla Ruota.
+- `BonusType` non contiene più `CASINO`, `CAVALLO` e `TIME_BUZZER`: restano solo i bonus veri.
+
+| Atto | Round | Sequenza |
+| --- | --- | --- |
+| 1 | 1–8 | Quiz · Musica · Bomba · Indovina chi · Timeline · Ruota · Cavallo · Speed Rush |
+| 2 | 9–16 | Quiz · Indovina chi · Timeline · Arena · Musica · Bomba · Time Buzzer · Air Hockey |
+| 3 | 17–24 | Quiz · Bomba · Timeline · Speed Rush · Musica · Air Hockey · Ruota · Arena |
+| 4 | 25–32 | Indovina chi · Quiz · Bomba · Musica · Time Buzzer · Timeline · Scommessa · Speed Rush |
+| 5 | 33–40 | Ruota · Quiz · Bomba · Cavallo · Timeline · Air Hockey · Musica · Arena |
+
+### Casino spalmato in tre bonus
+
+| Dopo l'atto | Bonus |
+| --- | --- |
+| 1 | Roulette Colorata |
+| 2 | Basket |
+| 3 | Roulette Numerata |
+| 4 | Black Jack |
+| 5 | nessuno, classifica finale |
+
+`CasinoBonus` ha un input `variant` (1/2/3) e fa girare **una sola manche**, non più le tre in sequenza. L'admin ha quattro pulsanti separati.
+
+### Cavallo di Battaglia come round
+- Nuova `mode/cavallo.mode.ts`: contratto del round e timer di sicurezza (240 s).
+- La logica resta nel componente TV `games/cavallo/cavallo.ts` (classe `Cavallo`, selector `app-cavallo`): scrive i punti in classifica, niente riepilogo bonus.
+- Backend: `GameType.CAVALLO` e payload di configurazione da `PartyGameService`.
+
+### Codice ripulito: via Chrono, Vero/Falso e Roulette round
+- Rimossa la modalità singola Chrono e Vero/Falso da frontend e backend (`GameModeType`, `GameType`, `QuestionGeneratorService`). Il Vero/Falso resta solo come tipo di domanda della banca usato da Arena e Cavallo, che non sono state toccate.
+- La Roulette non è più un round vero: eliminati `mode/roulette.mode.ts`, `games/roulette/*`, i rami in TV/remote/admin, i punti in `scoring-rules.ts`, la demo e tutti gli stili (`app-roulette`, `roulette-grid`, `color-btn`). Restano i bonus Roulette Colorata e Numerata dentro `CasinoBonus`.
+- Rimosso `startBonusRound()` da `RoundManagerService`: non aveva più chiamanti.
+- Rinominato `bonus/cavallo-bonus/cavallo-bonus.ts` → `game-component/games/cavallo/cavallo.ts` (classe `Cavallo`): il Cavallo è un round, non un bonus. Aggiornati import, template e documento del round.
+- Script allineati: `rounds_check.py`, `live_devices_check.js`, `generate.py` e `merge_domande.py` non gestiscono più Chrono e Roulette.
+
+### La Scommessa (tre domande con incasso)
+- Struttura: puntata 10 s → 3 domande da 12 s con reveal 6 s → dopo la prima e la seconda, 8 s per INCASSARE o RISCHIARE → finale 7 s.
+- La banca parte dalla puntata e raddoppia a ogni risposta esatta: 100 → 200 → 400 → 800. Una risposta sbagliata (o mancata) brucia la banca.
+- Chi incassa esce dal round con i punti della banca; chi non sceglie entro 8 s incassa d'ufficio, così un telefono in tasca non costa nulla.
+- Backend: `scommessaPayload` serve tre domande QUIZ distinte della stessa categoria, con risposte incluse perché è la TV a condurre il round.
+- TV `games/scommessa/scommessa.ts`: banca, moltiplicatore (×2, ×4, ×8), reveal e stato di ogni squadra.
+- Remote: gettoni, tre domande e i due pulsanti INCASSA / RISCHIA; la banca corrente arriva con `SCOMMESSA_STATE`.
+- `scoring-rules.ts` e demo aggiornati: non ci sono più punti negativi, si rischia solo la banca potenziale.
 
 ---
 
@@ -44,8 +94,8 @@ Rimosso:
 
 La pausa ha un overlay a schermo intero: il gioco non è visibile dietro.
 
-### Flusso serata a 40 round (P0, 5 novembre)
-- Scaletta fissa in 5 atti da 8 round: il primo round di ogni atto è Quiz, l'Arena chiude solo l'ultimo round.
+### Flusso serata a 40 round (P0, 5 novembre — scaletta riscritta il 6)
+- Scaletta fissa in 5 atti da 8 round; l'Arena chiude solo l'ultimo round. La tabella aggiornata è nella sezione “Cosa è cambiato il 6 novembre”.
 - `ACT_DECKS` in `round-manager.service.ts`: Ruota 3 volte su 40 (atti 1, 3, 5), mai adiacente a Indovina chi.
 - Bonus Roulette e Basket lanciabili dall'admin: non consumano un round.
   - `BONUS_RESULT` dal telefono; premi +300 / +150 / +75 ai primi tre.
@@ -119,14 +169,13 @@ Stile e tema restano quelli di ieri: cambia solo il movimento. Tutto vive in
 ## Da fare domani
 
 1. **QA dal vivo con backend acceso** (`127.0.0.1:8080`):
-   - flusso admin: prossimo round, classifica, pausa, demo, bonus roulette/basket;
-   - Time Buzzer e Air Hockey in TV + remote;
-   - verifica che in pausa la TV non mostri il gioco e che l'auto-avanzamento si fermi;
-   - ascolto del podio in classifica e dell'heartbeat nei round 20–40.
-2. **Altri 2 giochi bonus** (Memory, Tap/Swipe) da alternare a Roulette e Basket.
-3. **Ruota**: separare la fase di lancio dalla rivelazione (oggi le lettere si aprono durante il timer).
-4. **Eventuale mp4 demo**: le demo animate sono già utilizzabili; i video registrati restano opzionali.
-5. **Commit** delle modifiche attuali, poi push.
+   - Cavallo come round: voto categoria, otto domande, punti in classifica;
+   - Scommessa: gettoni, tre domande, banca che raddoppia e scelta INCASSA/RISCHIA;
+   - bonus spalmato: una manche per atto, mai tre di fila;
+   - pausa, classifica, demo e auto-avanzamento come prima.
+2. **Ruota**: separare la fase di lancio dalla rivelazione (oggi le lettere si aprono durante il timer).
+3. **Altri 2 giochi bonus** (Memory, Tap/Swipe) se il Casino spalmato non basta.
+4. **Cavallo**: decidere se implementare la struttura a due manches con pausa e volata.
 
 ---
 
@@ -189,6 +238,9 @@ Stato: canvas, canestro, punteggio e premi sono implementati; il gettone birra r
 - `apps/frontend/src/app/components/leaderboard/leaderboard-detailed-component/leaderboard-detailed-component.ts`
 - `apps/frontend/src/styles.css`
 - `apps/frontend/src/app/components/admin/admin.ts/.html/.css`
+- `apps/frontend/src/app/components/game-component/mode/cavallo.mode.ts` (nuovo)
+- `apps/frontend/src/app/components/game-component/mode/scommessa.mode.ts` (nuovo)
+- `apps/frontend/src/app/components/game-component/games/scommessa/scommessa.ts` (nuovo)
 - `apps/frontend/src/app/components/basket-bonus/basket-bonus.ts`
 - `apps/frontend/src/app/components/remote-component/remote-component.ts/.html`
 - `apps/frontend/src/app/services/game.service.ts`
@@ -214,3 +266,26 @@ Verifiche del 5 novembre:
 - Le spec di `RoundManagerService`, `GameComponent` e `RemoteComponent` passano.
 - `git diff --check` pulito; nessun residuo del vecchio nome nel sorgente.
 - Nessun test dal vivo: backend/WebSocket non avviati in questa sessione.
+
+Verifiche del 6 novembre:
+- Build FE `npm run build` → exit 0.
+- Build BE `./mvnw -B -DskipTests package` → exit 0.
+- Test FE: 64 passati, 2 falliti. I fallimenti sono gli stessi due preesistenti e non collegati
+  (`LeaderboardDetailed` spotlight dopo 9 s, `Song` etichetta fase 1); i test Roulette sono
+  stati rimossi insieme al round.
+- `RoundManagerService`: 13 test verdi, inclusi scaletta variata, Cavallo due volte,
+  Scommessa una volta e bonus spalmato sui quattro atti.
+- Nessun test dal vivo: Cavallo e Scommessa sono compilati ma **non osservati in esecuzione**.
+
+### Nota sulla Scommessa
+Il formato attuale è a **tre domande con incasso**: puntata (10 s), poi per ogni
+domanda 12 s di risposta e 6 s di reveal; dopo la prima e la seconda ci sono 8 s
+per INCASSARE o RISCHIARE, infine 7 s di finale. La banca parte dalla puntata e
+raddoppia a ogni esatta (100 → 200 → 400 → 800); una risposta sbagliata o mancata
+la brucia. Chi non sceglie entro gli 8 s incassa d'ufficio, così un telefono in
+tasca non penalizza la squadra. Non ci sono punti negativi: si rischia solo la
+banca potenziale.
+
+L'idea alternativa (parimutuel con quote che si muovono sulle puntate delle
+squadre) resta sul tavolo, ma richiede una vera asta tra tavoli e non serve per
+questa serata.

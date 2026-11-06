@@ -270,10 +270,6 @@ export class Admin implements OnInit, OnDestroy {
           
           break;
 
-        case 'ROULETTE':
-          answer = payload.correctAnswer !== undefined ? String(payload.correctAnswer) : 'Colore in TV';
-          break;
-
         case 'TIMELINE':
           answer = 'Ordine corretto in TV al reveal';
           break;

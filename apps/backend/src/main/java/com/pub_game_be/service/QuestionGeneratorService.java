@@ -51,20 +51,6 @@ public class QuestionGeneratorService {
 
     public String generateQuestionJson(String category, String type, String difficulty) {
 
-        if ("ROULETTE".equalsIgnoreCase(type)) {
-            String[] colors = { "ROSSO", "NERO", "VERDE", "BLU", "GIALLO", "BIANCO" };
-            String winningColor = colors[new Random().nextInt(colors.length)];
-
-            JSONObject response = new JSONObject();
-            response.put("type", "ROULETTE");
-            response.put("question", "Scegli un colore!");
-            response.put("correctAnswer", winningColor);
-            response.put("options", new JSONArray(colors));
-            response.put("payload", JSONObject.NULL);
-
-            return response.toString();
-        }
-
         if ("WHEEL_OF_FORTUNE".equalsIgnoreCase(type)
                 || "WHEEL_FORTUNE".equalsIgnoreCase(type)
                 || "PROVERB".equalsIgnoreCase(type)) {
@@ -166,20 +152,6 @@ public class QuestionGeneratorService {
                             "6. NON inventare fatti o date inesistenti\n\n" +
                             "Rispondi SOLO con JSON valido (NO markdown, NO testo extra).\n" +
                             "IMPORTANTE: Verifica che 'correctAnswer' sia ESATTAMENTE uguale a una delle options!",
-                    category, difficulty, difficultyContext, category, category);
-        } else if ("CHRONO".equalsIgnoreCase(type)) {
-            prompt = String.format(
-                    "Sei il presentatore di un quiz televisivo.\n" +
-                            "CATEGORIA: %s\n" +
-                            "LIVELLO: %s (%s)\n\n" +
-                            "⚠️ OBBLIGO ASSOLUTO: La domanda DEVE riguardare ESCLUSIVAMENTE la categoria \"%s\". NON generare domande su argomenti estranei a questa categoria.\n\n" +
-                            "Genera UNA domanda su un ANNO storico.\n\n" +
-                            "REGOLE:\n" +
-                            "1. La domanda deve chiedere l'anno di un evento storico RELATIVO ALLA CATEGORIA \"%s\"\n" +
-                            "2. L'anno deve essere verificabile\n" +
-                            "3. 'correctAnswer' deve essere un anno (es: \"1989\")\n" +
-                            "4. 'options' deve essere null\n\n" +
-                            "Rispondi SOLO con JSON valido (NO markdown).",
                     category, difficulty, difficultyContext, category, category);
         }
         if ("ARENA".equalsIgnoreCase(type)) {
@@ -537,15 +509,6 @@ public class QuestionGeneratorService {
         if ("WHEEL_OF_FORTUNE".equalsIgnoreCase(type) || "WHEEL_FORTUNE".equalsIgnoreCase(type) || "PROVERB".equalsIgnoreCase(type)) {
             return pickRandomProverb();
         }
-        if ("ROULETTE".equalsIgnoreCase(type)) {
-            String[] colors = {"ROSSO","NERO","VERDE","BLU","GIALLO","BIANCO"};
-            JSONObject obj = new JSONObject();
-            obj.put("question", "Scegli un colore!");
-            obj.put("options", new JSONArray(colors));
-            obj.put("correctAnswer", colors[new Random().nextInt(colors.length)]);
-            obj.put("type", "ROULETTE");
-            return obj.toString();
-        }
         if ("TRUE_FALSE".equalsIgnoreCase(type)) {
             JSONObject obj = new JSONObject();
             obj.put("question", "La categoria per questa domanda è " + category + ". Riprova il prossimo round!");
@@ -560,14 +523,6 @@ public class QuestionGeneratorService {
             obj.put("options", new JSONArray(new String[]{"A", "B", "C", "D"}));
             obj.put("correctAnswer", "A");
             obj.put("type", "QUIZ");
-            return obj.toString();
-        }
-        if ("CHRONO".equalsIgnoreCase(type)) {
-            JSONObject obj = new JSONObject();
-            obj.put("question", "In che anno si è svolto questo evento legato a " + category + "?");
-            obj.put("options", JSONObject.NULL);
-            obj.put("correctAnswer", "2000");
-            obj.put("type", "CHRONO");
             return obj.toString();
         }
         JSONObject obj = new JSONObject();

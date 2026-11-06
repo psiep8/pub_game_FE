@@ -35,8 +35,7 @@ status, raw = call("POST", "/games")
 check(status == 200, "POST /games", raw[:150])
 game_id = json.loads(raw)["id"] if status == 200 else 0
 
-types = ["QUIZ", "TRUE_FALSE", "CHRONO", "IMAGE_BLUR", "MUSIC",
-         "ROULETTE", "WHEEL_OF_FORTUNE", "SCREAM_RACE", "ARENA"]
+types = ["QUIZ", "IMAGE_BLUR", "MUSIC", "WHEEL_OF_FORTUNE", "SCREAM_RACE", "ARENA"]
 payloads = {}
 
 for game_type in types:
@@ -58,25 +57,12 @@ check(isinstance(quiz, dict) and len(quiz.get("options") or []) == 4, "QUIZ: 4 o
 check(isinstance(quiz, dict) and quiz.get("correctAnswer") in (quiz.get("options") or []),
       "QUIZ: correctAnswer tra le opzioni", quiz)
 
-tf = payloads.get("TRUE_FALSE") or {}
-check(sorted(tf.get("options") or []) == ["FALSO", "VERO"] and tf.get("correctAnswer") in ("VERO", "FALSO"),
-      "TRUE_FALSE: VERO/FALSO coerenti", tf)
-
-chrono = payloads.get("CHRONO") or {}
-check(isinstance(chrono, dict) and str(chrono.get("correctAnswer", "")).isdigit()
-      and len(str(chrono.get("correctAnswer"))) in (3, 4), "CHRONO: anno valido", chrono)
-check(isinstance(chrono, dict) and chrono.get("options") is None, "CHRONO: options null", chrono)
-
 image = payloads.get("IMAGE_BLUR") or {}
 check(isinstance(image, dict) and bool(image.get("imageUrl")) and bool(image.get("correctAnswer")),
       "IMAGE_BLUR: personaggio + immagine", image)
 
 music = payloads.get("MUSIC") or {}
 check(isinstance(music, dict) and bool(music.get("previewUrl")), "MUSIC: anteprima audio", music)
-
-roulette = payloads.get("ROULETTE") or {}
-check(isinstance(roulette, dict) and len(roulette.get("options") or []) == 6
-      and roulette.get("correctAnswer") in (roulette.get("options") or []), "ROULETTE: 6 colori", roulette)
 
 wheel = payloads.get("WHEEL_OF_FORTUNE")
 check(bool(wheel), "WHEEL_OF_FORTUNE: proverbio presente", wheel)

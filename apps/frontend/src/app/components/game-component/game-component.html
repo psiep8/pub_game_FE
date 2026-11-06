@@ -128,9 +128,6 @@
   <app-song [displayData]="getSafeDisplayData()" [timer]="timer()" (onConfirmCorrect)="confirmCorrect()"
     (onConfirmWrong)="confirmWrong()" />
   }
-  @case ('ROULETTE') {
-  <app-roulette [displayData]="getSafeDisplayData()" [timer]="timer()" />
-  }
   @case ('ARENA') {
   <app-arena [displayData]="getSafeDisplayData()" [timer]="timer()">
   </app-arena>
@@ -149,6 +146,17 @@
   }
   @case ('AIR_HOCKEY_BATTLE') {
   <app-air-hockey-battle [displayData]="getSafeDisplayData()" [timer]="timer()" />
+  }
+  @case ('CAVALLO') {
+  <app-cavallo
+    [gameId]="currentGameId()"
+    [players]="bonusPlayers()"
+    [categories]="allCategories()"
+    (result)="onCavalloRoundResult($event)"
+    (finished)="finishCavalloRound()" />
+  }
+  @case ('SCOMMESSA') {
+  <app-scommessa [displayData]="getSafeDisplayData()" [timer]="timer()" />
   }
   }
 </div>
@@ -206,10 +214,27 @@
 
 @if (bonusActive()) {
   @switch (bonusType()) {
-    @case ('CASINO') {
+    @case ('ROULETTE_COLORATA') {
       <app-casino-bonus
         [gameId]="currentGameId()"
         [players]="bonusPlayers()"
+        [variant]="1"
+        (result)="onBonusResult($event)"
+        (finished)="finishBonus()" />
+    }
+    @case ('ROULETTE_NUMERATA') {
+      <app-casino-bonus
+        [gameId]="currentGameId()"
+        [players]="bonusPlayers()"
+        [variant]="2"
+        (result)="onBonusResult($event)"
+        (finished)="finishBonus()" />
+    }
+    @case ('BLACKJACK') {
+      <app-casino-bonus
+        [gameId]="currentGameId()"
+        [players]="bonusPlayers()"
+        [variant]="3"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
     }
@@ -217,17 +242,6 @@
       <app-basket-bonus-stage
         [secondsLeft]="bonusSecondsLeft()"
         [scores]="bonusScores()" />
-    }
-    @case ('CAVALLO') {
-      <app-cavallo-bonus
-        [gameId]="currentGameId()"
-        [players]="bonusPlayers()"
-        [categories]="allCategories()"
-        (result)="onBonusResult($event)"
-        (finished)="finishBonus()" />
-    }
-    @case ('TIME_BUZZER') {
-      <div class="bonus-live-tag">⏱️ BONUS DI FINE ATTO · TIME BUZZER</div>
     }
   }
 }

@@ -93,7 +93,7 @@ public class PartyGameService {
             return false;
         }
         return switch (type.toUpperCase(Locale.ROOT)) {
-            case "TIMELINE", "TIME_BUZZER", "BOMBA", "SPEED_RUSH", "AIR_HOCKEY_BATTLE" -> true;
+            case "TIMELINE", "TIME_BUZZER", "CAVALLO", "BOMBA", "SPEED_RUSH", "AIR_HOCKEY_BATTLE" -> true;
             default -> false;
         };
     }
@@ -110,6 +110,9 @@ public class PartyGameService {
         return switch (type.toUpperCase(Locale.ROOT)) {
             case "TIMELINE" -> startTimeline(gameId, category);
             case "TIME_BUZZER" -> configPayload("TIME_BUZZER", 45, act);
+            // Il Cavallo pesca le domande a runtime dalla categoria votata dai
+            // telefoni: qui serve solo il contratto del round.
+            case "CAVALLO" -> configPayload("CAVALLO", 240, act);
             case "BOMBA" -> configPayload("BOMBA", 90, act);
             case "SPEED_RUSH" -> configPayload("SPEED_RUSH", 60, act);
             case "AIR_HOCKEY_BATTLE" -> configPayload("AIR_HOCKEY_BATTLE", 60, act);
@@ -671,6 +674,7 @@ public class PartyGameService {
         payload.put("question", switch (type) {
             case "SPEED_RUSH" -> "Speed Rush!";
             case "BOMBA" -> "Passa la bomba!";
+            case "CAVALLO" -> "Cavallo di Battaglia!";
             default -> "Air Hockey Battle!";
         });
         payload.put("duration", durationSeconds);

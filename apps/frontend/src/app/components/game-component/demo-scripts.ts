@@ -69,18 +69,6 @@ export const DEMO_SCRIPTS: Record<string, DemoScript> = {
     ],
     note: 'Il timer è lungo: il rischio è prenotare quando la frase è ancora troppo coperta.',
   },
-  ROULETTE: {
-    title: 'ROULETTE',
-    icon: '🎰',
-    tv: ['Sei colori e un colore vincente', 'Il colore resta nascosto al telefono', 'La ruota fisica decide'],
-    remote: ['Scegli un colore', 'Un solo invio', 'Il colore vincente non arriva al telefono'],
-    scoring: [
-      { label: 'Colore giusto', value: '+1000', tone: 'good' },
-      { label: 'Colore sbagliato', value: '0', tone: 'neutral' },
-      { label: 'Non risposta', value: '0', tone: 'neutral' },
-    ],
-    note: 'È il gioco di fortuna della serata: nessun malus, solo il colpo di fortuna.',
-  },
   TIMELINE: {
     title: 'TIMELINE',
     icon: '🕰️',
@@ -154,6 +142,30 @@ export const DEMO_SCRIPTS: Record<string, DemoScript> = {
       { label: 'Non risposta durante il gioco', value: '0', tone: 'neutral' },
     ],
     note: 'Il piazzamento finale conta più delle singole risposte: resta dentro al cerchio.',
+  },
+  CAVALLO: {
+    title: 'CAVALLO DI BATTAGLIA',
+    icon: '🐎',
+    tv: ['Otto domande flash della categoria scelta', 'Punteggio in classifica a ogni risposta', 'Finale con i totali'],
+    remote: ['Vota la categoria', 'Tocca la risposta giusta', 'La prima esatta della manche vale +50'],
+    scoring: [
+      { label: 'Risposta esatta', value: '+100', tone: 'good' },
+      { label: 'Prima esatta della manche', value: '+50', tone: 'good' },
+      { label: 'Errore', value: '0', tone: 'neutral' },
+    ],
+    note: 'La squadra sceglie la categoria: conta conoscere il tema, non correre.',
+  },
+  SCOMMESSA: {
+    title: 'LA SCOMMESSA',
+    icon: '🎲',
+    tv: ['Puntata, poi tre domande con la banca che raddoppia', 'Tra una domanda e l’altra: incassare o rischiare', 'All’ultima domanda si incassa d’ufficio'],
+    remote: ['Tocca 100, 200 o 300', 'Rispondi alle tre domande', 'Scegli INCASSA o RISCHIA'],
+    scoring: [
+      { label: 'Banca incassata', value: '100 → 200 → 400 → 800', tone: 'good' },
+      { label: 'Risposta sbagliata', value: 'banca bruciata', tone: 'bad' },
+      { label: 'Non risposta', value: 'banca bruciata', tone: 'neutral' },
+    ],
+    note: 'Non conta solo sapere: conta quando fermarsi. È il round del coraggio.',
   },
   BONUS_ROULETTE: {
     title: 'BONUS ROULETTE',

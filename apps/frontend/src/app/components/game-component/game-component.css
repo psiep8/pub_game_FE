@@ -802,22 +802,6 @@
   align-items: center;
 }
 
-.live-feed-container .feed-item.chrono-item {
-  flex-direction: column; 
-  align-items: flex-start;
-  gap: 5px;
-}
-
-.live-feed-container .feed-item .chrono-details {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  font-size: 0.85rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 4px;
-  color: #ffcc00; 
-}
-
 .live-feed-container .feed-item .distance-badge {
   font-weight: bold;
   background: rgba(0, 0, 0, 0.3);
@@ -833,31 +817,6 @@
 .live-feed-container .feed-item .player-time {
   color: gold;
   font-size: 0.85rem;
-}
-
-.chrono-display {
-  margin: 30px 0;
-}
-
-.chrono-display .chrono-waiting-box {
-  text-align: center;
-}
-
-.chrono-display .chrono-waiting-box .chrono-title {
-  color: gold;
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-}
-
-.chrono-display .chrono-waiting-box .chrono-placeholder {
-  font-size: 2rem;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.chrono-display .reveal-banner.chrono-reveal .reveal-value-big {
-  font-size: 3rem;
-  font-weight: 900;
-  color: gold;
 }
 
 .image-blur-layout {
@@ -1348,20 +1307,6 @@
   color: rgba(255, 215, 0, 0.9);
 }
 
-.chrono-container {
-  padding: 20px;
-  gap: 20px;
-  min-height: 40vh;
-}
-
-.chrono-waiting-box {
-  padding: 30px 40px;
-}
-
-.chrono-hint {
-  font-size: 1.1rem;
-}
-
 .tf-option-btn {
   padding: 24px 20px;
   font-size: 1.4rem;
@@ -1550,7 +1495,7 @@
 @keyframes demoFloat { to { transform: translateY(-10px) rotate(-3deg); } }
 @keyframes demoPulse { 50% { opacity: .4; } }
 
-/* Bonus (roulette/basket) e countdown di avanzamento */
+
 .bonus-overlay {
   position: fixed;
   inset: 0;

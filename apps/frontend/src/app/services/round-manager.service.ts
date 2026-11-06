@@ -16,16 +16,23 @@ const STORAGE_KEY = 'roundProgress';
  * Scaletta in cinque atti da otto round.
  *
  * L'ordine è fisso e già verificato rispetto ai vincoli: mai due giochi in
- * tempo reale di fila (Arena, Speed Rush, Air Hockey), mai due giochi a
- * prenotazione consecutivi (Musica, Indovina chi), il primo round di ogni atto
- * è sempre Quiz.
+ * tempo reale di fila (Bomba, Arena, Speed Rush, Air Hockey), mai due giochi a
+ * prenotazione consecutivi (Musica, Indovina chi, Ruota), la Ruota esce tre
+ * volte e l'Arena chiude la serata.
+ *
+ * Solo i primi tre atti si aprono con Quiz: gli atti 4 e 5 partono da Indovina
+ * chi e dalla Ruota, così il finale non è il replay dell'atto 3.
+ *
+ * Cavallo di Battaglia e Time Buzzer sono round veri e propri: il Cavallo
+ * compare due volte (atti 1 e 5), Time Buzzer due (atti 2 e 4). La Scommessa
+ * chiude l'atto 4 subito prima dello Speed Rush.
  */
 const ACT_DECKS: GameModeType[][] = [
-  ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'TIMELINE', 'WHEEL_OF_FORTUNE', 'QUIZ', 'SPEED_RUSH'],
-  ['QUIZ', 'IMAGE_BLUR', 'TIMELINE', 'ARENA', 'MUSIC', 'BOMBA', 'TIMELINE', 'AIR_HOCKEY_BATTLE'],
+  ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'TIMELINE', 'WHEEL_OF_FORTUNE', 'CAVALLO', 'SPEED_RUSH'],
+  ['QUIZ', 'IMAGE_BLUR', 'TIMELINE', 'ARENA', 'MUSIC', 'BOMBA', 'TIME_BUZZER', 'AIR_HOCKEY_BATTLE'],
   ['QUIZ', 'BOMBA', 'TIMELINE', 'SPEED_RUSH', 'MUSIC', 'AIR_HOCKEY_BATTLE', 'WHEEL_OF_FORTUNE', 'ARENA'],
-  ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'ARENA', 'TIMELINE', 'IMAGE_BLUR', 'SPEED_RUSH'],
-  ['QUIZ', 'BOMBA', 'TIMELINE', 'SPEED_RUSH', 'MUSIC', 'AIR_HOCKEY_BATTLE', 'WHEEL_OF_FORTUNE', 'ARENA'],
+  ['IMAGE_BLUR', 'QUIZ', 'BOMBA', 'MUSIC', 'TIME_BUZZER', 'TIMELINE', 'SCOMMESSA', 'SPEED_RUSH'],
+  ['WHEEL_OF_FORTUNE', 'QUIZ', 'BOMBA', 'CAVALLO', 'TIMELINE', 'AIR_HOCKEY_BATTLE', 'MUSIC', 'ARENA'],
 ];
 
 /** Classifiche: rapida a metà atto, dettagliata a fine atto. */
@@ -73,36 +80,29 @@ export class RoundManagerService {
     return gameType;
   }
 
-  /**
-   * Bonus Roulette: non consuma un round della scaletta. Serve dopo la
-   * classifica di fine atto, senza rubare il posto a un gioco vero.
-   */
-  startBonusRound(type: GameModeType = 'ROULETTE'): GameModeType {
-    this.roundConfig.update((config) => ({ ...config, nextRoundType: type }));
-    this.saveProgress();
-    return type;
-  }
-
   /** Atto appena concluso (0-based). */
   getCurrentAct(): number {
     return Math.floor(this.roundConfig().currentRound / 8) - 1;
   }
 
   /**
-   * Bonus unico previsto dopo l'atto appena concluso, se esiste.
-   * Rotazione: Casino, Basket, Cavallo di Battaglia, Time Buzzer. Dopo il
-   * quinto atto non c'è bonus: si chiude con la classifica finale.
+   * Bonus previsto dopo l'atto appena concluso, se esiste.
+   *
+   * Il vecchio Casino unico è spalmato in tre varianti distanziate: roulette
+   * colorata dopo l'atto 1, Basket dopo il 2, roulette numerata dopo il 3,
+   * Black Jack dopo il 4. Dopo il quinto atto non c'è bonus: si chiude con la
+   * classifica finale.
    */
   bonusAfterAct(): BonusType | null {
     switch (this.getCurrentAct()) {
       case 0:
-        return 'CASINO';
+        return 'ROULETTE_COLORATA';
       case 1:
         return 'BASKET';
       case 2:
-        return 'CAVALLO';
+        return 'ROULETTE_NUMERATA';
       case 3:
-        return 'TIME_BUZZER';
+        return 'BLACKJACK';
       default:
         return null;
     }

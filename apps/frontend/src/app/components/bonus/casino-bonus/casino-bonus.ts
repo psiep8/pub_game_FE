@@ -78,7 +78,7 @@ const SUITS = ['♠', '♥', '♦', '♣'];
         <header class="casino-head">
           <div>
             <div class="casino-kicker">🎰 CASINO · BONUS DI FINE ATTO</div>
-            <h1>MANCHE {{ manche() || 1 }} / 3 · {{ title() }}</h1>
+            <h1>{{ title() }}</h1>
             <p class="casino-rule">{{ rule() }}</p>
           </div>
           @if (secondsLeft() > 0) {
@@ -143,7 +143,7 @@ const SUITS = ['♠', '♥', '♦', '♣'];
           @case ('INTRO') {
             <div class="casino-intro">
               <span class="casino-dice">🎲</span>
-              <p>Tre manche: colori, numeri, Black Jack.</p>
+              <p>Una manche sola: la TV tiene il banco.</p>
             </div>
           }
 
@@ -478,6 +478,8 @@ const SUITS = ['♠', '♥', '♦', '♣'];
 export class CasinoBonus implements OnInit, OnDestroy {
   @Input({ required: true }) gameId = 1;
   @Input() players: string[] = [];
+  /** 1 = roulette colorata, 2 = roulette numerata, 3 = Black Jack. */
+  @Input() variant = 1;
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
 
@@ -512,7 +514,18 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       this.onStatus(status);
     });
-    this.later(2500, () => this.startColors());
+    this.later(2500, () => this.startVariant());
+  }
+
+  /** Il bonus spalmato fa girare una sola manche, scelta dalla variante. */
+  private startVariant(): void {
+    if (this.variant === 3) {
+      this.startBlackjack();
+    } else if (this.variant === 2) {
+      this.startNumbers();
+    } else {
+      this.startColors();
+    }
   }
 
   ngOnDestroy(): void {
@@ -589,7 +602,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.secondsLeft.set(0);
     this.publish();
     this.emitRows(rows);
-    this.later(5000, () => this.startNumbers());
+    this.later(5000, () => this.finale());
   }
 
   private startNumbers(): void {
@@ -619,7 +632,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.secondsLeft.set(0);
     this.publish();
     this.emitRows(rows);
-    this.later(5000, () => this.startBlackjack());
+    this.later(5000, () => this.finale());
   }
 
   private startBlackjack(): void {

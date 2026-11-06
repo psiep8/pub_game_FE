@@ -345,98 +345,6 @@ body {
     transform: scale(1.02);
   }
 }
-.chrono-player-area.horizontal-chrono {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  max-height: calc(100vh - 80px);
-  padding: clamp(8px, 2vh, 20px);
-  overflow: hidden;
-}
-.chrono-player-area.horizontal-chrono .year-preview {
-  font-size: clamp(1.8rem, 5vw, 2.6rem);
-  font-weight: 900;
-  color: #ffd700;
-  background: rgba(255, 255, 255, 0.04);
-  padding: clamp(8px, 2vh, 14px) clamp(14px, 3vw, 28px);
-  border-radius: clamp(10px, 2vw, 16px);
-  border: 2px solid #ffd700;
-  box-shadow: 0 6px 18px rgba(255, 215, 0, 0.22);
-}
-.chrono-player-area.horizontal-chrono .modern-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  max-width: 90vw;
-  background: transparent;
-  outline: none;
-  position: relative;
-  margin: 30px 0;
-}
-.chrono-player-area.horizontal-chrono .modern-slider::-webkit-slider-runnable-track {
-  width: 100%;
-  height: 12px;
-  border-radius: 6px;
-  background: linear-gradient(to right, rgba(255, 71, 87, 0.8) 0%, rgba(255, 215, 0, 0.8) 50%, rgba(46, 213, 115, 0.8) 100%);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
-}
-.chrono-player-area.horizontal-chrono .modern-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 48px;
-  height: 48px;
-  background: #ffd700;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 8px 16px rgba(0, 0, 0, 0.4);
-  border: 5px solid white;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin-top: -18px;
-}
-.chrono-player-area.horizontal-chrono .modern-slider::-webkit-slider-thumb:active {
-  transform: scale(1.1);
-  box-shadow: 0 0 30px rgb(255, 215, 0);
-}
-.chrono-player-area.horizontal-chrono .modern-slider::-moz-range-track {
-  width: 100%;
-  height: 12px;
-  border-radius: 6px;
-  background: linear-gradient(to right, rgba(255, 71, 87, 0.8) 0%, rgba(255, 215, 0, 0.8) 50%, rgba(46, 213, 115, 0.8) 100%);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
-}
-.chrono-player-area.horizontal-chrono .modern-slider::-moz-range-thumb {
-  width: 48px;
-  height: 48px;
-  background: #ffd700;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-  border: 5px solid white;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.chrono-player-area.horizontal-chrono .confirm-btn {
-  width: 100%;
-  max-width: 90vw;
-  padding: 14px;
-  background: linear-gradient(135deg, #2ed573 0%, #1eb95d 100%);
-  color: white;
-  border: none;
-  border-radius: 14px;
-  font-size: 1.4rem;
-  font-weight: 900;
-  box-shadow: 0 8px 0 #128a43, 0 10px 20px rgba(0, 0, 0, 0.32);
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-.chrono-player-area.horizontal-chrono .confirm-btn:active {
-  transform: translateY(6px);
-  box-shadow: 0 2px 0 #128a43, 0 4px 12px rgba(0, 0, 0, 0.3);
-}
 
 .buzz-layout {
   flex: 1;
@@ -860,87 +768,6 @@ body {
   margin-bottom: 10px;
 }
 
-.roulette-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: clamp(6px, 1.5vh, 12px);
-  padding: clamp(6px, 1.5vh, 12px);
-  width: 100%;
-  max-width: 500px;
-  overflow: hidden;
-}
-
-.color-btn {
-  padding: clamp(1rem, 4vh, 2.5rem) clamp(0.8rem, 3vw, 1.5rem);
-  border: 4px solid rgba(255, 255, 255, 0.4);
-  border-radius: clamp(12px, 2vw, 20px);
-  color: white;
-  font-size: clamp(0.9rem, 3.5vw, 1.5rem);
-  font-weight: 900;
-  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.8);
-  cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, opacity 0.3s ease;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-  position: relative;
-  overflow: hidden;
-}
-.color-btn::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.color-btn:active:not(:disabled) {
-  transform: scale(0.95);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
-}
-.color-btn:hover:not(:disabled) {
-  border-color: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-}
-.color-btn:hover:not(:disabled)::before {
-  opacity: 1;
-}
-.color-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.color-btn .color-name {
-  display: block;
-  letter-spacing: 2px;
-}
-.color-btn.rosso {
-  background: #e74c3c;
-}
-.color-btn.nero {
-  background: #2c3e50;
-}
-.color-btn.verde {
-  background: #27ae60;
-}
-.color-btn.blu {
-  background: #2980b9;
-}
-.color-btn.giallo {
-  background: #f39c12;
-}
-.color-btn.bianco {
-  background: #ecf0f1;
-  color: #2c3e50;
-  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
-}
-
-.roulette-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  padding: 1rem;
-  width: 100%;
-  max-width: 500px;
-}
-
 
 @keyframes cardEntrance {
   from {
@@ -994,9 +821,6 @@ body {
 
 /*# sourceMappingURL=remote-component.css.map */
 
-/* ------------------------------------------------------------
-   QA stile carta/inchiostro: buzzer, roulette, tastierino, timeline
-   ------------------------------------------------------------ */
 
 .game-content .buzz-container .buzz-button,
 .game-content .buzz-container .buzz-button.wheel-theme,
@@ -1029,32 +853,7 @@ body {
   color: var(--coal);
 }
 
-/* Roulette: 6 tasti distribuiti su tutta l'altezza, palette mutata */
-.game-content .roulette-grid {
-  flex: 1;
-  align-content: center;
-  gap: 12px;
-  padding: 12px;
-  max-width: 460px;
-}
-.game-content .roulette-grid .color-btn {
-  min-height: clamp(84px, 15vh, 128px);
-  border-radius: 0;
-  border: 4px solid var(--coal);
-  box-shadow: 6px 6px 0 var(--coal);
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  letter-spacing: .06em;
-  text-shadow: none;
-}
-.game-content .roulette-grid .color-btn.rosso { background: #b23b2e; }
-.game-content .roulette-grid .color-btn.nero { background: #211a14; }
-.game-content .roulette-grid .color-btn.verde { background: #456b45; }
-.game-content .roulette-grid .color-btn.blu { background: #345a72; }
-.game-content .roulette-grid .color-btn.giallo { background: #d6a441; color: #211a14; }
-.game-content .roulette-grid .color-btn.bianco { background: #efe2c9; color: #211a14; }
 
-/* Price: numeri leggibili */
 .game-content .price-remote .keypad { width: 100%; gap: 8px; }
 .game-content .price-remote .key {
   color: var(--coal) !important;

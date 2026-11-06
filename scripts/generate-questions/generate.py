@@ -131,17 +131,10 @@ def post_llm(base_url: str, api_key: str, model: str, prompt: str,
     raise last_error if last_error else RuntimeError("risposta del modello non valida")
 
 
-def build_prompt(category: str, count: int, difficulty: str, with_chrono: bool, avoid: list[str]) -> str:
+def build_prompt(category: str, count: int, difficulty: str, avoid: list[str]) -> str:
     avoid_block = ""
     if avoid:
         avoid_block = "NON ripetere questi argomenti già presenti:\n" + "\n".join(f"- {a}" for a in avoid[-40:]) + "\n"
-
-    chrono_rule = (
-        "3. Almeno 3 domande di tipo CHRONO: chiedi un anno (\"In che anno...\"), "
-        "con correctAnswer uguale all'anno a 4 cifre e options null.\n"
-        if with_chrono
-        else ""
-    )
 
     return (
         f"Genera {count} domande per un quiz da pub in italiano, categoria \"{category}\".\n"
@@ -151,11 +144,10 @@ def build_prompt(category: str, count: int, difficulty: str, with_chrono: bool, 
         f"\"{category}\". Niente domande fuori tema.\n"
         "2. Mix di tipi: circa 70% QUIZ (4 opzioni), circa 30% TRUE_FALSE "
         "(options esattamente [\"VERO\",\"FALSO\"] e correctAnswer VERO o FALSO).\n"
-        f"{chrono_rule}"
-        "4. 'correctAnswer' deve essere IDENTICO a una delle options (tranne CHRONO).\n"
-        "5. Le 3 opzioni sbagliate devono essere plausibili ma chiaramente errate.\n"
-        "6. Niente domande ambigue, niente doppioni, niente fatti inventati o incerti.\n"
-        "7. Scrivi domanda, opzioni e risposte SOLO in italiano.\n"
+        "3. 'correctAnswer' deve essere IDENTICO a una delle options.\n"
+        "4. Le 3 opzioni sbagliate devono essere plausibili ma chiaramente errate.\n"
+        "5. Niente domande ambigue, niente doppioni, niente fatti inventati o incerti.\n"
+        "6. Scrivi domanda, opzioni e risposte SOLO in italiano.\n"
         f"{avoid_block}"
         "Formato di risposta (solo JSON):\n"
         '{"questions": [{"question": "Qual e la capitale d Italia?", "type": "QUIZ", '
@@ -178,13 +170,6 @@ def validate(item: dict, category: str, difficulty: str) -> tuple[bool, str]:
         return False, "correctAnswer mancante"
     if looks_english(question):
         return False, "domanda non in italiano"
-
-    if qtype == "CHRONO":
-        if not re.fullmatch(r"\d{3,4}", answer):
-            return False, "CHRONO senza anno valido"
-        if options not in (None, []):
-            return False, "CHRONO con options valorizzate"
-        return True, ""
 
     if qtype not in ("QUIZ", "TRUE_FALSE"):
         return False, f"tipo non gestito {qtype}"
@@ -220,7 +205,6 @@ def main() -> int:
                         help="endpoint OpenAI-compatibile (Groq, Ollama, LM Studio, llama.cpp)")
     parser.add_argument("--delay", type=float, default=6.0, help="secondi tra una chiamata e l'altra")
     parser.add_argument("--difficulty", default="medio", choices=list(DIFFICULTY_HINT))
-    parser.add_argument("--with-chrono", action="store_true", help="chiedi anche domande CHRONO")
     parser.add_argument("--categories", nargs="*", default=CATEGORIES)
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--merge", action="store_true", help="aggiunge alla banca già esistente invece di sostituirla")
@@ -255,7 +239,7 @@ def main() -> int:
         while produced < args.per_category and attempts < args.per_category:
             attempts += 1
             want = min(args.batch, args.per_category - produced)
-            prompt = build_prompt(category, want, args.difficulty, args.with_chrono, avoid)
+            prompt = build_prompt(category, want, args.difficulty, avoid)
             if args.model.lower().startswith("qwen3"):
                 # Qwen3 ragiona prima di rispondere: su CPU raddoppia i tempi e
                 # il ragionamento non serve per un quiz. "/no_think" lo spegne.
@@ -308,8 +292,6 @@ def main() -> int:
                 if qtype == "TRUE_FALSE":
                     options = ["VERO", "FALSO"]
                     answer = answer.upper()
-                if qtype == "CHRONO":
-                    options = None
                 collected.append({
                     "id": f"{slug(category)}-{len(collected) + 1:04d}",
                     "category": category,
