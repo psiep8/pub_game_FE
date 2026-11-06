@@ -13,14 +13,14 @@ interface BuzzResult extends BuzzGuess {
   missed?: boolean;
 }
 
-const MANCHES = 5;
+const MANCHES = 3;
 const MIN_MS = 5000;
 const MAX_MS = 30000;
 const MANCHE_SECONDS = 30;
 const REVEAL_MS = 5000;
 
 /**
- * Time Buzzer — cinque manche a tempo.
+ * Time Buzzer — tre manche a tempo.
  *
  * La TV mostra un tempo bersaglio casuale (5–30 s). Ogni telefono ha solo un
  * pulsante verde: START quando vuole, STOP quando pensa di essere arrivato.
@@ -152,7 +152,7 @@ export class TimeBuzzerMode extends GameModeBase {
     );
 
     // Chi non preme resta in classifica con zero punti: non sparisce dai
-    // risultati e non viene eliminato, si gioca tutte e cinque le manche.
+    // risultati e non viene eliminato, si giocano tutte e tre le manche.
     const results: BuzzResult[] = [
       ...this.guesses().map((guess) => ({
         ...guess,
