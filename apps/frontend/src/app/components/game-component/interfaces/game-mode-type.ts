@@ -17,7 +17,8 @@ export type GameModeType =
   | 'SPEED_RUSH'
   | 'AIR_HOCKEY_BATTLE'
   | 'SCOMMESSA'
-  | 'QUOTA';
+  | 'QUOTA'
+  | 'BLACKJACK';
 
 export interface BombaApi {
   start(players: string[], act: number): Promise<any>;

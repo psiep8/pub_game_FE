@@ -16,6 +16,7 @@ import { SpeedRushMode } from '../components/game-component/mode/speed-rush.mode
 import { AirHockeyBattleMode } from '../components/game-component/mode/air-hockey-battle.mode';
 import { ScommessaMode } from '../components/game-component/mode/scommessa.mode';
 import { QuotaMode } from '../components/game-component/mode/quota.mode';
+import { BlackjackMode } from '../components/game-component/mode/blackjack.mode';
 
 type ModeFactory = (config: GameModeConfig) => IGameMode;
 
@@ -42,6 +43,7 @@ export class GameModeService {
     AIR_HOCKEY_BATTLE: (config) => this.withConfig(new AirHockeyBattleMode(), config),
     SCOMMESSA: (config) => this.withConfig(new ScommessaMode(), config),
     QUOTA: (config) => this.withConfig(new QuotaMode(), config),
+    BLACKJACK: (config) => this.withConfig(new BlackjackMode(), config),
   };
 
   createMode(config: GameModeConfig): IGameMode {

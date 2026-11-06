@@ -47,6 +47,7 @@ import { SpeedRush } from './games/speed-rush/speed-rush';
 import { AirHockeyBattle } from './games/air-hockey-battle/air-hockey-battle';
 import { Scommessa } from './games/scommessa/scommessa';
 import { Quota } from './games/quota/quota';
+import { Blackjack } from './games/blackjack/blackjack';
 import { DEMO_SCRIPTS, DEMO_SCENE_COUNT, DemoScript } from './demo-scripts';
 import { scoringRuleFor } from './interfaces/scoring-rules';
 import { BonusType, BONUS_LABELS } from './interfaces/bonus-type';
@@ -74,6 +75,7 @@ import { BasketBonusStage } from '../bonus/basket-bonus-stage/basket-bonus-stage
     AirHockeyBattle,
     Scommessa,
     Quota,
+    Blackjack,
     CasinoBonus,
     CavalloBonus,
     BasketBonusStage
@@ -351,7 +353,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
       // 🆕 Giochi simultanei: risultati dal server e progressi dai telefoni.
-      if (mode && ['TIMELINE_RESULT', 'TIME_BUZZER_ANSWER', 'SPEED_RUSH_PROGRESS', 'AIR_HOCKEY_BATTLE_ANSWER', 'SCOMMESSA_ACTION', 'QUOTA_ACTION'].includes(status.action)) {
+      if (mode && ['TIMELINE_RESULT', 'TIME_BUZZER_ANSWER', 'SPEED_RUSH_PROGRESS', 'AIR_HOCKEY_BATTLE_ANSWER', 'SCOMMESSA_ACTION', 'QUOTA_ACTION', 'BLACKJACK_ACTION'].includes(status.action)) {
         mode.handlePartyEvent?.(status);
         this.cdr.detectChanges();
       }
@@ -666,6 +668,7 @@ export class GameComponent implements OnInit, OnDestroy {
       case 'TIME_BUZZER':
       case 'SCOMMESSA':
       case 'QUOTA':
+      case 'BLACKJACK':
       case 'BOMBA':
       case 'SPEED_RUSH':
       case 'AIR_HOCKEY_BATTLE':
@@ -714,6 +717,8 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'LA SCOMMESSA';
       case 'QUOTA':
         return 'QUOTA';
+      case 'BLACKJACK':
+        return 'BLACK JACK';
       case 'BOMBA':
         return 'BOMBA';
       case 'SPEED_RUSH':
@@ -1372,6 +1377,8 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'La TV svela la risposta dopo ogni domanda';
       case 'QUOTA':
         return 'La TV svela il valore e la fascia che paga';
+      case 'BLACKJACK':
+        return 'Mani e banco svelati in TV a ogni tavolo';
       case 'BOMBA':
         return 'Bombe, passaggi e scoppi in TV; risposte sul telefono';
       case 'AIR_HOCKEY_BATTLE':

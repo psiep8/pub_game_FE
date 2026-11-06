@@ -81,6 +81,12 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     missed: '0: la banca si brucia',
     note: 'Tre domande: ogni esatta raddoppia la banca, tra una e l’altra si sceglie se incassare o rischiare.',
   },
+  BLACKJACK: {
+    correct: '+500 black jack, +200 mano battuta, +80 pari',
+    wrong: '0 (sballo o mano persa)',
+    missed: '0 (allo scadere si sta)',
+    note: 'Un tavolo alla volta contro un banco nuovo: 15 secondi per chiedere carte o stare.',
+  },
   ARENA: {
     correct: '+10 a risposta; +1000/+500 piazzamento',
     wrong: '−10 a risposta; −300 metà bassa',

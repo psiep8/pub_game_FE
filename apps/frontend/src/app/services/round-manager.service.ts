@@ -16,24 +16,26 @@ const STORAGE_KEY = 'roundProgress';
  * Scaletta in cinque atti da otto round.
  *
  * L'ordine è fisso e già verificato rispetto ai vincoli: mai due giochi in
- * tempo reale di fila (Bomba, Arena, Speed Rush, Air Hockey), mai due giochi a
- * prenotazione consecutivi (Musica, Indovina chi, Ruota), la Ruota esce tre
- * volte e l'Arena chiude la serata.
+ * tempo reale di fila (Bomba, Arena, Speed Rush, Air Hockey, Black Jack), mai
+ * due giochi a prenotazione consecutivi (Musica, Indovina chi, Ruota), la
+ * Ruota esce tre volte e l'Arena chiude la serata.
  *
- * Solo i primi tre atti si aprono con Quiz: gli atti 4 e 5 partono da Indovina
- * chi e dalla Ruota, così il finale non è il replay dell'atto 3.
+ * Nessun atto ripete l'apertura del precedente: Quiz, Quota, Timeline,
+ * Indovina chi, Ruota. Il Black Jack esce tre volte, una per atto, sempre nei
+ * primi tre atti e mai prima di un bonus: è il round che dà il momento di
+ * vetrina a un tavolo alla volta.
  *
- * Cavallo di Battaglia è tornato bonus di fine atto: non compare più nella
- * scaletta. L'atto 1 chiude con un Quiz, l'atto 5 usa il Time Buzzer. Quota
- * occupa il sesto round dell'atto 2 al posto della Bomba. La Scommessa chiude
- * l'atto 4 prima dello Speed Rush.
+ * Quota esce due volte, ai due punti in cui il colpo grosso si sente di più:
+ * apre l'atto 2 e arriva al 37 subito dopo la classifica rapida, quando chi è
+ * indietro deve rischiare. Il Time Buzzer resta tre volte (3 manche), la
+ * Scommessa una sola, l'Arena due e chiude sia l'atto 3 sia la serata.
  */
 const ACT_DECKS: GameModeType[][] = [
-  ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'TIMELINE', 'WHEEL_OF_FORTUNE', 'QUIZ', 'SPEED_RUSH'],
-  ['QUIZ', 'IMAGE_BLUR', 'TIMELINE', 'ARENA', 'MUSIC', 'QUOTA', 'TIME_BUZZER', 'AIR_HOCKEY_BATTLE'],
-  ['QUIZ', 'BOMBA', 'TIMELINE', 'SPEED_RUSH', 'MUSIC', 'AIR_HOCKEY_BATTLE', 'WHEEL_OF_FORTUNE', 'ARENA'],
+  ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'BLACKJACK', 'TIMELINE', 'WHEEL_OF_FORTUNE', 'SPEED_RUSH'],
+  ['QUOTA', 'QUIZ', 'IMAGE_BLUR', 'BLACKJACK', 'MUSIC', 'TIMELINE', 'TIME_BUZZER', 'AIR_HOCKEY_BATTLE'],
+  ['TIMELINE', 'BLACKJACK', 'MUSIC', 'SPEED_RUSH', 'IMAGE_BLUR', 'QUIZ', 'WHEEL_OF_FORTUNE', 'ARENA'],
   ['IMAGE_BLUR', 'QUIZ', 'BOMBA', 'MUSIC', 'TIME_BUZZER', 'TIMELINE', 'SCOMMESSA', 'SPEED_RUSH'],
-  ['WHEEL_OF_FORTUNE', 'QUIZ', 'BOMBA', 'TIME_BUZZER', 'TIMELINE', 'AIR_HOCKEY_BATTLE', 'MUSIC', 'ARENA'],
+  ['WHEEL_OF_FORTUNE', 'QUIZ', 'BOMBA', 'TIME_BUZZER', 'QUOTA', 'AIR_HOCKEY_BATTLE', 'MUSIC', 'ARENA'],
 ];
 
 /** Classifiche: rapida a metà atto, dettagliata a fine atto. */

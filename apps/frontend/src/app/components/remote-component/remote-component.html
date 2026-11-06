@@ -344,6 +344,69 @@
       }
     </div>
     }
+    @case ('BLACKJACK') {
+    <div class="bonus-remote">
+      <div class="game-head">
+        <span class="game-tag buzz">🃏 BLACK JACK</span>
+        <span class="game-tip">Tavolo {{ blackjackState()?.index ?? 0 }}/{{ blackjackState()?.total ?? 0 }}</span>
+      </div>
+
+      @if (blackjackState()?.phase === 'FINALE') {
+      <div class="status-msg">
+        <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🃏</div></div>
+        <p>Banco chiuso: classifica in TV.</p>
+      </div>
+      } @else if (blackjackState()?.phase === 'REVEAL') {
+      <div class="casino-hand">
+        <span class="casino-hand-label">LA TUA MANO</span>
+        <div class="casino-cards">
+          @for (card of blackjackState()?.cards ?? []; track $index) {
+          <span class="casino-card" [class.red]="isRedCard(card)">{{ card }}</span>
+          }
+        </div>
+        <b class="casino-hand-total" [class.bust]="(blackjackState()?.handTotal ?? 0) > 21">{{ blackjackState()?.handTotal ?? 0 }}</b>
+      </div>
+      <p class="buzz-hint">
+        Banco {{ blackjackState()?.result?.bankTotal }} ·
+        {{ (blackjackState()?.result?.points ?? 0) > 0 ? '+' + blackjackState()?.result?.points + ' punti' : 'nessun punto' }}
+      </p>
+      } @else if (blackjackState()?.currentTable === nickname()) {
+      <p class="buzz-hint">Tocca a te · {{ blackjackState()?.secondsLeft ?? 0 }}s</p>
+      <div class="casino-hand">
+        <span class="casino-hand-label">IL BANCO</span>
+        <div class="casino-cards">
+          @for (card of blackjackState()?.bank?.cards ?? []; track $index) {
+          <span class="casino-card" [class.red]="isRedCard(card)">{{ card }}</span>
+          }
+          @if (blackjackState()?.bank?.hidden) {
+          <span class="casino-card">?</span>
+          }
+        </div>
+        <b class="casino-hand-total">{{ blackjackState()?.bank?.hidden ? '?' : (blackjackState()?.bank?.total ?? 0) }}</b>
+      </div>
+      <div class="casino-hand">
+        <span class="casino-hand-label">LA TUA MANO</span>
+        <div class="casino-cards">
+          @for (card of blackjackState()?.cards ?? []; track $index) {
+          <span class="casino-card" [class.red]="isRedCard(card)">{{ card }}</span>
+          }
+        </div>
+        <b class="casino-hand-total" [class.bust]="(blackjackState()?.handTotal ?? 0) > 21">{{ blackjackState()?.handTotal ?? 0 }}</b>
+      </div>
+      <div class="casino-bj-actions">
+        <button class="casino-hit" [disabled]="blackjackStand() || (blackjackState()?.handTotal ?? 0) >= 21"
+          (click)="blackjackAct('HIT')">CARTA</button>
+        <button class="casino-stand" [disabled]="blackjackStand()" (click)="blackjackAct('STAND')">STAI</button>
+      </div>
+      } @else {
+      <div class="status-msg">
+        <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🃏</div></div>
+        <p>Al banco: <b>{{ blackjackState()?.currentTable }}</b></p>
+        <span class="sub-text">Tavolo {{ blackjackState()?.index }} di {{ blackjackState()?.total }}</span>
+      </div>
+      }
+    </div>
+    }
     @case ('SPEED_RUSH') {
     <div class="speed-remote">
       <div class="game-head"><span class="game-tag speed">SPEED RUSH</span><span class="game-tip">Più veloce = più punti</span></div>

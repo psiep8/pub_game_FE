@@ -146,7 +146,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<'WAITING' | 'VOTING' | 'LOCKED' | 'WAITING_FOR_OTHER' | 'BLOCKED_ERROR' | 'BUZZ_OUT' | 'ELIMINATED'>('WAITING');
-  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'CAVALLO' | 'SCOMMESSA' | 'QUOTA' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO'>('QUIZ');
+  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'CAVALLO' | 'SCOMMESSA' | 'QUOTA' | 'BLACKJACK' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO'>('QUIZ');
   hasAnswered = signal(false);
   /** Ultima risposta toccata: solo promemoria visivo, l'esito lo decide il server. */
   selectedAnswer = signal<number | null>(null);
@@ -196,6 +196,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   bombaFlash = signal<string | null>(null);
   casinoState = signal<any>(null);
   casinoChoice = signal<string | null>(null);
+  blackjackState = signal<any>(null);
+  blackjackStand = signal(false);
   quotaState = signal<any>(null);
   quotaTokens = signal<number[]>([25, 25, 25, 25]);
   quotaSelected = signal(0);
@@ -205,6 +207,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   cavalloChoice = signal<string | null>(null);
   cavalloCategory = signal<string | null>(null);
   private casinoKey = '';
+  private blackjackKey = '';
   private cavalloKey = '';
   private bombaPoll?: ReturnType<typeof setInterval>;
   private bombaPollBusy = false;
@@ -316,9 +319,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
         case 'SHOW_QUESTION':
           this.questionType.set(status.type);
           this.isBlocked.set(false);
+          if (status.type === 'BLACKJACK') {
+            this.blackjackState.set(null);
+            this.blackjackStand.set(false);
+            this.blackjackKey = '';
+          }
           if (status.type === 'BONUS_BASKET'
               || status.type === 'BONUS_CASINO' || status.type === 'BONUS_CAVALLO'
-              || status.type === 'SCOMMESSA' || status.type === 'QUOTA' || status.type === 'CAVALLO') {
+              || status.type === 'SCOMMESSA' || status.type === 'QUOTA' || status.type === 'CAVALLO'
+              || status.type === 'BLACKJACK') {
             this.gameState.set('VOTING');
             this.hasAnswered.set(false);
             this.selectedAnswer.set(null);
@@ -366,6 +375,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.applyQuotaState(status.state);
           break;
 
+        case 'BLACKJACK_STATE':
+          this.applyBlackjackState(status.state);
+          break;
+
         case 'AIR_HOCKEY_BATTLE_STATE':
           this.handleAirHockeyBattleState(status);
           break;
@@ -384,6 +397,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
         case 'ROUND_ENDED':
         case 'REVEAL':
           this.speedKind.set('idle');
+          this.blackjackState.set(null);
+          this.blackjackStand.set(false);
           this.clearMemoryTimer();
           this.timelineOrder.set([]);
           this.priceEstimates.set([]);
@@ -775,6 +790,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.scommessaChoice.set(null);
       this.scommessaCashout.set(null);
       this.scommessaKey = '';
+    } else if (type === 'BLACKJACK') {
+      // Lo stato non si azzera qui: il primo BLACKJACK_STATE arriva prima di
+      // START_VOTING e cancellarlo lascerebbe il tavolo 1 senza carte per un
+      // secondo, proprio mentre deve decidere.
+      this.blackjackStand.set(false);
     } else if (type === 'SPEED_RUSH') {
       this.startSpeedRush();
     } else if (type === 'AIR_HOCKEY_BATTLE') {
@@ -982,6 +1002,48 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const state = this.casinoState();
     const me = this.nickname();
     return state?.hands && me ? state.hands[me] ?? null : null;
+  }
+
+  // ------------------------------------------------------------- BLACK JACK
+
+  /**
+   * Il tavolo gioca solo quando la TV gli passa la mano. Dopo «stai» la mano
+   * è chiusa: la TV ignora comunque qualsiasi altra azione.
+   */
+  blackjackAct(kind: 'HIT' | 'STAND'): void {
+    const state = this.blackjackState();
+    const player = this.nickname();
+    if (!state || !player) return;
+    if (state.phase !== 'DECIDE' || state.currentTable !== player) return;
+    if (this.blackjackStand()) return;
+    if (kind === 'HIT' && Number(state.handTotal) >= 21) return;
+
+    if (kind === 'STAND') this.blackjackStand.set(true);
+    this.ws.broadcastStatus(this.gameId(), {
+      action: 'BLACKJACK_ACTION',
+      playerName: player,
+      kind,
+    });
+    this.vibrate(kind === 'STAND' ? 30 : 20);
+  }
+
+  isRedCard(card: string): boolean {
+    const value = String(card ?? '');
+    return value.includes('♥') || value.includes('♦');
+  }
+
+  private applyBlackjackState(state: any): void {
+    if (!state) return;
+
+    const key = `${state.phase}:${state.index}:${state.currentTable}`;
+    if (key !== this.blackjackKey) {
+      this.blackjackKey = key;
+      this.blackjackStand.set(false);
+    }
+
+    this.blackjackState.set(state);
+    this.questionType.set('BLACKJACK');
+    this.gameState.set(state.phase === 'FINALE' ? 'WAITING' : 'VOTING');
   }
 
   cavalloPickCategory(category: string): void {

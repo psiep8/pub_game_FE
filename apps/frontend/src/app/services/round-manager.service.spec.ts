@@ -14,9 +14,10 @@ const PLAYABLE_TYPES: GameModeType[] = [
   'TIME_BUZZER',
   'SCOMMESSA',
   'QUOTA',
+  'BLACKJACK',
 ];
 
-const REALTIME_TYPES: GameModeType[] = ['BOMBA', 'ARENA', 'SPEED_RUSH', 'AIR_HOCKEY_BATTLE'];
+const REALTIME_TYPES: GameModeType[] = ['BOMBA', 'ARENA', 'SPEED_RUSH', 'AIR_HOCKEY_BATTLE', 'BLACKJACK'];
 
 describe('RoundManagerService', () => {
   let service: RoundManagerService;
@@ -122,11 +123,25 @@ describe('RoundManagerService', () => {
     for (let i = 0; i < 40; i++) types.push(service.startNewRound());
 
     expect(types.filter((type) => (type as string) === 'CAVALLO')).toHaveLength(0);
-    expect(types.filter((type) => type === 'QUIZ')).toHaveLength(6);
+    expect(types.filter((type) => type === 'QUIZ')).toHaveLength(5);
     expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(3);
     expect(types.filter((type) => type === 'SCOMMESSA')).toHaveLength(1);
-    expect(types.filter((type) => type === 'QUOTA')).toHaveLength(1);
-    expect(types.filter((type) => type === 'BOMBA')).toHaveLength(4);
+    expect(types.filter((type) => type === 'QUOTA')).toHaveLength(2);
+    expect(types.filter((type) => type === 'BOMBA')).toHaveLength(3);
+  });
+
+  it('should play the black jack three times, only in the first three acts', () => {
+    const types: GameModeType[] = [];
+    for (let i = 0; i < 40; i++) types.push(service.startNewRound());
+
+    const acts = [0, 1, 2, 3, 4].map((act) => types.slice(act * 8, act * 8 + 8));
+
+    expect(types.filter((type) => type === 'BLACKJACK')).toHaveLength(3);
+    expect(acts[0]).toContain('BLACKJACK');
+    expect(acts[1]).toContain('BLACKJACK');
+    expect(acts[2]).toContain('BLACKJACK');
+    expect(acts[3]).not.toContain('BLACKJACK');
+    expect(acts[4]).not.toContain('BLACKJACK');
   });
 
   it('should track how many times each mode has been played', () => {
