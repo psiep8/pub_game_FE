@@ -94,6 +94,8 @@ poi i giochi.
       cumuli e mai sotto zero; pari 0 (`blackjack-rules.ts`, con test).
 - [x] Mano della squadra di turno in TV accanto al banco, con gettoni, timbri "CARTA!" e "LASCIA!"
       e i punti accumulati visibili per ogni tavolo.
+- [x] Nessuna durata complessiva del round: il tempo è del singolo partecipante (15 s per la sua
+      mano), poi si passa al tavolo successivo finché tutti non hanno giocato i tre giri.
 - [x] Verificato: il blackjack è un round della scaletta, non una manche del bonus Casino.
       `BonusType` contiene solo CASINO, BASKET, CAVALLO e BIGLIE, quindi resta invariato.
 

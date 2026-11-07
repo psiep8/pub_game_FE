@@ -85,14 +85,12 @@ export class BlackjackMode extends GameModeBase {
   private clock?: ReturnType<typeof setInterval>;
 
   /**
-   * Durata stimata dell'intero round, calcolata sui partecipanti collegati:
-   * tre giri da una mano a testa. Il timer vero è quello delle fasi, questo
-   * serve solo alle anteprime e al pannello admin.
+   * Il Blackjack non ha una durata complessiva: il tempo è del singolo
+   * partecipante quando è il suo turno. Qui c'è solo il tempo di una mano,
+   * che è quello mostrato al tavolo; nessun timer di round chiude il gioco
+   * prima che tutti abbiano giocato i loro tre giri.
    */
-  get timerDuration(): number {
-    const players = Math.max(1, this.players.length);
-    return players * BLACKJACK_ROUNDS * (DECIDE_SECONDS + REVEAL_SECONDS) + FINALE_SECONDS;
-  }
+  readonly timerDuration = DECIDE_SECONDS;
 
   protected onInitialize(): void {
     this.players = [];
