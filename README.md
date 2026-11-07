@@ -1,5 +1,10 @@
 # PubGame — Monorepo
 
+> **VERSIONE BETA — snapshot del 7 novembre 2026.**
+> Questo documento fotografa il progetto **così com'è adesso**, prima del refactoring
+> della prossima versione: le modifiche in arrivo sono in `BRIEF-REFACTOR-GIOCHI.md`
+> e annotate in `TODO.md`. Se una riga non combacia col codice, vince il codice.
+
 Un unico repository per il gioco da pub multigiocatore: **frontend Angular** e **backend Spring Boot** convivono qui dentro.
 
 ## Struttura

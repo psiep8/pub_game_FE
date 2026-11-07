@@ -1,5 +1,9 @@
 # PubGame FE — Frontend Angular
 
+> **VERSIONE BETA — snapshot del 7 novembre 2026.**
+> Descrive il frontend **così com'è adesso**, prima del refactoring della prossima
+> versione. Le modifiche in arrivo verranno annotate dopo. Vince il codice.
+
 Frontend Angular 22 per il gioco da pub multigiocatore con supporto AI, WebSocket e tunnel Cloudflare.
 
 > Vive in `apps/frontend` del monorepo PubGame. `npm install` e gli script (`npm run dev`, `npm run build`) si lanciano dalla **radice** del repo.

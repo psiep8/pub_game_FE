@@ -1,6 +1,11 @@
 # Lavori in corso — pub_game_FE
 
-Ultimo aggiornamento: 6 novembre 2026
+> **VERSIONE BETA — snapshot del 7 novembre 2026.**
+> Il file racconta lo stato del progetto **così com'è ora**, prima del refactoring della
+> prossima versione: le modifiche in arrivo sono in `BRIEF-REFACTOR-GIOCHI.md` e annotate
+> in `TODO.md`. Se una riga non combacia col codice, vince il codice.
+
+Ultimo aggiornamento: 7 novembre 2026 (beta)
 Ultimo commit: 6 novembre — scaletta a 5 atti, Cavallo tornato bonus, Scommessa e Quota round veri, pulizia di Chrono/Vero-Falso/Roulette. I commit precedenti sono del 5 novembre.
 
 ---

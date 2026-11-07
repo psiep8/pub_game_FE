@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Risposte dei telefoni per i giochi simultanei.
@@ -28,11 +29,24 @@ import java.util.Map;
 @RequestMapping("/games")
 public class PartyGamesController {
 
+    /** Scarto di orologio tollerato rispetto al tempo misurato dal telefono. */
+    private static final long CLOCK_TOLERANCE_MS = 250;
+    /** Ritardo di rete massimo accettato tra il via e la ricezione.
+     * Il telefono misura dalla ricezione, quindi il suo tempo può essere più
+     * corto di quello del server ma non più lungo. */
+    private static final long MAX_NETWORK_DELAY_MS = 5000;
+
     private final PartyGameService partyGameService;
     private final QuestionBankService questionBank;
     private final SimpMessagingTemplate messagingTemplate;
     private final GameStateService gameStateService;
     private final IdempotencyService idempotencyService;
+
+    /** Ultimo via per partita: è il riferimento per validare i tempi. */
+    private final Map<Long, TimeBuzzerStart> timeBuzzerStarts = new ConcurrentHashMap<>();
+
+    private record TimeBuzzerStart(long startedAt, int manche) {
+    }
 
     public PartyGamesController(PartyGameService partyGameService, QuestionBankService questionBank,
             SimpMessagingTemplate messagingTemplate, GameStateService gameStateService,
@@ -106,61 +120,111 @@ public class PartyGamesController {
         return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/{gameId}/price-answer")
-    public ResponseEntity<Object> priceAnswer(@PathVariable("gameId") Long gameId,
-            @RequestBody Map<String, Object> body) {
-        String playerName = String.valueOf(body.getOrDefault("playerName", "")).trim();
-        List<Double> estimates = readEstimates(body);
-        if (estimates.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Stime mancanti"));
-        }
-        if (!gameStateService.isRoundOpen(gameId)) {
-            return ResponseEntity.status(409).body(closedRound(gameId));
-        }
-
-        Map<String, Object> result = idempotencyService.executeOnce(gameId, keyOf(body),
-                "PRICE_ANSWER", playerName, () -> partyGameService
-                        .submitPrice(gameId, playerName, estimates)
-                        .map(entry -> {
-                            gameStateService.appendEvent(gameId, "PRICE_ANSWER", new JSONObject()
-                                    .put("playerName", entry.playerName())
-                                    .put("count", entry.estimates().size())
-                                    .toString());
-                            messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", new JSONObject()
-                                    .put("action", "PRICE_ANSWER")
-                                    .put("playerName", entry.playerName())
-                                    .put("count", entry.estimates().size())
-                                    .toString());
-                            Map<String, Object> ok = new LinkedHashMap<>();
-                            ok.put("playerName", entry.playerName());
-                            ok.put("count", entry.estimates().size());
-                            return ok;
-                        })
-                        .orElse(null));
-
-        if (result == null) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Round scaduto o stime non valide"));
-        }
-        return ResponseEntity.ok(result);
-    }
-
     /** Soluzione del round: solo la TV la chiede, al momento del reveal. */
     @GetMapping("/{gameId}/timeline/reveal")
     public String timelineReveal(@PathVariable("gameId") Long gameId) {
         return partyGameService.timelineReveal(gameId).toString();
     }
 
-    @GetMapping("/{gameId}/price/reveal")
-    public String priceReveal(@PathVariable("gameId") Long gameId) {
-        return partyGameService.priceReveal(gameId).toString();
+    /**
+     * Time Buzzer: il via lo dà il server, non la TV.
+     *
+     * <p>La TV chiama questo endpoint dopo il 3-2-1; il topic di stato porta
+     * {@code TIME_BUZZER_START} a tutti i telefoni, che da quel momento misurano
+     * il proprio tempo. L'istante salvato qui è il metro per validarli.</p>
+     */
+    @PostMapping("/{gameId}/time-buzzer/start")
+    public Map<String, Object> timeBuzzerStart(@PathVariable("gameId") Long gameId,
+            @RequestBody(required = false) Map<String, Object> body) {
+        int manche = 1;
+        if (body != null && body.get("manche") instanceof Number number) {
+            manche = Math.max(1, number.intValue());
+        }
+
+        long startedAt = System.currentTimeMillis();
+        timeBuzzerStarts.put(gameId, new TimeBuzzerStart(startedAt, manche));
+
+        messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", new JSONObject()
+                .put("action", "TIME_BUZZER_START")
+                .put("startedAt", startedAt)
+                .put("manche", manche)
+                .toString());
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("startedAt", startedAt);
+        result.put("manche", manche);
+        return result;
+    }
+
+    /**
+     * Time Buzzer: il telefono manda i millisecondi misurati con
+     * {@code performance.now()} dalla ricezione del via.
+     *
+     * <p>Il server li confronta con il tempo davvero trascorso: un telefono con
+     * il timer manomesso (o una risposta di una manche precedente) non passa e
+     * alla TV arrivano solo i tempi plausibili.</p>
+     */
+    @PostMapping("/{gameId}/time-buzzer/stop")
+    public ResponseEntity<Object> timeBuzzerStop(@PathVariable("gameId") Long gameId,
+            @RequestBody Map<String, Object> body) {
+        String playerName = String.valueOf(body.getOrDefault("playerName", "")).trim();
+        if (playerName.isEmpty() || "null".equals(playerName)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Giocatore mancante"));
+        }
+
+        TimeBuzzerStart start = timeBuzzerStarts.get(gameId);
+        if (start == null) {
+            return ResponseEntity.status(409).body(Map.of("error", "time-buzzer-not-started"));
+        }
+
+        long elapsed = System.currentTimeMillis() - start.startedAt();
+        double clientMs = readDouble(body.get("ms"));
+
+        boolean plausible = clientMs > 0
+                && clientMs <= elapsed + CLOCK_TOLERANCE_MS
+                && elapsed - clientMs <= MAX_NETWORK_DELAY_MS;
+        if (!plausible) {
+            Map<String, Object> rejected = new LinkedHashMap<>();
+            rejected.put("error", "tempo-non-plausibile");
+            rejected.put("clientMs", Math.round(clientMs));
+            rejected.put("serverElapsedMs", elapsed);
+            return ResponseEntity.unprocessableEntity().body(rejected);
+        }
+
+        long ms = Math.round(clientMs);
+        messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", new JSONObject()
+                .put("action", "TIME_BUZZER_ANSWER")
+                .put("playerName", playerName)
+                .put("ms", ms)
+                .put("serverElapsedMs", elapsed)
+                .put("manche", start.manche())
+                .toString());
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("accepted", true);
+        result.put("ms", ms);
+        result.put("serverElapsedMs", elapsed);
+        result.put("manche", start.manche());
+        return ResponseEntity.ok(result);
     }
 
     /** Azzera i due giochi (nuova partita o reset dalla TV). */
     @PostMapping("/{gameId}/party/reset")
     public Map<String, Object> reset(@PathVariable("gameId") Long gameId) {
         partyGameService.forget(gameId);
+        timeBuzzerStarts.remove(gameId);
         return Map.of("reset", true, "gameId", gameId);
+    }
+
+    private double readDouble(Object raw) {
+        if (raw instanceof Number number) {
+            return number.doubleValue();
+        }
+        try {
+            return Double.parseDouble(String.valueOf(raw));
+        } catch (NumberFormatException ignored) {
+            return -1;
+        }
     }
 
     private Map<String, Object> closedRound(long gameId) {
@@ -173,32 +237,6 @@ public class PartyGamesController {
     private String keyOf(Map<String, Object> body) {
         Object raw = body.get("idempotencyKey");
         return raw == null ? null : String.valueOf(raw);
-    }
-
-    private List<Double> readEstimates(Map<String, Object> body) {
-        List<Double> estimates = new ArrayList<>();
-        Object raw = body.get("estimates");
-        if (raw instanceof List<?> list) {
-            for (Object value : list) {
-                try {
-                    estimates.add(Double.parseDouble(String.valueOf(value)));
-                } catch (NumberFormatException ignored) {
-                    return List.of();
-                }
-            }
-            return estimates;
-        }
-
-        // Compatibilità con il vecchio invio singolo.
-        Object single = body.get("estimate");
-        if (single != null) {
-            try {
-                estimates.add(Double.parseDouble(String.valueOf(single)));
-            } catch (NumberFormatException ignored) {
-                return List.of();
-            }
-        }
-        return estimates;
     }
 
     private List<Integer> readOrder(Object raw) {

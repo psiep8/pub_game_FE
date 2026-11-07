@@ -1,7 +1,12 @@
 # PubGame — descrizione del gioco
 
+> **VERSIONE BETA — snapshot del 7 novembre 2026.**
+> Il documento fotografa il gioco **così com'è adesso**, prima del refactoring della
+> prossima versione. Le modifiche in arrivo non sono ancora descritte qui: verranno
+> annotate dopo. Se una regola non combacia col codice, vince il codice.
+
 > Documento per chi arriva sul repository o deve spiegare PubGame a qualcun altro.
-> Aggiornato al 6 novembre 2026. Il codice è allineato alle "Decisioni definitive".
+> Aggiornato al 7 novembre 2026 (beta).
 
 ---
 

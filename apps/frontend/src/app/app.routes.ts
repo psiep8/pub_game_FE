@@ -1,38 +1,45 @@
 import { Routes } from '@angular/router';
-import {GameComponent} from './components/game-component/game-component';
-import {MobileOnlyGuard} from './guard/mobile-only.guard';
-import {DesktopOnlyGuard} from './guard/desktop-only.guard';
-import {RemoteComponent} from './components/remote-component/remote-component';
-import {Admin} from './components/admin/admin';
-import {BasketBonus} from './components/basket-bonus/basket-bonus';
-import {BonusPreview} from './components/bonus/bonus-preview/bonus-preview';
+import { DesktopOnlyGuard } from './core/guards/desktop-only.guard';
+import { MobileOnlyGuard } from './core/guards/mobile-only.guard';
+
+/**
+ * Route lazy: ogni schermata arriva nel suo chunk, quindi la TV non scarica
+ * il pannello admin e il telefono non scarica i componenti della TV.
+ */
+const tv = () => import('./features/tv/game.component').then((module) => module.GameComponent);
+const remote = () => import('./features/remote/remote.component').then((module) => module.RemoteComponent);
+const admin = () => import('./features/admin/admin.component').then((module) => module.Admin);
+const basket = () =>
+  import('./features/bonus/basket-legacy/basket-bonus.component').then((module) => module.BasketBonus);
+const bonusPreview = () =>
+  import('./features/bonus/preview/bonus-preview.component').then((module) => module.BonusPreview);
 
 export const routes: Routes = [
   {
     path: 'tv',
-    component: GameComponent,
+    loadComponent: tv,
     canActivate: [DesktopOnlyGuard]
   },
   {
     path: 'play',
-    component: RemoteComponent,
+    loadComponent: remote,
     canActivate: [MobileOnlyGuard]
   },
   {
     path: 'admin',
-    component: Admin
+    loadComponent: admin
   },
   {
     path: 'basket',
-    component: BasketBonus
+    loadComponent: basket
   },
   {
     path: 'bonus-preview',
-    component: BonusPreview
+    loadComponent: bonusPreview
   },
   {
     path: 'bonus-preview/:type',
-    component: BonusPreview
+    loadComponent: bonusPreview
   },
   { path: '', redirectTo: 'tv', pathMatch: 'full' }
 ];

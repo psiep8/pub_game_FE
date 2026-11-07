@@ -1,0 +1,374 @@
+<div class="game-container">
+
+  <div class="conn-shell">
+    <app-connection-badge role="tv"></app-connection-badge>
+  </div>
+
+
+  @if (phase() === 'IDLE') {
+  <div class="central-action full-screen lobby">
+    <div class="lobby-glow glow-a"></div>
+    <div class="lobby-glow glow-b"></div>
+
+    <header class="lobby-brand">
+      <div class="lobby-kicker">IL GIOCO DEL PUB</div>
+      <h1 class="lobby-title">PUB <span>GAME</span></h1>
+      <p class="lobby-sub">4 squadre · 1 TV · 40 round</p>
+    </header>
+
+    <div class="lobby-grid">
+      <div class="qr-section">
+        @if (currentGameId()) {
+        <div class="qr-label">📱 SCANSIONA PER GIOCARE</div>
+        <img [src]="qrCodeUrl()" alt="QR Code per giocare" class="qr-code">
+        <p>Inquadra il QR con la camera</p>
+        <div class="game-id-badge">PARTITA #{{ currentGameId() }}</div>
+        } @else {
+        <button (click)="openLobby()" class="extract-btn lobby-play">
+          <span class="icon">📱</span>
+          APRI LOBBY
+        </button>
+        }
+      </div>
+
+      <div class="lobby-steps">
+        <div class="lobby-step"><span>1</span><div><b>Entra col telefono</b><small>Nickname, poi sei in squadra</small></div></div>
+        <div class="lobby-step"><span>2</span><div><b>Ascolta la TV</b><small>Rispondi, prenota, trascina</small></div></div>
+        <div class="lobby-step"><span>3</span><div><b>Scala la classifica</b><small>40 round in cinque atti</small></div></div>
+        <div class="lobby-wait">Il presentatore avvia il round dall'admin.</div>
+      </div>
+    </div>
+  </div>
+  }
+  <div class="round-info">
+    <div class="round-text">Round: {{ roundInfo() }}</div>
+    <div class="round-progress" [style.width.%]="roundManager.getProgress().percentage"></div>
+  </div>
+
+
+  @if (showLeaderboardQuick()) {
+  <app-leaderboard-quick (onComplete)="onLeaderboardComplete()">
+  </app-leaderboard-quick>
+  }
+
+
+  @if (showLeaderboardDetailed()) {
+  <app-leaderboard-detailed (onComplete)="onLeaderboardComplete()">
+  </app-leaderboard-detailed>
+  }
+
+  @if (showTypeReveal()) {
+  <div class="type-reveal-overlay">
+    <div class="round-badge">
+      ROUND {{ roundManager.getCurrentRound() }}/{{ roundManager.getTotalRounds() }}
+    </div>
+    <div class="label">MODALITÀ ESTRATTA:</div>
+    <div class="mode-name">{{ getModeName(showTypeReveal()!) }}</div>
+  </div>
+  }
+
+
+  @if (currentMode(); as mode) {
+  @if (mode.requiresBubbles && !showTypeReveal() && phase() !== 'IDLE' && !showQuestion()) {
+  <div class="bubbles-area">
+    @for (cat of allCategories(); track cat.id) {
+    <div class="category-bubble" [style.top]="cat.top" [style.left]="cat.left"
+      [style.--cat-accent]="cat.color || '#ffd700'"
+      [class.spinning]="phase() === 'SPINNING'"
+      [class.is-selected]="(animatedCategoryId() ?? selectedCategoryId()) === cat.id && phase() === 'SELECTED'"
+      [class.hidden]="selectedCategoryId() !== null && cat.id !== (animatedCategoryId() ?? selectedCategoryId()) && phase() !== 'SPINNING'">
+      @if (cat.emoji) { <span class="category-emoji">{{ cat.emoji }}</span> }
+      {{ cat.name }}
+    </div>
+    }
+  </div>
+  }
+  }
+
+
+  @if (showQuestion() && currentMode(); as mode) {
+
+
+  @if (preStartCountdown() > 0 && preStartCountdown() <= 5) { <div class="prestart-timer-wrapper">
+    <div #prestartTimer class="prestart-timer bounce" role="status" aria-live="assertive">
+      <div class="prestart-value">{{ preStartCountdown() }}</div>
+    </div>
+</div>
+}
+
+<div class="question-area" [class.no-padding]="!mode.requiresBubbles">
+
+  @if (mode.requiresBubbles && categoryName()) {
+  <div class="question-category">🎯 {{ categoryName() }}</div>
+  }
+
+
+  @if (mode.requiresBubbles) {
+  <div class="timer-wrapper">
+    <div class="timer-bar" [style.width.%]="(timer() / mode.timerDuration) * 100"></div>
+    <span class="timer-text">{{ timer() }}s</span>
+  </div>
+  }
+
+
+  @switch (mode.type) {
+
+  @case ('QUIZ') {
+  <app-quiz [displayData]="getSafeDisplayData()" [timer]="timer()" [safeOptions]="getSafeDisplayData().options" />
+  }
+  @case ('IMAGE_BLUR') {
+  <app-image-blur [displayData]="getSafeDisplayData()" [timer]="timer()" (onConfirmCorrect)="confirmCorrect()"
+    (onConfirmWrong)="confirmWrong()" />
+  }
+  @case ('WHEEL_OF_FORTUNE') {
+  <app-wheel-fortune [displayData]="getSafeDisplayData()" [timer]="timer()" (onConfirmCorrect)="confirmCorrect()"
+    (onConfirmWrong)="confirmWrong()" />
+  }
+  @case ('MUSIC') {
+  <app-song [displayData]="getSafeDisplayData()" [timer]="timer()" (onConfirmCorrect)="confirmCorrect()"
+    (onConfirmWrong)="confirmWrong()" />
+  }
+  @case ('ARENA') {
+  <app-arena [displayData]="getSafeDisplayData()" [timer]="timer()">
+  </app-arena>
+  }
+  @case ('TIMELINE') {
+  <app-timeline [displayData]="getSafeDisplayData()" [timer]="timer()" />
+  }
+  @case ('TIME_BUZZER') {
+  <app-time-buzzer [displayData]="getSafeDisplayData()" [timer]="timer()" />
+  }
+  @case ('BOMBA') {
+  <app-bomba [displayData]="getSafeDisplayData()" [timer]="timer()" />
+  }
+  @case ('SPEED_RUSH') {
+  <app-speed-rush [displayData]="getSafeDisplayData()" [timer]="timer()" />
+  }
+  @case ('AIR_HOCKEY_BATTLE') {
+  <app-air-hockey-battle [displayData]="getSafeDisplayData()" [timer]="timer()" />
+  }
+  @case ('SCOMMESSA') {
+  <app-scommessa [displayData]="getSafeDisplayData()" [timer]="timer()" />
+  }
+  @case ('QUOTA') {
+  <app-quota [displayData]="getSafeDisplayData()" [timer]="timer()" />
+  }
+  @case ('BLACKJACK') {
+  <app-blackjack [displayData]="getSafeDisplayData()" [timer]="timer()" />
+  }
+  }
+</div>
+
+
+}
+
+
+@if (showResultPopup()) {
+<div class="result-popup" [class.correct]="resultType() === 'correct'" [class.wrong]="resultType() === 'wrong'">
+  <div class="result-icon">
+    {{ resultType() === 'correct' ? '✅' : '❌' }}
+  </div>
+  <div class="result-title">
+    {{ resultType() === 'correct' ? 'RISPOSTA CORRETTA!' : 'RISPOSTA ERRATA!' }}
+  </div>
+  <div class="result-player">{{ resultPlayerName() }}</div>
+  <div class="result-points">
+    {{ resultPoints() > 0 ? '+' : '' }}{{ resultPoints() }} punti
+  </div>
+</div>
+}
+<div class="tv-dock">
+  <div class="dock-actions">
+    <button class="dock-btn" (click)="audioService.toggleAudio()" [attr.aria-label]="audioService.isEnabled() ? 'Disattiva audio' : 'Attiva audio'">
+      {{ audioService.isEnabled() ? '🔊' : '🔇' }}
+    </button>
+    <button class="dock-btn" (click)="togglePause()" [class.is-paused]="isPaused()" aria-label="Pausa">
+      {{ isPaused() ? '▶️' : '⏸️' }}
+    </button>
+    <button class="dock-btn" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
+      🎨
+    </button>
+    <button class="dock-btn danger" (click)="openResetModal()" aria-label="Reset partita">🔄</button>
+  </div>
+</div>
+
+
+@if (getRecentResponsesWithScores().length) {
+<div class="recent-responses">
+  <div class="recent-header">RISPOSTE</div>
+  <div class="recent-list">
+    @for (r of getRecentResponsesWithScores(); track r.playerName) {
+    <div class="recent-item">
+      <div class="r-player">{{ r.playerName }}</div>
+      <div class="r-time">{{ (r.responseTimeMs / 1000).toFixed(2) }}s</div>
+      <div class="r-points" [class.positive]="r.lastPoints > 0" [class.negative]="r.lastPoints < 0">
+        {{ r.lastPoints > 0 ? '+' : '' }}{{ r.lastPoints }}
+        <span class="total-points">({{ r.totalPoints }})</span>
+      </div>
+    </div>
+    }
+  </div>
+</div>
+}
+
+
+@if (bonusActive()) {
+  @switch (bonusType()) {
+    @case ('CASINO') {
+      <app-casino-bonus
+        [gameId]="currentGameId()"
+        [players]="bonusPlayers()"
+        (result)="onBonusResult($event)"
+        (finished)="finishBonus()" />
+    }
+    @case ('BIGLIE') {
+      <app-biglie-bonus
+        [gameId]="currentGameId()"
+        [players]="bonusPlayers()"
+        (result)="onBonusResult($event)"
+        (finished)="finishBonus()" />
+    }
+    @case ('BASKET') {
+      <app-basket-bonus-stage
+        [secondsLeft]="bonusSecondsLeft()"
+        [scores]="bonusScores()"
+        [players]="bonusPlayers()" />
+    }
+    @case ('CAVALLO') {
+      <app-cavallo-bonus
+        [gameId]="currentGameId()"
+        [players]="bonusPlayers()"
+        [categories]="allCategories()"
+        (result)="onBonusResult($event)"
+        (finished)="finishBonus()" />
+    }
+  }
+}
+
+@if (bonusShowResult()) {
+<div class="bonus-overlay">
+  <div class="bonus-card">
+    <div class="bonus-kicker">BONUS CONCLUSO</div>
+    <h2>{{ bonusLabel() }}</h2>
+    <p class="bonus-hint">Classifica del bonus</p>
+    <div class="bonus-scores">
+      @for (row of bonusResult(); track row.playerName; let i = $index) {
+        <div><span>{{ i + 1 }}. {{ row.playerName }}</span><b>{{ row.score }}</b></div>
+      }
+      @if (!bonusResult().length) {
+        <p class="bonus-hint">Nessun punto registrato.</p>
+      }
+    </div>
+  </div>
+</div>
+}
+
+@if (autoAdvanceSeconds() > 0) {
+<div class="auto-advance">PROSSIMO ROUND TRA {{ autoAdvanceSeconds() }}s</div>
+}
+
+@if (demoType(); as demo) {
+@if (getDemoScript(demo); as script) {
+<div class="demo-overlay">
+  <div class="demo-frame">
+    <div class="demo-head">
+      <span class="demo-badge">🎬 COME SI GIOCA</span>
+      <span class="demo-name">{{ script.icon }} {{ script.title }}</span>
+      <span class="demo-live">SCENA {{ demoScene() + 1 }}/3</span>
+    </div>
+    <div class="demo-stage demo-animated">
+      <div class="demo-progress">
+        @for (scene of [0, 1, 2]; track scene) {
+          <button class="demo-dot" [class.active]="demoScene() === scene" (click)="goDemoScene(scene)"
+            [attr.aria-label]="'Scena ' + (scene + 1)"></button>
+        }
+      </div>
+
+      @if (demoScene() === 0) {
+        <div class="demo-panel">
+          <div class="demo-panel-head">📺 INTERFACCIA TV</div>
+          <ul class="demo-list">
+            @for (line of script.tv; track line) { <li>{{ line }}</li> }
+          </ul>
+          <div class="demo-tv-mock">
+            <span class="demo-tv-icon">{{ script.icon }}</span>
+            <span class="demo-tv-title">{{ script.title }}</span>
+            <span class="demo-tv-bar"></span>
+          </div>
+        </div>
+      } @else if (demoScene() === 1) {
+        <div class="demo-panel">
+          <div class="demo-panel-head">📱 INTERFACCIA REMOTE</div>
+          <ul class="demo-list">
+            @for (line of script.remote; track line) { <li>{{ line }}</li> }
+          </ul>
+          <div class="demo-phone-mock">
+            <span class="demo-phone-kicker">PUB GAME</span>
+            <span class="demo-phone-name">{{ script.title }}</span>
+            <span class="demo-phone-btn">TOCCA QUI</span>
+          </div>
+        </div>
+      } @else {
+        <div class="demo-panel">
+          <div class="demo-panel-head">🏆 PUNTEGGIO</div>
+          <div class="demo-score-list">
+            @for (row of script.scoring; track row.label) {
+              <div class="demo-score-row">
+                <span>{{ row.label }}</span>
+                <b [class.good]="row.tone === 'good'" [class.bad]="row.tone === 'bad'">{{ row.value }}</b>
+              </div>
+            } @empty {
+              <div class="demo-score-row"><span>Punteggio</span><b>calcolato dal gioco</b></div>
+            }
+          </div>
+          <div class="demo-score-legend">✅ corretto · ❌ errore · ⏱️ non risposta</div>
+        </div>
+      }
+
+      <p class="demo-note">{{ script.note }}</p>
+    </div>
+    <div class="demo-foot">
+      <button class="demo-nav" (click)="prevDemoScene()" aria-label="Scena precedente">◀</button>
+      <span>Il presentatore spiega dal vivo · 3 scene in loop</span>
+      <button class="demo-nav" (click)="nextDemoScene()" aria-label="Scena successiva">▶</button>
+    </div>
+  </div>
+</div>
+}
+}
+
+@if (showResetModal()) {
+<div class="modal-overlay">
+  <div class="modal-content">
+    <h3>🚨 RESET PARTITA</h3>
+    <p>Sei sicuro di voler ricominciare?</p>
+    <div class="modal-actions">
+      <button class="modal-btn confirm" (click)="confirmReset()">SÌ, RESETTA</button>
+      <button class="modal-btn cancel" (click)="showResetModal.set(false)">ANNULLA</button>
+    </div>
+  </div>
+</div>
+}
+
+
+@if (isPaused()) {
+<div class="pause-overlay">
+  <div class="pause-card">
+    <h2>⏸️ GIOCO IN PAUSA</h2>
+    <div class="pause-actions">
+      <p class="pause-hint">Riprendi dall'admin quando il presentatore è pronto.</p>
+    </div>
+  </div>
+</div>
+}
+
+
+<!-- Avanzamento e classifica sono controllati dall'admin: nessun pulsante in TV. -->
+
+</div>
+
+@if (currentMode(); as mode) {
+@if (mode.getShowGo?.()) {
+<div class="go-popup">🚦 VIA!</div>
+}
+}

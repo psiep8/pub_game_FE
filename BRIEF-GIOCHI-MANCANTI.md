@@ -1,5 +1,10 @@
 # Brief operativo PubGame — correzioni, video demo, bonus e giochi nuovi
 
+> **VERSIONE BETA — snapshot del 7 novembre 2026.**
+> Il brief resta come riferimento storico: descrive il progetto **prima** del refactoring
+> della prossima versione. Le parti già superate sono segnalate dagli aggiornamenti qui
+> sotto; lo stato reale del codice è in `README_LAVORI.md`.
+
 > **Aggiornamento 5/11:** le demo sono state realizzate come tre scene animate in TV (interfaccia TV, remote e punteggio) per ogni gioco e per i bonus; gli mp4 non sono più necessari. La specifica storica sotto resta come riferimento.
 >
 > **Aggiornamento 6/11:** la scaletta a 40 round è cambiata e le sezioni §1.1 e §3.3 sono superate. Time Buzzer è un round vero, il Cavallo è tornato bonus, il Casino è un bonus unico in quattro manche, e c'è un round nuovo (La Scommessa). Lo stato aggiornato è in `README_LAVORI.md`.
