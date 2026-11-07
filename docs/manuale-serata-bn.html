@@ -164,6 +164,12 @@
     .page{width:auto;min-height:0;margin:0;padding:0;border:0;box-shadow:none;overflow:visible;page-break-after:always}
     .page:last-child{page-break-after:auto}
     .footer,.cover-foot{position:static}
+    .page:last-child .bonus-card p{font-size:7.8pt;line-height:1.22}
+    .page:last-child .note.warn{margin-top:1.2mm;padding:1.4mm 2.4mm;font-size:7.6pt;line-height:1.22}
+    .page:last-child .score-table{font-size:6.7pt;line-height:1.15}
+    .page:last-child .score-table td{padding:.75mm .8mm}
+    .page:last-child .closing{margin-top:1.2mm;padding-top:1.2mm}
+    .page:last-child .closing p{font-size:7.7pt;line-height:1.22}
   }
   /* ===== VARIANTE B/N: fondo bianco, nero e grigi, poco inchiostro ===== */
   body{background:#e8e8e8}
@@ -254,7 +260,7 @@
     <article class="card role">
       <div class="role-label">Il pulsante</div>
       <h3>TELEFONO</h3>
-      <p>Un telefono per tavolo. Risponde, prenota, gioca i bonus e riceve i suoni di conferma ed errore. Non mostra mai la soluzione prima della TV.</p>
+      <p>Un telefono per tavolo. Risponde, prenota, gioca i bonus e riceve vibrazione e conferme visive; l'audio resta sulla TV. Non mostra mai la soluzione prima del reveal.</p>
       <div class="url">/play · QR in lobby + numero partita</div>
     </article>
     <article class="card role">
@@ -266,7 +272,7 @@
     <article class="card role">
       <div class="role-label">La voce</div>
       <h3>PRESENTATORE</h3>
-      <p>Legge la domanda, chiama i secondi che contano, convalida le risposte a voce e annuncia punteggi e podio. Non anticipa il gioco successivo.</p>
+      <p>Legge la domanda, chiama i secondi che contano, convalida a voce le risposte nei giochi a prenotazione e annuncia punteggi e podio. Nei giochi a tocco decide il server; non anticipa il gioco successivo.</p>
       <div class="url">Microfono + questo foglio + occhio sulla TV</div>
     </article>
   </div>
@@ -435,7 +441,7 @@
 
   <div class="note" style="margin-top:2.6mm">
     <span class="note-title">Tempi da tenere a mente</span>
-    Quiz 3×10 s · Indovina chi 30 s · Musica 4×30 s · Timeline 45 s · Ruota 75 s · Time Buzzer 3×30 s · Bomba 90 s · Speed Rush 60 s · Air Hockey fino a 7 gol · Azzardo 4 domande · Ultima spiaggia 5 round (12 s livello + 15 s domanda) · Arena 130 s.
+    Quiz 3×10 s · Indovina chi 30 s · Musica 4×30 s · Timeline 45 s · Ruota 75 s · Time Buzzer 3×30 s · Bomba 90 s · Speed Rush 60 s · Air Hockey fino a 7 gol · Azzardo 4 domande · Ultima spiaggia 5 apparizioni (12 s livello + 15 s domanda) · Arena 130 s.
   </div>
 
   <div class="footer"><span>PubGame · Manuale della serata</span><span>La scaletta · 03/07</span></div>
@@ -484,7 +490,7 @@
     <article class="game-card">
       <div class="game-top"><h3>MUSICA</h3><span class="time">4 MANCHE</span></div>
       <div class="where"><b>TV</b> brano + 4 manche · <b>TEL</b> prenotazione · <b>HOST</b> convalida titolo o artista</div>
-      <p>Quattro canzoni, una per manche. <b>Ogni manche vale uguale: 1.000 punti</b>; il valore non scende più manche dopo manche.</p>
+      <p>Quattro canzoni, una per manche. <b>Ogni manche vale uguale: 1.000 punti</b>; il valore non scende più manche dopo manche. Il massimo del round è quindi <b>4.000</b>.</p>
       <p><b>Flusso:</b> intro a volume basso 3–5 s → prenotazione → se è giusta, suono di conferma e brano da capo <b>a tutto volume per 30 s pieni</b>, senza filtri. Se è sbagliata, suono d'errore e il brano torna basso.</p>
       <div class="scoreline">Giusto <b>+1000</b> · Sbagliato <b>−1000</b> · Nessuna <b>0</b></div>
     </article>
@@ -528,7 +534,7 @@
       <div class="game-top"><h3>REGOLA COMUNE</h3><span class="time">SEMPRE</span></div>
       <div class="where"><b>TV</b> soluzione al reveal · <b>HOST</b> convalida solo dove serve</div>
       <p>Nei giochi a prenotazione il telefono chiama il tavolo; l'host ascolta e conferma “corretto” o “sbagliato”. Nei giochi a tocco la risposta è chiusa: si commenta, non si corregge.</p>
-      <p>Chi non risponde prende 0, salvo i malus scritti nella card. La soluzione resta sul server fino al reveal.</p>
+      <p>Vale la prima risposta valida: un doppio invio non paga due volte. Chi non risponde prende 0, salvo i malus scritti nella card. La soluzione resta sul server fino al reveal.</p>
     </article>
   </div>
 
@@ -548,7 +554,7 @@
       <div class="split">
         <div>
           <p>Ogni round ha <b>3 manche</b>; in serata il gioco esce tre volte (round 6, 14 e 21), quindi <b>9 manche totali</b>. Il bersaglio è casuale tra 5 e 30 secondi e non si vede: conta l'errore <b>|tempo fermato − bersaglio|</b>.</p>
-          <p><b>Eliminazioni:</b> dopo la manche 1 esce il terzo più lontano (<b>−250</b> a testa); dopo la manche 2 escono gli ultimi due rimasti (<b>−100</b> a testa). Chi arriva alla manche 3 prende <b>+150</b> di bonus finale. Chi non preme è ultimo e, se la manche elimina, esce.</p>
+          <p><b>Eliminazioni:</b> dopo la manche 1 escono i tre più lontani (<b>−250</b> a testa); dopo la manche 2 escono gli ultimi due rimasti (<b>−100</b> a testa). Chi arriva alla manche 3 prende <b>+150</b> di bonus finale. Chi non preme è ultimo e, se la manche elimina, esce.</p>
           <p>Solo gli eliminati nelle prime due manche perdono punti: gli altri non hanno malus. Chi esce nella manche 1 parte già in negativo e deve recuperare nel round successivo.</p>
         </div>
         <div>
@@ -576,7 +582,7 @@
         <div>
           <p><b>Punteggio.</b> Ogni tavolo parte da <b>1.000 punti di round</b>. Ogni passaggio riuscito vale <b>+50</b> al passatore, fino a <b>+500</b>. Lo scoppio costa <b>−300</b> a chi la tiene e il punteggio non scende sotto zero. In classifica entra solo la differenza rispetto a 1.000, non il totale.</p>
           <p><b>Dopo lo scoppio.</b> Dopo 1,5 secondi riparte una bomba da un tavolo che l'ha tenuta meno, mai da chi l'ha appena fatta esplodere. La bomba non torna subito a chi l'ha passata.</p>
-          <p><b>Domande.</b> Vero/Falso negli atti 1 e 3; a 3 opzioni negli atti 4 e 5. Nell'atto 5 le domande sono più difficili e la miccia più corta.</p>
+          <p><b>Domande.</b> Vero/Falso nell'atto 1; a 3 opzioni negli atti 4 e 5. Nell'atto 5 le domande sono più difficili e la miccia più corta.</p>
         </div>
       </div>
       <div class="scoreline">Passaggio <b>+50</b> (max +500) · Scoppio <b>−300</b> · Errore o tempo <b>miccia −3 s</b> · Base <b>1.000</b>, in classifica solo il delta</div>
@@ -593,7 +599,7 @@
     <article class="game-card">
       <div class="game-top"><h3>BLACK JACK</h3><span class="time">3 ROUND IN SERATA</span></div>
       <div class="where"><b>TV</b> banco + tavolo di turno · <b>TEL</b> carta / stai · <b>BANCO</b> si ferma a 17</div>
-      <p>Un tavolo alla volta, <b>15 secondi</b> per chiedere carta o stare. Il banco pesca fino a 17. Il black jack naturale conta come vittoria normale, senza bonus separato.</p>
+      <p>Un tavolo alla volta, <b>15 secondi</b> per chiedere carta o stare. Il banco si ferma a 17 o più. Il black jack naturale conta come vittoria normale, senza bonus separato.</p>
       <p><b>La memoria conta.</b> I punti restano acquisiti tra i tre round: chi perde non azzera quanto ha già vinto. Vincere dopo una vittoria vale il doppio di vincere dopo una sconfitta.</p>
       <table class="mini-table">
         <tr><th>Round</th><th>Vinci dopo vittoria</th><th>Vinci dopo sconfitta</th><th>Perdi o pari</th></tr>
@@ -633,17 +639,17 @@
     </article>
 
     <article class="game-card wide">
-      <div class="game-top"><h3>ULTIMA SPIAGGIA</h3><span class="time">5 ROUND · 5 LIVELLI</span></div>
+      <div class="game-top"><h3>ULTIMA SPIAGGIA</h3><span class="time">5 VOLTE IN SERATA · 5 LIVELLI</span></div>
       <div class="where"><b>TV</b> livelli, domanda e esito per squadra · <b>TEL</b> scelta del livello e risposta</div>
       <div class="split">
         <div>
-          <p><b>Composizione.</b> Cinque round; in ogni round la TV estrae una <b>categoria</b>. Ogni squadra sceglie un <b>livello da 100 a 500</b> entro <b>12 secondi</b>: i cinque livelli si usano <b>una volta sola</b>, quindi all'ultimo round ne resta uno obbligato. Chi non sceglie prende il livello più basso rimasto.</p>
+          <p><b>Composizione.</b> Cinque apparizioni, una per atto: in ognuna la TV estrae una <b>categoria</b>. Ogni squadra sceglie un <b>livello da 100 a 500</b> entro <b>12 secondi</b>: i cinque livelli si usano <b>una volta sola</b>, quindi all'ultima apparizione ne resta uno obbligato. Chi non sceglie prende il livello più basso rimasto.</p>
           <p><b>Domanda.</b> Ogni telefono riceve una domanda a <b>4 risposte</b> della categoria estratta, <b>15 secondi</b> per rispondere. La domanda dipende dal livello: chi ha scelto lo stesso livello riceve la stessa domanda.</p>
         </div>
         <div>
           <p><b>Pagamento.</b> Giusta = <b>+livello</b>; sbagliata o scaduta = <b>−metà del livello</b>. La TV svela la risposta corretta di ogni livello e l'esito per squadra.</p>
           <p><b>Valori.</b> 100 → +100 / −50 · 200 → +200 / −100 · 300 → +300 / −150 · 400 → +400 / −200 · 500 → +500 / −250.</p>
-          <div class="example"><b>Regola secca.</b> Ogni livello si consuma: cinque round, cinque livelli. Massimo del round <b>+500</b>; massimo in serata <b>+1.500</b> con cinque risposte esatte.</div>
+          <div class="example"><b>Regola secca.</b> Ogni livello si consuma: cinque apparizioni, cinque livelli. Massimo per apparizione <b>+500</b>; massimo in serata <b>+1.500</b> con cinque risposte esatte.</div>
         </div>
       </div>
       <div class="scoreline">Giusta <b>+livello</b> · Sbagliata o scaduta <b>−metà</b> · Livello non scelto <b>prende il più basso rimasto</b></div>
@@ -654,7 +660,7 @@
       <div class="where"><b>TV</b> multiview con tutte le n/2 partite · <b>TEL</b> solo la propria partita, con l'angolo dello schermo</div>
       <div class="split">
         <div>
-          <p><b>Composizione.</b> Con <b>n tavoli</b> si giocano <b>n/2 sfide in parallelo</b>, tutte in TV. Accoppiamenti <b>casuali</b> e <b>mai uguali nella serata</b>: prima del round 38 la regia controlla le coppie del round 16. Con numero dispari, un tavolo riposa e prende <b>700</b>.</p>
+          <p><b>Composizione.</b> Con <b>n tavoli</b> si giocano <b>n/2 sfide in parallelo</b>, tutte in TV. Accoppiamenti <b>casuali</b> e <b>mai uguali nella serata</b>: prima dell'ultima sfida (round 20) la regia controlla che le coppie non ripetano quelle dei round 7 e 13. Con numero dispari, un tavolo riposa e prende <b>700</b>.</p>
           <p><b>Multiview.</b> La TV mostra tutti i campi: nomi, punteggio, gol, countdown e domanda del tavolo di turno. Il telefono mostra solo la propria sfida e indica <b>l'angolo dello schermo</b>: per esempio <b>“TABELLONE 2 · IN ALTO A DESTRA”</b>.</p>
         </div>
         <div>
@@ -733,7 +739,7 @@
       <tr><td>SPEED RUSH</td><td>500 al primo; 500 × t1/ti nella metà alta</td><td>0 fuori dalla metà alta</td><td>Minimo 100 per chi resta nella metà alta.</td></tr>
       <tr><td>BLACK JACK</td><td>+250 prima vittoria; +500 dopo vittoria; +250 dopo sconfitta</td><td>0</td><td>Massimo 1.250 in serata; i punti restano.</td></tr>
       <tr><td>AZZARDO</td><td>Gettoni × quota (max 500 per domanda)</td><td>Gettoni persi, nessun malus</td><td>4 domande, 100 gettoni nuovi per domanda.</td></tr>
-      <tr><td>ULTIMA SPIAGGIA</td><td>+livello scelto (100–500)</td><td>−metà del livello (−50…−250)</td><td>5 round; ogni livello una volta per squadra.</td></tr>
+      <tr><td>ULTIMA SPIAGGIA</td><td>+livello scelto (100–500)</td><td>−metà del livello (−50…−250)</td><td>5 apparizioni; ogni livello una volta per squadra.</td></tr>
       <tr><td>AIR HOCKEY</td><td>+1000 vincitore; +200 perdente; +700 riposo</td><td>Gol per l'avversario</td><td>Primo a 7; n/2 sfide; parità 500 a testa.</td></tr>
       <tr><td>ARENA</td><td>+10 a risposta; +1000 / +500 piazzamento</td><td>−10; −300 metà bassa</td><td>130 s; cerchio più stretto dopo 45 s.</td></tr>
     </tbody>
