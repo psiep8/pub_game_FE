@@ -208,7 +208,7 @@
     <span><b>02</b> Scaletta e classifiche <em>p. 3</em></span>
     <span><b>03</b> Giochi: Quiz, Indovina chi, Musica, Timeline, Ruota <em>p. 4</em></span>
     <span><b>04</b> Giochi: Time Buzzer, Bomba, Speed Rush, Black Jack <em>p. 5</em></span>
-    <span><b>05</b> Giochi: Quota, Scommessa, Air Hockey, Arena <em>p. 6</em></span>
+    <span><b>05</b> Giochi: Quota, Tutto o metà, Air Hockey, Arena <em>p. 6</em></span>
     <span><b>06</b> Bonus e tabella punteggi <em>p. 7</em></span>
   </div>
 
@@ -293,7 +293,7 @@
 
   <div class="note" style="margin-top:2.6mm">
     <span class="note-title">Suoni globali sul telefono</span>
-    <b>Bip di conferma</b> quando il server registra la risposta o accetta l'azione (quiz, prenotazione, START/STOP, carta/stai, puntata Quota, scelta Scommessa). <b>Suono d'errore</b> quando la risposta è rifiutata, l'azione non è valida, la miccia cala o la risposta Arena è sbagliata. Sulla TV restano i suoni corretto/sbagliato dei giochi a prenotazione.
+    <b>Bip di conferma</b> quando il server registra la risposta o accetta l'azione (quiz, prenotazione, START/STOP, carta/stai, puntata Quota, scelta del livello). <b>Suono d'errore</b> quando la risposta è rifiutata, l'azione non è valida, la miccia cala o la risposta Arena è sbagliata. Sulla TV restano i suoni corretto/sbagliato dei giochi a prenotazione.
   </div>
 
   <div class="note warn" style="margin-top:2.6mm">
@@ -364,7 +364,7 @@
         <td><span class="round">28</span><span class="game">MUSICA</span></td>
         <td><span class="round">29</span><span class="game">TIME BUZZER</span></td>
         <td><span class="round">30</span><span class="game">TIMELINE</span></td>
-        <td><span class="round">31</span><span class="game">SCOMMESSA</span></td>
+        <td><span class="round">31</span><span class="game">TUTTO O METÀ</span></td>
         <td><span class="round">32</span><span class="game">SPEED RUSH</span></td>
         <td><span class="bonus">BIGLIE</span></td>
       </tr>
@@ -385,7 +385,7 @@
 
   <div class="legend">
     <span><i class="dot"></i> Risposta sul telefono: Quiz, Indovina chi, Timeline, Ruota</span>
-    <span><i class="dot cobalt"></i> Tempo reale o tecnico: Bomba, Speed Rush, Air Hockey, Arena, Black Jack, Scommessa, Quota</span>
+    <span><i class="dot cobalt"></i> Tempo reale o tecnico: Bomba, Speed Rush, Air Hockey, Arena, Black Jack, Tutto o metà, Quota</span>
     <span><i class="dot mustard"></i> Bonus: non consumano un round</span>
   </div>
 
@@ -415,7 +415,7 @@
 
   <div class="note" style="margin-top:2.6mm">
     <span class="note-title">Tempi da tenere a mente</span>
-    Quiz 3×10 s · Indovina chi 30 s · Musica 4×30 s · Timeline 45 s · Ruota 75 s · Time Buzzer 3×30 s · Bomba 90 s · Speed Rush 60 s · Quota 4 domande · Scommessa 3 domande · Air Hockey fino a 7 gol · Arena 130 s.
+    Quiz 3×10 s · Indovina chi 30 s · Musica 4×30 s · Timeline 45 s · Ruota 75 s · Time Buzzer 3×30 s · Bomba 90 s · Speed Rush 60 s · Quota 4 domande · Tutto o metà 5 round (12 s livello + 15 s domanda) · Air Hockey fino a 7 gol · Arena 130 s.
   </div>
 
   <div class="footer"><span>PubGame · Manuale della serata</span><span>La scaletta · 03/07</span></div>
@@ -592,7 +592,7 @@
 <section class="page tight">
   <div class="topline"><span><b class="tag">05</b> / I giochi · parte terza</span><span class="folio">06 / 07</span></div>
   <h2>RISCHIO, SFIDE<br>E SOPRAVVIVENZA</h2>
-  <p class="lede" style="font-size:9.4pt;margin-bottom:2.8mm">Quattro giochi con regole articolate. Quota e Scommessa si spiegano per intero: chi conduce deve saper dire dove finiscono i gettoni e quando la banca si brucia.</p>
+  <p class="lede" style="font-size:9.4pt;margin-bottom:2.8mm">Quattro giochi con regole articolate. Quota e Tutto o metà si spiegano per intero: chi conduce deve saper dire dove finiscono i gettoni e come si paga un livello.</p>
 
   <div class="game-grid">
     <article class="game-card wide">
@@ -613,25 +613,20 @@
     </article>
 
     <article class="game-card wide">
-      <div class="game-top"><h3>LA SCOMMESSA</h3><span class="time">3 DOMANDE · 4 OPZIONI</span></div>
-      <div class="where"><b>TV</b> banca e domanda · <b>TEL</b> puntata, risposta, incassa / rischia</div>
+      <div class="game-top"><h3>TUTTO O METÀ</h3><span class="time">5 ROUND · 5 LIVELLI</span></div>
+      <div class="where"><b>TV</b> livelli, domanda e esito per squadra · <b>TEL</b> scelta del livello e risposta</div>
       <div class="split">
         <div>
-          <p><b>Composizione.</b> Tre domande a quattro risposte, <b>12 secondi</b> ciascuna. Prima della prima domanda si sceglie la puntata entro <b>10 secondi</b>: <b>100, 200 o 300</b>, che diventa la banca iniziale.</p>
-          <p><b>Raddoppio.</b> Ogni risposta esatta raddoppia la banca; una risposta sbagliata o mancata la brucia e la squadra esce. Dopo la prima e la seconda domanda ci sono <b>8 secondi</b> per scegliere <b>INCASSA</b> o <b>RISCHIA</b>: chi non sceglie incassa d'ufficio.</p>
+          <p><b>Composizione.</b> Cinque round; in ogni round la TV estrae una <b>categoria</b>. Ogni squadra sceglie un <b>livello da 100 a 500</b> entro <b>12 secondi</b>: i cinque livelli si usano <b>una volta sola</b>, quindi all'ultimo round ne resta uno obbligato. Chi non sceglie prende il livello più basso rimasto.</p>
+          <p><b>Domanda.</b> Ogni telefono riceve una domanda a <b>4 risposte</b> della categoria estratta, <b>15 secondi</b> per rispondere. La domanda dipende dal livello: chi ha scelto lo stesso livello riceve la stessa domanda.</p>
         </div>
         <div>
-          <p><b>Incasso.</b> Alla terza domanda si incassa automaticamente. I punti sono la banca incassata, mai negativi.</p>
-          <table class="mini-table">
-            <tr><th>Puntata</th><th>Dopo 1 esatta</th><th>Dopo 2 esatte</th><th>Dopo 3 esatte</th></tr>
-            <tr><td>100</td><td>200</td><td>400</td><td>800</td></tr>
-            <tr><td>200</td><td>400</td><td>800</td><td>1.600</td></tr>
-            <tr><td>300</td><td>600</td><td>1.200</td><td>2.400</td></tr>
-          </table>
-          <div class="example"><b>Regola secca.</b> Sbagliare non toglie punti: si perde solo la banca potenziale. Massimo del round: <b>2.400</b> con puntata 300 e tre esatte.</div>
+          <p><b>Pagamento.</b> Giusta = <b>+livello</b>; sbagliata o scaduta = <b>−metà del livello</b>. La TV svela la risposta corretta di ogni livello e l'esito per squadra.</p>
+          <p><b>Valori.</b> 100 → +100 / −50 · 200 → +200 / −100 · 300 → +300 / −150 · 400 → +400 / −200 · 500 → +500 / −250.</p>
+          <div class="example"><b>Regola secca.</b> Ogni livello si consuma: cinque round, cinque livelli. Massimo del round <b>+500</b>; massimo in serata <b>+1.500</b> con cinque risposte esatte.</div>
         </div>
       </div>
-      <div class="scoreline">Banca incassata <b>fino a 2.400</b> · Errore <b>0, si brucia la banca</b> · Nessuna scelta <b>incasso automatico</b></div>
+      <div class="scoreline">Giusta <b>+livello</b> · Sbagliata o scaduta <b>−metà</b> · Livello non scelto <b>prende il più basso rimasto</b></div>
     </article>
 
     <article class="game-card wide">
@@ -718,7 +713,7 @@
       <tr><td>SPEED RUSH</td><td>500 al primo; 500 × t1/ti nella metà alta</td><td>0 fuori dalla metà alta</td><td>Minimo 100 per chi resta nella metà alta.</td></tr>
       <tr><td>BLACK JACK</td><td>+250 prima vittoria; +500 dopo vittoria; +250 dopo sconfitta</td><td>0</td><td>Massimo 1.250 in serata; i punti restano.</td></tr>
       <tr><td>QUOTA</td><td>Gettoni × quota (max 500 per domanda)</td><td>Gettoni persi, nessun malus</td><td>4 domande, 100 gettoni nuovi per domanda.</td></tr>
-      <tr><td>SCOMMESSA</td><td>Banca incassata (fino a 2.400)</td><td>0: si brucia la banca</td><td>3 domande; incassa o rischia.</td></tr>
+      <tr><td>TUTTO O METÀ</td><td>+livello scelto (100–500)</td><td>−metà del livello (−50…−250)</td><td>5 round; ogni livello una volta per squadra.</td></tr>
       <tr><td>AIR HOCKEY</td><td>+1000 vincitore; +200 perdente; +700 riposo</td><td>Gol per l'avversario</td><td>Primo a 7; n/2 sfide; parità 500 a testa.</td></tr>
       <tr><td>ARENA</td><td>+10 a risposta; +1000 / +500 piazzamento</td><td>−10; −300 metà bassa</td><td>130 s; cerchio più stretto dopo 45 s.</td></tr>
     </tbody>
