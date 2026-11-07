@@ -19,7 +19,7 @@
 | 1 | Quiz | Musica | Bomba | Indovina chi | Timeline | Ruota | Quiz | Speed Rush |
 | 2 | Quiz | Indovina chi | Timeline | Arena | Musica | Quota | Time Buzzer | Air Hockey |
 | 3 | Quiz | Bomba | Timeline | Speed Rush | Musica | Air Hockey | Ruota | Arena |
-| 4 | Indovina chi | Quiz | Bomba | Musica | Time Buzzer | Timeline | Scommessa | Speed Rush |
+| 4 | Indovina chi | Quiz | Bomba | Musica | Time Buzzer | Timeline | Tutto o metà | Speed Rush |
 | 5 | Ruota | Quiz | Bomba | Time Buzzer | Timeline | Air Hockey | Musica | Arena |
 
 Vincoli: mai due giochi in tempo reale di fila (Bomba, Arena, Speed Rush, Air Hockey), mai due giochi a prenotazione consecutivi, Arena a chiudere gli atti 3 e 5. Classifica rapida ai round 4, 12, 20, 28, 36; dettagliata ai round 8, 16, 24, 32, 40.
@@ -34,12 +34,12 @@ Vincoli: mai due giochi in tempo reale di fila (Bomba, Arena, Speed Rush, Air Ho
 ### Round nuovi
 
 - **Bomba** (4 volte). Round di 90 s. Bombe: 2 per 4-6 squadre, 3 per 7-10. Chi la tiene risponde a una domanda a tempo (5 s): se giusta la passa a uno di 3 tavoli casuali, altrimenti la bomba resta e la miccia perde 3 s. La miccia dura 20-30 s ed è nascosta (solo scintille e battiti più veloci). All'esplosione chi la tiene perde 300 punti e una nuova bomba parte da un altro tavolo. Ogni squadra parte da 1000 punti di round, +50 per passaggio fino a +500, mai sotto zero. La bomba non torna subito a chi l'ha passata. Domande Vero/Falso negli atti 1 e 3, a 3 opzioni negli atti 4 e 5, difficili con miccia più corta nell'atto 5.
-- **Scommessa** (1 volta, atto 4). 3 domande a quattro risposte. Si punta prima della prima domanda (100, 200 o 300); ogni risposta giusta raddoppia la banca, sbagliare la brucia; dopo la prima e la seconda si può incassare (chi non sceglie in 8 s incassa).
+- **Tutto o metà** (ex Scommessa, 1 volta, atto 4). Cinque round; in ogni round si estrae una categoria. Ogni squadra sceglie un livello da 100 a 500 e lo consuma: ogni livello si usa una volta sola, quindi all'ultimo round ne resta uno. Ogni telefono riceve la domanda del proprio livello a quattro risposte, uguale per chi ha scelto lo stesso livello. Giusta = +livello, sbagliata o scaduta = −metà (100 → +100/−50, 500 → +500/−250). Chi non sceglie il livello entro 12 s prende il più basso rimasto.
 - **Quota** (1 volta, atto 2). 4 domande con risposta numerica. Per ogni domanda la TV mostra 4 fasce con la quota (più stretta è la fascia, più è alta). Ogni squadra distribuisce 100 gettoni nuovi sulle fasce dal telefono; scorciatoie "Tutto su una", "50-50", "Spalma". La TV svela il valore: i gettoni sulla fascia giusta pagano la quota (tetto 500 per domanda), gli altri sono persi, nessun punteggio negativo. Senza puntata, 25 gettoni per fascia. Le quote dipendono dall'ampiezza e dalla plausibilità, non da dove cade il valore, e sono tarate circa il 10% sotto il giusto. La TV mostra dove ha puntato il pubblico e nomina "il cecchino". Serve una banca di circa 60 domande numeriche con valori verificati.
 
 ### Da fare prima di tutto
 
-Ampliare la banca domande: almeno 800 Vero/Falso (Arena e Bomba) e domande a 3 opzioni per la Bomba, 12-15 domande difficili per categoria per il Cavallo, circa 60 domande numeriche per Quota, più Indovina chi (oggi solo 6).
+Ampliare la banca domande: almeno 800 Vero/Falso (Arena e Bomba) e domande a 3 opzioni per la Bomba, 12-15 domande difficili per categoria per il Cavallo, circa 60 domande numeriche per Quota, più Indovina chi (oggi solo 6). Per Tutto o metà bastano le fasce della banca QUIZ: 15+ domande per fascia e categoria coprono i cinque livelli.
 
 ## 1. Cos'è
 
@@ -150,8 +150,8 @@ Tre famiglie, in base a come rispondono i tavoli:
 ### Bomba — interazione tra tavoli (nel codice)
 Regole in "Decisioni definitive". È in scaletta 5 volte; diventa 4.
 
-### Scommessa — rischio (nel codice)
-Tre domande a quattro risposte, banca che raddoppia, scelta di incassare dopo la prima e la seconda. Compare una volta (atto 4).
+### Tutto o metà — rischio (nel codice)
+Cinque round con una categoria per round e cinque livelli 100-500 usabili una volta per squadra: la domanda è quella del livello scelto (stessa per chi sceglie lo stesso livello), giusta +livello, sbagliata o scaduta −metà. Compare una volta (atto 4).
 
 ### Quota — gestire il rischio (nel codice)
 Quattro domande numeriche con quattro fasce e quote; 100 gettoni per domanda distribuiti dal telefono, tetto di 500 punti. La quota è calcolata dal backend (~10% sotto il giusto) e le risposte non arrivano ai telefoni prima del reveal. Una volta, nell'atto 2.

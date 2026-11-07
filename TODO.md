@@ -181,7 +181,7 @@ poi i giochi.
 ## ⏳ In corso / da fare
 
 - [ ] **QA dei round nuovi**: Cavallo (bonus dopo l'atto 3, 8 domande da 15 s con TV a
-      countdown e tabellone), Scommessa (atto 4), Quota (atto 2) e Casino (quattro manche
+      countdown e tabellone), Tutto o metà (atto 4), Quota (atto 2) e Casino (quattro manche
       in un solo bonus, dopo l'atto 1). Compilati, mai visti dal vivo.
 - [ ] **Generare la banca vera sull'altra macchina** (Qwen locale, `--per-category 40`),
       copiare `questions-it.json`, controllare il log d'avvio

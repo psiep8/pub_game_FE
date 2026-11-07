@@ -6,7 +6,7 @@
 > in `TODO.md`. Se una riga non combacia col codice, vince il codice.
 
 Ultimo aggiornamento: 7 novembre 2026 (beta)
-Ultimo commit: 6 novembre — scaletta a 5 atti, Cavallo tornato bonus, Scommessa e Quota round veri, pulizia di Chrono/Vero-Falso/Roulette. I commit precedenti sono del 5 novembre.
+Ultimo commit: 7 novembre — Tutto o metà (ex Scommessa) a cinque livelli, Azzardo in banca, scaletta a 5 atti. I commit precedenti sono del 5-6 novembre.
 
 ---
 
@@ -22,7 +22,7 @@ Ultimo commit: 6 novembre — scaletta a 5 atti, Cavallo tornato bonus, Scommess
 | 1 | 1–8 | Quiz · Musica · Bomba · Indovina chi · Timeline · Ruota · Quiz · Speed Rush |
 | 2 | 9–16 | Quiz · Indovina chi · Timeline · Arena · Musica · Quota · Time Buzzer · Air Hockey |
 | 3 | 17–24 | Quiz · Bomba · Timeline · Speed Rush · Musica · Air Hockey · Ruota · Arena |
-| 4 | 25–32 | Indovina chi · Quiz · Bomba · Musica · Time Buzzer · Timeline · Scommessa · Speed Rush |
+| 4 | 25–32 | Indovina chi · Quiz · Bomba · Musica · Time Buzzer · Timeline · Tutto o metà · Speed Rush |
 | 5 | 33–40 | Ruota · Quiz · Bomba · Time Buzzer · Timeline · Air Hockey · Musica · Arena |
 
 ### Casino: quattro manche in un solo bonus
@@ -55,14 +55,14 @@ Ultimo commit: 6 novembre — scaletta a 5 atti, Cavallo tornato bonus, Scommess
 - Il Cavallo è tornato nel file bonus: `bonus/cavallo-bonus/cavallo-bonus.ts` (classe `CavalloBonus`). Il giro come round (`mode/cavallo.mode.ts`, `games/cavallo/cavallo.ts`) è stato rimosso con import, template e tipo backend.
 - Script allineati: `rounds_check.py`, `live_devices_check.js`, `generate.py` e `merge_domande.py` non gestiscono più Chrono e Roulette.
 
-### La Scommessa (tre domande con incasso)
-- Struttura: puntata 10 s → 3 domande da 12 s con reveal 6 s → dopo la prima e la seconda, 8 s per INCASSARE o RISCHIARE → finale 7 s.
-- La banca parte dalla puntata e raddoppia a ogni risposta esatta: 100 → 200 → 400 → 800. Una risposta sbagliata (o mancata) brucia la banca.
-- Chi incassa esce dal round con i punti della banca; chi non sceglie entro 8 s incassa d'ufficio, così un telefono in tasca non costa nulla.
-- Backend: `scommessaPayload` serve tre domande QUIZ distinte della stessa categoria, con risposte incluse perché è la TV a condurre il round.
-- TV `games/scommessa/scommessa.ts`: banca, moltiplicatore (×2, ×4, ×8), reveal e stato di ogni squadra.
-- Remote: gettoni, tre domande e i due pulsanti INCASSA / RISCHIA; la banca corrente arriva con `SCOMMESSA_STATE`.
-- `scoring-rules.ts` e demo aggiornati: non ci sono più punti negativi, si rischia solo la banca potenziale.
+### Tutto o metà (ex Scommessa): cinque livelli
+- Struttura: 5 round; per round 12 s per scegliere il livello, 15 s di domanda, 5 s di reveal; 5 s di finale.
+- Ogni squadra ha i livelli 100, 200, 300, 400, 500 e ne usa uno per round, mai due volte: al quinto round resta un solo livello. Chi non sceglie entro 12 s prende il livello più basso rimasto.
+- La domanda dipende dal livello: chi sceglie lo stesso livello riceve la stessa domanda a quattro risposte. Giusta = +livello, sbagliata o scaduta = −metà.
+- Backend: `scommessaPayload` serve cinque domande QUIZ della categoria estratta, una per livello (fasce facile 1-2, medio 3-4, difficile 5), con risposte incluse perché è la TV a condurre il round.
+- TV `features/games/scommessa/scommessa.component.ts`: livelli, livello scelto, risposte corrette per livello, esito e totale per squadra.
+- Remote: bottoni 100-500 (disabilitati se già usati), domanda del proprio livello, esito; lo stato arriva con `SCOMMESSA_STATE`.
+- `scoring-rules.ts` e demo aggiornati: +100…+500, −50…−250, nessun incasso.
 
 ### Quota (quattro domande numeriche)
 - Quattro domande con risposta numerica, ognuna con quattro fasce e una quota: più stretta è la fascia, più alta è la quota.
@@ -189,7 +189,7 @@ Stile e tema restano quelli di ieri: cambia solo il movimento. Tutto vive in
 1. **QA dal vivo con backend acceso** (`127.0.0.1:8080`):
    - Cavallo bonus: voto categoria, otto domande, podio +300/+150/+75;
    - Quota: fasce, gettoni, quote e cecchino;
-   - Scommessa: gettoni, tre domande, banca che raddoppia e scelta INCASSA/RISCHIA;
+   - Tutto o metà (ex Scommessa): cinque livelli usati una volta, domanda del livello, esito +livello / −metà;
    - Casino: quattro manche in un solo bonus, dopo l'atto 1;
    - pausa, classifica, demo e auto-avanzamento come prima.
 2. **Ruota**: separare la fase di lancio dalla rivelazione (oggi le lettere si aprono durante il timer).
@@ -258,8 +258,8 @@ Stato: canvas, canestro, punteggio e premi sono implementati; il gettone birra r
 - `apps/frontend/src/styles.css`
 - `apps/frontend/src/app/components/admin/admin.ts/.html/.css`
 - `apps/frontend/src/app/components/game-component/mode/cavallo.mode.ts` (nuovo)
-- `apps/frontend/src/app/components/game-component/mode/scommessa.mode.ts` (nuovo)
-- `apps/frontend/src/app/components/game-component/games/scommessa/scommessa.ts` (nuovo)
+- `apps/frontend/src/app/features/games/scommessa/scommessa.mode.ts` (nuovo)
+- `apps/frontend/src/app/features/games/scommessa/scommessa.component.ts` (nuovo)
 - `apps/frontend/src/app/components/basket-bonus/basket-bonus.ts`
 - `apps/frontend/src/app/components/remote-component/remote-component.ts/.html`
 - `apps/frontend/src/app/services/game.service.ts`
@@ -293,18 +293,17 @@ Verifiche del 6 novembre:
   (`LeaderboardDetailed` spotlight dopo 9 s, `Song` etichetta fase 1); i test Roulette sono
   stati rimossi insieme al round.
 - `RoundManagerService`: 13 test verdi, inclusi scaletta variata, Cavallo fuori dai round
-  con bonus dopo l'atto 3, Scommessa e Quota una volta, Casino in quattro manche dopo l'atto 1.
+  con bonus dopo l'atto 3, Tutto o metà e Quota una volta, Casino in quattro manche dopo l'atto 1.
 - Quota: build e test verdi; la banca numerica ha 34 domande in `QuestionBankService`.
-- Nessun test dal vivo: Cavallo bonus e Scommessa sono compilati ma **non osservati in esecuzione**.
+- Nessun test dal vivo: Cavallo bonus e Tutto o metà hanno test di modalità e payload, ma non sono ancora stati **osservati in esecuzione**.
 
-### Nota sulla Scommessa
-Il formato attuale è a **tre domande con incasso**: puntata (10 s), poi per ogni
-domanda 12 s di risposta e 6 s di reveal; dopo la prima e la seconda ci sono 8 s
-per INCASSARE o RISCHIARE, infine 7 s di finale. La banca parte dalla puntata e
-raddoppia a ogni esatta (100 → 200 → 400 → 800); una risposta sbagliata o mancata
-la brucia. Chi non sceglie entro gli 8 s incassa d'ufficio, così un telefono in
-tasca non penalizza la squadra. Non ci sono punti negativi: si rischia solo la
-banca potenziale.
+### Nota su Tutto o metà
+Cinque round, una categoria estratta per round e cinque livelli (100, 200, 300,
+400, 500) usabili una volta per squadra: al quinto round resta un solo livello.
+La domanda è quella del livello scelto, quindi è identica per chi ha scelto lo
+stesso livello. Giusta = +livello, sbagliata o scaduta = −metà del livello. La
+TV mostra per squadra livello scelto ed esito. La banca QUIZ copre i cinque
+livelli con le fasce facile/medio/difficile (15+ domande per fascia e categoria).
 
 L'idea alternativa (parimutuel con quote che si muovono sulle puntate delle
 squadre) resta sul tavolo, ma richiede una vera asta tra tavoli e non serve per
