@@ -6,24 +6,24 @@
 > in `TODO.md`. Se una riga non combacia col codice, vince il codice.
 
 Ultimo aggiornamento: 7 novembre 2026 (beta)
-Ultimo commit: 7 novembre — Tutto o metà (ex Scommessa) a cinque livelli, Azzardo in banca, scaletta a 5 atti. I commit precedenti sono del 5-6 novembre.
+Ultimo commit: 7 novembre — Ultima spiaggia a cinque livelli, Azzardo in banca, scaletta a 5 atti. I commit precedenti sono del 5-6 novembre.
 
 ---
 
 ## Cosa è cambiato il 6 novembre
 
 ### Scaletta: il Cavallo torna bonus, dentro Quiz e Time Buzzer
-- `ACT_DECKS` aggiornata come da descrizione: il Cavallo non è più un round, al suo posto l'atto 1 chiude con un Quiz e l'atto 5 usa il Time Buzzer.
-- Quota non è ancora implementata: il sesto round dell'atto 2 resta la Bomba finché la modalità non esiste.
+- `ACT_DECKS` aggiornata come da descrizione: il Cavallo non è più un round, al suo posto l.atto 1 chiude con Speed Rush e l.atto 5 usa il Time Buzzer.
+- Azzardo è implementata: quattro domande numeriche con fasce e gettoni, tre round (atti 2, 4 e 5).
 - `BonusType` contiene `CASINO` (atto 1), `CAVALLO` (atto 3) e `BIGLIE` (atto 4), più `BASKET`. Il Black Jack non è più un bonus: è diventato un round a turni.
 
 | Atto | Round | Sequenza |
 | --- | --- | --- |
-| 1 | 1–8 | Quiz · Musica · Bomba · Indovina chi · Timeline · Ruota · Quiz · Speed Rush |
-| 2 | 9–16 | Quiz · Indovina chi · Timeline · Arena · Musica · Quota · Time Buzzer · Air Hockey |
-| 3 | 17–24 | Quiz · Bomba · Timeline · Speed Rush · Musica · Air Hockey · Ruota · Arena |
-| 4 | 25–32 | Indovina chi · Quiz · Bomba · Musica · Time Buzzer · Timeline · Tutto o metà · Speed Rush |
-| 5 | 33–40 | Ruota · Quiz · Bomba · Time Buzzer · Timeline · Air Hockey · Musica · Arena |
+| 1 | 1–8 | Quiz · Musica · Bomba · Indovina chi · Timeline · Ruota · Ultima spiaggia · Speed Rush |
+| 2 | 9–16 | Quiz · Indovina chi · Timeline · Arena · Musica · Azzardo · Ultima spiaggia · Air Hockey |
+| 3 | 17–24 | Quiz · Bomba · Timeline · Speed Rush · Musica · Air Hockey · Ultima spiaggia · Arena |
+| 4 | 25–32 | Indovina chi · Quiz · Bomba · Musica · Time Buzzer · Timeline · Ultima spiaggia · Speed Rush |
+| 5 | 33–40 | Ruota · Quiz · Bomba · Time Buzzer · Timeline · Air Hockey · Ultima spiaggia · Arena |
 
 ### Casino: quattro manche in un solo bonus
 
@@ -55,16 +55,16 @@ Ultimo commit: 7 novembre — Tutto o metà (ex Scommessa) a cinque livelli, Azz
 - Il Cavallo è tornato nel file bonus: `bonus/cavallo-bonus/cavallo-bonus.ts` (classe `CavalloBonus`). Il giro come round (`mode/cavallo.mode.ts`, `games/cavallo/cavallo.ts`) è stato rimosso con import, template e tipo backend.
 - Script allineati: `rounds_check.py`, `live_devices_check.js`, `generate.py` e `merge_domande.py` non gestiscono più Chrono e Roulette.
 
-### Tutto o metà (ex Scommessa): cinque livelli
+### Ultima spiaggia: cinque livelli
 - Struttura: 5 round; per round 12 s per scegliere il livello, 15 s di domanda, 5 s di reveal; 5 s di finale.
 - Ogni squadra ha i livelli 100, 200, 300, 400, 500 e ne usa uno per round, mai due volte: al quinto round resta un solo livello. Chi non sceglie entro 12 s prende il livello più basso rimasto.
 - La domanda dipende dal livello: chi sceglie lo stesso livello riceve la stessa domanda a quattro risposte. Giusta = +livello, sbagliata o scaduta = −metà.
-- Backend: `scommessaPayload` serve cinque domande QUIZ della categoria estratta, una per livello (fasce facile 1-2, medio 3-4, difficile 5), con risposte incluse perché è la TV a condurre il round.
-- TV `features/games/scommessa/scommessa.component.ts`: livelli, livello scelto, risposte corrette per livello, esito e totale per squadra.
-- Remote: bottoni 100-500 (disabilitati se già usati), domanda del proprio livello, esito; lo stato arriva con `SCOMMESSA_STATE`.
+- Backend: `ultimaSpiaggiaPayload` serve cinque domande QUIZ della categoria estratta, una per livello (fasce facile 1-2, medio 3-4, difficile 5), con risposte incluse perché è la TV a condurre il round.
+- TV `features/games/ultima-spiaggia/ultima-spiaggia.component.ts`: livelli, livello scelto, risposte corrette per livello, esito e totale per squadra.
+- Remote: bottoni 100-500 (disabilitati se già usati), domanda del proprio livello, esito; lo stato arriva con `ULTIMA_SPIAGGIA_STATE`.
 - `scoring-rules.ts` e demo aggiornati: +100…+500, −50…−250, nessun incasso.
 
-### Quota (quattro domande numeriche)
+### Azzardo (quattro domande numeriche)
 - Quattro domande con risposta numerica, ognuna con quattro fasce e una quota: più stretta è la fascia, più alta è la quota.
 - Ogni squadra distribuisce 100 gettoni dal telefono; solo la fascia che contiene il valore paga i gettoni × quota, con tetto di 500 per domanda. Chi non invia gioca 25 gettoni per fascia.
 - La banca numerica (34 domande) e il calcolo di fasce e quote vivono in `QuestionBankService`: le risposte non arrivano ai telefoni prima del reveal.
@@ -188,13 +188,13 @@ Stile e tema restano quelli di ieri: cambia solo il movimento. Tutto vive in
 
 1. **QA dal vivo con backend acceso** (`127.0.0.1:8080`):
    - Cavallo bonus: voto categoria, otto domande, podio +300/+150/+75;
-   - Quota: fasce, gettoni, quote e cecchino;
-   - Tutto o metà (ex Scommessa): cinque livelli usati una volta, domanda del livello, esito +livello / −metà;
+   - Azzardo: fasce, gettoni, quote e cecchino;
+   - Ultima spiaggia: cinque livelli usati una volta, domanda del livello, esito +livello / −metà;
    - Casino: quattro manche in un solo bonus, dopo l'atto 1;
    - pausa, classifica, demo e auto-avanzamento come prima.
 2. **Ruota**: separare la fase di lancio dalla rivelazione (oggi le lettere si aprono durante il timer).
 3. **Altri 2 giochi bonus** (Memory, Tap/Swipe) se i quattro bonus non bastano.
-4. **Quota**: QA dal vivo di fasce, gettoni e quote.
+4. **Azzardo**: QA dal vivo di fasce, gettoni e quote.
 
 ---
 
@@ -258,8 +258,8 @@ Stato: canvas, canestro, punteggio e premi sono implementati; il gettone birra r
 - `apps/frontend/src/styles.css`
 - `apps/frontend/src/app/components/admin/admin.ts/.html/.css`
 - `apps/frontend/src/app/components/game-component/mode/cavallo.mode.ts` (nuovo)
-- `apps/frontend/src/app/features/games/scommessa/scommessa.mode.ts` (nuovo)
-- `apps/frontend/src/app/features/games/scommessa/scommessa.component.ts` (nuovo)
+- `apps/frontend/src/app/features/games/ultima-spiaggia/ultima-spiaggia.mode.ts` (nuovo)
+- `apps/frontend/src/app/features/games/ultima-spiaggia/ultima-spiaggia.component.ts` (nuovo)
 - `apps/frontend/src/app/components/basket-bonus/basket-bonus.ts`
 - `apps/frontend/src/app/components/remote-component/remote-component.ts/.html`
 - `apps/frontend/src/app/services/game.service.ts`
@@ -293,11 +293,11 @@ Verifiche del 6 novembre:
   (`LeaderboardDetailed` spotlight dopo 9 s, `Song` etichetta fase 1); i test Roulette sono
   stati rimossi insieme al round.
 - `RoundManagerService`: 13 test verdi, inclusi scaletta variata, Cavallo fuori dai round
-  con bonus dopo l'atto 3, Tutto o metà e Quota una volta, Casino in quattro manche dopo l'atto 1.
-- Quota: build e test verdi; la banca numerica ha 34 domande in `QuestionBankService`.
-- Nessun test dal vivo: Cavallo bonus e Tutto o metà hanno test di modalità e payload, ma non sono ancora stati **osservati in esecuzione**.
+  con bonus dopo l'atto 3, Ultima spiaggia e Azzardo una volta, Casino in quattro manche dopo l'atto 1.
+- Azzardo: build e test verdi; la banca numerica ha 34 domande in `QuestionBankService`.
+- Nessun test dal vivo: Cavallo bonus e Ultima spiaggia hanno test di modalità e payload, ma non sono ancora stati **osservati in esecuzione**.
 
-### Nota su Tutto o metà
+### Nota su Ultima spiaggia
 Cinque round, una categoria estratta per round e cinque livelli (100, 200, 300,
 400, 500) usabili una volta per squadra: al quinto round resta un solo livello.
 La domanda è quella del livello scelto, quindi è identica per chi ha scelto lo

@@ -69,17 +69,17 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     missed: 'gol per l’avversario',
     note: 'Il set si chiude a 7 gol; il perdente riceve +200 di consolazione. Risposte rapide accorciano il tempo dell’avversario.',
   },
-  QUOTA: {
+  AZZARDO: {
     correct: 'puntata × quota (×2 facile, ×3 media, ×4 difficile)',
     wrong: '−puntata × 100/80/60/40%',
     missed: '0: chi non risponde non punta',
     note: 'Azzardo: quattro manche numeriche (celebrità, canzoni, paesi, storia) con puntate reali da 100, 200 o 300 punti. Mai sotto zero.',
   },
-  SCOMMESSA: {
+  ULTIMA_SPIAGGIA: {
     correct: '+100 / +200 / +300 / +400 / +500',
     wrong: '−50 / −100 / −150 / −200 / −250',
     missed: '−metà del livello scelto',
-    note: 'Tutto o metà: cinque round, ogni livello 100-500 si usa una volta per squadra; la domanda dipende dal livello e la sbagliata costa metà.',
+    note: 'Ultima spiaggia: cinque round, ogni livello 100-500 si usa una volta per squadra; la domanda dipende dal livello e la sbagliata costa metà.',
   },
   BLACKJACK: {
     correct: '+250 a mano, +500 col naturale',

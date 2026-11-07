@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import { QuotaMode } from './quota.mode';
+import { AzzardoMode } from './azzardo.mode';
 
 const QUESTIONS = [
   {
@@ -36,7 +36,7 @@ const QUESTIONS = [
   },
 ];
 
-describe('QuotaMode', () => {
+describe('AzzardoMode', () => {
   afterEach(() => {
     vi.useRealTimers();
   });
@@ -50,9 +50,9 @@ describe('QuotaMode', () => {
     const awards: Array<{ playerName: string; points: number }> = [];
     const broadcasts: any[] = [];
 
-    const mode = new QuotaMode();
+    const mode = new AzzardoMode();
     mode.setConfig({
-      type: 'QUOTA',
+      type: 'AZZARDO',
       payload: {},
       gameId: 1,
       activePlayers: ['Anna', 'Bruno', 'Carla'],
@@ -79,19 +79,19 @@ describe('QuotaMode', () => {
 
     const question = QUESTIONS[0];
     mode.handlePartyEvent({
-      action: 'QUOTA_ACTION',
+      action: 'AZZARDO_ACTION',
       playerName: 'Anna',
       value: { stake: 200, choice: question.answerIndex },
     });
     mode.handlePartyEvent({
-      action: 'QUOTA_ACTION',
+      action: 'AZZARDO_ACTION',
       playerName: 'Bruno',
       value: { stake: 300, choice: (question.answerIndex + 1) % 4 },
     });
 
     // Un secondo invio di Anna nella stessa manche non deve cambiare la puntata.
     mode.handlePartyEvent({
-      action: 'QUOTA_ACTION',
+      action: 'AZZARDO_ACTION',
       playerName: 'Anna',
       value: { stake: 300, choice: 0 },
     });
@@ -126,7 +126,7 @@ describe('QuotaMode', () => {
     ]);
     expect(Object.values(wallet).every((points) => points >= 0)).toBe(true);
 
-    const lastState = broadcasts.filter((event) => event.action === 'QUOTA_STATE').at(-1)?.state;
+    const lastState = broadcasts.filter((event) => event.action === 'AZZARDO_STATE').at(-1)?.state;
     expect(lastState.phase).toBe('REVEAL');
     expect(lastState.rows).toHaveLength(3);
 
@@ -173,9 +173,9 @@ describe('QuotaMode', () => {
     ];
 
     const wallet: Record<string, number> = { Anna: 1000, Bruno: 1000, Carla: 1000 };
-    const mode = new QuotaMode();
+    const mode = new AzzardoMode();
     mode.setConfig({
-      type: 'QUOTA',
+      type: 'AZZARDO',
       payload: {},
       gameId: 1,
       activePlayers: ['Anna', 'Bruno', 'Carla'],
@@ -199,7 +199,7 @@ describe('QuotaMode', () => {
       const question = QUESTIONS[index];
       for (const [playerName, choice] of Object.entries(step.bets)) {
         mode.handlePartyEvent({
-          action: 'QUOTA_ACTION',
+          action: 'AZZARDO_ACTION',
           playerName,
           value: {
             stake: choice.stake,
@@ -251,9 +251,9 @@ describe('QuotaMode', () => {
 
     for (const testCase of cases) {
       const wallet: Record<string, number> = { Anna: 1000, Bruno: 1000 };
-      const mode = new QuotaMode();
+      const mode = new AzzardoMode();
       mode.setConfig({
-        type: 'QUOTA',
+        type: 'AZZARDO',
         payload: {},
         gameId: 1,
         activePlayers: ['Anna', 'Bruno'],
@@ -275,12 +275,12 @@ describe('QuotaMode', () => {
 
       const question = QUESTIONS[0];
       mode.handlePartyEvent({
-        action: 'QUOTA_ACTION',
+        action: 'AZZARDO_ACTION',
         playerName: 'Anna',
         value: { stake: 100, choice: question.answerIndex },
       });
       mode.handlePartyEvent({
-        action: 'QUOTA_ACTION',
+        action: 'AZZARDO_ACTION',
         playerName: 'Bruno',
         value: { stake: 100, choice: (question.answerIndex + 1) % 4 },
       });

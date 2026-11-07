@@ -15,12 +15,12 @@ import {
 } from './azzardo-rules';
 
 /** Fasi di Azzardo: le comuni arrivano da `GamePhase`. */
-export const QuotaPhase = {
+export const AzzardoPhase = {
   BET: 'BET',
   REVEAL: GamePhase.REVEAL,
   FINALE: GamePhase.FINALE,
 } as const;
-export type QuotaPhase = (typeof QuotaPhase)[keyof typeof QuotaPhase];
+export type AzzardoPhase = (typeof AzzardoPhase)[keyof typeof AzzardoPhase];
 
 export interface AzzardoQuestion {
   question: string;
@@ -50,7 +50,7 @@ const REVEAL_SECONDS = 7;
 const FINALE_SECONDS = 5;
 
 /**
- * AZZARDO (ex Quota) — quattro manche, una per categoria.
+ * AZZARDO — quattro manche, una per categoria.
  *
  * La serata lo incontra tre volte, sempre più difficile: il livello arriva dal
  * backend (facile, media, difficile) e vale ×2, ×3, ×4. In ogni manche si
@@ -61,8 +61,8 @@ const FINALE_SECONDS = 5;
  * zero: la puntata è tagliata sui punti posseduti e la perdita su quelli che
  * restano.
  */
-export class QuotaMode extends GameModeBase {
-  readonly type: GameModeType = 'QUOTA';
+export class AzzardoMode extends GameModeBase {
+  readonly type: GameModeType = 'AZZARDO';
   readonly timerDuration = AZZARDO_MANCHES * (BET_SECONDS + REVEAL_SECONDS) + FINALE_SECONDS;
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
@@ -70,7 +70,7 @@ export class QuotaMode extends GameModeBase {
   private players: string[] = [];
   private questions: AzzardoQuestion[] = [];
   private level = signal<AzzardoLevel>(2);
-  private phase = signal<QuotaPhase>(QuotaPhase.BET);
+  private phase = signal<AzzardoPhase>(AzzardoPhase.BET);
   private secondsLeft = signal(BET_SECONDS);
   private rows = signal<AzzardoRow[]>([]);
   private manche = signal(0);
@@ -115,11 +115,11 @@ export class QuotaMode extends GameModeBase {
 
   /** Puntata e risposta della manche: una sola per squadra. */
   handlePartyEvent(event: any): void {
-    if (event?.action !== 'QUOTA_ACTION') return;
+    if (event?.action !== 'AZZARDO_ACTION') return;
 
     const playerName = String(event.playerName ?? '').trim();
     if (!playerName || !this.players.includes(playerName)) return;
-    if (this.phase() !== QuotaPhase.BET || this.stakes.has(playerName)) return;
+    if (this.phase() !== AzzardoPhase.BET || this.stakes.has(playerName)) return;
 
     const question = this.questions[this.manche()];
     if (!question) return;
@@ -173,7 +173,7 @@ export class QuotaMode extends GameModeBase {
   private resetRound(): void {
     this.finished = false;
     this.manche.set(0);
-    this.phase.set(QuotaPhase.BET);
+    this.phase.set(AzzardoPhase.BET);
     this.secondsLeft.set(BET_SECONDS);
     this.stakes.clear();
     this.points.clear();
@@ -192,7 +192,7 @@ export class QuotaMode extends GameModeBase {
 
     this.stakes.clear();
     this.points.clear();
-    this.phase.set(QuotaPhase.BET);
+    this.phase.set(AzzardoPhase.BET);
     this.secondsLeft.set(BET_SECONDS);
     this.syncRows();
     this.publish();
@@ -200,7 +200,7 @@ export class QuotaMode extends GameModeBase {
   }
 
   private closeBetIfComplete(): void {
-    if (this.phase() !== QuotaPhase.BET) return;
+    if (this.phase() !== AzzardoPhase.BET) return;
     if (!this.players.length) return;
     if (!this.players.every((playerName) => this.stakes.has(playerName))) return;
     this.clearClock();
@@ -208,7 +208,7 @@ export class QuotaMode extends GameModeBase {
   }
 
   private revealManche(): void {
-    if (this.phase() !== QuotaPhase.BET) return;
+    if (this.phase() !== AzzardoPhase.BET) return;
     this.clearClock();
 
     const question = this.questions[this.manche()];
@@ -243,7 +243,7 @@ export class QuotaMode extends GameModeBase {
       }
     });
 
-    this.phase.set(QuotaPhase.REVEAL);
+    this.phase.set(AzzardoPhase.REVEAL);
     this.secondsLeft.set(REVEAL_SECONDS);
     this.syncRows();
     this.publish();
@@ -258,9 +258,9 @@ export class QuotaMode extends GameModeBase {
   }
 
   private finale(): void {
-    if (this.phase() === QuotaPhase.FINALE) return;
+    if (this.phase() === AzzardoPhase.FINALE) return;
     this.clearClock();
-    this.phase.set(QuotaPhase.FINALE);
+    this.phase.set(AzzardoPhase.FINALE);
     this.secondsLeft.set(FINALE_SECONDS);
     this.syncRows();
     this.publish();
@@ -292,12 +292,12 @@ export class QuotaMode extends GameModeBase {
   }
 
   private message(text: string): void {
-    this.config.onBroadcast?.({ action: WsAction.QUOTA_MESSAGE, text });
+    this.config.onBroadcast?.({ action: WsAction.AZZARDO_MESSAGE, text });
   }
 
   private publish(): void {
     this.config.onBroadcast?.({
-      action: WsAction.QUOTA_STATE,
+      action: WsAction.AZZARDO_STATE,
       state: this.getDisplayData(),
     });
   }
@@ -344,7 +344,7 @@ export class QuotaMode extends GameModeBase {
 
   getDisplayData() {
     const current = this.questions[this.manche()];
-    const revealed = this.phase() === QuotaPhase.REVEAL || this.phase() === QuotaPhase.FINALE;
+    const revealed = this.phase() === AzzardoPhase.REVEAL || this.phase() === AzzardoPhase.FINALE;
 
     return {
       phase: this.phase(),

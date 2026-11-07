@@ -12,6 +12,6 @@ public enum GameType {
     BOMBA,
     SPEED_RUSH,
     AIR_HOCKEY_BATTLE,
-    SCOMMESSA,
-    QUOTA
+    ULTIMA_SPIAGGIA,
+    AZZARDO
 }

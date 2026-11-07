@@ -98,7 +98,7 @@ export class BlackjackMode extends GameModeBase {
   }
 
   protected async onStart(): Promise<void> {
-    // `activePlayers` arriva dopo `initialize`: si rilegge qui, come la Quota.
+    // `activePlayers` arriva dopo `initialize`: si rilegge qui, come la Azzardo.
     this.players = [...(this.config.activePlayers ?? [])];
     this.resetRound();
 

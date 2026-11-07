@@ -1,13 +1,13 @@
-import { QuotaPhase } from './quota.mode';
+import { AzzardoPhase } from './azzardo.mode';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 /**
- * TV di AZZARDO (ex Quota): quattro manche numeriche, una per categoria.
+ * TV di AZZARDO: quattro manche numeriche, una per categoria.
  * Il mode manda lo stato già deciso: qui si disegna soltanto.
  */
 @Component({
-  selector: 'app-quota',
+  selector: 'app-azzardo',
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -15,8 +15,8 @@ import { CommonModule } from '@angular/common';
       <header class="az-head">
         <div class="az-kicker">📊 AZZARDO</div>
         <h2 class="az-title">
-          @if (displayData?.phase === QuotaPhase.BET) { PUNTA SULLA RISPOSTA }
-          @else if (displayData?.phase === QuotaPhase.REVEAL) { IL VALORE È }
+          @if (displayData?.phase === AzzardoPhase.BET) { PUNTA SULLA RISPOSTA }
+          @else if (displayData?.phase === AzzardoPhase.REVEAL) { IL VALORE È }
           @else { CLASSIFICA DEL ROUND }
         </h2>
         <div class="az-meta">
@@ -26,20 +26,20 @@ import { CommonModule } from '@angular/common';
         </div>
       </header>
 
-      @if (displayData?.phase !== QuotaPhase.FINALE) {
+      @if (displayData?.phase !== AzzardoPhase.FINALE) {
         <div class="az-question">{{ displayData?.question }}</div>
         <div class="az-category">{{ displayData?.category || 'AZZARDO' }} · in {{ displayData?.unit }}</div>
 
         <div class="az-options">
           @for (option of displayData?.options ?? []; track $index; let i = $index) {
-            <div class="az-option" [class.correct]="displayData?.phase === QuotaPhase.REVEAL && i === displayData?.answerIndex">
+            <div class="az-option" [class.correct]="displayData?.phase === AzzardoPhase.REVEAL && i === displayData?.answerIndex">
               <span class="az-letter">{{ letter(i) }}</span>
               <b class="az-number">{{ option }}</b>
             </div>
           }
         </div>
 
-        @if (displayData?.phase === QuotaPhase.BET) {
+        @if (displayData?.phase === AzzardoPhase.BET) {
           <p class="az-hint">
             Puntata 100, 200 o 300 punti reali: vince chi prende l'opzione giusta e incassa
             puntata × {{ displayData?.odds }}. Sbagliare costa il {{ lossPercent() }}% della puntata.
@@ -53,7 +53,7 @@ import { CommonModule } from '@angular/common';
           </div>
         }
 
-        @if (displayData?.phase === QuotaPhase.REVEAL) {
+        @if (displayData?.phase === AzzardoPhase.REVEAL) {
           <div class="az-value">VALORE: {{ displayData?.value }} {{ displayData?.unit }}</div>
           @if (displayData?.best; as best) {
             <div class="az-best">🎯 COLPO GROSSO: {{ best.playerName }} · +{{ best.points }}</div>
@@ -118,9 +118,9 @@ import { CommonModule } from '@angular/common';
     @keyframes az-pulse { 50% { transform: scale(1.08); opacity: .7; } }
   `],
 })
-export class Quota {
+export class Azzardo {
   /** Fasi del gioco, disponibili anche nel template. */
-  readonly QuotaPhase = QuotaPhase;
+  readonly AzzardoPhase = AzzardoPhase;
 
   @Input() displayData: any;
   @Input() timer = 0;

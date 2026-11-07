@@ -47,7 +47,7 @@ Si mescolano in un mazzo (senza ripetizioni consecutive dello stesso tipo):
 ## 7. Blackjack
 Chi sbaglia perde. Si punta 100, 200 o 300 punti reali (mai sotto zero). Blackjack naturale paga il doppio. Sulla TV, accanto al banco, si vede la mano della squadra che gioca in quel turno, con effetti da bar (gettoni, "CARTA!", "LASCIA!"). Nota: nell'ultimo pull `BonusType` ha `CASINO`, `BASKET`, `CAVALLO`, `BIGLIE`: verificare dove sta il blackjack (manche del bonus Casino o round) e uniformare.
 
-## 8. Quota: nuovo nome "Azzardo"
+## 8. Azzardo
 Tre volte nella serata, con difficoltà crescente: 1 facile/media, 2 media, 3 difficile. Ogni volta 4 manche, una per categoria:
 1. Anno di nascita di una celebrità.
 2. Anno di uscita di una canzone.
@@ -56,13 +56,13 @@ Tre volte nella serata, con difficoltà crescente: 1 facile/media, 2 media, 3 di
 
 Le quattro opzioni sono molto vicine tra loro. Puntata sui punti veri: 100, 200 o 300 per manche. Vincita = puntata × quota (facile 2, media 3, difficile 4). Perdita = puntata × moltiplicatore che scende lungo le manche (100% alla prima, poi 80%, 60%, 40%): chi perde presto perde di più, chi resiste perde meno. Mai sotto zero. Serve una banca di almeno 30 domande per categoria e livello.
 
-## 9. Scommessa: nuovo nome "Tutto o metà"
+## 9. Ultima spiaggia
 5 round. In ogni round viene estratta una categoria. Ogni squadra sceglie per quel round un livello da 100 a 500; **ogni livello si usa una sola volta per squadra in tutta la partita**, quindi all'ultimo round resta un solo livello. Ogni telefono ha la propria domanda a 4 risposte, uguale per chiunque abbia scelto lo stesso livello. Giusta = +valore, sbagliata o scaduta = −metà del valore. La TV mostra per squadra livello scelto ed esito. Servono domande a 5 livelli per ogni categoria (almeno 4 per livello).
 
 ## 10. Biglie
 La visione di gara va bene. Cambiare solo il percorso: più curve, tornanti, deviazioni anche doppie (bivi che si ricongiungono), per creare incertezza. Con Matter si fa con segmenti inclinati, perni e bivi; la gara resta decisa dal seme scelto prima (simulazione nascosta, poi replay).
 
 ## 11. Consigli
-- Prima di tutto la banca domande: i giochi nuovi ne hanno bisogno in grande quantità (Vero/Falso, 3 opzioni per Bomba, numeriche per Azzardo, 5 livelli per Tutto o metà, 60 personaggi, parole inglesi, bandiere).
+- Prima di tutto la banca domande: i giochi nuovi ne hanno bisogno in grande quantità (Vero/Falso, 3 opzioni per Bomba, numeriche per Azzardo, 5 livelli per Ultima spiaggia, 60 personaggi, parole inglesi, bandiere).
 - Tenere un solo file di costanti per punteggi e durate (`scoring-rules.ts`) così si regola il bilanciamento in un punto.
 - Dopo il refactor, una prova completa con 8-10 telefoni prima di aggiungere altro.

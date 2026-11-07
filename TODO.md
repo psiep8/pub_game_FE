@@ -37,11 +37,11 @@ poi i giochi.
       `WsAction`. Sono oggetti `as const` (non `enum` TS) così i valori restano le stringhe che
       arrivano dal server e i confronti esistenti compilano senza cast.
 - [x] Adozione completata: `WsAction` in TV, admin, telefono e modalità; `PlayerStatus` sul
-      telefono; fasi locali come oggetti `as const` in cavallo, biglie, casino, scommessa, quota e
+      telefono; fasi locali come oggetti `as const` in cavallo, biglie, casino, ultima spiaggia, azzardo e
       blackjack, con le fasi comuni ereditate da `GamePhase`; confronti `REVEAL`/`FINALE` convertiti
-      in `game-component`, nelle TV di quota/scommessa/blackjack e nel modello del round.
+      in `game-component`, nelle TV di azzardo/ultima spiaggia/blackjack e nel modello del round.
       Fuori da `shared/enums` non resta nessun letterale `'REVEAL'`/`'FINALE'`; i `'WAITING'` e
-      `'PLAYING'` ancora presenti sono union di stato (admin, Blackjack, Scommessa, basket legacy),
+      `'PLAYING'` ancora presenti sono union di stato (admin, Blackjack, Ultima spiaggia, basket legacy),
       non fasi, e vanno convertiti con i rispettivi enum di stato in un passo a parte.
 - [x] Nomi dei file: ogni componente in `*.component.ts` (26 componenti, con `html`/`css`/`spec`
       allineati) e route lazy con `loadComponent`: TV, telefono, admin, basket e bonus-preview
@@ -99,14 +99,14 @@ poi i giochi.
 - [x] Verificato: il blackjack è un round della scaletta, non una manche del bonus Casino.
       `BonusType` contiene solo CASINO, BASKET, CAVALLO e BIGLIE, quindi resta invariato.
 
-### 8. Quota → "Azzardo"
+### 8. Azzardo
 - [x] Tre volte in serata con difficoltà crescente (facile, media, difficile), 4 manche:
       celebrità, canzone, nazione, evento storico; 4 opzioni molto vicine.
 - [x] Puntata 100/200/300, vincita × quota (2 / 3 / 4), perdita con moltiplicatore 100 → 80 → 60 → 40%,
       mai sotto zero.
 - [x] Banca ≥ 30 domande per categoria e livello (360 in `questions/azzardo-it.json`).
 
-### 9. Scommessa → "Tutto o metà"
+### 9. Ultima spiaggia
 - [x] 5 round, livelli 100-500 usabili una sola volta per squadra; domanda uguale per chi sceglie
       lo stesso livello; giusta +valore, sbagliata o scaduta −metà.
 - [x] Domande a 5 livelli per ogni categoria: una per livello, dalle fasce facile/medio/difficile
@@ -118,7 +118,7 @@ poi i giochi.
 
 ### 11. Trasversale
 - [ ] Banca domande prima di tutto: Vero/Falso, 3 opzioni per Bomba, numeriche per Azzardo,
-      5 livelli per Tutto o metà, 60 personaggi, parole inglesi, bandiere.
+      5 livelli per Ultima spiaggia, 60 personaggi, parole inglesi, bandiere.
 - [ ] Un solo `scoring-rules.ts` per punteggi e durate.
 - [ ] Prova completa con 8-10 telefoni prima di aggiungere altro.
 
@@ -138,8 +138,8 @@ poi i giochi.
 - [x] **Round classico riparato**: `POST /games/{id}/round` rispondeva 500 perché la tabella
       `questions` nasce vuota; ora pesca dalla banca.
 - [x] **Tipi di gioco allineati al frontend**: QUIZ, IMAGE_BLUR, MUSIC, WHEEL_OF_FORTUNE,
-      TIMELINE, BOMBA, SPEED_RUSH, AIR_HOCKEY, ARENA, TIME_BUZZER, BLACKJACK, SCOMMESSA,
-      QUOTA. Chrono, Vero/Falso e Roulette non sono più round; il Cavallo è tornato bonus.
+      TIMELINE, BOMBA, SPEED_RUSH, AIR_HOCKEY, ARENA, TIME_BUZZER, BLACKJACK, ULTIMA_SPIAGGIA,
+      AZZARDO. Chrono, Vero/Falso e Roulette non sono più round; il Cavallo è tornato bonus.
 - [x] **Gara di urla per partita**: stato e reset separati per `gameId` (prima due tavoli si
       mescolavano).
 - [x] **WebSocket non rimbalza più l'esito del telefono**: passano solo `playerName`,
@@ -182,7 +182,7 @@ poi i giochi.
 ## ⏳ In corso / da fare
 
 - [ ] **QA dei round nuovi**: Cavallo (bonus dopo l'atto 3, 8 domande da 15 s con TV a
-      countdown e tabellone), Tutto o metà (atto 4), Quota (atto 2) e Casino (quattro manche
+      countdown e tabellone), Ultima spiaggia (atto 4), Azzardo (atto 2) e Casino (quattro manche
       in un solo bonus, dopo l'atto 1). Compilati, mai visti dal vivo.
 - [ ] **Generare la banca vera sull'altra macchina** (Qwen locale, `--per-category 40`),
       copiare `questions-it.json`, controllare il log d'avvio

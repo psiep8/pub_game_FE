@@ -12,8 +12,8 @@ const PLAYABLE_TYPES: GameModeType[] = [
   'SPEED_RUSH',
   'AIR_HOCKEY_BATTLE',
   'TIME_BUZZER',
-  'SCOMMESSA',
-  'QUOTA',
+  'ULTIMA_SPIAGGIA',
+  'AZZARDO',
   'BLACKJACK',
 ];
 
@@ -77,12 +77,22 @@ describe('RoundManagerService', () => {
     }
   });
 
-  it('should play the wheel three times and close with the arena', () => {
+  it('should play the wheel once and close with the arena', () => {
     const types: GameModeType[] = [];
     for (let i = 0; i < 40; i++) types.push(service.startNewRound());
 
-    expect(types.filter((type) => type === 'WHEEL_OF_FORTUNE')).toHaveLength(3);
+    expect(types.filter((type) => type === 'WHEEL_OF_FORTUNE')).toHaveLength(1);
     expect(types[39]).toBe('ARENA');
+  });
+
+  it('should fix Ultima spiaggia at the penultimate round of every act', () => {
+    const types: GameModeType[] = [];
+    for (let i = 0; i < 40; i++) types.push(service.startNewRound());
+
+    for (let act = 0; act < 5; act++) {
+      expect(types[act * 8 + 6]).toBe('ULTIMA_SPIAGGIA');
+    }
+    expect(types.filter((type) => type === 'ULTIMA_SPIAGGIA')).toHaveLength(5);
   });
 
   it('should show a quick leaderboard mid-act and a detailed one at the end of the act', () => {
@@ -124,10 +134,10 @@ describe('RoundManagerService', () => {
 
     expect(types.filter((type) => (type as string) === 'CAVALLO')).toHaveLength(0);
     expect(types.filter((type) => type === 'QUIZ')).toHaveLength(5);
-    expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(3);
-    expect(types.filter((type) => type === 'SCOMMESSA')).toHaveLength(1);
+    expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(2);
+    expect(types.filter((type) => type === 'ULTIMA_SPIAGGIA')).toHaveLength(5);
     // Azzardo esce tre volte, una per livello di difficolta.
-    expect(types.filter((type) => type === 'QUOTA')).toHaveLength(3);
+    expect(types.filter((type) => type === 'AZZARDO')).toHaveLength(3);
     expect(types.filter((type) => type === 'BOMBA')).toHaveLength(3);
   });
 

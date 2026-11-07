@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import { ScommessaMode } from './scommessa.mode';
+import { UltimaSpiaggiaMode } from './ultima-spiaggia.mode';
 
 const QUESTIONS = [100, 200, 300, 400, 500].map((level) => ({
   level,
@@ -9,7 +9,7 @@ const QUESTIONS = [100, 200, 300, 400, 500].map((level) => ({
   correctAnswer: 'Roma',
 }));
 
-describe('ScommessaMode (Tutto o metà)', () => {
+describe('UltimaSpiaggiaMode (Ultima spiaggia)', () => {
   afterEach(() => {
     vi.useRealTimers();
   });
@@ -18,9 +18,9 @@ describe('ScommessaMode (Tutto o metà)', () => {
     vi.useFakeTimers();
 
     const wallet: Record<string, number> = { Anna: 1000, Bruno: 1000 };
-    const mode = new ScommessaMode();
+    const mode = new UltimaSpiaggiaMode();
     mode.setConfig({
-      type: 'SCOMMESSA',
+      type: 'ULTIMA_SPIAGGIA',
       payload: {},
       gameId: 1,
       activePlayers: ['Anna', 'Bruno'],
@@ -51,7 +51,7 @@ describe('ScommessaMode (Tutto o metà)', () => {
       // Anna non può riusare il livello 100 del primo round.
       if (index === 1) {
         mode.handlePartyEvent({
-          action: 'SCOMMESSA_ACTION', playerName: 'Anna', kind: 'LEVEL', value: 100,
+          action: 'ULTIMA_SPIAGGIA_ACTION', playerName: 'Anna', kind: 'LEVEL', value: 100,
         });
         const row = mode.getDisplayData().rows.find((entry: any) => entry.playerName === 'Anna');
         expect(row).toMatchObject({ level: null });
@@ -59,7 +59,7 @@ describe('ScommessaMode (Tutto o metà)', () => {
 
       for (const [playerName, pick] of Object.entries(round.picks)) {
         mode.handlePartyEvent({
-          action: 'SCOMMESSA_ACTION', playerName, kind: 'LEVEL', value: pick.level,
+          action: 'ULTIMA_SPIAGGIA_ACTION', playerName, kind: 'LEVEL', value: pick.level,
         });
       }
 
@@ -75,7 +75,7 @@ describe('ScommessaMode (Tutto o metà)', () => {
         const correctIndex = ['Roma', 'Milano', 'Napoli', 'Torino'].indexOf('Roma');
         const answer = pick.correct ? correctIndex : (correctIndex + 1) % 4;
         mode.handlePartyEvent({
-          action: 'SCOMMESSA_ACTION', playerName, kind: 'ANSWER', value: answer,
+          action: 'ULTIMA_SPIAGGIA_ACTION', playerName, kind: 'ANSWER', value: answer,
         });
       }
 
@@ -116,9 +116,9 @@ describe('ScommessaMode (Tutto o metà)', () => {
     vi.useFakeTimers();
 
     const wallet: Record<string, number> = { Anna: 1000 };
-    const mode = new ScommessaMode();
+    const mode = new UltimaSpiaggiaMode();
     mode.setConfig({
-      type: 'SCOMMESSA',
+      type: 'ULTIMA_SPIAGGIA',
       payload: {},
       gameId: 1,
       activePlayers: ['Anna'],

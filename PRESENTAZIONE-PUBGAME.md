@@ -69,11 +69,11 @@ propria memoria.
 
 | Atto | Round | Giochi in ordine |
 | --- | --- | --- |
-| **1** | 1–8 | Quiz · Musica · Bomba · Indovina chi · Black Jack · Timeline · Ruota della Fortuna · Speed Rush |
-| **2** | 9–16 | Quota · Quiz · Indovina chi · Black Jack · Musica · Timeline · Time Buzzer · Air Hockey |
-| **3** | 17–24 | Timeline · Black Jack · Musica · Speed Rush · Indovina chi · Quiz · Ruota della Fortuna · **Arena** |
-| **4** | 25–32 | Indovina chi · Quiz · Bomba · Musica · Time Buzzer · Timeline · Tutto o metà · Speed Rush |
-| **5** | 33–40 | Ruota della Fortuna · Quiz · Bomba · Time Buzzer · Quota · Air Hockey · Musica · **Arena** |
+| **1** | 1–8 | Quiz · Musica · Bomba · Indovina chi · Black Jack · Timeline · Ultima spiaggia · Speed Rush |
+| **2** | 9–16 | Azzardo · Quiz · Indovina chi · Black Jack · Musica · Timeline · Ultima spiaggia · Air Hockey |
+| **3** | 17–24 | Timeline · Black Jack · Musica · Speed Rush · Indovina chi · Quiz · Ultima spiaggia · **Arena** |
+| **4** | 25–32 | Indovina chi · Quiz · Bomba · Musica · Time Buzzer · Timeline · Ultima spiaggia · Speed Rush |
+| **5** | 33–40 | Ruota della Fortuna · Quiz · Bomba · Time Buzzer · Azzardo · Air Hockey · Ultima spiaggia · **Arena** |
 
 Classifiche:
 

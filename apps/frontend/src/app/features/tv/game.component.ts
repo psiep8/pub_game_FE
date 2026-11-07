@@ -48,9 +48,9 @@ import { TimeBuzzer } from '../games/time-buzzer/time-buzzer.component';
 import { Bomba } from '../games/bomba/bomba.component';
 import { SpeedRush } from '../games/speed-rush/speed-rush.component';
 import { AirHockeyBattle } from '../games/air-hockey-battle/air-hockey-battle.component';
-import { Scommessa } from '../games/scommessa/scommessa.component';
-import { Quota } from '../games/quota/quota.component';
-import { levelForOccurrence } from '../games/quota/azzardo-rules';
+import { UltimaSpiaggia } from '../games/ultima-spiaggia/ultima-spiaggia.component';
+import { Azzardo } from '../games/azzardo/azzardo.component';
+import { levelForOccurrence } from '../games/azzardo/azzardo-rules';
 import { Blackjack } from '../games/blackjack/blackjack.component';
 import { DEMO_SCRIPTS, DEMO_SCENE_COUNT, DemoScript } from './demo-scripts';
 import { scoringRuleFor } from '../../shared/models/scoring-rules';
@@ -78,8 +78,8 @@ import { BiglieBonus } from '../bonus/biglie/biglie-bonus.component';
     Bomba,
     SpeedRush,
     AirHockeyBattle,
-    Scommessa,
-    Quota,
+    UltimaSpiaggia,
+    Azzardo,
     Blackjack,
     CasinoBonus,
     CavalloBonus,
@@ -185,8 +185,8 @@ export class GameComponent implements OnInit, OnDestroy {
     'SPEED_RUSH',
     'AIR_HOCKEY_BATTLE',
     'ARENA',
-    'SCOMMESSA',
-    'QUOTA',
+    'ULTIMA_SPIAGGIA',
+    'AZZARDO',
   ]);
 
   remoteUrl = `${environment.frontendUrl}/play`;
@@ -349,7 +349,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
       // 🆕 Giochi simultanei: risultati dal server e progressi dai telefoni.
-      if (mode && ['TIMELINE_RESULT', 'TIME_BUZZER_ANSWER', 'SPEED_RUSH_PROGRESS', 'AIR_HOCKEY_BATTLE_ANSWER', 'SCOMMESSA_ACTION', 'QUOTA_ACTION', 'BLACKJACK_ACTION'].includes(status.action)) {
+      if (mode && ['TIMELINE_RESULT', 'TIME_BUZZER_ANSWER', 'SPEED_RUSH_PROGRESS', 'AIR_HOCKEY_BATTLE_ANSWER', 'ULTIMA_SPIAGGIA_ACTION', 'AZZARDO_ACTION', 'BLACKJACK_ACTION'].includes(status.action)) {
         mode.handlePartyEvent?.(status);
         this.cdr.detectChanges();
       }
@@ -672,12 +672,12 @@ export class GameComponent implements OnInit, OnDestroy {
         // Timeline pesca solo categorie con eventi catalogabili in ordine
         // temporale; il backend filtra gli eventi su questa categoria.
         return this.pickTimelineCategoryName();
-      case 'SCOMMESSA':
-        // Tutto o metà estrae una categoria per round: servono cinque
+      case 'ULTIMA_SPIAGGIA':
+        // Ultima spiaggia estrae una categoria per round: servono cinque
         // domande della stessa categoria, una per livello.
         return this.pickCategoryName();
       case 'TIME_BUZZER':
-      case 'QUOTA':
+      case 'AZZARDO':
       case 'BLACKJACK':
       case 'BOMBA':
       case 'SPEED_RUSH':
@@ -707,8 +707,8 @@ export class GameComponent implements OnInit, OnDestroy {
    */
   /** Livello di Azzardo: la serata lo incontra tre volte, sempre più difficile. */
   private azzardoDifficulty(type: GameModeType): string {
-    if (type !== 'QUOTA') return 'medio';
-    const played = this.roundManager.getRoundStats().distribution['QUOTA'] ?? 0;
+    if (type !== 'AZZARDO') return 'medio';
+    const played = this.roundManager.getRoundStats().distribution['AZZARDO'] ?? 0;
     const level = levelForOccurrence(played + 1);
     return level === 1 ? 'facile' : level === 3 ? 'difficile' : 'medio';
   }
@@ -731,9 +731,9 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'TIMELINE';
       case 'TIME_BUZZER':
         return 'TIME BUZZER';
-      case 'SCOMMESSA':
-        return 'TUTTO O METÀ';
-      case 'QUOTA':
+      case 'ULTIMA_SPIAGGIA':
+        return 'ULTIMA SPIAGGIA';
+      case 'AZZARDO':
         return 'AZZARDO';
       case 'BLACKJACK':
         return 'BLACK JACK';
@@ -1417,9 +1417,9 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'Ordine corretto mostrato in TV al reveal';
       case 'TIME_BUZZER':
         return 'Tempo bersaglio mostrato in TV';
-      case 'SCOMMESSA':
+      case 'ULTIMA_SPIAGGIA':
         return 'La TV svela la risposta di ogni livello';
-      case 'QUOTA':
+      case 'AZZARDO':
         return "La TV svela il valore e l'opzione che paga";
       case 'BLACKJACK':
         return 'Mani e banco svelati in TV a ogni tavolo';
@@ -1482,7 +1482,7 @@ export class GameComponent implements OnInit, OnDestroy {
       safe.correctAnswer = null;
     }
 
-    // La banca della Scommessa viaggia con le risposte: ai telefoni non servono.
+    // La banca della UltimaSpiaggia viaggia con le risposte: ai telefoni non servono.
     if (Array.isArray(safe.questions)) {
       safe.questions = safe.questions.map((question: any) => ({ ...question, correctAnswer: null }));
     }

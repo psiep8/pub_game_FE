@@ -14,15 +14,15 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Payload di Tutto o metà: cinque domande, una per livello 100-500, tutte della
+ * Payload di Ultima spiaggia: cinque domande, una per livello 100-500, tutte della
  * categoria estratta per il round, con quattro opzioni e una risposta presente.
  */
 @SpringBootTest
 @TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:h2:mem:scommessa-payload;DB_CLOSE_DELAY=-1",
+        "spring.datasource.url=jdbc:h2:mem:ultima spiaggia-payload;DB_CLOSE_DELAY=-1",
         "spring.jpa.hibernate.ddl-auto=create-drop"
 })
-class ScommessaPayloadTest {
+class UltimaSpiaggiaPayloadTest {
 
     private static final List<String> CATEGORIES = List.of(
             "Storia",
@@ -49,7 +49,7 @@ class ScommessaPayloadTest {
     void ogniCategoriaHaCinqueLivelliConQuattroOpzioni() {
         for (String category : CATEGORIES) {
             JSONObject payload = new JSONObject(
-                    bank.generateQuestionJson(category, "SCOMMESSA", "medio", key -> true));
+                    bank.generateQuestionJson(category, "ULTIMA_SPIAGGIA", "medio", key -> true));
 
             JSONArray questions = payload.getJSONArray("questions");
             assertThat(questions.length()).as("livelli %s", category).isEqualTo(5);

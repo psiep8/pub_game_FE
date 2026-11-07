@@ -7,7 +7,7 @@
 
 > **Aggiornamento 5/11:** le demo sono state realizzate come tre scene animate in TV (interfaccia TV, remote e punteggio) per ogni gioco e per i bonus; gli mp4 non sono più necessari. La specifica storica sotto resta come riferimento.
 >
-> **Aggiornamento 6/11:** la scaletta a 40 round è cambiata e le sezioni §1.1 e §3.3 sono superate. Time Buzzer è un round vero, il Cavallo è tornato bonus, il Casino è un bonus unico in quattro manche, e c'è un round nuovo (La Scommessa). Lo stato aggiornato è in `README_LAVORI.md`.
+> **Aggiornamento 6/11:** la scaletta a 40 round è cambiata e le sezioni §1.1 e §3.3 sono superate. Time Buzzer è un round vero, il Cavallo è tornato bonus, il Casino è un bonus unico in quattro manche, e c'è un round nuovo (La Ultima spiaggia). Lo stato aggiornato è in `README_LAVORI.md`.
 
 > **A chi è rivolto:** a un agente di coding con ragionamento alto, che lavora sul repository `pub_game` senza aver visto la conversazione da cui nasce questo documento. È autoportante.
 >
@@ -72,7 +72,7 @@ Giochi di round oggi: `QUIZ`, `MUSIC`, `TIME_BUZZER`, `WHEEL_OF_FORTUNE`, `IMAGE
 
 ### 1.4 Residui da ripulire (bassa priorità, non ora)
 
-- Dal 6/11 `GameType.java` non ha più `CHRONO`, `TRUE_FALSE` e `ROULETTE`: restano solo i tipi giocabili (il Cavallo è un bonus, la Scommessa è un round vero).
+- Dal 6/11 `GameType.java` non ha più `CHRONO`, `TRUE_FALSE` e `ROULETTE`: restano solo i tipi giocabili (il Cavallo è un bonus, la Ultima spiaggia è un round vero).
 - Esistono ancora `QuestionGeneratorService` e `CelebrityImageService` nel backend; verificare se sono codice morto prima di rimuoverli.
 - Il backend ha ancora endpoint `price-answer` / `price/reveal` in `PartyGamesController` mentre il frontend ha sostituito Price con Time Buzzer.
 
@@ -114,7 +114,7 @@ Giochi di round oggi: `QUIZ`, `MUSIC`, `TIME_BUZZER`, `WHEEL_OF_FORTUNE`, `IMAGE
 
 5. Admin: un comando per lanciare il bonus dell'intervallo, o automatico a `isActEnd()` con conferma. Il bonus **non deve partire** mentre la classifica è aperta o la partita è in pausa.
 
-**Roulette.** Riusa la modalità esistente: scommessa su un colore, 20 secondi, +150 se indovini, 0 altrimenti. Non è un round e non tocca `currentRound`.
+**Roulette.** Riusa la modalità esistente: ultima spiaggia su un colore, 20 secondi, +150 se indovini, 0 altrimenti. Non è un round e non tocca `currentRound`.
 
 **Basket.** La pagina `/basket` va integrata: 30 secondi, tiri liberi, punteggio; alla fine manda `BONUS_RESULT` con nome squadra e punteggio **normalizzato** (es. `score/5` arrotondato, tetto 15) per evitare che un singolo bravo al basket valga più di un round. Il nome squadra va scelto all'inizio (o letto dal nickname) e verificato contro la classifica attiva.
 
@@ -285,7 +285,7 @@ wheel_of_fortune.mp4
 
 | Bonus | Meccanica | Tipo | Lavoro |
 | --- | --- | --- | --- |
-| **Roulette** | scommessa su un colore, 20 s | rischio | già pronto, da collegare |
+| **Roulette** | ultima spiaggia su un colore, 20 s | rischio | già pronto, da collegare |
 | **Basket** | 30 s di tiri liberi sul telefono, canestro = punti | abilità | pagina esistente, da integrare |
 | **Doppia o niente** | vedi una carta, scegli se la prossima è più alta o più bassa; ogni giusta raddoppia, un errore azzera, "INCASSA" in qualsiasi momento; la TV mostra chi è ancora in gioco | rischio e nervi | basso |
 | **Tira e molla** | tutti i telefoni spingono insieme una barra contro il tempo; se il pub supera la soglia, tutti prendono punti e chi ha dato più colpi ne prende di più | cooperativo | basso, con tetto ai tocchi/secondo |

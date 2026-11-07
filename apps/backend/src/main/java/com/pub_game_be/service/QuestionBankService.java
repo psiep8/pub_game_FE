@@ -116,11 +116,11 @@ public class QuestionBankService {
 
     /** Sotto questo numero di domande l'arena finisce le scorte della categoria. */
     private static final int MIN_ARENA_QUESTIONS = 10;
-    /** Livelli di Tutto o metà: uno per round, usabile una volta per squadra. */
-    private static final int[] SCOMMESSA_LEVELS = { 100, 200, 300, 400, 500 };
+    /** Livelli di Ultima spiaggia: uno per round, usabile una volta per squadra. */
+    private static final int[] ULTIMA_SPIAGGIA_LEVELS = { 100, 200, 300, 400, 500 };
 
     /** Livello 1-2 dalla fascia facile, 3-4 dalla media, 5 dalla difficile. */
-    private static final String[] SCOMMESSA_BANDS =
+    private static final String[] ULTIMA_SPIAGGIA_BANDS =
             { "facile", "facile", "medio", "medio", "difficile" };
     private static final int QUIZ_QUESTIONS = 3;
 
@@ -194,8 +194,8 @@ public class QuestionBankService {
             case "WHEEL_OF_FORTUNE", "WHEEL_FORTUNE", "PROVERB" -> pickRandomProverb();
             case "MUSIC" -> musicPayload();
             case "ARENA" -> arenaWrapper();
-            case "SCOMMESSA" -> scommessaPayload(category, isAvailable);
-            case "QUOTA" -> quotaPayload(category, difficulty, isAvailable);
+            case "ULTIMA_SPIAGGIA" -> ultimaSpiaggiaPayload(category, isAvailable);
+            case "AZZARDO" -> azzardoPayload(category, difficulty, isAvailable);
             case "QUIZ" -> quizPayload(category, isAvailable);
             default -> fromBank(category, requested, isAvailable);
         };
@@ -702,16 +702,16 @@ public class QuestionBankService {
      * paesi, storia) con quattro opzioni numeriche vicine tra loro. Il livello
      * arriva dalla difficoltà del round: 1 facile, 2 media, 3 difficile.
      */
-    private String quotaPayload(String category, String difficulty, Predicate<String> isAvailable) {
+    private String azzardoPayload(String category, String difficulty, Predicate<String> isAvailable) {
         int level = levelForDifficulty(difficulty);
         JSONArray questions = new JSONArray();
 
         for (String wanted : AZZARDO_CATEGORIES) {
-            azzardoQuestion(wanted, level).ifPresent(question -> questions.put(quotaQuestionPayload(question)));
+            azzardoQuestion(wanted, level).ifPresent(question -> questions.put(azzardoQuestionPayload(question)));
         }
 
         JSONObject payload = new JSONObject();
-        payload.put("type", "QUOTA");
+        payload.put("type", "AZZARDO");
         payload.put("level", level);
         payload.put("odds", level + 1);
         payload.put("question", "Azzardo: quattro manche");
@@ -745,7 +745,7 @@ public class QuestionBankService {
         return pool.isEmpty() ? Optional.empty() : Optional.of(pool.get(0));
     }
 
-    private JSONObject quotaQuestionPayload(AzzardoQuestion question) {
+    private JSONObject azzardoQuestionPayload(AzzardoQuestion question) {
         double step = Math.max(0.0001, question.step());
         List<Double> values = new ArrayList<>();
         for (double offset : new double[] { -2, -1, 0, 1 }) {
@@ -867,19 +867,19 @@ public class QuestionBankService {
     }
 
     /**
-     * Tutto o metà: cinque domande, una per livello, tutte della stessa
+     * Ultima spiaggia: cinque domande, una per livello, tutte della stessa
      * categoria (quella estratta per il round). Chi sceglie lo stesso livello
      * riceve la stessa domanda. Le fasce della banca garantiscono almeno
      * quindici domande per livello in ogni categoria.
      */
-    private String scommessaPayload(String category, Predicate<String> isAvailable) {
-        String chosenCategory = scommessaCategory(category);
+    private String ultimaSpiaggiaPayload(String category, Predicate<String> isAvailable) {
+        String chosenCategory = ultimaSpiaggiaCategory(category);
         JSONArray questions = new JSONArray();
         Set<String> used = new HashSet<>();
 
-        for (int index = 0; index < SCOMMESSA_LEVELS.length; index++) {
-            BankQuestion picked = pickScommessaQuestion(
-                    chosenCategory, SCOMMESSA_BANDS[index], isAvailable, used);
+        for (int index = 0; index < ULTIMA_SPIAGGIA_LEVELS.length; index++) {
+            BankQuestion picked = pickUltimaSpiaggiaQuestion(
+                    chosenCategory, ULTIMA_SPIAGGIA_BANDS[index], isAvailable, used);
             if (picked == null) {
                 continue;
             }
@@ -890,7 +890,7 @@ public class QuestionBankService {
             Collections.shuffle(options, random);
 
             questions.put(new JSONObject()
-                    .put("level", SCOMMESSA_LEVELS[index])
+                    .put("level", ULTIMA_SPIAGGIA_LEVELS[index])
                     .put("question", picked.question())
                     .put("category", picked.category())
                     .put("options", new JSONArray(options))
@@ -898,9 +898,9 @@ public class QuestionBankService {
         }
 
         JSONObject payload = new JSONObject();
-        payload.put("type", "SCOMMESSA");
+        payload.put("type", "ULTIMA_SPIAGGIA");
         payload.put("category", chosenCategory);
-        payload.put("question", "Tutto o metà");
+        payload.put("question", "Ultima spiaggia");
         payload.put("questions", questions);
         payload.put("explain", "Cinque round: ogni squadra sceglie un livello da 100 a 500, una volta "
                 + "per livello. La domanda dipende dal livello; giusta paga il livello, sbagliata o "
@@ -909,8 +909,8 @@ public class QuestionBankService {
     }
 
     /** Categoria del round: quella richiesta se ha domande, altrimenti una a caso. */
-    private String scommessaCategory(String category) {
-        if (category != null && !category.isBlank() && !scommessaPool(category, true).isEmpty()) {
+    private String ultimaSpiaggiaCategory(String category) {
+        if (category != null && !category.isBlank() && !ultimaSpiaggiaPool(category, true).isEmpty()) {
             return category;
         }
 
@@ -924,7 +924,7 @@ public class QuestionBankService {
         return categories.isEmpty() ? "" : categories.get(random.nextInt(categories.size()));
     }
 
-    private List<BankQuestion> scommessaPool(String category, boolean sameCategory) {
+    private List<BankQuestion> ultimaSpiaggiaPool(String category, boolean sameCategory) {
         List<BankQuestion> pool = new ArrayList<>();
         for (BankQuestion question : allQuestions()) {
             if (!"QUIZ".equals(question.type()) || question.options().size() != 4) {
@@ -939,9 +939,9 @@ public class QuestionBankService {
     }
 
     /** Una domanda nuova per il livello: prima la fascia, poi si allarga. */
-    private BankQuestion pickScommessaQuestion(String category, String band,
+    private BankQuestion pickUltimaSpiaggiaQuestion(String category, String band,
             Predicate<String> isAvailable, Set<String> used) {
-        List<BankQuestion> pool = scommessaPool(category, true);
+        List<BankQuestion> pool = ultimaSpiaggiaPool(category, true);
 
         List<BankQuestion> sameBand = new ArrayList<>();
         for (BankQuestion question : pool) {
@@ -963,7 +963,7 @@ public class QuestionBankService {
             }
         }
 
-        List<BankQuestion> anyCategory = scommessaPool(category, false);
+        List<BankQuestion> anyCategory = ultimaSpiaggiaPool(category, false);
         Collections.shuffle(anyCategory, random);
         for (BankQuestion question : anyCategory) {
             if (isFresh(question, isAvailable, used)) {

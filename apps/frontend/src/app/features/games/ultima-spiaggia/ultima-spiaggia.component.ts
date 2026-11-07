@@ -1,23 +1,23 @@
-import { ScommessaPhase } from './scommessa.mode';
+import { UltimaSpiaggiaPhase } from './ultima-spiaggia.mode';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 /**
- * TV di TUTTO O METÀ (ex Scommessa): cinque round, livelli 100-500 usati una
+ * TV di ULTIMA SPIAGGIA (ex UltimaSpiaggia): cinque round, livelli 100-500 usati una
  * volta per squadra, una domanda per livello. Il mode manda lo stato deciso.
  */
 @Component({
-  selector: 'app-scommessa',
+  selector: 'app-ultima-spiaggia',
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="tm-wrap">
       <header class="tm-head">
-        <div class="tm-kicker">🎲 TUTTO O METÀ</div>
+        <div class="tm-kicker">🎲 ULTIMA SPIAGGIA</div>
         <h2 class="tm-title">
-          @if (displayData?.phase === ScommessaPhase.LEVEL) { SCEGLI IL LIVELLO }
-          @else if (displayData?.phase === ScommessaPhase.QUESTION) { LA TUA DOMANDA }
-          @else if (displayData?.phase === ScommessaPhase.REVEAL) { TUTTO O METÀ }
+          @if (displayData?.phase === UltimaSpiaggiaPhase.LEVEL) { SCEGLI IL LIVELLO }
+          @else if (displayData?.phase === UltimaSpiaggiaPhase.QUESTION) { LA TUA DOMANDA }
+          @else if (displayData?.phase === UltimaSpiaggiaPhase.REVEAL) { ULTIMA SPIAGGIA }
           @else { IL CONTO FINALE }
         </h2>
         <div class="tm-meta">
@@ -29,7 +29,7 @@ import { CommonModule } from '@angular/common';
         </div>
       </header>
 
-      @if (displayData?.phase === ScommessaPhase.LEVEL) {
+      @if (displayData?.phase === UltimaSpiaggiaPhase.LEVEL) {
         <div class="tm-levels">
           @for (level of displayData?.levels ?? []; track level) {
             <div class="tm-level" [class.used]="allUsed(level)">
@@ -43,11 +43,11 @@ import { CommonModule } from '@angular/common';
         </p>
       }
 
-      @if (displayData?.phase === ScommessaPhase.QUESTION) {
+      @if (displayData?.phase === UltimaSpiaggiaPhase.QUESTION) {
         <div class="tm-note">OGNI TELEFONO HA LA SUA DOMANDA</div>
       }
 
-      @if (displayData?.phase === ScommessaPhase.REVEAL || displayData?.phase === ScommessaPhase.FINALE) {
+      @if (displayData?.phase === UltimaSpiaggiaPhase.REVEAL || displayData?.phase === UltimaSpiaggiaPhase.FINALE) {
         <div class="tm-answers">
           @for (question of displayData?.questions ?? []; track question.level) {
             <div class="tm-answer">
@@ -63,13 +63,13 @@ import { CommonModule } from '@angular/common';
           <div class="tm-row" [class.ready]="row.answered" [class.good]="row.points > 0" [class.bad]="row.points < 0">
             <span class="tm-name">{{ row.playerName }}</span>
             <b class="tm-pick">{{ row.level ?? '—' }}</b>
-            @if (displayData?.phase === ScommessaPhase.REVEAL) {
+            @if (displayData?.phase === UltimaSpiaggiaPhase.REVEAL) {
               <span class="tm-state">{{ row.answered ? 'RISPOSTO' : 'SCADUTO' }}</span>
               <b class="tm-delta">{{ signed(row.points) }}</b>
-            } @else if (displayData?.phase === ScommessaPhase.FINALE) {
+            } @else if (displayData?.phase === UltimaSpiaggiaPhase.FINALE) {
               <span class="tm-state">TOTALE</span>
               <b class="tm-delta">{{ signed(row.total) }}</b>
-            } @else if (displayData?.phase === ScommessaPhase.QUESTION) {
+            } @else if (displayData?.phase === UltimaSpiaggiaPhase.QUESTION) {
               <span class="tm-state">{{ row.answered ? 'RISPOSTO' : 'PENSA' }}</span>
               <b class="tm-delta">×1</b>
             } @else {
@@ -122,9 +122,9 @@ import { CommonModule } from '@angular/common';
     @keyframes tm-pulse { 50% { transform: scale(1.08); opacity: .7; } }
   `],
 })
-export class Scommessa {
+export class UltimaSpiaggia {
   /** Fasi del gioco, disponibili anche nel template. */
-  readonly ScommessaPhase = ScommessaPhase;
+  readonly UltimaSpiaggiaPhase = UltimaSpiaggiaPhase;
 
   @Input() displayData: any;
   @Input() timer = 0;

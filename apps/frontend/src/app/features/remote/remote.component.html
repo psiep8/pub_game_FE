@@ -207,45 +207,45 @@
       }
     </div>
     }
-    @case ('SCOMMESSA') {
+    @case ('ULTIMA_SPIAGGIA') {
     <div class="bonus-remote">
       <div class="game-head">
-        <span class="game-tag buzz">🎲 TUTTO O METÀ</span>
+        <span class="game-tag buzz">🎲 ULTIMA SPIAGGIA</span>
         <span class="game-tip">
-          Round {{ scommessaState()?.round ?? 1 }}/{{ scommessaState()?.total ?? 5 }}
-          @if (scommessaState()?.category) { · {{ scommessaState()?.category }} }
+          Round {{ ultimaSpiaggiaState()?.round ?? 1 }}/{{ ultimaSpiaggiaState()?.total ?? 5 }}
+          @if (ultimaSpiaggiaState()?.category) { · {{ ultimaSpiaggiaState()?.category }} }
         </span>
       </div>
 
-      @if (scommessaState()?.phase === 'LEVEL') {
+      @if (ultimaSpiaggiaState()?.phase === 'LEVEL') {
       <p class="party-instruction">Scegli un livello per questo round. Ogni livello si usa una volta sola.</p>
       <div class="azzardo-stakes">
-        @for (level of scommessaState()?.levels ?? []; track level) {
-        <button class="azzardo-stake" [class.selected]="scommessaLevel() === level"
-          [disabled]="scommessaLevel() !== null || scommessaUsed(level)" (click)="scommessaPickLevel(level)">
+        @for (level of ultimaSpiaggiaState()?.levels ?? []; track level) {
+        <button class="azzardo-stake" [class.selected]="ultimaSpiaggiaLevel() === level"
+          [disabled]="ultimaSpiaggiaLevel() !== null || ultimaSpiaggiaUsed(level)" (click)="ultimaSpiaggiaPickLevel(level)">
           {{ level }}
         </button>
         }
       </div>
       <p class="buzz-hint">Giusta +livello · sbagliata o scaduta −metà</p>
-      } @else if (scommessaState()?.phase === 'QUESTION') {
-      <p class="cavallo-question">{{ scommessaMyQuestion()?.question }}</p>
+      } @else if (ultimaSpiaggiaState()?.phase === 'QUESTION') {
+      <p class="cavallo-question">{{ ultimaSpiaggiaMyQuestion()?.question }}</p>
       <p class="buzz-hint">
-        Livello {{ scommessaMyLevel() }} · giusta +{{ scommessaMyLevel() }} · sbagliata −{{ halfLevel() }}
+        Livello {{ ultimaSpiaggiaMyLevel() }} · giusta +{{ ultimaSpiaggiaMyLevel() }} · sbagliata −{{ halfLevel() }}
       </p>
       <div class="cavallo-options">
-        @for (option of scommessaMyQuestion()?.options ?? []; track $index; let i = $index) {
-        <button class="cavallo-option" [disabled]="scommessaChoice() !== null" (click)="scommessaAnswer(i)">
+        @for (option of ultimaSpiaggiaMyQuestion()?.options ?? []; track $index; let i = $index) {
+        <button class="cavallo-option" [disabled]="ultimaSpiaggiaChoice() !== null" (click)="ultimaSpiaggiaAnswer(i)">
           <span class="cavallo-letter">{{ letter(i) }}</span><span>{{ option }}</span>
         </button>
         }
       </div>
-      } @else if (scommessaState()?.phase === 'REVEAL') {
+      } @else if (ultimaSpiaggiaState()?.phase === 'REVEAL') {
       <div class="status-msg">
         <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🎲</div></div>
-        <p>Round {{ scommessaState()?.round ?? 1 }} chiuso</p>
+        <p>Round {{ ultimaSpiaggiaState()?.round ?? 1 }} chiuso</p>
       </div>
-      @if (scommessaRow(); as row) {
+      @if (ultimaSpiaggiaRow(); as row) {
       <p class="buzz-hint">{{ signedPoints(row.points) }} · totale {{ row.total }}</p>
       }
       } @else {
@@ -253,41 +253,41 @@
       }
     </div>
     }
-    @case ('QUOTA') {
+    @case ('AZZARDO') {
     <div class="bonus-remote">
       <div class="game-head">
         <span class="game-tag buzz">📊 AZZARDO</span>
-        <span class="game-tip">Livello {{ quotaState()?.level ?? 1 }}/3 · quota ×{{ quotaState()?.odds ?? 2 }}</span>
+        <span class="game-tip">Livello {{ azzardoState()?.level ?? 1 }}/3 · quota ×{{ azzardoState()?.odds ?? 2 }}</span>
       </div>
 
-      @if (quotaState()?.phase === 'BET') {
-      <p class="cavallo-question">{{ quotaState()?.question }}</p>
+      @if (azzardoState()?.phase === 'BET') {
+      <p class="cavallo-question">{{ azzardoState()?.question }}</p>
       <p class="buzz-hint">
-        Manche {{ quotaState()?.manche ?? 1 }}/{{ quotaState()?.total ?? 4 }} ·
-        {{ quotaState()?.category }} · in {{ quotaState()?.unit }} · hai {{ quotaMaxBet() }} punti
+        Manche {{ azzardoState()?.manche ?? 1 }}/{{ azzardoState()?.total ?? 4 }} ·
+        {{ azzardoState()?.category }} · in {{ azzardoState()?.unit }} · hai {{ azzardoMaxBet() }} punti
       </p>
       <p class="party-instruction">Quanto punti?</p>
       <div class="azzardo-stakes">
         @for (stake of azzardoStakes; track stake) {
-        <button class="azzardo-stake" [class.selected]="quotaStake() === stake"
-          [disabled]="quotaSent() || stake > quotaMaxBet()" (click)="quotaPickStake(stake)">{{ stake }}</button>
+        <button class="azzardo-stake" [class.selected]="azzardoStake() === stake"
+          [disabled]="azzardoSent() || stake > azzardoMaxBet()" (click)="azzardoPickStake(stake)">{{ stake }}</button>
         }
       </div>
       <div class="azzardo-options">
-        @for (option of quotaState()?.options ?? []; track $index; let i = $index) {
-        <button class="azzardo-option" [class.selected]="quotaChoice() === i"
-          [disabled]="quotaSent()" (click)="quotaPick(i)">
-          <span class="azzardo-letter">{{ letter(i) }}</span>{{ option }} {{ quotaState()?.unit }}
+        @for (option of azzardoState()?.options ?? []; track $index; let i = $index) {
+        <button class="azzardo-option" [class.selected]="azzardoChoice() === i"
+          [disabled]="azzardoSent()" (click)="azzardoPick(i)">
+          <span class="azzardo-letter">{{ letter(i) }}</span>{{ option }} {{ azzardoState()?.unit }}
         </button>
         }
       </div>
-      <p class="buzz-hint">{{ quotaSent() ? 'Puntata inviata' : 'Scegli la puntata, poi la risposta' }}</p>
-      } @else if (quotaState()?.phase === 'REVEAL') {
+      <p class="buzz-hint">{{ azzardoSent() ? 'Puntata inviata' : 'Scegli la puntata, poi la risposta' }}</p>
+      } @else if (azzardoState()?.phase === 'REVEAL') {
       <div class="status-msg">
         <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">📊</div></div>
-        <p>{{ quotaState()?.value }} {{ quotaState()?.unit }}</p>
+        <p>{{ azzardoState()?.value }} {{ azzardoState()?.unit }}</p>
       </div>
-      @if (quotaRow(); as row) {
+      @if (azzardoRow(); as row) {
       <p class="buzz-hint">{{ signedPoints(row.points) }} · totale {{ row.total }}</p>
       }
       } @else {

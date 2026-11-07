@@ -29,7 +29,7 @@ class AzzardoPayloadTest {
 
         for (String[] band : bands) {
             JSONObject payload = new JSONObject(
-                    bank.generateQuestionJson("CULTURA GENERALE", "QUOTA", band[0]));
+                    bank.generateQuestionJson("CULTURA GENERALE", "AZZARDO", band[0]));
 
             int level = Integer.parseInt(band[1]);
             assertThat(payload.getInt("level")).as("livello %s", band[0]).isEqualTo(level);

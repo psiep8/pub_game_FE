@@ -4,30 +4,30 @@ import { signal } from '@angular/core';
 import { GameModeBase } from '../../../shared/models/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../../../shared/models/game-mode-type';
 
-/** Fasi di Tutto o metà: le comuni arrivano da `GamePhase`. */
-export const ScommessaPhase = {
+/** Fasi di Ultima spiaggia: le comuni arrivano da `GamePhase`. */
+export const UltimaSpiaggiaPhase = {
   LEVEL: 'LEVEL',
   QUESTION: 'QUESTION',
   REVEAL: GamePhase.REVEAL,
   FINALE: GamePhase.FINALE,
 } as const;
-export type ScommessaPhase = (typeof ScommessaPhase)[keyof typeof ScommessaPhase];
-export type ScommessaStatus = 'PENDING' | 'CORRECT' | 'WRONG';
+export type UltimaSpiaggiaPhase = (typeof UltimaSpiaggiaPhase)[keyof typeof UltimaSpiaggiaPhase];
+export type UltimaSpiaggiaStatus = 'PENDING' | 'CORRECT' | 'WRONG';
 
 /** I cinque livelli: ognuno si può usare una sola volta per squadra. */
-export const SCOMMESSA_LEVELS = [100, 200, 300, 400, 500] as const;
+export const ULTIMA_SPIAGGIA_LEVELS = [100, 200, 300, 400, 500] as const;
 
-export interface ScommessaRow {
+export interface UltimaSpiaggiaRow {
   playerName: string;
   level: number | null;
   used: number[];
   answered: boolean;
   points: number;
   total: number;
-  status: ScommessaStatus;
+  status: UltimaSpiaggiaStatus;
 }
 
-interface ScommessaQuestion {
+interface UltimaSpiaggiaQuestion {
   level: number;
   question: string;
   options: string[];
@@ -41,7 +41,7 @@ const REVEAL_SECONDS = 5;
 const FINALE_SECONDS = 5;
 
 /**
- * TUTTO O METÀ (ex Scommessa) — cinque round, cinque livelli.
+ * ULTIMA SPIAGGIA (ex UltimaSpiaggia) — cinque round, cinque livelli.
  *
  * In ogni round ogni squadra sceglie un livello da 100 a 500, mai usato prima:
  * al quinto round resta un solo livello. La domanda dipende dal livello, quindi
@@ -49,25 +49,25 @@ const FINALE_SECONDS = 5;
  * Risposta giusta = +livello; sbagliata o scaduta = −metà del livello. La TV
  * mostra per squadra il livello scelto e l'esito.
  */
-export class ScommessaMode extends GameModeBase {
-  readonly type: GameModeType = 'SCOMMESSA';
+export class UltimaSpiaggiaMode extends GameModeBase {
+  readonly type: GameModeType = 'ULTIMA_SPIAGGIA';
   readonly timerDuration =
-    SCOMMESSA_LEVELS.length * (LEVEL_SECONDS + QUESTION_SECONDS + REVEAL_SECONDS) + FINALE_SECONDS;
+    ULTIMA_SPIAGGIA_LEVELS.length * (LEVEL_SECONDS + QUESTION_SECONDS + REVEAL_SECONDS) + FINALE_SECONDS;
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
 
   private players: string[] = [];
-  private questions: ScommessaQuestion[] = [];
-  private phase = signal<ScommessaPhase>(ScommessaPhase.LEVEL);
+  private questions: UltimaSpiaggiaQuestion[] = [];
+  private phase = signal<UltimaSpiaggiaPhase>(UltimaSpiaggiaPhase.LEVEL);
   private secondsLeft = signal(LEVEL_SECONDS);
   private round = signal(0);
-  private rows = signal<ScommessaRow[]>([]);
+  private rows = signal<UltimaSpiaggiaRow[]>([]);
   private picks = new Map<string, number>();
   private used = new Map<string, Set<number>>();
   private answers = new Map<string, number>();
   private points = new Map<string, number>();
   private totals = new Map<string, number>();
-  private statuses = new Map<string, ScommessaStatus>();
+  private statuses = new Map<string, UltimaSpiaggiaStatus>();
   private finished = false;
   private clock?: ReturnType<typeof setInterval>;
 
@@ -106,13 +106,13 @@ export class ScommessaMode extends GameModeBase {
 
   /** Scelta del livello e risposta della manche: una sola per squadra. */
   handlePartyEvent(event: any): void {
-    if (event?.action !== 'SCOMMESSA_ACTION') return;
+    if (event?.action !== 'ULTIMA_SPIAGGIA_ACTION') return;
 
     const playerName = String(event.playerName ?? '').trim();
     if (!playerName || !this.players.includes(playerName)) return;
 
     if (event.kind === 'LEVEL') {
-      if (this.phase() !== ScommessaPhase.LEVEL) return;
+      if (this.phase() !== UltimaSpiaggiaPhase.LEVEL) return;
       if (this.picks.has(playerName)) return;
 
       const level = Number(event.value);
@@ -128,7 +128,7 @@ export class ScommessaMode extends GameModeBase {
     }
 
     if (event.kind === 'ANSWER') {
-      if (this.phase() !== ScommessaPhase.QUESTION) return;
+      if (this.phase() !== UltimaSpiaggiaPhase.QUESTION) return;
       if (this.answers.has(playerName)) return;
 
       const level = this.picks.get(playerName);
@@ -147,7 +147,7 @@ export class ScommessaMode extends GameModeBase {
     }
   }
 
-  private readQuestions(): ScommessaQuestion[] {
+  private readQuestions(): UltimaSpiaggiaQuestion[] {
     const raw = Array.isArray(this.payload?.questions) ? this.payload.questions : [];
     return raw
       .filter((question: any) => question && question.question && Array.isArray(question.options))
@@ -158,17 +158,17 @@ export class ScommessaMode extends GameModeBase {
         correctAnswer: String(question.correctAnswer ?? ''),
         category: String(question.category ?? ''),
       }))
-      .filter((question: ScommessaQuestion) => question.level > 0)
-      .sort((a: ScommessaQuestion, b: ScommessaQuestion) => a.level - b.level);
+      .filter((question: UltimaSpiaggiaQuestion) => question.level > 0)
+      .sort((a: UltimaSpiaggiaQuestion, b: UltimaSpiaggiaQuestion) => a.level - b.level);
   }
 
   /** Livelli disponibili nel round: quelli del payload, nell'ordine crescente. */
   levels(): number[] {
     const levels = this.questions.map((question) => question.level);
-    return levels.length ? levels : [...SCOMMESSA_LEVELS];
+    return levels.length ? levels : [...ULTIMA_SPIAGGIA_LEVELS];
   }
 
-  private questionFor(level: number): ScommessaQuestion | undefined {
+  private questionFor(level: number): UltimaSpiaggiaQuestion | undefined {
     return this.questions.find((question) => question.level === level);
   }
 
@@ -189,7 +189,7 @@ export class ScommessaMode extends GameModeBase {
   private resetRound(): void {
     this.finished = false;
     this.round.set(0);
-    this.phase.set(ScommessaPhase.LEVEL);
+    this.phase.set(UltimaSpiaggiaPhase.LEVEL);
     this.secondsLeft.set(LEVEL_SECONDS);
     this.picks.clear();
     this.used.clear();
@@ -208,7 +208,7 @@ export class ScommessaMode extends GameModeBase {
     this.points.clear();
     this.statuses.clear();
 
-    this.phase.set(ScommessaPhase.LEVEL);
+    this.phase.set(UltimaSpiaggiaPhase.LEVEL);
     this.secondsLeft.set(LEVEL_SECONDS);
     this.syncRows();
     this.publish();
@@ -219,7 +219,7 @@ export class ScommessaMode extends GameModeBase {
   }
 
   private closeLevelIfComplete(): void {
-    if (this.phase() !== ScommessaPhase.LEVEL) return;
+    if (this.phase() !== UltimaSpiaggiaPhase.LEVEL) return;
     if (!this.players.length) return;
     if (!this.players.every((playerName) => this.picks.has(playerName))) return;
     this.clearClock();
@@ -242,7 +242,7 @@ export class ScommessaMode extends GameModeBase {
   private startQuestion(): void {
     this.assignMissingLevels();
     this.answers.clear();
-    this.phase.set(ScommessaPhase.QUESTION);
+    this.phase.set(UltimaSpiaggiaPhase.QUESTION);
     this.secondsLeft.set(QUESTION_SECONDS);
     this.syncRows();
     this.publish();
@@ -250,7 +250,7 @@ export class ScommessaMode extends GameModeBase {
   }
 
   private revealRound(): void {
-    if (this.phase() !== ScommessaPhase.QUESTION) return;
+    if (this.phase() !== UltimaSpiaggiaPhase.QUESTION) return;
     this.clearClock();
 
     this.players.forEach((playerName) => {
@@ -273,7 +273,7 @@ export class ScommessaMode extends GameModeBase {
       this.config.onAnswerReceived?.({ playerName, points, isCorrect: correct });
     });
 
-    this.phase.set(ScommessaPhase.REVEAL);
+    this.phase.set(UltimaSpiaggiaPhase.REVEAL);
     this.secondsLeft.set(REVEAL_SECONDS);
     this.syncRows();
     this.publish();
@@ -288,9 +288,9 @@ export class ScommessaMode extends GameModeBase {
   }
 
   private finale(): void {
-    if (this.phase() === ScommessaPhase.FINALE) return;
+    if (this.phase() === UltimaSpiaggiaPhase.FINALE) return;
     this.clearClock();
-    this.phase.set(ScommessaPhase.FINALE);
+    this.phase.set(UltimaSpiaggiaPhase.FINALE);
     this.secondsLeft.set(FINALE_SECONDS);
     this.syncRows();
     this.publish();
@@ -345,7 +345,7 @@ export class ScommessaMode extends GameModeBase {
 
   private publish(): void {
     this.config.onBroadcast?.({
-      action: WsAction.SCOMMESSA_STATE,
+      action: WsAction.ULTIMA_SPIAGGIA_STATE,
       state: this.getDisplayData(),
     });
   }
@@ -367,7 +367,7 @@ export class ScommessaMode extends GameModeBase {
   }
 
   getDisplayData() {
-    const reveal = this.phase() === ScommessaPhase.REVEAL || this.phase() === ScommessaPhase.FINALE;
+    const reveal = this.phase() === UltimaSpiaggiaPhase.REVEAL || this.phase() === UltimaSpiaggiaPhase.FINALE;
 
     return {
       phase: this.phase(),

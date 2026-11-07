@@ -173,7 +173,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<PlayerStatus>(PlayerStatus.WAITING);
-  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'CAVALLO' | 'SCOMMESSA' | 'QUOTA' | 'BLACKJACK' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO' | 'BONUS_BIGLIE'>('QUIZ');
+  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'CAVALLO' | 'ULTIMA_SPIAGGIA' | 'AZZARDO' | 'BLACKJACK' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO' | 'BONUS_BIGLIE'>('QUIZ');
   hasAnswered = signal(false);
   /** Ultima risposta toccata: solo promemoria visivo, l'esito lo decide il server. */
   selectedAnswer = signal<number | null>(null);
@@ -223,12 +223,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
   casinoChoice = signal<string | null>(null);
   blackjackState = signal<any>(null);
   blackjackStand = signal(false);
-  quotaState = signal<any>(null);
-  quotaStake = signal(100);
-  quotaChoice = signal<number | null>(null);
-  quotaSent = signal(false);
+  azzardoState = signal<any>(null);
+  azzardoStake = signal(100);
+  azzardoChoice = signal<number | null>(null);
+  azzardoSent = signal(false);
   readonly azzardoStakes = [100, 200, 300];
-  private quotaKey = '';
+  private azzardoKey = '';
   cavalloState = signal<any>(null);
   cavalloChoice = signal<string | null>(null);
   cavalloCategory = signal<string | null>(null);
@@ -350,7 +350,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           if (status.type === 'BONUS_BASKET'
               || status.type === 'BONUS_CASINO' || status.type === 'BONUS_CAVALLO'
               || status.type === 'BONUS_BIGLIE'
-              || status.type === 'SCOMMESSA' || status.type === 'QUOTA' || status.type === 'CAVALLO'
+              || status.type === 'ULTIMA_SPIAGGIA' || status.type === 'AZZARDO' || status.type === 'CAVALLO'
               || status.type === 'BLACKJACK') {
             this.gameState.set(PlayerStatus.VOTING);
             this.hasAnswered.set(false);
@@ -416,12 +416,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.applyCavalloState(status.state);
           break;
 
-        case 'SCOMMESSA_STATE':
-          this.applyScommessaState(status.state);
+        case 'ULTIMA_SPIAGGIA_STATE':
+          this.applyUltimaSpiaggiaState(status.state);
           break;
 
-        case 'QUOTA_STATE':
-          this.applyQuotaState(status.state);
+        case 'AZZARDO_STATE':
+          this.applyAzzardoState(status.state);
           break;
 
         case 'BLACKJACK_STATE':
@@ -443,7 +443,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.cavalloState.set(null);
           this.biglieState.set(null);
           this.biglieChoice.set(null);
-          this.quotaState.set(null);
+          this.azzardoState.set(null);
           this.casinoChoice.set(null);
           this.cavalloChoice.set(null);
           this.cavalloCategory.set(null);
@@ -476,7 +476,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.cavalloState.set(null);
           this.biglieState.set(null);
           this.biglieChoice.set(null);
-          this.quotaState.set(null);
+          this.azzardoState.set(null);
           this.casinoChoice.set(null);
           this.cavalloChoice.set(null);
           this.cavalloCategory.set(null);
@@ -904,11 +904,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.cavalloChoice.set(null);
       this.cavalloCategory.set(null);
       this.questionType.set('BONUS_CAVALLO');
-    } else if (type === 'SCOMMESSA') {
-      this.scommessaState.set(null);
-      this.scommessaLevel.set(null);
-      this.scommessaChoice.set(null);
-      this.scommessaKey = '';
+    } else if (type === 'ULTIMA_SPIAGGIA') {
+      this.ultimaSpiaggiaState.set(null);
+      this.ultimaSpiaggiaLevel.set(null);
+      this.ultimaSpiaggiaChoice.set(null);
+      this.ultimaSpiaggiaKey = '';
     } else if (type === 'BLACKJACK') {
       // Lo stato non si azzera qui: il primo BLACKJACK_STATE arriva prima di
       // START_VOTING e cancellarlo lascerebbe il tavolo 1 senza carte per un
@@ -990,49 +990,49 @@ export class RemoteComponent implements OnInit, OnDestroy {
     return (this.biglieState()?.standings ?? []).find((row: any) => row.playerName === player) ?? null;
   }
 
-  private applyScommessaState(state: any): void {
+  private applyUltimaSpiaggiaState(state: any): void {
     if (!state) return;
 
-    this.scommessaState.set(state);
-    this.questionType.set('SCOMMESSA');
+    this.ultimaSpiaggiaState.set(state);
+    this.questionType.set('ULTIMA_SPIAGGIA');
     // La fase da sola non basta: ogni round ripete LEVEL e QUESTION.
     const key = `${state.phase}:${state.round ?? 0}`;
-    if (key !== this.scommessaKey) {
-      this.scommessaKey = key;
-      if (state.phase === 'LEVEL') this.scommessaLevel.set(null);
-      if (state.phase === 'QUESTION') this.scommessaChoice.set(null);
+    if (key !== this.ultimaSpiaggiaKey) {
+      this.ultimaSpiaggiaKey = key;
+      if (state.phase === 'LEVEL') this.ultimaSpiaggiaLevel.set(null);
+      if (state.phase === 'QUESTION') this.ultimaSpiaggiaChoice.set(null);
     }
     this.gameState.set(
       state.phase === 'LEVEL' || state.phase === 'QUESTION' ? PlayerStatus.VOTING : PlayerStatus.WAITING,
     );
   }
 
-  private applyQuotaState(state: any): void {
+  private applyAzzardoState(state: any): void {
     if (!state) return;
 
-    this.quotaState.set(state);
-    this.questionType.set('QUOTA');
+    this.azzardoState.set(state);
+    this.questionType.set('AZZARDO');
     const key = `${state.phase}:${state.manche ?? 0}`;
-    if (key !== this.quotaKey) {
-      this.quotaKey = key;
+    if (key !== this.azzardoKey) {
+      this.azzardoKey = key;
       if (state.phase === 'BET') {
-        this.quotaStake.set(100);
-        this.quotaChoice.set(null);
-        this.quotaSent.set(false);
+        this.azzardoStake.set(100);
+        this.azzardoChoice.set(null);
+        this.azzardoSent.set(false);
       }
     }
     this.gameState.set(state.phase === 'BET' ? 'VOTING' : 'WAITING');
   }
 
-  scommessaPickLevel(level: number): void {
+  ultimaSpiaggiaPickLevel(level: number): void {
     const player = this.nickname();
-    const state = this.scommessaState();
-    if (!player || state?.phase !== 'LEVEL' || this.scommessaLevel() !== null) return;
-    if (this.scommessaUsed(level)) return;
+    const state = this.ultimaSpiaggiaState();
+    if (!player || state?.phase !== 'LEVEL' || this.ultimaSpiaggiaLevel() !== null) return;
+    if (this.ultimaSpiaggiaUsed(level)) return;
 
-    this.scommessaLevel.set(level);
+    this.ultimaSpiaggiaLevel.set(level);
     this.ws.broadcastStatus(this.gameId(), {
-      action: WsAction.SCOMMESSA_ACTION,
+      action: WsAction.ULTIMA_SPIAGGIA_ACTION,
       playerName: player,
       kind: 'LEVEL',
       value: level,
@@ -1041,13 +1041,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.audio.playConfirm();
   }
 
-  scommessaAnswer(index: number): void {
+  ultimaSpiaggiaAnswer(index: number): void {
     const player = this.nickname();
-    if (!player || this.scommessaChoice() !== null) return;
+    if (!player || this.ultimaSpiaggiaChoice() !== null) return;
 
-    this.scommessaChoice.set(index);
+    this.ultimaSpiaggiaChoice.set(index);
     this.ws.broadcastStatus(this.gameId(), {
-      action: WsAction.SCOMMESSA_ACTION,
+      action: WsAction.ULTIMA_SPIAGGIA_ACTION,
       playerName: player,
       kind: 'ANSWER',
       value: index,
@@ -1057,67 +1057,67 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   /** Riga della propria squadra: livello scelto, livelli usati ed esito. */
-  scommessaRow(): any {
+  ultimaSpiaggiaRow(): any {
     const player = this.nickname();
-    return (this.scommessaState()?.rows ?? []).find((row: any) => row.playerName === player) ?? null;
+    return (this.ultimaSpiaggiaState()?.rows ?? []).find((row: any) => row.playerName === player) ?? null;
   }
 
-  scommessaMyLevel(): number | null {
-    const level = this.scommessaRow()?.level;
+  ultimaSpiaggiaMyLevel(): number | null {
+    const level = this.ultimaSpiaggiaRow()?.level;
     return typeof level === 'number' ? level : null;
   }
 
   /** La domanda è quella del livello scelto: stessa per chi ha scelto lo stesso. */
-  scommessaMyQuestion(): any {
-    const level = this.scommessaMyLevel();
+  ultimaSpiaggiaMyQuestion(): any {
+    const level = this.ultimaSpiaggiaMyLevel();
     if (level === null) return null;
-    return (this.scommessaState()?.questions ?? []).find((question: any) => question.level === level) ?? null;
+    return (this.ultimaSpiaggiaState()?.questions ?? []).find((question: any) => question.level === level) ?? null;
   }
 
-  scommessaUsed(level: number): boolean {
-    const used: number[] = this.scommessaRow()?.used ?? [];
+  ultimaSpiaggiaUsed(level: number): boolean {
+    const used: number[] = this.ultimaSpiaggiaRow()?.used ?? [];
     return used.includes(level);
   }
 
   halfLevel(): number {
-    return Math.round((this.scommessaMyLevel() ?? 0) / 2);
+    return Math.round((this.ultimaSpiaggiaMyLevel() ?? 0) / 2);
   }
 
   /** Punti che la propria squadra può ancora puntare in questa manche. */
-  quotaMaxBet(): number {
+  azzardoMaxBet(): number {
     const player = this.nickname();
-    const row = (this.quotaState()?.ready ?? []).find((entry: any) => entry.playerName === player);
+    const row = (this.azzardoState()?.ready ?? []).find((entry: any) => entry.playerName === player);
     return Number(row?.maxBet ?? 0);
   }
 
-  quotaPickStake(stake: number): void {
-    if (this.quotaSent() || stake > this.quotaMaxBet()) return;
-    this.quotaStake.set(stake);
+  azzardoPickStake(stake: number): void {
+    if (this.azzardoSent() || stake > this.azzardoMaxBet()) return;
+    this.azzardoStake.set(stake);
     this.vibrate(10);
   }
 
   /** Un tocco sulla risposta invia puntata e scelta insieme. */
-  quotaPick(index: number): void {
+  azzardoPick(index: number): void {
     const player = this.nickname();
-    const state = this.quotaState();
-    if (!player || this.quotaSent() || state?.phase !== 'BET') return;
+    const state = this.azzardoState();
+    if (!player || this.azzardoSent() || state?.phase !== 'BET') return;
     if (index < 0 || index >= (state.options?.length ?? 0)) return;
 
-    this.quotaChoice.set(index);
-    this.quotaSent.set(true);
+    this.azzardoChoice.set(index);
+    this.azzardoSent.set(true);
     this.ws.broadcastStatus(this.gameId(), {
-      action: WsAction.QUOTA_ACTION,
+      action: WsAction.AZZARDO_ACTION,
       playerName: player,
       kind: 'BET',
-      value: { stake: this.quotaStake(), choice: index },
+      value: { stake: this.azzardoStake(), choice: index },
     });
     this.vibrate(30);
     this.audio.playConfirm();
   }
 
-  quotaRow(): any {
+  azzardoRow(): any {
     const player = this.nickname();
-    return (this.quotaState()?.rows ?? []).find((row: any) => row.playerName === player) ?? null;
+    return (this.azzardoState()?.rows ?? []).find((row: any) => row.playerName === player) ?? null;
   }
 
 
@@ -1401,10 +1401,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.vibrate(40);
   }
 
-  scommessaState = signal<any>(null);
-  scommessaLevel = signal<number | null>(null);
-  scommessaChoice = signal<number | null>(null);
-  private scommessaKey = '';
+  ultimaSpiaggiaState = signal<any>(null);
+  ultimaSpiaggiaLevel = signal<number | null>(null);
+  ultimaSpiaggiaChoice = signal<number | null>(null);
+  private ultimaSpiaggiaKey = '';
 
   /**
    * Time Buzzer: l'unico tocco è STOP. Il tempo si misura con
@@ -1707,7 +1707,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
     // Round con stato locale guidato dalla TV: non si ricostruisce a mano,
     // si aspetta il prossimo START_VOTING invece di rischiare doppioni.
-    if (['TIMELINE', 'TIME_BUZZER', 'BOMBA', 'SPEED_RUSH', 'AIR_HOCKEY_BATTLE', 'CAVALLO', 'SCOMMESSA'].includes(type)) return;
+    if (['TIMELINE', 'TIME_BUZZER', 'BOMBA', 'SPEED_RUSH', 'AIR_HOCKEY_BATTLE', 'CAVALLO', 'ULTIMA_SPIAGGIA'].includes(type)) return;
 
     const payload = round?.payload ?? snapshot.payload;
     if (payload && this.gameState() === 'WAITING') {

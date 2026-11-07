@@ -1,5 +1,5 @@
 /**
- * Regole pure di Azzardo (l'ex round Quota).
+ * Regole pure di Azzardo.
  *
  * Quattro manche, una per categoria, con quattro opzioni numeriche molto
  * vicine. La puntata è sui punti veri (100, 200 o 300), la vincita è
@@ -28,7 +28,7 @@ export function levelForOccurrence(occurrence: number): AzzardoLevel {
   return value >= 3 ? 3 : 2;
 }
 
-/** Quota della vincita: ×2 facile, ×3 media, ×4 difficile. */
+/** Azzardo della vincita: ×2 facile, ×3 media, ×4 difficile. */
 export function oddsForLevel(level: AzzardoLevel): number {
   return level + 1;
 }

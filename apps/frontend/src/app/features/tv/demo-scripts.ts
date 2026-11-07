@@ -155,7 +155,7 @@ export const DEMO_SCRIPTS: Record<string, DemoScript> = {
     ],
     note: 'Otto domande flash sulla categoria votata: il podio del bonus premia i primi tre.',
   },
-  QUOTA: {
+  AZZARDO: {
     title: 'AZZARDO',
     icon: '📊',
     tv: ['Quattro manche: celebrità, canzoni, paesi, storia', 'Quattro opzioni numeriche vicinissime', 'Puntata, quota e classifica al reveal'],
@@ -167,8 +167,8 @@ export const DEMO_SCRIPTS: Record<string, DemoScript> = {
     ],
     note: 'Azzardo cresce in tre passaggi: facile ×2, media ×3, difficile ×4. La perdita scende manche dopo manche, dal 100% al 40%.',
   },
-  SCOMMESSA: {
-    title: 'TUTTO O METÀ',
+  ULTIMA_SPIAGGIA: {
+    title: 'ULTIMA SPIAGGIA',
     icon: '🎲',
     tv: ['Cinque round, una categoria per round', 'Ogni squadra sceglie un livello 100-500', 'La TV mostra livello e esito per squadra'],
     remote: ['Scegli un livello mai usato', 'Rispondi alla domanda del tuo livello', 'Giusta +livello, sbagliata −metà'],
