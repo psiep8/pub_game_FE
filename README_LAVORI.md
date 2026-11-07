@@ -13,7 +13,7 @@ Ultimo commit: 7 novembre — Ultima spiaggia a cinque livelli, Azzardo in banca
 ## Cosa è cambiato il 6 novembre
 
 ### Scaletta: il Cavallo torna bonus, dentro Quiz e Time Buzzer
-- `ACT_DECKS` aggiornata come da descrizione: il Cavallo non è più un round, al suo posto l.atto 1 chiude con Speed Rush e l.atto 5 usa il Time Buzzer.
+- `ACT_DECKS` aggiornata come da descrizione: il Cavallo non è più un round; l'atto 1 chiude con Speed Rush e l'atto 5 usa il Time Buzzer.
 - Azzardo è implementata: quattro domande numeriche con fasce e gettoni, tre round (atti 2, 4 e 5).
 - `BonusType` contiene `CASINO` (atto 1), `CAVALLO` (atto 3) e `BIGLIE` (atto 4), più `BASKET`. Il Black Jack non è più un bonus: è diventato un round a turni.
 
