@@ -419,7 +419,8 @@ public class BombaService {
                     continue;
                 }
                 boolean chosen = wave.picks.containsValue(cell.id());
-                if (!chosen) {
+                // Un'intrusa può uscire in più ondate: in TV compare una volta.
+                if (!chosen && labels.stream().noneMatch(label -> label.equalsIgnoreCase(cell.label()))) {
                     labels.add(cell.label());
                 }
             }
