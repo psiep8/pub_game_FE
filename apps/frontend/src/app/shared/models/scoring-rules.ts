@@ -37,7 +37,7 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     correct: '+1000 × tempo rimasto',
     wrong: '−1000 × tempo rimasto',
     missed: '0 (nessun malus)',
-    note: 'Le lettere si aprono nel tempo: chi prenota prima rischia meno.',
+    note: 'Le lettere si aprono nel tempo con estrazione guidata: vocale e lettera ripetuta entro le prime tre. Chi prenota prima rischia meno.',
   },
   TIMELINE: {
     correct: 'fino a +1200',

@@ -65,8 +65,9 @@ poi i giochi.
 - [ ] Banca da 6 a ≥ 60 personaggi, ciascuno con immagine e indizi.
 
 ### 3. Ruota della Fortuna
-- [ ] Estrazione guidata: il mazzo alterna lettere presenti nella frase e lettere casuali; nelle
-      prime 3 uscite sempre una vocale e una lettera ripetuta; poi 1 su 3 tra le più presenti.
+- [x] Estrazione guidata: il mazzo alterna lettere presenti nella frase e lettere casuali; nelle
+      prime 3 uscite sempre una vocale e una lettera ripetuta; poi 1 su 3 tra le più presenti
+      (`wheel-letter-deck.ts`, con test).
 
 ### 4. Time Buzzer
 - [x] Partenza automatica per tutti: `TIME_BUZZER_START` dal server dopo il 3-2-1 in TV.
