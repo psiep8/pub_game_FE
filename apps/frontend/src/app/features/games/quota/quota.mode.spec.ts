@@ -132,4 +132,110 @@ describe('QuotaMode', () => {
 
     mode.cleanup();
   });
+
+  it('gioca le quattro manche con la perdita che scende dal 100% al 40%', async () => {
+    vi.useFakeTimers();
+
+    type Bet = { stake: number; correct: boolean };
+    type Manche = {
+      multiplier: number;
+      bets: Record<string, Bet>;
+      points: Record<string, number>;
+      totals: Record<string, number>;
+    };
+
+    // Anna vince sempre 100 × 2, Bruno sbaglia sempre 200, Carla alterna.
+    const plan: Manche[] = [
+      {
+        multiplier: 1,
+        bets: { Anna: { stake: 100, correct: true }, Bruno: { stake: 200, correct: false }, Carla: { stake: 300, correct: true } },
+        points: { Anna: 200, Bruno: -200, Carla: 600 },
+        totals: { Anna: 200, Bruno: -200, Carla: 600 },
+      },
+      {
+        multiplier: 0.8,
+        bets: { Anna: { stake: 100, correct: true }, Bruno: { stake: 200, correct: false }, Carla: { stake: 300, correct: false } },
+        points: { Anna: 200, Bruno: -160, Carla: -240 },
+        totals: { Anna: 400, Bruno: -360, Carla: 360 },
+      },
+      {
+        multiplier: 0.6,
+        bets: { Anna: { stake: 100, correct: true }, Bruno: { stake: 200, correct: false }, Carla: { stake: 300, correct: true } },
+        points: { Anna: 200, Bruno: -120, Carla: 600 },
+        totals: { Anna: 600, Bruno: -480, Carla: 960 },
+      },
+      {
+        multiplier: 0.4,
+        bets: { Anna: { stake: 100, correct: true }, Bruno: { stake: 200, correct: false }, Carla: { stake: 300, correct: false } },
+        points: { Anna: 200, Bruno: -80, Carla: -120 },
+        totals: { Anna: 800, Bruno: -560, Carla: 840 },
+      },
+    ];
+
+    const wallet: Record<string, number> = { Anna: 1000, Bruno: 1000, Carla: 1000 };
+    const mode = new QuotaMode();
+    mode.setConfig({
+      type: 'QUOTA',
+      payload: {},
+      gameId: 1,
+      activePlayers: ['Anna', 'Bruno', 'Carla'],
+      playerPoints: (playerName) => wallet[playerName] ?? 0,
+      onAnswerReceived: (data) => {
+        wallet[data.playerName] += data.points;
+      },
+    });
+    mode.initialize({ level: 1, questions: QUESTIONS });
+
+    const started = mode.start();
+    await vi.advanceTimersByTimeAsync(3000);
+    await started;
+
+    for (const [index, step] of plan.entries()) {
+      const bet = mode.getDisplayData();
+      expect(bet.phase).toBe('BET');
+      expect(bet.manche).toBe(index + 1);
+      expect(bet.lossMultiplier).toBe(step.multiplier);
+
+      const question = QUESTIONS[index];
+      for (const [playerName, choice] of Object.entries(step.bets)) {
+        mode.handlePartyEvent({
+          action: 'QUOTA_ACTION',
+          playerName,
+          value: {
+            stake: choice.stake,
+            choice: choice.correct ? question.answerIndex : (question.answerIndex + 1) % 4,
+          },
+        });
+      }
+
+      const reveal = mode.getDisplayData();
+      expect(reveal.phase).toBe('REVEAL');
+      expect(reveal.value).toBe(question.value);
+      for (const [playerName, points] of Object.entries(step.points)) {
+        expect(reveal.rows.find((row: any) => row.playerName === playerName))
+          .toMatchObject({ points, total: step.totals[playerName] });
+      }
+
+      // La classifica resta sempre sopra zero, manche dopo manche.
+      expect(Object.values(wallet).every((points) => points >= 0)).toBe(true);
+
+      await vi.advanceTimersByTimeAsync(7000);
+    }
+
+    const finale = mode.getDisplayData();
+    expect(finale.phase).toBe('FINALE');
+
+    const finalTotals = plan[plan.length - 1].totals;
+    for (const playerName of ['Anna', 'Bruno', 'Carla']) {
+      expect(finale.rows.find((row: any) => row.playerName === playerName))
+        .toMatchObject({ total: finalTotals[playerName] });
+    }
+
+    // Il totale di fine round somma esattamente le quattro manche.
+    expect(finale.rows.reduce((sum: number, row: any) => sum + row.total, 0)).toBe(1080);
+    expect(wallet).toEqual({ Anna: 1800, Bruno: 440, Carla: 1840 });
+    expect(Object.values(wallet).reduce((sum, points) => sum + points, 0)).toBe(4080);
+
+    mode.cleanup();
+  });
 });
