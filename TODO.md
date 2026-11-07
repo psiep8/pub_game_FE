@@ -113,7 +113,8 @@ poi i giochi.
       della banca (almeno 15 domande per fascia in ogni categoria).
 
 ### 10. Biglie
-- [ ] Percorso con più curve, tornanti e bivi doppi; la gara resta decisa dal seme e poi riprodotta.
+- [x] Percorso con serpentina, tornanti e due bivi centrali che si ricongiungono; pista, ostacoli
+      e spinte partono dallo stesso seme, quindi la gara si ripete.
 
 ### 11. Trasversale
 - [ ] Banca domande prima di tutto: Vero/Falso, 3 opzioni per Bomba, numeriche per Azzardo,

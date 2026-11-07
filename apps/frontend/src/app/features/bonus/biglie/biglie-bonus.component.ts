@@ -188,6 +188,16 @@ const MINT = '#8be3c4';
 const ACID = '#d9ff43';
 const PHYSICS_STEP = 1000 / 60;
 const TRACK_END_PADDING = 80;
+/**
+ * Due bivi: isole centrali che dividono la corsia e la ricongiungono dopo.
+ * Le stesse misure valgono per il corpo fisico e per il disegno.
+ */
+const BIFURCATIONS: Array<{ start: number; end: number; offset: number }> = [
+  { start: 0.3, end: 0.405, offset: -0.05 },
+  { start: 0.615, end: 0.72, offset: 0.05 },
+];
+/** Altezza dell'isola come frazione della larghezza della corsia. */
+const BIFURCATION_HEIGHT = 0.3;
 /** Centro verticale della pista disegnata: alza il serpentone e libera il bordo basso. */
 const TRACK_VIEW_CENTER = 0.51;
 const BETWEEN_SECONDS = 4;
@@ -438,6 +448,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
   private cameraReady = false;
   private trackSamples: Array<{ x: number; y: number }> = [];
   private trackSeed = 0;
+  /** Spinte e rimbalzi della gara: stesso seme, stessa corsa. */
+  private raceRng: () => number = Math.random;
   private hazards: Hazard[] = [];
 
   ngOnInit(): void {
@@ -598,6 +610,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
     this.raceIndex.set(index);
     this.trackSeed = Math.floor(Math.random() * 0xffffffff);
+    // Pista, ostacoli e spinte nascono dallo stesso seme: la gara si ripete.
+    this.raceRng = this.seededRandom(this.trackSeed ^ 0x9e3779b9);
     this.layoutTrack();
     this.generateHazards(TRACKS[index]);
     this.finishCount = 0;
@@ -694,6 +708,26 @@ export class BiglieBonus implements OnInit, OnDestroy {
       }),
     ]);
 
+    // I bivi sono isole fisiche: la biglia passa sopra o sotto e si ricongiunge.
+    BIFURCATIONS.forEach((bifurcation, index) => {
+      Composite.add(
+        world,
+        Bodies.rectangle(
+          TRACK_START_X + ((bifurcation.start + bifurcation.end) / 2) * TRACK_WORLD_LENGTH,
+          bifurcation.offset * trackWidth,
+          (bifurcation.end - bifurcation.start) * TRACK_WORLD_LENGTH,
+          trackWidth * BIFURCATION_HEIGHT,
+          {
+            isStatic: true,
+            chamfer: { radius: 26 },
+            restitution: 0.42,
+            friction: 0.02,
+            label: `split-${index}`,
+          },
+        ),
+      );
+    });
+
     for (const hazard of this.hazards) {
       const lateral = hazard.offset * trackWidth * 0.3;
       const x = TRACK_START_X + hazard.progress * TRACK_WORLD_LENGTH;
@@ -789,17 +823,17 @@ export class BiglieBonus implements OnInit, OnDestroy {
         } else if (hazard.kind === 'onda') {
           Body.setVelocity(body, {
             x: body.velocity.x * 0.94,
-            y: Math.min(body.velocity.y, -3.1 - Math.random() * 0.8),
+            y: Math.min(body.velocity.y, -3.1 - this.raceRng() * 0.8),
           });
         } else if (hazard.kind === 'cordolo') {
           Body.setVelocity(body, {
             x: body.velocity.x * 0.96,
-            y: Math.min(body.velocity.y, -1.9 - Math.random() * 0.5),
+            y: Math.min(body.velocity.y, -1.9 - this.raceRng() * 0.5),
           });
         } else {
           Body.setVelocity(body, {
             x: body.velocity.x * 0.985,
-            y: Math.min(body.velocity.y, -2.6 - Math.random() * 0.7),
+            y: Math.min(body.velocity.y, -2.6 - this.raceRng() * 0.7),
           });
         }
 
@@ -1168,16 +1202,31 @@ export class BiglieBonus implements OnInit, OnDestroy {
   }
 
   /**
-   * Una sola corsia orizzontale, come il vecchio tabellone: la camera scorre
-   * da sinistra verso destra e tiene inquadrato il gruppo di testa. La fisica
-   * vive in coordinate di pista, quindi il disegno resta un semplice rettilineo.
+   * Serpentina con tornanti: la fisica resta una corsia sola, ma il disegno
+   * piega a destra e a sinistra con curve strette. Il seme decide onde,
+   * ampiezza e fase: lo stesso seme ridisegna la stessa pista.
    */
   private layoutTrack(): void {
-    const count = 901;
-    this.trackSamples = Array.from({ length: count }, (_, index) => ({
-      x: TRACK_START_X + (TRACK_WORLD_LENGTH * index) / (count - 1),
-      y: 0,
-    }));
+    const rng = this.seededRandom(this.trackSeed || 1);
+    const count = this.raceMarbles.length || 4;
+    const trackWidth = this.raceTrackWidth(count);
+    const room = Math.max(0, this.raceH / 2 - trackWidth / 2 - 28);
+    const amplitude = Math.min(100, room * 0.9);
+    const waves = 3 + Math.floor(rng() * 2);
+    const phase = rng() * Math.PI * 2;
+    const samples = 1201;
+
+    this.trackSamples = Array.from({ length: samples }, (_, index) => {
+      const p = index / (samples - 1);
+      // Partenza e arrivo dritti: le curve cominciano dopo il via.
+      const ramp = Math.min(1, p / 0.045, (1 - p) / 0.045);
+      const swing = Math.sin(p * Math.PI * 2 * waves + phase);
+      const ripple = 0.08 * Math.sin(p * Math.PI * 2 * (waves * 2 + 1) + phase * 1.7);
+      return {
+        x: TRACK_START_X + TRACK_WORLD_LENGTH * p,
+        y: amplitude * ramp * (swing + ripple),
+      };
+    });
   }
 
   private seededRandom(seed: number): () => number {
@@ -1192,7 +1241,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
   }
 
   private generateHazards(track: Track): void {
-    const rng = this.seededRandom(Math.floor(Math.random() * 0xffffffff));
+    const rng = this.seededRandom(this.trackSeed ^ 0x7f4a7c15);
     const plan = HAZARD_PLANS[track.id] ?? HAZARD_PLANS['rally'];
     const hazards: Hazard[] = [];
     const used: number[] = [];
@@ -1201,7 +1250,12 @@ export class BiglieBonus implements OnInit, OnDestroy {
       let progress = 0;
       for (let attempt = 0; attempt < 40; attempt++) {
         progress = 0.09 + rng() * 0.82;
-        if (used.every((value) => Math.abs(value - progress) > 0.05)) break;
+        if (
+          !this.inBifurcation(progress)
+          && used.every((value) => Math.abs(value - progress) > 0.05)
+        ) {
+          break;
+        }
       }
       used.push(progress);
 
@@ -1230,6 +1284,14 @@ export class BiglieBonus implements OnInit, OnDestroy {
     });
 
     this.hazards = hazards;
+  }
+
+  /** I bivi restano liberi: l'isola è un ostacolo, non una trappola. */
+  private inBifurcation(progress: number): boolean {
+    return BIFURCATIONS.some(
+      (bifurcation) =>
+        progress > bifurcation.start - 0.02 && progress < bifurcation.end + 0.02,
+    );
   }
 
   private hazardLane(
@@ -1503,6 +1565,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
       }
     }
 
+    this.drawBifurcations(ctx, h, trackWidth);
+
     if (track.id === 'f1') this.drawCurbs(ctx, points, trackWidth);
     if (track.id === 'neve') this.drawSnowbanks(ctx, points, trackWidth);
 
@@ -1510,6 +1574,86 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
     this.drawGate(ctx, 0, 'START', w, h, trackWidth);
     this.drawGate(ctx, 1, 'TRAGUARDO', w, h, trackWidth);
+  }
+
+  /** I due bivi, disegnati con la stessa geometria dei corpi fisici. */
+  private drawBifurcations(
+    ctx: CanvasRenderingContext2D,
+    h: number,
+    trackWidth: number,
+  ): void {
+    const halfHeight = (trackWidth * BIFURCATION_HEIGHT) / 2;
+
+    for (const bifurcation of BIFURCATIONS) {
+      const path = this.bifurcationPath(bifurcation, h, trackWidth, halfHeight);
+
+      ctx.save();
+      ctx.translate(4, 6);
+      ctx.fillStyle = 'rgba(0, 0, 0, .35)';
+      ctx.fill(path);
+      ctx.restore();
+
+      ctx.save();
+      ctx.fillStyle = PAPER;
+      ctx.fill(path);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = INK;
+      ctx.stroke(path);
+      ctx.clip(path);
+
+      ctx.strokeStyle = 'rgba(21, 21, 15, .16)';
+      ctx.lineWidth = 2;
+      for (let x = -this.raceW; x < this.raceW * 2; x += 20) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x + this.raceH, this.raceH);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      const middle = this.trackPoint((bifurcation.start + bifurcation.end) / 2);
+      ctx.save();
+      ctx.translate(middle.x - this.cameraX, h * TRACK_VIEW_CENTER + middle.y);
+      ctx.rotate(middle.angle);
+      ctx.fillStyle = INK;
+      ctx.font = '800 10px ui-monospace, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('BIVIO', 0, bifurcation.offset * trackWidth);
+      ctx.restore();
+    }
+  }
+
+  /** Poligono dell'isola: bordo sinistro avanti, bordo destro indietro. */
+  private bifurcationPath(
+    bifurcation: { start: number; end: number; offset: number },
+    h: number,
+    trackWidth: number,
+    halfHeight: number,
+  ): Path2D {
+    const path = new Path2D();
+    const steps = 26;
+    const left: Array<{ x: number; y: number }> = [];
+    const right: Array<{ x: number; y: number }> = [];
+
+    for (let step = 0; step <= steps; step++) {
+      const p = bifurcation.start + ((bifurcation.end - bifurcation.start) * step) / steps;
+      const point = this.trackPoint(p);
+      const nx = -Math.sin(point.angle);
+      const ny = Math.cos(point.angle);
+      const lateral = bifurcation.offset * trackWidth;
+      const px = point.x - this.cameraX;
+      const py = h * TRACK_VIEW_CENTER + point.y;
+      left.push({ x: px + nx * (lateral - halfHeight), y: py + ny * (lateral - halfHeight) });
+      right.push({ x: px + nx * (lateral + halfHeight), y: py + ny * (lateral + halfHeight) });
+    }
+
+    left.forEach((point, index) => (index === 0 ? path.moveTo(point.x, point.y) : path.lineTo(point.x, point.y)));
+    for (let index = right.length - 1; index >= 0; index--) {
+      path.lineTo(right[index].x, right[index].y);
+    }
+    path.closePath();
+    return path;
   }
 
   /** Ostacoli disegnati a terra, con ombre piatte e inchiostro pieno. */
