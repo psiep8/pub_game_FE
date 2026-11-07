@@ -126,7 +126,8 @@ describe('RoundManagerService', () => {
     expect(types.filter((type) => type === 'QUIZ')).toHaveLength(5);
     expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(3);
     expect(types.filter((type) => type === 'SCOMMESSA')).toHaveLength(1);
-    expect(types.filter((type) => type === 'QUOTA')).toHaveLength(2);
+    // Azzardo esce tre volte, una per livello di difficolta.
+    expect(types.filter((type) => type === 'QUOTA')).toHaveLength(3);
     expect(types.filter((type) => type === 'BOMBA')).toHaveLength(3);
   });
 

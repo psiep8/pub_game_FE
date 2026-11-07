@@ -50,6 +50,7 @@ import { SpeedRush } from '../games/speed-rush/speed-rush.component';
 import { AirHockeyBattle } from '../games/air-hockey-battle/air-hockey-battle.component';
 import { Scommessa } from '../games/scommessa/scommessa.component';
 import { Quota } from '../games/quota/quota.component';
+import { levelForOccurrence } from '../games/quota/azzardo-rules';
 import { Blackjack } from '../games/blackjack/blackjack.component';
 import { DEMO_SCRIPTS, DEMO_SCENE_COUNT, DemoScript } from './demo-scripts';
 import { scoringRuleFor } from '../../shared/models/scoring-rules';
@@ -500,7 +501,7 @@ export class GameComponent implements OnInit, OnDestroy {
           this.currentGameId()!,
           categoryName,
           extractedType,
-          'medio'
+          this.azzardoDifficulty(extractedType)
         )
       );
 
@@ -701,6 +702,14 @@ export class GameComponent implements OnInit, OnDestroy {
   /**
    * 🎮 Ottieni nome italiano del mode
    */
+  /** Livello di Azzardo: la serata lo incontra tre volte, sempre più difficile. */
+  private azzardoDifficulty(type: GameModeType): string {
+    if (type !== 'QUOTA') return 'medio';
+    const played = this.roundManager.getRoundStats().distribution['QUOTA'] ?? 0;
+    const level = levelForOccurrence(played + 1);
+    return level === 1 ? 'facile' : level === 3 ? 'difficile' : 'medio';
+  }
+
   getModeName(type: string): string {
     switch (type) {
       case 'QUIZ':
@@ -722,7 +731,7 @@ export class GameComponent implements OnInit, OnDestroy {
       case 'SCOMMESSA':
         return 'LA SCOMMESSA';
       case 'QUOTA':
-        return 'QUOTA';
+        return 'AZZARDO';
       case 'BLACKJACK':
         return 'BLACK JACK';
       case 'BOMBA':
@@ -1408,7 +1417,7 @@ export class GameComponent implements OnInit, OnDestroy {
       case 'SCOMMESSA':
         return 'La TV svela la risposta dopo ogni domanda';
       case 'QUOTA':
-        return 'La TV svela il valore e la fascia che paga';
+        return "La TV svela il valore e l'opzione che paga";
       case 'BLACKJACK':
         return 'Mani e banco svelati in TV a ogni tavolo';
       case 'BOMBA':

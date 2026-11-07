@@ -142,17 +142,15 @@ import { ConnectionBadge } from '../../shared/components/connection-badge/connec
     .cavallo-option { display: flex; align-items: center; gap: 10px; padding: 14px 12px; border-radius: 12px; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: #fff; text-align: left; font-size: .92rem; font-weight: 700; }
     .cavallo-option:disabled { opacity: .55; }
     .cavallo-letter { display: grid; place-items: center; width: 24px; height: 24px; flex: 0 0 auto; border-radius: 6px; background: #f59e0b; color: #111827; font-size: .72rem; font-weight: 900; }
-    .quota-list { display: flex; flex-direction: column; gap: 6px; }
-    .quota-band { display: grid; grid-template-columns: 1fr auto auto auto; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 10px; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); }
-    .quota-band.selected { border-color: #f59e0b; background: rgba(245,158,11,.2); }
-    .quota-band-info { display: flex; flex-direction: column; gap: 2px; font-size: .78rem; }
-    .quota-band-info span { color: #f59e0b; font-weight: 700; }
-    .quota-tokens { font-family: monospace; font-size: 1.05rem; font-weight: 800; min-width: 34px; text-align: center; }
-    .quota-step { width: 34px; height: 34px; border-radius: 8px; border: 2px solid rgba(255,255,255,.2); background: rgba(255,255,255,.08); color: #fff; font-size: 1.05rem; font-weight: 800; }
-    .quota-shortcuts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
-    .quota-shortcuts button { padding: 9px 4px; border-radius: 10px; border: 2px solid rgba(255,255,255,.16); background: rgba(255,255,255,.06); color: #fff; font-size: .72rem; font-weight: 700; }
-    .quota-submit { padding: 14px; border-radius: 12px; border: 2px solid #f59e0b; background: #f59e0b; color: #111827; font-weight: 800; }
-    .quota-submit:disabled { opacity: .45; }
+    .azzardo-stakes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .azzardo-stake { padding: 12px 4px; border-radius: 0; border: 2px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: #fff; font-family: monospace; font-size: 1rem; font-weight: 800; }
+    .azzardo-stake.selected { border-color: #f59e0b; background: rgba(245,158,11,.25); }
+    .azzardo-stake:disabled { opacity: .35; }
+    .azzardo-options { display: flex; flex-direction: column; gap: 6px; }
+    .azzardo-option { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 0; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: #fff; text-align: left; font-size: .92rem; font-weight: 700; }
+    .azzardo-option.selected { border-color: #f59e0b; background: rgba(245,158,11,.2); }
+    .azzardo-option:disabled { opacity: .5; }
+    .azzardo-letter { display: grid; place-items: center; width: 24px; height: 24px; flex: 0 0 auto; background: #f59e0b; color: #111827; font-size: .72rem; font-weight: 900; }
   `],
 })
 export class RemoteComponent implements OnInit, OnDestroy {
@@ -226,9 +224,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
   blackjackState = signal<any>(null);
   blackjackStand = signal(false);
   quotaState = signal<any>(null);
-  quotaTokens = signal<number[]>([25, 25, 25, 25]);
-  quotaSelected = signal(0);
+  quotaStake = signal(100);
+  quotaChoice = signal<number | null>(null);
   quotaSent = signal(false);
+  readonly azzardoStakes = [100, 200, 300];
   private quotaKey = '';
   cavalloState = signal<any>(null);
   cavalloChoice = signal<string | null>(null);
@@ -1013,12 +1012,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
     this.quotaState.set(state);
     this.questionType.set('QUOTA');
-    const key = `${state.phase}:${state.index ?? 0}`;
+    const key = `${state.phase}:${state.manche ?? 0}`;
     if (key !== this.quotaKey) {
       this.quotaKey = key;
       if (state.phase === 'BET') {
-        this.quotaTokens.set([25, 25, 25, 25]);
-        this.quotaSelected.set(0);
+        this.quotaStake.set(100);
+        this.quotaChoice.set(null);
         this.quotaSent.set(false);
       }
     }
@@ -1077,62 +1076,33 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.audio.playConfirm();
   }
 
-  quotaRemaining(): number {
-    return 100 - this.quotaTokens().reduce((sum, value) => sum + value, 0);
-  }
-
-  quotaSelect(index: number): void {
-    this.quotaSelected.set(index);
-  }
-
-  quotaAdd(index: number, delta: number): void {
-    if (this.quotaSent()) return;
-    const tokens = [...this.quotaTokens()];
-    const current = tokens[index] ?? 0;
-    const max = current + this.quotaRemaining();
-    tokens[index] = Math.max(0, Math.min(max, current + delta));
-    this.quotaTokens.set(tokens);
-    this.vibrate(15);
-  }
-
-  quotaShortcut(kind: 'ALL' | 'HALF' | 'SPREAD'): void {
-    if (this.quotaSent()) return;
-    if (kind === 'SPREAD') {
-      this.quotaTokens.set([25, 25, 25, 25]);
-      return;
-    }
-
-    const selected = this.quotaSelected();
-    const tokens = [0, 0, 0, 0];
-    if (kind === 'ALL') {
-      tokens[selected] = 100;
-      this.quotaTokens.set(tokens);
-      return;
-    }
-
-    tokens[selected] = 50;
-    const bands = this.quotaState()?.bands ?? [];
-    let other = -1;
-    bands.forEach((band: any, index: number) => {
-      if (index === selected) return;
-      if (other < 0 || Number(band.odds) > Number(bands[other]?.odds ?? 0)) {
-        other = index;
-      }
-    });
-    tokens[other < 0 ? (selected + 1) % 4 : other] = 50;
-    this.quotaTokens.set(tokens);
-  }
-
-  quotaSubmit(): void {
+  /** Punti che la propria squadra può ancora puntare in questa manche. */
+  quotaMaxBet(): number {
     const player = this.nickname();
-    if (!player || this.quotaSent() || this.quotaRemaining() !== 0) return;
+    const row = (this.quotaState()?.ready ?? []).find((entry: any) => entry.playerName === player);
+    return Number(row?.maxBet ?? 0);
+  }
 
+  quotaPickStake(stake: number): void {
+    if (this.quotaSent() || stake > this.quotaMaxBet()) return;
+    this.quotaStake.set(stake);
+    this.vibrate(10);
+  }
+
+  /** Un tocco sulla risposta invia puntata e scelta insieme. */
+  quotaPick(index: number): void {
+    const player = this.nickname();
+    const state = this.quotaState();
+    if (!player || this.quotaSent() || state?.phase !== 'BET') return;
+    if (index < 0 || index >= (state.options?.length ?? 0)) return;
+
+    this.quotaChoice.set(index);
     this.quotaSent.set(true);
     this.ws.broadcastStatus(this.gameId(), {
       action: WsAction.QUOTA_ACTION,
       playerName: player,
       kind: 'BET',
-      value: this.quotaTokens(),
+      value: { stake: this.quotaStake(), choice: index },
     });
     this.vibrate(30);
     this.audio.playConfirm();
@@ -1142,6 +1112,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const player = this.nickname();
     return (this.quotaState()?.rows ?? []).find((row: any) => row.playerName === player) ?? null;
   }
+
 
   casinoAct(choice: string): void {
     const state = this.casinoState();

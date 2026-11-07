@@ -70,10 +70,10 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     note: 'Il set si chiude a 7 gol; il perdente riceve +200 di consolazione. Risposte rapide accorciano il tempo dell’avversario.',
   },
   QUOTA: {
-    correct: 'gettoni × quota (max 500 per domanda)',
-    wrong: '0: si perdono solo i gettoni giocati',
-    missed: '25 gettoni per fascia, poi si paga come gli altri',
-    note: 'Quattro domande numeriche, 100 gettoni da distribuire sulle fasce; solo quella che contiene il valore paga.',
+    correct: 'puntata × quota (×2 facile, ×3 media, ×4 difficile)',
+    wrong: '−puntata × 100/80/60/40%',
+    missed: '0: chi non risponde non punta',
+    note: 'Azzardo: quattro manche numeriche (celebrità, canzoni, paesi, storia) con puntate reali da 100, 200 o 300 punti. Mai sotto zero.',
   },
   SCOMMESSA: {
     correct: '+banca incassata (100 → 400 → 800)',

@@ -100,11 +100,11 @@ poi i giochi.
       `BonusType` contiene solo CASINO, BASKET, CAVALLO e BIGLIE, quindi resta invariato.
 
 ### 8. Quota → "Azzardo"
-- [ ] Tre volte in serata con difficoltà crescente (facile/media, media, difficile), 4 manche:
+- [x] Tre volte in serata con difficoltà crescente (facile, media, difficile), 4 manche:
       celebrità, canzone, nazione, evento storico; 4 opzioni molto vicine.
-- [ ] Puntata 100/200/300, vincita × quota (2 / 3 / 4), perdita con moltiplicatore 100 → 80 → 60 → 40%,
+- [x] Puntata 100/200/300, vincita × quota (2 / 3 / 4), perdita con moltiplicatore 100 → 80 → 60 → 40%,
       mai sotto zero.
-- [ ] Banca ≥ 30 domande per categoria e livello.
+- [ ] Banca ≥ 30 domande per categoria e livello (ora 6 per categoria e livello).
 
 ### 9. Scommessa → "Tutto o metà"
 - [ ] 5 round, livelli 100-500 usabili una sola volta per squadra; domanda uguale per chi sceglie

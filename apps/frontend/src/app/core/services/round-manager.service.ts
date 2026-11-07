@@ -25,16 +25,16 @@ const STORAGE_KEY = 'roundProgress';
  * primi tre atti e mai prima di un bonus: è il round che dà il momento di
  * vetrina a un tavolo alla volta.
  *
- * Quota esce due volte, ai due punti in cui il colpo grosso si sente di più:
- * apre l'atto 2 e arriva al 37 subito dopo la classifica rapida, quando chi è
- * indietro deve rischiare. Il Time Buzzer resta tre volte (3 manche), la
+ * Azzardo (ex Quota) esce tre volte, una per difficoltà: apre l'atto 2 con il
+ * livello facile, passa al 28 con il medio e arriva al 37 con il difficile,
+ * quando chi è indietro deve rischiare. Il Time Buzzer resta tre volte (3 manche), la
  * Scommessa una sola, l'Arena due e chiude sia l'atto 3 sia la serata.
  */
 const ACT_DECKS: GameModeType[][] = [
   ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'BLACKJACK', 'TIMELINE', 'WHEEL_OF_FORTUNE', 'SPEED_RUSH'],
   ['QUOTA', 'QUIZ', 'IMAGE_BLUR', 'BLACKJACK', 'MUSIC', 'TIMELINE', 'TIME_BUZZER', 'AIR_HOCKEY_BATTLE'],
   ['TIMELINE', 'BLACKJACK', 'MUSIC', 'SPEED_RUSH', 'IMAGE_BLUR', 'QUIZ', 'WHEEL_OF_FORTUNE', 'ARENA'],
-  ['IMAGE_BLUR', 'QUIZ', 'BOMBA', 'MUSIC', 'TIME_BUZZER', 'TIMELINE', 'SCOMMESSA', 'SPEED_RUSH'],
+  ['IMAGE_BLUR', 'QUIZ', 'BOMBA', 'QUOTA', 'TIME_BUZZER', 'TIMELINE', 'SCOMMESSA', 'SPEED_RUSH'],
   ['WHEEL_OF_FORTUNE', 'QUIZ', 'BOMBA', 'TIME_BUZZER', 'QUOTA', 'AIR_HOCKEY_BATTLE', 'MUSIC', 'ARENA'],
 ];
 

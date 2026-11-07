@@ -117,7 +117,6 @@ public class QuestionBankService {
     /** Sotto questo numero di domande l'arena finisce le scorte della categoria. */
     private static final int MIN_ARENA_QUESTIONS = 10;
     private static final int SCOMMESSA_QUESTIONS = 3;
-    private static final int QUOTA_QUESTIONS = 4;
     private static final int QUIZ_QUESTIONS = 3;
 
     /** Le cinque combinazioni di difficolta del Quiz, una per round. */
@@ -129,46 +128,90 @@ public class QuestionBankService {
             { "medio", "difficile", "difficile" }
     };
 
-    /** Banca numerica di Quota: valore e intervallo plausibile per le fasce. */
-    private record NumericQuestion(String category, String question, String unit,
-            double value, double min, double max) {
+    /** Banca di Azzardo: una domanda numerica per categoria e livello. */
+    private record AzzardoQuestion(int level, String category, String question, String unit,
+            double value, double step) {
     }
 
-    private static final List<NumericQuestion> NUMERIC_QUESTIONS = List.of(
-            new NumericQuestion("Storia", "In che anno è caduto il Muro di Berlino?", "anno", 1989, 1900, 2000),
-            new NumericQuestion("Storia", "In che anno Colombo arrivò in America?", "anno", 1492, 1400, 1600),
-            new NumericQuestion("Geografia e Viaggi", "Quanti metri è alto l'Everest?", "metri", 8849, 7000, 9500),
-            new NumericQuestion("Geografia e Viaggi", "Quanti chilometri è lungo il Nilo?", "km", 6650, 4000, 8000),
-            new NumericQuestion("Geografia e Viaggi", "Quanti milioni di abitanti ha l'Italia?", "milioni", 59, 40, 80),
-            new NumericQuestion("Scienza e Spazio", "Qual è la velocità della luce in km/s?", "km/s", 299792, 200000, 400000),
-            new NumericQuestion("Scienza e Spazio", "A quanti gradi bolle l'acqua a livello del mare?", "°C", 100, 80, 120),
-            new NumericQuestion("Scienza e Spazio", "Quanti pianeti ci sono nel Sistema Solare?", "pianeti", 8, 5, 12),
-            new NumericQuestion("Sport", "Quanti Mondiali di calcio ha vinto l'Italia?", "titoli", 4, 1, 8),
-            new NumericQuestion("Sport", "Quanti chilometri è lunga una maratona?", "km", 42.195, 30, 60),
-            new NumericQuestion("Sport", "In che anno si sono tenute le Olimpiadi di Parigi?", "anno", 2024, 1990, 2030),
-            new NumericQuestion("Cinema", "In che anno è uscito Titanic?", "anno", 1997, 1980, 2010),
-            new NumericQuestion("Cinema", "Quanti Oscar ha vinto Ben-Hur?", "Oscar", 11, 5, 15),
-            new NumericQuestion("Musica", "Quante corde ha una chitarra classica?", "corde", 6, 4, 12),
-            new NumericQuestion("Musica", "In che anno si è tenuto Woodstock?", "anno", 1969, 1950, 2000),
-            new NumericQuestion("Arte e Architettura", "In che anno è stata dipinta la Gioconda?", "anno", 1503, 1400, 1600),
-            new NumericQuestion("Arte e Architettura", "Quanti metri è alto il David di Michelangelo?", "metri", 5.17, 3, 8),
-            new NumericQuestion("Cibo e Gastronomia", "In che anno è nata la pizza Margherita?", "anno", 1889, 1800, 1950),
-            new NumericQuestion("Lingua e Letteratura", "Quante lettere ha l'alfabeto italiano?", "lettere", 21, 18, 30),
-            new NumericQuestion("Lingua e Letteratura", "Quanti canti ha la Divina Commedia?", "canti", 100, 50, 150),
-            new NumericQuestion("Anime e manga", "In che anno è iniziato Dragon Ball?", "anno", 1984, 1970, 2000),
-            new NumericQuestion("Anime e manga", "In che anno è iniziato One Piece?", "anno", 1997, 1980, 2010),
-            new NumericQuestion("Gaming e Tecnologia", "In che anno è uscito Tetris?", "anno", 1984, 1970, 2000),
-            new NumericQuestion("Gaming e Tecnologia", "In che anno è uscito Minecraft?", "anno", 2011, 1995, 2025),
-            new NumericQuestion("Motori", "Quanti chilometri è lungo il circuito di Monza?", "km", 5.793, 3, 8),
-            new NumericQuestion("Motori", "In che anno è stata fondata la Ferrari?", "anno", 1947, 1900, 2000),
-            new NumericQuestion("Politica e Attualità", "In che anno è nata l'ONU?", "anno", 1945, 1900, 2000),
-            new NumericQuestion("Politica e Attualità", "In che anno è nata la Repubblica Italiana?", "anno", 1946, 1900, 2000),
-            new NumericQuestion("Natura e Animali", "Quanti metri è lunga la balenottera azzurra?", "metri", 30, 15, 40),
-            new NumericQuestion("Natura e Animali", "Quanti metri è alta una giraffa?", "metri", 5.5, 3, 8),
-            new NumericQuestion("Serie TV", "In che anno è iniziato Friends?", "anno", 1994, 1980, 2010),
-            new NumericQuestion("TV e Spettacolo", "In che anno è iniziato il Festival di Sanremo?", "anno", 1951, 1900, 2000),
-            new NumericQuestion("Curiosità", "Quanti giorni ha un anno bisestile?", "giorni", 366, 360, 370),
-            new NumericQuestion("Curiosità", "Quante erano le meraviglie del mondo antico?", "meraviglie", 7, 3, 12)
+    private static final List<String> AZZARDO_CATEGORIES =
+            List.of("CELEBRITÀ", "CANZONI", "PAESI", "STORIA");
+
+    private static final List<AzzardoQuestion> AZZARDO_QUESTIONS = List.of(
+            new AzzardoQuestion(1, "CELEBRITÀ", "In che anno è nato Albert Einstein?", "anno", 1879, 2),
+            new AzzardoQuestion(1, "CELEBRITÀ", "In che anno è nata Marilyn Monroe?", "anno", 1926, 2),
+            new AzzardoQuestion(1, "CELEBRITÀ", "In che anno è nato Elvis Presley?", "anno", 1935, 2),
+            new AzzardoQuestion(1, "CELEBRITÀ", "In che anno è nato Michael Jackson?", "anno", 1958, 2),
+            new AzzardoQuestion(1, "CELEBRITÀ", "In che anno è nata Lady Diana?", "anno", 1961, 2),
+            new AzzardoQuestion(1, "CELEBRITÀ", "In che anno è nato Barack Obama?", "anno", 1961, 2),
+            new AzzardoQuestion(2, "CELEBRITÀ", "In che anno è nata Madonna?", "anno", 1958, 3),
+            new AzzardoQuestion(2, "CELEBRITÀ", "In che anno è nato Tom Cruise?", "anno", 1962, 3),
+            new AzzardoQuestion(2, "CELEBRITÀ", "In che anno è nato Brad Pitt?", "anno", 1963, 3),
+            new AzzardoQuestion(2, "CELEBRITÀ", "In che anno è nato Leonardo DiCaprio?", "anno", 1974, 3),
+            new AzzardoQuestion(2, "CELEBRITÀ", "In che anno è nata Beyoncé?", "anno", 1981, 3),
+            new AzzardoQuestion(2, "CELEBRITÀ", "In che anno è nato Cristiano Ronaldo?", "anno", 1985, 3),
+            new AzzardoQuestion(3, "CELEBRITÀ", "In che anno è nato Stephen Hawking?", "anno", 1942, 4),
+            new AzzardoQuestion(3, "CELEBRITÀ", "In che anno è nato Freddie Mercury?", "anno", 1946, 4),
+            new AzzardoQuestion(3, "CELEBRITÀ", "In che anno è nato David Bowie?", "anno", 1947, 4),
+            new AzzardoQuestion(3, "CELEBRITÀ", "In che anno è nata Jodie Foster?", "anno", 1962, 4),
+            new AzzardoQuestion(3, "CELEBRITÀ", "In che anno è nato Keanu Reeves?", "anno", 1964, 4),
+            new AzzardoQuestion(3, "CELEBRITÀ", "In che anno è nata Scarlett Johansson?", "anno", 1984, 4),
+
+            new AzzardoQuestion(1, "CANZONI", "In che anno è uscita Imagine di John Lennon?", "anno", 1971, 2),
+            new AzzardoQuestion(1, "CANZONI", "In che anno è uscita Bohemian Rhapsody?", "anno", 1975, 2),
+            new AzzardoQuestion(1, "CANZONI", "In che anno è uscito Billie Jean?", "anno", 1983, 2),
+            new AzzardoQuestion(1, "CANZONI", "In che anno è uscita Like a Prayer?", "anno", 1989, 2),
+            new AzzardoQuestion(1, "CANZONI", "In che anno è uscito Smells Like Teen Spirit?", "anno", 1991, 2),
+            new AzzardoQuestion(1, "CANZONI", "In che anno è uscita Wonderwall degli Oasis?", "anno", 1995, 2),
+            new AzzardoQuestion(2, "CANZONI", "In che anno è uscita Hotel California?", "anno", 1976, 3),
+            new AzzardoQuestion(2, "CANZONI", "In che anno è uscito Thriller?", "anno", 1982, 3),
+            new AzzardoQuestion(2, "CANZONI", "In che anno è uscita Sweet Dreams?", "anno", 1983, 3),
+            new AzzardoQuestion(2, "CANZONI", "In che anno è uscita Nothing Else Matters?", "anno", 1991, 3),
+            new AzzardoQuestion(2, "CANZONI", "In che anno è uscita Losing My Religion?", "anno", 1991, 3),
+            new AzzardoQuestion(2, "CANZONI", "In che anno è uscita Torn di Natalie Imbruglia?", "anno", 1997, 3),
+            new AzzardoQuestion(3, "CANZONI", "In che anno è uscita Hey Jude?", "anno", 1968, 4),
+            new AzzardoQuestion(3, "CANZONI", "In che anno è uscita Stairway to Heaven?", "anno", 1971, 4),
+            new AzzardoQuestion(3, "CANZONI", "In che anno è uscita Roxanne dei Police?", "anno", 1978, 4),
+            new AzzardoQuestion(3, "CANZONI", "In che anno è uscita Under Pressure?", "anno", 1981, 4),
+            new AzzardoQuestion(3, "CANZONI", "In che anno è uscita Purple Rain?", "anno", 1984, 4),
+            new AzzardoQuestion(3, "CANZONI", "In che anno è uscita Black Hole Sun?", "anno", 1994, 4),
+
+            new AzzardoQuestion(1, "PAESI", "Quanti paesi confinano con l'Italia?", "paesi confinanti", 6, 1),
+            new AzzardoQuestion(1, "PAESI", "Quanti paesi confinano con la Francia?", "paesi confinanti", 8, 1),
+            new AzzardoQuestion(1, "PAESI", "Quanti paesi confinano con la Germania?", "paesi confinanti", 9, 1),
+            new AzzardoQuestion(1, "PAESI", "Quanti paesi confinano con la Spagna?", "paesi confinanti", 5, 1),
+            new AzzardoQuestion(1, "PAESI", "Quanti paesi confinano con la Svizzera?", "paesi confinanti", 5, 1),
+            new AzzardoQuestion(1, "PAESI", "Quanti paesi confinano con l'Austria?", "paesi confinanti", 8, 1),
+            new AzzardoQuestion(2, "PAESI", "Quanti paesi confinano con il Brasile?", "paesi confinanti", 10, 1),
+            new AzzardoQuestion(2, "PAESI", "Quanti paesi confinano con la Cina?", "paesi confinanti", 14, 1),
+            new AzzardoQuestion(2, "PAESI", "Quanti paesi confinano con l'India?", "paesi confinanti", 6, 1),
+            new AzzardoQuestion(2, "PAESI", "Quanti paesi confinano con la Russia?", "paesi confinanti", 14, 1),
+            new AzzardoQuestion(2, "PAESI", "Quanti paesi confinano con il Portogallo?", "paesi confinanti", 1, 1),
+            new AzzardoQuestion(2, "PAESI", "Quanti paesi confinano con il Belgio?", "paesi confinanti", 4, 1),
+            new AzzardoQuestion(3, "PAESI", "Quanti milioni di abitanti ha l'Italia?", "milioni di abitanti", 59, 5),
+            new AzzardoQuestion(3, "PAESI", "Quanti milioni di abitanti ha la Francia?", "milioni di abitanti", 68, 5),
+            new AzzardoQuestion(3, "PAESI", "Quanti milioni di abitanti ha la Germania?", "milioni di abitanti", 84, 5),
+            new AzzardoQuestion(3, "PAESI", "Quanti milioni di abitanti ha la Spagna?", "milioni di abitanti", 48, 5),
+            new AzzardoQuestion(3, "PAESI", "Quanti milioni di abitanti ha il Giappone?", "milioni di abitanti", 124, 5),
+            new AzzardoQuestion(3, "PAESI", "Quanti milioni di abitanti ha il Brasile?", "milioni di abitanti", 216, 5),
+
+            new AzzardoQuestion(1, "STORIA", "In che anno è caduto il Muro di Berlino?", "anno", 1989, 2),
+            new AzzardoQuestion(1, "STORIA", "In che anno l'uomo è sbarcato sulla Luna?", "anno", 1969, 2),
+            new AzzardoQuestion(1, "STORIA", "In che anno è finita la Seconda guerra mondiale?", "anno", 1945, 2),
+            new AzzardoQuestion(1, "STORIA", "In che anno è nato il Regno d'Italia?", "anno", 1861, 2),
+            new AzzardoQuestion(1, "STORIA", "In che anno è scoppiata la Rivoluzione francese?", "anno", 1789, 2),
+            new AzzardoQuestion(1, "STORIA", "In che anno Colombo arrivò in America?", "anno", 1492, 2),
+            new AzzardoQuestion(2, "STORIA", "In che anno è stato assassinato John Kennedy?", "anno", 1963, 3),
+            new AzzardoQuestion(2, "STORIA", "In che anno è avvenuto l'attacco alle Torri Gemelle?", "anno", 2001, 3),
+            new AzzardoQuestion(2, "STORIA", "In che anno è avvenuto il disastro di Chernobyl?", "anno", 1986, 3),
+            new AzzardoQuestion(2, "STORIA", "In che anno è stato firmato il Trattato di Roma?", "anno", 1957, 3),
+            new AzzardoQuestion(2, "STORIA", "In che anno è avvenuta la battaglia di Waterloo?", "anno", 1815, 3),
+            new AzzardoQuestion(2, "STORIA", "In che anno è scoppiata la Rivoluzione russa?", "anno", 1917, 3),
+            new AzzardoQuestion(3, "STORIA", "In che anno si è tenuto il Congresso di Vienna?", "anno", 1815, 4),
+            new AzzardoQuestion(3, "STORIA", "In che anno è stato firmato il Trattato di Versailles?", "anno", 1919, 4),
+            new AzzardoQuestion(3, "STORIA", "In che anno è scoppiata la crisi dei missili di Cuba?", "anno", 1962, 4),
+            new AzzardoQuestion(3, "STORIA", "In che anno è avvenuta la Guerra dei Sei Giorni?", "anno", 1967, 4),
+            new AzzardoQuestion(3, "STORIA", "In che anno è caduta Costantinopoli?", "anno", 1453, 4),
+            new AzzardoQuestion(3, "STORIA", "In che anno è iniziata la guerra di Crimea?", "anno", 1853, 4)
     );
 
     public QuestionBankService(TMDBImageService tmdbImageService,
@@ -205,7 +248,7 @@ public class QuestionBankService {
             case "MUSIC" -> musicPayload();
             case "ARENA" -> arenaWrapper();
             case "SCOMMESSA" -> scommessaPayload(category, isAvailable);
-            case "QUOTA" -> quotaPayload(category, isAvailable);
+            case "QUOTA" -> quotaPayload(category, difficulty, isAvailable);
             case "QUIZ" -> quizPayload(category, isAvailable);
             default -> fromBank(category, requested, isAvailable);
         };
@@ -708,65 +751,69 @@ public class QuestionBankService {
     }
 
     /**
-     * Quattro domande numeriche con quattro fasce e quote, per il round Quota.
-     * Le fasce coprono un intervallo plausibile e il valore cade in una sola;
-     * la quota è circa il 10% sotto il rapporto giusto tra intervallo e fascia.
+     * Azzardo: quattro manche, una domanda per categoria (celebrità, canzoni,
+     * paesi, storia) con quattro opzioni numeriche vicine tra loro. Il livello
+     * arriva dalla difficoltà del round: 1 facile, 2 media, 3 difficile.
      */
-    private String quotaPayload(String category, Predicate<String> isAvailable) {
-        List<NumericQuestion> pool = new ArrayList<>();
-        for (NumericQuestion question : NUMERIC_QUESTIONS) {
-            if (category == null || question.category().equalsIgnoreCase(category)) {
-                pool.add(question);
-            }
-        }
-        if (pool.size() < QUOTA_QUESTIONS) {
-            pool = new ArrayList<>(NUMERIC_QUESTIONS);
-        }
-        Collections.shuffle(pool, random);
-
+    private String quotaPayload(String category, String difficulty, Predicate<String> isAvailable) {
+        int level = levelForDifficulty(difficulty);
         JSONArray questions = new JSONArray();
-        for (int i = 0; i < Math.min(QUOTA_QUESTIONS, pool.size()); i++) {
-            questions.put(quotaQuestionPayload(pool.get(i)));
+
+        for (String wanted : AZZARDO_CATEGORIES) {
+            azzardoQuestion(wanted, level).ifPresent(question -> questions.put(quotaQuestionPayload(question)));
         }
 
         JSONObject payload = new JSONObject();
         payload.put("type", "QUOTA");
-        payload.put("question", questions.isEmpty() ? "Quota" : questions.getJSONObject(0).getString("question"));
+        payload.put("level", level);
+        payload.put("odds", level + 1);
+        payload.put("question", "Azzardo: quattro manche");
         payload.put("category", category == null ? "" : category);
         payload.put("questions", questions);
-        payload.put("explain", "Quattro domande numeriche: distribuisci 100 gettoni sulle fasce. "
-                + "La fascia che contiene il valore paga la quota, le altre perdono i gettoni.");
+        payload.put("explain", "Quattro manche numeriche, una per categoria. Punta 100, 200 o 300 punti "
+                + "sulla risposta giusta: vince puntata x quota (2, 3 o 4), sbagliare costa una parte "
+                + "della puntata che scende manche dopo manche.");
         return payload.toString();
     }
 
-    private JSONObject quotaQuestionPayload(NumericQuestion question) {
-        double span = Math.max(0.0001, question.max() - question.min());
-        int[] baseWidths = { 1, 2, 3, 5 };
-        int offset = random.nextInt(baseWidths.length);
-        double unit = span / 11.0;
-
-        JSONArray bands = new JSONArray();
-        double from = question.min();
-        int correct = -1;
-        for (int i = 0; i < baseWidths.length; i++) {
-            double width = baseWidths[(i + offset) % baseWidths.length] * unit;
-            double to = i == baseWidths.length - 1 ? question.max() : from + width;
-            double odds = 0.9 * span / Math.max(0.0001, to - from);
-            odds = Math.max(1.2, Math.min(20.0, Math.round(odds * 10) / 10.0));
-
-            JSONObject band = new JSONObject();
-            band.put("from", round1(from));
-            band.put("to", round1(to));
-            band.put("odds", odds);
-            bands.put(band);
-
-            if (correct < 0 && question.value() >= from && question.value() < to) {
-                correct = i;
+    /** Una domanda della categoria e del livello richiesti, pescata a caso. */
+    private Optional<AzzardoQuestion> azzardoQuestion(String category, int level) {
+        List<AzzardoQuestion> pool = new ArrayList<>();
+        for (AzzardoQuestion question : AZZARDO_QUESTIONS) {
+            if (question.level() == level && question.category().equalsIgnoreCase(category)) {
+                pool.add(question);
             }
-            from = to;
         }
-        if (correct < 0) {
-            correct = baseWidths.length - 1;
+        if (pool.isEmpty()) {
+            for (AzzardoQuestion question : AZZARDO_QUESTIONS) {
+                if (question.level() == level) {
+                    pool.add(question);
+                }
+            }
+        }
+        if (pool.isEmpty()) {
+            pool.addAll(AZZARDO_QUESTIONS);
+        }
+        Collections.shuffle(pool, random);
+        return pool.isEmpty() ? Optional.empty() : Optional.of(pool.get(0));
+    }
+
+    private JSONObject quotaQuestionPayload(AzzardoQuestion question) {
+        double step = Math.max(0.0001, question.step());
+        List<Double> values = new ArrayList<>();
+        for (double offset : new double[] { -2, -1, 0, 1 }) {
+            values.add(round2(question.value() + offset * step));
+        }
+        Collections.shuffle(values, random);
+
+        JSONArray options = new JSONArray();
+        int answerIndex = -1;
+        for (int i = 0; i < values.size(); i++) {
+            double value = values.get(i);
+            options.put(value);
+            if (answerIndex < 0 && Math.abs(value - question.value()) < 0.0001) {
+                answerIndex = i;
+            }
         }
 
         JSONObject payload = new JSONObject();
@@ -774,9 +821,24 @@ public class QuestionBankService {
         payload.put("category", question.category());
         payload.put("unit", question.unit());
         payload.put("value", question.value());
-        payload.put("bands", bands);
-        payload.put("correctBand", correct);
+        payload.put("options", options);
+        payload.put("answerIndex", Math.max(0, answerIndex));
         return payload;
+    }
+
+    private int levelForDifficulty(String difficulty) {
+        if (difficulty == null) {
+            return 2;
+        }
+        return switch (difficulty.toLowerCase(Locale.ROOT)) {
+            case "facile", "easy" -> 1;
+            case "difficile", "hard" -> 3;
+            default -> 2;
+        };
+    }
+
+    private double round2(double value) {
+        return Math.round(value * 100) / 100.0;
     }
 
     private double round1(double value) {
