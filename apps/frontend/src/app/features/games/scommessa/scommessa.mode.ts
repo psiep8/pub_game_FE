@@ -4,75 +4,70 @@ import { signal } from '@angular/core';
 import { GameModeBase } from '../../../shared/models/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../../../shared/models/game-mode-type';
 
-/** Fasi de La Scommessa: le comuni arrivano da `GamePhase`. */
+/** Fasi di Tutto o metà: le comuni arrivano da `GamePhase`. */
 export const ScommessaPhase = {
-  BET: 'BET',
+  LEVEL: 'LEVEL',
   QUESTION: 'QUESTION',
   REVEAL: GamePhase.REVEAL,
-  CASHOUT: 'CASHOUT',
   FINALE: GamePhase.FINALE,
 } as const;
 export type ScommessaPhase = (typeof ScommessaPhase)[keyof typeof ScommessaPhase];
-export type ScommessaStatus = 'PLAYING' | 'CASHED' | 'BUST';
+export type ScommessaStatus = 'PENDING' | 'CORRECT' | 'WRONG';
+
+/** I cinque livelli: ognuno si può usare una sola volta per squadra. */
+export const SCOMMESSA_LEVELS = [100, 200, 300, 400, 500] as const;
 
 export interface ScommessaRow {
   playerName: string;
-  stake: number;
-  bank: number;
-  status: ScommessaStatus;
+  level: number | null;
+  used: number[];
+  answered: boolean;
   points: number;
+  total: number;
+  status: ScommessaStatus;
 }
 
 interface ScommessaQuestion {
+  level: number;
   question: string;
   options: string[];
   correctAnswer: string;
-  category?: string;
+  category: string;
 }
 
-const BET_SECONDS = 10;
-const QUESTION_SECONDS = 12;
-const REVEAL_SECONDS = 6;
-const CASHOUT_SECONDS = 8;
-const FINALE_SECONDS = 7;
-
-const TOTAL_QUESTIONS = 3;
-const STAKES = [100, 200, 300];
-const MIN_STAKE = 100;
+const LEVEL_SECONDS = 12;
+const QUESTION_SECONDS = 15;
+const REVEAL_SECONDS = 5;
+const FINALE_SECONDS = 5;
 
 /**
- * LA SCOMMESSA — tre domande, una banca che raddoppia e la scelta di incassare.
+ * TUTTO O METÀ (ex Scommessa) — cinque round, cinque livelli.
  *
- * Si punta prima di vedere la prima domanda (100/200/300). Ogni risposta esatta
- * raddoppia la banca (100 → 200 → 400 → 800); sbagliare o non rispondere la
- * brucia. Dopo la prima e la seconda domanda la squadra decide se incassare
- * subito o rischiare il resto: chi non sceglie entro otto secondi incassa
- * d'ufficio, così un telefono in tasca non costa punti. Alla terza domanda si
- * incassa automaticamente.
+ * In ogni round ogni squadra sceglie un livello da 100 a 500, mai usato prima:
+ * al quinto round resta un solo livello. La domanda dipende dal livello, quindi
+ * chi sceglie lo stesso livello riceve la stessa domanda a quattro risposte.
+ * Risposta giusta = +livello; sbagliata o scaduta = −metà del livello. La TV
+ * mostra per squadra il livello scelto e l'esito.
  */
 export class ScommessaMode extends GameModeBase {
   readonly type: GameModeType = 'SCOMMESSA';
   readonly timerDuration =
-    BET_SECONDS
-    + TOTAL_QUESTIONS * (QUESTION_SECONDS + REVEAL_SECONDS)
-    + (TOTAL_QUESTIONS - 1) * CASHOUT_SECONDS
-    + FINALE_SECONDS;
+    SCOMMESSA_LEVELS.length * (LEVEL_SECONDS + QUESTION_SECONDS + REVEAL_SECONDS) + FINALE_SECONDS;
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
 
   private players: string[] = [];
   private questions: ScommessaQuestion[] = [];
-  private phase = signal<ScommessaPhase>(ScommessaPhase.BET);
-  private secondsLeft = signal(BET_SECONDS);
+  private phase = signal<ScommessaPhase>(ScommessaPhase.LEVEL);
+  private secondsLeft = signal(LEVEL_SECONDS);
+  private round = signal(0);
   private rows = signal<ScommessaRow[]>([]);
-  private index = signal(0);
-  private stakes = new Map<string, number>();
-  private banks = new Map<string, number>();
-  private statuses = new Map<string, ScommessaStatus>();
+  private picks = new Map<string, number>();
+  private used = new Map<string, Set<number>>();
   private answers = new Map<string, number>();
-  private cashouts = new Map<string, 'CASH' | 'RISK'>();
-  private paidPoints = new Map<string, number>();
-  private paid = new Set<string>();
+  private points = new Map<string, number>();
+  private totals = new Map<string, number>();
+  private statuses = new Map<string, ScommessaStatus>();
   private finished = false;
   private clock?: ReturnType<typeof setInterval>;
 
@@ -83,12 +78,11 @@ export class ScommessaMode extends GameModeBase {
   }
 
   protected async onStart(): Promise<void> {
-    // setConfig arriva dopo initialize: i giocatori si leggono qui.
     this.players = [...(this.config.activePlayers ?? [])];
     this.questions = this.readQuestions();
     this.resetRound();
     await this.runPreGameSequence(1200);
-    this.startBet();
+    this.startLevel();
   }
 
   /** Le fasi hanno un countdown proprio: il timer base resta fermo. */
@@ -110,214 +104,197 @@ export class ScommessaMode extends GameModeBase {
     this.finish();
   }
 
+  /** Scelta del livello e risposta della manche: una sola per squadra. */
   handlePartyEvent(event: any): void {
     if (event?.action !== 'SCOMMESSA_ACTION') return;
 
     const playerName = String(event.playerName ?? '').trim();
     if (!playerName || !this.players.includes(playerName)) return;
 
-    if (event.kind === 'STAKE') {
-      if (this.phase() !== ScommessaPhase.BET) return;
+    if (event.kind === 'LEVEL') {
+      if (this.phase() !== ScommessaPhase.LEVEL) return;
+      if (this.picks.has(playerName)) return;
 
-      const stake = Number(event.value);
-      if (!STAKES.includes(stake)) return;
+      const level = Number(event.value);
+      if (!this.levels().includes(level)) return;
+      if (this.usedBy(playerName).has(level)) return;
 
-      this.stakes.set(playerName, stake);
+      this.picks.set(playerName, level);
+      this.usedBy(playerName).add(level);
       this.syncRows();
       this.publish();
-      this.closeBetIfComplete();
+      this.closeLevelIfComplete();
       return;
     }
 
     if (event.kind === 'ANSWER') {
-      if (this.phase() !== ScommessaPhase.QUESTION || this.answers.has(playerName)) return;
-      if (this.status(playerName) !== 'PLAYING') return;
+      if (this.phase() !== ScommessaPhase.QUESTION) return;
+      if (this.answers.has(playerName)) return;
+
+      const level = this.picks.get(playerName);
+      const question = level === undefined ? undefined : this.questionFor(level);
+      if (!question) return;
 
       const index = Number(event.value);
-      if (!Number.isInteger(index) || index < 0 || index >= this.currentQuestion().options.length) return;
+      if (!Number.isInteger(index) || index < 0 || index >= question.options.length) return;
 
       this.answers.set(playerName, index);
+      this.syncRows();
       this.publish();
-      if (this.activePlayers().every((name) => this.answers.has(name))) {
-        this.revealQuestion();
-      }
-      return;
-    }
-
-    if (event.kind === ScommessaPhase.CASHOUT) {
-      if (this.phase() !== ScommessaPhase.CASHOUT) return;
-      if (this.status(playerName) !== 'PLAYING') return;
-
-      const choice = String(event.value ?? '').toUpperCase();
-      if (choice !== 'CASH' && choice !== 'RISK') return;
-
-      this.cashouts.set(playerName, choice);
-      this.publish();
-      if (this.activePlayers().every((name) => this.cashouts.has(name))) {
-        this.resolveCashout(false);
+      if (this.players.every((name) => this.answers.has(name))) {
+        this.revealRound();
       }
     }
   }
 
   private readQuestions(): ScommessaQuestion[] {
-    const raw = Array.isArray(this.payload?.questions) ? this.payload.questions : [this.payload];
-    const questions = raw
+    const raw = Array.isArray(this.payload?.questions) ? this.payload.questions : [];
+    return raw
       .filter((question: any) => question && question.question && Array.isArray(question.options))
-      .slice(0, TOTAL_QUESTIONS)
       .map((question: any) => ({
+        level: Number(question.level),
         question: String(question.question),
         options: question.options.map((option: any) => String(option)),
         correctAnswer: String(question.correctAnswer ?? ''),
-        category: question.category ? String(question.category) : undefined,
-      }));
+        category: String(question.category ?? ''),
+      }))
+      .filter((question: ScommessaQuestion) => question.level > 0)
+      .sort((a: ScommessaQuestion, b: ScommessaQuestion) => a.level - b.level);
+  }
 
-    return questions.length ? questions : [];
+  /** Livelli disponibili nel round: quelli del payload, nell'ordine crescente. */
+  levels(): number[] {
+    const levels = this.questions.map((question) => question.level);
+    return levels.length ? levels : [...SCOMMESSA_LEVELS];
+  }
+
+  private questionFor(level: number): ScommessaQuestion | undefined {
+    return this.questions.find((question) => question.level === level);
+  }
+
+  private usedBy(playerName: string): Set<number> {
+    let used = this.used.get(playerName);
+    if (!used) {
+      used = new Set<number>();
+      this.used.set(playerName, used);
+    }
+    return used;
+  }
+
+  private availableLevels(playerName: string): number[] {
+    const used = this.usedBy(playerName);
+    return this.levels().filter((level) => !used.has(level));
   }
 
   private resetRound(): void {
     this.finished = false;
-    this.index.set(0);
-    this.phase.set(ScommessaPhase.BET);
-    this.secondsLeft.set(BET_SECONDS);
-    this.stakes.clear();
-    this.banks.clear();
-    this.statuses.clear();
+    this.round.set(0);
+    this.phase.set(ScommessaPhase.LEVEL);
+    this.secondsLeft.set(LEVEL_SECONDS);
+    this.picks.clear();
+    this.used.clear();
     this.answers.clear();
-    this.cashouts.clear();
-    this.paidPoints.clear();
-    this.paid.clear();
+    this.points.clear();
+    this.totals.clear();
+    this.statuses.clear();
     this.rows.set([]);
     this.revealed.set(false);
     this.timer.set(this.timerDuration);
   }
 
-  private startBet(): void {
-    this.phase.set(ScommessaPhase.BET);
-    this.secondsLeft.set(BET_SECONDS);
+  private startLevel(): void {
+    this.picks.clear();
+    this.answers.clear();
+    this.points.clear();
+    this.statuses.clear();
+
+    this.phase.set(ScommessaPhase.LEVEL);
+    this.secondsLeft.set(LEVEL_SECONDS);
     this.syncRows();
     this.publish();
-    this.startClock(BET_SECONDS, () => this.startQuestion(0));
+    this.startClock(LEVEL_SECONDS, () => {
+      this.assignMissingLevels();
+      this.startQuestion();
+    });
   }
 
-  private closeBetIfComplete(): void {
-    if (this.phase() !== ScommessaPhase.BET) return;
-    if (this.players.length === 0) return;
-    if (!this.players.every((playerName) => this.stakes.has(playerName))) return;
+  private closeLevelIfComplete(): void {
+    if (this.phase() !== ScommessaPhase.LEVEL) return;
+    if (!this.players.length) return;
+    if (!this.players.every((playerName) => this.picks.has(playerName))) return;
     this.clearClock();
-    this.startQuestion(0);
+    this.startQuestion();
   }
 
-  private startQuestion(index: number): void {
-    if (index >= this.questions.length) {
-      this.finale();
-      return;
-    }
+  /** Chi non sceglie prende il livello più basso rimasto: il round prosegue. */
+  private assignMissingLevels(): void {
+    this.players.forEach((playerName) => {
+      if (this.picks.has(playerName)) return;
 
-    this.index.set(index);
-    this.phase.set(ScommessaPhase.QUESTION);
+      const level = this.availableLevels(playerName)[0];
+      if (level === undefined) return;
+
+      this.picks.set(playerName, level);
+      this.usedBy(playerName).add(level);
+    });
+  }
+
+  private startQuestion(): void {
+    this.assignMissingLevels();
     this.answers.clear();
-    this.cashouts.clear();
+    this.phase.set(ScommessaPhase.QUESTION);
     this.secondsLeft.set(QUESTION_SECONDS);
     this.syncRows();
     this.publish();
-    this.startClock(QUESTION_SECONDS, () => this.revealQuestion());
+    this.startClock(QUESTION_SECONDS, () => this.revealRound());
   }
 
-  private revealQuestion(): void {
+  private revealRound(): void {
     if (this.phase() !== ScommessaPhase.QUESTION) return;
     this.clearClock();
 
-    const current = this.currentQuestion();
-    const correctIndex = this.correctIndex();
-
     this.players.forEach((playerName) => {
-      if (this.status(playerName) !== 'PLAYING') return;
-
-      const answer = this.answers.get(playerName);
-      if (answer !== undefined && answer === correctIndex) {
-        this.banks.set(playerName, this.bank(playerName) * 2);
+      const level = this.picks.get(playerName);
+      if (level === undefined) {
+        this.points.set(playerName, 0);
+        this.statuses.set(playerName, 'WRONG');
         return;
       }
 
-      this.banks.set(playerName, 0);
-      this.statuses.set(playerName, 'BUST');
+      const question = this.questionFor(level);
+      const correctIndex = question ? question.options.indexOf(question.correctAnswer) : -1;
+      const answer = this.answers.get(playerName);
+      const correct = correctIndex >= 0 && answer === correctIndex;
+      const points = correct ? level : -Math.round(level / 2);
+
+      this.points.set(playerName, points);
+      this.totals.set(playerName, (this.totals.get(playerName) ?? 0) + points);
+      this.statuses.set(playerName, correct ? 'CORRECT' : 'WRONG');
+      this.config.onAnswerReceived?.({ playerName, points, isCorrect: correct });
     });
 
     this.phase.set(ScommessaPhase.REVEAL);
     this.secondsLeft.set(REVEAL_SECONDS);
     this.syncRows();
     this.publish();
-    this.startClock(REVEAL_SECONDS, () => this.afterReveal());
-  }
-
-  private afterReveal(): void {
-    const stillPlaying = this.activePlayers();
-    if (!stillPlaying.length || this.index() >= this.questions.length - 1) {
-      this.finale();
-      return;
-    }
-    this.startCashout();
-  }
-
-  private startCashout(): void {
-    this.phase.set(ScommessaPhase.CASHOUT);
-    this.cashouts.clear();
-    this.secondsLeft.set(CASHOUT_SECONDS);
-    this.syncRows();
-    this.publish();
-    // Allo scadere si incassa: chi non tocca il telefono non perde nulla.
-    this.startClock(CASHOUT_SECONDS, () => this.resolveCashout(true));
-  }
-
-  private resolveCashout(timeout: boolean): void {
-    if (this.phase() !== ScommessaPhase.CASHOUT) return;
-    this.clearClock();
-
-    this.players.forEach((playerName) => {
-      if (this.status(playerName) !== 'PLAYING') return;
-
-      const choice = this.cashouts.get(playerName) ?? (timeout ? 'CASH' : 'RISK');
-      if (choice === 'CASH') this.cashIn(playerName);
+    this.startClock(REVEAL_SECONDS, () => {
+      if (this.round() + 1 >= this.levels().length) {
+        this.finale();
+      } else {
+        this.round.set(this.round() + 1);
+        this.startLevel();
+      }
     });
-
-    this.syncRows();
-    this.publish();
-
-    // Se hanno incassato tutti non resta nessuno in gioco: si chiude subito.
-    if (this.activePlayers().length === 0) {
-      this.finale();
-      return;
-    }
-
-    this.startQuestion(this.index() + 1);
   }
 
   private finale(): void {
     if (this.phase() === ScommessaPhase.FINALE) return;
     this.clearClock();
-    this.players.forEach((playerName) => {
-      if (this.status(playerName) === 'PLAYING') this.cashIn(playerName);
-    });
-
     this.phase.set(ScommessaPhase.FINALE);
     this.secondsLeft.set(FINALE_SECONDS);
     this.syncRows();
     this.publish();
     this.startClock(FINALE_SECONDS, () => this.finish());
-  }
-
-  private cashIn(playerName: string): void {
-    const points = this.bank(playerName);
-    this.statuses.set(playerName, 'CASHED');
-    if (points <= 0 || this.paid.has(playerName)) return;
-
-    this.paid.add(playerName);
-    this.paidPoints.set(playerName, points);
-    this.config.onAnswerReceived?.({ playerName, points, isCorrect: true });
-  }
-
-  private activePlayers(): string[] {
-    return this.players.filter((playerName) => this.status(playerName) === 'PLAYING' && this.bank(playerName) > 0);
   }
 
   private finish(): void {
@@ -326,6 +303,20 @@ export class ScommessaMode extends GameModeBase {
     this.clearClock();
     this.revealed.set(true);
     this.config.onTimerEnd?.();
+  }
+
+  private syncRows(): void {
+    this.rows.set(
+      this.players.map((playerName) => ({
+        playerName,
+        level: this.picks.get(playerName) ?? null,
+        used: [...this.usedBy(playerName)].sort((a, b) => a - b),
+        answered: this.answers.has(playerName),
+        points: this.points.get(playerName) ?? 0,
+        total: this.totals.get(playerName) ?? 0,
+        status: this.statuses.get(playerName) ?? 'PENDING',
+      })),
+    );
   }
 
   private startClock(seconds: number, onEnd: () => void): void {
@@ -347,36 +338,9 @@ export class ScommessaMode extends GameModeBase {
     }, 1000);
   }
 
-  private currentQuestion(): ScommessaQuestion {
-    return this.questions[this.index()] ?? { question: 'La Scommessa', options: [], correctAnswer: '' };
-  }
-
-  private correctIndex(): number {
-    return this.currentQuestion().options.indexOf(this.currentQuestion().correctAnswer);
-  }
-
-  private stake(playerName: string): number {
-    return this.stakes.get(playerName) ?? MIN_STAKE;
-  }
-
-  private bank(playerName: string): number {
-    return this.banks.get(playerName) ?? this.stake(playerName);
-  }
-
-  private status(playerName: string): ScommessaStatus {
-    return this.statuses.get(playerName) ?? 'PLAYING';
-  }
-
-  private syncRows(): void {
-    this.rows.set(
-      this.players.map((playerName) => ({
-        playerName,
-        stake: this.stake(playerName),
-        bank: this.bank(playerName),
-        status: this.status(playerName),
-        points: this.paidPoints.get(playerName) ?? 0,
-      })),
-    );
+  private clearClock(): void {
+    if (this.clock) clearInterval(this.clock);
+    this.clock = undefined;
   }
 
   private publish(): void {
@@ -384,11 +348,6 @@ export class ScommessaMode extends GameModeBase {
       action: WsAction.SCOMMESSA_STATE,
       state: this.getDisplayData(),
     });
-  }
-
-  private clearClock(): void {
-    if (this.clock) clearInterval(this.clock);
-    this.clock = undefined;
   }
 
   protected onBuzz(_playerName: string): void {}
@@ -408,23 +367,24 @@ export class ScommessaMode extends GameModeBase {
   }
 
   getDisplayData() {
-    const current = this.currentQuestion();
-    const reveal = this.phase() === ScommessaPhase.REVEAL;
+    const reveal = this.phase() === ScommessaPhase.REVEAL || this.phase() === ScommessaPhase.FINALE;
 
     return {
-      question: current.question,
-      category: current.category ?? '',
-      options: current.options,
       phase: this.phase(),
       secondsLeft: this.secondsLeft(),
-      index: this.index() + 1,
-      total: this.questions.length || 1,
-      multiplier: Math.pow(2, this.index() + 1),
-      stakes: [...this.stakes.entries()].map(([playerName, stake]) => ({ playerName, stake })),
+      round: this.round() + 1,
+      total: this.levels().length,
+      category: this.questions[0]?.category ?? String(this.payload?.category ?? ''),
+      levels: this.levels(),
+      questions: this.questions.map((question) => ({
+        level: question.level,
+        question: question.question,
+        options: question.options,
+        category: question.category,
+        // La risposta arriva ai telefoni solo al reveal.
+        correctAnswer: reveal ? question.correctAnswer : null,
+      })),
       rows: this.rows(),
-      correctIndex: reveal ? this.correctIndex() : null,
-      correctAnswer: null,
-      revealed: reveal,
       isReading: this.isReading(),
     };
   }

@@ -906,9 +906,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.questionType.set('BONUS_CAVALLO');
     } else if (type === 'SCOMMESSA') {
       this.scommessaState.set(null);
-      this.scommessaStake.set(null);
+      this.scommessaLevel.set(null);
       this.scommessaChoice.set(null);
-      this.scommessaCashout.set(null);
       this.scommessaKey = '';
     } else if (type === 'BLACKJACK') {
       // Lo stato non si azzera qui: il primo BLACKJACK_STATE arriva prima di
@@ -996,15 +995,16 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
     this.scommessaState.set(state);
     this.questionType.set('SCOMMESSA');
-    // La fase da sola non basta: QUESTION si ripete per tre domande.
-    const key = `${state.phase}:${state.index ?? 0}`;
+    // La fase da sola non basta: ogni round ripete LEVEL e QUESTION.
+    const key = `${state.phase}:${state.round ?? 0}`;
     if (key !== this.scommessaKey) {
       this.scommessaKey = key;
-      if (state.phase === 'BET') this.scommessaStake.set(null);
+      if (state.phase === 'LEVEL') this.scommessaLevel.set(null);
       if (state.phase === 'QUESTION') this.scommessaChoice.set(null);
-      if (state.phase === 'CASHOUT') this.scommessaCashout.set(null);
     }
-    this.gameState.set(state.phase === GamePhase.REVEAL || state.phase === 'CASHOUT' ? PlayerStatus.WAITING : PlayerStatus.VOTING);
+    this.gameState.set(
+      state.phase === 'LEVEL' || state.phase === 'QUESTION' ? PlayerStatus.VOTING : PlayerStatus.WAITING,
+    );
   }
 
   private applyQuotaState(state: any): void {
@@ -1024,16 +1024,18 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.gameState.set(state.phase === 'BET' ? 'VOTING' : 'WAITING');
   }
 
-  scommessaPickStake(stake: number): void {
+  scommessaPickLevel(level: number): void {
     const player = this.nickname();
-    if (!player || this.scommessaStake() !== null) return;
+    const state = this.scommessaState();
+    if (!player || state?.phase !== 'LEVEL' || this.scommessaLevel() !== null) return;
+    if (this.scommessaUsed(level)) return;
 
-    this.scommessaStake.set(stake);
+    this.scommessaLevel.set(level);
     this.ws.broadcastStatus(this.gameId(), {
       action: WsAction.SCOMMESSA_ACTION,
       playerName: player,
-      kind: 'STAKE',
-      value: stake,
+      kind: 'LEVEL',
+      value: level,
     });
     this.vibrate(20);
     this.audio.playConfirm();
@@ -1054,26 +1056,31 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.audio.playConfirm();
   }
 
-  /** Banca corrente della squadra, arrivata con lo stato del round. */
-  scommessaBank(): number {
+  /** Riga della propria squadra: livello scelto, livelli usati ed esito. */
+  scommessaRow(): any {
     const player = this.nickname();
-    const row = (this.scommessaState()?.rows ?? []).find((entry: any) => entry.playerName === player);
-    return Number(row?.bank ?? 0);
+    return (this.scommessaState()?.rows ?? []).find((row: any) => row.playerName === player) ?? null;
   }
 
-  scommessaCashoutChoice(choice: 'CASH' | 'RISK'): void {
-    const player = this.nickname();
-    if (!player || this.scommessaCashout() !== null) return;
+  scommessaMyLevel(): number | null {
+    const level = this.scommessaRow()?.level;
+    return typeof level === 'number' ? level : null;
+  }
 
-    this.scommessaCashout.set(choice);
-    this.ws.broadcastStatus(this.gameId(), {
-      action: WsAction.SCOMMESSA_ACTION,
-      playerName: player,
-      kind: 'CASHOUT',
-      value: choice,
-    });
-    this.vibrate(30);
-    this.audio.playConfirm();
+  /** La domanda è quella del livello scelto: stessa per chi ha scelto lo stesso. */
+  scommessaMyQuestion(): any {
+    const level = this.scommessaMyLevel();
+    if (level === null) return null;
+    return (this.scommessaState()?.questions ?? []).find((question: any) => question.level === level) ?? null;
+  }
+
+  scommessaUsed(level: number): boolean {
+    const used: number[] = this.scommessaRow()?.used ?? [];
+    return used.includes(level);
+  }
+
+  halfLevel(): number {
+    return Math.round((this.scommessaMyLevel() ?? 0) / 2);
   }
 
   /** Punti che la propria squadra può ancora puntare in questa manche. */
@@ -1395,9 +1402,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   scommessaState = signal<any>(null);
-  scommessaStake = signal<number | null>(null);
+  scommessaLevel = signal<number | null>(null);
   scommessaChoice = signal<number | null>(null);
-  scommessaCashout = signal<'CASH' | 'RISK' | null>(null);
   private scommessaKey = '';
 
   /**

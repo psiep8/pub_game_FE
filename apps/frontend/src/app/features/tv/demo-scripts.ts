@@ -168,16 +168,16 @@ export const DEMO_SCRIPTS: Record<string, DemoScript> = {
     note: 'Azzardo cresce in tre passaggi: facile ×2, media ×3, difficile ×4. La perdita scende manche dopo manche, dal 100% al 40%.',
   },
   SCOMMESSA: {
-    title: 'LA SCOMMESSA',
+    title: 'TUTTO O METÀ',
     icon: '🎲',
-    tv: ['Puntata, poi tre domande con la banca che raddoppia', 'Tra una domanda e l’altra: incassare o rischiare', 'All’ultima domanda si incassa d’ufficio'],
-    remote: ['Tocca 100, 200 o 300', 'Rispondi alle tre domande', 'Scegli INCASSA o RISCHIA'],
+    tv: ['Cinque round, una categoria per round', 'Ogni squadra sceglie un livello 100-500', 'La TV mostra livello e esito per squadra'],
+    remote: ['Scegli un livello mai usato', 'Rispondi alla domanda del tuo livello', 'Giusta +livello, sbagliata −metà'],
     scoring: [
-      { label: 'Banca incassata', value: '100 → 200 → 400 → 800', tone: 'good' },
-      { label: 'Risposta sbagliata', value: 'banca bruciata', tone: 'bad' },
-      { label: 'Non risposta', value: 'banca bruciata', tone: 'neutral' },
+      { label: 'Risposta giusta', value: '+100 … +500', tone: 'good' },
+      { label: 'Risposta sbagliata', value: '−50 … −250', tone: 'bad' },
+      { label: 'Domanda scaduta', value: '−metà del livello', tone: 'neutral' },
     ],
-    note: 'Non conta solo sapere: conta quando fermarsi. È il round del coraggio.',
+    note: 'Cinque livelli, uno per round: ogni livello si usa una volta sola e l’ultimo round resta obbligato.',
   },
   BONUS_BASKET: {
     title: 'BONUS BASKET',

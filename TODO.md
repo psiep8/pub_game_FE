@@ -107,9 +107,10 @@ poi i giochi.
 - [x] Banca ≥ 30 domande per categoria e livello (360 in `questions/azzardo-it.json`).
 
 ### 9. Scommessa → "Tutto o metà"
-- [ ] 5 round, livelli 100-500 usabili una sola volta per squadra; domanda uguale per chi sceglie
+- [x] 5 round, livelli 100-500 usabili una sola volta per squadra; domanda uguale per chi sceglie
       lo stesso livello; giusta +valore, sbagliata o scaduta −metà.
-- [ ] Domande a 5 livelli per ogni categoria, almeno 4 per livello.
+- [x] Domande a 5 livelli per ogni categoria: una per livello, dalle fasce facile/medio/difficile
+      della banca (almeno 15 domande per fascia in ogni categoria).
 
 ### 10. Biglie
 - [ ] Percorso con più curve, tornanti e bivi doppi; la gara resta decisa dal seme e poi riprodotta.

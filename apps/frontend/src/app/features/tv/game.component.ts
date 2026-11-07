@@ -672,8 +672,11 @@ export class GameComponent implements OnInit, OnDestroy {
         // Timeline pesca solo categorie con eventi catalogabili in ordine
         // temporale; il backend filtra gli eventi su questa categoria.
         return this.pickTimelineCategoryName();
-      case 'TIME_BUZZER':
       case 'SCOMMESSA':
+        // Tutto o metà estrae una categoria per round: servono cinque
+        // domande della stessa categoria, una per livello.
+        return this.pickCategoryName();
+      case 'TIME_BUZZER':
       case 'QUOTA':
       case 'BLACKJACK':
       case 'BOMBA':
@@ -729,7 +732,7 @@ export class GameComponent implements OnInit, OnDestroy {
       case 'TIME_BUZZER':
         return 'TIME BUZZER';
       case 'SCOMMESSA':
-        return 'LA SCOMMESSA';
+        return 'TUTTO O METÀ';
       case 'QUOTA':
         return 'AZZARDO';
       case 'BLACKJACK':
@@ -1415,7 +1418,7 @@ export class GameComponent implements OnInit, OnDestroy {
       case 'TIME_BUZZER':
         return 'Tempo bersaglio mostrato in TV';
       case 'SCOMMESSA':
-        return 'La TV svela la risposta dopo ogni domanda';
+        return 'La TV svela la risposta di ogni livello';
       case 'QUOTA':
         return "La TV svela il valore e l'opzione che paga";
       case 'BLACKJACK':

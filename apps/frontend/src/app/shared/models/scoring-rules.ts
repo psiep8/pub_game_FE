@@ -76,10 +76,10 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     note: 'Azzardo: quattro manche numeriche (celebrità, canzoni, paesi, storia) con puntate reali da 100, 200 o 300 punti. Mai sotto zero.',
   },
   SCOMMESSA: {
-    correct: '+banca incassata (100 → 400 → 800)',
-    wrong: '0: la banca si brucia',
-    missed: '0: la banca si brucia',
-    note: 'Tre domande: ogni esatta raddoppia la banca, tra una e l’altra si sceglie se incassare o rischiare.',
+    correct: '+100 / +200 / +300 / +400 / +500',
+    wrong: '−50 / −100 / −150 / −200 / −250',
+    missed: '−metà del livello scelto',
+    note: 'Tutto o metà: cinque round, ogni livello 100-500 si usa una volta per squadra; la domanda dipende dal livello e la sbagliata costa metà.',
   },
   BLACKJACK: {
     correct: '+250 a mano, +500 col naturale',

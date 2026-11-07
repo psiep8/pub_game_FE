@@ -116,7 +116,12 @@ public class QuestionBankService {
 
     /** Sotto questo numero di domande l'arena finisce le scorte della categoria. */
     private static final int MIN_ARENA_QUESTIONS = 10;
-    private static final int SCOMMESSA_QUESTIONS = 3;
+    /** Livelli di Tutto o metà: uno per round, usabile una volta per squadra. */
+    private static final int[] SCOMMESSA_LEVELS = { 100, 200, 300, 400, 500 };
+
+    /** Livello 1-2 dalla fascia facile, 3-4 dalla media, 5 dalla difficile. */
+    private static final String[] SCOMMESSA_BANDS =
+            { "facile", "facile", "medio", "medio", "difficile" };
     private static final int QUIZ_QUESTIONS = 3;
 
     /** Le cinque combinazioni di difficolta del Quiz, una per round. */
@@ -862,36 +867,116 @@ public class QuestionBankService {
     }
 
     /**
-     * La Scommessa gioca tre domande di fila: pesca tre Quiz distinti della
-     * stessa categoria (o delle altre, se la categoria è esaurita). Le risposte
-     * restano nel payload perché è la TV a condurre banca e reveal.
+     * Tutto o metà: cinque domande, una per livello, tutte della stessa
+     * categoria (quella estratta per il round). Chi sceglie lo stesso livello
+     * riceve la stessa domanda. Le fasce della banca garantiscono almeno
+     * quindici domande per livello in ogni categoria.
      */
     private String scommessaPayload(String category, Predicate<String> isAvailable) {
+        String chosenCategory = scommessaCategory(category);
         JSONArray questions = new JSONArray();
-        List<String> picked = new ArrayList<>();
+        Set<String> used = new HashSet<>();
 
-        for (int i = 0; i < SCOMMESSA_QUESTIONS; i++) {
-            String raw = fromBank(category, "QUIZ", key -> !picked.contains(key) && isAvailable.test(key));
-            questions.put(new JSONObject(raw));
-            picked.add(payloadDedupeKey(raw));
-        }
+        for (int index = 0; index < SCOMMESSA_LEVELS.length; index++) {
+            BankQuestion picked = pickScommessaQuestion(
+                    chosenCategory, SCOMMESSA_BANDS[index], isAvailable, used);
+            if (picked == null) {
+                continue;
+            }
+            used.add(QuestionHistoryService.key(
+                    picked.question(), picked.correctAnswer(), picked.category()));
 
-        String firstCategory = category == null ? "" : category;
-        String firstQuestion = "La Scommessa";
-        if (!questions.isEmpty()) {
-            JSONObject first = questions.getJSONObject(0);
-            firstCategory = first.optString("category", firstCategory);
-            firstQuestion = first.optString("question", firstQuestion);
+            List<String> options = new ArrayList<>(picked.options());
+            Collections.shuffle(options, random);
+
+            questions.put(new JSONObject()
+                    .put("level", SCOMMESSA_LEVELS[index])
+                    .put("question", picked.question())
+                    .put("category", picked.category())
+                    .put("options", new JSONArray(options))
+                    .put("correctAnswer", picked.correctAnswer()));
         }
 
         JSONObject payload = new JSONObject();
         payload.put("type", "SCOMMESSA");
-        payload.put("category", firstCategory);
-        // Serve alla deduplica della partita e all'anteprima del presentatore.
-        payload.put("question", firstQuestion);
+        payload.put("category", chosenCategory);
+        payload.put("question", "Tutto o metà");
         payload.put("questions", questions);
-        payload.put("explain", "Tre domande: ogni esatta raddoppia la banca, una sbagliata la brucia. Tra una e l'altra scegli se incassare.");
+        payload.put("explain", "Cinque round: ogni squadra sceglie un livello da 100 a 500, una volta "
+                + "per livello. La domanda dipende dal livello; giusta paga il livello, sbagliata o "
+                + "scaduta costa metà.");
         return payload.toString();
+    }
+
+    /** Categoria del round: quella richiesta se ha domande, altrimenti una a caso. */
+    private String scommessaCategory(String category) {
+        if (category != null && !category.isBlank() && !scommessaPool(category, true).isEmpty()) {
+            return category;
+        }
+
+        List<String> categories = new ArrayList<>();
+        for (BankQuestion question : allQuestions()) {
+            if ("QUIZ".equals(question.type()) && question.options().size() == 4
+                    && !categories.contains(question.category())) {
+                categories.add(question.category());
+            }
+        }
+        return categories.isEmpty() ? "" : categories.get(random.nextInt(categories.size()));
+    }
+
+    private List<BankQuestion> scommessaPool(String category, boolean sameCategory) {
+        List<BankQuestion> pool = new ArrayList<>();
+        for (BankQuestion question : allQuestions()) {
+            if (!"QUIZ".equals(question.type()) || question.options().size() != 4) {
+                continue;
+            }
+            if (sameCategory && !question.category().equalsIgnoreCase(category)) {
+                continue;
+            }
+            pool.add(question);
+        }
+        return pool;
+    }
+
+    /** Una domanda nuova per il livello: prima la fascia, poi si allarga. */
+    private BankQuestion pickScommessaQuestion(String category, String band,
+            Predicate<String> isAvailable, Set<String> used) {
+        List<BankQuestion> pool = scommessaPool(category, true);
+
+        List<BankQuestion> sameBand = new ArrayList<>();
+        for (BankQuestion question : pool) {
+            if (question.difficulty().equalsIgnoreCase(band)) {
+                sameBand.add(question);
+            }
+        }
+        Collections.shuffle(sameBand, random);
+        for (BankQuestion question : sameBand) {
+            if (isFresh(question, isAvailable, used)) {
+                return question;
+            }
+        }
+
+        Collections.shuffle(pool, random);
+        for (BankQuestion question : pool) {
+            if (isFresh(question, isAvailable, used)) {
+                return question;
+            }
+        }
+
+        List<BankQuestion> anyCategory = scommessaPool(category, false);
+        Collections.shuffle(anyCategory, random);
+        for (BankQuestion question : anyCategory) {
+            if (isFresh(question, isAvailable, used)) {
+                return question;
+            }
+        }
+        return null;
+    }
+
+    private boolean isFresh(BankQuestion question, Predicate<String> isAvailable, Set<String> used) {
+        String key = QuestionHistoryService.key(
+                question.question(), question.correctAnswer(), question.category());
+        return !used.contains(key) && isAvailable.test(key);
     }
 
     /**
