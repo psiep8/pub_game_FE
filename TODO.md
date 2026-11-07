@@ -104,7 +104,7 @@ poi i giochi.
       celebrità, canzone, nazione, evento storico; 4 opzioni molto vicine.
 - [x] Puntata 100/200/300, vincita × quota (2 / 3 / 4), perdita con moltiplicatore 100 → 80 → 60 → 40%,
       mai sotto zero.
-- [ ] Banca ≥ 30 domande per categoria e livello (ora 6 per categoria e livello).
+- [x] Banca ≥ 30 domande per categoria e livello (360 in `questions/azzardo-it.json`).
 
 ### 9. Scommessa → "Tutto o metà"
 - [ ] 5 round, livelli 100-500 usabili una sola volta per squadra; domanda uguale per chi sceglie

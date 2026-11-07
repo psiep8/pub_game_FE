@@ -136,83 +136,24 @@ public class QuestionBankService {
     private static final List<String> AZZARDO_CATEGORIES =
             List.of("CELEBRITÀ", "CANZONI", "PAESI", "STORIA");
 
-    private static final List<AzzardoQuestion> AZZARDO_QUESTIONS = List.of(
-            new AzzardoQuestion(1, "CELEBRITÀ", "In che anno è nato Albert Einstein?", "anno", 1879, 2),
-            new AzzardoQuestion(1, "CELEBRITÀ", "In che anno è nata Marilyn Monroe?", "anno", 1926, 2),
-            new AzzardoQuestion(1, "CELEBRITÀ", "In che anno è nato Elvis Presley?", "anno", 1935, 2),
-            new AzzardoQuestion(1, "CELEBRITÀ", "In che anno è nato Michael Jackson?", "anno", 1958, 2),
-            new AzzardoQuestion(1, "CELEBRITÀ", "In che anno è nata Lady Diana?", "anno", 1961, 2),
-            new AzzardoQuestion(1, "CELEBRITÀ", "In che anno è nato Barack Obama?", "anno", 1961, 2),
-            new AzzardoQuestion(2, "CELEBRITÀ", "In che anno è nata Madonna?", "anno", 1958, 3),
-            new AzzardoQuestion(2, "CELEBRITÀ", "In che anno è nato Tom Cruise?", "anno", 1962, 3),
-            new AzzardoQuestion(2, "CELEBRITÀ", "In che anno è nato Brad Pitt?", "anno", 1963, 3),
-            new AzzardoQuestion(2, "CELEBRITÀ", "In che anno è nato Leonardo DiCaprio?", "anno", 1974, 3),
-            new AzzardoQuestion(2, "CELEBRITÀ", "In che anno è nata Beyoncé?", "anno", 1981, 3),
-            new AzzardoQuestion(2, "CELEBRITÀ", "In che anno è nato Cristiano Ronaldo?", "anno", 1985, 3),
-            new AzzardoQuestion(3, "CELEBRITÀ", "In che anno è nato Stephen Hawking?", "anno", 1942, 4),
-            new AzzardoQuestion(3, "CELEBRITÀ", "In che anno è nato Freddie Mercury?", "anno", 1946, 4),
-            new AzzardoQuestion(3, "CELEBRITÀ", "In che anno è nato David Bowie?", "anno", 1947, 4),
-            new AzzardoQuestion(3, "CELEBRITÀ", "In che anno è nata Jodie Foster?", "anno", 1962, 4),
-            new AzzardoQuestion(3, "CELEBRITÀ", "In che anno è nato Keanu Reeves?", "anno", 1964, 4),
-            new AzzardoQuestion(3, "CELEBRITÀ", "In che anno è nata Scarlett Johansson?", "anno", 1984, 4),
-
+    /** Tenuta minima se il file della banca manca: una domanda per categoria e livello. */
+    private static final List<AzzardoQuestion> AZZARDO_EMERGENCY = List.of(
+            new AzzardoQuestion(1, "CELEBRITÀ", "Qual è l'anno di nascita di Albert Einstein?", "anno", 1879, 2),
             new AzzardoQuestion(1, "CANZONI", "In che anno è uscita Imagine di John Lennon?", "anno", 1971, 2),
-            new AzzardoQuestion(1, "CANZONI", "In che anno è uscita Bohemian Rhapsody?", "anno", 1975, 2),
-            new AzzardoQuestion(1, "CANZONI", "In che anno è uscito Billie Jean?", "anno", 1983, 2),
-            new AzzardoQuestion(1, "CANZONI", "In che anno è uscita Like a Prayer?", "anno", 1989, 2),
-            new AzzardoQuestion(1, "CANZONI", "In che anno è uscito Smells Like Teen Spirit?", "anno", 1991, 2),
-            new AzzardoQuestion(1, "CANZONI", "In che anno è uscita Wonderwall degli Oasis?", "anno", 1995, 2),
-            new AzzardoQuestion(2, "CANZONI", "In che anno è uscita Hotel California?", "anno", 1976, 3),
-            new AzzardoQuestion(2, "CANZONI", "In che anno è uscito Thriller?", "anno", 1982, 3),
-            new AzzardoQuestion(2, "CANZONI", "In che anno è uscita Sweet Dreams?", "anno", 1983, 3),
-            new AzzardoQuestion(2, "CANZONI", "In che anno è uscita Nothing Else Matters?", "anno", 1991, 3),
-            new AzzardoQuestion(2, "CANZONI", "In che anno è uscita Losing My Religion?", "anno", 1991, 3),
-            new AzzardoQuestion(2, "CANZONI", "In che anno è uscita Torn di Natalie Imbruglia?", "anno", 1997, 3),
-            new AzzardoQuestion(3, "CANZONI", "In che anno è uscita Hey Jude?", "anno", 1968, 4),
-            new AzzardoQuestion(3, "CANZONI", "In che anno è uscita Stairway to Heaven?", "anno", 1971, 4),
-            new AzzardoQuestion(3, "CANZONI", "In che anno è uscita Roxanne dei Police?", "anno", 1978, 4),
-            new AzzardoQuestion(3, "CANZONI", "In che anno è uscita Under Pressure?", "anno", 1981, 4),
-            new AzzardoQuestion(3, "CANZONI", "In che anno è uscita Purple Rain?", "anno", 1984, 4),
-            new AzzardoQuestion(3, "CANZONI", "In che anno è uscita Black Hole Sun?", "anno", 1994, 4),
-
             new AzzardoQuestion(1, "PAESI", "Quanti paesi confinano con l'Italia?", "paesi confinanti", 6, 1),
-            new AzzardoQuestion(1, "PAESI", "Quanti paesi confinano con la Francia?", "paesi confinanti", 8, 1),
-            new AzzardoQuestion(1, "PAESI", "Quanti paesi confinano con la Germania?", "paesi confinanti", 9, 1),
-            new AzzardoQuestion(1, "PAESI", "Quanti paesi confinano con la Spagna?", "paesi confinanti", 5, 1),
-            new AzzardoQuestion(1, "PAESI", "Quanti paesi confinano con la Svizzera?", "paesi confinanti", 5, 1),
-            new AzzardoQuestion(1, "PAESI", "Quanti paesi confinano con l'Austria?", "paesi confinanti", 8, 1),
-            new AzzardoQuestion(2, "PAESI", "Quanti paesi confinano con il Brasile?", "paesi confinanti", 10, 1),
-            new AzzardoQuestion(2, "PAESI", "Quanti paesi confinano con la Cina?", "paesi confinanti", 14, 1),
-            new AzzardoQuestion(2, "PAESI", "Quanti paesi confinano con l'India?", "paesi confinanti", 6, 1),
-            new AzzardoQuestion(2, "PAESI", "Quanti paesi confinano con la Russia?", "paesi confinanti", 14, 1),
-            new AzzardoQuestion(2, "PAESI", "Quanti paesi confinano con il Portogallo?", "paesi confinanti", 1, 1),
-            new AzzardoQuestion(2, "PAESI", "Quanti paesi confinano con il Belgio?", "paesi confinanti", 4, 1),
-            new AzzardoQuestion(3, "PAESI", "Quanti milioni di abitanti ha l'Italia?", "milioni di abitanti", 59, 5),
-            new AzzardoQuestion(3, "PAESI", "Quanti milioni di abitanti ha la Francia?", "milioni di abitanti", 68, 5),
-            new AzzardoQuestion(3, "PAESI", "Quanti milioni di abitanti ha la Germania?", "milioni di abitanti", 84, 5),
-            new AzzardoQuestion(3, "PAESI", "Quanti milioni di abitanti ha la Spagna?", "milioni di abitanti", 48, 5),
-            new AzzardoQuestion(3, "PAESI", "Quanti milioni di abitanti ha il Giappone?", "milioni di abitanti", 124, 5),
-            new AzzardoQuestion(3, "PAESI", "Quanti milioni di abitanti ha il Brasile?", "milioni di abitanti", 216, 5),
-
             new AzzardoQuestion(1, "STORIA", "In che anno è caduto il Muro di Berlino?", "anno", 1989, 2),
-            new AzzardoQuestion(1, "STORIA", "In che anno l'uomo è sbarcato sulla Luna?", "anno", 1969, 2),
-            new AzzardoQuestion(1, "STORIA", "In che anno è finita la Seconda guerra mondiale?", "anno", 1945, 2),
-            new AzzardoQuestion(1, "STORIA", "In che anno è nato il Regno d'Italia?", "anno", 1861, 2),
-            new AzzardoQuestion(1, "STORIA", "In che anno è scoppiata la Rivoluzione francese?", "anno", 1789, 2),
-            new AzzardoQuestion(1, "STORIA", "In che anno Colombo arrivò in America?", "anno", 1492, 2),
+            new AzzardoQuestion(2, "CELEBRITÀ", "Qual è l'anno di nascita di Madonna?", "anno", 1958, 3),
+            new AzzardoQuestion(2, "CANZONI", "In che anno è uscita Hotel California di Eagles?", "anno", 1976, 3),
+            new AzzardoQuestion(2, "PAESI", "Quanti paesi confinano con il Brasile?", "paesi confinanti", 10, 1),
             new AzzardoQuestion(2, "STORIA", "In che anno è stato assassinato John Kennedy?", "anno", 1963, 3),
-            new AzzardoQuestion(2, "STORIA", "In che anno è avvenuto l'attacco alle Torri Gemelle?", "anno", 2001, 3),
-            new AzzardoQuestion(2, "STORIA", "In che anno è avvenuto il disastro di Chernobyl?", "anno", 1986, 3),
-            new AzzardoQuestion(2, "STORIA", "In che anno è stato firmato il Trattato di Roma?", "anno", 1957, 3),
-            new AzzardoQuestion(2, "STORIA", "In che anno è avvenuta la battaglia di Waterloo?", "anno", 1815, 3),
-            new AzzardoQuestion(2, "STORIA", "In che anno è scoppiata la Rivoluzione russa?", "anno", 1917, 3),
-            new AzzardoQuestion(3, "STORIA", "In che anno si è tenuto il Congresso di Vienna?", "anno", 1815, 4),
-            new AzzardoQuestion(3, "STORIA", "In che anno è stato firmato il Trattato di Versailles?", "anno", 1919, 4),
-            new AzzardoQuestion(3, "STORIA", "In che anno è scoppiata la crisi dei missili di Cuba?", "anno", 1962, 4),
-            new AzzardoQuestion(3, "STORIA", "In che anno è avvenuta la Guerra dei Sei Giorni?", "anno", 1967, 4),
-            new AzzardoQuestion(3, "STORIA", "In che anno è caduta Costantinopoli?", "anno", 1453, 4),
-            new AzzardoQuestion(3, "STORIA", "In che anno è iniziata la guerra di Crimea?", "anno", 1853, 4)
+            new AzzardoQuestion(3, "CELEBRITÀ", "Qual è l'anno di nascita di Stephen Hawking?", "anno", 1942, 4),
+            new AzzardoQuestion(3, "CANZONI", "In che anno è uscita Stairway to Heaven di Led Zeppelin?", "anno", 1971, 4),
+            new AzzardoQuestion(3, "PAESI", "Quanti milioni di abitanti ha l'Italia?", "milioni di abitanti", 59, 5),
+            new AzzardoQuestion(3, "STORIA", "In che anno è caduta Costantinopoli?", "anno", 1453, 4)
     );
+
+    /** Banca caricata da questions/azzardo-it.json. */
+    private final List<AzzardoQuestion> azzardoQuestions;
 
     public QuestionBankService(TMDBImageService tmdbImageService,
             AppleMusicCuratorService appleMusicCuratorService,
@@ -221,6 +162,7 @@ public class QuestionBankService {
         this.appleMusicCuratorService = appleMusicCuratorService;
         this.configuredMediaBaseUrl = mediaBaseUrl == null ? "" : mediaBaseUrl.trim();
         this.bank = loadBank();
+        this.azzardoQuestions = loadAzzardo();
 
         MediaBank media = loadMedia();
         this.musicTracks = media.tracks();
@@ -779,20 +721,20 @@ public class QuestionBankService {
     /** Una domanda della categoria e del livello richiesti, pescata a caso. */
     private Optional<AzzardoQuestion> azzardoQuestion(String category, int level) {
         List<AzzardoQuestion> pool = new ArrayList<>();
-        for (AzzardoQuestion question : AZZARDO_QUESTIONS) {
+        for (AzzardoQuestion question : azzardoQuestions) {
             if (question.level() == level && question.category().equalsIgnoreCase(category)) {
                 pool.add(question);
             }
         }
         if (pool.isEmpty()) {
-            for (AzzardoQuestion question : AZZARDO_QUESTIONS) {
+            for (AzzardoQuestion question : azzardoQuestions) {
                 if (question.level() == level) {
                     pool.add(question);
                 }
             }
         }
         if (pool.isEmpty()) {
-            pool.addAll(AZZARDO_QUESTIONS);
+            pool.addAll(azzardoQuestions);
         }
         Collections.shuffle(pool, random);
         return pool.isEmpty() ? Optional.empty() : Optional.of(pool.get(0));
@@ -1173,6 +1115,45 @@ public class QuestionBankService {
         } catch (Exception error) {
             System.out.println("⚠️ Banca domande illeggibile (" + error.getMessage() + "): uso le domande di emergenza.");
             return List.of();
+        }
+    }
+
+    /**
+     * Banca di Azzardo: trenta domande per categoria e livello, generate da
+     * scripts/generate-questions/build_azzardo_bank.py. Se il file manca o è
+     * illeggibile resta la tenuta minima, così il round parte comunque.
+     */
+    private List<AzzardoQuestion> loadAzzardo() {
+        ClassPathResource resource = new ClassPathResource("questions/azzardo-it.json");
+        if (!resource.exists()) {
+            System.out.println("⚠️ Banca Azzardo assente: uso la tenuta minima.");
+            return AZZARDO_EMERGENCY;
+        }
+        try (InputStream stream = resource.getInputStream()) {
+            JSONArray items = new JSONArray(new String(stream.readAllBytes(), StandardCharsets.UTF_8));
+            List<AzzardoQuestion> loaded = new ArrayList<>();
+            for (int index = 0; index < items.length(); index++) {
+                JSONObject item = items.optJSONObject(index);
+                if (item == null) {
+                    continue;
+                }
+                String question = item.optString("question", "");
+                if (question.isBlank()) {
+                    continue;
+                }
+                loaded.add(new AzzardoQuestion(
+                        item.optInt("level", 2),
+                        item.optString("category", ""),
+                        question,
+                        item.optString("unit", ""),
+                        item.optDouble("value", 0),
+                        item.optDouble("step", 1)));
+            }
+            System.out.println("Banca Azzardo caricata: " + loaded.size() + " domande.");
+            return List.copyOf(loaded);
+        } catch (Exception error) {
+            System.out.println("⚠️ Banca Azzardo illeggibile (" + error.getMessage() + "): uso la tenuta minima.");
+            return AZZARDO_EMERGENCY;
         }
     }
 
