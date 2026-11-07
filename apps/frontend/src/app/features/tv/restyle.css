@@ -269,6 +269,15 @@
   background: var(--tomato);
   color: var(--paper-hi);
 }
+.dock-btn.advance {
+  width: auto;
+  min-width: 70px;
+  padding: 0 10px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
 
 .round-info {
   top: 16px !important;

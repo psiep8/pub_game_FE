@@ -103,36 +103,14 @@ export abstract class GameModeBase implements IGameMode {
   }
 
   /**
-   * Fasi comuni prima della domanda: lettura, countdown e "VIA!".
-   * Al termine il timer parte e la modalità diventa attiva.
+   * La partita parte sul comando esplicito del presentatore (admin o tasto
+   * AVANTI in TV): niente countdown automatico prima della domanda.
    */
-  protected async runPreGameSequence(readingTime: number = 10000): Promise<void> {
-    this.isReading.set(true);
-    this.isActive.set(false);
-    this.showGo.set(false);
-
-    const seconds = Math.floor(readingTime / 1000);
-    this.preStartCountdown.set(seconds);
-    if (this.preStartInterval) clearInterval(this.preStartInterval);
-    this.preStartInterval = setInterval(() => {
-      const current = this.preStartCountdown();
-      if (current > 0) {
-        this.preStartCountdown.set(current - 1);
-        this.config.onPreGameTick?.(current - 1);
-      } else {
-        this.stopPreStartInterval();
-      }
-    }, 1000);
-
-    await new Promise((resolve) => setTimeout(resolve, readingTime));
-
-    this.showGo.set(true);
-    await new Promise((resolve) => setTimeout(resolve, 1400));
-    this.showGo.set(false);
-
+  protected async runPreGameSequence(_readingTime: number = 0): Promise<void> {
+    this.stopPreStartInterval();
     this.preStartCountdown.set(0);
-
     this.isReading.set(false);
+    this.showGo.set(false);
     this.isActive.set(true);
     this.startTimer();
   }

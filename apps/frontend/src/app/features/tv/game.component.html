@@ -88,22 +88,14 @@
 
   @if (showQuestion() && currentMode(); as mode) {
 
-
-  @if (preStartCountdown() > 0 && preStartCountdown() <= 5) { <div class="prestart-timer-wrapper">
-    <div #prestartTimer class="prestart-timer bounce" role="status" aria-live="assertive">
-      <div class="prestart-value">{{ preStartCountdown() }}</div>
-    </div>
-</div>
-}
-
 <div class="question-area" [class.no-padding]="!mode.requiresBubbles">
 
-  @if (mode.requiresBubbles && categoryName()) {
+  @if (mode.requiresBubbles && mode.type !== 'ULTIMA_SPIAGGIA' && categoryName()) {
   <div class="question-category">🎯 {{ categoryName() }}</div>
   }
 
 
-  @if (mode.requiresBubbles) {
+  @if (mode.requiresBubbles && mode.type !== 'ULTIMA_SPIAGGIA') {
   <div class="timer-wrapper">
     <div class="timer-bar" [style.width.%]="(timer() / mode.timerDuration) * 100"></div>
     <span class="timer-text">{{ timer() }}s</span>
@@ -188,6 +180,7 @@
     <button class="dock-btn" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
       🎨
     </button>
+    <button class="dock-btn advance" (click)="adminNextRound()" aria-label="Prossimo round" title="Prossimo round">AVANTI</button>
     <button class="dock-btn danger" (click)="openResetModal()" aria-label="Reset partita">🔄</button>
   </div>
 </div>
@@ -261,10 +254,6 @@
     </div>
   </div>
 </div>
-}
-
-@if (autoAdvanceSeconds() > 0) {
-<div class="auto-advance">PROSSIMO ROUND TRA {{ autoAdvanceSeconds() }}s</div>
 }
 
 @if (demoType(); as demo) {
@@ -363,7 +352,7 @@
 }
 
 
-<!-- Avanzamento e classifica sono controllati dall'admin: nessun pulsante in TV. -->
+<!-- Avanzamento manuale: admin oppure AVANTI nella dock TV. -->
 
 </div>
 

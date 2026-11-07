@@ -136,7 +136,7 @@ export class GameComponent implements OnInit, OnDestroy {
   bonusShowResult = signal(false);
   bonusResult = signal<Array<{ playerName: string; score: number }>>([]);
   autoAdvanceSeconds = signal(0);
-  autoAdvanceEnabled = signal(true);
+  autoAdvanceEnabled = signal(false);
   animatedCategoryId = signal<number | null>(null);
 
 
@@ -388,6 +388,8 @@ export class GameComponent implements OnInit, OnDestroy {
         this.confirmWrong();
       } else if (status.action === 'ADMIN_NEXT_ROUND') {
         this.adminNextRound();
+      } else if (status.action === 'ADMIN_REQUEST_STATE') {
+        this.sendAdminState();
       } else if (status.action === 'ADMIN_SHOW_LEADERBOARD') {
         this.adminShowLeaderboard();
       } else if (status.action === 'ADMIN_TOGGLE_PAUSE') {
@@ -491,19 +493,33 @@ export class GameComponent implements OnInit, OnDestroy {
     this.isSpinning.set(true);
 
     try {
-      const categoryName = this.getCategoryForType(extractedType);
       const categories = this.allCategories();
-      const selectedCategory = categories.find(c => c.name === categoryName);
-      if (selectedCategory) this.selectedCategoryId.set(selectedCategory.id);
+      let nextRound: any;
+      if (extractedType === 'BLACKJACK') {
+        // Il Black Jack non usa una domanda: il mazzo e il banco vivono nel
+        // mode della TV. Non serve una chiamata al generatore AI, che per
+        // questo tipo non ha payload da restituire.
+        nextRound = {
+          id: -Date.now(),
+          type: 'BLACKJACK',
+          payload: JSON.stringify({ type: 'BLACKJACK' }),
+          roundIndex: this.roundManager.getCurrentRound(),
+          status: 'VOTING',
+        };
+      } else {
+        const categoryName = this.getCategoryForType(extractedType);
+        const selectedCategory = categories.find(c => c.name === categoryName);
+        if (selectedCategory) this.selectedCategoryId.set(selectedCategory.id);
 
-      const nextRound = await firstValueFrom(
-        this.aiService.triggerNewAiRound(
-          this.currentGameId()!,
-          categoryName,
-          extractedType,
-          this.azzardoDifficulty(extractedType)
-        )
-      );
+        nextRound = await firstValueFrom(
+          this.aiService.triggerNewAiRound(
+            this.currentGameId()!,
+            categoryName,
+            extractedType,
+            this.azzardoDifficulty(extractedType)
+          )
+        );
+      }
 
 
 
@@ -513,7 +529,38 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
       this.round.set(nextRound);
-      const activePlayers = this.leaderboardService.getLeaderboard().map(p => p.playerName);
+
+      // La categoria dell'animazione a bolle deve essere quella reale del payload:
+      // per Ultima spiaggia il backend sceglie la categoria dell'occorrenza.
+      const payloadCategory = String(parsedPayload?.category ?? '').trim();
+      if (payloadCategory) {
+        const selected = categories.find((category) =>
+          String(category.name).trim().toLowerCase() === payloadCategory.toLowerCase()
+        );
+        if (selected) this.selectedCategoryId.set(selected.id);
+      }
+
+      let activePlayers = this.leaderboardService.getLeaderboard().map(p => p.playerName);
+      // Dopo un reset la classifica locale è vuota: i mode a turni hanno
+      // bisogno dei telefoni collegati, quindi li leggono dalla presenza
+      // autorevole del backend invece che dai punti già assegnati.
+      if (activePlayers.length === 0) {
+        const diagnostics = await this.reliability.diagnostics(this.currentGameId()!);
+        const deviceRows = Array.isArray(diagnostics?.devices)
+          ? diagnostics.devices
+          : Array.isArray(diagnostics?.devices?.devices)
+            ? diagnostics.devices.devices
+            : Array.isArray(diagnostics?.presence)
+              ? diagnostics.presence
+              : [];
+        activePlayers = Array.from(new Set(
+          deviceRows
+            .filter((device: any) => device?.playerName
+              && (device.role === 'REMOTE' || device.role === 'TV'))
+            .map((device: any) => String(device.playerName).trim())
+            .filter((playerName: string) => playerName.length > 0)
+        ));
+      }
 
       const mode = this.gameModeService.createMode({
         type: parsedPayload.type || extractedType,
@@ -528,6 +575,14 @@ export class GameComponent implements OnInit, OnDestroy {
         onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
         onRoundEnded: () => this.onArenaEnded(),
         onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!, event),
+        onUltimaSpiaggiaLevel: (playerName: string, level: number) => {
+          // Il livello è consumato per tutta la partita, non solo per la manche:
+          // la prossima occorrenza lo legge dal backend e non lo ripropone.
+          this.gameService.recordUltimaSpiaggiaLevel(this.currentGameId()!, playerName, level)
+            .subscribe({
+              error: (err) => console.error('❌ Registrazione livello Ultima spiaggia:', err),
+            });
+        },
         playerPoints: (playerName: string) =>
           this.leaderboardService.getPlayerStats(playerName)?.totalPoints ?? 0,
         startTimeBuzzer: (manche: number) => new Promise<number | null>((resolve) => {
@@ -676,7 +731,7 @@ export class GameComponent implements OnInit, OnDestroy {
         // temporale; il backend filtra gli eventi su questa categoria.
         return this.pickTimelineCategoryName();
       case 'ULTIMA_SPIAGGIA':
-        // Ultima spiaggia estrae una categoria per round: servono cinque
+        // Ultima spiaggia estrae una categoria per occorrenza: servono cinque
         // domande della stessa categoria, una per livello.
         return this.pickCategoryName();
       case 'TIME_BUZZER':
@@ -1047,6 +1102,36 @@ export class GameComponent implements OnInit, OnDestroy {
     this.pendingLeaderboardType.set(null);
     this.stopDemo();
     void this.startNewRound();
+  }
+
+  /**
+   * L'admin può perdere la socket mentre il round è già aperto. Quando torna
+   * online chiede lo stato alla TV: questo evento è per lui solo, così i
+   * telefoni non vengono rimessi in attesa e non perdono la prenotazione.
+   */
+  private sendAdminState(): void {
+    const mode = this.currentMode();
+    const gameId = this.currentGameId();
+    if (!mode || !gameId || !this.showQuestion()) return;
+
+    const payload = JSON.stringify(this.getSafeDisplayData());
+    const raw = this.currentRoundPayload();
+    const rawPayload = typeof raw === 'string' ? raw : JSON.stringify(raw ?? this.getSafeDisplayData());
+    const display = mode.getDisplayData();
+    const player = display?.buzzedPlayer ?? null;
+    const elapsedMs = (mode.timerDuration * 1000) - (this.timer() * 1000);
+
+    this.ws.broadcastStatus(gameId, {
+      action: WsAction.ADMIN_STATE,
+      type: mode.type,
+      payload,
+      rawPayload,
+      buzzedPlayer: player,
+      correctPoints: player ? mode.pointsFor(true, elapsedMs) : null,
+      wrongPoints: player ? mode.pointsFor(false, elapsedMs) : null,
+      solution: this.solutionFor(mode.type, raw),
+      scoring: scoringRuleFor(mode.type),
+    });
   }
 
   adminShowLeaderboard(): void {
@@ -1421,7 +1506,7 @@ export class GameComponent implements OnInit, OnDestroy {
       case 'TIME_BUZZER':
         return 'Tempo bersaglio mostrato in TV';
       case 'ULTIMA_SPIAGGIA':
-        return 'La TV svela la risposta di ogni livello';
+        return 'La TV mostra solo livello scelto ed esito, non le risposte';
       case 'AZZARDO':
         return "La TV svela il valore e l'opzione che paga";
       case 'BLACKJACK':
