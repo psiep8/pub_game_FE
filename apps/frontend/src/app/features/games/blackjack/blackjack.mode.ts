@@ -42,15 +42,15 @@ const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 const DECIDE_SECONDS = 15;
 const REVEAL_SECONDS = 4;
 const FINALE_SECONDS = 6;
-const MAX_TABLES = 8;
 
 /**
  * BLACK JACK — la TV fa il banco, tre round contro ogni giocatore.
  *
  * Il round è sequenziale: entra un giocatore per volta e il banco viene
  * rimescolato a ogni mano, così tutti affrontano le stesse condizioni e nessuno
- * può decidere sapendo già il totale del banco. Dopo ogni giro completo di
- * tavoli si ricomincia da capo, per tre round in tutto.
+ * può decidere sapendo già il totale del banco. Un giro vale per tutti i
+ * partecipanti collegati, qualunque sia il loro numero: dopo l'ultimo tavolo si
+ * ricomincia da capo, per tre round in tutto.
  *
  * Ogni vittoria vale 250 punti che si sommano a quelli dei round precedenti
  * (250, poi 500, poi 750); il blackjack naturale paga 500 invece di 250. Una
@@ -59,7 +59,6 @@ const MAX_TABLES = 8;
  */
 export class BlackjackMode extends GameModeBase {
   readonly type: GameModeType = 'BLACKJACK';
-  readonly timerDuration = MAX_TABLES * BLACKJACK_ROUNDS * (DECIDE_SECONDS + REVEAL_SECONDS) + FINALE_SECONDS;
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
 
@@ -84,6 +83,16 @@ export class BlackjackMode extends GameModeBase {
 
   private finished = false;
   private clock?: ReturnType<typeof setInterval>;
+
+  /**
+   * Durata stimata dell'intero round, calcolata sui partecipanti collegati:
+   * tre giri da una mano a testa. Il timer vero è quello delle fasi, questo
+   * serve solo alle anteprime e al pannello admin.
+   */
+  get timerDuration(): number {
+    const players = Math.max(1, this.players.length);
+    return players * BLACKJACK_ROUNDS * (DECIDE_SECONDS + REVEAL_SECONDS) + FINALE_SECONDS;
+  }
 
   protected onInitialize(): void {
     this.players = [];

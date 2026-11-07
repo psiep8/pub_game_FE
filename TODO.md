@@ -88,7 +88,8 @@ poi i giochi.
       con test). Il telefono pesca dal mazzo e non ripete mai lo stesso tipo due volte di fila.
 
 ### 7. Blackjack
-- [x] Tre round in cui la TV fa il banco contro ogni giocatore (3 × 8 mani). Vittoria +250 che si
+- [x] Tre round in cui la TV fa il banco contro ogni giocatore: un giro completo su tutti i
+      partecipanti collegati (n mani, non un numero fisso), ripetuto tre volte. Vittoria +250 che si
       somma ai round precedenti (250 → 500 → 750), naturale +500, sconfitta sempre −250 senza
       cumuli e mai sotto zero; pari 0 (`blackjack-rules.ts`, con test).
 - [x] Mano della squadra di turno in TV accanto al banco, con gettoni, timbri "CARTA!" e "LASCIA!"
