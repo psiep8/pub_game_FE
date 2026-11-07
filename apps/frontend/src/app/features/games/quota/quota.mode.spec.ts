@@ -238,4 +238,64 @@ describe('QuotaMode', () => {
 
     mode.cleanup();
   });
+
+  it('usa la quota del livello ricevuto e ricade sul medio senza livello', async () => {
+    vi.useFakeTimers();
+
+    const cases: Array<{ payload: any; level: number; odds: number }> = [
+      { payload: { level: 2, questions: QUESTIONS }, level: 2, odds: 3 },
+      { payload: { level: 3, questions: QUESTIONS }, level: 3, odds: 4 },
+      // Payload senza livello: la modalità riparte dal medio, ×3.
+      { payload: { questions: QUESTIONS }, level: 2, odds: 3 },
+    ];
+
+    for (const testCase of cases) {
+      const wallet: Record<string, number> = { Anna: 1000, Bruno: 1000 };
+      const mode = new QuotaMode();
+      mode.setConfig({
+        type: 'QUOTA',
+        payload: {},
+        gameId: 1,
+        activePlayers: ['Anna', 'Bruno'],
+        playerPoints: (playerName) => wallet[playerName] ?? 0,
+        onAnswerReceived: (data) => {
+          wallet[data.playerName] += data.points;
+        },
+      });
+      mode.initialize(testCase.payload);
+
+      const started = mode.start();
+      await vi.advanceTimersByTimeAsync(3000);
+      await started;
+
+      const bet = mode.getDisplayData();
+      expect(bet.level).toBe(testCase.level);
+      expect(bet.odds).toBe(testCase.odds);
+      expect(bet.lossMultiplier).toBe(1);
+
+      const question = QUESTIONS[0];
+      mode.handlePartyEvent({
+        action: 'QUOTA_ACTION',
+        playerName: 'Anna',
+        value: { stake: 100, choice: question.answerIndex },
+      });
+      mode.handlePartyEvent({
+        action: 'QUOTA_ACTION',
+        playerName: 'Bruno',
+        value: { stake: 100, choice: (question.answerIndex + 1) % 4 },
+      });
+
+      const reveal = mode.getDisplayData();
+      expect(reveal.rows.find((row: any) => row.playerName === 'Anna'))
+        .toMatchObject({ points: 100 * testCase.odds, total: 100 * testCase.odds });
+      // La perdita non dipende dalla quota: alla prima manche è il 100%.
+      expect(reveal.rows.find((row: any) => row.playerName === 'Bruno'))
+        .toMatchObject({ points: -100, total: -100 });
+
+      expect(wallet).toEqual({ Anna: 1000 + 100 * testCase.odds, Bruno: 900 });
+
+      mode.cleanup();
+      vi.clearAllTimers();
+    }
+  });
 });
