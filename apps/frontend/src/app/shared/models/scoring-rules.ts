@@ -55,7 +55,7 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     correct: '0: la casella vera si salva e passa il turno',
     wrong: '−200 e fuori dal round',
     missed: 'chi non risponde salta il turno',
-    note: 'Un tabellone, un turno per squadra: quasi tutte le caselle sono vere, ce ne sono ceil(n/3) false. Le false mai scelte si disarmano a fine round.',
+    note: 'Un tabellone, un turno per squadra: quasi tutte le caselle sono vere, una ogni tre squadre e falsa. Le false mai scelte si disarmano a fine round.',
   },
   SPEED_RUSH: {
     correct: '500 al primo, poi a scalare',

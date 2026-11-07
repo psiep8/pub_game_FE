@@ -29,8 +29,8 @@ Partenza automatica per tutti. Il server manda `TIME_BUZZER_START` a tutti i tel
 
 ## 5. Bomba (nuova logica, a turni)
 Gioco solo a malus, senza interazione diretta tra tavoli.
-- **Tabellone:** con `n` squadre ci sono `2n + n/2` caselle (8 squadre = 20). Le bombe sono `ceil(n/3)` (8 squadre = 3).
-- **Domanda:** "Quale tra queste NON appartiene a…?": le caselle sono elementi della categoria e le bombe sono gli intrusi. Quasi tutte le opzioni sono vere, solo `ceil(n/3)` sono false.
+- **Tabellone:** con `n` squadre ci sono `2n + n/2` caselle e una bomba ogni tre squadre: 20 opzioni e 3 bombe con 8 partecipanti, 15 e 2 con 6, 10 e 1 con 4.
+- **Domanda:** "Quale tra queste NON appartiene a…?": le caselle sono elementi della categoria e le bombe sono gli intrusi. Quasi tutte le opzioni sono vere, solo una ogni tre squadre è falsa.
 - **Telefono:** ogni telefono mostra la lista completa come pulsanti, ma si sceglie solo quando il server dà il turno. L'admin legge la domanda ma non sceglie; la TV mostra tabellone, turno e scelte.
 - **Turni:** si gioca una squadra alla volta, in ordine. La squadra di turno dice un'opzione e il turno passa alla successiva sia se la casella è vera sia se è una bomba. Vent'anni secondi per turno: chi non risponde salta il turno, senza penalità.
 - **Punti:** una casella vera non cambia i punti; una bomba costa 200 punti a chi la sceglie (mai sotto zero in classifica) e lo toglie dal round.

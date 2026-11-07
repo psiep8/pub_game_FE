@@ -74,8 +74,8 @@ poi i giochi.
       3 manche in round (il brief ne prevedeva 5) con bersagli casuali sotto i 30 s, al centesimo.
 
 ### 5. Bomba (nuova logica, stile "Scossa")
-- [x] Una domanda con `2n + n/2` opzioni quasi tutte vere e `ceil(n/3)` false; telefono con la
-      lista a pulsanti, la domanda si legge dalla TV.
+- [x] Una domanda con `2n + n/2` opzioni quasi tutte vere e una bomba ogni tre squadre
+      (10 opzioni/1 bomba con 4, 15/2 con 6, 20/3 con 8); telefono con la lista a pulsanti.
 - [x] Turni in ordine, una squadra alla volta: la scelta passa al prossimo sia se la casella è
       vera sia se è una bomba.
 - [x] −200 punti per bomba presa (mai sotto zero) e squadra fuori dal round; bombe mai scelte

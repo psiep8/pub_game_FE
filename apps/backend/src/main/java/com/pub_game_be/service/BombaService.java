@@ -24,9 +24,9 @@ import java.util.concurrent.TimeUnit;
  * Bomba — tabellone a turni, solo a malus.
  *
  * <p>La TV mostra una domanda con tutte le opzioni: quasi tutte vere, tranne
- * {@code ceil(n/3)} false (le "bombe"). Si gioca a turni, una squadra alla
- * volta: la squadra di turno dice un'opzione, poi passa alla successiva sia se
- * la casella è vera sia se è una bomba.
+ * le bombe, una ogni tre squadre (4 squadre → 1, 6 → 2, 8 → 3). Si gioca a
+ * turni, una squadra alla volta: la squadra di turno dice un'opzione, poi passa
+ * alla successiva sia se la casella è vera sia se è una bomba.
  *
  * <p>Una casella vera non cambia i punti; una bomba costa 200 punti alla
  * squadra che l'ha scelta e la toglie dal round. Il round finisce quando
@@ -432,8 +432,8 @@ public class BombaService {
         return 2 * players + players / 2;
     }
 
-    /** Bombe: ceil(n/3), come da brief (8 squadre = 3). */
+    /** Bombe: una ogni tre squadre, arrotondata (4 → 1, 6 → 2, 8 → 3). */
     static int bombsFor(int players) {
-        return Math.max(1, (int) Math.ceil(players / 3.0));
+        return Math.max(1, (int) Math.round(players / 3.0));
     }
 }
