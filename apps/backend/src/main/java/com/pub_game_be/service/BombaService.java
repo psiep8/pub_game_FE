@@ -21,87 +21,63 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Bomba — gioco a tabellone in stile "Scossa", solo a malus.
+ * Bomba — tabellone a turni, solo a malus.
  *
- * <p>Con {@code n} squadre il tabellone ha {@code 2n + n/2} caselle e
- * {@code ceil(n/3)} bombe. La domanda è sempre "quale tra queste NON
- * appartiene a…?": le caselle sono elementi veri della categoria, le bombe sono
- * gli intrusi. Ogni ondata dura 15 secondi e ogni squadra sceglie una casella;
- * chi sceglie la stessa casella condivide l'esito. Alla rivelazione le caselle
- * sicure si salvano, le bombe esplodono e costano 200 punti a chi le ha scelte.
- * Le bombe mai scelte restano sul tabellone e a fine round vengono disarmate.
+ * <p>La TV mostra una domanda con tutte le opzioni: quasi tutte vere, tranne
+ * {@code ceil(n/3)} false (le "bombe"). Si gioca a turni, una squadra alla
+ * volta: la squadra di turno dice un'opzione, poi passa alla successiva sia se
+ * la casella è vera sia se è una bomba.
  *
- * <p>Lo stato vive sul server perché le scadenze delle ondate e le scelte dei
- * telefoni devono restare coerenti anche se la TV si ricarica. La posizione
- * delle bombe non esce dal server finché l'ondata non viene rivelata.
+ * <p>Una casella vera non cambia i punti; una bomba costa 200 punti alla
+ * squadra che l'ha scelta e la toglie dal round. Il round finisce quando
+ * esauriscono le caselle o quando tutte le squadre sono fuori. Le bombe mai
+ * scelte vengono mostrate e disarmate senza conseguenze.
+ *
+ * <p>La posizione delle bombe resta sul server: esce solo per le caselle già
+ * scelte (e a fine round, per il disarmo).
  */
 @Service
 public class BombaService {
 
-    public static final int WAVES = 3;
-    public static final int WAVE_SECONDS = 15;
-    public static final int REVEAL_SECONDS = 5;
+    public static final int TURN_SECONDS = 20;
     public static final int BOMB_PENALTY = 200;
 
-    /** Casella del tabellone: la posizione delle bombe resta privata. */
     private record Cell(int id, String label, boolean bomb) {
-    }
-
-    private static final class Wave {
-        private final int index;
-        private final List<Cell> cells;
-        private final Map<String, Integer> picks = new LinkedHashMap<>();
-        private final Map<String, Integer> hitPlayers = new LinkedHashMap<>();
-        private boolean revealed;
-
-        private Wave(int index, List<Cell> cells) {
-            this.index = index;
-            this.cells = cells;
-        }
-
-        private Cell cell(int id) {
-            return cells.stream().filter(cell -> cell.id() == id).findFirst().orElse(null);
-        }
     }
 
     private static final class Round {
         private final long gameId;
         private final int act;
         private final List<String> players;
-        private final int cellsPerWave;
-        private final int bombsPerWave;
         private final String prompt;
-        private final List<String> safePool;
-        private final List<String> bombPool;
-        private final List<Wave> waves = new ArrayList<>();
+        private final List<Cell> cells;
+        private final Map<Integer, String> pickedBy = new LinkedHashMap<>();
+        private final List<String> eliminated = new ArrayList<>();
         private final Map<String, Integer> penalties = new LinkedHashMap<>();
-        private final Random random = new Random();
 
-        private int waveIndex;
-        private String phase = "PICK";
-        private long deadline;
+        private int turnIndex;
+        private String phase = "TURN";
+        private long turnDeadline;
         private long pausedAt;
         private boolean active = true;
         private boolean paused;
         private ScheduledFuture<?> task;
+        private long eventSeq;
+        private JSONObject lastEvent;
 
-        private Round(long gameId, int act, List<String> players, int cellsPerWave, int bombsPerWave,
-                String prompt, List<String> safePool, List<String> bombPool) {
+        private Round(long gameId, int act, List<String> players, String prompt, List<Cell> cells) {
             this.gameId = gameId;
             this.act = act;
             this.players = players;
-            this.cellsPerWave = cellsPerWave;
-            this.bombsPerWave = bombsPerWave;
             this.prompt = prompt;
-            this.safePool = safePool;
-            this.bombPool = bombPool;
+            this.cells = cells;
             for (String player : players) {
                 penalties.put(player, 0);
             }
         }
 
-        private Wave currentWave() {
-            return waves.isEmpty() ? null : waves.get(waves.size() - 1);
+        private String currentPlayer() {
+            return turnIndex >= 0 && turnIndex < players.size() ? players.get(turnIndex) : null;
         }
     }
 
@@ -124,18 +100,17 @@ public class BombaService {
         }
 
         int act = Math.max(1, Math.min(5, requestedAct));
-        int cells = cellsFor(players.size());
-        int bombs = bombsFor(players.size());
-        QuestionBankService.ScossaBoard board = questionBank.scossaBoard(cells, bombs);
+        QuestionBankService.ScossaBoard board = questionBank.scossaBoard(
+                cellsFor(players.size()), bombsFor(players.size()));
 
         reset(gameId);
-
-        Round round = new Round(gameId, act, players, cells, bombs,
-                board.prompt(), board.safe(), board.intruders());
+        Round round = new Round(gameId, act, players, board.prompt(), buildCells(board, players.size()));
         rounds.put(gameId, round);
 
         synchronized (round) {
-            nextWave(round);
+            round.turnIndex = 0;
+            round.turnDeadline = System.currentTimeMillis() + TURN_SECONDS * 1000L;
+            scheduleDeadline(round);
             return publicState(round, null, System.currentTimeMillis());
         }
     }
@@ -150,32 +125,40 @@ public class BombaService {
         }
     }
 
-    /** Scelta di una casella da parte di una squadra, una per ondata. */
+    /** La squadra di turno dice un'opzione: poi tocca alla successiva. */
     public JSONObject pick(long gameId, String rawPlayer, int cellId) {
         Round round = requireRound(gameId);
         synchronized (round) {
             ensureActive(round);
+
             String player = canonicalPlayer(round, rawPlayer);
+            String current = round.currentPlayer();
             if (player == null) {
                 throw new IllegalArgumentException("Giocatore non riconosciuto");
             }
+            if (current == null || !current.equalsIgnoreCase(player)) {
+                throw new IllegalArgumentException("Non è il tuo turno");
+            }
 
-            Wave wave = round.currentWave();
-            if (wave == null || !"PICK".equals(round.phase) || wave.revealed) {
-                throw new IllegalArgumentException("L'ondata è chiusa");
-            }
-            if (wave.picks.containsKey(player)) {
-                throw new IllegalArgumentException("Hai già scelto in questa ondata");
-            }
-            if (wave.cell(cellId) == null) {
+            Cell cell = findCell(round, cellId);
+            if (cell == null) {
                 throw new IllegalArgumentException("Casella non valida");
             }
-
-            wave.picks.put(player, cellId);
-            if (wave.picks.size() >= round.players.size()) {
-                revealWave(round);
+            if (round.pickedBy.containsKey(cellId)) {
+                throw new IllegalArgumentException("Casella già scelta");
             }
-            return publicState(round, player, System.currentTimeMillis());
+
+            long now = System.currentTimeMillis();
+            round.pickedBy.put(cellId, player);
+            pushEvent(round, cell.bomb() ? "bomb" : "safe", player, cell.label());
+
+            if (cell.bomb()) {
+                round.penalties.merge(player, -BOMB_PENALTY, Integer::sum);
+                round.eliminated.add(player);
+            }
+
+            advance(round, now);
+            return publicState(round, player, now);
         }
     }
 
@@ -199,9 +182,8 @@ public class BombaService {
                 return publicState(round, null, System.currentTimeMillis());
             }
             long now = System.currentTimeMillis();
-            long pauseMs = Math.max(0, now - round.pausedAt);
             round.paused = false;
-            round.deadline += pauseMs;
+            round.turnDeadline += Math.max(0, now - round.pausedAt);
             scheduleDeadline(round);
             return publicState(round, null, now);
         }
@@ -223,70 +205,64 @@ public class BombaService {
         scheduler.shutdownNow();
     }
 
-    // ------------------------------------------------------------------ ondate
+    // ------------------------------------------------------------------- turni
 
-    private void nextWave(Round round) {
-        Wave wave = buildWave(round);
-        round.waves.add(wave);
-        round.phase = "PICK";
-        round.deadline = System.currentTimeMillis() + WAVE_SECONDS * 1000L;
+    private List<Cell> buildCells(QuestionBankService.ScossaBoard board, int players) {
+        List<Cell> options = new ArrayList<>();
+
+        List<String> safe = new ArrayList<>(board.safe());
+        Collections.shuffle(safe);
+        for (String label : safe) {
+            options.add(new Cell(options.size() + 1, label, false));
+        }
+
+        List<String> intruders = new ArrayList<>(board.intruders());
+        Collections.shuffle(intruders);
+        for (String label : intruders) {
+            options.add(new Cell(options.size() + 1, label, true));
+        }
+
+        Collections.shuffle(options);
+        List<Cell> numbered = new ArrayList<>();
+        for (int index = 0; index < options.size(); index++) {
+            numbered.add(new Cell(index + 1, options.get(index).label(), options.get(index).bomb()));
+        }
+        return numbered;
+    }
+
+    private void advance(Round round, long now) {
+        if (round.pickedBy.size() >= round.cells.size()
+                || round.players.stream().allMatch(round.eliminated::contains)) {
+            finish(round);
+            return;
+        }
+
+        int next = nextActiveIndex(round);
+        if (next < 0) {
+            finish(round);
+            return;
+        }
+        round.turnIndex = next;
+        round.turnDeadline = now + TURN_SECONDS * 1000L;
         scheduleDeadline(round);
     }
 
-    private Wave buildWave(Round round) {
-        List<Cell> cells = new ArrayList<>();
-        int safeNeeded = Math.max(1, round.cellsPerWave - round.bombsPerWave);
-
-        List<String> safe = new ArrayList<>(round.safePool);
-        Collections.shuffle(safe, round.random);
-        for (int index = 0; index < Math.min(safeNeeded, safe.size()); index++) {
-            cells.add(new Cell(cells.size() + 1, safe.get(index), false));
-        }
-
-        List<String> bombs = new ArrayList<>(round.bombPool);
-        Collections.shuffle(bombs, round.random);
-        for (int index = 0; index < round.bombsPerWave; index++) {
-            cells.add(new Cell(cells.size() + 1, bombs.get(index % bombs.size()), true));
-        }
-
-        Collections.shuffle(cells, round.random);
-        List<Cell> numbered = new ArrayList<>();
-        for (int index = 0; index < cells.size(); index++) {
-            Cell cell = cells.get(index);
-            numbered.add(new Cell(index + 1, cell.label(), cell.bomb()));
-        }
-        return new Wave(round.waveIndex + 1, numbered);
-    }
-
-    private void revealWave(Round round) {
-        Wave wave = round.currentWave();
-        if (wave == null || wave.revealed) {
-            return;
-        }
-        wave.revealed = true;
-        round.phase = "REVEAL";
-        round.deadline = System.currentTimeMillis() + REVEAL_SECONDS * 1000L;
-
-        for (Map.Entry<String, Integer> entry : wave.picks.entrySet()) {
-            Cell cell = wave.cell(entry.getValue());
-            if (cell != null && cell.bomb()) {
-                wave.hitPlayers.put(entry.getKey(), 1);
-                round.penalties.merge(entry.getKey(), -BOMB_PENALTY, Integer::sum);
+    /** Prossima squadra ancora in gioco, saltando chi ha preso una bomba. */
+    private int nextActiveIndex(Round round) {
+        for (int step = 1; step <= round.players.size(); step++) {
+            int index = (round.turnIndex + step) % round.players.size();
+            if (!round.eliminated.contains(round.players.get(index))) {
+                return index;
             }
         }
-        scheduleDeadline(round);
+        return -1;
     }
 
-    private void advance(Round round) {
-        if (round.waveIndex + 1 >= WAVES) {
-            round.phase = "END";
-            round.active = false;
-            round.deadline = 0;
-            cancel(round.task);
-            return;
-        }
-        round.waveIndex++;
-        nextWave(round);
+    private void finish(Round round) {
+        round.phase = "END";
+        round.active = false;
+        round.turnDeadline = 0;
+        cancel(round.task);
     }
 
     private void scheduleDeadline(Round round) {
@@ -294,27 +270,52 @@ public class BombaService {
         if (!round.active || round.paused) {
             return;
         }
-        long delay = Math.max(0, round.deadline - System.currentTimeMillis());
+        long delay = Math.max(0, round.turnDeadline - System.currentTimeMillis());
         round.task = scheduler.schedule(() -> {
             synchronized (round) {
                 if (!round.active || round.paused || rounds.get(round.gameId) != round) {
                     return;
                 }
-                if ("PICK".equals(round.phase)) {
-                    revealWave(round);
-                } else if ("REVEAL".equals(round.phase)) {
-                    advance(round);
+                if (round.turnDeadline > System.currentTimeMillis()) {
+                    return;
                 }
+                // Turno scaduto: la squadra salta, nessuna penalità.
+                String player = round.currentPlayer();
+                pushEvent(round, "timeout", player == null ? "" : player, "");
+                advance(round, System.currentTimeMillis());
             }
         }, delay, TimeUnit.MILLISECONDS);
+    }
+
+    private void pushEvent(Round round, String kind, String player, String label) {
+        round.lastEvent = new JSONObject()
+                .put("seq", ++round.eventSeq)
+                .put("kind", kind)
+                .put("player", player)
+                .put("label", label);
     }
 
     // ------------------------------------------------------------------- stato
 
     private JSONObject publicState(Round round, String rawPlayer, long now) {
         long clock = round.paused ? round.pausedAt : now;
-        Wave wave = round.currentWave();
-        boolean revealed = wave != null && wave.revealed;
+        boolean ended = !round.active;
+
+        JSONArray cells = new JSONArray();
+        for (Cell cell : round.cells) {
+            JSONObject view = new JSONObject();
+            view.put("id", cell.id());
+            view.put("label", cell.label());
+            boolean used = round.pickedBy.containsKey(cell.id());
+            view.put("used", used);
+            if (used) {
+                view.put("pickedBy", round.pickedBy.get(cell.id()));
+            }
+            if (used || ended) {
+                view.put("bomb", cell.bomb());
+            }
+            cells.put(view);
+        }
 
         JSONObject state = new JSONObject();
         state.put("type", "BOMBA");
@@ -323,109 +324,25 @@ public class BombaService {
         state.put("active", round.active);
         state.put("paused", round.paused);
         state.put("phase", round.phase);
-        state.put("wave", Math.min(round.waveIndex + 1, WAVES));
-        state.put("waves", WAVES);
-        state.put("waveSeconds", WAVE_SECONDS);
         state.put("prompt", round.prompt);
-        state.put("secondsLeft", secondsLeft(round, clock));
-
-        JSONArray cells = new JSONArray();
-        JSONArray picks = new JSONArray();
-        int remainingBombs = 0;
-        if (wave != null) {
-            for (Cell cell : wave.cells) {
-                JSONObject view = new JSONObject();
-                view.put("id", cell.id());
-                view.put("label", cell.label());
-                if (revealed) {
-                    view.put("bomb", cell.bomb());
-                }
-                JSONArray owners = new JSONArray();
-                for (Map.Entry<String, Integer> entry : wave.picks.entrySet()) {
-                    if (entry.getValue() == cell.id()) {
-                        owners.put(entry.getKey());
-                    }
-                }
-                view.put("pickedBy", owners);
-                cells.put(view);
-            }
-
-            for (Map.Entry<String, Integer> entry : wave.picks.entrySet()) {
-                Cell cell = wave.cell(entry.getValue());
-                picks.put(new JSONObject()
-                        .put("player", entry.getKey())
-                        .put("cellId", entry.getValue())
-                        .put("label", cell == null ? "" : cell.label()));
-            }
-
-            if (revealed) {
-                for (Cell cell : wave.cells) {
-                    if (cell.bomb() && wave.picks.values().stream().noneMatch(id -> id == cell.id())) {
-                        remainingBombs++;
-                    }
-                }
-            }
-        }
         state.put("cells", cells);
-        state.put("picks", picks);
-        state.put("remainingBombs", remainingBombs);
-        state.put("defused", new JSONArray(round.active ? List.of() : defusedLabels(round)));
+        state.put("players", new JSONArray(round.players));
+        state.put("eliminated", new JSONArray(round.eliminated));
         state.put("penalties", new JSONObject(round.penalties));
-
-        JSONArray hits = new JSONArray();
-        if (wave != null && revealed) {
-            for (String player : wave.hitPlayers.keySet()) {
-                hits.put(new JSONObject()
-                        .put("player", player)
-                        .put("bombs", 1)
-                        .put("penalty", -BOMB_PENALTY));
-            }
-        }
-        state.put("hits", hits);
+        state.put("turn", round.currentPlayer() == null ? "" : round.currentPlayer());
+        state.put("turnSeconds", TURN_SECONDS);
+        state.put("secondsLeft", round.active
+                ? Math.max(0, (round.turnDeadline - clock + 999) / 1000)
+                : 0);
+        state.put("lastEvent", round.lastEvent == null ? JSONObject.NULL : round.lastEvent);
 
         String player = canonicalPlayer(round, rawPlayer);
-        if (player == null || wave == null || !wave.picks.containsKey(player)) {
-            state.put("you", JSONObject.NULL);
-            return state;
-        }
-
-        int cellId = wave.picks.get(player);
-        Cell chosen = wave.cell(cellId);
         JSONObject you = new JSONObject();
-        you.put("cellId", cellId);
-        you.put("label", chosen == null ? "" : chosen.label());
-        you.put("hit", revealed && chosen != null && chosen.bomb());
-        you.put("penalty", round.penalties.getOrDefault(player, 0));
+        you.put("yourTurn", player != null && player.equalsIgnoreCase(round.currentPlayer() == null ? "" : round.currentPlayer()));
+        you.put("penalty", player == null ? 0 : round.penalties.getOrDefault(player, 0));
+        you.put("out", player != null && round.eliminated.contains(player));
         state.put("you", you);
         return state;
-    }
-
-    private long secondsLeft(Round round, long clock) {
-        if (!round.active || round.deadline <= 0) {
-            return 0;
-        }
-        return Math.max(0, (round.deadline - clock + 999) / 1000);
-    }
-
-    /** Bombe mai scelte in nessuna ondata: a fine round vengono disarmate. */
-    private List<String> defusedLabels(Round round) {
-        List<String> labels = new ArrayList<>();
-        for (Wave wave : round.waves) {
-            if (!wave.revealed) {
-                continue;
-            }
-            for (Cell cell : wave.cells) {
-                if (!cell.bomb()) {
-                    continue;
-                }
-                boolean chosen = wave.picks.containsValue(cell.id());
-                // Un'intrusa può uscire in più ondate: in TV compare una volta.
-                if (!chosen && labels.stream().noneMatch(label -> label.equalsIgnoreCase(cell.label()))) {
-                    labels.add(cell.label());
-                }
-            }
-        }
-        return labels;
     }
 
     private JSONObject emptyState(long gameId) {
@@ -436,18 +353,16 @@ public class BombaService {
         state.put("active", false);
         state.put("paused", false);
         state.put("phase", "END");
-        state.put("wave", 0);
-        state.put("waves", WAVES);
-        state.put("waveSeconds", WAVE_SECONDS);
         state.put("prompt", "");
-        state.put("secondsLeft", 0);
         state.put("cells", new JSONArray());
-        state.put("picks", new JSONArray());
-        state.put("hits", new JSONArray());
-        state.put("defused", new JSONArray());
+        state.put("players", new JSONArray());
+        state.put("eliminated", new JSONArray());
         state.put("penalties", new JSONObject());
-        state.put("remainingBombs", 0);
-        state.put("you", JSONObject.NULL);
+        state.put("turn", "");
+        state.put("turnSeconds", TURN_SECONDS);
+        state.put("secondsLeft", 0);
+        state.put("lastEvent", JSONObject.NULL);
+        state.put("you", new JSONObject().put("yourTurn", false).put("penalty", 0).put("out", false));
         return state;
     }
 
@@ -468,6 +383,10 @@ public class BombaService {
             throw new IllegalArgumentException("Nessun round Bomba attivo");
         }
         return round;
+    }
+
+    private Cell findCell(Round round, int cellId) {
+        return round.cells.stream().filter(cell -> cell.id() == cellId).findFirst().orElse(null);
     }
 
     private String canonicalPlayer(Round round, String raw) {

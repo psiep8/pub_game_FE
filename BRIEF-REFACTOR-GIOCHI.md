@@ -27,13 +27,13 @@ Le lettere in uscita sono un'estrazione mista. Per ogni frase si contano le lett
 ## 4. Time Buzzer
 Partenza automatica per tutti. Il server manda `TIME_BUZZER_START` a tutti i telefoni dopo un conto alla rovescia 3-2-1 sulla TV. Ogni telefono misura il tempo dalla ricezione del segnale al tocco di STOP (`performance.now()`), il server controlla che il valore sia plausibile rispetto al tempo trascorso. 5 manche con bersagli casuali sotto i 30 s, al centesimo.
 
-## 5. Bomba (nuova logica, stile "Scossa")
+## 5. Bomba (nuova logica, a turni)
 Gioco solo a malus, senza interazione diretta tra tavoli.
 - **Tabellone:** con `n` squadre ci sono `2n + n/2` caselle (8 squadre = 20). Le bombe sono `ceil(n/3)` (8 squadre = 3).
-- **Domanda:** "Quale tra queste NON è…?": le caselle sono elementi della categoria e le bombe sono gli intrusi.
-- **Telefono:** ogni telefono mostra la lista completa come pulsanti. L'admin legge la domanda ma non sceglie. La TV mostra il tabellone e le scelte.
-- **Ondate:** 3 ondate di 15 s. In ogni ondata ogni squadra sceglie una casella ancora disponibile. Chi sceglie la stessa casella condivide l'esito. Alla rivelazione le caselle sicure si "salvano", le bombe esplodono con effetto sulla TV.
-- **Punti:** ogni bomba colpita costa a quella squadra 200 punti (mai sotto zero in classifica). Chi non colpisce bombe non perde nulla.
+- **Domanda:** "Quale tra queste NON appartiene a…?": le caselle sono elementi della categoria e le bombe sono gli intrusi. Quasi tutte le opzioni sono vere, solo `ceil(n/3)` sono false.
+- **Telefono:** ogni telefono mostra la lista completa come pulsanti, ma si sceglie solo quando il server dà il turno. L'admin legge la domanda ma non sceglie; la TV mostra tabellone, turno e scelte.
+- **Turni:** si gioca una squadra alla volta, in ordine. La squadra di turno dice un'opzione e il turno passa alla successiva sia se la casella è vera sia se è una bomba. Vent'anni secondi per turno: chi non risponde salta il turno, senza penalità.
+- **Punti:** una casella vera non cambia i punti; una bomba costa 200 punti a chi la sceglie (mai sotto zero in classifica) e lo toglie dal round.
 - **Se non tutte le bombe esplodono:** nessun problema. A fine round la TV mostra quelle rimaste e le disinnesca senza conseguenze. Se non ne esplode nessuna, nessuno perde punti.
 
 ## 6. Speed Rush: nuove microprove

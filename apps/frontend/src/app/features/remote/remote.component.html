@@ -170,38 +170,40 @@
       }
       <div class="game-head">
         <span class="game-tag bomba">💣 BOMBA</span>
-        <span class="game-tip">Ondata {{ bombaState()?.wave || 1 }}/{{ bombaState()?.waves || 3 }} ·
-          {{ bombaState()?.phase === 'PICK' ? (bombaState()?.secondsLeft ?? 0) + 's' : bombaState()?.phase === 'REVEAL' ? 'RIVELAZIONE' : 'FINITO' }}</span>
+        <span class="game-tip">
+          @if (bombaState()?.active === false) { FINITO }
+          @else if (bombaState()?.you?.yourTurn) { TOCCA A TE · {{ bombaState()?.secondsLeft ?? 0 }}s }
+          @else { TOCCA A {{ bombaState()?.turn || '—' }} · {{ bombaState()?.secondsLeft ?? 0 }}s }
+        </span>
       </div>
 
-      @if (bombaState()?.phase === 'PICK' || bombaState()?.phase === 'REVEAL') {
+      @if (bombaState()?.active === false) {
+      <div class="bomba-wait">
+        <div class="bomba-big">💣</div>
+        <h2>ROUND FINITO</h2>
+        <p class="bomba-hint">Le bombe rimaste sono state disarmate senza conseguenze.</p>
+      </div>
+      } @else {
       <div class="bomba-cells">
         @for (cell of bombaState()?.cells ?? []; track cell.id) {
-        <button class="bomba-cell" [class.picked]="bombaPicked() === cell.id"
+        <button class="bomba-cell" [class.picked]="cell.used"
           [class.safe]="cell.bomb === false" [class.bomb]="cell.bomb === true"
-          [disabled]="bombaState()?.phase !== 'PICK' || bombaPicked() !== null"
+          [disabled]="cell.used || !bombaState()?.you?.yourTurn"
           (click)="pickBombaCell(cell.id)">
           <span class="bomba-cell-id">{{ cell.id }}</span>
           <span class="bomba-cell-label">{{ cell.label }}</span>
         </button>
         }
       </div>
-      } @else {
-      <div class="bomba-wait">
-        <div class="bomba-big">💣</div>
-        <h2>ROUND FINITO</h2>
-        <p class="bomba-hint">Le bombe rimaste sono state disarmate senza conseguenze.</p>
-      </div>
-      }
-
-      @if (bombaState()?.phase === 'PICK') {
-      <p class="bomba-hint">Scegli una casella: chi sceglie la stessa condivide l'esito.</p>
-      } @else if (bombaState()?.phase === 'REVEAL') {
-      <p class="bomba-hint">Le caselle sicure si salvano, le bombe esplodono: −200 a chi le ha scelte.</p>
+      <p class="bomba-hint">
+        @if (bombaState()?.you?.out) { Sei fuori da questo round: guarda la TV. }
+        @else if (bombaState()?.you?.yourTurn) { Tocca a te: scegli una casella, poi il turno passa. }
+        @else { Aspetta il tuo turno: passa anche quando la casella è giusta. }
+      </p>
       }
 
       @if (bombaState()?.you; as you) {
-      <p class="bomba-your">La tua casella: <b>{{ you.label }}</b> · penalità {{ you.penalty }}</p>
+      <p class="bomba-your">Penalità del round: <b>{{ you.penalty }}</b></p>
       }
     </div>
     }

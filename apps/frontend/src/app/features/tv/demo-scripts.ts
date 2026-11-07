@@ -97,14 +97,14 @@ export const DEMO_SCRIPTS: Record<string, DemoScript> = {
   BOMBA: {
     title: 'BOMBA',
     icon: '💣',
-    tv: ['Tabellone 2n + n/2 caselle', 'Bombe nascoste fino alla rivelazione', 'Tre ondate da 15 secondi'],
-    remote: ['Scegli una casella per ondata', 'Chi sceglie la stessa condivide l\'esito', 'Nessuna domanda: conta solo la scelta'],
+    tv: ['Una domanda con 2n + n/2 opzioni, quasi tutte vere', 'Bombe nascoste fino alla scelta', 'Turno indicato in grande'],
+    remote: ['Scegli solo quando tocca a te', 'La casella falsa costa −200', 'Chi prende una bomba esce dal round'],
     scoring: [
-      { label: 'Casella sicura', value: '0', tone: 'good' },
-      { label: 'Bomba colpita', value: '−200', tone: 'bad' },
+      { label: 'Casella vera', value: '0 · turno dopo', tone: 'good' },
+      { label: 'Bomba', value: '−200 e fuori', tone: 'bad' },
       { label: 'Bombe mai scelte', value: 'disarmate', tone: 'neutral' },
     ],
-    note: 'Solo malus: chi non prende bombe non perde nulla. Mai sotto zero in classifica.',
+    note: 'Il turno passa sempre, giusta o sbagliata: conta solo evitare le caselle false. Mai sotto zero in classifica.',
   },
   SPEED_RUSH: {
     title: 'SPEED RUSH',

@@ -74,11 +74,12 @@ poi i giochi.
       3 manche in round (il brief ne prevedeva 5) con bersagli casuali sotto i 30 s, al centesimo.
 
 ### 5. Bomba (nuova logica, stile "Scossa")
-- [x] Tabellone di `2n + n/2` caselle con `ceil(n/3)` bombe; domanda "quale tra queste NON è…?"
-      con gli intrusi come bombe; telefono con la lista a pulsanti, admin che legge dalla TV.
-- [x] 3 ondate da 15 s, una casella per squadra per ondata, esito condiviso per chi sceglie
-      la stessa casella.
-- [x] −200 punti per bomba colpita, mai sotto zero; bombe rimaste mostrate e disinnescate a fine round.
+- [x] Una domanda con `2n + n/2` opzioni quasi tutte vere e `ceil(n/3)` false; telefono con la
+      lista a pulsanti, la domanda si legge dalla TV.
+- [x] Turni in ordine, una squadra alla volta: la scelta passa al prossimo sia se la casella è
+      vera sia se è una bomba.
+- [x] −200 punti per bomba presa (mai sotto zero) e squadra fuori dal round; bombe mai scelte
+      disarmate e mostrate a fine round.
 
 ### 6. Speed Rush — nuove microprove
 - [ ] Mazzo senza ripetizioni consecutive: matematica con 3 pulsanti, miscuglio colori, bandiera,

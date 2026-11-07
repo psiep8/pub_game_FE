@@ -215,7 +215,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
   // backend. Il telefono non calcola mai micce né punteggi.
   bombaState = signal<any>(null);
   bombaFlash = signal<string | null>(null);
-  bombaPicked = signal<number | null>(null);
   casinoState = signal<any>(null);
   casinoChoice = signal<string | null>(null);
   blackjackState = signal<any>(null);
@@ -237,8 +236,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private bombaPoll?: ReturnType<typeof setInterval>;
   private bombaPollBusy = false;
   private bombaStarted = false;
-  private bombaWave = 0;
-  private bombaHitShown = false;
+  private bombaEventSeq = 0;
   private bombaFlashTimer?: ReturnType<typeof setTimeout>;
 
   draggingId = signal<number | null>(null);
@@ -480,9 +478,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.bombaStarted = false;
           this.bombaState.set(null);
           this.bombaFlash.set(null);
-          this.bombaPicked.set(null);
-          this.bombaWave = 0;
-          this.bombaHitShown = false;
+          this.bombaEventSeq = 0;
           this.casinoState.set(null);
           this.cavalloState.set(null);
           this.biglieState.set(null);
@@ -898,9 +894,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     } else if (type === 'BOMBA') {
       this.bombaState.set(null);
       this.bombaFlash.set(null);
-      this.bombaPicked.set(null);
-      this.bombaWave = 0;
-      this.bombaHitShown = false;
+      this.bombaEventSeq = 0;
       this.bombaStarted = true;
       this.startBombaPolling();
     } else if (type === 'BONUS_CASINO') {
@@ -1302,46 +1296,39 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const you = state.you ?? null;
     this.gameState.set(PlayerStatus.VOTING);
 
-    const wave = Number(state.wave) || 0;
-    if (wave !== this.bombaWave) {
-      this.bombaWave = wave;
-      this.bombaPicked.set(you?.cellId ?? null);
-      this.hasAnswered.set(false);
-      this.selectedAnswer.set(null);
-      this.vibrate(15);
+    // Ogni scelta è già risolta dal server: qui serve solo il feedback.
+    const event = state.lastEvent;
+    const seq = Number(event?.seq) || 0;
+    if (seq > this.bombaEventSeq) {
+      this.bombaEventSeq = seq;
+      const mine = event?.player && event.player === this.nickname();
+      if (event?.kind === 'bomb') {
+        this.flashBomba(mine ? '💥 BOOM! Sei fuori dal round' : `💥 ${event.player}: bomba`);
+        this.vibrate([160, 60, 160]);
+        this.audio.playError();
+      } else if (event?.kind === 'safe' && mine) {
+        this.vibrate(25);
+        this.audio.playConfirm();
+      }
     }
 
-    if (you?.cellId && this.bombaPicked() === null) {
-      this.bombaPicked.set(you.cellId);
-    }
-
-    // Rivelazione: chi ha preso una bomba se ne accorge subito.
-    if (state.phase === 'REVEAL' && you?.hit && !this.bombaHitShown) {
-      this.bombaHitShown = true;
-      this.flashBomba(`💥 BOOM! −${Math.abs(Number(you.penalty) || 200)}`);
-      this.vibrate([160, 60, 160]);
-      this.audio.playError();
-    }
-    if (state.phase !== 'REVEAL') {
-      this.bombaHitShown = false;
+    if (you?.yourTurn) {
+      this.vibrate(20);
     }
   }
 
-  /** Bomba: ogni telefono sceglie una casella per ondata. */
+  /** Bomba: si sceglie solo quando il server dà il turno alla propria squadra. */
   pickBombaCell(cellId: number): void {
     const player = this.nickname();
     const state = this.bombaState();
-    if (!player || !state || state.phase !== 'PICK' || this.bombaPicked() !== null) return;
+    if (!player || !state || state.active === false) return;
+    if (!state.you?.yourTurn || state.you?.out) return;
 
-    this.bombaPicked.set(cellId);
     this.gameService.pickBomba(this.gameId(), player, cellId).subscribe({
       next: (next: any) => {
-        this.audio.playConfirm();
-        this.vibrate(30);
         this.applyBombaState(next);
       },
       error: (error: any) => {
-        this.bombaPicked.set(null);
         this.flashBomba(error?.error?.error ?? 'Scelta non riuscita');
         this.audio.playError();
         this.pollBombaState();

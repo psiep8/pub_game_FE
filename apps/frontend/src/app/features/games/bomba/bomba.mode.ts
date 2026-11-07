@@ -2,8 +2,7 @@ import { signal } from '@angular/core';
 import { GameModeBase } from '../../../shared/models/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../../../shared/models/game-mode-type';
 
-const WAVES = 3;
-const WAVE_SECONDS = 15;
+const TURN_SECONDS = 20;
 const BOMB_PENALTY = 200;
 
 /** Stato iniziale: la TV ha qualcosa da mostrare già prima del primo poll. */
@@ -11,32 +10,30 @@ function emptyState(): any {
   return {
     type: 'BOMBA',
     active: true,
-    phase: 'PICK',
-    wave: 1,
-    waves: WAVES,
-    waveSeconds: WAVE_SECONDS,
-    secondsLeft: WAVE_SECONDS,
+    phase: 'TURN',
     prompt: '',
     cells: [],
-    picks: [],
-    hits: [],
-    defused: [],
+    players: [],
+    eliminated: [],
     penalties: {},
-    remainingBombs: 0,
+    turn: '',
+    turnSeconds: TURN_SECONDS,
+    secondsLeft: TURN_SECONDS,
+    lastEvent: null,
   };
 }
 
 /**
- * Bomba: gioco a tabellone, solo a malus.
+ * Bomba: tabellone a turni, solo a malus.
  *
- * Il server tiene il tabellone, le scadenze delle ondate e la posizione delle
- * bombe; la TV fa polling e applica le penalità una sola volta per ondata,
- * quando arriva la rivelazione. La modalità non usa il timer della classe base:
- * il tempo che conta è quello dell'ondata, deciso dal server.
+ * Il server tiene il tabellone, il turno corrente e la posizione delle bombe;
+ * la TV fa polling e applica la penalità quando una squadra pesca una casella
+ * falsa. La modalità non usa il timer della classe base: il tempo che conta è
+ * quello del turno, deciso dal server.
  */
 export class BombaMode extends GameModeBase {
   readonly type: GameModeType = 'BOMBA';
-  readonly timerDuration = WAVES * WAVE_SECONDS;
+  readonly timerDuration = TURN_SECONDS;
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
 
@@ -47,7 +44,7 @@ export class BombaMode extends GameModeBase {
   private pollBusy = false;
   private startedOnce = false;
   private ended = false;
-  private readonly appliedWaves = new Set<number>();
+  private lastEventSeq = 0;
 
   protected onInitialize(): void {
     // La factory chiama initialize() prima di setConfig(): i giocatori veri
@@ -57,10 +54,10 @@ export class BombaMode extends GameModeBase {
     this.startedOnce = false;
     this.ended = false;
     this.pollBusy = false;
-    this.appliedWaves.clear();
+    this.lastEventSeq = 0;
     this.stopPolling();
     this.state.set(emptyState());
-    this.timer.set(this.timerDuration);
+    this.timer.set(TURN_SECONDS);
   }
 
   protected async onStart(): Promise<void> {
@@ -73,7 +70,7 @@ export class BombaMode extends GameModeBase {
       return;
     }
 
-    this.timer.set(WAVE_SECONDS);
+    this.timer.set(TURN_SECONDS);
     try {
       const initial = await api.start(this.players, this.act);
       this.startedOnce = true;
@@ -90,7 +87,7 @@ export class BombaMode extends GameModeBase {
   }
 
   protected override startTimer(): void {
-    // Il timer dell'ondata è quello del server: niente setInterval locale.
+    // Il timer del turno è quello del server: niente setInterval locale.
   }
 
   protected onPause(): void {
@@ -157,10 +154,13 @@ export class BombaMode extends GameModeBase {
     this.timer.set(seconds);
     this.config.onTimerTick?.(seconds);
 
-    const wave = Number(next.wave) || 0;
-    if (next.phase === 'REVEAL' && wave > 0 && !this.appliedWaves.has(wave)) {
-      this.appliedWaves.add(wave);
-      this.applyWavePenalties(next);
+    const event = next.lastEvent;
+    const seq = Number(event?.seq) || 0;
+    if (seq > this.lastEventSeq) {
+      this.lastEventSeq = seq;
+      if (event?.kind === 'bomb' && event?.player) {
+        this.applyBombPenalty(String(event.player));
+      }
     }
 
     if (next.active === false && !this.ended) {
@@ -175,24 +175,18 @@ export class BombaMode extends GameModeBase {
    * Una bomba costa 200 punti alla squadra, ma il totale non scende sotto
    * zero: la penalità si ferma ai punti che la squadra ha davvero.
    */
-  private applyWavePenalties(next: any): void {
-    const hits = Array.isArray(next?.hits) ? next.hits : [];
-    for (const hit of hits) {
-      const playerName = String(hit?.player ?? '');
-      if (!playerName) continue;
+  private applyBombPenalty(playerName: string): void {
+    const available = Math.max(0, Number(this.config.playerPoints?.(playerName)) || 0);
+    const points = this.config.playerPoints
+      ? -Math.min(BOMB_PENALTY, available)
+      : -BOMB_PENALTY;
+    if (points === 0) return;
 
-      const bombs = Math.max(1, Number(hit?.bombs) || 1);
-      const raw = bombs * BOMB_PENALTY;
-      const available = Math.max(0, Number(this.config.playerPoints?.(playerName)) || 0);
-      const points = this.config.playerPoints ? -Math.min(raw, available) : -raw;
-      if (points === 0) continue;
-
-      this.config.onAnswerReceived?.({
-        playerName,
-        points,
-        isCorrect: false,
-      });
-    }
+    this.config.onAnswerReceived?.({
+      playerName,
+      points,
+      isCorrect: false,
+    });
   }
 
   getDisplayData(): any {

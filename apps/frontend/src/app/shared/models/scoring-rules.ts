@@ -52,10 +52,10 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     note: 'Tre manche; dopo la prima esce il terzo più lento, dopo la seconda gli ultimi due. I finalisti prendono +150.',
   },
   BOMBA: {
-    correct: '0: le caselle sicure si salvano',
-    wrong: '−200 per bomba colpita',
-    missed: '0 se non prendi bombe',
-    note: '3 ondate da 15 s; chi sceglie la stessa casella condivide l\'esito. Mai sotto zero, le bombe rimaste si disarmano.',
+    correct: '0: la casella vera si salva e passa il turno',
+    wrong: '−200 e fuori dal round',
+    missed: 'chi non risponde salta il turno',
+    note: 'Un tabellone, un turno per squadra: quasi tutte le caselle sono vere, ce ne sono ceil(n/3) false. Le false mai scelte si disarmano a fine round.',
   },
   SPEED_RUSH: {
     correct: '500 al primo, poi a scalare',
