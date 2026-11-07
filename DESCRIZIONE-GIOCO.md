@@ -16,13 +16,13 @@
 
 | Atto | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
 |---|---|---|---|---|---|---|---|---|
-| 1 | Quiz | Musica | Black Jack | Indovina chi | Timeline | Time Buzzer | Ultima spiaggia | Bomba |
-| 2 | Azzardo | Musica | Black Jack | Quiz | Ruota | Time Buzzer | Ultima spiaggia | Arena |
-| 3 | Timeline | Musica | Speed Rush | Indovina chi | Quiz | Time Buzzer | Ultima spiaggia | Black Jack |
+| 1 | Quiz | Musica | Black Jack | Time Buzzer | Timeline | Air Hockey | Ultima spiaggia | Bomba |
+| 2 | Azzardo | Ruota | Black Jack | Quiz | Air Hockey | Time Buzzer | Ultima spiaggia | Arena |
+| 3 | Quiz | Musica | Speed Rush | Indovina chi | Air Hockey | Time Buzzer | Ultima spiaggia | Black Jack |
 | 4 | Indovina chi | Bomba | Musica | Quiz | Ruota | Timeline | Ultima spiaggia | Speed Rush |
 | 5 | Quiz | Musica | Bomba | Indovina chi | Azzardo | Timeline | Ultima spiaggia | Arena |
 
-Vincoli: mai due giochi in tempo reale di fila (Bomba, Arena, Speed Rush, Black Jack), mai due giochi a prenotazione consecutivi (Musica, Indovina chi, Ruota), Arena a chiudere gli atti 2 e 5. Classifica rapida ai round 4, 12, 20, 28, 36; dettagliata ai round 8, 16, 24, 32, 40.
+Vincoli: mai due giochi in tempo reale di fila (Bomba, Arena, Speed Rush, Air Hockey, Black Jack), mai due giochi a prenotazione consecutivi (Musica, Indovina chi, Ruota), Arena a chiudere gli atti 2 e 5. Classifica rapida ai round 4, 12, 20, 28, 36; dettagliata ai round 8, 16, 24, 32, 40.
 
 ### Quattro bonus, dopo gli atti 1-4 (non consumano round)
 

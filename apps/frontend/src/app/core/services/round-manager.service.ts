@@ -24,9 +24,9 @@ const STORAGE_KEY = 'roundProgress';
  * una per atto, sempre nei primi tre atti: è il round che dà il momento di
  * vetrina a un tavolo alla volta.
  *
- * Conteggi concordati: 5 Quiz, 5 Musica, 2 Azzardo, 2 Arena, 3 Bomba,
- * 4 Celebrità (Indovina chi), 3 Black Jack, 4 Timeline, 2 Ruota, 2 Speed Rush,
- * 3 Time Buzzer e 5 Ultima spiaggia.
+ * Conteggi concordati: 5 Quiz, 4 Musica, 2 Azzardo, 2 Arena, 3 Bomba,
+ * 3 Celebrità (Indovina chi), 3 Black Jack, 3 Timeline, 2 Ruota, 2 Speed Rush,
+ * 3 Time Buzzer, 3 Air Hockey e 5 Ultima spiaggia.
  *
  * Ultima spiaggia è fissa al penultimo round di ogni atto (7, 15, 23, 31, 39).
  * Ogni atto ha due giochi in tempo reale, mai consecutivi; i giochi a
@@ -34,9 +34,9 @@ const STORAGE_KEY = 'roundProgress';
  * cambiano di atto in atto e l'Arena chiude la serata.
  */
 const ACT_DECKS: GameModeType[][] = [
-  ['QUIZ', 'MUSIC', 'BLACKJACK', 'IMAGE_BLUR', 'TIMELINE', 'TIME_BUZZER', 'ULTIMA_SPIAGGIA', 'BOMBA'],
-  ['AZZARDO', 'MUSIC', 'BLACKJACK', 'QUIZ', 'WHEEL_OF_FORTUNE', 'TIME_BUZZER', 'ULTIMA_SPIAGGIA', 'ARENA'],
-  ['TIMELINE', 'MUSIC', 'SPEED_RUSH', 'IMAGE_BLUR', 'QUIZ', 'TIME_BUZZER', 'ULTIMA_SPIAGGIA', 'BLACKJACK'],
+  ['QUIZ', 'MUSIC', 'BLACKJACK', 'TIME_BUZZER', 'TIMELINE', 'AIR_HOCKEY_BATTLE', 'ULTIMA_SPIAGGIA', 'BOMBA'],
+  ['AZZARDO', 'WHEEL_OF_FORTUNE', 'BLACKJACK', 'QUIZ', 'AIR_HOCKEY_BATTLE', 'TIME_BUZZER', 'ULTIMA_SPIAGGIA', 'ARENA'],
+  ['QUIZ', 'MUSIC', 'SPEED_RUSH', 'IMAGE_BLUR', 'AIR_HOCKEY_BATTLE', 'TIME_BUZZER', 'ULTIMA_SPIAGGIA', 'BLACKJACK'],
   ['IMAGE_BLUR', 'BOMBA', 'MUSIC', 'QUIZ', 'WHEEL_OF_FORTUNE', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'SPEED_RUSH'],
   ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'AZZARDO', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'ARENA'],
 ];

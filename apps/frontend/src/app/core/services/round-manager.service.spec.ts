@@ -145,16 +145,17 @@ describe('RoundManagerService', () => {
     for (let i = 0; i < 40; i++) types.push(service.startNewRound());
 
     expect(types.filter((type) => type === 'QUIZ')).toHaveLength(5);
-    expect(types.filter((type) => type === 'MUSIC')).toHaveLength(5);
+    expect(types.filter((type) => type === 'MUSIC')).toHaveLength(4);
     expect(types.filter((type) => type === 'AZZARDO')).toHaveLength(2);
     expect(types.filter((type) => type === 'ARENA')).toHaveLength(2);
     expect(types.filter((type) => type === 'BOMBA')).toHaveLength(3);
-    expect(types.filter((type) => type === 'IMAGE_BLUR')).toHaveLength(4);
+    expect(types.filter((type) => type === 'IMAGE_BLUR')).toHaveLength(3);
     expect(types.filter((type) => type === 'BLACKJACK')).toHaveLength(3);
-    expect(types.filter((type) => type === 'TIMELINE')).toHaveLength(4);
+    expect(types.filter((type) => type === 'TIMELINE')).toHaveLength(3);
     expect(types.filter((type) => type === 'WHEEL_OF_FORTUNE')).toHaveLength(2);
     expect(types.filter((type) => type === 'SPEED_RUSH')).toHaveLength(2);
     expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(3);
+    expect(types.filter((type) => type === 'AIR_HOCKEY_BATTLE')).toHaveLength(3);
     expect(types.filter((type) => type === 'ULTIMA_SPIAGGIA')).toHaveLength(5);
   });
 
