@@ -79,7 +79,7 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     correct: '+100 / +200 / +300 / +400 / +500',
     wrong: '−50 / −100 / −150 / −200 / −250',
     missed: '−metà del livello scelto',
-    note: 'Ultima spiaggia: cinque round, ogni livello 100-500 si usa una volta per squadra; la domanda dipende dal livello e la sbagliata costa metà.',
+    note: 'Ultima spiaggia: una categoria per occorrenza, ogni livello 100-500 si consuma una volta per squadra in tutta la partita; la sbagliata costa metà.',
   },
   BLACKJACK: {
     correct: '+250 a mano, +500 col naturale',

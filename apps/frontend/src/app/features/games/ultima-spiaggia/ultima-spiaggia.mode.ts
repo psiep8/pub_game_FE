@@ -38,29 +38,30 @@ interface UltimaSpiaggiaQuestion {
 const LEVEL_SECONDS = 12;
 const QUESTION_SECONDS = 15;
 const REVEAL_SECONDS = 5;
-const FINALE_SECONDS = 5;
 
 /**
- * ULTIMA SPIAGGIA (ex UltimaSpiaggia) — cinque round, cinque livelli.
+ * ULTIMA SPIAGGIA — una manche per occorrenza.
  *
- * In ogni round ogni squadra sceglie un livello da 100 a 500, mai usato prima:
- * al quinto round resta un solo livello. La domanda dipende dal livello, quindi
- * chi sceglie lo stesso livello riceve la stessa domanda a quattro risposte.
- * Risposta giusta = +livello; sbagliata o scaduta = −metà del livello. La TV
- * mostra per squadra il livello scelto e l'esito.
+ * Ogni volta che il gioco viene estratto, la categoria è fissata per quel
+ * round e ogni squadra sceglie un livello tra quelli che non ha ancora
+ * consumato nelle occorrenze precedenti della stessa partita. La scelta è
+ * definitiva: il livello 100 usato nell'atto 1 non ricompare nel successivo
+ * Ultima spiaggia. La domanda dipende dal livello; la TV mostra solo categoria
+ * e, al reveal, livello scelto ed esito.
  */
 export class UltimaSpiaggiaMode extends GameModeBase {
   readonly type: GameModeType = 'ULTIMA_SPIAGGIA';
-  readonly timerDuration =
-    ULTIMA_SPIAGGIA_LEVELS.length * (LEVEL_SECONDS + QUESTION_SECONDS + REVEAL_SECONDS) + FINALE_SECONDS;
-  readonly requiresBubbles = false;
+  readonly timerDuration = LEVEL_SECONDS + QUESTION_SECONDS + REVEAL_SECONDS;
+  readonly requiresBubbles = true;
   readonly requiresBuzz = false;
 
+  /** Identifica questa singola occorrenza, non il round interno. */
+  private readonly occurrenceId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   private players: string[] = [];
+  private category = '';
   private questions: UltimaSpiaggiaQuestion[] = [];
   private phase = signal<UltimaSpiaggiaPhase>(UltimaSpiaggiaPhase.LEVEL);
   private secondsLeft = signal(LEVEL_SECONDS);
-  private round = signal(0);
   private rows = signal<UltimaSpiaggiaRow[]>([]);
   private picks = new Map<string, number>();
   private used = new Map<string, Set<number>>();
@@ -72,14 +73,13 @@ export class UltimaSpiaggiaMode extends GameModeBase {
   private clock?: ReturnType<typeof setInterval>;
 
   protected onInitialize(): void {
-    this.players = [...(this.config.activePlayers ?? [])];
-    this.questions = this.readQuestions();
+    this.readPayload();
     this.resetRound();
   }
 
   protected async onStart(): Promise<void> {
     this.players = [...(this.config.activePlayers ?? [])];
-    this.questions = this.readQuestions();
+    this.readPayload();
     this.resetRound();
     await this.runPreGameSequence(1200);
     this.startLevel();
@@ -116,11 +116,9 @@ export class UltimaSpiaggiaMode extends GameModeBase {
       if (this.picks.has(playerName)) return;
 
       const level = Number(event.value);
-      if (!this.levels().includes(level)) return;
-      if (this.usedBy(playerName).has(level)) return;
+      if (!this.availableLevels(playerName).includes(level)) return;
 
-      this.picks.set(playerName, level);
-      this.usedBy(playerName).add(level);
+      this.recordLevel(playerName, level);
       this.syncRows();
       this.publish();
       this.closeLevelIfComplete();
@@ -147,9 +145,37 @@ export class UltimaSpiaggiaMode extends GameModeBase {
     }
   }
 
-  private readQuestions(): UltimaSpiaggiaQuestion[] {
-    const raw = Array.isArray(this.payload?.questions) ? this.payload.questions : [];
-    return raw
+  /** Carica la categoria, le cinque domande e i livelli già consumati. */
+  private readPayload(): void {
+    const rounds = Array.isArray(this.payload?.rounds) ? this.payload.rounds : [];
+    const firstRound = rounds.length ? rounds[0] : null;
+    const rawQuestions = this.payload?.questions ?? firstRound?.questions;
+    this.questions = this.readQuestionList(rawQuestions);
+    this.category = String(
+      this.payload?.category
+        ?? firstRound?.category
+        ?? this.questions[0]?.category
+        ?? '',
+    );
+
+    this.used.clear();
+    const rawUsed = this.payload?.usedLevels ?? this.payload?.used ?? {};
+    if (rawUsed && typeof rawUsed === 'object' && !Array.isArray(rawUsed)) {
+      for (const [name, values] of Object.entries(rawUsed)) {
+        if (!Array.isArray(values)) continue;
+        const levels = new Set<number>();
+        for (const value of values) {
+          const level = Number(value);
+          if (ULTIMA_SPIAGGIA_LEVELS.includes(level as any)) levels.add(level);
+        }
+        if (levels.size) this.used.set(String(name).trim(), levels);
+      }
+    }
+  }
+
+  private readQuestionList(raw: any): UltimaSpiaggiaQuestion[] {
+    const list = Array.isArray(raw) ? raw : [];
+    return list
       .filter((question: any) => question && question.question && Array.isArray(question.options))
       .map((question: any) => ({
         level: Number(question.level),
@@ -162,7 +188,7 @@ export class UltimaSpiaggiaMode extends GameModeBase {
       .sort((a: UltimaSpiaggiaQuestion, b: UltimaSpiaggiaQuestion) => a.level - b.level);
   }
 
-  /** Livelli disponibili nel round: quelli del payload, nell'ordine crescente. */
+  /** Livelli disponibili nella manche: quelli del payload, in ordine. */
   levels(): number[] {
     const levels = this.questions.map((question) => question.level);
     return levels.length ? levels : [...ULTIMA_SPIAGGIA_LEVELS];
@@ -186,13 +212,21 @@ export class UltimaSpiaggiaMode extends GameModeBase {
     return this.levels().filter((level) => !used.has(level));
   }
 
+  /**
+   * Il livello scelto vale per tutta la partita: lo si registra subito sul
+   * backend, così la prossima occorrenza lo vede già bloccato.
+   */
+  private recordLevel(playerName: string, level: number): void {
+    this.picks.set(playerName, level);
+    this.usedBy(playerName).add(level);
+    this.config.onUltimaSpiaggiaLevel?.(playerName, level);
+  }
+
   private resetRound(): void {
     this.finished = false;
-    this.round.set(0);
     this.phase.set(UltimaSpiaggiaPhase.LEVEL);
     this.secondsLeft.set(LEVEL_SECONDS);
     this.picks.clear();
-    this.used.clear();
     this.answers.clear();
     this.points.clear();
     this.totals.clear();
@@ -234,8 +268,7 @@ export class UltimaSpiaggiaMode extends GameModeBase {
       const level = this.availableLevels(playerName)[0];
       if (level === undefined) return;
 
-      this.picks.set(playerName, level);
-      this.usedBy(playerName).add(level);
+      this.recordLevel(playerName, level);
     });
   }
 
@@ -277,24 +310,7 @@ export class UltimaSpiaggiaMode extends GameModeBase {
     this.secondsLeft.set(REVEAL_SECONDS);
     this.syncRows();
     this.publish();
-    this.startClock(REVEAL_SECONDS, () => {
-      if (this.round() + 1 >= this.levels().length) {
-        this.finale();
-      } else {
-        this.round.set(this.round() + 1);
-        this.startLevel();
-      }
-    });
-  }
-
-  private finale(): void {
-    if (this.phase() === UltimaSpiaggiaPhase.FINALE) return;
-    this.clearClock();
-    this.phase.set(UltimaSpiaggiaPhase.FINALE);
-    this.secondsLeft.set(FINALE_SECONDS);
-    this.syncRows();
-    this.publish();
-    this.startClock(FINALE_SECONDS, () => this.finish());
+    this.startClock(REVEAL_SECONDS, () => this.finish());
   }
 
   private finish(): void {
@@ -367,14 +383,14 @@ export class UltimaSpiaggiaMode extends GameModeBase {
   }
 
   getDisplayData() {
-    const reveal = this.phase() === UltimaSpiaggiaPhase.REVEAL || this.phase() === UltimaSpiaggiaPhase.FINALE;
-
+    const reveal = this.phase() === UltimaSpiaggiaPhase.REVEAL;
     return {
       phase: this.phase(),
+      occurrenceId: this.occurrenceId,
       secondsLeft: this.secondsLeft(),
-      round: this.round() + 1,
-      total: this.levels().length,
-      category: this.questions[0]?.category ?? String(this.payload?.category ?? ''),
+      round: 1,
+      total: 1,
+      category: this.category,
       levels: this.levels(),
       questions: this.questions.map((question) => ({
         level: question.level,

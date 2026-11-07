@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 /**
@@ -116,7 +117,7 @@ public class QuestionBankService {
 
     /** Sotto questo numero di domande l'arena finisce le scorte della categoria. */
     private static final int MIN_ARENA_QUESTIONS = 10;
-    /** Livelli di Ultima spiaggia: uno per round, usabile una volta per squadra. */
+    /** Livelli di Ultima spiaggia: uno per occorrenza, usabile una volta per squadra. */
     private static final int[] ULTIMA_SPIAGGIA_LEVELS = { 100, 200, 300, 400, 500 };
 
     /** Livello 1-2 dalla fascia facile, 3-4 dalla media, 5 dalla difficile. */
@@ -306,6 +307,33 @@ public class QuestionBankService {
     public static String payloadDedupeKey(String jsonPayload) {
         try {
             JSONObject obj = new JSONObject(jsonPayload);
+            JSONArray rounds = obj.optJSONArray("rounds");
+            if (rounds != null && !rounds.isEmpty()) {
+                // Ultima spiaggia contiene piu domande: la chiave deve descrivere
+                // l'intero pacchetto, non il titolo fisso del round.
+                StringBuilder signature = new StringBuilder();
+                for (int index = 0; index < rounds.length(); index++) {
+                    JSONObject round = rounds.optJSONObject(index);
+                    if (round == null) {
+                        continue;
+                    }
+                    signature.append(round.optString("category", "")).append('|');
+                    JSONArray questions = round.optJSONArray("questions");
+                    if (questions == null) {
+                        continue;
+                    }
+                    for (int questionIndex = 0; questionIndex < questions.length(); questionIndex++) {
+                        JSONObject question = questions.optJSONObject(questionIndex);
+                        if (question == null) {
+                            continue;
+                        }
+                        signature.append(question.optString("question", "")).append('|')
+                                .append(question.optString("correctAnswer", "")).append('|');
+                    }
+                }
+                return "bundle|" + UUID.nameUUIDFromBytes(
+                        signature.toString().getBytes(StandardCharsets.UTF_8));
+            }
             String question = obj.optString("question", "");
             String answer = obj.optString("correctAnswer", obj.optString("songTitle", ""));
             String category = obj.optString("category", "");
@@ -867,28 +895,70 @@ public class QuestionBankService {
     }
 
     /**
-     * Ultima spiaggia: cinque domande, una per livello, tutte della stessa
-     * categoria (quella estratta per il round). Chi sceglie lo stesso livello
-     * riceve la stessa domanda. Le fasce della banca garantiscono almeno
-     * quindici domande per livello in ogni categoria.
+     * Ultima spiaggia: una sola manche per occorrenza. La categoria viene
+     * estratta per questa occorrenza e resta fissa; ogni squadra sceglie un
+     * livello mai consumato nelle occorrenze precedenti della stessa partita.
+     * Il payload contiene le cinque domande, una per livello.
      */
     private String ultimaSpiaggiaPayload(String category, Predicate<String> isAvailable) {
-        String chosenCategory = ultimaSpiaggiaCategory(category);
+        List<String> categories = ultimaSpiaggiaCategories();
+        if (categories.isEmpty()) {
+            return emergencyPayload("ULTIMA_SPIAGGIA", category);
+        }
+
+        Collections.shuffle(categories, random);
+        if (category != null && !category.isBlank()) {
+            for (int index = 0; index < categories.size(); index++) {
+                if (categories.get(index).equalsIgnoreCase(category)) {
+                    categories.add(0, categories.remove(index));
+                    break;
+                }
+            }
+        }
+
+        // Si usa la prima categoria che abbia cinque domande nuove: le
+        // occorrenze successive avranno una nuova estrazione e nuovi livelli
+        // residui per ogni squadra.
+        for (String candidate : categories) {
+            JSONObject round = ultimaSpiaggiaRound(1, candidate, isAvailable, new HashSet<>());
+            if (round == null) {
+                continue;
+            }
+
+            JSONObject payload = new JSONObject();
+            payload.put("type", "ULTIMA_SPIAGGIA");
+            payload.put("category", round.optString("category", ""));
+            payload.put("question", "Ultima spiaggia");
+            payload.put("questions", round.getJSONArray("questions"));
+            // Un solo round: il campo resta per la compatibilità e per la
+            // chiave di deduplica dell'intero pacchetto di cinque domande.
+            payload.put("rounds", new JSONArray().put(round));
+            payload.put("explain", "Una categoria per occorrenza. Ogni squadra sceglie un livello "
+                    + "da 100 a 500 mai usato nelle occorrenze precedenti; giusta paga il livello, "
+                    + "sbagliata o scaduta costa metà.");
+            return payload.toString();
+        }
+
+        throw new IllegalStateException("Banca insufficiente per Ultima spiaggia: "
+                + "serve una categoria con cinque domande nuove per i cinque livelli.");
+    }
+
+    private JSONObject ultimaSpiaggiaRound(int roundNumber, String category,
+            Predicate<String> isAvailable, Set<String> used) {
         JSONArray questions = new JSONArray();
-        Set<String> used = new HashSet<>();
+        Set<String> roundUsed = new HashSet<>(used);
 
         for (int index = 0; index < ULTIMA_SPIAGGIA_LEVELS.length; index++) {
             BankQuestion picked = pickUltimaSpiaggiaQuestion(
-                    chosenCategory, ULTIMA_SPIAGGIA_BANDS[index], isAvailable, used);
+                    category, ULTIMA_SPIAGGIA_BANDS[index], isAvailable, roundUsed);
             if (picked == null) {
-                continue;
+                return null;
             }
-            used.add(QuestionHistoryService.key(
+            roundUsed.add(QuestionHistoryService.key(
                     picked.question(), picked.correctAnswer(), picked.category()));
 
             List<String> options = new ArrayList<>(picked.options());
             Collections.shuffle(options, random);
-
             questions.put(new JSONObject()
                     .put("level", ULTIMA_SPIAGGIA_LEVELS[index])
                     .put("question", picked.question())
@@ -897,40 +967,32 @@ public class QuestionBankService {
                     .put("correctAnswer", picked.correctAnswer()));
         }
 
-        JSONObject payload = new JSONObject();
-        payload.put("type", "ULTIMA_SPIAGGIA");
-        payload.put("category", chosenCategory);
-        payload.put("question", "Ultima spiaggia");
-        payload.put("questions", questions);
-        payload.put("explain", "Cinque round: ogni squadra sceglie un livello da 100 a 500, una volta "
-                + "per livello. La domanda dipende dal livello; giusta paga il livello, sbagliata o "
-                + "scaduta costa metà.");
-        return payload.toString();
+        used.addAll(roundUsed);
+        return new JSONObject()
+                .put("round", roundNumber)
+                .put("category", category)
+                .put("questions", questions);
     }
 
-    /** Categoria del round: quella richiesta se ha domande, altrimenti una a caso. */
-    private String ultimaSpiaggiaCategory(String category) {
-        if (category != null && !category.isBlank() && !ultimaSpiaggiaPool(category, true).isEmpty()) {
-            return category;
-        }
-
+    private List<String> ultimaSpiaggiaCategories() {
         List<String> categories = new ArrayList<>();
         for (BankQuestion question : allQuestions()) {
             if ("QUIZ".equals(question.type()) && question.options().size() == 4
+                    && !question.category().isBlank()
                     && !categories.contains(question.category())) {
                 categories.add(question.category());
             }
         }
-        return categories.isEmpty() ? "" : categories.get(random.nextInt(categories.size()));
+        return categories;
     }
 
-    private List<BankQuestion> ultimaSpiaggiaPool(String category, boolean sameCategory) {
+    private List<BankQuestion> ultimaSpiaggiaPool(String category) {
         List<BankQuestion> pool = new ArrayList<>();
         for (BankQuestion question : allQuestions()) {
             if (!"QUIZ".equals(question.type()) || question.options().size() != 4) {
                 continue;
             }
-            if (sameCategory && !question.category().equalsIgnoreCase(category)) {
+            if (!question.category().equalsIgnoreCase(category)) {
                 continue;
             }
             pool.add(question);
@@ -938,10 +1000,10 @@ public class QuestionBankService {
         return pool;
     }
 
-    /** Una domanda nuova per il livello: prima la fascia, poi si allarga. */
+    /** Una domanda nuova per il livello, nella categoria del round. */
     private BankQuestion pickUltimaSpiaggiaQuestion(String category, String band,
             Predicate<String> isAvailable, Set<String> used) {
-        List<BankQuestion> pool = ultimaSpiaggiaPool(category, true);
+        List<BankQuestion> pool = ultimaSpiaggiaPool(category);
 
         List<BankQuestion> sameBand = new ArrayList<>();
         for (BankQuestion question : pool) {
@@ -958,14 +1020,6 @@ public class QuestionBankService {
 
         Collections.shuffle(pool, random);
         for (BankQuestion question : pool) {
-            if (isFresh(question, isAvailable, used)) {
-                return question;
-            }
-        }
-
-        List<BankQuestion> anyCategory = ultimaSpiaggiaPool(category, false);
-        Collections.shuffle(anyCategory, random);
-        for (BankQuestion question : anyCategory) {
             if (isFresh(question, isAvailable, used)) {
                 return question;
             }

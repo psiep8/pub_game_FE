@@ -30,6 +30,8 @@ export interface GameModeConfig {
   onAnswerReceived?: (data: any) => void;
   /** Messaggio da mandare ai telefoni (es. nuova domanda dell'Air Hockey). */
   onBroadcast?: (event: any) => void;
+  /** Ultima spiaggia: consuma il livello scelto per le occorrenze successive. */
+  onUltimaSpiaggiaLevel?: (playerName: string, level: number) => void;
   /** Time Buzzer: il via della manche lo dà il server, che torna l'istante. */
   startTimeBuzzer?: (manche: number) => Promise<number | null>;
   onPreGameTick?: (secondsRemaining: number) => void;

@@ -2,6 +2,16 @@ import { GamePhase } from '../../shared/enums/game-phase';
 import { PlayerStatus } from '../../shared/enums/player-status';
 import { WsAction } from '../../shared/enums/ws-action';
 import { Component, DestroyRef, inject, OnDestroy, OnInit, signal, HostListener, ChangeDetectionStrategy } from '@angular/core';
+
+/** Nickname imposto dalla vista di prova `quad.html` (es. ?nickname=Anna). */
+function initialNicknameFromQuery(): string | null {
+  if (typeof window === 'undefined') return null;
+  const name = new URLSearchParams(window.location.search).get('nickname')?.trim();
+  if (!name) return null;
+  localStorage.setItem('nickname', name);
+  localStorage.setItem('playerName', name);
+  return name;
+}
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { WebSocketService } from '../../core/websocket/web-socket.service';
@@ -134,22 +144,24 @@ import { ConnectionBadge } from '../../shared/components/connection-badge/connec
     .casino-cell { padding: 11px 6px; background: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: .9rem; font-weight: 800; letter-spacing: .04em; }
     .casino-cell.picked { background: var(--acid); }
     .casino-cell:disabled { opacity: .5; }
-    .cavallo-category { padding: 12px 10px; border-radius: 12px; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: #fff; font-size: .8rem; font-weight: 700; text-align: left; }
-    .cavallo-category.picked { border-color: #f59e0b; background: rgba(245,158,11,.25); }
-    .cavallo-question { margin: 0; font-size: 1.02rem; font-weight: 800; line-height: 1.3; }
+    .cavallo-category { padding: 12px 10px; border-radius: 0; border: 2px solid var(--coal); background: var(--paper-hi); color: var(--coal); box-shadow: 3px 3px 0 var(--coal); font-size: .8rem; font-weight: 700; text-align: left; }
+    .cavallo-category.picked { border-color: var(--coal); background: var(--acid); box-shadow: 4px 4px 0 var(--tomato); }
+    .cavallo-category:disabled { opacity: .5; }
+    .cavallo-question { margin: 0; font-size: 1.02rem; font-weight: 800; line-height: 1.3; color: var(--coal); }
     .cavallo-options { display: flex; flex-direction: column; gap: 8px; }
-    .cavallo-option { display: flex; align-items: center; gap: 10px; padding: 14px 12px; border-radius: 12px; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: #fff; text-align: left; font-size: .92rem; font-weight: 700; }
+    .cavallo-option { display: flex; align-items: center; gap: 10px; padding: 14px 12px; border-radius: 0; border: 2px solid var(--coal); background: var(--paper-hi); color: var(--coal); box-shadow: 3px 3px 0 var(--coal); text-align: left; font-size: .92rem; font-weight: 700; }
     .cavallo-option:disabled { opacity: .55; }
-    .cavallo-letter { display: grid; place-items: center; width: 24px; height: 24px; flex: 0 0 auto; border-radius: 6px; background: #f59e0b; color: #111827; font-size: .72rem; font-weight: 900; }
+    .cavallo-letter { display: grid; place-items: center; width: 24px; height: 24px; flex: 0 0 auto; border-radius: 0; background: var(--acid); color: var(--coal); font-size: .72rem; font-weight: 900; }
     .azzardo-stakes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-    .azzardo-stake { padding: 12px 4px; border-radius: 0; border: 2px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: #fff; font-family: monospace; font-size: 1rem; font-weight: 800; }
-    .azzardo-stake.selected { border-color: #f59e0b; background: rgba(245,158,11,.25); }
-    .azzardo-stake:disabled { opacity: .35; }
+    .azzardo-stake { padding: 12px 4px; border-radius: 0; border: 2px solid var(--coal); background: var(--paper-hi); color: var(--coal); box-shadow: 3px 3px 0 var(--coal); font-family: var(--font-mono); font-size: 1rem; font-weight: 800; }
+    .azzardo-stake.selected { border-color: var(--coal); background: var(--acid); box-shadow: 4px 4px 0 var(--tomato); }
+    .azzardo-stake:disabled { opacity: .45; }
+    .azzardo-stake.used { background: var(--paper-2); color: rgba(21,21,15,.55); box-shadow: 2px 2px 0 var(--coal); text-decoration: line-through; opacity: 1; }
     .azzardo-options { display: flex; flex-direction: column; gap: 6px; }
-    .azzardo-option { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 0; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: #fff; text-align: left; font-size: .92rem; font-weight: 700; }
-    .azzardo-option.selected { border-color: #f59e0b; background: rgba(245,158,11,.2); }
+    .azzardo-option { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 0; border: 2px solid var(--coal); background: var(--paper-hi); color: var(--coal); box-shadow: 3px 3px 0 var(--coal); text-align: left; font-size: .92rem; font-weight: 700; }
+    .azzardo-option.selected { border-color: var(--coal); background: var(--acid); box-shadow: 4px 4px 0 var(--tomato); }
     .azzardo-option:disabled { opacity: .5; }
-    .azzardo-letter { display: grid; place-items: center; width: 24px; height: 24px; flex: 0 0 auto; background: #f59e0b; color: #111827; font-size: .72rem; font-weight: 900; }
+    .azzardo-letter { display: grid; place-items: center; width: 24px; height: 24px; flex: 0 0 auto; background: var(--acid); color: var(--coal); font-size: .72rem; font-weight: 900; }
   `],
 })
 export class RemoteComponent implements OnInit, OnDestroy {
@@ -164,7 +176,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private updateCheckInterval?: any;
   private versionUpdatesSub?: any;
 
-  nickname = signal<string | null>(localStorage.getItem('nickname'));
+  /**
+   * La regia quad assegna il nome via query string, così Anna e Bruno
+   * possono vivere su due origini diverse senza passare dal setup manuale.
+   */
+  nickname = signal<string | null>(initialNicknameFromQuery() ?? localStorage.getItem('nickname'));
   tempNickname = '';
   avatarPreview = signal<string | null>(null);
   private pendingAvatar: string | null = null;
@@ -991,8 +1007,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
     this.ultimaSpiaggiaState.set(state);
     this.questionType.set('ULTIMA_SPIAGGIA');
-    // La fase da sola non basta: ogni round ripete LEVEL e QUESTION.
-    const key = `${state.phase}:${state.round ?? 0}`;
+    // L'id dell'occorrenza cambia anche quando la categoria estratta è la stessa:
+    // senza questo, la scelta della manche precedente lascerebbe i livelli bloccati.
+    const key = `${state.occurrenceId ?? state.category ?? state.round ?? 0}:${state.phase}`;
     if (key !== this.ultimaSpiaggiaKey) {
       this.ultimaSpiaggiaKey = key;
       if (state.phase === 'LEVEL') this.ultimaSpiaggiaLevel.set(null);

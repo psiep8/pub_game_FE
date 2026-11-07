@@ -212,16 +212,17 @@
       <div class="game-head">
         <span class="game-tag buzz">🎲 ULTIMA SPIAGGIA</span>
         <span class="game-tip">
-          Round {{ ultimaSpiaggiaState()?.round ?? 1 }}/{{ ultimaSpiaggiaState()?.total ?? 5 }}
-          @if (ultimaSpiaggiaState()?.category) { · {{ ultimaSpiaggiaState()?.category }} }
+          @if (ultimaSpiaggiaState()?.category) { {{ ultimaSpiaggiaState()?.category }} }
+          @else { SCEGLI IL LIVELLO }
         </span>
       </div>
 
       @if (ultimaSpiaggiaState()?.phase === 'LEVEL') {
-      <p class="party-instruction">Scegli un livello per questo round. Ogni livello si usa una volta sola.</p>
+      <p class="party-instruction">Scegli un livello per questa manche. I livelli già scelti restano bloccati anche nei prossimi Ultima spiaggia.</p>
       <div class="azzardo-stakes">
         @for (level of ultimaSpiaggiaState()?.levels ?? []; track level) {
         <button class="azzardo-stake" [class.selected]="ultimaSpiaggiaLevel() === level"
+          [class.used]="ultimaSpiaggiaUsed(level)"
           [disabled]="ultimaSpiaggiaLevel() !== null || ultimaSpiaggiaUsed(level)" (click)="ultimaSpiaggiaPickLevel(level)">
           {{ level }}
         </button>
@@ -243,7 +244,7 @@
       } @else if (ultimaSpiaggiaState()?.phase === 'REVEAL') {
       <div class="status-msg">
         <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🎲</div></div>
-        <p>Round {{ ultimaSpiaggiaState()?.round ?? 1 }} chiuso</p>
+        <p>Manche chiusa</p>
       </div>
       @if (ultimaSpiaggiaRow(); as row) {
       <p class="buzz-hint">{{ signedPoints(row.points) }} · totale {{ row.total }}</p>

@@ -14,8 +14,8 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Payload di Ultima spiaggia: cinque domande, una per livello 100-500, tutte della
- * categoria estratta per il round, con quattro opzioni e una risposta presente.
+ * Payload di Ultima spiaggia: una sola manche per occorrenza, una categoria
+ * fissa e cinque domande (una per livello 100-500) con quattro opzioni.
  */
 @SpringBootTest
 @TestPropertySource(properties = {
@@ -46,14 +46,25 @@ class UltimaSpiaggiaPayloadTest {
     private QuestionBankService bank;
 
     @Test
-    void ogniCategoriaHaCinqueLivelliConQuattroOpzioni() {
+    void ogniOccorrenzaHaUnaCategoriaECinqueLivelliConQuattroOpzioni() {
         for (String category : CATEGORIES) {
             JSONObject payload = new JSONObject(
                     bank.generateQuestionJson(category, "ULTIMA_SPIAGGIA", "medio", key -> true));
 
-            JSONArray questions = payload.getJSONArray("questions");
+            JSONArray rounds = payload.getJSONArray("rounds");
+            assertThat(rounds.length()).as("un solo round %s", category).isEqualTo(1);
+
+            JSONObject round = rounds.getJSONObject(0);
+            String roundCategory = round.getString("category");
+            assertThat(roundCategory).as("categoria %s", category).isNotBlank();
+            assertThat(payload.getString("category")).as("categoria top-level %s", category)
+                    .isEqualTo(roundCategory);
+
+            JSONArray questions = round.getJSONArray("questions");
             assertThat(questions.length()).as("livelli %s", category).isEqualTo(5);
-            assertThat(payload.getString("category")).as("categoria %s", category).isNotBlank();
+            assertThat(payload.getJSONArray("questions").length())
+                    .as("domande top-level %s", category)
+                    .isEqualTo(5);
 
             Set<Integer> levels = new HashSet<>();
             Set<String> texts = new HashSet<>();
@@ -64,7 +75,7 @@ class UltimaSpiaggiaPayloadTest {
 
                 assertThat(question.getString("category"))
                         .as("categoria della domanda %s", category)
-                        .isEqualTo(payload.getString("category"));
+                        .isEqualTo(roundCategory);
 
                 JSONArray options = question.getJSONArray("options");
                 assertThat(options.length()).as("opzioni %s", category).isEqualTo(4);

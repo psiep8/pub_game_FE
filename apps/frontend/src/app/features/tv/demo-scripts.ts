@@ -170,14 +170,14 @@ export const DEMO_SCRIPTS: Record<string, DemoScript> = {
   ULTIMA_SPIAGGIA: {
     title: 'ULTIMA SPIAGGIA',
     icon: '🎲',
-    tv: ['Cinque round, una categoria per round', 'Ogni squadra sceglie un livello 100-500', 'La TV mostra livello e esito per squadra'],
-    remote: ['Scegli un livello mai usato', 'Rispondi alla domanda del tuo livello', 'Giusta +livello, sbagliata −metà'],
+    tv: ['Una categoria estratta per occorrenza', 'Ogni squadra sceglie un livello 100-500', 'La TV mostra livello e esito per squadra'],
+    remote: ['Scegli un livello non ancora consumato', 'Rispondi alla domanda del tuo livello', 'Giusta +livello, sbagliata −metà'],
     scoring: [
       { label: 'Risposta giusta', value: '+100 … +500', tone: 'good' },
       { label: 'Risposta sbagliata', value: '−50 … −250', tone: 'bad' },
       { label: 'Domanda scaduta', value: '−metà del livello', tone: 'neutral' },
     ],
-    note: 'Cinque livelli, uno per round: ogni livello si usa una volta sola e l’ultimo round resta obbligato.',
+    note: 'Cinque livelli per squadra, consumati tra le occorrenze: la scelta resta bloccata anche nel prossimo Ultima spiaggia, con la nuova categoria.',
   },
   BONUS_BASKET: {
     title: 'BONUS BASKET',

@@ -15,6 +15,7 @@ import com.pub_game_be.service.QuestionPoolService;
 import com.pub_game_be.service.PartyGameService;
 import com.pub_game_be.service.QuestionBankService;
 import com.pub_game_be.service.SimpleRoundService;
+import com.pub_game_be.service.UltimaSpiaggiaLevelService;
 import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -43,6 +44,7 @@ public class GameController {
     private final PartyGameService partyGameService;
     private final GameStateService gameStateService;
     private final IdempotencyService idempotencyService;
+    private final UltimaSpiaggiaLevelService ultimaSpiaggiaLevelService;
 
     public GameController(GameRepository gameRepo,
             GameRoundRepository gameRoundRepository,
@@ -54,7 +56,8 @@ public class GameController {
             QuestionPoolService questionPoolService,
             PartyGameService partyGameService,
             GameStateService gameStateService,
-            IdempotencyService idempotencyService) {
+            IdempotencyService idempotencyService,
+            UltimaSpiaggiaLevelService ultimaSpiaggiaLevelService) {
         this.gameRepo = gameRepo;
         this.gameRoundRepository = gameRoundRepository;
         this.simpleRoundService = simpleRoundService;
@@ -66,6 +69,7 @@ public class GameController {
         this.partyGameService = partyGameService;
         this.gameStateService = gameStateService;
         this.idempotencyService = idempotencyService;
+        this.ultimaSpiaggiaLevelService = ultimaSpiaggiaLevelService;
     }
 
     @PostMapping
@@ -114,6 +118,10 @@ public class GameController {
                             + category + ": il pool è esaurito.");
                 }
             }
+        }
+
+        if ("ULTIMA_SPIAGGIA".equalsIgnoreCase(type)) {
+            aiPayload = attachUltimaSpiaggiaLevels(aiPayload, gameId);
         }
 
         Game game = gameRepo.findById(gameId)
@@ -516,7 +524,33 @@ public class GameController {
     public Map<String, Object> resetArena(@PathVariable("gameId") Long gameId) {
         questionHistory.forget(gameId);
         questionPoolService.clear(gameId);
+        ultimaSpiaggiaLevelService.clear(gameId);
         return Map.of("reset", true, "gameId", gameId);
+    }
+
+    /** La TV registra il livello appena scelto dalla squadra. */
+    @PostMapping("/{gameId}/ultima-spiaggia/level")
+    public Map<String, Object> recordUltimaSpiaggiaLevel(@PathVariable("gameId") Long gameId,
+            @RequestBody Map<String, Object> body) {
+        String playerName = String.valueOf(body.getOrDefault("playerName", "")).trim();
+        int level = 0;
+        try {
+            level = Integer.parseInt(String.valueOf(body.getOrDefault("level", "0")));
+        } catch (NumberFormatException ignored) {
+            // Livello non valido: il service lo scarta.
+        }
+        ultimaSpiaggiaLevelService.record(gameId, playerName, level);
+        return Map.of("gameId", gameId, "playerName", playerName, "level", level);
+    }
+
+    private String attachUltimaSpiaggiaLevels(String payload, long gameId) {
+        try {
+            JSONObject obj = new JSONObject(payload);
+            obj.put("usedLevels", ultimaSpiaggiaLevelService.usedLevels(gameId));
+            return obj.toString();
+        } catch (Exception ignored) {
+            return payload;
+        }
     }
 
     @GetMapping("/{gameId}/current-round")

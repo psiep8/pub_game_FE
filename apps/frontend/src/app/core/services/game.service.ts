@@ -221,6 +221,18 @@ export class GameService {
     return this.http.post<any>(`${this.baseUrl}/games/${gameId}/party/reset`, {});
   }
 
+  /** Ultima spiaggia: il livello scelto resta consumato nelle prossime occorrenze. */
+  recordUltimaSpiaggiaLevel(
+    gameId: number,
+    playerName: string,
+    level: number
+  ): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/ultima-spiaggia/level`, {
+      playerName,
+      level,
+    });
+  }
+
   private parseRoundPayload(res: any): GameRound {
     return {
       ...res,
