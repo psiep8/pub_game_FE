@@ -14,6 +14,12 @@ import { ThemeService } from '../../core/services/theme.service';
 import { ReliabilityService } from '../../core/services/reliability.service';
 import { PlayerAvatarService } from '../../core/services/player-avatar.service';
 import { AudioService } from '../../core/services/audio.service';
+import {
+  buildSpeedDeck,
+  createSpeedTask,
+  type SpeedTask,
+  type SpeedTaskKind,
+} from '../games/speed-rush/speed-rush-deck';
 import { ConnectionBadge } from '../../shared/components/connection-badge/connection-badge.component';
 
 @Component({
@@ -244,24 +250,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   arenaEliminated = signal(false);
 
-  speedKind = signal<'idle' | 'tap' | 'odd' | 'order' | 'math' | 'stroop' | 'memory' | 'flip' | 'count'>('idle');
-  speedTapCount = signal(0);
-  speedOdd = signal<string[]>([]);
-  private speedOddAnswer = '';
-  speedSequence = signal<number[]>([]);
-  speedPicked = signal<number[]>([]);
-  speedMath = signal<{ text: string; options: number[]; answer: number }>({ text: '', options: [], answer: 0 });
-  speedStroop = signal<{ word: string; ink: string; answer: string; options: string[] }>({ word: '', ink: '', answer: '', options: [] });
-  speedMemory = signal<string[]>([]);
-  speedMemoryPhase = signal<'show' | 'input'>('input');
-  speedMemoryPicked = signal<string[]>([]);
-  readonly speedMemoryOptions = ['🍎', '🍌', '🍇', '🍒', '🍋', '🥝'];
-  private memoryTimer?: ReturnType<typeof setTimeout>;
-
-  speedFlip = signal<{ a: number; b: number; rule: 'big' | 'small' }>({ a: 0, b: 0, rule: 'big' });
-
-  speedCount = signal<{ items: string[]; options: number[]; answer: number }>({ items: [], options: [], answer: 0 });
-  readonly speedCountEmojis = ['🍒', '🍋', '🍇', '🍎', '⭐', '🍩'];
+  /** Prova corrente del mazzo (null tra una prova e l'altra). */
+  speedTask = signal<SpeedTask | null>(null);
+  /** Colori già scelti nella prova "mischia colori". */
+  speedColorPicked = signal<string[]>([]);
+  private speedDeck: SpeedTaskKind[] = [];
+  private speedDeckIndex = 0;
 
   hockeyHits = signal(0);
   private lastHockeyAt = 0;
@@ -458,10 +452,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'ROUND_ENDED':
         case 'REVEAL':
-          this.speedKind.set('idle');
+          this.speedTask.set(null);
+          this.speedColorPicked.set([]);
           this.blackjackState.set(null);
           this.blackjackStand.set(false);
-          this.clearMemoryTimer();
           this.timelineOrder.set([]);
           this.arenaEliminated.set(false);
           this.arenaQuestion.set(null);
@@ -1458,196 +1452,79 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   startSpeedRush(): void {
-    this.speedPicked.set([]);
+    // Un mazzo per round: ogni tipo esce con regolarità e mai due volte di fila.
+    this.speedDeck = buildSpeedDeck(40);
+    this.speedDeckIndex = 0;
     this.nextSpeedTask();
   }
 
   private nextSpeedTask(): void {
-    this.clearMemoryTimer();
-    const kinds = ['tap', 'odd', 'order', 'math', 'stroop', 'memory', 'flip', 'count'] as const;
-    const kind = kinds[Math.floor(Math.random() * kinds.length)];
-    this.speedKind.set(kind);
-
-    if (kind === 'tap') {
-      this.speedTapCount.set(0);
-      return;
+    if (this.speedDeck.length === 0 || this.speedDeckIndex >= this.speedDeck.length) {
+      this.speedDeck = buildSpeedDeck(40);
+      this.speedDeckIndex = 0;
     }
 
-    if (kind === 'odd') {
-      const base = ['🍎', '🍌', '🍇', '🍒'];
-      const odd = '🍋';
-      const set = [...base];
-      set[Math.floor(Math.random() * set.length)] = odd;
-      this.speedOdd.set(set);
-      this.speedOddAnswer = odd;
-      return;
-    }
-
-    if (kind === 'math') {
-      const a = 3 + Math.floor(Math.random() * 9);
-      const b = 2 + Math.floor(Math.random() * 9);
-      const answer = a + b;
-      const options = new Set<number>([answer]);
-      while (options.size < 3) {
-        const delta = [-2, -1, 1, 2][Math.floor(Math.random() * 4)];
-        const candidate = answer + delta;
-        if (candidate > 0) options.add(candidate);
-      }
-      this.speedMath.set({
-        text: `${a} + ${b}`,
-        answer,
-        options: [...options].sort(() => Math.random() - 0.5),
-      });
-      return;
-    }
-
-    if (kind === 'stroop') {
-      const colors = [
-        { name: 'ROSSO', ink: '#e63946' },
-        { name: 'BLU', ink: '#2563eb' },
-        { name: 'VERDE', ink: '#15803d' },
-      ];
-      const word = colors[Math.floor(Math.random() * colors.length)];
-      let ink = colors[Math.floor(Math.random() * colors.length)];
-      if (ink.name === word.name) {
-        ink = colors[(colors.indexOf(ink) + 1) % colors.length];
-      }
-      this.speedStroop.set({
-        word: word.name,
-        ink: ink.ink,
-        answer: ink.name,
-        options: colors.map((color) => color.name).sort(() => Math.random() - 0.5),
-      });
-      return;
-    }
-
-    if (kind === 'memory') {
-      const sequence = Array.from({ length: 3 }, () =>
-        this.speedMemoryOptions[Math.floor(Math.random() * this.speedMemoryOptions.length)]
-      );
-      this.speedMemory.set(sequence);
-      this.speedMemoryPicked.set([]);
-      this.speedMemoryPhase.set('show');
-      this.clearMemoryTimer();
-      this.memoryTimer = setTimeout(() => this.speedMemoryPhase.set('input'), 1500);
-      return;
-    }
-
-    if (kind === 'flip') {
-      const a = 2 + Math.floor(Math.random() * 97);
-      let b = 2 + Math.floor(Math.random() * 97);
-      while (b === a) b = 2 + Math.floor(Math.random() * 97);
-      this.speedFlip.set({ a, b, rule: Math.random() < 0.5 ? 'big' : 'small' });
-      return;
-    }
-
-    if (kind === 'count') {
-      const emoji = this.speedCountEmojis[Math.floor(Math.random() * this.speedCountEmojis.length)];
-      const answer = 6 + Math.floor(Math.random() * 6);
-      const items = Array.from({ length: answer }, () => emoji);
-      const options = new Set<number>([answer]);
-      while (options.size < 3) {
-        const delta = [-2, -1, 1, 2][Math.floor(Math.random() * 4)];
-        const candidate = answer + delta;
-        if (candidate > 0) options.add(candidate);
-      }
-      this.speedCount.set({
-        items,
-        answer,
-        options: [...options].sort(() => Math.random() - 0.5),
-      });
-      return;
-    }
-
-    const numbers = [1, 2, 3].sort(() => Math.random() - 0.5);
-    this.speedSequence.set(numbers);
-    this.speedPicked.set([]);
+    const kind = this.speedDeck[this.speedDeckIndex++];
+    this.speedColorPicked.set([]);
+    this.speedTask.set(createSpeedTask(kind));
   }
 
-  speedPickCount(value: number): void {
-    this.completeSpeedTask(value === this.speedCount().answer);
+  speedPickMath(value: number): void {
+    const task = this.speedTask();
+    if (task?.kind !== 'math') return;
+    this.completeSpeedTask(value === task.answer);
   }
 
-  speedPickFlip(value: number): void {
-    const { a, b, rule } = this.speedFlip();
-    const target = rule === 'big' ? Math.max(a, b) : Math.min(a, b);
-    this.completeSpeedTask(value === target);
-  }
+  /** Mischia colori: si scelgono i due primari che danno il colore in cima. */
+  speedPickColor(name: string): void {
+    const task = this.speedTask();
+    if (task?.kind !== 'colors' || this.speedColorPicked().includes(name)) return;
 
-  speedTap(): void {
-    const next = this.speedTapCount() + 1;
-    this.vibrate(8);
-    if (next >= 8) {
-      this.completeSpeedTask(true);
-      return;
-    }
-    this.speedTapCount.set(next);
-  }
-
-  speedPickOdd(emoji: string): void {
-    this.completeSpeedTask(emoji === this.speedOddAnswer);
-  }
-
-  speedPickNumber(value: number): void {
-    const expected = [...this.speedPicked(), value];
-    const sorted = [...this.speedSequence()].sort((a, b) => a - b);
-    const stillRight = expected.every((picked, index) => picked === sorted[index]);
-
-    if (!stillRight) {
+    if (!task.answer.includes(name)) {
       this.completeSpeedTask(false);
       return;
     }
 
+    const picked = [...this.speedColorPicked(), name];
     this.vibrate(10);
-    this.speedPicked.set(expected);
-
-    if (expected.length === sorted.length) {
+    if (picked.length >= task.answer.length) {
       this.completeSpeedTask(true);
+      return;
     }
+    this.speedColorPicked.set(picked);
+  }
+
+  speedPickFlag(name: string): void {
+    const task = this.speedTask();
+    if (task?.kind !== 'flag') return;
+    this.completeSpeedTask(name === task.answer);
+  }
+
+  speedPickWord(value: string): void {
+    const task = this.speedTask();
+    if (task?.kind !== 'words') return;
+    this.completeSpeedTask(value === task.answer);
+  }
+
+  speedPickTranslate(value: string): void {
+    const task = this.speedTask();
+    if (task?.kind !== 'translate') return;
+    this.completeSpeedTask(value === task.answer);
   }
 
   private completeSpeedTask(correct: boolean): void {
-    this.clearMemoryTimer();
+    // Una prova risolta manda un solo aggiornamento, anche con un doppio tocco.
+    if (!this.speedTask()) return;
+    this.speedTask.set(null);
+    this.speedColorPicked.set([]);
+
     this.ws.broadcastStatus(this.gameId(), {
       action: WsAction.SPEED_RUSH_PROGRESS,
       playerName: this.nickname(),
       correct,
     });
     this.vibrate(correct ? 30 : [40, 40, 40]);
-    this.speedKind.set('idle');
     setTimeout(() => this.nextSpeedTask(), 300);
-  }
-
-  speedPickMath(value: number): void {
-    this.completeSpeedTask(value === this.speedMath().answer);
-  }
-
-  speedPickStroop(name: string): void {
-    this.completeSpeedTask(name === this.speedStroop().answer);
-  }
-
-  speedMemoryTap(emoji: string): void {
-    const expected = [...this.speedMemoryPicked(), emoji];
-    const sequence = this.speedMemory();
-
-    if (!expected.every((value, index) => value === sequence[index])) {
-      this.completeSpeedTask(false);
-      return;
-    }
-
-    this.vibrate(10);
-    this.speedMemoryPicked.set(expected);
-
-    if (expected.length === sequence.length) {
-      this.completeSpeedTask(true);
-    }
-  }
-
-  private clearMemoryTimer(): void {
-    if (this.memoryTimer) {
-      clearTimeout(this.memoryTimer);
-      this.memoryTimer = undefined;
-    }
   }
 
   /** Dove guardare la TV: la mia partita e il suo angolo nel multiview. */
@@ -1884,7 +1761,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.stopMicrophoneListening();
     this.stopBombaPolling();
     if (this.bombaFlashTimer) clearTimeout(this.bombaFlashTimer);
-    this.clearMemoryTimer();
     if (this.hockeyGoalTimer) clearTimeout(this.hockeyGoalTimer);
     if (this.updateCheckInterval) {
       clearInterval(this.updateCheckInterval);

@@ -486,84 +486,73 @@
     @case ('SPEED_RUSH') {
     <div class="speed-remote">
       <div class="game-head"><span class="game-tag speed">SPEED RUSH</span><span class="game-tip">Più veloce = più punti</span></div>
-      @switch (speedKind()) {
-      @case ('tap') {
-      <button class="speed-big" (click)="speedTap()">TAP!<span class="speed-counter">{{ speedTapCount() }}/8</span></button>
-      }
-      @case ('odd') {
-      <p class="party-instruction">Tocca l'intruso</p>
-      <div class="emoji-grid">
-        @for (emoji of speedOdd(); track $index) {
-        <button class="emoji-btn" (click)="speedPickOdd(emoji)">{{ emoji }}</button>
-        }
+      @if (speedTask(); as task) {
+      @if (task.kind === 'math') {
+      <div class="speed-prompt">
+        <span class="speed-kicker">MATEMATICA</span>
+        <p class="speed-question">{{ task.text }} = ?</p>
       </div>
-      }
-      @case ('order') {
-      <p class="party-instruction">Tocca i numeri dal più piccolo</p>
-      <div class="emoji-grid">
-        @for (number of speedSequence(); track number) {
-        <button class="emoji-btn" (click)="speedPickNumber(number)">{{ number }}</button>
-        }
-      </div>
-      }
-      @case ('flip') {
-      <p class="party-instruction" [class.flip-rule-small]="speedFlip().rule === 'small'">
-        TOCCA IL {{ speedFlip().rule === 'big' ? 'PIÙ GRANDE' : 'PIÙ PICCOLO' }}
-      </p>
-      <div class="flip-grid">
-        <button class="flip-btn" (click)="speedPickFlip(speedFlip().a)">{{ speedFlip().a }}</button>
-        <button class="flip-btn" (click)="speedPickFlip(speedFlip().b)">{{ speedFlip().b }}</button>
-      </div>
-      }
-      @case ('count') {
-      <p class="party-instruction">Quante ne vedi? Conta in fretta</p>
-      <div class="count-board">
-        @for (item of speedCount().items; track $index) {
-        <span>{{ item }}</span>
-        }
-      </div>
-      <div class="emoji-grid">
-        @for (option of speedCount().options; track option) {
-        <button class="emoji-btn" (click)="speedPickCount(option)">{{ option }}</button>
-        }
-      </div>
-      }
-      @case ('math') {
-      <p class="party-instruction">Rispondi al volo: {{ speedMath().text }} = ?</p>
-      <div class="emoji-grid">
-        @for (option of speedMath().options; track option) {
+      <div class="speed-options three">
+        @for (option of task.options; track option) {
         <button class="emoji-btn" (click)="speedPickMath(option)">{{ option }}</button>
         }
       </div>
       }
-      @case ('stroop') {
-      <p class="party-instruction">Tocca il COLORE dell'inchiostro, non la parola</p>
-      <div class="stroop-word" [style.color]="speedStroop().ink">{{ speedStroop().word }}</div>
-      <div class="emoji-grid">
-        @for (option of speedStroop().options; track option) {
-        <button class="emoji-btn" (click)="speedPickStroop(option)">{{ option }}</button>
+      @if (task.kind === 'colors') {
+      <div class="speed-prompt">
+        <span class="speed-kicker">MISCHIA COLORI</span>
+        <span class="speed-target" [style.background]="task.swatch"></span>
+        <p class="speed-question">Quali colori formano <b>{{ task.target }}</b>?</p>
+      </div>
+      <div class="speed-options three">
+        @for (option of task.options; track option.name) {
+        <button class="speed-color" [class.selected]="speedColorPicked().includes(option.name)"
+          (click)="speedPickColor(option.name)">
+          <span class="speed-chip" [style.background]="option.swatch"></span>{{ option.name }}
+        </button>
         }
       </div>
       }
-      @case ('memory') {
-      @if (speedMemoryPhase() === 'show') {
-      <p class="party-instruction">Memorizza la sequenza</p>
-      <div class="speed-memory-seq">{{ speedMemory().join(' ') }}</div>
+      @if (task.kind === 'flag') {
+      <div class="speed-prompt">
+        <span class="speed-kicker">BANDIERA</span>
+        <span class="speed-flag">{{ task.emoji }}</span>
+        <p class="speed-question">Di quale paese è?</p>
+      </div>
+      <div class="speed-options two">
+        @for (option of task.options; track option) {
+        <button class="emoji-btn speed-name" (click)="speedPickFlag(option)">{{ option }}</button>
+        }
+      </div>
+      }
+      @if (task.kind === 'words') {
+      <div class="speed-prompt">
+        <span class="speed-kicker">{{ task.relation }}</span>
+        <p class="speed-question">Quale è il {{ task.relation === 'SINONIMO' ? 'sinonimo' : 'contrario' }} di
+          <b>{{ task.prompt }}</b>?</p>
+      </div>
+      <div class="speed-options two">
+        @for (option of task.options; track option) {
+        <button class="emoji-btn speed-name" (click)="speedPickWord(option)">{{ option }}</button>
+        }
+      </div>
+      }
+      @if (task.kind === 'translate') {
+      <div class="speed-prompt">
+        <span class="speed-kicker">TRADUZIONE</span>
+        <p class="speed-question">Come si dice <b>{{ task.prompt }}</b> in italiano?</p>
+      </div>
+      <div class="speed-options two">
+        @for (option of task.options; track option) {
+        <button class="emoji-btn speed-name" (click)="speedPickTranslate(option)">{{ option }}</button>
+        }
+      </div>
+      }
       } @else {
-      <p class="party-instruction">Ripeti la sequenza</p>
-      <div class="emoji-grid">
-        @for (emoji of speedMemoryOptions; track emoji) {
-        <button class="emoji-btn" (click)="speedMemoryTap(emoji)">{{ emoji }}</button>
-        }
-      </div>
-      }
-      }
-      @default {
       <div class="status-msg">
         <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">⚡</div></div>
         <p>Preparazione prova...</p>
       </div>
-      }
       }
     </div>
     }

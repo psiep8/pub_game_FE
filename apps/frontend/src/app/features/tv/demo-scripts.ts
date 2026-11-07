@@ -110,7 +110,7 @@ export const DEMO_SCRIPTS: Record<string, DemoScript> = {
     title: 'SPEED RUSH',
     icon: '⚡',
     tv: ['Corsie e traguardo', 'Boost ×2, ×3, ×4 con la catena', 'Classifica al termine'],
-    remote: ['Minigiochi rapidi', 'Ogni risposta giusta avanza', 'Ogni errore fa arretrare'],
+    remote: ['Matematica, colori, bandiere', 'Sinonimi, contrari, traduzioni', 'Ogni risposta giusta avanza'],
     scoring: [
       { label: '1° / 2° / 3°', value: '+1000 / +900 / +800', tone: 'good' },
       { label: 'Errore', value: '0 (corsia indietro)', tone: 'bad' },

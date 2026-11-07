@@ -83,8 +83,9 @@ poi i giochi.
       disarmate e mostrate a fine round.
 
 ### 6. Speed Rush — nuove microprove
-- [ ] Mazzo senza ripetizioni consecutive: matematica con 3 pulsanti, miscuglio colori, bandiera,
-      sinonimi/contrari, traduzione.
+- [x] Mazzo senza ripetizioni consecutive: matematica con 3 pulsanti, miscuglio colori (due primari
+      da scegliere), bandiera con due nomi, sinonimi/contrari, traduzione (`speed-rush-deck.ts`,
+      con test). Il telefono pesca dal mazzo e non ripete mai lo stesso tipo due volte di fila.
 
 ### 7. Blackjack
 - [ ] Puntata 100/200/300 punti reali (mai sotto zero), naturale paga il doppio.

@@ -870,65 +870,6 @@ body {
 }
 .game-content .tl-move:disabled { opacity: .3; box-shadow: none; }
 
-/* Speed Rush — Stroop e memory */
-.stroop-word {
-  margin: 4px 0 12px;
-  text-align: center;
-  font-family: var(--font-display), sans-serif;
-  font-size: clamp(2.6rem, 13vw, 4.2rem);
-  font-weight: 900;
-  letter-spacing: .08em;
-  line-height: 1;
-  text-shadow: 3px 3px 0 var(--coal);
-}
-.speed-memory-seq {
-  margin: 12px 0;
-  text-align: center;
-  font-size: clamp(2rem, 11vw, 3.4rem);
-  letter-spacing: .18em;
-  line-height: 1.2;
-}
-
-/* Speed Rush — Regola invertita */
-.flip-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  width: 100%;
-  max-width: 340px;
-  margin: 0 auto;
-}
-.flip-btn {
-  padding: 22px 8px;
-  font-family: var(--font-display), sans-serif;
-  font-size: clamp(2rem, 11vw, 3rem);
-  font-weight: 900;
-  background: var(--paper-hi);
-  color: var(--coal);
-  border: 3px solid var(--coal);
-  box-shadow: 5px 5px 0 var(--coal);
-  border-radius: 0;
-}
-.flip-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 3px 3px 0 var(--coal);
-}
-.flip-rule-small {
-  color: var(--tomato) !important;
-}
-
-/* Speed Rush — Conta le emoji */
-.count-board {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 2px 6px;
-  max-width: 340px;
-  margin: 0 auto 10px;
-  font-size: clamp(1.5rem, 7vw, 2.1rem);
-  line-height: 1.3;
-}
-
 /* Time Buzzer — solo un pulsante verde */
 .buzz-remote {
   display: flex;
