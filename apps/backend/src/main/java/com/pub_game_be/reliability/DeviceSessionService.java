@@ -7,8 +7,10 @@ import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -49,7 +51,10 @@ public class DeviceSessionService {
 
         Optional<DeviceSessionEntity> byToken = (token == null || token.isBlank())
                 ? Optional.empty()
-                : sessions.findBySessionToken(token).filter(session -> session.getGameId() == gameId);
+                // Un token TV non deve essere ripreso da un telefono (e viceversa):
+                // il ruolo fa parte dell'identità della sessione.
+                : sessions.findBySessionToken(token)
+                        .filter(session -> session.getGameId() == gameId && safeRole.equals(session.getRole()));
 
         if (byToken.isPresent()) {
             DeviceSessionEntity session = byToken.get();
@@ -131,15 +136,25 @@ public class DeviceSessionService {
     }
 
     public JSONArray presence(long gameId) {
+        Map<String, DeviceSessionEntity> latestByPlayer = new LinkedHashMap<>();
+        for (DeviceSessionEntity session : sessions.findByGameIdOrderByLastHeartbeatAtDesc(gameId)) {
+            if (!isConnected(session)) {
+                continue;
+            }
+            // La query è ordinata dal heartbeat più recente: se un telefono ha
+            // lasciato sessioni storiche, mostriamo solo quella ancora viva.
+            latestByPlayer.putIfAbsent(presenceKey(session), session);
+        }
+
         JSONArray array = new JSONArray();
         long now = System.currentTimeMillis();
-        for (DeviceSessionEntity session : sessions.findByGameIdOrderByLastHeartbeatAtDesc(gameId)) {
+        for (DeviceSessionEntity session : latestByPlayer.values()) {
             array.put(new JSONObject()
                     .put("deviceId", session.getDeviceId())
-                    .put("role", session.getRole())
+                    .put("role", presenceRole(session))
                     .put("playerName", session.getPlayerName())
                     .put("connectionId", session.getConnectionId())
-                    .put("connected", isConnected(session))
+                    .put("connected", true)
                     .put("lastHeartbeatAt", session.getLastHeartbeatAt() == null ? JSONObject.NULL : session.getLastHeartbeatAt())
                     .put("lastHeartbeatAgoMs", session.getLastHeartbeatAt() == null ? JSONObject.NULL : now - session.getLastHeartbeatAt())
                     .put("reconnections", session.getReconnections()));
@@ -153,19 +168,40 @@ public class DeviceSessionService {
 
     public JSONObject summary(long gameId) {
         List<DeviceSessionEntity> all = all(gameId);
-        int connected = 0;
+        int connected = presence(gameId).length();
         int totalReconnections = 0;
         for (DeviceSessionEntity session : all) {
-            if (isConnected(session)) {
-                connected++;
-            }
             totalReconnections += session.getReconnections();
         }
         return new JSONObject()
                 .put("devices", all.size())
                 .put("connected", connected)
-                .put("offline", all.size() - connected)
+                .put("offline", Math.max(0, all.size() - connected))
                 .put("reconnections", totalReconnections);
+    }
+
+    /**
+     * Un vecchio client può registrare un telecomando con ruolo TV ma con il
+     * nome del giocatore: per la regia è un REMOTE, non una seconda TV.
+     */
+    private String presenceRole(DeviceSessionEntity session) {
+        if ("TV".equals(session.getRole())
+                && session.getPlayerName() != null
+                && !session.getPlayerName().isBlank()) {
+            return "REMOTE";
+        }
+        return session.getRole();
+    }
+
+    private String presenceKey(DeviceSessionEntity session) {
+        String role = presenceRole(session);
+        String player = session.getPlayerName() == null
+                ? ""
+                : session.getPlayerName().trim().toLowerCase(Locale.ROOT);
+        if (!player.isEmpty()) {
+            return role + "|" + player;
+        }
+        return role + "|device|" + session.getDeviceId();
     }
 
     private boolean hasOtherConnectedDisplay(long gameId, Long selfId, long now) {

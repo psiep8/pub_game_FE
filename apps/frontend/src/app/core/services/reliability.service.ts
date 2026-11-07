@@ -7,7 +7,9 @@ import { WebSocketService } from '../websocket/web-socket.service';
 export type DeviceRole = 'TV' | 'REMOTE' | 'ADMIN';
 
 const DEVICE_KEY = 'pubgame.deviceId';
-const sessionKey = (gameId: number) => `pubgame.session.${gameId}`;
+// Un token per ruolo: TV, admin e telefono possono condividere lo stesso
+// browser/profile senza rubarsi la sessione a vicenda.
+const sessionKey = (gameId: number, role: DeviceRole) => `pubgame.session.${gameId}.${role}`;
 /** Oltre questo numero di eventi ricordati si riparte: evita memoria infinita. */
 const MAX_SEEN_EVENTS = 200;
 
@@ -247,7 +249,7 @@ export class ReliabilityService {
 
   private storedToken(): string | null {
     try {
-      return localStorage.getItem(sessionKey(this.gameId));
+      return localStorage.getItem(sessionKey(this.gameId, this.role));
     } catch {
       return null;
     }
@@ -256,9 +258,9 @@ export class ReliabilityService {
   private persistToken(token: string | null | undefined): void {
     try {
       if (token) {
-        localStorage.setItem(sessionKey(this.gameId), token);
+        localStorage.setItem(sessionKey(this.gameId, this.role), token);
       } else {
-        localStorage.removeItem(sessionKey(this.gameId));
+        localStorage.removeItem(sessionKey(this.gameId, this.role));
       }
     } catch {
       // Storage negato (modalità privata): la sessione resta solo in memoria.

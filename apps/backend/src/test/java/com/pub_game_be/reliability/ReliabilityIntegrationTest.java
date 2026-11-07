@@ -135,6 +135,26 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void laPresenzaEscludeGliOfflineEDeduplicaIPlayer() throws Exception {
+        long gameId = 506L;
+
+        DeviceSessionService.Registration first = sessions.register(gameId, "remote-a", "REMOTE", "Anna", null);
+        DeviceSessionService.Registration second = sessions.register(gameId, "remote-b", "REMOTE", "Anna", null);
+        DeviceSessionService.Registration offline = sessions.register(gameId, "remote-c", "REMOTE", "Carla", null);
+        sessions.disconnect(offline.sessionToken());
+
+        JsonNode presence = json.readTree(sessions.presence(gameId).toString());
+        assertThat(presence).hasSize(1);
+        assertThat(presence.get(0).get("playerName").asText()).isEqualTo("Anna");
+        assertThat(presence.get(0).get("connected").asBoolean()).isTrue();
+
+        sessions.disconnect(first.sessionToken());
+        sessions.disconnect(second.sessionToken());
+        assertThat(json.readTree(sessions.presence(gameId).toString())).isEmpty();
+        assertThat(json.readTree(sessions.summary(gameId).toString()).get("connected").asInt()).isZero();
+    }
+
+    @Test
     void laDomandaUsataSopravviveAlRiavvioDelProcesso() {
         long gameId = 504L;
         String key = "domanda-di-prova|risposta";

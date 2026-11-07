@@ -36,17 +36,19 @@
         <span>Eventi salvati: <b>{{ d.events }}</b></span>
         <span>Round aperto: <b>{{ d.roundOpen ? "sì" : "no" }}</b></span>
         <span>Domande usate: <b>{{ d.questionsUsed }}</b></span>
-        <span>Dispositivi online: <b>{{ d.devices?.connected }}/{{ d.devices?.devices }}</b></span>
+        <span>Dispositivi online: <b>{{ d.devices?.connected }}</b></span>
         <span>Ultimo evento: {{ d.lastEventType || "—" }}</span>
       </div>
       <div class="diag-devices">
         @for (dev of (d.presence ?? []); track dev.deviceId + dev.role) {
-          <div class="diag-device" [class.offline]="!dev.connected">
-            <b>{{ dev.role }}</b>
-            <span class="diag-name">{{ dev.playerName || dev.deviceId }}</span>
-            <span class="diag-state">{{ dev.connected ? "online" : "offline" }}</span>
-            <small>{{ dev.reconnections }} riconnessioni</small>
-          </div>
+          @if (dev.connected) {
+            <div class="diag-device">
+              <b>{{ displayRole(dev) }}</b>
+              <span class="diag-name">{{ dev.playerName || dev.deviceId }}</span>
+              <span class="diag-state">online</span>
+              <small>{{ dev.reconnections }} riconnessioni</small>
+            </div>
+          }
         }
       </div>
     } @else {
@@ -120,7 +122,7 @@
       <button class="flow-btn" (click)="showDemoOf('BONUS_BASKET')">🎥 DEMO BONUS BASKET</button>
       <button class="flow-btn ghost" (click)="stopBonus()">✖️ CHIUDI BONUS</button>
     </div>
-    <div class="flow-note">Avanzamento automatico dopo 10 s, fermabile con PAUSA o PROSSIMO ROUND.</div>
+    <div class="flow-note">Avvio e avanzamento manuali: usa PROSSIMO ROUND oppure il tasto AVANTI in TV.</div>
   </div>
 
   

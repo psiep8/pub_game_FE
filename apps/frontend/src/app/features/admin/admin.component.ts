@@ -63,6 +63,10 @@ export class Admin implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.reliability.start(this.activeGameId(), 'ADMIN');
+    this.requestCurrentState();
+    this.ws.connectedAt$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.requestCurrentState());
     void this.refreshDiagnostics();
     void this.loadCategories();
     this.diagTimer = setInterval(() => void this.refreshDiagnostics(), 5000);
@@ -83,6 +87,10 @@ export class Admin implements OnInit, OnDestroy {
           case 'SHOW_QUESTION':
             
             this.handleShowQuestion(status);
+            break;
+
+          case 'ADMIN_STATE':
+            this.applyAdminState(status);
             break;
 
           case 'START_VOTING':
@@ -321,12 +329,18 @@ export class Admin implements OnInit, OnDestroy {
       return;
     }
 
-    
-
-    this.ws.broadcastStatus(this.activeGameId(), {
+    const sent = this.ws.broadcastStatus(this.activeGameId(), {
       action: WsAction.ADMIN_CONFIRM_CORRECT,
       playerName: player
     });
+
+    if (!sent) {
+      // Non perdere la prenotazione: se la socket è chiusa il presentatore
+      // deve poter riprovare appena l'admin torna online.
+      console.warn('⚠️ Conferma non inviata: socket admin non connessa');
+      this.ws.connect();
+      return;
+    }
 
     this.vibrate([100, 50, 100]);
     this.buzzedPlayer.set(null);
@@ -339,15 +353,53 @@ export class Admin implements OnInit, OnDestroy {
       return;
     }
 
-    
-
-    this.ws.broadcastStatus(this.activeGameId(), {
+    const sent = this.ws.broadcastStatus(this.activeGameId(), {
       action: WsAction.ADMIN_CONFIRM_WRONG,
       playerName: player
     });
 
+    if (!sent) {
+      console.warn('⚠️ Conferma non inviata: socket admin non connessa');
+      this.ws.connect();
+      return;
+    }
+
     this.vibrate([50, 50, 50, 50]);
     this.buzzedPlayer.set(null);
+  }
+
+  /** Chiede alla TV lo stato del round corrente dopo una riconnessione. */
+  private requestCurrentState(): void {
+    if (!this.ws.connected()) return;
+    this.ws.broadcastStatus(this.activeGameId(), {
+      action: WsAction.ADMIN_REQUEST_STATE,
+    });
+  }
+
+  /** Ricostruisce i controlli admin senza rimandare i telefoni in attesa. */
+  private applyAdminState(status: any): void {
+    const type = status.type || 'QUIZ';
+    this.gameState.set('ACTIVE');
+    this.currentQuestionType.set(type);
+    this.scoringRules.set(status.scoring ?? scoringRuleFor(type));
+    this.showAdminControls.set(
+      type === 'IMAGE_BLUR' || type === 'WHEEL_OF_FORTUNE' || type === 'MUSIC'
+    );
+
+    const sourcePayload = status.rawPayload || status.payload;
+    if (sourcePayload) {
+      const parsed = this.parsePayload(sourcePayload);
+      if (parsed) {
+        this.payload.set(parsed);
+        this.extractCorrectAnswer(parsed, type);
+      }
+    }
+
+    const player = status.buzzedPlayer ?? null;
+    this.buzzedPlayer.set(player);
+    this.correctPoints.set(player ? (status.correctPoints ?? null) : null);
+    this.wrongPoints.set(player ? (status.wrongPoints ?? null) : null);
+    this.solution.set(status.solution ?? this.correctAnswer());
   }
 
   
@@ -419,6 +471,16 @@ export class Admin implements OnInit, OnDestroy {
     } catch {
       this.categoriesError.set('Attivazione della categoria non riuscita.');
     }
+  }
+
+  /**
+   * Ruolo leggibile nella diagnostica. Le sessioni legacy create prima della
+   * separazione dei token possono essere salvate come TV pur avendo un
+   * giocatore: sul pannello sono concorrenti, non televisori.
+   */
+  displayRole(dev: any): string {
+    if (dev?.role === 'TV' && dev?.playerName) return 'REMOTE';
+    return dev?.role || '—';
   }
 
   private activeGameId(): number {

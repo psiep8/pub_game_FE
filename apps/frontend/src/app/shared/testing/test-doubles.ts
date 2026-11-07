@@ -47,8 +47,9 @@ export class FakeWebSocketService {
     this.publishedScreams.push({ gameId, playerName, intensity });
   }
 
-  broadcastStatus(gameId: number, payload: any): void {
+  broadcastStatus(gameId: number, payload: any): boolean {
     this.broadcasted.push({ destination: `/app/game/${gameId}/status`, body: payload });
+    return true;
   }
 
   connect(): void {

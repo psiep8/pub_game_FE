@@ -105,7 +105,9 @@ export class WebSocketService {
   }
 
   connect(): void {
-    if (!this.client.active) this.scheduleReconnect(0);
+    // Anche se il client è ancora ACTIVE può avere la socket già chiusa:
+    // in quel caso scheduleReconnect() riavvia il client da zero.
+    if (!this.client.connected) this.scheduleReconnect(0);
   }
 
   disconnect(): void {
@@ -156,9 +158,23 @@ export class WebSocketService {
     this.retryTimer = setTimeout(() => {
       this.retryTimer = undefined;
       if (this.connected()) return;
-      if (!this.client.active) {
-        this.client.activate();
+
+      // `activate()` è un no-op se il client è rimasto ACTIVE dopo la chiusura
+      // della socket. In quel caso va prima disattivato, altrimenti il
+      // dispositivo non riapre mai la connessione.
+      if (this.client.active) {
+        void this.client
+          .deactivate()
+          .then(() => {
+            if (!this.connected()) this.client.activate();
+          })
+          .catch((error) => {
+            console.error('❌ Riconnessione STOMP fallita:', error);
+          });
+        return;
       }
+
+      this.client.activate();
     }, delay);
   }
 

@@ -42,6 +42,12 @@ describe('Admin', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should label a legacy player session as remote', () => {
+    expect(component.displayRole({ role: 'TV', playerName: 'Anna' })).toBe('REMOTE');
+    expect(component.displayRole({ role: 'TV', playerName: null })).toBe('TV');
+    expect(component.displayRole({ role: 'REMOTE', playerName: 'Bruno' })).toBe('REMOTE');
+  });
+
   it('should expose the proverb when voting starts on a buzz game', async () => {
     ws.status$.next({
       action: 'START_VOTING',

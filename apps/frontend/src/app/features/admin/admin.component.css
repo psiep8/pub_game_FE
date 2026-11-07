@@ -9,7 +9,8 @@
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background-color: var(--bg-0);
   background-image:
     radial-gradient(rgba(244, 232, 206, 0.08) 1px, transparent 1px),
@@ -123,13 +124,15 @@
 }
 
 .admin-content {
-  flex: 1;
+  flex: 1 0 auto;
   min-height: 0;
   display: flex;
   align-items: flex-start;
   justify-content: center;
   padding: clamp(14px, 3vw, 34px);
-  overflow-y: auto;
+  /* Lo scroll è del contenitore esterno: così si raggiungono anche i pannelli
+     sopra la card, non solo la card stessa. */
+  overflow: visible;
   overscroll-behavior: contain;
 }
 
