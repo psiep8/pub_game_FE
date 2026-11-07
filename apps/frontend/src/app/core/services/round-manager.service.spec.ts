@@ -77,11 +77,11 @@ describe('RoundManagerService', () => {
     }
   });
 
-  it('should play the wheel once and close with the arena', () => {
+  it('should play the wheel twice and close with the arena', () => {
     const types: GameModeType[] = [];
     for (let i = 0; i < 40; i++) types.push(service.startNewRound());
 
-    expect(types.filter((type) => type === 'WHEEL_OF_FORTUNE')).toHaveLength(1);
+    expect(types.filter((type) => type === 'WHEEL_OF_FORTUNE')).toHaveLength(2);
     expect(types[39]).toBe('ARENA');
   });
 
@@ -134,11 +134,28 @@ describe('RoundManagerService', () => {
 
     expect(types.filter((type) => (type as string) === 'CAVALLO')).toHaveLength(0);
     expect(types.filter((type) => type === 'QUIZ')).toHaveLength(5);
-    expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(2);
+    expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(3);
     expect(types.filter((type) => type === 'ULTIMA_SPIAGGIA')).toHaveLength(5);
-    // Azzardo esce tre volte, una per livello di difficolta.
-    expect(types.filter((type) => type === 'AZZARDO')).toHaveLength(3);
+    expect(types.filter((type) => type === 'AZZARDO')).toHaveLength(2);
     expect(types.filter((type) => type === 'BOMBA')).toHaveLength(3);
+  });
+
+  it('should respect the agreed mix of games across the 40 rounds', () => {
+    const types: GameModeType[] = [];
+    for (let i = 0; i < 40; i++) types.push(service.startNewRound());
+
+    expect(types.filter((type) => type === 'QUIZ')).toHaveLength(5);
+    expect(types.filter((type) => type === 'MUSIC')).toHaveLength(5);
+    expect(types.filter((type) => type === 'AZZARDO')).toHaveLength(2);
+    expect(types.filter((type) => type === 'ARENA')).toHaveLength(2);
+    expect(types.filter((type) => type === 'BOMBA')).toHaveLength(3);
+    expect(types.filter((type) => type === 'IMAGE_BLUR')).toHaveLength(4);
+    expect(types.filter((type) => type === 'BLACKJACK')).toHaveLength(3);
+    expect(types.filter((type) => type === 'TIMELINE')).toHaveLength(4);
+    expect(types.filter((type) => type === 'WHEEL_OF_FORTUNE')).toHaveLength(2);
+    expect(types.filter((type) => type === 'SPEED_RUSH')).toHaveLength(2);
+    expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(3);
+    expect(types.filter((type) => type === 'ULTIMA_SPIAGGIA')).toHaveLength(5);
   });
 
   it('should play the black jack three times, only in the first three acts', () => {

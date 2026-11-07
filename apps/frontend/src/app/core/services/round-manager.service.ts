@@ -18,25 +18,27 @@ const STORAGE_KEY = 'roundProgress';
  * L'ordine è fisso e già verificato rispetto ai vincoli: mai due giochi in
  * tempo reale di fila (Bomba, Arena, Speed Rush, Air Hockey, Black Jack), mai
  * due giochi a prenotazione consecutivi (Musica, Indovina chi, Ruota), la
- * Ruota esce una volta e l'Arena chiude la serata.
+ * Ruota esce due volte e l'Arena chiude la serata.
  *
- * Nessun atto ripete l'apertura del precedente: Quiz, Azzardo, Timeline,
- * Indovina chi, Ruota. Il Black Jack esce tre volte, una per atto, sempre nei
- * primi tre atti e mai prima di un bonus: è il round che dà il momento di
+ * Nessun atto ripete l'apertura del precedente. Il Black Jack esce tre volte,
+ * una per atto, sempre nei primi tre atti: è il round che dà il momento di
  * vetrina a un tavolo alla volta.
  *
- * Azzardo esce tre volte, una per difficoltà: apre l'atto 2 con il
- * livello facile, passa al 28 con il medio e arriva al 37 con il difficile,
- * quando chi è indietro deve rischiare. L'Ultima spiaggia è fissa al penultimo
- * round di ogni atto (7, 15, 23, 31, 39); il Time Buzzer resta due volte
- * (3 manche l'una) e l'Arena chiude l'atto 3 e la serata.
+ * Conteggi concordati: 5 Quiz, 5 Musica, 2 Azzardo, 2 Arena, 3 Bomba,
+ * 4 Celebrità (Indovina chi), 3 Black Jack, 4 Timeline, 2 Ruota, 2 Speed Rush,
+ * 3 Time Buzzer e 5 Ultima spiaggia.
+ *
+ * Ultima spiaggia è fissa al penultimo round di ogni atto (7, 15, 23, 31, 39).
+ * Ogni atto ha due giochi in tempo reale, mai consecutivi; i giochi a
+ * prenotazione (Musica, Celebrità, Ruota) non si susseguono. Le aperture
+ * cambiano di atto in atto e l'Arena chiude la serata.
  */
 const ACT_DECKS: GameModeType[][] = [
-  ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'BLACKJACK', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'SPEED_RUSH'],
-  ['AZZARDO', 'QUIZ', 'IMAGE_BLUR', 'BLACKJACK', 'MUSIC', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'AIR_HOCKEY_BATTLE'],
-  ['TIMELINE', 'BLACKJACK', 'MUSIC', 'SPEED_RUSH', 'IMAGE_BLUR', 'QUIZ', 'ULTIMA_SPIAGGIA', 'ARENA'],
-  ['IMAGE_BLUR', 'QUIZ', 'BOMBA', 'AZZARDO', 'TIME_BUZZER', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'SPEED_RUSH'],
-  ['WHEEL_OF_FORTUNE', 'QUIZ', 'BOMBA', 'TIME_BUZZER', 'AZZARDO', 'AIR_HOCKEY_BATTLE', 'ULTIMA_SPIAGGIA', 'ARENA'],
+  ['QUIZ', 'MUSIC', 'BLACKJACK', 'IMAGE_BLUR', 'TIMELINE', 'TIME_BUZZER', 'ULTIMA_SPIAGGIA', 'BOMBA'],
+  ['AZZARDO', 'MUSIC', 'BLACKJACK', 'QUIZ', 'WHEEL_OF_FORTUNE', 'TIME_BUZZER', 'ULTIMA_SPIAGGIA', 'ARENA'],
+  ['TIMELINE', 'MUSIC', 'SPEED_RUSH', 'IMAGE_BLUR', 'QUIZ', 'TIME_BUZZER', 'ULTIMA_SPIAGGIA', 'BLACKJACK'],
+  ['IMAGE_BLUR', 'BOMBA', 'MUSIC', 'QUIZ', 'WHEEL_OF_FORTUNE', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'SPEED_RUSH'],
+  ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'AZZARDO', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'ARENA'],
 ];
 
 /** Classifiche: rapida a metà atto, dettagliata a fine atto. */

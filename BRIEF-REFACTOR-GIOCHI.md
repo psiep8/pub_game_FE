@@ -48,7 +48,7 @@ Si mescolano in un mazzo (senza ripetizioni consecutive dello stesso tipo):
 Chi sbaglia perde. Si punta 100, 200 o 300 punti reali (mai sotto zero). Blackjack naturale paga il doppio. Sulla TV, accanto al banco, si vede la mano della squadra che gioca in quel turno, con effetti da bar (gettoni, "CARTA!", "LASCIA!"). Nota: nell'ultimo pull `BonusType` ha `CASINO`, `BASKET`, `CAVALLO`, `BIGLIE`: verificare dove sta il blackjack (manche del bonus Casino o round) e uniformare.
 
 ## 8. Azzardo
-Tre volte nella serata, con difficoltà crescente: 1 facile/media, 2 media, 3 difficile. Ogni volta 4 manche, una per categoria:
+Due volte nella serata, con difficoltà crescente: la prima facile, la seconda media. Ogni volta 4 manche, una per categoria:
 1. Anno di nascita di una celebrità.
 2. Anno di uscita di una canzone.
 3. Nazione vista in foto o sagoma della mappa: nel livello facile "quanti paesi confinanti?" (0-14), nel difficile "quanti abitanti, in milioni?". Preferire sagoma o mappa (libera da diritti) alle foto.

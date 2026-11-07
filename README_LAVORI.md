@@ -13,17 +13,17 @@ Ultimo commit: 7 novembre — Ultima spiaggia a cinque livelli, Azzardo in banca
 ## Cosa è cambiato il 6 novembre
 
 ### Scaletta: il Cavallo torna bonus, dentro Quiz e Time Buzzer
-- `ACT_DECKS` aggiornata come da descrizione: il Cavallo non è più un round; l'atto 1 chiude con Speed Rush e l'atto 5 usa il Time Buzzer.
-- Azzardo è implementata: quattro domande numeriche con fasce e gettoni, tre round (atti 2, 4 e 5).
+- `ACT_DECKS` aggiornata come da descrizione: il Cavallo non è più un round; l'atto 1 chiude con la Bomba e il Time Buzzer esce negli atti 1-3.
+- Azzardo è implementata: quattro domande numeriche con fasce e gettoni, due round (atti 2 e 5).
 - `BonusType` contiene `CASINO` (atto 1), `CAVALLO` (atto 3) e `BIGLIE` (atto 4), più `BASKET`. Il Black Jack non è più un bonus: è diventato un round a turni.
 
 | Atto | Round | Sequenza |
 | --- | --- | --- |
-| 1 | 1–8 | Quiz · Musica · Bomba · Indovina chi · Timeline · Ruota · Ultima spiaggia · Speed Rush |
-| 2 | 9–16 | Quiz · Indovina chi · Timeline · Arena · Musica · Azzardo · Ultima spiaggia · Air Hockey |
-| 3 | 17–24 | Quiz · Bomba · Timeline · Speed Rush · Musica · Air Hockey · Ultima spiaggia · Arena |
-| 4 | 25–32 | Indovina chi · Quiz · Bomba · Musica · Time Buzzer · Timeline · Ultima spiaggia · Speed Rush |
-| 5 | 33–40 | Ruota · Quiz · Bomba · Time Buzzer · Timeline · Air Hockey · Ultima spiaggia · Arena |
+| 1 | 1–8 | Quiz · Musica · Black Jack · Indovina chi · Timeline · Time Buzzer · Ultima spiaggia · Bomba |
+| 2 | 9–16 | Azzardo · Musica · Black Jack · Quiz · Ruota · Time Buzzer · Ultima spiaggia · Arena |
+| 3 | 17–24 | Timeline · Musica · Speed Rush · Indovina chi · Quiz · Time Buzzer · Ultima spiaggia · Black Jack |
+| 4 | 25–32 | Indovina chi · Bomba · Musica · Quiz · Ruota · Timeline · Ultima spiaggia · Speed Rush |
+| 5 | 33–40 | Quiz · Musica · Bomba · Indovina chi · Azzardo · Timeline · Ultima spiaggia · Arena |
 
 ### Casino: quattro manche in un solo bonus
 
@@ -69,7 +69,7 @@ Ultimo commit: 7 novembre — Ultima spiaggia a cinque livelli, Azzardo in banca
 - Ogni squadra distribuisce 100 gettoni dal telefono; solo la fascia che contiene il valore paga i gettoni × quota, con tetto di 500 per domanda. Chi non invia gioca 25 gettoni per fascia.
 - La banca numerica (34 domande) e il calcolo di fasce e quote vivono in `QuestionBankService`: le risposte non arrivano ai telefoni prima del reveal.
 - La TV mostra valore, distribuzione del pubblico e il “cecchino” della domanda; il remote ha +/−, TUTTO, 50-50 e SPALMA.
-- Il round occupa il sesto posto dell'atto 2 al posto della Bomba, che resta quattro volte in scaletta.
+- Il round apre l'atto 2 e torna nell'atto 5; la Bomba resta tre volte in scaletta.
 
 ---
 
@@ -293,7 +293,7 @@ Verifiche del 6 novembre:
   (`LeaderboardDetailed` spotlight dopo 9 s, `Song` etichetta fase 1); i test Roulette sono
   stati rimossi insieme al round.
 - `RoundManagerService`: 13 test verdi, inclusi scaletta variata, Cavallo fuori dai round
-  con bonus dopo l'atto 3, Ultima spiaggia e Azzardo una volta, Casino in quattro manche dopo l'atto 1.
+  con bonus dopo l'atto 3, Ultima spiaggia e Azzardo in scaletta, Casino in quattro manche dopo l'atto 1.
 - Azzardo: build e test verdi; la banca numerica ha 34 domande in `QuestionBankService`.
 - Nessun test dal vivo: Cavallo bonus e Ultima spiaggia hanno test di modalità e payload, ma non sono ancora stati **osservati in esecuzione**.
 
