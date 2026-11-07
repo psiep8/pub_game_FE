@@ -13,7 +13,6 @@ import { GameService } from '../../core/services/game.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ReliabilityService } from '../../core/services/reliability.service';
 import { PlayerAvatarService } from '../../core/services/player-avatar.service';
-import { AudioService } from '../../core/services/audio.service';
 import {
   buildSpeedDeck,
   createSpeedTask,
@@ -160,7 +159,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
   readonly playerAvatars = inject(PlayerAvatarService);
   private destroyRef = inject(DestroyRef);
   private gameService = inject(GameService);
-  private audio = inject(AudioService);
   private swUpdate = inject(SwUpdate);
   public theme = inject(ThemeService);
   private updateCheckInterval?: any;
@@ -850,7 +848,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.hasAnswered.set(true);
     this.gameState.set(PlayerStatus.LOCKED);
     this.vibrate(50);
-    this.audio.playConfirm();
   }
 
   sendBuzz() {
@@ -858,7 +855,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.ws.sendAnswer(this.gameId(), this.nickname()!, -1, time);
     this.gameState.set(PlayerStatus.LOCKED);
     this.vibrate([100, 50, 100]);
-    this.audio.playConfirm();
   }
 
   onStartVoting(type: string, payload?: any) {
@@ -1038,7 +1034,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
       value: level,
     });
     this.vibrate(20);
-    this.audio.playConfirm();
   }
 
   ultimaSpiaggiaAnswer(index: number): void {
@@ -1053,7 +1048,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
       value: index,
     });
     this.vibrate(30);
-    this.audio.playConfirm();
   }
 
   /** Riga della propria squadra: livello scelto, livelli usati ed esito. */
@@ -1112,7 +1106,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
       value: { stake: this.azzardoStake(), choice: index },
     });
     this.vibrate(30);
-    this.audio.playConfirm();
   }
 
   azzardoRow(): any {
@@ -1160,7 +1153,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
       kind,
     });
     this.vibrate(kind === 'STAND' ? 30 : 20);
-    this.audio.playConfirm();
   }
 
   /** Punti leggibili sul telefono, uguali per vincite e perdite. */
@@ -1284,10 +1276,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
       if (event?.kind === 'bomb') {
         this.flashBomba(mine ? '💥 BOOM! Sei fuori dal round' : `💥 ${event.player}: bomba`);
         this.vibrate([160, 60, 160]);
-        this.audio.playError();
       } else if (event?.kind === 'safe' && mine) {
         this.vibrate(25);
-        this.audio.playConfirm();
       }
     }
 
@@ -1309,7 +1299,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         this.flashBomba(error?.error?.error ?? 'Scelta non riuscita');
-        this.audio.playError();
         this.pollBombaState();
       },
     });
@@ -1416,7 +1405,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const ms = Math.round(performance.now() - this.buzzStartedAt);
     this.buzzPhase.set('sent');
     this.vibrate([20, 30, 20]);
-    this.audio.playConfirm();
 
     const playerName = this.nickname() ?? '';
     if (!playerName) return;
@@ -1535,7 +1523,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
     });
     this.hasAnswered.set(true);
     this.vibrate(40);
-    this.audio.playConfirm();
   }
 
   /** Lettera della risposta scelta, vuota se il giocatore non ha ancora toccato nulla. */
@@ -1665,15 +1652,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
             points
           });
           this.vibrate(isCorrect ? 50 : [50, 50, 50]);
-          if (isCorrect) this.audio.playCorrect();
-          else this.audio.playWrong();
           this.arenaQuestion.set(null);
           // Dopo un errore 1,5 s di blocco: rispondere a caso non conviene più.
           setTimeout(() => this.generateNextArenaQuestion(), isCorrect ? 0 : 1500);
         },
         error: (err: any) => {
           console.error('❌ Risposta arena rifiutata dal server:', err);
-          this.audio.playError();
           // Round chiuso o scaduto: non si insiste, si aspetta la TV.
           if (err?.status === 409) {
             this.arenaQuestion.set(null);

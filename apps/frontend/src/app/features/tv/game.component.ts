@@ -631,6 +631,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
       this.audioService.startClock();
       this.startRoundSuspense(mode.type);
+      if (mode.type === 'BOMBA') {
+        this.audioService.playBombSiren();
+      }
 
       await mode.start();
 

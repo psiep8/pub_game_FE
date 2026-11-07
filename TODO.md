@@ -24,9 +24,9 @@ alla volta. Ordine indicato nel brief: prima la banca domande, poi il refactor d
 poi i giochi.
 
 ### 0. Effetti sonori sulla TV
-- [ ] Spostare i suoni di conferma dal telefono alla TV come effetti da bar: gettoni, applauso,
+- [x] Spostare i suoni di conferma dal telefono alla TV come effetti da bar: gettoni, applauso,
       "uuuh" sugli errori, rullo prima delle rivelazioni, sirena per le bombe.
-- [ ] Sul telefono resta al massimo una vibrazione breve.
+- [x] Sul telefono resta al massimo una vibrazione breve.
 
 ### 1. Refactor del progetto
 - [x] Pulizia del codice morto: `CHRONO` e `TRUE_FALSE` non erano già più in `GameType`; tutte le

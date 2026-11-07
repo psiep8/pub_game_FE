@@ -150,6 +150,8 @@ export class AudioService {
     this.correctAudio.currentTime = 0;
     this.correctAudio.play().catch(() => {});
     this.chord([523.25, 659.25, 783.99], 0.55);
+    this.playCoins();
+    this.playApplause();
   }
 
   playWrong(): void {
@@ -157,6 +159,53 @@ export class AudioService {
     this.wrongAudio.currentTime = 0;
     this.wrongAudio.play().catch(() => {});
     this.tone({ freq: 196, duration: 0.45, type: 'sawtooth', gain: 0.05, slideTo: 110 });
+    this.playUuuh();
+  }
+
+  /** Tintinnio di gettoni: pioggia di ping metallici, effetto da bar. */
+  playCoins(): void {
+    if (!this.audioEnabled()) return;
+    const pings = [1760, 2093, 2349, 2637, 3136];
+    for (let i = 0; i < 12; i++) {
+      const freq = pings[i % pings.length] * (i % 3 === 0 ? 1 : 0.75);
+      this.tone({
+        freq,
+        duration: 0.09,
+        type: 'triangle',
+        gain: 0.014 + (i % 4) * 0.003,
+        delay: i * 0.035,
+      });
+    }
+    this.tone({ freq: 880, duration: 0.12, type: 'sine', gain: 0.02, delay: 0.02 });
+  }
+
+  /** Applauso sintetico: folate di rumore filtrato, senza asset esterni. */
+  playApplause(): void {
+    if (!this.audioEnabled()) return;
+    this.noiseBurst(0.55, 0.05, 0, 1500);
+    this.noiseBurst(0.7, 0.045, 0.12, 1900);
+    this.noiseBurst(0.9, 0.035, 0.28, 1200);
+  }
+
+  /** «Uuuh» del pubblico quando una squadra sbaglia. */
+  playUuuh(): void {
+    if (!this.audioEnabled()) return;
+    this.tone({ freq: 320, duration: 0.55, type: 'sawtooth', gain: 0.028, slideTo: 150 });
+    this.tone({ freq: 240, duration: 0.6, type: 'triangle', gain: 0.022, delay: 0.04, slideTo: 120 });
+  }
+
+  /** Sirena della Bomba: due toni alternati, da allarme da bar. */
+  playBombSiren(): void {
+    if (!this.audioEnabled()) return;
+    for (let i = 0; i < 6; i++) {
+      this.tone({
+        freq: i % 2 === 0 ? 720 : 520,
+        duration: 0.24,
+        type: 'square',
+        gain: 0.025,
+        delay: i * 0.26,
+      });
+    }
   }
 
   /**
@@ -180,8 +229,14 @@ export class AudioService {
   playReveal(): void {
     if (!this.audioEnabled() || !this.revealAudio) return;
     this.stopClock();
-    this.revealAudio.currentTime = 0;
-    this.revealAudio.play().catch(() => {});
+    // Il rullo accompagna l'avvicinarsi della soluzione; il suono del reveal
+    // entra quando il pubblico ha gia capito che sta per succedere qualcosa.
+    this.playDrumroll(0.9, 0.65);
+    window.setTimeout(() => {
+      if (!this.audioEnabled() || !this.revealAudio) return;
+      this.revealAudio.currentTime = 0;
+      this.revealAudio.play().catch(() => {});
+    }, 720);
   }
 
   /**
@@ -468,6 +523,32 @@ export class AudioService {
     } catch {
       return undefined;
     }
+  }
+
+  /** Rumore filtrato con inviluppo: base dell'applauso sintetico. */
+  private noiseBurst(duration: number, gain: number, delay = 0, frequency = 1600): void {
+    if (!this.audioEnabled()) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const frames = Math.max(1, Math.floor(ctx.sampleRate * duration));
+    const buffer = ctx.createBuffer(1, frames, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < frames; i++) {
+      const envelope = Math.pow(1 - i / frames, 2);
+      data[i] = (Math.random() * 2 - 1) * envelope;
+    }
+
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = frequency;
+    filter.Q.value = 0.7;
+    const level = ctx.createGain();
+    level.gain.value = gain;
+    source.connect(filter).connect(level).connect(ctx.destination);
+    source.start(ctx.currentTime + delay);
   }
 
   private tone(options: ToneOptions): void {

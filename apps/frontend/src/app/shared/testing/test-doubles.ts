@@ -150,6 +150,10 @@ export class FakeAudioService {
   readonly playBell = () => this.played.push('bell');
   readonly playCorrect = () => this.played.push('correct');
   readonly playWrong = () => this.played.push('wrong');
+  readonly playCoins = () => this.played.push('coins');
+  readonly playApplause = () => this.played.push('applause');
+  readonly playUuuh = () => this.played.push('uuuh');
+  readonly playBombSiren = () => this.played.push('bomb-siren');
   readonly playConfirm = () => this.played.push('confirm');
   readonly playError = () => this.played.push('error');
   readonly playReveal = () => this.played.push('reveal');
