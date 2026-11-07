@@ -71,7 +71,7 @@
   @if (currentMode(); as mode) {
   @if (mode.requiresBubbles && !showTypeReveal() && phase() !== 'IDLE' && !showQuestion()) {
   <div class="bubbles-area">
-    @for (cat of allCategories(); track cat.id) {
+    @for (cat of bubbleCategories(); track cat.id) {
     <div class="category-bubble" [style.top]="cat.top" [style.left]="cat.left"
       [style.--cat-accent]="cat.color || '#ffd700'"
       [class.spinning]="phase() === 'SPINNING'"
@@ -95,7 +95,7 @@
   }
 
 
-  @if (mode.requiresBubbles && mode.type !== 'ULTIMA_SPIAGGIA') {
+  @if (mode.requiresBubbles && mode.type !== 'ULTIMA_SPIAGGIA' && mode.type !== 'TIMELINE') {
   <div class="timer-wrapper">
     <div class="timer-bar" [style.width.%]="(timer() / mode.timerDuration) * 100"></div>
     <span class="timer-text">{{ timer() }}s</span>

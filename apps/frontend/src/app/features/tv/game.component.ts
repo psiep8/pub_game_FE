@@ -161,6 +161,17 @@ export class GameComponent implements OnInit, OnDestroy {
     return this.allCategories().find((cat) => cat.id === id)?.name ?? '';
   });
 
+  /**
+   * Bolle mostrate prima della domanda: la Timeline pesca solo nelle categorie
+   * abilitate al gioco, le altre modalità usano tutto il tabellone.
+   */
+  bubbleCategories = computed(() => {
+    const categories = this.allCategories();
+    if (this.currentMode()?.type !== 'TIMELINE') return categories;
+    const allowed = categories.filter((category) => category.timeline);
+    return allowed.length > 0 ? allowed : categories;
+  });
+
   private arenaFinished = false;
   private readonly bonusActsStarted = new Set<number>();
   private bonusScoresMap = new Map<string, number>();
@@ -654,8 +665,9 @@ export class GameComponent implements OnInit, OnDestroy {
       this.currentMode.set(mode);
 
       if (mode.requiresBubbles && categories.length > 0) {
-        const randomIndex = Math.floor(Math.random() * categories.length);
-        this.animatedCategoryId.set(categories[randomIndex].id);
+        const bubblePool = this.bubbleCategories();
+        const randomIndex = Math.floor(Math.random() * bubblePool.length);
+        this.animatedCategoryId.set(bubblePool[randomIndex].id);
 
         this.phase.set('SPINNING');
         await new Promise(r => setTimeout(r, 5000));

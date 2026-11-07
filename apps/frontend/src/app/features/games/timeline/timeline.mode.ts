@@ -12,7 +12,7 @@ import { environment } from '../../../core/environment/environment';
 export class TimelineMode extends GameModeBase {
   readonly type: GameModeType = 'TIMELINE';
   readonly timerDuration = 45;
-  readonly requiresBubbles = false;
+  readonly requiresBubbles = true;
   readonly requiresBuzz = false;
 
   private cards = signal<Array<{ id: number; label: string }>>([]);
