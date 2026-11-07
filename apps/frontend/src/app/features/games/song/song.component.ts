@@ -74,6 +74,10 @@ export class Song implements OnInit, OnDestroy, OnChanges {
       const prevBuzz = prevData?.buzzedPlayer ?? null;
       if (nextBuzz && nextBuzz !== prevBuzz) {
         this.scratch();
+        // Una prenotazione ferma subito il brano, anche durante il reveal a
+        // volume pieno: il loop non deve continuare sotto la risposta.
+        this.stopFullPlayback();
+        this.pauseAudio();
       }
       this.lastBuzz = nextBuzz;
 
@@ -86,7 +90,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
         this.initAudio();
       }
 
-      const fullPlayback = !!this.displayData.fullPlayback;
+      const fullPlayback = !!this.displayData.fullPlayback && !nextBuzz;
       if (fullPlayback && !this.fullPlaybackDone) {
         this.startFullPlayback();
       } else if (!fullPlayback && this.fullPlaybackActive) {
@@ -102,7 +106,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
         this.applyBlur(phase);
       }
 
-      if (!fullPlayback) {
+      if (!fullPlayback && !nextBuzz) {
         const shouldPlay = this.displayData.audioPlaying;
         const actuallyPlaying = this.isPlaying();
 

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { SimpleChange } from '@angular/core';
 
 import { Song } from './song.component';
 
@@ -43,5 +44,41 @@ describe('Song', () => {
 
     component.currentPhase.set(4);
     expect(component.getPhaseIcon()).toBe('📢');
+  });
+
+  it('should stop the preview as soon as a player buzzes', () => {
+    const song = component as any;
+    let pauses = 0;
+    song.audio = {
+      pause: () => { pauses++; },
+      loop: true,
+      playbackRate: 1,
+      currentTime: 5,
+    };
+    song.isPlaying.set(true);
+    song.displayData = {
+      previewUrl: 'preview.mp3',
+      audioPlaying: true,
+      buzzedPlayer: 'Anna',
+      fullPlayback: false,
+      currentPhase: 1,
+    };
+
+    song.ngOnChanges({
+      displayData: new SimpleChange(
+        {
+          previewUrl: 'preview.mp3',
+          audioPlaying: true,
+          buzzedPlayer: null,
+          fullPlayback: false,
+          currentPhase: 1,
+        },
+        song.displayData,
+        false,
+      ),
+    });
+
+    expect(pauses).toBeGreaterThan(0);
+    expect(song.isPlaying()).toBe(false);
   });
 });
