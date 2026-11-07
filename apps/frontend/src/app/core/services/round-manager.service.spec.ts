@@ -85,13 +85,17 @@ describe('RoundManagerService', () => {
     expect(types[39]).toBe('ARENA');
   });
 
-  it('should fix Ultima spiaggia at the penultimate round of every act', () => {
+  it('should close acts 1, 2 and 4 with Ultima spiaggia and acts 3 and 5 with Arena', () => {
     const types: GameModeType[] = [];
     for (let i = 0; i < 40; i++) types.push(service.startNewRound());
 
-    for (let act = 0; act < 5; act++) {
-      expect(types[act * 8 + 6]).toBe('ULTIMA_SPIAGGIA');
-    }
+    expect(types[7]).toBe('ULTIMA_SPIAGGIA');
+    expect(types[15]).toBe('ULTIMA_SPIAGGIA');
+    expect(types[22]).toBe('ULTIMA_SPIAGGIA');
+    expect(types[23]).toBe('ARENA');
+    expect(types[31]).toBe('ULTIMA_SPIAGGIA');
+    expect(types[38]).toBe('ULTIMA_SPIAGGIA');
+    expect(types[39]).toBe('ARENA');
     expect(types.filter((type) => type === 'ULTIMA_SPIAGGIA')).toHaveLength(5);
   });
 

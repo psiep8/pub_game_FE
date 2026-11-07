@@ -39,7 +39,7 @@ conoscere il codice. Le parti in *corsivo* sono suggerimenti, non obblighi.
 - La partita dura **40 round**, divisi in **5 atti da 8 round**.
 - Ogni round è **un gioco diverso**: quiz, musica, immagini, timeline, bomba, arena…
 - Le squadre rispondono **dal telefono**; la TV mostra domanda, tempo e classifica.
-- La scaletta mescola i giochi: ogni atto ha un ritmo suo e l'**Arena** chiude l'atto 2 e la serata.
+- La scaletta mescola i giochi: ogni atto ha un ritmo suo e l'**Arena** chiude l'atto 3 e la serata.
 - Alla fine di ogni atto c'è una **classifica** e, dopo i primi quattro atti, un **bonus**.
 - L'ultimo round del quinto atto è l'**Arena**: tutti insieme, e chi resta in piedi vince.
 
@@ -69,10 +69,10 @@ propria memoria.
 
 | Atto | Round | Giochi in ordine |
 | --- | --- | --- |
-| **1** | 1–8 | Quiz · Musica · Black Jack · Time Buzzer · Timeline · Air Hockey · Ultima spiaggia · Bomba |
-| **2** | 9–16 | Azzardo · Ruota · Black Jack · Quiz · Air Hockey · Time Buzzer · Ultima spiaggia · **Arena** |
-| **3** | 17–24 | Quiz · Musica · Speed Rush · Indovina chi · Air Hockey · Time Buzzer · Ultima spiaggia · Black Jack |
-| **4** | 25–32 | Indovina chi · Bomba · Musica · Quiz · Ruota · Timeline · Ultima spiaggia · Speed Rush |
+| **1** | 1–8 | Quiz · Musica · Black Jack · Time Buzzer · Bomba · Timeline · Air Hockey · Ultima spiaggia |
+| **2** | 9–16 | Azzardo · Ruota · Black Jack · Quiz · Air Hockey · Time Buzzer · Musica · Ultima spiaggia |
+| **3** | 17–24 | Quiz · Speed Rush · Indovina chi · Air Hockey · Time Buzzer · Black Jack · Ultima spiaggia · **Arena** |
+| **4** | 25–32 | Indovina chi · Bomba · Musica · Quiz · Ruota · Timeline · Speed Rush · Ultima spiaggia |
 | **5** | 33–40 | Quiz · Musica · Bomba · Indovina chi · Azzardo · Timeline · Ultima spiaggia · **Arena** |
 
 Classifiche:

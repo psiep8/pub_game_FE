@@ -13,16 +13,16 @@ Ultimo commit: 7 novembre — Ultima spiaggia a cinque livelli, Azzardo in banca
 ## Cosa è cambiato il 6 novembre
 
 ### Scaletta: il Cavallo torna bonus, dentro Quiz e Time Buzzer
-- `ACT_DECKS` aggiornata come da descrizione: il Cavallo non è più un round; l'atto 1 chiude con la Bomba e il Time Buzzer esce negli atti 1-3.
+- `ACT_DECKS` aggiornata come da descrizione: il Cavallo non è più un round; l'atto 1 chiude con Ultima spiaggia e il Time Buzzer esce negli atti 1-3.
 - Azzardo è implementata: quattro domande numeriche con fasce e gettoni, due round (atti 2 e 5).
 - `BonusType` contiene `CASINO` (atto 1), `CAVALLO` (atto 3) e `BIGLIE` (atto 4), più `BASKET`. Il Black Jack non è più un bonus: è diventato un round a turni.
 
 | Atto | Round | Sequenza |
 | --- | --- | --- |
-| 1 | 1–8 | Quiz · Musica · Black Jack · Time Buzzer · Timeline · Air Hockey · Ultima spiaggia · Bomba |
-| 2 | 9–16 | Azzardo · Ruota · Black Jack · Quiz · Air Hockey · Time Buzzer · Ultima spiaggia · Arena |
-| 3 | 17–24 | Quiz · Musica · Speed Rush · Indovina chi · Air Hockey · Time Buzzer · Ultima spiaggia · Black Jack |
-| 4 | 25–32 | Indovina chi · Bomba · Musica · Quiz · Ruota · Timeline · Ultima spiaggia · Speed Rush |
+| 1 | 1–8 | Quiz · Musica · Black Jack · Time Buzzer · Bomba · Timeline · Air Hockey · Ultima spiaggia |
+| 2 | 9–16 | Azzardo · Ruota · Black Jack · Quiz · Air Hockey · Time Buzzer · Musica · Ultima spiaggia |
+| 3 | 17–24 | Quiz · Speed Rush · Indovina chi · Air Hockey · Time Buzzer · Black Jack · Ultima spiaggia · Arena |
+| 4 | 25–32 | Indovina chi · Bomba · Musica · Quiz · Ruota · Timeline · Speed Rush · Ultima spiaggia |
 | 5 | 33–40 | Quiz · Musica · Bomba · Indovina chi · Azzardo · Timeline · Ultima spiaggia · Arena |
 
 ### Casino: quattro manche in un solo bonus
@@ -113,7 +113,7 @@ Rimosso:
 La pausa ha un overlay a schermo intero: il gioco non è visibile dietro.
 
 ### Flusso serata a 40 round (P0, 5 novembre — scaletta riscritta il 6)
-- Scaletta fissa in 5 atti da 8 round; l'Arena chiude solo l'ultimo round. La tabella aggiornata è nella sezione “Cosa è cambiato il 6 novembre”.
+- Scaletta fissa in 5 atti da 8 round; l'Arena chiude l'atto 3 e l'ultimo round. La tabella aggiornata è nella sezione “Cosa è cambiato il 6 novembre”.
 - `ACT_DECKS` in `round-manager.service.ts`: Ruota 3 volte su 40 (atti 1, 3, 5), mai adiacente a Indovina chi.
 - Bonus Roulette e Basket lanciabili dall'admin: non consumano un round.
   - `BONUS_RESULT` dal telefono; premi +300 / +150 / +75 ai primi tre.

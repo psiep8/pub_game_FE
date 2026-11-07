@@ -16,13 +16,13 @@
 
 | Atto | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
 |---|---|---|---|---|---|---|---|---|
-| 1 | Quiz | Musica | Black Jack | Time Buzzer | Timeline | Air Hockey | Ultima spiaggia | Bomba |
-| 2 | Azzardo | Ruota | Black Jack | Quiz | Air Hockey | Time Buzzer | Ultima spiaggia | Arena |
-| 3 | Quiz | Musica | Speed Rush | Indovina chi | Air Hockey | Time Buzzer | Ultima spiaggia | Black Jack |
-| 4 | Indovina chi | Bomba | Musica | Quiz | Ruota | Timeline | Ultima spiaggia | Speed Rush |
+| 1 | Quiz | Musica | Black Jack | Time Buzzer | Bomba | Timeline | Air Hockey | Ultima spiaggia |
+| 2 | Azzardo | Ruota | Black Jack | Quiz | Air Hockey | Time Buzzer | Musica | Ultima spiaggia |
+| 3 | Quiz | Speed Rush | Indovina chi | Air Hockey | Time Buzzer | Black Jack | Ultima spiaggia | Arena |
+| 4 | Indovina chi | Bomba | Musica | Quiz | Ruota | Timeline | Speed Rush | Ultima spiaggia |
 | 5 | Quiz | Musica | Bomba | Indovina chi | Azzardo | Timeline | Ultima spiaggia | Arena |
 
-Vincoli: mai due giochi in tempo reale di fila (Bomba, Arena, Speed Rush, Air Hockey, Black Jack), mai due giochi a prenotazione consecutivi (Musica, Indovina chi, Ruota), Arena a chiudere gli atti 2 e 5. Classifica rapida ai round 4, 12, 20, 28, 36; dettagliata ai round 8, 16, 24, 32, 40.
+Vincoli: mai due giochi in tempo reale di fila (Bomba, Arena, Speed Rush, Air Hockey, Black Jack), mai due giochi a prenotazione consecutivi (Musica, Indovina chi, Ruota), Arena a chiudere gli atti 3 e 5. Classifica rapida ai round 4, 12, 20, 28, 36; dettagliata ai round 8, 16, 24, 32, 40.
 
 ### Quattro bonus, dopo gli atti 1-4 (non consumano round)
 
@@ -34,7 +34,7 @@ Vincoli: mai due giochi in tempo reale di fila (Bomba, Arena, Speed Rush, Air Ho
 ### Round nuovi
 
 - **Bomba** (3 volte). Round di 90 s. Bombe: 2 per 4-6 squadre, 3 per 7-10. Chi la tiene risponde a una domanda a tempo (5 s): se giusta la passa a uno di 3 tavoli casuali, altrimenti la bomba resta e la miccia perde 3 s. La miccia dura 20-30 s ed è nascosta (solo scintille e battiti più veloci). All'esplosione chi la tiene perde 300 punti e una nuova bomba parte da un altro tavolo. Ogni squadra parte da 1000 punti di round, +50 per passaggio fino a +500, mai sotto zero. La bomba non torna subito a chi l'ha passata. Domande Vero/Falso nell'atto 1, a 3 opzioni negli atti 4 e 5, difficili con miccia più corta nell'atto 5.
-- **Ultima spiaggia** (5 volte, penultimo round di ogni atto). Cinque round; in ogni round si estrae una categoria. Ogni squadra sceglie un livello da 100 a 500 e lo consuma: ogni livello si usa una volta sola, quindi all'ultimo round ne resta uno. Ogni telefono riceve la domanda del proprio livello a quattro risposte, uguale per chi ha scelto lo stesso livello. Giusta = +livello, sbagliata o scaduta = −metà (100 → +100/−50, 500 → +500/−250). Chi non sceglie il livello entro 12 s prende il più basso rimasto.
+- **Ultima spiaggia** (5 volte: chiude gli atti 1, 2 e 4, penultimo negli atti 3 e 5). Cinque round; in ogni round si estrae una categoria. Ogni squadra sceglie un livello da 100 a 500 e lo consuma: ogni livello si usa una volta sola, quindi all'ultimo round ne resta uno. Ogni telefono riceve la domanda del proprio livello a quattro risposte, uguale per chi ha scelto lo stesso livello. Giusta = +livello, sbagliata o scaduta = −metà (100 → +100/−50, 500 → +500/−250). Chi non sceglie il livello entro 12 s prende il più basso rimasto.
 - **Azzardo** (2 volte, atti 2 e 5). 4 domande con risposta numerica. Per ogni domanda la TV mostra 4 fasce con la quota (più stretta è la fascia, più è alta). Ogni squadra distribuisce 100 gettoni nuovi sulle fasce dal telefono; scorciatoie "Tutto su una", "50-50", "Spalma". La TV svela il valore: i gettoni sulla fascia giusta pagano la quota (tetto 500 per domanda), gli altri sono persi, nessun punteggio negativo. Senza puntata, 25 gettoni per fascia. Le quote dipendono dall'ampiezza e dalla plausibilità, non da dove cade il valore, e sono tarate circa il 10% sotto il giusto. La TV mostra dove ha puntato il pubblico e nomina "il cecchino". Serve una banca di circa 60 domande numeriche con valori verificati.
 
 ### Da fare prima di tutto
@@ -97,7 +97,7 @@ flowchart LR
 
 ## 3. La scaletta: 40 round in 5 atti
 
-La scaletta definitiva è la tabella in "Decisioni definitive". Nel codice (`round-manager.service.ts`) è già allineata: il Cavallo non è più in scaletta (è tornato bonus dopo l'atto 3), Ultima spiaggia è fissa al penultimo round di ogni atto (7, 15, 23, 31, 39) e Azzardo esce due volte (atti 2 e 5). Classifiche: rapida ai round 4, 12, 20, 28, 36; dettagliata ai round 8, 16, 24, 32, 40.
+La scaletta definitiva è la tabella in "Decisioni definitive". Nel codice (`round-manager.service.ts`) è già allineata: il Cavallo non è più in scaletta (è tornato bonus dopo l'atto 3), Ultima spiaggia chiude gli atti 1, 2 e 4 (8, 16, 32) ed è penultimo negli atti 3 e 5 (23, 39), prima dell'Arena; Azzardo esce due volte (atti 2 e 5). Classifiche: rapida ai round 4, 12, 20, 28, 36; dettagliata ai round 8, 16, 24, 32, 40.
 
 ## 4. I giochi di round
 

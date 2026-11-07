@@ -28,16 +28,17 @@ const STORAGE_KEY = 'roundProgress';
  * 3 Celebrità (Indovina chi), 3 Black Jack, 3 Timeline, 2 Ruota, 2 Speed Rush,
  * 3 Time Buzzer, 3 Air Hockey e 5 Ultima spiaggia.
  *
- * Ultima spiaggia è fissa al penultimo round di ogni atto (7, 15, 23, 31, 39).
- * Ogni atto ha due giochi in tempo reale, mai consecutivi; i giochi a
- * prenotazione (Musica, Celebrità, Ruota) non si susseguono. Le aperture
- * cambiano di atto in atto e l'Arena chiude la serata.
+ * Ultima spiaggia chiude gli atti 1, 2 e 4 (8, 16, 32) ed è al penultimo
+ * round degli atti 3 e 5 (23, 39), subito prima dell'Arena (24, 40).
+ * I giochi in tempo reale non si susseguono; quelli a prenotazione
+ * (Musica, Celebrità, Ruota) non si susseguono. Le aperture cambiano di atto
+ * in atto e l'Arena chiude gli atti 3 e 5.
  */
 const ACT_DECKS: GameModeType[][] = [
-  ['QUIZ', 'MUSIC', 'BLACKJACK', 'TIME_BUZZER', 'TIMELINE', 'AIR_HOCKEY_BATTLE', 'ULTIMA_SPIAGGIA', 'BOMBA'],
-  ['AZZARDO', 'WHEEL_OF_FORTUNE', 'BLACKJACK', 'QUIZ', 'AIR_HOCKEY_BATTLE', 'TIME_BUZZER', 'ULTIMA_SPIAGGIA', 'ARENA'],
-  ['QUIZ', 'MUSIC', 'SPEED_RUSH', 'IMAGE_BLUR', 'AIR_HOCKEY_BATTLE', 'TIME_BUZZER', 'ULTIMA_SPIAGGIA', 'BLACKJACK'],
-  ['IMAGE_BLUR', 'BOMBA', 'MUSIC', 'QUIZ', 'WHEEL_OF_FORTUNE', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'SPEED_RUSH'],
+  ['QUIZ', 'MUSIC', 'BLACKJACK', 'TIME_BUZZER', 'BOMBA', 'TIMELINE', 'AIR_HOCKEY_BATTLE', 'ULTIMA_SPIAGGIA'],
+  ['AZZARDO', 'WHEEL_OF_FORTUNE', 'BLACKJACK', 'QUIZ', 'AIR_HOCKEY_BATTLE', 'TIME_BUZZER', 'MUSIC', 'ULTIMA_SPIAGGIA'],
+  ['QUIZ', 'SPEED_RUSH', 'IMAGE_BLUR', 'AIR_HOCKEY_BATTLE', 'TIME_BUZZER', 'BLACKJACK', 'ULTIMA_SPIAGGIA', 'ARENA'],
+  ['IMAGE_BLUR', 'BOMBA', 'MUSIC', 'QUIZ', 'WHEEL_OF_FORTUNE', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA'],
   ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'AZZARDO', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'ARENA'],
 ];
 
