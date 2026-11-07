@@ -1185,6 +1185,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.audio.playConfirm();
   }
 
+  /** Punti leggibili sul telefono, uguali per vincite e perdite. */
+  signedPoints(value: number | null | undefined): string {
+    const points = Number(value) || 0;
+    if (points === 0) return 'nessun punto';
+    return `${points > 0 ? '+' : ''}${points} punti`;
+  }
+
   isRedCard(card: string): boolean {
     const value = String(card ?? '');
     return value.includes('♥') || value.includes('♦');

@@ -424,7 +424,7 @@
     <div class="bonus-remote">
       <div class="game-head">
         <span class="game-tag buzz">🃏 BLACK JACK</span>
-        <span class="game-tip">Tavolo {{ blackjackState()?.index ?? 0 }}/{{ blackjackState()?.total ?? 0 }}</span>
+        <span class="game-tip">Round {{ blackjackState()?.round ?? 1 }}/{{ blackjackState()?.rounds ?? 3 }} · tavolo {{ blackjackState()?.index ?? 0 }}/{{ blackjackState()?.total ?? 0 }}</span>
       </div>
 
       @if (blackjackState()?.phase === 'FINALE') {
@@ -444,7 +444,7 @@
       </div>
       <p class="buzz-hint">
         Banco {{ blackjackState()?.result?.bankTotal }} ·
-        {{ (blackjackState()?.result?.points ?? 0) > 0 ? '+' + blackjackState()?.result?.points + ' punti' : 'nessun punto' }}
+        {{ signedPoints(blackjackState()?.result?.points) }}
       </p>
       } @else if (blackjackState()?.currentTable === nickname()) {
       <p class="buzz-hint">Tocca a te · {{ blackjackState()?.secondsLeft ?? 0 }}s</p>

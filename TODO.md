@@ -88,9 +88,13 @@ poi i giochi.
       con test). Il telefono pesca dal mazzo e non ripete mai lo stesso tipo due volte di fila.
 
 ### 7. Blackjack
-- [ ] Puntata 100/200/300 punti reali (mai sotto zero), naturale paga il doppio.
-- [ ] Mano della squadra di turno in TV accanto al banco, con effetti da bar (gettoni, "CARTA!", "LASCIA!").
-- [ ] Prima verificare dove vive il blackjack oggi (manche del bonus Casino o round) e uniformare `BonusType`.
+- [x] Tre round in cui la TV fa il banco contro ogni giocatore (3 × 8 mani). Vittoria +250 che si
+      somma ai round precedenti (250 → 500 → 750), naturale +500, sconfitta sempre −250 senza
+      cumuli e mai sotto zero; pari 0 (`blackjack-rules.ts`, con test).
+- [x] Mano della squadra di turno in TV accanto al banco, con gettoni, timbri "CARTA!" e "LASCIA!"
+      e i punti accumulati visibili per ogni tavolo.
+- [x] Verificato: il blackjack è un round della scaletta, non una manche del bonus Casino.
+      `BonusType` contiene solo CASINO, BASKET, CAVALLO e BIGLIE, quindi resta invariato.
 
 ### 8. Quota → "Azzardo"
 - [ ] Tre volte in serata con difficoltà crescente (facile/media, media, difficile), 4 manche:

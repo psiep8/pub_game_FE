@@ -82,10 +82,10 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     note: 'Tre domande: ogni esatta raddoppia la banca, tra una e l’altra si sceglie se incassare o rischiare.',
   },
   BLACKJACK: {
-    correct: '+250 alla prima vittoria, +500 se hai già vinto',
-    wrong: '0 (sballo, pari o mano persa)',
-    missed: '0 (allo scadere si sta)',
-    note: 'Le vittorie restano in memoria per tutta la serata: perdere non cancella il +500 delle mani successive.',
+    correct: '+250 a mano, +500 col naturale',
+    wrong: '−250 (mai sotto zero)',
+    missed: '0 al pari; −250 se si sballa',
+    note: 'Tre round: la TV fa il banco una volta per ogni giocatore. Le vittorie si sommano (250 → 500 → 750), le sconfitte restano 250 e non cumulano.',
   },
   ARENA: {
     correct: '+10 a risposta; +1000/+500 piazzamento',
