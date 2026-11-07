@@ -17,8 +17,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Bomba: la TV avvia e legge lo stato, i telefoni rispondono e scelgono il
- * prossimo tavolo. La soluzione delle domande non lascia mai il server.
+ * Bomba: la TV avvia e legge lo stato, i telefoni scelgono una casella per
+ * ondata. La posizione delle bombe non lascia mai il server prima della
+ * rivelazione.
  */
 @RestController
 @RequestMapping("/games")
@@ -48,27 +49,14 @@ public class BombaController {
         return json(bombaService.state(gameId, player));
     }
 
-    @PostMapping("/{gameId}/bomba/answer")
-    public ResponseEntity<String> answer(@PathVariable("gameId") Long gameId,
+    /** Una casella per squadra per ondata: chi sceglie la stessa condivide l'esito. */
+    @PostMapping("/{gameId}/bomba/pick")
+    public ResponseEntity<String> pick(@PathVariable("gameId") Long gameId,
             @RequestBody Map<String, Object> body) {
         try {
             String player = readString(body.get("playerName"));
-            int bombId = readInt(body.get("bombId"), -1);
-            int answerIndex = readInt(body.get("answerIndex"), -1);
-            return json(bombaService.answer(gameId, player, bombId, answerIndex));
-        } catch (IllegalArgumentException error) {
-            return error(error.getMessage());
-        }
-    }
-
-    @PostMapping("/{gameId}/bomba/pass")
-    public ResponseEntity<String> pass(@PathVariable("gameId") Long gameId,
-            @RequestBody Map<String, Object> body) {
-        try {
-            String player = readString(body.get("playerName"));
-            int bombId = readInt(body.get("bombId"), -1);
-            String target = readString(body.get("target"));
-            return json(bombaService.pass(gameId, player, bombId, target));
+            int cellId = readInt(body.get("cellId"), -1);
+            return json(bombaService.pick(gameId, player, cellId));
         } catch (IllegalArgumentException error) {
             return error(error.getMessage());
         }

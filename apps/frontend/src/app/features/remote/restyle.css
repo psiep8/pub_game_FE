@@ -688,3 +688,23 @@
   margin: 0 2px -2px;
   z-index: 90;
 }
+
+/* Bomba — griglia delle caselle sul telefono (carta e inchiostro). */
+.bomba-cells { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+.bomba-cell {
+  display: flex; align-items: center; gap: 7px; padding: 9px 8px;
+  background: var(--paper-hi); color: var(--coal);
+  border: 2px solid var(--coal); box-shadow: 4px 4px 0 var(--coal);
+  font-family: var(--font-mono); font-size: .68rem; text-align: left;
+}
+.bomba-cell:disabled { opacity: .5; }
+.bomba-cell.picked { background: var(--acid); box-shadow: 4px 4px 0 var(--tomato); opacity: 1; }
+.bomba-cell.revealed.safe, .bomba-cell.safe { background: var(--mint); }
+.bomba-cell.bomb { background: var(--tomato); color: var(--paper-hi); }
+.bomba-cell-id {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 19px; height: 19px; border: 2px solid currentColor;
+  font-weight: 700; font-size: .58rem; flex: none;
+}
+.bomba-cell-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bomba-your { margin: 0; font-family: var(--font-mono); font-size: .68rem; letter-spacing: .06em; color: var(--ink-dim); }

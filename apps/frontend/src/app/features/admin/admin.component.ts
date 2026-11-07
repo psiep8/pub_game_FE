@@ -280,7 +280,7 @@ export class Admin implements OnInit, OnDestroy {
           break;
 
         case 'BOMBA':
-          answer = 'Bombe, micce e passaggi in TV; risposte sul telefono';
+          answer = 'Tabellone e bombe in TV; ogni telefono sceglie una casella';
           break;
 
         case 'SPEED_RUSH':

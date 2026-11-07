@@ -52,10 +52,10 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     note: 'Tre manche; dopo la prima esce il terzo più lento, dopo la seconda gli ultimi due. I finalisti prendono +150.',
   },
   BOMBA: {
-    correct: '+50 per passaggio (max +500)',
-    wrong: 'miccia −3s',
-    missed: 'miccia −3s',
-    note: 'Ogni squadra parte da 1000: lo scoppio costa −300, il delta entra in classifica.',
+    correct: '0: le caselle sicure si salvano',
+    wrong: '−200 per bomba colpita',
+    missed: '0 se non prendi bombe',
+    note: '3 ondate da 15 s; chi sceglie la stessa casella condivide l\'esito. Mai sotto zero, le bombe rimaste si disarmano.',
   },
   SPEED_RUSH: {
     correct: '500 al primo, poi a scalare',

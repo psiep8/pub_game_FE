@@ -97,14 +97,14 @@ export const DEMO_SCRIPTS: Record<string, DemoScript> = {
   BOMBA: {
     title: 'BOMBA',
     icon: '💣',
-    tv: ['Due o tre bombe tra i tavoli', 'Miccia nascosta: solo scintille', 'Scoppio, −300 e nuova bomba'],
-    remote: ['Rispondi in 5 secondi', 'Se giusto scegli a chi passarla', 'La miccia perde 3 secondi se sbagli'],
+    tv: ['Tabellone 2n + n/2 caselle', 'Bombe nascoste fino alla rivelazione', 'Tre ondate da 15 secondi'],
+    remote: ['Scegli una casella per ondata', 'Chi sceglie la stessa condivide l\'esito', 'Nessuna domanda: conta solo la scelta'],
     scoring: [
-      { label: 'Passaggio riuscito', value: '+50 (max +500)', tone: 'good' },
-      { label: 'Scoppio', value: '−300', tone: 'bad' },
-      { label: 'Base round', value: '1000 punti', tone: 'neutral' },
+      { label: 'Casella sicura', value: '0', tone: 'good' },
+      { label: 'Bomba colpita', value: '−200', tone: 'bad' },
+      { label: 'Bombe mai scelte', value: 'disarmate', tone: 'neutral' },
     ],
-    note: 'La bomba non torna subito a chi l\'ha passata; la miccia non si resetta mai.',
+    note: 'Solo malus: chi non prende bombe non perde nulla. Mai sotto zero in classifica.',
   },
   SPEED_RUSH: {
     title: 'SPEED RUSH',

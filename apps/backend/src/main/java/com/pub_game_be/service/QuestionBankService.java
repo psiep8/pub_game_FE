@@ -45,6 +45,10 @@ public class QuestionBankService {
             String correctAnswer, String kind) {
     }
 
+    /** Tabellone Bomba: elementi veri della categoria e intrusi da bomba. */
+    public record ScossaBoard(String prompt, List<String> safe, List<String> intruders) {
+    }
+
     /** Riga della banca domande. */
     private record BankQuestion(String id, String category, String type, String difficulty,
             String question, String correctAnswer, List<String> options, String explanation) {
@@ -566,6 +570,93 @@ public class QuestionBankService {
             case "hard", "difficile" -> "HARD";
             default -> "MEDIUM";
         };
+    }
+
+    /**
+     * Tabellone della Bomba: elementi veri di una categoria e intrusi da
+     * piazzare come bombe. Non c'è una risposta corretta da nascondere: conta
+     * solo se la casella appartiene alla categoria.
+     */
+    public ScossaBoard scossaBoard(int cells, int bombs) {
+        int safeNeeded = Math.max(1, cells - bombs);
+        int bombsNeeded = Math.max(1, bombs);
+
+        Map<String, List<String>> byCategory = scossaItems();
+        List<String> categories = new ArrayList<>(byCategory.keySet());
+        Collections.shuffle(categories, random);
+
+        for (String category : categories) {
+            List<String> members = byCategory.get(category);
+            if (members.size() < safeNeeded) {
+                continue;
+            }
+
+            Set<String> used = new HashSet<>();
+            for (String value : members) {
+                used.add(value.toLowerCase(Locale.ROOT));
+            }
+
+            List<String> intruders = new ArrayList<>();
+            List<String> others = new ArrayList<>(categories);
+            others.remove(category);
+            Collections.shuffle(others, random);
+            for (String other : others) {
+                for (String value : byCategory.get(other)) {
+                    if (intruders.size() >= bombsNeeded) {
+                        break;
+                    }
+                    if (used.add(value.toLowerCase(Locale.ROOT))) {
+                        intruders.add(value);
+                    }
+                }
+                if (intruders.size() >= bombsNeeded) {
+                    break;
+                }
+            }
+            if (intruders.size() < bombsNeeded) {
+                continue;
+            }
+
+            List<String> safe = new ArrayList<>(members);
+            Collections.shuffle(safe, random);
+            return new ScossaBoard(
+                    "Quale tra queste NON appartiene a «" + category + "»?",
+                    List.copyOf(safe.subList(0, safeNeeded)),
+                    List.copyOf(intruders));
+        }
+
+        // Banca vuota o troppo povera: tabellone di riserva, sempre giocabile.
+        List<String> safe = new ArrayList<>(List.of(
+                "Roma", "Milano", "Napoli", "Firenze", "Torino", "Bologna",
+                "Venezia", "Palermo", "Genova", "Verona", "Bari", "Catania",
+                "Trieste", "Padova", "Parma", "Cagliari", "Perugia", "Ancona"));
+        Collections.shuffle(safe, random);
+        List<String> intruders = new ArrayList<>(List.of("Parigi", "Madrid", "Berlino", "Lisbona"));
+        Collections.shuffle(intruders, random);
+        return new ScossaBoard(
+                "Quale tra queste NON è una città italiana?",
+                safe.subList(0, Math.min(safeNeeded, safe.size())),
+                intruders.subList(0, Math.min(bombsNeeded, intruders.size())));
+    }
+
+    /** Elementi brevi per categoria: risposte corrette delle domande quiz. */
+    private Map<String, List<String>> scossaItems() {
+        Map<String, List<String>> byCategory = new LinkedHashMap<>();
+        for (BankQuestion question : allQuestions()) {
+            if (!"QUIZ".equals(question.type())) {
+                continue;
+            }
+            String answer = question.correctAnswer();
+            if (answer == null || answer.isBlank() || answer.length() > 34
+                    || !question.options().contains(answer)) {
+                continue;
+            }
+            List<String> items = byCategory.computeIfAbsent(question.category(), key -> new ArrayList<>());
+            if (items.stream().noneMatch(existing -> existing.equalsIgnoreCase(answer))) {
+                items.add(answer);
+            }
+        }
+        return byCategory;
     }
 
     public int bankSize() {

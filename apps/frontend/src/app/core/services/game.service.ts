@@ -193,24 +193,11 @@ export class GameService {
     return this.http.get<any>(`${this.baseUrl}/games/${gameId}/bomba/state${query}`);
   }
 
-  answerBomba(
-    gameId: number,
-    playerName: string,
-    bombId: number,
-    answerIndex: number
-  ): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/bomba/answer`, {
+  /** Bomba: una casella per ondata, l'esito lo calcola il server. */
+  pickBomba(gameId: number, playerName: string, cellId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/bomba/pick`, {
       playerName,
-      bombId,
-      answerIndex,
-    });
-  }
-
-  passBomba(gameId: number, playerName: string, bombId: number, target: string): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/bomba/pass`, {
-      playerName,
-      bombId,
-      target,
+      cellId,
     });
   }
 

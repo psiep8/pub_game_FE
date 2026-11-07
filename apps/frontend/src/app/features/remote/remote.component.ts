@@ -214,8 +214,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   // BOMBA: lo stato pubblico e la vista privata del possessore arrivano dal
   // backend. Il telefono non calcola mai micce né punteggi.
   bombaState = signal<any>(null);
-  bombaView = signal<any>(null);
   bombaFlash = signal<string | null>(null);
+  bombaPicked = signal<number | null>(null);
   casinoState = signal<any>(null);
   casinoChoice = signal<string | null>(null);
   blackjackState = signal<any>(null);
@@ -237,9 +237,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private bombaPoll?: ReturnType<typeof setInterval>;
   private bombaPollBusy = false;
   private bombaStarted = false;
-  private bombaFirstState = true;
-  private bombaLastExplosion = 0;
-  private bombaQuestionKey = '';
+  private bombaWave = 0;
+  private bombaHitShown = false;
   private bombaFlashTimer?: ReturnType<typeof setTimeout>;
 
   draggingId = signal<number | null>(null);
@@ -480,9 +479,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.stopBombaPolling();
           this.bombaStarted = false;
           this.bombaState.set(null);
-          this.bombaView.set(null);
           this.bombaFlash.set(null);
-          this.bombaFirstState = true;
+          this.bombaPicked.set(null);
+          this.bombaWave = 0;
+          this.bombaHitShown = false;
           this.casinoState.set(null);
           this.cavalloState.set(null);
           this.biglieState.set(null);
@@ -897,10 +897,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.buzzError.set('');
     } else if (type === 'BOMBA') {
       this.bombaState.set(null);
-      this.bombaView.set(null);
       this.bombaFlash.set(null);
-      this.bombaFirstState = true;
-      this.bombaQuestionKey = '';
+      this.bombaPicked.set(null);
+      this.bombaWave = 0;
+      this.bombaHitShown = false;
       this.bombaStarted = true;
       this.startBombaPolling();
     } else if (type === 'BONUS_CASINO') {
@@ -1290,7 +1290,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.bombaState.set(state);
     if (state.active === false) {
       this.stopBombaPolling();
-      this.bombaView.set(null);
       this.gameState.set(PlayerStatus.WAITING);
       return;
     }
@@ -1301,111 +1300,49 @@ export class RemoteComponent implements OnInit, OnDestroy {
     }
 
     const you = state.you ?? null;
-    this.bombaView.set(you);
     this.gameState.set(PlayerStatus.VOTING);
 
-    if (you?.question) {
-      const key = `${you.bombId}:${you.question}`;
-      if (key !== this.bombaQuestionKey) {
-        this.bombaQuestionKey = key;
-        this.hasAnswered.set(false);
-        this.selectedAnswer.set(null);
-        this.vibrate(20);
-      }
-    } else {
-      this.bombaQuestionKey = '';
+    const wave = Number(state.wave) || 0;
+    if (wave !== this.bombaWave) {
+      this.bombaWave = wave;
+      this.bombaPicked.set(you?.cellId ?? null);
       this.hasAnswered.set(false);
       this.selectedAnswer.set(null);
+      this.vibrate(15);
     }
 
-    const explosions = Array.isArray(state.events)
-      ? state.events.filter((event: any) => event.kind === 'explode')
-      : [];
-    if (this.bombaFirstState) {
-      this.bombaLastExplosion = explosions.at(-1)?.id ?? 0;
-      this.bombaFirstState = false;
+    if (you?.cellId && this.bombaPicked() === null) {
+      this.bombaPicked.set(you.cellId);
     }
-    const explosion = explosions.find((event: any) => event.id > this.bombaLastExplosion);
-    if (explosion) {
-      this.bombaLastExplosion = explosion.id;
-      if (explosion.player === this.nickname()) {
-        this.flashBomba('💥 BOOM! −300');
-        this.vibrate([160, 60, 160]);
-        this.audio.playError();
-      } else {
-        this.flashBomba(`💥 ${explosion.player} −300`);
-      }
+
+    // Rivelazione: chi ha preso una bomba se ne accorge subito.
+    if (state.phase === 'REVEAL' && you?.hit && !this.bombaHitShown) {
+      this.bombaHitShown = true;
+      this.flashBomba(`💥 BOOM! −${Math.abs(Number(you.penalty) || 200)}`);
+      this.vibrate([160, 60, 160]);
+      this.audio.playError();
+    }
+    if (state.phase !== 'REVEAL') {
+      this.bombaHitShown = false;
     }
   }
 
-  answerBomba(index: number): void {
-    const view = this.bombaView();
+  /** Bomba: ogni telefono sceglie una casella per ondata. */
+  pickBombaCell(cellId: number): void {
     const player = this.nickname();
-    if (!view?.question || !player || this.hasAnswered()) return;
+    const state = this.bombaState();
+    if (!player || !state || state.phase !== 'PICK' || this.bombaPicked() !== null) return;
 
-    this.hasAnswered.set(true);
-    this.gameService.answerBomba(this.gameId(), player, view.bombId, index).subscribe({
-      next: (result: any) => {
-        if (result?.correct) {
-          this.hasAnswered.set(false);
-          this.selectedAnswer.set(null);
-          this.audio.playConfirm();
-          if (result.passOptions?.length) {
-            this.bombaView.update((current: any) => ({
-              ...current,
-              question: null,
-              options: [],
-              questionSecondsLeft: 0,
-              passOptions: result.passOptions,
-              passSecondsLeft: 5,
-            }));
-            this.vibrate(30);
-          } else {
-            this.flashBomba('Nessun tavolo libero: miccia −3s');
-            this.pollBombaState();
-          }
-        } else {
-          // Blocca la vecchia domanda finché non arriva quella nuova: evita
-          // che un secondo tocco finisca sulla domanda già sostituita.
-          this.hasAnswered.set(true);
-          this.bombaView.update((current: any) =>
-            current ? { ...current, question: null, options: [], questionSecondsLeft: 0 } : current,
-          );
-          this.flashBomba(result?.exploded ? '💥 BOOM! −300' : 'MICCIA −3s');
-          this.vibrate([80, 40, 80]);
-          this.audio.playError();
-          this.pollBombaState();
-        }
-      },
-      error: (error: any) => {
-        this.hasAnswered.set(false);
-        this.selectedAnswer.set(null);
-        this.flashBomba(error?.error?.error ?? 'Riprova');
-        this.audio.playError();
-        this.pollBombaState();
-      },
-    });
-  }
-
-  passBomba(target: string): void {
-    const view = this.bombaView();
-    const player = this.nickname();
-    if (!view?.passOptions?.includes(target) || !player || this.hasAnswered()) return;
-
-    this.hasAnswered.set(true);
-    this.gameService.passBomba(this.gameId(), player, view.bombId, target).subscribe({
-      next: (state: any) => {
-        this.hasAnswered.set(false);
-        this.selectedAnswer.set(null);
-        this.bombaFirstState = true;
-        this.applyBombaState(state);
-        this.vibrate(40);
+    this.bombaPicked.set(cellId);
+    this.gameService.pickBomba(this.gameId(), player, cellId).subscribe({
+      next: (next: any) => {
         this.audio.playConfirm();
+        this.vibrate(30);
+        this.applyBombaState(next);
       },
       error: (error: any) => {
-        this.hasAnswered.set(false);
-        this.selectedAnswer.set(null);
-        this.flashBomba(error?.error?.error ?? 'Passaggio non riuscito');
+        this.bombaPicked.set(null);
+        this.flashBomba(error?.error?.error ?? 'Scelta non riuscita');
         this.audio.playError();
         this.pollBombaState();
       },
@@ -1421,17 +1358,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
     }, 2400);
   }
 
-
-  bombaHolderNames(): string {
-    const bombs = this.bombaState()?.bombs ?? [];
-    return bombs.map((bomb: any) => bomb.holder).filter(Boolean).join(' · ') || 'in caricamento';
-  }
-
-  bombaMyScore(): number {
-    const player = this.nickname();
-    const score = player ? this.bombaState()?.scores?.[player] : null;
-    return Number(score ?? this.bombaView()?.score ?? 1000);
-  }
 
   // ------------------------------------------------- Giochi simultanei
 

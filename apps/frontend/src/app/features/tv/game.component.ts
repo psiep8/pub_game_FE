@@ -527,6 +527,8 @@ export class GameComponent implements OnInit, OnDestroy {
         onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
         onRoundEnded: () => this.onArenaEnded(),
         onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!, event),
+        playerPoints: (playerName: string) =>
+          this.leaderboardService.getPlayerStats(playerName)?.totalPoints ?? 0,
         startTimeBuzzer: (manche: number) => new Promise<number | null>((resolve) => {
           // Il via ai telefoni lo manda il backend, non la TV: così è lui a
           // sapere da quando parte il cronometro e può validare i tempi.
@@ -555,11 +557,8 @@ export class GameComponent implements OnInit, OnDestroy {
           state: (player?: string) => firstValueFrom(
             this.gameService.getBombaState(this.currentGameId()!, player),
           ),
-          answer: (playerName: string, bombId: number, answerIndex: number) => firstValueFrom(
-            this.gameService.answerBomba(this.currentGameId()!, playerName, bombId, answerIndex),
-          ),
-          pass: (playerName: string, bombId: number, target: string) => firstValueFrom(
-            this.gameService.passBomba(this.currentGameId()!, playerName, bombId, target),
+          pick: (playerName: string, cellId: number) => firstValueFrom(
+            this.gameService.pickBomba(this.currentGameId()!, playerName, cellId),
           ),
           pause: () => firstValueFrom(this.gameService.pauseBomba(this.currentGameId()!)),
           resume: () => firstValueFrom(this.gameService.resumeBomba(this.currentGameId()!)),
@@ -1413,7 +1412,7 @@ export class GameComponent implements OnInit, OnDestroy {
       case 'BLACKJACK':
         return 'Mani e banco svelati in TV a ogni tavolo';
       case 'BOMBA':
-        return 'Bombe, passaggi e scoppi in TV; risposte sul telefono';
+        return 'Tabellone e bombe in TV; ogni telefono sceglie una casella';
       case 'AIR_HOCKEY_BATTLE':
         return 'Domande e set in TV; risposte sul telefono';
       case 'SPEED_RUSH':
