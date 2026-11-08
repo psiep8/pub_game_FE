@@ -74,7 +74,8 @@ public class PartyGameService {
             return false;
         }
         return switch (type.toUpperCase(Locale.ROOT)) {
-            case "TIMELINE", "TIME_BUZZER", "BOMBA", "SPEED_RUSH", "AIR_HOCKEY_BATTLE" -> true;
+            case "TIMELINE", "TIME_BUZZER", "BOMBA", "SPEED_RUSH", "AIR_HOCKEY_BATTLE",
+                    "BLACKJACK" -> true;
             default -> false;
         };
     }
@@ -94,6 +95,9 @@ public class PartyGameService {
             case "BOMBA" -> configPayload("BOMBA", 90, act);
             case "SPEED_RUSH" -> configPayload("SPEED_RUSH", 60, act);
             case "AIR_HOCKEY_BATTLE" -> configPayload("AIR_HOCKEY_BATTLE", 60, act);
+            // Black Jack non ha domande né stato server: basta registrare il
+            // round, mazzo e banco vivono nel mode della TV.
+            case "BLACKJACK" -> configPayload("BLACKJACK", 600, act);
             default -> null;
         };
     }
@@ -393,6 +397,7 @@ public class PartyGameService {
         payload.put("question", switch (type) {
             case "SPEED_RUSH" -> "Speed Rush!";
             case "BOMBA" -> "Passa la bomba!";
+            case "BLACKJACK" -> "Black Jack contro il banco";
             default -> "Air Hockey Battle!";
         });
         payload.put("duration", durationSeconds);

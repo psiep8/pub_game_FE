@@ -337,6 +337,10 @@ public class GameStateService {
             case "BOMBA" -> Math.min(props.getAnswerWindowSeconds(), 105);
             case "SPEED_RUSH" -> Math.min(props.getAnswerWindowSeconds(), 75);
             case "TIME_BUZZER" -> Math.min(props.getAnswerWindowSeconds(), 60);
+            // Tre giri su tutti i tavoli: il round deve restare aperto per
+            // l'intera partita, altrimenti dopo un refresh lo snapshot risulta
+            // scaduto e il telefono non ritrova il Black Jack.
+            case "BLACKJACK" -> 900;
             default -> props.getAnswerWindowSeconds();
         };
     }

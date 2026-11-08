@@ -505,32 +505,22 @@ export class GameComponent implements OnInit, OnDestroy {
 
     try {
       const categories = this.allCategories();
-      let nextRound: any;
-      if (extractedType === 'BLACKJACK') {
-        // Il Black Jack non usa una domanda: il mazzo e il banco vivono nel
-        // mode della TV. Non serve una chiamata al generatore AI, che per
-        // questo tipo non ha payload da restituire.
-        nextRound = {
-          id: -Date.now(),
-          type: 'BLACKJACK',
-          payload: JSON.stringify({ type: 'BLACKJACK' }),
-          roundIndex: this.roundManager.getCurrentRound(),
-          status: 'VOTING',
-        };
-      } else {
-        const categoryName = this.getCategoryForType(extractedType);
-        const selectedCategory = categories.find(c => c.name === categoryName);
-        if (selectedCategory) this.selectedCategoryId.set(selectedCategory.id);
+      const categoryName = this.getCategoryForType(extractedType);
+      const selectedCategory = categories.find(c => c.name === categoryName);
+      if (selectedCategory) this.selectedCategoryId.set(selectedCategory.id);
 
-        nextRound = await firstValueFrom(
-          this.aiService.triggerNewAiRound(
-            this.currentGameId()!,
-            categoryName,
-            extractedType,
-            this.azzardoDifficulty(extractedType)
-          )
-        );
-      }
+      // Anche il Black Jack passa dal backend: così il round entra nello stato
+      // autorevole (roundIndex, evento ROUND_STARTED, snapshot) come tutti gli
+      // altri giochi. Mazzo e banco restano nel mode della TV, il payload è
+      // solo la configurazione del round.
+      const nextRound: any = await firstValueFrom(
+        this.aiService.triggerNewAiRound(
+          this.currentGameId()!,
+          categoryName,
+          extractedType,
+          this.azzardoDifficulty(extractedType)
+        )
+      );
 
 
 
