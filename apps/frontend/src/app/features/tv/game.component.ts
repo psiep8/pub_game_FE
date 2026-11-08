@@ -1409,13 +1409,20 @@ export class GameComponent implements OnInit, OnDestroy {
   confirmReset() {
     this.showResetModal.set(false);
 
-
     this.roundManager.resetGame();
-
-
     this.leaderboardService.reset();
 
-    location.reload();
+    // Il reset locale non basta: il server resterebbe al round della serata
+    // precedente. Azzeriamo anche stato, eventi e punteggi, poi ricarichiamo.
+    const gameId = this.currentGameId();
+    if (!gameId) {
+      location.reload();
+      return;
+    }
+    this.gameService.resetGame(gameId).subscribe({
+      next: () => location.reload(),
+      error: () => location.reload(),
+    });
   }
 
   // ── Demo animate (TV, remote, punti) ────────────────────────────────

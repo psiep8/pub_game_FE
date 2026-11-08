@@ -121,7 +121,9 @@ public class ReliabilityController {
 
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("snapshot", JsonSupport.toMap(snapshot));
-        out.put("events", sync.get("events"));
+        // JSONArray è un bean per Jackson: senza conversione finiva come
+        // {"empty":false} e il client non poteva iterarlo.
+        out.put("events", JsonSupport.toList(sync.getJSONArray("events")));
         out.put("fromSeq", sync.getLong("fromSeq"));
         out.put("toSeq", sync.getLong("toSeq"));
         out.put("complete", sync.getBoolean("complete"));

@@ -221,6 +221,11 @@ export class GameService {
     return this.http.post<any>(`${this.baseUrl}/games/${gameId}/party/reset`, {});
   }
 
+  /** Reset completo della partita: stato, eventi, round e punteggi. */
+  resetGame(gameId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/reset`, {});
+  }
+
   /** Ultima spiaggia: il livello scelto resta consumato nelle prossime occorrenze. */
   recordUltimaSpiaggiaLevel(
     gameId: number,

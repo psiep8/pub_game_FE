@@ -12,4 +12,6 @@ public interface GameRoundRepository extends JpaRepository<GameRound, Long> {
     long countByGameId(Long gameId);
 
     Optional<GameRound> findFirstByGameIdOrderByRoundIndexDesc(Long gameId);
+
+    long deleteByGameId(Long gameId);
 }

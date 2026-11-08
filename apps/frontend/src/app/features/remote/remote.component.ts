@@ -324,8 +324,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
     // Sessione + heartbeat: al riaggancio il telefono riprende la stessa
     // squadra e richiede lo stato autorevole, senza ricaricare la pagina.
-    this.reliability.start(1, 'REMOTE', this.nickname() ?? '');
+    // Prima l'ascolto, poi l'avvio: il sync iniziale può rispondere subito e
+    // senza sottoscrizione lo snapshot andrebbe perso.
     this.reliability.syncState$.subscribe((snapshot: any) => this.applyServerSnapshot(snapshot));
+    this.reliability.start(1, 'REMOTE', this.nickname() ?? '');
 
     this.gameService.getCategories().subscribe({
       next: (cats) => {
@@ -1335,14 +1337,17 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   private parsePayload(payload: any): any {
     if (!payload) return {};
-    if (typeof payload === 'string') {
+    let value = payload;
+    // Alcuni snapshot salvano il payload come stringa JSON dentro un'altra
+    // stringa JSON: si scarta l'involucro finché non resta un oggetto.
+    for (let i = 0; i < 2 && typeof value === 'string'; i++) {
       try {
-        return JSON.parse(payload);
+        value = JSON.parse(value);
       } catch {
         return {};
       }
     }
-    return payload;
+    return typeof value === 'object' && value !== null ? value : {};
   }
 
   orderedCards(): Array<{ id: number; label: string }> {
@@ -1706,14 +1711,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
     }
     if (this.hasAnswered()) return;
 
-    // Round con stato locale guidato dalla TV: non si ricostruisce a mano,
-    // si aspetta il prossimo START_VOTING invece di rischiare doppioni.
-    if (['TIMELINE', 'TIME_BUZZER', 'BOMBA', 'SPEED_RUSH', 'AIR_HOCKEY_BATTLE', 'CAVALLO', 'ULTIMA_SPIAGGIA'].includes(type)) return;
+    // Round già mostrato: un sync non deve riaprire voti o resettare il tabellone.
+    if (this.questionType() === type && this.gameState() === PlayerStatus.VOTING) return;
 
+    // Anche i round guidati dalla TV (Bomba, Timeline, Ultima spiaggia, ...)
+    // vanno riaperti dal snapshot: dopo un refresh il telefono deve ritrovare
+    // il round in corso, non restare su "In attesa" fino al prossimo START_VOTING.
     const payload = round?.payload ?? snapshot.payload;
-    if (payload && this.gameState() === 'WAITING') {
-      this.onStartVoting(type, payload);
-    }
+    this.onStartVoting(type, payload);
   }
 
   onRoundEnd() {

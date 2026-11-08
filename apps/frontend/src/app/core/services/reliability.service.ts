@@ -72,7 +72,12 @@ export class ReliabilityService {
       void this.onReconnected();
     });
 
-    void this.ensureSession();
+    // Primo sync esplicito dopo la sessione: non basta aspettare la WebSocket,
+    // perché se la socket non si autentica `connectedAt$` non arriva mai e il
+    // telefono resterebbe su "In attesa" anche con un round aperto.
+    void this.ensureSession().then((registered) => {
+      if (registered) void this.sync();
+    });
     this.startHeartbeat();
   }
 
@@ -127,6 +132,10 @@ export class ReliabilityService {
       this.resumedSession.set(!!response?.resumed);
       this.duplicateDisplay.set(!!response?.duplicateDisplay);
       this.stateVersion.set(Number(response?.stateVersion ?? this.stateVersion()));
+      // Il server ha risposto: la sessione è viva anche se la socket STOMP è
+      // ancora in riapertura. Senza questo, la badge restava su "Riconnessione"
+      // anche con tutto funzionante.
+      this.online.set(true);
       this.lastError.set(null);
       return true;
     } catch (error) {
@@ -154,11 +163,15 @@ export class ReliabilityService {
       this.lastSyncAt.set(Date.now());
       this.lastError.set(null);
 
-      for (const event of response?.events ?? []) {
+      // Il server può mandare `events` come lista vuota o come oggetto: senza
+      // il controllo il for..of lanciava e il sync veniva marcato fallito.
+      const missed = Array.isArray(response?.events) ? response.events : [];
+      for (const event of missed) {
         this.applyEvent(event);
       }
       this.syncState$.next(snapshot);
     } catch (error) {
+      console.error('❌ Sincronizzazione non riuscita', error);
       this.online.set(false);
       this.lastError.set('Sincronizzazione non riuscita');
     } finally {
@@ -189,7 +202,10 @@ export class ReliabilityService {
       }
       if (response?.needsSync) {
         await this.sync();
-      } else {
+      } else if (this.lastSyncAt() !== null) {
+        // Senza un sync riuscito il seq non si allinea: altrimenti un telefono
+        // appena ricaricato salterebbe gli eventi persi senza mai applicare lo
+        // snapshot e resterebbe bloccato sulla schermata di attesa.
         this.seq.set(Number(response?.seq ?? this.seq()));
       }
     } catch (error) {

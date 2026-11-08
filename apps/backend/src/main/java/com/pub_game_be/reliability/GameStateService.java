@@ -199,6 +199,31 @@ public class GameStateService {
         return out;
     }
 
+    /**
+     * Azzera la partita: nessun round aperto, contatore a zero, eventi e round
+     * cancellati. Serve al reset della TV, che altrimenti ripartiva da round 1
+     * mentre il server restava al round della serata precedente.
+     */
+    public void reset(long gameId) {
+        tx.executeWithoutResult(status -> {
+            events.deleteByGameId(gameId);
+            rounds.deleteByGameId(gameId);
+            GameStateEntity state = states.findById(gameId).orElseGet(() -> newState(gameId));
+            state.setStatus("CREATED");
+            state.setRoundType(null);
+            state.setRoundIndex(0);
+            state.setRoundKey(null);
+            state.setPayload(null);
+            state.setRoundStartedAt(null);
+            state.setRoundDeadlineAt(null);
+            state.setSeq(0);
+            state.setVersion(state.getVersion() + 1);
+            state.setUpdatedAt(System.currentTimeMillis());
+            state.setLastSnapshotAt(state.getUpdatedAt());
+            states.save(state);
+        });
+    }
+
     /** Eventi successivi alla sequenza del client, in ordine. */
     public JSONArray eventsSince(long gameId, long sinceSeq) {
         List<GameEventEntity> found = events

@@ -9,6 +9,7 @@ import com.pub_game_be.reliability.GameStateService;
 import com.pub_game_be.reliability.IdempotencyService;
 import com.pub_game_be.repository.GameRepository;
 import com.pub_game_be.repository.GameRoundRepository;
+import com.pub_game_be.service.BombaService;
 import com.pub_game_be.service.GameService;
 import com.pub_game_be.service.QuestionHistoryService;
 import com.pub_game_be.service.QuestionPoolService;
@@ -45,6 +46,7 @@ public class GameController {
     private final GameStateService gameStateService;
     private final IdempotencyService idempotencyService;
     private final UltimaSpiaggiaLevelService ultimaSpiaggiaLevelService;
+    private final BombaService bombaService;
 
     public GameController(GameRepository gameRepo,
             GameRoundRepository gameRoundRepository,
@@ -57,7 +59,8 @@ public class GameController {
             PartyGameService partyGameService,
             GameStateService gameStateService,
             IdempotencyService idempotencyService,
-            UltimaSpiaggiaLevelService ultimaSpiaggiaLevelService) {
+            UltimaSpiaggiaLevelService ultimaSpiaggiaLevelService,
+            BombaService bombaService) {
         this.gameRepo = gameRepo;
         this.gameRoundRepository = gameRoundRepository;
         this.simpleRoundService = simpleRoundService;
@@ -70,6 +73,7 @@ public class GameController {
         this.gameStateService = gameStateService;
         this.idempotencyService = idempotencyService;
         this.ultimaSpiaggiaLevelService = ultimaSpiaggiaLevelService;
+        this.bombaService = bombaService;
     }
 
     @PostMapping
@@ -517,6 +521,22 @@ public class GameController {
         Map<String, Integer> scores = questionHistory.scores(gameId);
         int bestScore = scores.values().stream().mapToInt(Integer::intValue).max().orElse(0);
         return Map.of("gameId", gameId, "scores", scores, "bestScore", bestScore);
+    }
+
+    /**
+     * Reset completo della partita: stato autorevole, eventi, round, punteggi e
+     * giochi party. La TV lo chiama prima di ricaricare, così il contatore dei
+     * round riparte da 1 anche sul server.
+     */
+    @PostMapping("/{gameId}/reset")
+    public Map<String, Object> resetGame(@PathVariable("gameId") Long gameId) {
+        gameStateService.reset(gameId);
+        questionHistory.forget(gameId);
+        questionPoolService.clear(gameId);
+        ultimaSpiaggiaLevelService.clear(gameId);
+        partyGameService.forget(gameId);
+        bombaService.reset(gameId);
+        return Map.of("reset", true, "gameId", gameId);
     }
 
     /** Azzera memoria e punteggi dell'arena (nuova partita o reset dalla TV). */
