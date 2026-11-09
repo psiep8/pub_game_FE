@@ -246,14 +246,14 @@ public class GameStateService {
         boolean reset = sinceSeq > currentSeq;
         long from = reset ? 0 : Math.max(0, sinceSeq);
         JSONArray missed = eventsSince(gameId, from);
+        long to = missed.isEmpty() ? from : missed.getJSONObject(missed.length() - 1).getLong("seq");
 
         JSONObject out = new JSONObject();
         out.put("snapshot", snapshot);
         out.put("events", missed);
         out.put("fromSeq", from);
-        out.put("toSeq", currentSeq);
-        // complete = il client ha ricevuto tutto ciò che serve per allinearsi.
-        out.put("complete", true);
+        out.put("toSeq", to);
+        out.put("complete", to >= currentSeq);
         out.put("stale", reset);
         out.put("serverTime", System.currentTimeMillis());
         return out;

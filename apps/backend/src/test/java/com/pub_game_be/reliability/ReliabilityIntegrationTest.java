@@ -54,6 +54,9 @@ class ReliabilityIntegrationTest {
     @Autowired
     private DeviceSessionService sessions;
 
+    @Autowired
+    private ReliabilityProperties properties;
+
     @Test
     void rispostaRipetutaNonAssegnaDueVolteIPunti() {
         long gameId = 501L;
@@ -108,6 +111,30 @@ class ReliabilityIntegrationTest {
 
         // Chi è già aggiornato non riceve eventi ripetuti.
         assertThat(gameState.eventsSince(gameId, secondEvent.seq()).length()).isZero();
+    }
+
+    @Test
+    void laSincronizzazionePaginataNonSaltaEventi() throws Exception {
+        long gameId = 507L;
+        int previousLimit = properties.getEventHistoryLimit();
+        properties.setEventHistoryLimit(2);
+        try {
+            gameState.appendEvent(gameId, "TEST_EVENT", "{}");
+            gameState.appendEvent(gameId, "TEST_EVENT", "{}");
+            gameState.appendEvent(gameId, "TEST_EVENT", "{}");
+
+            JsonNode first = json.readTree(gameState.sync(gameId, 0).toString());
+            assertThat(first.get("events")).hasSize(2);
+            assertThat(first.get("toSeq").asLong()).isEqualTo(2);
+            assertThat(first.get("complete").asBoolean()).isFalse();
+            JsonNode second = json.readTree(gameState.sync(gameId, first.get("toSeq").asLong()).toString());
+            assertThat(second.get("events")).hasSize(1);
+            assertThat(second.get("events").get(0).get("seq").asLong()).isEqualTo(3);
+            assertThat(second.get("toSeq").asLong()).isEqualTo(3);
+            assertThat(second.get("complete").asBoolean()).isTrue();
+        } finally {
+            properties.setEventHistoryLimit(previousLimit);
+        }
     }
 
     @Test

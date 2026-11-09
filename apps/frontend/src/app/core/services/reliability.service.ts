@@ -151,24 +151,29 @@ export class ReliabilityService {
     this.syncing.set(true);
     try {
       const token = this.sessionToken();
-      const query = `?sinceSeq=${this.seq()}${token ? `&sessionToken=${encodeURIComponent(token)}` : ''}`;
-      const response = await firstValueFrom(
-        this.http.get<any>(`${this.baseUrl}/games/${this.gameId}/sync${query}`)
-      );
-      this.applyTiming(response);
-      const snapshot = response?.snapshot ?? {};
+      let snapshot: any = {};
+      let complete = false;
+      while (!complete) {
+        const previousSeq = this.seq();
+        const query = `?sinceSeq=${previousSeq}${token ? `&sessionToken=${encodeURIComponent(token)}` : ''}`;
+        const response = await firstValueFrom(
+          this.http.get<any>(`${this.baseUrl}/games/${this.gameId}/sync${query}`)
+        );
+        this.applyTiming(response);
+        snapshot = response?.snapshot ?? {};
+        const missed = Array.isArray(response?.events) ? response.events : [];
+        for (const event of missed) this.applyEvent(event);
+        const nextSeq = Number(response?.toSeq ?? previousSeq);
+        complete = response?.complete !== false;
+        if (!Number.isFinite(nextSeq) || (!complete && nextSeq <= previousSeq && !response?.stale)) {
+          throw new Error('Sincronizzazione senza avanzamento');
+        }
+        this.seq.set(nextSeq);
+      }
       this.stateVersion.set(Number(snapshot.version ?? 0));
-      this.seq.set(Number(response?.toSeq ?? this.seq()));
       this.online.set(true);
       this.lastSyncAt.set(Date.now());
       this.lastError.set(null);
-
-      // Il server può mandare `events` come lista vuota o come oggetto: senza
-      // il controllo il for..of lanciava e il sync veniva marcato fallito.
-      const missed = Array.isArray(response?.events) ? response.events : [];
-      for (const event of missed) {
-        this.applyEvent(event);
-      }
       this.syncState$.next(snapshot);
     } catch (error) {
       console.error('❌ Sincronizzazione non riuscita', error);

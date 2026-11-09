@@ -1,4 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { ReliabilityService } from '../services/reliability.service';
+import { FakeWebSocketService } from '../../shared/testing/test-doubles';
+import { WebSocketService } from './web-socket.service';
 import { backoffDelay } from './reconnect';
 
 describe('backoffDelay', () => {
@@ -31,5 +37,30 @@ describe('backoffDelay', () => {
     expect(backoffDelay(Number.NaN, 500, 15000, () => 0.5)).toBe(
       backoffDelay(0, 500, 15000, () => 0.5)
     );
+  });
+});
+
+describe('sync paginato', () => {
+  it('applica tutte le pagine prima di dichiarare il riallineamento', async () => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(),
+        { provide: WebSocketService, useClass: FakeWebSocketService }],
+    });
+    const service = TestBed.inject(ReliabilityService);
+    const http = TestBed.inject(HttpTestingController);
+    const events: string[] = [];
+    service.syncEvent$.subscribe((event) => events.push(event.eventId));
+    const sync = service.sync();
+    http.expectOne((req) => req.urlWithParams.endsWith('/games/1/sync?sinceSeq=0'))
+      .flush({ snapshot: { version: 3 }, events: [{ eventId: 'a' }, { eventId: 'b' }], toSeq: 2, complete: false });
+    await Promise.resolve();
+    expect(service.syncing()).toBe(true);
+    http.expectOne((req) => req.urlWithParams.endsWith('/games/1/sync?sinceSeq=2'))
+      .flush({ snapshot: { version: 3 }, events: [{ eventId: 'c' }], toSeq: 3, complete: true });
+    await sync;
+    expect(events).toEqual(['a', 'b', 'c']);
+    expect(service.seq()).toBe(3);
+    expect(service.syncing()).toBe(false);
+    http.verify();
   });
 });
