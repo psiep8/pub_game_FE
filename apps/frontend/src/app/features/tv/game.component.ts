@@ -446,6 +446,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.stopDemoTimer();
 
     this.audioService.stopAll();
+    this.audioService.stopAmbient();
   }
 
   async openLobby(): Promise<void> {

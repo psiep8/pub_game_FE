@@ -133,6 +133,7 @@ export class FakeAudioService {
   readonly played: string[] = [];
 
   readonly startAmbient = () => this.played.push('ambient');
+  readonly stopAmbient = () => this.played.push('stop-ambient');
   readonly playJoin = () => this.played.push('join');
   readonly playCountdownTick = () => this.played.push('countdown-tick');
   readonly playCountdownBong = () => this.played.push('countdown-bong');

@@ -1,4 +1,11 @@
 import { Injectable, signal } from '@angular/core';
+import {
+  PUB_BED_SECONDS_PER_BAR,
+  PUB_BED_SECONDS_PER_BEAT,
+  PUB_BED_TOTAL_BARS,
+  midiToFrequency,
+  pubBedBar,
+} from './pub-bed';
 
 interface ToneOptions {
   freq: number;
@@ -7,6 +14,8 @@ interface ToneOptions {
   gain?: number;
   delay?: number;
   slideTo?: number;
+  attack?: number;
+  detune?: number;
 }
 
 /**
@@ -23,9 +32,11 @@ export class AudioService {
   private heartbeatLoopInterval?: any;
   private heartbeatIntensity = 0;
   private clockLoopInterval?: any;
-  private ambientInterval?: any;
-  private ambientNodes: OscillatorNode[] = [];
-  private ambientGain?: GainNode;
+  private ambientInterval?: ReturnType<typeof setInterval>;
+  private ambientBar = 0;
+  private ambientNextBarAt = 0;
+  private ambientNoise?: AudioBufferSourceNode;
+  private ambientNoiseGain?: GainNode;
   private master?: GainNode;
 
   constructor() {
@@ -389,39 +400,21 @@ export class AudioService {
     });
   }
 
-  /** Tappeto lounge molto leggero: accordi lunghi e arpeggi random. */
+  /**
+   * Tappeto del pub: giro di venti minuti generato a ogni battuta, senza file
+   * né tagli. Basso, spazzole e melodia entrano a sezioni, così la ripetizione
+   * non si sente e non c'è nessun mp3 da scaricare.
+   */
   startAmbient(): void {
     if (!this.audioEnabled() || this.ambientInterval) return;
     const ctx = this.ensureContext();
     if (!ctx) return;
 
-    const bed = ctx.createGain();
-    bed.gain.value = 0.035;
-    bed.connect(this.master ?? ctx.destination);
-    this.ambientGain = bed;
-
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 1400;
-    filter.connect(bed);
-
-    [110, 164.81, 220].forEach((freq) => {
-      const osc = ctx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      const gain = ctx.createGain();
-      gain.gain.value = 0.25;
-      osc.connect(gain).connect(filter);
-      osc.start();
-      this.ambientNodes.push(osc);
-    });
-
-    const scale = [261.63, 293.66, 329.63, 392, 440, 523.25];
-    this.ambientInterval = setInterval(() => {
-      if (!this.audioEnabled() || !this.audioContext) return;
-      const freq = scale[Math.floor(Math.random() * scale.length)];
-      this.tone({ freq, duration: 1.1, type: 'triangle', gain: 0.018, delay: 0 });
-    }, 2600);
+    this.ambientBar = 0;
+    this.ambientNextBarAt = ctx.currentTime + 0.12;
+    this.startVinyl(ctx);
+    this.ambientInterval = setInterval(() => this.scheduleAmbient(), 250);
+    this.scheduleAmbient();
   }
 
   stopAmbient(): void {
@@ -429,23 +422,112 @@ export class AudioService {
       clearInterval(this.ambientInterval);
       this.ambientInterval = undefined;
     }
-    for (const osc of this.ambientNodes) {
-      try {
-        osc.stop();
-        osc.disconnect();
-      } catch {
-        // già fermo
-      }
+    try {
+      this.ambientNoise?.stop();
+      this.ambientNoise?.disconnect();
+    } catch {
+      // già fermo
     }
-    this.ambientNodes = [];
-    this.ambientGain?.disconnect();
-    this.ambientGain = undefined;
+    this.ambientNoise = undefined;
+    this.ambientNoiseGain?.disconnect();
+    this.ambientNoiseGain = undefined;
   }
 
+  /** Programma le battute con un piccolo anticipo, come un vero sequencer. */
+  private scheduleAmbient(): void {
+    const ctx = this.audioContext;
+    if (!ctx || !this.ambientInterval || !this.audioEnabled()) return;
+
+    // Scheda in background: il timer arranca. Si salta al punto giusto invece
+    // di scaricare tutte le battute arretrate in un colpo.
+    if (this.ambientNextBarAt < ctx.currentTime) {
+      const skipped = Math.ceil((ctx.currentTime - this.ambientNextBarAt) / PUB_BED_SECONDS_PER_BAR);
+      this.ambientBar = (this.ambientBar + skipped) % PUB_BED_TOTAL_BARS;
+      this.ambientNextBarAt += skipped * PUB_BED_SECONDS_PER_BAR;
+    }
+
+    const horizon = ctx.currentTime + 1.2;
+    while (this.ambientNextBarAt < horizon) {
+      this.scheduleAmbientBar(this.ambientBar, this.ambientNextBarAt);
+      this.ambientBar = (this.ambientBar + 1) % PUB_BED_TOTAL_BARS;
+      this.ambientNextBarAt += PUB_BED_SECONDS_PER_BAR;
+    }
+  }
+
+  private scheduleAmbientBar(barIndex: number, startAt: number): void {
+    const ctx = this.audioContext;
+    if (!ctx) return;
+
+    const bar = pubBedBar(barIndex);
+    for (const note of bar.notes) {
+      this.tone({
+        freq: midiToFrequency(note.midi),
+        duration: note.duration,
+        type: note.type,
+        gain: note.gain,
+        attack: note.attack,
+        detune: note.detune,
+        delay: Math.max(0, startAt + note.beat * PUB_BED_SECONDS_PER_BEAT - ctx.currentTime),
+      });
+    }
+
+    for (const beat of bar.brushes) {
+      this.noiseBurst(
+        0.09,
+        0.0035,
+        Math.max(0, startAt + beat * PUB_BED_SECONDS_PER_BEAT - ctx.currentTime),
+        3200,
+      );
+    }
+
+    if (bar.clink) {
+      this.tone({
+        freq: midiToFrequency(96),
+        duration: 0.09,
+        type: 'sine',
+        gain: 0.0025,
+        attack: 0.005,
+        delay: Math.max(0, startAt + 3.25 * PUB_BED_SECONDS_PER_BEAT - ctx.currentTime),
+      });
+    }
+  }
+
+  /** Fruscio da vinile: un filo costante sotto gli strumenti. */
+  private startVinyl(ctx: AudioContext): void {
+    if (this.ambientNoise) return;
+
+    const frames = Math.floor(ctx.sampleRate * 2);
+    const buffer = ctx.createBuffer(1, frames, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < frames; i++) {
+      data[i] = (Math.random() * 2 - 1) * 0.35;
+    }
+
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1800;
+    filter.Q.value = 0.6;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0.003;
+
+    source.connect(filter).connect(gain).connect(this.master ?? ctx.destination);
+    source.start();
+    this.ambientNoise = source;
+    this.ambientNoiseGain = gain;
+  }
+
+  /**
+   * Chiude i suoni legati al round. Il tappeto del pub resta: deve suonare
+   * anche sotto classifiche e bonus, per tutta la serata.
+   */
   stopAll(): void {
     this.stopSuspense();
     this.stopClock();
-    this.stopAmbient();
   }
 
   toggleAudio(): void {
@@ -453,6 +535,7 @@ export class AudioService {
     this.applyEnabled();
     if (!this.audioEnabled()) {
       this.stopAll();
+      this.stopAmbient();
       return;
     }
     void this.unlock();
@@ -584,10 +667,15 @@ export class AudioService {
       osc.frequency.exponentialRampToValueAtTime(Math.max(40, options.slideTo), start + options.duration);
     }
 
+    if (options.detune) {
+      osc.detune.setValueAtTime(options.detune, start);
+    }
+
     // Nessun effetto supera il tetto del catalogo: la voce resta davanti.
     const peak = Math.min(options.gain ?? 0.05, 0.09);
+    const attack = Math.min(Math.max(options.attack ?? 0.015, 0.005), options.duration * 0.8);
     gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.exponentialRampToValueAtTime(peak, start + 0.015);
+    gain.gain.exponentialRampToValueAtTime(peak, start + attack);
     gain.gain.exponentialRampToValueAtTime(0.0001, start + options.duration);
 
     osc.connect(gain).connect(this.master ?? ctx.destination);
