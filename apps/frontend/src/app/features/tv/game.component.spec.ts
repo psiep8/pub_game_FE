@@ -117,6 +117,22 @@ describe('GameComponent', () => {
     alert.mockRestore();
   });
 
+  it('does not start Basket automatically after the detailed leaderboard', () => {
+    const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const rounds = TestBed.inject(RoundManagerService);
+    vi.spyOn(rounds, 'bonusAfterAct').mockReturnValue('BASKET');
+    vi.spyOn(rounds, 'getCurrentAct').mockReturnValue(1);
+    component.showLeaderboardDetailed.set(true);
+    component.isShowingLeaderboard.set(true);
+
+    component.onLeaderboardComplete();
+
+    expect(component.bonusActive()).toBe(false);
+    expect(component.showLeaderboardDetailed()).toBe(true);
+    expect(alert).toHaveBeenCalledOnce();
+    alert.mockRestore();
+  });
+
   it('does not advance when closing the current round is not confirmed', () => {
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     const close = vi.spyOn(game, 'closeRound').mockReturnValue(throwError(() => new Error('offline')));
