@@ -2,7 +2,14 @@ package com.pub_game_be.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessageType;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -30,6 +37,26 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setHeartbeatValue(new long[] { 10000, 10000 })
                 .setTaskScheduler(heartbeatScheduler());
         config.setApplicationDestinationPrefixes("/app");
+    }
+
+    /** I client possono sottoscrivere i topic, ma non pubblicare direttamente sul broker. */
+    public ChannelInterceptor clientInboundAuthorization() {
+        return new ChannelInterceptor() {
+            @Override
+            public Message<?> preSend(Message<?> message, MessageChannel channel) {
+                String destination = SimpMessageHeaderAccessor.getDestination(message.getHeaders());
+                if (SimpMessageType.MESSAGE.equals(SimpMessageHeaderAccessor.getMessageType(message.getHeaders()))
+                        && destination != null && (destination.equals("/topic") || destination.startsWith("/topic/"))) {
+                    throw new AccessDeniedException("Pubblicazione diretta sul broker non consentita");
+                }
+                return message;
+            }
+        };
+    }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(clientInboundAuthorization());
     }
 
     @Override

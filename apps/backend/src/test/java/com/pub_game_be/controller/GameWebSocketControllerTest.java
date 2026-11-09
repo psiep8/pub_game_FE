@@ -1,15 +1,41 @@
 package com.pub_game_be.controller;
 
+import com.pub_game_be.config.WebSocketConfig;
 import org.junit.jupiter.api.Test;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessageType;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class GameWebSocketControllerTest {
 
     private final GameWebSocketController controller = new GameWebSocketController();
+
+    @Test
+    void clientsCannotPublishDirectlyToBrokerButCanSubscribe() {
+        var interceptor = new WebSocketConfig().clientInboundAuthorization();
+        SimpMessageHeaderAccessor sendHeaders = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
+        sendHeaders.setDestination("/topic/game/1/status");
+        Message<byte[]> send = MessageBuilder.createMessage(new byte[0], sendHeaders.getMessageHeaders());
+        assertThatThrownBy(() -> interceptor.preSend(send, null)).isInstanceOf(AccessDeniedException.class);
+
+        SimpMessageHeaderAccessor subscribeHeaders = SimpMessageHeaderAccessor.create(SimpMessageType.SUBSCRIBE);
+        subscribeHeaders.setDestination("/topic/game/1/status");
+        Message<byte[]> subscribe = MessageBuilder.createMessage(new byte[0], subscribeHeaders.getMessageHeaders());
+        assertThat(interceptor.preSend(subscribe, null)).isSameAs(subscribe);
+
+        SimpMessageHeaderAccessor appHeaders = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
+        appHeaders.setDestination("/app/game/1/status");
+        Message<byte[]> appMessage = MessageBuilder.createMessage(new byte[0], appHeaders.getMessageHeaders());
+        assertThat(interceptor.preSend(appMessage, null)).isSameAs(appMessage);
+    }
 
     @Test
     void relaysOnlyAValidChipsDistribution() {
