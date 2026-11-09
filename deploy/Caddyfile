@@ -1,0 +1,7 @@
+# Variante A — servizio con dominio.
+# Caddy prende il certificato TLS da solo e inoltra tutto al container
+# fullstack: frontend, API e WebSocket passano dalla stessa origine.
+{$DOMAIN} {
+    encode gzip zstd
+    reverse_proxy app:8080
+}

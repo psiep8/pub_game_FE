@@ -90,7 +90,11 @@ public class GameController {
     @GetMapping("/active")
     public Map<String, Object> activeGame() {
         Map<String, Object> out = new LinkedHashMap<>();
-        out.put("gameId", gameStateService.latestGameId().orElse(null));
+        // Prima che parta un round non esiste ancora uno stato: la partita
+        // iniziale creata all'avvio deve comunque essere raggiungibile dalla TV.
+        Long gameId = gameStateService.latestGameId()
+                .orElseGet(() -> gameRepo.findTopByOrderByIdDesc().map(Game::getId).orElse(null));
+        out.put("gameId", gameId);
         return out;
     }
 

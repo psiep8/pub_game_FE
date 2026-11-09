@@ -1,0 +1,31 @@
+# Variante A — test tra amici, senza dominio.
+#
+#   cp deploy/.env.test.example deploy/.env
+#   # imposta CONTROL_SECRET
+#   docker compose -f deploy/docker-compose.test.yml --env-file deploy/.env up -d --build
+#
+# Accesso: http://<IP-del-server>:8080/tv
+#
+# Niente HTTPS e ALLOWED_ORIGINS=*: va bene solo per una prova, non per il pub.
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        NG_CONFIG: test-night
+    image: pubgame:test
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: test-night
+      CONTROL_SECRET: ${CONTROL_SECRET:?imposta CONTROL_SECRET in deploy/.env}
+      ALLOWED_ORIGINS: "*"
+      DB_URL: "jdbc:h2:file:/app/data/pubgame-test;DB_CLOSE_DELAY=-1"
+      JAVA_OPTS: "-XX:MaxRAMPercentage=75.0"
+    volumes:
+      - pubgame-test-data:/app/data
+
+volumes:
+  pubgame-test-data:

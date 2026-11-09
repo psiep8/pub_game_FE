@@ -1013,6 +1013,9 @@ public class QuestionBankService {
             }
             roundUsed.add(QuestionHistoryService.key(
                     picked.question(), picked.correctAnswer(), picked.category()));
+            // Stesso testo, risposta scritta in modo diverso: per il giocatore
+            // resta la stessa domanda, quindi non deve occupare un altro livello.
+            roundUsed.add(questionTextKey(picked));
 
             List<String> options = new ArrayList<>(picked.options());
             Collections.shuffle(options, random);
@@ -1087,7 +1090,12 @@ public class QuestionBankService {
     private boolean isFresh(BankQuestion question, Predicate<String> isAvailable, Set<String> used) {
         String key = QuestionHistoryService.key(
                 question.question(), question.correctAnswer(), question.category());
-        return !used.contains(key) && isAvailable.test(key);
+        return !used.contains(key) && !used.contains(questionTextKey(question)) && isAvailable.test(key);
+    }
+
+    /** Deduplica per testo: la stessa domanda non cambia se cambia la risposta. */
+    private String questionTextKey(BankQuestion question) {
+        return "text|" + QuestionHistoryService.normalize(question.question());
     }
 
     /**

@@ -15,6 +15,8 @@ e variabili d'ambiente.
 | Locale | `npm run dev` | default | accesa | `apps/backend/data/pubgame` |
 | Serata di prova | `npm run build:test-night` | `test-night` | accesa | `data/pubgame-test-night` |
 | Pub | `npm run build:prod` | `prod` | spenta | `data/pubgame-prod` |
+| Test amici (container) | `deploy/docker-compose.test.yml` | `test-night` | accesa | volume Docker |
+| Servizio (container) | `deploy/docker-compose.service.yml` | `prod` | spenta | volume Docker |
 
 Le build sono definite in `apps/frontend/angular.json` con `fileReplacements`:
 
@@ -191,6 +193,56 @@ User=pubgame
 [Install]
 WantedBy=multi-user.target
 ```
+
+## 5b. Variante A: un solo container
+
+L'immagine fullstack compila Angular e lo copia dentro il jar Spring Boot:
+`/tv`, `/play`, `/admin`, le API e `/ws-pubgame` stanno sulla stessa origine.
+Non serve Caddy per il routing: serve solo per HTTPS quando c'è un dominio.
+
+### Test tra amici, senza dominio
+
+```bash
+cp deploy/.env.test.example deploy/.env
+# genera il segreto con: openssl rand -hex 32
+# incolla il valore in CONTROL_SECRET
+docker compose -f deploy/docker-compose.test.yml --env-file deploy/.env up -d --build
+```
+
+Apri `http://<IP-del-server>:8080/tv`. Il QR mostrato dalla TV punta
+automaticamente allo stesso host e alla partita corrente. Non c'è HTTPS:
+il gioco funziona, ma la scorciatoia PWA non è installabile.
+
+Apri la porta 8080 nel firewall del provider. I telefoni possono usare
+qualunque rete (Wi-Fi del locale, hotspot o dati mobili): devono solo
+raggiungere il server.
+
+### Servizio con dominio
+
+```bash
+cp deploy/.env.service.example deploy/.env
+# genera il segreto con: openssl rand -hex 32
+# imposta DOMAIN e incolla il valore in CONTROL_SECRET
+# crea un record DNS A: DOMAIN -> IP del server
+docker compose -f deploy/docker-compose.service.yml --env-file deploy/.env up -d --build
+```
+
+Apri `https://<DOMAIN>/tv`. Caddy ottiene il certificato da solo; il backend
+resta su una rete interna e non espone la 8080. `ALLOWED_ORIGINS` e
+`MEDIA_BASE_URL` vengono compilati dal valore di `DOMAIN`.
+
+### Dati e aggiornamenti
+
+I database sono in volumi Docker dedicati, quindi sopravvivono alla
+ricostruzione del container. Per aggiornare:
+
+```bash
+git pull
+docker compose -f deploy/docker-compose.service.yml --env-file deploy/.env up -d --build
+```
+
+La guida operativa completa, con backup e media locali, è in
+[`deploy/README.md`](../deploy/README.md).
 
 ## 6. Hosting: Vercel, dominio, alternative
 

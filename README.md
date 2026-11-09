@@ -113,6 +113,18 @@ Le tre build usano lo stesso codice e cambiano solo configurazione, log e
 pannelli diagnostici. La guida completa (LAN, tunnel HTTPS, Vercel, dominio,
 PWA, backup) è in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
+## Deploy in un container (variante A)
+
+Il repo include un'immagine fullstack: Angular viene compilato e copiato dentro
+il jar Spring Boot, quindi un solo container serve TV, telefoni, API e WebSocket.
+
+| Configurazione | Accesso | Uso |
+|---|---|---|
+| Test tra amici | `http://<IP>:8080/tv` | senza dominio, nessuna installazione |
+| Servizio | `https://<DOMAIN>/tv` | pub, HTTPS e dominio |
+
+Dettagli, comandi, DNS, volumi e backup in [`deploy/README.md`](deploy/README.md).
+
 ## Tunnel Cloudflare
 
 ```bash

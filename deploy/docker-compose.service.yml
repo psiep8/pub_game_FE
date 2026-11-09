@@ -1,0 +1,48 @@
+# Variante A — servizio con dominio e HTTPS.
+#
+#   cp deploy/.env.service.example deploy/.env
+#   # imposta DOMAIN e CONTROL_SECRET
+#   docker compose -f deploy/docker-compose.service.yml --env-file deploy/.env up -d --build
+#
+# DNS: un record A per DOMAIN verso l'IP del server.
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        NG_CONFIG: production
+    image: pubgame:1.0.0
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      CONTROL_SECRET: ${CONTROL_SECRET:?imposta CONTROL_SECRET in deploy/.env}
+      ALLOWED_ORIGINS: https://${DOMAIN:?imposta DOMAIN in deploy/.env}
+      MEDIA_BASE_URL: https://${DOMAIN:?imposta DOMAIN in deploy/.env}
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+      DB_URL: "jdbc:h2:file:/app/data/pubgame;DB_CLOSE_DELAY=-1"
+      JAVA_OPTS: "-XX:MaxRAMPercentage=75.0"
+    volumes:
+      - pubgame-data:/app/data
+    expose:
+      - "8080"
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?imposta DOMAIN in deploy/.env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  pubgame-data:
+  caddy-data:
+  caddy-config:
