@@ -162,6 +162,20 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void conoscereIlDeviceIdNonPermetteDiRecuperareUnToken() {
+        long gameId = 508L;
+        DeviceSessionService.Registration original = sessions.register(gameId, "device-not-secret", "REMOTE", "Anna", null);
+        DeviceSessionService.Registration attacker = sessions.register(gameId, "device-not-secret", "REMOTE", "Anna", null);
+        DeviceSessionService.Registration wrongToken = sessions.register(gameId, "device-not-secret", "REMOTE", "Anna", "wrong");
+
+        assertThat(attacker.resumed()).isFalse();
+        assertThat(wrongToken.resumed()).isFalse();
+        assertThat(attacker.sessionToken()).isNotEqualTo(original.sessionToken());
+        assertThat(wrongToken.sessionToken()).isNotEqualTo(original.sessionToken());
+        assertThat(sessions.register(gameId, "device-not-secret", "REMOTE", "Anna", original.sessionToken()).resumed()).isTrue();
+    }
+
+    @Test
     void laPresenzaEscludeGliOfflineEDeduplicaIPlayer() throws Exception {
         long gameId = 506L;
 

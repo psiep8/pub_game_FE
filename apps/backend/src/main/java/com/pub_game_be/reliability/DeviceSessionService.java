@@ -71,23 +71,14 @@ public class DeviceSessionService {
                     session.getDeviceId(), session.getRole(), session.getPlayerName(), true, duplicate);
         }
 
-        Optional<DeviceSessionEntity> sameDevice = sessions
-                .findFirstByGameIdAndDeviceIdAndRoleOrderByLastHeartbeatAtDesc(gameId, safeDevice, safeRole);
-
-        DeviceSessionEntity session = sameDevice.orElseGet(DeviceSessionEntity::new);
-        boolean resumed = sameDevice.isPresent();
-        if (!resumed) {
-            session.setGameId(gameId);
-            session.setDeviceId(safeDevice);
-            session.setRole(safeRole);
-            session.setSessionToken(UUID.randomUUID().toString());
-            session.setFirstSeenAt(now);
-        } else {
-            session.setReconnections(session.getReconnections() + 1);
-        }
-        if (session.getSessionToken() == null) {
-            session.setSessionToken(UUID.randomUUID().toString());
-        }
+        // Il deviceId è pubblico e non dimostra il possesso della sessione.
+        // Senza il token corretto si crea sempre una nuova identità.
+        DeviceSessionEntity session = new DeviceSessionEntity();
+        session.setGameId(gameId);
+        session.setDeviceId(safeDevice);
+        session.setRole(safeRole);
+        session.setSessionToken(UUID.randomUUID().toString());
+        session.setFirstSeenAt(now);
         if (safePlayer != null && !safePlayer.isBlank()) {
             session.setPlayerName(safePlayer);
         }
@@ -98,7 +89,7 @@ public class DeviceSessionService {
 
         boolean duplicate = "TV".equals(safeRole) && hasOtherConnectedDisplay(gameId, session.getId(), now);
         return new Registration(session.getSessionToken(), session.getConnectionId(), session.getDeviceId(),
-                session.getRole(), session.getPlayerName(), resumed, duplicate);
+                session.getRole(), session.getPlayerName(), false, duplicate);
     }
 
     /** Heartbeat: vuoto se il token non esiste più (il client deve registrarsi). */
