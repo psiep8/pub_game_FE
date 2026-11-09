@@ -88,6 +88,10 @@ export class FakeGameService {
     return of({ id: 1, status: 'ACTIVE', roundIndex: 0, type: 'QUIZ', payload: {} });
   }
 
+  submitTimeline(_gameId: number, _playerName: string, _order: number[], _key?: string): Observable<any> {
+    return of({});
+  }
+
   getArenaQuestion(_gameId: number, _category: string, playerId: string): Observable<any> {
     return of({
       question: 'Domanda di prova?',

@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SwUpdate } from '@angular/service-worker';
+import { vi } from 'vitest';
 
 import { RemoteComponent } from './remote.component';
 import { GameService } from '../../core/services/game.service';
@@ -163,6 +164,35 @@ describe('RemoteComponent', () => {
     component.azzardoState.set(state(100, 100));
     component.azzardoPick(0);
     expect(ws.broadcasted.some((entry) => entry.body.action === 'AZZARDO_ACTION')).toBe(true);
+  });
+
+  it('sends a pending Timeline answer only while the round is active', () => {
+    vi.useFakeTimers();
+    try {
+      const game = TestBed.inject(GameService) as unknown as FakeGameService;
+      const submit = vi.spyOn(game, 'submitTimeline');
+      component.tempNickname = 'Anna';
+      component.setNickname();
+      const start = () => ws.status$.next({
+        action: 'START_VOTING', type: 'TIMELINE', payload: { items: [{ id: 1, label: 'Carta' }] },
+      });
+
+      start();
+      vi.advanceTimersByTime(350);
+      expect(submit).toHaveBeenCalledTimes(1);
+
+      start();
+      ws.status$.next({ action: 'ROUND_ENDED' });
+      vi.advanceTimersByTime(350);
+      expect(submit).toHaveBeenCalledTimes(1);
+
+      start();
+      component.ngOnDestroy();
+      vi.advanceTimersByTime(350);
+      expect(submit).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('should reset the answer state when the round ends', async () => {

@@ -487,6 +487,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'ROUND_ENDED':
         case 'REVEAL':
+          this.cancelTimelineSend();
           this.speedTask.set(null);
           this.speedColorPicked.set([]);
           this.blackjackState.set(null);
@@ -1523,13 +1524,22 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   /** L'ordine è la risposta: si invia da solo, con un piccolo antirimbalzo. */
   private scheduleTimelineSend(): void {
+    this.cancelTimelineSend();
+    this.timelineSendHandle = setTimeout(() => {
+      this.timelineSendHandle = undefined;
+      this.sendTimelineAnswer();
+    }, 350);
+  }
+
+  private cancelTimelineSend(): void {
     if (this.timelineSendHandle) clearTimeout(this.timelineSendHandle);
-    this.timelineSendHandle = setTimeout(() => this.sendTimelineAnswer(), 350);
+    this.timelineSendHandle = undefined;
   }
 
   sendTimelineAnswer(): void {
     const playerName = this.nickname();
-    if (!playerName || this.timelineOrder().length !== this.timelineCards().length) return;
+    if (!playerName || this.questionType() !== 'TIMELINE' || this.gameState() !== PlayerStatus.VOTING
+      || !this.timelineCards().length || this.timelineOrder().length !== this.timelineCards().length) return;
 
     const key = this.reliability.idempotencyKey('timeline', `${playerName}:${this.timelineOrder().join(',')}`);
     this.gameService.submitTimeline(this.gameId(), playerName, this.timelineOrder(), key).subscribe({
@@ -1872,6 +1882,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // restava sulla schermata del gioco precedente (o su "In attesa" con lo
     // stato di risposta ancora bloccato) finché non arrivava un START_VOTING.
     if (!open || !type) {
+      this.cancelTimelineSend();
       this.gameState.set(PlayerStatus.WAITING);
       this.hasAnswered.set(false);
       this.selectedAnswer.set(null);
@@ -1935,6 +1946,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.cancelTimelineSend();
     this.ws.disconnect();
     this.stopMicrophoneListening();
     this.stopBombaPolling();
