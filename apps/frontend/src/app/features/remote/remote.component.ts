@@ -128,9 +128,10 @@ import { SentStateComponent } from '../../shared/components/sent-state/sent-stat
     .casino-hand-total { font-size: 1.8rem; font-weight: 900; }
     .casino-hand-total.bust { color: #f87171; }
     .casino-bj-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .casino-hit, .casino-stand { padding: 20px 10px; border: 0; border-radius: 14px; font-size: 1rem; font-weight: 900; letter-spacing: .06em; }
-    .casino-hit { background: #fbbf24; color: #111827; }
-    .casino-stand { background: rgba(255,255,255,.16); color: #fff; }
+    .casino-hit, .casino-stand { padding: 20px 10px; border: 3px solid var(--coal); border-radius: 0; box-shadow: 4px 4px 0 var(--coal); font-size: 1rem; font-weight: 900; letter-spacing: .06em; }
+    .casino-hit { background: var(--tomato); color: var(--paper-hi); }
+    .casino-stand { background: var(--paper-hi); color: var(--coal); }
+    .casino-hit:disabled, .casino-stand:disabled { opacity: .55; }
     .cavallo-categories { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 56vh; overflow: auto; }
     .biglie-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 8px; background: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); }
     .biglie-card.picked { background: var(--acid); }

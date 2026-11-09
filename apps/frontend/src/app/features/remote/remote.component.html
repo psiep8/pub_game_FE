@@ -440,12 +440,7 @@
     </div>
     }
     @case ('BLACKJACK') {
-    <div class="bonus-remote">
-      <div class="game-head">
-        <span class="game-tag buzz">🃏 BLACK JACK</span>
-        <span class="game-tip">Round {{ blackjackState()?.round ?? 1 }}/{{ blackjackState()?.rounds ?? 3 }} · tavolo {{ blackjackState()?.index ?? 0 }}/{{ blackjackState()?.total ?? 0 }}</span>
-      </div>
-
+    <div class="bonus-remote bj-remote">
       @if (blackjackState()?.phase === 'FINALE') {
       <div class="status-msg">
         <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🃏</div></div>
@@ -461,24 +456,8 @@
         </div>
         <b class="casino-hand-total" [class.bust]="(blackjackState()?.handTotal ?? 0) > 21">{{ blackjackState()?.handTotal ?? 0 }}</b>
       </div>
-      <p class="buzz-hint">
-        Banco {{ blackjackState()?.result?.bankTotal }} ·
-        {{ signedPoints(blackjackState()?.result?.points) }}
-      </p>
+      <p class="buzz-hint">{{ signedPoints(blackjackState()?.result?.points) }}</p>
       } @else if (blackjackState()?.currentTable === nickname()) {
-      <p class="buzz-hint">Tocca a te · {{ blackjackState()?.secondsLeft ?? 0 }}s</p>
-      <div class="casino-hand">
-        <span class="casino-hand-label">IL BANCO</span>
-        <div class="casino-cards">
-          @for (card of blackjackState()?.bank?.cards ?? []; track $index) {
-          <span class="casino-card" [class.red]="isRedCard(card)">{{ card }}</span>
-          }
-          @if (blackjackState()?.bank?.hidden) {
-          <span class="casino-card">?</span>
-          }
-        </div>
-        <b class="casino-hand-total">{{ blackjackState()?.bank?.hidden ? '?' : (blackjackState()?.bank?.total ?? 0) }}</b>
-      </div>
       <div class="casino-hand">
         <span class="casino-hand-label">LA TUA MANO</span>
         <div class="casino-cards">
@@ -497,7 +476,6 @@
       <div class="status-msg">
         <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🃏</div></div>
         <p>Al banco: <b>{{ blackjackState()?.currentTable }}</b></p>
-        <span class="sub-text">Tavolo {{ blackjackState()?.index }} di {{ blackjackState()?.total }}</span>
       </div>
       }
     </div>

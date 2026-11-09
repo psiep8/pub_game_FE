@@ -16,15 +16,13 @@ import { CommonModule } from '@angular/common';
         <div class="bj-kicker">🃏 BLACK JACK</div>
         <h2 class="bj-title">CONTRO IL BANCO</h2>
         <div class="bj-meta">
-          <span class="bj-round">ROUND {{ displayData?.round ?? 1 }} / {{ displayData?.rounds ?? 3 }}</span>
           <span class="bj-progress">TAVOLO {{ displayData?.index ?? 0 }} / {{ displayData?.total ?? 0 }}</span>
-          <span class="bj-timer" [class.hot]="(displayData?.secondsLeft ?? 0) <= 4">{{ displayData?.secondsLeft ?? 0 }}s</span>
         </div>
       </header>
 
       @if (displayData?.phase === BlackjackPhase.FINALE) {
         <div class="bj-final">
-          <div class="bj-final-title">TRE ROUND CHIUSI</div>
+          <div class="bj-final-title">TAVOLI CHIUSI</div>
           <div class="bj-final-rows">
             @for (row of displayData?.rows ?? []; track row.playerName) {
               <div class="bj-final-row" [class.paid]="row.points > 0" [class.lost]="row.points < 0">
