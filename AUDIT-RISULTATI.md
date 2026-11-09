@@ -2,9 +2,21 @@
 
 Data: 9 novembre 2026. Base: `e5a9f3f`; lettura del documento **allegato** `AUDIT-ARCHITETTURA.md`, non presente nella radice del checkout. Le osservazioni si riferiscono al codice del checkout e alle correzioni elencate sotto. I numeri di riga indicano il file attuale. Gli esiti statici non sono prove su dispositivi o sulla rete del locale.
 
-**Esito complessivo: NON pronto per una serata esposta a Internet.** REST e STOMP applicativo non autenticati consentono reset, comandi di regia e impersonificazione. Il recupero di un round dopo refresh TV o riavvio backend non è garantito. Non usare il tunnel pubblico finché non sono risolti i P0; una LAN isolata e con partecipanti fidati riduce, ma non elimina, il rischio.
+**Esito complessivo attuale: NON pronto per una serata completa o esposta a Internet.** Le vulnerabilità di autenticazione originali sono state affrontate nei percorsi REST/STOMP testati, ma permangono rischi di sicurezza e affidabilità. Il recupero completo dopo refresh TV o riavvio backend non è garantito. Non usare il tunnel pubblico finché i P0 restano aperti; una LAN isolata con partecipanti fidati riduce, ma non elimina, il rischio.
 
 **Aggiornamento successivo all'audit:** oltre ai commit `f55af15`, `35413bb`, `399c7f7` e `d05973b`, il protocollo è stato modificato per autenticare REST e STOMP, riservare le azioni di regia e legare il nome squadra al token. Le osservazioni storiche sotto restano riferite alla base dell'audit. Sono stati aggiunti test HTTP e WebSocket reali per token assenti/errati, ruoli, partita diversa e impersonificazione; non sono una prova di sicurezza completa né una prova multi-dispositivo. Speed Rush e Basket sono bloccati perché i loro risultati non sono verificabili: la scaletta si arresta a Speed Rush. Non esiste ancora limitazione dei tentativi o revoca automatica delle sessioni alla rotazione del segreto, né recupero assistito della squadra. La registrazione dei nomi è aperta, e alcuni punteggi dipendono da tempi o stato dichiarati dal client. Il consumo delle assegnazioni Arena avviene anche in memoria e non è stato verificato con rollback o richieste concorrenti: persistenza e ricevute non sono ancora garantite in tutti i casi di errore. **Non esporre il tunnel pubblico e non usare l'app per una serata completa** finché queste limitazioni e gli altri P0 dell'audit non siano risolti.
+
+## Aggiornamento: cinque aree affrontate, non completate
+
+1. **TV e avanzamento:** il reset non cancella classifica e scaletta locali se la risposta del backend manca; un errore può comunque nascondere un reset già avvenuto. AVANTI non apre il round successivo se la chiusura non è confermata. Il recupero delle fasi dei giochi, della classifica e dell'avanzamento su una nuova TV, e l'esclusione effettiva di una seconda TV, restano aperti.
+2. **Telefoni e risposte:** voto/buzz restano riprovabili se l'invio non parte, ma non hanno un ACK server. Timeline invia gli spostamenti coi pulsanti, rifiuta carte duplicate, controlla il round attivo e distingue il round nelle ricevute; uno snapshot dello stesso round non azzera l'ordine locale. Non è garantita l'ultima risposta se le richieste arrivano fuori ordine o sono concorrenti; restano da verificare atomicità, retry, STOMP live e riconnessione completa.
+3. **Riavvio backend:** Bomba salva tabellone, segreti, turno e pausa; Time Buzzer salva il via associato al round. Una prova HTTP su **due processi backend distinti** e H2 su disco isolato (`apps/backend/target/restart-check-0b77d7db0c`) ha verificato sessioni, Bomba in pausa e segretezza delle celle, resume/reset, via Buzzer e rifiuto del round precedente. Il tempo inviato era sintetico. Non dimostra recupero della TV, timer non in pausa, rollback DB o concorrenza.
+4. **Giochi e scaletta:** Speed Rush e Basket restano bloccati per punteggi autocertificati; il test verifica anche che Basket non parta automaticamente dopo la classifica. La scaletta si ferma a Speed Rush: non è una serata completa. Arena consuma le assegnazioni, ma concorrenza e rollback restano da garantire.
+5. **Operatività:** sono passati i test mirati telefono (14), TV (11) e i due test backend Timeline con H2 in memoria, inclusa la richiesta HTTP autenticata tardiva. Backend confezionato con `mvn -DskipTests package` prima della prova di riavvio. Non eseguiti prova multi-dispositivo, Safari/Android, rete del locale, test prolungato, backup/ripristino di dati reali o verifica visiva. Il backend e il database reali preesistenti non sono stati riavviati o modificati.
+
+Commit dell'ultimo intervento: `6729bf4`, `06ef347`, `d893fa5`, `afac455`, `a86048b`, `1fb3dc9`, `1eb8e99`, `20e66fb`, `9136fe1`, `af58570`, `cdfae5b`. I client precedenti non inviano `roundId` e le loro risposte Timeline vengono rifiutate: aggiornare frontend e backend insieme.
+
+**Lettura delle sezioni seguenti:** descrivono l'audit storico alla base `e5a9f3f` e le prime correzioni, non lo stato corrente; dove sono in conflitto prevale l'aggiornamento sopra. In particolare autenticazione e persistenza Bomba/Buzzer sono cambiate. Le stime non sono state ricalcolate.
 
 ## 1. Comandi e test
 
@@ -18,7 +30,7 @@ Data: 9 novembre 2026. Base: `e5a9f3f`; lettura del documento **allegato** `AUDI
 | `mvn -Dtest=ReliabilityIntegrationTest test` in container | **7 test passati** dopo correzione sync, incluso il nuovo test di paginazione. |
 | `mvn -Dtest=GameWebSocketControllerTest test` in container | **5 test passati** dopo blocco SEND diretto al broker; il test invoca l'interceptor, non una connessione WebSocket reale. |
 
-Nessun test reale di caduta del backend, reload della TV, P0 ruoli/PIN o nome squadra legato alla sessione, test multi-dispositivo, carico, durata, Safari iOS, Chrome Android o verifica visiva è stato eseguito. I test di idempotenza e di ripresa token esistenti (`apps/backend/src/test/java/com/pub_game_be/reliability/ReliabilityIntegrationTest.java:57,145`) sono prove parziali in memoria, non un riavvio del processo né una sessione completa con telefoni. I nuovi test non dimostrano che l'app sia sicura.
+Al momento della prima rilevazione non erano stati eseguiti test di caduta del backend o ruoli/squadre; gli aggiornamenti e i limiti delle prove successive sono riportati sopra. Non sono state effettuate prove con telefoni fisici o nella rete del locale. I test non dimostrano che l'app sia sicura.
 
 ## 2. Verifica delle sezioni 5 e 6
 
@@ -62,7 +74,7 @@ Nessun test reale di caduta del backend, reload della TV, P0 ruoli/PIN o nome sq
 | `0eb3d66` | Il sync restituisce `toSeq` dell'ultimo evento effettivamente inviato e `complete=false` quando resta una pagina; il client continua fino a completamento. Test backend con limite 2 e 3 eventi; test frontend con due pagine. Non rende persistenti i mode e non aggiunge consumer a `syncEvent$`. |
 | `221746e` | Rifiuta `SEND` client diretto a `/topic`, consente `SUBSCRIBE` e messaggi `/app`; test unitario dell'interceptor. **Non** protegge gli endpoint applicativi né conferisce ruoli. |
 
-Non sono stati aggiunti PIN, autenticazione, associazione sicura sessione/squadra, ripristino TV completo o test E2E di caduta. Questi requisiti richiesti restano **non completati**, non mitigati dalle quattro correzioni precedenti.
+Alla data di queste quattro prime correzioni non erano ancora presenti autenticazione e associazione sessione/squadra; le modifiche successive sono descritte nell'aggiornamento. Restano incompleti il ripristino TV generale e la prova E2E di caduta con dispositivi reali.
 
 ## 4. Giochi: autorità e recupero
 
