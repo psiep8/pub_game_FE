@@ -661,9 +661,7 @@
   color: gold;
   text-shadow: 0 0 30px gold;
   margin: 0;
-}
-
-.pause-overlay .pause-card .extract-btn {
+}.pause-overlay .pause-card .extract-btn {
   transform: scale(1);
   margin: 0;
 }
@@ -676,6 +674,176 @@
   gap: 15px;
   z-index: 1000;
 }
+
+.recovery-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.recovery-panel .recovery-panel-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.15), transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.15), transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.recovery-panel .recovery-panel-inner {
+  background: linear-gradient(135deg, #1a1a2e, #0f0c29);
+  border: 2px solid var(--coal, #15150f);
+  border-radius: 0;
+  padding: 40px 60px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  z-index: 10;
+  color: var(--paper, #f1e4c9);
+}
+
+.recovery-panel .recovery-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--coal-2, #23231a);
+}
+
+.recovery-panel .recovery-panel-title {
+  font-family: var(--font-display, 'Anton', Impact, 'Arial Black', sans-serif);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--coal, #15150f);
+  margin: 0;
+}
+
+.recovery-panel .recovery-panel-close {
+  background: none;
+  border: none;
+  color: var(--coal, #15150f);
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.recovery-panel .recovery-panel-close:hover {
+  color: var(--acid, #d9ff43);
+}
+
+.recovery-panel .recovery-panel-body {
+  margin-bottom: 40px;
+}
+
+.recovery-panel .recovery-panel-description {
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  opacity: 0.8;
+  line-height: 1.6;
+}
+
+.recovery-panel .recovery-panel-mode {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, rgba(217, 255, 67, 0.15), rgba(255, 125, 0, 0.1));
+  border: 1px solid var(--acid, #d9ff43);
+  border-radius: 0;
+  margin: 0 -60px;
+  padding: 16px 40px;
+}
+
+.recovery-panel .recovery-panel-mode-icon {
+  font-family: var(--font-display, 'Anton', Impact, 'Arial Black', sans-serif);
+  font-size: 2.5rem;
+  color: var(--acid, #d9ff43);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.recovery-panel .recovery-panel-mode-label {
+  font-size: 1.2rem;
+  color: var(--paper, #f1e4c9);
+}
+
+.recovery-panel .recovery-panel-timer {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--tomato, #ff4d2e);
+  margin-bottom: 20px;
+  min-width: 120px;
+  text-align: right;
+}
+
+.recovery-panel .recovery-panel-actions {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.recovery-panel .recovery-panel-btn {
+  padding: 16px 32px;
+  font-family: var(--font, system-ui, -apple-system, sans-serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: 2px solid var(--coal, #15150f);
+  border-radius: 0;
+  background: transparent;
+  color: var(--paper, #f1e4c9);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 180px;
+}
+
+.recovery-panel .recovery-panel-btn-resume {
+  background: linear-gradient(135deg, var(--acid, #d9ff43), var(--mint, #a8e6cf));
+  border-color: var(--acid, #d9ff43);
+  color: var(--coal, #15150f);
+}
+
+.recovery-panel .recovery-panel-btn-resume:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(217, 255, 67, 0.4);
+}
+
+.recovery-panel .recovery-panel-btn-close {
+  background: var(--coal, #15150f);
+  border-color: var(--coal, #15150f);
+  color: var(--paper, #f1e4c9);
+}
+
+.recovery-panel .recovery-panel-btn-close:hover {
+  background: var(--acid, #d9ff43);
+  color: var(--coal, #15150f);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(217, 255, 67, 0.4);
+}
+
+.controls-footer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 15px;
+  z-index: 1000;
+}
+
+
 
 .control-btn {
   background: rgba(0, 0, 0, 0.8);
