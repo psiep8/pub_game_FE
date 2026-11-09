@@ -85,15 +85,15 @@ import { CommonModule } from '@angular/common';
     .tl-pin { font-size: .9em; filter: grayscale(1); }
     .tl-label { font-weight: 600; line-height: 1.22; }
     .tl-legend { color: var(--ink-dim); font-family: var(--font-mono); font-size: clamp(.58rem, .82vw, .72rem); letter-spacing: .08em; text-align: center; text-transform: uppercase; }
-    .tl-axis { position: relative; display: flex; align-items: flex-start; gap: clamp(4px, .8vw, 14px); width: 100%; max-width: 1600px; overflow-x: auto; padding: 4px 0 10px; }
+    .tl-axis { position: relative; display: flex; align-items: flex-start; gap: clamp(4px, .8vw, 14px); width: 100%; max-width: 1600px; flex: 0 1 auto; min-height: 0; max-height: 36vh; overflow: auto; padding: 4px 0 10px; }
     .tl-axis::before { content: ''; position: absolute; left: 2%; right: 2%; top: 42px; height: 3px; background: rgba(244, 232, 206, .35); }
-    .tl-axis-item { position: relative; z-index: 1; display: flex; flex: 1; flex-direction: column; align-items: center; gap: 6px; min-width: clamp(120px, 11vw, 190px); }
+    .tl-axis-item { position: relative; z-index: 1; display: flex; flex: 1; flex-direction: column; align-items: center; gap: 6px; min-width: clamp(88px, 8vw, 130px); }
     .tl-year { color: var(--acid); font-family: var(--font-mono); font-size: clamp(.95rem, 1.6vw, 1.5rem); font-weight: 700; letter-spacing: -.04em; }
     .tl-dot { width: 14px; height: 14px; margin: 4px 0; background: var(--tomato); border: 3px solid var(--paper); border-radius: 50%; box-shadow: none; }
     .tl-label-small { color: var(--paper); font-size: clamp(.62rem, .88vw, .8rem); line-height: 1.22; text-align: center; }
     .tl-explain { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--ink-dim); font-family: var(--font-mono); font-size: clamp(.56rem, .8vw, .72rem); text-align: center; }
     .tl-explain span:first-child { color: var(--acid); font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
-    .tl-results { width: min(1000px, 92vw); display: flex; flex-direction: column; gap: 7px; }
+    .tl-results { width: min(1000px, 92vw); flex: 0 0 auto; max-height: 40vh; overflow-y: auto; display: flex; flex-direction: column; gap: 7px; }
     .tl-result { display: grid; grid-template-columns: minmax(90px, 1fr) auto minmax(80px, 220px) auto; gap: clamp(8px, 1.2vw, 18px); align-items: center; padding: clamp(6px, 1vh, 10px) clamp(10px, 1.4vw, 18px); background: var(--paper-hi); color: var(--coal); border: 2px solid var(--coal); border-radius: 0; box-shadow: 4px 4px 0 var(--tomato); font-size: clamp(.72rem, .98vw, .92rem); }
     .tl-name { font-weight: 800; }
     .tl-pairs { color: rgba(21, 21, 15, .6); font-family: var(--font-mono); font-size: .9em; white-space: nowrap; }

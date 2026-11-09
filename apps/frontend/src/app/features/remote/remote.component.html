@@ -140,8 +140,7 @@
     }
     @case ('TIMELINE') {
     <div class="timeline-remote">
-      <div class="game-head"><span class="game-tag tl">TIMELINE</span><span class="game-tip">Trascina le carte</span></div>
-      <p class="party-instruction">Dalla più antica alla più recente</p>
+      <p class="tl-order-legend">Più antico ↑ · Più recente ↓</p>
       <div class="tl-drag-list" (pointermove)="onDragMove($event)" (pointerup)="endDrag()" (pointercancel)="endDrag()">
         @for (card of orderedCards(); track card.id; let i = $index) {
         <div class="tl-row">
@@ -151,17 +150,10 @@
             <span class="tl-pos">{{ i + 1 }}</span>
             <span class="tl-text">{{ card.label }}</span>
           </button>
-          <button class="tl-move" type="button" [disabled]="i === 0" (click)="moveCard(card.id, -1)" aria-label="Sposta su">▲</button>
-          <button class="tl-move" type="button" [disabled]="i === orderedCards().length - 1" (click)="moveCard(card.id, 1)" aria-label="Sposta giù">▼</button>
         </div>
         }
       </div>
-      <p class="tl-pair-hint">
-        {{ timelineCards().length }} carte: ogni carta nel posto giusto vale un punto.
-        Da metà classifica in su il punteggio è positivo.
-      </p>
-      <button class="confirm-btn" [disabled]="timelineOrder().length !== timelineCards().length || hasAnswered()"
-        (click)="sendTimelineAnswer()">INVIA ORDINE</button>
+      <p class="tl-pair-hint">Trascina per ordinare: l'ordine viene inviato da solo.</p>
     </div>
     }
     @case ('TIME_BUZZER') {

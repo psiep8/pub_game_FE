@@ -230,6 +230,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   // ---- Giochi simultanei: stato locale del telefono ----
   timelineCards = signal<Array<{ id: number; label: string }>>([]);
   timelineOrder = signal<number[]>([]);
+  private timelineSendHandle?: ReturnType<typeof setTimeout>;
 
   buzzPhase = signal<'idle' | 'running' | 'sent'>('idle');
   buzzEliminated = signal(false);
@@ -966,6 +967,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.timelineCards.set(cards);
       // Si parte dall'ordine mostrato: si trascina per correggerlo.
       this.timelineOrder.set(cards.map((card: any) => card.id));
+      // Anche chi non tocca nulla ha già una risposta valida: l'ordine iniziale.
+      this.scheduleTimelineSend();
     } else if (type === 'TIME_BUZZER') {
       this.buzzPhase.set('idle');
       this.buzzEliminated.set(false);
@@ -1469,6 +1472,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     order.splice(from, 1);
     order.splice(over, 0, this.dragId);
     this.timelineOrder.set(order);
+    this.scheduleTimelineSend();
     this.vibrate(6);
   }
 
@@ -1487,17 +1491,20 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.vibrate(10);
   }
 
+  /** L'ordine è la risposta: si invia da solo, con un piccolo antirimbalzo. */
+  private scheduleTimelineSend(): void {
+    if (this.timelineSendHandle) clearTimeout(this.timelineSendHandle);
+    this.timelineSendHandle = setTimeout(() => this.sendTimelineAnswer(), 350);
+  }
+
   sendTimelineAnswer(): void {
     const playerName = this.nickname();
     if (!playerName || this.timelineOrder().length !== this.timelineCards().length) return;
 
-    this.hasAnswered.set(true);
     const key = this.reliability.idempotencyKey('timeline', `${playerName}:${this.timelineOrder().join(',')}`);
     this.gameService.submitTimeline(this.gameId(), playerName, this.timelineOrder(), key).subscribe({
-      next: () => this.gameState.set(PlayerStatus.WAITING),
-      error: () => this.gameState.set(PlayerStatus.WAITING),
+      error: () => {},
     });
-    this.vibrate(40);
   }
 
   ultimaSpiaggiaState = signal<any>(null);
