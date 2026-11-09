@@ -180,7 +180,7 @@
     @case ('BOMBA') {
     <div class="bomba-remote">
       @if (bombaFlash()) {
-      <div class="bomba-flash">{{ bombaFlash() }}</div>
+      <div class="bomba-flash" [class.boom]="bombaFlash()?.includes('BOOM')">{{ bombaFlash() }}</div>
       }
       <div class="game-head">
         <span class="game-tag bomba">💣 BOMBA</span>
@@ -204,20 +204,18 @@
           [class.safe]="cell.bomb === false" [class.bomb]="cell.bomb === true"
           [disabled]="cell.used || !bombaState()?.you?.yourTurn"
           (click)="pickBombaCell(cell.id)">
-          <span class="bomba-cell-id">{{ cell.id }}</span>
           <span class="bomba-cell-label">{{ cell.label }}</span>
         </button>
         }
       </div>
       <p class="bomba-hint">
-        @if (bombaState()?.you?.out) { Sei fuori da questo round: guarda la TV. }
-        @else if (bombaState()?.you?.yourTurn) { Tocca a te: scegli una casella, poi il turno passa. }
+        @if (bombaState()?.you?.yourTurn) { Tocca a te: scegli una casella, poi il turno passa. }
         @else { Aspetta il tuo turno: passa anche quando la casella è giusta. }
       </p>
       }
 
-      @if (bombaState()?.you; as you) {
-      <p class="bomba-your">Penalità del round: <b>{{ you.penalty }}</b></p>
+      @if (bombaState()?.active === false && bombaState()?.you?.out) {
+      <p class="bomba-your">Fuori dal round · penalità <b>{{ bombaState()?.you?.penalty }}</b></p>
       }
     </div>
     }

@@ -35,6 +35,10 @@ import { CommonModule } from '@angular/common';
         </div>
       }
 
+      @if (displayData?.active === false) {
+        <div class="bb-disarmed">🛡️ LE BOMBE RIMASTE SONO STATE DISINNESCATE</div>
+      }
+
       <div class="bb-board">
         @for (cell of cells; track cell.id) {
           <div
@@ -44,7 +48,6 @@ import { CommonModule } from '@angular/common';
             [class.bomb]="cell.bomb === true"
           >
             <div class="bb-cell-top">
-              <span class="bb-cell-id">{{ cell.id }}</span>
               <span class="bb-cell-mark">{{ mark(cell) }}</span>
             </div>
             <div class="bb-cell-label">{{ cell.label }}</div>
@@ -89,6 +92,7 @@ import { CommonModule } from '@angular/common';
     .bb-prompt { max-width: 1000px; margin: 0; padding: 8px 16px; background: var(--paper-hi); color: var(--coal); border: 3px solid var(--coal); box-shadow: 6px 6px 0 var(--tomato); font-family: var(--font-display); font-size: clamp(.95rem, 1.7vw, 1.5rem); text-align: center; text-transform: uppercase; letter-spacing: .02em; }
     .bb-event { padding: 5px 14px; background: var(--paper-hi); color: var(--coal); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.66rem, 1vw, .84rem); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
     .bb-event.bomb { background: var(--tomato); color: var(--paper-hi); animation: bb-shake .35s ease-in-out; }
+    .bb-disarmed { padding: 6px 14px; background: var(--mint); color: var(--coal); border: 3px solid var(--coal); box-shadow: 4px 4px 0 var(--coal); font-family: var(--font-mono); font-size: clamp(.66rem, 1vw, .84rem); font-weight: 700; letter-spacing: .06em; }
 
     .bb-board { width: min(1320px, 96vw); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(6px, 1vw, 12px); }
     .bb-cell { display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; min-height: clamp(58px, 9vh, 92px); background: var(--paper); color: var(--coal); border: 3px solid var(--coal); box-shadow: 4px 4px 0 var(--coal); overflow: hidden; }
