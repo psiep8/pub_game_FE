@@ -1,5 +1,5 @@
 <div class="image-blur-layout">
-  <h1 class="blur-title">🎭 RICONOSCI LA CELEBRITÀ?</h1>
+  <h1 class="blur-title">RICONOSCI LA CELEBRITÀ?</h1>
 
   @if (displayData.buzzedPlayer) {
     <div class="reservation-alert" @fadeInOut>
@@ -21,13 +21,6 @@
         <small>IMMAGINE NON DISPONIBILE</small>
       </div>
     }
-
-    @if (displayData.buzzedPlayer) {
-
-
-
-
-    }
   </div>
 
   <div class="timer-dot-container">
@@ -36,15 +29,11 @@
     </div>
   </div>
 
-  @if (displayData.buzzedPlayer) {
-
-
-
-
-
-
-
-
+  @if (displayData.clue) {
+    <div class="clue-card" @fadeInOut>
+      <span class="clue-label">INDIZIO {{ displayData.clueIndex }} / {{ displayData.clueTotal }}</span>
+      <p class="clue-text">{{ displayData.clue }}</p>
+    </div>
   }
 
   @if (displayData.correctAnswer) {

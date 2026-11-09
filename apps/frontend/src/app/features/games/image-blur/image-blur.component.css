@@ -5,65 +5,68 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(8px, 1.8vh, 18px);
+  gap: clamp(6px, 1.2vh, 12px);
   padding: clamp(12px, 2.2vh, 24px);
-  background:
-    radial-gradient(circle at 20% 0%, rgba(167, 139, 250, 0.18), transparent 45%),
-    radial-gradient(circle at 85% 100%, rgba(103, 232, 249, 0.12), transparent 45%),
-    linear-gradient(135deg, #0d0b20, #221a45 55%, #0b0a18);
+  background-color: var(--bg-0);
+  background-image: radial-gradient(rgba(244, 232, 206, 0.09) 1px, transparent 1px);
+  background-size: 18px 18px;
+  color: var(--paper);
   z-index: 100;
 }
 
 .blur-title {
-  font-size: clamp(1.3rem, 4vw, 2.7rem);
-  color: #fde68a;
-  text-shadow: 0 0 26px rgba(253, 230, 138, 0.45);
-  font-weight: 900;
   margin: 0;
-  flex-shrink: 0;
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3.4vw, 2.4rem);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: 0.04em;
   text-align: center;
-  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  flex-shrink: 0;
 }
 
 .reservation-alert {
-  background: linear-gradient(135deg, #fb7185, #e11d48);
-  padding: clamp(8px, 1.6vh, 16px) clamp(16px, 4vw, 40px);
-  border-radius: 999px;
-  box-shadow: 0 12px 40px rgba(225, 29, 72, 0.5);
   display: flex;
-  gap: 12px;
   align-items: center;
+  gap: 12px;
+  padding: clamp(7px, 1.4vh, 13px) clamp(16px, 4vw, 38px);
+  background: var(--tomato);
+  color: var(--paper-hi);
+  border: 3px solid var(--coal);
+  box-shadow: 6px 6px 0 var(--coal);
   flex-shrink: 0;
-  animation: alertPulse 0.9s ease-in-out infinite;
+  transform: rotate(-1deg);
 }
 
 .reservation-alert .alert-name {
-  font-size: clamp(1rem, 3vw, 1.9rem);
-  font-weight: 900;
-  color: white;
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 2.6vw, 1.7rem);
+  font-weight: 400;
+  line-height: 1;
   text-transform: uppercase;
 }
 
 .reservation-alert .alert-text {
-  font-size: clamp(0.8rem, 2.2vw, 1.2rem);
+  font-family: var(--font-mono);
+  font-size: clamp(0.68rem, 1.6vw, 0.95rem);
   font-weight: 700;
-  color: #fff1f2;
+  letter-spacing: 0.08em;
 }
 
 /*
  * Il riquadro ha un rapporto fisso e l'immagine usa object-fit: contain:
  * qualunque sia la proporzione della foto, non viene mai tagliata.
- * Prima la regola globale height:auto !important deformava l'img.
  */
 .blur-main-container {
   position: relative;
-  width: min(78vw, 860px);
+  width: min(72vw, 760px);
   aspect-ratio: 4 / 3;
-  max-height: 58vh;
-  border: clamp(5px, 0.7vw, 10px) solid #fff;
-  border-radius: clamp(16px, 2vw, 26px);
-  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  background: #05040c;
+  max-height: 46vh;
+  background: var(--paper-hi);
+  border: clamp(5px, 0.7vw, 8px) solid var(--paper-hi);
+  box-shadow: 10px 10px 0 var(--tomato);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -76,17 +79,7 @@
   object-fit: contain;
   object-position: center;
   transition: filter 0.3s linear;
-  background: #05040c;
-}
-
-.blur-main-container .buzz-announcement {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  color: white;
+  background: var(--coal);
 }
 
 .timer-dot-container {
@@ -94,91 +87,107 @@
 }
 
 .timer-dot-container .timer-circle {
-  width: clamp(54px, 8vmin, 84px);
-  height: clamp(54px, 8vmin, 84px);
+  width: clamp(48px, 7vmin, 70px);
+  height: clamp(48px, 7vmin, 70px);
   border-radius: 50%;
-  background: linear-gradient(135deg, #a78bfa, #6366f1);
+  background: var(--mustard);
+  border: 3px solid var(--coal);
+  box-shadow: 4px 4px 0 var(--coal);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
-  animation: timerPulse 1s ease-in-out infinite;
 }
 
 .timer-dot-container .timer-circle .timer-value {
-  font-size: clamp(1rem, 3.4vmin, 1.7rem);
-  font-weight: 900;
-  color: white;
+  color: var(--coal);
+  font-family: var(--font-mono);
+  font-size: clamp(0.82rem, 2.6vmin, 1.2rem);
+  font-weight: 800;
 }
 
-.presenter-controls {
-  display: flex;
-  gap: clamp(8px, 2vw, 16px);
+.clue-card {
+  width: min(760px, 82vw);
+  padding: clamp(8px, 1.4vh, 12px) clamp(12px, 2vw, 18px);
+  background: var(--paper);
+  color: var(--coal);
+  border: 3px solid var(--coal);
+  box-shadow: 6px 6px 0 var(--mustard);
   flex-shrink: 0;
 }
 
-.presenter-controls button {
-  padding: clamp(8px, 1.4vh, 13px) clamp(14px, 3vw, 26px);
-  font-size: clamp(0.8rem, 2.2vw, 1.05rem);
-  font-weight: 800;
-  border: none;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: transform 0.2s;
+.clue-label {
+  display: block;
+  margin-bottom: 3px;
+  font-family: var(--font-mono);
+  font-size: clamp(0.55rem, 0.8vw, 0.66rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
 }
 
-.presenter-controls button:active { transform: scale(0.95); }
-.presenter-controls .control-correct { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; }
-.presenter-controls .control-wrong { background: linear-gradient(135deg, #eb3349, #f45c43); color: white; }
+.clue-text {
+  margin: 0;
+  color: var(--coal);
+  font-family: var(--font);
+  font-size: clamp(0.78rem, 1.3vw, 1rem);
+  font-weight: 700;
+  line-height: 1.25;
+}
 
 .reveal-answer {
-  background: linear-gradient(135deg, #11998e, #38ef7d);
-  padding: clamp(12px, 2.4vh, 24px) clamp(22px, 5vw, 52px);
-  border-radius: 18px;
-  box-shadow: 0 14px 44px rgba(56, 239, 125, 0.45);
+  padding: clamp(10px, 2vh, 18px) clamp(20px, 5vw, 48px);
+  background: var(--acid);
+  color: var(--coal);
+  border: 3px solid var(--coal);
+  box-shadow: 7px 7px 0 var(--tomato);
+  flex-shrink: 0;
 }
 
 .reveal-answer h2 {
   margin: 0;
-  font-size: clamp(1.1rem, 4vw, 2.2rem);
-  color: white;
-  text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  color: var(--coal);
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 3.4vw, 1.9rem);
+  font-weight: 400;
+  line-height: 1;
   text-align: center;
-}
-
-@keyframes alertPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.04); }
-}
-
-@keyframes timerPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.06); }
+  text-transform: uppercase;
 }
 
 .blur-placeholder {
   width: 100%;
   height: 100%;
-  min-height: 300px;
+  min-height: 220px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   background: var(--paper);
   color: var(--coal);
-  border: 4px solid var(--coal);
-  box-shadow: 10px 10px 0 var(--tomato);
 }
+
 .blur-placeholder span {
   font-family: var(--font-display);
-  font-size: clamp(6rem, 18vw, 14rem);
+  font-size: clamp(5rem, 16vw, 11rem);
   line-height: 1;
   text-transform: uppercase;
 }
+
 .blur-placeholder small {
   font-family: var(--font-mono);
-  font-size: clamp(.6rem, .9vw, .8rem);
+  font-size: clamp(0.6rem, 0.9vw, 0.8rem);
   font-weight: 700;
-  letter-spacing: .16em;
+  letter-spacing: 0.16em;
+}
+
+@media (max-height: 760px) {
+  .blur-main-container {
+    max-height: 42vh;
+  }
+  .clue-card {
+    padding: 6px 10px;
+  }
+  .clue-text {
+    font-size: 0.76rem;
+  }
 }
