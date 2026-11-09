@@ -33,6 +33,7 @@ export class Admin implements OnInit, OnDestroy {
   readonly newCategoryName = signal('');
   readonly newCategoryEmoji = signal('');
   private diagTimer?: ReturnType<typeof setInterval>;
+  private stateRetry?: ReturnType<typeof setTimeout>;
   private destroyRef = inject(DestroyRef);
   public theme = inject(ThemeService);
 
@@ -67,6 +68,12 @@ export class Admin implements OnInit, OnDestroy {
     this.ws.connectedAt$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.requestCurrentState());
+    // Se la socket era già connessa prima della sottoscrizione, connectedAt$
+    // non emette: senza questo secondo tentativo un reload del pannello poteva
+    // restare senza stato (nessun pulsante per il giocatore prenotato).
+    this.stateRetry = setTimeout(() => {
+      if (this.ws.connected()) this.requestCurrentState();
+    }, 1200);
     void this.refreshDiagnostics();
     void this.loadCategories();
     this.diagTimer = setInterval(() => void this.refreshDiagnostics(), 5000);
@@ -474,6 +481,16 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   /**
+   * Round 1-based per il presentatore: il backend conta da 0 e la TV mostra
+   * 1/40. Con lo stato appena azzerato non c'è un round da etichettare.
+   */
+  roundLabel(diag: any): string | number {
+    if (!diag?.roundType) return '—';
+    const value = Number(diag?.roundIndex);
+    return Number.isFinite(value) ? value + 1 : '—';
+  }
+
+  /**
    * Ruolo leggibile nella diagnostica. Le sessioni legacy create prima della
    * separazione dei token possono essere salvate come TV pur avendo un
    * giocatore: sul pannello sono concorrenti, non televisori.
@@ -545,6 +562,7 @@ export class Admin implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.diagTimer) clearInterval(this.diagTimer);
+    if (this.stateRetry) clearTimeout(this.stateRetry);
     
   }
 }

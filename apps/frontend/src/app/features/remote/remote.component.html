@@ -265,9 +265,11 @@
       <p class="cavallo-question">{{ azzardoState()?.question }}</p>
       <p class="buzz-hint">
         Manche {{ azzardoState()?.manche ?? 1 }}/{{ azzardoState()?.total ?? 4 }} ·
-        {{ azzardoState()?.category }} · in {{ azzardoState()?.unit }} · hai {{ azzardoMaxBet() }} punti
+        {{ azzardoState()?.category }} · in {{ azzardoState()?.unit }} · hai {{ azzardoMyPoints() }} punti
       </p>
-      <p class="party-instruction">Quanto punti?</p>
+      <p class="party-instruction">
+        {{ azzardoCanBet() ? 'Quanto punti?' : 'Hai 0 punti: non puoi puntare in questa manche.' }}
+      </p>
       <div class="azzardo-stakes">
         @for (stake of azzardoStakes; track stake) {
         <button class="azzardo-stake" [class.selected]="azzardoStake() === stake"
@@ -277,12 +279,14 @@
       <div class="azzardo-options">
         @for (option of azzardoState()?.options ?? []; track $index; let i = $index) {
         <button class="azzardo-option" [class.selected]="azzardoChoice() === i"
-          [disabled]="azzardoSent()" (click)="azzardoPick(i)">
+          [disabled]="azzardoSent() || !azzardoCanBet()" (click)="azzardoPick(i)">
           <span class="azzardo-letter">{{ letter(i) }}</span>{{ option }} {{ azzardoState()?.unit }}
         </button>
         }
       </div>
-      <p class="buzz-hint">{{ azzardoSent() ? 'Puntata inviata' : 'Scegli la puntata, poi la risposta' }}</p>
+      <p class="buzz-hint">
+        {{ azzardoSent() ? 'Puntata inviata' : azzardoCanBet() ? 'Scegli la puntata, poi la risposta' : 'Puntata minima 100 punti.' }}
+      </p>
       } @else if (azzardoState()?.phase === 'REVEAL') {
       <div class="status-msg">
         <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">📊</div></div>

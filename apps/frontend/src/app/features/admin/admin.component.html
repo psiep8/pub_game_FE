@@ -31,7 +31,7 @@
     @if (diagnostics(); as d) {
       <div class="diag-grid">
         <span>Stato partita: <b>{{ d.status }}</b></span>
-        <span>Round: <b>{{ d.roundIndex }}</b> {{ d.roundType }}</span>
+        <span>Round: <b>{{ roundLabel(d) }}</b> {{ d.roundType }}</span>
         <span>Versione stato: <b>{{ d.stateVersion }}</b></span>
         <span>Eventi salvati: <b>{{ d.events }}</b></span>
         <span>Round aperto: <b>{{ d.roundOpen ? "sì" : "no" }}</b></span>

@@ -13,6 +13,7 @@ describe('RemoteComponent', () => {
   let component: RemoteComponent;
   let fixture: ComponentFixture<RemoteComponent>;
   let ws: FakeWebSocketService;
+  let reliability: FakeReliabilityService;
 
   beforeEach(async () => {
     localStorage.clear();
@@ -31,6 +32,7 @@ describe('RemoteComponent', () => {
     fixture = TestBed.createComponent(RemoteComponent);
     component = fixture.componentInstance;
     ws = TestBed.inject(WebSocketService) as unknown as FakeWebSocketService;
+    reliability = TestBed.inject(ReliabilityService) as unknown as FakeReliabilityService;
     fixture.detectChanges();
     await fixture.whenStable();
   });
@@ -84,6 +86,83 @@ describe('RemoteComponent', () => {
 
     expect(component.isBlocked()).toBe(true);
     expect(component.gameState()).toBe('BLOCKED_ERROR');
+  });
+
+  it('should reopen a new round from the snapshot after an answer', async () => {
+    component.tempNickname = 'Anna';
+    component.setNickname();
+    ws.status$.next({
+      action: 'START_VOTING',
+      type: 'TIMELINE',
+      payload: JSON.stringify({ items: [{ id: 0, label: 'Prima carta' }] }),
+    });
+    await fixture.whenStable();
+
+    // Telefono rimasto bloccato con la risposta del round precedente: senza il
+    // reset della chiave il nuovo snapshot veniva scartato e restava in attesa.
+    component.hasAnswered.set(true);
+    component.gameState.set('LOCKED' as any);
+
+    reliability.syncState$.next({
+      hasState: true,
+      roundIndex: 1,
+      roundType: 'TIMELINE',
+      roundKey: 'g1-r1',
+      roundDeadlineAt: Date.now() + 60_000,
+      currentRound: {
+        type: 'TIMELINE',
+        roundKey: 'g1-r1',
+        payload: JSON.stringify({
+          items: [{ id: 0, label: 'Prima carta' }, { id: 1, label: 'Seconda carta' }],
+        }),
+      },
+    });
+    await fixture.whenStable();
+
+    expect(component.gameState()).toBe('VOTING');
+    expect(component.hasAnswered()).toBe(false);
+    expect(component.timelineCards().length).toBe(2);
+  });
+
+  it('should go back to waiting when the snapshot has no open round', async () => {
+    component.tempNickname = 'Anna';
+    component.setNickname();
+    ws.status$.next({ action: 'START_VOTING', type: 'QUIZ' });
+    await fixture.whenStable();
+
+    reliability.syncState$.next({
+      hasState: true,
+      status: 'WAITING',
+      roundType: null,
+      roundDeadlineAt: Date.now() - 1_000,
+    });
+    await fixture.whenStable();
+
+    expect(component.gameState()).toBe('WAITING');
+    expect(component.hasAnswered()).toBe(false);
+  });
+
+  it('should not let a player with zero points bet in Azzardo', () => {
+    component.tempNickname = 'Anna';
+    component.setNickname();
+
+    const state = (maxBet: number, points: number) => ({
+      phase: 'BET',
+      manche: 1,
+      total: 4,
+      category: 'STORIA',
+      unit: 'anno',
+      options: [1900, 1910, 1920, 1930],
+      ready: [{ playerName: 'Anna', points, maxBet, ready: false }],
+    });
+
+    component.azzardoState.set(state(0, 0));
+    component.azzardoPick(0);
+    expect(ws.broadcasted.some((entry) => entry.body.action === 'AZZARDO_ACTION')).toBe(false);
+
+    component.azzardoState.set(state(100, 100));
+    component.azzardoPick(0);
+    expect(ws.broadcasted.some((entry) => entry.body.action === 'AZZARDO_ACTION')).toBe(true);
   });
 
   it('should reset the answer state when the round ends', async () => {

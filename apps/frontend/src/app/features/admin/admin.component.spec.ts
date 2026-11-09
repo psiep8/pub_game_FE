@@ -42,6 +42,12 @@ describe('Admin', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should show the round 1-based like the TV', () => {
+    expect(component.roundLabel({ roundIndex: 0, roundType: 'QUIZ' })).toBe(1);
+    expect(component.roundLabel({ roundIndex: 5, roundType: 'TIMELINE' })).toBe(6);
+    expect(component.roundLabel({ roundIndex: 0, roundType: null })).toBe('—');
+  });
+
   it('should label a legacy player session as remote', () => {
     expect(component.displayRole({ role: 'TV', playerName: 'Anna' })).toBe('REMOTE');
     expect(component.displayRole({ role: 'TV', playerName: null })).toBe('TV');

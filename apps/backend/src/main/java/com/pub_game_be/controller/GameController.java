@@ -94,7 +94,12 @@ public class GameController {
             @RequestParam("type") String type,
             @RequestParam("difficulty") String difficulty) {
 
-        int roundIndex = (int) gameRoundRepository.countByGameId(gameId);
+        // Il prossimo indice è il massimo esistente + 1, non il conteggio: un
+        // round saltato con AVANTI non crea una riga e il conteggio farebbe
+        // ricollidere l'indice con quello del round precedente.
+        int roundIndex = gameRoundRepository.findFirstByGameIdOrderByRoundIndexDesc(gameId)
+                .map(round -> round.getRoundIndex() + 1)
+                .orElse(0);
         int act = Math.min(5, (roundIndex / 8) + 1);
 
         String aiPayload;
@@ -571,6 +576,21 @@ public class GameController {
         } catch (Exception ignored) {
             return payload;
         }
+    }
+
+    /**
+     * Chiude il round corrente sul server. La TV lo chiama quando il
+     * presentatore preme AVANTI durante un gioco ancora aperto: senza questa
+     * chiusura il backend restava su un round mai terminato (e il successivo
+     * partiva con un indice sfasato).
+     */
+    @PostMapping("/{gameId}/round/close")
+    public Map<String, Object> closeRound(@PathVariable("gameId") Long gameId,
+            @RequestBody(required = false) Map<String, Object> body) {
+        String reason = body == null ? "skipped"
+                : String.valueOf(body.getOrDefault("reason", "skipped"));
+        gameStateService.closeRound(gameId, reason);
+        return Map.of("closed", true, "gameId", gameId, "reason", reason);
     }
 
     @GetMapping("/{gameId}/current-round")

@@ -173,6 +173,9 @@ export class GameComponent implements OnInit, OnDestroy {
   });
 
   private arenaFinished = false;
+  /** Telefoni presenti sul backend: i bonus li usano anche senza classifica
+   *  (dopo un reset la leaderboard è vuota e i tavoli sparirebbero). */
+  private presencePlayers = signal<string[]>([]);
   private readonly bonusActsStarted = new Set<number>();
   private bonusScoresMap = new Map<string, number>();
   private bonusBasketsMap = new Map<string, number>();
@@ -542,25 +545,28 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
       let activePlayers = this.leaderboardService.getLeaderboard().map(p => p.playerName);
-      // Dopo un reset la classifica locale è vuota: i mode a turni hanno
-      // bisogno dei telefoni collegati, quindi li leggono dalla presenza
-      // autorevole del backend invece che dai punti già assegnati.
-      if (activePlayers.length === 0) {
+      // Anche chi ha 0 punti (o è appena entrato) deve giocare: unisco la
+      // classifica con i telefoni presenti sul backend. Altrimenti Bomba e
+      // gli altri mode a squadre partono con un solo nome dopo un reset e il
+      // server li rifiuta ("servono almeno 2 squadre").
+      try {
         const diagnostics = await this.reliability.diagnostics(this.currentGameId()!);
-        const deviceRows = Array.isArray(diagnostics?.devices)
-          ? diagnostics.devices
-          : Array.isArray(diagnostics?.devices?.devices)
-            ? diagnostics.devices.devices
-            : Array.isArray(diagnostics?.presence)
-              ? diagnostics.presence
+        const deviceRows = Array.isArray(diagnostics?.presence)
+          ? diagnostics.presence
+          : Array.isArray(diagnostics?.devices)
+            ? diagnostics.devices
+            : Array.isArray(diagnostics?.devices?.devices)
+              ? diagnostics.devices.devices
               : [];
-        activePlayers = Array.from(new Set(
-          deviceRows
-            .filter((device: any) => device?.playerName
-              && (device.role === 'REMOTE' || device.role === 'TV'))
-            .map((device: any) => String(device.playerName).trim())
-            .filter((playerName: string) => playerName.length > 0)
-        ));
+        const presentPlayers = deviceRows
+          .filter((device: any) => device?.playerName
+            && (device.role === 'REMOTE' || device.role === 'TV'))
+          .map((device: any) => String(device.playerName).trim())
+          .filter((playerName: string) => playerName.length > 0);
+        this.presencePlayers.set(presentPlayers);
+        activePlayers = Array.from(new Set([...activePlayers, ...presentPlayers]));
+      } catch {
+        // Senza diagnostica si gioca con la classifica: meglio che niente.
       }
 
       const mode = this.gameModeService.createMode({
@@ -1096,14 +1102,41 @@ export class GameComponent implements OnInit, OnDestroy {
     }
   }
 
+  private closingRound = false;
+
   adminNextRound(): void {
+    if (this.closingRound) return;
     this.cancelAutoAdvance();
     this.showLeaderboardQuick.set(false);
     this.showLeaderboardDetailed.set(false);
     this.isShowingLeaderboard.set(false);
     this.pendingLeaderboardType.set(null);
     this.stopDemo();
-    void this.startNewRound();
+
+    const gameId = this.currentGameId();
+    const mode = this.currentMode();
+    // AVANTI durante un round ancora aperto: prima si chiude il round sul
+    // server, poi si apre il successivo. Senza questa chiusura il backend
+    // restava sul gioco saltato e il round dopo partiva con un indice sfasato.
+    const roundStillOpen = !!gameId && !!mode && !mode.isRevealed() && !this.closingRound;
+    if (!roundStillOpen) {
+      void this.startNewRound();
+      return;
+    }
+
+    this.closingRound = true;
+    this.gameService.closeRound(gameId, 'skipped').subscribe({
+      next: () => {
+        this.closingRound = false;
+        void this.startNewRound();
+      },
+      error: () => {
+        // Se la chiusura non passa la partita deve comunque andare avanti:
+        // meglio un round registrato in ritardo che la TV bloccata.
+        this.closingRound = false;
+        void this.startNewRound();
+      },
+    });
   }
 
   /**
@@ -1177,6 +1210,23 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Bonus: parte dalla TV a fine atto (o su comando admin) e non consuma un round. */
   async startBonus(type: BonusType): Promise<void> {
     if (this.isSpinning() || this.bonusActive()) return;
+
+    // Un bonus può partire subito dopo un reset, quando la classifica è
+    // vuota: allinea i tavoli ai telefoni presenti prima di disegnare il bonus.
+    const bonusGameId = this.currentGameId();
+    if (bonusGameId) {
+      try {
+        const diagnostics = await this.reliability.diagnostics(bonusGameId);
+        const rows = Array.isArray(diagnostics?.presence) ? diagnostics.presence : [];
+        this.presencePlayers.set(rows
+          .filter((device: any) => device?.playerName
+            && (device.role === 'REMOTE' || device.role === 'TV'))
+          .map((device: any) => String(device.playerName).trim())
+          .filter((playerName: string) => playerName.length > 0));
+      } catch {
+        // Senza diagnostica restano i nomi della classifica.
+      }
+    }
 
     this.cancelAutoAdvance();
     this.showLeaderboardQuick.set(false);
@@ -1317,9 +1367,10 @@ export class GameComponent implements OnInit, OnDestroy {
     }, 8000);
   }
 
-  /** Giocatori in classifica, usati dai bonus per raccogliere i tocchi. */
+  /** Giocatori in classifica + telefoni presenti, usati dai bonus. */
   bonusPlayers(): string[] {
-    return this.leaderboardService.getLeaderboard().map((player) => player.playerName);
+    const ranked = this.leaderboardService.getLeaderboard().map((player) => player.playerName);
+    return Array.from(new Set([...ranked, ...this.presencePlayers()]));
   }
 
   bonusLabel(): string {

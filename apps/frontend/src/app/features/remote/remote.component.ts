@@ -194,6 +194,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   isBlocked = signal(false);
 
   hockeyQuestion = signal<{ text: string; options: string[]; difficulty?: string } | null>(null);
+  /** Vero dopo il primo AIR_HOCKEY_BATTLE_STATE: senza stato non si disegna il campo. */
+  hockeyStateReady = signal(false);
   hockeyMyTurn = signal(false);
   hockeyMyScore = signal(0);
   hockeyOpponentScore = signal(0);
@@ -255,6 +257,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private bombaPoll?: ReturnType<typeof setInterval>;
   private bombaPollBusy = false;
   private bombaStarted = false;
+  /** Identità dell'ultimo round applicato da uno snapshot (per non riaprire
+   *  voti già dati e per riconoscere un round nuovo dopo un round chiuso). */
+  private lastSnapshotRoundKey = '';
   private bombaEventSeq = 0;
   private bombaFlashTimer?: ReturnType<typeof setTimeout>;
 
@@ -474,6 +479,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.timelineOrder.set([]);
           this.arenaEliminated.set(false);
           this.arenaQuestion.set(null);
+          this.hockeyStateReady.set(false);
           this.hockeyGoal.set(null);
           this.hockeyLastGoalId = 0;
           if (this.hockeyGoalTimer) {
@@ -931,6 +937,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     } else if (type === 'SPEED_RUSH') {
       this.startSpeedRush();
     } else if (type === 'AIR_HOCKEY_BATTLE') {
+      this.hockeyStateReady.set(false);
       this.hockeyHits.set(0);
       this.hockeyGoal.set(null);
       this.hockeyLastGoalId = 0;
@@ -1103,6 +1110,18 @@ export class RemoteComponent implements OnInit, OnDestroy {
     return Number(row?.maxBet ?? 0);
   }
 
+  /** Punti reali in classifica (distinti dalla puntata massima). */
+  azzardoMyPoints(): number {
+    const player = this.nickname();
+    const row = (this.azzardoState()?.ready ?? []).find((entry: any) => entry.playerName === player);
+    return Number(row?.points ?? 0);
+  }
+
+  /** Chi ha 0 punti non può puntare: niente invio a vuoto. */
+  azzardoCanBet(): boolean {
+    return this.azzardoMaxBet() > 0;
+  }
+
   azzardoPickStake(stake: number): void {
     if (this.azzardoSent() || stake > this.azzardoMaxBet()) return;
     this.azzardoStake.set(stake);
@@ -1115,6 +1134,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const state = this.azzardoState();
     if (!player || this.azzardoSent() || state?.phase !== 'BET') return;
     if (index < 0 || index >= (state.options?.length ?? 0)) return;
+    // Senza punti non c'è puntata: la manche si guarda, non si gioca.
+    if (!this.azzardoCanBet()) return;
 
     this.azzardoChoice.set(index);
     this.azzardoSent.set(true);
@@ -1570,6 +1591,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     );
     if (!court) return;
 
+    this.hockeyStateReady.set(true);
     const mine: 'a' | 'b' = court.a.playerName.trim().toLowerCase() === me ? 'a' : 'b';
     const other: 'a' | 'b' = mine === 'a' ? 'b' : 'a';
 
@@ -1702,7 +1724,51 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const open = !deadline || deadline > this.reliability.serverNow();
     const round = snapshot.currentRound;
     const type = round?.type ?? snapshot.roundType;
-    if (!open || !type) return;
+
+    // Round nuovo (chiave diversa): le risposte del round precedente non
+    // valgono più. Senza questo, un telefono che aveva già risposto restava
+    // in attesa anche con il round successivo aperto, perché `hasAnswered`
+    // bloccava l'applicazione dello snapshot. Va calcolato prima della
+    // guardia dei bonus: un nuovo round deve comunque chiudere il bonus.
+    const roundKey = String(round?.roundKey ?? snapshot.roundKey
+      ?? `${type}:${snapshot.roundIndex ?? ''}`);
+    const newRound = roundKey !== this.lastSnapshotRoundKey;
+    if (newRound) {
+      this.lastSnapshotRoundKey = roundKey;
+      this.hasAnswered.set(false);
+      this.selectedAnswer.set(null);
+      this.isBlocked.set(false);
+    }
+
+    // I bonus non sono round backend: uno snapshot del round precedente già
+    // chiuso non deve spegnere la loro schermata mentre sono in corso.
+    const bonusVisible = this.questionType().startsWith('BONUS_')
+      || !!this.casinoState() || !!this.cavalloState()
+      || !!this.biglieState() || !!this.azzardoState();
+    if (bonusVisible && !newRound) return;
+
+    // Un round chiuso o azzerato deve riportare il telefono in attesa: prima
+    // restava sulla schermata del gioco precedente (o su "In attesa" con lo
+    // stato di risposta ancora bloccato) finché non arrivava un START_VOTING.
+    if (!open || !type) {
+      this.gameState.set(PlayerStatus.WAITING);
+      this.hasAnswered.set(false);
+      this.selectedAnswer.set(null);
+      this.isBlocked.set(false);
+      this.timelineOrder.set([]);
+      this.stopMicrophoneListening();
+      this.stopBombaPolling();
+      this.bombaStarted = false;
+      return;
+    }
+
+    // Black Jack e Air Hockey hanno lo stato (tavolo o campo) solo nella TV.
+    // Senza averlo ricevuto non c'è nulla da mostrare: meglio restare in
+    // attesa che disegnare un tavolo/campo vuoto con "0/0" dopo un refresh.
+    // Durante il gioco la TV ripubblica lo stato, quindi il telefono che si
+    // ricollega a partita in corso lo riceve subito dopo.
+    if ((type === 'BLACKJACK' && !this.blackjackState())
+      || (type === 'AIR_HOCKEY_BATTLE' && !this.hockeyStateReady())) return;
 
     this.questionType.set(type);
     if (type === 'ARENA') {
@@ -1711,7 +1777,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
     }
     if (this.hasAnswered()) return;
 
-    // Round già mostrato: un sync non deve riaprire voti o resettare il tabellone.
+    // Round già mostrato: un sync non deve riaprire voti o resettare il
+    // tabellone (per esempio l'ordine Timeline appena trascinato).
     if (this.questionType() === type && this.gameState() === PlayerStatus.VOTING) return;
 
     // Anche i round guidati dalla TV (Bomba, Timeline, Ultima spiaggia, ...)

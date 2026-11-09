@@ -363,6 +363,7 @@ export class AzzardoMode extends GameModeBase {
       ready: this.players.map((playerName) => ({
         playerName,
         ready: this.stakes.has(playerName),
+        points: this.availablePoints(playerName),
         maxBet: maxBetFor(this.availablePoints(playerName)),
       })),
       rows: revealed ? this.rows() : [],

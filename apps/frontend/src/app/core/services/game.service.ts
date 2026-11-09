@@ -213,6 +213,14 @@ export class GameService {
     return this.http.post<any>(`${this.baseUrl}/games/${gameId}/bomba/reset`, {});
   }
 
+  /**
+   * Chiude il round corrente sul server prima di un AVANTI manuale: la TV
+   * altrimenti salta il gioco lasciando il backend su un round mai chiuso.
+   */
+  closeRound(gameId: number, reason = 'skipped'): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/round/close`, { reason });
+  }
+
   getTimelineReveal(gameId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/games/${gameId}/timeline/reveal`);
   }
