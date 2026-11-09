@@ -900,10 +900,10 @@ public class QuestionBankService {
         }
         if ("IMAGE_BLUR".equals(question.type())) {
             String imageUrl = resolveCelebrityImage(question.correctAnswer());
-            if (imageUrl == null || imageUrl.isBlank()) {
-                return Optional.empty();
-            }
-            payload.put("imageUrl", imageUrl);
+            // La domanda resta giocabile anche senza foto: la TV mostra il
+            // segnaposto con l'iniziale invece di saltare il round.
+            payload.put("imageUrl", imageUrl == null ? "" : imageUrl);
+            payload.put("imageFallback", imageUrl == null || imageUrl.isBlank());
         }
         return Optional.of(payload.toString());
     }
