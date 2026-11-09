@@ -9,11 +9,18 @@
   }
 
   <div class="blur-main-container" [class.portrait]="isPortrait">
-    <img
-      [src]="getSafeUrl(displayData.imageUrl)"
-      [style.filter]="'blur(' + displayData.blurAmount + 'px)'"
-      referrerpolicy="no-referrer"
-      class="blur-img" (load)="onImgLoad($event)">
+    @if (!imgError && displayData.imageUrl) {
+      <img
+        [src]="getSafeUrl(displayData.imageUrl)"
+        [style.filter]="imgLoaded ? 'blur(' + displayData.blurAmount + 'px)' : 'none'"
+        referrerpolicy="no-referrer"
+        class="blur-img" (load)="onImgLoad($event)" (error)="onImgError()">
+    } @else {
+      <div class="blur-placeholder">
+        <span>{{ initial() }}</span>
+        <small>IMMAGINE NON DISPONIBILE</small>
+      </div>
+    }
 
     @if (displayData.buzzedPlayer) {
 

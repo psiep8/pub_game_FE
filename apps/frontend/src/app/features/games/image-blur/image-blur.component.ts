@@ -25,10 +25,25 @@ export class ImageBlur {
   @Output() onConfirmWrong = new EventEmitter<void>();
 
   isPortrait = false;
+  imgLoaded = false;
+  imgError = false;
 
   onImgLoad(event: Event): void {
     const img = event.target as HTMLImageElement;
     this.isPortrait = img.naturalHeight > img.naturalWidth;
+    this.imgLoaded = true;
+    this.imgError = false;
+  }
+
+  onImgError(): void {
+    this.imgError = true;
+    this.imgLoaded = false;
+  }
+
+  /** Segnaposto con l'iniziale: la TV non resta mai vuota. */
+  initial(): string {
+    const answer = String(this.displayData?.correctAnswer ?? '').trim();
+    return answer ? answer[0].toUpperCase() : '?';
   }
 
   private sanitizer = inject(DomSanitizer);

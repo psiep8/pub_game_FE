@@ -155,3 +155,30 @@
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.06); }
 }
+
+.blur-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--paper);
+  color: var(--coal);
+  border: 4px solid var(--coal);
+  box-shadow: 10px 10px 0 var(--tomato);
+}
+.blur-placeholder span {
+  font-family: var(--font-display);
+  font-size: clamp(6rem, 18vw, 14rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+.blur-placeholder small {
+  font-family: var(--font-mono);
+  font-size: clamp(.6rem, .9vw, .8rem);
+  font-weight: 700;
+  letter-spacing: .16em;
+}
