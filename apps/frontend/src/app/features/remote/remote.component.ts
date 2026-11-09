@@ -1,7 +1,7 @@
 import { GamePhase } from '../../shared/enums/game-phase';
 import { PlayerStatus } from '../../shared/enums/player-status';
 import { WsAction } from '../../shared/enums/ws-action';
-import { Component, DestroyRef, inject, OnDestroy, OnInit, signal, HostListener, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, OnDestroy, OnInit, signal, computed, HostListener, ChangeDetectionStrategy } from '@angular/core';
 
 /** Nickname imposto dalla vista di prova `quad.html` (es. ?nickname=Anna). */
 function initialNicknameFromQuery(): string | null {
@@ -227,6 +227,28 @@ export class RemoteComponent implements OnInit, OnDestroy {
   /** Round in corso e totale, come li annuncia la TV a ogni domanda. */
   roundNumber = signal(0);
   roundTotal = signal(40);
+
+  /**
+   * Varianti della schermata di attesa. La scelta dipende dal nickname, così
+   * due telefoni collegati alla stessa TV non mostrano la stessa scena.
+   */
+  private readonly waitVariants = [
+    { icon: '🎲', title: 'Mescolo i dadi…', hint: 'Guarda la TV e tieni il telefono pronto' },
+    { icon: '🍺', title: 'Faccio la spuma…', hint: 'La prossima sfida arriva dalla TV' },
+    { icon: '🎤', title: 'Scaldo il microfono…', hint: 'Il presentatore sta preparando il round' },
+    { icon: '🃏', title: 'Mescolo il mazzo…', hint: 'Mano pronta: si parte dalla TV' },
+    { icon: '🎯', title: 'Centro la freccetta…', hint: 'Occhi sulla TV, dita sul telefono' },
+    { icon: '💡', title: 'Accendo il tabellone…', hint: 'Ancora un attimo e si gioca' },
+    { icon: '📻', title: 'Cerco la stazione…', hint: 'La musica arriva dalla TV' },
+    { icon: '🧂', title: 'Salgo sul palco…', hint: 'Tieni il telefono in mano' },
+  ];
+
+  readonly waitVariant = computed(() => {
+    const name = this.nickname() ?? '';
+    let hash = 0;
+    for (const character of name) hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+    return this.waitVariants[hash % this.waitVariants.length];
+  });
 
   // ---- Giochi simultanei: stato locale del telefono ----
   timelineCards = signal<Array<{ id: number; label: string }>>([]);

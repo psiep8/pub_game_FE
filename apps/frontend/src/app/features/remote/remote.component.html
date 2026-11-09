@@ -117,10 +117,11 @@
     <div class="status-msg">
       <div class="wait-orb">
         <div class="wait-ring"></div>
-        <div class="wait-core">🎲</div>
+        <div class="wait-pen" aria-hidden="true"><span class="wait-pen-tip">✏️</span></div>
+        <div class="wait-core">{{ waitVariant().icon }}</div>
       </div>
-      <p>In attesa della prossima sfida...</p>
-      <span class="sub-text">Guarda la TV e tieni il telefono pronto</span>
+      <p>{{ waitVariant().title }}</p>
+      <span class="sub-text">{{ waitVariant().hint }}</span>
     </div>
     }
     @case ('VOTING') {
