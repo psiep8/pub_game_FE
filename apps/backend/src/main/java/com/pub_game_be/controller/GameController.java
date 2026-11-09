@@ -7,6 +7,7 @@ import com.pub_game_be.domain.game.Game;
 import com.pub_game_be.domain.game_round.GameRound;
 import com.pub_game_be.reliability.GameStateService;
 import com.pub_game_be.reliability.IdempotencyService;
+import com.pub_game_be.reliability.ScoreboardService;
 import com.pub_game_be.reliability.StateBlobService;
 import com.pub_game_be.repository.GameRepository;
 import com.pub_game_be.repository.GameRoundRepository;
@@ -49,6 +50,7 @@ public class GameController {
     private final UltimaSpiaggiaLevelService ultimaSpiaggiaLevelService;
     private final BombaService bombaService;
     private final StateBlobService stateBlobs;
+    private final ScoreboardService scoreboard;
 
     public GameController(GameRepository gameRepo,
             GameRoundRepository gameRoundRepository,
@@ -62,7 +64,7 @@ public class GameController {
             GameStateService gameStateService,
             IdempotencyService idempotencyService,
             UltimaSpiaggiaLevelService ultimaSpiaggiaLevelService,
-            BombaService bombaService, StateBlobService stateBlobs) {
+            BombaService bombaService, StateBlobService stateBlobs, ScoreboardService scoreboard) {
         this.gameRepo = gameRepo;
         this.gameRoundRepository = gameRoundRepository;
         this.simpleRoundService = simpleRoundService;
@@ -77,6 +79,35 @@ public class GameController {
         this.ultimaSpiaggiaLevelService = ultimaSpiaggiaLevelService;
         this.bombaService = bombaService;
         this.stateBlobs = stateBlobs;
+        this.scoreboard = scoreboard;
+    }
+
+    /**
+     * Partita in corso per una TV appena aperta (altro dispositivo o browser
+     * pulito): l'ID non deve essere digitato a mano né dipendere dallo storage
+     * locale del dispositivo precedente.
+     */
+    @GetMapping("/active")
+    public Map<String, Object> activeGame() {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("gameId", gameStateService.latestGameId().orElse(null));
+        return out;
+    }
+
+    /**
+     * La TV salva la classifica completa dopo ogni variazione di punti.
+     *
+     * <p>È un'istantanea, non un delta: un retry non somma due volte. Lo
+     * snapshot di sincronizzazione la restituisce a chi si ricollega.</p>
+     */
+    @PutMapping("/{gameId}/leaderboard")
+    public Map<String, Object> saveLeaderboard(@PathVariable("gameId") Long gameId,
+            @RequestBody(required = false) Map<String, Object> body) {
+        int saved = scoreboard.save(gameId, body == null ? null : body.get("entries"));
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("saved", saved);
+        out.put("gameId", gameId);
+        return out;
     }
 
     @PostMapping
@@ -557,6 +588,7 @@ public class GameController {
         ultimaSpiaggiaLevelService.clear(gameId);
         partyGameService.forget(gameId);
         bombaService.reset(gameId);
+        scoreboard.forget(gameId);
         stateBlobs.forget(gameId, "time-buzzer-start");
         return Map.of("reset", true, "gameId", gameId);
     }

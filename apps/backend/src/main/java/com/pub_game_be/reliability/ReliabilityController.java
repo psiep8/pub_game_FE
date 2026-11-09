@@ -40,18 +40,20 @@ public class ReliabilityController {
     private final QuestionHistoryService questionHistory;
     private final QuestionUsageService questionUsage;
     private final ReliabilityProperties props;
+    private final ScoreboardService scoreboard;
 
     @Value("${game.security.control-secret:}")
     private String controlSecret;
 
     public ReliabilityController(DeviceSessionService sessions, GameStateService gameState,
             QuestionHistoryService questionHistory, QuestionUsageService questionUsage,
-            ReliabilityProperties props) {
+            ReliabilityProperties props, ScoreboardService scoreboard) {
         this.sessions = sessions;
         this.gameState = gameState;
         this.questionHistory = questionHistory;
         this.questionUsage = questionUsage;
         this.props = props;
+        this.scoreboard = scoreboard;
     }
 
     /** Registra (o riprende) la sessione del dispositivo. */
@@ -146,6 +148,9 @@ public class ReliabilityController {
         JSONObject snapshot = sync.getJSONObject("snapshot");
         snapshot.put("scores", new JSONObject(questionHistory.scores(gameId)));
         snapshot.put("arenaScores", new JSONObject(questionHistory.scores(gameId)));
+        // Classifica completa della TV: senza questa, un refresh o un altro
+        // dispositivo ripartiva da una tabella vuota.
+        snapshot.put("leaderboard", JsonSupport.toList(scoreboard.entries(gameId)));
         snapshot.put("presence", sessions.presence(gameId));
         Object identity = request.getAttribute("pubgame.session");
         if (identity instanceof DeviceSessionEntity session && "REMOTE".equals(session.getRole())) {
@@ -177,6 +182,7 @@ public class ReliabilityController {
     public Map<String, Object> state(@PathVariable("gameId") Long gameId) {
         JSONObject snapshot = gameState.snapshot(gameId);
         snapshot.put("scores", new JSONObject(questionHistory.scores(gameId)));
+        snapshot.put("leaderboard", JsonSupport.toList(scoreboard.entries(gameId)));
         snapshot.put("presence", sessions.presence(gameId));
         return JsonSupport.toMap(snapshot);
     }
