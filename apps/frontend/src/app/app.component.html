@@ -1,2 +1,16 @@
 <app-snow></app-snow>
 <router-outlet></router-outlet>
+
+@if (theme.xmas()) {
+<div class="xmas-snow" aria-hidden="true">
+  @for (flake of flakes; track $index) {
+    <span
+      class="xmas-flake"
+      [style.left.%]="flake.left"
+      [style.animation-delay.s]="flake.delay"
+      [style.animation-duration.s]="flake.duration"
+      [style.font-size.px]="flake.size"
+      [style.opacity]="flake.opacity">❄</span>
+  }
+</div>
+}

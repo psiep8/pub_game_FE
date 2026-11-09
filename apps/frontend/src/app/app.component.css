@@ -1,0 +1,34 @@
+.xmas-snow {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.xmas-flake {
+  position: absolute;
+  top: -6vh;
+  color: var(--paper-hi);
+  line-height: 1;
+  animation-name: xmas-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+@keyframes xmas-fall {
+  from {
+    transform: translate3d(0, -8vh, 0);
+  }
+  to {
+    transform: translate3d(26px, 108vh, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xmas-flake {
+    animation: none;
+    display: none;
+  }
+}

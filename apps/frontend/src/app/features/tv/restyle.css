@@ -342,6 +342,58 @@
   transform: scale(0.85) !important;
 }
 .category-bubble.as-title { display: none !important; }
+.reel-out { opacity: 0; transition: opacity 180ms linear; }
+
+/* Slot della categoria: le bolle escono, il nastro si ferma sulla scelta. */
+.category-slot {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: clamp(10px, 2vh, 26px);
+  background: rgba(17, 17, 9, 0.96);
+  animation: m-fade var(--motion-fast) var(--ease-out) both;
+}
+.slot-kicker {
+  color: var(--acid);
+  font-family: var(--font-mono);
+  font-size: clamp(0.72rem, 1.1vw, 0.98rem);
+  font-weight: 700;
+  letter-spacing: 0.28em;
+}
+.slot-window {
+  width: min(94vw, 1500px);
+  height: 1.08em;
+  overflow: hidden;
+  text-align: center;
+}
+.slot-track {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 7.6vw, 6.6rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.08em;
+  text-transform: uppercase;
+  animation: slot-roll 1.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform;
+}
+.slot-name {
+  height: 1.08em;
+  flex: 0 0 1.08em;
+  overflow: hidden;
+  color: var(--paper);
+  text-overflow: ellipsis;
+  text-shadow: 6px 6px 0 var(--tomato);
+  white-space: nowrap;
+}
+@keyframes slot-roll {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, calc(-5 * 1.08em), 0); }
+}
 
 .question-category {
   display: inline-block;

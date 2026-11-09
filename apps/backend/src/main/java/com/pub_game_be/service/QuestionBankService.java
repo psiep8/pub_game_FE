@@ -1,14 +1,10 @@
 package com.pub_game_be.service;
 
 import com.pub_game_be.dto.MusicTrackDto;
-import jakarta.servlet.http.HttpServletRequest;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -54,11 +50,6 @@ public class QuestionBankService {
     private record BankQuestion(String id, String category, String type, String difficulty,
             String question, String correctAnswer, List<String> options, String explanation) {
     }
-
-    /** Brano della banca media: il file audio vive in resources/static/media/music. */
-    private record MediaTrack(String title, String artist, String year, String albumCover, String file) {
-    }
-
 
     private static final String[] PROVERBS = {
             "Chi dorme non piglia pesci",
@@ -112,9 +103,7 @@ public class QuestionBankService {
     private final AppleMusicCuratorService appleMusicCuratorService;
     private final CelebrityImageService celebrityImageService;
     private final AzzardoMediaService azzardoMediaService;
-    private final List<MediaTrack> musicTracks;
-    private final Map<String, String> celebrityPhotos;
-    private final String configuredMediaBaseUrl;
+    private final LocalMediaBankService localMedia;
     private final Random random = new Random();
 
     /** Sotto questo numero di domande l'arena finisce le scorte della categoria. */
@@ -167,18 +156,14 @@ public class QuestionBankService {
             AppleMusicCuratorService appleMusicCuratorService,
             CelebrityImageService celebrityImageService,
             AzzardoMediaService azzardoMediaService,
-            @Value("${game.media-base-url:}") String mediaBaseUrl) {
+            LocalMediaBankService localMedia) {
         this.tmdbImageService = tmdbImageService;
         this.appleMusicCuratorService = appleMusicCuratorService;
         this.celebrityImageService = celebrityImageService;
         this.azzardoMediaService = azzardoMediaService;
-        this.configuredMediaBaseUrl = mediaBaseUrl == null ? "" : mediaBaseUrl.trim();
+        this.localMedia = localMedia;
         this.bank = loadBank();
         this.azzardoQuestions = loadAzzardo();
-
-        MediaBank media = loadMedia();
-        this.musicTracks = media.tracks();
-        this.celebrityPhotos = media.people();
 
         logBankSummary();
     }
@@ -918,7 +903,7 @@ public class QuestionBankService {
 
             // Indizi già ripuliti dal nome: la TV ne svela uno ogni pochi
             // secondi, dal più vago al più diretto.
-            List<String> clues = celebrityImageService.getClues(question.correctAnswer());
+            List<String> clues = cluesFor(question.correctAnswer());
             if (!clues.isEmpty()) {
                 payload.put("clues", new JSONArray(clues));
             }
@@ -933,9 +918,14 @@ public class QuestionBankService {
      * mostra il segnaposto con l'iniziale.
      */
     private String resolveCelebrityImage(String celebrity) {
-        String localPhoto = celebrityPhotos.get(QuestionHistoryService.normalize(celebrity));
-        if (localPhoto != null && !localPhoto.isBlank()) {
-            return mediaUrl(localPhoto);
+        LocalMediaBankService.Person localPhoto = localMedia.person(celebrity).orElse(null);
+        if (localPhoto != null) {
+            return localMedia.url(localPhoto.file());
+        }
+        // Con la banca volti installata non si esce in rete: chi non ha la
+        // foto locale resta con il segnaposto dell'iniziale.
+        if (localMedia.hasPeople()) {
+            return null;
         }
 
         String imageUrl = tmdbImageService.getCelebrityImageUrl(celebrity);
@@ -946,6 +936,19 @@ public class QuestionBankService {
         // Senza chiave TMDB la foto restava vuota. Wikipedia non richiede
         // chiavi e copre tutte le celebrità della banca.
         return celebrityImageService.getReliableImageUrl(celebrity);
+    }
+
+    /**
+     * Indizi: dalla banca locale quando c'è, altrimenti da Wikipedia. Con la
+     * banca installata non si esce comunque in rete.
+     */
+    private List<String> cluesFor(String celebrity) {
+        LocalMediaBankService.Person local = localMedia.person(celebrity).orElse(null);
+        if (local != null) {
+            return celebrityImageService.cluesFromLocal(
+                    celebrity, local.description(), local.extract());
+        }
+        return localMedia.hasPeople() ? List.of() : celebrityImageService.getClues(celebrity);
     }
 
     /**
@@ -1222,16 +1225,17 @@ public class QuestionBankService {
     }
 
     private String musicPayload() {
-        if (!musicTracks.isEmpty()) {
-            MediaTrack localTrack = musicTracks.get(random.nextInt(musicTracks.size()));
+        if (localMedia.hasTracks()) {
+            List<LocalMediaBankService.Track> localTracks = localMedia.tracks();
+            LocalMediaBankService.Track localTrack = localTracks.get(random.nextInt(localTracks.size()));
+            String cover = localMedia.url(localTrack.albumCover());
 
             JSONObject payload = new JSONObject();
             payload.put("type", "MUSIC");
             payload.put("songTitle", localTrack.title());
             payload.put("artist", localTrack.artist());
-            payload.put("previewUrl", mediaUrl(localTrack.file()));
-            payload.put("albumCover",
-                    localTrack.albumCover() == null ? JSONObject.NULL : localTrack.albumCover());
+            payload.put("previewUrl", localMedia.url(localTrack.file()));
+            payload.put("albumCover", cover == null ? JSONObject.NULL : cover);
             payload.put("year", localTrack.year());
             payload.put("source", "banca-media");
             payload.put("audioReady", true);
@@ -1357,86 +1361,4 @@ public class QuestionBankService {
         }
     }
 
-    private record MediaBank(List<MediaTrack> tracks, Map<String, String> people) {
-    }
-
-    /**
-     * Banca media: canzoni e foto scaricate in locale da generate_media.py.
-     * Se il file non c'è si continua con iTunes e TMDB come prima.
-     */
-    private MediaBank loadMedia() {
-        ClassPathResource resource = new ClassPathResource("questions/media-it.json");
-        if (!resource.exists()) {
-            return new MediaBank(List.of(), Map.of());
-        }
-        try (InputStream stream = resource.getInputStream()) {
-            JSONObject root = new JSONObject(new String(stream.readAllBytes(), StandardCharsets.UTF_8));
-
-            List<MediaTrack> tracks = new ArrayList<>();
-            JSONArray music = root.optJSONArray("music");
-            if (music != null) {
-                for (int index = 0; index < music.length(); index++) {
-                    JSONObject item = music.optJSONObject(index);
-                    if (item == null || item.optString("file", "").isBlank()) {
-                        continue;
-                    }
-                    tracks.add(new MediaTrack(
-                            item.optString("title", ""),
-                            item.optString("artist", ""),
-                            item.optString("year", ""),
-                            item.optString("albumCover", null),
-                            item.optString("file", "")));
-                }
-            }
-
-            Map<String, String> people = new LinkedHashMap<>();
-            JSONArray persons = root.optJSONArray("people");
-            if (persons != null) {
-                for (int index = 0; index < persons.length(); index++) {
-                    JSONObject item = persons.optJSONObject(index);
-                    if (item == null || item.optString("file", "").isBlank()) {
-                        continue;
-                    }
-                    people.put(QuestionHistoryService.normalize(item.optString("name", "")),
-                            item.optString("file", ""));
-                }
-            }
-
-            System.out.println("Banca media: " + tracks.size() + " brani, " + people.size() + " volti.");
-            return new MediaBank(List.copyOf(tracks), Map.copyOf(people));
-        } catch (Exception error) {
-            System.out.println("⚠️ Banca media illeggibile (" + error.getMessage()
-                    + "): si torna a iTunes/TMDB.");
-            return new MediaBank(List.of(), Map.of());
-        }
-    }
-
-    /**
-     * URL servibile del file locale. Il frontend usa previewUrl e imageUrl
-     * direttamente, quindi serve un URL assoluto: lo ricava dalla richiesta in
-     * corso (funziona anche via IP di rete), con MEDIA_BASE_URL come ripiego.
-     */
-    private String mediaUrl(String file) {
-        if (file == null || file.isBlank()) {
-            return null;
-        }
-        if (file.startsWith("http://") || file.startsWith("https://")) {
-            return file;
-        }
-        String path = file.startsWith("/") ? file : "/" + file;
-        String baseUrl = currentBaseUrl();
-        return baseUrl.isBlank() ? path : baseUrl + path;
-    }
-
-    private String currentBaseUrl() {
-        try {
-            if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes) {
-                HttpServletRequest request = attributes.getRequest();
-                return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
-            }
-        } catch (RuntimeException ignored) {
-            // fuori da una richiesta HTTP: si usa la configurazione
-        }
-        return configuredMediaBaseUrl;
-    }
 }

@@ -9,14 +9,26 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class AzzardoMediaServiceTest {
 
     private final CelebrityImageService images = mock(CelebrityImageService.class);
     private final AppleMusicCuratorService music = mock(AppleMusicCuratorService.class);
-    private final AzzardoMediaService media = new AzzardoMediaService(images, music, true);
+    private final LocalMediaBankService local = mock(LocalMediaBankService.class);
+    private final AzzardoMediaService media = new AzzardoMediaService(images, music, local, true);
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        when(local.person(anyString())).thenReturn(Optional.empty());
+        when(local.findTrack(anyString(), anyString())).thenReturn(Optional.empty());
+        when(local.hasPeople()).thenReturn(false);
+        when(local.hasTracks()).thenReturn(false);
+    }
 
     @Test
     void laCelebrityHaFotoEIndiziSenzaLAnnoDellaRisposta() {
@@ -81,8 +93,64 @@ class AzzardoMediaServiceTest {
 
     @Test
     void ilFlagDisabilitatoSpegneLeChiamateEsterne() {
-        AzzardoMediaService disabled = new AzzardoMediaService(images, music, false);
+        AzzardoMediaService disabled = new AzzardoMediaService(images, music, local, false);
 
         assertThat(disabled.forQuestion("PAESI", "Quanti paesi confinano con l'Italia?")).isNull();
+    }
+
+    @Test
+    void laFotoLocaleNonChiamaWikipedia() {
+        LocalMediaBankService.Person person = new LocalMediaBankService.Person(
+                "Albert Einstein", "/media/people/albert-einstein.jpg",
+                "fisico tedesco", "Teoria della relatività.");
+        when(local.person("Albert Einstein")).thenReturn(Optional.of(person));
+        when(local.hasPeople()).thenReturn(true);
+        when(local.url("/media/people/albert-einstein.jpg"))
+                .thenReturn("http://lan:8080/media/people/albert-einstein.jpg");
+        when(images.cluesFromLocal("Albert Einstein", "fisico tedesco", "Teoria della relatività."))
+                .thenReturn(List.of("fisico tedesco", "teoria della relatività"));
+
+        JSONObject result = media.forQuestion("CELEBRITÀ",
+                "Qual è l'anno di nascita di Albert Einstein?");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getString("imageUrl"))
+                .isEqualTo("http://lan:8080/media/people/albert-einstein.jpg");
+        assertThat(result.getJSONArray("clues").length()).isEqualTo(2);
+        verify(images, never()).getReliableImageUrl(anyString());
+        verify(images, never()).getClues(anyString());
+    }
+
+    @Test
+    void laCanzoneLocaleNonChiamaITunes() {
+        LocalMediaBankService.Track track = new LocalMediaBankService.Track(
+                "Imagine", "John Lennon", "1971",
+                "/media/covers/john-lennon-imagine.jpg",
+                "/media/music/john-lennon-imagine.m4a");
+        when(local.findTrack("Imagine", "John Lennon")).thenReturn(Optional.of(track));
+        when(local.hasTracks()).thenReturn(true);
+        when(local.url("/media/music/john-lennon-imagine.m4a"))
+                .thenReturn("http://lan:8080/media/music/john-lennon-imagine.m4a");
+        when(local.url("/media/covers/john-lennon-imagine.jpg"))
+                .thenReturn("http://lan:8080/media/covers/john-lennon-imagine.jpg");
+
+        JSONObject result = media.forQuestion("CANZONI",
+                "In che anno è uscita Imagine di John Lennon?");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getString("previewUrl"))
+                .isEqualTo("http://lan:8080/media/music/john-lennon-imagine.m4a");
+        assertThat(result.getString("albumCover"))
+                .isEqualTo("http://lan:8080/media/covers/john-lennon-imagine.jpg");
+        verify(music, never()).findTrack(anyString(), anyString());
+    }
+
+    @Test
+    void conLaBancaInstallataUnBranoMancanteNonEsceInRete() {
+        when(local.hasTracks()).thenReturn(true);
+
+        assertThat(media.forQuestion("CANZONI",
+                "In che anno è uscita Imagine di John Lennon?")).isNull();
+        verify(music, never()).findTrack(anyString(), anyString());
     }
 }

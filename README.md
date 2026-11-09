@@ -88,7 +88,7 @@ nessuna chiamata HTTP e nessun elemento `Audio` reale).
 
 ## Variabili del backend (opzionali)
 
-`GROQ_API_KEY` per le domande AI (modello in `GROQ_MODEL`, default `openai/gpt-oss-120b`) e `TMDB_API_KEY` per le immagini. Senza chiavi il backend usa i fallback locali. La musica non richiede chiavi: usa le anteprime da 30 secondi dell'iTunes Search API.
+`GROQ_API_KEY` per le domande AI (modello in `GROQ_MODEL`, default `openai/gpt-oss-120b`) e `TMDB_API_KEY` per le immagini. Senza chiavi il backend usa i fallback locali. Con la banca media installata (`questions/media-it.json`) musica, copertine e foto vengono servite da `static/media` senza chiamare iTunes, TMDB o Wikipedia; senza banca la musica usa le anteprime da 30 secondi dell'iTunes Search API.
 Profilo MySQL: `node scripts/mvn.mjs spring-boot:run -Dspring-boot.run.profiles=mysql`.
 
 ## Tunnel Cloudflare

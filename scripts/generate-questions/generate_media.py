@@ -2,6 +2,7 @@
 
 Cosa fa:
   * cerca brani famosi su iTunes (nessuna chiave) e scarica l'anteprima di 30s;
+    se un originale non c'è nello store italiano, ripiega su Deezer;
   * scarica la foto di una lista di personaggi famosi (TMDB se c'è la chiave,
     altrimenti Wikipedia);
   * scrive entrambi in apps/backend/src/main/resources/static/media/... e
@@ -31,9 +32,10 @@ import urllib.request
 from datetime import datetime, timezone
 
 ITUNES = "https://itunes.apple.com/search"
+DEEZER = "https://api.deezer.com/search"
 TMDB_PERSON = "https://api.themoviedb.org/3/search/person"
 TMDB_IMAGE = "https://image.tmdb.org/t/p/w500"
-WIKI_SUMMARY = "https://it.wikipedia.org/api/rest_v1/page/summary/{}"
+WIKI_SUMMARY = "https://{lang}.wikipedia.org/api/rest_v1/page/summary/{page}"
 WIKI_API = "https://it.wikipedia.org/w/api.php"
 
 MUSIC_SEARCHES = [
@@ -83,6 +85,22 @@ def slug(text: str) -> str:
     value = unicodedata.normalize("NFD", text.lower())
     value = "".join(char for char in value if unicodedata.category(char) != "Mn")
     return re.sub(r"[^a-z0-9]+", "-", value).strip("-")[:60] or "file"
+
+
+def norm(text: str) -> str:
+    value = unicodedata.normalize("NFD", (text or "").lower())
+    value = "".join(char for char in value if unicodedata.category(char) != "Mn")
+    return re.sub(r"[^a-z0-9]+", " ", value).strip()
+
+
+CELEB_RE = re.compile(r"(?:nascita di|nato|nata|morto|morta) (.+?)\?\s*$", re.I)
+SONG_RE = re.compile(r"uscit[oa] (.+?) di (.+?)\?\s*$", re.I)
+
+# Nomi ambigui su Wikipedia: la voce giusta è quella tra parentesi.
+WIKI_ALIASES = {
+    "Drake": "Drake (rapper)",
+    "C.S. Lewis": "C. S. Lewis",
+}
 
 
 def load_env_file() -> None:
@@ -146,55 +164,209 @@ def download(url: str, destination: str) -> str:
     raise last_error
 
 
-def grab_music(static_dir: str, count: int) -> list[dict]:
+def find_itunes(term: str, limit: int = 5) -> list[dict]:
+    query = urllib.parse.urlencode({
+        "term": term, "media": "music", "entity": "song", "country": "IT", "limit": limit,
+    })
+    return get_json(f"{ITUNES}?{query}").get("results", [])
+
+
+def find_deezer(term: str, limit: int = 20) -> list[dict]:
+    query = urllib.parse.urlencode({"q": term, "limit": limit})
+    return get_json(f"{DEEZER}?{query}").get("data", [])
+
+
+def download_cover(item: dict, covers_dir: str) -> str | None:
+    """Copertina locale: senza questo file la TV resterebbe con il segnaposto."""
+    url = (item.get("artworkUrl100") or "").replace("100x100", "600x600")
+    if not url:
+        return None
+    name = f"{slug(item.get('artistName', ''))}-{slug(item.get('trackName', ''))}"
+    try:
+        path = download(url, os.path.join(covers_dir, name + "."))
+        return "/media/covers/" + os.path.basename(path)
+    except Exception as error:
+        print(f"  copertina non scaricata ({error})")
+        return None
+
+
+def store_track(item: dict, music_dir: str, covers_dir: str,
+                seen: set[tuple[str, str]]) -> dict | None:
+    preview = item.get("previewUrl")
+    title = (item.get("trackName") or "").strip()
+    artist = (item.get("artistName") or "").strip()
+    if not title or not artist:
+        return None
+    key = (artist.lower(), title.lower())
+    if key in seen:
+        return None
+    file_name = f"music/{slug(artist)}-{slug(title)}.m4a"
+    path = os.path.join(music_dir, file_name.removeprefix("music/"))
+    cover_name = f"{slug(artist)}-{slug(title)}"
+    existing_cover = next(
+        (ext for ext in (".jpg", ".png", ".webp")
+         if os.path.exists(os.path.join(covers_dir, cover_name + ext))), None)
+    if os.path.exists(path) and os.path.getsize(path) > 3000:
+        seen.add(key)
+        print(f"  ok (gia presente) {artist} - {title}")
+        return {
+            "type": "MUSIC",
+            "title": title,
+            "artist": artist,
+            "year": str(item.get("releaseDate", ""))[:4],
+            "albumCover": f"/media/covers/{cover_name}{existing_cover}" if existing_cover else None,
+            "file": f"/media/{file_name}",
+        }
+    if not preview:
+        return None
+    try:
+        download(preview, path)
+    except Exception as error:
+        print(f"  {artist} - {title}: download fallito ({error})")
+        return None
+    seen.add(key)
+    cover = download_cover(item, covers_dir)
+    print(f"  ok {artist} - {title}")
+    return {
+        "type": "MUSIC",
+        "title": title,
+        "artist": artist,
+        "year": str(item.get("releaseDate", ""))[:4],
+        "albumCover": cover,
+        "file": f"/media/{file_name}",
+    }
+
+
+def grab_music(static_dir: str, count: int,
+               extra_songs: list[tuple[str, str]] | None = None) -> list[dict]:
     music_dir = os.path.join(static_dir, "media", "music")
+    covers_dir = os.path.join(static_dir, "media", "covers")
     os.makedirs(music_dir, exist_ok=True)
+    os.makedirs(covers_dir, exist_ok=True)
     tracks: list[dict] = []
     seen: set[tuple[str, str]] = set()
 
     for term in MUSIC_SEARCHES:
         if len(tracks) >= count:
             break
-        query = urllib.parse.urlencode({
-            "term": term, "media": "music", "entity": "song", "country": "IT", "limit": 5,
-        })
         try:
-            results = get_json(f"{ITUNES}?{query}").get("results", [])
+            results = find_itunes(term)
         except Exception as error:
             print(f"  {term}: ricerca fallita ({error})")
             continue
-
         for item in results:
-            preview = item.get("previewUrl")
-            title = (item.get("trackName") or "").strip()
-            artist = (item.get("artistName") or "").strip()
-            if not preview or not title or not artist:
-                continue
-            key = (artist.lower(), title.lower())
-            if key in seen:
-                continue
-            file_name = f"music/{slug(artist)}-{slug(title)}.m4a"
-            path = os.path.join(music_dir, file_name.removeprefix("music/"))
-            try:
-                download(preview, path)
-            except Exception as error:
-                print(f"  {artist} - {title}: download fallito ({error})")
-                continue
-            seen.add(key)
-            tracks.append({
-                "type": "MUSIC",
-                "title": title,
-                "artist": artist,
-                "year": str(item.get("releaseDate", ""))[:4],
-                "albumCover": (item.get("artworkUrl100") or "").replace("100x100", "500x500") or None,
-                "file": f"/media/{file_name}",
-            })
-            print(f"  ok {artist} - {title}")
+            track = store_track(item, music_dir, covers_dir, seen)
+            if track:
+                tracks.append(track)
             if len(tracks) >= count:
                 break
         time.sleep(0.5)
 
+    # Le canzoni delle manche Azzardo hanno un titolo preciso: si cercano una
+    # per una e non contano nel limite di --count-music.
+    for title, artist in extra_songs or []:
+        track = grab_song(title, artist, music_dir, covers_dir, seen)
+        if track:
+            tracks.append(track)
+        time.sleep(0.3)
+
     return tracks
+
+
+def grab_song(title: str, artist: str, music_dir: str, covers_dir: str,
+              seen: set[tuple[str, str]]) -> dict | None:
+    try:
+        results = find_itunes(f"{title} {artist}", 10)
+    except Exception as error:
+        print(f"  {artist} - {title}: ricerca fallita ({error})")
+        return grab_deezer_song(title, artist, music_dir, covers_dir, seen)
+
+    wanted_title = norm(title)
+    wanted_artist = norm(artist)
+    best = next((item for item in results
+                 if norm(item.get("trackName")) == wanted_title
+                 and wanted_artist in norm(item.get("artistName"))), None)
+    if not best:
+        best = next((item for item in results
+                     if wanted_title in norm(item.get("trackName"))
+                     and (wanted_artist in norm(item.get("artistName"))
+                          or norm(item.get("artistName")) in wanted_artist)
+                     and "live" not in norm(item.get("trackName"))), None)
+    if not best:
+        # Su iTunes mancano alcuni originali (in Italia): Deezer li ha.
+        return grab_deezer_song(title, artist, music_dir, covers_dir, seen)
+    return store_track(best, music_dir, covers_dir, seen) if best else None
+
+
+def grab_deezer_song(title: str, artist: str, music_dir: str, covers_dir: str,
+                     seen: set[tuple[str, str]]) -> dict | None:
+    """Ripiego per i brani che lo store italiano non espone."""
+    try:
+        results = find_deezer(f"{title} {artist}")
+    except Exception as error:
+        print(f"  {artist} - {title}: Deezer non raggiungibile ({error})")
+        return None
+    wanted_title = norm(title)
+    wanted_artist = norm(artist)
+    best = next((item for item in results
+                 if norm(item.get("title")) == wanted_title
+                 and wanted_artist in norm((item.get("artist") or {}).get("name"))
+                 and item.get("preview")), None)
+    if not best:
+        return None
+    key = (artist.lower(), title.lower())
+    if key in seen:
+        return None
+    base = f"{slug(artist)}-{slug(title)}"
+    try:
+        path = download(best["preview"], os.path.join(music_dir, base + ".mp3"))
+    except Exception as error:
+        print(f"  {artist} - {title}: download Deezer fallito ({error})")
+        return None
+    cover = None
+    album = best.get("album") or {}
+    cover_url = album.get("cover_big") or album.get("cover_medium")
+    if cover_url:
+        try:
+            cover_path = download(cover_url, os.path.join(covers_dir, base + "."))
+            cover = "/media/covers/" + os.path.basename(cover_path)
+        except Exception as error:
+            print(f"  {artist} - {title}: copertina Deezer non scaricata ({error})")
+    seen.add(key)
+    print(f"  ok (deezer) {artist} - {title}")
+    return {
+        "type": "MUSIC",
+        "title": title,
+        "artist": artist,
+        "year": str((best.get("release_date") or ""))[:4],
+        "albumCover": cover,
+        "file": "/media/music/" + os.path.basename(path),
+    }
+
+
+def azzardo_media(bank_path: str) -> tuple[list[tuple[str, str]], list[str]]:
+    """Tutte le canzoni e le celebrità che possono uscire in Azzardo."""
+    try:
+        with open(bank_path, encoding="utf-8") as handle:
+            data = json.load(handle)
+    except Exception as error:
+        print(f"  banca Azzardo non leggibile ({error})")
+        return [], []
+
+    songs: list[tuple[str, str]] = []
+    names: list[str] = []
+    for item in data:
+        category = (item.get("category") or "").upper()
+        question = item.get("question") or ""
+        if category.startswith("CELEBR"):
+            match = CELEB_RE.search(question)
+            if match:
+                names.append(match.group(1).strip())
+        elif category == "CANZONI":
+            match = SONG_RE.search(question)
+            if match:
+                songs.append((match.group(1).strip(), match.group(2).strip()))
+    return list(dict.fromkeys(songs)), list(dict.fromkeys(names))
 
 
 def tmdb_photo(name: str, api_key: str) -> str | None:
@@ -209,51 +381,67 @@ def tmdb_photo(name: str, api_key: str) -> str | None:
     return None
 
 
-def wiki_photo(name: str) -> str | None:
-    """Foto principale della voce: l'API summary, non Special:FilePath (spesso 404)."""
+def wiki_summary(name: str) -> dict | None:
+    """Foto, descrizione ed estratto: si prova italiano, poi inglese."""
+    name = WIKI_ALIASES.get(name, name)
     page = urllib.parse.quote(name.replace(" ", "_"))
-    try:
-        summary = get_json(WIKI_SUMMARY.format(page))
-    except Exception:
-        return None
-    original = (summary.get("originalimage") or {}).get("source")
-    thumbnail = (summary.get("thumbnail") or {}).get("source")
-    # Preferire il thumbnail: Wikimedia limita i download degli originali (429).
-    if thumbnail or original:
-        return thumbnail or original
+    for language in ("it", "en"):
+        try:
+            summary = get_json(WIKI_SUMMARY.format(lang=language, page=page))
+        except Exception:
+            continue
+        if str(summary.get("type", "")).lower() == "disambiguation":
+            continue
 
-    # Ripiego: ricerca per titolo (gestisce redirect e titoli non esatti).
-    query = urllib.parse.urlencode({
-        "action": "query", "format": "json", "generator": "search",
-        "gsrsearch": name, "gsrlimit": 1, "prop": "pageimages",
-        "piprop": "original", "redirects": 1,
-    })
-    try:
-        results = get_json(f"{WIKI_API}?{query}")
-    except Exception:
-        return None
-    pages = (results.get("query") or {}).get("pages") or {}
-    for page_data in pages.values():
-        source = (page_data.get("original") or {}).get("source")
-        if source:
-            return source
+        image = ((summary.get("thumbnail") or {}).get("source")
+                 or (summary.get("originalimage") or {}).get("source"))
+        description = (summary.get("description") or "").strip()
+        extract = (summary.get("extract") or "").strip()
+
+        if not image:
+            # Ripiego: ricerca per titolo (gestisce redirect e titoli non esatti).
+            query = urllib.parse.urlencode({
+                "action": "query", "format": "json", "generator": "search",
+                "gsrsearch": name, "gsrlimit": 1, "prop": "pageimages",
+                "piprop": "original", "redirects": 1,
+            })
+            try:
+                results = get_json(f"{WIKI_API}?{query}")
+                pages = (results.get("query") or {}).get("pages") or {}
+                for page_data in pages.values():
+                    image = (page_data.get("original") or {}).get("source")
+                    if image:
+                        break
+            except Exception:
+                pass
+
+        if image or description or extract:
+            return {"image": image, "description": description, "extract": extract}
+
     return None
 
 
-def grab_people(static_dir: str, limit: int | None, force: bool = False) -> list[dict]:
+def grab_people(static_dir: str, limit: int | None, force: bool = False,
+                extra_names: tuple[str, ...] | list[str] = ()) -> list[dict]:
     people_dir = os.path.join(static_dir, "media", "people")
     os.makedirs(people_dir, exist_ok=True)
     api_key = os.environ.get("TMDB_API_KEY", "").strip()
     people: list[dict] = []
-    names = PEOPLE
+
+    names = list(PEOPLE[:limit] if limit else PEOPLE)
+    known = {norm(name) for name, _ in names}
+    for name in extra_names:
+        if norm(name) not in known:
+            names.append((name, "Celebrità"))
+            known.add(norm(name))
 
     for name, category in names:
-        if limit and len(people) >= limit:
-            break
         file_name = f"people/{slug(name)}"
         path = os.path.join(people_dir, slug(name))
+        # Il riepilogo serve anche quando la foto è già in cache: gli indizi
+        # devono restare disponibili anche offline.
+        summary = wiki_summary(name) or {}
 
-        # Già scaricato in un giro precedente: si indicizza senza rifare la richiesta.
         reused = None if force else next(
             (ext for ext in (".jpg", ".png", ".webp") if os.path.exists(path + ext)), None)
         if reused:
@@ -262,8 +450,11 @@ def grab_people(static_dir: str, limit: int | None, force: bool = False) -> list
                 "name": name,
                 "category": category,
                 "file": f"/media/{file_name}{reused}",
+                "description": summary.get("description", ""),
+                "extract": summary.get("extract", ""),
             })
             print(f"  ok (gia presente) {name}")
+            time.sleep(0.5)
             continue
 
         url = None
@@ -273,9 +464,10 @@ def grab_people(static_dir: str, limit: int | None, force: bool = False) -> list
             except Exception:
                 url = None
         if not url:
-            url = wiki_photo(name)
+            url = summary.get("image")
         if not url:
             print(f"  {name}: nessuna foto trovata")
+            time.sleep(0.8)
             continue
 
         extension = IMAGE_EXTENSIONS.get("image/jpeg", ".jpg")
@@ -284,6 +476,7 @@ def grab_people(static_dir: str, limit: int | None, force: bool = False) -> list
             download(url, destination)
         except Exception as error:
             print(f"  {name}: foto non scaricata ({error})")
+            time.sleep(1.2)
             continue
 
         people.append({
@@ -291,6 +484,8 @@ def grab_people(static_dir: str, limit: int | None, force: bool = False) -> list
             "name": name,
             "category": category,
             "file": f"/media/{file_name}{extension}",
+            "description": summary.get("description", ""),
+            "extract": summary.get("extract", ""),
         })
         print(f"  ok {name}")
         time.sleep(1.2)
@@ -308,18 +503,29 @@ def main() -> int:
     parser.add_argument("--music-only", action="store_true")
     parser.add_argument("--people-only", action="store_true")
     parser.add_argument("--force", action="store_true", help="riscarica anche i file già presenti")
+    parser.add_argument("--from-azzardo", action="store_true",
+                        help="aggiunge tutte le canzoni e le celebrità della banca Azzardo")
+    parser.add_argument("--azzardo-bank",
+                        default="apps/backend/src/main/resources/questions/azzardo-it.json")
     args = parser.parse_args()
+
+    azzardo_songs: list[tuple[str, str]] = []
+    azzardo_people: list[str] = []
+    if args.from_azzardo:
+        print("== banca Azzardo")
+        azzardo_songs, azzardo_people = azzardo_media(args.azzardo_bank)
+        print(f"  {len(azzardo_songs)} canzoni, {len(azzardo_people)} volti")
 
     music: list[dict] = []
     people: list[dict] = []
 
     if not args.people_only:
         print(f"== canzoni (max {args.count_music})")
-        music = grab_music(args.static_dir, args.count_music)
+        music = grab_music(args.static_dir, args.count_music, azzardo_songs)
 
     if not args.music_only:
         print("== volti")
-        people = grab_people(args.static_dir, args.count_people, args.force)
+        people = grab_people(args.static_dir, args.count_people, args.force, azzardo_people)
 
     # Un aggiornamento parziale non deve cancellare l'altra metà della banca.
     if os.path.exists(args.out):
@@ -338,7 +544,7 @@ def main() -> int:
         return 1
 
     bank = {
-        "version": 1,
+        "version": 2,
         "generatedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "source": "itunes + tmdb/wikipedia",
         "music": music,

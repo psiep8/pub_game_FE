@@ -204,6 +204,16 @@ public class CelebrityImageService {
         }
     }
 
+    /**
+     * Indizi dalla banca locale: stesso taglio di quelli di Wikipedia, ma
+     * senza chiamate di rete. La banca li salva insieme alla foto.
+     */
+    public List<String> cluesFromLocal(String celebrityName, String description, String extract) {
+        return cluesFrom(celebrityName, new WikiSummary("",
+                description == null ? "" : description,
+                extract == null ? "" : extract));
+    }
+
     private List<String> cluesFrom(String celebrityName, WikiSummary summary) {
         LinkedHashSet<String> clues = new LinkedHashSet<>();
         addClue(clues, summary.description(), celebrityName);

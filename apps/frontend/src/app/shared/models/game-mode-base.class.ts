@@ -93,7 +93,8 @@ export abstract class GameModeBase implements IGameMode {
 
   /**
    * La partita parte sul comando esplicito del presentatore (admin o tasto
-   * AVANTI in TV): niente countdown automatico prima della domanda.
+   * AVANTI in TV): niente countdown automatico prima della domanda. Il tempo
+   * che si vede in TV è solo quello di risposta, già in corso.
    */
   protected async runPreGameSequence(_readingTime: number = 0): Promise<void> {
     this.isReading.set(false);

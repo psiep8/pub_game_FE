@@ -52,7 +52,9 @@ import { CommonModule } from '@angular/common';
                   }
                 </div>
                 <div class="az-media-copy">
-                  <span class="az-media-label">INDIZIO {{ displayData?.clueIndex }} / {{ displayData?.clueTotal }}</span>
+                  @if ((displayData?.clueTotal ?? 0) > 0) {
+                    <span class="az-media-label">INDIZIO {{ displayData?.clueIndex }} / {{ displayData?.clueTotal }}</span>
+                  }
                   <p class="az-media-text az-clue">{{ displayData?.clue || 'Guarda la foto e pensa all\\'anno.' }}</p>
                 </div>
               }

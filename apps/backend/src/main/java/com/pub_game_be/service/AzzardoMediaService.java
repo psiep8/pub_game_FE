@@ -46,14 +46,17 @@ public class AzzardoMediaService {
 
     private final CelebrityImageService celebrityImages;
     private final AppleMusicCuratorService music;
+    private final LocalMediaBankService localMedia;
     private final boolean enabled;
     private final Map<String, Optional<MusicTrackDto>> songCache = new ConcurrentHashMap<>();
 
     public AzzardoMediaService(CelebrityImageService celebrityImages,
             AppleMusicCuratorService music,
+            LocalMediaBankService localMedia,
             @Value("${game.azzardo.media.enabled:true}") boolean enabled) {
         this.celebrityImages = celebrityImages;
         this.music = music;
+        this.localMedia = localMedia;
         this.enabled = enabled;
     }
 
@@ -86,13 +89,32 @@ public class AzzardoMediaService {
             return null;
         }
 
-        String imageUrl = celebrityImages.getReliableImageUrl(name);
-        List<String> clues = celebrityImages.getClues(name).stream()
-                .map(this::stripYears)
-                .filter(clue -> clue.length() >= 12)
-                .distinct()
-                .limit(3)
-                .toList();
+        Optional<LocalMediaBankService.Person> local = localMedia.person(name);
+        String imageUrl;
+        List<String> clues;
+        if (local.isPresent()) {
+            LocalMediaBankService.Person person = local.get();
+            imageUrl = localMedia.url(person.file());
+            clues = celebrityImages.cluesFromLocal(name, person.description(), person.extract())
+                    .stream()
+                    .map(this::stripYears)
+                    .filter(clue -> clue.length() >= 12)
+                    .distinct()
+                    .limit(3)
+                    .toList();
+        } else if (localMedia.hasPeople()) {
+            // Banca volti installata: niente Wikipedia a runtime. La manche
+            // resta giocabile, al massimo senza foto.
+            return null;
+        } else {
+            imageUrl = celebrityImages.getReliableImageUrl(name);
+            clues = celebrityImages.getClues(name).stream()
+                    .map(this::stripYears)
+                    .filter(clue -> clue.length() >= 12)
+                    .distinct()
+                    .limit(3)
+                    .toList();
+        }
 
         if ((imageUrl == null || imageUrl.isBlank()) && clues.isEmpty()) {
             return null;
@@ -114,6 +136,25 @@ public class AzzardoMediaService {
 
         String title = matcher.group(1).trim();
         String artist = matcher.group(2).trim();
+
+        Optional<LocalMediaBankService.Track> local = localMedia.findTrack(title, artist);
+        if (local.isPresent()) {
+            LocalMediaBankService.Track track = local.get();
+            String cover = localMedia.url(track.albumCover());
+            JSONObject media = new JSONObject();
+            media.put("kind", "song");
+            media.put("title", track.title() == null || track.title().isBlank() ? title : track.title());
+            media.put("artist", track.artist() == null || track.artist().isBlank() ? artist : track.artist());
+            media.put("previewUrl", localMedia.url(track.file()));
+            media.put("albumCover", cover == null ? "" : cover);
+            return media;
+        }
+        // Con la banca canzoni installata non si interroga più iTunes: se il
+        // brano non è stato scaricato, la manche resta solo testuale.
+        if (localMedia.hasTracks()) {
+            return null;
+        }
+
         String cacheKey = title.toLowerCase(Locale.ROOT) + "|" + artist.toLowerCase(Locale.ROOT);
         Optional<MusicTrackDto> found = songCache.computeIfAbsent(cacheKey,
                 ignored -> music.findTrack(title, artist));

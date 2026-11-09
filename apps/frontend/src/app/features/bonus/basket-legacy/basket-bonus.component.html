@@ -1,0 +1,107 @@
+<div class="basket-page">
+  <header class="basket-head">
+    <div class="basket-brand">
+      <span class="brand-ball" aria-hidden="true"></span>
+      <div class="brand-copy">
+        <span class="basket-kicker">BONUS · POV</span>
+        <h1>BASKET</h1>
+      </div>
+    </div>
+
+    <div class="basket-stats" aria-label="Stato della partita">
+      <div class="stat">
+        <span>PUNTI</span>
+        <b>{{ score() }}</b>
+      </div>
+      <div class="stat manche">
+        <span>MANCHE</span>
+        <b>{{ manche() + 1 }}/{{ mancheCount }}</b>
+      </div>
+      <div class="stat time" [class.hot]="timeLeft() <= 5">
+        <span>TEMPO</span>
+        <b>{{ timeLeft() }}s</b>
+      </div>
+    </div>
+  </header>
+
+  <div class="court-frame">
+    <canvas
+      #court
+      aria-label="Campo da basket in prospettiva, canestro davanti al giocatore"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerCancel($event)"
+    ></canvas>
+
+    <span class="pov-tag">POV · CANESTRO DAVANTI</span>
+    <span class="manche-tag">{{ mancheLabel() }}</span>
+
+    @if (message(); as msg) {
+      <div class="basket-toast" [class.miss]="messageTone() === 'miss'" aria-live="polite">{{ msg }}</div>
+    }
+
+    @if (state() === 'PLAYING') {
+      <div class="basket-hint">TRASCINA VERSO L'ALTO · RILASCIA</div>
+    }
+
+    @if (state() === 'READY') {
+      <div class="basket-overlay">
+        <div class="overlay-card">
+          <span class="overlay-kicker">BONUS DI FINE ATTO · TIRO LIBERO</span>
+          <h2>IL CANESTRO È DAVANTI A TE</h2>
+          <p>
+            Sei in POV, palla in mano. Trascina verso l'alto e rilascia: più allunghi,
+            più potenza. Il ferro si stringe a ogni manche.
+          </p>
+
+          <div class="manche-rules">
+            <div><span>MANCHE 01</span><b>FERRO LARGO · +2</b></div>
+            <div><span>MANCHE 02</span><b>FERRO MEDIO · +3</b></div>
+            <div><span>MANCHE 03</span><b>FERRO PICCOLO · +5</b></div>
+          </div>
+
+          <p class="overlay-note">SWISH SENZA FERRO · +1</p>
+          <button class="basket-play" type="button" (click)="startGame()">GIOCA 3 MANCHE</button>
+        </div>
+      </div>
+    }
+
+    @if (state() === 'MANCHE_END') {
+      <div class="basket-overlay">
+        <div class="overlay-card">
+          <span class="overlay-kicker">MANCHE {{ manche() + 1 }} CHIUSA</span>
+          <div class="final-score">{{ mancheScore() }}</div>
+          <p>punti in questa manche · {{ mancheLabel() }}</p>
+          <p class="record">
+            {{ manche() < mancheCount - 1 ? 'PROSSIMA: ' + MANCHE_LABELS[manche() + 1] : 'BONUS COMPLETATO' }}
+          </p>
+        </div>
+      </div>
+    }
+
+    @if (state() === 'OVER') {
+      <div class="basket-overlay">
+        <div class="overlay-card">
+          <span class="overlay-kicker">BONUS COMPLETATO</span>
+          <div class="final-score">{{ score() }}</div>
+          <p>punti totali · {{ shots() }} tiri</p>
+
+          <div class="manche-breakdown">
+            @for (value of mancheScores(); track $index; let i = $index) {
+              <div><span>{{ MANCHE_LABELS[i] }}</span><b>{{ value }}</b></div>
+            }
+          </div>
+
+          <p class="record">RECORD PERSONALE · {{ best() }}</p>
+          <button class="basket-play" type="button" (click)="startGame()">RIPROVA</button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <footer class="basket-foot">
+    <span>Palla in mano, canestro davanti: tira verso l'alto.</span>
+    <a href="/play">Torna al party</a>
+  </footer>
+</div>

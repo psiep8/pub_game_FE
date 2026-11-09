@@ -188,14 +188,17 @@ poi i giochi.
       copiare `questions-it.json`, controllare il log d'avvio
       che nessuna categoria abbia il warning, poi lanciare `arena_check.py` e
       `rounds_check.py` con 12 telefoni.
-- [ ] **Banca media** sull'altra macchina: `python generate_media.py --count-music 24 --count-people 40`,
-      poi copiare `static/media/` e `questions/media-it.json` sulla macchina che proietta.
+- [x] **Banca media**: generata in questo repo con `--from-azzardo` (114 brani, 150 volti).
+      I file sono ignorati da git: vanno copiati `static/media/` e `questions/media-it.json`
+      sulla macchina che proietta.
 - [ ] **Prova a più telefoni** in aria: 8-10 dispositivi, verificare che nessuno veda la
       domanda di un altro e che i punteggi in TV corrispondano.
-- [ ] **Copertine album in locale**: `albumCover` punta ancora a un URL Apple.
+- [x] **Copertine album in locale**: `generate_media.py` scarica anche le copertine in
+      `static/media/covers/` e l'indice punta a `/media/covers/...`.
 - [ ] **Punteggio arena sulla TV letto dal server**: oggi la TV lo ricava dal messaggio del
       telefono (che ora riporta la verità del server, ma resta un dato del client).
-- [ ] **Flag `--offline`** per vietare del tutto iTunes/TMDB quando la banca media c'è.
+- [x] **Modalità offline implicita**: con `media-it.json` presente il backend non chiama più
+      iTunes/TMDB/Wikipedia; i media mancanti restano segnaposto.
 
 ## Note utili
 

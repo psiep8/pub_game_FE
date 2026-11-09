@@ -203,29 +203,35 @@ globale, quindi i doppioni non entrano anche se si rilanciano le stesse categori
 
 Anche musica e immagini possono stare in locale: `generate_media.py` scarica le
 anteprime di 30 secondi da iTunes (nessuna chiave) e le foto dei personaggi da
-TMDB (se c'è `TMDB_API_KEY`) o da Wikipedia, mettendole dentro il backend.
+TMDB (se c'è `TMDB_API_KEY`) o da Wikipedia, mettendole dentro il backend. Se un
+originale non è nello store italiano, ripiega su Deezer (anteprima MP3).
 
 ```bash
-python generate_media.py --count-music 24 --count-people 40
+python generate_media.py --count-music 24 --count-people 40 --from-azzardo
 ```
 
-Produce:
+`--from-azzardo` legge `questions/azzardo-it.json` e scarica anche tutte le
+canzoni e le celebrità che possono uscire nelle quattro manche, così il round
+non dipende dalla rete. Produce:
 
 - `apps/backend/src/main/resources/static/media/music/*.m4a`
+- `apps/backend/src/main/resources/static/media/covers/*.jpg`
 - `apps/backend/src/main/resources/static/media/people/*.jpg`
 - `apps/backend/src/main/resources/questions/media-it.json` (l'indice)
 
-All'avvio il backend scrive `Banca media: N brani, M volti.` e serve i file su
-`/media/...`. Se l'indice non c'è torna a iTunes e TMDB in tempo reale come
-prima: la banca media è un'aggiunta, non un obbligo.
+All'avvio il backend scrive `Banca media locale: N brani, M volti.` e serve i
+file su `/media/...`. Quando l'indice c'è, il backend non chiama più iTunes,
+TMDB o Wikipedia: quello che manca resta un segnaposto. Senza indice torna ai
+servizi esterni come prima.
 
 Dettagli utili:
 
 - gli URL restituiti sono assoluti, ricavati dalla richiesta: funzionano sia da
   `localhost` sia dall'IP di rete della TV;
+- l'indice salva anche descrizione ed estratto di Wikipedia: gli indizi delle
+  Celebrità restano disponibili offline;
 - `--music-only` / `--people-only` per rifare solo una delle due parti;
-- rilanciandolo i file con lo stesso nome vengono sovrascritti e l'indice
-  riscritto;
+- rilanciandolo i file con lo stesso nome vengono riusati e l'indice riscritto;
 - se un browser rifiuta l'anteprima `.m4a`, basta cambiare l'estensione in
   `.mp4` nell'indice (è lo stesso contenitore MP4);
 - i file media e l'indice sono in `.gitignore`: si copiano sulla macchina che
