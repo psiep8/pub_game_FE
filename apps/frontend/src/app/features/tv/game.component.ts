@@ -362,7 +362,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
       }
 
-      // 🏟️ ARENA ANSWER dal Remote (inviato via broadcastStatus)
+      // 🏟️ Esito Arena calcolato e trasmesso dal backend.
       if (mode?.type === 'ARENA' && status.action === 'ARENA_ANSWER') {
         const playerName = (status.playerName || status.name || 'Sconosciuto').trim();
         const isCorrect = !!status.isCorrect;

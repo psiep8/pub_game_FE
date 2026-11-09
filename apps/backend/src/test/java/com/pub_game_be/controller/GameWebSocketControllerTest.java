@@ -84,6 +84,13 @@ class GameWebSocketControllerTest {
     }
 
     @Test
+    void rifiutaEsitiArenaInviatiDaiClient() {
+        assertThatThrownBy(() -> controller.updateStatus(1L, Map.of(
+                "action", "ARENA_ANSWER", "playerName", "Anna", "isCorrect", true, "points", 9999)))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
     void relaysChristmasToggle() {
         Map<String, Object> result = controller.updateStatus(1L, Map.of(
                 "action", "CHRISTMAS_TOGGLE",

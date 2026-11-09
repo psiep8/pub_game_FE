@@ -16,6 +16,11 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.WebSocket;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletionStage;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -232,6 +237,46 @@ class ReliabilityIntegrationTest {
         // riavvio la domanda resta esclusa dal pool.
         assertThat(questionUsageRepository.findByGameIdAndQuestionKey(gameId, key)).isPresent();
         assertThat(questionUsageRepository.countByGameId(gameId)).isEqualTo(1);
+    }
+
+    @Test
+    void risultatoArenaPubblicatoDalServerUnaVoltaSulWebSocketReale() throws Exception {
+        long gameId = 510L;
+        BlockingQueue<String> frames = new LinkedBlockingQueue<>();
+        WebSocket socket = HttpClient.newHttpClient().newWebSocketBuilder()
+                .buildAsync(URI.create("ws://localhost:" + port + "/ws-pubgame"), new WebSocket.Listener() {
+                    private final StringBuilder buffer = new StringBuilder();
+                    @Override
+                    public void onOpen(WebSocket webSocket) { webSocket.request(1); }
+                    @Override
+                    public CompletionStage<?> onText(WebSocket webSocket, CharSequence text, boolean last) {
+                        buffer.append(text);
+                        if (last) { frames.add(buffer.toString()); buffer.setLength(0); }
+                        webSocket.request(1);
+                        return null;
+                    }
+                }).join();
+        try {
+            socket.sendText("CONNECT\naccept-version:1.2\n\n\0", true).join();
+            assertThat(frames.poll(5, TimeUnit.SECONDS)).startsWith("CONNECTED");
+            socket.sendText("SUBSCRIBE\nid:status\ndestination:/topic/game/" + gameId + "/status\n\n\0", true).join();
+            // Il messaggio di controllo conferma che la sottoscrizione è attiva.
+            socket.sendText("SEND\ndestination:/app/game/" + gameId + "/status\ncontent-type:application/json\n\n"
+                    + "{\"action\":\"CHRISTMAS_TOGGLE\",\"enabled\":true}\0", true).join();
+            assertThat(frames.poll(5, TimeUnit.SECONDS)).contains("CHRISTMAS_TOGGLE");
+
+            questionHistory.assign(gameId,
+                    new QuestionHistoryService.ArenaAssignment("q-ws", "Anna", "Domanda", "VERO", "Storia"));
+            Map<String, Object> answer = Map.of("playerId", "Anna", "questionId", "q-ws",
+                    "answer", "VERO", "idempotencyKey", "arena-ws-510");
+            assertThat(gameController.answerArenaQuestion(gameId, answer).getStatusCode().value()).isEqualTo(200);
+            String event = frames.poll(5, TimeUnit.SECONDS);
+            assertThat(event).contains("ARENA_ANSWER", "Anna", "isCorrect", "points");
+            assertThat(gameController.answerArenaQuestion(gameId, answer).getStatusCode().value()).isEqualTo(200);
+            assertThat(frames.poll(500, TimeUnit.MILLISECONDS)).isNull();
+        } finally {
+            socket.sendClose(WebSocket.NORMAL_CLOSURE, "done").join();
+        }
     }
 
     @Test

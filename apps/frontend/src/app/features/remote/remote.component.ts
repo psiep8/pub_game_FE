@@ -1815,13 +1815,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res: any) => {
           const isCorrect = !!res.correct;
-          const points = typeof res.points === 'number' ? res.points : (isCorrect ? 10 : -10);
-          this.ws.broadcastStatus(this.gameId(), {
-            action: WsAction.ARENA_ANSWER,
-            playerName,
-            isCorrect,
-            points
-          });
+          // Il backend comunica l'esito alla TV dopo averlo registrato.
           this.vibrate(isCorrect ? 50 : [50, 50, 50]);
           this.arenaQuestion.set(null);
           // Dopo un errore 1,5 s di blocco: rispondere a caso non conviene più.

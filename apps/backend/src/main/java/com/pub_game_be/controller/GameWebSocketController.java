@@ -4,6 +4,7 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -39,6 +40,10 @@ public class GameWebSocketController {
     @MessageMapping("/game/{gameId}/status")
     @SendTo("/topic/game/{gameId}/status")
     public Map<String, Object> updateStatus(@DestinationVariable("gameId") Long gameId, Map<String, Object> status) {
+        // Gli esiti Arena sono prodotti solo dal controller REST, non dai client.
+        if ("ARENA_ANSWER".equals(status.get("action"))) {
+            throw new AccessDeniedException("Risultato Arena riservato al server");
+        }
         if ("CHRISTMAS_TOGGLE".equals(status.get("action"))) {
             // Il tema è globale: si rilancia solo il flag, non il payload del client.
             Map<String, Object> clean = new LinkedHashMap<>();

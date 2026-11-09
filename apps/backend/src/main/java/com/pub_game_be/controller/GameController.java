@@ -512,6 +512,15 @@ public class GameController {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "Domanda non trovata per questo giocatore"));
         }
+        // Pubblica solo dopo executeOnce: un retry con la stessa chiave non
+        // deve assegnare una seconda volta i punti alla classifica della TV.
+        if (!Boolean.TRUE.equals(result.get("replayed"))) {
+            messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", (Object) Map.of(
+                    "action", "ARENA_ANSWER",
+                    "playerName", result.get("playerName"),
+                    "isCorrect", result.get("correct"),
+                    "points", result.get("points")));
+        }
         return ResponseEntity.ok(result);
     }
 
