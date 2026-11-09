@@ -59,6 +59,7 @@ export const WsAction = {
   ADMIN_HIDE_DEMO: 'ADMIN_HIDE_DEMO',
   ADMIN_START_BONUS: 'ADMIN_START_BONUS',
   ADMIN_STOP_BONUS: 'ADMIN_STOP_BONUS',
+  CHRISTMAS_TOGGLE: 'CHRISTMAS_TOGGLE',
 } as const;
 
 export type WsAction = (typeof WsAction)[keyof typeof WsAction];

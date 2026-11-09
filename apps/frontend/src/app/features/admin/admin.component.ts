@@ -536,6 +536,17 @@ export class Admin implements OnInit, OnDestroy {
     this.vibrate(30);
   }
 
+  /** Accende il tema di Natale su TV e telefoni e lo ricorda al refresh. */
+  toggleChristmas(): void {
+    const enabled = !this.theme.xmas();
+    this.theme.setXmas(enabled);
+    this.ws.broadcastStatus(this.activeGameId(), {
+      action: WsAction.CHRISTMAS_TOGGLE,
+      enabled,
+    });
+    this.vibrate(30);
+  }
+
   showDemo(): void {
     this.showDemoOf(this.currentQuestionType());
   }

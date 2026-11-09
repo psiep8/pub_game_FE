@@ -343,6 +343,11 @@ export class GameComponent implements OnInit, OnDestroy {
 
       const mode = this.currentMode();
 
+      if (status.action === WsAction.CHRISTMAS_TOGGLE) {
+        this.theme.setXmas(!!status.enabled);
+        return;
+      }
+
       // 🎤 Debug Log per Urla su Status
       if ((status.action === 'SCREAM_UPDATE' || status.action === 'SCREAM')) {
         console.log('🎤 Urlo ricevuto su STATUS:', status);

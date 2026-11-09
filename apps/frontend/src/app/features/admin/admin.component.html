@@ -12,6 +12,11 @@
       <button class="theme-btn" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
         🎨 <span>{{ theme.label() }}</span>
       </button>
+      <button class="theme-btn" (click)="toggleChristmas()" [attr.aria-pressed]="theme.xmas()"
+        [attr.aria-label]="'Tema di Natale: ' + (theme.xmas() ? 'attivo' : 'spento')"
+        [attr.title]="'Tema di Natale ' + (theme.xmas() ? 'attivo' : 'spento')">
+        🎄 <span>{{ theme.xmas() ? 'NATALE ON' : 'NATALE OFF' }}</span>
+      </button>
     </div>
   </div>
 

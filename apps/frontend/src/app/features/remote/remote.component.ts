@@ -398,6 +398,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.onStartVoting(status.type, status.payload);
           break;
 
+        case 'CHRISTMAS_TOGGLE':
+          this.theme.setXmas(!!status.enabled);
+          break;
+
         case 'QUIZ_STATE':
           // Una manche nuova riapre i voti; il reveal invece blocca i telefoni.
           if (status.state?.mancheReveal || status.state?.revealed) {
