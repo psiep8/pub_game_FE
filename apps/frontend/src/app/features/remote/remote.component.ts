@@ -231,6 +231,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
   timelineCards = signal<Array<{ id: number; label: string }>>([]);
   timelineOrder = signal<number[]>([]);
   private timelineSendHandle?: ReturnType<typeof setTimeout>;
+  private timelineRoundId = '';
+  private timelineSendSequence = 0;
+  private readonly timelineInstanceId = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
   buzzPhase = signal<'idle' | 'running' | 'sent'>('idle');
   buzzEliminated = signal(false);
@@ -982,6 +986,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     } else if (type === 'TIMELINE') {
       const data = this.parsePayload(payload);
       const cards = data?.items ?? [];
+      this.timelineRoundId = String(data?.roundId ?? this.lastSnapshotRoundKey);
       this.timelineCards.set(cards);
       // Si parte dall'ordine mostrato: si trascina per correggerlo.
       this.timelineOrder.set(cards.map((card: any) => card.id));
@@ -1531,6 +1536,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (from < 0 || to < 0 || to >= order.length) return;
     [order[from], order[to]] = [order[to], order[from]];
     this.timelineOrder.set(order);
+    this.scheduleTimelineSend();
     this.vibrate(10);
   }
 
@@ -1553,9 +1559,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (!playerName || this.questionType() !== 'TIMELINE' || this.gameState() !== PlayerStatus.VOTING
       || !this.timelineCards().length || this.timelineOrder().length !== this.timelineCards().length) return;
 
-    const key = this.reliability.idempotencyKey('timeline', `${playerName}:${this.timelineOrder().join(',')}`);
+    const key = this.reliability.idempotencyKey('timeline',
+      `${this.timelineRoundId}:${this.timelineInstanceId}:${++this.timelineSendSequence}`);
     this.gameService.submitTimeline(this.gameId(), playerName, this.timelineOrder(), key).subscribe({
-      error: () => {},
+      error: () => this.reliability.lastError.set('Ordine Timeline non registrato: riprova.'),
+      next: () => this.reliability.lastError.set(null),
     });
   }
 

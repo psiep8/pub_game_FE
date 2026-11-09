@@ -221,6 +221,28 @@ describe('RemoteComponent', () => {
     }
   });
 
+  it('uses a round-specific Timeline key and sends button changes', async () => {
+    vi.useFakeTimers();
+    try {
+      const game = TestBed.inject(GameService) as unknown as FakeGameService;
+      const submit = vi.spyOn(game, 'submitTimeline');
+      component.tempNickname = 'Anna';
+      await component.setNickname();
+      const cards = [{ id: 0, label: 'A' }, { id: 1, label: 'B' }];
+      component.onStartVoting('TIMELINE', { roundId: 'round-one', items: cards });
+      vi.advanceTimersByTime(350);
+      const firstKey = submit.mock.calls.at(-1)?.[3];
+      component.moveCard(0, 1);
+      vi.advanceTimersByTime(350);
+      expect(submit.mock.calls.at(-1)?.[2]).toEqual([1, 0]);
+      component.onStartVoting('TIMELINE', { roundId: 'round-two', items: cards });
+      vi.advanceTimersByTime(350);
+      expect(submit.mock.calls.at(-1)?.[3]).not.toBe(firstKey);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('should reset the answer state when the round ends', async () => {
     ws.status$.next({ action: 'START_VOTING', type: 'QUIZ' });
     ws.status$.next({ action: 'ROUND_ENDED' });

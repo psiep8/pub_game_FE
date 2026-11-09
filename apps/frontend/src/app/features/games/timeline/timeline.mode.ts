@@ -120,6 +120,7 @@ export class TimelineMode extends GameModeBase {
 
   getDisplayData() {
     return {
+      roundId: this.payload?.roundId ?? '',
       question: this.payload?.question ?? 'Metti le carte in ordine',
       items: this.cards(),
       count: this.cards().length,
