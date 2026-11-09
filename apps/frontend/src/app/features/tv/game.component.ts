@@ -162,6 +162,19 @@ export class GameComponent implements OnInit, OnDestroy {
     return this.allCategories().find((cat) => cat.id === id)?.name ?? '';
   });
 
+  /** Nomi del rullo che si ferma sulla categoria estratta. */
+  slotNames = computed(() => {
+    const categories = this.allCategories();
+    if (!categories.length) return [];
+    const selectedId = this.selectedCategoryId();
+    const index = Math.max(0, categories.findIndex((category) => category.id === selectedId));
+    const names: string[] = [];
+    for (let offset = -2; offset <= 2; offset++) {
+      names.push(categories[(index + offset + categories.length) % categories.length].name);
+    }
+    return names;
+  });
+
   /**
    * Bolle mostrate prima della domanda: la Timeline pesca solo nelle categorie
    * abilitate al gioco, le altre modalità usano tutto il tabellone.
@@ -643,11 +656,13 @@ export class GameComponent implements OnInit, OnDestroy {
         this.animatedCategoryId.set(bubblePool[randomIndex].id);
 
         this.phase.set('SPINNING');
-        await new Promise(r => setTimeout(r, 5000));
+        await new Promise(r => setTimeout(r, 2600));
 
+        // Il rullo si ferma sulla categoria scelta, poi resta a schermo
+        // come titolo sopra la domanda.
         this.phase.set('SELECTED');
         this.animatedCategoryId.set(this.selectedCategoryId());
-        await new Promise(r => setTimeout(r, 5000));
+        await new Promise(r => setTimeout(r, 1600));
       }
 
       this.phase.set('QUESTION');

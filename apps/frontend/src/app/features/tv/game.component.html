@@ -69,7 +69,7 @@
 
 
   @if (currentMode(); as mode) {
-  @if (mode.requiresBubbles && !showTypeReveal() && phase() !== 'IDLE' && !showQuestion()) {
+  @if (mode.requiresBubbles && !showTypeReveal() && phase() === 'SPINNING') {
   <div class="bubbles-area">
     @for (cat of bubbleCategories(); track cat.id) {
     <div class="category-bubble" [style.top]="cat.top" [style.left]="cat.left"
@@ -85,6 +85,17 @@
   }
   }
 
+
+  @if (phase() === 'SELECTED' && !showQuestion() && categoryName()) {
+  <div class="category-slot" aria-live="polite">
+    <div class="category-slot-kicker">CATEGORIA ESTRATTA</div>
+    <div class="category-slot-reel">
+      @for (name of slotNames(); track name; let i = $index) {
+      <div class="slot-row" [class.chosen]="i === 2">{{ name }}</div>
+      }
+    </div>
+  </div>
+  }
 
   @if (showQuestion() && currentMode(); as mode) {
 

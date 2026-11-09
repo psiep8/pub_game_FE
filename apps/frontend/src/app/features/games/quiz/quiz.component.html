@@ -18,20 +18,41 @@
     </div>
   }
 
+  @if (displayData.revealPending) {
+    <div class="quiz-suspense" role="status">
+      <span class="quiz-suspense-ring"></span>
+      <span>RULLO DI TAMBURI…</span>
+    </div>
+  }
+
   @if (displayData.mancheReveal; as reveal) {
     <div class="reveal-banner quiz-reveal">
-      <div class="reveal-label">RISPOSTA ESATTA</div>
+      <div class="reveal-label">✅ RISPOSTA ESATTA</div>
       <div class="reveal-value">{{ reveal.correctAnswer }}</div>
     </div>
   }
 
   @if (displayData.revealed) {
     <div class="quiz-solution">
-      @for (row of displayData.solution; track row.question; let i = $index) {
+      <div class="quiz-summary-head">RIEPILOGO · {{ displayData.summary?.length || 0 }} MANCHES</div>
+      @for (row of displayData.summary; track row.question; let i = $index) {
         <div class="quiz-solution-row">
           <span class="quiz-solution-num">{{ i + 1 }}</span>
-          <span class="quiz-solution-question">{{ row.question }}</span>
-          <span class="quiz-solution-answer">{{ row.correctAnswer }}</span>
+          <div class="quiz-summary-main">
+            <span class="quiz-solution-question">{{ row.question }}</span>
+            <span class="quiz-solution-answer">✔ {{ row.correctAnswer }}</span>
+          </div>
+          <div class="quiz-summary-teams">
+            @for (team of row.correctTeams; track team) {
+              <span class="quiz-team ok">✅ {{ team }}</span>
+            }
+            @for (team of row.wrongTeams; track team) {
+              <span class="quiz-team no">❌ {{ team }}</span>
+            }
+            @if (!row.correctTeams.length && !row.wrongTeams.length) {
+              <span class="quiz-team none">— nessuna risposta</span>
+            }
+          </div>
         </div>
       }
     </div>

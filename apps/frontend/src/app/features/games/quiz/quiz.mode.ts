@@ -2,6 +2,7 @@ import { WsAction } from '../../../shared/enums/ws-action';
 import { signal } from '@angular/core';
 import { GameModeResult, GameModeType } from '../../../shared/models/game-mode-type';
 import { GameModeBase } from '../../../shared/models/game-mode-base.class';
+import { REVEAL_DELAY_MS } from '../../../shared/models/scoring-rules';
 
 interface QuizManche {
   question: string;
@@ -33,7 +34,9 @@ export class QuizMode extends GameModeBase {
   private questions: QuizManche[] = [];
   private mancheIndex = signal(0);
   private mancheReveal = signal<QuizManche | null>(null);
-  private answers = signal<Array<{ playerName: string; points: number; isCorrect: boolean }>>([]);
+  private answers = signal<Array<{ playerName: string; points: number; isCorrect: boolean; manche: number }>>([]);
+  /** Scadenza del tempo, soluzione non ancora mostrata. */
+  private revealPending = signal(false);
   private finished = signal(false);
   private secondsLeft = 0;
   private answeredThisManche = new Set<string>();
@@ -144,6 +147,7 @@ export class QuizMode extends GameModeBase {
     this.clearTimers();
     this.mancheIndex.set(index);
     this.mancheReveal.set(null);
+    this.revealPending.set(false);
     this.answeredThisManche.clear();
     this.secondsLeft = MANCHE_SECONDS;
     this.timer.set(MANCHE_SECONDS);
@@ -163,6 +167,8 @@ export class QuizMode extends GameModeBase {
 
       if (this.secondsLeft <= 0) {
         this.clearClock();
+        this.revealPending.set(true);
+        void this.broadcastState();
         this.revealManche();
       }
     }, 1000);
@@ -178,19 +184,23 @@ export class QuizMode extends GameModeBase {
       return;
     }
 
-    this.mancheReveal.set(current);
-    this.config.onBroadcast?.({
-      action: WsAction.QUIZ_STATE,
-      state: this.getDisplayData(),
-    });
-
+    // Suspense: la soluzione non è mai simultanea alla scadenza.
     this.advanceHandle = setTimeout(() => {
-      if (this.mancheIndex() + 1 >= this.questions.length) {
-        this.finish();
-      } else {
-        this.startManche(this.mancheIndex() + 1);
-      }
-    }, REVEAL_SECONDS * 1000);
+      this.revealPending.set(false);
+      this.mancheReveal.set(current);
+      this.config.onBroadcast?.({
+        action: WsAction.QUIZ_STATE,
+        state: this.getDisplayData(),
+      });
+
+      this.advanceHandle = setTimeout(() => {
+        if (this.mancheIndex() + 1 >= this.questions.length) {
+          this.finish();
+        } else {
+          this.startManche(this.mancheIndex() + 1);
+        }
+      }, REVEAL_SECONDS * 1000);
+    }, REVEAL_DELAY_MS);
   }
 
   private finish(): void {
@@ -219,6 +229,7 @@ export class QuizMode extends GameModeBase {
     this.clearClock();
     if (this.advanceHandle) clearTimeout(this.advanceHandle);
     this.advanceHandle = undefined;
+    this.revealPending.set(false);
   }
 
   getDisplayData(): any {
@@ -236,7 +247,17 @@ export class QuizMode extends GameModeBase {
       difficulty: current?.difficulty ?? 'medio',
       revealed: this.revealed(),
       mancheReveal: this.mancheReveal(),
+      revealPending: this.revealPending(),
       solution: this.revealed() ? this.questions : [],
+      summary: this.questions.map((question, index) => {
+        const rows = this.answers().filter((row) => row.manche === index);
+        return {
+          question: question.question,
+          correctAnswer: question.correctAnswer,
+          correctTeams: rows.filter((row) => row.isCorrect).map((row) => row.playerName),
+          wrongTeams: rows.filter((row) => !row.isCorrect).map((row) => row.playerName),
+        };
+      }),
       answers: this.answers(),
       correctAnswer: this.revealed() ? (current?.correctAnswer ?? null) : null,
       isReading: this.isReading(),
@@ -246,12 +267,14 @@ export class QuizMode extends GameModeBase {
   protected onBuzz(_playerName: string): void {}
 
   protected onAnswer(playerName: string, _answer: any, result: any): void {
+    const manche = this.mancheIndex();
     this.answers.update((rows) => [
-      ...rows.filter((row) => row.playerName !== playerName),
+      ...rows.filter((row) => !(row.playerName === playerName && row.manche === manche)),
       {
         playerName,
         points: Number(result?.points) || 0,
         isCorrect: !!result?.isCorrect,
+        manche,
       },
     ]);
   }
