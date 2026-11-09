@@ -4,6 +4,8 @@ Data: 9 novembre 2026. Base: `e5a9f3f`; lettura del documento **allegato** `AUDI
 
 **Esito complessivo: NON pronto per una serata esposta a Internet.** REST e STOMP applicativo non autenticati consentono reset, comandi di regia e impersonificazione. Il recupero di un round dopo refresh TV o riavvio backend non è garantito. Non usare il tunnel pubblico finché non sono risolti i P0; una LAN isolata e con partecipanti fidati riduce, ma non elimina, il rischio.
 
+**Aggiornamento successivo all'audit:** i commit `f55af15`, `35413bb`, `399c7f7` e `d05973b` impediscono rispettivamente il recupero di un token tramite solo deviceId, disabilitano per default la console H2, rimuovono il token di sync dall'URL e fanno pubblicare l'esito Arena dal backend anziché dal telefono. Le osservazioni storiche sotto restano riferite alla base dell'audit. Queste correzioni non autenticano REST/STOMP, non impediscono di registrarsi con ruoli privilegiati o impersonare altre squadre, e non rendono attendibili Speed Rush o Basket. Il P0 sicurezza resta **aperto**: non esporre il tunnel pubblico. I nuovi test mirati coprono ripresa sessione, sync HTTP e pubblicazione Arena su WebSocket reale, non l'autorizzazione di ruoli e squadre.
+
 ## 1. Comandi e test
 
 | Prova | Risultato |
