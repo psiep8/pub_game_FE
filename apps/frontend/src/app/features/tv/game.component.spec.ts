@@ -15,6 +15,7 @@ import {
 } from '../../shared/testing/test-doubles';
 import { FakeReliabilityService } from '../../shared/testing/test-doubles';
 import { ReliabilityService } from '../../core/services/reliability.service';
+import { RoundManagerService } from '../../core/services/round-manager.service';
 
 describe('GameComponent', () => {
   let component: GameComponent;
@@ -100,6 +101,19 @@ describe('GameComponent', () => {
 
     expect(leaderboard.getPlayerStats('Bruno')?.totalPoints).toBe(0);
     expect(leaderboard.getPlayerStats('Bruno')?.position).toBe(1);
+  });
+
+  it('does not start games whose scores are self-reported', async () => {
+    const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const rounds = TestBed.inject(RoundManagerService);
+    vi.spyOn(rounds, 'extractGameType').mockReturnValue('SPEED_RUSH');
+    const before = rounds.getCurrentRound();
+    await component.startNewRound();
+    expect(rounds.getCurrentRound()).toBe(before);
+    await component.startBonus('BASKET');
+    expect(component.bonusActive()).toBe(false);
+    expect(alert).toHaveBeenCalledTimes(2);
+    alert.mockRestore();
   });
 
   it('should not expose a pre-round countdown any more', () => {

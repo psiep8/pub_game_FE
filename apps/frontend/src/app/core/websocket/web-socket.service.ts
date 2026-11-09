@@ -41,6 +41,8 @@ export class WebSocketService {
 
   private readonly client: Client;
   private activeGameId = DEFAULT_GAME_ID;
+  private role = '';
+  private allowReconnect = false;
   private subscriptions: StompSubscription[] = [];
   private retryTimer?: ReturnType<typeof setTimeout>;
   private attempts = 0;
@@ -72,7 +74,19 @@ export class WebSocketService {
       },
     });
 
-    if (environment.wsUrl) this.scheduleReconnect(0);
+  }
+
+  setSessionToken(token: string, role = ''): void {
+    const changed = this.client.connectHeaders['X-Session-Token'] !== token || this.role !== role;
+    this.role = role;
+    this.allowReconnect = true;
+    this.client.connectHeaders = { 'X-Session-Token': token };
+    if (changed && this.client.active) {
+      this.clearRetryTimer();
+      void this.client.deactivate().then(() => this.scheduleReconnect(0));
+    } else if (!this.client.active && environment.wsUrl) {
+      this.scheduleReconnect(0);
+    }
   }
 
   /** Cambia la partita a cui sono sottoscritti i topic (idempotente). */
@@ -107,10 +121,14 @@ export class WebSocketService {
   connect(): void {
     // Anche se il client è ancora ACTIVE può avere la socket già chiusa:
     // in quel caso scheduleReconnect() riavvia il client da zero.
-    if (!this.client.connected) this.scheduleReconnect(0);
+    if (this.client.connectHeaders['X-Session-Token'] && !this.client.connected) {
+      this.allowReconnect = true;
+      this.scheduleReconnect(0);
+    }
   }
 
   disconnect(): void {
+    this.allowReconnect = false;
     this.clearRetryTimer();
     this.unsubscribeAll();
     this.connected.set(false);
@@ -144,11 +162,11 @@ export class WebSocketService {
       // nella diagnostica dell'admin.
       this.connectionState.set('reconnecting');
     }
-    if (this.client.active) this.scheduleReconnect(this.attempts);
+    if (this.allowReconnect && this.client.active) this.scheduleReconnect(this.attempts);
   }
 
   private scheduleReconnect(attempt: number): void {
-    if (this.retryTimer) return;
+    if (!this.allowReconnect || this.retryTimer) return;
     const delay = backoffDelay(attempt);
     this.attempts = attempt + 1;
     this.reconnectAttempts.set(this.attempts);
@@ -200,9 +218,17 @@ export class WebSocketService {
       }),
       this.client.subscribe(`${topic}/status`, (message) => {
         const data = this.parse(message.body);
-        if (data) this.status$.next(data);
+        if (data && !(this.role === 'ADMIN' && ['SHOW_QUESTION', 'START_VOTING', 'PLAYER_PRENOTATO'].includes(data.action))) {
+          this.status$.next(data);
+        }
       }),
     ];
+    if (this.role === 'ADMIN') {
+      this.subscriptions.push(this.client.subscribe(`${topic}/admin`, (message) => {
+        const data = this.parse(message.body);
+        if (data) this.status$.next(data);
+      }));
+    }
   }
 
   private unsubscribeAll(): void {

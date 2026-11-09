@@ -11,6 +11,8 @@ services:
     environment:
       SERVER_PORT: 8080
       SERVER_ADDRESS: 0.0.0.0
+      CONTROL_SECRET: "${CONTROL_SECRET:-}"
+      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}"
       DB_URL: "jdbc:h2:file:/app/data/pubgame;DB_CLOSE_DELAY=-1"
       MEDIA_BASE_URL: "${MEDIA_BASE_URL:-}"
       TMDB_API_KEY: "${TMDB_API_KEY:-}"

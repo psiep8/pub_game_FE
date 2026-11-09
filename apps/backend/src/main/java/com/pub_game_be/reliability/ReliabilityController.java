@@ -3,7 +3,13 @@ package com.pub_game_be.reliability;
 import com.pub_game_be.reliability.domain.DeviceSessionEntity;
 import com.pub_game_be.service.QuestionHistoryService;
 import org.json.JSONObject;
+import org.json.JSONArray;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.server.ResponseStatusException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,6 +41,9 @@ public class ReliabilityController {
     private final QuestionUsageService questionUsage;
     private final ReliabilityProperties props;
 
+    @Value("${game.security.control-secret:}")
+    private String controlSecret;
+
     public ReliabilityController(DeviceSessionService sessions, GameStateService gameState,
             QuestionHistoryService questionHistory, QuestionUsageService questionUsage,
             ReliabilityProperties props) {
@@ -48,12 +57,26 @@ public class ReliabilityController {
     /** Registra (o riprende) la sessione del dispositivo. */
     @PostMapping("/session")
     public Map<String, Object> openSession(@PathVariable("gameId") Long gameId,
-            @RequestBody(required = false) Map<String, Object> body) {
+            @RequestBody(required = false) Map<String, Object> body,
+            @RequestHeader(value = "X-Control-Secret", required = false) String suppliedSecret) {
         Map<String, Object> payload = body == null ? Map.of() : body;
         String deviceId = string(payload.get("deviceId"));
         String role = string(payload.get("role"));
         String playerName = string(payload.get("playerName"));
         String token = string(payload.get("sessionToken"));
+        String normalizedRole = role == null ? "REMOTE" : role.trim().toUpperCase(java.util.Locale.ROOT);
+        if (!java.util.Set.of("REMOTE", "TV", "ADMIN").contains(normalizedRole)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ruolo non valido");
+        }
+        if (!"REMOTE".equals(normalizedRole)) {
+            boolean validResume = sessions.authenticate(token)
+                    .filter(s -> s.getGameId().equals(gameId) && normalizedRole.equals(s.getRole())).isPresent();
+            if (!validResume && (controlSecret == null || controlSecret.length() < 32 || suppliedSecret == null
+                    || !MessageDigest.isEqual(controlSecret.getBytes(StandardCharsets.UTF_8),
+                            suppliedSecret.getBytes(StandardCharsets.UTF_8)))) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenziale di regia non valida");
+            }
+        }
 
         DeviceSessionService.Registration registration = sessions.register(
                 gameId, deviceId, role, playerName, token);
@@ -100,7 +123,11 @@ public class ReliabilityController {
     @PostMapping("/session/disconnect")
     public Map<String, Object> disconnect(@PathVariable("gameId") Long gameId,
             @RequestBody(required = false) Map<String, Object> body) {
-        sessions.disconnect(string(body == null ? null : body.get("sessionToken")));
+        String token = string(body == null ? null : body.get("sessionToken"));
+        if (sessions.authenticate(token).filter(s -> s.getGameId().equals(gameId)).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Sessione diversa dalla partita");
+        }
+        sessions.disconnect(token);
         return Map.of("ok", true);
     }
 
@@ -113,12 +140,21 @@ public class ReliabilityController {
     @GetMapping("/sync")
     public Map<String, Object> sync(@PathVariable("gameId") Long gameId,
             @RequestParam(value = "sinceSeq", defaultValue = "-1") long sinceSeq,
-            @RequestHeader(value = "X-Session-Token", required = false) String token) {
+            @RequestHeader(value = "X-Session-Token", required = false) String token,
+            HttpServletRequest request) {
         JSONObject sync = gameState.sync(gameId, sinceSeq);
         JSONObject snapshot = sync.getJSONObject("snapshot");
         snapshot.put("scores", new JSONObject(questionHistory.scores(gameId)));
         snapshot.put("arenaScores", new JSONObject(questionHistory.scores(gameId)));
         snapshot.put("presence", sessions.presence(gameId));
+        Object identity = request.getAttribute("pubgame.session");
+        if (identity instanceof DeviceSessionEntity session && "REMOTE".equals(session.getRole())) {
+            boolean music = "MUSIC".equals(snapshot.optString("roundType"));
+            snapshot.put("payload", sanitizePayload(snapshot.opt("payload"), music));
+            JSONObject round = snapshot.optJSONObject("currentRound");
+            if (round != null) round.put("payload", sanitizePayload(round.opt("payload"), "MUSIC".equals(round.optString("type"))));
+            sync.put("events", sanitizePayload(sync.getJSONArray("events"), false));
+        }
 
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("snapshot", JsonSupport.toMap(snapshot));
@@ -175,6 +211,36 @@ public class ReliabilityController {
         out.put("heartbeatTimeoutSeconds", props.getHeartbeatTimeoutSeconds());
         out.put("answerWindowSeconds", props.getAnswerWindowSeconds());
         return out;
+    }
+
+    private Object sanitizePayload(Object value, boolean music) {
+        if (value instanceof String text) {
+            String trimmed = text.stripLeading();
+            try {
+                if (trimmed.startsWith("{")) return sanitizePayload(new JSONObject(text), music).toString();
+                if (trimmed.startsWith("[")) return sanitizePayload(new JSONArray(text), music).toString();
+            } catch (org.json.JSONException ignored) {
+                // Il testo ordinario non è un payload JSON serializzato.
+            }
+            return text;
+        }
+        if (value instanceof JSONObject object) {
+            boolean musicPayload = music || "MUSIC".equals(object.optString("type"))
+                    || "MUSIC_PHASE".equals(object.optString("action"));
+            JSONObject clean = new JSONObject();
+            for (String key : object.keySet()) {
+                if (!java.util.Set.of("correctAnswer", "correctIndex", "explanation", "explain", "solution", "rawPayload", "proverb").contains(key)
+                        && !(musicPayload && java.util.Set.of("songTitle", "artist", "previewUrl", "albumCover", "year").contains(key)))
+                    clean.put(key, sanitizePayload(object.opt(key), musicPayload));
+            }
+            return clean;
+        }
+        if (value instanceof JSONArray array) {
+            JSONArray clean = new JSONArray();
+            for (Object element : array) clean.put(sanitizePayload(element, music));
+            return clean;
+        }
+        return value == null ? JSONObject.NULL : value;
     }
 
     private String string(Object value) {

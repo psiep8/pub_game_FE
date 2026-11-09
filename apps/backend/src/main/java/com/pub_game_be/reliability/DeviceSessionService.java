@@ -5,6 +5,9 @@ import com.pub_game_be.reliability.repository.DeviceSessionRepository;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -43,18 +46,26 @@ public class DeviceSessionService {
      * sessione viene ripresa: stessa identità, stessi punti, contatore di
      * riconnessioni incrementato.</p>
      */
-    public Registration register(long gameId, String deviceId, String role, String playerName, String token) {
+    public synchronized Registration register(long gameId, String deviceId, String role, String playerName, String token) {
         String safeRole = normalizeRole(role);
         String safeDevice = (deviceId == null || deviceId.isBlank()) ? "device-" + UUID.randomUUID() : deviceId.trim();
         String safePlayer = playerName == null ? null : playerName.trim();
         long now = System.currentTimeMillis();
+        if (safeDevice.length() > 128 || (safePlayer != null && (safePlayer.length() > 40
+                || safePlayer.chars().anyMatch(Character::isISOControl)))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome o dispositivo non valido");
+        }
+        if ("REMOTE".equals(safeRole) && (safePlayer == null || safePlayer.isBlank())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome squadra richiesto");
+        }
 
         Optional<DeviceSessionEntity> byToken = (token == null || token.isBlank())
                 ? Optional.empty()
                 // Un token TV non deve essere ripreso da un telefono (e viceversa):
                 // il ruolo fa parte dell'identità della sessione.
                 : sessions.findBySessionToken(token)
-                        .filter(session -> session.getGameId() == gameId && safeRole.equals(session.getRole()));
+                        .filter(session -> session.getGameId() == gameId && safeRole.equals(session.getRole())
+                                && Integer.valueOf(1).equals(session.getSecurityVersion()));
 
         if (byToken.isPresent()) {
             DeviceSessionEntity session = byToken.get();
@@ -63,12 +74,16 @@ public class DeviceSessionService {
             session.setLastHeartbeatAt(now);
             session.setActive(true);
             session.setReconnections(session.getReconnections() + 1);
-            if (safePlayer != null && !safePlayer.isBlank()) {
-                session.setPlayerName(safePlayer);
+            if ("REMOTE".equals(safeRole) && !safePlayer.equals(session.getPlayerName())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Il token appartiene a un'altra squadra");
             }
             sessions.save(session);
             return new Registration(session.getSessionToken(), session.getConnectionId(),
                     session.getDeviceId(), session.getRole(), session.getPlayerName(), true, duplicate);
+        }
+
+        if (token != null && !token.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token di sessione non valido");
         }
 
         // Il deviceId è pubblico e non dimostra il possesso della sessione.
@@ -79,17 +94,38 @@ public class DeviceSessionService {
         session.setRole(safeRole);
         session.setSessionToken(UUID.randomUUID().toString());
         session.setFirstSeenAt(now);
-        if (safePlayer != null && !safePlayer.isBlank()) {
+        session.setSecurityVersion(1);
+        if ("REMOTE".equals(safeRole)) {
             session.setPlayerName(safePlayer);
+            session.setTeamKey(safePlayer.toLowerCase(Locale.ROOT));
         }
         session.setConnectionId(UUID.randomUUID().toString());
         session.setLastHeartbeatAt(now);
         session.setActive(true);
-        sessions.save(session);
+        try {
+            sessions.saveAndFlush(session);
+        } catch (DataIntegrityViolationException ex) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Nome squadra già utilizzato");
+        }
 
         boolean duplicate = "TV".equals(safeRole) && hasOtherConnectedDisplay(gameId, session.getId(), now);
         return new Registration(session.getSessionToken(), session.getConnectionId(), session.getDeviceId(),
                 session.getRole(), session.getPlayerName(), false, duplicate);
+    }
+
+    public Optional<DeviceSessionEntity> authenticate(String token) {
+        if (token == null || token.isBlank()) return Optional.empty();
+        return sessions.findBySessionToken(token)
+                .filter(session -> Integer.valueOf(1).equals(session.getSecurityVersion()));
+    }
+
+    public void requirePlayer(long gameId, String token, String playerName) {
+        DeviceSessionEntity session = authenticate(token)
+                .filter(s -> s.getGameId() == gameId && "REMOTE".equals(s.getRole()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sessione non valida"));
+        if (!session.getPlayerName().equals(playerName)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Squadra diversa dalla sessione");
+        }
     }
 
     /** Heartbeat: vuoto se il token non esiste più (il client deve registrarsi). */
@@ -97,7 +133,7 @@ public class DeviceSessionService {
         if (token == null || token.isBlank()) {
             return Optional.empty();
         }
-        Optional<DeviceSessionEntity> found = sessions.findBySessionToken(token)
+        Optional<DeviceSessionEntity> found = authenticate(token)
                 .filter(session -> session.getGameId() == gameId);
         if (found.isEmpty()) {
             return Optional.empty();
@@ -129,7 +165,7 @@ public class DeviceSessionService {
     public JSONArray presence(long gameId) {
         Map<String, DeviceSessionEntity> latestByPlayer = new LinkedHashMap<>();
         for (DeviceSessionEntity session : sessions.findByGameIdOrderByLastHeartbeatAtDesc(gameId)) {
-            if (!isConnected(session)) {
+            if (!Integer.valueOf(1).equals(session.getSecurityVersion()) || !isConnected(session)) {
                 continue;
             }
             // La query è ordinata dal heartbeat più recente: se un telefono ha
@@ -197,7 +233,7 @@ public class DeviceSessionService {
 
     private boolean hasOtherConnectedDisplay(long gameId, Long selfId, long now) {
         for (DeviceSessionEntity other : sessions.findByGameIdOrderByLastHeartbeatAtDesc(gameId)) {
-            if (!"TV".equals(other.getRole())) {
+            if (!Integer.valueOf(1).equals(other.getSecurityVersion()) || !"TV".equals(other.getRole())) {
                 continue;
             }
             if (selfId != null && selfId.equals(other.getId())) {

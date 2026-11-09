@@ -19,7 +19,8 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "device_session", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_device_session_token", columnNames = { "session_token" })
+        @UniqueConstraint(name = "uk_device_session_token", columnNames = { "session_token" }),
+        @UniqueConstraint(name = "uk_device_session_team", columnNames = { "game_id", "team_key" })
 })
 @Data
 @NoArgsConstructor
@@ -42,6 +43,13 @@ public class DeviceSessionEntity {
     private String role;
 
     private String playerName;
+
+    @Column(name = "team_key", length = 128)
+    private String teamKey;
+
+    // Le sessioni legacy sono state emesse senza autenticazione e non sono attendibili.
+    @Column(name = "security_version")
+    private Integer securityVersion;
 
     @Column(name = "connection_id", length = 64)
     private String connectionId;

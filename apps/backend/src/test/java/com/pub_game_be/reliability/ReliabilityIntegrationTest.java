@@ -27,6 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Verifica i requisiti di affidabilità che non si vedono a occhio nudo:
@@ -37,7 +39,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestPropertySource(properties = {
         "spring.datasource.url=jdbc:h2:mem:reliability-it;DB_CLOSE_DELAY=-1",
         "spring.jpa.hibernate.ddl-auto=create-drop",
-        "game.reliability.answer-window-seconds=300"
+        "game.reliability.answer-window-seconds=300",
+        "game.security.control-secret=0123456789abcdef0123456789abcdef"
 })
 class ReliabilityIntegrationTest {
 
@@ -69,6 +72,9 @@ class ReliabilityIntegrationTest {
 
     @Autowired
     private ReliabilityProperties properties;
+
+    @Autowired
+    private com.pub_game_be.reliability.repository.DeviceSessionRepository sessionRepository;
 
     @Test
     void rispostaRipetutaNonAssegnaDueVolteIPunti() {
@@ -182,7 +188,7 @@ class ReliabilityIntegrationTest {
         HttpClient http = HttpClient.newHttpClient();
         var queryRequest = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/games/" + gameId
                 + "/sync?sessionToken=" + registration.sessionToken())).GET().build();
-        assertThat(http.send(queryRequest, HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(200);
+        assertThat(http.send(queryRequest, HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(401);
         assertThat(sessions.isConnected(sessions.all(gameId).getFirst())).isFalse();
 
         var headerRequest = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/games/" + gameId + "/sync"))
@@ -195,13 +201,10 @@ class ReliabilityIntegrationTest {
     void conoscereIlDeviceIdNonPermetteDiRecuperareUnToken() {
         long gameId = 508L;
         DeviceSessionService.Registration original = sessions.register(gameId, "device-not-secret", "REMOTE", "Anna", null);
-        DeviceSessionService.Registration attacker = sessions.register(gameId, "device-not-secret", "REMOTE", "Anna", null);
-        DeviceSessionService.Registration wrongToken = sessions.register(gameId, "device-not-secret", "REMOTE", "Anna", "wrong");
-
-        assertThat(attacker.resumed()).isFalse();
-        assertThat(wrongToken.resumed()).isFalse();
-        assertThat(attacker.sessionToken()).isNotEqualTo(original.sessionToken());
-        assertThat(wrongToken.sessionToken()).isNotEqualTo(original.sessionToken());
+        assertThatThrownBy(() -> sessions.register(gameId, "device-not-secret", "REMOTE", "Anna", null))
+                .isInstanceOf(ResponseStatusException.class);
+        assertThatThrownBy(() -> sessions.register(gameId, "device-not-secret", "REMOTE", "Anna", "wrong"))
+                .isInstanceOf(ResponseStatusException.class);
         assertThat(sessions.register(gameId, "device-not-secret", "REMOTE", "Anna", original.sessionToken()).resumed()).isTrue();
     }
 
@@ -210,7 +213,8 @@ class ReliabilityIntegrationTest {
         long gameId = 506L;
 
         DeviceSessionService.Registration first = sessions.register(gameId, "remote-a", "REMOTE", "Anna", null);
-        DeviceSessionService.Registration second = sessions.register(gameId, "remote-b", "REMOTE", "Anna", null);
+        assertThatThrownBy(() -> sessions.register(gameId, "remote-b", "REMOTE", "anna", null))
+                .isInstanceOf(ResponseStatusException.class);
         DeviceSessionService.Registration offline = sessions.register(gameId, "remote-c", "REMOTE", "Carla", null);
         sessions.disconnect(offline.sessionToken());
 
@@ -220,9 +224,155 @@ class ReliabilityIntegrationTest {
         assertThat(presence.get(0).get("connected").asBoolean()).isTrue();
 
         sessions.disconnect(first.sessionToken());
-        sessions.disconnect(second.sessionToken());
         assertThat(json.readTree(sessions.presence(gameId).toString())).isEmpty();
         assertThat(json.readTree(sessions.summary(gameId).toString()).get("connected").asInt()).isZero();
+    }
+
+    @Test
+    void autorizzazioneHttpRichiedeRuoloPartitaESquadra() throws Exception {
+        long id = 511L;
+        String base = "/games/" + id;
+        String sessionBody = "{\"deviceId\":\"device\",\"role\":\"TV\"}";
+        assertThat(request("POST", base + "/session", null, null, sessionBody).statusCode()).isEqualTo(401);
+        assertThat(request("POST", base + "/session", null, "wrong", sessionBody).statusCode()).isEqualTo(401);
+        var control = request("POST", base + "/session", null, "0123456789abcdef0123456789abcdef", sessionBody);
+        assertThat(control.statusCode()).isEqualTo(200);
+        String tv = json.readTree(control.body()).get("sessionToken").asText();
+        assertThat(request("POST", base + "/session", null, null,
+                "{\"deviceId\":\"device\",\"role\":\"TV\",\"sessionToken\":\"" + tv + "\"}").statusCode()).isEqualTo(200);
+        var remote = request("POST", base + "/session", null, null,
+                "{\"deviceId\":\"r\",\"role\":\"REMOTE\",\"playerName\":\"Anna\"}");
+        assertThat(remote.statusCode()).isEqualTo(200);
+        String anna = json.readTree(remote.body()).get("sessionToken").asText();
+        var resumed = request("POST", base + "/session", null, null,
+                "{\"deviceId\":\"r\",\"role\":\"REMOTE\",\"playerName\":\"Anna\",\"sessionToken\":\"" + anna + "\"}");
+        assertThat(json.readTree(resumed.body()).get("resumed").asBoolean()).isTrue();
+        assertThat(request("POST", base + "/session/heartbeat", anna, null,
+                "{\"sessionToken\":\"" + anna + "\",\"seq\":0}").statusCode()).isEqualTo(200);
+        assertThat(request("POST", base + "/session", null, null,
+                "{\"deviceId\":\"x\",\"role\":\"REMOTE\",\"playerName\":\"anna\"}").statusCode()).isEqualTo(409);
+        assertThat(request("POST", base + "/session", null, null,
+                "{\"role\":\"REMOTE\",\"playerName\":\"Bruno\",\"sessionToken\":\"" + anna + "\"}").statusCode()).isEqualTo(403);
+        assertThat(request("POST", base + "/reset", null, null, "{}").statusCode()).isEqualTo(401);
+        assertThat(request("POST", base + "/reset", "wrong", null, "{}").statusCode()).isEqualTo(401);
+        assertThat(request("POST", base + "/reset", anna, null, "{}").statusCode()).isEqualTo(403);
+        assertThat(request("GET", "/games/512/sync", anna, null, null).statusCode()).isEqualTo(403);
+        assertThat(request("GET", base + "/sync", anna, null, null).statusCode()).isEqualTo(200);
+        assertThat(request("GET", base + "/arena-question?category=STORIA&playerId=Bruno", anna, null, null).statusCode()).isEqualTo(403);
+        assertThat(request("GET", base + "/bomba/state?player=Bruno", anna, null, null).statusCode()).isEqualTo(403);
+        for (String endpoint : new String[] { "timeline-answer", "bomba/pick", "time-buzzer/stop" }) {
+            assertThat(request("POST", base + "/" + endpoint, anna, null,
+                    "{\"playerName\":\"Bruno\"}").statusCode()).isEqualTo(403);
+        }
+        assertThat(request("POST", base + "/arena-answer", anna, null,
+                "{\"playerId\":\"Bruno\"}").statusCode()).isEqualTo(403);
+        var brunoResponse = request("POST", base + "/session", null, null,
+                "{\"deviceId\":\"b\",\"role\":\"REMOTE\",\"playerName\":\"Bruno\"}");
+        String bruno = json.readTree(brunoResponse.body()).get("sessionToken").asText();
+        questionHistory.assign(id, new QuestionHistoryService.ArenaAssignment("anna-q", "Anna", "Q", "VERO", "S"));
+        questionHistory.assign(id, new QuestionHistoryService.ArenaAssignment("bruno-q", "Bruno", "Q", "VERO", "S"));
+        String answerA = "{\"playerId\":\"Anna\",\"questionId\":\"anna-q\",\"answer\":\"VERO\",\"idempotencyKey\":\"shared\"}";
+        String answerB = "{\"playerId\":\"Bruno\",\"questionId\":\"bruno-q\",\"answer\":\"VERO\",\"idempotencyKey\":\"shared\"}";
+        assertThat(json.readTree(request("POST", base + "/arena-answer", anna, null, answerA).body()).get("playerName").asText()).isEqualTo("Anna");
+        assertThat(json.readTree(request("POST", base + "/arena-answer", bruno, null, answerB).body()).get("playerName").asText()).isEqualTo("Bruno");
+        assertThat(request("POST", base + "/arena-answer", anna, null, answerA.replace("shared", "another-key")).statusCode()).isEqualTo(400);
+        assertThat(request("POST", base + "/reset", tv, null, "{}").statusCode()).isEqualTo(200);
+        var adminResponse = request("POST", base + "/session", null, "0123456789abcdef0123456789abcdef",
+                "{\"deviceId\":\"admin\",\"role\":\"ADMIN\"}");
+        assertThat(adminResponse.statusCode()).isEqualTo(200);
+        String admin = json.readTree(adminResponse.body()).get("sessionToken").asText();
+        assertThat(request("POST", base + "/session/disconnect", anna, null,
+                "{\"sessionToken\":\"" + admin + "\"}").statusCode()).isEqualTo(403);
+        assertThat(request("GET", base + "/diagnostics", admin, null, null).statusCode()).isEqualTo(200);
+        var question = request("GET", base + "/arena-question?category=STORIA&playerId=Anna", anna, null, null);
+        assertThat(question.statusCode()).isEqualTo(200);
+        var arena = json.readTree(question.body());
+        assertThat(arena.has("correctAnswer")).isFalse();
+        assertThat(arena.has("explanation")).isFalse();
+        assertThat(arena.has("correctIndex")).isFalse();
+    }
+
+    @Test
+    void syncTelefonoNonEsponeLeSoluzioni() throws Exception {
+        long id = 517L;
+        var remote = sessions.register(id, "r", "REMOTE", "Anna", null);
+        gameState.startRound(id, "QUIZ", 1, "quiz-517", "{\"question\":\"Q\",\"correctAnswer\":\"A\",\"questions\":[{\"correctAnswer\":\"B\",\"options\":[\"A\",\"B\"]}]}");
+        gameState.appendEvent(id, "TEST_EVENT", "{\"description\":\"Messaggio\",\"nested\":\"{\\\"correctAnswer\\\":\\\"SECRET\\\",\\\"question\\\":\\\"Nascosta\\\"}\"}");
+        var result = request("GET", "/games/517/sync", remote.sessionToken(), null, null);
+        assertThat(result.statusCode()).isEqualTo(200);
+        assertThat(result.body()).doesNotContain("correctAnswer", "correctIndex", "explanation", "SECRET");
+        JsonNode sync = json.readTree(result.body());
+        JsonNode payload = sync.path("snapshot").path("payload");
+        assertThat(payload.path("question").asText()).isEqualTo("Q");
+        assertThat(payload.path("questions").get(0).path("options").get(0).asText()).isEqualTo("A");
+        assertThat(payload.path("questions").get(0).path("options").get(1).asText()).isEqualTo("B");
+        JsonNode event = sync.path("events").get(1).path("payload");
+        assertThat(event.path("description").asText()).isEqualTo("Messaggio");
+        assertThat(json.readTree(event.path("nested").asText()).path("question").asText()).isEqualTo("Nascosta");
+    }
+
+    @Test
+    void syncTelefonoNascondeProverbioEMetadatiDellaCanzone() throws Exception {
+        var wheel = sessions.register(520L, "wheel", "REMOTE", "Anna", null);
+        gameState.startRound(520L, "WHEEL_OF_FORTUNE", 1, "wheel", "{\"proverb\":\"SEGRETO\",\"hint\":\"Indizio\"}");
+        var wheelSync = request("GET", "/games/520/sync", wheel.sessionToken(), null, null);
+        assertThat(wheelSync.statusCode()).isEqualTo(200);
+        assertThat(wheelSync.body()).contains("Indizio").doesNotContain("SEGRETO", "proverb");
+
+        var music = sessions.register(521L, "music", "REMOTE", "Anna", null);
+        gameState.startRound(521L, "MUSIC", 1, "music", "{\"songTitle\":\"TITOLO\",\"artist\":\"ARTISTA\",\"previewUrl\":\"/TITOLO.mp3\",\"albumCover\":\"/ARTISTA.jpg\",\"year\":1999}");
+        var musicSync = request("GET", "/games/521/sync", music.sessionToken(), null, null);
+        assertThat(musicSync.statusCode()).isEqualTo(200);
+        assertThat(musicSync.body()).doesNotContain("TITOLO", "ARTISTA", "previewUrl", "albumCover", "1999");
+    }
+
+    @Test
+    void aggiornaSchemaH2LegacySenzaRendereValidiIVecchiToken() throws Exception {
+        String url = "jdbc:h2:mem:legacy-migration;DB_CLOSE_DELAY=-1";
+        try (var db = java.sql.DriverManager.getConnection(url, "sa", ""); var sql = db.createStatement()) {
+            sql.execute("CREATE TABLE device_session (id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY, "
+                    + "game_id BIGINT NOT NULL, device_id VARCHAR(128) NOT NULL, session_token VARCHAR(64) NOT NULL UNIQUE, "
+                    + "role VARCHAR(16) NOT NULL, player_name VARCHAR(255), connection_id VARCHAR(64), "
+                    + "last_heartbeat_at BIGINT, first_seen_at BIGINT, reconnections INTEGER NOT NULL, active BOOLEAN NOT NULL)");
+            sql.execute("INSERT INTO device_session (game_id, device_id, session_token, role, player_name, reconnections, active) "
+                    + "VALUES (1, 'old-1', 'old-token-1', 'REMOTE', 'Anna', 0, TRUE), "
+                    + "(1, 'old-2', 'old-token-2', 'REMOTE', 'Anna', 0, TRUE)");
+        }
+        try (var context = new org.springframework.boot.builder.SpringApplicationBuilder(
+                com.pub_game_be.PubGameBeApplication.class).run(
+                        "--server.port=0", "--spring.datasource.url=" + url,
+                        "--spring.jpa.hibernate.ddl-auto=update",
+                        "--game.security.control-secret=0123456789abcdef0123456789abcdef")) {
+            var migrated = context.getBean(DeviceSessionService.class);
+            assertThat(migrated.authenticate("old-token-1")).isEmpty();
+            assertThat(migrated.all(1L)).hasSize(2);
+            var registration = migrated.register(1, "new", "REMOTE", "Anna", null);
+            assertThat(migrated.authenticate(registration.sessionToken())).isPresent();
+            assertThatThrownBy(() -> migrated.register(1, "other", "REMOTE", "anna", null))
+                    .isInstanceOf(ResponseStatusException.class);
+        }
+    }
+
+    @Test
+    void leSessioniLegacyNonSonoAttendibili() throws Exception {
+        var legacy = new com.pub_game_be.reliability.domain.DeviceSessionEntity();
+        legacy.setGameId(516L); legacy.setRole("TV"); legacy.setDeviceId("old-tv");
+        legacy.setSessionToken("legacy-unauthenticated-token"); legacy.setActive(true);
+        legacy.setLastHeartbeatAt(System.currentTimeMillis());
+        sessionRepository.saveAndFlush(legacy);
+        assertThat(request("POST", "/games/516/reset", legacy.getSessionToken(), null, "{}").statusCode()).isEqualTo(401);
+        assertThat(request("POST", "/games/516/session", null, null,
+                "{\"role\":\"TV\",\"sessionToken\":\"legacy-unauthenticated-token\"}").statusCode()).isEqualTo(401);
+        assertThat(sessions.presence(516L).length()).isZero();
+    }
+
+    private HttpResponse<String> request(String method, String path, String token, String secret, String body) throws Exception {
+        var builder = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path));
+        if (token != null) builder.header("X-Session-Token", token);
+        if (secret != null) builder.header("X-Control-Secret", secret);
+        if (body == null) builder.GET();
+        else builder.header("Content-Type", "application/json").method(method, HttpRequest.BodyPublishers.ofString(body));
+        return HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofString());
     }
 
     @Test
@@ -240,9 +390,107 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void stompRifiutaComandiEImpersonificazioneSuSocketReale() throws Exception {
+        long game = 513L;
+        var remote = sessions.register(game, "r-stomp", "REMOTE", "Anna", null);
+        var tv = sessions.register(game, "tv-stomp", "TV", null, null);
+        expectStompRejected(null, "CONNECT\naccept-version:1.2\n\n\0");
+        expectStompRejected("wrong", "CONNECT\naccept-version:1.2\nX-Session-Token:wrong\n\n\0");
+        expectStompRejected(remote.sessionToken(), "SEND\ndestination:/app/game/513/status\ncontent-type:application/json\n\n{\"action\":\"ADMIN_START_ROUND\",\"playerName\":\"Anna\"}\0");
+        expectStompRejected(remote.sessionToken(), "SEND\ndestination:/app/game/513/answer\ncontent-type:application/json\n\n{\"playerName\":\"Bruno\",\"answerIndex\":1}\0");
+        expectStompRejected(remote.sessionToken(), "SUBSCRIBE\nid:foreign\ndestination:/topic/game/514/status\n\n\0");
+        expectStompRejected(remote.sessionToken(), "SUBSCRIBE\nid:private\ndestination:/topic/game/513/admin\n\n\0");
+        expectStompRejected(remote.sessionToken(), "SEND\ndestination:/topic/game/513/status\ncontent-type:application/json\n\n{}\0");
+        expectStompRejected(remote.sessionToken(), "SEND\ndestination:/app/game/513/status\ncontent-type:application/json\n\n{\"action\":\"BONUS_RESULT\",\"playerName\":\"Anna\",\"score\":9999}\0");
+        expectStompRejected(tv.sessionToken(), "SEND\ndestination:/app/game/513/status\ncontent-type:application/json\n\n{\"action\":\"ARENA_ANSWER\",\"playerName\":\"Anna\"}\0");
+    }
+
+    private void expectStompRejected(String token, String frame) throws Exception {
+        BlockingQueue<String> messages = new LinkedBlockingQueue<>();
+        WebSocket socket = HttpClient.newHttpClient().newWebSocketBuilder()
+                .buildAsync(URI.create("ws://localhost:" + port + "/ws-pubgame"), new WebSocket.Listener() {
+                    @Override public void onOpen(WebSocket ws) { ws.request(1); }
+                    @Override public CompletionStage<?> onText(WebSocket ws, CharSequence text, boolean last) {
+                        messages.add(text.toString()); ws.request(1); return null;
+                    }
+                    @Override public CompletionStage<?> onClose(WebSocket ws, int status, String reason) {
+                        messages.add("CLOSED"); return null;
+                    }
+                }).join();
+        try {
+            if (!frame.startsWith("CONNECT")) {
+                socket.sendText("CONNECT\naccept-version:1.2\nX-Session-Token:" + token + "\n\n\0", true).join();
+                assertThat(messages.poll(5, TimeUnit.SECONDS)).startsWith("CONNECTED");
+            }
+            socket.sendText(frame, true).join();
+            assertThat(messages.poll(5, TimeUnit.SECONDS)).startsWith("ERROR");
+        } finally { socket.abort(); }
+    }
+
+    @Test
+    void statoDiRegiaPrivatoESanitizzatoPerIlTopicComune() throws Exception {
+        long game = 519L;
+        var tv = sessions.register(game, "tv", "TV", null, null);
+        var admin = sessions.register(game, "admin", "ADMIN", null, null);
+        var remote = sessions.register(game, "phone", "REMOTE", "Anna", null);
+        BlockingQueue<String> privateFrames = new LinkedBlockingQueue<>();
+        BlockingQueue<String> publicFrames = new LinkedBlockingQueue<>();
+        WebSocket adminSocket = socket(admin.sessionToken(), privateFrames);
+        WebSocket remoteSocket = socket(remote.sessionToken(), publicFrames);
+        WebSocket tvSocket = socket(tv.sessionToken(), new LinkedBlockingQueue<>());
+        try {
+            adminSocket.sendText("SUBSCRIBE\nid:admin\ndestination:/topic/game/519/admin\n\n\0", true).join();
+            remoteSocket.sendText("SUBSCRIBE\nid:public\ndestination:/topic/game/519/status\n\n\0", true).join();
+            // Il messaggio di prova conferma che entrambe le sottoscrizioni sono attive.
+            String prefix = "SEND\ndestination:/app/game/519/status\ncontent-type:application/json\n\n";
+            tvSocket.sendText(prefix + "{\"action\":\"SHOW_QUESTION\",\"type\":\"MUSIC\",\"payload\":\"{\\\"question\\\":\\\"Q\\\",\\\"correctAnswer\\\":\\\"SECRET\\\",\\\"proverb\\\":\\\"SECRET\\\",\\\"songTitle\\\":\\\"SECRET\\\",\\\"previewUrl\\\":\\\"SECRET\\\"}\",\"rawPayload\":\"SECRET\"}\0", true).join();
+            String publicFrame = publicFrames.poll(5, TimeUnit.SECONDS);
+            String privateFrame = privateFrames.poll(5, TimeUnit.SECONDS);
+            assertThat(publicFrame).contains("SHOW_QUESTION").doesNotContain("SECRET", "correctAnswer", "rawPayload");
+            assertThat(privateFrame).contains("SHOW_QUESTION", "SECRET");
+        } finally { adminSocket.abort(); remoteSocket.abort(); tvSocket.abort(); }
+    }
+
+    private WebSocket socket(String token, BlockingQueue<String> messages) throws Exception {
+        WebSocket socket = HttpClient.newHttpClient().newWebSocketBuilder()
+                .buildAsync(URI.create("ws://localhost:" + port + "/ws-pubgame"), new WebSocket.Listener() {
+                    @Override public void onOpen(WebSocket ws) { ws.request(1); }
+                    @Override public CompletionStage<?> onText(WebSocket ws, CharSequence text, boolean last) {
+                        messages.add(text.toString()); ws.request(1); return null;
+                    }
+                }).join();
+        socket.sendText("CONNECT\naccept-version:1.2\nX-Session-Token:" + token + "\n\n\0", true).join();
+        assertThat(messages.poll(5, TimeUnit.SECONDS)).startsWith("CONNECTED");
+        return socket;
+    }
+
+    @Test
+    void ilTelefonoPuoInviareUnAzioneLegittimaSuWebSocketReale() throws Exception {
+        long game = 518L;
+        var remote = sessions.register(game, "r", "REMOTE", "Anna", null);
+        BlockingQueue<String> messages = new LinkedBlockingQueue<>();
+        WebSocket socket = HttpClient.newHttpClient().newWebSocketBuilder()
+                .buildAsync(URI.create("ws://localhost:" + port + "/ws-pubgame"), new WebSocket.Listener() {
+                    @Override public void onOpen(WebSocket ws) { ws.request(1); }
+                    @Override public CompletionStage<?> onText(WebSocket ws, CharSequence text, boolean last) {
+                        messages.add(text.toString()); ws.request(1); return null;
+                    }
+                }).join();
+        try {
+            socket.sendText("CONNECT\naccept-version:1.2\nX-Session-Token:" + remote.sessionToken() + "\n\n\0", true).join();
+            assertThat(messages.poll(5, TimeUnit.SECONDS)).startsWith("CONNECTED");
+            socket.sendText("SUBSCRIBE\nid:status\ndestination:/topic/game/518/status\n\n\0", true).join();
+            socket.sendText("SEND\ndestination:/app/game/518/status\ncontent-type:application/json\n\n"
+                    + "{\"action\":\"JOIN_GAME\",\"playerName\":\"Anna\"}\0", true).join();
+            assertThat(messages.poll(5, TimeUnit.SECONDS)).contains("JOIN_GAME", "Anna");
+        } finally { socket.abort(); }
+    }
+
+    @Test
     void risultatoArenaPubblicatoDalServerUnaVoltaSulWebSocketReale() throws Exception {
         long gameId = 510L;
         BlockingQueue<String> frames = new LinkedBlockingQueue<>();
+        var tv = sessions.register(gameId, "tv-ws", "TV", null, null);
         WebSocket socket = HttpClient.newHttpClient().newWebSocketBuilder()
                 .buildAsync(URI.create("ws://localhost:" + port + "/ws-pubgame"), new WebSocket.Listener() {
                     private final StringBuilder buffer = new StringBuilder();
@@ -257,7 +505,7 @@ class ReliabilityIntegrationTest {
                     }
                 }).join();
         try {
-            socket.sendText("CONNECT\naccept-version:1.2\n\n\0", true).join();
+            socket.sendText("CONNECT\naccept-version:1.2\nX-Session-Token:" + tv.sessionToken() + "\n\n\0", true).join();
             assertThat(frames.poll(5, TimeUnit.SECONDS)).startsWith("CONNECTED");
             socket.sendText("SUBSCRIBE\nid:status\ndestination:/topic/game/" + gameId + "/status\n\n\0", true).join();
             // Il messaggio di controllo conferma che la sottoscrizione è attiva.

@@ -341,7 +341,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // Prima l'ascolto, poi l'avvio: il sync iniziale può rispondere subito e
     // senza sottoscrizione lo snapshot andrebbe perso.
     this.reliability.syncState$.subscribe((snapshot: any) => this.applyServerSnapshot(snapshot));
-    this.reliability.start(1, 'REMOTE', this.nickname() ?? '');
+    const storedName = this.nickname();
+    if (storedName) {
+      this.tempNickname = storedName;
+      this.nickname.set(null);
+      void this.reliability.start(1, 'REMOTE', storedName).then((ok) => {
+        if (ok) this.nickname.set(storedName);
+      });
+    }
 
     this.gameService.getCategories().subscribe({
       next: (cats) => {
@@ -362,7 +369,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
     this.ws.connectedAt$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       const name = this.nickname();
-      if (name) this.playerAvatars.publish(name, this.gameId());
+      if (name) {
+        this.ws.broadcastStatus(this.gameId(), { action: WsAction.JOIN_GAME, playerName: name });
+        this.playerAvatars.publish(name, this.gameId());
+      }
     });
 
     this.ws.status$.subscribe((status: any) => {
@@ -824,20 +834,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.showUpdateBanner.set(false);
   }
 
-  setNickname() {
-    if (this.tempNickname.trim()) {
-      this.nickname.set(this.tempNickname);
-      localStorage.setItem('nickname', this.tempNickname);
-
-      // Notify the TV that a new player joined
-      this.ws.broadcastStatus(this.gameId(), {
-        action: WsAction.JOIN_GAME,
-        playerName: this.tempNickname
-      });
-
-      this.applyAvatar(this.tempNickname, this.pendingAvatar);
-      this.pendingAvatar = null;
-    }
+  async setNickname() {
+    const name = this.tempNickname.trim();
+    if (!name || !await this.reliability.start(this.gameId(), 'REMOTE', name)) return;
+    this.nickname.set(name);
+    localStorage.setItem('nickname', name);
+    this.ws.broadcastStatus(this.gameId(), { action: WsAction.JOIN_GAME, playerName: name });
+    this.applyAvatar(name, this.pendingAvatar);
+    this.pendingAvatar = null;
   }
 
   private applyAvatar(

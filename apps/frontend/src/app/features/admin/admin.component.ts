@@ -62,8 +62,8 @@ export class Admin implements OnInit, OnDestroy {
     'AZZURRO': '#00bcd4'
   };
 
-  ngOnInit(): void {
-    this.reliability.start(this.activeGameId(), 'ADMIN');
+  async ngOnInit(): Promise<void> {
+    if (!await this.reliability.start(this.activeGameId(), 'ADMIN')) return;
     this.requestCurrentState();
     this.ws.connectedAt$
       .pipe(takeUntilDestroyed(this.destroyRef))

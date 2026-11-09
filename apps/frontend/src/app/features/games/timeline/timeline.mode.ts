@@ -73,7 +73,11 @@ export class TimelineMode extends GameModeBase {
     await new Promise((resolve) => setTimeout(resolve, 600));
 
     try {
-      const response = await fetch(`${environment.apiUrl}/games/${this.config.gameId}/timeline/reveal`);
+      const token = localStorage.getItem(`pubgame.session.${this.config.gameId}.TV`);
+      const response = await fetch(`${environment.apiUrl}/games/${this.config.gameId}/timeline/reveal`, {
+        headers: token ? { 'X-Session-Token': token } : {},
+      });
+      if (!response.ok) throw new Error('Reveal non disponibile');
       const data = await response.json();
       this.ordered.set(data.items ?? []);
       this.results.set(data.results ?? []);

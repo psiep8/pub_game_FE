@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -37,6 +37,31 @@ describe('backoffDelay', () => {
     expect(backoffDelay(Number.NaN, 500, 15000, () => 0.5)).toBe(
       backoffDelay(0, 500, 15000, () => 0.5)
     );
+  });
+});
+
+describe('sessione autenticata', () => {
+  it('apre STOMP solo dopo aver ricevuto il token', async () => {
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(),
+        { provide: WebSocketService, useClass: FakeWebSocketService }],
+    });
+    const service = TestBed.inject(ReliabilityService);
+    const http = TestBed.inject(HttpTestingController);
+    const socket = TestBed.inject(WebSocketService) as unknown as FakeWebSocketService;
+    const setToken = vi.spyOn(socket, 'setSessionToken');
+    const started = service.start(1, 'REMOTE', 'Anna');
+    expect(setToken).not.toHaveBeenCalled();
+    const registration = http.expectOne('/games/1/session');
+    expect(registration.request.body.playerName).toBe('Anna');
+    registration.flush({ sessionToken: 'token-anna' });
+    expect(await started).toBe(true);
+    expect(setToken).toHaveBeenCalledWith('token-anna', 'REMOTE');
+    http.expectOne('/games/1/sync?sinceSeq=0').flush({ snapshot: {}, events: [], toSeq: 0, complete: true });
+    await Promise.resolve();
+    service.stop();
+    http.verify();
   });
 });
 

@@ -54,18 +54,27 @@ describe('RemoteComponent', () => {
     ]);
   });
 
-  it('should store the nickname and announce the player to the TV', () => {
+  it('should store the nickname and announce the player to the TV', async () => {
     component.tempNickname = 'Anna';
-    component.setNickname();
+    await component.setNickname();
 
     expect(component.nickname()).toBe('Anna');
     expect(localStorage.getItem('nickname')).toBe('Anna');
     expect(ws.broadcasted.at(-1)?.body).toEqual({ action: 'JOIN_GAME', playerName: 'Anna' });
   });
 
-  it('should publish the vote and lock the phone', () => {
+  it('does not enter when the team name is rejected', async () => {
+    vi.spyOn(reliability, 'start').mockResolvedValue(false);
     component.tempNickname = 'Anna';
-    component.setNickname();
+    await component.setNickname();
+    expect(component.nickname()).toBeNull();
+    expect(localStorage.getItem('nickname')).toBeNull();
+    expect(ws.broadcasted).toHaveLength(0);
+  });
+
+  it('should publish the vote and lock the phone', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
 
     component.sendVote(2);
 
@@ -80,7 +89,7 @@ describe('RemoteComponent', () => {
 
   it('should block only the player named in the error', async () => {
     component.tempNickname = 'Anna';
-    component.setNickname();
+    await component.setNickname();
 
     ws.status$.next({ action: 'BLOCKED_ERROR', blockedPlayer: 'Anna' });
     await fixture.whenStable();
@@ -91,7 +100,7 @@ describe('RemoteComponent', () => {
 
   it('should reopen a new round from the snapshot after an answer', async () => {
     component.tempNickname = 'Anna';
-    component.setNickname();
+    await component.setNickname();
     ws.status$.next({
       action: 'START_VOTING',
       type: 'TIMELINE',
@@ -127,7 +136,7 @@ describe('RemoteComponent', () => {
 
   it('should go back to waiting when the snapshot has no open round', async () => {
     component.tempNickname = 'Anna';
-    component.setNickname();
+    await component.setNickname();
     ws.status$.next({ action: 'START_VOTING', type: 'QUIZ' });
     await fixture.whenStable();
 
@@ -143,9 +152,9 @@ describe('RemoteComponent', () => {
     expect(component.hasAnswered()).toBe(false);
   });
 
-  it('should not let a player with zero points bet in Azzardo', () => {
+  it('should not let a player with zero points bet in Azzardo', async () => {
     component.tempNickname = 'Anna';
-    component.setNickname();
+    await component.setNickname();
 
     const state = (maxBet: number, points: number) => ({
       phase: 'BET',
@@ -166,13 +175,13 @@ describe('RemoteComponent', () => {
     expect(ws.broadcasted.some((entry) => entry.body.action === 'AZZARDO_ACTION')).toBe(true);
   });
 
-  it('sends a pending Timeline answer only while the round is active', () => {
+  it('sends a pending Timeline answer only while the round is active', async () => {
     vi.useFakeTimers();
     try {
       const game = TestBed.inject(GameService) as unknown as FakeGameService;
       const submit = vi.spyOn(game, 'submitTimeline');
       component.tempNickname = 'Anna';
-      component.setNickname();
+      await component.setNickname();
       const start = () => ws.status$.next({
         action: 'START_VOTING', type: 'TIMELINE', payload: { items: [{ id: 1, label: 'Carta' }] },
       });

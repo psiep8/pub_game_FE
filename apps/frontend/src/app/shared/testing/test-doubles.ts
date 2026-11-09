@@ -52,6 +52,8 @@ export class FakeWebSocketService {
     return true;
   }
 
+  setSessionToken(_token: string): void {}
+
   connect(): void {
     this.connected.set(true);
   }
@@ -211,8 +213,9 @@ export class FakeReliabilityService {
   readonly syncEvent$ = new Subject<any>();
   readonly started: Array<{ gameId: number; role: string; playerName?: string }> = [];
 
-  start(gameId: number, role: string, playerName = ""): void {
+  async start(gameId: number, role: string, playerName = ""): Promise<boolean> {
     this.started.push({ gameId, role, playerName });
+    return true;
   }
 
   stop(): void {}

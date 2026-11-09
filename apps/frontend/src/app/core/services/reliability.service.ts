@@ -50,35 +50,41 @@ export class ReliabilityService {
   private playerName = '';
   private heartbeatTimer?: ReturnType<typeof setInterval>;
   private started = false;
+  private listening = false;
   private seenEvents = new Set<string>();
 
   /** Avvia sessione e heartbeat per questo dispositivo (idempotente). */
-  start(gameId: number, role: DeviceRole, playerName = ''): void {
-    this.role = role;
-    this.playerName = playerName;
-
-    if (this.started && gameId === this.gameId) {
-      // Lo stesso dispositivo può cambiare nickname: si riallinea il server.
-      if (playerName) void this.ensureSession();
-      return;
+  async start(gameId: number, role: DeviceRole, playerName = ''): Promise<boolean> {
+    if (role === 'REMOTE' && !playerName.trim()) return false;
+    if (this.started && gameId === this.gameId && role === this.role && playerName.trim() === this.playerName
+      && this.sessionToken()) {
+      this.ws.connect();
+      return true;
     }
-
+    if (gameId !== this.gameId || role !== this.role) this.sessionToken.set(null);
+    this.role = role;
+    this.playerName = playerName.trim();
     this.gameId = gameId;
     this.started = true;
     this.ws.subscribeToGame(gameId);
-
-    this.ws.connectedAt$.subscribe(() => {
-      this.online.set(true);
-      void this.onReconnected();
-    });
-
-    // Primo sync esplicito dopo la sessione: non basta aspettare la WebSocket,
-    // perché se la socket non si autentica `connectedAt$` non arriva mai e il
-    // telefono resterebbe su "In attesa" anche con un round aperto.
-    void this.ensureSession().then((registered) => {
-      if (registered) void this.sync();
-    });
-    this.startHeartbeat();
+    if (!this.listening) {
+      this.listening = true;
+      this.ws.connectedAt$.subscribe(() => {
+        this.online.set(true);
+        void this.onReconnected();
+      });
+    }
+    const registered = await this.ensureSession();
+    if (registered) {
+      this.ws.setSessionToken(this.sessionToken()!, this.role);
+      void this.sync();
+      this.startHeartbeat();
+    } else {
+      this.started = false;
+      if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = undefined;
+    }
+    return registered;
   }
 
   stop(): void {
@@ -118,13 +124,16 @@ export class ReliabilityService {
   async ensureSession(): Promise<boolean> {
     try {
       const token = this.sessionToken() ?? this.storedToken();
+      const controlSecret = !token && this.role !== 'REMOTE'
+        ? window.prompt('Inserisci il segreto di regia') : null;
+      if (!token && this.role !== 'REMOTE' && !controlSecret) return false;
       const response = await firstValueFrom(
         this.http.post<any>(`${this.baseUrl}/games/${this.gameId}/session`, {
           deviceId: this.deviceId(),
           role: this.role,
           playerName: this.playerName || null,
           sessionToken: token,
-        })
+        }, { headers: controlSecret ? { 'X-Control-Secret': controlSecret } : {} })
       );
       this.applyTiming(response);
       this.sessionToken.set(response?.sessionToken ?? null);
@@ -139,8 +148,19 @@ export class ReliabilityService {
       this.lastError.set(null);
       return true;
     } catch (error) {
+      const status = (error as HttpErrorResponse)?.status;
+      if (status === 403 && this.role === 'REMOTE') {
+        this.lastError.set('Il nome non corrisponde alla sessione salvata');
+        this.online.set(false);
+        return false;
+      }
+      if (status === 401 && (this.sessionToken() || this.storedToken())) {
+        this.persistToken(null);
+        this.sessionToken.set(null);
+        return this.ensureSession();
+      }
       this.online.set(false);
-      this.lastError.set('Sessione non disponibile');
+      this.lastError.set(status === 409 ? 'Nome squadra già utilizzato' : 'Sessione non disponibile');
       return false;
     }
   }
@@ -190,7 +210,10 @@ export class ReliabilityService {
   async heartbeat(): Promise<void> {
     const token = this.sessionToken();
     if (!token) {
-      await this.ensureSession();
+      if (await this.ensureSession()) {
+        this.ws.setSessionToken(this.sessionToken()!, this.role);
+        await this.sync();
+      }
       return;
     }
     try {
@@ -217,12 +240,14 @@ export class ReliabilityService {
       }
     } catch (error) {
       const status = (error as HttpErrorResponse)?.status;
-      if (status === 410) {
+      if (status === 410 || status === 401) {
         // Il server non conosce più questa sessione: si riparte dal token nuovo.
         this.persistToken(null);
         this.sessionToken.set(null);
-        await this.ensureSession();
-        await this.sync();
+        if (await this.ensureSession()) {
+          this.ws.setSessionToken(this.sessionToken()!, this.role);
+          await this.sync();
+        }
         return;
       }
       this.online.set(false);
@@ -242,8 +267,7 @@ export class ReliabilityService {
 
   private async onReconnected(): Promise<void> {
     this.reconnectCount.update((value) => value + 1);
-    const registered = await this.ensureSession();
-    if (registered) await this.sync();
+    await this.sync();
   }
 
   private startHeartbeat(): void {

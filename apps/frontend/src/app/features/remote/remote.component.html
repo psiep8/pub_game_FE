@@ -86,6 +86,7 @@
       </div>
     </div>
 
+    @if (reliability.lastError(); as error) { <p role="alert">{{ error }}</p> }
     <button (click)="setNickname()" class="join-btn">ENTRA IN PARTITA</button>
     <div class="setup-foot">4 squadre · 40 round · 1 TV</div>
   </div>

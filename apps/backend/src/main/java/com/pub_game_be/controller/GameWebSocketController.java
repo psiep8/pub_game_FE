@@ -4,7 +4,10 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.AccessDeniedException;
+import org.json.JSONObject;
+import org.json.JSONArray;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -14,6 +17,12 @@ import java.util.Set;
 
 @Controller
 public class GameWebSocketController {
+
+    private final SimpMessagingTemplate messaging;
+
+    public GameWebSocketController(SimpMessagingTemplate messaging) {
+        this.messaging = messaging;
+    }
 
     /**
      * Campi che la TV riceve da un telefono. Tutto il resto viene scartato:
@@ -44,6 +53,13 @@ public class GameWebSocketController {
         if ("ARENA_ANSWER".equals(status.get("action"))) {
             throw new AccessDeniedException("Risultato Arena riservato al server");
         }
+        if ("ADMIN_STATE".equals(status.get("action"))) {
+            messaging.convertAndSend("/topic/game/" + gameId + "/admin", (Object) status);
+            return null;
+        }
+        if (Set.of("PLAYER_PRENOTATO", "SHOW_QUESTION", "START_VOTING").contains(status.get("action"))) {
+            messaging.convertAndSend("/topic/game/" + gameId + "/admin", (Object) status);
+        }
         if ("CHRISTMAS_TOGGLE".equals(status.get("action"))) {
             // Il tema è globale: si rilancia solo il flag, non il payload del client.
             Map<String, Object> clean = new LinkedHashMap<>();
@@ -54,7 +70,39 @@ public class GameWebSocketController {
         if ("AZZARDO_ACTION".equals(status.get("action"))) {
             return sanitizeAzzardo(status);
         }
-        return status;
+        return cleanStatus(status);
+    }
+
+    /** Rimuove le soluzioni anche dagli oggetti annidati o serializzati in JSON. */
+    private Map<String, Object> cleanStatus(Map<String, Object> status) {
+        JSONObject clean = (JSONObject) cleanValue(new JSONObject(status), false);
+        return clean.toMap();
+    }
+
+    private Object cleanValue(Object value, boolean music) {
+        if (value instanceof String text && (text.stripLeading().startsWith("{") || text.stripLeading().startsWith("["))) {
+            try {
+                Object parsed = text.stripLeading().startsWith("{") ? new JSONObject(text) : new JSONArray(text);
+                return cleanValue(parsed, music).toString();
+            } catch (org.json.JSONException ignored) { return text; }
+        }
+        if (value instanceof JSONObject object) {
+            boolean musicPayload = music || "MUSIC".equals(object.optString("type"))
+                    || "MUSIC_PHASE".equals(object.optString("action"));
+            JSONObject clean = new JSONObject();
+            for (String key : object.keySet()) {
+                if (!Set.of("correctAnswer", "correctIndex", "explanation", "explain", "solution", "rawPayload", "proverb").contains(key)
+                        && !(musicPayload && Set.of("songTitle", "artist", "previewUrl", "albumCover", "year").contains(key)))
+                    clean.put(key, cleanValue(object.opt(key), musicPayload));
+            }
+            return clean;
+        }
+        if (value instanceof JSONArray array) {
+            JSONArray clean = new JSONArray();
+            for (Object element : array) clean.put(cleanValue(element, music));
+            return clean;
+        }
+        return value == null ? JSONObject.NULL : value;
     }
 
     /**

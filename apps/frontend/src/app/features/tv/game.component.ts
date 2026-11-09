@@ -285,6 +285,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    if (!await this.reliability.start(this.currentGameId() ?? 1, 'TV')) return;
     this.playerAvatars.connect(this.ws);
     try {
       const cats = await firstValueFrom(this.gameService.getCategories());
@@ -295,11 +296,6 @@ export class GameComponent implements OnInit, OnDestroy {
     } catch (err) {
       console.error("Errore inizializzazione:", err);
     }
-
-
-    // La TV mantiene viva la propria sessione: se il Wi-Fi cade torna
-    // online da sola e riallinea versione ed eventi al server.
-    this.reliability.start(this.currentGameId() ?? 1, 'TV');
 
     const progress = this.roundManager.getProgress();
     this.roundInfo.set(progress.text);
@@ -684,7 +680,6 @@ export class GameComponent implements OnInit, OnDestroy {
 
       const safeData = this.getSafeDisplayData();
       const payloadString = JSON.stringify(safeData);
-
       const rawPayloadString = typeof nextRound.payload === 'string'
         ? nextRound.payload
         : JSON.stringify(nextRound.payload);
