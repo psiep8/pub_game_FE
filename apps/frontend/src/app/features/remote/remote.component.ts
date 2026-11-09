@@ -1744,6 +1744,19 @@ export class RemoteComponent implements OnInit, OnDestroy {
         // restare in attesa che mandare in giro un esito calcolato qui.
         this.arenaQuestion.set(null);
         this.isFetchingQuestion.set(false);
+
+        // Un telefono che si ricollega o perde un pacchetto non deve restare
+        // senza domanda per tutto il turno: si ritenta finché il round è vivo.
+        if (this.questionType() === 'ARENA' && this.gameState() === PlayerStatus.VOTING) {
+          setTimeout(() => {
+            if (this.questionType() === 'ARENA'
+              && this.gameState() === PlayerStatus.VOTING
+              && !this.arenaQuestion()
+              && !this.arenaEliminated()) {
+              this.generateNextArenaQuestion();
+            }
+          }, 2000);
+        }
       }
     });
   }
