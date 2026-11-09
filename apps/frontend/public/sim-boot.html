@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PubGame — preparazione simulazione</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body {
+      display: grid; place-items: center;
+      background: #111109; color: #f1e4c9;
+      font-family: 'Space Mono', monospace;
+    }
+    p { border: 2px solid #f1e4c9; padding: 12px 18px; box-shadow: 5px 5px 0 #ff4d2e; }
+  </style>
+</head>
+<body>
+  <p>Preparazione della simulazione…</p>
+  <script>
+    (() => {
+      const q = new URLSearchParams(location.search);
+      const game = Number(q.get('game')) || 1;
+      const role = (q.get('role') || 'REMOTE').toUpperCase();
+      const token = q.get('token') || '';
+      const name = q.get('name') || '';
+      const device = q.get('device') || `sim-${role.toLowerCase()}-${Math.random().toString(36).slice(2)}`;
+
+      try {
+        localStorage.setItem('activeGameId', String(game));
+        localStorage.setItem('pubgame.deviceId', device);
+        if (token) localStorage.setItem(`pubgame.session.${game}.${role}`, token);
+        if (name) {
+          localStorage.setItem('nickname', name);
+          localStorage.setItem('playerName', name);
+        }
+      } catch {
+        // Storage negato: la pagina di simulazione non può partire.
+      }
+
+      const target = role === 'TV'
+        ? '/tv?sim=1'
+        : role === 'ADMIN'
+          ? '/admin'
+          : `/play?game=${encodeURIComponent(game)}&nickname=${encodeURIComponent(name)}&sim=1`;
+      location.replace(target);
+    })();
+  </script>
+</body>
+</html>

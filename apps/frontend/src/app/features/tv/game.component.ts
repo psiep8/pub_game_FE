@@ -205,6 +205,8 @@ export class GameComponent implements OnInit, OnDestroy {
   });
 
   private arenaFinished = false;
+  /** Modalità prova: scaletta ridotta e bonus Basket visibile solo via ?sim=1. */
+  private simulation = false;
   /** Telefoni presenti sul backend: i bonus li usano anche senza classifica
    *  (dopo un reset la leaderboard è vuota e i tavoli sparirebbero). */
   private presencePlayers = signal<string[]>([]);
@@ -320,6 +322,12 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    // La simulazione usa una scaletta dedicata: non tocca la serata vera.
+    if (new URLSearchParams(window.location.search).get('sim') === '1') {
+      this.simulation = true;
+      this.roundManager.enableSimulation();
+    }
+
     // La partita non è più solo quella dell'ultimo browser: si riparte
     // dall'ID salvato e si chiede al server quale serata è in corso.
     const storedGameId = Number(localStorage.getItem('activeGameId')) || this.currentGameId() || 1;
@@ -530,7 +538,8 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     if (this.isSpinning()) return;
-    if (this.roundManager.extractGameType() === 'SPEED_RUSH') {
+    const nextType = this.roundManager.extractGameType();
+    if (nextType === 'SPEED_RUSH' && !this.simulation) {
       alert('Speed Rush non disponibile: il punteggio non è ancora verificato dal server.');
       return;
     }
@@ -1300,7 +1309,7 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Bonus: parte dalla TV a fine atto (o su comando admin) e non consuma un round. */
   async startBonus(type: BonusType): Promise<void> {
     if (this.isSpinning() || this.bonusActive()) return;
-    if (type === 'BASKET') {
+    if (type === 'BASKET' && !this.simulation) {
       alert('Basket non disponibile: il punteggio non è ancora verificato dal server.');
       return;
     }
@@ -1365,6 +1374,20 @@ export class GameComponent implements OnInit, OnDestroy {
       this.ws.broadcastStatus(this.currentGameId(), {
         action: WsAction.SHOW_QUESTION,
         type: 'BONUS_BIGLIE',
+        payload: publicPayload,
+        rawPayload: publicPayload,
+      });
+      return;
+    }
+
+    // La simulazione mostra anche il tabellone Basket, che nella serata vera
+    // resta bloccato finché il punteggio non sarà verificabile dal server.
+    if (type === 'BASKET') {
+      this.startBasketCountdown();
+      const publicPayload = JSON.stringify({ type: 'BONUS_BASKET', question: BONUS_LABELS[type] });
+      this.ws.broadcastStatus(this.currentGameId(), {
+        action: WsAction.SHOW_QUESTION,
+        type: 'BONUS_BASKET',
         payload: publicPayload,
         rawPayload: publicPayload,
       });

@@ -21,7 +21,8 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
             "arena-answer", "timeline-answer", "time-buzzer/stop", "bomba/pick");
     /** Pagine e file serviti dal jar: devono essere leggibili prima del login. */
     private static final Set<String> PUBLIC_GET = Set.of("/", "/index.html", "/favicon.ico",
-            "/manifest.webmanifest", "/ngsw.json", "/ngsw-worker.js", "/games/active", "/error");
+            "/manifest.webmanifest", "/ngsw.json", "/ngsw-worker.js", "/games/active", "/error",
+            "/sim-duo.html", "/sim-boot.html");
     private static final Set<String> SPA_ROUTES = Set.of("/tv", "/play", "/admin", "/basket",
             "/bonus-preview");
     private static final Pattern STATIC_ASSET = Pattern.compile(

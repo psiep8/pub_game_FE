@@ -13,6 +13,27 @@ const TOTAL_ROUNDS = 40;
 const STORAGE_KEY = 'roundProgress';
 
 /**
+ * Scaletta della simulazione: un round per ogni gioco, senza i doppioni
+ * della serata vera e senza classifiche automatiche. È attiva solo con
+ * `?sim=1` e serve a provare il flusso completo in pochi minuti.
+ */
+const SIMULATION_DECK: GameModeType[] = [
+  'QUIZ',
+  'MUSIC',
+  'IMAGE_BLUR',
+  'WHEEL_OF_FORTUNE',
+  'TIMELINE',
+  'TIME_BUZZER',
+  'BOMBA',
+  'AIR_HOCKEY_BATTLE',
+  'ULTIMA_SPIAGGIA',
+  'AZZARDO',
+  'BLACKJACK',
+  'ARENA',
+  'SPEED_RUSH',
+];
+
+/**
  * Scaletta in cinque atti da otto round.
  *
  * L'ordine è fisso e già verificato rispetto ai vincoli: mai due giochi in
@@ -53,6 +74,7 @@ const DETAILED_LEADERBOARD_ROUNDS = [8, 16, 24, 32, 40];
  */
 @Injectable({ providedIn: 'root' })
 export class RoundManagerService {
+  private simulation = false;
   private roundConfig = signal<RoundConfig>({
     totalRounds: TOTAL_ROUNDS,
     currentRound: 0,
@@ -64,9 +86,28 @@ export class RoundManagerService {
     this.loadProgress();
   }
 
+  /** Attiva la scaletta ridotta della simulazione (`?sim=1`). */
+  enableSimulation(): void {
+    this.simulation = true;
+    this.roundConfig.set({
+      totalRounds: SIMULATION_DECK.length,
+      currentRound: 0,
+      completedRounds: [],
+      nextRoundType: null,
+    });
+    this.saveProgress();
+  }
+
+  isSimulation(): boolean {
+    return this.simulation;
+  }
+
   /** Tipo previsto dalla scaletta per il round corrente (indice 0-based). */
   extractGameType(): GameModeType {
     const round = this.roundConfig().currentRound;
+    if (this.simulation) {
+      return SIMULATION_DECK[Math.min(round, SIMULATION_DECK.length - 1)];
+    }
     const act = Math.min(ACT_DECKS.length - 1, Math.floor(round / 8));
     const deck = ACT_DECKS[act];
     return deck[round % deck.length];
@@ -124,6 +165,9 @@ export class RoundManagerService {
   }
 
   shouldShowLeaderboard(): 'QUICK' | 'DETAILED' | null {
+    // La simulazione mostra solo i giochi e i quattro bonus: niente
+    // classifiche automatiche che interromperebbero il flusso.
+    if (this.simulation) return null;
     const round = this.roundConfig().currentRound;
     if (round === 0) return null;
 
@@ -151,6 +195,18 @@ export class RoundManagerService {
    * TV nuova o un browser ripulito ripartono dallo stesso punto della serata.</p>
    */
   restoreRound(roundNumber: number): void {
+    if (this.simulation) {
+      const target = Math.max(0, Math.min(SIMULATION_DECK.length, Math.trunc(roundNumber) || 0));
+      this.roundConfig.set({
+        totalRounds: SIMULATION_DECK.length,
+        currentRound: target,
+        completedRounds: SIMULATION_DECK.slice(0, target),
+        nextRoundType: null,
+      });
+      this.saveProgress();
+      return;
+    }
+
     const target = Math.max(0, Math.min(TOTAL_ROUNDS, Math.trunc(roundNumber) || 0));
     const completedRounds: GameModeType[] = [];
     for (let index = 0; index < target; index++) {
@@ -170,12 +226,13 @@ export class RoundManagerService {
 
   resetGame(): void {
     this.roundConfig.set({
-      totalRounds: TOTAL_ROUNDS,
+      totalRounds: this.simulation ? SIMULATION_DECK.length : TOTAL_ROUNDS,
       currentRound: 0,
       completedRounds: [],
       nextRoundType: null,
     });
-    localStorage.removeItem(STORAGE_KEY);
+    if (!this.simulation) localStorage.removeItem(STORAGE_KEY);
+    else this.saveProgress();
   }
 
   getRoundStats() {
