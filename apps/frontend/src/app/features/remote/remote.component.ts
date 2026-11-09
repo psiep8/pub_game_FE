@@ -195,6 +195,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   isBlocked = signal(false);
   /** Pausa globale decisa dall'admin: blocca input e cronometri locali. */
   paused = signal(false);
+  roundNumber = signal(0);
+  roundTotal = signal(40);
   private pauseStartedAt = 0;
 
   hockeyQuestion = signal<{ text: string; options: string[]; difficulty?: string } | null>(null);
@@ -366,6 +368,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
       switch (status.action) {
         case 'SHOW_QUESTION':
           this.questionType.set(status.type);
+          if (status.round) this.roundNumber.set(Number(status.round));
+          if (status.roundTotal) this.roundTotal.set(Number(status.roundTotal));
           this.isBlocked.set(false);
           if (status.type === 'BLACKJACK') {
             this.blackjackState.set(null);
@@ -886,6 +890,43 @@ export class RemoteComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** Nome leggibile del gioco per l'intestazione (B1). */
+  remoteModeName(): string {
+    const names: Record<string, string> = {
+      QUIZ: '🎯 Quiz',
+      MUSIC: '🎵 Canzone',
+      IMAGE_BLUR: '🕵️ Indovina chi',
+      WHEEL_OF_FORTUNE: '🎡 Ruota',
+      TIMELINE: '🕰️ Timeline',
+      TIME_BUZZER: '⏱️ Time Buzzer',
+      BOMBA: '💣 Bomba',
+      SPEED_RUSH: '⚡ Speed Rush',
+      AIR_HOCKEY_BATTLE: '🏒 Air Hockey',
+      ARENA: '🏟️ Arena',
+      AZZARDO: '🎲 Azzardo',
+      BLACKJACK: '🃏 Blackjack',
+      ULTIMA_SPIAGGIA: '🏝️ Ultima spiaggia',
+      CAVALLO: '🐎 Cavallo',
+      BONUS_CASINO: '🎰 Roulette',
+      BONUS_BASKET: '🏀 Basket',
+      BONUS_CAVALLO: '🐎 Cavallo',
+      BONUS_BIGLIE: '🎱 Biglie',
+    };
+    return names[this.questionType()] ?? '🎮 PubGame';
+  }
+
+  /** Variante di attesa stabile per telefono: due telefoni diversi non coincidono. */
+  waitVariant(): number {
+    const name = this.nickname() ?? '';
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+    return hash % 6;
+  }
+
+  waitIcon(): string {
+    return ['🎲', '✒️', '🃏', '🪙', '⚽', '🫧'][this.waitVariant()];
+  }
+
   sendVote(index: number) {
     if (this.paused()) return;
     this.selectedAnswer.set(index);
@@ -907,6 +948,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   onStartVoting(type: string, payload?: any) {
     this.gameState.set(PlayerStatus.VOTING);
     this.questionType.set(type as any);
+    if (payload?.round) this.roundNumber.set(Number(payload.round));
+    if (payload?.roundTotal) this.roundTotal.set(Number(payload.roundTotal));
     this.roundStartTime = Date.now();
     this.startTime = Date.now();
     this.hasAnswered.set(false);

@@ -58,12 +58,6 @@
   </div>
   }
 
-  @if (nickname()) {
-  <div class="conn-shell">
-    <app-connection-badge role="remote"></app-connection-badge>
-  </div>
-  }
-
   @if (!nickname()) {
   <div class="setup-screen">
     <button class="theme-corner" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
@@ -98,26 +92,32 @@
   } @else {
 
   <div class="header">
-    <div class="brand-mini"><span class="brand-dot"></span> PUB GAME</div>
-    <div class="player-info">
-      @if (avatarPreview()) {
-      <img class="player-avatar avatar-photo" [src]="avatarPreview()!" alt="Avatar squadra">
-      } @else {
-      <span class="player-avatar">{{ nickname()?.charAt(0) }}</span>
-      }
-      <b>{{ nickname() }}</b>
+    <div class="header-round">
+      <span class="header-round-num">ROUND {{ roundNumber() || 1 }}/{{ roundTotal() }}</span>
+      <b class="header-game">{{ remoteModeName() }}</b>
     </div>
-    <button class="header-theme-btn" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
-      🎨
-    </button>
+    <div class="header-side">
+      <app-connection-badge role="remote"></app-connection-badge>
+      <button class="header-theme-btn" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
+        🎨
+      </button>
+      <div class="player-info">
+        @if (avatarPreview()) {
+        <img class="player-avatar avatar-photo" [src]="avatarPreview()!" alt="Avatar squadra">
+        } @else {
+        <span class="player-avatar">{{ nickname()?.charAt(0) }}</span>
+        }
+        <b>{{ nickname() }}</b>
+      </div>
+    </div>
   </div>
   <div class="game-content">
     @switch (gameState()) {
     @case ('WAITING') {
     <div class="status-msg">
-      <div class="wait-orb">
+      <div class="wait-orb" [class]="'wait-orb wait-v' + waitVariant()">
         <div class="wait-ring"></div>
-        <div class="wait-core">🎲</div>
+        <div class="wait-core">{{ waitIcon() }}</div>
       </div>
       <p>In attesa della prossima sfida...</p>
       <span class="sub-text">Guarda la TV e tieni il telefono pronto</span>

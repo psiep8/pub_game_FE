@@ -20,13 +20,6 @@ export class AudioService {
   private audioEnabled = signal(true);
   private audioContext?: AudioContext;
 
-  private heartbeatAudio?: HTMLAudioElement;
-  private clockAudio?: HTMLAudioElement;
-  private bellAudio?: HTMLAudioElement;
-  private correctAudio?: HTMLAudioElement;
-  private wrongAudio?: HTMLAudioElement;
-  private revealAudio?: HTMLAudioElement;
-
   private heartbeatLoopInterval?: any;
   private heartbeatIntensity = 0;
   private clockLoopInterval?: any;
@@ -34,54 +27,23 @@ export class AudioService {
   private ambientNodes: OscillatorNode[] = [];
   private ambientGain?: GainNode;
 
-  constructor() {
-    this.loadAudio();
-  }
-
-  private loadAudio(): void {
-    try {
-      this.heartbeatAudio = new Audio('assets/audio/heartbeat.mp3');
-      this.heartbeatAudio.volume = 0.25;
-
-      this.clockAudio = new Audio('assets/audio/clock.mp3');
-      this.clockAudio.volume = 0.35;
-
-      this.bellAudio = new Audio('assets/audio/bell.mp3');
-      this.bellAudio.volume = 0.55;
-
-      this.correctAudio = new Audio('assets/audio/correct.mp3');
-      this.correctAudio.volume = 0.7;
-
-      this.wrongAudio = new Audio('assets/audio/wrong.mp3');
-      this.wrongAudio.volume = 0.7;
-
-      this.revealAudio = new Audio('assets/audio/reveal.mp3');
-      this.revealAudio.volume = 0.6;
-    } catch (e) {
-      console.warn('⚠️ Errore caricamento audio:', e);
-    }
-  }
-
   /**
    * Heartbeat della serata. `intensity` va da 0 (lobby) a 1 (round 40):
    * più si alza, più il battito è frequente e presente.
    */
   startHeartbeat(intensity = 0): void {
     this.stopHeartbeat();
-    if (!this.audioEnabled() || !this.heartbeatAudio) return;
+    if (!this.audioEnabled()) return;
 
     this.heartbeatIntensity = Math.max(0, Math.min(1, intensity));
-    this.heartbeatAudio.volume = 0.18 + this.heartbeatIntensity * 0.16;
-    this.heartbeatAudio.currentTime = 0;
-    this.heartbeatAudio.play().catch(() => {});
+    const beat = () => {
+      this.tone({ freq: 92, duration: 0.16, type: 'sine', gain: 0.05 + this.heartbeatIntensity * 0.025, slideTo: 55 });
+      this.tone({ freq: 180, duration: 0.09, type: 'triangle', gain: 0.018, slideTo: 105 });
+    };
+    beat();
 
     const interval = Math.round(1500 - this.heartbeatIntensity * 650);
-    this.heartbeatLoopInterval = setInterval(() => {
-      if (this.heartbeatAudio) {
-        this.heartbeatAudio.currentTime = 0;
-        this.heartbeatAudio.play().catch(() => {});
-      }
-    }, interval);
+    this.heartbeatLoopInterval = setInterval(beat, interval);
   }
 
   stopHeartbeat(): void {
@@ -90,10 +52,6 @@ export class AudioService {
       this.heartbeatLoopInterval = undefined;
     }
     this.heartbeatIntensity = 0;
-    if (this.heartbeatAudio) {
-      this.heartbeatAudio.pause();
-      this.heartbeatAudio.currentTime = 0;
-    }
   }
 
   /**
@@ -116,15 +74,10 @@ export class AudioService {
   }
 
   startClock(): void {
-    if (!this.audioEnabled() || !this.clockAudio) return;
-    this.clockAudio.currentTime = 0;
-    this.clockAudio.play().catch(() => {});
-    this.clockLoopInterval = setInterval(() => {
-      if (this.clockAudio) {
-        this.clockAudio.currentTime = 0;
-        this.clockAudio.play().catch(() => {});
-      }
-    }, 1000);
+    if (!this.audioEnabled()) return;
+    const tick = () => this.tone({ freq: 1650, duration: 0.04, type: 'square', gain: 0.024, slideTo: 900 });
+    tick();
+    this.clockLoopInterval = setInterval(tick, 1000);
   }
 
   stopClock(): void {
@@ -132,32 +85,24 @@ export class AudioService {
       clearInterval(this.clockLoopInterval);
       this.clockLoopInterval = undefined;
     }
-    if (this.clockAudio) {
-      this.clockAudio.pause();
-      this.clockAudio.currentTime = 0;
-    }
   }
 
   playBell(): void {
-    if (!this.audioEnabled() || !this.bellAudio) return;
-    this.bellAudio.currentTime = 0;
-    this.bellAudio.play().catch(() => {});
+    if (!this.audioEnabled()) return;
+    this.tone({ freq: 1318.5, duration: 0.35, type: 'sine', gain: 0.05 });
+    this.tone({ freq: 1975.5, duration: 0.22, type: 'sine', gain: 0.025, delay: 0.02 });
   }
 
   playCorrect(): void {
-    if (!this.audioEnabled() || !this.correctAudio) return;
+    if (!this.audioEnabled()) return;
     this.stopClock();
-    this.correctAudio.currentTime = 0;
-    this.correctAudio.play().catch(() => {});
     this.chord([523.25, 659.25, 783.99], 0.55);
     this.playCoins();
     this.playApplause();
   }
 
   playWrong(): void {
-    if (!this.audioEnabled() || !this.wrongAudio) return;
-    this.wrongAudio.currentTime = 0;
-    this.wrongAudio.play().catch(() => {});
+    if (!this.audioEnabled()) return;
     this.tone({ freq: 196, duration: 0.45, type: 'sawtooth', gain: 0.05, slideTo: 110 });
     this.playUuuh();
   }
@@ -227,15 +172,15 @@ export class AudioService {
   }
 
   playReveal(): void {
-    if (!this.audioEnabled() || !this.revealAudio) return;
+    if (!this.audioEnabled()) return;
     this.stopClock();
-    // Il rullo accompagna l'avvicinarsi della soluzione; il suono del reveal
-    // entra quando il pubblico ha gia capito che sta per succedere qualcosa.
+    // Il rullo accompagna l'avvicinarsi della soluzione; l'accordo entra
+    // quando il pubblico ha già capito che sta per succedere qualcosa.
     this.playDrumroll(0.9, 0.65);
     window.setTimeout(() => {
-      if (!this.audioEnabled() || !this.revealAudio) return;
-      this.revealAudio.currentTime = 0;
-      this.revealAudio.play().catch(() => {});
+      if (!this.audioEnabled()) return;
+      this.chord([523.25, 659.25, 783.99], 0.6);
+      this.tone({ freq: 1567.98, duration: 0.5, type: 'sine', gain: 0.035, delay: 0.05 });
     }, 720);
   }
 
@@ -487,12 +432,6 @@ export class AudioService {
     this.stopSuspense();
     this.stopClock();
     this.stopAmbient();
-    [this.bellAudio, this.correctAudio, this.wrongAudio, this.revealAudio].forEach((audio) => {
-      if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
-    });
   }
 
   toggleAudio(): void {
@@ -566,7 +505,8 @@ export class AudioService {
       osc.frequency.exponentialRampToValueAtTime(Math.max(40, options.slideTo), start + options.duration);
     }
 
-    const peak = options.gain ?? 0.05;
+    // Nessun effetto supera il tetto del catalogo: la voce resta davanti.
+    const peak = Math.min(options.gain ?? 0.05, 0.09);
     gain.gain.setValueAtTime(0.0001, start);
     gain.gain.exponentialRampToValueAtTime(peak, start + 0.015);
     gain.gain.exponentialRampToValueAtTime(0.0001, start + options.duration);

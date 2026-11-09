@@ -68,7 +68,6 @@ import { CommonModule } from '@angular/common';
               } @else if (court.question) {
                 <div class="ahb-q-head">
                   <span class="ahb-defender">{{ sideName(court, court.turn) }} DIFENDE</span>
-                  <span class="ahb-diff">{{ difficultyLabel(court.question.difficulty) }}</span>
                   <span class="ahb-clock" [class.hot]="court.serveLeft <= 4">{{ court.serveLeft }}s</span>
                 </div>
                 <p class="ahb-q-text">{{ court.question.text }}</p>

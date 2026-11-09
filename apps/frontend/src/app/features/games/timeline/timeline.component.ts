@@ -35,7 +35,7 @@ import { CommonModule } from '@angular/common';
         </div>
 
         <div class="tl-legend">
-          {{ displayData?.count }} carte = {{ totalPairs() }} posizioni · massimo 1200 punti
+          {{ displayData?.count }} carte = {{ totalPairs() }} posizioni
         </div>
       } @else {
         <p class="tl-hint">La soluzione, dal passato al presente</p>
