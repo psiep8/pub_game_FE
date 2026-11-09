@@ -51,6 +51,32 @@ public class QuestionHistoryService {
         this.stateBlobs = stateBlobs;
     }
 
+    /**
+     * Varianti accettate per le risposte brevi. «Roma» vale anche come «Città
+     * di Roma», «Roma capitale» e simili: il presentatore non deve correggere
+     * una risposta giusta solo per come è scritta.
+     */
+    static boolean answersMatch(String expected, String given) {
+        String canonical = normalize(expected);
+        String actual = normalize(given);
+        if (canonical.equals(actual)) {
+            return true;
+        }
+        if ("roma".equals(canonical)) {
+            return actual.equals("citta di roma")
+                    || actual.equals("roma citta")
+                    || actual.equals("roma capitale")
+                    || actual.equals("comune di roma");
+        }
+        if ("roma".equals(actual)) {
+            return canonical.equals("citta di roma")
+                    || canonical.equals("roma citta")
+                    || canonical.equals("roma capitale")
+                    || canonical.equals("comune di roma");
+        }
+        return false;
+    }
+
     /** Minuscole, senza accenti e senza punteggiatura: confronto tollerante. */
     public static String normalize(String text) {
         if (text == null) {
@@ -145,7 +171,7 @@ public class QuestionHistoryService {
         if (assignment == null || !assignment.playerId().equals(playerId)) {
             return Optional.empty();
         }
-        boolean correct = normalize(assignment.correctAnswer()).equals(normalize(answer));
+        boolean correct = answersMatch(assignment.correctAnswer(), answer);
         // Allineato alla TV: +10 per risposta esatta, -10 per errore.
         int points = correct ? 10 : -10;
         int totalScore = scores.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>())
