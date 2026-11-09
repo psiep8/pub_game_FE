@@ -4,6 +4,8 @@ import { signal } from '@angular/core';
 import { GameModeBase } from '../../../shared/models/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../../../shared/models/game-mode-type';
 import {
+  AZZARDO_CHIPS,
+  AZZARDO_CHIP_VALUE,
   AZZARDO_MANCHES,
   AzzardoLevel,
   clampAzzardoBet,
@@ -11,6 +13,7 @@ import {
   lossMultiplierFor,
   maxBetFor,
   oddsForLevel,
+  settleChips,
   settleManche,
 } from './azzardo-rules';
 
@@ -43,6 +46,8 @@ export interface AzzardoRow {
 interface Stake {
   stake: number;
   choice: number;
+  /** Distribuzione delle fiches sulle opzioni, quando si gioca a fiches. */
+  chips?: number[];
 }
 
 const BET_SECONDS = 15;
@@ -125,12 +130,33 @@ export class AzzardoMode extends GameModeBase {
     if (!question) return;
 
     const raw = event.value ?? {};
+    const available = this.availablePoints(playerName);
+
+    // Nuovo formato: distribuzione di fiches, al massimo dieci.
+    if (Array.isArray(raw.chips)) {
+      const chips = Array.from({ length: question.options.length }, (_, index) =>
+        Math.max(0, Math.floor(Number(raw.chips[index]) || 0)),
+      );
+      const total = chips.reduce((sum, value) => sum + value, 0);
+      if (total > AZZARDO_CHIPS) return;
+
+      const maxChips = Math.max(0, Math.floor(available / AZZARDO_CHIP_VALUE));
+      if (total > maxChips) return;
+
+      const choice = chips.indexOf(Math.max(...chips));
+      this.stakes.set(playerName, { stake: total * AZZARDO_CHIP_VALUE, choice, chips });
+      this.syncRows();
+      this.publish();
+      this.closeBetIfComplete();
+      return;
+    }
+
     const stakeValue = Number(raw.stake ?? raw[0]);
     const choice = Number(raw.choice ?? raw[1]);
     if (!Number.isInteger(choice) || choice < 0 || choice >= question.options.length) return;
 
     this.stakes.set(playerName, {
-      stake: clampAzzardoBet(stakeValue, this.availablePoints(playerName)),
+      stake: clampAzzardoBet(stakeValue, available),
       choice,
     });
     this.syncRows();
@@ -228,13 +254,21 @@ export class AzzardoMode extends GameModeBase {
         return;
       }
 
-      const points = settleManche({
-        stake: stake.stake,
-        correct: stake.choice === question.answerIndex,
-        level: this.level(),
-        manche: this.manche(),
-        available,
-      });
+      const points = stake.chips
+        ? settleChips({
+            chips: stake.chips,
+            answerIndex: question.answerIndex,
+            level: this.level(),
+            manche: this.manche(),
+            available,
+          })
+        : settleManche({
+            stake: stake.stake,
+            correct: stake.choice === question.answerIndex,
+            level: this.level(),
+            manche: this.manche(),
+            available,
+          });
       this.points.set(playerName, points);
       this.totals.set(playerName, (this.totals.get(playerName) ?? 0) + points);
 
@@ -360,11 +394,14 @@ export class AzzardoMode extends GameModeBase {
       options: current?.options ?? [],
       value: revealed ? current?.value ?? null : null,
       answerIndex: revealed ? current?.answerIndex ?? null : null,
+      chips: AZZARDO_CHIPS,
+      chipValue: AZZARDO_CHIP_VALUE,
       ready: this.players.map((playerName) => ({
         playerName,
         ready: this.stakes.has(playerName),
         points: this.availablePoints(playerName),
         maxBet: maxBetFor(this.availablePoints(playerName)),
+        chips: this.stakes.get(playerName)?.chips ?? [],
       })),
       rows: revealed ? this.rows() : [],
       best: revealed ? this.best() : null,

@@ -249,6 +249,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   blackjackStand = signal(false);
   azzardoState = signal<any>(null);
   azzardoStake = signal(100);
+  azzardoChips = signal<number[]>([]);
   azzardoChoice = signal<number | null>(null);
   azzardoSent = signal(false);
   readonly azzardoStakes = [100, 200, 300];
@@ -1108,7 +1109,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (key !== this.azzardoKey) {
       this.azzardoKey = key;
       if (state.phase === 'BET') {
-        this.azzardoStake.set(100);
+        const own = (state.ready ?? []).find((entry: any) => entry.playerName === this.nickname());
+        const counts = Array.isArray(own?.chips) ? own.chips : [];
+        const options = state.options?.length ?? 0;
+        this.azzardoChips.set(Array.from({ length: options }, (_, index) => Number(counts[index]) || 0));
         this.azzardoChoice.set(null);
         this.azzardoSent.set(false);
       }
@@ -1198,24 +1202,46 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.vibrate(10);
   }
 
-  /** Un tocco sulla risposta invia puntata e scelta insieme. */
-  azzardoPick(index: number): void {
+  azzardoChipTotal(): number {
+    return this.azzardoChips().reduce((sum, value) => sum + value, 0);
+  }
+
+  azzardoChipsLeft(): number {
+    return Math.max(0, (this.azzardoState()?.chips ?? 10) - this.azzardoChipTotal());
+  }
+
+  azzardoMaxChips(): number {
+    const state = this.azzardoState();
+    const value = Number(state?.chipValue ?? 20) || 20;
+    return Math.min(state?.chips ?? 10, Math.floor(this.azzardoMyPoints() / value));
+  }
+
+  /** Ogni tocco sposta una fiche e manda subito la distribuzione al server. */
+  azzardoAddChip(index: number, delta: number): void {
     const player = this.nickname();
     const state = this.azzardoState();
-    if (!player || this.azzardoSent() || state?.phase !== 'BET') return;
+    if (!player || state?.phase !== 'BET' || !this.azzardoCanBet()) return;
     if (index < 0 || index >= (state.options?.length ?? 0)) return;
-    // Senza punti non c'è puntata: la manche si guarda, non si gioca.
-    if (!this.azzardoCanBet()) return;
 
-    this.azzardoChoice.set(index);
+    const chips = Array.from({ length: state.options?.length ?? 0 }, (_, i) => this.azzardoChips()[i] ?? 0);
+    if (delta > 0 && this.azzardoChipTotal() >= this.azzardoMaxChips()) return;
+    if (delta < 0 && (chips[index] ?? 0) <= 0) return;
+
+    chips[index] = Math.max(0, (chips[index] ?? 0) + delta);
+    this.azzardoChips.set(chips);
     this.azzardoSent.set(true);
     this.ws.broadcastStatus(this.gameId(), {
       action: WsAction.AZZARDO_ACTION,
       playerName: player,
       kind: 'BET',
-      value: { stake: this.azzardoStake(), choice: index },
+      value: { chips },
     });
-    this.vibrate(30);
+    this.vibrate(10);
+  }
+
+  /** Un tocco sulla risposta aggiunge una fiche all'opzione. */
+  azzardoPick(index: number): void {
+    this.azzardoAddChip(index, 1);
   }
 
   azzardoRow(): any {

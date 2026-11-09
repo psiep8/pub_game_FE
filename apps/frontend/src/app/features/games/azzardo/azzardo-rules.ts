@@ -15,6 +15,10 @@ export type AzzardoCategory = (typeof AZZARDO_CATEGORIES)[number];
 export const AZZARDO_BETS = [100, 200, 300] as const;
 export type AzzardoBet = (typeof AZZARDO_BETS)[number];
 
+/** Fiches della manche: dieci gettoni tutti uguali, da venti punti. */
+export const AZZARDO_CHIPS = 10;
+export const AZZARDO_CHIP_VALUE = 20;
+
 /** Quattro manche per round, una per categoria. */
 export const AZZARDO_MANCHES = 4;
 
@@ -53,6 +57,32 @@ export function clampAzzardoBet(value: number, available: number): number {
   const valid = AZZARDO_BETS.includes(value as AzzardoBet);
   if (!valid) return Math.min(AZZARDO_BETS[0], max);
   return Math.min(value, max);
+}
+
+export interface AzzardoChipsInput {
+  chips: number[];
+  answerIndex: number;
+  level: AzzardoLevel;
+  manche: number;
+  available: number;
+}
+
+/**
+ * Esito con le fiches: le fiches sull'opzione giusta pagano la quota, quelle
+ * sulle opzioni sbagliate perdono la quota di manche. Mai sotto zero.
+ */
+export function settleChips(input: AzzardoChipsInput): number {
+  const total = input.chips.reduce((sum, value) => sum + Math.max(0, Math.floor(value)), 0);
+  if (total <= 0) return 0;
+
+  const correct = Math.max(0, Math.floor(input.chips[input.answerIndex] ?? 0));
+  const win = correct * AZZARDO_CHIP_VALUE * oddsForLevel(input.level);
+  const wrongStake = (total - correct) * AZZARDO_CHIP_VALUE;
+  const loss = Math.min(
+    Math.round(wrongStake * lossMultiplierFor(input.manche)),
+    Math.max(0, Math.floor(input.available)),
+  );
+  return win - loss;
 }
 
 export interface AzzardoSettlementInput {

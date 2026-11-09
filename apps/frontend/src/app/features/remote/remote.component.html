@@ -272,24 +272,24 @@
         {{ azzardoState()?.category }} · in {{ azzardoState()?.unit }} · hai {{ azzardoMyPoints() }} punti
       </p>
       <p class="party-instruction">
-        {{ azzardoCanBet() ? 'Quanto punti?' : 'Hai 0 punti: non puoi puntare in questa manche.' }}
+        {{ azzardoCanBet() ? 'Distribuisci le fiches: ogni gettone vale ' + (azzardoState()?.chipValue ?? 20) + ' punti.' : 'Pochi punti: nessuna fiche disponibile in questa manche.' }}
       </p>
-      <div class="azzardo-stakes">
-        @for (stake of azzardoStakes; track stake) {
-        <button class="azzardo-stake" [class.selected]="azzardoStake() === stake"
-          [disabled]="azzardoSent() || stake > azzardoMaxBet()" (click)="azzardoPickStake(stake)">{{ stake }}</button>
-        }
-      </div>
+      <p class="buzz-hint">Fiches rimaste: <b>{{ azzardoChipsLeft() }}</b> / {{ azzardoState()?.chips ?? 10 }}</p>
       <div class="azzardo-options">
         @for (option of azzardoState()?.options ?? []; track $index; let i = $index) {
-        <button class="azzardo-option" [class.selected]="azzardoChoice() === i"
-          [disabled]="azzardoSent() || !azzardoCanBet()" (click)="azzardoPick(i)">
-          <span class="azzardo-letter">{{ letter(i) }}</span>{{ option }} {{ azzardoState()?.unit }}
-        </button>
+        <div class="azzardo-option azzardo-chip-row">
+          <span class="azzardo-letter">{{ letter(i) }}</span>
+          <span class="azzardo-option-text">{{ option }} {{ azzardoState()?.unit }}</span>
+          <span class="azzardo-chip-controls">
+            <button type="button" [disabled]="(azzardoChips()[i] ?? 0) === 0" (click)="azzardoAddChip(i, -1)">−</button>
+            <b>{{ azzardoChips()[i] ?? 0 }}</b>
+            <button type="button" [disabled]="azzardoChipsLeft() === 0" (click)="azzardoAddChip(i, 1)">+</button>
+          </span>
+        </div>
         }
       </div>
       <p class="buzz-hint">
-        {{ azzardoSent() ? 'Puntata inviata' : azzardoCanBet() ? 'Scegli la puntata, poi la risposta' : 'Puntata minima 100 punti.' }}
+        {{ azzardoSent() ? 'Fiches inviate: puoi ancora spostarle fino allo scadere.' : 'Sposta le fiches sulle opzioni.' }}
       </p>
       } @else if (azzardoState()?.phase === 'REVEAL') {
       <div class="status-msg">

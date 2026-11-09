@@ -929,3 +929,23 @@
   font-size: clamp(1.25rem, 6vw, 1.9rem);
 }
 .speed-remote .speed-color { font-size: clamp(1rem, 4.6vw, 1.3rem); }
+
+/* Azzardo a fiches: contatori per opzione. */
+.azzardo-chip-row { display: flex; align-items: center; gap: 8px; }
+.azzardo-option-text { flex: 1; min-width: 0; }
+.azzardo-chip-controls { display: flex; align-items: center; gap: 5px; flex: 0 0 auto; }
+.azzardo-chip-controls button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  background: var(--paper-hi);
+  color: var(--coal);
+  border: 2px solid var(--coal);
+  box-shadow: 2px 2px 0 var(--coal);
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+.azzardo-chip-controls button:disabled { opacity: .35; box-shadow: none; }
+.azzardo-chip-controls b { min-width: 22px; text-align: center; font-family: var(--font-mono); font-size: 1.05rem; }
