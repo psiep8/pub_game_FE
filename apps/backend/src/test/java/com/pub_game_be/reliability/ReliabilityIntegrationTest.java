@@ -8,9 +8,14 @@ import com.pub_game_be.service.QuestionHistoryService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * idempotenza delle risposte, eventi mancanti, presenza dei dispositivi e
  * domande che restano usate anche dopo un riavvio del processo.
  */
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
         "spring.datasource.url=jdbc:h2:mem:reliability-it;DB_CLOSE_DELAY=-1",
         "spring.jpa.hibernate.ddl-auto=create-drop",
@@ -32,6 +37,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ReliabilityIntegrationTest {
 
     private final ObjectMapper json = new ObjectMapper();
+
+    @LocalServerPort
+    private int port;
 
     @Autowired
     private GameController gameController;
@@ -159,6 +167,23 @@ class ReliabilityIntegrationTest {
         assertThat(presence).hasSize(1);
         assertThat(presence.get(0).get("role").asText()).isEqualTo("TV");
         assertThat(presence.get(0).get("connected").asBoolean()).isTrue();
+    }
+
+    @Test
+    void syncUsaIlTokenNellHeaderEIgnoraIlParametroUrl() throws Exception {
+        long gameId = 509L;
+        var registration = sessions.register(gameId, "remote-sync", "REMOTE", "Anna", null);
+        sessions.disconnect(registration.sessionToken());
+        HttpClient http = HttpClient.newHttpClient();
+        var queryRequest = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/games/" + gameId
+                + "/sync?sessionToken=" + registration.sessionToken())).GET().build();
+        assertThat(http.send(queryRequest, HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(200);
+        assertThat(sessions.isConnected(sessions.all(gameId).getFirst())).isFalse();
+
+        var headerRequest = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/games/" + gameId + "/sync"))
+                .header("X-Session-Token", registration.sessionToken()).GET().build();
+        assertThat(http.send(headerRequest, HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(200);
+        assertThat(sessions.isConnected(sessions.all(gameId).getFirst())).isTrue();
     }
 
     @Test

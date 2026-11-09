@@ -155,9 +155,11 @@ export class ReliabilityService {
       let complete = false;
       while (!complete) {
         const previousSeq = this.seq();
-        const query = `?sinceSeq=${previousSeq}${token ? `&sessionToken=${encodeURIComponent(token)}` : ''}`;
+        const query = `?sinceSeq=${previousSeq}`;
         const response = await firstValueFrom(
-          this.http.get<any>(`${this.baseUrl}/games/${this.gameId}/sync${query}`)
+          this.http.get<any>(`${this.baseUrl}/games/${this.gameId}/sync${query}`, {
+            headers: token ? { 'X-Session-Token': token } : {},
+          })
         );
         this.applyTiming(response);
         snapshot = response?.snapshot ?? {};

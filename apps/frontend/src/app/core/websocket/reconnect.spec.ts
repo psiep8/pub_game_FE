@@ -49,14 +49,17 @@ describe('sync paginato', () => {
     const service = TestBed.inject(ReliabilityService);
     const http = TestBed.inject(HttpTestingController);
     const events: string[] = [];
+    service.sessionToken.set('private-token');
     service.syncEvent$.subscribe((event) => events.push(event.eventId));
     const sync = service.sync();
-    http.expectOne((req) => req.urlWithParams.endsWith('/games/1/sync?sinceSeq=0'))
-      .flush({ snapshot: { version: 3 }, events: [{ eventId: 'a' }, { eventId: 'b' }], toSeq: 2, complete: false });
+    const first = http.expectOne((req) => req.urlWithParams.endsWith('/games/1/sync?sinceSeq=0'));
+    expect(first.request.headers.get('X-Session-Token')).toBe('private-token');
+    first.flush({ snapshot: { version: 3 }, events: [{ eventId: 'a' }, { eventId: 'b' }], toSeq: 2, complete: false });
     await Promise.resolve();
     expect(service.syncing()).toBe(true);
-    http.expectOne((req) => req.urlWithParams.endsWith('/games/1/sync?sinceSeq=2'))
-      .flush({ snapshot: { version: 3 }, events: [{ eventId: 'c' }], toSeq: 3, complete: true });
+    const second = http.expectOne((req) => req.urlWithParams.endsWith('/games/1/sync?sinceSeq=2'));
+    expect(second.request.headers.get('X-Session-Token')).toBe('private-token');
+    second.flush({ snapshot: { version: 3 }, events: [{ eventId: 'c' }], toSeq: 3, complete: true });
     await sync;
     expect(events).toEqual(['a', 'b', 'c']);
     expect(service.seq()).toBe(3);

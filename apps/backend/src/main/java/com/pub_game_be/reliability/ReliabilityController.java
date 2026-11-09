@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -112,7 +113,7 @@ public class ReliabilityController {
     @GetMapping("/sync")
     public Map<String, Object> sync(@PathVariable("gameId") Long gameId,
             @RequestParam(value = "sinceSeq", defaultValue = "-1") long sinceSeq,
-            @RequestParam(value = "sessionToken", required = false) String token) {
+            @RequestHeader(value = "X-Session-Token", required = false) String token) {
         JSONObject sync = gameState.sync(gameId, sinceSeq);
         JSONObject snapshot = sync.getJSONObject("snapshot");
         snapshot.put("scores", new JSONObject(questionHistory.scores(gameId)));
