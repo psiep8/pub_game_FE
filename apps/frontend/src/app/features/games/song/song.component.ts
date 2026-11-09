@@ -6,9 +6,11 @@ import {
   signal,
   SimpleChanges,
   OnChanges, EventEmitter, Output,
+  inject,
   ChangeDetectionStrategy
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
+import { AudioService } from '../../../core/services/audio.service';
 
 @Component({
   selector: 'app-song',
@@ -25,6 +27,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   @Output() onConfirmCorrect = new EventEmitter<void>();
   @Output() onConfirmWrong = new EventEmitter<void>();
 
+  private audioEngine = inject(AudioService);
   private audio?: HTMLAudioElement;
   private audioContext?: AudioContext;
   private sourceNode?: MediaElementAudioSourceNode;
@@ -130,13 +133,9 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     if (this.audioUnlocked) return;
 
     try {
-      if (!this.audioContext) {
-        this.audioContext = new AudioContext();
-      }
-
-      if (this.audioContext.state === 'suspended') {
-        await this.audioContext.resume();
-      }
+      this.audioContext ??= this.audioEngine.context();
+      if (!this.audioContext) return;
+      await this.audioEngine.unlock();
 
       if (this.audio && this.audio.paused) {
         this.audio.muted = true;
@@ -175,9 +174,8 @@ export class Song implements OnInit, OnDestroy, OnChanges {
       this.audio.loop = true;
       this.audio.preload = 'auto';
 
-      if (!this.audioContext) {
-        this.audioContext = new AudioContext();
-      }
+      this.audioContext ??= this.audioEngine.context();
+      if (!this.audioContext) return;
 
       this.bandpassFilter = this.audioContext.createBiquadFilter();
       this.bandpassFilter.type = 'bandpass';
@@ -202,7 +200,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
         .connect(this.lowpassFilter)
         .connect(this.distortionNode)
         .connect(this.gainNode)
-        .connect(this.audioContext.destination);
+        .connect(this.audioEngine.output() ?? this.audioContext.destination);
 
       this.audioReady.set(true);
       
@@ -311,7 +309,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
       const gain = ctx.createGain();
       gain.gain.value = 0;
 
-      source.connect(band).connect(gain).connect(ctx.destination);
+      source.connect(band).connect(gain).connect(this.audioEngine.output() ?? ctx.destination);
       source.start();
       this.staticSource = source;
       this.staticGain = gain;
@@ -488,7 +486,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
 
     source.connect(band);
     band.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(this.audioEngine.output() ?? ctx.destination);
     source.start(now);
 
     // Il brano "inciampa" mentre il disco torna indietro.
@@ -511,7 +509,15 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     this.staticSource?.disconnect();
     this.staticSource = undefined;
     this.staticGain = undefined;
-    this.audioContext?.close();
+    // Il contesto è condiviso con gli effetti della TV: non si chiude qui,
+    // si scollegano solo i nodi di questo brano.
+    this.sourceNode?.disconnect();
+    this.bandpassFilter?.disconnect();
+    this.highpassFilter?.disconnect();
+    this.lowpassFilter?.disconnect();
+    this.distortionNode?.disconnect();
+    this.gainNode?.disconnect();
+    this.audioContext = undefined;
   }
 
   getPhaseColor(): string {

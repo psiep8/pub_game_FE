@@ -26,6 +26,11 @@ export class AudioService {
   private ambientInterval?: any;
   private ambientNodes: OscillatorNode[] = [];
   private ambientGain?: GainNode;
+  private master?: GainNode;
+
+  constructor() {
+    this.armUnlock();
+  }
 
   /**
    * Heartbeat della serata. `intensity` va da 0 (lobby) a 1 (round 40):
@@ -390,15 +395,15 @@ export class AudioService {
     const ctx = this.ensureContext();
     if (!ctx) return;
 
-    const master = ctx.createGain();
-    master.gain.value = 0.035;
-    master.connect(ctx.destination);
-    this.ambientGain = master;
+    const bed = ctx.createGain();
+    bed.gain.value = 0.035;
+    bed.connect(this.master ?? ctx.destination);
+    this.ambientGain = bed;
 
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.value = 1400;
-    filter.connect(master);
+    filter.connect(bed);
 
     [110, 164.81, 220].forEach((freq) => {
       const osc = ctx.createOscillator();
@@ -445,16 +450,46 @@ export class AudioService {
 
   toggleAudio(): void {
     this.audioEnabled.update((enabled) => !enabled);
+    this.applyEnabled();
     if (!this.audioEnabled()) {
       this.stopAll();
-    } else {
-      this.startAmbient();
-      this.playTick();
+      return;
     }
+    void this.unlock();
+    this.startAmbient();
+    this.playTick();
   }
 
   isEnabled(): boolean {
     return this.audioEnabled();
+  }
+
+  /**
+   * Contesto condiviso: anche il Quiz musicale ci appende i suoi filtri, così
+   * il mute della TV spegne davvero tutto e non solo gli effetti sintetizzati.
+   */
+  context(): AudioContext | undefined {
+    return this.ensureContext();
+  }
+
+  /** Bus di uscita comune: ogni sorgente passa dal gain master. */
+  output(): AudioNode | undefined {
+    this.ensureContext();
+    return this.master;
+  }
+
+  /** Riprende il contesto dopo un gesto utente o al ritorno sulla scheda. */
+  async unlock(): Promise<void> {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') {
+      try {
+        await ctx.resume();
+      } catch {
+        // Il browser vuole un gesto: ci riprovano i listener globali.
+      }
+    }
+    this.applyEnabled();
   }
 
   private ensureContext(): AudioContext | undefined {
@@ -463,14 +498,49 @@ export class AudioService {
         const Ctx = window.AudioContext || (window as any).webkitAudioContext;
         if (!Ctx) return undefined;
         this.audioContext = new Ctx();
+        this.master = this.audioContext.createGain();
+        this.master.gain.value = this.audioEnabled() ? 1 : 0;
+        this.master.connect(this.audioContext.destination);
       }
       if (this.audioContext.state === 'suspended') {
-        void this.audioContext.resume();
+        void this.audioContext.resume().catch(() => undefined);
       }
       return this.audioContext;
     } catch {
       return undefined;
     }
+  }
+
+  /** Primo gesto utile: sblocca il contesto una volta e poi si toglie. */
+  private armUnlock(): void {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    if (!(window.AudioContext || (window as any).webkitAudioContext)) return;
+
+    const unlock = () => {
+      void this.unlock().then(() => {
+        window.removeEventListener('pointerdown', unlock, true);
+        window.removeEventListener('keydown', unlock, true);
+        window.removeEventListener('touchstart', unlock, true);
+      });
+    };
+    window.addEventListener('pointerdown', unlock, true);
+    window.addEventListener('keydown', unlock, true);
+    window.addEventListener('touchstart', unlock, true);
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') void this.unlock();
+    });
+  }
+
+  /** Mute con ramp: zittisce anche i suoni già schedulati, senza click. */
+  private applyEnabled(): void {
+    const ctx = this.audioContext;
+    const master = this.master;
+    if (!ctx || !master) return;
+    const now = ctx.currentTime;
+    master.gain.cancelScheduledValues(now);
+    master.gain.setValueAtTime(master.gain.value, now);
+    master.gain.linearRampToValueAtTime(this.audioEnabled() ? 1 : 0, now + 0.03);
   }
 
   /** Rumore filtrato con inviluppo: base dell'applauso sintetico. */
@@ -495,7 +565,7 @@ export class AudioService {
     filter.Q.value = 0.7;
     const level = ctx.createGain();
     level.gain.value = gain;
-    source.connect(filter).connect(level).connect(ctx.destination);
+    source.connect(filter).connect(level).connect(this.master ?? ctx.destination);
     source.start(ctx.currentTime + delay);
   }
 
@@ -520,7 +590,7 @@ export class AudioService {
     gain.gain.exponentialRampToValueAtTime(peak, start + 0.015);
     gain.gain.exponentialRampToValueAtTime(0.0001, start + options.duration);
 
-    osc.connect(gain).connect(ctx.destination);
+    osc.connect(gain).connect(this.master ?? ctx.destination);
     osc.start(start);
     osc.stop(start + options.duration + 0.05);
   }

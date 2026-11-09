@@ -165,6 +165,18 @@ export class FakeAudioService {
   }
 
   toggleAudio(): void {}
+
+  context(): AudioContext | undefined {
+    return undefined;
+  }
+
+  output(): AudioNode | undefined {
+    return undefined;
+  }
+
+  unlock(): Promise<void> {
+    return Promise.resolve();
+  }
 }
 
 export class FakeSwUpdate {
