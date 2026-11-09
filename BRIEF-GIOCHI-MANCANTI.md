@@ -1,9 +1,9 @@
 # Brief operativo PubGame — correzioni, video demo, bonus e giochi nuovi
 
-> **VERSIONE BETA — snapshot del 7 novembre 2026.**
-> Il brief resta come riferimento storico: descrive il progetto **prima** del refactoring
-> della prossima versione. Le parti già superate sono segnalate dagli aggiornamenti qui
-> sotto; lo stato reale del codice è in `README_LAVORI.md`.
+> **VERSIONE 1.0.0 — 9 novembre 2026.**
+> Il brief resta come riferimento storico: descrive il progetto prima della prima major.
+> Le parti già superate sono segnalate dagli aggiornamenti qui sotto; lo stato reale del
+> codice è in `README_LAVORI.md`.
 
 > **Aggiornamento 5/11:** le demo sono state realizzate come tre scene animate in TV (interfaccia TV, remote e punteggio) per ogni gioco e per i bonus; gli mp4 non sono più necessari. La specifica storica sotto resta come riferimento.
 >

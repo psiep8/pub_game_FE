@@ -98,6 +98,19 @@ Valutazione statica, non prove di gioco. Per tutte le righe: il client riceve al
 | Bonus Casino | Componente TV `bonus/casino/casino-bonus.component.ts:684,1189-1200` | Attende `CASINO_STATE` `remote/remote.component.ts:447`; i bonus non sono round backend, nessun recupero garantito da snapshot. | Fase/puntate/score del bonus non ripristinati. |
 | Bonus Basket | Fisica e punteggio sul telefono `bonus/basket-legacy/basket-bonus.component.ts:52-61`, TV accetta `BONUS_RESULT` `tv/game.component.ts:420-425` | Il componente sul telefono mantiene punteggio in memoria; refresh può perdere la manche, nessun replay confermato. | Punteggi aggregati `bonusScores` nel componente TV `tv/game.component.ts:135` non ripristinati. |
 | Bonus Cavallo | TV `bonus/cavallo/cavallo-bonus.component.ts:315,687-705`; banca domande server | Attende `CAVALLO_STATE` `remote/remote.component.ts:451`. | Fase, voti e score in memoria TV non ripristinati. |
+| Nuova: Recupero TV dopo refresh/cambio dispositivo | **Confermata** (parzialmente, solo Timeline) | TV `game.component.ts:165-185,296-319`; snapshot server `roundIndex`, `roundType`, `roundDeadlineAt`, `payload`, `leaderboard`; nuove API `adoptActiveGame()`, `applyAuthoritativeState()`, `offerRoundRecovery()`, `resumeRecoveredRound()`, `closeRecoveredRound()`; pannello HTML `game.component.html:370-398`; stili `game.component.css:664-831`. Il round si riprende solo da Timeline col payload server (carte + punti al reveal); altri mode offrono solo chiusura esplicita. |
+
+## 5. Rischi residui ordinati e stime indicative
+
+Stime di lavoro tecnico, non misure; possono sovrapporsi e non includono disponibilità della sala.
+
+1. **P0 — comando e reset non autenticati; H2 console; impersonificazione e punteggi falsificabili.** Progettare autenticazione amministratore/TV, identità delle squadre e autorizzazioni per ogni mutazione REST e SEND applicativo; bloccare H2 console in produzione, limitare origini, validare payload e accessi ai topic; test d'integrazione reali per bypass, ruoli e due squadre. **2–5 giorni.** Non esporre il tunnel pubblico prima.
+2. **P0 — TV unico motore, nessun recupero completo, classifica/avanzamento locali, doppia TV non esclusa.** Definire checkpoint autoritativi per ogni modalità, avanzamento, bonus e classifica, ripristino e lease/fencing di una TV; test refresh, duplicazione e cambio browser. **4–10 giorni**, variabile per gioco.
+3. **P0/P1 — riconnessione incompleta e risposte perse/duplicate.** Il sync paginato corregge solo il cursore; occorre applicare gli eventi, ripubblicare stato affidabile, distinguere riallineamento e online, serializzare le risposte in volo e usare idempotenza effettiva; test con più dispositivi e interruzioni. **2–5 giorni.**
+4. **P0/P1 — riavvio backend durante Bomba/Time Buzzer.** Persistenza e ricostruzione dei rispettivi stati volatile (`BombaService.java:85`; `PartyGamesController.java:46`), con test di processo/DB su disco. **1–3 giorni.**
+5. **P1 — rete e dispositivi reali.** Router isolato e protetto, Wake Lock/riattivazione, verifiche su Safari/Android, quattro telefoni nel locale, simulazione perdita rete e prova di 60 minuti. **1–2 giorni** più disponibilità della sala; fattibilità rete non verificata.
+6. **P1 — percorso produzione e backup.** Servire build con proxy WebSocket, HTTPS, timeout e cache corretti; eseguire e ripristinare un backup H2 a backend fermo o mediante procedura coerente. **0,5–2 giorni** più prova ripristino.
+7. **P2 — copertura e operatività.** Suite per giochi non coperti, indicatori/diagnostica, limiti frequenza e dimensione, osservabilità e confronto visuale. **3–7 giorni** secondo profondità.
 | Bonus Biglie | TV `bonus/biglie/biglie-bonus.component.ts:1097,2247,2269` | Attende `BIGLIE_STATE` `remote/remote.component.ts:467`; scelta precedente non garantita. | Scelte, corsa e punteggi in memoria TV non ripristinati. |
 
 ## 5. Rischi residui ordinati e stime indicative

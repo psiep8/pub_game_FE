@@ -1,8 +1,8 @@
 # PUBGAME — Il copione del presentatore
 
-> **VERSIONE BETA — snapshot del 7 novembre 2026.**
-> Il copione descrive la serata **così com'è adesso**, prima del refactoring della
-> prossima versione. Se un gioco o un punteggio cambia, questo file va riallineato dopo.
+> **VERSIONE 1.0.0 — 9 novembre 2026.**
+> Il copione descrive la serata alla prima major. Se un gioco o un punteggio cambia,
+> questo file va riallineato.
 
 Questo file è pensato per essere letto la sera stessa, anche con poca luce: contiene il
 flusso della serata, le regole di ogni gioco, i punteggi e le frasi da dire. Non serve

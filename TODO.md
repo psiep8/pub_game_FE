@@ -1,13 +1,12 @@
 # Stato del progetto
 
-> **VERSIONE BETA — snapshot del 7 novembre 2026.**
-> Il file fotografa il progetto **così com'è adesso**, prima del refactoring della
-> prossima versione. Le voci qui sotto sono lo stato attuale, non il piano della
-> versione nuova.
+> **VERSIONE 1.0.0 — 9 novembre 2026.**
+> Il file fotografa il progetto alla prima major. Le voci qui sotto sono lo stato
+> attuale e i lavori aperti.
 
-Ultimo aggiornamento: 7 novembre 2026 (beta).
+Ultimo aggiornamento: 9 novembre 2026 (1.0.0).
 
-## Versione beta: cosa contiene
+## Versione 1.0.0: cosa contiene
 
 - Frontend Angular 22 (`/tv`, `/play`, `/admin`) + backend Spring Boot 4.1 in un monorepo.
 - 40 round in 5 atti da 8; classifica rapida ai round 4/12/20/28/36, dettagliata a 8/16/24/32/40.

@@ -1,8 +1,7 @@
 # PubGame BE — Backend Spring Boot
 
-> **VERSIONE BETA — snapshot del 7 novembre 2026.**
-> Descrive il backend **così com'è adesso**, prima del refactoring della prossima
-> versione. Le modifiche in arrivo verranno annotate dopo. Vince il codice.
+> **VERSIONE 1.0.0 — 9 novembre 2026.**
+> Descrive il backend alla prima major. Vince il codice.
 
 Backend Spring Boot 4.1 (Java 25) per il gioco da pub multigiocatore.
 Gestisce REST API, WebSocket (STOMP/SockJS), generazione domande AI via Groq, e integrazione con TMDB e iTunes.

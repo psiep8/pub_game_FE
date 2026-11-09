@@ -1,9 +1,10 @@
 # PubGame — Monorepo
 
-> **VERSIONE BETA — snapshot del 7 novembre 2026.**
-> Questo documento fotografa il progetto **così com'è adesso**, prima del refactoring
-> della prossima versione: le modifiche in arrivo sono in `BRIEF-REFACTOR-GIOCHI.md`
-> e annotate in `TODO.md`. Se una riga non combacia col codice, vince il codice.
+> **VERSIONE 1.0.0 — 9 novembre 2026.**
+> Prima major: recupero di TV e classifica dopo refresh o cambio dispositivo,
+> ambienti di prova e pub separati, QR generato in locale. I lavori aperti sono in
+> `TODO.md` e `BRIEF-REFACTOR-GIOCHI.md`. Se una riga non combacia col codice,
+> vince il codice.
 
 Un unico repository per il gioco da pub multigiocatore: **frontend Angular** e **backend Spring Boot** convivono qui dentro.
 
@@ -99,6 +100,18 @@ nessuna chiamata HTTP e nessun elemento `Audio` reale).
 
 `GROQ_API_KEY` per le domande AI (modello in `GROQ_MODEL`, default `openai/gpt-oss-120b`) e `TMDB_API_KEY` per le immagini. Senza chiavi il backend usa i fallback locali. Con la banca media installata (`questions/media-it.json`) musica, copertine e foto vengono servite da `static/media` senza chiamare iTunes, TMDB o Wikipedia; senza banca la musica usa le anteprime da 30 secondi dell'iTunes Search API.
 Profilo MySQL: `node scripts/mvn.mjs spring-boot:run -Dspring-boot.run.profiles=mysql`.
+
+## Ambienti
+
+| Ambiente | Build | Profilo backend | Uso |
+|---|---|---|---|
+| Locale | `npm run dev` | default | sviluppo e LAN |
+| Serata di prova | `npm run build:test-night` | `test-night` | TV + telefoni con gli amici |
+| Pub | `npm run build:prod` | `prod` | serata reale nel locale |
+
+Le tre build usano lo stesso codice e cambiano solo configurazione, log e
+pannelli diagnostici. La guida completa (LAN, tunnel HTTPS, Vercel, dominio,
+PWA, backup) è in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ## Tunnel Cloudflare
 

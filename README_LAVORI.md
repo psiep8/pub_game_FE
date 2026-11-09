@@ -1,12 +1,11 @@
 # Lavori in corso — pub_game_FE
 
-> **VERSIONE BETA — snapshot del 7 novembre 2026.**
-> Il file racconta lo stato del progetto **così com'è ora**, prima del refactoring della
-> prossima versione: le modifiche in arrivo sono in `BRIEF-REFACTOR-GIOCHI.md` e annotate
-> in `TODO.md`. Se una riga non combacia col codice, vince il codice.
+> **VERSIONE 1.0.0 — 9 novembre 2026.**
+> Il file racconta lo stato del progetto alla prima major: i lavori aperti sono in
+> `BRIEF-REFACTOR-GIOCHI.md` e `TODO.md`. Se una riga non combacia col codice, vince il codice.
 
-Ultimo aggiornamento: 7 novembre 2026 (beta)
-Ultimo commit: 7 novembre — Ultima spiaggia a cinque livelli, Azzardo in banca, scaletta a 5 atti. I commit precedenti sono del 5-6 novembre.
+Ultimo aggiornamento: 9 novembre 2026 (1.0.0)
+Ultimo commit: 9 novembre — recupero TV, ambienti di rilascio, versione 1.0.0.
 
 ---
 

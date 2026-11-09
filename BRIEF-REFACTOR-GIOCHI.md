@@ -1,8 +1,8 @@
 # Brief refactor: progetto e giochi
 
-> **PROSSIMA VERSIONE — piano di refactoring (7 novembre 2026).**
-> Descrive cosa cambia **dopo** la beta fotografata dagli altri documenti. Le sezioni sono
-> indipendenti: si può procedere un gioco alla volta.
+> **PIANO POST-1.0.0 (9 novembre 2026).**
+> Descrive cosa cambia **dopo** la prima major. Le sezioni sono indipendenti: si può
+> procedere un gioco alla volta.
 
 Documento operativo per chi implementa. Le sezioni sono indipendenti: si può procedere un gioco alla volta.
 
