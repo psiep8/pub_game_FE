@@ -32,6 +32,8 @@ interface Court {
   b: CourtSide;
   winner: string | null;
   turn: Side;
+  /** Lato da cui riparte il disco dopo un gol (chi lo ha subito). */
+  puckSide?: Side;
   serveLeft: number;
   question: AirHockeyQuestion | null;
   lastEvent: CourtEvent | null;
@@ -389,7 +391,9 @@ export class AirHockeyBattleMode extends GameModeBase {
         ...court,
         [other]: { ...scorer, score },
         [side]: { ...court[side], shots: court[side].shots + 1 },
-        turn: side,
+        // Il disco parte dal lato di chi ha subito, ma la domanda è di chi ha segnato.
+        turn: other,
+        puckSide: side,
         serveLeft: SERVE_SECONDS,
         question: null,
         lastEvent: { kind: 'goal', side: other, id: eventId },
@@ -409,9 +413,9 @@ export class AirHockeyBattleMode extends GameModeBase {
     setTimeout(() => {
       const latest = this.courts().find((c) => c.id === courtId);
       if (!latest || latest.winner) return;
-      const difficulty = this.difficultyFor(latest[side].shots);
+      const difficulty = this.difficultyFor(latest[other].shots);
       this.courts.update((courts) => courts.map((c) => c.id === courtId
-        ? { ...c, question: this.nextQuestion(difficulty), serveLeft: SERVE_SECONDS, questionAt: Date.now(), shotMs: 450, zigzag: false }
+        ? { ...c, turn: other, question: this.nextQuestion(difficulty), serveLeft: SERVE_SECONDS, questionAt: Date.now(), shotMs: 450, zigzag: false }
         : c));
       this.broadcast();
     }, 1400);
@@ -453,6 +457,7 @@ export class AirHockeyBattleMode extends GameModeBase {
         b: { playerName: court.b.playerName, score: court.b.score },
         winner: court.winner,
         turn: court.turn,
+        puckSide: court.puckSide ?? court.turn,
         serveLeft: court.serveLeft,
         question: court.question,
         lastEvent: court.lastEvent,

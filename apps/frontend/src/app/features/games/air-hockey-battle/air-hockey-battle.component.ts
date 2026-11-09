@@ -43,12 +43,12 @@ import { CommonModule } from '@angular/common';
               <div class="ahb-laser left"></div>
               <div class="ahb-laser right"></div>
               <div class="ahb-center"></div>
-              <div class="ahb-puck" [class.to-a]="court.turn === 'a'" [class.to-b]="court.turn === 'b'"
+              <div class="ahb-puck"
+                [class.to-a]="(court.question ? court.turn : (court.puckSide || court.turn)) === 'a'"
+                [class.to-b]="(court.question ? court.turn : (court.puckSide || court.turn)) === 'b'"
                 [class.zigzag]="court.zigzag"
                 [style.transition-duration.ms]="court.shotMs || 450"
                 [style.animation-duration.ms]="court.shotMs || 450"></div>
-              <div class="ahb-paddle left" [class.active]="court.turn === 'a'">🏒</div>
-              <div class="ahb-paddle right" [class.active]="court.turn === 'b'">🏒</div>
 
               @if (court.question === null && court.lastEvent?.kind === 'goal') {
                 <div class="ahb-goal-flash">
@@ -63,19 +63,14 @@ import { CommonModule } from '@angular/common';
                 <div class="ahb-winner-card">
                   <span class="ahb-cup">🏆</span>
                   <span class="ahb-winner-name">{{ court.winner }}</span>
-                  <span class="ahb-winner-note">vince il set</span>
+                  <span class="ahb-winner-note">VINCE LA GARA</span>
                 </div>
               } @else if (court.question) {
                 <div class="ahb-q-head">
-                  <span class="ahb-defender">{{ sideName(court, court.turn) }} DIFENDE</span>
+                  <span class="ahb-defender">{{ sideName(court, court.turn) }} RISPONDE</span>
                   <span class="ahb-clock" [class.hot]="court.serveLeft <= 4">{{ court.serveLeft }}s</span>
                 </div>
-                <p class="ahb-q-text">{{ court.question.text }}</p>
-                <div class="ahb-q-options">
-                  @for (option of court.question.options; track $index) {
-                    <span class="ahb-q-option"><b>{{ letter($index) }}</b>{{ option }}</span>
-                  }
-                </div>
+                <div class="ahb-waiting">Domanda sul telefono</div>
               } @else {
                 <div class="ahb-waiting">Nuova palla in arrivo...</div>
               }
@@ -144,16 +139,12 @@ import { CommonModule } from '@angular/common';
     }
     .ahb-center { position: absolute; left: 50%; top: 8%; bottom: 8%; width: 3px; margin-left: -1.5px; background: rgba(30, 25, 20, .25); }
     .ahb-goal-frame { position: absolute; top: 14%; bottom: 14%; width: 10px; background: repeating-linear-gradient(180deg, rgba(30,25,20,.35) 0 4px, transparent 4px 8px); }
+    .ahb-laser { border: 2px solid var(--coal); box-shadow: 4px 4px 0 var(--coal); }
     .ahb-goal-frame.left { left: 0; border-right: 2px solid var(--coal); }
     .ahb-goal-frame.right { right: 0; border-left: 2px solid var(--coal); }
     .ahb-laser { position: absolute; top: 33%; height: 34%; width: 7px; border-radius: 999px; z-index: 3; }
-    .ahb-laser::after { content: ''; position: absolute; inset: -8px -3px; background: inherit; opacity: .22; filter: blur(5px); }
-    .ahb-laser.left { left: 7px; background: var(--cobalt); box-shadow: 0 0 10px var(--cobalt), 0 0 22px rgba(37, 99, 235, .55); }
-    .ahb-laser.right { right: 7px; background: var(--tomato); box-shadow: 0 0 10px var(--tomato), 0 0 22px rgba(220, 70, 45, .55); }
-    .ahb-paddle { position: absolute; top: 50%; transform: translateY(-50%); font-size: clamp(1.4rem, 2.4vw, 2.2rem); opacity: .45; transition: opacity .2s ease; }
-    .ahb-paddle.left { left: 8%; }
-    .ahb-paddle.right { right: 8%; }
-    .ahb-paddle.active { opacity: 1; }
+    .ahb-laser.left { left: 7px; background: var(--cobalt); }
+    .ahb-laser.right { right: 7px; background: var(--tomato); }
     .ahb-puck {
       position: absolute; top: 50%; width: clamp(14px, 1.8vw, 22px); height: clamp(14px, 1.8vw, 22px);
       margin-top: calc(clamp(14px, 1.8vw, 22px) / -2); border-radius: 50%;
@@ -181,7 +172,7 @@ import { CommonModule } from '@angular/common';
     .ahb-goal-name { font-family: var(--font-mono); font-size: clamp(.7rem, 1vw, .95rem); letter-spacing: .12em; text-transform: uppercase; }
     @keyframes ahbGoal { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-    .ahb-question { flex: 0 0 auto; min-height: clamp(148px, 23vh, 210px); display: flex; flex-direction: column; gap: clamp(8px, 1.2vh, 14px); justify-content: center; }
+    .ahb-question { flex: 0 0 auto; min-height: clamp(64px, 9vh, 88px); display: flex; flex-direction: column; gap: clamp(6px, .8vh, 10px); justify-content: center; }
     .ahb-q-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .ahb-defender { font-family: var(--font-mono); font-size: clamp(.72rem, 1vw, .95rem); font-weight: 700; letter-spacing: .16em; color: var(--tomato); }
     .ahb-diff { margin-left: auto; margin-right: 10px; padding: 1px 7px; border: 1px solid var(--tomato); color: var(--tomato); font-family: var(--font-mono); font-size: .58rem; font-weight: 700; letter-spacing: .12em; }
