@@ -101,7 +101,7 @@ public class BombaService {
 
         int act = Math.max(1, Math.min(5, requestedAct));
         QuestionBankService.ScossaBoard board = questionBank.scossaBoard(
-                cellsFor(players.size()), bombsFor(players.size()));
+                cellsFor(players.size()), bombsFor(players.size()), act);
 
         reset(gameId);
         Round round = new Round(gameId, act, players, board.prompt(), buildCells(board, players.size()));

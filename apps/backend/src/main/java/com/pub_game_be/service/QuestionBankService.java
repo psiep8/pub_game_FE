@@ -553,6 +553,15 @@ public class QuestionBankService {
         return "difficile".equalsIgnoreCase(difficulty) || "hard".equalsIgnoreCase(difficulty);
     }
 
+    private int difficultyRank(String difficulty) {
+        String value = difficulty == null ? "" : difficulty.toLowerCase(Locale.ROOT);
+        return switch (value) {
+            case "facile", "easy" -> 1;
+            case "difficile", "hard" -> 3;
+            default -> 2;
+        };
+    }
+
     private List<String> threeOptions(BankQuestion question) {
         String correct = question.correctAnswer();
         List<String> distractors = question.options().stream()
@@ -596,10 +605,22 @@ public class QuestionBankService {
      * solo se la casella appartiene alla categoria.
      */
     public ScossaBoard scossaBoard(int cells, int bombs) {
+        return scossaBoard(cells, bombs, 5);
+    }
+
+    public ScossaBoard scossaBoard(int cells, int bombs, int act) {
         int safeNeeded = Math.max(1, cells - bombs);
         int bombsNeeded = Math.max(1, bombs);
 
-        Map<String, List<String>> byCategory = scossaItems();
+        // Bomba è il gioco dei dettagli: si parte dalle risposte difficili,
+        // poi si allarga a media+difficile e solo alla fine a tutta la banca.
+        Map<String, List<String>> byCategory = scossaItems(act >= 4 ? 3 : 2);
+        if (!hasPlayableCategory(byCategory, safeNeeded)) {
+            byCategory = scossaItems(2);
+        }
+        if (!hasPlayableCategory(byCategory, safeNeeded)) {
+            byCategory = scossaItems(0);
+        }
         List<String> categories = new ArrayList<>(byCategory.keySet());
         Collections.shuffle(categories, random);
 
@@ -657,11 +678,18 @@ public class QuestionBankService {
                 intruders.subList(0, Math.min(bombsNeeded, intruders.size())));
     }
 
+    private boolean hasPlayableCategory(Map<String, List<String>> byCategory, int needed) {
+        return byCategory.values().stream().anyMatch(items -> items.size() >= needed);
+    }
+
     /** Elementi brevi per categoria: risposte corrette delle domande quiz. */
-    private Map<String, List<String>> scossaItems() {
+    private Map<String, List<String>> scossaItems(int minDifficultyRank) {
         Map<String, List<String>> byCategory = new LinkedHashMap<>();
         for (BankQuestion question : allQuestions()) {
             if (!"QUIZ".equals(question.type())) {
+                continue;
+            }
+            if (difficultyRank(question.difficulty()) < minDifficultyRank) {
                 continue;
             }
             String answer = question.correctAnswer();
