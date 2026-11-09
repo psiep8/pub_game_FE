@@ -50,6 +50,15 @@ Tutta la configurazione locale sta in `.env` alla radice (copiato da `.env.examp
 
 Lato backend `application.yml` legge `SERVER_PORT` e `SERVER_ADDRESS` (passati dagli script), con default 8080 e `0.0.0.0`.
 
+### Accesso di regia e squadre
+
+1. In `.env` imposta `CONTROL_SECRET` a un segreto casuale di almeno 32 caratteri; non condividerlo con i giocatori. Senza questa impostazione nuove sessioni TV/admin sono rifiutate. Genera il valore in locale, per esempio con un gestore di password, e non inserirlo nel repository.
+2. Imposta `ALLOWED_ORIGINS` all'elenco, separato da virgole, delle origini esatte del frontend, incluso protocollo e porta. Il default consente solo `http://localhost:4200` e `http://127.0.0.1:4200`: per i telefoni occorre aggiungere l'origine LAN e, se usato, il tunnel HTTPS. Riavvia il backend dopo le modifiche.
+3. Aprendo `/tv` o `/admin` viene richiesto il segreto di regia. Il browser conserva il token della sessione per le riconnessioni. I vecchi token, emessi prima della protezione, vengono rifiutati; riapri le pagine dopo l'aggiornamento.
+4. Un telefono registra un nome squadra univoco nella partita; per riprendere quella squadra deve conservare il token nel browser. Chi perde o cancella il token non può riappropriarsi del nome senza un intervento della regia; non esiste ancora un recupero assistito. Non condividere il browser con altri giocatori.
+
+**Limitazioni di sicurezza:** Speed Rush e Basket sono bloccati perché i risultati erano autocertificati dal telefono. La scaletta si ferma quando raggiunge Speed Rush: non utilizzare l'app per una serata completa finché non sia disponibile una modalità verificabile e un percorso di avanzamento. Mancano inoltre una prova multi-dispositivo in rete e una limitazione dei tentativi di autenticazione; la registrazione dei nomi è aperta e un partecipante può prenotare per primo il nome di un'altra squadra. Alcune modalità usano ancora tempi o stato dichiarati dal client, quindi i punteggi non sono interamente verificabili. Usare solo segreti casuali robusti e non esporre il tunnel pubblico per la prova. Le sessioni esistenti non vengono revocate automaticamente cambiando `CONTROL_SECRET`.
+
 ## Sviluppo
 
 ```bash
