@@ -3,19 +3,17 @@
  *
  * L'app chiama sempre la propria origine (`apiUrl` relativo):
  * - in sviluppo il dev-server Angular fa da proxy verso il backend (`proxy.conf.mjs`);
- * - quindi `npm run dev` funziona da localhost, dalla LAN (telefono) e via tunnel,
- *   senza modificare file quando cambia la rete o la macchina;
+ * - in produzione la stessa origine serve i file statici e inoltra le API al backend
+ *   (vedi docs/DEPLOYMENT.md);
  * - `frontendUrl` segue l'host con cui il browser ha aperto la pagina, così il QR
- *   code punta automaticamente all'IP giusto.
+ *   code punta automaticamente all'IP o al dominio giusto.
+ *
+ * I file `environment.test-night.ts` e `environment.prod.ts` sostituiscono questo
+ * in build tramite `fileReplacements` (angular.json).
  */
-export interface AppEnvironment {
-  /** Base delle API REST: relativa, così vale per qualunque host e porta. */
-  apiUrl: string;
-  /** WebSocket STOMP/SockJS: stessa origine, inoltrata dal proxy in sviluppo. */
-  wsUrl: string;
-  /** URL pubblico del frontend (QR code, link ai telefoni). */
-  frontendUrl: string;
-}
+import type { AppEnvironment } from './environment.types';
+
+export type { AppEnvironment };
 
 const origin = typeof window !== 'undefined' ? window.location.origin : '';
 const wsProtocol =
@@ -23,6 +21,8 @@ const wsProtocol =
 const wsHost = typeof window !== 'undefined' ? window.location.host : '';
 
 export const environment: AppEnvironment = {
+  profile: 'local',
+  diagnostics: true,
   apiUrl: '',
   wsUrl: wsHost ? `${wsProtocol}//${wsHost}/ws-pubgame` : '',
   frontendUrl: origin,

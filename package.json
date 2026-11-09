@@ -1,6 +1,6 @@
 {
   "name": "pub-game",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Monorepo PubGame: frontend Angular + backend Spring Boot",
   "workspaces": [
@@ -12,6 +12,8 @@
     "dev:backend": "node scripts/dev.mjs backend",
     "build": "npm run build:frontend",
     "build:frontend": "npm run build --workspace pubgame-fe",
+    "build:test-night": "npm run build:test-night --workspace pubgame-fe",
+    "build:prod": "npm run build:prod --workspace pubgame-fe",
     "build:backend": "node scripts/mvn.mjs -DskipTests package",
     "test": "npm run test:frontend",
     "test:frontend": "npm run test --workspace pubgame-fe",

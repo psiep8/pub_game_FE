@@ -1,0 +1,15 @@
+# Produzione nel pub: nessun dettaglio di errore verso il client, log sobri e
+# database separato dalla serata di prova.
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:h2:file:./data/pubgame-prod;DB_CLOSE_DELAY=-1}
+  jpa:
+    show-sql: false
+server:
+  error:
+    include-message: never
+    include-stacktrace: never
+logging:
+  level:
+    root: INFO
+    com.pub_game_be: INFO
