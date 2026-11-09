@@ -41,7 +41,7 @@
   </div>
   }
   <div class="round-info">
-    <div class="round-text">Round: {{ roundInfo() }}</div>
+    <div class="round-text">📺 Round: {{ roundInfo() }}</div>
     <div class="round-progress" [style.width.%]="roundManager.getProgress().percentage"></div>
   </div>
 
@@ -180,6 +180,9 @@
     <button class="dock-btn" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
       🎨
     </button>
+    @if (theme.xmas()) {
+    <span class="dock-btn" aria-hidden="true" title="Tema di Natale">🎄</span>
+    }
     <button class="dock-btn advance" (click)="adminNextRound()" aria-label="Prossimo round" title="Prossimo round">AVANTI</button>
     <button class="dock-btn danger" (click)="openResetModal()" aria-label="Reset partita">🔄</button>
   </div>

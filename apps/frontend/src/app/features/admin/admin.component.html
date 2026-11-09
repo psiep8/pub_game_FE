@@ -113,6 +113,7 @@
       <button class="flow-btn primary" (click)="nextRound()">▶️ PROSSIMO ROUND</button>
       <button class="flow-btn" (click)="showLeaderboard()">🏆 MOSTRA CLASSIFICA</button>
       <button class="flow-btn" (click)="toggleGamePause()">⏸️ PAUSA / RIPRENDI</button>
+      <button class="flow-btn" (click)="theme.toggleXmas()">🎄 NATALE {{ theme.xmas() ? 'ON' : 'OFF' }}</button>
       <button class="flow-btn" (click)="showDemo()">🎥 DEMO GIOCO</button>
       <button class="flow-btn ghost" (click)="hideDemo()">✖️ CHIUDI DEMO</button>
       <button class="flow-btn" (click)="startBonus('CASINO')">🎰 BONUS CASINO</button>
