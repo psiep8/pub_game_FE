@@ -55,6 +55,8 @@ export class TimeBuzzerMode extends GameModeBase {
   private revealData = signal<any | null>(null);
   private eliminated = signal<string[]>([]);
   private finished = signal(false);
+  /** Manche chiusa: si aspetta il via dell'admin per la successiva. */
+  private waitingNext = signal(false);
   private secondsLeft = 0;
   /** Istante ufficiale di partenza della manche, come lo ha segnato il server. */
   private serverStartedAt: number | null = null;
@@ -104,6 +106,7 @@ export class TimeBuzzerMode extends GameModeBase {
     this.targetMs.set(0);
     this.eliminated.set([]);
     this.finished.set(false);
+    this.waitingNext.set(false);
     this.serverStartedAt = null;
     this.secondsLeft = this.timerDuration;
     this.timer.set(this.timerDuration);
@@ -123,6 +126,7 @@ export class TimeBuzzerMode extends GameModeBase {
 
     this.guesses.set([]);
     this.revealData.set(null);
+    this.waitingNext.set(false);
     // Bersaglio casuale sotto i 30 s, al centesimo.
     this.targetMs.set(Math.round((MIN_MS + Math.random() * (MAX_MS - MIN_MS)) / 10) * 10);
     this.secondsLeft = this.timerDuration;
@@ -259,16 +263,22 @@ export class TimeBuzzerMode extends GameModeBase {
       eliminated: eliminatedNow.includes(result.playerName),
     }));
     this.revealData.set({ target, results: markedResults, eliminated: this.eliminated(), eliminatedNow });
+    this.waitingNext.set(true);
     this.broadcast();
+  }
 
-    this.advanceHandle = setTimeout(() => {
-      if (this.mancheIndex() + 1 >= MANCHES) {
-        this.finish();
-      } else {
-        this.mancheIndex.update((value) => value + 1);
-        void this.beginManche();
-      }
-    }, REVEAL_MS);
+  /** Via alla manche successiva, su comando dell'admin. */
+  nextManche(): void {
+    if (!this.waitingNext() || this.finished()) return;
+
+    if (this.mancheIndex() + 1 >= MANCHES) {
+      this.finish();
+      return;
+    }
+
+    this.mancheIndex.update((value) => value + 1);
+    this.waitingNext.set(false);
+    void this.beginManche();
   }
 
   private finish(): void {
@@ -318,6 +328,7 @@ export class TimeBuzzerMode extends GameModeBase {
       eliminated: this.eliminated(),
       guesses: this.guesses(),
       reveal: this.revealData(),
+      waitingNext: this.waitingNext(),
       finished: this.finished(),
       isReading: this.isReading(),
       correctAnswer: null,

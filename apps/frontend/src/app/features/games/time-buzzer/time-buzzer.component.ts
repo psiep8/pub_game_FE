@@ -14,7 +14,9 @@ import { CommonModule } from '@angular/common';
       <header class="tb-head">
         <div class="tb-kicker">⏱️ TIME BUZZER</div>
         <h2 class="tb-title">MANCHE {{ displayData?.manche || 1 }} / {{ displayData?.total || 3 }}</h2>
-        <div class="tb-timer" [class.hot]="timer <= 10">{{ timer }}s</div>
+        @if (displayData?.waitingNext) {
+          <div class="tb-next">PROSSIMA MANCHE · PARTI DALL'ADMIN</div>
+        }
       </header>
 
       <div class="tb-clock-box">
@@ -62,8 +64,7 @@ import { CommonModule } from '@angular/common';
     .tb-head { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
     .tb-kicker { display: inline-block; padding: 3px 10px; background: var(--tomato); color: var(--paper-hi); border: 2px solid var(--paper-hi); font-family: var(--font-mono); font-size: clamp(.6rem, .9vw, .8rem); font-weight: 700; letter-spacing: .16em; transform: rotate(-1.2deg); }
     .tb-title { margin: 0; font-family: var(--font-display); font-size: clamp(1.4rem, 2.6vw, 2.2rem); font-weight: 400; line-height: .95; letter-spacing: .04em; text-transform: uppercase; }
-    .tb-timer { font-family: var(--font-mono); font-size: clamp(.9rem, 1.4vw, 1.25rem); font-weight: 700; color: var(--acid); }
-    .tb-timer.hot { color: var(--tomato); animation: tb-pulse .8s infinite; }
+    .tb-next { padding: 6px 14px; background: var(--acid); color: var(--coal); border: 2px solid var(--coal); box-shadow: 4px 4px 0 var(--tomato); font-family: var(--font-mono); font-size: clamp(.7rem, 1vw, .9rem); font-weight: 700; letter-spacing: .12em; }
 
     .tb-clock-box { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: clamp(14px, 2.4vh, 26px) clamp(24px, 4vw, 56px); background: var(--paper); color: var(--coal); border: 4px solid var(--coal); box-shadow: 10px 10px 0 var(--tomato); }
     .tb-clock { font-family: var(--font-mono); font-size: clamp(4rem, 11vw, 9rem); font-weight: 700; letter-spacing: -.06em; line-height: 1; font-variant-numeric: tabular-nums; }
