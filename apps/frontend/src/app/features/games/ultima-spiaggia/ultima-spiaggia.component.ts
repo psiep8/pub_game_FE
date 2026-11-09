@@ -71,7 +71,7 @@ import { CommonModule } from '@angular/common';
     </div>
   `,
   styles: [`
-    .tm-wrap { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(10px, 1.8vh, 20px); padding: clamp(14px, 2vw, 28px); color: var(--paper); }
+    .tm-wrap { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(10px, 1.8vh, 20px); padding: clamp(14px, 2vw, 28px); color: var(--paper); overflow: hidden; }
     .tm-head { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
     .tm-kicker { display: inline-block; padding: 3px 10px; background: var(--tomato); color: var(--paper-hi); border: 2px solid var(--paper-hi); font-family: var(--font-mono); font-size: clamp(.6rem, .9vw, .8rem); font-weight: 700; letter-spacing: .16em; transform: rotate(-1.2deg); }
     .tm-title { margin: 0; font-family: var(--font-display); font-size: clamp(1.4rem, 2.6vw, 2.2rem); font-weight: 400; line-height: .95; letter-spacing: .04em; text-transform: uppercase; }
@@ -87,11 +87,14 @@ import { CommonModule } from '@angular/common';
     .tm-note { margin: 0; padding: 5px 12px; background: var(--acid); color: var(--coal); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.6rem, .9vw, .78rem); font-weight: 700; letter-spacing: .12em; }
     .tm-hint { max-width: 980px; margin: 0; color: var(--ink-dim); font-family: var(--font-mono); font-size: clamp(.65rem, .95vw, .84rem); text-align: center; }
 
-    .tm-results { display: flex; flex-direction: column; gap: 5px; width: min(980px, 94vw); }
-    .tm-results-head, .tm-row { display: grid; grid-template-columns: 1fr 100px 170px; gap: 12px; align-items: center; }
+    .tm-results { display: flex; flex-direction: column; gap: 5px; width: min(1440px, 96vw); flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+    .tm-results-head, .tm-row { display: grid; grid-template-columns: minmax(0, 1fr) 110px 190px; gap: 12px; align-items: center; }
+    .tm-results-head { position: sticky; top: 0; z-index: 1; background: var(--bg-0); }
     .tm-results-head { padding: 0 14px 2px; color: var(--acid); font-family: var(--font-mono); font-size: clamp(.56rem, .8vw, .7rem); font-weight: 700; letter-spacing: .14em; }
     .tm-results-head span:nth-child(2), .tm-results-head span:nth-child(3) { text-align: right; }
-    .tm-row { padding: 9px 14px; background: var(--paper-hi); color: var(--coal); border: 3px solid var(--coal); box-shadow: 3px 3px 0 var(--coal); font-size: clamp(.9rem, 1.25vw, 1.1rem); }
+    .tm-row { flex: 0 0 auto; padding: 7px 12px; background: var(--paper-hi); color: var(--coal); border: 3px solid var(--coal); box-shadow: 3px 3px 0 var(--coal); font-size: clamp(.82rem, 1.05vw, .98rem); }
+    .tm-row.bad .tm-result { color: var(--tomato); }
+    .tm-row.good .tm-result { color: var(--coal); }
     .tm-row.good { background: var(--acid); }
     .tm-row.bad { box-shadow: inset 5px 0 0 var(--tomato), 3px 3px 0 var(--coal); }
     .tm-name { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
