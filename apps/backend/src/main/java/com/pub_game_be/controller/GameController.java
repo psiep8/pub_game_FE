@@ -225,6 +225,10 @@ public class GameController {
                 question.question(), question.correctAnswer(), question.category()));
 
         JSONObject response = new JSONObject(question.json());
+        // La risposta esatta resta sul server finché il giocatore non risponde.
+        response.remove("correctAnswer");
+        response.remove("correctIndex");
+        response.remove("explanation");
         response.put("questionId", questionId);
         response.put("playerId", playerId);
         response.put("deadlineAt", gameStateService.roundDeadline(gameId).orElse(0L));
