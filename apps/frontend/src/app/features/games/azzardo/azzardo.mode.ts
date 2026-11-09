@@ -25,6 +25,21 @@ export const AzzardoPhase = {
 } as const;
 export type AzzardoPhase = (typeof AzzardoPhase)[keyof typeof AzzardoPhase];
 
+export interface AzzardoMedia {
+  kind: 'celebrity' | 'song' | 'country';
+  name?: string;
+  imageUrl?: string;
+  previewUrl?: string;
+  albumCover?: string;
+  title?: string;
+  artist?: string;
+  country?: string;
+  countryCode?: string;
+  mapUrl?: string;
+  flagUrl?: string;
+  clues?: string[];
+}
+
 export interface AzzardoQuestion {
   question: string;
   category: string;
@@ -32,6 +47,7 @@ export interface AzzardoQuestion {
   value: number;
   options: number[];
   answerIndex: number;
+  media?: AzzardoMedia;
 }
 
 export interface AzzardoRow {
@@ -192,6 +208,9 @@ export class AzzardoMode extends GameModeBase {
           value: Number(question.value) || 0,
           options,
           answerIndex,
+          media: question.media && typeof question.media === 'object'
+            ? question.media as AzzardoMedia
+            : undefined,
         };
       });
   }
@@ -379,6 +398,13 @@ export class AzzardoMode extends GameModeBase {
   getDisplayData() {
     const current = this.questions[this.manche()];
     const revealed = this.phase() === AzzardoPhase.REVEAL || this.phase() === AzzardoPhase.FINALE;
+    const clues = current?.media?.clues ?? [];
+    const elapsed = this.phase() === AzzardoPhase.BET
+      ? Math.max(0, BET_SECONDS - this.secondsLeft())
+      : 0;
+    const clueIndex = clues.length
+      ? Math.min(clues.length - 1, Math.floor(elapsed / 5))
+      : -1;
 
     return {
       phase: this.phase(),
@@ -394,6 +420,10 @@ export class AzzardoMode extends GameModeBase {
       options: current?.options ?? [],
       value: revealed ? current?.value ?? null : null,
       answerIndex: revealed ? current?.answerIndex ?? null : null,
+      media: current?.media ?? null,
+      clue: this.phase() === AzzardoPhase.BET && clueIndex >= 0 ? clues[clueIndex] : null,
+      clueIndex: clueIndex + 1,
+      clueTotal: clues.length,
       chips: AZZARDO_CHIPS,
       chipValue: AZZARDO_CHIP_VALUE,
       ready: this.players.map((playerName) => ({

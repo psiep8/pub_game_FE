@@ -239,6 +239,46 @@ describe('AzzardoMode', () => {
     mode.cleanup();
   });
 
+  it('mostra gli indizi della celebrità ogni cinque secondi senza svelare l\'anno', async () => {
+    vi.useFakeTimers();
+
+    const questions = [
+      {
+        ...QUESTIONS[0],
+        media: {
+          kind: 'celebrity',
+          imageUrl: 'https://image.example/einstein.jpg',
+          clues: ['fisico tedesco', 'Premio Nobel per la fisica', 'teoria della relatività'],
+        },
+      },
+      ...QUESTIONS.slice(1),
+    ];
+
+    const mode = new AzzardoMode();
+    mode.setConfig({
+      type: 'AZZARDO',
+      payload: {},
+      gameId: 1,
+      activePlayers: ['Anna'],
+    });
+    mode.initialize({ level: 1, questions });
+
+    const started = mode.start();
+    await vi.advanceTimersByTimeAsync(3000);
+    await started;
+
+    const first = mode.getDisplayData();
+    expect(first.media).toMatchObject({ kind: 'celebrity' });
+    expect(first.clue).toBe('fisico tedesco');
+    expect(first.clueIndex).toBe(1);
+    expect(first.clueTotal).toBe(3);
+
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(mode.getDisplayData().clue).toBe('Premio Nobel per la fisica');
+
+    mode.cleanup();
+  });
+
   it('usa la quota del livello ricevuto e ricade sul medio senza livello', async () => {
     vi.useFakeTimers();
 
