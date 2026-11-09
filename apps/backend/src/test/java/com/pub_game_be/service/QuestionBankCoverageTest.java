@@ -141,6 +141,21 @@ class QuestionBankCoverageTest {
         }
     }
 
+    /** Quiz: il round parte già con tre domande e quattro opzioni. */
+    @Test
+    void ilQuizHaTreDomandePronteAllAvvio() {
+        JSONObject payload = new JSONObject(bank.generateQuestionJson("Storia", "QUIZ", "medio"));
+        JSONArray questions = payload.getJSONArray("questions");
+
+        assertThat(questions).hasSize(3);
+        for (int index = 0; index < questions.length(); index++) {
+            JSONObject question = questions.getJSONObject(index);
+            assertThat(question.getString("question")).isNotBlank();
+            assertThat(question.getJSONArray("options")).hasSize(4);
+            assertThat(question.getString("correctAnswer")).isNotBlank();
+        }
+    }
+
     /** Bomba: tutti e cinque gli atti hanno domande a sufficienza. */
     @Test
     void laBombaHaDomandePerOgniAtto() {

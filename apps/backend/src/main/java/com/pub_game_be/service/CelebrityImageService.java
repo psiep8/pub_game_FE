@@ -9,10 +9,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 @Service
 public class CelebrityImageService {
@@ -20,12 +19,26 @@ public class CelebrityImageService {
     @Value("${pexels.api.key:563492ad6f91700001000001c4d5d7e0a6ce4a0fb28f0c4c6e4b3e8a}")
     private String pexelsApiKey;
 
-    private final String PEXELS_API_URL = "https://api.pexels.com/v1/search";
+    private static final String PEXELS_API_URL = "https://api.pexels.com/v1/search";
+    private static final String WIKI_SUMMARY_URL =
+            "https://%s.wikipedia.org/api/rest_v1/page/summary/%s";
+
+    private final RestTemplate restTemplate;
+    private final Map<String, Optional<WikiSummary>> summaries = new ConcurrentHashMap<>();
+
+    /**
+     * Riepilogo pubblico della voce: la foto e le frasi biografiche arrivano
+     * dalla stessa chiamata, così non servono chiavi TMDB o Pexels.
+     */
+    public record WikiSummary(String imageUrl, String description, String extract) {
+    }
+
+    public CelebrityImageService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     public String getImageUrl(String celebrityName) {
         try {
-            RestTemplate restTemplate = new RestTemplate();
-
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", pexelsApiKey);
 
@@ -99,30 +112,139 @@ public class CelebrityImageService {
                 "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?w=800");
     }
 
+    /**
+     * Foto della celebrità da Wikipedia. Restituisce null se la voce non ha
+     * un'immagine: meglio il segnaposto con l'iniziale che la foto di un'altra
+     * persona presa da un archivio generico.
+     */
     public String getReliableImageUrl(String celebrityName) {
-        if (celebrityName == null || celebrityName.trim().isEmpty()) {
-            return getFallbackImageUrl(celebrityName);
+        return summary(celebrityName)
+                .map(WikiSummary::imageUrl)
+                .filter(url -> url != null && !url.isBlank())
+                .orElse(null);
+    }
+
+    /**
+     * Frasi già ripulite dal nome: vanno mostrate una alla volta come indizi.
+     * La descrizione breve viene prima, poi le frasi biografiche.
+     */
+    public List<String> getClues(String celebrityName) {
+        if (celebrityName == null || celebrityName.isBlank()) {
+            return List.of();
+        }
+        return summary(celebrityName)
+                .map(found -> cluesFrom(celebrityName, found))
+                .orElse(List.of());
+    }
+
+    /** Riepilogo con cache: la stessa celebrità non chiama Wikipedia due volte. */
+    public Optional<WikiSummary> summary(String celebrityName) {
+        if (celebrityName == null || celebrityName.isBlank()) {
+            return Optional.empty();
+        }
+        String key = QuestionHistoryService.normalize(celebrityName);
+        Optional<WikiSummary> cached = summaries.get(key);
+        if (cached != null) {
+            return cached;
         }
 
-        String trimmed = celebrityName.trim();
-        String key = trimmed.toLowerCase(Locale.ROOT);
+        Optional<WikiSummary> found = fetch("it", celebrityName);
+        if (found.isEmpty()) {
+            found = fetch("en", celebrityName);
+        }
+        // Solo i successi restano in cache: se la rete era giù al primo
+        // tentativo, la domanda successiva può riprovare.
+        if (found.isPresent()) {
+            summaries.put(key, found);
+        }
+        return found;
+    }
 
-        Map<String, String> normalized = buildFallbackMap();
+    private Optional<WikiSummary> fetch(String language, String celebrityName) {
+        try {
+            String page = URLEncoder.encode(celebrityName.replace(' ', '_'), StandardCharsets.UTF_8)
+                    .replace("+", "_");
+            String url = String.format(WIKI_SUMMARY_URL, language, page);
 
-        if (normalized.containsKey(key)) {
-            return normalized.get(key);
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                return Optional.empty();
+            }
+
+            JSONObject json = new JSONObject(response.getBody());
+            if ("disambiguation".equalsIgnoreCase(json.optString("type"))) {
+                return Optional.empty();
+            }
+
+            String imageUrl = null;
+            JSONObject thumbnail = json.optJSONObject("thumbnail");
+            if (thumbnail != null) {
+                imageUrl = thumbnail.optString("source", null);
+            }
+            if (imageUrl == null || imageUrl.isBlank()) {
+                JSONObject original = json.optJSONObject("originalimage");
+                if (original != null) {
+                    imageUrl = original.optString("source", null);
+                }
+            }
+
+            String description = json.optString("description", "");
+            String extract = json.optString("extract", "");
+            if ((imageUrl == null || imageUrl.isBlank())
+                    && description.isBlank() && extract.isBlank()) {
+                return Optional.empty();
+            }
+
+            return Optional.of(new WikiSummary(
+                    imageUrl == null ? "" : imageUrl,
+                    description,
+                    extract));
+        } catch (Exception ignored) {
+            return Optional.empty();
+        }
+    }
+
+    private List<String> cluesFrom(String celebrityName, WikiSummary summary) {
+        LinkedHashSet<String> clues = new LinkedHashSet<>();
+        addClue(clues, summary.description(), celebrityName);
+
+        String extract = summary.extract();
+        if (extract != null && !extract.isBlank()) {
+            String normalizedName = celebrityName.toLowerCase(Locale.ROOT);
+            for (String sentence : extract.split("(?<=[.!?])\\s+")) {
+                // La prima frase contiene il nome: mostrarla svelerebbe la
+                // risposta. Si usano solo le frasi successive.
+                if (sentence.toLowerCase(Locale.ROOT).contains(normalizedName)) {
+                    continue;
+                }
+                addClue(clues, sentence, celebrityName);
+                if (clues.size() >= 4) {
+                    break;
+                }
+            }
         }
 
-        Set<String> internationals = Set.of(
-                "leonardo dicaprio", "tom hanks", "margot robbie", "brad pitt",
-                "zendaya", "jake gyllenhaal", "pedro pascal", "oscar isaac");
+        return List.copyOf(clues);
+    }
 
-        String wikiName = trimmed.replaceAll("\\s+", "_");
-        String encoded = URLEncoder.encode(wikiName, StandardCharsets.UTF_8);
+    private void addClue(Set<String> clues, String raw, String celebrityName) {
+        if (raw == null || raw.isBlank()) {
+            return;
+        }
+        String clue = raw
+                .replaceAll("(?i)" + Pattern.quote(celebrityName), " ")
+                .replaceAll("\\([^)]*\\)", " ")
+                .replaceAll("\\s+", " ")
+                .replaceAll("^[\\s,;:–—-]+", "")
+                .replaceAll("[\\s,;:–—-]+$", "")
+                .trim();
 
-        String lang = internationals.contains(key) ? "en" : "it";
-        String wikiUrl = String.format("https://%s.wikipedia.org/wiki/Special:FilePath/%s", lang, encoded);
-
-        return wikiUrl != null ? wikiUrl : getFallbackImageUrl(celebrityName);
+        if (clue.length() < 12 || clue.equalsIgnoreCase(celebrityName)) {
+            return;
+        }
+        if (clue.length() > 180) {
+            clue = clue.substring(0, 177).trim() + "…";
+        }
+        clues.add(clue);
     }
 }

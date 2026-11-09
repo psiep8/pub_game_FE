@@ -110,6 +110,8 @@ public class QuestionBankService {
     private final List<BankQuestion> bank;
     private final TMDBImageService tmdbImageService;
     private final AppleMusicCuratorService appleMusicCuratorService;
+    private final CelebrityImageService celebrityImageService;
+    private final AzzardoMediaService azzardoMediaService;
     private final List<MediaTrack> musicTracks;
     private final Map<String, String> celebrityPhotos;
     private final String configuredMediaBaseUrl;
@@ -163,9 +165,13 @@ public class QuestionBankService {
 
     public QuestionBankService(TMDBImageService tmdbImageService,
             AppleMusicCuratorService appleMusicCuratorService,
+            CelebrityImageService celebrityImageService,
+            AzzardoMediaService azzardoMediaService,
             @Value("${game.media-base-url:}") String mediaBaseUrl) {
         this.tmdbImageService = tmdbImageService;
         this.appleMusicCuratorService = appleMusicCuratorService;
+        this.celebrityImageService = celebrityImageService;
+        this.azzardoMediaService = azzardoMediaService;
         this.configuredMediaBaseUrl = mediaBaseUrl == null ? "" : mediaBaseUrl.trim();
         this.bank = loadBank();
         this.azzardoQuestions = loadAzzardo();
@@ -826,6 +832,11 @@ public class QuestionBankService {
         payload.put("value", question.value());
         payload.put("options", options);
         payload.put("answerIndex", Math.max(0, answerIndex));
+
+        JSONObject media = azzardoMediaService.forQuestion(question.category(), question.question());
+        if (media != null) {
+            payload.put("media", media);
+        }
         return payload;
     }
 
@@ -904,13 +915,22 @@ public class QuestionBankService {
             // segnaposto con l'iniziale invece di saltare il round.
             payload.put("imageUrl", imageUrl == null ? "" : imageUrl);
             payload.put("imageFallback", imageUrl == null || imageUrl.isBlank());
+
+            // Indizi già ripuliti dal nome: la TV ne svela uno ogni pochi
+            // secondi, dal più vago al più diretto.
+            List<String> clues = celebrityImageService.getClues(question.correctAnswer());
+            if (!clues.isEmpty()) {
+                payload.put("clues", new JSONArray(clues));
+            }
         }
         return Optional.of(payload.toString());
     }
 
     /**
-     * Foto del personaggio: prima quella scaricata in locale dalla banca media,
-     * poi TMDB. Senza foto la domanda viene scartata: l'immagine è il gioco.
+     * Foto del personaggio: prima la banca media locale, poi TMDB, infine
+     * Wikipedia. Quest'ultima non richiede chiavi ed evita che la TV resti
+     * senza volto quando TMDB non è configurato. Se manca anche lì, la TV
+     * mostra il segnaposto con l'iniziale.
      */
     private String resolveCelebrityImage(String celebrity) {
         String localPhoto = celebrityPhotos.get(QuestionHistoryService.normalize(celebrity));
@@ -919,7 +939,13 @@ public class QuestionBankService {
         }
 
         String imageUrl = tmdbImageService.getCelebrityImageUrl(celebrity);
-        return imageUrl == null || imageUrl.isBlank() ? null : imageUrl;
+        if (imageUrl != null && !imageUrl.isBlank()) {
+            return imageUrl;
+        }
+
+        // Senza chiave TMDB la foto restava vuota. Wikipedia non richiede
+        // chiavi e copre tutte le celebrità della banca.
+        return celebrityImageService.getReliableImageUrl(celebrity);
     }
 
     /**
@@ -1208,11 +1234,17 @@ public class QuestionBankService {
                     localTrack.albumCover() == null ? JSONObject.NULL : localTrack.albumCover());
             payload.put("year", localTrack.year());
             payload.put("source", "banca-media");
+            payload.put("audioReady", true);
             payload.put("payload", JSONObject.NULL);
             return payload.toString();
         }
 
         MusicTrackDto track = appleMusicCuratorService.getFamousSong();
+        if (track.previewUrl == null || track.previewUrl.isBlank()) {
+            // Doppia estrazione: la prima può arrivare da una risposta iTunes
+            // incompleta. La riserva del servizio ha sempre una preview reale.
+            track = appleMusicCuratorService.getFamousSong();
+        }
 
         JSONObject payload = new JSONObject();
         payload.put("type", "MUSIC");
@@ -1222,6 +1254,7 @@ public class QuestionBankService {
         payload.put("albumCover", track.albumCover);
         payload.put("year", track.year);
         payload.put("source", track.source);
+        payload.put("audioReady", track.previewUrl != null && !track.previewUrl.isBlank());
         payload.put("payload", JSONObject.NULL);
         return payload.toString();
     }
