@@ -1467,7 +1467,7 @@ export class GameComponent implements OnInit, OnDestroy {
     }
     this.gameService.resetGame(gameId).subscribe({
       next: clearLocal,
-      error: () => alert('Reset non riuscito: partita e classifica locali non sono state cancellate. Riprova.'),
+      error: () => alert('Reset non confermato: la classifica locale è conservata, ma il server potrebbe aver già eseguito il reset. Verifica lo stato prima di continuare.'),
     });
   }
 
