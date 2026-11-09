@@ -195,11 +195,20 @@ export class AudioService {
     let elapsed = 0;
     while (elapsed < durationMs - 120) {
       const progress = elapsed / durationMs;
+      const jitter = Math.sin(elapsed * 0.017) * 55;
+      // Legno del separatore + corpo basso della pallina.
       this.tone({
-        freq: 1680 - progress * 520,
-        duration: 0.026,
+        freq: 1720 - progress * 560 + jitter,
+        duration: 0.024,
         type: 'triangle',
-        gain: 0.03 * (1 - progress * 0.45),
+        gain: 0.028 * (1 - progress * 0.45),
+        delay: elapsed / 1000,
+      });
+      this.tone({
+        freq: 205 - progress * 70,
+        duration: 0.018,
+        type: 'sine',
+        gain: 0.012 * (1 - progress * 0.5),
         delay: elapsed / 1000,
       });
       elapsed += 26 + Math.pow(progress, 2.4) * 340;

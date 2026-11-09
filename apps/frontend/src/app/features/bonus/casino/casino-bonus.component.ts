@@ -148,11 +148,11 @@ const MANCHES: Manche[] = [
   },
 ];
 
-const THROW_MS = 280;
-const ORBIT_MS = 1400;
-const DROP_MS = 1650;
-const BOUNCE_MS = 850;
-const SETTLE_MS = 320;
+const THROW_MS = 2200;
+const ORBIT_MS = 6200;
+const DROP_MS = 3400;
+const BOUNCE_MS = 1200;
+const SETTLE_MS = 500;
 const ROTOR_MS = THROW_MS + ORBIT_MS + DROP_MS;
 const SPIN_MS = ROTOR_MS + BOUNCE_MS + SETTLE_MS;
 const REVEAL_MS = 3600;
@@ -822,7 +822,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
     // Giri nel sistema della ruota: somma il giro del tavolo e quello visto dal
     // pubblico, in senso antiorario.
-    const localTurns = 5.8 + Math.random() * 0.8;
+    const localTurns = 7.2 + Math.random() * 1.0;
     let endLocal = targetLocal;
     while (endLocal > startLocal - localTurns * TAU) endLocal -= TAU;
     const delta = endLocal - startLocal;
@@ -842,7 +842,10 @@ export class CasinoBonus implements OnInit, OnDestroy {
       if (t <= t2) return ORBIT_R;
       if (t <= t3) {
         const p = (t - t2) / DROP_MS;
-        return ORBIT_R + (REST_R - ORBIT_R) * p * p;
+        const base = ORBIT_R + (REST_R - ORBIT_R) * p * p;
+        // Rimbalzi sui rombi: la discesa non è una linea liscia.
+        const bounce = Math.sin(p * Math.PI * 5) * (1 - p) * 16;
+        return base + bounce;
       }
       return REST_R;
     };
