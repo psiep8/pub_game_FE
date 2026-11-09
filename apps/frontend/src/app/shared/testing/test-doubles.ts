@@ -91,6 +91,10 @@ export class FakeGameService {
     return of({ id: 1, status: 'ACTIVE', roundIndex: 0, type: 'QUIZ', payload: {} });
   }
 
+  resetGame(_gameId: number): Observable<any> {
+    return of({ reset: true });
+  }
+
   submitTimeline(_gameId: number, _playerName: string, _order: number[], _key?: string): Observable<any> {
     return of({});
   }

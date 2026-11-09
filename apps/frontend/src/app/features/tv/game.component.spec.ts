@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { throwError } from 'rxjs';
 
 import { GameComponent } from './game.component';
 import { AiGeneratorService } from '../../core/services/ai-generator-service';
@@ -114,6 +115,22 @@ describe('GameComponent', () => {
     expect(component.bonusActive()).toBe(false);
     expect(alert).toHaveBeenCalledTimes(2);
     alert.mockRestore();
+  });
+
+  it('preserves the local progress and scores when the server reset fails', () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    vi.spyOn(game, 'resetGame').mockReturnValue(throwError(() => new Error('offline')));
+    component.currentGameId.set(1);
+    rounds.startNewRound();
+    leaderboard.addPoints('Anna', 50, true);
+
+    component.confirmReset();
+
+    expect(rounds.getCurrentRound()).toBe(1);
+    expect(leaderboard.getPlayerStats('Anna')?.totalPoints).toBe(50);
+    expect(alert).toHaveBeenCalledOnce();
   });
 
   it('should not expose a pre-round countdown any more', () => {

@@ -1453,19 +1453,21 @@ export class GameComponent implements OnInit, OnDestroy {
   confirmReset() {
     this.showResetModal.set(false);
 
-    this.roundManager.resetGame();
-    this.leaderboardService.reset();
-
-    // Il reset locale non basta: il server resterebbe al round della serata
-    // precedente. Azzeriamo anche stato, eventi e punteggi, poi ricarichiamo.
+    // Il reset locale deve seguire quello del server: se la rete cade, la
+    // classifica e la scaletta restano disponibili per un nuovo tentativo.
+    const clearLocal = () => {
+      this.roundManager.resetGame();
+      this.leaderboardService.reset();
+      location.reload();
+    };
     const gameId = this.currentGameId();
     if (!gameId) {
-      location.reload();
+      clearLocal();
       return;
     }
     this.gameService.resetGame(gameId).subscribe({
-      next: () => location.reload(),
-      error: () => location.reload(),
+      next: clearLocal,
+      error: () => alert('Reset non riuscito: partita e classifica locali non sono state cancellate. Riprova.'),
     });
   }
 
