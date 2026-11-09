@@ -514,8 +514,9 @@ export class Admin implements OnInit, OnDestroy {
     void this.refreshDiagnostics();
   }
 
+  /** Pulsante unico "Parti": fa partire il round su TV e telefoni. */
   nextRound(): void {
-    this.ws.broadcastStatus(this.activeGameId(), { action: WsAction.ADMIN_NEXT_ROUND });
+    this.ws.broadcastStatus(this.activeGameId(), { action: WsAction.ADMIN_START_ROUND });
     this.vibrate(30);
   }
 

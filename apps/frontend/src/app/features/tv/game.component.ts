@@ -53,7 +53,7 @@ import { Azzardo } from '../games/azzardo/azzardo.component';
 import { levelForOccurrence } from '../games/azzardo/azzardo-rules';
 import { Blackjack } from '../games/blackjack/blackjack.component';
 import { DEMO_SCRIPTS, DEMO_SCENE_COUNT, DemoScript } from './demo-scripts';
-import { scoringRuleFor } from '../../shared/models/scoring-rules';
+import { REVEAL_DELAY_MS, scoringRuleFor } from '../../shared/models/scoring-rules';
 import { BonusType, BONUS_LABELS } from '../../shared/models/bonus-type';
 import { CasinoBonus } from '../bonus/casino/casino-bonus.component';
 import { CavalloBonus } from '../bonus/cavallo/cavallo-bonus.component';
@@ -125,8 +125,9 @@ export class GameComponent implements OnInit, OnDestroy {
   showQuestion = signal(false);
   showTypeReveal = signal<string | null>(null);
   timer = signal(0);
-  preStartCountdown = signal<number>(0);
   isPaused = signal(false);
+  /** Pausa di suspense fra la scadenza e il reveal. */
+  revealPending = signal(false);
   demoType = signal<string | null>(null);
   demoScene = signal(0);
   bonusActive = signal(false);
@@ -208,11 +209,8 @@ export class GameComponent implements OnInit, OnDestroy {
   // 🔥 [ROLLBACK] QR Code statico che punta a /play senza parametri
   qrCodeUrl = signal(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(this.remoteUrl)}&bgcolor=ffffff&color=1a1a2e&margin=10&qzone=1`);
 
-  @ViewChild('prestartTimer', { read: ElementRef, static: false }) prestartTimer?: ElementRef<HTMLElement>;
-
   private audioAllowed = false;
   private displayDataInterval?: ReturnType<typeof setInterval>;
-  private prestartMonitorInterval?: ReturnType<typeof setInterval>;
   private destroyRef = inject(DestroyRef);
 
   @HostListener('window:beforeunload', ['$event'])
@@ -369,29 +367,6 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
     });
-    let lastPreStart = this.preStartCountdown();
-    this.prestartMonitorInterval = setInterval(() => {
-      const cur = this.preStartCountdown();
-      if (cur !== lastPreStart) {
-        if (cur > 0 && cur <= 5) {
-          try {
-            const el = this.prestartTimer?.nativeElement;
-            if (el) {
-              el.classList.remove('bounce');
-              void el.offsetWidth;
-              el.classList.add('bounce');
-            }
-          } catch (err) {
-          }
-
-          this.audioService.playCountdownTick();
-        } else if (cur === 0 && lastPreStart > 0) {
-          this.audioService.playCountdownBong();
-        }
-        lastPreStart = cur;
-      }
-    }, 120);
-
 
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       if (!status) return;
@@ -402,6 +377,11 @@ export class GameComponent implements OnInit, OnDestroy {
         this.confirmWrong();
       } else if (status.action === 'ADMIN_NEXT_ROUND') {
         this.adminNextRound();
+      } else if (status.action === WsAction.ADMIN_START_ROUND) {
+        // Pulsante unico "Parti": apre il round se la TV è in lobby, altrimenti
+        // chiude quello in corso e passa al successivo.
+        if (this.currentMode()) this.adminNextRound();
+        else void this.startNewRound();
       } else if (status.action === 'ADMIN_REQUEST_STATE') {
         this.sendAdminState();
       } else if (status.action === 'ADMIN_SHOW_LEADERBOARD') {
@@ -442,9 +422,6 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.displayDataInterval) {
       clearInterval(this.displayDataInterval);
     }
-    if (this.prestartMonitorInterval) {
-      clearInterval(this.prestartMonitorInterval);
-    }
     this.stopDemoTimer();
 
     this.audioService.stopAll();
@@ -475,6 +452,7 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     this.reset();
+    this.revealPending.set(false);
 
     if (!this.currentGameId()) {
       const newGame = await firstValueFrom(this.gameService.createGame());
@@ -577,7 +555,6 @@ export class GameComponent implements OnInit, OnDestroy {
         onTimerEnd: () => this.onModeTimeout(),
         onBuzz: (playerName) => this.onPlayerBuzz(playerName),
         activePlayers: activePlayers,
-        onPreGameTick: (seconds) => this.preStartCountdown.set(seconds),
         onCountdownTick: (seconds) => this.onCountdownTick(seconds),
         onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
         onRoundEnded: () => this.onArenaEnded(),
@@ -880,31 +857,30 @@ export class GameComponent implements OnInit, OnDestroy {
       return;
     }
 
-
     this.audioService.stopClock();
     this.audioService.stopSuspense();
-
-    const currentRound = this.round();
-    if (currentRound) {
-      this.round.set({ ...currentRound, status: GamePhase.REVEAL });
-    }
-
-    if (mode.type === 'IMAGE_BLUR' || mode.type === 'WHEEL_OF_FORTUNE') {
-      this.showTimeoutPopup();
-    }
-
-
-    this.audioService.playReveal();
-
-    this.ws.broadcastStatus(this.currentGameId()!, { action: WsAction.ROUND_ENDED });
-
     this.isSpinning.set(false);
 
+    // Il reveal non è mai simultaneo alla scadenza: la TV mostra il battito
+    // di suspense, poi arriva la soluzione.
+    this.revealPending.set(true);
+    setTimeout(() => {
+      this.revealPending.set(false);
 
-    this.roundManager.completeRound(mode.type);
+      const currentRound = this.round();
+      if (currentRound) {
+        this.round.set({ ...currentRound, status: GamePhase.REVEAL });
+      }
 
+      if (mode.type === 'IMAGE_BLUR' || mode.type === 'WHEEL_OF_FORTUNE') {
+        this.showTimeoutPopup();
+      }
 
-    this.checkLeaderboardDisplay();
+      this.audioService.playReveal();
+      this.ws.broadcastStatus(this.currentGameId()!, { action: WsAction.ROUND_ENDED });
+      this.roundManager.completeRound(mode.type);
+      this.checkLeaderboardDisplay();
+    }, REVEAL_DELAY_MS);
   }
 
   /**
@@ -1166,6 +1142,7 @@ export class GameComponent implements OnInit, OnDestroy {
       wrongPoints: player ? mode.pointsFor(false, elapsedMs) : null,
       solution: this.solutionFor(mode.type, raw),
       scoring: scoringRuleFor(mode.type),
+      paused: this.isPaused(),
     });
   }
 
@@ -1200,10 +1177,15 @@ export class GameComponent implements OnInit, OnDestroy {
       mode.resume();
       this.isPaused.set(false);
       this.resumeRoundSuspense();
+      this.ws.broadcastStatus(this.currentGameId()!, { action: WsAction.GAME_RESUMED });
     } else {
       this.audioService.stopSuspense();
       mode.pause();
       this.isPaused.set(true);
+      this.ws.broadcastStatus(this.currentGameId()!, {
+        action: WsAction.GAME_PAUSED,
+        secondsLeft: this.timer(),
+      });
     }
   }
 
@@ -1638,33 +1620,6 @@ export class GameComponent implements OnInit, OnDestroy {
     safe.question = safe.question ?? '';
     safe.options = Array.isArray(safe.options) ? safe.options : [];
     return safe;
-  }
-
-  getPrestartPreview(): string {
-    const mode = this.currentMode();
-    if (!mode) return '';
-
-    const seconds = this.preStartCountdown();
-    const duration = mode.timerDuration;
-
-    if (mode.type === 'QUIZ') {
-      // Tre manches, 1000 punti in tutto: il preview del singolo timer non
-      // rappresenta piu il valore della domanda.
-      return '3 MANCHES · 1000 PT';
-    }
-
-    if (mode.type === 'WHEEL_OF_FORTUNE') {
-      const score = this.computePreviewScore(seconds, duration);
-      return `+${score}`;
-    }
-
-    return '';
-  }
-
-  private computePreviewScore(secondsFromNow: number, duration: number): number {
-    const t = Math.max(0, Math.min(duration, secondsFromNow));
-    const fraction = 1 - (t / Math.max(1, duration));
-    return Math.round(fraction * 1000);
   }
 
   getRecentResponses(): any[] {

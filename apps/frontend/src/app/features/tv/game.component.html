@@ -35,7 +35,7 @@
         <div class="lobby-step"><span>1</span><div><b>Entra col telefono</b><small>Nickname, poi sei in squadra</small></div></div>
         <div class="lobby-step"><span>2</span><div><b>Ascolta la TV</b><small>Rispondi, prenota, trascina</small></div></div>
         <div class="lobby-step"><span>3</span><div><b>Scala la classifica</b><small>40 round in cinque atti</small></div></div>
-        <div class="lobby-wait">Il presentatore avvia il round dall'admin.</div>
+        <div class="lobby-wait">PRONTI · IL PRESENTATORE AVVIA IL ROUND</div>
       </div>
     </div>
   </div>
@@ -356,8 +356,9 @@
 
 </div>
 
-@if (currentMode(); as mode) {
-@if (mode.getShowGo?.()) {
-<div class="go-popup">🚦 VIA!</div>
-}
+@if (revealPending()) {
+<div class="reveal-suspense" role="status">
+  <div class="reveal-suspense-ring"></div>
+  <span class="reveal-suspense-text">RULLO DI TAMBURI…</span>
+</div>
 }

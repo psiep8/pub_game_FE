@@ -7,6 +7,9 @@ import { GameModeType } from './game-mode-type';
  * presentatore) e le demo animate: un solo posto da cambiare quando si
  * ritocca un gioco.
  */
+/** Pausa fra la scadenza del tempo e il reveal: la TV mostra l'attesa. */
+export const REVEAL_DELAY_MS = 1700;
+
 export interface ScoringRule {
   correct: string;
   wrong: string;

@@ -30,11 +30,12 @@ import {
   type SpeedTaskKind,
 } from '../games/speed-rush/speed-rush-deck';
 import { ConnectionBadge } from '../../shared/components/connection-badge/connection-badge.component';
+import { SentStateComponent } from '../../shared/components/sent-state/sent-state.component';
 
 @Component({
   selector: 'app-remote-component',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConnectionBadge],
+  imports: [CommonModule, FormsModule, ConnectionBadge, SentStateComponent],
   templateUrl: './remote.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./remote.component.css', './restyle.css'],
@@ -192,6 +193,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   /** Ultima risposta toccata: solo promemoria visivo, l'esito lo decide il server. */
   selectedAnswer = signal<number | null>(null);
   isBlocked = signal(false);
+  /** Pausa globale decisa dall'admin: blocca input e cronometri locali. */
+  paused = signal(false);
+  private pauseStartedAt = 0;
 
   hockeyQuestion = signal<{ text: string; options: string[]; difficulty?: string } | null>(null);
   /** Vero dopo il primo AIR_HOCKEY_BATTLE_STATE: senza stato non si disegna il campo. */
@@ -521,11 +525,28 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
 
         case 'PLAYER_PRENOTATO':
-          if (status.name !== this.nickname()) {
+          if (status.name === this.nickname()) {
+            // Chi si è prenotato vede subito lo stato definitivo, non il
+            // pulsante ancora attivo.
+            this.hasAnswered.set(true);
+            this.gameState.set(PlayerStatus.LOCKED);
+          } else if (!this.isBlocked()) {
+            this.gameState.set(PlayerStatus.WAITING_FOR_OTHER);
+          }
+          break;
 
-            if (!this.isBlocked()) {
-              this.gameState.set(PlayerStatus.WAITING_FOR_OTHER);
-            }
+        case 'GAME_PAUSED':
+          this.paused.set(true);
+          this.pauseStartedAt = performance.now();
+          break;
+
+        case 'GAME_RESUMED':
+          this.paused.set(false);
+          if (this.pauseStartedAt) {
+            // Il cronometro del Time Buzzer riprende da dove era, non dal
+            // tempo trascorso in pausa.
+            this.buzzStartedAt += performance.now() - this.pauseStartedAt;
+            this.pauseStartedAt = 0;
           }
           break;
 
@@ -866,6 +887,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   sendVote(index: number) {
+    if (this.paused()) return;
     this.selectedAnswer.set(index);
     const responseTimeMs = Date.now() - this.startTime;
     this.ws.sendAnswer(this.gameId(), this.nickname()!, index, responseTimeMs);
@@ -875,6 +897,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   sendBuzz() {
+    if (this.paused()) return;
     const time = Date.now() - this.startTime;
     this.ws.sendAnswer(this.gameId(), this.nickname()!, -1, time);
     this.gameState.set(PlayerStatus.LOCKED);
@@ -1719,6 +1742,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
    */
   private applyServerSnapshot(snapshot: any): void {
     if (!snapshot || !snapshot.hasState) return;
+
+    // Anche chi si ricollega durante la pausa deve ritrovarla attiva.
+    this.paused.set(!!(snapshot.paused ?? snapshot.currentRound?.paused));
+    if (this.paused() && !this.pauseStartedAt) this.pauseStartedAt = performance.now();
 
     const deadline = Number(snapshot.roundDeadlineAt ?? 0);
     const open = !deadline || deadline > this.reliability.serverNow();

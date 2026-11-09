@@ -48,6 +48,16 @@
 
 <div class="remote-container">
 
+  @if (paused()) {
+  <div class="remote-pause" role="status">
+    <div class="remote-pause-card">
+      <span class="remote-pause-icon" aria-hidden="true">⏸️</span>
+      <strong>IN PAUSA</strong>
+      <span>Il presentatore riprende tra poco</span>
+    </div>
+  </div>
+  }
+
   @if (nickname()) {
   <div class="conn-shell">
     <app-connection-badge role="remote"></app-connection-badge>
@@ -116,6 +126,9 @@
     @case ('VOTING') {
     @switch (questionType()) {
     @case ('QUIZ') {
+    @if (hasAnswered()) {
+    <app-sent-state icon="✅" title="RISPOSTA INVIATA" hint="Attendi gli altri tavoli" />
+    } @else {
     <div class="game-head"><span class="game-tag quiz">QUIZ</span><span class="game-tip">Scegli la risposta</span></div>
     <div class="voting-grid quiz-grid">
       <button (click)="sendVote(0)" class="vote-btn btn-a"><span class="vote-letter">A</span><span class="vote-shape">▲</span></button>
@@ -123,6 +136,7 @@
       <button (click)="sendVote(2)" class="vote-btn btn-c"><span class="vote-letter">C</span><span class="vote-shape">●</span></button>
       <button (click)="sendVote(3)" class="vote-btn btn-d"><span class="vote-letter">D</span><span class="vote-shape">■</span></button>
     </div>
+    }
     }
     @case ('TIMELINE') {
     <div class="timeline-remote">
