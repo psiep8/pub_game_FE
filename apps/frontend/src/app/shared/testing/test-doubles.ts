@@ -95,7 +95,7 @@ export class FakeGameService {
     return of({ reset: true });
   }
 
-  submitTimeline(_gameId: number, _playerName: string, _order: number[], _key?: string): Observable<any> {
+  submitTimeline(_gameId: number, _playerName: string, _order: number[], _key?: string, _roundId?: string): Observable<any> {
     return of({});
   }
 

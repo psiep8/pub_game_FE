@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -148,7 +149,7 @@ public class PartyGameService {
 
         JSONObject payload = new JSONObject();
         payload.put("type", "TIMELINE");
-        payload.put("roundId", "tl-" + System.currentTimeMillis());
+        payload.put("roundId", "tl-" + UUID.randomUUID());
         payload.put("category", category == null ? "" : category);
         payload.put("question", "Metti le carte in ordine, dalla più antica alla più recente");
         payload.put("items", cards);
@@ -217,10 +218,17 @@ public class PartyGameService {
         return picked;
     }
 
-    public Optional<TimelineSubmission> submitTimeline(long gameId, String playerName, List<Integer> order) {
+    public boolean isTimelineRound(long gameId, String roundId) {
         hydrateTimeline(gameId);
         TimelineRound round = timelineRounds.get(gameId);
-        if (round == null || playerName == null || playerName.isBlank() || order == null) {
+        return round != null && round.token().equals(roundId);
+    }
+
+    public Optional<TimelineSubmission> submitTimeline(long gameId, String roundId, String playerName, List<Integer> order) {
+        hydrateTimeline(gameId);
+        TimelineRound round = timelineRounds.get(gameId);
+        if (round == null || roundId == null || !round.token().equals(roundId)
+                || playerName == null || playerName.isBlank() || order == null) {
             return Optional.empty();
         }
         int size = round.ordered().size();

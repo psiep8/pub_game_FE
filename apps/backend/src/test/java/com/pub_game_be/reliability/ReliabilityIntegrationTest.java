@@ -380,12 +380,42 @@ class ReliabilityIntegrationTest {
         long gameId = 524L;
         var payload = new org.json.JSONObject(partyGameService.startRound(gameId, "TIMELINE", "Storia"));
         var cards = payload.getJSONArray("items");
+        String roundId = payload.getString("roundId");
         java.util.List<Integer> repeated = new java.util.ArrayList<>();
         for (int i = 0; i < cards.length(); i++) repeated.add(cards.getJSONObject(0).getInt("id"));
-        assertThat(partyGameService.submitTimeline(gameId, "Anna", repeated)).isEmpty();
+        assertThat(partyGameService.submitTimeline(gameId, roundId, "Anna", repeated)).isEmpty();
         java.util.List<Integer> valid = new java.util.ArrayList<>();
         for (int i = 0; i < cards.length(); i++) valid.add(cards.getJSONObject(i).getInt("id"));
-        assertThat(partyGameService.submitTimeline(gameId, "Anna", valid)).isPresent();
+        assertThat(partyGameService.submitTimeline(gameId, roundId, "Anna", valid)).isPresent();
+    }
+
+    @Test
+    void timelineRifiutaRoundPrecedenteAncheConRicevuta() throws Exception {
+        long gameId = 525L;
+        String base = "/games/" + gameId;
+        String token = sessions.register(gameId, "timeline-device", "REMOTE", "Anna", null).sessionToken();
+        var first = new org.json.JSONObject(partyGameService.startRound(gameId, "TIMELINE", "Storia"));
+        gameState.startRound(gameId, "TIMELINE", 1, "round-1", first.toString());
+        var ids = new org.json.JSONArray();
+        var cards = first.getJSONArray("items");
+        for (int i = 0; i < cards.length(); i++) ids.put(cards.getJSONObject(i).getInt("id"));
+        var answer = new org.json.JSONObject().put("playerName", "Anna").put("roundId", first.getString("roundId"))
+                .put("order", ids).put("idempotencyKey", "same-key");
+        assertThat(request("POST", base + "/timeline-answer", token, null, answer.toString()).statusCode()).isEqualTo(200);
+        var second = new org.json.JSONObject(partyGameService.startRound(gameId, "TIMELINE", "Storia"));
+        gameState.startRound(gameId, "TIMELINE", 2, "round-2", second.toString());
+        assertThat(second.getString("roundId")).isNotEqualTo(first.getString("roundId"));
+        assertThat(request("POST", base + "/timeline-answer", token, null, answer.toString()).statusCode()).isEqualTo(409);
+        assertThat(partyGameService.timelineReveal(gameId).getJSONArray("results")).isEmpty();
+        var nextIds = new org.json.JSONArray();
+        var nextCards = second.getJSONArray("items");
+        for (int i = 0; i < nextCards.length(); i++) nextIds.put(nextCards.getJSONObject(i).getInt("id"));
+        answer.put("roundId", second.getString("roundId")).put("order", nextIds);
+        assertThat(request("POST", base + "/timeline-answer", token, null, answer.toString()).statusCode()).isEqualTo(200);
+        gameState.startRound(gameId, "QUIZ", 3, "round-3", "{}");
+        assertThat(request("POST", base + "/timeline-answer", token, null, answer.toString()).statusCode()).isEqualTo(409);
+        answer.remove("roundId");
+        assertThat(request("POST", base + "/timeline-answer", token, null, answer.toString()).statusCode()).isEqualTo(400);
     }
 
     @Test

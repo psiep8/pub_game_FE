@@ -104,6 +104,14 @@ public class GameStateService {
         return deadline == null || System.currentTimeMillis() <= deadline;
     }
 
+    /** Il round deve essere aperto e appartenere alla modalità richiesta. */
+    public boolean isActiveRoundType(long gameId, String roundType) {
+        return states.findById(gameId).filter(state -> "RUNNING".equals(state.getStatus())
+                && roundType.equals(state.getRoundType())
+                && (state.getRoundDeadlineAt() == null || System.currentTimeMillis() <= state.getRoundDeadlineAt()))
+                .isPresent();
+    }
+
     public Optional<Long> roundDeadline(long gameId) {
         return states.findById(gameId).map(GameStateEntity::getRoundDeadlineAt);
     }

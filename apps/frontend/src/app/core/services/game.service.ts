@@ -134,12 +134,14 @@ export class GameService {
     gameId: number,
     playerName: string,
     order: number[],
-    idempotencyKey?: string
+    idempotencyKey?: string,
+    roundId?: string,
   ): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/games/${gameId}/timeline-answer`, {
       playerName,
       order,
       idempotencyKey,
+      roundId,
     });
   }
 

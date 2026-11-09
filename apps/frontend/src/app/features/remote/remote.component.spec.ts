@@ -232,12 +232,14 @@ describe('RemoteComponent', () => {
       component.onStartVoting('TIMELINE', { roundId: 'round-one', items: cards });
       vi.advanceTimersByTime(350);
       const firstKey = submit.mock.calls.at(-1)?.[3];
+      expect(submit.mock.calls.at(-1)?.[4]).toBe('round-one');
       component.moveCard(0, 1);
       vi.advanceTimersByTime(350);
       expect(submit.mock.calls.at(-1)?.[2]).toEqual([1, 0]);
       component.onStartVoting('TIMELINE', { roundId: 'round-two', items: cards });
       vi.advanceTimersByTime(350);
       expect(submit.mock.calls.at(-1)?.[3]).not.toBe(firstKey);
+      expect(submit.mock.calls.at(-1)?.[4]).toBe('round-two');
     } finally {
       vi.useRealTimers();
     }

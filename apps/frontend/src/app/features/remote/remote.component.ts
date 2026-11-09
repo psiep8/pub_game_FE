@@ -1561,7 +1561,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
     const key = this.reliability.idempotencyKey('timeline',
       `${this.timelineRoundId}:${this.timelineInstanceId}:${++this.timelineSendSequence}`);
-    this.gameService.submitTimeline(this.gameId(), playerName, this.timelineOrder(), key).subscribe({
+    this.gameService.submitTimeline(this.gameId(), playerName, this.timelineOrder(), key, this.timelineRoundId).subscribe({
       error: () => this.reliability.lastError.set('Ordine Timeline non registrato: riprova.'),
       next: () => this.reliability.lastError.set(null),
     });

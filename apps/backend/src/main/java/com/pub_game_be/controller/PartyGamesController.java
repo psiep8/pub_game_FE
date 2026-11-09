@@ -76,6 +76,10 @@ public class PartyGamesController {
     public ResponseEntity<Object> timelineAnswer(@PathVariable("gameId") Long gameId,
             @RequestBody Map<String, Object> body) {
         String playerName = String.valueOf(body.getOrDefault("playerName", "")).trim();
+        String roundId = body.get("roundId") instanceof String id ? id : "";
+        if (roundId.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Round Timeline mancante"));
+        }
         List<Integer> order = readOrder(body.get("order"));
         if (order.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Ordine mancante"));
@@ -84,10 +88,16 @@ public class PartyGamesController {
             return ResponseEntity.status(409).body(closedRound(gameId));
         }
 
+        if (!gameStateService.isActiveRoundType(gameId, "TIMELINE") || !partyGameService.isTimelineRound(gameId, roundId)) {
+            return ResponseEntity.status(409).body(Map.of("error", "Round Timeline non più attivo"));
+        }
+
+        // La ricevuta è vincolata al round: non riusare una conferma precedente.
         String idempotencyKey = keyOf(body);
+        if (idempotencyKey != null && !idempotencyKey.isBlank()) idempotencyKey = roundId + ":" + idempotencyKey;
         Map<String, Object> result = idempotencyService.executeOnce(gameId, idempotencyKey,
                 "TIMELINE_ANSWER", playerName, () -> partyGameService
-                        .submitTimeline(gameId, playerName, order)
+                        .submitTimeline(gameId, roundId, playerName, order)
                         .map(submission -> {
                             gameStateService.appendEvent(gameId, "TIMELINE_ANSWER", new JSONObject()
                                     .put("playerName", submission.playerName())
