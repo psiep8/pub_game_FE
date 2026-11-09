@@ -2,13 +2,12 @@
 <div class="song-container">
 
   
-  @if (displayData?.inCountdown) {
-    <div class="countdown-overlay">
-      <div class="countdown-circle">
-        <div class="countdown-number">{{ displayData.countdownValue }}</div>
-        <div class="countdown-label">
-          {{ displayData.currentPhase === 0 ? 'La canzone sta per iniziare...' : 'Prossima manche...' }}
-        </div>
+  @if (displayData?.waitingForStart) {
+    <div class="waiting-start">
+      <div class="waiting-icon">⏳</div>
+      <div class="waiting-text">
+        <strong>MANCHE IN ATTESA</strong>
+        <span>Il presentatore dà il via alla prossima</span>
       </div>
     </div>
   }
@@ -67,9 +66,9 @@
         <div class="phase-dot"
              [class.active]="currentPhase() >= phase"
              [class.current]="currentPhase() === phase"
-             [style.background]="currentPhase() >= phase ? getPhaseColor() : '#ddd'">
+             [style.border-color]="currentPhase() >= phase ? getPhaseColor() : 'var(--coal)'">
 
-          <div class="phase-icon">{{ getPhaseIcon() }}</div>
+          <div class="phase-icon">{{ getPhaseIcon(phase) }}</div>
 
           <div class="phase-label">
             @switch(phase) {

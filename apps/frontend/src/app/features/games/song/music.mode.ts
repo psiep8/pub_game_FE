@@ -19,10 +19,8 @@ export class MusicMode extends GameModeBase {
   private revealIntro = false;
   private introTimer?: ReturnType<typeof setTimeout>;
 
-  
-  private inCountdown = signal(false);
-  private countdownValue = signal(0);
-  private countdownTimer: any;
+  /** Manche ascoltata fino in fondo: si aspetta il via dell'admin. */
+  private waitingForStart = signal(false);
 
   protected onInitialize(): void {
     this.currentManche = 0;
@@ -51,49 +49,36 @@ export class MusicMode extends GameModeBase {
     this.currentManche = mancheNumber;
     this.revealIntro = false;
     this.fullPlayback.set(false);
+    this.waitingForStart.set(false);
     this.playAudio();
 
-    
-
-    
+    // Fine dell'ascolto: la traccia si ferma e si aspetta il presentatore.
+    // Niente conto alla rovescia: la manche dopo la apre l'admin.
     this.mancheTimer = setTimeout(() => {
-      if (!this.buzzedPlayer()) {
-        
-        this.pauseAudio();
-
-        
-        setTimeout(() => {
-          
-          this.startVisibleCountdown(10, () => {
-            this.startManche(mancheNumber + 1);
-          });
-        }, 20000);
-      }
+      if (this.buzzedPlayer()) return;
+      this.pauseAudio();
+      this.waitingForStart.set(true);
+      this.broadcast();
     }, 30000);
   }
 
-  /**
-   * 🔥 Countdown VISIBILE tra manches
-   */
-  private startVisibleCountdown(seconds: number, onComplete: () => void) {
-    this.inCountdown.set(true);
-    this.countdownValue.set(seconds);
-    this.config.onCountdownTick?.(seconds);
+  /** Via alla manche successiva, su comando dell'admin. */
+  nextManche(): void {
+    if (this.buzzedPlayer() || this.revealed()) return;
 
-    
+    if (this.currentManche >= 4) {
+      void this.onTimeout();
+      return;
+    }
 
-    this.countdownTimer = setInterval(() => {
-      const current = this.countdownValue();
-      this.countdownValue.set(current - 1);
-      this.config.onCountdownTick?.(this.countdownValue());
+    this.startManche(this.currentManche + 1);
+  }
 
-      if (this.countdownValue() <= 0) {
-        clearInterval(this.countdownTimer);
-        this.countdownTimer = null;
-        this.inCountdown.set(false);
-        onComplete();
-      }
-    }, 1000);
+  private broadcast(): void {
+    this.config.onBroadcast?.({
+      action: 'MUSIC_PHASE',
+      state: this.getDisplayData(),
+    });
   }
 
   protected onPause(): void {
@@ -195,10 +180,6 @@ export class MusicMode extends GameModeBase {
       clearTimeout(this.mancheTimer);
       this.mancheTimer = null;
     }
-    if (this.countdownTimer) {
-      clearInterval(this.countdownTimer);
-      this.countdownTimer = null;
-    }
   }
 
   getDisplayData() {
@@ -216,8 +197,7 @@ export class MusicMode extends GameModeBase {
       buzzedPlayer: this.buzzedPlayer(),
 
       
-      inCountdown: this.inCountdown(),
-      countdownValue: this.countdownValue(),
+      waitingForStart: this.waitingForStart(),
 
       year: this.payload.year,
       source: this.payload.source || 'apple-music',

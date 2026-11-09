@@ -96,4 +96,6 @@ export interface IGameMode {
   applyArenaAnswer?(playerName: string, isCorrect: boolean, points: number): void;
   /** Timeline, Speed Rush, Air Hockey: eventi dal server o dai telefoni. */
   handlePartyEvent?(event: any): void;
+  /** Canzone: la manche successiva parte solo su comando dell'admin. */
+  nextManche?(): void;
 }

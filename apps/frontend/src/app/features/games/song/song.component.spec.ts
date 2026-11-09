@@ -31,11 +31,11 @@ describe('Song', () => {
 
     component.currentPhase.set(1);
     expect(component.getPhaseLabel()).toContain('Irriconoscibile');
-    expect(component.getPhaseColor()).toBe('#e74c3c');
+    expect(component.getPhaseColor()).toBe('var(--tomato)');
 
     component.currentPhase.set(4);
     expect(component.getPhaseLabel()).toContain('Chiaro');
-    expect(component.getPhaseColor()).toBe('#27ae60');
+    expect(component.getPhaseColor()).toBe('var(--mint)');
   });
 
   it('should expose an icon per phase', () => {

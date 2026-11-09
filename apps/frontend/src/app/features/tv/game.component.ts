@@ -390,6 +390,9 @@ export class GameComponent implements OnInit, OnDestroy {
         this.confirmWrong();
       } else if (status.action === 'ADMIN_NEXT_ROUND') {
         this.adminNextRound();
+      } else if (status.action === WsAction.ADMIN_NEXT_MANCHE) {
+        // Canzone: il via alla manche successiva lo decide il presentatore.
+        this.currentMode()?.nextManche?.();
       } else if (status.action === WsAction.ADMIN_START_ROUND) {
         // Pulsante unico "Parti": apre il round se la TV è in lobby, altrimenti
         // chiude quello in corso e passa al successivo.

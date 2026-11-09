@@ -713,3 +713,31 @@
     font-size: 24px;
   }
 }
+
+/* Barra e tondi più grandi e leggibili da lontano. */
+.phases-indicator { width: min(92vw, 900px) !important; }
+.phases-track { margin-bottom: clamp(10px, 2vh, 20px) !important; }
+.phase-dot { width: clamp(78px, 13vmin, 118px) !important; height: clamp(78px, 13vmin, 118px) !important; background: var(--paper) !important; border-width: 4px !important; box-shadow: 6px 6px 0 var(--tomato) !important; }
+.phase-dot.current { animation: none !important; transform: scale(1.1) !important; }
+.phase-icon { font-size: clamp(26px, 3.8vmin, 42px) !important; margin-bottom: 2px !important; filter: grayscale(1); }
+.phase-dot.active .phase-icon { filter: none; }
+.phase-label { color: var(--coal) !important; font-family: var(--font-mono) !important; font-size: clamp(14px, 1.7vmin, 19px) !important; font-weight: 700 !important; }
+.progress-bar { height: clamp(18px, 2.3vh, 26px) !important; border: 3px solid var(--paper) !important; box-shadow: 4px 4px 0 var(--coal); border-radius: 0 !important; background: var(--paper); background-image: repeating-linear-gradient(135deg, rgba(30,25,20,.14) 0 8px, transparent 8px 16px); }
+.progress-fill { border-radius: 0 !important; background-image: repeating-linear-gradient(135deg, rgba(30,25,20,.22) 0 8px, transparent 8px 16px) !important; }
+.current-phase-label { font-family: var(--font-display) !important; font-size: clamp(22px, 3.6vh, 34px) !important; text-shadow: none !important; }
+
+/* Reveal: layout centrato che sta anche in 720p. */
+.song-reveal { position: fixed !important; inset: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: clamp(10px, 2vh, 28px) !important; background: var(--bg-0) !important; backdrop-filter: none !important; overflow: auto !important; }
+.reveal-card { display: flex !important; flex-direction: column; align-items: center; gap: clamp(6px, 1.2vh, 14px); width: min(760px, 94vw); max-height: calc(100dvh - 24px); padding: clamp(16px, 2.6vh, 32px) clamp(20px, 3vw, 48px) !important; background: var(--paper) !important; color: var(--coal); border: 4px solid var(--coal); box-shadow: 12px 12px 0 var(--tomato) !important; border-radius: 0 !important; overflow: auto; }
+.reveal-icon { font-size: clamp(34px, 7vh, 68px) !important; margin: 0 !important; animation: none !important; }
+.reveal-title { margin: 0 !important; color: var(--coal) !important; font-family: var(--font-display) !important; font-size: clamp(28px, 4.6vh, 48px) !important; line-height: 1; text-transform: uppercase; }
+.reveal-artist { margin: 0 !important; color: var(--coal) !important; font-size: clamp(18px, 2.8vh, 28px) !important; }
+.reveal-year { margin: 0 !important; color: var(--coal) !important; font-family: var(--font-mono) !important; font-size: clamp(14px, 2vh, 20px) !important; }
+.reveal-cover { margin-top: clamp(4px, 1vh, 12px) !important; }
+.reveal-cover img { width: clamp(110px, 19vh, 190px) !important; height: clamp(110px, 19vh, 190px) !important; border-radius: 0 !important; border: 3px solid var(--coal); box-shadow: 6px 6px 0 var(--coal) !important; }
+
+.waiting-start { position: absolute; top: clamp(12px, 2vh, 24px); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 10px 18px; background: var(--paper); color: var(--coal); border: 3px solid var(--coal); box-shadow: 6px 6px 0 var(--tomato); z-index: 30; }
+.waiting-icon { font-size: 1.6rem; }
+.waiting-text { display: flex; flex-direction: column; }
+.waiting-text strong { font-family: var(--font-display); font-size: 1rem; letter-spacing: .04em; }
+.waiting-text span { font-family: var(--font-mono); font-size: .66rem; }

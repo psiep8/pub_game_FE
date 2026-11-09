@@ -47,6 +47,9 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   private lastPhase = 0;
   private lastBuzz: string | null = null;
   private scratchTimeout?: ReturnType<typeof setTimeout>;
+  private staticSource?: AudioBufferSourceNode;
+  private staticGain?: GainNode;
+  private driftTimer?: ReturnType<typeof setInterval>;
   private fullPlaybackActive = false;
   private fullPlaybackDone = false;
   private fullPlaybackTimer?: ReturnType<typeof setTimeout>;
@@ -224,27 +227,28 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     switch (phase) {
       case 1: 
         // Prima manche volutamente irriconoscibile: banda strettissima,
-        // saturazione alta e volume basso. Si capisce solo il ritmo.
-        this.gainNode.gain.setValueAtTime(0.16, this.audioContext.currentTime);
+        // saturazione altissima, fruscio radio e volume basso.
+        this.gainNode.gain.setValueAtTime(0.13, this.audioContext.currentTime);
         
-        this.bandpassFilter!.frequency.setValueAtTime(620, this.audioContext.currentTime);
-        this.bandpassFilter!.Q.setValueAtTime(28, this.audioContext.currentTime);
-        this.highpassFilter!.frequency.setValueAtTime(740, this.audioContext.currentTime);
-        this.lowpassFilter!.frequency.setValueAtTime(880, this.audioContext.currentTime);
+        this.bandpassFilter!.frequency.setValueAtTime(480, this.audioContext.currentTime);
+        this.bandpassFilter!.Q.setValueAtTime(40, this.audioContext.currentTime);
+        this.highpassFilter!.frequency.setValueAtTime(560, this.audioContext.currentTime);
+        this.lowpassFilter!.frequency.setValueAtTime(700, this.audioContext.currentTime);
         
-        this.distortionNode!.curve = this.makeDistortionCurve(320) as any;
+        this.distortionNode!.curve = this.makeDistortionCurve(900) as any;
         
         break;
 
       case 2: 
-        this.gainNode.gain.setValueAtTime(0.24, this.audioContext.currentTime);
+        // Seconda manche: radio AM disturbata, ancora lontana dal brano.
+        this.gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
         
-        this.bandpassFilter!.frequency.setValueAtTime(820, this.audioContext.currentTime);
-        this.bandpassFilter!.Q.setValueAtTime(18, this.audioContext.currentTime);
-        this.highpassFilter!.frequency.setValueAtTime(600, this.audioContext.currentTime);
-        this.lowpassFilter!.frequency.setValueAtTime(1250, this.audioContext.currentTime);
+        this.bandpassFilter!.frequency.setValueAtTime(760, this.audioContext.currentTime);
+        this.bandpassFilter!.Q.setValueAtTime(30, this.audioContext.currentTime);
+        this.highpassFilter!.frequency.setValueAtTime(620, this.audioContext.currentTime);
+        this.lowpassFilter!.frequency.setValueAtTime(1150, this.audioContext.currentTime);
         
-        this.distortionNode!.curve = this.makeDistortionCurve(150) as any;
+        this.distortionNode!.curve = this.makeDistortionCurve(520) as any;
         
         break;
 
@@ -272,6 +276,69 @@ export class Song implements OnInit, OnDestroy, OnChanges {
       default:
         this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
         break;
+    }
+
+    this.setInterference(phase);
+  }
+
+  /**
+   * Fruscio radio e sintonia che se ne va: solo nelle prime due manche, per
+   * rendere il brano irriconoscibile senza spegnere il ritmo.
+   */
+  private setInterference(phase: number): void {
+    const ctx = this.audioContext;
+    if (!ctx) return;
+
+    if (phase !== 1 && phase !== 2) {
+      this.stopInterference();
+      return;
+    }
+
+    if (!this.staticSource) {
+      const buffer = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+
+      const band = ctx.createBiquadFilter();
+      band.type = 'bandpass';
+      band.frequency.value = 2200;
+      band.Q.value = 0.9;
+
+      const gain = ctx.createGain();
+      gain.gain.value = 0;
+
+      source.connect(band).connect(gain).connect(ctx.destination);
+      source.start();
+      this.staticSource = source;
+      this.staticGain = gain;
+    }
+
+    this.staticGain!.gain.setTargetAtTime(phase === 1 ? 0.05 : 0.032, ctx.currentTime, 0.15);
+
+    if (!this.driftTimer) {
+      this.driftTimer = setInterval(() => {
+        const current = this.currentPhase();
+        if (!this.audioContext || !this.bandpassFilter) return;
+        if (current !== 1 && current !== 2) return;
+        const base = current === 1 ? 480 : 760;
+        const spread = current === 1 ? 240 : 170;
+        const frequency = base + (Math.random() - 0.5) * spread;
+        this.bandpassFilter.frequency.setTargetAtTime(frequency, this.audioContext.currentTime, 0.05);
+      }, 240);
+    }
+  }
+
+  private stopInterference(): void {
+    if (this.staticGain && this.audioContext) {
+      this.staticGain.gain.setTargetAtTime(0, this.audioContext.currentTime, 0.05);
+    }
+    if (this.driftTimer) {
+      clearInterval(this.driftTimer);
+      this.driftTimer = undefined;
     }
   }
 
@@ -354,6 +421,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
       await this.audio.play();
       this.isPlaying.set(true);
       this.startVinylAnimation();
+      this.setInterference(this.currentPhase());
       
     } catch (err) {
       console.error('❌ Play error:', err);
@@ -365,6 +433,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     this.audio.pause();
     this.isPlaying.set(false);
     this.stopVinylAnimation();
+    this.stopInterference();
     
   }
 
@@ -437,16 +506,21 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     this.stopFullPlayback();
     this.stopVinylAnimation();
     if (this.scratchTimeout) clearTimeout(this.scratchTimeout);
+    this.stopInterference();
+    this.staticSource?.stop();
+    this.staticSource?.disconnect();
+    this.staticSource = undefined;
+    this.staticGain = undefined;
     this.audioContext?.close();
   }
 
   getPhaseColor(): string {
     const phase = this.currentPhase();
-    if (phase === 0) return '#666';
-    if (phase === 1) return '#e74c3c';
-    if (phase === 2) return '#f39c12';
-    if (phase === 3) return '#3498db';
-    return '#27ae60';
+    if (phase === 0) return 'var(--paper)';
+    if (phase === 1) return 'var(--tomato)';
+    if (phase === 2) return 'var(--mustard)';
+    if (phase === 3) return 'var(--cobalt)';
+    return 'var(--mint)';
   }
 
   getPhaseLabel(): string {
@@ -467,12 +541,11 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  getPhaseIcon(): string {
-    const phase = this.currentPhase();
-    if (phase === 0) return '⏳';
+  getPhaseIcon(phase: number = this.currentPhase()): string {
     if (phase === 1) return '☎️';
     if (phase === 2) return '📻';
     if (phase === 3) return '🔊';
-    return '📢';
+    if (phase === 4) return '📢';
+    return '⏳';
   }
 }

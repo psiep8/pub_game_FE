@@ -520,6 +520,12 @@ export class Admin implements OnInit, OnDestroy {
     this.vibrate(30);
   }
 
+  /** Canzone: apre la manche successiva senza chiudere il round. */
+  nextManche(): void {
+    this.ws.broadcastStatus(this.activeGameId(), { action: WsAction.ADMIN_NEXT_MANCHE });
+    this.vibrate(30);
+  }
+
   showLeaderboard(): void {
     this.ws.broadcastStatus(this.activeGameId(), { action: WsAction.ADMIN_SHOW_LEADERBOARD });
     this.vibrate(30);
