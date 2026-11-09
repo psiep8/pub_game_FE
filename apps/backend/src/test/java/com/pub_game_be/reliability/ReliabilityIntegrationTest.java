@@ -376,6 +376,38 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void bombaRipristinaLaPartitaSenzaMostrareLeBombeEConsenteReset() {
+        long gameId = 523L;
+        var first = new com.pub_game_be.service.BombaService(questionBank, stateBlobs);
+        var restarted = new com.pub_game_be.service.BombaService(questionBank, stateBlobs);
+        try {
+            var initial = first.start(gameId, java.util.List.of("Anna", "Bruno"), 1);
+            int cellId = initial.getJSONArray("cells").getJSONObject(0).getInt("id");
+            String turn = initial.getString("turn");
+            var picked = first.pick(gameId, turn, cellId);
+            var paused = first.pause(gameId);
+            first.shutdown();
+            var restored = restarted.state(gameId, "Bruno");
+            assertThat(restored.getBoolean("paused")).isTrue();
+            assertThat(restored.getString("turn")).isEqualTo(paused.getString("turn"));
+            assertThat(restored.getJSONObject("penalties").toMap()).isEqualTo(picked.getJSONObject("penalties").toMap());
+            var cells = restored.getJSONArray("cells");
+            for (Object value : cells) {
+                var cell = (org.json.JSONObject) value;
+                if (!cell.getBoolean("used")) assertThat(cell.has("bomb")).isFalse();
+            }
+            restarted.resume(gameId);
+            assertThat(restarted.state(gameId, "Anna").getBoolean("paused")).isFalse();
+            restarted.reset(gameId);
+            assertThat(stateBlobs.load(gameId, "bomba-round")).isEmpty();
+            assertThat(restarted.state(gameId, "Anna").getBoolean("active")).isFalse();
+        } finally {
+            first.shutdown();
+            restarted.shutdown();
+        }
+    }
+
+    @Test
     void timeBuzzerRitrovaIlViaDopoRicreazioneControllerEScartaIlRoundVecchio() {
         long gameId = 522L;
         gameState.startRound(gameId, "TIME_BUZZER", 1, "buzzer-1", "{}");

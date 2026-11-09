@@ -1,5 +1,6 @@
 package com.pub_game_be.service;
 
+import com.pub_game_be.reliability.StateBlobService;
 import jakarta.annotation.PreDestroy;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -81,7 +82,9 @@ public class BombaService {
         }
     }
 
+    private static final String BOMBA_BLOB = "bomba-round";
     private final QuestionBankService questionBank;
+    private final StateBlobService stateBlobs;
     private final Map<Long, Round> rounds = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4, runnable -> {
         Thread thread = new Thread(runnable, "pubgame-bomba");
@@ -89,8 +92,9 @@ public class BombaService {
         return thread;
     });
 
-    public BombaService(QuestionBankService questionBank) {
+    public BombaService(QuestionBankService questionBank, StateBlobService stateBlobs) {
         this.questionBank = questionBank;
+        this.stateBlobs = stateBlobs;
     }
 
     public JSONObject start(long gameId, List<String> rawPlayers, int requestedAct) {
@@ -110,13 +114,14 @@ public class BombaService {
         synchronized (round) {
             round.turnIndex = 0;
             round.turnDeadline = System.currentTimeMillis() + TURN_SECONDS * 1000L;
+            persist(round);
             scheduleDeadline(round);
             return publicState(round, null, System.currentTimeMillis());
         }
     }
 
     public JSONObject state(long gameId, String player) {
-        Round round = rounds.get(gameId);
+        Round round = loadRound(gameId);
         if (round == null) {
             return emptyState(gameId);
         }
@@ -158,6 +163,7 @@ public class BombaService {
             }
 
             advance(round, now);
+            persist(round);
             return publicState(round, player, now);
         }
     }
@@ -171,6 +177,7 @@ public class BombaService {
             round.paused = true;
             round.pausedAt = System.currentTimeMillis();
             cancel(round.task);
+            persist(round);
             return publicState(round, null, round.pausedAt);
         }
     }
@@ -184,6 +191,7 @@ public class BombaService {
             long now = System.currentTimeMillis();
             round.paused = false;
             round.turnDeadline += Math.max(0, now - round.pausedAt);
+            persist(round);
             scheduleDeadline(round);
             return publicState(round, null, now);
         }
@@ -192,11 +200,13 @@ public class BombaService {
     public void reset(long gameId) {
         Round round = rounds.remove(gameId);
         if (round == null) {
+            stateBlobs.forget(gameId, BOMBA_BLOB);
             return;
         }
         synchronized (round) {
             round.active = false;
             cancel(round.task);
+            stateBlobs.forget(gameId, BOMBA_BLOB);
         }
     }
 
@@ -283,6 +293,7 @@ public class BombaService {
                 String player = round.currentPlayer();
                 pushEvent(round, "timeout", player == null ? "" : player, "");
                 advance(round, System.currentTimeMillis());
+                persist(round);
             }
         }, delay, TimeUnit.MILLISECONDS);
     }
@@ -293,6 +304,60 @@ public class BombaService {
                 .put("kind", kind)
                 .put("player", player)
                 .put("label", label);
+    }
+
+    // Il blob rimane privato: contiene anche la posizione delle bombe non scoperte.
+    private void persist(Round round) {
+        JSONArray cells = new JSONArray();
+        for (Cell cell : round.cells) {
+            cells.put(new JSONObject().put("id", cell.id()).put("label", cell.label()).put("bomb", cell.bomb()));
+        }
+        stateBlobs.save(round.gameId, BOMBA_BLOB, new JSONObject()
+                .put("act", round.act).put("players", new JSONArray(round.players))
+                .put("prompt", round.prompt).put("cells", cells)
+                .put("pickedBy", new JSONObject(round.pickedBy))
+                .put("eliminated", new JSONArray(round.eliminated)).put("penalties", new JSONObject(round.penalties))
+                .put("turnIndex", round.turnIndex).put("phase", round.phase)
+                .put("turnDeadline", round.turnDeadline).put("pausedAt", round.pausedAt)
+                .put("active", round.active).put("paused", round.paused)
+                .put("eventSeq", round.eventSeq).put("lastEvent", round.lastEvent == null ? JSONObject.NULL : round.lastEvent)
+                .toString());
+    }
+
+    private Round loadRound(long gameId) {
+        Round round = rounds.computeIfAbsent(gameId, id -> stateBlobs.load(id, BOMBA_BLOB)
+                .map(payload -> restore(id, new JSONObject(payload))).orElse(null));
+        if (round != null) {
+            synchronized (round) {
+                if (round.task == null && round.active && !round.paused) scheduleDeadline(round);
+            }
+        }
+        return round;
+    }
+
+    private Round restore(long gameId, JSONObject saved) {
+        List<String> players = new ArrayList<>();
+        for (Object player : saved.getJSONArray("players")) players.add((String) player);
+        List<Cell> cells = new ArrayList<>();
+        for (Object value : saved.getJSONArray("cells")) {
+            JSONObject cell = (JSONObject) value;
+            cells.add(new Cell(cell.getInt("id"), cell.getString("label"), cell.getBoolean("bomb")));
+        }
+        Round round = new Round(gameId, saved.getInt("act"), players, saved.getString("prompt"), cells);
+        JSONObject picked = saved.getJSONObject("pickedBy");
+        for (String id : picked.keySet()) round.pickedBy.put(Integer.parseInt(id), picked.getString(id));
+        for (Object player : saved.getJSONArray("eliminated")) round.eliminated.add((String) player);
+        JSONObject penalties = saved.getJSONObject("penalties");
+        for (String player : penalties.keySet()) round.penalties.put(player, penalties.getInt(player));
+        round.turnIndex = saved.getInt("turnIndex");
+        round.phase = saved.getString("phase");
+        round.turnDeadline = saved.getLong("turnDeadline");
+        round.pausedAt = saved.getLong("pausedAt");
+        round.active = saved.getBoolean("active");
+        round.paused = saved.getBoolean("paused");
+        round.eventSeq = saved.getLong("eventSeq");
+        round.lastEvent = saved.optJSONObject("lastEvent");
+        return round;
     }
 
     // ------------------------------------------------------------------- stato
@@ -378,7 +443,7 @@ public class BombaService {
     }
 
     private Round requireRound(long gameId) {
-        Round round = rounds.get(gameId);
+        Round round = loadRound(gameId);
         if (round == null) {
             throw new IllegalArgumentException("Nessun round Bomba attivo");
         }
