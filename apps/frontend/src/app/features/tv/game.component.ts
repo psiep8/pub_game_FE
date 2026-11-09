@@ -465,6 +465,10 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     if (this.isSpinning()) return;
+    if (this.roundManager.extractGameType() === 'SPEED_RUSH') {
+      alert('Speed Rush non disponibile: il punteggio non è ancora verificato dal server.');
+      return;
+    }
 
     this.cancelAutoAdvance();
 
@@ -1220,6 +1224,10 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Bonus: parte dalla TV a fine atto (o su comando admin) e non consuma un round. */
   async startBonus(type: BonusType): Promise<void> {
     if (this.isSpinning() || this.bonusActive()) return;
+    if (type === 'BASKET') {
+      alert('Basket non disponibile: il punteggio non è ancora verificato dal server.');
+      return;
+    }
 
     // Un bonus può partire subito dopo un reset, quando la classifica è
     // vuota: allinea i tavoli ai telefoni presenti prima di disegnare il bonus.
@@ -1258,16 +1266,6 @@ export class GameComponent implements OnInit, OnDestroy {
       const game = await firstValueFrom(this.gameService.createGame());
       this.currentGameId.set(game.id);
       this.ws.subscribeToGame(game.id);
-    }
-
-    if (type === 'BASKET') {
-      this.ws.broadcastStatus(this.currentGameId(), {
-        action: WsAction.SHOW_QUESTION,
-        type: 'BONUS_BASKET',
-        payload: JSON.stringify({ type: 'BONUS_BASKET', question: 'BONUS BASKET' }),
-      });
-      this.startBasketCountdown();
-      return;
     }
 
     // Il Cavallo ha una schermata TV dedicata che parla direttamente con i
