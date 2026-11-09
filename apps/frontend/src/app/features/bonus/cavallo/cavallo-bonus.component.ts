@@ -49,8 +49,9 @@ interface Category {
 
 const FLASH_QUESTIONS = 8;
 const CATEGORY_SECONDS = 15;
-const QUESTION_SECONDS = 15;
-const REVEAL_MS = 4500;
+/** Rush unica: tutte le domande dentro un minuto. */
+const RUSH_SECONDS = 60;
+const REVEAL_MS = 1600;
 /** Passo tra due righe del tabellone: la differenza è lo spazio vuoto. */
 const ROW_HEIGHT = 84;
 const ROW_BODY = 68;
@@ -98,7 +99,7 @@ const PREVIEW_QUESTIONS = [
 
         <div class="cav-body">
           <section class="cav-clock-panel">
-            <div class="cav-clock" [class.hot]="phase() === Phase.QUESTION && secondsLeft() <= 3">
+            <div class="cav-clock" [class.hot]="phase() === Phase.QUESTION && secondsLeft() <= 10">
               @if (secondsLeft() > 0) {
                 <b>{{ secondsLeft() }}</b>
                 <span>SECONDI</span>
@@ -112,7 +113,7 @@ const PREVIEW_QUESTIONS = [
 
           <section class="cav-board-panel">
             <div class="cav-board-head">
-              <span>TABELLONE BONUS</span>
+              <span>TABELLONE BONUS · GIUSTE / TOTALI</span>
               <span class="cav-board-state">{{ boardState() }}</span>
             </div>
 
@@ -129,7 +130,7 @@ const PREVIEW_QUESTIONS = [
                   @if (deltaFor(row.playerName) > 0) {
                     <span class="cav-gain">+{{ deltaFor(row.playerName) }}</span>
                   }
-                  <b class="cav-score">{{ row.score }}</b>
+                  <b class="cav-score">{{ row.score }}/{{ total() }}</b>
                 </div>
               }
             </div>
@@ -316,6 +317,8 @@ export class CavalloBonus implements OnInit, OnDestroy {
   private questionStartedAt = 0;
   private clock?: ReturnType<typeof setInterval>;
   private timers: Array<ReturnType<typeof setTimeout>> = [];
+  private rushExpired = false;
+  private resultsEmitted = false;
 
   readonly categoryVoteCounts = signal<Record<string, number>>({});
 
@@ -369,11 +372,11 @@ export class CavalloBonus implements OnInit, OnDestroy {
       case Phase.LOADING:
         return 'Preparo otto domande difficili.';
       case Phase.QUESTION:
-        return category ? 'Categoria ' + category + ' · risposta sul telefono.' : 'Risposta sul telefono.';
+        return category ? 'Categoria ' + category + ' · rush da un minuto.' : 'Rush da un minuto.';
       case Phase.REVEAL:
-        return 'Punteggi aggiornati.';
+        return 'Risposta esatta, si riparte subito.';
       case Phase.FINALE:
-        return 'Classifica del bonus.';
+        return 'Classifica del bonus: giuste su totali.';
       default:
         return 'Otto domande flash, una dopo l\'altra.';
     }
@@ -388,7 +391,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
       case Phase.QUESTION:
         return 'RISPONDETE';
       case Phase.REVEAL:
-        return 'RISPOSTE CHIUSE';
+        return 'GIUSTE';
       case Phase.FINALE:
         return 'BONUS CHIUSO';
       default:
@@ -448,7 +451,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
 
       this.answers.set(playerName, { index, at: Date.now() - this.questionStartedAt });
       if (this.answers.size >= this.players.length) {
-        this.clearClock();
+        // Il cronometro globale continua: qui si chiude solo la domanda.
         this.revealQuestion();
       }
     }
@@ -458,6 +461,10 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.phase.set(Phase.CATEGORY);
     this.categoryPicks.clear();
     this.answers.clear();
+    this.rushExpired = false;
+    this.resultsEmitted = false;
+    this.scoreMap.forEach((_, name) => this.scoreMap.set(name, 0));
+    this.refreshTotals();
     this.refreshCategoryVotes();
     this.chosenCategory.set('');
     this.message.set('');
@@ -522,7 +529,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
     if (this.preview) {
       this.questions = PREVIEW_QUESTIONS.slice(0, FLASH_QUESTIONS);
       this.total.set(this.questions.length);
-      this.later(350, () => this.startQuestion(0));
+      this.later(350, () => this.startRush());
       return;
     }
 
@@ -535,7 +542,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
           return;
         }
         this.total.set(this.questions.length);
-        this.startQuestion(0);
+        this.startRush();
       },
       error: () => {
         this.message.set('Domande non disponibili: riprova dal bonus.');
@@ -544,9 +551,16 @@ export class CavalloBonus implements OnInit, OnDestroy {
     });
   }
 
+  /** Un solo cronometro per tutta la rush, non uno per domanda. */
+  private startRush(): void {
+    this.clearClock();
+    this.startClock(this.preview ? 8 : RUSH_SECONDS, () => this.expireRush());
+    this.startQuestion(0);
+  }
+
   private startQuestion(index: number): void {
     const question = this.questions[index];
-    if (!question) {
+    if (!question || this.rushExpired || this.secondsLeft() <= 0) {
       this.finale(false);
       return;
     }
@@ -559,7 +573,16 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.question.set({ text: question.question, options: question.options });
     this.questionStartedAt = Date.now();
     if (this.preview) this.seedPreviewAnswers();
-    this.startClock(this.preview ? 2 : QUESTION_SECONDS, () => this.revealQuestion());
+    this.publish();
+  }
+
+  private expireRush(): void {
+    this.rushExpired = true;
+    if (this.phase() === Phase.QUESTION) {
+      this.revealQuestion(true);
+    } else if (this.phase() === Phase.REVEAL) {
+      this.finale(false);
+    }
   }
 
   private seedPreviewAnswers(): void {
@@ -578,9 +601,8 @@ export class CavalloBonus implements OnInit, OnDestroy {
     });
   }
 
-  private revealQuestion(): void {
+  private revealQuestion(final = false): void {
     if (this.phase() !== Phase.QUESTION) return;
-    this.clearClock();
 
     const current = this.questions[this.index()];
     if (!current) {
@@ -588,37 +610,29 @@ export class CavalloBonus implements OnInit, OnDestroy {
       return;
     }
 
-    const ordered = [...this.answers.entries()].sort((a, b) => a[1].at - b[1].at);
-    const firstCorrect = ordered.find(([, answer]) => answer.index === current.correctIndex)?.[0] ?? '';
-
     const gained: Record<string, number> = {};
     const rows: Row[] = this.players.map((playerName) => {
       const answer = this.answers.get(playerName);
-      let points = 0;
-      if (answer && answer.index === current.correctIndex) {
-        points = 100;
-        if (playerName === firstCorrect) points += 50;
-      }
-      if (points) {
-        gained[playerName] = points;
-        this.addPoints(playerName, points);
+      const correct = !!answer && answer.index === current.correctIndex;
+      if (correct) {
+        gained[playerName] = 1;
+        this.addCorrect(playerName);
       }
       return {
         playerName,
         label: answer ? current.options[answer.index] ?? '—' : '—',
-        points,
+        points: correct ? 1 : 0,
       };
     });
 
     this.phase.set(Phase.REVEAL);
-    this.secondsLeft.set(0);
     this.deltas.set(gained);
     this.reveal.set({ heading: `RISPOSTA ESATTA: ${current.options[current.correctIndex]}`, rows });
     this.publish();
-    this.emitRows(rows);
 
-    this.later(this.preview ? 1400 : REVEAL_MS, () => {
-      if (this.index() + 1 >= this.questions.length) {
+    this.later(this.preview ? 700 : REVEAL_MS, () => {
+      if (this.phase() !== Phase.REVEAL) return;
+      if (final || this.rushExpired || this.index() + 1 >= this.questions.length) {
         this.finale(false);
       } else {
         this.startQuestion(this.index() + 1);
@@ -627,6 +641,8 @@ export class CavalloBonus implements OnInit, OnDestroy {
   }
 
   private finale(empty: boolean): void {
+    if (this.phase() === Phase.FINALE) return;
+    this.clearClock();
     this.phase.set(Phase.FINALE);
     this.secondsLeft.set(0);
     this.question.set(null);
@@ -634,6 +650,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
     if (empty) {
       this.total.set(0);
     }
+    this.emitFinalResults();
     this.publish();
     this.later(this.preview ? 4000 : empty ? 5000 : 7000, () => this.finished.emit());
   }
@@ -654,23 +671,27 @@ export class CavalloBonus implements OnInit, OnDestroy {
     }, 1000);
   }
 
-  private addPoints(playerName: string, points: number): void {
-    this.scoreMap.set(playerName, (this.scoreMap.get(playerName) ?? 0) + points);
+  private addCorrect(playerName: string): void {
+    this.scoreMap.set(playerName, (this.scoreMap.get(playerName) ?? 0) + 1);
     this.refreshTotals();
   }
 
   private refreshTotals(): void {
+    // La TV parte dalla squadra peggiore: l'ordine è crescente per giuste.
     this.totals.set(
       [...this.scoreMap.entries()]
         .map(([playerName, score]) => ({ playerName, score }))
-        .sort((a, b) => b.score - a.score),
+        .sort((a, b) => a.score - b.score),
     );
   }
 
-  private emitRows(rows: Row[]): void {
-    rows
-      .filter((row) => row.points > 0)
-      .forEach((row) => this.result.emit({ playerName: row.playerName, score: row.points }));
+  /** L'esito del bonus è il numero di giuste, non i punti: si emette una volta. */
+  private emitFinalResults(): void {
+    if (this.resultsEmitted) return;
+    this.resultsEmitted = true;
+    for (const row of this.totals()) {
+      this.result.emit({ playerName: row.playerName, score: row.score });
+    }
   }
 
   private publish(): void {

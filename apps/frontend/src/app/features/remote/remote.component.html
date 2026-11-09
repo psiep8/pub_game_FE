@@ -423,7 +423,7 @@
         <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🐎</div></div>
         <p>{{ cavalloState()?.reveal?.heading || 'Preparazione...' }}</p>
         @if (cavalloMyRow(); as row) {
-        <p class="sub-text">La tua risposta: {{ row.label }} · {{ row.points > 0 ? '+' + row.points : '0' }} punti</p>
+        <p class="sub-text">La tua risposta: {{ row.label }} · {{ row.points > 0 ? 'GIUSTA' : 'SBAGLIATA' }}</p>
         }
       </div>
       }
