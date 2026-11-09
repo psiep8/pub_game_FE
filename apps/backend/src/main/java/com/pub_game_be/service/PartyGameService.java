@@ -227,8 +227,9 @@ public class PartyGameService {
         if (order.size() != size) {
             return Optional.empty();
         }
+        Set<Integer> distinct = new HashSet<>();
         for (int id : order) {
-            if (!round.ranks().containsKey(id)) {
+            if (!round.ranks().containsKey(id) || !distinct.add(id)) {
                 return Optional.empty();
             }
         }

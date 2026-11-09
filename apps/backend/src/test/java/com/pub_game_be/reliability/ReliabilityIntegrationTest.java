@@ -376,6 +376,19 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void timelineRifiutaCarteRipetute() {
+        long gameId = 524L;
+        var payload = new org.json.JSONObject(partyGameService.startRound(gameId, "TIMELINE", "Storia"));
+        var cards = payload.getJSONArray("items");
+        java.util.List<Integer> repeated = new java.util.ArrayList<>();
+        for (int i = 0; i < cards.length(); i++) repeated.add(cards.getJSONObject(0).getInt("id"));
+        assertThat(partyGameService.submitTimeline(gameId, "Anna", repeated)).isEmpty();
+        java.util.List<Integer> valid = new java.util.ArrayList<>();
+        for (int i = 0; i < cards.length(); i++) valid.add(cards.getJSONObject(i).getInt("id"));
+        assertThat(partyGameService.submitTimeline(gameId, "Anna", valid)).isPresent();
+    }
+
+    @Test
     void bombaRipristinaLaPartitaSenzaMostrareLeBombeEConsenteReset() {
         long gameId = 523L;
         var first = new com.pub_game_be.service.BombaService(questionBank, stateBlobs);
