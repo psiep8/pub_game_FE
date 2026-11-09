@@ -1110,12 +1110,15 @@ export class GameComponent implements OnInit, OnDestroy {
   adminNextRound(): void {
     if (this.closingRound) return;
     this.cancelAutoAdvance();
-    this.showLeaderboardQuick.set(false);
-    this.showLeaderboardDetailed.set(false);
-    this.isShowingLeaderboard.set(false);
-    this.pendingLeaderboardType.set(null);
-    this.stopDemo();
 
+    const advance = () => {
+      this.showLeaderboardQuick.set(false);
+      this.showLeaderboardDetailed.set(false);
+      this.isShowingLeaderboard.set(false);
+      this.pendingLeaderboardType.set(null);
+      this.stopDemo();
+      void this.startNewRound();
+    };
     const gameId = this.currentGameId();
     const mode = this.currentMode();
     // AVANTI durante un round ancora aperto: prima si chiude il round sul
@@ -1123,7 +1126,7 @@ export class GameComponent implements OnInit, OnDestroy {
     // restava sul gioco saltato e il round dopo partiva con un indice sfasato.
     const roundStillOpen = !!gameId && !!mode && !mode.isRevealed() && !this.closingRound;
     if (!roundStillOpen) {
-      void this.startNewRound();
+      advance();
       return;
     }
 
@@ -1131,13 +1134,11 @@ export class GameComponent implements OnInit, OnDestroy {
     this.gameService.closeRound(gameId, 'skipped').subscribe({
       next: () => {
         this.closingRound = false;
-        void this.startNewRound();
+        advance();
       },
       error: () => {
-        // Se la chiusura non passa la partita deve comunque andare avanti:
-        // meglio un round registrato in ritardo che la TV bloccata.
         this.closingRound = false;
-        void this.startNewRound();
+        alert('Chiusura del round non confermata: verifica lo stato del server prima di riprovare AVANTI.');
       },
     });
   }

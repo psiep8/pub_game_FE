@@ -91,6 +91,10 @@ export class FakeGameService {
     return of({ id: 1, status: 'ACTIVE', roundIndex: 0, type: 'QUIZ', payload: {} });
   }
 
+  closeRound(_gameId: number, _reason?: string): Observable<any> {
+    return of({ closed: true });
+  }
+
   resetGame(_gameId: number): Observable<any> {
     return of({ reset: true });
   }

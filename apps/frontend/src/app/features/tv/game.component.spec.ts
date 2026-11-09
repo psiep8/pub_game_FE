@@ -117,6 +117,26 @@ describe('GameComponent', () => {
     alert.mockRestore();
   });
 
+  it('does not advance when closing the current round is not confirmed', () => {
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const close = vi.spyOn(game, 'closeRound').mockReturnValue(throwError(() => new Error('offline')));
+    const start = vi.spyOn(component, 'startNewRound');
+    const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    component.currentGameId.set(1);
+    component.currentMode.set({ isRevealed: () => false } as any);
+    component.showLeaderboardDetailed.set(true);
+    component.isShowingLeaderboard.set(true);
+
+    component.adminNextRound();
+
+    expect(close).toHaveBeenCalledOnce();
+    expect(start).not.toHaveBeenCalled();
+    expect(component.showLeaderboardDetailed()).toBe(true);
+    expect(component.isShowingLeaderboard()).toBe(true);
+    expect(alert).toHaveBeenCalledOnce();
+    alert.mockRestore();
+  });
+
   it('preserves the local progress and scores when the server reset fails', () => {
     const rounds = TestBed.inject(RoundManagerService);
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
