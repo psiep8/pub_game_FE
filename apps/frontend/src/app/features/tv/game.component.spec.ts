@@ -102,16 +102,7 @@ describe('GameComponent', () => {
     expect(leaderboard.getPlayerStats('Bruno')?.position).toBe(1);
   });
 
-  it('should expose the remaining pre-start score preview for point games', () => {
-    const mode = {
-      type: 'QUIZ',
-      timerDuration: 10,
-      getDisplayData: () => ({}),
-      isRevealed: () => false,
-    };
-    component.currentMode.set(mode as any);
-    component.preStartCountdown.set(5);
-
-    expect(component.getPrestartPreview()).toBe('3 MANCHES · 1000 PT');
+  it('should not run a pre-start countdown before a round', () => {
+    expect((component as any).preStartCountdown).toBeUndefined();
   });
 });

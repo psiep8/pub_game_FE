@@ -48,6 +48,16 @@
 
 <div class="remote-container">
 
+  @if (paused()) {
+  <div class="pause-veil">
+    <div class="pause-veil-card">
+      <span class="pause-veil-icon">⏸️</span>
+      <strong>GIOCO IN PAUSA</strong>
+      <p>Il presentatore riprende tra poco. Resta sul telefono.</p>
+    </div>
+  </div>
+  }
+
   @if (nickname()) {
   <div class="conn-shell">
     <app-connection-badge role="remote"></app-connection-badge>
@@ -679,7 +689,7 @@
     @case ('LOCKED') {
     <div class="status-msg locked">
       <div class="locked-icon">🎤</div>
-      <p>Sei PRENOTATO!</p>
+      <p>TI SEI PRENOTATO</p>
       <p class="sub-text">Rispondi al presentatore</p>
       @if (chosenLetter()) {
       <p class="sub-text">Hai scelto: {{ chosenLetter() }}</p>

@@ -1,4 +1,4 @@
-import { signal, Signal, WritableSignal } from '@angular/core';
+import { signal, Signal } from '@angular/core';
 import { GameModeConfig, GameModeResult, GameModeType, IGameMode } from './game-mode-type';
 
 /**
@@ -29,19 +29,8 @@ export abstract class GameModeBase implements IGameMode {
   protected revealed = signal<boolean>(false);
   protected buzzedPlayer = signal<string | null>(null);
   protected isReading = signal<boolean>(false);
-  protected showGo: WritableSignal<boolean> = signal(false);
-  protected preStartCountdown = signal<number>(0);
 
   protected timerInterval?: ReturnType<typeof setInterval>;
-  private preStartInterval?: ReturnType<typeof setInterval>;
-
-  getShowGo(): boolean {
-    return this.showGo();
-  }
-
-  getPreStartCountdown(): number {
-    return this.preStartCountdown();
-  }
 
   getIsReading(): boolean {
     return this.isReading();
@@ -104,13 +93,11 @@ export abstract class GameModeBase implements IGameMode {
 
   /**
    * La partita parte sul comando esplicito del presentatore (admin o tasto
-   * AVANTI in TV): niente countdown automatico prima della domanda.
+   * AVANTI in TV): niente countdown automatico prima della domanda. Il tempo
+   * che si vede in TV è solo quello di risposta, già in corso.
    */
   protected async runPreGameSequence(_readingTime: number = 0): Promise<void> {
-    this.stopPreStartInterval();
-    this.preStartCountdown.set(0);
     this.isReading.set(false);
-    this.showGo.set(false);
     this.isActive.set(true);
     this.startTimer();
   }
@@ -136,14 +123,6 @@ export abstract class GameModeBase implements IGameMode {
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
       this.timerInterval = undefined;
-    }
-    this.stopPreStartInterval();
-  }
-
-  private stopPreStartInterval(): void {
-    if (this.preStartInterval) {
-      clearInterval(this.preStartInterval);
-      this.preStartInterval = undefined;
     }
   }
 

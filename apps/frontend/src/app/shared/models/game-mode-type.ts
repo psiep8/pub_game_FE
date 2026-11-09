@@ -34,7 +34,6 @@ export interface GameModeConfig {
   onUltimaSpiaggiaLevel?: (playerName: string, level: number) => void;
   /** Time Buzzer: il via della manche lo dà il server, che torna l'istante. */
   startTimeBuzzer?: (manche: number) => Promise<number | null>;
-  onPreGameTick?: (secondsRemaining: number) => void;
   /** Countdown visibili dentro una modalità (es. pausa tra le manche). */
   onCountdownTick?: (secondsRemaining: number) => void;
   /** Arena: una squadra è appena uscita dal cerchio. */
@@ -84,8 +83,6 @@ export interface IGameMode {
 
   getDisplayData(): any;
   getTimerValue(): number;
-  getShowGo?(): boolean;
-  getPreStartCountdown?(): number;
   getIsReading?(): boolean;
   canBuzz(): boolean;
   isRevealed(): boolean;

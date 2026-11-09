@@ -32,6 +32,9 @@ export const WsAction = {
   BONUS_RESULT: 'BONUS_RESULT',
   ARENA_ELIMINATED: 'ARENA_ELIMINATED',
   ARENA_ENDED: 'ARENA_ENDED',
+  /** Pausa globale: ferma timer, input e animazioni anche sui telefoni. */
+  GAME_PAUSED: 'GAME_PAUSED',
+  GAME_RESUMED: 'GAME_RESUMED',
   // Stato dei singoli giochi
   QUIZ_STATE: 'QUIZ_STATE',
   TIME_BUZZER_STATE: 'TIME_BUZZER_STATE',

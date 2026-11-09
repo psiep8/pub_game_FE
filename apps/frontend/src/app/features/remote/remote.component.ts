@@ -127,9 +127,11 @@ import { ConnectionBadge } from '../../shared/components/connection-badge/connec
     .casino-hand-total { font-size: 1.8rem; font-weight: 900; }
     .casino-hand-total.bust { color: #f87171; }
     .casino-bj-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .casino-hit, .casino-stand { padding: 20px 10px; border: 0; border-radius: 14px; font-size: 1rem; font-weight: 900; letter-spacing: .06em; }
-    .casino-hit { background: #fbbf24; color: #111827; }
-    .casino-stand { background: rgba(255,255,255,.16); color: #fff; }
+    .casino-hit, .casino-stand { padding: 20px 10px; border: 3px solid var(--coal); border-radius: 0; font-family: var(--font-mono); font-size: 1rem; font-weight: 900; letter-spacing: .06em; box-shadow: 4px 4px 0 var(--coal); }
+    .casino-hit { background: var(--acid); color: var(--coal); }
+    .casino-stand { background: var(--paper-hi); color: var(--coal); }
+    .casino-hit:active, .casino-stand:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--coal); }
+    .casino-hit:disabled, .casino-stand:disabled { opacity: .55; }
     .cavallo-categories { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 56vh; overflow: auto; }
     .biglie-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 8px; background: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); }
     .biglie-card.picked { background: var(--acid); }
@@ -192,6 +194,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   /** Ultima risposta toccata: solo promemoria visivo, l'esito lo decide il server. */
   selectedAnswer = signal<number | null>(null);
   isBlocked = signal(false);
+  /** Pausa globale decisa dal presentatore: i telefoni non mandano input. */
+  paused = signal(false);
+  private pauseStartedAt: number | null = null;
 
   hockeyQuestion = signal<{ text: string; options: string[]; difficulty?: string } | null>(null);
   /** Vero dopo il primo AIR_HOCKEY_BATTLE_STATE: senza stato non si disegna il campo. */
@@ -468,6 +473,21 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.casinoChoice.set(null);
           this.cavalloChoice.set(null);
           this.cavalloCategory.set(null);
+          break;
+
+        case 'GAME_PAUSED':
+          this.paused.set(true);
+          this.pauseStartedAt = performance.now();
+          break;
+
+        case 'GAME_RESUMED':
+          // Il cronometro del Time Buzzer non deve contare la pausa.
+          if (this.paused() && this.pauseStartedAt !== null) {
+            const frozen = performance.now() - this.pauseStartedAt;
+            if (this.buzzPhase() === 'running') this.buzzStartedAt += frozen;
+          }
+          this.pauseStartedAt = null;
+          this.paused.set(false);
           break;
 
         case 'ROUND_ENDED':
@@ -866,6 +886,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   sendVote(index: number) {
+    if (this.paused()) return;
     this.selectedAnswer.set(index);
     const responseTimeMs = Date.now() - this.startTime;
     this.ws.sendAnswer(this.gameId(), this.nickname()!, index, responseTimeMs);
@@ -875,6 +896,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   sendBuzz() {
+    if (this.paused()) return;
     const time = Date.now() - this.startTime;
     this.ws.sendAnswer(this.gameId(), this.nickname()!, -1, time);
     this.gameState.set(PlayerStatus.LOCKED);
@@ -1443,7 +1465,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
    * `performance.now()` dalla ricezione del via, poi lo valida il server.
    */
   toggleBuzz(): void {
-    if (this.buzzEliminated() || this.buzzPhase() !== 'running') return;
+    if (this.paused() || this.buzzEliminated() || this.buzzPhase() !== 'running') return;
 
     const ms = Math.round(performance.now() - this.buzzStartedAt);
     this.buzzPhase.set('sent');

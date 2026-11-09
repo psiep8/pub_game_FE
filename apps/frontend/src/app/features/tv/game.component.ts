@@ -9,8 +9,6 @@ import {
   OnInit,
   HostListener,
   OnDestroy,
-  ElementRef,
-  ViewChild,
   ChangeDetectorRef,
   DestroyRef,
   computed,
@@ -125,7 +123,6 @@ export class GameComponent implements OnInit, OnDestroy {
   showQuestion = signal(false);
   showTypeReveal = signal<string | null>(null);
   timer = signal(0);
-  preStartCountdown = signal<number>(0);
   isPaused = signal(false);
   demoType = signal<string | null>(null);
   demoScene = signal(0);
@@ -208,11 +205,8 @@ export class GameComponent implements OnInit, OnDestroy {
   // 🔥 [ROLLBACK] QR Code statico che punta a /play senza parametri
   qrCodeUrl = signal(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(this.remoteUrl)}&bgcolor=ffffff&color=1a1a2e&margin=10&qzone=1`);
 
-  @ViewChild('prestartTimer', { read: ElementRef, static: false }) prestartTimer?: ElementRef<HTMLElement>;
-
   private audioAllowed = false;
   private displayDataInterval?: ReturnType<typeof setInterval>;
-  private prestartMonitorInterval?: ReturnType<typeof setInterval>;
   private destroyRef = inject(DestroyRef);
 
   @HostListener('window:beforeunload', ['$event'])
@@ -369,30 +363,6 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
     });
-    let lastPreStart = this.preStartCountdown();
-    this.prestartMonitorInterval = setInterval(() => {
-      const cur = this.preStartCountdown();
-      if (cur !== lastPreStart) {
-        if (cur > 0 && cur <= 5) {
-          try {
-            const el = this.prestartTimer?.nativeElement;
-            if (el) {
-              el.classList.remove('bounce');
-              void el.offsetWidth;
-              el.classList.add('bounce');
-            }
-          } catch (err) {
-          }
-
-          this.audioService.playCountdownTick();
-        } else if (cur === 0 && lastPreStart > 0) {
-          this.audioService.playCountdownBong();
-        }
-        lastPreStart = cur;
-      }
-    }, 120);
-
-
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       if (!status) return;
 
@@ -441,9 +411,6 @@ export class GameComponent implements OnInit, OnDestroy {
     this.gameModeService.cleanup();
     if (this.displayDataInterval) {
       clearInterval(this.displayDataInterval);
-    }
-    if (this.prestartMonitorInterval) {
-      clearInterval(this.prestartMonitorInterval);
     }
     this.stopDemoTimer();
 
@@ -577,7 +544,6 @@ export class GameComponent implements OnInit, OnDestroy {
         onTimerEnd: () => this.onModeTimeout(),
         onBuzz: (playerName) => this.onPlayerBuzz(playerName),
         activePlayers: activePlayers,
-        onPreGameTick: (seconds) => this.preStartCountdown.set(seconds),
         onCountdownTick: (seconds) => this.onCountdownTick(seconds),
         onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
         onRoundEnded: () => this.onArenaEnded(),
@@ -861,7 +827,8 @@ export class GameComponent implements OnInit, OnDestroy {
     this.roundManager.completeRound('ARENA');
     this.checkLeaderboardDisplay();
 
-  }
+  }  /** Pausa di suspense tra la scadenza del tempo e il reveal. */
+  private readonly revealSuspenseMs = 1700;
 
   private onModeTimeout() {
     if (this.bonusActive()) {
@@ -880,31 +847,33 @@ export class GameComponent implements OnInit, OnDestroy {
       return;
     }
 
-
     this.audioService.stopClock();
     this.audioService.stopSuspense();
 
-    const currentRound = this.round();
-    if (currentRound) {
-      this.round.set({ ...currentRound, status: GamePhase.REVEAL });
-    }
+    // Il tempo finisce, ma il reveal arriva un attimo dopo: il presentatore
+    // ha lo spazio per commentare prima che la soluzione compaia in TV.
+    window.setTimeout(() => {
+      if (this.currentMode() !== mode) return;
 
-    if (mode.type === 'IMAGE_BLUR' || mode.type === 'WHEEL_OF_FORTUNE') {
-      this.showTimeoutPopup();
-    }
+      const currentRound = this.round();
+      if (currentRound) {
+        this.round.set({ ...currentRound, status: GamePhase.REVEAL });
+      }
 
+      if (mode.type === 'IMAGE_BLUR' || mode.type === 'WHEEL_OF_FORTUNE') {
+        this.showTimeoutPopup();
+      }
 
-    this.audioService.playReveal();
+      this.audioService.playReveal();
 
-    this.ws.broadcastStatus(this.currentGameId()!, { action: WsAction.ROUND_ENDED });
+      this.ws.broadcastStatus(this.currentGameId()!, { action: WsAction.ROUND_ENDED });
 
-    this.isSpinning.set(false);
+      this.isSpinning.set(false);
 
+      this.roundManager.completeRound(mode.type);
 
-    this.roundManager.completeRound(mode.type);
-
-
-    this.checkLeaderboardDisplay();
+      this.checkLeaderboardDisplay();
+    }, this.revealSuspenseMs);
   }
 
   /**
@@ -1200,10 +1169,14 @@ export class GameComponent implements OnInit, OnDestroy {
       mode.resume();
       this.isPaused.set(false);
       this.resumeRoundSuspense();
+      this.ws.broadcastStatus(this.currentGameId()!, { action: WsAction.GAME_RESUMED });
     } else {
       this.audioService.stopSuspense();
       mode.pause();
       this.isPaused.set(true);
+      // Anche i telefoni si fermano: timer, input e animazioni restano
+      // congelati finché il presentatore non riprende.
+      this.ws.broadcastStatus(this.currentGameId()!, { action: WsAction.GAME_PAUSED });
     }
   }
 
@@ -1638,33 +1611,6 @@ export class GameComponent implements OnInit, OnDestroy {
     safe.question = safe.question ?? '';
     safe.options = Array.isArray(safe.options) ? safe.options : [];
     return safe;
-  }
-
-  getPrestartPreview(): string {
-    const mode = this.currentMode();
-    if (!mode) return '';
-
-    const seconds = this.preStartCountdown();
-    const duration = mode.timerDuration;
-
-    if (mode.type === 'QUIZ') {
-      // Tre manches, 1000 punti in tutto: il preview del singolo timer non
-      // rappresenta piu il valore della domanda.
-      return '3 MANCHES · 1000 PT';
-    }
-
-    if (mode.type === 'WHEEL_OF_FORTUNE') {
-      const score = this.computePreviewScore(seconds, duration);
-      return `+${score}`;
-    }
-
-    return '';
-  }
-
-  private computePreviewScore(secondsFromNow: number, duration: number): number {
-    const t = Math.max(0, Math.min(duration, secondsFromNow));
-    const fraction = 1 - (t / Math.max(1, duration));
-    return Math.round(fraction * 1000);
   }
 
   getRecentResponses(): any[] {
