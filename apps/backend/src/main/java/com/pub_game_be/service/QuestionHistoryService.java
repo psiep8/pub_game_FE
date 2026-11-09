@@ -167,8 +167,10 @@ public class QuestionHistoryService {
      */
     public Optional<ArenaResult> answer(long gameId, String playerId, String questionId, String answer) {
         hydrate(gameId);
-        ArenaAssignment assignment = assignments.getOrDefault(gameId, Map.of()).get(questionId);
-        if (assignment == null || !assignment.playerId().equals(playerId)) {
+        Map<String, ArenaAssignment> pending = assignments.get(gameId);
+        ArenaAssignment assignment = pending == null ? null : pending.get(questionId);
+        if (assignment == null || !assignment.playerId().equals(playerId)
+                || !pending.remove(questionId, assignment)) {
             return Optional.empty();
         }
         boolean correct = answersMatch(assignment.correctAnswer(), answer);
