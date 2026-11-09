@@ -2,6 +2,7 @@ package com.pub_game_be.controller;
 
 import com.pub_game_be.reliability.GameStateService;
 import com.pub_game_be.reliability.IdempotencyService;
+import com.pub_game_be.reliability.StateBlobService;
 import com.pub_game_be.service.PartyGameService;
 import com.pub_game_be.service.QuestionBankService;
 import org.json.JSONObject;
@@ -13,7 +14,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Risposte dei telefoni per i giochi simultanei.
@@ -42,20 +42,18 @@ public class PartyGamesController {
     private final GameStateService gameStateService;
     private final IdempotencyService idempotencyService;
 
-    /** Ultimo via per partita: è il riferimento per validare i tempi. */
-    private final Map<Long, TimeBuzzerStart> timeBuzzerStarts = new ConcurrentHashMap<>();
-
-    private record TimeBuzzerStart(long startedAt, int manche) {
-    }
+    private static final String BUZZER_BLOB = "time-buzzer-start";
+    private final StateBlobService stateBlobs;
 
     public PartyGamesController(PartyGameService partyGameService, QuestionBankService questionBank,
             SimpMessagingTemplate messagingTemplate, GameStateService gameStateService,
-            IdempotencyService idempotencyService) {
+            IdempotencyService idempotencyService, StateBlobService stateBlobs) {
         this.partyGameService = partyGameService;
         this.questionBank = questionBank;
         this.messagingTemplate = messagingTemplate;
         this.gameStateService = gameStateService;
         this.idempotencyService = idempotencyService;
+        this.stateBlobs = stateBlobs;
     }
 
     /** Domande dell'Air Hockey dalla banca, mai scritte nel codice del client. */
@@ -142,7 +140,9 @@ public class PartyGamesController {
         }
 
         long startedAt = System.currentTimeMillis();
-        timeBuzzerStarts.put(gameId, new TimeBuzzerStart(startedAt, manche));
+        String roundKey = gameStateService.snapshot(gameId).optString("roundKey", "");
+        stateBlobs.save(gameId, BUZZER_BLOB, new JSONObject()
+                .put("startedAt", startedAt).put("manche", manche).put("roundKey", roundKey).toString());
 
         messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", new JSONObject()
                 .put("action", "TIME_BUZZER_START")
@@ -172,12 +172,14 @@ public class PartyGamesController {
             return ResponseEntity.badRequest().body(Map.of("error", "Giocatore mancante"));
         }
 
-        TimeBuzzerStart start = timeBuzzerStarts.get(gameId);
-        if (start == null) {
+        JSONObject start = stateBlobs.load(gameId, BUZZER_BLOB).map(JSONObject::new).orElse(null);
+        String roundKey = gameStateService.snapshot(gameId).optString("roundKey", "");
+        if (start == null || !roundKey.equals(start.optString("roundKey", ""))
+                || !gameStateService.isRoundOpen(gameId)) {
             return ResponseEntity.status(409).body(Map.of("error", "time-buzzer-not-started"));
         }
 
-        long elapsed = System.currentTimeMillis() - start.startedAt();
+        long elapsed = System.currentTimeMillis() - start.getLong("startedAt");
         double clientMs = readDouble(body.get("ms"));
 
         boolean plausible = clientMs > 0
@@ -197,14 +199,14 @@ public class PartyGamesController {
                 .put("playerName", playerName)
                 .put("ms", ms)
                 .put("serverElapsedMs", elapsed)
-                .put("manche", start.manche())
+                .put("manche", start.getInt("manche"))
                 .toString());
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("accepted", true);
         result.put("ms", ms);
         result.put("serverElapsedMs", elapsed);
-        result.put("manche", start.manche());
+        result.put("manche", start.getInt("manche"));
         return ResponseEntity.ok(result);
     }
 
@@ -212,7 +214,7 @@ public class PartyGamesController {
     @PostMapping("/{gameId}/party/reset")
     public Map<String, Object> reset(@PathVariable("gameId") Long gameId) {
         partyGameService.forget(gameId);
-        timeBuzzerStarts.remove(gameId);
+        stateBlobs.forget(gameId, BUZZER_BLOB);
         return Map.of("reset", true, "gameId", gameId);
     }
 

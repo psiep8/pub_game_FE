@@ -7,6 +7,7 @@ import com.pub_game_be.domain.game.Game;
 import com.pub_game_be.domain.game_round.GameRound;
 import com.pub_game_be.reliability.GameStateService;
 import com.pub_game_be.reliability.IdempotencyService;
+import com.pub_game_be.reliability.StateBlobService;
 import com.pub_game_be.repository.GameRepository;
 import com.pub_game_be.repository.GameRoundRepository;
 import com.pub_game_be.service.BombaService;
@@ -47,6 +48,7 @@ public class GameController {
     private final IdempotencyService idempotencyService;
     private final UltimaSpiaggiaLevelService ultimaSpiaggiaLevelService;
     private final BombaService bombaService;
+    private final StateBlobService stateBlobs;
 
     public GameController(GameRepository gameRepo,
             GameRoundRepository gameRoundRepository,
@@ -60,7 +62,7 @@ public class GameController {
             GameStateService gameStateService,
             IdempotencyService idempotencyService,
             UltimaSpiaggiaLevelService ultimaSpiaggiaLevelService,
-            BombaService bombaService) {
+            BombaService bombaService, StateBlobService stateBlobs) {
         this.gameRepo = gameRepo;
         this.gameRoundRepository = gameRoundRepository;
         this.simpleRoundService = simpleRoundService;
@@ -74,6 +76,7 @@ public class GameController {
         this.idempotencyService = idempotencyService;
         this.ultimaSpiaggiaLevelService = ultimaSpiaggiaLevelService;
         this.bombaService = bombaService;
+        this.stateBlobs = stateBlobs;
     }
 
     @PostMapping
@@ -554,6 +557,7 @@ public class GameController {
         ultimaSpiaggiaLevelService.clear(gameId);
         partyGameService.forget(gameId);
         bombaService.reset(gameId);
+        stateBlobs.forget(gameId, "time-buzzer-start");
         return Map.of("reset", true, "gameId", gameId);
     }
 

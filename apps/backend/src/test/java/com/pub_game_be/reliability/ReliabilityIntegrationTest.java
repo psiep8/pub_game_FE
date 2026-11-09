@@ -376,6 +376,29 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void timeBuzzerRitrovaIlViaDopoRicreazioneControllerEScartaIlRoundVecchio() {
+        long gameId = 522L;
+        gameState.startRound(gameId, "TIME_BUZZER", 1, "buzzer-1", "{}");
+        var party = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
+                messaging, gameState, idempotency, stateBlobs);
+        var start = party.timeBuzzerStart(gameId, Map.of("manche", 2));
+        var restarted = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
+                messaging, gameState, idempotency, stateBlobs);
+        assertThat(restarted.timeBuzzerStop(gameId, Map.of("playerName", "Anna", "ms", 1)).getStatusCode().value()).isEqualTo(200);
+        assertThat(start.get("manche")).isEqualTo(2);
+        gameState.startRound(gameId, "TIME_BUZZER", 2, "buzzer-2", "{}");
+        assertThat(restarted.timeBuzzerStop(gameId, Map.of("playerName", "Anna", "ms", 1)).getStatusCode().value()).isEqualTo(409);
+        restarted.timeBuzzerStart(gameId, Map.of());
+        gameController.resetGame(gameId);
+        assertThat(stateBlobs.load(gameId, "time-buzzer-start")).isEmpty();
+    }
+
+    @Autowired private com.pub_game_be.service.PartyGameService partyGameService;
+    @Autowired private com.pub_game_be.service.QuestionBankService questionBank;
+    @Autowired private org.springframework.messaging.simp.SimpMessagingTemplate messaging;
+    @Autowired private StateBlobService stateBlobs;
+
+    @Test
     void laDomandaUsataSopravviveAlRiavvioDelProcesso() {
         long gameId = 504L;
         String key = "domanda-di-prova|risposta";
