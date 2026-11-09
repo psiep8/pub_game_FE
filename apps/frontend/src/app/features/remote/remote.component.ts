@@ -1916,6 +1916,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if ((type === 'BLACKJACK' && !this.blackjackState())
       || (type === 'AIR_HOCKEY_BATTLE' && !this.hockeyStateReady())) return;
 
+    const previousType = this.questionType();
     this.questionType.set(type);
     if (type === 'ARENA') {
       if (!this.arenaQuestion() && !this.isFetchingQuestion()) this.generateNextArenaQuestion();
@@ -1925,12 +1926,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
     // Round già mostrato: un sync non deve riaprire voti o resettare il
     // tabellone (per esempio l'ordine Timeline appena trascinato).
-    if (this.questionType() === type && this.gameState() === PlayerStatus.VOTING) return;
+    const payload = round?.payload ?? snapshot.payload;
+    const timelineId = type === 'TIMELINE' ? String(this.parsePayload(payload)?.roundId ?? '') : '';
+    if (previousType === type && this.gameState() === PlayerStatus.VOTING
+      && (type === 'TIMELINE' ? !!timelineId && timelineId === this.timelineRoundId : !newRound)) return;
 
     // Anche i round guidati dalla TV (Bomba, Timeline, Ultima spiaggia, ...)
     // vanno riaperti dal snapshot: dopo un refresh il telefono deve ritrovare
     // il round in corso, non restare su "In attesa" fino al prossimo START_VOTING.
-    const payload = round?.payload ?? snapshot.payload;
     this.onStartVoting(type, payload);
   }
 

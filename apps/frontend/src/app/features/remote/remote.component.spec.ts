@@ -151,6 +151,33 @@ describe('RemoteComponent', () => {
     expect(component.timelineCards().length).toBe(2);
   });
 
+  it('reopens a different Timeline round but preserves the order on a same-round sync', async () => {
+    vi.useFakeTimers();
+    try {
+      component.tempNickname = 'Anna';
+      await component.setNickname();
+      const firstCards = [{ id: 0, label: 'Vecchia A' }, { id: 1, label: 'Vecchia B' }];
+      component.onStartVoting('TIMELINE', { roundId: 'old', items: firstCards });
+      const nextCards = [{ id: 0, label: 'Nuova A' }, { id: 1, label: 'Nuova B' }];
+      const snapshot = {
+        hasState: true, roundKey: 'g1-r2', roundType: 'TIMELINE',
+        roundDeadlineAt: Date.now() + 60_000,
+        currentRound: { type: 'TIMELINE', roundKey: 'g1-r2', payload: { roundId: 'new', items: nextCards } },
+      };
+      reliability.syncState$.next(snapshot);
+      expect(component.timelineCards()).toEqual(nextCards);
+      component.moveCard(0, 1);
+      reliability.syncState$.next(snapshot);
+      expect(component.timelineOrder()).toEqual([1, 0]);
+      const game = TestBed.inject(GameService) as unknown as FakeGameService;
+      const submit = vi.spyOn(game, 'submitTimeline');
+      vi.advanceTimersByTime(350);
+      expect(submit.mock.calls.at(-1)?.[4]).toBe('new');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('should go back to waiting when the snapshot has no open round', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();
