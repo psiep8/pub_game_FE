@@ -1,6 +1,10 @@
 package com.pub_game_be;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
@@ -11,8 +15,12 @@ import org.springframework.test.context.TestPropertySource;
 })
 class PubGameBeApplicationTests {
 
+    @Autowired
+    private Environment environment;
+
     @Test
     void contextLoads() {
+        assertThat(environment.getProperty("spring.h2.console.enabled", Boolean.class)).isFalse();
     }
 
 }
