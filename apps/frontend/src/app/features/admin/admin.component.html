@@ -207,6 +207,12 @@
                 <div class="status-icon pulse">📡</div>
                 <h2>In Attesa di Prenotazioni</h2>
                 <p class="sub-text">I giocatori possono prenotarsi ora</p>
+                @if (solution() || correctAnswer()) {
+                  <div class="solution-preview">
+                    <span class="solution-label">SOLUZIONE</span>
+                    <b>{{ solution() || correctAnswer() }}</b>
+                  </div>
+                }
                 <div class="hint-box">
                   <span class="hint-icon">💡</span>
                   <span>Sarai avvisato con vibrazione quando qualcuno si prenota</span>

@@ -156,6 +156,9 @@ export class Admin implements OnInit, OnDestroy {
       if (parsed) {
         this.payload.set(parsed);
         this.extractCorrectAnswer(parsed, status.type);
+        // Il presentatore vede la soluzione già mentre i telefoni possono
+        // prenotarsi, non solo dopo il buzz.
+        this.solution.set(this.correctAnswer());
         
       }
     } else {
@@ -183,6 +186,9 @@ export class Admin implements OnInit, OnDestroy {
       if (parsed) {
         this.payload.set(parsed);
         this.extractCorrectAnswer(parsed, status.type);
+        // Il presentatore vede la soluzione già mentre i telefoni possono
+        // prenotarsi, non solo dopo il buzz.
+        this.solution.set(this.correctAnswer());
         
       }
     } else {

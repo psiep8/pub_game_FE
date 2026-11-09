@@ -181,6 +181,33 @@
 .status-card.waiting { border-top: 10px solid var(--mustard); }
 .status-card.waiting-buzz { border-top: 10px solid var(--mustard); }
 .status-card.active { border-top: 10px solid var(--acid); }
+
+.solution-preview {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  background: var(--paper-hi);
+  color: var(--coal);
+  border: 2px solid var(--coal);
+  box-shadow: 4px 4px 0 var(--tomato);
+  text-align: left;
+}
+.solution-preview .solution-label {
+  display: block;
+  margin-bottom: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+.solution-preview b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 2.4vw, 1.45rem);
+  font-weight: 400;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+  text-transform: uppercase;
+}
 .status-card.ended { border-top: 10px solid var(--mint); }
 
 .hint-box {

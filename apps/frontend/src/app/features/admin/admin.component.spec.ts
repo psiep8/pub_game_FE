@@ -67,6 +67,19 @@ describe('Admin', () => {
     expect(component.showAdminControls()).toBe(true);
   });
 
+  it('should expose the solution before anyone buzzes on a buzz game', async () => {
+    ws.status$.next({
+      action: 'START_VOTING',
+      type: 'IMAGE_BLUR',
+      payload: JSON.stringify({ correctAnswer: 'Sophia Loren' }),
+    });
+    await fixture.whenStable();
+
+    expect(component.solution()).toBe('Sophia Loren');
+    expect(component.correctAnswer()).toBe('Sophia Loren');
+    expect(component.showAdminControls()).toBe(true);
+  });
+
   it('should not show the confirm controls for a voting game', async () => {
     ws.status$.next({
       action: 'START_VOTING',
