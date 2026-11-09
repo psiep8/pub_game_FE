@@ -941,9 +941,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   sendVote(index: number) {
     if (this.paused()) return;
-    this.selectedAnswer.set(index);
     const responseTimeMs = Date.now() - this.startTime;
-    this.ws.sendAnswer(this.gameId(), this.nickname()!, index, responseTimeMs);
+    if (!this.ws.sendAnswer(this.gameId(), this.nickname()!, index, responseTimeMs)) {
+      this.reliability.lastError.set('Risposta non inviata: attendi la riconnessione e riprova.');
+      return;
+    }
+    this.reliability.lastError.set(null);
+    this.selectedAnswer.set(index);
     this.hasAnswered.set(true);
     this.gameState.set(PlayerStatus.LOCKED);
     this.vibrate(50);
@@ -952,7 +956,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
   sendBuzz() {
     if (this.paused()) return;
     const time = Date.now() - this.startTime;
-    this.ws.sendAnswer(this.gameId(), this.nickname()!, -1, time);
+    if (!this.ws.sendAnswer(this.gameId(), this.nickname()!, -1, time)) {
+      this.reliability.lastError.set('Prenotazione non inviata: attendi la riconnessione e riprova.');
+      return;
+    }
+    this.reliability.lastError.set(null);
     this.gameState.set(PlayerStatus.LOCKED);
     this.vibrate([100, 50, 100]);
   }

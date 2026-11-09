@@ -113,6 +113,7 @@
     </div>
   </div>
   <div class="game-content">
+    @if (reliability.lastError(); as error) { <p role="alert">{{ error }}</p> }
     @switch (gameState()) {
     @case ('WAITING') {
     <div class="status-msg">

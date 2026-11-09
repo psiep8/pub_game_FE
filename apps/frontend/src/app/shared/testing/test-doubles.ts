@@ -39,8 +39,9 @@ export class FakeWebSocketService {
     this.subscribedGames.push(gameId);
   }
 
-  sendAnswer(gameId: number, playerName: string, answerIndex: number, responseTimeMs: number): void {
+  sendAnswer(gameId: number, playerName: string, answerIndex: number, responseTimeMs: number): boolean {
     this.publishedAnswers.push({ gameId, playerName, answerIndex, responseTimeMs });
+    return true;
   }
 
   sendScream(gameId: number, playerName: string, intensity: number): void {

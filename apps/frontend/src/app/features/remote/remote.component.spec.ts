@@ -87,6 +87,23 @@ describe('RemoteComponent', () => {
     expect(component.gameState()).toBe('LOCKED');
   });
 
+  it('keeps the phone unlocked when a vote or buzz cannot be sent', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.onStartVoting('QUIZ');
+    vi.spyOn(ws, 'sendAnswer').mockReturnValue(false);
+
+    component.sendVote(2);
+    expect(component.gameState()).toBe('VOTING');
+    expect(component.hasAnswered()).toBe(false);
+    expect(component.selectedAnswer()).toBeNull();
+    expect(reliability.lastError()).toContain('non inviata');
+
+    component.sendBuzz();
+    expect(component.gameState()).toBe('VOTING');
+    expect(reliability.lastError()).toContain('non inviata');
+  });
+
   it('should block only the player named in the error', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();
