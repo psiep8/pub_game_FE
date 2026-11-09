@@ -316,6 +316,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
   private questions: Array<{ question: string; options: string[]; correctIndex: number; category: string }> = [];
   private questionStartedAt = 0;
   private clock?: ReturnType<typeof setInterval>;
+  private questionTimer?: ReturnType<typeof setTimeout>;
   private timers: Array<ReturnType<typeof setTimeout>> = [];
   private rushExpired = false;
   private resultsEmitted = false;
@@ -336,6 +337,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.clearClock();
+    this.clearQuestionTimer();
     this.timers.forEach((timer) => clearTimeout(timer));
     this.timers = [];
   }
@@ -574,6 +576,14 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.questionStartedAt = Date.now();
     if (this.preview) this.seedPreviewAnswers();
     this.publish();
+
+    // La domanda scorre da sola: nessun countdown in TV, ma la rush non si
+    // blocca se un tavolo smette di rispondere.
+    this.clearQuestionTimer();
+    this.questionTimer = setTimeout(
+      () => this.revealQuestion(),
+      this.preview ? 1500 : 7000,
+    );
   }
 
   private expireRush(): void {
@@ -603,6 +613,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
 
   private revealQuestion(final = false): void {
     if (this.phase() !== Phase.QUESTION) return;
+    this.clearQuestionTimer();
 
     const current = this.questions[this.index()];
     if (!current) {
@@ -643,6 +654,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
   private finale(empty: boolean): void {
     if (this.phase() === Phase.FINALE) return;
     this.clearClock();
+    this.clearQuestionTimer();
     this.phase.set(Phase.FINALE);
     this.secondsLeft.set(0);
     this.question.set(null);
@@ -727,5 +739,10 @@ export class CavalloBonus implements OnInit, OnDestroy {
   private clearClock(): void {
     if (this.clock) clearInterval(this.clock);
     this.clock = undefined;
+  }
+
+  private clearQuestionTimer(): void {
+    if (this.questionTimer) clearTimeout(this.questionTimer);
+    this.questionTimer = undefined;
   }
 }
