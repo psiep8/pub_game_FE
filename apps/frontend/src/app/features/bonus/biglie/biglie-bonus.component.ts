@@ -166,7 +166,7 @@ const TRACKS: Track[] = [
 const RACE_POINTS = [150, 100, 60, 30];
 const INTRO_SECONDS = 4;
 const PICK_SECONDS = 10;
-const RACE_SECONDS = 30;
+const RACE_SECONDS = 38;
 const TRACK_START_X = 140;
 const TRACK_WORLD_LENGTH = 3600;
 /** Ostacoli per fondo: cambiano la gara, non solo il colore dell'asfalto. */
@@ -760,8 +760,10 @@ export class BiglieBonus implements OnInit, OnDestroy {
     this.raceMarbles.forEach((marble, index) => {
       const col = index % cols;
       const row = Math.floor(index / cols);
-      const lateral = -half + radius + 7 + col * laneStep;
-      const x = TRACK_START_X + 18 + row * (radius * 2 + 14);
+      // Ogni biglia parte con uno scarto diverso: niente binari identici.
+      const jitter = (this.raceRng() - 0.5) * radius * 0.5;
+      const lateral = -half + radius + 7 + col * laneStep + jitter;
+      const x = TRACK_START_X + 18 + row * (radius * 2 + 14) + (this.raceRng() - 0.5) * 12;
       const body = Bodies.circle(x, lateral, radius, {
         label: `marble-${index}`,
         friction: 0.02,
@@ -1211,9 +1213,11 @@ export class BiglieBonus implements OnInit, OnDestroy {
     const count = this.raceMarbles.length || 4;
     const trackWidth = this.raceTrackWidth(count);
     const room = Math.max(0, this.raceH / 2 - trackWidth / 2 - 28);
-    const amplitude = Math.min(100, room * 0.9);
-    const waves = 3 + Math.floor(rng() * 2);
+    // Ampiezza e frequenza cambiano a ogni gara: curve alte, basse e miste.
+    const amplitude = Math.min(100, room * (0.55 + rng() * 0.4));
+    const waves = 3 + Math.floor(rng() * 3);
     const phase = rng() * Math.PI * 2;
+    const tilt = (rng() - 0.5) * 0.2;
     const samples = 1201;
 
     this.trackSamples = Array.from({ length: samples }, (_, index) => {
@@ -1221,10 +1225,11 @@ export class BiglieBonus implements OnInit, OnDestroy {
       // Partenza e arrivo dritti: le curve cominciano dopo il via.
       const ramp = Math.min(1, p / 0.045, (1 - p) / 0.045);
       const swing = Math.sin(p * Math.PI * 2 * waves + phase);
-      const ripple = 0.08 * Math.sin(p * Math.PI * 2 * (waves * 2 + 1) + phase * 1.7);
+      const ripple = 0.1 * Math.sin(p * Math.PI * 2 * (waves * 2 + 1) + phase * 1.7);
+      const drift = tilt * Math.sin(p * Math.PI);
       return {
         x: TRACK_START_X + TRACK_WORLD_LENGTH * p,
-        y: amplitude * ramp * (swing + ripple),
+        y: amplitude * ramp * (swing + ripple) + drift * amplitude * 0.35,
       };
     });
   }
