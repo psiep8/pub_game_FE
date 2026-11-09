@@ -58,12 +58,6 @@
   </div>
   }
 
-  @if (nickname()) {
-  <div class="conn-shell">
-    <app-connection-badge role="remote"></app-connection-badge>
-  </div>
-  }
-
   @if (!nickname()) {
   <div class="setup-screen">
     <button class="theme-corner" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
@@ -98,7 +92,10 @@
   } @else {
 
   <div class="header">
-    <div class="brand-mini"><span class="brand-dot"></span> PUB GAME</div>
+    <div class="header-round">
+      <span class="header-round-num">ROUND {{ roundNumber() || '—' }}/{{ roundTotal() }}</span>
+      <strong class="header-mode">{{ remoteModeName() }}</strong>
+    </div>
     <div class="player-info">
       @if (avatarPreview()) {
       <img class="player-avatar avatar-photo" [src]="avatarPreview()!" alt="Avatar squadra">
@@ -106,6 +103,9 @@
       <span class="player-avatar">{{ nickname()?.charAt(0) }}</span>
       }
       <b>{{ nickname() }}</b>
+    </div>
+    <div class="header-conn">
+      <app-connection-badge role="remote"></app-connection-badge>
     </div>
     <button class="header-theme-btn" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
       🎨

@@ -224,6 +224,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   categories = signal<any[]>([]);
 
   currentRoundType: string = '';
+  /** Round in corso e totale, come li annuncia la TV a ogni domanda. */
+  roundNumber = signal(0);
+  roundTotal = signal(40);
 
   // ---- Giochi simultanei: stato locale del telefono ----
   timelineCards = signal<Array<{ id: number; label: string }>>([]);
@@ -363,6 +366,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
     this.ws.status$.subscribe((status: any) => {
       if (!status) return;
+
+      if (typeof status.round === 'number' && status.round > 0) {
+        this.roundNumber.set(status.round);
+      }
+      if (typeof status.roundTotal === 'number' && status.roundTotal > 0) {
+        this.roundTotal.set(status.roundTotal);
+      }
 
       switch (status.action) {
         case 'SHOW_QUESTION':
@@ -1590,6 +1600,49 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.vibrate(40);
   }
 
+  /** Nome del gioco in corso: sta nell'intestazione del telefono. */
+  remoteModeName(): string {
+    switch (this.questionType()) {
+      case 'QUIZ':
+        return 'QUIZ';
+      case 'MUSIC':
+        return 'INDOVINA LA CANZONE';
+      case 'WHEEL_OF_FORTUNE':
+        return 'RUOTA DELLA FORTUNA';
+      case 'IMAGE_BLUR':
+        return 'INDOVINA CHI';
+      case 'ARENA':
+        return 'ARENA';
+      case 'TIMELINE':
+        return 'TIMELINE';
+      case 'TIME_BUZZER':
+        return 'TIME BUZZER';
+      case 'BOMBA':
+        return 'BOMBA';
+      case 'SPEED_RUSH':
+        return 'SPEED RUSH';
+      case 'AIR_HOCKEY_BATTLE':
+        return 'AIR HOCKEY';
+      case 'ULTIMA_SPIAGGIA':
+        return 'ULTIMA SPIAGGIA';
+      case 'AZZARDO':
+        return 'AZZARDO';
+      case 'BLACKJACK':
+        return 'BLACK JACK';
+      case 'BONUS_CASINO':
+        return 'BONUS CASINO';
+      case 'BONUS_CAVALLO':
+      case 'CAVALLO':
+        return 'CAVALLO';
+      case 'BONUS_BIGLIE':
+        return 'BIGLIE';
+      case 'BONUS_BASKET':
+        return 'BONUS BASKET';
+      default:
+        return 'IN ATTESA';
+    }
+  }
+
   /** Lettera della risposta scelta, vuota se il giocatore non ha ancora toccato nulla. */
   chosenLetter(): string {
     const index = this.selectedAnswer();
@@ -1757,6 +1810,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const newRound = roundKey !== this.lastSnapshotRoundKey;
     if (newRound) {
       this.lastSnapshotRoundKey = roundKey;
+      const index = Number(round?.roundIndex);
+      if (Number.isFinite(index) && index >= 0) this.roundNumber.set(index + 1);
       this.hasAnswered.set(false);
       this.selectedAnswer.set(null);
       this.isBlocked.set(false);

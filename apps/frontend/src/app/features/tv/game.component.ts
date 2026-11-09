@@ -654,7 +654,9 @@ export class GameComponent implements OnInit, OnDestroy {
         action: WsAction.SHOW_QUESTION,
         type: parsedPayload.type || extractedType,
         payload: payloadString,
-        rawPayload: rawPayloadString
+        rawPayload: rawPayloadString,
+        round: this.roundManager.getCurrentRound(),
+        roundTotal: this.roundManager.getTotalRounds(),
       });
 
 
@@ -670,7 +672,9 @@ export class GameComponent implements OnInit, OnDestroy {
         action: WsAction.START_VOTING,
         type: parsedPayload.type || extractedType,
         payload: payloadString,
-        rawPayload: rawPayloadString
+        rawPayload: rawPayloadString,
+        round: this.roundManager.getCurrentRound(),
+        roundTotal: this.roundManager.getTotalRounds(),
       });
 
       this.isSpinning.set(false);
