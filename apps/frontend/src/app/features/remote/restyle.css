@@ -908,3 +908,24 @@
   letter-spacing: 0.06em;
   text-align: center;
 }
+
+/* Speed Rush: risposte grandi e a tutta altezza, leggibili a 360px. */
+.speed-remote { height: 100%; min-height: 0; }
+.speed-remote .speed-prompt { flex: 0 0 auto; }
+.speed-remote .speed-question { font-size: clamp(1.45rem, 6.4vw, 2.1rem); }
+.speed-remote .speed-options {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  gap: 8px;
+}
+.speed-remote .speed-options.three { grid-template-columns: 1fr; }
+.speed-remote .speed-options .emoji-btn,
+.speed-remote .speed-options .speed-color {
+  flex: 1 1 0;
+  min-height: 64px;
+  font-size: clamp(1.25rem, 6vw, 1.9rem);
+}
+.speed-remote .speed-color { font-size: clamp(1rem, 4.6vw, 1.3rem); }
