@@ -1,5 +1,6 @@
 import { GamePhase } from '../../shared/enums/game-phase';
 import { WsAction } from '../../shared/enums/ws-action';
+import * as QRCode from 'qrcode';
 
 
 import {
@@ -234,10 +235,21 @@ export class GameComponent implements OnInit, OnDestroy {
     'AZZARDO',
   ]);
 
-  remoteUrl = `${environment.frontendUrl}/play`;
+  /**
+   * Link ai telefoni: contiene l'ID della partita aperta, così un QR vecchio
+   * o una seconda TV non portano i giocatori nella serata sbagliata.
+   */
+  readonly remoteUrl = computed(() => {
+    const gameId = this.currentGameId();
+    return `${environment.frontendUrl}/play${gameId > 0 ? `?game=${gameId}` : ''}`;
+  });
 
-  // 🔥 [ROLLBACK] QR Code statico che punta a /play senza parametri
-  qrCodeUrl = signal(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(this.remoteUrl)}&bgcolor=ffffff&color=1a1a2e&margin=10&qzone=1`);
+  /**
+   * QR generato in locale: nessun servizio esterno, quindi la serata funziona
+   * anche senza internet. Il template mostra l'URL in chiaro come ripiego.
+   */
+  qrCodeUrl = signal<string>('');
+  private lastQrUrl = '';
 
   private audioAllowed = false;
   private displayDataInterval?: ReturnType<typeof setInterval>;
@@ -263,6 +275,12 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   constructor() {
+    // Rigenera il QR quando cambia la partita (prima apertura o recupero).
+    effect(() => {
+      this.currentGameId();
+      void this.refreshQrCode();
+    });
+
     // Tick e bong dei countdown: toni brevi, così non coprono musica e voce.
     effect(() => {
       const t = this.timer();
@@ -474,6 +492,26 @@ export class GameComponent implements OnInit, OnDestroy {
 
     this.audioService.stopAll();
     this.audioService.stopAmbient();
+  }
+
+  /** Rigenera il QR in locale: nessuna chiamata a servizi esterni. */
+  private async refreshQrCode(): Promise<void> {
+    const url = this.remoteUrl();
+    if (url === this.lastQrUrl) return;
+    this.lastQrUrl = url;
+    try {
+      const dataUrl = await QRCode.toDataURL(url, {
+        width: 250,
+        margin: 2,
+        errorCorrectionLevel: 'M',
+        color: { dark: '#15150f', light: '#ffffff' },
+      });
+      this.qrCodeUrl.set(dataUrl);
+    } catch (error) {
+      // Canvas non disponibile: il template mostra l'URL in chiaro.
+      console.warn('QR non generato', error);
+      this.qrCodeUrl.set('');
+    }
   }
 
   async openLobby(): Promise<void> {
@@ -1751,7 +1789,7 @@ export class GameComponent implements OnInit, OnDestroy {
     const gameId = this.currentGameId();
     if (!gameId) return;
     try {
-      await firstValueFrom(this.gameService.saveLeaderboard(gameId, entries));
+      await firstValueFrom(this.gameService.saveLeaderboard(gameId, entries.map(e => ({ playerName: e.playerName, totalPoints: e.totalPoints }))));
       this.leaderboardSavedSeq = Math.max(this.leaderboardSavedSeq, seq);
     } catch {
       if (attempt < 2) {

@@ -327,6 +327,37 @@ export class RemoteComponent implements OnInit, OnDestroy {
   isScreaming = signal(false);
   microphoneError = signal<string | null>(null);
 
+  /** Partita indicata dal QR o già aperta su questo telefono. */
+  private initialGameId(): number {
+    const fromQuery = Number(new URLSearchParams(window.location.search).get('game'));
+    if (Number.isFinite(fromQuery) && fromQuery > 0) return fromQuery;
+    const stored = Number(localStorage.getItem('activeGameId'));
+    if (Number.isFinite(stored) && stored > 0) return stored;
+    return 1;
+  }
+
+  /**
+   * Senza `?game=` il telefono chiede al server quale serata è aperta, così
+   * non resta agganciato alla partita di una sera precedente.
+   */
+  private async adoptActiveGame(): Promise<void> {
+    if (new URLSearchParams(window.location.search).get('game')) return;
+    try {
+      const active = await firstValueFrom(this.gameService.getActiveGame());
+      const gameId = Number(active?.gameId);
+      if (!Number.isFinite(gameId) || gameId <= 0 || gameId === this.gameId()) return;
+      this.gameId.set(gameId);
+      localStorage.setItem('activeGameId', String(gameId));
+      const name = this.nickname();
+      if (!name) return;
+      if (await this.reliability.start(gameId, 'REMOTE', name)) {
+        this.ws.broadcastStatus(gameId, { action: WsAction.JOIN_GAME, playerName: name });
+      }
+    } catch {
+      // Server non raggiungibile: resta l'ID del QR o dello storage.
+    }
+  }
+
   getBasketUrl(): string {
     return '/basket?player=' + encodeURIComponent(this.nickname() ?? '');
   }
@@ -336,9 +367,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.setupPWA();
     this.checkForUpdates();
 
-    // 🔥 [ROLLBACK] ID fisso 1 per stabilità
-    this.gameId.set(1);
-    console.log('🎮 [ROLLBACK] Remote ID forzato a 1');
+    // L'ID arriva dal QR (`/play?game=12`), poi dallo storage del telefono;
+    // senza nessuno dei due si chiede al server quale serata è aperta.
+    this.gameId.set(this.initialGameId());
+    localStorage.setItem('activeGameId', String(this.gameId()));
+    console.log('🎮 Remote collegato alla partita', this.gameId());
 
     // Sessione + heartbeat: al riaggancio il telefono riprende la stessa
     // squadra e richiede lo stato autorevole, senza ricaricare la pagina.
@@ -349,10 +382,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (storedName) {
       this.tempNickname = storedName;
       this.nickname.set(null);
-      void this.reliability.start(1, 'REMOTE', storedName).then((ok) => {
+      void this.reliability.start(this.gameId(), 'REMOTE', storedName).then((ok) => {
         if (ok) this.nickname.set(storedName);
       });
     }
+    void this.adoptActiveGame();
 
     this.gameService.getCategories().subscribe({
       next: (cats) => {
@@ -365,7 +399,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.avatarPreview.set(this.playerAvatars.avatarFor(this.nickname()!));
       setTimeout(() => {
         if (this.ws.connected()) {
-          this.ws.broadcastStatus(1, { action: WsAction.JOIN_GAME, playerName: this.nickname() });
+          this.ws.broadcastStatus(this.gameId(), { action: WsAction.JOIN_GAME, playerName: this.nickname() });
           this.playerAvatars.publish(this.nickname()!, this.gameId());
         }
       }, 2000);

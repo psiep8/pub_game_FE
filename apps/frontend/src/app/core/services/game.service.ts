@@ -91,6 +91,16 @@ export class GameService {
     return this.http.post<any>(`${this.baseUrl}/games`, {});
   }
 
+  /** Partita in corso sul server: serve a una TV nuova per riagganciarsi. */
+  getActiveGame(): Observable<{ gameId: number | null }> {
+    return this.http.get<{ gameId: number | null }>(`${this.baseUrl}/games/active`);
+  }
+
+  /** Classifica completa calcolata dalla TV: il server la conserva per il recupero. */
+  saveLeaderboard(gameId: number, entries: Array<Record<string, unknown>>): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/games/${gameId}/leaderboard`, { entries });
+  }
+
 
   getNextRound(gameId: number): Observable<GameRound> {
     return this.http.post<any>(`${this.baseUrl}/games/${gameId}/round`, {}).pipe(

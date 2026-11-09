@@ -20,7 +20,11 @@
       <div class="qr-section">
         @if (currentGameId()) {
         <div class="qr-label">📱 SCANSIONA PER GIOCARE</div>
+        @if (qrCodeUrl()) {
         <img [src]="qrCodeUrl()" alt="QR Code per giocare" class="qr-code">
+        } @else {
+        <div class="qr-code qr-url">{{ remoteUrl() }}</div>
+        }
         <p>Inquadra il QR con la camera</p>
         <div class="game-id-badge">PARTITA #{{ currentGameId() }}</div>
         } @else {
@@ -389,14 +393,12 @@
         }
         <button class="recovery-panel-btn recovery-panel-btn-close" (click)="closeRecoveredRound()">Chiudi round</button>
       </div>
-    </div>
-  </div>
-  }
+    </div>  </div>
 }
 
 @if (revealPending()) {
-<div class="reveal-suspense" role="status">
-  <div class="reveal-suspense-ring"></div>
-  <span class="reveal-suspense-text">RULLO DI TAMBURI…</span>
-</div>
+  <div class="reveal-suspense" role="status">
+    <div class="reveal-suspense-ring"></div>
+    <span class="reveal-suspense-text">RULLO DI TAMBURI…</span>
+  </div>
 }

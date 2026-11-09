@@ -340,6 +340,27 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
+/* Ripiego senza canvas: URL leggibile con la stessa carta e inchiostro. */
+.central-action.full-screen .qr-section .qr-url {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 250px;
+  height: auto;
+  min-height: 120px;
+  padding: 14px;
+  background: var(--paper-hi);
+  color: var(--coal);
+  border: 3px solid var(--coal);
+  box-shadow: 6px 6px 0 var(--coal);
+  border-radius: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  text-align: center;
+  word-break: break-all;
+}
+
 .central-action.full-screen .qr-section p {
   color: #555;
   font-size: 1.1rem;

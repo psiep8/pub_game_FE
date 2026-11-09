@@ -10,9 +10,13 @@ export interface PlayerScore {
 
 const STORAGE_KEY = 'leaderboard';
 
+/** Callback con cui la TV salva la classifica sul server dopo ogni variazione. */
+export type LeaderboardPersistence = (entries: PlayerScore[]) => void;
+
 @Injectable({ providedIn: 'root' })
 export class LeaderboardService {
   private players = signal<Map<string, PlayerScore>>(new Map());
+  private persistence: LeaderboardPersistence | null = null;
 
   constructor() {
     this.loadScores();
@@ -42,10 +46,45 @@ export class LeaderboardService {
 
     this.players.set(this.withPositions(players));
     this.saveScores();
+    this.persistence?.(this.getLeaderboard());
   }
 
   getLeaderboard(): PlayerScore[] {
     return Array.from(this.players().values()).sort((a, b) => b.totalPoints - a.totalPoints);
+  }
+
+  /** Fotografia della classifica da inviare al server. */
+  entries(): PlayerScore[] {
+    return this.getLeaderboard();
+  }
+
+  /**
+   * Sostituisce la classifica con quella autorevole del server.
+   *
+   * <p>La usa la TV appena si collega: dopo un refresh o da un altro
+   * dispositivo i punti non ripartono da zero. Non richiama la persistenza,
+   * altrimenti l'idratazione riscriverebbe subito ciò che ha appena letto.</p>
+   */
+  replaceAll(entries: Array<Partial<PlayerScore>> | null | undefined): void {
+    const players = new Map<string, PlayerScore>();
+    for (const entry of entries ?? []) {
+      const playerName = String(entry?.playerName ?? '').trim();
+      if (!playerName) continue;
+      players.set(playerName, {
+        playerName,
+        totalPoints: Number(entry.totalPoints) || 0,
+        correctAnswers: Number(entry.correctAnswers) || 0,
+        wrongAnswers: Number(entry.wrongAnswers) || 0,
+        position: 0,
+      });
+    }
+    this.players.set(this.withPositions(players));
+    this.saveScores();
+  }
+
+  /** Registra (o rimuove) il salvataggio server della classifica. */
+  setPersistence(sink: LeaderboardPersistence | null): void {
+    this.persistence = sink;
   }
 
   getTop3(): PlayerScore[] {
@@ -63,6 +102,7 @@ export class LeaderboardService {
   reset(): void {
     this.players.set(new Map());
     localStorage.removeItem(STORAGE_KEY);
+    this.persistence?.([]);
   }
 
   getStats() {

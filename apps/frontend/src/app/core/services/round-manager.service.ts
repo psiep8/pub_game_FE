@@ -143,6 +143,31 @@ export class RoundManagerService {
     return round > 0 && round % 8 === 0;
   }
 
+  /**
+   * Ricostruisce l'avanzamento dallo stato autorevole del server.
+   *
+   * <p>Il server conosce l'indice dell'ultimo round aperto; la scaletta è
+   * deterministica, quindi le modalità già giocate si ricavano dai mazzi. Una
+   * TV nuova o un browser ripulito ripartono dallo stesso punto della serata.</p>
+   */
+  restoreRound(roundNumber: number): void {
+    const target = Math.max(0, Math.min(TOTAL_ROUNDS, Math.trunc(roundNumber) || 0));
+    const completedRounds: GameModeType[] = [];
+    for (let index = 0; index < target; index++) {
+      const act = Math.min(ACT_DECKS.length - 1, Math.floor(index / 8));
+      const deck = ACT_DECKS[act];
+      completedRounds.push(deck[index % deck.length]);
+    }
+
+    this.roundConfig.set({
+      totalRounds: TOTAL_ROUNDS,
+      currentRound: target,
+      completedRounds,
+      nextRoundType: null,
+    });
+    this.saveProgress();
+  }
+
   resetGame(): void {
     this.roundConfig.set({
       totalRounds: TOTAL_ROUNDS,

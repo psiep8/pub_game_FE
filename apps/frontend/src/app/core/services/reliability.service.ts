@@ -52,6 +52,12 @@ export class ReliabilityService {
   private started = false;
   private listening = false;
   private seenEvents = new Set<string>();
+  /**
+   * Segreto di regia già inserito in questa scheda. La TV può cambiare
+   * partita (recupero su un altro dispositivo): senza cache l'operatore
+   * dovrebbe digitarlo due volte.
+   */
+  private controlSecret: string | null = null;
 
   /** Avvia sessione e heartbeat per questo dispositivo (idempotente). */
   async start(gameId: number, role: DeviceRole, playerName = ''): Promise<boolean> {
@@ -125,7 +131,8 @@ export class ReliabilityService {
     try {
       const token = this.sessionToken() ?? this.storedToken();
       const controlSecret = !token && this.role !== 'REMOTE'
-        ? window.prompt('Inserisci il segreto di regia') : null;
+        ? (this.controlSecret ??= window.prompt('Inserisci il segreto di regia'))
+        : null;
       if (!token && this.role !== 'REMOTE' && !controlSecret) return false;
       const response = await firstValueFrom(
         this.http.post<any>(`${this.baseUrl}/games/${this.gameId}/session`, {
@@ -158,6 +165,10 @@ export class ReliabilityService {
         this.persistToken(null);
         this.sessionToken.set(null);
         return this.ensureSession();
+      }
+      if (status === 401) {
+        // Il segreto salvato non è più valido: il prossimo tentativo lo richiede.
+        this.controlSecret = null;
       }
       this.online.set(false);
       this.lastError.set(status === 409 ? 'Nome squadra già utilizzato' : 'Sessione non disponibile');

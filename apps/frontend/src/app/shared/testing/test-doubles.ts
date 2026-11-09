@@ -79,6 +79,10 @@ export class FakeGameService {
     return of(this.categories);
   }
 
+  getActiveGame(): Observable<{ gameId: number | null }> {
+    return of({ gameId: 1 });
+  }
+
   createGame(): Observable<any> {
     return of({ id: 1 });
   }

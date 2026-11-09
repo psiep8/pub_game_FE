@@ -34,6 +34,17 @@ export class TimelineMode extends GameModeBase {
     await this.runPreGameSequence(4000);
   }
 
+  /**
+   * Ripresa dopo un refresh della TV: le carte sono nel payload del round,
+   * quindi si riaprono le stesse e il timer riparte dal tempo rimasto sul
+   * server. Il reveal rilegge gli esiti dal backend, perciò i punti delle
+   * squadre arrivate mentre la TV era offline non si perdono.
+   */
+  restore(secondsLeft: number): void {
+    this.timer.set(Math.max(0, Math.round(Number(secondsLeft) || 0)));
+    this.startTimer();
+  }
+
   protected onPause(): void {}
   protected onResume(): void {}
 
