@@ -367,6 +367,33 @@
 
 </div>
 
+@if (phase() === 'IDLE' && recoveredRound() && !bonusActive() && !currentMode() && !isSpinning()) {
+  <div class="recovery-panel" role="region" aria-label="Recupero round">
+    <div class="recovery-panel-bg"></div>
+    <div class="recovery-panel-inner">
+      <div class="recovery-panel-header">
+        <div class="recovery-panel-title">Round ripristinabile</div>
+        <button class="recovery-panel-close" (click)="recoveredRound.set(null)" aria-label="Chiudi pannello">✕</button>
+      </div>
+      <div class="recovery-panel-body">
+        <p class="recovery-panel-description">Un round è ancora aperto sul server. Vuoi riprendere da dove si è interrotto?</p>
+        <div class="recovery-panel-mode">
+          <span class="recovery-panel-mode-icon">{{ getModeName(recoveredRound()!.type) }}</span>
+          <span class="recovery-panel-mode-label">{{ recoveredRound()!.label }}</span>
+        </div>
+        <p class="recovery-panel-timer">Tempo restante: {{ recoveredRound()!.secondsLeft }}s</p>
+      </div>
+      <div class="recovery-panel-actions">
+        @if (recoveredRound()!.resumable) {
+        <button class="recovery-panel-btn recovery-panel-btn-resume" (click)="resumeRecoveredRound()">Riprendi</button>
+        }
+        <button class="recovery-panel-btn recovery-panel-btn-close" (click)="closeRecoveredRound()">Chiudi round</button>
+      </div>
+    </div>
+  </div>
+  }
+}
+
 @if (revealPending()) {
 <div class="reveal-suspense" role="status">
   <div class="reveal-suspense-ring"></div>
