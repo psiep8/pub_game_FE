@@ -375,6 +375,23 @@
 
 /* ------------------------------------------------------- Risposte quiz */
 .voting-grid { gap: 10px; }
+/* Quiz: quattro tasti che riempiono lo schermo, senza spazi morti. */
+.voting-grid.quiz-grid {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: clamp(10px, 2.4vh, 18px);
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  padding: 0;
+}
+.voting-grid.quiz-grid .vote-btn {
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  padding: clamp(10px, 2vh, 18px);
+  font-size: clamp(2.4rem, 17vw, 4rem);
+}
 .vote-btn {
   min-height: clamp(94px, 17vh, 148px);
   background: var(--paper-hi);

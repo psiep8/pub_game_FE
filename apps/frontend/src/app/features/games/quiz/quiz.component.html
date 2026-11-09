@@ -27,11 +27,18 @@
 
   @if (displayData.revealed) {
     <div class="quiz-solution">
+      <div class="quiz-solution-head">RIEPILOGO · {{ displayData.solution?.length || 0 }} MANCHE</div>
       @for (row of displayData.solution; track row.question; let i = $index) {
         <div class="quiz-solution-row">
           <span class="quiz-solution-num">{{ i + 1 }}</span>
           <span class="quiz-solution-question">{{ row.question }}</span>
           <span class="quiz-solution-answer">{{ row.correctAnswer }}</span>
+        </div>
+      } @empty {
+        <div class="quiz-solution-row">
+          <span class="quiz-solution-num">—</span>
+          <span class="quiz-solution-question">Nessuna manche giocata</span>
+          <span class="quiz-solution-answer">—</span>
         </div>
       }
     </div>

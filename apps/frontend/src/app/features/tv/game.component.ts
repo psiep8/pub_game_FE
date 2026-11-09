@@ -159,6 +159,22 @@ export class GameComponent implements OnInit, OnDestroy {
   });
 
   /**
+   * Nastro della slot: cinque categorie di passaggio e quella estratta in
+   * fondo, così il reveal sembra una slot che si ferma sul risultato.
+   */
+  slotNames = computed(() => {
+    const chosen = this.categoryName() || 'CATEGORIA';
+    const pool = this.bubbleCategories()
+      .map((category) => String(category.name ?? ''))
+      .filter((name) => name.length > 0 && name !== chosen);
+    const picks: string[] = [];
+    for (let index = 0; index < 5; index++) {
+      picks.push(pool.length > 0 ? pool[(index * 5 + 3) % pool.length] : '—');
+    }
+    return [...picks, chosen];
+  });
+
+  /**
    * Bolle mostrate prima della domanda: la Timeline pesca solo nelle categorie
    * abilitate al gioco, le altre modalità usano tutto il tabellone.
    */
@@ -632,11 +648,11 @@ export class GameComponent implements OnInit, OnDestroy {
         this.animatedCategoryId.set(bubblePool[randomIndex].id);
 
         this.phase.set('SPINNING');
-        await new Promise(r => setTimeout(r, 5000));
+        await new Promise(r => setTimeout(r, 2200));
 
         this.phase.set('SELECTED');
         this.animatedCategoryId.set(this.selectedCategoryId());
-        await new Promise(r => setTimeout(r, 5000));
+        await new Promise(r => setTimeout(r, 1900));
       }
 
       this.phase.set('QUESTION');

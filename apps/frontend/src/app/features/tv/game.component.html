@@ -70,7 +70,19 @@
 
   @if (currentMode(); as mode) {
   @if (mode.requiresBubbles && !showTypeReveal() && phase() !== 'IDLE' && !showQuestion()) {
-  <div class="bubbles-area">
+  @if (phase() === 'SELECTED') {
+  <div class="category-slot">
+    <div class="slot-kicker">🎯 CATEGORIA ESTRATTA</div>
+    <div class="slot-window">
+      <div class="slot-track">
+        @for (name of slotNames(); track $index) {
+        <span class="slot-name">{{ name }}</span>
+        }
+      </div>
+    </div>
+  </div>
+  }
+  <div class="bubbles-area" [class.reel-out]="phase() === 'SELECTED'">
     @for (cat of bubbleCategories(); track cat.id) {
     <div class="category-bubble" [style.top]="cat.top" [style.left]="cat.left"
       [style.--cat-accent]="cat.color || '#ffd700'"

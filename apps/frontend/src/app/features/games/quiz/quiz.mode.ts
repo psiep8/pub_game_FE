@@ -14,6 +14,8 @@ interface QuizManche {
 const MANCHES = 3;
 const MANCHE_SECONDS = 10;
 const REVEAL_SECONDS = 3;
+/** Tempo di suspense tra fine manche e comparsa della soluzione. */
+const REVEAL_SUSPENSE_MS = 1700;
 
 /**
  * Quiz — tre manches da dieci secondi.
@@ -40,6 +42,7 @@ export class QuizMode extends GameModeBase {
 
   private clock?: ReturnType<typeof setInterval>;
   private advanceHandle?: ReturnType<typeof setTimeout>;
+  private revealPending = false;
 
   protected onInitialize(): void {
     this.questions = this.readQuestions();
@@ -169,7 +172,7 @@ export class QuizMode extends GameModeBase {
   }
 
   private revealManche(): void {
-    if (this.finished() || this.mancheReveal()) return;
+    if (this.finished() || this.mancheReveal() || this.revealPending) return;
     this.clearClock();
 
     const current = this.questions[this.mancheIndex()];
@@ -178,19 +181,27 @@ export class QuizMode extends GameModeBase {
       return;
     }
 
-    this.mancheReveal.set(current);
-    this.config.onBroadcast?.({
-      action: WsAction.QUIZ_STATE,
-      state: this.getDisplayData(),
-    });
-
+    // La TV dice che il tempo è scaduto, la soluzione arriva dopo: il
+    // presentatore ha lo spazio per commentare.
+    this.revealPending = true;
     this.advanceHandle = setTimeout(() => {
-      if (this.mancheIndex() + 1 >= this.questions.length) {
-        this.finish();
-      } else {
-        this.startManche(this.mancheIndex() + 1);
-      }
-    }, REVEAL_SECONDS * 1000);
+      this.revealPending = false;
+      if (this.finished()) return;
+
+      this.mancheReveal.set(current);
+      this.config.onBroadcast?.({
+        action: WsAction.QUIZ_STATE,
+        state: this.getDisplayData(),
+      });
+
+      this.advanceHandle = setTimeout(() => {
+        if (this.mancheIndex() + 1 >= this.questions.length) {
+          this.finish();
+        } else {
+          this.startManche(this.mancheIndex() + 1);
+        }
+      }, REVEAL_SECONDS * 1000);
+    }, REVEAL_SUSPENSE_MS);
   }
 
   private finish(): void {
@@ -219,6 +230,7 @@ export class QuizMode extends GameModeBase {
     this.clearClock();
     if (this.advanceHandle) clearTimeout(this.advanceHandle);
     this.advanceHandle = undefined;
+    this.revealPending = false;
   }
 
   getDisplayData(): any {
