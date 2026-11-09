@@ -27,7 +27,7 @@ import { WebSocketService } from '../../core/websocket/web-socket.service';
 import { AiGeneratorService } from '../../core/services/ai-generator-service';
 import { GameModeService } from '../../core/services/game-mode-factory.service';
 import { RoundManagerService } from '../../core/services/round-manager.service';
-import { LeaderboardService } from '../../core/services/leaderboard.service';
+import { LeaderboardService, PlayerScore } from '../../core/services/leaderboard.service';
 import { AudioService } from '../../core/services/audio.service';
 import { PlayerAvatarService } from '../../core/services/player-avatar.service';
 import { ThemeService } from '../../core/services/theme.service';
@@ -39,7 +39,7 @@ import { Quiz } from '../games/quiz/quiz.component';
 import { WheelFortune } from '../games/wheel-fortune/wheel-fortune.component';
 import { Song } from '../games/song/song.component';
 import { environment } from '../../core/environment/environment';
-import { GameModeType, IGameMode } from '../../shared/models/game-mode-type';
+import { GameModeConfig, GameModeType, IGameMode } from '../../shared/models/game-mode-type';
 import { LeaderboardQuick } from './leaderboard/leaderboard-quick-component/leaderboard-quick.component';
 import { LeaderboardDetailed } from './leaderboard/leaderboard-detailed-component/leaderboard-detailed.component';
 import { ArenaComponent } from '../games/arena/arena.component';
@@ -156,6 +156,23 @@ export class GameComponent implements OnInit, OnDestroy {
 
   readonly reliability = inject(ReliabilityService);
   currentGameId = signal<number>(1);
+
+  /**
+   * Round rimasto aperto sul server quando la TV si collega (refresh o altro
+   * dispositivo). Non si riapre da soli: le fasi interne dei giochi vivono in
+   * TV, quindi il presentatore sceglie se riprendere o chiudere.
+   */
+  readonly recoveredRound = signal<{
+    type: GameModeType;
+    label: string;
+    secondsLeft: number;
+    resumable: boolean;
+  } | null>(null);
+  private recoveredPayload: any = null;
+  private leaderboardFlush?: ReturnType<typeof setTimeout>;
+  /** Ultima variazione locale e ultima confermata dal server. */
+  private leaderboardPendingSeq = 0;
+  private leaderboardSavedSeq = 0;
 
   categoryName = computed(() => {
     const id = this.selectedCategoryId();
@@ -285,7 +302,21 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    if (!await this.reliability.start(this.currentGameId() ?? 1, 'TV')) return;
+    // La partita non è più solo quella dell'ultimo browser: si riparte
+    // dall'ID salvato e si chiede al server quale serata è in corso.
+    const storedGameId = Number(localStorage.getItem('activeGameId')) || this.currentGameId() || 1;
+    this.currentGameId.set(storedGameId);
+    this.ws.subscribeToGame(storedGameId);
+
+    // Iscrizione prima di start(): il primo sync può concludersi mentre la
+    // sessione si apre e la classifica non deve andare persa.
+    this.reliability.syncState$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((snapshot: any) => this.applyAuthoritativeState(snapshot));
+
+    if (!await this.reliability.start(storedGameId, 'TV')) return;
+    await this.adoptActiveGame();
+    this.bindLeaderboardPersistence();
     this.playerAvatars.connect(this.ws);
     try {
       const cats = await firstValueFrom(this.gameService.getCategories());
@@ -569,93 +600,9 @@ export class GameComponent implements OnInit, OnDestroy {
         // Senza diagnostica si gioca con la classifica: meglio che niente.
       }
 
-      const mode = this.gameModeService.createMode({
-        type: parsedPayload.type || extractedType,
-        payload: parsedPayload,
-        gameId: this.currentGameId()!,
-        onTimerTick: (seconds) => this.timer.set(seconds),
-        onTimerEnd: () => this.onModeTimeout(),
-        onBuzz: (playerName) => this.onPlayerBuzz(playerName),
-        activePlayers: activePlayers,
-        onCountdownTick: (seconds) => this.onCountdownTick(seconds),
-        onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
-        onRoundEnded: () => this.onArenaEnded(),
-        onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!, event),
-        onUltimaSpiaggiaLevel: (playerName: string, level: number) => {
-          // Il livello è consumato per tutta la partita, non solo per la manche:
-          // la prossima occorrenza lo legge dal backend e non lo ripropone.
-          this.gameService.recordUltimaSpiaggiaLevel(this.currentGameId()!, playerName, level)
-            .subscribe({
-              error: (err) => console.error('❌ Registrazione livello Ultima spiaggia:', err),
-            });
-        },
-        playerPoints: (playerName: string) =>
-          this.leaderboardService.getPlayerStats(playerName)?.totalPoints ?? 0,
-        startTimeBuzzer: (manche: number) => new Promise<number | null>((resolve) => {
-          // Il via ai telefoni lo manda il backend, non la TV: così è lui a
-          // sapere da quando parte il cronometro e può validare i tempi.
-          this.gameService.startTimeBuzzer(this.currentGameId()!, manche).subscribe({
-            next: (res) => resolve(Number(res?.startedAt) || null),
-            error: () => resolve(null),
-          });
-        }),
-        loadAirHockeyQuestions: async (difficulty: string) => {
-          const rows = await firstValueFrom(
-            this.gameService.getAirHockeyQuestions(this.currentGameId()!, difficulty, 12),
-          );
-          return rows.map((row) => ({
-            text: row.question,
-            options: row.options,
-            correctIndex: Math.max(0, row.options.indexOf(row.correctAnswer)),
-            difficulty: (row.difficulty === 'MEDIUM' || row.difficulty === 'HARD'
-              ? row.difficulty
-              : 'EASY') as 'EASY' | 'MEDIUM' | 'HARD',
-          }));
-        },
-        bomba: {
-          start: (players: string[], act: number) => firstValueFrom(
-            this.gameService.startBomba(this.currentGameId()!, players, act),
-          ),
-          state: (player?: string) => firstValueFrom(
-            this.gameService.getBombaState(this.currentGameId()!, player),
-          ),
-          pick: (playerName: string, cellId: number) => firstValueFrom(
-            this.gameService.pickBomba(this.currentGameId()!, playerName, cellId),
-          ),
-          pause: () => firstValueFrom(this.gameService.pauseBomba(this.currentGameId()!)),
-          resume: () => firstValueFrom(this.gameService.resumeBomba(this.currentGameId()!)),
-          reset: () => firstValueFrom(this.gameService.resetBomba(this.currentGameId()!)),
-        },
-        onAnswerReceived: (result: any) => {
-
-          if (result && result.playerName) {
-
-
-            const points = result.points || 0;
-            const isCorrect = !!result.isCorrect;
-
-            // Durante un bonus i punti del round non contano: si classifica
-            // il risultato del bonus e si premiano solo i primi tre.
-            if (this.bonusActive()) {
-              this.recordBonusResult(result.playerName, isCorrect ? 1 : 0);
-              return;
-            }
-
-
-            this.leaderboardService.addPoints(result.playerName, points, isCorrect);
-
-
-            this.ws.responses.update(list => {
-              return list.map(r => {
-                if (r.playerName === result.playerName) {
-                  return { ...r, points: points };
-                }
-                return r;
-              });
-            });
-          }
-        }
-      });
+      const mode = this.gameModeService.createMode(
+        this.buildModeConfig(parsedPayload.type || extractedType, parsedPayload, activePlayers),
+      );
 
       this.currentMode.set(mode);
 
@@ -720,6 +667,101 @@ export class GameComponent implements OnInit, OnDestroy {
       this.audioService.stopClock();
       this.audioService.stopSuspense();
     }
+  }
+
+
+  /**
+   * Configurazione comune a un round: la usano sia l'apertura normale sia la
+   * ripresa dopo un refresh, così i due percorsi non possono divergere.
+   */
+  private buildModeConfig(type: GameModeType, payload: any, activePlayers: string[]): GameModeConfig {
+    return {
+      type,
+      payload,
+      gameId: this.currentGameId() ?? 1,
+      onTimerTick: (seconds) => this.timer.set(seconds),
+      onTimerEnd: () => this.onModeTimeout(),
+      onBuzz: (playerName) => this.onPlayerBuzz(playerName),
+      activePlayers: activePlayers,
+      onCountdownTick: (seconds) => this.onCountdownTick(seconds),
+      onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
+      onRoundEnded: () => this.onArenaEnded(),
+      onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!, event),
+      onUltimaSpiaggiaLevel: (playerName: string, level: number) => {
+        // Il livello è consumato per tutta la partita, non solo per la manche:
+        // la prossima occorrenza lo legge dal backend e non lo ripropone.
+        this.gameService.recordUltimaSpiaggiaLevel(this.currentGameId()!, playerName, level)
+          .subscribe({
+            error: (err) => console.error('❌ Registrazione livello Ultima spiaggia:', err),
+          });
+      },
+      playerPoints: (playerName: string) =>
+        this.leaderboardService.getPlayerStats(playerName)?.totalPoints ?? 0,
+      startTimeBuzzer: (manche: number) => new Promise<number | null>((resolve) => {
+        // Il via ai telefoni lo manda il backend, non la TV: così è lui a
+        // sapere da quando parte il cronometro e può validare i tempi.
+        this.gameService.startTimeBuzzer(this.currentGameId()!, manche).subscribe({
+          next: (res) => resolve(Number(res?.startedAt) || null),
+          error: () => resolve(null),
+        });
+      }),
+      loadAirHockeyQuestions: async (difficulty: string) => {
+        const rows = await firstValueFrom(
+          this.gameService.getAirHockeyQuestions(this.currentGameId()!, difficulty, 12),
+        );
+        return rows.map((row) => ({
+          text: row.question,
+          options: row.options,
+          correctIndex: Math.max(0, row.options.indexOf(row.correctAnswer)),
+          difficulty: (row.difficulty === 'MEDIUM' || row.difficulty === 'HARD'
+            ? row.difficulty
+            : 'EASY') as 'EASY' | 'MEDIUM' | 'HARD',
+        }));
+      },
+      bomba: {
+        start: (players: string[], act: number) => firstValueFrom(
+          this.gameService.startBomba(this.currentGameId()!, players, act),
+        ),
+        state: (player?: string) => firstValueFrom(
+          this.gameService.getBombaState(this.currentGameId()!, player),
+        ),
+        pick: (playerName: string, cellId: number) => firstValueFrom(
+          this.gameService.pickBomba(this.currentGameId()!, playerName, cellId),
+        ),
+        pause: () => firstValueFrom(this.gameService.pauseBomba(this.currentGameId()!)),
+        resume: () => firstValueFrom(this.gameService.resumeBomba(this.currentGameId()!)),
+        reset: () => firstValueFrom(this.gameService.resetBomba(this.currentGameId()!)),
+      },
+      onAnswerReceived: (result: any) => {
+
+        if (result && result.playerName) {
+
+
+          const points = result.points || 0;
+          const isCorrect = !!result.isCorrect;
+
+          // Durante un bonus i punti del round non contano: si classifica
+          // il risultato del bonus e si premiano solo i primi tre.
+          if (this.bonusActive()) {
+            this.recordBonusResult(result.playerName, isCorrect ? 1 : 0);
+            return;
+          }
+
+
+          this.leaderboardService.addPoints(result.playerName, points, isCorrect);
+
+
+          this.ws.responses.update(list => {
+            return list.map(r => {
+              if (r.playerName === result.playerName) {
+                return { ...r, points: points };
+              }
+              return r;
+            });
+          });
+        }
+      }
+    };
   }
 
   private getCategoryForType(type: GameModeType): string {
@@ -1665,6 +1707,154 @@ export class GameComponent implements OnInit, OnDestroy {
         lastPoints: r.points || 0,
         totalPoints: playerScore?.totalPoints || 0
       };
+    });
+  }
+
+  private async adoptActiveGame(): Promise<void> {
+    try {
+      const active = await firstValueFrom(this.gameService.getActiveGame());
+      const serverGameId = Number(active?.gameId) || 0;
+      if (serverGameId <= 0 || serverGameId === this.currentGameId()) return;
+
+      const previous = this.currentGameId();
+      this.currentGameId.set(serverGameId);
+      localStorage.setItem('activeGameId', String(serverGameId));
+      this.ws.subscribeToGame(serverGameId);
+      if (await this.reliability.start(serverGameId, 'TV')) return;
+
+      // Senza sessione sulla partita trovata si torna a quella di partenza,
+      // invece di restare su un tavolo che non si ha il diritto di comandare.
+      this.currentGameId.set(previous);
+      this.ws.subscribeToGame(previous);
+      localStorage.setItem('activeGameId', String(previous));
+      await this.reliability.start(previous, 'TV');
+    } catch {
+      // Senza rete resta la partita salvata sul dispositivo.
+    }
+  }
+
+  /** La TV è l'unico motore dei punti: dopo ogni variazione salva il tabellone. */
+  private bindLeaderboardPersistence(): void {
+    this.leaderboardService.setPersistence((entries) => this.queueLeaderboardSave(entries));
+  }
+
+  private queueLeaderboardSave(entries: PlayerScore[]): void {
+    this.leaderboardPendingSeq++;
+    if (this.leaderboardFlush) clearTimeout(this.leaderboardFlush);
+    this.leaderboardFlush = setTimeout(() => {
+      this.leaderboardFlush = undefined;
+      void this.flushLeaderboard(entries, this.leaderboardPendingSeq);
+    }, 250);
+  }
+
+  private async flushLeaderboard(entries: PlayerScore[], seq: number, attempt = 0): Promise<void> {
+    const gameId = this.currentGameId();
+    if (!gameId) return;
+    try {
+      await firstValueFrom(this.gameService.saveLeaderboard(gameId, entries));
+      this.leaderboardSavedSeq = Math.max(this.leaderboardSavedSeq, seq);
+    } catch {
+      if (attempt < 2) {
+        this.leaderboardFlush = setTimeout(() => {
+          this.leaderboardFlush = undefined;
+          void this.flushLeaderboard(this.leaderboardService.entries(), this.leaderboardPendingSeq, attempt + 1);
+        }, 1500);
+      }
+    }
+  }
+
+  /**
+   * Stato autorevole del server: classifica, avanzamento e round ancora
+   * aperto. Arriva al primo collegamento e a ogni riconnessione.
+   */
+  private applyAuthoritativeState(snapshot: any): void {
+    if (!snapshot) return;
+
+    // Una scrittura locale non ancora confermata è più recente dello snapshot:
+    // applicarlo cancellerebbe i punti appena assegnati.
+    if (this.leaderboardSavedSeq >= this.leaderboardPendingSeq && Array.isArray(snapshot.leaderboard)) {
+      this.leaderboardService.replaceAll(snapshot.leaderboard);
+    }
+
+    if (snapshot.hasState !== false) {
+      const status = String(snapshot.status ?? 'CREATED');
+      const roundIndex = Number(snapshot.roundIndex);
+      if (Number.isFinite(roundIndex) && roundIndex >= 0) {
+        const rounds = status === 'CREATED' || !snapshot.roundType ? 0 : roundIndex + 1;
+        this.roundManager.restoreRound(rounds);
+        this.roundInfo.set(this.roundManager.getProgress().text);
+      }
+    }
+
+    this.offerRoundRecovery(snapshot);
+  }
+
+  /** Un round è ancora aperto sul server: la TV non lo dà per perso. */
+  private offerRoundRecovery(snapshot: any): void {
+    const status = String(snapshot?.status ?? '');
+    const type = String(snapshot?.roundType ?? '');
+    const deadline = Number(snapshot?.roundDeadlineAt ?? 0);
+    const open = status === 'RUNNING' && !!type && Number.isFinite(deadline)
+      && deadline > this.reliability.serverNow();
+
+    if (!open) {
+      this.recoveredRound.set(null);
+      this.recoveredPayload = null;
+      return;
+    }
+    if (this.currentMode() || this.bonusActive() || this.isSpinning() || this.showTypeReveal()) return;
+
+    this.recoveredPayload = snapshot.currentRound?.payload ?? snapshot.payload ?? null;
+    this.recoveredRound.set({
+      type: type as GameModeType,
+      label: this.getModeName(type),
+      secondsLeft: Math.max(0, Math.ceil((deadline - this.reliability.serverNow()) / 1000)),
+      // Solo Timeline ha tutto sul server: le carte nel payload e gli esiti
+      // riletti al reveal. Gli altri giochi tengono mani e fasi solo in TV.
+      resumable: type === 'TIMELINE' && !!this.recoveredPayload,
+    });
+  }
+
+  async resumeRecoveredRound(): Promise<void> {
+    const pending = this.recoveredRound();
+    const payload = this.recoveredPayload;
+    if (!pending?.resumable || !payload) return;
+
+    this.recoveredRound.set(null);
+    this.showQuestion.set(true);
+    this.phase.set('QUESTION');
+
+    const category = String(payload?.category ?? '').trim();
+    const found = this.allCategories().find(
+      (row) => String(row.name).trim().toLowerCase() === category.toLowerCase(),
+    );
+    if (found) this.selectedCategoryId.set(found.id);
+
+    const mode = this.gameModeService.createMode(
+      this.buildModeConfig(pending.type, payload, this.bonusPlayers()),
+    );
+    this.currentMode.set(mode);
+    this.timer.set(pending.secondsLeft);
+    this.audioService.startClock();
+    this.startRoundSuspense(mode.type);
+    if (mode.restore) mode.restore(pending.secondsLeft);
+    else await mode.start();
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Chiude sul server il round che questa TV non ha ripreso, così il
+   * successivo non parte con un indice sfasato.
+   */
+  closeRecoveredRound(advance = false): void {
+    if (!this.recoveredRound()) return;
+    this.recoveredRound.set(null);
+    this.recoveredPayload = null;
+    this.gameService.closeRound(this.currentGameId(), 'recovered').subscribe({
+      next: () => {
+        if (advance) void this.startNewRound();
+      },
+      error: () => alert('Chiusura del round non confermata: verifica lo stato del server prima di continuare.'),
     });
   }
 }
