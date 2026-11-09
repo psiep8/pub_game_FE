@@ -33,6 +33,9 @@ Poi apri:
 - TV: `http://<IP-del-server>:8080/tv`
 - Telefoni: inquadrano il QR mostrato dalla TV, oppure `http://<IP-del-server>:8080/play`
 
+Se la 8080 è già occupata, aggiungi `TEST_PORT=18080` a `deploy/.env` e usa
+lo stesso numero nell'URL (`http://<IP-del-server>:18080/tv`).
+
 La porta 8080 deve essere raggiungibile dai telefoni: apri la porta nel firewall
 del provider o nel security group. Non c'è HTTPS: il gioco funziona, ma il
 telefono **non può installare la scorciatoia PWA** (il service worker richiede

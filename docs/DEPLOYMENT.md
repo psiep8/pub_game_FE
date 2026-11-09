@@ -209,8 +209,10 @@ cp deploy/.env.test.example deploy/.env
 docker compose -f deploy/docker-compose.test.yml --env-file deploy/.env up -d --build
 ```
 
-Apri `http://<IP-del-server>:8080/tv`. Il QR mostrato dalla TV punta
-automaticamente allo stesso host e alla partita corrente. Non c'è HTTPS:
+Apri `http://<IP-del-server>:8080/tv`. Se la 8080 è già occupata, aggiungi
+`TEST_PORT=18080` a `deploy/.env` e usa lo stesso numero nell'URL. Il QR
+mostrato dalla TV punta automaticamente allo stesso host e alla partita
+corrente. Non c'è HTTPS:
 il gioco funziona, ma la scorciatoia PWA non è installabile.
 
 Apri la porta 8080 nel firewall del provider. I telefoni possono usare

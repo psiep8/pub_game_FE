@@ -17,7 +17,7 @@ services:
     image: pubgame:test
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "${TEST_PORT:-8080}:8080"
     environment:
       SPRING_PROFILES_ACTIVE: test-night
       CONTROL_SECRET: ${CONTROL_SECRET:?imposta CONTROL_SECRET in deploy/.env}
