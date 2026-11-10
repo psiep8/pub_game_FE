@@ -271,4 +271,4 @@ Serve Node 22.22+ e JDK 25. La configurazione sta in `.env` (porte, host, chiavi
 - Restano residui da ripulire nel backend (`CHRONO` e `TRUE_FALSE` nell'enum `GameType`, endpoint dei prezzi non più usati dal frontend).
 - Il bonus Roulette esiste come tipo di gioco ma non compare in nessun mazzo: si gioca solo come bonus.
 
-Per il dettaglio operativo e lo stato dei lavori: `README_LAVORI.md`, `TODO.md` e `BRIEF-GIOCHI-MANCANTI.md`.
+Per installazione e configurazione: `README.md`.
