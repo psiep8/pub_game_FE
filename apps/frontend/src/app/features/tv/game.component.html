@@ -1,5 +1,44 @@
 <div class="game-container">
 
+  @if (introVisible()) {
+  <section class="intro-screen" [class.intro-reduced]="introReducedMotion()"
+    [style.--intro-duration]="introDurationMs() + 'ms'" (click)="dismissIntro()"
+    aria-label="Intro di Pub Game">
+    <div class="intro-paper-grid" aria-hidden="true"></div>
+    <div class="intro-orbit intro-orbit-a" aria-hidden="true"></div>
+    <div class="intro-orbit intro-orbit-b" aria-hidden="true"></div>
+
+    <header class="intro-top">
+      <span class="intro-stamp">EDIZIONE 26</span>
+      <span class="intro-meta">UNA TV · SQUADRE · 40 ROUND</span>
+    </header>
+
+    <div class="intro-center">
+      <div class="intro-icons" aria-hidden="true">
+        @for (icon of introIcons; track icon.label; let i = $index) {
+        <div class="intro-icon" [style.--i]="i">
+          <b>{{ icon.glyph }}</b>
+          <small>{{ icon.label }}</small>
+        </div>
+        }
+      </div>
+      <div class="intro-kicker">IL GIOCO DEL PUB</div>
+      <h1 class="intro-logo">PUB <span>GAME</span></h1>
+      <p class="intro-tagline">QUARANTA ROUND.<br>UNA SOLA SERATA.</p>
+      <button type="button" class="intro-start"
+        (click)="$event.stopPropagation(); dismissIntro()">
+        AVVIA SERATA <span aria-hidden="true">→</span>
+      </button>
+    </div>
+
+    <footer class="intro-bottom">
+      <span>TOCCA O PREMI INVIO PER SALTARE</span>
+      <span class="intro-edition">PUB GAME / 26</span>
+    </footer>
+    <div class="intro-progress" aria-hidden="true"><span></span></div>
+  </section>
+  }
+
   <div class="conn-shell">
     <app-connection-badge role="tv"></app-connection-badge>
   </div>

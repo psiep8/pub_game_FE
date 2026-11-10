@@ -599,6 +599,12 @@ export class Admin implements OnInit, OnDestroy {
     this.vibrate(30);
   }
 
+  /** Rivede l'intro in TV senza ricaricare la pagina. */
+  showIntro(): void {
+    this.ws.broadcastStatus(this.activeGameId(), { action: WsAction.ADMIN_SHOW_INTRO });
+    this.vibrate(30);
+  }
+
   /** Accende il tema di Natale su TV e telefoni e lo ricorda al refresh. */
   toggleChristmas(): void {
     const enabled = !this.theme.xmas();

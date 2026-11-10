@@ -62,6 +62,8 @@ import { CavalloBonus } from '../bonus/cavallo/cavallo-bonus.component';
 import { BasketBonusStage } from '../bonus/basket/basket-bonus-stage.component';
 import { BiglieBonus } from '../bonus/biglie/biglie-bonus.component';
 
+type TvPhase = 'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION' | typeof GamePhase.INTRO;
+
 @Component({
   selector: 'app-game-component',
   standalone: true,
@@ -122,7 +124,30 @@ export class GameComponent implements OnInit, OnDestroy {
   currentMode = signal<IGameMode | null>(null);
 
 
-  phase = signal<'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION'>('IDLE');
+  /** L'intro è una fase della TV, non una modale separata: così il resto
+   *  della schermata sa sempre cosa sta mostrando. */
+  private readonly introSeenKey = 'pubgame.intro.seen';
+  private readonly introSeen = localStorage.getItem(this.introSeenKey) === '1';
+  phase = signal<TvPhase>(this.introSeen ? 'IDLE' : GamePhase.INTRO);
+  readonly introVisible = computed(() => this.phase() === GamePhase.INTRO);
+  readonly introReducedMotion = signal(
+    typeof window !== 'undefined'
+    && !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+  );
+  readonly introDurationMs = signal(7800);
+  /** Icone statiche: raccontano i giochi della serata, non sono decorazione. */
+  readonly introIcons = [
+    { glyph: '?', label: 'QUIZ' },
+    { glyph: '♫', label: 'MUSICA' },
+    { glyph: '◉', label: 'IMMAGINI' },
+    { glyph: '⌛', label: 'TEMPO' },
+    { glyph: '♠', label: 'CARTE' },
+    { glyph: '⚄', label: 'AZZARDO' },
+    { glyph: '◎', label: 'ARENA' },
+    { glyph: '★', label: 'CLASSIFICA' },
+  ];
+  private introTimer?: ReturnType<typeof setTimeout>;
+  private phaseBeforeIntro: Exclude<TvPhase, typeof GamePhase.INTRO> = 'IDLE';
   isSpinning = signal(false);
   selectedCategoryId = signal<number | null>(null);
   showQuestion = signal(false);
@@ -271,13 +296,21 @@ export class GameComponent implements OnInit, OnDestroy {
 
   @HostListener('window:beforeunload', ['$event'])
   unloadNotification($event: any) {
-    if (this.phase() !== 'IDLE') {
+    if (this.phase() !== 'IDLE' && this.phase() !== GamePhase.INTRO) {
       $event.returnValue = "Hai una partita in corso!";
     }
   }
 
   @HostListener('window:keyup', ['$event'])
   handleKeyboard(event: KeyboardEvent) {
+    if (this.phase() === GamePhase.INTRO) {
+      if (event.key === 'Enter' || event.key === ' ' || event.key === 'Escape') {
+        event.preventDefault();
+        this.dismissIntro();
+      }
+      return;
+    }
+
     const mode = this.currentMode();
     if (!mode || !mode.requiresBuzz) return;
 
@@ -334,6 +367,8 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    this.armIntro();
+
     // La simulazione usa una scaletta dedicata: non tocca la serata vera.
     if (new URLSearchParams(window.location.search).get('sim') === '1') {
       this.simulation = true;
@@ -479,9 +514,11 @@ export class GameComponent implements OnInit, OnDestroy {
         this.adminShowLeaderboard();
       } else if (status.action === 'ADMIN_TOGGLE_PAUSE') {
         this.togglePause();
-      } else if (status.action === 'ADMIN_SHOW_DEMO') {
+      } else if (status.action === WsAction.ADMIN_SHOW_DEMO) {
         this.startDemo(status.type || this.currentMode()?.type || 'QUIZ');
-      } else if (status.action === 'ADMIN_HIDE_DEMO') {
+      } else if (status.action === WsAction.ADMIN_SHOW_INTRO) {
+        this.replayIntro();
+      } else if (status.action === WsAction.ADMIN_HIDE_DEMO) {
         this.stopDemo();
       } else if (status.action === 'ADMIN_START_BONUS') {
         void this.startBonus(status.type || 'BASKET');
@@ -509,6 +546,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.introTimer) clearTimeout(this.introTimer);
     if (this.presenceTimer) clearInterval(this.presenceTimer);
     if (this.buttonTestTimer) clearInterval(this.buttonTestTimer);
     this.gameModeService.cleanup();
@@ -571,6 +609,41 @@ export class GameComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Avvia il conto alla rovescia dell'intro, senza ripeterla al refresh. */
+  private armIntro(): void {
+    if (this.phase() !== GamePhase.INTRO) return;
+    this.introReducedMotion.set(
+      typeof window !== 'undefined'
+      && !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+    );
+    this.introDurationMs.set(this.introReducedMotion() ? 1500 : 7800);
+    localStorage.setItem(this.introSeenKey, '1');
+    if (this.introTimer) clearTimeout(this.introTimer);
+    this.introTimer = setTimeout(() => this.dismissIntro(), this.introDurationMs());
+  }
+
+  /** Tocco, Invio o fine del conto alla rovescia: si entra nella home. */
+  dismissIntro(): void {
+    if (this.phase() !== GamePhase.INTRO) return;
+    if (this.introTimer) {
+      clearTimeout(this.introTimer);
+      this.introTimer = undefined;
+    }
+    localStorage.setItem(this.introSeenKey, '1');
+    this.phase.set(this.phaseBeforeIntro);
+    this.cdr.detectChanges();
+  }
+
+  /** Comando admin: rivede l'intro anche se il browser l'ha già salvata. */
+  replayIntro(): void {
+    if (this.phase() !== GamePhase.INTRO) {
+      this.phaseBeforeIntro = this.phase() as Exclude<TvPhase, typeof GamePhase.INTRO>;
+    }
+    this.phase.set(GamePhase.INTRO);
+    this.armIntro();
+    this.cdr.detectChanges();
+  }
+
   async openLobby(): Promise<void> {
     if (this.currentGameId()) return;
 
@@ -581,6 +654,8 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   async startNewRound() {
+    if (this.phase() === GamePhase.INTRO) this.dismissIntro();
+
     if (this.isShowingLeaderboard()) {
       console.warn('⚠️ Classifica in corso, attendi...');
       return;
