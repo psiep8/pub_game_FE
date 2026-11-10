@@ -103,6 +103,58 @@
   text-transform: uppercase;
 }
 
+/* Ingresso: il layout si adatta anche alla viewport ridotta dalla tastiera. */
+.remote-container:has(.setup-screen) { height: 100dvh; }
+.setup-screen {
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+  justify-content: flex-start;
+  gap: clamp(6px, 1.5dvh, 12px);
+  padding: clamp(4px, 2dvh, 16px) 4px 24px;
+}
+.setup-screen .avatar-pick {
+  flex-direction: column;
+  gap: clamp(5px, 1dvh, 10px);
+  margin: 0;
+}
+.setup-screen .avatar-preview {
+  width: clamp(64px, 22dvh, 150px);
+  height: clamp(64px, 22dvh, 150px);
+  padding: 0;
+  border-radius: 50%;
+  font-size: clamp(1.5rem, 5dvh, 3rem);
+}
+.setup-screen .avatar-actions { flex-direction: row; width: 100%; }
+.setup-screen .avatar-btn { flex: 1; min-height: 44px; }
+.setup-screen .setup-name {
+  width: min(100%, 380px);
+  margin-top: auto;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: .8rem;
+  text-align: left;
+  text-transform: uppercase;
+}
+.setup-screen input:not([type='file']) { min-height: 52px; margin: 0; backdrop-filter: none; }
+.setup-screen .setup-error { margin: 0; color: var(--tomato); font-size: .75rem; }
+.setup-screen .join-btn {
+  margin-top: auto;
+  min-height: 54px;
+  background: var(--coal);
+  color: var(--paper-hi);
+  border: 3px solid var(--coal);
+  border-radius: 0;
+  box-shadow: 6px 6px 0 var(--tomato);
+  font-family: var(--font-mono);
+  font-size: .9rem;
+}
+@media (max-height: 440px) {
+  .setup-screen .avatar-hint { display: none; }
+  .setup-screen .avatar-preview { width: 52px; height: 52px; }
+  .setup-screen .avatar-btn { min-height: 38px; }
+}
+
 /* ---------------------------------------------------------------- Header */
 .header {
   display: flex !important;

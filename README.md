@@ -2,9 +2,8 @@
 
 > **VERSIONE 1.0.0 — 9 novembre 2026.**
 > Prima major: recupero di TV e classifica dopo refresh o cambio dispositivo,
-> ambienti di prova e pub separati, QR generato in locale. I lavori aperti sono in
-> `TODO.md` e `BRIEF-REFACTOR-GIOCHI.md`. Se una riga non combacia col codice,
-> vince il codice.
+> ambienti di prova e pub separati, QR generato in locale. Se una riga non
+> combacia col codice, vince il codice.
 
 Un unico repository per il gioco da pub multigiocatore: **frontend Angular** e **backend Spring Boot** convivono qui dentro.
 

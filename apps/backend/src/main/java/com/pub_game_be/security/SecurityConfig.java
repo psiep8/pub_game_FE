@@ -21,6 +21,10 @@ public class SecurityConfig {
     @Value("${game.security.allowed-origins:http://localhost:4200,http://127.0.0.1:4200}")
     private String allowedOrigins;
 
+    /** Solo la prova in casa incornicia TV, admin e telefoni nella stessa pagina. */
+    @Value("${spring.profiles.active:}")
+    private String activeProfiles;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, DeviceSessionService sessions) throws Exception {
         http
@@ -29,6 +33,12 @@ public class SecurityConfig {
                 .addFilterBefore(new SessionAuthenticationFilter(sessions), AnonymousAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll());
+
+        // La pagina sim-duo incornicia le tre viste sulla stessa macchina.
+        // In produzione resta il default DENY: nessun clickjacking.
+        if (activeProfiles.contains("test-night")) {
+            http.headers(headers -> headers.frameOptions(frame -> frame.disable()));
+        }
 
         return http.build();
     }

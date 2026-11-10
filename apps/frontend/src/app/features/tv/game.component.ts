@@ -31,6 +31,7 @@ import { RoundManagerService } from '../../core/services/round-manager.service';
 import { LeaderboardService, PlayerScore } from '../../core/services/leaderboard.service';
 import { AudioService } from '../../core/services/audio.service';
 import { PlayerAvatarService } from '../../core/services/player-avatar.service';
+import { ButtonTestService, ButtonTestSnapshot } from '../../core/services/button-test.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ReliabilityService } from '../../core/services/reliability.service';
 import { ConnectionBadge } from '../../shared/components/connection-badge/connection-badge.component';
@@ -60,6 +61,8 @@ import { CasinoBonus } from '../bonus/casino/casino-bonus.component';
 import { CavalloBonus } from '../bonus/cavallo/cavallo-bonus.component';
 import { BasketBonusStage } from '../bonus/basket/basket-bonus-stage.component';
 import { BiglieBonus } from '../bonus/biglie/biglie-bonus.component';
+
+type TvPhase = 'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION' | typeof GamePhase.INTRO;
 
 @Component({
   selector: 'app-game-component',
@@ -109,6 +112,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
   public roundManager = inject(RoundManagerService);
   private leaderboardService = inject(LeaderboardService);
+  private buttonTests = inject(ButtonTestService);
   public audioService = inject(AudioService);
   public theme = inject(ThemeService);
   // La TV tiene vivo il canale avatar per tutta la serata, non solo in classifica.
@@ -120,7 +124,30 @@ export class GameComponent implements OnInit, OnDestroy {
   currentMode = signal<IGameMode | null>(null);
 
 
-  phase = signal<'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION'>('IDLE');
+  /** L'intro è una fase della TV, non una modale separata: così il resto
+   *  della schermata sa sempre cosa sta mostrando. */
+  private readonly introSeenKey = 'pubgame.intro.seen';
+  private readonly introSeen = localStorage.getItem(this.introSeenKey) === '1';
+  phase = signal<TvPhase>(this.introSeen ? 'IDLE' : GamePhase.INTRO);
+  readonly introVisible = computed(() => this.phase() === GamePhase.INTRO);
+  readonly introReducedMotion = signal(
+    typeof window !== 'undefined'
+    && !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+  );
+  readonly introDurationMs = signal(7800);
+  /** Icone statiche: raccontano i giochi della serata, non sono decorazione. */
+  readonly introIcons = [
+    { glyph: '?', label: 'QUIZ' },
+    { glyph: '♫', label: 'MUSICA' },
+    { glyph: '◉', label: 'IMMAGINI' },
+    { glyph: '⌛', label: 'TEMPO' },
+    { glyph: '♠', label: 'CARTE' },
+    { glyph: '⚄', label: 'AZZARDO' },
+    { glyph: '◎', label: 'ARENA' },
+    { glyph: '★', label: 'CLASSIFICA' },
+  ];
+  private introTimer?: ReturnType<typeof setTimeout>;
+  private phaseBeforeIntro: Exclude<TvPhase, typeof GamePhase.INTRO> = 'IDLE';
   isSpinning = signal(false);
   selectedCategoryId = signal<number | null>(null);
   showQuestion = signal(false);
@@ -205,9 +232,21 @@ export class GameComponent implements OnInit, OnDestroy {
   });
 
   private arenaFinished = false;
+  /** Modalità prova: scaletta ridotta e bonus Basket visibile solo via ?sim=1. */
+  private simulation = false;
   /** Telefoni presenti sul backend: i bonus li usano anche senza classifica
    *  (dopo un reset la leaderboard è vuota e i tavoli sparirebbero). */
-  private presencePlayers = signal<string[]>([]);
+  readonly presencePlayers = signal<string[]>([]);
+  readonly buttonTestSnapshot = signal<ButtonTestSnapshot | null>(null);
+  readonly pageVisible = signal(!document.hidden);
+
+  @HostListener('document:visibilitychange')
+  onVisibilityChange(): void {
+    this.pageVisible.set(!document.hidden);
+  }
+  private presenceTimer?: ReturnType<typeof setInterval>;
+  private buttonTestTimer?: ReturnType<typeof setInterval>;
+  private lastButtonTestPing = 0;
   private readonly bonusActsStarted = new Set<number>();
   private bonusScoresMap = new Map<string, number>();
   private bonusBasketsMap = new Map<string, number>();
@@ -257,13 +296,21 @@ export class GameComponent implements OnInit, OnDestroy {
 
   @HostListener('window:beforeunload', ['$event'])
   unloadNotification($event: any) {
-    if (this.phase() !== 'IDLE') {
+    if (this.phase() !== 'IDLE' && this.phase() !== GamePhase.INTRO) {
       $event.returnValue = "Hai una partita in corso!";
     }
   }
 
   @HostListener('window:keyup', ['$event'])
   handleKeyboard(event: KeyboardEvent) {
+    if (this.phase() === GamePhase.INTRO) {
+      if (event.key === 'Enter' || event.key === ' ' || event.key === 'Escape') {
+        event.preventDefault();
+        this.dismissIntro();
+      }
+      return;
+    }
+
     const mode = this.currentMode();
     if (!mode || !mode.requiresBuzz) return;
 
@@ -320,6 +367,14 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    this.armIntro();
+
+    // La simulazione usa una scaletta dedicata: non tocca la serata vera.
+    if (new URLSearchParams(window.location.search).get('sim') === '1') {
+      this.simulation = true;
+      this.roundManager.enableSimulation();
+    }
+
     // La partita non è più solo quella dell'ultimo browser: si riparte
     // dall'ID salvato e si chiede al server quale serata è in corso.
     const storedGameId = Number(localStorage.getItem('activeGameId')) || this.currentGameId() || 1;
@@ -336,6 +391,10 @@ export class GameComponent implements OnInit, OnDestroy {
     await this.adoptActiveGame();
     this.bindLeaderboardPersistence();
     this.playerAvatars.connect(this.ws);
+    void this.refreshLobbyPresence();
+    this.presenceTimer = setInterval(() => void this.refreshLobbyPresence(), 5000);
+    void this.refreshButtonTests();
+    this.buttonTestTimer = setInterval(() => void this.refreshButtonTests(), 2000);
     try {
       const cats = await firstValueFrom(this.gameService.getCategories());
       const positioned = this.generateNonOverlappingPositions(cats);
@@ -399,8 +458,9 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
       // 🤝 Nuovo giocatore si è unito
-      if (status.action === 'JOIN_GAME' && status.playerName) {
+      if (status.action === WsAction.JOIN_GAME && status.playerName) {
         const normalizedName = status.playerName.trim();
+        this.presencePlayers.update((names) => names.includes(normalizedName) ? names : [...names, normalizedName]);
         console.log(`🤝 Nuovo giocatore unito: ${normalizedName}`);
         this.audioService.playJoin();
         this.leaderboardService.addPoints(normalizedName, 0, false);
@@ -454,9 +514,11 @@ export class GameComponent implements OnInit, OnDestroy {
         this.adminShowLeaderboard();
       } else if (status.action === 'ADMIN_TOGGLE_PAUSE') {
         this.togglePause();
-      } else if (status.action === 'ADMIN_SHOW_DEMO') {
+      } else if (status.action === WsAction.ADMIN_SHOW_DEMO) {
         this.startDemo(status.type || this.currentMode()?.type || 'QUIZ');
-      } else if (status.action === 'ADMIN_HIDE_DEMO') {
+      } else if (status.action === WsAction.ADMIN_SHOW_INTRO) {
+        this.replayIntro();
+      } else if (status.action === WsAction.ADMIN_HIDE_DEMO) {
         this.stopDemo();
       } else if (status.action === 'ADMIN_START_BONUS') {
         void this.startBonus(status.type || 'BASKET');
@@ -484,6 +546,9 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.introTimer) clearTimeout(this.introTimer);
+    if (this.presenceTimer) clearInterval(this.presenceTimer);
+    if (this.buttonTestTimer) clearInterval(this.buttonTestTimer);
     this.gameModeService.cleanup();
     if (this.displayDataInterval) {
       clearInterval(this.displayDataInterval);
@@ -494,6 +559,36 @@ export class GameComponent implements OnInit, OnDestroy {
     this.audioService.stopAmbient();
   }
 
+  /** Presenze effettive: la classifica può contenere squadre non più collegate. */
+  private async refreshLobbyPresence(): Promise<void> {
+    if (this.phase() !== 'IDLE' || !this.currentGameId()) return;
+    const diagnostics = await this.reliability.diagnostics(this.currentGameId());
+    if (!Array.isArray(diagnostics?.presence)) return;
+    const names = diagnostics.presence
+      .filter((device: any) => device?.connected && device?.role === 'REMOTE' && device?.playerName)
+      .map((device: any) => String(device.playerName).trim())
+      .filter((name: string) => name.length > 0);
+    this.presencePlayers.set(Array.from(new Set<string>(names)));
+  }
+
+  /** Avanzamento della prova pulsanti, mostrato nella home. */
+  private async refreshButtonTests(): Promise<void> {
+    if (this.phase() !== 'IDLE' || this.roundManager.getCurrentRound() > 1) return;
+    const gameId = this.currentGameId();
+    if (!gameId) return;
+    try {
+      const snapshot = await firstValueFrom(this.buttonTests.snapshot(gameId));
+      this.buttonTestSnapshot.set(snapshot);
+      const waiting = snapshot.active && snapshot.teams.some((team) => !team.completed);
+      if (waiting && Date.now() - this.lastButtonTestPing > 3000) {
+        this.lastButtonTestPing = Date.now();
+        this.ws.broadcastStatus(gameId, { action: WsAction.BUTTON_TEST_PING, at: this.lastButtonTestPing });
+      }
+    } catch {
+      // Il backend può essere momentaneamente occupato: il prossimo poll riprova.
+    }
+  }
+
   /** Rigenera il QR in locale: nessuna chiamata a servizi esterni. */
   private async refreshQrCode(): Promise<void> {
     const url = this.remoteUrl();
@@ -501,8 +596,8 @@ export class GameComponent implements OnInit, OnDestroy {
     this.lastQrUrl = url;
     try {
       const dataUrl = await QRCode.toDataURL(url, {
-        width: 250,
-        margin: 2,
+        width: 800,
+        margin: 4,
         errorCorrectionLevel: 'M',
         color: { dark: '#15150f', light: '#ffffff' },
       });
@@ -512,6 +607,41 @@ export class GameComponent implements OnInit, OnDestroy {
       console.warn('QR non generato', error);
       this.qrCodeUrl.set('');
     }
+  }
+
+  /** Avvia il conto alla rovescia dell'intro, senza ripeterla al refresh. */
+  private armIntro(): void {
+    if (this.phase() !== GamePhase.INTRO) return;
+    this.introReducedMotion.set(
+      typeof window !== 'undefined'
+      && !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+    );
+    this.introDurationMs.set(this.introReducedMotion() ? 1500 : 7800);
+    localStorage.setItem(this.introSeenKey, '1');
+    if (this.introTimer) clearTimeout(this.introTimer);
+    this.introTimer = setTimeout(() => this.dismissIntro(), this.introDurationMs());
+  }
+
+  /** Tocco, Invio o fine del conto alla rovescia: si entra nella home. */
+  dismissIntro(): void {
+    if (this.phase() !== GamePhase.INTRO) return;
+    if (this.introTimer) {
+      clearTimeout(this.introTimer);
+      this.introTimer = undefined;
+    }
+    localStorage.setItem(this.introSeenKey, '1');
+    this.phase.set(this.phaseBeforeIntro);
+    this.cdr.detectChanges();
+  }
+
+  /** Comando admin: rivede l'intro anche se il browser l'ha già salvata. */
+  replayIntro(): void {
+    if (this.phase() !== GamePhase.INTRO) {
+      this.phaseBeforeIntro = this.phase() as Exclude<TvPhase, typeof GamePhase.INTRO>;
+    }
+    this.phase.set(GamePhase.INTRO);
+    this.armIntro();
+    this.cdr.detectChanges();
   }
 
   async openLobby(): Promise<void> {
@@ -524,13 +654,16 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   async startNewRound() {
+    if (this.phase() === GamePhase.INTRO) this.dismissIntro();
+
     if (this.isShowingLeaderboard()) {
       console.warn('⚠️ Classifica in corso, attendi...');
       return;
     }
 
     if (this.isSpinning()) return;
-    if (this.roundManager.extractGameType() === 'SPEED_RUSH') {
+    const nextType = this.roundManager.extractGameType();
+    if (nextType === 'SPEED_RUSH' && !this.simulation) {
       alert('Speed Rush non disponibile: il punteggio non è ancora verificato dal server.');
       return;
     }
@@ -1300,7 +1433,7 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Bonus: parte dalla TV a fine atto (o su comando admin) e non consuma un round. */
   async startBonus(type: BonusType): Promise<void> {
     if (this.isSpinning() || this.bonusActive()) return;
-    if (type === 'BASKET') {
+    if (type === 'BASKET' && !this.simulation) {
       alert('Basket non disponibile: il punteggio non è ancora verificato dal server.');
       return;
     }
@@ -1365,6 +1498,20 @@ export class GameComponent implements OnInit, OnDestroy {
       this.ws.broadcastStatus(this.currentGameId(), {
         action: WsAction.SHOW_QUESTION,
         type: 'BONUS_BIGLIE',
+        payload: publicPayload,
+        rawPayload: publicPayload,
+      });
+      return;
+    }
+
+    // La simulazione mostra anche il tabellone Basket, che nella serata vera
+    // resta bloccato finché il punteggio non sarà verificabile dal server.
+    if (type === 'BASKET') {
+      this.startBasketCountdown();
+      const publicPayload = JSON.stringify({ type: 'BONUS_BASKET', question: BONUS_LABELS[type] });
+      this.ws.broadcastStatus(this.currentGameId(), {
+        action: WsAction.SHOW_QUESTION,
+        type: 'BONUS_BASKET',
         payload: publicPayload,
         rawPayload: publicPayload,
       });

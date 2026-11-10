@@ -61,6 +61,43 @@
     }
   </div>
 
+  <div class="flow-panel button-test-panel">
+    <div class="flow-title">🧪 PROVA DEI PULSANTI</div>
+    <p class="flow-note">
+      Ogni telefono deve toccare, scegliere, trascinare, sentire la vibrazione e rispondere alla TV.
+      Il primo round resta bloccato finché tutti hanno finito, salvo avvio esplicito.
+    </p>
+    <div class="flow-grid">
+      <button class="flow-btn primary" (click)="startButtonTest()">▶️ AVVIA / RIFAI PROVA</button>
+      <button class="flow-btn" (click)="skipButtonTest()">⏭️ SALTA PROVA</button>
+      <button class="flow-btn ghost" (click)="forceStartRound()">⚠️ AVVIA COMUNQUE</button>
+    </div>
+    @if (buttonTest(); as test) {
+      <div class="bt-admin-list">
+        @for (team of test.teams; track team.playerName) {
+          <div class="bt-admin-row">
+            <b>{{ team.playerName }}</b>
+            <span class="bt-admin-dots">
+              @for (done of team.done; track $index) { <i [class.done]="done"></i> }
+            </span>
+            <span class="bt-admin-meta">
+              {{ team.completed ? 'PRONTO' : 'IN CORSO' }}
+              @if (team.latencyMs >= 0) { · {{ team.latencyMs }} ms }
+              @if (team.vibrated === false) { · VIBRAZIONE NO }
+              @if (team.flagged) { · DA CONTROLLARE }
+            </span>
+            <button class="bt-admin-reset" (click)="resetButtonTest(team.playerName)">Rifai</button>
+          </div>
+        } @empty {
+          <div class="flow-note">Nessuna squadra collegata.</div>
+        }
+        <div class="bt-admin-summary" [class.ready]="test.allReady">
+          {{ test.allReady ? 'TUTTI PRONTI' : 'IN ATTESA DELLE SQUADRE' }}
+        </div>
+      </div>
+    }
+  </div>
+
   <div class="flow-panel categories-panel">
     <div class="flow-title">🗂️ CATEGORIE &amp; TIMELINE — gestione diretta</div>
     <p class="flow-note">
@@ -115,10 +152,11 @@
       <span class="flow-id-hint">Il numero mostrato sulla lobby TV</span>
     </div>
     <div class="flow-grid">
-      <button class="flow-btn primary" (click)="nextRound()">▶️ PARTI</button>
+      <button class="flow-btn primary" (click)="nextRound()" [disabled]="!testsReady() && !forceStart()">▶️ PARTI</button>
       <button class="flow-btn" (click)="nextManche()">🎵 PROSSIMA MANCHE</button>
       <button class="flow-btn" (click)="showLeaderboard()">🏆 MOSTRA CLASSIFICA</button>
       <button class="flow-btn" (click)="toggleGamePause()">⏸️ PAUSA / RIPRENDI</button>
+      <button class="flow-btn" (click)="showIntro()">↺ RIVEDI INTRO</button>
       <button class="flow-btn" (click)="theme.toggleXmas()">🎄 NATALE {{ theme.xmas() ? 'ON' : 'OFF' }}</button>
       <button class="flow-btn" (click)="showDemo()">🎥 DEMO GIOCO</button>
       <button class="flow-btn ghost" (click)="hideDemo()">✖️ CHIUDI DEMO</button>

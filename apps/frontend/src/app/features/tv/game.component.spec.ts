@@ -17,6 +17,10 @@ import {
 import { FakeReliabilityService } from '../../shared/testing/test-doubles';
 import { ReliabilityService } from '../../core/services/reliability.service';
 import { RoundManagerService } from '../../core/services/round-manager.service';
+import { ButtonTestService } from '../../core/services/button-test.service';
+import { FakeButtonTestService } from '../../shared/testing/fake-button-test.service';
+import { GamePhase } from '../../shared/enums/game-phase';
+import { WsAction } from '../../shared/enums/ws-action';
 
 describe('GameComponent', () => {
   let component: GameComponent;
@@ -36,6 +40,7 @@ describe('GameComponent', () => {
         { provide: GameService, useClass: FakeGameService },
         { provide: AiGeneratorService, useClass: FakeAiGeneratorService },
         { provide: AudioService, useClass: FakeAudioService },
+        { provide: ButtonTestService, useClass: FakeButtonTestService },
       ],
     }).compileComponents();
 
@@ -54,6 +59,23 @@ describe('GameComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('shows the intro once and remembers it after dismissal', () => {
+    expect(component.phase()).toBe(GamePhase.INTRO);
+    expect(localStorage.getItem('pubgame.intro.seen')).toBe('1');
+
+    component.dismissIntro();
+
+    expect(component.phase()).toBe('IDLE');
+  });
+
+  it('replays the intro on the admin command', () => {
+    component.dismissIntro();
+
+    ws.status$.next({ action: WsAction.ADMIN_SHOW_INTRO });
+
+    expect(component.phase()).toBe(GamePhase.INTRO);
   });
 
   it('should place every category with non overlapping coordinates', async () => {
@@ -94,6 +116,14 @@ describe('GameComponent', () => {
 
     expect(leaderboard.getPlayerStats('Anna')?.totalPoints).toBe(10);
     expect(arenaMode.applyArenaAnswer).toHaveBeenCalledWith('Anna', true, 10);
+  });
+
+  it('adds a joining team to the lobby list without duplicates', async () => {
+    ws.status$.next({ action: 'JOIN_GAME', playerName: 'Anna' });
+    ws.status$.next({ action: 'JOIN_GAME', playerName: ' Anna ' });
+    await fixture.whenStable();
+
+    expect(component.presencePlayers()).toEqual(['Anna']);
   });
 
   it('should register a joining player with zero points', async () => {

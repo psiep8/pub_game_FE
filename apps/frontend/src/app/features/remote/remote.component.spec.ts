@@ -9,6 +9,8 @@ import { AudioService } from '../../core/services/audio.service';
 import { FakeAudioService, FakeGameService, FakeSwUpdate, FakeWebSocketService } from '../../shared/testing/test-doubles';
 import { FakeReliabilityService } from '../../shared/testing/test-doubles';
 import { ReliabilityService } from '../../core/services/reliability.service';
+import { ButtonTestService } from '../../core/services/button-test.service';
+import { FakeButtonTestService } from '../../shared/testing/fake-button-test.service';
 
 describe('RemoteComponent', () => {
   let component: RemoteComponent;
@@ -27,6 +29,7 @@ describe('RemoteComponent', () => {
         { provide: GameService, useClass: FakeGameService },
         { provide: AudioService, useClass: FakeAudioService },
         { provide: SwUpdate, useClass: FakeSwUpdate },
+        { provide: ButtonTestService, useClass: FakeButtonTestService },
       ],
     }).compileComponents();
 
@@ -61,6 +64,20 @@ describe('RemoteComponent', () => {
     expect(component.nickname()).toBe('Anna');
     expect(localStorage.getItem('nickname')).toBe('Anna');
     expect(ws.broadcasted.at(-1)?.body).toEqual({ action: 'JOIN_GAME', playerName: 'Anna' });
+  });
+
+  it('requires a team name between 2 and 16 characters before registering', async () => {
+    const start = vi.spyOn(reliability, 'start');
+    for (const name of [' ', 'A', '12345678901234567']) {
+      component.tempNickname = name;
+      await component.setNickname();
+      expect(component.nickname()).toBeNull();
+      expect(reliability.lastError()).toContain('da 2 a 16');
+    }
+    expect(start).not.toHaveBeenCalled();
+    component.tempNickname = '  AB  ';
+    await component.setNickname();
+    expect(component.nickname()).toBe('AB');
   });
 
   it('does not enter when the team name is rejected', async () => {

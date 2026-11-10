@@ -1,7 +1,7 @@
 import { GamePhase } from '../../shared/enums/game-phase';
 import { PlayerStatus } from '../../shared/enums/player-status';
 import { WsAction } from '../../shared/enums/ws-action';
-import { Component, DestroyRef, inject, OnDestroy, OnInit, signal, HostListener, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit, signal, HostListener, ChangeDetectionStrategy } from '@angular/core';
 
 /** Nickname imposto dalla vista di prova `quad.html` (es. ?nickname=Anna). */
 function initialNicknameFromQuery(): string | null {
@@ -31,11 +31,12 @@ import {
 } from '../games/speed-rush/speed-rush-deck';
 import { ConnectionBadge } from '../../shared/components/connection-badge/connection-badge.component';
 import { SentStateComponent } from '../../shared/components/sent-state/sent-state.component';
+import { ButtonTestComponent } from './button-test/button-test.component';
 
 @Component({
   selector: 'app-remote-component',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConnectionBadge, SentStateComponent],
+  imports: [CommonModule, FormsModule, ConnectionBadge, SentStateComponent, ButtonTestComponent],
   templateUrl: './remote.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./remote.component.css', './restyle.css'],
@@ -172,6 +173,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   readonly reliability = inject(ReliabilityService);
   readonly playerAvatars = inject(PlayerAvatarService);
   private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
   private gameService = inject(GameService);
   private swUpdate = inject(SwUpdate);
   public theme = inject(ThemeService);
@@ -183,6 +185,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
    * possono vivere su due origini diverse senza passare dal setup manuale.
    */
   nickname = signal<string | null>(initialNicknameFromQuery() ?? localStorage.getItem('nickname'));
+  /** La prova sta fra l'ingresso e la sala d'attesa del round. */
+  showButtonTest = signal(false);
   tempNickname = '';
   avatarPreview = signal<string | null>(null);
   private pendingAvatar: string | null = null;
@@ -358,6 +362,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
     }
   }
 
+  closeButtonTest(): void {
+    this.showButtonTest.set(false);
+    this.cdr.detectChanges();
+  }
+
   getBasketUrl(): string {
     return '/basket?player=' + encodeURIComponent(this.nickname() ?? '');
   }
@@ -383,7 +392,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.tempNickname = storedName;
       this.nickname.set(null);
       void this.reliability.start(this.gameId(), 'REMOTE', storedName).then((ok) => {
-        if (ok) this.nickname.set(storedName);
+        if (ok) {
+          this.nickname.set(storedName);
+          this.showButtonTest.set(true);
+        }
       });
     }
     void this.adoptActiveGame();
@@ -874,8 +886,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   async setNickname() {
     const name = this.tempNickname.trim();
-    if (!name || !await this.reliability.start(this.gameId(), 'REMOTE', name)) return;
+    if (name.length < 2 || name.length > 16) {
+      this.reliability.lastError.set('Il nome deve contenere da 2 a 16 caratteri');
+      return;
+    }
+    if (!await this.reliability.start(this.gameId(), 'REMOTE', name)) return;
     this.nickname.set(name);
+    this.showButtonTest.set(true);
     localStorage.setItem('nickname', name);
     this.ws.broadcastStatus(this.gameId(), { action: WsAction.JOIN_GAME, playerName: name });
     this.applyAvatar(name, this.pendingAvatar);

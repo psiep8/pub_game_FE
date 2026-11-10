@@ -60,36 +60,32 @@
 
   @if (!nickname()) {
   <div class="setup-screen">
-    <button class="theme-corner" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
-      🎨 <span>{{ theme.label() }}</span>
-    </button>
-    <div class="setup-orb">🎉</div>
-    <div class="setup-kicker">IL GIOCO DEL PUB</div>
-    <h1>PUB GAME</h1>
-    <p>Come ti chiami stasera?</p>
-    <input [(ngModel)]="tempNickname" placeholder="Il tuo nickname" (keyup.enter)="setNickname()">
-
     <input #cameraInput type="file" accept="image/*" capture="user" hidden (change)="onAvatarFile($event)">
     <input #galleryInput type="file" accept="image/*" hidden (change)="onAvatarFile($event)">
     <div class="avatar-pick">
-      <div class="avatar-preview">
+      <button type="button" class="avatar-preview" (click)="cameraInput.click()" aria-label="Scatta la foto della squadra">
         @if (avatarPreview(); as avatar) {
-        <img [src]="avatar" alt="Avatar squadra">
+        <img [src]="avatar" alt="Foto squadra">
         } @else {
-        <span>📷</span>
+        <span aria-hidden="true">📷</span>
         }
-      </div>
+      </button>
       <div class="avatar-actions">
         <button type="button" class="avatar-btn" (click)="cameraInput.click()">📸 SCATTA</button>
         <button type="button" class="avatar-btn" (click)="galleryInput.click()">🖼️ GALLERIA</button>
-        <span class="avatar-hint">La foto della squadra, per riconoscervi tutta la sera</span>
       </div>
+      <span class="avatar-hint">Foto facoltativa, ma consigliata</span>
     </div>
 
-    @if (reliability.lastError(); as error) { <p role="alert">{{ error }}</p> }
+    <label class="setup-name" for="team-name">Nome della squadra</label>
+    <input id="team-name" [(ngModel)]="tempNickname" maxlength="16" autocomplete="off" placeholder="Nome della squadra" (keyup.enter)="setNickname()">
+    @if (reliability.lastError(); as error) { <p class="setup-error" role="alert">{{ error }}</p> }
     <button (click)="setNickname()" class="join-btn">ENTRA IN PARTITA</button>
-    <div class="setup-foot">4 squadre · 40 round · 1 TV</div>
   </div>
+  } @else {
+
+  @if (showButtonTest()) {
+  <app-button-test [gameId]="gameId()" (done)="closeButtonTest()" />
   } @else {
 
   <div class="header">
@@ -700,5 +696,6 @@
     }
     }
   </div>
+  }
   }
 </div>

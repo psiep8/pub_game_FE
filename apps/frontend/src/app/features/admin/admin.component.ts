@@ -1,6 +1,6 @@
 import { WsAction } from '../../shared/enums/ws-action';
 
-import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { CategoryRow, GameService } from '../../core/services/game.service';
@@ -11,6 +11,7 @@ import { scoringRuleFor, ScoringRule } from '../../shared/models/scoring-rules';
 import { BonusType } from '../../shared/models/bonus-type';
 import { ReliabilityService } from '../../core/services/reliability.service';
 import { ConnectionBadge } from '../../shared/components/connection-badge/connection-badge.component';
+import { ButtonTestService, ButtonTestSnapshot } from '../../core/services/button-test.service';
 
 @Component({
   selector: 'app-admin-component',
@@ -25,7 +26,15 @@ export class Admin implements OnInit, OnDestroy {
   private ws = inject(WebSocketService);
   private games = inject(GameService);
   readonly reliability = inject(ReliabilityService);
+  private buttonTests = inject(ButtonTestService);
   diagnostics = signal<any | null>(null);
+  buttonTest = signal<ButtonTestSnapshot | null>(null);
+  forceStart = signal(false);
+  readonly testsReady = computed(() => {
+    const test = this.buttonTest();
+    return !test || test.teams.length === 0 || test.allReady;
+  });
+  private buttonTestTimer?: ReturnType<typeof setInterval>;
 
   /** Categorie ufficiali: qui l'admin accende/spegne e gestisce il flag Timeline. */
   readonly categories = signal<CategoryRow[]>([]);
@@ -76,7 +85,9 @@ export class Admin implements OnInit, OnDestroy {
     }, 1200);
     void this.refreshDiagnostics();
     void this.loadCategories();
+    void this.refreshButtonTest();
     this.diagTimer = setInterval(() => void this.refreshDiagnostics(), 5000);
+    this.buttonTestTimer = setInterval(() => void this.refreshButtonTest(), 2500);
 
     
 
@@ -522,8 +533,54 @@ export class Admin implements OnInit, OnDestroy {
 
   /** Pulsante unico "Parti": fa partire il round su TV e telefoni. */
   nextRound(): void {
+    if (!this.testsReady() && !this.forceStart()) {
+      this.vibrate([80, 50, 80]);
+      return;
+    }
     this.ws.broadcastStatus(this.activeGameId(), { action: WsAction.ADMIN_START_ROUND });
+    void this.buttonTests.finish(this.activeGameId()).subscribe({
+      next: (snapshot) => this.buttonTest.set(snapshot),
+      error: () => undefined,
+    });
     this.vibrate(30);
+  }
+
+  forceStartRound(): void {
+    this.forceStart.set(true);
+    this.nextRound();
+  }
+
+  startButtonTest(): void {
+    this.buttonTests.start(this.activeGameId()).subscribe({
+      next: (snapshot) => {
+        this.forceStart.set(false);
+        this.buttonTest.set(snapshot);
+        this.vibrate(30);
+      },
+      error: () => this.vibrate([60, 40, 60]),
+    });
+  }
+
+  skipButtonTest(): void {
+    this.buttonTests.skip(this.activeGameId()).subscribe({
+      next: (snapshot) => this.buttonTest.set(snapshot),
+      error: () => this.vibrate([60, 40, 60]),
+    });
+  }
+
+  resetButtonTest(playerName: string): void {
+    this.buttonTests.reset(this.activeGameId(), playerName).subscribe({
+      next: () => void this.refreshButtonTest(),
+      error: () => this.vibrate([60, 40, 60]),
+    });
+  }
+
+  private async refreshButtonTest(): Promise<void> {
+    try {
+      this.buttonTest.set(await firstValueFrom(this.buttonTests.snapshot(this.activeGameId())));
+    } catch {
+      // Il pannello continua a funzionare anche se la prova non risponde.
+    }
   }
 
   /** Canzone: apre la manche successiva senza chiudere il round. */
@@ -539,6 +596,12 @@ export class Admin implements OnInit, OnDestroy {
 
   toggleGamePause(): void {
     this.ws.broadcastStatus(this.activeGameId(), { action: WsAction.ADMIN_TOGGLE_PAUSE });
+    this.vibrate(30);
+  }
+
+  /** Rivede l'intro in TV senza ricaricare la pagina. */
+  showIntro(): void {
+    this.ws.broadcastStatus(this.activeGameId(), { action: WsAction.ADMIN_SHOW_INTRO });
     this.vibrate(30);
   }
 
@@ -586,6 +649,7 @@ export class Admin implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.diagTimer) clearInterval(this.diagTimer);
+    if (this.buttonTestTimer) clearInterval(this.buttonTestTimer);
     if (this.stateRetry) clearTimeout(this.stateRetry);
     
   }

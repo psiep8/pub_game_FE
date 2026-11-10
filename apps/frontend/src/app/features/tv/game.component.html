@@ -1,32 +1,71 @@
 <div class="game-container">
 
+  @if (introVisible()) {
+  <section class="intro-screen" [class.intro-reduced]="introReducedMotion()"
+    [style.--intro-duration]="introDurationMs() + 'ms'" (click)="dismissIntro()"
+    aria-label="Intro di Pub Game">
+    <div class="intro-paper-grid" aria-hidden="true"></div>
+    <div class="intro-orbit intro-orbit-a" aria-hidden="true"></div>
+    <div class="intro-orbit intro-orbit-b" aria-hidden="true"></div>
+
+    <header class="intro-top">
+      <span class="intro-stamp">EDIZIONE 26</span>
+      <span class="intro-meta">UNA TV · SQUADRE · 40 ROUND</span>
+    </header>
+
+    <div class="intro-center">
+      <div class="intro-icons" aria-hidden="true">
+        @for (icon of introIcons; track icon.label; let i = $index) {
+        <div class="intro-icon" [style.--i]="i">
+          <b>{{ icon.glyph }}</b>
+          <small>{{ icon.label }}</small>
+        </div>
+        }
+      </div>
+      <div class="intro-kicker">IL GIOCO DEL PUB</div>
+      <h1 class="intro-logo">PUB <span>GAME</span></h1>
+      <p class="intro-tagline">QUARANTA ROUND.<br>UNA SOLA SERATA.</p>
+      <button type="button" class="intro-start"
+        (click)="$event.stopPropagation(); dismissIntro()">
+        AVVIA SERATA <span aria-hidden="true">→</span>
+      </button>
+    </div>
+
+    <footer class="intro-bottom">
+      <span>TOCCA O PREMI INVIO PER SALTARE</span>
+      <span class="intro-edition">PUB GAME / 26</span>
+    </footer>
+    <div class="intro-progress" aria-hidden="true"><span></span></div>
+  </section>
+  }
+
   <div class="conn-shell">
     <app-connection-badge role="tv"></app-connection-badge>
   </div>
 
 
   @if (phase() === 'IDLE') {
-  <div class="central-action full-screen lobby">
+  <div class="central-action full-screen lobby" [class.lobby-hidden]="!pageVisible()">
     <div class="lobby-glow glow-a"></div>
     <div class="lobby-glow glow-b"></div>
 
     <header class="lobby-brand">
       <div class="lobby-kicker">IL GIOCO DEL PUB</div>
       <h1 class="lobby-title">PUB <span>GAME</span></h1>
-      <p class="lobby-sub">4 squadre · 1 TV · 40 round</p>
+      <p class="lobby-sub">{{ presencePlayers().length }} {{ presencePlayers().length === 1 ? 'squadra collegata' : 'squadre collegate' }}</p>
     </header>
 
     <div class="lobby-grid">
       <div class="qr-section">
         @if (currentGameId()) {
-        <div class="qr-label">📱 SCANSIONA PER GIOCARE</div>
+        <div class="qr-label">SCANSIONA PER GIOCARE</div>
         @if (qrCodeUrl()) {
         <img [src]="qrCodeUrl()" alt="QR Code per giocare" class="qr-code">
         } @else {
         <div class="qr-code qr-url">{{ remoteUrl() }}</div>
         }
-        <p>Inquadra il QR con la camera</p>
         <div class="game-id-badge">PARTITA #{{ currentGameId() }}</div>
+        <p class="lobby-url">{{ remoteUrl() }}</p>
         } @else {
         <button (click)="openLobby()" class="extract-btn lobby-play">
           <span class="icon">📱</span>
@@ -40,6 +79,37 @@
         <div class="lobby-step"><span>2</span><div><b>Ascolta la TV</b><small>Rispondi, prenota, trascina</small></div></div>
         <div class="lobby-step"><span>3</span><div><b>Scala la classifica</b><small>40 round in cinque atti</small></div></div>
         <div class="lobby-wait">PRONTI · IL PRESENTATORE AVVIA IL ROUND</div>
+        <div class="lobby-teams" aria-live="polite">
+          @for (name of presencePlayers(); track name) {
+          <div class="lobby-team">
+            @if (playerAvatars.avatarFor(name); as avatar) {
+            <img [src]="avatar" [alt]="'Foto di ' + name">
+            } @else {
+            <span class="lobby-team-initial">{{ name.charAt(0) }}</span>
+            }
+            <b>{{ name }}</b>
+          </div>
+          }
+        </div>
+        @if (buttonTestSnapshot(); as test) {
+        @if (test.teams.length) {
+        <div class="lobby-readiness" aria-live="polite">
+          <div class="lobby-readiness-title">PROVA DEL TELEFONO</div>
+          @for (team of test.teams; track team.playerName) {
+          <div class="lobby-ready-row">
+            <b>{{ team.playerName }}</b>
+            <span class="lobby-ready-dots">
+              @for (done of team.done; track $index) {
+              <i [class.done]="done"></i>
+              }
+            </span>
+            @if (team.flagged) { <em>Da controllare</em> }
+          </div>
+          }
+          @if (test.allReady) { <div class="lobby-all-ready">TUTTI PRONTI</div> }
+        </div>
+        }
+        }
       </div>
     </div>
   </div>
