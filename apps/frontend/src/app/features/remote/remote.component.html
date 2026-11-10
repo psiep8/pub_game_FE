@@ -84,6 +84,10 @@
   </div>
   } @else {
 
+  @if (showButtonTest()) {
+  <app-button-test [gameId]="gameId()" (done)="closeButtonTest()" />
+  } @else {
+
   <div class="header">
     <div class="header-round">
       <span class="header-round-num">ROUND {{ roundNumber() || 1 }}/{{ roundTotal() }}</span>
@@ -692,5 +696,6 @@
     }
     }
   </div>
+  }
   }
 </div>

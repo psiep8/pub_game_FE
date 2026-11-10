@@ -266,6 +266,50 @@
 @keyframes lobbyTeamIn { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .lobby * { animation: none !important; } }
 
+.lobby-readiness {
+  margin-top: 8px;
+  padding: 7px 9px;
+  background: var(--paper-hi);
+  color: var(--coal);
+  border: 2px solid var(--coal);
+  box-shadow: 4px 4px 0 var(--tomato);
+}
+.lobby-readiness-title {
+  margin-bottom: 4px;
+  color: var(--tomato);
+  font-family: var(--font-mono);
+  font-size: clamp(.56rem, 1.2vh, .74rem);
+  font-weight: 700;
+  letter-spacing: .14em;
+}
+.lobby-ready-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 7px;
+  min-height: 20px;
+  border-top: 1px dashed rgba(21, 21, 15, .2);
+  font-family: var(--font-mono);
+  font-size: clamp(.56rem, 1.25vh, .78rem);
+}
+.lobby-ready-row b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lobby-ready-row em { color: var(--tomato); font-size: .85em; font-style: normal; }
+.lobby-ready-dots { display: inline-flex; gap: 3px; }
+.lobby-ready-dots i { width: 8px; height: 8px; background: var(--paper-2); border: 1px solid var(--coal); }
+.lobby-ready-dots i.done { background: var(--acid); }
+.lobby-all-ready {
+  margin-top: 5px;
+  padding: 4px 6px;
+  background: var(--acid);
+  color: var(--coal);
+  border: 2px solid var(--coal);
+  font-family: var(--font-mono);
+  font-size: clamp(.6rem, 1.35vh, .82rem);
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-align: center;
+}
+
 /* ------------------------------------------------------------ Comandi TV */
 .tv-dock {
   position: fixed !important;

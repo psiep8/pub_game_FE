@@ -16,9 +16,11 @@ import java.util.regex.Pattern;
 /** Explicitly grants public and player routes; every other API route is regia-only. */
 public class SessionAuthenticationFilter extends OncePerRequestFilter {
     private static final Pattern GAME_PATH = Pattern.compile("^/games/(\\d+)(?:/(.*))?$");
-    private static final Set<String> PLAYER_GET = Set.of("sync", "arena-question", "bomba/state");
+    private static final Set<String> PLAYER_GET = Set.of("sync", "arena-question", "bomba/state",
+            "button-test/me");
     private static final Set<String> PLAYER_POST = Set.of("session/heartbeat", "session/disconnect",
-            "arena-answer", "timeline-answer", "time-buzzer/stop", "bomba/pick");
+            "arena-answer", "timeline-answer", "time-buzzer/stop", "bomba/pick",
+            "button-test/step", "button-test/ping");
     /** Pagine e file serviti dal jar: devono essere leggibili prima del login. */
     private static final Set<String> PUBLIC_GET = Set.of("/", "/index.html", "/favicon.ico",
             "/manifest.webmanifest", "/ngsw.json", "/ngsw-worker.js", "/games/active", "/error",

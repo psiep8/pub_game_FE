@@ -1,0 +1,94 @@
+<div class="button-test">
+  <header class="bt-head">
+    <div>
+      <span class="bt-kicker">PROVA DEL TELEFONO</span>
+      <h1>PRONTI A GIOCARE?</h1>
+    </div>
+    <span class="bt-counter">{{ step() }}/{{ steps() }}</span>
+  </header>
+
+  <div class="bt-dots" aria-label="Passi completati">
+    @for (done of doneSteps(); track $index) {
+    <span class="bt-dot" [class.done]="done"></span>
+    }
+  </div>
+
+  @if (error(); as message) {
+  <div class="bt-card bt-error" role="alert">
+    <p>{{ message }}</p>
+    <button class="bt-primary" (click)="retry()">RIPROVA</button>
+  </div>
+  } @else {
+  @switch (step()) {
+  @case (1) {
+  <section class="bt-card">
+    <span class="bt-step">1 · TOCCO</span>
+    <p>Tocca il pulsante qui sotto. Serve a capire che il dito arriva al punto giusto.</p>
+    <button class="bt-target" (click)="advance(1)">TOCCA QUI</button>
+  </section>
+  }
+
+  @case (2) {
+  <section class="bt-card">
+    <span class="bt-step">2 · SCELTA</span>
+    <p>La TV indica una lettera: scegli quella giusta.</p>
+    <strong class="bt-instruction">PREMI {{ targetLabel() }}</strong>
+    <div class="bt-choices">
+      @for (label of cardLabels; track label; let i = $index) {
+      <button class="bt-choice" (click)="choose(i)">{{ label }}</button>
+      }
+    </div>
+    @if (message()) { <span class="bt-message">{{ message() }}</span> }
+  </section>
+  }
+
+  @case (3) {
+  <section class="bt-card">
+    <span class="bt-step">3 · TRASCINAMENTO</span>
+    <p>Metti le carte in ordine: A, B, C. Trascinale con il dito.</p>
+    <div class="bt-cards" (pointermove)="onDragMove($event)" (pointerup)="endDrag()" (pointercancel)="endDrag()">
+      @for (card of cards(); track card; let i = $index) {
+      <div class="bt-drag-card" [class.dragging]="dragIndex() === i" [attr.data-card-index]="i"
+        (pointerdown)="startDrag(i)">
+        <span class="bt-handle">⠿</span>
+        <b>{{ cardLabels[card] }}</b>
+      </div>
+      }
+    </div>
+    @if (message()) { <span class="bt-message">{{ message() }}</span> }
+  </section>
+  }
+
+  @case (4) {
+  <section class="bt-card">
+    <span class="bt-step">4 · VIBRAZIONE</span>
+    <p>Il telefono dovrebbe vibrare. Se non succede, segnalalo: la prova passa comunque.</p>
+    <div class="bt-vibrate" aria-hidden="true">VIBRA</div>
+    <div class="bt-row">
+      <button class="bt-primary" (click)="vibration(true)">L'HO SENTITA</button>
+      <button class="bt-secondary" (click)="vibration(false)">NON VIBRA</button>
+    </div>
+  </section>
+  }
+
+  @case (5) {
+  <section class="bt-card">
+    <span class="bt-step">5 · COLLEGAMENTO</span>
+    @if (latency() !== null) {
+    <strong class="bt-ok">COLLEGATO</strong>
+    <p>{{ latency() }} ms di andata e ritorno.</p>
+    } @else {
+    <div class="bt-pulse" aria-hidden="true"></div>
+    <p>Aspetta il segnale della TV: stiamo verificando andata e ritorno.</p>
+    }
+    @if (message()) { <span class="bt-message">{{ message() }}</span> }
+  </section>
+  }
+  }
+  }
+
+  <footer class="bt-foot">
+    <span>{{ secondsLeft() }}s</span>
+    <span>Se un passo non riesce, passa da solo e resta da controllare.</span>
+  </footer>
+</div>

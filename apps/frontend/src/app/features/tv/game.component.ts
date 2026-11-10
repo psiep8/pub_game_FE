@@ -31,6 +31,7 @@ import { RoundManagerService } from '../../core/services/round-manager.service';
 import { LeaderboardService, PlayerScore } from '../../core/services/leaderboard.service';
 import { AudioService } from '../../core/services/audio.service';
 import { PlayerAvatarService } from '../../core/services/player-avatar.service';
+import { ButtonTestService, ButtonTestSnapshot } from '../../core/services/button-test.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ReliabilityService } from '../../core/services/reliability.service';
 import { ConnectionBadge } from '../../shared/components/connection-badge/connection-badge.component';
@@ -109,6 +110,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
   public roundManager = inject(RoundManagerService);
   private leaderboardService = inject(LeaderboardService);
+  private buttonTests = inject(ButtonTestService);
   public audioService = inject(AudioService);
   public theme = inject(ThemeService);
   // La TV tiene vivo il canale avatar per tutta la serata, non solo in classifica.
@@ -210,6 +212,7 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Telefoni presenti sul backend: i bonus li usano anche senza classifica
    *  (dopo un reset la leaderboard è vuota e i tavoli sparirebbero). */
   readonly presencePlayers = signal<string[]>([]);
+  readonly buttonTestSnapshot = signal<ButtonTestSnapshot | null>(null);
   readonly pageVisible = signal(!document.hidden);
 
   @HostListener('document:visibilitychange')
@@ -217,6 +220,8 @@ export class GameComponent implements OnInit, OnDestroy {
     this.pageVisible.set(!document.hidden);
   }
   private presenceTimer?: ReturnType<typeof setInterval>;
+  private buttonTestTimer?: ReturnType<typeof setInterval>;
+  private lastButtonTestPing = 0;
   private readonly bonusActsStarted = new Set<number>();
   private bonusScoresMap = new Map<string, number>();
   private bonusBasketsMap = new Map<string, number>();
@@ -353,6 +358,8 @@ export class GameComponent implements OnInit, OnDestroy {
     this.playerAvatars.connect(this.ws);
     void this.refreshLobbyPresence();
     this.presenceTimer = setInterval(() => void this.refreshLobbyPresence(), 5000);
+    void this.refreshButtonTests();
+    this.buttonTestTimer = setInterval(() => void this.refreshButtonTests(), 2000);
     try {
       const cats = await firstValueFrom(this.gameService.getCategories());
       const positioned = this.generateNonOverlappingPositions(cats);
@@ -503,6 +510,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.presenceTimer) clearInterval(this.presenceTimer);
+    if (this.buttonTestTimer) clearInterval(this.buttonTestTimer);
     this.gameModeService.cleanup();
     if (this.displayDataInterval) {
       clearInterval(this.displayDataInterval);
@@ -523,6 +531,24 @@ export class GameComponent implements OnInit, OnDestroy {
       .map((device: any) => String(device.playerName).trim())
       .filter((name: string) => name.length > 0);
     this.presencePlayers.set(Array.from(new Set<string>(names)));
+  }
+
+  /** Avanzamento della prova pulsanti, mostrato nella home. */
+  private async refreshButtonTests(): Promise<void> {
+    if (this.phase() !== 'IDLE' || this.roundManager.getCurrentRound() > 1) return;
+    const gameId = this.currentGameId();
+    if (!gameId) return;
+    try {
+      const snapshot = await firstValueFrom(this.buttonTests.snapshot(gameId));
+      this.buttonTestSnapshot.set(snapshot);
+      const waiting = snapshot.active && snapshot.teams.some((team) => !team.completed);
+      if (waiting && Date.now() - this.lastButtonTestPing > 3000) {
+        this.lastButtonTestPing = Date.now();
+        this.ws.broadcastStatus(gameId, { action: WsAction.BUTTON_TEST_PING, at: this.lastButtonTestPing });
+      }
+    } catch {
+      // Il backend può essere momentaneamente occupato: il prossimo poll riprova.
+    }
   }
 
   /** Rigenera il QR in locale: nessuna chiamata a servizi esterni. */

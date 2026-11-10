@@ -52,6 +52,25 @@
           </div>
           }
         </div>
+        @if (buttonTestSnapshot(); as test) {
+        @if (test.teams.length) {
+        <div class="lobby-readiness" aria-live="polite">
+          <div class="lobby-readiness-title">PROVA DEL TELEFONO</div>
+          @for (team of test.teams; track team.playerName) {
+          <div class="lobby-ready-row">
+            <b>{{ team.playerName }}</b>
+            <span class="lobby-ready-dots">
+              @for (done of team.done; track $index) {
+              <i [class.done]="done"></i>
+              }
+            </span>
+            @if (team.flagged) { <em>Da controllare</em> }
+          </div>
+          }
+          @if (test.allReady) { <div class="lobby-all-ready">TUTTI PRONTI</div> }
+        </div>
+        }
+        }
       </div>
     </div>
   </div>

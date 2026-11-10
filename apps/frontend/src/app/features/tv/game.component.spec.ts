@@ -17,6 +17,8 @@ import {
 import { FakeReliabilityService } from '../../shared/testing/test-doubles';
 import { ReliabilityService } from '../../core/services/reliability.service';
 import { RoundManagerService } from '../../core/services/round-manager.service';
+import { ButtonTestService } from '../../core/services/button-test.service';
+import { FakeButtonTestService } from '../../shared/testing/fake-button-test.service';
 
 describe('GameComponent', () => {
   let component: GameComponent;
@@ -36,6 +38,7 @@ describe('GameComponent', () => {
         { provide: GameService, useClass: FakeGameService },
         { provide: AiGeneratorService, useClass: FakeAiGeneratorService },
         { provide: AudioService, useClass: FakeAudioService },
+        { provide: ButtonTestService, useClass: FakeButtonTestService },
       ],
     }).compileComponents();
 

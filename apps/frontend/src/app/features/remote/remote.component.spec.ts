@@ -9,6 +9,8 @@ import { AudioService } from '../../core/services/audio.service';
 import { FakeAudioService, FakeGameService, FakeSwUpdate, FakeWebSocketService } from '../../shared/testing/test-doubles';
 import { FakeReliabilityService } from '../../shared/testing/test-doubles';
 import { ReliabilityService } from '../../core/services/reliability.service';
+import { ButtonTestService } from '../../core/services/button-test.service';
+import { FakeButtonTestService } from '../../shared/testing/fake-button-test.service';
 
 describe('RemoteComponent', () => {
   let component: RemoteComponent;
@@ -27,6 +29,7 @@ describe('RemoteComponent', () => {
         { provide: GameService, useClass: FakeGameService },
         { provide: AudioService, useClass: FakeAudioService },
         { provide: SwUpdate, useClass: FakeSwUpdate },
+        { provide: ButtonTestService, useClass: FakeButtonTestService },
       ],
     }).compileComponents();
 

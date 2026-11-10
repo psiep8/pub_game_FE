@@ -6,6 +6,8 @@ import { FakeWebSocketService } from '../../shared/testing/test-doubles';
 import { FakeReliabilityService } from '../../shared/testing/test-doubles';
 import { ReliabilityService } from '../../core/services/reliability.service';
 import { GameService } from '../../core/services/game.service';
+import { ButtonTestService } from '../../core/services/button-test.service';
+import { FakeButtonTestService } from '../../shared/testing/fake-button-test.service';
 import { of } from 'rxjs';
 
 /** Doppio minimo: al pannello bastano le categorie, il resto non viene usato. */
@@ -28,6 +30,7 @@ describe('Admin', () => {
       imports: [Admin],
       providers: [{ provide: WebSocketService, useClass: FakeWebSocketService },
         { provide: ReliabilityService, useClass: FakeReliabilityService as any },
+        { provide: ButtonTestService, useClass: FakeButtonTestService },
         { provide: GameService, useValue: gameServiceDouble }],
     }).compileComponents();
 
