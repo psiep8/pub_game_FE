@@ -171,7 +171,7 @@ export class ReliabilityService {
         this.controlSecret = null;
       }
       this.online.set(false);
-      this.lastError.set(status === 409 ? 'Nome squadra già utilizzato' : 'Sessione non disponibile');
+      this.lastError.set(status === 409 ? 'Nome già in uso, scegline un altro' : 'Sessione non disponibile');
       return false;
     }
   }

@@ -63,6 +63,20 @@ describe('RemoteComponent', () => {
     expect(ws.broadcasted.at(-1)?.body).toEqual({ action: 'JOIN_GAME', playerName: 'Anna' });
   });
 
+  it('requires a team name between 2 and 16 characters before registering', async () => {
+    const start = vi.spyOn(reliability, 'start');
+    for (const name of [' ', 'A', '12345678901234567']) {
+      component.tempNickname = name;
+      await component.setNickname();
+      expect(component.nickname()).toBeNull();
+      expect(reliability.lastError()).toContain('da 2 a 16');
+    }
+    expect(start).not.toHaveBeenCalled();
+    component.tempNickname = '  AB  ';
+    await component.setNickname();
+    expect(component.nickname()).toBe('AB');
+  });
+
   it('does not enter when the team name is rejected', async () => {
     vi.spyOn(reliability, 'start').mockResolvedValue(false);
     component.tempNickname = 'Anna';

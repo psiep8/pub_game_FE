@@ -874,7 +874,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   async setNickname() {
     const name = this.tempNickname.trim();
-    if (!name || !await this.reliability.start(this.gameId(), 'REMOTE', name)) return;
+    if (name.length < 2 || name.length > 16) {
+      this.reliability.lastError.set('Il nome deve contenere da 2 a 16 caratteri');
+      return;
+    }
+    if (!await this.reliability.start(this.gameId(), 'REMOTE', name)) return;
     this.nickname.set(name);
     localStorage.setItem('nickname', name);
     this.ws.broadcastStatus(this.gameId(), { action: WsAction.JOIN_GAME, playerName: name });
