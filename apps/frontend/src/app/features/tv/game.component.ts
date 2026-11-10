@@ -209,7 +209,14 @@ export class GameComponent implements OnInit, OnDestroy {
   private simulation = false;
   /** Telefoni presenti sul backend: i bonus li usano anche senza classifica
    *  (dopo un reset la leaderboard è vuota e i tavoli sparirebbero). */
-  private presencePlayers = signal<string[]>([]);
+  readonly presencePlayers = signal<string[]>([]);
+  readonly pageVisible = signal(!document.hidden);
+
+  @HostListener('document:visibilitychange')
+  onVisibilityChange(): void {
+    this.pageVisible.set(!document.hidden);
+  }
+  private presenceTimer?: ReturnType<typeof setInterval>;
   private readonly bonusActsStarted = new Set<number>();
   private bonusScoresMap = new Map<string, number>();
   private bonusBasketsMap = new Map<string, number>();
@@ -344,6 +351,8 @@ export class GameComponent implements OnInit, OnDestroy {
     await this.adoptActiveGame();
     this.bindLeaderboardPersistence();
     this.playerAvatars.connect(this.ws);
+    void this.refreshLobbyPresence();
+    this.presenceTimer = setInterval(() => void this.refreshLobbyPresence(), 5000);
     try {
       const cats = await firstValueFrom(this.gameService.getCategories());
       const positioned = this.generateNonOverlappingPositions(cats);
@@ -407,8 +416,9 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
       // 🤝 Nuovo giocatore si è unito
-      if (status.action === 'JOIN_GAME' && status.playerName) {
+      if (status.action === WsAction.JOIN_GAME && status.playerName) {
         const normalizedName = status.playerName.trim();
+        this.presencePlayers.update((names) => names.includes(normalizedName) ? names : [...names, normalizedName]);
         console.log(`🤝 Nuovo giocatore unito: ${normalizedName}`);
         this.audioService.playJoin();
         this.leaderboardService.addPoints(normalizedName, 0, false);
@@ -492,6 +502,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.presenceTimer) clearInterval(this.presenceTimer);
     this.gameModeService.cleanup();
     if (this.displayDataInterval) {
       clearInterval(this.displayDataInterval);
@@ -502,6 +513,18 @@ export class GameComponent implements OnInit, OnDestroy {
     this.audioService.stopAmbient();
   }
 
+  /** Presenze effettive: la classifica può contenere squadre non più collegate. */
+  private async refreshLobbyPresence(): Promise<void> {
+    if (this.phase() !== 'IDLE' || !this.currentGameId()) return;
+    const diagnostics = await this.reliability.diagnostics(this.currentGameId());
+    if (!Array.isArray(diagnostics?.presence)) return;
+    const names = diagnostics.presence
+      .filter((device: any) => device?.connected && device?.role === 'REMOTE' && device?.playerName)
+      .map((device: any) => String(device.playerName).trim())
+      .filter((name: string) => name.length > 0);
+    this.presencePlayers.set(Array.from(new Set<string>(names)));
+  }
+
   /** Rigenera il QR in locale: nessuna chiamata a servizi esterni. */
   private async refreshQrCode(): Promise<void> {
     const url = this.remoteUrl();
@@ -509,8 +532,8 @@ export class GameComponent implements OnInit, OnDestroy {
     this.lastQrUrl = url;
     try {
       const dataUrl = await QRCode.toDataURL(url, {
-        width: 250,
-        margin: 2,
+        width: 800,
+        margin: 4,
         errorCorrectionLevel: 'M',
         color: { dark: '#15150f', light: '#ffffff' },
       });

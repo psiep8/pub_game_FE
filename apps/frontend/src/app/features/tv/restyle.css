@@ -221,6 +221,51 @@
   box-shadow: 5px 5px 0 var(--acid) !important;
 }
 
+/* La carta del QR resta ferma: si sposta solo il codice, senza rotazioni. */
+.central-action.full-screen.lobby { gap: 1vh; padding: 2vh 3vw; }
+.lobby-brand { text-align: left; }
+.lobby-title { font-size: clamp(3.2rem, 9vh, 7rem); margin-top: 5px; }
+.lobby-sub { margin-top: 6px; }
+.lobby-grid { width: 100%; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3vw; }
+.lobby .qr-section { transform: none; }
+.lobby .qr-label { font-size: clamp(.9rem, 2vh, 1.5rem); }
+.central-action.full-screen.lobby .qr-section .qr-code {
+  width: min(44vh, 38vw) !important;
+  height: min(44vh, 38vw) !important;
+  max-width: 100%;
+  padding: 0;
+  object-fit: contain;
+  animation: lobbyQr 12s ease-in-out infinite;
+  will-change: transform;
+}
+.lobby .lobby-url { margin: 8px 0 0 !important; overflow-wrap: anywhere; text-transform: none; }
+.lobby-teams { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+.lobby-team {
+  display: flex; align-items: center; gap: 8px; min-width: 0; padding: 5px 8px;
+  color: var(--coal); background: var(--paper); border: 2px solid var(--coal);
+  font-family: var(--font-mono); font-size: clamp(.65rem, 1.4vh, 1rem);
+  animation: lobbyTeamIn .35s ease-out, lobbyFloat 11s ease-in-out .35s infinite;
+  will-change: transform, opacity;
+}
+.lobby-team b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lobby-team img, .lobby-team-initial { width: clamp(24px, 3.6vh, 42px); height: clamp(24px, 3.6vh, 42px); flex: 0 0 auto; object-fit: cover; }
+.lobby-team-initial { display: grid; place-items: center; background: var(--acid); font-weight: 700; }
+.lobby-kicker, .lobby-title, .lobby-sub, .lobby-step, .lobby-wait, .qr-label, .game-id-badge, .lobby-url {
+  animation: lobbyFloat 10s ease-in-out infinite;
+  will-change: transform;
+}
+.lobby-title, .lobby-step:nth-child(2), .game-id-badge { animation-duration: 12s; animation-delay: -3s; }
+.lobby-sub, .lobby-step:nth-child(3), .lobby-url { animation-duration: 14s; animation-delay: -6s; }
+.lobby-glow.glow-a { animation: lobbyBackground 45s ease-in-out infinite; will-change: transform; }
+.lobby-glow.glow-b { animation: lobbyBackground 55s ease-in-out -15s infinite; will-change: transform; }
+.lobby-team:nth-child(even) { animation-delay: 0s, -4s; }
+.lobby-hidden * { animation-play-state: paused !important; }
+@keyframes lobbyFloat { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(3px, -5px); } }
+@keyframes lobbyQr { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(1px, -2px); } }
+@keyframes lobbyBackground { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(25px, -30px); } }
+@keyframes lobbyTeamIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .lobby * { animation: none !important; } }
+
 /* ------------------------------------------------------------ Comandi TV */
 .tv-dock {
   position: fixed !important;
@@ -620,7 +665,6 @@
     width: 94vw;
     gap: 16px;
   }
-  .lobby .qr-code { width: 148px !important; }
   .lobby-step:nth-child(3) { display: none; }
   .lobby-title { font-size: clamp(3rem, 13vw, 5rem); }
   .round-info { min-width: 120px; padding: 7px 12px !important; }

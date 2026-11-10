@@ -96,6 +96,14 @@ describe('GameComponent', () => {
     expect(arenaMode.applyArenaAnswer).toHaveBeenCalledWith('Anna', true, 10);
   });
 
+  it('adds a joining team to the lobby list without duplicates', async () => {
+    ws.status$.next({ action: 'JOIN_GAME', playerName: 'Anna' });
+    ws.status$.next({ action: 'JOIN_GAME', playerName: ' Anna ' });
+    await fixture.whenStable();
+
+    expect(component.presencePlayers()).toEqual(['Anna']);
+  });
+
   it('should register a joining player with zero points', async () => {
     ws.status$.next({ action: 'JOIN_GAME', playerName: '  Bruno  ' });
     await fixture.whenStable();
