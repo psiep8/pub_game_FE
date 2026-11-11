@@ -48,6 +48,79 @@
 
 <div class="remote-container">
 
+  @if (manualOpen()) {
+  <section class="manual-overlay" role="dialog" aria-modal="true" aria-labelledby="manual-title">
+    <header class="manual-head">
+      <div class="manual-head-text">
+        <span class="manual-stamp">PUB GAME · MANUALE</span>
+        <h2 id="manual-title">{{ manualEntry()?.name || 'REGOLE DELLA SERATA' }}</h2>
+      </div>
+      <button class="manual-close" type="button" (click)="closeManual()" aria-label="Chiudi il manuale">✕</button>
+    </header>
+
+    <div class="manual-body">
+      @if (manualEntry(); as entry) {
+      <button class="manual-back" type="button" (click)="manualEntry.set(null)">← TUTTI I GIOCHI</button>
+      <article class="manual-detail">
+        <div class="manual-detail-head">
+          <span class="manual-icon" aria-hidden="true">{{ entry.icon }}</span>
+          <div>
+            <span class="manual-meta">{{ manualMeta(entry) }}</span>
+            <p class="manual-summary">{{ entry.summary }}</p>
+          </div>
+        </div>
+
+        <h3>OBIETTIVO</h3>
+        <p>{{ entry.objective }}</p>
+
+        <h3>SUL TELEFONO</h3>
+        <ul>
+          @for (line of entry.phone; track line) { <li>{{ line }}</li> }
+        </ul>
+
+        <h3>PUNTI</h3>
+        <div class="manual-score">
+          <div><span>Corretto</span><b>{{ entry.scoring.correct }}</b></div>
+          <div><span>Sbagliato</span><b>{{ entry.scoring.wrong }}</b></div>
+          <div><span>Non risposta</span><b>{{ entry.scoring.missed }}</b></div>
+        </div>
+        <p class="manual-note">{{ entry.scoring.note }}</p>
+        <p class="manual-tip"><b>CONSIGLIO</b><br>{{ entry.tip }}</p>
+      </article>
+      } @else {
+      @for (section of manualSections; track section.title) {
+      <section class="manual-section">
+        <h3>{{ section.title }}</h3>
+        @for (line of section.lines; track line) { <p>{{ line }}</p> }
+      </section>
+      }
+
+      <h3 class="manual-list-title">I GIOCHI <span>{{ manualGames.length }}</span></h3>
+      <div class="manual-list">
+        @for (game of manualGames; track game.key) {
+        <button class="manual-row" type="button" (click)="manualEntry.set(game)">
+          <span class="manual-row-icon" aria-hidden="true">{{ game.icon }}</span>
+          <span class="manual-row-text"><b>{{ game.name }}</b><small>{{ game.summary }}</small></span>
+          <span class="manual-row-arrow" aria-hidden="true">→</span>
+        </button>
+        }
+      </div>
+
+      <h3 class="manual-list-title">I BONUS <span>{{ manualBonuses.length }}</span></h3>
+      <div class="manual-list">
+        @for (bonus of manualBonuses; track bonus.key) {
+        <button class="manual-row bonus" type="button" (click)="manualEntry.set(bonus)">
+          <span class="manual-row-icon" aria-hidden="true">{{ bonus.icon }}</span>
+          <span class="manual-row-text"><b>{{ bonus.name }}</b><small>{{ bonus.summary }}</small></span>
+          <span class="manual-row-arrow" aria-hidden="true">→</span>
+        </button>
+        }
+      </div>
+      }
+    </div>
+  </section>
+  }
+
   @if (paused()) {
   <div class="remote-pause" role="status">
     <div class="remote-pause-card">
@@ -95,6 +168,11 @@
     </div>
     <div class="header-side">
       <app-connection-badge role="remote"></app-connection-badge>
+      @if (canOpenManual()) {
+      <button class="header-manual-btn" type="button" (click)="openManual()" aria-label="Apri il manuale dei giochi">
+        📖<span> MANUALE</span>
+      </button>
+      }
       <button class="header-theme-btn" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
         🎨
       </button>

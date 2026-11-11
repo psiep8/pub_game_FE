@@ -1,6 +1,14 @@
 import { Injectable, signal } from '@angular/core';
 import { GameModeType } from '../../shared/models/game-mode-type';
 import { BonusType } from '../../shared/models/bonus-type';
+import {
+  ACT_DECKS,
+  BONUS_AFTER_ACT,
+  DETAILED_LEADERBOARD_ROUNDS,
+  QUICK_LEADERBOARD_ROUNDS,
+  ROUNDS_PER_ACT,
+  TOTAL_ROUNDS,
+} from '../../shared/schedule';
 
 export interface RoundConfig {
   totalRounds: number;
@@ -9,7 +17,6 @@ export interface RoundConfig {
   nextRoundType: GameModeType | null;
 }
 
-const TOTAL_ROUNDS = 40;
 const STORAGE_KEY = 'roundProgress';
 
 /**
@@ -32,40 +39,6 @@ const SIMULATION_DECK: GameModeType[] = [
   'ARENA',
   'SPEED_RUSH',
 ];
-
-/**
- * Scaletta in cinque atti da otto round.
- *
- * L'ordine è fisso e già verificato rispetto ai vincoli: mai due giochi in
- * tempo reale di fila (Bomba, Arena, Speed Rush, Air Hockey, Black Jack), mai
- * due giochi a prenotazione consecutivi (Musica, Indovina chi, Ruota), la
- * Ruota esce due volte e l'Arena chiude la serata.
- *
- * Nessun atto ripete l'apertura del precedente. Il Black Jack esce tre volte,
- * una per atto, sempre nei primi tre atti: è il round che dà il momento di
- * vetrina a un tavolo alla volta.
- *
- * Conteggi concordati: 5 Quiz, 4 Musica, 2 Azzardo, 2 Arena, 3 Bomba,
- * 3 Celebrità (Indovina chi), 3 Black Jack, 3 Timeline, 2 Ruota, 2 Speed Rush,
- * 3 Time Buzzer, 3 Air Hockey e 5 Ultima spiaggia.
- *
- * Ultima spiaggia chiude gli atti 1, 2 e 4 (8, 16, 32) ed è al penultimo
- * round degli atti 3 e 5 (23, 39), subito prima dell'Arena (24, 40).
- * I giochi in tempo reale non si susseguono; quelli a prenotazione
- * (Musica, Celebrità, Ruota) non si susseguono. Le aperture cambiano di atto
- * in atto e l'Arena chiude gli atti 3 e 5.
- */
-const ACT_DECKS: GameModeType[][] = [
-  ['QUIZ', 'MUSIC', 'BLACKJACK', 'TIME_BUZZER', 'BOMBA', 'TIMELINE', 'AIR_HOCKEY_BATTLE', 'ULTIMA_SPIAGGIA'],
-  ['AZZARDO', 'WHEEL_OF_FORTUNE', 'BLACKJACK', 'QUIZ', 'AIR_HOCKEY_BATTLE', 'TIME_BUZZER', 'MUSIC', 'ULTIMA_SPIAGGIA'],
-  ['QUIZ', 'SPEED_RUSH', 'IMAGE_BLUR', 'AIR_HOCKEY_BATTLE', 'TIME_BUZZER', 'BLACKJACK', 'ULTIMA_SPIAGGIA', 'ARENA'],
-  ['IMAGE_BLUR', 'BOMBA', 'MUSIC', 'QUIZ', 'WHEEL_OF_FORTUNE', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA'],
-  ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'AZZARDO', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'ARENA'],
-];
-
-/** Classifiche: rapida a metà atto, dettagliata a fine atto. */
-const QUICK_LEADERBOARD_ROUNDS = [4, 12, 20, 28, 36];
-const DETAILED_LEADERBOARD_ROUNDS = [8, 16, 24, 32, 40];
 
 /**
  * Gestisce l'avanzamento della partita: quanti round mancano, quale modalità
@@ -108,7 +81,7 @@ export class RoundManagerService {
     if (this.simulation) {
       return SIMULATION_DECK[Math.min(round, SIMULATION_DECK.length - 1)];
     }
-    const act = Math.min(ACT_DECKS.length - 1, Math.floor(round / 8));
+    const act = Math.min(ACT_DECKS.length - 1, Math.floor(round / ROUNDS_PER_ACT));
     const deck = ACT_DECKS[act];
     return deck[round % deck.length];
   }
@@ -130,7 +103,7 @@ export class RoundManagerService {
 
   /** Atto appena concluso (0-based). */
   getCurrentAct(): number {
-    return Math.floor(this.roundConfig().currentRound / 8) - 1;
+    return Math.floor(this.roundConfig().currentRound / ROUNDS_PER_ACT) - 1;
   }
 
   /**
@@ -141,18 +114,8 @@ export class RoundManagerService {
    * Dopo il quinto atto non c'è bonus: si chiude con la classifica finale.
    */
   bonusAfterAct(): BonusType | null {
-    switch (this.getCurrentAct()) {
-      case 0:
-        return 'CASINO';
-      case 1:
-        return 'BASKET';
-      case 2:
-        return 'CAVALLO';
-      case 3:
-        return 'BIGLIE';
-      default:
-        return null;
-    }
+    const act = this.getCurrentAct();
+    return act >= 0 ? BONUS_AFTER_ACT[act] ?? null : null;
   }
 
   completeRound(gameType: GameModeType): void {
@@ -171,8 +134,8 @@ export class RoundManagerService {
     const round = this.roundConfig().currentRound;
     if (round === 0) return null;
 
-    if (DETAILED_LEADERBOARD_ROUNDS.includes(round)) return 'DETAILED';
-    if (QUICK_LEADERBOARD_ROUNDS.includes(round)) return 'QUICK';
+    if (DETAILED_LEADERBOARD_ROUNDS.includes(round as never)) return 'DETAILED';
+    if (QUICK_LEADERBOARD_ROUNDS.includes(round as never)) return 'QUICK';
 
     return null;
   }
@@ -184,7 +147,7 @@ export class RoundManagerService {
 
   isActEnd(): boolean {
     const round = this.roundConfig().currentRound;
-    return round > 0 && round % 8 === 0;
+    return round > 0 && round % ROUNDS_PER_ACT === 0;
   }
 
   /**
@@ -210,7 +173,7 @@ export class RoundManagerService {
     const target = Math.max(0, Math.min(TOTAL_ROUNDS, Math.trunc(roundNumber) || 0));
     const completedRounds: GameModeType[] = [];
     for (let index = 0; index < target; index++) {
-      const act = Math.min(ACT_DECKS.length - 1, Math.floor(index / 8));
+      const act = Math.min(ACT_DECKS.length - 1, Math.floor(index / ROUNDS_PER_ACT));
       const deck = ACT_DECKS[act];
       completedRounds.push(deck[index % deck.length]);
     }

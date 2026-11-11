@@ -52,7 +52,7 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     correct: '+300…+500 a fascia, manche dopo manche',
     wrong: '−250 / −100 se tagliato',
     missed: 'ultimo: esce per primo',
-    note: 'Tre manche; dopo la prima esce il terzo più lento, dopo la seconda gli ultimi due. I finalisti prendono +150.',
+    note: 'Tre manche da 30 s con bersaglio 5–29 s: dopo la prima esce circa un terzo dei tavoli, dopo la seconda gli ultimi due. I finalisti prendono +150.',
   },
   BOMBA: {
     correct: '0: la casella vera si salva e passa il turno',
@@ -73,10 +73,10 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     note: 'Il set si chiude a 7 gol; il perdente riceve +200 di consolazione. Risposte rapide accorciano il tempo dell’avversario.',
   },
   AZZARDO: {
-    correct: 'puntata × quota (×2 facile, ×3 media, ×4 difficile)',
-    wrong: '−puntata × 100/80/60/40%',
-    missed: '0: chi non risponde non punta',
-    note: 'Azzardo: quattro manche numeriche (celebrità, canzoni, paesi, storia) con puntate reali da 100, 200 o 300 punti. Mai sotto zero.',
+    correct: '+20 × quota per fiche giusta (×2 facile, ×3 media, ×4 difficile)',
+    wrong: '−20 × fiche sbagliate × 100/80/60/40%',
+    missed: '0: chi non distribuisce fiches non punta',
+    note: 'Quattro manche numeriche (celebrità, canzoni, paesi, storia) con dieci fiches da 20 punti da distribuire sulle quattro risposte. La perdita scende dal 100% al 40%; mai sotto zero.',
   },
   ULTIMA_SPIAGGIA: {
     correct: '+100 / +200 / +300 / +400 / +500',
@@ -104,25 +104,25 @@ export const BONUS_SCORING: Record<string, ScoringRule> = {
     correct: '+100 / +150 / +200 / +300 a manche',
     wrong: '0',
     missed: '0',
-    note: 'Colore, dozzina, sestina e numero secco: ogni manche si chiude con un giro della roulette in TV. Sullo zero il banco incassa; sul numero secco si rigira finché almeno un tavolo vince.',
+    note: 'Colore, dozzina, sestina e numero secco: ogni manche si chiude con un giro della roulette in TV. Sullo zero il banco incassa; sul numero secco si rigira finché almeno un tavolo vince. La classifica del bonus non assegna ancora punti in classifica.',
   },
   BONUS_BASKET: {
-    correct: '+300 / +150 / +75 ai primi tre',
+    correct: '+2 / +3 / +5 a canestro (swish +1)',
     wrong: '0',
     missed: '0',
-    note: '30 secondi di tiri; il punteggio del canestro decide il podio bonus.',
+    note: 'Tre manche da 20 secondi con ferro largo, medio e piccolo; la TV somma i punti e mostra la classifica del bonus. In serata reale il bonus è bloccato finché il punteggio non è verificato dal server: si apre solo in simulazione e anteprima.',
   },
   BONUS_CAVALLO: {
-    correct: '+300 / +150 / +75 ai primi tre',
+    correct: '+1 per risposta esatta',
     wrong: '0',
     missed: '0',
-    note: 'Otto domande flash sulla categoria votata dai telefoni; il podio del bonus premia i primi tre.',
+    note: 'Otto domande flash sulla categoria votata dai telefoni; la classifica del bonus conta le risposte esatte e non assegna ancora punti in classifica.',
   },
   BONUS_BIGLIE: {
     correct: '+150 / +100 / +60 / +30 a gara',
     wrong: '0',
     missed: '0',
-    note: 'Quattro gare su fondi diversi, punti cumulativi: una biglia per tavolo scelta una volta sola.',
+    note: 'Quattro gare su fondi diversi, punti cumulativi: una biglia per tavolo scelta una volta sola. La classifica del bonus non assegna ancora punti in classifica.',
   },
 };
 

@@ -1,7 +1,7 @@
 import { GamePhase } from '../../shared/enums/game-phase';
 import { PlayerStatus } from '../../shared/enums/player-status';
 import { WsAction } from '../../shared/enums/ws-action';
-import { ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit, signal, HostListener, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit, signal, computed, HostListener, ChangeDetectionStrategy } from '@angular/core';
 
 /** Nickname imposto dalla vista di prova `quad.html` (es. ?nickname=Anna). */
 function initialNicknameFromQuery(): string | null {
@@ -32,6 +32,14 @@ import {
 import { ConnectionBadge } from '../../shared/components/connection-badge/connection-badge.component';
 import { SentStateComponent } from '../../shared/components/sent-state/sent-state.component';
 import { ButtonTestComponent } from './button-test/button-test.component';
+import {
+  MANUAL_BONUSES,
+  MANUAL_GAMES,
+  MANUAL_SECTIONS,
+  ManualBonus,
+  ManualEntry,
+  ManualGame,
+} from '../../shared/manual/manual-content';
 
 @Component({
   selector: 'app-remote-component',
@@ -39,7 +47,7 @@ import { ButtonTestComponent } from './button-test/button-test.component';
   imports: [CommonModule, FormsModule, ConnectionBadge, SentStateComponent, ButtonTestComponent],
   templateUrl: './remote.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  styleUrls: ['./remote.component.css', './restyle.css'],
+  styleUrls: ['./remote.component.css', './restyle.css', './manual.css'],
   styles: [`
     .timeline-remote, .speed-remote, .hockey-remote {
       display: flex; flex-direction: column; gap: 14px; padding: 16px; height: 100%; justify-content: center;
@@ -200,6 +208,20 @@ export class RemoteComponent implements OnInit, OnDestroy {
   isBlocked = signal(false);
   /** Pausa globale decisa dall'admin: blocca input e cronometri locali. */
   paused = signal(false);
+  /** Un round è aperto: il manuale non si può aprire e si chiude se era aperto. */
+  roundActive = signal(false);
+  manualOpen = signal(false);
+  manualEntry = signal<ManualEntry | null>(null);
+  readonly manualGames = MANUAL_GAMES;
+  readonly manualBonuses = MANUAL_BONUSES;
+  readonly manualSections = MANUAL_SECTIONS;
+  readonly canOpenManual = computed(() =>
+    !!this.nickname()
+    && this.gameState() === PlayerStatus.WAITING
+    && !this.roundActive()
+    && !this.paused()
+    && !this.showButtonTest()
+  );
   roundNumber = signal(0);
   roundTotal = signal(40);
   private pauseStartedAt = 0;
@@ -430,6 +452,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
       switch (status.action) {
         case 'SHOW_QUESTION':
+          this.roundActive.set(true);
+          this.closeManual();
           this.questionType.set(status.type);
           if (status.round) this.roundNumber.set(Number(status.round));
           if (status.roundTotal) this.roundTotal.set(Number(status.roundTotal));
@@ -454,6 +478,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
 
         case 'START_VOTING':
+          this.roundActive.set(true);
+          this.closeManual();
           this.isBlocked.set(false);
           this.onStartVoting(status.type, status.payload);
           break;
@@ -533,6 +559,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
 
         case 'BONUS_ENDED':
+          this.roundActive.set(false);
           this.questionType.set('QUIZ');
           this.gameState.set(PlayerStatus.WAITING);
           this.casinoState.set(null);
@@ -547,6 +574,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'ROUND_ENDED':
         case 'REVEAL':
+          this.roundActive.set(false);
           this.cancelTimelineSend();
           this.speedTask.set(null);
           this.speedColorPicked.set([]);
@@ -608,6 +636,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
 
         case 'GAME_PAUSED':
+          this.closeManual();
           this.paused.set(true);
           this.pauseStartedAt = performance.now();
           break;
@@ -955,6 +984,42 @@ export class RemoteComponent implements OnInit, OnDestroy {
       };
       reader.readAsDataURL(file);
     });
+  }
+
+  /** Nome leggibile del gioco per l'intestazione (B1). */
+  openManual(): void {
+    if (!this.canOpenManual() || this.manualOpen()) return;
+    this.manualEntry.set(null);
+    this.manualOpen.set(true);
+    history.pushState({ manual: true }, '');
+    this.cdr.markForCheck();
+  }
+
+  /** Chiude il manuale e, se richiesto, rimuove la voce di cronologia. */
+  closeManual(back = true): void {
+    if (!this.manualOpen()) return;
+    this.manualOpen.set(false);
+    this.manualEntry.set(null);
+    if (back && history.state?.manual) history.back();
+    this.cdr.markForCheck();
+  }
+
+  /** Il tasto indietro o il gesto del browser chiudono il manuale, non la partita. */
+  @HostListener('window:popstate')
+  onManualBack(): void {
+    if (!this.manualOpen()) return;
+    this.manualOpen.set(false);
+    this.manualEntry.set(null);
+    this.cdr.markForCheck();
+  }
+
+  manualMeta(entry: ManualEntry): string {
+    if (entry.kind === 'BONUS') {
+      const afterAct = (entry as ManualBonus).afterAct;
+      return afterAct ? `BONUS · DOPO L'ATTO ${afterAct}` : 'BONUS';
+    }
+    const occurrences = (entry as ManualGame).occurrences;
+    return `${occurrences} ${occurrences === 1 ? 'ROUND' : 'ROUND'} IN SCALETTA`;
   }
 
   /** Nome leggibile del gioco per l'intestazione (B1). */
@@ -1942,6 +2007,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
       || !!this.casinoState() || !!this.cavalloState()
       || !!this.biglieState() || !!this.azzardoState();
     if (bonusVisible && !newRound) return;
+
+    // Un round aperto sul server blocca il manuale anche dopo un refresh o
+    // una riconnessione, non solo quando arriva SHOW_QUESTION.
+    if (!bonusVisible) {
+      this.roundActive.set(!!type && open);
+      if (this.roundActive()) this.closeManual();
+    }
 
     // Un round chiuso o azzerato deve riportare il telefono in attesa: prima
     // restava sulla schermata del gioco precedente (o su "In attesa" con lo
