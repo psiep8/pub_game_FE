@@ -21,6 +21,13 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
     private static final Set<String> PLAYER_POST = Set.of("session/heartbeat", "session/disconnect",
             "arena-answer", "timeline-answer", "time-buzzer/stop", "bomba/pick",
             "button-test/step", "button-test/ping");
+    /**
+     * Il rinnovo della sessione deve arrivare al controller anche con un token
+     * scaduto: lì diventa un 410 "ri-registra", non un 401 che il client non
+     * può distinguere da una credenziale di regia sbagliata.
+     */
+    private static final Set<String> SESSION_POST = Set.of("session", "session/heartbeat",
+            "session/disconnect");
     /** Pagine e file serviti dal jar: devono essere leggibili prima del login. */
     private static final Set<String> PUBLIC_GET = Set.of("/", "/index.html", "/favicon.ico",
             "/manifest.webmanifest", "/ngsw.json", "/ngsw-worker.js", "/games/active", "/error",
@@ -44,7 +51,7 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
         if (isPublicAsset(path, method)
                 || "OPTIONS".equals(method) || path.equals("/ws-pubgame") || path.startsWith("/ws-pubgame/sockjs")
                 || ("GET".equals(method) && (path.equals("/categories") || path.startsWith("/media/")))
-                || ("POST".equals(method) && game.matches() && "session".equals(game.group(2)))) {
+                || ("POST".equals(method) && game.matches() && SESSION_POST.contains(game.group(2)))) {
             if (path.endsWith("/session")) response.setHeader("Cache-Control", "no-store");
             chain.doFilter(request, response);
             return;

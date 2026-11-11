@@ -64,12 +64,21 @@ async function setup() {
   const secret = controlSecret();
   if (secret.length < 32) throw new Error('CONTROL_SECRET assente o troppo corto in deploy/.env');
 
-  // La creazione di una partita richiede una sessione TV/ADMIN. Per la
-  // simulazione ripartiamo dalla partita attiva e la resettiamo con il
-  // token admin, senza alterare il flusso di creazione usato dal gioco.
+  // Ogni run parte da una partita nuova: le sessioni delle prove precedenti
+  // non possono occupare i nomi delle squadre. La creazione richiede una
+  // sessione TV, che apriamo sulla partita attiva solo per firmare la richiesta.
   const active = await api('/games/active');
-  const gameId = Number(process.env.GAME_ID || active?.gameId || 1);
-  if (!Number.isFinite(gameId) || gameId < 1) throw new Error('partita attiva non disponibile');
+  const activeId = Number(active?.gameId || 1);
+  if (!Number.isFinite(activeId) || activeId < 1) throw new Error('partita attiva non disponibile');
+
+  const forced = Number(process.env.GAME_ID || 0);
+  let gameId = forced;
+  if (!(gameId > 0)) {
+    const bootstrap = await register(activeId, 'TV', '', 'sim-bootstrap-tv', secret);
+    const created = await api('/games', 'POST', {}, { 'X-Session-Token': bootstrap });
+    gameId = Number(created?.id);
+    if (!Number.isFinite(gameId) || gameId < 1) throw new Error('creazione partita non riuscita');
+  }
 
   const tv = await register(gameId, 'TV', '', 'sim-tv', secret);
   const admin = await register(gameId, 'ADMIN', '', 'sim-admin', secret);

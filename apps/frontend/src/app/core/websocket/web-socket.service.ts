@@ -162,7 +162,9 @@ export class WebSocketService {
       // nella diagnostica dell'admin.
       this.connectionState.set('reconnecting');
     }
-    if (this.allowReconnect && this.client.active) this.scheduleReconnect(this.attempts);
+    // Anche se stompjs ha già disattivato il client dopo la chiusura, la
+    // riconnessione deve ripartire: scheduleReconnect gestisce entrambi i casi.
+    if (this.allowReconnect) this.scheduleReconnect(this.attempts);
   }
 
   private scheduleReconnect(attempt: number): void {

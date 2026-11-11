@@ -41,7 +41,7 @@
         ? '/tv?sim=1'
         : role === 'ADMIN'
           ? '/admin'
-          : `/play?game=${encodeURIComponent(game)}&nickname=${encodeURIComponent(name)}&sim=1`;
+          : `/play?game=${encodeURIComponent(game)}&nickname=${encodeURIComponent(name)}&sim=1&quad=1`;
       location.replace(target);
     })();
   </script>

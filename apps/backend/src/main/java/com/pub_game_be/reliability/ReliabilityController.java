@@ -104,13 +104,14 @@ public class ReliabilityController {
     @PostMapping("/session/heartbeat")
     public ResponseEntity<Object> heartbeat(@PathVariable("gameId") Long gameId,
             @RequestBody(required = false) Map<String, Object> body) {
-        String token = string(body == null ? null : body.get("sessionToken"));
+        Map<String, Object> payload = body == null ? Map.of() : body;
+        String token = string(payload.get("sessionToken"));
         Optional<DeviceSessionEntity> session = sessions.heartbeat(gameId, token);
         if (session.isEmpty()) {
             return ResponseEntity.status(HttpStatus.GONE)
                     .body(Map.of("error", "session-unknown", "action", "re-register"));
         }
-        long clientSeq = number(body.get("seq"), -1);
+        long clientSeq = number(payload.get("seq"), -1);
         long serverSeq = gameState.currentSeq(gameId);
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("ok", true);
@@ -124,8 +125,15 @@ public class ReliabilityController {
 
     @PostMapping("/session/disconnect")
     public Map<String, Object> disconnect(@PathVariable("gameId") Long gameId,
-            @RequestBody(required = false) Map<String, Object> body) {
+            @RequestBody(required = false) Map<String, Object> body,
+            @RequestHeader(value = "X-Session-Token", required = false) String callerToken) {
         String token = string(body == null ? null : body.get("sessionToken"));
+        // Un dispositivo può chiudere solo la propria sessione: senza questo
+        // controllo un telefono autenticato poteva disconnettere la regia
+        // passando il token altrui nel body.
+        if (callerToken == null || !callerToken.equals(token)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Sessione diversa dalla richiesta");
+        }
         if (sessions.authenticate(token).filter(s -> s.getGameId().equals(gameId)).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Sessione diversa dalla partita");
         }

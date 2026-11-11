@@ -15,6 +15,7 @@ target/
 apps/backend/data/
 
 # --- Env e segreti ---
+scripts/sim/.state.json
 .env
 .env.*
 !.env.example

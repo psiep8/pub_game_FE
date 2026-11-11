@@ -249,6 +249,12 @@ class ReliabilityIntegrationTest {
         assertThat(json.readTree(resumed.body()).get("resumed").asBoolean()).isTrue();
         assertThat(request("POST", base + "/session/heartbeat", anna, null,
                 "{\"sessionToken\":\"" + anna + "\",\"seq\":0}").statusCode()).isEqualTo(200);
+        // Token scaduto o body assente: il client deve ricevere 410 "ri-registra",
+        // non un 401 che sembra una credenziale di regia sbagliata.
+        assertThat(request("POST", base + "/session/heartbeat", null, null,
+                "{\"sessionToken\":\"scaduto\",\"seq\":0}").statusCode()).isEqualTo(410);
+        assertThat(request("POST", base + "/session/heartbeat", null, null, null).statusCode())
+                .isEqualTo(410);
         assertThat(request("POST", base + "/session", null, null,
                 "{\"deviceId\":\"x\",\"role\":\"REMOTE\",\"playerName\":\"anna\"}").statusCode()).isEqualTo(409);
         assertThat(request("POST", base + "/session", null, null,
@@ -370,8 +376,11 @@ class ReliabilityIntegrationTest {
         var builder = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path));
         if (token != null) builder.header("X-Session-Token", token);
         if (secret != null) builder.header("X-Control-Secret", secret);
-        if (body == null) builder.GET();
-        else builder.header("Content-Type", "application/json").method(method, HttpRequest.BodyPublishers.ofString(body));
+        if (body == null && "GET".equals(method)) builder.GET();
+        else builder.method(method, body == null
+                ? HttpRequest.BodyPublishers.noBody()
+                : HttpRequest.BodyPublishers.ofString(body));
+        if (body != null) builder.header("Content-Type", "application/json");
         return HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofString());
     }
 
