@@ -41,3 +41,8 @@ __pycache__/
 # Media scaricati da generate_media.py (grandi: si copiano a mano)
 apps/backend/src/main/resources/static/media/
 apps/backend/src/main/resources/questions/media-it.json
+
+# Stato token delle run di simulazione (mai versionare)
+scripts/sim/.state*.json
+scripts/sim/reports/game-actions.jsonl
+scripts/sim/reports/game-actions-summary.json
