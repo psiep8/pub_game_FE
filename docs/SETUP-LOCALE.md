@@ -38,7 +38,7 @@ Nel modo A frontend, API e WebSocket stanno in un solo container sulla porta 808
 - Il PC e tutti i telefoni devono stare **nella stessa rete locale** (stesso Wi-Fi).
 - Il Wi-Fi di un locale pubblico spesso blocca la comunicazione tra dispositivi (isolamento client) o chiede un accesso: in quel caso serve un router tuo (anche economico) oppure il tunnel (sezione 8).
 - Per una serata tra amici va bene il Wi-Fi di casa, con il PC su cavo.
-- Internet non è necessario durante il gioco: le domande sono già nel gioco. Può servire solo per immagini opzionali (chiave TMDB).
+- Internet non è necessario per le domande, ma senza la banca media locale il backend usa iTunes per la musica e TMDB/Wikipedia per le foto: per una serata offline completa genera o copia prima la banca media. In alternativa servono internet e le chiavi opzionali, altrimenti audio e immagini possono restare vuoti.
 
 ## 3. Modo A: Docker
 
@@ -153,6 +153,7 @@ Il portatile fa server, TV (con HDMI) e admin; i telefoni sul tuo Wi-Fi.
 - **Speed Rush** è bloccato in serata reale: `startNewRound()` mostra un avviso e la scaletta si ferma quando raggiunge quel round, perché il punteggio non è ancora verificato dal server. È disponibile solo in simulazione (`?sim=1`).
 - **Bonus Basket** è bloccato fuori da simulazione e anteprima: il tabellone si può vedere in demo, ma il punteggio non è ancora verificato dal server.
 - I bonus mostrano una classifica propria ma **non assegnano punti alla classifica della serata**.
+- **Banca media locale**: musica, copertine e volti non sono nel repository (`.gitignore` esclude `static/media/` e `questions/media-it.json`). Per giocare offline vanno generati con `python scripts/generate-questions/generate_media.py --from-azzardo` o copiati prima della build; senza, il backend usa iTunes/TMDB/Wikipedia e, se manca la rete, audio e immagini possono restare vuoti.
 - Per una serata completa in locale servono le correzioni descritte nella roadmap del README; non forzare l'avanzamento oltre Speed Rush per aggirare il blocco.
 
 ## 9. Dove trovare il resto

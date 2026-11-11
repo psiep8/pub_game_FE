@@ -187,8 +187,9 @@ Il frontend ha **28 file di spec**; il backend **11 classi di test**. Le verific
 
 - **Domande**: `apps/backend/src/main/resources/questions/questions-it.json` (991 domande, 17 categorie, inclusa Air Hockey), `azzardo-it.json` (360) e `timeline-it.json` (113 eventi). Il backend le carica all'avvio e non chiama alcun modello AI a runtime.
 - **Generazione**: `scripts/generate-questions/generate.py` può usare Groq, ma solo quando si rigenera la banca. `GROQ_API_KEY` non serve per giocare.
-- **Immagini**: “Indovina chi” può usare TMDB se `TMDB_API_KEY` è impostata; senza chiave la domanda resta senza foto. Con la banca media locale le immagini vengono servite dal backend.
-- **Musica**: senza banca locale il backend usa le anteprime pubbliche di 30 secondi dell'iTunes Search API.
+- **Immagini**: “Indovina chi” può usare TMDB se `TMDB_API_KEY` è impostata; senza chiave la domanda resta senza foto. Se la banca media locale è presente, le immagini vengono servite dal backend.
+- **Musica**: senza banca locale il backend usa le anteprime pubbliche di 30 secondi dell'iTunes Search API; con la banca locale i file sono serviti da `/media/...`.
+- **Banca media locale (opzionale)**: può contenere anche i volti (`static/media/people/*.jpg`), le copertine (`static/media/covers/*.jpg`) e i brani (`static/media/music/*.m4a`), indicizzati da `questions/media-it.json`. **Non è inclusa nel repository**: `.gitignore` esclude `static/media/` e `media-it.json`. Va generata con `python scripts/generate-questions/generate_media.py --from-azzardo` (o copiata) prima della build. Con la banca installata il backend non chiama iTunes, TMDB o Wikipedia: ciò che manca resta un segnaposto.
 - **Come aggiungere domande**: aggiungi voci alla banca JSON (o rigenera con lo script) mantenendo ID univoci e categorie esistenti; riavvia il backend e verifica la diagnostica delle domande usate.
 - **Licenze**: nel repository non c'è un file `LICENSE`. I testi delle domande e il codice appartengono al proprietario del repository; le foto TMDB e le anteprime iTunes restano soggette ai rispettivi termini. Prima di un uso pubblico o commerciale verifica le licenze delle fonti multimediali.
 
