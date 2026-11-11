@@ -1,139 +1,201 @@
-# PubGame — Monorepo
+# PubGame
 
-> **VERSIONE 1.0.0 — 9 novembre 2026.**
-> Prima major: recupero di TV e classifica dopo refresh o cambio dispositivo,
-> ambienti di prova e pub separati, QR generato in locale. Se una riga non
-> combacia col codice, vince il codice.
+**La serata di quiz da pub, con la TV come tabellone e il telefono come pulsantiera.**
+PubGame è un gioco multigiocatore per locali e feste: la TV mostra domande, tabelloni e classifiche, ogni squadra risponde dal proprio telefono e il presentatore conduce la serata da `/admin`. Frontend Angular e backend Spring Boot vivono in questo monorepo.
 
-Un unico repository per il gioco da pub multigiocatore: **frontend Angular** e **backend Spring Boot** convivono qui dentro.
+![TV: una gara del bonus Biglie](docs/screenshots/biglie-tv-720p-01-partenza.png)
 
-## Struttura
+![Animazione: quattro momenti di una gara di Biglie](docs/screenshots/biglie-tv-720p.gif)
 
+![Telefono: il manuale dei giochi, aperto tra un round e l'altro](docs/screenshots/phone-manuale-390.png)
+
+## 1. Cos'è
+
+PubGame porta in sala un quiz a squadre in stile pub: nessuna app da installare, nessun account, un QR code sulla TV e il browser del telefono. La regia decide quando parte un round e quando si passa al successivo; il backend tiene sessioni, stato e recupero dopo un refresh.
+
+La versione è **1.0.0**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
+
+## 2. Come si gioca
+
+- **TV (`/tv`)**: mostra il QR di ingresso, le domande, i tabelloni, i timer e le classifiche. È lo schermo condiviso.
+- **Telefoni (`/play`)**: ogni squadra entra con un nickname e gioca dal browser. In attesa può aprire il **Manuale dei giochi**; durante un round il manuale si chiude e il pulsante sparisce.
+- **Regia (`/admin`)**: il presentatore avvia e chiude i round, mette in pausa, mostra le classifiche, lancia i bonus e apre le demo. Non è un pannello di voto: le risposte arrivano dai telefoni.
+
+La serata è una scaletta fissa di **40 round divisi in 5 atti da 8** (`shared/schedule.ts`). Dopo i round **4, 12, 20, 28 e 36** compare la classifica rapida; dopo **8, 16, 24, 32 e 40** quella dettagliata. Dopo gli atti 1–4 c'è un bonus: **Casino, Basket, Cavallo di battaglia, Biglie**. Dopo il quinto atto si chiude con la classifica finale.
+
+Una serata completa dura indicativamente **3–4 ore**: è una stima, non un dato misurato, e dipende da quanto il presentatore allunga i tempi tra un round e l'altro. Il numero di telefoni consigliato è **4–10 squadre**; il codice non impone un limite rigido.
+
+## 3. I giochi
+
+I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring-rules.ts`; la scaletta e le occorrenze da `shared/schedule.ts`.
+
+| Gioco | Tipo | Come funziona | Punti |
+|---|---|---|---|
+| **Quiz** | Sapere | Tre manche a scelta multipla; il tempo decide quanto vale una risposta. | Fino a **+1000** in 3 manches; errore = −quota della domanda; nessun malus se non si risponde. |
+| **Indovina la canzone** | Sapere | Quattro ascolti da 30 secondi; ci si prenota e si sceglie titolo o artista. | **+1000** esatta, **−1000** sbagliata. |
+| **Indovina chi** | Sapere | La foto si schiarisce con il tempo; ci si prenota e si risponde a voce. | **+1000 × tempo rimasto**; errore **−1000 × tempo rimasto**. |
+| **Ruota della fortuna** | Sapere | Una frase a lettere coperte, timer lungo, prenotazione e risposta. | **+1000 × tempo rimasto**; errore **−1000 × tempo rimasto**. |
+| **Timeline** | Sapere | Sei date da ordinare dal passato al presente, tutti sulla stessa scala. | Fino a **+1200** in base alle posizioni esatte su n; sotto **n/2 − 1** si perde, fino a **−400**. |
+| **Time Buzzer** | Riflessi | Tre manche da 30 secondi per fermare il cronometro su un bersaglio di 5–29 secondi; i tagli eliminano progressivamente. | **+300 / +220 / +150 / +90 / +50** a fascia, manche dopo manche; tagliato **−250** o **−100**; finalisti **+150**. |
+| **Bomba** | Rischio | Un tabellone, un turno per squadra; quasi tutte le caselle sono vere, una ogni tre squadre è falsa. | Casella vera: **0** e si passa il turno; falsa scelta: **−200** e fuori dal round; chi non risponde salta il turno. |
+| **Speed Rush** | Riflessi | Sessanta secondi di risposte lampo; la corsia avanza a ogni risposta giusta. | **500** al primo, poi a scalare; minimo **100**; prendono punti solo i primi **n/2**. In serata reale è bloccato (vedi §10). |
+| **Air Hockey Battle** | Riflessi | Duello a coppie: ogni risposta rapida rimanda il disco; il set si chiude a 7 gol. | **+1000** al vincitore, **+200** di consolazione al perdente; ogni gol subito è un gol per l'avversario. |
+| **Azzardo** | Rischio | Quattro manche numeriche; dieci fiches da 20 punti da distribuire sulle quattro risposte. | Fiche giusta: **+20 × quota** (×2 facile, ×3 media, ×4 difficile); fiche sbagliate: **−20 × fiche × 100/80/60/40%**; mai sotto zero. |
+| **Ultima spiaggia** | Rischio / sapere | Cinque livelli da 100 a 500, una volta per squadra in tutta la serata; una categoria per occorrenza. | **+100 / +200 / +300 / +400 / +500**; errore **−50 / −100 / −150 / −200 / −250**; chi non risponde perde metà del livello scelto. |
+| **Blackjack** | Rischio | Tre mani contro il banco della TV: carta o stai. | **+250** a mano, **+500** con il naturale; sconfitta **−250** (mai sotto zero); sballare **−250**. |
+| **Arena Battle Royale** | Sapere + riflessi | Battle royale a domande rapide dentro un cerchio che si chiude. | **+10 / −10** per risposta; piazzamento **+1000 / +500 / −300**. |
+
+### I quattro bonus
+
+| Bonus | Come funziona | Punti |
+|---|---|---|
+| **Casino** | Quattro manche di roulette: colore, dozzina, sestina e numero secco. | **+100 / +150 / +200 / +300** a manche; sullo zero il banco incassa. |
+| **Basket** | Tre manche da 20 secondi con ferro largo, medio e piccolo. | **+2 / +3 / +5** a canestro, **+1** in più per lo swish. In serata reale è bloccato (vedi §10). |
+| **Cavallo di battaglia** | Otto domande flash sulla categoria votata dai telefoni. | **+1** per risposta esatta. |
+| **Biglie** | Quattro gare su fondi diversi, una biglia per tavolo scelta una volta sola. | **+150 / +100 / +60 / +30** a gara, punti cumulativi. |
+
+**I bonus non assegnano ancora punti alla classifica della serata**: mostrano la classifica del bonus e si chiudono. È un limite noto, non una regola nascosta.
+
+## 4. Tecnologie
+
+| Area | Scelta | Perché |
+|---|---|---|
+| Frontend | **Angular 22.2** standalone, signal, router lazy, service worker PWA | Un'unica codebase per TV, telefono e regia; le signal rendono esplicito lo stato che arriva dalla socket. |
+| Backend | **Spring Boot 4.1.2**, Java **25** | REST + WebSocket nello stesso processo, persistenza JPA e test di integrazione. |
+| Realtime | **STOMP su WebSocket nativo** (`@stomp/stompjs`) | Una sola socket per dispositivo, senza il fallback XHR di SockJS; riconnessione con backoff e jitter. L'endpoint SockJS resta disponibile sul backend, ma il frontend usa il WebSocket nativo. |
+| Dati | **H2** su file in locale, profilo **MySQL** per il servizio | Zero installazioni per la serata; MySQL quando serve un database gestito. |
+| Fisica | **Matter.js** per roulette e Biglie; fisica dedicata per il Basket | La roulette e le biglie sono corpi rigidi; il tiro a canestro ha una simulazione sua. |
+| Qualità | **Vitest 5.1 + jsdom** e **JUnit / Spring Boot Test** | Test veloci sul frontend e test di integrazione sul backend. |
+| Consegna | **Docker** fullstack | Un solo container serve TV, telefoni, API e WebSocket. |
+
+## 5. Architettura
+
+```mermaid
+flowchart LR
+  TV["TV /tv"] <-->|STOMP| BE["Spring Boot<br/>REST + WebSocket"]
+  PHONE["Telefoni /play"] <-->|STOMP + REST| BE
+  ADMIN["Regia /admin"] <-->|STOMP + REST| BE
+  BE --> DB[("H2 / MySQL")]
+  BE --> BANK["Banca domande<br/>JSON pre-generata"]
+  BE --> MEDIA["Media locali<br/>iTunes / TMDB"]
 ```
-apps/
-├── frontend/   Angular 22 + PWA — /tv (schermo), /admin (votante), /play (telefono)
-└── backend/    Spring Boot 4 / Java 25 — REST, WebSocket STOMP, AI Groq, H2 o MySQL
-scripts/        Avvio unificato (dev, Maven) e lettura di .env
-.env            Configurazione locale: porte e host
+
+**Chi possiede lo stato.** Il backend è l'autorità su sessioni, stato della partita, round, punteggi verificati (Arena, Timeline, Bomba, Blackjack, validazione delle fiches dell'Azzardo) e prova dei pulsanti. La TV possiede la presentazione e la maggior parte dello stato di gioco della singola modalità; i telefoni possiedono input e timer locali. Questa divisione è il motivo per cui alcune modalità hanno ancora tempi dichiarati dal client: è un limite noto, non un dettaglio da nascondere.
+
+**Sessioni, sincronizzazione e ripresa.** Ogni dispositivo apre una sessione con `POST /games/{id}/session` e riceve un token; il token viene salvato per ruolo (`TV`, `ADMIN`, `REMOTE`) e usato su REST e STOMP. Dopo una riconnessione il client chiede `/sync` e riceve snapshot + eventi mancanti. La TV e la regia possono riprendere la stessa serata da un altro dispositivo con lo stesso segreto; un telefono riprende la propria squadra finché conserva il token.
+
+**Sicurezza.** `CONTROL_SECRET` (almeno 32 caratteri) protegge l'apertura delle sessioni TV/admin; `ALLOWED_ORIGINS` limita le origini esatte di REST e WebSocket. Non ci sono cookie di sessione: l'autenticazione viaggia in header. I punteggi critici vengono calcolati o validati dal server. Restano aperti i limiti elencati in §10.
+
+## 6. Avvio rapido
+
+### Docker (consigliato per la serata)
+
+```bash
+cp deploy/.env.test.example deploy/.env
+# apri deploy/.env e imposta CONTROL_SECRET (almeno 32 caratteri casuali)
+docker compose -f deploy/docker-compose.test.yml --env-file deploy/.env up -d --build
 ```
 
-## Requisiti
+Poi apri `http://localhost:8080/tv` sul PC e inquadra il QR con i telefoni. La regia è su `http://localhost:8080/admin`. Il test compose usa `ALLOWED_ORIGINS=*` perché è pensato per una rete locale di prova; non usarlo così in produzione.
 
-- Node.js 22.22+ (oppure 24.15+ / 26+) e npm 11 — requisito di Angular 22
-- JDK 25 obbligatorio (ultima LTS): `maven-enforcer` ferma la build con un messaggio esplicito se `JAVA_HOME` punta a una versione precedente
-- `cloudflared` solo se usi i tunnel
+### Sviluppo con npm
 
-## Installazione
+Servono **Node.js 22.22+** (o 24.15+), **npm 11** e **JDK 25**.
 
 ```bash
 npm install
+cp .env.example .env
+# imposta CONTROL_SECRET e, se apri dai telefoni, ALLOWED_ORIGINS
+npm run dev
 ```
 
-## Configurazione: un solo file
+La guida passo-passo per computer, TV, telefoni, Docker, LAN e problemi frequenti è in **[`docs/SETUP-LOCALE.md`](docs/SETUP-LOCALE.md)**. Per tunnel, dominio, Vercel, PWA e backup la guida è **[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)**; per il container unico c'è **[`deploy/README.md`](deploy/README.md)**. Questo README non li duplica.
 
-Tutta la configurazione locale sta in `.env` alla radice (copiato da `.env.example`):
+## 7. Struttura delle cartelle
 
-| Variabile | Default | Uso |
-|---|---|---|
-| `FE_PORT` | `4200` | Porta del dev-server Angular |
-| `BE_PORT` | `8080` | Porta del backend Spring Boot |
-| `HOST` | `0.0.0.0` | Interfaccia di ascolto (`0.0.0.0` = visibile dal telefono) |
-| `GROQ_API_KEY` | *(vuota)* | Domande AI; senza chiave si usano le domande di riserva locali |
-| `GROQ_MODEL` | `openai/gpt-oss-120b` | Modello Groq (sostituto ufficiale di `llama-3.3-70b-versatile`, spento il 16/08/2026) |
-| `TMDB_API_KEY` | *(vuota)* | Foto per “Indovina chi”; senza chiave la domanda resta senza immagine |
+```text
+apps/
+├── frontend/src/app/
+│   ├── core/          environment, WebSocket, servizi condivisi, guardie
+│   ├── features/      tv/, remote/, admin/, games/, bonus/
+│   └── shared/        modelli, enum, schedule, manuale, doppi di test
+└── backend/src/main/java/com/pub_game_be/
+    ├── config/        sicurezza, WebSocket, forward SPA
+    ├── controller/    REST e STOMP
+    ├── domain/        entità e enum
+    ├── dto/           payload
+    ├── reliability/   sessioni, stato, sync, prova pulsanti
+    ├── repository/    JPA
+    ├── security/      filtro sessioni e CORS
+    └── service/       logica di gioco e domande
+scripts/               avvio unificato, wrapper Maven, generazione contenuti
+docs/                  setup, deployment, screenshot
+deploy/                compose, Caddy, variabili di esempio
+```
 
-**Nel codice non esiste alcun IP.** Il frontend chiama sempre la propria origine e il dev-server inoltra `/games`, `/categories`, `/questions` e `/ws-pubgame` al backend tramite `apps/frontend/proxy.conf.mjs`, che legge `BE_PORT`. Quindi:
+## 8. Come aggiungere un gioco
 
-- funziona da `localhost`, dall'IP LAN di qualsiasi macchina e via tunnel;
-- se cambi porta, cambi `.env` e riavvii: non ci sono file da rincorrere;
-- il QR code di `/tv` usa l'host con cui hai aperto la pagina, quindi punta automaticamente all'IP giusto per i telefoni.
+1. Aggiungi il valore all'enum condiviso `GameModeType` e inseriscilo nella scaletta in `shared/schedule.ts` (la scaletta è l'unica fonte di verità per round e occorrenze).
+2. Crea la modalità in `features/games/<gioco>/` con il suo componente TV e, se serve, lo stato di gioco.
+3. Aggiungi la schermata del telefono in `features/remote` e i relativi eventi STOMP; usa gli enum condivisi, non stringhe nuove.
+4. Aggiungi i punteggi in `shared/models/scoring-rules.ts`: la tabella è letta da admin, manuale e demo.
+5. Aggiungi la demo in `features/tv/demo-scripts.ts`: il test di copertura fallisce se una modalità della scaletta non ha demo o se un numero non coincide.
+6. Aggiungi la descrizione del manuale in `shared/manual/manual-content.ts` e verifica che il testo resti generato dalle regole.
+7. Scrivi i test della modalità, aggiorna quelli di copertura e lancia `npm run test:frontend` e `npm run build:frontend`.
 
-Lato backend `application.yml` legge `SERVER_PORT` e `SERVER_ADDRESS` (passati dagli script), con default 8080 e `0.0.0.0`.
-
-### Accesso di regia e squadre
-
-1. In `.env` imposta `CONTROL_SECRET` a un segreto casuale di almeno 32 caratteri; non condividerlo con i giocatori. Senza questa impostazione nuove sessioni TV/admin sono rifiutate. Genera il valore in locale, per esempio con un gestore di password, e non inserirlo nel repository.
-2. Imposta `ALLOWED_ORIGINS` all'elenco, separato da virgole, delle origini esatte del frontend, incluso protocollo e porta. Il default consente solo `http://localhost:4200` e `http://127.0.0.1:4200`: per i telefoni occorre aggiungere l'origine LAN e, se usato, il tunnel HTTPS. Riavvia il backend dopo le modifiche.
-3. Aprendo `/tv` o `/admin` viene richiesto il segreto di regia. Il browser conserva il token della sessione per le riconnessioni. I vecchi token, emessi prima della protezione, vengono rifiutati; riapri le pagine dopo l'aggiornamento.
-4. Un telefono registra un nome squadra univoco nella partita; per riprendere quella squadra deve conservare il token nel browser. Chi perde o cancella il token non può riappropriarsi del nome senza un intervento della regia; non esiste ancora un recupero assistito. Non condividere il browser con altri giocatori.
-
-**Limitazioni di sicurezza:** Speed Rush e Basket sono bloccati perché i risultati erano autocertificati dal telefono. La scaletta si ferma quando raggiunge Speed Rush: non utilizzare l'app per una serata completa finché non sia disponibile una modalità verificabile e un percorso di avanzamento. Mancano inoltre una prova multi-dispositivo in rete e una limitazione dei tentativi di autenticazione; la registrazione dei nomi è aperta e un partecipante può prenotare per primo il nome di un'altra squadra. Alcune modalità usano ancora tempi o stato dichiarati dal client, quindi i punteggi non sono interamente verificabili. Usare solo segreti casuali robusti e non esporre il tunnel pubblico per la prova. Le sessioni esistenti non vengono revocate automaticamente cambiando `CONTROL_SECRET`.
-
-## Sviluppo
+## 9. Test e qualità
 
 ```bash
-npm run dev             # backend + frontend insieme
-npm run dev:frontend    # solo ng serve
-npm run dev:backend     # solo spring-boot:run
+npm run test:frontend    # Vitest + jsdom
+npm run test:backend     # JUnit / Spring Boot Test
+npm run build:frontend   # ng build
+npm run build:backend    # Maven package
 ```
 
-All'avvio viene stampato l'URL per il PC e quello per il telefono:
+Il frontend ha **28 file di spec**; il backend **11 classi di test**. Le verifiche coprono, tra l'altro: regole di punteggio e scaletta, contenuti del manuale, copertura delle demo, round manager, apertura/chiusura del manuale sul telefono, modalità TV, sessioni e riconnessione, prova dei pulsanti, API e servizi del backend.
 
-```
-PC:       http://localhost:4200/tv
-Telefono: http://192.168.1.3:4200/play
-```
+**Limiti noti dei test**: non esiste ancora una prova end-to-end multi-dispositivo in rete; i controlli visivi sono manuali (TV e telefono); i timer dichiarati dal client non sono interamente verificabili dal server.
 
-| Route | Dispositivo | Descrizione |
-|---|---|---|
-| `/tv` | Desktop | Schermata principale del gioco |
-| `/play` | Mobile | Telefono dei concorrenti |
-| `/admin` | Mobile | Pannello admin / votante |
+## 10. Stato e roadmap
 
-## Build e test
+**Pronto**
 
-```bash
-npm run build:frontend    # ng build → apps/frontend/dist
-npm run build:backend     # mvnw package -DskipTests → apps/backend/target
-npm run test:frontend
-npm run test:backend
-```
+- Scaletta completa di 40 round in 5 atti, 13 modalità e 4 bonus.
+- Ingresso con QR, squadre con token, ripresa dopo refresh o cambio dispositivo.
+- Manuale dei giochi sul telefono, con apertura consentita solo fuori dal round.
+- Sezione Demo nell'admin: 18 voci (introduzione + 13 giochi + 4 bonus), cinque scene per voce e tabella punti generata da `SCORING_RULES`.
+- Classifiche rapide e dettagliate, pausa, ripresa, diagnostica di regia.
+- Banca domande pre-generata: 991 domande, 360 domande Azzardo, 113 eventi Timeline.
 
-I test del frontend girano con Vitest tramite `ng test` e usano `apps/frontend/vitest.config.ts`:
-il pool è `vmThreads` perché i pool `forks`/`threads` di Vitest 4 hanno un timeout fisso
-di 5s per l'avvio del worker, più corto del bootstrap di jsdom + TestBed su Windows.
-Le spec dei componenti usano i doppi condivisi in `src/app/testing/` (nessuna WebSocket,
-nessuna chiamata HTTP e nessun elemento `Audio` reale).
+**Limitato o bloccato**
 
-## Variabili del backend (opzionali)
+- **Speed Rush**: in serata reale `startNewRound()` mostra un avviso e non avvia il gioco, perché il punteggio non è ancora verificato dal server. È disponibile solo in simulazione (`?sim=1`). La scaletta si ferma quando incontra il round 18.
+- **Bonus Basket**: è bloccato fuori da simulazione e anteprima; il tabellone si può vedere in demo. Il punteggio non è ancora verificato dal server.
+- **Bonus e classifica**: i bonus mostrano una classifica propria ma non aggiungono punti alla classifica della serata.
+- **Tempi dichiarati dal client**: alcune modalità usano tempi o stato del telefono; i punteggi non sono tutti verificabili lato server.
+- **Sicurezza**: mancano rate limiting e recupero assistito del nome; un partecipante può prenotare per primo il nickname di un'altra squadra. Le sessioni non vengono revocate cambiando `CONTROL_SECRET`.
+- **Rete**: manca una prova multi-dispositivo in rete e una suite E2E nel repository.
 
-`GROQ_API_KEY` per le domande AI (modello in `GROQ_MODEL`, default `openai/gpt-oss-120b`) e `TMDB_API_KEY` per le immagini. Senza chiavi il backend usa i fallback locali. Con la banca media installata (`questions/media-it.json`) musica, copertine e foto vengono servite da `static/media` senza chiamare iTunes, TMDB o Wikipedia; senza banca la musica usa le anteprime da 30 secondi dell'iTunes Search API.
-Profilo MySQL: `node scripts/mvn.mjs spring-boot:run -Dspring-boot.run.profiles=mysql`.
+**In programma**
 
-## Ambienti
+- Verifica server-side di Speed Rush e Basket, con percorso di avanzamento completo.
+- Punti dei bonus nella classifica della serata.
+- Rate limiting sulle sessioni e recupero assistito dei nomi.
+- Test end-to-end con più browser e dispositivi reali.
 
-| Ambiente | Build | Profilo backend | Uso |
-|---|---|---|---|
-| Locale | `npm run dev` | default | sviluppo e LAN |
-| Serata di prova | `npm run build:test-night` | `test-night` | TV + telefoni con gli amici |
-| Pub | `npm run build:prod` | `prod` | serata reale nel locale |
+## 11. Contenuti e licenze
 
-Le tre build usano lo stesso codice e cambiano solo configurazione, log e
-pannelli diagnostici. La guida completa (LAN, tunnel HTTPS, Vercel, dominio,
-PWA, backup) è in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+- **Domande**: `apps/backend/src/main/resources/questions/questions-it.json` (991 domande, 17 categorie, inclusa Air Hockey), `azzardo-it.json` (360) e `timeline-it.json` (113 eventi). Il backend le carica all'avvio e non chiama alcun modello AI a runtime.
+- **Generazione**: `scripts/generate-questions/generate.py` può usare Groq, ma solo quando si rigenera la banca. `GROQ_API_KEY` non serve per giocare.
+- **Immagini**: “Indovina chi” può usare TMDB se `TMDB_API_KEY` è impostata; senza chiave la domanda resta senza foto. Con la banca media locale le immagini vengono servite dal backend.
+- **Musica**: senza banca locale il backend usa le anteprime pubbliche di 30 secondi dell'iTunes Search API.
+- **Come aggiungere domande**: aggiungi voci alla banca JSON (o rigenera con lo script) mantenendo ID univoci e categorie esistenti; riavvia il backend e verifica la diagnostica delle domande usate.
+- **Licenze**: nel repository non c'è un file `LICENSE`. I testi delle domande e il codice appartengono al proprietario del repository; le foto TMDB e le anteprime iTunes restano soggette ai rispettivi termini. Prima di un uso pubblico o commerciale verifica le licenze delle fonti multimediali.
 
-## Deploy in un container (variante A)
+## 12. Licenza e contatti
 
-Il repo include un'immagine fullstack: Angular viene compilato e copiato dentro
-il jar Spring Boot, quindi un solo container serve TV, telefoni, API e WebSocket.
+Nessun file di licenza è incluso: l'uso è riservato al proprietario del repository, salvo accordi diversi.
 
-| Configurazione | Accesso | Uso |
-|---|---|---|
-| Test tra amici | `http://<IP>:8080/tv` | senza dominio, nessuna installazione |
-| Servizio | `https://<DOMAIN>/tv` | pub, HTTPS e dominio |
+Repository: [github.com/psiep8/pub_game_FE](https://github.com/psiep8/pub_game_FE)
 
-Dettagli, comandi, DNS, volumi e backup in [`deploy/README.md`](deploy/README.md).
-
-## Tunnel Cloudflare
-
-```bash
-cd apps/frontend
-./start-tunnel.sh          # Linux/WSL
-.\start-tunnel.ps1         # Windows PowerShell
-```
-
-Apre un solo tunnel verso il frontend e stampa gli URL pubblici: `/tv`, `/admin` e `/play` per tutti i telefoni. Il dev-server inoltra API e WebSocket al backend, quindi non serve un secondo tunnel né aggiornare nessun file di configurazione.
-
-## Nota sul deploy statico
-
-Con gli URL relativi, un deploy che serve solo i file statici (senza `ng serve`) richiede un reverse proxy che inoltri `/games`, `/categories`, `/questions` e `/ws-pubgame` al backend.
+Per segnalazioni o proposte: apri una issue nel repository.
