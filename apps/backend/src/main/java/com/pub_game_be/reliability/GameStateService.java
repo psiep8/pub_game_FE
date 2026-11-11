@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
 
 /**
@@ -39,6 +41,8 @@ public class GameStateService {
     private final GameRoundRepository rounds;
     private final ReliabilityProperties props;
     private final TransactionTemplate tx;
+    /** Un lock per partita: gli eventi della stessa partita si scrivono in fila. */
+    private final ConcurrentMap<Long, Object> eventLocks = new ConcurrentHashMap<>();
 
     public GameStateService(GameStateRepository states, GameEventRepository events,
             GameRoundRepository rounds, ReliabilityProperties props,
@@ -142,39 +146,46 @@ public class GameStateService {
      */
     public Change appendEvent(long gameId, String type, String payload, String roundKey, String deviceId,
             Consumer<GameStateEntity> mutation) {
-        for (int attempt = 0; attempt < 3; attempt++) {
-            try {
-                return tx.execute(status -> {
-                    GameStateEntity state = states.findById(gameId).orElseGet(() -> newState(gameId));
-                    long nextSeq = state.getSeq() + 1;
+        // Join, sync e avvio round possono arrivare nello stesso istante:
+        // senza serializzare leggerebbero lo stesso state.seq e il vincolo
+        // (game_id, seq) farebbe fallire una delle due richieste. Il lock è
+        // per partita, quindi due partite diverse non si aspettano.
+        Object lock = eventLocks.computeIfAbsent(gameId, key -> new Object());
+        synchronized (lock) {
+            for (int attempt = 0; attempt < 3; attempt++) {
+                try {
+                    return tx.execute(status -> {
+                        GameStateEntity state = states.findById(gameId).orElseGet(() -> newState(gameId));
+                        long nextSeq = state.getSeq() + 1;
 
-                    GameEventEntity event = new GameEventEntity();
-                    event.setGameId(gameId);
-                    event.setSeq(nextSeq);
-                    event.setEventId(UUID.randomUUID().toString());
-                    event.setType(type);
-                    event.setPayload(payload);
-                    event.setRoundKey(roundKey);
-                    event.setDeviceId(deviceId);
-                    event.setCreatedAt(System.currentTimeMillis());
+                        GameEventEntity event = new GameEventEntity();
+                        event.setGameId(gameId);
+                        event.setSeq(nextSeq);
+                        event.setEventId(UUID.randomUUID().toString());
+                        event.setType(type);
+                        event.setPayload(payload);
+                        event.setRoundKey(roundKey);
+                        event.setDeviceId(deviceId);
+                        event.setCreatedAt(System.currentTimeMillis());
 
-                    if (mutation != null) {
-                        mutation.accept(state);
-                    }
-                    state.setSeq(nextSeq);
-                    state.setVersion(state.getVersion() + 1);
-                    state.setUpdatedAt(System.currentTimeMillis());
-                    state.setLastSnapshotAt(state.getUpdatedAt());
+                        if (mutation != null) {
+                            mutation.accept(state);
+                        }
+                        state.setSeq(nextSeq);
+                        state.setVersion(state.getVersion() + 1);
+                        state.setUpdatedAt(System.currentTimeMillis());
+                        state.setLastSnapshotAt(state.getUpdatedAt());
 
-                    states.save(state);
-                    events.saveAndFlush(event);
-                    return new Change(state.getVersion(), nextSeq, event.getEventId());
-                });
-            } catch (DataIntegrityViolationException conflict) {
-                // Un altro scrittore ha preso la stessa sequenza: si riprova.
+                        states.save(state);
+                        events.saveAndFlush(event);
+                        return new Change(state.getVersion(), nextSeq, event.getEventId());
+                    });
+                } catch (DataIntegrityViolationException conflict) {
+                    // Un altro processo ha preso la stessa sequenza: si riprova.
+                }
             }
+            throw new IllegalStateException("Impossibile registrare l'evento " + type + " per la partita " + gameId);
         }
-        throw new IllegalStateException("Impossibile registrare l'evento " + type + " per la partita " + gameId);
     }
 
     public Change appendEvent(long gameId, String type, String payload) {
