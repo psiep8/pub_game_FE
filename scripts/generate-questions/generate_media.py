@@ -2,7 +2,8 @@
 
 Cosa fa:
   * cerca brani famosi su iTunes (nessuna chiave) e scarica l'anteprima di 30s;
-    se un originale non c'è nello store italiano, ripiega su Deezer;
+    se la ricerca per titolo non trova l'originale, prova il catalogo
+    dell'artista su iTunes US e solo dopo ripiega su Deezer;
   * scarica la foto di una lista di personaggi famosi (TMDB se c'è la chiave,
     altrimenti Wikipedia);
   * scrive entrambi in apps/backend/src/main/resources/static/media/... e
@@ -32,6 +33,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 ITUNES = "https://itunes.apple.com/search"
+ITUNES_LOOKUP = "https://itunes.apple.com/lookup"
 DEEZER = "https://api.deezer.com/search"
 TMDB_PERSON = "https://api.themoviedb.org/3/search/person"
 TMDB_IMAGE = "https://image.tmdb.org/t/p/w500"
@@ -176,6 +178,87 @@ def find_deezer(term: str, limit: int = 20) -> list[dict]:
     return get_json(f"{DEEZER}?{query}").get("data", [])
 
 
+def find_itunes_artist_track(title: str, artist: str, country: str = "US") -> dict | None:
+    """Trova un brano passando dal catalogo dell'artista, non dal titolo.
+
+    La ricerca per titolo a volte restituisce solo cover o non trova l'originale
+    nello store italiano. Qui si cerca l'artista, si scarica il suo catalogo e
+    si sceglie la versione più vicina all'originale: titolo esatto, senza
+    live/remix/cover quando il titolo cercato non li contiene, album prima del
+    singolo e anno più vecchio.
+    """
+    wanted_title = norm(title)
+    wanted_artist = norm(artist)
+    if not wanted_title or not wanted_artist:
+        return None
+
+    parts = [norm(part) for part in re.split(
+        r"\s+(?:e|&|feat\.?|featuring)\s+|,\s*", artist, flags=re.I
+    )]
+    parts = [part for part in parts if part]
+    terms = [artist]
+    known_terms = {norm(artist)}
+    for part in parts:
+        if part not in known_terms:
+            terms.append(part)
+            known_terms.add(part)
+
+    artist_ids: list[int] = []
+    for term in terms[:3]:
+        query = urllib.parse.urlencode({
+            "term": term, "entity": "musicArtist", "country": country, "limit": 10,
+        })
+        for item in get_json(f"{ITUNES}?{query}").get("results", []):
+            name = norm(item.get("artistName"))
+            artist_id = item.get("artistId")
+            if not artist_id or not name:
+                continue
+            if name == wanted_artist or any(name == part or name in part or part in name for part in parts):
+                if artist_id not in artist_ids:
+                    artist_ids.append(artist_id)
+        if artist_ids:
+            break
+
+    if not artist_ids:
+        return None
+
+    unwanted = (
+        "live", "remix", "karaoke", "tribute", "cover", "instrumental",
+        "acoustic", "version", "remaster", "edit",
+    )
+    candidates: list[tuple[int, int, int, str, int, dict]] = []
+    for artist_id in artist_ids[:2]:
+        query = urllib.parse.urlencode({
+            "id": artist_id, "entity": "song", "country": country, "limit": 200,
+        })
+        for item in get_json(f"{ITUNES_LOOKUP}?{query}").get("results", []):
+            if item.get("wrapperType") != "track" or item.get("kind") != "song":
+                continue
+            track_title = norm(item.get("trackName"))
+            track_artist = norm(item.get("artistName"))
+            if not track_title or not track_artist or wanted_title not in track_title:
+                continue
+            if not item.get("previewUrl"):
+                continue
+            if (wanted_artist not in track_artist
+                    and track_artist not in wanted_artist
+                    and not any(part in track_artist for part in parts)):
+                continue
+
+            noise = sum(1 for word in unwanted if word in track_title and word not in wanted_title)
+            if "feat" in track_title and "feat" not in wanted_title:
+                noise += 1
+            exact = 0 if track_title == wanted_title else 1
+            single = 1 if "single" in norm(item.get("collectionName")) else 0
+            year = str(item.get("releaseDate", ""))[:4] or "9999"
+            candidates.append((noise, exact, single, year, item.get("trackNumber") or 999, item))
+
+    if not candidates:
+        return None
+    candidates.sort(key=lambda value: value[:5])
+    return candidates[0][5]
+
+
 def download_cover(item: dict, covers_dir: str) -> str | None:
     """Copertina locale: senza questo file la TV resterebbe con il segnaposto."""
     url = (item.get("artworkUrl100") or "").replace("100x100", "600x600")
@@ -275,11 +358,11 @@ def grab_music(static_dir: str, count: int,
 
 def grab_song(title: str, artist: str, music_dir: str, covers_dir: str,
               seen: set[tuple[str, str]]) -> dict | None:
+    results: list[dict] = []
     try:
         results = find_itunes(f"{title} {artist}", 10)
     except Exception as error:
         print(f"  {artist} - {title}: ricerca fallita ({error})")
-        return grab_deezer_song(title, artist, music_dir, covers_dir, seen)
 
     wanted_title = norm(title)
     wanted_artist = norm(artist)
@@ -292,10 +375,25 @@ def grab_song(title: str, artist: str, music_dir: str, covers_dir: str,
                      and (wanted_artist in norm(item.get("artistName"))
                           or norm(item.get("artistName")) in wanted_artist)
                      and "live" not in norm(item.get("trackName"))), None)
+
     if not best:
-        # Su iTunes mancano alcuni originali (in Italia): Deezer li ha.
+        # La ricerca per titolo non basta (cover, edizioni straniere, omonimie):
+        # si prova il catalogo dell'artista, che contiene anche gli originali
+        # non indicizzati nello store italiano.
+        try:
+            best = find_itunes_artist_track(title, artist)
+            if best:
+                print(f"  {artist} - {title}: fallback artist lookup")
+        except Exception as error:
+            print(f"  {artist} - {title}: artist lookup fallito ({error})")
+
+    if not best:
         return grab_deezer_song(title, artist, music_dir, covers_dir, seen)
-    return store_track(best, music_dir, covers_dir, seen) if best else None
+
+    track = store_track(best, music_dir, covers_dir, seen)
+    if track:
+        return track
+    return grab_deezer_song(title, artist, music_dir, covers_dir, seen)
 
 
 def grab_deezer_song(title: str, artist: str, music_dir: str, covers_dir: str,

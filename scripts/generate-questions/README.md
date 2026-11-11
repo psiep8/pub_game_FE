@@ -204,7 +204,8 @@ globale, quindi i doppioni non entrano anche se si rilanciano le stesse categori
 Anche musica e immagini possono stare in locale: `generate_media.py` scarica le
 anteprime di 30 secondi da iTunes (nessuna chiave) e le foto dei personaggi da
 TMDB (se c'è `TMDB_API_KEY`) o da Wikipedia, mettendole dentro il backend. Se un
-originale non è nello store italiano, ripiega su Deezer (anteprima MP3).
+originale non è nello store italiano, prova il catalogo dell'artista su iTunes US
+(artist lookup) e, se anche quello non basta, ripiega su Deezer (anteprima MP3).
 
 ```bash
 python generate_media.py --count-music 24 --count-people 40 --from-azzardo
