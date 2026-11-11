@@ -484,7 +484,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
       // 🆕 Giochi simultanei: risultati dal server e progressi dai telefoni.
-      if (mode && ['TIMELINE_RESULT', 'TIME_BUZZER_ANSWER', 'SPEED_RUSH_PROGRESS', 'AIR_HOCKEY_BATTLE_ANSWER', 'ULTIMA_SPIAGGIA_ACTION', 'AZZARDO_ACTION', 'BLACKJACK_ACTION'].includes(status.action)) {
+      if (mode && ['TIMELINE_RESULT', 'TIME_BUZZER_ANSWER', 'SPEED_RUSH_PROGRESS', 'SPEED_RUSH_RESULT', 'AIR_HOCKEY_BATTLE_ANSWER', 'ULTIMA_SPIAGGIA_ACTION', 'AZZARDO_ACTION', 'BLACKJACK_ACTION'].includes(status.action)) {
         mode.handlePartyEvent?.(status);
         this.cdr.detectChanges();
       }
@@ -524,11 +524,11 @@ export class GameComponent implements OnInit, OnDestroy {
         void this.startBonus(status.type || 'BASKET');
       } else if (status.action === 'ADMIN_STOP_BONUS') {
         this.finishBonus();
-      } else if (status.action === 'BONUS_RESULT') {
+      } else if (status.action === 'BASKET_SCORE') {
         this.recordBonusResult(
           status.playerName,
-          Number(status.score) || 0,
-          Number(status.baskets) || 0,
+          Number(status.points) || 0,
+          1,
         );
       }
     });
@@ -662,12 +662,6 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     if (this.isSpinning()) return;
-    const nextType = this.roundManager.extractGameType();
-    if (nextType === 'SPEED_RUSH' && !this.simulation) {
-      alert('Speed Rush non disponibile: il punteggio non è ancora verificato dal server.');
-      return;
-    }
-
     this.cancelAutoAdvance();
 
     if (this.roundManager.isGameOver()) {
@@ -888,6 +882,13 @@ export class GameComponent implements OnInit, OnDestroy {
             ? row.difficulty
             : 'EASY') as 'EASY' | 'MEDIUM' | 'HARD',
         }));
+      },
+      startSpeedRush: async (players: string[]) => firstValueFrom(
+        this.gameService.startSpeedRush(this.currentGameId()!, players),
+      ),
+      finishSpeedRush: async () => {
+        const response = await firstValueFrom(this.gameService.finishSpeedRush(this.currentGameId()!));
+        return Array.isArray(response?.results) ? response.results : [];
       },
       bomba: {
         start: (players: string[], act: number) => firstValueFrom(
@@ -1433,11 +1434,6 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Bonus: parte dalla TV a fine atto (o su comando admin) e non consuma un round. */
   async startBonus(type: BonusType): Promise<void> {
     if (this.isSpinning() || this.bonusActive()) return;
-    if (type === 'BASKET' && !this.simulation) {
-      alert('Basket non disponibile: il punteggio non è ancora verificato dal server.');
-      return;
-    }
-
     // Un bonus può partire subito dopo un reset, quando la classifica è
     // vuota: allinea i tavoli ai telefoni presenti prima di disegnare il bonus.
     const bonusGameId = this.currentGameId();
@@ -1504,9 +1500,14 @@ export class GameComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // La simulazione mostra anche il tabellone Basket, che nella serata vera
-    // resta bloccato finché il punteggio non sarà verificabile dal server.
     if (type === 'BASKET') {
+      // Il server apre la sessione prima che i telefoni ricevano il bonus:
+      // da qui assegna i bersagli di potenza e convalida ogni tiro.
+      try {
+        await firstValueFrom(this.gameService.startBasket(this.currentGameId()!, this.bonusPlayers()));
+      } catch (error) {
+        console.error('❌ Avvio Basket sul server:', error);
+      }
       this.startBasketCountdown();
       const publicPayload = JSON.stringify({ type: 'BONUS_BASKET', question: BONUS_LABELS[type] });
       this.ws.broadcastStatus(this.currentGameId(), {
@@ -1565,6 +1566,11 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!this.bonusActive() || this.bonusAwarded) return;
     this.bonusAwarded = true;
     this.clearBonusTimer();
+    if (this.bonusType() === 'BASKET' && this.currentGameId()) {
+      void firstValueFrom(this.gameService.finishBasket(this.currentGameId()!)).catch((error) =>
+        console.error('❌ Chiusura Basket sul server:', error),
+      );
+    }
     if (this.bonusType() === 'BASKET' && this.bonusSecondsLeft() <= 1) {
       this.audioService.playCountdownBong();
     }

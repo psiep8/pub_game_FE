@@ -464,10 +464,14 @@ class ReliabilityIntegrationTest {
         long gameId = 522L;
         gameState.startRound(gameId, "TIME_BUZZER", 1, "buzzer-1", "{}");
         var party = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
-                messaging, gameState, idempotency, stateBlobs);
+                messaging, gameState, idempotency, stateBlobs,
+                new com.pub_game_be.service.SpeedRushService(stateBlobs),
+                new com.pub_game_be.service.BasketService(stateBlobs));
         var start = party.timeBuzzerStart(gameId, Map.of("manche", 2));
         var restarted = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
-                messaging, gameState, idempotency, stateBlobs);
+                messaging, gameState, idempotency, stateBlobs,
+                new com.pub_game_be.service.SpeedRushService(stateBlobs),
+                new com.pub_game_be.service.BasketService(stateBlobs));
         assertThat(restarted.timeBuzzerStop(gameId, Map.of("playerName", "Anna", "ms", 1)).getStatusCode().value()).isEqualTo(200);
         assertThat(start.get("manche")).isEqualTo(2);
         gameState.startRound(gameId, "TIME_BUZZER", 2, "buzzer-2", "{}");

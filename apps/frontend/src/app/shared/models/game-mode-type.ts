@@ -51,6 +51,9 @@ export interface GameModeConfig {
     correctIndex: number;
     difficulty: 'EASY' | 'MEDIUM' | 'HARD';
   }>>;
+  /** Speed Rush: la TV apre la sessione e chiude la corsa sul server. */
+  startSpeedRush?: (players: string[]) => Promise<any>;
+  finishSpeedRush?: () => Promise<any[]>;
 }
 
 export interface GameModeResult {

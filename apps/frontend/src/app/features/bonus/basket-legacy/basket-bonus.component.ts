@@ -1,4 +1,3 @@
-import { WsAction } from '../../../shared/enums/ws-action';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -9,12 +8,13 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { WebSocketService } from '../../../core/websocket/web-socket.service';
+import { firstValueFrom } from 'rxjs';
+import { GameService } from '../../../core/services/game.service';
+import { ReliabilityService } from '../../../core/services/reliability.service';
 import {
   type BasketCamera,
   type BasketWorld,
   MANCHE_LABELS,
-  MANCHE_POINTS,
   type ShotState,
   type Vec3,
   createBasketWorld,
@@ -32,7 +32,7 @@ import { drawBasketScene } from './basket-renderer';
 type GameState = 'READY' | 'PLAYING' | 'MANCHE_END' | 'OVER';
 
 const MANCHE_COUNT = 3;
-const MANCHE_SECONDS = 20;
+const MANCHE_SECONDS = 30;
 
 @Component({
   selector: 'app-basket-bonus',
@@ -44,7 +44,8 @@ const MANCHE_SECONDS = 20;
 export class BasketBonus implements AfterViewInit, OnDestroy {
   @ViewChild('court') private canvasRef!: ElementRef<HTMLCanvasElement>;
 
-  private ws = inject(WebSocketService);
+  private gameService = inject(GameService);
+  private reliability = inject(ReliabilityService);
 
   readonly mancheCount = MANCHE_COUNT;
   readonly MANCHE_LABELS = MANCHE_LABELS;
@@ -59,6 +60,11 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
   readonly best = signal(this.readBest());
   readonly message = signal<string | null>(null);
   readonly messageTone = signal<'score' | 'miss'>('score');
+  readonly serverReady = signal(false);
+  readonly serverError = signal<string | null>(null);
+  readonly targetPull = signal(0.5);
+  readonly targetTolerance = signal(0.055);
+  readonly power = signal(0);
 
   private world: BasketWorld = createBasketWorld(0);
   private shot: ShotState = createShot(this.world);
@@ -88,6 +94,10 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
   private netRimKicked = false;
   private netScoreKicked = false;
   private missShown = false;
+  private gameId = Number(localStorage.getItem('activeGameId')) || 1;
+  private shotId: string | null = null;
+  private serverStartedAt = 0;
+  private serverManche = 0;
 
   ngAfterViewInit(): void {
     const canvas = this.canvasRef.nativeElement;
@@ -100,6 +110,7 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     }
 
     this.raf = requestAnimationFrame(this.frame);
+    void this.initServer();
   }
 
   ngOnDestroy(): void {
@@ -112,6 +123,18 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
 
   mancheLabel(index = this.manche()): string {
     return MANCHE_LABELS[index] ?? MANCHE_LABELS[0];
+  }
+
+  targetPercent(): number {
+    return Math.round(this.targetPull() * 100);
+  }
+
+  tolerancePercent(): number {
+    return Math.max(1, Math.round(this.targetTolerance() * 100));
+  }
+
+  powerPercent(): number {
+    return Math.round(this.power() * 100);
   }
 
   startGame(): void {
@@ -127,11 +150,64 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     this.shots.set(0);
     this.message.set(null);
     this.messageTone.set('score');
-    this.startManche(0);
+    void this.startServerGame();
+  }
+
+  /** Apre la sessione REMOTE e carica il tabellone che ha creato la TV. */
+  private async initServer(): Promise<boolean> {
+    const playerName = this.resolvePlayerName();
+    if (!playerName) {
+      this.serverError.set('Torna al party e rientra con il tuo nome.');
+      return false;
+    }
+
+    const registered = await this.reliability.start(this.gameId, 'REMOTE', playerName);
+    if (!registered) {
+      this.serverError.set('Sessione non disponibile: riprova tra poco.');
+      return false;
+    }
+
+    try {
+      const state = await firstValueFrom(this.gameService.getBasketState(this.gameId));
+      if (!state?.active) {
+        this.serverReady.set(false);
+        this.serverError.set('Il bonus non è aperto. Attendi il via della TV.');
+        return false;
+      }
+      this.applyServerState(state);
+      this.serverReady.set(true);
+      this.serverError.set(null);
+      return true;
+    } catch {
+      this.serverReady.set(false);
+      this.serverError.set('Tabellone non raggiungibile: riprova.');
+      return false;
+    }
+  }
+
+  private async startServerGame(): Promise<void> {
+    if (!await this.initServer()) return;
+    this.startManche(Math.max(0, Math.min(MANCHE_COUNT - 1, this.serverManche)));
+  }
+
+  private applyServerState(state: any): void {
+    this.score.set(Number(state.score) || 0);
+    this.shots.set(Number(state.shots) || 0);
+    this.serverManche = Math.max(0, Number(state.manche ?? 1) - 1);
+    this.manche.set(this.serverManche);
+    this.mancheScores.set(
+      Array.isArray(state.mancheScores)
+        ? [...state.mancheScores].slice(0, 3).map((value) => Number(value) || 0)
+        : [0, 0, 0],
+    );
+    this.targetPull.set(Number(state.targetPull) || 0.5);
+    this.targetTolerance.set(Number(state.targetTolerance) || 0.055);
+    this.shotId = typeof state.shotId === 'string' ? state.shotId : null;
+    this.serverStartedAt = Number(state.startedAt) || 0;
   }
 
   onPointerDown(event: PointerEvent): void {
-    if (this.state() !== 'PLAYING' || this.ballReleased || !this.camera) return;
+    if (this.state() !== 'PLAYING' || this.ballReleased || !this.camera || !this.serverReady() || !this.shotId) return;
 
     const point = this.toLocal(event);
     const ball = projectPoint(this.camera, this.shot.position);
@@ -181,7 +257,9 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
       return;
     }
 
-    launchShot(this.shot, this.world, this.pull, this.side);
+    const pull = this.pull;
+    const side = this.side;
+    launchShot(this.shot, this.world, pull, side);
     this.ballReleased = true;
     this.shots.update((value) => value + 1);
     this.lastTs = 0;
@@ -192,7 +270,9 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     this.dragStart = null;
     this.pull = 0;
     this.side = 0;
+    this.power.set(0);
     this.vibrate(18);
+    this.submitShot(pull, side);
   }
 
   onPointerCancel(event: PointerEvent): void {
@@ -210,7 +290,13 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     this.stopTimer();
     this.manche.set(index);
     this.mancheScore.set(0);
-    this.timeLeft.set(MANCHE_SECONDS);
+    const elapsed = this.serverStartedAt
+      ? Math.max(0, Math.floor((Date.now() - this.serverStartedAt) / 1000))
+      : index * MANCHE_SECONDS;
+    const remaining = this.serverStartedAt
+      ? Math.max(1, Math.min(MANCHE_SECONDS, (index + 1) * MANCHE_SECONDS - elapsed))
+      : MANCHE_SECONDS;
+    this.timeLeft.set(remaining);
     this.state.set('PLAYING');
     this.message.set(null);
     this.messageTone.set('score');
@@ -233,11 +319,9 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     if (this.state() !== 'PLAYING') return;
     this.stopTimer();
 
-    const gained = this.mancheScore();
     const scores = [...this.mancheScores()];
-    scores[this.manche()] = gained;
+    scores[this.manche()] = this.mancheScores()[this.manche()] ?? 0;
     this.mancheScores.set(scores);
-    this.score.update((value) => value + gained);
     this.state.set('MANCHE_END');
     this.drag = false;
     this.trajectory = [];
@@ -328,14 +412,10 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
   }
 
   private onScore(swish: boolean): void {
-    const base = MANCHE_POINTS[this.manche()] ?? 2;
-    const points = base + (swish ? 1 : 0);
-
-    this.mancheScore.update((value) => value + points);
-    this.sendBasket(points);
-    this.flash(swish ? `SWISH · +${points}` : `CANESTRO · +${points}`);
+    // L'animazione può suggerire il canestro, ma i punti arrivano solo dalla
+    // risposta server: qui non si tocca né il punteggio né la classifica.
     this.resetAfter = 1.15;
-    this.vibrate([24, 30, 52]);
+    this.vibrate(swish ? [24, 30, 52] : [24, 30]);
   }
 
   private reportMiss(): void {
@@ -400,6 +480,7 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
 
     this.pull = pull;
     this.side = side;
+    this.power.set(pull);
     this.trajectory = pull > 0.02 ? previewTrajectory(this.world, pull, side) : [];
   }
 
@@ -421,19 +502,50 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     return { x: event.clientX - rect.left, y: event.clientY - rect.top };
   }
 
-  private sendBasket(points: number): void {
+  private submitShot(pull: number, side: number): void {
     const playerName = this.resolvePlayerName();
-    if (!playerName) return;
+    const shotId = this.shotId;
+    if (!playerName || !shotId) {
+      this.flash('TIRO NON INVIATO · RIPROVA', 'miss');
+      return;
+    }
 
-    const gameId = Number(localStorage.getItem('activeGameId')) || 1;
-    this.ws.subscribeToGame(gameId);
-    this.ws.broadcastStatus(gameId, {
-      action: WsAction.BONUS_RESULT,
-      playerName,
-      score: points,
-      baskets: 1,
-      manche: this.manche() + 1,
+    this.shotId = null;
+    this.gameService.basketShot(this.gameId, shotId, pull, side).subscribe({
+      next: (result: any) => this.applyShotResult(result),
+      error: () => this.flash('TIRO NON REGISTRATO · RIPROVA', 'miss'),
     });
+  }
+
+  private applyShotResult(result: any): void {
+    if (!result) return;
+    this.score.set(Number(result.score) || 0);
+    this.shots.set(Number(result.shots) || this.shots());
+    this.mancheScores.set(
+      Array.isArray(result.mancheScores)
+        ? [...result.mancheScores].slice(0, 3).map((value) => Number(value) || 0)
+        : this.mancheScores(),
+    );
+    this.serverManche = Math.max(0, Number(result.manche ?? 1) - 1);
+    this.targetPull.set(Number(result.targetPull) || 0.5);
+    this.targetTolerance.set(Number(result.targetTolerance) || 0.055);
+    this.shotId = typeof result.nextShotId === 'string'
+      ? result.nextShotId
+      : (typeof result.shotId === 'string' ? result.shotId : null);
+
+    const serverScores = Array.isArray(result.mancheScores)
+      ? result.mancheScores.map((value: unknown) => Number(value) || 0)
+      : this.mancheScores();
+    this.mancheScore.set(serverScores[this.manche()] ?? 0);
+
+    const points = Number(result.points) || 0;
+    if (result.made) {
+      this.flash(`CANESTRO · +${points}`);
+      this.vibrate([24, 30, 52]);
+    } else {
+      this.flash('FUORI · RIPROVA', 'miss');
+      this.vibrate(18);
+    }
   }
 
   private stopTimer(): void {

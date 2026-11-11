@@ -172,6 +172,46 @@ export class GameService {
     return this.http.post<any>(`${this.baseUrl}/games/${gameId}/time-buzzer/stop`, { playerName, ms });
   }
 
+  // ------------------------------------------------------------- Speed Rush
+
+  /** La TV apre la sessione: da qui prove e punteggio restano sul server. */
+  startSpeedRush(gameId: number, players: string[]): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/speed-rush/start`, { players });
+  }
+
+  /** Prova pubblica: il server non manda la soluzione al telefono. */
+  getSpeedRushTask(gameId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/games/${gameId}/speed-rush/task`);
+  }
+
+  /** Il telefono manda solo la risposta scelta; l'esito lo decide il server. */
+  answerSpeedRush(gameId: number, taskId: string, answer: unknown): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/speed-rush/answer`, { taskId, answer });
+  }
+
+  finishSpeedRush(gameId: number): Observable<{ results: any[] }> {
+    return this.http.post<{ results: any[] }>(`${this.baseUrl}/games/${gameId}/speed-rush/finish`, {});
+  }
+
+  // ----------------------------------------------------------------- Basket
+
+  startBasket(gameId: number, players: string[]): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/basket/start`, { players });
+  }
+
+  getBasketState(gameId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/games/${gameId}/basket/state`);
+  }
+
+  /** Potenza e direzione del gesto; canestro e punti sono calcolati dal server. */
+  basketShot(gameId: number, shotId: string, pull: number, side: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/basket/shot`, { shotId, pull, side });
+  }
+
+  finishBasket(gameId: number): Observable<{ results: any[] }> {
+    return this.http.post<{ results: any[] }>(`${this.baseUrl}/games/${gameId}/basket/finish`, {});
+  }
+
   /** Air Hockey: domande quiz dalla banca, con la difficoltà richiesta. */
   getAirHockeyQuestions(
     gameId: number,

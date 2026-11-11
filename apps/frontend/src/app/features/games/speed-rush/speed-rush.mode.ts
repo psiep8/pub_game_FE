@@ -13,14 +13,12 @@ interface Lane {
   finishedAt: number | null;
 }
 
-const STEP_FORWARD = 9;
-const STEP_BACK = 6;
-
 /**
  * Speed Rush: corsie sulla TV, microprove sul telefono.
  *
- * La corsa è una conseguenza della bravura, non solo della velocità: una prova
- * sbagliata fa arretrare, una giusta avanza.
+ * La TV non calcola più avanzamento, arrivi o punti: riceve gli eventi
+ * `SPEED_RUSH_PROGRESS` e `SPEED_RUSH_RESULT` dal server e li applica. In questo
+ * modo un telefono non può dichiarare da sé una risposta corretta o un arrivo.
  */
 export class SpeedRushMode extends GameModeBase {
   readonly type: GameModeType = 'SPEED_RUSH';
@@ -29,31 +27,24 @@ export class SpeedRushMode extends GameModeBase {
   readonly requiresBuzz = false;
 
   private lanes = signal<Lane[]>([]);
-  private finishedCount = 0;
   private pointsApplied = false;
-  private startedAt = 0;
+  private finishing = false;
 
   protected onInitialize(): void {
-    const players = this.config.activePlayers ?? [];
-    this.lanes.set(players.map((playerName) => ({
-      playerName,
-      progress: 0,
-      finished: false,
-      position: null,
-      streak: 0,
-      multiplier: 1,
-      finishedAt: null,
-    })));
-    this.finishedCount = 0;
+    this.lanes.set(this.emptyLanes());
     this.pointsApplied = false;
-    this.startedAt = 0;
+    this.finishing = false;
     this.timer.set(this.timerDuration);
   }
 
   protected async onStart(): Promise<void> {
-    this.initializeLanes();
+    this.lanes.set(this.emptyLanes());
+    try {
+      await this.config.startSpeedRush?.(this.config.activePlayers ?? []);
+    } catch (error) {
+      console.warn('Speed Rush: sessione server non aperta', error);
+    }
     await this.runPreGameSequence(3000);
-    this.startedAt = Date.now();
   }
 
   protected onPause(): void {}
@@ -65,14 +56,72 @@ export class SpeedRushMode extends GameModeBase {
   }
 
   protected onTimeout(): void {
-    this.finishRace();
+    void this.finishRace();
   }
 
-  private initializeLanes(): void {
-    if (this.lanes().length > 0) return;
+  handlePartyEvent(event: any): void {
+    if (event?.action === 'SPEED_RUSH_RESULT') {
+      this.applyServerResults(Array.isArray(event.results) ? event.results : []);
+      return;
+    }
+    if (event?.action !== 'SPEED_RUSH_PROGRESS' || !event.playerName) return;
 
-    const players = this.config.activePlayers ?? [];
-    this.lanes.set(players.map((playerName) => ({
+    const key = String(event.playerName).trim().toLowerCase();
+    this.lanes.update((lanes) => lanes.map((lane) => {
+      if (lane.playerName.trim().toLowerCase() !== key) return lane;
+      return {
+        ...lane,
+        progress: Math.max(0, Math.min(100, Number(event.progress) || 0)),
+        streak: Math.max(0, Number(event.streak) || 0),
+        multiplier: Math.max(1, Number(event.multiplier) || 1),
+        finished: !!event.finished,
+        position: event.position == null ? null : Number(event.position),
+        finishedAt: event.finishedAt == null ? null : Number(event.finishedAt),
+      };
+    }));
+  }
+
+  /**
+   * Chiede al server la graduatoria finale. Il server è l'unica fonte dei
+   * punti: se la chiamata fallisce si ritenta, senza ripiegare su un calcolo
+   * locale che sarebbe di nuovo falsificabile.
+   */
+  private async finishRace(): Promise<void> {
+    if (this.pointsApplied || this.finishing) return;
+    this.finishing = true;
+
+    try {
+      const results = await this.config.finishSpeedRush?.();
+      if (!results) {
+        this.finishing = false;
+        setTimeout(() => void this.finishRace(), 1000);
+        return;
+      }
+      this.applyServerResults(results);
+    } catch {
+      this.finishing = false;
+      setTimeout(() => void this.finishRace(), 1000);
+    }
+  }
+
+  private applyServerResults(results: any[]): void {
+    if (this.pointsApplied) return;
+    this.pointsApplied = true;
+
+    for (const result of results) {
+      const playerName = String(result?.playerName ?? '').trim();
+      if (!playerName) continue;
+      const points = Math.max(0, Number(result.points) || 0);
+      this.config.onAnswerReceived?.({
+        playerName,
+        points,
+        isCorrect: points > 0,
+      });
+    }
+  }
+
+  private emptyLanes(): Lane[] {
+    return (this.config.activePlayers ?? []).map((playerName) => ({
       playerName,
       progress: 0,
       finished: false,
@@ -80,90 +129,7 @@ export class SpeedRushMode extends GameModeBase {
       streak: 0,
       multiplier: 1,
       finishedAt: null,
-    })));
-  }
-
-  handlePartyEvent(event: any): void {
-    if (event?.action !== 'SPEED_RUSH_PROGRESS' || !event.playerName) return;
-
-    const key = String(event.playerName).trim().toLowerCase();
-    const correct = !!event.correct;
-
-    this.lanes.update((lanes) => lanes.map((lane) => {
-      if (lane.playerName.trim().toLowerCase() !== key || lane.finished) return lane;
-
-      if (!correct) {
-        return {
-          ...lane,
-          progress: Math.max(0, lane.progress - STEP_BACK),
-          streak: 0,
-          multiplier: 1,
-        };
-      }
-
-      const streak = lane.streak + 1;
-      const multiplier = this.multiplierFor(streak);
-      const progress = Math.min(100, lane.progress + STEP_FORWARD * multiplier);
-
-      if (progress < 100) return { ...lane, progress, streak, multiplier };
-
-      this.finishedCount += 1;
-      return {
-        ...lane,
-        progress: 100,
-        streak,
-        multiplier,
-        finished: true,
-        position: this.finishedCount,
-        finishedAt: this.startedAt ? Date.now() - this.startedAt : null,
-      };
     }));
-  }
-
-  /** Catena di risposte giuste: 2 → x2, 5 → x3, 10 → x4. Un errore azzera. */
-  private multiplierFor(streak: number): number {
-    if (streak >= 10) return 4;
-    if (streak >= 5) return 3;
-    if (streak >= 2) return 2;
-    return 1;
-  }
-
-  private finishRace(): void {
-    if (this.pointsApplied) return;
-    this.pointsApplied = true;
-
-    const ranked = [...this.lanes()].sort((a, b) => {
-      if (a.finished !== b.finished) return a.finished ? -1 : 1;
-      if (a.finished && b.finished) return (a.position ?? 99) - (b.position ?? 99);
-      return b.progress - a.progress;
-    });
-
-    // Prendono punti solo i primi n/2 arrivati. Il primo vale 500, gli altri
-    // scalano in base al distacco in millesimi dal suo tempo d'arrivo, con un
-    // minimo di 100 per non annullare la qualificazione.
-    const qualifiers = Math.max(1, Math.ceil(ranked.length / 2));
-    const firstTime = ranked.find((lane) => lane.finishedAt !== null)?.finishedAt
-      ?? Math.max(1, Date.now() - (this.startedAt || Date.now()));
-
-    ranked.forEach((lane, index) => {
-      if (index >= qualifiers) {
-        this.config.onAnswerReceived?.({
-          playerName: lane.playerName,
-          points: 0,
-          isCorrect: false,
-        });
-        return;
-      }
-
-      const points = index === 0
-        ? 500
-        : Math.max(100, Math.round((500 * firstTime) / Math.max(1, lane.finishedAt ?? firstTime)));
-      this.config.onAnswerReceived?.({
-        playerName: lane.playerName,
-        points,
-        isCorrect: true,
-      });
-    });
   }
 
   protected onBuzz(_playerName: string): void {}

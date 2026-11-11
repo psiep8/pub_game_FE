@@ -24,10 +24,7 @@ import { ThemeService } from '../../core/services/theme.service';
 import { ReliabilityService } from '../../core/services/reliability.service';
 import { PlayerAvatarService } from '../../core/services/player-avatar.service';
 import {
-  buildSpeedDeck,
-  createSpeedTask,
   type SpeedTask,
-  type SpeedTaskKind,
 } from '../games/speed-rush/speed-rush-deck';
 import { ConnectionBadge } from '../../shared/components/connection-badge/connection-badge.component';
 import { SentStateComponent } from '../../shared/components/sent-state/sent-state.component';
@@ -311,8 +308,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   speedTask = signal<SpeedTask | null>(null);
   /** Colori già scelti nella prova "mischia colori". */
   speedColorPicked = signal<string[]>([]);
-  private speedDeck: SpeedTaskKind[] = [];
-  private speedDeckIndex = 0;
+  /** Ignora le risposte di una corsa già chiusa o sostituita. */
+  private speedLoadSeq = 0;
 
   hockeyHits = signal(0);
   private lastHockeyAt = 0;
@@ -576,6 +573,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         case 'REVEAL':
           this.roundActive.set(false);
           this.cancelTimelineSend();
+          this.speedLoadSeq++;
           this.speedTask.set(null);
           this.speedColorPicked.set([]);
           this.blackjackState.set(null);
@@ -1717,27 +1715,35 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   startSpeedRush(): void {
-    // Un mazzo per round: ogni tipo esce con regolarità e mai due volte di fila.
-    this.speedDeck = buildSpeedDeck(40);
-    this.speedDeckIndex = 0;
-    this.nextSpeedTask();
+    this.speedLoadSeq++;
+    this.speedColorPicked.set([]);
+    this.speedTask.set(null);
+    this.loadSpeedTask(0);
   }
 
-  private nextSpeedTask(): void {
-    if (this.speedDeck.length === 0 || this.speedDeckIndex >= this.speedDeck.length) {
-      this.speedDeck = buildSpeedDeck(40);
-      this.speedDeckIndex = 0;
-    }
+  /** La prova arriva dal server, senza la soluzione. */
+  private loadSpeedTask(attempt = 0): void {
+    const gameId = this.gameId();
+    if (!gameId) return;
 
-    const kind = this.speedDeck[this.speedDeckIndex++];
-    this.speedColorPicked.set([]);
-    this.speedTask.set(createSpeedTask(kind));
+    const seq = ++this.speedLoadSeq;
+    this.gameService.getSpeedRushTask(gameId).subscribe({
+      next: (task) => {
+        if (seq !== this.speedLoadSeq) return;
+        this.speedColorPicked.set([]);
+        this.speedTask.set(task);
+      },
+      error: () => {
+        if (seq !== this.speedLoadSeq || attempt >= 12) return;
+        setTimeout(() => this.loadSpeedTask(attempt + 1), 450);
+      },
+    });
   }
 
   speedPickMath(value: number): void {
     const task = this.speedTask();
     if (task?.kind !== 'math') return;
-    this.completeSpeedTask(value === task.answer);
+    this.submitSpeedAnswer(value);
   }
 
   /** Mischia colori: si scelgono i due primari che danno il colore in cima. */
@@ -1745,15 +1751,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const task = this.speedTask();
     if (task?.kind !== 'colors' || this.speedColorPicked().includes(name)) return;
 
-    if (!task.answer.includes(name)) {
-      this.completeSpeedTask(false);
-      return;
-    }
-
     const picked = [...this.speedColorPicked(), name];
     this.vibrate(10);
-    if (picked.length >= task.answer.length) {
-      this.completeSpeedTask(true);
+    if (picked.length >= 2) {
+      this.submitSpeedAnswer(picked);
       return;
     }
     this.speedColorPicked.set(picked);
@@ -1762,34 +1763,50 @@ export class RemoteComponent implements OnInit, OnDestroy {
   speedPickFlag(name: string): void {
     const task = this.speedTask();
     if (task?.kind !== 'flag') return;
-    this.completeSpeedTask(name === task.answer);
+    this.submitSpeedAnswer(name);
   }
 
   speedPickWord(value: string): void {
     const task = this.speedTask();
     if (task?.kind !== 'words') return;
-    this.completeSpeedTask(value === task.answer);
+    this.submitSpeedAnswer(value);
   }
 
   speedPickTranslate(value: string): void {
     const task = this.speedTask();
     if (task?.kind !== 'translate') return;
-    this.completeSpeedTask(value === task.answer);
+    this.submitSpeedAnswer(value);
   }
 
-  private completeSpeedTask(correct: boolean): void {
-    // Una prova risolta manda un solo aggiornamento, anche con un doppio tocco.
-    if (!this.speedTask()) return;
+  /** Un solo invio per prova: la correttezza e la corsia le aggiorna il server. */
+  private submitSpeedAnswer(answer: unknown): void {
+    const task = this.speedTask();
+    if (!task) return;
+
+    const seq = this.speedLoadSeq;
     this.speedTask.set(null);
     this.speedColorPicked.set([]);
 
-    this.ws.broadcastStatus(this.gameId(), {
-      action: WsAction.SPEED_RUSH_PROGRESS,
-      playerName: this.nickname(),
-      correct,
+    const taskId = (task as any).taskId as string;
+    this.gameService.answerSpeedRush(this.gameId(), taskId, answer).subscribe({
+      next: (response: any) => {
+        if (seq !== this.speedLoadSeq) return;
+        this.vibrate(response?.correct ? 30 : [40, 40, 40]);
+        this.speedColorPicked.set([]);
+        if (response?.nextTask) {
+          this.speedTask.set(response.nextTask);
+          return;
+        }
+        if (!response?.finished && this.roundActive()) {
+          setTimeout(() => this.loadSpeedTask(), 300);
+        }
+      },
+      error: () => {
+        if (seq !== this.speedLoadSeq) return;
+        this.reliability.lastError.set('Risposta Speed Rush non registrata: riprova.');
+        this.speedTask.set(task);
+      },
     });
-    this.vibrate(correct ? 30 : [40, 40, 40]);
-    setTimeout(() => this.nextSpeedTask(), 300);
   }
 
   /** Dove guardare la TV: la mia partita e il suo angolo nel multiview. */

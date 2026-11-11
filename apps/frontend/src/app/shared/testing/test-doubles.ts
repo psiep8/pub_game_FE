@@ -125,6 +125,38 @@ export class FakeGameService {
   ): Observable<any> {
     return of({ correct: answer === 'A', totalScore: 10, correctAnswer: 'A' });
   }
+
+  startSpeedRush(_gameId: number, _players: string[]): Observable<any> {
+    return of({ active: true });
+  }
+
+  getSpeedRushTask(_gameId: number): Observable<any> {
+    return of({ taskId: 'sr-test', kind: 'math', text: '2 + 2', options: [4, 5, 6] });
+  }
+
+  answerSpeedRush(_gameId: number, _taskId: string, _answer: unknown): Observable<any> {
+    return of({ correct: true, progress: 9, nextTask: null });
+  }
+
+  finishSpeedRush(_gameId: number): Observable<{ results: any[] }> {
+    return of({ results: [] });
+  }
+
+  startBasket(_gameId: number, _players: string[]): Observable<any> {
+    return of({ active: true });
+  }
+
+  getBasketState(_gameId: number): Observable<any> {
+    return of({ active: true, score: 0, targetPull: 0.5, targetTolerance: 0.055 });
+  }
+
+  basketShot(_gameId: number, _shotId: string, _pull: number, _side: number): Observable<any> {
+    return of({ made: false, points: 0, score: 0 });
+  }
+
+  finishBasket(_gameId: number): Observable<{ results: any[] }> {
+    return of({ results: [] });
+  }
 }
 
 export class FakeAiGeneratorService {

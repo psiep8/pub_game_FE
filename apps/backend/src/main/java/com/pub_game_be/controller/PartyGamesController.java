@@ -2,9 +2,14 @@ package com.pub_game_be.controller;
 
 import com.pub_game_be.reliability.GameStateService;
 import com.pub_game_be.reliability.IdempotencyService;
+import com.pub_game_be.reliability.JsonSupport;
 import com.pub_game_be.reliability.StateBlobService;
+import com.pub_game_be.reliability.domain.DeviceSessionEntity;
+import com.pub_game_be.service.BasketService;
 import com.pub_game_be.service.PartyGameService;
 import com.pub_game_be.service.QuestionBankService;
+import com.pub_game_be.service.SpeedRushService;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -41,19 +46,24 @@ public class PartyGamesController {
     private final SimpMessagingTemplate messagingTemplate;
     private final GameStateService gameStateService;
     private final IdempotencyService idempotencyService;
+    private final SpeedRushService speedRushService;
+    private final BasketService basketService;
 
     private static final String BUZZER_BLOB = "time-buzzer-start";
     private final StateBlobService stateBlobs;
 
     public PartyGamesController(PartyGameService partyGameService, QuestionBankService questionBank,
             SimpMessagingTemplate messagingTemplate, GameStateService gameStateService,
-            IdempotencyService idempotencyService, StateBlobService stateBlobs) {
+            IdempotencyService idempotencyService, StateBlobService stateBlobs,
+            SpeedRushService speedRushService, BasketService basketService) {
         this.partyGameService = partyGameService;
         this.questionBank = questionBank;
         this.messagingTemplate = messagingTemplate;
         this.gameStateService = gameStateService;
         this.idempotencyService = idempotencyService;
         this.stateBlobs = stateBlobs;
+        this.speedRushService = speedRushService;
+        this.basketService = basketService;
     }
 
     /** Domande dell'Air Hockey dalla banca, mai scritte nel codice del client. */
@@ -220,10 +230,145 @@ public class PartyGamesController {
         return ResponseEntity.ok(result);
     }
 
+    // ------------------------------------------------------------- Speed Rush
+
+    /** La TV apre la sessione dopo il pre-round: da qui il server è l'arbitro. */
+    @PostMapping("/{gameId}/speed-rush/start")
+    public ResponseEntity<Object> speedRushStart(@PathVariable("gameId") Long gameId,
+            @RequestBody(required = false) Map<String, Object> body) {
+        if (!gameStateService.isActiveRoundType(gameId, "SPEED_RUSH")) {
+            return ResponseEntity.status(409).body(Map.of("error", "Round Speed Rush non attivo"));
+        }
+        List<String> players = readPlayers(body == null ? null : body.get("players"));
+        String roundKey = gameStateService.snapshot(gameId).optString("roundKey", "");
+        return ResponseEntity.ok(JsonSupport.toMap(speedRushService.start(gameId, players, roundKey)));
+    }
+
+    /** Prova corrente del telefono autenticato, senza la soluzione. */
+    @GetMapping("/{gameId}/speed-rush/task")
+    public ResponseEntity<Object> speedRushTask(@PathVariable("gameId") Long gameId,
+            @RequestAttribute("pubgame.session") DeviceSessionEntity session) {
+        if (!gameStateService.isActiveRoundType(gameId, "SPEED_RUSH")) {
+            return ResponseEntity.status(409).body(Map.of("error", "Round Speed Rush non attivo"));
+        }
+        return speedRushService.task(gameId, session.getPlayerName())
+                .<ResponseEntity<Object>>map(task -> ResponseEntity.ok(JsonSupport.toMap(task)))
+                .orElseGet(() -> ResponseEntity.status(409)
+                        .body(Map.of("error", "Nessuna prova disponibile")));
+    }
+
+    /** Risposta della prova: correttezza, corsia e prossima prova li decide il server. */
+    @PostMapping("/{gameId}/speed-rush/answer")
+    public ResponseEntity<Object> speedRushAnswer(@PathVariable("gameId") Long gameId,
+            @RequestAttribute("pubgame.session") DeviceSessionEntity session,
+            @RequestBody(required = false) Map<String, Object> body) {
+        if (!gameStateService.isActiveRoundType(gameId, "SPEED_RUSH")) {
+            return ResponseEntity.status(409).body(Map.of("error", "Round Speed Rush non attivo"));
+        }
+        Map<String, Object> payload = body == null ? Map.of() : body;
+        String taskId = string(payload.get("taskId"));
+        if (taskId == null || taskId.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Prova mancante"));
+        }
+        Object answer = payload.get("answer");
+        String commandKey = "speed:" + taskId;
+        Map<String, Object> result = idempotencyService.executeOnce(gameId, commandKey,
+                "SPEED_RUSH_ANSWER", session.getPlayerName(), () -> speedRushService
+                        .answer(gameId, session.getPlayerName(), taskId, answer)
+                        .map(progress -> {
+                            JSONObject event = new JSONObject()
+                                    .put("action", "SPEED_RUSH_PROGRESS")
+                                    .put("playerName", progress.optString("playerName"))
+                                    .put("correct", progress.optBoolean("correct"))
+                                    .put("progress", progress.optInt("progress"))
+                                    .put("streak", progress.optInt("streak"))
+                                    .put("multiplier", progress.optInt("multiplier", 1))
+                                    .put("finished", progress.optBoolean("finished"))
+                                    .put("position", progress.opt("position"))
+                                    .put("finishedAt", progress.opt("finishedAt"));
+                            messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", event.toString());
+                            return JsonSupport.toMap(progress);
+                        })
+                        .orElse(null));
+        if (result == null) {
+            return ResponseEntity.status(409).body(Map.of("error", "Prova scaduta o non più valida"));
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    /** La TV chiude la corsa: il server calcola i punti una sola volta. */
+    @PostMapping("/{gameId}/speed-rush/finish")
+    public Map<String, Object> speedRushFinish(@PathVariable("gameId") Long gameId) {
+        JSONArray results = speedRushService.finish(gameId);
+        messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", new JSONObject()
+                .put("action", "SPEED_RUSH_RESULT")
+                .put("results", results)
+                .toString());
+        return Map.of("results", JsonSupport.toList(results));
+    }
+
+    // ----------------------------------------------------------------- Basket
+
+    /** La TV apre il bonus: il server crea i tabelloni e le finestre di tiro. */
+    @PostMapping("/{gameId}/basket/start")
+    public Map<String, Object> basketStart(@PathVariable("gameId") Long gameId,
+            @RequestBody(required = false) Map<String, Object> body) {
+        List<String> players = readPlayers(body == null ? null : body.get("players"));
+        return JsonSupport.toMap(basketService.start(gameId, players));
+    }
+
+    /** Stato del tabellone e finestra di potenza corrente per il telefono. */
+    @GetMapping("/{gameId}/basket/state")
+    public Map<String, Object> basketState(@PathVariable("gameId") Long gameId,
+            @RequestAttribute("pubgame.session") DeviceSessionEntity session) {
+        return JsonSupport.toMap(basketService.state(gameId, session.getPlayerName()));
+    }
+
+    /** Il telefono manda potenza e direzione: il server decide canestro e punti. */
+    @PostMapping("/{gameId}/basket/shot")
+    public ResponseEntity<Object> basketShot(@PathVariable("gameId") Long gameId,
+            @RequestAttribute("pubgame.session") DeviceSessionEntity session,
+            @RequestBody(required = false) Map<String, Object> body) {
+        Map<String, Object> payload = body == null ? Map.of() : body;
+        String shotId = string(payload.get("shotId"));
+        double pull = number(payload.get("pull"), -1);
+        double side = number(payload.get("side"), 2);
+        String commandKey = "basket:" + shotId;
+        Map<String, Object> result = idempotencyService.executeOnce(gameId, commandKey,
+                "BASKET_SHOT", session.getPlayerName(), () -> basketService
+                        .shot(gameId, session.getPlayerName(), shotId, pull, side)
+                        .map(shot -> {
+                            if (shot.optBoolean("made")) {
+                                messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", new JSONObject()
+                                        .put("action", "BASKET_SCORE")
+                                        .put("playerName", shot.optString("playerName"))
+                                        .put("points", shot.optInt("points"))
+                                        .put("baskets", 1)
+                                        .put("score", shot.optInt("score"))
+                                        .put("manche", shot.optInt("manche"))
+                                        .toString());
+                            }
+                            return JsonSupport.toMap(shot);
+                        })
+                        .orElse(null));
+        if (result == null) {
+            return ResponseEntity.status(409).body(Map.of("error", "Tiro non valido o bonus chiuso"));
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/{gameId}/basket/finish")
+    public Map<String, Object> basketFinish(@PathVariable("gameId") Long gameId) {
+        JSONArray results = basketService.finish(gameId);
+        return Map.of("results", JsonSupport.toList(results));
+    }
+
     /** Azzera i due giochi (nuova partita o reset dalla TV). */
     @PostMapping("/{gameId}/party/reset")
     public Map<String, Object> reset(@PathVariable("gameId") Long gameId) {
         partyGameService.forget(gameId);
+        speedRushService.forget(gameId);
+        basketService.forget(gameId);
         stateBlobs.forget(gameId, BUZZER_BLOB);
         return Map.of("reset", true, "gameId", gameId);
     }
@@ -237,6 +382,25 @@ public class PartyGamesController {
         } catch (NumberFormatException ignored) {
             return -1;
         }
+    }
+
+    private double number(Object raw, double fallback) {
+        return raw instanceof Number number ? number.doubleValue() : readDouble(raw);
+    }
+
+    private String string(Object raw) {
+        return raw == null ? null : String.valueOf(raw);
+    }
+
+    private List<String> readPlayers(Object raw) {
+        List<String> players = new ArrayList<>();
+        if (raw instanceof List<?> list) {
+            for (Object value : list) {
+                String name = value == null ? "" : String.valueOf(value).trim();
+                if (!name.isEmpty()) players.add(name);
+            }
+        }
+        return players;
     }
 
     private Map<String, Object> closedRound(long gameId) {

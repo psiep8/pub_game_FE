@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { GameComponent } from './game.component';
 import { AiGeneratorService } from '../../core/services/ai-generator-service';
@@ -134,21 +134,27 @@ describe('GameComponent', () => {
     expect(leaderboard.getPlayerStats('Bruno')?.position).toBe(1);
   });
 
-  it('does not start games whose scores are self-reported', async () => {
+  it('starts Speed Rush and Basket with server-verified scoring', async () => {
     const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'startSpeedRush').mockReturnValue(of({ active: true }));
+    const startBasket = vi.spyOn(game, 'startBasket').mockReturnValue(of({ active: true }));
     const rounds = TestBed.inject(RoundManagerService);
     vi.spyOn(rounds, 'extractGameType').mockReturnValue('SPEED_RUSH');
     const before = rounds.getCurrentRound();
     await component.startNewRound();
-    expect(rounds.getCurrentRound()).toBe(before);
+    expect(rounds.getCurrentRound()).not.toBe(before);
+    expect(alert).not.toHaveBeenCalled();
     await component.startBonus('BASKET');
-    expect(component.bonusActive()).toBe(false);
-    expect(alert).toHaveBeenCalledTimes(2);
+    expect(component.bonusActive()).toBe(true);
+    expect(startBasket).toHaveBeenCalled();
     alert.mockRestore();
   });
 
-  it('does not start Basket automatically after the detailed leaderboard', () => {
+  it('starts Basket automatically with server scoring after the detailed leaderboard', async () => {
     const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const startBasket = vi.spyOn(game, 'startBasket').mockReturnValue(of({ active: true }));
     const rounds = TestBed.inject(RoundManagerService);
     vi.spyOn(rounds, 'bonusAfterAct').mockReturnValue('BASKET');
     vi.spyOn(rounds, 'getCurrentAct').mockReturnValue(1);
@@ -156,10 +162,11 @@ describe('GameComponent', () => {
     component.isShowingLeaderboard.set(true);
 
     component.onLeaderboardComplete();
+    await new Promise((resolve) => setTimeout(resolve, 20));
 
-    expect(component.bonusActive()).toBe(false);
-    expect(component.showLeaderboardDetailed()).toBe(true);
-    expect(alert).toHaveBeenCalledOnce();
+    expect(startBasket).toHaveBeenCalled();
+    expect(component.bonusActive()).toBe(true);
+    expect(alert).not.toHaveBeenCalled();
     alert.mockRestore();
   });
 
