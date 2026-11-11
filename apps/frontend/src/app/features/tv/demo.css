@@ -1,0 +1,53 @@
+/* Demo: copione a sinistra, tabella punti generata a destra. */
+.demo-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.75fr);
+  gap: 16px;
+  padding: clamp(14px, 2.4vh, 24px) clamp(18px, 3vw, 36px);
+  overflow: hidden;
+}
+.demo-body .demo-stage.demo-animated {
+  min-width: 0;
+  padding: 0;
+  overflow-y: auto;
+}
+.demo-score-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px;
+  background: var(--paper);
+  border: 3px solid var(--coal);
+  box-shadow: 8px 8px 0 var(--mustard);
+}
+.demo-scene-title {
+  margin: 0;
+  color: var(--coal);
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.4vw, 2.2rem);
+  font-weight: 400;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.demo-body .demo-list { font-size: clamp(0.95rem, 1.35vw, 1.25rem); }
+.demo-body .demo-note { font-size: 0.8rem; }
+.demo-score-panel .demo-score-row {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 3px;
+}
+.demo-score-panel .demo-score-row b {
+  max-width: 100%;
+  text-align: left;
+  line-height: 1.25;
+}
+.demo-score-panel .demo-score-legend { margin-top: auto; }
+
+@media (max-width: 900px) {
+  .demo-body { grid-template-columns: 1fr; overflow-y: auto; }
+  .demo-score-panel { overflow: visible; }
+}

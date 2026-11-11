@@ -54,7 +54,7 @@ import { UltimaSpiaggia } from '../games/ultima-spiaggia/ultima-spiaggia.compone
 import { Azzardo } from '../games/azzardo/azzardo.component';
 import { levelForOccurrence } from '../games/azzardo/azzardo-rules';
 import { Blackjack } from '../games/blackjack/blackjack.component';
-import { DEMO_SCRIPTS, DEMO_SCENE_COUNT, DemoScript } from './demo-scripts';
+import { DemoScript, demoScriptFor } from './demo-scripts';
 import { REVEAL_DELAY_MS, scoringRuleFor } from '../../shared/models/scoring-rules';
 import { BonusType, BONUS_LABELS } from '../../shared/models/bonus-type';
 import { CasinoBonus } from '../bonus/casino/casino-bonus.component';
@@ -91,7 +91,7 @@ type TvPhase = 'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION' | typeof GamePhase.
     BiglieBonus
   ],
   templateUrl: './game.component.html',
-  styleUrls: ['./game.component.css', './restyle.css'],
+  styleUrls: ['./game.component.css', './restyle.css', './demo.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('fadeInOut', [
@@ -1701,12 +1701,14 @@ export class GameComponent implements OnInit, OnDestroy {
 
   // ── Demo animate (TV, remote, punti) ────────────────────────────────
   startDemo(type: string): void {
+    const script = demoScriptFor(type);
+    if (!script) return;
     this.stopDemoTimer();
     this.demoType.set(type);
     this.demoScene.set(0);
     this.demoTimer = setInterval(() => {
       if (!this.demoType()) return;
-      this.demoScene.update((scene) => (scene + 1) % DEMO_SCENE_COUNT);
+      this.demoScene.update((scene) => (scene + 1) % script.scenes.length);
     }, 5000);
   }
 
@@ -1716,7 +1718,8 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   goDemoScene(scene: number): void {
-    this.demoScene.set(((scene % DEMO_SCENE_COUNT) + DEMO_SCENE_COUNT) % DEMO_SCENE_COUNT);
+    const count = this.getDemoScript(this.demoType() ?? '')?.scenes.length ?? 1;
+    this.demoScene.set(((scene % count) + count) % count);
   }
 
   nextDemoScene(): void {
@@ -1727,15 +1730,8 @@ export class GameComponent implements OnInit, OnDestroy {
     this.goDemoScene(this.demoScene() - 1);
   }
 
-  getDemoScript(type: string): DemoScript {
-    return DEMO_SCRIPTS[type] ?? {
-      title: this.getModeName(type),
-      icon: '🎮',
-      tv: ['La TV mostra il gioco', 'Il presentatore spiega dal vivo'],
-      remote: ['Il telefono mostra i comandi', 'Segui le istruzioni in TV'],
-      scoring: [],
-      note: 'Demo non ancora disponibile per questo gioco.',
-    };
+  getDemoScript(type: string): DemoScript | null {
+    return demoScriptFor(type);
   }
 
   /** Countdown interno di una modalità (pausa tra le manche di Music). */

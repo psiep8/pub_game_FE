@@ -143,6 +143,46 @@
     </div>
   </div>
 
+  <div class="flow-panel demo-panel">
+    <div class="flow-title">🎬 DEMO — TUTTI I GIOCHI E I BONUS</div>
+    <p class="flow-note">
+      Aprire una demo non cambia lo stato della serata: la TV mostra il copione, i telefoni restano
+      dove sono. Ordine consigliato: introduzione, giochi della scaletta, bonus degli atti.
+    </p>
+    <div class="demo-admin-grid">
+      @for (key of demoOrder; track key; let i = $index) {
+        <button class="demo-admin-btn" type="button" [class.active]="demoPreview() === key"
+          (click)="openDemo(key)" [attr.aria-pressed]="demoPreview() === key">
+          <span class="demo-admin-num">{{ (i + 1).toString().padStart(2, '0') }}</span>
+          <span class="demo-admin-icon">{{ demoScripts[key].icon }}</span>
+          <span class="demo-admin-name">{{ demoScripts[key].title }}</span>
+        </button>
+      }
+    </div>
+
+    @if (demoScripts[demoPreview()]; as preview) {
+      <div class="demo-admin-lower">
+        <div class="demo-admin-phone" aria-label="Anteprima del telefono">
+          <span class="demo-phone-kicker">ANTEPRIMA TELEFONO</span>
+          <b class="demo-phone-title">{{ preview.icon }} {{ preview.title }}</b>
+          <ul>
+            @for (line of preview.scenes[1].lines; track line) { <li>{{ line }}</li> }
+          </ul>
+          <span class="demo-phone-btn">TOCCA QUI</span>
+        </div>
+        <div class="demo-admin-info">
+          <b>{{ preview.kind === 'INTRO' ? 'INTRODUZIONE' : preview.kind === 'BONUS' ? 'BONUS' : 'GIOCO' }}</b>
+          <span>{{ preview.scenes.length }} scene · {{ preview.scoring.length ? 'tabella punti da SCORING_RULES' : 'nessuna tabella punti' }}</span>
+          <p>{{ preview.note }}</p>
+          <div class="flow-grid">
+            <button class="flow-btn primary" type="button" (click)="openDemo(demoPreview())">▶️ APRI IN TV</button>
+            <button class="flow-btn ghost" type="button" (click)="hideDemo()">✖️ CHIUDI DEMO</button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
   <div class="flow-panel">
     <div class="flow-title">🎬 CONTROLLO FLUSSO — decide il presentatore</div>
     <div class="flow-row">
@@ -158,13 +198,10 @@
       <button class="flow-btn" (click)="toggleGamePause()">⏸️ PAUSA / RIPRENDI</button>
       <button class="flow-btn" (click)="showIntro()">↺ RIVEDI INTRO</button>
       <button class="flow-btn" (click)="theme.toggleXmas()">🎄 NATALE {{ theme.xmas() ? 'ON' : 'OFF' }}</button>
-      <button class="flow-btn" (click)="showDemo()">🎥 DEMO GIOCO</button>
-      <button class="flow-btn ghost" (click)="hideDemo()">✖️ CHIUDI DEMO</button>
       <button class="flow-btn" (click)="startBonus('CASINO')">🎰 BONUS CASINO</button>
       <button class="flow-btn" (click)="startBonus('BASKET')">🏀 BONUS BASKET</button>
       <button class="flow-btn" (click)="startBonus('CAVALLO')">🐎 BONUS CAVALLO</button>
       <button class="flow-btn" (click)="startBonus('BIGLIE')">🎱 BONUS BIGLIE</button>
-      <button class="flow-btn" (click)="showDemoOf('BONUS_BASKET')">🎥 DEMO BONUS BASKET</button>
       <button class="flow-btn ghost" (click)="stopBonus()">✖️ CHIUDI BONUS</button>
     </div>
     <div class="flow-note">Avvio e avanzamento manuali: usa PROSSIMO ROUND oppure il tasto AVANTI in TV.</div>

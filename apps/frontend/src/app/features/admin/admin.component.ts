@@ -12,6 +12,7 @@ import { BonusType } from '../../shared/models/bonus-type';
 import { ReliabilityService } from '../../core/services/reliability.service';
 import { ConnectionBadge } from '../../shared/components/connection-badge/connection-badge.component';
 import { ButtonTestService, ButtonTestSnapshot } from '../../core/services/button-test.service';
+import { DEMO_ORDER, DEMO_SCRIPTS } from '../tv/demo-scripts';
 
 @Component({
   selector: 'app-admin-component',
@@ -55,6 +56,9 @@ export class Admin implements OnInit, OnDestroy {
   currentQuestionType = signal<string>('QUIZ');
   buzzedPlayer = signal<string | null>(null);
   showAdminControls = signal(false);
+  readonly demoOrder = DEMO_ORDER;
+  readonly demoScripts = DEMO_SCRIPTS;
+  demoPreview = signal<string>('INTRO');
   gameState = signal<'WAITING' | 'ACTIVE' | 'ROUND_ENDED'>('WAITING');
   payload = signal<any>(null);
   gameIdInput = signal<number>(Number(localStorage.getItem('activeGameId')) || 1);
@@ -626,6 +630,13 @@ export class Admin implements OnInit, OnDestroy {
       type,
     });
     this.vibrate(30);
+  }
+
+  /** Seleziona l'anteprima e apre la stessa demo in TV, senza toccare la serata. */
+  openDemo(type: string): void {
+    if (!this.demoScripts[type]) return;
+    this.demoPreview.set(type);
+    this.showDemoOf(type);
   }
 
   hideDemo(): void {

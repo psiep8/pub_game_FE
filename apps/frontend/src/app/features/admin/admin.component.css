@@ -654,3 +654,81 @@
 .cat-error {
   color: #fca5a5;
 }
+
+/* ------------------------------------------------------------- Demo admin */
+.demo-panel { border-left: 5px solid var(--mint); }
+.demo-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+.demo-admin-btn {
+  display: grid;
+  grid-template-columns: 20px 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 7px 8px;
+  background: var(--paper-hi);
+  color: var(--coal);
+  border: 2px solid var(--coal);
+  box-shadow: 3px 3px 0 var(--coal);
+  text-align: left;
+  cursor: pointer;
+}
+.demo-admin-btn.active { background: var(--acid); box-shadow: 4px 4px 0 var(--tomato); }
+.demo-admin-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--coal); }
+.demo-admin-num { color: rgba(21, 21, 15, .5); font-family: var(--font-mono); font-size: .58rem; font-weight: 800; }
+.demo-admin-icon { font-size: 1rem; text-align: center; }
+.demo-admin-name {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: .88rem;
+  line-height: 1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.demo-admin-lower {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  margin-top: 12px;
+}
+.demo-admin-phone {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-height: 300px;
+  padding: 12px;
+  background: var(--paper);
+  color: var(--coal);
+  border: 3px solid var(--coal);
+  box-shadow: 6px 6px 0 var(--tomato);
+}
+.demo-phone-kicker { color: var(--tomato); font-family: var(--font-mono); font-size: .56rem; font-weight: 800; letter-spacing: .12em; }
+.demo-phone-title { font-family: var(--font-display); font-size: 1.25rem; font-weight: 400; line-height: 1; text-transform: uppercase; }
+.demo-admin-phone ul { margin: 4px 0 0; padding-left: 15px; }
+.demo-admin-phone li { margin-bottom: 5px; font-family: var(--font-mono); font-size: .62rem; line-height: 1.35; }
+.demo-phone-btn {
+  margin-top: auto;
+  padding: 10px;
+  background: var(--coal);
+  color: var(--paper-hi);
+  border: 2px solid var(--coal);
+  font-family: var(--font-mono);
+  font-size: .66rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-align: center;
+}
+.demo-admin-info { display: flex; flex-direction: column; gap: 7px; }
+.demo-admin-info > b { color: var(--tomato); font-family: var(--font-mono); font-size: .66rem; letter-spacing: .12em; }
+.demo-admin-info > span { font-family: var(--font-mono); font-size: .62rem; opacity: .65; }
+.demo-admin-info > p { margin: 0; font-family: var(--font-mono); font-size: .66rem; line-height: 1.4; opacity: .8; }
+@media (max-width: 700px) {
+  .demo-admin-lower { grid-template-columns: 1fr; }
+  .demo-admin-phone { min-height: 0; }
+}
