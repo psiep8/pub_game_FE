@@ -155,7 +155,12 @@ public class GameStateService {
             for (int attempt = 0; attempt < 3; attempt++) {
                 try {
                     return tx.execute(status -> {
-                        GameStateEntity state = states.findById(gameId).orElseGet(() -> newState(gameId));
+                        // Il lock va sul database, non solo sul processo: se
+                        // appendEvent partecipa a una transazione esterna, il
+                        // commit arriva dopo il blocco Java e due risposte
+                        // simultanee potrebbero ancora leggere lo stesso seq.
+                        GameStateEntity state = states.findForUpdate(gameId)
+                                .orElseGet(() -> newState(gameId));
                         long nextSeq = state.getSeq() + 1;
 
                         GameEventEntity event = new GameEventEntity();

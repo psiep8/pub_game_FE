@@ -157,6 +157,19 @@ class AdminStomp {
   }
 }
 
+class PlayerStomp extends AdminStomp {
+  constructor(token, name) {
+    super(token);
+    this.name = name;
+  }
+
+  async join() {
+    await this.connect();
+    this.send({ action: 'JOIN_GAME', playerName: this.name });
+    log(`telefono ${this.name} entrato in partita`);
+  }
+}
+
 async function run() {
   const state = JSON.parse(readFileSync(STATE_PATH, 'utf8'));
   const admin = new AdminStomp(state.admin);
@@ -166,6 +179,22 @@ async function run() {
   // La pagina è già aperta: diamo alla TV il tempo di fare sync e alle
   // sessioni dei telefoni di comparire nella diagnostica.
   await sleep(Number(process.env.RUN_DELAY_MS || 6000));
+
+  // Senza un telefono fisico per squadra, ogni giocatore entra via STOMP con
+  // il proprio token: è lo stesso JOIN_GAME che manda il pulsante "PRENOTATI".
+  const players = Object.entries(state.phones || {}).map(([name, token]) => {
+    const player = new PlayerStomp(token, name);
+    player.state = state;
+    return player;
+  });
+  for (const player of players) {
+    try {
+      await player.join();
+    } catch (error) {
+      log(`join ${player.name} fallita: ${error.message}`);
+    }
+  }
+  await sleep(2000);
 
   for (let index = 0; index < ROUNDS.length; index += 1) {
     log(`round ${index + 1}/${ROUNDS.length}: ${ROUNDS[index]} — PARTI`);
@@ -184,6 +213,7 @@ async function run() {
   log('SIMULATION_DONE');
   await sleep(1500);
   admin.ws.close();
+  for (const player of players) player.ws?.close();
 }
 
 const mode = process.argv[2] || 'run';

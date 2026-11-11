@@ -7,6 +7,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Persistenza dei pezzi di partita che prima vivevano solo in memoria
@@ -20,6 +22,8 @@ public class StateBlobService {
 
     private final StateBlobRepository blobs;
     private final TransactionTemplate tx;
+    /** Un lock per (partita, chiave): due scritture dello stesso blob non si sovrappongono. */
+    private final ConcurrentMap<String, Object> locks = new ConcurrentHashMap<>();
 
     public StateBlobService(StateBlobRepository blobs, PlatformTransactionManager transactionManager) {
         this.blobs = blobs;
@@ -27,15 +31,18 @@ public class StateBlobService {
     }
 
     public void save(long gameId, String blobKey, String payload) {
-        tx.executeWithoutResult(status -> {
-            StateBlobEntity blob = blobs.findByGameIdAndBlobKey(gameId, blobKey)
-                    .orElseGet(StateBlobEntity::new);
-            blob.setGameId(gameId);
-            blob.setBlobKey(blobKey);
-            blob.setPayload(payload);
-            blob.setUpdatedAt(System.currentTimeMillis());
-            blobs.save(blob);
-        });
+        Object lock = locks.computeIfAbsent(gameId + ":" + blobKey, key -> new Object());
+        synchronized (lock) {
+            tx.executeWithoutResult(status -> {
+                StateBlobEntity blob = blobs.findByGameIdAndBlobKey(gameId, blobKey)
+                        .orElseGet(StateBlobEntity::new);
+                blob.setGameId(gameId);
+                blob.setBlobKey(blobKey);
+                blob.setPayload(payload);
+                blob.setUpdatedAt(System.currentTimeMillis());
+                blobs.save(blob);
+            });
+        }
     }
 
     public Optional<String> load(long gameId, String blobKey) {

@@ -1,0 +1,681 @@
+{
+  "gameId": 97,
+  "generatedAt": "2026-11-11T23:26:15.500Z",
+  "sources": {
+    "events": "game97_events.csv",
+    "rounds": "game97_rounds.csv",
+    "receipts": "game97_receipts.csv",
+    "state": "game97_state.csv",
+    "simLog": "logs/sim-game97.log",
+    "backendLog": "logs/backend-game97.log"
+  },
+  "summary": {
+    "roundsPlayed": 13,
+    "bonuses": 4,
+    "totalEvents": 27,
+    "totalAnswers": 2,
+    "remoteAnswersArrived": true,
+    "answersByType": {
+      "TIMELINE_ANSWER": 2
+    },
+    "answersByPlayer": {
+      "Anna": 1,
+      "Bruno": 0,
+      "Carla": 1,
+      "Dario": 0
+    },
+    "roundsWithAnswers": [
+      {
+        "roundIndex": 4,
+        "type": "TIMELINE",
+        "answerCount": 2
+      }
+    ],
+    "roundsWithoutAnswers": [
+      {
+        "roundIndex": 0,
+        "type": "QUIZ"
+      },
+      {
+        "roundIndex": 1,
+        "type": "MUSIC"
+      },
+      {
+        "roundIndex": 2,
+        "type": "IMAGE_BLUR"
+      },
+      {
+        "roundIndex": 3,
+        "type": "WHEEL_OF_FORTUNE"
+      },
+      {
+        "roundIndex": 5,
+        "type": "TIME_BUZZER"
+      },
+      {
+        "roundIndex": 6,
+        "type": "BOMBA"
+      },
+      {
+        "roundIndex": 7,
+        "type": "AIR_HOCKEY_BATTLE"
+      },
+      {
+        "roundIndex": 8,
+        "type": "ULTIMA_SPIAGGIA"
+      },
+      {
+        "roundIndex": 9,
+        "type": "AZZARDO"
+      },
+      {
+        "roundIndex": 10,
+        "type": "BLACKJACK"
+      },
+      {
+        "roundIndex": 11,
+        "type": "ARENA"
+      },
+      {
+        "roundIndex": 12,
+        "type": "SPEED_RUSH"
+      }
+    ],
+    "verdict": "Risposte remote arrivate solo in 1 round (2 totali); gli altri 12 round sono chiusi senza risposte."
+  },
+  "rounds": [
+    {
+      "roundIndex": 0,
+      "type": "QUIZ",
+      "question": null,
+      "startedAt": 1794438720513,
+      "startedAtIso": "2026-11-11T23:12:00.513Z",
+      "startedAtLocal": "12/11/2026, 00:12:00",
+      "closedAt": 1794438747488,
+      "closedAtIso": "2026-11-11T23:12:27.488Z",
+      "closedAtLocal": "12/11/2026, 00:12:27",
+      "closeReason": "skipped",
+      "answers": [],
+      "answerCount": 0,
+      "remoteAnswerArrived": false,
+      "events": [
+        {
+          "seq": 1,
+          "type": "ROUND_STARTED",
+          "createdAt": 1794438720513,
+          "createdAtIso": "2026-11-11T23:12:00.513Z",
+          "payload": {
+            "roundIndex": 0,
+            "startedAt": 1794438720510,
+            "type": "QUIZ",
+            "roundKey": "g97-r0",
+            "deadlineAt": 1794439020510
+          }
+        },
+        {
+          "seq": 2,
+          "type": "ROUND_CLOSED",
+          "createdAt": 1794438747488,
+          "createdAtIso": "2026-11-11T23:12:27.488Z",
+          "payload": {
+            "reason": "skipped"
+          }
+        }
+      ]
+    },
+    {
+      "roundIndex": 1,
+      "type": "MUSIC",
+      "question": null,
+      "startedAt": 1794438750512,
+      "startedAtIso": "2026-11-11T23:12:30.512Z",
+      "startedAtLocal": "12/11/2026, 00:12:30",
+      "closedAt": 1794438777808,
+      "closedAtIso": "2026-11-11T23:12:57.808Z",
+      "closedAtLocal": "12/11/2026, 00:12:57",
+      "closeReason": "skipped",
+      "answers": [],
+      "answerCount": 0,
+      "remoteAnswerArrived": false,
+      "events": [
+        {
+          "seq": 3,
+          "type": "ROUND_STARTED",
+          "createdAt": 1794438750512,
+          "createdAtIso": "2026-11-11T23:12:30.512Z",
+          "payload": {
+            "roundIndex": 1,
+            "startedAt": 1794438750512,
+            "type": "MUSIC",
+            "roundKey": "g97-r1",
+            "deadlineAt": 1794439050512
+          }
+        },
+        {
+          "seq": 4,
+          "type": "ROUND_CLOSED",
+          "createdAt": 1794438777808,
+          "createdAtIso": "2026-11-11T23:12:57.808Z",
+          "payload": {
+            "reason": "skipped"
+          }
+        }
+      ]
+    },
+    {
+      "roundIndex": 2,
+      "type": "IMAGE_BLUR",
+      "question": null,
+      "startedAt": 1794438780834,
+      "startedAtIso": "2026-11-11T23:13:00.834Z",
+      "startedAtLocal": "12/11/2026, 00:13:00",
+      "closedAt": 1794438807502,
+      "closedAtIso": "2026-11-11T23:13:27.502Z",
+      "closedAtLocal": "12/11/2026, 00:13:27",
+      "closeReason": "skipped",
+      "answers": [],
+      "answerCount": 0,
+      "remoteAnswerArrived": false,
+      "events": [
+        {
+          "seq": 5,
+          "type": "ROUND_STARTED",
+          "createdAt": 1794438780834,
+          "createdAtIso": "2026-11-11T23:13:00.834Z",
+          "payload": {
+            "roundIndex": 2,
+            "startedAt": 1794438780834,
+            "type": "IMAGE_BLUR",
+            "roundKey": "g97-r2",
+            "deadlineAt": 1794439080834
+          }
+        },
+        {
+          "seq": 6,
+          "type": "ROUND_CLOSED",
+          "createdAt": 1794438807502,
+          "createdAtIso": "2026-11-11T23:13:27.502Z",
+          "payload": {
+            "reason": "skipped"
+          }
+        }
+      ]
+    },
+    {
+      "roundIndex": 3,
+      "type": "WHEEL_OF_FORTUNE",
+      "question": null,
+      "startedAt": 1794438810527,
+      "startedAtIso": "2026-11-11T23:13:30.527Z",
+      "startedAtLocal": "12/11/2026, 00:13:30",
+      "closedAt": 1794438837518,
+      "closedAtIso": "2026-11-11T23:13:57.518Z",
+      "closedAtLocal": "12/11/2026, 00:13:57",
+      "closeReason": "skipped",
+      "answers": [],
+      "answerCount": 0,
+      "remoteAnswerArrived": false,
+      "events": [
+        {
+          "seq": 7,
+          "type": "ROUND_STARTED",
+          "createdAt": 1794438810527,
+          "createdAtIso": "2026-11-11T23:13:30.527Z",
+          "payload": {
+            "roundIndex": 3,
+            "startedAt": 1794438810527,
+            "type": "WHEEL_OF_FORTUNE",
+            "roundKey": "g97-r3",
+            "deadlineAt": 1794439110527
+          }
+        },
+        {
+          "seq": 8,
+          "type": "ROUND_CLOSED",
+          "createdAt": 1794438837518,
+          "createdAtIso": "2026-11-11T23:13:57.518Z",
+          "payload": {
+            "reason": "skipped"
+          }
+        }
+      ]
+    },
+    {
+      "roundIndex": 4,
+      "type": "TIMELINE",
+      "question": null,
+      "startedAt": 1794438840551,
+      "startedAtIso": "2026-11-11T23:14:00.551Z",
+      "startedAtLocal": "12/11/2026, 00:14:00",
+      "closedAt": 1794438867531,
+      "closedAtIso": "2026-11-11T23:14:27.531Z",
+      "closedAtLocal": "12/11/2026, 00:14:27",
+      "closeReason": "skipped",
+      "answers": [
+        {
+          "kind": "TIMELINE_ANSWER",
+          "playerName": "Carla",
+          "deviceId": "Carla",
+          "receivedAt": 1794438845454,
+          "receivedAtIso": "2026-11-11T23:14:05.454Z",
+          "receivedAtLocal": "12/11/2026, 00:14:05",
+          "score": -200,
+          "correctPairs": 1,
+          "totalPairs": 6,
+          "ackedAt": 1794438845454,
+          "replayed": false
+        },
+        {
+          "kind": "TIMELINE_ANSWER",
+          "playerName": "Anna",
+          "deviceId": "Anna",
+          "receivedAt": 1794438845545,
+          "receivedAtIso": "2026-11-11T23:14:05.545Z",
+          "receivedAtLocal": "12/11/2026, 00:14:05",
+          "score": -200,
+          "correctPairs": 1,
+          "totalPairs": 6,
+          "ackedAt": 1794438845545,
+          "replayed": false
+        }
+      ],
+      "answerCount": 2,
+      "remoteAnswerArrived": true,
+      "events": [
+        {
+          "seq": 9,
+          "type": "ROUND_STARTED",
+          "createdAt": 1794438840551,
+          "createdAtIso": "2026-11-11T23:14:00.551Z",
+          "payload": {
+            "roundIndex": 4,
+            "startedAt": 1794438840551,
+            "type": "TIMELINE",
+            "roundKey": "g97-r4",
+            "deadlineAt": 1794439140551
+          }
+        },
+        {
+          "seq": 10,
+          "type": "TIMELINE_ANSWER",
+          "createdAt": 1794438845453,
+          "createdAtIso": "2026-11-11T23:14:05.453Z",
+          "payload": {
+            "score": -200,
+            "playerName": "Carla",
+            "totalPairs": 6,
+            "correctPairs": 1
+          }
+        },
+        {
+          "seq": 11,
+          "type": "TIMELINE_ANSWER",
+          "createdAt": 1794438845544,
+          "createdAtIso": "2026-11-11T23:14:05.544Z",
+          "payload": {
+            "score": -200,
+            "playerName": "Anna",
+            "totalPairs": 6,
+            "correctPairs": 1
+          }
+        },
+        {
+          "seq": 12,
+          "type": "ROUND_CLOSED",
+          "createdAt": 1794438867531,
+          "createdAtIso": "2026-11-11T23:14:27.531Z",
+          "payload": {
+            "reason": "skipped"
+          }
+        }
+      ]
+    },
+    {
+      "roundIndex": 5,
+      "type": "TIME_BUZZER",
+      "question": null,
+      "startedAt": 1794438870545,
+      "startedAtIso": "2026-11-11T23:14:30.545Z",
+      "startedAtLocal": "12/11/2026, 00:14:30",
+      "closedAt": 1794438897540,
+      "closedAtIso": "2026-11-11T23:14:57.540Z",
+      "closedAtLocal": "12/11/2026, 00:14:57",
+      "closeReason": "skipped",
+      "answers": [],
+      "answerCount": 0,
+      "remoteAnswerArrived": false,
+      "events": [
+        {
+          "seq": 13,
+          "type": "ROUND_STARTED",
+          "createdAt": 1794438870545,
+          "createdAtIso": "2026-11-11T23:14:30.545Z",
+          "payload": {
+            "roundIndex": 5,
+            "startedAt": 1794438870545,
+            "type": "TIME_BUZZER",
+            "roundKey": "g97-r5",
+            "deadlineAt": 1794438930545
+          }
+        },
+        {
+          "seq": 14,
+          "type": "ROUND_CLOSED",
+          "createdAt": 1794438897540,
+          "createdAtIso": "2026-11-11T23:14:57.540Z",
+          "payload": {
+            "reason": "skipped"
+          }
+        }
+      ]
+    },
+    {
+      "roundIndex": 6,
+      "type": "BOMBA",
+      "question": null,
+      "startedAt": 1794438900558,
+      "startedAtIso": "2026-11-11T23:15:00.558Z",
+      "startedAtLocal": "12/11/2026, 00:15:00",
+      "closedAt": 1794438927546,
+      "closedAtIso": "2026-11-11T23:15:27.546Z",
+      "closedAtLocal": "12/11/2026, 00:15:27",
+      "closeReason": "skipped",
+      "answers": [],
+      "answerCount": 0,
+      "remoteAnswerArrived": false,
+      "events": [
+        {
+          "seq": 15,
+          "type": "ROUND_STARTED",
+          "createdAt": 1794438900558,
+          "createdAtIso": "2026-11-11T23:15:00.558Z",
+          "payload": {
+            "roundIndex": 6,
+            "startedAt": 1794438900558,
+            "type": "BOMBA",
+            "roundKey": "g97-r6",
+            "deadlineAt": 1794439005558
+          }
+        },
+        {
+          "seq": 16,
+          "type": "ROUND_CLOSED",
+          "createdAt": 1794438927546,
+          "createdAtIso": "2026-11-11T23:15:27.546Z",
+          "payload": {
+            "reason": "skipped"
+          }
+        }
+      ]
+    },
+    {
+      "roundIndex": 7,
+      "type": "AIR_HOCKEY_BATTLE",
+      "question": null,
+      "startedAt": 1794438930868,
+      "startedAtIso": "2026-11-11T23:15:30.868Z",
+      "startedAtLocal": "12/11/2026, 00:15:30",
+      "closedAt": 1794438957860,
+      "closedAtIso": "2026-11-11T23:15:57.860Z",
+      "closedAtLocal": "12/11/2026, 00:15:57",
+      "closeReason": "skipped",
+      "answers": [],
+      "answerCount": 0,
+      "remoteAnswerArrived": false,
+      "events": [
+        {
+          "seq": 17,
+          "type": "ROUND_STARTED",
+          "createdAt": 1794438930868,
+          "createdAtIso": "2026-11-11T23:15:30.868Z",
+          "payload": {
+            "roundIndex": 7,
+            "startedAt": 1794438930868,
+            "type": "AIR_HOCKEY_BATTLE",
+            "roundKey": "g97-r7",
+            "deadlineAt": 1794439230868
+          }
+        },
+        {
+          "seq": 18,
+          "type": "ROUND_CLOSED",
+          "createdAt": 1794438957860,
+          "createdAtIso": "2026-11-11T23:15:57.860Z",
+          "payload": {
+            "reason": "skipped"
+          }
+        }
+      ]
+    },
+    {
+      "roundIndex": 8,
+      "type": "ULTIMA_SPIAGGIA",
+      "question": null,
+      "startedAt": 1794438960883,
+      "startedAtIso": "2026-11-11T23:16:00.883Z",
+      "startedAtLocal": "12/11/2026, 00:16:00",
+      "closedAt": 1794438987560,
+      "closedAtIso": "2026-11-11T23:16:27.560Z",
+      "closedAtLocal": "12/11/2026, 00:16:27",
+      "closeReason": "skipped",
+      "answers": [],
+      "answerCount": 0,
+      "remoteAnswerArrived": false,
+      "events": [
+        {
+          "seq": 19,
+          "type": "ROUND_STARTED",
+          "createdAt": 1794438960883,
+          "createdAtIso": "2026-11-11T23:16:00.883Z",
+          "payload": {
+            "roundIndex": 8,
+            "startedAt": 1794438960883,
+            "type": "ULTIMA_SPIAGGIA",
+            "roundKey": "g97-r8",
+            "deadlineAt": 1794439260883
+          }
+        },
+        {
+          "seq": 20,
+          "type": "ROUND_CLOSED",
+          "createdAt": 1794438987560,
+          "createdAtIso": "2026-11-11T23:16:27.560Z",
+          "payload": {
+            "reason": "skipped"
+          }
+        }
+      ]
+    },
+    {
+      "roundIndex": 9,
+      "type": "AZZARDO",
+      "question": null,
+      "startedAt": 1794438990576,
+      "startedAtIso": "2026-11-11T23:16:30.576Z",
+      "startedAtLocal": "12/11/2026, 00:16:30",
+      "closedAt": 1794439017566,
+      "closedAtIso": "2026-11-11T23:16:57.566Z",
+      "closedAtLocal": "12/11/2026, 00:16:57",
+      "closeReason": "skipped",
+      "answers": [],
+      "answerCount": 0,
+      "remoteAnswerArrived": false,
+      "events": [
+        {
+          "seq": 21,
+          "type": "ROUND_STARTED",
+          "createdAt": 1794438990576,
+          "createdAtIso": "2026-11-11T23:16:30.576Z",
+          "payload": {
+            "roundIndex": 9,
+            "startedAt": 1794438990576,
+            "type": "AZZARDO",
+            "roundKey": "g97-r9",
+            "deadlineAt": 1794439290576
+          }
+        },
+        {
+          "seq": 22,
+          "type": "ROUND_CLOSED",
+          "createdAt": 1794439017566,
+          "createdAtIso": "2026-11-11T23:16:57.566Z",
+          "payload": {
+            "reason": "skipped"
+          }
+        }
+      ]
+    },
+    {
+      "roundIndex": 10,
+      "type": "BLACKJACK",
+      "question": null,
+      "startedAt": 1794439020577,
+      "startedAtIso": "2026-11-11T23:17:00.577Z",
+      "startedAtLocal": "12/11/2026, 00:17:00",
+      "closedAt": 1794439047571,
+      "closedAtIso": "2026-11-11T23:17:27.571Z",
+      "closedAtLocal": "12/11/2026, 00:17:27",
+      "closeReason": "skipped",
+      "answers": [],
+      "answerCount": 0,
+      "remoteAnswerArrived": false,
+      "events": [
+        {
+          "seq": 23,
+          "type": "ROUND_STARTED",
+          "createdAt": 1794439020577,
+          "createdAtIso": "2026-11-11T23:17:00.577Z",
+          "payload": {
+            "roundIndex": 10,
+            "startedAt": 1794439020577,
+            "type": "BLACKJACK",
+            "roundKey": "g97-r10",
+            "deadlineAt": 1794439920577
+          }
+        },
+        {
+          "seq": 24,
+          "type": "ROUND_CLOSED",
+          "createdAt": 1794439047571,
+          "createdAtIso": "2026-11-11T23:17:27.571Z",
+          "payload": {
+            "reason": "skipped"
+          }
+        }
+      ]
+    },
+    {
+      "roundIndex": 11,
+      "type": "ARENA",
+      "question": null,
+      "startedAt": 1794439050589,
+      "startedAtIso": "2026-11-11T23:17:30.589Z",
+      "startedAtLocal": "12/11/2026, 00:17:30",
+      "closedAt": 1794439077573,
+      "closedAtIso": "2026-11-11T23:17:57.573Z",
+      "closedAtLocal": "12/11/2026, 00:17:57",
+      "closeReason": "skipped",
+      "answers": [],
+      "answerCount": 0,
+      "remoteAnswerArrived": false,
+      "events": [
+        {
+          "seq": 25,
+          "type": "ROUND_STARTED",
+          "createdAt": 1794439050589,
+          "createdAtIso": "2026-11-11T23:17:30.589Z",
+          "payload": {
+            "roundIndex": 11,
+            "startedAt": 1794439050588,
+            "type": "ARENA",
+            "roundKey": "g97-r11",
+            "deadlineAt": 1794439350588
+          }
+        },
+        {
+          "seq": 26,
+          "type": "ROUND_CLOSED",
+          "createdAt": 1794439077573,
+          "createdAtIso": "2026-11-11T23:17:57.573Z",
+          "payload": {
+            "reason": "skipped"
+          }
+        }
+      ]
+    },
+    {
+      "roundIndex": 12,
+      "type": "SPEED_RUSH",
+      "question": null,
+      "startedAt": 1794439080592,
+      "startedAtIso": "2026-11-11T23:18:00.592Z",
+      "startedAtLocal": "12/11/2026, 00:18:00",
+      "closedAt": null,
+      "closedAtIso": null,
+      "closedAtLocal": null,
+      "closeReason": null,
+      "answers": [],
+      "answerCount": 0,
+      "remoteAnswerArrived": false,
+      "events": [
+        {
+          "seq": 27,
+          "type": "ROUND_STARTED",
+          "createdAt": 1794439080592,
+          "createdAtIso": "2026-11-11T23:18:00.592Z",
+          "payload": {
+            "roundIndex": 12,
+            "startedAt": 1794439080591,
+            "type": "SPEED_RUSH",
+            "roundKey": "g97-r12",
+            "deadlineAt": 1794439155591
+          }
+        }
+      ]
+    }
+  ],
+  "bonuses": [
+    {
+      "type": "CASINO",
+      "startedAtLocal": "23:18:27",
+      "answers": [],
+      "note": "Il bonus non produce eventi/risposte nel log della partita."
+    },
+    {
+      "type": "BASKET",
+      "startedAtLocal": "23:18:47",
+      "answers": [],
+      "note": "Il bonus non produce eventi/risposte nel log della partita."
+    },
+    {
+      "type": "CAVALLO",
+      "startedAtLocal": "23:19:08",
+      "answers": [],
+      "note": "Il bonus non produce eventi/risposte nel log della partita."
+    },
+    {
+      "type": "BIGLIE",
+      "startedAtLocal": "23:19:28",
+      "answers": [],
+      "note": "Il bonus non produce eventi/risposte nel log della partita."
+    }
+  ],
+  "finalState": {
+    "seq": 27,
+    "version": 29,
+    "status": "RUNNING",
+    "roundIndex": 12,
+    "roundType": "SPEED_RUSH",
+    "roundKey": "g97-r12",
+    "updatedAt": 1794439080592,
+    "updatedAtIso": "2026-11-11T23:18:00.592Z"
+  },
+  "errors": {
+    "gameEventSeqConflictRequests": 2,
+    "stateBlobConflictRequests": 3,
+    "hibernateAssertionFailures": 2,
+    "stompSendFailures": 5,
+    "http500Responses": 5,
+    "detailsFile": "SIM_ERRORS.md"
+  }
+}
