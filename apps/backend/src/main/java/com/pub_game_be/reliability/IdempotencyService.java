@@ -15,21 +15,35 @@ import java.util.function.Supplier;
 /**
  * Idempotenza dei comandi che modificano la partita.
  *
- * <p>La mutazione e la ricevuta finiscono nella stessa transazione: se il
- * database non conferma, al client non arriva nessuna conferma e il comando non
- * ha effetto. Un retry con la stessa chiave non assegna punti due volte e
- * riceve la risposta originale.</p>
+ * <p>La ricevuta viene scritta in una transazione breve e separata dall'azione.
+ * Tenere la transazione aperta durante l'azione costava una connessione per
+ * tutta la sua durata: con 16 risposte simultanee il pool Hikari (10) si
+ * esauriva mentre le scritture su STATE_BLOB aspettavano il lock, e i client
+ * andavano in timeout. Le azioni hanno già transazioni brevi proprie, quindi
+ * qui si serializza per chiave senza trattenere connessioni.</p>
+ *
+ * <p>Conseguenza accettata: azione e ricevuta non sono più atomiche. Se il
+ * processo cade tra le due, il retry ripete l'azione; le azioni di gioco sono
+ * già monotone per chiave (domanda consumata, tiro assegnato, ordine
+ * sostituito), quindi il doppio effetto non assegna punti due volte.</p>
  */
 @Service
 public class IdempotencyService {
 
+    /** Basta a serializzare le chiavi calde senza una mappa che cresce. */
+    private static final int STRIPES = 64;
+
     private final AnswerReceiptRepository receipts;
     private final TransactionTemplate tx;
+    private final Object[] stripes = new Object[STRIPES];
 
     public IdempotencyService(AnswerReceiptRepository receipts,
             PlatformTransactionManager transactionManager) {
         this.receipts = receipts;
         this.tx = new TransactionTemplate(transactionManager);
+        for (int index = 0; index < stripes.length; index++) {
+            stripes[index] = new Object();
+        }
     }
 
     /**
@@ -44,45 +58,50 @@ public class IdempotencyService {
             return action.get();
         }
 
-        Optional<AnswerReceiptEntity> done = receipts.findByGameIdAndCommandKey(gameId, commandKey);
-        if (done.isPresent()) {
-            return replay(done.get());
+        Object lock = stripes[Math.floorMod((gameId + ":" + commandKey).hashCode(), STRIPES)];
+        synchronized (lock) {
+            Optional<AnswerReceiptEntity> done = receipts.findByGameIdAndCommandKey(gameId, commandKey);
+            if (done.isPresent()) {
+                return replay(done.get());
+            }
+
+            // Fuori transazione: le scritture dell'azione prendono e rilasciano
+            // la connessione da sole.
+            Map<String, Object> result = action.get();
+            if (result == null) {
+                return null;
+            }
+
+            try {
+                return record(gameId, commandKey, kind, deviceId, result);
+            } catch (DataIntegrityViolationException duplicate) {
+                // Un altro processo ha vinto la stessa chiave: si restituisce
+                // la sua risposta, senza registrare una seconda ricevuta.
+                return receipts.findByGameIdAndCommandKey(gameId, commandKey)
+                        .map(this::replay)
+                        .orElse(null);
+            }
         }
+    }
 
-        try {
-            return tx.execute(status -> {
-                Optional<AnswerReceiptEntity> inside = receipts.findByGameIdAndCommandKey(gameId, commandKey);
-                if (inside.isPresent()) {
-                    return replay(inside.get());
-                }
-
-                Map<String, Object> result = action.get();
-                if (result == null) {
-                    // Nessuna ricevuta: il comando non ha prodotto un effetto.
-                    return null;
-                }
-
-                AnswerReceiptEntity receipt = new AnswerReceiptEntity();
-                receipt.setGameId(gameId);
-                receipt.setCommandKey(commandKey);
-                receipt.setKind(kind);
-                receipt.setDeviceId(deviceId);
-                receipt.setCreatedAt(System.currentTimeMillis());
-                JSONObject body = new JSONObject(result);
-                body.put("idempotencyKey", commandKey);
-                body.put("replayed", false);
-                body.put("ackedAt", System.currentTimeMillis());
-                receipt.setResponse(body.toString());
-                receipts.saveAndFlush(receipt);
-                return JsonSupport.toMap(body);
-            });
-        } catch (DataIntegrityViolationException duplicate) {
-            // Un altro invio con la stessa chiave ha vinto: si restituisce la
-            // sua risposta, senza ripetere la mutazione.
-            return receipts.findByGameIdAndCommandKey(gameId, commandKey)
-                    .map(this::replay)
-                    .orElse(null);
-        }
+    /** Ricevuta in una transazione breve, solo per la riga di conferma. */
+    private Map<String, Object> record(long gameId, String commandKey, String kind, String deviceId,
+            Map<String, Object> result) {
+        return tx.execute(status -> {
+            AnswerReceiptEntity receipt = new AnswerReceiptEntity();
+            receipt.setGameId(gameId);
+            receipt.setCommandKey(commandKey);
+            receipt.setKind(kind);
+            receipt.setDeviceId(deviceId);
+            receipt.setCreatedAt(System.currentTimeMillis());
+            JSONObject body = new JSONObject(result);
+            body.put("idempotencyKey", commandKey);
+            body.put("replayed", false);
+            body.put("ackedAt", System.currentTimeMillis());
+            receipt.setResponse(body.toString());
+            receipts.saveAndFlush(receipt);
+            return JsonSupport.toMap(body);
+        });
     }
 
     private Map<String, Object> replay(AnswerReceiptEntity receipt) {
