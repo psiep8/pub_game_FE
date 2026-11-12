@@ -302,20 +302,27 @@ async function roundTimeline(state, clients) {
 }
 
 async function roundTimeBuzzer(state, clients) {
-  const started = await httpAction('time-buzzer-start', `/games/${state.gameId}/time-buzzer/start`, {
-    token: state.admin, body: { manche: 1 },
-  });
-  if (started.status !== 200) return;
-  await sleep(1800);
-  const startMs = Date.now();
-  for (const [index, name] of TEAMS.entries()) {
-    const ms = index === 7 ? 0 : 1800 + index * 40;
-    await httpAction('time-buzzer-stop', `/games/${state.gameId}/time-buzzer/stop`, {
-      token: state.phones[name], body: { playerName: name, ms }, expect: index === 7 ? 422 : 200,
+  const MANCHES = 3;
+  for (let manche = 1; manche <= MANCHES; manche += 1) {
+    const started = await httpAction('time-buzzer-start', `/games/${state.gameId}/time-buzzer/start`, {
+      token: state.admin, body: { manche }, expect: 200,
     });
-    await sleep(40);
+    if (started.status !== 200) return;
+    await sleep(1500);
+    const startMs = Date.now();
+    for (const [index, name] of TEAMS.entries()) {
+      // Solo nella prima manche un tavolo manda un tempo impossibile.
+      const invalid = manche === 1 && index === TEAMS.length - 1;
+      const ms = invalid ? 0 : 1500 + index * 40 + (manche - 1) * 100;
+      await httpAction('time-buzzer-stop', `/games/${state.gameId}/time-buzzer/stop`, {
+        token: state.phones[name], body: { playerName: name, ms }, expect: invalid ? 422 : 200,
+      });
+      await sleep(40);
+    }
+    action({ at: Date.now(), label: 'time-buzzer-elapsed', transport: 'local', status: 'info', response: { manche, elapsed: Date.now() - startMs } });
+    // Reveal della manche prima del via successivo, come la TV.
+    await sleep(3500);
   }
-  action({ at: Date.now(), label: 'time-buzzer-elapsed', transport: 'local', status: 'info', response: { elapsed: Date.now() - startMs } });
 }
 
 async function roundBomba(state, clients) {
