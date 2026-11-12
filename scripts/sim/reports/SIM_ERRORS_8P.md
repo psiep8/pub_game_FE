@@ -8,6 +8,8 @@
 **Risposte persistite dal server:** 73 (Speed Rush 48, Basket 21, Timeline 3, Arena 1)  
 **File dati:** [`game129_answers.json`](./game129_answers.json), [`game129_actions.jsonl`](./game129_actions.jsonl), [`game129_receipts.csv`](./game129_receipts.csv), [`game129_events.csv`](./game129_events.csv), [`game129_rounds.csv`](./game129_rounds.csv), [`logs/`](./logs/)
 
+> **Aggiornamento:** il conflitto `UK_GAME_EVENT_SEQ` descritto al punto P0 è stato risolto con un contatore atomico sul database. Il test `ottoAppendConcorrentiNonDuplicanoLaSequenza` usa 8 thread e due istanze del servizio (lock JVM separati); la suite backend è passata **63/63**.
+
 ---
 
 ## Esito in breve
@@ -38,7 +40,7 @@ La partita è arrivata in fondo: tutti gli 8 telefoni si sono connessi e hanno f
 
 ## Bug da risolvere
 
-### P0 — `UK_GAME_EVENT_SEQ` si ripresenta nonostante il lock
+### P0 — `UK_GAME_EVENT_SEQ` (risolto con contatore atomico)
 
 **Cosa è successo:** alle `00:40:11` il server ha registrato:
 
@@ -51,7 +53,11 @@ ERROR Servlet.service() ... threw exception
 
 Una richiesta HTTP è finita in **500** e l’evento non è stato scritto. Il contatore indica **1 conflitto** e **0 conflitti `UK_STATE_BLOB_KEY`**.
 
-**Perché è grave:** il fix con lock Java + `findForUpdate(PESSIMISTIC_WRITE)` non copre tutti i casi. Il conflitto è avvenuto durante il round Timeline, con più answer ravvicinate. Le cause probabili sono:
+**Perché è grave:** il fix con lock Java + `findForUpdate(PESSIMISTIC_WRITE)` non copre tutti i casi. Il conflitto è avvenuto durante il round Timeline, con più answer ravvicinate.
+
+**Fix applicato:** `GameStateRepository.advanceSequence` esegue un `UPDATE ... SET seq = seq + 1, version = version + 1` atomico; `GameStateService` rilegge lo stato con `refresh` e usa il seq restituito dal DB. Il lock Java resta solo come riduzione del contention. Il test concorrente a 8 thread su due istanze e la suite completa sono verdi.
+
+Le cause probabili erano:
 
 - `findForUpdate` restituisce un’entità già nel persistence context e non rilegge/rilocka la riga;
 - due `appendEvent` nella stessa richiesta/transazione usano uno `state.seq` letto prima del commit;

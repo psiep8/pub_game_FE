@@ -3,14 +3,19 @@ package com.pub_game_be.reliability;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pub_game_be.controller.GameController;
+import com.pub_game_be.reliability.repository.GameEventRepository;
+import com.pub_game_be.reliability.repository.GameStateRepository;
 import com.pub_game_be.reliability.repository.QuestionUsageRepository;
+import com.pub_game_be.repository.GameRoundRepository;
 import com.pub_game_be.service.QuestionHistoryService;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -21,8 +26,14 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CompletionStage;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -72,6 +83,21 @@ class ReliabilityIntegrationTest {
 
     @Autowired
     private ReliabilityProperties properties;
+
+    @Autowired
+    private GameStateRepository stateRepository;
+
+    @Autowired
+    private GameEventRepository eventRepository;
+
+    @Autowired
+    private GameRoundRepository roundRepository;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Autowired
     private com.pub_game_be.reliability.repository.DeviceSessionRepository sessionRepository;
@@ -130,6 +156,47 @@ class ReliabilityIntegrationTest {
 
         // Chi è già aggiornato non riceve eventi ripetuti.
         assertThat(gameState.eventsSince(gameId, secondEvent.seq()).length()).isZero();
+    }
+
+    @Test
+    void ottoAppendConcorrentiNonDuplicanoLaSequenza() throws Exception {
+        long gameId = 551L;
+        gameState.state(gameId);
+
+        // Due istanze con lock Java separati, come due processi che condividono
+        // lo stesso database: l'unicità del seq non può dipendere dal lock JVM.
+        GameStateService secondInstance = new GameStateService(stateRepository, eventRepository,
+                roundRepository, properties, transactionManager, entityManager);
+
+        int workers = 8;
+        ExecutorService pool = Executors.newFixedThreadPool(workers);
+        CountDownLatch ready = new CountDownLatch(workers);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Future<GameStateService.Change>> futures = new ArrayList<>();
+        try {
+            for (int worker = 0; worker < workers; worker++) {
+                int index = worker;
+                futures.add(pool.submit(() -> {
+                    ready.countDown();
+                    start.await(10, TimeUnit.SECONDS);
+                    GameStateService target = index % 2 == 0 ? gameState : secondInstance;
+                    return target.appendEvent(gameId, "TEST_EVENT", "{\"worker\":" + index + "}");
+                }));
+            }
+            assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();
+            start.countDown();
+
+            List<Long> sequences = new ArrayList<>();
+            for (Future<GameStateService.Change> future : futures) {
+                sequences.add(future.get(30, TimeUnit.SECONDS).seq());
+            }
+            assertThat(sequences).doesNotHaveDuplicates();
+            assertThat(sequences).containsExactlyInAnyOrder(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L);
+            assertThat(gameState.currentSeq(gameId)).isEqualTo(8);
+            assertThat(gameState.eventCount(gameId)).isEqualTo(8);
+        } finally {
+            pool.shutdownNow();
+        }
     }
 
     @Test

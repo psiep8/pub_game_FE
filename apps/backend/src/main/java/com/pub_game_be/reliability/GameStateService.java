@@ -6,11 +6,14 @@ import com.pub_game_be.reliability.domain.GameStateEntity;
 import com.pub_game_be.reliability.repository.GameEventRepository;
 import com.pub_game_be.reliability.repository.GameStateRepository;
 import com.pub_game_be.repository.GameRoundRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
@@ -41,17 +44,22 @@ public class GameStateService {
     private final GameRoundRepository rounds;
     private final ReliabilityProperties props;
     private final TransactionTemplate tx;
-    /** Un lock per partita: gli eventi della stessa partita si scrivono in fila. */
+    private final TransactionTemplate ensureTx;
+    private final EntityManager entityManager;
+    /** Un lock per partita: riduce il contention, ma il seq è deciso dal DB. */
     private final ConcurrentMap<Long, Object> eventLocks = new ConcurrentHashMap<>();
 
     public GameStateService(GameStateRepository states, GameEventRepository events,
             GameRoundRepository rounds, ReliabilityProperties props,
-            PlatformTransactionManager transactionManager) {
+            PlatformTransactionManager transactionManager, EntityManager entityManager) {
         this.states = states;
         this.events = events;
         this.rounds = rounds;
         this.props = props;
+        this.entityManager = entityManager;
         this.tx = new TransactionTemplate(transactionManager);
+        this.ensureTx = new TransactionTemplate(transactionManager);
+        this.ensureTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
     // ------------------------------------------------------------------ Stato
@@ -61,15 +69,16 @@ public class GameStateService {
     }
 
     private GameStateEntity ensureState(long gameId) {
-        return tx.execute(status -> states.findById(gameId).orElseGet(() -> {
-            GameStateEntity fresh = new GameStateEntity();
-            fresh.setGameId(gameId);
-            fresh.setVersion(1);
-            fresh.setSeq(0);
-            fresh.setStatus("CREATED");
-            fresh.setUpdatedAt(System.currentTimeMillis());
-            return states.save(fresh);
-        }));
+        try {
+            return ensureTx.execute(status -> states.findById(gameId).orElseGet(() -> {
+                GameStateEntity fresh = newState(gameId);
+                fresh.setUpdatedAt(System.currentTimeMillis());
+                return states.saveAndFlush(fresh);
+            }));
+        } catch (DataIntegrityViolationException conflict) {
+            // Un altro processo ha creato la riga nello stesso istante.
+            return states.findById(gameId).orElseThrow(() -> conflict);
+        }
     }
 
     /**
@@ -141,27 +150,35 @@ public class GameStateService {
     /**
      * Registra un evento e la mutazione di stato nello stesso commit.
      *
-     * <p>Se il database rifiuta (sequenza già occupata da un altro processo) si
-     * ritenta con la sequenza successiva: lo stato non può divergere dal log.</p>
+     * <p>Il seq viene assegnato da un UPDATE atomico su {@code game_state}:
+     * è unico anche se più processi scrivono sulla stessa partita. Se l'insert
+     * dell'evento viola comunque un vincolo, la transazione viene ritentata.</p>
      */
     public Change appendEvent(long gameId, String type, String payload, String roundKey, String deviceId,
             Consumer<GameStateEntity> mutation) {
-        // Join, sync e avvio round possono arrivare nello stesso istante:
-        // senza serializzare leggerebbero lo stesso state.seq e il vincolo
-        // (game_id, seq) farebbe fallire una delle due richieste. Il lock è
-        // per partita, quindi due partite diverse non si aspettano.
+        // Join, sync e avvio round possono arrivare nello stesso istante.
+        // Il lock Java riduce il contention nel processo; l'unicità del seq è
+        // garantita dall'UPDATE atomico sul database, quindi vale anche tra
+        // processi diversi.
         Object lock = eventLocks.computeIfAbsent(gameId, key -> new Object());
         synchronized (lock) {
+            ensureState(gameId);
             for (int attempt = 0; attempt < 3; attempt++) {
                 try {
                     return tx.execute(status -> {
-                        // Il lock va sul database, non solo sul processo: se
-                        // appendEvent partecipa a una transazione esterna, il
-                        // commit arriva dopo il blocco Java e due risposte
-                        // simultanee potrebbero ancora leggere lo stesso seq.
-                        GameStateEntity state = states.findForUpdate(gameId)
-                                .orElseGet(() -> newState(gameId));
-                        long nextSeq = state.getSeq() + 1;
+                        long now = System.currentTimeMillis();
+                        int advanced = states.advanceSequence(gameId, now);
+                        if (advanced != 1) {
+                            throw new IllegalStateException("Stato assente per la partita " + gameId);
+                        }
+
+                        GameStateEntity state = states.findById(gameId)
+                                .orElseThrow(() -> new IllegalStateException("Stato assente per la partita " + gameId));
+                        // L'UPDATE nativo ha già incrementato seq e version:
+                        // il refresh riporta nell'entità i valori appena scritti
+                        // e mantiene il lock della riga fino al commit.
+                        entityManager.refresh(state, LockModeType.PESSIMISTIC_WRITE);
+                        long nextSeq = state.getSeq();
 
                         GameEventEntity event = new GameEventEntity();
                         event.setGameId(gameId);
@@ -171,22 +188,20 @@ public class GameStateService {
                         event.setPayload(payload);
                         event.setRoundKey(roundKey);
                         event.setDeviceId(deviceId);
-                        event.setCreatedAt(System.currentTimeMillis());
+                        event.setCreatedAt(now);
 
                         if (mutation != null) {
                             mutation.accept(state);
                         }
-                        state.setSeq(nextSeq);
-                        state.setVersion(state.getVersion() + 1);
-                        state.setUpdatedAt(System.currentTimeMillis());
-                        state.setLastSnapshotAt(state.getUpdatedAt());
+                        state.setUpdatedAt(now);
+                        state.setLastSnapshotAt(now);
 
                         states.save(state);
                         events.saveAndFlush(event);
                         return new Change(state.getVersion(), nextSeq, event.getEventId());
                     });
                 } catch (DataIntegrityViolationException conflict) {
-                    // Un altro processo ha preso la stessa sequenza: si riprova.
+                    // Vincolo violato da un altro scrittore: si riprova.
                 }
             }
             throw new IllegalStateException("Impossibile registrare l'evento " + type + " per la partita " + gameId);
