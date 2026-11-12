@@ -79,17 +79,26 @@ async function openRound(type) {
   return result.json;
 }
 
+/**
+ * Solo i bonus in cui il telefono legge lo stato pubblicato dalla TV. Basket
+ * lavora via REST (basket-start/state/shot): un BASKET_STATE non è nella
+ * whitelist TV_ACTIONS, l'interceptor lo rifiuta e chiude la sessione (1002).
+ */
+const BONUS_CON_STATO_SUL_TELEFONO = new Set(['CASINO', 'CAVALLO', 'BIGLIE']);
+
 function bonusState(type) {
   if (type === 'CASINO') return { manche: 1, phase: 'BET', options: ['ROSSO', 'NERO'] };
   if (type === 'CAVALLO') return { phase: 'CATEGORY', categories: ['Cinema'], question: null };
   if (type === 'BIGLIE') {
-    return { marbles: Array.from({ length: PLAYER_COUNT }, (_, index) => ({ id: `m${index + 1}` })) };
+    return { marbles: Array.from({ length: PLAYER_COUNT }, (_, index) => ({ id: `m${index + 1}`, owner: null })) };
   }
   return {};
 }
 
 let socket;
 let buffer = '';
+let connected = false;
+let stopping = false;
 
 function send(destination, payload) {
   const body = JSON.stringify(payload);
@@ -130,7 +139,9 @@ async function onStatus(message) {
     const type = String(message.type || 'BASKET');
     await closeRound();
     log(`bonus: ${type}`);
-    broadcast({ action: `${type}_STATE`, state: bonusState(type) });
+    if (BONUS_CON_STATO_SUL_TELEFONO.has(type)) {
+      broadcast({ action: `${type}_STATE`, state: bonusState(type) });
+    }
   }
 }
 
@@ -152,14 +163,20 @@ function connect() {
         buffer = buffer.slice(end + 1);
         if (frame.startsWith('CONNECTED')) {
           clearTimeout(timer);
+          connected = true;
           socket.send(`SUBSCRIBE\nid:pilot-status\ndestination:/topic/game/${gameId}/status\n\n\0`);
           log('pilota TV connesso');
           resolve();
           continue;
         }
         if (frame.startsWith('ERROR')) {
-          clearTimeout(timer);
-          reject(new Error(frame.replace(/\n/g, ' | ').slice(0, 300)));
+          const text = frame.replace(/\n/g, ' | ').slice(0, 300);
+          if (!connected) {
+            clearTimeout(timer);
+            reject(new Error(text));
+          } else {
+            log(`ERROR dal server: ${text}`);
+          }
           continue;
         }
         if (!frame.startsWith('MESSAGE')) continue;
@@ -171,10 +188,29 @@ function connect() {
         } catch { /* frame non JSON */ }
       }
     });
-    socket.addEventListener('close', (event) => log(`socket pilota chiusa (${event.code})`));
+    socket.addEventListener('close', (event) => {
+      connected = false;
+      log(`socket pilota chiusa (${event.code})`);
+      // Un bonus o un frame rifiutato non devono zittire la TV per il resto
+      // della serata: si riapre subito e si risottoscrive lo stato.
+      if (!stopping) {
+        setTimeout(() => {
+          connect().catch((error) => log(`riconnessione fallita: ${String(error.message).slice(0, 160)}`));
+        }, 1000);
+      }
+    });
     socket.addEventListener('error', () => log('errore WebSocket pilota'));
   });
 }
+
+process.on('SIGINT', () => {
+  stopping = true;
+  process.exit(0);
+});
+process.on('SIGTERM', () => {
+  stopping = true;
+  process.exit(0);
+});
 
 (async () => {
   await loadCategories();
