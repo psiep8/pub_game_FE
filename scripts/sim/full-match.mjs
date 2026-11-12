@@ -504,10 +504,18 @@ async function bonusCavallo(state, clients) {
 }
 
 async function bonusBiglie(state, clients) {
-  const status = clients.admin.statuses.BIGLIE_STATE;
-  const marbles = status?.marbles ?? [];
+  // La TV pubblica lo stato dentro `state` (come il componente vero); il
+  // frame può arrivare qualche centinaio di ms dopo l'ordine di partenza.
+  let status = clients.admin.statuses.BIGLIE_STATE;
+  let marbles = status?.state?.marbles ?? status?.marbles ?? [];
+  for (let attempt = 0; attempt < 15 && marbles.length === 0; attempt += 1) {
+    await sleep(400);
+    status = clients.admin.statuses.BIGLIE_STATE;
+    marbles = status?.state?.marbles ?? status?.marbles ?? [];
+  }
   await Promise.all(TEAMS.map(async (name, index) => {
-    const marble = marbles.find((entry) => !entry.owner) ?? marbles[index];
+    // Ogni tavolo prende una biglia diversa: `find` senza owner dava m1 a tutti.
+    const marble = marbles[index]?.id ? marbles[index] : marbles.find((entry) => !entry.owner);
     if (!marble?.id) return;
     await stompAction('biglie-pick', clients[name], {
       action: 'BIGLIE_ACTION', playerName: name, kind: 'PICK', value: marble.id,
