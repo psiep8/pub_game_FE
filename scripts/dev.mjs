@@ -39,7 +39,9 @@ if (runFrontend) {
       cwd: join(rootDir, 'apps', 'frontend'),
       stdio: 'inherit',
       shell: process.platform === 'win32',
-      env: { ...process.env, BE_PORT: env.bePort }
+      // Angular usa PORT se presente: forziamo la porta del .env anche quando
+      // la shell (o un runner) esporta PORT=0 per altre applicazioni.
+      env: { ...process.env, BE_PORT: env.bePort, PORT: String(env.fePort) }
     })
   ]);
 }
