@@ -30,19 +30,21 @@ import java.util.regex.Pattern;
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private static final Pattern DESTINATION = Pattern.compile("^/(app|topic)/game/(\\d+)/(status|responses|answer|admin)$");
-    private static final Set<String> REMOTE_ACTIONS = Set.of("JOIN_GAME", "SCREAM", "PLAYER_AVATAR",
+    // Visibili al test di allineamento con l'enum del frontend (WsAction): una
+    // azione pubblicata da un client e assente qui fa chiudere la sessione (1002).
+    static final Set<String> REMOTE_ACTIONS = Set.of("JOIN_GAME", "SCREAM", "PLAYER_AVATAR",
             "BIGLIE_ACTION", "ULTIMA_SPIAGGIA_ACTION", "AZZARDO_ACTION", "CASINO_ACTION",
-            "BLACKJACK_ACTION", "CAVALLO_ACTION", "AIR_HOCKEY_BATTLE_ANSWER");
-    private static final Set<String> ADMIN_ACTIONS = Set.of("ADMIN_REQUEST_STATE", "ADMIN_CONFIRM_CORRECT",
+            "BLACKJACK_ACTION", "CAVALLO_ACTION", "AIR_HOCKEY_BATTLE_ANSWER", "BUTTON_TEST_PING");
+    static final Set<String> ADMIN_ACTIONS = Set.of("ADMIN_REQUEST_STATE", "ADMIN_CONFIRM_CORRECT",
             "ADMIN_CONFIRM_WRONG", "ADMIN_NEXT_ROUND", "ADMIN_START_ROUND", "ADMIN_NEXT_MANCHE",
             "ADMIN_SHOW_LEADERBOARD", "ADMIN_TOGGLE_PAUSE", "ADMIN_SHOW_DEMO", "ADMIN_HIDE_DEMO",
-            "ADMIN_START_BONUS", "ADMIN_STOP_BONUS", "CHRISTMAS_TOGGLE");
-    private static final Set<String> TV_ACTIONS = Set.of("SHOW_QUESTION", "START_VOTING", "PLAYER_PRENOTATO",
-            "ROUND_ENDED", "BLOCKED_ERROR", "BONUS_ENDED", "ARENA_ELIMINATED", "ARENA_ENDED",
+            "ADMIN_SHOW_INTRO", "ADMIN_START_BONUS", "ADMIN_STOP_BONUS", "CHRISTMAS_TOGGLE");
+    static final Set<String> TV_ACTIONS = Set.of("SHOW_QUESTION", "START_VOTING", "PLAYER_PRENOTATO",
+            "ROUND_ENDED", "BLOCKED_ERROR", "BONUS_ENDED", "BONUS_RESULT", "ARENA_ELIMINATED", "ARENA_ENDED",
             "GAME_PAUSED", "GAME_RESUMED", "QUIZ_STATE", "TIME_BUZZER_STATE", "TIME_BUZZER_START",
             "ULTIMA_SPIAGGIA_STATE", "AZZARDO_STATE", "AZZARDO_MESSAGE", "BLACKJACK_STATE",
             "AIR_HOCKEY_BATTLE_STATE", "CASINO_STATE", "CAVALLO_STATE", "BIGLIE_STATE", "ADMIN_STATE",
-            "MUSIC_PHASE", "CHRISTMAS_TOGGLE");
+            "MUSIC_PHASE", "CHRISTMAS_TOGGLE", "BUTTON_TEST_PING");
     private final DeviceSessionService sessions;
     private final String[] origins;
 
