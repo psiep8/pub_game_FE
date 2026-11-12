@@ -138,4 +138,39 @@ class GameWebSocketControllerTest {
         assertThat(result).containsEntry("enabled", true);
         assertThat(result).doesNotContainKey("extra");
     }
+
+    @Test
+    void stompErrorFrameHaCodiceQuandoIlClientSbaglia() {
+        var handler = new com.pub_game_be.config.GameStompErrorHandler();
+        var clientHeaders = StompHeaderAccessor.create(StompCommand.SEND);
+        clientHeaders.setSessionId("s-1");
+        Message<byte[]> client = MessageBuilder.createMessage(new byte[0], clientHeaders.getMessageHeaders());
+
+        Message<byte[]> error = handler.handleClientMessageProcessingError(client,
+                new org.springframework.messaging.MessagingException("Failed to send message to ExecutorSubscribableChannel", new AccessDeniedException("Sessione non valida")));
+
+        var accessor = org.springframework.messaging.support.MessageHeaderAccessor
+                .getAccessor(error, StompHeaderAccessor.class);
+        assertThat(accessor.getCommand()).isEqualTo(StompCommand.ERROR);
+        assertThat(accessor.getFirstNativeHeader("code"))
+                .isEqualTo(com.pub_game_be.config.GameStompErrorHandler.ACCESS_DENIED);
+        assertThat(accessor.getMessage()).isEqualTo("Sessione non valida");
+    }
+
+    @Test
+    void stompErrorFrameDistingueUnGuastoDaUnClientCheSbaglia() {
+        var handler = new com.pub_game_be.config.GameStompErrorHandler();
+        var clientHeaders = StompHeaderAccessor.create(StompCommand.SEND);
+        clientHeaders.setSessionId("s-2");
+        Message<byte[]> client = MessageBuilder.createMessage(new byte[0], clientHeaders.getMessageHeaders());
+
+        Message<byte[]> error = handler.handleClientMessageProcessingError(client,
+                new IllegalStateException("canale chiuso"));
+
+        var accessor = org.springframework.messaging.support.MessageHeaderAccessor
+                .getAccessor(error, StompHeaderAccessor.class);
+        assertThat(accessor.getFirstNativeHeader("code"))
+                .isEqualTo(com.pub_game_be.config.GameStompErrorHandler.MESSAGE_NOT_DELIVERED);
+    }
+
 }
