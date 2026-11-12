@@ -1,6 +1,6 @@
-# Partita #164 — 16 giocatori: risposte ed errori (game_id 3)
+# Partita #165 — 16 giocatori: risposte ed errori (game_id 2)
 
-Generato: 2026-11-12T14:20:42.774Z
+Generato: 2026-11-12T15:09:12.673Z
 
 ## Esito in una riga
 
@@ -49,13 +49,13 @@ Nessun errore aperto: nessun timeout del pool, nessun conflitto su eventi o blob
 - Ricevute: 178; eventi: 62; round persistiti: 13; blob: 7.
 - Timeout lock STATE_BLOB: 0; timeout Hikari: 0; 500: 0.
 - Conflitti seq: 0; conflitti blob: 0; righe ERROR nel log: 0.
-- Invii STOMP falliti (ora a WARN, non ERROR): 2.
+- Invii STOMP falliti (ora a WARN, non ERROR): 1.
 
 ## File e prove
 
-- `game164_answers.json`: azioni e ricevute con stato per giocatore.
-- `game164_answer_receipt.csv`, `game164_game_event.csv`, `game164_game_round.csv`, `game164_game_state.csv`, `game164_state_blob.csv`: export dal DB.
-- `logs/backend-game164.log`, `logs/tv-game164.log`, `logs/full-game164.log`.
+- `game165_answers.json`: azioni e ricevute con stato per giocatore.
+- `game165_answer_receipt.csv`, `game165_game_event.csv`, `game165_game_round.csv`, `game165_game_state.csv`, `game165_state_blob.csv`: export dal DB.
+- `logs/backend-game165.log`, `logs/tv-game165.log`, `logs/full-game165.log`.
 
 ## Verdetto
 

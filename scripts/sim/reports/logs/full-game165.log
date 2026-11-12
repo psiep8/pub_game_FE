@@ -1,0 +1,145 @@
+[full 15:00:37] STOMP admin connesso
+[full 15:00:46] STOMP Dario connesso
+[full 15:00:46] STOMP Carla connesso
+[full 15:00:46] STOMP Luca connesso
+[full 15:00:46] STOMP Elena connesso
+[full 15:00:46] STOMP Anna connesso
+[full 15:00:46] STOMP Sofia connesso
+[full 15:00:46] STOMP Giulia connesso
+[full 15:00:46] STOMP Davide connesso
+[full 15:00:46] STOMP Matteo connesso
+[full 15:00:46] STOMP Paolo connesso
+[full 15:00:46] STOMP Bruno connesso
+[full 15:00:46] STOMP Fabio connesso
+[full 15:00:46] STOMP Sara connesso
+[full 15:00:46] STOMP Chiara connesso
+[full 15:00:46] STOMP Marco connesso
+[full 15:00:46] STOMP Alice connesso
+[full 15:00:46] fault injection: heartbeat token non valido / body assente
+[full 15:00:46] join iniziale di tutti i 16 telefoni
+[full 15:00:46] round 1/13: QUIZ
+[full 15:00:49] STOMP fault-Anna-come-Bruno connesso
+[full 15:00:49] STOMP fault-Anna-come-Bruno ERROR: ERROR | message:Squadra diversa dalla sessione | code:ACCESS_DENIED | content-length:0 |  | 
+[full 15:00:49] socket fault-Anna-come-Bruno chiusa (1002)
+[full 15:01:12] round 2/13: MUSIC
+[full 15:01:38] round 3/13: IMAGE_BLUR
+[full 15:01:42] fault injection: disconnessione e riconnessione di Elena
+[full 15:01:43] STOMP Elena connesso
+[full 15:02:04] round 4/13: WHEEL_OF_FORTUNE
+[full 15:02:30] round 5/13: TIMELINE
+[full 15:02:56] round 6/13: TIME_BUZZER
+[full 15:03:22] round 7/13: BOMBA
+[full 15:03:48] round 8/13: AIR_HOCKEY_BATTLE
+[full 15:04:14] round 9/13: ULTIMA_SPIAGGIA
+[full 15:04:40] round 10/13: AZZARDO
+[full 15:05:06] round 11/13: BLACKJACK
+[full 15:05:32] round 12/13: ARENA
+[full 15:05:58] round 13/13: SPEED_RUSH
+[full 15:06:24] bonus CASINO
+[full 15:06:24] admin stato CASINO_STATE
+[full 15:06:48] bonus BASKET
+[full 15:07:14] bonus CAVALLO
+[full 15:07:14] admin stato CAVALLO_STATE
+[full 15:07:38] bonus BIGLIE
+[full 15:07:38] admin stato BIGLIE_STATE
+[full 15:08:02] FULL_SIMULATION_DONE
+{
+  "gameId": 2,
+  "players": [
+    "Anna",
+    "Bruno",
+    "Carla",
+    "Dario",
+    "Elena",
+    "Fabio",
+    "Giulia",
+    "Luca",
+    "Marco",
+    "Sara",
+    "Paolo",
+    "Chiara",
+    "Matteo",
+    "Sofia",
+    "Davide",
+    "Alice"
+  ],
+  "playerCount": 16,
+  "rounds": [
+    "QUIZ",
+    "MUSIC",
+    "IMAGE_BLUR",
+    "WHEEL_OF_FORTUNE",
+    "TIMELINE",
+    "TIME_BUZZER",
+    "BOMBA",
+    "AIR_HOCKEY_BATTLE",
+    "ULTIMA_SPIAGGIA",
+    "AZZARDO",
+    "BLACKJACK",
+    "ARENA",
+    "SPEED_RUSH"
+  ],
+  "bonuses": [
+    "CASINO",
+    "BASKET",
+    "CAVALLO",
+    "BIGLIE"
+  ],
+  "actions": 950,
+  "byStatus": {
+    "200": 473,
+    "403": 2,
+    "409": 1,
+    "410": 2,
+    "422": 1,
+    "sent": 468,
+    "info": 3
+  },
+  "byLabel": {
+    "heartbeat-token-invalido": 1,
+    "heartbeat-body-assente": 1,
+    "diagnostica-con-token-giocatore": 1,
+    "join-iniziale": 16,
+    "quiz-answer": 16,
+    "quiz-duplicate-Anna": 1,
+    "quiz-wrong-player": 1,
+    "MUSIC-book": 16,
+    "MUSIC-answer": 16,
+    "IMAGE_BLUR-book": 16,
+    "IMAGE_BLUR-answer": 16,
+    "elena-rejoin": 1,
+    "WHEEL_OF_FORTUNE-book": 16,
+    "WHEEL_OF_FORTUNE-answer": 16,
+    "timeline-round": 1,
+    "timeline-answer": 16,
+    "timeline-duplicate-Anna": 1,
+    "timeline-late-after-close": 1,
+    "time-buzzer-start": 3,
+    "time-buzzer-stop": 48,
+    "time-buzzer-elapsed": 3,
+    "bomba-start": 1,
+    "bomba-state": 41,
+    "bomba-pick": 40,
+    "air-hockey-answer": 128,
+    "ultima-level": 16,
+    "ultima-answer": 16,
+    "azzardo-bet": 16,
+    "azzardo-invalid-chips": 1,
+    "blackjack-action": 96,
+    "arena-question": 16,
+    "arena-answer": 16,
+    "arena-cross-player": 1,
+    "speed-rush-start": 1,
+    "speed-rush-task": 96,
+    "speed-rush-answer": 96,
+    "speed-rush-invalid-task": 1,
+    "casino-action": 16,
+    "basket-start": 1,
+    "basket-state": 48,
+    "basket-shot": 48,
+    "cavallo-category": 16,
+    "cavallo-answer": 16,
+    "biglie-pick": 16
+  },
+  "finishedAt": "2026-11-12T15:08:02.368Z"
+}
