@@ -146,22 +146,9 @@ public class GameStateService {
      * tempo di risposta già concesso.</p>
      */
     public void extendRoundDeadline(long gameId, long windowMs) {
-        tx.executeWithoutResult(status -> {
-            GameStateEntity state = states.findById(gameId).orElse(null);
-            if (state == null) {
-                return;
-            }
-            long now = System.currentTimeMillis();
-            long current = state.getRoundDeadlineAt() == null ? now : state.getRoundDeadlineAt();
-            long extended = Math.max(current, now + windowMs);
-            if (extended == current) {
-                return;
-            }
-            state.setRoundDeadlineAt(extended);
-            state.setUpdatedAt(now);
-            state.setVersion(state.getVersion() + 1);
-            states.save(state);
-        });
+        long now = System.currentTimeMillis();
+        long deadline = now + windowMs;
+        tx.executeWithoutResult(status -> states.extendRoundDeadline(gameId, deadline, now));
     }
 
     /** Il round deve essere aperto e appartenere alla modalità richiesta. */

@@ -109,13 +109,14 @@ public class PartyGamesController {
         if (idempotencyKey != null && !idempotencyKey.isBlank()) idempotencyKey = roundId + ":" + idempotencyKey;
         Map<String, Object> result = idempotencyService.executeOnce(gameId, idempotencyKey,
                 "TIMELINE_ANSWER", playerName, () -> {
-                    // Una risposta per round e giocatore: se il telefono corregge
-                    // l'ordine vale l'ultima, ma l'evento resta uno solo.
-                    boolean firstAnswer = !partyGameService.hasTimelineAnswer(gameId, playerName);
+                    // Una risposta per round e giocatore: il primo invio
+                    // prenota la riga in modo atomico; le correzioni aggiornano
+                    // l'ordine ma non aggiungono un secondo evento.
                     return partyGameService
-                        .submitTimeline(gameId, roundId, playerName, order)
-                        .map(submission -> {
-                            if (firstAnswer) {
+                        .submitTimelineDecision(gameId, roundId, playerName, order)
+                        .map(decision -> {
+                            var submission = decision.submission();
+                            if (decision.firstAnswer()) {
                                 gameStateService.appendEvent(gameId, "TIMELINE_ANSWER", new JSONObject()
                                         .put("playerName", submission.playerName())
                                         .put("score", submission.score())

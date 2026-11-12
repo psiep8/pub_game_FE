@@ -872,6 +872,45 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void timelineRetryConcorrentiCreanoUnSoloPrimoInvio() throws Exception {
+        long gameId = 552L;
+        var payload = new org.json.JSONObject(partyGameService.startRound(gameId, "TIMELINE", "Storia"));
+        var cards = payload.getJSONArray("items");
+        List<Integer> order = new ArrayList<>();
+        for (int i = 0; i < cards.length(); i++) {
+            order.add(cards.getJSONObject(i).getInt("id"));
+        }
+        String roundId = payload.getString("roundId");
+
+        int workers = 8;
+        ExecutorService pool = Executors.newFixedThreadPool(workers);
+        CountDownLatch ready = new CountDownLatch(workers);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Future<Boolean>> futures = new ArrayList<>();
+        try {
+            for (int worker = 0; worker < workers; worker++) {
+                futures.add(pool.submit(() -> {
+                    ready.countDown();
+                    start.await(10, TimeUnit.SECONDS);
+                    return partyGameService.submitTimelineDecision(gameId, roundId, "Anna", order)
+                            .orElseThrow().firstAnswer();
+                }));
+            }
+            assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();
+            start.countDown();
+
+            List<Boolean> firstAnswers = new ArrayList<>();
+            for (Future<Boolean> future : futures) {
+                firstAnswers.add(future.get(30, TimeUnit.SECONDS));
+            }
+            assertThat(firstAnswers).hasSize(workers);
+            assertThat(firstAnswers.stream().filter(Boolean::booleanValue).count()).isEqualTo(1);
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    @Test
     void currentRoundSegueLoStatoAutorevole() throws Exception {
         var game = new com.pub_game_be.domain.game.Game();
         game.setStatus(com.pub_game_be.domain.enums.GameStatus.RUNNING);

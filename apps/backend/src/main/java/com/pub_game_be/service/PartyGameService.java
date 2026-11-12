@@ -44,6 +44,10 @@ public class PartyGameService {
     public record TimelineSubmission(String playerName, int correctPairs, int totalPairs, int score) {
     }
 
+    /** Esito di una risposta Timeline: solo il primo invio crea l'evento. */
+    public record TimelineDecision(TimelineSubmission submission, boolean firstAnswer) {
+    }
+
     private record TimelineRound(String token, List<TimelineEvent> ordered, Map<Integer, Integer> ranks) {
     }
 
@@ -234,6 +238,18 @@ public class PartyGameService {
     }
 
     public Optional<TimelineSubmission> submitTimeline(long gameId, String roundId, String playerName, List<Integer> order) {
+        return submitTimelineDecision(gameId, roundId, playerName, order).map(TimelineDecision::submission);
+    }
+
+    /**
+     * Registra la risposta e dice se è il primo invio per questo giocatore.
+     *
+     * <p>La prenotazione usa {@code put} atomico sulla mappa concorrente: due
+     * retry simultanei dello stesso telefono ottengono un solo
+     * {@code firstAnswer=true}, quindi il controller crea un solo evento.</p>
+     */
+    public Optional<TimelineDecision> submitTimelineDecision(long gameId, String roundId, String playerName,
+            List<Integer> order) {
         hydrateTimeline(gameId);
         TimelineRound round = timelineRounds.get(gameId);
         if (round == null || roundId == null || !round.token().equals(roundId)
@@ -275,10 +291,10 @@ public class PartyGameService {
         score = Math.max(-400, Math.min(1200, score));
 
         TimelineSubmission submission = new TimelineSubmission(playerName.trim(), correctPairs, totalPairs, score);
-        timelineAnswers.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>())
+        TimelineSubmission previous = timelineAnswers.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>())
                 .put(submission.playerName(), submission);
         persistTimeline(gameId);
-        return Optional.of(submission);
+        return Optional.of(new TimelineDecision(submission, previous == null));
     }
 
     public JSONObject timelineReveal(long gameId) {

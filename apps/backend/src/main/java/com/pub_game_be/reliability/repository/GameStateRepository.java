@@ -29,4 +29,17 @@ public interface GameStateRepository extends JpaRepository<GameStateEntity, Long
             + "updated_at = :now, last_snapshot_at = :now where game_id = :gameId",
             nativeQuery = true)
     int advanceSequence(@Param("gameId") Long gameId, @Param("now") long now);
+
+    /**
+     * Sposta la scadenza solo in avanti, senza riscrivere stato, round o
+     * payload: un Time Buzzer che parte mentre arrivano risposte non deve
+     * sovrascrivere una mutazione concorrente con una copia vecchia.
+     */
+    @Modifying(flushAutomatically = true)
+    @Query(value = "update game_state set round_deadline_at = case "
+            + "when round_deadline_at is null or round_deadline_at < :deadline then :deadline "
+            + "else round_deadline_at end, updated_at = :now, version = version + 1 "
+            + "where game_id = :gameId", nativeQuery = true)
+    int extendRoundDeadline(@Param("gameId") Long gameId, @Param("deadline") long deadline,
+            @Param("now") long now);
 }
