@@ -3,6 +3,39 @@
 Tutte le modifiche rilevanti di PubGame. Formato basato su Keep a Changelog,
 versione SemVer.
 
+## [2.0.0] — 2026-11-12
+
+Seconda major: la serata si prepara e si controlla prima di accendere la TV. Il
+audio non lascia più code accese, i telefoni si riagganciano appena tornano
+visibili e il repository tiene solo il codice.
+
+### Aggiunto
+
+- `GET /health`: sonda di salute senza autenticazione, per Docker e per il
+  controllo a freddo prima di una serata.
+- `docs/SERATA-PROVA.md`: programma della prima serata con telefoni veri (ruoli,
+  tempi, prove di caduta, cosa annotare, emergenze).
+- `docs/FIX-PRE-SERATA.md`: ordine delle fix prima e dopo la serata, con criteri
+  di accettazione.
+- Riconnessione immediata su `visibilitychange` e `online`: telefono sbloccato o
+  Wi-Fi tornato, la socket riparte senza aspettare il backoff.
+
+### Corretto
+
+- Il clock della TV non somma più intervalli: `startClock()` spegne il tick
+  precedente, quindi il ticchettio non resta acceso per tutta la serata.
+- La pausa ferma davvero clock e battito; la ripresa li riapre nella stessa
+  fase.
+- Rimossi sette file mp3 identici e mai referenziati (600 KB di doppioni):
+  l'audio resta interamente sintetizzato.
+
+### Cambiato
+
+- I report e i log delle simulazioni (`scripts/sim/reports/`) **escono dal
+  repository** (~13 MB): restano su disco, la history passata non è riscritta.
+- Versione **2.0.0** su root, frontend e backend; README aggiornato con le
+  sezioni Audio e Serata di prova.
+
 ## [1.0.0] — 2026-11-09
 
 Prima major: la serata si recupera dopo un refresh e gli ambienti di prova e

@@ -44,5 +44,8 @@ apps/backend/src/main/resources/questions/media-it.json
 
 # Stato token delle run di simulazione (mai versionare)
 scripts/sim/.state*.json
-scripts/sim/reports/game-actions.jsonl
-scripts/sim/reports/game-actions-summary.json
+
+# Dati delle run: CSV, JSON, log e report pesano ~13 MB e non sono codice.
+# Restano su disco, entrano nel repo solo i generatori.
+scripts/sim/reports/*
+!scripts/sim/reports/*.mjs
