@@ -12,16 +12,13 @@
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { simRounds } from './schedule.mjs';
 
 const API = process.env.API || 'http://127.0.0.1:8080';
 const WS = process.env.WS_URL || 'ws://127.0.0.1:8080/ws-pubgame';
 const STATE_PATH = process.env.STATE_PATH || fileURLToPath(new URL('./.state8.json', import.meta.url));
 
-const ROUNDS = [
-  'QUIZ', 'MUSIC', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE', 'TIMELINE',
-  'TIME_BUZZER', 'BOMBA', 'AIR_HOCKEY_BATTLE', 'ULTIMA_SPIAGGIA',
-  'AZZARDO', 'BLACKJACK', 'ARENA', 'SPEED_RUSH',
-];
+const ROUNDS = simRounds();
 
 const log = (...args) => console.log(`[tv ${new Date().toISOString().slice(11, 19)}]`, ...args);
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

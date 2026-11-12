@@ -19,6 +19,15 @@ visibili e il repository tiene solo il codice.
   di accettazione.
 - Riconnessione immediata su `visibilitychange` e `online`: telefono sbloccato o
   Wi-Fi tornato, la socket riparte senza aspettare il backoff.
+- Prima CI (`.github/workflows/ci.yml`): build e test frontend, test backend e
+  simulazione corta con 8 giocatori, su ogni push.
+- `HEALTHCHECK` nel `docker-compose.yml` e tag immagine da `PUBGAME_TAG`, per
+  tornare alla versione precedente con un comando.
+- `npm run db:backup`: copia il database in `backups/` con data e ora (cartella
+  fuori dal repository).
+- `ROUNDS_MODE=serata` nel pilota di simulazione: gioca i 40 round nell'ordine
+  vero di `ACT_DECKS`, non più i 13 di esercitazione.
+- Se `ALLOWED_ORIGINS` contiene `*` il backend lo segnala a `WARN` all'avvio.
 
 ### Corretto
 

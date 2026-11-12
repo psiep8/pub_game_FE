@@ -17,7 +17,8 @@
     "build:backend": "node scripts/mvn.mjs -DskipTests package",
     "test": "npm run test:frontend",
     "test:frontend": "npm run test --workspace pubgame-fe",
-    "test:backend": "node scripts/mvn.mjs test"
+    "test:backend": "node scripts/mvn.mjs test",
+    "db:backup": "node scripts/backup-db.mjs"
   },
   "devDependencies": {
     "vitest": "^5.1.0"

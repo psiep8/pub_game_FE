@@ -31,7 +31,9 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
     /** Pagine e file serviti dal jar: devono essere leggibili prima del login. */
     private static final Set<String> PUBLIC_GET = Set.of("/", "/index.html", "/favicon.ico",
             "/manifest.webmanifest", "/ngsw.json", "/ngsw-worker.js", "/games/active", "/error",
-            "/sim-duo.html", "/sim-boot.html");
+            "/sim-duo.html", "/sim-boot.html",
+            // Sonda di salute: la interroga Docker, non ha una sessione.
+            "/health");
     private static final Set<String> SPA_ROUTES = Set.of("/tv", "/play", "/admin", "/basket",
             "/bonus-preview");
     private static final Pattern STATIC_ASSET = Pattern.compile(

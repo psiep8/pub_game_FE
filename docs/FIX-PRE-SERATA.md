@@ -44,6 +44,14 @@ sera stessa.
 
 In quest'ordine, perché ogni voce sblocca la successiva.
 
+> **Aggiornamento**: le voci 1–4 (ripresa TV per ogni gioco, punteggi server,
+> codice breve admin, classifiche con suspense) **non** sono state fatte prima
+> della serata: sono giorni di lavoro su stato, punteggi e sicurezza e toccarle
+> a poche ore da una prova con telefoni veri significa rischiare la prova
+> stessa. Le voci 5–8 sono invece chiuse (vedi sotto) e la serata ha già le sue
+> protezioni: la TV si riprende per Timeline, per gli altri giochi si chiude il
+> round ripristinabile e si rigioca.
+
 1. **Ripresa completa della TV, gioco per gioco.** Oggi solo Timeline riprende:
    gli altri mostrano il pannello "round ripristinabile" e si chiudono. Serve uno
    stato serializzabile per gioco (payload, secondi rimasti, fase) salvato nel
@@ -62,20 +70,22 @@ In quest'ordine, perché ogni voce sblocca la successiva.
    (tempo scaduto → rullo → risposta → punti in classifica).
    *Fatto quando*: la classifica rapida mostra chi sale e chi scende; il podio ha
    il falso allarme.
-5. **Partita simulata da 40 round.** Il pilota arriva a 13: serve la scaletta
-   intera per misurare durata reale, crescita del DB e tenuta della classifica.
-   *Fatto quando*: la run #166 chiude 40 round e 5 bonus con 0 errori aperti.
-6. **CI.** Workflow con `npm run build`, `npm run test:frontend`,
-   `npm run test:backend` e una simulazione corta (8 giocatori, 3 round) su ogni
-   push.
-   *Fatto quando*: il badge è verde e un PR rotto viene fermato.
-7. **Infrastruttura di serata.** `HEALTHCHECK` nel compose su `/health`, tag
-   delle immagini per versione (`pubgame:2.0.0`) con rollback in un comando,
-   backup automatico prima e dopo la serata.
-   *Fatto quando*: un aggiornamento sbagliato si annulla in meno di due minuti.
-8. **`ALLOWED_ORIGINS` mai `"*"`.** Il default resta la lista esplicita; `*` solo
-   come scelta consapevole e documentata per una serata tra amici.
-   *Fatto quando*: `.env.example` e i profili non suggeriscono più il jolly.
+5. **[fatto] Partita simulata da 40 round.** `scripts/sim/full-match.mjs` accetta
+   `ROUNDS_MODE=serata`: gioca i 40 round nell'ordine vero di `ACT_DECKS`
+   (quindi attraversa atti 1–5, classifiche rapide e dettagliate). Comando:
+   `ROUNDS_MODE=serata PLAYERS=16 node scripts/sim/full-match.mjs run`.
+   *Resta da fare*: la run vera da 40 round, che dura ~25 minuti con
+   `ROUND_MS=26000` — va lanciata in background mentre si prepara la sala.
+6. **[fatto] CI.** `.github/workflows/ci.yml`: build e test frontend, test
+   backend e una simulazione corta con 8 giocatori su ogni push. *Resta da
+   verificare*: il primo run sul remoto (qui non posso spingere).
+7. **[fatto] Infrastruttura di serata.** `HEALTHCHECK` nel `docker-compose.yml`
+   (probe sulla porta), tag immagine da `PUBGAME_TAG` (`PUBGAME_TAG=2.0.0` per
+   tornare indietro in un comando), `npm run db:backup` per il backup con
+   timestamp in `backups/` (fuori dal repo).
+8. **[fatto] `ALLOWED_ORIGINS` mai `"*"`.** Il default resta la lista esplicita;
+   se qualcuno mette `*` il backend lo scrive a `WARN` all'avvio, così il jolly è
+   una scelta consapevole e non un default silenzioso.
 
 ---
 

@@ -175,8 +175,10 @@ La TV ha il mute con dissolvenza: zittisce anche i suoni già schedulati, ma il 
 Prima di una serata con telefoni veri:
 
 1. `cp .env.test-night.example .env` e compila `CONTROL_SECRET` (≥ 32 caratteri) e `ALLOWED_ORIGINS` con IP LAN del PC.
-2. Backup di `apps/backend/data/pubgame.mv.db` in `backups/`.
+2. `npm run db:backup` (copia in `backups/`, fuori dal repository).
 3. `npm run dev`, poi `curl http://localhost:8080/health` deve rispondere `{"status":"ok"}`.
+   Con Docker: `PUBGAME_TAG=2.0.0 docker compose up -d` fissa la versione, così un
+   aggiornamento sbagliato si annulla cambiando tag.
 4. Giro a vuoto con un iPhone e un Android: ingresso, un round, refresh della TV, blocco schermo di 60 secondi.
 
 Il programma completo (ruoli, tempi, prove di caduta, cosa annotare, emergenze) è in **`docs/SERATA-PROVA.md`**. L'ordine delle fix da chiudere prima e dopo la serata è in **`docs/FIX-PRE-SERATA.md`**.

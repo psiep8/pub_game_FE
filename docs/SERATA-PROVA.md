@@ -53,8 +53,8 @@ cp .env.test-night.example .env
 #    HOST=0.0.0.0
 
 # 2. Backup del database attuale (se esiste)
-mkdir -p backups
-cp apps/backend/data/pubgame.mv.db "backups/pubgame-$(date +%Y%m%d-%H%M).mv.db"
+npm run db:backup        # scrive in backups/ con data e ora
+npm run db:backup -- --list
 
 # 3. Avvio
 npm run dev
@@ -73,7 +73,19 @@ telefoni. Il QR sulla TV nasce da quell'indirizzo.
 - [ ] Muta e smuta la TV: il tappeto riparte una volta sola, non due.
 - [ ] Un round di prova con 2 telefoni: risposta, reveal, classifica.
 
-### 3.3 Prova audio a orecchio (10 minuti) — farla con il volume di sala
+### 3.3 Prova da 40 round in background (opzionale, mentre prepari la sala)
+
+La scaletta intera è verificabile senza stare davanti allo schermo:
+
+```bash
+ROUNDS_MODE=serata PLAYERS=16 node scripts/sim/full-match.mjs run
+```
+
+Dura ~25 minuti con `ROUND_MS=26000`. Serve a vedere gli atti 1–5, le
+classifiche di metà e fine atto e la crescita del database: se compare un
+errore, si legge nel log e non in sala.
+
+### 3.4 Prova audio a orecchio (10 minuti) — farla con il volume di sala
 
 Con il volume che userai davvero, ascolta in quest'ordine e segna chi
 sovrasta l'altro:
@@ -184,7 +196,7 @@ I log da guardare: console del browser TV (`F12`), terminale di `npm run dev`,
 
 ## 9. Dopo la serata (30 minuti, la stessa notte)
 
-1. **Backup**: copia `apps/backend/data/pubgame.mv.db` con data e ora.
+1. **Backup**: `npm run db:backup` (cartella `backups/`, fuori dal repository).
 2. **Screenshot e foto**: raccogli tutto in una cartella con la data.
 3. **Debrief di 15 minuti** con i tavoli, tre domande: cosa non si capiva, cosa
    era lento, cosa mancava.

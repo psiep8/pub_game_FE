@@ -3,13 +3,15 @@
  * Partita completa a 8 giocatori, tutta pilotata da qui.
  *
  * setup: crea partita, TV, admin e 8 sessioni remote.
- * run:   join di tutti, 13 round con risposte, 4 bonus, fault injection.
+ * run:   join di tutti, i round con risposte, i bonus, fault injection.
+ *         ROUNDS_MODE=serata replica i 40 round veri (scaletta di ACT_DECKS).
  *
  * Non è un test unitario: è una regia che parla con gli stessi canali del
  * telefono (STOMP /app/game/{id}/answer e /status, endpoint HTTP dei giochi).
  */
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { simRounds } from './schedule.mjs';
 
 const API = process.env.API || 'http://127.0.0.1:8080';
 const WS = process.env.WS_URL || 'ws://127.0.0.1:8080/ws-pubgame';
@@ -25,11 +27,7 @@ const TEAMS = PLAYER_NAMES.slice(0, PLAYER_COUNT);
 const STATE_PATH = process.env.STATE_PATH || fileURLToPath(new URL(`./.state${PLAYER_COUNT}.json`, import.meta.url));
 const ACTIONS_PATH = process.env.ACTIONS_PATH || `${REPORT_DIR}game-actions.jsonl`;
 const SUMMARY_PATH = process.env.SUMMARY_PATH || `${REPORT_DIR}game-actions-summary.json`;
-const ROUNDS = [
-  'QUIZ', 'MUSIC', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE', 'TIMELINE',
-  'TIME_BUZZER', 'BOMBA', 'AIR_HOCKEY_BATTLE', 'ULTIMA_SPIAGGIA',
-  'AZZARDO', 'BLACKJACK', 'ARENA', 'SPEED_RUSH',
-];
+const ROUNDS = simRounds();
 const BONUSES = ['CASINO', 'BASKET', 'CAVALLO', 'BIGLIE'];
 const ROUND_MS = Number(process.env.ROUND_MS || 38000);
 const BONUS_MS = Number(process.env.BONUS_MS || 22000);

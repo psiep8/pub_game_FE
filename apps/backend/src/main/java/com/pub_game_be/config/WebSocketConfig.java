@@ -3,6 +3,8 @@ package com.pub_game_be.config;
 import com.pub_game_be.reliability.DeviceSessionService;
 import com.pub_game_be.reliability.domain.DeviceSessionEntity;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,6 +47,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             "ULTIMA_SPIAGGIA_STATE", "AZZARDO_STATE", "AZZARDO_MESSAGE", "BLACKJACK_STATE",
             "AIR_HOCKEY_BATTLE_STATE", "CASINO_STATE", "CAVALLO_STATE", "BIGLIE_STATE", "ADMIN_STATE",
             "MUSIC_PHASE", "CHRISTMAS_TOGGLE", "BUTTON_TEST_PING");
+    private static final Logger log = LoggerFactory.getLogger(WebSocketConfig.class);
     private final DeviceSessionService sessions;
     private final String[] origins;
 
@@ -52,6 +55,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             @Value("${game.security.allowed-origins:http://localhost:4200,http://127.0.0.1:4200}") String allowedOrigins) {
         this.sessions = sessions;
         this.origins = java.util.Arrays.stream(allowedOrigins.split(",")).map(String::trim).toArray(String[]::new);
+        if (java.util.Arrays.asList(this.origins).contains("*"))
+            log.warn("ALLOWED_ORIGINS=*: chiunque raggiunga il server può aprire la socket. "
+                    + "Accettabile solo per una serata tra amici, mai come default.");
     }
 
     @Bean
