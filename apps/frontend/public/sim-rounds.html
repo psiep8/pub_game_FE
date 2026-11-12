@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>PubGame — simulazione round TV + telefono</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-0: #111109;
+      --bg-1: #1a1a10;
+      --paper: #f1e4c9;
+      --paper-hi: #fff8e8;
+      --paper-2: #e3d2ae;
+      --coal: #15150f;
+      --acid: #d9ff43;
+      --tomato: #ff4d2e;
+      --mustard: #ffc53d;
+      --font-display: 'Anton', Impact, 'Arial Black', sans-serif;
+      --font-mono: 'Space Mono', 'Courier New', monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%; margin: 0; overflow: hidden;
+      background: var(--bg-0); color: var(--paper);
+      font-family: var(--font-mono);
+    }
+    body { display: flex; flex-direction: column; gap: 10px; padding: 10px; }
+
+    .topbar {
+      flex: 0 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      min-height: 42px; padding: 7px 16px;
+      background: var(--paper); color: var(--coal);
+      border: 3px solid var(--coal);
+      box-shadow: 6px 6px 0 var(--tomato);
+    }
+    .brand {
+      font-family: var(--font-display);
+      font-size: clamp(1.05rem, 1.7vw, 1.55rem);
+      letter-spacing: .05em; text-transform: uppercase; white-space: nowrap;
+    }
+    .brand span { color: var(--tomato); }
+    .topbar-note {
+      padding: 3px 8px; background: var(--acid); color: var(--coal);
+      border: 2px solid var(--coal);
+      font-size: .62rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    }
+
+    .rush {
+      flex: 0 0 auto;
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 10px; background: var(--paper-2);
+      border: 2px solid var(--coal); box-shadow: 4px 4px 0 var(--coal);
+      overflow-x: auto; scrollbar-width: thin;
+    }
+    .rush-group { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+    .rush-label {
+      flex: 0 0 auto; padding-right: 4px;
+      font-size: .55rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    }
+    .rush button {
+      flex: 0 0 auto; padding: 3px 7px;
+      background: var(--paper); color: var(--coal);
+      border: 2px solid var(--coal);
+      font-family: var(--font-mono); font-size: .56rem; font-weight: 700;
+      letter-spacing: .04em; text-transform: uppercase; cursor: pointer;
+    }
+    .rush button:hover { background: var(--paper-hi); }
+    .rush button.on { background: var(--acid); }
+    .rush button.play { background: var(--tomato); color: var(--paper-hi); }
+    .rush button:disabled { opacity: .45; cursor: default; }
+
+    .duo {
+      flex: 1; min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) clamp(270px, 24vw, 390px);
+      gap: 10px;
+    }
+    .pane {
+      min-width: 0; min-height: 0;
+      display: flex; flex-direction: column;
+      background: var(--paper-2);
+      border: 2px solid var(--coal);
+      box-shadow: 5px 5px 0 var(--coal);
+      overflow: hidden;
+    }
+    .pane-head {
+      flex: 0 0 auto;
+      display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+      padding: 5px 9px 4px;
+      background: var(--paper); color: var(--coal);
+      border-bottom: 2px solid var(--coal);
+      font-size: clamp(.6rem, .78vw, .78rem);
+      font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    }
+    .pane-head strong {
+      font-family: var(--font-display); font-size: 1.25em;
+      font-weight: 400; letter-spacing: .05em;
+    }
+    .pane-head .tag {
+      padding: 2px 6px; border: 2px solid var(--coal);
+      font-size: .58rem; letter-spacing: .08em;
+    }
+    .pane.tv .tag { background: var(--acid); }
+    .pane.phone .tag { background: var(--tomato); color: var(--paper-hi); }
+
+    .viewport {
+      position: relative; flex: 1; min-height: 0; overflow: hidden;
+      background: var(--bg-1);
+    }
+    .viewport iframe {
+      position: absolute; top: 50%; left: 50%; display: block;
+      border: 0; background: var(--bg-0);
+      transform-origin: center center;
+    }
+    .hidden-frames iframe {
+      position: fixed; left: -12000px; top: 0;
+      border: 0; opacity: 0; pointer-events: none;
+    }
+    .pane.phone .viewport { background: var(--paper-2); }
+
+    @media (max-width: 900px) {
+      body { padding: 6px; gap: 6px; }
+      .topbar { min-height: 34px; padding: 5px 10px; }
+      .topbar-note { display: none; }
+      .duo { gap: 6px; grid-template-columns: minmax(0, 1fr) 240px; }
+      .pane { box-shadow: 3px 3px 0 var(--coal); }
+      .pane-head { padding: 3px 6px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Pub Game <span>/ round simulati</span></div>
+    <div class="topbar-note" id="sim-note">IN ATTESA</div>
+  </header>
+
+  <nav class="rush" id="rush" aria-label="Round simulati"></nav>
+
+  <main class="duo">
+    <section class="pane tv" aria-label="TV">
+      <div class="pane-head"><strong>01 / TV</strong><span class="tag">1280×720</span></div>
+      <div class="viewport"><iframe id="tv" data-w="1280" data-h="720" title="TV PubGame"></iframe></div>
+    </section>
+
+    <section class="pane phone" aria-label="Telefono del concorrente">
+      <div class="pane-head"><strong id="phone-name">02 / TELEFONO</strong><span class="tag" id="phone-tag">390×844</span></div>
+      <div class="viewport"><iframe id="phone" data-w="390" data-h="844" title="Telefono concorrente"></iframe></div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const q = new URLSearchParams(location.search);
+      const port = location.port ? `:${location.port}` : '';
+      const base = `http://localhost${port}`;
+      const game = Number(q.get('game')) || Number(localStorage.getItem('activeGameId')) || 1;
+      const player = (q.get('name') || q.get('watch') || 'Anna').trim();
+      const playerKey = player.toLowerCase();
+      // Token di sessione (da `node scripts/sim/match.mjs setup`): senza token
+      // la TV non può aprire i round e il telefono non entra in squadra.
+      const tvToken = q.get('tv') || '';
+      const playerToken = q.get(playerKey) || q.get('player') || '';
+
+      // Stessa scaletta di `?sim=1` (SIMULATION_DECK in round-manager.service).
+      const DECK = [
+        ['QUIZ', 'QUIZ'], ['MUSIC', 'MUSICA'], ['IMAGE_BLUR', 'IMMAGINI'],
+        ['WHEEL_OF_FORTUNE', 'RUOTA'], ['TIMELINE', 'TIMELINE'], ['TIME_BUZZER', 'TEMPO'],
+        ['BOMBA', 'BOMBA'], ['AIR_HOCKEY_BATTLE', 'HOCKEY'], ['ULTIMA_SPIAGGIA', 'SPIAGGIA'],
+        ['AZZARDO', 'AZZARDO'], ['BLACKJACK', 'BLACKJACK'], ['ARENA', 'ARENA'],
+        ['SPEED_RUSH', 'SPEED RUSH'],
+      ].map(([key, label]) => ({ key, label }));
+
+      const boot = (host, role, name, device, token) => {
+        const params = new URLSearchParams({ game: String(game), role, name, device });
+        if (token) params.set('token', token);
+        return `${host}/sim-boot.html?${params.toString()}`;
+      };
+
+      const tv = document.getElementById('tv');
+      const phone = document.getElementById('phone');
+      const note = document.getElementById('sim-note');
+      const bar = document.getElementById('rush');
+
+      document.getElementById('phone-name').textContent = `02 / ${player.toUpperCase()}`;
+      document.getElementById('phone-tag').textContent = 'UN TAVOLO';
+      tv.src = boot(base, 'TV', '', 'sim-tv', tvToken);
+      phone.src = boot(`http://${playerKey}.localhost${port}`, 'REMOTE', player, `sim-${playerKey}`, playerToken);
+
+      let current = 0;         // round già avviati
+      let busy = false;
+      let auto = null;
+      const chips = [];
+
+      const setNote = (text) => { note.textContent = text; };
+      const labels = () => {
+        const done = Math.min(current, DECK.length);
+        return `${done}/${DECK.length} ROUND · PARTITA #${game} · ${player.toUpperCase()}`;
+      };
+
+      const markChips = () => {
+        chips.forEach((chip, index) => chip.classList.toggle('on', index === current - 1));
+      };
+
+      /** Clicca AVANTI nella dock della TV: è lei ad aprire il round successivo. */
+      const advance = () => {
+        const doc = tv.contentDocument;
+        const button = doc && doc.querySelector('button.dock-btn.advance');
+        if (!button) return false;
+        button.click();
+        return true;
+      };
+
+      const startRound = () => {
+        if (busy || current >= DECK.length) return;
+        busy = true;
+        if (advance()) {
+          current += 1;
+          markChips();
+          setNote(labels());
+        }
+        setTimeout(() => { busy = false; }, 2600);
+      };
+
+      const stopAuto = () => {
+        if (auto) clearInterval(auto);
+        auto = null;
+        playBtn.classList.remove('play');
+        playBtn.textContent = '▶ AUTO';
+      };
+
+      const startAuto = () => {
+        if (current >= DECK.length) return;
+        playBtn.classList.add('play');
+        playBtn.textContent = '⏸ AUTO';
+        auto = setInterval(() => {
+          if (current >= DECK.length) { stopAuto(); return; }
+          startRound();
+        }, 12000);
+        startRound();
+      };
+
+      // Barra: un pulsante per gioco + AUTO + AVANTI + RESTART.
+      const group = document.createElement('div');
+      group.className = 'rush-group';
+      const title = document.createElement('span');
+      title.className = 'rush-label';
+      title.textContent = '13 GIOCHI';
+      group.append(title);
+      DECK.forEach((item) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.textContent = item.label;
+        chip.title = `Round ${chips.length + 1}: ${item.label}`;
+        chip.addEventListener('click', () => {
+          if (auto) stopAuto();
+          const target = chips.indexOf(chip) + 1;
+          if (target < current) {
+            setNote(`GIÀ PASSATO · RICARICA PER RICOMINCIARE · ${labels()}`);
+            return;
+          }
+          if (target === current) return;
+          // Salta in avanti: un AVANTI per ogni round mancante.
+          const tick = () => {
+            if (current >= target) return;
+            startRound();
+            setTimeout(() => { if (current < target) tick(); }, 2800);
+          };
+          tick();
+        });
+        chips.push(chip);
+        group.append(chip);
+      });
+      bar.append(group);
+
+      const playBtn = document.createElement('button');
+      playBtn.type = 'button';
+      playBtn.textContent = '▶ AUTO';
+      playBtn.title = 'Un round ogni 12 secondi';
+      playBtn.addEventListener('click', () => (auto ? stopAuto() : startAuto()));
+      bar.append(playBtn);
+
+      const nextBtn = document.createElement('button');
+      nextBtn.type = 'button';
+      nextBtn.textContent = 'AVANTI ▸';
+      nextBtn.title = 'Apre il round successivo su TV e telefono';
+      nextBtn.addEventListener('click', () => { if (auto) stopAuto(); startRound(); });
+      bar.append(nextBtn);
+
+      const restart = document.createElement('button');
+      restart.type = 'button';
+      restart.textContent = '↻ RESTART';
+      restart.title = 'Ricarica la simulazione dal primo round';
+      restart.addEventListener('click', () => location.reload());
+      bar.append(restart);
+
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowRight' || event.key === ' ') { event.preventDefault(); startRound(); }
+      });
+
+      setNote(`PRONTI · ${labels()} · premi AVANTI`);
+      markChips();
+
+      const frames = Array.from(document.querySelectorAll('.viewport iframe'));
+      const fit = (frame) => {
+        const viewport = frame.parentElement;
+        const width = Number(frame.dataset.w) || 1280;
+        const height = Number(frame.dataset.h) || 720;
+        const scale = Math.min(viewport.clientWidth / width, viewport.clientHeight / height);
+        frame.style.width = `${width}px`;
+        frame.style.height = `${height}px`;
+        frame.style.transform = `translate(-50%, -50%) scale(${scale})`;
+      };
+      const fitAll = () => frames.forEach(fit);
+      if ('ResizeObserver' in window) {
+        const observer = new ResizeObserver(fitAll);
+        frames.forEach((frame) => observer.observe(frame.parentElement));
+      }
+      window.addEventListener('resize', fitAll);
+      fitAll();
+    })();
+  </script>
+</body>
+</html>

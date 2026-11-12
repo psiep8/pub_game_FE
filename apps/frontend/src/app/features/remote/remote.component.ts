@@ -31,6 +31,7 @@ import { SentStateComponent } from '../../shared/components/sent-state/sent-stat
 import { ButtonTestComponent } from './button-test/button-test.component';
 import {
   MANUAL_BONUSES,
+  MANUAL_ENTRIES,
   MANUAL_GAMES,
   MANUAL_SECTIONS,
   ManualBonus,
@@ -400,6 +401,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.gameId.set(this.initialGameId());
     localStorage.setItem('activeGameId', String(this.gameId()));
     console.log('🎮 Remote collegato alla partita', this.gameId());
+
+    // Anteprima del manuale per la pagina sim-duo (`?quad=1&manuale=QUIZ`):
+    // mostra la scheda "come si vota" senza dover entrare in squadra.
+    const manualPreview = new URLSearchParams(window.location.search).get('manuale');
+    if (manualPreview) setTimeout(() => this.openManualAt(manualPreview), 300);
 
     // Sessione + heartbeat: al riaggancio il telefono riprende la stessa
     // squadra e richiede lo stato autorevole, senza ricaricare la pagina.
@@ -982,6 +988,18 @@ export class RemoteComponent implements OnInit, OnDestroy {
       };
       reader.readAsDataURL(file);
     });
+  }
+
+  /**
+   * Apre il manuale direttamente su una scheda (anteprima sim-duo). Salta il
+   * controllo "in squadra": nella preview non c'è nessun round aperto.
+   */
+  openManualAt(key: string): void {
+    const entry = MANUAL_ENTRIES.find((item) => item.key === key);
+    if (!entry) return;
+    this.manualEntry.set(entry);
+    this.manualOpen.set(true);
+    this.cdr.markForCheck();
   }
 
   /** Nome leggibile del gioco per l'intestazione (B1). */

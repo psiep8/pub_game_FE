@@ -384,9 +384,18 @@ export class GameComponent implements OnInit, OnDestroy {
     this.armIntro();
 
     // La simulazione usa una scaletta dedicata: non tocca la serata vera.
-    if (new URLSearchParams(window.location.search).get('sim') === '1') {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('sim') === '1') {
       this.simulation = true;
       this.roundManager.enableSimulation();
+    }
+    // Anteprima rapida (`?sim=1&demo=QUIZ`): la scheda del gioco parte da sola,
+    // senza aprire un round e senza chiedere il codice TV, per la pagina sim-duo.
+    const demoPreview = params.get('demo');
+    if (demoPreview) {
+      this.dismissIntro();
+      setTimeout(() => this.startDemo(demoPreview), 800);
+      return;
     }
 
     // La partita non è più solo quella dell'ultimo browser: si riparte

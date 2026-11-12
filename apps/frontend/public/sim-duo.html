@@ -100,6 +100,29 @@
     }
     .pane.phone .viewport { background: var(--paper-2); }
 
+    .rush {
+      flex: 0 0 auto;
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 10px; background: var(--paper-2);
+      border: 2px solid var(--coal); box-shadow: 4px 4px 0 var(--coal);
+      overflow-x: auto; scrollbar-width: thin;
+    }
+    .rush-group { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+    .rush-label {
+      flex: 0 0 auto; padding-right: 4px;
+      font-size: .55rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    }
+    .rush button {
+      flex: 0 0 auto; padding: 3px 7px;
+      background: var(--paper); color: var(--coal);
+      border: 2px solid var(--coal);
+      font-family: var(--font-mono); font-size: .56rem; font-weight: 700;
+      letter-spacing: .04em; text-transform: uppercase; cursor: pointer;
+    }
+    .rush button:hover { background: var(--paper-hi); }
+    .rush button.on { background: var(--acid); }
+    .rush button.play { background: var(--tomato); color: var(--paper-hi); }
+
     @media (max-width: 900px) {
       body { padding: 6px; gap: 6px; }
       .topbar { min-height: 34px; padding: 5px 10px; }
@@ -115,6 +138,8 @@
     <div class="brand">Pub Game <span>/ simulazione</span></div>
     <div class="topbar-note" id="sim-note">13 GIOCHI · 4 BONUS</div>
   </header>
+
+  <nav class="rush" id="rush" aria-label="Rush TV e telefono"></nav>
 
   <main class="duo">
     <section class="pane tv" aria-label="TV">
@@ -190,6 +215,114 @@
       }
       window.addEventListener('resize', fitAll);
       fitAll();
+
+      // ---------------------------------------------------------------- Rush
+      // Ogni voce apre la scheda TV del gioco/bonus: i copioni demo sono
+      // grafica vera della TV, non aprono round e non toccano la partita.
+      const GAMES = [
+        ['QUIZ', 'QUIZ'], ['MUSIC', 'MUSICA'], ['IMAGE_BLUR', 'IMMAGINI'],
+        ['WHEEL_OF_FORTUNE', 'RUOTA'], ['TIMELINE', 'TIMELINE'], ['TIME_BUZZER', 'TEMPO'],
+        ['BOMBA', 'BOMBA'], ['AIR_HOCKEY_BATTLE', 'HOCKEY'], ['ULTIMA_SPIAGGIA', 'SPIAGGIA'],
+        ['AZZARDO', 'AZZARDO'], ['BLACKJACK', 'BLACKJACK'], ['ARENA', 'ARENA'],
+        ['SPEED_RUSH', 'SPEED RUSH'],
+      ].map(([key, label]) => ({ kind: 'demo', key, label }));
+      const BONUSES = [
+        ['casino', 'CASINO'], ['basket', 'BASKET'], ['cavallo', 'CAVALLO'], ['biglie', 'BIGLIE'],
+      ].map(([id, label]) => ({ kind: 'bonus', id, label, key: `BONUS_${id.toUpperCase()}` }));
+      const RUSH = [...GAMES, ...BONUSES];
+
+      const bar = document.getElementById('rush');
+      const tv = document.getElementById('tv');
+      const phone = document.getElementById('phone');
+      const note = document.getElementById('sim-note');
+      let current = -1;
+      let auto = null;
+      const chips = [];
+
+      const group = (label, items) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'rush-group';
+        const title = document.createElement('span');
+        title.className = 'rush-label';
+        title.textContent = label;
+        wrapper.append(title);
+        for (const item of items) {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.textContent = item.label;
+          chip.dataset.index = String(RUSH.indexOf(item));
+          chip.addEventListener('click', () => select(Number(chip.dataset.index)));
+          chips.push(chip);
+          wrapper.append(chip);
+        }
+        bar.append(wrapper);
+        return wrapper;
+      };
+
+      const status = (text) => {
+        note.textContent = text;
+      };
+
+      const select = (index) => {
+        if (index < 0 || index >= RUSH.length) return;
+        current = index;
+        const item = RUSH[index];
+        chips.forEach((chip, i) => chip.classList.toggle('on', i === index));
+        tv.src = item.kind === 'demo'
+          ? `${base}/tv?sim=1&demo=${encodeURIComponent(item.key)}`
+          : `${base}/bonus-preview/${encodeURIComponent(item.id)}`;
+        // Telefono: la scheda "come si vota" del manuale vero, aperta sul gioco.
+        phone.src = `${hostFor(watch)}/play?quad=1&manuale=${encodeURIComponent(item.key)}`;
+        status(`${index + 1}/${RUSH.length} · ${item.label} · PARTITA #${game || '—'}`);
+        updateAuto();
+      };
+
+      const updateAuto = () => {
+        playBtn.classList.toggle('play', !!auto);
+        playBtn.textContent = auto ? '⏸ RUSH' : '▶ RUSH';
+      };
+
+      const step = () => select((current + 1) % RUSH.length);
+      const toggleAuto = () => {
+        if (auto) {
+          clearInterval(auto);
+          auto = null;
+          updateAuto();
+          status(`PAUSA · ${current >= 0 ? RUSH[current].label : 'nessuna scheda'}`);
+          return;
+        }
+        if (current < 0) select(0);
+        auto = setInterval(step, 7000);
+        updateAuto();
+      };
+
+      group('GIOCHI', GAMES);
+      group('BONUS', BONUSES);
+      const playBtn = document.createElement('button');
+      playBtn.type = 'button';
+      playBtn.textContent = '▶ RUSH';
+      playBtn.title = 'Avanza da solo ogni 7 secondi';
+      playBtn.addEventListener('click', toggleAuto);
+      bar.append(playBtn);
+      const normalBtn = document.createElement('button');
+      normalBtn.type = 'button';
+      normalBtn.textContent = 'TV LIVE';
+      normalBtn.title = 'Torna alla TV della simulazione';
+      normalBtn.addEventListener('click', () => {
+        if (auto) toggleAuto();
+        current = -1;
+        chips.forEach((chip) => chip.classList.remove('on'));
+        tv.src = boot(base, 'TV', token('tv'), '', 'sim-tv');
+        phone.src = boot(hostFor(watch), 'REMOTE', token(watchKey), watch, `sim-${watchKey}`);
+        status(`PARTITA #${game || '—'} · ${watch.toUpperCase()} IN ONDA · TV LIVE`);
+      });
+      bar.append(normalBtn);
+
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowRight') { event.preventDefault(); step(); }
+        if (event.key === 'ArrowLeft') { event.preventDefault(); select((current - 1 + RUSH.length) % RUSH.length); }
+        if (event.key === ' ') { event.preventDefault(); toggleAuto(); }
+      });
     })();
   </script>
 </body>
