@@ -74,6 +74,27 @@ export class WebSocketService {
       },
     });
 
+    this.armWakeUp();
+  }
+
+  /**
+   * Telefono sbloccato o Wi-Fi tornato: si riaggancia subito, senza aspettare
+   * il backoff. In serata le socket che muoiono in background sono la norma.
+   */
+  private armWakeUp(): void {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const wakeUp = () => {
+      if (!this.allowReconnect || this.connected()) return;
+      this.clearRetryTimer();
+      this.attempts = 0;
+      this.scheduleReconnect(0);
+    };
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') wakeUp();
+    });
+    window.addEventListener('online', wakeUp);
   }
 
   setSessionToken(token: string, role = ''): void {
