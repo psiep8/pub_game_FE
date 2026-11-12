@@ -310,17 +310,19 @@ async function roundTimeBuzzer(state, clients) {
       token: state.admin, body: { manche }, expect: 200,
     });
     if (started.status !== 200) return;
+    // Il tempo dichiarato è quello davvero trascorso dal via del server: con
+    // valori finti per indice il server li rifiuta (422) e la manche si perde.
+    const startedAt = Number(started.json?.startedAt) || Date.now();
     await sleep(1500);
-    const startMs = Date.now();
     await Promise.all(TEAMS.map((name, index) => {
       // Solo nella prima manche un tavolo manda un tempo impossibile.
       const invalid = manche === 1 && index === TEAMS.length - 1;
-      const ms = invalid ? 0 : 1500 + index * 40 + (manche - 1) * 100;
+      const ms = invalid ? 0 : Math.max(1, Date.now() - startedAt);
       return httpAction('time-buzzer-stop', `/games/${state.gameId}/time-buzzer/stop`, {
         token: state.phones[name], body: { playerName: name, ms }, expect: invalid ? 422 : 200,
       });
     }));
-    action({ at: Date.now(), label: 'time-buzzer-elapsed', transport: 'local', status: 'info', response: { manche, elapsed: Date.now() - startMs } });
+    action({ at: Date.now(), label: 'time-buzzer-elapsed', transport: 'local', status: 'info', response: { manche, elapsed: Date.now() - startedAt } });
     // Reveal della manche prima del via successivo, come la TV.
     await sleep(3500);
   }
@@ -330,14 +332,20 @@ async function roundBomba(state, clients) {
   await httpAction('bomba-start', `/games/${state.gameId}/bomba/start`, {
     token: state.admin, body: { players: TEAMS, act: 1 }, expect: 'ok',
   });
-  for (let wave = 0; wave < 3; wave += 1) {
-    for (const [index, name] of TEAMS.entries()) {
-      await httpAction('bomba-pick', `/games/${state.gameId}/bomba/pick`, {
-        token: state.phones[name], body: { playerName: name, cellId: (index + wave) % 10 },
-      });
-      await sleep(50);
-    }
-    await sleep(1800);
+  // Bomba è a turni: si legge chi deve scegliere e gli si manda una casella
+  // libera. Mandare i 16 pick in parallelo produceva solo "Non è il tuo turno".
+  for (let pick = 0; pick < TEAMS.length * 3; pick += 1) {
+    const current = await httpAction('bomba-state', `/games/${state.gameId}/bomba/state`, {
+      method: 'GET', token: state.admin, expect: 200,
+    });
+    const view = current.json || {};
+    const turn = view.turn;
+    const free = (view.cells || []).filter((cell) => !cell.used).map((cell) => cell.id);
+    if (!view.active || !turn || free.length === 0) break;
+    await httpAction('bomba-pick', `/games/${state.gameId}/bomba/pick`, {
+      token: state.phones[turn], body: { playerName: turn, cellId: free[pick % free.length] }, expect: 200,
+    });
+    await sleep(120);
   }
 }
 
