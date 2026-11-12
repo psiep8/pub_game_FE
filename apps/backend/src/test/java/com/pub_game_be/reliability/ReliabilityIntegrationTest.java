@@ -781,5 +781,19 @@ class ReliabilityIntegrationTest {
         assertThat(body.get("payload").isNull()).isTrue();
         assertThat(body.get("roundKey").asText()).isEqualTo("g-r1-senza-payload");
     }
+
+    @Test
+    void arenaChiusaIndicaQuandoRiprovare() throws Exception {
+        long gameId = 527L;
+        var tv = sessions.register(gameId, "tv-arena-retry", "TV", null, null);
+        gameState.startRound(gameId, "ARENA", 1, "g527-r1", "{}");
+        gameState.closeRound(gameId, "skipped");
+
+        var response = request("GET", "/games/" + gameId
+                + "/arena-question?category=STORIA&playerId=Anna", tv.sessionToken(), null, null);
+        assertThat(response.statusCode()).isEqualTo(409);
+        var body = json.readTree(response.body());
+        assertThat(body.get("error").asText()).isEqualTo("round-closed");
+        assertThat(body.get("retryAfterMs").asLong()).isPositive();
     }
 }

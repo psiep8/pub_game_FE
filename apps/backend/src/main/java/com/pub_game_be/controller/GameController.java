@@ -207,13 +207,20 @@ public class GameController {
         return savedRound;
     }
 
+    /** Attesa suggerita al telefono quando l'arena non è ancora aperta. */
+    private static final long ARENA_RETRY_AFTER_MS = 1000;
+
     @GetMapping("/{gameId}/arena-question")
     public ResponseEntity<String> getArenaQuestion(@PathVariable("gameId") Long gameId,
             @RequestParam("category") String category,
             @RequestParam(value = "playerId", defaultValue = "anonimo") String playerId) {
         if (!gameStateService.isRoundOpen(gameId)) {
+            // Il telefono arriva spesso un istante prima dell'apertura del
+            // round: 409 con l'attesa consigliata, così ritenta invece di
+            // restare senza domanda per tutta la battaglia.
             return ResponseEntity.status(409).body(new JSONObject()
                     .put("error", "round-closed")
+                    .put("retryAfterMs", ARENA_RETRY_AFTER_MS)
                     .put("deadlineAt", gameStateService.roundDeadline(gameId).orElse(0L))
                     .toString());
         }
@@ -646,10 +653,17 @@ public class GameController {
         return Map.of("closed", true, "gameId", gameId, "reason", reason);
     }
 
+    /**
+     * Round corrente letto dallo stato autorevole.
+     *
+     * <p>Prima rispondeva l'ultimo {@code game_round} salvato: tra la chiusura
+     * del round precedente e il salvataggio del nuovo, per qualche istante il
+     * client riceveva il gioco sbagliato (osservato su Timeline).</p>
+     */
     @GetMapping("/{gameId}/current-round")
-    public ResponseEntity<GameRound> getCurrentRound(@PathVariable("gameId") Long gameId) {
-        return gameService.getCurrentRound(gameId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Object> getCurrentRound(@PathVariable("gameId") Long gameId) {
+        return gameStateService.currentRound(gameId)
+                .<ResponseEntity<Object>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

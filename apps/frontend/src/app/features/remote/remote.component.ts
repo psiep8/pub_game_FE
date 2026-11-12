@@ -1939,8 +1939,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
         this.isFetchingQuestion.set(false);
 
         // Un telefono che si ricollega o perde un pacchetto non deve restare
-        // senza domanda per tutto il turno: si ritenta finché il round è vivo.
+        // senza domanda per tutto il turno: si ritenta finché il round è vivo,
+        // aspettando il tempo che il server indica quando il round non è
+        // ancora aperto (409 + retryAfterMs).
         if (this.questionType() === 'ARENA' && this.gameState() === PlayerStatus.VOTING) {
+          const retryAfterMs = Math.min(5000, Math.max(250, Number(err?.error?.retryAfterMs) || 2000));
           setTimeout(() => {
             if (this.questionType() === 'ARENA'
               && this.gameState() === PlayerStatus.VOTING
@@ -1948,7 +1951,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
               && !this.arenaEliminated()) {
               this.generateNextArenaQuestion();
             }
-          }, 2000);
+          }, retryAfterMs);
         }
       }
     });
