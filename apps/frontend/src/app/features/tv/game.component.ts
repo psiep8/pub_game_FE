@@ -1421,9 +1421,15 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.isPaused()) {
       mode.resume();
       this.isPaused.set(false);
+      // Il clock era stato fermato alla pausa: si riapre solo se il round ha
+      // ancora un conto alla rovescia da suonare.
+      this.audioService.startClock();
       this.resumeRoundSuspense();
       this.ws.broadcastStatus(this.currentGameId()!, { action: WsAction.GAME_RESUMED });
     } else {
+      // Pausa vera anche per l'audio: niente tick né battito mentre la sala
+      // aspetta, altrimenti il countdown continua a suonare a gioco fermo.
+      this.audioService.stopClock();
       this.audioService.stopSuspense();
       mode.pause();
       this.isPaused.set(true);

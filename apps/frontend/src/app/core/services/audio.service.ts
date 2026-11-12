@@ -91,6 +91,10 @@ export class AudioService {
 
   startClock(): void {
     if (!this.audioEnabled()) return;
+    // Un solo tick per volta: se un round riparte senza stop (ripresa dopo
+    // refresh, pausa, nuovo round) gli intervalli si sommerebbero e il
+    // ticchettio resterebbe acceso per tutta la serata.
+    this.stopClock();
     const tick = () => this.tone({ freq: 1650, duration: 0.04, type: 'square', gain: 0.024, slideTo: 900 });
     tick();
     this.clockLoopInterval = setInterval(tick, 1000);
