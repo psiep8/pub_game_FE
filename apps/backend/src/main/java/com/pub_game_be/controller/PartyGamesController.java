@@ -106,15 +106,21 @@ public class PartyGamesController {
         String idempotencyKey = keyOf(body);
         if (idempotencyKey != null && !idempotencyKey.isBlank()) idempotencyKey = roundId + ":" + idempotencyKey;
         Map<String, Object> result = idempotencyService.executeOnce(gameId, idempotencyKey,
-                "TIMELINE_ANSWER", playerName, () -> partyGameService
+                "TIMELINE_ANSWER", playerName, () -> {
+                    // Una risposta per round e giocatore: se il telefono corregge
+                    // l'ordine vale l'ultima, ma l'evento resta uno solo.
+                    boolean firstAnswer = !partyGameService.hasTimelineAnswer(gameId, playerName);
+                    return partyGameService
                         .submitTimeline(gameId, roundId, playerName, order)
                         .map(submission -> {
-                            gameStateService.appendEvent(gameId, "TIMELINE_ANSWER", new JSONObject()
-                                    .put("playerName", submission.playerName())
-                                    .put("score", submission.score())
-                                    .put("correctPairs", submission.correctPairs())
-                                    .put("totalPairs", submission.totalPairs())
-                                    .toString());
+                            if (firstAnswer) {
+                                gameStateService.appendEvent(gameId, "TIMELINE_ANSWER", new JSONObject()
+                                        .put("playerName", submission.playerName())
+                                        .put("score", submission.score())
+                                        .put("correctPairs", submission.correctPairs())
+                                        .put("totalPairs", submission.totalPairs())
+                                        .toString());
+                            }
                             messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", new JSONObject()
                                     .put("action", "TIMELINE_RESULT")
                                     .put("playerName", submission.playerName())
@@ -129,7 +135,8 @@ public class PartyGamesController {
                             ok.put("score", submission.score());
                             return ok;
                         })
-                        .orElse(null));
+                        .orElse(null);
+                });
 
         if (result == null) {
             return ResponseEntity.badRequest()

@@ -735,6 +735,39 @@ class ReliabilityIntegrationTest {
 
     /** Porta la scadenza del round nel passato, come a fine manche. */    }
     }
+
+    @Test
+    void timelineUnaSolaRispostaPerGiocatoreAncheSeCorregge() throws Exception {
+        long gameId = 528L;
+        var token = sessions.register(gameId, "timeline-revise", "REMOTE", "Anna", null).sessionToken();
+        var payload = new org.json.JSONObject(partyGameService.startRound(gameId, "TIMELINE", "Storia"));
+        gameState.startRound(gameId, "TIMELINE", 1, "revise-1", payload.toString());
+
+        var cards = payload.getJSONArray("items");
+        var order = new org.json.JSONArray();
+        var reversed = new org.json.JSONArray();
+        for (int i = 0; i < cards.length(); i++) order.put(cards.getJSONObject(i).getInt("id"));
+        for (int i = cards.length() - 1; i >= 0; i--) reversed.put(cards.getJSONObject(i).getInt("id"));
+
+        var first = new org.json.JSONObject().put("playerName", "Anna")
+                .put("roundId", payload.getString("roundId")).put("order", order)
+                .put("idempotencyKey", "revise-1");
+        var second = new org.json.JSONObject().put("playerName", "Anna")
+                .put("roundId", payload.getString("roundId")).put("order", reversed)
+                .put("idempotencyKey", "revise-2");
+
+        long eventsBefore = gameState.currentSeq(gameId);
+        assertThat(request("POST", "/games/" + gameId + "/timeline-answer", token, null, first.toString()).statusCode())
+                .isEqualTo(200);
+        assertThat(request("POST", "/games/" + gameId + "/timeline-answer", token, null, second.toString()).statusCode())
+                .isEqualTo(200);
+
+        // La correzione vale (ultima risposta), ma l'evento è uno solo:
+        // niente ricevute duplicate nella sequenza della partita.
+        assertThat(gameState.currentSeq(gameId)).isEqualTo(eventsBefore + 1);
+        var reveal = partyGameService.timelineReveal(gameId);
+        assertThat(reveal.getJSONArray("results")).hasSize(1);
+        assertThat(reveal.getJSONArray("results").getJSONObject(0).getString("playerName")).isEqualTo("Anna");
     }
 
     @Test

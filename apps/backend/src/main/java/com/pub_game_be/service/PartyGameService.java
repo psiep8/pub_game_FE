@@ -224,6 +224,15 @@ public class PartyGameService {
         return round != null && round.token().equals(roundId);
     }
 
+    /** Il giocatore ha già risposto al round Timeline corrente? */
+    public boolean hasTimelineAnswer(long gameId, String playerName) {
+        if (playerName == null || playerName.isBlank()) {
+            return false;
+        }
+        hydrateTimeline(gameId);
+        return timelineAnswers.getOrDefault(gameId, Map.of()).containsKey(playerName.trim());
+    }
+
     public Optional<TimelineSubmission> submitTimeline(long gameId, String roundId, String playerName, List<Integer> order) {
         hydrateTimeline(gameId);
         TimelineRound round = timelineRounds.get(gameId);
