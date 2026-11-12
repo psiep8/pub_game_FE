@@ -152,17 +152,22 @@ public class GameController {
             // La deduplica la fa la banca: se la domanda è già uscita ne pesca un'altra.
             aiPayload = questionBank.generateQuestionJson(category, type, difficulty,
                     key -> !questionHistory.isUsed(gameId, key));
-            // Prenotazione atomica: la domanda risulta uscita solo quando il
-            // database conferma. Se un'altra richiesta l'ha presa nello stesso
-            // istante si ripesca, invece di mostrarla due volte.
-            String questionKey = QuestionBankService.payloadDedupeKey(aiPayload);
-            if (!questionHistory.claim(gameId, questionKey, questionKey, type)) {
-                aiPayload = questionBank.generateQuestionJson(category, type, difficulty,
-                        key -> !questionHistory.isUsed(gameId, key));
-                questionKey = QuestionBankService.payloadDedupeKey(aiPayload);
+            // Arena non ha una domanda nel payload: le sue domande vengono
+            // prenotate una per dispositivo da /arena-question. Il wrapper è
+            // identico a ogni round, quindi non va passato dalla deduplica.
+            if (!"ARENA".equalsIgnoreCase(type)) {
+                // Prenotazione atomica: la domanda risulta uscita solo quando il
+                // database conferma. Se un'altra richiesta l'ha presa nello stesso
+                // istante si ripesca, invece di mostrarla due volte.
+                String questionKey = QuestionBankService.payloadDedupeKey(aiPayload);
                 if (!questionHistory.claim(gameId, questionKey, questionKey, type)) {
-                    throw new IllegalStateException("Nessuna domanda nuova disponibile per la categoria "
-                            + category + ": il pool è esaurito.");
+                    aiPayload = questionBank.generateQuestionJson(category, type, difficulty,
+                            key -> !questionHistory.isUsed(gameId, key));
+                    questionKey = QuestionBankService.payloadDedupeKey(aiPayload);
+                    if (!questionHistory.claim(gameId, questionKey, questionKey, type)) {
+                        throw new IllegalStateException("Nessuna domanda nuova disponibile per la categoria "
+                                + category + ": il pool è esaurito.");
+                    }
                 }
             }
         }

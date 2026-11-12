@@ -1011,6 +1011,23 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void arenaSiPuoAprirePiuVolteNellaStessaPartita() {
+        var game = new com.pub_game_be.domain.game.Game();
+        game.setStatus(com.pub_game_be.domain.enums.GameStatus.RUNNING);
+        long gameId = gameRepository.saveAndFlush(game).getId();
+
+        // Il wrapper Arena non contiene una domanda: non deve essere trattato
+        // come un doppione quando la scaletta prevede due Arena (round 24/40).
+        var first = gameController.generateAiRound(gameId, "Sport", "ARENA", "medio");
+        var second = gameController.generateAiRound(gameId, "Sport", "ARENA", "medio");
+
+        assertThat(first.getRoundIndex()).isZero();
+        assertThat(second.getRoundIndex()).isEqualTo(1);
+        assertThat(first.getType()).isEqualTo(com.pub_game_be.domain.enums.GameType.ARENA);
+        assertThat(second.getType()).isEqualTo(com.pub_game_be.domain.enums.GameType.ARENA);
+    }
+
+    @Test
     void arenaChiusaIndicaQuandoRiprovare() throws Exception {
         long gameId = 527L;
         var tv = sessions.register(gameId, "tv-arena-retry", "TV", null, null);
