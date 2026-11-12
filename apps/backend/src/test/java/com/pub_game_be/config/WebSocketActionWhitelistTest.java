@@ -32,7 +32,10 @@ class WebSocketActionWhitelistTest {
             "ANSWER", "ARENA_ANSWER", "TIME_BUZZER_ANSWER", "SPEED_RUSH_PROGRESS");
     /** Dichiarate nell'enum ma nessun client le invia ancora. */
     private static final Set<String> NON_INVIATE = Set.of(
-            "BUTTON_TEST_STEP", "BUTTON_TEST_START", "BUTTON_TEST_RESET", "BUTTON_TEST_SKIP", "BUTTON_TEST_FINISH");
+            "BUTTON_TEST_STEP", "BUTTON_TEST_START", "BUTTON_TEST_RESET", "BUTTON_TEST_SKIP", "BUTTON_TEST_FINISH",
+            "BONUS_RESULT");
+    /** Sotto questo numero il parse è rotto, non l'enum è corto. */
+    private static final int AZIONI_ATTESE = 50;
 
     private static final Path ENUM_FILE = Path.of(
             "..", "frontend", "src", "app", "shared", "enums", "ws-action.ts");
@@ -40,14 +43,22 @@ class WebSocketActionWhitelistTest {
 
     @Test
     void ogniAzionePubblicataDaiClientHaUnaWhitelist() throws IOException {
+        assertThat(ENUM_FILE)
+                .as("enum WsAction non trovato: il test deve girare da apps/backend e leggere %s",
+                        ENUM_FILE.toAbsolutePath().normalize())
+                .exists();
         Map<String, Set<String>> sezioni = leggiEnum();
-        assertThat(sezioni).as("sezioni dell'enum WsAction").isNotEmpty();
+        int totale = sezioni.values().stream().mapToInt(Set::size).sum();
+        assertThat(totale)
+                .as("parse di %s: %d azioni trovate, attese almeno %d (formato cambiato?)",
+                        ENUM_FILE.getFileName(), totale, AZIONI_ATTESE)
+                .isGreaterThanOrEqualTo(AZIONI_ATTESE);
 
         Map<String, Set<String>> ammesse = new LinkedHashMap<>();
         ammesse.put("Telefono -> server", unione(WebSocketConfig.REMOTE_ACTIONS, SOLO_ANSWER, WebSocketConfig.TV_ACTIONS));
         ammesse.put("Prova dei pulsanti", unione(WebSocketConfig.TV_ACTIONS, WebSocketConfig.REMOTE_ACTIONS, NON_INVIATE));
         ammesse.put("Bonus giocati dai telefoni", WebSocketConfig.REMOTE_ACTIONS);
-        ammesse.put("TV -> telefoni", WebSocketConfig.TV_ACTIONS);
+        ammesse.put("TV -> telefoni", unione(WebSocketConfig.TV_ACTIONS, NON_INVIATE));
         ammesse.put("Stato dei singoli giochi", WebSocketConfig.TV_ACTIONS);
         ammesse.put("Comandi del pannello admin", unione(WebSocketConfig.ADMIN_ACTIONS, WebSocketConfig.TV_ACTIONS));
 
@@ -72,7 +83,7 @@ class WebSocketActionWhitelistTest {
     @Test
     void laTvPuoPubblicareQuelloCheMandaDavvero() {
         assertThat(WebSocketConfig.TV_ACTIONS).contains(
-                "BUTTON_TEST_PING", "BONUS_RESULT", "BIGLIE_STATE", "CASINO_STATE", "CAVALLO_STATE",
+                "BUTTON_TEST_PING", "BIGLIE_STATE", "CASINO_STATE", "CAVALLO_STATE",
                 "MUSIC_PHASE", "ADMIN_STATE", "TIME_BUZZER_START");
         assertThat(WebSocketConfig.ADMIN_ACTIONS).contains("ADMIN_SHOW_INTRO", "CHRISTMAS_TOGGLE");
         assertThat(WebSocketConfig.REMOTE_ACTIONS).contains("BUTTON_TEST_PING", "PLAYER_AVATAR");
