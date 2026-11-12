@@ -18,6 +18,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -123,6 +124,44 @@ public class GameStateService {
      */
     public Optional<Long> latestGameId() {
         return states.findFirstByOrderByUpdatedAtDesc().map(GameStateEntity::getGameId);
+    }
+
+    /**
+     * Il round è aperto su questa modalità? La scadenza non conta.
+     *
+     * <p>Serve al Time Buzzer: la sua finestra copre una manche, ma il round
+     * ne ha tre. La scadenza si allunga con {@link #extendRoundDeadline}.</p>
+     */
+    public boolean isCurrentRoundType(long gameId, String roundType) {
+        return states.findById(gameId)
+                .filter(state -> "RUNNING".equals(state.getStatus())
+                        && roundType.equals(state.getRoundType()))
+                .isPresent();
+    }
+
+    /**
+     * Allunga la finestra del round corrente di {@code windowMs} da adesso.
+     *
+     * <p>Non accorcia mai una scadenza già più avanti: la partita non perde
+     * tempo di risposta già concesso.</p>
+     */
+    public void extendRoundDeadline(long gameId, long windowMs) {
+        tx.executeWithoutResult(status -> {
+            GameStateEntity state = states.findById(gameId).orElse(null);
+            if (state == null) {
+                return;
+            }
+            long now = System.currentTimeMillis();
+            long current = state.getRoundDeadlineAt() == null ? now : state.getRoundDeadlineAt();
+            long extended = Math.max(current, now + windowMs);
+            if (extended == current) {
+                return;
+            }
+            state.setRoundDeadlineAt(extended);
+            state.setUpdatedAt(now);
+            state.setVersion(state.getVersion() + 1);
+            states.save(state);
+        });
     }
 
     /** Il round deve essere aperto e appartenere alla modalità richiesta. */
@@ -269,6 +308,39 @@ public class GameStateService {
             state.setLastSnapshotAt(state.getUpdatedAt());
             states.save(state);
         });
+    }
+
+    /**
+     * Round corrente come lo conosce lo stato autorevole.
+     *
+     * <p>L'ultimo {@code game_round} salvato può essere ancora il precedente:
+     * nella partita #129 il bot ha letto {@code WHEEL_OF_FORTUNE} mentre il
+     * round aperto era {@code TIMELINE}. Qui la verità è {@code game_state};
+     * il round salvato serve solo per l'identificativo numerico.</p>
+     */
+    public Optional<Map<String, Object>> currentRound(long gameId) {
+        Optional<GameStateEntity> found = states.findById(gameId);
+        if (found.isEmpty() || found.get().getRoundKey() == null) {
+            return Optional.empty();
+        }
+        GameStateEntity state = found.get();
+        Integer roundIndex = state.getRoundIndex();
+        Optional<GameRound> saved = rounds.findFirstByGameIdOrderByRoundIndexDesc(gameId)
+                .filter(round -> roundIndex == null || roundIndex == round.getRoundIndex());
+
+        JSONObject out = new JSONObject();
+        out.put("id", saved.map(GameRound::getId).orElse(0L));
+        out.put("gameId", gameId);
+        out.put("type", state.getRoundType());
+        out.put("status", "RUNNING".equals(state.getStatus()) ? "VOTING" : state.getStatus());
+        out.put("roundIndex", roundIndex == null ? 0 : roundIndex);
+        out.put("roundKey", state.getRoundKey());
+        // Stringa, come il payload di GameRound: i client lo parsano da soli.
+        // Assente = null: una stringa vuota farebbe esplodere JSON.parse lato client.
+        out.put("payload", state.getPayload() == null ? JSONObject.NULL : state.getPayload());
+        out.put("deadlineAt", state.getRoundDeadlineAt() == null ? JSONObject.NULL : state.getRoundDeadlineAt());
+        // JSONObject non è serializzato da Jackson: la risposta REST passa da una Map.
+        return Optional.of(JsonSupport.toMap(out));
     }
 
     /** Eventi successivi alla sequenza del client, in ordine. */

@@ -94,6 +94,9 @@ class ReliabilityIntegrationTest {
     private GameRoundRepository roundRepository;
 
     @Autowired
+    private com.pub_game_be.repository.GameRepository gameRepository;
+
+    @Autowired
     private PlatformTransactionManager transactionManager;
 
     @Autowired
@@ -540,7 +543,7 @@ class ReliabilityIntegrationTest {
                 new com.pub_game_be.service.SpeedRushService(stateBlobs),
                 new com.pub_game_be.service.BasketService(stateBlobs));
         assertThat(restarted.timeBuzzerStop(gameId, Map.of("playerName", "Anna", "ms", 1)).getStatusCode().value()).isEqualTo(200);
-        assertThat(start.get("manche")).isEqualTo(2);
+        assertThat(((Map<?, ?>) start.getBody()).get("manche")).isEqualTo(2);
         gameState.startRound(gameId, "TIME_BUZZER", 2, "buzzer-2", "{}");
         assertThat(restarted.timeBuzzerStop(gameId, Map.of("playerName", "Anna", "ms", 1)).getStatusCode().value()).isEqualTo(409);
         restarted.timeBuzzerStart(gameId, Map.of());
@@ -725,5 +728,58 @@ class ReliabilityIntegrationTest {
         assertThat(second.getStatusCode().value()).isEqualTo(200);
         assertThat(((Map<?, ?>) second.getBody()).get("replayed")).isEqualTo(true);
         assertThat(questionHistory.scores(gameId)).containsEntry("SquadraDue", 10);
+    }
+    }
+    }
+    }
+
+    /** Porta la scadenza del round nel passato, come a fine manche. */    }
+    }
+    }
+
+    @Test
+    void currentRoundSegueLoStatoAutorevole() throws Exception {
+        var game = new com.pub_game_be.domain.game.Game();
+        game.setStatus(com.pub_game_be.domain.enums.GameStatus.RUNNING);
+        var savedGame = gameRepository.saveAndFlush(game);
+        long gameId = savedGame.getId();
+
+        // Il game_round salvato è ancora il round precedente.
+        var oldRound = new com.pub_game_be.domain.game_round.GameRound();
+        oldRound.setGame(savedGame);
+        oldRound.setRoundIndex(3);
+        oldRound.setType(com.pub_game_be.domain.enums.GameType.WHEEL_OF_FORTUNE);
+        oldRound.setPayload("{\"proverb\":\"vecchio\"}");
+        roundRepository.saveAndFlush(oldRound);
+
+        gameState.startRound(gameId, "TIMELINE", 4, "g-r4-timeline", "{\"type\":\"TIMELINE\",\"count\":6}");
+
+        var tv = sessions.register(gameId, "tv-current", "TV", null, null);
+        var response = request("GET", "/games/" + gameId + "/current-round", tv.sessionToken(), null, null);
+        assertThat(response.statusCode()).isEqualTo(200);
+        var body = json.readTree(response.body());
+        assertThat(body.get("type").asText()).isEqualTo("TIMELINE");
+        assertThat(body.get("roundKey").asText()).isEqualTo("g-r4-timeline");
+        // Il payload resta una stringa JSON, come nel contratto di GameRound.
+        assertThat(body.get("payload").isTextual()).isTrue();
+        assertThat(json.readTree(body.get("payload").asText()).get("count").asInt()).isEqualTo(6);
+    }
+
+    @Test
+    void currentRoundSenzaPayloadRestituisceNull() throws Exception {
+        var game = new com.pub_game_be.domain.game.Game();
+        game.setStatus(com.pub_game_be.domain.enums.GameStatus.RUNNING);
+        long gameId = gameRepository.saveAndFlush(game).getId();
+
+        gameState.startRound(gameId, "TIMELINE", 1, "g-r1-senza-payload", null);
+
+        var tv = sessions.register(gameId, "tv-senza-payload", "TV", null, null);
+        var response = request("GET", "/games/" + gameId + "/current-round", tv.sessionToken(), null, null);
+        assertThat(response.statusCode()).isEqualTo(200);
+        var body = json.readTree(response.body());
+        // null, non "": il client fa JSON.parse solo sulle stringhe.
+        assertThat(body.get("payload").isNull()).isTrue();
+        assertThat(body.get("roundKey").asText()).isEqualTo("g-r1-senza-payload");
+    }
     }
 }
