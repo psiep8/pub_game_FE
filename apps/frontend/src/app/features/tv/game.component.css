@@ -1719,7 +1719,7 @@
 }
 
 .bonus-card {
-  width: min(780px, 92vw);
+  width: min(940px, 94vw);
   max-height: 92dvh;
   overflow: auto;
   padding: clamp(16px, 2.2vw, 32px);
@@ -1742,8 +1742,36 @@
   transform: rotate(-1.2deg);
 }
 
+.bonus-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: clamp(6px, .9vh, 10px);
+  border-bottom: 3px solid var(--coal);
+  margin-bottom: clamp(8px, 1.4vh, 14px);
+}
+
+.bonus-head-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  color: rgba(21, 21, 15, .55);
+  font-family: var(--font-mono);
+  font-size: clamp(.52rem, .78vw, .66rem);
+  font-weight: 800;
+  letter-spacing: .12em;
+  white-space: nowrap;
+}
+.bonus-head-meta b {
+  color: var(--coal);
+  font-size: clamp(.8rem, 1.1vw, 1rem);
+  letter-spacing: .06em;
+}
+
 .bonus-card h2 {
-  margin: 10px 0 2px;
+  margin: 8px 0 0;
   font-family: var(--font-display);
   font-size: clamp(1.9rem, 4.2vw, 3.2rem);
   font-weight: 400;
@@ -1778,6 +1806,25 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+  margin-top: clamp(4px, .9vh, 10px);
+}
+
+/* Oltre otto tavoli la classifica si stampa su due colonne: a 720p una sola
+   colonna di sedici righe non ci sta e finirebbe sotto il bordo. */
+.bonus-scores.dense {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(8, auto);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px 16px;
+}
+
+@media (max-height: 780px) {
+  .bonus-card { padding: 14px 18px; }
+  .bonus-card h2 { font-size: clamp(1.5rem, 3.4vw, 2.2rem); }
+  .bonus-scores-head { margin-top: 6px; }
+  .bonus-scores div.bonus-row { padding: 4px 10px; }
+  .bonus-pos { width: 24px; height: 24px; }
 }
 
 .bonus-scores div.bonus-row {

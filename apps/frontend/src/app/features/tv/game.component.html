@@ -326,12 +326,21 @@
 @if (bonusShowResult()) {
 <div class="bonus-overlay">
   <div class="bonus-card">
-    <div class="bonus-kicker">BONUS CONCLUSO</div>
-    <h2>{{ bonusLabel() }}</h2>
-    <p class="bonus-hint">Classifica del bonus · punti già in tabellone</p>
+    <header class="bonus-head">
+      <div class="bonus-head-title">
+        <div class="bonus-kicker">BONUS CONCLUSO</div>
+        <h2>{{ bonusLabel() }}</h2>
+      </div>
+      <div class="bonus-head-meta">
+        <span>CLASSIFICA DEL BONUS</span>
+        <b>{{ bonusResult().length }} TAVOLI</b>
+      </div>
+    </header>
     @if (bonusResult().length) {
-      <div class="bonus-scores-head"><span>POS</span><span>TAVOLO</span><span>PUNTI</span></div>
-      <div class="bonus-scores">
+      @if (bonusResult().length <= 8) {
+        <div class="bonus-scores-head"><span>POS</span><span>TAVOLO</span><span>PUNTI</span></div>
+      }
+      <div class="bonus-scores" [class.dense]="bonusResult().length > 8">
         @for (row of bonusResult(); track row.playerName; let i = $index) {
           <div class="bonus-row" [class.win]="i === 0">
             <span class="bonus-pos">{{ i + 1 }}</span>
