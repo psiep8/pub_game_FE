@@ -109,6 +109,9 @@ class ReliabilityIntegrationTest {
     private EntityManager entityManager;
 
     @Autowired
+    private StateBlobService stateBlobService;
+
+    @Autowired
     private com.pub_game_be.reliability.repository.DeviceSessionRepository sessionRepository;
 
     @Test
@@ -175,7 +178,7 @@ class ReliabilityIntegrationTest {
         // Due istanze con lock Java separati, come due processi che condividono
         // lo stesso database: l'unicità del seq non può dipendere dal lock JVM.
         GameStateService secondInstance = new GameStateService(stateRepository, eventRepository,
-                roundRepository, properties, transactionManager, entityManager);
+                roundRepository, properties, transactionManager, entityManager, stateBlobService);
 
         int workers = 8;
         ExecutorService pool = Executors.newFixedThreadPool(workers);

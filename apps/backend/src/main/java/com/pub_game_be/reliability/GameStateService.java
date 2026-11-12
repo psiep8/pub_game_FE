@@ -47,17 +47,20 @@ public class GameStateService {
     private final TransactionTemplate tx;
     private final TransactionTemplate ensureTx;
     private final EntityManager entityManager;
+    private final StateBlobService stateBlobs;
     /** Un lock per partita: riduce il contention, ma il seq è deciso dal DB. */
     private final ConcurrentMap<Long, Object> eventLocks = new ConcurrentHashMap<>();
 
     public GameStateService(GameStateRepository states, GameEventRepository events,
             GameRoundRepository rounds, ReliabilityProperties props,
-            PlatformTransactionManager transactionManager, EntityManager entityManager) {
+            PlatformTransactionManager transactionManager, EntityManager entityManager,
+            StateBlobService stateBlobs) {
         this.states = states;
         this.events = events;
         this.rounds = rounds;
         this.props = props;
         this.entityManager = entityManager;
+        this.stateBlobs = stateBlobs;
         this.tx = new TransactionTemplate(transactionManager);
         this.ensureTx = new TransactionTemplate(transactionManager);
         this.ensureTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
@@ -165,12 +168,15 @@ public class GameStateService {
 
     /** Chiude esplicitamente il round: nessuna risposta tardiva accettata. */
     public Change closeRound(long gameId, String reason) {
-        return appendEvent(gameId, "ROUND_CLOSED",
+        Change change = appendEvent(gameId, "ROUND_CLOSED",
                 new JSONObject().put("reason", reason).toString(), null, null,
                 state -> {
                     state.setStatus("WAITING");
                     state.setRoundDeadlineAt(System.currentTimeMillis());
                 });
+        // Round chiuso: la mano Blackjack non va più ripresa.
+        forgetBlackjackState(gameId);
+        return change;
     }
 
     /**
@@ -238,6 +244,26 @@ public class GameStateService {
         return appendEvent(gameId, type, payload, null, null, null);
     }
 
+    // -------------------------------------------------- Mano Blackjack
+
+    /** Chiave del blob con la mano Blackjack in corso (una per partita). */
+    public static final String BLACKJACK_BLOB = "blackjack-hand";
+
+    /** Salva lo snapshot della mano: la TV lo riscrive a ogni cambio di fase. */
+    public void saveBlackjackState(long gameId, String json) {
+        stateBlobs.save(gameId, BLACKJACK_BLOB, json);
+    }
+
+    /** Snapshot salvato della mano, se la TV ne ha lasciato uno. */
+    public Optional<JSONObject> blackjackState(long gameId) {
+        return stateBlobs.load(gameId, BLACKJACK_BLOB).map(JSONObject::new);
+    }
+
+    /** Cancella la mano salvata quando il round si chiude. */
+    public void forgetBlackjackState(long gameId) {
+        stateBlobs.forget(gameId, BLACKJACK_BLOB);
+    }
+
     // -------------------------------------------------- Snapshot e sincronizzazione
 
     /** Snapshot completo: è ciò che un client chiede quando torna online. */
@@ -269,6 +295,8 @@ public class GameStateService {
 
         Optional<GameRound> current = rounds.findFirstByGameIdOrderByRoundIndexDesc(gameId);
         out.put("currentRound", current.map(this::roundJson).orElse(null));
+        // Mano Blackjack salvata dalla TV: serve a riprenderla dopo un refresh.
+        out.put("blackjackState", blackjackState(gameId).orElse(null));
         return out;
     }
 

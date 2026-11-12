@@ -116,6 +116,30 @@ public class ReliabilityController {
         return Map.of("code", pairing.issue(gameId), "ttlSeconds", PairingCodeService.TTL.toSeconds());
     }
 
+    /**
+     * Snapshot della mano Blackjack, salvato dalla TV a ogni cambio di fase.
+     * Serve a riprendere la mano dopo un refresh: solo una sessione TV di
+     * questa partita può scriverlo.
+     */
+    @PostMapping("/blackjack-state")
+    public ResponseEntity<Object> saveBlackjackState(@PathVariable("gameId") Long gameId,
+            @RequestBody(required = false) Map<String, Object> body) {
+        Map<String, Object> payload = body == null ? Map.of() : body;
+        boolean tvSession = sessions.authenticate(string(payload.get("sessionToken")))
+                .filter(s -> s.getGameId().equals(gameId) && "TV".equals(s.getRole())).isPresent();
+        if (!tvSession) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Sessione TV non valida"));
+        }
+        Object state = payload.get("state");
+        if (state == null) {
+            gameState.forgetBlackjackState(gameId);
+        } else {
+            gameState.saveBlackjackState(gameId, new JSONObject(state).toString());
+        }
+        return ResponseEntity.ok(Map.of("saved", true));
+    }
+
     private boolean secretMatches(String supplied) {
         return controlSecret != null && controlSecret.length() >= 32 && supplied != null
                 && MessageDigest.isEqual(controlSecret.getBytes(StandardCharsets.UTF_8),
