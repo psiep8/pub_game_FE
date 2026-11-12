@@ -151,6 +151,19 @@ export class ReliabilityService {
     }
   }
 
+  /**
+   * Salva la mano Blackjack sul server (solo la TV). Un errore di rete non
+   * ferma il gioco: al peggio la ripresa mostra il round senza la mano.
+   */
+  saveBlackjackState(state: unknown | null): void {
+    const token = this.sessionToken();
+    if (!token || this.role !== 'TV' || this.gameId == null) return;
+    this.http.post(`${this.baseUrl}/games/${this.gameId}/blackjack-state`, {
+      sessionToken: token,
+      state,
+    }).subscribe({ error: () => undefined });
+  }
+
   /** Riapre la sessione con il token salvato (o ne crea una nuova). */
   async ensureSession(): Promise<boolean> {
     try {

@@ -54,6 +54,8 @@ export interface GameModeConfig {
   /** Speed Rush: la TV apre la sessione e chiude la corsa sul server. */
   startSpeedRush?: (players: string[]) => Promise<any>;
   finishSpeedRush?: () => Promise<any[]>;
+  /** Blackjack: la TV salva lo stato della mano sul server a ogni cambio. */
+  onBlackjackState?: (state: unknown | null) => void;
 }
 
 export interface GameModeResult {
@@ -75,7 +77,7 @@ export interface IGameMode {
   setConfig(config: GameModeConfig): void;
   start(): Promise<void> | void;
   /** Ripresa dopo un refresh: timer dal tempo rimasto, nessun nuovo round. */
-  restore?(secondsLeft: number): void;
+  restore?(secondsLeft: number, snapshot?: unknown): void;
   pause(): void;
   resume(): void;
   stop(): void;

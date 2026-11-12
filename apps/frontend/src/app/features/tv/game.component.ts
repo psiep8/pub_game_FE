@@ -197,6 +197,7 @@ export class GameComponent implements OnInit, OnDestroy {
     resumable: boolean;
   } | null>(null);
   private recoveredPayload: any = null;
+  private recoveredBlackjackState: any = null;
   private leaderboardFlush?: ReturnType<typeof setTimeout>;
   /** Ultima variazione locale e ultima confermata dal server. */
   private leaderboardPendingSeq = 0;
@@ -868,6 +869,7 @@ export class GameComponent implements OnInit, OnDestroy {
       onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
       onRoundEnded: () => this.onArenaEnded(),
       onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!, event),
+      onBlackjackState: (state: unknown | null) => this.reliability.saveBlackjackState(state),
       onUltimaSpiaggiaLevel: (playerName: string, level: number) => {
         // Il livello è consumato per tutta la partita, non solo per la manche:
         // la prossima occorrenza lo legge dal backend e non lo ripropone.
@@ -2024,20 +2026,25 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.currentMode() || this.bonusActive() || this.isSpinning() || this.showTypeReveal()) return;
 
     this.recoveredPayload = snapshot.currentRound?.payload ?? snapshot.payload ?? null;
+    this.recoveredBlackjackState = snapshot.blackjackState ?? null;
     this.recoveredRound.set({
       type: type as GameModeType,
       label: this.getModeName(type),
       secondsLeft: Math.max(0, Math.ceil((deadline - this.reliability.serverNow()) / 1000)),
       // Solo Timeline ha tutto sul server: le carte nel payload e gli esiti
       // riletti al reveal. Gli altri giochi tengono mani e fasi solo in TV.
-      resumable: type === 'TIMELINE' && !!this.recoveredPayload,
+      // Timeline ha le carte nel payload. Blackjack ha la mano salvata sul
+      // server: senza di essa il tavolo non si può riprendere.
+      resumable: (type === 'TIMELINE' && !!this.recoveredPayload)
+        || (type === 'BLACKJACK' && !!snapshot?.blackjackState),
     });
   }
 
   async resumeRecoveredRound(): Promise<void> {
     const pending = this.recoveredRound();
     const payload = this.recoveredPayload;
-    if (!pending?.resumable || !payload) return;
+    const blackjack = this.recoveredBlackjackState;
+    if (!pending?.resumable || (!payload && !blackjack)) return;
 
     this.recoveredRound.set(null);
     this.showQuestion.set(true);
@@ -2056,7 +2063,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.timer.set(pending.secondsLeft);
     this.audioService.startClock();
     this.startRoundSuspense(mode.type);
-    if (mode.restore) mode.restore(pending.secondsLeft);
+    if (mode.restore) mode.restore(pending.secondsLeft, this.recoveredBlackjackState);
     else await mode.start();
     this.cdr.detectChanges();
   }
@@ -2069,6 +2076,8 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!this.recoveredRound()) return;
     this.recoveredRound.set(null);
     this.recoveredPayload = null;
+    this.recoveredBlackjackState = null;
+    this.reliability.saveBlackjackState(null);
     this.gameService.closeRound(this.currentGameId(), 'recovered').subscribe({
       next: () => {
         if (advance) void this.startNewRound();

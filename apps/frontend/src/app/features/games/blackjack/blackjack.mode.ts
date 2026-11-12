@@ -27,6 +27,21 @@ export interface BlackjackRow {
   points: number;
 }
 
+/** Stato serializzato della mano: il server lo conserva per la ripresa. */
+export interface BlackjackSnapshot {
+  players: string[];
+  deck: string[];
+  bankCards: string[];
+  handIndex: number;
+  round: number;
+  tableIndex: number;
+  phase: BlackjackPhase;
+  cards: string[];
+  choice: 'HIT' | 'STAND' | null;
+  rows: BlackjackRow[];
+  result: BlackjackResult | null;
+}
+
 export interface BlackjackResult {
   outcome: BlackjackOutcome;
   points: number;
@@ -317,6 +332,67 @@ export class BlackjackMode extends GameModeBase {
       action: WsAction.BLACKJACK_STATE,
       state: this.getDisplayData(),
     });
+    // Ogni cambio di fase passa da qui: la mano salvata sul server è sempre
+    // quella mostrata in TV, anche dopo un refresh.
+    this.config.onBlackjackState?.(this.snapshot());
+  }
+
+  /** Stato completo della mano: basta a riprendere il tavolo dove era. */
+  snapshot(): BlackjackSnapshot {
+    return {
+      players: [...this.players],
+      deck: [...this.deck],
+      bankCards: [...this.bankCards],
+      handIndex: this.handIndex(),
+      round: this.round(),
+      tableIndex: this.tableIndex(),
+      phase: this.phase(),
+      cards: [...this.cards()],
+      choice: this.choice(),
+      rows: this.rows().map((row) => ({ ...row })),
+      result: this.result() ? { ...this.result()! } : null,
+    };
+  }
+
+  /**
+   * Ripresa dopo un refresh della TV: rimette in piedi la mano salvata e
+   * riparte il cronometro dal tempo rimasto. Il reveal e il finale
+   * riprendono nella stessa fase, senza rigiocare i round già chiusi.
+   */
+  restore(secondsLeft: number, snapshot?: unknown): void {
+    const saved = snapshot as BlackjackSnapshot | undefined;
+    if (!saved || !Array.isArray(saved.players)) return;
+
+    this.clearClock();
+    this.players = [...saved.players];
+    this.deck = [...saved.deck];
+    this.bankCards = [...saved.bankCards];
+    this.handIndex.set(saved.handIndex);
+    this.round.set(saved.round);
+    this.tableIndex.set(saved.tableIndex);
+    this.phase.set(saved.phase);
+    this.cards.set([...saved.cards]);
+    this.choice.set(saved.choice);
+    this.rows.set(saved.rows.map((row) => ({ ...row })));
+    this.result.set(saved.result ? { ...saved.result } : null);
+    this.finished = false;
+    // Durante la decisione il banco mostra solo la prima carta, come in gioco.
+    const hidden = saved.phase === BlackjackPhase.DECIDE;
+    const shown = hidden ? saved.bankCards.slice(0, 1) : [...saved.bankCards];
+    this.bank.set({
+      cards: shown,
+      total: hidden ? handTotal(shown) : (saved.result ? saved.result.bankTotal : handTotal(shown)),
+      hidden,
+    });
+
+    const seconds = Math.max(0, Math.round(Number(secondsLeft) || 0));
+    if (saved.phase === BlackjackPhase.FINALE) {
+      this.startClock(seconds, () => this.finish());
+    } else if (saved.phase === BlackjackPhase.REVEAL) {
+      this.startClock(seconds, () => this.startHand(this.handIndex() + 1));
+    } else {
+      this.startClock(seconds, () => this.reveal(true));
+    }
   }
 
   private buildDeck(): string[] {
