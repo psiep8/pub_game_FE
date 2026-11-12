@@ -13,7 +13,7 @@ PubGame è un gioco multigiocatore per locali e feste: la TV mostra domande, tab
 
 PubGame porta in sala un quiz a squadre in stile pub: nessuna app da installare, nessun account, un QR code sulla TV e il browser del telefono. La regia decide quando parte un round e quando si passa al successivo; il backend tiene sessioni, stato e recupero dopo un refresh.
 
-La versione è **2.0.0**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
+La versione è **2.0.1**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
 
 ## 2. Come si gioca
 
@@ -111,6 +111,8 @@ npm run dev
 
 La guida passo-passo per computer, TV, telefoni, Docker, LAN e problemi frequenti è in **[`docs/SETUP-LOCALE.md`](docs/SETUP-LOCALE.md)**. Per tunnel, dominio, Vercel, PWA e backup la guida è **[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)**; per il container unico c'è **[`deploy/README.md`](deploy/README.md)**. Questo README non li duplica.
 
+Per chi conduce la serata la guida operativa è **[`docs/PRESENTATORE.md`](docs/PRESENTATORE.md)** (schermi, pulsanti, decisioni, imprevisti); il copione con le frasi da dire resta **[`PRESENTAZIONE-PUBGAME.md`](PRESENTAZIONE-PUBGAME.md)**. I pulsanti del pannello sono in **[`docs/PANNELLO-ADMIN.md`](docs/PANNELLO-ADMIN.md)**, il telefono delle squadre in **[`docs/MANUALE-TELEFONO.md`](docs/MANUALE-TELEFONO.md)**.
+
 ## 7. Struttura delle cartelle
 
 ```text
@@ -152,7 +154,7 @@ npm run build:frontend   # ng build
 npm run build:backend    # Maven package
 ```
 
-Il frontend ha **28 file di spec**; il backend **11 classi di test**. Le verifiche coprono, tra l'altro: regole di punteggio e scaletta, contenuti del manuale, copertura delle demo, round manager, apertura/chiusura del manuale sul telefono, modalità TV, sessioni e riconnessione, prova dei pulsanti, API e servizi del backend.
+Il frontend ha **29 file di spec**; il backend **18 classi di test**. Le verifiche coprono, tra l'altro: regole di punteggio e scaletta, contenuti del manuale, copertura delle demo, round manager, apertura/chiusura del manuale sul telefono, modalità TV, sessioni e riconnessione, prova dei pulsanti, API e servizi del backend.
 
 **Limiti noti dei test**: non esiste ancora una prova end-to-end multi-dispositivo in rete; i controlli visivi sono manuali (TV e telefono); i timer dichiarati dal client non sono interamente verificabili dal server.
 
@@ -177,7 +179,7 @@ Prima di una serata con telefoni veri:
 1. `cp .env.test-night.example .env` e compila `CONTROL_SECRET` (≥ 32 caratteri) e `ALLOWED_ORIGINS` con IP LAN del PC.
 2. `npm run db:backup` (copia in `backups/`, fuori dal repository).
 3. `npm run dev`, poi `curl http://localhost:8080/health` deve rispondere `{"status":"ok"}`.
-   Con Docker: `PUBGAME_TAG=2.0.0 docker compose up -d` fissa la versione, così un
+   Con Docker: `PUBGAME_TAG=2.0.1 docker compose up -d` fissa la versione, così un
    aggiornamento sbagliato si annulla cambiando tag.
 4. Giro a vuoto con un iPhone e un Android: ingresso, un round, refresh della TV, blocco schermo di 60 secondi.
 

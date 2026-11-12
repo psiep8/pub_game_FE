@@ -59,11 +59,18 @@ export class ReliabilityService {
    * lato server: serve solo a non richiederlo a ogni riavvio della sessione.
    */
   private pairingCode: string | null = null;
+  /** False per la regia: il codice si chiede nel pannello, non con window.prompt. */
+  private promptForCode = true;
   /** Segreto di regia inserito in questa scheda: serve solo alla TV per generare codici. */
   private controlSecret: string | null = null;
 
   /** Avvia sessione e heartbeat per questo dispositivo (idempotente). */
-  async start(gameId: number, role: DeviceRole, playerName = ''): Promise<boolean> {
+  async start(
+    gameId: number,
+    role: DeviceRole,
+    playerName = '',
+    promptForCode = true,
+  ): Promise<boolean> {
     if (role === 'REMOTE' && !playerName.trim()) return false;
     if (this.started && gameId === this.gameId && role === this.role && playerName.trim() === this.playerName
       && this.sessionToken()) {
@@ -74,6 +81,7 @@ export class ReliabilityService {
     this.role = role;
     this.playerName = playerName.trim();
     this.gameId = gameId;
+    this.promptForCode = promptForCode;
     this.started = true;
     this.heartbeatFailures = 0;
     this.ws.subscribeToGame(gameId);
@@ -95,6 +103,22 @@ export class ReliabilityService {
       this.heartbeatTimer = undefined;
     }
     return registered;
+  }
+
+  /**
+   * Abbinamento della regia con il codice scritto nel pannello: niente
+   * window.prompt, il riquadro "Regia non abbinata" sta nell'admin.
+   */
+  async pairAdmin(gameId: number, code: string): Promise<boolean> {
+    const value = code.trim();
+    if (!value) return false;
+    this.role = 'ADMIN';
+    this.gameId = gameId;
+    this.sessionToken.set(null);
+    this.persistToken(null);
+    this.started = false;
+    this.pairingCode = value;
+    return this.start(gameId, 'ADMIN', '', false);
   }
 
   stop(): void {
@@ -170,9 +194,12 @@ export class ReliabilityService {
       const token = this.sessionToken() ?? this.storedToken();
       const needsAuth = !token && this.role !== 'REMOTE';
       // Codice breve dalla TV (4-6 cifre); il segreto completo resta come ripiego.
-      const pairingCode = needsAuth
-        ? (this.pairingCode ??= window.prompt('Inserisci il codice della TV'))
-        : null;
+      // Il codice già inserito nel pannello vale anche quando il prompt è spento.
+      let pairingCode = needsAuth ? this.pairingCode : null;
+      if (!pairingCode && needsAuth && this.promptForCode) {
+        pairingCode = window.prompt('Inserisci il codice della TV');
+        this.pairingCode = pairingCode;
+      }
       if (needsAuth && !pairingCode) return false;
       const response = await firstValueFrom(
         this.http.post<any>(`${this.baseUrl}/games/${this.gameId}/session`, {
@@ -213,7 +240,12 @@ export class ReliabilityService {
         this.pairingCode = null;
       }
       this.online.set(false);
-      this.lastError.set(status === 409 ? 'Nome già in uso, scegline un altro' : 'Sessione non disponibile');
+      // La regia che ha appena battuto un codice deve sapere che il problema è
+      // il codice, non il backend: "Sessione non disponibile" sembrava un guasto.
+      const rejectedCode = status === 401 && !this.sessionToken();
+      this.lastError.set(status === 409
+        ? 'Nome già in uso, scegline un altro'
+        : rejectedCode ? 'Codice TV non valido o scaduto' : 'Sessione non disponibile');
       return false;
     }
   }

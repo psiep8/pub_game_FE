@@ -241,9 +241,16 @@ public class ReliabilityController {
         return JsonSupport.toMap(snapshot);
     }
 
-    /** Diagnostica leggibile dall'admin durante la serata. */
+    /**
+     * Diagnostica leggibile dall'admin durante la serata.
+     *
+     * <p>È leggibile anche senza sessione, così la regia non ancora abbinata non
+     * vede un pannello morto. In quel caso però gli eventi recenti restano fuori:
+     * i loro payload contengono le soluzioni, che i telefoni non devono leggere.</p>
+     */
     @GetMapping("/diagnostics")
-    public Map<String, Object> diagnostics(@PathVariable("gameId") Long gameId) {
+    public Map<String, Object> diagnostics(@PathVariable("gameId") Long gameId, HttpServletRequest request) {
+        boolean paired = request.getAttribute("pubgame.session") != null;
         JSONObject snapshot = gameState.snapshot(gameId);
         JSONObject devices = sessions.summary(gameId);
         long now = System.currentTimeMillis();
@@ -264,7 +271,10 @@ public class ReliabilityController {
         out.put("lastEventAt", last.map(e -> e.getCreatedAt()).orElse(null));
         out.put("lastEventType", last.map(e -> e.getType()).orElse(null));
         out.put("events", gameState.eventCount(gameId));
-        out.put("recentEvents", JsonSupport.toList(gameState.recentEvents(gameId, 8)));
+        out.put("recentEvents", paired
+                ? JsonSupport.toList(gameState.recentEvents(gameId, 8))
+                : java.util.List.of());
+        out.put("recentEventsHidden", !paired);
         out.put("devices", JsonSupport.toMap(devices));
         out.put("presence", JsonSupport.toList(sessions.presence(gameId)));
         out.put("questionsUsed", questionUsage.count(gameId));

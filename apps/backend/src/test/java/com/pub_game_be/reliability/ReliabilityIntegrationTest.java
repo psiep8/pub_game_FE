@@ -368,7 +368,14 @@ class ReliabilityIntegrationTest {
         String admin = json.readTree(adminResponse.body()).get("sessionToken").asText();
         assertThat(request("POST", base + "/session/disconnect", anna, null,
                 "{\"sessionToken\":\"" + admin + "\"}").statusCode()).isEqualTo(403);
-        assertThat(request("GET", base + "/diagnostics", admin, null, null).statusCode()).isEqualTo(200);
+        var adminDiagnostics = json.readTree(request("GET", base + "/diagnostics", admin, null, null).body());
+        assertThat(adminDiagnostics.get("recentEventsHidden").asBoolean()).isFalse();
+        // Regia non ancora abbinata: la diagnostica resta leggibile, ma senza gli eventi
+        // recenti, che contengono le soluzioni delle domande.
+        var guestDiagnostics = json.readTree(request("GET", base + "/diagnostics", null, null, null).body());
+        assertThat(guestDiagnostics.get("recentEvents").size()).isZero();
+        assertThat(guestDiagnostics.get("recentEventsHidden").asBoolean()).isTrue();
+        assertThat(guestDiagnostics.has("status")).isTrue();
         var question = request("GET", base + "/arena-question?category=STORIA&playerId=Anna", anna, null, null);
         assertThat(question.statusCode()).isEqualTo(200);
         var arena = json.readTree(question.body());

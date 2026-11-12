@@ -17,6 +17,9 @@ admin e del telefono.
   un refresh nella stessa fase, la riprende.
 - `docs/PANNELLO-ADMIN.md`: guida ai pulsanti e alle decisioni del pannello admin.
 - `docs/MANUALE-TELEFONO.md`: guida per le squadre.
+- `docs/PRESENTATORE.md`: guida operativa di chi conduce — schermi, abbinamento
+  della regia, pre-volo, un round passo per passo, giochi simultanei,
+  imprevisti e chiusura.
 
 ### Modificato
 
@@ -24,6 +27,25 @@ admin e del telefono.
   TypeScript 6.0.3). Nessun cambio di major. `npm audit`: 0 vulnerabilità.
 - `PRESENTAZIONE-PUBGAME.md`: etichette dei pulsanti admin allineate al pannello
   reale (PARTI, PROSSIMA MANCHE, DEMO, CHIUDI BONUS).
+- Punteggi del copione allineati a `SCORING_RULES` (Quiz, Musica, Timeline,
+  Bomba, Speed Rush, Cavallo) e nota esplicita che Speed Rush e Bonus Basket
+  sono bloccati in serata reale e che i bonus non entrano in classifica.
+- `MANUALE-TELEFONO.md` corretto sul flusso vero: niente codice a 6 cifre sul
+  telefono (è della regia), ingresso con QR e nome squadra.
+
+### Corretto
+
+- Pannello admin senza codice TV: l'avvio si fermava e sembrava il backend spento.
+  Ora compare il riquadro **🔒 REGIA NON ABBINATA** con campo a 6 cifre e pulsante
+  **ABBINA REGIA**, mentre diagnostica e categorie si caricano lo stesso.
+- La View Transition del primo caricamento non viene più avviata: spariva un
+  `InvalidStateError` in console a ogni apertura di TV, admin e telefono.
+- Skin carta e inchiostro per categorie, diagnostica e comandi del pannello
+  admin: via i riquadri blu/viola, i raggi 8–14px e le pillole del vecchio tema.
+- Telefono: i tasti di Speed Rush non sono più bianco su bianco, la mano di
+  Blackjack e il goal di Air Hockey usano i token della palette.
+- Versione **2.0.1** su `VERSION`, root, frontend e backend; README allineato a
+  29 spec frontend e 18 classi di test backend.
 
 ## [2.0.0] — 2026-11-12
 

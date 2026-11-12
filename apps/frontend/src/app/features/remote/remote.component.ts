@@ -57,25 +57,23 @@ import {
     .hockey-goal-overlay {
       position: fixed; inset: 0; z-index: 80; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 6px; text-align: center;
-      padding: 24px; background: #15803d; color: #fff; animation: hockeyGoalIn .22s ease-out;
+      padding: 24px; background: var(--mint); color: var(--coal);
+      border: 6px solid var(--coal); animation: hockeyGoalIn .22s ease-out;
     }
-    .hockey-goal-overlay.conceded { background: #b91c1c; }
+    .hockey-goal-overlay.conceded { background: var(--tomato); color: var(--paper-hi); }
     .hockey-goal-kicker { font-family: var(--font-mono); font-size: .72rem; font-weight: 700; letter-spacing: .18em; opacity: .85; }
     .hockey-goal-word { font-family: var(--font-display); font-size: clamp(2.6rem, 12vw, 4.6rem); line-height: .95; text-transform: uppercase; }
     .hockey-goal-score { font-family: var(--font-display); font-size: clamp(3.4rem, 18vw, 6rem); line-height: 1; }
     .hockey-goal-note { font-family: var(--font-mono); font-size: .8rem; letter-spacing: .12em; opacity: .9; }
     @keyframes hockeyGoalIn { from { transform: scale(.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-    .party-instruction { text-align: center; font-size: .95rem; opacity: .85; margin: 0; }
-    .party-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .party-card { position: relative; padding: 14px 10px; border-radius: 14px; border: 2px solid rgba(255,255,255,.15); background: rgba(255,255,255,.06); color: #fff; font-size: .9rem; text-align: left; }
-    .party-card.selected { border-color: #a78bfa; background: rgba(167,139,250,.25); }
-    .party-badge { display: inline-block; width: 20px; height: 20px; line-height: 20px; border-radius: 50%; background: #a78bfa; color: #1e1b4b; font-weight: 800; font-size: .75rem; text-align: center; margin-right: 6px; }
-    .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .key { padding: 16px; font-size: 1.3rem; border-radius: 12px; border: none; background: rgba(255,255,255,.12); color: #fff; }
-    .key:active { background: rgba(255,255,255,.3); }
-    .speed-big { width: 100%; min-height: 150px; font-size: 2rem; font-weight: 900; border-radius: 20px; border: none; background: linear-gradient(135deg,#f97316,#fbbf24); color: #1f2937; }
+    .party-instruction { text-align: center; margin: 0; color: rgba(21, 21, 15, .7); font-family: var(--font-mono); font-size: .8rem; }
     .emoji-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .emoji-btn { padding: 22px; font-size: 2rem; border-radius: 16px; border: none; background: rgba(255,255,255,.12); color: #fff; }
+    .emoji-btn {
+      padding: 22px; background: var(--paper-hi); color: var(--coal);
+      border: 3px solid var(--coal); border-radius: 0; box-shadow: 4px 4px 0 var(--coal);
+      font-family: var(--font-mono); font-size: 2rem;
+    }
+    .emoji-btn:active { background: var(--acid); transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--coal); }
     .hockey-score {
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
       background: var(--paper-hi); color: var(--coal); border: 3px solid var(--coal);
@@ -120,19 +118,21 @@ import {
     .hockey-result { text-align: center; font-family: var(--font-mono); font-size: .8rem; font-weight: 700; letter-spacing: .16em; color: var(--tomato); }
     @keyframes hockeyBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
     .bonus-remote { display: flex; flex-direction: column; gap: 14px; padding: 16px; height: 100%; justify-content: center; }
-    .casino-colors { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .casino-color { padding: 18px 10px; border-radius: 14px; border: 2px solid rgba(255,255,255,.2); background: rgba(255,255,255,.08); color: #fff; font-weight: 800; letter-spacing: .06em; }
-    .casino-color.picked { border-color: #fbbf24; background: rgba(251,191,36,.25); }
-    .casino-numbers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-height: 52vh; overflow: auto; }
-    .casino-number { padding: 12px 0; border-radius: 10px; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: #fff; font-weight: 700; font-family: var(--font-mono, monospace); }
-    .casino-number.picked { border-color: #fbbf24; background: rgba(251,191,36,.25); color: #fbbf24; }
-    .casino-hand { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px; border-radius: 14px; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); }
-    .casino-hand-label { font-size: .66rem; letter-spacing: .18em; color: #fbbf24; font-weight: 800; }
+    .casino-hand {
+      display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px;
+      background: var(--paper-hi); color: var(--coal);
+      border: 3px solid var(--coal); box-shadow: 5px 5px 0 var(--tomato);
+    }
+    .casino-hand-label { font-family: var(--font-mono); font-size: .66rem; letter-spacing: .18em; color: var(--tomato); font-weight: 700; }
     .casino-cards { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
-    .casino-card { display: inline-grid; place-items: center; min-width: 38px; height: 50px; padding: 0 4px; border-radius: 8px; background: #f8fafc; color: #0f172a; font-family: var(--font-mono, monospace); font-weight: 800; }
-    .casino-card.red { color: #dc2626; }
-    .casino-hand-total { font-size: 1.8rem; font-weight: 900; }
-    .casino-hand-total.bust { color: #f87171; }
+    .casino-card {
+      display: inline-grid; place-items: center; min-width: 38px; height: 50px; padding: 0 4px;
+      background: var(--paper); color: var(--coal); border: 2px solid var(--coal);
+      font-family: var(--font-mono); font-weight: 800;
+    }
+    .casino-card.red { color: var(--tomato); }
+    .casino-hand-total { font-family: var(--font-display); font-size: 2rem; line-height: 1; }
+    .casino-hand-total.bust { color: var(--tomato); }
     .casino-bj-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .casino-hit, .casino-stand { padding: 20px 10px; border: 3px solid var(--coal); border-radius: 0; box-shadow: 4px 4px 0 var(--coal); font-size: 1rem; font-weight: 900; letter-spacing: .06em; }
     .casino-hit { background: var(--tomato); color: var(--paper-hi); }

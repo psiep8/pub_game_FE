@@ -13,14 +13,21 @@ pannello admin e in TV, nei momenti previsti dal gioco.
 
 ## 1. Prima di iniziare
 
-1. Inserisci il numero della partita nel campo **PARTITA #** (il numero che la TV mostra
+1. Apri `/admin` dal telefono o dal tablet del presentatore. Se è la prima volta in
+   questa scheda compare il riquadro **🔒 REGIA NON ABBINATA** con il campo *Codice a
+   6 cifre* e il pulsante **ABBINA REGIA**: il codice è quello del riquadro **CODICE
+   REGIA** sulla lobby TV. Se il codice non c'è, premilo sulla TV con **GENERA CODICE**
+   (serve il segreto di regia). Vale 5 minuti e una volta sola: dopo 5 tentativi
+   sbagliati la partita blocca per un minuto. Finché la regia non è abbinata il pannello
+   mostra comunque **diagnostica** e **categorie**, ma i comandi non arrivano alla TV.
+2. Inserisci il numero della partita nel campo **PARTITA #** (il numero che la TV mostra
    nella lobby). Senza questo numero il pannello non sa a quale TV parlare.
-2. Controlla il riquadro **📡 CONNESSIONI & SALVATAGGIO**:
+3. Controlla il riquadro **📡 CONNESSIONI & SALVATAGGIO**:
    - **Stato partita** e **Round** dicono in che punto siamo.
    - **Round aperto** deve essere *no* prima di iniziare un round.
    - **Dispositivi online** deve salire man mano che entrano le squadre. Se è a zero,
      il problema è il backend, non le squadre.
-3. Nel riquadro **🗂️ CATEGORIE & TIMELINE** accendi le categorie che vuoi giocare.
+4. Nel riquadro **🗂️ CATEGORIE & TIMELINE** accendi le categorie che vuoi giocare.
    Il flag **🕒 Timeline** vale solo per le categorie con eventi ordinabili nel tempo.
    Una categoria **🚫 Spenta** resta nello storico ma non compare in TV.
 
@@ -79,9 +86,22 @@ schema.
   - **❌ SBAGLIATO** (-punti)
 
 ### Giochi senza validazione admin
-- Nei giochi che si decidono da soli (per esempio Speed Rush, Air Hockey, Bomba,
-  Azzardo) il pannello dice **Round in Corso** e **Questa modalità non richiede
-  validazione admin**. Non serve premere nulla: il punteggio lo calcola il server.
+
+Il pannello dice **Round in Corso** e **Questa modalità non richiede validazione
+admin**. Non serve premere nulla: il punteggio lo calcola il server. In dettaglio:
+
+| Gioco | Cosa fanno i telefoni | Cosa fai tu |
+| --- | --- | --- |
+| **Quiz** | Tocca A/B/C/D, una risposta per squadra. | Niente. |
+| **Timeline** | Trascinano le carte; l'ordine parte da solo. | Niente. |
+| **Time Buzzer** | **STOP** al momento giusto, tre manche. | Niente; **🎵 PROSSIMA MANCHE** solo per anticipare. |
+| **Bomba** | Al proprio turno scelgono una casella. | Niente: turni e miccia sono del server. |
+| **Speed Rush** | Minigiochi rapidi. | Niente. |
+| **Air Hockey** | Duello a coppie, a turno. | Niente. |
+| **Arena** | Vero/Falso continuo, difficoltà crescente. | Niente. |
+| **Azzardo** | Distribuiscono le fiches sulle risposte. | Niente: le fiches le valida il server. |
+| **Ultima spiaggia** | Scelgono livello e risposta. | Niente. |
+| **Blackjack** | Al proprio turno **CARTA** o **STAI**. | Niente: il banco è in TV. |
 
 ### La tabella PUNTI
 Sotto il riquadro compare **PUNTI — tipo del round** con le tre regole: *Corretto*,
@@ -111,12 +131,16 @@ squadra protesta.
 
 | Cosa vedi | Cosa fare |
 | --- | --- |
-| *Diagnostica non disponibile: backend non raggiungibile* | Il backend non risponde. Controlla che sia acceso e raggiungibile, poi riprova. Non ricreare la partita. |
+| *Diagnostica non disponibile: backend non raggiungibile oppure numero partita errato* | Prima controlla **PARTITA #**: deve essere il numero della lobby TV. Se è giusto, il backend non risponde. Non ricreare la partita. |
 | **PARTI** è grigio | La prova dei pulsanti non è completa. Completala o usa **AVVIA COMUNQUE**. |
 | **Round aperto: sì** ma la TV è ferma | Premi **PAUSA / RIPRENDI** per sbloccare, poi di nuovo per riprendere. Se resta fermo, controlla i dispositivi online. |
 | Una squadra non compare | Controlla **Dispositivi online** e fatele riaprire il link. Non serve reinserire il codice. |
 | Hai premuto SBAGLIATO per errore | Il punteggio è già contato: per correggere, lascia il round come è e spiega la correzione alla squadra. Non ricreare la partita. |
 | Due squadre si sono prenotate insieme | Il server accetta una sola prenotazione per round: quella arrivata per prima. Verifica il nome in **Giocatore Prenotato**. |
+| La regia chiede il codice e non lo accetta | Il codice dura 5 minuti e vale una volta sola. Generane un altro sulla TV. Dopo 5 errori la partita si blocca per un minuto. |
+| Il telefono del presentatore si spegne | Apri `/admin` su un altro dispositivo con **PARTITA #** e un **nuovo codice** dalla TV: la partita non si tocca. |
+| La TV mostra *Round ripristinabile* | Premi **Riprendi** per continuare la stessa fase. **Chiudi round** solo se vuoi abbandonarla. |
+| Una squadra protesta per i punti | Apri la tabella **PUNTI** del round: *Corretto*, *Sbagliato*, *Non risposta* sono le regole ufficiali. |
 
 > **Non** ricaricare la pagina admin per «sistemare»: il pannello si riallinea da solo al
 > server.

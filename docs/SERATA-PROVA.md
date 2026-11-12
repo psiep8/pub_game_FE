@@ -211,5 +211,6 @@ I log da guardare: console del browser TV (`F12`), terminale di `npm run dev`,
 
 - 40 round e i confini degli atti 3–5 (durata, memoria, crescita del DB).
 - Classifiche con suspense (rullo, blackout) — non sono ancora implementate.
-- Ripresa completa della TV per ogni gioco (oggi solo Timeline).
-- Abbinamento admin con codice breve: per ora serve il segreto da 32 caratteri.
+- Ripresa completa della TV per ogni gioco (oggi Timeline e Blackjack).
+- Abbinamento admin: il codice a 6 cifre della TV vale 5 minuti e una volta sola;
+  il segreto da 32 caratteri serve solo sulla TV per generarlo.

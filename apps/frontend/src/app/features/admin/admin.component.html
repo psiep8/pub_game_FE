@@ -20,7 +20,28 @@
     </div>
   </div>
 
-  
+  @if (pairingNeeded()) {
+    <div class="flow-panel pairing-panel" role="status">
+      <div class="flow-title">🔒 REGIA NON ABBINATA</div>
+      <p class="flow-note">
+        Manca il codice della TV: i comandi non arrivano alla regia e il round non parte.
+        Il codice a 6 cifre è nel riquadro <b>CODICE REGIA</b> della lobby TV (dura 5 minuti, vale una volta sola).
+      </p>
+      <div class="pairing-row">
+        <input class="cat-input pairing-input" inputmode="numeric" autocomplete="one-time-code"
+          maxlength="6" placeholder="Codice a 6 cifre" [value]="pairingCode()"
+          (input)="setPairingCode($event)" (keyup.enter)="submitPairingCode()" />
+        <button class="flow-btn primary" (click)="submitPairingCode()"
+          [disabled]="pairingBusy() || pairingCode().length < 4">
+          {{ pairingBusy() ? 'VERIFICA…' : 'ABBINA REGIA' }}
+        </button>
+      </div>
+      @if (reliability.lastError(); as error) {
+        <div class="cat-error">{{ error }}</div>
+      }
+    </div>
+  }
+
   @if (correctAnswer()) {
     <div class="correct-answer-banner">
       <div class="answer-label">✅ SOLUZIONE</div>
@@ -57,7 +78,13 @@
         }
       </div>
     } @else {
-      <div class="diag-empty">Diagnostica non disponibile: backend non raggiungibile.</div>
+      <div class="diag-empty">
+        @if (pairingNeeded()) {
+          Diagnostica in attesa del codice TV: arriva appena premi <b>ABBINA REGIA</b>.
+        } @else {
+          Diagnostica non disponibile: backend non raggiungibile oppure numero partita errato (controlla <b>PARTITA #</b>).
+        }
+      </div>
     }
   </div>
 
@@ -204,7 +231,7 @@
       <button class="flow-btn" (click)="startBonus('BIGLIE')">🎱 BONUS BIGLIE</button>
       <button class="flow-btn ghost" (click)="stopBonus()">✖️ CHIUDI BONUS</button>
     </div>
-    <div class="flow-note">Avvio e avanzamento manuali: usa PROSSIMO ROUND oppure il tasto AVANTI in TV.</div>
+    <div class="flow-note">Avvio e avanzamento manuali: usa PARTI oppure il tasto AVANTI in TV.</div>
   </div>
 
   

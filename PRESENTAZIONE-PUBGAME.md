@@ -1,6 +1,6 @@
 # PUBGAME — Il copione del presentatore
 
-> **VERSIONE 2.0.0 — 12 novembre 2026.**
+> **VERSIONE 2.0.1 — 12 novembre 2026.**
 > Il copione descrive la serata alla seconda major. Per i pulsanti del pannello admin
 > vedi `docs/PANNELLO-ADMIN.md`; per il telefono delle squadre vedi `docs/MANUALE-TELEFONO.md`.
 > Se un gioco o un punteggio cambia, questo file va riallineato.
@@ -17,7 +17,9 @@ conoscere il codice. Le parti in *corsivo* sono suggerimenti, non obblighi.
 2. Sulla TV compare la lobby con il numero della partita: **segnatelo**, è il numero che
    serve all'admin e ai telefoni.
 3. Apri il **pannello admin** (telefono o tablet del presentatore) e inserisci quel numero
-   nel campo **PARTITA #**.
+   nel campo **PARTITA #**. Al primo accesso compare **🔒 REGIA NON ABBINATA**: scrivi le
+   6 cifre del riquadro **CODICE REGIA** nella lobby (durata 5 minuti, una volta sola)
+   e premi **ABBINA REGIA**.
 4. Controlla il riquadro **📡 CONNESSIONI & SALVATAGGIO**:
    - **Dispositivi online** deve salire man mano che le squadre entrano;
    - **Round aperto** deve essere *no* prima si iniziare;
@@ -102,8 +104,8 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 
 - **TV**: domanda e quattro risposte.
 - **Telefoni**: ognuno tocca la risposta che ritiene giusta.
-- **Punti**: risposta corretta **+1000 × tempo rimasto**; sbagliata **−1000 × tempo
-  rimasto**; chi non risponde prende 0.
+- **Punti**: fino a **+1000** in tre manches (facile ×1, media ×2, difficile ×3);
+  sbagliata **−quota della domanda** in base al tempo; chi non risponde prende 0.
 - *Da dire:* «Chi risponde subito vince tanto, chi risponde tardi vince poco, chi sbaglia
   paga. Nessuno è obbligato a rispondere.»
 
@@ -119,8 +121,8 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 
 - **TV**: parte il brano, senza titolo né artista.
 - **Telefoni**: prenotazione e risposta a voce.
-- **Punti**: quattro manche, valore decrescente **+2000 / +1500 / +1000 / +500**; sbagliato
-  **−1000**; chi non risponde 0.
+- **Punti**: **+1000** se è giusta, **−1000** se è sbagliata; chi non risponde 0. Il brano
+  vale sempre uguale, manche dopo manche.
 - *Da dire:* «La prima manche vale il doppio dell'ultima. Se conoscete la canzone, è il
   momento di rischiare.»
 
@@ -128,9 +130,8 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 
 - **TV**: quattro o cinque eventi mescolati.
 - **Telefoni**: si trascinano le carte nell'ordine cronologico e si invia.
-- **Punti**: **1000 × coppie corrette**, **+200** se l'ordine è perfetto (massimo 1200).
-  Una risposta conta come corretta solo se ha almeno una coppia giusta; sbagliare non
-  toglie punti.
+- **Punti**: **1200 × posizioni esatte / n** (massimo 1200); sotto **n/2 − 1** si perde,
+  fino a **−400**; chi non risponde prende 0.
 - *Da dire:* «Non serve essere perfetti: ogni coppia nell'ordine giusto vale mille. Ma il
   bonus da duecento lo prende solo chi azzecca tutto.»
 
@@ -149,9 +150,8 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 - **TV**: la miccia che scorre e la domanda del momento.
 - **Telefoni**: la squadra di turno risponde; se non sa, **passa** la bomba a un'altra
   squadra.
-- **Punti**: ogni squadra parte da **1000**; ogni passaggio riuscito vale **+50** (massimo
-  +500); risposta sbagliata o tempo scaduto **−3 secondi di miccia**; lo scoppio costa
-  **−300**. Il saldo entra in classifica.
+- **Punti**: casella vera **0** e si passa il turno; casella falsa **−200** e fuori dal
+  round; chi non risponde salta il turno. Le bombe false mai scelte si disarmano.
 - *Da dire:* «Passare la bomba fa guadagnare, tenerla troppo a lungo fa esplodere. Non è
   un gioco di conoscenza, è un gioco di nervi.»
 
@@ -159,9 +159,11 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 
 - **TV**: le corsie delle squadre che avanzano.
 - **Telefoni**: minigiochi rapidi (tocca il diverso, ordina, calcola, memoria, colori…).
-- **Punti**: per piazzamento **+1000 / +900 / +800 …**; ogni errore fa arretrare la corsia;
-  le risposte giuste di fila accendono i boost **×2 (2 di fila), ×3 (5), ×4 (10)**.
-- *Da dire:* «Non conta sapere, conta non sbagliare: la combo moltiplica tutto.»
+- **Punti**: **500** al primo, poi a scalare con minimo **100**; prendono punti solo i
+  primi **n/2** arrivati. Un errore fa arretrare la corsia, chi resta sotto la metà prende 0.
+- **In serata reale il round è bloccato** (vedi README §12): si gioca solo in simulazione,
+  perché il punteggio non è ancora verificato dal server.
+- *Da dire:* «Non conta sapere, conta non sbagliare: la corsia non aspetta nessuno.»
 
 ### AIR HOCKEY BATTLE — uno contro uno
 
@@ -208,7 +210,9 @@ alta l'attenzione dopo la classifica.
 - Pagina `/basket` sul telefono: si trascina indietro la palla e si rilascia per tirare.
 - **Tre manche da 20 secondi**: canestro grande (+2), medio (+3), piccolo (+5). Il ferro
   si stringe a ogni manche; chi fa swish senza toccare il ferro prende un punto in più.
-- I punti delle tre manche si sommano e entrano in classifica.
+- **In serata reale il bonus è bloccato**: il punteggio non è ancora verificato dal server,
+  quindi si apre solo in simulazione e anteprima. I punti delle tre manche si sommano nella
+  classifica del bonus.
 - *Da dire:* «Il canestro grande è facile ma paga poco: il vero malloppo è nel piccolo.»
 
 ### 🐎 Cavallo di Battaglia — otto domande, il tabellone in TV
@@ -217,7 +221,8 @@ alta l'attenzione dopo la classifica.
   quella categoria, una dietro l'altra, con **15 secondi** per rispondere.
 - Domanda e opzioni stanno **solo sul telefono**. La TV mostra il countdown e il
   **tabellone del bonus**, sempre in scena: a ogni reveal si riordina e segna i punti.
-- **Punti**: +100 per risposta esatta, +50 alla prima esatta della manche.
+- **Punti**: **+1** per risposta esatta. La classifica del bonus non assegna punti alla
+  serata.
 - *Da dire:* «La TV non vi aiuta: la domanda è sul telefono. Guardate il tabellone e
   correte.»
 
@@ -242,6 +247,8 @@ alta l'attenzione dopo la classifica.
   il primo posto, poi la classifica completa.
 - La classifica **resta in TV** finché non premi **PARTI**: nessuna chiusura
   automatica, così avete tutto il tempo per commentare.
+- **I bonus non aggiungono punti alla classifica della serata**: mostrano una classifica
+  propria e si chiudono. Dillo tu, prima che lo chieda qualcuno.
 
 > *Da dire al podio:* «Terzo posto… secondo… e primi, stasera, sono…» (lasciate un secondo
 > di silenzio prima del nome: il rullo è già partito.)

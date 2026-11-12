@@ -52,8 +52,8 @@ In quest'ordine, perché ogni voce sblocca la successiva.
 > protezioni: la TV si riprende per Timeline, per gli altri giochi si chiude il
 > round ripristinabile e si rigioca.
 
-1. **Ripresa completa della TV, gioco per gioco.** Oggi solo Timeline riprende:
-   gli altri mostrano il pannello "round ripristinabile" e si chiudono. Serve uno
+1. **Ripresa completa della TV, gioco per gioco.** Oggi riprendono Timeline e
+   Blackjack: gli altri mostrano il pannello "round ripristinabile" e si chiudono. Serve uno
    stato serializzabile per gioco (payload, secondi rimasti, fase) salvato nel
    round lato server e un `restore()` per ogni mode, come già fa Timeline.
    *Fatto quando*: ricaricando la TV in ognuno dei giochi si torna nella stessa
@@ -61,9 +61,9 @@ In quest'ordine, perché ogni voce sblocca la successiva.
 2. **Motore punteggi sul server per gli altri giochi.** Speed Rush e Basket sono
    già lì; restano Time Buzzer, Timeline, Azzardo, Arena, Blackjack, Cavallo.
    *Fatto quando*: la TV non calcola più punti, li riceve.
-3. **Abbinamento admin con codice breve.** La TV mostra un codice a 4–6 cifre,
-   l'admin lo scambia con un token di regia a scadenza: niente più 32 caratteri
-   digitati sul telefono.
+3. **[fatto] Abbinamento admin con codice breve.** La TV mostra un codice a 6 cifre
+   (`CODICE REGIA`, 5 minuti, uso unico); l'admin lo scambia con un token di regia.
+   Il segreto da 32 caratteri serve solo alla TV per generare il codice.
    *Fatto quando*: si entra in regia da telefono in meno di dieci secondi.
 4. **Classifiche con suspense e reveal unico in tre tempi.** Rullo, pausa prima
    del primo, distanza dal podio; poi il modello di reveal condiviso

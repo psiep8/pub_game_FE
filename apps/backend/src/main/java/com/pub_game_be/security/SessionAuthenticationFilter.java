@@ -18,6 +18,12 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
     private static final Pattern GAME_PATH = Pattern.compile("^/games/(\\d+)(?:/(.*))?$");
     private static final Set<String> PLAYER_GET = Set.of("sync", "arena-question", "bomba/state",
             "speed-rush/task", "basket/state", "button-test/me");
+    /**
+     * Letture che servono anche alla regia non ancora abbinata: la diagnostica
+     * arriva senza eventi (il controller toglie i payload con le soluzioni),
+     * quindi non aggiunge nulla a quello che i telefoni vedono già in TV.
+     */
+    private static final Set<String> GUEST_GET = Set.of("diagnostics");
     private static final Set<String> PLAYER_POST = Set.of("session/heartbeat", "session/disconnect",
             "arena-answer", "timeline-answer", "time-buzzer/stop", "bomba/pick",
             "speed-rush/answer", "basket/shot", "button-test/step", "button-test/ping");
@@ -52,9 +58,20 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
         String method = request.getMethod();
         Matcher game = GAME_PATH.matcher(path);
+        if ("GET".equals(method) && game.matches() && GUEST_GET.contains(game.group(2))) {
+            // Leggibile anche senza sessione, ma se il token c'è il controller lo
+            // riceve: con la sessione la diagnostica include gli eventi recenti.
+            sessions.authenticate(request.getHeader("X-Session-Token"))
+                    .filter(session -> Long.toString(session.getGameId()).equals(game.group(1)))
+                    .ifPresent(session -> request.setAttribute("pubgame.session", session));
+            response.setHeader("Cache-Control", "no-store");
+            chain.doFilter(request, response);
+            return;
+        }
         if (isPublicAsset(path, method)
                 || "OPTIONS".equals(method) || path.equals("/ws-pubgame") || path.startsWith("/ws-pubgame/sockjs")
-                || ("GET".equals(method) && (path.equals("/categories") || path.startsWith("/media/")))
+                || ("GET".equals(method) && (path.equals("/categories") || path.equals("/categories/admin")
+                        || path.startsWith("/media/")))
                 || ("POST".equals(method) && game.matches() && SESSION_POST.contains(game.group(2)))) {
             if (path.endsWith("/session")) response.setHeader("Cache-Control", "no-store");
             chain.doFilter(request, response);

@@ -391,6 +391,13 @@
     gap: 8px;
     padding: 10px 12px;
   }
+  /* Su telefono i comandi vanno su una riga propria: prima il terzo pulsante
+     usciva dal bordo destro. Le icone restano, l'etichetta lunga no. */
+  .admin-header-actions {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+  .theme-btn span { display: none; }
   .admin-badge { gap: 6px; }
   .admin-badge .text { font-size: 1.05rem; }
   .admin-badge .crown { font-size: 1.25rem; }
@@ -446,6 +453,11 @@
 .flow-btn.primary { background: #b8e04a; }
 .flow-btn.ghost { background: transparent; box-shadow: none; }
 .flow-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #1e1914; }
+
+/* Regia non abbinata: riquadro del pannello, il codice si scrive qui. */
+.pairing-panel { border-color: var(--mustard); box-shadow: 6px 6px 0 var(--mustard); }
+.pairing-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.pairing-input { flex: 1 1 180px; letter-spacing: .3em; text-align: center; font-family: var(--font-mono, monospace); font-size: 1.05rem; }
 .flow-note { margin-top: 10px; font-family: var(--font-mono, monospace); font-size: .68rem; opacity: .65; }
 
 /* Prova dei pulsanti: tabella stampata, non una card luminosa. */
@@ -732,3 +744,78 @@
   .demo-admin-lower { grid-template-columns: 1fr; }
   .demo-admin-phone { min-height: 0; }
 }
+
+/* ------------------------------------------ Categorie, diagnostica, comandi
+   Carta e inchiostro anche sulle schede della regia: gli stessi token della TV.
+   Le vecchie regole blu/viola sono state sostituite, non copiate. */
+.flow-panel {
+  margin: 0 clamp(10px, 2vw, 18px) 16px;
+  padding: 14px 16px;
+  background: var(--paper-hi);
+  color: var(--coal);
+  border: 3px solid var(--coal);
+  box-shadow: 6px 6px 0 var(--tomato);
+}
+.flow-btn {
+  background: var(--paper);
+  color: var(--coal);
+  border: 2px solid var(--coal);
+  box-shadow: 3px 3px 0 var(--coal);
+}
+.flow-btn.primary { background: var(--acid); color: var(--coal); }
+.flow-btn.ghost { background: transparent; box-shadow: none; }
+.flow-btn:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
+.flow-id input {
+  border: 2px solid var(--coal);
+  background: var(--paper-hi);
+  color: var(--coal);
+  border-radius: 0;
+}
+
+.diag-panel {
+  margin: 12px clamp(10px, 2vw, 18px);
+  padding: 12px 14px;
+  border: 3px solid var(--coal);
+  border-radius: 0;
+  background: var(--paper-hi);
+  color: var(--coal);
+  box-shadow: 6px 6px 0 var(--acid);
+}
+.diag-device {
+  border: 2px solid var(--coal);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--coal);
+}
+.diag-device.offline { background: var(--paper-2); }
+.diag-name { font-family: var(--font-mono); font-size: .68rem; }
+.diag-state { color: var(--tomato); }
+
+.cat-input {
+  border: 2px solid var(--coal);
+  border-radius: 0;
+  background: var(--paper-hi);
+  color: var(--coal);
+  font-family: var(--font-mono);
+}
+.cat-input::placeholder { color: rgba(21, 21, 15, .42); }
+.cat-row {
+  border: 2px solid var(--coal);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--coal);
+}
+.cat-row.off { opacity: .55; }
+.cat-toggle {
+  border: 2px solid var(--coal);
+  border-radius: 0;
+  background: var(--paper-hi);
+  color: var(--coal);
+  box-shadow: 2px 2px 0 var(--coal);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.cat-toggle.on { background: var(--acid); color: var(--coal); border-color: var(--coal); }
+.cat-toggle:active { transform: translate(2px, 2px); box-shadow: none; }
+.cat-error { color: var(--tomato); font-family: var(--font-mono); font-size: .72rem; }

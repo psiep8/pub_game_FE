@@ -36,11 +36,11 @@
 }
 .lobby-glow.glow-b {
   width: 150vw;
-  height: 7vh;
+  height: 2vh;
   right: -24vw;
-  bottom: 10vh;
+  bottom: 0;
   background: var(--acid);
-  transform: rotate(-4deg);
+  transform: rotate(-1deg);
 }
 
 .lobby-brand {
@@ -240,7 +240,7 @@
 }
 .lobby .lobby-url { margin: 8px 0 0 !important; overflow-wrap: anywhere; text-transform: none; }
 .pairing-card {
-  display: grid; gap: 6px; justify-items: start; margin-top: 12px; padding: 10px 14px;
+  display: grid; gap: 6px; justify-items: start; margin: 12px auto 0; padding: 10px 14px;
   color: var(--coal); background: var(--paper-hi); border: 3px solid var(--coal);
   box-shadow: 6px 6px 0 var(--coal); border-radius: 0; width: fit-content; max-width: 100%;
 }

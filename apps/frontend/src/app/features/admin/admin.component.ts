@@ -31,6 +31,10 @@ export class Admin implements OnInit, OnDestroy {
   diagnostics = signal<any | null>(null);
   buttonTest = signal<ButtonTestSnapshot | null>(null);
   forceStart = signal(false);
+  /** Regia non abbinata: il codice si scrive nel pannello, non in un prompt. */
+  readonly pairingNeeded = signal(false);
+  readonly pairingCode = signal('');
+  readonly pairingBusy = signal(false);
   readonly testsReady = computed(() => {
     const test = this.buttonTest();
     return !test || test.teams.length === 0 || test.allReady;
@@ -76,8 +80,11 @@ export class Admin implements OnInit, OnDestroy {
   };
 
   async ngOnInit(): Promise<void> {
-    if (!await this.reliability.start(this.activeGameId(), 'ADMIN')) return;
-    this.requestCurrentState();
+    // Senza codice TV la regia resta non abbinata, ma diagnostica e categorie
+    // sono pubbliche: il pannello le carica lo stesso e mostra il riquadro.
+    const paired = await this.reliability.start(this.activeGameId(), 'ADMIN', '', false);
+    this.pairingNeeded.set(!paired);
+    if (paired) this.requestCurrentState();
     this.ws.connectedAt$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.requestCurrentState());
@@ -531,8 +538,31 @@ export class Admin implements OnInit, OnDestroy {
     if (!Number.isFinite(value) || value <= 0) return;
     this.gameIdInput.set(value);
     localStorage.setItem('activeGameId', String(value));
-    this.reliability.start(value, 'ADMIN');
+    void this.reliability.start(value, 'ADMIN', '', false).then((paired) => {
+      this.pairingNeeded.set(!paired);
+      if (paired) this.requestCurrentState();
+    });
     void this.refreshDiagnostics();
+  }
+
+  /** Solo cifre: il codice della TV è a 6 numeri. */
+  setPairingCode(event: Event): void {
+    const value = (event.target as HTMLInputElement).value.replace(/\D/g, '').slice(0, 6);
+    this.pairingCode.set(value);
+    (event.target as HTMLInputElement).value = value;
+  }
+
+  async submitPairingCode(): Promise<void> {
+    if (this.pairingBusy() || this.pairingCode().length < 4) return;
+    this.pairingBusy.set(true);
+    const paired = await this.reliability.pairAdmin(this.activeGameId(), this.pairingCode());
+    this.pairingBusy.set(false);
+    this.pairingNeeded.set(!paired);
+    if (!paired) return;
+    this.pairingCode.set('');
+    this.requestCurrentState();
+    void this.refreshDiagnostics();
+    void this.refreshButtonTest();
   }
 
   /** Pulsante unico "Parti": fa partire il round su TV e telefoni. */
@@ -580,6 +610,9 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   private async refreshButtonTest(): Promise<void> {
+    // Senza codice TV la prova dei pulsanti risponde 401: si riprende dopo
+    // l'abbinamento, senza riempire la console di errori ogni 2,5 s.
+    if (this.pairingNeeded()) return;
     try {
       this.buttonTest.set(await firstValueFrom(this.buttonTests.snapshot(this.activeGameId())));
     } catch {

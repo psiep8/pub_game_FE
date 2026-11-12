@@ -23,8 +23,9 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     // Transizioni tra schermate native del browser; se non supportate resta il
-    // fallback CSS (router-outlet + *).
-    provideRouter(routes, withViewTransitions()),
+    // fallback CSS (router-outlet + *). La navigazione iniziale è esclusa: il
+    // documento sta ancora caricando e il browser la annulla con InvalidStateError.
+    provideRouter(routes, withViewTransitions({ skipInitialTransition: true })),
     provideHttpClient(withXhr(), withInterceptors([sessionInterceptor])),
     provideAnimationsAsync(),
     provideServiceWorker('ngsw-worker.js', {
