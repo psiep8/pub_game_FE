@@ -27,7 +27,9 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
      * può distinguere da una credenziale di regia sbagliata.
      */
     private static final Set<String> SESSION_POST = Set.of("session", "session/heartbeat",
-            "session/disconnect");
+            "session/disconnect",
+            // Autenticato dal segreto di regia nel controller, non da un token di sessione.
+            "pairing-code");
     /** Pagine e file serviti dal jar: devono essere leggibili prima del login. */
     private static final Set<String> PUBLIC_GET = Set.of("/", "/index.html", "/favicon.ico",
             "/manifest.webmanifest", "/ngsw.json", "/ngsw-worker.js", "/games/active", "/error",

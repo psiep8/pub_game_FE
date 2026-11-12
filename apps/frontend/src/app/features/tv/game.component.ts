@@ -237,6 +237,9 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Telefoni presenti sul backend: i bonus li usano anche senza classifica
    *  (dopo un reset la leaderboard è vuota e i tavoli sparirebbero). */
   readonly presencePlayers = signal<string[]>([]);
+  /** Codice di abbinamento regia, con l'ora di scadenza già formattata. */
+  readonly pairingCode = signal<string | null>(null);
+  readonly pairingExpiresAt = signal('');
   readonly buttonTestSnapshot = signal<ButtonTestSnapshot | null>(null);
   readonly pageVisible = signal(!document.hidden);
 
@@ -364,6 +367,16 @@ export class GameComponent implements OnInit, OnDestroy {
         this.audioService.playCountdownTick();
       }
     });
+  }
+
+  /** Genera un codice di abbinamento per la regia e lo mostra con la scadenza. */
+  async createPairingCode(): Promise<void> {
+    const result = await this.reliability.requestPairingCode();
+    if (!result) return;
+    const expires = new Date(Date.now() + result.ttlSeconds * 1000);
+    this.pairingExpiresAt.set(
+      expires.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }));
+    this.pairingCode.set(result.code);
   }
 
   async ngOnInit() {

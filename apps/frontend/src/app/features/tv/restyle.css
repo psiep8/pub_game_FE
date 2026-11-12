@@ -239,6 +239,23 @@
   will-change: transform;
 }
 .lobby .lobby-url { margin: 8px 0 0 !important; overflow-wrap: anywhere; text-transform: none; }
+.pairing-card {
+  display: grid; gap: 6px; justify-items: start; margin-top: 12px; padding: 10px 14px;
+  color: var(--coal); background: var(--paper-hi); border: 3px solid var(--coal);
+  box-shadow: 6px 6px 0 var(--coal); border-radius: 0; width: fit-content; max-width: 100%;
+}
+.pairing-label { font-family: var(--font-mono); font-size: clamp(.65rem, 1.4vh, .95rem); letter-spacing: .12em; }
+.pairing-code {
+  font-family: var(--font-display); font-size: clamp(2.4rem, 7vh, 4.4rem); line-height: 1;
+  letter-spacing: .12em; color: var(--coal);
+}
+.pairing-expiry { font-family: var(--font-mono); font-size: clamp(.6rem, 1.2vh, .85rem); }
+.pairing-btn {
+  font-family: var(--font-mono); font-size: clamp(.7rem, 1.4vh, 1rem); letter-spacing: .08em;
+  padding: 6px 12px; color: var(--paper); background: var(--coal); border: 2px solid var(--coal);
+  border-radius: 0; cursor: pointer;
+}
+.pairing-btn:hover { background: var(--tomato); border-color: var(--coal); }
 .lobby-teams { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
 .lobby-team {
   display: flex; align-items: center; gap: 8px; min-width: 0; padding: 5px 8px;

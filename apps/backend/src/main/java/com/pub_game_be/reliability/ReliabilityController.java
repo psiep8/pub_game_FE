@@ -41,13 +41,15 @@ public class ReliabilityController {
     private final QuestionUsageService questionUsage;
     private final ReliabilityProperties props;
     private final ScoreboardService scoreboard;
+    private final PairingCodeService pairing;
 
     @Value("${game.security.control-secret:}")
     private String controlSecret;
 
     public ReliabilityController(DeviceSessionService sessions, GameStateService gameState,
             QuestionHistoryService questionHistory, QuestionUsageService questionUsage,
-            ReliabilityProperties props, ScoreboardService scoreboard) {
+            ReliabilityProperties props, ScoreboardService scoreboard, PairingCodeService pairing) {
+        this.pairing = pairing;
         this.sessions = sessions;
         this.gameState = gameState;
         this.questionHistory = questionHistory;
@@ -73,9 +75,9 @@ public class ReliabilityController {
         if (!"REMOTE".equals(normalizedRole)) {
             boolean validResume = sessions.authenticate(token)
                     .filter(s -> s.getGameId().equals(gameId) && normalizedRole.equals(s.getRole())).isPresent();
-            if (!validResume && (controlSecret == null || controlSecret.length() < 32 || suppliedSecret == null
-                    || !MessageDigest.isEqual(controlSecret.getBytes(StandardCharsets.UTF_8),
-                            suppliedSecret.getBytes(StandardCharsets.UTF_8)))) {
+            boolean authorized = validResume || secretMatches(suppliedSecret)
+                    || pairing.redeem(gameId, string(payload.get("pairingCode")));
+            if (!authorized) {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenziale di regia non valida");
             }
         }
@@ -98,6 +100,26 @@ public class ReliabilityController {
         out.put("seq", state.optLong("seq", 0));
         out.put("roundDeadlineAt", state.opt("roundDeadlineAt"));
         return out;
+    }
+
+    /**
+     * Codice breve per abbinare la regia: la TV lo mostra, l'admin lo digita.
+     * Richiede il segreto di regia, quindi solo un dispositivo già autorizzato
+     * (la TV) può generarlo.
+     */
+    @PostMapping("/pairing-code")
+    public Map<String, Object> pairingCode(@PathVariable("gameId") Long gameId,
+            @RequestHeader(value = "X-Control-Secret", required = false) String suppliedSecret) {
+        if (!secretMatches(suppliedSecret)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenziale di regia non valida");
+        }
+        return Map.of("code", pairing.issue(gameId), "ttlSeconds", PairingCodeService.TTL.toSeconds());
+    }
+
+    private boolean secretMatches(String supplied) {
+        return controlSecret != null && controlSecret.length() >= 32 && supplied != null
+                && MessageDigest.isEqual(controlSecret.getBytes(StandardCharsets.UTF_8),
+                        supplied.getBytes(StandardCharsets.UTF_8));
     }
 
     /** Heartbeat periodico: tiene viva la presenza e riallinea versione e seq. */

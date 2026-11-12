@@ -448,6 +448,27 @@ class ReliabilityIntegrationTest {
         assertThat(sessions.presence(516L).length()).isZero();
     }
 
+    @Test
+    void codiceDiAbbinamentoApreLaRegiaUnaSolaVolta() throws Exception {
+        String secret = "0123456789abcdef0123456789abcdef";
+        assertThat(request("POST", "/games/700/pairing-code", null, "sbagliato", "{}").statusCode()).isEqualTo(401);
+
+        var issuedResponse = request("POST", "/games/700/pairing-code", null, secret, "{}");
+        assertThat(issuedResponse.statusCode()).as(issuedResponse.body()).isEqualTo(200);
+        var issued = new com.fasterxml.jackson.databind.ObjectMapper().readTree(issuedResponse.body());
+        String code = issued.get("code").asText();
+        assertThat(code).matches("\\d{6}");
+        assertThat(issued.get("ttlSeconds").asLong()).isEqualTo(300L);
+
+        var first = request("POST", "/games/700/session", null, null,
+                "{\"role\":\"ADMIN\",\"pairingCode\":\"" + code + "\"}");
+        assertThat(first.statusCode()).isEqualTo(200);
+
+        var reused = request("POST", "/games/700/session", null, null,
+                "{\"role\":\"ADMIN\",\"pairingCode\":\"" + code + "\"}");
+        assertThat(reused.statusCode()).isEqualTo(401);
+    }
+
     private HttpResponse<String> request(String method, String path, String token, String secret, String body) throws Exception {
         var builder = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path));
         if (token != null) builder.header("X-Session-Token", token);

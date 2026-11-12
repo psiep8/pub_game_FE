@@ -55,10 +55,11 @@ export class ReliabilityService {
   private heartbeatFailures = 0;
   private seenEvents = new Set<string>();
   /**
-   * Segreto di regia già inserito in questa scheda. La TV può cambiare
-   * partita (recupero su un altro dispositivo): senza cache l'operatore
-   * dovrebbe digitarlo due volte.
+   * Codice di abbinamento già inserito in questa scheda. Vale una volta sola
+   * lato server: serve solo a non richiederlo a ogni riavvio della sessione.
    */
+  private pairingCode: string | null = null;
+  /** Segreto di regia inserito in questa scheda: serve solo alla TV per generare codici. */
   private controlSecret: string | null = null;
 
   /** Avvia sessione e heartbeat per questo dispositivo (idempotente). */
@@ -129,23 +130,48 @@ export class ReliabilityService {
     return `${this.deviceId()}:${kind}:${discriminator}`;
   }
 
+  /**
+   * Codice breve per l'abbinamento della regia (solo dalla TV). Il segreto di
+   * regia viene chiesto una volta sola per scheda e poi tenuto in memoria.
+   */
+  async requestPairingCode(): Promise<{ code: string; ttlSeconds: number } | null> {
+    try {
+      this.controlSecret ??= window.prompt('Inserisci il segreto di regia');
+      if (!this.controlSecret) return null;
+      const response = await firstValueFrom(
+        this.http.post<{ code: string; ttlSeconds: number }>(
+          `${this.baseUrl}/games/${this.gameId}/pairing-code`, {},
+          { headers: { 'X-Control-Secret': this.controlSecret } })
+      );
+      return response;
+    } catch (error) {
+      if ((error as HttpErrorResponse)?.status === 401) this.controlSecret = null;
+      this.lastError.set('Impossibile creare il codice di abbinamento');
+      return null;
+    }
+  }
+
   /** Riapre la sessione con il token salvato (o ne crea una nuova). */
   async ensureSession(): Promise<boolean> {
     try {
       const token = this.sessionToken() ?? this.storedToken();
-      const controlSecret = !token && this.role !== 'REMOTE'
-        ? (this.controlSecret ??= window.prompt('Inserisci il segreto di regia'))
+      const needsAuth = !token && this.role !== 'REMOTE';
+      // Codice breve dalla TV (4-6 cifre); il segreto completo resta come ripiego.
+      const pairingCode = needsAuth
+        ? (this.pairingCode ??= window.prompt('Inserisci il codice della TV'))
         : null;
-      if (!token && this.role !== 'REMOTE' && !controlSecret) return false;
+      if (needsAuth && !pairingCode) return false;
       const response = await firstValueFrom(
         this.http.post<any>(`${this.baseUrl}/games/${this.gameId}/session`, {
           deviceId: this.deviceId(),
           role: this.role,
           playerName: this.playerName || null,
           sessionToken: token,
-        }, { headers: controlSecret ? { 'X-Control-Secret': controlSecret } : {} })
+          pairingCode: pairingCode ? pairingCode.trim() : null,
+        })
       );
       this.applyTiming(response);
+      this.pairingCode = null;
       this.sessionToken.set(response?.sessionToken ?? null);
       this.persistToken(response?.sessionToken);
       this.resumedSession.set(!!response?.resumed);
@@ -170,8 +196,8 @@ export class ReliabilityService {
         return this.ensureSession();
       }
       if (status === 401) {
-        // Il segreto salvato non è più valido: il prossimo tentativo lo richiede.
-        this.controlSecret = null;
+        // Il codice non è valido o è scaduto: il prossimo tentativo lo richiede.
+        this.pairingCode = null;
       }
       this.online.set(false);
       this.lastError.set(status === 409 ? 'Nome già in uso, scegline un altro' : 'Sessione non disponibile');

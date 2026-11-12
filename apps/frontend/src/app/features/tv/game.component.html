@@ -66,6 +66,16 @@
         }
         <div class="game-id-badge">PARTITA #{{ currentGameId() }}</div>
         <p class="lobby-url">{{ remoteUrl() }}</p>
+        <section class="pairing-card" aria-label="Codice di abbinamento regia">
+          <div class="pairing-label">CODICE REGIA</div>
+          @if (pairingCode()) {
+          <div class="pairing-code" aria-live="polite">{{ pairingCode() }}</div>
+          <div class="pairing-expiry">VALIDO FINO ALLE {{ pairingExpiresAt() }} · UNA VOLTA SOLA</div>
+          }
+          <button type="button" class="pairing-btn" (click)="createPairingCode()">
+            {{ pairingCode() ? 'NUOVO CODICE' : 'GENERA CODICE' }}
+          </button>
+        </section>
         } @else {
         <button (click)="openLobby()" class="extract-btn lobby-play">
           <span class="icon">📱</span>
