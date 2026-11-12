@@ -29,6 +29,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const state = JSON.parse(readFileSync(STATE_PATH, 'utf8'));
 const gameId = state.gameId;
 const token = state.tv;
+const PLAYER_COUNT = state.players?.length || Object.keys(state.phones || {}).length || 8;
 
 let categories = [];
 let roundIndex = 0;
@@ -82,7 +83,7 @@ function bonusState(type) {
   if (type === 'CASINO') return { manche: 1, phase: 'BET', options: ['ROSSO', 'NERO'] };
   if (type === 'CAVALLO') return { phase: 'CATEGORY', categories: ['Cinema'], question: null };
   if (type === 'BIGLIE') {
-    return { marbles: Array.from({ length: 8 }, (_, index) => ({ id: `m${index + 1}` })) };
+    return { marbles: Array.from({ length: PLAYER_COUNT }, (_, index) => ({ id: `m${index + 1}` })) };
   }
   return {};
 }

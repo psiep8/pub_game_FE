@@ -13,9 +13,18 @@ import { fileURLToPath } from 'node:url';
 
 const API = process.env.API || 'http://127.0.0.1:8080';
 const WS = process.env.WS_URL || 'ws://127.0.0.1:8080/ws-pubgame';
-const STATE_PATH = process.env.STATE_PATH || fileURLToPath(new URL('./.state8.json', import.meta.url));
 const REPORT_DIR = fileURLToPath(new URL('./reports/', import.meta.url));
-const TEAMS = ['Anna', 'Bruno', 'Carla', 'Dario', 'Elena', 'Fabio', 'Giulia', 'Luca'];
+const PLAYER_NAMES = [
+  'Anna', 'Bruno', 'Carla', 'Dario', 'Elena', 'Fabio', 'Giulia', 'Luca',
+  'Marco', 'Sara', 'Paolo', 'Chiara', 'Matteo', 'Sofia', 'Davide', 'Alice',
+  'Enrico', 'Laura', 'Simone', 'Marta',
+];
+const MAX_PLAYERS = 20;
+const PLAYER_COUNT = Math.max(1, Math.min(MAX_PLAYERS, Number(process.env.PLAYERS || 16)));
+const TEAMS = PLAYER_NAMES.slice(0, PLAYER_COUNT);
+const STATE_PATH = process.env.STATE_PATH || fileURLToPath(new URL(`./.state${PLAYER_COUNT}.json`, import.meta.url));
+const ACTIONS_PATH = process.env.ACTIONS_PATH || `${REPORT_DIR}game-actions.jsonl`;
+const SUMMARY_PATH = process.env.SUMMARY_PATH || `${REPORT_DIR}game-actions-summary.json`;
 const ROUNDS = [
   'QUIZ', 'MUSIC', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE', 'TIMELINE',
   'TIME_BUZZER', 'BOMBA', 'AIR_HOCKEY_BATTLE', 'ULTIMA_SPIAGGIA',
@@ -32,7 +41,7 @@ let actions = [];
 
 function action(entry) {
   actions.push(entry);
-  appendFileSync(`${REPORT_DIR}game-actions.jsonl`, `${JSON.stringify(entry)}\n`);
+  appendFileSync(ACTIONS_PATH, `${JSON.stringify(entry)}\n`);
 }
 
 function controlSecret() {
@@ -86,7 +95,7 @@ async function setup() {
   for (const name of TEAMS) {
     phones[name] = await register(gameId, 'REMOTE', name, `full-${name.toLowerCase()}`, secret);
   }
-  const state = { gameId, tv, admin, phones, createdAt: new Date().toISOString() };
+  const state = { gameId, tv, admin, phones, players: TEAMS, createdAt: new Date().toISOString() };
   writeFileSync(STATE_PATH, JSON.stringify(state, null, 2), { mode: 0o600 });
   log(`setup: partita ${gameId} con ${TEAMS.length} telefoni`);
   console.log(`FULL_GAME=${gameId}`);
@@ -236,17 +245,15 @@ async function setupScenario(state, clients) {
     method: 'GET', token: phones.Anna, expect: 403,
   });
 
-  log('join iniziale di tutti gli 8 telefoni');
-  for (const name of TEAMS) {
-    await stompAction('join-iniziale', clients[name], { action: 'JOIN_GAME', playerName: name }, 'ok');
-  }
+  log(`join iniziale di tutti i ${TEAMS.length} telefoni`);
+  await Promise.all(TEAMS.map((name) =>
+    stompAction('join-iniziale', clients[name], { action: 'JOIN_GAME', playerName: name }, 'ok')));
 }
 
 async function roundQuiz(state, clients) {
-  for (const [index, name] of TEAMS.entries()) {
-    await answerAction('quiz-answer', clients[name], name, index % 4);
-    await sleep(80);
-  }
+  // Tutti i telefoni rispondono insieme: è il caso che stressa il seq/evento.
+  await Promise.all(TEAMS.map((name, index) =>
+    answerAction('quiz-answer', clients[name], name, index % 4)));
   // risposta duplicata: deve essere gestita senza doppio punteggio
   await answerAction('quiz-duplicate-Anna', clients.Anna, 'Anna', 0, 'duplicate');
   // giocatore sbagliato sulla sessione di Anna: deve essere rifiutato
@@ -263,15 +270,11 @@ async function roundQuiz(state, clients) {
 }
 
 async function roundBooking(state, clients, roundType) {
-  for (const name of TEAMS) {
-    await stompAction(`${roundType}-book`, clients[name], { action: 'JOIN_GAME', playerName: name }, 'booking');
-    await sleep(50);
-  }
+  await Promise.all(TEAMS.map((name) =>
+    stompAction(`${roundType}-book`, clients[name], { action: 'JOIN_GAME', playerName: name }, 'booking')));
   await sleep(1200);
-  for (const [index, name] of TEAMS.entries()) {
-    await answerAction(`${roundType}-answer`, clients[name], name, index % 4);
-    await sleep(60);
-  }
+  await Promise.all(TEAMS.map((name, index) =>
+    answerAction(`${roundType}-answer`, clients[name], name, index % 4)));
 }
 
 async function roundTimeline(state, clients) {
@@ -285,14 +288,13 @@ async function roundTimeline(state, clients) {
     return;
   }
   const order = Array.from({ length: count }, (_, index) => index);
-  for (const [index, name] of TEAMS.entries()) {
+  await Promise.all(TEAMS.map((name, index) => {
     const custom = index === 0 ? [...order].reverse() : order;
-    await httpAction('timeline-answer', `/games/${state.gameId}/timeline-answer`, {
+    return httpAction('timeline-answer', `/games/${state.gameId}/timeline-answer`, {
       token: state.phones[name],
       body: { playerName: name, roundId, order: custom, idempotencyKey: `full-tl-${Date.now()}-${name}` },
     });
-    await sleep(80);
-  }
+  }));
   await httpAction('timeline-duplicate-Anna', `/games/${state.gameId}/timeline-answer`, {
     token: state.phones.Anna,
     body: { playerName: 'Anna', roundId, order, idempotencyKey: `full-tl-${Date.now()}-dup` },
@@ -310,15 +312,14 @@ async function roundTimeBuzzer(state, clients) {
     if (started.status !== 200) return;
     await sleep(1500);
     const startMs = Date.now();
-    for (const [index, name] of TEAMS.entries()) {
+    await Promise.all(TEAMS.map((name, index) => {
       // Solo nella prima manche un tavolo manda un tempo impossibile.
       const invalid = manche === 1 && index === TEAMS.length - 1;
       const ms = invalid ? 0 : 1500 + index * 40 + (manche - 1) * 100;
-      await httpAction('time-buzzer-stop', `/games/${state.gameId}/time-buzzer/stop`, {
+      return httpAction('time-buzzer-stop', `/games/${state.gameId}/time-buzzer/stop`, {
         token: state.phones[name], body: { playerName: name, ms }, expect: invalid ? 422 : 200,
       });
-      await sleep(40);
-    }
+    }));
     action({ at: Date.now(), label: 'time-buzzer-elapsed', transport: 'local', status: 'info', response: { manche, elapsed: Date.now() - startMs } });
     // Reveal della manche prima del via successivo, come la TV.
     await sleep(3500);
@@ -342,40 +343,33 @@ async function roundBomba(state, clients) {
 
 async function roundAirHockey(state, clients) {
   for (let wave = 0; wave < 8; wave += 1) {
-    for (const [index, name] of TEAMS.entries()) {
-      await stompAction('air-hockey-answer', clients[name], {
+    await Promise.all(TEAMS.map((name, index) =>
+      stompAction('air-hockey-answer', clients[name], {
         action: 'AIR_HOCKEY_BATTLE_ANSWER',
         playerName: name,
         answerIndex: (index + wave) % 4,
-      });
-    }
+      })));
     await sleep(1400);
   }
 }
 
 async function roundUltima(state, clients) {
-  for (const name of TEAMS) {
-    await stompAction('ultima-level', clients[name], {
+  await Promise.all(TEAMS.map((name) =>
+    stompAction('ultima-level', clients[name], {
       action: 'ULTIMA_SPIAGGIA_ACTION', playerName: name, kind: 'LEVEL', value: 100,
-    });
-    await sleep(50);
-  }
+    })));
   await sleep(1200);
-  for (const [index, name] of TEAMS.entries()) {
-    await stompAction('ultima-answer', clients[name], {
+  await Promise.all(TEAMS.map((name, index) =>
+    stompAction('ultima-answer', clients[name], {
       action: 'ULTIMA_SPIAGGIA_ACTION', playerName: name, kind: 'ANSWER', value: index % 4,
-    });
-    await sleep(50);
-  }
+    })));
 }
 
 async function roundAzzardo(state, clients) {
-  for (const name of TEAMS) {
-    await stompAction('azzardo-bet', clients[name], {
+  await Promise.all(TEAMS.map((name) =>
+    stompAction('azzardo-bet', clients[name], {
       action: 'AZZARDO_ACTION', playerName: name, kind: 'BET', value: { chips: [1, 0, 0, 0] },
-    });
-    await sleep(50);
-  }
+    })));
   await stompAction('azzardo-invalid-chips', clients.Anna, {
     action: 'AZZARDO_ACTION', playerName: 'Anna', kind: 'BET', value: { chips: [6, 6, 6] },
   }, 'rejected');
@@ -383,22 +377,27 @@ async function roundAzzardo(state, clients) {
 
 async function roundBlackjack(state, clients) {
   for (let wave = 0; wave < 6; wave += 1) {
-    for (const name of TEAMS) {
-      await stompAction('blackjack-action', clients[name], {
+    await Promise.all(TEAMS.map((name) =>
+      stompAction('blackjack-action', clients[name], {
         action: 'BLACKJACK_ACTION', playerName: name, kind: wave % 2 === 0 ? 'HIT' : 'STAND',
-      });
-    }
+      })));
     await sleep(1800);
   }
 }
 
 async function roundArena(state, clients) {
-  for (const [index, name] of TEAMS.entries()) {
-    const question = await httpAction('arena-question', `/games/${state.gameId}/arena-question?category=STORIA&playerId=${encodeURIComponent(name)}`, {
-      method: 'GET', token: state.phones[name], expect: 200,
-    });
-    const questionId = question.json?.questionId;
-    if (!questionId) continue;
+  await Promise.all(TEAMS.map(async (name, index) => {
+    let question = null;
+    // Il round può aprirsi un istante dopo le richieste: usa retryAfterMs.
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      question = await httpAction('arena-question', `/games/${state.gameId}/arena-question?category=STORIA&playerId=${encodeURIComponent(name)}`, {
+        method: 'GET', token: state.phones[name], expect: 200,
+      });
+      if (question.status === 200 && question.json?.questionId) break;
+      await sleep(Math.min(5000, Math.max(250, Number(question.json?.retryAfterMs) || 1000)));
+    }
+    const questionId = question?.json?.questionId;
+    if (!questionId) return;
     await httpAction('arena-answer', `/games/${state.gameId}/arena-answer`, {
       token: state.phones[name],
       body: {
@@ -410,8 +409,7 @@ async function roundArena(state, clients) {
       },
       expect: 'ok',
     });
-    await sleep(80);
-  }
+  }));
   // token di Anna, playerId Bruno: deve essere rifiutato o non attribuito a Bruno
   await httpAction('arena-cross-player', `/games/${state.gameId}/arena-answer`, {
     token: state.phones.Anna,
@@ -457,12 +455,10 @@ async function roundSpeedRush(state, clients) {
 async function bonusCasino(state, clients) {
   const status = clients.admin.statuses.CASINO_STATE;
   const options = status?.options ?? ['ROSSO', 'NERO'];
-  for (const name of TEAMS) {
-    await stompAction('casino-action', clients[name], {
+  await Promise.all(TEAMS.map((name) =>
+    stompAction('casino-action', clients[name], {
       action: 'CASINO_ACTION', playerName: name, manche: status?.manche ?? 1, choice: options[0],
-    });
-    await sleep(60);
-  }
+    })));
 }
 
 async function bonusBasket(state, clients) {
@@ -471,54 +467,50 @@ async function bonusBasket(state, clients) {
   });
   await sleep(800);
   for (let wave = 0; wave < 3; wave += 1) {
-    for (const name of TEAMS) {
+    await Promise.all(TEAMS.map(async (name) => {
       const board = await httpAction('basket-state', `/games/${state.gameId}/basket/state`, {
         method: 'GET', token: state.phones[name], expect: 200,
       });
       const shotId = board.json?.shotId;
-      if (!shotId) continue;
+      if (!shotId) return;
       await httpAction('basket-shot', `/games/${state.gameId}/basket/shot`, {
         token: state.phones[name], body: { shotId, pull: 0.5 + wave * 0.1, side: (wave - 1) * 0.2 },
       });
-      await sleep(500);
-    }
+    }));
+    await sleep(500);
   }
 }
 
 async function bonusCavallo(state, clients) {
   const status = clients.admin.statuses.CAVALLO_STATE;
   const category = status?.categories?.[0] ?? 'Cinema';
-  for (const name of TEAMS) {
-    await stompAction('cavallo-category', clients[name], {
+  await Promise.all(TEAMS.map((name) =>
+    stompAction('cavallo-category', clients[name], {
       action: 'CAVALLO_ACTION', playerName: name, kind: 'CATEGORY', value: category,
-    });
-    await sleep(60);
-  }
+    })));
   await sleep(1200);
-  for (const [index, name] of TEAMS.entries()) {
-    await stompAction('cavallo-answer', clients[name], {
+  await Promise.all(TEAMS.map((name, index) =>
+    stompAction('cavallo-answer', clients[name], {
       action: 'CAVALLO_ACTION', playerName: name, kind: 'ANSWER', value: index % 4,
-    });
-  }
+    })));
 }
 
 async function bonusBiglie(state, clients) {
   const status = clients.admin.statuses.BIGLIE_STATE;
   const marbles = status?.marbles ?? [];
-  for (const [index, name] of TEAMS.entries()) {
+  await Promise.all(TEAMS.map(async (name, index) => {
     const marble = marbles.find((entry) => !entry.owner) ?? marbles[index];
-    if (!marble?.id) continue;
+    if (!marble?.id) return;
     await stompAction('biglie-pick', clients[name], {
       action: 'BIGLIE_ACTION', playerName: name, kind: 'PICK', value: marble.id,
     });
-    await sleep(100);
-  }
+  }));
 }
 
 async function run() {
   const state = JSON.parse(readFileSync(STATE_PATH, 'utf8'));
   const { gameId } = state;
-  writeFileSync(`${REPORT_DIR}game-actions.jsonl`, '');
+  writeFileSync(ACTIONS_PATH, '');
   const admin = new StompClient(state.admin, 'admin', gameId);
   await admin.connect();
   admin.subscribeStatus();
@@ -530,7 +522,8 @@ async function run() {
   }
 
   await sleep(RUN_DELAY_MS);
-  for (const name of TEAMS) await clients[name].connect();
+  // Connessioni STOMP in parallelo: 16 socket reali, non una finta sequenza.
+  await Promise.all(TEAMS.map((name) => clients[name].connect()));
   await setupScenario(state, clients);
 
   const handlers = {
@@ -607,6 +600,7 @@ async function run() {
   const summary = {
     gameId,
     players: TEAMS,
+    playerCount: TEAMS.length,
     rounds: ROUNDS,
     bonuses: BONUSES,
     actions: actions.length,
@@ -620,7 +614,7 @@ async function run() {
     }, {}),
     finishedAt: new Date().toISOString(),
   };
-  writeFileSync(`${REPORT_DIR}game-actions-summary.json`, JSON.stringify(summary, null, 2));
+  writeFileSync(SUMMARY_PATH, JSON.stringify(summary, null, 2));
   console.log(JSON.stringify(summary, null, 2));
   admin.close();
   for (const name of TEAMS) clients[name]?.close?.();
