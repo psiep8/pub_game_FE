@@ -3,6 +3,28 @@
 Tutte le modifiche rilevanti di PubGame. Formato basato su Keep a Changelog,
 versione SemVer.
 
+## [2.0.1] — 2026-11-12
+
+Patch: codice di abbinamento per la regia, ripresa del Blackjack dopo il refresh
+della TV e aggiornamento minor delle dipendenze Angular. Documentazione del pannello
+admin e del telefono.
+
+### Aggiunto
+
+- Codice di abbinamento regia a 6 cifre: scade dopo 5 minuti, si usa una volta sola
+  e blocca il tentativo per 1 minuto dopo 5 errori.
+- Ripresa del Blackjack: la TV salva la mano sul server a ogni cambio fase e, dopo
+  un refresh nella stessa fase, la riprende.
+- `docs/PANNELLO-ADMIN.md`: guida ai pulsanti e alle decisioni del pannello admin.
+- `docs/MANUALE-TELEFONO.md`: guida per le squadre.
+
+### Modificato
+
+- Dipendenze Angular aggiornate alle ultime minor 22.2.x (CLI e build 22.2.7,
+  TypeScript 6.0.3). Nessun cambio di major. `npm audit`: 0 vulnerabilità.
+- `PRESENTAZIONE-PUBGAME.md`: etichette dei pulsanti admin allineate al pannello
+  reale (PARTI, PROSSIMA MANCHE, DEMO, CHIUDI BONUS).
+
 ## [2.0.0] — 2026-11-12
 
 Seconda major: la serata si prepara e si controlla prima di accendere la TV. Il

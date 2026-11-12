@@ -1,8 +1,9 @@
 # PUBGAME — Il copione del presentatore
 
-> **VERSIONE 1.0.0 — 9 novembre 2026.**
-> Il copione descrive la serata alla prima major. Se un gioco o un punteggio cambia,
-> questo file va riallineato.
+> **VERSIONE 2.0.0 — 12 novembre 2026.**
+> Il copione descrive la serata alla seconda major. Per i pulsanti del pannello admin
+> vedi `docs/PANNELLO-ADMIN.md`; per il telefono delle squadre vedi `docs/MANUALE-TELEFONO.md`.
+> Se un gioco o un punteggio cambia, questo file va riallineato.
 
 Questo file è pensato per essere letto la sera stessa, anche con poca luce: contiene il
 flusso della serata, le regole di ogni gioco, i punteggi e le frasi da dire. Non serve
@@ -239,7 +240,7 @@ alta l'attenzione dopo la classifica.
 - **Rapida** (metà atto): posizioni e punti, veloce da leggere ad alta voce.
 - **Dettagliata** (fine atto): podio con rullo e festeggiamento per il terzo, il secondo e
   il primo posto, poi la classifica completa.
-- La classifica **resta in TV** finché non premi **PROSSIMO ROUND**: nessuna chiusura
+- La classifica **resta in TV** finché non premi **PARTI**: nessuna chiusura
   automatica, così avete tutto il tempo per commentare.
 
 > *Da dire al podio:* «Terzo posto… secondo… e primi, stasera, sono…» (lasciate un secondo
@@ -251,12 +252,14 @@ alta l'attenzione dopo la classifica.
 
 | Pulsante | Quando usarlo |
 | --- | --- |
-| ▶️ **PROSSIMO ROUND** | per passare al gioco successivo (annulla anche l'avanzamento automatico) |
+| ▶️ **PARTI** | per avviare il round successivo (disattivato finché la prova dei pulsanti non è pronta) |
 | 🏆 **MOSTRA CLASSIFICA** | per anticipare la classifica senza aspettare la fine dell'atto |
+| 🎵 **PROSSIMA MANCHE** | per passare alla manche successiva di un gioco a manche |
 | ⏸️ **PAUSA / RIPRENDI** | per fermare tutto: in pausa la TV copre il gioco e i timer si fermano |
-| 🎥 **DEMO GIOCO** | per spiegare un gioco prima di giocarlo (demo animata, senza mp4) |
+| 🎬 **DEMO** | per spiegare un gioco o un bonus prima di giocarlo, senza cambiare la partita |
 | ✖️ **CHIUDI DEMO** | per tornare alla partita |
-| 🎰 🏀 🐎 🎱 **BONUS** | per lanciare il bonus di fine atto |
+| 🎰 🏀 🐎 🎱 **BONUS** (CASINO, BASKET, CAVALLO, BIGLIE) | per lanciare il bonus di fine atto |
+| ✖️ **CHIUDI BONUS** | per uscire da un bonus |
 | **PARTITA #** | per puntare la TV giusta se l'admin è su un altro dispositivo |
 
 Nel riquadro **CONNESSIONI & SALVATAGGIO** trovi, per ogni dispositivo: ruolo, nome,
@@ -280,7 +283,7 @@ davvero collegata o ha il telefono in tasca spento?».
 
 **Non** ricaricare la pagina della TV per «sistemare»: la TV recupera da sola. **Non**
 ricreare la partita se qualcosa sembra bloccato: prima controllate la diagnostica e
-premete **PROSSIMO ROUND**.
+premete **PARTI**.
 
 ---
 
