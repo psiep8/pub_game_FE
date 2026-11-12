@@ -1449,51 +1449,68 @@
   font-size: 1.2rem;
 }
 
+/* Pannello RISPOSTE: foglio stampato incollato in basso, due colonne per
+   ospitare tutti gli otto telefoni senza scorrimento. */
 .recent-responses {
   position: fixed;
   left: 20px;
   bottom: 20px;
-  width: 220px;
-  background: rgba(0, 0, 0, 0.6);
-  border: 2px solid rgba(255, 215, 0, 0.12);
-  padding: 10px;
-  border-radius: 10px;
+  width: 400px;
+  background: var(--paper);
+  color: var(--coal);
+  border: 3px solid var(--coal);
+  box-shadow: 6px 6px 0 var(--coal);
+  border-radius: 0;
+  padding: 8px 10px 10px;
   z-index: 11000;
-  backdrop-filter: blur(6px);
+  font-family: var(--font-mono);
 }
 
 .recent-responses .recent-header {
-  font-weight: 800;
-  color: #ffd700;
+  display: inline-block;
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--coal);
+  background: var(--acid);
+  border: 2px solid var(--coal);
+  padding: 1px 8px;
   margin-bottom: 8px;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
 
 .recent-responses .recent-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-height: 160px;
-  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 12px;
+  max-height: none;
+  overflow: visible;
 }
 
 .recent-responses .recent-item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  color: white;
-  padding: 6px 8px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.02);
+  align-items: baseline;
+  gap: 6px;
+  color: var(--coal);
+  padding: 3px 0;
+  border-bottom: 1px dashed var(--paper-2);
+  border-radius: 0;
+  background: transparent;
 }
 
 .recent-responses .recent-item .r-player {
+  font-family: var(--font);
   font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .recent-responses .recent-item .r-time {
   font-size: 0.8rem;
-  color: rgba(255, 215, 0, 0.9);
+  color: var(--coal);
+  opacity: 0.65;
 }
 
 .tf-option-btn {
@@ -1642,24 +1659,27 @@
 }
 
 .r-points {
-  font-size: 24px;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
   font-weight: 700;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
 }
 
 .r-points.positive {
-  color: #2ecc71;
+  color: var(--cobalt);
 }
 
 .r-points.negative {
-  color: #e74c3c;
+  color: var(--tomato);
 }
 
 .total-points {
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.75rem;
+  color: var(--coal);
+  opacity: 0.6;
   font-weight: 600;
 }
 

@@ -788,6 +788,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
       this.phase.set('QUESTION');
       this.showQuestion.set(true);
+      // Il pannello RISPOSTE mostra il round in corso: senza azzerarlo
+      // accumulava le risposte di tutta la serata e ne tagliava sei.
+      this.ws.clearResponses();
       this.timer.set(mode.timerDuration);
 
       const safeData = this.getSafeDisplayData();
@@ -1885,7 +1888,17 @@ export class GameComponent implements OnInit, OnDestroy {
     const all = this.ws.responses();
     if (!Array.isArray(all)) return [];
 
-    return all.slice(-6).reverse().map(r => {
+    // Una riga per giocatore: le revisioni (per esempio l'ordine Timeline
+    // cambiato) aggiornano la stessa riga invece di aggiungerne una seconda.
+    // Nessun taglio a sei: con otto telefoni la TV deve mostrarli tutti.
+    const byPlayer = new Map<string, any>();
+    for (const row of all) {
+      const playerName = String(row?.playerName ?? '').trim();
+      if (!playerName) continue;
+      byPlayer.set(playerName, row);
+    }
+
+    return [...byPlayer.values()].reverse().map(r => {
       const playerScore = this.leaderboardService.getLeaderboard()
         .find(p => p.playerName === r.playerName);
 
