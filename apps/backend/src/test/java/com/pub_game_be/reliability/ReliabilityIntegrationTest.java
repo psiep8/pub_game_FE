@@ -729,11 +729,112 @@ class ReliabilityIntegrationTest {
         assertThat(((Map<?, ?>) second.getBody()).get("replayed")).isEqualTo(true);
         assertThat(questionHistory.scores(gameId)).containsEntry("SquadraDue", 10);
     }
-    }
-    }
+
+    @Test
+    void timeBuzzerStartRipetutoNonAzzeraIlCronometro() throws Exception {
+        long gameId = 529L;
+        gameState.startRound(gameId, "TIME_BUZZER", 1, "g529-r1", "{}");
+
+        var party = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
+                messaging, gameState, idempotency, stateBlobs,
+                new com.pub_game_be.service.SpeedRushService(stateBlobs),
+                new com.pub_game_be.service.BasketService(stateBlobs));
+
+        var first = party.timeBuzzerStart(gameId, Map.of("manche", 1));
+        var firstBody = (Map<?, ?>) first.getBody();
+        long startedAt = ((Number) firstBody.get("startedAt")).longValue();
+        assertThat(firstBody.get("replayed")).isEqualTo(false);
+
+        Thread.sleep(250);
+        var second = party.timeBuzzerStart(gameId, Map.of("manche", 1));
+        var secondBody = (Map<?, ?>) second.getBody();
+        // Il secondo via non sposta l'istante: gli stop già partiti restano validi.
+        assertThat(secondBody.get("replayed")).isEqualTo(true);
+        assertThat(((Number) secondBody.get("startedAt")).longValue()).isEqualTo(startedAt);
+
+        long clientMs = System.currentTimeMillis() - startedAt;
+        var stop = party.timeBuzzerStop(gameId, Map.of("playerName", "Anna", "ms", clientMs));
+        assertThat(stop.getStatusCode().value()).isEqualTo(200);
     }
 
-    /** Porta la scadenza del round nel passato, come a fine manche. */    }
+    @Test
+    void timeBuzzerStartFuoriDalRoundNonParte() {
+        long gameId = 530L;
+        gameState.startRound(gameId, "QUIZ", 1, "g530-r1", "{}");
+
+        var party = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
+                messaging, gameState, idempotency, stateBlobs,
+                new com.pub_game_be.service.SpeedRushService(stateBlobs),
+                new com.pub_game_be.service.BasketService(stateBlobs));
+
+        var response = party.timeBuzzerStart(gameId, Map.of("manche", 1));
+        assertThat(response.getStatusCode().value()).isEqualTo(409);
+        assertThat(stateBlobs.load(gameId, "time-buzzer-start")).isEmpty();
+    }
+
+    @Test
+    void timeBuzzerUsaLaDurataDelRoundPerLaFinestra() {
+        var party = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
+                messaging, gameState, idempotency, stateBlobs,
+                new com.pub_game_be.service.SpeedRushService(stateBlobs),
+                new com.pub_game_be.service.BasketService(stateBlobs));
+
+        // Durata dichiarata dal round: la finestra della manche la segue.
+        long gameId = 532L;
+        gameState.startRound(gameId, "TIME_BUZZER", 1, "g532-r1",
+                "{\"type\":\"TIME_BUZZER\",\"duration\":20}");
+        expireRound(gameId);
+        assertThat(party.timeBuzzerStart(gameId, Map.of("manche", 1)).getStatusCode().value()).isEqualTo(200);
+        long remaining = gameState.roundDeadline(gameId).orElse(0L) - System.currentTimeMillis();
+        assertThat(remaining).isBetween(15_000L, 25_000L);
+
+        // Senza durata nel payload resta il ripiego di 45 s.
+        long fallbackGame = 533L;
+        gameState.startRound(fallbackGame, "TIME_BUZZER", 1, "g533-r1", "{}");
+        expireRound(fallbackGame);
+        assertThat(party.timeBuzzerStart(fallbackGame, Map.of("manche", 1)).getStatusCode().value()).isEqualTo(200);
+        long fallback = gameState.roundDeadline(fallbackGame).orElse(0L) - System.currentTimeMillis();
+        assertThat(fallback).isBetween(40_000L, 50_000L);
+    }
+
+    /** Porta la scadenza del round nel passato, come a fine manche. */
+    private void expireRound(long gameId) {
+        var state = stateRepository.findById(gameId).orElseThrow();
+        state.setRoundDeadlineAt(System.currentTimeMillis() - 5_000);
+        stateRepository.saveAndFlush(state);
+        entityManager.clear();
+    }
+
+    @Test
+    void timeBuzzerSecondaMancheRiapreLaFinestraDelRound() throws Exception {
+        long gameId = 531L;
+        gameState.startRound(gameId, "TIME_BUZZER", 1, "g531-r1", "{}");
+
+        var party = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
+                messaging, gameState, idempotency, stateBlobs,
+                new com.pub_game_be.service.SpeedRushService(stateBlobs),
+                new com.pub_game_be.service.BasketService(stateBlobs));
+
+        var first = party.timeBuzzerStart(gameId, Map.of("manche", 1));
+        assertThat(first.getStatusCode().value()).isEqualTo(200);
+        assertThat(party.timeBuzzerStop(gameId, Map.of("playerName", "Anna", "ms", 120))
+                .getStatusCode().value()).isEqualTo(200);
+
+        // Fine della prima manche: la finestra del round è già consumata, come
+        // succede davvero con tre manche da 30 s dentro una finestra più corta.
+        var state = stateRepository.findById(gameId).orElseThrow();
+        state.setRoundDeadlineAt(System.currentTimeMillis() - 5_000);
+        stateRepository.saveAndFlush(state);
+        entityManager.clear();
+        assertThat(gameState.isRoundOpen(gameId)).isFalse();
+
+        // Il via della manche 2 rinnova la finestra invece di essere rifiutato.
+        var second = party.timeBuzzerStart(gameId, Map.of("manche", 2));
+        assertThat(second.getStatusCode().value()).isEqualTo(200);
+        assertThat(((Map<?, ?>) second.getBody()).get("manche")).isEqualTo(2);
+        assertThat(gameState.isRoundOpen(gameId)).isTrue();
+        assertThat(party.timeBuzzerStop(gameId, Map.of("playerName", "Anna", "ms", 90))
+                .getStatusCode().value()).isEqualTo(200);
     }
 
     @Test

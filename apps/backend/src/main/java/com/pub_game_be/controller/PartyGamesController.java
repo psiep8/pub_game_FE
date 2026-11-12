@@ -50,6 +50,8 @@ public class PartyGamesController {
     private final BasketService basketService;
 
     private static final String BUZZER_BLOB = "time-buzzer-start";
+    /** Ripiego se il payload del round non dichiara la durata della manche. */
+    private static final long TIME_BUZZER_FALLBACK_WINDOW_MS = 45_000;
     private final StateBlobService stateBlobs;
 
     public PartyGamesController(PartyGameService partyGameService, QuestionBankService questionBank,
@@ -159,15 +161,41 @@ public class PartyGamesController {
      * il proprio tempo. L'istante salvato qui è il metro per validarli.</p>
      */
     @PostMapping("/{gameId}/time-buzzer/start")
-    public Map<String, Object> timeBuzzerStart(@PathVariable("gameId") Long gameId,
+    public ResponseEntity<Object> timeBuzzerStart(@PathVariable("gameId") Long gameId,
             @RequestBody(required = false) Map<String, Object> body) {
+        // Il round ha tre manche da 30 s ma la sua finestra dura una manche:
+        // qui conta che il round sia quello giusto e ancora in corso, poi la
+        // scadenza viene rinnovata dal via stesso. Controllare la scadenza
+        // bloccherebbe la manche 2 e 3.
+        if (!gameStateService.isCurrentRoundType(gameId, "TIME_BUZZER")) {
+            return ResponseEntity.status(409).body(Map.of(
+                    "error", "time-buzzer-round-not-active",
+                    "message", "Il via si dà solo durante un round Time Buzzer aperto."));
+        }
+
         int manche = 1;
         if (body != null && body.get("manche") instanceof Number number) {
             manche = Math.max(1, number.intValue());
         }
 
+        JSONObject snapshot = gameStateService.snapshot(gameId);
+        String roundKey = snapshot.optString("roundKey", "");
+        JSONObject existing = stateBlobs.load(gameId, BUZZER_BLOB).map(JSONObject::new).orElse(null);
+
+        // Un solo via per (round, manche): un doppio click, un retry di rete o
+        // una seconda TV non devono spostare startedAt. Se lo facessero, ogni
+        // stop già partito diventerebbe "tempo-non-plausibile".
+        if (existing != null && roundKey.equals(existing.optString("roundKey", ""))
+                && existing.optInt("manche", -1) == manche) {
+            return ResponseEntity.ok(buzzerStart(existing.getLong("startedAt"), manche, true));
+        }
+
+        // Nuova manche: finestra piena da adesso, così la manche precedente non
+        // lascia i telefoni con una scadenza già passata. La durata arriva dal
+        // payload del round, come la legge la TV: niente 45 s scritto due volte.
+        gameStateService.extendRoundDeadline(gameId, timeBuzzerWindowMs(snapshot));
+
         long startedAt = System.currentTimeMillis();
-        String roundKey = gameStateService.snapshot(gameId).optString("roundKey", "");
         stateBlobs.save(gameId, BUZZER_BLOB, new JSONObject()
                 .put("startedAt", startedAt).put("manche", manche).put("roundKey", roundKey).toString());
 
@@ -177,9 +205,22 @@ public class PartyGamesController {
                 .put("manche", manche)
                 .toString());
 
+        return ResponseEntity.ok(buzzerStart(startedAt, manche, false));
+    }
+
+    /** Durata della manche dichiarata dal round, in millisecondi. */
+    private long timeBuzzerWindowMs(JSONObject snapshot) {
+        JSONObject payload = snapshot == null ? null : snapshot.optJSONObject("payload");
+        double seconds = payload == null ? 0 : payload.optDouble("duration", 0);
+        return seconds > 0 ? Math.round(seconds * 1000) : TIME_BUZZER_FALLBACK_WINDOW_MS;
+    }
+
+    /** Risposta del via: {@code replayed} dice se era già partita la manche. */
+    private Map<String, Object> buzzerStart(long startedAt, int manche, boolean replayed) {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("startedAt", startedAt);
         result.put("manche", manche);
+        result.put("replayed", replayed);
         return result;
     }
 

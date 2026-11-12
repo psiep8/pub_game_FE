@@ -136,7 +136,15 @@ export class TimeBuzzerMode extends GameModeBase {
     // Prima la TV mostra il bersaglio, poi il server dà il via ai telefoni:
     // l'istante che torna indietro è quello che usa per validare i tempi.
     this.broadcast();
-    const startedAt = await this.config.startTimeBuzzer?.(this.mancheIndex() + 1);
+    // Il via lo registra il server: se non risponde (o lo rifiuta) la manche
+    // non si blocca, prosegue con il cronometro locale. I tempi di quella
+    // manche non saranno validati, ma il gioco va avanti.
+    let startedAt: number | null = null;
+    try {
+      startedAt = (await this.config.startTimeBuzzer?.(this.mancheIndex() + 1)) ?? null;
+    } catch (error) {
+      console.warn('Time Buzzer: via non registrato dal server', error);
+    }
     if (this.stopped || this.finished() || this.revealData()) return;
 
     this.serverStartedAt = typeof startedAt === 'number' ? startedAt : null;
