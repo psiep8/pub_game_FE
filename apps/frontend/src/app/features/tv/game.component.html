@@ -328,15 +328,21 @@
   <div class="bonus-card">
     <div class="bonus-kicker">BONUS CONCLUSO</div>
     <h2>{{ bonusLabel() }}</h2>
-    <p class="bonus-hint">Classifica del bonus</p>
-    <div class="bonus-scores">
-      @for (row of bonusResult(); track row.playerName; let i = $index) {
-        <div><span>{{ i + 1 }}. {{ row.playerName }}</span><b>{{ row.score }}</b></div>
-      }
-      @if (!bonusResult().length) {
-        <p class="bonus-hint">Nessun punto registrato.</p>
-      }
-    </div>
+    <p class="bonus-hint">Classifica del bonus · punti già in tabellone</p>
+    @if (bonusResult().length) {
+      <div class="bonus-scores-head"><span>POS</span><span>TAVOLO</span><span>PUNTI</span></div>
+      <div class="bonus-scores">
+        @for (row of bonusResult(); track row.playerName; let i = $index) {
+          <div class="bonus-row" [class.win]="i === 0">
+            <span class="bonus-pos">{{ i + 1 }}</span>
+            <span class="bonus-name">{{ row.playerName }}</span>
+            <b class="bonus-points">{{ row.score }}</b>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="bonus-hint">Nessun punto registrato.</p>
+    }
   </div>
 </div>
 }
