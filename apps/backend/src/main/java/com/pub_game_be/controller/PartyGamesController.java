@@ -181,32 +181,43 @@ public class PartyGamesController {
 
         JSONObject snapshot = gameStateService.snapshot(gameId);
         String roundKey = snapshot.optString("roundKey", "");
-        JSONObject existing = stateBlobs.load(gameId, BUZZER_BLOB).map(JSONObject::new).orElse(null);
+        long startedAt = System.currentTimeMillis();
 
-        // Un solo via per (round, manche): un doppio click, un retry di rete o
-        // una seconda TV non devono spostare startedAt. Se lo facessero, ogni
-        // stop già partito diventerebbe "tempo-non-plausibile".
-        if (existing != null && roundKey.equals(existing.optString("roundKey", ""))
-                && existing.optInt("manche", -1) == manche) {
-            return ResponseEntity.ok(buzzerStart(existing.getLong("startedAt"), manche, true));
+        // Test-and-set atomico: due richieste simultanee per la stessa manche
+        // provano lo stesso payload di partenza; una sola vince il CAS, l'altra
+        // rilegge lo startedAt vincente e risponde replayed=true. Il broadcast
+        // è dentro il ramo del vincitore, quindi parte una volta sola.
+        for (int attempt = 0; attempt < 5; attempt++) {
+            var currentRaw = stateBlobs.load(gameId, BUZZER_BLOB);
+            JSONObject existing = currentRaw.map(JSONObject::new).orElse(null);
+            if (existing != null && roundKey.equals(existing.optString("roundKey", ""))
+                    && existing.optInt("manche", -1) == manche) {
+                return ResponseEntity.ok(buzzerStart(existing.getLong("startedAt"), manche, true));
+            }
+
+            String nextPayload = new JSONObject()
+                    .put("startedAt", startedAt)
+                    .put("manche", manche)
+                    .put("roundKey", roundKey)
+                    .toString();
+            if (!stateBlobs.compareAndSet(gameId, BUZZER_BLOB, currentRaw.orElse(null), nextPayload)) {
+                continue;
+            }
+
+            // Nuova manche: finestra piena da adesso. Solo il vincitore del CAS
+            // allunga la deadline e manda il via ai telefoni.
+            gameStateService.extendRoundDeadline(gameId, timeBuzzerWindowMs(snapshot));
+            messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", new JSONObject()
+                    .put("action", "TIME_BUZZER_START")
+                    .put("startedAt", startedAt)
+                    .put("manche", manche)
+                    .toString());
+            return ResponseEntity.ok(buzzerStart(startedAt, manche, false));
         }
 
-        // Nuova manche: finestra piena da adesso, così la manche precedente non
-        // lascia i telefoni con una scadenza già passata. La durata arriva dal
-        // payload del round, come la legge la TV: niente 45 s scritto due volte.
-        gameStateService.extendRoundDeadline(gameId, timeBuzzerWindowMs(snapshot));
-
-        long startedAt = System.currentTimeMillis();
-        stateBlobs.save(gameId, BUZZER_BLOB, new JSONObject()
-                .put("startedAt", startedAt).put("manche", manche).put("roundKey", roundKey).toString());
-
-        messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", new JSONObject()
-                .put("action", "TIME_BUZZER_START")
-                .put("startedAt", startedAt)
-                .put("manche", manche)
-                .toString());
-
-        return ResponseEntity.ok(buzzerStart(startedAt, manche, false));
+        return ResponseEntity.status(409).body(Map.of(
+                "error", "time-buzzer-start-race",
+                "message", "Il via è stato aggiornato da un'altra richiesta; riprova."));
     }
 
     /** Durata della manche dichiarata dal round, in millisecondi. */

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -39,6 +40,11 @@ import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -755,6 +761,55 @@ class ReliabilityIntegrationTest {
         long clientMs = System.currentTimeMillis() - startedAt;
         var stop = party.timeBuzzerStop(gameId, Map.of("playerName", "Anna", "ms", clientMs));
         assertThat(stop.getStatusCode().value()).isEqualTo(200);
+    }
+
+    @Test
+    void dueStartTimeBuzzerConcorrentiHannoUnSoloVia() throws Exception {
+        long gameId = 553L;
+        gameState.startRound(gameId, "TIME_BUZZER", 1, "g553-r1",
+                "{\"type\":\"TIME_BUZZER\",\"duration\":30}");
+        stateBlobs.forget(gameId, "time-buzzer-start");
+
+        var sender = mock(SimpMessagingTemplate.class);
+        var party = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
+                sender, gameState, idempotency, stateBlobs,
+                new com.pub_game_be.service.SpeedRushService(stateBlobs),
+                new com.pub_game_be.service.BasketService(stateBlobs));
+
+        int workers = 2;
+        ExecutorService pool = Executors.newFixedThreadPool(workers);
+        CountDownLatch ready = new CountDownLatch(workers);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Future<ResponseEntity<Object>>> futures = new ArrayList<>();
+        try {
+            for (int worker = 0; worker < workers; worker++) {
+                futures.add(pool.submit(() -> {
+                    ready.countDown();
+                    start.await(10, TimeUnit.SECONDS);
+                    return party.timeBuzzerStart(gameId, Map.of("manche", 1));
+                }));
+            }
+            assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();
+            start.countDown();
+
+            List<ResponseEntity<Object>> responses = new ArrayList<>();
+            for (Future<ResponseEntity<Object>> future : futures) {
+                responses.add(future.get(30, TimeUnit.SECONDS));
+            }
+            assertThat(responses).allSatisfy(response ->
+                    assertThat(response.getStatusCode().value()).isEqualTo(200));
+
+            var first = (Map<?, ?>) responses.get(0).getBody();
+            var second = (Map<?, ?>) responses.get(1).getBody();
+            assertThat(((Number) first.get("startedAt")).longValue())
+                    .isEqualTo(((Number) second.get("startedAt")).longValue());
+            assertThat(List.of(first.get("replayed"), second.get("replayed")))
+                    .containsExactlyInAnyOrder(false, true);
+            // Solo il vincitore del CAS manda TIME_BUZZER_START.
+            verify(sender, times(1)).convertAndSend(eq("/topic/game/" + gameId + "/status"), anyString());
+        } finally {
+            pool.shutdownNow();
+        }
     }
 
     @Test
