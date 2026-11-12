@@ -25,6 +25,31 @@ class AzzardoPayloadTest {
     private QuestionBankService bank;
 
     @Test
+    void laChiaveDiDeduplicaIncludeLeQuattroDomande() {
+        JSONObject first = azzardoRound("Qual è l'anno di nascita di Albert Einstein?", 1879);
+        JSONObject second = azzardoRound("In che anno è uscita Imagine di John Lennon?", 1971);
+
+        assertThat(QuestionBankService.payloadDedupeKey(first.toString()))
+                .as("pacchetti Azzardo diversi non devono collidere")
+                .isNotEqualTo(QuestionBankService.payloadDedupeKey(second.toString()));
+        assertThat(QuestionBankService.payloadDedupeKey(first.toString()))
+                .as("lo stesso pacchetto deve restare idempotente")
+                .isEqualTo(QuestionBankService.payloadDedupeKey(first.toString()));
+    }
+
+    private static JSONObject azzardoRound(String question, int value) {
+        JSONObject round = new JSONObject();
+        round.put("type", "AZZARDO");
+        round.put("question", "Azzardo: quattro manche");
+        round.put("category", "Sport");
+        round.put("questions", new JSONArray().put(new JSONObject()
+                .put("question", question)
+                .put("category", "STORIA")
+                .put("value", value)));
+        return round;
+    }
+
+    @Test
     void ogniLivelloHaQuattroCategorieEQuattroOpzioniVicine() {
         String[][] bands = { { "facile", "1" }, { "medio", "2" }, { "difficile", "3" } };
 

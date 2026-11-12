@@ -325,6 +325,30 @@ public class QuestionBankService {
                 return "bundle|" + UUID.nameUUIDFromBytes(
                         signature.toString().getBytes(StandardCharsets.UTF_8));
             }
+            // Azzardo e Quiz mettono le domande in `questions`: il titolo del
+            // round è fisso ("Azzardo: quattro manche"), quindi senza questa
+            // firma due pacchetti diversi nella stessa categoria avrebbero la
+            // stessa chiave e il secondo verrebbe rifiutato come doppione.
+            JSONArray questions = obj.optJSONArray("questions");
+            if (questions != null && !questions.isEmpty()) {
+                StringBuilder signature = new StringBuilder();
+                for (int index = 0; index < questions.length(); index++) {
+                    JSONObject question = questions.optJSONObject(index);
+                    if (question == null) {
+                        continue;
+                    }
+                    signature.append(question.optString("category", "")).append('|')
+                            .append(question.optString("question", "")).append('|');
+                    String answer = question.optString("correctAnswer", "");
+                    if (answer.isEmpty()) {
+                        answer = String.valueOf(question.opt("value"));
+                    }
+                    signature.append(answer).append('|');
+                }
+                return "questions|" + UUID.nameUUIDFromBytes(
+                        signature.toString().getBytes(StandardCharsets.UTF_8));
+            }
+
             String question = obj.optString("question", "");
             String answer = obj.optString("correctAnswer", obj.optString("songTitle", ""));
             String category = obj.optString("category", "");

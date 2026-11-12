@@ -114,7 +114,12 @@ async function onStatus(message) {
     const type = ROUNDS[roundIndex] ?? 'QUIZ';
     await closeRound();
     const round = await openRound(type);
-    if (!round) return;
+    if (!round) {
+      // Non bloccare la scaletta sul round fallito: il successivo ADMIN_START
+      // deve provare il gioco seguente, non ripetere per sempre lo stesso tipo.
+      roundIndex += 1;
+      return;
+    }
     roundIndex += 1;
     const payload = typeof round.payload === 'string' ? round.payload : JSON.stringify(round.payload ?? {});
     log(`round ${roundIndex}/${ROUNDS.length}: ${type}`);
@@ -123,14 +128,14 @@ async function onStatus(message) {
       type,
       payload,
       round: roundIndex,
-      roundTotal: 13,
+      roundTotal: ROUNDS.length,
     });
     broadcast({
       action: 'START_VOTING',
       type,
       payload,
       round: roundIndex,
-      roundTotal: 13,
+      roundTotal: ROUNDS.length,
     });
   } else if (message.action === 'ADMIN_START_BONUS') {
     const type = String(message.type || 'BASKET');
