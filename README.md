@@ -13,7 +13,7 @@ PubGame è un gioco multigiocatore per locali e feste: la TV mostra domande, tab
 
 PubGame porta in sala un quiz a squadre in stile pub: nessuna app da installare, nessun account, un QR code sulla TV e il browser del telefono. La regia decide quando parte un round e quando si passa al successivo; il backend tiene sessioni, stato e recupero dopo un refresh.
 
-La versione è **1.0.0**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
+La versione è **2.0.0**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
 
 ## 2. Come si gioca
 
@@ -38,7 +38,7 @@ I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring
 | **Timeline** | Sapere | Sei date da ordinare dal passato al presente, tutti sulla stessa scala. | Fino a **+1200** in base alle posizioni esatte su n; sotto **n/2 − 1** si perde, fino a **−400**. |
 | **Time Buzzer** | Riflessi | Tre manche da 30 secondi per fermare il cronometro su un bersaglio di 5–29 secondi; i tagli eliminano progressivamente. | **+300 / +220 / +150 / +90 / +50** a fascia, manche dopo manche; tagliato **−250** o **−100**; finalisti **+150**. |
 | **Bomba** | Rischio | Un tabellone, un turno per squadra; quasi tutte le caselle sono vere, una ogni tre squadre è falsa. | Casella vera: **0** e si passa il turno; falsa scelta: **−200** e fuori dal round; chi non risponde salta il turno. |
-| **Speed Rush** | Riflessi | Sessanta secondi di risposte lampo; la corsia avanza a ogni risposta giusta. | **500** al primo, poi a scalare; minimo **100**; prendono punti solo i primi **n/2**. In serata reale è bloccato (vedi §10). |
+| **Speed Rush** | Riflessi | Sessanta secondi di risposte lampo; la corsia avanza a ogni risposta giusta. | **500** al primo, poi a scalare; minimo **100**; prendono punti solo i primi **n/2**. In serata reale è bloccato (vedi §12). |
 | **Air Hockey Battle** | Riflessi | Duello a coppie: ogni risposta rapida rimanda il disco; il set si chiude a 7 gol. | **+1000** al vincitore, **+200** di consolazione al perdente; ogni gol subito è un gol per l'avversario. |
 | **Azzardo** | Rischio | Quattro manche numeriche; dieci fiches da 20 punti da distribuire sulle quattro risposte. | Fiche giusta: **+20 × quota** (×2 facile, ×3 media, ×4 difficile); fiche sbagliate: **−20 × fiche × 100/80/60/40%**; mai sotto zero. |
 | **Ultima spiaggia** | Rischio / sapere | Cinque livelli da 100 a 500, una volta per squadra in tutta la serata; una categoria per occorrenza. | **+100 / +200 / +300 / +400 / +500**; errore **−50 / −100 / −150 / −200 / −250**; chi non risponde perde metà del livello scelto. |
@@ -50,7 +50,7 @@ I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring
 | Bonus | Come funziona | Punti |
 |---|---|---|
 | **Casino** | Quattro manche di roulette: colore, dozzina, sestina e numero secco. | **+100 / +150 / +200 / +300** a manche; sullo zero il banco incassa. |
-| **Basket** | Tre manche da 20 secondi con ferro largo, medio e piccolo. | **+2 / +3 / +5** a canestro, **+1** in più per lo swish. In serata reale è bloccato (vedi §10). |
+| **Basket** | Tre manche da 20 secondi con ferro largo, medio e piccolo. | **+2 / +3 / +5** a canestro, **+1** in più per lo swish. In serata reale è bloccato (vedi §12). |
 | **Cavallo di battaglia** | Otto domande flash sulla categoria votata dai telefoni. | **+1** per risposta esatta. |
 | **Biglie** | Quattro gare su fondi diversi, una biglia per tavolo scelta una volta sola. | **+150 / +100 / +60 / +30** a gara, punti cumulativi. |
 
@@ -156,7 +156,32 @@ Il frontend ha **28 file di spec**; il backend **11 classi di test**. Le verific
 
 **Limiti noti dei test**: non esiste ancora una prova end-to-end multi-dispositivo in rete; i controlli visivi sono manuali (TV e telefono); i timer dichiarati dal client non sono interamente verificabili dal server.
 
-## 10. Stato e roadmap
+## 10. Audio
+
+Tutta la colonna sonora della TV è **sintetizzata con la Web Audio API** (`core/services/audio.service.ts`): nessun file audio è versionato, quindi non ci sono licenze di terzi da gestire.
+
+| Suono | Dove nasce | Regola |
+|---|---|---|
+| Tappeto del pub | `core/services/pub-bed.ts`, battuta per battuta | parte al primo tocco e resta sotto classifiche e bonus; un solo tappeto per volta |
+| Battito | `startHeartbeat()` | in lobby lento, dal round 20 cresce con la serata |
+| Tick del clock | `startClock()` | un tick al secondo, mai due intervalli: ogni avvio spegne il precedente |
+| Suspense | `startSuspense(round)` | solo nei giochi a countdown e dal round 20; muore con il round e con la pausa |
+| Reveal, fanfara, podio | `playReveal()`, `playPodium()`, `playPodiumReveal()` | rullo + accordo, botticelle e botti crescenti dal terzo al primo posto |
+
+La TV ha il mute con dissolvenza: zittisce anche i suoni già schedulati, ma il tappeto resta fermo finché non si riaccende. La pausa ferma clock e battito; la ripresa li riapre. Prima di una serata si ascolta la sala a volume vero: la checklist è in `docs/SERATA-PROVA.md` §3.3.
+
+## 11. Serata di prova
+
+Prima di una serata con telefoni veri:
+
+1. `cp .env.test-night.example .env` e compila `CONTROL_SECRET` (≥ 32 caratteri) e `ALLOWED_ORIGINS` con IP LAN del PC.
+2. Backup di `apps/backend/data/pubgame.mv.db` in `backups/`.
+3. `npm run dev`, poi `curl http://localhost:8080/health` deve rispondere `{"status":"ok"}`.
+4. Giro a vuoto con un iPhone e un Android: ingresso, un round, refresh della TV, blocco schermo di 60 secondi.
+
+Il programma completo (ruoli, tempi, prove di caduta, cosa annotare, emergenze) è in **`docs/SERATA-PROVA.md`**. L'ordine delle fix da chiudere prima e dopo la serata è in **`docs/FIX-PRE-SERATA.md`**.
+
+## 12. Stato e roadmap
 
 **Pronto**
 
@@ -183,7 +208,7 @@ Il frontend ha **28 file di spec**; il backend **11 classi di test**. Le verific
 - Rate limiting sulle sessioni e recupero assistito dei nomi.
 - Test end-to-end con più browser e dispositivi reali.
 
-## 11. Contenuti e licenze
+## 13. Contenuti e licenze
 
 - **Domande**: `apps/backend/src/main/resources/questions/questions-it.json` (991 domande, 17 categorie, inclusa Air Hockey), `azzardo-it.json` (360) e `timeline-it.json` (113 eventi). Il backend le carica all'avvio e non chiama alcun modello AI a runtime.
 - **Generazione**: `scripts/generate-questions/generate.py` può usare Groq, ma solo quando si rigenera la banca. `GROQ_API_KEY` non serve per giocare.
@@ -193,7 +218,7 @@ Il frontend ha **28 file di spec**; il backend **11 classi di test**. Le verific
 - **Come aggiungere domande**: aggiungi voci alla banca JSON (o rigenera con lo script) mantenendo ID univoci e categorie esistenti; riavvia il backend e verifica la diagnostica delle domande usate.
 - **Licenze**: nel repository non c'è un file `LICENSE`. I testi delle domande e il codice appartengono al proprietario del repository; le foto TMDB e le anteprime iTunes restano soggette ai rispettivi termini. Prima di un uso pubblico o commerciale verifica le licenze delle fonti multimediali.
 
-## 12. Licenza e contatti
+## 14. Licenza e contatti
 
 Nessun file di licenza è incluso: l'uso è riservato al proprietario del repository, salvo accordi diversi.
 
