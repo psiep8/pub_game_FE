@@ -204,7 +204,7 @@ const GAME_COPY: Record<GameModeType, EntryCopy> = {
       'Le fiches si spostano liberamente, ma la puntata parte solo con CONFERMA PUNTATA: senza almeno una fiche non si conferma.',
       'Fiches giuste: 20 × quota (×2, ×3, ×4). Fiches sbagliate: perdono il 100/80/60/40%.',
       'Le fiches avanzate restano nel salvadanaio: ogni manche ne arrivano dieci nuove, che si sommano.',
-      'Sul tavolo però non si mettono più di dieci fiches per manche: il salvadanaio cresce, la puntata no.',
+      'Il tetto cresce con il salvadanaio: una fiche in più da giocare ogni due avanzate, fino a 15. Massimo 1000 punti incassati in una manche.',
     ],
     tip: 'La perdita scende manche dopo manche: nella prima si rischia più che nella quarta. Mai sotto zero.',
   },

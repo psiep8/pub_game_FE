@@ -1438,14 +1438,22 @@ export class RemoteComponent implements OnInit, OnDestroy {
     return Math.max(0, this.azzardoMyBank() - this.azzardoChipTotal());
   }
 
-  /** Fiches giocabili: il salvadanaio, ma al massimo dieci sul tavolo. */
+  /** Tetto di questa squadra: cresce con le fiches avanzate, fino al massimo. */
+  azzardoMyChipCap(): number {
+    const row = (this.azzardoState()?.ready ?? [])
+      .find((entry: any) => entry.playerName === this.nickname());
+    const cap = Number(row?.chipsCap);
+    if (Number.isFinite(cap)) return cap;
+    return Number(this.azzardoState()?.chipCap ?? 10) || 10;
+  }
+
+  /** Fiches giocabili: salvadanaio, tetto crescente e credito in punti. */
   azzardoMaxChips(): number {
     const state = this.azzardoState();
     const value = Number(state?.chipValue ?? 20) || 20;
-    const cap = Number(state?.chipCap ?? 10) || 10;
     return Math.max(0, Math.min(
       this.azzardoMyBank(),
-      cap,
+      this.azzardoMyChipCap(),
       Math.floor(this.azzardoMaxBet() / value),
     ));
   }

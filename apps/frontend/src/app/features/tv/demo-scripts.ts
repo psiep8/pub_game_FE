@@ -326,7 +326,7 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
       'Distribuisci le fiches sulle quattro opzioni: si spostano finché non confermi.',
       'Serve almeno una fiche e il tocco su CONFERMA PUNTATA: niente puntate automatiche.',
       'Fiches giuste: 20 × quota; sbagliate: perdono 100/80/60/40%.',
-      'Le fiches avanzate si sommano alle dieci nuove della manche dopo, ma sul tavolo ne stanno al massimo dieci.',
+      'Le fiches avanzate si sommano alle dieci nuove e alzano il tetto: una in più ogni due risparmiate, fino a 15. Massimo 1000 punti a manche.',
     ],
     win: ['Quota ×2 (facile), ×3 (media), ×4 (difficile).', 'Tutte e dieci le fiches sulla risposta giusta a ×3: +600.'],
     lose: ['La perdita scende manche dopo manche: 100%, 80%, 60%, 40%.', 'Mai sotto zero.'],

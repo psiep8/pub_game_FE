@@ -1133,3 +1133,13 @@
   text-align: center;
 }
 .azzardo-convert b { font-weight: 800; }
+
+/* Riga del salvadanaio: a 390px le tre voci vanno a capo invece di
+   stringersi in una riga sola o uscire dal bordo. */
+.azzardo-bank {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 14px;
+}
+.azzardo-bank span { white-space: nowrap; }

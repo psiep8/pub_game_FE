@@ -19,21 +19,31 @@ export type AzzardoBet = (typeof AZZARDO_BETS)[number];
 export const AZZARDO_CHIPS = 10;
 export const AZZARDO_CHIP_VALUE = 20;
 
-/**
- * Tetto di fiches sul tavolo in una manche: dieci, come il credito iniziale.
- *
- * Il salvadanaio cresce (le fiches avanzate si sommano), la puntata no:
- * altrimenti chi risparmia due manche punterebbe il doppio e incasserebbe
- * cifre sproporzionate. Con il tetto, la manche paga al massimo
- * 10 × 20 × quota.
- */
-export const AZZARDO_MAX_CHIPS_PER_MANCHE = AZZARDO_CHIPS;
+/** Tetto massimo di fiches sul tavolo, dichiarato in manuale e TV. */
+export const AZZARDO_MAX_CHIPS_PER_MANCHE = 15;
 
-/** Fiches giocabili adesso: salvadanaio, tetto di manche e credito punti. */
+/** Vincita massima di una manche, quota compresa. */
+export const AZZARDO_MAX_WIN_PER_MANCHE = 1000;
+
+/**
+ * Tetto di fiches che cresce con il salvadanaio: una fiche in più da giocare
+ * ogni due avanzate, fino al massimo dichiarato.
+ *
+ * Così risparmiare serve (17 fiches in banca = 13 giocabili invece di 10)
+ * senza però permettere di puntare l'intero salvadanaio e incassare cifre
+ * sproporzionate.
+ */
+export function chipCapFor(bank: number): number {
+  const extra = Math.max(0, Math.floor(Number(bank) || 0) - AZZARDO_CHIPS);
+  return Math.min(AZZARDO_MAX_CHIPS_PER_MANCHE, AZZARDO_CHIPS + Math.floor(extra / 2));
+}
+
+/** Fiches giocabili adesso: tetto che cresce, salvadanaio e credito punti. */
 export function maxChipsFor(bank: number, available: number): number {
+  const chips = Math.max(0, Math.floor(Number(bank) || 0));
   return Math.max(0, Math.min(
-    Math.floor(Number(bank) || 0),
-    AZZARDO_MAX_CHIPS_PER_MANCHE,
+    chipCapFor(chips),
+    chips,
     Math.floor(Math.max(0, Number(available) || 0) / AZZARDO_CHIP_VALUE),
   ));
 }
@@ -146,7 +156,9 @@ export function chipsBreakdown(input: AzzardoChipsInput): AzzardoChipsBreakdown 
   const correctChips = Math.max(0, Math.floor(chips[input.answerIndex] ?? 0));
   const wrongChips = totalChips - correctChips;
   const stake = totalChips * AZZARDO_CHIP_VALUE;
-  const win = correctChips * AZZARDO_CHIP_VALUE * odds;
+  // Tetto di vincita della manche: anche con tutte le fiches giuste alla
+  // quota più alta non si incassa più di così.
+  const win = Math.min(AZZARDO_MAX_WIN_PER_MANCHE, correctChips * AZZARDO_CHIP_VALUE * odds);
   const wrongStake = wrongChips * AZZARDO_CHIP_VALUE;
   const loss = Math.min(
     Math.round(wrongStake * lossMultiplierFor(input.manche)),

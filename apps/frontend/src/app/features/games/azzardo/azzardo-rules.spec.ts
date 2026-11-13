@@ -1,8 +1,10 @@
 import {
   AZZARDO_BETS,
   AZZARDO_MAX_CHIPS_PER_MANCHE,
+  AZZARDO_MAX_WIN_PER_MANCHE,
   AZZARDO_MIN_BANK,
   bankFor,
+  chipCapFor,
   chipsBreakdown,
   clampAzzardoBet,
   levelForOccurrence,
@@ -14,15 +16,32 @@ import {
 } from './azzardo-rules';
 
 describe('tetto di fiches per manche', () => {
-  it('non lascia puntare più di dieci fiches, anche con il salvadanaio pieno', () => {
-    expect(maxChipsFor(17, 5000)).toBe(AZZARDO_MAX_CHIPS_PER_MANCHE);
-    expect(maxChipsFor(30, 5000)).toBe(10);
+  it('parte da dieci e cresce con le fiches avanzate, fino al massimo dichiarato', () => {
+    expect(chipCapFor(10)).toBe(10);
+    expect(chipCapFor(17)).toBe(13);
+    expect(chipCapFor(20)).toBe(15);
+    expect(chipCapFor(30)).toBe(AZZARDO_MAX_CHIPS_PER_MANCHE);
   });
 
   it('resta dentro il salvadanaio e il credito in punti', () => {
+    expect(maxChipsFor(17, 5000)).toBe(13);
     expect(maxChipsFor(3, 5000)).toBe(3);
     expect(maxChipsFor(10, 50)).toBe(2);
     expect(maxChipsFor(0, 5000)).toBe(0);
+  });
+
+  it('la manche non paga più del tetto di vincita', () => {
+    const top = chipsBreakdown({
+      chips: [15, 0, 0, 0],
+      answerIndex: 0,
+      level: 3,
+      manche: 0,
+      available: 5000,
+    });
+
+    // 15 × 20 × 4 farebbe 1200: il tetto lo taglia a 1000.
+    expect(top.win).toBe(AZZARDO_MAX_WIN_PER_MANCHE);
+    expect(top.points).toBe(AZZARDO_MAX_WIN_PER_MANCHE);
   });
 });
 
