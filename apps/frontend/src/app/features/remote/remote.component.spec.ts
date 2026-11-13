@@ -49,6 +49,22 @@ describe('RemoteComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('chiede nome e foto prima del tutorial', async () => {
+    // Prima del nome la prova dei pulsanti non esiste: si entra con nome e
+    // foto, poi si prova il telefono, poi si aspetta la TV.
+    expect(component.showButtonTest()).toBe(false);
+    expect(fixture.nativeElement.querySelector('app-button-test')).toBeNull();
+    const enableTutorial = vi.spyOn(component.showButtonTest, 'set');
+
+    component.tempNickname = 'Bianca';
+    await component.setNickname();
+
+    // Il tutorial si apre dallo stesso gesto che registra nome e foto, non
+    // prima: nessun ingresso senza squadra.
+    expect(component.nickname()).toBe('Bianca');
+    expect(enableTutorial).toHaveBeenCalledWith(true);
+  });
+
   it('should only keep the active categories for the arena', () => {
     expect(component.categories().map((category) => category.name)).toEqual([
       'CULTURA GENERALE',

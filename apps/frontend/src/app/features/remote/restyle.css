@@ -545,6 +545,8 @@
   padding: 2px 6px 7px 2px;
 }
 .tl-drag-card {
+  /* Il dito trascina la carta: la pagina non deve rubargli lo scorrimento. */
+  touch-action: none;
   padding: 12px 10px;
   background: var(--paper-hi);
   color: var(--coal);

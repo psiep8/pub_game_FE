@@ -1723,14 +1723,19 @@ export class RemoteComponent implements OnInit, OnDestroy {
   onDragMove(event: PointerEvent): void {
     if (this.dragId === null) return;
 
-    const target = document.elementFromPoint(event.clientX, event.clientY)
-      ?.closest('.tl-drag-card') as HTMLElement | null;
-    const over = target ? Number(target.dataset['index']) : NaN;
-    if (!Number.isFinite(over)) return;
+    // La carta trascinata segue il dito e resta sotto di lui: se la si conta
+    // come bersaglio, l'ordine non cambia mai e la carta non si deposita.
+    const from = this.timelineOrder().indexOf(this.dragId);
+    const under = typeof document.elementsFromPoint === 'function'
+      ? document.elementsFromPoint(event.clientX, event.clientY)
+      : [document.elementFromPoint?.(event.clientX, event.clientY)];
+    const over = under
+      .map((element) => (element instanceof HTMLElement ? element.closest<HTMLElement>('.tl-drag-card') : null))
+      .map((card) => (card ? Number(card.dataset['index']) : NaN))
+      .find((index) => Number.isInteger(index) && index !== from);
+    if (over === undefined || from < 0 || from === over) return;
 
     const order = [...this.timelineOrder()];
-    const from = order.indexOf(this.dragId);
-    if (from < 0 || from === over) return;
 
     order.splice(from, 1);
     order.splice(over, 0, this.dragId);

@@ -18,6 +18,19 @@ import { WsAction } from '../../../shared/enums/ws-action';
 const CARD_LABELS = ['A', 'B', 'C'];
 
 /**
+ * Elementi sotto un punto, dal più alto al più basso. `elementsFromPoint` non
+ * esiste ovunque (jsdom, browser vecchi): in quel caso basta il primo.
+ */
+export function elementsUnder(x: number, y: number): HTMLElement[] {
+  if (typeof document === 'undefined') return [];
+  if (typeof document.elementsFromPoint === 'function') {
+    return document.elementsFromPoint(x, y).filter((element): element is HTMLElement => element instanceof HTMLElement);
+  }
+  const single = document.elementFromPoint?.(x, y);
+  return single instanceof HTMLElement ? [single] : [];
+}
+
+/**
  * Prova rapida del telefono: tocco, scelta, trascinamento, vibrazione e
  * collegamento. I passi superati restano sul server, così un reload riprende
  * dal punto giusto invece di ricominciare.
@@ -54,6 +67,10 @@ export class ButtonTestComponent implements OnInit, OnDestroy {
   readonly dragOffset = signal<{ x: number; y: number } | null>(null);
   private dragStart: { x: number; y: number } | null = null;
   readonly cardLabels = CARD_LABELS;
+  /** iPhone/Safari non ha `navigator.vibrate`: la prova passa lo stesso. */
+  readonly vibrationSupported = signal(
+    typeof navigator !== 'undefined' && 'vibrate' in navigator
+  );
 
   private stepTimer?: ReturnType<typeof setInterval>;
   private pollTimer?: ReturnType<typeof setInterval>;
@@ -135,10 +152,15 @@ export class ButtonTestComponent implements OnInit, OnDestroy {
         y: event.clientY - this.dragStart.y,
       });
     }
-    const target = document.elementFromPoint(event.clientX, event.clientY)
-      ?.closest<HTMLElement>('[data-card-index]');
-    const index = Number(target?.dataset['cardIndex']);
-    if (Number.isInteger(index)) this.dropIndex.set(index);
+    // La carta trascinata sta sotto il dito che la segue: va esclusa, altrimenti
+    // il bersaglio è sempre se stessa e la carta non si "deposita" mai su
+    // un'altra. Si guarda la pila di elementi sotto il punto e si prende la
+    // prima carta che non è quella in mano.
+    const index = elementsUnder(event.clientX, event.clientY)
+      .map((element) => element.dataset['cardIndex'])
+      .map((value) => (value === undefined ? NaN : Number(value)))
+      .find((candidate) => Number.isInteger(candidate) && candidate !== this.dragIndex());
+    if (index !== undefined) this.dropIndex.set(index);
   }
 
   endDrag(): void {
@@ -232,7 +254,12 @@ export class ButtonTestComponent implements OnInit, OnDestroy {
     this.secondsLeft.set(15);
     this.connectionDone = false;
     if (step === 3) this.cards.set([2, 0, 1]);
-    if (step === 4) this.vibrate();
+    if (step === 4) {
+      this.vibrate();
+      if (!this.vibrationSupported()) {
+        this.message.set('Questo telefono non vibra (iPhone/Safari): la prova passa lo stesso.');
+      }
+    }
     this.startStepTimer();
     if (step === 5) this.startConnection();
     this.cdr.detectChanges();

@@ -64,6 +64,7 @@
     <span class="bt-step">4 · VIBRAZIONE</span>
     <p>Il telefono dovrebbe vibrare. Se non succede, segnalalo: la prova passa comunque.</p>
     <div class="bt-vibrate" aria-hidden="true">VIBRA</div>
+    @if (message()) { <span class="bt-message">{{ message() }}</span> }
     <div class="bt-row">
       <button class="bt-primary" (click)="vibrateNow()">FALLA VIBRARE</button>
       <button class="bt-secondary" (click)="vibration(false)">NON VIBRA</button>

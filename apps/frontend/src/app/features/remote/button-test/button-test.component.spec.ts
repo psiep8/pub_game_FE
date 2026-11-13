@@ -78,4 +78,35 @@ describe('ButtonTestComponent', () => {
     component.drop(2);
     expect(component.cards()).toEqual([0, 1, 2]);
   });
+
+  it('deposita la carta sulla carta sotto il dito, non su se stessa', () => {
+    component.advance(1);
+    component.choose(1);
+    fixture.detectChanges();
+    expect(component.cards()).toEqual([2, 0, 1]);
+
+    component.startDrag(0);
+    const dragged = document.createElement('div');
+    dragged.dataset['cardIndex'] = '0';
+    const under = document.createElement('div');
+    under.dataset['cardIndex'] = '2';
+    Object.defineProperty(document, 'elementsFromPoint', {
+      configurable: true,
+      value: () => [dragged, under],
+    });
+
+    component.onDragMove({ clientX: 10, clientY: 10 } as PointerEvent);
+    expect(component.dropIndex()).toBe(2);
+
+    component.endDrag();
+    expect(component.cards()).toEqual([0, 1, 2]);
+    expect(component.message()).toBe('Ordine corretto');
+  });
+
+  it('non chiede di vibrare ai telefoni che non supportano la vibrazione', () => {
+    // jsdom non ha navigator.vibrate, come iPhone/Safari: la prova passa e lo
+    // dice, invece di fallire in silenzio.
+    expect(component.vibrationSupported()).toBe(false);
+  });
+
 });
