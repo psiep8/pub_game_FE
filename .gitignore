@@ -8,6 +8,9 @@ out-tsc/
 coverage/
 __screenshots__/
 
+# --- Strumenti locali (JDK scaricato senza admin) ---
+.tools/
+
 # --- Build backend (Maven / Java) ---
 target/
 *.class

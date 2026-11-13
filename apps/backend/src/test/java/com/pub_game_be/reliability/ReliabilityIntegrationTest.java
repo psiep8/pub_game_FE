@@ -15,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.mockito.ArgumentCaptor;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -832,12 +833,23 @@ class ReliabilityIntegrationTest {
 
             var first = (Map<?, ?>) responses.get(0).getBody();
             var second = (Map<?, ?>) responses.get(1).getBody();
-            assertThat(((Number) first.get("startedAt")).longValue())
-                    .isEqualTo(((Number) second.get("startedAt")).longValue());
+            long startedAt = ((Number) first.get("startedAt")).longValue();
+            assertThat(((Number) second.get("startedAt")).longValue()).isEqualTo(startedAt);
             assertThat(List.of(first.get("replayed"), second.get("replayed")))
                     .containsExactlyInAnyOrder(false, true);
-            // Solo il vincitore del CAS manda TIME_BUZZER_START.
-            verify(sender, times(1)).convertAndSend(eq("/topic/game/" + gameId + "/status"), anyString());
+
+            // Ogni richiesta rimanda il via (serve a riarmare un telefono
+            // riconnesso), ma il metro del tempo è uno solo: entrambi i
+            // messaggi portano lo startedAt del vincitore del CAS.
+            ArgumentCaptor<String> payloads = ArgumentCaptor.forClass(String.class);
+            verify(sender, times(2))
+                    .convertAndSend(eq("/topic/game/" + gameId + "/status"), payloads.capture());
+            assertThat(payloads.getAllValues()).allSatisfy(payload -> {
+                var json = new org.json.JSONObject(payload);
+                assertThat(json.getString("action")).isEqualTo("TIME_BUZZER_START");
+                assertThat(json.getLong("startedAt")).isEqualTo(startedAt);
+                assertThat(json.getInt("manche")).isEqualTo(1);
+            });
         } finally {
             pool.shutdownNow();
         }
