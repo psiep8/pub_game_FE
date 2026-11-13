@@ -289,9 +289,22 @@ describe('RemoteComponent', () => {
     component.azzardoPick(0);
     expect(ws.broadcasted.some((entry) => entry.body.action === 'AZZARDO_ACTION')).toBe(false);
 
+    // Chi ha punti può preparare la puntata, ma non parte da sola: serve la
+    // conferma e almeno una fiche sul tavolo.
     component.azzardoState.set(state(100, 100));
     component.azzardoPick(0);
-    expect(ws.broadcasted.some((entry) => entry.body.action === 'AZZARDO_ACTION')).toBe(true);
+    expect(ws.broadcasted.some((entry) => entry.body.action === 'AZZARDO_ACTION')).toBe(false);
+
+    component.azzardoAddChip(0, -1);
+    component.azzardoConfirmBet();
+    expect(ws.broadcasted.some((entry) => entry.body.action === 'AZZARDO_ACTION')).toBe(false);
+    expect(reliability.lastError()).toContain('almeno una fiche');
+
+    component.azzardoPick(0);
+    component.azzardoConfirmBet();
+    const bets = ws.broadcasted.filter((entry) => entry.body.action === 'AZZARDO_ACTION');
+    expect(bets).toHaveLength(1);
+    expect(bets[0].body.value.chips).toEqual([1, 0, 0, 0]);
   });
 
   it('sends a pending Timeline answer only while the round is active', async () => {

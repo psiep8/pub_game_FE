@@ -1453,11 +1453,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
     return `Fiche da ${value} pt · giuste ×${odds} · sbagliate −${loss}%`;
   }
 
-  /** Ogni tocco sposta una fiche e manda subito la distribuzione al server. */
+  /**
+   * Le fiches si spostano in locale: al server arriva solo la puntata
+   * confermata. Toccarle non è una puntata (niente invii automatici).
+   */
   azzardoAddChip(index: number, delta: number): void {
     const player = this.nickname();
     const state = this.azzardoState();
-    if (!player || state?.phase !== 'BET' || !this.azzardoCanBet()) return;
+    if (!player || state?.phase !== 'BET' || !this.azzardoCanBet() || this.azzardoSent()) return;
     if (index < 0 || index >= (state.options?.length ?? 0)) return;
 
     const chips = Array.from({ length: state.options?.length ?? 0 }, (_, i) => this.azzardoChips()[i] ?? 0);
@@ -1466,6 +1469,27 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
     chips[index] = Math.max(0, (chips[index] ?? 0) + delta);
     this.azzardoChips.set(chips);
+    this.vibrate(10);
+  }
+
+  /**
+   * Conferma esplicita: senza almeno una fiche non si puntata, e la manche
+   * non parte mai con una puntata inventata dal telefono.
+   */
+  azzardoConfirmBet(): void {
+    const player = this.nickname();
+    const state = this.azzardoState();
+    if (!player || state?.phase !== 'BET' || !this.azzardoCanBet() || this.azzardoSent()) return;
+
+    const chips = Array.from(
+      { length: state.options?.length ?? 0 },
+      (_, i) => this.azzardoChips()[i] ?? 0
+    );
+    if (chips.reduce((sum, value) => sum + value, 0) <= 0) {
+      this.reliability.lastError.set('Metti almeno una fiche prima di confermare.');
+      return;
+    }
+
     this.azzardoSent.set(true);
     this.ws.broadcastStatus(this.gameId(), {
       action: WsAction.AZZARDO_ACTION,
@@ -1473,7 +1497,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       kind: 'BET',
       value: { chips },
     });
-    this.vibrate(10);
+    this.vibrate([40, 30, 40]);
   }
 
   /** Un tocco sulla risposta aggiunge una fiche all'opzione. */

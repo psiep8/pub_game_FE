@@ -376,8 +376,13 @@
         }
       </div>
       <p class="azzardo-convert">{{ azzardoConvertHint() }}</p>
+      <button type="button" class="confirm-btn"
+        [disabled]="azzardoChipTotal() === 0 || azzardoSent() || !azzardoCanBet()"
+        (click)="azzardoConfirmBet()">
+        {{ azzardoSent() ? 'PUNTATA CONFERMATA' : 'CONFERMA PUNTATA' }}
+      </button>
       <p class="azzardo-meta">
-        {{ azzardoSent() ? 'Fiches inviate: puoi ancora spostarle fino allo scadere.' : 'Nessuna fiche sul tavolo: la manche vale zero.' }}
+        {{ azzardoSent() ? 'Puntata inviata: la manche è chiusa per te.' : 'Serve almeno una fiche: senza puntata non si conferma.' }}
       </p>
       } @else if (azzardoState()?.phase === 'REVEAL') {
       <div class="status-msg">

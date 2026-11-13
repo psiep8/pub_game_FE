@@ -161,7 +161,9 @@ public class GameWebSocketController {
                 clean.add(amount);
                 total += amount;
             }
-            if (total > 10) {
+            // Puntata obbligatoria: un tavolo vuoto non è una puntata e la
+            // manche non deve partire con zero fiches.
+            if (total > 10 || total == 0) {
                 return rejected;
             }
 
