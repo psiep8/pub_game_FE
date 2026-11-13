@@ -134,6 +134,62 @@ describe('AzzardoMode', () => {
     mode.cleanup();
   });
 
+  it('le fiches avanzate si sommano alle dieci nuove della manche dopo', async () => {
+    vi.useFakeTimers();
+
+    const wallet: Record<string, number> = { Anna: 1000 };
+    const mode = new AzzardoMode();
+    mode.setConfig({
+      type: 'AZZARDO',
+      payload: {},
+      gameId: 1,
+      activePlayers: ['Anna'],
+      playerPoints: (playerName) => wallet[playerName] ?? 0,
+      onAnswerReceived: (data) => {
+        wallet[data.playerName] += data.points;
+      },
+    });
+    mode.initialize({ level: 1, questions: QUESTIONS });
+
+    const started = mode.start();
+    await vi.advanceTimersByTimeAsync(3000);
+    await started;
+
+    expect(mode.getDisplayData().ready[0].chipsBank).toBe(10);
+
+    // Manche 1: tre fiches su un'opzione, le altre sette restano.
+    mode.handlePartyEvent({
+      action: 'AZZARDO_ACTION',
+      playerName: 'Anna',
+      value: { chips: [3, 0, 0, 0] },
+    });
+    await vi.advanceTimersByTimeAsync(15000);
+    expect(mode.getDisplayData().phase).toBe('REVEAL');
+
+    await vi.advanceTimersByTimeAsync(7000);
+    const second = mode.getDisplayData();
+    expect(second.manche).toBe(2);
+    // Sette avanzate + dieci nuove.
+    expect(second.ready[0].chipsBank).toBe(17);
+
+    // Non si può puntare più di quanto c'è nel salvadanaio.
+    mode.handlePartyEvent({
+      action: 'AZZARDO_ACTION',
+      playerName: 'Anna',
+      value: { chips: [18, 0, 0, 0] },
+    });
+    expect(mode.getDisplayData().ready[0].chips).toEqual([]);
+
+    mode.handlePartyEvent({
+      action: 'AZZARDO_ACTION',
+      playerName: 'Anna',
+      value: { chips: [17, 0, 0, 0] },
+    });
+    expect(mode.getDisplayData().ready[0].chips).toEqual([17, 0, 0, 0]);
+
+    mode.cleanup();
+  });
+
   it('gioca le quattro manche con la perdita che scende dal 100% al 40%', async () => {
     vi.useFakeTimers();
 

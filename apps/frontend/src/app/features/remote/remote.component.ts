@@ -1426,15 +1426,23 @@ export class RemoteComponent implements OnInit, OnDestroy {
     return this.azzardoChips().reduce((sum, value) => sum + value, 0);
   }
 
-  azzardoChipsLeft(): number {
-    return Math.max(0, (this.azzardoState()?.chips ?? 10) - this.azzardoChipTotal());
+  /** Fiches nel salvadanaio: le avanzate si sommano alle dieci nuove. */
+  azzardoMyBank(): number {
+    const row = (this.azzardoState()?.ready ?? [])
+      .find((entry: any) => entry.playerName === this.nickname());
+    const bank = Number(row?.chipsBank);
+    return Number.isFinite(bank) ? bank : (this.azzardoState()?.chips ?? 10);
   }
 
-  /** Fiches giocabili: il credito di manche, non i punti in classifica. */
+  azzardoChipsLeft(): number {
+    return Math.max(0, this.azzardoMyBank() - this.azzardoChipTotal());
+  }
+
+  /** Fiches giocabili: il salvadanaio, entro il credito di manche. */
   azzardoMaxChips(): number {
     const state = this.azzardoState();
     const value = Number(state?.chipValue ?? 20) || 20;
-    return Math.max(0, Math.min(state?.chips ?? 10, Math.floor(this.azzardoMaxBet() / value)));
+    return Math.max(0, Math.min(this.azzardoMyBank(), Math.floor(this.azzardoMaxBet() / value)));
   }
 
   /** Gettone disegnati nell'impiastro dell'opzione: massimo cinque. */

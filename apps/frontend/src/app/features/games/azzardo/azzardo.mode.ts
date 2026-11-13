@@ -113,6 +113,11 @@ export class AzzardoMode extends GameModeBase {
   private stakes = new Map<string, Stake>();
   private points = new Map<string, number>();
   private totals = new Map<string, number>();
+  /**
+   * Fiches di ogni squadra: ogni manche ne arrivano dieci nuove e quelle
+   * avanzate restano nel salvadanaio, così chi risparmia se le ritrova dopo.
+   */
+  private chipBank = new Map<string, number>();
   /** Conversione fiches → punti dell'ultima manche, per TV e telefono. */
   private breakdowns = new Map<string, AzzardoChipsBreakdown>();
   private finished = false;
@@ -171,9 +176,11 @@ export class AzzardoMode extends GameModeBase {
         Math.max(0, Math.floor(Number(raw.chips[index]) || 0)),
       );
       const total = chips.reduce((sum, value) => sum + value, 0);
-      if (total > AZZARDO_CHIPS) return;
 
-      const maxChips = Math.max(0, Math.floor(available / AZZARDO_CHIP_VALUE));
+      // Si punta solo con le fiches nel salvadanaio, e mai più di quante
+      // stanno nel credito della manche.
+      const bank = this.chipBank.get(playerName) ?? 0;
+      const maxChips = Math.min(bank, Math.floor(available / AZZARDO_CHIP_VALUE));
       if (total > maxChips) return;
 
       const choice = chips.indexOf(Math.max(...chips));
@@ -246,6 +253,7 @@ export class AzzardoMode extends GameModeBase {
     this.stakes.clear();
     this.points.clear();
     this.totals.clear();
+    this.chipBank.clear();
     this.breakdowns.clear();
     this.rows.set([]);
     this.revealed.set(false);
@@ -262,6 +270,10 @@ export class AzzardoMode extends GameModeBase {
     this.stakes.clear();
     this.points.clear();
     this.breakdowns.clear();
+    // Dieci fiches nuove per manche, in aggiunta a quelle avanzate.
+    for (const playerName of this.players) {
+      this.chipBank.set(playerName, (this.chipBank.get(playerName) ?? 0) + AZZARDO_CHIPS);
+    }
     this.phase.set(AzzardoPhase.BET);
     this.secondsLeft.set(BET_SECONDS);
     this.syncRows();
@@ -300,6 +312,11 @@ export class AzzardoMode extends GameModeBase {
         this.points.set(playerName, 0);
         this.totals.set(playerName, this.totals.get(playerName) ?? 0);
         return;
+      }
+
+      if (stake.chips) {
+        const used = stake.chips.reduce((sum, value) => sum + value, 0);
+        this.chipBank.set(playerName, Math.max(0, (this.chipBank.get(playerName) ?? 0) - used));
       }
 
       const breakdown = this.breakdownFor(stake, question, available);
@@ -497,6 +514,7 @@ export class AzzardoMode extends GameModeBase {
         points: this.availablePoints(playerName),
         maxBet: maxBetFor(this.bankPoints(playerName)),
         chips: this.stakes.get(playerName)?.chips ?? [],
+        chipsBank: this.chipBank.get(playerName) ?? 0,
       })),
       rows: revealed ? this.rows() : [],
       best: revealed ? this.best() : null,

@@ -349,7 +349,7 @@
         {{ azzardoState()?.category }} · in {{ azzardoState()?.unit }} ·
         hai {{ azzardoMyPoints() }} punti, credito di manche {{ azzardoMaxBet() }}
       </p>
-      <p class="azzardo-convert">Fiches rimaste: <b>{{ azzardoChipsLeft() }}</b> / {{ azzardoState()?.chips ?? 10 }}</p>
+      <p class="azzardo-convert">Salvadanaio: <b>{{ azzardoMyBank() }}</b> fiches · sul tavolo {{ azzardoChipTotal() }}</p>
       <div class="azzardo-options">
         @for (option of azzardoState()?.options ?? []; track $index; let i = $index) {
         <div class="azzardo-option azzardo-chip-row" [class.filled]="(azzardoChips()[i] ?? 0) > 0">
