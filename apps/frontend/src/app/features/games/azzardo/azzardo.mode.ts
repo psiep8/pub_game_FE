@@ -7,13 +7,15 @@ import {
   AZZARDO_CHIPS,
   AZZARDO_CHIP_VALUE,
   AZZARDO_MANCHES,
+  AzzardoChipsBreakdown,
   AzzardoLevel,
+  bankFor,
+  chipsBreakdown,
   clampAzzardoBet,
   levelForOccurrence,
   lossMultiplierFor,
   maxBetFor,
   oddsForLevel,
-  settleChips,
   settleManche,
 } from './azzardo-rules';
 
@@ -57,6 +59,13 @@ export interface AzzardoRow {
   points: number;
   total: number;
   played: boolean;
+  /** Fiches messe per opzione, quando la squadra gioca a fiches. */
+  chips?: number[];
+  /** Punti incassati dalle fiches giuste e persi dalle sbagliate. */
+  win?: number;
+  loss?: number;
+  odds?: number;
+  lossPercent?: number;
 }
 
 interface Stake {
@@ -69,6 +78,12 @@ interface Stake {
 const BET_SECONDS = 15;
 const REVEAL_SECONDS = 7;
 const FINALE_SECONDS = 5;
+/**
+ * Manche con tutti pronti: la puntata si chiude solo dopo questi secondi, così
+ * chi gioca dal telefono ha il tempo di spostare le fiches anche quando tutte
+ * le altre squadre hanno già puntato.
+ */
+const BET_MIN_READ_SECONDS = 10;
 
 /**
  * AZZARDO — quattro manche, una per categoria.
@@ -98,6 +113,8 @@ export class AzzardoMode extends GameModeBase {
   private stakes = new Map<string, Stake>();
   private points = new Map<string, number>();
   private totals = new Map<string, number>();
+  /** Conversione fiches → punti dell'ultima manche, per TV e telefono. */
+  private breakdowns = new Map<string, AzzardoChipsBreakdown>();
   private finished = false;
   private clock?: ReturnType<typeof setInterval>;
 
@@ -146,7 +163,7 @@ export class AzzardoMode extends GameModeBase {
     if (!question) return;
 
     const raw = event.value ?? {};
-    const available = this.availablePoints(playerName);
+    const available = this.bankPoints(playerName);
 
     // Nuovo formato: distribuzione di fiches, al massimo dieci.
     if (Array.isArray(raw.chips)) {
@@ -180,8 +197,14 @@ export class AzzardoMode extends GameModeBase {
     this.closeBetIfComplete();
   }
 
+  /** Punti veri in classifica: tagliano le perdite, mai sotto zero. */
   private availablePoints(playerName: string): number {
     return Math.max(0, Math.floor(this.config.playerPoints?.(playerName) ?? 0));
+  }
+
+  /** Credito su cui si punta: chi ha zero punti gioca lo stesso. */
+  private bankPoints(playerName: string): number {
+    return bankFor(this.availablePoints(playerName));
   }
 
   private readQuestions(): AzzardoQuestion[] {
@@ -223,6 +246,7 @@ export class AzzardoMode extends GameModeBase {
     this.stakes.clear();
     this.points.clear();
     this.totals.clear();
+    this.breakdowns.clear();
     this.rows.set([]);
     this.revealed.set(false);
     this.timer.set(this.timerDuration);
@@ -237,6 +261,7 @@ export class AzzardoMode extends GameModeBase {
 
     this.stakes.clear();
     this.points.clear();
+    this.breakdowns.clear();
     this.phase.set(AzzardoPhase.BET);
     this.secondsLeft.set(BET_SECONDS);
     this.syncRows();
@@ -248,6 +273,10 @@ export class AzzardoMode extends GameModeBase {
     if (this.phase() !== AzzardoPhase.BET) return;
     if (!this.players.length) return;
     if (!this.players.every((playerName) => this.stakes.has(playerName))) return;
+    // Anche con tutti pronti il telefono deve poter spostare le fiches: la
+    // manche chiude in anticipo solo a lettura fatta. Altrimenti la fa finire
+    // il cronometro della puntata.
+    if (BET_SECONDS - this.secondsLeft() < BET_MIN_READ_SECONDS) return;
     this.clearClock();
     this.revealManche();
   }
@@ -273,21 +302,9 @@ export class AzzardoMode extends GameModeBase {
         return;
       }
 
-      const points = stake.chips
-        ? settleChips({
-            chips: stake.chips,
-            answerIndex: question.answerIndex,
-            level: this.level(),
-            manche: this.manche(),
-            available,
-          })
-        : settleManche({
-            stake: stake.stake,
-            correct: stake.choice === question.answerIndex,
-            level: this.level(),
-            manche: this.manche(),
-            available,
-          });
+      const breakdown = this.breakdownFor(stake, question, available);
+      const points = breakdown.points;
+      this.breakdowns.set(playerName, breakdown);
       this.points.set(playerName, points);
       this.totals.set(playerName, (this.totals.get(playerName) ?? 0) + points);
 
@@ -328,10 +345,53 @@ export class AzzardoMode extends GameModeBase {
     this.config.onTimerEnd?.();
   }
 
+  /**
+   * Conversione della puntata in punti: fiches giuste × quota, fiches
+   * sbagliate × percentuale di manche. La puntata vecchia (100/200/300) resta
+   * supportata e passa dalla stessa forma, così la TV mostra sempre il conto.
+   */
+  private breakdownFor(
+    stake: Stake,
+    question: AzzardoQuestion,
+    available: number,
+  ): AzzardoChipsBreakdown {
+    if (stake.chips) {
+      return chipsBreakdown({
+        chips: stake.chips,
+        answerIndex: question.answerIndex,
+        level: this.level(),
+        manche: this.manche(),
+        available,
+      });
+    }
+
+    const points = settleManche({
+      stake: stake.stake,
+      correct: stake.choice === question.answerIndex,
+      level: this.level(),
+      manche: this.manche(),
+      available,
+    });
+
+    return {
+      chips: [],
+      totalChips: 0,
+      stake: stake.stake,
+      correctChips: 0,
+      wrongChips: 0,
+      odds: oddsForLevel(this.level()),
+      lossPercent: Math.round(lossMultiplierFor(this.manche()) * 100),
+      win: points > 0 ? points : 0,
+      loss: points < 0 ? -points : 0,
+      points,
+    };
+  }
+
   private syncRows(): void {
     this.rows.set(
       this.players.map((playerName) => {
         const stake = this.stakes.get(playerName);
+        const breakdown = this.breakdowns.get(playerName);
         return {
           playerName,
           stake: stake?.stake ?? 0,
@@ -339,6 +399,11 @@ export class AzzardoMode extends GameModeBase {
           points: this.points.get(playerName) ?? 0,
           total: this.totals.get(playerName) ?? 0,
           played: !!stake,
+          chips: stake?.chips ?? [],
+          win: breakdown?.win ?? 0,
+          loss: breakdown?.loss ?? 0,
+          odds: breakdown?.odds ?? oddsForLevel(this.level()),
+          lossPercent: breakdown?.lossPercent ?? Math.round(lossMultiplierFor(this.manche()) * 100),
         };
       }),
     );
@@ -430,7 +495,7 @@ export class AzzardoMode extends GameModeBase {
         playerName,
         ready: this.stakes.has(playerName),
         points: this.availablePoints(playerName),
-        maxBet: maxBetFor(this.availablePoints(playerName)),
+        maxBet: maxBetFor(this.bankPoints(playerName)),
         chips: this.stakes.get(playerName)?.chips ?? [],
       })),
       rows: revealed ? this.rows() : [],

@@ -46,7 +46,22 @@ export function lossMultiplierFor(manche: number): number {
   return AZZARDO_LOSS_MULTIPLIERS[index];
 }
 
-/** Puntata massima consentita: mai più dei punti posseduti, mai oltre 300. */
+/**
+ * Credito minimo di manche.
+ *
+ * Chi arriva all'Azzardo con pochi o zero punti in classifica deve poter
+ * giocare lo stesso: il tavolo gli dà un credito di 300 punti. La perdita
+ * però si taglia sempre sui punti veri, così la classifica non va mai sotto
+ * zero.
+ */
+export const AZZARDO_MIN_BANK = 300;
+
+/** Credito su cui si può puntare: i punti veri, ma mai meno del banco. */
+export function bankFor(points: number): number {
+  return Math.max(AZZARDO_MIN_BANK, Math.floor(Number(points) || 0));
+}
+
+/** Puntata massima consentita: mai più del credito, mai oltre 300. */
 export function maxBetFor(points: number): number {
   return Math.max(0, Math.min(300, Math.floor(points)));
 }
@@ -67,22 +82,64 @@ export interface AzzardoChipsInput {
   available: number;
 }
 
-/**
- * Esito con le fiches: le fiches sull'opzione giusta pagano la quota, quelle
- * sulle opzioni sbagliate perdono la quota di manche. Mai sotto zero.
- */
-export function settleChips(input: AzzardoChipsInput): number {
-  const total = input.chips.reduce((sum, value) => sum + Math.max(0, Math.floor(value)), 0);
-  if (total <= 0) return 0;
+/** Come si trasforma una distribuzione di fiches in punti: serve a TV e telefono. */
+export interface AzzardoChipsBreakdown {
+  /** Fiches per opzione, come sono state giocate. */
+  chips: number[];
+  totalChips: number;
+  /** Punti messi sul tavolo: fiches × valore della fiche. */
+  stake: number;
+  correctChips: number;
+  wrongChips: number;
+  odds: number;
+  /** Perdita della manche in percentuale (100, 80, 60, 40). */
+  lossPercent: number;
+  /** Punti incassati dalle fiches sull'opzione giusta. */
+  win: number;
+  /** Punti bruciati dalle fiches sulle opzioni sbagliate. */
+  loss: number;
+  /** Variazione netta della classifica. */
+  points: number;
+}
 
-  const correct = Math.max(0, Math.floor(input.chips[input.answerIndex] ?? 0));
-  const win = correct * AZZARDO_CHIP_VALUE * oddsForLevel(input.level);
-  const wrongStake = (total - correct) * AZZARDO_CHIP_VALUE;
+/**
+ * Conversione fiches → punti, spiegata voce per voce.
+ *
+ * Le fiches sull'opzione giusta pagano `fiche × valore × quota` (quota del
+ * livello: ×2 facile, ×3 media, ×4 difficile); le fiches sulle opzioni
+ * sbagliate perdono `fiche × valore × percentuale di manche` (100%, 80%, 60%,
+ * 40%). La perdita non porta mai la classifica sotto zero.
+ */
+export function chipsBreakdown(input: AzzardoChipsInput): AzzardoChipsBreakdown {
+  const chips = (Array.isArray(input.chips) ? input.chips : [])
+    .map((value) => Math.max(0, Math.floor(Number(value) || 0)));
+  const totalChips = chips.reduce((sum, value) => sum + value, 0);
+  const odds = oddsForLevel(input.level);
+  const lossPercent = Math.round(lossMultiplierFor(input.manche) * 100);
+
+  if (totalChips <= 0) {
+    return {
+      chips, totalChips: 0, stake: 0, correctChips: 0, wrongChips: 0,
+      odds, lossPercent, win: 0, loss: 0, points: 0,
+    };
+  }
+
+  const correctChips = Math.max(0, Math.floor(chips[input.answerIndex] ?? 0));
+  const wrongChips = totalChips - correctChips;
+  const stake = totalChips * AZZARDO_CHIP_VALUE;
+  const win = correctChips * AZZARDO_CHIP_VALUE * odds;
+  const wrongStake = wrongChips * AZZARDO_CHIP_VALUE;
   const loss = Math.min(
     Math.round(wrongStake * lossMultiplierFor(input.manche)),
     Math.max(0, Math.floor(input.available)),
   );
-  return win - loss;
+
+  return { chips, totalChips, stake, correctChips, wrongChips, odds, lossPercent, win, loss, points: win - loss };
+}
+
+/** Esito con le fiches: solo la variazione netta della classifica. */
+export function settleChips(input: AzzardoChipsInput): number {
+  return chipsBreakdown(input).points;
 }
 
 export interface AzzardoSettlementInput {

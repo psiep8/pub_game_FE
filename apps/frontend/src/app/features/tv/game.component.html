@@ -88,7 +88,7 @@
         <div class="lobby-step"><span>1</span><div><b>Entra col telefono</b><small>Nickname, poi sei in squadra</small></div></div>
         <div class="lobby-step"><span>2</span><div><b>Ascolta la TV</b><small>Rispondi, prenota, trascina</small></div></div>
         <div class="lobby-step"><span>3</span><div><b>Scala la classifica</b><small>40 round in cinque atti</small></div></div>
-        <div class="lobby-wait">PRONTI · IL PRESENTATORE AVVIA IL ROUND</div>
+<!--        <div class="lobby-wait">PRONTI · IL PRESENTATORE AVVIA IL ROUND</div>-->
         <div class="lobby-teams" aria-live="polite">
           @for (name of presencePlayers(); track name) {
           <div class="lobby-team">
@@ -281,7 +281,7 @@
 </div>
 
 
-@if (getRecentResponsesWithScores().length) {
+@if (getRecentResponsesWithScores().length && !quizSummaryVisible()) {
 <div class="recent-responses">
   <div class="recent-header">RISPOSTE</div>
   <div class="recent-list">

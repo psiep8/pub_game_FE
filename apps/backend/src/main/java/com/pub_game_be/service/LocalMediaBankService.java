@@ -1,13 +1,10 @@
 package com.pub_game_be.service;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -105,9 +102,11 @@ public class LocalMediaBankService {
     }
 
     /**
-     * URL servibile del file locale. Il frontend usa previewUrl e imageUrl
-     * direttamente, quindi serve un URL assoluto: lo ricava dalla richiesta in
-     * corso (funziona anche via IP di rete), con MEDIA_BASE_URL come ripiego.
+     * URL servibile del file locale. Senza MEDIA_BASE_URL si torna il percorso
+     * relativo (`/media/...`): lo risolve il client sulla propria origine, così
+     * telefono e TV usano lo stesso indirizzo con cui hanno aperto l'app.
+     * Un URL assoluto ricavato dalla richiesta sarebbe 127.0.0.1 quando la
+     * chiamata passa dal proxy del dev-server, e dai telefoni non si sente nulla.
      */
     public String url(String file) {
         if (file == null || file.isBlank()) {
@@ -117,8 +116,7 @@ public class LocalMediaBankService {
             return file;
         }
         String path = file.startsWith("/") ? file : "/" + file;
-        String baseUrl = currentBaseUrl();
-        return baseUrl.isBlank() ? path : baseUrl + path;
+        return configuredBaseUrl.isBlank() ? path : configuredBaseUrl + path;
     }
 
     private void load() {
@@ -174,15 +172,4 @@ public class LocalMediaBankService {
         }
     }
 
-    private String currentBaseUrl() {
-        try {
-            if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes) {
-                HttpServletRequest request = attributes.getRequest();
-                return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
-            }
-        } catch (RuntimeException ignored) {
-            // fuori da una richiesta HTTP: si usa la configurazione
-        }
-        return configuredBaseUrl;
-    }
 }

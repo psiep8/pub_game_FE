@@ -20,6 +20,12 @@ const MIN_MS = 5000;
 const MAX_MS = 29000;
 const MANCHE_SECONDS = 30;
 const REVEAL_MS = 5000;
+/** Slot dei numeri prima che il bersaglio si riveli. */
+const SPIN_MS = 5000;
+/** Respiro dopo il bersaglio, prima del countdown. */
+const REVEAL_PAUSE_MS = 5000;
+const COUNTDOWN_FROM = 5;
+const COUNTDOWN_STEP_MS = 1000;
 
 /** Bonus per posizione: la forbice si allarga manche dopo manche. */
 const BANDS = [
@@ -60,6 +66,12 @@ export class TimeBuzzerMode extends GameModeBase {
   private secondsLeft = 0;
   /** Istante ufficiale di partenza della manche, come lo ha segnato il server. */
   private serverStartedAt: number | null = null;
+  /** Istante in cui il server ha dato il via all'ultima manche: la TV ci
+   *  appende il timbro VIA. Zero prima che la manche parta. */
+  private startedAt = signal(0);
+  /** Preparazione della manche: slot → bersaglio → countdown → via. */
+  private phase = signal<'spin' | 'reveal' | 'countdown' | 'running'>('spin');
+  private countdown = signal(0);
   private stopped = false;
 
   private clock?: ReturnType<typeof setInterval>;
@@ -108,6 +120,9 @@ export class TimeBuzzerMode extends GameModeBase {
     this.finished.set(false);
     this.waitingNext.set(false);
     this.serverStartedAt = null;
+    this.startedAt.set(0);
+    this.phase.set('spin');
+    this.countdown.set(0);
     this.secondsLeft = this.timerDuration;
     this.timer.set(this.timerDuration);
   }
@@ -127,18 +142,36 @@ export class TimeBuzzerMode extends GameModeBase {
     this.guesses.set([]);
     this.revealData.set(null);
     this.waitingNext.set(false);
+    this.serverStartedAt = null;
+    this.startedAt.set(0);
     // Bersaglio casuale sotto i 30 s, al centesimo.
     this.targetMs.set(Math.round((MIN_MS + Math.random() * (MAX_MS - MIN_MS)) / 10) * 10);
     this.secondsLeft = this.timerDuration;
     this.timer.set(this.timerDuration);
     this.config.onTimerTick?.(this.timerDuration);
 
-    // Prima la TV mostra il bersaglio, poi il server dà il via ai telefoni:
-    // l'istante che torna indietro è quello che usa per validare i tempi.
+    // 1) Slot: i numeri girano, il bersaglio non si vede ancora.
+    this.phase.set('spin');
+    this.countdown.set(0);
     this.broadcast();
-    // Il via lo registra il server: se non risponde (o lo rifiuta) la manche
-    // non si blocca, prosegue con il cronometro locale. I tempi di quella
-    // manche non saranno validati, ma il gioco va avanti.
+    if (!(await this.wait(SPIN_MS))) return;
+
+    // 2) Bersaglio a schermo: cinque secondi per leggerlo e respirare.
+    this.phase.set('reveal');
+    this.broadcast();
+    if (!(await this.wait(REVEAL_PAUSE_MS))) return;
+
+    // 3) Countdown grande 5-4-3-2-1: i telefoni sono ancora disarmati.
+    for (let n = COUNTDOWN_FROM; n >= 1; n--) {
+      this.phase.set('countdown');
+      this.countdown.set(n);
+      this.broadcast();
+      if (!(await this.wait(COUNTDOWN_STEP_MS))) return;
+    }
+
+    // 4) Via: il server arma i telefoni e dà l'istante ufficiale di partenza.
+    // Se non risponde (o lo rifiuta) la manche prosegue col cronometro locale:
+    // i tempi non saranno validati, ma il gioco va avanti.
     let startedAt: number | null = null;
     try {
       startedAt = (await this.config.startTimeBuzzer?.(this.mancheIndex() + 1)) ?? null;
@@ -158,7 +191,25 @@ export class TimeBuzzerMode extends GameModeBase {
       });
     }
 
+    this.phase.set('running');
+    this.countdown.set(0);
+    this.startedAt.set(this.serverStartedAt ?? Date.now());
     this.startClock();
+    // Via dato: la TV mostra il timbro VIA e i telefoni stanno già contando.
+    this.broadcast();
+  }
+
+  /**
+   * Attesa a passi corti durante la preparazione: si interrompe se la manche
+   * viene chiusa, stoppata o rivelata, così il round non resta appeso.
+   */
+  private async wait(ms: number): Promise<boolean> {
+    const step = 100;
+    for (let left = ms; left > 0; left -= step) {
+      if (this.stopped || this.finished() || this.revealData()) return false;
+      await new Promise((resolve) => setTimeout(resolve, Math.min(step, left)));
+    }
+    return !this.stopped && !this.finished() && !this.revealData();
   }
 
   private startClock(): void {
@@ -330,6 +381,9 @@ export class TimeBuzzerMode extends GameModeBase {
     return {
       question: this.payload?.question ?? 'Quanto ci metti?',
       targetMs: this.targetMs(),
+      startedAt: this.startedAt(),
+      phase: this.phase(),
+      countdown: this.countdown(),
       manche: Math.min(this.mancheIndex() + 1, MANCHES),
       total: MANCHES,
       remaining: this.activePlayers(),

@@ -18,6 +18,23 @@ import { CommonModule } from '@angular/common';
         </div>
       </div>
 
+      @if (ended()) {
+        <div class="ahb-end">
+          <div class="ahb-end-stamp">ROUND TERMINATO</div>
+          <div class="ahb-end-rows">
+            @for (court of displayData?.courts; track court.id) {
+              <div class="ahb-end-row">
+                <span class="ahb-end-set">SET {{ court.id + 1 }}</span>
+                <span class="ahb-end-team">{{ court.a.playerName }}</span>
+                <span class="ahb-end-score">{{ court.a.score }} — {{ court.b.score }}</span>
+                <span class="ahb-end-team right">{{ court.b.playerName }}</span>
+                <span class="ahb-end-winner" [class.bye]="!court.b.playerName || court.b.playerName === 'RIPOSO'">{{ court.winner }}</span>
+              </div>
+            }
+          </div>
+          <div class="ahb-end-note">VINCE CHI ARRIVA PRIMO A {{ displayData?.target ?? 7 }}</div>
+        </div>
+      } @else {
       <div class="ahb-courts" [class.single]="(displayData?.courts?.length ?? 0) === 1">
         @for (court of displayData?.courts; track court.id) {
           <div class="ahb-court" [class.decided]="court.winner">
@@ -80,6 +97,7 @@ import { CommonModule } from '@angular/common';
           <div class="ahb-empty">In attesa delle squadre...</div>
         }
       </div>
+      }
     </div>
   `,
   styles: [`
@@ -87,7 +105,8 @@ import { CommonModule } from '@angular/common';
     .ahb-wrap {
       width: 100%; height: 100%; max-width: 1680px; margin: 0 auto;
       display: flex; flex-direction: column; gap: clamp(8px, 1.4vh, 16px);
-      padding: clamp(66px, 9vh, 88px) clamp(16px, 2.4vw, 36px) clamp(12px, 2vh, 20px);
+      /* Il badge ROUND della regia sta in alto a sinistra: si parte sotto. */
+      padding: clamp(96px, 12vh, 124px) clamp(16px, 2.4vw, 36px) clamp(12px, 2vh, 20px);
       color: var(--paper); box-sizing: border-box;
     }
     .ahb-head { flex: 0 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; }
@@ -191,11 +210,49 @@ import { CommonModule } from '@angular/common';
     .ahb-winner-note { font-family: var(--font-mono); font-size: .8rem; color: rgba(30, 25, 20, .6); }
     .ahb-waiting { font-family: var(--font-mono); font-size: clamp(.9rem, 1.1vw, 1.05rem); color: rgba(30, 25, 20, .6); }
     .ahb-empty { grid-column: 1 / -1; align-self: center; color: var(--ink-dim); text-align: center; font-family: var(--font-mono); }
+
+    /* Pannello di fine round: esiti dei campi stampati su carta. */
+    .ahb-end {
+      flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: clamp(12px, 2vh, 22px); padding: clamp(16px, 2.6vh, 30px);
+      background: var(--paper); color: var(--coal);
+      border: 4px solid var(--coal); box-shadow: 14px 14px 0 var(--tomato);
+    }
+    .ahb-end-stamp {
+      padding: 4px 22px; background: var(--acid); color: var(--coal);
+      border: 4px solid var(--coal); box-shadow: 8px 8px 0 var(--coal);
+      font-family: var(--font-display); font-size: clamp(1.6rem, 3.2vw, 2.8rem);
+      line-height: 1; letter-spacing: .1em; text-transform: uppercase; transform: rotate(-2deg);
+    }
+    .ahb-end-rows { width: min(1100px, 94%); display: flex; flex-direction: column; border-top: 3px solid var(--coal); }
+    .ahb-end-row {
+      display: grid; grid-template-columns: 84px minmax(0, 1fr) auto minmax(0, 1fr) minmax(110px, auto);
+      align-items: center; gap: clamp(8px, 1.2vw, 18px); padding: 8px 10px;
+      border-bottom: 2px solid var(--coal);
+    }
+    .ahb-end-set { font-family: var(--font-mono); font-size: clamp(.58rem, .82vw, .72rem); font-weight: 700; letter-spacing: .16em; opacity: .6; }
+    .ahb-end-team { font-family: var(--font); font-weight: 800; font-size: clamp(.95rem, 1.3vw, 1.2rem); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ahb-end-team.right { text-align: right; }
+    .ahb-end-score { font-family: var(--font-mono); font-weight: 700; font-size: clamp(1.1rem, 1.7vw, 1.5rem); font-variant-numeric: tabular-nums; }
+    .ahb-end-winner {
+      justify-self: end; padding: 2px 10px; background: var(--acid); color: var(--coal);
+      border: 2px solid var(--coal); box-shadow: 3px 3px 0 var(--coal);
+      font-family: var(--font-mono); font-size: clamp(.62rem, .86vw, .78rem); font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    }
+    .ahb-end-winner.bye { background: var(--mustard); }
+    .ahb-end-note { font-family: var(--font-mono); font-size: clamp(.6rem, .86vw, .76rem); letter-spacing: .16em; opacity: .6; }
   `]
 })
 export class AirHockeyBattle {
   @Input() displayData: any;
   @Input() timer = 0;
+
+  /** Tutti i campi hanno un vincitore: si mostra il pannello di fine round. */
+  ended(): boolean {
+    const courts = this.displayData?.courts;
+    if (!Array.isArray(courts) || !courts.length) return false;
+    return courts.every((court: any) => !!court?.winner);
+  }
 
   sideName(court: any, side: 'a' | 'b'): string {
     return side === 'a' ? court?.a?.playerName ?? '' : court?.b?.playerName ?? '';

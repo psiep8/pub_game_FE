@@ -114,9 +114,12 @@ export class AirHockeyBattleMode extends GameModeBase {
   private tickInterval?: ReturnType<typeof setInterval>;
   private questions: AirHockeyQuestion[] = [];
   private lastQuestionText = '';
+  /** Round già chiuso perché tutte le sfide sono decise. */
+  private finished = false;
 
   protected onInitialize(): void {
     this.courts.set([]);
+    this.finished = false;
     this.questions = this.buildQuestions();
   }
 
@@ -407,7 +410,11 @@ export class AirHockeyBattleMode extends GameModeBase {
 
     const court = this.courts().find((c) => c.id === courtId);
     this.broadcast();
-    if (court?.winner) this.awardCourt(court);
+    if (court?.winner) {
+      this.awardCourt(court);
+      // Sfide tutte decise: il round chiude subito, non si aspetta il timer.
+      this.finishIfDecided();
+    }
 
     // Un attimo per vedere il gol, poi nuova palla al giocatore che l'ha subito.
     setTimeout(() => {
@@ -419,6 +426,19 @@ export class AirHockeyBattleMode extends GameModeBase {
         : c));
       this.broadcast();
     }, 1400);
+  }
+
+  /**
+   * Ogni campo ha il suo vincitore: il round è finito, anche se al timer
+   * generale restano secondi. Prima si aspettava il countdown completo.
+   */
+  private finishIfDecided(): void {
+    if (this.finished) return;
+    const courts = this.courts();
+    if (!courts.length || courts.some((court) => !court.winner)) return;
+    this.finished = true;
+    this.stopTicking();
+    this.handleTimeout();
   }
 
   private awardCourt(court: Court): void {

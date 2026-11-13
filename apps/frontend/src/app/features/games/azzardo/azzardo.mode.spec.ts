@@ -112,8 +112,9 @@ describe('AzzardoMode', () => {
     expect(anna).toMatchObject({ stake: 200, points: 400, total: 400 });
     expect(wallet['Anna']).toBe(1400);
 
-    // Bruno: 300 richiesti ma solo 100 disponibili, quindi perde 100 (100%).
-    expect(bruno).toMatchObject({ stake: 100, points: -100, total: -100 });
+    // Bruno: punta 300 col credito di manche, ma in classifica ha 100 punti:
+    // la perdita si taglia sui punti veri, 100 (100%).
+    expect(bruno).toMatchObject({ stake: 300, points: -100, total: -100 });
     expect(wallet['Bruno']).toBe(0);
 
     // Carla: nessuna puntata, nessun punto.
@@ -195,6 +196,10 @@ describe('AzzardoMode', () => {
       expect(bet.phase).toBe('BET');
       expect(bet.manche).toBe(index + 1);
       expect(bet.lossMultiplier).toBe(step.multiplier);
+
+      // Chi gioca dal telefono ha dieci secondi di lettura prima che la
+      // manche chiuda in anticipo: si aspetta quel tempo, poi si punta.
+      await vi.advanceTimersByTimeAsync(10000);
 
       const question = QUESTIONS[index];
       for (const [playerName, choice] of Object.entries(step.bets)) {
@@ -312,6 +317,9 @@ describe('AzzardoMode', () => {
       expect(bet.level).toBe(testCase.level);
       expect(bet.odds).toBe(testCase.odds);
       expect(bet.lossMultiplier).toBe(1);
+
+      // La manche con tutti pronti non chiude prima dei dieci secondi.
+      await vi.advanceTimersByTimeAsync(10000);
 
       const question = QUESTIONS[0];
       mode.handlePartyEvent({

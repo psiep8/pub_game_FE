@@ -1,6 +1,7 @@
-import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Input, OnChanges, inject} from '@angular/core';
 import {animate, style, transition, trigger} from '@angular/animations';
 import {UpperCasePipe} from '@angular/common';
+import {AudioService} from '../../../core/services/audio.service';
 
 @Component({
   selector: 'app-quiz',
@@ -18,10 +19,22 @@ import {UpperCasePipe} from '@angular/common';
     ])
   ]
 })
-export class Quiz {
+export class Quiz implements OnChanges {
   @Input() displayData: any;
   @Input() timer: number = 0;
   @Input() safeOptions: any[] = [];
+
+  private readonly audio = inject(AudioService);
+  private wasPending = false;
+
+  /** Il rullo di tamburi parte quando la TV entra nell'attesa della soluzione. */
+  ngOnChanges(): void {
+    const data = this.displayData;
+    if (!data) return;
+    const pending = !!data.revealPending;
+    if (pending && !this.wasPending) this.audio.playDrumroll(1.2, 0.7);
+    this.wasPending = pending;
+  }
 
   getLetter(index: number): string {
     return ['A', 'B', 'C', 'D'][index];

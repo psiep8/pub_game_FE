@@ -1908,6 +1908,15 @@ export class GameComponent implements OnInit, OnDestroy {
     return safe;
   }
 
+  /**
+   * Nel riepilogo Quiz la carta occupa tutto lo schermo: il pannello RISPOSTE
+   * incollato in basso a sinistra coprirebbe la risposta della terza manche.
+   */
+  quizSummaryVisible(): boolean {
+    const mode = this.currentMode();
+    return mode?.type === 'QUIZ' && !!this.getSafeDisplayData().revealed;
+  }
+
   getRecentResponses(): any[] {
     const all = this.ws.responses();
     if (!Array.isArray(all)) return [];

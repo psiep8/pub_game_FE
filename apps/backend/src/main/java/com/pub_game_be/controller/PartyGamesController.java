@@ -192,7 +192,16 @@ public class PartyGamesController {
             JSONObject existing = currentRaw.map(JSONObject::new).orElse(null);
             if (existing != null && roundKey.equals(existing.optString("roundKey", ""))
                     && existing.optInt("manche", -1) == manche) {
-                return ResponseEntity.ok(buzzerStart(existing.getLong("startedAt"), manche, true));
+                // Il via si ripete anche quando la manche è già partita: un
+                // telefono che si è sbloccato o riconnesso deve poter armare
+                // il tasto, altrimenti resta su ATTENDI e non gioca.
+                long existingStart = existing.getLong("startedAt");
+                messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", new JSONObject()
+                        .put("action", "TIME_BUZZER_START")
+                        .put("startedAt", existingStart)
+                        .put("manche", manche)
+                        .toString());
+                return ResponseEntity.ok(buzzerStart(existingStart, manche, true));
             }
 
             String nextPayload = new JSONObject()

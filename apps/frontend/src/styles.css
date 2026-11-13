@@ -526,11 +526,11 @@ app-arena .survivor { background: var(--paper) !important; color: var(--coal) !i
 app-arena .survivor .name { color: var(--coal) !important; }
 app-arena .survivor.place-1 { background: var(--acid) !important; }
 
-app-speed-rush .sr-kicker { font-size: clamp(0.82rem, 1vw, 0.98rem) !important; }
-app-speed-rush .sr-title { font-size: clamp(2rem, 3.5vw, 3.4rem) !important; }
-app-speed-rush .sr-name { font-size: clamp(1.05rem, 1.25vw, 1.28rem) !important; }
-app-speed-rush .sr-pct { font-size: clamp(0.95rem, 1.1vw, 1.1rem) !important; }
-app-speed-rush .sr-timer { font-size: clamp(1.45rem, 2.2vw, 2.1rem) !important; }
+app-speed-rush .sr-kicker { font-size: clamp(0.62rem, 0.9vw, 0.78rem) !important; }
+app-speed-rush .sr-title { font-size: clamp(2rem, 3.6vw, 3.2rem) !important; }
+app-speed-rush .sr-player { font-size: clamp(0.9rem, 1.3vw, 1.25rem) !important; }
+app-speed-rush .sr-pct { font-size: clamp(0.85rem, 1.2vw, 1.1rem) !important; }
+app-speed-rush .sr-clock-value { font-size: clamp(1.3rem, 2vw, 1.9rem) !important; }
 
 app-air-hockey-battle .ahb-title { font-size: clamp(2.2rem, 4vw, 3.4rem) !important; }
 app-air-hockey-battle .ahb-timer { font-size: clamp(1.5rem, 2vw, 1.9rem) !important; }
@@ -570,20 +570,21 @@ app-speed-rush .sr-track {
   background: var(--paper-hi) !important;
   border: 3px solid var(--coal) !important;
   border-radius: 0 !important;
-  box-shadow: 6px 6px 0 var(--tomato) !important;
+  box-shadow: none !important;
 }
+/* Barra piena: una campitura sola, il fronte di avanzamento è il bordo coal. */
 app-speed-rush .sr-fill {
-  background: repeating-linear-gradient(90deg, var(--tomato) 0 14px, var(--acid) 14px 28px) !important;
-  opacity: .8;
+  background: var(--cobalt) !important;
+  opacity: 1 !important;
 }
+app-speed-rush .sr-track.boost .sr-fill { background: var(--acid) !important; }
 app-speed-rush .sr-pos {
-  background: var(--paper-hi) !important;
-  color: var(--coal) !important;
+  background: var(--coal) !important;
+  color: var(--paper-hi) !important;
   border: 2px solid var(--coal);
   border-radius: 0;
 }
-app-speed-rush .sr-runner { filter: drop-shadow(2px 2px 0 var(--coal)); }
-app-speed-rush .sr-kicker, app-speed-rush .sr-timer { color: var(--acid) !important; }
+app-speed-rush .sr-lane.finished .sr-pos { background: var(--mustard) !important; color: var(--coal) !important; }
 
 /* IMAGE BLUR — cornice che segue la foto */
 app-image-blur .blur-main-container {

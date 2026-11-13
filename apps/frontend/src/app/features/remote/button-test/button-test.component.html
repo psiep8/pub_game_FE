@@ -49,7 +49,7 @@
     <div class="bt-cards" (pointermove)="onDragMove($event)" (pointerup)="endDrag()" (pointercancel)="endDrag()">
       @for (card of cards(); track card; let i = $index) {
       <div class="bt-drag-card" [class.dragging]="dragIndex() === i" [attr.data-card-index]="i"
-        (pointerdown)="startDrag(i)">
+        [style.transform]="dragTransform(i)" (pointerdown)="startDrag(i, $event)">
         <span class="bt-handle">⠿</span>
         <b>{{ cardLabels[card] }}</b>
       </div>
@@ -65,8 +65,11 @@
     <p>Il telefono dovrebbe vibrare. Se non succede, segnalalo: la prova passa comunque.</p>
     <div class="bt-vibrate" aria-hidden="true">VIBRA</div>
     <div class="bt-row">
-      <button class="bt-primary" (click)="vibration(true)">L'HO SENTITA</button>
+      <button class="bt-primary" (click)="vibrateNow()">FALLA VIBRARE</button>
       <button class="bt-secondary" (click)="vibration(false)">NON VIBRA</button>
+    </div>
+    <div class="bt-row">
+      <button class="bt-secondary" (click)="vibration(true)">VIBRA: L'HO SENTITA</button>
     </div>
   </section>
   }

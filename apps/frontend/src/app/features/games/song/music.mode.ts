@@ -52,13 +52,18 @@ export class MusicMode extends GameModeBase {
     this.waitingForStart.set(false);
     this.playAudio();
 
-    // Fine dell'ascolto: la traccia si ferma e si aspetta il presentatore.
-    // Niente conto alla rovescia: la manche dopo la apre l'admin.
+    // Fine dell'ascolto: la traccia si ferma, si vede la pausa e dopo 10
+    // secondi la manche successiva parte da sola (l'admin può comunque
+    // anticiparla col comando "prossima manche").
     this.mancheTimer = setTimeout(() => {
       if (this.buzzedPlayer()) return;
       this.pauseAudio();
       this.waitingForStart.set(true);
       this.broadcast();
+      this.introTimer = setTimeout(() => {
+        if (this.buzzedPlayer() || this.revealed()) return;
+        this.nextManche();
+      }, 10000);
     }, 30000);
   }
 

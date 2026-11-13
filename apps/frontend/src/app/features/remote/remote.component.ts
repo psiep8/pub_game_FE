@@ -201,6 +201,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   gameState = signal<PlayerStatus>(PlayerStatus.WAITING);
   questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'CAVALLO' | 'ULTIMA_SPIAGGIA' | 'AZZARDO' | 'BLACKJACK' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO' | 'BONUS_BIGLIE'>('QUIZ');
   hasAnswered = signal(false);
+  /** Manche Quiz in corso e ultima manche già votata. */
+  quizManche = signal(0);
+  answeredManche = signal(0);
   /** Ultima risposta toccata: solo promemoria visivo, l'esito lo decide il server. */
   selectedAnswer = signal<number | null>(null);
   isBlocked = signal(false);
@@ -263,6 +266,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   buzzPhase = signal<'idle' | 'running' | 'sent'>('idle');
   buzzEliminated = signal(false);
   buzzManche = signal(0);
+  /** Manche per cui il via ha già armato il tasto: lo stato del tabellone non lo disarma. */
+  private buzzArmedManche = 0;
   buzzTotal = signal(3);
   buzzError = signal('');
   private buzzStartedAt = 0;
@@ -491,10 +496,16 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.theme.setXmas(!!status.enabled);
           break;
 
-        case 'QUIZ_STATE':
+        case 'QUIZ_STATE': {
           // Una manche nuova riapre i voti; il reveal invece blocca i telefoni.
+          const manche = Number(status.state?.manche) || 0;
+          this.quizManche.set(manche);
           if (status.state?.mancheReveal || status.state?.revealed) {
             this.gameState.set(PlayerStatus.WAITING);
+          } else if (manche > 0 && this.hasAnswered() && this.answeredManche() === manche) {
+            // La TV ha solo ripubblicato la stessa manche (sblocco del telefono,
+            // riconnessione): chi ha già votato resta bloccato, non rivota.
+            this.gameState.set(PlayerStatus.LOCKED);
           } else {
             this.hasAnswered.set(false);
             this.selectedAnswer.set(null);
@@ -502,21 +513,30 @@ export class RemoteComponent implements OnInit, OnDestroy {
             this.gameState.set(PlayerStatus.VOTING);
           }
           break;
+        }
 
         case 'BOMBA_STATE':
           this.applyBombaState(status.state);
           break;
 
-        case 'TIME_BUZZER_START':
-          // Il via arriva dal server: da qui parte il cronometro del telefono.
-          if (!this.buzzEliminated()) {
+        case 'TIME_BUZZER_START': {
+          // Il via arma il tasto una volta per manche: da qui parte il
+          // cronometro e STOP resta premibile fino alla manche successiva.
+          // Nient'altro (né lo stato che arriva dopo ogni voto, né un via
+          // ripetuto) riporta il tasto su ATTENDI.
+          const startManche = Number((status as any).manche ?? 0) || this.buzzManche() || 1;
+          if (this.buzzArmedManche !== startManche) {
+            this.buzzArmedManche = startManche;
+            this.buzzManche.set(startManche);
             this.buzzStartedAt = performance.now();
+            this.buzzEliminated.set(false);
             this.buzzError.set('');
             this.buzzPhase.set('running');
             this.gameState.set(PlayerStatus.VOTING);
             this.vibrate(20);
           }
           break;
+        }
 
         case 'TIME_BUZZER_STATE':
           if (status.state) {
@@ -524,12 +544,17 @@ export class RemoteComponent implements OnInit, OnDestroy {
             const manche = Number(state.manche ?? 0);
             this.buzzTotal.set(Number(state.total) || 3);
             if (manche !== this.buzzManche()) {
+              // La manche cambia l'etichetta, non il tasto: l'armo lo fa il via.
               this.buzzManche.set(manche);
-              this.buzzPhase.set('idle');
               this.buzzError.set('');
             }
-            this.buzzEliminated.set(!!state.eliminated?.includes?.(this.nickname()));
-            this.gameState.set(this.buzzEliminated() ? PlayerStatus.BUZZ_OUT : PlayerStatus.VOTING);
+            // Durante la manche aperta il telefono resta giocabile: se la TV lo
+            // segna tra gli eliminati il voto vale comunque, ma il tasto non
+            // deve sparire o diventare ATTENDI a metà partita.
+            this.buzzEliminated.set(false);
+            if (this.buzzPhase() !== 'running' && this.buzzPhase() !== 'sent') {
+              this.gameState.set(PlayerStatus.VOTING);
+            }
           }
           break;
 
@@ -1085,6 +1110,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.reliability.lastError.set(null);
     this.selectedAnswer.set(index);
     this.hasAnswered.set(true);
+    if (this.questionType() === 'QUIZ') this.answeredManche.set(this.quizManche());
     this.gameState.set(PlayerStatus.LOCKED);
     this.vibrate(50);
   }
@@ -1125,9 +1151,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
       // Anche chi non tocca nulla ha già una risposta valida: l'ordine iniziale.
       this.scheduleTimelineSend();
     } else if (type === 'TIME_BUZZER') {
-      this.buzzPhase.set('idle');
+      // START_VOTING esce dopo il 3-2-1, a volte dopo il via stesso: qui non si
+      // tocca il tasto, se no lo riportava su ATTENDI appena armato. Ad armarlo
+      // pensa solo il via, a scaricarlo solo il via della manche successiva.
       this.buzzEliminated.set(false);
-      this.buzzManche.set(0);
       this.buzzError.set('');
     } else if (type === 'BOMBA') {
       this.bombaState.set(null);
@@ -1271,7 +1298,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
         this.azzardoSent.set(false);
       }
     }
-    this.gameState.set(state.phase === 'BET' ? 'VOTING' : 'WAITING');
+    // Anche il reveal resta dentro il pannello Azzardo: chiudere la manche non
+    // deve far sparire il telefono dietro la schermata d'attesa.
+    this.gameState.set(state.phase === 'BET' || state.phase === 'REVEAL' ? 'VOTING' : 'WAITING');
   }
 
   ultimaSpiaggiaPickLevel(level: number): void {
@@ -1364,10 +1393,27 @@ export class RemoteComponent implements OnInit, OnDestroy {
     return Math.max(0, (this.azzardoState()?.chips ?? 10) - this.azzardoChipTotal());
   }
 
+  /** Fiches giocabili: il credito di manche, non i punti in classifica. */
   azzardoMaxChips(): number {
     const state = this.azzardoState();
     const value = Number(state?.chipValue ?? 20) || 20;
-    return Math.min(state?.chips ?? 10, Math.floor(this.azzardoMyPoints() / value));
+    return Math.max(0, Math.min(state?.chips ?? 10, Math.floor(this.azzardoMaxBet() / value)));
+  }
+
+  /** Gettone disegnati nell'impiastro dell'opzione: massimo cinque. */
+  azzardoChipFiches(index: number): number[] {
+    const count = Math.min(5, this.azzardoChips()[index] ?? 0);
+    return Array.from({ length: count }, (_, i) => i);
+  }
+
+  /** Come le fiches diventano punti in questa manche: quota e perdita reali. */
+  azzardoConvertHint(): string {
+    const state = this.azzardoState();
+    const value = Number(state?.chipValue ?? 20) || 20;
+    if (!this.azzardoCanBet()) return `Pochi punti: nessuna fiche da ${value} punti.`;
+    const odds = Number(state?.odds ?? 2) || 2;
+    const loss = Math.round((Number(state?.lossMultiplier) || 1) * 100);
+    return `Fiche da ${value} pt · giuste ×${odds} · sbagliate −${loss}%`;
   }
 
   /** Ogni tocco sposta una fiche e manda subito la distribuzione al server. */
@@ -2037,6 +2083,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.hasAnswered.set(false);
       this.selectedAnswer.set(null);
       this.isBlocked.set(false);
+      this.answeredManche.set(0);
     }
 
     // I bonus non sono round backend: uno snapshot del round precedente già

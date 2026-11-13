@@ -336,36 +336,42 @@
     }
     @case ('AZZARDO') {
     <div class="bonus-remote">
-      <div class="game-head">
-        <span class="game-tag buzz">📊 AZZARDO</span>
-        <span class="game-tip">Livello {{ azzardoState()?.level ?? 1 }}/3 · quota ×{{ azzardoState()?.odds ?? 2 }}</span>
-      </div>
-
-      @if (azzardoState()?.phase === 'BET') {
+           @if (azzardoState()?.phase === 'BET') {
       <p class="cavallo-question">{{ azzardoState()?.question }}</p>
-      <p class="buzz-hint">
+      <p class="azzardo-meta">
         Manche {{ azzardoState()?.manche ?? 1 }}/{{ azzardoState()?.total ?? 4 }} ·
-        {{ azzardoState()?.category }} · in {{ azzardoState()?.unit }} · hai {{ azzardoMyPoints() }} punti
+        {{ azzardoState()?.category }} · in {{ azzardoState()?.unit }} ·
+        hai {{ azzardoMyPoints() }} punti, credito di manche {{ azzardoMaxBet() }}
       </p>
-      <p class="party-instruction">
-        {{ azzardoCanBet() ? 'Distribuisci le fiches: ogni gettone vale ' + (azzardoState()?.chipValue ?? 20) + ' punti.' : 'Pochi punti: nessuna fiche disponibile in questa manche.' }}
-      </p>
-      <p class="buzz-hint">Fiches rimaste: <b>{{ azzardoChipsLeft() }}</b> / {{ azzardoState()?.chips ?? 10 }}</p>
+      <p class="azzardo-convert">Fiches rimaste: <b>{{ azzardoChipsLeft() }}</b> / {{ azzardoState()?.chips ?? 10 }}</p>
       <div class="azzardo-options">
         @for (option of azzardoState()?.options ?? []; track $index; let i = $index) {
-        <div class="azzardo-option azzardo-chip-row">
+        <div class="azzardo-option azzardo-chip-row" [class.filled]="(azzardoChips()[i] ?? 0) > 0">
           <span class="azzardo-letter">{{ letter(i) }}</span>
           <span class="azzardo-option-text">{{ option }} {{ azzardoState()?.unit }}</span>
-          <span class="azzardo-chip-controls">
-            <button type="button" [disabled]="(azzardoChips()[i] ?? 0) === 0" (click)="azzardoAddChip(i, -1)">−</button>
-            <b>{{ azzardoChips()[i] ?? 0 }}</b>
-            <button type="button" [disabled]="azzardoChipsLeft() === 0" (click)="azzardoAddChip(i, 1)">+</button>
-          </span>
+          <button type="button" class="azzardo-chip-stack"
+            [disabled]="!azzardoCanBet() || azzardoChipsLeft() === 0"
+            [attr.aria-label]="'Metti una fiche su ' + letter(i)"
+            (click)="azzardoAddChip(i, 1)">
+            @if ((azzardoChips()[i] ?? 0) > 0) {
+            @for (fiche of azzardoChipFiches(i); track $index) {
+            <span class="fiche">{{ azzardoState()?.chipValue ?? 20 }}</span>
+            }
+            @if ((azzardoChips()[i] ?? 0) > 1) {
+            <span class="fiche-count">×{{ azzardoChips()[i] }}</span>
+            }
+            } @else {
+            <span class="fiche empty">+</span>
+            }
+          </button>
+          <button type="button" class="azzardo-chip-remove" [disabled]="(azzardoChips()[i] ?? 0) === 0"
+            (click)="azzardoAddChip(i, -1)" aria-label="Togli una fiche">−</button>
         </div>
         }
       </div>
-      <p class="buzz-hint">
-        {{ azzardoSent() ? 'Fiches inviate: puoi ancora spostarle fino allo scadere.' : 'Sposta le fiches sulle opzioni.' }}
+      <p class="azzardo-convert">{{ azzardoConvertHint() }}</p>
+      <p class="azzardo-meta">
+        {{ azzardoSent() ? 'Fiches inviate: puoi ancora spostarle fino allo scadere.' : 'Nessuna fiche sul tavolo: la manche vale zero.' }}
       </p>
       } @else if (azzardoState()?.phase === 'REVEAL') {
       <div class="status-msg">
@@ -373,7 +379,12 @@
         <p>{{ azzardoState()?.value }} {{ azzardoState()?.unit }}</p>
       </div>
       @if (azzardoRow(); as row) {
-      <p class="buzz-hint">{{ signedPoints(row.points) }} · totale {{ row.total }}</p>
+      <p class="azzardo-convert">Manche <b>{{ signedPoints(row.points) }}</b> · totale {{ row.total }}</p>
+      @if (row.win || row.loss) {
+      <p class="azzardo-convert">
+        Fiches giuste <b>+{{ row.win ?? 0 }}</b> · fiches sbagliate <b>−{{ row.loss ?? 0 }}</b>
+      </p>
+      }
       }
       } @else {
       <div class="status-msg"><p>Classifica in TV.</p></div>

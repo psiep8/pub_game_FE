@@ -1,5 +1,8 @@
 import {
   AZZARDO_BETS,
+  AZZARDO_MIN_BANK,
+  bankFor,
+  chipsBreakdown,
   clampAzzardoBet,
   levelForOccurrence,
   lossMultiplierFor,
@@ -7,6 +10,44 @@ import {
   oddsForLevel,
   settleManche,
 } from './azzardo-rules';
+
+describe('fiches → punti', () => {
+  const input = (chips: number[], manche = 0, available = 1000) => ({
+    chips,
+    answerIndex: 1,
+    level: 1 as const,
+    manche,
+    available,
+  });
+
+  it('paga le fiches giuste con la quota e taglia le sbagliate con la manche', () => {
+    // Tre fiches sulla B (giusta) e due sulla A: +120, poi −40 al 100%.
+    const first = chipsBreakdown(input([2, 3, 0, 0]));
+    expect(first).toMatchObject({
+      totalChips: 5, stake: 100, correctChips: 3, wrongChips: 2,
+      odds: 2, lossPercent: 100, win: 120, loss: 40, points: 80,
+    });
+
+    // Stessa distribuzione alla terza manche: la perdita scende al 60%.
+    expect(chipsBreakdown(input([2, 3, 0, 0], 2))).toMatchObject({ loss: 24, points: 96 });
+  });
+
+  it('la perdita non supera mai i punti posseduti', () => {
+    expect(chipsBreakdown(input([10, 0, 0, 0], 0, 60))).toMatchObject({ loss: 60, points: -60 });
+    expect(chipsBreakdown(input([10, 0, 0, 0], 0, 0))).toMatchObject({ loss: 0, points: 0 });
+  });
+
+  it('chi non mette fiches non muove la classifica', () => {
+    expect(chipsBreakdown(input([0, 0, 0, 0]))).toMatchObject({ totalChips: 0, win: 0, loss: 0, points: 0 });
+  });
+
+  it('il banco dà un credito di manche a chi ha zero punti', () => {
+    expect(bankFor(0)).toBe(AZZARDO_MIN_BANK);
+    expect(bankFor(120)).toBe(AZZARDO_MIN_BANK);
+    expect(bankFor(900)).toBe(900);
+    expect(maxBetFor(bankFor(0))).toBe(300);
+  });
+});
 
 describe('livelli e quote', () => {
   it('tre passaggi nella serata, difficoltà crescente', () => {

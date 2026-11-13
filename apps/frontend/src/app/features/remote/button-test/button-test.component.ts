@@ -50,6 +50,9 @@ export class ButtonTestComponent implements OnInit, OnDestroy {
   readonly cards = signal([2, 0, 1]);
   readonly dragIndex = signal<number | null>(null);
   readonly dropIndex = signal<number | null>(null);
+  /** Spostamento del dito: la carta segue il trascinamento, non salta al rilascio. */
+  readonly dragOffset = signal<{ x: number; y: number } | null>(null);
+  private dragStart: { x: number; y: number } | null = null;
   readonly cardLabels = CARD_LABELS;
 
   private stepTimer?: ReturnType<typeof setInterval>;
@@ -114,13 +117,24 @@ export class ButtonTestComponent implements OnInit, OnDestroy {
     }
   }
 
-  startDrag(index: number): void {
+  startDrag(index: number, event?: PointerEvent): void {
     this.dragIndex.set(index);
     this.dropIndex.set(index);
+    this.dragStart = event ? { x: event.clientX, y: event.clientY } : null;
+    this.dragOffset.set({ x: 0, y: 0 });
+    this.vibrate();
+    const target = event?.currentTarget as HTMLElement | null | undefined;
+    if (event && target?.setPointerCapture) target.setPointerCapture(event.pointerId);
   }
 
   onDragMove(event: PointerEvent): void {
     if (this.dragIndex() === null) return;
+    if (this.dragStart) {
+      this.dragOffset.set({
+        x: event.clientX - this.dragStart.x,
+        y: event.clientY - this.dragStart.y,
+      });
+    }
     const target = document.elementFromPoint(event.clientX, event.clientY)
       ?.closest<HTMLElement>('[data-card-index]');
     const index = Number(target?.dataset['cardIndex']);
@@ -130,7 +144,22 @@ export class ButtonTestComponent implements OnInit, OnDestroy {
   endDrag(): void {
     const target = this.dropIndex();
     this.dropIndex.set(null);
+    this.dragStart = null;
+    this.dragOffset.set(null);
     if (target !== null) this.drop(target);
+  }
+
+  /** Trasformazione della carta mentre il dito la trascina. */
+  dragTransform(index: number): string | null {
+    const offset = this.dragOffset();
+    if (this.dragIndex() !== index || !offset) return null;
+    return `translate(${offset.x}px, ${offset.y}px)`;
+  }
+
+  /** Vibrazione chiesta dal giocatore: parte da un tocco, quindi è permessa. */
+  vibrateNow(): void {
+    this.vibrate();
+    this.message.set('Vibrazione inviata');
   }
 
   drop(index: number): void {

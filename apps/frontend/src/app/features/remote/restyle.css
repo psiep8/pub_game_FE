@@ -904,10 +904,26 @@
 .voting-grid.quiz-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 10px;
-  min-height: calc(100dvh - 110px);
-  height: 100%;
+  grid-template-rows: repeat(2, minmax(104px, 24vh));
+  gap: 12px;
+  padding: 0 12px 16px;
+  min-height: 0;
+  /* I tasti restano in basso, alla portata del pollice. */
+  flex: 1 1 auto;
+  margin-top: auto;
+  align-content: end;
+}
+
+/* Quiz: carta e inchiostro, niente raggi né gradienti. */
+.voting-grid .vote-btn {
+  border: 3px solid var(--coal);
+  border-radius: 0;
+  box-shadow: 8px 8px 0 var(--coal);
+  font-family: var(--font-display);
+}
+.voting-grid .vote-btn:active {
+  transform: translate(5px, 5px);
+  box-shadow: 3px 3px 0 var(--coal);
 }
 .quiz-grid .vote-btn { width: 100%; height: 100%; min-height: 0; }
 
@@ -982,13 +998,68 @@
 }
 .speed-remote .speed-color { font-size: clamp(1rem, 4.6vw, 1.3rem); }
 
-/* Azzardo a fiches: contatori per opzione. */
+/* Azzardo a fiches: i gettoni si impilano sull'opzione, uno sopra l'altro. */
 .azzardo-chip-row { display: flex; align-items: center; gap: 8px; }
+.azzardo-chip-row.filled { box-shadow: inset 4px 0 0 var(--acid); }
 .azzardo-option-text { flex: 1; min-width: 0; }
-.azzardo-chip-controls { display: flex; align-items: center; gap: 5px; flex: 0 0 auto; }
-.azzardo-chip-controls button {
-  width: 34px;
+
+.azzardo-chip-stack {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 46px;
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+.azzardo-chip-stack .fiche {
+  width: 40px;
+  height: 26px;
+  margin-top: -13px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%; /* fiche = oggetto fisico, come la pallina in Arena */
+  background: var(--acid);
+  color: var(--coal);
+  border: 2px solid var(--coal);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.azzardo-chip-stack .fiche:first-child { margin-top: 0; }
+.azzardo-chip-stack .fiche.empty {
   height: 34px;
+  background: var(--paper-hi);
+  border-style: dashed;
+  font-size: 1.1rem;
+}
+.azzardo-chip-stack .fiche-count {
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.azzardo-meta {
+  margin: 0;
+  color: var(--coal);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+}
+.azzardo-chip-stack:disabled { opacity: 0.5; }
+
+.azzardo-chip-remove {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
   display: grid;
   place-items: center;
   background: var(--paper-hi);
@@ -996,8 +1067,21 @@
   border: 2px solid var(--coal);
   box-shadow: 2px 2px 0 var(--coal);
   font-family: var(--font-mono);
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 800;
 }
-.azzardo-chip-controls button:disabled { opacity: .35; box-shadow: none; }
-.azzardo-chip-controls b { min-width: 22px; text-align: center; font-family: var(--font-mono); font-size: 1.05rem; }
+.azzardo-chip-remove:disabled { opacity: 0.3; box-shadow: none; }
+
+.azzardo-convert {
+  margin: 0;
+  padding: 4px 8px;
+  background: var(--paper-hi);
+  color: var(--coal);
+  border: 2px solid var(--coal);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+.azzardo-convert b { font-weight: 800; }

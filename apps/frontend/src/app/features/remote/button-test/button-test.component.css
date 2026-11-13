@@ -104,6 +104,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  touch-action: none;
   min-height: 58px;
   padding: 8px 12px;
   background: var(--paper);
@@ -112,7 +113,13 @@
   cursor: grab;
   touch-action: none;
 }
-.bt-drag-card.dragging { background: var(--acid); box-shadow: 2px 2px 0 var(--tomato); }
+.bt-drag-card.dragging {
+  position: relative;
+  z-index: 3;
+  background: var(--acid);
+  box-shadow: 2px 2px 0 var(--tomato);
+  cursor: grabbing;
+}
 .bt-handle { font-family: var(--font-mono); font-size: 1.2rem; }
 .bt-drag-card b { font-family: var(--font-display); font-size: 1.35rem; font-weight: 400; }
 .bt-vibrate {

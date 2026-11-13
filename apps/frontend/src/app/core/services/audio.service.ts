@@ -191,6 +191,27 @@ export class AudioService {
     this.tone({ freq: 165, duration: 0.18, type: 'square', gain: 0.03, delay: 0.08, slideTo: 110 });
   }
 
+  /**
+   * Gong del via: fondamentale grave con parziali inarmoniche, coda lunga e
+   * un attacco metallico. È il segnale che fa partire il conteggio dei telefoni.
+   */
+  playGong(): void {
+    if (!this.audioEnabled()) return;
+    if (!this.ensureContext()) return;
+    const partials: Array<[number, number, number]> = [
+      [98, 0.09, 2.8],
+      [196, 0.05, 2.3],
+      [294.7, 0.032, 1.8],
+      [412.5, 0.024, 1.4],
+      [589.3, 0.017, 1.0],
+      [1244, 0.011, 0.7],
+    ];
+    for (const [freq, gain, duration] of partials) {
+      this.tone({ freq, duration, type: 'sine', gain, attack: 0.006, detune: -4 });
+    }
+    this.noiseBurst(0.18, 0.035, 0, 900);
+  }
+
   playReveal(): void {
     if (!this.audioEnabled()) return;
     this.stopClock();

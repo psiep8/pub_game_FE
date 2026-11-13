@@ -117,8 +117,8 @@ import { CommonModule } from '@angular/common';
 
         @if (displayData?.phase === AzzardoPhase.BET) {
           <p class="az-hint">
-            Puntata 100, 200 o 300 punti reali: vince chi prende l'opzione giusta e incassa
-            puntata × {{ displayData?.odds }}. Sbagliare costa il {{ lossPercent() }}% della puntata.
+            Ogni fiche vale {{ displayData?.chipValue ?? 20 }} punti: quelle sull'opzione giusta
+            pagano ×{{ displayData?.odds }}, quelle sbagliate costano il {{ lossPercent() }}%.
           </p>
           <div class="az-ready">
             @for (row of displayData?.ready ?? []; track row.playerName) {
@@ -135,10 +135,30 @@ import { CommonModule } from '@angular/common';
             <div class="az-best">COLPO GROSSO: {{ best.playerName }} · +{{ best.points }}</div>
           }
           <div class="az-rows">
+            <div class="az-rows-head">
+              <span>SQUADRA</span>
+              <span>PUNTATA</span>
+              <span>INCASSA / PERDE</span>
+              <span>MANCHE</span>
+              <span>TOTALE</span>
+            </div>
             @for (row of displayData?.rows ?? []; track row.playerName) {
               <div class="az-row" [class.paid]="row.points > 0" [class.lost]="row.points < 0">
                 <span class="az-name">{{ row.playerName }}</span>
-                <span class="az-pick">{{ row.played ? (row.stake + ' su ' + letter(row.choice)) : 'non gioca' }}</span>
+                <span class="az-pick">
+                  @if (row.played) {
+                    @if (chipsOf(row) > 0) {
+                      {{ chipsOf(row) }} fiche ({{ row.stake }} pt) su {{ letter(row.choice) }}
+                    } @else {
+                      {{ row.stake }} pt su {{ letter(row.choice) }}
+                    }
+                  } @else { non gioca }
+                </span>
+                <span class="az-conv">
+                  @if (row.win) { <b class="plus">+{{ row.win }}</b> }
+                  @if (row.loss) { <b class="minus">−{{ row.loss }}</b> }
+                  @if (!row.win && !row.loss) { — }
+                </span>
                 <b class="az-delta">{{ signed(row.points) }}</b>
                 <span class="az-total">{{ row.total }}</span>
               </div>
@@ -146,15 +166,22 @@ import { CommonModule } from '@angular/common';
           </div>
         }
       } @else {
-        <div class="az-rows">
-          @for (row of displayData?.rows ?? []; track row.playerName; let i = $index) {
-            <div class="az-row" [class.top]="i === 0">
-              <span class="az-name">{{ i + 1 }}. {{ row.playerName }}</span>
-              <span class="az-pick">quota ×{{ displayData?.odds }}</span>
-              <b class="az-delta">{{ signed(row.total) }}</b>
-              <span class="az-total">{{ row.total }}</span>
+        <div class="az-board">
+          <div class="az-board-head">
+            <span>POS</span>
+            <span>SQUADRA</span>
+            <span>PUNTI</span>
+          </div>
+          @for (row of rankedRows(); track row.playerName; let i = $index) {
+            <div class="az-board-row" [class.top]="i === 0">
+              <span class="az-pos">{{ i + 1 }}</span>
+              <span class="az-name">{{ row.playerName }}</span>
+              <b class="az-points">{{ signed(row.total) }}</b>
             </div>
           }
+          <div class="az-board-note">
+            QUOTA ×{{ displayData?.odds ?? 2 }} · PERDITA {{ lossPercent() }}% · FICHE DA {{ displayData?.chipValue ?? 20 }}
+          </div>
         </div>
       }
     </div>
@@ -172,19 +199,20 @@ import { CommonModule } from '@angular/common';
     .az-question { max-width: 1100px; font-family: var(--font-display); font-size: clamp(1.15rem, 2.5vw, 2rem); line-height: 1.15; text-align: center; }
     .az-category { padding: 2px 12px; border: 2px solid var(--coal); background: var(--acid); color: var(--coal); font-family: var(--font-mono); font-size: clamp(.58rem, .85vw, .74rem); font-weight: 700; letter-spacing: .1em; }
 
-    .az-media { display: flex; align-items: center; gap: clamp(10px, 1.4vw, 18px); width: min(980px, 94vw); padding: clamp(7px, 1.2vh, 12px) clamp(10px, 1.6vw, 16px); background: var(--paper-hi); color: var(--coal); border: 3px solid var(--coal); box-shadow: 6px 6px 0 var(--tomato); }
-    .az-photo, .az-cover, .az-map { flex: 0 0 auto; width: clamp(64px, 8.5vw, 96px); height: clamp(64px, 8.5vw, 96px); display: flex; align-items: center; justify-content: center; background: var(--paper); border: 2px solid var(--coal); overflow: hidden; }
-    .az-photo img, .az-cover img { width: 100%; height: 100%; object-fit: cover; }
-    .az-map img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
-    .az-media-fallback { font-family: var(--font-display); font-size: clamp(1.8rem, 3.4vw, 2.8rem); line-height: 1; text-transform: uppercase; }
-    .az-media-copy { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-    .az-media-label { font-family: var(--font-mono); font-size: clamp(.52rem, .72vw, .62rem); font-weight: 800; letter-spacing: .16em; }
-    .az-media-title { font-family: var(--font-display); font-size: clamp(.95rem, 1.5vw, 1.25rem); font-weight: 400; line-height: 1; text-transform: uppercase; }
-    .az-media-text { margin: 0; font-family: var(--font-mono); font-size: clamp(.62rem, .88vw, .76rem); line-height: 1.25; }
-    .az-clue { font-family: var(--font); font-size: clamp(.72rem, 1vw, .88rem); font-weight: 700; }
-    .az-play { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; background: var(--acid); color: var(--coal); border: 2px solid var(--coal); box-shadow: 3px 3px 0 var(--coal); font-family: var(--font-mono); font-size: clamp(.54rem, .74vw, .64rem); font-weight: 800; letter-spacing: .06em; }
-    .az-play:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--coal); }
-    .az-play svg { width: 16px; height: 16px; fill: var(--coal); }
+    .az-media { display: flex; align-items: center; gap: clamp(14px, 1.8vw, 26px); width: min(1220px, 96vw); padding: clamp(10px, 1.6vh, 18px) clamp(14px, 2vw, 24px); background: var(--paper-hi); color: var(--coal); border: 4px solid var(--coal); box-shadow: 10px 10px 0 var(--tomato); }
+    /* La foto/copertina/cartina deve leggersi da fondo sala: grande e squadrata. */
+    .az-photo, .az-cover, .az-map { flex: 0 0 auto; width: clamp(170px, 26vh, 300px); height: clamp(170px, 26vh, 300px); display: flex; align-items: center; justify-content: center; background: var(--paper); border: 3px solid var(--coal); overflow: hidden; }
+    .az-photo img, .az-cover img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+    .az-map img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+    .az-media-fallback { font-family: var(--font-display); font-size: clamp(3rem, 7vw, 6rem); line-height: 1; text-transform: uppercase; }
+    .az-media-copy { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left; }
+    .az-media-label { align-self: flex-start; padding: 2px 8px; background: var(--mustard); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.62rem, 1vw, .82rem); font-weight: 800; letter-spacing: .16em; }
+    .az-media-title { font-family: var(--font-display); font-size: clamp(1.6rem, 3.6vw, 2.9rem); font-weight: 400; line-height: 1; text-transform: uppercase; }
+    .az-media-text { margin: 0; font-family: var(--font-mono); font-size: clamp(.82rem, 1.5vw, 1.15rem); line-height: 1.25; }
+    .az-clue { font-family: var(--font); font-size: clamp(1rem, 1.9vw, 1.5rem); font-weight: 700; line-height: 1.25; }
+    .az-play { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 10px; padding: 12px 18px; background: var(--acid); color: var(--coal); border: 3px solid var(--coal); box-shadow: 5px 5px 0 var(--coal); font-family: var(--font-mono); font-size: clamp(.7rem, 1.1vw, .95rem); font-weight: 800; letter-spacing: .08em; }
+    .az-play:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--coal); }
+    .az-play svg { width: clamp(20px, 2vw, 26px); height: clamp(20px, 2vw, 26px); fill: var(--coal); }
 
     .az-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(8px, 1.2vw, 16px); width: min(1180px, 96vw); }
     .az-option { display: flex; align-items: center; justify-content: center; gap: 10px; padding: clamp(10px, 1.7vw, 20px); background: var(--paper-hi); color: var(--coal); border: 3px solid var(--coal); box-shadow: 5px 5px 0 var(--coal); }
@@ -198,21 +226,44 @@ import { CommonModule } from '@angular/common';
     .az-chip.poor { border-style: dashed; }
     .az-value { padding: 6px 18px; background: var(--acid); color: var(--coal); border: 3px solid var(--coal); box-shadow: 5px 5px 0 var(--coal); font-family: var(--font-mono); font-size: clamp(.9rem, 1.4vw, 1.2rem); font-weight: 800; }
     .az-best { padding: 4px 14px; background: var(--paper-hi); color: var(--coal); border: 2px dashed var(--tomato); font-family: var(--font-mono); font-size: clamp(.7rem, 1vw, .9rem); font-weight: 700; }
-    .az-rows { display: flex; flex-direction: column; gap: 6px; width: min(1020px, 94vw); }
-    .az-row { display: grid; grid-template-columns: 1.4fr 1.1fr auto auto; gap: 12px; align-items: center; padding: 7px 14px; background: var(--paper-hi); color: var(--coal); border: 2px solid var(--coal); font-size: clamp(.8rem, 1.1vw, 1rem); }
+    .az-rows { display: flex; flex-direction: column; gap: 4px; width: min(1180px, 96vw); }
+    .az-rows-head {
+      display: grid; grid-template-columns: 1.3fr 1.3fr 1fr .7fr .7fr; gap: 12px; padding: 0 14px 4px;
+      border-bottom: 3px solid var(--coal);
+      font-family: var(--font-mono); font-size: clamp(.55rem, .8vw, .7rem); font-weight: 800; letter-spacing: .14em; text-align: center;
+    }
+    .az-rows-head span:first-child, .az-rows-head span:nth-child(2) { text-align: left; }
+    .az-row { display: grid; grid-template-columns: 1.3fr 1.3fr 1fr .7fr .7fr; gap: 12px; align-items: center; padding: 7px 14px; background: var(--paper-hi); color: var(--coal); border: 2px solid var(--coal); font-size: clamp(.8rem, 1.1vw, 1rem); }
     .az-row.top, .az-row.paid { background: var(--acid); }
     .az-row.lost { box-shadow: inset 4px 0 0 var(--tomato); }
-    .az-pick { font-family: var(--font-mono); font-size: .8em; color: var(--ink-dim); }
-    .az-delta { font-family: var(--font-mono); font-weight: 800; }
+    .az-pick { font-family: var(--font-mono); font-size: .82em; }
+    .az-conv { font-family: var(--font-mono); font-size: .82em; text-align: center; }
+    .az-conv .plus { color: var(--cobalt); }
+    .az-conv .minus { color: var(--tomato); }
+    .az-delta { font-family: var(--font-mono); font-weight: 800; font-size: 1.05em; text-align: center; }
     .az-row.lost .az-delta { color: var(--tomato); }
-    .az-total { font-family: var(--font-mono); font-weight: 700; }
+    .az-total { font-family: var(--font-mono); font-weight: 700; text-align: right; }
+
+    /* Classifica finale: tabella stampata, colonne allineate. */
+    .az-board { width: min(900px, 92vw); background: var(--paper-hi); color: var(--coal); border: 4px solid var(--coal); box-shadow: 12px 12px 0 var(--tomato); padding: clamp(10px, 1.6vh, 18px) clamp(14px, 2vw, 26px); display: flex; flex-direction: column; gap: 4px; }
+    .az-board-head, .az-board-row { display: grid; grid-template-columns: 90px minmax(0, 1fr) 180px; align-items: center; gap: 14px; }
+    .az-board-head { padding-bottom: 6px; border-bottom: 3px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.58rem, .85vw, .74rem); font-weight: 800; letter-spacing: .18em; }
+    .az-board-head span:last-child { text-align: right; }
+    .az-board-row { padding: 9px 0; border-bottom: 2px solid var(--coal); font-size: clamp(.95rem, 1.7vw, 1.45rem); }
+    .az-board-row.top { background: var(--acid); }
+    .az-pos { font-family: var(--font-mono); font-weight: 800; font-size: .85em; letter-spacing: .1em; }
+    .az-board-row .az-name { font-family: var(--font); font-weight: 800; }
+    .az-points { font-family: var(--font-mono); font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+    .az-board-note { padding-top: 6px; font-family: var(--font-mono); font-size: clamp(.55rem, .8vw, .7rem); letter-spacing: .14em; opacity: .65; text-align: center; }
     @keyframes az-pulse { 50% { transform: scale(1.08); opacity: .7; } }
 
     @media (max-height: 760px) {
       .az-wrap { gap: 5px; padding: 10px 14px; }
       .az-question { font-size: clamp(1rem, 2vw, 1.5rem); }
-      .az-media { padding: 6px 10px; }
-      .az-photo, .az-cover, .az-map { width: 58px; height: 58px; }
+      .az-media { padding: 8px 12px; gap: 12px; }
+      .az-photo, .az-cover, .az-map { width: clamp(110px, 17vh, 150px); height: clamp(110px, 17vh, 150px); }
+      .az-media-title { font-size: clamp(1.1rem, 2.4vw, 1.7rem); }
+      .az-clue { font-size: clamp(.85rem, 1.4vw, 1.1rem); }
       .az-option { padding: 8px 6px; }
       .az-number { font-size: 1.15rem; }
     }
@@ -256,6 +307,19 @@ export class Azzardo implements OnChanges, OnDestroy {
 
   letter(index: number): string {
     return index < 0 ? '—' : String.fromCharCode(65 + index);
+  }
+
+  /** Fiches giocate da una squadra nella manche appena chiusa. */
+  chipsOf(row: any): number {
+    const chips = row?.chips;
+    if (!Array.isArray(chips)) return 0;
+    return chips.reduce((sum: number, value: number) => sum + (Number(value) || 0), 0);
+  }
+
+  /** Classifica finale: chi ha più punti in cima, non l'ordine di tavolo. */
+  rankedRows(): any[] {
+    const rows = Array.isArray(this.displayData?.rows) ? [...this.displayData.rows] : [];
+    return rows.sort((a: any, b: any) => (Number(b?.total) || 0) - (Number(a?.total) || 0));
   }
 
   signed(points: number | null | undefined): string {
