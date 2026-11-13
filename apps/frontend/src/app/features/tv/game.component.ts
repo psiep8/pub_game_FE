@@ -771,6 +771,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
     this.reset();
     this.revealPending.set(false);
+    this.settleRoundWinner();
     this.applyRoundWinnerTheme();
 
     if (!this.currentGameId()) {
@@ -1437,6 +1438,9 @@ export class GameComponent implements OnInit, OnDestroy {
     this.cancelAutoAdvance();
 
     const advance = () => {
+      // Anche quando il round si salta senza classifica il verdetto si chiude
+      // qui: altrimenti i punti del bonus successivo entrerebbero nel conteggio.
+      this.settleRoundWinner();
       this.showLeaderboardQuick.set(false);
       this.showLeaderboardDetailed.set(false);
       this.isShowingLeaderboard.set(false);
@@ -2180,6 +2184,8 @@ export class GameComponent implements OnInit, OnDestroy {
    */
   closeRecoveredRound(advance = false): void {
     if (!this.recoveredRound()) return;
+    // Il round non ripreso si chiude qui: il conteggio del vincitore muore con lui.
+    this.settleRoundWinner();
     this.recoveredRound.set(null);
     this.recoveredPayload = null;
     this.recoveredBlackjackState = null;

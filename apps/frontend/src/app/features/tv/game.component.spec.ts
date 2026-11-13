@@ -195,6 +195,90 @@ describe('GameComponent', () => {
     expect(theme.theme()).toBe('editorial-acid');
   });
 
+  it('closes the round count when the host skips a round without a leaderboard', () => {
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'closeRound').mockReturnValue(of({}));
+    const start = vi.spyOn(component, 'startNewRound').mockResolvedValue(undefined);
+    const theme = component.theme;
+    const tv = component as unknown as {
+      beginRoundScoring(): void;
+      applyRoundWinnerTheme(): void;
+    };
+    theme.applyFromRemote('editorial-acid');
+    theme.setTeamTheme('Anna', 'deep-ocean');
+    theme.setTeamTheme('Bruno', 'kpop-aesthetic');
+
+    tv.beginRoundScoring();
+    leaderboard.addPoints('Anna', 10, true);
+    leaderboard.addPoints('Bruno', 40, true);
+
+    component.currentGameId.set(1);
+    component.currentMode.set({ type: 'QUIZ', isRevealed: () => false } as any);
+    component.adminNextRound();
+
+    // Il bonus che parte dopo lo skip non deve entrare nel verdetto.
+    leaderboard.addPoints('Anna', 500, true);
+    tv.applyRoundWinnerTheme();
+
+    expect(theme.theme()).toBe('kpop-aesthetic');
+    start.mockRestore();
+  });
+
+  it('closes the round count when the host closes an already revealed round', () => {
+    const start = vi.spyOn(component, 'startNewRound').mockResolvedValue(undefined);
+    const theme = component.theme;
+    const tv = component as unknown as {
+      beginRoundScoring(): void;
+      applyRoundWinnerTheme(): void;
+    };
+    theme.applyFromRemote('editorial-acid');
+    theme.setTeamTheme('Anna', 'deep-ocean');
+
+    tv.beginRoundScoring();
+    leaderboard.addPoints('Anna', 30, true);
+
+    component.currentGameId.set(1);
+    component.currentMode.set({ type: 'QUIZ', isRevealed: () => true } as any);
+    component.adminNextRound();
+
+    leaderboard.addPoints('Anna', 500, true);
+    tv.applyRoundWinnerTheme();
+
+    expect(theme.theme()).toBe('deep-ocean');
+    start.mockRestore();
+  });
+
+  it('closes the round count when a recovered round is closed after a refresh', () => {
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'closeRound').mockReturnValue(of({}));
+    const start = vi.spyOn(component, 'startNewRound').mockResolvedValue(undefined);
+    const theme = component.theme;
+    const tv = component as unknown as {
+      beginRoundScoring(): void;
+      applyRoundWinnerTheme(): void;
+    };
+    theme.applyFromRemote('editorial-acid');
+    theme.setTeamTheme('Anna', 'deep-ocean');
+
+    tv.beginRoundScoring();
+    leaderboard.addPoints('Anna', 30, true);
+
+    component.recoveredRound.set({
+      type: 'QUIZ',
+      label: 'Quiz',
+      secondsLeft: 12,
+      resumable: true,
+    } as any);
+    component.closeRecoveredRound(true);
+
+    // Punti arrivati dopo la chiusura: fuori dal conteggio.
+    leaderboard.addPoints('Anna', 500, true);
+    tv.applyRoundWinnerTheme();
+
+    expect(theme.theme()).toBe('deep-ocean');
+    start.mockRestore();
+  });
+
   it('adds a joining team to the lobby list without duplicates', async () => {
     ws.status$.next({ action: 'JOIN_GAME', playerName: 'Anna' });
     ws.status$.next({ action: 'JOIN_GAME', playerName: ' Anna ' });
