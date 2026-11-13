@@ -4,6 +4,7 @@ import {
   createBasketWorld,
   createCamera,
   createShot,
+  launchShot,
   launchVelocity,
   previewTrajectory,
   projectPoint,
@@ -102,6 +103,25 @@ describe('basket physics', () => {
     expect(hit).toBe(true);
     expect(shot.hitBoard).toBe(true);
     expect(shot.velocity.z).toBeLessThan(0);
+  });
+
+  it('il canestro locale usa la stessa tolleranza laterale del server', () => {
+    const simula = (manche: number, side: number) => {
+      const world = createBasketWorld(manche);
+      const shot = createShot(world);
+      launchShot(shot, world, 0.5, side);
+      for (let index = 0; index < 240 * 2 && !shot.scored; index++) {
+        stepShot(shot, world, 1 / 240);
+      }
+      return shot.scored;
+    };
+
+    // Canestro grande: 0.20 è dentro la finestra del server (0.24).
+    expect(simula(0, 0.2)).toBe(true);
+    // Oltre la finestra non si segna, anche se la palla passa vicino al ferro.
+    expect(simula(0, 0.3)).toBe(false);
+    // Canestro piccolo: 0.15 valeva nella prima manche, qui no (tolleranza 0.11).
+    expect(simula(2, 0.15)).toBe(false);
   });
 
   it('un tiro con potenza giusta ma largo non entra: il centro va mirato', () => {

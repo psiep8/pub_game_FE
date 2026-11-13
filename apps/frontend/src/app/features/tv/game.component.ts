@@ -910,7 +910,8 @@ export class GameComponent implements OnInit, OnDestroy {
         this.animatedCategoryId.set(bubblePool[randomIndex].id);
 
         this.phase.set('SPINNING');
-        // Cinque secondi di roll: il nastro gira prima di fermarsi.
+        // Prima le bolle girano sul tabellone, poi parte il rullo da slot.
+        await new Promise(r => setTimeout(r, 2600));
         await this.rollSlot(bubblePool);
         await new Promise(r => setTimeout(r, 350));
 

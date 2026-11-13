@@ -38,6 +38,8 @@ export interface BasketWorld {
   gravity: number;
   floorY: number;
   rim: Rim;
+  /** Apertura laterale massima che il server considera canestro. */
+  sideTolerance: number;
   board: Box3;
   pole: Box3;
   base: Box3;
@@ -45,6 +47,8 @@ export interface BasketWorld {
 }
 
 export interface ShotState {
+  /** Laterale del gesto (-1..1): decide se il ferro è centrato. */
+  lateral: number;
   position: Vec3;
   velocity: Vec3;
   rotation: Vec3;
@@ -94,6 +98,8 @@ export const SHOT_POWER_MIN = 0.22;
 export const SHOT_POWER_MAX = 0.88;
 
 const RIM_RADII = [0.275, 0.235, 0.198] as const;
+/** Stesse finestre laterali del server (BasketService.SIDE_TOLERANCE). */
+const SIDE_TOLERANCES = [0.24, 0.17, 0.11] as const;
 const RIM_TUBE = 0.014;
 const FLOOR_RESTITUTION = 0.56;
 const BOARD_RESTITUTION = 0.58;
@@ -102,6 +108,7 @@ const RIM_RESTITUTION = 0.68;
 export function createBasketWorld(manche: number): BasketWorld {
   const index = Math.max(0, Math.min(RIM_RADII.length - 1, Math.floor(manche)));
   const rimRadius = RIM_RADII[index] ?? 0.235;
+  const sideTolerance = SIDE_TOLERANCES[index] ?? 0.17;
 
   return {
     start: { x: 0, y: 1.3, z: 1.02 },
@@ -109,6 +116,7 @@ export function createBasketWorld(manche: number): BasketWorld {
     gravity: 9.81,
     floorY: 0,
     rim: { x: 0, y: 3.05, z: 4.35, radius: rimRadius, tube: RIM_TUBE },
+    sideTolerance,
     // Tabellone: vetro da 1,8 m per 1,05 m, appena dietro il ferro.
     board: { minX: -0.9, maxX: 0.9, minY: 2.9, maxY: 3.95, minZ: 4.56, maxZ: 4.62 },
     // Palo e base dietro il tabellone: si vedono in prospettiva e fermano i tiri lunghi.
@@ -120,6 +128,7 @@ export function createBasketWorld(manche: number): BasketWorld {
 
 export function createShot(world: BasketWorld): ShotState {
   return {
+    lateral: 0,
     position: { ...world.start },
     velocity: { x: 0, y: 0, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
@@ -131,6 +140,16 @@ export function createShot(world: BasketWorld): ShotState {
     dead: false,
     elapsed: 0,
   };
+}
+
+/**
+ * Quanto sposta il laterale: al bordo esatto della tolleranza del server la
+ * palla passa al filo del ferro. Così telefono e server vedono lo stesso
+ * canestro e non si festeggiano tiri che il backend segna fuori.
+ */
+function lateralScale(world: BasketWorld): number {
+  const clearance = world.rim.radius - world.ballRadius * 0.92;
+  return clearance / world.sideTolerance;
 }
 
 /**
@@ -146,7 +165,7 @@ export function launchVelocity(world: BasketWorld, pull: number, side: number): 
   // lineare: niente più "zona morbida" al centro, quindi centrare il ferro
   // richiede mira vera e un errore piccolo si vede subito.
   return {
-    x: lateral * 0.65,
+    x: lateral * lateralScale(world),
     y: 6.6,
     // Curva continua e centrata: il 50% resta lo swish pulito e la finestra
     // utile copre circa il 20–90%, senza il buco sul ferro basso.
@@ -156,6 +175,7 @@ export function launchVelocity(world: BasketWorld, pull: number, side: number): 
 
 export function launchShot(shot: ShotState, world: BasketWorld, pull: number, side: number): void {
   shot.velocity = launchVelocity(world, pull, side);
+  shot.lateral = clamp(side, -1, 1);
   shot.spin = {
     x: -shot.velocity.z * 2.2,
     y: clamp(side, -1, 1) * 2.4,
@@ -310,6 +330,9 @@ function checkScore(
   events: ShotEvents,
 ): boolean {
   if (shot.scored || shot.velocity.y >= 0) return false;
+  // Oltre la tolleranza laterale del server il canestro non vale, anche se la
+  // palla sfiora il ferro.
+  if (Math.abs(shot.lateral) > world.sideTolerance) return false;
 
   const rim = world.rim;
   if (!(previous.y >= rim.y && shot.position.y < rim.y)) return false;
@@ -513,6 +536,7 @@ function applyNetDrag(shot: ShotState, world: BasketWorld): void {
 
 function cloneShot(shot: ShotState): ShotState {
   return {
+    lateral: shot.lateral,
     position: { ...shot.position },
     velocity: { ...shot.velocity },
     rotation: { ...shot.rotation },
