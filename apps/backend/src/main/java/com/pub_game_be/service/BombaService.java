@@ -4,6 +4,7 @@ import com.pub_game_be.reliability.StateBlobService;
 import jakarta.annotation.PreDestroy;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -34,14 +35,19 @@ import java.util.concurrent.TimeUnit;
  * esauriscono le caselle o quando tutte le squadre sono fuori. Le bombe mai
  * scelte vengono mostrate e disarmate senza conseguenze.
  *
- * <p>La posizione delle bombe resta sul server: esce solo per le caselle già
- * scelte (e a fine round, per il disarmo).
+ * <p>La posizione delle bombe resta sul server: non esce mai durante l'ondata.
+ * Le caselle scelte restano coperte e gli esiti (bombe, eliminati, penalità)
+ * si scoprono tutti insieme a fine ondata: nessuno può contare le bombe
+ * guardando il tabellone mentre si gioca.
  */
 @Service
 public class BombaService {
 
     public static final int TURN_SECONDS = 20;
     public static final int BOMB_PENALTY = 200;
+
+    /** Secondi di scelta per turno: configurabili per le prove rapide. */
+    private final int turnSeconds;
 
     private record Cell(int id, String label, boolean bomb) {
     }
@@ -92,9 +98,11 @@ public class BombaService {
         return thread;
     });
 
-    public BombaService(QuestionBankService questionBank, StateBlobService stateBlobs) {
+    public BombaService(QuestionBankService questionBank, StateBlobService stateBlobs,
+                        @Value("${pubgame.bomba.turn-seconds:20}") int turnSeconds) {
         this.questionBank = questionBank;
         this.stateBlobs = stateBlobs;
+        this.turnSeconds = Math.max(1, turnSeconds);
     }
 
     public JSONObject start(long gameId, List<String> rawPlayers, int requestedAct) {
@@ -113,7 +121,7 @@ public class BombaService {
 
         synchronized (round) {
             round.turnIndex = 0;
-            round.turnDeadline = System.currentTimeMillis() + TURN_SECONDS * 1000L;
+            round.turnDeadline = System.currentTimeMillis() + turnSeconds * 1000L;
             persist(round);
             scheduleDeadline(round);
             return publicState(round, null, System.currentTimeMillis());
@@ -155,7 +163,8 @@ public class BombaService {
 
             long now = System.currentTimeMillis();
             round.pickedBy.put(cellId, player);
-            pushEvent(round, cell.bomb() ? "bomb" : "safe", player, cell.label());
+            // Nessun esito durante l'ondata: si sa solo chi ha scelto cosa.
+            pushEvent(round, "pick", player, cell.label());
 
             if (cell.bomb()) {
                 round.penalties.merge(player, -BOMB_PENALTY, Integer::sum);
@@ -253,7 +262,7 @@ public class BombaService {
             return;
         }
         round.turnIndex = next;
-        round.turnDeadline = now + TURN_SECONDS * 1000L;
+        round.turnDeadline = now + turnSeconds * 1000L;
         scheduleDeadline(round);
     }
 
@@ -383,7 +392,9 @@ public class BombaService {
             if (used) {
                 view.put("pickedBy", round.pickedBy.get(cell.id()));
             }
-            if (used || ended) {
+            // Le caselle restano coperte per tutta l'ondata: gli esiti si
+            // vedono solo quando il round è chiuso.
+            if (ended) {
                 view.put("bomb", cell.bomb());
             }
             cells.put(view);
@@ -399,10 +410,11 @@ public class BombaService {
         state.put("prompt", round.prompt);
         state.put("cells", cells);
         state.put("players", new JSONArray(round.players));
-        state.put("eliminated", new JSONArray(round.eliminated));
-        state.put("penalties", new JSONObject(round.penalties));
+        // Anche eliminati e penalità sono esiti: escono a fine ondata.
+        state.put("eliminated", ended ? new JSONArray(round.eliminated) : new JSONArray());
+        state.put("penalties", ended ? new JSONObject(round.penalties) : new JSONObject());
         state.put("turn", round.currentPlayer() == null ? "" : round.currentPlayer());
-        state.put("turnSeconds", TURN_SECONDS);
+        state.put("turnSeconds", turnSeconds);
         state.put("secondsLeft", round.active
                 ? Math.max(0, (round.turnDeadline - clock + 999) / 1000)
                 : 0);

@@ -538,8 +538,10 @@ class ReliabilityIntegrationTest {
     @Test
     void bombaRipristinaLaPartitaSenzaMostrareLeBombeEConsenteReset() {
         long gameId = 523L;
-        var first = new com.pub_game_be.service.BombaService(questionBank, stateBlobs);
-        var restarted = new com.pub_game_be.service.BombaService(questionBank, stateBlobs);
+        var first = new com.pub_game_be.service.BombaService(
+                questionBank, stateBlobs, com.pub_game_be.service.BombaService.TURN_SECONDS);
+        var restarted = new com.pub_game_be.service.BombaService(
+                questionBank, stateBlobs, com.pub_game_be.service.BombaService.TURN_SECONDS);
         try {
             var initial = first.start(gameId, java.util.List.of("Anna", "Bruno"), 1);
             int cellId = initial.getJSONArray("cells").getJSONObject(0).getInt("id");

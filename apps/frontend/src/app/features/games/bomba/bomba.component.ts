@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 
 /**
  * TV di Bomba: una domanda, tutte le opzioni sul tabellone, un turno per
- * squadra. Le caselle vere si salvano, le bombe esplodono appena scelte; chi
- * resta fuori viene mostrato sotto il tabellone.
+ * squadra. Durante l'ondata le caselle restano coperte: si vede solo chi ha
+ * scelto cosa. Bombe, eliminati e penalità si scoprono a fine ondata.
  */
 @Component({
   selector: 'app-bomba',
@@ -149,11 +149,14 @@ export class Bomba {
     return '';
   }
 
+  /**
+   * Durante l'ondata si dice solo chi ha scelto cosa: bombe e bombe prese
+   * restano coperte fino alla fine, così non si contano dal tabellone.
+   */
   eventText(event: any): string {
     if (!event) return '';
-    if (event.kind === 'bomb') return `💥 ${event.player}: ${event.label} −200`;
-    if (event.kind === 'safe') return `✓ ${event.player}: ${event.label}`;
-    if (event.kind === 'timeout' || event.kind === 'eliminated') return `⌛ ${event.player}: ELIMINATO`;
+    if (event.kind === 'pick') return `${event.player}: ${event.label}`;
+    if (event.kind === 'timeout') return `⌛ ${event.player}: TEMPO SCADUTO`;
     return '';
   }
 }
