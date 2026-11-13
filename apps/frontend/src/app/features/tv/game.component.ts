@@ -170,6 +170,8 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Roll da slot machine: nomi che scorrono prima di svelare la categoria. */
   readonly slotRolling = signal(false);
   readonly slotRollName = signal('');
+  /** Bolle già chiuse: dal rullo in poi non devono più tornare a schermo. */
+  readonly bubblesDismissed = signal(false);
 
 
   showResetModal = signal(false);
@@ -909,11 +911,14 @@ export class GameComponent implements OnInit, OnDestroy {
         const randomIndex = Math.floor(Math.random() * bubblePool.length);
         this.animatedCategoryId.set(bubblePool[randomIndex].id);
 
+        this.bubblesDismissed.set(false);
         this.phase.set('SPINNING');
         // Prima le bolle girano sul tabellone, poi parte il rullo da slot.
         await new Promise(r => setTimeout(r, 2600));
+        // Da qui le bolle non tornano più: il rullo le sostituisce e resta
+        // a schermo fino alla categoria estratta, senza pause intermedie.
+        this.bubblesDismissed.set(true);
         await this.rollSlot(bubblePool);
-        await new Promise(r => setTimeout(r, 350));
 
         // Il rullo si ferma sulla categoria scelta, poi resta a schermo
         // come titolo sopra la domanda.
