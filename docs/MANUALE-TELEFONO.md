@@ -60,7 +60,7 @@ presentatore per sapere che ogni telefono è pronto.
 | **Time Buzzer** | Un pulsante: **STOP** quando pensi sia il momento giusto. |
 | **Bomba** | Al tuo turno scegli una casella del tabellone, poi il turno passa. |
 | **Speed Rush** | Risposte rapide: matematica, colori, bandiere, parole, traduzioni. |
-| **Air Hockey** | A turno: rispondi prima che scada il tempo della battuta. |
+| **Tennis Battle** | A turno: rispondi prima che scada il tempo del colpo. |
 | **Arena** | **VERO / FALSO** (o le quattro opzioni) una domanda dopo l'altra. |
 | **Azzardo** | Distribuisci le fiches con **−** e **+** sulle quattro risposte, poi invia. |
 | **Ultima spiaggia** | Scegli il livello (100–500), poi rispondi alla domanda. |

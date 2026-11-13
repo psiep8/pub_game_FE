@@ -1,6 +1,6 @@
 # PUBGAME — Il copione del presentatore
 
-> **VERSIONE 2.0.1 — 12 novembre 2026.**
+> **VERSIONE 2.1.0 — 13 novembre 2026.**
 > Il copione descrive la serata alla seconda major. Per i pulsanti del pannello admin
 > vedi `docs/PANNELLO-ADMIN.md`; per il telefono delle squadre vedi `docs/MANUALE-TELEFONO.md`.
 > Se un gioco o un punteggio cambia, questo file va riallineato.
@@ -72,9 +72,9 @@ propria memoria.
 
 | Atto | Round | Giochi in ordine |
 | --- | --- | --- |
-| **1** | 1–8 | Quiz · Musica · Black Jack · Time Buzzer · Bomba · Timeline · Air Hockey · Ultima spiaggia |
-| **2** | 9–16 | Azzardo · Ruota · Black Jack · Quiz · Air Hockey · Time Buzzer · Musica · Ultima spiaggia |
-| **3** | 17–24 | Quiz · Speed Rush · Indovina chi · Air Hockey · Time Buzzer · Black Jack · Ultima spiaggia · **Arena** |
+| **1** | 1–8 | Quiz · Musica · Black Jack · Time Buzzer · Bomba · Timeline · Tennis Battle · Ultima spiaggia |
+| **2** | 9–16 | Azzardo · Ruota · Black Jack · Quiz · Tennis Battle · Time Buzzer · Musica · Ultima spiaggia |
+| **3** | 17–24 | Quiz · Speed Rush · Indovina chi · Tennis Battle · Time Buzzer · Black Jack · Ultima spiaggia · **Arena** |
 | **4** | 25–32 | Indovina chi · Bomba · Musica · Quiz · Ruota · Timeline · Speed Rush · Ultima spiaggia |
 | **5** | 33–40 | Quiz · Musica · Bomba · Indovina chi · Azzardo · Timeline · Ultima spiaggia · **Arena** |
 
@@ -165,12 +165,12 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
   perché il punteggio non è ancora verificato dal server.
 - *Da dire:* «Non conta sapere, conta non sbagliare: la corsia non aspetta nessuno.»
 
-### AIR HOCKEY BATTLE — uno contro uno
+### TENNIS BATTLE — a coppie
 
 - **TV**: il tavolo, i portieri laser e il disco.
 - **Telefoni**: due squadre si sfidano a domande rapide; ogni risposta sbagliata o lenta
   allunga il tempo dell'avversario e rende il tiro più difficile.
-- **Punti**: il set si chiude a **7 gol**; il vincitore prende **+1000**, il perdente
+- **Punti**: il set si chiude a **7 game**; il vincitore prende **+1000**, il perdente
   **+200** di consolazione.
 - *Da dire:* «Rispondere velocemente non vi fa solo vincere il punto: toglie tempo e
   precisione a chi vi sta davanti.»

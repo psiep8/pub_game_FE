@@ -100,7 +100,7 @@ successivo), **🔄 reset**. Il reset va usato solo se siete davvero fuori strad
    - **✅ CORRETTO** assegna i punti mostrati in **Se corretto**.
    - **❌ SBAGLIATO** applica la penalità mostrata in **Se sbagliato**.
 5. **Giochi senza validazione** (Quiz, Timeline, Bomba, Azzardo, Time Buzzer,
-   Speed Rush, Air Hockey, Arena, Blackjack, Ultima spiaggia): il riquadro dice
+   Speed Rush, Tennis Battle, Arena, Blackjack, Ultima spiaggia): il riquadro dice
    **Round in Corso** e i punti li calcola il server. Non premere nulla.
 6. **Chiusura**: la TV mostra il reveal e poi la classifica se è il momento.
    Per il round dopo premi di nuovo **▶️ PARTI**.
@@ -132,7 +132,7 @@ La tabella **PUNTI** sotto il riquadro riporta *Corretto*, *Sbagliato* e
 | **Time Buzzer** | **STOP** al momento giusto, manche dopo manche. | **🎵 PROSSIMA MANCHE** solo se vuoi anticipare. |
 | **Bomba** | Un turno per squadra: scelgono una casella. | Niente: il turno lo gestisce il server. |
 | **Speed Rush** | Minigiochi rapidi. | Niente. |
-| **Air Hockey** | Duello a coppie, a turno. | Niente: le coppie le decide il server. |
+| **Tennis Battle** | Duello a coppie, a turno. | Niente: le coppie le decide il server. |
 | **Arena** | Vero/Falso continuo, difficoltà crescente. | Niente: il cerchio e le eliminazioni sono in TV. |
 | **Azzardo** | Distribuiscono le fiches. | Niente: le fiches le valida il server. |
 | **Ultima spiaggia** | Scelgono livello e risposta. | Niente. |

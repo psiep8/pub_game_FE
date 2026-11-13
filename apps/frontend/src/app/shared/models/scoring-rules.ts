@@ -67,10 +67,10 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     note: 'Prendono punti solo i primi n/2 arrivati; il distacco in millesimi dal primo riduce il bonus, minimo 100.',
   },
   TENNIS_BATTLE: {
-    correct: '+1000 al vincitore',
-    wrong: 'gol per l’avversario',
-    missed: 'gol per l’avversario',
-    note: 'Il set si chiude a 7 gol; il perdente riceve +200 di consolazione. Risposte rapide accorciano il tempo dell’avversario.',
+    correct: 'punto per te; +1000 a chi vince il set',
+    wrong: 'punto per l’avversario',
+    missed: 'punto per l’avversario',
+    note: 'Punteggio da tennis (15, 30, 40, vantaggio); dal vantaggio sul 40 pari, dopo tre ritorni il punto successivo decide il game (killer point). Il perdente del set riceve +200 di consolazione.',
   },
   AZZARDO: {
     correct: '+20 × quota per fiche giusta (×2 facile, ×3 media, ×4 difficile)',

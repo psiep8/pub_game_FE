@@ -3,6 +3,26 @@
 Tutte le modifiche rilevanti di PubGame. Formato basato su Keep a Changelog,
 versione SemVer.
 
+## [2.1.0] — 2026-11-13
+
+Minor: il gioco Air Hockey Battle diventa **Tennis Battle**, con punteggio da tennis
+(0, 15, 30, 40, vantaggio) e killer point dopo tre ritorni dal vantaggio. Il colpo
+segue il tempo di risposta dell'avversario. Aggiornate le dipendenze di frontend e
+backend all'ultima versione stabile disponibile; TypeScript resta alla 6.x e Spring
+Boot alla 4.1.x GA. Documentazione, manuale e guida per l'avvio a casa.
+
+### Aggiunto
+
+- Guida `docs/AVVIO-SERATA-ADMIN.md` per avviare la serata a casa con gli amici.
+
+### Cambiato
+
+- Air Hockey Battle rinominato Tennis Battle (tipo `TENNIS_BATTLE`).
+- Dipendenze aggiornate; `jsdom` alla 31.
+- Manuale, demo e manuale telefono allineati al Tennis.
+
+---
+
 ## [2.0.1] — 2026-11-12
 
 Patch: codice di abbinamento per la regia, ripresa del Blackjack dopo il refresh

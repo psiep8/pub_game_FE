@@ -146,7 +146,7 @@ regia, senza fretta.
 | A | Ingresso + lobby | 10' | QR, nomi, doppioni, avatar |
 | B | Atto 1: 8 round | 40' | tutti i giochi "di sapere", classifica rapida e dettagliata |
 | C | Bonus Casino | 10' | risultati bonus, audio roulette, classifica bonus |
-| D | Regole nuove: Bomba, Azzardo, Speed Rush, Air Hockey (§5.1) | 25' | turni, fiches, corsia, traiettorie |
+| D | Regole nuove: Bomba, Azzardo, Speed Rush, Tennis Battle (§5.1) | 25' | turni, fiches, corsia, traiettorie |
 | E | Prova di caduta su un round | 10' | §6 |
 | F | Chiusura: classifica finale | 5' | podio, fanfara |
 | G | Debrief con i tavoli | 10' | cosa non si capiva |
@@ -165,7 +165,7 @@ dire niente.
 | **Bomba** | Due ondate con 6–8 squadre | Il tabellone resta coperto per tutta l'ondata e mostra solo chi ha scelto cosa; alla chiusura si scoprono insieme bombe, FUORI e −200. Chi non sceglie entro il turno è eliminato con −200 e non rigioca | Secondi reali per scegliere; se 20 s sono pochi con dieci tavoli |
 | **Azzardo** | Due manche di fila | Il salvadanaio cresce (17 fiches → 13 giocabili), la puntata parte solo con CONFERMA PUNTATA e almeno una fiche, la riga «max 1000 a manche» si legge a 390px. Un tavolo prova a mettere 11 fiches e non deve poterlo fare | Se il tetto che cresce si capisce senza spiegazione |
 | **Speed Rush** | Sessanta secondi pieni | Nessuna prova ripetuta, difficoltà che sale con l'avanzamento, badge ×2 dopo sei risposte di fila | Quante risposte fa il tavolo più veloce: sotto ~20 il traguardo da 25 è troppo alto |
-| **Air Hockey** | Quattro o cinque campi insieme | Dal fondo si distinguono le traiettorie (dritto, zig-zag, a giro, a salto) e si legge la fascia FACILE/MEDIA/DIFFICILE | Se il tiro a giro sembra un glitch |
+| **Tennis Battle** | Quattro o cinque campi insieme | Dal fondo si distinguono i colpi (dritto, diagonale, stretto, corto, pallonetto) e si legge la fascia FACILE/MEDIA/DIFFICILE | Se il tiro a giro sembra un glitch |
 | **Time Buzzer** | Una manche | Il bersaglio non supera mai i 20 secondi | Se qualcuno prova ad aspettare e perde |
 | **Canzone** | Un round intero | Quattro manche da 30 secondi con distorsioni diverse, punteggio proporzionale ai secondi rimasti | Se le manche 2 e 3 si sentono diverse o solo rovinate |
 
@@ -189,7 +189,7 @@ indizio ogni 15) e **Timeline** (45 s, punteggi con un solo segno: mai «+-200»
 | Bomba |  |  |  |  |
 | Azzardo |  |  |  |  |
 | Speed Rush |  |  |  |  |
-| Air Hockey |  |  |  |  |
+| Tennis Battle |  |  |  |  |
 | Time Buzzer |  |  |  |  |
 | Canzone |  |  |  |  |
 
@@ -197,7 +197,7 @@ Tre domande ai tavoli a fine serata, perché valgono più dei bug:
 
 1. «Il tabellone coperto della Bomba tiene la suspence o annoia?»
 2. «Il tetto delle fiches si capisce o sembra un limite arbitrario?»
-3. «Le traiettorie del disco si vedono o sono rumore?»
+3. «I colpi della palla si vedono o sono rumore?»
 
 ---
 

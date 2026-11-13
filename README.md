@@ -13,7 +13,7 @@ PubGame è un gioco multigiocatore per locali e feste: la TV mostra domande, tab
 
 PubGame porta in sala un quiz a squadre in stile pub: nessuna app da installare, nessun account, un QR code sulla TV e il browser del telefono. La regia decide quando parte un round e quando si passa al successivo; il backend tiene sessioni, stato e recupero dopo un refresh.
 
-La versione è **2.0.1**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
+La versione è **2.1.0**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
 
 ## 2. Come si gioca
 
@@ -39,7 +39,7 @@ I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring
 | **Time Buzzer** | Riflessi | Tre manche da 30 secondi per fermare il cronometro su un bersaglio di 5–20 secondi; i tagli eliminano progressivamente. | **+300 / +220 / +150 / +90 / +50** a fascia, manche dopo manche; tagliato **−250** o **−100**; finalisti **+150**. |
 | **Bomba** | Rischio | Un tabellone, un turno per squadra; quasi tutte le caselle sono vere, una ogni tre squadre è falsa. | Casella vera: **0** e si passa il turno; falsa scelta: **−200** e fuori dal round; chi non sceglie in tempo è **eliminato** (**−200**) e salta le ondate successive. Durante l'ondata le caselle restano coperte: bombe, eliminati e penalità si scoprono solo alla fine. |
 | **Speed Rush** | Riflessi | Sessanta secondi di risposte lampo; la corsia avanza a ogni risposta giusta. | **500** al primo, poi a scalare; minimo **100**; prendono punti solo i primi **n/2**. Progressi, arrivi e punti arrivano dal server; le prove non si ripetono e salgono di difficoltà. |
-| **Air Hockey Battle** | Riflessi | Duello a coppie: ogni risposta rapida rimanda il disco; il set si chiude a 7 gol. Le domande salgono da facili a difficili e il disco arriva dritto, a zig-zag, a giro o a salto. | **+1000** al vincitore, **+200** di consolazione al perdente; ogni gol subito è un gol per l'avversario. |
+| **Tennis Battle** | Riflessi | Duello a coppie: ogni risposta rimanda la palla; punteggio da tennis (15, 30, 40, vantaggio) e killer point dopo tre ritorni dal vantaggio. Le domande salgono da facili a difficili e il disco arriva dritto, a zig-zag, a giro o a salto. | **+1000** al vincitore, **+200** di consolazione al perdente; ogni gol subito è un gol per l'avversario. |
 | **Azzardo** | Rischio | Quattro manche numeriche; dieci fiches da 20 punti da distribuire sulle quattro risposte. | Fiche giusta: **+20 × quota** (×2 facile, ×3 media, ×4 difficile); fiche sbagliate: **−20 × fiche × 100/80/60/40%**; mai sotto zero. La puntata parte solo con **CONFERMA PUNTATA** e almeno una fiche; le fiches avanzate si sommano alle dieci nuove e alzano il tetto di una fiche ogni due risparmiate (max **15**, quindi al massimo **+1000** in una manche). |
 | **Ultima spiaggia** | Rischio / sapere | Cinque livelli da 100 a 500, una volta per squadra in tutta la serata; una categoria per occorrenza. | **+100 / +200 / +300 / +400 / +500**; errore **−50 / −100 / −150 / −200 / −250**; chi non risponde perde metà del livello scelto. |
 | **Blackjack** | Rischio | Tre mani contro il banco della TV: carta o stai. | **+250** a mano, **+500** con il naturale; sconfitta **−250** (mai sotto zero); sballare **−250**. |
@@ -179,7 +179,7 @@ Prima di una serata con telefoni veri:
 1. `cp .env.test-night.example .env` e compila `CONTROL_SECRET` (≥ 32 caratteri) e `ALLOWED_ORIGINS` con IP LAN del PC.
 2. `npm run db:backup` (copia in `backups/`, fuori dal repository).
 3. `npm run dev`, poi `curl http://localhost:8080/health` deve rispondere `{"status":"ok"}`.
-   Con Docker: `PUBGAME_TAG=2.0.1 docker compose up -d` fissa la versione, così un
+   Con Docker: `PUBGAME_TAG=2.1.0 docker compose up -d` fissa la versione, così un
    aggiornamento sbagliato si annulla cambiando tag.
 4. Giro a vuoto con un iPhone e un Android: ingresso, un round, refresh della TV, blocco schermo di 60 secondi.
 
@@ -213,7 +213,7 @@ Il programma completo (ruoli, tempi, prove di caduta, cosa annotare, emergenze) 
 
 ## 13. Contenuti e licenze
 
-- **Domande**: `apps/backend/src/main/resources/questions/questions-it.json` (991 domande, 17 categorie, inclusa Air Hockey), `azzardo-it.json` (360) e `timeline-it.json` (113 eventi). Il backend le carica all'avvio e non chiama alcun modello AI a runtime.
+- **Domande**: `apps/backend/src/main/resources/questions/questions-it.json` (991 domande, 17 categorie, inclusa Tennis Battle), `azzardo-it.json` (360) e `timeline-it.json` (113 eventi). Il backend le carica all'avvio e non chiama alcun modello AI a runtime.
 - **Generazione**: `scripts/generate-questions/generate.py` può usare Groq, ma solo quando si rigenera la banca. `GROQ_API_KEY` non serve per giocare.
 - **Immagini**: “Indovina chi” può usare TMDB se `TMDB_API_KEY` è impostata; senza chiave la domanda resta senza foto. Se la banca media locale è presente, le immagini vengono servite dal backend.
 - **Musica**: senza banca locale il backend usa le anteprime pubbliche di 30 secondi dell'iTunes Search API; con la banca locale i file sono serviti da `/media/...`.

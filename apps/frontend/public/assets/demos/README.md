@@ -15,7 +15,7 @@ Gli mp4 restano opzionali. Se in futuro si vogliono usare, i nomi sono:
 - arena.mp4
 - speed_rush.mp4
 - time_buzzer.mp4
-- air_hockey_battle.mp4
+- tennis_battle.mp4
 - wheel_of_fortune.mp4
 
 Il tag `<video>` non è attivo in questa versione: l'overlay usa le scene

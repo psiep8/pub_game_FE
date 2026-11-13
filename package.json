@@ -1,6 +1,6 @@
 {
   "name": "pub-game",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "private": true,
   "description": "Monorepo PubGame: frontend Angular + backend Spring Boot",
   "workspaces": [

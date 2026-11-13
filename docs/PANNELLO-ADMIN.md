@@ -97,7 +97,7 @@ admin**. Non serve premere nulla: il punteggio lo calcola il server. In dettagli
 | **Time Buzzer** | **STOP** al momento giusto, tre manche. | Niente; **🎵 PROSSIMA MANCHE** solo per anticipare. |
 | **Bomba** | Al proprio turno scelgono una casella. | Niente: turni e miccia sono del server. |
 | **Speed Rush** | Minigiochi rapidi. | Niente. |
-| **Air Hockey** | Duello a coppie, a turno. | Niente. |
+| **Tennis Battle** | Duello a coppie, a turno. | Niente. |
 | **Arena** | Vero/Falso continuo, difficoltà crescente. | Niente. |
 | **Azzardo** | Distribuiscono le fiches sulle risposte. | Niente: le fiches le valida il server. |
 | **Ultima spiaggia** | Scelgono livello e risposta. | Niente. |

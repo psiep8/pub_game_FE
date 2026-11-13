@@ -15,13 +15,13 @@
 
 | Atto | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
 |---|---|---|---|---|---|---|---|---|
-| 1 | Quiz | Musica | Black Jack | Time Buzzer | Bomba | Timeline | Air Hockey | Ultima spiaggia |
-| 2 | Azzardo | Ruota | Black Jack | Quiz | Air Hockey | Time Buzzer | Musica | Ultima spiaggia |
-| 3 | Quiz | Speed Rush | Indovina chi | Air Hockey | Time Buzzer | Black Jack | Ultima spiaggia | Arena |
+| 1 | Quiz | Musica | Black Jack | Time Buzzer | Bomba | Timeline | Tennis Battle | Ultima spiaggia |
+| 2 | Azzardo | Ruota | Black Jack | Quiz | Tennis Battle | Time Buzzer | Musica | Ultima spiaggia |
+| 3 | Quiz | Speed Rush | Indovina chi | Tennis Battle | Time Buzzer | Black Jack | Ultima spiaggia | Arena |
 | 4 | Indovina chi | Bomba | Musica | Quiz | Ruota | Timeline | Speed Rush | Ultima spiaggia |
 | 5 | Quiz | Musica | Bomba | Indovina chi | Azzardo | Timeline | Ultima spiaggia | Arena |
 
-Vincoli: mai due giochi in tempo reale di fila (Bomba, Arena, Speed Rush, Air Hockey, Black Jack), mai due giochi a prenotazione consecutivi (Musica, Indovina chi, Ruota), Arena a chiudere gli atti 3 e 5. Classifica rapida ai round 4, 12, 20, 28, 36; dettagliata ai round 8, 16, 24, 32, 40.
+Vincoli: mai due giochi in tempo reale di fila (Bomba, Arena, Speed Rush, Tennis Battle, Black Jack), mai due giochi a prenotazione consecutivi (Musica, Indovina chi, Ruota), Arena a chiudere gli atti 3 e 5. Classifica rapida ai round 4, 12, 20, 28, 36; dettagliata ai round 8, 16, 24, 32, 40.
 
 ### Quattro bonus, dopo gli atti 1-4 (non consumano round)
 
@@ -104,7 +104,7 @@ Tre famiglie, in base a come rispondono i tavoli:
 
 - **Tutti insieme sul telefono**: ogni squadra risponde per conto suo, nello stesso momento (Quiz, Timeline, Time Buzzer).
 - **Prenotazione**: la prima squadra che preme risponde a voce e l'admin conferma o respinge (Musica, Indovina chi, Ruota).
-- **Tempo reale**: i telefoni agiscono di continuo e la TV mostra una gara o uno scontro (Speed Rush, Air Hockey, Arena).
+- **Tempo reale**: i telefoni agiscono di continuo e la TV mostra una gara o uno scontro (Speed Rush, Tennis Battle, Arena).
 
 ### Quiz — sapere
 - **Come si gioca:** domanda a 4 risposte, 10 secondi per rispondere. Prima c'è una breve lettura e l'animazione della categoria (sono 16).
@@ -136,7 +136,7 @@ Tre famiglie, in base a come rispondono i tavoli:
 - **Come si gioca:** ogni squadra ha una **corsia** sulla TV. Sul telefono arrivano microprove da pochi secondi: tocchi ripetuti, intruso, ordina numeri, somma, colore contro parola, memoria di una sequenza, maggiore/minore, conta gli oggetti. Una prova giusta fa avanzare, una sbagliata fa arretrare. **Catena**: 2 giuste di fila ×2, 5 giuste ×3, 10 giuste ×4, con una fiamma in TV. Dura 60 secondi o fino al traguardo.
 - **Punti per piazzamento:** +1000 al primo, −100 per ogni posto, minimo 0, anche per chi non taglia il traguardo.
 
-### Air Hockey Battle — scontro
+### Tennis Battle Battle — scontro
 - **Come si gioca:** le squadre si sfidano **a coppie, in parallelo**, su più campi nella stessa TV. Il tiro tocca a chi ha il turno: risponde a una domanda sul telefono. Risposta giusta = il disco viene rimandato; sbagliata o scaduta = gol per l'avversario. **Più rispondi in fretta, meno tempo ha l'avversario** (circa 4 secondi) e più dritto e rapido è il tuo tiro; risposta lenta, fino a 12 secondi e tiro a zig-zag. Primo a 7 gol, con difficoltà delle domande crescente.
 - **Punti:** +1000 al vincitore del campo, +200 al perdente.
 
@@ -187,7 +187,7 @@ Tutti i contenuti sono **pre-generati e salvati in file JSON**: durante la serat
 | --- | --- | --- |
 | Quiz a 4 risposte | 160 (10 per categoria) | `questions-it.json` |
 | Vero/Falso | 160 (10 per categoria) | `questions-it.json` |
-| Domande Air Hockey (3 livelli) | 30 | `questions-it.json` |
+| Domande Tennis Battle (3 livelli) | 30 | `questions-it.json` |
 | Personaggi (Indovina chi) | 6, con foto TMDB/Wikipedia | `questions-it.json` + `static/media` |
 | Eventi Timeline | 113 | `timeline-it.json` |
 | Frasi della Ruota | 35 proverbi nel codice | `QuestionBankService` |
@@ -212,7 +212,7 @@ Tutti i contenuti sono **pre-generati e salvati in file JSON**: durante la serat
 - **Punti:** +300 / +150 / +75 ai primi tre; birra al primo come premio fisico.
 
 ### Rigori (scartato)
-- Tiri in porta dal telefono. Con il lancio trascina e rilascia somiglia troppo al Basket; meglio una versione **a scelta**: ogni squadra tira 5 rigori scegliendo l'angolo (6 zone), il portiere si tuffa a caso, gli angoli alti rendono di più ma sbagliano più spesso. La TV mostra tutte le porte insieme. Con domande, esiste già l'Air Hockey.
+- Tiri in porta dal telefono. Con il lancio trascina e rilascia somiglia troppo al Basket; meglio una versione **a scelta**: ogni squadra tira 5 rigori scegliendo l'angolo (6 zone), il portiere si tuffa a caso, gli angoli alti rendono di più ma sbagliano più spesso. La TV mostra tutte le porte insieme. Con domande, esiste già l'Tennis Battle.
 
 ### Nuove microprove per lo Speed Rush
 Smista (swipe a sinistra o destra per categoria), Cosa è cambiato (4 emoji, una cambia), Completa la sequenza, Tocca in ordine (numeri sparsi), Tonalità (quadrato di una sfumatura diversa), Orologio, Freccia contro-senso, Lettera mancante. Regole di scelta: massimo 4 secondi, un solo gesto, niente audio né accelerometro, niente cultura generale.
