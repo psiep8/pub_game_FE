@@ -17,6 +17,7 @@ export type LeaderboardPersistence = (entries: PlayerScore[]) => void;
 export class LeaderboardService {
   private players = signal<Map<string, PlayerScore>>(new Map());
   private persistence: LeaderboardPersistence | null = null;
+  private pointsListener: ((playerName: string, points: number) => void) | null = null;
 
   constructor() {
     this.loadScores();
@@ -47,6 +48,7 @@ export class LeaderboardService {
     this.players.set(this.withPositions(players));
     this.saveScores();
     this.persistence?.(this.getLeaderboard());
+    this.pointsListener?.(playerName, points);
   }
 
   getLeaderboard(): PlayerScore[] {
@@ -85,6 +87,11 @@ export class LeaderboardService {
   /** Registra (o rimuove) il salvataggio server della classifica. */
   setPersistence(sink: LeaderboardPersistence | null): void {
     this.persistence = sink;
+  }
+
+  /** La TV ascolta qui: serve a contare solo i punti del round aperto. */
+  setPointListener(listener: ((playerName: string, points: number) => void) | null): void {
+    this.pointsListener = listener;
   }
 
   getTop3(): PlayerScore[] {

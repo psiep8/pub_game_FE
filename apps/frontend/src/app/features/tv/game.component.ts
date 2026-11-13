@@ -32,7 +32,7 @@ import { LeaderboardService, PlayerScore } from '../../core/services/leaderboard
 import { AudioService } from '../../core/services/audio.service';
 import { PlayerAvatarService } from '../../core/services/player-avatar.service';
 import { ButtonTestService, ButtonTestSnapshot } from '../../core/services/button-test.service';
-import { ThemeService } from '../../core/services/theme.service';
+import { AppTheme, ThemeService } from '../../core/services/theme.service';
 import { ReliabilityService } from '../../core/services/reliability.service';
 import { ConnectionBadge } from '../../shared/components/connection-badge/connection-badge.component';
 
@@ -202,8 +202,11 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Ultima variazione locale e ultima confermata dal server. */
   private leaderboardPendingSeq = 0;
   private leaderboardSavedSeq = 0;
-  /** Punti all'inizio del round: dal delta si ricava chi ha vinto il round. */
-  private roundStartPoints: Map<string, number> | null = null;
+  /** Punti assegnati mentre il round era aperto: solo questi fanno vincere. */
+  private roundPoints = new Map<string, number>();
+  private roundScoring = false;
+  /** Tema del vincitore del round chiuso; null = acido. */
+  private roundWinnerTheme: AppTheme | null = null;
 
   categoryName = computed(() => {
     const id = this.selectedCategoryId();
@@ -427,6 +430,13 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!await this.reliability.start(storedGameId, 'TV')) return;
     await this.adoptActiveGame();
     this.bindLeaderboardPersistence();
+
+    // Il vincitore del round si conta sui punti guadagnati a round aperto:
+    // chi entra a metà o i bonus fra due round restano fuori dal conteggio.
+    this.leaderboardService.setPointListener((playerName, points) => {
+      if (!this.roundScoring) return;
+      this.roundPoints.set(playerName, (this.roundPoints.get(playerName) ?? 0) + points);
+    });
     this.playerAvatars.connect(this.ws);
     void this.refreshLobbyPresence();
     this.presenceTimer = setInterval(() => void this.refreshLobbyPresence(), 5000);
@@ -595,6 +605,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.introTimer) clearTimeout(this.introTimer);
     if (this.presenceTimer) clearInterval(this.presenceTimer);
     if (this.buttonTestTimer) clearInterval(this.buttonTestTimer);
+    this.leaderboardService.setPointListener(null);
     this.gameModeService.cleanup();
     if (this.displayDataInterval) {
       clearInterval(this.displayDataInterval);
@@ -700,40 +711,46 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * La TV parte in acido. A ogni nuovo round prende il tema della squadra che
-   * ha vinto il round appena chiuso; con parità o nessun punto torna in acido.
-   * Le classifiche restano sempre in acido e i nomi portano il colore squadra.
+   * Apre il conteggio del round: da qui in poi i punti valgono per il vincitore.
+   * Fuori da questa finestra (bonus, attese, ingressi a metà) non contano.
    */
-  private applyRoundWinnerTheme(): void {
-    const before = this.roundStartPoints;
-    this.roundStartPoints = new Map(
-      this.leaderboardService.entries().map((p) => [p.playerName, p.totalPoints]),
-    );
+  private beginRoundScoring(): void {
+    this.roundPoints.clear();
+    this.roundScoring = true;
+  }
 
-    if (!before) {
-      this.theme.applyFromRemote('editorial-acid');
-      return;
-    }
+  /**
+   * Chiude il conteggio e memorizza il tema del vincitore. Vince chi ha fatto
+   * più punti DENTRO il round: il totale in classifica non c'entra, così chi
+   * entra a metà o incassa un bonus fra due round non falsa il colore della TV.
+   */
+  private settleRoundWinner(): void {
+    if (!this.roundScoring) return;
+    this.roundScoring = false;
 
     let best = 0;
     let winner: string | null = null;
     let tie = false;
 
-    for (const [name, points] of this.roundStartPoints) {
-      const gain = points - (before.get(name) ?? 0);
-      if (gain <= 0) continue;
-      if (gain > best) {
-        best = gain;
+    for (const [name, points] of this.roundPoints) {
+      if (points <= 0) continue;
+      if (points > best) {
+        best = points;
         winner = name;
         tie = false;
-      } else if (gain === best) {
+      } else if (points === best) {
         tie = true;
       }
     }
 
-    this.theme.applyFromRemote(
-      winner && !tie ? this.theme.themeForTeam(winner) : 'editorial-acid',
-    );
+    this.roundWinnerTheme = winner && !tie ? this.theme.themeForTeam(winner) : null;
+    this.roundPoints.clear();
+  }
+
+  /** La TV parte in acido e adotta il tema del round precedente, se c'è stato un vincitore. */
+  private applyRoundWinnerTheme(): void {
+    this.theme.applyFromRemote(this.roundWinnerTheme ?? 'editorial-acid');
+    this.roundWinnerTheme = null;
   }
 
   async startNewRound() {
@@ -876,6 +893,7 @@ export class GameComponent implements OnInit, OnDestroy {
       // accumulava le risposte di tutta la serata e ne tagliava sei.
       this.ws.clearResponses();
       this.timer.set(mode.timerDuration);
+      this.beginRoundScoring();
 
       const safeData = this.getSafeDisplayData();
       const payloadString = JSON.stringify(safeData);
@@ -1360,6 +1378,8 @@ export class GameComponent implements OnInit, OnDestroy {
    * 📊 Controlla e mostra classifica
    */
   private checkLeaderboardDisplay() {
+    // Il round è chiuso: il verdetto si calcola adesso, prima che parta il bonus.
+    this.settleRoundWinner();
     this.audioService.stopAll();
 
     const leaderboardType = this.roundManager.shouldShowLeaderboard();
@@ -1532,6 +1552,8 @@ export class GameComponent implements OnInit, OnDestroy {
 
   /** Bonus: parte dalla TV a fine atto (o su comando admin) e non consuma un round. */
   async startBonus(type: BonusType): Promise<void> {
+    // Un bonus è fuori dal round: chiude il conteggio se era ancora aperto.
+    this.settleRoundWinner();
     if (this.isSpinning() || this.bonusActive()) return;
     // Un bonus può partire subito dopo un reset, quando la classifica è
     // vuota: allinea i tavoli ai telefoni presenti prima di disegnare il bonus.
