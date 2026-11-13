@@ -153,7 +153,7 @@ export class Bomba {
     if (!event) return '';
     if (event.kind === 'bomb') return `💥 ${event.player}: ${event.label} −200`;
     if (event.kind === 'safe') return `✓ ${event.player}: ${event.label}`;
-    if (event.kind === 'timeout') return `⌛ ${event.player}: turno saltato`;
+    if (event.kind === 'timeout' || event.kind === 'eliminated') return `⌛ ${event.player}: ELIMINATO`;
     return '';
   }
 }

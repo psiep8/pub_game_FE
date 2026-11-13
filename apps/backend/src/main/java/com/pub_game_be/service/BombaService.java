@@ -289,9 +289,16 @@ public class BombaService {
                 if (round.turnDeadline > System.currentTimeMillis()) {
                     return;
                 }
-                // Turno scaduto: la squadra salta, nessuna penalità.
+                // Turno scaduto: chi non sceglie è eliminato, con la stessa
+                // penalità di una bomba, e non gioca le ondate successive.
                 String player = round.currentPlayer();
-                pushEvent(round, "timeout", player == null ? "" : player, "");
+                if (player != null) {
+                    round.penalties.merge(player, -BOMB_PENALTY, Integer::sum);
+                    if (!round.eliminated.contains(player)) {
+                        round.eliminated.add(player);
+                    }
+                    pushEvent(round, "eliminated", player, "");
+                }
                 advance(round, System.currentTimeMillis());
                 persist(round);
             }
