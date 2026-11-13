@@ -3,7 +3,7 @@
   position: fixed !important;
   inset: 0 !important;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   z-index: 20000 !important;
   overflow: hidden !important;
   padding: clamp(18px, 2.6vh, 30px) 0 !important;
@@ -46,11 +46,24 @@
   text-transform: uppercase;
 }
 .kahoot-leaderboard .players-container {
+  display: flex !important;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: calc(100dvh - clamp(120px, 20vh, 200px));
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior: contain;
   gap: clamp(6px, 1.1vh, 12px) !important;
   padding: clamp(4px, 1vh, 10px) clamp(14px, 4vw, 54px) !important;
-  justify-content: center;
+  justify-content: flex-start;
+  scroll-behavior: smooth;
 }
 .kahoot-leaderboard .player-row {
+  flex: 0 0 auto;
+  /* Corpo minimo leggibile sulla TV: le righe non si schiacciano mai. */
+  min-height: clamp(38px, 4.8vh, 70px);
+  align-items: center !important;
   width: min(1120px, 92vw) !important;
   max-width: min(1120px, 92vw) !important;
   grid-template-columns: clamp(40px, 5vh, 62px) 1fr auto clamp(28px, 4vh, 46px) !important;
@@ -122,8 +135,8 @@
   .kahoot-leaderboard .header { margin-bottom: 6px !important; padding-bottom: 6px !important; }
   .kahoot-leaderboard .title { font-size: clamp(2rem, 6.8vh, 4.2rem) !important; }
   .kahoot-leaderboard .subtitle { font-size: 0.68rem !important; }
-  .kahoot-leaderboard .players-container { gap: 5px !important; padding: 3px 14px !important; justify-content: flex-start !important; overflow: hidden !important; }
-  .kahoot-leaderboard .player-row { padding: 7px 14px !important; gap: 8px !important; grid-template-columns: 40px 1fr auto 32px !important; box-shadow: 4px 4px 0 var(--coal) !important; }
+  .kahoot-leaderboard .players-container { gap: 5px !important; padding: 3px 14px !important; justify-content: flex-start !important; overflow-y: auto !important; max-height: calc(100dvh - 96px); }
+  .kahoot-leaderboard .player-row { padding: 6px 14px !important; gap: 8px !important; min-height: 34px !important; grid-template-columns: 40px 1fr auto 32px !important; box-shadow: 4px 4px 0 var(--coal) !important; }
   .kahoot-leaderboard .position-badge { width: 38px !important; height: 38px !important; font-size: 1rem !important; }
   .kahoot-leaderboard .player-name { font-size: clamp(1rem, 2.7vh, 1.5rem) !important; }
   .kahoot-leaderboard .points-value { font-size: clamp(1rem, 2.8vh, 1.6rem) !important; }

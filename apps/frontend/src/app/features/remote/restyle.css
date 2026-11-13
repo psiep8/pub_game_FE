@@ -365,6 +365,18 @@
 }
 .game-content > * { width: 100%; }
 
+/* Il telefono non è una pagina: ogni schermata di gioco scorre dentro il
+   contenitore. Con la barra del browser o la tastiera aperta l'altezza utile
+   cambia, quindi il contenitore è in dvh e le righe restano raggiungibili. */
+.remote-container { height: 100dvh; }
+.game-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto !important;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important;
+}
+.game-content > * { flex-shrink: 0; }
+
 /* Riallineamento: carta timbrata sopra il gioco, input fermi finché il
    server non ha confermato il round. */
 .resync-veil {

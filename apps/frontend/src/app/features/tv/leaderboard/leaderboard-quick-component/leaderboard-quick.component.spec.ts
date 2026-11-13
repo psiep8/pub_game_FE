@@ -70,6 +70,25 @@ describe('LeaderboardQuick', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
+  it('con 16 squadre la sequenza finisce sul primo posto senza perdere righe', async () => {
+    vi.useFakeTimers();
+    const many: PlayerScore[] = Array.from({ length: 16 }, (_, i) => ({
+      playerName: `Squadra ${i + 1}`,
+      totalPoints: 1000 - i * 10,
+      correctAnswers: 0,
+      wrongAnswers: 0,
+      position: i + 1,
+    }));
+    create(many);
+
+    expect(component.visiblePlayers()).toHaveLength(1);
+    // 16 righe, ritardi da 2,5 a 6 secondi l'una: si arriva in fondo alla lista.
+    await vi.advanceTimersByTimeAsync(16 * 6000);
+
+    expect(component.visiblePlayers()).toHaveLength(16);
+    expect(component.visiblePlayers().at(-1)?.position).toBe(1);
+  });
+
   it('should complete immediately when there is no leaderboard', async () => {
     vi.useFakeTimers();
     create([]);

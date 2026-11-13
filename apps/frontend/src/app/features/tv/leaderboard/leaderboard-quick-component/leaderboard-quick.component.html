@@ -5,7 +5,7 @@
     <div class="subtitle">Dal peggiore al migliore...</div>
   </div>
 
-  <div class="players-container">
+  <div class="players-container" #playersList>
     @for (player of visiblePlayers(); track player.playerName) {
       <div class="player-row"
            [class.top3]="player.position <= 3"

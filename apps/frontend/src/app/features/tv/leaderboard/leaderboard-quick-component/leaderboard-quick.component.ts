@@ -1,6 +1,6 @@
 
 
-import {Component, OnInit, signal, inject, Output, EventEmitter, ChangeDetectionStrategy} from '@angular/core';
+import {Component, OnInit, signal, inject, Output, EventEmitter, ChangeDetectionStrategy, ElementRef, viewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {trigger, transition, style, animate} from '@angular/animations';
 import {LeaderboardService, PlayerScore} from '../../../../core/services/leaderboard.service';
@@ -48,6 +48,9 @@ export class LeaderboardQuick implements OnInit {
   progress = signal(0);
   totalPlayers = signal(0);
 
+  /** Contenitore delle righe: con molte squadre scorre da solo. */
+  private readonly playersList = viewChild<ElementRef<HTMLElement>>('playersList');
+
   ngOnInit() {
     const players = this.leaderboard.getLeaderboard();
 
@@ -76,6 +79,9 @@ export class LeaderboardQuick implements OnInit {
 
       this.visiblePlayers.update(list => [...list, players[i]]);
       this.progress.set(((i + 1) / total) * 100);
+      // La lista cresce dal peggiore al migliore: se le righe non stanno tutte
+      // nello schermo, si accompagna lo sguardo sull'ultima arrivata.
+      this.scrollToNewest();
 
       // Podio: il rullo cresce dal terzo al primo posto, con festeggiamento
       // e botticelle/botti per i gradini alti.
@@ -91,5 +97,11 @@ export class LeaderboardQuick implements OnInit {
 
     await new Promise(resolve => setTimeout(resolve, 5000));
     this.onComplete.emit();
+  }
+
+  private scrollToNewest(): void {
+    const list = this.playersList()?.nativeElement;
+    if (!list || typeof list.scrollTo !== 'function') return;
+    list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
   }
 }
