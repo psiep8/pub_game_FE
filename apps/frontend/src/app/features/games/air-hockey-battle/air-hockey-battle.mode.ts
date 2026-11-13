@@ -4,7 +4,9 @@ import { GameModeBase } from '../../../shared/models/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../../../shared/models/game-mode-type';
 
 type Side = 'a' | 'b';
-type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
+export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
+/** Come viaggia il disco: quattro tiri diversi, non solo quello dritto. */
+export type HockeyTrajectory = 'dritto' | 'zigzag' | 'curva' | 'salto';
 
 interface CourtSide {
   playerName: string;
@@ -40,7 +42,7 @@ interface Court {
   awarded: boolean;
   questionAt: number;
   shotMs: number;
-  zigzag: boolean;
+  trajectory: HockeyTrajectory;
 }
 
 const POINTS_TO_WIN = 7;
@@ -94,6 +96,19 @@ const HARD_QUESTIONS: AirHockeyQuestion[] = [
   question('HARD', "Qual è l'elemento chimico con simbolo W?", ['Tungsteno', 'Titanio', 'Tallio', 'Tennesso']),
   question('HARD', 'Qual è il deserto più grande del mondo?', ['Antartico', 'Sahara', 'Gobi', 'Kalahari']),
 ];
+
+/**
+ * Traiettoria del disco in base al tempo di risposta e ai tiri già fatti.
+ *
+ * Risposta lenta = palla lavorata (zigzag, poi curva); risposta secca = tiro
+ * dritto, con un rimbalzo a salto ogni tre tiri per non avere sempre lo
+ * stesso tragitto.
+ */
+export function trajectoryFor(elapsedMs: number, shots: number): HockeyTrajectory {
+  if (elapsedMs >= 7000) return 'curva';
+  if (elapsedMs >= 4500) return 'zigzag';
+  return shots % 3 === 2 ? 'salto' : 'dritto';
+}
 
 /**
  * Air Hockey Battle: duello a domande.
@@ -194,7 +209,7 @@ export class AirHockeyBattleMode extends GameModeBase {
         awarded: false,
         questionAt: Date.now(),
         shotMs: 450,
-        zigzag: false,
+        trajectory: 'dritto',
       });
       this.awardCourt(next[next.length - 1]);
     }
@@ -249,7 +264,7 @@ export class AirHockeyBattleMode extends GameModeBase {
       awarded: false,
       questionAt: Date.now(),
       shotMs: 450,
-      zigzag: false,
+      trajectory: 'dritto',
     };
   }
 
@@ -296,7 +311,8 @@ export class AirHockeyBattleMode extends GameModeBase {
     return { ...q, options, correctIndex: Math.max(0, options.indexOf(correct)) };
   }
 
-  private difficultyFor(shots: number): Difficulty {
+  /** Fasce di difficoltà: primi tiri facili, poi medie, poi solo difficili. */
+  difficultyFor(shots: number): Difficulty {
     if (shots < 3) return 'EASY';
     if (shots < 8) return 'MEDIUM';
     return 'HARD';
@@ -359,7 +375,6 @@ export class AirHockeyBattleMode extends GameModeBase {
     const seconds = Math.max(1, Math.min(20, Math.round(elapsedMs / 1000)));
     const serveLeft = Math.max(4, Math.min(SERVE_SECONDS, 3 + seconds));
     const shotMs = Math.max(420, Math.min(2600, Math.round(400 + elapsedMs * 0.18)));
-    const zigzag = elapsedMs >= 4500;
 
     this.courts.update((courts) => courts.map((court) => {
       if (court.id !== courtId || court.winner) return court;
@@ -371,7 +386,7 @@ export class AirHockeyBattleMode extends GameModeBase {
         question: this.nextQuestion(this.difficultyFor(court[other].shots)),
         questionAt: Date.now(),
         shotMs,
-        zigzag,
+        trajectory: trajectoryFor(elapsedMs, court[side].shots + 1),
         lastEvent: { kind: 'return', side, id: eventId },
       };
     }));
@@ -422,7 +437,7 @@ export class AirHockeyBattleMode extends GameModeBase {
       if (!latest || latest.winner) return;
       const difficulty = this.difficultyFor(latest[other].shots);
       this.courts.update((courts) => courts.map((c) => c.id === courtId
-        ? { ...c, turn: other, question: this.nextQuestion(difficulty), serveLeft: SERVE_SECONDS, questionAt: Date.now(), shotMs: 450, zigzag: false }
+        ? { ...c, turn: other, question: this.nextQuestion(difficulty), serveLeft: SERVE_SECONDS, questionAt: Date.now(), shotMs: 450, trajectory: 'dritto' }
         : c));
       this.broadcast();
     }, 1400);
@@ -482,7 +497,8 @@ export class AirHockeyBattleMode extends GameModeBase {
         question: court.question,
         lastEvent: court.lastEvent,
         shotMs: court.shotMs,
-        zigzag: court.zigzag,
+        trajectory: court.trajectory,
+        difficulty: court.question?.difficulty ?? null,
       })),
     });
   }

@@ -63,7 +63,9 @@ import { CommonModule } from '@angular/common';
               <div class="ahb-puck"
                 [class.to-a]="(court.question ? court.turn : (court.puckSide || court.turn)) === 'a'"
                 [class.to-b]="(court.question ? court.turn : (court.puckSide || court.turn)) === 'b'"
-                [class.zigzag]="court.zigzag"
+                [class.traj-zigzag]="court.trajectory === 'zigzag'"
+                [class.traj-curva]="court.trajectory === 'curva'"
+                [class.traj-salto]="court.trajectory === 'salto'"
                 [style.transition-duration.ms]="court.shotMs || 450"
                 [style.animation-duration.ms]="court.shotMs || 450"></div>
 
@@ -85,6 +87,7 @@ import { CommonModule } from '@angular/common';
               } @else if (court.question) {
                 <div class="ahb-q-head">
                   <span class="ahb-defender">{{ sideName(court, court.turn) }} RISPONDE</span>
+                  <span class="ahb-diff">{{ difficultyLabel(court.question.difficulty) }}</span>
                   <span class="ahb-clock" [class.hot]="court.serveLeft <= 4">{{ court.serveLeft }}s</span>
                 </div>
                 <div class="ahb-waiting">Domanda sul telefono</div>
@@ -173,13 +176,30 @@ import { CommonModule } from '@angular/common';
     }
     .ahb-puck.to-a { left: 20%; }
     .ahb-puck.to-b { left: calc(80% - clamp(14px, 1.8vw, 22px)); }
-    .ahb-puck.zigzag { animation-name: ahbZigzag; animation-timing-function: ease-in-out; animation-fill-mode: both; }
+    .ahb-puck.traj-zigzag { animation-name: ahbZigzag; animation-timing-function: ease-in-out; animation-fill-mode: both; }
+    .ahb-puck.traj-curva { animation-name: ahbCurva; animation-timing-function: cubic-bezier(.3, .7, .4, 1); animation-fill-mode: both; }
+    .ahb-puck.traj-salto { animation-name: ahbSalto; animation-timing-function: ease-out; animation-fill-mode: both; }
     @keyframes ahbZigzag {
       0%, 100% { transform: translateY(0); }
       20% { transform: translateY(-75%); }
       40% { transform: translateY(60%); }
       60% { transform: translateY(-60%); }
       80% { transform: translateY(45%); }
+    }
+    /* Tiro a giro: parte largo, si chiude sul centro, rimbalza sul lato opposto. */
+    @keyframes ahbCurva {
+      0% { transform: translateY(-70%); }
+      45% { transform: translateY(55%) rotate(160deg); }
+      75% { transform: translateY(-35%) rotate(280deg); }
+      100% { transform: translateY(0) rotate(360deg); }
+    }
+    /* Rimbalzo a salto: due tocchi di pista e il disco arriva. */
+    @keyframes ahbSalto {
+      0% { transform: translateY(-80%); }
+      30% { transform: translateY(65%); }
+      55% { transform: translateY(-45%); }
+      80% { transform: translateY(35%); }
+      100% { transform: translateY(0); }
     }
 
     .ahb-goal-flash {
@@ -262,7 +282,8 @@ export class AirHockeyBattle {
     return String.fromCharCode(65 + index);
   }
 
-  difficultyLabel(difficulty?: string): string {
+  /** Difficoltà della domanda in corso, scritta sulla TV. */
+  difficultyLabel(difficulty?: string | null): string {
     if (difficulty === 'EASY') return 'FACILE';
     if (difficulty === 'HARD') return 'DIFFICILE';
     return 'MEDIA';
