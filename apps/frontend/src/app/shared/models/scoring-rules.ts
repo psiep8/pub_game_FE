@@ -52,12 +52,12 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     correct: '+300…+500 a fascia, manche dopo manche',
     wrong: '−250 / −100 se tagliato',
     missed: 'ultimo: esce per primo',
-    note: 'Tre manche da 30 s con bersaglio 5–29 s: dopo la prima esce circa un terzo dei tavoli, dopo la seconda gli ultimi due. I finalisti prendono +150.',
+    note: 'Tre manche da 30 s con bersaglio 5–20 s: dopo la prima esce circa un terzo dei tavoli, dopo la seconda gli ultimi due. I finalisti prendono +150.',
   },
   BOMBA: {
     correct: '0: la casella vera si salva e passa il turno',
     wrong: '−200 e fuori dal round',
-    missed: 'chi non risponde salta il turno',
+    missed: '−200 e fuori dal round: chi non sceglie in tempo è eliminato',
     note: 'Un tabellone, un turno per squadra: quasi tutte le caselle sono vere, una ogni tre squadre e falsa. Le false mai scelte si disarmano a fine round.',
   },
   SPEED_RUSH: {

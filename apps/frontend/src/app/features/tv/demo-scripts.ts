@@ -196,7 +196,7 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
     title: 'TIME BUZZER',
     icon: '⏱️',
     objective: [
-      'Ferma il cronometro il più vicino possibile al bersaglio segreto (5–29 s).',
+      'Ferma il cronometro il più vicino possibile al bersaglio segreto (5–20 s).',
       'Tre manche con tagli progressivi.',
     ],
     phone: [
@@ -232,7 +232,7 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
     ],
     lose: [
       'Una bomba costa −200 e l’uscita dal round.',
-      'Chi non risponde salta il turno.',
+      'Chi non sceglie in tempo è eliminato: −200 e fuori dal round.',
     ],
     example: 'Con 6 tavoli il tabellone ha 15 caselle (2n + n/2) e due bombe: una ogni tre tavoli.',
   },

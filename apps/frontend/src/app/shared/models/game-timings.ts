@@ -28,6 +28,6 @@ export const GAME_TIMINGS = {
     manches: 3,
     mancheSeconds: 30,
     minTargetSeconds: 5,
-    maxTargetSeconds: 29,
+    maxTargetSeconds: 20,
   },
 } as const;

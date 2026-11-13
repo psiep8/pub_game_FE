@@ -121,7 +121,7 @@ const GAME_COPY: Record<GameModeType, EntryCopy> = {
     name: 'TIME BUZZER',
     icon: '⏱️',
     summary: 'Ferma il cronometro al momento giusto: tre manche con tagli progressivi.',
-    objective: 'Fermare il tempo il più vicino possibile al bersaglio segreto, tra 5 e 29 secondi.',
+    objective: 'Fermare il tempo il più vicino possibile al bersaglio segreto, tra 5 e 20 secondi.',
     phone: [
       'Il cronometro parte da solo al segnale: tocca STOP quando pensi sia giusto.',
       'Non c’è un cronometro sul telefono: vai a sensazione.',
@@ -138,6 +138,7 @@ const GAME_COPY: Record<GameModeType, EntryCopy> = {
       'Tocca una casella solo quando la TV indica il tuo turno.',
       'Casella vera: 0 punti e il turno passa.',
       'Bomba: −200 e fuori dal round.',
+      'Se scade il tempo senza scegliere sei eliminato: −200 e non giochi le ondate successive.',
     ],
     tip: 'Il turno passa anche con una casella vera: non rallentare, ma guarda quante bombe restano.',
   },

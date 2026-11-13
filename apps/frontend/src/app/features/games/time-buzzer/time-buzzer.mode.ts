@@ -16,8 +16,8 @@ interface BuzzResult extends BuzzGuess {
 
 const MANCHES = 3;
 const MIN_MS = 5000;
-/** Resta sotto i 30 s: il bersaglio è arrotondato al centesimo. */
-const MAX_MS = 29000;
+/** Il bersaglio arriva al massimo a 20 s: oltre è troppo facile aspettare. */
+const MAX_MS = 20000;
 const MANCHE_SECONDS = 30;
 const REVEAL_MS = 5000;
 /** Slot dei numeri prima che il bersaglio si riveli. */
@@ -40,7 +40,7 @@ const FINALIST_BONUS = 150;
 /**
  * Time Buzzer — tre manche a tempo, con tagli nelle prime due.
  *
- * La TV mostra un tempo bersaglio casuale (5–29 s, al centesimo). Dopo il 3-2-1
+ * La TV mostra un tempo bersaglio casuale (5–20 s, al decimo). Dopo il 3-2-1
  * ini­zia la manche e il server manda il via a tutti i telefoni: da quel momento
  * ogni telefono misura il tempo con `performance.now()` e lo ferma con STOP. Il
  * tempo torna al server, che lo confronta con quello davvero trascorso e scarta
@@ -144,7 +144,7 @@ export class TimeBuzzerMode extends GameModeBase {
     this.waitingNext.set(false);
     this.serverStartedAt = null;
     this.startedAt.set(0);
-    // Bersaglio casuale sotto i 30 s, al centesimo.
+    // Bersaglio casuale tra 5 e 20 s, al decimo.
     this.targetMs.set(Math.round((MIN_MS + Math.random() * (MAX_MS - MIN_MS)) / 10) * 10);
     this.secondsLeft = this.timerDuration;
     this.timer.set(this.timerDuration);
