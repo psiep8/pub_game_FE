@@ -154,7 +154,8 @@ const DROP_MS = 3400;
 const BOUNCE_MS = 1200;
 const SETTLE_MS = 500;
 const ROTOR_MS = THROW_MS + ORBIT_MS + DROP_MS;
-const SPIN_MS = ROTOR_MS + BOUNCE_MS + SETTLE_MS;
+const BASE_SPIN_MS = 20000;
+const SPIN_JITTER_MS = 600;
 const REVEAL_MS = 3600;
 const BALL_R = 10.5;
 /** Raggio di riposo: la pallina sta appena fuori dai separatori dei vani. */
@@ -792,8 +793,10 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.phase.set(Phase.SPIN);
     this.secondsLeft.set(0);
     this.publish();
-    this.audio.playRouletteTicks(SPIN_MS);
-    await this.animateWheel(number);
+
+    const spinDurationMs = BASE_SPIN_MS + (Math.random() * SPIN_JITTER_MS * 2) - SPIN_JITTER_MS;
+    this.audio.playRouletteTicks(spinDurationMs);
+    await this.animateWheel(number, spinDurationMs);
     this.audio.playRouletteLanding();
   }
 
@@ -809,7 +812,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
    * viene disegnata ruotata dell'angolo del rotore. Una guida morbida la
    * accompagna verso il vano pagato, ma urti e rimbalzi sono del motore.
    */
-  private async animateWheel(number: number): Promise<void> {
+  private async animateWheel(number: number, spinDurationMs: number): Promise<void> {
     const Matter = await this.ensureMatter();
     if (this.destroyed) return;
 
@@ -835,8 +838,12 @@ export class CasinoBonus implements OnInit, OnDestroy {
     const t2 = t1 + ORBIT_MS;
     const t3 = t2 + DROP_MS;
     const stepMs = 1000 / 60;
+    const suspenseStart = ROTOR_MS;
+    const suspenseWindow = Math.max(1, spinDurationMs - suspenseStart);
 
     // Raggio guidato: uscita sul bordo, orbita, poi discesa nel vano.
+    // Il finale è intenzionalmente più lungo: la pallina sfreccia vicino ai
+    // vani adiacenti, fa piccoli rimbalzi e poi si assesta sul numero giusto.
     const guide = (t: number): number => {
       if (t <= t1) return REST_R + (ORBIT_R - REST_R) * easeOutCubic(t / t1);
       if (t <= t2) return ORBIT_R;
@@ -847,13 +854,25 @@ export class CasinoBonus implements OnInit, OnDestroy {
         const bounce = Math.sin(p * Math.PI * 5) * (1 - p) * 16;
         return base + bounce;
       }
+
+      if (t < spinDurationMs) {
+        const p = Math.min(1, (t - t3) / suspenseWindow);
+        const wobble = Math.sin(((t - t3) / 180) * Math.PI * 2) * (1 - p) * 18;
+        const finalDrift = (1 - p) * 12;
+        return REST_R + wobble + finalDrift;
+      }
+
       return REST_R;
     };
 
     // Frenata morbida: parte decisa e si spegne sul vano, senza inchiodare.
+    // Nell'ultima parte la pallina fa una breve "ricerca" attorno al numero
+    // vincente, creando la suspense senza lasciarla andare troppo lontano.
     const plan = (t: number): number => {
-      const p = Math.min(1, t / ROTOR_MS);
-      return startLocal + delta * (1 - Math.pow(1 - p, 1.7));
+      const p = Math.min(1, t / spinDurationMs);
+      const suspensePhase = Math.max(0, t - suspenseStart) / suspenseWindow;
+      const microSwing = Math.sin((t - suspenseStart) / 120) * (0.12 + suspensePhase * 0.24);
+      return startLocal + delta * (1 - Math.pow(1 - p, 1.7)) + (microSwing * (SEG * Math.PI) / 180);
     };
 
     this.settled.set(false);
@@ -882,8 +901,8 @@ export class CasinoBonus implements OnInit, OnDestroy {
         last = now;
 
         let ran = 0;
-        while (acc >= stepMs && sim < SPIN_MS && ran < 6) {
-          sim = Math.min(SPIN_MS, sim + stepMs);
+        while (acc >= stepMs && sim < spinDurationMs && ran < 6) {
+          sim = Math.min(spinDurationMs, sim + stepMs);
           acc -= stepMs;
           ran += 1;
 
@@ -940,7 +959,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
           if (this.slowMotion() !== slow) this.slowMotion.set(slow);
         }
 
-        if (sim < SPIN_MS) {
+        if (sim < spinDurationMs) {
           sync();
           this.frame = requestAnimationFrame(step);
           return;
