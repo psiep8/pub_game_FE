@@ -14,13 +14,11 @@ import {
   bankFor,
   chipCapFor,
   chipsBreakdown,
-  clampAzzardoBet,
   levelForOccurrence,
   lossMultiplierFor,
   maxBetFor,
   maxChipsFor,
   oddsForLevel,
-  settleManche,
 } from './azzardo-rules';
 
 /** Fasi di Azzardo: le comuni arrivano da `GamePhase`. */
@@ -73,10 +71,8 @@ export interface AzzardoRow {
 }
 
 interface Stake {
-  stake: number;
-  choice: number;
-  /** Distribuzione delle fiches sulle opzioni, quando si gioca a fiches. */
-  chips?: number[];
+  /** Distribuzione delle fiches sulle quattro opzioni. */
+  chips: number[];
 }
 
 const BET_SECONDS = 15;
@@ -172,36 +168,19 @@ export class AzzardoMode extends GameModeBase {
     if (!question) return;
 
     const raw = event.value ?? {};
-    const available = this.bankPoints(playerName);
+    if (!Array.isArray(raw.chips)) return;
 
-    // Nuovo formato: distribuzione di fiches, al massimo dieci.
-    if (Array.isArray(raw.chips)) {
-      const chips = Array.from({ length: question.options.length }, (_, index) =>
-        Math.max(0, Math.floor(Number(raw.chips[index]) || 0)),
-      );
-      const total = chips.reduce((sum, value) => sum + value, 0);
+    const chips = Array.from({ length: question.options.length }, (_, index) =>
+      Math.max(0, Math.floor(Number(raw.chips[index]) || 0)),
+    );
+    const total = chips.reduce((sum, value) => sum + value, 0);
 
-      // Si punta solo con le fiches nel salvadanaio, mai più di dieci sul
-      // tavolo per manche e mai oltre il credito in punti.
-      const bank = this.chipBank.get(playerName) ?? 0;
-      if (total > maxChipsFor(bank, available)) return;
+    // Puntata obbligatoria, solo con le fiches del salvadanaio, entro il tetto
+    // della squadra e il credito in punti.
+    const bank = this.chipBank.get(playerName) ?? 0;
+    if (total <= 0 || total > maxChipsFor(bank, this.bankPoints(playerName))) return;
 
-      const choice = chips.indexOf(Math.max(...chips));
-      this.stakes.set(playerName, { stake: total * AZZARDO_CHIP_VALUE, choice, chips });
-      this.syncRows();
-      this.publish();
-      this.closeBetIfComplete();
-      return;
-    }
-
-    const stakeValue = Number(raw.stake ?? raw[0]);
-    const choice = Number(raw.choice ?? raw[1]);
-    if (!Number.isInteger(choice) || choice < 0 || choice >= question.options.length) return;
-
-    this.stakes.set(playerName, {
-      stake: clampAzzardoBet(stakeValue, available),
-      choice,
-    });
+    this.stakes.set(playerName, { chips });
     this.syncRows();
     this.publish();
     this.closeBetIfComplete();
@@ -317,10 +296,8 @@ export class AzzardoMode extends GameModeBase {
         return;
       }
 
-      if (stake.chips) {
-        const used = stake.chips.reduce((sum, value) => sum + value, 0);
-        this.chipBank.set(playerName, Math.max(0, (this.chipBank.get(playerName) ?? 0) - used));
-      }
+      const used = stake.chips.reduce((sum, value) => sum + value, 0);
+      this.chipBank.set(playerName, Math.max(0, (this.chipBank.get(playerName) ?? 0) - used));
 
       const breakdown = this.breakdownFor(stake, question, available);
       const points = breakdown.points;
@@ -367,59 +344,38 @@ export class AzzardoMode extends GameModeBase {
 
   /**
    * Conversione della puntata in punti: fiches giuste × quota, fiches
-   * sbagliate × percentuale di manche. La puntata vecchia (100/200/300) resta
-   * supportata e passa dalla stessa forma, così la TV mostra sempre il conto.
+   * sbagliate × percentuale di manche, con il tetto di vincita già applicato
+   * da `chipsBreakdown`.
    */
   private breakdownFor(
     stake: Stake,
     question: AzzardoQuestion,
     available: number,
   ): AzzardoChipsBreakdown {
-    if (stake.chips) {
-      return chipsBreakdown({
-        chips: stake.chips,
-        answerIndex: question.answerIndex,
-        level: this.level(),
-        manche: this.manche(),
-        available,
-      });
-    }
-
-    const points = settleManche({
-      stake: stake.stake,
-      correct: stake.choice === question.answerIndex,
+    return chipsBreakdown({
+      chips: stake.chips,
+      answerIndex: question.answerIndex,
       level: this.level(),
       manche: this.manche(),
       available,
     });
-
-    return {
-      chips: [],
-      totalChips: 0,
-      stake: stake.stake,
-      correctChips: 0,
-      wrongChips: 0,
-      odds: oddsForLevel(this.level()),
-      lossPercent: Math.round(lossMultiplierFor(this.manche()) * 100),
-      win: points > 0 ? points : 0,
-      loss: points < 0 ? -points : 0,
-      points,
-    };
   }
 
   private syncRows(): void {
     this.rows.set(
       this.players.map((playerName) => {
-        const stake = this.stakes.get(playerName);
+        const chips = this.stakes.get(playerName)?.chips ?? [];
+        const totalChips = chips.reduce((sum, value) => sum + value, 0);
         const breakdown = this.breakdowns.get(playerName);
         return {
           playerName,
-          stake: stake?.stake ?? 0,
-          choice: stake?.choice ?? -1,
+          // TV e telefono leggono la puntata in punti e l'opzione più carica.
+          stake: totalChips * AZZARDO_CHIP_VALUE,
+          choice: totalChips > 0 ? chips.indexOf(Math.max(...chips)) : -1,
           points: this.points.get(playerName) ?? 0,
           total: this.totals.get(playerName) ?? 0,
-          played: !!stake,
-          chips: stake?.chips ?? [],
+          played: totalChips > 0,
+          chips,
           win: breakdown?.win ?? 0,
           loss: breakdown?.loss ?? 0,
           odds: breakdown?.odds ?? oddsForLevel(this.level()),

@@ -26,6 +26,7 @@ import { PlayerAvatarService } from '../../core/services/player-avatar.service';
 import {
   type SpeedTask,
 } from '../games/speed-rush/speed-rush-deck';
+import { AZZARDO_MAX_WIN_PER_MANCHE } from '../games/azzardo/azzardo-rules';
 import { ConnectionBadge } from '../../shared/components/connection-badge/connection-badge.component';
 import { SentStateComponent } from '../../shared/components/sent-state/sent-state.component';
 import { ButtonTestComponent } from './button-test/button-test.component';
@@ -289,11 +290,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   blackjackState = signal<any>(null);
   blackjackStand = signal(false);
   azzardoState = signal<any>(null);
-  azzardoStake = signal(100);
   azzardoChips = signal<number[]>([]);
-  azzardoChoice = signal<number | null>(null);
   azzardoSent = signal(false);
-  readonly azzardoStakes = [100, 200, 300];
   private azzardoKey = '';
   cavalloState = signal<any>(null);
   cavalloChoice = signal<string | null>(null);
@@ -1327,11 +1325,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (key !== this.azzardoKey) {
       this.azzardoKey = key;
       if (state.phase === 'BET') {
-        const own = (state.ready ?? []).find((entry: any) => entry.playerName === this.nickname());
-        const counts = Array.isArray(own?.chips) ? own.chips : [];
+        const counts = Array.isArray(this.azzardoMe()?.chips) ? this.azzardoMe().chips : [];
         const options = state.options?.length ?? 0;
         this.azzardoChips.set(Array.from({ length: options }, (_, index) => Number(counts[index]) || 0));
-        this.azzardoChoice.set(null);
         this.azzardoSent.set(false);
       }
     }
@@ -1397,29 +1393,25 @@ export class RemoteComponent implements OnInit, OnDestroy {
     return Math.round((this.ultimaSpiaggiaMyLevel() ?? 0) / 2);
   }
 
+  /** Riga dello stato che riguarda questa squadra. */
+  private azzardoMe(): any {
+    return (this.azzardoState()?.ready ?? [])
+      .find((entry: any) => entry.playerName === this.nickname()) ?? null;
+  }
+
   /** Punti che la propria squadra può ancora puntare in questa manche. */
   azzardoMaxBet(): number {
-    const player = this.nickname();
-    const row = (this.azzardoState()?.ready ?? []).find((entry: any) => entry.playerName === player);
-    return Number(row?.maxBet ?? 0);
+    return Number(this.azzardoMe()?.maxBet ?? 0);
   }
 
   /** Punti reali in classifica (distinti dalla puntata massima). */
   azzardoMyPoints(): number {
-    const player = this.nickname();
-    const row = (this.azzardoState()?.ready ?? []).find((entry: any) => entry.playerName === player);
-    return Number(row?.points ?? 0);
+    return Number(this.azzardoMe()?.points ?? 0);
   }
 
   /** Chi ha 0 punti non può puntare: niente invio a vuoto. */
   azzardoCanBet(): boolean {
     return this.azzardoMaxBet() > 0;
-  }
-
-  azzardoPickStake(stake: number): void {
-    if (this.azzardoSent() || stake > this.azzardoMaxBet()) return;
-    this.azzardoStake.set(stake);
-    this.vibrate(10);
   }
 
   azzardoChipTotal(): number {
@@ -1428,9 +1420,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   /** Fiches nel salvadanaio: le avanzate si sommano alle dieci nuove. */
   azzardoMyBank(): number {
-    const row = (this.azzardoState()?.ready ?? [])
-      .find((entry: any) => entry.playerName === this.nickname());
-    const bank = Number(row?.chipsBank);
+    const bank = Number(this.azzardoMe()?.chipsBank);
     return Number.isFinite(bank) ? bank : (this.azzardoState()?.chips ?? 10);
   }
 
@@ -1440,11 +1430,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   /** Tetto di questa squadra: cresce con le fiches avanzate, fino al massimo. */
   azzardoMyChipCap(): number {
-    const row = (this.azzardoState()?.ready ?? [])
-      .find((entry: any) => entry.playerName === this.nickname());
-    const cap = Number(row?.chipsCap);
-    if (Number.isFinite(cap)) return cap;
-    return Number(this.azzardoState()?.chipCap ?? 10) || 10;
+    const cap = Number(this.azzardoMe()?.chipsCap);
+    return Number.isFinite(cap) ? cap : (Number(this.azzardoState()?.chipCap) || 10);
   }
 
   /** Fiches giocabili: salvadanaio, tetto crescente e credito in punti. */
@@ -1471,7 +1458,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (!this.azzardoCanBet()) return `Pochi punti: nessuna fiche da ${value} punti.`;
     const odds = Number(state?.odds ?? 2) || 2;
     const loss = Math.round((Number(state?.lossMultiplier) || 1) * 100);
-    return `Fiche da ${value} pt · giuste ×${odds} · sbagliate −${loss}%`;
+    const winCap = Number(state?.winCap) || AZZARDO_MAX_WIN_PER_MANCHE;
+    return `Fiche da ${value} pt · giuste ×${odds} · sbagliate −${loss}% · max ${winCap} a manche`;
   }
 
   /**

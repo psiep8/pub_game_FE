@@ -78,22 +78,25 @@ describe('AzzardoMode', () => {
     expect(bet.total).toBe(4);
 
     const question = QUESTIONS[0];
+    const chipsOn = (index: number, count: number) =>
+      Array.from({ length: 4 }, (_, slot) => (slot === index ? count : 0));
+
     mode.handlePartyEvent({
       action: 'AZZARDO_ACTION',
       playerName: 'Anna',
-      value: { stake: 200, choice: question.answerIndex },
+      value: { chips: chipsOn(question.answerIndex, 10) },
     });
     mode.handlePartyEvent({
       action: 'AZZARDO_ACTION',
       playerName: 'Bruno',
-      value: { stake: 300, choice: (question.answerIndex + 1) % 4 },
+      value: { chips: chipsOn((question.answerIndex + 1) % 4, 10) },
     });
 
     // Un secondo invio di Anna nella stessa manche non deve cambiare la puntata.
     mode.handlePartyEvent({
       action: 'AZZARDO_ACTION',
       playerName: 'Anna',
-      value: { stake: 300, choice: 0 },
+      value: { chips: [0, 10, 0, 0] },
     });
 
     // Carla non risponde: la manche si chiude allo scadere del tempo di puntata.
@@ -112,9 +115,9 @@ describe('AzzardoMode', () => {
     expect(anna).toMatchObject({ stake: 200, points: 400, total: 400 });
     expect(wallet['Anna']).toBe(1400);
 
-    // Bruno: punta 300 col credito di manche, ma in classifica ha 100 punti:
-    // la perdita si taglia sui punti veri, 100 (100%).
-    expect(bruno).toMatchObject({ stake: 300, points: -100, total: -100 });
+    // Bruno: dieci fiches (200 punti), ma in classifica ha 100 punti: la
+    // perdita si taglia sui punti veri, 100 (100%).
+    expect(bruno).toMatchObject({ stake: 200, points: -100, total: -100 });
     expect(wallet['Bruno']).toBe(0);
 
     // Carla: nessuna puntata, nessun punto.
@@ -195,7 +198,8 @@ describe('AzzardoMode', () => {
   it('gioca le quattro manche con la perdita che scende dal 100% al 40%', async () => {
     vi.useFakeTimers();
 
-    type Bet = { stake: number; correct: boolean };
+    // Fiches da 20 punti: 5 fiches = 100 punti, 10 fiches = 200 punti.
+    type Bet = { chips: number; correct: boolean };
     type Manche = {
       multiplier: number;
       bets: Record<string, Bet>;
@@ -203,31 +207,31 @@ describe('AzzardoMode', () => {
       totals: Record<string, number>;
     };
 
-    // Anna vince sempre 100 × 2, Bruno sbaglia sempre 200, Carla alterna.
+    // Anna punta 100 e vince, Bruno punta 200 e sbaglia, Carla alterna.
     const plan: Manche[] = [
       {
         multiplier: 1,
-        bets: { Anna: { stake: 100, correct: true }, Bruno: { stake: 200, correct: false }, Carla: { stake: 300, correct: true } },
-        points: { Anna: 200, Bruno: -200, Carla: 600 },
-        totals: { Anna: 200, Bruno: -200, Carla: 600 },
+        bets: { Anna: { chips: 5, correct: true }, Bruno: { chips: 10, correct: false }, Carla: { chips: 5, correct: true } },
+        points: { Anna: 200, Bruno: -200, Carla: 200 },
+        totals: { Anna: 200, Bruno: -200, Carla: 200 },
       },
       {
         multiplier: 0.8,
-        bets: { Anna: { stake: 100, correct: true }, Bruno: { stake: 200, correct: false }, Carla: { stake: 300, correct: false } },
-        points: { Anna: 200, Bruno: -160, Carla: -240 },
-        totals: { Anna: 400, Bruno: -360, Carla: 360 },
+        bets: { Anna: { chips: 5, correct: true }, Bruno: { chips: 10, correct: false }, Carla: { chips: 5, correct: false } },
+        points: { Anna: 200, Bruno: -160, Carla: -80 },
+        totals: { Anna: 400, Bruno: -360, Carla: 120 },
       },
       {
         multiplier: 0.6,
-        bets: { Anna: { stake: 100, correct: true }, Bruno: { stake: 200, correct: false }, Carla: { stake: 300, correct: true } },
-        points: { Anna: 200, Bruno: -120, Carla: 600 },
-        totals: { Anna: 600, Bruno: -480, Carla: 960 },
+        bets: { Anna: { chips: 5, correct: true }, Bruno: { chips: 10, correct: false }, Carla: { chips: 5, correct: true } },
+        points: { Anna: 200, Bruno: -120, Carla: 200 },
+        totals: { Anna: 600, Bruno: -480, Carla: 320 },
       },
       {
         multiplier: 0.4,
-        bets: { Anna: { stake: 100, correct: true }, Bruno: { stake: 200, correct: false }, Carla: { stake: 300, correct: false } },
-        points: { Anna: 200, Bruno: -80, Carla: -120 },
-        totals: { Anna: 800, Bruno: -560, Carla: 840 },
+        bets: { Anna: { chips: 5, correct: true }, Bruno: { chips: 10, correct: false }, Carla: { chips: 5, correct: false } },
+        points: { Anna: 200, Bruno: -80, Carla: -40 },
+        totals: { Anna: 800, Bruno: -560, Carla: 280 },
       },
     ];
 
@@ -260,14 +264,12 @@ describe('AzzardoMode', () => {
       await vi.advanceTimersByTimeAsync(10000);
 
       const question = QUESTIONS[index];
-      for (const [playerName, choice] of Object.entries(step.bets)) {
+      for (const [playerName, bet] of Object.entries(step.bets)) {
+        const target = bet.correct ? question.answerIndex : (question.answerIndex + 1) % 4;
         mode.handlePartyEvent({
           action: 'AZZARDO_ACTION',
           playerName,
-          value: {
-            stake: choice.stake,
-            choice: choice.correct ? question.answerIndex : (question.answerIndex + 1) % 4,
-          },
+          value: { chips: Array.from({ length: 4 }, (_, slot) => (slot === target ? bet.chips : 0)) },
         });
       }
 
@@ -295,9 +297,9 @@ describe('AzzardoMode', () => {
     }
 
     // Il totale di fine round somma esattamente le quattro manche.
-    expect(finale.rows.reduce((sum: number, row: any) => sum + row.total, 0)).toBe(1080);
-    expect(wallet).toEqual({ Anna: 1800, Bruno: 440, Carla: 1840 });
-    expect(Object.values(wallet).reduce((sum, points) => sum + points, 0)).toBe(4080);
+    expect(finale.rows.reduce((sum: number, row: any) => sum + row.total, 0)).toBe(520);
+    expect(wallet).toEqual({ Anna: 1800, Bruno: 440, Carla: 1280 });
+    expect(Object.values(wallet).reduce((sum, points) => sum + points, 0)).toBe(3520);
 
     mode.cleanup();
   });
@@ -380,15 +382,17 @@ describe('AzzardoMode', () => {
       await vi.advanceTimersByTimeAsync(10000);
 
       const question = QUESTIONS[0];
+      const chipsOn = (index: number) =>
+        Array.from({ length: 4 }, (_, slot) => (slot === index ? 5 : 0));
       mode.handlePartyEvent({
         action: 'AZZARDO_ACTION',
         playerName: 'Anna',
-        value: { stake: 100, choice: question.answerIndex },
+        value: { chips: chipsOn(question.answerIndex) },
       });
       mode.handlePartyEvent({
         action: 'AZZARDO_ACTION',
         playerName: 'Bruno',
-        value: { stake: 100, choice: (question.answerIndex + 1) % 4 },
+        value: { chips: chipsOn((question.answerIndex + 1) % 4) },
       });
 
       const reveal = mode.getDisplayData();

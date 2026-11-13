@@ -307,6 +307,61 @@ describe('RemoteComponent', () => {
     expect(bets[0].body.value.chips).toEqual([1, 0, 0, 0]);
   });
 
+  it('rispetta il tetto di fiches della squadra e cita i 1000 punti di massimo', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+
+    const azzardoState = (row: Record<string, number>) => ({
+      phase: 'BET',
+      manche: 2,
+      total: 4,
+      category: 'CANZONI',
+      unit: 'anno',
+      options: [1969, 1971, 1973, 1975],
+      chips: 10,
+      chipValue: 20,
+      chipCap: 15,
+      winCap: 1000,
+      odds: 2,
+      lossMultiplier: 0.8,
+      ready: [{
+        playerName: 'Anna',
+        points: 1120,
+        maxBet: 300,
+        chipsBank: 17,
+        chipsCap: 13,
+        chips: [],
+        ...row,
+      }],
+    });
+
+    component.azzardoState.set(azzardoState({}));
+    component.azzardoChips.set([7, 0, 0, 0]);
+
+    // Salvadanaio 17, tetto della squadra 13, credito 300 / 20 = 15 → 13.
+    expect(component.azzardoMyChipCap()).toBe(13);
+    expect(component.azzardoMaxChips()).toBe(13);
+    expect(component.azzardoChipsLeft()).toBe(10);
+
+    // Il tetto della squadra comanda sul massimo dichiarato.
+    component.azzardoState.set(azzardoState({ chipsCap: 11 }));
+    expect(component.azzardoMaxChips()).toBe(11);
+
+    // Il credito in punti taglia sotto il tetto.
+    component.azzardoState.set(azzardoState({ maxBet: 100 }));
+    expect(component.azzardoMaxChips()).toBe(5);
+
+    // La riga di conversione dichiara il tetto di vincita della manche.
+    expect(component.azzardoConvertHint()).toContain('1000');
+    expect(component.azzardoConvertHint()).toContain('manche');
+
+    // Se il server non manda il tetto, resta quello del regolamento.
+    const withoutCap: any = azzardoState({});
+    delete withoutCap.winCap;
+    component.azzardoState.set(withoutCap);
+    expect(component.azzardoConvertHint()).toContain('1000');
+  });
+
   it('sends a pending Timeline answer only while the round is active', async () => {
     vi.useFakeTimers();
     try {
