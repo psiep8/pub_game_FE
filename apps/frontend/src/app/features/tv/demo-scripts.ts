@@ -124,7 +124,8 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
     title: 'INDOVINA CHI',
     icon: '🕵️',
     objective: [
-      'La foto parte sfocata e si schiarisce con il tempo.',
+      'La foto parte sfocata e si schiarisce con il tempo: il round dura 60 secondi.',
+      'Un indizio ogni 15 secondi: vita, film, carriera, curiosità.',
       'Prenota quando riconosci il personaggio: la risposta si dice a voce.',
     ],
     phone: [
@@ -136,7 +137,7 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
       'Risposta sbagliata: fino a −1000, sempre in proporzione al tempo rimasto.',
       'Se nessuno prenota, il round resta a 0.',
     ],
-    example: 'Prenoti dopo 20 s su 30: resta un terzo del tempo, quindi la risposta vale circa ±333.',
+    example: 'Prenoti quando resta un terzo del tempo: la risposta vale circa ±333.',
   },
   MUSIC: {
     title: 'INDOVINA LA CANZONE',
@@ -150,9 +151,9 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
       'Dì titolo e artista al presentatore.',
       'Dopo la prenotazione il brano riparte intero.',
     ],
-    win: ['Risposta corretta: +1000, uguale in tutte e quattro le manches.'],
+    win: ['Risposta corretta: fino a +1000 con tutta la manche davanti, minimo 250.'],
     lose: ['Risposta sbagliata: −1000.', 'Chi non prenota resta a 0.'],
-    example: 'Due brani giusti valgono +2000; un errore ne toglie 1000. La manche non cambia il valore.',
+    example: 'Prenoti a metà della manche da 30 secondi: restano 15, quindi la risposta vale circa +500.',
   },
   WHEEL_OF_FORTUNE: {
     title: 'RUOTA DELLA FORTUNA',
@@ -255,7 +256,7 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
       'Chi resta sotto la metà non prende punti.',
       'Le risposte sbagliate non danno punti e rallentano.',
     ],
-    example: 'Se il primo arriva in 30 s e tu in 60 s, prendi 250 (500 × 30/60). Il minimo è 100.',
+    example: 'Se il primo arriva a metà del tuo tempo, prendi 250 (500 × 1/2). Il minimo è 100.',
   },
   AIR_HOCKEY_BATTLE: {
     title: 'AIR HOCKEY BATTLE',

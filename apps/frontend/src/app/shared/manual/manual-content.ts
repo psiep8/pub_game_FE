@@ -71,10 +71,11 @@ const GAME_COPY: Record<GameModeType, EntryCopy> = {
   IMAGE_BLUR: {
     name: 'INDOVINA CHI',
     icon: '🕵️',
-    summary: 'La foto si schiarisce: prenota presto e rispondi a voce.',
+    summary: 'La foto si schiarisce per 60 secondi: prenota presto e rispondi a voce.',
     objective: 'Riconoscere il personaggio nella foto sfocata; prima prenoti, più punti vale la risposta.',
     phone: [
       'Tocca PRENOTATI quando riconosci il personaggio.',
+      'Un indizio ogni 15 secondi: vita, film, carriera, curiosità.',
       'Dì la risposta al presentatore: la conferma arriva dalla regia.',
       'Il telefono si blocca dopo la prenotazione.',
     ],
@@ -90,7 +91,7 @@ const GAME_COPY: Record<GameModeType, EntryCopy> = {
       'Dì titolo e artista al presentatore.',
       'Dopo la prenotazione il brano riparte intero a volume pieno.',
     ],
-    tip: 'Il brano vale sempre 1000: meglio prenotare presto che rischiare di restare senza manche.',
+    tip: 'Più prenoti presto, più vale: 1000 con tutta la manche davanti, minimo 250 anche all’ultimo secondo.',
   },
   WHEEL_OF_FORTUNE: {
     name: 'RUOTA DELLA FORTUNA',
@@ -315,7 +316,8 @@ export const MANUAL_SECTIONS: readonly ManualSection[] = [
     lines: [
       'Riapri /play sullo stesso browser e sulla stessa rete: la squadra riprende dal token salvato.',
       'Non cancellare i dati del sito e non cambiare browser: senza token il nome non si può riprendere da soli.',
-      'Se lo schermo si blocca, tieni la pagina aperta: al ritorno lo stato si riallinea da solo.',
+      'Se lo schermo si blocca o esci dal browser, al ritorno il telefono resta bloccato finché il server non dice se il round è ancora aperto.',
+      'Prenotazioni e risposte chiudono alla scadenza: dopo la fine del round il telefono non manda più nulla.',
     ],
   },
   {
