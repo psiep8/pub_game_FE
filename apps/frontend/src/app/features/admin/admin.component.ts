@@ -330,7 +330,7 @@ export class Admin implements OnInit, OnDestroy {
           answer = 'Classifica finale in TV';
           break;
 
-        case 'AIR_HOCKEY_BATTLE':
+        case 'TENNIS_BATTLE':
           answer = payload.question || 'Domande e set in TV';
           break;
 

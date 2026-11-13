@@ -10,14 +10,14 @@ const PLAYABLE_TYPES: GameModeType[] = [
   'TIMELINE',
   'BOMBA',
   'SPEED_RUSH',
-  'AIR_HOCKEY_BATTLE',
+  'TENNIS_BATTLE',
   'TIME_BUZZER',
   'ULTIMA_SPIAGGIA',
   'AZZARDO',
   'BLACKJACK',
 ];
 
-const REALTIME_TYPES: GameModeType[] = ['BOMBA', 'ARENA', 'SPEED_RUSH', 'AIR_HOCKEY_BATTLE', 'BLACKJACK'];
+const REALTIME_TYPES: GameModeType[] = ['BOMBA', 'ARENA', 'SPEED_RUSH', 'TENNIS_BATTLE', 'BLACKJACK'];
 
 describe('RoundManagerService', () => {
   let service: RoundManagerService;
@@ -159,7 +159,7 @@ describe('RoundManagerService', () => {
     expect(types.filter((type) => type === 'WHEEL_OF_FORTUNE')).toHaveLength(2);
     expect(types.filter((type) => type === 'SPEED_RUSH')).toHaveLength(2);
     expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(3);
-    expect(types.filter((type) => type === 'AIR_HOCKEY_BATTLE')).toHaveLength(3);
+    expect(types.filter((type) => type === 'TENNIS_BATTLE')).toHaveLength(3);
     expect(types.filter((type) => type === 'ULTIMA_SPIAGGIA')).toHaveLength(5);
   });
 

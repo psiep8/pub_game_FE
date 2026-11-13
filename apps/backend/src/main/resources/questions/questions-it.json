@@ -14443,7 +14443,7 @@
     {
       "id": "ah-easy-01",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "EASY",
       "question": "Qual è la capitale d'Italia?",
       "correctAnswer": "Roma",
@@ -14458,7 +14458,7 @@
     {
       "id": "ah-easy-02",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "EASY",
       "question": "Quanti giorni ha una settimana?",
       "correctAnswer": "7",
@@ -14473,7 +14473,7 @@
     {
       "id": "ah-easy-03",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "EASY",
       "question": "Di che colore è il cielo in una giornata serena?",
       "correctAnswer": "Azzurro",
@@ -14488,7 +14488,7 @@
     {
       "id": "ah-easy-04",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "EASY",
       "question": "Quanto fa 2 + 2?",
       "correctAnswer": "4",
@@ -14503,7 +14503,7 @@
     {
       "id": "ah-easy-05",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "EASY",
       "question": "Quante zampe ha un ragno?",
       "correctAnswer": "8",
@@ -14518,7 +14518,7 @@
     {
       "id": "ah-easy-06",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "EASY",
       "question": "Su quale pianeta viviamo?",
       "correctAnswer": "Terra",
@@ -14533,7 +14533,7 @@
     {
       "id": "ah-easy-07",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "EASY",
       "question": "Qual è il giorno dopo lunedì?",
       "correctAnswer": "Martedì",
@@ -14548,7 +14548,7 @@
     {
       "id": "ah-easy-08",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "EASY",
       "question": "Quanti mesi ha un anno?",
       "correctAnswer": "12",
@@ -14563,7 +14563,7 @@
     {
       "id": "ah-easy-09",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "EASY",
       "question": "Qual è il colore del latte?",
       "correctAnswer": "Bianco",
@@ -14578,7 +14578,7 @@
     {
       "id": "ah-easy-10",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "EASY",
       "question": "In quale stagione di solito nevica?",
       "correctAnswer": "Inverno",
@@ -14593,7 +14593,7 @@
     {
       "id": "ah-medium-11",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "MEDIUM",
       "question": "Qual è la capitale della Francia?",
       "correctAnswer": "Parigi",
@@ -14608,7 +14608,7 @@
     {
       "id": "ah-medium-12",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "MEDIUM",
       "question": "Chi ha dipinto la Gioconda?",
       "correctAnswer": "Leonardo da Vinci",
@@ -14623,7 +14623,7 @@
     {
       "id": "ah-medium-13",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "MEDIUM",
       "question": "Quante corde ha un violino?",
       "correctAnswer": "4",
@@ -14638,7 +14638,7 @@
     {
       "id": "ah-medium-14",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "MEDIUM",
       "question": "Qual è il fiume più lungo d'Italia?",
       "correctAnswer": "Po",
@@ -14653,7 +14653,7 @@
     {
       "id": "ah-medium-15",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "MEDIUM",
       "question": "Quale pianeta è il più vicino al Sole?",
       "correctAnswer": "Mercurio",
@@ -14668,7 +14668,7 @@
     {
       "id": "ah-medium-16",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "MEDIUM",
       "question": "Chi ha scritto la Divina Commedia?",
       "correctAnswer": "Dante Alighieri",
@@ -14683,7 +14683,7 @@
     {
       "id": "ah-medium-17",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "MEDIUM",
       "question": "Quale elemento chimico ha simbolo Au?",
       "correctAnswer": "Oro",
@@ -14698,7 +14698,7 @@
     {
       "id": "ah-medium-18",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "MEDIUM",
       "question": "Qual è la moneta del Giappone?",
       "correctAnswer": "Yen",
@@ -14713,7 +14713,7 @@
     {
       "id": "ah-medium-19",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "MEDIUM",
       "question": "Quante sono le regioni italiane?",
       "correctAnswer": "20",
@@ -14728,7 +14728,7 @@
     {
       "id": "ah-medium-20",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "MEDIUM",
       "question": "In che anno è caduto il Muro di Berlino?",
       "correctAnswer": "1989",
@@ -14743,7 +14743,7 @@
     {
       "id": "ah-hard-21",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "HARD",
       "question": "Qual è la capitale dell'Australia?",
       "correctAnswer": "Canberra",
@@ -14758,7 +14758,7 @@
     {
       "id": "ah-hard-22",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "HARD",
       "question": "Chi ha composto la Nona Sinfonia?",
       "correctAnswer": "Beethoven",
@@ -14773,7 +14773,7 @@
     {
       "id": "ah-hard-23",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "HARD",
       "question": "Qual è il mare più salato?",
       "correctAnswer": "Mar Morto",
@@ -14788,7 +14788,7 @@
     {
       "id": "ah-hard-24",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "HARD",
       "question": "Quanti giocatori ha una squadra di rugby in campo?",
       "correctAnswer": "15",
@@ -14803,7 +14803,7 @@
     {
       "id": "ah-hard-25",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "HARD",
       "question": "Chi ha scritto 1984?",
       "correctAnswer": "George Orwell",
@@ -14818,7 +14818,7 @@
     {
       "id": "ah-hard-26",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "HARD",
       "question": "Qual è la capitale del Canada?",
       "correctAnswer": "Ottawa",
@@ -14833,7 +14833,7 @@
     {
       "id": "ah-hard-27",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "HARD",
       "question": "Quante ossa ha il corpo umano adulto?",
       "correctAnswer": "206",
@@ -14848,7 +14848,7 @@
     {
       "id": "ah-hard-28",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "HARD",
       "question": "Qual è l'unità di misura della forza?",
       "correctAnswer": "Newton",
@@ -14863,7 +14863,7 @@
     {
       "id": "ah-hard-29",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "HARD",
       "question": "Qual è l'elemento chimico con simbolo W?",
       "correctAnswer": "Tungsteno",
@@ -14878,7 +14878,7 @@
     {
       "id": "ah-hard-30",
       "category": "Curiosità",
-      "type": "AIR_HOCKEY",
+      "type": "TENNIS_BATTLE",
       "difficulty": "HARD",
       "question": "Qual è il deserto più grande del mondo?",
       "correctAnswer": "Antartico",

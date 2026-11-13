@@ -182,6 +182,16 @@ export class AudioService {
     this.noiseBurst(0.9, 0.035, 0.28, 1200);
   }
 
+  /**
+   * «PUAH»: colpo di racchetta sulla pallina da tennis, quando la risposta è
+   * giusta e il punto è tuo. Impulso di rumore filtrato più una nota corta.
+   */
+  playRacketHit(): void {
+    if (!this.audioEnabled()) return;
+    this.noiseBurst(0.12, 0.09, 0, 2400);
+    this.tone({ freq: 620, duration: 0.09, type: 'triangle', gain: 0.05, slideTo: 380 });
+  }
+
   /** «Uuuh» del pubblico quando una squadra sbaglia. */
   playUuuh(): void {
     if (!this.audioEnabled()) return;

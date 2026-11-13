@@ -11,7 +11,7 @@ public enum GameType {
     TIME_BUZZER,
     BOMBA,
     SPEED_RUSH,
-    AIR_HOCKEY_BATTLE,
+    TENNIS_BATTLE,
     ULTIMA_SPIAGGIA,
     AZZARDO,
     BLACKJACK

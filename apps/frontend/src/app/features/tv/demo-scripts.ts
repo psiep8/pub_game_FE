@@ -260,8 +260,8 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
     ],
     example: 'Se il primo arriva a metà del tuo tempo, prendi 250 (500 × 1/2). Il minimo è 100.',
   },
-  AIR_HOCKEY_BATTLE: {
-    title: 'AIR HOCKEY BATTLE',
+  TENNIS_BATTLE: {
+    title: 'TENNIS BATTLE',
     icon: '🏒',
     objective: [
       'Duello a coppie: il disco è sempre da un lato.',
@@ -271,7 +271,7 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
       'Rispondi quando la TV ti passa il disco.',
       'Risposta giusta: rimandi; sbagliata o scaduta: gol per l’avversario.',
       'Hai 12 secondi per ogni servizio.',
-      'Le domande passano da facili a difficili con i tiri; il disco arriva dritto, a zig-zag, a giro o a salto.',
+      'Le domande passano da facili a difficili con i tiri; la pallina arriva dritta, in diagonale, stretta, corta o a pallonetto.',
     ],
     win: ['Il primo a 7 gol vince il set: +1000.'],
     lose: [

@@ -347,11 +347,11 @@ async function roundBomba(state, clients) {
   }
 }
 
-async function roundAirHockey(state, clients) {
+async function roundTennis(state, clients) {
   for (let wave = 0; wave < 8; wave += 1) {
     await Promise.all(TEAMS.map((name, index) =>
-      stompAction('air-hockey-answer', clients[name], {
-        action: 'AIR_HOCKEY_BATTLE_ANSWER',
+      stompAction('tennis-answer', clients[name], {
+        action: 'TENNIS_BATTLE_ANSWER',
         playerName: name,
         answerIndex: (index + wave) % 4,
       })));
@@ -548,7 +548,7 @@ async function run() {
     TIMELINE: () => roundTimeline(state, clients),
     TIME_BUZZER: () => roundTimeBuzzer(state, clients),
     BOMBA: () => roundBomba(state, clients),
-    AIR_HOCKEY_BATTLE: () => roundAirHockey(state, clients),
+    TENNIS_BATTLE: () => roundTennis(state, clients),
     ULTIMA_SPIAGGIA: () => roundUltima(state, clients),
     AZZARDO: () => roundAzzardo(state, clients),
     BLACKJACK: () => roundBlackjack(state, clients),

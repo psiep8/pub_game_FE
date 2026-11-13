@@ -8,7 +8,7 @@ possa essere rigenerata in modo deterministico con:
 Produce:
 - 10 QUIZ per ognuna delle 16 categorie
 - 10 VERO/FALSO per categoria, per Arena
-- 10 domande brevi per difficolta per Air Hockey (EASY/MEDIUM/HARD)
+- 10 domande brevi per difficolta per Tennis (EASY/MEDIUM/HARD)
 - le domande IMAGE_BLUR gia presenti, rimappate sulle nuove categorie
 """
 
@@ -452,7 +452,7 @@ TF: dict[str, list[tuple[str, str, str]]] = {
 }
 
 # (difficolta, domanda, quattro opzioni, indice corretto)
-AIR_HOCKEY: list[tuple[str, str, list[str], int]] = [
+TENNIS_BATTLE: list[tuple[str, str, list[str], int]] = [
     ("EASY", "Qual è la capitale d'Italia?", ["Roma", "Milano", "Napoli", "Torino"], 0),
     ("EASY", "Quanti giorni ha una settimana?", ["7", "5", "10", "12"], 0),
     ("EASY", "Di che colore è il cielo in una giornata serena?", ["Azzurro", "Verde", "Rosso", "Nero"], 0),
@@ -615,11 +615,11 @@ def build() -> dict:
             "explanation": None,
         })
 
-    for index, (difficulty, question, options, correct_index) in enumerate(AIR_HOCKEY, 1):
+    for index, (difficulty, question, options, correct_index) in enumerate(TENNIS_BATTLE, 1):
         questions.append({
             "id": f"ah-{difficulty.lower()}-{index:02d}",
             "category": "Curiosità",
-            "type": "AIR_HOCKEY",
+            "type": "TENNIS_BATTLE",
             "difficulty": difficulty,
             "question": question,
             "correctAnswer": options[correct_index],

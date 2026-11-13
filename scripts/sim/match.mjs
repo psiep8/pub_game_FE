@@ -18,7 +18,7 @@ const STATE_PATH = process.env.STATE_PATH || fileURLToPath(new URL('./.state.jso
 const TEAMS = ['Anna', 'Bruno', 'Carla', 'Dario'];
 const ROUNDS = [
   'QUIZ', 'MUSIC', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE', 'TIMELINE',
-  'TIME_BUZZER', 'BOMBA', 'AIR_HOCKEY_BATTLE', 'ULTIMA_SPIAGGIA',
+  'TIME_BUZZER', 'BOMBA', 'TENNIS_BATTLE', 'ULTIMA_SPIAGGIA',
   'AZZARDO', 'BLACKJACK', 'ARENA', 'SPEED_RUSH',
 ];
 const ROUND_MS = Number(process.env.ROUND_MS || 10500);

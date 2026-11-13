@@ -13,7 +13,7 @@ import { TimelineMode } from '../../features/games/timeline/timeline.mode';
 import { TimeBuzzerMode } from '../../features/games/time-buzzer/time-buzzer.mode';
 import { BombaMode } from '../../features/games/bomba/bomba.mode';
 import { SpeedRushMode } from '../../features/games/speed-rush/speed-rush.mode';
-import { AirHockeyBattleMode } from '../../features/games/air-hockey-battle/air-hockey-battle.mode';
+import { TennisBattleMode } from '../../features/games/tennis-battle/tennis-battle.mode';
 import { UltimaSpiaggiaMode } from '../../features/games/ultima-spiaggia/ultima-spiaggia.mode';
 import { AzzardoMode } from '../../features/games/azzardo/azzardo.mode';
 import { BlackjackMode } from '../../features/games/blackjack/blackjack.mode';
@@ -40,7 +40,7 @@ export class GameModeService {
     TIME_BUZZER: (config) => this.withConfig(new TimeBuzzerMode(), config),
     BOMBA: (config) => this.withConfig(new BombaMode(), config),
     SPEED_RUSH: (config) => this.withConfig(new SpeedRushMode(), config),
-    AIR_HOCKEY_BATTLE: (config) => this.withConfig(new AirHockeyBattleMode(), config),
+    TENNIS_BATTLE: (config) => this.withConfig(new TennisBattleMode(), config),
     ULTIMA_SPIAGGIA: (config) => this.withConfig(new UltimaSpiaggiaMode(), config),
     AZZARDO: (config) => this.withConfig(new AzzardoMode(), config),
     BLACKJACK: (config) => this.withConfig(new BlackjackMode(), config),

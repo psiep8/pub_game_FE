@@ -28,7 +28,7 @@ export interface GameModeConfig {
   onTimerEnd?: () => void;
   onBuzz?: (playerName: string) => void;
   onAnswerReceived?: (data: any) => void;
-  /** Messaggio da mandare ai telefoni (es. nuova domanda dell'Air Hockey). */
+  /** Messaggio da mandare ai telefoni (es. nuova domanda dell'Tennis). */
   onBroadcast?: (event: any) => void;
   /** Ultima spiaggia: consuma il livello scelto per le occorrenze successive. */
   onUltimaSpiaggiaLevel?: (playerName: string, level: number) => void;
@@ -44,8 +44,8 @@ export interface GameModeConfig {
   bomba?: BombaApi;
   /** Punti attuali di una squadra: serve per non scendere sotto zero. */
   playerPoints?: (playerName: string) => number;
-  /** Air Hockey: domande pescate dalla banca all'avvio del round. */
-  loadAirHockeyQuestions?: (difficulty: string) => Promise<Array<{
+  /** Tennis: domande pescate dalla banca all'avvio del round. */
+  loadTennisQuestions?: (difficulty: string) => Promise<Array<{
     text: string;
     options: string[];
     correctIndex: number;
@@ -101,7 +101,7 @@ export interface IGameMode {
   /** Scream Race: il giocatore ha tagliato il traguardo. */
   /** Arena: esito di una domanda a risposta rapida. */
   applyArenaAnswer?(playerName: string, isCorrect: boolean, points: number): void;
-  /** Timeline, Speed Rush, Air Hockey: eventi dal server o dai telefoni. */
+  /** Timeline, Speed Rush, Tennis: eventi dal server o dai telefoni. */
   handlePartyEvent?(event: any): void;
   /** Canzone: la manche successiva parte solo su comando dell'admin. */
   nextManche?(): void;

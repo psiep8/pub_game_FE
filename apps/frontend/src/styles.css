@@ -135,7 +135,7 @@ app-arena h2,
 app-timeline h2,
 app-price h2,
 app-speed-rush h2,
-app-air-hockey-battle h2,
+app-tennis-battle h2,
 app-image-blur h2 {
   font-family: var(--font-display) !important;
   font-weight: 400 !important;
@@ -783,11 +783,11 @@ app-speed-rush .sr-player { font-size: clamp(0.9rem, 1.3vw, 1.25rem) !important;
 app-speed-rush .sr-pct { font-size: clamp(0.85rem, 1.2vw, 1.1rem) !important; }
 app-speed-rush .sr-clock-value { font-size: clamp(1.3rem, 2vw, 1.9rem) !important; }
 
-app-air-hockey-battle .ahb-title { font-size: clamp(2.2rem, 4vw, 3.4rem) !important; }
-app-air-hockey-battle .ahb-timer { font-size: clamp(1.5rem, 2vw, 1.9rem) !important; }
-app-air-hockey-battle .ahb-score { font-size: clamp(2rem, 2.8vw, 2.8rem) !important; }
-app-air-hockey-battle .ahb-name,
-app-air-hockey-battle .ahb-winner-name { font-size: clamp(0.95rem, 1.2vw, 1.15rem) !important; }
+app-tennis-battle .tb-title { font-size: clamp(2.2rem, 4vw, 3.4rem) !important; }
+app-tennis-battle .tb-timer { font-size: clamp(1.5rem, 2vw, 1.9rem) !important; }
+app-tennis-battle .tb-score { font-size: clamp(2rem, 2.8vw, 2.8rem) !important; }
+app-tennis-battle .tb-name,
+app-tennis-battle .tb-winner-name { font-size: clamp(0.95rem, 1.2vw, 1.15rem) !important; }
 
 app-timeline .tl-legend { font-size: clamp(0.88rem, 1vw, 1rem) !important; }
 app-timeline .tl-card { font-size: clamp(1.02rem, 1.2vw, 1.22rem) !important; }
@@ -808,11 +808,11 @@ app-song .current-phase-label { font-size: clamp(18px, 1.9vw, 26px) !important; 
 }
 
 /* ============================================================
-   AIR HOCKEY — pista e domanda in TV
+   TENNIS — pista e domanda in TV
    ============================================================ */
-app-air-hockey-battle .ahb-rink { flex: 1 1 auto !important; min-height: 0 !important; }
-app-air-hockey-battle .ahb-courts { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important; align-content: center; }
-app-air-hockey-battle .ahb-court { height: auto !important; }
+app-tennis-battle .tb-rink { flex: 1 1 auto !important; min-height: 0 !important; }
+app-tennis-battle .tb-courts { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important; align-content: center; }
+app-tennis-battle .tb-court { height: auto !important; }
 
 /* ============================================================
    SPEED RUSH — pista in carta e inchiostro
@@ -1009,7 +1009,7 @@ app-remote-component .bomba-options > *,
 app-remote-component .bomba-pass-options > *,
 app-remote-component .cavallo-options > *,
 app-remote-component .cavallo-categories > *,
-app-remote-component .hockey-options > *,
+app-remote-component .tennis-options > *,
 app-remote-component .casino-colors > *,
 app-remote-component .casino-numbers > *,
 app-remote-component .tl-drag-list > *,
@@ -1032,11 +1032,11 @@ app-remote-component .emoji-grid > *:nth-child(4),
 app-remote-component .tl-drag-list > *:nth-child(4) { animation-delay: 150ms; }
 
 app-remote-component .eliminated-card,
-app-remote-component .hockey-goal-overlay,
+app-remote-component .tennis-goal-overlay,
 app-remote-component .bomba-flash { animation: m-pop var(--motion-fast) var(--ease-spring) backwards; }
 
 app-remote-component .arena-question-card { animation: m-rise var(--motion-base) var(--ease-out) backwards; }
-app-remote-component .hockey-card { animation: m-rise var(--motion-base) var(--ease-out) backwards; }
+app-remote-component .tennis-card { animation: m-rise var(--motion-base) var(--ease-out) backwards; }
 
 /* ============================================================
    MOTION — SECONDO BLOCCO
@@ -1059,11 +1059,11 @@ app-wheel-fortune .letter-box:nth-child(2n) { animation-delay: 60ms; }
 app-wheel-fortune .letter-box:nth-child(3n) { animation-delay: 110ms; }
 app-image-blur .blur-main-container { animation: m-zoom-in var(--motion-cinema) var(--ease-out) backwards; }
 
-app-air-hockey-battle .ahb-title { animation: m-drop var(--motion-cinema) var(--ease-out) backwards; }
-app-air-hockey-battle .ahb-court { animation: m-appear var(--motion-base) var(--ease-out) backwards; }
-app-air-hockey-battle .ahb-court:nth-child(2) { animation-delay: 90ms; }
-app-air-hockey-battle .ahb-court:nth-child(3) { animation-delay: 140ms; }
-app-air-hockey-battle .ahb-court:nth-child(4) { animation-delay: 190ms; }
+app-tennis-battle .tb-title { animation: m-drop var(--motion-cinema) var(--ease-out) backwards; }
+app-tennis-battle .tb-court { animation: m-appear var(--motion-base) var(--ease-out) backwards; }
+app-tennis-battle .tb-court:nth-child(2) { animation-delay: 90ms; }
+app-tennis-battle .tb-court:nth-child(3) { animation-delay: 140ms; }
+app-tennis-battle .tb-court:nth-child(4) { animation-delay: 190ms; }
 
 app-speed-rush .sr-title { animation: m-drop var(--motion-cinema) var(--ease-out) backwards; }
 
@@ -1082,4 +1082,4 @@ app-remote-component .buzz-button,
 app-remote-component .speed-big,
 app-remote-component .confirm-btn,
 app-remote-component .tl-move,
-app-remote-component .hockey-side { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
+app-remote-component .tennis-side { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }

@@ -9,7 +9,7 @@ export const TOTAL_ROUNDS = 40;
  * Scaletta in cinque atti da otto round.
  *
  * L'ordine è fisso e già verificato rispetto ai vincoli: mai due giochi in
- * tempo reale di fila (Bomba, Arena, Speed Rush, Air Hockey, Black Jack), mai
+ * tempo reale di fila (Bomba, Arena, Speed Rush, Tennis, Black Jack), mai
  * due giochi a prenotazione consecutivi (Musica, Indovina chi, Ruota), la
  * Ruota esce due volte e l'Arena chiude la serata.
  *
@@ -19,15 +19,15 @@ export const TOTAL_ROUNDS = 40;
  *
  * Conteggi concordati: 5 Quiz, 4 Musica, 2 Azzardo, 2 Arena, 3 Bomba,
  * 3 Celebrità (Indovina chi), 3 Black Jack, 3 Timeline, 2 Ruota, 2 Speed Rush,
- * 3 Time Buzzer, 3 Air Hockey e 5 Ultima spiaggia.
+ * 3 Time Buzzer, 3 Tennis e 5 Ultima spiaggia.
  *
  * Ultima spiaggia chiude gli atti 1, 2 e 4 (8, 16, 32) ed è al penultimo
  * round degli atti 3 e 5 (23, 39), subito prima dell'Arena (24, 40).
  */
 export const ACT_DECKS: readonly (readonly GameModeType[])[] = [
-  ['QUIZ', 'MUSIC', 'BLACKJACK', 'TIME_BUZZER', 'BOMBA', 'TIMELINE', 'AIR_HOCKEY_BATTLE', 'ULTIMA_SPIAGGIA'],
-  ['AZZARDO', 'WHEEL_OF_FORTUNE', 'BLACKJACK', 'QUIZ', 'AIR_HOCKEY_BATTLE', 'TIME_BUZZER', 'MUSIC', 'ULTIMA_SPIAGGIA'],
-  ['QUIZ', 'SPEED_RUSH', 'IMAGE_BLUR', 'AIR_HOCKEY_BATTLE', 'TIME_BUZZER', 'BLACKJACK', 'ULTIMA_SPIAGGIA', 'ARENA'],
+  ['QUIZ', 'MUSIC', 'BLACKJACK', 'TIME_BUZZER', 'BOMBA', 'TIMELINE', 'TENNIS_BATTLE', 'ULTIMA_SPIAGGIA'],
+  ['AZZARDO', 'WHEEL_OF_FORTUNE', 'BLACKJACK', 'QUIZ', 'TENNIS_BATTLE', 'TIME_BUZZER', 'MUSIC', 'ULTIMA_SPIAGGIA'],
+  ['QUIZ', 'SPEED_RUSH', 'IMAGE_BLUR', 'TENNIS_BATTLE', 'TIME_BUZZER', 'BLACKJACK', 'ULTIMA_SPIAGGIA', 'ARENA'],
   ['IMAGE_BLUR', 'BOMBA', 'MUSIC', 'QUIZ', 'WHEEL_OF_FORTUNE', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA'],
   ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'AZZARDO', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'ARENA'],
 ];

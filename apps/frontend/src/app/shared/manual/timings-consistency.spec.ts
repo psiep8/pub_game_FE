@@ -23,7 +23,7 @@ const SECONDS_CITED: Record<string, readonly number[]> = {
   ],
   BOMBA: [20],
   SPEED_RUSH: [60],
-  AIR_HOCKEY_BATTLE: [12],
+  TENNIS_BATTLE: [12],
   ARENA: [],
   AZZARDO: [15],
   BLACKJACK: [15],

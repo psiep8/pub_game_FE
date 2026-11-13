@@ -49,7 +49,7 @@ import { Timeline } from '../games/timeline/timeline.component';
 import { TimeBuzzer } from '../games/time-buzzer/time-buzzer.component';
 import { Bomba } from '../games/bomba/bomba.component';
 import { SpeedRush } from '../games/speed-rush/speed-rush.component';
-import { AirHockeyBattle } from '../games/air-hockey-battle/air-hockey-battle.component';
+import { TennisBattle } from '../games/tennis-battle/tennis-battle.component';
 import { UltimaSpiaggia } from '../games/ultima-spiaggia/ultima-spiaggia.component';
 import { Azzardo } from '../games/azzardo/azzardo.component';
 import { levelForOccurrence } from '../games/azzardo/azzardo-rules';
@@ -81,7 +81,7 @@ type TvPhase = 'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION' | typeof GamePhase.
     TimeBuzzer,
     Bomba,
     SpeedRush,
-    AirHockeyBattle,
+    TennisBattle,
     UltimaSpiaggia,
     Azzardo,
     Blackjack,
@@ -292,7 +292,7 @@ export class GameComponent implements OnInit, OnDestroy {
     'TIMELINE',
     'BOMBA',
     'SPEED_RUSH',
-    'AIR_HOCKEY_BATTLE',
+    'TENNIS_BATTLE',
     'ARENA',
     'ULTIMA_SPIAGGIA',
     'AZZARDO',
@@ -543,7 +543,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
       // 🆕 Giochi simultanei: risultati dal server e progressi dai telefoni.
-      if (mode && ['TIMELINE_RESULT', 'TIME_BUZZER_ANSWER', 'SPEED_RUSH_PROGRESS', 'SPEED_RUSH_RESULT', 'AIR_HOCKEY_BATTLE_ANSWER', 'ULTIMA_SPIAGGIA_ACTION', 'AZZARDO_ACTION', 'BLACKJACK_ACTION'].includes(status.action)) {
+      if (mode && ['TIMELINE_RESULT', 'TIME_BUZZER_ANSWER', 'SPEED_RUSH_PROGRESS', 'SPEED_RUSH_RESULT', 'TENNIS_BATTLE_ANSWER', 'ULTIMA_SPIAGGIA_ACTION', 'AZZARDO_ACTION', 'BLACKJACK_ACTION'].includes(status.action)) {
         mode.handlePartyEvent?.(status);
         this.cdr.detectChanges();
       }
@@ -1011,9 +1011,9 @@ export class GameComponent implements OnInit, OnDestroy {
           error: () => resolve(null),
         });
       }),
-      loadAirHockeyQuestions: async (difficulty: string) => {
+      loadTennisQuestions: async (difficulty: string) => {
         const rows = await firstValueFrom(
-          this.gameService.getAirHockeyQuestions(this.currentGameId()!, difficulty, 12),
+          this.gameService.getTennisQuestions(this.currentGameId()!, difficulty, 12),
         );
         return rows.map((row) => ({
           text: row.question,
@@ -1106,7 +1106,7 @@ export class GameComponent implements OnInit, OnDestroy {
       case 'BLACKJACK':
       case 'BOMBA':
       case 'SPEED_RUSH':
-      case 'AIR_HOCKEY_BATTLE':
+      case 'TENNIS_BATTLE':
         return 'CULTURA GENERALE';
       default:
         return this.pickCategoryName();
@@ -1166,8 +1166,8 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'BOMBA';
       case 'SPEED_RUSH':
         return 'SPEED RUSH';
-      case 'AIR_HOCKEY_BATTLE':
-        return 'AIR HOCKEY BATTLE';
+      case 'TENNIS_BATTLE':
+        return 'TENNIS BATTLE';
       case 'BONUS_BASKET':
         return 'BONUS BASKET';
       default:
@@ -1967,7 +1967,7 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'Mani e banco svelati in TV a ogni tavolo';
       case 'BOMBA':
         return 'Tabellone e bombe in TV; ogni telefono sceglie una casella';
-      case 'AIR_HOCKEY_BATTLE':
+      case 'TENNIS_BATTLE':
         return 'Domande e set in TV; risposte sul telefono';
       case 'SPEED_RUSH':
         return 'Classifica finale in TV';

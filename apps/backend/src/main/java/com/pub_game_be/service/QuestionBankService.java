@@ -362,15 +362,15 @@ public class QuestionBankService {
     }
 
     /**
-     * Domande quiz per l'Air Hockey: quattro opzioni, difficoltà richiesta.
+     * Domande quiz per l'Tennis: quattro opzioni, difficoltà richiesta.
      * Restituisce righe pronte per il frontend (nessun payload AI a runtime).
      */
     public List<Map<String, Object>> quizBatch(String difficulty, int count) {
         List<BankQuestion> candidates = new ArrayList<>();
         for (BankQuestion question : allQuestions()) {
-            // Air Hockey ha una banca dedicata di domande corte: se manca
+            // Tennis ha una banca dedicata di domande corte: se manca
             // qualcosa si completa con i QUIZ normali, non viceversa.
-            if (!"AIR_HOCKEY".equals(question.type()) || question.options().size() != 4) {
+            if (!"TENNIS_BATTLE".equals(question.type()) || question.options().size() != 4) {
                 continue;
             }
             if (difficulty != null && !difficulty.isBlank()
@@ -389,7 +389,7 @@ public class QuestionBankService {
                 if (difficulty != null && !difficulty.isBlank()
                         && !"MIXED".equalsIgnoreCase(difficulty)
                         && !question.difficulty().equalsIgnoreCase(difficulty)
-                        && !airHockeyDifficulty(question.difficulty()).equalsIgnoreCase(difficulty)) {
+                        && !tennisDifficulty(question.difficulty()).equalsIgnoreCase(difficulty)) {
                     continue;
                 }
                 candidates.add(question);
@@ -408,7 +408,7 @@ public class QuestionBankService {
                     "options", question.options(),
                     "correctAnswer", question.correctAnswer(),
                     "correctIndex", Math.max(0, question.options().indexOf(question.correctAnswer())),
-                    "difficulty", airHockeyDifficulty(question.difficulty())));
+                    "difficulty", tennisDifficulty(question.difficulty())));
         }
         return rows;
     }
@@ -605,8 +605,8 @@ public class QuestionBankService {
         };
     }
 
-    /** Le difficoltà della banca sono in italiano; l'Air Hockey usa le sigle. */
-    private String airHockeyDifficulty(String difficulty) {
+    /** Le difficoltà della banca sono in italiano; l'Tennis usa le sigle. */
+    private String tennisDifficulty(String difficulty) {
         return switch (difficulty == null ? "" : difficulty.toLowerCase(Locale.ROOT)) {
             case "easy", "facile" -> "EASY";
             case "hard", "difficile" -> "HARD";
@@ -731,14 +731,14 @@ public class QuestionBankService {
         }
         Map<String, Integer> perCategory = new TreeMap<>();
         for (BankQuestion question : bank) {
-            if (!"AIR_HOCKEY".equals(question.type())) {
+            if (!"TENNIS_BATTLE".equals(question.type())) {
                 perCategory.merge(question.category(), 1, Integer::sum);
             }
         }
-        long airHockey = bank.stream().filter(question -> "AIR_HOCKEY".equals(question.type())).count();
+        long tennis = bank.stream().filter(question -> "TENNIS_BATTLE".equals(question.type())).count();
         StringBuilder summary = new StringBuilder("banca domande: ").append(bank.size()).append(" totali");
         perCategory.forEach((category, total) -> summary.append(" | ").append(category).append(' ').append(total));
-        summary.append(" | Air Hockey ").append(airHockey);
+        summary.append(" | Tennis ").append(tennis);
         return summary.toString();
     }
 

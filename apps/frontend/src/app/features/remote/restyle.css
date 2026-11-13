@@ -550,7 +550,7 @@
 .game-tag.tf { background: var(--mint); border-color: var(--coal); }
 .game-tag.tl { background: var(--cobalt); color: var(--on-cobalt); border-color: var(--coal); }
 .game-tag.speed { background: var(--tomato); color: var(--on-tomato); border-color: var(--coal); }
-.game-tag.hockey { background: var(--mint); border-color: var(--coal); }
+.game-tag.tennis { background: var(--mint); border-color: var(--coal); }
 .game-tag.arena { background: var(--coal); color: var(--acid); border-color: var(--coal); }
 .game-tip {
   color: color-mix(in srgb, var(--coal) 62%, transparent);
@@ -741,8 +741,8 @@
 .confirm-btn:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--tomato); }
 .confirm-btn:disabled { opacity: 0.35; }
 
-/* ------------------------------------------------------ Speed e Air Hockey */
-.speed-remote, .hockey-remote { gap: 13px; }
+/* ------------------------------------------------------ Speed e Air Tennis */
+.speed-remote, .tennis-remote { gap: 13px; }
 /* Speed Rush — mazzo di microprove */
 .speed-prompt {
   display: flex;
@@ -843,7 +843,7 @@
   transform: translate(3px, 3px);
   box-shadow: 1px 1px 0 var(--coal);
 }
-.hockey-hit {
+.tennis-hit {
   min-height: clamp(184px, 37vh, 290px);
   background: var(--cobalt);
   color: var(--on-cobalt);
@@ -854,8 +854,8 @@
   font-size: clamp(1.8rem, 9vw, 2.7rem);
   font-weight: 400;
 }
-.hockey-hit:active { transform: translate(5px, 5px); box-shadow: 5px 5px 0 var(--coal); }
-.hockey-ball { font-size: 1.5em; }
+.tennis-hit:active { transform: translate(5px, 5px); box-shadow: 5px 5px 0 var(--coal); }
+.tennis-ball { font-size: 1.5em; }
 
 /* --------------------------------------------------------------- Arena */
 .arena-remote-container { gap: 11px; }

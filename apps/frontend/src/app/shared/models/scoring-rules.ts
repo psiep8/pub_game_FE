@@ -66,7 +66,7 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     missed: '0 sotto la metà',
     note: 'Prendono punti solo i primi n/2 arrivati; il distacco in millesimi dal primo riduce il bonus, minimo 100.',
   },
-  AIR_HOCKEY_BATTLE: {
+  TENNIS_BATTLE: {
     correct: '+1000 al vincitore',
     wrong: 'gol per l’avversario',
     missed: 'gol per l’avversario',

@@ -20,6 +20,7 @@ import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { firstValueFrom } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import { GameService } from '../../core/services/game.service';
+import { AudioService } from '../../core/services/audio.service';
 import { ThemeService, THEME_OPTIONS, type AppTheme } from '../../core/services/theme.service';
 import { ReliabilityService } from '../../core/services/reliability.service';
 import { PlayerAvatarService } from '../../core/services/player-avatar.service';
@@ -48,26 +49,26 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./remote.component.css', './restyle.css', './manual.css'],
   styles: [`
-    .timeline-remote, .speed-remote, .hockey-remote {
+    .timeline-remote, .speed-remote, .tennis-remote {
       display: flex; flex-direction: column; gap: 14px; padding: 16px; height: 100%; justify-content: center;
     }
-    .hockey-remote { position: relative; }
-    .hockey-diff {
+    .tennis-remote { position: relative; }
+    .tennis-diff {
       padding: 2px 7px; border: 1px solid var(--tomato); color: var(--tomato);
       font-family: var(--font-mono); font-size: .6rem; font-weight: 700; letter-spacing: .1em;
     }
-    .hockey-goal-overlay {
+    .tennis-goal-overlay {
       position: fixed; inset: 0; z-index: 80; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 6px; text-align: center;
       padding: 24px; background: var(--mint); color: var(--coal);
-      border: 6px solid var(--coal); animation: hockeyGoalIn .22s ease-out;
+      border: 6px solid var(--coal); animation: tennisGoalIn .22s ease-out;
     }
-    .hockey-goal-overlay.conceded { background: var(--tomato); color: var(--paper-hi); }
-    .hockey-goal-kicker { font-family: var(--font-mono); font-size: .72rem; font-weight: 700; letter-spacing: .18em; opacity: .85; }
-    .hockey-goal-word { font-family: var(--font-display); font-size: clamp(2.6rem, 12vw, 4.6rem); line-height: .95; text-transform: uppercase; }
-    .hockey-goal-score { font-family: var(--font-display); font-size: clamp(3.4rem, 18vw, 6rem); line-height: 1; }
-    .hockey-goal-note { font-family: var(--font-mono); font-size: .8rem; letter-spacing: .12em; opacity: .9; }
-    @keyframes hockeyGoalIn { from { transform: scale(.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .tennis-goal-overlay.conceded { background: var(--tomato); color: var(--paper-hi); }
+    .tennis-goal-kicker { font-family: var(--font-mono); font-size: .72rem; font-weight: 700; letter-spacing: .18em; opacity: .85; }
+    .tennis-goal-word { font-family: var(--font-display); font-size: clamp(2.6rem, 12vw, 4.6rem); line-height: .95; text-transform: uppercase; }
+    .tennis-goal-score { font-family: var(--font-display); font-size: clamp(3.4rem, 18vw, 6rem); line-height: 1; }
+    .tennis-goal-note { font-family: var(--font-mono); font-size: .8rem; letter-spacing: .12em; opacity: .9; }
+    @keyframes tennisGoalIn { from { transform: scale(.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     .party-instruction { text-align: center; margin: 0; color: color-mix(in srgb, var(--coal) 70%, transparent); font-family: var(--font-mono); font-size: .8rem; }
     .emoji-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .emoji-btn {
@@ -76,49 +77,49 @@ import {
       font-family: var(--font-mono); font-size: 2rem;
     }
     .emoji-btn:active { background: var(--acid); transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--coal); }
-    .hockey-score {
+    .tennis-score {
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
       background: var(--paper-hi); color: var(--coal); border: 3px solid var(--coal);
       box-shadow: 5px 5px 0 var(--coal); padding: 10px 12px;
     }
-    .hockey-side { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-    .hockey-side.right { align-items: flex-end; text-align: right; }
-    .hockey-where { margin: 0; font-family: var(--font-mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--coal); background: var(--mustard); border: 2px solid var(--coal); padding: 4px 8px; box-shadow: 3px 3px 0 var(--coal); }
-    .hockey-side-name { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .hockey-side.active .hockey-side-name { color: var(--tomato); font-weight: 700; }
-    .hockey-side-score { font-family: var(--font-display); font-size: 2rem; line-height: 1; }
-    .hockey-vs { font-family: var(--font-mono); font-size: .7rem; color: var(--tomato); }
-    .hockey-card {
+    .tennis-side { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+    .tennis-side.right { align-items: flex-end; text-align: right; }
+    .tennis-where { margin: 0; font-family: var(--font-mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--coal); background: var(--mustard); border: 2px solid var(--coal); padding: 4px 8px; box-shadow: 3px 3px 0 var(--coal); }
+    .tennis-side-name { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tennis-side.active .tennis-side-name { color: var(--tomato); font-weight: 700; }
+    .tennis-side-score { font-family: var(--font-display); font-size: 2rem; line-height: 1; }
+    .tennis-vs { font-family: var(--font-mono); font-size: .7rem; color: var(--tomato); }
+    .tennis-card {
       background: var(--paper); color: var(--coal); border: 3px solid var(--coal);
       box-shadow: 8px 8px 0 var(--tomato); padding: 14px;
       display: flex; flex-direction: column; gap: 10px;
     }
-    .hockey-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .hockey-tag { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .2em; color: var(--tomato); font-weight: 700; }
-    .hockey-clock { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .hockey-clock.hot { color: var(--tomato); }
-    .hockey-question { margin: 0; font-size: 1.08rem; font-weight: 800; line-height: 1.25; }
-    .hockey-options { display: flex; flex-direction: column; gap: 8px; }
-    .hockey-option {
+    .tennis-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .tennis-tag { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .2em; color: var(--tomato); font-weight: 700; }
+    .tennis-clock { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .tennis-clock.hot { color: var(--tomato); }
+    .tennis-question { margin: 0; font-size: 1.08rem; font-weight: 800; line-height: 1.25; }
+    .tennis-options { display: flex; flex-direction: column; gap: 8px; }
+    .tennis-option {
       display: flex; align-items: center; gap: 10px; padding: 13px 12px;
       background: var(--paper-hi); color: var(--coal); border: 2px solid var(--coal);
       box-shadow: 3px 3px 0 var(--coal); font-family: var(--font); font-size: 1rem;
       font-weight: 700; text-align: left;
     }
-    .hockey-option:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--coal); }
-    .hockey-option:disabled { opacity: .5; }
-    .hockey-letter { font-family: var(--font-mono); font-weight: 700; color: var(--tomato); }
-    .hockey-wait {
+    .tennis-option:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--coal); }
+    .tennis-option:disabled { opacity: .5; }
+    .tennis-letter { font-family: var(--font-mono); font-weight: 700; color: var(--tomato); }
+    .tennis-wait {
       display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
       padding: 16px 14px; background: var(--paper-hi); color: var(--coal);
       border: 3px solid var(--coal); box-shadow: 6px 6px 0 var(--tomato);
     }
-    .hockey-wait-icon { font-size: 3rem; animation: hockeyBounce 1.2s infinite; }
-    .hockey-wait h2 { margin: 0; font-family: var(--font-display); font-size: 1.5rem; color: var(--coal); }
-    .hockey-wait p { margin: 0; font-size: .95rem; color: color-mix(in srgb, var(--coal) 72%, transparent); }
-    .hockey-wait-score { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: var(--tomato); }
-    .hockey-result { text-align: center; font-family: var(--font-mono); font-size: .8rem; font-weight: 700; letter-spacing: .16em; color: var(--tomato); }
-    @keyframes hockeyBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    .tennis-wait-icon { font-size: 3rem; animation: tennisBounce 1.2s infinite; }
+    .tennis-wait h2 { margin: 0; font-family: var(--font-display); font-size: 1.5rem; color: var(--coal); }
+    .tennis-wait p { margin: 0; font-size: .95rem; color: color-mix(in srgb, var(--coal) 72%, transparent); }
+    .tennis-wait-score { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: var(--tomato); }
+    .tennis-result { text-align: center; font-family: var(--font-mono); font-size: .8rem; font-weight: 700; letter-spacing: .16em; color: var(--tomato); }
+    @keyframes tennisBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
     .bonus-remote { display: flex; flex-direction: column; gap: 14px; padding: 16px; height: 100%; justify-content: center; }
     .casino-hand {
       display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px;
@@ -182,6 +183,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
   private gameService = inject(GameService);
+  private audio = inject(AudioService);
   private swUpdate = inject(SwUpdate);
   public theme = inject(ThemeService);
   /** Le sette palette da provare prima del tutorial. */
@@ -204,7 +206,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<PlayerStatus>(PlayerStatus.WAITING);
-  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'AIR_HOCKEY_BATTLE' | 'CAVALLO' | 'ULTIMA_SPIAGGIA' | 'AZZARDO' | 'BLACKJACK' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO' | 'BONUS_BIGLIE'>('QUIZ');
+  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'TENNIS_BATTLE' | 'CAVALLO' | 'ULTIMA_SPIAGGIA' | 'AZZARDO' | 'BLACKJACK' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO' | 'BONUS_BIGLIE'>('QUIZ');
   hasAnswered = signal(false);
   /** Manche Quiz in corso e ultima manche già votata. */
   quizManche = signal(0);
@@ -240,20 +242,20 @@ export class RemoteComponent implements OnInit, OnDestroy {
   roundTotal = signal(40);
   private pauseStartedAt = 0;
 
-  hockeyQuestion = signal<{ text: string; options: string[]; difficulty?: string } | null>(null);
-  /** Vero dopo il primo AIR_HOCKEY_BATTLE_STATE: senza stato non si disegna il campo. */
-  hockeyStateReady = signal(false);
-  hockeyMyTurn = signal(false);
-  hockeyMyScore = signal(0);
-  hockeyOpponentScore = signal(0);
-  hockeyOpponent = signal('');
-  hockeyCourtIndex = signal(0);
-  hockeyCourtTotal = signal(0);
-  hockeyServeLeft = signal(0);
-  hockeyLastResult = signal<string | null>(null);
-  hockeyGoal = signal<{ id: number; scored: boolean; mine: number; opponent: number } | null>(null);
-  private hockeyLastGoalId = 0;
-  private hockeyGoalTimer?: ReturnType<typeof setTimeout>;
+  tennisQuestion = signal<{ text: string; options: string[]; difficulty?: string } | null>(null);
+  /** Vero dopo il primo TENNIS_BATTLE_STATE: senza stato non si disegna il campo. */
+  tennisStateReady = signal(false);
+  tennisMyTurn = signal(false);
+  tennisMyScore = signal(0);
+  tennisOpponentScore = signal(0);
+  tennisOpponent = signal('');
+  tennisCourtIndex = signal(0);
+  tennisCourtTotal = signal(0);
+  tennisServeLeft = signal(0);
+  tennisLastResult = signal<string | null>(null);
+  tennisGoal = signal<{ id: number; scored: boolean; mine: number; opponent: number } | null>(null);
+  private tennisLastGoalId = 0;
+  private tennisGoalTimer?: ReturnType<typeof setTimeout>;
 
 
   private roundStartTime: number = 0;
@@ -327,8 +329,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   /** Ignora le risposte di una corsa già chiusa o sostituita. */
   private speedLoadSeq = 0;
 
-  hockeyHits = signal(0);
-  private lastHockeyAt = 0;
+  tennisHits = signal(0);
+  private lastTennisAt = 0;
 
   showInstallBanner = signal(false);
   showIosInstallBanner = signal(false);
@@ -621,8 +623,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.applyBiglieState(status.state);
           break;
 
-        case 'AIR_HOCKEY_BATTLE_STATE':
-          this.handleAirHockeyBattleState(status);
+        case 'TENNIS_BATTLE_STATE':
+          this.handleTennisBattleState(status);
           break;
 
         case 'BONUS_ENDED':
@@ -651,12 +653,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.timelineOrder.set([]);
           this.arenaEliminated.set(false);
           this.arenaQuestion.set(null);
-          this.hockeyStateReady.set(false);
-          this.hockeyGoal.set(null);
-          this.hockeyLastGoalId = 0;
-          if (this.hockeyGoalTimer) {
-            clearTimeout(this.hockeyGoalTimer);
-            this.hockeyGoalTimer = undefined;
+          this.tennisStateReady.set(false);
+          this.tennisGoal.set(null);
+          this.tennisLastGoalId = 0;
+          if (this.tennisGoalTimer) {
+            clearTimeout(this.tennisGoalTimer);
+            this.tennisGoalTimer = undefined;
           }
           // Round chiuso: spegni il microfono, altrimenti il telefono continua
           // a inviare urli (10 messaggi/s) anche nei round successivi.
@@ -1158,7 +1160,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       TIME_BUZZER: '⏱️ Time Buzzer',
       BOMBA: '💣 Bomba',
       SPEED_RUSH: '⚡ Speed Rush',
-      AIR_HOCKEY_BATTLE: '🏒 Air Hockey',
+      TENNIS_BATTLE: 'Tennis',
       ARENA: '🏟️ Arena',
       AZZARDO: '🎲 Azzardo',
       BLACKJACK: '🃏 Blackjack',
@@ -1272,11 +1274,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.blackjackStand.set(false);
     } else if (type === 'SPEED_RUSH') {
       this.startSpeedRush();
-    } else if (type === 'AIR_HOCKEY_BATTLE') {
-      this.hockeyStateReady.set(false);
-      this.hockeyHits.set(0);
-      this.hockeyGoal.set(null);
-      this.hockeyLastGoalId = 0;
+    } else if (type === 'TENNIS_BATTLE') {
+      this.tennisStateReady.set(false);
+      this.tennisHits.set(0);
+      this.tennisGoal.set(null);
+      this.tennisLastGoalId = 0;
     }
   }
 
@@ -1998,9 +2000,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   /** Dove guardare la TV: la mia partita e il suo angolo nel multiview. */
-  hockeyCorner(): string {
-    const index = this.hockeyCourtIndex();
-    const total = this.hockeyCourtTotal();
+  tennisCorner(): string {
+    const index = this.tennisCourtIndex();
+    const total = this.tennisCourtTotal();
     if (!index || !total) return 'CAMPO IN TV';
     if (total === 1) return 'SCHERMO INTERO';
     if (total === 2) return index === 1 ? 'ALTO' : 'BASSO';
@@ -2011,11 +2013,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
     return `CAMPO ${index} DI ${total}`;
   }
 
-  sendHockeyAnswer(index: number): void {
-    if (this.hasAnswered() || !this.hockeyMyTurn() || !this.nickname()) return;
+  sendTennisAnswer(index: number): void {
+    if (this.hasAnswered() || !this.tennisMyTurn() || !this.nickname()) return;
 
     this.ws.broadcastStatus(this.gameId(), {
-      action: WsAction.AIR_HOCKEY_BATTLE_ANSWER,
+      action: WsAction.TENNIS_BATTLE_ANSWER,
       playerName: this.nickname(),
       answerIndex: index,
     });
@@ -2039,46 +2041,47 @@ export class RemoteComponent implements OnInit, OnDestroy {
     return 'MEDIA';
   }
 
-  private handleAirHockeyBattleState(status: any): void {
+  private handleTennisBattleState(status: any): void {
     const me = (this.nickname() ?? '').trim().toLowerCase();
     const court = (status.courts ?? []).find((c: any) =>
       c.a.playerName.trim().toLowerCase() === me || c.b.playerName.trim().toLowerCase() === me
     );
     if (!court) return;
 
-    this.hockeyStateReady.set(true);
+    this.tennisStateReady.set(true);
     const mine: 'a' | 'b' = court.a.playerName.trim().toLowerCase() === me ? 'a' : 'b';
     const other: 'a' | 'b' = mine === 'a' ? 'b' : 'a';
 
-    this.questionType.set('AIR_HOCKEY_BATTLE');
-    this.hockeyMyScore.set(court[mine].score);
-    this.hockeyOpponentScore.set(court[other].score);
-    this.hockeyOpponent.set(court[other].playerName);
-    this.hockeyCourtIndex.set(Number(court.index ?? court.id + 1));
-    this.hockeyCourtTotal.set(Number(status.courts?.length ?? 0));
-    this.hockeyServeLeft.set(court.serveLeft ?? 0);
-    this.hockeyQuestion.set(court.question ?? null);
-    this.hockeyMyTurn.set(!court.winner && court.turn === mine);
+    this.questionType.set('TENNIS_BATTLE');
+    this.tennisMyScore.set(court[mine].score);
+    this.tennisOpponentScore.set(court[other].score);
+    this.tennisOpponent.set(court[other].playerName);
+    this.tennisCourtIndex.set(Number(court.index ?? court.id + 1));
+    this.tennisCourtTotal.set(Number(status.courts?.length ?? 0));
+    this.tennisServeLeft.set(court.serveLeft ?? 0);
+    this.tennisQuestion.set(court.question ?? null);
+    this.tennisMyTurn.set(!court.winner && court.turn === mine);
     this.hasAnswered.set(false);
     this.selectedAnswer.set(null);
 
     const event = court.lastEvent;
-    if (event?.kind === 'goal' && event.id !== this.hockeyLastGoalId) {
-      this.hockeyLastGoalId = event.id;
+    if (event?.kind === 'goal' && event.id !== this.tennisLastGoalId) {
+      this.tennisLastGoalId = event.id;
       const scored = event.side === mine;
-      this.hockeyGoal.set({
+      this.tennisGoal.set({
         id: event.id,
         scored,
         mine: court[mine].score,
         opponent: court[other].score,
       });
       this.vibrate(scored ? [60, 40, 60] : [140, 60, 140]);
-      if (this.hockeyGoalTimer) clearTimeout(this.hockeyGoalTimer);
-      this.hockeyGoalTimer = setTimeout(() => this.hockeyGoal.set(null), 2400);
+      if (scored) this.audio.playRacketHit();
+      if (this.tennisGoalTimer) clearTimeout(this.tennisGoalTimer);
+      this.tennisGoalTimer = setTimeout(() => this.tennisGoal.set(null), 2400);
     }
 
     if (court.winner) {
-      this.hockeyLastResult.set(court.winner === court[mine].playerName ? 'HAI VINTO IL SET!' : 'SET PERSO');
+      this.tennisLastResult.set(court.winner === court[mine].playerName ? 'HAI VINTO IL SET!' : 'SET PERSO');
       this.gameState.set(PlayerStatus.WAITING);
       return;
     }
@@ -2086,11 +2089,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.gameState.set(PlayerStatus.VOTING);
 
     if (event?.kind === 'return') {
-      this.hockeyLastResult.set(event.side === mine ? 'PALLA RIMANDATA!' : 'PALLA IN ARRIVO');
+      this.tennisLastResult.set(event.side === mine ? 'PALLA RIMANDATA!' : 'PALLA IN ARRIVO');
     } else if (event?.kind === 'goal') {
-      this.hockeyLastResult.set(event.side === mine ? 'GOL PER TE!' : 'GOL SUBITO');
+      this.tennisLastResult.set(event.side === mine ? 'PUNTO PER TE!' : 'PUNTO SUBITO');
     } else {
-      this.hockeyLastResult.set(null);
+      this.tennisLastResult.set(null);
     }
   }
 
@@ -2243,13 +2246,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Black Jack e Air Hockey hanno lo stato (tavolo o campo) solo nella TV.
+    // Black Jack e Air Tennis hanno lo stato (tavolo o campo) solo nella TV.
     // Senza averlo ricevuto non c'è nulla da mostrare: meglio restare in
     // attesa che disegnare un tavolo/campo vuoto con "0/0" dopo un refresh.
     // Durante il gioco la TV ripubblica lo stato, quindi il telefono che si
     // ricollega a partita in corso lo riceve subito dopo.
     if ((type === 'BLACKJACK' && !this.blackjackState())
-      || (type === 'AIR_HOCKEY_BATTLE' && !this.hockeyStateReady())) return;
+      || (type === 'TENNIS_BATTLE' && !this.tennisStateReady())) return;
 
     const previousType = this.questionType();
     this.questionType.set(type);
@@ -2303,7 +2306,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.stopMicrophoneListening();
     this.stopBombaPolling();
     if (this.bombaFlashTimer) clearTimeout(this.bombaFlashTimer);
-    if (this.hockeyGoalTimer) clearTimeout(this.hockeyGoalTimer);
+    if (this.tennisGoalTimer) clearTimeout(this.tennisGoalTimer);
     if (this.updateCheckInterval) {
       clearInterval(this.updateCheckInterval);
       this.updateCheckInterval = undefined;

@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Giochi simultanei che non vivono nella banca domande: Timeline, Speed Rush e
- * Air Hockey Battle.
+ * Tennis Battle.
  *
  * <p>Le soluzioni restano sul server: il telefono riceve solo le carte mescolate o
  * i prodotti senza prezzo, e il punteggio lo calcola qui.</p>
@@ -79,7 +79,7 @@ public class PartyGameService {
             return false;
         }
         return switch (type.toUpperCase(Locale.ROOT)) {
-            case "TIMELINE", "TIME_BUZZER", "BOMBA", "SPEED_RUSH", "AIR_HOCKEY_BATTLE",
+            case "TIMELINE", "TIME_BUZZER", "BOMBA", "SPEED_RUSH", "TENNIS_BATTLE",
                     "BLACKJACK" -> true;
             default -> false;
         };
@@ -99,7 +99,7 @@ public class PartyGameService {
             case "TIME_BUZZER" -> configPayload("TIME_BUZZER", 45, act);
             case "BOMBA" -> configPayload("BOMBA", 90, act);
             case "SPEED_RUSH" -> configPayload("SPEED_RUSH", 60, act);
-            case "AIR_HOCKEY_BATTLE" -> configPayload("AIR_HOCKEY_BATTLE", 60, act);
+            case "TENNIS_BATTLE" -> configPayload("TENNIS_BATTLE", 60, act);
             // Black Jack non ha domande né stato server: basta registrare il
             // round, mazzo e banco vivono nel mode della TV.
             case "BLACKJACK" -> configPayload("BLACKJACK", 600, act);
@@ -432,7 +432,7 @@ public class PartyGameService {
             case "SPEED_RUSH" -> "Speed Rush!";
             case "BOMBA" -> "Passa la bomba!";
             case "BLACKJACK" -> "Black Jack contro il banco";
-            default -> "Air Hockey Battle!";
+            default -> "Tennis Battle!";
         });
         payload.put("duration", durationSeconds);
         payload.put("act", Math.max(1, Math.min(5, act)));

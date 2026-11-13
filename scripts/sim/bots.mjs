@@ -151,9 +151,9 @@ class Bot {
       return;
     }
 
-    // Air Hockey: ogni campo ha un turno; se è del bot, risponde alla domanda.
-    if (message.action === 'AIR_HOCKEY_BATTLE_STATE') {
-      this.hockeyTurn(message);
+    // Tennis: ogni campo ha un turno; se è del bot, risponde alla domanda.
+    if (message.action === 'TENNIS_BATTLE_STATE') {
+      this.tennisTurn(message);
       return;
     }
 
@@ -394,11 +394,11 @@ class Bot {
   }
 
   /**
-   * Air Hockey: il campo di cui il bot ha il turno riceve una risposta a caso
+   * Tennis: il campo di cui il bot ha il turno riceve una risposta a caso
    * (il telefono non conosce quella giusta). Una risposta per domanda, così il
    * bot non spara due volte sullo stesso tiro.
    */
-  hockeyTurn(message) {
+  tennisTurn(message) {
     const courts = Array.isArray(message?.courts) ? message.courts : [];
     for (const court of courts) {
       const side = court?.turn;
@@ -406,20 +406,20 @@ class Bot {
       if (court.winner || !court.question) continue;
       const player = String(court?.[side]?.playerName || '');
       if (player.toLowerCase() !== this.name.toLowerCase()) continue;
-      const key = `hockey-${court.id}-${side}-${court.question.text ?? court.question.prompt ?? ''}`;
+      const key = `tennis-${court.id}-${side}-${court.question.text ?? court.question.prompt ?? ''}`;
       if (this.answered.has(key)) continue;
       this.answered.add(key);
       const delay = 700 + Math.floor(Math.random() * 1400);
       setTimeout(() => {
         try {
           this.send(`/app/game/${gameId}/status`, {
-            action: 'AIR_HOCKEY_BATTLE_ANSWER',
+            action: 'TENNIS_BATTLE_ANSWER',
             playerName: this.name,
             answerIndex: Math.floor(Math.random() * 4),
           });
-          log(`${this.name}: risposta air hockey (campo ${court.id}, lato ${side})`);
+          log(`${this.name}: risposta tennis (campo ${court.id}, lato ${side})`);
         } catch (error) {
-          log(`${this.name}: air hockey non inviato (${String(error.message).slice(0, 80)})`);
+          log(`${this.name}: tennis non inviato (${String(error.message).slice(0, 80)})`);
         }
       }, delay);
     }

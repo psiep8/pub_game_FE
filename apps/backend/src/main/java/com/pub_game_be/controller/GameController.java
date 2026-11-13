@@ -142,7 +142,7 @@ public class GameController {
 
         String aiPayload;
         if (partyGameService.handles(type)) {
-            // Timeline, Bomba, Speed Rush e Air Hockey Battle non usano la banca
+            // Timeline, Bomba, Speed Rush e Tennis Battle non usano la banca
             // domande: il payload (e lo stato del round) vive nel servizio party.
             aiPayload = partyGameService.startRound(gameId, type, category, act);
             if (aiPayload == null) {

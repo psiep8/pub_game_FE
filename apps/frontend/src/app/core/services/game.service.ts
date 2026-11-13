@@ -13,7 +13,7 @@ export interface GameRoundPayload {
     | 'TIME_BUZZER'
     | 'BOMBA'
     | 'SPEED_RUSH'
-    | 'AIR_HOCKEY_BATTLE';
+    | 'TENNIS_BATTLE';
   options: string[];
   correctAnswer: string;
   imageUrl: string;
@@ -212,14 +212,14 @@ export class GameService {
     return this.http.post<{ results: any[] }>(`${this.baseUrl}/games/${gameId}/basket/finish`, {});
   }
 
-  /** Air Hockey: domande quiz dalla banca, con la difficoltà richiesta. */
-  getAirHockeyQuestions(
+  /** Tennis: domande quiz dalla banca, con la difficoltà richiesta. */
+  getTennisQuestions(
     gameId: number,
     difficulty: string,
     count: number
   ): Observable<Array<{ question: string; options: string[]; correctAnswer: string; difficulty: string }>> {
     return this.http.get<any[]>(
-      `${this.baseUrl}/games/${gameId}/air-hockey/questions?difficulty=${encodeURIComponent(difficulty)}&count=${count}`
+      `${this.baseUrl}/games/${gameId}/tennis/questions?difficulty=${encodeURIComponent(difficulty)}&count=${count}`
     );
   }
 

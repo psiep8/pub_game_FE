@@ -672,56 +672,56 @@
       }
     </div>
     }
-    @case ('AIR_HOCKEY_BATTLE') {
-    <div class="hockey-remote">
-      @if (hockeyGoal(); as goal) {
-      <div class="hockey-goal-overlay" [class.conceded]="!goal.scored">
-        <span class="hockey-goal-kicker">{{ goal.scored ? 'L\'AVVERSARIO HA SBAGLIATO' : 'HAI SBAGLIATO' }}</span>
-        <span class="hockey-goal-word">{{ goal.scored ? 'GOAL FATTO!' : 'GOAL SUBITO' }}</span>
-        <span class="hockey-goal-score">{{ goal.mine }} – {{ goal.opponent }}</span>
-        <span class="hockey-goal-note">{{ goal.scored ? 'Punto per te' : 'Punto per l\'avversario' }}</span>
+    @case ('TENNIS_BATTLE') {
+    <div class="tennis-remote">
+      @if (tennisGoal(); as goal) {
+      <div class="tennis-goal-overlay" [class.conceded]="!goal.scored">
+        <span class="tennis-goal-kicker">{{ goal.scored ? 'L\'AVVERSARIO HA SBAGLIATO' : 'HAI SBAGLIATO' }}</span>
+        <span class="tennis-goal-word">{{ goal.scored ? 'PUNTO!' : 'PUNTO AVVERSARIO' }}</span>
+        <span class="tennis-goal-score">{{ goal.mine }} – {{ goal.opponent }}</span>
+        <span class="tennis-goal-note">{{ goal.scored ? 'Punto per te' : 'Punto per l\'avversario' }}</span>
       </div>
       }
-      <p class="hockey-where">TV: {{ hockeyCorner() }} · campo {{ hockeyCourtIndex() }}/{{ hockeyCourtTotal() }}</p>
-      <div class="hockey-score">
-        <div class="hockey-side" [class.active]="hockeyMyTurn()">
-          <span class="hockey-side-name">{{ nickname() }}</span>
-          <span class="hockey-side-score">{{ hockeyMyScore() }}</span>
+      <p class="tennis-where">TV: {{ tennisCorner() }} · campo {{ tennisCourtIndex() }}/{{ tennisCourtTotal() }}</p>
+      <div class="tennis-score">
+        <div class="tennis-side" [class.active]="tennisMyTurn()">
+          <span class="tennis-side-name">{{ nickname() }}</span>
+          <span class="tennis-side-score">{{ tennisMyScore() }}</span>
         </div>
-        <span class="hockey-vs">VS</span>
-        <div class="hockey-side right" [class.active]="!hockeyMyTurn()">
-          <span class="hockey-side-name">{{ hockeyOpponent() || 'Avversario' }}</span>
-          <span class="hockey-side-score">{{ hockeyOpponentScore() }}</span>
+        <span class="tennis-vs">VS</span>
+        <div class="tennis-side right" [class.active]="!tennisMyTurn()">
+          <span class="tennis-side-name">{{ tennisOpponent() || 'Avversario' }}</span>
+          <span class="tennis-side-score">{{ tennisOpponentScore() }}</span>
         </div>
       </div>
 
-      @if (hockeyMyTurn() && hockeyQuestion(); as q) {
-      <div class="hockey-card">
-        <div class="hockey-head">
-          <span class="hockey-tag">TOCCA A TE</span>
-          <span class="hockey-diff">{{ difficultyLabel(q.difficulty) }}</span>
-          <span class="hockey-clock" [class.hot]="hockeyServeLeft() <= 4">{{ hockeyServeLeft() }}s</span>
+      @if (tennisMyTurn() && tennisQuestion(); as q) {
+      <div class="tennis-card">
+        <div class="tennis-head">
+          <span class="tennis-tag">TOCCA A TE</span>
+          <span class="tennis-diff">{{ difficultyLabel(q.difficulty) }}</span>
+          <span class="tennis-clock" [class.hot]="tennisServeLeft() <= 4">{{ tennisServeLeft() }}s</span>
         </div>
-        <p class="hockey-question">{{ q.text }}</p>
-        <div class="hockey-options">
+        <p class="tennis-question">{{ q.text }}</p>
+        <div class="tennis-options">
           @for (option of q.options; track $index) {
-          <button class="hockey-option" [disabled]="hasAnswered()" (click)="sendHockeyAnswer($index)">
-            <span class="hockey-letter">{{ letter($index) }}</span>{{ option }}
+          <button class="tennis-option" [disabled]="hasAnswered()" (click)="sendTennisAnswer($index)">
+            <span class="tennis-letter">{{ letter($index) }}</span>{{ option }}
           </button>
           }
         </div>
       </div>
       } @else {
-      <div class="hockey-wait">
-        <div class="hockey-wait-icon">🏒</div>
+      <div class="tennis-wait">
+        <div class="tennis-wait-icon" aria-hidden="true"><svg viewBox="0 0 24 48" width="36" height="72"><ellipse cx="12" cy="14" rx="9" ry="12" fill="none" stroke="currentColor" stroke-width="2"/><rect x="10.5" y="25" width="3" height="22" rx="1" fill="currentColor"/></svg></div>
         <h2>PALLA ALL'AVVERSARIO</h2>
-        <p>{{ hockeyOpponent() || 'L\'avversario' }} deve rispondere. Tieni il telefono pronto per rimandarla!</p>
-        <div class="hockey-wait-score">SET {{ hockeyMyScore() }} - {{ hockeyOpponentScore() }}</div>
+        <p>{{ tennisOpponent() || 'L\'avversario' }} deve rispondere. Tieni il telefono pronto per rimandarla!</p>
+        <div class="tennis-wait-score">SET {{ tennisMyScore() }} - {{ tennisOpponentScore() }}</div>
       </div>
       }
 
-      @if (hockeyLastResult()) {
-      <div class="hockey-result">{{ hockeyLastResult() }}</div>
+      @if (tennisLastResult()) {
+      <div class="tennis-result">{{ tennisLastResult() }}</div>
       }
     </div>
     }

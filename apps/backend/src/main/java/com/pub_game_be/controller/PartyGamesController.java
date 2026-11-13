@@ -68,9 +68,9 @@ public class PartyGamesController {
         this.basketService = basketService;
     }
 
-    /** Domande dell'Air Hockey dalla banca, mai scritte nel codice del client. */
-    @GetMapping("/{gameId}/air-hockey/questions")
-    public List<Map<String, Object>> airHockeyQuestions(@PathVariable("gameId") Long gameId,
+    /** Domande dell'Tennis dalla banca, mai scritte nel codice del client. */
+    @GetMapping("/{gameId}/tennis/questions")
+    public List<Map<String, Object>> tennisQuestions(@PathVariable("gameId") Long gameId,
             @RequestParam(name = "difficulty", defaultValue = "MIXED") String difficulty,
             @RequestParam(name = "count", defaultValue = "12") int count) {
         return questionBank.quizBatch(difficulty, Math.max(1, Math.min(30, count)));

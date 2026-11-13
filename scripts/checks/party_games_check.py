@@ -125,8 +125,8 @@ def main():
             )
     print("price superstiti:", [(row["playerName"], row["score"]) for row in survivors])
 
-    # ------------------------------------------- Speed Rush e Air Hockey Battle
-    for game_type in ("SPEED_RUSH", "AIR_HOCKEY_BATTLE"):
+    # ------------------------------------------- Speed Rush e Tennis Battle
+    for game_type in ("SPEED_RUSH", "TENNIS_BATTLE"):
         config = payload_of(
             call(
                 "GET",
