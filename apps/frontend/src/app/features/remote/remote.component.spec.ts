@@ -121,6 +121,48 @@ describe('RemoteComponent', () => {
     expect(reliability.lastError()).toContain('non inviata');
   });
 
+  it('non riabilita gli input finché il server non ha detto in che round siamo', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    let finishSync: () => void = () => {};
+    vi.spyOn(reliability, 'sync').mockReturnValue(
+      new Promise<void>((resolve) => { finishSync = resolve; }),
+    );
+
+    const realign = (component as any).realignWithServer();
+    expect(component.resyncing()).toBe(true);
+    expect(component.inputReady()).toBe(false);
+
+    // Un tap mentre si riallinea non deve produrre una risposta.
+    component.onStartVoting('QUIZ');
+    component.sendVote(1);
+    expect(ws.publishedAnswers).toHaveLength(0);
+
+    finishSync();
+    await realign;
+    expect(component.resyncing()).toBe(false);
+    expect(component.inputReady()).toBe(true);
+  });
+
+  it('dopo il riallineamento a round chiuso torna in attesa, senza pulsanti attivi', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.gameState.set('VOTING' as any);
+
+    reliability.syncState$.next({
+      hasState: true,
+      roundType: 'QUIZ',
+      roundKey: 'g1-r9',
+      roundDeadlineAt: Date.now() - 1_000,
+      currentRound: { type: 'QUIZ', roundKey: 'g1-r9' },
+    });
+    await fixture.whenStable();
+
+    expect(component.gameState()).toBe('WAITING');
+    expect(component.roundActive()).toBe(false);
+    expect(component.hasAnswered()).toBe(false);
+  });
+
   it('should block only the player named in the error', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();

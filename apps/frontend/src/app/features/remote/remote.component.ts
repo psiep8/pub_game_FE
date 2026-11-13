@@ -211,6 +211,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
   paused = signal(false);
   /** Un round è aperto: il manuale non si può aprire e si chiude se era aperto. */
   roundActive = signal(false);
+  /**
+   * Riallineamento dopo il ritorno in primo piano: finché il server non ha
+   * detto in che round siamo, il telefono non riabilita nessun input. Un round
+   * chiuso mentre lo schermo era spento non si può più rispondere.
+   */
+  readonly resyncing = signal(false);
+  /** Input utilizzabili adesso: serve lo stato del server e nessuna pausa. */
+  readonly inputReady = computed(() => !this.resyncing() && !this.paused());
   manualOpen = signal(false);
   manualEntry = signal<ManualEntry | null>(null);
   readonly manualGames = MANUAL_GAMES;
@@ -343,6 +351,35 @@ export class RemoteComponent implements OnInit, OnDestroy {
   @HostListener('window:gestureend', ['$event'])
   onGesture(event: Event) {
     event.preventDefault();
+  }
+
+  /**
+   * Telefono tornato in primo piano (o rete ritrovata): prima si chiede lo
+   * stato al server, poi si riabilita. Mai fidarsi del round rimasto in
+   * memoria: mentre lo schermo era spento il round è potuto finire.
+   */
+  @HostListener('document:visibilitychange')
+  onVisibilityChange(): void {
+    if (!document.hidden) void this.realignWithServer();
+  }
+
+  @HostListener('window:pageshow')
+  @HostListener('window:online')
+  onPageReturned(): void {
+    void this.realignWithServer();
+  }
+
+  private async realignWithServer(): Promise<void> {
+    if (!this.nickname()) return;
+    this.resyncing.set(true);
+    try {
+      await this.reliability.sync();
+      // Sync riuscito: lo stato attuale c'è, anche se è "nessun round".
+      this.resyncing.set(false);
+    } catch {
+      // Server irraggiungibile: si resta su "Riallineamento…" e non si
+      // risponde alla cieca. Il prossimo ritorno in primo piano riprova.
+    }
   }
 
   private audioContext?: AudioContext;
@@ -1101,7 +1138,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   sendVote(index: number) {
-    if (this.paused()) return;
+    if (!this.inputReady()) return;
     const responseTimeMs = Date.now() - this.startTime;
     if (!this.ws.sendAnswer(this.gameId(), this.nickname()!, index, responseTimeMs)) {
       this.reliability.lastError.set('Risposta non inviata: attendi la riconnessione e riprova.');
@@ -1116,7 +1153,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   sendBuzz() {
-    if (this.paused()) return;
+    if (!this.inputReady()) return;
     const time = Date.now() - this.startTime;
     if (!this.ws.sendAnswer(this.gameId(), this.nickname()!, -1, time)) {
       this.reliability.lastError.set('Prenotazione non inviata: attendi la riconnessione e riprova.');
@@ -2059,6 +2096,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
    * schermata giusta senza inventare nulla. Le risposte già date restano date.
    */
   private applyServerSnapshot(snapshot: any): void {
+    // Lo stato del server è arrivato: il riallineamento è finito anche quando
+    // dice che non c'è nessun round aperto.
+    this.resyncing.set(false);
     if (!snapshot || !snapshot.hasState) return;
 
     // Anche chi si ricollega durante la pausa deve ritrovarla attiva.

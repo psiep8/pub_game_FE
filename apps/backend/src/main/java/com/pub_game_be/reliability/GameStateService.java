@@ -463,20 +463,52 @@ public class GameStateService {
 
     // ------------------------------------------------------------------ Interni
 
+    /**
+     * Durata dichiarata di ogni round, in secondi. Sta qui, accanto alla
+     * scadenza che ne deriva, perché la finestra di risposta è una regola di
+     * gioco e non una proprietà globale uguale per tutti.
+     */
+    private static final Map<String, Integer> ROUND_SECONDS = Map.ofEntries(
+            Map.entry("QUIZ", 3 * (10 + 3)),
+            Map.entry("MUSIC", 200),
+            Map.entry("IMAGE_BLUR", 60),
+            Map.entry("WHEEL_OF_FORTUNE", 75),
+            Map.entry("TIMELINE", 45),
+            Map.entry("TIME_BUZZER", 3 * (30 + 5)),
+            Map.entry("BOMBA", 105),
+            Map.entry("SPEED_RUSH", 60),
+            Map.entry("AIR_HOCKEY_BATTLE", 300),
+            Map.entry("ARENA", 130),
+            Map.entry("AZZARDO", 4 * (15 + 7) + 5),
+            Map.entry("ULTIMA_SPIAGGIA", 5 * (12 + 15 + 5)));
+
+    /** Rete, reveal e pause fra una manche e l'altra. */
+    private static final int ROUND_TOLERANCE_SECONDS = 30;
+
+    /**
+     * La scadenza è quella del gioco: durata del round più una tolleranza.
+     *
+     * <p>Prima valeva {@code answer_window_seconds} per tutti (300 s): un
+     * round da 30 secondi restava "aperto" per cinque minuti, quindi un
+     * telefono riaperto poteva rispondere a un round già chiuso. La proprietà
+     * resta il tetto globale e il modo per spegnere la finestra nei test.</p>
+     */
     private int windowSecondsFor(String type) {
         if (type == null) {
             return props.getAnswerWindowSeconds();
         }
-        return switch (type.toUpperCase(Locale.ROOT)) {
-            case "BOMBA" -> Math.min(props.getAnswerWindowSeconds(), 105);
-            case "SPEED_RUSH" -> Math.min(props.getAnswerWindowSeconds(), 75);
-            case "TIME_BUZZER" -> Math.min(props.getAnswerWindowSeconds(), 60);
-            // Tre giri su tutti i tavoli: il round deve restare aperto per
-            // l'intera partita, altrimenti dopo un refresh lo snapshot risulta
-            // scaduto e il telefono non ritrova il Black Jack.
-            case "BLACKJACK" -> 900;
-            default -> props.getAnswerWindowSeconds();
-        };
+        String key = type.toUpperCase(Locale.ROOT);
+        // Tre giri su tutti i tavoli: il round deve restare aperto per
+        // l'intera partita, altrimenti dopo un refresh lo snapshot risulta
+        // scaduto e il telefono non ritrova il Black Jack.
+        if ("BLACKJACK".equals(key)) {
+            return 900;
+        }
+        Integer seconds = ROUND_SECONDS.get(key);
+        if (seconds == null) {
+            return props.getAnswerWindowSeconds();
+        }
+        return Math.min(props.getAnswerWindowSeconds(), seconds + ROUND_TOLERANCE_SECONDS);
     }
 
     private GameStateEntity newState(long gameId) {

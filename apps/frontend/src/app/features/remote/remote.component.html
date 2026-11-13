@@ -186,7 +186,13 @@
       </div>
     </div>
   </div>
-  <div class="game-content">
+  <div class="game-content" [class.resyncing]="resyncing()">
+    @if (resyncing()) {
+    <div class="resync-veil" role="status" aria-live="polite">
+      <span class="resync-title">Riallineamento…</span>
+      <span class="resync-hint">Aspetta la TV: tra un attimo sappiamo se puoi ancora rispondere.</span>
+    </div>
+    }
     @if (reliability.lastError(); as error) { <p role="alert">{{ error }}</p> }
     @switch (gameState()) {
     @case ('WAITING') {
@@ -207,10 +213,10 @@
     } @else {
     <div class="game-head"><span class="game-tag quiz">QUIZ</span><span class="game-tip">Scegli la risposta</span></div>
     <div class="voting-grid quiz-grid">
-      <button (click)="sendVote(0)" class="vote-btn btn-a"><span class="vote-letter">A</span><span class="vote-shape">▲</span></button>
-      <button (click)="sendVote(1)" class="vote-btn btn-b"><span class="vote-letter">B</span><span class="vote-shape">◆</span></button>
-      <button (click)="sendVote(2)" class="vote-btn btn-c"><span class="vote-letter">C</span><span class="vote-shape">●</span></button>
-      <button (click)="sendVote(3)" class="vote-btn btn-d"><span class="vote-letter">D</span><span class="vote-shape">■</span></button>
+      <button (click)="sendVote(0)" class="vote-btn btn-a" [disabled]="!inputReady()"><span class="vote-letter">A</span><span class="vote-shape">▲</span></button>
+      <button (click)="sendVote(1)" class="vote-btn btn-b" [disabled]="!inputReady()"><span class="vote-letter">B</span><span class="vote-shape">◆</span></button>
+      <button (click)="sendVote(2)" class="vote-btn btn-c" [disabled]="!inputReady()"><span class="vote-letter">C</span><span class="vote-shape">●</span></button>
+      <button (click)="sendVote(3)" class="vote-btn btn-d" [disabled]="!inputReady()"><span class="vote-letter">D</span><span class="vote-shape">■</span></button>
     </div>
     }
     }
@@ -684,7 +690,7 @@
     }
     @case ('IMAGE_BLUR') {
     <div class="buzz-container">
-      <button class="buzz-button" (click)="sendBuzz()" [disabled]="hasAnswered()">
+      <button class="buzz-button" (click)="sendBuzz()" [disabled]="hasAnswered() || !inputReady()">
         <span class="buzz-icon">🔔</span>
         <span class="buzz-text">PRENOTATI!</span>
       </button>
@@ -692,7 +698,7 @@
     }
     @case ('WHEEL_OF_FORTUNE') {
     <div class="buzz-container">
-      <button class="buzz-button wheel-theme" (click)="sendBuzz()" [disabled]="hasAnswered()">
+      <button class="buzz-button wheel-theme" (click)="sendBuzz()" [disabled]="hasAnswered() || !inputReady()">
         <span class="buzz-icon">🎡</span>
         <span class="buzz-text">PRENOTA E RISPONDI!</span>
       </button>
@@ -700,7 +706,7 @@
     }
     @case ('MUSIC') {
     <div class="buzz-container">
-      <button class="buzz-button music-theme" (click)="sendBuzz()" [disabled]="hasAnswered()">
+      <button class="buzz-button music-theme" (click)="sendBuzz()" [disabled]="hasAnswered() || !inputReady()">
         <span class="buzz-icon">🎶</span>
         <span class="buzz-text">PRENOTA E RISPONDI!</span>
       </button>
