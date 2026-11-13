@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { formatPoints } from '../../../shared/models/points-format';
 
 /**
  * TV della Timeline. Al reveal mostra l'asse degli anni e spiega il punteggio:
@@ -61,7 +62,7 @@ import { CommonModule } from '@angular/common';
               <span class="tl-name">{{ r.playerName }}</span>
               <span class="tl-pairs">{{ r.correctPairs }}/{{ r.totalPairs }} posizioni</span>
               <span class="tl-bar"><i [style.width.%]="r.totalPairs ? (r.correctPairs / r.totalPairs) * 100 : 0"></i></span>
-              <span class="tl-score">+{{ r.score }}</span>
+              <span class="tl-score">{{ formatPoints(r.score) }}</span>
             </div>
           } @empty {
             <div class="tl-empty">Nessuna squadra ha risposto in tempo</div>
@@ -94,12 +95,13 @@ import { CommonModule } from '@angular/common';
     .tl-explain { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--ink-dim); font-family: var(--font-mono); font-size: clamp(.56rem, .8vw, .72rem); text-align: center; }
     .tl-explain span:first-child { color: var(--acid); font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
     .tl-results { width: min(1000px, 92vw); flex: 0 0 auto; max-height: 40vh; overflow-y: auto; display: flex; flex-direction: column; gap: 7px; }
-    .tl-result { display: grid; grid-template-columns: minmax(90px, 1fr) auto minmax(80px, 220px) auto; gap: clamp(8px, 1.2vw, 18px); align-items: center; padding: clamp(6px, 1vh, 10px) clamp(10px, 1.4vw, 18px); background: var(--paper-hi); color: var(--coal); border: 2px solid var(--coal); border-radius: 0; box-shadow: 4px 4px 0 var(--tomato); font-size: clamp(.72rem, .98vw, .92rem); }
+    .tl-result { display: grid; grid-template-columns: minmax(90px, 1fr) auto minmax(80px, 220px) minmax(72px, auto); gap: clamp(8px, 1.2vw, 18px); align-items: center; padding: clamp(6px, 1vh, 10px) clamp(10px, 1.4vw, 18px); background: var(--paper-hi); color: var(--coal); border: 2px solid var(--coal); border-radius: 0; box-shadow: 4px 4px 0 var(--tomato); font-size: clamp(.72rem, .98vw, .92rem); }
     .tl-name { font-weight: 800; }
     .tl-pairs { color: rgba(21, 21, 15, .6); font-family: var(--font-mono); font-size: .9em; white-space: nowrap; }
     .tl-bar { height: 7px; overflow: hidden; background: rgba(21, 21, 15, .16); border: 1px solid var(--coal); }
     .tl-bar i { display: block; height: 100%; background: var(--tomato); }
-    .tl-score { color: var(--coal); font-family: var(--font-mono); font-weight: 700; }
+    /* La colonna del punteggio non taglia mai il numero: “−200” si legge intero. */
+    .tl-score { color: var(--coal); font-family: var(--font-mono); font-weight: 700; min-width: 72px; white-space: nowrap; text-align: right; overflow: visible; }
     .tl-empty { color: var(--ink-dim); font-family: var(--font-mono); text-align: center; }
     @media (max-width: 700px) { .tl-result { grid-template-columns: 1fr auto; } .tl-bar, .tl-pairs { display: none; } }
   `]
@@ -107,6 +109,7 @@ import { CommonModule } from '@angular/common';
 export class Timeline {
   @Input() displayData: any;
   @Input() timer = 0;
+  readonly formatPoints = formatPoints;
 
   totalPairs(): number {
     return Number(this.displayData?.count) || 0;
