@@ -6,7 +6,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import com.pub_game_be.reliability.DeviceSessionService;
+import com.pub_game_be.reliability.GameStateService;
 import com.pub_game_be.reliability.domain.DeviceSessionEntity;
+import org.junit.jupiter.api.BeforeEach;
 import java.util.HashMap;
 import java.util.Optional;
 import static org.mockito.Mockito.*;
@@ -21,8 +23,24 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class GameWebSocketControllerTest {
 
+    private final GameStateService gameState = mock(GameStateService.class);
     private final GameWebSocketController controller = new GameWebSocketController(
-            mock(org.springframework.messaging.simp.SimpMessagingTemplate.class));
+            mock(org.springframework.messaging.simp.SimpMessagingTemplate.class), gameState);
+
+    @BeforeEach
+    void roundAperto() {
+        when(gameState.isRoundOpen(anyLong())).thenReturn(true);
+    }
+
+    @Test
+    void nonRilanciaUnaPrenotazioneDopoLaScadenza() {
+        when(gameState.isRoundOpen(7L)).thenReturn(false);
+
+        Map<String, Object> result = controller.updateStatus(7L, Map.of(
+                "action", "PLAYER_PRENOTATO", "name", "Anna", "type", "IMAGE_BLUR"));
+
+        assertThat(result).isNull();
+    }
 
     @Test
     void clientsCannotPublishDirectlyToBrokerButCanSubscribe() {

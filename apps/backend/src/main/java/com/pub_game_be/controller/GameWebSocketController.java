@@ -6,6 +6,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.AccessDeniedException;
+import com.pub_game_be.reliability.GameStateService;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -19,9 +20,11 @@ import java.util.Set;
 public class GameWebSocketController {
 
     private final SimpMessagingTemplate messaging;
+    private final GameStateService gameStateService;
 
-    public GameWebSocketController(SimpMessagingTemplate messaging) {
+    public GameWebSocketController(SimpMessagingTemplate messaging, GameStateService gameStateService) {
         this.messaging = messaging;
+        this.gameStateService = gameStateService;
     }
 
     /**
@@ -52,6 +55,16 @@ public class GameWebSocketController {
         // Gli esiti Arena sono prodotti solo dal controller REST, non dai client.
         if ("ARENA_ANSWER".equals(status.get("action"))) {
             throw new AccessDeniedException("Risultato Arena riservato al server");
+        }
+        // Prenotazione dopo la scadenza: non si rilancia alla TV. Ai telefoni
+        // arriva il round chiuso, così il pulsante sparisce anche se il client
+        // era rimasto su una schermata vecchia.
+        if ("PLAYER_PRENOTATO".equals(status.get("action")) && !gameStateService.isRoundOpen(gameId)) {
+            Map<String, Object> closed = new LinkedHashMap<>();
+            closed.put("action", "ROUND_ENDED");
+            closed.put("reason", "round-closed");
+            messaging.convertAndSend("/topic/game/" + gameId + "/status", (Object) closed);
+            return null;
         }
         if ("ADMIN_STATE".equals(status.get("action"))) {
             messaging.convertAndSend("/topic/game/" + gameId + "/admin", (Object) status);
