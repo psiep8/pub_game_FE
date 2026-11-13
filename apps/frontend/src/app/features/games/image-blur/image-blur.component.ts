@@ -20,6 +20,8 @@ import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
 export class ImageBlur {
   @Input() displayData: any;
   @Input() timer: number = 0;
+  /** Spegne il cerchio del timer al reveal: la soluzione è svelata, il tempo no. */
+  @Input() timerVisible = true;
 
   @Output() onConfirmCorrect = new EventEmitter<void>();
   @Output() onConfirmWrong = new EventEmitter<void>();

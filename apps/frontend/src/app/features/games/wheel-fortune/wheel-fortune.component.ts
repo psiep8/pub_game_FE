@@ -23,6 +23,8 @@ import {trigger, transition, style, animate} from '@angular/animations';
 export class WheelFortune {
   @Input() displayData: any;
   @Input() timer: number = 0;
+  /** Spegne il cerchio del timer al reveal: la soluzione è svelata, il tempo no. */
+  @Input() timerVisible = true;
 
   @Output() onConfirmCorrect = new EventEmitter<void>();
   @Output() onConfirmWrong = new EventEmitter<void>();

@@ -22,11 +22,13 @@
     }
   </div>
 
-  <div class="timer-dot-container">
-    <div class="timer-circle">
-      <span class="timer-value">{{ timer }}s</span>
+  @if (timerVisible) {
+    <div class="timer-dot-container">
+      <div class="timer-circle">
+        <span class="timer-value">{{ timer }}s</span>
+      </div>
     </div>
-  </div>
+  }
 
   @if (displayData.buzzedPlayer) {
 

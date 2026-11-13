@@ -190,7 +190,7 @@
   }
 
 
-  @if (mode.requiresBubbles && mode.type !== 'ULTIMA_SPIAGGIA' && mode.type !== 'TIMELINE') {
+  @if (mode.requiresBubbles && mode.type !== 'ULTIMA_SPIAGGIA' && mode.type !== 'TIMELINE' && timerVisible()) {
   <div class="timer-wrapper">
     <div class="timer-bar" [style.width.%]="(timer() / mode.timerDuration) * 100"></div>
     <span class="timer-text">{{ timer() }}s</span>
@@ -204,16 +204,16 @@
   <app-quiz [displayData]="getSafeDisplayData()" [timer]="timer()" [safeOptions]="getSafeDisplayData().options" />
   }
   @case ('IMAGE_BLUR') {
-  <app-image-blur [displayData]="getSafeDisplayData()" [timer]="timer()" (onConfirmCorrect)="confirmCorrect()"
-    (onConfirmWrong)="confirmWrong()" />
+  <app-image-blur [displayData]="getSafeDisplayData()" [timer]="timer()" [timerVisible]="timerVisible()"
+    (onConfirmCorrect)="confirmCorrect()" (onConfirmWrong)="confirmWrong()" />
   }
   @case ('WHEEL_OF_FORTUNE') {
-  <app-wheel-fortune [displayData]="getSafeDisplayData()" [timer]="timer()" (onConfirmCorrect)="confirmCorrect()"
-    (onConfirmWrong)="confirmWrong()" />
+  <app-wheel-fortune [displayData]="getSafeDisplayData()" [timer]="timer()" [timerVisible]="timerVisible()"
+    (onConfirmCorrect)="confirmCorrect()" (onConfirmWrong)="confirmWrong()" />
   }
   @case ('MUSIC') {
-  <app-song [displayData]="getSafeDisplayData()" [timer]="timer()" (onConfirmCorrect)="confirmCorrect()"
-    (onConfirmWrong)="confirmWrong()" />
+  <app-song [displayData]="getSafeDisplayData()" [timer]="timer()" [timerVisible]="timerVisible()"
+    (onConfirmCorrect)="confirmCorrect()" (onConfirmWrong)="confirmWrong()" />
   }
   @case ('ARENA') {
   <app-arena [displayData]="getSafeDisplayData()" [timer]="timer()">

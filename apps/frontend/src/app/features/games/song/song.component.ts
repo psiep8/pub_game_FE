@@ -23,6 +23,8 @@ import { AudioService } from '../../../core/services/audio.service';
 export class Song implements OnInit, OnDestroy, OnChanges {
   @Input() displayData: any;
   @Input() timer: number = 0;
+  /** Spegne il cerchio del timer al reveal: la soluzione è svelata, il tempo no. */
+  @Input() timerVisible = true;
 
   @Output() onConfirmCorrect = new EventEmitter<void>();
   @Output() onConfirmWrong = new EventEmitter<void>();

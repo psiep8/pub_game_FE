@@ -208,6 +208,18 @@ export class GameComponent implements OnInit, OnDestroy {
     return this.allCategories().find((cat) => cat.id === id)?.name ?? '';
   });
 
+  /**
+   * Il timer si vede solo mentre si può ancora rispondere. A soluzione svelata
+   * (o a tempo scaduto) la cifra sparisce: resta la soluzione, non il conto
+   * alla rovescia. Vale per la barra della TV e per i cerchi dei giochi.
+   */
+  readonly timerVisible = computed(() => {
+    if (this.revealPending()) return false;
+    const mode = this.currentMode();
+    if (mode && typeof mode.isRevealed === 'function' && mode.isRevealed()) return false;
+    return this.round()?.status !== GamePhase.REVEAL;
+  });
+
   /** Nomi del rullo che si ferma sulla categoria estratta. */
   slotNames = computed(() => {
     const categories = this.allCategories();

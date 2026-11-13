@@ -28,6 +28,16 @@ describe('ImageBlur', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should show the countdown while the answer is open and hide it at the reveal', async () => {
+    expect(fixture.nativeElement.querySelector('.timer-circle')).not.toBeNull();
+
+    fixture.componentRef.setInput('timerVisible', false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('.timer-circle')).toBeNull();
+  });
+
   it('should return an empty string when there is no image', () => {
     expect(component.getSafeUrl(null)).toBe('');
     expect(component.getSafeUrl(undefined)).toBe('');
