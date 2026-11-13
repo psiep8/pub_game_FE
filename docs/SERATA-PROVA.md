@@ -47,7 +47,9 @@ prove di caduta, senza togliere il telefono a una squadra.
 
 ```bash
 # 1. Configurazione di serata
-cp .env.test-night.example .env
+#    Se .env esiste già NON copiarlo sopra: si perdono chiavi e segreto.
+#    Aggiungi solo le voci che mancano, prendendole da .env.test-night.example.
+grep -E '^(CONTROL_SECRET|ALLOWED_ORIGINS|HOST)=' .env
 #    CONTROL_SECRET: almeno 32 caratteri casuali (es. openssl rand -hex 24)
 #    ALLOWED_ORIGINS: localhost + IP LAN del PC, separati da virgola
 #    HOST=0.0.0.0
@@ -65,6 +67,12 @@ telefoni. Il QR sulla TV nasce da quell'indirizzo.
 
 ### 3.2 Controlli a freddo (20 minuti)
 
+- [ ] `.env` ha `CONTROL_SECRET` di almeno 32 caratteri: senza, regia e TV non
+      si accoppiano.
+- [ ] `ALLOWED_ORIGINS` in `.env` contiene l'IP LAN stampato da `npm run dev`:
+      senza, i telefoni vengono respinti e funziona solo il PC.
+- [ ] `npm run dev` trova il JDK (lo dice nella prima riga: `JDK: .tools/jdk-…`)
+      e non stampa `JAVA_HOME environment variable is not defined correctly`.
 - [ ] `curl http://localhost:8080/health` risponde `{"status":"ok"}`.
 - [ ] TV a `/tv`: si vede il QR, si sentono il tappeto del pub e il battito.
 - [ ] `/admin`: entra solo col segreto; apertura lobby, primo round, pausa.
@@ -138,13 +146,58 @@ regia, senza fretta.
 | A | Ingresso + lobby | 10' | QR, nomi, doppioni, avatar |
 | B | Atto 1: 8 round | 40' | tutti i giochi "di sapere", classifica rapida e dettagliata |
 | C | Bonus Casino | 10' | risultati bonus, audio roulette, classifica bonus |
-| D | 2 round scelti (Time Buzzer + Bomba) | 12' | riflessi, turni, tagli |
+| D | Regole nuove: Bomba, Azzardo, Speed Rush, Air Hockey (§5.1) | 25' | turni, fiches, corsia, traiettorie |
 | E | Prova di caduta su un round | 10' | §6 |
 | F | Chiusura: classifica finale | 5' | podio, fanfara |
 | G | Debrief con i tavoli | 10' | cosa non si capiva |
 
 Se il tempo stringe: A, B (round 1–4), C, E, F. Le prove di caduta valgono più
 di due round in più.
+
+### 5.1 Regole nuove — controlli della prova
+
+Le regole cambiate dopo l'ultima stesura del documento. Da fare una volta sola,
+con l'osservatore che cronometra: sono i punti in cui la simulazione non può
+dire niente.
+
+| Gioco | Cosa fare | Cosa deve succedere | Cosa annotare |
+|---|---|---|---|
+| **Bomba** | Due ondate con 6–8 squadre | Il tabellone resta coperto per tutta l'ondata e mostra solo chi ha scelto cosa; alla chiusura si scoprono insieme bombe, FUORI e −200. Chi non sceglie entro il turno è eliminato con −200 e non rigioca | Secondi reali per scegliere; se 20 s sono pochi con dieci tavoli |
+| **Azzardo** | Due manche di fila | Il salvadanaio cresce (17 fiches → 13 giocabili), la puntata parte solo con CONFERMA PUNTATA e almeno una fiche, la riga «max 1000 a manche» si legge a 390px. Un tavolo prova a mettere 11 fiches e non deve poterlo fare | Se il tetto che cresce si capisce senza spiegazione |
+| **Speed Rush** | Sessanta secondi pieni | Nessuna prova ripetuta, difficoltà che sale con l'avanzamento, badge ×2 dopo sei risposte di fila | Quante risposte fa il tavolo più veloce: sotto ~20 il traguardo da 25 è troppo alto |
+| **Air Hockey** | Quattro o cinque campi insieme | Dal fondo si distinguono le traiettorie (dritto, zig-zag, a giro, a salto) e si legge la fascia FACILE/MEDIA/DIFFICILE | Se il tiro a giro sembra un glitch |
+| **Time Buzzer** | Una manche | Il bersaglio non supera mai i 20 secondi | Se qualcuno prova ad aspettare e perde |
+| **Canzone** | Un round intero | Quattro manche da 30 secondi con distorsioni diverse, punteggio proporzionale ai secondi rimasti | Se le manche 2 e 3 si sentono diverse o solo rovinate |
+
+Cinque minuti in più, se il tempo tiene: **Indovina chi** (round da 60 s,
+indizio ogni 15) e **Timeline** (45 s, punteggi con un solo segno: mai «+-200»).
+
+#### Due cose da non fare
+
+- **Non ricaricare la TV durante l'Azzardo.** Saldo fiches, tetto e manche in
+  corso vivono nella memoria della TV: un refresh a metà manche li perde. Bomba
+  e Speed Rush hanno uno stato sul server, l'Azzardo no. Se succede, annota cosa
+  hanno visto i tavoli: è la prova che serve uno snapshot server.
+- **Non cambiare le regole a caldo.** Se i turni della Bomba sembrano corti, il
+  backend accetta `PUBGAME_BOMBA_TURN_SECONDS=25` senza toccare il codice. Tutto
+  il resto si annota e si decide con i log davanti.
+
+#### Foglio dell'osservatore
+
+| Gioco | Esito (ok / rotto / confuso) | Secondi reali | Chi ha protestato | Nota |
+|---|---|---|---|---|
+| Bomba |  |  |  |  |
+| Azzardo |  |  |  |  |
+| Speed Rush |  |  |  |  |
+| Air Hockey |  |  |  |  |
+| Time Buzzer |  |  |  |  |
+| Canzone |  |  |  |  |
+
+Tre domande ai tavoli a fine serata, perché valgono più dei bug:
+
+1. «Il tabellone coperto della Bomba tiene la suspence o annoia?»
+2. «Il tetto delle fiches si capisce o sembra un limite arbitrario?»
+3. «Le traiettorie del disco si vedono o sono rumore?»
 
 ---
 
@@ -164,6 +217,10 @@ Da fare **una alla volta**, con l'osservatore che cronometra.
 | 8 | Backend riavviato | riavvia il backend a metà round | la TV mostra lo stato recuperato; i telefoni si riconnettono |
 
 Annota per ogni prova: **esito, secondi di recupero, cosa ha visto il tavolo**.
+
+La prova 4 (refresh della TV) **non va fatta durante l'Azzardo**: lo stato della
+manche vive lì, e il refresh brucerebbe il salvadanaio invece di misurare il
+recupero. Fallo su Timeline o su Bomba.
 
 ---
 
@@ -212,5 +269,7 @@ I log da guardare: console del browser TV (`F12`), terminale di `npm run dev`,
 - 40 round e i confini degli atti 3–5 (durata, memoria, crescita del DB).
 - Classifiche con suspense (rullo, blackout) — non sono ancora implementate.
 - Ripresa completa della TV per ogni gioco (oggi Timeline e Blackjack).
+- Ripresa dell'Azzardo dopo un refresh della TV: lo stato della manche vive
+  sulla TV, non sul server.
 - Abbinamento admin: il codice a 6 cifre della TV vale 5 minuti e una volta sola;
   il segreto da 32 caratteri serve solo sulla TV per generarlo.
