@@ -6,7 +6,7 @@ describe('ImageBlurMode', () => {
     vi.useRealTimers();
   });
 
-  it('svela un indizio ogni dieci secondi', async () => {
+  it('svela un indizio ogni quindici secondi', async () => {
     vi.useFakeTimers();
 
     const mode = new ImageBlurMode();
@@ -29,12 +29,18 @@ describe('ImageBlurMode', () => {
     expect(first.clueIndex).toBe(1);
     expect(first.clueTotal).toBe(3);
 
-    await vi.advanceTimersByTimeAsync(10000);
+    await vi.advanceTimersByTimeAsync(15000);
     expect(mode.getDisplayData().clue).toBe('premio Oscar');
 
-    await vi.advanceTimersByTimeAsync(10000);
+    await vi.advanceTimersByTimeAsync(15000);
     expect(mode.getDisplayData().clue).toBe('nata a Roma');
 
     mode.cleanup();
+  });
+
+  it('dura sessanta secondi, non trenta', () => {
+    const mode = new ImageBlurMode();
+
+    expect(mode.timerDuration).toBe(60);
   });
 });

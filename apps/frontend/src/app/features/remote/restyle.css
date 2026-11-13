@@ -951,14 +951,15 @@
 .voting-grid.quiz-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: repeat(2, minmax(104px, 24vh));
+  /* I quattro tasti si dividono tutta l'altezza utile: nessuno spazio vuoto
+     sotto le risposte, e nessun tasto schiacciato su schermi bassi. */
+  grid-template-rows: repeat(2, minmax(92px, 1fr));
   gap: 12px;
   padding: 0 12px 16px;
   min-height: 0;
-  /* I tasti restano in basso, alla portata del pollice. */
   flex: 1 1 auto;
   margin-top: auto;
-  align-content: end;
+  align-content: stretch;
 }
 
 /* Quiz: carta e inchiostro, niente raggi né gradienti. */

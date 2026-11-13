@@ -9,9 +9,11 @@ import { environment } from '../../../core/environment/environment';
  * Gli anni non stanno nel payload (i telefoni lo ricevono): la soluzione resta
  * sul server e arriva alla TV solo al reveal.
  */
+import { GAME_TIMINGS } from '../../../shared/models/game-timings';
+
 export class TimelineMode extends GameModeBase {
   readonly type: GameModeType = 'TIMELINE';
-  readonly timerDuration = 45;
+  readonly timerDuration = GAME_TIMINGS.TIMELINE.seconds;
   readonly requiresBubbles = true;
   readonly requiresBuzz = false;
 

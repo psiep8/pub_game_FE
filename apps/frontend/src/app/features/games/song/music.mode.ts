@@ -1,6 +1,15 @@
 import {GameModeBase} from '../../../shared/models/game-mode-base.class';
 import {GameModeResult, GameModeType} from '../../../shared/models/game-mode-type';
+import {GAME_TIMINGS} from '../../../shared/models/game-timings';
 import {signal} from '@angular/core';
+
+/** Quattro manche da trenta secondi: il timer è della manche, non del round. */
+const MANCHES = GAME_TIMINGS.MUSIC.manches;
+const MANCHE_SECONDS = GAME_TIMINGS.MUSIC.mancheSeconds;
+/** Punti del brano: valore pieno con tutta la manche davanti. */
+const FULL_POINTS = 1000;
+/** Anche all'ultimo secondo una risposta giusta paga: non si resta a zero. */
+const MIN_CORRECT_POINTS = 250;
 
 export class MusicMode extends GameModeBase {
   protected override onAnswer(playerName: string, answer: any, result: any): void {
@@ -8,12 +17,13 @@ export class MusicMode extends GameModeBase {
   }
 
   readonly type: GameModeType = 'MUSIC';
-  readonly timerDuration = 200;
+  readonly timerDuration = MANCHE_SECONDS;
   readonly requiresBubbles = false;
   readonly requiresBuzz = true;
 
   private currentManche = 0;
   private mancheTimer: any;
+  private mancheCountdown?: ReturnType<typeof setInterval>;
   private audioPlaying = false;
   private fullPlayback = signal(false);
   private revealIntro = false;
@@ -30,17 +40,14 @@ export class MusicMode extends GameModeBase {
   }
 
   protected async onStart(): Promise<void> {
-    
-
-    
-    await this.runPreGameSequence(10000);
-
-    
+    // Il conto alla rovescia è quello della manche: parte da 30 secondi e si
+    // riazzera a ogni ascolto, non un unico conto da 200 per tutto il round.
+    this.isActive.set(true);
     this.startManche(1);
   }
 
   private startManche(mancheNumber: number) {
-    if (mancheNumber > 4) {
+    if (mancheNumber > MANCHES) {
       
       this.onTimeout();
       return;
@@ -50,6 +57,9 @@ export class MusicMode extends GameModeBase {
     this.revealIntro = false;
     this.fullPlayback.set(false);
     this.waitingForStart.set(false);
+    this.timer.set(MANCHE_SECONDS);
+    this.config.onTimerTick?.(MANCHE_SECONDS);
+    this.startMancheCountdown();
     this.playAudio();
 
     // Fine dell'ascolto: la traccia si ferma, si vede la pausa e dopo 10
@@ -71,7 +81,7 @@ export class MusicMode extends GameModeBase {
   nextManche(): void {
     if (this.buzzedPlayer() || this.revealed()) return;
 
-    if (this.currentManche >= 4) {
+    if (this.currentManche >= MANCHES) {
       void this.onTimeout();
       return;
     }
@@ -94,6 +104,7 @@ export class MusicMode extends GameModeBase {
   protected onResume(): void {
     if (this.currentManche > 0) {
       this.playAudio();
+      this.startMancheCountdown();
     }
   }
 
@@ -139,7 +150,7 @@ export class MusicMode extends GameModeBase {
     if (this.introTimer) clearTimeout(this.introTimer);
     this.introTimer = setTimeout(() => {
       this.revealIntro = false;
-      this.currentManche = 4;
+      this.currentManche = MANCHES;
       this.fullPlayback.set(true);
       this.playAudio();
     }, 4000);
@@ -161,9 +172,29 @@ export class MusicMode extends GameModeBase {
     return {isCorrect: false, points: 0, timeMs};
   }
 
-  /** Il brano vale sempre lo stesso: 1000 punti, in qualunque manche. */
-  protected calculatePoints(isCorrect: boolean, elapsedMs: number): number {
-    return isCorrect ? 1000 : -1000;
+  /** Il brano vale in proporzione ai secondi rimasti: minimo garantito 250. */
+  protected calculatePoints(isCorrect: boolean, _elapsedMs: number): number {
+    if (!isCorrect) return -FULL_POINTS;
+    const secondsLeft = Math.max(0, Math.min(MANCHE_SECONDS, this.timer()));
+    return Math.max(
+      MIN_CORRECT_POINTS,
+      Math.round((FULL_POINTS / MANCHE_SECONDS) * secondsLeft)
+    );
+  }
+
+  private startMancheCountdown(): void {
+    this.stopMancheCountdown();
+    this.mancheCountdown = setInterval(() => {
+      if (this.isPaused() || this.buzzedPlayer() || this.revealed()) return;
+      const next = Math.max(0, this.timer() - 1);
+      this.timer.set(next);
+      this.config.onTimerTick?.(next);
+    }, 1000);
+  }
+
+  private stopMancheCountdown(): void {
+    if (this.mancheCountdown) clearInterval(this.mancheCountdown);
+    this.mancheCountdown = undefined;
   }
 
   private playAudio(): void {
@@ -177,6 +208,7 @@ export class MusicMode extends GameModeBase {
   }
 
   private stopAllTimers(): void {
+    this.stopMancheCountdown();
     if (this.introTimer) {
       clearTimeout(this.introTimer);
       this.introTimer = undefined;
@@ -196,7 +228,8 @@ export class MusicMode extends GameModeBase {
       albumCover: this.payload.albumCover,
 
       currentPhase: this.revealIntro ? 1 : this.currentManche,
-      totalPhases: 4,
+      totalPhases: MANCHES,
+      mancheSeconds: MANCHE_SECONDS,
       audioPlaying: this.audioPlaying,
       fullPlayback: this.fullPlayback(),
       buzzedPlayer: this.buzzedPlayer(),

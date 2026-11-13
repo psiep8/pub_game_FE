@@ -31,10 +31,10 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     note: 'L’immagine si schiarisce con il tempo: prima si prenota, più punti vale.',
   },
   MUSIC: {
-    correct: '+1000',
+    correct: 'fino a +1000 in base ai secondi rimasti (minimo 250)',
     wrong: '−1000',
     missed: '0 (nessun malus)',
-    note: 'Il brano vale sempre uguale; dopo la prenotazione si riascolta intero a volume pieno.',
+    note: 'Quattro manche da 30 secondi: la risposta vale 1000 diviso 30 per i secondi che restano, mai sotto 250. Dopo la prenotazione il brano riascolta intero a volume pieno.',
   },
   WHEEL_OF_FORTUNE: {
     correct: '+1000 × tempo rimasto',

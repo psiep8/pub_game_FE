@@ -12,8 +12,10 @@ interface QuizManche {
   maxPoints: number;
 }
 
-const MANCHES = 3;
-const MANCHE_SECONDS = 10;
+import { GAME_TIMINGS } from '../../../shared/models/game-timings';
+
+const MANCHES = GAME_TIMINGS.QUIZ.manches;
+const MANCHE_SECONDS = GAME_TIMINGS.QUIZ.mancheSeconds;
 const REVEAL_SECONDS = 3;
 
 /**

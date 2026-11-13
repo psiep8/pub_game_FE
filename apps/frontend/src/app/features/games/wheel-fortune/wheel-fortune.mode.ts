@@ -2,13 +2,14 @@ import { signal } from '@angular/core';
 import { GameModeBase } from '../../../shared/models/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../../../shared/models/game-mode-type';
 import { buildLetterOrder, isPlayableLetter } from './wheel-letter-deck';
+import { GAME_TIMINGS } from '../../../shared/models/game-timings';
 
 const FIRST_REVEAL_MS = 1000;
 const REVEAL_EVERY_MS = 8000;
 
 export class WheelOfFortuneMode extends GameModeBase {
   readonly type: GameModeType = 'WHEEL_OF_FORTUNE';
-  readonly timerDuration = 75;
+  readonly timerDuration = GAME_TIMINGS.WHEEL_OF_FORTUNE.seconds;
   readonly requiresBubbles = false;
   readonly requiresBuzz = true;
 

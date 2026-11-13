@@ -2,11 +2,13 @@
 
 import {signal} from '@angular/core';
 import {GameModeBase} from '../../../shared/models/game-mode-base.class';
+import {GAME_TIMINGS} from '../../../shared/models/game-timings';
 import {GameModeResult, GameModeType} from '../../../shared/models/game-mode-type';
 
 export class ImageBlurMode extends GameModeBase {
   readonly type: GameModeType = 'IMAGE_BLUR';
-  readonly timerDuration = 30;
+  /** Round da 60 secondi: un indizio ogni 15, quattro in tutto. */
+  readonly timerDuration = GAME_TIMINGS.IMAGE_BLUR.seconds;
   readonly requiresBubbles = false;
   readonly requiresBuzz = true;
 
@@ -137,7 +139,7 @@ export class ImageBlurMode extends GameModeBase {
         return;
       }
       this.clueIndex.set(next);
-    }, 10000);
+    }, GAME_TIMINGS.IMAGE_BLUR.clueEverySeconds * 1000);
   }
 
   private stopClueEffect(): void {

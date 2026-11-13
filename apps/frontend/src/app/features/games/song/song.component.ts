@@ -11,6 +11,25 @@ import {
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import { AudioService } from '../../../core/services/audio.service';
+import { GAME_TIMINGS } from '../../../shared/models/game-timings';
+
+/**
+ * Parametri di ascolto, manche per manche: un solo posto da ritoccare.
+ *
+ * Manche 1: banda stretta ma il brano resta riconoscibile (drive al 60%
+ * dell'effetto vecchio). Manche 2: fruscio filtrato, senza gracchiare secco.
+ * Manche 3: quasi nitida, con una distorsione leggera (~25% del massimo).
+ * Manche 4: brano intero, senza filtri.
+ */
+const MANCHE_AUDIO: Record<
+  number,
+  { gain: number; band: number; q: number; highpass: number; lowpass: number; drive: number; hiss: number }
+> = {
+  1: { gain: 0.18, band: 820, q: 12, highpass: 420, lowpass: 1500, drive: 540, hiss: 0.028 },
+  2: { gain: 0.24, band: 950, q: 10, highpass: 500, lowpass: 2200, drive: 420, hiss: 0.02 },
+  3: { gain: 0.5, band: 1500, q: 5, highpass: 200, lowpass: 5200, drive: 250, hiss: 0 },
+  4: { gain: 1, band: 2000, q: 0.5, highpass: 50, lowpass: 8000, drive: 0, hiss: 0 },
+};
 
 @Component({
   selector: 'app-song',
@@ -224,59 +243,23 @@ export class Song implements OnInit, OnDestroy, OnChanges {
 
     
 
-    switch (phase) {
-      case 1: 
-        // Prima manche volutamente irriconoscibile: banda strettissima,
-        // saturazione altissima, fruscio radio e volume basso.
-        this.gainNode.gain.setValueAtTime(0.13, this.audioContext.currentTime);
-        
-        this.bandpassFilter!.frequency.setValueAtTime(480, this.audioContext.currentTime);
-        this.bandpassFilter!.Q.setValueAtTime(40, this.audioContext.currentTime);
-        this.highpassFilter!.frequency.setValueAtTime(560, this.audioContext.currentTime);
-        this.lowpassFilter!.frequency.setValueAtTime(700, this.audioContext.currentTime);
-        
-        this.distortionNode!.curve = this.makeDistortionCurve(900) as any;
-        
-        break;
-
-      case 2: 
-        // Seconda manche: radio AM disturbata, ancora lontana dal brano.
-        this.gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
-        
-        this.bandpassFilter!.frequency.setValueAtTime(760, this.audioContext.currentTime);
-        this.bandpassFilter!.Q.setValueAtTime(30, this.audioContext.currentTime);
-        this.highpassFilter!.frequency.setValueAtTime(620, this.audioContext.currentTime);
-        this.lowpassFilter!.frequency.setValueAtTime(1150, this.audioContext.currentTime);
-        
-        this.distortionNode!.curve = this.makeDistortionCurve(520) as any;
-        
-        break;
-
-      case 3: 
-        this.gainNode.gain.setValueAtTime(0.45, this.audioContext.currentTime);
-        this.bandpassFilter!.frequency.setValueAtTime(1400, this.audioContext.currentTime);
-        this.bandpassFilter!.Q.setValueAtTime(8, this.audioContext.currentTime);
-        this.highpassFilter!.frequency.setValueAtTime(380, this.audioContext.currentTime);
-        this.lowpassFilter!.frequency.setValueAtTime(2600, this.audioContext.currentTime);
-        
-        this.distortionNode!.curve = this.makeDistortionCurve(45) as any;
-        
-        break;
-
-      case 4: 
-        this.gainNode.gain.setValueAtTime(1.0, this.audioContext.currentTime);
-        this.bandpassFilter!.frequency.setValueAtTime(2000, this.audioContext.currentTime);
-        this.bandpassFilter!.Q.setValueAtTime(0.5, this.audioContext.currentTime);
-        this.highpassFilter!.frequency.setValueAtTime(50, this.audioContext.currentTime);
-        this.lowpassFilter!.frequency.setValueAtTime(8000, this.audioContext.currentTime);
-        this.distortionNode!.curve = null; 
-        
-        break;
-
-      default:
-        this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-        break;
+    const settings = MANCHE_AUDIO[phase];
+    if (!settings) {
+      this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+      this.setInterference(phase);
+      return;
     }
+
+    const now = this.audioContext.currentTime;
+    this.gainNode.gain.setValueAtTime(settings.gain, now);
+    this.bandpassFilter!.frequency.setValueAtTime(settings.band, now);
+    this.bandpassFilter!.Q.setValueAtTime(settings.q, now);
+    this.highpassFilter!.frequency.setValueAtTime(settings.highpass, now);
+    this.lowpassFilter!.frequency.setValueAtTime(settings.lowpass, now);
+    // drive 0 = brano pulito, niente curva.
+    this.distortionNode!.curve = settings.drive > 0
+      ? (this.makeDistortionCurve(settings.drive) as any)
+      : null;
 
     this.setInterference(phase);
   }
@@ -317,18 +300,21 @@ export class Song implements OnInit, OnDestroy, OnChanges {
       this.staticGain = gain;
     }
 
-    this.staticGain!.gain.setTargetAtTime(phase === 1 ? 0.05 : 0.032, ctx.currentTime, 0.15);
+    const settings = MANCHE_AUDIO[phase];
+    this.staticGain!.gain.setTargetAtTime(settings?.hiss ?? 0, ctx.currentTime, 0.15);
 
     if (!this.driftTimer) {
       this.driftTimer = setInterval(() => {
         const current = this.currentPhase();
         if (!this.audioContext || !this.bandpassFilter) return;
         if (current !== 1 && current !== 2) return;
-        const base = current === 1 ? 480 : 760;
-        const spread = current === 1 ? 240 : 170;
+        const base = MANCHE_AUDIO[current]?.band ?? 900;
+        // Manche 2: spostamenti lenti e stretti = fruscio, non gracchiare.
+        const spread = current === 1 ? 220 : 70;
+        const glide = current === 1 ? 0.12 : 0.35;
         const frequency = base + (Math.random() - 0.5) * spread;
-        this.bandpassFilter.frequency.setTargetAtTime(frequency, this.audioContext.currentTime, 0.05);
-      }, 240);
+        this.bandpassFilter.frequency.setTargetAtTime(frequency, this.audioContext.currentTime, glide);
+      }, 420);
     }
   }
 
