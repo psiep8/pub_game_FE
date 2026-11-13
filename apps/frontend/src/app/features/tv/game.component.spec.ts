@@ -118,6 +118,42 @@ describe('GameComponent', () => {
     expect(arenaMode.applyArenaAnswer).toHaveBeenCalledWith('Anna', true, 10);
   });
 
+  it('gives the next round the palette of the previous round winner', () => {
+    const theme = component.theme;
+
+    // La palette del telefono non colora subito la TV: resta quella squadra.
+    ws.status$.next({ action: WsAction.SELECT_THEME, theme: 'deep-ocean', playerName: 'Anna' });
+    expect(theme.theme()).toBe('editorial-acid');
+    expect(theme.themeForTeam('Anna')).toBe('deep-ocean');
+
+    // Il primo round non ha un round precedente: si parte in acido.
+    (component as unknown as { applyRoundWinnerTheme(): void }).applyRoundWinnerTheme();
+    expect(theme.theme()).toBe('editorial-acid');
+
+    // Anna vince il round: il round dopo prende il tema della sua squadra.
+    leaderboard.addPoints('Anna', 100, true);
+    (component as unknown as { applyRoundWinnerTheme(): void }).applyRoundWinnerTheme();
+    expect(theme.theme()).toBe('deep-ocean');
+    expect(document.documentElement.dataset['theme']).toBe('deep-ocean');
+
+    // Round senza punti (o in parità): la TV torna in acido.
+    (component as unknown as { applyRoundWinnerTheme(): void }).applyRoundWinnerTheme();
+    expect(theme.theme()).toBe('editorial-acid');
+  });
+
+  it('keeps the acid palette when the round is a tie', () => {
+    const theme = component.theme;
+    ws.status$.next({ action: WsAction.SELECT_THEME, theme: 'kpop-aesthetic', playerName: 'Bruno' });
+    ws.status$.next({ action: WsAction.SELECT_THEME, theme: 'premium-gold', playerName: 'Carla' });
+    (component as unknown as { applyRoundWinnerTheme(): void }).applyRoundWinnerTheme();
+
+    leaderboard.addPoints('Bruno', 50, true);
+    leaderboard.addPoints('Carla', 50, true);
+    (component as unknown as { applyRoundWinnerTheme(): void }).applyRoundWinnerTheme();
+
+    expect(theme.theme()).toBe('editorial-acid');
+  });
+
   it('adds a joining team to the lobby list without duplicates', async () => {
     ws.status$.next({ action: 'JOIN_GAME', playerName: 'Anna' });
     ws.status$.next({ action: 'JOIN_GAME', playerName: ' Anna ' });

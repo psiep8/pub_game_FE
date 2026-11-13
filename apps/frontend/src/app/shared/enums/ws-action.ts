@@ -15,6 +15,8 @@ export const WsAction = {
   SPEED_RUSH_PROGRESS: 'SPEED_RUSH_PROGRESS',
   AIR_HOCKEY_BATTLE_ANSWER: 'AIR_HOCKEY_BATTLE_ANSWER',
   PLAYER_AVATAR: 'PLAYER_AVATAR',
+  /** La squadra sceglie il colore della serata: la TV lo adotta. */
+  SELECT_THEME: 'SELECT_THEME',
   // Prova dei pulsanti
   BUTTON_TEST_STEP: 'BUTTON_TEST_STEP',
   BUTTON_TEST_START: 'BUTTON_TEST_START',

@@ -48,6 +48,7 @@
       }
 
       <div class="player-name-massive"
+           [style.color]="theme.teamColor(player.playerName)"
            [class.top3]="player.position <= 3">
         {{ player.playerName }}
       </div>

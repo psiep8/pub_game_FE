@@ -202,6 +202,8 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Ultima variazione locale e ultima confermata dal server. */
   private leaderboardPendingSeq = 0;
   private leaderboardSavedSeq = 0;
+  /** Punti all'inizio del round: dal delta si ricava chi ha vinto il round. */
+  private roundStartPoints: Map<string, number> | null = null;
 
   categoryName = computed(() => {
     const id = this.selectedCategoryId();
@@ -487,6 +489,15 @@ export class GameComponent implements OnInit, OnDestroy {
         return;
       }
 
+      // Il colore scelto dal telefono prima del tutorial diventa la palette
+      // della serata: la TV la adotta e la tiene anche dopo il refresh.
+      if (status.action === WsAction.SELECT_THEME && status.theme) {
+        // La palette della squadra non colora subito la TV: entra in scena al
+        // round dopo, e solo se quella squadra ha vinto il round appena chiuso.
+        this.theme.setTeamTheme(status.playerName ?? status.nickname ?? '', status.theme);
+        return;
+      }
+
       // 🎤 Debug Log per Urla su Status
       if ((status.action === 'SCREAM_UPDATE' || status.action === 'SCREAM')) {
         console.log('🎤 Urlo ricevuto su STATUS:', status);
@@ -688,6 +699,43 @@ export class GameComponent implements OnInit, OnDestroy {
     this.ws.subscribeToGame(newGame.id);
   }
 
+  /**
+   * La TV parte in acido. A ogni nuovo round prende il tema della squadra che
+   * ha vinto il round appena chiuso; con parità o nessun punto torna in acido.
+   * Le classifiche restano sempre in acido e i nomi portano il colore squadra.
+   */
+  private applyRoundWinnerTheme(): void {
+    const before = this.roundStartPoints;
+    this.roundStartPoints = new Map(
+      this.leaderboardService.entries().map((p) => [p.playerName, p.totalPoints]),
+    );
+
+    if (!before) {
+      this.theme.applyFromRemote('editorial-acid');
+      return;
+    }
+
+    let best = 0;
+    let winner: string | null = null;
+    let tie = false;
+
+    for (const [name, points] of this.roundStartPoints) {
+      const gain = points - (before.get(name) ?? 0);
+      if (gain <= 0) continue;
+      if (gain > best) {
+        best = gain;
+        winner = name;
+        tie = false;
+      } else if (gain === best) {
+        tie = true;
+      }
+    }
+
+    this.theme.applyFromRemote(
+      winner && !tie ? this.theme.themeForTeam(winner) : 'editorial-acid',
+    );
+  }
+
   async startNewRound() {
     if (this.phase() === GamePhase.INTRO) this.dismissIntro();
 
@@ -706,6 +754,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
     this.reset();
     this.revealPending.set(false);
+    this.applyRoundWinnerTheme();
 
     if (!this.currentGameId()) {
       const newGame = await firstValueFrom(this.gameService.createGame());
@@ -1332,10 +1381,12 @@ export class GameComponent implements OnInit, OnDestroy {
     if (type === 'QUICK') {
 
       this.isShowingLeaderboard.set(true);
+      this.theme.applyFromRemote('editorial-acid');
       this.showLeaderboardQuick.set(true);
     } else if (type === 'DETAILED') {
 
       this.isShowingLeaderboard.set(true);
+      this.theme.applyFromRemote('editorial-acid');
       this.showLeaderboardDetailed.set(true);
     }
     this.pendingLeaderboardType.set(null);
@@ -1443,9 +1494,11 @@ export class GameComponent implements OnInit, OnDestroy {
 
     if (type === 'DETAILED') {
       this.showLeaderboardQuick.set(false);
+      this.theme.applyFromRemote('editorial-acid');
       this.showLeaderboardDetailed.set(true);
     } else {
       this.showLeaderboardDetailed.set(false);
+      this.theme.applyFromRemote('editorial-acid');
       this.showLeaderboardQuick.set(true);
     }
   }

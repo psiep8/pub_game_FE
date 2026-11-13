@@ -18,9 +18,9 @@ import { WebSocketService } from '../../core/websocket/web-socket.service';
 import { FormsModule } from '@angular/forms';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { firstValueFrom } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { filter, take } from 'rxjs/operators';
 import { GameService } from '../../core/services/game.service';
-import { ThemeService } from '../../core/services/theme.service';
+import { ThemeService, THEME_OPTIONS, type AppTheme } from '../../core/services/theme.service';
 import { ReliabilityService } from '../../core/services/reliability.service';
 import { PlayerAvatarService } from '../../core/services/player-avatar.service';
 import {
@@ -184,6 +184,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private gameService = inject(GameService);
   private swUpdate = inject(SwUpdate);
   public theme = inject(ThemeService);
+  /** Le sette palette da provare prima del tutorial. */
+  readonly themeOptions = THEME_OPTIONS;
   private updateCheckInterval?: any;
   private versionUpdatesSub?: any;
 
@@ -194,6 +196,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   nickname = signal<string | null>(initialNicknameFromQuery() ?? localStorage.getItem('nickname'));
   /** La prova sta fra l'ingresso e la sala d'attesa del round. */
   showButtonTest = signal(false);
+  /** Passo 2 del setup: il colore si sceglie dopo foto e nome. */
+  readonly themeStep = signal(false);
   tempNickname = '';
   avatarPreview = signal<string | null>(null);
   private pendingAvatar: string | null = null;
@@ -977,6 +981,26 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.showUpdateBanner.set(false);
   }
 
+  /** Anteprima dal vivo: tocca una palette e il setup cambia colore. */
+  pickTheme(id: AppTheme): void {
+    this.theme.set(id);
+  }
+
+  /** Passo 1 → 2: il nome deve essere valido prima di aprire la scelta del tema. */
+  goToThemeStep(): void {
+    const name = this.tempNickname.trim();
+    if (name.length < 2 || name.length > 16) {
+      this.reliability.lastError.set('Il nome deve contenere da 2 a 16 caratteri');
+      return;
+    }
+    this.reliability.lastError.set(null);
+    this.themeStep.set(true);
+  }
+
+  backToSetup(): void {
+    this.themeStep.set(false);
+  }
+
   async setNickname() {
     const name = this.tempNickname.trim();
     if (name.length < 2 || name.length > 16) {
@@ -988,8 +1012,33 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.showButtonTest.set(true);
     localStorage.setItem('nickname', name);
     this.ws.broadcastStatus(this.gameId(), { action: WsAction.JOIN_GAME, playerName: name });
+    // Il colore si sceglie una volta sola: da qui in poi è la palette della
+    // partita, la TV la adotta e il telefono non la cambia più.
+    this.theme.lock();
+    this.announceTheme(name);
     this.applyAvatar(name, this.pendingAvatar);
     this.pendingAvatar = null;
+  }
+
+  /**
+   * La socket può essere ancora in apertura subito dopo l'ingresso: la palette
+   * parte appena la connessione è viva, una volta sola.
+   */
+  private announceTheme(name: string): void {
+    const send = () =>
+      this.ws.broadcastStatus(this.gameId(), {
+        action: WsAction.SELECT_THEME,
+        theme: this.theme.theme(),
+        playerName: name,
+      });
+
+    if (this.ws.connected()) {
+      send();
+      return;
+    }
+    this.ws.connectedAt$
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => send());
   }
 
   private applyAvatar(

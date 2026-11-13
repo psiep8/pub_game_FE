@@ -36,6 +36,15 @@ public class GameWebSocketController {
     private static final Set<String> RELAYED_FIELDS = Set.of(
             "playerName", "questionId", "answerIndex", "responseTimeMs");
 
+    /**
+     * Le palette che un telefono può proporre alla TV. Fuori da questo elenco
+     * il messaggio viene scartato: il tema arriva nella pagina come attributo,
+     * non come stringa libera.
+     */
+    private static final Set<String> THEMES = Set.of(
+            "editorial-acid", "desert-heritage", "arctic-noir", "deep-ocean",
+            "kpop-aesthetic", "neon-cyberpunk", "sunset-pop", "premium-gold");
+
     @MessageMapping("/game/{gameId}/answer")
     @SendTo("/topic/game/{gameId}/responses")
     public Map<String, Object> handleAnswer(@DestinationVariable("gameId") Long gameId, Map<String, Object> payload) {
@@ -78,6 +87,17 @@ public class GameWebSocketController {
             Map<String, Object> clean = new LinkedHashMap<>();
             clean.put("action", "CHRISTMAS_TOGGLE");
             clean.put("enabled", Boolean.TRUE.equals(status.get("enabled")));
+            return clean;
+        }
+        if ("SELECT_THEME".equals(status.get("action"))) {
+            // Scelta del telefono: passa solo se è una delle sette palette note.
+            Object requested = status.get("theme");
+            if (!(requested instanceof String theme) || !THEMES.contains(theme)) {
+                return null;
+            }
+            Map<String, Object> clean = new LinkedHashMap<>();
+            clean.put("action", "SELECT_THEME");
+            clean.put("theme", theme);
             return clean;
         }
         if ("AZZARDO_ACTION".equals(status.get("action"))) {

@@ -132,6 +132,35 @@
   }
 
   @if (!nickname()) {
+  @if (themeStep()) {
+  <div class="setup-screen theme-step">
+    <span class="theme-step-kicker">PASSO 2 DI 2</span>
+    <h1 class="theme-step-title">SCEGLI IL TUO TEMA</h1>
+    <p class="theme-step-sub">Colora il telefono e la TV. Dopo l'ingresso non si cambia più.</p>
+
+    <div class="theme-pick" role="group" aria-label="Scegli il tema">
+      <div class="theme-pick-grid">
+        @for (option of themeOptions; track option.id) {
+        <button type="button" class="theme-chip" [class.on]="theme.theme() === option.id"
+          [attr.aria-pressed]="theme.theme() === option.id" (click)="pickTheme(option.id)">
+          <span class="theme-swatch sw-{{ option.id }}" aria-hidden="true"></span>
+          <b>{{ option.label }}</b>
+        </button>
+        }
+      </div>
+    </div>
+
+    <div class="theme-taste" aria-hidden="true">
+      <span class="theme-taste-tag">Anteprima partita</span>
+      <b class="theme-taste-q">Quale risposta?</b>
+      <span class="theme-taste-opt">A</span>
+      <span class="theme-taste-opt is-on">B</span>
+    </div>
+
+    <button (click)="setNickname()" class="join-btn">CONFERMA E ENTRA</button>
+    <button type="button" class="theme-back" (click)="backToSetup()">TORNA INDIETRO</button>
+  </div>
+  } @else {
   <div class="setup-screen">
     <input #cameraInput type="file" accept="image/*" capture="user" hidden (change)="onAvatarFile($event)">
     <input #galleryInput type="file" accept="image/*" hidden (change)="onAvatarFile($event)">
@@ -151,10 +180,12 @@
     </div>
 
     <label class="setup-name" for="team-name">Nome della squadra</label>
-    <input id="team-name" [(ngModel)]="tempNickname" maxlength="16" autocomplete="off" placeholder="Nome della squadra" (keyup.enter)="setNickname()">
+    <input id="team-name" [(ngModel)]="tempNickname" maxlength="16" autocomplete="off" placeholder="Nome della squadra" (keyup.enter)="goToThemeStep()">
     @if (reliability.lastError(); as error) { <p class="setup-error" role="alert">{{ error }}</p> }
-    <button (click)="setNickname()" class="join-btn">ENTRA IN PARTITA</button>
+    <button (click)="goToThemeStep()" class="join-btn">AVANTI</button>
+    <span class="setup-hint">Poi scegli il colore della partita</span>
   </div>
+  }
   } @else {
 
   @if (showButtonTest()) {
@@ -173,9 +204,6 @@
         📖<span> MANUALE</span>
       </button>
       }
-      <button class="header-theme-btn" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
-        🎨
-      </button>
       <div class="player-info">
         @if (avatarPreview()) {
         <img class="player-avatar avatar-photo" [src]="avatarPreview()!" alt="Avatar squadra">

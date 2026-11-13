@@ -74,12 +74,35 @@ describe('RemoteComponent', () => {
   });
 
   it('should store the nickname and announce the player to the TV', async () => {
+    ws.connected.set(true);
     component.tempNickname = 'Anna';
     await component.setNickname();
 
     expect(component.nickname()).toBe('Anna');
     expect(localStorage.getItem('nickname')).toBe('Anna');
-    expect(ws.broadcasted.at(-1)?.body).toEqual({ action: 'JOIN_GAME', playerName: 'Anna' });
+    const bodies = ws.broadcasted.map((message) => message.body);
+    expect(bodies).toContainEqual({ action: 'JOIN_GAME', playerName: 'Anna' });
+    // La palette scelta prima del tutorial parte insieme all'ingresso e si blocca.
+    expect(bodies).toContainEqual({
+      action: 'SELECT_THEME',
+      theme: component.theme.theme(),
+      playerName: 'Anna',
+    });
+    expect(component.theme.isLocked()).toBe(true);
+  });
+
+  it('sends the chosen palette as soon as the socket is open', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    expect(ws.broadcasted.some((m) => m.body.action === 'SELECT_THEME')).toBe(false);
+
+    ws.connectedAt$.next(Date.now());
+
+    expect(ws.broadcasted.at(-1)?.body).toEqual({
+      action: 'SELECT_THEME',
+      theme: component.theme.theme(),
+      playerName: 'Anna',
+    });
   });
 
   it('requires a team name between 2 and 16 characters before registering', async () => {

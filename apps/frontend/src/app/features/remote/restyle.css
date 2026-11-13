@@ -155,6 +155,130 @@
   .setup-screen .avatar-btn { min-height: 38px; }
 }
 
+/* ------------------------------------------------- Colore della serata */
+/* Il tavolo sceglie la palette prima del tutorial: il setup stesso la mostra
+   dal vivo e, entrando in partita, la scelta passa alla TV. Dopo è bloccata. */
+.theme-pick {
+  width: min(100%, 380px);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+}
+.theme-pick-kicker {
+  color: var(--tomato-ink);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.theme-pick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.theme-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px 4px 3px;
+  background: var(--paper-hi);
+  color: var(--coal);
+  border: 2px solid var(--coal);
+  border-radius: 0;
+  box-shadow: 3px 3px 0 var(--coal);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-align: left;
+}
+.theme-chip b { font-weight: 700; }
+.theme-chip:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--coal); }
+.theme-chip.on {
+  background: var(--acid);
+  box-shadow: 3px 3px 0 var(--tomato);
+}
+.theme-chip.on b { color: var(--on-acid); }
+/* Il campione mostra le tre tinte del tema: fondo, accento e carta. */
+.theme-swatch {
+  width: 100%;
+  height: 22px;
+  border: 2px solid var(--coal);
+  background: var(--sw-bg);
+  box-shadow: inset 0 6px 0 var(--sw-acid), inset 0 -7px 0 var(--sw-paper);
+}
+/* Qui gli esadecimali sono i colori degli ALTRI temi: servono a farli
+   riconoscere prima di sceglierli, non a vestire la schermata. */
+.sw-editorial-acid { --sw-bg: #111109; --sw-acid: #d9ff43; --sw-paper: #f1e4c9; }
+.sw-desert-heritage { --sw-bg: #211a14; --sw-acid: #d8ad72; --sw-paper: #e8d6b8; }
+.sw-arctic-noir { --sw-bg: #080f1a; --sw-acid: #54bceb; --sw-paper: #dce8f2; }
+.sw-deep-ocean { --sw-bg: #071f26; --sw-acid: #19b6a4; --sw-paper: #d9f0ea; }
+.sw-kpop-aesthetic { --sw-bg: #21172b; --sw-acid: #ff78b7; --sw-paper: #fff0f7; }
+.sw-neon-cyberpunk { --sw-bg: #090713; --sw-acid: #ff00a8; --sw-paper: #f0eafe; }
+.sw-sunset-pop { --sw-bg: #25142a; --sw-acid: #ff795e; --sw-paper: #fff0e6; }
+.sw-premium-gold { --sw-bg: #101820; --sw-acid: #d4af37; --sw-paper: #f7e7ce; }
+.theme-pick-hint {
+  margin: 0;
+  color: color-mix(in srgb, var(--coal) 72%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+.theme-taste {
+  width: min(100%, 380px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  background: var(--paper-hi);
+  color: var(--coal);
+  border: 2px solid var(--coal);
+  box-shadow: 4px 4px 0 var(--tomato);
+}
+.theme-taste-tag {
+  color: var(--tomato-ink);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.theme-taste-q {
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.theme-taste-opt {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  border: 2px solid var(--coal);
+  border-radius: 0;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+.theme-taste-opt.is-on { background: var(--acid); color: var(--on-acid); }
+
+@media (max-height: 700px) {
+  .theme-swatch { height: 16px; }
+  .theme-taste { display: none; }
+}
+@media (max-height: 560px) {
+  .theme-pick-hint { display: none; }
+  .theme-chip { font-size: 0.5rem; }
+}
+
 /* ---------------------------------------------------------------- Header */
 .header {
   display: flex !important;
@@ -1143,3 +1267,90 @@
   gap: 2px 14px;
 }
 .azzardo-bank span { white-space: nowrap; }
+
+
+/* Passo 2 del setup: foto e nome restano nella prima pagina, il colore qui. */
+.theme-step { gap: 14px; justify-content: center; }
+.theme-step-kicker {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  color: var(--coal-2);
+}
+.theme-step-title {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--coal);
+}
+.theme-step-sub {
+  margin: 0 0 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--coal-2);
+}
+.theme-step .theme-pick { margin: 0; }
+.theme-step .theme-taste { margin: 0; }
+.theme-back {
+  align-self: center;
+  margin: 0;
+  padding: 8px 10px;
+  background: transparent;
+  border: 0;
+  color: var(--coal-2);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.setup-hint {
+  align-self: center;
+  font-size: 11px;
+  letter-spacing: .04em;
+  color: var(--coal-2);
+}
+
+@media (max-width: 360px) {
+  .theme-step-title { font-size: 20px; }
+  .theme-step { gap: 10px; }
+}
+
+/* Titolo e CTA della pagina tema: l'Anton di .setup-screen h1 va riportato
+   a misura di telefono, altrimenti le due righe si sovrappongono. */
+.setup-screen h1.theme-step-title {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.06;
+  letter-spacing: -.01em;
+  text-align: center;
+  /* Il tema scuro userebbe champagne su champagne: l'ombra segue l'accento. */
+  text-shadow: 3px 3px 0 var(--acid);
+}
+
+/* Senza il blocco tema la prima pagina è corta: il vuoto a metà si vedeva. */
+.setup-screen:not(.theme-step) {
+  justify-content: flex-start;
+  gap: 14px;
+}
+
+.setup-screen:not(.theme-step) .setup-name { margin-top: 10px; }
+.setup-screen .join-btn { margin-top: 8px; }
+
+@media (max-width: 360px) {
+  .setup-screen h1.theme-step-title { font-size: 24px; }
+}
+
+/* Telefoni stretti (267px): i chip non devono allargare la pagina. */
+.theme-step .theme-pick-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.theme-step .theme-pick,
+.theme-step .theme-taste { max-width: 100%; }
+
+@media (max-width: 340px) {
+  .theme-step .theme-pick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .theme-step-sub { font-size: 11px; }
+}

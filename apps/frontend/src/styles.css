@@ -486,18 +486,19 @@ html[data-theme="desert-heritage"] {
   --on-acid: var(--coal);
 }
 
-/* 3 — ARCTIC NOIR: ghiaccio, metallo, blu artico. */
+/* 3 — ARCTIC NOIR: notte, metallo, blu artico.
+   Base SCURA: superfici navy, inchiostro ghiaccio. */
 html[data-theme="arctic-noir"] {
   --bg-0: #080f1a;
   --bg-1: #111e2d;
   --bg-2: #1b2b3d;
-  --ink: #dce8f2;
+  --ink: #f3f8fc;
 
-  --paper: #dce8f2;
-  --paper-hi: #f3f8fc;
-  --paper-2: #c5d6e5;
-  --coal: #0c1420;
-  --coal-2: #192638;
+  --paper: #111e2d;
+  --paper-hi: #1b2b3d;
+  --paper-2: #0c1420;
+  --coal: #dce8f2;
+  --coal-2: #c5d6e5;
 
   --acid: #54bceb;
   --tomato: #4169a8;
@@ -513,14 +514,14 @@ html[data-theme="arctic-noir"] {
   --green: #b9d9e8;
   --red: #4169a8;
 
-  --acid-ink: #2f6984;
-  --tomato-ink: #3e65a1;
-  --cobalt-ink: #576576;
-  --mustard-ink: #5f6871;
-  --mint-ink: #59686f;
-  --on-tomato: var(--paper-hi);
-  --on-cobalt: var(--coal);
-  --on-acid: var(--coal);
+  --acid-ink: #7fd0f2;
+  --tomato-ink: #8fb3e0;
+  --cobalt-ink: #b9cfe6;
+  --mustard-ink: #ccd8e4;
+  --mint-ink: #d6edf9;
+  --on-acid: var(--bg-0);
+  --on-tomato: #f3f8fc;
+  --on-cobalt: var(--bg-0);
 }
 
 /* 4 — DEEP OCEAN: petrolio, teal, verde acqua. */
@@ -598,18 +599,19 @@ html[data-theme="kpop-aesthetic"] {
 }
 
 /* 6 — NEON CYBERPUNK: viola, magenta, cyan.
-   Il lime resta fuori: è l'identità di Editorial Acid. */
+   Base SCURA: carta viola notte, inserti neon. Il lime resta fuori:
+   è l'identità di Editorial Acid. */
 html[data-theme="neon-cyberpunk"] {
   --bg-0: #090713;
   --bg-1: #17112a;
   --bg-2: #24183a;
-  --ink: #f0eafe;
+  --ink: #fbf9ff;
 
-  --paper: #f0eafe;
-  --paper-hi: #fbf9ff;
-  --paper-2: #dcd1f0;
-  --coal: #100b1c;
-  --coal-2: #211832;
+  --paper: #17112a;
+  --paper-hi: #24183a;
+  --paper-2: #100b1c;
+  --coal: #f0eafe;
+  --coal-2: #dcd1f0;
 
   --acid: #ff00a8;
   --tomato: #ff4b5e;
@@ -625,14 +627,14 @@ html[data-theme="neon-cyberpunk"] {
   --green: #43ffd2;
   --red: #ff4b5e;
 
-  --acid-ink: #cc0086;
-  --tomato-ink: #c23947;
-  --cobalt-ink: #00737a;
-  --mustard-ink: #8533f5;
-  --mint-ink: #1d705c;
-  --on-tomato: var(--coal);
-  --on-cobalt: var(--coal);
-  --on-acid: var(--coal);
+  --acid-ink: #ff5cc0;
+  --tomato-ink: #ff7a88;
+  --cobalt-ink: #5cf6ff;
+  --mustard-ink: #b177ff;
+  --mint-ink: #7dffe0;
+  --on-acid: var(--bg-0);
+  --on-tomato: var(--bg-0);
+  --on-cobalt: var(--bg-0);
 }
 
 /* 7 — SUNSET POP: corallo, ambra, raspberry. */
@@ -670,6 +672,44 @@ html[data-theme="sunset-pop"] {
   --on-tomato: var(--paper-hi);
   --on-cobalt: var(--coal);
   --on-acid: var(--coal);
+}
+
+/* 8 — PREMIUM GOLD: nero, oro, champagne.
+   Base SCURA: carta nera, bordi e testi in oro e champagne. */
+html[data-theme="premium-gold"] {
+  --bg-0: #101820;
+  --bg-1: #151d26;
+  --bg-2: #1c252f;
+  --ink: #f7e7ce;
+
+  --paper: #101820;
+  --paper-hi: #1a222c;
+  --paper-2: #0b1016;
+  --coal: #f7e7ce;
+  --coal-2: #e5d3b3;
+
+  --acid: #d4af37;
+  --tomato: #f7e7ce;
+  --cobalt: #b08d57;
+  --mustard: #e5c76b;
+  --mint: #f7e7ce;
+
+  --gold: #d4af37;
+  --gold-2: #f7e7ce;
+  --violet: #b08d57;
+  --cyan: #e5c76b;
+  --pink: #f7e7ce;
+  --green: #e5c76b;
+  --red: #f7e7ce;
+
+  --acid-ink: #e3c259;
+  --tomato-ink: #f7e7ce;
+  --cobalt-ink: #cda76b;
+  --mustard-ink: #ebd79a;
+  --mint-ink: #f7e7ce;
+  --on-acid: var(--bg-0);
+  --on-tomato: var(--bg-0);
+  --on-cobalt: var(--bg-0);
 }
 
 /* ============================================================

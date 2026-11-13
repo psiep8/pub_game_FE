@@ -35,7 +35,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     // Visibili al test di allineamento con l'enum del frontend (WsAction): una
     // azione pubblicata da un client e assente qui fa chiudere la sessione (1002).
     static final Set<String> REMOTE_ACTIONS = Set.of("JOIN_GAME", "SCREAM", "PLAYER_AVATAR",
-            "BIGLIE_ACTION", "ULTIMA_SPIAGGIA_ACTION", "AZZARDO_ACTION", "CASINO_ACTION",
+            "SELECT_THEME", "BIGLIE_ACTION", "ULTIMA_SPIAGGIA_ACTION", "AZZARDO_ACTION", "CASINO_ACTION",
             "BLACKJACK_ACTION", "CAVALLO_ACTION", "AIR_HOCKEY_BATTLE_ANSWER", "BUTTON_TEST_PING");
     static final Set<String> ADMIN_ACTIONS = Set.of("ADMIN_REQUEST_STATE", "ADMIN_CONFIRM_CORRECT",
             "ADMIN_CONFIRM_WRONG", "ADMIN_NEXT_ROUND", "ADMIN_START_ROUND", "ADMIN_NEXT_MANCHE",

@@ -22,7 +22,7 @@
           @if (avatars.avatarFor(player.playerName); as avatar) {
             <img class="player-avatar" [src]="avatar" alt="">
           }
-          <span>{{ player.playerName }}</span>
+          <span [style.color]="theme.teamColor(player.playerName)">{{ player.playerName }}</span>
         </div>
 
         <div class="player-points">
