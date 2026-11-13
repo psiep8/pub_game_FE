@@ -38,7 +38,7 @@ I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring
 | **Timeline** | Sapere | Sei date da ordinare dal passato al presente, tutti sulla stessa scala. | Fino a **+1200** in base alle posizioni esatte su n; sotto **n/2 − 1** si perde, fino a **−400**. |
 | **Time Buzzer** | Riflessi | Tre manche da 30 secondi per fermare il cronometro su un bersaglio di 5–20 secondi; i tagli eliminano progressivamente. | **+300 / +220 / +150 / +90 / +50** a fascia, manche dopo manche; tagliato **−250** o **−100**; finalisti **+150**. |
 | **Bomba** | Rischio | Un tabellone, un turno per squadra; quasi tutte le caselle sono vere, una ogni tre squadre è falsa. | Casella vera: **0** e si passa il turno; falsa scelta: **−200** e fuori dal round; chi non sceglie in tempo è **eliminato** (**−200**) e salta le ondate successive. Durante l'ondata le caselle restano coperte: bombe, eliminati e penalità si scoprono solo alla fine. |
-| **Speed Rush** | Riflessi | Sessanta secondi di risposte lampo; la corsia avanza a ogni risposta giusta. | **500** al primo, poi a scalare; minimo **100**; prendono punti solo i primi **n/2**. In serata reale è bloccato (vedi §12). |
+| **Speed Rush** | Riflessi | Sessanta secondi di risposte lampo; la corsia avanza a ogni risposta giusta. | **500** al primo, poi a scalare; minimo **100**; prendono punti solo i primi **n/2**. Progressi, arrivi e punti arrivano dal server; le prove non si ripetono e salgono di difficoltà. |
 | **Air Hockey Battle** | Riflessi | Duello a coppie: ogni risposta rapida rimanda il disco; il set si chiude a 7 gol. Le domande salgono da facili a difficili e il disco arriva dritto, a zig-zag, a giro o a salto. | **+1000** al vincitore, **+200** di consolazione al perdente; ogni gol subito è un gol per l'avversario. |
 | **Azzardo** | Rischio | Quattro manche numeriche; dieci fiches da 20 punti da distribuire sulle quattro risposte. | Fiche giusta: **+20 × quota** (×2 facile, ×3 media, ×4 difficile); fiche sbagliate: **−20 × fiche × 100/80/60/40%**; mai sotto zero. La puntata parte solo con **CONFERMA PUNTATA** e almeno una fiche; le fiches avanzate si sommano alle dieci nuove e alzano il tetto di una fiche ogni due risparmiate (max **15**, quindi al massimo **+1000** in una manche). |
 | **Ultima spiaggia** | Rischio / sapere | Cinque livelli da 100 a 500, una volta per squadra in tutta la serata; una categoria per occorrenza. | **+100 / +200 / +300 / +400 / +500**; errore **−50 / −100 / −150 / −200 / −250**; chi non risponde perde metà del livello scelto. |
@@ -198,7 +198,6 @@ Il programma completo (ruoli, tempi, prove di caduta, cosa annotare, emergenze) 
 
 **Limitato o bloccato**
 
-- **Speed Rush**: in serata reale `startNewRound()` mostra un avviso e non avvia il gioco, perché il punteggio non è ancora verificato dal server. È disponibile solo in simulazione (`?sim=1`). La scaletta si ferma quando incontra il round 18.
 - **Bonus Basket**: è bloccato fuori da simulazione e anteprima; il tabellone si può vedere in demo. Il punteggio non è ancora verificato dal server.
 - **Bonus e classifica**: i bonus mostrano una classifica propria ma non aggiungono punti alla classifica della serata.
 - **Tempi dichiarati dal client**: alcune modalità usano tempi o stato del telefono; i punteggi non sono tutti verificabili lato server.
@@ -207,7 +206,7 @@ Il programma completo (ruoli, tempi, prove di caduta, cosa annotare, emergenze) 
 
 **In programma**
 
-- Verifica server-side di Speed Rush e Basket, con percorso di avanzamento completo.
+- Verifica server-side del Basket, con percorso di avanzamento completo (Speed Rush è già sul server).
 - Punti dei bonus nella classifica della serata.
 - Rate limiting sulle sessioni e recupero assistito dei nomi.
 - Test end-to-end con più browser e dispositivi reali.
