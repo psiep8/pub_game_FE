@@ -302,7 +302,7 @@ const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
                 [attr.cx]="ballX() + 3"
                 [attr.cy]="ballY() + 4"
                 [attr.r]="ballSize()"
-                fill="rgba(21, 21, 15, .38)" />
+                fill="color-mix(in srgb, var(--coal) 38%, transparent)" />
               <circle
                 [attr.cx]="ballX()"
                 [attr.cy]="ballY()"

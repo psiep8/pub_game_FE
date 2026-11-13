@@ -8,7 +8,7 @@
   gap: clamp(6px, 1.2vh, 12px);
   padding: clamp(12px, 2.2vh, 24px);
   background-color: var(--bg-0);
-  background-image: radial-gradient(rgba(244, 232, 206, 0.09) 1px, transparent 1px);
+  background-image: radial-gradient(color-mix(in srgb, var(--ink) 9%, transparent) 1px, transparent 1px);
   background-size: 18px 18px;
   color: var(--paper);
   z-index: 100;

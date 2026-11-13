@@ -336,10 +336,10 @@ const FINALE_SECONDS = 7;
     .bg-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
     .bg-kicker { display: inline-block; padding: 3px 10px; background: var(--tomato); color: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.6rem, .9vw, .8rem); font-weight: 800; letter-spacing: .16em; transform: rotate(-1.2deg); }
     .bg-head h1 { margin: 6px 0 0; font-family: var(--font-display); font-size: clamp(1.4rem, 3vw, 2.6rem); font-weight: 400; line-height: .95; letter-spacing: .04em; text-transform: uppercase; }
-    .bg-sub { margin: 4px 0 0; font-family: var(--font-mono); font-size: clamp(.62rem, .95vw, .82rem); letter-spacing: .12em; color: rgba(30, 25, 20, .62); text-transform: uppercase; }
+    .bg-sub { margin: 4px 0 0; font-family: var(--font-mono); font-size: clamp(.62rem, .95vw, .82rem); letter-spacing: .12em; color: color-mix(in srgb, var(--coal) 62%, transparent); text-transform: uppercase; }
     .bg-timer { font-family: var(--font-mono); font-size: clamp(1.2rem, 2vw, 1.9rem); font-weight: 800; }
     .bg-timer.hot { color: var(--tomato); animation: bg-pulse .8s infinite; }
-    .bg-hint { margin: 0; font-family: var(--font-mono); font-size: clamp(.62rem, .92vw, .8rem); color: rgba(30, 25, 20, .62); }
+    .bg-hint { margin: 0; font-family: var(--font-mono); font-size: clamp(.62rem, .92vw, .8rem); color: color-mix(in srgb, var(--coal) 62%, transparent); }
     .bg-intro { display: flex; flex-direction: column; gap: 14px; }
     .bg-track-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
     .bg-track-chip { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; background: var(--paper-hi); border: 3px solid var(--coal); font-family: var(--font-mono); }
@@ -352,7 +352,7 @@ const FINALE_SECONDS = 7;
     .bg-marble { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 8px; background: var(--paper-hi); border: 3px solid var(--coal); font-family: var(--font-mono); }
     .bg-marble.taken { opacity: .38; }
     .bg-dot { display: grid; place-items: center; width: clamp(38px, 3.6vw, 54px); height: clamp(38px, 3.6vw, 54px); border-radius: 50%; border: 3px solid var(--coal); font-size: clamp(1rem, 1.6vw, 1.5rem); }
-    .bg-prof { font-size: clamp(.55rem, .78vw, .68rem); letter-spacing: .08em; color: rgba(30, 25, 20, .6); }
+    .bg-prof { font-size: clamp(.55rem, .78vw, .68rem); letter-spacing: .08em; color: color-mix(in srgb, var(--coal) 60%, transparent); }
     .bg-owner { position: absolute; inset: auto 4px 4px auto; padding: 1px 6px; background: var(--coal); color: var(--paper-hi); font-size: .6rem; letter-spacing: .06em; }
     .bg-track-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .bg-surface { padding: 4px 12px; color: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.62rem, .92vw, .8rem); font-weight: 800; letter-spacing: .16em; }
@@ -366,8 +366,8 @@ const FINALE_SECONDS = 7;
     .bg-race-clock.hot { background: var(--tomato); color: var(--paper-hi); }
     .bg-result-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 3px; padding-bottom: 6px; border-bottom: 3px solid var(--coal); }
     .bg-result-kicker { display: inline-block; padding: 3px 10px; background: var(--tomato); color: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.58rem, .86vw, .76rem); font-weight: 800; letter-spacing: .16em; transform: rotate(-1.2deg); }
-    .bg-result-track { color: rgba(30, 25, 20, .66); font-family: var(--font-mono); font-size: clamp(.55rem, .82vw, .7rem); font-weight: 800; letter-spacing: .08em; text-align: right; }
-    .bg-result-columns { display: grid; grid-template-columns: 30px 1fr auto auto auto; gap: 12px; padding: 0 12px; color: rgba(30, 25, 20, .55); font-family: var(--font-mono); font-size: clamp(.46rem, .7vw, .58rem); font-weight: 800; letter-spacing: .12em; }
+    .bg-result-track { color: color-mix(in srgb, var(--coal) 66%, transparent); font-family: var(--font-mono); font-size: clamp(.55rem, .82vw, .7rem); font-weight: 800; letter-spacing: .08em; text-align: right; }
+    .bg-result-columns { display: grid; grid-template-columns: 30px 1fr auto auto auto; gap: 12px; padding: 0 12px; color: color-mix(in srgb, var(--coal) 55%, transparent); font-family: var(--font-mono); font-size: clamp(.46rem, .7vw, .58rem); font-weight: 800; letter-spacing: .12em; }
     .bg-result-columns span:nth-child(n + 3) { text-align: right; }
     .bg-results { display: flex; flex-direction: column; gap: 5px; }
     .bg-row { display: grid; grid-template-columns: 30px 1fr auto auto auto; gap: 12px; align-items: center; padding: 7px 12px; background: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.72rem, 1vw, .92rem); }
@@ -380,7 +380,7 @@ const FINALE_SECONDS = 7;
     .bg-finale { display: flex; flex-direction: column; gap: 10px; }
     .bg-finale-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 3px solid var(--coal); }
     .bg-finale-kicker { display: inline-block; padding: 3px 10px; background: var(--tomato); color: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.6rem, .9vw, .8rem); font-weight: 800; letter-spacing: .16em; transform: rotate(-1.2deg); }
-    .bg-finale-note { color: rgba(30, 25, 20, .62); font-family: var(--font-mono); font-size: clamp(.58rem, .85vw, .74rem); letter-spacing: .12em; text-align: right; }
+    .bg-finale-note { color: color-mix(in srgb, var(--coal) 62%, transparent); font-family: var(--font-mono); font-size: clamp(.58rem, .85vw, .74rem); letter-spacing: .12em; text-align: right; }
     .bg-final-row { grid-template-columns: 46px 1fr auto auto !important; padding: clamp(8px, 1.2vh, 12px) clamp(12px, 1.4vw, 18px); }
     .bg-final-row.paid { box-shadow: 6px 6px 0 var(--tomato); }
     .bg-final-row .bg-row-pos { display: grid; place-items: center; width: 32px; height: 32px; background: var(--coal); color: var(--paper-hi); font-family: var(--font-mono); }
@@ -1606,7 +1606,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
       ctx.stroke(path);
       ctx.clip(path);
 
-      ctx.strokeStyle = 'rgba(21, 21, 15, .16)';
+      ctx.strokeStyle = 'color-mix(in srgb, var(--coal) 16%, transparent)';
       ctx.lineWidth = 2;
       for (let x = -this.raceW; x < this.raceW * 2; x += 20) {
         ctx.beginPath();
@@ -1923,7 +1923,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
         const x = point.x + point.nx * half * side;
         const y = point.y + point.ny * half * side;
         ctx.fillStyle = 'rgba(241, 228, 201, .85)';
-        ctx.strokeStyle = 'rgba(21, 21, 15, .45)';
+        ctx.strokeStyle = 'color-mix(in srgb, var(--coal) 45%, transparent)';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.ellipse(x, y, 15, 6, Math.atan2(point.ny, point.nx), 0, Math.PI * 2);
@@ -2128,7 +2128,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
       const name =
         marble.playerName.length > 15 ? `${marble.playerName.slice(0, 14)}…` : marble.playerName;
       ctx.fillText(name, 37, y);
-      ctx.fillStyle = 'rgba(21, 21, 15, .56)';
+      ctx.fillStyle = 'color-mix(in srgb, var(--coal) 56%, transparent)';
       ctx.textAlign = 'right';
       ctx.fillText(
         marble.finished ? `P${marble.position}` : `${Math.round(Math.min(100, marble.x))}%`,

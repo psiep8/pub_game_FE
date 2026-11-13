@@ -99,7 +99,7 @@ import { AudioService } from '../../../core/services/audio.service';
     .tb-row.out { opacity: .5; }
     .tb-name { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tb-value { font-family: var(--font-mono); font-weight: 700; }
-    .tb-error { color: rgba(30, 25, 20, .55); font-family: var(--font-mono); font-size: .82em; }
+    .tb-error { color: color-mix(in srgb, var(--coal) 55%, transparent); font-family: var(--font-mono); font-size: .82em; }
     .tb-missed { color: var(--tomato); font-weight: 700; letter-spacing: .12em; }
     .tb-count { color: var(--ink-dim); font-family: var(--font-mono); font-size: clamp(.7rem, 1vw, .9rem); letter-spacing: .1em; }
     .tb-out { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }

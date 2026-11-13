@@ -9,8 +9,8 @@
   padding: clamp(44px, 7vh, 76px) clamp(12px, 3vw, 36px) clamp(16px, 3vh, 32px) !important;
   background-color: var(--tomato) !important;
   background-image:
-    radial-gradient(rgba(21, 21, 15, 0.2) 1px, transparent 1px),
-    repeating-linear-gradient(-45deg, transparent 0 22px, rgba(21, 21, 15, 0.07) 22px 23px) !important;
+    radial-gradient(color-mix(in srgb, var(--coal) 20%, transparent) 1px, transparent 1px),
+    repeating-linear-gradient(-45deg, transparent 0 22px, color-mix(in srgb, var(--coal) 7%, transparent) 22px 23px) !important;
   background-size: 18px 18px, 100% 100% !important;
   color: var(--paper-hi) !important;
 }
@@ -140,7 +140,7 @@
 }
 .grand-leaderboard .points-label {
   margin-top: 2px;
-  color: rgba(21, 21, 15, 0.58) !important;
+  color: color-mix(in srgb, var(--coal) 58%, transparent) !important;
   font-family: var(--font-mono) !important;
   font-size: clamp(0.6rem, 1.5vh, 0.82rem) !important;
   font-weight: 700;

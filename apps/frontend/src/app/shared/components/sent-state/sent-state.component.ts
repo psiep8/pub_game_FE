@@ -44,7 +44,7 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
       font-family: var(--font-mono);
       font-size: 0.8rem;
       letter-spacing: 0.06em;
-      color: rgba(30, 25, 20, 0.75);
+      color: color-mix(in srgb, var(--coal) 75%, transparent);
     }
   `],
 })

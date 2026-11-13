@@ -2,8 +2,8 @@
 .game-container {
   background-color: var(--bg-0) !important;
   background-image:
-    radial-gradient(rgba(244, 232, 206, 0.09) 1px, transparent 1px),
-    linear-gradient(115deg, transparent 0 62%, rgba(255, 77, 46, 0.07) 62% 63%, transparent 63%) !important;
+    radial-gradient(color-mix(in srgb, var(--ink) 9%, transparent) 1px, transparent 1px),
+    linear-gradient(115deg, transparent 0 62%, color-mix(in srgb, var(--tomato) 7%, transparent) 62% 63%, transparent 63%) !important;
   background-size: 16px 16px, 100% 100% !important;
 }
 
@@ -127,7 +127,7 @@
 }
 .lobby .qr-section p {
   margin: 0 0 10px !important;
-  color: rgba(21, 21, 15, 0.62) !important;
+  color: color-mix(in srgb, var(--coal) 62%, transparent) !important;
   font-family: var(--font-mono);
   font-size: 0.68rem !important;
   letter-spacing: 0.08em;
@@ -158,7 +158,7 @@
   padding: clamp(10px, 1.5vh, 17px) 4px;
   background: transparent;
   border: 0;
-  border-bottom: 2px dashed rgba(244, 232, 206, 0.28);
+  border-bottom: 2px dashed color-mix(in srgb, var(--ink) 28%, transparent);
   border-radius: 0;
 }
 .lobby-step > span {
@@ -171,7 +171,7 @@
   color: var(--acid);
   border: 2px solid var(--acid);
   border-radius: 0;
-  box-shadow: 4px 4px 0 rgba(217, 255, 67, 0.22);
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--acid) 22%, transparent);
   font-family: var(--font-mono);
   font-size: clamp(0.95rem, 1.3vw, 1.2rem);
   font-weight: 700;
@@ -305,7 +305,7 @@
   align-items: center;
   gap: 7px;
   min-height: 20px;
-  border-top: 1px dashed rgba(21, 21, 15, .2);
+  border-top: 1px dashed color-mix(in srgb, var(--coal) 20%, transparent);
   font-family: var(--font-mono);
   font-size: clamp(.56rem, 1.25vh, .78rem);
 }
@@ -459,7 +459,7 @@
   place-items: center;
   align-content: center;
   gap: clamp(10px, 2vh, 26px);
-  background: rgba(17, 17, 9, 0.96);
+  background: color-mix(in srgb, var(--bg-0) 96%, transparent);
   animation: m-fade var(--motion-fast) var(--ease-out) both;
 }
 .slot-kicker {
@@ -522,7 +522,7 @@
   padding: clamp(10px, 1.8vh, 22px) !important;
   background: transparent !important;
   border: 0 !important;
-  border-top: 2px solid rgba(244, 232, 206, 0.28) !important;
+  border-top: 2px solid color-mix(in srgb, var(--ink) 28%, transparent) !important;
   border-radius: 0 !important;
   box-shadow: none !important;
 }
@@ -590,7 +590,7 @@
   letter-spacing: 0.12em;
 }
 .recent-item {
-  border-bottom: 1px dashed rgba(21, 21, 15, 0.28);
+  border-bottom: 1px dashed color-mix(in srgb, var(--coal) 28%, transparent);
   color: var(--coal) !important;
 }
 .recent-responses .r-player {
@@ -601,7 +601,7 @@
 }
 .recent-responses .r-time,
 .recent-responses .total-points {
-  color: rgba(21, 21, 15, 0.55) !important;
+  color: color-mix(in srgb, var(--coal) 55%, transparent) !important;
   font-family: var(--font-mono);
   font-size: 0.68rem !important;
 }
@@ -787,7 +787,7 @@
 .category-slot-reel { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .slot-row {
   padding: 2px clamp(18px, 3vw, 42px);
-  color: rgba(244, 232, 206, 0.28);
+  color: color-mix(in srgb, var(--ink) 28%, transparent);
   font-family: var(--font-display);
   font-size: clamp(1.6rem, 3.4vw, 3rem);
   line-height: 1.05;
@@ -831,8 +831,8 @@
   overflow: hidden;
   background-color: var(--bg-0);
   background-image:
-    radial-gradient(rgba(244, 232, 206, 0.11) 1px, transparent 1px),
-    linear-gradient(115deg, transparent 0 67%, rgba(255, 77, 46, 0.1) 67% 67.5%, transparent 67.5%);
+    radial-gradient(color-mix(in srgb, var(--ink) 11%, transparent) 1px, transparent 1px),
+    linear-gradient(115deg, transparent 0 67%, color-mix(in srgb, var(--tomato) 10%, transparent) 67% 67.5%, transparent 67.5%);
   background-size: 17px 17px, 100% 100%;
   color: var(--paper);
   cursor: pointer;
@@ -870,7 +870,7 @@
 .intro-bottom {
   align-items: flex-end;
   padding-bottom: 8px;
-  border-top: 2px dashed rgba(244, 232, 206, 0.24);
+  border-top: 2px dashed color-mix(in srgb, var(--ink) 24%, transparent);
   padding-top: 12px;
 }
 .intro-edition { color: var(--acid); }
@@ -891,7 +891,7 @@
   z-index: 1;
   left: 50%;
   top: 50%;
-  border: 2px solid rgba(244, 232, 206, 0.16);
+  border: 2px solid color-mix(in srgb, var(--ink) 16%, transparent);
   border-radius: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
@@ -903,7 +903,7 @@
 .intro-orbit-b {
   width: min(48vw, 690px);
   aspect-ratio: 1;
-  border-color: rgba(217, 255, 67, 0.22);
+  border-color: color-mix(in srgb, var(--acid) 22%, transparent);
   border-style: dashed;
   transform: translate(-50%, -50%) rotate(8deg);
 }
@@ -1033,7 +1033,7 @@
   right: 0;
   bottom: 0;
   height: 7px;
-  background: rgba(244, 232, 206, 0.16);
+  background: color-mix(in srgb, var(--ink) 16%, transparent);
 }
 .intro-progress span {
   display: block;

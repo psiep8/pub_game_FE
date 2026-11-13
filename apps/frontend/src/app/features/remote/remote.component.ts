@@ -68,7 +68,7 @@ import {
     .hockey-goal-score { font-family: var(--font-display); font-size: clamp(3.4rem, 18vw, 6rem); line-height: 1; }
     .hockey-goal-note { font-family: var(--font-mono); font-size: .8rem; letter-spacing: .12em; opacity: .9; }
     @keyframes hockeyGoalIn { from { transform: scale(.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-    .party-instruction { text-align: center; margin: 0; color: rgba(21, 21, 15, .7); font-family: var(--font-mono); font-size: .8rem; }
+    .party-instruction { text-align: center; margin: 0; color: color-mix(in srgb, var(--coal) 70%, transparent); font-family: var(--font-mono); font-size: .8rem; }
     .emoji-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .emoji-btn {
       padding: 22px; background: var(--paper-hi); color: var(--coal);
@@ -115,7 +115,7 @@ import {
     }
     .hockey-wait-icon { font-size: 3rem; animation: hockeyBounce 1.2s infinite; }
     .hockey-wait h2 { margin: 0; font-family: var(--font-display); font-size: 1.5rem; color: var(--coal); }
-    .hockey-wait p { margin: 0; font-size: .95rem; color: rgba(30, 25, 20, .72); }
+    .hockey-wait p { margin: 0; font-size: .95rem; color: color-mix(in srgb, var(--coal) 72%, transparent); }
     .hockey-wait-score { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: var(--tomato); }
     .hockey-result { text-align: center; font-family: var(--font-mono); font-size: .8rem; font-weight: 700; letter-spacing: .16em; color: var(--tomato); }
     @keyframes hockeyBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
@@ -148,7 +148,7 @@ import {
     .biglie-prof { font-size: .58rem; letter-spacing: .06em; opacity: .6; }
     .biglie-mine { display: flex; flex-direction: column; gap: 10px; padding: 14px; background: var(--paper-hi); border: 2px solid var(--coal); }
     .biglie-head { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 1rem; }
-    .biglie-bar { height: 16px; background: rgba(30, 25, 20, .12); border: 2px solid var(--coal); overflow: hidden; }
+    .biglie-bar { height: 16px; background: color-mix(in srgb, var(--coal) 12%, transparent); border: 2px solid var(--coal); overflow: hidden; }
     .biglie-fill { height: 100%; transition: width .2s linear; }
     .casino-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 6px; max-height: 62vh; overflow: auto; }
     .casino-cell { padding: 11px 6px; background: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: .9rem; font-weight: 800; letter-spacing: .04em; }
@@ -166,7 +166,7 @@ import {
     .azzardo-stake { padding: 12px 4px; border-radius: 0; border: 2px solid var(--coal); background: var(--paper-hi); color: var(--coal); box-shadow: 3px 3px 0 var(--coal); font-family: var(--font-mono); font-size: 1rem; font-weight: 800; }
     .azzardo-stake.selected { border-color: var(--coal); background: var(--acid); box-shadow: 4px 4px 0 var(--tomato); }
     .azzardo-stake:disabled { opacity: .45; }
-    .azzardo-stake.used { background: var(--paper-2); color: rgba(21,21,15,.55); box-shadow: 2px 2px 0 var(--coal); text-decoration: line-through; opacity: 1; }
+    .azzardo-stake.used { background: var(--paper-2); color: color-mix(in srgb, var(--coal) 55%, transparent); box-shadow: 2px 2px 0 var(--coal); text-decoration: line-through; opacity: 1; }
     .azzardo-options { display: flex; flex-direction: column; gap: 6px; }
     .azzardo-option { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 0; border: 2px solid var(--coal); background: var(--paper-hi); color: var(--coal); box-shadow: 3px 3px 0 var(--coal); text-align: left; font-size: .92rem; font-weight: 700; }
     .azzardo-option.selected { border-color: var(--coal); background: var(--acid); box-shadow: 4px 4px 0 var(--tomato); }

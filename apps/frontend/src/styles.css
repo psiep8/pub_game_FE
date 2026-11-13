@@ -1,12 +1,11 @@
 @import './bonus-skin.css';
 
 :root {
-  /* EDIZIONE 26 — carta stampata, inchiostro e gettoni */
+  /* EDITORIAL ACID — tema predefinito: carta stampata, inchiostro e gettoni. */
   --bg-0: #111109;
   --bg-1: #1a1a10;
   --bg-2: #242419;
   --ink: #f4e8ce;
-  --ink-dim: rgba(244, 232, 206, 0.66);
 
   --paper: #f1e4c9;
   --paper-hi: #fff8e8;
@@ -20,6 +19,7 @@
   --mustard: #ffc53d;
   --mint: #8be3c4;
 
+  /* Alias storici: li usano i tabelloni vecchi, restano sulla stessa tinta. */
   --gold: #ffc53d;
   --gold-2: #ffe9a8;
   --violet: #ff4d2e;
@@ -28,9 +28,22 @@
   --green: #b8e986;
   --red: #ff5b45;
 
-  --glass: rgba(244, 232, 206, 0.07);
-  --glass-strong: rgba(244, 232, 206, 0.14);
-  --stroke: rgba(244, 232, 206, 0.28);
+  /* Accenti come TESTO: scuri quanto basta su --paper (>= 4.5:1). */
+  --acid-ink: #57661b;
+  --tomato-ink: #b83721;
+  --cobalt-ink: #2b54eb;
+  --mustard-ink: #7a5f1d;
+  --mint-ink: #436d5e;
+  /* Testo SOPRA un fondo accento. */
+  --on-acid: var(--coal);
+  --on-tomato: var(--coal);
+  --on-cobalt: var(--paper-hi);
+
+  /* Derivati: leggono i token del tema, quindi seguono il cambio tema. */
+  --ink-dim: color-mix(in srgb, var(--ink) 66%, transparent);
+  --glass: color-mix(in srgb, var(--ink) 7%, transparent);
+  --glass-strong: color-mix(in srgb, var(--ink) 14%, transparent);
+  --stroke: color-mix(in srgb, var(--ink) 28%, transparent);
   --shadow-lg: 10px 10px 0 rgba(0, 0, 0, 0.85);
   --radius: 0px;
 
@@ -99,8 +112,8 @@ button:disabled {
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: rgba(244, 232, 206, 0.06); }
-::-webkit-scrollbar-thumb { background: rgba(244, 232, 206, 0.28); border: 2px solid var(--bg-0); }
+::-webkit-scrollbar-track { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ink) 28%, transparent); border: 2px solid var(--bg-0); }
 
 .sr-only {
   position: absolute;
@@ -179,9 +192,9 @@ app-quiz .option-letter {
   font-size: clamp(0.85rem, 1.2vw, 1.1rem);
   font-weight: 700;
 }
-app-quiz .quiz-option-btn:nth-child(2) .option-letter { background: var(--cobalt) !important; color: var(--paper-hi) !important; }
+app-quiz .quiz-option-btn:nth-child(2) .option-letter { background: var(--cobalt) !important; color: var(--on-cobalt) !important; }
 app-quiz .quiz-option-btn:nth-child(3) .option-letter { background: var(--mustard) !important; color: var(--coal) !important; }
-app-quiz .quiz-option-btn:nth-child(4) .option-letter { background: var(--tomato) !important; color: var(--paper-hi) !important; }
+app-quiz .quiz-option-btn:nth-child(4) .option-letter { background: var(--tomato) !important; color: var(--on-tomato) !important; }
 app-quiz .quiz-option-btn.correct {
   background: var(--acid) !important;
   color: var(--coal) !important;
@@ -195,7 +208,7 @@ app-quiz .quiz-option-btn.correct .option-letter {
 }
 app-quiz .quiz-option-btn.wrong {
   background: var(--tomato) !important;
-  color: var(--paper-hi) !important;
+  color: var(--on-tomato) !important;
   border-color: var(--coal) !important;
   box-shadow: 6px 6px 0 var(--coal) !important;
 }
@@ -212,7 +225,7 @@ app-quiz .quiz-reveal {
   box-shadow: 7px 7px 0 var(--tomato) !important;
 }
 app-quiz .quiz-reveal .reveal-label {
-  color: var(--tomato) !important;
+  color: var(--tomato-ink) !important;
   font-family: var(--font-mono);
 }
 app-quiz .quiz-reveal .reveal-value {
@@ -256,7 +269,7 @@ app-song .tonearm::before { background: var(--coal) !important; border-radius: 0
 app-song .tonearm::after { background: var(--acid) !important; border-radius: 50% !important; }
 app-song .phases-track::before {
   height: 3px !important;
-  background: rgba(244, 232, 206, 0.3) !important;
+  background: color-mix(in srgb, var(--ink) 30%, transparent) !important;
 }
 app-song .phase-dot {
   border: 3px solid var(--coal);
@@ -271,7 +284,7 @@ app-song .phase-label {
 }
 app-song .progress-bar {
   height: 8px !important;
-  background: rgba(244, 232, 206, 0.18) !important;
+  background: color-mix(in srgb, var(--ink) 18%, transparent) !important;
   border: 2px solid var(--paper);
   border-radius: 0 !important;
 }
@@ -321,9 +334,9 @@ app-song .reveal-title {
   text-transform: uppercase;
 }
 app-song .reveal-artist,
-app-song .reveal-year { color: rgba(21, 21, 15, 0.6) !important; font-family: var(--font-mono); }
+app-song .reveal-year { color: color-mix(in srgb, var(--coal) 60%, transparent) !important; font-family: var(--font-mono); }
 app-song .reveal-cover img { border-radius: 0 !important; border: 3px solid var(--coal); }
-app-song .countdown-overlay { background: rgba(17, 17, 9, 0.94) !important; backdrop-filter: none !important; }
+app-song .countdown-overlay { background: color-mix(in srgb, var(--bg-0) 94%, transparent) !important; backdrop-filter: none !important; }
 app-song .countdown-number {
   color: var(--acid) !important;
   font-family: var(--font-display);
@@ -382,7 +395,7 @@ app-wheel-fortune .letter-box.revealed {
 app-wheel-fortune .reservation-alert,
 app-image-blur .reservation-alert {
   background: var(--tomato) !important;
-  color: var(--paper-hi) !important;
+  color: var(--on-tomato) !important;
   border: 3px solid var(--paper-hi) !important;
   border-radius: 0 !important;
   box-shadow: 6px 6px 0 var(--coal) !important;
@@ -424,16 +437,24 @@ app-image-blur .reveal-answer h2 {
 }
 
 /* ============================================================
-   TEMA SABBIA — espresso, sabbia, panna e antracite.
-   La semantica resta identica: paper = superficie chiara,
-   coal = testo scuro, così tutte le skin continuano a funzionare.
+   TEMI — sette identità cromatiche sugli stessi token.
+   `:root` è Editorial Acid; ogni blocco ridefinisce SOLO i
+   colori: layout, tipografia, misure, ombre e animazioni non
+   cambiano mai da un tema all'altro.
+
+   La semantica è fissa: paper = superficie chiara, coal =
+   testo scuro, ink = testo chiaro sul fondo, bg-* = fondo.
+   Gli alias `ink` (Editorial Acid) e `sabbia` (Desert Heritage)
+   restano validi: link e salvataggi vecchi continuano a funzionare.
    ============================================================ */
-html[data-theme="sabbia"] {
+
+/* 2 — DESERT HERITAGE: terra, sabbia, terracotta. */
+html[data-theme="sabbia"],
+html[data-theme="desert-heritage"] {
   --bg-0: #211a14;
   --bg-1: #2a211a;
   --bg-2: #372b20;
   --ink: #f4e7d2;
-  --ink-dim: rgba(244, 231, 210, 0.68);
 
   --paper: #e8d6b8;
   --paper-hi: #f8eedc;
@@ -455,10 +476,200 @@ html[data-theme="sabbia"] {
   --green: #b6a57f;
   --red: #a94830;
 
-  --glass: rgba(244, 231, 210, 0.08);
-  --glass-strong: rgba(244, 231, 210, 0.15);
-  --stroke: rgba(244, 231, 210, 0.3);
-  --shadow-lg: 10px 10px 0 rgba(0, 0, 0, 0.8);
+  --acid-ink: #705a3b;
+  --tomato-ink: #8f4929;
+  --cobalt-ink: #6f4a32;
+  --mustard-ink: #675943;
+  --mint-ink: #605a4b;
+  --on-tomato: var(--paper-hi);
+  --on-cobalt: var(--paper-hi);
+  --on-acid: var(--coal);
+}
+
+/* 3 — ARCTIC NOIR: ghiaccio, metallo, blu artico. */
+html[data-theme="arctic-noir"] {
+  --bg-0: #080f1a;
+  --bg-1: #111e2d;
+  --bg-2: #1b2b3d;
+  --ink: #dce8f2;
+
+  --paper: #dce8f2;
+  --paper-hi: #f3f8fc;
+  --paper-2: #c5d6e5;
+  --coal: #0c1420;
+  --coal-2: #192638;
+
+  --acid: #54bceb;
+  --tomato: #4169a8;
+  --cobalt: #91a9c5;
+  --mustard: #a9b9c9;
+  --mint: #b9d9e8;
+
+  --gold: #a9b9c9;
+  --gold-2: #e4ecf3;
+  --violet: #4169a8;
+  --cyan: #91a9c5;
+  --pink: #b9d9e8;
+  --green: #b9d9e8;
+  --red: #4169a8;
+
+  --acid-ink: #2f6984;
+  --tomato-ink: #3e65a1;
+  --cobalt-ink: #576576;
+  --mustard-ink: #5f6871;
+  --mint-ink: #59686f;
+  --on-tomato: var(--paper-hi);
+  --on-cobalt: var(--coal);
+  --on-acid: var(--coal);
+}
+
+/* 4 — DEEP OCEAN: petrolio, teal, verde acqua. */
+html[data-theme="deep-ocean"] {
+  --bg-0: #071f26;
+  --bg-1: #103039;
+  --bg-2: #17414a;
+  --ink: #d9f0ea;
+
+  --paper: #d9f0ea;
+  --paper-hi: #f0fbf7;
+  --paper-2: #c1e2d9;
+  --coal: #0a252b;
+  --coal-2: #143940;
+
+  --acid: #19b6a4;
+  --tomato: #087f8c;
+  --cobalt: #b6e36b;
+  --mustard: #70c8b6;
+  --mint: #a3e1d1;
+
+  --gold: #70c8b6;
+  --gold-2: #d9f4ee;
+  --violet: #b6e36b;
+  --cyan: #70c8b6;
+  --pink: #a3e1d1;
+  --green: #b6e36b;
+  --red: #087f8c;
+
+  --acid-ink: #107469;
+  --tomato-ink: #077581;
+  --cobalt-ink: #576d33;
+  --mustard-ink: #3f7066;
+  --mint-ink: #4e6c64;
+  --on-tomato: var(--paper-hi);
+  --on-cobalt: var(--coal);
+  --on-acid: var(--coal);
+}
+
+/* 5 — K-POP AESTHETIC: rosa, lilla, azzurro, glossy. */
+html[data-theme="kpop-aesthetic"] {
+  --bg-0: #21172b;
+  --bg-1: #35233f;
+  --bg-2: #49304f;
+  --ink: #fff0f7;
+
+  --paper: #fff0f7;
+  --paper-hi: #fff8fc;
+  --paper-2: #f5dceb;
+  --coal: #24182d;
+  --coal-2: #392742;
+
+  --acid: #ff78b7;
+  --tomato: #a98bff;
+  --cobalt: #76ddf2;
+  --mustard: #f5c6e8;
+  --mint: #a8ead8;
+
+  --gold: #f5c6e8;
+  --gold-2: #fff8fc;
+  --violet: #a98bff;
+  --cyan: #76ddf2;
+  --pink: #ff78b7;
+  --green: #a8ead8;
+  --red: #ff78b7;
+
+  --acid-ink: #a34d75;
+  --tomato-ink: #735fad;
+  --cobalt-ink: #3d737e;
+  --mustard-ink: #7f6779;
+  --mint-ink: #517068;
+  --on-tomato: var(--coal);
+  --on-cobalt: var(--coal);
+  --on-acid: var(--coal);
+}
+
+/* 6 — NEON CYBERPUNK: viola, magenta, cyan.
+   Il lime resta fuori: è l'identità di Editorial Acid. */
+html[data-theme="neon-cyberpunk"] {
+  --bg-0: #090713;
+  --bg-1: #17112a;
+  --bg-2: #24183a;
+  --ink: #f0eafe;
+
+  --paper: #f0eafe;
+  --paper-hi: #fbf9ff;
+  --paper-2: #dcd1f0;
+  --coal: #100b1c;
+  --coal-2: #211832;
+
+  --acid: #ff00a8;
+  --tomato: #ff4b5e;
+  --cobalt: #00f0ff;
+  --mustard: #8b35ff;
+  --mint: #43ffd2;
+
+  --gold: #8b35ff;
+  --gold-2: #dcc7ff;
+  --violet: #8b35ff;
+  --cyan: #00f0ff;
+  --pink: #ff00a8;
+  --green: #43ffd2;
+  --red: #ff4b5e;
+
+  --acid-ink: #cc0086;
+  --tomato-ink: #c23947;
+  --cobalt-ink: #00737a;
+  --mustard-ink: #8533f5;
+  --mint-ink: #1d705c;
+  --on-tomato: var(--coal);
+  --on-cobalt: var(--coal);
+  --on-acid: var(--coal);
+}
+
+/* 7 — SUNSET POP: corallo, ambra, raspberry. */
+html[data-theme="sunset-pop"] {
+  --bg-0: #25142a;
+  --bg-1: #382039;
+  --bg-2: #4b2a43;
+  --ink: #fff0e6;
+
+  --paper: #fff0e6;
+  --paper-hi: #fff9f3;
+  --paper-2: #f4d9ce;
+  --coal: #2b172d;
+  --coal-2: #432541;
+
+  --acid: #ff795e;
+  --tomato: #c64c91;
+  --cobalt: #ffb938;
+  --mustard: #f3a6a0;
+  --mint: #e9b7c5;
+
+  --gold: #ffb938;
+  --gold-2: #ffebc9;
+  --violet: #c64c91;
+  --cyan: #ffb938;
+  --pink: #e9b7c5;
+  --green: #e9b7c5;
+  --red: #c64c91;
+
+  --acid-ink: #ad5240;
+  --tomato-ink: #ae4380;
+  --cobalt-ink: #8f681f;
+  --mustard-ink: #885d5a;
+  --mint-ink: #82666e;
+  --on-tomato: var(--paper-hi);
+  --on-cobalt: var(--coal);
+  --on-acid: var(--coal);
 }
 
 /* ============================================================
@@ -494,16 +705,16 @@ app-arena .arena-chip.alive { color: var(--coal) !important; }
 app-arena .arena-chip.timer,
 app-arena .arena-chip.rule { color: var(--coal) !important; }
 app-arena .arena-battlefield {
-  background-color: rgba(30, 25, 20, 0.5) !important;
+  background-color: color-mix(in srgb, var(--coal) 50%, transparent) !important;
   border-color: var(--paper) !important;
   box-shadow: 8px 8px 0 var(--tomato), inset 0 0 50px rgba(0, 0, 0, 0.5) !important;
 }
-app-arena .shrinking-circle { border-color: var(--tomato) !important; box-shadow: 0 0 0 2px var(--paper) !important; background: rgba(155, 79, 45, 0.08) !important; }
+app-arena .shrinking-circle { border-color: var(--tomato-ink) !important; box-shadow: 0 0 0 2px var(--paper) !important; background: color-mix(in srgb, var(--tomato) 8%, transparent) !important; }
 app-arena .circle-glow { box-shadow: none !important; animation: none !important; }
 app-arena .arena-center { background: var(--acid) !important; box-shadow: 0 0 0 3px var(--coal) !important; }
 app-arena .arena-center::after { border-color: var(--acid) !important; }
 app-arena .team-label { background: var(--paper) !important; color: var(--coal) !important; border: 2px solid var(--coal) !important; }
-app-arena .team-rank { background: var(--tomato) !important; color: var(--paper-hi) !important; }
+app-arena .team-rank { background: var(--tomato) !important; color: var(--on-tomato) !important; }
 app-arena .team-dot { background-color: var(--acid) !important; border-color: var(--coal) !important; }
 app-arena .team-node .team-label {
   position: absolute !important;

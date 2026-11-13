@@ -139,7 +139,7 @@ interface BasketTeam {
     }
     .bbs-head p {
       margin: 5px 0 0;
-      color: rgba(30, 25, 20, .62);
+      color: color-mix(in srgb, var(--coal) 62%, transparent);
       font-family: var(--font-mono);
       font-size: clamp(.6rem, .92vw, .78rem);
       letter-spacing: .04em;
@@ -157,7 +157,7 @@ interface BasketTeam {
       line-height: 1;
     }
     .bbs-clock span {
-      color: rgba(30, 25, 20, .55);
+      color: color-mix(in srgb, var(--coal) 55%, transparent);
       font-size: clamp(.5rem, .8vw, .65rem);
       font-weight: 800;
       letter-spacing: .18em;
@@ -181,7 +181,7 @@ interface BasketTeam {
       padding: 5px 8px;
       background: var(--paper-hi);
       border: 2px solid var(--coal);
-      color: rgba(30, 25, 20, .66);
+      color: color-mix(in srgb, var(--coal) 66%, transparent);
     }
     .bbs-rules b { color: var(--coal); letter-spacing: .07em; }
     .bbs-board {
@@ -197,7 +197,7 @@ interface BasketTeam {
       grid-template-columns: clamp(28px, 2.2vw, 36px) clamp(130px, 16vw, 220px) minmax(0, 1fr) clamp(70px, 7vw, 104px);
       gap: clamp(8px, 1vw, 14px);
       padding: 0 12px;
-      color: rgba(30, 25, 20, .55);
+      color: color-mix(in srgb, var(--coal) 55%, transparent);
       font-family: var(--font-mono);
       font-size: clamp(.46rem, .7vw, .58rem);
       font-weight: 800;
@@ -213,7 +213,7 @@ interface BasketTeam {
       background: var(--paper-hi);
       border: 3px solid var(--coal);
       border-left: 8px solid var(--tomato);
-      box-shadow: 3px 3px 0 rgba(21, 21, 15, .2);
+      box-shadow: 3px 3px 0 color-mix(in srgb, var(--coal) 20%, transparent);
     }
     .bbs-team:nth-of-type(4n + 2) { border-left-color: var(--tomato); }
     .bbs-team:nth-of-type(4n + 3) { border-left-color: var(--mustard); }
@@ -253,7 +253,7 @@ interface BasketTeam {
     .bbs-name span {
       display: block;
       margin-top: 2px;
-      color: rgba(30, 25, 20, .55);
+      color: color-mix(in srgb, var(--coal) 55%, transparent);
       font-family: var(--font-mono);
       font-size: clamp(.46rem, .7vw, .58rem);
       font-weight: 800;
@@ -275,7 +275,7 @@ interface BasketTeam {
       border-radius: 50%;
       background: var(--tomato);
       border: 2px solid var(--coal);
-      box-shadow: 2px 2px 0 rgba(21, 21, 15, .28);
+      box-shadow: 2px 2px 0 color-mix(in srgb, var(--coal) 28%, transparent);
     }
     .bbs-ball::before {
       content: '';
@@ -300,7 +300,7 @@ interface BasketTeam {
       transform: translate(-50%, -50%);
     }
     .bbs-empty {
-      color: rgba(30, 25, 20, .42);
+      color: color-mix(in srgb, var(--coal) 42%, transparent);
       font-family: var(--font-mono);
       font-size: clamp(.5rem, .72vw, .62rem);
       font-weight: 800;
@@ -319,7 +319,7 @@ interface BasketTeam {
     }
     .bbs-score span {
       margin-top: 2px;
-      color: rgba(30, 25, 20, .5);
+      color: color-mix(in srgb, var(--coal) 50%, transparent);
       font-family: var(--font-mono);
       font-size: clamp(.44rem, .66vw, .54rem);
       font-weight: 800;
@@ -328,7 +328,7 @@ interface BasketTeam {
     .bbs-no-teams {
       margin: 0;
       padding: 20px;
-      border: 2px dashed rgba(21, 21, 15, .35);
+      border: 2px dashed color-mix(in srgb, var(--coal) 35%, transparent);
       font-family: var(--font-mono);
       text-align: center;
     }

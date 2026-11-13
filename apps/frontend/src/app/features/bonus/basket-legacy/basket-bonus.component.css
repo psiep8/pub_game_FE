@@ -112,7 +112,7 @@
 
 .stat span {
   display: block;
-  color: rgba(21, 21, 15, 0.6);
+  color: color-mix(in srgb, var(--coal) 60%, transparent);
   font-family: var(--font-mono);
   font-size: 0.46rem;
   font-weight: 800;
@@ -237,7 +237,7 @@ canvas:active {
   left: 50%;
   padding: 4px 7px;
   border: 1px solid rgba(241, 228, 201, 0.3);
-  background: rgba(21, 21, 15, 0.68);
+  background: color-mix(in srgb, var(--coal) 68%, transparent);
   color: rgba(241, 228, 201, 0.82);
   font-family: var(--font-mono);
   font-size: 0.48rem;
@@ -255,7 +255,7 @@ canvas:active {
   display: grid;
   place-items: center;
   padding: 16px;
-  background: rgba(21, 21, 15, 0.72);
+  background: color-mix(in srgb, var(--coal) 72%, transparent);
 }
 
 .overlay-card {
@@ -292,7 +292,7 @@ canvas:active {
 
 .overlay-card p {
   margin: 0 0 8px;
-  color: rgba(21, 21, 15, 0.74);
+  color: color-mix(in srgb, var(--coal) 74%, transparent);
   font-family: var(--font-mono);
   font-size: 0.68rem;
   line-height: 1.5;
@@ -311,13 +311,13 @@ canvas:active {
   justify-content: space-between;
   gap: 8px;
   padding: 4px 0;
-  border-bottom: 1px dashed rgba(21, 21, 15, 0.28);
+  border-bottom: 1px dashed color-mix(in srgb, var(--coal) 28%, transparent);
   font-family: var(--font-mono);
   font-size: 0.55rem;
 }
 
 .manche-rules span {
-  color: rgba(21, 21, 15, 0.55);
+  color: color-mix(in srgb, var(--coal) 55%, transparent);
   letter-spacing: 0.06em;
 }
 
@@ -359,13 +359,13 @@ canvas:active {
   justify-content: space-between;
   gap: 10px;
   padding: 5px 0;
-  border-bottom: 1px dashed rgba(21, 21, 15, 0.28);
+  border-bottom: 1px dashed color-mix(in srgb, var(--coal) 28%, transparent);
   font-family: var(--font-mono);
   font-size: 0.56rem;
 }
 
 .manche-breakdown span {
-  color: rgba(21, 21, 15, 0.58);
+  color: color-mix(in srgb, var(--coal) 58%, transparent);
 }
 
 .manche-breakdown b {

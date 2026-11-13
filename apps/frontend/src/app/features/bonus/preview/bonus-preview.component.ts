@@ -134,8 +134,8 @@ const PREVIEW_CARDS: PreviewCard[] = [
       padding: clamp(20px, 4vw, 56px);
       background-color: var(--bg-0);
       background-image:
-        radial-gradient(rgba(244, 232, 206, 0.1) 1px, transparent 1px),
-        linear-gradient(115deg, transparent 0 64%, rgba(255, 77, 46, 0.08) 64% 65%, transparent 65%);
+        radial-gradient(color-mix(in srgb, var(--ink) 10%, transparent) 1px, transparent 1px),
+        linear-gradient(115deg, transparent 0 64%, color-mix(in srgb, var(--tomato) 8%, transparent) 64% 65%, transparent 65%);
       background-size: 16px 16px, 100% 100%;
     }
     .bp-head {
@@ -169,7 +169,7 @@ const PREVIEW_CARDS: PreviewCard[] = [
     .bp-head p {
       max-width: 720px;
       margin: 0;
-      color: rgba(244, 232, 206, 0.68);
+      color: color-mix(in srgb, var(--ink) 68%, transparent);
       font-family: var(--font-mono);
       font-size: clamp(0.75rem, 1.1vw, 0.95rem);
       line-height: 1.5;
@@ -203,7 +203,7 @@ const PREVIEW_CARDS: PreviewCard[] = [
     }
     .bp-number {
       align-self: flex-end;
-      color: rgba(21, 21, 15, 0.3);
+      color: color-mix(in srgb, var(--coal) 30%, transparent);
       font-family: var(--font-mono);
       font-size: 0.72rem;
       font-weight: 800;
@@ -225,14 +225,14 @@ const PREVIEW_CARDS: PreviewCard[] = [
     .bp-card p {
       flex: 1;
       margin: 14px 0;
-      color: rgba(21, 21, 15, 0.62);
+      color: color-mix(in srgb, var(--coal) 62%, transparent);
       font-family: var(--font-mono);
       font-size: 0.78rem;
       line-height: 1.45;
     }
     .bp-open {
       padding-top: 10px;
-      border-top: 2px dashed rgba(21, 21, 15, 0.25);
+      border-top: 2px dashed color-mix(in srgb, var(--coal) 25%, transparent);
       font-family: var(--font-mono);
       font-size: 0.68rem;
       font-weight: 800;
@@ -245,7 +245,7 @@ const PREVIEW_CARDS: PreviewCard[] = [
       gap: 10px;
       max-width: 1250px;
       margin: 28px auto 0;
-      color: rgba(244, 232, 206, 0.5);
+      color: color-mix(in srgb, var(--ink) 50%, transparent);
       font-family: var(--font-mono);
       font-size: 0.68rem;
       letter-spacing: 0.14em;
@@ -276,7 +276,7 @@ const PREVIEW_CARDS: PreviewCard[] = [
       max-width: calc(100vw - 16px);
       overflow-x: auto;
       padding: 5px;
-      background: rgba(21, 21, 15, 0.92);
+      background: color-mix(in srgb, var(--coal) 92%, transparent);
       border: 2px solid var(--paper);
       box-shadow: 4px 4px 0 var(--tomato);
       font-family: var(--font-mono);

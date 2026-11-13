@@ -8,8 +8,8 @@
 app-casino-bonus .casino-overlay {
   background-color: var(--bg-0) !important;
   background-image:
-    radial-gradient(rgba(244, 232, 206, 0.09) 1px, transparent 1px),
-    linear-gradient(115deg, transparent 0 62%, rgba(255, 77, 46, 0.08) 62% 63%, transparent 63%) !important;
+    radial-gradient(color-mix(in srgb, var(--ink) 9%, transparent) 1px, transparent 1px),
+    linear-gradient(115deg, transparent 0 62%, color-mix(in srgb, var(--tomato) 8%, transparent) 62% 63%, transparent 63%) !important;
   background-size: 16px 16px, 100% 100% !important;
   color: var(--paper) !important;
 }
@@ -24,7 +24,7 @@ app-casino-bonus .casino-kicker {
   display: inline-block;
   padding: 3px 10px;
   background: var(--tomato);
-  color: var(--paper-hi);
+  color: var(--on-tomato);
   border: 2px solid var(--coal);
   font-family: var(--font-mono);
   font-size: clamp(0.6rem, 0.9vw, 0.78rem);
@@ -40,7 +40,7 @@ app-casino-bonus .casino-head h1 {
   text-transform: uppercase;
 }
 app-casino-bonus .casino-rule {
-  color: rgba(21, 21, 15, 0.64) !important;
+  color: color-mix(in srgb, var(--coal) 64%, transparent) !important;
   font-family: var(--font-mono);
 }
 app-casino-bonus .casino-timer {
@@ -56,7 +56,7 @@ app-casino-bonus .casino-manches {
 }
 app-casino-bonus .casino-manche {
   background: var(--paper-hi) !important;
-  color: rgba(21, 21, 15, 0.5) !important;
+  color: color-mix(in srgb, var(--coal) 50%, transparent) !important;
   border: 2px solid var(--coal) !important;
   border-radius: 0 !important;
   font-family: var(--font-mono) !important;
@@ -79,7 +79,7 @@ app-casino-bonus .casino-wheel-wrap {
   position: relative;
   padding: clamp(16px, 2vw, 26px) clamp(10px, 1.4vw, 18px);
   background:
-    radial-gradient(rgba(21, 21, 15, 0.14) 1px, transparent 1px),
+    radial-gradient(color-mix(in srgb, var(--coal) 14%, transparent) 1px, transparent 1px),
     var(--paper-2) !important;
   background-size: 13px 13px !important;
   border: 3px solid var(--coal);
@@ -94,7 +94,7 @@ app-casino-bonus .casino-wheel-wrap::before {
   transform: translateX(-50%) rotate(-1.5deg);
   padding: 3px 10px;
   background: var(--tomato);
-  color: var(--paper-hi);
+  color: var(--on-tomato);
   border: 2px solid var(--coal);
   font-family: var(--font-mono);
   font-size: 0.62rem;
@@ -165,7 +165,7 @@ app-casino-bonus .casino-cell {
 }
 app-casino-bonus .casino-grid.numbers .casino-cell {
   border-width: 2px !important;
-  box-shadow: 2px 2px 0 rgba(21, 21, 15, 0.7);
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--coal) 70%, transparent);
 }
 app-casino-bonus .casino-cell.picked {
   background: var(--acid) !important;
@@ -174,14 +174,14 @@ app-casino-bonus .casino-cell.picked {
 }
 app-casino-bonus .casino-cell b {
   background: var(--tomato) !important;
-  color: var(--paper-hi) !important;
+  color: var(--on-tomato) !important;
   border: 2px solid var(--coal);
   border-radius: 0 !important;
   font-family: var(--font-mono);
 }
 app-casino-bonus .casino-hint,
 app-casino-bonus .casino-rule {
-  color: rgba(21, 21, 15, 0.62) !important;
+  color: color-mix(in srgb, var(--coal) 62%, transparent) !important;
   font-family: var(--font-mono);
 }
 app-casino-bonus .casino-intro {
@@ -209,7 +209,7 @@ app-casino-bonus .casino-win {
   box-shadow: 6px 6px 0 var(--tomato);
 }
 app-casino-bonus .casino-win-label {
-  color: rgba(21, 21, 15, 0.62) !important;
+  color: color-mix(in srgb, var(--coal) 62%, transparent) !important;
   font-family: var(--font-mono) !important;
 }
 app-casino-bonus .casino-win-value {
@@ -218,15 +218,15 @@ app-casino-bonus .casino-win-value {
   font-weight: 400 !important;
 }
 app-casino-bonus .casino-win-value.number {
-  color: var(--tomato) !important;
+  color: var(--tomato-ink) !important;
   font-family: var(--font-mono) !important;
 }
 app-casino-bonus .casino-win-cell {
-  color: var(--tomato) !important;
+  color: var(--tomato-ink) !important;
   font-family: var(--font-mono) !important;
 }
 app-casino-bonus .casino-reveal-head {
-  color: var(--tomato) !important;
+  color: var(--tomato-ink) !important;
   font-family: var(--font-mono) !important;
   font-weight: 800 !important;
 }
@@ -240,15 +240,15 @@ app-casino-bonus .casino-row.win {
   border-color: var(--coal) !important;
 }
 app-casino-bonus .casino-row-label {
-  color: rgba(21, 21, 15, 0.6) !important;
+  color: color-mix(in srgb, var(--coal) 60%, transparent) !important;
   font-family: var(--font-mono) !important;
 }
 app-casino-bonus .casino-row b {
-  color: var(--tomato) !important;
+  color: var(--tomato-ink) !important;
   font-family: var(--font-mono) !important;
 }
 app-casino-bonus .casino-totals {
-  border-top: 2px dashed rgba(21, 21, 15, 0.3) !important;
+  border-top: 2px dashed color-mix(in srgb, var(--coal) 30%, transparent) !important;
 }
 app-casino-bonus .casino-total {
   background: var(--paper-hi) !important;
@@ -256,11 +256,11 @@ app-casino-bonus .casino-total {
   border-radius: 0 !important;
 }
 app-casino-bonus .casino-total b {
-  color: var(--tomato) !important;
+  color: var(--tomato-ink) !important;
   font-family: var(--font-mono) !important;
 }
 app-casino-bonus .casino-finale-kicker {
-  color: var(--tomato) !important;
+  color: var(--tomato-ink) !important;
   font-family: var(--font-mono) !important;
   font-weight: 800 !important;
 }
@@ -275,7 +275,7 @@ app-casino-bonus .casino-finale-row.top {
   box-shadow: 5px 5px 0 var(--tomato);
 }
 app-casino-bonus .casino-finale-row b {
-  color: var(--tomato) !important;
+  color: var(--tomato-ink) !important;
   font-family: var(--font-mono) !important;
 }
 
@@ -283,8 +283,8 @@ app-casino-bonus .casino-finale-row b {
 app-cavallo-bonus .cav-overlay {
   background-color: var(--bg-0) !important;
   background-image:
-    radial-gradient(rgba(244, 232, 206, 0.09) 1px, transparent 1px),
-    linear-gradient(115deg, transparent 0 62%, rgba(255, 77, 46, 0.08) 62% 63%, transparent 63%) !important;
+    radial-gradient(color-mix(in srgb, var(--ink) 9%, transparent) 1px, transparent 1px),
+    linear-gradient(115deg, transparent 0 62%, color-mix(in srgb, var(--tomato) 8%, transparent) 62% 63%, transparent 63%) !important;
   background-size: 16px 16px, 100% 100% !important;
   color: var(--paper) !important;
 }
@@ -299,7 +299,7 @@ app-cavallo-bonus .cav-kicker {
   display: inline-block;
   padding: 3px 10px;
   background: var(--tomato);
-  color: var(--paper-hi);
+  color: var(--on-tomato);
   border: 2px solid var(--coal);
   font-family: var(--font-mono) !important;
   font-size: clamp(0.6rem, 0.9vw, 0.78rem);
@@ -314,7 +314,7 @@ app-cavallo-bonus .cav-head h1 {
   letter-spacing: 0.03em !important;
 }
 app-cavallo-bonus .cav-sub {
-  color: rgba(21, 21, 15, 0.62) !important;
+  color: color-mix(in srgb, var(--coal) 62%, transparent) !important;
   font-family: var(--font-mono);
 }
 app-cavallo-bonus .cav-round {
@@ -324,11 +324,11 @@ app-cavallo-bonus .cav-round {
   box-shadow: 3px 3px 0 var(--coal);
 }
 app-cavallo-bonus .cav-round span {
-  color: rgba(21, 21, 15, 0.6) !important;
+  color: color-mix(in srgb, var(--coal) 60%, transparent) !important;
   font-family: var(--font-mono) !important;
 }
 app-cavallo-bonus .cav-round b {
-  color: var(--tomato) !important;
+  color: var(--tomato-ink) !important;
   font-family: var(--font-mono) !important;
 }
 app-cavallo-bonus .cav-clock {
@@ -342,7 +342,7 @@ app-cavallo-bonus .cav-clock b {
   font-weight: 400 !important;
 }
 app-cavallo-bonus .cav-clock span {
-  color: rgba(21, 21, 15, 0.62) !important;
+  color: color-mix(in srgb, var(--coal) 62%, transparent) !important;
   font-family: var(--font-mono) !important;
 }
 app-cavallo-bonus .cav-clock.hot {
@@ -361,19 +361,19 @@ app-cavallo-bonus .cav-call {
   font-weight: 400 !important;
 }
 app-cavallo-bonus .cav-cat {
-  color: var(--tomato) !important;
+  color: var(--tomato-ink) !important;
   font-family: var(--font-mono) !important;
 }
 app-cavallo-bonus .cav-board-head {
-  color: rgba(21, 21, 15, 0.6) !important;
+  color: color-mix(in srgb, var(--coal) 60%, transparent) !important;
   font-family: var(--font-mono) !important;
 }
-app-cavallo-bonus .cav-board-state { color: var(--tomato) !important; }
+app-cavallo-bonus .cav-board-state { color: var(--tomato-ink) !important; }
 app-cavallo-bonus .cav-row {
   background: var(--paper-hi) !important;
   border: 2px solid var(--coal) !important;
   border-radius: 0 !important;
-  box-shadow: 3px 3px 0 rgba(21, 21, 15, 0.65);
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--coal) 65%, transparent);
 }
 app-cavallo-bonus .cav-row.lead {
   background: var(--acid) !important;
@@ -384,7 +384,7 @@ app-cavallo-bonus .cav-row.gain {
   animation: bonus-gain 0.9s ease-out !important;
 }
 @keyframes bonus-gain {
-  0% { background: var(--acid); border-color: var(--tomato); }
+  0% { background: var(--acid); border-color: var(--tomato-ink); }
   100% { background: var(--paper-hi); border-color: var(--coal); }
 }
 app-cavallo-bonus .cav-pos {
@@ -395,7 +395,7 @@ app-cavallo-bonus .cav-pos {
 }
 app-cavallo-bonus .cav-row.lead .cav-pos {
   background: var(--tomato) !important;
-  color: var(--paper-hi) !important;
+  color: var(--on-tomato) !important;
 }
 app-cavallo-bonus .cav-name {
   color: var(--coal) !important;
@@ -404,7 +404,7 @@ app-cavallo-bonus .cav-name {
   text-transform: uppercase;
 }
 app-cavallo-bonus .cav-gain {
-  color: var(--tomato) !important;
+  color: var(--tomato-ink) !important;
   font-family: var(--font-mono) !important;
 }
 app-cavallo-bonus .cav-score {
@@ -412,14 +412,14 @@ app-cavallo-bonus .cav-score {
   font-family: var(--font-mono) !important;
 }
 app-cavallo-bonus .cav-finale {
-  border-top: 2px dashed rgba(21, 21, 15, 0.3) !important;
+  border-top: 2px dashed color-mix(in srgb, var(--coal) 30%, transparent) !important;
 }
 app-cavallo-bonus .cav-finale span {
-  color: var(--tomato) !important;
+  color: var(--tomato-ink) !important;
   font-family: var(--font-mono) !important;
 }
 app-cavallo-bonus .cav-finale p {
-  color: rgba(21, 21, 15, 0.62) !important;
+  color: color-mix(in srgb, var(--coal) 62%, transparent) !important;
 }
 
 /* ------------------------------------------- BONUS PREVIEW (SOLO BANCO DI PROVA) */
@@ -459,8 +459,8 @@ app-bonus-preview .bp-live .bg-overlay {
 app-basket-bonus-stage .bbs-overlay {
   background-color: var(--bg-0) !important;
   background-image:
-    radial-gradient(rgba(244, 232, 206, 0.09) 1px, transparent 1px),
-    linear-gradient(115deg, transparent 0 62%, rgba(255, 77, 46, 0.08) 62% 63%, transparent 63%) !important;
+    radial-gradient(color-mix(in srgb, var(--ink) 9%, transparent) 1px, transparent 1px),
+    linear-gradient(115deg, transparent 0 62%, color-mix(in srgb, var(--tomato) 8%, transparent) 62% 63%, transparent 63%) !important;
   background-size: 16px 16px, 100% 100% !important;
   color: var(--paper) !important;
 }
@@ -475,7 +475,7 @@ app-basket-bonus-stage .bbs-kicker {
   display: inline-block;
   padding: 3px 10px;
   background: var(--tomato);
-  color: var(--paper-hi) !important;
+  color: var(--on-tomato) !important;
   border: 2px solid var(--coal);
   font-family: var(--font-mono) !important;
   font-size: clamp(0.6rem, 0.9vw, 0.78rem);
@@ -489,28 +489,28 @@ app-basket-bonus-stage .bbs-card h1 {
   font-weight: 400 !important;
 }
 app-basket-bonus-stage .bbs-sub {
-  color: rgba(21, 21, 15, 0.62) !important;
+  color: color-mix(in srgb, var(--coal) 62%, transparent) !important;
   font-family: var(--font-mono);
 }
 app-basket-bonus-stage .bbs-manche {
   background: var(--paper-hi) !important;
   border: 2px solid var(--coal) !important;
   border-radius: 0 !important;
-  box-shadow: 4px 4px 0 rgba(21, 21, 15, 0.65);
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--coal) 65%, transparent);
 }
 app-basket-bonus-stage .bbs-manche b {
-  color: var(--tomato) !important;
+  color: var(--tomato-ink) !important;
   font-family: var(--font-mono) !important;
 }
 app-basket-bonus-stage .bbs-manche span:not(.bbs-hoop) {
   color: var(--coal) !important;
 }
 app-basket-bonus-stage .bbs-manche em {
-  color: rgba(21, 21, 15, 0.6) !important;
+  color: color-mix(in srgb, var(--coal) 60%, transparent) !important;
   font-family: var(--font-mono);
 }
 app-basket-bonus-stage .bbs-hoop {
-  border-color: var(--tomato) !important;
+  border-color: var(--tomato-ink) !important;
   background: transparent !important;
 }
 app-basket-bonus-stage .bbs-timer {
@@ -522,7 +522,7 @@ app-basket-bonus-stage .bbs-timer {
   font-family: var(--font-mono) !important;
 }
 app-basket-bonus-stage .bbs-hint {
-  color: rgba(21, 21, 15, 0.62) !important;
+  color: color-mix(in srgb, var(--coal) 62%, transparent) !important;
   font-family: var(--font-mono);
 }
 app-basket-bonus-stage .bbs-row {
@@ -536,7 +536,7 @@ app-basket-bonus-stage .bbs-row.top {
   box-shadow: 5px 5px 0 var(--tomato);
 }
 app-basket-bonus-stage .bbs-row b {
-  color: var(--tomato) !important;
+  color: var(--tomato-ink) !important;
   font-family: var(--font-mono) !important;
 }
 
@@ -561,4 +561,4 @@ app-image-blur .presenter-controls button {
   color: var(--coal) !important;
 }
 app-image-blur .presenter-controls .control-correct { background: var(--acid) !important; }
-app-image-blur .presenter-controls .control-wrong { background: var(--tomato) !important; color: var(--paper-hi) !important; }
+app-image-blur .presenter-controls .control-wrong { background: var(--tomato) !important; color: var(--on-tomato) !important; }

@@ -9,8 +9,8 @@
   padding: clamp(18px, 2.6vh, 30px) 0 !important;
   background-color: var(--paper) !important;
   background-image:
-    radial-gradient(rgba(21, 21, 15, 0.14) 1px, transparent 1px),
-    linear-gradient(90deg, transparent 0 73%, rgba(255, 77, 46, 0.1) 73% 74%, transparent 74%) !important;
+    radial-gradient(color-mix(in srgb, var(--coal) 14%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, transparent 0 73%, color-mix(in srgb, var(--tomato) 10%, transparent) 73% 74%, transparent 74%) !important;
   background-size: 16px 16px, 100% 100% !important;
   color: var(--coal) !important;
 }
@@ -119,7 +119,7 @@
   letter-spacing: -0.04em;
 }
 .kahoot-leaderboard .points-label {
-  color: rgba(21, 21, 15, 0.55) !important;
+  color: color-mix(in srgb, var(--coal) 55%, transparent) !important;
   font-family: var(--font-mono) !important;
   font-size: clamp(0.5rem, 1.1vh, 0.7rem) !important;
   letter-spacing: 0.08em;

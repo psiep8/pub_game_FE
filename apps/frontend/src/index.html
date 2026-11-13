@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="it" data-theme="ink">
+<html lang="it" data-theme="editorial-acid">
 <head>
   <meta charset="utf-8">
   <title>Pub Game</title>
@@ -12,11 +12,15 @@
   <meta name="apple-mobile-web-app-title" content="PubGame">
   <meta name="application-name" content="PubGame">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#15150f">
+  <meta name="theme-color" content="#111109">
   <script>
+    // Tema prima del primo paint: sette slug validi, più i due nomi storici.
     try {
-      var savedTheme = localStorage.getItem('pubgame-theme');
-      document.documentElement.setAttribute('data-theme', savedTheme === 'sabbia' ? 'sabbia' : 'ink');
+      var themes = ['editorial-acid', 'desert-heritage', 'arctic-noir', 'deep-ocean', 'kpop-aesthetic', 'neon-cyberpunk', 'sunset-pop'];
+      var legacy = { ink: 'editorial-acid', sabbia: 'desert-heritage' };
+      var saved = localStorage.getItem('pubgame-theme');
+      var theme = legacy[saved] || (themes.indexOf(saved) !== -1 ? saved : 'editorial-acid');
+      document.documentElement.setAttribute('data-theme', theme);
     } catch (e) { }
   </script>
 

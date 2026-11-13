@@ -149,18 +149,18 @@ import { CommonModule } from '@angular/common';
     .ahb-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font); font-size: clamp(1rem, 1.35vw, 1.35rem); font-weight: 800; }
     .ahb-score { flex: 0 0 auto; font-family: var(--font-mono); font-size: clamp(1.9rem, 2.8vw, 2.8rem); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
     .ahb-mid { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-    .ahb-set { font-family: var(--font-mono); font-size: .58rem; letter-spacing: .18em; color: rgba(30, 25, 20, .55); }
+    .ahb-set { font-family: var(--font-mono); font-size: .58rem; letter-spacing: .18em; color: color-mix(in srgb, var(--coal) 55%, transparent); }
     .ahb-vs { font-family: var(--font-mono); font-size: .72rem; font-weight: 700; letter-spacing: .12em; color: var(--tomato); }
 
     .ahb-rink {
       position: relative; flex: 1 1 auto; min-height: clamp(120px, 18vh, 220px);
       background:
-        repeating-linear-gradient(90deg, rgba(30, 25, 20, .06) 0 1px, transparent 1px 34px),
+        repeating-linear-gradient(90deg, color-mix(in srgb, var(--coal) 6%, transparent) 0 1px, transparent 1px 34px),
         var(--paper-hi);
       border: 3px solid var(--coal); overflow: hidden;
     }
-    .ahb-center { position: absolute; left: 50%; top: 8%; bottom: 8%; width: 3px; margin-left: -1.5px; background: rgba(30, 25, 20, .25); }
-    .ahb-goal-frame { position: absolute; top: 14%; bottom: 14%; width: 10px; background: repeating-linear-gradient(180deg, rgba(30,25,20,.35) 0 4px, transparent 4px 8px); }
+    .ahb-center { position: absolute; left: 50%; top: 8%; bottom: 8%; width: 3px; margin-left: -1.5px; background: color-mix(in srgb, var(--coal) 25%, transparent); }
+    .ahb-goal-frame { position: absolute; top: 14%; bottom: 14%; width: 10px; background: repeating-linear-gradient(180deg, color-mix(in srgb, var(--coal) 35%, transparent) 0 4px, transparent 4px 8px); }
     .ahb-laser { border: 2px solid var(--coal); box-shadow: 4px 4px 0 var(--coal); }
     .ahb-goal-frame.left { left: 0; border-right: 2px solid var(--coal); }
     .ahb-goal-frame.right { right: 0; border-left: 2px solid var(--coal); }
@@ -204,7 +204,7 @@ import { CommonModule } from '@angular/common';
 
     .ahb-goal-flash {
       position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      background: rgba(155, 79, 45, .92); color: var(--paper-hi); gap: 2px;
+      background: color-mix(in srgb, var(--tomato) 92%, transparent); color: var(--paper-hi); gap: 2px;
       animation: ahbGoal .35s ease-out;
     }
     .ahb-goal-word { font-family: var(--font-display); font-weight: 400; font-size: clamp(1.6rem, 2.8vw, 2.4rem); line-height: 1; letter-spacing: .06em; }
@@ -222,13 +222,13 @@ import { CommonModule } from '@angular/common';
     .ahb-q-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; }
     .ahb-q-option { display: flex; gap: 8px; min-width: 0; font-family: var(--font); font-size: clamp(1rem, 1.35vw, 1.35rem); line-height: 1.2; }
     .ahb-q-option b { font-family: var(--font-mono); color: var(--tomato); }
-    .ahb-q-option:nth-child(1), .ahb-q-option:nth-child(2) { color: rgba(30, 25, 20, .95); }
+    .ahb-q-option:nth-child(1), .ahb-q-option:nth-child(2) { color: color-mix(in srgb, var(--coal) 95%, transparent); }
 
     .ahb-winner-card { display: flex; align-items: center; gap: 12px; }
     .ahb-cup { font-size: clamp(1.8rem, 2.6vw, 2.4rem); }
     .ahb-winner-name { font-family: var(--font-display); font-size: clamp(1.4rem, 2.2vw, 2rem); text-transform: uppercase; }
-    .ahb-winner-note { font-family: var(--font-mono); font-size: .8rem; color: rgba(30, 25, 20, .6); }
-    .ahb-waiting { font-family: var(--font-mono); font-size: clamp(.9rem, 1.1vw, 1.05rem); color: rgba(30, 25, 20, .6); }
+    .ahb-winner-note { font-family: var(--font-mono); font-size: .8rem; color: color-mix(in srgb, var(--coal) 60%, transparent); }
+    .ahb-waiting { font-family: var(--font-mono); font-size: clamp(.9rem, 1.1vw, 1.05rem); color: color-mix(in srgb, var(--coal) 60%, transparent); }
     .ahb-empty { grid-column: 1 / -1; align-self: center; color: var(--ink-dim); text-align: center; font-family: var(--font-mono); }
 
     /* Pannello di fine round: esiti dei campi stampati su carta. */
