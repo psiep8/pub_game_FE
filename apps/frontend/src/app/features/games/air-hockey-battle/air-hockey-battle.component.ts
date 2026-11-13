@@ -66,6 +66,10 @@ import { CommonModule } from '@angular/common';
                 [class.traj-zigzag]="court.trajectory === 'zigzag'"
                 [class.traj-curva]="court.trajectory === 'curva'"
                 [class.traj-salto]="court.trajectory === 'salto'"
+                [class.traj-veloce]="court.trajectory === 'veloce'"
+                [class.traj-accelerato]="court.trajectory === 'accelerato'"
+                [class.traj-frenata]="court.trajectory === 'frenata'"
+                [class.traj-lento]="court.trajectory === 'lento'"
                 [style.transition-duration.ms]="court.shotMs || 450"
                 [style.animation-duration.ms]="court.shotMs || 450"></div>
 
@@ -179,6 +183,10 @@ import { CommonModule } from '@angular/common';
     .ahb-puck.traj-zigzag { animation-name: ahbZigzag; animation-timing-function: ease-in-out; animation-fill-mode: both; }
     .ahb-puck.traj-curva { animation-name: ahbCurva; animation-timing-function: cubic-bezier(.3, .7, .4, 1); animation-fill-mode: both; }
     .ahb-puck.traj-salto { animation-name: ahbSalto; animation-timing-function: ease-out; animation-fill-mode: both; }
+    .ahb-puck.traj-veloce { animation-name: ahbVeloce; animation-timing-function: cubic-bezier(.1, .9, .2, 1); animation-fill-mode: both; }
+    .ahb-puck.traj-accelerato { animation-name: ahbAccel; animation-timing-function: cubic-bezier(.85, 0, .15, 1); animation-fill-mode: both; }
+    .ahb-puck.traj-frenata { animation-name: ahbFrena; animation-timing-function: cubic-bezier(.05, .9, .3, 1); animation-fill-mode: both; }
+    .ahb-puck.traj-lento { animation-name: ahbLento; animation-timing-function: linear; animation-fill-mode: both; }
     @keyframes ahbZigzag {
       0%, 100% { transform: translateY(0); }
       20% { transform: translateY(-75%); }
@@ -200,6 +208,30 @@ import { CommonModule } from '@angular/common';
       55% { transform: translateY(-45%); }
       80% { transform: translateY(35%); }
       100% { transform: translateY(0); }
+    }
+    /* Fucilata: fila basso e allungato, non si alza di un millimetro. */
+    @keyframes ahbVeloce {
+      0% { transform: translateY(-14%) scaleX(1.3); }
+      70% { transform: translateY(-4%) scaleX(1.1); }
+      100% { transform: translateY(0) scaleX(1); }
+    }
+    /* Scatto: parte trattenuto e schizza a metà pista. */
+    @keyframes ahbAccel {
+      0% { transform: translateY(-30%) scaleX(.92); }
+      45% { transform: translateY(14%) scaleX(1.06); }
+      100% { transform: translateY(0) scaleX(1); }
+    }
+    /* Frenata: arriva forte e si siede sul centro. */
+    @keyframes ahbFrena {
+      0% { transform: translateY(-62%) scaleX(1.22); }
+      55% { transform: translateY(10%) scaleX(1); }
+      100% { transform: translateY(0) scaleX(1); }
+    }
+    /* Disco pesante: striscia in basso, ruota piano e si ferma. */
+    @keyframes ahbLento {
+      0% { transform: translateY(42%) rotate(0deg); }
+      55% { transform: translateY(24%) rotate(-40deg); }
+      100% { transform: translateY(0) rotate(-80deg); }
     }
 
     .ahb-goal-flash {

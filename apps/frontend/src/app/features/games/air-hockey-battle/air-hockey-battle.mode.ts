@@ -5,8 +5,20 @@ import { GameModeResult, GameModeType } from '../../../shared/models/game-mode-t
 
 type Side = 'a' | 'b';
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
-/** Come viaggia il disco: quattro tiri diversi, non solo quello dritto. */
-export type HockeyTrajectory = 'dritto' | 'zigzag' | 'curva' | 'salto';
+/**
+ * Come viaggia il disco. Quattro traiettorie di base e quattro legate al tempo
+ * di risposta: chi risponde piano lancia un disco pesante, chi risponde secco
+ * un disco che sfreccia.
+ */
+export type HockeyTrajectory =
+  | 'dritto'
+  | 'zigzag'
+  | 'curva'
+  | 'salto'
+  | 'veloce'
+  | 'accelerato'
+  | 'frenata'
+  | 'lento';
 
 interface CourtSide {
   playerName: string;
@@ -47,6 +59,18 @@ interface Court {
 
 const POINTS_TO_WIN = 7;
 const SERVE_SECONDS = 12;
+
+/** Quanto pesa la traiettoria sul tempo di percorrenza del disco. */
+const SHOT_SPEED: Record<HockeyTrajectory, number> = {
+  dritto: 1,
+  zigzag: 1,
+  curva: 1,
+  salto: 0.85,
+  veloce: 0.45,
+  accelerato: 0.7,
+  frenata: 1.2,
+  lento: 1.6,
+};
 
 const question = (
   difficulty: Difficulty,
@@ -100,14 +124,29 @@ const HARD_QUESTIONS: AirHockeyQuestion[] = [
 /**
  * Traiettoria del disco in base al tempo di risposta e ai tiri già fatti.
  *
- * Risposta lenta = palla lavorata (zigzag, poi curva); risposta secca = tiro
- * dritto, con un rimbalzo a salto ogni tre tiri per non avere sempre lo
- * stesso tragitto.
+ * Risposta lenta = palla lavorata (zigzag, poi curva) che rallenta ancora
+ * oltre i 9 secondi; risposta secca = tiro dritto, con un rimbalzo a salto o
+ * uno scatto ogni pochi tiri per non avere sempre lo stesso tragitto. Sotto
+ * il secondo il disco è una fucilata.
  */
 export function trajectoryFor(elapsedMs: number, shots: number): HockeyTrajectory {
+  if (elapsedMs >= 10500) return 'lento';
+  if (elapsedMs >= 9000) return 'frenata';
   if (elapsedMs >= 7000) return 'curva';
   if (elapsedMs >= 4500) return 'zigzag';
+  if (elapsedMs < 800) return 'veloce';
+  if (shots % 4 === 3) return 'accelerato';
   return shots % 3 === 2 ? 'salto' : 'dritto';
+}
+
+/**
+ * Quanto ci mette il disco ad attraversare la pista, in ms. Dipende dalla
+ * traiettoria: un tiro "veloce" arriva in meno della metà del tempo.
+ */
+export function shotDurationFor(elapsedMs: number, shots: number): number {
+  const trajectory = trajectoryFor(elapsedMs, shots);
+  const base = Math.max(420, Math.min(2600, Math.round(400 + elapsedMs * 0.18)));
+  return Math.max(220, Math.min(3400, Math.round(base * SHOT_SPEED[trajectory])));
 }
 
 /**
@@ -374,10 +413,14 @@ export class AirHockeyBattleMode extends GameModeBase {
     // Risposta lenta = tiro a zig-zag e più tempo all'avversario.
     const seconds = Math.max(1, Math.min(20, Math.round(elapsedMs / 1000)));
     const serveLeft = Math.max(4, Math.min(SERVE_SECONDS, 3 + seconds));
-    const shotMs = Math.max(420, Math.min(2600, Math.round(400 + elapsedMs * 0.18)));
+    // Traiettoria e tempo di volo dipendono dal tiro appena fatto: il disco
+    // lento ci mette il doppio, quello veloce arriva prima che l'avversario
+    // legga la domanda. Si calcolano dentro il map, sul lato che ha tirato.
 
     this.courts.update((courts) => courts.map((court) => {
       if (court.id !== courtId || court.winner) return court;
+      const trajectory = trajectoryFor(elapsedMs, court[side].shots + 1);
+      const shotMs = shotDurationFor(elapsedMs, court[side].shots + 1);
       return {
         ...court,
         [side]: { ...court[side], shots: court[side].shots + 1 },
@@ -386,7 +429,7 @@ export class AirHockeyBattleMode extends GameModeBase {
         question: this.nextQuestion(this.difficultyFor(court[other].shots)),
         questionAt: Date.now(),
         shotMs,
-        trajectory: trajectoryFor(elapsedMs, court[side].shots + 1),
+        trajectory,
         lastEvent: { kind: 'return', side, id: eventId },
       };
     }));

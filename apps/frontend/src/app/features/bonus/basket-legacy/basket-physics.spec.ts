@@ -104,6 +104,18 @@ describe('basket physics', () => {
     expect(shot.velocity.z).toBeLessThan(0);
   });
 
+  it('un tiro con potenza giusta ma largo non entra: il centro va mirato', () => {
+    const world = createBasketWorld(0);
+    const shot = createShot(world);
+    shot.velocity = launchVelocity(world, 0.5, 0.9);
+
+    for (let index = 0; index < 240 * 2 && !shot.scored; index++) {
+      stepShot(shot, world, 1 / 240);
+    }
+
+    expect(shot.scored).toBe(false);
+  });
+
   it('il ferro laterale rimbalza e non concede il canestro', () => {
     const world = createBasketWorld(1);
     const shot = createShot(world);

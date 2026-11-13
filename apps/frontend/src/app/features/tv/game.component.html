@@ -153,7 +153,16 @@
 
 
   @if (currentMode(); as mode) {
-  @if (mode.requiresBubbles && !showTypeReveal() && phase() === 'SPINNING') {
+  @if (slotRolling()) {
+  <div class="category-slot rolling" aria-live="off">
+    <div class="category-slot-kicker">ESTRAZIONE IN CORSO</div>
+    <div class="category-slot-reel">
+      <div class="slot-row chosen">{{ slotRollName() }}</div>
+    </div>
+  </div>
+  }
+
+  @if (mode.requiresBubbles && !showTypeReveal() && phase() === 'SPINNING' && !slotRolling()) {
   <div class="bubbles-area">
     @for (cat of bubbleCategories(); track cat.id) {
     <div class="category-bubble" [style.top]="cat.top" [style.left]="cat.left"

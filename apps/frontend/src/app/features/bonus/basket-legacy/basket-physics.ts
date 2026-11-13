@@ -142,10 +142,11 @@ export function launchVelocity(world: BasketWorld, pull: number, side: number): 
   const lateral = clamp(side, -1, 1);
 
   // Arco alto: la palla deve scendere nel ferro, non arrivare piatta sul
-  // tabellone. La potenza regola soprattutto la distanza; il laterale ha una
-  // curva non lineare per dare precisione vicino al centro.
+  // tabellone. La potenza regola soprattutto la distanza. Il laterale è
+  // lineare: niente più "zona morbida" al centro, quindi centrare il ferro
+  // richiede mira vera e un errore piccolo si vede subito.
   return {
-    x: Math.sign(lateral) * Math.pow(Math.abs(lateral), 1.7) * 0.95,
+    x: lateral * 0.65,
     y: 6.6,
     // Curva continua e centrata: il 50% resta lo swish pulito e la finestra
     // utile copre circa il 20–90%, senza il buco sul ferro basso.

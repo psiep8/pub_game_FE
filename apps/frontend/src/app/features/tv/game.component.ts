@@ -167,6 +167,9 @@ export class GameComponent implements OnInit, OnDestroy {
   autoAdvanceSeconds = signal(0);
   autoAdvanceEnabled = signal(false);
   animatedCategoryId = signal<number | null>(null);
+  /** Roll da slot machine: nomi che scorrono prima di svelare la categoria. */
+  readonly slotRolling = signal(false);
+  readonly slotRollName = signal('');
 
 
   showResetModal = signal(false);
@@ -753,6 +756,34 @@ export class GameComponent implements OnInit, OnDestroy {
     this.roundWinnerTheme = null;
   }
 
+  /**
+   * Rullo da slot machine: i nomi delle categorie scorrono per `durationMs`,
+   * poi il nastro si ferma sulla scelta. Serve a dare suspense all'estrazione,
+   * non è decorazione: senza si passa dal buio alla domanda.
+   */
+  private async rollSlot(
+    pool: ReadonlyArray<{ id: number; name?: string }>,
+    durationMs = 5000,
+  ): Promise<void> {
+    const names = pool
+      .map((category) => String(category.name ?? '').trim())
+      .filter((name) => name.length > 0);
+    if (names.length === 0) return;
+
+    this.slotRolling.set(true);
+    const startedAt = Date.now();
+    let index = 0;
+    while (Date.now() - startedAt < durationMs) {
+      this.slotRollName.set(names[index % names.length]);
+      index += 1;
+      await new Promise((resolve) => setTimeout(resolve, 90));
+    }
+
+    const chosen = pool.find((category) => category.id === this.selectedCategoryId())?.name;
+    this.slotRollName.set(String(chosen ?? names[0]));
+    this.slotRolling.set(false);
+  }
+
   async startNewRound() {
     if (this.phase() === GamePhase.INTRO) this.dismissIntro();
 
@@ -879,7 +910,9 @@ export class GameComponent implements OnInit, OnDestroy {
         this.animatedCategoryId.set(bubblePool[randomIndex].id);
 
         this.phase.set('SPINNING');
-        await new Promise(r => setTimeout(r, 2600));
+        // Cinque secondi di roll: il nastro gira prima di fermarsi.
+        await this.rollSlot(bubblePool);
+        await new Promise(r => setTimeout(r, 350));
 
         // Il rullo si ferma sulla categoria scelta, poi resta a schermo
         // come titolo sopra la domanda.

@@ -98,5 +98,13 @@ class SpeedRushBasketServiceTest {
         assertThat(missed.getBoolean("made")).isFalse();
         assertThat(missed.getInt("points")).isZero();
         assertThat(missed.getInt("score")).isEqualTo(made.getInt("score"));
+
+        // Potenza giusta ma tiro largo: il ferro è piccolo, non basta la forza.
+        JSONObject wide = basket.shot(
+                gameId, "Bruno", missed.getString("nextShotId"),
+                missed.getDouble("targetPull"), 0.9)
+                .orElseThrow();
+        assertThat(wide.getBoolean("made")).isFalse();
+        assertThat(wide.getInt("points")).isZero();
     }
 }

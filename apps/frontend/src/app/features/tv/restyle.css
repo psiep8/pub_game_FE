@@ -1123,3 +1123,28 @@
   z-index: 0;
   pointer-events: none;
 }
+
+
+/* ------------------------------------------------- Roll da slot machine */
+/* Cinque secondi di nomi che scorrono: il nastro gira, poi si ferma sulla
+   categoria estratta. Nessun blur né bagliore: carta, bordo e timbro. */
+.category-slot.rolling {
+  background: color-mix(in srgb, var(--bg-0) 94%, transparent);
+}
+.category-slot.rolling .slot-row.chosen {
+  min-width: min(80vw, 560px);
+  max-width: 88vw;
+  padding: 12px 28px;
+  font-size: clamp(1.3rem, 2.4vw, 2.2rem);
+  line-height: 1.02;
+  text-align: center;
+  overflow-wrap: anywhere;
+  animation: slotTick 110ms steps(2, end) infinite;
+}
+.category-slot.rolling .category-slot-kicker {
+  color: var(--acid);
+}
+@keyframes slotTick {
+  from { transform: translateY(-3px) scale(0.992); }
+  to { transform: translateY(3px) scale(1); }
+}

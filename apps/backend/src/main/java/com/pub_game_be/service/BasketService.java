@@ -35,6 +35,13 @@ public class BasketService {
     private static final double TOLERANCE = 0.055;
     private static final int[] BASE_POINTS = {2, 3, 5};
 
+    /**
+     * Quanto può essere largo il tiro per entrare: la finestra stringe man mano
+     * che il canestro si rimpicciolisce. Prima il laterale era ignorato e si
+     * segnava anche tirando di lato.
+     */
+    private static final double[] SIDE_TOLERANCE = {0.24, 0.17, 0.11};
+
     private static final class PlayerState {
         String name;
         int score;
@@ -115,8 +122,13 @@ public class BasketService {
         long now = System.currentTimeMillis();
         int manche = manche(session, now);
         double distance = Math.abs(pull - player.targetPull);
-        boolean made = distance <= player.tolerance;
-        int points = made ? BASE_POINTS[manche] + (distance <= player.tolerance * 0.4 ? 1 : 0) : 0;
+        double lateral = Math.abs(side);
+        double sideTolerance = SIDE_TOLERANCE[Math.min(manche, SIDE_TOLERANCE.length - 1)];
+        boolean made = distance <= player.tolerance && lateral <= sideTolerance;
+        boolean centered = lateral <= sideTolerance * 0.4;
+        int points = made
+                ? BASE_POINTS[manche] + (distance <= player.tolerance * 0.4 && centered ? 1 : 0)
+                : 0;
 
         player.shots++;
         if (made) {
