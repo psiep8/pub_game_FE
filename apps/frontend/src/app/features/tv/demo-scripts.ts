@@ -225,6 +225,7 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
       'Tocca una casella solo quando è il tuo turno.',
       'Casella vera: 0 punti e il turno passa.',
       'Bomba: −200 e fuori dal round.',
+      'Le caselle restano coperte per tutta l’ondata: gli esiti arrivano alla fine.',
     ],
     win: [
       'Non ci sono punti da guadagnare: si salvano le caselle vere.',
@@ -246,6 +247,7 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
     phone: [
       'Tocca la risposta giusta il prima possibile.',
       'Un errore fa arretrare la corsia.',
+      'Le prove non si ripetono e salgono di difficoltà con l’avanzamento.',
       'Le domande arrivano solo sul telefono.',
     ],
     win: [
@@ -269,6 +271,7 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
       'Rispondi quando la TV ti passa il disco.',
       'Risposta giusta: rimandi; sbagliata o scaduta: gol per l’avversario.',
       'Hai 12 secondi per ogni servizio.',
+      'Le domande passano da facili a difficili con i tiri; il disco arriva dritto, a zig-zag, a giro o a salto.',
     ],
     win: ['Il primo a 7 gol vince il set: +1000.'],
     lose: [
@@ -320,9 +323,10 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
       'Quattro risposte numeriche vicine; si punta con dieci fiches da 20.',
     ],
     phone: [
-      'Distribuisci le fiches sulle quattro opzioni.',
-      'Puoi spostarle fino allo scadere.',
+      'Distribuisci le fiches sulle quattro opzioni: si spostano finché non confermi.',
+      'Serve almeno una fiche e il tocco su CONFERMA PUNTATA: niente puntate automatiche.',
       'Fiches giuste: 20 × quota; sbagliate: perdono 100/80/60/40%.',
+      'Le fiches avanzate si sommano alle dieci nuove della manche dopo.',
     ],
     win: ['Quota ×2 (facile), ×3 (media), ×4 (difficile).', 'Tutte e dieci le fiches sulla risposta giusta a ×3: +600.'],
     lose: ['La perdita scende manche dopo manche: 100%, 80%, 60%, 40%.', 'Mai sotto zero.'],
