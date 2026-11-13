@@ -1,5 +1,6 @@
 import {
   AZZARDO_BETS,
+  AZZARDO_MAX_CHIPS_PER_MANCHE,
   AZZARDO_MIN_BANK,
   bankFor,
   chipsBreakdown,
@@ -7,9 +8,23 @@ import {
   levelForOccurrence,
   lossMultiplierFor,
   maxBetFor,
+  maxChipsFor,
   oddsForLevel,
   settleManche,
 } from './azzardo-rules';
+
+describe('tetto di fiches per manche', () => {
+  it('non lascia puntare più di dieci fiches, anche con il salvadanaio pieno', () => {
+    expect(maxChipsFor(17, 5000)).toBe(AZZARDO_MAX_CHIPS_PER_MANCHE);
+    expect(maxChipsFor(30, 5000)).toBe(10);
+  });
+
+  it('resta dentro il salvadanaio e il credito in punti', () => {
+    expect(maxChipsFor(3, 5000)).toBe(3);
+    expect(maxChipsFor(10, 50)).toBe(2);
+    expect(maxChipsFor(0, 5000)).toBe(0);
+  });
+});
 
 describe('fiches → punti', () => {
   const input = (chips: number[], manche = 0, available = 1000) => ({

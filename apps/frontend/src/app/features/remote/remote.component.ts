@@ -1438,11 +1438,16 @@ export class RemoteComponent implements OnInit, OnDestroy {
     return Math.max(0, this.azzardoMyBank() - this.azzardoChipTotal());
   }
 
-  /** Fiches giocabili: il salvadanaio, entro il credito di manche. */
+  /** Fiches giocabili: il salvadanaio, ma al massimo dieci sul tavolo. */
   azzardoMaxChips(): number {
     const state = this.azzardoState();
     const value = Number(state?.chipValue ?? 20) || 20;
-    return Math.max(0, Math.min(this.azzardoMyBank(), Math.floor(this.azzardoMaxBet() / value)));
+    const cap = Number(state?.chipCap ?? 10) || 10;
+    return Math.max(0, Math.min(
+      this.azzardoMyBank(),
+      cap,
+      Math.floor(this.azzardoMaxBet() / value),
+    ));
   }
 
   /** Gettone disegnati nell'impiastro dell'opzione: massimo cinque. */

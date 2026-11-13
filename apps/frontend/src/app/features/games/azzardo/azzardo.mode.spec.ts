@@ -172,20 +172,21 @@ describe('AzzardoMode', () => {
     // Sette avanzate + dieci nuove.
     expect(second.ready[0].chipsBank).toBe(17);
 
-    // Non si può puntare più di quanto c'è nel salvadanaio.
+    // Tetto di manche: dieci fiches sul tavolo anche con 17 in banca.
+    expect(second.chipCap).toBe(10);
     mode.handlePartyEvent({
       action: 'AZZARDO_ACTION',
       playerName: 'Anna',
-      value: { chips: [18, 0, 0, 0] },
+      value: { chips: [11, 0, 0, 0] },
     });
     expect(mode.getDisplayData().ready[0].chips).toEqual([]);
 
     mode.handlePartyEvent({
       action: 'AZZARDO_ACTION',
       playerName: 'Anna',
-      value: { chips: [17, 0, 0, 0] },
+      value: { chips: [10, 0, 0, 0] },
     });
-    expect(mode.getDisplayData().ready[0].chips).toEqual([17, 0, 0, 0]);
+    expect(mode.getDisplayData().ready[0].chips).toEqual([10, 0, 0, 0]);
 
     mode.cleanup();
   });

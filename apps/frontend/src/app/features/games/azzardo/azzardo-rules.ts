@@ -19,6 +19,25 @@ export type AzzardoBet = (typeof AZZARDO_BETS)[number];
 export const AZZARDO_CHIPS = 10;
 export const AZZARDO_CHIP_VALUE = 20;
 
+/**
+ * Tetto di fiches sul tavolo in una manche: dieci, come il credito iniziale.
+ *
+ * Il salvadanaio cresce (le fiches avanzate si sommano), la puntata no:
+ * altrimenti chi risparmia due manche punterebbe il doppio e incasserebbe
+ * cifre sproporzionate. Con il tetto, la manche paga al massimo
+ * 10 × 20 × quota.
+ */
+export const AZZARDO_MAX_CHIPS_PER_MANCHE = AZZARDO_CHIPS;
+
+/** Fiches giocabili adesso: salvadanaio, tetto di manche e credito punti. */
+export function maxChipsFor(bank: number, available: number): number {
+  return Math.max(0, Math.min(
+    Math.floor(Number(bank) || 0),
+    AZZARDO_MAX_CHIPS_PER_MANCHE,
+    Math.floor(Math.max(0, Number(available) || 0) / AZZARDO_CHIP_VALUE),
+  ));
+}
+
 /** Quattro manche per round, una per categoria. */
 export const AZZARDO_MANCHES = 4;
 

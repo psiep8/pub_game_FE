@@ -6,6 +6,7 @@ import { GameModeResult, GameModeType } from '../../../shared/models/game-mode-t
 import {
   AZZARDO_CHIPS,
   AZZARDO_CHIP_VALUE,
+  AZZARDO_MAX_CHIPS_PER_MANCHE,
   AZZARDO_MANCHES,
   AzzardoChipsBreakdown,
   AzzardoLevel,
@@ -15,6 +16,7 @@ import {
   levelForOccurrence,
   lossMultiplierFor,
   maxBetFor,
+  maxChipsFor,
   oddsForLevel,
   settleManche,
 } from './azzardo-rules';
@@ -177,11 +179,10 @@ export class AzzardoMode extends GameModeBase {
       );
       const total = chips.reduce((sum, value) => sum + value, 0);
 
-      // Si punta solo con le fiches nel salvadanaio, e mai più di quante
-      // stanno nel credito della manche.
+      // Si punta solo con le fiches nel salvadanaio, mai più di dieci sul
+      // tavolo per manche e mai oltre il credito in punti.
       const bank = this.chipBank.get(playerName) ?? 0;
-      const maxChips = Math.min(bank, Math.floor(available / AZZARDO_CHIP_VALUE));
-      if (total > maxChips) return;
+      if (total > maxChipsFor(bank, available)) return;
 
       const choice = chips.indexOf(Math.max(...chips));
       this.stakes.set(playerName, { stake: total * AZZARDO_CHIP_VALUE, choice, chips });
@@ -508,6 +509,7 @@ export class AzzardoMode extends GameModeBase {
       clueTotal: clues.length,
       chips: AZZARDO_CHIPS,
       chipValue: AZZARDO_CHIP_VALUE,
+      chipCap: AZZARDO_MAX_CHIPS_PER_MANCHE,
       ready: this.players.map((playerName) => ({
         playerName,
         ready: this.stakes.has(playerName),

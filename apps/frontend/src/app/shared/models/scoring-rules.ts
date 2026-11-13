@@ -76,7 +76,7 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     correct: '+20 × quota per fiche giusta (×2 facile, ×3 media, ×4 difficile)',
     wrong: '−20 × fiche sbagliate × 100/80/60/40%',
     missed: '0: chi non distribuisce fiches non punta',
-    note: 'Quattro manche numeriche (celebrità, canzoni, paesi, storia) con dieci fiches da 20 punti da distribuire sulle quattro risposte. La perdita scende dal 100% al 40%; mai sotto zero.',
+    note: 'Quattro manche numeriche (celebrità, canzoni, paesi, storia) con dieci fiches da 20 punti da distribuire sulle quattro risposte. Le avanzate si sommano alle nuove, ma sul tavolo ne stanno al massimo dieci per manche: la manche paga al massimo 800. La perdita scende dal 100% al 40%; mai sotto zero.',
   },
   ULTIMA_SPIAGGIA: {
     correct: '+100 / +200 / +300 / +400 / +500',
