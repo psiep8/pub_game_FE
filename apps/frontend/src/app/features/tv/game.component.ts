@@ -1139,6 +1139,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
     this.audioService.stopClock();
     this.audioService.stopSuspense();
+    this.audioService.playTimeUp();
     this.isSpinning.set(false);
 
     // Il reveal non è mai simultaneo alla scadenza: la TV mostra il battito

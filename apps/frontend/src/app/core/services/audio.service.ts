@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { play as playFoley, set as setFoley, unlock as unlockFoley, type CueName } from '@foleyjs/core';
 import {
   PUB_BED_SECONDS_PER_BAR,
   PUB_BED_SECONDS_PER_BEAT,
@@ -17,6 +18,30 @@ interface ToneOptions {
   attack?: number;
   detune?: number;
 }
+
+/**
+ * Tabella evento → suono di interfaccia, in un solo posto.
+ *
+ * I suoni di Foley sono sintetizzati al volo (nessun file audio) e coprono
+ * tocchi, conferme ed errori. Roulette, applausi, rulli ed esplosioni non
+ * sono suoni di interfaccia: restano sintetizzati qui sotto come suoni da
+ * sala, sempre dietro questo servizio.
+ */
+export const UI_SOUNDS = {
+  tocco: 'tick',
+  rispostaInviata: 'complete',
+  giusto: 'success',
+  sbagliato: 'error',
+  tempoScaduto: 'warning',
+  prenotazione: 'press',
+  ingresso: 'chime',
+  eliminazione: 'denied',
+  rivelazione: 'rise',
+  vittoria: 'sparkle',
+} as const satisfies Record<string, CueName>;
+
+/** Foley sta sotto la voce del presentatore: mai il suono più forte della sala. */
+const UI_VOLUME = 0.45;
 
 /**
  * Suoni della TV.
@@ -38,6 +63,9 @@ export class AudioService {
   private ambientNoise?: AudioBufferSourceNode;
   private ambientNoiseGain?: GainNode;
   private master?: GainNode;
+
+  /** Foley ha il suo contesto: si configura una volta sola. */
+  private uiReady = false;
 
   constructor() {
     this.armUnlock();
@@ -116,6 +144,7 @@ export class AudioService {
   playCorrect(): void {
     if (!this.audioEnabled()) return;
     this.stopClock();
+    this.playUi('giusto');
     this.chord([523.25, 659.25, 783.99], 0.55);
     this.playCoins();
     this.playApplause();
@@ -123,6 +152,7 @@ export class AudioService {
 
   playWrong(): void {
     if (!this.audioEnabled()) return;
+    this.playUi('sbagliato');
     this.tone({ freq: 196, duration: 0.45, type: 'sawtooth', gain: 0.05, slideTo: 110 });
     this.playUuuh();
   }
@@ -178,6 +208,7 @@ export class AudioService {
    * Suono breve, due note in salita, pensato per il telefono.
    */
   playConfirm(): void {
+    this.playUi('prenotazione');
     this.tone({ freq: 740, duration: 0.07, type: 'triangle', gain: 0.05 });
     this.tone({ freq: 1108.73, duration: 0.1, type: 'triangle', gain: 0.04, delay: 0.06 });
   }
@@ -187,6 +218,7 @@ export class AudioService {
    * Suono corto e grave, distinto dal «sbagliato» della TV.
    */
   playError(): void {
+    this.playUi('sbagliato');
     this.tone({ freq: 220, duration: 0.16, type: 'square', gain: 0.035, slideTo: 140 });
     this.tone({ freq: 165, duration: 0.18, type: 'square', gain: 0.03, delay: 0.08, slideTo: 110 });
   }
@@ -212,9 +244,15 @@ export class AudioService {
     this.noiseBurst(0.18, 0.035, 0, 900);
   }
 
+  /** Tempo scaduto: la conferma che il round non accetta più risposte. */
+  playTimeUp(): void {
+    this.playUi('tempoScaduto');
+  }
+
   playReveal(): void {
     if (!this.audioEnabled()) return;
     this.stopClock();
+    this.playUi('rivelazione');
     // Il rullo accompagna l'avvicinarsi della soluzione; l'accordo entra
     // quando il pubblico ha già capito che sta per succedere qualcosa.
     this.playDrumroll(0.9, 0.65);
@@ -275,12 +313,14 @@ export class AudioService {
 
   /** Nuova squadra collegata: bip luminoso a due note. */
   playJoin(): void {
+    this.playUi('ingresso');
     this.tone({ freq: 659.25, duration: 0.12, type: 'sine', gain: 0.06 });
     this.tone({ freq: 987.77, duration: 0.16, type: 'sine', gain: 0.05, delay: 0.1 });
   }
 
   /** Tick delle classifiche e dei countdown. */
   playTick(): void {
+    this.playUi('tocco');
     this.tone({ freq: 880, duration: 0.06, type: 'triangle', gain: 0.035 });
   }
 
@@ -302,6 +342,7 @@ export class AudioService {
 
   /** Eliminazione dall'Arena. */
   playElimination(): void {
+    this.playUi('eliminazione');
     this.tone({ freq: 330, duration: 0.3, type: 'sawtooth', gain: 0.06, slideTo: 90 });
   }
 
@@ -339,6 +380,7 @@ export class AudioService {
    */
   playPodiumReveal(position: number): void {
     const place = Math.max(1, Math.min(3, Math.round(position)));
+    this.playUi('vittoria');
 
     if (place === 3) {
       this.playDrumroll(0.8, 0.45);
@@ -558,6 +600,7 @@ export class AudioService {
   toggleAudio(): void {
     this.audioEnabled.update((enabled) => !enabled);
     this.applyEnabled();
+    this.muteUi(!this.audioEnabled());
     if (!this.audioEnabled()) {
       this.stopAll();
       this.stopAmbient();
@@ -598,6 +641,36 @@ export class AudioService {
       }
     }
     this.applyEnabled();
+    // Il contesto di Foley è separato: si sblocca con lo stesso gesto.
+    try {
+      unlockFoley();
+      setFoley({ volume: UI_VOLUME, muted: !this.audioEnabled() });
+      this.uiReady = true;
+    } catch {
+      // Nessun Web Audio (browser vecchio o test): la serata resta silenziosa.
+    }
+  }
+
+  /** Suono di interfaccia (Foley): tabella unica, volume discreto, muto rispettato. */
+  private playUi(event: keyof typeof UI_SOUNDS): void {
+    if (!this.audioEnabled()) return;
+    try {
+      if (!this.uiReady) {
+        setFoley({ volume: UI_VOLUME, muted: false });
+        this.uiReady = true;
+      }
+      playFoley(UI_SOUNDS[event]);
+    } catch {
+      // Un browser senza Web Audio non deve fermare il gioco.
+    }
+  }
+
+  private muteUi(muted: boolean): void {
+    try {
+      setFoley({ muted });
+    } catch {
+      // Il muto principale resta comunque attivo.
+    }
   }
 
   private ensureContext(): AudioContext | undefined {

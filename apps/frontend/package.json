@@ -37,6 +37,7 @@
     "@angular/pwa": "^22.2.7",
     "@angular/router": "^22.2.6",
     "@angular/service-worker": "^22.2.6",
+    "@foleyjs/core": "^2.9.0",
     "@stomp/stompjs": "^7.5.0",
     "matter-js": "^0.20.0",
     "qrcode": "^1.5.4",
