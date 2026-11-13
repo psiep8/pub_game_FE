@@ -31,8 +31,14 @@ public class SpeedRushService {
 
     private static final String BLOB = "speed-rush";
     private static final long DURATION_MS = 60_000L;
-    private static final int STEP_FORWARD = 9;
-    private static final int STEP_BACK = 6;
+    /**
+     * Corsa lunga: con 2 punti per risposta e un solo raddoppio servono almeno
+     * 25 risposte giuste per tagliare il traguardo (prima bastavano 4-5).
+     */
+    private static final int STEP_FORWARD = 2;
+    private static final int STEP_BACK = 4;
+    /** Moltiplicatore massimo: limitato, così il traguardo non si salta in pochi colpi. */
+    private static final int MAX_MULTIPLIER = 2;
 
     public record Task(String id, String kind, String publicJson, String answer) {
     }
@@ -271,10 +277,12 @@ public class SpeedRushService {
     }
 
     private int multiplierFor(int streak) {
-        if (streak >= 10) return 4;
-        if (streak >= 5) return 3;
-        if (streak >= 2) return 2;
-        return 1;
+        return streak >= 6 ? MAX_MULTIPLIER : 1;
+    }
+
+    /** Minimo di risposte giuste per finire: usato dai test come contratto. */
+    static int minimumCorrectAnswers() {
+        return (100 + STEP_FORWARD * MAX_MULTIPLIER - 1) / (STEP_FORWARD * MAX_MULTIPLIER);
     }
 
     private Task newTask(String previousKind) {

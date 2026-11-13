@@ -150,6 +150,7 @@ const GAME_COPY: Record<GameModeType, EntryCopy> = {
     phone: [
       'Tocca la risposta giusta il prima possibile.',
       'Ogni errore fa arretrare la corsia.',
+      'La corsia avanza di poco: servono circa 25 risposte giuste per il traguardo.',
       'La TV mostra solo le corsie: le domande sono sul telefono.',
     ],
     tip: 'Meglio tante risposte giuste di una sola velocissima: contano la costanza e la posizione.',

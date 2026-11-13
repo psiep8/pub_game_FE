@@ -46,6 +46,12 @@ class SpeedRushBasketServiceTest {
     }
 
     @Test
+    void laCorsaNonSiChiudeConPocheRisposteGiuste() {
+        // Prima bastavano 4-5 risposte: il traguardo deve richiederne almeno 20.
+        assertThat(SpeedRushService.minimumCorrectAnswers()).isGreaterThanOrEqualTo(20);
+    }
+
+    @Test
     void basketAssegnaPuntiSoloAlTiroDentroLaFinestraDelServer() {
         long gameId = 810_002L;
         basket.start(gameId, List.of("Bruno"));
