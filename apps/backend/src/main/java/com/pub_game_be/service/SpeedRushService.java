@@ -60,6 +60,8 @@ public class SpeedRushService {
         long deadlineAt;
         boolean finished;
         int finishedCount;
+        /** Firme delle prove già uscite: nello stesso round niente doppioni. */
+        final Set<String> asked = new LinkedHashSet<>();
         final Map<String, PlayerState> players = new LinkedHashMap<>();
     }
 
@@ -97,16 +99,29 @@ public class SpeedRushService {
             {"FELICE", "CONTENTO", "TRISTE"}, {"BUIO", "SCURO", "LUMINOSO"},
             {"FORTE", "ROBUSTO", "DEBOLE"},
     };
-    private static final String[] DISTRACTORS = {
-            "AMARO", "SALATO", "QUADRATO", "APPUNTITO", "RUGOSO", "PESANTE", "STRETTO", "LUCIDO",
+    /** Gruppi di bandiere vicine: il distrattore dei livelli alti esce da qui. */
+    private static final String[][] FLAG_GROUPS = {
+            {"CAMERUN", "SENEGAL", "NIGERIA", "GHANA", "EGITTO", "MAROCCO",
+             "SUDAFRICA", "KENIA", "ETIOPIA", "TUNISIA", "ALGERIA"},
+            {"ITALIA", "FRANCIA", "GERMANIA", "SPAGNA", "PORTOGALLO", "BELGIO",
+             "OLANDA", "SVEZIA", "NORVEGIA", "DANIMARCA", "GRECIA", "TURCHIA",
+             "SVIZZERA", "AUSTRIA", "POLONIA", "UCRAINA", "IRLANDA", "ISLANDA", "FINLANDIA"},
+            {"BRASILE", "ARGENTINA", "CANADA", "MESSICO", "URUGUAY", "CILE", "COLOMBIA", "PERÙ"},
+            {"GIAPPONE", "INDIA", "CINA", "COREA DEL SUD"},
+            {"AUSTRALIA"},
     };
+    /** Parole inglesi con la famiglia: il distrattore plausibile resta in tema. */
     private static final String[][] ENGLISH = {
-            {"DOG", "CANE"}, {"CAT", "GATTO"}, {"HOUSE", "CASA"}, {"BOOK", "LIBRO"},
-            {"WATER", "ACQUA"}, {"BREAD", "PANE"}, {"SUN", "SOLE"}, {"MOON", "LUNA"},
-            {"SEA", "MARE"}, {"MOUNTAIN", "MONTAGNA"}, {"CITY", "CITTÀ"},
-            {"FRIEND", "AMICO"}, {"SCHOOL", "SCUOLA"}, {"NIGHT", "NOTTE"},
-            {"STREET", "STRADA"}, {"FLOWER", "FIORE"}, {"HORSE", "CAVALLO"},
-            {"FISH", "PESCE"}, {"FIRE", "FUOCO"}, {"SNOW", "NEVE"},
+            {"DOG", "CANE", "ANIMALI"}, {"CAT", "GATTO", "ANIMALI"},
+            {"HORSE", "CAVALLO", "ANIMALI"}, {"FISH", "PESCE", "ANIMALI"},
+            {"HOUSE", "CASA", "LUOGHI"}, {"SCHOOL", "SCUOLA", "LUOGHI"},
+            {"CITY", "CITTÀ", "LUOGHI"}, {"STREET", "STRADA", "LUOGHI"},
+            {"BOOK", "LIBRO", "OGGETTI"}, {"BREAD", "PANE", "OGGETTI"},
+            {"WATER", "ACQUA", "NATURA"}, {"SUN", "SOLE", "NATURA"},
+            {"MOON", "LUNA", "NATURA"}, {"SEA", "MARE", "NATURA"},
+            {"MOUNTAIN", "MONTAGNA", "NATURA"}, {"FLOWER", "FIORE", "NATURA"},
+            {"FIRE", "FUOCO", "NATURA"}, {"SNOW", "NEVE", "NATURA"},
+            {"FRIEND", "AMICO", "PERSONE"}, {"NIGHT", "NOTTE", "TEMPO"},
     };
 
     private final StateBlobService stateBlobs;
@@ -138,7 +153,7 @@ public class SpeedRushService {
                 }
                 PlayerState player = new PlayerState();
                 player.name = name;
-                player.task = newTask(null);
+                player.task = newTask(null, difficultyFor(0), session.asked);
                 session.players.put(name.toLowerCase(Locale.ROOT), player);
             }
         }
@@ -187,7 +202,7 @@ public class SpeedRushService {
             player.finishedAt = System.currentTimeMillis() - session.startedAt;
             player.task = null;
         } else {
-            player.task = newTask(player.task.kind());
+            player.task = newTask(player.task.kind(), difficultyFor(player.progress), session.asked);
         }
         persist(gameId, session);
         return Optional.of(progressJson(player));
@@ -285,26 +300,73 @@ public class SpeedRushService {
         return (100 + STEP_FORWARD * MAX_MULTIPLIER - 1) / (STEP_FORWARD * MAX_MULTIPLIER);
     }
 
-    private Task newTask(String previousKind) {
+    /**
+     * Fasce di difficoltà: la corsa si fa più dura man mano che si avanza,
+     * così il traguardo non arriva con venti domandine da prima elementare.
+     */
+    String difficultyFor(int progress) {
+        if (progress < 35) return "EASY";
+        if (progress < 70) return "MEDIUM";
+        return "HARD";
+    }
+
+    /**
+     * Prova nuova, mai già uscita in questo round: se il sorteggio ripete una
+     * domanda si ritenta (fino a 60 volte, poi si accetta per non bloccare).
+     */
+    Task newTask(String previousKind, String difficulty, Set<String> asked) {
         String[] kinds = {"math", "colors", "flag", "words", "translate"};
-        String kind;
-        do {
-            kind = kinds[random.nextInt(kinds.length)];
-        } while (kind.equals(previousKind));
-        String id = "sr-" + UUID.randomUUID();
-        return switch (kind) {
-            case "math" -> mathTask(id);
-            case "colors" -> colorsTask(id);
-            case "flag" -> flagTask(id);
-            case "words" -> wordsTask(id);
-            default -> translateTask(id);
+        Task task = null;
+        for (int attempt = 0; attempt < 60; attempt++) {
+            String kind;
+            do {
+                kind = kinds[random.nextInt(kinds.length)];
+            } while (kind.equals(previousKind));
+            String id = "sr-" + UUID.randomUUID();
+            task = switch (kind) {
+                case "math" -> mathTask(id, difficulty);
+                case "colors" -> colorsTask(id);
+                case "flag" -> flagTask(id, difficulty);
+                case "words" -> wordsTask(id, difficulty);
+                default -> translateTask(id, difficulty);
+            };
+            if (asked == null || asked.add(signature(task))) {
+                return task;
+            }
+        }
+        return task;
+    }
+
+    /** Firma della prova: serve a scartare le ripetizioni. */
+    String signature(Task task) {
+        JSONObject pub = new JSONObject(task.publicJson());
+        return switch (task.kind()) {
+            case "math" -> "math:" + pub.optString("text");
+            case "colors" -> "colors:" + pub.optString("target");
+            case "flag" -> "flag:" + pub.optString("emoji");
+            case "words" -> "words:" + pub.optString("prompt") + ":" + pub.optString("relation");
+            default -> "translate:" + pub.optString("prompt");
         };
     }
 
-    private Task mathTask(String id) {
-        boolean multiply = random.nextBoolean();
-        int a = multiply ? 2 + random.nextInt(5) : 3 + random.nextInt(10);
-        int b = multiply ? 2 + random.nextInt(6) : 2 + random.nextInt(8);
+    private Task mathTask(String id, String difficulty) {
+        boolean multiply = "HARD".equals(difficulty) || random.nextBoolean();
+        int a;
+        int b;
+        switch (difficulty) {
+            case "HARD" -> {
+                a = 12 + random.nextInt(14);
+                b = 4 + random.nextInt(9);
+            }
+            case "MEDIUM" -> {
+                a = 4 + random.nextInt(9);
+                b = 3 + random.nextInt(7);
+            }
+            default -> {
+                a = 2 + random.nextInt(5);
+                b = 2 + random.nextInt(5);
+            }
+        }
         int answer = multiply ? a * b : a + b;
         Set<Integer> options = new LinkedHashSet<>();
         options.add(answer);
@@ -318,6 +380,7 @@ public class SpeedRushService {
         JSONObject pub = new JSONObject()
                 .put("taskId", id)
                 .put("kind", "math")
+                .put("difficulty", difficulty)
                 .put("text", a + " " + operator + " " + b)
                 .put("options", new JSONArray(shuffled));
         return new Task(id, "math", pub.toString(), String.valueOf(answer));
@@ -342,55 +405,86 @@ public class SpeedRushService {
         return new Task(id, "colors", pub.toString(), String.join("|", answers));
     }
 
-    private Task flagTask(String id) {
+    private Task flagTask(String id, String difficulty) {
         String[] correct = FLAGS[random.nextInt(FLAGS.length)];
-        String distractor;
-        do {
-            distractor = FLAGS[random.nextInt(FLAGS.length)][1];
-        } while (distractor.equals(correct[1]));
+        // Facile: un paese qualsiasi. Da media in su: un vicino di continente,
+        // che è il distrattore che frega davvero.
+        String distractor = "EASY".equals(difficulty) ? null : flagNeighbour(correct[1]);
+        if (distractor == null) {
+            do {
+                distractor = FLAGS[random.nextInt(FLAGS.length)][1];
+            } while (distractor.equals(correct[1]));
+        }
         List<String> options = new ArrayList<>(List.of(correct[1], distractor));
         java.util.Collections.shuffle(options, random);
         JSONObject pub = new JSONObject()
                 .put("taskId", id)
                 .put("kind", "flag")
+                .put("difficulty", difficulty)
                 .put("emoji", correct[0])
                 .put("options", new JSONArray(options));
         return new Task(id, "flag", pub.toString(), correct[1]);
     }
 
-    private Task wordsTask(String id) {
-        String[] word = WORDS[random.nextInt(WORDS.length)];
+    private Task wordsTask(String id, String difficulty) {
+        int pool = "EASY".equals(difficulty) ? 6 : WORDS.length;
+        String[] word = WORDS[random.nextInt(pool)];
         boolean synonym = random.nextBoolean();
         String answer = synonym ? word[1] : word[2];
-        String distractor = DISTRACTORS[random.nextInt(DISTRACTORS.length)];
-        if (distractor.equals(answer)) {
-            distractor = DISTRACTORS[(random.nextInt(DISTRACTORS.length - 1) + 1) % DISTRACTORS.length];
-        }
+        // Il distrattore plausibile è l'altra relazione della stessa parola:
+        // chiesto il sinonimo, in mezzo c'è il contrario (e viceversa).
+        String distractor = synonym ? word[2] : word[1];
         List<String> options = new ArrayList<>(List.of(answer, distractor));
         java.util.Collections.shuffle(options, random);
         JSONObject pub = new JSONObject()
                 .put("taskId", id)
                 .put("kind", "words")
+                .put("difficulty", difficulty)
                 .put("prompt", word[0])
                 .put("relation", synonym ? "SINONIMO" : "CONTRARIO")
                 .put("options", new JSONArray(options));
         return new Task(id, "words", pub.toString(), answer);
     }
 
-    private Task translateTask(String id) {
+    private Task translateTask(String id, String difficulty) {
         String[] word = ENGLISH[random.nextInt(ENGLISH.length)];
-        String distractor;
-        do {
-            distractor = ENGLISH[random.nextInt(ENGLISH.length)][1];
-        } while (distractor.equals(word[1]));
+        String distractor = "EASY".equals(difficulty) ? null : sameCategoryWord(word);
+        if (distractor == null) {
+            do {
+                distractor = ENGLISH[random.nextInt(ENGLISH.length)][1];
+            } while (distractor.equals(word[1]));
+        }
         List<String> options = new ArrayList<>(List.of(word[1], distractor));
         java.util.Collections.shuffle(options, random);
         JSONObject pub = new JSONObject()
                 .put("taskId", id)
                 .put("kind", "translate")
+                .put("difficulty", difficulty)
                 .put("prompt", word[0])
                 .put("options", new JSONArray(options));
         return new Task(id, "translate", pub.toString(), word[1]);
+    }
+
+    private String flagNeighbour(String country) {
+        for (String[] group : FLAG_GROUPS) {
+            for (String name : group) {
+                if (!name.equals(country)) continue;
+                List<String> others = new ArrayList<>();
+                for (String sibling : group) {
+                    if (!sibling.equals(country)) others.add(sibling);
+                }
+                if (!others.isEmpty()) return others.get(random.nextInt(others.size()));
+            }
+        }
+        return null;
+    }
+
+    private String sameCategoryWord(String[] word) {
+        List<String> same = new ArrayList<>();
+        for (String[] row : ENGLISH) {
+            if (row[2].equals(word[2]) && !row[1].equals(word[1])) same.add(row[1]);
+        }
+        return same.isEmpty() ? null : same.get(random.nextInt(same.size()));
     }
 
     private String normalizeAnswer(Object raw) {
@@ -432,6 +526,10 @@ public class SpeedRushService {
             restored.deadlineAt = json.optLong("deadlineAt", 0);
             restored.finished = json.optBoolean("finished", false);
             restored.finishedCount = json.optInt("finishedCount", 0);
+            JSONArray asked = json.optJSONArray("asked");
+            for (int index = 0; asked != null && index < asked.length(); index++) {
+                restored.asked.add(asked.optString(index));
+            }
             JSONArray players = json.optJSONArray("players");
             for (int index = 0; players != null && index < players.length(); index++) {
                 JSONObject row = players.optJSONObject(index);
@@ -487,6 +585,7 @@ public class SpeedRushService {
                 .put("deadlineAt", session.deadlineAt)
                 .put("finished", session.finished)
                 .put("finishedCount", session.finishedCount)
+                .put("asked", new JSONArray(new ArrayList<>(session.asked)))
                 .put("players", players)
                 .toString());
     }

@@ -52,6 +52,34 @@ class SpeedRushBasketServiceTest {
     }
 
     @Test
+    void laCorsaNonRipeteLeProveENonParteSempreFacile() {
+        java.util.Set<String> asked = new java.util.LinkedHashSet<>();
+        java.util.Set<String> signatures = new java.util.HashSet<>();
+
+        for (int index = 0; index < 60; index++) {
+            String difficulty = speedRush.difficultyFor(index);
+            assertThat(difficulty).isIn("EASY", "MEDIUM", "HARD");
+            SpeedRushService.Task task = speedRush.newTask(null, difficulty, asked);
+            assertThat(signatures.add(speedRush.signature(task)))
+                    .as("prova ripetuta: " + speedRush.signature(task))
+                    .isTrue();
+        }
+
+        assertThat(speedRush.difficultyFor(0)).isEqualTo("EASY");
+        assertThat(speedRush.difficultyFor(40)).isEqualTo("MEDIUM");
+        assertThat(speedRush.difficultyFor(80)).isEqualTo("HARD");
+
+        // Le moltiplicazioni difficili non sono più 2 × 2.
+        for (int index = 0; index < 40; index++) {
+            SpeedRushService.Task task = speedRush.newTask(null, "HARD", new java.util.HashSet<>());
+            if (!"math".equals(task.kind())) continue;
+            String text = new JSONObject(task.publicJson()).getString("text");
+            int first = Integer.parseInt(text.split(" ")[0]);
+            assertThat(first).isGreaterThanOrEqualTo(12);
+        }
+    }
+
+    @Test
     void basketAssegnaPuntiSoloAlTiroDentroLaFinestraDelServer() {
         long gameId = 810_002L;
         basket.start(gameId, List.of("Bruno"));
