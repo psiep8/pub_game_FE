@@ -1,7 +1,13 @@
 package com.pub_game_be.config;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.pub_game_be.domain.enums.GameType;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,22 +16,13 @@ import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-/**
- * Il file H2 della serata è nato quando {@code GameType} aveva ancora valori
- * diversi: la colonna del tipo di round conserva un CHECK con quella vecchia
- * lista e rifiuta i tipi aggiunti dopo (per esempio {@code TENNIS_BATTLE}).
- * Il risultato era un 500 sui giochi a prenotazione.
- *
- * <p>
- * {@code ddl-auto: update} non tocca i vincoli già presenti, quindi li
- * rimuoviamo all'avvio. I valori restano validati dall'enum lato applicazione.
- * </p>
- */
+/** Aggiorna il vecchio CHECK H2 dell'enum dei round senza perdere valori storici. */
 @Component
 public class StaleRoundTypeConstraintFixer {
-
     private static final Logger log = LoggerFactory.getLogger(StaleRoundTypeConstraintFixer.class);
-
+    private static final Pattern ENUM_CHECK = Pattern.compile(
+            "(?i)^\\s*\\(*\\s*\"?TYPE\"?\\s+IN\\s*\\(\\s*('[A-Z0-9_]+'(?:\\s*,\\s*'[A-Z0-9_]+')*)\\s*\\)\\s*\\)*\\s*$");
+    private static final Pattern VALUE = Pattern.compile("'([A-Z0-9_]+)'");
     private final JdbcTemplate jdbc;
 
     public StaleRoundTypeConstraintFixer(JdbcTemplate jdbc) {
@@ -34,35 +31,44 @@ public class StaleRoundTypeConstraintFixer {
 
     @EventListener(ApplicationReadyEvent.class)
     public void dropStaleCheckConstraints() {
-        for (String[] target : staleConstraints()) {
-            String table = target[0];
-            String name = target[1];
-            try {
-                jdbc.execute("ALTER TABLE \"" + table + "\" DROP CONSTRAINT \"" + name + "\"");
-                log.info("Vincolo obsoleto {} rimosso da {}", name, table);
-            } catch (RuntimeException e) {
-                log.warn("Vincolo {} su {} non rimosso: {}", name, table, e.getMessage());
+        var checks = jdbc.queryForList(
+                "SELECT ccu.TABLE_SCHEMA, ccu.TABLE_NAME, cc.CONSTRAINT_NAME, cc.CHECK_CLAUSE "
+                + "FROM INFORMATION_SCHEMA.CHECK_CONSTRAINTS cc "
+                + "JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu "
+                + "ON ccu.CONSTRAINT_CATALOG = cc.CONSTRAINT_CATALOG "
+                + "AND ccu.CONSTRAINT_SCHEMA = cc.CONSTRAINT_SCHEMA "
+                + "AND ccu.CONSTRAINT_NAME = cc.CONSTRAINT_NAME "
+                + "WHERE ccu.TABLE_SCHEMA = CURRENT_SCHEMA() "
+                + "AND ccu.TABLE_NAME = 'GAME_ROUND' AND ccu.COLUMN_NAME = 'TYPE'");
+        Set<String> current = Arrays.stream(GameType.values()).map(Enum::name)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        for (var check : checks) {
+            String clause = String.valueOf(check.get("CHECK_CLAUSE"));
+            Matcher expression = ENUM_CHECK.matcher(clause);
+            if (!expression.matches()) {
+                log.warn("CHECK sul tipo di round non riconosciuto: {}. Nessuna modifica automatica.", check.get("CONSTRAINT_NAME"));
+                continue;
             }
+            Set<String> values = new LinkedHashSet<>();
+            Matcher matcher = VALUE.matcher(expression.group(1));
+            while (matcher.find()) values.add(matcher.group(1));
+            if (!values.contains("QUIZ") || values.containsAll(current)) continue;
+            values.addAll(current);
+            String schema = quoteIdentifier(String.valueOf(check.get("TABLE_SCHEMA")));
+            String table = quoteIdentifier(String.valueOf(check.get("TABLE_NAME")));
+            String oldName = quoteIdentifier(String.valueOf(check.get("CONSTRAINT_NAME")));
+            String newName = quoteIdentifier("ROUND_TYPE_" + UUID.randomUUID().toString().replace("-", ""));
+            String allowed = values.stream().map(value -> "'" + value + "'").collect(Collectors.joining(", "));
+            // Il nuovo vincolo viene aggiunto prima di eliminare quello vecchio:
+            // se l'aggiunta fallisce, il vincolo originale resta invariato.
+            jdbc.execute("ALTER TABLE " + schema + "." + table + " ADD CONSTRAINT " + newName
+                    + " CHECK (\"TYPE\" IN (" + allowed + "))");
+            jdbc.execute("ALTER TABLE " + schema + "." + table + " DROP CONSTRAINT " + oldName);
+            log.info("Vincolo di tipo round {} aggiornato su {}.{}", oldName, schema, table);
         }
     }
 
-    /** Vincoli CHECK che enumerano i vecchi valori dell'enum dei round. */
-    private List<String[]> staleConstraints() {
-        List<String[]> found = new ArrayList<>();
-        try {
-            jdbc.query(
-                    "SELECT ccu.TABLE_NAME, cc.CONSTRAINT_NAME "
-                            + "FROM INFORMATION_SCHEMA.CHECK_CONSTRAINTS cc "
-                            + "JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu "
-                            + "  ON ccu.CONSTRAINT_SCHEMA = cc.CONSTRAINT_SCHEMA "
-                            + " AND ccu.CONSTRAINT_NAME = cc.CONSTRAINT_NAME "
-                            + "WHERE cc.CHECK_CLAUSE LIKE '%QUIZ%'",
-                    rs -> {
-                        found.add(new String[] { rs.getString(1), rs.getString(2) });
-                    });
-        } catch (RuntimeException e) {
-            log.warn("Lettura dei vincoli CHECK non riuscita: {}", e.getMessage());
-        }
-        return found;
+    private static String quoteIdentifier(String identifier) {
+        return "\"" + identifier.replace("\"", "\"\"") + "\"";
     }
 }
