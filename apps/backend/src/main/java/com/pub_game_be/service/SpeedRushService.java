@@ -59,6 +59,8 @@ public class SpeedRushService {
         long startedAt;
         long deadlineAt;
         boolean finished;
+        boolean paused;
+        long pausedAt;
         int finishedCount;
         /** Firme delle prove già uscite: nello stesso round niente doppioni. */
         final Set<String> asked = new LinkedHashSet<>();
@@ -208,6 +210,34 @@ public class SpeedRushService {
         return Optional.of(progressJson(player));
     }
 
+    /** La TV sospende la corsa: le risposte restano chiuse finché non riprende. */
+    public synchronized boolean pause(long gameId) {
+        Session session = session(gameId);
+        if (session == null || session.finished) {
+            return false;
+        }
+        if (!session.paused) {
+            session.paused = true;
+            session.pausedAt = System.currentTimeMillis();
+            persist(gameId, session);
+        }
+        return true;
+    }
+
+    /** Allunga la deadline della corsa della durata della pausa. */
+    public synchronized long resume(long gameId) {
+        Session session = session(gameId);
+        if (session == null || !session.paused) {
+            return 0L;
+        }
+        long delta = Math.max(0L, System.currentTimeMillis() - session.pausedAt);
+        session.deadlineAt += delta;
+        session.paused = false;
+        session.pausedAt = 0L;
+        persist(gameId, session);
+        return delta;
+    }
+
     public synchronized JSONArray finish(long gameId) {
         Session session = session(gameId);
         if (session == null) {
@@ -256,7 +286,8 @@ public class SpeedRushService {
     }
 
     private boolean accepting(Session session) {
-        return session != null && !session.finished && System.currentTimeMillis() <= session.deadlineAt;
+        return session != null && !session.finished && !session.paused
+                && System.currentTimeMillis() <= session.deadlineAt;
     }
 
     private PlayerState player(Session session, String name) {
@@ -525,6 +556,8 @@ public class SpeedRushService {
             restored.startedAt = json.optLong("startedAt", 0);
             restored.deadlineAt = json.optLong("deadlineAt", 0);
             restored.finished = json.optBoolean("finished", false);
+            restored.paused = json.optBoolean("paused", false);
+            restored.pausedAt = json.optLong("pausedAt", 0);
             restored.finishedCount = json.optInt("finishedCount", 0);
             JSONArray asked = json.optJSONArray("asked");
             for (int index = 0; asked != null && index < asked.length(); index++) {
@@ -584,6 +617,8 @@ public class SpeedRushService {
                 .put("startedAt", session.startedAt)
                 .put("deadlineAt", session.deadlineAt)
                 .put("finished", session.finished)
+                .put("paused", session.paused)
+                .put("pausedAt", session.pausedAt)
                 .put("finishedCount", session.finishedCount)
                 .put("asked", new JSONArray(new ArrayList<>(session.asked)))
                 .put("players", players)

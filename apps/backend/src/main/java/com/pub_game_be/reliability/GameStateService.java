@@ -50,6 +50,8 @@ public class GameStateService {
     private final StateBlobService stateBlobs;
     /** Un lock per partita: riduce il contention, ma il seq è deciso dal DB. */
     private final ConcurrentMap<Long, Object> eventLocks = new ConcurrentHashMap<>();
+    /** Pause TV in corso: alla ripresa la scadenza viene allungata di quanto è durata. */
+    private final ConcurrentMap<Long, Long> roundPauses = new ConcurrentHashMap<>();
 
     public GameStateService(GameStateRepository states, GameEventRepository events,
             GameRoundRepository rounds, ReliabilityProperties props,
@@ -91,6 +93,7 @@ public class GameStateService {
      */
     public Change startRound(long gameId, String type, int roundIndex, String roundKey, String payload) {
         long now = System.currentTimeMillis();
+        roundPauses.remove(gameId);
         long deadline = now + windowSecondsFor(type) * 1000L;
         JSONObject event = new JSONObject()
                 .put("type", type)
@@ -166,8 +169,52 @@ public class GameStateService {
         return states.findById(gameId).map(GameStateEntity::getRoundDeadlineAt);
     }
 
+    /**
+     * La TV mette in pausa il round corrente. La scadenza resta ferma per ora:
+     * verrà spostata in avanti di tutta la durata della pausa alla ripresa.
+     */
+    public boolean pauseRound(long gameId) {
+        boolean running = states.findById(gameId)
+                .map(state -> "RUNNING".equals(state.getStatus()))
+                .orElse(false);
+        if (!running) {
+            return false;
+        }
+        roundPauses.putIfAbsent(gameId, System.currentTimeMillis());
+        return true;
+    }
+
+    /**
+     * Riprende il round e restituisce i millisecondi di pausa guadagnati.
+     *
+     * <p>Non riapre un round scaduto: se la deadline era già passata, viene
+     * solo spostata in avanti della pausa, restando comunque passata.</p>
+     */
+    public long resumeRound(long gameId) {
+        Long pausedAt = roundPauses.remove(gameId);
+        if (pausedAt == null) {
+            return 0L;
+        }
+        long delta = Math.max(0L, System.currentTimeMillis() - pausedAt);
+        if (delta > 0) {
+            tx.executeWithoutResult(status -> states.findById(gameId).ifPresent(state -> {
+                Long deadline = state.getRoundDeadlineAt();
+                if (deadline != null) {
+                    state.setRoundDeadlineAt(deadline + delta);
+                }
+                state.setUpdatedAt(System.currentTimeMillis());
+            }));
+        }
+        return delta;
+    }
+
+    public boolean isRoundPaused(long gameId) {
+        return roundPauses.containsKey(gameId);
+    }
+
     /** Chiude esplicitamente il round: nessuna risposta tardiva accettata. */
     public Change closeRound(long gameId, String reason) {
+        roundPauses.remove(gameId);
         Change change = appendEvent(gameId, "ROUND_CLOSED",
                 new JSONObject().put("reason", reason).toString(), null, null,
                 state -> {

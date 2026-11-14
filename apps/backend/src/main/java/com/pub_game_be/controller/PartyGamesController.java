@@ -432,6 +432,24 @@ public class PartyGamesController {
         return Map.of("results", JsonSupport.toList(results));
     }
 
+    /**
+     * Pausa decisa dalla TV: il round resta aperto, ma la sua scadenza viene
+     * spostata in avanti di tutta la durata della pausa alla ripresa.
+     */
+    @PostMapping("/{gameId}/round/pause")
+    public Map<String, Object> pauseRound(@PathVariable("gameId") Long gameId) {
+        boolean paused = gameStateService.pauseRound(gameId);
+        speedRushService.pause(gameId);
+        return Map.of("paused", paused, "gameId", gameId);
+    }
+
+    @PostMapping("/{gameId}/round/resume")
+    public Map<String, Object> resumeRound(@PathVariable("gameId") Long gameId) {
+        long shiftedMs = gameStateService.resumeRound(gameId);
+        speedRushService.resume(gameId);
+        return Map.of("resumed", true, "gameId", gameId, "shiftedMs", shiftedMs);
+    }
+
     /** Azzera i due giochi (nuova partita o reset dalla TV). */
     @PostMapping("/{gameId}/party/reset")
     public Map<String, Object> reset(@PathVariable("gameId") Long gameId) {

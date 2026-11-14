@@ -273,6 +273,15 @@ export class GameService {
     return this.http.post<any>(`${this.baseUrl}/games/${gameId}/round/close`, { reason });
   }
 
+  /** Pausa TV: il server allunga la deadline di quanto dura la pausa. */
+  pauseRound(gameId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/round/pause`, {});
+  }
+
+  resumeRound(gameId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/round/resume`, {});
+  }
+
   /** Espulsione dalla regia: revoca la sessione della squadra nella partita. */
   expelPlayer(gameId: number, playerName: string): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/games/${gameId}/players/expel`, { playerName });

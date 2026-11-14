@@ -61,6 +61,21 @@ describe('GameComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('sincronizza pausa e ripresa con il server', () => {
+    const pause = vi.fn();
+    const resume = vi.fn();
+    component.currentMode.set({ type: 'QUIZ', pause, resume } as any);
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+
+    component.togglePause();
+    expect(pause).toHaveBeenCalledTimes(1);
+    expect(game.pauseCalls).toEqual([1]);
+
+    component.togglePause();
+    expect(resume).toHaveBeenCalledTimes(1);
+    expect(game.resumeCalls).toEqual([1]);
+  });
+
   it('non fa tornare indietro la scaletta dopo un round saltato', () => {
     const rounds = TestBed.inject(RoundManagerService);
     rounds.restoreRound(30);

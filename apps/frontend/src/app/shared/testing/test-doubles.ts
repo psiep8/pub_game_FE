@@ -99,6 +99,19 @@ export class FakeGameService {
     return of({ closed: true });
   }
 
+  readonly pauseCalls: number[] = [];
+  readonly resumeCalls: number[] = [];
+
+  pauseRound(gameId: number): Observable<any> {
+    this.pauseCalls.push(gameId);
+    return of({ paused: true });
+  }
+
+  resumeRound(gameId: number): Observable<any> {
+    this.resumeCalls.push(gameId);
+    return of({ resumed: true });
+  }
+
   resetGame(_gameId: number): Observable<any> {
     return of({ reset: true });
   }

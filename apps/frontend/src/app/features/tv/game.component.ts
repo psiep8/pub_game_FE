@@ -1600,6 +1600,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!mode) return;
 
     if (this.isPaused()) {
+      this.syncPauseToServer(false);
       mode.resume();
       this.isPaused.set(false);
       // Il clock era stato fermato alla pausa: si riapre solo se il round ha
@@ -1612,6 +1613,7 @@ export class GameComponent implements OnInit, OnDestroy {
       // aspetta, altrimenti il countdown continua a suonare a gioco fermo.
       this.audioService.stopClock();
       this.audioService.stopSuspense();
+      this.syncPauseToServer(true);
       mode.pause();
       this.isPaused.set(true);
       this.ws.broadcastStatus(this.currentGameId()!, {
@@ -2220,6 +2222,19 @@ export class GameComponent implements OnInit, OnDestroy {
       resumable: (type === 'TIMELINE' && !!this.recoveredPayload)
         || (type === 'BLACKJACK' && !!snapshot?.blackjackState),
     });
+  }
+
+  /**
+   * La pausa TV vale anche per il server: senza questa chiamata la deadline
+   * continuava a scorrere e il round poteva scadere durante la pausa.
+   */
+  private syncPauseToServer(paused: boolean): void {
+    const gameId = this.currentGameId();
+    if (!gameId) return;
+    const call = paused
+      ? this.gameService.pauseRound(gameId)
+      : this.gameService.resumeRound(gameId);
+    call.subscribe({ error: () => { /* Senza rete la pausa locale resta. */ } });
   }
 
   async resumeRecoveredRound(): Promise<void> {
