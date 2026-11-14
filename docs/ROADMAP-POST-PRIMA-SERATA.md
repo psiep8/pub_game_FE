@@ -191,4 +191,6 @@ La versione dichiarata nel progetto è **2.1.0**; riferimento del codice esamina
 | F30 | Parziale | Due test Arena passati | `a63b7cd` | Movimento giusta −5 e sbagliata +12 anziché −10/+15; bilanciamento reale da verificare. |
 | F31 | Parziale | 26 test remoto passati | `cdbc2be` | Una risposta HTTP superata non sostituisce la domanda a schermo; resta da riprodurre il salto con più telefoni e latenze reali. |
 | F15 | Parziale | 10 test Quiz/tempi e 2 backend passati | `92d2781` | Manche da 15 s anziché 10, con valore proporzionale al tempo e finestra server allineata; da provare in sala. |
+| F16 | Parziale | 28 test remoti e 2 backend whitelist passati | `40c2767` | Il telefono ascoltava sempre la partita di default mentre rispondeva su quella reale: ora i topic seguono l'ID iniziale e quello adottato. La causa esatta del primo round in sala non è provata senza più dispositivi. |
+| F05 | Corretto nel codice, da verificare in serata | 38 test backend (inclusa l'espulsione) e 53 frontend mirati | `c3d9bd3` | Solo la regia espelle: il token vecchio non vale più, il nome torna libero per un rientro volontario e il telefono torna al setup. I punti già presi restano in classifica; nessuna prova con telefoni reali. |
 | Altre voci | Da fare o da verificare | — | — | Azzardo rimane in pausa; nessuna prova su telefoni, audio o TV reali è stata eseguita. |
