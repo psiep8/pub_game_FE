@@ -2446,6 +2446,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.ws.disconnect();
     this.stopMicrophoneListening();
     this.stopBombaPolling();
+    this.clearSpeedReaction();
     if (this.bombaFlashTimer) clearTimeout(this.bombaFlashTimer);
     if (this.tennisGoalTimer) clearTimeout(this.tennisGoalTimer);
     if (this.updateCheckInterval) {
