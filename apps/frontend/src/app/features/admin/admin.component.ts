@@ -85,6 +85,7 @@ export class Admin implements OnInit, OnDestroy {
     const paired = await this.reliability.start(this.activeGameId(), 'ADMIN', '', false);
     this.pairingNeeded.set(!paired);
     if (paired) this.requestCurrentState();
+    if (!paired) await this.pairFromLink();
     this.ws.connectedAt$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.requestCurrentState());
@@ -546,6 +547,19 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   /** Solo cifre: il codice della TV è a 6 numeri. */
+  /**
+   * Link pronto per la regia: /admin?pair=123456 abbina al volo, senza dover
+   * digitare il codice sul telefono durante la serata.
+   */
+  private async pairFromLink(): Promise<void> {
+    const code = (new URLSearchParams(location.search).get('pair') ?? '').replace(/\D/g, '').slice(0, 6);
+    if (code.length < 4) return;
+    this.pairingCode.set(code);
+    await this.submitPairingCode();
+    if (this.pairingNeeded()) return;
+    history.replaceState(null, '', location.pathname + location.hash);
+  }
+
   setPairingCode(event: Event): void {
     const value = (event.target as HTMLInputElement).value.replace(/\D/g, '').slice(0, 6);
     this.pairingCode.set(value);
@@ -565,12 +579,12 @@ export class Admin implements OnInit, OnDestroy {
     void this.refreshButtonTest();
   }
 
-  /** Pulsante unico "Parti": fa partire il round su TV e telefoni. */
+  /**
+   * Pulsante unico "Parti": fa partire il round su TV e telefoni. Resta sempre
+   * attivo: la TV può essere ferma sulla classifica in attesa dell'admin e la
+   * prova dei pulsanti non deve poter bloccare la serata.
+   */
   nextRound(): void {
-    if (!this.testsReady() && !this.forceStart()) {
-      this.vibrate([80, 50, 80]);
-      return;
-    }
     this.ws.broadcastStatus(this.activeGameId(), { action: WsAction.ADMIN_START_ROUND });
     void this.buttonTests.finish(this.activeGameId()).subscribe({
       next: (snapshot) => this.buttonTest.set(snapshot),

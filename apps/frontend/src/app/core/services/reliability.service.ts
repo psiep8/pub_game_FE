@@ -197,18 +197,27 @@ export class ReliabilityService {
       // Il codice già inserito nel pannello vale anche quando il prompt è spento.
       let pairingCode = needsAuth ? this.pairingCode : null;
       if (!pairingCode && needsAuth && this.promptForCode) {
-        pairingCode = window.prompt('Inserisci il codice della TV');
+        pairingCode = window.prompt('Inserisci il codice della TV, oppure il segreto di regia');
         this.pairingCode = pairingCode;
       }
       if (needsAuth && !pairingCode) return false;
+      // Un codice a 4-6 cifre si redime; qualsiasi altra cosa è il segreto di
+      // regia e viaggia solo nell'header. Mandato come codice verrebbe rifiutato
+      // e consumerebbe uno dei cinque tentativi prima del blocco di un minuto.
+      const typed = pairingCode ? pairingCode.trim() : '';
+      const isPairingCode = /^\d{4,6}$/.test(typed);
+      if (typed && !isPairingCode) this.controlSecret = typed;
+      const authHeaders = this.controlSecret && !isPairingCode
+        ? { headers: { 'X-Control-Secret': this.controlSecret } }
+        : {};
       const response = await firstValueFrom(
         this.http.post<any>(`${this.baseUrl}/games/${this.gameId}/session`, {
           deviceId: this.deviceId(),
           role: this.role,
           playerName: this.playerName || null,
           sessionToken: token,
-          pairingCode: pairingCode ? pairingCode.trim() : null,
-        })
+          pairingCode: isPairingCode ? typed : null,
+        }, authHeaders)
       );
       this.applyTiming(response);
       this.pairingCode = null;

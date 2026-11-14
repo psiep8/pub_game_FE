@@ -789,10 +789,10 @@ export class GameComponent implements OnInit, OnDestroy {
   async startNewRound() {
     if (this.phase() === GamePhase.INTRO) this.dismissIntro();
 
-    if (this.isShowingLeaderboard()) {
-      console.warn('⚠️ Classifica in corso, attendi...');
-      return;
-    }
+    // Un round nuovo deve poter partire anche con la classifica a schermo:
+    // altrimenti la TV resta bloccata sulla classifica e la regia non riesce
+    // più ad andare avanti.
+    if (this.isShowingLeaderboard()) this.closeLeaderboard();
 
     if (this.isSpinning()) return;
     this.cancelAutoAdvance();
@@ -1434,6 +1434,14 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     this.startAutoAdvance();
+  }
+
+  /** Chiude subito la classifica a schermo: la X in TV o un avanzamento admin. */
+  closeLeaderboard(): void {
+    this.showLeaderboardQuick.set(false);
+    this.showLeaderboardDetailed.set(false);
+    this.isShowingLeaderboard.set(false);
+    this.pendingLeaderboardType.set(null);
   }
 
   showPendingLeaderboard() {

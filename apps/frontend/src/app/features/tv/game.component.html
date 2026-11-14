@@ -141,6 +141,14 @@
   </app-leaderboard-detailed>
   }
 
+  @if (showLeaderboardQuick() || showLeaderboardDetailed()) {
+  <button class="leaderboard-close" type="button" (click)="closeLeaderboard()"
+    aria-label="Chiudi la classifica">
+    <span class="leaderboard-close-x">✕</span>
+    <span class="leaderboard-close-label">CHIUDI CLASSIFICA</span>
+  </button>
+  }
+
   @if (showTypeReveal()) {
   <div class="type-reveal-overlay">
     <div class="round-badge">

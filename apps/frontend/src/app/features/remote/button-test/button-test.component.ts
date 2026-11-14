@@ -245,7 +245,10 @@ export class ButtonTestComponent implements OnInit, OnDestroy {
       this.finish();
       return;
     }
-    if (!this.error()) this.enterStep(Math.max(1, Math.min(this.steps(), team.nextStep)));
+    // Il poll ogni 3 s rientrava nello stesso passo e riavviava il timer da 15 s:
+    // il "passa da solo" non scattava mai e il telefono restava fermo sul passo.
+    const next = Math.max(1, Math.min(this.steps(), team.nextStep));
+    if (!this.error() && (next !== this.step() || !this.stepTimer)) this.enterStep(next);
   }
 
   private enterStep(step: number): void {

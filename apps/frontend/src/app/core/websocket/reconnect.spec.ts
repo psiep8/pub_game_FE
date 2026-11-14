@@ -65,6 +65,53 @@ describe('sessione autenticata', () => {
   });
 });
 
+describe('apertura della sessione di regia', () => {
+  it('manda il segreto nell header, non come codice TV', async () => {
+    TestBed.resetTestingModule();
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(),
+        { provide: WebSocketService, useClass: FakeWebSocketService }],
+    });
+    const service = TestBed.inject(ReliabilityService);
+    const http = TestBed.inject(HttpTestingController);
+    const secret = 'a'.repeat(64);
+    vi.spyOn(window, 'prompt').mockReturnValue(secret);
+    const started = service.start(1, 'TV');
+    const registration = http.expectOne('/games/1/session');
+    expect(registration.request.headers.get('X-Control-Secret')).toBe(secret);
+    expect(registration.request.body.pairingCode).toBeNull();
+    registration.flush({ sessionToken: 'token-tv' });
+    expect(await started).toBe(true);
+    http.expectOne('/games/1/sync?sinceSeq=0').flush({ snapshot: {}, events: [], toSeq: 0, complete: true });
+    await Promise.resolve();
+    service.stop();
+    vi.restoreAllMocks();
+    http.verify();
+  });
+
+  it('redime il codice a sei cifre nel corpo, senza segreto', async () => {
+    TestBed.resetTestingModule();
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(),
+        { provide: WebSocketService, useClass: FakeWebSocketService }],
+    });
+    const service = TestBed.inject(ReliabilityService);
+    const http = TestBed.inject(HttpTestingController);
+    const started = service.pairAdmin(1, '314159');
+    const registration = http.expectOne('/games/1/session');
+    expect(registration.request.body.pairingCode).toBe('314159');
+    expect(registration.request.headers.get('X-Control-Secret')).toBeNull();
+    registration.flush({ sessionToken: 'token-admin' });
+    expect(await started).toBe(true);
+    http.expectOne('/games/1/sync?sinceSeq=0').flush({ snapshot: {}, events: [], toSeq: 0, complete: true });
+    await Promise.resolve();
+    service.stop();
+    http.verify();
+  });
+});
+
 describe('sync paginato', () => {
   it('applica tutte le pagine prima di dichiarare il riallineamento', async () => {
     TestBed.configureTestingModule({

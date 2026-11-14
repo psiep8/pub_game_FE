@@ -124,3 +124,72 @@ Altre note della serata:
 - Numero di riconnessioni spontanee: ______
 - Problemi audio: ______
 - Problemi di leggibilità: ______
+
+### 5.1 Pagella dei giochi — 6 partecipanti, prima volta in sala (13/11)
+
+Giudizio della sala, non del codice. "Da migliorare" vuol dire che il gioco si è
+capito e si è giocato, ma qualcosa nel ritmo o nella lettura non ha convinto.
+
+| Gioco | Verdetto | Cosa ha visto la sala |
+|---|---|---|
+| Quiz | promosso | — |
+| Indovina chi | da migliorare | giocato e capito, ma la foto non regge il confronto con il resto |
+| Indovina la canzone | da migliorare | giocato e capito, l'ascolto è il punto debole |
+| Ruota della fortuna | promosso | — |
+| Arena | promosso | — |
+| Ultima spiaggia | promosso | — |
+| Blackjack | promosso | — |
+| Speed Rush | piaciuto tantissimo | il più richiesto della serata |
+| Azzardo | confusionario | regole e fiches non si leggono al primo colpo |
+| Bomba | così così | il tabellone coperto piace, i turni sono lenti |
+| Timeline | promosso ma da sistemare | l'ordine delle date va rifinito |
+| Tennis Battle | mai giocato | il round non è mai partito (vedi §5.2) |
+| Time Buzzer | carino, da chiarire | non è chiaro quando parte il cronometro |
+| Bonus Casino | piaciuto tantissimo | da ridurre a una manche sola |
+| Bonus Basket | bocciato | bloccato in serata reale: non è giocabile |
+| Bonus Cavallo | non provato | partito senza scelta categoria, domande a tutti |
+| Bonus Biglie | bellissimo | il momento più riuscito della serata |
+
+### 5.2 Cosa sistemare, in ordine
+
+**Bloccanti tecnici (prima di qualunque altra cosa)**
+
+1. **Tennis: vincolo del database.** Il log di `deploy-app-1` del 13/11 alle
+   21:51Z dice: `Value not permitted for column "('AIR_HOCKEY_BATTLE', ...)":
+   "TENNIS_BATTLE"`. Il CHECK sulla colonna del tipo di round è rimasto quello
+   di quando il gioco si chiamava Air Hockey. `StaleRoundTypeConstraintFixer`
+   (aggiunto alle 22:33) non ha rimosso niente: nessuna riga `Vincolo obsoleto`
+   nei log, e l'errore si è ripetuto alle 22:51. La query sui vincoli va
+   corretta e verificata su un database nato prima del rename.
+2. **CORS con `ALLOWED_ORIGINS=*`.** Due 500 alle 21:43Z:
+   `allowedOrigins cannot contain the special value "*"` con credenziali
+   attive. Il profilo di prova usa il jolly: va gestito con
+   `allowedOriginPatterns`, altrimenti alcune chiamate REST falliscono senza
+   spiegazione.
+3. **Cavallo: voto della categoria.** La TV scarta i voti dei nomi che non
+   trova esattamente in `players` (maiuscole e spazi contano) e dopo 15 secondi
+   sceglie una categoria a caso. Va reso tollerante e va detto in TV quando
+   nessuno ha votato.
+4. **Basket fuori dalla scaletta.** In serata reale è bloccato: il pulsante in
+   regia non deve offrire un bonus che poi non si può giocare.
+
+**I piaciuti che devono contare**
+
+5. **Punti dei bonus in classifica.** Casino, Biglie e Cavallo sono i momenti
+   migliori della serata e oggi non muovono la classifica.
+6. **Casino a una manche sola**, come chiesto dalla sala.
+
+**Da chiarire**
+
+7. **Time Buzzer:** countdown e "VIA" anche sul telefono, non solo in TV.
+8. **Azzardo:** meno numeri sul telefono, fiches sulla risposta, conferma unica.
+9. **Bomba:** turno più corto e "tocca a" molto più grande.
+10. **Timeline:** ordinamento a tocchi invece del trascinamento, meno date.
+
+**Contenuti**
+
+11. **Banca media locale assente:** `static/media/{people,covers,music}` è
+    vuota e `media-it.json` non esiste. Indovina chi resta senza foto e la
+    canzone dipende dalle anteprime iTunes (rete e qualità variabile). È il
+    motivo più probabile dei due "da migliorare".
+12. Domande ambigue, doppioni e categorie sbilanciate.
