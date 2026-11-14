@@ -9,6 +9,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -223,8 +224,10 @@ public class CelebrityImageService {
             String normalizedName = celebrityName.toLowerCase(Locale.ROOT);
             for (String sentence : extract.split("(?<=[.!?])\\s+")) {
                 // La prima frase contiene il nome: mostrarla svelerebbe la
-                // risposta. Si usano solo le frasi successive.
-                if (sentence.toLowerCase(Locale.ROOT).contains(normalizedName)) {
+                // risposta. Si usano solo le frasi successive, e anche quelle
+                // che citano solo il cognome (o il nome) restano fuori.
+                if (sentence.toLowerCase(Locale.ROOT).contains(normalizedName)
+                        || revealsName(sentence, celebrityName)) {
                     continue;
                 }
                 addClue(clues, sentence, celebrityName);
@@ -249,12 +252,45 @@ public class CelebrityImageService {
                 .replaceAll("[\\s,;:–—-]+$", "")
                 .trim();
 
-        if (clue.length() < 12 || clue.equalsIgnoreCase(celebrityName)) {
+        if (clue.length() < 12 || clue.equalsIgnoreCase(celebrityName)
+                || revealsName(clue, celebrityName)) {
             return;
         }
         if (clue.length() > 180) {
             clue = clue.substring(0, 177).trim() + "…";
         }
         clues.add(clue);
+    }
+
+    /** Particelle che da sole non identificano la persona. */
+    private static final Set<String> NAME_PARTICLES = Set.of(
+            "de", "del", "della", "di", "da", "dos", "du", "la", "le",
+            "van", "von", "jr", "sr", "ii", "iii", "iv");
+
+    /**
+     * Il nome intero viene già rimosso, ma una frase che cita solo il cognome
+     * («Jackson ha vinto…») svelerebbe comunque la risposta: va scartata.
+     */
+    private static boolean revealsName(String text, String celebrityName) {
+        if (text == null || text.isBlank() || celebrityName == null || celebrityName.isBlank()) {
+            return false;
+        }
+        String haystack = fold(text);
+        for (String token : fold(celebrityName).split("[^\\p{L}0-9]+")) {
+            if (token.length() < 4 || NAME_PARTICLES.contains(token)) {
+                continue;
+            }
+            if (Pattern.compile("(?<!\\p{L})" + Pattern.quote(token) + "(?!\\p{L})")
+                    .matcher(haystack).find()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String fold(String value) {
+        return Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT);
     }
 }
