@@ -29,31 +29,52 @@ class BombaExplosionEventTest {
 
     @Test
     void laBombaEsplodeSubitoSenzaScoprireIlTabellone() {
-        long gameId = 930_001L;
-        JSONObject state = bomba.start(gameId, List.of("Anna", "Bruno"), 1);
-        assertThat(state.getBoolean("active")).isTrue();
-
         JSONObject exploded = null;
         String bombPlayer = null;
         int chosenCell = -1;
+        long gameId = 930_000L;
 
-        for (int attempt = 0; attempt < 30 && exploded == null; attempt++) {
-            state = bomba.state(gameId, "Anna");
-            if (!state.getBoolean("active")) break;
-            String turn = state.getString("turn");
-            Integer free = firstFreeCell(state.getJSONArray("cells"));
-            if (free == null) break;
+        // Con tre squadre il round resta quasi sempre aperto dopo la bomba. Se
+        // la bomba fosse l ultima casella il tabellone si chiuderebbe subito:
+        // in quel caso si riprova, perché il caso interessante e quello aperto.
+        for (int attempt = 0; attempt < 6 && exploded == null; attempt++) {
+            gameId = 930_000L + attempt;
+            JSONObject state = bomba.start(gameId, List.of("Anna", "Bruno", "Carla"), 1);
+            assertThat(state.getBoolean("active")).isTrue();
 
-            JSONObject after = bomba.pick(gameId, turn, free);
-            JSONObject event = after.optJSONObject("lastEvent");
-            if (event != null && "bomb".equals(event.optString("kind"))) {
-                exploded = after;
-                bombPlayer = event.getString("player");
-                chosenCell = free;
+            JSONObject found = null;
+            String finder = null;
+            int cellId = -1;
+
+            for (int pick = 0; pick < 40 && found == null; pick++) {
+                state = bomba.state(gameId, "Anna");
+                if (!state.getBoolean("active")) break;
+                String turn = state.getString("turn");
+                Integer free = firstFreeCell(state.getJSONArray("cells"));
+                if (free == null) break;
+
+                JSONObject after = bomba.pick(gameId, turn, free);
+                JSONObject event = after.optJSONObject("lastEvent");
+                if (event != null && "bomb".equals(event.optString("kind"))) {
+                    if (after.getBoolean("active")) {
+                        found = after;
+                        finder = event.getString("player");
+                        cellId = free;
+                    }
+                    break;
+                }
+            }
+
+            if (found != null) {
+                exploded = found;
+                bombPlayer = finder;
+                chosenCell = cellId;
+            } else {
+                bomba.reset(gameId);
             }
         }
 
-        assertThat(exploded).as("una bomba deve uscire in poche scelte").isNotNull();
+        assertThat(exploded).as("serve un round ancora aperto dopo la bomba").isNotNull();
         String other = "Anna".equals(bombPlayer) ? "Bruno" : "Anna";
 
         // La casella scelta resta coperta: non si rivela la mappa delle bombe.
@@ -70,10 +91,12 @@ class BombaExplosionEventTest {
         assertThat(mine.getJSONObject("you").getBoolean("out")).isTrue();
         assertThat(mine.getJSONObject("you").getInt("penalty")).isEqualTo(-BombaService.BOMB_PENALTY);
 
-        // L'altra squadra non riceve la penalità al posto suo.
+        // L'altra squadra non riceve la penalita al posto suo.
         JSONObject theirs = bomba.state(gameId, other);
         assertThat(theirs.getJSONObject("you").getBoolean("out")).isFalse();
         assertThat(theirs.getJSONObject("you").getInt("penalty")).isZero();
+
+        bomba.reset(gameId);
     }
 
     private static Integer firstFreeCell(JSONArray cells) {
