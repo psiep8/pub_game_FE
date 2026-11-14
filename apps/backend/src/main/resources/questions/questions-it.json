@@ -9975,7 +9975,7 @@
       "category": "Gaming e Tecnologia",
       "type": "QUIZ",
       "difficulty": "difficile",
-      "question": "Quale famiglia di modelli è alla base di ChatGPT?",
+      "question": "Quale famiglia di modelli linguistici sta alla base del celebre assistente di OpenAI?",
       "correctAnswer": "GPT",
       "options": [
         "ResNet",
@@ -11389,7 +11389,7 @@
       "category": "Geografia e Viaggi",
       "type": "QUIZ",
       "difficulty": "facile",
-      "question": "In quale città si trova il Colosseo, meta turistica di Roma?",
+      "question": "In quale città si trova il Colosseo?",
       "correctAnswer": "Roma",
       "options": [
         "Roma",
@@ -11853,7 +11853,7 @@
       "category": "Natura e Animali",
       "type": "QUIZ",
       "difficulty": "difficile",
-      "question": "Quale livello trofico occupano i funghi decompositori?",
+      "question": "Quale gruppo di organismi ricava energia decomponendo materia organica morta?",
       "correctAnswer": "I decompositori",
       "options": [
         "I produttori",
@@ -12365,7 +12365,7 @@
       "category": "Cinema, Serie TV",
       "type": "QUIZ",
       "difficulty": "medio",
-      "question": "Quale serie racconta le indagini di Sherlock Holmes nella Londra moderna?",
+      "question": "Quale serie britannica racconta le indagini di Holmes e Watson nella Londra moderna?",
       "correctAnswer": "Sherlock",
       "options": [
         "Broadchurch",
@@ -12397,7 +12397,7 @@
       "category": "Cinema, Serie TV",
       "type": "QUIZ",
       "difficulty": "difficile",
-      "question": "Quale serie è ambientata nella tenuta di Downton Abbey all'inizio del Novecento?",
+      "question": "Quale serie è ambientata in una grande tenuta inglese all'inizio del Novecento?",
       "correctAnswer": "Downton Abbey",
       "options": [
         "Belgravia",
