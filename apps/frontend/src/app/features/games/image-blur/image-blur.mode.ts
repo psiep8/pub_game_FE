@@ -14,6 +14,7 @@ export class ImageBlurMode extends GameModeBase {
 
   private currentBlur = signal<number>(40);
   private blurInterval?: any;
+  private blurElapsedSeconds = 0;
 
   /** Indizi biografici: uno ogni dieci secondi, senza svelare il nome. */
   private clues: string[] = [];
@@ -22,6 +23,7 @@ export class ImageBlurMode extends GameModeBase {
 
   protected onInitialize(): void {
     this.currentBlur.set(40);
+    this.blurElapsedSeconds = 0;
     this.clues = Array.isArray(this.payload?.clues)
       ? this.payload.clues.map((clue: any) => String(clue)).filter((clue: string) => clue.length > 0)
       : [];
@@ -102,17 +104,15 @@ export class ImageBlurMode extends GameModeBase {
   private startBlurEffect(): void {
     if (this.blurInterval) clearInterval(this.blurInterval);
 
-    const blurStep = 40 / this.timerDuration; 
-
+    // Curva non lineare: i primi secondi tolgono più sfocatura, così la foto
+    // diventa leggibile prima, ma resta velata fino agli ultimi indizi.
     this.blurInterval = setInterval(() => {
       if (this.buzzedPlayer()) return;
 
-      const current = this.currentBlur();
-      if (current > 0) {
-        this.currentBlur.set(Math.max(0, current - blurStep));
-      } else {
-        this.stopBlurEffect();
-      }
+      this.blurElapsedSeconds = Math.min(this.timerDuration, this.blurElapsedSeconds + 1);
+      const progress = this.blurElapsedSeconds / this.timerDuration;
+      this.currentBlur.set(Math.max(0, 40 * (1 - Math.pow(progress, 0.55))));
+      if (progress >= 1) this.stopBlurEffect();
     }, 1000);
   }
 

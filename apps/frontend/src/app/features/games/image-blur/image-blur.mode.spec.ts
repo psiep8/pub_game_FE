@@ -38,6 +38,36 @@ describe('ImageBlurMode', () => {
     mode.cleanup();
   });
 
+  it('toglie più sfocatura nei primi secondi, senza svelare subito', async () => {
+    vi.useFakeTimers();
+
+    const mode = new ImageBlurMode();
+    mode.setConfig({
+      type: 'IMAGE_BLUR',
+      payload: {},
+      gameId: 1,
+      activePlayers: ['Anna'],
+    });
+    mode.initialize({
+      imageUrl: 'https://image.example/sophia.jpg',
+      correctAnswer: 'Sophia Loren',
+      clues: ['attrice italiana'],
+    });
+
+    await mode.start();
+    expect(mode.getDisplayData().blurAmount).toBe(40);
+
+    await vi.advanceTimersByTimeAsync(10000);
+    const early = mode.getDisplayData().blurAmount;
+    expect(early).toBeLessThan(30);
+    expect(early).toBeGreaterThan(20);
+
+    await vi.advanceTimersByTimeAsync(50000);
+    expect(mode.getDisplayData().blurAmount).toBe(0);
+
+    mode.cleanup();
+  });
+
   it('dura sessanta secondi, non trenta', () => {
     const mode = new ImageBlurMode();
 
