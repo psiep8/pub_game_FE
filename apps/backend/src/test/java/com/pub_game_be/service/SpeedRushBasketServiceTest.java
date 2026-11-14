@@ -86,6 +86,31 @@ class SpeedRushBasketServiceTest {
     }
 
     @Test
+    void iProverbiHannoTreFinaliDistintiEUsanoIlSestoTipo() {
+        java.util.Set<String> kinds = new java.util.HashSet<>();
+        for (int index = 0; index < 120; index++) {
+            SpeedRushService.Task task = speedRush.newTask(null, "MEDIUM", new java.util.HashSet<>());
+            kinds.add(task.kind());
+            if (!"proverb".equals(task.kind())) continue;
+
+            JSONObject pub = new JSONObject(task.publicJson());
+            JSONArray options = pub.getJSONArray("options");
+            java.util.Set<String> unique = new java.util.HashSet<>();
+            boolean answerPresent = false;
+            for (int option = 0; option < options.length(); option++) {
+                String value = options.getString(option);
+                unique.add(value);
+                answerPresent |= task.answer().equals(value);
+            }
+            assertThat(options.length()).isEqualTo(3);
+            assertThat(unique).hasSize(3);
+            assertThat(answerPresent).isTrue();
+            assertThat(pub.getString("prompt")).endsWith("...");
+        }
+        assertThat(kinds).contains("proverb", "math", "colors", "flag", "words", "translate");
+    }
+
+    @Test
     void basketAssegnaPuntiSoloAlTiroDentroLaFinestraDelServer() {
         long gameId = 810_002L;
         basket.start(gameId, List.of("Bruno"));

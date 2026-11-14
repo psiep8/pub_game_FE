@@ -147,7 +147,10 @@ export class FakeGameService {
     return of({ taskId: 'sr-test', kind: 'math', text: '2 + 2', options: [4, 5, 6] });
   }
 
-  answerSpeedRush(_gameId: number, _taskId: string, _answer: unknown): Observable<any> {
+  readonly speedAnswers: Array<{ taskId: string; answer: unknown }> = [];
+
+  answerSpeedRush(_gameId: number, taskId: string, answer: unknown): Observable<any> {
+    this.speedAnswers.push({ taskId, answer });
     return of({ correct: true, progress: 9, nextTask: null });
   }
 

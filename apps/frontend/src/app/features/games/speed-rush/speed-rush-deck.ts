@@ -53,12 +53,22 @@ export interface SpeedTranslateTask {
   answer: string;
 }
 
+/** Proverbi: prova generata solo dal server, non dal mazzo locale. */
+export interface SpeedProverbTask {
+  taskId?: string;
+  kind: 'proverb';
+  prompt: string;
+  options: string[];
+  answer: string;
+}
+
 export type SpeedTask =
   | SpeedMathTask
   | SpeedColorsTask
   | SpeedFlagTask
   | SpeedWordsTask
-  | SpeedTranslateTask;
+  | SpeedTranslateTask
+  | SpeedProverbTask;
 
 export const SPEED_TASK_KINDS: readonly SpeedTaskKind[] = ['math', 'colors', 'flag', 'words', 'translate'];
 

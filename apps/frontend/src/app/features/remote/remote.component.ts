@@ -1980,6 +1980,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.submitSpeedAnswer(name);
   }
 
+  speedPickProverb(value: string): void {
+    const task = this.speedTask();
+    if (task?.kind !== 'proverb') return;
+    this.submitSpeedAnswer(value);
+  }
+
   speedPickWord(value: string): void {
     const task = this.speedTask();
     if (task?.kind !== 'words') return;

@@ -92,6 +92,29 @@ public class SpeedRushService {
             {"🇹🇳", "TUNISIA"}, {"🇩🇿", "ALGERIA"}, {"🇮🇸", "ISLANDA"},
             {"🇫🇮", "FINLANDIA"},
     };
+    /** Proverbi: il testo ha il finale mancante, le opzioni sono parole intere. */
+    private static final String[][] PROVERBS = {
+            {"L'unione fa la...", "FORZA", "FESTA", "FORTUNA"},
+            {"Chi va piano va sano e va...", "LONTANO", "VELOCE", "FORTE"},
+            {"Meglio un uovo oggi che una gallina...", "DOMANI", "IERI", "STASERA"},
+            {"Chi dorme non piglia...", "PESCI", "PUNTI", "SONNO"},
+            {"A caval donato non si guarda in...", "BOCCA", "TASCA", "FACCIA"},
+            {"Tra il dire e il fare c'è di mezzo il...", "MARE", "PONTE", "TEMPO"},
+            {"L'appetito vien...", "MANGIANDO", "DORMENDO", "CORRENDO"},
+            {"La notte porta...", "CONSIGLIO", "FORTUNA", "SILENZIO"},
+            {"Roma non è stata costruita in un...", "GIORNO", "ANNO", "SECOLO"},
+            {"Chi trova un amico trova un...", "TESORO", "SOGNO", "FRATELLO"},
+            {"Non è tutto oro quello che...", "LUCCICA", "SPLENDE", "SUONA"},
+            {"Tanto va la gatta al lardo che ci lascia lo...", "ZAMPINO", "CODA", "PELO"},
+            {"Il buongiorno si vede dal...", "MATTINO", "POMERIGGIO", "TRAMONTO"},
+            {"Una rondine non fa...", "PRIMAVERA", "ESTATE", "NIDO"},
+            {"Chi semina vento raccoglie...", "TEMPESTA", "PIOGGIA", "FORTUNA"},
+            {"Acqua cheta...", "ROVINA I PONTI", "SPEGNE IL FUOCO", "BAGNA LE STRADE"},
+            {"Chi non risica non...", "ROSICA", "VINCE", "PERDE"},
+            {"Le bugie hanno le gambe...", "CORTE", "LUNGHE", "SVELTE"},
+            {"Quando il gatto non c'è i topi...", "BALLANO", "SCAPPANO", "DORMONO"},
+            {"Ogni cosa a suo...", "TEMPO", "MODO", "POSTO"},
+    };
     private static final String[][] WORDS = {
             {"BELLO", "CARINO", "BRUTTO"}, {"VELOCE", "RAPIDO", "LENTO"},
             {"GRANDE", "ENORME", "PICCOLO"}, {"FACILE", "SEMPLICE", "DIFFICILE"},
@@ -346,7 +369,7 @@ public class SpeedRushService {
      * domanda si ritenta (fino a 60 volte, poi si accetta per non bloccare).
      */
     Task newTask(String previousKind, String difficulty, Set<String> asked) {
-        String[] kinds = {"math", "colors", "flag", "words", "translate"};
+        String[] kinds = {"math", "colors", "flag", "words", "translate", "proverb"};
         Task task = null;
         for (int attempt = 0; attempt < 60; attempt++) {
             String kind;
@@ -359,6 +382,7 @@ public class SpeedRushService {
                 case "colors" -> colorsTask(id);
                 case "flag" -> flagTask(id, difficulty);
                 case "words" -> wordsTask(id, difficulty);
+                case "proverb" -> proverbTask(id);
                 default -> translateTask(id, difficulty);
             };
             if (asked == null || asked.add(signature(task))) {
@@ -376,6 +400,7 @@ public class SpeedRushService {
             case "colors" -> "colors:" + pub.optString("target");
             case "flag" -> "flag:" + pub.optString("emoji");
             case "words" -> "words:" + pub.optString("prompt") + ":" + pub.optString("relation");
+            case "proverb" -> "proverb:" + pub.optString("prompt");
             default -> "translate:" + pub.optString("prompt");
         };
     }
@@ -415,6 +440,19 @@ public class SpeedRushService {
                 .put("text", a + " " + operator + " " + b)
                 .put("options", new JSONArray(shuffled));
         return new Task(id, "math", pub.toString(), String.valueOf(answer));
+    }
+
+    /** Prova dei proverbi: tre finali plausibili, uno solo corretto. */
+    Task proverbTask(String id) {
+        String[] row = PROVERBS[random.nextInt(PROVERBS.length)];
+        List<String> options = new ArrayList<>(List.of(row[1], row[2], row[3]));
+        java.util.Collections.shuffle(options, random);
+        JSONObject pub = new JSONObject()
+                .put("taskId", id)
+                .put("kind", "proverb")
+                .put("prompt", row[0])
+                .put("options", new JSONArray(options));
+        return new Task(id, "proverb", pub.toString(), row[1]);
     }
 
     private Task colorsTask(String id) {

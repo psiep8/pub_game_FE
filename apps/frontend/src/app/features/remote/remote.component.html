@@ -639,6 +639,17 @@
         }
       </div>
       }
+      @if (task.kind === 'proverb') {
+      <div class="speed-prompt">
+        <span class="speed-kicker">PROVERBIO</span>
+        <p class="speed-question">{{ task.prompt }}</p>
+      </div>
+      <div class="speed-options three">
+        @for (option of task.options; track option) {
+        <button class="emoji-btn speed-name" (click)="speedPickProverb(option)">{{ option }}</button>
+        }
+      </div>
+      }
       @if (task.kind === 'flag') {
       <div class="speed-prompt">
         <span class="speed-kicker">BANDIERA</span>

@@ -84,6 +84,32 @@ describe('RemoteComponent', () => {
     expect(enableTutorial).toHaveBeenCalledWith(true);
   });
 
+  it('mostra il proverbio e manda al server il finale scelto', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    component.gameState.set('VOTING' as any);
+    component.questionType.set('SPEED_RUSH');
+    component.speedTask.set({
+      taskId: 'sr-proverb-1',
+      kind: 'proverb',
+      prompt: "L'unione fa la...",
+      options: ['FORZA', 'FESTA', 'FORTUNA'],
+      answer: 'FORZA',
+    });
+    fixture.detectChanges();
+
+    const buttons = Array.from(
+      fixture.nativeElement.querySelectorAll('.speed-options button'),
+    ) as HTMLButtonElement[];
+    const forza = buttons.find((button) => button.textContent?.includes('FORZA'));
+    expect(forza).toBeTruthy();
+    forza!.click();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    expect(game.speedAnswers).toEqual([{ taskId: 'sr-proverb-1', answer: 'FORZA' }]);
+  });
+
   it('dice subito che la squadra è fuori quando prende una bomba', async () => {
     const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
     component.tempNickname = 'Anna';
