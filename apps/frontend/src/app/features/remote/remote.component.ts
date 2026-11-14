@@ -568,6 +568,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
             // riconnessione): chi ha già votato resta bloccato, non rivota.
             this.gameState.set(PlayerStatus.LOCKED);
           } else {
+            // Anche se il primo START_VOTING è andato perso, lo stato del Quiz
+            // basta a mostrare le risposte: non lasciare il tipo del round
+            // precedente (per esempio Bomba) sulla schermata.
+            this.questionType.set('QUIZ');
+            this.roundActive.set(true);
             this.hasAnswered.set(false);
             this.selectedAnswer.set(null);
             this.startTime = Date.now();
