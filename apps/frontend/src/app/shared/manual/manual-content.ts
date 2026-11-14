@@ -316,7 +316,7 @@ export const MANUAL_SECTIONS: readonly ManualSection[] = [
     lines: [
       `${TOTAL_ROUNDS} round divisi in ${ACT_DECKS.length} atti da ${ROUNDS_PER_ACT}.`,
       `Classifica rapida dopo i round ${QUICK_LEADERBOARD_ROUNDS.join(', ')}; dettagliata dopo ${DETAILED_LEADERBOARD_ROUNDS.join(', ')}.`,
-      `Dopo gli atti 1–4 c’è un bonus: ${bonusActs.join(', ')}. Dopo l’atto 5 si chiude con la classifica finale.`,
+      `Bonus previsti: ${bonusActs.join(', ')}. Dopo l’atto 5 si chiude con la classifica finale.`,
     ],
   },
   {

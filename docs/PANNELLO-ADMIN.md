@@ -57,7 +57,7 @@ pannello admin e in TV, nei momenti previsti dal gioco.
 | **⏸️ PAUSA / RIPRENDI** | Ferma il gioco: la TV copre tutto e i timer si fermano. | Per un imprevisto. Riprendi quando è tutto pronto. |
 | **↺ RIVEDI INTRO** | Riporta in TV la presentazione iniziale. | Per ripetere le regole all'inizio della serata. |
 | **🎄 NATALE ON / OFF** | Attiva o spegne il tema natalizio. | Solo per scelta estetica. Non cambia i punti. |
-| **🎰 BONUS CASINO** · **🏀 BONUS BASKET** · **🐎 BONUS CAVALLO** · **🎱 BONUS BIGLIE** | Avvia il bonus di fine atto. | Alla fine di un atto, dopo la classifica. |
+| **🎰 BONUS CASINO** · **🐎 BONUS CAVALLO** · **🎱 BONUS BIGLIE** | Avvia il bonus di fine atto. | Alla fine di un atto, dopo la classifica. |
 | **✖️ CHIUDI BONUS** | Chiude il bonus in corso. | Per uscire da un bonus. |
 
 > Avanzamento manuale: usa **PARTI** oppure il tasto **AVANTI** in TV. Entrambi fanno
@@ -151,8 +151,7 @@ squadra protesta.
 
 1. Dopo l'ultimo round dell'atto la TV mostra la classifica rapida (o dettagliata a fine atto).
 2. Premi **🏆 MOSTRA CLASSIFICA** solo se vuoi anticiparla.
-3. Lancia il bonus dell'atto con il suo pulsante (**BONUS CASINO**, **BASKET**, **CAVALLO**
-   o **BIGLIE**).
+3. Per gli atti con bonus usa **BONUS CASINO**, **CAVALLO** o **BIGLIE**. Dopo l'atto 2 non è previsto un bonus.
 4. A bonus concluso premi **✖️ CHIUDI BONUS**, poi **▶️ PARTI** per il round successivo.
 
 ---

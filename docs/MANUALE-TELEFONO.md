@@ -68,7 +68,6 @@ presentatore per sapere che ogni telefono è pronto.
 | **Bonus Casino** | Tocca la casella su cui punti (colore, dozzina, sestina, numero). |
 | **Bonus Cavallo** | Scegli la categoria, poi rispondi alle otto domande flash. |
 | **Bonus Biglie** | Scegli la tua biglia: una scelta sola, vale per tutte le gare. |
-| **Bonus Basket** | **APRI IL CANESTRO**: si tira trascinando indietro la palla. |
 
 ---
 

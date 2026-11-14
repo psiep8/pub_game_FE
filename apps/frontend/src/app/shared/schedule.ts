@@ -39,10 +39,10 @@ export const SCHEDULE: readonly GameModeType[] = ACT_DECKS.flat();
 export const QUICK_LEADERBOARD_ROUNDS = [4, 12, 20, 28, 36] as const;
 export const DETAILED_LEADERBOARD_ROUNDS = [8, 16, 24, 32, 40] as const;
 
-/** Bonus dopo ogni atto; dopo il quinto non c'è bonus. */
+/** Bonus programmati dopo gli atti; nessun sostituto è previsto per l'atto 2. */
 export const BONUS_AFTER_ACT: readonly (BonusType | null)[] = [
   'CASINO',
-  'BASKET',
+  null,
   'CAVALLO',
   'BIGLIE',
   null,

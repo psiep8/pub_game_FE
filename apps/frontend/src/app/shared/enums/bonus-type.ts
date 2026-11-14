@@ -1,8 +1,8 @@
 /**
  * I bonus di fine atto. Non consumano round della scaletta.
  *
- * I quattro automatici sono casino (atto 1), basket (atto 2), cavallo
- * (atto 3) e biglie (atto 4).
+ * In serata sono disponibili casino (atto 1), cavallo (atto 3) e biglie
+ * (atto 4). Il tipo Basket rimane per compatibilità con il codice esistente.
  */
 export const BonusType = {
   CASINO: 'CASINO',
@@ -21,4 +21,4 @@ export const BONUS_LABELS: Record<BonusType, string> = {
 };
 
 /** I bonus nell'ordine degli atti. */
-export const BONUS_TYPES: readonly BonusType[] = Object.values(BonusType);
+export const BONUS_TYPES: readonly BonusType[] = Object.values(BonusType).filter((type) => type !== 'BASKET');

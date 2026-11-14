@@ -8,6 +8,7 @@ describe('demo scripts', () => {
     const expected = ['INTRO', ...scheduledModes(), ...BONUS_TYPES.map((type) => `BONUS_${type}`)];
 
     expect([...DEMO_ORDER].sort()).toEqual([...expected].sort());
+    expect(DEMO_ORDER).not.toContain('BONUS_BASKET');
     for (const key of expected) {
       expect(demoScriptFor(key), `demo mancante: ${key}`).not.toBeNull();
     }

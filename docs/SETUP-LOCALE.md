@@ -151,7 +151,7 @@ Il portatile fa server, TV (con HDMI) e admin; i telefoni sul tuo Wi-Fi.
 - Per HTTPS: tunnel Cloudflare (`apps/frontend/start-tunnel.sh` o `.ps1`) o servizio con dominio (`deploy/README.md`). Il tunnel dipende da internet.
 - Sicurezza: non esporre `/admin` a internet senza il segreto di regia; non condividere il segreto con i giocatori.
 - **Speed Rush** è bloccato in serata reale: `startNewRound()` mostra un avviso e la scaletta si ferma quando raggiunge quel round, perché il punteggio non è ancora verificato dal server. È disponibile solo in simulazione (`?sim=1`).
-- **Bonus Basket** è bloccato fuori da simulazione e anteprima: il tabellone si può vedere in demo, ma il punteggio non è ancora verificato dal server.
+- **Bonus Basket** è fuori dalla scaletta e dalla regia; non è previsto un sostituto dopo l'atto 2.
 - I bonus mostrano una classifica propria ma **non assegnano punti alla classifica della serata**.
 - **Banca media locale**: musica, copertine e volti non sono nel repository (`.gitignore` esclude `static/media/` e `questions/media-it.json`). Per giocare offline vanno generati con `python scripts/generate-questions/generate_media.py --from-azzardo` o copiati prima della build; senza, il backend usa iTunes/TMDB/Wikipedia e, se manca la rete, audio e immagini possono restare vuoti.
 - Per una serata completa in locale servono le correzioni descritte nella roadmap del README; non forzare l'avanzamento oltre Speed Rush per aggirare il blocco.

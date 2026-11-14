@@ -21,7 +21,7 @@ La versione è **2.1.0**. Il codice è la fonte di verità: se una frase di ques
 - **Telefoni (`/play`)**: ogni squadra entra con un nickname e gioca dal browser. In attesa può aprire il **Manuale dei giochi**; durante un round il manuale si chiude e il pulsante sparisce.
 - **Regia (`/admin`)**: il presentatore avvia e chiude i round, mette in pausa, mostra le classifiche, lancia i bonus e apre le demo. Non è un pannello di voto: le risposte arrivano dai telefoni.
 
-La serata è una scaletta fissa di **40 round divisi in 5 atti da 8** (`shared/schedule.ts`). Dopo i round **4, 12, 20, 28 e 36** compare la classifica rapida; dopo **8, 16, 24, 32 e 40** quella dettagliata. Dopo gli atti 1–4 c'è un bonus: **Casino, Basket, Cavallo di battaglia, Biglie**. Dopo il quinto atto si chiude con la classifica finale.
+La serata è una scaletta fissa di **40 round divisi in 5 atti da 8** (`shared/schedule.ts`). Dopo i round **4, 12, 20, 28 e 36** compare la classifica rapida; dopo **8, 16, 24, 32 e 40** quella dettagliata. Dopo gli atti 1, 3 e 4 sono previsti **Casino, Cavallo di battaglia e Biglie**; dopo l'atto 2 non è previsto un sostituto. Dopo il quinto atto si chiude con la classifica finale.
 
 Una serata completa dura indicativamente **3–4 ore**: è una stima, non un dato misurato, e dipende da quanto il presentatore allunga i tempi tra un round e l'altro. Il numero di telefoni consigliato è **4–10 squadre**; il codice non impone un limite rigido.
 
@@ -45,12 +45,11 @@ I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring
 | **Blackjack** | Rischio | Tre mani contro il banco della TV: carta o stai. | **+250** a mano, **+500** con il naturale; sconfitta **−250** (mai sotto zero); sballare **−250**. |
 | **Arena Battle Royale** | Sapere + riflessi | Battle royale a domande rapide dentro un cerchio che si chiude. | **+10 / −10** per risposta; piazzamento **+1000 / +500 / −300**. |
 
-### I quattro bonus
+### I bonus della serata
 
 | Bonus | Come funziona | Punti |
 |---|---|---|
 | **Casino** | Quattro manche di roulette: colore, dozzina, sestina e numero secco. | **+100 / +150 / +200 / +300** a manche; sullo zero il banco incassa. |
-| **Basket** | Tre manche da 20 secondi con ferro largo, medio e piccolo. | **+2 / +3 / +5** a canestro, **+1** in più per lo swish. In serata reale è bloccato (vedi §12). |
 | **Cavallo di battaglia** | Otto domande flash sulla categoria votata dai telefoni. | **+1** per risposta esatta. |
 | **Biglie** | Quattro gare su fondi diversi, una biglia per tavolo scelta una volta sola. | **+150 / +100 / +60 / +30** a gara, punti cumulativi. |
 
@@ -189,16 +188,16 @@ Il programma completo (ruoli, tempi, prove di caduta, cosa annotare, emergenze) 
 
 **Pronto**
 
-- Scaletta completa di 40 round in 5 atti, 13 modalità e 4 bonus.
+- Scaletta completa di 40 round in 5 atti, 13 modalità e 3 bonus programmati.
 - Ingresso con QR, squadre con token, ripresa dopo refresh o cambio dispositivo.
 - Manuale dei giochi sul telefono, con apertura consentita solo fuori dal round.
-- Sezione Demo nell'admin: 18 voci (introduzione + 13 giochi + 4 bonus), cinque scene per voce e tabella punti generata da `SCORING_RULES`.
+- Sezione Demo nell'admin: 17 voci (introduzione + 13 giochi + 3 bonus), cinque scene per voce e tabella punti generata da `SCORING_RULES`.
 - Classifiche rapide e dettagliate, pausa, ripresa, diagnostica di regia.
 - Banca domande pre-generata: 991 domande, 360 domande Azzardo, 113 eventi Timeline.
 
 **Limitato o bloccato**
 
-- **Bonus Basket**: è bloccato fuori da simulazione e anteprima; il tabellone si può vedere in demo. Il punteggio non è ancora verificato dal server.
+- **Bonus Basket**: rimosso dalla serata e dalla regia; il codice rimane nel progetto.
 - **Bonus e classifica**: i bonus mostrano una classifica propria ma non aggiungono punti alla classifica della serata.
 - **Tempi dichiarati dal client**: alcune modalità usano tempi o stato del telefono; i punteggi non sono tutti verificabili lato server.
 - **Sicurezza**: mancano rate limiting e recupero assistito del nome; un partecipante può prenotare per primo il nickname di un'altra squadra. Le sessioni non vengono revocate cambiando `CONTROL_SECRET`.
@@ -206,7 +205,6 @@ Il programma completo (ruoli, tempi, prove di caduta, cosa annotare, emergenze) 
 
 **In programma**
 
-- Verifica server-side del Basket, con percorso di avanzamento completo (Speed Rush è già sul server).
 - Punti dei bonus nella classifica della serata.
 - Rate limiting sulle sessioni e recupero assistito dei nomi.
 - Test end-to-end con più browser e dispositivi reali.

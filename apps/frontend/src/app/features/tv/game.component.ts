@@ -56,7 +56,7 @@ import { levelForOccurrence } from '../games/azzardo/azzardo-rules';
 import { Blackjack } from '../games/blackjack/blackjack.component';
 import { DemoScript, demoScriptFor } from './demo-scripts';
 import { REVEAL_DELAY_MS, scoringRuleFor } from '../../shared/models/scoring-rules';
-import { BonusType, BONUS_LABELS } from '../../shared/models/bonus-type';
+import { BonusType, BONUS_LABELS, BONUS_TYPES } from '../../shared/models/bonus-type';
 import { CasinoBonus } from '../bonus/casino/casino-bonus.component';
 import { CavalloBonus } from '../bonus/cavallo/cavallo-bonus.component';
 import { BasketBonusStage } from '../bonus/basket/basket-bonus-stage.component';
@@ -582,7 +582,7 @@ export class GameComponent implements OnInit, OnDestroy {
       } else if (status.action === WsAction.ADMIN_HIDE_DEMO) {
         this.stopDemo();
       } else if (status.action === 'ADMIN_START_BONUS') {
-        void this.startBonus(status.type || 'BASKET');
+        if (status.type) void this.startBonus(status.type);
       } else if (status.action === 'ADMIN_STOP_BONUS') {
         this.finishBonus();
       } else if (status.action === 'BASKET_SCORE') {
@@ -1603,6 +1603,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
   /** Bonus: parte dalla TV a fine atto (o su comando admin) e non consuma un round. */
   async startBonus(type: BonusType): Promise<void> {
+    if (!BONUS_TYPES.includes(type)) return;
     // Un bonus è fuori dal round: chiude il conteggio se era ancora aperto.
     this.settleRoundWinner();
     if (this.isSpinning() || this.bonusActive()) return;

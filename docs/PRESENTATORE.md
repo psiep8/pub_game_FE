@@ -149,8 +149,7 @@ niente.
 1. Dopo i round **4, 12, 20, 28, 36** la TV mostra la classifica **rapida**;
    dopo **8, 16, 24, 32, 40** quella **dettagliata**, con podio e festeggiamento.
    La classifica resta in TV finché non premi **▶️ PARTI**.
-2. Dopo i primi quattro atti lancia il bonus con il suo pulsante:
-   **🎰 CASINO**, **🏀 BASKET**, **🐎 CAVALLO**, **🎱 BIGLIE**.
+2. I bonus previsti sono **🎰 CASINO** dopo l'atto 1, **🐎 CAVALLO** dopo il 3 e **🎱 BIGLIE** dopo il 4. Dopo l'atto 2 non è previsto un bonus.
 3. Segui il bonus in TV e chiudilo con **✖️ CHIUDI BONUS**.
 4. **I bonus hanno una classifica propria e non aggiungono punti alla classifica
    della serata.** Dillo tu: evita le proteste.

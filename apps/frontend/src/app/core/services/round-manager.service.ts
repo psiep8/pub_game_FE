@@ -110,7 +110,7 @@ export class RoundManagerService {
    * Bonus previsto dopo l'atto appena concluso, se esiste.
    *
    * Dopo l'atto 1 il Casino (quattro manche a difficoltà crescente), dopo il
-   * 2 il Basket, dopo il 3 il Cavallo di Battaglia e dopo il 4 le Biglie.
+   * 3 il Cavallo di Battaglia e dopo il 4 le Biglie. Dopo il 2 non è previsto un bonus.
    * Dopo il quinto atto non c'è bonus: si chiude con la classifica finale.
    */
   bonusAfterAct(): BonusType | null {
@@ -128,7 +128,7 @@ export class RoundManagerService {
   }
 
   shouldShowLeaderboard(): 'QUICK' | 'DETAILED' | null {
-    // La simulazione mostra solo i giochi e i quattro bonus: niente
+    // La simulazione mostra i giochi senza classifiche automatiche: niente
     // classifiche automatiche che interromperebbero il flusso.
     if (this.simulation) return null;
     const round = this.roundConfig().currentRound;

@@ -108,10 +108,10 @@ describe('RoundManagerService', () => {
     expect(service.isActEnd()).toBe(true);
   });
 
-  it('should spread the casino variants across the acts', () => {
+  it('should schedule only the selected bonuses across the acts', () => {
     const expected: Array<string | null> = [
       'CASINO',
-      'BASKET',
+      null,
       'CAVALLO',
       'BIGLIE',
       null,

@@ -295,40 +295,29 @@ describe('GameComponent', () => {
     expect(leaderboard.getPlayerStats('Bruno')?.position).toBe(1);
   });
 
-  it('starts Speed Rush and Basket with server-verified scoring', async () => {
+  it('starts Speed Rush with server-verified scoring', async () => {
     const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     vi.spyOn(game, 'startSpeedRush').mockReturnValue(of({ active: true }));
-    const startBasket = vi.spyOn(game, 'startBasket').mockReturnValue(of({ active: true }));
     const rounds = TestBed.inject(RoundManagerService);
     vi.spyOn(rounds, 'extractGameType').mockReturnValue('SPEED_RUSH');
     const before = rounds.getCurrentRound();
     await component.startNewRound();
     expect(rounds.getCurrentRound()).not.toBe(before);
     expect(alert).not.toHaveBeenCalled();
-    await component.startBonus('BASKET');
-    expect(component.bonusActive()).toBe(true);
-    expect(startBasket).toHaveBeenCalled();
     alert.mockRestore();
   });
 
-  it('starts Basket automatically with server scoring after the detailed leaderboard', async () => {
-    const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
+  it('does not start Basket from an old admin command or directly', async () => {
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
-    const startBasket = vi.spyOn(game, 'startBasket').mockReturnValue(of({ active: true }));
-    const rounds = TestBed.inject(RoundManagerService);
-    vi.spyOn(rounds, 'bonusAfterAct').mockReturnValue('BASKET');
-    vi.spyOn(rounds, 'getCurrentAct').mockReturnValue(1);
-    component.showLeaderboardDetailed.set(true);
-    component.isShowingLeaderboard.set(true);
+    const startBasket = vi.spyOn(game, 'startBasket');
+    await component.startBonus('BASKET');
+    ws.status$.next({ action: WsAction.ADMIN_START_BONUS, type: 'BASKET' });
+    ws.status$.next({ action: WsAction.ADMIN_START_BONUS });
+    await fixture.whenStable();
 
-    component.onLeaderboardComplete();
-    await new Promise((resolve) => setTimeout(resolve, 20));
-
-    expect(startBasket).toHaveBeenCalled();
-    expect(component.bonusActive()).toBe(true);
-    expect(alert).not.toHaveBeenCalled();
-    alert.mockRestore();
+    expect(startBasket).not.toHaveBeenCalled();
+    expect(component.bonusActive()).toBe(false);
   });
 
   it('does not advance when closing the current round is not confirmed', () => {
