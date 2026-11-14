@@ -420,6 +420,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
       if (!Number.isFinite(gameId) || gameId <= 0 || gameId === this.gameId()) return;
       this.gameId.set(gameId);
       localStorage.setItem('activeGameId', String(gameId));
+      // Cambiata la partita, cambiano anche i topic: l'iscrizione segue l'ID
+      // adottato, altrimenti la serata nuova resta muta sui telefoni.
+      this.ws.subscribeToGame(gameId);
       const name = this.nickname();
       if (!name) return;
       if (await this.reliability.start(gameId, 'REMOTE', name)) {
@@ -448,6 +451,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // senza nessuno dei due si chiede al server quale serata è aperta.
     this.gameId.set(this.initialGameId());
     localStorage.setItem('activeGameId', String(this.gameId()));
+    // I topic STOMP devono seguire la stessa partita delle risposte: senza
+    // questa iscrizione il telefono ascolta la partita di default e non vede
+    // l'avvio del round, pur rispondendo sull'ID giusto.
+    this.ws.subscribeToGame(this.gameId());
     console.log('🎮 Remote collegato alla partita', this.gameId());
 
     // Anteprima del manuale per la pagina sim-duo (`?quad=1&manuale=QUIZ`):

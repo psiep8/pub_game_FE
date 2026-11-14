@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SwUpdate } from '@angular/service-worker';
-import { Subject } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { vi } from 'vitest';
 
 import { RemoteComponent } from './remote.component';
@@ -82,6 +82,23 @@ describe('RemoteComponent', () => {
     // prima: nessun ingresso senza squadra.
     expect(component.nickname()).toBe('Bianca');
     expect(enableTutorial).toHaveBeenCalledWith(true);
+  });
+
+  it('ascolta i topic della partita attiva adottata, non quella di default', async () => {
+    fixture.destroy();
+    localStorage.clear();
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'getActiveGame').mockReturnValue(of({ gameId: 12 }));
+    ws.subscribedGames.length = 0;
+
+    fixture = TestBed.createComponent(RemoteComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve));
+
+    expect(component.gameId()).toBe(12);
+    expect(ws.subscribedGames.at(-1)).toBe(12);
   });
 
   it('rientra senza tutorial quando il server riprende la stessa sessione', async () => {
