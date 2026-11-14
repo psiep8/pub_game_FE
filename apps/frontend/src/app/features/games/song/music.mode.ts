@@ -138,22 +138,16 @@ export class MusicMode extends GameModeBase {
   }
 
   protected onConfirmCorrect(result: GameModeResult): void {
-    // Reveal in due tempi: 4 secondi di intro a basso volume, poi la canzone
-    // riparte da capo a volume pieno per 30 secondi, senza filtri.
+    // Il messaggio di vittoria e il brano pulito devono partire insieme: una
+    // intro filtrata di 4 secondi faceva sentire la canzone ancora «storta»
+    // proprio dopo il corretto. Si salta direttamente alla quarta fase.
     this.stopAllTimers();
     this.pauseAudio();
     this.revealed.set(true);
-    this.revealIntro = true;
-    this.fullPlayback.set(false);
+    this.revealIntro = false;
+    this.currentManche = MANCHES;
+    this.fullPlayback.set(true);
     this.playAudio();
-
-    if (this.introTimer) clearTimeout(this.introTimer);
-    this.introTimer = setTimeout(() => {
-      this.revealIntro = false;
-      this.currentManche = MANCHES;
-      this.fullPlayback.set(true);
-      this.playAudio();
-    }, 4000);
   }
 
   protected onConfirmWrong(result: GameModeResult): void {

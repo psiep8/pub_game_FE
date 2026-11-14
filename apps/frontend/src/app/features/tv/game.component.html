@@ -230,7 +230,8 @@
   }
   @case ('MUSIC') {
   <app-song [displayData]="getSafeDisplayData()" [timer]="timer()" [timerVisible]="timerVisible()"
-    (onConfirmCorrect)="confirmCorrect()" (onConfirmWrong)="confirmWrong()" />
+    (onConfirmCorrect)="confirmCorrect()" (onConfirmWrong)="confirmWrong()"
+    (onFullPlaybackEnd)="musicPlaybackEnded()" />
   }
   @case ('ARENA') {
   <app-arena [displayData]="getSafeDisplayData()" [timer]="timer()">

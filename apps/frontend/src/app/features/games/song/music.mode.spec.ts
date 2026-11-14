@@ -41,6 +41,22 @@ describe('MusicMode', () => {
     mode.cleanup();
   });
 
+  it('alla conferma corretta fa partire subito il brano pulito, senza intro filtrata', async () => {
+    const mode = createMode();
+    await mode.start();
+    mode.handleBuzz('Anna');
+
+    mode.confirmCorrect('Anna');
+
+    const data = mode.getDisplayData();
+    expect(data.revealed).toBe(true);
+    expect(data.fullPlayback).toBe(true);
+    expect(data.currentPhase).toBe(4);
+    expect(data.audioPlaying).toBe(true);
+
+    mode.cleanup();
+  });
+
   it('paga in proporzione ai secondi rimasti e non scende sotto 250', async () => {
     vi.useFakeTimers();
     const mode = createMode();

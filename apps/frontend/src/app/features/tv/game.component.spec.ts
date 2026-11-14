@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { of, throwError } from 'rxjs';
+import { vi } from 'vitest';
 
 import { GameComponent } from './game.component';
 import { AiGeneratorService } from '../../core/services/ai-generator-service';
@@ -74,6 +75,16 @@ describe('GameComponent', () => {
     component.togglePause();
     expect(resume).toHaveBeenCalledTimes(1);
     expect(game.resumeCalls).toEqual([1]);
+  });
+
+  it('passa al round successivo quando finisce la canzone del reveal', () => {
+    component.currentMode.set({ type: 'MUSIC' } as any);
+    const next = vi.spyOn(component, 'adminNextRound').mockImplementation(() => undefined);
+
+    component.musicPlaybackEnded();
+
+    expect(next).toHaveBeenCalledTimes(1);
+    next.mockRestore();
   });
 
   it('non fa tornare indietro la scaletta dopo un round saltato', () => {

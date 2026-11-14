@@ -21,6 +21,10 @@ import { GAME_TIMINGS } from '../../../shared/models/game-timings';
  * Manche 3: quasi nitida, con una distorsione leggera (~25% del massimo).
  * Manche 4: brano intero, senza filtri.
  */
+/** Il brano del reveal dura 30 s; gli ultimi 5 secondi sono la dissolvenza. */
+const FULL_PLAYBACK_SECONDS = 30;
+const FULL_PLAYBACK_FADE_SECONDS = 5;
+
 const MANCHE_AUDIO: Record<
   number,
   { gain: number; band: number; q: number; highpass: number; lowpass: number; drive: number; hiss: number }
@@ -47,6 +51,8 @@ export class Song implements OnInit, OnDestroy, OnChanges {
 
   @Output() onConfirmCorrect = new EventEmitter<void>();
   @Output() onConfirmWrong = new EventEmitter<void>();
+  /** La canzone del reveal è finita: la TV può passare al round successivo. */
+  @Output() onFullPlaybackEnd = new EventEmitter<void>();
 
   private audioEngine = inject(AudioService);
   private audio?: HTMLAudioElement;
@@ -370,6 +376,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
       await this.audio.play();
       this.isPlaying.set(true);
       this.startVinylAnimation();
+      this.scheduleFullPlaybackFade();
     } catch (err) {
       console.error('❌ Play full error:', err);
     }
@@ -381,7 +388,25 @@ export class Song implements OnInit, OnDestroy, OnChanges {
       // comportamento delle manche successive.
       if (this.audio) this.audio.loop = true;
       this.pauseAudio();
-    }, 30000);
+      this.onFullPlaybackEnd.emit();
+    }, FULL_PLAYBACK_SECONDS * 1000);
+  }
+
+  /**
+   * Volume pieno per 25 s, poi rampa lineare a zero negli ultimi 5: la fine
+   * del brano non deve arrivare come un taglio netto.
+   */
+  private scheduleFullPlaybackFade(): void {
+    const ctx = this.audioContext;
+    const gain = this.gainNode;
+    if (!ctx || !gain) return;
+
+    const now = ctx.currentTime;
+    gain.gain.cancelScheduledValues(now);
+    gain.gain.setValueAtTime(1, now);
+    const fadeStart = now + FULL_PLAYBACK_SECONDS - FULL_PLAYBACK_FADE_SECONDS;
+    gain.gain.setValueAtTime(1, fadeStart);
+    gain.gain.linearRampToValueAtTime(0.0001, now + FULL_PLAYBACK_SECONDS);
   }
 
   private stopFullPlayback(): void {
@@ -390,6 +415,11 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     this.fullPlaybackActive = false;
     this.fullPlaybackDone = false;
     if (this.audio) this.audio.loop = true;
+    if (this.gainNode && this.audioContext) {
+      const now = this.audioContext.currentTime;
+      this.gainNode.gain.cancelScheduledValues(now);
+      this.gainNode.gain.setValueAtTime(1, now);
+    }
   }
 
   private async playAudio() {

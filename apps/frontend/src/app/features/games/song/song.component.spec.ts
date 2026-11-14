@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SimpleChange } from '@angular/core';
+import { vi } from 'vitest';
 
 import { Song } from './song.component';
 
@@ -44,6 +45,58 @@ describe('Song', () => {
 
     component.currentPhase.set(4);
     expect(component.getPhaseIcon()).toBe('📢');
+  });
+
+  it('sfuma gli ultimi 5 secondi e avvisa quando il brano è finito', async () => {
+    vi.useFakeTimers();
+    try {
+      const song = component as any;
+      const ramp: Array<[number, number]> = [];
+      const gain = {
+        cancelScheduledValues: vi.fn(),
+        setValueAtTime: vi.fn(),
+        linearRampToValueAtTime: vi.fn((value: number, at: number) => ramp.push([value, at])),
+        disconnect: vi.fn(),
+      };
+      const filter = {
+        frequency: { setValueAtTime: vi.fn() },
+        Q: { setValueAtTime: vi.fn() },
+        disconnect: vi.fn(),
+      };
+
+      song.audio = {
+        loop: false,
+        currentTime: 0,
+        play: vi.fn().mockResolvedValue(undefined),
+        pause: vi.fn(),
+      };
+      song.audioContext = {
+        currentTime: 100,
+        state: 'running',
+        resume: vi.fn(),
+        sampleRate: 44100,
+      };
+      song.gainNode = { gain, disconnect: vi.fn() };
+      song.bandpassFilter = filter;
+      song.highpassFilter = filter;
+      song.lowpassFilter = filter;
+      song.distortionNode = { curve: null, disconnect: vi.fn() };
+      song.startVinylAnimation = vi.fn();
+
+      let ended = 0;
+      component.onFullPlaybackEnd.subscribe(() => ended++);
+
+      await song.startFullPlayback();
+
+      // 25 s a volume pieno, poi 5 s di rampa fino a zero.
+      expect(ramp).toContainEqual([0.0001, 130]);
+      expect(gain.setValueAtTime).toHaveBeenCalledWith(1, 125);
+
+      await vi.advanceTimersByTimeAsync(30_000);
+      expect(ended).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('should stop the preview as soon as a player buzzes', () => {

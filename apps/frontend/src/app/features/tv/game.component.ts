@@ -1346,14 +1346,9 @@ export class GameComponent implements OnInit, OnDestroy {
     mode.confirmCorrect(playerName);
 
     this.audioService.stopSuspense();
-    // Music: il suono "corretto" arriva dopo i 4 secondi di intro a basso
-    // volume, insieme alla ripartenza a tutto volume. Negli altri giochi resta
-    // immediato.
-    if (mode.type === 'MUSIC') {
-      setTimeout(() => this.audioService.playCorrect(), 4000);
-    } else {
-      this.audioService.playCorrect();
-    }
+    // Il brano pulito parte subito: la conferma non deve più aspettare una
+    // intro filtrata di quattro secondi.
+    this.audioService.playCorrect();
 
     const currentRound = this.round();
     if (currentRound) {
@@ -1375,9 +1370,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
     setTimeout(() => {
       this.showResultPopup.set(false);
-
-
-      this.audioService.playReveal();
+      // Musica: sotto la canzone pulita non parte il rullo del reveal, che
+      // coprirebbe proprio i primi secondi del brano.
+      if (mode.type !== 'MUSIC') this.audioService.playReveal();
     }, 3000);
 
 
@@ -1385,6 +1380,16 @@ export class GameComponent implements OnInit, OnDestroy {
 
 
     this.checkLeaderboardDisplay();
+  }
+
+  /**
+   * La canzone del reveal è finita: si può passare al round successivo. Se è
+   * in corso una classifica, resta il presentatore a chiuderla.
+   */
+  musicPlaybackEnded(): void {
+    if (this.currentMode()?.type !== 'MUSIC') return;
+    if (this.isShowingLeaderboard()) return;
+    this.adminNextRound();
   }
 
   /**
@@ -1815,7 +1820,9 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   private startAutoAdvance(): void {
-    if (!this.autoAdvanceEnabled() || this.bonusActive()) return;
+    // Musica ha il suo timer: il brano del reveal dura 30 s e poi passa da
+    // solo. L'avanzamento automatico generico lo taglierebbe a 10 s.
+    if (!this.autoAdvanceEnabled() || this.bonusActive() || this.currentMode()?.type === 'MUSIC') return;
 
     this.cancelAutoAdvance();
     this.autoAdvanceSeconds.set(10);
