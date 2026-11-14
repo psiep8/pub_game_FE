@@ -80,6 +80,8 @@ export class LeaderboardDetailed implements OnInit {
       // lieve al terzo, medio con botticelle al secondo, pieno al primo.
       if (player.position <= 3) {
         this.audio.playPodiumReveal(player.position);
+      } else if (player.position <= 5) {
+        this.audio.playRankReveal(player.position);
       } else {
         this.audio.playTick();
       }
@@ -93,9 +95,9 @@ export class LeaderboardDetailed implements OnInit {
   }
 
   private getDelay(position: number): number {
-    if (position > 5) return 1200;
-    if (position === 5) return 2000;
-    if (position === 4) return 2300;
+    if (position > 5) return 1100;
+    if (position === 5) return 2400;
+    if (position === 4) return 2800;
     if (position === 3) return 2600;
     if (position === 2) return 3000;
     if (position === 1) return 3600;

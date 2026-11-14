@@ -384,6 +384,18 @@ export class AudioService {
   }
 
   /**
+   * Ultimi due gradini fuori dal podio: due note che salgono, più tese del
+   * tick semplice, per far capire che sta per iniziare il podio vero.
+   */
+  playRankReveal(position: number): void {
+    if (!this.audioEnabled()) return;
+    this.playUi('tocco');
+    const step = position === 5 ? 0 : 1;
+    this.tone({ freq: 392 + step * 98, duration: 0.12, type: 'triangle', gain: 0.045 });
+    this.tone({ freq: 523.25 + step * 98, duration: 0.16, type: 'triangle', gain: 0.04, delay: 0.1 });
+  }
+
+  /**
    * Podio della classifica: il rullo sale dal terzo al primo posto e lascia
    * spazio al festeggiamento. Al secondo si aggiungono le botticelle, al
    * primo i botti pieni.

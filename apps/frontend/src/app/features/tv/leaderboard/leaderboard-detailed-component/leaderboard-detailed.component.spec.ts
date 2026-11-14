@@ -3,6 +3,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { LeaderboardDetailed } from './leaderboard-detailed.component';
 import { LeaderboardService, PlayerScore } from '../../../../core/services/leaderboard.service';
+import { AudioService } from '../../../../core/services/audio.service';
 
 const players: PlayerScore[] = [
   { playerName: 'Anna', totalPoints: 300, correctAnswers: 3, wrongAnswers: 0, position: 1 },
@@ -60,6 +61,28 @@ describe('LeaderboardDetailed', () => {
 
     await vi.advanceTimersByTimeAsync(3000);
     expect(component.currentPlayer()?.playerName).toBe('Anna');
+  });
+
+  it('accompagna quinto e quarto posto con un richiamo dedicato', async () => {
+    vi.useFakeTimers();
+    const many: PlayerScore[] = [
+      { playerName: 'Anna', totalPoints: 600, correctAnswers: 6, wrongAnswers: 0, position: 1 },
+      { playerName: 'Bruno', totalPoints: 500, correctAnswers: 5, wrongAnswers: 1, position: 2 },
+      { playerName: 'Carla', totalPoints: 400, correctAnswers: 4, wrongAnswers: 1, position: 3 },
+      { playerName: 'Dino', totalPoints: 300, correctAnswers: 3, wrongAnswers: 2, position: 4 },
+      { playerName: 'Elena', totalPoints: 200, correctAnswers: 2, wrongAnswers: 2, position: 5 },
+      { playerName: 'Fabio', totalPoints: 100, correctAnswers: 1, wrongAnswers: 3, position: 6 },
+    ];
+    create(many);
+    const reveal = vi.spyOn(TestBed.inject(AudioService), 'playRankReveal');
+
+    await vi.advanceTimersByTimeAsync(1100);
+    expect(component.currentPlayer()?.position).toBe(5);
+    expect(reveal).toHaveBeenCalledWith(5);
+
+    await vi.advanceTimersByTimeAsync(2400);
+    expect(component.currentPlayer()?.position).toBe(4);
+    expect(reveal).toHaveBeenCalledWith(4);
   });
 
   it('should notify the parent once the winner has been shown', async () => {
