@@ -79,6 +79,11 @@ public class GameWebSocketController {
             messaging.convertAndSend("/topic/game/" + gameId + "/admin", (Object) status);
             return null;
         }
+        if ("START_VOTING".equals(status.get("action"))) {
+            // La TV ha finito l'intro: da qui in poi il round può essere
+            // mostrato anche ai telefoni che si stanno riallineando.
+            gameStateService.markRoundAnnounced(gameId);
+        }
         if (Set.of("PLAYER_PRENOTATO", "SHOW_QUESTION", "START_VOTING").contains(status.get("action"))) {
             messaging.convertAndSend("/topic/game/" + gameId + "/admin", (Object) status);
         }

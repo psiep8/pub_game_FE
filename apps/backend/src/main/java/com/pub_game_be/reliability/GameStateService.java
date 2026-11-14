@@ -52,6 +52,8 @@ public class GameStateService {
     private final ConcurrentMap<Long, Object> eventLocks = new ConcurrentHashMap<>();
     /** Pause TV in corso: alla ripresa la scadenza viene allungata di quanto è durata. */
     private final ConcurrentMap<Long, Long> roundPauses = new ConcurrentHashMap<>();
+    /** Round già annunciati dalla TV: il telefono non deve anticiparne il contenuto. */
+    private final ConcurrentMap<Long, String> announcedRoundKeys = new ConcurrentHashMap<>();
 
     public GameStateService(GameStateRepository states, GameEventRepository events,
             GameRoundRepository rounds, ReliabilityProperties props,
@@ -212,6 +214,47 @@ public class GameStateService {
         return roundPauses.containsKey(gameId);
     }
 
+    /**
+     * La TV ha finito l'intro e ha mandato START_VOTING. Da questo momento il
+     * round può comparire anche a un telefono che si sta riallineando: prima
+     * dello annuncio lo snapshot non deve aprire il contenuto del round nuovo.
+     *
+     * <p>La chiave è salvata in un blob oltre che in memoria: un riavvio del
+     * server non fa ricomparire il round a metà serata.</p>
+     */
+    public void markRoundAnnounced(long gameId) {
+        states.findById(gameId)
+                .map(GameStateEntity::getRoundKey)
+                .filter(key -> key != null && !key.isBlank())
+                .ifPresent(key -> {
+                    announcedRoundKeys.put(gameId, key);
+                    stateBlobs.save(gameId, ROUND_ANNOUNCED_BLOB,
+                            new JSONObject().put("roundKey", key).put("at", System.currentTimeMillis()).toString());
+                });
+    }
+
+    /** Il round corrente è già stato annunciato dalla TV? */
+    public boolean isRoundAnnounced(long gameId) {
+        Optional<GameStateEntity> found = states.findById(gameId);
+        if (found.isEmpty()) {
+            return false;
+        }
+        String key = found.get().getRoundKey();
+        if (key == null || key.isBlank()) {
+            return false;
+        }
+        if (key.equals(announcedRoundKeys.get(gameId))) {
+            return true;
+        }
+        Optional<JSONObject> saved = stateBlobs.load(gameId, ROUND_ANNOUNCED_BLOB)
+                .map(JSONObject::new);
+        if (saved.isPresent() && key.equals(saved.get().optString("roundKey"))) {
+            announcedRoundKeys.put(gameId, key);
+            return true;
+        }
+        return false;
+    }
+
     /** Chiude esplicitamente il round: nessuna risposta tardiva accettata. */
     public Change closeRound(long gameId, String reason) {
         roundPauses.remove(gameId);
@@ -296,6 +339,9 @@ public class GameStateService {
     /** Chiave del blob con la mano Blackjack in corso (una per partita). */
     public static final String BLACKJACK_BLOB = "blackjack-hand";
 
+    /** Chiave del blob che ricorda l'ultimo round annunciato dalla TV. */
+    public static final String ROUND_ANNOUNCED_BLOB = "round-announced";
+
     /** Salva lo snapshot della mano: la TV lo riscrive a ogni cambio di fase. */
     public void saveBlackjackState(long gameId, String json) {
         stateBlobs.save(gameId, BLACKJACK_BLOB, json);
@@ -340,6 +386,9 @@ public class GameStateService {
             // La pausa TV deve sopravvivere a un refresh del telefono: senza
             // questo campo il client credeva che il round fosse già ripartito.
             out.put("paused", isRoundPaused(gameId));
+            // Falso solo nella finestra fra apertura del round e START_VOTING:
+            // il telefono aspetta l'annuncio invece di mostrare il contenuto.
+            out.put("announced", isRoundAnnounced(gameId));
             out.put("payload", parseOrNull(state.getPayload()));
         }
 

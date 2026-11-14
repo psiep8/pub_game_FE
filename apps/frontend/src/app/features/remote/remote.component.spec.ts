@@ -563,6 +563,32 @@ describe('RemoteComponent', () => {
     expect(component.hasAnswered()).toBe(false);
   });
 
+  it('aspetta l annuncio TV prima di aprire un round dal snapshot', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.questionType.set('BOMBA');
+    component.gameState.set('WAITING' as any);
+
+    reliability.syncState$.next({
+      hasState: true,
+      status: 'RUNNING',
+      roundType: 'QUIZ',
+      roundKey: 'g1-r4',
+      roundDeadlineAt: Date.now() + 60_000,
+      announced: false,
+      currentRound: { type: 'QUIZ', roundKey: 'g1-r4', payload: '{}' },
+    });
+
+    expect(component.roundActive()).toBe(true);
+    expect(component.gameState()).toBe('WAITING' as any);
+    expect(component.questionType()).toBe('BOMBA');
+
+    ws.status$.next({ action: 'START_VOTING', type: 'QUIZ' });
+
+    expect(component.gameState()).toBe('VOTING' as any);
+    expect(component.questionType()).toBe('QUIZ');
+  });
+
   it('should not let a player with zero points bet in Azzardo', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();

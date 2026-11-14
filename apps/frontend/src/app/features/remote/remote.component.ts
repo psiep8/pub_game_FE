@@ -2366,6 +2366,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Il round è già aperto sul server ma la TV non ha ancora finito l'intro:
+    // mostrarlo adesso rivelerebbe il gioco prima dell'annuncio. Si aspetta
+    // START_VOTING, che arriva alla fine dell'animazione.
+    if (snapshot.announced === false) {
+      this.roundActive.set(true);
+      this.gameState.set(PlayerStatus.WAITING);
+      return;
+    }
+
     // Black Jack e Air Tennis hanno lo stato (tavolo o campo) solo nella TV.
     // Senza averlo ricevuto non c'è nulla da mostrare: meglio restare in
     // attesa che disegnare un tavolo/campo vuoto con "0/0" dopo un refresh.
