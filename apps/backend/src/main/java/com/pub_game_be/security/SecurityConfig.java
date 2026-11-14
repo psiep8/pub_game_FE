@@ -53,7 +53,17 @@ public class SecurityConfig {
         configuration.setAllowCredentials(false);
         configuration.setExposedHeaders(Arrays.asList("Authorization"));
 
+        // SockJS richiede credenziali: conserva le origini configurate e, solo
+        // con wildcard esplicita, rispecchia l'origine invece di inviare "*".
+        CorsConfiguration socketConfiguration = new CorsConfiguration(configuration);
+        if (configuration.getAllowedOrigins().contains("*")) {
+            socketConfiguration.setAllowedOrigins(null);
+            socketConfiguration.setAllowedOriginPatterns(Arrays.asList("*"));
+        }
+        socketConfiguration.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/ws-pubgame/**", socketConfiguration);
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }

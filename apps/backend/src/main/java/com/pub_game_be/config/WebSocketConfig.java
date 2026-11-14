@@ -138,7 +138,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // Gli errori STOMP arrivano al client con un codice e nel log a WARN.
         registry.setErrorHandler(new GameStompErrorHandler());
-        registry.addEndpoint("/ws-pubgame").setAllowedOrigins(origins);
-        registry.addEndpoint("/ws-pubgame/sockjs").setAllowedOrigins(origins).withSockJS();
+        if (java.util.Arrays.asList(origins).contains("*")) {
+            // SockJS usa credenziali: il pattern riflette l'origine, non il valore "*".
+            registry.addEndpoint("/ws-pubgame").setAllowedOriginPatterns("*");
+            registry.addEndpoint("/ws-pubgame/sockjs").setAllowedOriginPatterns("*").withSockJS();
+        } else {
+            registry.addEndpoint("/ws-pubgame").setAllowedOrigins(origins);
+            registry.addEndpoint("/ws-pubgame/sockjs").setAllowedOrigins(origins).withSockJS();
+        }
     }
 }
