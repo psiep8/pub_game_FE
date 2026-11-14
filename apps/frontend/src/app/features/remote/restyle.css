@@ -1133,9 +1133,13 @@
   width: 100%;
   height: 100%;
   padding: 6px 8px;
-  font-size: clamp(0.76rem, 3.2vw, 0.95rem);
+  /* Sotto i 12 px le date non si leggono: il minimo resta leggibile anche
+     su telefoni stretti, senza togliere il drag né cambiare le carte. */
+  font-size: clamp(0.9rem, 3.6vw, 1.05rem);
+  line-height: 1.2;
   box-shadow: 3px 3px 0 var(--coal);
 }
+.timeline-remote .tl-text { min-width: 0; overflow-wrap: anywhere; }
 .tl-order-legend {
   margin: 0;
   padding: 4px 8px;
