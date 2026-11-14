@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 import { ArenaMode } from './arena.mode';
 
-describe('ArenaMode: restringimento', () => {
+describe('ArenaMode', () => {
   afterEach(() => vi.useRealTimers());
 
   it('inizia dopo venti secondi e raggiunge il minimo alla fine', async () => {
@@ -19,6 +19,20 @@ describe('ArenaMode: restringimento', () => {
     expect(firstRadius).toBeGreaterThan(99);
     await vi.advanceTimersByTimeAsync(108_000);
     expect(mode.getDisplayData().circleRadius).toBeCloseTo(14 + 86 / 110);
+    mode.cleanup();
+  });
+
+  it('avanza verso il centro più lentamente e arretra meno dopo un errore', async () => {
+    vi.useFakeTimers();
+    const mode = new ArenaMode();
+    mode.setConfig({ type: 'ARENA', payload: {}, gameId: 1, activePlayers: ['Anna', 'Bruno'] });
+    mode.initialize({});
+    await mode.start();
+
+    mode.applyArenaAnswer('Anna', true);
+    expect(mode.getDisplayData().teams[0].distance).toBe(25);
+    mode.applyArenaAnswer('Anna', false);
+    expect(mode.getDisplayData().teams[0].distance).toBe(37);
     mode.cleanup();
   });
 });
