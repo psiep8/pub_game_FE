@@ -20,8 +20,8 @@ export interface ArenaDisplayData {
 }
 
 const MIN_RADIUS = 14;
-/** Quarantacinque secondi di respiro prima che il cerchio inizi a chiudersi. */
-const SHRINK_GRACE_SECONDS = 45;
+/** Venti secondi di respiro: il restringimento si distribuisce sul resto del round. */
+const SHRINK_GRACE_SECONDS = 20;
 const TICK_MS = 1000;
 
 export class ArenaMode extends GameModeBase {
