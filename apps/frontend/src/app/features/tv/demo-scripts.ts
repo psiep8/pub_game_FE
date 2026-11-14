@@ -241,7 +241,7 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
     title: 'SPEED RUSH',
     icon: '⚡',
     objective: [
-      'Sessanta secondi di prove lampo: matematica, colori, bandiere, parole e traduzioni.',
+      '90 secondi di prove lampo: matematica, colori, bandiere, parole e traduzioni.',
       'Ogni risposta giusta fa avanzare la corsia; la TV mostra solo le piste.',
     ],
     phone: [

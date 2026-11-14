@@ -22,7 +22,7 @@ interface Lane {
  */
 export class SpeedRushMode extends GameModeBase {
   readonly type: GameModeType = 'SPEED_RUSH';
-  readonly timerDuration = 60;
+  readonly timerDuration = 90;
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
 

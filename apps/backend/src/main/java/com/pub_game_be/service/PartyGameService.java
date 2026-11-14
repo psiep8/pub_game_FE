@@ -98,7 +98,7 @@ public class PartyGameService {
             case "TIMELINE" -> startTimeline(gameId, category);
             case "TIME_BUZZER" -> configPayload("TIME_BUZZER", 45, act);
             case "BOMBA" -> configPayload("BOMBA", 90, act);
-            case "SPEED_RUSH" -> configPayload("SPEED_RUSH", 60, act);
+            case "SPEED_RUSH" -> configPayload("SPEED_RUSH", 90, act);
             case "TENNIS_BATTLE" -> configPayload("TENNIS_BATTLE", 60, act);
             // Black Jack non ha domande né stato server: basta registrare il
             // round, mazzo e banco vivono nel mode della TV.

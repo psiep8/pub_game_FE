@@ -46,6 +46,12 @@ class SpeedRushBasketServiceTest {
     }
 
     @Test
+    void speedRushDuraNovantaSecondi() {
+        JSONObject session = speedRush.start(810_003L, List.of("Anna"), "speed-test-durata");
+        assertThat(session.getLong("deadlineAt") - session.getLong("startedAt")).isEqualTo(90_000L);
+    }
+
+    @Test
     void laCorsaNonSiChiudeConPocheRisposteGiuste() {
         // Prima bastavano 4-5 risposte: il traguardo deve richiederne almeno 20.
         assertThat(SpeedRushService.minimumCorrectAnswers()).isGreaterThanOrEqualTo(20);

@@ -22,7 +22,7 @@ const SECONDS_CITED: Record<string, readonly number[]> = {
     GAME_TIMINGS.TIME_BUZZER.maxTargetSeconds,
   ],
   BOMBA: [20],
-  SPEED_RUSH: [60],
+  SPEED_RUSH: [90],
   TENNIS_BATTLE: [12],
   ARENA: [],
   AZZARDO: [15],

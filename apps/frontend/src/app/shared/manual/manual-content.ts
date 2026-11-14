@@ -146,7 +146,7 @@ const GAME_COPY: Record<GameModeType, EntryCopy> = {
   SPEED_RUSH: {
     name: 'SPEED RUSH',
     icon: '⚡',
-    summary: 'Sessanta secondi di risposte lampo: la corsia avanza a ogni risposta giusta.',
+    summary: '90 secondi di risposte lampo: la corsia avanza a ogni risposta giusta.',
     objective: 'Rispondere al maggior numero di prove (matematica, colori, bandiere, parole, traduzioni) e arrivare tra i primi.',
     phone: [
       'Tocca la risposta giusta il prima possibile.',

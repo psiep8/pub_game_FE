@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SpeedRushService {
 
     private static final String BLOB = "speed-rush";
-    private static final long DURATION_MS = 60_000L;
+    private static final long DURATION_MS = 90_000L;
     /**
      * Corsa lunga: con 2 punti per risposta e un solo raddoppio servono almeno
      * 25 risposte giuste per tagliare il traguardo (prima bastavano 4-5).

@@ -38,7 +38,7 @@ class RoundWindowTest {
         rounds.put("TIMELINE", 45L);
         rounds.put("TIME_BUZZER", 3 * (30 + 5L));
         rounds.put("BOMBA", 105L);
-        rounds.put("SPEED_RUSH", 60L);
+        rounds.put("SPEED_RUSH", 90L);
         rounds.put("TENNIS_BATTLE", 300L);
         rounds.put("ARENA", 130L);
         rounds.put("AZZARDO", 4 * (15 + 7L) + 5);
