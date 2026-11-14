@@ -337,6 +337,9 @@ public class GameStateService {
             out.put("roundStartedAt", state.getRoundStartedAt() == null ? JSONObject.NULL : state.getRoundStartedAt());
             out.put("roundDeadlineAt", state.getRoundDeadlineAt() == null ? JSONObject.NULL : state.getRoundDeadlineAt());
             out.put("updatedAt", state.getUpdatedAt() == null ? JSONObject.NULL : state.getUpdatedAt());
+            // La pausa TV deve sopravvivere a un refresh del telefono: senza
+            // questo campo il client credeva che il round fosse già ripartito.
+            out.put("paused", isRoundPaused(gameId));
             out.put("payload", parseOrNull(state.getPayload()));
         }
 

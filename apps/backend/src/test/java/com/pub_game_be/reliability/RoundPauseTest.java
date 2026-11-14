@@ -36,12 +36,15 @@ class RoundPauseTest {
 
         assertThat(gameState.pauseRound(gameId)).isTrue();
         assertThat(gameState.isRoundPaused(gameId)).isTrue();
+        // Un telefono che si riaggiorna durante la pausa deve ritrovarla.
+        assertThat(gameState.snapshot(gameId).getBoolean("paused")).isTrue();
         Thread.sleep(60);
 
         long shifted = gameState.resumeRound(gameId);
 
         assertThat(shifted).isGreaterThanOrEqualTo(40L);
         assertThat(gameState.isRoundPaused(gameId)).isFalse();
+        assertThat(gameState.snapshot(gameId).getBoolean("paused")).isFalse();
         assertThat(gameState.roundDeadline(gameId).orElseThrow()).isEqualTo(before + shifted);
     }
 
