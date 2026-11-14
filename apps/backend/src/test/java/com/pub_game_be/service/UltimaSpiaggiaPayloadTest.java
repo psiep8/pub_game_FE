@@ -94,4 +94,27 @@ class UltimaSpiaggiaPayloadTest {
             assertThat(texts).as("domande distinte %s", category).hasSize(5);
         }
     }
+
+    /**
+     * I livelli alti devono pescare dalla fascia giusta: 100-200 facile,
+     * 300-400 media, 500 difficile. Ripiegare su una facile per riempire il
+     * 500 è proprio il difetto osservato in sala.
+     */
+    @Test
+    void iLivelliAltiRispettanoLaFasciaDiDifficolta() {
+        for (String category : CATEGORIES) {
+            JSONObject payload = new JSONObject(
+                    bank.generateQuestionJson(category, "ULTIMA_SPIAGGIA", "medio", key -> true));
+            JSONArray questions = payload.getJSONArray("rounds").getJSONObject(0).getJSONArray("questions");
+
+            for (int index = 0; index < questions.length(); index++) {
+                JSONObject question = questions.getJSONObject(index);
+                int level = question.getInt("level");
+                String expected = level <= 200 ? "facile" : level <= 400 ? "medio" : "difficile";
+                assertThat(question.getString("difficulty"))
+                        .as("livello %d di %s", level, category)
+                        .isEqualTo(expected);
+            }
+        }
+    }
 }

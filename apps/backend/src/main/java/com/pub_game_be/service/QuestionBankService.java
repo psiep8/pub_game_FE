@@ -1045,6 +1045,9 @@ public class QuestionBankService {
             Collections.shuffle(options, random);
             questions.put(new JSONObject()
                     .put("level", ULTIMA_SPIAGGIA_LEVELS[index])
+                    // Difficoltà reale della domanda: così un livello alto non può
+                    // spacciare una facile per difficile senza che si veda.
+                    .put("difficulty", picked.difficulty())
                     .put("question", picked.question())
                     .put("category", picked.category())
                     .put("options", new JSONArray(options))
