@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SwUpdate } from '@angular/service-worker';
-import { of, Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import { RemoteComponent } from './remote.component';
@@ -152,6 +152,24 @@ describe('RemoteComponent', () => {
 
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     expect(game.speedAnswers).toEqual([{ taskId: 'sr-tap-1', answer: '3' }]);
+  });
+
+  it('rimette la prova a schermo se l\'invio Speed Rush fallisce', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    component.gameState.set('VOTING' as any);
+    component.roundActive.set(true);
+    component.questionType.set('SPEED_RUSH');
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'answerSpeedRush').mockReturnValue(throwError(() => new Error('offline')));
+    component.speedTask.set({ taskId: 'sr-net', kind: 'math', text: '2 + 2', options: [4, 5, 6], answer: 4 } as any);
+
+    component.speedPickMath(4);
+
+    expect((component.speedTask() as any)?.taskId).toBe('sr-net');
+    expect(reliability.lastError()).toContain('non registrata');
   });
 
   it('dice subito che la squadra è fuori quando prende una bomba', async () => {
