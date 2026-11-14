@@ -330,6 +330,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
   speedTask = signal<SpeedTask | null>(null);
   /** Colori già scelti nella prova "mischia colori". */
   speedColorPicked = signal<string[]>([]);
+  /** Tap contati nella prova "tocca N volte". */
+  speedTapCount = signal(0);
+  /** Numeri già toccati nella prova "ordina". */
+  speedPickedNumbers = signal<number[]>([]);
+  /** Reazione: il verde arriva dopo il ritardo deciso dal server. */
+  speedReactionState = signal<'wait' | 'go'>('wait');
+  private speedReactionTimer?: ReturnType<typeof setTimeout>;
   /** Ignora le risposte di una corsa già chiusa o sostituita. */
   private speedLoadSeq = 0;
 
@@ -660,8 +667,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.roundActive.set(false);
           this.cancelTimelineSend();
           this.speedLoadSeq++;
-          this.speedTask.set(null);
-          this.speedColorPicked.set([]);
+          this.applySpeedTask(null);
           this.blackjackState.set(null);
           this.blackjackStand.set(false);
           this.timelineOrder.set([]);
@@ -1930,9 +1936,35 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   startSpeedRush(): void {
     this.speedLoadSeq++;
-    this.speedColorPicked.set([]);
-    this.speedTask.set(null);
+    this.applySpeedTask(null);
     this.loadSpeedTask(0);
+  }
+
+  /**
+   * Ogni prova nuova azzera i contatori locali e, per la reazione, arma il
+   * timer del verde. Un solo posto evita stati vecchi tra una prova e l'altra.
+   */
+  private applySpeedTask(task: SpeedTask | null): void {
+    this.clearSpeedReaction();
+    this.speedTapCount.set(0);
+    this.speedPickedNumbers.set([]);
+    this.speedColorPicked.set([]);
+    this.speedTask.set(task);
+
+    if (task?.kind === 'reaction') {
+      this.speedReactionState.set('wait');
+      this.speedReactionTimer = setTimeout(() => {
+        if (this.speedTask() !== task) return;
+        this.speedReactionState.set('go');
+        this.vibrate(30);
+      }, Math.max(300, Number(task.delayMs) || 1200));
+    }
+  }
+
+  private clearSpeedReaction(): void {
+    if (this.speedReactionTimer) clearTimeout(this.speedReactionTimer);
+    this.speedReactionTimer = undefined;
+    this.speedReactionState.set('wait');
   }
 
   /** La prova arriva dal server, senza la soluzione. */
@@ -1944,8 +1976,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.gameService.getSpeedRushTask(gameId).subscribe({
       next: (task) => {
         if (seq !== this.speedLoadSeq) return;
-        this.speedColorPicked.set([]);
-        this.speedTask.set(task);
+        this.applySpeedTask(task);
       },
       error: () => {
         if (seq !== this.speedLoadSeq || attempt >= 12) return;
@@ -1998,14 +2029,62 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.submitSpeedAnswer(value);
   }
 
+  speedTap(): void {
+    const task = this.speedTask();
+    if (task?.kind !== 'tap') return;
+    const next = this.speedTapCount() + 1;
+    if (next >= task.target) {
+      this.vibrate(30);
+      this.submitSpeedAnswer(String(task.target));
+      return;
+    }
+    this.vibrate(8);
+    this.speedTapCount.set(next);
+  }
+
+  speedPickOdd(value: string): void {
+    const task = this.speedTask();
+    if (task?.kind !== 'odd') return;
+    this.submitSpeedAnswer(value);
+  }
+
+  /** L'ordine è la risposta: un tocco fuori sequenza chiude la prova. */
+  speedPickOrder(value: number): void {
+    const task = this.speedTask();
+    if (task?.kind !== 'order') return;
+    const sorted = [...task.options].sort((a, b) => a - b);
+    const picked = [...this.speedPickedNumbers(), value];
+    const stillRight = picked.every((number, index) => number === sorted[index]);
+    if (!stillRight) {
+      this.submitSpeedAnswer(picked.join('|'));
+      return;
+    }
+    this.vibrate(10);
+    this.speedPickedNumbers.set(picked);
+    if (picked.length === sorted.length) {
+      this.submitSpeedAnswer(sorted.join('|'));
+    }
+  }
+
+  speedPickGeo(value: string): void {
+    const task = this.speedTask();
+    if (task?.kind !== 'geo') return;
+    this.submitSpeedAnswer(value);
+  }
+
+  speedReactionTap(): void {
+    const task = this.speedTask();
+    if (task?.kind !== 'reaction') return;
+    this.submitSpeedAnswer(this.speedReactionState() === 'go' ? 'READY' : 'TOO_SOON');
+  }
+
   /** Un solo invio per prova: la correttezza e la corsia le aggiorna il server. */
   private submitSpeedAnswer(answer: unknown): void {
     const task = this.speedTask();
     if (!task) return;
 
     const seq = this.speedLoadSeq;
-    this.speedTask.set(null);
-    this.speedColorPicked.set([]);
+    this.applySpeedTask(null);
 
     const taskId = (task as any).taskId as string;
     this.gameService.answerSpeedRush(this.gameId(), taskId, answer).subscribe({
@@ -2014,7 +2093,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         this.vibrate(response?.correct ? 30 : [40, 40, 40]);
         this.speedColorPicked.set([]);
         if (response?.nextTask) {
-          this.speedTask.set(response.nextTask);
+          this.applySpeedTask(response.nextTask);
           return;
         }
         if (!response?.finished && this.roundActive()) {
@@ -2024,7 +2103,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       error: () => {
         if (seq !== this.speedLoadSeq) return;
         this.reliability.lastError.set('Risposta Speed Rush non registrata: riprova.');
-        this.speedTask.set(task);
+        this.applySpeedTask(task);
       },
     });
   }

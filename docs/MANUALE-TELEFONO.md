@@ -59,7 +59,7 @@ presentatore per sapere che ogni telefono è pronto.
 | **Timeline** | Trascina le carte dall'evento più antico al più recente. L'ordine viene inviato da solo. |
 | **Time Buzzer** | Un pulsante: **STOP** quando pensi sia il momento giusto. |
 | **Bomba** | Al tuo turno scegli una casella del tabellone, poi il turno passa. |
-| **Speed Rush** | Risposte rapide: matematica, colori, bandiere, parole, traduzioni, proverbi. |
+| **Speed Rush** | Risposte rapide: matematica, colori, bandiere, parole, traduzioni, proverbi, geografia, tap, intruso, ordine, reazione. |
 | **Tennis Battle** | A turno: rispondi prima che scada il tempo del colpo. |
 | **Arena** | **VERO / FALSO** (o le quattro opzioni) una domanda dopo l'altra. |
 | **Azzardo** | Distribuisci le fiches con **−** e **+** sulle quattro risposte, poi invia. |

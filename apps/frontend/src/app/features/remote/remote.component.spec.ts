@@ -110,6 +110,50 @@ describe('RemoteComponent', () => {
     expect(game.speedAnswers).toEqual([{ taskId: 'sr-proverb-1', answer: 'FORZA' }]);
   });
 
+  it('mostra la regione della città e invia la scelta geografica', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    component.gameState.set('VOTING' as any);
+    component.questionType.set('SPEED_RUSH');
+    component.speedTask.set({
+      taskId: 'sr-geo-1',
+      kind: 'geo',
+      prompt: 'In che regione si trova «Roma»?',
+      options: ['LAZIO', 'LOMBARDIA', 'TOSCANA'],
+      answer: 'LAZIO',
+    });
+    fixture.detectChanges();
+
+    const buttons = Array.from(
+      fixture.nativeElement.querySelectorAll('.speed-options button'),
+    ) as HTMLButtonElement[];
+    const lazio = buttons.find((button) => button.textContent?.includes('LAZIO'));
+    expect(lazio).toBeTruthy();
+    lazio!.click();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    expect(game.speedAnswers).toEqual([{ taskId: 'sr-geo-1', answer: 'LAZIO' }]);
+  });
+
+  it('conta i tap e invia il traguardo al server', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    component.gameState.set('VOTING' as any);
+    component.questionType.set('SPEED_RUSH');
+    component.speedTask.set({ taskId: 'sr-tap-1', kind: 'tap', target: 3, answer: '3' });
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('.speed-tap-btn') as HTMLButtonElement;
+    button.click();
+    button.click();
+    button.click();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    expect(game.speedAnswers).toEqual([{ taskId: 'sr-tap-1', answer: '3' }]);
+  });
+
   it('dice subito che la squadra è fuori quando prende una bomba', async () => {
     const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
     component.tempNickname = 'Anna';

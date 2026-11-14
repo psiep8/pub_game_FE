@@ -624,6 +624,60 @@
         }
       </div>
       }
+      @if (task.kind === 'tap') {
+      <div class="speed-prompt">
+        <span class="speed-kicker">TAP</span>
+        <p class="speed-question">Tocca {{ task.target }} volte</p>
+      </div>
+      <button class="speed-tap-btn" type="button" (click)="speedTap()">
+        TAP!
+        <span class="speed-tap-count">{{ speedTapCount() }}/{{ task.target }}</span>
+      </button>
+      }
+      @if (task.kind === 'odd') {
+      <div class="speed-prompt">
+        <span class="speed-kicker">INTRUSO</span>
+        <p class="speed-question">Tocca l'intruso</p>
+      </div>
+      <div class="speed-odd-grid">
+        @for (option of task.options; track $index) {
+        <button class="emoji-btn" (click)="speedPickOdd(option)">{{ option }}</button>
+        }
+      </div>
+      }
+      @if (task.kind === 'order') {
+      <div class="speed-prompt">
+        <span class="speed-kicker">ORDINE</span>
+        <p class="speed-question">Tocca i numeri dal più piccolo</p>
+      </div>
+      <div class="speed-odd-grid">
+        @for (number of task.options; track number) {
+        <button class="emoji-btn" [disabled]="speedPickedNumbers().includes(number)"
+          (click)="speedPickOrder(number)">{{ number }}</button>
+        }
+      </div>
+      }
+      @if (task.kind === 'reaction') {
+      <div class="speed-prompt">
+        <span class="speed-kicker">REAZIONE</span>
+        <p class="speed-question">Tocca appena diventa verde. Non prima!</p>
+      </div>
+      <button class="speed-reaction-btn" type="button" [class.go]="speedReactionState() === 'go'"
+        (click)="speedReactionTap()">
+        {{ speedReactionState() === 'go' ? 'ORA!' : 'ASPETTA...' }}
+      </button>
+      }
+      @if (task.kind === 'geo') {
+      <div class="speed-prompt">
+        <span class="speed-kicker">GEOGRAFIA</span>
+        <p class="speed-question">{{ task.prompt }}</p>
+      </div>
+      <div class="speed-options three">
+        @for (option of task.options; track option) {
+        <button class="emoji-btn speed-name" (click)="speedPickGeo(option)">{{ option }}</button>
+        }
+      </div>
+      }
       @if (task.kind === 'colors') {
       <div class="speed-prompt">
         <span class="speed-kicker">MISCHIA COLORI</span>

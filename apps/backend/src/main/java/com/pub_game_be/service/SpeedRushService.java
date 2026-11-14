@@ -115,6 +115,41 @@ public class SpeedRushService {
             {"Quando il gatto non c'è i topi...", "BALLANO", "SCAPPANO", "DORMONO"},
             {"Ogni cosa a suo...", "TEMPO", "MODO", "POSTO"},
     };
+    /** Città e regione: pool separati per difficoltà. */
+    private static final String[][] GEO_EASY = {
+            {"Roma", "LAZIO"}, {"Milano", "LOMBARDIA"}, {"Napoli", "CAMPANIA"},
+            {"Torino", "PIEMONTE"}, {"Firenze", "TOSCANA"}, {"Venezia", "VENETO"},
+            {"Bologna", "EMILIA-ROMAGNA"}, {"Palermo", "SICILIA"}, {"Genova", "LIGURIA"},
+            {"Bari", "PUGLIA"},
+    };
+    private static final String[][] GEO_MEDIUM = {
+            {"Verona", "VENETO"}, {"Pisa", "TOSCANA"}, {"Perugia", "UMBRIA"},
+            {"Cagliari", "SARDEGNA"}, {"Trieste", "FRIULI-VENEZIA GIULIA"},
+            {"Trento", "TRENTINO-ALTO ADIGE"}, {"Ancona", "MARCHE"}, {"Pescara", "ABRUZZO"},
+            {"Reggio Calabria", "CALABRIA"}, {"Potenza", "BASILICATA"},
+            {"Campobasso", "MOLISE"}, {"Aosta", "VALLE D'AOSTA"},
+    };
+    private static final String[][] GEO_HARD = {
+            {"Udine", "FRIULI-VENEZIA GIULIA"}, {"Matera", "BASILICATA"}, {"Treviso", "VENETO"},
+            {"Bergamo", "LOMBARDIA"}, {"Salerno", "CAMPANIA"}, {"Lecce", "PUGLIA"},
+            {"Sassari", "SARDEGNA"}, {"Parma", "EMILIA-ROMAGNA"}, {"Livorno", "TOSCANA"},
+            {"La Spezia", "LIGURIA"}, {"Novara", "PIEMONTE"}, {"Catanzaro", "CALABRIA"},
+            {"Ascoli Piceno", "MARCHE"}, {"L'Aquila", "ABRUZZO"}, {"Foligno", "UMBRIA"},
+            {"Ragusa", "SICILIA"}, {"Oristano", "SARDEGNA"}, {"Rovigo", "VENETO"},
+            {"Biella", "PIEMONTE"}, {"Sondrio", "LOMBARDIA"},
+    };
+    private static final String[] REGIONS = {
+            "ABRUZZO", "BASILICATA", "CALABRIA", "CAMPANIA", "EMILIA-ROMAGNA",
+            "FRIULI-VENEZIA GIULIA", "LAZIO", "LIGURIA", "LOMBARDIA", "MARCHE",
+            "MOLISE", "PIEMONTE", "PUGLIA", "SARDEGNA", "SICILIA", "TOSCANA",
+            "TRENTINO-ALTO ADIGE", "UMBRIA", "VALLE D'AOSTA", "VENETO",
+    };
+    private static final String[][] ODD_EASY = {
+            {"🍎", "🍋"}, {"🐶", "🐱"}, {"⭐", "🌙"}, {"🚗", "🚌"},
+    };
+    private static final String[][] ODD_HARD = {
+            {"😀", "😄"}, {"🌕", "🌖"}, {"🐟", "🐠"}, {"🍎", "🍏"},
+    };
     private static final String[][] WORDS = {
             {"BELLO", "CARINO", "BRUTTO"}, {"VELOCE", "RAPIDO", "LENTO"},
             {"GRANDE", "ENORME", "PICCOLO"}, {"FACILE", "SEMPLICE", "DIFFICILE"},
@@ -369,7 +404,7 @@ public class SpeedRushService {
      * domanda si ritenta (fino a 60 volte, poi si accetta per non bloccare).
      */
     Task newTask(String previousKind, String difficulty, Set<String> asked) {
-        String[] kinds = {"math", "colors", "flag", "words", "translate", "proverb"};
+        String[] kinds = kindsFor(difficulty);
         Task task = null;
         for (int attempt = 0; attempt < 60; attempt++) {
             String kind;
@@ -383,6 +418,11 @@ public class SpeedRushService {
                 case "flag" -> flagTask(id, difficulty);
                 case "words" -> wordsTask(id, difficulty);
                 case "proverb" -> proverbTask(id);
+                case "tap" -> tapTask(id, difficulty);
+                case "odd" -> oddTask(id, difficulty);
+                case "order" -> orderTask(id, difficulty);
+                case "reaction" -> reactionTask(id);
+                case "geo" -> geoTask(id, difficulty);
                 default -> translateTask(id, difficulty);
             };
             if (asked == null || asked.add(signature(task))) {
@@ -401,6 +441,11 @@ public class SpeedRushService {
             case "flag" -> "flag:" + pub.optString("emoji");
             case "words" -> "words:" + pub.optString("prompt") + ":" + pub.optString("relation");
             case "proverb" -> "proverb:" + pub.optString("prompt");
+            case "tap" -> "tap:" + pub.optInt("target");
+            case "odd" -> "odd:" + pub.optJSONArray("options") + ":" + task.answer();
+            case "order" -> "order:" + task.answer();
+            case "reaction" -> "reaction:" + pub.optInt("delayMs");
+            case "geo" -> "geo:" + pub.optString("prompt");
             default -> "translate:" + pub.optString("prompt");
         };
     }
@@ -440,6 +485,111 @@ public class SpeedRushService {
                 .put("text", a + " " + operator + " " + b)
                 .put("options", new JSONArray(shuffled));
         return new Task(id, "math", pub.toString(), String.valueOf(answer));
+    }
+
+    /** Tipi disponibili per fascia: i vecchi microgiochi tornano tra facile e difficile. */
+    private String[] kindsFor(String difficulty) {
+        return switch (difficulty == null ? "" : difficulty) {
+            case "EASY" -> new String[]{"math", "colors", "tap", "odd", "geo"};
+            case "HARD" -> new String[]{"translate", "proverb", "order", "odd", "geo", "reaction"};
+            default -> new String[]{"flag", "words", "proverb", "tap", "order", "geo"};
+        };
+    }
+
+    /** Tocca il pulsante fino al traguardo: il server conosce solo il totale. */
+    private Task tapTask(String id, String difficulty) {
+        int target = switch (difficulty == null ? "" : difficulty) {
+            case "EASY" -> 5 + random.nextInt(3);
+            case "HARD" -> 11 + random.nextInt(4);
+            default -> 8 + random.nextInt(3);
+        };
+        JSONObject pub = new JSONObject()
+                .put("taskId", id)
+                .put("kind", "tap")
+                .put("target", target);
+        return new Task(id, "tap", pub.toString(), String.valueOf(target));
+    }
+
+    /** Intruso: una griglia di emoji uguali con uno diverso. */
+    private Task oddTask(String id, String difficulty) {
+        String[][] pairs = "HARD".equals(difficulty) ? ODD_HARD : ODD_EASY;
+        String[] pair = pairs[random.nextInt(pairs.length)];
+        int size = "EASY".equals(difficulty) ? 4 : "HARD".equals(difficulty) ? 9 : 6;
+        List<String> options = new ArrayList<>();
+        for (int index = 0; index < size - 1; index++) {
+            options.add(pair[0]);
+        }
+        options.add(pair[1]);
+        java.util.Collections.shuffle(options, random);
+        JSONObject pub = new JSONObject()
+                .put("taskId", id)
+                .put("kind", "odd")
+                .put("options", new JSONArray(options));
+        return new Task(id, "odd", pub.toString(), pair[1]);
+    }
+
+    /** Numeri da toccare in ordine crescente: l'ordine è la risposta. */
+    private Task orderTask(String id, String difficulty) {
+        int count = switch (difficulty == null ? "" : difficulty) {
+            case "EASY" -> 3;
+            case "HARD" -> 5;
+            default -> 4;
+        };
+        int max = switch (difficulty == null ? "" : difficulty) {
+            case "EASY" -> 9;
+            case "HARD" -> 99;
+            default -> 40;
+        };
+        int min = "EASY".equals(difficulty) ? 1 : 10;
+        Set<Integer> values = new LinkedHashSet<>();
+        while (values.size() < count) {
+            values.add(min + random.nextInt(max - min + 1));
+        }
+        List<Integer> options = new ArrayList<>(values);
+        java.util.Collections.shuffle(options, random);
+        List<Integer> sorted = new ArrayList<>(values);
+        java.util.Collections.sort(sorted);
+        List<String> answer = sorted.stream().map(String::valueOf).toList();
+        JSONObject pub = new JSONObject()
+                .put("taskId", id)
+                .put("kind", "order")
+                .put("options", new JSONArray(options));
+        return new Task(id, "order", pub.toString(), String.join("|", answer));
+    }
+
+    /** Reazione: il telefono aspetta il verde, il server fissa solo il ritardo. */
+    private Task reactionTask(String id) {
+        int delayMs = 900 + random.nextInt(2200);
+        JSONObject pub = new JSONObject()
+                .put("taskId", id)
+                .put("kind", "reaction")
+                .put("delayMs", delayMs);
+        return new Task(id, "reaction", pub.toString(), "READY");
+    }
+
+    /** Geografia: la città è nel testo, la risposta è la regione. */
+    private Task geoTask(String id, String difficulty) {
+        String[][] pool = switch (difficulty == null ? "" : difficulty) {
+            case "EASY" -> GEO_EASY;
+            case "HARD" -> GEO_HARD;
+            default -> GEO_MEDIUM;
+        };
+        String[] row = pool[random.nextInt(pool.length)];
+        List<String> options = new ArrayList<>();
+        options.add(row[1]);
+        while (options.size() < 3) {
+            String region = REGIONS[random.nextInt(REGIONS.length)];
+            if (!options.contains(region)) {
+                options.add(region);
+            }
+        }
+        java.util.Collections.shuffle(options, random);
+        JSONObject pub = new JSONObject()
+                .put("taskId", id)
+                .put("kind", "geo")
+                .put("prompt", "In che regione si trova «" + row[0] + "»?")
+                .put("options", new JSONArray(options));
+        return new Task(id, "geo", pub.toString(), row[1]);
     }
 
     /** Prova dei proverbi: tre finali plausibili, uno solo corretto. */

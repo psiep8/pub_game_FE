@@ -107,7 +107,58 @@ class SpeedRushBasketServiceTest {
             assertThat(answerPresent).isTrue();
             assertThat(pub.getString("prompt")).endsWith("...");
         }
-        assertThat(kinds).contains("proverb", "math", "colors", "flag", "words", "translate");
+        assertThat(kinds).contains("proverb");
+    }
+
+    @Test
+    void iVecchiMicrogiochiEIlGeograficoArrivanoSuTutteLeFasce() {
+        java.util.Set<String> kinds = new java.util.HashSet<>();
+        for (String difficulty : List.of("EASY", "MEDIUM", "HARD")) {
+            for (int index = 0; index < 120; index++) {
+                SpeedRushService.Task task = speedRush.newTask(null, difficulty, new java.util.HashSet<>());
+                kinds.add(task.kind());
+                JSONObject pub = new JSONObject(task.publicJson());
+
+                switch (task.kind()) {
+                    case "geo" -> {
+                        JSONArray options = pub.getJSONArray("options");
+                        assertThat(options.length()).isEqualTo(3);
+                        assertThat(pub.getString("prompt")).contains("regione").contains("«");
+                        java.util.Set<String> unique = new java.util.HashSet<>();
+                        boolean answerPresent = false;
+                        for (int option = 0; option < options.length(); option++) {
+                            unique.add(options.getString(option));
+                            answerPresent |= task.answer().equals(options.getString(option));
+                        }
+                        assertThat(unique).hasSize(3);
+                        assertThat(answerPresent).isTrue();
+                    }
+                    case "tap" -> assertThat(task.answer())
+                            .isEqualTo(String.valueOf(pub.getInt("target")));
+                    case "odd" -> {
+                        JSONArray options = pub.getJSONArray("options");
+                        assertThat(options.length()).isGreaterThanOrEqualTo(4);
+                        boolean answerPresent = false;
+                        for (int option = 0; option < options.length(); option++) {
+                            answerPresent |= task.answer().equals(options.getString(option));
+                        }
+                        assertThat(answerPresent).isTrue();
+                    }
+                    case "order" -> {
+                        String[] answer = task.answer().split("\\|");
+                        assertThat(answer).hasSize(pub.getJSONArray("options").length());
+                        assertThat(new java.util.HashSet<>(java.util.List.of(answer)))
+                                .hasSize(answer.length);
+                    }
+                    case "reaction" -> assertThat(pub.getInt("delayMs"))
+                            .isBetween(900, 3099);
+                    default -> { }
+                }
+            }
+        }
+
+        assertThat(kinds).contains("math", "colors", "flag", "words", "translate", "proverb",
+                "tap", "odd", "order", "reaction", "geo");
     }
 
     @Test

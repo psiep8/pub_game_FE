@@ -62,13 +62,55 @@ export interface SpeedProverbTask {
   answer: string;
 }
 
+/** Microgiochi storici e geografico: prove generate dal server. */
+export interface SpeedTapTask {
+  taskId?: string;
+  kind: 'tap';
+  target: number;
+  answer: string;
+}
+
+export interface SpeedOddTask {
+  taskId?: string;
+  kind: 'odd';
+  options: string[];
+  answer: string;
+}
+
+export interface SpeedOrderTask {
+  taskId?: string;
+  kind: 'order';
+  options: number[];
+  answer: string;
+}
+
+export interface SpeedReactionTask {
+  taskId?: string;
+  kind: 'reaction';
+  delayMs: number;
+  answer: string;
+}
+
+export interface SpeedGeoTask {
+  taskId?: string;
+  kind: 'geo';
+  prompt: string;
+  options: string[];
+  answer: string;
+}
+
 export type SpeedTask =
   | SpeedMathTask
   | SpeedColorsTask
   | SpeedFlagTask
   | SpeedWordsTask
   | SpeedTranslateTask
-  | SpeedProverbTask;
+  | SpeedProverbTask
+  | SpeedTapTask
+  | SpeedOddTask
+  | SpeedOrderTask
+  | SpeedReactionTask
+  | SpeedGeoTask;
 
 export const SPEED_TASK_KINDS: readonly SpeedTaskKind[] = ['math', 'colors', 'flag', 'words', 'translate'];
 
