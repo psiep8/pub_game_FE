@@ -189,4 +189,6 @@ La versione dichiarata nel progetto è **2.1.0**; riferimento del codice esamina
 | F39 | Parziale | Due test H2 isolati passati | `42e74d4` | Il vecchio correttore eliminava CHECK estranei; aggiornato il solo CHECK riconoscibile, mantenendo valori storici. Restano copia del database della serata e prova TV/telefoni. |
 | F29 | Parziale | Test temporizzato Arena passato | `7b54b43` | Restringimento dopo 20 s anziché 45, più graduale; da verificare con giocatori e TV. |
 | F30 | Parziale | Due test Arena passati | `a63b7cd` | Movimento giusta −5 e sbagliata +12 anziché −10/+15; bilanciamento reale da verificare. |
+| F31 | Parziale | 26 test remoto passati | `cdbc2be` | Una risposta HTTP superata non sostituisce la domanda a schermo; resta da riprodurre il salto con più telefoni e latenze reali. |
+| F15 | Parziale | 10 test Quiz/tempi e 2 backend passati | `92d2781` | Manche da 15 s anziché 10, con valore proporzionale al tempo e finestra server allineata; da provare in sala. |
 | Altre voci | Da fare o da verificare | — | — | Azzardo rimane in pausa; nessuna prova su telefoni, audio o TV reali è stata eseguita. |
