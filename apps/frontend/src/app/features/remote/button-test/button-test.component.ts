@@ -178,10 +178,12 @@ export class ButtonTestComponent implements OnInit, OnDestroy {
     return `translate(${offset.x}px, ${offset.y}px)`;
   }
 
-  /** Vibrazione chiesta dal giocatore: parte da un tocco, quindi è permessa. */
+  /** La richiesta parte da un tocco; solo il giocatore può confermare se l'ha sentita. */
   vibrateNow(): void {
-    this.vibrate();
-    this.message.set('Vibrazione inviata');
+    const requested = this.vibrate();
+    this.message.set(requested
+      ? 'Richiesta inviata: hai sentito la vibrazione?'
+      : 'Vibrazione non disponibile o non avviata: puoi continuare con NON VIBRA.');
   }
 
   drop(index: number): void {
@@ -257,11 +259,8 @@ export class ButtonTestComponent implements OnInit, OnDestroy {
     this.secondsLeft.set(15);
     this.connectionDone = false;
     if (step === 3) this.cards.set([2, 0, 1]);
-    if (step === 4) {
-      this.vibrate();
-      if (!this.vibrationSupported()) {
-        this.message.set('Questo telefono non vibra (iPhone/Safari): la prova passa lo stesso.');
-      }
+    if (step === 4 && !this.vibrationSupported()) {
+      this.message.set('Vibrazione non supportata dal browser: puoi continuare con NON VIBRA.');
     }
     this.startStepTimer();
     if (step === 5) this.startConnection();
@@ -300,11 +299,11 @@ export class ButtonTestComponent implements OnInit, OnDestroy {
     this.advanceTimer = setTimeout(() => this.advance(5, { latencyMs: this.latency() ?? 0 }), 700);
   }
 
-  private vibrate(): void {
+  private vibrate(): boolean {
     try {
-      if ('vibrate' in navigator) navigator.vibrate(160);
+      return typeof navigator.vibrate === 'function' && navigator.vibrate(160);
     } catch {
-      // La vibrazione è facoltativa: la prova passa comunque.
+      return false;
     }
   }
 

@@ -103,10 +103,37 @@ describe('ButtonTestComponent', () => {
     expect(component.message()).toBe('Ordine corretto');
   });
 
-  it('non chiede di vibrare ai telefoni che non supportano la vibrazione', () => {
-    // jsdom non ha navigator.vibrate, come iPhone/Safari: la prova passa e lo
-    // dice, invece di fallire in silenzio.
+  it('consente di proseguire se il browser non supporta la vibrazione', () => {
     expect(component.vibrationSupported()).toBe(false);
+    component.advance(1);
+    component.advance(2);
+    component.advance(3);
+    expect(component.message()).toContain('non supportata');
+    component.vibrateNow();
+    expect(component.message()).toContain('NON VIBRA');
+    component.vibration(false);
+    expect(component.step()).toBe(5);
+  });
+
+  it('non presume che il giocatore abbia sentito la vibrazione', () => {
+    vi.stubGlobal('navigator', { ...navigator, vibrate: vi.fn(() => true) });
+    try {
+      component.vibrateNow();
+      expect(navigator.vibrate).toHaveBeenCalledWith(160);
+      expect(component.message()).toContain('hai sentito');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('mostra il fallback quando la richiesta di vibrazione viene rifiutata', () => {
+    vi.stubGlobal('navigator', { ...navigator, vibrate: vi.fn(() => false) });
+    try {
+      component.vibrateNow();
+      expect(component.message()).toContain('NON VIBRA');
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
 });
