@@ -156,7 +156,12 @@ export class Bomba {
   eventText(event: any): string {
     if (!event) return '';
     if (event.kind === 'pick') return `${event.player}: ${event.label}`;
-    if (event.kind === 'timeout') return `⌛ ${event.player}: TEMPO SCADUTO`;
+    if (event.kind === 'bomb') return `💥 ${event.player}: BOMBA — ${event.label}`;
+    // Il server chiama «eliminated» il turno scaduto: senza questo caso la TV
+    // mostrava una striscia vuota.
+    if (event.kind === 'eliminated' || event.kind === 'timeout') {
+      return `⌛ ${event.player}: TEMPO SCADUTO`;
+    }
     return '';
   }
 }

@@ -85,6 +85,7 @@ describe('RemoteComponent', () => {
   });
 
   it('dice subito che la squadra è fuori quando prende una bomba', async () => {
+    const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
     component.tempNickname = 'Anna';
     await component.setNickname();
     component.closeButtonTest();
@@ -107,6 +108,7 @@ describe('RemoteComponent', () => {
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('SEI FUORI');
     expect(text).toContain('-200');
+    expect(audio.played).toContain('bomb-siren');
   });
 
   it('mostra il via sul telefono quando parte il Time Buzzer', async () => {
