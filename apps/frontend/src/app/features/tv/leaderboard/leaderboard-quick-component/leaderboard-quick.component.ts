@@ -49,6 +49,8 @@ export class LeaderboardQuick implements OnInit {
   visiblePlayers = signal<PlayerScore[]>([]);
   progress = signal(0);
   totalPlayers = signal(0);
+  /** Reveal finito: il tabellone si compatta e mostra tutte le squadre. */
+  revealDone = signal(false);
 
   /** Contenitore delle righe: con molte squadre scorre da solo. */
   private readonly playersList = viewChild<ElementRef<HTMLElement>>('playersList');
@@ -97,6 +99,9 @@ export class LeaderboardQuick implements OnInit {
       await new Promise(resolve => setTimeout(resolve, delay));
     }
 
+    // A reveal concluso le righe si dividono lo spazio: anche con più di sei
+    // squadre il tabellone resta tutto visibile, senza scorrimento.
+    this.revealDone.set(true);
     await new Promise(resolve => setTimeout(resolve, 5000));
     this.onComplete.emit();
   }

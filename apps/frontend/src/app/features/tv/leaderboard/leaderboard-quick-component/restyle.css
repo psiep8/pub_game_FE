@@ -129,6 +129,29 @@
   filter: none;
 }
 
+/* Reveal concluso: tutte le squadre visibili, anche oltre sei. */
+.kahoot-leaderboard .players-container.all-visible { overflow-y: hidden !important; }
+.kahoot-leaderboard .players-container.all-visible .player-row {
+  flex: 1 1 0;
+  min-height: 0 !important;
+  padding: clamp(2px, .6vh, 8px) clamp(12px, 2vw, 26px) !important;
+  box-shadow: 4px 4px 0 var(--coal) !important;
+}
+.kahoot-leaderboard .players-container.all-visible .position-badge {
+  width: clamp(26px, 3.4vh, 44px) !important;
+  height: clamp(26px, 3.4vh, 44px) !important;
+  font-size: clamp(.75rem, 1.9vh, 1.15rem) !important;
+}
+.kahoot-leaderboard .players-container.all-visible .player-name {
+  font-size: clamp(.78rem, 2.3vh, 1.45rem) !important;
+}
+.kahoot-leaderboard .players-container.all-visible .points-value {
+  font-size: clamp(.85rem, 2.4vh, 1.55rem) !important;
+}
+.kahoot-leaderboard .players-container.all-visible .podium-icon {
+  font-size: clamp(1rem, 2.6vh, 1.7rem) !important;
+}
+
 /* Su TV 720p il tabellone deve stare interamente in un colpo d'occhio. */
 @media (max-height: 800px) {
   .kahoot-leaderboard { padding: 10px 0 !important; }

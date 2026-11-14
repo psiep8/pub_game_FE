@@ -89,6 +89,26 @@ describe('LeaderboardQuick', () => {
     expect(component.visiblePlayers().at(-1)?.position).toBe(1);
   });
 
+  it('a fine reveal compatta il tabellone per mostrare tutte le squadre', async () => {
+    vi.useFakeTimers();
+    const many: PlayerScore[] = Array.from({ length: 10 }, (_, i) => ({
+      playerName: `Squadra ${i + 1}`,
+      totalPoints: 1000 - i * 10,
+      correctAnswers: 0,
+      wrongAnswers: 0,
+      position: i + 1,
+    }));
+    create(many);
+
+    await vi.advanceTimersByTimeAsync(10 * 6000 + 5000);
+    fixture.detectChanges();
+
+    expect(component.revealDone()).toBe(true);
+    const container = fixture.nativeElement.querySelector('.players-container');
+    expect(container.classList).toContain('all-visible');
+    expect(component.visiblePlayers()).toHaveLength(10);
+  });
+
   it('should complete immediately when there is no leaderboard', async () => {
     vi.useFakeTimers();
     create([]);
