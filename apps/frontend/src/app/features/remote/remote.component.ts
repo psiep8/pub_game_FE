@@ -587,7 +587,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
             this.buzzError.set('');
             this.buzzPhase.set('running');
             this.gameState.set(PlayerStatus.VOTING);
-            this.vibrate(20);
+            // Il via deve sentirsi, non solo cambiare il testo del tasto.
+            this.vibrate([120, 60, 120]);
           }
           break;
         }

@@ -271,12 +271,16 @@
     @case ('TIME_BUZZER') {
     <div class="buzz-remote">
       <div class="game-head"><span class="game-tag buzz">TIME BUZZER</span><span class="game-tip">Manche {{ buzzManche() || 1 }}/{{ buzzTotal() }}</span></div>
+      @if (buzzPhase() === 'running') {
+      <span class="buzz-live" role="status">VIA! FERMA ORA</span>
+      }
       <button class="buzz-btn" [class.running]="buzzPhase() === 'running'" [class.sent]="buzzPhase() === 'sent'"
         [disabled]="buzzPhase() !== 'running'" (click)="toggleBuzz()">
         {{ buzzPhase() === 'running' ? 'STOP' : buzzPhase() === 'sent' ? 'INVIATO' : 'ATTENDI' }}
       </button>
       <p class="buzz-hint">
         @if (buzzError()) { {{ buzzError() }} }
+        @else if (buzzPhase() === 'running') { Il conteggio è partito adesso: fermalo quando credi sia giusto. }
         @else { Il cronometro parte da solo al segnale: fermalo quando pensi sia giusto. }
       </p>
     </div>

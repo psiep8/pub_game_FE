@@ -902,6 +902,19 @@ body {
   background: var(--ink-dim);
   opacity: .55;
 }
+.buzz-live {
+  padding: 6px 14px;
+  background: var(--acid);
+  color: var(--coal);
+  border: 3px solid var(--coal);
+  box-shadow: 4px 4px 0 var(--coal);
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+}
 .buzz-hint {
   max-width: 280px;
   margin: 0;

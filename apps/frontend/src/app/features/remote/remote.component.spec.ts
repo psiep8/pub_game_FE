@@ -84,6 +84,20 @@ describe('RemoteComponent', () => {
     expect(enableTutorial).toHaveBeenCalledWith(true);
   });
 
+  it('mostra il via sul telefono quando parte il Time Buzzer', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+
+    ws.status$.next({ action: 'START_VOTING', type: 'TIME_BUZZER' });
+    ws.status$.next({ action: 'TIME_BUZZER_START', manche: 1 });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.buzzPhase()).toBe('running');
+    expect(fixture.nativeElement.querySelector('.buzz-live')?.textContent).toContain('VIA!');
+  });
+
   it('torna al setup quando la regia espelle la squadra', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();
