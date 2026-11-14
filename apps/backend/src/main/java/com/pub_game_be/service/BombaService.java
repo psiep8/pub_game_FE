@@ -36,9 +36,10 @@ import java.util.concurrent.TimeUnit;
  * scelte vengono mostrate e disarmate senza conseguenze.
  *
  * <p>La posizione delle bombe resta sul server: non esce mai durante l'ondata.
- * Le caselle scelte restano coperte e gli esiti (bombe, eliminati, penalità)
- * si scoprono tutti insieme a fine ondata: nessuno può contare le bombe
- * guardando il tabellone mentre si gioca.
+ * Le caselle restano coperte, ma chi prende una bomba lo scopre subito con un
+ * evento dedicato (TV e telefono reagiscono all'istante). Gli altri esiti
+ * (eliminati e penalità) si scoprono tutti insieme a fine ondata: nessuno può
+ * contare le bombe guardando il tabellone mentre si gioca.
  */
 @Service
 public class BombaService {
@@ -169,6 +170,10 @@ public class BombaService {
             if (cell.bomb()) {
                 round.penalties.merge(player, -BOMB_PENALTY, Integer::sum);
                 round.eliminated.add(player);
+                // L'esplosione non aspetta la fine dell'ondata: la TV applica la
+                // penalità e il telefono di chi ha scelto lo dice subito. La
+                // casella resta coperta, quindi il resto del tabellone non si rivela.
+                pushEvent(round, "bomb", player, cell.label());
             }
 
             advance(round, now);

@@ -320,6 +320,10 @@
         @if (bombaState()?.you?.yourTurn) { Tocca a te: scegli una casella, poi il turno passa. }
         @else { Aspetta il tuo turno: passa anche quando la casella è giusta. }
       </p>
+      @if (bombaState()?.you?.out) {
+      <p class="bomba-your">💥 SEI FUORI DAL ROUND · penalità
+        <b>{{ bombaState()?.you?.penalty }}</b></p>
+      }
       }
 
       @if (bombaState()?.active === false && bombaState()?.you?.out) {

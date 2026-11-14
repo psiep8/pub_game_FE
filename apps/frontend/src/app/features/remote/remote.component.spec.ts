@@ -84,6 +84,31 @@ describe('RemoteComponent', () => {
     expect(enableTutorial).toHaveBeenCalledWith(true);
   });
 
+  it('dice subito che la squadra è fuori quando prende una bomba', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+
+    ws.status$.next({ action: 'SHOW_QUESTION', type: 'BOMBA', payload: '{}' });
+    ws.status$.next({
+      action: 'BOMBA_STATE',
+      state: {
+        type: 'BOMBA', active: true, paused: false, phase: 'TURN', prompt: 'Scegli',
+        cells: [{ id: 1, label: 'A', used: true, pickedBy: 'Anna' }],
+        players: ['Anna', 'Bruno'], eliminated: [], penalties: {},
+        turn: 'Bruno', turnSeconds: 20, secondsLeft: 12,
+        lastEvent: { seq: 2, kind: 'bomb', player: 'Anna', label: 'A' },
+        you: { yourTurn: false, penalty: -200, out: true },
+      },
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('SEI FUORI');
+    expect(text).toContain('-200');
+  });
+
   it('mostra il via sul telefono quando parte il Time Buzzer', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();

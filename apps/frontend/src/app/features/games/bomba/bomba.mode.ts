@@ -158,7 +158,9 @@ export class BombaMode extends GameModeBase {
     const seq = Number(event?.seq) || 0;
     if (seq > this.lastEventSeq) {
       this.lastEventSeq = seq;
-      if (event?.kind === 'bomb' && event?.player) {
+      // Bomba scelta o turno scaduto: la penalità arriva subito con l'evento,
+      // non a fine ondata. Gli esiti di gioco restano comunque nascosti.
+      if ((event?.kind === 'bomb' || event?.kind === 'eliminated') && event?.player) {
         this.applyBombPenalty(String(event.player));
       }
     }
