@@ -465,7 +465,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
       void this.reliability.start(this.gameId(), 'REMOTE', storedName).then((ok) => {
         if (ok) {
           this.nickname.set(storedName);
-          this.showButtonTest.set(true);
+          // Se il server ha ripreso la stessa sessione, il giocatore torna
+          // subito in partita senza rifare la prova dei pulsanti.
+          this.showButtonTest.set(!this.reliability.resumedSession());
         }
       });
     }

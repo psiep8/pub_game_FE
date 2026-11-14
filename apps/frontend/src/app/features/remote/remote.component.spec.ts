@@ -65,6 +65,33 @@ describe('RemoteComponent', () => {
     expect(enableTutorial).toHaveBeenCalledWith(true);
   });
 
+  it('rientra senza tutorial quando il server riprende la stessa sessione', async () => {
+    fixture.destroy();
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    fixture = TestBed.createComponent(RemoteComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.nickname()).toBe('Anna');
+    expect(component.showButtonTest()).toBe(false);
+    expect(fixture.nativeElement.querySelector('app-button-test')).toBeNull();
+  });
+
+  it('mantiene il tutorial se il server crea una nuova sessione', async () => {
+    fixture.destroy();
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(false);
+    fixture = TestBed.createComponent(RemoteComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.nickname()).toBe('Anna');
+    expect(component.showButtonTest()).toBe(true);
+  });
+
   it('should only keep the active categories for the arena', () => {
     expect(component.categories().map((category) => category.name)).toEqual([
       'CULTURA GENERALE',
