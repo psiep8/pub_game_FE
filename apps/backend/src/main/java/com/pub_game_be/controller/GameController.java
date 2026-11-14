@@ -213,7 +213,7 @@ public class GameController {
     }
 
     /** Attesa suggerita al telefono quando l'arena non è ancora aperta. */
-    private static final long ARENA_RETRY_AFTER_MS = 1000;
+    private static final long ARENA_RETRY_AFTER_MS = 150;
 
     @GetMapping("/{gameId}/arena-question")
     public ResponseEntity<String> getArenaQuestion(@PathVariable("gameId") Long gameId,

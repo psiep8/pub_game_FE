@@ -2248,7 +2248,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         // aspettando il tempo che il server indica quando il round non è
         // ancora aperto (409 + retryAfterMs).
         if (this.questionType() === 'ARENA' && this.gameState() === PlayerStatus.VOTING) {
-          const retryAfterMs = Math.min(5000, Math.max(250, Number(err?.error?.retryAfterMs) || 2000));
+          const retryAfterMs = Math.min(1000, Math.max(100, Number(err?.error?.retryAfterMs) || 150));
           setTimeout(() => {
             if (this.questionType() === 'ARENA'
               && this.gameState() === PlayerStatus.VOTING
@@ -2279,8 +2279,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
           // Il backend comunica l'esito alla TV dopo averlo registrato.
           this.vibrate(isCorrect ? 50 : [50, 50, 50]);
           this.arenaQuestion.set(null);
-          // Dopo un errore 1,5 s di blocco: rispondere a caso non conviene più.
-          setTimeout(() => this.generateNextArenaQuestion(), isCorrect ? 0 : 1500);
+          // Un errore costa una pausa breve: rispondere a caso non conviene,
+          // ma la domanda successiva deve arrivare subito.
+          setTimeout(() => this.generateNextArenaQuestion(), isCorrect ? 0 : 600);
         },
         error: (err: any) => {
           console.error('❌ Risposta arena rifiutata dal server:', err);
