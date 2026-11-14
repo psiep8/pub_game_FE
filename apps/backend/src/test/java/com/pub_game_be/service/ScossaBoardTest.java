@@ -38,6 +38,8 @@ class ScossaBoardTest {
                     ScossaBoard board = bank.scossaBoard(cells, bombs, act);
 
                     assertThat(board.prompt()).as("atto %d, %d squadre", act, players).isNotBlank();
+                    assertThat(board.prompt()).as("formato tabellone atto %d, %d squadre", act, players)
+                            .doesNotContainIgnoringCase("non appartiene", "non è una");
                     assertThat(board.safe()).as("celle sicure atto %d, %d squadre", act, players)
                             .hasSize(cells - bombs);
                     assertThat(board.intruders()).as("bombe atto %d, %d squadre", act, players)

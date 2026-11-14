@@ -674,7 +674,7 @@ public class QuestionBankService {
             List<String> safe = new ArrayList<>(members);
             Collections.shuffle(safe, random);
             return new ScossaBoard(
-                    "Quale tra queste NON appartiene a «" + category + "»?",
+                    "Tabellone «" + category + "»: scegli una casella della categoria, evita le bombe.",
                     List.copyOf(safe.subList(0, safeNeeded)),
                     List.copyOf(intruders));
         }
@@ -688,7 +688,7 @@ public class QuestionBankService {
         List<String> intruders = new ArrayList<>(List.of("Parigi", "Madrid", "Berlino", "Lisbona"));
         Collections.shuffle(intruders, random);
         return new ScossaBoard(
-                "Quale tra queste NON è una città italiana?",
+                "Tabellone «Città italiane»: scegli una casella della categoria, evita le bombe.",
                 safe.subList(0, Math.min(safeNeeded, safe.size())),
                 intruders.subList(0, Math.min(bombsNeeded, intruders.size())));
     }
