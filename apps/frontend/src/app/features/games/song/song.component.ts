@@ -25,8 +25,8 @@ const MANCHE_AUDIO: Record<
   number,
   { gain: number; band: number; q: number; highpass: number; lowpass: number; drive: number; hiss: number }
 > = {
-  1: { gain: 0.18, band: 820, q: 12, highpass: 420, lowpass: 1500, drive: 540, hiss: 0.028 },
-  2: { gain: 0.24, band: 950, q: 10, highpass: 500, lowpass: 2200, drive: 420, hiss: 0.02 },
+  1: { gain: 0.19, band: 900, q: 11, highpass: 380, lowpass: 1900, drive: 500, hiss: 0.024 },
+  2: { gain: 0.23, band: 980, q: 10, highpass: 450, lowpass: 2050, drive: 450, hiss: 0.02 },
   3: { gain: 0.5, band: 1500, q: 5, highpass: 200, lowpass: 5200, drive: 250, hiss: 0 },
   4: { gain: 1, band: 2000, q: 0.5, highpass: 50, lowpass: 8000, drive: 0, hiss: 0 },
 };
