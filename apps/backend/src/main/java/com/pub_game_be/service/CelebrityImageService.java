@@ -279,7 +279,9 @@ public class CelebrityImageService {
         }
         String haystack = fold(text);
         for (String token : fold(celebrityName).split("[^\\p{L}0-9]+")) {
-            if (token.length() < 4 || NAME_PARTICLES.contains(token)) {
+            // Anche i nomi corti («Tom», «Bob», «Lee») svelano la risposta:
+            // vanno controllati come gli altri, non solo quelli da 4 lettere.
+            if (token.length() < 3 || NAME_PARTICLES.contains(token)) {
                 continue;
             }
             if (Pattern.compile("(?<!\\p{L})" + Pattern.quote(token) + "(?!\\p{L})")
