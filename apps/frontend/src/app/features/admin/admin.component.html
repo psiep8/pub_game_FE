@@ -73,10 +73,15 @@
               <span class="diag-name">{{ dev.playerName || dev.deviceId }}</span>
               <span class="diag-state">online</span>
               <small>{{ dev.reconnections }} riconnessioni</small>
+              @if (dev.role === 'REMOTE' && dev.playerName) {
+              <button type="button" class="diag-expel" [disabled]="expelBusy() === dev.playerName"
+                (click)="expelPlayer(dev.playerName)">RIMUOVI</button>
+              }
             </div>
           }
         }
       </div>
+      @if (expelNotice(); as notice) { <p class="diag-notice" role="status">{{ notice }}</p> }
     } @else {
       <div class="diag-empty">
         @if (pairingNeeded()) {

@@ -179,6 +179,9 @@
       <span class="avatar-hint">Foto facoltativa, ma consigliata</span>
     </div>
 
+    @if (removedNotice()) {
+    <p class="setup-error" role="alert">La regia ha rimosso la squadra. Puoi rientrare con un nuovo nome.</p>
+    }
     <label class="setup-name" for="team-name">Nome della squadra</label>
     <input id="team-name" [(ngModel)]="tempNickname" maxlength="16" autocomplete="off" placeholder="Nome della squadra" (keyup.enter)="goToThemeStep()">
     @if (reliability.lastError(); as error) { <p class="setup-error" role="alert">{{ error }}</p> }

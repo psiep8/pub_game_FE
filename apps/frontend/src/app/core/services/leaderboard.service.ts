@@ -84,6 +84,20 @@ export class LeaderboardService {
     this.saveScores();
   }
 
+  /**
+   * Toglie una squadra espulsa se non ha ancora punti: chi ha già giocato
+   * resta in classifica, perché i punti non si cancellano senza una decisione.
+   */
+  forgetIfNoPoints(playerName: string): void {
+    const entry = this.players().get(playerName);
+    if (!entry || entry.totalPoints !== 0) return;
+    const players = new Map(this.players());
+    players.delete(playerName);
+    this.players.set(this.withPositions(players));
+    this.saveScores();
+    this.persistence?.(this.getLeaderboard());
+  }
+
   /** Registra (o rimuove) il salvataggio server della classifica. */
   setPersistence(sink: LeaderboardPersistence | null): void {
     this.persistence = sink;

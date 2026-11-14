@@ -265,6 +265,8 @@ export class FakeReliabilityService {
 
   stop(): void {}
 
+  forgetSession(): void {}
+
   saveBlackjackState(_state: unknown | null): void {}
 
   serverNow(): number {

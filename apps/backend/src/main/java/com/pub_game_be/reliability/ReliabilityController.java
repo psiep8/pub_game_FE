@@ -11,9 +11,11 @@ import org.springframework.web.server.ResponseStatusException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -42,13 +44,15 @@ public class ReliabilityController {
     private final ReliabilityProperties props;
     private final ScoreboardService scoreboard;
     private final PairingCodeService pairing;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Value("${game.security.control-secret:}")
     private String controlSecret;
 
     public ReliabilityController(DeviceSessionService sessions, GameStateService gameState,
             QuestionHistoryService questionHistory, QuestionUsageService questionUsage,
-            ReliabilityProperties props, ScoreboardService scoreboard, PairingCodeService pairing) {
+            ReliabilityProperties props, ScoreboardService scoreboard, PairingCodeService pairing,
+            SimpMessagingTemplate messagingTemplate) {
         this.pairing = pairing;
         this.sessions = sessions;
         this.gameState = gameState;
@@ -56,6 +60,7 @@ public class ReliabilityController {
         this.questionUsage = questionUsage;
         this.props = props;
         this.scoreboard = scoreboard;
+        this.messagingTemplate = messagingTemplate;
     }
 
     /** Registra (o riprende) la sessione del dispositivo. */
@@ -248,6 +253,24 @@ public class ReliabilityController {
      * vede un pannello morto. In quel caso però gli eventi recenti restano fuori:
      * i loro payload contengono le soluzioni, che i telefoni non devono leggere.</p>
      */
+    /**
+     * Espulsione decisa dalla regia: revoca la sessione della squadra e avvisa
+     * TV e telefoni, che tolgono subito il giocatore dall'interfaccia.
+     */
+    @PostMapping("/players/expel")
+    public Map<String, Object> expelPlayer(@PathVariable("gameId") Long gameId,
+            @RequestBody(required = false) Map<String, Object> body,
+            @RequestAttribute("pubgame.session") DeviceSessionEntity session) {
+        if (!"ADMIN".equals(session.getRole())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo la regia può espellere");
+        }
+        String playerName = body == null ? "" : String.valueOf(body.getOrDefault("playerName", "")).trim();
+        int removed = sessions.expelPlayer(gameId, playerName);
+        messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status",
+                new JSONObject().put("action", "PLAYER_REMOVED").put("playerName", playerName));
+        return Map.of("removed", removed, "playerName", playerName);
+    }
+
     @GetMapping("/diagnostics")
     public Map<String, Object> diagnostics(@PathVariable("gameId") Long gameId, HttpServletRequest request) {
         boolean paired = request.getAttribute("pubgame.session") != null;

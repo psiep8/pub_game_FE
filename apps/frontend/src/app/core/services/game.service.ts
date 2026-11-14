@@ -273,6 +273,11 @@ export class GameService {
     return this.http.post<any>(`${this.baseUrl}/games/${gameId}/round/close`, { reason });
   }
 
+  /** Espulsione dalla regia: revoca la sessione della squadra nella partita. */
+  expelPlayer(gameId: number, playerName: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/players/expel`, { playerName });
+  }
+
   getTimelineReveal(gameId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/games/${gameId}/timeline/reveal`);
   }

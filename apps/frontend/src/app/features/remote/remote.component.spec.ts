@@ -84,6 +84,22 @@ describe('RemoteComponent', () => {
     expect(enableTutorial).toHaveBeenCalledWith(true);
   });
 
+  it('torna al setup quando la regia espelle la squadra', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    component.gameState.set('VOTING' as any);
+
+    ws.status$.next({ action: 'PLAYER_REMOVED', playerName: 'Anna' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.nickname()).toBeNull();
+    expect(component.removedNotice()).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain('La regia ha rimosso');
+    expect(localStorage.getItem('nickname')).toBeNull();
+  });
+
   it('ascolta i topic della partita attiva adottata, non quella di default', async () => {
     fixture.destroy();
     localStorage.clear();

@@ -20,6 +20,8 @@ export const PlayerStatus = {
   BUZZ_OUT: 'BUZZ_OUT',
   /** Fuori dall'Arena. */
   ELIMINATED: 'ELIMINATED',
+  /** Rimosso dalla regia: la sessione non vale più, si rientra dal setup. */
+  REMOVED: 'REMOVED',
 } as const;
 
 export type PlayerStatus = (typeof PlayerStatus)[keyof typeof PlayerStatus];

@@ -145,6 +145,33 @@ public class DeviceSessionService {
         return Optional.of(session);
     }
 
+    /**
+     * Espelle una squadra dalla partita: il token non vale più e il nome torna
+     * libero, così chi è entrato per errore può rientrare con una sessione nuova.
+     * La riga resta per storico ma non è più autenticabile né presente online.
+     */
+    public synchronized int expelPlayer(long gameId, String playerName) {
+        String safeName = playerName == null ? "" : playerName.trim();
+        if (safeName.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Squadra richiesta");
+        }
+        int revoked = 0;
+        for (DeviceSessionEntity session : sessions.findByGameIdOrderByLastHeartbeatAtDesc(gameId)) {
+            if (!"REMOTE".equals(session.getRole())
+                    || !Integer.valueOf(1).equals(session.getSecurityVersion())
+                    || session.getPlayerName() == null
+                    || !safeName.equalsIgnoreCase(session.getPlayerName())) {
+                continue;
+            }
+            session.setSecurityVersion(0);
+            session.setTeamKey(null);
+            session.setActive(false);
+            sessions.save(session);
+            revoked++;
+        }
+        return revoked;
+    }
+
     public void disconnect(String token) {
         if (token == null || token.isBlank()) {
             return;

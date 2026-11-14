@@ -41,6 +41,8 @@ export const WsAction = {
   BONUS_RESULT: 'BONUS_RESULT',
   ARENA_ELIMINATED: 'ARENA_ELIMINATED',
   ARENA_ENDED: 'ARENA_ENDED',
+  /** La regia espelle una squadra: il telefono torna al setup. */
+  PLAYER_REMOVED: 'PLAYER_REMOVED',
   /** Pausa globale: ferma timer, input e animazioni anche sui telefoni. */
   GAME_PAUSED: 'GAME_PAUSED',
   GAME_RESUMED: 'GAME_RESUMED',

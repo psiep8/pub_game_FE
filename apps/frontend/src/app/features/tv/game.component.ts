@@ -528,6 +528,14 @@ export class GameComponent implements OnInit, OnDestroy {
 
       }
 
+      // Squadra espulsa dalla regia: sparisce dalla TV, ma i punti già presi
+      // restano in classifica perché non si cancellano senza una decisione.
+      if (status.action === WsAction.PLAYER_REMOVED && status.playerName) {
+        const expelled = String(status.playerName).trim();
+        this.presencePlayers.update((names) => names.filter((name) => name !== expelled));
+        this.leaderboardService.forgetIfNoPoints(expelled);
+      }
+
       // 🏟️ Esito Arena calcolato e trasmesso dal backend.
       if (mode?.type === 'ARENA' && status.action === 'ARENA_ANSWER') {
         const playerName = (status.playerName || status.name || 'Sconosciuto').trim();

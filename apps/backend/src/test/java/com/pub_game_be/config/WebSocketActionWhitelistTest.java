@@ -33,7 +33,7 @@ class WebSocketActionWhitelistTest {
     /** Dichiarate nell'enum ma nessun client le invia ancora. */
     private static final Set<String> NON_INVIATE = Set.of(
             "BUTTON_TEST_STEP", "BUTTON_TEST_START", "BUTTON_TEST_RESET", "BUTTON_TEST_SKIP", "BUTTON_TEST_FINISH",
-            "BONUS_RESULT");
+            "BONUS_RESULT", "PLAYER_REMOVED");
     /** Sotto questo numero il parse è rotto, non l'enum è corto. */
     private static final int AZIONI_ATTESE = 50;
 

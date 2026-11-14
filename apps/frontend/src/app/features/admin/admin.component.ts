@@ -66,6 +66,9 @@ export class Admin implements OnInit, OnDestroy {
   gameState = signal<'WAITING' | 'ACTIVE' | 'ROUND_ENDED'>('WAITING');
   payload = signal<any>(null);
   gameIdInput = signal<number>(Number(localStorage.getItem('activeGameId')) || 1);
+  /** Squadra in corso di espulsione e messaggio per il presentatore. */
+  readonly expelBusy = signal<string | null>(null);
+  readonly expelNotice = signal<string | null>(null);
 
   
   colorMap: { [key: string]: string } = {
@@ -698,6 +701,26 @@ export class Admin implements OnInit, OnDestroy {
 
   stopBonus(): void {
     this.ws.broadcastStatus(this.activeGameId(), { action: WsAction.ADMIN_STOP_BONUS });
+  }
+
+  /** Espelle una squadra entrata per errore: la sua vecchia sessione non vale più. */
+  expelPlayer(playerName: string): void {
+    const name = (playerName ?? '').trim();
+    if (!name || this.expelBusy()) return;
+    if (!window.confirm(`Espellere ${name} dalla partita?`)) return;
+    this.expelBusy.set(name);
+    this.games.expelPlayer(this.activeGameId(), name).subscribe({
+      next: () => {
+        this.expelBusy.set(null);
+        this.expelNotice.set(`${name} espulso. Può rientrare con un nuovo nome.`);
+        void this.refreshDiagnostics();
+        this.vibrate(30);
+      },
+      error: () => {
+        this.expelBusy.set(null);
+        this.expelNotice.set('Espulsione non riuscita: controlla l’abbinamento della regia.');
+      },
+    });
   }
 
   private vibrate(pattern: number | number[]) {

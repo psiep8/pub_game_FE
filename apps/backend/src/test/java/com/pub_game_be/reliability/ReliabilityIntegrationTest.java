@@ -480,6 +480,34 @@ class ReliabilityIntegrationTest {
         assertThat(reused.statusCode()).isEqualTo(401);
     }
 
+    @Test
+    void laRegiaEspelleUnaSquadraELiberaIlNomePerIlRientro() throws Exception {
+        long gameId = 531L;
+        String base = "/games/" + gameId;
+        var anna = sessions.register(gameId, "remote-expel", "REMOTE", "Anna", null);
+        var admin = sessions.register(gameId, "admin-expel", "ADMIN", null, null);
+        var tv = sessions.register(gameId, "tv-expel", "TV", null, null);
+
+        // Solo la regia espelle: la TV non è autorizzata.
+        assertThat(request("POST", base + "/players/expel", tv.sessionToken(), null,
+                "{\"playerName\":\"Anna\"}").statusCode()).isEqualTo(403);
+
+        var expelled = request("POST", base + "/players/expel", admin.sessionToken(), null,
+                "{\"playerName\":\"Anna\"}");
+        assertThat(expelled.statusCode()).as(expelled.body()).isEqualTo(200);
+        assertThat(json.readTree(expelled.body()).get("removed").asInt()).isEqualTo(1);
+
+        // La vecchia sessione non autentica più e il telefono non può risincronizzarsi.
+        assertThat(sessions.authenticate(anna.sessionToken())).isEmpty();
+        assertThat(request("GET", base + "/sync", anna.sessionToken(), null, null).statusCode())
+                .isEqualTo(401);
+
+        // Il nome è libero: chi rientra ottiene una sessione nuova, non quella espulsa.
+        var again = sessions.register(gameId, "remote-expel-2", "REMOTE", "Anna", null);
+        assertThat(again.resumed()).isFalse();
+        assertThat(again.sessionToken()).isNotEqualTo(anna.sessionToken());
+    }
+
     private HttpResponse<String> request(String method, String path, String token, String secret, String body) throws Exception {
         var builder = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path));
         if (token != null) builder.header("X-Session-Token", token);

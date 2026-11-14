@@ -790,6 +790,25 @@
 .diag-device.offline { background: var(--paper-2); }
 .diag-name { font-family: var(--font-mono); font-size: .68rem; }
 .diag-state { color: var(--tomato); }
+.diag-expel {
+  border: 2px solid var(--coal);
+  border-radius: 0;
+  background: var(--tomato);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  letter-spacing: .06em;
+  padding: 4px 8px;
+  box-shadow: 3px 3px 0 var(--coal);
+  cursor: pointer;
+}
+.diag-expel:disabled { opacity: .55; cursor: progress; }
+.diag-notice {
+  margin: 6px 0 0;
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  color: var(--coal);
+}
 
 .cat-input {
   border: 2px solid var(--coal);

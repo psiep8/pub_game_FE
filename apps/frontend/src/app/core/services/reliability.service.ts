@@ -129,6 +129,19 @@ export class ReliabilityService {
     this.started = false;
   }
 
+  /**
+   * Espulsione: il token viene buttato e il dispositivo smette di fare
+   * heartbeat, altrimenti al primo giro si riregistrerebbe da solo.
+   */
+  forgetSession(): void {
+    this.stop();
+    this.persistToken(null);
+    this.sessionToken.set(null);
+    this.playerName = '';
+    this.seenEvents.clear();
+    this.ws.disconnect();
+  }
+
   /** Ora del server: i timer del round non si basano sull'orologio del telefono. */
   serverNow(): number {
     return Date.now() + this.serverSkewMs();

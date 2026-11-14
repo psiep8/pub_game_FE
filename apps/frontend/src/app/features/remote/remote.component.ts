@@ -200,6 +200,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   showButtonTest = signal(false);
   /** Passo 2 del setup: il colore si sceglie dopo foto e nome. */
   readonly themeStep = signal(false);
+  /** La regia ha espulso questa squadra: si rientra dal setup. */
+  readonly removedNotice = signal(false);
   tempNickname = '';
   avatarPreview = signal<string | null>(null);
   private pendingAvatar: string | null = null;
@@ -693,6 +695,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.isBlocked.set(false);
           break;
 
+        case 'PLAYER_REMOVED':
+          if (status.playerName && status.playerName === this.nickname()) {
+            this.handleRemoved();
+          }
+          break;
+
         case 'BLOCKED_ERROR':
           if (status.blockedPlayer === this.nickname()) {
             this.isBlocked.set(true);
@@ -1022,6 +1030,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     }
     if (!await this.reliability.start(this.gameId(), 'REMOTE', name)) return;
     this.nickname.set(name);
+    this.removedNotice.set(false);
     this.showButtonTest.set(true);
     localStorage.setItem('nickname', name);
     this.ws.broadcastStatus(this.gameId(), { action: WsAction.JOIN_GAME, playerName: name });
@@ -2308,6 +2317,32 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if ('vibrate' in navigator) {
       navigator.vibrate(pattern);
     }
+  }
+
+  /**
+   * Espulsione dalla regia: si dimentica la sessione e si torna al setup. Il
+   * nome resta libero sul server, quindi il rientro è possibile con un tocco.
+   */
+  private handleRemoved(): void {
+    this.reliability.forgetSession();
+    this.closeManual();
+    this.stopMicrophoneListening();
+    this.stopBombaPolling();
+    if (this.tennisGoalTimer) {
+      clearTimeout(this.tennisGoalTimer);
+      this.tennisGoalTimer = undefined;
+    }
+    localStorage.removeItem('nickname');
+    this.nickname.set(null);
+    this.tempNickname = '';
+    this.themeStep.set(false);
+    this.showButtonTest.set(false);
+    this.roundActive.set(false);
+    this.hasAnswered.set(false);
+    this.selectedAnswer.set(null);
+    this.isBlocked.set(false);
+    this.gameState.set(PlayerStatus.WAITING);
+    this.removedNotice.set(true);
   }
 
   logout() {
