@@ -23,6 +23,8 @@ const MIN_RADIUS = 14;
 /** Venti secondi di respiro: il restringimento si distribuisce sul resto del round. */
 const SHRINK_GRACE_SECONDS = 20;
 const TICK_MS = 1000;
+/** Chi non risponde per questo tempo viene spinto verso il bordo come un errore. */
+const INACTIVITY_SECONDS = 15;
 
 export class ArenaMode extends GameModeBase {
   readonly type: GameModeType = 'ARENA';
@@ -31,6 +33,7 @@ export class ArenaMode extends GameModeBase {
   readonly requiresBuzz = false;
 
   private teams = signal<Map<string, ArenaTeamProgress>>(new Map());
+  private lastActionAt = new Map<string, number>();
   private circleRadius = signal<number>(100);
   private eliminatedPlayers = signal<string[]>([]);
   private gameEnded = signal<boolean>(false);
@@ -54,6 +57,7 @@ export class ArenaMode extends GameModeBase {
   }
 
   protected onCleanup(): void {
+    this.lastActionAt.clear();
     this.teams.set(new Map());
     this.circleRadius.set(100);
     this.eliminatedPlayers.set([]);
@@ -97,6 +101,10 @@ export class ArenaMode extends GameModeBase {
   protected override startTimer(): void {
     if (this.timerInterval) clearInterval(this.timerInterval);
 
+    // Il tempo di inattività decorre da quando parte il round, non dal pre-game.
+    const startedAt = Date.now();
+    this.lastActionAt = new Map(Array.from(this.teams().keys()).map((name) => [name, startedAt]));
+
     this.timerInterval = setInterval(() => {
       if (this.isPaused() || this.buzzedPlayer()) return;
 
@@ -105,6 +113,7 @@ export class ArenaMode extends GameModeBase {
         this.timer.set(current - 1);
         this.config.onTimerTick?.(current - 1);
         this.circleRadius.set(this.radiusForSecond(current));
+        this.penalizeInactive(Date.now());
         this.checkEliminations();
       } else {
         this.stopTimer();
@@ -157,6 +166,8 @@ export class ArenaMode extends GameModeBase {
     const team = currentTeams.get(teamKey);
     if (!team || team.eliminated) return;
 
+    this.lastActionAt.set(teamKey, Date.now());
+
     // Verso il centro si avanza più lentamente; l'errore spinge un po' meno
     // verso il bordo. Il bilanciamento va verificato con giocatori reali.
     const movement = isCorrect ? -5 : 12;
@@ -168,6 +179,31 @@ export class ArenaMode extends GameModeBase {
 
     this.teams.set(currentTeams);
     this.checkEliminations();
+  }
+
+  /**
+   * Chi resta fermo non può vincere restando al centro: dopo 15 secondi senza
+   * risposte riceve la stessa spinta di un errore. Se continua a non
+   * rispondere viene spinto di nuovo, finché non esce dal cerchio.
+   */
+  private penalizeInactive(now: number): void {
+    const currentTeams = new Map(this.teams());
+    let moved = false;
+
+    currentTeams.forEach((team, key) => {
+      if (team.eliminated) return;
+      const last = this.lastActionAt.get(key) ?? now;
+      if (now - last < INACTIVITY_SECONDS * 1000) return;
+
+      currentTeams.set(key, {
+        ...team,
+        distance: Math.min(100, team.distance + 12),
+      });
+      this.lastActionAt.set(key, now);
+      moved = true;
+    });
+
+    if (moved) this.teams.set(currentTeams);
   }
 
   private checkEliminations(): void {

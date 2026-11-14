@@ -35,4 +35,27 @@ describe('ArenaMode', () => {
     expect(mode.getDisplayData().teams[0].distance).toBe(37);
     mode.cleanup();
   });
+
+  it('spinge fuori chi resta inattivo e azzera il conteggio quando risponde', async () => {
+    vi.useFakeTimers();
+    const mode = new ArenaMode();
+    mode.setConfig({ type: 'ARENA', payload: {}, gameId: 1, activePlayers: ['Anna', 'Bruno'] });
+    mode.initialize({});
+    await mode.start();
+
+    const initial = mode.getDisplayData().teams[0].distance;
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(mode.getDisplayData().teams[0].distance).toBe(initial + 12);
+
+    mode.applyArenaAnswer('Anna', true);
+    const afterAnswer = mode.getDisplayData().teams[0].distance;
+    expect(afterAnswer).toBe(initial + 12 - 5);
+
+    await vi.advanceTimersByTimeAsync(14_000);
+    expect(mode.getDisplayData().teams[0].distance).toBe(afterAnswer);
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(mode.getDisplayData().teams[0].distance).toBe(afterAnswer + 12);
+    mode.cleanup();
+  });
 });
