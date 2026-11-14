@@ -61,6 +61,26 @@ describe('GameComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('non fa tornare indietro la scaletta dopo un round saltato', () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    rounds.restoreRound(30);
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+
+    tv.applyAuthoritativeState({ hasState: true, status: 'RUNNING', roundIndex: 24, roundType: 'QUIZ' });
+
+    expect(rounds.getCurrentRound()).toBe(30);
+  });
+
+  it('adotta l avanzamento del server su una TV nuova', () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    rounds.restoreRound(0);
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+
+    tv.applyAuthoritativeState({ hasState: true, status: 'RUNNING', roundIndex: 24, roundType: 'QUIZ' });
+
+    expect(rounds.getCurrentRound()).toBe(25);
+  });
+
   it('distribuisce le categorie prima di ripeterle', () => {
     component.allCategories.set([
       { id: 1, name: 'Storia' },

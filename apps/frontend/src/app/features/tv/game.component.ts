@@ -2180,7 +2180,11 @@ export class GameComponent implements OnInit, OnDestroy {
       const roundIndex = Number(snapshot.roundIndex);
       if (Number.isFinite(roundIndex) && roundIndex >= 0) {
         const rounds = status === 'CREATED' || !snapshot.roundType ? 0 : roundIndex + 1;
-        this.roundManager.restoreRound(rounds);
+        // Un round saltato con AVANTI non crea una riga sul server: il suo
+        // conteggio può essere più basso della scaletta già giocata. Ripartire
+        // da lì rigiocherebbe un gioco (per esempio una sesta Ultima spiaggia).
+        const safeRounds = Math.max(this.roundManager.getCurrentRound(), rounds);
+        this.roundManager.restoreRound(safeRounds);
         this.roundInfo.set(this.roundManager.getProgress().text);
       }
     }
