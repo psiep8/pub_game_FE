@@ -165,7 +165,22 @@ La versione dichiarata nel progetto è **2.1.0**; riferimento del codice esamina
 - **A3 — prova audio regia:** sezione con pulsante per ogni evento e controlli dei volumi per ascolto di sala, coerente con lo stile del progetto. Test di catalogo, presenza risorse ed eventi; ascolto reale di almeno 10 minuti a volume di sala.
 - **A4 / B6 — urti Biglie e roulette:** collegamento alle collisioni una volta disponibili catalogo ed eventi fisici; volume dipendente dall'urto, limiti e prevenzione sovrapposizioni.
 
-**Fonti e licenze:** non è stato ancora selezionato o scaricato alcun nuovo suono. Per ogni futuro file registrare fonte, autore, licenza e obblighi in `docs/AUDIO-CREDITI.md`; verificare uso commerciale e attribuzione effettivi. Preferire campioni brevi, mono per effetti, formati compatibili con iOS e peso complessivo indicativo 3–4 MB, misurato. Evitare affermazioni su licenze non verificate.
+**Fonti e licenze:** il catalogo è in `docs/AUDIO-CREDITS.md` (creato il 14 novembre 2026). Verificato che non ci sono file audio nel repository: effetti e tappeto sono sintetizzati con Web Audio; `@foleyjs/core 2.9.0` è MIT. Nessun nuovo suono registrato è stato selezionato: per ogni futuro file registrare fonte, autore, licenza e obblighi nello stesso documento, verificando uso commerciale e attribuzione. Preferire campioni brevi, mono per effetti, formati compatibili con iOS e peso complessivo indicativo 3–4 MB, misurato. Evitare affermazioni su licenze non verificate.
+
+## Matrice di ripresa dopo un refresh (F06)
+
+| Momento del refresh | Cosa torna | Esito |
+|---|---|---|
+| Lobby / TV appena aperta | `activeGameId`, presenza, classifica dal server | ✅ |
+| Round Timeline aperto | Carte nel payload e timer dal server; overlay «RIPRENDI» | ✅ |
+| Blackjack aperto | Mano salvata sul server (`blackjackState`) e timer | ✅ |
+| Altri giochi a round aperto | Il round resta aperto sul server, ma mano/fasi vivono solo in TV: si può solo chiuderlo e avanzare | ⚠️ |
+| Bonus (Casino, Cavallo, Biglie) | Nessuno stato bonus sul server: non riprendibile, va richiuso/rigiocato dalla regia | ❌ |
+| Classifica a schermo | Punti e nomi tornano; l'animazione di reveal riparte da capo | ⚠️ |
+| Telefono | Sessione e squadra tornano, tutorial saltato; Bomba riprende il polling, Arena chiede una nuova domanda | ✅/⚠️ |
+| Regia | Snapshot e diagnostica disponibili; le azioni in corso non vengono ricostruite | ⚠️ |
+
+La ripresa completa dei bonus richiede di salvare lato server anche lo stato del bonus: è un intervento separato, non incluso qui.
 
 ## Ordine di lavoro proposto
 
@@ -199,6 +214,12 @@ La versione dichiarata nel progetto è **2.1.0**; riferimento del codice esamina
 | F24 | Verificato nel codice, resta prova su telefono | — | — | Le caselle Bomba hanno già lista verticale scorrevole (`overflow-y: auto`); nessun cambio CSS senza una prova reale. |
 | F25 | Corretto, verificato nei test | **55 test frontend + 5 backend mirati passati** | `1426613` | Il server emette l'evento `bomb` alla scelta: TV e telefono mostrano subito l'esplosione, la penalità si applica una volta sola e gli altri esiti restano nascosti fino a fine ondata. Anche il turno scaduto ora scala la penalità in TV. |
 | F20 | Corretto, da provare in sala | **55 test frontend passati** (immagine, tempi/manuale, remoto, TV) | `9ff8aa6` | Un indizio ogni 6 s anziché 15 e fino a 8 indizi per biografia; manuale, demo e test allineati. Resta da provare in sala che il ritmo sia leggibile. |
+| F10 | Corretto, verificato nei test | **22 test TV passati** (2 nuovi) | `e4b0e7e` | La categoria si sceglie tra quelle uscite meno nella serata: niente più Storia dominante per caso puro. Timeline resta sulle categorie con eventi. Da confermare su più scalette in sala. |
+| F26 | Parziale | **31 test Bomba/remoto passati** | `e21276f` | Flash, vibrazione e sirena sul telefono di chi prende la bomba; la TV scrive bomba e tempo scaduto. Suono e vibrazione reali restano da provare su dispositivi; chi non può vibrare vede comunque il testo. |
+| F32 | Parziale | **3 test Arena passati** (1 nuovo) | — | Dopo 15 s senza risposte la squadra viene spinta di +12, come un errore; rispondere azzera il timer. Il limite vive nella TV: dopo un refresh o una riconnessione il conteggio riparte, e non è ancora autorevole sul server. |
+| F01 | Parziale | **5 test guardie passati** | `65ea3f2` | La decisione mobile si prende una volta per sessione e i redirect usano `replaceUrl`: il rimbalzo /tv ↔ /play dovuto a Safari che espone il touch in ritardo non può più accumulare navigazioni. Riproduzione su iPhone reale non eseguita. |
+| F34 | Corretto, verificato nei test | **24 test TV passati** (2 nuovi) | `6157b69` | Il ripristino non fa regredire la scaletta quando il server conta meno round (round saltati con AVANTI): sparisce il meccanismo che poteva rigiocare una sesta Ultima spiaggia. La causa esatta in sala resta da confermare con i log. |
+| F06 | Parziale (matrice) | Audit di snapshot, ripresa TV e sessioni | — | Ripresa automatica: classifica, round Timeline e Blackjack, telefoni. **Non** riprendibili: bonus e stati solo-TV (Arena, Bomba, Quiz in corso, Speed Rush); la TV offre di chiudere il round e avanzare. Matrice sotto. |
 | F12 | Diagnosi fatta, serve una decisione | Letti `settleRoundWinner` e `applyRoundWinnerTheme`; cinque test esistenti coprono i casi | — | Il tema del vincitore si applica all'inizio del round successivo, ma solo se quella squadra ha scelto una palette: senza scelta il tema è l'acido di default e il cambio non si vede. Inoltre la classifica fra i round torna sempre all'acido. Per rendere il colore percepibile serve una decisione: assegnare palette diverse di default alle squadre (o un segnaposto visibile del vincitore). |
 | F21 | Corretto, verificato nei test | **3 test backend passati** (`CelebrityClueLeakTest`) | `3555a61` | Gli indizi scartavano il nome intero ma non il solo cognome o nome: ora ogni frase che contiene un token identificativo della celebrità viene scartata, anche con accenti e maiuscole diverse. La revisione della banca resta da fare. |
 | Suite complete | Verificate | **221 test frontend (35 file) e 109 backend passati** | — | Eseguite dopo il ripristino dei file corrotti dal crash di WSL; coprono F20, F21 e F25. |
