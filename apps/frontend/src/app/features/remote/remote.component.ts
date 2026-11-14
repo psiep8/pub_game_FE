@@ -325,6 +325,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   arenaEliminated = signal(false);
   /** Ignora risposte HTTP superate: una prova vecchia non deve coprire quella nuova. */
   private arenaLoadSeq = 0;
+  /** Un solo invio per domanda: il doppio tocco non deve saltare la successiva. */
+  private arenaAnswerPending = false;
 
   /** Prova corrente del mazzo (null tra una prova e l'altra). */
   speedTask = signal<SpeedTask | null>(null);
@@ -2270,27 +2272,35 @@ export class RemoteComponent implements OnInit, OnDestroy {
   sendArenaAnswer(index: number) {
     const q = this.arenaQuestion();
     const playerName = this.nickname();
-    if (!q || !q.options || !playerName || this.arenaEliminated()) return;
+    if (!q || !q.options || !playerName || this.arenaEliminated() || this.arenaAnswerPending) return;
 
     // Il telefono manda solo la risposta scelta: giusto/sbagliato lo decide il backend.
     // La chiave di idempotenza è stabile: se il Wi-Fi cade e il telefono
     // ritenta, il server risponde con l'esito già registrato.
-    const key = this.reliability.idempotencyKey('arena', `${playerName}:${q.questionId}`);
+    const questionId = q.questionId;
+    this.arenaAnswerPending = true;
+    const key = this.reliability.idempotencyKey('arena', `${playerName}:${questionId}`);
     this.gameService
-      .answerArenaQuestion(this.gameId(), playerName, q.questionId, q.options[index], key, this.reliability.deviceId())
+      .answerArenaQuestion(this.gameId(), playerName, questionId, q.options[index], key, this.reliability.deviceId())
       .subscribe({
         next: (res: any) => {
+          this.arenaAnswerPending = false;
           const isCorrect = !!res.correct;
           // Il backend comunica l'esito alla TV dopo averlo registrato.
           this.vibrate(isCorrect ? 50 : [50, 50, 50]);
+          // Se nel frattempo è arrivata una domanda nuova, questa risposta non
+          // deve cancellarla: sarebbe un salto mentre il giocatore la legge.
+          if (this.arenaQuestion()?.questionId !== questionId) return;
           this.arenaQuestion.set(null);
           // Un errore costa una pausa breve: rispondere a caso non conviene,
           // ma la domanda successiva deve arrivare subito.
           setTimeout(() => this.generateNextArenaQuestion(), isCorrect ? 0 : 600);
         },
         error: (err: any) => {
+          this.arenaAnswerPending = false;
           console.error('❌ Risposta arena rifiutata dal server:', err);
           // Round chiuso o scaduto: non si insiste, si aspetta la TV.
+          if (this.arenaQuestion()?.questionId !== questionId) return;
           if (err?.status === 409) {
             this.arenaQuestion.set(null);
             this.gameState.set(PlayerStatus.WAITING);

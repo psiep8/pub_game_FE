@@ -288,6 +288,20 @@ describe('RemoteComponent', () => {
     expect(component.showButtonTest()).toBe(true);
   });
 
+  it('con un doppio tocco invia una sola risposta Arena e non salta la domanda', () => {
+    component.nickname.set('Anna');
+    component.arenaQuestion.set({ text: 'Domanda', options: ['A', 'B'], isTrueFalse: false, questionId: 'q1' });
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const pending = new Subject<any>();
+    const answer = vi.spyOn(game, 'answerArenaQuestion').mockReturnValue(pending.asObservable());
+
+    component.sendArenaAnswer(0);
+    component.sendArenaAnswer(1);
+
+    expect(answer).toHaveBeenCalledTimes(1);
+    expect(component.arenaQuestion()?.questionId).toBe('q1');
+  });
+
   it('ignora una domanda Arena arrivata dopo una richiesta più recente', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();
