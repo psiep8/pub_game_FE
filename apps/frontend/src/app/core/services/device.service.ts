@@ -2,7 +2,21 @@ import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class DeviceService {
+  /**
+   * La decisione si prende una volta sola. Safari su iPhone/iPad può esporre
+   * touch e larghezza con qualche istante di ritardo: ricalcolare a ogni
+   * guardia faceva rimbalzare la stessa sessione tra /tv e /play.
+   */
+  private mobileDecision?: boolean;
+
   isMobile(): boolean {
+    if (this.mobileDecision === undefined) {
+      this.mobileDecision = this.detectMobile();
+    }
+    return this.mobileDecision;
+  }
+
+  private detectMobile(): boolean {
     const userAgent = navigator.userAgent.toLowerCase();
 
     

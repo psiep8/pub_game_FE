@@ -13,7 +13,9 @@ export class MobileOnlyGuard {
     if (new URLSearchParams(window.location.search).get('quad') === '1') return true;
 
     if (this.device.isDesktop()) {
-      this.router.navigate(['/tv']);
+      if (!this.router.url.startsWith('/tv')) {
+        void this.router.navigate(['/tv'], { replaceUrl: true });
+      }
       return false;
     }
 

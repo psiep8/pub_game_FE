@@ -9,7 +9,10 @@ export class DesktopOnlyGuard {
 
   canActivate(): boolean {
     if (this.device.isMobile()) {
-      this.router.navigate(['/play']);
+      // replaceUrl evita che ogni rimbalzo finisca nella cronologia Safari.
+      if (!this.router.url.startsWith('/play')) {
+        void this.router.navigate(['/play'], { replaceUrl: true });
+      }
       return false;
     }
 
