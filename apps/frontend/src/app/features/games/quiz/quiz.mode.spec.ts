@@ -1,3 +1,4 @@
+import { GAME_TIMINGS } from '../../../shared/models/game-timings';
 import { GameModeConfig } from '../../../shared/models/game-mode-type';
 import { QuizMode } from './quiz.mode';
 
@@ -33,7 +34,8 @@ describe('QuizMode', () => {
       playerName: 'Anna',
       isCorrect: true,
       playerChoice: 'Roma',
-      points: 800,
+      // Il valore scende in proporzione ai secondi rimasti della manche.
+      points: Math.round(1000 * (1 - 2000 / (GAME_TIMINGS.QUIZ.mancheSeconds * 1000))),
     });
   });
 

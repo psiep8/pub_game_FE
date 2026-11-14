@@ -19,7 +19,7 @@ const MANCHE_SECONDS = GAME_TIMINGS.QUIZ.mancheSeconds;
 const REVEAL_SECONDS = 3;
 
 /**
- * Quiz — tre manches da dieci secondi.
+ * Quiz — tre manches da quindici secondi.
  *
  * Il round vale 1000 punti in tutto, divisi tra le tre domande in base alla
  * difficolta: una facile pesa 1, una media 1,5, una difficile 2. Dentro la

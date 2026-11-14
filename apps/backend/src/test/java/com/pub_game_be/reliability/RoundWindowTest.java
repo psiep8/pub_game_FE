@@ -31,7 +31,7 @@ class RoundWindowTest {
     /** Durata dichiarata del round, come nel gioco. */
     private static Map<String, Long> roundSeconds() {
         Map<String, Long> rounds = new LinkedHashMap<>();
-        rounds.put("QUIZ", 3 * (10 + 3L));
+        rounds.put("QUIZ", 3 * (15 + 3L));
         rounds.put("MUSIC", 200L);
         rounds.put("IMAGE_BLUR", 60L);
         rounds.put("WHEEL_OF_FORTUNE", 75L);

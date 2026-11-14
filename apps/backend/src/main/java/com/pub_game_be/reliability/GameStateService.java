@@ -469,7 +469,7 @@ public class GameStateService {
      * gioco e non una proprietà globale uguale per tutti.
      */
     private static final Map<String, Integer> ROUND_SECONDS = Map.ofEntries(
-            Map.entry("QUIZ", 3 * (10 + 3)),
+            Map.entry("QUIZ", 3 * (15 + 3)),
             Map.entry("MUSIC", 200),
             Map.entry("IMAGE_BLUR", 60),
             Map.entry("WHEEL_OF_FORTUNE", 75),

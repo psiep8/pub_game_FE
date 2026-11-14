@@ -8,7 +8,7 @@
 export const GAME_TIMINGS = {
   QUIZ: {
     manches: 3,
-    mancheSeconds: 10,
+    mancheSeconds: 15,
   },
   MUSIC: {
     manches: 4,
