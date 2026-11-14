@@ -53,8 +53,9 @@ class SpeedRushBasketServiceTest {
 
     @Test
     void laCorsaNonSiChiudeConPocheRisposteGiuste() {
-        // Prima bastavano 4-5 risposte: il traguardo deve richiederne almeno 20.
-        assertThat(SpeedRushService.minimumCorrectAnswers()).isGreaterThanOrEqualTo(20);
+        // Le prime sei corrette valgono 2, dalla settima il raddoppio porta 4:
+        // il traguardo da 100 richiede 28 risposte, non 25.
+        assertThat(SpeedRushService.minimumCorrectAnswers()).isEqualTo(28);
     }
 
     @Test

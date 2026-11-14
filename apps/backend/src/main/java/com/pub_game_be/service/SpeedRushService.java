@@ -384,9 +384,21 @@ public class SpeedRushService {
         return streak >= 6 ? MAX_MULTIPLIER : 1;
     }
 
-    /** Minimo di risposte giuste per finire: usato dai test come contratto. */
+    /**
+     * Minimo di risposte giuste per finire: usato dai test come contratto.
+     * Le prime sei valgono 2, dalla settima il raddoppio porta 4: non basta
+     * dividere il traguardo per il passo massimo (verrebbero 25 invece di 28).
+     */
     static int minimumCorrectAnswers() {
-        return (100 + STEP_FORWARD * MAX_MULTIPLIER - 1) / (STEP_FORWARD * MAX_MULTIPLIER);
+        int answers = 0;
+        int progress = 0;
+        int streak = 0;
+        while (progress < 100) {
+            answers++;
+            streak++;
+            progress += STEP_FORWARD * (streak >= 6 ? MAX_MULTIPLIER : 1);
+        }
+        return answers;
     }
 
     /**
