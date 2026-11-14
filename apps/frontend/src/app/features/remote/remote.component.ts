@@ -321,6 +321,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private dragId: number | null = null;
 
   arenaEliminated = signal(false);
+  /** Ignora risposte HTTP superate: una prova vecchia non deve coprire quella nuova. */
+  private arenaLoadSeq = 0;
 
   /** Prova corrente del mazzo (null tra una prova e l'altra). */
   speedTask = signal<SpeedTask | null>(null);
@@ -2101,6 +2103,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   generateNextArenaQuestion() {
     if (this.arenaEliminated() || this.gameState() === PlayerStatus.ELIMINATED) return;
+    const seq = ++this.arenaLoadSeq;
     this.isFetchingQuestion.set(true);
     this.arenaQuestion.set(null); // Show loading state if template supports it
 
@@ -2115,6 +2118,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
     this.gameService.getArenaQuestion(this.gameId(), selectedCategory, playerId).subscribe({
       next: (q: any) => {
+        // Una richiesta partita prima può arrivare dopo: la sua domanda è
+        // vecchia e non deve sostituire quella già a schermo.
+        if (seq !== this.arenaLoadSeq || this.gameState() === PlayerStatus.ELIMINATED) return;
         this.arenaQuestion.set({
           text: q.question,
           options: q.options,
@@ -2125,6 +2131,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         this.isFetchingQuestion.set(false);
       },
       error: (err: any) => {
+        if (seq !== this.arenaLoadSeq) return;
         console.error('❌ Fallito recupero domanda arena:', err);
         // Senza questionId il server non può validare la risposta: meglio
         // restare in attesa che mandare in giro un esito calcolato qui.

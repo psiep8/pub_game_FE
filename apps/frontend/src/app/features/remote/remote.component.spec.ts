@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SwUpdate } from '@angular/service-worker';
+import { Subject } from 'rxjs';
 import { vi } from 'vitest';
 
 import { RemoteComponent } from './remote.component';
@@ -108,6 +109,29 @@ describe('RemoteComponent', () => {
 
     expect(component.nickname()).toBe('Anna');
     expect(component.showButtonTest()).toBe(true);
+  });
+
+  it('ignora una domanda Arena arrivata dopo una richiesta più recente', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const pending: Subject<any>[] = [];
+    vi.spyOn(game, 'getArenaQuestion').mockImplementation(() => {
+      const request = new Subject<any>();
+      pending.push(request);
+      return request.asObservable();
+    });
+
+    component.onStartVoting('ARENA');
+    component.generateNextArenaQuestion();
+    expect(pending).toHaveLength(2);
+
+    pending[1].next({ question: 'Nuova', options: ['A', 'B'], questionId: 'q2' });
+    pending[0].next({ question: 'Vecchia', options: ['A', 'B'], questionId: 'q1' });
+
+    expect(component.arenaQuestion()?.questionId).toBe('q2');
+    expect(component.arenaQuestion()?.text).toBe('Nuova');
   });
 
   it('should only keep the active categories for the arena', () => {
