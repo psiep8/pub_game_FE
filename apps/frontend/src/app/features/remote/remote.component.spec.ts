@@ -49,6 +49,24 @@ describe('RemoteComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('non anticipa il nome del gioco nell’intestazione, nemmeno dopo il riallineamento', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.header-round').textContent).not.toContain('Quiz');
+
+    reliability.syncState$.next({
+      hasState: true,
+      roundType: 'TIMELINE',
+      roundKey: 'g1-r1',
+      roundDeadlineAt: Date.now() + 60_000,
+      currentRound: { type: 'TIMELINE', roundKey: 'g1-r1', payload: { items: [] } },
+    });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.header-round').textContent).not.toContain('Timeline');
+  });
+
   it('chiede nome e foto prima del tutorial', async () => {
     // Prima del nome la prova dei pulsanti non esiste: si entra con nome e
     // foto, poi si prova il telefono, poi si aspetta la TV.
