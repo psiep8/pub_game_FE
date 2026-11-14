@@ -61,6 +61,40 @@ describe('GameComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('distribuisce le categorie prima di ripeterle', () => {
+    component.allCategories.set([
+      { id: 1, name: 'Storia' },
+      { id: 2, name: 'Scienza' },
+      { id: 3, name: 'Sport' },
+    ]);
+    const pick = () => (component as unknown as { pickCategoryName(): string }).pickCategoryName();
+
+    for (let round = 0; round < 3; round++) pick();
+
+    const counts = new Map<string, number>();
+    for (let round = 0; round < 6; round++) {
+      const name = pick();
+      counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+
+    expect(counts.size).toBe(3);
+    expect(Math.max(...counts.values()) - Math.min(...counts.values())).toBeLessThanOrEqual(1);
+  });
+
+  it('per Timeline pesca solo categorie con eventi', () => {
+    component.allCategories.set([
+      { id: 1, name: 'Storia', timeline: true },
+      { id: 2, name: 'Scienza', timeline: true },
+      { id: 3, name: 'Sport', timeline: false },
+    ]);
+    const seen = new Set<string>();
+    for (let round = 0; round < 6; round++) {
+      seen.add((component as unknown as { pickTimelineCategoryName(): string }).pickTimelineCategoryName());
+    }
+
+    expect([...seen].sort()).toEqual(['Scienza', 'Storia']);
+  });
+
   it('shows the intro once and remembers it after dismissal', () => {
     expect(component.phase()).toBe(GamePhase.INTRO);
     expect(localStorage.getItem('pubgame.intro.seen')).toBe('1');

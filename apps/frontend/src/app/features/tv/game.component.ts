@@ -1126,18 +1126,30 @@ export class GameComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Categorie già uscite nella serata. Il caso puro faceva uscire Storia molto
+   * più spesso delle altre: si sceglie tra quelle uscite meno, poi a caso.
+   */
+  private categoryUses = new Map<string, number>();
+
   private pickCategoryName(): string {
-    const categories = this.allCategories();
-    if (categories.length === 0) return 'CULTURA GENERALE';
-    const randomIndex = Math.floor(Math.random() * categories.length);
-    return categories[randomIndex].name;
+    return this.pickFairCategory(this.allCategories());
   }
 
   private pickTimelineCategoryName(): string {
     const categories = this.allCategories().filter((category) => category.timeline);
-    if (categories.length === 0) return this.pickCategoryName();
-    const randomIndex = Math.floor(Math.random() * categories.length);
-    return categories[randomIndex].name;
+    if (categories.length === 0) return this.pickFairCategory(this.allCategories());
+    return this.pickFairCategory(categories);
+  }
+
+  private pickFairCategory(pool: ReadonlyArray<{ name: string }>): string {
+    if (pool.length === 0) return 'CULTURA GENERALE';
+    const uses = (name: string): number => this.categoryUses.get(name) ?? 0;
+    const minimum = Math.min(...pool.map((category) => uses(category.name)));
+    const leastUsed = pool.filter((category) => uses(category.name) === minimum);
+    const chosen = leastUsed[Math.floor(Math.random() * leastUsed.length)];
+    this.categoryUses.set(chosen.name, uses(chosen.name) + 1);
+    return chosen.name;
   }
 
   /**
