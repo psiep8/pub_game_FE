@@ -231,7 +231,9 @@ public class CelebrityImageService {
                     continue;
                 }
                 addClue(clues, sentence, celebrityName);
-                if (clues.size() >= 4) {
+                // Il round dura 60 secondi e la TV ne mostra uno ogni 6:
+                // fino a otto indizi, se la biografia li offre.
+                if (clues.size() >= 8) {
                     break;
                 }
             }

@@ -16,7 +16,8 @@ export const GAME_TIMINGS = {
   },
   IMAGE_BLUR: {
     seconds: 60,
-    clueEverySeconds: 15,
+    // Più indizi e più ravvicinati: uno ogni sei secondi, come chiesto in sala.
+    clueEverySeconds: 6,
   },
   WHEEL_OF_FORTUNE: {
     seconds: 75,

@@ -7,7 +7,7 @@ import {GameModeResult, GameModeType} from '../../../shared/models/game-mode-typ
 
 export class ImageBlurMode extends GameModeBase {
   readonly type: GameModeType = 'IMAGE_BLUR';
-  /** Round da 60 secondi: un indizio ogni 15, quattro in tutto. */
+  /** Round da 60 secondi: un indizio ogni 6, fino a otto in tutto. */
   readonly timerDuration = GAME_TIMINGS.IMAGE_BLUR.seconds;
   readonly requiresBubbles = false;
   readonly requiresBuzz = true;

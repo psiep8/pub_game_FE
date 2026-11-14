@@ -125,7 +125,7 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
     icon: '🕵️',
     objective: [
       'La foto parte sfocata e si schiarisce con il tempo: il round dura 60 secondi.',
-      'Un indizio ogni 15 secondi: vita, film, carriera, curiosità.',
+      'Un indizio ogni 6 secondi: vita, film, carriera, curiosità.',
       'Prenota quando riconosci il personaggio: la risposta si dice a voce.',
     ],
     phone: [
