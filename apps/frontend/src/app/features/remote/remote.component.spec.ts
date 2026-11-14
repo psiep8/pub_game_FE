@@ -143,6 +143,29 @@ describe('RemoteComponent', () => {
     expect(component.gameState()).toBe('LOCKED');
   });
 
+  it('mostra risposta inviata dopo un voto Quiz senza parlare di prenotazione', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    component.onStartVoting('QUIZ');
+    component.sendVote(2);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('RISPOSTA INVIATA');
+    expect(fixture.nativeElement.textContent).not.toContain('Sei PRENOTATO!');
+  });
+
+  it('mantiene il messaggio di prenotazione per i giochi con buzzer', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    component.onStartVoting('MUSIC');
+    component.sendBuzz();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Sei PRENOTATO!');
+  });
+
   it('keeps the phone unlocked when a vote or buzz cannot be sent', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();

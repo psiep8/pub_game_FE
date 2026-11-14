@@ -788,6 +788,9 @@
     }
     }
     @case ('LOCKED') {
+    @if (questionType() === 'QUIZ') {
+    <app-sent-state icon="✅" title="RISPOSTA INVIATA" hint="Attendi gli altri tavoli" />
+    } @else {
     <div class="status-msg locked">
       <div class="locked-icon">🎤</div>
       <p>Sei PRENOTATO!</p>
@@ -796,6 +799,7 @@
       <p class="sub-text">Hai scelto: {{ chosenLetter() }}</p>
       }
     </div>
+    }
     }
     @case ('WAITING_FOR_OTHER') {
     <div class="status-msg others">
