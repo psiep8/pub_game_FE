@@ -15,7 +15,8 @@
 - Il telefono non mostra più «Sincronizzazione non riuscita» come testo tecnico: la rete resta sul badge OFFLINE e il primo heartbeat riprova lo snapshot.
 - Il badge di connessione usa carta e inchiostro, con mint/mustard/tomato per gli stati, al posto della vecchia pillola scura.
 - Timeline sul telefono: le etichette restano dentro le carte anche su schermi da 320×568, senza coprire la riga successiva.
-- Arena: il timeout di inattività è calcolato dal server; la TV applica insieme le penalità ricevute e conserva quelle arrivate durante la pausa. In pausa il server rifiuta nuove domande e risposte, mantenendo la domanda sul telefono. La consegna delle penalità dopo una risposta HTTP persa resta da completare.
+- Arena: il server conserva le penalità cumulative per recuperare una risposta HTTP del tick persa; la TV applica gli incrementi e conserva le penalità ricevute durante la pausa. Il tempo in pausa è accreditato alla ripresa anche senza polling, e una risposta non cancella penalità già maturate. Il refresh della TV durante Arena non ripristina ancora il round (F06).
+- Telefono: il riallineamento riconosce un round ancora aperto durante una pausa lunga; in Arena ignora richieste tardive, sospende i tentativi di domanda in pausa e mantiene la stessa risposta per un ritentativo dopo mancata conferma.
 
 Tutte le modifiche rilevanti di PubGame. Formato basato su Keep a Changelog,
 versione SemVer.
