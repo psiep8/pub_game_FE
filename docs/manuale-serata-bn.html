@@ -221,7 +221,7 @@
       <li><b>Bomba</b>: tabellone a turni, una bomba ogni tre squadre. Casella vera 0, bomba −200.</li>
       <li><b>Azzardo</b>: 4 manche su CELEBRITÀ, CANZONI, PAESI, STORIA; puntate 100/200/300 e quota ×2/×3/×4.</li>
       <li><b>Ultima spiaggia</b>: una manche per occorrenza; i livelli si consumano tra le apparizioni.</li>
-      <li><b>Black Jack</b>: naturale +500, vittoria +250, sconfitta −250. Niente cumuli.</li>
+      <li><b>Cinque bonus</b>: Casino bianco/rosso, Blackjack, Casino dozzina, Cavallo e Casino numero secco, uno dopo ogni atto.</li>
       <li><b>Time Buzzer</b>: cinque fasce per posizione, tagli dopo la manche 1 e la manche 2.</li>
       <li><b>Ruota</b>: una lettera ogni 8 secondi, la prima dopo 1 secondo.</li>
       <li><b>Tennis Battle e Arena</b>: punteggi e tempi allineati al regolamento attuale.</li>
@@ -232,7 +232,7 @@
     <span><b>01</b> Ruoli, flusso e comandi <em>p. 2</em></span>
     <span><b>02</b> Scaletta e classifiche <em>p. 3</em></span>
     <span><b>03</b> Giochi: Quiz, Indovina chi, Musica, Timeline, Ruota <em>p. 4</em></span>
-    <span><b>04</b> Giochi: Time Buzzer, Bomba, Speed Rush, Tennis Battle <em>p. 5</em></span>
+    <span><b>04</b> Giochi: Time Buzzer, Bomba, Speed Rush, Tennis Battle, Biglie <em>p. 5</em></span>
     <span><b>05</b> Giochi: Azzardo, Ultima spiaggia, Tennis Battle, Arena <em>p. 6</em></span>
     <span><b>06</b> Bonus e tabella punteggi <em>p. 7</em></span>
   </div>
@@ -333,7 +333,7 @@
 <section class="page">
   <div class="topline"><span><b class="tag">02</b> / La scaletta</span><span class="folio">03 / 07</span></div>
   <h2>40 ROUND,<br>CINQUE ATTI</h2>
-  <p class="lede" style="font-size:9.4pt;margin-bottom:3mm">L'ordine è fisso. Ogni atto ha otto round; dopo gli atti 1–4 c'è un bonus, dopo il quinto la classifica finale. Mai due giochi in tempo reale di fila.</p>
+  <p class="lede" style="font-size:9.4pt;margin-bottom:3mm">L'ordine è fisso. Ogni atto ha otto round; dopo ognuno dei cinque atti c'è un bonus diverso, poi la classifica. Mai due giochi in tempo reale di fila.</p>
 
   <table class="schedule">
     <thead>
@@ -440,7 +440,7 @@
       <h3 style="font-size:10.2pt">LA LOGICA</h3>
       <p>Nessun gioco in tempo reale due volte di fila. Le quattro Biglie sono round separati ai round 3, 5, 11 e 22.</p>
       <p>L'Arena chiude l'atto 3 e la serata. Azzardo apre l'atto 2 e torna al 37, quando chi è indietro deve rischiare.</p>
-      <p>Time Buzzer esce tre volte; Speed Rush tre; Bomba e Tennis due. Black Jack resta solo come bonus.</p>
+      <p>Time Buzzer esce tre volte; Speed Rush tre; Bomba e Tennis due. Blackjack resta solo come bonus.</p>
     </div>
   </div>
 
@@ -604,19 +604,14 @@
     </article>
 
     <article class="game-card">
-      <div class="game-top"><h3>BLACK JACK</h3><span class="time">3 MANCHE · 15 SEC PER DECIDERE</span></div>
-      <div class="where"><b>TV</b> banco + tavolo di turno · <b>TEL</b> carta / stai · <b>BANCO</b> si ferma a 17</div>
-      <p>Un tavolo alla volta, <b>15 secondi</b> per chiedere carta o stare. Il banco rimescola a ogni mano e si ferma a <b>17 o più</b>. Tre manche per squadra, una per atto (round 3, 11, 22).</p>
-      <p><b>Punteggio secco.</b> Ogni mano si paga subito: non ci sono punti cumulativi né memoria dei round precedenti. La sconfitta costa sempre <b>−250</b> e non porta mai la classifica sotto zero.</p>
-      <table class="mini-table">
-        <tr><th>Esito</th><th>Punti</th><th>Note</th></tr>
-        <tr><td>Mano vinta</td><td>+250</td><td>Il banco sballa o fa meno</td></tr>
-        <tr><td>Black jack naturale</td><td>+500</td><td>21 con due carte, batte una mano normale</td></tr>
-        <tr><td>Pari</td><td>0</td><td>Stesso totale, o naturale contro naturale</td></tr>
-        <tr><td>Mano persa o sballata</td><td>−250</td><td>Mai sotto zero</td></tr>
-      </table>
-      <div class="scoreline">Massimo in serata: <b>3 × 500 = 1.500</b> con tre naturali · Nessun cumulo, nessun malus oltre −250</div>
+      <div class="game-top"><h3>BIGLIE</h3><span class="time">4 GARE · SCELTA UNICA</span></div>
+      <div class="where"><b>TV</b> pista e quattro gare · <b>TEL</b> scelta della biglia · <b>PUNTI</b> in classifica a ogni arrivo</div>
+      <p>Quattro round separati (3, 5, 11, 22). Ogni tavolo sceglie <b>una biglia</b> in ordine sorteggiato: la scelta vale per tutte e quattro le gare del round e non si cambia.</p>
+      <p>I fondi sono <b>terra, asfalto, neve e acqua</b>: ogni biglia ha velocità, accelerazione e tenuta diverse, e ogni fondo premia una qualità. La TV segue il gruppo con la camera laterale.</p>
+      <p><b>Punteggio.</b> Ogni gara paga subito <b>150 / 100 / 60 / 30</b> ai primi quattro; i punti entrano nella classifica della serata appena la gara finisce. Dopo la quarta gara il round si chiude.</p>
+      <div class="scoreline">Gara <b>150 / 100 / 60 / 30</b> · Quattro gare · Massimo <b>600</b> per round</div>
     </article>
+
   </div>
 
   <div class="footer"><span>PubGame · Manuale della serata</span><span>I giochi · 05/07</span></div>
@@ -717,8 +712,9 @@
       <tr><td>RUOTA</td><td>+1000 × secondi rimasti / 75</td><td>−1000 × secondi rimasti / 75</td><td>Prenotazione + convalida host.</td></tr>
       <tr><td>TIME BUZZER</td><td>500 / 400 / 300 al primo, poi a scalare per posizione</td><td>−250 (M1) o −100 (M2) agli eliminati</td><td>5 fasce per manche; +150 ai finalisti; 9 manche in serata.</td></tr>
       <tr><td>BOMBA</td><td>Nessun punto: solo malus</td><td>Bomba scelta −200 e squadra fuori</td><td>Tabellone a turni; 20 s per turno; casella vera 0.</td></tr>
-      <tr><td>SPEED RUSH</td><td>500 al primo; 500 × t1/ti nella metà alta</td><td>0 fuori dalla metà alta</td><td>Minimo 100 per chi resta nella metà alta.</td></tr>
-      <tr><td>BLACKJACK (bonus)</td><td>+250 mano vinta; +500 blackjack naturale</td><td>−250 a mano persa</td><td>Mai sotto zero; pari 0; massimo 1.500 in serata.</td></tr>
+      <tr><td>SPEED RUSH</td><td>500 al primo; 500 × t1/ti nella metà alta</td><td>0 fuori dalla metà alta</td><td>90 s; minimo 100 per chi resta nella metà alta.</td></tr>
+      <tr><td>BIGLIE</td><td>150 / 100 / 60 / 30 a gara</td><td>0 dal quinto posto</td><td>Quattro gare per round; punti in classifica a ogni arrivo.</td></tr>
+      <tr><td>BLACKJACK (bonus)</td><td>+150 vittoria; +75 pari</td><td>0 sconfitta</td><td>Un turno per tavolo; il banco si ferma a 17.</td></tr>
       <tr><td>AZZARDO</td><td>Puntata × quota (×2 / ×3 / ×4)</td><td>100% / 80% / 60% / 40% della puntata</td><td>4 manche: CELEBRITÀ, CANZONI, PAESI, STORIA; puntate 100/200/300.</td></tr>
       <tr><td>ULTIMA SPIAGGIA</td><td>+livello scelto (100–500)</td><td>−metà del livello (−50…−250)</td><td>5 apparizioni, una manche ciascuna; ogni livello una volta per squadra.</td></tr>
       <tr><td>TENNIS BATTLE</td><td>+1000 vincitore; +200 perdente</td><td>Punto all'avversario</td><td>Punteggio 15/30/40/vantaggio; killer point dopo tre ritorni.</td></tr>
@@ -727,8 +723,8 @@
   </table>
 
   <div class="closing">
-    <p><b>Chiusura della serata.</b> Dopo il round 40 non c'è bonus: l'admin apre la classifica finale, il presentatore annuncia il podio e ringrazia i tavoli. La TV resta sulla classifica finché non si chiude la partita.</p>
-    <p><b>Prima di spegnere.</b> Controlla che la classifica finale sia quella da consegnare, salva una foto del podio e verifica che non ci siano bonus ancora aperti. Poi si può chiudere.</p>
+    <p><b>Chiusura della serata.</b> Dopo il round 40 parte il <b>Casino numero secco</b>; alla chiusura del bonus la TV mostra la classifica finale aggiornata, il presentatore annuncia il podio e ringrazia i tavoli.</p>
+    <p><b>Prima di spegnere.</b> Controlla che l'ultimo bonus sia chiuso e che la classifica finale includa i suoi punti; salva una foto del podio, poi si può chiudere.</p>
   </div>
 
   <div class="footer"><span>PubGame · Manuale della serata</span><span>Bonus e punteggi · 07/07</span></div>

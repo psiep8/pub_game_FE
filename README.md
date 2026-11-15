@@ -198,7 +198,6 @@ Il programma completo (ruoli, tempi, prove di caduta, cosa annotare, emergenze) 
 
 **Limitato o bloccato**
 
-- **Bonus Basket**: rimosso dalla serata e dalla regia; il codice rimane nel progetto.
 - **Tempi dichiarati dal client**: alcune modalità usano tempi o stato del telefono; i punteggi non sono tutti verificabili lato server.
 - **Sicurezza**: mancano rate limiting e recupero assistito del nome; un partecipante può prenotare per primo il nickname di un'altra squadra. Le sessioni non vengono revocate cambiando `CONTROL_SECRET`.
 - **Rete**: manca una prova multi-dispositivo in rete e una suite E2E nel repository.

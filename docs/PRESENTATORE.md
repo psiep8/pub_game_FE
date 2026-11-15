@@ -100,7 +100,7 @@ successivo), **🔄 reset**. Il reset va usato solo se siete davvero fuori strad
    - **✅ CORRETTO** assegna i punti mostrati in **Se corretto**.
    - **❌ SBAGLIATO** applica la penalità mostrata in **Se sbagliato**.
 5. **Giochi senza validazione** (Quiz, Timeline, Bomba, Azzardo, Time Buzzer,
-   Speed Rush, Tennis Battle, Arena, Blackjack, Ultima spiaggia): il riquadro dice
+   Speed Rush, Tennis Battle, Arena, Biglie, Ultima spiaggia): il riquadro dice
    **Round in Corso** e i punti li calcola il server. Non premere nulla.
 6. **Chiusura**: la TV mostra il reveal e poi la classifica se è il momento.
    Per il round dopo premi di nuovo **▶️ PARTI**.
@@ -136,7 +136,6 @@ La tabella **PUNTI** sotto il riquadro riporta *Corretto*, *Sbagliato* e
 | **Arena** | Vero/Falso continuo, difficoltà crescente. | Niente: il cerchio e le eliminazioni sono in TV. |
 | **Azzardo** | Distribuiscono le fiches. | Niente: le fiches le valida il server. |
 | **Ultima spiaggia** | Scelgono livello e risposta. | Niente. |
-| **Blackjack** | Al proprio turno: **CARTA** o **STAI**. | Niente: il banco è in TV. |
 
 In tutti questi casi il pannello dice **«Questa modalità non richiede
 validazione admin»**: è la conferma che state facendo la cosa giusta, cioè
@@ -151,8 +150,7 @@ niente.
    La classifica resta in TV finché non premi **▶️ PARTI**.
 2. I bonus previsti sono **CASINO BIANCO/ROSSO** dopo l’atto 1, **BLACKJACK** dopo il 2, **CASINO DOZZINA** dopo il 3, **CAVALLO** dopo il 4 e **CASINO NUMERO SECCO** dopo il 5.
 3. Segui il bonus in TV e chiudilo con **✖️ CHIUDI BONUS**.
-4. **I bonus hanno una classifica propria e non aggiungono punti alla classifica
-   della serata.** Dillo tu: evita le proteste.
+4. **I punti dei bonus entrano in classifica alla chiusura del bonus**, una sola volta; dopo l’ultimo si vede la classifica finale aggiornata. Dillo tu: evita le proteste.
 
 ---
 

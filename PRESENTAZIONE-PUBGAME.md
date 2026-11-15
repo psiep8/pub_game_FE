@@ -43,7 +43,7 @@ conoscere il codice. Le parti in *corsivo* sono suggerimenti, non obblighi.
 - Ogni round è **un gioco diverso**: quiz, musica, immagini, timeline, bomba, arena…
 - Le squadre rispondono **dal telefono**; la TV mostra domanda, tempo e classifica.
 - La scaletta mescola i giochi: ogni atto ha un ritmo suo e l'**Arena** chiude l'atto 3 e la serata.
-- Alla fine di ogni atto c'è una **classifica** e, dopo i primi quattro atti, un **bonus**.
+- Alla fine di ogni atto c'è una **classifica** e un **bonus diverso**.
 - L'ultimo round del quinto atto è l'**Arena**: tutti insieme, e chi resta in piedi vince.
 
 I punti non sono tutti uguali: più si risponde presto, più si guadagna. Sbagliare costa
@@ -72,9 +72,9 @@ propria memoria.
 
 | Atto | Round | Giochi in ordine |
 | --- | --- | --- |
-| **1** | 1–8 | Quiz · Musica · Black Jack · Time Buzzer · Bomba · Timeline · Tennis Battle · Ultima spiaggia |
-| **2** | 9–16 | Azzardo · Ruota · Black Jack · Quiz · Tennis Battle · Time Buzzer · Musica · Ultima spiaggia |
-| **3** | 17–24 | Quiz · Speed Rush · Indovina chi · Tennis Battle · Time Buzzer · Black Jack · Ultima spiaggia · **Arena** |
+| **1** | 1–8 | Quiz · Musica · **Biglie** · Time Buzzer · **Biglie** · Timeline · Speed Rush · Ultima spiaggia |
+| **2** | 9–16 | Azzardo · Ruota · **Biglie** · Quiz · Tennis Battle · Time Buzzer · Musica · Ultima spiaggia |
+| **3** | 17–24 | Quiz · Speed Rush · Indovina chi · Tennis Battle · Time Buzzer · **Biglie** · Ultima spiaggia · **Arena** |
 | **4** | 25–32 | Indovina chi · Bomba · Musica · Quiz · Ruota · Timeline · Speed Rush · Ultima spiaggia |
 | **5** | 33–40 | Quiz · Musica · Bomba · Indovina chi · Azzardo · Timeline · Ultima spiaggia · **Arena** |
 
@@ -83,16 +83,17 @@ Classifiche:
 - **rapida** dopo i round 4, 12, 20, 28, 36 (metà atto);
 - **dettagliata** dopo i round 8, 16, 24, 32, 40 (fine atto, con podio e festeggiamento).
 
-Bonus, uno dopo ciascuno dei primi quattro atti:
+Bonus, uno dopo ognuno dei cinque atti:
 
-| Dopo l'atto | Bonus |
-| --- | --- |
-| 1 | 🎰 Casino (quattro manche, roulette vera) |
-| 2 | 🏀 Basket (tre manche) |
-| 3 | 🐎 Cavallo di Battaglia |
-| 4 | 🎱 Biglie (quattro gare) |
+| Dopo l'atto | Bonus | Punti |
+| --- | --- | --- |
+| 1 | 🎰 Casino bianco/rosso | +100 |
+| 2 | 🃏 Blackjack | +150 vittoria / +75 pari |
+| 3 | 🎰 Casino dozzina | +120 |
+| 4 | 🐎 Cavallo di Battaglia | +200 / +100 / +50 |
+| 5 | 🎯 Casino numero secco | +300 |
 
-Dopo il quinto atto non c'è bonus: si chiude con la classifica finale.
+Dopo il quinto bonus si chiude con la classifica finale aggiornata.
 
 ---
 
@@ -192,51 +193,32 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 
 ## 6. I bonus di fine atto
 
-Non consumano un round della scaletta: si lanciano dal pannello admin e servono a tenere
-alta l'attenzione dopo la classifica.
+Non consumano un round: si lanciano dal pannello admin dopo la classifica dell'atto. I punti entrano in classifica **una sola volta, alla chiusura del bonus**.
 
-### 🎰 Casino — quattro manche, una roulette vera
+### 🎰 Casino bianco/rosso — dopo l'atto 1
+- Una sola manche: ogni tavolo sceglie **bianco o rosso**.
+- La roulette europea gira una volta; il colore giusto vale **+100**, lo zero incassa per il banco.
+- *Da dire:* «Una puntata, un colore, un giro: qui conta il fegato.»
 
-- Quattro manche a difficoltà crescente: **colore** (2 caselle, 100 punti), **dozzina**
-  (3 caselle, 150), **sestina** (6 caselle, 200), **numero secco** (37 caselle, 300).
-- Ogni manche si chiude con un giro della roulette europea in TV: la pallina parte,
-  rallenta e si ferma sul numero. Sullo zero incassa il banco.
-- Sul numero secco la ruota rigira finché almeno un tavolo ha puntato il numero uscito.
-- **Punti**: +100 / +150 / +200 / +300 a chi indovina la manche. Sbagliare non toglie nulla.
-- *Da dire:* «Qui non serve sapere niente: serve fegato. Più stretta la casella, più alta la posta.»
+### 🃏 Blackjack — dopo l'atto 2
+- Un turno per tavolo, dal fondo della classifica: **15 secondi**, CARTA o STAI.
+- Il banco si ferma a **17**. Vittoria **+150**, pari **+75**, sconfitta **0**.
+- *Da dire:* «Il banco non aspetta: fermatevi prima di sballare.»
 
-### 🏀 Basket — tre manche al canestro
+### 🎰 Casino dozzina — dopo l'atto 3
+- Una sola manche su **1–12, 13–24 o 25–36**.
+- La pallina esce una volta; la dozzina giusta vale **+120**, lo zero non paga nessuno.
+- *Da dire:* «Dodici numeri per volta: scegliete la fetta giusta.»
 
-- Pagina `/basket` sul telefono: si trascina indietro la palla e si rilascia per tirare.
-- **Tre manche da 20 secondi**: canestro grande (+2), medio (+3), piccolo (+5). Il ferro
-  si stringe a ogni manche; chi fa swish senza toccare il ferro prende un punto in più.
-- **In serata reale il bonus è bloccato**: il punteggio non è ancora verificato dal server,
-  quindi si apre solo in simulazione e anteprima. I punti delle tre manche si sommano nella
-  classifica del bonus.
-- *Da dire:* «Il canestro grande è facile ma paga poco: il vero malloppo è nel piccolo.»
+### 🐎 Cavallo di Battaglia — dopo l'atto 4
+- La categoria la votano i telefoni; poi **otto domande difficili**, una dietro l'altra.
+- La TV mostra countdown e tabellone; il podio vale **+200 / +100 / +50**.
+- *Da dire:* «La domanda è sul telefono: guardate il tabellone e correte.»
 
-### 🐎 Cavallo di Battaglia — otto domande, il tabellone in TV
-
-- La squadra sceglie una categoria dal telefono; arrivano **otto domande difficili** di
-  quella categoria, una dietro l'altra, con **15 secondi** per rispondere.
-- Domanda e opzioni stanno **solo sul telefono**. La TV mostra il countdown e il
-  **tabellone del bonus**, sempre in scena: a ogni reveal si riordina e segna i punti.
-- **Punti**: **+1** per risposta esatta. La classifica del bonus non assegna punti alla
-  serata.
-- *Da dire:* «La TV non vi aiuta: la domanda è sul telefono. Guardate il tabellone e
-  correte.»
-
-### 🎱 Biglie — quattro gare, una biglia per tavolo
-
-- Ogni tavolo sceglie **una biglia** dal telefono, in ordine sorteggiato: la scelta si fa
-  una volta sola e vale per tutte e quattro le gare.
-- I fondi cambiano: **terra, asfalto, neve, acqua**. Ogni biglia ha velocità, accelerazione
-  e tenuta diverse, e ogni fondo premia una qualità.
-- La TV segue la corsa con una camera laterale su un unico tracciato di curve e dossi:
-  salti, attrito e scie diverse per ogni terreno. Ogni gara dura circa 30 secondi e il
-  vincitore non è deciso prima.
-- **Punti**: 150 / 100 / 60 / 30 a ogni gara, cumulativi (massimo 600).
-- *Da dire:* «Non esiste la biglia perfetta: scegliete quella giusta per i quattro fondi.»
+### 🎯 Casino numero secco — dopo l'atto 5
+- Una sola puntata su un numero da **0 a 36**; la ruota rigira finché almeno un tavolo ha puntato il numero uscito.
+- Numero esatto **+300**. Poi la TV mostra la **classifica finale aggiornata**.
+- *Da dire:* «Un numero, tutto: l'ultima carta della serata.»
 
 ---
 
@@ -247,8 +229,7 @@ alta l'attenzione dopo la classifica.
   il primo posto, poi la classifica completa.
 - La classifica **resta in TV** finché non premi **PARTI**: nessuna chiusura
   automatica, così avete tutto il tempo per commentare.
-- **I bonus non aggiungono punti alla classifica della serata**: mostrano una classifica
-  propria e si chiudono. Dillo tu, prima che lo chieda qualcuno.
+- **I punti dei bonus entrano in classifica alla chiusura del bonus**: dopo l’ultimo, la TV mostra la classifica finale aggiornata.
 
 > *Da dire al podio:* «Terzo posto… secondo… e primi, stasera, sono…» (lasciate un secondo
 > di silenzio prima del nome: il rullo è già partito.)
@@ -265,7 +246,7 @@ alta l'attenzione dopo la classifica.
 | ⏸️ **PAUSA / RIPRENDI** | per fermare tutto: in pausa la TV copre il gioco e i timer si fermano |
 | 🎬 **DEMO** | per spiegare un gioco o un bonus prima di giocarlo, senza cambiare la partita |
 | ✖️ **CHIUDI DEMO** | per tornare alla partita |
-| 🎰 🏀 🐎 🎱 **BONUS** (CASINO, BASKET, CAVALLO, BIGLIE) | per lanciare il bonus di fine atto |
+| 🎰 🃏 🐎 🎯 **BONUS** (CASINO, BLACKJACK, CAVALLO, NUMERO SECCO) | per lanciare il bonus dell’atto |
 | ✖️ **CHIUDI BONUS** | per uscire da un bonus |
 | **PARTITA #** | per puntare la TV giusta se l'admin è su un altro dispositivo |
 

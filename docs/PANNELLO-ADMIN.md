@@ -101,7 +101,6 @@ admin**. Non serve premere nulla: il punteggio lo calcola il server. In dettagli
 | **Arena** | Vero/Falso continuo, difficoltà crescente. | Niente. |
 | **Azzardo** | Distribuiscono le fiches sulle risposte. | Niente: le fiches le valida il server. |
 | **Ultima spiaggia** | Scelgono livello e risposta. | Niente. |
-| **Blackjack** | Al proprio turno **CARTA** o **STAI**. | Niente: il banco è in TV. |
 
 ### La tabella PUNTI
 Sotto il riquadro compare **PUNTI — tipo del round** con le tre regole: *Corretto*,
