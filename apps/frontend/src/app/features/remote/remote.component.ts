@@ -327,6 +327,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private arenaLoadSeq = 0;
   /** Un solo invio per domanda: il doppio tocco non deve saltare la successiva. */
   private arenaAnswerPending = false;
+  private arenaAnswerGeneration = 0;
 
   /** Prova corrente del mazzo (null tra una prova e l'altra). */
   speedTask = signal<SpeedTask | null>(null);
@@ -2219,6 +2220,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   private invalidateArenaQuestion(): void {
     this.arenaLoadSeq++;
+    this.arenaAnswerGeneration++;
+    this.arenaAnswerPending = false;
     this.isFetchingQuestion.set(false);
     this.arenaQuestion.set(null);
   }
@@ -2289,12 +2292,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // ritenta, il server risponde con l'esito già registrato.
     const questionId = q.questionId;
     const seq = this.arenaLoadSeq;
+    const answerGeneration = ++this.arenaAnswerGeneration;
     this.arenaAnswerPending = true;
     const key = this.reliability.idempotencyKey('arena', `${playerName}:${questionId}`);
     this.gameService
       .answerArenaQuestion(this.gameId(), playerName, questionId, q.options[index], key, this.reliability.deviceId())
       .subscribe({
         next: (res: any) => {
+          if (answerGeneration !== this.arenaAnswerGeneration) return;
           this.arenaAnswerPending = false;
           const isCorrect = !!res.correct;
           // Il backend comunica l'esito alla TV dopo averlo registrato.
@@ -2311,6 +2316,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           }, isCorrect ? 0 : 600);
         },
         error: (err: any) => {
+          if (answerGeneration !== this.arenaAnswerGeneration) return;
           this.arenaAnswerPending = false;
           console.error('❌ Risposta arena rifiutata dal server:', err);
           // Durante la pausa la domanda resta valida: si potrà riprovare alla ripresa.

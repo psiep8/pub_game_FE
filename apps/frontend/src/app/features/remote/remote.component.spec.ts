@@ -320,6 +320,29 @@ describe('RemoteComponent', () => {
     expect(component.arenaQuestion()?.questionId).toBe('new');
   });
 
+  it('una vecchia risposta Arena non blocca né sblocca il nuovo round', () => {
+    component.nickname.set('Anna');
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const oldAnswer = new Subject<any>();
+    const newAnswer = new Subject<any>();
+    const answer = vi.spyOn(game, 'answerArenaQuestion')
+      .mockReturnValueOnce(oldAnswer.asObservable())
+      .mockReturnValueOnce(newAnswer.asObservable());
+    component.arenaQuestion.set({ text: 'Vecchia', options: ['A', 'B'], isTrueFalse: false, questionId: 'old' });
+    component.sendArenaAnswer(0);
+    ws.status$.next({ action: 'ROUND_ENDED' });
+    component.arenaQuestion.set({ text: 'Nuova', options: ['A', 'B'], isTrueFalse: false, questionId: 'new' });
+    component.sendArenaAnswer(0);
+    expect(answer).toHaveBeenCalledTimes(2);
+
+    oldAnswer.next({ correct: true });
+    component.sendArenaAnswer(1);
+    expect(answer).toHaveBeenCalledTimes(2);
+    expect(component.arenaQuestion()?.questionId).toBe('new');
+    newAnswer.next({ correct: true });
+    expect(component.arenaQuestion()).toBeNull();
+  });
+
   it('non invia risposte Arena mentre il telefono è in pausa', () => {
     component.nickname.set('Anna');
     component.arenaQuestion.set({ text: 'Domanda', options: ['A', 'B'], isTrueFalse: false, questionId: 'q1' });
