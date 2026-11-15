@@ -76,7 +76,21 @@ export class ArenaMode extends GameModeBase {
   restore(secondsLeft: number, snapshot?: unknown): void {
     const state = snapshot as ArenaSnapshot;
     if (!state || !Array.isArray(state.teams) || !Array.isArray(state.eliminatedPlayers)
-      || !Array.isArray(state.inactivityTotals) || !Array.isArray(state.deferredInactivity)) {
+      || !Array.isArray(state.inactivityTotals) || !Array.isArray(state.deferredInactivity)
+      || !Array.isArray(state.appliedAnswerSeqs)
+      || !state.teams.every((team) => team && typeof team.playerName === 'string' && team.playerName.trim()
+        && Number.isFinite(team.distance) && team.distance >= 0 && team.distance <= 100
+        && Number.isFinite(team.score) && typeof team.eliminated === 'boolean')
+      || new Set(state.teams.map((team) => team.playerName.trim().toLowerCase())).size !== state.teams.length
+      || !state.eliminatedPlayers.every((name) => typeof name === 'string'
+        && state.teams.some((team) => team.playerName === name && team.eliminated))
+      || new Set(state.eliminatedPlayers).size !== state.eliminatedPlayers.length
+      || state.teams.filter((team) => team.eliminated).length !== state.eliminatedPlayers.length
+      || !state.inactivityTotals.every((row) => Array.isArray(row) && row.length === 2
+        && typeof row[0] === 'string' && Number.isSafeInteger(row[1]) && row[1] >= 0)
+      || !state.deferredInactivity.every((row) => row && typeof row.playerName === 'string'
+        && Number.isSafeInteger(row.count) && row.count > 0)
+      || !state.appliedAnswerSeqs.every((seq) => Number.isSafeInteger(seq) && seq > 0)) {
       throw new Error('Stato Arena non ripristinabile');
     }
     this.teams.set(new Map(state.teams.map((team) => [team.playerName, { ...team }])));

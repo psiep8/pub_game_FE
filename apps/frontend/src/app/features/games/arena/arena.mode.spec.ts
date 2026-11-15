@@ -197,6 +197,20 @@ describe('ArenaMode', () => {
     restored.cleanup();
   });
 
+  it('rifiuta un checkpoint Arena incompleto senza iniziare il timer', () => {
+    vi.useFakeTimers();
+    const mode = new ArenaMode();
+    mode.setConfig({ type: 'ARENA', payload: {}, gameId: 1, activePlayers: ['Anna'] });
+    mode.initialize({});
+    const invalid = {
+      teams: [{ playerName: 'Anna', distance: 20, score: 0, eliminated: false }],
+      eliminatedPlayers: [], inactivityTotals: [], deferredInactivity: [],
+    };
+    expect(() => mode.restore(40, invalid)).toThrow('Stato Arena non ripristinabile');
+    expect(mode.getDisplayData().teams).toEqual([]);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it('non inventa penalità se il server non risponde', async () => {
     vi.useFakeTimers();
     const mode = new ArenaMode();
