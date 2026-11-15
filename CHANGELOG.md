@@ -7,6 +7,9 @@
 - Cinque bonus uno per atto: Casino bianco/rosso +100, Blackjack +150/+75, Casino dozzina +120, Cavallo +200/+100/+50, Casino numero secco +300.
 - Punti bonus accreditati alla chiusura e classifica finale aggiornata dopo l'atto 5.
 - Ingressi TV scenografici dedicati, con `prefers-reduced-motion`.
+- Rimosso il flusso Basket residuo da TV, regia e telefono; eliminati punteggi canestri e campi morti.
+- Bonus Cavallo riportato a carta e inchiostro: via vetro scuro, gradienti, radius e glow.
+- Casino bianco/rosso: i numeri non rossi sono ora bianchi anche su griglia e ruota, con test dedicati.
 
 Tutte le modifiche rilevanti di PubGame. Formato basato su Keep a Changelog,
 versione SemVer.
