@@ -483,6 +483,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       void this.reliability.start(this.gameId(), 'REMOTE', storedName).then((ok) => {
         if (ok) {
           this.nickname.set(storedName);
+          this.loadArenaAfterSession();
           // Se il server ha ripreso la stessa sessione, il giocatore torna
           // subito in partita senza rifare la prova dei pulsanti.
           this.showButtonTest.set(!this.reliability.resumedSession());
@@ -1046,6 +1047,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     }
     if (!await this.reliability.start(this.gameId(), 'REMOTE', name)) return;
     this.nickname.set(name);
+    this.loadArenaAfterSession();
     this.removedNotice.set(false);
     this.showButtonTest.set(true);
     localStorage.setItem('nickname', name);
@@ -2229,8 +2231,16 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.arenaQuestion.set(null);
   }
 
+  private loadArenaAfterSession(): void {
+    if (this.roundActive() && this.questionType() === 'ARENA' && !this.paused()
+      && !this.arenaQuestion() && !this.isFetchingQuestion() && !this.arenaEliminated()) {
+      this.generateNextArenaQuestion();
+    }
+  }
+
   generateNextArenaQuestion() {
-    if (this.arenaEliminated() || this.gameState() === PlayerStatus.ELIMINATED) return;
+    const playerId = this.nickname();
+    if (!playerId || this.arenaEliminated() || this.gameState() === PlayerStatus.ELIMINATED) return;
     const seq = ++this.arenaLoadSeq;
     this.isFetchingQuestion.set(true);
     this.arenaQuestion.set(null); // Show loading state if template supports it
@@ -2241,8 +2251,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
       const idx = Math.floor(Math.random() * cats.length);
       selectedCategory = cats[idx].name;
     }
-
-    const playerId = this.nickname() || 'anonimo';
 
     this.gameService.getArenaQuestion(this.gameId(), selectedCategory, playerId).subscribe({
       next: (q: any) => {

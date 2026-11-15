@@ -628,6 +628,24 @@ describe('RemoteComponent', () => {
     expect(component.gameState()).toBe('VOTING');
   });
 
+  it('attende la sessione prima di richiedere una domanda Arena', async () => {
+    const game = TestBed.inject(GameService);
+    const request = vi.spyOn(game, 'getArenaQuestion');
+    let finishRegistration: (ok: boolean) => void = () => {};
+    vi.spyOn(reliability, 'start').mockReturnValue(new Promise<boolean>(resolve => { finishRegistration = resolve; }));
+    component.tempNickname = 'Anna';
+    const registration = component.setNickname();
+    reliability.syncState$.next({
+      hasState: true, roundType: 'ARENA', roundKey: 'g1-r1',
+      roundDeadlineAt: Date.now() + 60_000,
+    });
+    expect(request).not.toHaveBeenCalled();
+    finishRegistration(true);
+    await registration;
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(request.mock.calls[0][2]).toBe('Anna');
+  });
+
   it('il sync al nuovo round Arena scarta la domanda e le risposte precedenti', () => {
     component.nickname.set('Anna');
     const game = TestBed.inject(GameService);
