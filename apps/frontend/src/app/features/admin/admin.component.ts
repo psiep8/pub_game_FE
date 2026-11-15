@@ -342,10 +342,6 @@ export class Admin implements OnInit, OnDestroy {
           answer = 'Podio finale in TV';
           break;
 
-        case 'BONUS_BASKET':
-          answer = 'Tiri dal telefono, premi ai primi tre';
-          break;
-
         default:
           console.warn('⚠️ Tipo sconosciuto:', type);
           answer = payload.correctAnswer !== undefined ? String(payload.correctAnswer) : 'N/A';

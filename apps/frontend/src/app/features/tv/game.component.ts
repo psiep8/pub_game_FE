@@ -165,8 +165,6 @@ export class GameComponent implements OnInit, OnDestroy {
   bonusType = signal<BonusType | null>(null);
   /** Ingresso scenografico in corso: il bonus vero parte alla fine. */
   bonusEntrance = signal<BonusType | null>(null);
-  bonusScores = signal<Array<{ playerName: string; score: number; baskets: number }>>([]);
-  bonusSecondsLeft = signal(0);
   bonusShowResult = signal(false);
   bonusResult = signal<Array<{ playerName: string; score: number }>>([]);
   autoAdvanceSeconds = signal(0);
@@ -280,14 +278,12 @@ export class GameComponent implements OnInit, OnDestroy {
   private lastButtonTestPing = 0;
   private readonly bonusActsStarted = new Set<number>();
   private bonusScoresMap = new Map<string, number>();
-  private bonusBasketsMap = new Map<string, number>();
   private bonusAwarded = false;
   private bonusTimer?: ReturnType<typeof setInterval>;
   private bonusEntranceTimer?: ReturnType<typeof setTimeout>;
   private autoAdvanceTimer?: ReturnType<typeof setInterval>;
   private demoTimer?: ReturnType<typeof setInterval>;
   private lastTimerTick = -1;
-  private lastBonusTick = -1;
   private lastAutoTick = -1;
   private lastMusicTick = -1;
 
@@ -586,12 +582,6 @@ export class GameComponent implements OnInit, OnDestroy {
         if (status.type) void this.startBonus(status.type);
       } else if (status.action === 'ADMIN_STOP_BONUS') {
         this.finishBonus();
-      } else if (status.action === 'BASKET_SCORE') {
-        this.recordBonusResult(
-          status.playerName,
-          Number(status.points) || 0,
-          1,
-        );
       }
     });
 
@@ -1189,8 +1179,6 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'SPEED RUSH';
       case 'TENNIS_BATTLE':
         return 'TENNIS BATTLE';
-      case 'BONUS_BASKET':
-        return 'BONUS BASKET';
       default:
         return type;
     }
@@ -1701,8 +1689,6 @@ export class GameComponent implements OnInit, OnDestroy {
     this.bonusType.set(type);
     this.bonusAwarded = false;
     this.bonusScoresMap.clear();
-    this.bonusBasketsMap.clear();
-    this.bonusScores.set([]);
     this.bonusResult.set([]);
     this.bonusShowResult.set(false);
 
@@ -1752,24 +1738,13 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   /** I bonus sommano i punti delle manche: la classifica li incassa alla chiusura. */
-  private recordBonusResult(playerName: string, score: number, baskets = 0): void {
+  private recordBonusResult(playerName: string, score: number): void {
     const name = String(playerName || '').trim();
     if (!name) return;
 
     const value = Number.isFinite(score) ? score : 0;
     const previous = this.bonusScoresMap.get(name) ?? 0;
     this.bonusScoresMap.set(name, previous + value);
-    const previousBaskets = this.bonusBasketsMap.get(name) ?? 0;
-    this.bonusBasketsMap.set(name, previousBaskets + (Number.isFinite(baskets) ? baskets : 0));
-    this.bonusScores.set(
-      [...this.bonusScoresMap.entries()]
-        .map(([player, points]) => ({
-          playerName: player,
-          score: points,
-          baskets: this.bonusBasketsMap.get(player) ?? 0,
-        }))
-        .sort((a, b) => b.score - a.score),
-    );
   }
 
   private finishBonus(): void {
@@ -1806,7 +1781,6 @@ export class GameComponent implements OnInit, OnDestroy {
     this.currentMode.set(null);
     this.showQuestion.set(false);
     this.phase.set('QUESTION');
-    this.bonusSecondsLeft.set(0);
 
     // Il tipo resta per il riepilogo; non azzerarlo se nel frattempo parte un altro bonus.
     const finalBonus = this.roundManager.isGameOver();
@@ -1834,8 +1808,8 @@ export class GameComponent implements OnInit, OnDestroy {
     return type ? BONUS_LABELS[type] : 'BONUS';
   }
 
-  onBonusResult(event: { playerName: string; score: number; baskets?: number }): void {
-    this.recordBonusResult(event?.playerName, Number(event?.score) || 0, Number(event?.baskets) || 0);
+  onBonusResult(event: { playerName: string; score: number }): void {
+    this.recordBonusResult(event?.playerName, Number(event?.score) || 0);
   }
 
   private startAutoAdvance(): void {
@@ -1886,10 +1860,8 @@ export class GameComponent implements OnInit, OnDestroy {
     this.clearBonusTimer();
     this.bonusActive.set(false);
     this.bonusType.set(null);
-    this.bonusScores.set([]);
     this.bonusResult.set([]);
     this.bonusShowResult.set(false);
-    this.bonusSecondsLeft.set(0);
     this.bonusScoresMap.clear();
     this.bonusAwarded = false;
     this.ws.responses.set([]);
