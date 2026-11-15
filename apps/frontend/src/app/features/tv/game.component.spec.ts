@@ -239,13 +239,24 @@ describe('GameComponent', () => {
   });
 
   it('non riassegna punti per un evento Arena duplicato', () => {
-    const arenaMode = { type: 'ARENA', applyArenaAnswer: vi.fn().mockReturnValueOnce(true).mockReturnValueOnce(false) };
+    const arenaMode = { type: 'ARENA', hasArenaAnswer: vi.fn().mockReturnValueOnce(false).mockReturnValueOnce(true),
+      applyArenaAnswer: vi.fn().mockReturnValue(true) };
     component.currentMode.set(arenaMode as any);
     const event = { action: 'ARENA_ANSWER', playerName: 'Anna', isCorrect: true, points: 10, eventSeq: 7 };
     ws.status$.next(event);
     ws.status$.next(event);
     expect(leaderboard.getPlayerStats('Anna')?.totalPoints).toBe(10);
     expect(arenaMode.applyArenaAnswer).toHaveBeenCalledWith('Anna', true, 10, 7);
+  });
+
+  it('registra la risposta Arena prima che il movimento possa chiudere il round', () => {
+    const applyArenaAnswer = vi.fn(() => {
+      expect(leaderboard.getPlayerStats('Anna')?.totalPoints).toBe(10);
+      return true;
+    });
+    component.currentMode.set({ type: 'ARENA', applyArenaAnswer } as any);
+    ws.status$.next({ action: 'ARENA_ANSWER', playerName: 'Anna', isCorrect: true, eventSeq: 8 });
+    expect(applyArenaAnswer).toHaveBeenCalledTimes(1);
   });
 
   it('gives the next round the palette of the previous round winner', () => {

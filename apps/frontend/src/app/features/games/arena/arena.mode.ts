@@ -151,6 +151,10 @@ export class ArenaMode extends GameModeBase {
     this.updateTeamFromAnswer(playerName, !!result?.isCorrect, result?.points || 0);
   }
 
+  hasArenaAnswer(eventSeq: number): boolean {
+    return this.appliedAnswerSeqs.has(eventSeq);
+  }
+
   /** Risposta rapida arrivata dal telefono (canale WebSocket dedicato). */
   applyArenaAnswer(playerName: string, isCorrect: boolean, points: number = 0, eventSeq?: number): boolean {
     if (this.gameEnded() || !this.isActive()) return false;

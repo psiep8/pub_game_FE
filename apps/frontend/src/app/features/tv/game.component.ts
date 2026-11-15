@@ -535,10 +535,13 @@ export class GameComponent implements OnInit, OnDestroy {
         console.log(`%c 🏟️ Arena TV -> Risposta rapida: ${playerName} (corretta: ${isCorrect}) `, 'background: #3f51b5; color: #fff;');
 
         // Un evento già applicato non deve assegnare due volte né movimento né punti.
-        const eventSeq = Number(status.eventSeq);
-        const applied = mode.applyArenaAnswer?.(playerName, isCorrect, points,
-          Number.isSafeInteger(eventSeq) && eventSeq > 0 ? eventSeq : undefined);
-        if (applied !== false) this.leaderboardService.addPoints(playerName, points, isCorrect);
+        const rawSeq = Number(status.eventSeq);
+        const eventSeq = Number.isSafeInteger(rawSeq) && rawSeq > 0 ? rawSeq : undefined;
+        if (eventSeq && mode.hasArenaAnswer?.(eventSeq)) return;
+        // Il piazzamento può chiudere il round durante il movimento: i punti
+        // della risposta devono entrare in classifica prima della chiusura.
+        this.leaderboardService.addPoints(playerName, points, isCorrect);
+        mode.applyArenaAnswer?.(playerName, isCorrect, points, eventSeq);
         this.cdr.detectChanges();
       }
 
