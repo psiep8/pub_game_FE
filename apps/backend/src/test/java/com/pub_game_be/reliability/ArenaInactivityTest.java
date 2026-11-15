@@ -75,6 +75,26 @@ class ArenaInactivityTest {
     }
 
     @Test
+    void unaRispostaNonCancellaLaPenalitaMaturataPrimaDelTick() {
+        long gameId = 813L;
+        String round = "g813-r1";
+        long start = 1_700_000_000_000L;
+        questionHistory.forget(gameId);
+        questionHistory.claimArenaInactivity(gameId, List.of("Anna"), round, false, start);
+        questionHistory.assign(gameId,
+                new QuestionHistoryService.ArenaAssignment("q813", "Anna", "Domanda", "VERO", "Storia"));
+        assertThat(questionHistory.answerAt(gameId, "Anna", "q813", "VERO", start + 15_500)).isPresent();
+
+        QuestionHistoryService restarted = new QuestionHistoryService(questionUsage, stateBlobs);
+        assertThat(restarted.claimArenaInactivity(gameId, List.of("Anna"), round, false, start + 15_501))
+                .extracting(QuestionHistoryService.ArenaInactivity::penalties).containsExactly(1);
+        assertThat(restarted.claimArenaInactivity(gameId, List.of("Anna"), round, false, start + 30_499))
+                .extracting(QuestionHistoryService.ArenaInactivity::penalties).containsExactly(1);
+        assertThat(restarted.claimArenaInactivity(gameId, List.of("Anna"), round, false, start + 30_500))
+                .extracting(QuestionHistoryService.ArenaInactivity::penalties).containsExactly(2);
+    }
+
+    @Test
     void inPausaNessunaPenalitaEUnNuovoRoundAzzeraIlConteggio() {
         long gameId = 812L;
         questionHistory.forget(gameId);

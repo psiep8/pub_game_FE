@@ -206,9 +206,19 @@ public class QuestionHistoryService {
         // Una risposta vale come attività: il timeout di inattività riparte.
         Map<String, Long> activity = arenaActivity.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>());
         synchronized (activity) {
+            // Una risposta non cancella penalità già maturate tra due tick TV.
+            Long last = activity.get(playerId);
+            if (last != null && arenaRoundKeys.containsKey(gameId)) {
+                long penalties = (now - last) / ARENA_INACTIVITY_MS;
+                if (penalties > 0) {
+                    Map<String, Integer> totals = arenaPenaltyTotals.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>());
+                    int addition = (int) Math.min(penalties, 100L);
+                    totals.merge(playerId, addition, (old, add) -> (int) Math.min(Integer.MAX_VALUE, (long) old + add));
+                }
+            }
             activity.put(playerId, now);
+            persist(gameId);
         }
-        persist(gameId);
         return Optional.of(new ArenaResult(correct, assignment.correctAnswer(), points, totalScore));
     }
 
