@@ -747,6 +747,31 @@ describe('RemoteComponent', () => {
     }
   });
 
+  it('keeps Timeline labels inside the card rows', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.onStartVoting('TIMELINE', {
+      items: [
+        { id: 1, label: 'Incoronazione di Carlo Magno a Roma' },
+        { id: 2, label: "Sbarco dell'uomo sulla Luna" },
+        { id: 3, label: "Rivoluzione russa d'Ottobre" },
+        { id: 4, label: 'Inaugurazione della Torre Eiffel' },
+        { id: 5, label: 'Newton pubblica i Principia' },
+        { id: 6, label: 'Caduta del Muro di Berlino' },
+      ],
+    });
+    fixture.detectChanges();
+
+    const cards = fixture.nativeElement.querySelectorAll('.tl-drag-card') as NodeListOf<HTMLElement>;
+    expect(cards.length).toBe(6);
+    // Le etichette devono stare dentro la riga: prima erano inline e
+    // debordavano sotto la carta, sovrapponendosi alla riga successiva.
+    expect(getComputedStyle(cards[0]).display).toBe('flex');
+    expect(getComputedStyle(cards[0]).overflow).toBe('hidden');
+    const label = cards[0].querySelector('.tl-text') as HTMLElement;
+    expect(getComputedStyle(label).webkitLineClamp).toBe('2');
+  });
+
   it('should reset the answer state when the round ends', async () => {
     ws.status$.next({ action: 'START_VOTING', type: 'QUIZ' });
     ws.status$.next({ action: 'ROUND_ENDED' });

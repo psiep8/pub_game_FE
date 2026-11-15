@@ -1132,6 +1132,10 @@
 .timeline-remote .tl-drag-card {
   width: 100%;
   height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  overflow: hidden;
   padding: 6px 8px;
   /* Sotto i 12 px le date non si leggono: il minimo resta leggibile anche
      su telefoni stretti, senza togliere il drag né cambiare le carte. */
@@ -1139,7 +1143,15 @@
   line-height: 1.2;
   box-shadow: 3px 3px 0 var(--coal);
 }
-.timeline-remote .tl-text { min-width: 0; overflow-wrap: anywhere; }
+.timeline-remote .tl-text {
+  display: -webkit-box;
+  min-width: 0;
+  max-height: 2.4em;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
 .tl-order-legend {
   margin: 0;
   padding: 4px 8px;
