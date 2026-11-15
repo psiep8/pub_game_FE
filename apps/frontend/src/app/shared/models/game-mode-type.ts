@@ -105,7 +105,7 @@ export interface IGameMode {
   /** Scream Race: avanzamento spinto dall'intensità del microfono. */
   /** Scream Race: il giocatore ha tagliato il traguardo. */
   /** Arena: esito di una domanda a risposta rapida. */
-  applyArenaAnswer?(playerName: string, isCorrect: boolean, points: number): void;
+  applyArenaAnswer?(playerName: string, isCorrect: boolean, points: number, eventSeq?: number): boolean | void;
   /** Timeline, Speed Rush, Tennis: eventi dal server o dai telefoni. */
   handlePartyEvent?(event: any): void;
   /** Canzone: la manche successiva parte solo su comando dell'admin. */

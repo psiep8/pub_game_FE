@@ -176,7 +176,8 @@ describe('ArenaMode', () => {
     first.initialize({});
     await first.start();
     await vi.advanceTimersByTimeAsync(30_000);
-    first.applyArenaAnswer('Anna', true, 10);
+    expect(first.applyArenaAnswer('Anna', true, 10, 9)).toBe(true);
+    expect(first.applyArenaAnswer('Anna', false, -10, 7)).toBe(true);
     const before = first.getDisplayData();
     const state = JSON.parse(JSON.stringify(first.snapshot()));
     first.cleanup();
@@ -188,7 +189,10 @@ describe('ArenaMode', () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(restored.getDisplayData().teams).toEqual(before.teams);
     expect(restored.getDisplayData().circleRadius).toBeCloseTo(before.circleRadius);
-    restored.applyArenaAnswer('Anna', false, -10);
+    expect(restored.applyArenaAnswer('Anna', false, -10, 9)).toBe(false);
+    expect(restored.applyArenaAnswer('Anna', false, -10, 7)).toBe(false);
+    expect(restored.getDisplayData().teams[0].distance).toBe(before.teams[0].distance);
+    expect(restored.applyArenaAnswer('Anna', false, -10, 8)).toBe(true);
     expect(restored.getDisplayData().teams[0].distance).toBe(before.teams[0].distance + 12);
     restored.cleanup();
   });

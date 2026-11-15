@@ -24,6 +24,7 @@ export interface ArenaSnapshot {
   eliminatedPlayers: string[];
   inactivityTotals: Array<[string, number]>;
   deferredInactivity: Array<{ playerName: string; count: number }>;
+  appliedAnswerSeqs: number[];
 }
 
 const MIN_RADIUS = 14;
@@ -49,6 +50,7 @@ export class ArenaMode extends GameModeBase {
   private inactivityGeneration = 0;
   private deferredInactivity: Array<{ playerName: string; count: number }> = [];
   private inactivityTotals = new Map<string, number>();
+  private appliedAnswerSeqs = new Set<number>();
 
   protected onInitialize(): void {
     // Le squadre si creano in onStart, quando la configurazione è già applicata.
@@ -66,6 +68,7 @@ export class ArenaMode extends GameModeBase {
       eliminatedPlayers: [...this.eliminatedPlayers()],
       inactivityTotals: Array.from(this.inactivityTotals.entries()),
       deferredInactivity: this.deferredInactivity.map((row) => ({ ...row })),
+      appliedAnswerSeqs: [...this.appliedAnswerSeqs],
     };
   }
 
@@ -79,6 +82,7 @@ export class ArenaMode extends GameModeBase {
     this.teams.set(new Map(state.teams.map((team) => [team.playerName, { ...team }])));
     this.eliminatedPlayers.set([...state.eliminatedPlayers]);
     this.inactivityTotals = new Map(state.inactivityTotals);
+    this.appliedAnswerSeqs = new Set(state.appliedAnswerSeqs ?? []);
     this.deferredInactivity = state.deferredInactivity.map((row) => ({ ...row }));
     this.gameEnded.set(false);
     this.winners.set([]);
@@ -112,6 +116,7 @@ export class ArenaMode extends GameModeBase {
     this.inactivityGeneration++;
     this.deferredInactivity = [];
     this.inactivityTotals.clear();
+    this.appliedAnswerSeqs.clear();
     this.stopInactivityPoll();
     this.teams.set(new Map());
     this.circleRadius.set(100);
@@ -133,9 +138,12 @@ export class ArenaMode extends GameModeBase {
   }
 
   /** Risposta rapida arrivata dal telefono (canale WebSocket dedicato). */
-  applyArenaAnswer(playerName: string, isCorrect: boolean, points: number = 0): void {
-    if (this.gameEnded() || !this.isActive()) return;
+  applyArenaAnswer(playerName: string, isCorrect: boolean, points: number = 0, eventSeq?: number): boolean {
+    if (this.gameEnded() || !this.isActive()) return false;
+    if (eventSeq && this.appliedAnswerSeqs.has(eventSeq)) return false;
+    if (eventSeq) this.appliedAnswerSeqs.add(eventSeq);
     this.updateTeamFromAnswer(playerName, isCorrect, points);
+    return true;
   }
 
   protected onConfirmCorrect(_result: GameModeResult): void {}

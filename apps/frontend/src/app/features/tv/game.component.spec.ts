@@ -235,7 +235,17 @@ describe('GameComponent', () => {
     await fixture.whenStable();
 
     expect(leaderboard.getPlayerStats('Anna')?.totalPoints).toBe(10);
-    expect(arenaMode.applyArenaAnswer).toHaveBeenCalledWith('Anna', true, 10);
+    expect(arenaMode.applyArenaAnswer).toHaveBeenCalledWith('Anna', true, 10, undefined);
+  });
+
+  it('non riassegna punti per un evento Arena duplicato', () => {
+    const arenaMode = { type: 'ARENA', applyArenaAnswer: vi.fn().mockReturnValueOnce(true).mockReturnValueOnce(false) };
+    component.currentMode.set(arenaMode as any);
+    const event = { action: 'ARENA_ANSWER', playerName: 'Anna', isCorrect: true, points: 10, eventSeq: 7 };
+    ws.status$.next(event);
+    ws.status$.next(event);
+    expect(leaderboard.getPlayerStats('Anna')?.totalPoints).toBe(10);
+    expect(arenaMode.applyArenaAnswer).toHaveBeenCalledWith('Anna', true, 10, 7);
   });
 
   it('gives the next round the palette of the previous round winner', () => {

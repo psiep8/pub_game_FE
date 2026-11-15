@@ -534,11 +534,11 @@ export class GameComponent implements OnInit, OnDestroy {
         const points = typeof status.points === 'number' ? status.points : (isCorrect ? 10 : -10);
         console.log(`%c 🏟️ Arena TV -> Risposta rapida: ${playerName} (corretta: ${isCorrect}) `, 'background: #3f51b5; color: #fff;');
 
-        // Add points to leaderboard immediately
-        this.leaderboardService.addPoints(playerName, points, isCorrect);
-
-        // Update mode logic (dot movement)
-        mode.applyArenaAnswer?.(playerName, isCorrect, points);
+        // Un evento già applicato non deve assegnare due volte né movimento né punti.
+        const eventSeq = Number(status.eventSeq);
+        const applied = mode.applyArenaAnswer?.(playerName, isCorrect, points,
+          Number.isSafeInteger(eventSeq) && eventSeq > 0 ? eventSeq : undefined);
+        if (applied !== false) this.leaderboardService.addPoints(playerName, points, isCorrect);
         this.cdr.detectChanges();
       }
 
