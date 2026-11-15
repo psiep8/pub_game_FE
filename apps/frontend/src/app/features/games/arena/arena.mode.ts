@@ -19,6 +19,13 @@ export interface ArenaDisplayData {
   winners: string[];
 }
 
+export interface ArenaSnapshot {
+  teams: ArenaTeamProgress[];
+  eliminatedPlayers: string[];
+  inactivityTotals: Array<[string, number]>;
+  deferredInactivity: Array<{ playerName: string; count: number }>;
+}
+
 const MIN_RADIUS = 14;
 /** Venti secondi di respiro: il restringimento si distribuisce sul resto del round. */
 const SHRINK_GRACE_SECONDS = 20;
@@ -50,6 +57,39 @@ export class ArenaMode extends GameModeBase {
   protected async onStart(): Promise<void> {
     this.initializeTeams();
     await this.runPreGameSequence(5000);
+  }
+
+  /** Stato necessario a ricostruire il round, escluso il timer autorevole. */
+  snapshot(): ArenaSnapshot {
+    return {
+      teams: Array.from(this.teams().values(), (team) => ({ ...team })),
+      eliminatedPlayers: [...this.eliminatedPlayers()],
+      inactivityTotals: Array.from(this.inactivityTotals.entries()),
+      deferredInactivity: this.deferredInactivity.map((row) => ({ ...row })),
+    };
+  }
+
+  /** Riprende dal tempo residuo del server senza inizializzare nuove squadre. */
+  restore(secondsLeft: number, snapshot?: unknown): void {
+    const state = snapshot as ArenaSnapshot;
+    if (!state || !Array.isArray(state.teams) || !Array.isArray(state.eliminatedPlayers)
+      || !Array.isArray(state.inactivityTotals) || !Array.isArray(state.deferredInactivity)) {
+      throw new Error('Stato Arena non ripristinabile');
+    }
+    this.teams.set(new Map(state.teams.map((team) => [team.playerName, { ...team }])));
+    this.eliminatedPlayers.set([...state.eliminatedPlayers]);
+    this.inactivityTotals = new Map(state.inactivityTotals);
+    this.deferredInactivity = state.deferredInactivity.map((row) => ({ ...row }));
+    this.gameEnded.set(false);
+    this.winners.set([]);
+    const remaining = Math.max(0, Math.min(this.timerDuration, Math.round(Number(secondsLeft) || 0)));
+    this.timer.set(remaining);
+    this.circleRadius.set(this.radiusForSecond(remaining + 1));
+    this.started = true;
+    this.isActive.set(true);
+    this.isPaused.set(false);
+    this.applyInactivityPenalties(this.deferredInactivity.splice(0));
+    if (!this.gameEnded()) this.startTimer();
   }
 
   protected onPause(): void {

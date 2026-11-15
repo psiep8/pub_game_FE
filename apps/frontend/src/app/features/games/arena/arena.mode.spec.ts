@@ -164,6 +164,35 @@ describe('ArenaMode', () => {
     mode.cleanup();
   });
 
+  it('ripristina posizioni, timer e totali senza riapplicare penalità già ricevute', async () => {
+    vi.useFakeTimers();
+    const check = vi.fn().mockResolvedValue([{ playerName: 'Anna', count: 1 }]);
+    const config = {
+      type: 'ARENA' as const, payload: {}, gameId: 1, activePlayers: ['Anna', 'Bruno', 'Carla'],
+      onArenaInactivityCheck: check,
+    };
+    const first = new ArenaMode();
+    first.setConfig(config);
+    first.initialize({});
+    await first.start();
+    await vi.advanceTimersByTimeAsync(30_000);
+    first.applyArenaAnswer('Anna', true, 10);
+    const before = first.getDisplayData();
+    const state = JSON.parse(JSON.stringify(first.snapshot()));
+    first.cleanup();
+
+    const restored = new ArenaMode();
+    restored.setConfig(config);
+    restored.initialize({});
+    restored.restore(100, state);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(restored.getDisplayData().teams).toEqual(before.teams);
+    expect(restored.getDisplayData().circleRadius).toBeCloseTo(before.circleRadius);
+    restored.applyArenaAnswer('Anna', false, -10);
+    expect(restored.getDisplayData().teams[0].distance).toBe(before.teams[0].distance + 12);
+    restored.cleanup();
+  });
+
   it('non inventa penalità se il server non risponde', async () => {
     vi.useFakeTimers();
     const mode = new ArenaMode();
