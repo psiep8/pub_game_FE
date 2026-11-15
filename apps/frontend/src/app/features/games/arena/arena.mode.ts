@@ -59,8 +59,7 @@ export class ArenaMode extends GameModeBase {
   }
 
   protected onResume(): void {
-    const due = this.deferredInactivity.splice(0);
-    for (const row of due) this.applyInactivityPenalty(row.playerName, row.count);
+    this.applyInactivityPenalties(this.deferredInactivity.splice(0));
   }
 
   protected onStop(): void {
@@ -225,11 +224,8 @@ export class ArenaMode extends GameModeBase {
       const due = await check(players);
       // Una penalità già consegnata dal server non va persa durante la pausa.
       if (generation !== this.inactivityGeneration || this.gameEnded() || !this.isActive()) return;
-      for (const row of due) {
-        const penalty = { playerName: row.playerName, count: Math.max(1, Number(row.count) || 1) };
-        if (this.isPaused()) this.deferredInactivity.push(penalty);
-        else this.applyInactivityPenalty(penalty.playerName, penalty.count);
-      }
+      if (this.isPaused()) this.deferredInactivity.push(...due);
+      else this.applyInactivityPenalties(due);
     } catch {
       // Senza server niente penalità inventate: si riprova al prossimo tick.
     } finally {
@@ -237,21 +233,24 @@ export class ArenaMode extends GameModeBase {
     }
   }
 
-  private applyInactivityPenalty(playerName: string, count: number): void {
-    const key = playerName.trim().toLowerCase();
-    for (let index = 0; index < count; index++) {
-      const currentTeams = new Map(this.teams());
+  private applyInactivityPenalties(due: Array<{ playerName: string; count: number }>): void {
+    if (this.gameEnded() || due.length === 0) return;
+    const currentTeams = new Map(this.teams());
+    for (const row of due) {
+      const key = row.playerName.trim().toLowerCase();
       const teamKey = Array.from(currentTeams.keys()).find((name) => name.toLowerCase() === key);
       const team = teamKey ? currentTeams.get(teamKey) : null;
-      if (!teamKey || !team || team.eliminated || this.gameEnded()) return;
-
+      if (!teamKey || !team || team.eliminated) continue;
+      const count = Math.max(1, Number(row.count) || 1);
       currentTeams.set(teamKey, {
         ...team,
-        distance: Math.min(100, team.distance + 12),
+        distance: Math.min(100, team.distance + 12 * count),
       });
-      this.teams.set(currentTeams);
-      this.checkEliminations();
     }
+    // Le penalità dello stesso tick sono simultanee: prima muoviamo tutti,
+    // poi decidiamo le eliminazioni e l'eventuale fine della partita.
+    this.teams.set(currentTeams);
+    this.checkEliminations();
   }
 
   private checkEliminations(): void {

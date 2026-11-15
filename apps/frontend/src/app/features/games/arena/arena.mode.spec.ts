@@ -110,6 +110,34 @@ describe('ArenaMode', () => {
     expect(mode.getDisplayData().teams).toEqual([]);
   });
 
+  it('applica a tutte le squadre le penalità simultanee prima di terminare il round', async () => {
+    vi.useFakeTimers();
+    let due = false;
+    const eliminated = vi.fn();
+    const mode = new ArenaMode();
+    mode.setConfig({
+      type: 'ARENA', payload: {}, gameId: 1, activePlayers: ['Anna', 'Bruno'],
+      onPlayerEliminated: eliminated,
+      onArenaInactivityCheck: async () => due
+        ? [{ playerName: 'Bruno', count: 2 }, { playerName: 'Anna', count: 6 }]
+        : [],
+    });
+    mode.initialize({});
+    await mode.start();
+    await vi.advanceTimersByTimeAsync(30_000);
+    due = true;
+    await vi.advanceTimersByTimeAsync(2_000);
+
+    const result = mode.getDisplayData();
+    expect(result.teams).toEqual(expect.arrayContaining([
+      expect.objectContaining({ playerName: 'Anna', distance: 100, eliminated: true }),
+      expect.objectContaining({ playerName: 'Bruno', distance: 100, eliminated: true }),
+    ]));
+    expect(eliminated).toHaveBeenCalledTimes(2);
+    expect(result.gameEnded).toBe(true);
+    mode.cleanup();
+  });
+
   it('non inventa penalità se il server non risponde', async () => {
     vi.useFakeTimers();
     const mode = new ArenaMode();
