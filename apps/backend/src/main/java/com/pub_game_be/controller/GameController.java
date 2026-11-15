@@ -294,8 +294,8 @@ public class GameController {
 
     /**
      * Tick di inattività Arena: è il server a dire quali squadre vanno spinte.
-     * La TV applica solo le penalità restituite, quindi un refresh non azzera
-     * il conteggio. In pausa il tick non produce penalità.
+     * Il numero restituito è cumulativo nel round, così un tick successivo
+     * recupera una risposta persa. In pausa non maturano nuove penalità.
      */
     @PostMapping("/{gameId}/arena-inactivity")
     public Map<String, Object> arenaInactivity(@PathVariable("gameId") Long gameId,

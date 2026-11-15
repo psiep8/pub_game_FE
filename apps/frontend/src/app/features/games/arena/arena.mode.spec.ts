@@ -67,6 +67,32 @@ describe('ArenaMode', () => {
     mode.cleanup();
   });
 
+  it('recupera il totale del server senza riapplicare una risposta ripetuta', async () => {
+    vi.useFakeTimers();
+    let calls = 0;
+    const mode = new ArenaMode();
+    mode.setConfig({
+      type: 'ARENA', payload: {}, gameId: 1, activePlayers: ['Anna', 'Bruno'],
+      onArenaInactivityCheck: async () => {
+        calls++;
+        if (calls === 2) throw new Error('risposta persa');
+        return calls === 1 ? [] : [{ playerName: 'Anna', count: calls < 5 ? 1 : 2 }];
+      },
+    });
+    mode.initialize({});
+    await mode.start();
+    const initial = mode.getDisplayData().teams[0].distance;
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(mode.getDisplayData().teams[0].distance).toBe(initial);
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(mode.getDisplayData().teams[0].distance).toBe(initial + 12);
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(mode.getDisplayData().teams[0].distance).toBe(initial + 12);
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(mode.getDisplayData().teams[0].distance).toBe(initial + 24);
+    mode.cleanup();
+  });
+
   it('conserva le penalità ricevute durante la pausa e le applica alla ripresa', async () => {
     vi.useFakeTimers();
     let resolveCheck!: (rows: Array<{ playerName: string; count: number }>) => void;

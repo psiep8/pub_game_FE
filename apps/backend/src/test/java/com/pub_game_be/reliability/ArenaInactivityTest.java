@@ -44,8 +44,17 @@ class ArenaInactivityTest {
                 "g810-r1", false, start + 15_000))
                 .extracting(QuestionHistoryService.ArenaInactivity::playerName)
                 .containsExactly("Anna", "Bruno");
-        assertThat(restarted.claimArenaInactivity(gameId, List.of("Anna", "Bruno"),
-                "g810-r1", false, start + 15_001)).isEmpty();
+        // La risposta HTTP può andare persa: il totale viene restituito di nuovo,
+        // anche dopo un altro riavvio, senza maturare una seconda penalità.
+        QuestionHistoryService restartedAgain = new QuestionHistoryService(questionUsage, stateBlobs);
+        assertThat(restartedAgain.claimArenaInactivity(gameId, List.of("Anna", "Bruno"),
+                "g810-r1", false, start + 15_001))
+                .extracting(QuestionHistoryService.ArenaInactivity::penalties)
+                .containsExactly(1, 1);
+        assertThat(restartedAgain.claimArenaInactivity(gameId, List.of("Anna", "Bruno"),
+                "g810-r1", false, start + 30_000))
+                .extracting(QuestionHistoryService.ArenaInactivity::penalties)
+                .containsExactly(2, 2);
     }
 
     @Test

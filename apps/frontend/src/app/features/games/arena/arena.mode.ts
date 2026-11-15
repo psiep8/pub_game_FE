@@ -41,6 +41,7 @@ export class ArenaMode extends GameModeBase {
   private inactivityPollPending = false;
   private inactivityGeneration = 0;
   private deferredInactivity: Array<{ playerName: string; count: number }> = [];
+  private inactivityTotals = new Map<string, number>();
 
   protected onInitialize(): void {
     // Le squadre si creano in onStart, quando la configurazione è già applicata.
@@ -71,6 +72,7 @@ export class ArenaMode extends GameModeBase {
   protected onCleanup(): void {
     this.inactivityGeneration++;
     this.deferredInactivity = [];
+    this.inactivityTotals.clear();
     this.stopInactivityPoll();
     this.teams.set(new Map());
     this.circleRadius.set(100);
@@ -224,8 +226,18 @@ export class ArenaMode extends GameModeBase {
       const due = await check(players);
       // Una penalità già consegnata dal server non va persa durante la pausa.
       if (generation !== this.inactivityGeneration || this.gameEnded() || !this.isActive()) return;
-      if (this.isPaused()) this.deferredInactivity.push(...due);
-      else this.applyInactivityPenalties(due);
+      const increments: Array<{ playerName: string; count: number }> = [];
+      for (const row of due) {
+        const total = Number(row.count);
+        if (!Number.isSafeInteger(total) || total <= 0) continue;
+        const key = row.playerName.trim().toLowerCase();
+        const previous = this.inactivityTotals.get(key) ?? 0;
+        if (total <= previous) continue;
+        this.inactivityTotals.set(key, total);
+        increments.push({ playerName: row.playerName, count: total - previous });
+      }
+      if (this.isPaused()) this.deferredInactivity.push(...increments);
+      else this.applyInactivityPenalties(increments);
     } catch {
       // Senza server niente penalità inventate: si riprova al prossimo tick.
     } finally {

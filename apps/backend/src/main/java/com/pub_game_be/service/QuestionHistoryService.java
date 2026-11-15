@@ -56,6 +56,8 @@ public class QuestionHistoryService {
     private final Map<Long, int[]> arenaSides = new ConcurrentHashMap<>();
     /** Ultimo istante di attività per squadra: risposta o penalità già applicata. */
     private final Map<Long, Map<String, Long>> arenaActivity = new ConcurrentHashMap<>();
+    /** Totale delle penalità nel round: permette alla TV di recuperare risposte perse. */
+    private final Map<Long, Map<String, Integer>> arenaPenaltyTotals = new ConcurrentHashMap<>();
     /** Round a cui appartengono le attività: un nuovo round azzera i conteggi. */
     private final Map<Long, String> arenaRoundKeys = new ConcurrentHashMap<>();
     private final Set<Long> hydrated = ConcurrentHashMap.newKeySet();
@@ -208,12 +210,10 @@ public class QuestionHistoryService {
     }
 
     /**
-     * Penalità maturate dall'ultima risposta. Il server è l'unico a decidere
-     * quando scattano: la TV chiede il tick e applica ciò che riceve, quindi un
-     * refresh non azzera il conteggio.
-     *
-     * <p>Il primo tick di ogni round registra l'istante di partenza. In pausa
-     * il conteggio viene solo spostato in avanti, senza penalizzare nessuno.</p>
+     * Restituisce il totale cumulativo delle penalità per squadra nel round.
+     * Una risposta HTTP persa può essere recuperata al tick successivo: la TV
+     * applica soltanto la differenza rispetto al totale già ricevuto.
+     * Il primo tick registra l'inizio; in pausa non maturano nuove penalità.
      */
     public List<ArenaInactivity> claimArenaInactivity(long gameId, List<String> players,
             String roundKey, boolean paused, long now) {
@@ -223,9 +223,11 @@ public class QuestionHistoryService {
         boolean changed = false;
 
         synchronized (activity) {
+            Map<String, Integer> totals = arenaPenaltyTotals.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>());
             String previousKey = arenaRoundKeys.put(gameId, roundKey);
             if (previousKey != null && !previousKey.equals(roundKey)) {
                 activity.clear();
+                totals.clear();
                 changed = true;
             }
 
@@ -238,20 +240,19 @@ public class QuestionHistoryService {
                 if (last == null || paused) {
                     activity.put(playerName, now);
                     changed = true;
-                    continue;
+                } else {
+                    long penalties = (now - last) / ARENA_INACTIVITY_MS;
+                    if (penalties > 0) {
+                        activity.put(playerName, last + penalties * ARENA_INACTIVITY_MS);
+                        int addition = (int) Math.min(penalties, 100L);
+                        totals.merge(playerName, addition, (old, add) -> (int) Math.min(Integer.MAX_VALUE, (long) old + add));
+                        changed = true;
+                    }
                 }
-                long penalties = (now - last) / ARENA_INACTIVITY_MS;
-                if (penalties <= 0) {
-                    continue;
-                }
-                activity.put(playerName, last + penalties * ARENA_INACTIVITY_MS);
-                due.add(new ArenaInactivity(playerName, (int) Math.min(penalties, 100L)));
-                changed = true;
+                int total = totals.getOrDefault(playerName, 0);
+                if (total > 0) due.add(new ArenaInactivity(playerName, total));
             }
-        }
-
-        if (changed) {
-            persist(gameId);
+            if (changed) persist(gameId);
         }
         return due;
     }
@@ -282,6 +283,7 @@ public class QuestionHistoryService {
         questionCounters.remove(gameId);
         arenaSides.remove(gameId);
         arenaActivity.remove(gameId);
+        arenaPenaltyTotals.remove(gameId);
         arenaRoundKeys.remove(gameId);
         hydrated.remove(gameId);
         stateBlobs.forget(gameId, ARENA_BLOB);
@@ -341,6 +343,15 @@ public class QuestionHistoryService {
                 arenaActivity.put(gameId, restored);
             }
 
+            JSONObject penaltyJson = json.optJSONObject("penaltyTotals");
+            if (penaltyJson != null) {
+                Map<String, Integer> restored = new ConcurrentHashMap<>();
+                for (String player : penaltyJson.keySet()) {
+                    restored.put(player, penaltyJson.optInt(player, 0));
+                }
+                arenaPenaltyTotals.put(gameId, restored);
+            }
+
             long counter = json.optLong("counter", 0);
             questionCounters.put(gameId, new AtomicLong(counter));
 
@@ -377,6 +388,9 @@ public class QuestionHistoryService {
         JSONObject activityJson = new JSONObject();
         arenaActivity.getOrDefault(gameId, Map.of()).forEach(activityJson::put);
         json.put("activity", activityJson);
+        JSONObject penaltyJson = new JSONObject();
+        arenaPenaltyTotals.getOrDefault(gameId, Map.of()).forEach(penaltyJson::put);
+        json.put("penaltyTotals", penaltyJson);
 
         AtomicLong counter = questionCounters.get(gameId);
         json.put("counter", counter == null ? 0 : counter.get());
