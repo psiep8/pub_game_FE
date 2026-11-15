@@ -501,6 +501,36 @@ describe('RemoteComponent', () => {
     expect(component.hasAnswered()).toBe(false);
   });
 
+  it('ricostruisce un round ancora aperto alla pausa anche se la deadline è passata', () => {
+    const pausedAt = Date.now() - 30_000;
+    reliability.syncState$.next({
+      hasState: true, status: 'RUNNING', paused: true, pausedAt,
+      roundType: 'TIMELINE', roundKey: 'paused-round', roundDeadlineAt: pausedAt + 12_000,
+      currentRound: { type: 'TIMELINE', roundKey: 'paused-round',
+        payload: { roundId: 'paused', items: [{ id: 1, label: 'Carta' }] } },
+    });
+    expect(component.paused()).toBe(true);
+    expect(component.roundActive()).toBe(true);
+    expect(component.gameState()).toBe('VOTING');
+    expect(component.timelineCards()).toHaveLength(1);
+  });
+
+  it('attende la ripresa prima di richiedere una domanda Arena dopo il sync in pausa', () => {
+    component.nickname.set('Anna');
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const request = vi.spyOn(game, 'getArenaQuestion');
+    const pausedAt = Date.now() - 30_000;
+    reliability.syncState$.next({
+      hasState: true, status: 'RUNNING', paused: true, pausedAt,
+      roundType: 'ARENA', roundKey: 'paused-arena', roundDeadlineAt: pausedAt + 12_000,
+    });
+    expect(component.roundActive()).toBe(true);
+    expect(request).not.toHaveBeenCalled();
+    ws.status$.next({ action: 'GAME_RESUMED' });
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(component.gameState()).toBe('VOTING');
+  });
+
   it('should block only the player named in the error', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();

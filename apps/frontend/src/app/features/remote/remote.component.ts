@@ -747,6 +747,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
             this.buzzStartedAt += performance.now() - this.pauseStartedAt;
             this.pauseStartedAt = 0;
           }
+          if (this.roundActive() && this.questionType() === 'ARENA'
+              && !this.arenaQuestion() && !this.isFetchingQuestion() && !this.arenaEliminated()) {
+            this.gameState.set(PlayerStatus.VOTING);
+            this.generateNextArenaQuestion();
+          }
           break;
 
         case 'ARENA_ELIMINATED':
@@ -2327,7 +2332,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (this.paused() && !this.pauseStartedAt) this.pauseStartedAt = performance.now();
 
     const deadline = Number(snapshot.roundDeadlineAt ?? 0);
-    const open = !deadline || deadline > this.reliability.serverNow();
+    const pausedAt = Number(snapshot.pausedAt ?? 0);
+    // Durante la pausa la deadline non si muove: confrontarla con l'ora
+    // corrente farebbe chiudere un round che era ancora aperto allo stop.
+    const referenceTime = this.paused() && pausedAt > 0 ? pausedAt : this.reliability.serverNow();
+    const open = !deadline || deadline > referenceTime;
     const round = snapshot.currentRound;
     const type = round?.type ?? snapshot.roundType;
 
@@ -2397,7 +2406,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const previousType = this.questionType();
     this.questionType.set(type);
     if (type === 'ARENA') {
-      if (!this.arenaQuestion() && !this.isFetchingQuestion()) this.generateNextArenaQuestion();
+      if (!this.paused() && !this.arenaQuestion() && !this.isFetchingQuestion()) this.generateNextArenaQuestion();
       return;
     }
     if (this.hasAnswered()) return;
