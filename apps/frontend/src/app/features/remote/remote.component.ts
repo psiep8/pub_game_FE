@@ -2233,6 +2233,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   private loadArenaAfterSession(): void {
     if (this.roundActive() && this.questionType() === 'ARENA' && !this.paused()
+      && this.gameState() === PlayerStatus.VOTING
       && !this.arenaQuestion() && !this.isFetchingQuestion() && !this.arenaEliminated()) {
       this.generateNextArenaQuestion();
     }

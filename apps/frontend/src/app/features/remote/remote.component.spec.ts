@@ -646,6 +646,22 @@ describe('RemoteComponent', () => {
     expect(request.mock.calls[0][2]).toBe('Anna');
   });
 
+  it('non carica Arena dopo la sessione prima dell’annuncio della TV', async () => {
+    const game = TestBed.inject(GameService);
+    const request = vi.spyOn(game, 'getArenaQuestion');
+    let finishRegistration: (ok: boolean) => void = () => {};
+    vi.spyOn(reliability, 'start').mockReturnValue(new Promise<boolean>(resolve => { finishRegistration = resolve; }));
+    component.tempNickname = 'Anna';
+    const registration = component.setNickname();
+    ws.status$.next({ action: 'SHOW_QUESTION', type: 'ARENA' });
+    finishRegistration(true);
+    await registration;
+    expect(request).not.toHaveBeenCalled();
+    ws.status$.next({ action: 'START_VOTING', type: 'ARENA' });
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(request.mock.calls[0][2]).toBe('Anna');
+  });
+
   it('il sync al nuovo round Arena scarta la domanda e le risposte precedenti', () => {
     component.nickname.set('Anna');
     const game = TestBed.inject(GameService);
