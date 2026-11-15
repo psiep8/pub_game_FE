@@ -328,6 +328,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   /** Un solo invio per domanda: il doppio tocco non deve saltare la successiva. */
   private arenaAnswerPending = false;
   private arenaAnswerGeneration = 0;
+  private arenaUnconfirmedAnswer: { questionId: string; answer: string } | null = null;
 
   /** Prova corrente del mazzo (null tra una prova e l'altra). */
   speedTask = signal<SpeedTask | null>(null);
@@ -2222,6 +2223,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.arenaLoadSeq++;
     this.arenaAnswerGeneration++;
     this.arenaAnswerPending = false;
+    this.arenaUnconfirmedAnswer = null;
+    if (this.reliability.lastError()?.startsWith('Risposta Arena non confermata')) this.reliability.lastError.set(null);
     this.isFetchingQuestion.set(false);
     this.arenaQuestion.set(null);
   }
@@ -2291,16 +2294,22 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // La chiave di idempotenza è stabile: se il Wi-Fi cade e il telefono
     // ritenta, il server risponde con l'esito già registrato.
     const questionId = q.questionId;
+    const answer = this.arenaUnconfirmedAnswer?.questionId === questionId
+      ? this.arenaUnconfirmedAnswer.answer : q.options[index];
+    if (answer == null) return;
+    this.arenaUnconfirmedAnswer = { questionId, answer };
     const seq = this.arenaLoadSeq;
     const answerGeneration = ++this.arenaAnswerGeneration;
     this.arenaAnswerPending = true;
     const key = this.reliability.idempotencyKey('arena', `${playerName}:${questionId}`);
     this.gameService
-      .answerArenaQuestion(this.gameId(), playerName, questionId, q.options[index], key, this.reliability.deviceId())
+      .answerArenaQuestion(this.gameId(), playerName, questionId, answer, key, this.reliability.deviceId())
       .subscribe({
         next: (res: any) => {
           if (answerGeneration !== this.arenaAnswerGeneration) return;
           this.arenaAnswerPending = false;
+          this.arenaUnconfirmedAnswer = null;
+          if (this.reliability.lastError()?.startsWith('Risposta Arena non confermata')) this.reliability.lastError.set(null);
           const isCorrect = !!res.correct;
           // Il backend comunica l'esito alla TV dopo averlo registrato.
           this.vibrate(isCorrect ? 50 : [50, 50, 50]);
@@ -2321,14 +2330,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
           console.error('❌ Risposta arena rifiutata dal server:', err);
           // Durante la pausa la domanda resta valida: si potrà riprovare alla ripresa.
           if (this.arenaQuestion()?.questionId !== questionId) return;
-          if (err?.status === 409 && err?.error?.error === 'round-paused') return;
           // Round chiuso o scaduto: non si insiste, si aspetta la TV.
-          if (err?.status === 409) {
-            this.arenaQuestion.set(null);
+          if (err?.status === 409 && err?.error?.error !== 'round-paused') {
+            this.invalidateArenaQuestion();
             this.gameState.set(PlayerStatus.WAITING);
             return;
           }
-          this.generateNextArenaQuestion();
+          // Il server potrebbe aver già registrato la scelta: non cambiarla
+          // né pescare un'altra domanda finché il retry non è confermato.
+          this.reliability.lastError.set(`Risposta Arena non confermata: premi una risposta per ritentare «${answer}».`);
         }
       });
   }

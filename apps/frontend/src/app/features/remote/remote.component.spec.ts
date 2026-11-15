@@ -370,6 +370,29 @@ describe('RemoteComponent', () => {
     log.mockRestore();
   });
 
+  it('ritenta la stessa risposta Arena dopo una conferma persa', () => {
+    component.nickname.set('Anna');
+    component.arenaQuestion.set({ text: 'Domanda', options: ['A', 'B'], isTrueFalse: false, questionId: 'q1' });
+    const game = TestBed.inject(GameService);
+    const answer = vi.spyOn(game, 'answerArenaQuestion')
+      .mockReturnValueOnce(throwError(() => ({ status: 0 })))
+      .mockReturnValueOnce(of({ correct: true }));
+    const question = vi.spyOn(game, 'getArenaQuestion');
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    component.sendArenaAnswer(0);
+    expect(component.arenaQuestion()?.questionId).toBe('q1');
+    expect(question).not.toHaveBeenCalled();
+    expect(reliability.lastError()).toContain('A');
+    component.sendArenaAnswer(1);
+    expect(answer).toHaveBeenCalledTimes(2);
+    expect(answer.mock.calls[0][3]).toBe('A');
+    expect(answer.mock.calls[1][3]).toBe('A');
+    expect(answer.mock.calls[1][4]).toBe(answer.mock.calls[0][4]);
+    expect(reliability.lastError()).toBeNull();
+    log.mockRestore();
+  });
+
   it('ignora una domanda Arena arrivata dopo una richiesta più recente', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();
