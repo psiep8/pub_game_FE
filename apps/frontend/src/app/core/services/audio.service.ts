@@ -214,6 +214,58 @@ export class AudioService {
   }
 
   /**
+   * Ingresso dei cinque bonus: cinque richiami diversi, non un jingle unico.
+   * Restano brevi e non coprono la voce del presentatore.
+   */
+  playBonusEntrance(type: string): void {
+    if (!this.audioEnabled()) return;
+
+    switch (type) {
+      case 'CASINO_COLOR':
+        this.tone({ freq: 196, duration: 0.18, type: 'square', gain: 0.03 });
+        this.tone({ freq: 392, duration: 0.18, type: 'square', gain: 0.03, delay: 0.2 });
+        this.tone({ freq: 196, duration: 0.18, type: 'square', gain: 0.03, delay: 0.4 });
+        this.noiseBurst(0.2, 0.05, 0.56, 2800);
+        break;
+      case 'BLACKJACK':
+        this.noiseBurst(0.08, 0.08, 0, 1800);
+        this.tone({ freq: 130.81, duration: 0.22, type: 'triangle', gain: 0.055, delay: 0.12 });
+        this.tone({ freq: 246.94, duration: 0.22, type: 'triangle', gain: 0.045, delay: 0.36 });
+        this.tone({ freq: 329.63, duration: 0.28, type: 'triangle', gain: 0.04, delay: 0.6 });
+        break;
+      case 'CASINO_DOZEN':
+        for (let i = 0; i < 5; i++) {
+          this.tone({
+            freq: i % 2 === 0 ? 880 : 660,
+            duration: 0.16,
+            type: 'square',
+            gain: 0.022,
+            delay: i * 0.2,
+          });
+        }
+        break;
+      case 'CAVALLO':
+        for (let i = 0; i < 4; i++) {
+          this.tone({
+            freq: i % 2 === 0 ? 98 : 82,
+            duration: 0.09,
+            type: 'sine',
+            gain: 0.07,
+            delay: i * 0.24,
+            slideTo: 54,
+          });
+        }
+        break;
+      case 'CASINO_NUMBER':
+        this.tone({ freq: 1046.5, duration: 0.12, type: 'triangle', gain: 0.035 });
+        this.tone({ freq: 1318.5, duration: 0.12, type: 'triangle', gain: 0.035, delay: 0.22 });
+        this.tone({ freq: 1568, duration: 0.16, type: 'triangle', gain: 0.04, delay: 0.44 });
+        this.tone({ freq: 65.41, duration: 0.5, type: 'sine', gain: 0.08, delay: 0.7, slideTo: 40 });
+        break;
+    }
+  }
+
+  /**
    * Conferma globale: risposta registrata o azione accettata dal server.
    * Suono breve, due note in salita, pensato per il telefono.
    */

@@ -59,8 +59,10 @@ import { REVEAL_DELAY_MS, scoringRuleFor } from '../../shared/models/scoring-rul
 import { BonusType, BONUS_LABELS, BONUS_TYPES } from '../../shared/models/bonus-type';
 import { CasinoBonus } from '../bonus/casino/casino-bonus.component';
 import { CavalloBonus } from '../bonus/cavallo/cavallo-bonus.component';
-import { BasketBonusStage } from '../bonus/basket/basket-bonus-stage.component';
 import { BiglieBonus } from '../bonus/biglie/biglie-bonus.component';
+import { BlackjackBonus } from '../bonus/blackjack/blackjack-bonus.component';
+import { BonusEntrance } from '../bonus/bonus-entrance/bonus-entrance.component';
+import { CASINO_BONUS_TYPES } from '../../shared/models/bonus-type';
 
 type TvPhase = 'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION' | typeof GamePhase.INTRO;
 
@@ -87,8 +89,9 @@ type TvPhase = 'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION' | typeof GamePhase.
     Blackjack,
     CasinoBonus,
     CavalloBonus,
-    BasketBonusStage,
-    BiglieBonus
+    BiglieBonus,
+    BlackjackBonus,
+    BonusEntrance
   ],
   templateUrl: './game.component.html',
   styleUrls: ['./game.component.css', './restyle.css', './demo.css'],
@@ -160,6 +163,8 @@ export class GameComponent implements OnInit, OnDestroy {
   demoScene = signal(0);
   bonusActive = signal(false);
   bonusType = signal<BonusType | null>(null);
+  /** Ingresso scenografico in corso: il bonus vero parte alla fine. */
+  bonusEntrance = signal<BonusType | null>(null);
   bonusScores = signal<Array<{ playerName: string; score: number; baskets: number }>>([]);
   bonusSecondsLeft = signal(0);
   bonusShowResult = signal(false);
@@ -278,6 +283,7 @@ export class GameComponent implements OnInit, OnDestroy {
   private bonusBasketsMap = new Map<string, number>();
   private bonusAwarded = false;
   private bonusTimer?: ReturnType<typeof setInterval>;
+  private bonusEntranceTimer?: ReturnType<typeof setTimeout>;
   private autoAdvanceTimer?: ReturnType<typeof setInterval>;
   private demoTimer?: ReturnType<typeof setInterval>;
   private lastTimerTick = -1;
@@ -365,19 +371,6 @@ export class GameComponent implements OnInit, OnDestroy {
           this.audioService.playCountdownTick();
         } else if (t === 0 && this.lastTimerTick > 0) {
           this.lastTimerTick = 0;
-          this.audioService.playCountdownBong();
-        }
-      }
-
-      const basket = this.bonusSecondsLeft();
-      if (this.bonusActive() && this.bonusType() === 'BASKET') {
-        if (basket > 5) {
-          this.lastBonusTick = -1;
-        } else if (basket > 0 && basket !== this.lastBonusTick) {
-          this.lastBonusTick = basket;
-          this.audioService.playCountdownTick();
-        } else if (basket === 0 && this.lastBonusTick > 0) {
-          this.lastBonusTick = 0;
           this.audioService.playCountdownBong();
         }
       }
@@ -616,6 +609,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.introTimer) clearTimeout(this.introTimer);
+    if (this.bonusEntranceTimer) clearTimeout(this.bonusEntranceTimer);
     if (this.presenceTimer) clearInterval(this.presenceTimer);
     if (this.buttonTestTimer) clearInterval(this.buttonTestTimer);
     this.leaderboardService.setPointListener(null);
@@ -959,7 +953,7 @@ export class GameComponent implements OnInit, OnDestroy {
       });
 
 
-      this.audioService.startClock();
+      if (mode.timerDuration > 0) this.audioService.startClock();
       this.startRoundSuspense(mode.type);
       if (mode.type === 'BOMBA') {
         this.audioService.playBombSiren();
@@ -1187,6 +1181,8 @@ export class GameComponent implements OnInit, OnDestroy {
         return 'AZZARDO';
       case 'BLACKJACK':
         return 'BLACK JACK';
+      case 'BIGLIE':
+        return 'BIGLIE';
       case 'BOMBA':
         return 'BOMBA';
       case 'SPEED_RUSH':
@@ -1245,6 +1241,37 @@ export class GameComponent implements OnInit, OnDestroy {
     this.roundManager.completeRound('ARENA');
     this.checkLeaderboardDisplay();
 
+  }
+
+  /**
+   * Biglie: ogni gara versa i punti appena taglia il traguardo. Il round si
+   * chiude solo alla fine della finale, quando il componente emette `finished`.
+   */
+  private onBiglieRoundResult(event: { playerName: string; score: number }): void {
+    const playerName = String(event?.playerName ?? '').trim();
+    const points = Number(event?.score) || 0;
+    if (!playerName || points === 0) return;
+    this.leaderboardService.addPoints(playerName, points, points > 0);
+  }
+
+  private finishBiglieRound(): void {
+    const mode = this.currentMode();
+    if (!mode || mode.type !== 'BIGLIE') return;
+
+    mode.stop();
+    this.audioService.stopClock();
+    this.audioService.stopSuspense();
+    this.audioService.playPodium();
+    this.isSpinning.set(false);
+
+    const currentRound = this.round();
+    if (currentRound) {
+      this.round.set({ ...currentRound, status: GamePhase.REVEAL });
+    }
+
+    this.ws.broadcastStatus(this.currentGameId()!, { action: WsAction.ROUND_ENDED });
+    this.roundManager.completeRound('BIGLIE');
+    this.checkLeaderboardDisplay();
   }
 
   private onModeTimeout() {
@@ -1631,8 +1658,20 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Bonus: parte dalla TV a fine atto (o su comando admin) e non consuma un round. */
   async startBonus(type: BonusType): Promise<void> {
     if (!BONUS_TYPES.includes(type)) return;
+    if (this.bonusEntrance() || this.bonusActive() || this.isSpinning()) return;
+
     // Un bonus è fuori dal round: chiude il conteggio se era ancora aperto.
     this.settleRoundWinner();
+    this.bonusEntrance.set(type);
+    this.audioService.playBonusEntrance(type);
+    this.bonusEntranceTimer = setTimeout(() => {
+      this.bonusEntrance.set(null);
+      this.bonusEntranceTimer = undefined;
+      void this.beginBonus(type);
+    }, 2600);
+  }
+
+  private async beginBonus(type: BonusType): Promise<void> {
     if (this.isSpinning() || this.bonusActive()) return;
     // Un bonus può partire subito dopo un reset, quando la classifica è
     // vuota: allinea i tavoli ai telefoni presenti prima di disegnare il bonus.
@@ -1686,62 +1725,33 @@ export class GameComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Le Biglie hanno una schermata TV dedicata che parla con i telefoni
-    // tramite BIGLIE_STATE: la scelta della biglia è unica e in ordine
-    // sorteggiato, quindi non può passare dal flusso delle domande.
-    if (type === 'BIGLIE') {
-      const publicPayload = JSON.stringify({ type: 'BONUS_BIGLIE', question: BONUS_LABELS[type] });
+    // Il Blackjack bonus riusa il tavolo della TV e lo stato BLACKJACK_STATE:
+    // un solo turno per tavolo, dal fondo della classifica.
+    if (type === 'BLACKJACK') {
+      const publicPayload = JSON.stringify({ type: 'BLACKJACK', question: BONUS_LABELS[type] });
       this.ws.broadcastStatus(this.currentGameId(), {
         action: WsAction.SHOW_QUESTION,
-        type: 'BONUS_BIGLIE',
+        type: 'BLACKJACK',
         payload: publicPayload,
         rawPayload: publicPayload,
       });
       return;
     }
 
-    if (type === 'BASKET') {
-      // Il server apre la sessione prima che i telefoni ricevano il bonus:
-      // da qui assegna i bersagli di potenza e convalida ogni tiro.
-      try {
-        await firstValueFrom(this.gameService.startBasket(this.currentGameId()!, this.bonusPlayers()));
-      } catch (error) {
-        console.error('❌ Avvio Basket sul server:', error);
-      }
-      this.startBasketCountdown();
-      const publicPayload = JSON.stringify({ type: 'BONUS_BASKET', question: BONUS_LABELS[type] });
+    // Le tre varianti Casino usano la stessa ruota e una sola manche: il
+    // telefono riceve sempre BONUS_CASINO e sceglie dalla griglia giusta.
+    if (CASINO_BONUS_TYPES.includes(type)) {
+      const publicPayload = JSON.stringify({ type: 'BONUS_CASINO', question: BONUS_LABELS[type] });
       this.ws.broadcastStatus(this.currentGameId(), {
         action: WsAction.SHOW_QUESTION,
-        type: 'BONUS_BASKET',
+        type: 'BONUS_CASINO',
         payload: publicPayload,
         rawPayload: publicPayload,
       });
-      return;
     }
-
-    // Il Casino ha una schermata TV dedicata che parla direttamente con i
-    // telefoni tramite CASINO_STATE: quattro manche a difficoltà crescente su
-    // una sola griglia di scelta.
-    const publicPayload = JSON.stringify({ type: 'BONUS_CASINO', question: BONUS_LABELS[type] });
-    this.ws.broadcastStatus(this.currentGameId(), {
-      action: WsAction.SHOW_QUESTION,
-      type: 'BONUS_CASINO',
-      payload: publicPayload,
-      rawPayload: publicPayload,
-    });
   }
 
-  private startBasketCountdown(): void {
-    this.clearBonusTimer();
-    this.bonusSecondsLeft.set(90);
-    this.bonusTimer = setInterval(() => {
-      const next = this.bonusSecondsLeft() - 1;
-      this.bonusSecondsLeft.set(Math.max(0, next));
-      if (next <= 0) this.finishBonus();
-    }, 1000);
-  }
-
-  /** I bonus sommano i punti delle manche; nessun punto va ancora in classifica. */
+  /** I bonus sommano i punti delle manche: la classifica li incassa alla chiusura. */
   private recordBonusResult(playerName: string, score: number, baskets = 0): void {
     const name = String(playerName || '').trim();
     if (!name) return;
@@ -1763,25 +1773,27 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   private finishBonus(): void {
+    if (this.bonusEntrance()) {
+      if (this.bonusEntranceTimer) clearTimeout(this.bonusEntranceTimer);
+      this.bonusEntranceTimer = undefined;
+      this.bonusEntrance.set(null);
+      return;
+    }
     if (!this.bonusActive() || this.bonusAwarded) return;
     this.bonusAwarded = true;
     this.clearBonusTimer();
-    if (this.bonusType() === 'BASKET' && this.currentGameId()) {
-      void firstValueFrom(this.gameService.finishBasket(this.currentGameId()!)).catch((error) =>
-        console.error('❌ Chiusura Basket sul server:', error),
-      );
-    }
-    if (this.bonusType() === 'BASKET' && this.bonusSecondsLeft() <= 1) {
-      this.audioService.playCountdownBong();
-    }
 
     const ranking = [...this.bonusScoresMap.entries()]
       .map(([playerName, score]) => ({ playerName, score }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 6);
 
-    // Nessun premio automatico: la politica premio/punti dei bonus sarà
-    // decisa a parte, quindi qui si registra solo la classifica del bonus.
+    // I punti del bonus entrano in classifica una sola volta, alla chiusura:
+    // così un risultato arrivato in ritardo non può pagare due volte.
+    for (const [playerName, score] of this.bonusScoresMap) {
+      if (score > 0) this.leaderboardService.addPoints(playerName, score, true);
+    }
+
     this.bonusResult.set(ranking);
     this.bonusShowResult.set(true);
 
@@ -1797,10 +1809,17 @@ export class GameComponent implements OnInit, OnDestroy {
     this.bonusSecondsLeft.set(0);
 
     // Il tipo resta per il riepilogo; non azzerarlo se nel frattempo parte un altro bonus.
+    const finalBonus = this.roundManager.isGameOver();
     setTimeout(() => {
       if (this.bonusActive()) return;
       this.bonusShowResult.set(false);
       this.bonusType.set(null);
+      if (finalBonus) {
+        // Il bonus dell'atto 5 chiude la serata: la classifica finale si vede
+        // con i punti appena incassati, non con la fotografia precedente.
+        this.pendingLeaderboardType.set('DETAILED');
+        this.showPendingLeaderboard();
+      }
     }, 8000);
   }
 
@@ -1859,6 +1878,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private reset() {
     this.arenaFinished = false;
+    if (this.bonusEntranceTimer) clearTimeout(this.bonusEntranceTimer);
+    this.bonusEntranceTimer = undefined;
+    this.bonusEntrance.set(null);
     this.audioService.stopSuspense();
     this.cancelAutoAdvance();
     this.clearBonusTimer();

@@ -208,7 +208,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<PlayerStatus>(PlayerStatus.WAITING);
-  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'TENNIS_BATTLE' | 'CAVALLO' | 'ULTIMA_SPIAGGIA' | 'AZZARDO' | 'BLACKJACK' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO' | 'BONUS_BIGLIE'>('QUIZ');
+  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'TENNIS_BATTLE' | 'CAVALLO' | 'ULTIMA_SPIAGGIA' | 'AZZARDO' | 'BLACKJACK' | 'BIGLIE' | 'BONUS_BASKET' | 'BONUS_CASINO' | 'BONUS_CAVALLO' | 'BONUS_BIGLIE'>('QUIZ');
   hasAnswered = signal(false);
   /** Manche Quiz in corso e ultima manche già votata. */
   quizManche = signal(0);
@@ -1198,6 +1198,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       ARENA: '🏟️ Arena',
       AZZARDO: '🎲 Azzardo',
       BLACKJACK: '🃏 Blackjack',
+      BIGLIE: '🎱 Biglie',
       ULTIMA_SPIAGGIA: '🏝️ Ultima spiaggia',
       CAVALLO: '🐎 Cavallo',
       BONUS_CASINO: '🎰 Roulette',

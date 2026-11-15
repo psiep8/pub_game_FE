@@ -15,9 +15,10 @@ const PLAYABLE_TYPES: GameModeType[] = [
   'ULTIMA_SPIAGGIA',
   'AZZARDO',
   'BLACKJACK',
+  'BIGLIE',
 ];
 
-const REALTIME_TYPES: GameModeType[] = ['BOMBA', 'ARENA', 'SPEED_RUSH', 'TENNIS_BATTLE', 'BLACKJACK'];
+const REALTIME_TYPES: GameModeType[] = ['BOMBA', 'ARENA', 'SPEED_RUSH', 'TENNIS_BATTLE', 'BLACKJACK', 'BIGLIE'];
 
 describe('RoundManagerService', () => {
   let service: RoundManagerService;
@@ -110,11 +111,11 @@ describe('RoundManagerService', () => {
 
   it('should schedule only the selected bonuses across the acts', () => {
     const expected: Array<string | null> = [
-      'CASINO',
-      null,
+      'CASINO_COLOR',
+      'BLACKJACK',
+      'CASINO_DOZEN',
       'CAVALLO',
-      'BIGLIE',
-      null,
+      'CASINO_NUMBER',
     ];
 
     expected.forEach((bonus, act) => {
@@ -141,7 +142,7 @@ describe('RoundManagerService', () => {
     expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(3);
     expect(types.filter((type) => type === 'ULTIMA_SPIAGGIA')).toHaveLength(5);
     expect(types.filter((type) => type === 'AZZARDO')).toHaveLength(2);
-    expect(types.filter((type) => type === 'BOMBA')).toHaveLength(3);
+    expect(types.filter((type) => type === 'BOMBA')).toHaveLength(2);
   });
 
   it('should respect the agreed mix of games across the 40 rounds', () => {
@@ -152,29 +153,31 @@ describe('RoundManagerService', () => {
     expect(types.filter((type) => type === 'MUSIC')).toHaveLength(4);
     expect(types.filter((type) => type === 'AZZARDO')).toHaveLength(2);
     expect(types.filter((type) => type === 'ARENA')).toHaveLength(2);
-    expect(types.filter((type) => type === 'BOMBA')).toHaveLength(3);
+    expect(types.filter((type) => type === 'BOMBA')).toHaveLength(2);
     expect(types.filter((type) => type === 'IMAGE_BLUR')).toHaveLength(3);
-    expect(types.filter((type) => type === 'BLACKJACK')).toHaveLength(3);
+    expect(types.filter((type) => type === 'BLACKJACK')).toHaveLength(0);
+    expect(types.filter((type) => type === 'BIGLIE')).toHaveLength(4);
     expect(types.filter((type) => type === 'TIMELINE')).toHaveLength(3);
     expect(types.filter((type) => type === 'WHEEL_OF_FORTUNE')).toHaveLength(2);
-    expect(types.filter((type) => type === 'SPEED_RUSH')).toHaveLength(2);
+    expect(types.filter((type) => type === 'SPEED_RUSH')).toHaveLength(3);
     expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(3);
-    expect(types.filter((type) => type === 'TENNIS_BATTLE')).toHaveLength(3);
+    expect(types.filter((type) => type === 'TENNIS_BATTLE')).toHaveLength(2);
     expect(types.filter((type) => type === 'ULTIMA_SPIAGGIA')).toHaveLength(5);
   });
 
-  it('should play the black jack three times, only in the first three acts', () => {
+  it('should play the four Biglie races as separate rounds and keep Black Jack out of the deck', () => {
     const types: GameModeType[] = [];
     for (let i = 0; i < 40; i++) types.push(service.startNewRound());
 
-    const acts = [0, 1, 2, 3, 4].map((act) => types.slice(act * 8, act * 8 + 8));
+    const races = types
+      .map((type, index) => (type === 'BIGLIE' ? index + 1 : null))
+      .filter((round): round is number => round !== null);
 
-    expect(types.filter((type) => type === 'BLACKJACK')).toHaveLength(3);
-    expect(acts[0]).toContain('BLACKJACK');
-    expect(acts[1]).toContain('BLACKJACK');
-    expect(acts[2]).toContain('BLACKJACK');
-    expect(acts[3]).not.toContain('BLACKJACK');
-    expect(acts[4]).not.toContain('BLACKJACK');
+    expect(races).toEqual([3, 5, 11, 22]);
+    for (let i = 1; i < races.length; i++) {
+      expect(races[i] - races[i - 1]).toBeGreaterThan(1);
+    }
+    expect(types).not.toContain('BLACKJACK');
   });
 
   it('should track how many times each mode has been played', () => {

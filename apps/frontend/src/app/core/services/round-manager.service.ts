@@ -109,9 +109,9 @@ export class RoundManagerService {
   /**
    * Bonus previsto dopo l'atto appena concluso, se esiste.
    *
-   * Dopo l'atto 1 il Casino (quattro manche a difficoltà crescente), dopo il
-   * 3 il Cavallo di Battaglia e dopo il 4 le Biglie. Dopo il 2 non è previsto un bonus.
-   * Dopo il quinto atto non c'è bonus: si chiude con la classifica finale.
+   * Dopo ogni atto c'è un bonus diverso: Casino bianco/rosso, Blackjack,
+   * Casino dozzina, Cavallo di Battaglia e Casino numero secco. I punti dei
+   * bonus entrano in classifica alla chiusura del bonus stesso.
    */
   bonusAfterAct(): BonusType | null {
     const act = this.getCurrentAct();

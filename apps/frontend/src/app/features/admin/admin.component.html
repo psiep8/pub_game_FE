@@ -230,9 +230,11 @@
       <button class="flow-btn" (click)="toggleGamePause()">⏸️ PAUSA / RIPRENDI</button>
       <button class="flow-btn" (click)="showIntro()">↺ RIVEDI INTRO</button>
       <button class="flow-btn" (click)="theme.toggleXmas()">🎄 NATALE {{ theme.xmas() ? 'ON' : 'OFF' }}</button>
-      <button class="flow-btn" (click)="startBonus('CASINO')">🎰 BONUS CASINO</button>
+      <button class="flow-btn" (click)="startBonus('CASINO_COLOR')">🔴 CASINO BIANCO/ROSSO</button>
+      <button class="flow-btn" (click)="startBonus('BLACKJACK')">🃏 BONUS BLACKJACK</button>
+      <button class="flow-btn" (click)="startBonus('CASINO_DOZEN')">🎰 CASINO DOZZINA</button>
       <button class="flow-btn" (click)="startBonus('CAVALLO')">🐎 BONUS CAVALLO</button>
-      <button class="flow-btn" (click)="startBonus('BIGLIE')">🎱 BONUS BIGLIE</button>
+      <button class="flow-btn" (click)="startBonus('CASINO_NUMBER')">🎯 CASINO NUMERO SECCO</button>
       <button class="flow-btn ghost" (click)="stopBonus()">✖️ CHIUDI BONUS</button>
     </div>
     <div class="flow-note">Avvio e avanzamento manuali: usa PARTI oppure il tasto AVANTI in TV.</div>

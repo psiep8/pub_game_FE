@@ -17,6 +17,7 @@ import { TennisBattleMode } from '../../features/games/tennis-battle/tennis-batt
 import { UltimaSpiaggiaMode } from '../../features/games/ultima-spiaggia/ultima-spiaggia.mode';
 import { AzzardoMode } from '../../features/games/azzardo/azzardo.mode';
 import { BlackjackMode } from '../../features/games/blackjack/blackjack.mode';
+import { BiglieMode } from '../../features/games/biglie/biglie.mode';
 
 type ModeFactory = (config: GameModeConfig) => IGameMode;
 
@@ -44,6 +45,7 @@ export class GameModeService {
     ULTIMA_SPIAGGIA: (config) => this.withConfig(new UltimaSpiaggiaMode(), config),
     AZZARDO: (config) => this.withConfig(new AzzardoMode(), config),
     BLACKJACK: (config) => this.withConfig(new BlackjackMode(), config),
+    BIGLIE: (config) => this.withConfig(new BiglieMode(), config),
   };
 
   createMode(config: GameModeConfig): IGameMode {

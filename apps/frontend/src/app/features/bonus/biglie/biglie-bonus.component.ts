@@ -222,7 +222,7 @@ const FINALE_SECONDS = 7;
         @if (phase() !== Phase.RACE) {
         <header class="bg-head">
           <div>
-            <div class="bg-kicker">🎱 BIGLIE · BONUS DI FINE ATTO</div>
+            <div class="bg-kicker">{{ roundMode ? '🎱 BIGLIE · ROUND' : '🎱 BIGLIE · BONUS DI FINE ATTO' }}</div>
             <h1>{{ heading() }}</h1>
             <p class="bg-sub">{{ subtitle() }}</p>
           </div>
@@ -246,6 +246,7 @@ const FINALE_SECONDS = 7;
               <p class="bg-hint">
                 Una biglia a testa, scelta una volta sola in ordine sorteggiato.
                 Quattro gare, punti cumulativi: 150 / 100 / 60 / 30 a gara.
+                {{ roundMode ? 'I punti delle gare entrano nella classifica della serata.' : '' }}
               </p>
             </div>
           }
@@ -399,6 +400,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
   @Input() players: string[] = [];
   /** Banco di prova: intro breve, scelta automatica e gare senza attese. */
   @Input() preview = false;
+  /** Round della scaletta: i punti entrano in classifica, non in un bonus. */
+  @Input() roundMode = false;
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
 

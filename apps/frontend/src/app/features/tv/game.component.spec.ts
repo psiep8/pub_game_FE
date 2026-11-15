@@ -391,7 +391,7 @@ describe('GameComponent', () => {
   it('does not start Basket from an old admin command or directly', async () => {
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     const startBasket = vi.spyOn(game, 'startBasket');
-    await component.startBonus('BASKET');
+    await component.startBonus('BASKET' as any);
     ws.status$.next({ action: WsAction.ADMIN_START_BONUS, type: 'BASKET' });
     ws.status$.next({ action: WsAction.ADMIN_START_BONUS });
     await fixture.whenStable();

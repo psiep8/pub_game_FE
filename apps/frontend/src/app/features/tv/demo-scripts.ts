@@ -349,75 +349,87 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
     lose: ['Mano persa −250, senza cumulare le perdite.', 'Pareggio 0; mai sotto zero.'],
     example: 'Due mani vinte: 250 + 250 = +500. Un naturale: +500. Una sconfitta: −250.',
   },
+  BIGLIE: {
+    title: 'BIGLIE',
+    icon: '🎱',
+    objective: [
+      'Quattro round separati, una gara per round su quattro fondi.',
+      'Ogni tavolo sceglie una biglia una volta sola per round.',
+    ],
+    phone: [
+      'Scegli la biglia quando la TV chiama il tuo tavolo.',
+      'La biglia resta la stessa per tutte le gare del round.',
+      'Segui le piste in TV.',
+    ],
+    win: [
+      'Primo 150, secondo 100, terzo 60, quarto 30 a gara.',
+      'I punti di ogni gara entrano nella classifica della serata.',
+    ],
+    lose: ['Chi arriva dopo il quarto non prende punti nella gara.', 'Nessuna penalità negativa.'],
+    example: 'Vincere tutte e quattro le gare: 150 × 4 = 600 punti in classifica.',
+  },
 };
 
 const BONUS_COPY: Record<BonusType, DemoCopy> = {
-  CASINO: {
-    title: 'BONUS CASINO',
+  CASINO_COLOR: {
+    title: 'CASINO BIANCO/ROSSO',
+    icon: '🔴',
+    objective: [
+      'Una sola puntata sul colore: rosso o nero.',
+      'La ruota europea gira una volta sola.',
+    ],
+    phone: ['Tocca ROSSO o NERO.', 'La pallina esce una volta sola.', 'Sullo zero il banco incassa.'],
+    win: ['Colore giusto: +100 in classifica.'],
+    lose: ['Colore sbagliato o zero: 0 punti.', 'Nessuna penalità.'],
+    example: 'Punti sul rosso ed esce 32: +100. Esce 15 (nero): 0.',
+  },
+  BLACKJACK: {
+    title: 'BLACKJACK',
+    icon: '🃏',
+    objective: [
+      'Un turno per tavolo contro il banco della TV.',
+      'Il banco si ferma a 17; il naturale batte tutto.',
+    ],
+    phone: ['Quando la TV chiama il tuo tavolo scegli CARTA o STAI.', 'La TV apre il banco alla fine.'],
+    win: ['Mano vinta +150 in classifica.', 'Pari +75.'],
+    lose: ['Mano persa 0: il bonus non toglie punti.', 'Sballare non costa nulla in classifica.'],
+    example: 'Due tavoli vincono: +150 a testa; un pari: +75.',
+  },
+  CASINO_DOZEN: {
+    title: 'CASINO DOZZINA',
     icon: '🎰',
     objective: [
-      'Quattro manche di roulette europea (37 caselle).',
-      'Colore, dozzina, sestina e numero secco.',
+      'Una sola puntata sulla dozzina: 1-12, 13-24 o 25-36.',
+      'La ruota gira una volta sola.',
     ],
-    phone: [
-      'Tocca la casella della manche.',
-      'Sullo zero il banco incassa.',
-      'Sul numero secco si rigira finché un tavolo vince.',
-    ],
-    win: [
-      'Le manche valgono 100, 150, 200 e 300 nella classifica del bonus.',
-      'Indovinarle tutte: 750 punti bonus.',
-    ],
-    lose: ['Nessuna penalità: chi sbaglia resta a 0 nella manche.', 'La classifica del bonus non entra ancora in classifica.'],
-    example: 'Colore +100, dozzina +150, sestina +200, numero +300: tutte e quattro = +750.',
-  },
-  BASKET: {
-    title: 'BONUS BASKET',
-    icon: '🏀',
-    objective: [
-      'Tre manche da 20 secondi al canestro.',
-      'Il ferro si stringe: largo, medio, piccolo.',
-    ],
-    phone: [
-      'Apri /basket dal telefono e tira trascinando.',
-      'Ferro largo +2, medio +3, piccolo +5; swish +1.',
-      'In serata reale il bonus è bloccato finché il punteggio non è verificato dal server.',
-    ],
-    win: [
-      'La TV somma i punti delle tre manche nella classifica del bonus.',
-      'Non ci sono punti in classifica finché la verifica server non sarà pronta.',
-    ],
-    lose: ['Nessuna penalità: i tiri sbagliati valgono 0.', 'Il bonus si apre solo in simulazione e anteprima.'],
-    example: 'Tre canestri nel ferro piccolo: 15 punti bonus; con tre swish: 18.',
+    phone: ['Tocca la dozzina.', 'La pallina esce una volta sola.'],
+    win: ['Dozzina giusta: +120 in classifica.'],
+    lose: ['Dozzina sbagliata o zero: 0 punti.', 'Nessuna penalità.'],
+    example: 'Punti sul 13-24 ed esce 21: +120. Esce 7: 0.',
   },
   CAVALLO: {
-    title: 'BONUS CAVALLO',
+    title: 'CAVALLO DI BATTAGLIA',
     icon: '🐎',
     objective: [
       'Otto domande flash sulla categoria votata dai tavoli.',
-      'Vince chi indovina più risposte.',
+      'Il podio delle risposte esatte prende i punti.',
     ],
-    phone: [
-      'Vota la categoria.',
-      'Tocca la risposta giusta: +1 per ogni esatta.',
-      'La TV mostra tabellone e classifica.',
-    ],
-    win: ['Classifica del bonus per numero di risposte esatte.', '8 su 8 valgono 8 punti bonus.'],
-    lose: ['Risposta sbagliata o non data: 0.', 'Non ci sono punti in classifica.'],
-    example: '6 risposte esatte su 8: 6 punti nella classifica del bonus.',
+    phone: ['Vota la categoria.', 'Tocca la risposta giusta: ogni esatta sale nel tabellone.'],
+    win: ['Primo +200, secondo +100, terzo +50 in classifica.'],
+    lose: ['Dal quarto posto in giù: 0 punti.', 'Risposta sbagliata o non data: nessun punto.'],
+    example: 'Podio: +200, +100, +50. Gli altri tavoli restano a zero.',
   },
-  BIGLIE: {
-    title: 'BONUS BIGLIE',
-    icon: '🎱',
-    objective: ['Quattro gare su quattro fondi.', 'Ogni tavolo sceglie una biglia una volta sola.'],
-    phone: [
-      'Scegli la biglia quando la TV chiama il tuo tavolo.',
-      'La biglia resta la stessa per tutte le gare.',
-      'Guarda le piste in TV.',
+  CASINO_NUMBER: {
+    title: 'CASINO NUMERO SECCO',
+    icon: '🎯',
+    objective: [
+      'La finale: una sola puntata su un numero da 0 a 36.',
+      'La ruota rigira finché almeno un tavolo ha puntato il numero uscito.',
     ],
-    win: ['Primo 150, secondo 100, terzo 60, quarto 30 a ogni gara.', 'I punti si sommano su quattro gare.'],
-    lose: ['Chi arriva dopo il quarto non prende punti nella gara.', 'Nessuna penalità negativa.'],
-    example: 'Vincere tutte e quattro le gare: 150 × 4 = 600 punti bonus.',
+    phone: ['Scegli un numero.', 'La pallina esce con un ultimo giro di suspense.'],
+    win: ['Numero esatto: +300 in classifica.'],
+    lose: ['Numero sbagliato: 0 punti.', 'Nessuna penalità.'],
+    example: 'Punti sul 17 ed esce 17: +300. Esce 18: 0.',
   },
 };
 

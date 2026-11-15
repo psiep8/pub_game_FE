@@ -80,7 +80,7 @@ public class PartyGameService {
         }
         return switch (type.toUpperCase(Locale.ROOT)) {
             case "TIMELINE", "TIME_BUZZER", "BOMBA", "SPEED_RUSH", "TENNIS_BATTLE",
-                    "BLACKJACK" -> true;
+                    "BLACKJACK", "BIGLIE" -> true;
             default -> false;
         };
     }
@@ -103,6 +103,10 @@ public class PartyGameService {
             // Black Jack non ha domande né stato server: basta registrare il
             // round, mazzo e banco vivono nel mode della TV.
             case "BLACKJACK" -> configPayload("BLACKJACK", 600, act);
+            // Le quattro gare delle Biglie durano meno di quattro minuti, ma il
+            // round non ha un timer proprio: la scadenza server resta larga e
+            // non chiude la finale prima che la TV la mostri.
+            case "BIGLIE" -> configPayload("BIGLIE", 300, act);
             default -> null;
         };
     }
@@ -432,6 +436,7 @@ public class PartyGameService {
             case "SPEED_RUSH" -> "Speed Rush!";
             case "BOMBA" -> "Passa la bomba!";
             case "BLACKJACK" -> "Black Jack contro il banco";
+            case "BIGLIE" -> "Quattro gare, una biglia";
             default -> "Tennis Battle!";
         });
         payload.put("duration", durationSeconds);

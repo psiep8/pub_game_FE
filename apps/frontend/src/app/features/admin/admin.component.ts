@@ -694,7 +694,6 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   startBonus(type: BonusType): void {
-    if (type === 'BASKET') return;
     this.ws.broadcastStatus(this.activeGameId(), { action: WsAction.ADMIN_START_BONUS, type });
     this.vibrate(30);
   }

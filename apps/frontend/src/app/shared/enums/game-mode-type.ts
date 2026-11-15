@@ -19,6 +19,7 @@ export const GameModeType = {
   ULTIMA_SPIAGGIA: 'ULTIMA_SPIAGGIA',
   AZZARDO: 'AZZARDO',
   BLACKJACK: 'BLACKJACK',
+  BIGLIE: 'BIGLIE',
 } as const;
 
 export type GameModeType = (typeof GameModeType)[keyof typeof GameModeType];

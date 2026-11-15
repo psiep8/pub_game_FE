@@ -88,7 +88,13 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     correct: '+250 a mano, +500 col naturale',
     wrong: '−250 (mai sotto zero)',
     missed: '0 al pari; −250 se si sballa',
-    note: 'Tre round: la TV fa il banco una volta per ogni giocatore. Le vittorie si sommano (250 → 500 → 750), le sconfitte restano 250 e non cumulano.',
+    note: 'Bonus Black Jack: la TV fa il banco una volta per ogni giocatore. Le vittorie si sommano (250 → 500 → 750), le sconfitte restano 250 e non cumulano.',
+  },
+  BIGLIE: {
+    correct: '+150 / +100 / +60 / +30 a gara',
+    wrong: '0: chi arriva dopo il quarto non prende punti',
+    missed: '0 (nessuna penalità)',
+    note: 'Quattro round separati, una gara per round su quattro fondi. Ogni tavolo sceglie una biglia una volta sola e la porta per tutte le gare del round; i punti delle gare entrano nella classifica della serata.',
   },
   ARENA: {
     correct: '+10 a risposta; +1000/+500 piazzamento',
@@ -100,29 +106,35 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
 
 /** I bonus non sono modalità della scaletta: hanno regole proprie. */
 export const BONUS_SCORING: Record<string, ScoringRule> = {
-  BONUS_CASINO: {
-    correct: '+100 / +150 / +200 / +300 a manche',
+  BONUS_CASINO_COLOR: {
+    correct: '+100 sul colore',
     wrong: '0',
     missed: '0',
-    note: 'Colore, dozzina, sestina e numero secco: ogni manche si chiude con un giro della roulette in TV. Sullo zero il banco incassa; sul numero secco si rigira finché almeno un tavolo vince. La classifica del bonus non assegna ancora punti in classifica.',
+    note: 'Una sola manche: rosso o nero. Sullo zero il banco incassa e nessuno prende punti.',
   },
-  BONUS_BASKET: {
-    correct: '+2 / +3 / +5 a canestro (swish +1)',
+  BONUS_BLACKJACK: {
+    correct: '+150 a mano vinta',
+    wrong: '0: la sconfitta non toglie punti',
+    missed: '0; il pari vale +75',
+    note: 'Un turno per tavolo, ordine dal fondo classifica. Il banco si ferma a 17; il naturale batte il banco e paga come una vittoria.',
+  },
+  BONUS_CASINO_DOZEN: {
+    correct: '+120 sulla dozzina',
     wrong: '0',
     missed: '0',
-    note: 'Tre manche da 20 secondi con ferro largo, medio e piccolo; la TV somma i punti e mostra la classifica del bonus. In serata reale il bonus è bloccato finché il punteggio non è verificato dal server: si apre solo in simulazione e anteprima.',
+    note: 'Una sola manche: 1-12, 13-24 o 25-36. Sullo zero il banco incassa.',
   },
   BONUS_CAVALLO: {
-    correct: '+1 per risposta esatta',
+    correct: '+200 al primo, +100 al secondo, +50 al terzo',
     wrong: '0',
     missed: '0',
-    note: 'Otto domande flash sulla categoria votata dai telefoni; la classifica del bonus conta le risposte esatte e non assegna ancora punti in classifica.',
+    note: 'Otto domande flash sulla categoria votata dai telefoni: il tabellone ordina le risposte esatte e paga solo il podio.',
   },
-  BONUS_BIGLIE: {
-    correct: '+150 / +100 / +60 / +30 a gara',
+  BONUS_CASINO_NUMBER: {
+    correct: '+300 sul numero esatto',
     wrong: '0',
     missed: '0',
-    note: 'Quattro gare su fondi diversi, punti cumulativi: una biglia per tavolo scelta una volta sola. La classifica del bonus non assegna ancora punti in classifica.',
+    note: 'Una sola manche, trentasette caselle: il numero secco paga 300. La ruota rigira finché almeno un tavolo ha puntato il numero uscito.',
   },
 };
 

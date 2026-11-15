@@ -9,25 +9,26 @@ export const TOTAL_ROUNDS = 40;
  * Scaletta in cinque atti da otto round.
  *
  * L'ordine è fisso e già verificato rispetto ai vincoli: mai due giochi in
- * tempo reale di fila (Bomba, Arena, Speed Rush, Tennis, Black Jack), mai
- * due giochi a prenotazione consecutivi (Musica, Indovina chi, Ruota), la
- * Ruota esce due volte e l'Arena chiude la serata.
+ * tempo reale di fila (Bomba, Arena, Speed Rush, Tennis, Biglie), mai due
+ * giochi a prenotazione consecutivi (Musica, Indovina chi, Ruota), la Ruota
+ * esce due volte e l'Arena chiude la serata.
  *
- * Nessun atto ripete l'apertura del precedente. Il Black Jack esce tre volte,
- * una per atto, sempre nei primi tre atti: è il round che dà il momento di
- * vetrina a un tavolo alla volta.
+ * Nessun atto ripete l'apertura del precedente. Le Biglie sono quattro round
+ * separati, mai consecutivi: ogni gara vive nel proprio round e assegna i
+ * punti della serata. Il Black Jack non è più nella scaletta: resta come
+ * bonus, fuori dai quaranta round.
  *
- * Conteggi concordati: 5 Quiz, 4 Musica, 2 Azzardo, 2 Arena, 3 Bomba,
- * 3 Celebrità (Indovina chi), 3 Black Jack, 3 Timeline, 2 Ruota, 2 Speed Rush,
- * 3 Time Buzzer, 3 Tennis e 5 Ultima spiaggia.
+ * Conteggi concordati: 5 Quiz, 4 Musica, 2 Azzardo, 2 Arena, 2 Bomba, 3
+ * Celebrità (Indovina chi), 0 Black Jack, 3 Timeline, 2 Ruota, 3 Speed Rush,
+ * 3 Time Buzzer, 2 Tennis, 4 Biglie e 5 Ultima spiaggia.
  *
  * Ultima spiaggia chiude gli atti 1, 2 e 4 (8, 16, 32) ed è al penultimo
  * round degli atti 3 e 5 (23, 39), subito prima dell'Arena (24, 40).
  */
 export const ACT_DECKS: readonly (readonly GameModeType[])[] = [
-  ['QUIZ', 'MUSIC', 'BLACKJACK', 'TIME_BUZZER', 'BOMBA', 'TIMELINE', 'TENNIS_BATTLE', 'ULTIMA_SPIAGGIA'],
-  ['AZZARDO', 'WHEEL_OF_FORTUNE', 'BLACKJACK', 'QUIZ', 'TENNIS_BATTLE', 'TIME_BUZZER', 'MUSIC', 'ULTIMA_SPIAGGIA'],
-  ['QUIZ', 'SPEED_RUSH', 'IMAGE_BLUR', 'TENNIS_BATTLE', 'TIME_BUZZER', 'BLACKJACK', 'ULTIMA_SPIAGGIA', 'ARENA'],
+  ['QUIZ', 'MUSIC', 'BIGLIE', 'TIME_BUZZER', 'BIGLIE', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA'],
+  ['AZZARDO', 'WHEEL_OF_FORTUNE', 'BIGLIE', 'QUIZ', 'TENNIS_BATTLE', 'TIME_BUZZER', 'MUSIC', 'ULTIMA_SPIAGGIA'],
+  ['QUIZ', 'SPEED_RUSH', 'IMAGE_BLUR', 'TENNIS_BATTLE', 'TIME_BUZZER', 'BIGLIE', 'ULTIMA_SPIAGGIA', 'ARENA'],
   ['IMAGE_BLUR', 'BOMBA', 'MUSIC', 'QUIZ', 'WHEEL_OF_FORTUNE', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA'],
   ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'AZZARDO', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'ARENA'],
 ];
@@ -39,13 +40,13 @@ export const SCHEDULE: readonly GameModeType[] = ACT_DECKS.flat();
 export const QUICK_LEADERBOARD_ROUNDS = [4, 12, 20, 28, 36] as const;
 export const DETAILED_LEADERBOARD_ROUNDS = [8, 16, 24, 32, 40] as const;
 
-/** Bonus programmati dopo gli atti; nessun sostituto è previsto per l'atto 2. */
+/** Un bonus diverso dopo ognuno dei cinque atti. */
 export const BONUS_AFTER_ACT: readonly (BonusType | null)[] = [
-  'CASINO',
-  null,
+  'CASINO_COLOR',
+  'BLACKJACK',
+  'CASINO_DOZEN',
   'CAVALLO',
-  'BIGLIE',
-  null,
+  'CASINO_NUMBER',
 ];
 
 /** Le modalità della scaletta senza doppioni, nell'ordine della prima uscita. */

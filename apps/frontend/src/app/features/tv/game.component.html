@@ -1,5 +1,9 @@
 <div class="game-container">
 
+  @if (bonusEntrance(); as entranceType) {
+  <app-bonus-entrance [type]="entranceType" />
+  }
+
   @if (introVisible()) {
   <section class="intro-screen" [class.intro-reduced]="introReducedMotion()"
     [style.--intro-duration]="introDurationMs() + 'ms'" (click)="dismissIntro()"
@@ -261,6 +265,14 @@
   @case ('BLACKJACK') {
   <app-blackjack [displayData]="getSafeDisplayData()" [timer]="timer()" />
   }
+  @case ('BIGLIE') {
+  <app-biglie-bonus
+    [gameId]="currentGameId() ?? 1"
+    [players]="bonusPlayers()"
+    [roundMode]="true"
+    (result)="onBiglieRoundResult($event)"
+    (finished)="finishBiglieRound()" />
+  }
   }
 </div>
 
@@ -320,25 +332,36 @@
 
 @if (bonusActive()) {
   @switch (bonusType()) {
-    @case ('CASINO') {
+    @case ('CASINO_COLOR') {
       <app-casino-bonus
         [gameId]="currentGameId()"
         [players]="bonusPlayers()"
+        [variant]="'COLOR'"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
     }
-    @case ('BIGLIE') {
-      <app-biglie-bonus
+    @case ('CASINO_DOZEN') {
+      <app-casino-bonus
+        [gameId]="currentGameId()"
+        [players]="bonusPlayers()"
+        [variant]="'DOZEN'"
+        (result)="onBonusResult($event)"
+        (finished)="finishBonus()" />
+    }
+    @case ('CASINO_NUMBER') {
+      <app-casino-bonus
+        [gameId]="currentGameId()"
+        [players]="bonusPlayers()"
+        [variant]="'NUMBER'"
+        (result)="onBonusResult($event)"
+        (finished)="finishBonus()" />
+    }
+    @case ('BLACKJACK') {
+      <app-blackjack-bonus
         [gameId]="currentGameId()"
         [players]="bonusPlayers()"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
-    }
-    @case ('BASKET') {
-      <app-basket-bonus-stage
-        [secondsLeft]="bonusSecondsLeft()"
-        [scores]="bonusScores()"
-        [players]="bonusPlayers()" />
     }
     @case ('CAVALLO') {
       <app-cavallo-bonus

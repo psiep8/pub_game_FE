@@ -28,10 +28,12 @@ const SECONDS_CITED: Record<string, readonly number[]> = {
   AZZARDO: [15],
   BLACKJACK: [15],
   ULTIMA_SPIAGGIA: [15],
-  BONUS_CASINO: [],
-  BONUS_BASKET: [20],
+  BIGLIE: [],
+  BONUS_CASINO_COLOR: [],
+  BONUS_BLACKJACK: [],
+  BONUS_CASINO_DOZEN: [],
   BONUS_CAVALLO: [],
-  BONUS_BIGLIE: [],
+  BONUS_CASINO_NUMBER: [],
 };
 
 const MANCHES_CITED: Record<string, readonly number[]> = {

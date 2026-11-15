@@ -697,13 +697,19 @@ export class CavalloBonus implements OnInit, OnDestroy {
     );
   }
 
-  /** L'esito del bonus è il numero di giuste, non i punti: si emette una volta. */
+  /**
+   * Il tabellone conta le risposte esatte, ma il bonus paga il podio: solo i
+   * primi tre prendono punti, una volta sola, nell'ordine della classifica.
+   */
   private emitFinalResults(): void {
     if (this.resultsEmitted) return;
     this.resultsEmitted = true;
-    for (const row of this.totals()) {
-      this.result.emit({ playerName: row.playerName, score: row.score });
-    }
+    const podium = [200, 100, 50];
+    const ranked = [...this.totals()].sort((a, b) => b.score - a.score);
+    ranked.forEach((row, index) => {
+      const points = row.score > 0 ? podium[index] ?? 0 : 0;
+      if (points > 0) this.result.emit({ playerName: row.playerName, score: points });
+    });
   }
 
   private publish(): void {

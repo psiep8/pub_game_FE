@@ -577,6 +577,7 @@ public class GameStateService {
             Map.entry("BOMBA", 105),
             Map.entry("SPEED_RUSH", 90),
             Map.entry("TENNIS_BATTLE", 300),
+            Map.entry("BIGLIE", 300),
             Map.entry("ARENA", 130),
             Map.entry("AZZARDO", 4 * (15 + 7) + 5),
             Map.entry("ULTIMA_SPIAGGIA", 5 * (12 + 15 + 5)));

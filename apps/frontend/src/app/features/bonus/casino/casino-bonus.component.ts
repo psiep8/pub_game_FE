@@ -125,10 +125,10 @@ const MANCHES: Manche[] = [
   {
     id: 'DOZEN',
     title: 'DOZZINA',
-    rule: 'Indovina la dozzina: 150 punti.',
+    rule: 'Indovina la dozzina: 120 punti.',
     options: ['1-12', '13-24', '25-36'],
     seconds: 12,
-    points: 150,
+    points: 120,
   },
   {
     id: 'SIXLINE',
@@ -201,7 +201,7 @@ const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
           }
         </header>
 
-        <div class="casino-manches">
+        <div class="casino-manches" [style.grid-template-columns]="'repeat(' + manches.length + ', 1fr)'">
           @for (item of manches; track item.id; let i = $index) {
             <div class="casino-manche" [class.on]="manche() === i + 1" [class.done]="manche() > i + 1">
               <span>{{ item.title }}</span>
@@ -318,12 +318,12 @@ const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
               @case (Phase.INTRO) {
                 <div class="casino-intro">
                   <span class="casino-dice">🎲</span>
-                  <p>Quattro puntate, difficoltà crescente. Ogni manche si chiude con un giro di roulette: più stretta è la casella, più punti vale.</p>
+                  <p>{{ introText() }}</p>
                 </div>
               }
 
               @case (Phase.PICK) {
-                <div class="casino-grid" [class.numbers]="manche() === 4">
+                <div class="casino-grid" [class.numbers]="isNumberManche()">
                   @for (option of options(); track option) {
                     <div class="casino-cell" [class.picked]="votesFor(option) > 0">
                       <span>{{ option }}</span>
@@ -355,7 +355,7 @@ const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
               @case (Phase.REVEAL) {
                 <div class="casino-win">
                   <span class="casino-win-label">ESCE</span>
-                  <b class="casino-win-value" [class.number]="manche() === 4">{{ spinNumber() }}</b>
+                  <b class="casino-win-value" [class.number]="isNumberManche()">{{ spinNumber() }}</b>
                   <span class="casino-win-cell">{{ winner() }}</span>
                 </div>
                 @if (reveal(); as rev) {
@@ -640,6 +640,8 @@ export class CasinoBonus implements OnInit, OnDestroy {
   @Input() players: string[] = [];
   /** Banco di prova: manche da 2 secondi, voti demo e reveal accorciato. */
   @Input() preview = false;
+  /** Casino a una manche: colore, dozzina o numero secco. */
+  @Input() variant: 'COLOR' | 'DOZEN' | 'NUMBER' = 'COLOR';
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
 
@@ -647,7 +649,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
   private audio = inject(AudioService);
   private destroyRef = inject(DestroyRef);
 
-  readonly manches = MANCHES;
+  manches: Manche[] = MANCHES.slice(0, 1);
   readonly pockets = POCKETS;
   readonly phase = signal<Phase>(Phase.INTRO);
 
@@ -691,6 +693,10 @@ export class CasinoBonus implements OnInit, OnDestroy {
   private destroyed = false;
 
   ngOnInit(): void {
+    this.manches = MANCHES.filter((manche) => manche.id === this.variant);
+    const label = this.variant === 'NUMBER' ? 'NUMERO SECCO' : this.variant === 'DOZEN' ? 'DOZZINA' : 'BIANCO/ROSSO';
+    this.title.set(`CASINO · ${label}`);
+    this.rule.set(this.manches[0]?.rule ?? 'Una sola puntata.');
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       this.onStatus(status);
     });
@@ -708,6 +714,21 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
   votesFor(choice: string): number {
     return this.votesView().filter((vote) => vote.choice === choice).length;
+  }
+
+  isNumberManche(): boolean {
+    return this.manches[this.manche() - 1]?.id === 'NUMBER';
+  }
+
+  introText(): string {
+    switch (this.variant) {
+      case 'DOZEN':
+        return 'Una sola puntata: scegli la dozzina, poi la ruota gira. La casella giusta vale 120 punti.';
+      case 'NUMBER':
+        return 'La finale: una sola puntata sul numero secco. Se nessuno prende il numero uscito, la ruota rigira.';
+      default:
+        return 'Una sola puntata sul colore: rosso o nero. La pallina esce una volta sola e il colore giusto vale 100 punti.';
+    }
   }
 
   private onStatus(status: any): void {
@@ -728,12 +749,12 @@ export class CasinoBonus implements OnInit, OnDestroy {
   }
 
   private startManche(index: number): void {
-    if (index >= MANCHES.length) {
+    if (index >= this.manches.length) {
       this.finale();
       return;
     }
 
-    const manche = MANCHES[index];
+    const manche = this.manches[index];
     this.manche.set(index + 1);
     this.title.set(manche.title);
     this.rule.set(manche.rule);
@@ -755,7 +776,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
   private async spinManche(): Promise<void> {
     if (this.destroyed) return;
 
-    const manche = MANCHES[this.manche() - 1];
+    const manche = this.manches[this.manche() - 1];
     const chosen = new Set([...this.votes.values()]);
     const mustWin = !this.preview && manche.id === 'NUMBER' && chosen.size > 0;
     const labels = [...chosen];
@@ -1081,7 +1102,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
   }
 
   private showReveal(number: number): void {
-    const manche = MANCHES[this.manche() - 1];
+    const manche = this.manches[this.manche() - 1];
     const winner = this.labelFor(manche.id, number);
     this.winner.set(winner);
     this.phase.set(Phase.REVEAL);
@@ -1117,7 +1138,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
   private finale(): void {
     this.phase.set(Phase.FINALE);
     this.title.set('CASINO');
-    this.rule.set('Quattro manche chiuse: classifica del bonus.');
+    this.rule.set('Manche chiusa: classifica del bonus.');
     this.secondsLeft.set(0);
     this.publish();
     this.later(this.preview ? 4000 : 7000, () => this.finished.emit());
@@ -1190,7 +1211,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
       state: {
         phase: this.phase(),
         manche: this.manche(),
-        totalManches: MANCHES.length,
+        totalManches: this.manches.length,
         title: this.title(),
         rule: this.rule(),
         secondsLeft: this.secondsLeft(),

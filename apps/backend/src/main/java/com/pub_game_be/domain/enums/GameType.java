@@ -14,5 +14,6 @@ public enum GameType {
     TENNIS_BATTLE,
     ULTIMA_SPIAGGIA,
     AZZARDO,
-    BLACKJACK
+    BLACKJACK,
+    BIGLIE
 }
