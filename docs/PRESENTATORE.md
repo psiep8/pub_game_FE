@@ -78,7 +78,7 @@ giusta o sbagliata, e quando la serata avanza.
 | **⏸️ PAUSA / RIPRENDI** | Copre TV e telefoni e ferma i timer. | Imprevisto, telefono da sistemare. |
 | **↺ RIVEDI INTRO** | Rimette la presentazione iniziale in TV. | Per ripetere le regole. |
 | **🎄 NATALE ON/OFF** | Tema natalizio su TV e telefoni. | Solo estetica, non cambia i punti. |
-| **🎰 🏀 🐎 🎱 BONUS** | Apre il bonus dell'atto. | Dopo la classifica di fine atto. |
+| **🎰 🃏 🐎 BONUS** | Apre il bonus dell’atto. | Dopo la classifica di fine atto. |
 | **✖️ CHIUDI BONUS** | Chiude il bonus in TV. | A bonus concluso. |
 | **🎬 APRI IN TV / ✖️ CHIUDI DEMO** | Apre o chiude la demo scelta. | Per spiegare un gioco. |
 
@@ -149,7 +149,7 @@ niente.
 1. Dopo i round **4, 12, 20, 28, 36** la TV mostra la classifica **rapida**;
    dopo **8, 16, 24, 32, 40** quella **dettagliata**, con podio e festeggiamento.
    La classifica resta in TV finché non premi **▶️ PARTI**.
-2. I bonus previsti sono **🎰 CASINO** dopo l'atto 1, **🐎 CAVALLO** dopo il 3 e **🎱 BIGLIE** dopo il 4. Dopo l'atto 2 non è previsto un bonus.
+2. I bonus previsti sono **CASINO BIANCO/ROSSO** dopo l’atto 1, **BLACKJACK** dopo il 2, **CASINO DOZZINA** dopo il 3, **CAVALLO** dopo il 4 e **CASINO NUMERO SECCO** dopo il 5.
 3. Segui il bonus in TV e chiudilo con **✖️ CHIUDI BONUS**.
 4. **I bonus hanno una classifica propria e non aggiungono punti alla classifica
    della serata.** Dillo tu: evita le proteste.

@@ -3,7 +3,7 @@
 **La serata di quiz da pub, con la TV come tabellone e il telefono come pulsantiera.**
 PubGame è un gioco multigiocatore per locali e feste: la TV mostra domande, tabelloni e classifiche, ogni squadra risponde dal proprio telefono e il presentatore conduce la serata da `/admin`. Frontend Angular e backend Spring Boot vivono in questo monorepo.
 
-![TV: una gara del bonus Biglie](docs/screenshots/biglie-tv-720p-01-partenza.png)
+![TV: un round Biglie](docs/screenshots/biglie-tv-720p-01-partenza.png)
 
 ![Animazione: quattro momenti di una gara di Biglie](docs/screenshots/biglie-tv-720p.gif)
 
@@ -13,7 +13,7 @@ PubGame è un gioco multigiocatore per locali e feste: la TV mostra domande, tab
 
 PubGame porta in sala un quiz a squadre in stile pub: nessuna app da installare, nessun account, un QR code sulla TV e il browser del telefono. La regia decide quando parte un round e quando si passa al successivo; il backend tiene sessioni, stato e recupero dopo un refresh.
 
-La versione è **2.1.0**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
+La versione è **2.2.0**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
 
 ## 2. Come si gioca
 
@@ -21,7 +21,7 @@ La versione è **2.1.0**. Il codice è la fonte di verità: se una frase di ques
 - **Telefoni (`/play`)**: ogni squadra entra con un nickname e gioca dal browser. In attesa può aprire il **Manuale dei giochi**; durante un round il manuale si chiude e il pulsante sparisce.
 - **Regia (`/admin`)**: il presentatore avvia e chiude i round, mette in pausa, mostra le classifiche, lancia i bonus e apre le demo. Non è un pannello di voto: le risposte arrivano dai telefoni.
 
-La serata è una scaletta fissa di **40 round divisi in 5 atti da 8** (`shared/schedule.ts`). Dopo i round **4, 12, 20, 28 e 36** compare la classifica rapida; dopo **8, 16, 24, 32 e 40** quella dettagliata. Dopo gli atti 1, 3 e 4 sono previsti **Casino, Cavallo di battaglia e Biglie**; dopo l'atto 2 non è previsto un sostituto. Dopo il quinto atto si chiude con la classifica finale.
+La serata è una scaletta fissa di **40 round divisi in 5 atti da 8** (`shared/schedule.ts`). Dopo i round **4, 12, 20, 28 e 36** compare la classifica rapida; dopo **8, 16, 24, 32 e 40** quella dettagliata. Le **Biglie sono quattro round separati** (3, 5, 11, 22); il **Blackjack non è più in scaletta** e resta solo come bonus. Dopo **ognuno** dei cinque atti parte un bonus diverso: Casino bianco/rosso, Blackjack, Casino dozzina, Cavallo e Casino numero secco. I punti del bonus entrano in classifica alla chiusura; dopo l'ultimo si chiude con la classifica finale.
 
 Una serata completa dura indicativamente **3–4 ore**: è una stima, non un dato misurato, e dipende da quanto il presentatore allunga i tempi tra un round e l'altro. Il numero di telefoni consigliato è **4–10 squadre**; il codice non impone un limite rigido.
 
@@ -42,18 +42,19 @@ I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring
 | **Tennis Battle** | Riflessi | Duello a coppie: ogni risposta rimanda la palla; punteggio da tennis (15, 30, 40, vantaggio) e killer point dopo tre ritorni dal vantaggio. Le domande salgono da facili a difficili e il disco arriva dritto, a zig-zag, a giro o a salto. | **+1000** al vincitore, **+200** di consolazione al perdente; ogni gol subito è un gol per l'avversario. |
 | **Azzardo** | Rischio | Quattro manche numeriche; dieci fiches da 20 punti da distribuire sulle quattro risposte. | Fiche giusta: **+20 × quota** (×2 facile, ×3 media, ×4 difficile); fiche sbagliate: **−20 × fiche × 100/80/60/40%**; mai sotto zero. La puntata parte solo con **CONFERMA PUNTATA** e almeno una fiche; le fiches avanzate si sommano alle dieci nuove e alzano il tetto di una fiche ogni due risparmiate (max **15**, quindi al massimo **+1000** in una manche). |
 | **Ultima spiaggia** | Rischio / sapere | Cinque livelli da 100 a 500, una volta per squadra in tutta la serata; una categoria per occorrenza. | **+100 / +200 / +300 / +400 / +500**; errore **−50 / −100 / −150 / −200 / −250**; chi non risponde perde metà del livello scelto. |
-| **Blackjack** | Rischio | Tre mani contro il banco della TV: carta o stai. | **+250** a mano, **+500** con il naturale; sconfitta **−250** (mai sotto zero); sballare **−250**. |
 | **Arena Battle Royale** | Sapere + riflessi | Battle royale a domande rapide dentro un cerchio che si chiude. | **+10 / −10** per risposta; piazzamento **+1000 / +500 / −300**. |
 
 ### I bonus della serata
 
-| Bonus | Come funziona | Punti |
-|---|---|---|
-| **Casino** | Quattro manche di roulette: colore, dozzina, sestina e numero secco. | **+100 / +150 / +200 / +300** a manche; sullo zero il banco incassa. |
-| **Cavallo di battaglia** | Otto domande flash sulla categoria votata dai telefoni. | **+1** per risposta esatta. |
-| **Biglie** | Quattro gare su fondi diversi, una biglia per tavolo scelta una volta sola. | **+150 / +100 / +60 / +30** a gara, punti cumulativi. |
+| Bonus | Dopo | Come funziona | Punti |
+|---|---|---|---|
+| **Casino bianco/rosso** | atto 1 | Una sola manche sul colore; la ruota europea gira una volta. | Colore giusto **+100**; zero: banco. |
+| **Blackjack** | atto 2 | Un turno per tavolo, 15 s, carta o stai; il banco si ferma a 17. | Vittoria **+150**, pari **+75**, sconfitta **0**. |
+| **Casino dozzina** | atto 3 | Una sola manche su 1–12, 13–24 o 25–36. | Dozzina giusta **+120**. |
+| **Cavallo di battaglia** | atto 4 | Categoria votata dai telefoni, otto domande flash. | Podio **+200 / +100 / +50**. |
+| **Casino numero secco** | atto 5 | Una puntata su un numero da 0 a 36; la ruota rigira finché qualcuno lo ha puntato. | Numero esatto **+300**. |
 
-**I bonus non assegnano ancora punti alla classifica della serata**: mostrano la classifica del bonus e si chiudono. È un limite noto, non una regola nascosta.
+**I punti dei bonus entrano nella classifica della serata una sola volta, alla chiusura del bonus.** Dopo il bonus dell’atto 5 la TV mostra la classifica finale aggiornata.
 
 ## 4. Tecnologie
 
@@ -63,7 +64,7 @@ I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring
 | Backend | **Spring Boot 4.1.2**, Java **25** | REST + WebSocket nello stesso processo, persistenza JPA e test di integrazione. |
 | Realtime | **STOMP su WebSocket nativo** (`@stomp/stompjs`) | Una sola socket per dispositivo, senza il fallback XHR di SockJS; riconnessione con backoff e jitter. L'endpoint SockJS resta disponibile sul backend, ma il frontend usa il WebSocket nativo. |
 | Dati | **H2** su file in locale, profilo **MySQL** per il servizio | Zero installazioni per la serata; MySQL quando serve un database gestito. |
-| Fisica | **Matter.js** per roulette e Biglie; fisica dedicata per il Basket | La roulette e le biglie sono corpi rigidi; il tiro a canestro ha una simulazione sua. |
+| Fisica | **Matter.js** per roulette e Biglie | La roulette e le biglie sono corpi rigidi con collisioni reali. |
 | Qualità | **Vitest 5.1 + jsdom** e **JUnit / Spring Boot Test** | Test veloci sul frontend e test di integrazione sul backend. |
 | Consegna | **Docker** fullstack | Un solo container serve TV, telefoni, API e WebSocket. |
 
@@ -153,7 +154,7 @@ npm run build:frontend   # ng build
 npm run build:backend    # Maven package
 ```
 
-Il frontend ha **29 file di spec**; il backend **18 classi di test**. Le verifiche coprono, tra l'altro: regole di punteggio e scaletta, contenuti del manuale, copertura delle demo, round manager, apertura/chiusura del manuale sul telefono, modalità TV, sessioni e riconnessione, prova dei pulsanti, API e servizi del backend.
+Il frontend ha **39 file di spec**; il backend **18 classi di test**. Le verifiche coprono, tra l'altro: regole di punteggio e scaletta, contenuti del manuale, copertura delle demo, round manager, apertura/chiusura del manuale sul telefono, modalità TV, sessioni e riconnessione, prova dei pulsanti, API e servizi del backend.
 
 **Limiti noti dei test**: non esiste ancora una prova end-to-end multi-dispositivo in rete; i controlli visivi sono manuali (TV e telefono); i timer dichiarati dal client non sono interamente verificabili dal server.
 
@@ -188,24 +189,22 @@ Il programma completo (ruoli, tempi, prove di caduta, cosa annotare, emergenze) 
 
 **Pronto**
 
-- Scaletta completa di 40 round in 5 atti, 13 modalità e 3 bonus programmati.
+- Scaletta completa di 40 round in 5 atti, 13 modalità e 5 bonus programmati.
 - Ingresso con QR, squadre con token, ripresa dopo refresh o cambio dispositivo.
 - Manuale dei giochi sul telefono, con apertura consentita solo fuori dal round.
-- Sezione Demo nell'admin: 17 voci (introduzione + 13 giochi + 3 bonus), cinque scene per voce e tabella punti generata da `SCORING_RULES`.
+- Sezione Demo nell'admin: 19 voci (introduzione + 13 giochi + 5 bonus), cinque scene per voce e tabella punti generata da `SCORING_RULES`.
 - Classifiche rapide e dettagliate, pausa, ripresa, diagnostica di regia.
 - Banca domande pre-generata: 991 domande, 360 domande Azzardo, 113 eventi Timeline.
 
 **Limitato o bloccato**
 
 - **Bonus Basket**: rimosso dalla serata e dalla regia; il codice rimane nel progetto.
-- **Bonus e classifica**: i bonus mostrano una classifica propria ma non aggiungono punti alla classifica della serata.
 - **Tempi dichiarati dal client**: alcune modalità usano tempi o stato del telefono; i punteggi non sono tutti verificabili lato server.
 - **Sicurezza**: mancano rate limiting e recupero assistito del nome; un partecipante può prenotare per primo il nickname di un'altra squadra. Le sessioni non vengono revocate cambiando `CONTROL_SECRET`.
 - **Rete**: manca una prova multi-dispositivo in rete e una suite E2E nel repository.
 
 **In programma**
 
-- Punti dei bonus nella classifica della serata.
 - Rate limiting sulle sessioni e recupero assistito dei nomi.
 - Test end-to-end con più browser e dispositivi reali.
 

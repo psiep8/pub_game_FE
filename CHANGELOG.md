@@ -1,5 +1,13 @@
 # Changelog
 
+## 15 novembre 2026 — scaletta 2.2 e cinque bonus
+
+- Biglie promosse a quattro round separati (3, 5, 11, 22); Blackjack fuori dai round.
+- Bomba ridotta a 2, Tennis a 2, Speed Rush a 3; Arena 24/40 e Ultima spiaggia 8/16/23/32/39 invariate.
+- Cinque bonus uno per atto: Casino bianco/rosso +100, Blackjack +150/+75, Casino dozzina +120, Cavallo +200/+100/+50, Casino numero secco +300.
+- Punti bonus accreditati alla chiusura e classifica finale aggiornata dopo l'atto 5.
+- Ingressi TV scenografici dedicati, con `prefers-reduced-motion`.
+
 Tutte le modifiche rilevanti di PubGame. Formato basato su Keep a Changelog,
 versione SemVer.
 

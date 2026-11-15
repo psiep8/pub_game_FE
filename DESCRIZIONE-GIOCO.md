@@ -1,5 +1,8 @@
 # PubGame — descrizione del gioco
 
+> ## Aggiornamento 15 novembre 2026 — versione attuale
+> Questa descrizione contiene ancora sezioni storiche della v1.0. Per la serata valgono **README.md** e **docs/manuale-serata.html/PDF**. La scaletta attuale è: 40 round, **Biglie ai round 3, 5, 11 e 22**, **Blackjack fuori dai round**, **Bomba 2**, **Tennis 2**, **Speed Rush 3**, Arena 24/40 e Ultima spiaggia 8/16/23/32/39. I bonus sono **cinque**, uno dopo ogni atto: Casino bianco/rosso (+100), Blackjack (+150/+75), Casino dozzina (+120), Cavallo (+200/+100/+50), Casino numero secco (+300). I punti entrano in classifica alla chiusura.
+
 > **VERSIONE 1.0.0 — 9 novembre 2026.**
 > Il documento fotografa il gioco alla prima major. Se una regola non combacia col
 > codice, vince il codice.
