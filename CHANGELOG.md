@@ -15,6 +15,7 @@
 - Il telefono non mostra più «Sincronizzazione non riuscita» come testo tecnico: la rete resta sul badge OFFLINE e il primo heartbeat riprova lo snapshot.
 - Il badge di connessione usa carta e inchiostro, con mint/mustard/tomato per gli stati, al posto della vecchia pillola scura.
 - Timeline sul telefono: le etichette restano dentro le carte anche su schermi da 320×568, senza coprire la riga successiva.
+- Arena: il timeout di inattività è deciso dal server e sopravvive a riconnessioni e riavvii; la TV applica solo le penalità ricevute e la pausa non punisce.
 
 Tutte le modifiche rilevanti di PubGame. Formato basato su Keep a Changelog,
 versione SemVer.
