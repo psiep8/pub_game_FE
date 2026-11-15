@@ -796,9 +796,16 @@ class ReliabilityIntegrationTest {
                     new QuestionHistoryService.ArenaAssignment("q-ws", "Anna", "Domanda", "VERO", "Storia"));
             Map<String, Object> answer = Map.of("playerId", "Anna", "questionId", "q-ws",
                     "answer", "VERO", "idempotencyKey", "arena-ws-510");
-            assertThat(gameController.answerArenaQuestion(gameId, answer).getStatusCode().value()).isEqualTo(200);
+            var accepted = gameController.answerArenaQuestion(gameId, answer);
+            assertThat(accepted.getStatusCode().value()).isEqualTo(200);
+            Map<?, ?> result = (Map<?, ?>) accepted.getBody();
             String event = frames.poll(5, TimeUnit.SECONDS);
-            assertThat(event).contains("ARENA_ANSWER", "Anna", "isCorrect", "points");
+            assertThat(event).contains("ARENA_ANSWER", "Anna", "isCorrect", "points",
+                    String.valueOf(result.get("eventId")), "\"eventSeq\":" + result.get("eventSeq"));
+            var stored = gameState.eventsSince(gameId, 0);
+            assertThat(stored.getJSONObject(stored.length() - 1).getString("eventId")).isEqualTo(result.get("eventId"));
+            assertThat(stored.getJSONObject(stored.length() - 1).getLong("seq"))
+                    .isEqualTo(((Number) result.get("eventSeq")).longValue());
             assertThat(gameController.answerArenaQuestion(gameId, answer).getStatusCode().value()).isEqualTo(200);
             assertThat(frames.poll(500, TimeUnit.MILLISECONDS)).isNull();
         } finally {

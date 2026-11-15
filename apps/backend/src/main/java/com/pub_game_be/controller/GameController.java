@@ -595,7 +595,7 @@ public class GameController {
                 "ARENA_ANSWER", deviceId, () -> questionHistory
                         .answer(gameId, playerId, questionId, answer)
                         .map(arena -> {
-                            gameStateService.appendEvent(gameId, "ARENA_ANSWER", new JSONObject()
+                            GameStateService.Change change = gameStateService.appendEvent(gameId, "ARENA_ANSWER", new JSONObject()
                                     .put("playerName", playerId)
                                     .put("questionId", questionId)
                                     .put("correct", arena.correct())
@@ -608,6 +608,8 @@ public class GameController {
                             ok.put("correctAnswer", arena.correctAnswer());
                             ok.put("points", arena.points());
                             ok.put("totalScore", arena.totalScore());
+                            ok.put("eventId", change.eventId());
+                            ok.put("eventSeq", change.seq());
                             return ok;
                         })
                         .orElse(null));
@@ -623,7 +625,9 @@ public class GameController {
                     "action", "ARENA_ANSWER",
                     "playerName", result.get("playerName"),
                     "isCorrect", result.get("correct"),
-                    "points", result.get("points")));
+                    "points", result.get("points"),
+                    "eventId", result.get("eventId"),
+                    "eventSeq", result.get("eventSeq")));
         }
         return ResponseEntity.ok(result);
     }
