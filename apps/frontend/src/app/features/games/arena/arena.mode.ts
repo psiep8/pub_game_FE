@@ -39,6 +39,8 @@ export class ArenaMode extends GameModeBase {
   private winners = signal<string[]>([]);
   private inactivityPoll?: ReturnType<typeof setInterval>;
   private inactivityPollPending = false;
+  private inactivityGeneration = 0;
+  private deferredInactivity: Array<{ playerName: string; count: number }> = [];
 
   protected onInitialize(): void {
     // Le squadre si creano in onStart, quando la configurazione è già applicata.
@@ -56,13 +58,20 @@ export class ArenaMode extends GameModeBase {
     this.startInactivityPoll();
   }
 
-  protected onResume(): void {}
+  protected onResume(): void {
+    const due = this.deferredInactivity.splice(0);
+    for (const row of due) this.applyInactivityPenalty(row.playerName, row.count);
+  }
 
   protected onStop(): void {
+    this.inactivityGeneration++;
+    this.deferredInactivity = [];
     this.endGame();
   }
 
   protected onCleanup(): void {
+    this.inactivityGeneration++;
+    this.deferredInactivity = [];
     this.stopInactivityPoll();
     this.teams.set(new Map());
     this.circleRadius.set(100);
@@ -211,12 +220,15 @@ export class ArenaMode extends GameModeBase {
     if (players.length === 0) return;
 
     this.inactivityPollPending = true;
+    const generation = this.inactivityGeneration;
     try {
       const due = await check(players);
-      // La risposta può arrivare dopo la fine del round o una pausa.
-      if (this.isPaused() || this.gameEnded() || !this.isActive()) return;
+      // Una penalità già consegnata dal server non va persa durante la pausa.
+      if (generation !== this.inactivityGeneration || this.gameEnded() || !this.isActive()) return;
       for (const row of due) {
-        this.applyInactivityPenalty(row.playerName, Math.max(1, Number(row.count) || 1));
+        const penalty = { playerName: row.playerName, count: Math.max(1, Number(row.count) || 1) };
+        if (this.isPaused()) this.deferredInactivity.push(penalty);
+        else this.applyInactivityPenalty(penalty.playerName, penalty.count);
       }
     } catch {
       // Senza server niente penalità inventate: si riprova al prossimo tick.

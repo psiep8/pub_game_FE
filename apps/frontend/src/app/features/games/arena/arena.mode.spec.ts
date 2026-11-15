@@ -67,6 +67,49 @@ describe('ArenaMode', () => {
     mode.cleanup();
   });
 
+  it('conserva le penalità ricevute durante la pausa e le applica alla ripresa', async () => {
+    vi.useFakeTimers();
+    let resolveCheck!: (rows: Array<{ playerName: string; count: number }>) => void;
+    const check = vi.fn()
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveCheck = resolve; }))
+      .mockResolvedValue([]);
+    const mode = new ArenaMode();
+    mode.setConfig({
+      type: 'ARENA', payload: {}, gameId: 1, activePlayers: ['Anna', 'Bruno'],
+      onArenaInactivityCheck: check,
+    });
+    mode.initialize({});
+    await mode.start();
+    const initial = mode.getDisplayData().teams[0].distance;
+
+    mode.pause();
+    resolveCheck([{ playerName: 'Anna', count: 1 }]);
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(mode.getDisplayData().teams[0].distance).toBe(initial);
+
+    mode.resume();
+    expect(mode.getDisplayData().teams[0].distance).toBe(initial + 12);
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(mode.getDisplayData().teams[0].distance).toBe(initial + 12);
+    mode.cleanup();
+  });
+
+  it('ignora una risposta ritardata dopo la pulizia della modalità', async () => {
+    vi.useFakeTimers();
+    let resolveCheck!: (rows: Array<{ playerName: string; count: number }>) => void;
+    const mode = new ArenaMode();
+    mode.setConfig({
+      type: 'ARENA', payload: {}, gameId: 1, activePlayers: ['Anna', 'Bruno'],
+      onArenaInactivityCheck: () => new Promise((resolve) => { resolveCheck = resolve; }),
+    });
+    mode.initialize({});
+    await mode.start();
+    mode.cleanup();
+    resolveCheck([{ playerName: 'Anna', count: 1 }]);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(mode.getDisplayData().teams).toEqual([]);
+  });
+
   it('non inventa penalità se il server non risponde', async () => {
     vi.useFakeTimers();
     const mode = new ArenaMode();
