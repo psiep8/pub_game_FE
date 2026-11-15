@@ -58,6 +58,9 @@ public class QuestionHistoryService {
     private final Map<Long, Map<String, Long>> arenaActivity = new ConcurrentHashMap<>();
     /** Totale delle penalità nel round: permette alla TV di recuperare risposte perse. */
     private final Map<Long, Map<String, Integer>> arenaPenaltyTotals = new ConcurrentHashMap<>();
+    /** Ultima parte di una pausa già accreditata, per riprese ritentate dopo un errore. */
+    private final Map<Long, Long> arenaPauseStarted = new ConcurrentHashMap<>();
+    private final Map<Long, Long> arenaPauseCreditedUntil = new ConcurrentHashMap<>();
     /** Round a cui appartengono le attività: un nuovo round azzera i conteggi. */
     private final Map<Long, String> arenaRoundKeys = new ConcurrentHashMap<>();
     private final Set<Long> hydrated = ConcurrentHashMap.newKeySet();
@@ -228,6 +231,8 @@ public class QuestionHistoryService {
             if (previousKey != null && !previousKey.equals(roundKey)) {
                 activity.clear();
                 totals.clear();
+                arenaPauseStarted.remove(gameId);
+                arenaPauseCreditedUntil.remove(gameId);
                 changed = true;
             }
 
@@ -237,10 +242,10 @@ public class QuestionHistoryService {
                     continue;
                 }
                 Long last = activity.get(playerName);
-                if (last == null || paused) {
+                if (last == null) {
                     activity.put(playerName, now);
                     changed = true;
-                } else {
+                } else if (!paused) {
                     long penalties = (now - last) / ARENA_INACTIVITY_MS;
                     if (penalties > 0) {
                         activity.put(playerName, last + penalties * ARENA_INACTIVITY_MS);
@@ -255,6 +260,23 @@ public class QuestionHistoryService {
             if (changed) persist(gameId);
         }
         return due;
+    }
+
+    /** Esclude dal timeout il tempo di pausa, anche senza tick e dopo un riavvio. */
+    public void resumeArenaInactivity(long gameId, String roundKey, long pausedAt, long now) {
+        if (pausedAt <= 0 || now <= pausedAt) return;
+        hydrate(gameId);
+        Map<String, Long> activity = arenaActivity.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>());
+        synchronized (activity) {
+            if (!roundKey.equals(arenaRoundKeys.get(gameId))) return;
+            long creditedUntil = arenaPauseStarted.getOrDefault(gameId, 0L) == pausedAt
+                    ? arenaPauseCreditedUntil.getOrDefault(gameId, pausedAt) : pausedAt;
+            if (now <= creditedUntil) return;
+            activity.replaceAll((name, last) -> last + Math.max(0L, now - Math.max(last, creditedUntil)));
+            arenaPauseStarted.put(gameId, pausedAt);
+            arenaPauseCreditedUntil.put(gameId, now);
+            persist(gameId);
+        }
     }
 
     /**
@@ -284,6 +306,8 @@ public class QuestionHistoryService {
         arenaSides.remove(gameId);
         arenaActivity.remove(gameId);
         arenaPenaltyTotals.remove(gameId);
+        arenaPauseStarted.remove(gameId);
+        arenaPauseCreditedUntil.remove(gameId);
         arenaRoundKeys.remove(gameId);
         hydrated.remove(gameId);
         stateBlobs.forget(gameId, ARENA_BLOB);
@@ -352,6 +376,13 @@ public class QuestionHistoryService {
                 arenaPenaltyTotals.put(gameId, restored);
             }
 
+            long pauseStarted = json.optLong("pauseStarted", 0L);
+            long pauseCreditedUntil = json.optLong("pauseCreditedUntil", 0L);
+            if (pauseStarted > 0 && pauseCreditedUntil >= pauseStarted) {
+                arenaPauseStarted.put(gameId, pauseStarted);
+                arenaPauseCreditedUntil.put(gameId, pauseCreditedUntil);
+            }
+
             long counter = json.optLong("counter", 0);
             questionCounters.put(gameId, new AtomicLong(counter));
 
@@ -391,6 +422,8 @@ public class QuestionHistoryService {
         JSONObject penaltyJson = new JSONObject();
         arenaPenaltyTotals.getOrDefault(gameId, Map.of()).forEach(penaltyJson::put);
         json.put("penaltyTotals", penaltyJson);
+        json.put("pauseStarted", arenaPauseStarted.getOrDefault(gameId, 0L));
+        json.put("pauseCreditedUntil", arenaPauseCreditedUntil.getOrDefault(gameId, 0L));
 
         AtomicLong counter = questionCounters.get(gameId);
         json.put("counter", counter == null ? 0 : counter.get());

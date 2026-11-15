@@ -8,6 +8,7 @@ import com.pub_game_be.reliability.domain.DeviceSessionEntity;
 import com.pub_game_be.service.BasketService;
 import com.pub_game_be.service.PartyGameService;
 import com.pub_game_be.service.QuestionBankService;
+import com.pub_game_be.service.QuestionHistoryService;
 import com.pub_game_be.service.SpeedRushService;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -48,6 +49,7 @@ public class PartyGamesController {
     private final IdempotencyService idempotencyService;
     private final SpeedRushService speedRushService;
     private final BasketService basketService;
+    private final QuestionHistoryService questionHistory;
 
     private static final String BUZZER_BLOB = "time-buzzer-start";
     /** Ripiego se il payload del round non dichiara la durata della manche. */
@@ -57,7 +59,7 @@ public class PartyGamesController {
     public PartyGamesController(PartyGameService partyGameService, QuestionBankService questionBank,
             SimpMessagingTemplate messagingTemplate, GameStateService gameStateService,
             IdempotencyService idempotencyService, StateBlobService stateBlobs,
-            SpeedRushService speedRushService, BasketService basketService) {
+            SpeedRushService speedRushService, BasketService basketService, QuestionHistoryService questionHistory) {
         this.partyGameService = partyGameService;
         this.questionBank = questionBank;
         this.messagingTemplate = messagingTemplate;
@@ -66,6 +68,7 @@ public class PartyGamesController {
         this.stateBlobs = stateBlobs;
         this.speedRushService = speedRushService;
         this.basketService = basketService;
+        this.questionHistory = questionHistory;
     }
 
     /** Domande dell'Tennis dalla banca, mai scritte nel codice del client. */
@@ -444,7 +447,12 @@ public class PartyGamesController {
     }
 
     @PostMapping("/{gameId}/round/resume")
-    public Map<String, Object> resumeRound(@PathVariable("gameId") Long gameId) {
+    public synchronized Map<String, Object> resumeRound(@PathVariable("gameId") Long gameId) {
+        JSONObject snapshot = gameStateService.snapshot(gameId);
+        if (snapshot.optBoolean("paused", false) && "ARENA".equals(snapshot.optString("roundType"))) {
+            questionHistory.resumeArenaInactivity(gameId, snapshot.optString("roundKey", ""),
+                    snapshot.optLong("pausedAt", 0L), System.currentTimeMillis());
+        }
         long shiftedMs = gameStateService.resumeRound(gameId);
         speedRushService.resume(gameId);
         return Map.of("resumed", true, "gameId", gameId, "shiftedMs", shiftedMs);

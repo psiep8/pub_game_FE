@@ -634,12 +634,12 @@ class ReliabilityIntegrationTest {
         var party = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
                 messaging, gameState, idempotency, stateBlobs,
                 new com.pub_game_be.service.SpeedRushService(stateBlobs),
-                new com.pub_game_be.service.BasketService(stateBlobs));
+                new com.pub_game_be.service.BasketService(stateBlobs), questionHistory);
         var start = party.timeBuzzerStart(gameId, Map.of("manche", 2));
         var restarted = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
                 messaging, gameState, idempotency, stateBlobs,
                 new com.pub_game_be.service.SpeedRushService(stateBlobs),
-                new com.pub_game_be.service.BasketService(stateBlobs));
+                new com.pub_game_be.service.BasketService(stateBlobs), questionHistory);
         assertThat(restarted.timeBuzzerStop(gameId, Map.of("playerName", "Anna", "ms", 1)).getStatusCode().value()).isEqualTo(200);
         assertThat(((Map<?, ?>) start.getBody()).get("manche")).isEqualTo(2);
         gameState.startRound(gameId, "TIME_BUZZER", 2, "buzzer-2", "{}");
@@ -836,7 +836,7 @@ class ReliabilityIntegrationTest {
         var party = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
                 messaging, gameState, idempotency, stateBlobs,
                 new com.pub_game_be.service.SpeedRushService(stateBlobs),
-                new com.pub_game_be.service.BasketService(stateBlobs));
+                new com.pub_game_be.service.BasketService(stateBlobs), questionHistory);
 
         var first = party.timeBuzzerStart(gameId, Map.of("manche", 1));
         var firstBody = (Map<?, ?>) first.getBody();
@@ -866,7 +866,7 @@ class ReliabilityIntegrationTest {
         var party = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
                 sender, gameState, idempotency, stateBlobs,
                 new com.pub_game_be.service.SpeedRushService(stateBlobs),
-                new com.pub_game_be.service.BasketService(stateBlobs));
+                new com.pub_game_be.service.BasketService(stateBlobs), questionHistory);
 
         int workers = 2;
         ExecutorService pool = Executors.newFixedThreadPool(workers);
@@ -923,7 +923,7 @@ class ReliabilityIntegrationTest {
         var party = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
                 messaging, gameState, idempotency, stateBlobs,
                 new com.pub_game_be.service.SpeedRushService(stateBlobs),
-                new com.pub_game_be.service.BasketService(stateBlobs));
+                new com.pub_game_be.service.BasketService(stateBlobs), questionHistory);
 
         var response = party.timeBuzzerStart(gameId, Map.of("manche", 1));
         assertThat(response.getStatusCode().value()).isEqualTo(409);
@@ -935,7 +935,7 @@ class ReliabilityIntegrationTest {
         var party = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
                 messaging, gameState, idempotency, stateBlobs,
                 new com.pub_game_be.service.SpeedRushService(stateBlobs),
-                new com.pub_game_be.service.BasketService(stateBlobs));
+                new com.pub_game_be.service.BasketService(stateBlobs), questionHistory);
 
         // Durata dichiarata dal round: la finestra della manche la segue.
         long gameId = 532L;
@@ -971,7 +971,7 @@ class ReliabilityIntegrationTest {
         var party = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
                 messaging, gameState, idempotency, stateBlobs,
                 new com.pub_game_be.service.SpeedRushService(stateBlobs),
-                new com.pub_game_be.service.BasketService(stateBlobs));
+                new com.pub_game_be.service.BasketService(stateBlobs), questionHistory);
 
         var first = party.timeBuzzerStart(gameId, Map.of("manche", 1));
         assertThat(first.getStatusCode().value()).isEqualTo(200);

@@ -53,9 +53,8 @@ export class ArenaMode extends GameModeBase {
   }
 
   protected onPause(): void {
-    // La pausa ferma il cerchio, non il conteggio server: continuiamo a
-    // chiedere il tick, così il server sposta l'inattività e non penalizza
-    // tutti alla ripresa.
+    // Il polling può recuperare penalità già maturate prima della pausa;
+    // il server esclude il tempo fermo anche se la TV perde la connessione.
     this.startInactivityPoll();
   }
 

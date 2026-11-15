@@ -83,16 +83,23 @@ class ArenaInactivityTest {
         questionHistory.claimArenaInactivity(gameId, List.of("Anna"), "g812-r1", false, start);
         assertThat(questionHistory.claimArenaInactivity(gameId, List.of("Anna"),
                 "g812-r1", true, start + 30_000)).isEmpty();
-        assertThat(questionHistory.claimArenaInactivity(gameId, List.of("Anna"),
-                "g812-r1", false, start + 31_000)).isEmpty();
-        assertThat(questionHistory.claimArenaInactivity(gameId, List.of("Anna"),
-                "g812-r1", false, start + 46_000))
+        // Nessun tick necessario durante la pausa: la ripresa accredita solo
+        // il periodo fermo, conservando i 5 secondi già trascorsi prima.
+        QuestionHistoryService restarted = new QuestionHistoryService(questionUsage, stateBlobs);
+        restarted.resumeArenaInactivity(gameId, "g812-r1", start + 5_000, start + 35_000);
+        // Un retry, anche dopo un altro riavvio, non accredita due volte.
+        QuestionHistoryService retried = new QuestionHistoryService(questionUsage, stateBlobs);
+        retried.resumeArenaInactivity(gameId, "g812-r1", start + 5_000, start + 35_000);
+        assertThat(retried.claimArenaInactivity(gameId, List.of("Anna"),
+                "g812-r1", false, start + 44_999)).isEmpty();
+        assertThat(retried.claimArenaInactivity(gameId, List.of("Anna"),
+                "g812-r1", false, start + 45_000))
                 .extracting(QuestionHistoryService.ArenaInactivity::playerName)
                 .containsExactly("Anna");
 
-        assertThat(questionHistory.claimArenaInactivity(gameId, List.of("Anna"),
+        assertThat(retried.claimArenaInactivity(gameId, List.of("Anna"),
                 "g812-r2", false, start + 47_000)).isEmpty();
-        assertThat(questionHistory.claimArenaInactivity(gameId, List.of("Anna"),
+        assertThat(retried.claimArenaInactivity(gameId, List.of("Anna"),
                 "g812-r2", false, start + 62_000))
                 .extracting(QuestionHistoryService.ArenaInactivity::playerName)
                 .containsExactly("Anna");

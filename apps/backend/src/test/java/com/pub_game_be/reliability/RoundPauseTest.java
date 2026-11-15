@@ -1,6 +1,7 @@
 package com.pub_game_be.reliability;
 
 import com.pub_game_be.controller.GameController;
+import com.pub_game_be.controller.PartyGamesController;
 import com.pub_game_be.repository.GameRoundRepository;
 import com.pub_game_be.service.QuestionHistoryService;
 import com.pub_game_be.reliability.repository.GameEventRepository;
@@ -38,6 +39,12 @@ class RoundPauseTest {
 
     @Autowired
     private GameController gameController;
+
+    @Autowired
+    private PartyGamesController partyGamesController;
+
+    @Autowired
+    private QuestionUsageService questionUsage;
 
     @Autowired
     private QuestionHistoryService questionHistory;
@@ -139,6 +146,30 @@ class RoundPauseTest {
         gameState.resumeRound(gameId);
         assertThat(gameController.answerArenaQuestion(gameId, answer).getStatusCode().value()).isEqualTo(200);
         assertThat(questionHistory.scores(gameId)).containsEntry("Anna", 10);
+    }
+
+    @Test
+    void laRipresaArenaEscludeLaPausaAncheSenzaTick() throws Exception {
+        long gameId = 732L;
+        String roundKey = "g732-r1";
+        gameState.startRound(gameId, "ARENA", 1, roundKey, "{}");
+        assertThat(gameState.pauseRound(gameId)).isTrue();
+        long pausedAt = gameState.snapshot(gameId).getLong("pausedAt");
+        long last = pausedAt - 5_000;
+        questionHistory.claimArenaInactivity(gameId, List.of("Anna"), roundKey, false, last);
+        Thread.sleep(60);
+
+        partyGamesController.resumeRound(gameId);
+        JSONObject stored = new JSONObject(stateBlobs.load(gameId, "arena-state").orElseThrow());
+        long creditedUntil = stored.getLong("pauseCreditedUntil");
+        assertThat(creditedUntil).isGreaterThan(pausedAt);
+        assertThat(stored.getJSONObject("activity").getLong("Anna"))
+                .isEqualTo(last + creditedUntil - pausedAt);
+        QuestionHistoryService restarted = new QuestionHistoryService(questionUsage, stateBlobs);
+        assertThat(restarted.claimArenaInactivity(gameId, List.of("Anna"), roundKey, false,
+                creditedUntil + 9_999)).isEmpty();
+        assertThat(restarted.claimArenaInactivity(gameId, List.of("Anna"), roundKey, false,
+                creditedUntil + 10_000)).hasSize(1);
     }
 
     @Test
