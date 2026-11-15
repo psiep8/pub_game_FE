@@ -158,8 +158,8 @@ const PREVIEW_QUESTIONS = [
       justify-content: center;
       padding: clamp(12px, 2vw, 28px);
       overflow: auto;
-      background: radial-gradient(circle at 50% 0%, #1c1917 0%, #0c0a09 60%, #030201 100%);
-      color: #fafaf9;
+      background: var(--coal);
+      color: var(--paper);
     }
     .cav-card {
       display: flex;
@@ -168,27 +168,51 @@ const PREVIEW_QUESTIONS = [
       max-height: 94vh;
       overflow: hidden;
       padding: clamp(16px, 2.2vw, 32px);
-      border: 3px solid #44403c;
-      border-radius: 26px;
-      background: linear-gradient(165deg, #1c1917, #0c0a09);
-      box-shadow: 0 30px 90px rgba(0, 0, 0, .6);
+      border: 4px solid var(--paper-hi);
+      background: var(--paper);
+      color: var(--coal);
+      box-shadow: 14px 14px 0 var(--tomato);
     }
     .cav-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
-    .cav-kicker { color: #f59e0b; font-family: var(--font-mono, monospace); font-size: clamp(.6rem, .9vw, .78rem); font-weight: 700; letter-spacing: .22em; }
-    .cav-head h1 { margin: 6px 0 4px; font-family: var(--font-display, inherit); font-size: clamp(1.5rem, 3vw, 2.5rem); line-height: 1; text-transform: uppercase; }
-    .cav-sub { min-height: 1.2em; margin: 0; color: #a8a29e; font-size: clamp(.8rem, 1.1vw, 1rem); }
+    .cav-kicker {
+      display: inline-block;
+      padding: 3px 10px;
+      border: 2px solid var(--coal);
+      background: var(--tomato);
+      color: var(--paper-hi);
+      font-family: var(--font-mono);
+      font-size: clamp(.6rem, .9vw, .78rem);
+      font-weight: 800;
+      letter-spacing: .18em;
+      transform: rotate(-1deg);
+    }
+    .cav-head h1 {
+      margin: 8px 0 4px;
+      font-family: var(--font-display);
+      font-size: clamp(1.5rem, 3vw, 2.5rem);
+      font-weight: 400;
+      line-height: .95;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
+    .cav-sub {
+      min-height: 1.2em;
+      margin: 0;
+      color: color-mix(in srgb, var(--coal) 68%, transparent);
+      font-family: var(--font-mono);
+      font-size: clamp(.72rem, 1vw, .9rem);
+    }
     .cav-round {
       flex: 0 0 auto;
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      padding: 8px 16px;
-      border: 2px solid #57534e;
-      border-radius: 14px;
-      background: #1c1917;
+      padding: 8px 14px;
+      border: 3px solid var(--coal);
+      background: var(--paper-hi);
     }
-    .cav-round span { color: #a8a29e; font-family: var(--font-mono, monospace); font-size: .62rem; letter-spacing: .18em; }
-    .cav-round b { color: #f59e0b; font-family: var(--font-mono, monospace); font-size: clamp(1.1rem, 1.8vw, 1.5rem); font-variant-numeric: tabular-nums; }
+    .cav-round span { color: color-mix(in srgb, var(--coal) 65%, transparent); font-family: var(--font-mono); font-size: .62rem; letter-spacing: .18em; }
+    .cav-round b { font-family: var(--font-mono); font-size: clamp(1.1rem, 1.8vw, 1.5rem); font-variant-numeric: tabular-nums; }
     .cav-body {
       flex: 1;
       display: grid;
@@ -212,30 +236,60 @@ const PREVIEW_QUESTIONS = [
       width: min(44vh, 400px);
       max-width: 100%;
       aspect-ratio: 1;
-      border: 4px solid #f59e0b;
+      border: 4px solid var(--coal);
       border-radius: 50%;
-      background: radial-gradient(circle at 50% 35%, #292524 0%, #171412 65%, #0c0a09 100%);
-      box-shadow: inset 0 0 60px rgba(245, 158, 11, .12), 0 0 70px rgba(245, 158, 11, .16);
+      background: var(--acid);
+      color: var(--coal);
+      box-shadow: 10px 10px 0 var(--coal);
       text-align: center;
     }
     .cav-clock b {
-      color: #fcd34d;
-      font-family: var(--font-mono, monospace);
+      font-family: var(--font-mono);
       font-size: clamp(5rem, 15vh, 12rem);
       font-weight: 800;
       line-height: .92;
       font-variant-numeric: tabular-nums;
     }
-    .cav-clock span { color: #a8a29e; font-family: var(--font-mono, monospace); font-size: clamp(.6rem, 1vw, .82rem); letter-spacing: .32em; }
+    .cav-clock span { font-family: var(--font-mono); font-size: clamp(.6rem, 1vw, .82rem); letter-spacing: .26em; }
     .cav-clock-word { font-size: clamp(2rem, 5.4vh, 3.4rem) !important; letter-spacing: .12em; }
-    .cav-clock.hot { border-color: #ef4444; box-shadow: inset 0 0 60px rgba(239, 68, 68, .18), 0 0 70px rgba(239, 68, 68, .25); animation: cavPulse .8s ease-in-out infinite; }
-    .cav-clock.hot b { color: #fca5a5; }
-    @keyframes cavPulse { 50% { transform: scale(1.03); } }
-    .cav-call { margin: 0; color: #fafaf9; font-family: var(--font-display, inherit); font-size: clamp(1rem, 1.8vw, 1.6rem); font-weight: 800; letter-spacing: .14em; text-align: center; }
-    .cav-cat { margin: 0; color: #f59e0b; font-family: var(--font-mono, monospace); font-size: clamp(.7rem, 1vw, .9rem); letter-spacing: .18em; text-align: center; }
+    .cav-clock.hot { background: var(--tomato); color: var(--paper-hi); animation: cavPulse .8s steps(2, end) infinite; }
+    .cav-clock.hot b { color: var(--paper-hi); }
+    @keyframes cavPulse { 50% { transform: scale(1.025); } }
+    .cav-call {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1rem, 1.8vw, 1.6rem);
+      font-weight: 400;
+      letter-spacing: .1em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .cav-cat {
+      margin: 0;
+      padding: 4px 10px;
+      border: 2px solid var(--coal);
+      background: var(--mustard);
+      font-family: var(--font-mono);
+      font-size: clamp(.68rem, .95vw, .85rem);
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-align: center;
+      text-transform: uppercase;
+    }
     .cav-board-panel { display: flex; flex-direction: column; min-height: 0; }
-    .cav-board-head { display: flex; align-items: center; justify-content: space-between; padding: 0 6px 10px; color: #a8a29e; font-family: var(--font-mono, monospace); font-size: clamp(.6rem, .9vw, .74rem); font-weight: 700; letter-spacing: .22em; }
-    .cav-board-state { color: #f59e0b; }
+    .cav-board-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px 10px;
+      border-bottom: 3px solid var(--coal);
+      font-family: var(--font-mono);
+      font-size: clamp(.58rem, .85vw, .72rem);
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    .cav-board-state { color: var(--tomato); }
     .cav-board { position: relative; width: 100%; }
     .cav-row {
       position: absolute;
@@ -248,36 +302,66 @@ const PREVIEW_QUESTIONS = [
       gap: 12px;
       height: 68px;
       padding: 0 clamp(10px, 1.4vw, 18px);
-      border: 2px solid #44403c;
-      border-radius: 14px;
-      background: linear-gradient(180deg, #1f1b18, #171412);
-      transition: top .55s cubic-bezier(.22, 1, .36, 1), border-color .25s ease, background .25s ease;
+      border: 2px solid var(--coal);
+      background: var(--paper-hi);
+      transition: top .45s cubic-bezier(.22, 1, .36, 1), background .2s steps(2, end);
     }
-    .cav-row.lead { border-color: #f59e0b; background: linear-gradient(180deg, rgba(245, 158, 11, .16), rgba(245, 158, 11, .04)); }
-    .cav-row.gain { animation: cavGain .9s ease-out; }
+    .cav-row.lead { background: var(--acid); box-shadow: 5px 5px 0 var(--coal); }
+    .cav-row.gain { animation: cavGain .8s steps(3, end); }
     @keyframes cavGain {
-      0% { border-color: #a3e635; background: rgba(163, 230, 53, .22); }
-      100% { border-color: #44403c; background: linear-gradient(180deg, #1f1b18, #171412); }
+      0% { background: var(--tomato); color: var(--paper-hi); }
+      100% { background: var(--paper-hi); }
     }
     .cav-pos {
       display: grid;
       place-items: center;
       width: 32px;
       height: 32px;
-      border-radius: 50%;
-      background: #292524;
-      color: #d6d3d1;
-      font-family: var(--font-mono, monospace);
+      border: 2px solid var(--coal);
+      background: var(--paper);
+      font-family: var(--font-mono);
       font-size: .9rem;
       font-weight: 800;
     }
-    .cav-row.lead .cav-pos { background: #f59e0b; color: #1c1917; }
-    .cav-name { overflow: hidden; color: #fafaf9; font-family: var(--font-display, inherit); font-size: clamp(1rem, 1.6vw, 1.45rem); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
-    .cav-gain { color: #a3e635; font-family: var(--font-mono, monospace); font-size: clamp(.8rem, 1.1vw, 1rem); font-weight: 800; }
-    .cav-score { color: #fcd34d; font-family: var(--font-mono, monospace); font-size: clamp(1.3rem, 2.2vw, 2rem); font-variant-numeric: tabular-nums; }
-    .cav-finale { display: flex; align-items: center; gap: 14px; margin-top: 16px; padding-top: 12px; border-top: 1px solid #292524; }
-    .cav-finale span { color: #f59e0b; font-family: var(--font-mono, monospace); font-size: .72rem; letter-spacing: .22em; }
-    .cav-finale p { margin: 0; color: #a8a29e; font-size: .9rem; }
+    .cav-row.lead .cav-pos { background: var(--coal); color: var(--paper-hi); }
+    .cav-name {
+      overflow: hidden;
+      font-family: var(--font-display);
+      font-size: clamp(1rem, 1.6vw, 1.45rem);
+      font-weight: 400;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .cav-gain { color: var(--tomato); font-family: var(--font-mono); font-size: clamp(.8rem, 1.1vw, 1rem); font-weight: 800; }
+    .cav-score { font-family: var(--font-mono); font-size: clamp(1.3rem, 2.2vw, 2rem); font-variant-numeric: tabular-nums; }
+    .cav-finale {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 3px solid var(--coal);
+    }
+    .cav-finale span {
+      padding: 3px 8px;
+      border: 2px solid var(--coal);
+      background: var(--tomato);
+      color: var(--paper-hi);
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      font-weight: 800;
+      letter-spacing: .16em;
+    }
+    .cav-finale p { margin: 0; font-family: var(--font-mono); font-size: .86rem; }
+    @media (max-width: 900px) {
+      .cav-body { grid-template-columns: 1fr; }
+      .cav-clock { width: min(30vh, 240px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .cav-row { transition: none; }
+      .cav-row.gain, .cav-clock.hot { animation: none; }
+    }
   `],
 })
 export class CavalloBonus implements OnInit, OnDestroy {
