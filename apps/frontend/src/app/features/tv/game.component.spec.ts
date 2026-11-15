@@ -115,6 +115,21 @@ describe('GameComponent', () => {
 
     expect(game.resumeCalls).toEqual([1]);
     expect(component.recoveredRound()).toBeNull();
+    expect(ws.broadcasted.some((entry) => entry.body.action === WsAction.GAME_RESUMED)).toBe(true);
+  });
+
+  it('non annuncia la ripresa quando il server non la conferma', async () => {
+    const game = TestBed.inject(GameService);
+    vi.spyOn(game, 'resumeRound').mockReturnValue(throwError(() => new Error('offline')));
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    component.recoveredRound.set({
+      type: 'TIMELINE', label: 'Timeline', secondsLeft: 12, resumable: true, paused: true,
+    });
+    (component as unknown as { recoveredPayload: any }).recoveredPayload = { items: [] };
+    await component.resumeRecoveredRound();
+    expect(component.recoveredRound()).not.toBeNull();
+    expect(ws.broadcasted.some((entry) => entry.body.action === WsAction.GAME_RESUMED)).toBe(false);
+    alertSpy.mockRestore();
   });
 
   it('passa al round successivo quando finisce la canzone del reveal', () => {

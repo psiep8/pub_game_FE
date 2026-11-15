@@ -2293,6 +2293,9 @@ export class GameComponent implements OnInit, OnDestroy {
     this.startRoundSuspense(mode.type);
     if (mode.restore) mode.restore(pending.secondsLeft, this.recoveredBlackjackState);
     else await mode.start();
+    if (pending.paused) {
+      this.ws.broadcastStatus(this.currentGameId(), { action: WsAction.GAME_RESUMED });
+    }
     this.cdr.detectChanges();
   }
 
