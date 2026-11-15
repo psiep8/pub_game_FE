@@ -13,6 +13,7 @@
 - La pausa del round è salvata su database: un riavvio del server non perde più l'istante né la deadline spostata.
 - Una TV aggiornata durante la pausa ritrova il round fermo e lo riprende con il tempo che era rimasto, senza ripartire contro il server.
 - Il telefono non mostra più «Sincronizzazione non riuscita» come testo tecnico: la rete resta sul badge OFFLINE e il primo heartbeat riprova lo snapshot.
+- Il badge di connessione usa carta e inchiostro, con mint/mustard/tomato per gli stati, al posto della vecchia pillola scura.
 - Timeline sul telefono: le etichette restano dentro le carte anche su schermi da 320×568, senza coprire la riga successiva.
 
 Tutte le modifiche rilevanti di PubGame. Formato basato su Keep a Changelog,
