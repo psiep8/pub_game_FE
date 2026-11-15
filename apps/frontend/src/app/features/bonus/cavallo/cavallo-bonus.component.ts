@@ -52,9 +52,6 @@ const CATEGORY_SECONDS = 15;
 /** Rush unica: tutte le domande dentro un minuto. */
 const RUSH_SECONDS = 60;
 const REVEAL_MS = 1600;
-/** Passo tra due righe del tabellone: la differenza è lo spazio vuoto. */
-const ROW_HEIGHT = 84;
-const ROW_BODY = 68;
 
 /** Domande locali per il banco di prova: la preview non dipende dal backend. */
 const PREVIEW_QUESTIONS = [
@@ -117,13 +114,16 @@ const PREVIEW_QUESTIONS = [
               <span class="cav-board-state">{{ boardState() }}</span>
             </div>
 
-            <div class="cav-board" [style.height.px]="boardHeight()">
+            <div
+              class="cav-board"
+              [style.height]="'calc(var(--row) * ' + totals().length + ' - (var(--row) - var(--row-body)))'"
+            >
               @for (row of totals(); track row.playerName; let i = $index) {
                 <div
                   class="cav-row"
                   [class.lead]="i === 0 && row.score > 0"
                   [class.gain]="deltaFor(row.playerName) > 0"
-                  [style.top.px]="i * rowHeight"
+                  [style.top]="'calc(var(--row) * ' + i + ')'"
                 >
                   <span class="cav-pos">{{ i + 1 }}</span>
                   <span class="cav-name">{{ row.playerName }}</span>
@@ -290,7 +290,12 @@ const PREVIEW_QUESTIONS = [
       text-transform: uppercase;
     }
     .cav-board-state { color: var(--tomato); }
-    .cav-board { position: relative; width: 100%; }
+    .cav-board {
+      --row: clamp(52px, 7.4vh, 84px);
+      --row-body: calc(var(--row) - 14px);
+      position: relative;
+      width: 100%;
+    }
     .cav-row {
       position: absolute;
       left: 0;
@@ -300,7 +305,7 @@ const PREVIEW_QUESTIONS = [
       grid-template-columns: 44px minmax(0, 1fr) auto auto;
       align-items: center;
       gap: 12px;
-      height: 68px;
+      height: var(--row-body);
       padding: 0 clamp(10px, 1.4vw, 18px);
       border: 2px solid var(--coal);
       background: var(--paper-hi);
@@ -377,8 +382,6 @@ export class CavalloBonus implements OnInit, OnDestroy {
   private gameService = inject(GameService);
   private destroyRef = inject(DestroyRef);
 
-  readonly rowHeight = ROW_HEIGHT;
-
   readonly phase = signal<Phase>(Phase.INTRO);
 
   /** Fasi del gioco, disponibili anche nel template. */
@@ -445,10 +448,6 @@ export class CavalloBonus implements OnInit, OnDestroy {
     return this.deltas()[playerName] ?? 0;
   }
 
-  boardHeight(): number {
-    const rows = this.totals().length;
-    return rows > 0 ? rows * ROW_HEIGHT - (ROW_HEIGHT - ROW_BODY) : 0;
-  }
 
   subtitle(): string {
     const category = this.chosenCategory();
