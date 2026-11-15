@@ -53,6 +53,7 @@ interface Manche {
 interface Pocket {
   number: number;
   fill: string;
+  light: boolean;
   path: string;
   labelX: number;
   labelY: number;
@@ -76,6 +77,12 @@ const WHEEL_ORDER = [
 ];
 const RED_NUMBERS = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
 
+/** Etichetta del colore: lo zero è del banco, gli altri numeri sono rossi o bianchi. */
+export function rouletteColorLabel(number: number): 'ROSSO' | 'BIANCO' | 'BANCO' {
+  if (number === 0) return 'BANCO';
+  return RED_NUMBERS.has(number) ? 'ROSSO' : 'BIANCO';
+}
+
 function polar(radius: number, angleDeg: number): [number, number] {
   const rad = (angleDeg * Math.PI) / 180;
   return [CX + radius * Math.sin(rad), CY - radius * Math.cos(rad)];
@@ -83,7 +90,7 @@ function polar(radius: number, angleDeg: number): [number, number] {
 
 function pocketFill(number: number): string {
   if (number === 0) return 'url(#pocketGreen)';
-  return RED_NUMBERS.has(number) ? 'url(#pocketRed)' : 'url(#pocketBlack)';
+  return RED_NUMBERS.has(number) ? 'url(#pocketRed)' : 'url(#pocketWhite)';
 }
 
 const POCKETS: Pocket[] = WHEEL_ORDER.map((number, index) => {
@@ -106,6 +113,7 @@ const POCKETS: Pocket[] = WHEEL_ORDER.map((number, index) => {
   return {
     number,
     fill: pocketFill(number),
+    light: number !== 0 && !RED_NUMBERS.has(number),
     path,
     labelX: lx,
     labelY: ly,
@@ -117,8 +125,8 @@ const MANCHES: Manche[] = [
   {
     id: 'COLOR',
     title: 'COLORE',
-    rule: 'Rosso o nero: 100 punti.',
-    options: ['ROSSO', 'NERO'],
+    rule: 'Bianco o rosso: 100 punti.',
+    options: ['BIANCO', 'ROSSO'],
     seconds: 10,
     points: 100,
   },
@@ -232,10 +240,10 @@ const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
                   <stop offset="45%" stop-color="#b91c1c" />
                   <stop offset="100%" stop-color="#671414" />
                 </linearGradient>
-                <linearGradient id="pocketBlack" x1="0" y1="0" x2="0.35" y2="1">
-                  <stop offset="0%" stop-color="#475569" />
-                  <stop offset="45%" stop-color="#232c38" />
-                  <stop offset="100%" stop-color="#0f141c" />
+                <linearGradient id="pocketWhite" x1="0" y1="0" x2="0.35" y2="1">
+                  <stop offset="0%" stop-color="#fff8e8" />
+                  <stop offset="55%" stop-color="#f1e4c9" />
+                  <stop offset="100%" stop-color="#cbbd9e" />
                 </linearGradient>
                 <linearGradient id="pocketGreen" x1="0" y1="0" x2="0.35" y2="1">
                   <stop offset="0%" stop-color="#22c55e" />
@@ -279,6 +287,7 @@ const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
                     stroke-width="1" />
                   <text
                     class="pocket-label"
+                    [class.pocket-label-light]="pocket.light"
                     [attr.x]="pocket.labelX"
                     [attr.y]="pocket.labelY"
                     [attr.transform]="pocket.labelTransform">{{ pocket.number }}</text>
@@ -505,6 +514,10 @@ const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
       stroke: #15150f;
       stroke-width: 1.4px;
       paint-order: stroke fill;
+    }
+    .pocket-label.pocket-label-light {
+      fill: #15150f;
+      stroke: transparent;
       font-family: var(--font-mono, monospace);
       font-size: 15.5px;
       font-weight: 800;
@@ -727,7 +740,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
       case 'NUMBER':
         return 'La finale: una sola puntata sul numero secco. Se nessuno prende il numero uscito, la ruota rigira.';
       default:
-        return 'Una sola puntata sul colore: rosso o nero. La pallina esce una volta sola e il colore giusto vale 100 punti.';
+        return 'Una sola puntata sul colore: bianco o rosso. La pallina esce una volta sola e il colore giusto vale 100 punti.';
     }
   }
 
@@ -1124,7 +1137,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
     if (manche === 'NUMBER') return String(number);
     if (number === 0) return 'BANCO';
 
-    if (manche === 'COLOR') return RED_NUMBERS.has(number) ? 'ROSSO' : 'NERO';
+    if (manche === 'COLOR') return rouletteColorLabel(number);
 
     if (manche === 'DOZEN') {
       const start = Math.floor((number - 1) / 12) * 12 + 1;

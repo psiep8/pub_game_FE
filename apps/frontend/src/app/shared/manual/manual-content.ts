@@ -239,10 +239,10 @@ const BONUS_COPY: Record<BonusType, EntryCopy> = {
   CASINO_COLOR: {
     name: 'CASINO BIANCO/ROSSO',
     icon: '🔴',
-    summary: 'Una sola puntata sul colore: rosso o nero, poi la ruota decide.',
+    summary: 'Una sola puntata sul colore: bianco o rosso, poi la ruota decide.',
     objective: 'Scegliere il colore e sperare che la pallina si fermi sulla stessa famiglia; lo zero è del banco.',
     phone: [
-      'Tocca ROSSO o NERO quando la TV apre le puntate.',
+      'Tocca BIANCO o ROSSO quando la TV apre le puntate.',
       'La pallina esce una volta sola: niente recuperi.',
       'La TV mostra il numero, il colore e i punti.',
     ],

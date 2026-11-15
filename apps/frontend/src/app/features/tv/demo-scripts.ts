@@ -375,13 +375,13 @@ const BONUS_COPY: Record<BonusType, DemoCopy> = {
     title: 'CASINO BIANCO/ROSSO',
     icon: '🔴',
     objective: [
-      'Una sola puntata sul colore: rosso o nero.',
+      'Una sola puntata sul colore: bianco o rosso.',
       'La ruota europea gira una volta sola.',
     ],
-    phone: ['Tocca ROSSO o NERO.', 'La pallina esce una volta sola.', 'Sullo zero il banco incassa.'],
+    phone: ['Tocca BIANCO o ROSSO.', 'La pallina esce una volta sola.', 'Sullo zero il banco incassa.'],
     win: ['Colore giusto: +100 in classifica.'],
     lose: ['Colore sbagliato o zero: 0 punti.', 'Nessuna penalità.'],
-    example: 'Punti sul rosso ed esce 32: +100. Esce 15 (nero): 0.',
+    example: 'Punti sul rosso ed esce 32: +100. Esce 15 (bianco): 0.',
   },
   BLACKJACK: {
     title: 'BLACKJACK',

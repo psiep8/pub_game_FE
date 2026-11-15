@@ -110,7 +110,7 @@ export const BONUS_SCORING: Record<string, ScoringRule> = {
     correct: '+100 sul colore',
     wrong: '0',
     missed: '0',
-    note: 'Una sola manche: rosso o nero. Sullo zero il banco incassa e nessuno prende punti.',
+    note: 'Una sola manche: bianco o rosso. Sullo zero il banco incassa e nessuno prende punti.',
   },
   BONUS_BLACKJACK: {
     correct: '+150 a mano vinta',
