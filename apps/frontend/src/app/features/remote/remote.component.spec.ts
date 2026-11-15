@@ -302,6 +302,35 @@ describe('RemoteComponent', () => {
     expect(component.arenaQuestion()?.questionId).toBe('q1');
   });
 
+  it('ignora una domanda Arena arrivata dopo la fine del round', async () => {
+    component.nickname.set('Anna');
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const pending = new Subject<any>();
+    vi.spyOn(game, 'getArenaQuestion').mockReturnValue(pending.asObservable());
+    component.onStartVoting('ARENA');
+    expect(component.isFetchingQuestion()).toBe(true);
+
+    ws.status$.next({ action: 'ROUND_ENDED' });
+    pending.next({ question: 'Troppo tardi', options: ['A', 'B'], questionId: 'old' });
+    expect(component.arenaQuestion()).toBeNull();
+    expect(component.isFetchingQuestion()).toBe(false);
+
+    component.onStartVoting('ARENA');
+    pending.next({ question: 'Nuovo round', options: ['A', 'B'], questionId: 'new' });
+    expect(component.arenaQuestion()?.questionId).toBe('new');
+  });
+
+  it('non invia risposte Arena mentre il telefono è in pausa', () => {
+    component.nickname.set('Anna');
+    component.arenaQuestion.set({ text: 'Domanda', options: ['A', 'B'], isTrueFalse: false, questionId: 'q1' });
+    component.paused.set(true);
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const answer = vi.spyOn(game, 'answerArenaQuestion');
+    component.sendArenaAnswer(0);
+    expect(answer).not.toHaveBeenCalled();
+    expect(component.arenaQuestion()?.questionId).toBe('q1');
+  });
+
   it('mantiene la domanda Arena se la risposta arriva al server durante la pausa', () => {
     component.nickname.set('Anna');
     component.arenaQuestion.set({ text: 'Domanda', options: ['A', 'B'], isTrueFalse: false, questionId: 'q1' });

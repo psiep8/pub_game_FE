@@ -674,7 +674,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.blackjackStand.set(false);
           this.timelineOrder.set([]);
           this.arenaEliminated.set(false);
-          this.arenaQuestion.set(null);
+          this.invalidateArenaQuestion();
           this.tennisStateReady.set(false);
           this.tennisGoal.set(null);
           this.tennisLastGoalId = 0;
@@ -757,7 +757,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         case 'ARENA_ELIMINATED':
           if (status.playerName === this.nickname()) {
             this.arenaEliminated.set(true);
-            this.arenaQuestion.set(null);
+            this.invalidateArenaQuestion();
             this.gameState.set(PlayerStatus.ELIMINATED);
             this.stopMicrophoneListening();
             this.vibrate([80, 60, 80]);
@@ -765,7 +765,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
 
         case 'ARENA_ENDED':
-          this.arenaQuestion.set(null);
+          this.invalidateArenaQuestion();
           if (this.arenaEliminated()) {
             this.gameState.set(PlayerStatus.ELIMINATED);
           } else {
@@ -2217,6 +2217,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
     }
   }
 
+  private invalidateArenaQuestion(): void {
+    this.arenaLoadSeq++;
+    this.isFetchingQuestion.set(false);
+    this.arenaQuestion.set(null);
+  }
+
   generateNextArenaQuestion() {
     if (this.arenaEliminated() || this.gameState() === PlayerStatus.ELIMINATED) return;
     const seq = ++this.arenaLoadSeq;
@@ -2261,7 +2267,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         if (this.questionType() === 'ARENA' && this.gameState() === PlayerStatus.VOTING) {
           const retryAfterMs = Math.min(1000, Math.max(100, Number(err?.error?.retryAfterMs) || 150));
           setTimeout(() => {
-            if (this.questionType() === 'ARENA'
+            if (seq === this.arenaLoadSeq && this.questionType() === 'ARENA'
               && this.gameState() === PlayerStatus.VOTING
               && !this.arenaQuestion()
               && !this.arenaEliminated()) {
@@ -2276,12 +2282,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
   sendArenaAnswer(index: number) {
     const q = this.arenaQuestion();
     const playerName = this.nickname();
-    if (!q || !q.options || !playerName || this.arenaEliminated() || this.arenaAnswerPending) return;
+    if (!q || !q.options || !playerName || !this.inputReady() || this.arenaEliminated() || this.arenaAnswerPending) return;
 
     // Il telefono manda solo la risposta scelta: giusto/sbagliato lo decide il backend.
     // La chiave di idempotenza è stabile: se il Wi-Fi cade e il telefono
     // ritenta, il server risponde con l'esito già registrato.
     const questionId = q.questionId;
+    const seq = this.arenaLoadSeq;
     this.arenaAnswerPending = true;
     const key = this.reliability.idempotencyKey('arena', `${playerName}:${questionId}`);
     this.gameService
@@ -2298,7 +2305,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.arenaQuestion.set(null);
           // Un errore costa una pausa breve: rispondere a caso non conviene,
           // ma la domanda successiva deve arrivare subito.
-          setTimeout(() => this.generateNextArenaQuestion(), isCorrect ? 0 : 600);
+          setTimeout(() => {
+            if (seq === this.arenaLoadSeq && this.roundActive()
+                && this.questionType() === 'ARENA' && !this.paused()) this.generateNextArenaQuestion();
+          }, isCorrect ? 0 : 600);
         },
         error: (err: any) => {
           this.arenaAnswerPending = false;
@@ -2374,6 +2384,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // restava sulla schermata del gioco precedente (o su "In attesa" con lo
     // stato di risposta ancora bloccato) finché non arrivava un START_VOTING.
     if (!open || !type) {
+      this.invalidateArenaQuestion();
       this.cancelTimelineSend();
       this.gameState.set(PlayerStatus.WAITING);
       this.hasAnswered.set(false);
