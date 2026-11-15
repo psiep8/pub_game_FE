@@ -1286,10 +1286,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
     } else if (type === 'BONUS_CASINO') {
       this.casinoState.set(null);
       this.casinoChoice.set(null);
-    } else if (type === 'BONUS_BIGLIE') {
+    } else if (type === 'BONUS_BIGLIE' || type === 'BIGLIE') {
+      // Il round Biglie e il vecchio bonus condividono la stessa schermata:
+      // cambio subito il tipo, così il telefono non resta vuoto per i 700 ms
+      // che la TV impiega a pubblicare il primo BIGLIE_STATE.
       this.biglieState.set(null);
       this.biglieChoice.set(null);
       this.biglieKey = '';
+      this.questionType.set('BONUS_BIGLIE');
     } else if (type === 'BONUS_CAVALLO' || type === 'CAVALLO') {
       // Il Cavallo gioca la stessa schermata in round e in bonus: la TV manda
       // CAVALLO_STATE, quindi qui basta azzerare lo stato della sfida.
