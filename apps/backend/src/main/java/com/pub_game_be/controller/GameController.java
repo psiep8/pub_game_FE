@@ -220,6 +220,12 @@ public class GameController {
     public ResponseEntity<String> getArenaQuestion(@PathVariable("gameId") Long gameId,
             @RequestParam("category") String category,
             @RequestParam(value = "playerId", defaultValue = "anonimo") String playerId) {
+        if (gameStateService.isRoundPaused(gameId)) {
+            return ResponseEntity.status(409).body(new JSONObject()
+                    .put("error", "round-paused")
+                    .put("retryAfterMs", 1000)
+                    .toString());
+        }
         if (!gameStateService.isRoundOpen(gameId)) {
             // Il telefono arriva spesso un istante prima dell'apertura del
             // round: 409 con l'attesa consigliata, così ritenta invece di
@@ -573,6 +579,9 @@ public class GameController {
         String idempotencyKey = rawKey == null ? null : String.valueOf(rawKey);
         String deviceId = body.get("deviceId") == null ? playerId : String.valueOf(body.get("deviceId"));
 
+        if (gameStateService.isRoundPaused(gameId)) {
+            return ResponseEntity.status(409).body(Map.of("error", "round-paused"));
+        }
         if (!gameStateService.isRoundOpen(gameId)) {
             return ResponseEntity.status(409).body(Map.of(
                     "error", "round-closed",

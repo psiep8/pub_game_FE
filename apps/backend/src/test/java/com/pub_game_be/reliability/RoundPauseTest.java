@@ -1,6 +1,8 @@
 package com.pub_game_be.reliability;
 
+import com.pub_game_be.controller.GameController;
 import com.pub_game_be.repository.GameRoundRepository;
+import com.pub_game_be.service.QuestionHistoryService;
 import com.pub_game_be.reliability.repository.GameEventRepository;
 import com.pub_game_be.reliability.repository.GameStateRepository;
 import com.pub_game_be.service.SpeedRushService;
@@ -13,6 +15,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,6 +35,12 @@ class RoundPauseTest {
 
     @Autowired
     private SpeedRushService speedRush;
+
+    @Autowired
+    private GameController gameController;
+
+    @Autowired
+    private QuestionHistoryService questionHistory;
 
     @Autowired
     private GameStateRepository stateRepository;
@@ -105,6 +114,31 @@ class RoundPauseTest {
         assertThat(restarted.isRoundPaused(gameId)).isFalse();
         assertThat(restarted.roundDeadline(gameId).orElseThrow()).isEqualTo(before + shifted);
         assertThat(stateBlobs.load(gameId, GameStateService.ROUND_PAUSE_BLOB)).isEmpty();
+    }
+
+    @Test
+    void arenaNonAssegnaDomandeONuoviPuntiDuranteLaPausa() {
+        long gameId = 731L;
+        gameState.startRound(gameId, "ARENA", 1, "g731-r1", "{}");
+        questionHistory.assign(gameId,
+                new QuestionHistoryService.ArenaAssignment("q-pause", "Anna", "Domanda", "VERO", "Storia"));
+        Map<String, Object> answer = Map.of("playerId", "Anna", "questionId", "q-pause",
+                "answer", "VERO", "idempotencyKey", "q-pause-key");
+        assertThat(gameState.pauseRound(gameId)).isTrue();
+        long seq = gameState.currentSeq(gameId);
+
+        var question = gameController.getArenaQuestion(gameId, "Storia", "Anna");
+        assertThat(question.getStatusCode().value()).isEqualTo(409);
+        assertThat(new JSONObject(question.getBody()).getString("error")).isEqualTo("round-paused");
+        var paused = gameController.answerArenaQuestion(gameId, answer);
+        assertThat(paused.getStatusCode().value()).isEqualTo(409);
+        assertThat(((Map<?, ?>) paused.getBody()).get("error")).isEqualTo("round-paused");
+        assertThat(questionHistory.scores(gameId)).doesNotContainKey("Anna");
+        assertThat(gameState.currentSeq(gameId)).isEqualTo(seq);
+
+        gameState.resumeRound(gameId);
+        assertThat(gameController.answerArenaQuestion(gameId, answer).getStatusCode().value()).isEqualTo(200);
+        assertThat(questionHistory.scores(gameId)).containsEntry("Anna", 10);
     }
 
     @Test

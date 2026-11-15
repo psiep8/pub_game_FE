@@ -302,6 +302,22 @@ describe('RemoteComponent', () => {
     expect(component.arenaQuestion()?.questionId).toBe('q1');
   });
 
+  it('mantiene la domanda Arena se la risposta arriva al server durante la pausa', () => {
+    component.nickname.set('Anna');
+    component.arenaQuestion.set({ text: 'Domanda', options: ['A', 'B'], isTrueFalse: false, questionId: 'q1' });
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const answer = vi.spyOn(game, 'answerArenaQuestion')
+      .mockReturnValue(throwError(() => ({ status: 409, error: { error: 'round-paused' } })));
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    component.sendArenaAnswer(0);
+    expect(component.arenaQuestion()?.questionId).toBe('q1');
+    component.sendArenaAnswer(0);
+    expect(answer).toHaveBeenCalledTimes(2);
+    expect(component.arenaQuestion()?.questionId).toBe('q1');
+    log.mockRestore();
+  });
+
   it('ignora una domanda Arena arrivata dopo una richiesta più recente', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();

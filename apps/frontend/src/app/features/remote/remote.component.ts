@@ -2298,8 +2298,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
         error: (err: any) => {
           this.arenaAnswerPending = false;
           console.error('❌ Risposta arena rifiutata dal server:', err);
-          // Round chiuso o scaduto: non si insiste, si aspetta la TV.
+          // Durante la pausa la domanda resta valida: si potrà riprovare alla ripresa.
           if (this.arenaQuestion()?.questionId !== questionId) return;
+          if (err?.status === 409 && err?.error?.error === 'round-paused') return;
+          // Round chiuso o scaduto: non si insiste, si aspetta la TV.
           if (err?.status === 409) {
             this.arenaQuestion.set(null);
             this.gameState.set(PlayerStatus.WAITING);
