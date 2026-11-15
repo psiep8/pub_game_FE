@@ -10,6 +10,7 @@
 - Rimosso il flusso Basket residuo da TV, regia e telefono; eliminati punteggi canestri e campi morti.
 - Bonus Cavallo riportato a carta e inchiostro: via vetro scuro, gradienti, radius e glow.
 - Casino bianco/rosso: i numeri non rossi sono ora bianchi anche su griglia e ruota, con test dedicati.
+- La pausa del round è salvata su database: un riavvio del server non perde più l'istante né la deadline spostata.
 
 Tutte le modifiche rilevanti di PubGame. Formato basato su Keep a Changelog,
 versione SemVer.

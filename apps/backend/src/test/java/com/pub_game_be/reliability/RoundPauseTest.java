@@ -1,11 +1,16 @@
 package com.pub_game_be.reliability;
 
+import com.pub_game_be.repository.GameRoundRepository;
+import com.pub_game_be.reliability.repository.GameEventRepository;
+import com.pub_game_be.reliability.repository.GameStateRepository;
 import com.pub_game_be.service.SpeedRushService;
+import jakarta.persistence.EntityManager;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
 
@@ -28,6 +33,32 @@ class RoundPauseTest {
     @Autowired
     private SpeedRushService speedRush;
 
+    @Autowired
+    private GameStateRepository stateRepository;
+
+    @Autowired
+    private GameEventRepository eventRepository;
+
+    @Autowired
+    private GameRoundRepository roundRepository;
+
+    @Autowired
+    private ReliabilityProperties properties;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    @Autowired
+    private EntityManager entityManager;
+
+    @Autowired
+    private StateBlobService stateBlobs;
+
+    private GameStateService restartedService() {
+        return new GameStateService(stateRepository, eventRepository, roundRepository, properties,
+                transactionManager, entityManager, stateBlobs);
+    }
+
     @Test
     void laPausaAllungaLaDeadlineDelRound() throws Exception {
         long gameId = 720L;
@@ -46,6 +77,28 @@ class RoundPauseTest {
         assertThat(gameState.isRoundPaused(gameId)).isFalse();
         assertThat(gameState.snapshot(gameId).getBoolean("paused")).isFalse();
         assertThat(gameState.roundDeadline(gameId).orElseThrow()).isEqualTo(before + shifted);
+    }
+
+    @Test
+    void laPausaSopravviveAlRiavvioDelServer() throws Exception {
+        long gameId = 730L;
+        gameState.startRound(gameId, "QUIZ", 1, "g730-r1", "{}");
+        long before = gameState.roundDeadline(gameId).orElseThrow();
+        assertThat(gameState.pauseRound(gameId)).isTrue();
+        Thread.sleep(60);
+
+        // Nuova istanza sullo stesso database: è ciò che vede la TV dopo un
+        // riavvio del processo. La pausa e il suo istante devono tornare.
+        GameStateService restarted = restartedService();
+        assertThat(restarted.isRoundPaused(gameId)).isTrue();
+        assertThat(restarted.snapshot(gameId).getBoolean("paused")).isTrue();
+
+        long shifted = restarted.resumeRound(gameId);
+
+        assertThat(shifted).isGreaterThanOrEqualTo(40L);
+        assertThat(restarted.isRoundPaused(gameId)).isFalse();
+        assertThat(restarted.roundDeadline(gameId).orElseThrow()).isEqualTo(before + shifted);
+        assertThat(stateBlobs.load(gameId, GameStateService.ROUND_PAUSE_BLOB)).isEmpty();
     }
 
     @Test

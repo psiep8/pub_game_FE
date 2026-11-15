@@ -52,6 +52,8 @@ public class GameStateService {
     private final ConcurrentMap<Long, Object> eventLocks = new ConcurrentHashMap<>();
     /** Pause TV in corso: alla ripresa la scadenza viene allungata di quanto è durata. */
     private final ConcurrentMap<Long, Long> roundPauses = new ConcurrentHashMap<>();
+    /** La pausa è anche su database: un riavvio non deve perdere il tempo fermo. */
+    public static final String ROUND_PAUSE_BLOB = "round-pause";
     /** Round già annunciati dalla TV: il telefono non deve anticiparne il contenuto. */
     private final ConcurrentMap<Long, String> announcedRoundKeys = new ConcurrentHashMap<>();
 
@@ -95,7 +97,7 @@ public class GameStateService {
      */
     public Change startRound(long gameId, String type, int roundIndex, String roundKey, String payload) {
         long now = System.currentTimeMillis();
-        roundPauses.remove(gameId);
+        forgetPause(gameId);
         long deadline = now + windowSecondsFor(type) * 1000L;
         JSONObject event = new JSONObject()
                 .put("type", type)
@@ -182,7 +184,18 @@ public class GameStateService {
         if (!running) {
             return false;
         }
-        roundPauses.putIfAbsent(gameId, System.currentTimeMillis());
+        Long existing = roundPauses.get(gameId);
+        if (existing == null) {
+            existing = savedPause(gameId).orElse(null);
+            if (existing != null) roundPauses.putIfAbsent(gameId, existing);
+        }
+        if (existing != null) {
+            return true;
+        }
+        long now = System.currentTimeMillis();
+        roundPauses.put(gameId, now);
+        stateBlobs.save(gameId, ROUND_PAUSE_BLOB,
+                new JSONObject().put("pausedAt", now).toString());
         return true;
     }
 
@@ -194,6 +207,10 @@ public class GameStateService {
      */
     public long resumeRound(long gameId) {
         Long pausedAt = roundPauses.remove(gameId);
+        if (pausedAt == null) {
+            pausedAt = savedPause(gameId).orElse(null);
+        }
+        stateBlobs.forget(gameId, ROUND_PAUSE_BLOB);
         if (pausedAt == null) {
             return 0L;
         }
@@ -211,7 +228,17 @@ public class GameStateService {
     }
 
     public boolean isRoundPaused(long gameId) {
-        return roundPauses.containsKey(gameId);
+        if (roundPauses.containsKey(gameId)) {
+            return true;
+        }
+        Optional<GameStateEntity> state = states.findById(gameId);
+        if (state.isEmpty() || !"RUNNING".equals(state.get().getStatus())) {
+            stateBlobs.forget(gameId, ROUND_PAUSE_BLOB);
+            return false;
+        }
+        Optional<Long> saved = savedPause(gameId);
+        saved.ifPresent(pausedAt -> roundPauses.putIfAbsent(gameId, pausedAt));
+        return saved.isPresent();
     }
 
     /**
@@ -257,7 +284,7 @@ public class GameStateService {
 
     /** Chiude esplicitamente il round: nessuna risposta tardiva accettata. */
     public Change closeRound(long gameId, String reason) {
-        roundPauses.remove(gameId);
+        forgetPause(gameId);
         Change change = appendEvent(gameId, "ROUND_CLOSED",
                 new JSONObject().put("reason", reason).toString(), null, null,
                 state -> {
@@ -422,6 +449,7 @@ public class GameStateService {
             state.setLastSnapshotAt(state.getUpdatedAt());
             states.save(state);
         });
+        forgetPause(gameId);
     }
 
     /**
@@ -561,6 +589,24 @@ public class GameStateService {
     }
 
     // ------------------------------------------------------------------ Interni
+
+    /** Pausa salvata su database, letta quando la memoria è vuota dopo un riavvio. */
+    private Optional<Long> savedPause(long gameId) {
+        return stateBlobs.load(gameId, ROUND_PAUSE_BLOB).flatMap(raw -> {
+            try {
+                long pausedAt = new JSONObject(raw).optLong("pausedAt", 0L);
+                return pausedAt > 0 ? Optional.of(pausedAt) : Optional.empty();
+            } catch (Exception malformed) {
+                return Optional.empty();
+            }
+        });
+    }
+
+    /** Rimuove la pausa da memoria e database, senza allungare la deadline. */
+    private void forgetPause(long gameId) {
+        roundPauses.remove(gameId);
+        stateBlobs.forget(gameId, ROUND_PAUSE_BLOB);
+    }
 
     /**
      * Durata dichiarata di ogni round, in secondi. Sta qui, accanto alla
