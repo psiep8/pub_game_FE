@@ -18,6 +18,7 @@ import {
 import { FakeReliabilityService } from '../../shared/testing/test-doubles';
 import { ReliabilityService } from '../../core/services/reliability.service';
 import { RoundManagerService } from '../../core/services/round-manager.service';
+import { GameModeService } from '../../core/services/game-mode-factory.service';
 import { ButtonTestService } from '../../core/services/button-test.service';
 import { FakeButtonTestService } from '../../shared/testing/fake-button-test.service';
 import { GamePhase } from '../../shared/enums/game-phase';
@@ -75,6 +76,45 @@ describe('GameComponent', () => {
     component.togglePause();
     expect(resume).toHaveBeenCalledTimes(1);
     expect(game.resumeCalls).toEqual([1]);
+  });
+
+  it('ricostruisce un round in pausa con il tempo fermo', () => {
+    const pausedAt = Date.now() - 30_000;
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+
+    tv.applyAuthoritativeState({
+      hasState: true,
+      status: 'RUNNING',
+      roundType: 'TIMELINE',
+      roundDeadlineAt: pausedAt + 12_000,
+      paused: true,
+      pausedAt,
+      currentRound: { payload: { items: [{ id: 1, label: 'Carta' }] } },
+    });
+
+    // La deadline è già passata, ma la pausa la tiene ferma: restano i 12 s
+    // che c'erano al momento dello stop.
+    expect(component.recoveredRound()?.paused).toBe(true);
+    expect(component.recoveredRound()?.secondsLeft).toBe(12);
+  });
+
+  it('toglie la pausa sul server prima di riaprire il round recuperato', async () => {
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const modes = TestBed.inject(GameModeService);
+    vi.spyOn(modes, 'createMode').mockReturnValue({
+      type: 'TIMELINE', restore: vi.fn(), getDisplayData: () => ({}), isRevealed: () => false,
+    } as any);
+    component.recoveredRound.set({
+      type: 'TIMELINE', label: 'Timeline', secondsLeft: 12, resumable: true, paused: true,
+    });
+    (component as unknown as { recoveredPayload: any }).recoveredPayload = {
+      items: [{ id: 1, label: 'Carta' }],
+    };
+
+    await component.resumeRecoveredRound();
+
+    expect(game.resumeCalls).toEqual([1]);
+    expect(component.recoveredRound()).toBeNull();
   });
 
   it('passa al round successivo quando finisce la canzone del reveal', () => {

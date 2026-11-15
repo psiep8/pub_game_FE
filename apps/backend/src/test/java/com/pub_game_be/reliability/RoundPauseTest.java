@@ -68,14 +68,18 @@ class RoundPauseTest {
         assertThat(gameState.pauseRound(gameId)).isTrue();
         assertThat(gameState.isRoundPaused(gameId)).isTrue();
         // Un telefono che si riaggiorna durante la pausa deve ritrovarla.
-        assertThat(gameState.snapshot(gameId).getBoolean("paused")).isTrue();
+        JSONObject pausedSnapshot = gameState.snapshot(gameId);
+        assertThat(pausedSnapshot.getBoolean("paused")).isTrue();
+        assertThat(pausedSnapshot.getLong("pausedAt")).isPositive();
         Thread.sleep(60);
 
         long shifted = gameState.resumeRound(gameId);
 
         assertThat(shifted).isGreaterThanOrEqualTo(40L);
         assertThat(gameState.isRoundPaused(gameId)).isFalse();
-        assertThat(gameState.snapshot(gameId).getBoolean("paused")).isFalse();
+        JSONObject resumedSnapshot = gameState.snapshot(gameId);
+        assertThat(resumedSnapshot.getBoolean("paused")).isFalse();
+        assertThat(resumedSnapshot.isNull("pausedAt")).isTrue();
         assertThat(gameState.roundDeadline(gameId).orElseThrow()).isEqualTo(before + shifted);
     }
 
@@ -91,7 +95,9 @@ class RoundPauseTest {
         // riavvio del processo. La pausa e il suo istante devono tornare.
         GameStateService restarted = restartedService();
         assertThat(restarted.isRoundPaused(gameId)).isTrue();
-        assertThat(restarted.snapshot(gameId).getBoolean("paused")).isTrue();
+        JSONObject pausedSnapshot = restarted.snapshot(gameId);
+        assertThat(pausedSnapshot.getBoolean("paused")).isTrue();
+        assertThat(pausedSnapshot.getLong("pausedAt")).isPositive();
 
         long shifted = restarted.resumeRound(gameId);
 

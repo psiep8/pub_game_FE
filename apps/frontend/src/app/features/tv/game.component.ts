@@ -203,6 +203,7 @@ export class GameComponent implements OnInit, OnDestroy {
     label: string;
     secondsLeft: number;
     resumable: boolean;
+    paused: boolean;
   } | null>(null);
   private recoveredPayload: any = null;
   private recoveredBlackjackState: any = null;
@@ -2200,8 +2201,12 @@ export class GameComponent implements OnInit, OnDestroy {
     const status = String(snapshot?.status ?? '');
     const type = String(snapshot?.roundType ?? '');
     const deadline = Number(snapshot?.roundDeadlineAt ?? 0);
-    const open = status === 'RUNNING' && !!type && Number.isFinite(deadline)
-      && deadline > this.reliability.serverNow();
+    const paused = snapshot?.paused === true;
+    const pausedAt = Number(snapshot?.pausedAt ?? 0);
+    // In pausa la deadline resta ferma e può essere già passata: il round è
+    // comunque aperto finché la TV non lo riprende o lo chiude.
+    const open = status === 'RUNNING' && !!type
+      && (paused || (Number.isFinite(deadline) && deadline > this.reliability.serverNow()));
 
     if (!open) {
       this.recoveredRound.set(null);
@@ -2215,13 +2220,18 @@ export class GameComponent implements OnInit, OnDestroy {
     this.recoveredRound.set({
       type: type as GameModeType,
       label: this.getModeName(type),
-      secondsLeft: Math.max(0, Math.ceil((deadline - this.reliability.serverNow()) / 1000)),
+      // Il tempo residuo è quello che c'era al momento della pausa, non quello
+      // che scorre da allora.
+      secondsLeft: paused && pausedAt > 0
+        ? Math.max(0, Math.ceil((deadline - pausedAt) / 1000))
+        : Math.max(0, Math.ceil((deadline - this.reliability.serverNow()) / 1000)),
       // Solo Timeline ha tutto sul server: le carte nel payload e gli esiti
       // riletti al reveal. Gli altri giochi tengono mani e fasi solo in TV.
       // Timeline ha le carte nel payload. Blackjack ha la mano salvata sul
       // server: senza di essa il tavolo non si può riprendere.
       resumable: (type === 'TIMELINE' && !!this.recoveredPayload)
         || (type === 'BLACKJACK' && !!snapshot?.blackjackState),
+      paused,
     });
   }
 
@@ -2243,6 +2253,17 @@ export class GameComponent implements OnInit, OnDestroy {
     const payload = this.recoveredPayload;
     const blackjack = this.recoveredBlackjackState;
     if (!pending?.resumable || (!payload && !blackjack)) return;
+
+    if (pending.paused) {
+      try {
+        // Prima si toglie la pausa sul server, poi la TV riparte: così il
+        // timer locale non corre contro una deadline ancora ferma.
+        await firstValueFrom(this.gameService.resumeRound(this.currentGameId()));
+      } catch {
+        alert('Ripresa del round non confermata: verifica lo stato del server.');
+        return;
+      }
+    }
 
     this.recoveredRound.set(null);
     this.showQuestion.set(true);

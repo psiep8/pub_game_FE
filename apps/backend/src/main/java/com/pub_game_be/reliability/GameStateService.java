@@ -412,7 +412,12 @@ public class GameStateService {
             out.put("updatedAt", state.getUpdatedAt() == null ? JSONObject.NULL : state.getUpdatedAt());
             // La pausa TV deve sopravvivere a un refresh del telefono: senza
             // questo campo il client credeva che il round fosse già ripartito.
-            out.put("paused", isRoundPaused(gameId));
+            boolean paused = isRoundPaused(gameId);
+            out.put("paused", paused);
+            // L'istante serve alla TV per ricostruire il tempo residuo dopo un
+            // refresh: se la pausa è lunga la deadline può essere già passata.
+            Long pausedAt = paused ? roundPauses.get(gameId) : null;
+            out.put("pausedAt", pausedAt == null ? JSONObject.NULL : pausedAt);
             // Falso solo nella finestra fra apertura del round e START_VOTING:
             // il telefono aspetta l'annuncio invece di mostrare il contenuto.
             out.put("announced", isRoundAnnounced(gameId));
