@@ -11,6 +11,7 @@
 - Bonus Cavallo riportato a carta e inchiostro: via vetro scuro, gradienti, radius e glow.
 - Casino bianco/rosso: i numeri non rossi sono ora bianchi anche su griglia e ruota, con test dedicati.
 - La pausa del round è salvata su database: un riavvio del server non perde più l'istante né la deadline spostata.
+- Timeline sul telefono: le etichette restano dentro le carte anche su schermi da 320×568, senza coprire la riga successiva.
 
 Tutte le modifiche rilevanti di PubGame. Formato basato su Keep a Changelog,
 versione SemVer.
