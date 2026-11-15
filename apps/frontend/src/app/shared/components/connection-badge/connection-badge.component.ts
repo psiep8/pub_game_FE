@@ -37,52 +37,44 @@ import { WebSocketService } from '../../../core/websocket/web-socket.service';
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: 3px 9px;
-        border-radius: 999px;
+        padding: 4px 8px;
+        border-radius: 0;
         font-family: var(--font-mono, monospace);
-        font-size: 0.6rem;
+        font-size: clamp(0.6rem, 0.8vw, 0.75rem);
         font-weight: 700;
-        letter-spacing: 0.12em;
+        letter-spacing: 0.1em;
+        line-height: 1;
         text-transform: uppercase;
-        border: 2px solid rgba(255, 255, 255, 0.28);
-        background: rgba(15, 23, 42, 0.72);
-        color: #e2e8f0;
+        border: 2px solid var(--coal);
+        background: var(--paper-hi);
+        color: var(--coal);
+        box-shadow: 3px 3px 0 var(--coal);
         pointer-events: none;
       }
       .dot {
-        width: 7px;
-        height: 7px;
+        width: 8px;
+        height: 8px;
+        flex: 0 0 8px;
         border-radius: 50%;
         background: currentColor;
+        border: 1px solid var(--coal);
       }
       .online {
-        color: #86efac;
-        border-color: rgba(134, 239, 172, 0.5);
+        background: var(--mint);
+        color: var(--coal);
       }
       .reconnecting {
-        color: #fbbf24;
-        border-color: rgba(251, 191, 36, 0.55);
+        background: var(--mustard);
+        color: var(--coal);
       }
       .offline {
-        color: #f87171;
-        border-color: rgba(248, 113, 113, 0.55);
-      }
-      .reconnecting .dot {
-        animation: connPulse 1s infinite;
+        background: var(--tomato);
+        color: var(--on-tomato, var(--coal));
       }
       .extra {
-        opacity: 0.8;
-      }
-      @keyframes connPulse {
-        0%,
-        100% {
-          opacity: 1;
-          transform: scale(1);
-        }
-        50% {
-          opacity: 0.35;
-          transform: scale(0.7);
-        }
+        padding: 1px 3px;
+        background: var(--acid);
+        color: var(--coal);
       }
     `,
   ],
