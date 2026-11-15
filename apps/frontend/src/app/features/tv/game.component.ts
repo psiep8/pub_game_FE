@@ -989,6 +989,12 @@ export class GameComponent implements OnInit, OnDestroy {
       onCountdownTick: (seconds) => this.onCountdownTick(seconds),
       onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
       onRoundEnded: () => this.onArenaEnded(),
+      onArenaInactivityCheck: async (players: string[]) => {
+        const response = await firstValueFrom(
+          this.gameService.tickArenaInactivity(this.currentGameId()!, players),
+        );
+        return Array.isArray(response?.penalties) ? response.penalties : [];
+      },
       onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!, event),
       onBlackjackState: (state: unknown | null) => this.reliability.saveBlackjackState(state),
       onUltimaSpiaggiaLevel: (playerName: string, level: number) => {

@@ -23,8 +23,8 @@ const MIN_RADIUS = 14;
 /** Venti secondi di respiro: il restringimento si distribuisce sul resto del round. */
 const SHRINK_GRACE_SECONDS = 20;
 const TICK_MS = 1000;
-/** Chi non risponde per questo tempo viene spinto verso il bordo come un errore. */
-const INACTIVITY_SECONDS = 15;
+/** Ogni quanto la TV chiede al server se qualcuno è rimasto inattivo. */
+const INACTIVITY_POLL_MS = 2000;
 
 export class ArenaMode extends GameModeBase {
   readonly type: GameModeType = 'ARENA';
@@ -33,11 +33,12 @@ export class ArenaMode extends GameModeBase {
   readonly requiresBuzz = false;
 
   private teams = signal<Map<string, ArenaTeamProgress>>(new Map());
-  private lastActionAt = new Map<string, number>();
   private circleRadius = signal<number>(100);
   private eliminatedPlayers = signal<string[]>([]);
   private gameEnded = signal<boolean>(false);
   private winners = signal<string[]>([]);
+  private inactivityPoll?: ReturnType<typeof setInterval>;
+  private inactivityPollPending = false;
 
   protected onInitialize(): void {
     // Le squadre si creano in onStart, quando la configurazione è già applicata.
@@ -48,7 +49,12 @@ export class ArenaMode extends GameModeBase {
     await this.runPreGameSequence(5000);
   }
 
-  protected onPause(): void {}
+  protected onPause(): void {
+    // La pausa ferma il cerchio, non il conteggio server: continuiamo a
+    // chiedere il tick, così il server sposta l'inattività e non penalizza
+    // tutti alla ripresa.
+    this.startInactivityPoll();
+  }
 
   protected onResume(): void {}
 
@@ -57,7 +63,7 @@ export class ArenaMode extends GameModeBase {
   }
 
   protected onCleanup(): void {
-    this.lastActionAt.clear();
+    this.stopInactivityPoll();
     this.teams.set(new Map());
     this.circleRadius.set(100);
     this.eliminatedPlayers.set([]);
@@ -101,10 +107,6 @@ export class ArenaMode extends GameModeBase {
   protected override startTimer(): void {
     if (this.timerInterval) clearInterval(this.timerInterval);
 
-    // Il tempo di inattività decorre da quando parte il round, non dal pre-game.
-    const startedAt = Date.now();
-    this.lastActionAt = new Map(Array.from(this.teams().keys()).map((name) => [name, startedAt]));
-
     this.timerInterval = setInterval(() => {
       if (this.isPaused() || this.buzzedPlayer()) return;
 
@@ -113,13 +115,18 @@ export class ArenaMode extends GameModeBase {
         this.timer.set(current - 1);
         this.config.onTimerTick?.(current - 1);
         this.circleRadius.set(this.radiusForSecond(current));
-        this.penalizeInactive(Date.now());
         this.checkEliminations();
       } else {
         this.stopTimer();
         this.handleTimeout();
       }
     }, TICK_MS);
+    this.startInactivityPoll();
+  }
+
+  protected override stopTimer(): void {
+    super.stopTimer();
+    this.stopInactivityPoll();
   }
 
   private radiusForSecond(secondsLeft: number): number {
@@ -166,8 +173,6 @@ export class ArenaMode extends GameModeBase {
     const team = currentTeams.get(teamKey);
     if (!team || team.eliminated) return;
 
-    this.lastActionAt.set(teamKey, Date.now());
-
     // Verso il centro si avanza più lentamente; l'errore spinge un po' meno
     // verso il bordo. Il bilanciamento va verificato con giocatori reali.
     const movement = isCorrect ? -5 : 12;
@@ -181,29 +186,60 @@ export class ArenaMode extends GameModeBase {
     this.checkEliminations();
   }
 
-  /**
-   * Chi resta fermo non può vincere restando al centro: dopo 15 secondi senza
-   * risposte riceve la stessa spinta di un errore. Se continua a non
-   * rispondere viene spinto di nuovo, finché non esce dal cerchio.
-   */
-  private penalizeInactive(now: number): void {
-    const currentTeams = new Map(this.teams());
-    let moved = false;
+  /** Il server possiede il timeout: la TV chiede e applica solo le penalità. */
+  private startInactivityPoll(): void {
+    if (!this.config.onArenaInactivityCheck) return;
+    if (this.inactivityPoll) clearInterval(this.inactivityPoll);
+    this.inactivityPoll = setInterval(() => void this.pollInactivity(), INACTIVITY_POLL_MS);
+    // Primo tick subito: il server registra l'istante di partenza esatto.
+    void this.pollInactivity();
+  }
 
-    currentTeams.forEach((team, key) => {
-      if (team.eliminated) return;
-      const last = this.lastActionAt.get(key) ?? now;
-      if (now - last < INACTIVITY_SECONDS * 1000) return;
+  private stopInactivityPoll(): void {
+    if (this.inactivityPoll) {
+      clearInterval(this.inactivityPoll);
+      this.inactivityPoll = undefined;
+    }
+  }
 
-      currentTeams.set(key, {
+  private async pollInactivity(): Promise<void> {
+    const check = this.config.onArenaInactivityCheck;
+    if (!check || this.inactivityPollPending || this.gameEnded() || !this.isActive()) return;
+    const players = Array.from(this.teams().values())
+      .filter((team) => !team.eliminated)
+      .map((team) => team.playerName);
+    if (players.length === 0) return;
+
+    this.inactivityPollPending = true;
+    try {
+      const due = await check(players);
+      // La risposta può arrivare dopo la fine del round o una pausa.
+      if (this.isPaused() || this.gameEnded() || !this.isActive()) return;
+      for (const row of due) {
+        this.applyInactivityPenalty(row.playerName, Math.max(1, Number(row.count) || 1));
+      }
+    } catch {
+      // Senza server niente penalità inventate: si riprova al prossimo tick.
+    } finally {
+      this.inactivityPollPending = false;
+    }
+  }
+
+  private applyInactivityPenalty(playerName: string, count: number): void {
+    const key = playerName.trim().toLowerCase();
+    for (let index = 0; index < count; index++) {
+      const currentTeams = new Map(this.teams());
+      const teamKey = Array.from(currentTeams.keys()).find((name) => name.toLowerCase() === key);
+      const team = teamKey ? currentTeams.get(teamKey) : null;
+      if (!teamKey || !team || team.eliminated || this.gameEnded()) return;
+
+      currentTeams.set(teamKey, {
         ...team,
         distance: Math.min(100, team.distance + 12),
       });
-      this.lastActionAt.set(key, now);
-      moved = true;
-    });
-
-    if (moved) this.teams.set(currentTeams);
+      this.teams.set(currentTeams);
+      this.checkEliminations();
+    }
   }
 
   private checkEliminations(): void {

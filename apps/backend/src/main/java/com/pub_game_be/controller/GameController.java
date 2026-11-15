@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -283,6 +284,46 @@ public class GameController {
         response.put("playerId", playerId);
         response.put("deadlineAt", gameStateService.roundDeadline(gameId).orElse(0L));
         return ResponseEntity.ok(response.toString());
+    }
+
+    /**
+     * Tick di inattività Arena: è il server a dire quali squadre vanno spinte.
+     * La TV applica solo le penalità restituite, quindi un refresh non azzera
+     * il conteggio. In pausa il tick non produce penalità.
+     */
+    @PostMapping("/{gameId}/arena-inactivity")
+    public Map<String, Object> arenaInactivity(@PathVariable("gameId") Long gameId,
+            @RequestBody(required = false) Map<String, Object> body) {
+        JSONObject snapshot = gameStateService.snapshot(gameId);
+        boolean paused = snapshot.optBoolean("paused", false);
+        long now = System.currentTimeMillis();
+        long deadline = snapshot.optLong("roundDeadlineAt", 0L);
+        boolean open = paused || deadline == 0L || deadline >= now;
+        if (!"ARENA".equals(snapshot.optString("roundType"))
+                || !"RUNNING".equals(snapshot.optString("status")) || !open) {
+            return Map.of("penalties", List.of(), "serverTime", now);
+        }
+
+        List<String> players = new ArrayList<>();
+        Object rawPlayers = body == null ? null : body.get("players");
+        if (rawPlayers instanceof List<?> list) {
+            for (Object row : new LinkedHashSet<>(list)) {
+                String name = row == null ? "" : String.valueOf(row).trim();
+                if (!name.isEmpty()) {
+                    players.add(name);
+                }
+                if (players.size() >= 32) {
+                    break;
+                }
+            }
+        }
+
+        List<Map<String, Object>> penalties = questionHistory
+                .claimArenaInactivity(gameId, players, snapshot.optString("roundKey", ""), paused, now)
+                .stream()
+                .map(row -> Map.<String, Object>of("playerName", row.playerName(), "count", row.penalties()))
+                .toList();
+        return Map.of("penalties", penalties, "serverTime", now);
     }
 
     /** Prima domanda del lato richiesto, se disponibile. */

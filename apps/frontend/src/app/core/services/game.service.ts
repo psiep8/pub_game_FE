@@ -139,6 +139,11 @@ export class GameService {
     });
   }
 
+  /** Tick di inattività Arena: le penalità le calcola solo il server. */
+  tickArenaInactivity(gameId: number, players: string[]): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/arena-inactivity`, { players });
+  }
+
   /** Timeline: ordine scelto dalla squadra, punteggio calcolato dal server. */
   submitTimeline(
     gameId: number,

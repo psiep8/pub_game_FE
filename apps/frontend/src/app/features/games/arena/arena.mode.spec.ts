@@ -36,26 +36,50 @@ describe('ArenaMode', () => {
     mode.cleanup();
   });
 
-  it('spinge fuori chi resta inattivo e azzera il conteggio quando risponde', async () => {
+  it('applica solo le penalità di inattività decise dal server', async () => {
     vi.useFakeTimers();
+    let checks = 0;
+    const seenPlayers: string[][] = [];
     const mode = new ArenaMode();
-    mode.setConfig({ type: 'ARENA', payload: {}, gameId: 1, activePlayers: ['Anna', 'Bruno'] });
+    mode.setConfig({
+      type: 'ARENA', payload: {}, gameId: 1, activePlayers: ['Anna', 'Bruno'],
+      onArenaInactivityCheck: async (players) => {
+        seenPlayers.push(players);
+        checks++;
+        return checks < 3 ? [] : [{ playerName: 'Anna', count: 1 }];
+      },
+    });
     mode.initialize({});
     await mode.start();
 
     const initial = mode.getDisplayData().teams[0].distance;
-    await vi.advanceTimersByTimeAsync(15_000);
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(mode.getDisplayData().teams[0].distance).toBe(initial);
+    await vi.advanceTimersByTimeAsync(2_000);
     expect(mode.getDisplayData().teams[0].distance).toBe(initial + 12);
+    expect(seenPlayers[0]).toEqual(['Anna', 'Bruno']);
 
-    mode.applyArenaAnswer('Anna', true);
-    const afterAnswer = mode.getDisplayData().teams[0].distance;
-    expect(afterAnswer).toBe(initial + 12 - 5);
+    mode.pause();
+    const whilePaused = checks;
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(checks).toBeGreaterThan(whilePaused);
+    mode.resume();
+    mode.cleanup();
+  });
 
-    await vi.advanceTimersByTimeAsync(14_000);
-    expect(mode.getDisplayData().teams[0].distance).toBe(afterAnswer);
+  it('non inventa penalità se il server non risponde', async () => {
+    vi.useFakeTimers();
+    const mode = new ArenaMode();
+    mode.setConfig({
+      type: 'ARENA', payload: {}, gameId: 1, activePlayers: ['Anna'],
+      onArenaInactivityCheck: async () => [],
+    });
+    mode.initialize({});
+    await mode.start();
 
-    await vi.advanceTimersByTimeAsync(1_000);
-    expect(mode.getDisplayData().teams[0].distance).toBe(afterAnswer + 12);
+    const initial = mode.getDisplayData().teams[0].distance;
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(mode.getDisplayData().teams[0].distance).toBe(initial);
     mode.cleanup();
   });
 });

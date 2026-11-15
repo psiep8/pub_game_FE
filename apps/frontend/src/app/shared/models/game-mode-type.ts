@@ -40,6 +40,11 @@ export interface GameModeConfig {
   onPlayerEliminated?: (playerName: string) => void;
   /** Arena: la partita è finita (rimasto un solo giocatore o tempo scaduto). */
   onRoundEnded?: () => void;
+  /** Arena: il server dice quali squadre hanno maturato una penalità. */
+  onArenaInactivityCheck?: (players: string[]) => Promise<Array<{
+    playerName: string;
+    count: number;
+  }>>;
   /** Bomba: API server-authoritative condivisa da TV e telefoni. */
   bomba?: BombaApi;
   /** Punti attuali di una squadra: serve per non scendere sotto zero. */

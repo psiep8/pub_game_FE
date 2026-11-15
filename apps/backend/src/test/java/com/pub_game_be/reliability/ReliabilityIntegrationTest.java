@@ -535,6 +535,36 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void ilTickDiInattivitaArenaRispondeSoloAllaRegia() throws Exception {
+        long gameId = 532L;
+        String base = "/games/" + gameId;
+        var tv = sessions.register(gameId, "tv-inactivity", "TV", null, null);
+        var remote = sessions.register(gameId, "remote-inactivity", "REMOTE", "Anna", null);
+        gameState.startRound(gameId, "ARENA", 1, "g532-r1", "{}");
+
+        // Prima richiesta: il server registra l'istante di partenza, nessuna penalità.
+        var first = request("POST", base + "/arena-inactivity", tv.sessionToken(), null,
+                "{\"players\":[\"Anna\"]}");
+        assertThat(first.statusCode()).as(first.body()).isEqualTo(200);
+        assertThat(json.readTree(first.body()).get("penalties")).isEmpty();
+        assertThat(request("POST", base + "/arena-inactivity", remote.sessionToken(), null,
+                "{\"players\":[\"Anna\"]}").statusCode()).isEqualTo(403);
+
+        // Simula un round iniziato 15 secondi fa: il tick HTTP deve riportare
+        // la penalità che la TV dovrà applicare.
+        questionHistory.forget(gameId);
+        questionHistory.claimArenaInactivity(gameId, List.of("Anna"), "g532-r1", false,
+                System.currentTimeMillis() - 15_100);
+        var due = request("POST", base + "/arena-inactivity", tv.sessionToken(), null,
+                "{\"players\":[\"Anna\"]}");
+        assertThat(due.statusCode()).as(due.body()).isEqualTo(200);
+        var penalties = json.readTree(due.body()).get("penalties");
+        assertThat(penalties).hasSize(1);
+        assertThat(penalties.get(0).get("playerName").asText()).isEqualTo("Anna");
+        assertThat(penalties.get(0).get("count").asInt()).isEqualTo(1);
+    }
+
+    @Test
     void timelineRifiutaRoundPrecedenteAncheConRicevuta() throws Exception {
         long gameId = 525L;
         String base = "/games/" + gameId;

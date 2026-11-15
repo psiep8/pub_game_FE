@@ -6,6 +6,9 @@ import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -34,6 +37,13 @@ public class QuestionHistoryService {
     public record ArenaResult(boolean correct, String correctAnswer, int points, int totalScore) {
     }
 
+    /** Penalità di inattività maturate per una squadra. */
+    public record ArenaInactivity(String playerName, int penalties) {
+    }
+
+    /** Dopo questo tempo senza risposte scatta una spinta verso il bordo. */
+    public static final long ARENA_INACTIVITY_MS = 15_000L;
+
     private static final String ARENA_BLOB = "arena-state";
 
     private final QuestionUsageService questionUsage;
@@ -44,6 +54,10 @@ public class QuestionHistoryService {
     private final Map<Long, AtomicLong> questionCounters = new ConcurrentHashMap<>();
     /** Quante VERO e quante FALSO sono già uscite: [vero, falso]. */
     private final Map<Long, int[]> arenaSides = new ConcurrentHashMap<>();
+    /** Ultimo istante di attività per squadra: risposta o penalità già applicata. */
+    private final Map<Long, Map<String, Long>> arenaActivity = new ConcurrentHashMap<>();
+    /** Round a cui appartengono le attività: un nuovo round azzera i conteggi. */
+    private final Map<Long, String> arenaRoundKeys = new ConcurrentHashMap<>();
     private final Set<Long> hydrated = ConcurrentHashMap.newKeySet();
 
     public QuestionHistoryService(QuestionUsageService questionUsage, StateBlobService stateBlobs) {
@@ -166,6 +180,12 @@ public class QuestionHistoryService {
      * non è stata assegnata a quel giocatore.
      */
     public Optional<ArenaResult> answer(long gameId, String playerId, String questionId, String answer) {
+        return answerAt(gameId, playerId, questionId, answer, System.currentTimeMillis());
+    }
+
+    /** Variante con istante esplicito, per rendere verificabile il timeout. */
+    public Optional<ArenaResult> answerAt(long gameId, String playerId, String questionId, String answer,
+            long now) {
         hydrate(gameId);
         Map<String, ArenaAssignment> pending = assignments.get(gameId);
         ArenaAssignment assignment = pending == null ? null : pending.get(questionId);
@@ -178,8 +198,62 @@ public class QuestionHistoryService {
         int points = correct ? 10 : -10;
         int totalScore = scores.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>())
                 .merge(playerId, points, Integer::sum);
+        // Una risposta vale come attività: il timeout di inattività riparte.
+        Map<String, Long> activity = arenaActivity.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>());
+        synchronized (activity) {
+            activity.put(playerId, now);
+        }
         persist(gameId);
         return Optional.of(new ArenaResult(correct, assignment.correctAnswer(), points, totalScore));
+    }
+
+    /**
+     * Penalità maturate dall'ultima risposta. Il server è l'unico a decidere
+     * quando scattano: la TV chiede il tick e applica ciò che riceve, quindi un
+     * refresh non azzera il conteggio.
+     *
+     * <p>Il primo tick di ogni round registra l'istante di partenza. In pausa
+     * il conteggio viene solo spostato in avanti, senza penalizzare nessuno.</p>
+     */
+    public List<ArenaInactivity> claimArenaInactivity(long gameId, List<String> players,
+            String roundKey, boolean paused, long now) {
+        hydrate(gameId);
+        Map<String, Long> activity = arenaActivity.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>());
+        List<ArenaInactivity> due = new ArrayList<>();
+        boolean changed = false;
+
+        synchronized (activity) {
+            String previousKey = arenaRoundKeys.put(gameId, roundKey);
+            if (previousKey != null && !previousKey.equals(roundKey)) {
+                activity.clear();
+                changed = true;
+            }
+
+            for (String rawName : new LinkedHashSet<>(players)) {
+                String playerName = rawName == null ? "" : rawName.trim();
+                if (playerName.isEmpty()) {
+                    continue;
+                }
+                Long last = activity.get(playerName);
+                if (last == null || paused) {
+                    activity.put(playerName, now);
+                    changed = true;
+                    continue;
+                }
+                long penalties = (now - last) / ARENA_INACTIVITY_MS;
+                if (penalties <= 0) {
+                    continue;
+                }
+                activity.put(playerName, last + penalties * ARENA_INACTIVITY_MS);
+                due.add(new ArenaInactivity(playerName, (int) Math.min(penalties, 100L)));
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            persist(gameId);
+        }
+        return due;
     }
 
     /**
@@ -207,6 +281,8 @@ public class QuestionHistoryService {
         scores.remove(gameId);
         questionCounters.remove(gameId);
         arenaSides.remove(gameId);
+        arenaActivity.remove(gameId);
+        arenaRoundKeys.remove(gameId);
         hydrated.remove(gameId);
         stateBlobs.forget(gameId, ARENA_BLOB);
         questionUsage.forget(gameId);
@@ -251,6 +327,20 @@ public class QuestionHistoryService {
                 scores.put(gameId, restored);
             }
 
+            String roundKey = json.optString("roundKey", "");
+            if (!roundKey.isBlank()) {
+                arenaRoundKeys.put(gameId, roundKey);
+            }
+
+            JSONObject activityJson = json.optJSONObject("activity");
+            if (activityJson != null) {
+                Map<String, Long> restored = new ConcurrentHashMap<>();
+                for (String player : activityJson.keySet()) {
+                    restored.put(player, activityJson.optLong(player, 0L));
+                }
+                arenaActivity.put(gameId, restored);
+            }
+
             long counter = json.optLong("counter", 0);
             questionCounters.put(gameId, new AtomicLong(counter));
 
@@ -282,6 +372,11 @@ public class QuestionHistoryService {
         JSONObject scoresJson = new JSONObject();
         scores.getOrDefault(gameId, Map.of()).forEach(scoresJson::put);
         json.put("scores", scoresJson);
+
+        json.put("roundKey", arenaRoundKeys.getOrDefault(gameId, ""));
+        JSONObject activityJson = new JSONObject();
+        arenaActivity.getOrDefault(gameId, Map.of()).forEach(activityJson::put);
+        json.put("activity", activityJson);
 
         AtomicLong counter = questionCounters.get(gameId);
         json.put("counter", counter == null ? 0 : counter.get());
