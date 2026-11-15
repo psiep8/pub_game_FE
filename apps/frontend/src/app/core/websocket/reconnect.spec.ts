@@ -139,3 +139,48 @@ describe('sync paginato', () => {
     http.verify();
   });
 });
+
+describe('errori di rete', () => {
+  it('non mostra la sync fallita come errore tecnico sul telefono', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(),
+        { provide: WebSocketService, useClass: FakeWebSocketService }],
+    });
+    const service = TestBed.inject(ReliabilityService);
+    const http = TestBed.inject(HttpTestingController);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    service.sessionToken.set('private-token');
+
+    const sync = service.sync();
+    http.expectOne((req) => req.urlWithParams.endsWith('/games/1/sync?sinceSeq=0'))
+      .flush({}, { status: 500, statusText: 'Server Error' });
+    await sync;
+
+    expect(service.lastError()).toBeNull();
+    expect(service.online()).toBe(false);
+    vi.restoreAllMocks();
+    http.verify();
+  });
+
+  it('riprova lo snapshot al primo heartbeat riuscito', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(),
+        { provide: WebSocketService, useClass: FakeWebSocketService }],
+    });
+    const service = TestBed.inject(ReliabilityService);
+    const http = TestBed.inject(HttpTestingController);
+    service.sessionToken.set('private-token');
+
+    const heartbeat = service.heartbeat();
+    http.expectOne('/games/1/session/heartbeat').flush({ stateVersion: 1, seq: 0 });
+    await Promise.resolve();
+    const sync = http.expectOne((req) => req.urlWithParams.endsWith('/games/1/sync?sinceSeq=0'));
+    sync.flush({ snapshot: { version: 1 }, events: [], toSeq: 0, complete: true });
+    await heartbeat;
+
+    expect(service.lastSyncAt()).not.toBeNull();
+    http.verify();
+  });
+});

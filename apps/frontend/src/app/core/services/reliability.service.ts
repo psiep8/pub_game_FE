@@ -51,8 +51,6 @@ export class ReliabilityService {
   private heartbeatTimer?: ReturnType<typeof setInterval>;
   private started = false;
   private listening = false;
-  /** Un errore di rete isolato non deve accendere un alert sul telefono. */
-  private heartbeatFailures = 0;
   private seenEvents = new Set<string>();
   /**
    * Codice di abbinamento già inserito in questa scheda. Vale una volta sola
@@ -83,7 +81,6 @@ export class ReliabilityService {
     this.gameId = gameId;
     this.promptForCode = promptForCode;
     this.started = true;
-    this.heartbeatFailures = 0;
     this.ws.subscribeToGame(gameId);
     if (!this.listening) {
       this.listening = true;
@@ -307,7 +304,6 @@ export class ReliabilityService {
     } catch (error) {
       console.error('❌ Sincronizzazione non riuscita', error);
       this.online.set(false);
-      this.lastError.set('Sincronizzazione non riuscita');
     } finally {
       this.syncing.set(false);
     }
@@ -334,12 +330,12 @@ export class ReliabilityService {
       // Un heartbeat riuscito significa che il backend risponde, anche se la
       // socket STOMP sta ancora riaprendo.
       this.online.set(true);
-      this.heartbeatFailures = 0;
-      if (this.lastError() === 'Heartbeat non riuscito') this.lastError.set(null);
       if (Number(response?.stateVersion ?? 0) > this.stateVersion()) {
         this.stateVersion.set(Number(response.stateVersion));
       }
-      if (response?.needsSync) {
+      // Se il primo snapshot non è mai arrivato (sync fallita all'avvio) si
+      // riprova a ogni heartbeat, non solo quando il server segnala eventi.
+      if (response?.needsSync || this.lastSyncAt() === null) {
         await this.sync();
       } else if (this.lastSyncAt() !== null) {
         // Senza un sync riuscito il seq non si allinea: altrimenti un telefono
@@ -351,8 +347,6 @@ export class ReliabilityService {
       const status = (error as HttpErrorResponse)?.status;
       if (status === 410 || status === 401) {
         // Il server non conosce più questa sessione: si riparte dal token nuovo.
-        this.heartbeatFailures = 0;
-        if (this.lastError() === 'Heartbeat non riuscito') this.lastError.set(null);
         this.persistToken(null);
         this.sessionToken.set(null);
         if (await this.ensureSession()) {
@@ -362,8 +356,6 @@ export class ReliabilityService {
         return;
       }
       this.online.set(false);
-      this.heartbeatFailures += 1;
-      if (this.heartbeatFailures >= 2) this.lastError.set('Heartbeat non riuscito');
     }
   }
 
