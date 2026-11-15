@@ -320,6 +320,28 @@ describe('RemoteComponent', () => {
     expect(component.arenaQuestion()?.questionId).toBe('new');
   });
 
+  it('non ritenta domande Arena in pausa e riprende alla riapertura', () => {
+    vi.useFakeTimers();
+    try {
+      component.nickname.set('Anna');
+      component.roundActive.set(true);
+      const game = TestBed.inject(GameService);
+      const pending = new Subject<any>();
+      const request = vi.spyOn(game, 'getArenaQuestion').mockReturnValue(pending.asObservable());
+      const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+      component.onStartVoting('ARENA');
+      ws.status$.next({ action: 'GAME_PAUSED' });
+      pending.error({ status: 409, error: { error: 'round-paused' } });
+      vi.advanceTimersByTime(1000);
+      expect(request).toHaveBeenCalledTimes(1);
+      ws.status$.next({ action: 'GAME_RESUMED' });
+      expect(request).toHaveBeenCalledTimes(2);
+      log.mockRestore();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('una vecchia risposta Arena non blocca né sblocca il nuovo round', () => {
     component.nickname.set('Anna');
     const game = TestBed.inject(GameService) as unknown as FakeGameService;

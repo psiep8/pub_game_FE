@@ -2275,6 +2275,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           setTimeout(() => {
             if (seq === this.arenaLoadSeq && this.questionType() === 'ARENA'
               && this.gameState() === PlayerStatus.VOTING
+              && !this.paused()
               && !this.arenaQuestion()
               && !this.arenaEliminated()) {
               this.generateNextArenaQuestion();
