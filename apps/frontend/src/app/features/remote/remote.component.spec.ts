@@ -628,6 +628,34 @@ describe('RemoteComponent', () => {
     expect(component.gameState()).toBe('VOTING');
   });
 
+  it('il sync al nuovo round Arena scarta la domanda e le risposte precedenti', () => {
+    component.nickname.set('Anna');
+    const game = TestBed.inject(GameService);
+    const oldQuestion = new Subject<any>();
+    const newQuestion = new Subject<any>();
+    const answer = new Subject<any>();
+    const request = vi.spyOn(game, 'getArenaQuestion')
+      .mockReturnValueOnce(oldQuestion.asObservable())
+      .mockReturnValueOnce(newQuestion.asObservable());
+    vi.spyOn(game, 'answerArenaQuestion').mockReturnValue(answer.asObservable());
+    const snapshot = (key: string) => ({
+      hasState: true, roundType: 'ARENA', roundKey: key,
+      roundDeadlineAt: Date.now() + 60_000,
+    });
+    reliability.syncState$.next(snapshot('g1-r1'));
+    oldQuestion.next({ question: 'Vecchia', options: ['A', 'B'], questionId: 'old' });
+    component.sendArenaAnswer(0);
+    reliability.syncState$.next(snapshot('g1-r2'));
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(component.gameState()).toBe('VOTING');
+    newQuestion.next({ question: 'Nuova', options: ['A', 'B'], questionId: 'new' });
+    answer.next({ correct: true });
+    expect(component.arenaQuestion()?.questionId).toBe('new');
+    reliability.syncState$.next(snapshot('g1-r2'));
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(component.arenaQuestion()?.questionId).toBe('new');
+  });
+
   it('should block only the player named in the error', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();

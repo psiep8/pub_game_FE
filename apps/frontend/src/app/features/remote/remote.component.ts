@@ -2376,6 +2376,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
       ?? `${type}:${snapshot.roundIndex ?? ''}`);
     const newRound = roundKey !== this.lastSnapshotRoundKey;
     if (newRound) {
+      if (this.lastSnapshotRoundKey) {
+        this.invalidateArenaQuestion();
+        this.arenaEliminated.set(false);
+      }
       this.lastSnapshotRoundKey = roundKey;
       this.hasAnswered.set(false);
       this.selectedAnswer.set(null);
@@ -2434,7 +2438,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const previousType = this.questionType();
     this.questionType.set(type);
     if (type === 'ARENA') {
-      if (!this.paused() && !this.arenaQuestion() && !this.isFetchingQuestion()) this.generateNextArenaQuestion();
+      if (!this.arenaEliminated()) {
+        this.gameState.set(PlayerStatus.VOTING);
+        if (!this.paused() && !this.arenaQuestion() && !this.isFetchingQuestion()) this.generateNextArenaQuestion();
+      }
       return;
     }
     if (this.hasAnswered()) return;
