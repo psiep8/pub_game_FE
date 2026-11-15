@@ -366,8 +366,41 @@ public class GameStateService {
     /** Chiave del blob con la mano Blackjack in corso (una per partita). */
     public static final String BLACKJACK_BLOB = "blackjack-hand";
 
+    /** Checkpoint della TV Arena, legato alla chiave del round corrente. */
+    public static final String ARENA_TV_BLOB = "arena-tv";
+
     /** Chiave del blob che ricorda l'ultimo round annunciato dalla TV. */
     public static final String ROUND_ANNOUNCED_BLOB = "round-announced";
+
+    /** Salva solo checkpoint più recenti del round Arena ancora aperto. */
+    public boolean saveArenaCheckpoint(long gameId, String roundKey, long startedAt, long revision, long eventSeq, JSONObject arena) {
+        Object lock = eventLocks.computeIfAbsent(gameId, key -> new Object());
+        synchronized (lock) {
+            GameStateEntity current = states.findById(gameId).orElse(null);
+            if (current == null || !"RUNNING".equals(current.getStatus())
+                    || !"ARENA".equals(current.getRoundType()) || !roundKey.equals(current.getRoundKey())
+                    || current.getRoundStartedAt() == null || current.getRoundStartedAt() != startedAt
+                    || revision <= 0 || eventSeq < 0 || eventSeq > current.getSeq()) return false;
+            Optional<JSONObject> previous = arenaCheckpoint(gameId);
+            if (previous.isPresent() && revision <= previous.get().optLong("revision")) return false;
+            JSONObject checkpoint = new JSONObject().put("roundKey", roundKey).put("startedAt", startedAt)
+                    .put("revision", revision).put("eventSeq", eventSeq).put("state", arena);
+            stateBlobs.save(gameId, ARENA_TV_BLOB, checkpoint.toString());
+            return true;
+        }
+    }
+
+    /** Un checkpoint di un round diverso o chiuso non è ripristinabile. */
+    public Optional<JSONObject> arenaCheckpoint(long gameId) {
+        GameStateEntity current = states.findById(gameId).orElse(null);
+        if (current == null || !"RUNNING".equals(current.getStatus()) || !"ARENA".equals(current.getRoundType())) {
+            return Optional.empty();
+        }
+        return stateBlobs.load(gameId, ARENA_TV_BLOB).map(JSONObject::new)
+                .filter(checkpoint -> checkpoint.optString("roundKey").equals(current.getRoundKey())
+                        && current.getRoundStartedAt() != null
+                        && checkpoint.optLong("startedAt", -1L) == current.getRoundStartedAt());
+    }
 
     /** Salva lo snapshot della mano: la TV lo riscrive a ogni cambio di fase. */
     public void saveBlackjackState(long gameId, String json) {
@@ -428,6 +461,7 @@ public class GameStateService {
         out.put("currentRound", current.map(this::roundJson).orElse(null));
         // Mano Blackjack salvata dalla TV: serve a riprenderla dopo un refresh.
         out.put("blackjackState", blackjackState(gameId).orElse(null));
+        out.put("arenaCheckpoint", arenaCheckpoint(gameId).orElse(null));
         return out;
     }
 

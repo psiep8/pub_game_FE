@@ -70,9 +70,47 @@ class RoundPauseTest {
     @Autowired
     private StateBlobService stateBlobs;
 
+    @Autowired
+    private ReliabilityController reliabilityController;
+
+    @Autowired
+    private DeviceSessionService sessions;
+
     private GameStateService restartedService() {
         return new GameStateService(stateRepository, eventRepository, roundRepository, properties,
                 transactionManager, entityManager, stateBlobs);
+    }
+
+    @Test
+    void checkpointArenaSoloTvEValidoPerIlRoundCorrente() {
+        long gameId = 739L;
+        gameState.startRound(gameId, "ARENA", 1, "g739-r1", "{}");
+        var tv = sessions.register(gameId, "tv739", "TV", "", null);
+        var remote = sessions.register(gameId, "remote739", "REMOTE", "Anna", null);
+        var tvSession = sessions.authenticate(tv.sessionToken()).orElseThrow();
+        var remoteSession = sessions.authenticate(remote.sessionToken()).orElseThrow();
+        long startedAt = gameState.snapshot(gameId).getLong("roundStartedAt");
+        Map<String, Object> checkpoint = Map.of("roundKey", "g739-r1", "startedAt", startedAt, "revision", 2,
+                "eventSeq", 1, "state", Map.of("teams", List.of(Map.of("playerName", "Anna", "distance", 25))));
+        assertThat(reliabilityController.saveArenaCheckpoint(gameId, remoteSession, checkpoint).getStatusCode().value()).isEqualTo(403);
+        assertThat(reliabilityController.saveArenaCheckpoint(gameId, tvSession, checkpoint).getStatusCode().value()).isEqualTo(200);
+        assertThat(restartedService().snapshot(gameId).getJSONObject("arenaCheckpoint")
+                .getJSONObject("state").getJSONArray("teams").getJSONObject(0).getInt("distance")).isEqualTo(25);
+        assertThat(reliabilityController.saveArenaCheckpoint(gameId, tvSession,
+                Map.of("roundKey", "g739-r1", "startedAt", startedAt, "revision", 1, "eventSeq", 1, "state", Map.of())).getStatusCode().value()).isEqualTo(409);
+        gameState.startRound(gameId, "ARENA", 2, "g739-r2", "{}");
+        assertThat(gameState.snapshot(gameId).isNull("arenaCheckpoint")).isTrue();
+        assertThat(reliabilityController.saveArenaCheckpoint(gameId, tvSession, checkpoint).getStatusCode().value()).isEqualTo(409);
+        long nextStartedAt = gameState.snapshot(gameId).getLong("roundStartedAt");
+        assertThat(reliabilityController.saveArenaCheckpoint(gameId, tvSession,
+                Map.of("roundKey", "g739-r2", "startedAt", nextStartedAt, "revision", 1, "eventSeq", 0, "state", Map.of())).getStatusCode().value()).isEqualTo(200);
+        gameState.closeRound(gameId, "test");
+        assertThat(gameState.snapshot(gameId).isNull("arenaCheckpoint")).isTrue();
+        gameState.reset(gameId);
+        gameState.startRound(gameId, "ARENA", 2, "g739-r2", "{}");
+        assertThat(gameState.snapshot(gameId).isNull("arenaCheckpoint")).isTrue();
+        assertThat(reliabilityController.saveArenaCheckpoint(gameId, tvSession,
+                Map.of("roundKey", "g739-r2", "startedAt", nextStartedAt, "revision", 2, "eventSeq", 0, "state", Map.of())).getStatusCode().value()).isEqualTo(409);
     }
 
     @Test

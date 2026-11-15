@@ -145,6 +145,29 @@ public class ReliabilityController {
         return ResponseEntity.ok(Map.of("saved", true));
     }
 
+    /** Checkpoint Arena: solo la TV autenticata può salvarlo. */
+    @PostMapping("/arena-tv-state")
+    public ResponseEntity<Object> saveArenaCheckpoint(@PathVariable("gameId") Long gameId,
+            @RequestAttribute("pubgame.session") DeviceSessionEntity session,
+            @RequestBody Map<String, Object> body) {
+        if (!"TV".equals(session.getRole()) || !session.getGameId().equals(gameId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "tv-required"));
+        }
+        Object rawState = body.get("state");
+        Object rawRound = body.get("roundKey");
+        Object rawStartedAt = body.get("startedAt");
+        Object rawRevision = body.get("revision");
+        Object rawSeq = body.get("eventSeq");
+        if (!(rawState instanceof Map<?, ?>) || !(rawRound instanceof String roundKey) || roundKey.isBlank()
+                || !(rawStartedAt instanceof Number) || !(rawRevision instanceof Number) || !(rawSeq instanceof Number)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "invalid-checkpoint"));
+        }
+        boolean saved = gameState.saveArenaCheckpoint(gameId, roundKey, ((Number) rawStartedAt).longValue(),
+                ((Number) rawRevision).longValue(), ((Number) rawSeq).longValue(), new JSONObject((Map<?, ?>) rawState));
+        return saved ? ResponseEntity.ok(Map.of("saved", true))
+                : ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "stale-checkpoint"));
+    }
+
     private boolean secretMatches(String supplied) {
         return controlSecret != null && controlSecret.length() >= 32 && supplied != null
                 && MessageDigest.isEqual(controlSecret.getBytes(StandardCharsets.UTF_8),
