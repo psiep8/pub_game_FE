@@ -46,7 +46,7 @@ in AAC `.m4a` e misura il risultato con `ebur128`.
 
 ```bash
 node scripts/audio/process-audio.mjs            # elabora quel che trova
-node scripts/audio/process-audio.mjs --check    # solo verifica: esce 1 se manca un file
+node scripts/audio/process-audio.mjs --check    # verifica file e metadati: esce 1 se manca qualcosa
 node scripts/audio/process-audio.mjs --only gong
 node scripts/audio/process-audio.mjs --force    # rifà anche gli m4a già pronti
 ```
@@ -59,6 +59,13 @@ node scripts/audio/process-audio.mjs --force    # rifà anche gli m4a già pront
   e `ffprobe` (build 7.0.2 arm64 da johnvansickle.com, ~19 MB scaricati, 102 MB
   estratti; su x86 usa `ffmpeg-release-amd64-static.tar.xz`). `.tools/` è già in
   `.gitignore`. `FFMPEG_PATH`/`FFPROBE_PATH` scavalcano il percorso.
+- `--check` non elabora: elenca i file mancanti e controlla i crediti. Ogni
+  file presente deve avere la sua riga in `FONTI.txt`; ogni riga deve citare un
+  file che esiste davvero, previsto dal manifesto, con i cinque campi completi
+  e un URL valido. Righe doppie, fuori manifesto o citazioni di file inesistenti
+  fanno uscire con codice 1: così i crediti non si compilano a metà.
+- Anche l'elaborazione normale segnala, alla fine, i file presenti senza riga in
+  `FONTI.txt`.
 - Alla fine stampa una tabella con durata, peso, LUFS misurati e picco di ogni
   file; i file mancanti restano elencati. La cartella temporanea viene pulita.
 - Con un file mancante l'audio non suona e lo segnala in console: non si torna

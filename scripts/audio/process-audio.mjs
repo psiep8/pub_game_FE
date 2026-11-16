@@ -97,6 +97,54 @@ function readManifest() {
   return entries;
 }
 
+/**
+ * FONTI.txt: una riga per file, `percorso | titolo | autore | URL | licenza`.
+ * Senza questi dati un file non può entrare nei crediti, quindi il controllo
+ * tratta la riga mancante come un errore, non come un avviso.
+ */
+function readFonti(manifestPaths) {
+  const file = join(AUDIO_ROOT, 'FONTI.txt');
+  const result = { byPath: new Map(), errors: [], dangling: [], unexpected: [] };
+  if (!existsSync(file)) {
+    result.errors.push('Manca apps/frontend/public/assets/audio/FONTI.txt.');
+    return result;
+  }
+
+  const lines = readFileSync(file, 'utf8').split(/\r?\n/);
+  lines.forEach((line, index) => {
+    const text = line.trim();
+    if (!text || text.startsWith('#')) return;
+    const number = index + 1;
+    const parts = text.split('|').map((part) => part.trim());
+    if (parts.length !== 5) {
+      result.errors.push(`FONTI.txt riga ${number}: servono 5 campi (percorso | titolo | autore | URL | licenza).`);
+      return;
+    }
+    const [rawPath, title, author, url, licence] = parts;
+    const path = rawPath.replace(/^\.\//, '').replace(/\\/g, '/');
+    if (!/^(interface|gioco|casino|sala|bonus|attesa|loop)\/[^/]+\.m4a$/.test(path)) {
+      result.errors.push(`FONTI.txt riga ${number}: percorso non valido "${rawPath}".`);
+      return;
+    }
+    if (!title || !author || !licence) {
+      result.errors.push(`FONTI.txt riga ${number}: titolo, autore e licenza sono obbligatori (${path}).`);
+      return;
+    }
+    if (!/^https?:\/\//.test(url)) {
+      result.errors.push(`FONTI.txt riga ${number}: URL non valido per ${path}.`);
+      return;
+    }
+    if (result.byPath.has(path)) {
+      result.errors.push(`FONTI.txt riga ${number}: ${path} è già citato sopra.`);
+      return;
+    }
+    result.byPath.set(path, { title, author, url, licence, line: number });
+    if (!existsSync(join(AUDIO_ROOT, path))) result.dangling.push({ path, line: number });
+    if (!manifestPaths.has(path)) result.unexpected.push({ path, line: number });
+  });
+  return result;
+}
+
 function findTool(name) {
   const candidates = [
     process.env[`${name.toUpperCase()}_PATH`],
@@ -298,14 +346,42 @@ if (CHECK) {
     if (existsSync(output) && !FORCE) return false;
     return !sourceCandidates(entry).some((item) => existsSync(item.file));
   });
+  const fonti = readFonti(new Set(entries.map((entry) => entry.path)));
+  const present = selected.filter((entry) => existsSync(join(AUDIO_ROOT, entry.path)));
+  const presentWithoutFonti = present.filter((entry) => !fonti.byPath.has(entry.path));
+
   console.log(`Manifesto: ${entries.length} file (35 effetti, 6 loop).`);
   console.log(`ffmpeg: ${FFMPEG}`);
+  console.log(`FONTI.txt: ${fonti.byPath.size} righe valide.`);
+
+  let problems = false;
   if (missing.length > 0) {
+    problems = true;
     console.log(`\nMancano ${missing.length} file:`);
     for (const entry of missing) console.log(`  - ${entry.path}`);
-    process.exit(1);
   }
-  console.log('\nTutti i file attesi ci sono.');
+  if (presentWithoutFonti.length > 0) {
+    problems = true;
+    console.log(`\nFile presenti senza riga in FONTI.txt (${presentWithoutFonti.length}), i crediti sarebbero incompleti:`);
+    for (const entry of presentWithoutFonti) console.log(`  - ${entry.path}`);
+  }
+  if (fonti.dangling.length > 0) {
+    problems = true;
+    console.log(`\nRighe di FONTI.txt che citano file inesistenti (${fonti.dangling.length}):`);
+    for (const item of fonti.dangling) console.log(`  - ${item.path} (riga ${item.line})`);
+  }
+  if (fonti.unexpected.length > 0) {
+    problems = true;
+    console.log(`\nRighe di FONTI.txt fuori dal manifesto (${fonti.unexpected.length}):`);
+    for (const item of fonti.unexpected) console.log(`  - ${item.path} (riga ${item.line})`);
+  }
+  if (fonti.errors.length > 0) {
+    problems = true;
+    console.log(`\nRighe di FONTI.txt non valide (${fonti.errors.length}):`);
+    for (const message of fonti.errors) console.log(`  - ${message}`);
+  }
+  if (problems) process.exit(1);
+  console.log('\nTutti i file attesi ci sono e ogni file ha la sua riga in FONTI.txt.');
   process.exit(0);
 }
 
@@ -353,9 +429,17 @@ if (missing.length > 0) {
   console.log(`\nMancano ${missing.length} file:`);
   for (const result of missing) console.log(`  - ${result.entry.path}`);
 }
+rmSync(TMP, { recursive: true, force: true });
+
+// Anche fuori da --check: un file elaborato senza metadati non entra nei crediti.
+const fonti = readFonti(new Set(entries.map((entry) => entry.path)));
+const uncredited = entries.filter((entry) => existsSync(join(AUDIO_ROOT, entry.path)) && !fonti.byPath.has(entry.path));
+if (uncredited.length > 0) {
+  console.log(`\nSenza riga in FONTI.txt (${uncredited.length}), resteranno fuori dai crediti:`);
+  for (const entry of uncredited) console.log(`  - ${entry.path}`);
+}
 if (failures > 0) {
   console.log(`\n${failures} file non elaborati per errore: vedi sopra.`);
   process.exit(1);
 }
-rmSync(TMP, { recursive: true, force: true });
-console.log('\nFatto. Ricordati di riempire FONTI.txt per i file nuovi: senza metadati non entrano nei crediti.');
+console.log('\nFatto.' + (uncredited.length === 0 ? ' Tutti i file hanno i loro metadati.' : ' Aggiungi le righe mancanti in FONTI.txt.'));
