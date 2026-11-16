@@ -1,5 +1,13 @@
 # Changelog
 
+## 16 novembre 2026 — recupero Arena
+
+- La TV salva il tabellone Arena sul server a ogni risposta e penalità, legato al round aperto e con revisione crescente; il reset dimentica il blob.
+- Una TV aggiornata durante Arena riapre il round dal checkpoint con il tempo residuo, invece di offrire solo la chiusura.
+- Checkpoint di un altro round o con revisione vecchia vengono scartati dal server; un checkpoint non valido riporta la TV al pannello invece di aprire un round vuoto.
+- Le risposte Arena arrivate dopo la chiusura del round non assegnano più punti.
+- Verifiche: 11 test Arena, 35 test TV, 6 RoundPause.
+
 ## 15 novembre 2026 — scaletta 2.2 e cinque bonus
 
 - Biglie promosse a quattro round separati (3, 5, 11, 22); Blackjack fuori dai round.
