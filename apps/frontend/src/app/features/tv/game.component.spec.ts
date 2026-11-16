@@ -658,7 +658,8 @@ describe('GameComponent', () => {
       roundScoring: boolean;
     };
     component.currentGameId.set(1);
-    component.round.set({ roundIndex: 4 } as any);
+    // Round aperto = indice 4 (round 1..5 chiusi).
+    TestBed.inject(RoundManagerService).restoreRound(5);
     theme.applyFromRemote('editorial-acid');
     theme.setTeamTheme('Anna', 'deep-ocean');
     theme.setTeamTheme('Bruno', 'kpop-aesthetic');
@@ -693,7 +694,7 @@ describe('GameComponent', () => {
       roundScoring: boolean;
     };
     component.currentGameId.set(1);
-    component.round.set({ roundIndex: 4 } as any);
+    TestBed.inject(RoundManagerService).restoreRound(5);
     tv.beginRoundScoring();
     leaderboard.addPoints('Anna', 80, true);
 
@@ -701,6 +702,39 @@ describe('GameComponent', () => {
     tv.roundScoring = false;
     tv.restoreRoundPoints(5);
 
+    expect(tv.roundScoring).toBe(false);
+    expect(tv.roundPoints.size).toBe(0);
+  });
+
+  it('usa l indice della scaletta, non quello vecchio del round', () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    const tv = component as unknown as {
+      beginRoundScoring(): void;
+      restoreRoundPoints(roundIndex: number | null): void;
+      roundPoints: Map<string, number>;
+      roundScoring: boolean;
+    };
+    component.currentGameId.set(1);
+    // Scaletta: 9 round chiusi, quindi il round aperto è l'indice 8.
+    rounds.restoreRound(9);
+    // Fotografia vecchia del round arrivata dallo snapshot sbagliato.
+    component.round.set({ roundIndex: 3 } as any);
+
+    tv.beginRoundScoring();
+    leaderboard.addPoints('Anna', 100, true);
+
+    const stored = JSON.parse(localStorage.getItem('roundPoints') ?? 'null');
+    expect(stored.roundIndex).toBe(8);
+
+    // La ripresa del round aperto ritrova il conteggio; l'indice vecchio no.
+    tv.roundPoints.clear();
+    tv.roundScoring = false;
+    tv.restoreRoundPoints(8);
+    expect(tv.roundPoints.get('Anna')).toBe(100);
+
+    tv.roundPoints.clear();
+    tv.roundScoring = false;
+    tv.restoreRoundPoints(3);
     expect(tv.roundScoring).toBe(false);
     expect(tv.roundPoints.size).toBe(0);
   });
@@ -722,6 +756,44 @@ describe('GameComponent', () => {
       entries: [{ playerName: 'Anna', totalPoints: 140 }],
     });
     expect(localStorage.getItem('leaderboardPending')).toBeNull();
+  });
+
+  it('rimanda la coda di classifica salvata prima di avere la partita', async () => {
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const tv = component as unknown as { restorePendingLeaderboard(): void };
+    component.currentGameId.set(1);
+    localStorage.setItem('leaderboardPending', JSON.stringify({
+      gameId: null,
+      seq: 7,
+      entries: [{ playerName: 'Anna', totalPoints: 60, correctAnswers: 2, wrongAnswers: 0, position: 1 }],
+    }));
+
+    tv.restorePendingLeaderboard();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // Senza gameId la coda vale per la partita corrente, non va persa.
+    expect(game.savedLeaderboards.at(-1)).toEqual({
+      gameId: 1,
+      entries: [{ playerName: 'Anna', totalPoints: 60 }],
+    });
+    expect(localStorage.getItem('leaderboardPending')).toBeNull();
+  });
+
+  it('non sposta su un tavolo la coda di un’altra partita', async () => {
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const tv = component as unknown as { restorePendingLeaderboard(): void };
+    component.currentGameId.set(1);
+    localStorage.setItem('leaderboardPending', JSON.stringify({
+      gameId: 2,
+      seq: 3,
+      entries: [{ playerName: 'Bruno', totalPoints: 40 }],
+    }));
+
+    tv.restorePendingLeaderboard();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(game.savedLeaderboards).toHaveLength(0);
+    expect(localStorage.getItem('leaderboardPending')).not.toBeNull();
   });
 
   it('keeps the acid palette when the round is a tie', () => {

@@ -756,7 +756,7 @@ export class GameComponent implements OnInit, OnDestroy {
    */
   private persistRoundPoints(): void {
     const gameId = this.currentGameId();
-    const roundIndex = this.tvRoundIndex();
+    const roundIndex = this.openRoundIndex();
     if (!gameId || roundIndex == null) return;
     try {
       localStorage.setItem(ROUND_POINTS_KEY, JSON.stringify({
@@ -791,6 +791,20 @@ export class GameComponent implements OnInit, OnDestroy {
     }
     // Il round è di nuovo aperto: i punti che arrivano ora si sommano.
     this.roundScoring = true;
+  }
+
+  /**
+   * Indice 0-based del round aperto, preso dalla scaletta.
+   *
+   * `startNewRound` incrementa `currentRound` all'apertura e `completeRound`
+   * non lo tocca: il round in corso è quindi `currentRound - 1`. Non si usa
+   * `round().roundIndex`, che dopo un refresh può essere ancora quello della
+   * fotografia precedente (o mancare del tutto) e sposterebbe il conteggio su
+   * un altro round.
+   */
+  private openRoundIndex(): number | null {
+    const index = this.roundManager.getCurrentRound() - 1;
+    return index >= 0 ? index : null;
   }
 
   private clearPersistedRoundPoints(): void {
@@ -2447,8 +2461,18 @@ export class GameComponent implements OnInit, OnDestroy {
       return;
     }
     if (!pending || !Array.isArray(pending.entries) || !pending.entries.length) return;
-    const gameId = Number(pending.gameId);
-    if (Number.isFinite(gameId) && this.currentGameId() && gameId !== this.currentGameId()) return;
+    const currentGameId = this.currentGameId();
+    const storedGameId = pending.gameId == null ? null : Number(pending.gameId);
+    // La coda può essere nata prima di sapere la partita (gameId assente): in
+    // quel caso vale per la partita corrente. Se invece è di un'altra partita
+    // resta lì: non si spostano punti da un tavolo all'altro.
+    if (storedGameId != null
+      && Number.isFinite(storedGameId) && storedGameId > 0
+      && currentGameId && storedGameId !== currentGameId) {
+      return;
+    }
+    // Senza partita non c'è dove salvarla: la coda resta per il prossimo stato.
+    if (!currentGameId) return;
 
     const seq = Number(pending.seq) || 1;
     const entries = pending.entries as PlayerScore[];
@@ -2599,7 +2623,7 @@ export class GameComponent implements OnInit, OnDestroy {
     // Il verdetto del round riparte da dove era: i punti giocati prima del
     // refresh contano ancora per il tema della TV.
     this.roundScoring = true;
-    this.restoreRoundPoints(this.recoveredRoundIndex ?? this.tvRoundIndex());
+    this.restoreRoundPoints(this.recoveredRoundIndex ?? this.openRoundIndex());
     // Il round riprende: Arena torna capace di chiudersi e di contare i punti.
     this.arenaFinished = false;
     if (pending.type === 'ARENA') this.beginRoundScoring();
