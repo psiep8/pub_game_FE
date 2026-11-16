@@ -74,6 +74,37 @@ describe('ThemeService — palette di squadra', () => {
     expect(service.ensureTeamTheme('Nuova')).toBe(anna);
   });
 
+  it('la squadra espulsa rientra con la stessa palette', () => {
+    const anna = service.ensureTeamTheme('Anna');
+
+    service.releaseTeamTheme('Anna');
+
+    expect(service.ensureTeamTheme('Anna')).toBe(anna);
+  });
+
+  it('se la palette è occupata, il rientro ne riceve una libera e la ricorda', () => {
+    const anna = service.ensureTeamTheme('Anna');
+    service.releaseTeamTheme('Anna');
+    // Carla entra prima del rientro e prende la palette liberata.
+    expect(service.ensureTeamTheme('Carla')).toBe(anna);
+
+    const again = service.ensureTeamTheme('Anna');
+    expect(again).not.toBe(anna);
+
+    // La nuova palette resta la sua anche al rientro successivo.
+    service.releaseTeamTheme('Anna');
+    expect(service.ensureTeamTheme('Anna')).toBe(again);
+  });
+
+  it('la memoria delle palette sopravvive al refresh della TV', () => {
+    const anna = service.ensureTeamTheme('Anna');
+    service.releaseTeamTheme('Anna');
+
+    const reloaded = new ThemeService();
+
+    expect(reloaded.ensureTeamTheme('Anna')).toBe(anna);
+  });
+
   it('la nuova partita azzera palette assegnate e scelte', () => {
     service.ensureTeamTheme('Anna');
     service.setTeamTheme('Bruno', 'kpop-aesthetic');

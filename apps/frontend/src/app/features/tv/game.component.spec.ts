@@ -657,6 +657,17 @@ describe('GameComponent', () => {
     expect(theme.themeForTeam('Carla')).toBe(anna);
   });
 
+  it('fa rientrare la squadra espulsa con la stessa palette', () => {
+    const theme = component.theme;
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });
+    const anna = theme.themeForTeam('Anna');
+
+    ws.status$.next({ action: WsAction.PLAYER_REMOVED, playerName: 'Anna' });
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });
+
+    expect(theme.themeForTeam('Anna')).toBe(anna);
+  });
+
   it('non libera la palette di una squadra espulsa che ha già punti', () => {
     const theme = component.theme;
     ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });

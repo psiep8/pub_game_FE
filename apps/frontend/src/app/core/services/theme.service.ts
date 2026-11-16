@@ -17,6 +17,7 @@ export type AppTheme = (typeof THEMES)[number];
 const STORAGE_KEY = 'pubgame-theme';
 const XMAS_KEY = 'pubgame-xmas';
 const TEAM_DEFAULTS_KEY = 'pubgame.team-defaults';
+const TEAM_HISTORY_KEY = 'pubgame.team-history';
 
 /** Nome corto mostrato dal tasto tema su TV, telefono e regia. */
 export const LABELS: Record<AppTheme, string> = {
@@ -90,6 +91,12 @@ export class ThemeService {
    * tutte restano in acido e il tema del vincitore non si vede in sala.
    */
   readonly teamDefaults = signal<Partial<Record<string, AppTheme>>>(this.readTeamDefaults());
+  /**
+   * Ultima palette avuta da ogni nome, anche dopo l'espulsione: al rientro la
+   * squadra ritrova il suo colore, così in sala non cambia identità. Se nel
+   * frattempo l'ha presa un'altra squadra, ne riceve una libera.
+   */
+  readonly teamHistory = signal<Partial<Record<string, AppTheme>>>(this.readTeamHistory());
   /**
    * Sul telefono il colore si sceglie una volta sola, prima del tutorial: dopo
    * l'ingresso in partita il tasto sparisce e `set()` non cambia più nulla.
@@ -188,9 +195,14 @@ export class ThemeService {
     const existing = this.teamDefaults()[name];
     if (existing) return existing;
 
+    const remembered = this.teamHistory()[name];
+    if (remembered && this.isThemeFree(remembered)) {
+      this.assignDefaultTheme(name, remembered);
+      return remembered;
+    }
+
     const assigned = this.nextFreeTeamTheme();
-    this.teamDefaults.update((map) => ({ ...map, [name]: assigned }));
-    this.persistTeamDefaults();
+    this.assignDefaultTheme(name, assigned);
     return assigned;
   }
 
@@ -205,11 +217,13 @@ export class ThemeService {
     this.forgetDefault(playerName.trim());
   }
 
-  /** Nuova partita: si riparte con tutte le palette libere, scelte comprese. */
+  /** Nuova partita: si riparte con tutte le palette libere, scelte e memoria comprese. */
   resetTeamThemes(): void {
     this.teamDefaults.set({});
     this.teamThemes.set({});
+    this.teamHistory.set({});
     this.persistTeamDefaults();
+    this.persistTeamHistory();
   }
 
   themeForTeam(playerName: string): AppTheme {
@@ -244,6 +258,20 @@ export class ThemeService {
     return order[Object.keys(defaults).length % order.length];
   }
 
+  /** Una palette è libera se nessun'altra squadra la sta usando. */
+  private isThemeFree(theme: AppTheme): boolean {
+    return !Object.values(this.teamDefaults()).includes(theme)
+      && !Object.values(this.teamThemes()).includes(theme);
+  }
+
+  /** Assegna e ricorda: la memoria serve al rientro dopo un'espulsione. */
+  private assignDefaultTheme(playerName: string, theme: AppTheme): void {
+    this.teamDefaults.update((map) => ({ ...map, [playerName]: theme }));
+    this.teamHistory.update((map) => ({ ...map, [playerName]: theme }));
+    this.persistTeamDefaults();
+    this.persistTeamHistory();
+  }
+
   private forgetDefault(playerName: string): void {
     const defaults = this.teamDefaults();
     if (!defaults[playerName]) return;
@@ -262,10 +290,28 @@ export class ThemeService {
     }
   }
 
+  private persistTeamHistory(): void {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      localStorage.setItem(TEAM_HISTORY_KEY, JSON.stringify(this.teamHistory()));
+    } catch {
+      // Storage negato: la memoria vale solo per questa sessione.
+    }
+  }
+
+  private readTeamHistory(): Partial<Record<string, AppTheme>> {
+    return this.readTeamMap(TEAM_HISTORY_KEY);
+  }
+
   private readTeamDefaults(): Partial<Record<string, AppTheme>> {
+    return this.readTeamMap(TEAM_DEFAULTS_KEY);
+  }
+
+  /** Legge una mappa nome→palette salvata, scartando voci vuote o corrotte. */
+  private readTeamMap(key: string): Partial<Record<string, AppTheme>> {
     if (typeof localStorage === 'undefined') return {};
     try {
-      const raw = localStorage.getItem(TEAM_DEFAULTS_KEY);
+      const raw = localStorage.getItem(key);
       const parsed = raw ? JSON.parse(raw) : null;
       if (!parsed || typeof parsed !== 'object') return {};
 

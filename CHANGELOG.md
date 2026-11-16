@@ -6,9 +6,9 @@
 - La scelta fatta dal telefono ha sempre la precedenza e prende il posto della palette assegnata, anche se arriva prima dell'ingresso in partita.
 - Il round successivo adotta sempre il tema della squadra che ha vinto: prima, senza una scelta esplicita, la TV restava in acido e il cambio non si vedeva.
 - Sui tre posti del podio il nome resta inchiostro: con il tema del round, il colore della squadra finiva sopra un fondo della sua stessa famiglia e spariva (tema OCEANO, contrasto sotto 2,5:1; ora tutti i nomi sopra 4,6:1).
-- Le palette assegnate tornano libere quando una squadra viene espulsa **senza punti** e si azzerano del tutto aprendo una partita nuova o confermando il reset: molti rientri non esauriscono più i colori. Chi è espulso con punti resta in classifica e tiene il suo colore; la palette scelta dal telefono resta comunque della squadra.
+- Le palette assegnate tornano libere quando una squadra viene espulsa **senza punti** e si azzerano del tutto aprendo una partita nuova o confermando il reset: molti rientri non esauriscono più i colori. Chi è espulso con punti resta in classifica e tiene il suo colore; la palette scelta dal telefono resta comunque della squadra. La TV ricorda l'ultima palette di ogni nome, anche dopo l'espulsione: al rientro la squadra ritrova il suo colore, e ne riceve uno libero solo se nel frattempo l'ha preso un'altra. La memoria resta in `localStorage` e sparisce con una partita nuova.
 - `forgetIfNoPoints` ora dice se la squadra è stata tolta: la TV usa quella risposta per liberare la palette, senza un secondo controllo sui punti.
-- Verifiche: 17 test nuovi (9 sul servizio tema, 5 sul componente TV con reset confermato ed espulsione con punti, 3 sulla classifica per il valore restituito) e verifica a 1280×720 con dieci squadre e due vincitori diversi (`docs/screenshots/f12-tema-vincitore-720p.png`, `docs/screenshots/f12-tema-vincitore-anna-720p.png`).
+- Verifiche: 21 test nuovi (12 sul servizio tema, 6 sul componente TV con reset confermato, espulsione con punti e rientro con la stessa palette, 3 sulla classifica per il valore restituito) e verifica a 1280×720 con dieci squadre e due vincitori diversi (`docs/screenshots/f12-tema-vincitore-720p.png`, `docs/screenshots/f12-tema-vincitore-anna-720p.png`).
 
 ## 16 novembre 2026 — Classifica rapida a due colonne oltre dieci squadre (F09)
 
