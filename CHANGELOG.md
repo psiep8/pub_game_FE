@@ -1,12 +1,13 @@
 # Changelog
 
-## 16 novembre 2026 — recupero Arena
+## 16 novembre 2026 — recupero Arena e Bomba
 
 - La TV salva il tabellone Arena sul server a ogni risposta e penalità, legato al round aperto e con revisione crescente; il reset dimentica il blob.
 - Una TV aggiornata durante Arena riapre il round dal checkpoint con il tempo residuo, invece di offrire solo la chiusura.
 - Checkpoint di un altro round o con revisione vecchia vengono scartati dal server; un checkpoint non valido riporta la TV al pannello invece di aprire un round vuoto.
 - Le risposte Arena arrivate dopo la chiusura del round non assegnano più punti.
-- Verifiche: 11 test Arena, 35 test TV, 6 RoundPause.
+- Bomba: il tabellone è già sul server, quindi la TV salva solo la sequenza di eventi applicati; dopo un refresh riprende il round invece di ripartire da zero e non addebita due volte la stessa bomba.
+- Verifiche: 11 test Arena, 4 test Bomba, 38 test TV, 7 RoundPause.
 
 ## 15 novembre 2026 — scaletta 2.2 e cinque bonus
 
