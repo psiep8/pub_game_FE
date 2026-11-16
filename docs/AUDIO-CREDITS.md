@@ -14,8 +14,9 @@ Gli strumenti storici restano descritti qui sotto:
 
 - `audio.service.ts` genera countdown, tick, eliminazione, podio, sirena Bomba,
   applausi, roulette, errori e conferme;
-- `pub-bed.ts` genera il tappeto musicale (giro ii-V-I-vi in Do maggiore,
-  64 BPM, ciclo di 20 minuti).
+- `bed-profiles.ts` genera i tappeti musicali, uno per gioco: sedici profili
+  con tempo, giro di accordi e strumenti propri (dal trio da pub a 64 BPM del
+  quiz al galoppo del Cavallo), generati battuta per battuta senza file.
 
 Non ci sono mp3, wav o campionamenti nel repository: la licenza di questi suoni
 è del progetto, che li produce a runtime. L'uso resta subordinato allo sblocco

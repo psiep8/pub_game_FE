@@ -74,7 +74,8 @@ telefoni. Il QR sulla TV nasce da quell'indirizzo.
 - [ ] `npm run dev` trova il JDK (lo dice nella prima riga: `JDK: .tools/jdk-…`)
       e non stampa `JAVA_HOME environment variable is not defined correctly`.
 - [ ] `curl http://localhost:8080/health` risponde `{"status":"ok"}`.
-- [ ] TV a `/tv`: si vede il QR, si sentono il tappeto del pub e il battito.
+- [ ] TV a `/tv`: si vede il QR e si sente il tappeto della lobby con il battito.
+- [ ] A ogni gioco parte un tappeto diverso (quiz, Bomba, Speed Rush, Cavallo, Casino…): la sala non deve sentire sempre lo stesso giro. Prova rapida: sezione **TAPPETI** di `/audio`.
 - [ ] `/admin`: entra solo col segreto; apertura lobby, primo round, pausa.
 - [ ] Due telefoni entrano dai rispettivi browser (Safari e Chrome), non solo
       dal browser del PC.

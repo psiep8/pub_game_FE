@@ -1,5 +1,15 @@
 # Changelog
 
+## 16 novembre 2026 — Un tappeto musicale per ogni gioco
+
+- Nuovo `bed-profiles.ts`: sedici tappeti, uno per gioco, con tempo, swing, giro di accordi e ruoli strumentali propri — lobby 64 BPM col trio da pub, quiz 96 con marimba e shaker, Bomba 112 che pulsa, Speed Rush 132 con le ottave, Cavallo 116 a galoppo, Casino e Blackjack in shuffle, e gli altri. Generazione deterministica battuta per battuta, nessun file audio.
+- `AudioService.setGameBed(tipo)` cambia tappeto al confine di battuta: la battuta in corso finisce com'era, la successiva parte col nuovo tempo, senza stacco. La TV lo chiama all'avvio del round e all'ingresso dei bonus, e torna alla lobby fra i round.
+- Nuove voci sintetizzate per i tappeti: marimba a risonatori, shaker, pad detunato, legno; basso, piano elettrico, vibrafono, vetro e spazzole già c'erano.
+- La pagina `/audio` ha la sezione **TAPPETI**: un pulsante per profilo, con BPM e durata del giro, per provarli a volume di sala.
+- Eliminati `pub-bed.ts` e la sua spec; nuovo `bed-profiles.spec.ts` (7 test su mappatura, determinismo, accordi, gamma e dinamica).
+- Misure sul bus master: RMS fra −42,7 e −47,2 dBFS per tutti i tappeti; picchi da −12,8 (quiz) a −28,4 (spiaggia). Nessuna saturazione.
+- Verifiche: 451 test su 51 file, build di produzione, sei tappeti suonati su `/audio` senza errori in console. **Nessun ascolto**: la resa in sala resta da giudicare all'orecchio.
+
 ## 16 novembre 2026 — Tutti i suoni rifatti con materiali veri
 
 - Nuovo `audio-dsp.ts`: risonatori modali (impulso che eccita banchi di filtri) per gong, campane, gettoni, pallina della roulette, zoccoli, dadi e bicchieri; campane FM; corde pizzicate Karplus-Strong; voci a formanti con vibrato e fiato per il pubblico; pioggia di battimani deterministica; buzzer a onde quadre filtrate e tremolate; ottoni filtrati; coda di stanza generata come risposta all'impulso.

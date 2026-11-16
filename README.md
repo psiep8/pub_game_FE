@@ -164,7 +164,7 @@ Tutta la colonna sonora della TV è **sintetizzata con la Web Audio API** (`core
 
 | Suono | Dove nasce | Regola |
 |---|---|---|
-| Tappeto del pub | `core/services/pub-bed.ts`, battuta per battuta | parte al primo tocco e resta sotto classifiche e bonus; un solo tappeto per volta |
+| Tappeto musicale | `core/services/bed-profiles.ts`, battuta per battuta | **un tappeto diverso per ogni gioco** (lobby, quiz, Bomba, Speed Rush, Cavallo, Casino…): sedici profili con tempo, accordi e strumenti propri, scelti da `setGameBed(tipo)`; parte al primo tocco, cambia al confine di battuta e resta sotto classifiche e bonus |
 | Battito | `startHeartbeat()` | in lobby lento, dal round 20 cresce con la serata |
 | Tick del clock | `startClock()` | un tick al secondo, mai due intervalli: ogni avvio spegne il precedente |
 | Suspense | `startSuspense(round)` | solo nei giochi a countdown e dal round 20; muore con il round e con la pausa |

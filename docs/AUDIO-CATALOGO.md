@@ -14,7 +14,7 @@ Ogni evento del catalogo ha:
 | `id` | Nome stabile: catalogo, regia audio e test usano questo |
 | `label` | Etichetta in italiano, quella che si legge in regia |
 | `when` | In una riga, quando suona |
-| `source` | `ui` (Foley), `sfx` (sintesi Web Audio), `bed` (tappeto del pub) |
+| `source` | `ui` (Foley), `sfx` (sintesi Web Audio), `bed` (tappeto musicale del gioco) |
 | `bus` | `tv`, `phone` o `both` |
 | `volume` | Rifinitura dell'evento, 0–1. Oggi 1 per tutti: la bilanciatura è A2 |
 | `minIntervalMs` | Distanza minima fra due riproduzioni dello stesso evento |
@@ -42,8 +42,45 @@ stessi suoni: nessun chiamante è stato toccato in A1.
 | Ottoni filtrati con attacco a banda larga | risposta sbagliata, eliminazione, fanfara del podio |
 | Coda di stanza (risposta all'impulso generata) | tutti i suoni della TV, non quelli del telefono |
 
-Il tappeto non è più un giro di pad: basso pizzicato che cammina, piano
-elettrico in levare swing, spazzole, vibrafono e bicchieri, come un trio da pub.
+## Un tappeto per gioco (16 novembre 2026)
+
+Non c'è un solo sottofondo: **ogni gioco ha il suo tappeto**, così la sala cambia
+aria a ogni round invece di sentire lo stesso giro per tutta la serata. I tappeti
+stanno in `core/services/bed-profiles.ts` e sono generati battuta per battuta:
+nessun file audio, nessun taglio, nessun mp3 da scaricare.
+
+Ogni profilo fissa tempo, swing, giro di accordi (due battute per accordo),
+ruoli del basso (`walk`, `pulse`, `octave`, `drone`), del piano (`stabs`, `pad`,
+`arpeggio`), della percussione (`brushes`, `shaker`, `rim`, `wood`, `tick`) e la
+voce melodica che entra dopo la prima sezione (`vibes`, `marimba`, `glass`,
+`bell`). La generazione è deterministica: la battuta N di un tappeto suona
+sempre uguale, quindi si può provare in regia e ritrovare identica in sala.
+
+| Gioco | Tappeto | BPM | Carattere |
+|---|---|---|---|
+| Lobby / fra i round | `lobby` | 64 | trio da pub, vibrafono e spazzole |
+| Quiz | `quiz` | 96 | marimba, shaker, basso che cammina |
+| Canzone | `music` | 76 | piano caldo, arpeggi |
+| Immagine sfocata | `imageBlur` | 72 | bordone e vetro, nessuna percussione |
+| Timeline | `timeline` | 88 | orologio e campana |
+| Ruota | `wheel` | 84 | shuffle con cerchio |
+| Time Buzzer | `timeBuzzer` | 104 | cronometro, legno e marimba |
+| Bomba | `bomba` | 112 | pulsazione che stringe, pad |
+| Speed Rush | `speed` | 132 | ottave in corsa |
+| Tennis | `tennis` | 108 | rimbalzi di legno |
+| Arena | `arena` | 100 | suspense, bordone e campana |
+| Ultima Spiaggia | `spiaggia` | 112 | tropicale, shaker e ottave |
+| Azzardo | `azzardo` | 92 | roulette e gettoni, shuffle |
+| Blackjack | `blackjack` | 80 | tavolo tranquillo, spazzole |
+| Biglie | `biglie` | 124 | arpeggi che rotolano |
+| Cavallo | `cavallo` | 116 | galoppo di legno |
+| Bonus Casino (colore, dozzina, numero) | `azzardo` | 92 | lo stesso tavolo del gioco |
+
+Il cambio avviene alla battuta: la TV chiama `setGameBed(tipo)` all'avvio del
+round (e all'ingresso di un bonus), `setGameBed(null)` quando torna fra i round.
+La battuta in corso finisce com'era, la successiva parte col nuovo tempo: non
+si sente uno stacco. In regia la pagina `/audio` ha una sezione **TAPPETI** con
+un pulsante per profilo, per provarli a volume di sala.
 
 ## Livelli misurati dopo la rifattura (picco, dBFS)
 
@@ -67,7 +104,10 @@ con un analizzatore collegato al bus master. Il bus Foley non è incluso.
 | `countdownTick` | −23,8 | `bell` | −24,7 |
 | `racket` | −24,8 | `uuuh` | −25,1 |
 | `whoosh` | −25,9 | `error` | −25,9 |
-| `tappeto` | −25,6 (RMS −45,9) | `bonusEntrance` DOZZINA | −26,6 |
+| `tappeto` lobby | −17,3 (RMS −47,2) | `bonusEntrance` DOZZINA | −26,6 |
+| `tappeto` quiz | −12,8 (RMS −45,2) | `tappeto` bomba | −24,6 (RMS −42,7) |
+| `tappeto` speed | −27,5 (RMS −47,1) | `tappeto` spiaggia | −28,4 (RMS −47,2) |
+| `tappeto` blackjack | −26,5 (RMS −46,9) | | |
 
 Nessun evento satura: il margine sullo zero digitale è di almeno 12 dB.
 La voce del presentatore non passa dall'app: il rapporto con la voce si fissa
@@ -120,7 +160,9 @@ raggiungibile anche dal pulsante **AUDIO** in testa al pannello admin.
 
 - La bilanciatura vera fra interfaccia, effetti, tappeto e voce: oggi `volume`
   è 1 per tutti e il volume generale parte al 100%.
-- Sostituzione e varietà dei suoni, sottofondi diversi per gioco, ducking.
+- Sostituzione e varietà dei suoni e ducking. I sottofondi diversi per gioco
+  ci sono dal 16 novembre 2026 (`bed-profiles.ts`), provabili dalla sezione
+  **TAPPETI** di `/audio`.
 - Silenzio in pausa e da admin secondo la specifica: `stopAll()` non ferma il
   tappeto, che è una scelta della prima serata da rivedere in A2.
 - Ascolto reale in sala: nessun volume è stato giudicato all'orecchio, solo
