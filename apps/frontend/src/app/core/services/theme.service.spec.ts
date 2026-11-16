@@ -140,6 +140,25 @@ describe('ThemeService — palette di squadra', () => {
     expect(service.ensureTeamTheme('Carla')).toBe('desert-heritage');
   });
 
+  it('la scelta del telefono sopravvive al refresh della TV', () => {
+    service.setTeamTheme('Anna', 'kpop-aesthetic');
+
+    const reloaded = new ThemeService();
+
+    expect(reloaded.themeForTeam('Anna')).toBe('kpop-aesthetic');
+    // Anche dopo il reload la palette scelta resta fuori dal giro.
+    expect(reloaded.ensureTeamTheme('Bruno')).not.toBe('kpop-aesthetic');
+  });
+
+  it('la scelta salvata viene azzerata dalla partita nuova', () => {
+    service.setTeamTheme('Anna', 'kpop-aesthetic');
+
+    service.resetTeamThemes();
+    const reloaded = new ThemeService();
+
+    expect(reloaded.themeForTeam('Anna')).toBe('editorial-acid');
+  });
+
   it('le palette assegnate sopravvivono al refresh della TV', () => {
     const assigned = service.ensureTeamTheme('Anna');
 

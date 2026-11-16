@@ -17,6 +17,7 @@ export type AppTheme = (typeof THEMES)[number];
 const STORAGE_KEY = 'pubgame-theme';
 const XMAS_KEY = 'pubgame-xmas';
 const TEAM_DEFAULTS_KEY = 'pubgame.team-defaults';
+const TEAM_CHOSEN_KEY = 'pubgame.team-themes';
 const TEAM_HISTORY_KEY = 'pubgame.team-history';
 
 /** Nome corto mostrato dal tasto tema su TV, telefono e regia. */
@@ -85,7 +86,7 @@ export class ThemeService {
   /** Tema di Natale: nevischio leggero su TV, telefoni e admin. */
   readonly xmas = signal<boolean>(this.readSavedXmas());
   /** Palette scelta da ogni squadra: la TV la usa per i colori dei nomi. */
-  readonly teamThemes = signal<Partial<Record<string, AppTheme>>>({});
+  readonly teamThemes = signal<Partial<Record<string, AppTheme>>>(this.readTeamChosen());
   /**
    * Palette assegnata d'ufficio alle squadre che non hanno scelto. Senza,
    * tutte restano in acido e il tema del vincitore non si vede in sala.
@@ -174,6 +175,8 @@ export class ThemeService {
     if (!name) return;
     const normalized = normalizeTheme(theme);
     this.teamThemes.update((map) => ({ ...map, [name]: normalized }));
+    // Su disco come le assegnate: dopo un refresh della TV la squadra ritrova il colore.
+    this.persistTeamChosen();
     // La scelta entra anche in memoria: se la squadra esce, la ritrova al rientro.
     this.teamHistory.update((map) => ({ ...map, [name]: normalized }));
     this.persistTeamHistory();
@@ -229,6 +232,7 @@ export class ThemeService {
       const next = { ...this.teamThemes() };
       delete next[name];
       this.teamThemes.set(next);
+      this.persistTeamChosen();
     }
 
     this.forgetDefault(name);
@@ -240,6 +244,7 @@ export class ThemeService {
     this.teamThemes.set({});
     this.teamHistory.set({});
     this.persistTeamDefaults();
+    this.persistTeamChosen();
     this.persistTeamHistory();
   }
 
@@ -307,6 +312,15 @@ export class ThemeService {
     }
   }
 
+  private persistTeamChosen(): void {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      localStorage.setItem(TEAM_CHOSEN_KEY, JSON.stringify(this.teamThemes()));
+    } catch {
+      // Storage negato: la scelta resta valida per la sessione.
+    }
+  }
+
   private persistTeamHistory(): void {
     if (typeof localStorage === 'undefined') return;
     try {
@@ -314,6 +328,10 @@ export class ThemeService {
     } catch {
       // Storage negato: la memoria vale solo per questa sessione.
     }
+  }
+
+  private readTeamChosen(): Partial<Record<string, AppTheme>> {
+    return this.readTeamMap(TEAM_CHOSEN_KEY);
   }
 
   private readTeamHistory(): Partial<Record<string, AppTheme>> {
