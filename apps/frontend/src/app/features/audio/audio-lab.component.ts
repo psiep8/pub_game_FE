@@ -116,12 +116,25 @@ interface AudioCard {
     `
       :host {
         display: block;
-        min-height: 100vh;
+        /* Il body dell'app è fisso e senza scorrimento: la regia audio deve
+           scorrere da sola, altrimenti le ultime schede non si raggiungono. */
+        height: 100vh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        touch-action: pan-y;
         background: var(--bg-0);
         color: var(--coal);
         padding: clamp(16px, 2vw, 32px);
+        padding-bottom: 56px;
+        box-sizing: border-box;
       }
       .lab-head {
+        /* I comandi restano sotto mano anche scorrendo le ventinove schede. */
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: var(--bg-0);
+        padding-top: 8px;
         display: flex;
         flex-wrap: wrap;
         align-items: flex-end;
