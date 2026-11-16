@@ -1325,7 +1325,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.vibrate([100, 50, 100]);
   }
 
-  onStartVoting(type: string, payload?: any) {
+  /**
+   * Apre il round sul telefono. `resumed` distingue l'avvio della TV dalla
+   * ripresa dopo un refresh: all'avvio l'ordine Timeline iniziale vale già
+   * come risposta, alla ripresa sovrascriverebbe quello scelto dal giocatore.
+   */
+  onStartVoting(type: string, payload?: any, options: { resumed?: boolean } = {}) {
     this.gameState.set(PlayerStatus.VOTING);
     this.questionType.set(type as any);
     if (payload?.round) this.roundNumber.set(Number(payload.round));
@@ -1346,8 +1351,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.timelineCards.set(cards);
       // Si parte dall'ordine mostrato: si trascina per correggerlo.
       this.timelineOrder.set(cards.map((card: any) => card.id));
-      // Anche chi non tocca nulla ha già una risposta valida: l'ordine iniziale.
-      this.scheduleTimelineSend();
+      // All'avvio anche chi non tocca nulla ha già una risposta valida:
+      // l'ordine iniziale. Alla ripresa no: l'ordine buono sta già sul server
+      // e rimandare quello mostrato lo cancellerebbe.
+      if (!options.resumed) this.scheduleTimelineSend();
     } else if (type === 'TIME_BUZZER') {
       // START_VOTING esce dopo il 3-2-1, a volte dopo il via stesso: qui non si
       // tocca il tasto, se no lo riportava su ATTENDI appena armato. Ad armarlo
@@ -2553,7 +2560,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // Anche i round guidati dalla TV (Bomba, Timeline, Ultima spiaggia, ...)
     // vanno riaperti dal snapshot: dopo un refresh il telefono deve ritrovare
     // il round in corso, non restare su "In attesa" fino al prossimo START_VOTING.
-    this.onStartVoting(type, payload);
+    this.onStartVoting(type, payload, { resumed: true });
   }
 
   /** Round e manche già controllati: una sola richiesta, anche con più sync. */

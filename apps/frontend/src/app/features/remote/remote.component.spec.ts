@@ -1102,6 +1102,90 @@ describe('RemoteComponent', () => {
     expect(component.gameState()).toBe(PlayerStatus.LOCKED);
   });
 
+  it('dopo un refresh in Musica il telefono prenota il brano in corso', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    reliability.syncState$.next({
+      hasState: true,
+      status: 'RUNNING',
+      roundType: 'MUSIC',
+      roundKey: 'g1-r2',
+      roundDeadlineAt: Date.now() + 60_000,
+      currentRound: { roundKey: 'g1-r2', type: 'MUSIC', payload: { question: 'Brano?', options: [] } },
+    });
+    await fixture.whenStable();
+
+    expect(component.questionType()).toBe('MUSIC');
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+
+    component.sendBuzz();
+    expect(ws.publishedAnswers.at(-1)).toMatchObject({ playerName: 'Anna', answerIndex: -1 });
+  });
+
+  it('dopo un refresh in Bomba il telefono riprende a leggere lo stato', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    game.bombaStateCalls.length = 0;
+
+    reliability.syncState$.next({
+      hasState: true,
+      status: 'RUNNING',
+      roundType: 'BOMBA',
+      roundKey: 'g1-r6',
+      roundDeadlineAt: Date.now() + 60_000,
+      currentRound: { roundKey: 'g1-r6', type: 'BOMBA', payload: { act: 2 } },
+    });
+    await fixture.whenStable();
+
+    expect(component.questionType()).toBe('BOMBA');
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    // La bomba vive nella TV: il telefono riprende il polling da solo.
+    expect(game.bombaStateCalls.at(-1)).toEqual({ gameId: component.gameId(), playerName: 'Anna' });
+  });
+
+  it('dopo un refresh non rispedisce da solo un ordine Timeline mai toccato', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const submit = vi.spyOn(game, 'submitTimeline');
+    vi.useFakeTimers();
+    try {
+      reliability.syncState$.next({
+        hasState: true,
+        status: 'RUNNING',
+        roundType: 'TIMELINE',
+        roundKey: 'g1-r5',
+        roundDeadlineAt: Date.now() + 60_000,
+        currentRound: {
+          roundKey: 'g1-r5',
+          type: 'TIMELINE',
+          payload: { roundId: 'r5', items: [{ id: 1, label: 'A' }, { id: 2, label: 'B' }] },
+        },
+      });
+
+      expect(component.gameState()).toBe(PlayerStatus.VOTING);
+      expect(component.orderedCards().map((card) => card.id)).toEqual([1, 2]);
+
+      vi.advanceTimersByTime(600);
+      // L'ordine buono sta già sul server: rimandare quello iniziale lo
+      // sovrascriverebbe, quindi si aspetta che il giocatore tocchi una carta.
+      expect(submit).not.toHaveBeenCalled();
+
+      component.moveCard(2, -1);
+      vi.advanceTimersByTime(400);
+      expect(submit).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('due snapshot della stessa manche fanno una sola richiesta al server', async () => {
     localStorage.setItem('nickname', 'Anna');
     reliability.resumedSession.set(true);
