@@ -18,7 +18,6 @@ const COAL = '#15150f';
 const TOMATO = '#ff4d2e';
 const MUSTARD = '#ffc53d';
 const ACID = '#d9ff43';
-const MINT = '#8be3c4';
 const BG = '#111109';
 
 const BALL = mix(TOMATO, COAL, 0.16);

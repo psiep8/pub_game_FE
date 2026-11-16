@@ -12,8 +12,8 @@ const FULL_POINTS = 1000;
 const MIN_CORRECT_POINTS = 250;
 
 export class MusicMode extends GameModeBase {
-  protected override onAnswer(playerName: string, answer: any, result: any): void {
-    
+  protected override onAnswer(_playerName: string, _answer: any, _result: any): void {
+
   }
 
   readonly type: GameModeType = 'MUSIC';
@@ -246,14 +246,14 @@ export class MusicMode extends GameModeBase {
     this.config.onTimerEnd?.();
   }
 
-  protected onBuzz(playerName: string): void {
-    
+  protected onBuzz(_playerName: string): void {
+
     this.stopAllTimers();
     this.pauseAudio();
     this.saveCheckpoint();
   }
 
-  protected onConfirmCorrect(result: GameModeResult): void {
+  protected onConfirmCorrect(_result: GameModeResult): void {
     // Il messaggio di vittoria e il brano pulito devono partire insieme: una
     // intro filtrata di 4 secondi faceva sentire la canzone ancora «storta»
     // proprio dopo il corretto. Si salta direttamente alla quarta fase.
@@ -267,7 +267,7 @@ export class MusicMode extends GameModeBase {
     this.saveCheckpoint();
   }
 
-  protected onConfirmWrong(result: GameModeResult): void {
+  protected onConfirmWrong(_result: GameModeResult): void {
     this.revealIntro = false;
     if (this.introTimer) clearTimeout(this.introTimer);
     this.fullPlayback.set(false);
@@ -280,7 +280,7 @@ export class MusicMode extends GameModeBase {
     this.saveCheckpoint();
   }
 
-  protected validateAnswer(answer: any, timeMs: number): any {
+  protected validateAnswer(_answer: any, timeMs: number): any {
     return {isCorrect: false, points: 0, timeMs};
   }
 

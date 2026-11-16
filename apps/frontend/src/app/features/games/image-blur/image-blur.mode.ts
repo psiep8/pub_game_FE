@@ -117,25 +117,25 @@ export class ImageBlurMode extends GameModeBase {
     
   }
 
-  protected onBuzz(playerName: string): void {
+  protected onBuzz(_playerName: string): void {
     // Chi si prenota ha già la foto: gli indizi si fermano sul punto raggiunto.
     this.stopClueEffect();
     this.saveCheckpoint();
   }
 
-  protected onAnswer(playerName: string, answer: any, result: any): void {
-    
+  protected onAnswer(_playerName: string, _answer: any, _result: any): void {
+
   }
 
-  protected onConfirmCorrect(result: GameModeResult): void {
-    
+  protected onConfirmCorrect(_result: GameModeResult): void {
+
   }
 
-  protected onConfirmWrong(result: GameModeResult): void {
-    
+  protected onConfirmWrong(_result: GameModeResult): void {
+
   }
 
-  protected validateAnswer(answer: any, timeMs: number): any {
+  protected validateAnswer(_answer: any, _timeMs: number): any {
     return {isCorrect: false};
   }
 

@@ -108,7 +108,6 @@ import { AudioService } from '../../../core/services/audio.service';
     .tb-pass { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .tb-pass-label { color: var(--acid); font-family: var(--font-mono); font-size: .72rem; font-weight: 700; letter-spacing: .16em; }
     .tb-pass-name { padding: 3px 9px; background: var(--acid); color: var(--coal); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: .78rem; font-weight: 700; }
-    @keyframes tb-pulse { 50% { transform: scale(1.08); opacity: .7; } }
   `]
 })
 export class TimeBuzzer implements OnChanges, OnDestroy {

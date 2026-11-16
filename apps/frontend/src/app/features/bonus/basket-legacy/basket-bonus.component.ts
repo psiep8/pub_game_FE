@@ -377,14 +377,14 @@ export class BasketBonus implements AfterViewInit, OnDestroy {
     const events = stepShot(this.shot, this.world, dt);
     if (events.scored) {
       if (!this.netScoreKicked) {
-        kickNet(this.net, this.world, events.swish ? 1.55 : 1.2);
+        kickNet(this.net, events.swish ? 1.55 : 1.2);
         this.netScoreKicked = true;
       }
       this.onScore(events.swish);
     }
     if (events.hitRim) {
       if (!this.netRimKicked) {
-        kickNet(this.net, this.world, 0.7);
+        kickNet(this.net, 0.7);
         this.netRimKicked = true;
       }
       this.impact(9);

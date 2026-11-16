@@ -10,8 +10,6 @@ import {
   OnInit,
   HostListener,
   OnDestroy,
-  ElementRef,
-  ViewChild,
   ChangeDetectorRef,
   DestroyRef,
   computed,
@@ -222,7 +220,6 @@ export class GameComponent implements OnInit, OnDestroy {
   private recoveredBlackjackState: any = null;
     /** Checkpoint TV del round precedente: uno solo, con la modalità che lo ha scritto. */
   private recoveredTvCheckpoint: { type: GameModeType; value: any } | null = null;
-  private recoveredRoundIndex: number | null = null;
   /** Stato del round Biglie da riprendere, letto dal checkpoint del server. */
   readonly biglieResume = signal<any | null>(null);
   /** Indice del round aperto secondo il server: può restare dietro alla scaletta. */
@@ -279,8 +276,6 @@ export class GameComponent implements OnInit, OnDestroy {
   });
 
   private arenaFinished = false;
-  /** Modalità prova: scaletta ridotta e bonus Basket visibile solo via ?sim=1. */
-  private simulation = false;
   /** Telefoni presenti sul backend: i bonus li usano anche senza classifica
    *  (dopo un reset la leaderboard è vuota e i tavoli sparirebbero). */
   readonly presencePlayers = signal<string[]>([]);
@@ -346,7 +341,6 @@ export class GameComponent implements OnInit, OnDestroy {
   qrCodeUrl = signal<string>('');
   private lastQrUrl = '';
 
-  private audioAllowed = false;
   private displayDataInterval?: ReturnType<typeof setInterval>;
   private destroyRef = inject(DestroyRef);
 
@@ -425,7 +419,6 @@ export class GameComponent implements OnInit, OnDestroy {
     // La simulazione usa una scaletta dedicata: non tocca la serata vera.
     const params = new URLSearchParams(window.location.search);
     if (params.get('sim') === '1') {
-      this.simulation = true;
       this.roundManager.enableSimulation();
     }
     // Anteprima rapida (`?sim=1&demo=QUIZ`): la scheda del gioco parte da sola,
@@ -481,7 +474,6 @@ export class GameComponent implements OnInit, OnDestroy {
 
 
     const allowAudioOnce = () => {
-      this.audioAllowed = true;
       this.audioService.startAmbient();
       window.removeEventListener('click', allowAudioOnce);
       window.removeEventListener('keydown', allowAudioOnce);
@@ -1701,9 +1693,6 @@ export class GameComponent implements OnInit, OnDestroy {
     this.audioService.stopAll();
 
     const leaderboardType = this.roundManager.shouldShowLeaderboard();
-    const round = this.roundManager.getCurrentRound();
-
-
 
     if (leaderboardType) {
       this.pendingLeaderboardType.set(leaderboardType);
@@ -2667,15 +2656,12 @@ export class GameComponent implements OnInit, OnDestroy {
     const open = status === 'RUNNING' && !!type
       && (paused || (Number.isFinite(deadline) && deadline > this.reliability.serverNow()));
 
-    const roundIndex = Number(snapshot?.roundIndex);
-    this.recoveredRoundIndex = Number.isInteger(roundIndex) && roundIndex >= 0 ? roundIndex : null;
-    this.rememberServerRoundIndex(roundIndex);
+    this.rememberServerRoundIndex(Number(snapshot?.roundIndex));
 
     if (!open) {
       this.recoveredRound.set(null);
       this.recoveredPayload = null;
       this.recoveredTvCheckpoint = null;
-      this.recoveredRoundIndex = null;
       this.biglieResume.set(null);
       return;
     }
@@ -2728,7 +2714,6 @@ export class GameComponent implements OnInit, OnDestroy {
   async resumeRecoveredRound(): Promise<void> {
     const pending = this.recoveredRound();
     const payload = this.recoveredPayload;
-    const blackjack = this.recoveredBlackjackState;
     const stored = this.recoveredTvCheckpoint;
     const tvCheckpoint = stored && stored.type === pending?.type ? stored.value : null;
     if (!pending?.resumable) return;
@@ -2806,7 +2791,6 @@ export class GameComponent implements OnInit, OnDestroy {
     this.recoveredPayload = null;
     this.recoveredBlackjackState = null;
     this.recoveredTvCheckpoint = null;
-    this.recoveredRoundIndex = null;
     this.biglieResume.set(null);
     this.reliability.saveBlackjackState(null);
     this.gameService.closeRound(this.currentGameId(), 'recovered').subscribe({

@@ -154,7 +154,7 @@ function pushVertex(vertex: NetVertex, ball: Vec3, world: BasketWorld, h: number
 }
 
 /** Colpo della palla che entra: la rete scende e si allarga. */
-export function kickNet(net: NetState, world: BasketWorld, strength = 1): void {
+export function kickNet(net: NetState, strength = 1): void {
   const force = Math.max(0, strength);
 
   for (const vertex of net.vertices) {

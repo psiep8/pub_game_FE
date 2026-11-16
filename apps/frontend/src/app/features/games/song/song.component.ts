@@ -11,7 +11,6 @@ import {
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import { AudioService } from '../../../core/services/audio.service';
-import { GAME_TIMINGS } from '../../../shared/models/game-timings';
 
 /**
  * Parametri di ascolto, manche per manche: un solo posto da ritoccare.
@@ -75,7 +74,6 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   private vinylAnimationFrame?: number;
   private audioUnlocked = false;
   private lastPhase = 0;
-  private lastBuzz: string | null = null;
   private scratchTimeout?: ReturnType<typeof setTimeout>;
   private staticSource?: AudioBufferSourceNode;
   private staticGain?: GainNode;
@@ -112,8 +110,6 @@ export class Song implements OnInit, OnDestroy, OnChanges {
         this.stopFullPlayback();
         this.pauseAudio();
       }
-      this.lastBuzz = nextBuzz;
-
       if (prevData?.previewUrl !== this.displayData.previewUrl) {
         
         this.blurAmount.set(28);

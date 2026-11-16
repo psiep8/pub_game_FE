@@ -18,7 +18,7 @@ describe('basket net', () => {
     const world = createBasketWorld(1);
     const net = createNetState(world);
 
-    kickNet(net, world, 1.25);
+    kickNet(net, 1.25);
     for (let index = 0; index < 12; index++) {
       stepNet(net, world, null, FIXED_STEP);
     }

@@ -265,7 +265,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private tennisGoalTimer?: ReturnType<typeof setTimeout>;
 
 
-  private roundStartTime: number = 0;
   playerName = signal<string>(localStorage.getItem('playerName') || '');
   gameId = signal<number>(1);
 
@@ -352,7 +351,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private speedLoadSeq = 0;
 
   tennisHits = signal(0);
-  private lastTennisAt = 0;
 
   showInstallBanner = signal(false);
   showIosInstallBanner = signal(false);
@@ -1012,9 +1010,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.isScreaming.set(intensity > 25); // Abbassata soglia da 30 a 25
 
     // 📡 Invia al backend solo durante la gara di urla (10 campioni/s).
-    
-    const nickname = (this.nickname() || '').trim();
-
 
     // Campionamento a 10 Hz: stabile anche quando la pagina non ridisegna.
   }
@@ -1349,7 +1344,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.questionType.set(type as any);
     if (payload?.round) this.roundNumber.set(Number(payload.round));
     if (payload?.roundTotal) this.roundTotal.set(Number(payload.roundTotal));
-    this.roundStartTime = Date.now();
     this.startTime = Date.now();
     this.hasAnswered.set(false);
     this.selectedAnswer.set(null);
