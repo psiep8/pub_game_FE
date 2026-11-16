@@ -283,6 +283,8 @@ export class GameComponent implements OnInit, OnDestroy {
   private buttonTestTimer?: ReturnType<typeof setInterval>;
   private lastButtonTestPing = 0;
   private readonly bonusActsStarted = new Set<number>();
+  /** Bonus dell'atto salvato sul server: avviato o già chiuso. */
+  private serverBonus: { act: number; type: string; status: string } | null = null;
   private bonusScoresMap = new Map<string, number>();
   private bonusAwarded = false;
   private bonusTimer?: ReturnType<typeof setInterval>;
@@ -1546,7 +1548,9 @@ export class GameComponent implements OnInit, OnDestroy {
     const bonus = this.showLeaderboardDetailed() ? this.roundManager.bonusAfterAct() : null;
     if (bonus) {
       const act = this.roundManager.getCurrentAct();
-      if (!this.bonusActsStarted.has(act)) {
+      // Un bonus già chiuso (per esempio prima di un refresh) non si ripete.
+      const settled = this.serverBonus?.act === act && this.serverBonus.status === 'CLOSED';
+      if (!this.bonusActsStarted.has(act) && !settled && !this.bonusActive()) {
         this.bonusActsStarted.add(act);
         void this.startBonus(bonus);
         return;
@@ -1689,6 +1693,8 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!BONUS_TYPES.includes(type)) return;
     if (this.bonusEntrance() || this.bonusActive() || this.isSpinning()) return;
     this.bonusResume.set(resume);
+    // Il bonus dell'atto resta sul server: un refresh non lo salta.
+    this.markBonusAct(type, 'STARTED');
 
     // Un bonus è fuori dal round: chiude il conteggio se era ancora aperto.
     this.settleRoundWinner();
@@ -1808,6 +1814,7 @@ export class GameComponent implements OnInit, OnDestroy {
         revision: Date.now(),
         state: null,
       });
+      this.markBonusAct(closed, 'CLOSED');
     }
     this.bonusResume.set(null);
 
@@ -1862,17 +1869,41 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Bonus interrotto da un refresh: il Casino si riapre dal checkpoint (voti,
-   * numero uscito, punti). Gli altri bonus restano da giocare.
+   * Bonus interrotto da un refresh: si riapre quello che il server sa ancora
+   * avviato per l'atto corrente. Il Casino riparte dal checkpoint (voti,
+   * numero uscito, punti); gli altri ripartono dall'inizio, invece di essere
+   * saltati in silenzio.
    */
   private offerBonusRecovery(snapshot: any): void {
     if (this.currentMode() || this.bonusActive() || this.bonusEntrance() || this.isSpinning()) return;
+    // Un round ancora aperto ha la precedenza: il bonus viene dopo.
+    if (this.recoveredRound()) return;
+
     const checkpoint = snapshot?.tvCheckpoint;
     const mode = String(checkpoint?.mode ?? '');
-    if (!checkpoint?.state || !mode.startsWith('BONUS_')) return;
-    const type = mode.slice('BONUS_'.length) as BonusType;
-    if (!CASINO_BONUS_TYPES.includes(type)) return;
-    void this.startBonus(type, checkpoint.state);
+    const resume = checkpoint?.state && mode.startsWith('BONUS_') ? checkpoint.state : null;
+
+    let type: BonusType | null = null;
+    if (this.serverBonus?.status === 'STARTED'
+      && this.serverBonus.act === this.roundManager.getCurrentAct()
+      && (BONUS_TYPES as readonly string[]).includes(this.serverBonus.type)) {
+      type = this.serverBonus.type as BonusType;
+    } else if (resume) {
+      // Senza il segno sul server, vale ancora il checkpoint del Casino.
+      const fromCheckpoint = mode.slice('BONUS_'.length) as BonusType;
+      if (CASINO_BONUS_TYPES.includes(fromCheckpoint)) type = fromCheckpoint;
+    }
+    if (!type) return;
+    const state = resume && mode === `BONUS_${type}` ? resume : null;
+    void this.startBonus(type, state);
+  }
+
+  /** Segna sul server il bonus dell'atto corrente, se c'è un atto. */
+  private markBonusAct(type: BonusType, status: 'STARTED' | 'CLOSED'): void {
+    const act = this.roundManager.getCurrentAct();
+    if (act < 0) return;
+    this.serverBonus = { act, type, status };
+    this.reliability.saveBonusAct({ act, type, status });
   }
 
   /** Giocatori in classifica + telefoni presenti, usati dai bonus. */
@@ -2269,6 +2300,13 @@ export class GameComponent implements OnInit, OnDestroy {
         this.roundInfo.set(this.roundManager.getProgress().text);
       }
     }
+
+    const bonusAct = snapshot?.bonusAct;
+    const savedAct = Number(bonusAct?.act);
+    const savedType = String(bonusAct?.type ?? '');
+    this.serverBonus = Number.isInteger(savedAct) && savedAct >= 0 && savedType
+      ? { act: savedAct, type: savedType, status: String(bonusAct?.status ?? '') }
+      : null;
 
     this.offerRoundRecovery(snapshot);
     this.offerBonusRecovery(snapshot);

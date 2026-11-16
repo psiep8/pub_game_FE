@@ -199,6 +199,18 @@ export class ReliabilityService {
   }
 
   /**
+   * Bonus dell'atto: la TV segna quando parte e quando si chiude, così un
+   * refresh non lo salta e non lo riapre una volta pagato.
+   */
+  saveBonusAct(bonus: { act: number; type: string; status: 'STARTED' | 'CLOSED' }): void {
+    const token = this.sessionToken();
+    if (!token || this.role !== 'TV' || this.gameId == null) return;
+    this.http.post(`${this.baseUrl}/games/${this.gameId}/bonus-state`, bonus, {
+      headers: { 'X-Session-Token': token },
+    }).subscribe({ error: () => undefined });
+  }
+
+  /**
    * Checkpoint TV del round aperto: lo stato che serve a ripararlo dopo un
    * refresh. Un solo endpoint per tutte le modalità; il server lo lega al round
    * corrente e scarta revisioni vecchie. Un errore di rete non ferma il gioco.

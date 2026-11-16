@@ -177,6 +177,34 @@ public class ReliabilityController {
                 : ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "stale-checkpoint"));
     }
 
+    /**
+     * Bonus dell'atto: la TV dice se è partito o è stato chiuso. Così un
+     * refresh non lo salta e non lo riapre una volta pagato.
+     */
+    @PostMapping("/bonus-state")
+    public ResponseEntity<Object> saveBonusAct(@PathVariable("gameId") Long gameId,
+            @RequestAttribute("pubgame.session") DeviceSessionEntity session,
+            @RequestBody(required = false) Map<String, Object> body) {
+        if (!"TV".equals(session.getRole()) || !session.getGameId().equals(gameId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "tv-required"));
+        }
+        Map<String, Object> payload = body == null ? Map.of() : body;
+        Object rawAct = payload.get("act");
+        Object rawType = payload.get("type");
+        Object rawStatus = payload.get("status");
+        if (!(rawAct instanceof Number act) || act.intValue() < 0
+                || !(rawType instanceof String type) || type.isBlank()
+                || !("STARTED".equals(rawStatus) || "CLOSED".equals(rawStatus))) {
+            return ResponseEntity.badRequest().body(Map.of("error", "invalid-bonus-state"));
+        }
+        gameState.saveBonusAct(gameId, new JSONObject()
+                .put("act", act.intValue())
+                .put("type", type)
+                .put("status", String.valueOf(rawStatus))
+                .put("updatedAt", System.currentTimeMillis()));
+        return ResponseEntity.ok(Map.of("saved", true));
+    }
+
     private boolean secretMatches(String supplied) {
         return controlSecret != null && controlSecret.length() >= 32 && supplied != null
                 && MessageDigest.isEqual(controlSecret.getBytes(StandardCharsets.UTF_8),

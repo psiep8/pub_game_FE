@@ -316,6 +316,12 @@ export class FakeReliabilityService {
     this.tvCheckpoints.push(checkpoint);
   }
 
+  readonly bonusActs: Array<{ act: number; type: string; status: string }> = [];
+
+  saveBonusAct(bonus: { act: number; type: string; status: string }): void {
+    this.bonusActs.push(bonus);
+  }
+
   serverNow(): number {
     return Date.now();
   }

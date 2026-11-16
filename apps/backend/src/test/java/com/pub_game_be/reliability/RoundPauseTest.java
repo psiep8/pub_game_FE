@@ -175,6 +175,41 @@ class RoundPauseTest {
     }
 
     @Test
+    void ilBonusDellAttoRestaSulServerFincheNonSiChiude() {
+        long gameId = 747L;
+        gameState.startRound(gameId, "QUIZ", 8, "g747-r8", "{}");
+        var tv = sessions.authenticate(sessions.register(gameId, "tv747", "TV", "", null).sessionToken())
+                .orElseThrow();
+
+        assertThat(reliabilityController.saveBonusAct(gameId, tv,
+                Map.of("act", 0, "type", "CAVALLO", "status", "STARTED")).getStatusCode().value())
+                .isEqualTo(200);
+        JSONObject started = restartedService().snapshot(gameId).getJSONObject("bonusAct");
+        assertThat(started.getInt("act")).isEqualTo(0);
+        assertThat(started.getString("type")).isEqualTo("CAVALLO");
+        assertThat(started.getString("status")).isEqualTo("STARTED");
+
+        assertThat(reliabilityController.saveBonusAct(gameId, tv,
+                Map.of("act", 0, "type", "CAVALLO", "status", "CLOSED")).getStatusCode().value())
+                .isEqualTo(200);
+        assertThat(gameState.snapshot(gameId).getJSONObject("bonusAct").getString("status"))
+                .isEqualTo("CLOSED");
+
+        // Solo la TV della partita scrive il bonus dell'atto.
+        var remote = sessions.authenticate(sessions.register(gameId, "remote747", "REMOTE", "Anna", null).sessionToken())
+                .orElseThrow();
+        assertThat(reliabilityController.saveBonusAct(gameId, remote,
+                Map.of("act", 0, "type", "CAVALLO", "status", "STARTED")).getStatusCode().value())
+                .isEqualTo(403);
+        assertThat(reliabilityController.saveBonusAct(gameId, tv,
+                Map.of("act", -1, "type", "CAVALLO", "status", "STARTED")).getStatusCode().value())
+                .isEqualTo(400);
+
+        gameState.reset(gameId);
+        assertThat(gameState.snapshot(gameId).isNull("bonusAct")).isTrue();
+    }
+
+    @Test
     void laPausaAllungaLaDeadlineDelRound() throws Exception {
         long gameId = 720L;
         gameState.startRound(gameId, "QUIZ", 1, "g720-r1", "{}");

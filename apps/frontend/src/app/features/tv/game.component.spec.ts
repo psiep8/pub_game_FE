@@ -108,6 +108,51 @@ describe('GameComponent', () => {
     expect(component.bonusEntrance()).toBeNull();
   });
 
+  it('segna sul server il bonus dell’atto, avviato e chiuso', async () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    rounds.restoreRound(8);
+    component.currentGameId.set(1);
+
+    await component.startBonus('CAVALLO');
+    expect(reliability.bonusActs.at(-1)).toEqual({ act: 0, type: 'CAVALLO', status: 'STARTED' });
+
+    // Fine ingresso e bonus in corso: la chiusura è quella che paga i punti.
+    component.bonusEntrance.set(null);
+    component.bonusActive.set(true);
+    component.bonusType.set('CAVALLO');
+    (component as unknown as { finishBonus(): void }).finishBonus();
+
+    expect(reliability.bonusActs.at(-1)).toEqual({ act: 0, type: 'CAVALLO', status: 'CLOSED' });
+  });
+
+  it('riapre dopo un refresh il bonus dell’atto che il server dice avviato', () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    rounds.restoreRound(8);
+    component.currentGameId.set(1);
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'CREATED', roundIndex: 8,
+      bonusAct: { act: 0, type: 'CAVALLO', status: 'STARTED' },
+    });
+
+    expect(component.bonusEntrance()).toBe('CAVALLO');
+    expect(reliability.bonusActs.at(-1)).toEqual({ act: 0, type: 'CAVALLO', status: 'STARTED' });
+  });
+
+  it('non riapre un bonus dell’atto già chiuso', () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    rounds.restoreRound(8);
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'CREATED', roundIndex: 8,
+      bonusAct: { act: 0, type: 'CAVALLO', status: 'CLOSED' },
+    });
+
+    expect(component.bonusEntrance()).toBeNull();
+  });
+
   it('sincronizza pausa e ripresa con il server', () => {
     const pause = vi.fn();
     const resume = vi.fn();

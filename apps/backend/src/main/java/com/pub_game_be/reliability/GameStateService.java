@@ -368,6 +368,8 @@ public class GameStateService {
 
     /** Checkpoint TV del round aperto: uno solo, con la modalità che lo ha scritto. */
     public static final String TV_CHECKPOINT_BLOB = "tv-checkpoint";
+    /** Bonus dell'atto: avviato o chiuso, così un refresh non lo salta. */
+    public static final String BONUS_ACT_BLOB = "bonus-act";
 
     /** Chiave del blob che ricorda l'ultimo round annunciato dalla TV. */
     public static final String ROUND_ANNOUNCED_BLOB = "round-announced";
@@ -437,6 +439,19 @@ public class GameStateService {
         stateBlobs.forget(gameId, TV_CHECKPOINT_BLOB);
     }
 
+    /** Bonus dell'atto corrente: la TV segna quando parte e quando si chiude. */
+    public void saveBonusAct(long gameId, JSONObject bonus) {
+        stateBlobs.save(gameId, BONUS_ACT_BLOB, bonus.toString());
+    }
+
+    public Optional<JSONObject> bonusAct(long gameId) {
+        return stateBlobs.load(gameId, BONUS_ACT_BLOB).map(JSONObject::new);
+    }
+
+    public void forgetBonusAct(long gameId) {
+        stateBlobs.forget(gameId, BONUS_ACT_BLOB);
+    }
+
     /** Salva lo snapshot della mano: la TV lo riscrive a ogni cambio di fase. */
     public void saveBlackjackState(long gameId, String json) {
         stateBlobs.save(gameId, BLACKJACK_BLOB, json);
@@ -497,6 +512,8 @@ public class GameStateService {
         // Mano Blackjack salvata dalla TV: serve a riprenderla dopo un refresh.
         out.put("blackjackState", blackjackState(gameId).orElse(null));
         out.put("tvCheckpoint", tvCheckpoint(gameId).orElse(null));
+        // Bonus dell'atto: dopo un refresh la TV lo riapre o sa che è chiuso.
+        out.put("bonusAct", bonusAct(gameId).orElse(null));
         return out;
     }
 
@@ -507,6 +524,7 @@ public class GameStateService {
      */
     public void reset(long gameId) {
         stateBlobs.forget(gameId, TV_CHECKPOINT_BLOB);
+        stateBlobs.forget(gameId, BONUS_ACT_BLOB);
         tx.executeWithoutResult(status -> {
             events.deleteByGameId(gameId);
             rounds.deleteByGameId(gameId);
