@@ -1,5 +1,14 @@
 # Changelog
 
+## 16 novembre 2026 — Ruota, Celebrità e bonus dell'atto riprendibili
+
+- Il bonus di fine atto è sul server (`bonus-act`, endpoint `/games/{id}/bonus-state`): la TV segna quando parte e quando si chiude, così un refresh durante la classifica non lo salta più.
+- Alla ripresa il bonus ancora avviato si riapre: il Casino dalla manche salvata, Cavallo e Blackjack dall'inizio (l'avanzamento parziale non è salvato); un bonus già chiuso non si ripete.
+- Ruota della fortuna: la TV salva lettere uscite e punto del mazzo nel checkpoint. Alla ripresa rimette lo stesso mazzo salvato — l'ordine è casuale, quindi non va ricostruito — e le stesse lettere, poi continua con il tempo che resta.
+- Celebrità: il checkpoint tiene sfocatura e indizio raggiunto; foto e indizi restano nel payload, il tempo passato dal salvataggio si ricava da `savedAt` e la soluzione resta nascosta.
+- I due round ora risultano riprendibili nella matrice F06, senza un ramo dedicato sul server: usano lo stesso `tvCheckpoint` di Arena, Bomba e Quiz.
+- Verifiche: 4 test Ruota, 4 test Celebrità, 3 test TV sul bonus dell'atto, 9 RoundPause e suite complete (329 test frontend su 44 file, backend verde).
+
 ## 16 novembre 2026 — bonus Casino riprendibile dopo un refresh
 
 - Il checkpoint TV accetta anche uno stato di bonus, senza round aperto: `mode` che inizia per `BONUS_` viene salvato con `roundKey` dedicata e restituito nello snapshot con `bonus: true`.
