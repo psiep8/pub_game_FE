@@ -1,5 +1,12 @@
 # Changelog
 
+## 16 novembre 2026 — Ultima spiaggia riprendibile
+
+- La TV salva nel checkpoint il livello scelto da ogni squadra, le risposte, gli esiti e i livelli consumati, insieme all'id dell'occorrenza: al refresh i telefoni non azzerano la scelta appena fatta.
+- Alla ripresa si riparte dalla fase giusta con il tempo che resta: scelta del livello, domanda o reveal.
+- Un reveal già avvenuto non ricalcola i punti; se la domanda era scaduta o tutti avevano già risposto, il reveal parte una volta sola.
+- Verifiche: 7 test Ultima spiaggia e suite completa frontend (341 test su 45 file).
+
 ## 16 novembre 2026 — Azzardo e Tennis battle riprendibili
 
 - Azzardo: fiches, puntate, salvadanaio e conversioni finiscono nel checkpoint TV. Alla ripresa il tavolo è quello di prima, il tempo non riparte da capo e un reveal già avvenuto non ricalcola i punti.
