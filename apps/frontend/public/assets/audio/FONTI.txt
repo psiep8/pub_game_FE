@@ -1,0 +1,11 @@
+# Metadati dei file audio — uno per file, una riga per file.
+#
+# Formato (campi separati da " | "):
+#   percorso | titolo originale | autore | URL della pagina | licenza
+#
+# Esempio:
+#   gioco/gong.m4a | Temple Gong | Mario Rossi | https://freesound.org/s/123456/ | CC0
+#
+# Licenze accettate: CC0, Pixabay, Mixkit, royalty-free Sonniss, CC-BY (con
+# attribuzione). Mai CC-BY-NC o "solo uso personale".
+# Senza questi dati il file non entra in docs/CREDITI-AUDIO.md e non si usa.
