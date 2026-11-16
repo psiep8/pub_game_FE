@@ -1,5 +1,15 @@
 # Changelog
 
+## 16 novembre 2026 — bonus Casino riprendibile dopo un refresh
+
+- Il checkpoint TV accetta anche uno stato di bonus, senza round aperto: `mode` che inizia per `BONUS_` viene salvato con `roundKey` dedicata e restituito nello snapshot con `bonus: true`.
+- Casino bianco/rosso, dozzina e numero secco salvano voti, punti, tempo del voto e numero uscito: una TV aggiornata riapre la manche invece di offrire solo la chiusura.
+- Il numero esce prima dell'animazione e finisce subito nel checkpoint: un refresh non cambia l'esito e non ricalcola i punti.
+- Se al refresh il voto era già chiuso, la ruota rigira verso lo stesso numero; se il tempo era scaduto si va diretti alla ruota.
+- Alla chiusura del bonus il checkpoint viene cancellato, così un refresh successivo non riapre un bonus già pagato.
+- Cavallo, Biglie e Blackjack restano non riprendibili: il loro stato vive solo nella TV.
+- Verifiche: 44 test TV (2 nuovi sul checkpoint bonus), 3 test Casino, 8 RoundPause, 47 test frontend sui file toccati.
+
 ## 16 novembre 2026 — recupero Arena, Bomba, Quiz e Speed Rush
 
 - La TV salva il tabellone Arena sul server a ogni risposta e penalità, legato al round aperto e con revisione crescente; il reset dimentica il blob.
