@@ -1815,6 +1815,8 @@ export class GameComponent implements OnInit, OnDestroy {
         state: null,
       });
       this.markBonusAct(closed, 'CLOSED');
+      // Pagato: nemmeno uno snapshot vecchio deve riaprirlo.
+      this.rememberClosedBonus(this.currentGameId(), this.roundManager.getCurrentAct());
     }
     this.bonusResume.set(null);
 
@@ -1878,6 +1880,8 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.currentMode() || this.bonusActive() || this.bonusEntrance() || this.isSpinning()) return;
     // Un round ancora aperto ha la precedenza: il bonus viene dopo.
     if (this.recoveredRound()) return;
+    // Un bonus già chiuso e pagato non torna, anche se il server dice STARTED.
+    if (this.closedBonusActsOf(this.currentGameId()).has(this.roundManager.getCurrentAct())) return;
 
     const checkpoint = snapshot?.tvCheckpoint;
     const mode = String(checkpoint?.mode ?? '');
@@ -1896,6 +1900,39 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!type) return;
     const state = resume && mode === `BONUS_${type}` ? resume : null;
     void this.startBonus(type, state);
+  }
+
+  /**
+   * Bonus dell'atto già chiusi e pagati in questa partita. Sta in storage perché
+   * la scrittura sul server può arrivare dopo uno snapshot stantio: il denaro
+   * dei bonus non si rigioca per una risposta fuori ordine.
+   */
+  private closedBonusActsOf(gameId: number | null): Set<number> {
+    const acts = new Set<number>();
+    if (!gameId) return acts;
+    try {
+      const raw = JSON.parse(localStorage.getItem(`bonusClosed:${gameId}`) ?? '[]');
+      if (Array.isArray(raw)) {
+        for (const value of raw) {
+          const act = Number(value);
+          if (Number.isInteger(act) && act >= 0) acts.add(act);
+        }
+      }
+    } catch {
+      // Storage illeggibile: si riparte senza memoria, come prima.
+    }
+    return acts;
+  }
+
+  private rememberClosedBonus(gameId: number | null, act: number): void {
+    if (!gameId || act < 0) return;
+    const acts = this.closedBonusActsOf(gameId);
+    acts.add(act);
+    try {
+      localStorage.setItem(`bonusClosed:${gameId}`, JSON.stringify([...acts]));
+    } catch {
+      // Quota piena: resta la memoria della sessione, che copre il caso comune.
+    }
   }
 
   /** Segna sul server il bonus dell'atto corrente, se c'è un atto. */

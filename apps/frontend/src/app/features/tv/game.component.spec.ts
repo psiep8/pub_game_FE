@@ -140,6 +140,29 @@ describe('GameComponent', () => {
     expect(reliability.bonusActs.at(-1)).toEqual({ act: 0, type: 'CAVALLO', status: 'STARTED' });
   });
 
+  it('non riapre un bonus già pagato se lo snapshot dice ancora avviato', () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    rounds.restoreRound(8);
+    component.currentGameId.set(1);
+
+    // Bonus chiuso davvero: i punti sono già stati accreditati.
+    component.bonusEntrance.set(null);
+    component.bonusActive.set(true);
+    component.bonusType.set('CAVALLO');
+    (component as unknown as { finishBonus(): void }).finishBonus();
+    // Il pannello successivo azzera il bonus aperto.
+    component.bonusActive.set(false);
+    expect(reliability.bonusActs.at(-1)).toEqual({ act: 0, type: 'CAVALLO', status: 'CLOSED' });
+
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'CREATED', roundIndex: 8,
+      bonusAct: { act: 0, type: 'CAVALLO', status: 'STARTED' },
+    });
+
+    expect(component.bonusEntrance()).toBeNull();
+  });
+
   it('non riapre un bonus dell’atto già chiuso', () => {
     const rounds = TestBed.inject(RoundManagerService);
     rounds.restoreRound(8);
