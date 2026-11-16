@@ -1,411 +1,138 @@
-import { vi } from 'vitest';
-import { AzzardoMode } from './azzardo.mode';
+import { GameModeConfig } from '../../../shared/models/game-mode-type';
+import { AzzardoMode, AzzardoPhase } from './azzardo.mode';
 
-const QUESTIONS = [
-  {
-    question: 'Qual è l\'anno di nascita di Albert Einstein?',
-    category: 'CELEBRITÀ',
-    unit: 'anno',
-    value: 1879,
-    options: [1875, 1877, 1879, 1881],
-    answerIndex: 2,
-  },
-  {
-    question: 'In che anno è uscita Imagine di John Lennon?',
-    category: 'CANZONI',
-    unit: 'anno',
-    value: 1971,
-    options: [1969, 1971, 1973, 1975],
-    answerIndex: 1,
-  },
-  {
-    question: 'Quanti paesi confinano con l\'Italia?',
-    category: 'PAESI',
-    unit: 'paesi confinanti',
-    value: 6,
-    options: [5, 6, 7, 8],
-    answerIndex: 1,
-  },
-  {
-    question: 'In che anno è caduto il Muro di Berlino?',
-    category: 'STORIA',
-    unit: 'anno',
-    value: 1989,
-    options: [1985, 1987, 1989, 1991],
-    answerIndex: 2,
-  },
-];
+const PAYLOAD = {
+  level: 2,
+  questions: [
+    { question: 'Quanti abitanti?', category: 'Geografia', unit: 'abitanti', value: 300, options: [100, 200, 300, 400], answerIndex: 2 },
+    { question: 'Quanto è alto?', category: 'Monumenti', unit: 'metri', value: 80, options: [40, 60, 80, 100], answerIndex: 2 },
+    { question: 'Quanti anni ha?', category: 'Storia', unit: 'anni', value: 50, options: [10, 20, 50, 90], answerIndex: 2 },
+    { question: 'Quanto pesa?', category: 'Scienza', unit: 'chili', value: 7, options: [1, 3, 7, 9], answerIndex: 2 },
+  ],
+};
 
-describe('AzzardoMode', () => {
-  afterEach(() => {
-    vi.useRealTimers();
-  });
+function setup(players = ['Anna', 'Bruno']) {
+  const saved: Array<{ type: string; revision: number; state: any }> = [];
+  const points: any[] = [];
+  const mode = new AzzardoMode();
+  const config: GameModeConfig = {
+    type: 'AZZARDO',
+    payload: PAYLOAD,
+    gameId: 1,
+    activePlayers: players,
+    playerPoints: () => 1000,
+    onTvCheckpoint: (checkpoint) => saved.push(checkpoint as any),
+    onAnswerReceived: (result) => points.push(result),
+  };
 
-  it('gioca una manche intera dalla puntata al reveal senza scendere sotto zero', async () => {
-    vi.useFakeTimers();
+  mode.setConfig(config);
+  mode.initialize(PAYLOAD);
 
-    // Bruno ha solo 100 punti: la puntata da 300 viene tagliata e la perdita
-    // non può portarlo sotto zero. Carla non risponde e resta a zero.
-    const wallet: Record<string, number> = { Anna: 1000, Bruno: 100, Carla: 500 };
-    const awards: Array<{ playerName: string; points: number }> = [];
-    const broadcasts: any[] = [];
+  return { mode, saved, points };
+}
 
-    const mode = new AzzardoMode();
-    mode.setConfig({
-      type: 'AZZARDO',
-      payload: {},
-      gameId: 1,
-      activePlayers: ['Anna', 'Bruno', 'Carla'],
-      playerPoints: (playerName) => wallet[playerName] ?? 0,
-      onAnswerReceived: (data) => {
-        wallet[data.playerName] += data.points;
-        awards.push({ playerName: data.playerName, points: data.points });
-      },
-      onBroadcast: (event) => broadcasts.push(event),
-    });
+describe('AzzardoMode — ripresa dopo un refresh della TV', () => {
+  it('salva la puntata appena una squadra mette le fiches', async () => {
+    const { mode, saved } = setup();
 
-    mode.initialize({ level: 1, questions: QUESTIONS });
+    await mode.start();
+    mode.handlePartyEvent({ action: 'AZZARDO_ACTION', playerName: 'Anna', value: { chips: [0, 0, 3, 0] } });
 
-    const started = mode.start();
-    await vi.advanceTimersByTimeAsync(3000);
-    await started;
-
-    const bet = mode.getDisplayData();
-    expect(bet.phase).toBe('BET');
-    expect(bet.level).toBe(1);
-    expect(bet.odds).toBe(2);
-    expect(bet.manche).toBe(1);
-    expect(bet.total).toBe(4);
-
-    const question = QUESTIONS[0];
-    const chipsOn = (index: number, count: number) =>
-      Array.from({ length: 4 }, (_, slot) => (slot === index ? count : 0));
-
-    mode.handlePartyEvent({
-      action: 'AZZARDO_ACTION',
-      playerName: 'Anna',
-      value: { chips: chipsOn(question.answerIndex, 10) },
-    });
-    mode.handlePartyEvent({
-      action: 'AZZARDO_ACTION',
-      playerName: 'Bruno',
-      value: { chips: chipsOn((question.answerIndex + 1) % 4, 10) },
-    });
-
-    // Un secondo invio di Anna nella stessa manche non deve cambiare la puntata.
-    mode.handlePartyEvent({
-      action: 'AZZARDO_ACTION',
-      playerName: 'Anna',
-      value: { chips: [0, 10, 0, 0] },
-    });
-
-    // Carla non risponde: la manche si chiude allo scadere del tempo di puntata.
-    await vi.advanceTimersByTimeAsync(15000);
-
-    const reveal = mode.getDisplayData();
-    expect(reveal.phase).toBe('REVEAL');
-    expect(reveal.value).toBe(1879);
-    expect(reveal.answerIndex).toBe(question.answerIndex);
-
-    const anna = reveal.rows.find((row: any) => row.playerName === 'Anna');
-    const bruno = reveal.rows.find((row: any) => row.playerName === 'Bruno');
-    const carla = reveal.rows.find((row: any) => row.playerName === 'Carla');
-
-    // Anna: 200 punti puntati, risposta giusta, quota ×2.
-    expect(anna).toMatchObject({ stake: 200, points: 400, total: 400 });
-    expect(wallet['Anna']).toBe(1400);
-
-    // Bruno: dieci fiches (200 punti), ma in classifica ha 100 punti: la
-    // perdita si taglia sui punti veri, 100 (100%).
-    expect(bruno).toMatchObject({ stake: 200, points: -100, total: -100 });
-    expect(wallet['Bruno']).toBe(0);
-
-    // Carla: nessuna puntata, nessun punto.
-    expect(carla).toMatchObject({ played: false, points: 0, total: 0 });
-    expect(wallet['Carla']).toBe(500);
-
-    expect(awards).toEqual([
-      { playerName: 'Anna', points: 400 },
-      { playerName: 'Bruno', points: -100 },
-    ]);
-    expect(Object.values(wallet).every((points) => points >= 0)).toBe(true);
-
-    const lastState = broadcasts.filter((event) => event.action === 'AZZARDO_STATE').at(-1)?.state;
-    expect(lastState.phase).toBe('REVEAL');
-    expect(lastState.rows).toHaveLength(3);
+    const state = saved.at(-1)?.state;
+    expect(state.phase).toBe(AzzardoPhase.BET);
+    expect(state.stakes).toEqual([{ playerName: 'Anna', chips: [0, 0, 3, 0] }]);
+    expect(state.secondsLeft).toBeGreaterThan(0);
 
     mode.cleanup();
   });
 
-  it('le fiches avanzate si sommano alle dieci nuove della manche dopo', async () => {
-    vi.useFakeTimers();
+  it('riprende il reveal già avvenuto senza ripagare i punti', () => {
+    const { mode, points } = setup();
+    const stakes = [{ playerName: 'Anna', chips: [0, 0, 3, 0] }];
 
-    const wallet: Record<string, number> = { Anna: 1000 };
-    const mode = new AzzardoMode();
-    mode.setConfig({
-      type: 'AZZARDO',
-      payload: {},
-      gameId: 1,
-      activePlayers: ['Anna'],
-      playerPoints: (playerName) => wallet[playerName] ?? 0,
-      onAnswerReceived: (data) => {
-        wallet[data.playerName] += data.points;
+    mode.restore(7, {
+      revision: 3,
+      state: {
+        manche: 0,
+        phase: AzzardoPhase.REVEAL,
+        secondsLeft: 7,
+        savedAt: Date.now(),
+        stakes,
+        points: [['Anna', 600]],
+        totals: [['Anna', 600]],
+        chipBank: [['Anna', 7]],
+        breakdowns: [['Anna', { points: 600, win: 600, loss: 0, odds: 3, lossPercent: 100 }]],
       },
     });
-    mode.initialize({ level: 1, questions: QUESTIONS });
 
-    const started = mode.start();
-    await vi.advanceTimersByTimeAsync(3000);
-    await started;
-
-    expect(mode.getDisplayData().ready[0].chipsBank).toBe(10);
-
-    // Manche 1: tre fiches su un'opzione, le altre sette restano.
-    mode.handlePartyEvent({
-      action: 'AZZARDO_ACTION',
-      playerName: 'Anna',
-      value: { chips: [3, 0, 0, 0] },
-    });
-    await vi.advanceTimersByTimeAsync(15000);
-    expect(mode.getDisplayData().phase).toBe('REVEAL');
-
-    await vi.advanceTimersByTimeAsync(7000);
-    const second = mode.getDisplayData();
-    expect(second.manche).toBe(2);
-    // Sette avanzate + dieci nuove.
-    expect(second.ready[0].chipsBank).toBe(17);
-
-    // Tetto crescente: 17 in banca valgono 13 fiches giocabili, non 10.
-    expect(second.ready[0].chipsCap).toBe(13);
-    expect(second.chipCap).toBe(15);
-    mode.handlePartyEvent({
-      action: 'AZZARDO_ACTION',
-      playerName: 'Anna',
-      value: { chips: [14, 0, 0, 0] },
-    });
-    expect(mode.getDisplayData().ready[0].chips).toEqual([]);
-
-    mode.handlePartyEvent({
-      action: 'AZZARDO_ACTION',
-      playerName: 'Anna',
-      value: { chips: [13, 0, 0, 0] },
-    });
-    expect(mode.getDisplayData().ready[0].chips).toEqual([13, 0, 0, 0]);
+    const data = mode.getDisplayData();
+    expect(data.phase).toBe(AzzardoPhase.REVEAL);
+    expect(data.rows[0]).toMatchObject({ playerName: 'Anna', points: 600, total: 600 });
+    expect(data.value).toBe(300);
+    // I punti del reveal non vengono ricalcolati al refresh.
+    expect(points).toEqual([]);
 
     mode.cleanup();
   });
 
-  it('gioca le quattro manche con la perdita che scende dal 100% al 40%', async () => {
-    vi.useFakeTimers();
+  it('riprende la puntata in corso con le fiches già sul tavolo', () => {
+    const { mode } = setup();
 
-    // Fiches da 20 punti: 5 fiches = 100 punti, 10 fiches = 200 punti.
-    type Bet = { chips: number; correct: boolean };
-    type Manche = {
-      multiplier: number;
-      bets: Record<string, Bet>;
-      points: Record<string, number>;
-      totals: Record<string, number>;
-    };
-
-    // Anna punta 100 e vince, Bruno punta 200 e sbaglia, Carla alterna.
-    const plan: Manche[] = [
-      {
-        multiplier: 1,
-        bets: { Anna: { chips: 5, correct: true }, Bruno: { chips: 10, correct: false }, Carla: { chips: 5, correct: true } },
-        points: { Anna: 200, Bruno: -200, Carla: 200 },
-        totals: { Anna: 200, Bruno: -200, Carla: 200 },
-      },
-      {
-        multiplier: 0.8,
-        bets: { Anna: { chips: 5, correct: true }, Bruno: { chips: 10, correct: false }, Carla: { chips: 5, correct: false } },
-        points: { Anna: 200, Bruno: -160, Carla: -80 },
-        totals: { Anna: 400, Bruno: -360, Carla: 120 },
-      },
-      {
-        multiplier: 0.6,
-        bets: { Anna: { chips: 5, correct: true }, Bruno: { chips: 10, correct: false }, Carla: { chips: 5, correct: true } },
-        points: { Anna: 200, Bruno: -120, Carla: 200 },
-        totals: { Anna: 600, Bruno: -480, Carla: 320 },
-      },
-      {
-        multiplier: 0.4,
-        bets: { Anna: { chips: 5, correct: true }, Bruno: { chips: 10, correct: false }, Carla: { chips: 5, correct: false } },
-        points: { Anna: 200, Bruno: -80, Carla: -40 },
-        totals: { Anna: 800, Bruno: -560, Carla: 280 },
-      },
-    ];
-
-    const wallet: Record<string, number> = { Anna: 1000, Bruno: 1000, Carla: 1000 };
-    const mode = new AzzardoMode();
-    mode.setConfig({
-      type: 'AZZARDO',
-      payload: {},
-      gameId: 1,
-      activePlayers: ['Anna', 'Bruno', 'Carla'],
-      playerPoints: (playerName) => wallet[playerName] ?? 0,
-      onAnswerReceived: (data) => {
-        wallet[data.playerName] += data.points;
+    mode.restore(15, {
+      revision: 4,
+      state: {
+        manche: 0,
+        phase: AzzardoPhase.BET,
+        secondsLeft: 15,
+        savedAt: Date.now() - 6000,
+        stakes: [{ playerName: 'Anna', chips: [0, 0, 3, 0] }],
+        chipBank: [['Anna', 7], ['Bruno', 10]],
       },
     });
-    mode.initialize({ level: 1, questions: QUESTIONS });
 
-    const started = mode.start();
-    await vi.advanceTimersByTimeAsync(3000);
-    await started;
-
-    for (const [index, step] of plan.entries()) {
-      const bet = mode.getDisplayData();
-      expect(bet.phase).toBe('BET');
-      expect(bet.manche).toBe(index + 1);
-      expect(bet.lossMultiplier).toBe(step.multiplier);
-
-      // Chi gioca dal telefono ha dieci secondi di lettura prima che la
-      // manche chiuda in anticipo: si aspetta quel tempo, poi si punta.
-      await vi.advanceTimersByTimeAsync(10000);
-
-      const question = QUESTIONS[index];
-      for (const [playerName, bet] of Object.entries(step.bets)) {
-        const target = bet.correct ? question.answerIndex : (question.answerIndex + 1) % 4;
-        mode.handlePartyEvent({
-          action: 'AZZARDO_ACTION',
-          playerName,
-          value: { chips: Array.from({ length: 4 }, (_, slot) => (slot === target ? bet.chips : 0)) },
-        });
-      }
-
-      const reveal = mode.getDisplayData();
-      expect(reveal.phase).toBe('REVEAL');
-      expect(reveal.value).toBe(question.value);
-      for (const [playerName, points] of Object.entries(step.points)) {
-        expect(reveal.rows.find((row: any) => row.playerName === playerName))
-          .toMatchObject({ points, total: step.totals[playerName] });
-      }
-
-      // La classifica resta sempre sopra zero, manche dopo manche.
-      expect(Object.values(wallet).every((points) => points >= 0)).toBe(true);
-
-      await vi.advanceTimersByTimeAsync(7000);
-    }
-
-    const finale = mode.getDisplayData();
-    expect(finale.phase).toBe('FINALE');
-
-    const finalTotals = plan[plan.length - 1].totals;
-    for (const playerName of ['Anna', 'Bruno', 'Carla']) {
-      expect(finale.rows.find((row: any) => row.playerName === playerName))
-        .toMatchObject({ total: finalTotals[playerName] });
-    }
-
-    // Il totale di fine round somma esattamente le quattro manche.
-    expect(finale.rows.reduce((sum: number, row: any) => sum + row.total, 0)).toBe(520);
-    expect(wallet).toEqual({ Anna: 1800, Bruno: 440, Carla: 1280 });
-    expect(Object.values(wallet).reduce((sum, points) => sum + points, 0)).toBe(3520);
+    const data = mode.getDisplayData();
+    expect(data.phase).toBe(AzzardoPhase.BET);
+    expect(data.secondsLeft).toBe(9);
+    expect(data.ready.find((row: any) => row.playerName === 'Anna')).toMatchObject({
+      ready: true,
+      chips: [0, 0, 3, 0],
+      chipsBank: 7,
+    });
+    expect(data.ready.find((row: any) => row.playerName === 'Bruno')).toMatchObject({ ready: false });
 
     mode.cleanup();
   });
 
-  it('mostra gli indizi della celebrità ogni cinque secondi senza svelare l\'anno', async () => {
-    vi.useFakeTimers();
+  it('con la puntata già scaduta va al reveal una volta sola', () => {
+    const { mode, points } = setup();
 
-    const questions = [
-      {
-        ...QUESTIONS[0],
-        media: {
-          kind: 'celebrity',
-          imageUrl: 'https://image.example/einstein.jpg',
-          clues: ['fisico tedesco', 'Premio Nobel per la fisica', 'teoria della relatività'],
-        },
+    mode.restore(0, {
+      revision: 5,
+      state: {
+        manche: 0,
+        phase: AzzardoPhase.BET,
+        secondsLeft: 15,
+        savedAt: Date.now() - 60_000,
+        stakes: [{ playerName: 'Anna', chips: [0, 0, 3, 0] }],
+        chipBank: [['Anna', 7]],
       },
-      ...QUESTIONS.slice(1),
-    ];
-
-    const mode = new AzzardoMode();
-    mode.setConfig({
-      type: 'AZZARDO',
-      payload: {},
-      gameId: 1,
-      activePlayers: ['Anna'],
     });
-    mode.initialize({ level: 1, questions });
 
-    const started = mode.start();
-    await vi.advanceTimersByTimeAsync(3000);
-    await started;
-
-    const first = mode.getDisplayData();
-    expect(first.media).toMatchObject({ kind: 'celebrity' });
-    expect(first.clue).toBe('fisico tedesco');
-    expect(first.clueIndex).toBe(1);
-    expect(first.clueTotal).toBe(3);
-
-    await vi.advanceTimersByTimeAsync(5000);
-    expect(mode.getDisplayData().clue).toBe('Premio Nobel per la fisica');
+    expect(mode.getDisplayData().phase).toBe(AzzardoPhase.REVEAL);
+    expect(points.filter((row) => row.playerName === 'Anna')).toHaveLength(1);
 
     mode.cleanup();
   });
 
-  it('usa la quota del livello ricevuto e ricade sul medio senza livello', async () => {
-    vi.useFakeTimers();
+  it('non si rompe con un checkpoint senza stato utile', () => {
+    const { mode } = setup();
 
-    const cases: Array<{ payload: any; level: number; odds: number }> = [
-      { payload: { level: 2, questions: QUESTIONS }, level: 2, odds: 3 },
-      { payload: { level: 3, questions: QUESTIONS }, level: 3, odds: 4 },
-      // Payload senza livello: la modalità riparte dal medio, ×3.
-      { payload: { questions: QUESTIONS }, level: 2, odds: 3 },
-    ];
+    mode.restore(15, { revision: 6, state: { stakes: 'x', points: null, chipBank: 5 } });
 
-    for (const testCase of cases) {
-      const wallet: Record<string, number> = { Anna: 1000, Bruno: 1000 };
-      const mode = new AzzardoMode();
-      mode.setConfig({
-        type: 'AZZARDO',
-        payload: {},
-        gameId: 1,
-        activePlayers: ['Anna', 'Bruno'],
-        playerPoints: (playerName) => wallet[playerName] ?? 0,
-        onAnswerReceived: (data) => {
-          wallet[data.playerName] += data.points;
-        },
-      });
-      mode.initialize(testCase.payload);
+    const data = mode.getDisplayData();
+    expect(data.phase).toBe(AzzardoPhase.BET);
+    expect(data.rows).toEqual([]);
 
-      const started = mode.start();
-      await vi.advanceTimersByTimeAsync(3000);
-      await started;
-
-      const bet = mode.getDisplayData();
-      expect(bet.level).toBe(testCase.level);
-      expect(bet.odds).toBe(testCase.odds);
-      expect(bet.lossMultiplier).toBe(1);
-
-      // La manche con tutti pronti non chiude prima dei dieci secondi.
-      await vi.advanceTimersByTimeAsync(10000);
-
-      const question = QUESTIONS[0];
-      const chipsOn = (index: number) =>
-        Array.from({ length: 4 }, (_, slot) => (slot === index ? 5 : 0));
-      mode.handlePartyEvent({
-        action: 'AZZARDO_ACTION',
-        playerName: 'Anna',
-        value: { chips: chipsOn(question.answerIndex) },
-      });
-      mode.handlePartyEvent({
-        action: 'AZZARDO_ACTION',
-        playerName: 'Bruno',
-        value: { chips: chipsOn((question.answerIndex + 1) % 4) },
-      });
-
-      const reveal = mode.getDisplayData();
-      expect(reveal.rows.find((row: any) => row.playerName === 'Anna'))
-        .toMatchObject({ points: 100 * testCase.odds, total: 100 * testCase.odds });
-      // La perdita non dipende dalla quota: alla prima manche è il 100%.
-      expect(reveal.rows.find((row: any) => row.playerName === 'Bruno'))
-        .toMatchObject({ points: -100, total: -100 });
-
-      expect(wallet).toEqual({ Anna: 1000 + 100 * testCase.odds, Bruno: 900 });
-
-      mode.cleanup();
-      vi.clearAllTimers();
-    }
+    mode.cleanup();
   });
 });

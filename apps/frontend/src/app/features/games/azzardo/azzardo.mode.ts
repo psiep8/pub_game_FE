@@ -183,6 +183,7 @@ export class AzzardoMode extends GameModeBase {
     this.stakes.set(playerName, { chips });
     this.syncRows();
     this.publish();
+    this.saveCheckpoint();
     this.closeBetIfComplete();
   }
 
@@ -261,6 +262,7 @@ export class AzzardoMode extends GameModeBase {
     this.syncRows();
     this.publish();
     this.startClock(BET_SECONDS, () => this.revealManche());
+    this.saveCheckpoint();
   }
 
   private closeBetIfComplete(): void {
@@ -314,14 +316,18 @@ export class AzzardoMode extends GameModeBase {
     this.secondsLeft.set(REVEAL_SECONDS);
     this.syncRows();
     this.publish();
-    this.startClock(REVEAL_SECONDS, () => {
-      if (this.manche() + 1 >= this.questions.length) {
-        this.finale();
-      } else {
-        this.manche.set(this.manche() + 1);
-        this.startBet();
-      }
-    });
+    this.startClock(REVEAL_SECONDS, () => this.advanceAfterReveal());
+    this.saveCheckpoint();
+  }
+
+  /** Fine del reveal: manche successiva o finale. Comune a gioco e ripresa. */
+  private advanceAfterReveal(): void {
+    if (this.manche() + 1 >= this.questions.length) {
+      this.finale();
+    } else {
+      this.manche.set(this.manche() + 1);
+      this.startBet();
+    }
   }
 
   private finale(): void {
@@ -332,6 +338,107 @@ export class AzzardoMode extends GameModeBase {
     this.syncRows();
     this.publish();
     this.startClock(FINALE_SECONDS, () => this.finish());
+    this.saveCheckpoint();
+  }
+
+  /**
+   * Riprende il round dopo un refresh. Fiches, puntate, punteggi e conversioni
+   * arrivano dal checkpoint: il reveal già avvenuto non ricalcola i punti, così
+   * nessuno li incassa due volte.
+   */
+  restore(secondsLeft: number, snapshot?: unknown): void {
+    const checkpoint = snapshot as { revision?: number; state?: any } | null | undefined;
+    const state = checkpoint?.state ?? {};
+    this.players = [...(this.config.activePlayers ?? [])];
+    this.questions = this.readQuestions();
+    this.finished = state.finished === true;
+    this.revealed.set(state.revealed === true);
+
+    const manche = Number(state.manche);
+    this.manche.set(Number.isInteger(manche) && manche >= 0 && manche < Math.max(1, this.questions.length)
+      ? manche
+      : 0);
+
+    this.stakes.clear();
+    for (const row of Array.isArray(state.stakes) ? state.stakes : []) {
+      const playerName = String(row?.playerName ?? '').trim();
+      const chips = Array.isArray(row?.chips)
+        ? row.chips.map((value: any) => Math.max(0, Math.floor(Number(value) || 0)))
+        : [];
+      if (playerName && chips.length) this.stakes.set(playerName, { chips });
+    }
+    this.points = this.entriesOf(state.points, true);
+    this.totals = this.entriesOf(state.totals, true);
+    this.chipBank = this.entriesOf(state.chipBank, true);
+    this.breakdowns = this.entriesOf(state.breakdowns) as Map<string, AzzardoChipsBreakdown>;
+
+    // Il tempo non riparte da capo: si toglie quello passato dal salvataggio.
+    const savedSeconds = Number(state.secondsLeft);
+    const savedAt = Number(state.savedAt);
+    const elapsed = Number.isFinite(savedAt) && savedAt > 0
+      ? Math.max(0, Math.floor((Date.now() - savedAt) / 1000))
+      : 0;
+    const seconds = Number.isFinite(savedSeconds)
+      ? Math.max(0, Math.round(savedSeconds) - elapsed)
+      : Math.max(0, Math.round(Number(secondsLeft) || 0));
+
+    this.syncRows();
+    this.timer.set(this.timerDuration);
+    this.isActive.set(true);
+    this.isPaused.set(false);
+
+    const phase = String(state.phase);
+    if (phase === AzzardoPhase.REVEAL) {
+      this.phase.set(AzzardoPhase.REVEAL);
+      this.startClock(seconds, () => this.advanceAfterReveal());
+      return;
+    }
+    if (phase === AzzardoPhase.FINALE) {
+      this.phase.set(AzzardoPhase.FINALE);
+      this.startClock(seconds, () => this.finish());
+      return;
+    }
+
+    // Puntata in corso: le fiches già messe restano sul tavolo.
+    this.phase.set(AzzardoPhase.BET);
+    if (seconds <= 0) {
+      this.revealManche();
+      return;
+    }
+    this.startClock(seconds, () => this.revealManche());
+  }
+
+  /** Coppie `[nome, valore]` del checkpoint: le mappe non passano in JSON. */
+  private entriesOf(value: unknown, numeric = false): Map<string, any> {
+    const map = new Map<string, any>();
+    if (!Array.isArray(value)) return map;
+    for (const row of value) {
+      if (!Array.isArray(row) || typeof row[0] !== 'string') continue;
+      const key = row[0];
+      map.set(key, numeric ? Number(row[1]) || 0 : row[1]);
+    }
+    return map;
+  }
+
+  /** Stato della partita: fiches, puntate, punteggi e fase corrente. */
+  private saveCheckpoint(): void {
+    this.config.onTvCheckpoint?.({
+      type: this.type,
+      revision: Date.now(),
+      state: {
+        manche: this.manche(),
+        phase: this.phase(),
+        secondsLeft: this.secondsLeft(),
+        savedAt: Date.now(),
+        stakes: [...this.stakes].map(([playerName, stake]) => ({ playerName, chips: stake.chips })),
+        points: [...this.points],
+        totals: [...this.totals],
+        chipBank: [...this.chipBank],
+        breakdowns: [...this.breakdowns],
+        finished: this.finished,
+        revealed: this.revealed(),
+      },
+    });
   }
 
   private finish(): void {
