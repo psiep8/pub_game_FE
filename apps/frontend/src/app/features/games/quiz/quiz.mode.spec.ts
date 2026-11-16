@@ -1,5 +1,4 @@
 import { vi } from 'vitest';
-import { GAME_TIMINGS } from '../../../shared/models/game-timings';
 import { REVEAL_DELAY_MS } from '../../../shared/models/scoring-rules';
 import { GameModeConfig } from '../../../shared/models/game-mode-type';
 import { QuizMode } from './quiz.mode';
@@ -27,26 +26,26 @@ describe('QuizMode', () => {
     correctAnswer: 'Roma',
   };
 
-  it('should award points that decay with the response time', () => {
+  it('non calcola punti in TV: il voto lo arbitra il server', () => {
     const { mode, received } = setup(payload);
 
     mode.handleAnswer('Anna', 1, 2000);
 
-    expect(received[0]).toMatchObject({
-      playerName: 'Anna',
-      isCorrect: true,
-      playerChoice: 'Roma',
-      // Il valore scende in proporzione ai secondi rimasti della manche.
-      points: Math.round(1000 * (1 - 2000 / (GAME_TIMINGS.QUIZ.mancheSeconds * 1000))),
-    });
+    expect(received).toHaveLength(0);
+    expect(mode.getDisplayData().answers).toHaveLength(0);
   });
 
-  it('should subtract points for a wrong answer', () => {
-    const { mode, received } = setup(payload);
+  it('applica una sola volta l\'esito arrivato dal server', () => {
+    const { mode } = setup(payload);
 
-    mode.handleAnswer('Anna', 0, 0);
+    const applied = mode.applyServerAnswer({ playerName: 'Anna', manche: 0, isCorrect: true, points: 870 });
+    const again = mode.applyServerAnswer({ playerName: 'Anna', manche: 0, isCorrect: false, points: -1000 });
 
-    expect(received[0]).toMatchObject({ isCorrect: false, playerChoice: 'Milano', points: -1000 });
+    expect(applied).toBe(true);
+    expect(again).toBe(false);
+    expect(mode.getDisplayData().answers).toEqual([
+      { playerName: 'Anna', points: 870, isCorrect: true, manche: 0 },
+    ]);
   });
 
   it('should hide the answer until the round is stopped', () => {
@@ -92,7 +91,7 @@ describe('QuizMode — ripresa dopo un refresh della TV', () => {
 
   it('riprende manche e tempo dal checkpoint senza tornare alla prima', async () => {
     vi.useFakeTimers();
-    const { mode, saved, received } = setupConCheckpoint();
+    const { mode, saved } = setupConCheckpoint();
 
     mode.restore(20, {
       revision: 5,
@@ -113,12 +112,10 @@ describe('QuizMode — ripresa dopo un refresh della TV', () => {
     // Il cronometro non scrive checkpoint: una POST al secondo era troppo.
     expect(saved).toHaveLength(0);
 
-    // Chi ha già risposto in questa manche non risponde una seconda volta.
-    mode.handleAnswer('Anna', 0, 1000);
-    expect(received).toHaveLength(0);
-    mode.handleAnswer('Bruno', 1, 1000);
-    expect(received).toHaveLength(1);
-    expect(received[0]).toMatchObject({ playerName: 'Bruno', isCorrect: false });
+    // Le risposte arrivano dal server: una riga per giocatore e manche.
+    expect(mode.applyServerAnswer({ playerName: 'Bruno', manche: 1, isCorrect: true, points: 200 })).toBe(true);
+    expect(mode.applyServerAnswer({ playerName: 'Bruno', manche: 1, isCorrect: true, points: 200 })).toBe(false);
+    expect(mode.getDisplayData().answers).toHaveLength(2);
 
     mode.cleanup();
     vi.useRealTimers();
@@ -161,15 +158,47 @@ describe('QuizMode — ripresa dopo un refresh della TV', () => {
     vi.useRealTimers();
   });
 
-  it('salva un checkpoint a ogni risposta con la modalità Quiz', () => {
+  it('salva un checkpoint quando il server applica una risposta', () => {
     const { mode, saved } = setupConCheckpoint();
     mode.restore(15, { revision: 1, state: { mancheIndex: 0, secondsLeft: 10, stage: 'play' } });
 
-    mode.handleAnswer('Anna', 1, 1000);
+    mode.applyServerAnswer({ playerName: 'Anna', manche: 0, isCorrect: true, points: 900 });
 
     expect(saved.at(-1)?.type).toBe('QUIZ');
     expect(saved.at(-1)?.state.answers).toHaveLength(1);
     expect(saved.at(-1)?.state.answeredThisManche).toEqual(['Anna']);
+    mode.cleanup();
+  });
+
+  it('annuncia al server quale manche è aperta', async () => {
+    vi.useFakeTimers();
+    const startQuizManche = vi.fn().mockResolvedValue({ mancheIndex: 0 });
+    const mode = new QuizMode();
+    mode.setConfig({ type: 'QUIZ', payload: treManches, gameId: 1, startQuizManche });
+    mode.initialize(treManches);
+
+    await mode.start();
+
+    expect(startQuizManche).toHaveBeenCalledWith(0);
+    mode.cleanup();
+    vi.useRealTimers();
+  });
+
+  it('rilegge dal server le risposte arrivate durante il refresh', async () => {
+    const loadQuizAnswers = vi.fn().mockResolvedValue({
+      answers: [{ playerName: 'Anna', manche: 1, isCorrect: true, points: 320 }],
+    });
+    const mode = new QuizMode();
+    mode.setConfig({ type: 'QUIZ', payload: treManches, gameId: 1, loadQuizAnswers });
+    mode.initialize(treManches);
+
+    mode.restore(10, { revision: 2, state: { mancheIndex: 1, secondsLeft: 5, stage: 'play' } });
+
+    await vi.waitFor(() => expect(mode.getDisplayData().answers).toHaveLength(1));
+    expect(mode.getDisplayData().answers[0]).toMatchObject({ playerName: 'Anna', points: 320, manche: 1 });
+    expect(mode.getDisplayData().summary[1].correctTeams).toEqual(['Anna']);
+    // Quella risposta è già registrata: un evento ripetuto non conta due volte.
+    expect(mode.applyServerAnswer({ playerName: 'Anna', manche: 1, isCorrect: false, points: -1000 })).toBe(false);
     mode.cleanup();
   });
 

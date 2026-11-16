@@ -1226,6 +1226,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   sendVote(index: number) {
     if (!this.inputReady()) return;
+    // Quiz: il voto va al server, che controlla tempo, soluzione e doppio voto.
+    if (this.questionType() === 'QUIZ') {
+      this.sendQuizVote(index);
+      return;
+    }
     const responseTimeMs = Date.now() - this.startTime;
     if (!this.ws.sendAnswer(this.gameId(), this.nickname()!, index, responseTimeMs)) {
       this.reliability.lastError.set('Risposta non inviata: attendi la riconnessione e riprova.');
@@ -1234,9 +1239,35 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.reliability.lastError.set(null);
     this.selectedAnswer.set(index);
     this.hasAnswered.set(true);
-    if (this.questionType() === 'QUIZ') this.answeredManche.set(this.quizManche());
     this.gameState.set(PlayerStatus.LOCKED);
     this.vibrate(50);
+  }
+
+  /**
+   * Il telefono resta aperto finché il server non conferma: un errore di rete
+   * non deve bruciare l'unica risposta della manche. Un secondo tocco sulla
+   * stessa manche torna `already-answered` e viene trattato come conferma.
+   */
+  private sendQuizVote(index: number) {
+    this.gameService.submitQuizAnswer(this.gameId(), index).subscribe({
+      next: () => {
+        this.reliability.lastError.set(null);
+        this.selectedAnswer.set(index);
+        this.hasAnswered.set(true);
+        this.answeredManche.set(this.quizManche());
+        this.gameState.set(PlayerStatus.LOCKED);
+        this.vibrate(50);
+      },
+      error: (err) => {
+        if (err?.error?.error === 'already-answered') {
+          this.hasAnswered.set(true);
+          this.answeredManche.set(this.quizManche());
+          this.gameState.set(PlayerStatus.LOCKED);
+          return;
+        }
+        this.reliability.lastError.set('Risposta non registrata: riprova.');
+      },
+    });
   }
 
   sendBuzz() {

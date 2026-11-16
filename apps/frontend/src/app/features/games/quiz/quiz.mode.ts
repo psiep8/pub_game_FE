@@ -100,14 +100,12 @@ export class QuizMode extends GameModeBase {
     this.finish();
   }
 
-  override handleAnswer(playerName: string, answer: any, timeMs: number): void {
-    if (this.finished() || this.mancheReveal()) return;
-    const name = String(playerName ?? '').trim();
-    if (!name || this.answeredThisManche.has(name)) return;
-
-    this.answeredThisManche.add(name);
-    super.handleAnswer(name, answer, timeMs);
-  }
+  /**
+   * Il voto non si calcola più in TV: lo arbitra il server (`QUIZ_ANSWER`).
+   * Un telefono che mandasse ancora il vecchio messaggio WebSocket non prende
+   * punti, e un doppio voto non esiste perché lo rifiuta il server.
+   */
+  override handleAnswer(_playerName: string, _answer: any, _timeMs: number): void {}
 
   private readQuestions(): QuizManche[] {
     const raw = Array.isArray(this.payload?.questions)
@@ -165,6 +163,16 @@ export class QuizMode extends GameModeBase {
     this.startClock();
     void this.broadcastState();
     this.emitCheckpoint();
+    void this.announceManche(index);
+  }
+
+  /** Il server deve sapere quale manche è aperta prima di accettare voti. */
+  private async announceManche(index: number): Promise<void> {
+    try {
+      await this.config.startQuizManche?.(index);
+    } catch {
+      // Senza annuncio i voti vengono rifiutati: la TV mostra comunque la manche.
+    }
   }
 
   private startClock(): void {
@@ -323,7 +331,36 @@ export class QuizMode extends GameModeBase {
     } else {
       this.startClock();
     }
+    void this.refreshAnswers();
     void this.broadcastState();
+  }
+
+  /**
+   * Le risposte autorevoli sono sul server: quelle arrivate mentre la TV era
+   * via non esistono più solo nel browser. Se la chiamata fallisce restano
+   * quelle del checkpoint.
+   */
+  private async refreshAnswers(): Promise<void> {
+    try {
+      const state = await this.config.loadQuizAnswers?.();
+      const rows: any[] = Array.isArray(state?.answers) ? state.answers : [];
+      if (!rows.length) return;
+      const answers = rows
+        .filter((row: any) => row && typeof row.playerName === 'string' && Number.isInteger(Number(row.manche)))
+        .map((row: any) => ({
+          playerName: String(row.playerName),
+          points: Number(row.points) || 0,
+          isCorrect: !!row.isCorrect,
+          manche: Number(row.manche),
+        }));
+      this.answers.set(answers);
+      const manche = this.mancheIndex();
+      this.answeredThisManche = new Set(
+        answers.filter((row) => row.manche === manche).map((row) => row.playerName),
+      );
+    } catch {
+      // Rete assente: la TV tiene le risposte del checkpoint.
+    }
   }
 
   /** Salva lo stato minimo per riaprire la stessa manche dopo un refresh. */
@@ -382,18 +419,29 @@ export class QuizMode extends GameModeBase {
 
   protected onBuzz(_playerName: string): void {}
 
-  protected onAnswer(playerName: string, _answer: any, result: any): void {
-    const manche = this.mancheIndex();
-    this.answers.update((rows) => [
-      ...rows.filter((row) => !(row.playerName === playerName && row.manche === manche)),
-      {
-        playerName,
-        points: Number(result?.points) || 0,
-        isCorrect: !!result?.isCorrect,
-        manche,
-      },
-    ]);
+  protected onAnswer(_playerName: string, _answer: any, _result: any): void {
+    // Il voto lo registra il server: la TV applica solo `applyServerAnswer`.
+  }
+
+  /** Esito dal server: una sola riga per giocatore e manche. */
+  applyServerAnswer(result: any): boolean {
+    const playerName = String(result?.playerName ?? '').trim();
+    const manche = Number(result?.manche);
+    if (!playerName || !Number.isInteger(manche) || manche < 0) return false;
+    const already = this.answers().some(
+      (row) => row.manche === manche && row.playerName === playerName,
+    );
+    if (already) return false;
+
+    this.answers.update((rows) => [...rows, {
+      playerName,
+      points: Number(result?.points) || 0,
+      isCorrect: !!result?.isCorrect,
+      manche,
+    }]);
+    if (manche === this.mancheIndex()) this.answeredThisManche.add(playerName);
     this.emitCheckpoint();
+    return true;
   }
 
   protected onConfirmCorrect(_result: GameModeResult): void {}

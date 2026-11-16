@@ -1,5 +1,5 @@
 import { signal, WritableSignal } from '@angular/core';
-import { EMPTY, Observable, of, Subject } from 'rxjs';
+import { EMPTY, Observable, of, Subject, throwError } from 'rxjs';
 
 /**
  * Doppi di test condivisi.
@@ -156,6 +156,28 @@ export class FakeGameService {
 
   finishSpeedRush(_gameId: number): Observable<{ results: any[] }> {
     return of({ results: [] });
+  }
+
+  readonly quizManches: number[] = [];
+  readonly quizAnswersSent: number[] = [];
+  quizFailNext = false;
+
+  startQuizManche(_gameId: number, manche: number): Observable<any> {
+    this.quizManches.push(manche);
+    return of({ mancheIndex: manche });
+  }
+
+  submitQuizAnswer(_gameId: number, optionIndex: number): Observable<any> {
+    if (this.quizFailNext) {
+      this.quizFailNext = false;
+      return throwError(() => ({ error: { error: 'network' } }));
+    }
+    this.quizAnswersSent.push(optionIndex);
+    return of({ isCorrect: true, points: 500, manche: 0 });
+  }
+
+  quizAnswers(_gameId: number): Observable<any> {
+    return of({ mancheIndex: 0, answers: [] });
   }
 
   startBasket(_gameId: number, _players: string[]): Observable<any> {

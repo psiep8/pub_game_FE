@@ -65,6 +65,19 @@ describe('GameComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('applica una sola volta l\'esito Quiz arrivato dal server', () => {
+    const applyServerAnswer = vi.fn().mockReturnValueOnce(true).mockReturnValueOnce(false);
+    component.currentMode.set({ type: 'QUIZ', applyServerAnswer } as any);
+    const addPoints = vi.spyOn(leaderboard, 'addPoints');
+
+    ws.status$.next({ action: 'QUIZ_ANSWER', playerName: 'Anna', manche: 0, isCorrect: true, points: 300 });
+    ws.status$.next({ action: 'QUIZ_ANSWER', playerName: 'Anna', manche: 0, isCorrect: true, points: 300 });
+
+    expect(applyServerAnswer).toHaveBeenCalledTimes(2);
+    expect(addPoints).toHaveBeenCalledTimes(1);
+    expect(addPoints).toHaveBeenCalledWith('Anna', 300, true);
+  });
+
   it('sincronizza pausa e ripresa con il server', () => {
     const pause = vi.fn();
     const resume = vi.fn();

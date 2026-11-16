@@ -198,6 +198,23 @@ export class GameService {
     return this.http.post<{ results: any[] }>(`${this.baseUrl}/games/${gameId}/speed-rush/finish`, {});
   }
 
+  // ------------------------------------------------------------------ Quiz
+
+  /** La TV annuncia la manche: da qui voti e punti restano sul server. */
+  startQuizManche(gameId: number, manche: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/quiz/manche`, { manche });
+  }
+
+  /** Voto del telefono: tempo, soluzione e doppio voto li controlla il server. */
+  submitQuizAnswer(gameId: number, optionIndex: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/quiz/answer`, { optionIndex });
+  }
+
+  /** Risposte già registrate: la TV le rilegge dopo un refresh. */
+  quizAnswers(gameId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/games/${gameId}/quiz/answers`);
+  }
+
   // ----------------------------------------------------------------- Basket
 
   startBasket(gameId: number, players: string[]): Observable<any> {

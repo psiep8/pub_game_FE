@@ -504,6 +504,7 @@ describe('RemoteComponent', () => {
   it('should publish the vote and lock the phone', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();
+    component.onStartVoting('TIMELINE');
 
     component.sendVote(2);
 
@@ -539,18 +540,33 @@ describe('RemoteComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Sei PRENOTATO!');
   });
 
+  it('manda il voto Quiz al server, non via WebSocket', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.onStartVoting('QUIZ');
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+
+    component.sendVote(1);
+
+    expect(game.quizAnswersSent).toEqual([1]);
+    expect(ws.publishedAnswers).toHaveLength(0);
+    expect(component.gameState()).toBe('LOCKED');
+  });
+
   it('keeps the phone unlocked when a vote or buzz cannot be sent', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();
     component.onStartVoting('QUIZ');
-    vi.spyOn(ws, 'sendAnswer').mockReturnValue(false);
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    game.quizFailNext = true;
 
     component.sendVote(2);
     expect(component.gameState()).toBe('VOTING');
     expect(component.hasAnswered()).toBe(false);
     expect(component.selectedAnswer()).toBeNull();
-    expect(reliability.lastError()).toContain('non inviata');
+    expect(reliability.lastError()).toContain('non registrata');
 
+    vi.spyOn(ws, 'sendAnswer').mockReturnValue(false);
     component.sendBuzz();
     expect(component.gameState()).toBe('VOTING');
     expect(reliability.lastError()).toContain('non inviata');

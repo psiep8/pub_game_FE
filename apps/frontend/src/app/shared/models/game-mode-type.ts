@@ -59,6 +59,9 @@ export interface GameModeConfig {
   /** Speed Rush: la TV apre la sessione e chiude la corsa sul server. */
   startSpeedRush?: (players: string[]) => Promise<any>;
   finishSpeedRush?: () => Promise<any[]>;
+  /** Quiz: la TV annuncia la manche e rilegge le risposte dal server. */
+  startQuizManche?: (manche: number) => Promise<any>;
+  loadQuizAnswers?: () => Promise<any>;
   /** Blackjack: la TV salva lo stato della mano sul server a ogni cambio. */
   onBlackjackState?: (state: unknown | null) => void;
   /** Checkpoint TV del round aperto: la modalità dichiara il proprio tipo. */
@@ -115,4 +118,6 @@ export interface IGameMode {
   handlePartyEvent?(event: any): void;
   /** Canzone: la manche successiva parte solo su comando dell'admin. */
   nextManche?(): void;
+  /** Quiz: applica l'esito calcolato dal server; false se era già applicato. */
+  applyServerAnswer?(result: any): boolean;
 }

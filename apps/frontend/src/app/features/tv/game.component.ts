@@ -551,6 +551,15 @@ export class GameComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
 
+      // 🎯 Quiz: l'esito lo calcola il server, la TV lo applica una volta sola.
+      if (mode?.type === 'QUIZ' && status.action === 'QUIZ_ANSWER') {
+        if (!mode.applyServerAnswer?.(status)) return;
+        const playerName = String(status.playerName ?? '').trim();
+        if (!playerName) return;
+        this.leaderboardService.addPoints(playerName, Number(status.points) || 0, !!status.isCorrect);
+        this.cdr.detectChanges();
+      }
+
       // 🆕 Giochi simultanei: risultati dal server e progressi dai telefoni.
       if (mode && ['TIMELINE_RESULT', 'TIME_BUZZER_ANSWER', 'SPEED_RUSH_PROGRESS', 'SPEED_RUSH_RESULT', 'TENNIS_BATTLE_ANSWER', 'ULTIMA_SPIAGGIA_ACTION', 'AZZARDO_ACTION', 'BLACKJACK_ACTION'].includes(status.action)) {
         mode.handlePartyEvent?.(status);
@@ -1054,6 +1063,10 @@ export class GameComponent implements OnInit, OnDestroy {
         const response = await firstValueFrom(this.gameService.finishSpeedRush(this.currentGameId()!));
         return Array.isArray(response?.results) ? response.results : [];
       },
+      startQuizManche: async (manche: number) => firstValueFrom(
+        this.gameService.startQuizManche(this.currentGameId()!, manche),
+      ),
+      loadQuizAnswers: async () => firstValueFrom(this.gameService.quizAnswers(this.currentGameId()!)),
       bomba: {
         start: (players: string[], act: number) => firstValueFrom(
           this.gameService.startBomba(this.currentGameId()!, players, act),
