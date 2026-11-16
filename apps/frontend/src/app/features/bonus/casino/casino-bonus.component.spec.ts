@@ -60,16 +60,25 @@ describe('CasinoBonus — ripresa dopo un refresh della TV', () => {
   });
 
   it('senza tempo rimasto va diretto alla ruota', () => {
-    const { fixture, component } = mount({
+    // La ruota vera usa Matter: qui interessa solo che la manche riparta.
+    const fixture = TestBed.createComponent(CasinoBonus);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('gameId', 1);
+    fixture.componentRef.setInput('players', ['Anna', 'Bruno']);
+    fixture.componentRef.setInput('variant', 'COLOR');
+    fixture.componentRef.setInput('resume', {
       votes: [{ playerName: 'Anna', choice: 'BIANCO' }],
       scores: [],
       secondsLeft: 2,
       savedAt: Date.now() - 60_000,
       winner: null,
     });
+    const spin = vi.spyOn(component as any, 'spinManche').mockResolvedValue(undefined);
+
+    fixture.detectChanges();
 
     // Il voto non si riapre: la manche era già scaduta, la ruota riparte.
-    expect(component.phase()).toBe(component.Phase.SPIN);
+    expect(spin).toHaveBeenCalled();
     expect(component.votesView()).toEqual([{ playerName: 'Anna', choice: 'BIANCO' }]);
     fixture.destroy();
   });
