@@ -9,7 +9,8 @@
 - Bomba: il tabellone è già sul server, quindi la TV salva solo la sequenza di eventi applicati; dopo un refresh riprende il round invece di ripartire da zero e non addebita due volte la stessa bomba.
 - Un solo checkpoint TV per partita (`tvCheckpoint`, endpoint `/tv-state`), legato alla modalità del round: Arena, Bomba e Quiz usano lo stesso meccanismo invece di campi separati.
 - Quiz: la TV riprende la manche in corso con tempo residuo, risposte già date e stadio (gioco, suspense, soluzione), invece di tornare alla prima domanda.
-- Verifiche: 11 test Arena, 4 test Bomba, 9 test Quiz, 40 test TV, 7 RoundPause.
+- Il checkpoint Quiz si scrive ai cambi di stato (manche, risposta, scadenza, soluzione, pausa) e non più a ogni secondo: il tempo trascorso si ricava da `savedAt`, e in pausa resta fermo.
+- Verifiche: 11 test Arena, 4 test Bomba, 13 test Quiz, 40 test TV, 7 RoundPause.
 
 ## 15 novembre 2026 — scaletta 2.2 e cinque bonus
 

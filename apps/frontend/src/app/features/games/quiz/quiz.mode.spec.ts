@@ -108,9 +108,10 @@ describe('QuizMode — ripresa dopo un refresh della TV', () => {
     expect(data.manche).toBe(2);
     expect(mode.getTimerValue()).toBe(7);
 
-    await vi.advanceTimersByTimeAsync(1000);
-    expect(mode.getTimerValue()).toBe(6);
-    expect(saved.at(-1)?.revision).toBe(6);
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(mode.getTimerValue()).toBe(5);
+    // Il cronometro non scrive checkpoint: una POST al secondo era troppo.
+    expect(saved).toHaveLength(0);
 
     // Chi ha già risposto in questa manche non risponde una seconda volta.
     mode.handleAnswer('Anna', 0, 1000);
@@ -169,6 +170,57 @@ describe('QuizMode — ripresa dopo un refresh della TV', () => {
     expect(saved.at(-1)?.type).toBe('QUIZ');
     expect(saved.at(-1)?.state.answers).toHaveLength(1);
     expect(saved.at(-1)?.state.answeredThisManche).toEqual(['Anna']);
+    mode.cleanup();
+  });
+
+  it('toglie dal tempo residuo i secondi passati dall\'ultimo checkpoint', () => {
+    const { mode } = setupConCheckpoint();
+
+    mode.restore(20, {
+      revision: 4,
+      state: { mancheIndex: 1, secondsLeft: 9, savedAt: Date.now() - 4000, stage: 'play' },
+    });
+
+    expect(mode.getTimerValue()).toBe(5);
+    mode.cleanup();
+  });
+
+  it('non scala il tempo fermo di una pausa', () => {
+    const { mode } = setupConCheckpoint();
+
+    mode.restore(20, {
+      revision: 4,
+      state: { mancheIndex: 0, secondsLeft: 8, savedAt: Date.now() - 30_000, paused: true, stage: 'play' },
+    });
+
+    expect(mode.getTimerValue()).toBe(8);
+    mode.cleanup();
+  });
+
+  it('mostra la soluzione se il tempo è scaduto mentre la TV era via', async () => {
+    vi.useFakeTimers();
+    const { mode } = setupConCheckpoint();
+
+    mode.restore(20, {
+      revision: 4,
+      state: { mancheIndex: 0, secondsLeft: 3, savedAt: Date.now() - 5000, stage: 'play' },
+    });
+
+    expect(mode.getDisplayData().revealPending).toBe(true);
+    await vi.advanceTimersByTimeAsync(REVEAL_DELAY_MS);
+    expect(mode.getDisplayData().mancheReveal?.question).toBe('Q1');
+
+    mode.cleanup();
+    vi.useRealTimers();
+  });
+
+  it('salva un checkpoint quando il round va in pausa', () => {
+    const { mode, saved } = setupConCheckpoint();
+    mode.restore(15, { revision: 1, state: { mancheIndex: 0, secondsLeft: 10, stage: 'play' } });
+
+    mode.pause();
+
+    expect(saved.at(-1)?.state).toMatchObject({ paused: true, secondsLeft: 10, stage: 'play' });
     mode.cleanup();
   });
 

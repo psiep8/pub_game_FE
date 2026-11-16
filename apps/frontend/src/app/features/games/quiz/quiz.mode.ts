@@ -75,9 +75,13 @@ export class QuizMode extends GameModeBase {
   /** Le manches hanno un cronometro proprio: il timer della base resta fermo. */
   protected override startTimer(): void {}
 
-  protected onPause(): void {}
+  /** La pausa ferma il cronometro: il checkpoint deve dire da quando è fermo. */
+  protected onPause(): void {
+    this.emitCheckpoint();
+  }
 
   protected onResume(): void {
+    this.emitCheckpoint();
     void this.broadcastState();
   }
 
@@ -178,8 +182,6 @@ export class QuizMode extends GameModeBase {
         this.emitCheckpoint();
         void this.broadcastState();
         this.revealManche();
-      } else {
-        this.emitCheckpoint();
       }
     }, 1000);
   }
@@ -282,9 +284,15 @@ export class QuizMode extends GameModeBase {
     const answered = Array.isArray(state.answeredThisManche)
       ? state.answeredThisManche.filter((name: unknown) => typeof name === 'string')
       : [];
+    // Il checkpoint non è più scritto a ogni secondo: si toglie il tempo
+    // trascorso da savedAt, tranne in pausa, dove il cronometro è fermo.
+    const savedAt = Number(state.savedAt);
+    const elapsed = state.paused === true || !Number.isFinite(savedAt) || savedAt <= 0
+      ? 0
+      : Math.max(0, Math.floor((Date.now() - savedAt) / 1000));
     const savedSeconds = Number(state.secondsLeft);
     const seconds = Number.isFinite(savedSeconds)
-      ? Math.max(0, Math.min(MANCHE_SECONDS, Math.round(savedSeconds)))
+      ? Math.max(0, Math.min(MANCHE_SECONDS, Math.round(savedSeconds) - elapsed))
       : Math.max(0, Math.round(Number(secondsLeft) || 0));
     const stage = state.stage === 'suspense' || state.stage === 'reveal' ? state.stage : 'play';
 
@@ -302,7 +310,7 @@ export class QuizMode extends GameModeBase {
     this.isActive.set(true);
     this.isPaused.set(false);
 
-    if (stage === 'suspense') {
+    if (stage === 'suspense' || (stage === 'play' && seconds <= 0)) {
       // Il tempo era già scaduto: manca solo la soluzione.
       this.revealPending.set(true);
       this.revealManche();
@@ -329,6 +337,10 @@ export class QuizMode extends GameModeBase {
       state: {
         mancheIndex: this.mancheIndex(),
         secondsLeft: Math.max(0, this.secondsLeft),
+        // Il cronometro non si salva a ogni secondo: il tempo trascorso da qui
+        // si ricava al recupero, e in pausa il tempo è fermo.
+        savedAt: Date.now(),
+        paused: this.isPaused(),
         stage: this.mancheReveal() ? 'reveal' : this.revealPending() ? 'suspense' : 'play',
         answers: this.answers(),
         answeredThisManche: [...this.answeredThisManche],
