@@ -53,8 +53,11 @@ const FORCE = option('force');
 const CHECK = option('check');
 const CREDITS = option('credits');
 const FADE_OUT_SECONDS = 0.18;
-const LOOP_WINDOW_SECONDS = 0.1;
 const LOOP_CROSSFADE_SECONDS = 1.5;
+// Compressione leggera: solo per i suoni che, dopo la normalizzazione, restano
+// lontani dal bersaglio perché la cresta è troppo alta.
+const LIGHT_COMPRESSION = 'acompressor=threshold=-30dB:ratio=6:attack=5:release=250';
+const LIGHT_COMPRESSION_LIMITER = 'alimiter=limit=0.6:level=false:attack=5:release=50';
 
 function fail(message) {
   console.error(`\n✗ ${message}\n`);
@@ -219,8 +222,9 @@ function measureLoudness(file) {
 }
 
 /**
- * Punto di loop: guarda i campioni sul confine e il volume di testa e coda.
- * Un salto o un silenzio ai bordi si sente come un click a ogni giro.
+ * Punto di loop: con l'incrocio di 1,5 s il confine è continuo per
+ * costruzione, quindi l'unico difetto misurabile è un salto di campione fra
+ * ultimo e primo frame (si sentirebbe come un click a ogni giro).
  */
 function checkLoopSeam(file) {
   const pcm = runBinary(FFMPEG, [
@@ -229,43 +233,16 @@ function checkLoopSeam(file) {
     '-f', 's16le', '-acodec', 'pcm_s16le', '-ac', '2', '-ar', '44100', '-',
   ]);
   const frames = Math.floor(pcm.length / 4);
-  if (frames < 4410) {
-    return { jumpPercent: null, headRms: null, tailRms: null, ratioDb: null, problems: ['file troppo corto per il controllo'] };
-  }
+  if (frames < 4410) return { jumpPercent: null, problems: ['file troppo corto per il controllo'] };
 
-  const value = (frame, channel) => pcm.readInt16LE(frame * 4 + channel * 2) / 32768;
-  const windowFrames = Math.round(44100 * LOOP_WINDOW_SECONDS);
-  const rms = (start) => {
-    let sum = 0;
-    for (let frame = start; frame < start + windowFrames; frame++) {
-      for (let channel = 0; channel < 2; channel++) {
-        const sample = value(frame, channel);
-        sum += sample * sample;
-      }
-    }
-    return Math.sqrt(sum / (windowFrames * 2));
-  };
-
-  const headRms = rms(0);
-  const tailRms = rms(frames - windowFrames);
-  let jump = 0;
-  for (let channel = 0; channel < 2; channel++) {
-    jump = Math.max(jump, Math.abs(value(0, channel) - value(frames - 1, channel)));
-  }
-  const ratioDb = headRms > 0 && tailRms > 0 ? 20 * Math.log10(tailRms / headRms) : null;
-
-  // Con l'incrocio di 1,5 s il confine è continuo per costruzione: l'unico
-  // difetto misurabile è un salto di campione. Il rapporto fra testa e coda
-  // resta come informazione (una coda in dissolvenza è normale).
-  const problems = [];
-  if (jump > 0.08) problems.push(`salto del ${Math.round(jump * 100)}% sul confine`);
-
+  const sample = (frame, channel) => pcm.readInt16LE(frame * 4 + channel * 2) / 32768;
+  const jump = Math.max(
+    Math.abs(sample(0, 0) - sample(frames - 1, 0)),
+    Math.abs(sample(0, 1) - sample(frames - 1, 1)),
+  );
   return {
     jumpPercent: Number((jump * 100).toFixed(1)),
-    headRms: Number(headRms.toFixed(4)),
-    tailRms: Number(tailRms.toFixed(4)),
-    ratioDb: ratioDb === null ? null : Number(ratioDb.toFixed(1)),
-    problems,
+    problems: jump > 0.08 ? [`salto del ${Math.round(jump * 100)}% sul confine`] : [],
   };
 }
 
@@ -316,17 +293,39 @@ function sourceCandidates(entry) {
   return list;
 }
 
+/** Se il grezzo era finito nella cartella di destinazione, va in _src/. */
+function archiveSource(entry, source, candidate) {
+  if (!candidate.raw) return;
+  const archive = join(AUDIO_ROOT, '_src', entry.folder);
+  if (dirname(source) === archive) return;
+  mkdirSync(archive, { recursive: true });
+  const destination = join(archive, basename(source));
+  if (!existsSync(destination)) renameSync(source, destination);
+}
+
+/** Chiude il file: archivia il grezzo, poi misura durata, peso e loudness. */
+function finish(entry, source, candidate, output) {
+  archiveSource(entry, source, candidate);
+  return {
+    seconds: probeSeconds(output),
+    bytes: statSync(output).size,
+    ...measureLoudness(output),
+  };
+}
+
 function processEffect(entry, source, candidate, output, target, sourceSeconds) {
   mkdirSync(TMP, { recursive: true });
   mkdirSync(dirname(output), { recursive: true });
   const encoded = `${output}.part.m4a`;
+  const limiter = LIGHT_COMPRESSION_LIMITER;
 
   const tooShortForLoudness = sourceSeconds < 1.2;
   const willCut = sourceSeconds > entry.maxSeconds + 0.05;
 
   /** Catena base: normalizza, poi taglia e sfuma la coda vera. */
-  const buildChain = (correctionDb) => {
+  const buildChain = (correctionDb, compress) => {
     const chain = [];
+    if (compress && !tooShortForLoudness) chain.push(LIGHT_COMPRESSION);
     if (tooShortForLoudness) {
       const peakDb = measureMaxVolume(source);
       if (peakDb === null) fail(`${entry.path} è muto: nessun campione da normalizzare.`);
@@ -338,18 +337,18 @@ function processEffect(entry, source, candidate, output, target, sourceSeconds) 
     }
     if (Math.abs(correctionDb) > 0.05) chain.push(`volume=${correctionDb.toFixed(2)}dB`);
     chain.push('aresample=44100');
-    chain.push('alimiter=limit=0.75:level=false:attack=5:release=50');
+    chain.push(compress ? limiter : 'alimiter=limit=0.75:level=false:attack=5:release=50');
     if (sourceSeconds >= 0.4) chain.push(TRIM_BOTH_ENDS);
     chain.push(`atrim=start=0:end=${entry.maxSeconds}`);
     if (willCut) chain.push('areverse', `afade=t=in:st=0:d=${FADE_OUT_SECONDS}`, 'areverse');
     return chain.join(',');
   };
 
-  const encode = (correctionDb, destination) => {
+  const encode = (correctionDb, compress, destination) => {
     run(FFMPEG, [
       '-hide_banner', '-nostats', '-y',
       '-i', source,
-      '-af', buildChain(correctionDb),
+      '-af', buildChain(correctionDb, compress),
       '-c:a', 'aac',
       '-b:a', target.bitrate,
       '-ac', String(target.channels),
@@ -361,54 +360,39 @@ function processEffect(entry, source, candidate, output, target, sourceSeconds) 
   };
 
   try {
-    let totalGain = 0;
-    encode(0, encoded);
-    let loudness = measureLoudness(encoded);
+    // Bersaglio: LUFS degli effetti, picco dei file troppo corti per la misura
+    // integrata. Il loudnorm da solo non arriva sempre: si misura il file
+    // finito e si corregge. La compressione leggera entra solo quando lo scarto
+    // è grande, e si tiene solo se avvicina davvero al bersaglio.
+    const goal = tooShortForLoudness ? -3 : target.i;
+    const valueOf = (measure) => (tooShortForLoudness ? measure.peak : measure.lufs) ?? goal;
+    const distance = (measure) => Math.abs(goal - valueOf(measure));
+    const attempt = (gain, compress) => {
+      encode(gain, compress, encoded);
+      return { gain, compress, ...measureLoudness(encoded) };
+    };
 
-    // Il loudnorm non arriva sempre al bersaglio: su un suono radi si ferma
-    // per non sfondare il picco, su uno tagliato misura anche la coda che non
-    // si sente. Due correzioni misurate sul file finito chiudono lo scarto;
-    // il limiter continua a tenere il picco sotto controllo.
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      const measured = tooShortForLoudness ? (loudness.peak ?? -3) : (loudness.lufs ?? target.i);
-      const goal = tooShortForLoudness ? -3 : target.i;
-      const missing = goal - measured;
-      if (Math.abs(missing) <= 0.6) break;
-      totalGain = Math.max(-12, Math.min(12, totalGain + missing));
-      encode(totalGain, encoded);
-      loudness = measureLoudness(encoded);
+    let best = attempt(0, false);
+    for (let round = 0; round < 3 && distance(best) > 0.6; round += 1) {
+      const gain = Math.max(-12, Math.min(20, best.gain + goal - valueOf(best)));
+      const candidate = attempt(gain, distance(best) > 2);
+      if (distance(candidate) < distance(best)) best = candidate;
     }
-    const bounded = totalGain;
+    encode(best.gain, best.compress, encoded);
 
     renameSync(encoded, output);
-
-    if (candidate.raw && dirname(source) !== join(AUDIO_ROOT, '_src', entry.folder)) {
-      const archive = join(AUDIO_ROOT, '_src', entry.folder);
-      mkdirSync(archive, { recursive: true });
-      const destination = join(archive, basename(source));
-      if (!existsSync(destination)) renameSync(source, destination);
-    }
-
-    const finalSeconds = probeSeconds(output);
     return {
       status: 'done',
       source: relative(ROOT, source),
-      sourceSeconds,
-      seconds: finalSeconds,
-      bytes: statSync(output).size,
-      lufs: loudness.lufs,
-      peak: loudness.peak,
       target: tooShortForLoudness ? 'picco -3 dBFS' : target.i,
-      faded: willCut,
-      normalizedByPeak: tooShortForLoudness,
-      correctionDb: Number(bounded.toFixed(1)),
+      ...finish(entry, source, candidate, output),
     };
   } finally {
     rmSync(encoded, { force: true });
   }
 }
 
-function processLoop(entry, source, candidate, output, target, sourceSeconds) {
+function processLoop(entry, source, candidate, output, target) {
   mkdirSync(TMP, { recursive: true });
   mkdirSync(dirname(output), { recursive: true });
   const cleaned = join(TMP, `${entry.folder}-${entry.name}-clean.wav`);
@@ -480,16 +464,6 @@ function processLoop(entry, source, candidate, output, target, sourceSeconds) {
     ]);
 
     renameSync(encoded, output);
-
-    if (candidate.raw && dirname(source) !== join(AUDIO_ROOT, '_src', entry.folder)) {
-      const archive = join(AUDIO_ROOT, '_src', entry.folder);
-      mkdirSync(archive, { recursive: true });
-      const destination = join(archive, basename(source));
-      if (!existsSync(destination)) renameSync(source, destination);
-    }
-
-    const finalSeconds = probeSeconds(output);
-    const loudness = measureLoudness(output);
     const seam = checkLoopSeam(output);
     if (seam.problems.length > 0) {
       console.warn(`  ! ${entry.path}: punto di loop da rivedere — ${seam.problems.join('; ')}.`);
@@ -497,13 +471,9 @@ function processLoop(entry, source, candidate, output, target, sourceSeconds) {
     return {
       status: 'done',
       source: relative(ROOT, source),
-      sourceSeconds,
-      seconds: finalSeconds,
-      bytes: statSync(output).size,
-      lufs: loudness.lufs,
-      peak: loudness.peak,
       target: target.i,
       seam,
+      ...finish(entry, source, candidate, output),
     };
   } finally {
     rmSync(cleaned, { force: true });
@@ -527,7 +497,7 @@ function processEntry(entry) {
 
   const target = entry.isLoop ? LOOP_LOUDNESS : EFFECT_LOUDNESS;
   return entry.isLoop
-    ? processLoop(entry, source, candidate, output, target, sourceSeconds)
+    ? processLoop(entry, source, candidate, output, target)
     : processEffect(entry, source, candidate, output, target, sourceSeconds);
 }
 
@@ -633,8 +603,8 @@ function writeCredits(entries) {
     'I suoni sotto 1,2 s sono normalizzati sul picco a −3 dBFS, non sul LUFS:',
     'sono troppo corti perché la misura integrata abbia senso, quindi in tabella',
     'mostrano «—» e vale il picco. Sui suoni con molta cresta (un riser, un galoppo)',
-    'il bersaglio di loudness non si raggiunge senza schiacciare i transienti: il',
-    'valore in tabella è quello misurato davvero, non quello richiesto.',
+    'entra una compressione leggera; dove anche quella non basta, il valore in',
+    'tabella è quello misurato davvero, non quello richiesto.',
     '',
     'Sostituire un suono = sostituire il file con lo stesso nome e rigenerare i crediti.',
     '',
