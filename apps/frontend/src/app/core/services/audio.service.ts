@@ -6,6 +6,20 @@ import {
   type AudioEventId,
 } from './audio-catalog';
 import {
+  bell,
+  brass,
+  buzzer,
+  click,
+  createRoom,
+  crowd,
+  drumroll,
+  fireworks,
+  formant,
+  modal,
+  noiseVoice,
+  pluck,
+} from './audio-dsp';
+import {
   PUB_BED_SECONDS_PER_BAR,
   PUB_BED_SECONDS_PER_BEAT,
   PUB_BED_TOTAL_BARS,
@@ -68,6 +82,9 @@ export class AudioService {
   private ambientNoise?: AudioBufferSourceNode;
   private ambientNoiseGain?: GainNode;
   private master?: GainNode;
+  /** Bus della TV: entra nel master e manda una copia nella coda di stanza. */
+  private tvBus?: GainNode;
+  private roomSend?: GainNode;
 
   /** Foley ha il suo contesto: si configura una volta sola. */
   private uiReady = false;
@@ -76,8 +93,9 @@ export class AudioService {
   readonly masterVolume = signal(1);
   /** Ultima riproduzione per evento: serve alla distanza minima del catalogo. */
   private readonly lastEventAt = new Map<string, number>();
-  /** Rifinitura dell'evento in corso: si azzera appena il suono è stato armato. */
-  private eventTrim = 1;
+  /** Bus dell'evento in corso: applica la rifinitura di volume del catalogo. */
+  private wetBus?: GainNode;
+  private dryBus?: GainNode;
 
   constructor() {
     this.armUnlock();
@@ -92,9 +110,16 @@ export class AudioService {
     if (!this.audioEnabled()) return;
 
     this.heartbeatIntensity = Math.max(0, Math.min(1, intensity));
+    // Lub-dub: due colpi, il secondo più debole e più chiuso del primo.
     const beat = () => {
-      this.tone({ freq: 92, duration: 0.16, type: 'sine', gain: 0.05 + this.heartbeatIntensity * 0.025, slideTo: 55 });
-      this.tone({ freq: 180, duration: 0.09, type: 'triangle', gain: 0.018, slideTo: 105 });
+      const level = 0.05 + this.heartbeatIntensity * 0.03;
+      this.tone({ freq: 76, duration: 0.19, type: 'sine', gain: level, slideTo: 44 });
+      this.tone({ freq: 152, duration: 0.06, type: 'triangle', gain: level * 0.22, slideTo: 92 });
+      window.setTimeout(() => {
+        if (!this.audioEnabled()) return;
+        this.tone({ freq: 68, duration: 0.24, type: 'sine', gain: level * 0.62, slideTo: 40 });
+        this.tone({ freq: 136, duration: 0.05, type: 'triangle', gain: level * 0.14, slideTo: 84 });
+      }, Math.round(250 - this.heartbeatIntensity * 70));
     };
     beat();
 
@@ -135,7 +160,22 @@ export class AudioService {
     // refresh, pausa, nuovo round) gli intervalli si sommerebbero e il
     // ticchettio resterebbe acceso per tutta la serata.
     this.stopClock();
-    const tick = () => this.tone({ freq: 1650, duration: 0.04, type: 'square', gain: 0.024, slideTo: 900 });
+    // Orologio da parete: scatto secco di legno, più corpo grave appena percettibile.
+    const tick = () => {
+      const ctx = this.ensureContext();
+      if (!ctx) return;
+      const at = this.at;
+      click(ctx, this.out(ctx), { at, gain: 0.33, freq: 2600, q: 10, decay: 0.028 });
+      modal(ctx, this.out(ctx), {
+        at,
+        gain: 0.18,
+        partials: [
+          { freq: 1240, decay: 0.05, q: 28 },
+          { freq: 1980, decay: 0.032, q: 22, gain: 0.45 },
+        ],
+      });
+      this.tone({ freq: 98, duration: 0.06, type: 'sine', gain: 0.09, slideTo: 72 });
+    };
     tick();
     this.clockLoopInterval = setInterval(tick, 1000);
   }
@@ -149,8 +189,13 @@ export class AudioService {
 
   playBell(): void {
     if (!this.audioEnabled()) return;
-    this.tone({ freq: 1318.5, duration: 0.35, type: 'sine', gain: 0.05 });
-    this.tone({ freq: 1975.5, duration: 0.22, type: 'sine', gain: 0.025, delay: 0.02 });
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
+    // Campana di ottone: parziali inarmonici, non due sinusoidi pure.
+    bell(ctx, this.out(ctx), { at, freq: 1046.5, duration: 1.9, ratio: 2.76, index: 2.6, gain: 0.05 });
+    bell(ctx, this.out(ctx), { at: at + 0.008, freq: 2093, duration: 1.2, ratio: 1.4, index: 1.1, gain: 0.014, pan: 0.25 });
+    click(ctx, this.out(ctx), { at, gain: 0.05, freq: 4200, q: 2, decay: 0.02 });
   }
 
   playCorrect(): void {
@@ -164,34 +209,57 @@ export class AudioService {
 
   playWrong(): void {
     if (!this.audioEnabled()) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
     this.playUi('sbagliato');
-    this.tone({ freq: 196, duration: 0.45, type: 'sawtooth', gain: 0.05, slideTo: 110 });
+    // Ottoni che scendono: la faccia del presentatore, non un bip discendente.
+    brass(ctx, this.out(ctx), { at, freq: 233, to: 138, duration: 0.5, gain: 0.055, voices: 3 });
+    brass(ctx, this.out(ctx), { at: at + 0.06, freq: 175, to: 104, duration: 0.55, gain: 0.038, voices: 2 });
+    modal(ctx, this.out(ctx), {
+      at,
+      gain: 0.05,
+      partials: [
+        { freq: 110, decay: 0.35, q: 12 },
+        { freq: 220, decay: 0.25, q: 16, gain: 0.4 },
+      ],
+    });
     this.playUuuh();
   }
 
   /** Tintinnio di gettoni: pioggia di ping metallici, effetto da bar. */
   playCoins(): void {
     if (!this.audioEnabled()) return;
-    const pings = [1760, 2093, 2349, 2637, 3136];
-    for (let i = 0; i < 12; i++) {
-      const freq = pings[i % pings.length] * (i % 3 === 0 ? 1 : 0.75);
-      this.tone({
-        freq,
-        duration: 0.09,
-        type: 'triangle',
-        gain: 0.014 + (i % 4) * 0.003,
-        delay: i * 0.035,
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
+    // Gettoni sul banco: metallo piccolo, ognuno con la sua coda e la sua posizione.
+    const pings: Array<[number, number]> = [
+      [2350, 0], [2820, 0.05], [2100, 0.11], [3200, 0.14], [2650, 0.21],
+      [2450, 0.27], [3050, 0.31], [2200, 0.38], [2900, 0.43], [2550, 0.5],
+    ];
+    for (const [freq, delay] of pings) {
+      modal(ctx, this.out(ctx), {
+        at: at + delay,
+        gain: 0.16,
+        partials: [
+          { freq, decay: 0.16, q: 60, gain: 1 },
+          { freq: freq * 2.41, decay: 0.09, q: 70, gain: 0.45 },
+        ],
+        strike: { freq: 5200, q: 1.4, duration: 0.02, gain: 0.36 },
+        pan: delay * 1.4 - 0.35,
       });
     }
-    this.tone({ freq: 880, duration: 0.12, type: 'sine', gain: 0.02, delay: 0.02 });
+    click(ctx, this.out(ctx), { at, gain: 0.12, freq: 900, q: 1.2, decay: 0.06 });
   }
 
   /** Applauso sintetico: folate di rumore filtrato, senza asset esterni. */
   playApplause(): void {
     if (!this.audioEnabled()) return;
-    this.noiseBurst(0.55, 0.05, 0, 1500);
-    this.noiseBurst(0.7, 0.045, 0.12, 1900);
-    this.noiseBurst(0.9, 0.035, 0.28, 1200);
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    // Battimani veri: tanti colpi brevi in stereo, non un soffio unico.
+    crowd(ctx, this.out(ctx), { at: this.at, duration: 1.9, gain: 0.06, density: 95, seed: 21 });
   }
 
   /**
@@ -200,29 +268,93 @@ export class AudioService {
    */
   playRacketHit(): void {
     if (!this.audioEnabled()) return;
-    this.noiseBurst(0.12, 0.09, 0, 2400);
-    this.tone({ freq: 620, duration: 0.09, type: 'triangle', gain: 0.05, slideTo: 380 });
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
+    // Palla sulla corda: schiocco di rumore corto e corda che vibra subito dopo.
+    noiseVoice(ctx, this.out(ctx, false), {
+      at,
+      duration: 0.07,
+      gain: 0.14,
+      freq: 2300,
+      q: 1.3,
+      attack: 0.002,
+      release: 0.06,
+    });
+    modal(ctx, this.out(ctx, false), {
+      at,
+      gain: 0.06,
+      partials: [
+        { freq: 430, decay: 0.16, q: 18 },
+        { freq: 690, decay: 0.12, q: 20, gain: 0.5 },
+      ],
+    });
+    pluck(ctx, this.out(ctx, false), { at: at + 0.006, freq: 196, duration: 0.2, gain: 0.05, brightness: 0.7 });
   }
 
   /** «Uuuh» del pubblico quando una squadra sbaglia. */
   playUuuh(): void {
     if (!this.audioEnabled()) return;
-    this.tone({ freq: 320, duration: 0.55, type: 'sawtooth', gain: 0.028, slideTo: 150 });
-    this.tone({ freq: 240, duration: 0.6, type: 'triangle', gain: 0.022, delay: 0.04, slideTo: 120 });
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
+    // «Uuuh» di sala: tre voci con formanti, ognuna leggermente scordata.
+    const voices: Array<[number, number, number]> = [
+      [118, -0.4, 0.13],
+      [126, 0.35, 0.1],
+      [134, 0.7, 0.08],
+    ];
+    for (const [freq, pan, gain] of voices) {
+      formant(ctx, this.out(ctx), {
+        at: at + Math.abs(pan) * 0.02,
+        duration: 1.15,
+        freq,
+        to: freq * 0.78,
+        gain,
+        formants: [[330, 1], [820, 0.55], [2300, 0.2]],
+        vibrato: 0.018,
+        pan,
+      });
+    }
+    noiseVoice(ctx, this.out(ctx), {
+      at,
+      duration: 1.1,
+      gain: 0.06,
+      freq: 700,
+      q: 0.7,
+      attack: 0.25,
+      release: 0.8,
+    });
   }
 
   /** Sirena della Bomba: due toni alternati, da allarme da bar. */
   playBombSiren(): void {
     if (!this.audioEnabled()) return;
-    for (let i = 0; i < 6; i++) {
-      this.tone({
-        freq: i % 2 === 0 ? 720 : 520,
-        duration: 0.24,
-        type: 'square',
-        gain: 0.025,
-        delay: i * 0.26,
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
+    // Sirena d'allarme: ottoni che salgono e scendono a fiato alternato.
+    for (let i = 0; i < 5; i++) {
+      const from = i % 2 === 0 ? 392 : 523.25;
+      brass(ctx, this.out(ctx), {
+        at: at + i * 0.26,
+        freq: from,
+        to: i % 2 === 0 ? 523.25 : 392,
+        duration: 0.28,
+        gain: 0.1,
+        voices: 3,
       });
     }
+    noiseVoice(ctx, this.out(ctx), {
+      at,
+      duration: 1.35,
+      gain: 0.05,
+      freq: 900,
+      to: 1600,
+      q: 1.2,
+      attack: 0.05,
+      release: 1.2,
+    });
   }
 
   /**
@@ -231,48 +363,104 @@ export class AudioService {
    */
   playBonusEntrance(type: string): void {
     if (!this.audioEnabled()) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
+    const room = this.out(ctx);
 
     switch (type) {
-      case 'CASINO_COLOR':
-        this.tone({ freq: 196, duration: 0.18, type: 'square', gain: 0.03 });
-        this.tone({ freq: 392, duration: 0.18, type: 'square', gain: 0.03, delay: 0.2 });
-        this.tone({ freq: 196, duration: 0.18, type: 'square', gain: 0.03, delay: 0.4 });
-        this.noiseBurst(0.2, 0.05, 0.56, 2800);
+      case 'CASINO_COLOR': {
+        // Gettone appoggiato sul panno, pallina che si posa, sala che mormora.
+        modal(ctx, room, {
+          at,
+          gain: 0.3,
+          partials: [
+            { freq: 2650, decay: 0.16, q: 60 },
+            { freq: 3980, decay: 0.1, q: 70, gain: 0.4 },
+          ],
+          strike: { freq: 5400, q: 1.4, duration: 0.02, gain: 0.1 },
+        });
+        modal(ctx, room, { at: at + 0.26, gain: 0.14, partials: [{ freq: 2920, decay: 0.12, q: 60 }], pan: 0.3 });
+        crowd(ctx, room, { at: at + 0.46, duration: 0.9, gain: 0.07, density: 55, seed: 12 });
         break;
+      }
       case 'BLACKJACK':
-        this.noiseBurst(0.08, 0.08, 0, 1800);
-        this.tone({ freq: 130.81, duration: 0.22, type: 'triangle', gain: 0.055, delay: 0.12 });
-        this.tone({ freq: 246.94, duration: 0.22, type: 'triangle', gain: 0.045, delay: 0.36 });
-        this.tone({ freq: 329.63, duration: 0.28, type: 'triangle', gain: 0.04, delay: 0.6 });
+        // Carta che sfila dal mazzo, poi il colpo del mazzo che si chiude.
+        noiseVoice(ctx, room, {
+          at,
+          duration: 0.14,
+          gain: 0.2,
+          freq: 2400,
+          to: 5200,
+          q: 1.2,
+          attack: 0.02,
+          release: 0.1,
+        });
+        click(ctx, room, { at: at + 0.16, gain: 0.18, freq: 1500, q: 2.2, decay: 0.05 });
+        modal(ctx, room, {
+          at: at + 0.16,
+          gain: 0.14,
+          partials: [
+            { freq: 220, decay: 0.14, q: 14 },
+            { freq: 440, decay: 0.1, q: 18, gain: 0.5 },
+          ],
+        });
         break;
       case 'CASINO_DOZEN':
-        for (let i = 0; i < 5; i++) {
-          this.tone({
-            freq: i % 2 === 0 ? 880 : 660,
-            duration: 0.16,
-            type: 'square',
-            gain: 0.022,
-            delay: i * 0.2,
+        // Dadi nel bicchiere: cinque rimbalzi di plastica, poi si fermano.
+        for (let i = 0; i < 6; i++) {
+          const hit = 0.02 + i * 0.09 + (i % 2) * 0.03;
+          modal(ctx, room, {
+            at: at + hit,
+            gain: 0.5 * (1 - i * 0.12),
+            partials: [
+              { freq: 1180 + i * 90, decay: 0.05, q: 26 },
+              { freq: 2140 + i * 120, decay: 0.03, q: 30, gain: 0.5 },
+            ],
+            strike: { freq: 3200, q: 1.5, duration: 0.012, gain: 0.3 },
+            pan: i % 2 === 0 ? -0.35 : 0.35,
           });
         }
         break;
       case 'CAVALLO':
+        // Zoccoli sul legno: quattro battute di galoppo, mai uguali fra loro.
         for (let i = 0; i < 4; i++) {
-          this.tone({
-            freq: i % 2 === 0 ? 98 : 82,
-            duration: 0.09,
-            type: 'sine',
-            gain: 0.07,
-            delay: i * 0.24,
-            slideTo: 54,
+          const hit = i * 0.22 + (i % 2) * 0.03;
+          modal(ctx, room, {
+            at: at + hit,
+            gain: 0.9 - i * 0.09,
+            partials: [
+              { freq: 150, decay: 0.1, q: 12 },
+              { freq: 320, decay: 0.07, q: 16, gain: 0.6 },
+              { freq: 760, decay: 0.04, q: 20, gain: 0.25 },
+            ],
+            strike: { freq: 900, q: 1.3, duration: 0.02, gain: 0.35 },
+            pan: i % 2 === 0 ? -0.2 : 0.25,
           });
         }
         break;
       case 'CASINO_NUMBER':
-        this.tone({ freq: 1046.5, duration: 0.12, type: 'triangle', gain: 0.035 });
-        this.tone({ freq: 1318.5, duration: 0.12, type: 'triangle', gain: 0.035, delay: 0.22 });
-        this.tone({ freq: 1568, duration: 0.16, type: 'triangle', gain: 0.04, delay: 0.44 });
-        this.tone({ freq: 65.41, duration: 0.5, type: 'sine', gain: 0.08, delay: 0.7, slideTo: 40 });
+        // Leva della slot che scende, rullo che si ferma, gettoni che escono.
+        noiseVoice(ctx, room, {
+          at,
+          duration: 0.3,
+          gain: 0.08,
+          freq: 700,
+          to: 200,
+          q: 1.1,
+          attack: 0.01,
+          release: 0.28,
+        });
+        for (let i = 0; i < 3; i++) {
+          click(ctx, room, {
+            at: at + 0.08 + i * 0.07,
+            gain: 0.09,
+            freq: 1700 + i * 500,
+            q: 9,
+            decay: 0.02,
+          });
+        }
+        this.playCoins();
         break;
     }
   }
@@ -282,9 +470,21 @@ export class AudioService {
    * Suono breve, due note in salita, pensato per il telefono.
    */
   playConfirm(): void {
+    if (!this.audioEnabled()) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
     this.playUi('prenotazione');
-    this.tone({ freq: 740, duration: 0.07, type: 'triangle', gain: 0.05 });
-    this.tone({ freq: 1108.73, duration: 0.1, type: 'triangle', gain: 0.04, delay: 0.06 });
+    // Conferma da telefono: colpo di legno piccolo, appena percettibile.
+    click(ctx, this.out(ctx, false), { at, gain: 0.6, freq: 2600, q: 8, decay: 0.03 });
+    modal(ctx, this.out(ctx, false), {
+      at,
+      gain: 0.45,
+      partials: [
+        { freq: 1120, decay: 0.06, q: 30 },
+        { freq: 1660, decay: 0.04, q: 26, gain: 0.4 },
+      ],
+    });
   }
 
   /**
@@ -292,9 +492,13 @@ export class AudioService {
    * Suono corto e grave, distinto dal «sbagliato» della TV.
    */
   playError(): void {
+    if (!this.audioEnabled()) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
     this.playUi('sbagliato');
-    this.tone({ freq: 220, duration: 0.16, type: 'square', gain: 0.035, slideTo: 140 });
-    this.tone({ freq: 165, duration: 0.18, type: 'square', gain: 0.03, delay: 0.08, slideTo: 110 });
+    // Errore da telefono: ronzio corto e chiuso, senza invadenza.
+    buzzer(ctx, this.out(ctx, false), { at, duration: 0.2, gain: 0.05, freq: 148 });
   }
 
   /**
@@ -303,38 +507,95 @@ export class AudioService {
    */
   playGong(): void {
     if (!this.audioEnabled()) return;
-    if (!this.ensureContext()) return;
-    const partials: Array<[number, number, number]> = [
-      [98, 0.09, 2.8],
-      [196, 0.05, 2.3],
-      [294.7, 0.032, 1.8],
-      [412.5, 0.024, 1.4],
-      [589.3, 0.017, 1.0],
-      [1244, 0.011, 0.7],
-    ];
-    for (const [freq, gain, duration] of partials) {
-      this.tone({ freq, duration, type: 'sine', gain, attack: 0.006, detune: -4 });
-    }
-    this.noiseBurst(0.18, 0.035, 0, 900);
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
+    const base = 79;
+    // Tam-tam: parziali inarmonici che si spengono uno dopo l'altro e
+    // continuano a battere fra loro. Niente nota, solo metallo.
+    modal(ctx, this.out(ctx), {
+      at,
+      gain: 2.4,
+      partials: [
+        { freq: base, decay: 8, q: 26, gain: 1 },
+        { freq: base * 2.03, decay: 6.4, q: 32, gain: 0.62 },
+        { freq: base * 2.91, decay: 5.2, q: 36, gain: 0.48 },
+        { freq: base * 4.12, decay: 3.8, q: 42, gain: 0.32 },
+        { freq: base * 5.63, decay: 2.9, q: 48, gain: 0.22 },
+        { freq: base * 7.34, decay: 1.9, q: 52, gain: 0.13 },
+        { freq: base * 9.7, decay: 1.1, q: 56, gain: 0.07 },
+      ],
+      strike: { freq: 620, q: 1, duration: 0.16, gain: 0.12 },
+    });
+    // Seconda campana appena scordata: il battimento tiene vivo il suono.
+    modal(ctx, this.out(ctx), {
+      at: at + 0.006,
+      gain: 0.8,
+      partials: [
+        { freq: base * 1.0045, decay: 6.2, q: 24 },
+        { freq: base * 2.046, decay: 4.8, q: 30, gain: 0.5 },
+      ],
+      pan: -0.2,
+    });
+    noiseVoice(ctx, this.out(ctx), {
+      at,
+      duration: 0.5,
+      gain: 0.3,
+      freq: 420,
+      to: 140,
+      q: 0.8,
+      type: 'lowpass',
+      attack: 0.004,
+      release: 0.45,
+    });
   }
 
   /** Tempo scaduto: la conferma che il round non accetta più risposte. */
   playTimeUp(): void {
-    this.playUi('tempoScaduto');
+    if (!this.audioEnabled()) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
+    // Cicalino vero, tutto sul bus della TV: così il volume della regia lo
+    // controlla (il cue Foley da solo restava fuori dal cursore).
+    buzzer(ctx, this.out(ctx), { at, duration: 0.95, gain: 0.075, freq: 208 });
+    modal(ctx, this.out(ctx), {
+      at,
+      gain: 0.03,
+      partials: [{ freq: 104, decay: 0.9, q: 14 }],
+    });
   }
 
   playReveal(): void {
     if (!this.audioEnabled()) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
     this.stopClock();
     this.playUi('rivelazione');
-    // Il rullo accompagna l'avvicinarsi della soluzione; l'accordo entra
-    // quando il pubblico ha già capito che sta per succedere qualcosa.
-    this.playDrumroll(0.9, 0.65);
-    window.setTimeout(() => {
-      if (!this.audioEnabled()) return;
-      this.chord([523.25, 659.25, 783.99], 0.6);
-      this.tone({ freq: 1567.98, duration: 0.5, type: 'sine', gain: 0.035, delay: 0.05 });
-    }, 720);
+    const at = this.at;
+    // Il pubblico trattiene il fiato, poi l'arpa svela la soluzione.
+    noiseVoice(ctx, this.out(ctx), {
+      at,
+      duration: 0.7,
+      gain: 0.05,
+      freq: 500,
+      to: 2800,
+      q: 0.9,
+      attack: 0.5,
+      release: 0.2,
+    });
+    const arpeggio = [523.25, 659.25, 783.99, 1046.5];
+    arpeggio.forEach((freq, index) => {
+      pluck(ctx, this.out(ctx), {
+        at: at + 0.5 + index * 0.055,
+        freq,
+        duration: 1.6,
+        gain: 0.12,
+        brightness: 0.62,
+        pan: index * 0.14 - 0.2,
+      });
+    });
+    bell(ctx, this.out(ctx), { at: at + 0.72, freq: 2093, duration: 1.4, ratio: 2.4, index: 1.6, gain: 0.06 });
   }
 
   /**
@@ -343,46 +604,76 @@ export class AudioService {
    */
   playRouletteTicks(durationMs = 6750): void {
     if (!this.audioEnabled()) return;
-    if (!this.ensureContext()) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
+    const seconds = durationMs / 1000;
 
-    let elapsed = 0;
-    while (elapsed < durationMs - 120) {
-      const progress = elapsed / durationMs;
-      const jitter = Math.sin(elapsed * 0.017) * 55;
-      // Legno del separatore + corpo basso della pallina.
-      this.tone({
-        freq: 1720 - progress * 560 + jitter,
-        duration: 0.024,
-        type: 'triangle',
-        gain: 0.028 * (1 - progress * 0.45),
-        delay: elapsed / 1000,
-      });
-      this.tone({
-        freq: 205 - progress * 70,
-        duration: 0.018,
-        type: 'sine',
-        gain: 0.012 * (1 - progress * 0.5),
-        delay: elapsed / 1000,
-      });
-      elapsed += 26 + Math.pow(progress, 2.4) * 340;
-    }
-
-    this.tone({
-      freq: 92,
-      duration: 0.22,
-      type: 'sine',
-      gain: 0.055,
-      delay: (durationMs * 0.29) / 1000,
+    // Rotore che gira: ronzio basso e sordo, sempre in sottofondo.
+    noiseVoice(ctx, this.out(ctx), {
+      at,
+      duration: seconds * 0.95,
+      gain: 0.016,
+      freq: 220,
+      to: 160,
+      q: 1.6,
+      type: 'lowpass',
+      attack: 0.15,
+      release: seconds * 0.9,
     });
+
+    // La pallina salta di vano in vano: colpi di legno veri, sempre più radi.
+    const random = () => Math.random();
+    let elapsed = 0;
+    while (elapsed < seconds - 0.15) {
+      const progress = elapsed / seconds;
+      const atHit = at + elapsed;
+      const speed = 1 - progress * 0.55;
+      modal(ctx, this.out(ctx), {
+        at: atHit,
+        gain: 0.2 * speed,
+        partials: [
+          { freq: 1850 - progress * 420 + random() * 120, decay: 0.05, q: 30, gain: 1 },
+          { freq: 2960 - progress * 700, decay: 0.03, q: 34, gain: 0.4 },
+          { freq: 420, decay: 0.07, q: 14, gain: 0.5 },
+        ],
+        strike: { freq: 4600, q: 1.2, duration: 0.012, gain: 0.3 },
+        pan: random() * 0.7 - 0.35,
+      });
+      elapsed += 0.028 + Math.pow(progress, 2.4) * 0.36 + random() * 0.01;
+    }
   }
 
   /** Atterraggio della roulette: tonfo grave e accento luminoso. */
   playRouletteLanding(): void {
     if (!this.audioEnabled()) return;
-    this.tone({ freq: 120, duration: 0.32, type: 'sine', gain: 0.075, slideTo: 58 });
-    this.tone({ freq: 1046.5, duration: 0.16, type: 'triangle', gain: 0.04, delay: 0.02 });
-    this.chord([523.25, 659.25, 783.99], 0.75, 0.06);
-    this.tone({ freq: 1567.98, duration: 0.42, type: 'sine', gain: 0.032, delay: 0.16 });
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
+    // La pallina cade nel vano: tonfo di legno, poi il rimbalzo che si spegne.
+    modal(ctx, this.out(ctx), {
+      at,
+      gain: 0.11,
+      partials: [
+        { freq: 168, decay: 0.3, q: 18 },
+        { freq: 352, decay: 0.22, q: 22, gain: 0.6 },
+        { freq: 640, decay: 0.15, q: 26, gain: 0.28 },
+      ],
+      strike: { freq: 1400, q: 1.1, duration: 0.05, gain: 0.2 },
+    });
+    modal(ctx, this.out(ctx), {
+      at: at + 0.09,
+      gain: 0.04,
+      partials: [{ freq: 2050, decay: 0.14, q: 34 }],
+      pan: 0.25,
+    });
+    modal(ctx, this.out(ctx), {
+      at: at + 0.2,
+      gain: 0.02,
+      partials: [{ freq: 2260, decay: 0.1, q: 34 }],
+      pan: -0.3,
+    });
+    this.playCoins();
   }
 
   /** Nuova squadra collegata: bip luminoso a due note. */
@@ -394,57 +685,156 @@ export class AudioService {
 
   /** Tick delle classifiche e dei countdown. */
   playTick(): void {
+    if (!this.audioEnabled()) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
     this.playUi('tocco');
-    this.tone({ freq: 880, duration: 0.06, type: 'triangle', gain: 0.035 });
+    // Timbro da tabellone stampato: colpo di legno e punta di penna, sempre
+    // uguale a se stesso (niente nota casuale che sembra sbagliata).
+    click(ctx, this.out(ctx), { at, gain: 0.3, freq: 2100, q: 7, decay: 0.035 });
+    modal(ctx, this.out(ctx), {
+      at,
+      gain: 0.22,
+      partials: [
+        { freq: 880, decay: 0.07, q: 24 },
+        { freq: 1320, decay: 0.05, q: 26, gain: 0.5 },
+      ],
+    });
+    this.tone({ freq: 190, duration: 0.06, type: 'sine', gain: 0.07, slideTo: 140 });
   }
 
   /** Tick del countdown: legno secco e bassissimo, sotto la musica. */
   playCountdownTick(): void {
-    this.tone({ freq: 1180, duration: 0.035, type: 'triangle', gain: 0.022 });
+    if (!this.audioEnabled()) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
+    // Scatto di orologio meccanico: rumore strettissimo che eccita un corpo
+    // di legno, più il sordo del meccanismo.
+    click(ctx, this.out(ctx), { at, gain: 0.45, freq: 2900, q: 11, decay: 0.024 });
+    modal(ctx, this.out(ctx), {
+      at,
+      gain: 0.3,
+      partials: [
+        { freq: 1620, decay: 0.05, q: 34, gain: 1 },
+        { freq: 2480, decay: 0.034, q: 30, gain: 0.5 },
+      ],
+    });
+    this.tone({ freq: 140, duration: 0.05, type: 'sine', gain: 0.1, slideTo: 96 });
   }
 
   /** Bong di fine countdown: campana grave con coda breve. */
   playCountdownBong(): void {
-    this.tone({ freq: 196, duration: 0.55, type: 'sine', gain: 0.055, slideTo: 130 });
-    this.tone({ freq: 392, duration: 0.35, type: 'sine', gain: 0.022, delay: 0.02 });
+    if (!this.audioEnabled()) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
+    // Grosso gong da studio: colpo basso, coda di metallo che si apre.
+    modal(ctx, this.out(ctx), {
+      at,
+      gain: 0.18,
+      partials: [
+        { freq: 172, decay: 2.1, q: 30 },
+        { freq: 348, decay: 1.6, q: 34, gain: 0.55 },
+        { freq: 517, decay: 1.2, q: 38, gain: 0.3 },
+        { freq: 903, decay: 0.8, q: 44, gain: 0.16 },
+      ],
+      strike: { freq: 1100, q: 1.1, duration: 0.09, gain: 0.12 },
+    });
+    this.tone({ freq: 96, duration: 0.3, type: 'sine', gain: 0.07, slideTo: 70 });
   }
 
   /** Transizione tra schermate. */
   playWhoosh(): void {
-    this.tone({ freq: 220, duration: 0.35, type: 'sine', gain: 0.05, slideTo: 1320 });
+    if (!this.audioEnabled()) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    // Aria che passa: rumore con la banda che sale e si richiude.
+    noiseVoice(ctx, this.out(ctx), {
+      at: this.at,
+      duration: 0.45,
+      gain: 0.22,
+      freq: 380,
+      to: 2600,
+      q: 1.4,
+      attack: 0.09,
+      release: 0.32,
+    });
   }
 
   /** Eliminazione dall'Arena. */
   playElimination(): void {
+    if (!this.audioEnabled()) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
     this.playUi('eliminazione');
-    this.tone({ freq: 330, duration: 0.3, type: 'sawtooth', gain: 0.06, slideTo: 90 });
+    // «Fuori»: ottoni che cascano, aria che si chiude, tonfo finale.
+    brass(ctx, this.out(ctx), { at, freq: 294, to: 86, duration: 0.7, gain: 0.06, voices: 3 });
+    noiseVoice(ctx, this.out(ctx), {
+      at,
+      duration: 0.5,
+      gain: 0.04,
+      freq: 1800,
+      to: 220,
+      q: 0.9,
+      attack: 0.01,
+      release: 0.45,
+    });
+    modal(ctx, this.out(ctx), {
+      at: at + 0.42,
+      gain: 0.07,
+      partials: [
+        { freq: 84, decay: 0.55, q: 12 },
+        { freq: 168, decay: 0.35, q: 16, gain: 0.45 },
+      ],
+      strike: { freq: 600, q: 1, duration: 0.06, gain: 0.15 },
+    });
   }
 
   /** Fanfara del podio: arpeggio ascendente e accordo finale. */
   playPodium(): void {
     if (!this.audioEnabled()) return;
-    const notes = [392, 523.25, 659.25, 783.99];
-    notes.forEach((freq, index) => {
-      this.tone({ freq, duration: 0.22, type: 'square', gain: 0.04, delay: index * 0.14 });
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
+    // Fanfara d'ottone: tre slanci (I, V, I) con il rullante sotto.
+    const stabs: Array<[number, number]> = [
+      [261.63, 0],
+      [392, 0.22],
+      [523.25, 0.44],
+    ];
+    for (const [freq, delay] of stabs) {
+      brass(ctx, this.out(ctx), { at: at + delay, freq, duration: 0.2, gain: 0.055, voices: 3 });
+      brass(ctx, this.out(ctx), { at: at + delay, freq: freq * 1.26, duration: 0.18, gain: 0.04, voices: 2 });
+    }
+    drumroll(ctx, this.out(ctx), { at: at + 0.6, duration: 0.5, gain: 0.03, peakAt: 0.9 });
+    const chord = [523.25, 659.25, 783.99, 1046.5];
+    chord.forEach((freq, index) => {
+      pluck(ctx, this.out(ctx), {
+        at: at + 1.05 + index * 0.03,
+        freq,
+        duration: 1.6,
+        gain: 0.05,
+        brightness: 0.6,
+        pan: index * 0.12 - 0.18,
+      });
     });
-    this.chord([523.25, 659.25, 783.99, 1046.5], 0.9, 0.6);
-    this.tone({ freq: 1567.98, duration: 0.5, type: 'sine', gain: 0.045, delay: 0.7 });
   }
 
   /** Rullo di tamburi sintetico; `strength` regola volume e presenza. */
   playDrumroll(seconds = 2, strength = 0.6): void {
     if (!this.audioEnabled()) return;
-    const hits = Math.max(1, Math.floor(seconds * 14));
-    const baseGain = 0.012 + Math.max(0, Math.min(1, strength)) * 0.03;
-    for (let i = 0; i < hits; i++) {
-      this.tone({
-        freq: 90 + (i % 3) * 8,
-        duration: 0.045,
-        type: 'square',
-        gain: baseGain * (0.85 + (i / hits) * 0.35),
-        delay: i / 14,
-      });
-    }
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const level = 0.08 + Math.max(0, Math.min(1, strength)) * 0.15;
+    drumroll(ctx, this.out(ctx), {
+      at: this.at,
+      duration: Math.max(0.3, seconds),
+      gain: level,
+      peakAt: 0.9,
+    });
   }
 
   /**
@@ -465,72 +855,82 @@ export class AudioService {
    * primo i botti pieni.
    */
   playPodiumReveal(position: number): void {
+    if (!this.audioEnabled()) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
     const place = Math.max(1, Math.min(3, Math.round(position)));
+    const at = this.at;
     this.playUi('vittoria');
 
+    // Il rullo sale sempre; il resto cresce col posto che si svela.
+    const rollSeconds = place === 3 ? 0.7 : place === 2 ? 1.3 : 2.4;
+    drumroll(ctx, this.out(ctx), {
+      at,
+      duration: rollSeconds,
+      gain: 0.02 + place * 0.012,
+      peakAt: 0.92,
+    });
+
+    this.playCelebration(place as 1 | 2 | 3, rollSeconds * 0.92);
+    if (place >= 2) {
+      fireworks(ctx, this.out(ctx), {
+        at: at + rollSeconds + 0.1,
+        count: place === 2 ? 4 : 9,
+        gain: 0.05,
+        spacing: place === 2 ? 0.22 : 0.16,
+      });
+    }
     if (place === 3) {
-      this.playDrumroll(0.8, 0.45);
-      this.playCelebration(1, 0.8);
-      return;
+      crowd(ctx, this.out(ctx), { at: at + rollSeconds, duration: 1.4, gain: 0.028, density: 70, seed: 9 });
     }
-
-    if (place === 2) {
-      this.playDrumroll(1.4, 0.7);
-      this.playCelebration(2, 1.4);
-      this.playFireworks(2, 1.5);
-      return;
-    }
-
-    this.playDrumroll(2.6, 1);
-    this.playCelebration(3, 2.6);
-    this.playFireworks(3, 2.7);
   }
 
   private playCelebration(level: 1 | 2 | 3, delay: number): void {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at + delay;
     const notes = level === 1
       ? [523.25, 659.25, 783.99]
       : level === 2
         ? [392, 523.25, 659.25, 783.99]
         : [392, 523.25, 659.25, 783.99, 1046.5];
-    const step = level === 1 ? 0.11 : level === 2 ? 0.12 : 0.14;
-    const gain = level === 1 ? 0.022 : level === 2 ? 0.03 : 0.038;
+    const step = level === 1 ? 0.09 : level === 2 ? 0.1 : 0.11;
+    const gain = level === 1 ? 0.035 : level === 2 ? 0.045 : 0.055;
 
+    // Arpa e ottoni insieme: la festa ha corpo, non è un arpeggio di bip.
     notes.forEach((freq, index) => {
-      this.tone({
+      pluck(ctx, this.out(ctx), {
+        at: at + index * step,
         freq,
-        duration: level === 1 ? 0.18 : 0.24,
-        type: 'triangle',
+        duration: 1.2,
         gain,
-        delay: delay + index * step,
+        brightness: 0.66,
+        pan: index * 0.12 - 0.2,
       });
     });
-    this.chord(notes.slice(-3), 0.7 + level * 0.15, delay + notes.length * step);
-  }
-
-  private playFireworks(level: 2 | 3, delay: number): void {
-    const pops = level === 2 ? 6 : 12;
-    for (let i = 0; i < pops; i++) {
-      const at = delay + i * 0.09 + (i % 4) * 0.02;
-      this.tone({
-        freq: 620 + (i % 5) * 180,
-        duration: 0.025,
-        type: 'square',
-        gain: 0.012 + (level === 3 ? 0.006 : 0),
-        delay: at,
+    const chordAt = at + notes.length * step;
+    brass(ctx, this.out(ctx), {
+      at: chordAt,
+      freq: notes[0] / 2,
+      duration: 0.5 + level * 0.12,
+      gain: 0.03 + level * 0.008,
+      voices: 3,
+    });
+    brass(ctx, this.out(ctx), {
+      at: chordAt,
+      freq: notes[1] / 2,
+      duration: 0.45 + level * 0.1,
+      gain: 0.022 + level * 0.006,
+      voices: 3,
+    });
+    if (level >= 2) {
+      crowd(ctx, this.out(ctx), {
+        at: chordAt,
+        duration: level === 2 ? 1.5 : 2.2,
+        gain: level === 2 ? 0.03 : 0.04,
+        density: 80,
+        seed: 4 + level,
       });
-      if (i % 3 === 0) {
-        this.tone({
-          freq: 90 - (i % 2) * 15,
-          duration: 0.16,
-          type: 'sine',
-          gain: 0.018 + level * 0.004,
-          delay: at,
-        });
-      }
-    }
-
-    if (level === 3) {
-      this.tone({ freq: 1567.98, duration: 0.5, type: 'sine', gain: 0.03, delay: delay + 0.3 });
     }
   }
 
@@ -612,35 +1012,103 @@ export class AudioService {
     if (!ctx) return;
 
     const bar = pubBedBar(barIndex);
+    // Il tappeto non passa dal bus dell'evento: suona sempre al suo volume.
+    const bus = this.room(ctx);
+    const beatSeconds = PUB_BED_SECONDS_PER_BEAT;
+    // Il tappeto suona sotto gli effetti: le note del giro restano scritte
+    // piano nel generatore, qui si porta il trio a volume di sala.
+    const BED_GAIN = 4;
+
     for (const note of bar.notes) {
-      this.tone({
-        freq: midiToFrequency(note.midi),
-        duration: note.duration,
-        type: note.type,
-        gain: note.gain,
-        attack: note.attack,
-        detune: note.detune,
-        delay: Math.max(0, startAt + note.beat * PUB_BED_SECONDS_PER_BEAT - ctx.currentTime),
-      });
+      const at = startAt + note.beat * beatSeconds;
+      const freq = midiToFrequency(note.midi);
+      switch (note.voice) {
+        case 'bass':
+          pluck(ctx, bus, {
+            at,
+            freq,
+            duration: note.duration,
+            gain: note.gain * BED_GAIN,
+            brightness: 0.28,
+            pan: note.pan,
+          });
+          break;
+        case 'epiano':
+          // Campana FM con rapporto quasi 1: corpo tondo, attacco morbido.
+          bell(ctx, bus, {
+            at,
+            freq,
+            duration: note.duration,
+            gain: note.gain * BED_GAIN,
+            ratio: 1.01,
+            index: 0.7,
+            pan: note.pan,
+          });
+          break;
+        case 'vibes':
+          bell(ctx, bus, {
+            at,
+            freq,
+            duration: note.duration,
+            gain: note.gain * BED_GAIN,
+            ratio: 4,
+            index: 1.1,
+            pan: note.pan,
+          });
+          break;
+        case 'glass':
+          modal(ctx, bus, {
+            at,
+            gain: note.gain * BED_GAIN,
+            partials: [
+              { freq, decay: note.duration, q: 90 },
+              { freq: freq * 2.76, decay: note.duration * 0.6, q: 95, gain: 0.45 },
+            ],
+            pan: note.pan,
+          });
+          break;
+        case 'rim':
+          click(ctx, bus, { at, gain: note.gain * BED_GAIN, freq: 1800, q: 5, decay: 0.05, pan: note.pan });
+          break;
+        case 'brush':
+          noiseVoice(ctx, bus, {
+            at,
+            duration: 0.09,
+            gain: note.gain * BED_GAIN,
+            freq: 3200,
+            q: 0.9,
+            attack: 0.006,
+            release: 0.08,
+            pan: note.pan,
+          });
+          break;
+      }
     }
 
     for (const beat of bar.brushes) {
-      this.noiseBurst(
-        0.09,
-        0.0035,
-        Math.max(0, startAt + beat * PUB_BED_SECONDS_PER_BEAT - ctx.currentTime),
-        3200,
-      );
+      // Spazzola sul rullante: rumore breve, non un colpo di triangolo.
+      noiseVoice(ctx, bus, {
+        at: startAt + beat * beatSeconds,
+        duration: 0.11,
+        gain: 0.0045 * BED_GAIN,
+        freq: 3400,
+        q: 0.8,
+        attack: 0.004,
+        release: 0.1,
+        pan: 0.15,
+      });
     }
 
     if (bar.clink) {
-      this.tone({
-        freq: midiToFrequency(96),
-        duration: 0.09,
-        type: 'sine',
-        gain: 0.0025,
-        attack: 0.005,
-        delay: Math.max(0, startAt + 3.25 * PUB_BED_SECONDS_PER_BEAT - ctx.currentTime),
+      // Bicchieri che si toccano al banco.
+      modal(ctx, bus, {
+        at: startAt + 3.25 * beatSeconds,
+        gain: 0.0035 * BED_GAIN,
+        partials: [
+          { freq: 2637, decay: 0.35, q: 95 },
+          { freq: 3950, decay: 0.22, q: 100, gain: 0.4 },
+        ],
+        pan: -0.35,
       });
     }
   }
@@ -719,12 +1187,8 @@ export class AudioService {
     if (now - last < definition.minIntervalMs) return false;
     this.lastEventAt.set(event, now);
 
-    this.eventTrim = definition.volume;
-    try {
-      this.runEvent(event, variant);
-    } finally {
-      this.eventTrim = 1;
-    }
+    this.beginEventBus(definition.volume);
+    this.runEvent(event, variant);
     return true;
   }
 
@@ -843,6 +1307,15 @@ export class AudioService {
         this.master = this.audioContext.createGain();
         this.master.gain.value = this.audioEnabled() ? this.masterVolume() : 0;
         this.master.connect(this.audioContext.destination);
+        // La TV suona in una stanza: coda discreta, il telefono resta asciutto.
+        this.roomSend = createRoom(this.audioContext, this.master, {
+          seconds: 1.25,
+          mix: 0.14,
+          tone: 4800,
+        });
+        this.tvBus = this.audioContext.createGain();
+        this.tvBus.connect(this.master);
+        this.tvBus.connect(this.roomSend);
       }
       if (this.audioContext.state === 'suspended') {
         void this.audioContext.resume().catch(() => undefined);
@@ -885,30 +1358,48 @@ export class AudioService {
     master.gain.linearRampToValueAtTime(this.audioEnabled() ? this.masterVolume() : 0, now + 0.03);
   }
 
-  /** Rumore filtrato con inviluppo: base dell'applauso sintetico. */
-  private noiseBurst(duration: number, gain: number, delay = 0, frequency = 1600): void {
-    if (!this.audioEnabled()) return;
+  /** Destinazione dei suoni di sala: master più coda di stanza. */
+  private room(ctx: AudioContext): AudioNode {
+    return this.tvBus ?? ctx.destination;
+  }
+
+  /**
+   * Bus di un singolo evento: porta il volume del catalogo su tutte le voci
+   * dell'evento, coda compresa. Un bus per riproduzione, così le code già
+   * programmate non cambiano volume quando l'evento successivo comincia.
+   */
+  private beginEventBus(volume: number): void {
     const ctx = this.ensureContext();
-    if (!ctx) return;
+    if (!ctx || !this.master) return;
+    const wet = ctx.createGain();
+    wet.gain.value = Math.max(0, Math.min(2, volume));
+    wet.connect(this.room(ctx));
+    const dry = ctx.createGain();
+    dry.gain.value = Math.max(0, Math.min(2, volume));
+    dry.connect(this.master);
+    this.wetBus = wet;
+    this.dryBus = dry;
+    // Le code più lunghe del catalogo non superano i venti secondi.
+    window.setTimeout(() => {
+      try {
+        wet.disconnect();
+        dry.disconnect();
+      } catch {
+        // già scollegati
+      }
+    }, 25000);
+  }
 
-    const frames = Math.max(1, Math.floor(ctx.sampleRate * duration));
-    const buffer = ctx.createBuffer(1, frames, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < frames; i++) {
-      const envelope = Math.pow(1 - i / frames, 2);
-      data[i] = (Math.random() * 2 - 1) * envelope;
-    }
+  /** Uscita dell'evento in corso: bagnata (sala) o asciutta (telefono). */
+  private out(ctx: AudioContext, wet = true): AudioNode {
+    const bus = wet ? this.wetBus : this.dryBus;
+    if (bus) return bus;
+    return wet ? this.room(ctx) : this.master ?? ctx.destination;
+  }
 
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.value = frequency;
-    filter.Q.value = 0.7;
-    const level = ctx.createGain();
-    level.gain.value = gain;
-    source.connect(filter).connect(level).connect(this.master ?? ctx.destination);
-    source.start(ctx.currentTime + delay);
+  /** Momento di partenza delle sequenze: adesso, con un filo di margine. */
+  private get at(): number {
+    return (this.audioContext?.currentTime ?? 0) + 0.005;
   }
 
   private tone(options: ToneOptions): void {
@@ -931,7 +1422,7 @@ export class AudioService {
     }
 
     // Nessun effetto supera il tetto del catalogo: la voce resta davanti.
-    const peak = Math.min((options.gain ?? 0.05) * this.eventTrim, 0.09);
+    const peak = Math.min(options.gain ?? 0.05, 0.09);
     const attack = Math.min(Math.max(options.attack ?? 0.015, 0.005), options.duration * 0.8);
     gain.gain.setValueAtTime(0.0001, start);
     gain.gain.exponentialRampToValueAtTime(peak, start + attack);
