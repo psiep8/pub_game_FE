@@ -62,6 +62,29 @@ describe('ThemeService — palette di squadra', () => {
     expect(service.ensureTeamTheme('   ')).toBe('editorial-acid');
   });
 
+  it('libera la palette assegnata quando la squadra viene espulsa', () => {
+    const names = ['Anna', 'Bruno', 'Carla', 'Dario', 'Elena', 'Fabio', 'Giorgia', 'Ivan'];
+    names.forEach((name) => service.ensureTeamTheme(name));
+    const anna = service.themeForTeam('Anna');
+
+    service.releaseTeamTheme('Anna');
+
+    expect(service.themeForTeam('Anna')).toBe('editorial-acid');
+    // La palette liberata torna disponibile alla prima squadra che entra.
+    expect(service.ensureTeamTheme('Nuova')).toBe(anna);
+  });
+
+  it('la nuova partita azzera palette assegnate e scelte', () => {
+    service.ensureTeamTheme('Anna');
+    service.setTeamTheme('Bruno', 'kpop-aesthetic');
+
+    service.resetTeamThemes();
+
+    expect(service.themeForTeam('Anna')).toBe('editorial-acid');
+    expect(service.themeForTeam('Bruno')).toBe('editorial-acid');
+    expect(service.ensureTeamTheme('Carla')).toBe('desert-heritage');
+  });
+
   it('le palette assegnate sopravvivono al refresh della TV', () => {
     const assigned = service.ensureTeamTheme('Anna');
 

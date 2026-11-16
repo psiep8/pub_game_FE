@@ -644,6 +644,31 @@ describe('GameComponent', () => {
     expect(theme.theme()).toBe('editorial-acid');
   });
 
+  it('libera la palette della squadra espulsa, così un rientro la riusa', () => {
+    const theme = component.theme;
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Bruno' });
+    const anna = theme.themeForTeam('Anna');
+
+    ws.status$.next({ action: WsAction.PLAYER_REMOVED, playerName: 'Anna' });
+
+    expect(theme.themeForTeam('Anna')).toBe('editorial-acid');
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Carla' });
+    expect(theme.themeForTeam('Carla')).toBe(anna);
+  });
+
+  it('azzera le palette quando si apre una partita nuova', async () => {
+    const theme = component.theme;
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });
+    expect(theme.themeForTeam('Anna')).not.toBe('editorial-acid');
+
+    // Nessuna partita aperta: `openLobby` ne crea una nuova e riparte da zero.
+    component.currentGameId.set(0);
+    await component.openLobby();
+
+    expect(theme.themeForTeam('Anna')).toBe('editorial-acid');
+  });
+
   it('dà al round successivo la palette della squadra anche senza scelta', () => {
     const theme = component.theme;
     const tv = component as unknown as {

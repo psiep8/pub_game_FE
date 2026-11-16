@@ -6,7 +6,8 @@
 - La scelta fatta dal telefono ha sempre la precedenza e prende il posto della palette assegnata, anche se arriva prima dell'ingresso in partita.
 - Il round successivo adotta sempre il tema della squadra che ha vinto: prima, senza una scelta esplicita, la TV restava in acido e il cambio non si vedeva.
 - Sui tre posti del podio il nome resta inchiostro: con il tema del round, il colore della squadra finiva sopra un fondo della sua stessa famiglia e spariva (tema OCEANO, contrasto sotto 2,5:1; ora tutti i nomi sopra 4,6:1).
-- Verifiche: 8 test nuovi (7 sul servizio tema, 1 sul componente TV) e verifica a 1280×720 con dieci squadre e due vincitori diversi (`docs/screenshots/f12-tema-vincitore-720p.png`, `docs/screenshots/f12-tema-vincitore-anna-720p.png`).
+- Le palette assegnate tornano libere quando una squadra viene espulsa e si azzerano del tutto aprendo una partita nuova o confermando il reset: molti rientri non esauriscono più i colori. La palette scelta dal telefono resta invece della squadra.
+- Verifiche: 12 test nuovi (9 sul servizio tema, 3 sul componente TV) e verifica a 1280×720 con dieci squadre e due vincitori diversi (`docs/screenshots/f12-tema-vincitore-720p.png`, `docs/screenshots/f12-tema-vincitore-anna-720p.png`).
 
 ## 16 novembre 2026 — Classifica rapida a due colonne oltre dieci squadre (F09)
 

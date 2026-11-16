@@ -544,6 +544,8 @@ export class GameComponent implements OnInit, OnDestroy {
         const expelled = String(status.playerName).trim();
         this.presencePlayers.update((names) => names.filter((name) => name !== expelled));
         this.leaderboardService.forgetIfNoPoints(expelled);
+        // La palette torna libera: un rientro non deve esaurire i colori.
+        this.theme.releaseTeamTheme(expelled);
       }
 
       // 🏟️ Esito Arena calcolato e trasmesso dal backend.
@@ -743,6 +745,8 @@ export class GameComponent implements OnInit, OnDestroy {
   async openLobby(): Promise<void> {
     if (this.currentGameId()) return;
 
+    // Partita nuova, palette nuove: le assegnazioni della precedente non valgono più.
+    this.theme.resetTeamThemes();
     const newGame = await firstValueFrom(this.gameService.createGame());
     this.currentGameId.set(newGame.id);
     localStorage.setItem('activeGameId', newGame.id.toString());
@@ -2150,6 +2154,7 @@ export class GameComponent implements OnInit, OnDestroy {
     // Il reset locale deve seguire quello del server: se la rete cade, la
     // classifica e la scaletta restano disponibili per un nuovo tentativo.
     const clearLocal = () => {
+      this.theme.resetTeamThemes();
       this.roundManager.resetGame();
       this.leaderboardService.reset();
       location.reload();

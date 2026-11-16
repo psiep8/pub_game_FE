@@ -194,6 +194,24 @@ export class ThemeService {
     return assigned;
   }
 
+  /**
+   * Libera la palette assegnata d'ufficio: la squadra espulsa non la tiene.
+   *
+   * <p>Senza questo, ogni rientro consumerebbe una palette per sempre e dopo
+   * qualche espulsione tutte le squadre nuove finirebbero nello stesso colore.
+   * La scelta fatta dal telefono resta invece della squadra.</p>
+   */
+  releaseTeamTheme(playerName: string): void {
+    this.forgetDefault(playerName.trim());
+  }
+
+  /** Nuova partita: si riparte con tutte le palette libere, scelte comprese. */
+  resetTeamThemes(): void {
+    this.teamDefaults.set({});
+    this.teamThemes.set({});
+    this.persistTeamDefaults();
+  }
+
   themeForTeam(playerName: string): AppTheme {
     const name = playerName.trim();
     return this.teamThemes()[name] ?? this.teamDefaults()[name] ?? 'editorial-acid';
