@@ -172,7 +172,11 @@ export class ThemeService {
   setTeamTheme(playerName: string, theme: AppTheme | string): void {
     const name = playerName.trim();
     if (!name) return;
-    this.teamThemes.update((map) => ({ ...map, [name]: normalizeTheme(theme) }));
+    const normalized = normalizeTheme(theme);
+    this.teamThemes.update((map) => ({ ...map, [name]: normalized }));
+    // La scelta entra anche in memoria: se la squadra esce, la ritrova al rientro.
+    this.teamHistory.update((map) => ({ ...map, [name]: normalized }));
+    this.persistTeamHistory();
     // La scelta esplicita prende il posto della palette assegnata d'ufficio.
     this.forgetDefault(name);
   }
@@ -207,14 +211,27 @@ export class ThemeService {
   }
 
   /**
-   * Libera la palette assegnata d'ufficio: la squadra espulsa non la tiene.
+   * Libera la palette della squadra espulsa, assegnata o scelta che sia.
    *
    * <p>Senza questo, ogni rientro consumerebbe una palette per sempre e dopo
    * qualche espulsione tutte le squadre nuove finirebbero nello stesso colore.
-   * La scelta fatta dal telefono resta invece della squadra.</p>
+   * La palette non si perde: finisce nella memoria e torna alla squadra al
+   * rientro, se nel frattempo nessun altro l'ha presa.</p>
    */
   releaseTeamTheme(playerName: string): void {
-    this.forgetDefault(playerName.trim());
+    const name = playerName.trim();
+    if (!name) return;
+
+    const chosen = this.teamThemes()[name];
+    if (chosen) {
+      this.teamHistory.update((map) => ({ ...map, [name]: chosen }));
+      this.persistTeamHistory();
+      const next = { ...this.teamThemes() };
+      delete next[name];
+      this.teamThemes.set(next);
+    }
+
+    this.forgetDefault(name);
   }
 
   /** Nuova partita: si riparte con tutte le palette libere, scelte e memoria comprese. */

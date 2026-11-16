@@ -657,6 +657,20 @@ describe('GameComponent', () => {
     expect(theme.themeForTeam('Carla')).toBe(anna);
   });
 
+  it('libera e ricorda anche la palette scelta dal telefono', () => {
+    const theme = component.theme;
+    ws.status$.next({ action: WsAction.SELECT_THEME, theme: 'deep-ocean', playerName: 'Anna' });
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });
+    expect(theme.themeForTeam('Anna')).toBe('deep-ocean');
+
+    ws.status$.next({ action: WsAction.PLAYER_REMOVED, playerName: 'Anna' });
+    expect(theme.themeForTeam('Anna')).toBe('editorial-acid');
+
+    // Al rientro la scelta torna, senza che il telefono la rimandi.
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });
+    expect(theme.themeForTeam('Anna')).toBe('deep-ocean');
+  });
+
   it('fa rientrare la squadra espulsa con la stessa palette', () => {
     const theme = component.theme;
     ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });

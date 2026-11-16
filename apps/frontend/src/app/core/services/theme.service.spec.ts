@@ -74,6 +74,30 @@ describe('ThemeService — palette di squadra', () => {
     expect(service.ensureTeamTheme('Nuova')).toBe(anna);
   });
 
+  it('libera anche la palette scelta e la ridà al rientro', () => {
+    service.setTeamTheme('Anna', 'kpop-aesthetic');
+
+    service.releaseTeamTheme('Anna');
+
+    expect(service.themeForTeam('Anna')).toBe('editorial-acid');
+    expect(service.ensureTeamTheme('Anna')).toBe('kpop-aesthetic');
+  });
+
+  it('la palette scelta e liberata torna disponibile per un\'altra squadra', () => {
+    service.setTeamTheme('Anna', 'kpop-aesthetic');
+    service.releaseTeamTheme('Anna');
+
+    // Le sette palette libere finiscono alle sette squadre: K-POP rientra nel giro.
+    const taken = Array.from({ length: 7 }, (_, index) => service.ensureTeamTheme(`Squadra ${index}`));
+    expect(taken).toContain('kpop-aesthetic');
+
+    const anna = service.ensureTeamTheme('Anna');
+    expect(anna).not.toBe('kpop-aesthetic');
+    // Anche questa seconda palette resta sua ai rientri successivi.
+    service.releaseTeamTheme('Anna');
+    expect(service.ensureTeamTheme('Anna')).toBe(anna);
+  });
+
   it('la squadra espulsa rientra con la stessa palette', () => {
     const anna = service.ensureTeamTheme('Anna');
 
