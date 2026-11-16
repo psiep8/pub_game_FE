@@ -7,7 +7,8 @@
 - Il round successivo adotta sempre il tema della squadra che ha vinto: prima, senza una scelta esplicita, la TV restava in acido e il cambio non si vedeva.
 - Sui tre posti del podio il nome resta inchiostro: con il tema del round, il colore della squadra finiva sopra un fondo della sua stessa famiglia e spariva (tema OCEANO, contrasto sotto 2,5:1; ora tutti i nomi sopra 4,6:1).
 - Le palette assegnate tornano libere quando una squadra viene espulsa **senza punti** e si azzerano del tutto aprendo una partita nuova o confermando il reset: molti rientri non esauriscono più i colori. Chi è espulso con punti resta in classifica e tiene il suo colore; la palette scelta dal telefono resta comunque della squadra.
-- Verifiche: 14 test nuovi (9 sul servizio tema, 5 sul componente TV, compresi reset confermato ed espulsione con punti) e verifica a 1280×720 con dieci squadre e due vincitori diversi (`docs/screenshots/f12-tema-vincitore-720p.png`, `docs/screenshots/f12-tema-vincitore-anna-720p.png`).
+- `forgetIfNoPoints` ora dice se la squadra è stata tolta: la TV usa quella risposta per liberare la palette, senza un secondo controllo sui punti.
+- Verifiche: 17 test nuovi (9 sul servizio tema, 5 sul componente TV con reset confermato ed espulsione con punti, 3 sulla classifica per il valore restituito) e verifica a 1280×720 con dieci squadre e due vincitori diversi (`docs/screenshots/f12-tema-vincitore-720p.png`, `docs/screenshots/f12-tema-vincitore-anna-720p.png`).
 
 ## 16 novembre 2026 — Classifica rapida a due colonne oltre dieci squadre (F09)
 

@@ -677,8 +677,14 @@ describe('GameComponent', () => {
     ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });
     theme.setTeamTheme('Bruno', 'kpop-aesthetic');
     component.currentGameId.set(1);
+    // jsdom non naviga: il reload vero non serve al test e sporcherebbe l'output.
+    const tv = component as unknown as { reloadPage(): void };
+    const reload = vi.spyOn(tv, 'reloadPage').mockImplementation(() => undefined);
 
     component.confirmReset();
+
+    expect(reload).toHaveBeenCalledTimes(1);
+    reload.mockRestore();
 
     expect(theme.themeForTeam('Anna')).toBe('editorial-acid');
     expect(theme.themeForTeam('Bruno')).toBe('editorial-acid');

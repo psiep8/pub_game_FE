@@ -54,6 +54,24 @@ describe('LeaderboardService', () => {
     expect(reloaded.getPlayerStats('Anna')?.position).toBe(1);
   });
 
+  it('toglie la squadra senza punti e dice di averlo fatto', () => {
+    service.addPoints('Anna', 0, false);
+
+    expect(service.forgetIfNoPoints('Anna')).toBe(true);
+    expect(service.getLeaderboard()).toEqual([]);
+  });
+
+  it('lascia in classifica chi ha punti e dice di non averlo tolto', () => {
+    service.addPoints('Anna', 120, true);
+
+    expect(service.forgetIfNoPoints('Anna')).toBe(false);
+    expect(service.getPlayerStats('Anna')?.totalPoints).toBe(120);
+  });
+
+  it('non tocca una squadra mai entrata in classifica', () => {
+    expect(service.forgetIfNoPoints('Sconosciuta')).toBe(false);
+  });
+
   it('should clear both memory and storage on reset', () => {
     service.addPoints('Anna', 120, true);
 

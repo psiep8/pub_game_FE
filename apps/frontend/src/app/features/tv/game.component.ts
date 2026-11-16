@@ -546,9 +546,9 @@ export class GameComponent implements OnInit, OnDestroy {
         // La palette torna libera solo se la squadra sparisce anche dalla
         // classifica: chi ha già punti resta in tabella e non può cedere il
         // colore a una squadra nuova.
-        const points = this.leaderboardService.getPlayerStats(expelled)?.totalPoints ?? 0;
-        if (points === 0) this.theme.releaseTeamTheme(expelled);
-        this.leaderboardService.forgetIfNoPoints(expelled);
+        if (this.leaderboardService.forgetIfNoPoints(expelled)) {
+          this.theme.releaseTeamTheme(expelled);
+        }
       }
 
       // 🏟️ Esito Arena calcolato e trasmesso dal backend.
@@ -2151,6 +2151,11 @@ export class GameComponent implements OnInit, OnDestroy {
     this.showResetModal.set(true);
   }
 
+  /** Unico punto che ricarica la TV: nelle prove si sostituisce senza navigare. */
+  private reloadPage(): void {
+    location.reload();
+  }
+
   confirmReset() {
     this.showResetModal.set(false);
 
@@ -2160,7 +2165,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.theme.resetTeamThemes();
       this.roundManager.resetGame();
       this.leaderboardService.reset();
-      location.reload();
+      this.reloadPage();
     };
     const gameId = this.currentGameId();
     if (!gameId) {
