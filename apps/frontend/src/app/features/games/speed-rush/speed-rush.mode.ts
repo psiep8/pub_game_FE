@@ -29,14 +29,11 @@ export class SpeedRushMode extends GameModeBase {
   private lanes = signal<Lane[]>([]);
   private pointsApplied = false;
   private finishing = false;
-  /** Cresce a ogni salvataggio: una scrittura vecchia non deve tornare indietro. */
-  private revision = 0;
 
   protected onInitialize(): void {
     this.lanes.set(this.emptyLanes());
     this.pointsApplied = false;
     this.finishing = false;
-    this.revision = 0;
     this.timer.set(this.timerDuration);
   }
 
@@ -56,7 +53,6 @@ export class SpeedRushMode extends GameModeBase {
 
   protected onCleanup(): void {
     this.lanes.set([]);
-    this.revision = 0;
   }
 
   protected onTimeout(): void {
@@ -86,7 +82,6 @@ export class SpeedRushMode extends GameModeBase {
         finishedAt: event.finishedAt == null ? null : Number(event.finishedAt),
       };
     }));
-    this.emitCheckpoint();
   }
 
   /**
@@ -129,34 +124,14 @@ export class SpeedRushMode extends GameModeBase {
   }
 
   /**
-   * Riprende la corsa dal checkpoint: il server ha ancora la sessione, quindi
-   * le corsie tornano come le aveva lasciate la TV e il cronometro riparte dal
-   * tempo che resta al round. La corsa sul server non viene riaperta.
+   * Riprende la corsa senza checkpoint: il server tiene la sessione, quindi le
+   * corsie si rileggono da lì (`start` è idempotente sullo stesso round) e il
+   * cronometro riparte dal tempo che resta al round.
    */
-  restore(secondsLeft: number, snapshot?: unknown): void {
-    const checkpoint = snapshot as { revision?: number; state?: any } | null | undefined;
-    const revision = checkpoint ? Number(checkpoint.revision) : 0;
-    if (checkpoint && (!Number.isSafeInteger(revision) || revision <= 0)) {
-      throw new Error('Stato Speed Rush non ripristinabile');
-    }
-
-    const saved: any[] = Array.isArray(checkpoint?.state?.lanes) ? checkpoint!.state.lanes : [];
-    const lanes = saved
-      .filter((row: any) => row && typeof row.playerName === 'string' && row.playerName.trim())
-      .map((row: any): Lane => ({
-        playerName: String(row.playerName),
-        progress: Math.max(0, Math.min(100, Number(row.progress) || 0)),
-        finished: !!row.finished,
-        position: row.position == null ? null : Number(row.position),
-        streak: Math.max(0, Number(row.streak) || 0),
-        multiplier: Math.max(1, Number(row.multiplier) || 1),
-        finishedAt: row.finishedAt == null ? null : Number(row.finishedAt),
-      }));
-
-    this.revision = revision;
+  restore(secondsLeft: number, _snapshot?: unknown): void {
     this.pointsApplied = false;
     this.finishing = false;
-    this.lanes.set(lanes.length ? this.mergeActivePlayers(lanes) : this.emptyLanes());
+    this.lanes.set(this.emptyLanes());
 
     const seconds = Number.isFinite(Number(secondsLeft))
       ? Math.max(0, Math.min(this.timerDuration, Math.round(Number(secondsLeft))))
@@ -168,6 +143,30 @@ export class SpeedRushMode extends GameModeBase {
     this.isPaused.set(false);
     // Se il tempo è già finito il primo tick chiude la corsa chiedendo al server.
     this.startTimer();
+    void this.refreshLanes();
+  }
+
+  /** Corsie autoritative dal server: dopo un refresh la TV non le ha più in memoria. */
+  private async refreshLanes(): Promise<void> {
+    try {
+      const summary = await this.config.startSpeedRush?.(this.config.activePlayers ?? []);
+      const players: any[] = Array.isArray(summary?.players) ? summary.players : [];
+      if (!players.length) return;
+      const lanes = players
+        .filter((row: any) => row && typeof row.playerName === 'string' && row.playerName.trim())
+        .map((row: any): Lane => ({
+          playerName: String(row.playerName),
+          progress: Math.max(0, Math.min(100, Number(row.progress) || 0)),
+          finished: !!row.finished,
+          position: row.position == null ? null : Number(row.position),
+          streak: Math.max(0, Number(row.streak) || 0),
+          multiplier: Math.max(1, Number(row.multiplier) || 1),
+          finishedAt: row.finishedAt == null ? null : Number(row.finishedAt),
+        }));
+      this.lanes.set(this.mergeActivePlayers(lanes));
+    } catch {
+      // Senza server restano le corsie vuote: il primo evento le riempie.
+    }
   }
 
   /** Chi si è unito durante il refresh deve comunque avere la sua corsia. */
@@ -185,18 +184,6 @@ export class SpeedRushMode extends GameModeBase {
         finishedAt: null,
       }));
     return [...lanes, ...missing];
-  }
-
-  /** La TV salva le corsie ai cambi di stato: punti e arrivi arrivano dal server. */
-  private emitCheckpoint(): void {
-    const save = this.config.onTvCheckpoint;
-    if (!save || this.pointsApplied) return;
-    this.revision++;
-    save({
-      type: this.type,
-      revision: this.revision,
-      state: { lanes: this.lanes(), savedAt: Date.now() },
-    });
   }
 
   private emptyLanes(): Lane[] {

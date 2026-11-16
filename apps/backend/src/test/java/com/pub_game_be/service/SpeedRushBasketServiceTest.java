@@ -52,6 +52,20 @@ class SpeedRushBasketServiceTest {
     }
 
     @Test
+    void laRipresaRileggeLeCorsieSenzaRiavviareLaCorsa() {
+        // La TV, dopo un refresh, richiama lo start: stessa sessione e corsie complete.
+        long gameId = 810_004L;
+        JSONObject first = speedRush.start(gameId, List.of("Anna"), "speed-test-ripresa");
+        JSONObject again = speedRush.start(gameId, List.of("Anna"), "speed-test-ripresa");
+
+        assertThat(again.getLong("startedAt")).isEqualTo(first.getLong("startedAt"));
+        JSONObject lane = again.getJSONArray("players").getJSONObject(0);
+        assertThat(lane.getString("playerName")).isEqualTo("Anna");
+        assertThat(lane.keySet())
+                .contains("progress", "streak", "multiplier", "finished", "position", "finishedAt");
+    }
+
+    @Test
     void laCorsaNonSiChiudeConPocheRisposteGiuste() {
         // Le prime sei corrette valgono 2, dalla settima il raddoppio porta 4:
         // il traguardo da 100 richiede 28 risposte, non 25.

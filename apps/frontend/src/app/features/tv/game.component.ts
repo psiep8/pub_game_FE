@@ -2271,6 +2271,8 @@ export class GameComponent implements OnInit, OnDestroy {
       // altri giochi un checkpoint TV della stessa modalità del round.
       resumable: (type === 'TIMELINE' && !!this.recoveredPayload)
         || (type === 'BLACKJACK' && !!snapshot?.blackjackState)
+        // Speed Rush tiene le corsie sul server: non serve un checkpoint in TV.
+        || type === 'SPEED_RUSH'
         || this.recoveredTvCheckpoint?.type === type,
       paused,
     });
@@ -2295,7 +2297,7 @@ export class GameComponent implements OnInit, OnDestroy {
     const blackjack = this.recoveredBlackjackState;
     const stored = this.recoveredTvCheckpoint;
     const tvCheckpoint = stored && stored.type === pending?.type ? stored.value : null;
-    if (!pending?.resumable || (!payload && !blackjack && !tvCheckpoint)) return;
+    if (!pending?.resumable) return;
 
     if (pending.paused) {
       try {

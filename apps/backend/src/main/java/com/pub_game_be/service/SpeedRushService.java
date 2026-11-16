@@ -355,6 +355,10 @@ public class SpeedRushService {
         return session.players.get(name.trim().toLowerCase(Locale.ROOT));
     }
 
+    /**
+     * Stato delle corsie: è anche ciò che la TV rilegge dopo un refresh, quindi
+     * porta tutto quello che serve a ridisegnarle senza un checkpoint suo.
+     */
     private JSONObject summary(Session session) {
         return new JSONObject()
                 .put("active", !session.finished)
@@ -362,7 +366,12 @@ public class SpeedRushService {
                 .put("deadlineAt", session.deadlineAt)
                 .put("players", session.players.values().stream()
                         .map(player -> new JSONObject().put("playerName", player.name)
-                                .put("progress", player.progress))
+                                .put("progress", player.progress)
+                                .put("streak", player.streak)
+                                .put("multiplier", player.multiplier)
+                                .put("finished", player.finished)
+                                .put("position", player.position > 0 ? player.position : JSONObject.NULL)
+                                .put("finishedAt", player.finishedAt >= 0 ? player.finishedAt : JSONObject.NULL))
                         .toList());
     }
 
