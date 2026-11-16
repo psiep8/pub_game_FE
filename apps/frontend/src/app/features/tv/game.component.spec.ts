@@ -657,6 +657,34 @@ describe('GameComponent', () => {
     expect(theme.themeForTeam('Carla')).toBe(anna);
   });
 
+  it('non libera la palette di una squadra espulsa che ha già punti', () => {
+    const theme = component.theme;
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });
+    leaderboard.addPoints('Anna', 40, true);
+    const anna = theme.themeForTeam('Anna');
+
+    ws.status$.next({ action: WsAction.PLAYER_REMOVED, playerName: 'Anna' });
+
+    // Anna resta in classifica con i suoi punti: il colore non si libera.
+    expect(theme.themeForTeam('Anna')).toBe(anna);
+    expect(leaderboard.getPlayerStats('Anna')?.totalPoints).toBe(40);
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Carla' });
+    expect(theme.themeForTeam('Carla')).not.toBe(anna);
+  });
+
+  it('azzera le palette con il reset confermato', () => {
+    const theme = component.theme;
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });
+    theme.setTeamTheme('Bruno', 'kpop-aesthetic');
+    component.currentGameId.set(1);
+
+    component.confirmReset();
+
+    expect(theme.themeForTeam('Anna')).toBe('editorial-acid');
+    expect(theme.themeForTeam('Bruno')).toBe('editorial-acid');
+    expect(leaderboard.getLeaderboard()).toHaveLength(0);
+  });
+
   it('azzera le palette quando si apre una partita nuova', async () => {
     const theme = component.theme;
     ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });

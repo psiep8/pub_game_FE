@@ -543,9 +543,12 @@ export class GameComponent implements OnInit, OnDestroy {
       if (status.action === WsAction.PLAYER_REMOVED && status.playerName) {
         const expelled = String(status.playerName).trim();
         this.presencePlayers.update((names) => names.filter((name) => name !== expelled));
+        // La palette torna libera solo se la squadra sparisce anche dalla
+        // classifica: chi ha già punti resta in tabella e non può cedere il
+        // colore a una squadra nuova.
+        const points = this.leaderboardService.getPlayerStats(expelled)?.totalPoints ?? 0;
+        if (points === 0) this.theme.releaseTeamTheme(expelled);
         this.leaderboardService.forgetIfNoPoints(expelled);
-        // La palette torna libera: un rientro non deve esaurire i colori.
-        this.theme.releaseTeamTheme(expelled);
       }
 
       // 🏟️ Esito Arena calcolato e trasmesso dal backend.
