@@ -281,6 +281,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   timelineOrder = signal<number[]>([]);
   private timelineSendHandle?: ReturnType<typeof setTimeout>;
   private timelineRoundId = '';
+  /** Il giocatore ha spostato una carta in questo round, anche solo per rimetterla. */
+  private timelineTouched = false;
   private timelineSendSequence = 0;
   private readonly timelineInstanceId = typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -1351,6 +1353,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.timelineCards.set(cards);
       // Si parte dall'ordine mostrato: si trascina per correggerlo.
       this.timelineOrder.set(cards.map((card: any) => card.id));
+      this.timelineTouched = false;
       // All'avvio anche chi non tocca nulla ha già una risposta valida:
       // l'ordine iniziale. Alla ripresa si rilegge prima l'ordine già inviato,
       // così non si sovrascrive quello scelto.
@@ -1951,6 +1954,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     order.splice(from, 1);
     order.splice(over, 0, this.dragId);
     this.timelineOrder.set(order);
+    this.timelineTouched = true;
     this.scheduleTimelineSend();
     this.vibrate(6);
   }
@@ -1967,6 +1971,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (from < 0 || to < 0 || to >= order.length) return;
     [order[from], order[to]] = [order[to], order[from]];
     this.timelineOrder.set(order);
+    this.timelineTouched = true;
     this.scheduleTimelineSend();
     this.vibrate(10);
   }
@@ -1981,16 +1986,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const playerName = this.nickname();
     if (!playerName) return;
     const cardIds = cards.map((card) => card.id);
-    // Ordine mostrato quando parte la richiesta: se il giocatore sposta una
-    // carta nel frattempo, la risposta del server è già vecchia.
-    const shownOrder = [...this.timelineOrder()];
     this.gameService.timelineAnswer(this.gameId(), playerName, roundId).subscribe({
       next: (saved: any) => {
         // La TV può aver chiuso o cambiato round mentre la richiesta era in volo.
         if (this.timelineRoundId !== roundId) return;
-        const current = this.timelineOrder();
-        const touched = current.length !== shownOrder.length
-          || current.some((id, index) => id !== shownOrder[index]);
+        // Conta il primo spostamento, non l'ordine finale: chi rimette le carte
+        // come stavano ha comunque scelto l'ordine mostrato.
+        const touched = this.timelineTouched;
         const order = Array.isArray(saved?.order)
           ? saved.order.map(Number).filter((id: number) => cardIds.includes(id))
           : [];

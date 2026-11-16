@@ -1300,6 +1300,50 @@ describe('RemoteComponent', () => {
     }
   });
 
+  it('anche spostando una carta e rimettendola la risposta Timeline è ignorata', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const submit = vi.spyOn(game, 'submitTimeline');
+    const summary = new Subject<any>();
+    vi.spyOn(game, 'timelineAnswer').mockReturnValue(summary.asObservable());
+    vi.useFakeTimers();
+    try {
+      reliability.syncState$.next({
+        hasState: true,
+        status: 'RUNNING',
+        roundType: 'TIMELINE',
+        roundKey: 'g1-r5',
+        roundDeadlineAt: Date.now() + 60_000,
+        currentRound: {
+          roundKey: 'g1-r5',
+          type: 'TIMELINE',
+          payload: {
+            roundId: 'r5',
+            items: [{ id: 1, label: 'A' }, { id: 2, label: 'B' }, { id: 3, label: 'C' }],
+          },
+        },
+      });
+
+      // Sposta e rimette com'era: l'ordine finale coincide con quello iniziale.
+      component.moveCard(2, -1);
+      component.moveCard(2, 1);
+      expect(component.orderedCards().map((card) => card.id)).toEqual([1, 2, 3]);
+      vi.advanceTimersByTime(400);
+      expect(submit).toHaveBeenCalledTimes(1);
+
+      summary.next({ answered: true, order: [3, 2, 1] });
+      summary.complete();
+
+      // Ha scelto l'ordine mostrato: quello del server non vale più.
+      expect(component.orderedCards().map((card) => card.id)).toEqual([1, 2, 3]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('due snapshot della stessa manche fanno una sola richiesta al server', async () => {
     localStorage.setItem('nickname', 'Anna');
     reliability.resumedSession.set(true);
