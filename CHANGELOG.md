@@ -1,5 +1,17 @@
 # Changelog
 
+## 16 novembre 2026 — Blackjack bonus riprendibile
+
+- Il bonus Blackjack salva nello stato Blackjack del server (lo stesso del round) mazzo, carte in mano, banco, tavoli, fase e tempo residuo, a ogni cambio di stato.
+- Al refresh la TV riapre il bonus e la mano riparte dov'era: durante la decisione il banco resta coperto, nel reveal si vede l'esito già calcolato senza rigiocarlo.
+- I tavoli chiusi prima del refresh tornano alla TV come punti, così la chiusura del bonus paga il totale invece di dimenticare le mani precedenti.
+- Chiudere (o pagare) il bonus cancella la mano salvata, così non torna sul tavolo.
+- Verifiche: 5 test del bonus e 2 test TV, suite completa frontend (348 test su 46 file).
+
+### Corretto
+
+- Ultima spiaggia: quando il round era già rivelato, dopo il refresh la TV non rimandava lo stato ai telefoni; ora li sincronizza.
+
 ## 16 novembre 2026 — Ultima spiaggia riprendibile
 
 - La TV salva nel checkpoint il livello scelto da ogni squadra, le risposte, gli esiti e i livelli consumati, insieme all'id dell'occorrenza: al refresh i telefoni non azzerano la scelta appena fatta.
