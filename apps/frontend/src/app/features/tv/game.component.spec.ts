@@ -644,6 +644,31 @@ describe('GameComponent', () => {
     expect(theme.theme()).toBe('editorial-acid');
   });
 
+  it('dà al round successivo la palette della squadra anche senza scelta', () => {
+    const theme = component.theme;
+    const tv = component as unknown as {
+      beginRoundScoring(): void;
+      settleRoundWinner(): void;
+      applyRoundWinnerTheme(): void;
+    };
+    theme.applyFromRemote('editorial-acid');
+
+    // Anna entra senza scegliere: la TV le assegna una palette sua.
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Bruno' });
+    const anna = theme.themeForTeam('Anna');
+    expect(anna).not.toBe('editorial-acid');
+    expect(theme.themeForTeam('Bruno')).not.toBe(anna);
+
+    tv.beginRoundScoring();
+    leaderboard.addPoints('Anna', 100, true);
+    tv.settleRoundWinner();
+    tv.applyRoundWinnerTheme();
+
+    expect(theme.theme()).toBe(anna);
+    expect(document.documentElement.dataset['theme']).toBe(anna);
+  });
+
   it('counts only the points earned while the round was open', () => {
     const theme = component.theme;
     const tv = component as unknown as {

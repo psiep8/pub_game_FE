@@ -16,6 +16,7 @@ export type AppTheme = (typeof THEMES)[number];
 
 const STORAGE_KEY = 'pubgame-theme';
 const XMAS_KEY = 'pubgame-xmas';
+const TEAM_DEFAULTS_KEY = 'pubgame.team-defaults';
 
 /** Nome corto mostrato dal tasto tema su TV, telefono e regia. */
 export const LABELS: Record<AppTheme, string> = {
@@ -84,6 +85,11 @@ export class ThemeService {
   readonly xmas = signal<boolean>(this.readSavedXmas());
   /** Palette scelta da ogni squadra: la TV la usa per i colori dei nomi. */
   readonly teamThemes = signal<Partial<Record<string, AppTheme>>>({});
+  /**
+   * Palette assegnata d'ufficio alle squadre che non hanno scelto. Senza,
+   * tutte restano in acido e il tema del vincitore non si vede in sala.
+   */
+  readonly teamDefaults = signal<Partial<Record<string, AppTheme>>>(this.readTeamDefaults());
   /**
    * Sul telefono il colore si sceglie una volta sola, prima del tutorial: dopo
    * l'ingresso in partita il tasto sparisce e `set()` non cambia più nulla.
@@ -160,10 +166,37 @@ export class ThemeService {
     const name = playerName.trim();
     if (!name) return;
     this.teamThemes.update((map) => ({ ...map, [name]: normalizeTheme(theme) }));
+    // La scelta esplicita prende il posto della palette assegnata d'ufficio.
+    this.forgetDefault(name);
+  }
+
+  /**
+   * Assegna alla squadra una palette distinta, se non ne ha ancora una.
+   *
+   * <p>La TV la chiama all'ingresso di ogni squadra: chi sceglie il colore sul
+   * telefono lo vede comunque rispettato, chi non sceglie non resta nell'acido
+   * uguale a tutti, e il tema del round vinto cambia davvero in sala. Fino a
+   * otto squadre le palette sono tutte diverse; oltre, il giro ricomincia.</p>
+   */
+  ensureTeamTheme(playerName: string): AppTheme {
+    const name = playerName.trim();
+    if (!name) return 'editorial-acid';
+
+    const chosen = this.teamThemes()[name];
+    if (chosen) return chosen;
+
+    const existing = this.teamDefaults()[name];
+    if (existing) return existing;
+
+    const assigned = this.nextFreeTeamTheme();
+    this.teamDefaults.update((map) => ({ ...map, [name]: assigned }));
+    this.persistTeamDefaults();
+    return assigned;
   }
 
   themeForTeam(playerName: string): AppTheme {
-    return this.teamThemes()[playerName.trim()] ?? 'editorial-acid';
+    const name = playerName.trim();
+    return this.teamThemes()[name] ?? this.teamDefaults()[name] ?? 'editorial-acid';
   }
 
   /** Colore del nome in classifica, sempre leggibile sulla carta chiara. */
@@ -173,6 +206,61 @@ export class ThemeService {
 
   label(): string {
     return LABELS[this.theme()];
+  }
+
+  /**
+   * Prima palette non usata; finite le otto, si riparte in ciclo. L'acido è
+   * l'ultima della lista: è il colore neutro della TV, quindi lo si assegna
+   * solo all'ottava squadra e non alla prima.
+   */
+  private nextFreeTeamTheme(): AppTheme {
+    const order: AppTheme[] = [...THEMES.slice(1), THEMES[0]];
+    const defaults = this.teamDefaults();
+    const used = new Set<AppTheme>(Object.values(defaults).filter(Boolean) as AppTheme[]);
+    for (const theme of Object.values(this.teamThemes())) {
+      if (theme) used.add(theme);
+    }
+
+    const free = order.find((theme) => !used.has(theme));
+    if (free) return free;
+    return order[Object.keys(defaults).length % order.length];
+  }
+
+  private forgetDefault(playerName: string): void {
+    const defaults = this.teamDefaults();
+    if (!defaults[playerName]) return;
+    const next = { ...defaults };
+    delete next[playerName];
+    this.teamDefaults.set(next);
+    this.persistTeamDefaults();
+  }
+
+  private persistTeamDefaults(): void {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      localStorage.setItem(TEAM_DEFAULTS_KEY, JSON.stringify(this.teamDefaults()));
+    } catch {
+      // Storage negato: le palette restano valide per la sessione.
+    }
+  }
+
+  private readTeamDefaults(): Partial<Record<string, AppTheme>> {
+    if (typeof localStorage === 'undefined') return {};
+    try {
+      const raw = localStorage.getItem(TEAM_DEFAULTS_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (!parsed || typeof parsed !== 'object') return {};
+
+      const clean: Partial<Record<string, AppTheme>> = {};
+      for (const [name, theme] of Object.entries(parsed)) {
+        const trimmed = name.trim();
+        if (!trimmed) continue;
+        clean[trimmed] = normalizeTheme(String(theme));
+      }
+      return clean;
+    } catch {
+      return {};
+    }
   }
 
   private readSavedTheme(): AppTheme {

@@ -97,6 +97,12 @@
   font-size: clamp(1rem, 2.6vh, 1.7rem) !important;
   font-weight: 700 !important;
 }
+/* Sul podio la riga prende gli accenti del tema del round: il nome resta
+   inchiostro, altrimenti il colore della squadra finisce sopra un fondo della
+   sua stessa famiglia e sparisce (visto a 720p con il tema OCEANO). */
+.kahoot-leaderboard .player-row.top3 .player-name span {
+  color: var(--coal) !important;
+}
 .kahoot-leaderboard .player-row.gold .position-badge {
   background: var(--tomato) !important;
   color: var(--paper-hi) !important;

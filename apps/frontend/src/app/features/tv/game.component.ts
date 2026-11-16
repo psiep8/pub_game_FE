@@ -531,6 +531,9 @@ export class GameComponent implements OnInit, OnDestroy {
         this.presencePlayers.update((names) => names.includes(normalizedName) ? names : [...names, normalizedName]);
         console.log(`🤝 Nuovo giocatore unito: ${normalizedName}`);
         this.audioService.playJoin();
+        // Palette assegnata all'ingresso: chi non sceglie il colore non resta
+        // nell'acido uguale a tutti e il tema del round vinto si vede.
+        this.theme.ensureTeamTheme(normalizedName);
         this.leaderboardService.addPoints(normalizedName, 0, false);
 
       }
@@ -656,6 +659,12 @@ export class GameComponent implements OnInit, OnDestroy {
       .map((device: any) => String(device.playerName).trim())
       .filter((name: string) => name.length > 0);
     this.presencePlayers.set(Array.from(new Set<string>(names)));
+    this.assignTeamThemes(this.presencePlayers());
+  }
+
+  /** Ogni squadra presente ha una palette sua, anche dopo un refresh della TV. */
+  private assignTeamThemes(names: string[]): void {
+    for (const name of names) this.theme.ensureTeamTheme(name);
   }
 
   /** Avanzamento della prova pulsanti, mostrato nella home. */
@@ -991,6 +1000,7 @@ export class GameComponent implements OnInit, OnDestroy {
           .map((device: any) => String(device.playerName).trim())
           .filter((playerName: string) => playerName.length > 0);
         this.presencePlayers.set(presentPlayers);
+        this.assignTeamThemes(presentPlayers);
         activePlayers = Array.from(new Set([...activePlayers, ...presentPlayers]));
       } catch {
         // Senza diagnostica si gioca con la classifica: meglio che niente.
@@ -1816,6 +1826,7 @@ export class GameComponent implements OnInit, OnDestroy {
             && (device.role === 'REMOTE' || device.role === 'TV'))
           .map((device: any) => String(device.playerName).trim())
           .filter((playerName: string) => playerName.length > 0));
+        this.assignTeamThemes(this.presencePlayers());
       } catch {
         // Senza diagnostica restano i nomi della classifica.
       }

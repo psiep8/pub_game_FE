@@ -1,6 +1,6 @@
-# Giro di prova su device — F02, F01, F13, F12
+# Giro di prova su device — F02, F01, F13, F12, F09
 
-Una sola sessione con TV e due telefoni, 45–60 minuti. Serve a chiudere ciò che
+Una sola sessione con TV e due telefoni, 45–60 minuti (70 con la prova F09). Serve a chiudere ciò che
 jsdom non può dire: bfcache, storage delle PWA, rete reale, percezione in sala.
 
 **Regola**: durante il giro non si tocca il codice. Si annota, si fotografa, si
@@ -118,9 +118,36 @@ Per T2 non spiegare prima cosa guardare: la percezione è il dato.
 
 ---
 
-## 6. Formato di esito per la roadmap
+## 6. F09 — Classifica rapida su TV vera (10–15 minuti)
 
-Per ogni voce toccata (F01, F02, F12, F13) riportare **quattro campi**, con lo
+Le misure a 720p sono già state fatte sul componente Angular vero
+(`docs/screenshots/f09-classifica-rapida-*-720p.png`): quello che manca è la
+percezione a distanza e la resa di una TV fisica. Si guarda la classifica
+**dopo** il reveal, quando il tabellone è compattato, non durante la sequenza.
+
+Servono un round chiuso con 12 squadre, poi 16, poi 20 collegate. Chi non ha
+venti telefoni può usare venti schede in incognito sullo stesso telefono o venti
+profili browser: conta il numero di squadre in classifica, non i telefoni.
+
+| # | Prova | Cosa deve succedere | Esito | Note |
+|---|---|---|---|---|
+| L1 | 12 squadre, TV a 720p | Due colonne, sei righe; tutti e dodici i nomi leggibili dal fondo sala, nessuno tagliato | | |
+| L2 | 16 squadre | Due colonne, otto righe; tutti visibili senza scorrere | | |
+| L3 | 20 squadre | Tre colonne, sette righe; tutti e venti visibili, l'ultima riga non esce dal riquadro | | |
+| L4 | Chi sta dal fondo sala legge i nomi di L1–L3 | Almeno 8 nomi su 10 corretti a 4–5 metri | | |
+| L5 | Ordine di lettura | Dal peggiore al migliore, sinistra→destra e riga per riga; il primo posto è l'ultimo in basso a destra | | |
+| L6 | Avatar e colori con 12 e 20 squadre | Ogni squadra ha un colore distinto (le palette si ripetono oltre l'ottava) e l'avatar non schiaccia il nome | | |
+| L7 | Foto della TV a 720p con 12, 16 e 20 squadre | Consegna: tre foto, nomi leggibili nello scatto | | |
+| L8 | *(solo se la serata supera 20 squadre)* 24 squadre | Tre colonne, otto righe; se qualcosa esce dal riquadro si annota e si passa oltre | | |
+
+Se una prova supera le 20 squadre non è prevista: annotare il numero reale e
+fermarsi, non improvvisare una quarta colonna in sala.
+
+---
+
+## 7. Formato di esito per la roadmap
+
+Per ogni voce toccata (F01, F02, F12, F13, F09) riportare **quattro campi**, con lo
 stesso schema delle righe esistenti:
 
 ```
@@ -147,5 +174,6 @@ Note obbligatorie accanto all'esito:
 | F02 | | /13 | |
 | F12 | | /6 | |
 | F13 | | /6 | |
+| F09 | | /7 (+1) | |
 
 Firmato: ____________________  Data: ____________  Commit: `__________`
