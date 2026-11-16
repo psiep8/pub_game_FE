@@ -109,7 +109,8 @@ almeno tre telefoni: due restano in partita, il terzo serve alle prove di
 espulsione e rientro.
 
 **Prima di iniziare**: nessun telefono deve aver scelto il colore, tranne quello
-indicato in T8. Le palette vengono assegnate dalla TV all'ingresso, in ordine
+indicato in T8 (per T12–T14 serve un telefono in più, che cambia nome o chiude
+la pagina). Le palette vengono assegnate dalla TV all'ingresso, in ordine
 (SABBIA, ARTICO, OCEANO, K-POP, CYBER, SUNSET, ORO, poi l'acido all'ottava):
 se una squadra ha già scelto, i colori non sono più nell'ordine previsto e la
 prova T1 va comunque fatta, annotando il colore visto.
@@ -127,16 +128,19 @@ prova T1 va comunque fatta, annotando il colore visto.
 | T9 | Espelli una squadra **senza punti**, poi falla rientrare dallo stesso telefono | Al rientro ritrova **lo stesso colore** di prima; la classifica non cambia per le altre squadre | | |
 | T10 | Espelli una squadra **con punti** | Resta in classifica con i suoi punti e il suo colore; una squadra nuova che entra non prende quel colore | | |
 | T11 | Partita nuova (o reset confermato) con la TV ricaricata | I colori ripartono dall'inizio: prime squadre SABBIA, ARTICO, OCEANO; nessun colore ereditato dalla partita precedente | | |
-| T12 | Un telefono rientra **con un nome diverso** (es. `Anna` → `Anna Sofia`) | Per la TV è una squadra nuova: riceve una palette libera e diversa da quella del vecchio nome, compare come riga nuova a zero punti e non eredita nulla; la riga `Anna` resta com'era (se ha punti si tiene, se ne ha zero la regia la espelle) | | |
+| T12 | Lo **stesso telefono** rientra con un nome diverso (es. `Anna` → `Anna Sofia`) | La squadra resta una sola: stesso colore di prima, punti e risposte seguono il nuovo nome, nessuna riga `Anna` residua; il telefono non deve rimandare la palette | | |
+| T13 | Un telefono **diverso** entra con quel nome (o un altro telefono cambia nome) | È una squadra nuova: riga nuova a zero punti e palette libera e distinta da quella di `Anna Sofia` | | |
+| T14 | In lobby un telefono **chiude la pagina** (squadra ancora a zero punti) | La sua riga sparisce dalla classifica entro il refresh delle presenze e la palette torna disponibile; chi ha già punti resta in tabella anche se il telefono è staccato | | |
 
-**Comportamento voluto in T12.** Il messaggio di ingresso porta solo il nome
-(`JOIN_GAME`), non un identificativo del telefono: la TV non può sapere che è lo
-stesso dispositivo, quindi non può trasferire palette, punti o memoria dal
-vecchio nome. Non è un difetto da correggere in fretta: trasferire l'identità
-di una squadra a un nome diverso richiederebbe un identificativo di device nel
-protocollo fra telefono e TV. In sala la regola è: **nome nuovo = squadra
-nuova**; chi ha punti tiene la sua riga, le righe a zero punti si espellono
-dalla regia.
+**Comportamento voluto in T12–T14.** Il messaggio di ingresso (`JOIN_GAME`) porta
+anche il `deviceId`, lo stesso identificativo stabile con cui il telefono apre la
+sessione. Quindi: stesso telefono + nome nuovo = **stessa squadra**, che porta
+con sé palette, memoria del colore e punti (anche quelli del round in corso);
+telefono diverso con lo stesso nome = **squadra nuova**. In lobby la TV toglie
+le righe a **zero punti** delle squadre non più collegate e ne libera le
+palette, così un telefono chiuso non lascia né righe fantasma né colori
+occupati; chi ha punti resta, perché i punti non si cancellano senza una
+decisione della regia.
 
 Per T2 non spiegare prima cosa guardare: la percezione è il dato. In T7–T10
 fotografare la TV prima e dopo: la coppia di scatti è la prova, l'occhio da solo
@@ -198,7 +202,7 @@ Note obbligatorie accanto all'esito:
 |---|---|---|---|
 | F01 | | /4 | |
 | F02 | | /13 | |
-| F12 | | /12 | |
+| F12 | | /14 | |
 | F13 | | /6 | |
 | F09 | | /7 (+1) | |
 
