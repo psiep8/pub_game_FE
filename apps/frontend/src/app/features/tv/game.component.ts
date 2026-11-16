@@ -701,6 +701,7 @@ export class GameComponent implements OnInit, OnDestroy {
       names.map((name) => (name === previousName ? nextName : name)),
     )));
     this.theme.renameTeam(previousName, nextName);
+    this.playerAvatars.rename(previousName, nextName);
     this.leaderboardService.renamePlayer(previousName, nextName);
 
     const roundPoints = this.roundPoints.get(previousName);

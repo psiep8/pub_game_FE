@@ -8,6 +8,7 @@ import { AiGeneratorService } from '../../core/services/ai-generator-service';
 import { AudioService } from '../../core/services/audio.service';
 import { GameService } from '../../core/services/game.service';
 import { LeaderboardService } from '../../core/services/leaderboard.service';
+import { PlayerAvatarService } from '../../core/services/player-avatar.service';
 import { WebSocketService } from '../../core/websocket/web-socket.service';
 import {
   FakeAiGeneratorService,
@@ -670,6 +671,39 @@ describe('GameComponent', () => {
     expect(leaderboard.getPlayerStats('Anna')).toBeNull();
     expect(component.presencePlayers()).toContain('Anna Sofia');
     expect(component.presencePlayers()).not.toContain('Anna');
+  });
+
+  it('porta con sé l’avatar quando il telefono rientra rinominato', () => {
+    const avatars = TestBed.inject(PlayerAvatarService);
+    const avatar = `data:image/png;base64,${'A'.repeat(120)}`;
+    avatars.setAvatar('Anna', avatar);
+
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna', deviceId: 'dev-1' });
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna Sofia', deviceId: 'dev-1' });
+
+    expect(avatars.avatarFor('Anna Sofia')).toBe(avatar);
+    expect(avatars.avatarFor('Anna')).toBeNull();
+  });
+
+  it('sposta sul nuovo nome anche i punti del round in corso', () => {
+    const tv = component as unknown as {
+      beginRoundScoring(): void;
+      settleRoundWinner(): void;
+      applyRoundWinnerTheme(): void;
+    };
+    const theme = component.theme;
+    theme.applyFromRemote('editorial-acid');
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna', deviceId: 'dev-1' });
+
+    tv.beginRoundScoring();
+    leaderboard.addPoints('Anna', 90, true);
+    // Rinomina a round aperto: il verdetto deve tenere i punti di Anna.
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna Sofia', deviceId: 'dev-1' });
+    tv.settleRoundWinner();
+    tv.applyRoundWinnerTheme();
+
+    expect(theme.theme()).toBe(theme.themeForTeam('Anna Sofia'));
+    expect(theme.theme()).not.toBe('editorial-acid');
   });
 
   it('tratta come squadra nuova il nome nuovo di un altro telefono', () => {

@@ -47,6 +47,28 @@ export class PlayerAvatarService {
     this.persist();
   }
 
+  /**
+   * Sposta l'avatar sul nuovo nome quando il telefono rientra rinominato.
+   *
+   * <p>Senza questo la classifica perderebbe la faccia della squadra fino al
+   * prossimo invio dell'avatar, che il telefono fa solo all'ingresso.</p>
+   */
+  rename(previousName: string, nextName: string): void {
+    const previous = previousName.trim();
+    const next = nextName.trim();
+    if (!previous || !next || previous === next) return;
+
+    const current = this.avatars();
+    const avatar = current[previous];
+    if (!avatar) return;
+
+    const copy = { ...current };
+    delete copy[previous];
+    copy[next] = avatar;
+    this.avatars.set(copy);
+    this.persist();
+  }
+
   /** Rimanda l'avatar alla TV: serve dopo una riconnessione o un refresh. */
   publish(playerName: string, gameId = 1): void {
     const name = playerName.trim();
