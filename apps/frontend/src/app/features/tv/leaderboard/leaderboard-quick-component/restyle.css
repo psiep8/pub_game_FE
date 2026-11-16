@@ -197,3 +197,35 @@
 .kahoot-leaderboard .players-container.all-visible.dense .player-row {
   min-height: 0 !important;
 }
+
+/* Oltre sedici squadre: tre colonne. In due colonne venti nomi a 720p
+   scenderebbero a dieci righe da ~55px, con l'avatar che sfonda la riga;
+   in tre colonne restano sette righe da ~80px. */
+.kahoot-leaderboard .players-container.all-visible.dense.triple {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(5px, 1vh, 10px) !important;
+  padding: clamp(4px, 1vh, 10px) clamp(10px, 1.6vw, 26px) !important;
+}
+.kahoot-leaderboard .players-container.all-visible.dense.triple .player-row {
+  padding: clamp(3px, .8vh, 7px) clamp(8px, 1.2vw, 18px) !important;
+  gap: clamp(5px, .8vh, 9px) !important;
+  grid-template-columns: clamp(26px, 3.2vh, 38px) 1fr auto 28px !important;
+}
+.kahoot-leaderboard .players-container.all-visible.dense.triple .player-avatar {
+  width: clamp(26px, 5.4vh, 42px) !important;
+  height: clamp(26px, 5.4vh, 42px) !important;
+}
+.kahoot-leaderboard .players-container.all-visible.dense.triple .player-name {
+  font-size: clamp(.9rem, 2.7vh, 1.5rem) !important;
+}
+.kahoot-leaderboard .players-container.all-visible.dense.triple .points-value {
+  font-size: clamp(.9rem, 2.9vh, 1.6rem) !important;
+}
+.kahoot-leaderboard .players-container.all-visible.dense.triple .position-badge {
+  width: clamp(26px, 3.2vh, 38px) !important;
+  height: clamp(26px, 3.2vh, 38px) !important;
+  font-size: clamp(.72rem, 1.8vh, 1.05rem) !important;
+}
+.kahoot-leaderboard .players-container.all-visible.dense.triple .podium-icon {
+  font-size: clamp(.9rem, 2.2vh, 1.4rem) !important;
+}

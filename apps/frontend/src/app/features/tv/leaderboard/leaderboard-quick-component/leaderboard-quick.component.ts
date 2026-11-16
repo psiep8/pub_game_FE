@@ -57,6 +57,13 @@ export class LeaderboardQuick implements OnInit {
    */
   readonly dense = computed(() => this.revealDone() && this.allPlayers().length > 10);
 
+  /**
+   * Oltre sedici squadre due colonne non bastano più: a 720p servono dieci
+   * righe da ~55px, che stringono avatar e nomi. Con tre colonne le righe
+   * restano sopra i 75px anche a venti squadre.
+   */
+  readonly triple = computed(() => this.revealDone() && this.allPlayers().length > 16);
+
   /** Contenitore delle righe: con molte squadre scorre da solo. */
   private readonly playersList = viewChild<ElementRef<HTMLElement>>('playersList');
 

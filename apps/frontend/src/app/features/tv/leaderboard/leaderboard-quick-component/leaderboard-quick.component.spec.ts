@@ -112,6 +112,50 @@ describe('LeaderboardQuick', () => {
     expect(fixture.nativeElement.querySelectorAll('.player-row')).toHaveLength(12);
   });
 
+  it('oltre sedici squadre passa a tre colonne per non schiacciare le righe', async () => {
+    vi.useFakeTimers();
+    const twenty: PlayerScore[] = Array.from({ length: 20 }, (_, i) => ({
+      playerName: `Squadra ${i + 1}`,
+      totalPoints: 1000 - i * 10,
+      correctAnswers: 0,
+      wrongAnswers: 0,
+      position: i + 1,
+    }));
+    create(twenty);
+
+    const container = fixture.nativeElement.querySelector('.players-container');
+    expect(container.classList).not.toContain('triple');
+
+    await vi.advanceTimersByTimeAsync(20 * 6000 + 5000);
+    fixture.detectChanges();
+
+    expect(component.revealDone()).toBe(true);
+    expect(component.dense()).toBe(true);
+    expect(component.triple()).toBe(true);
+    expect(container.classList).toContain('triple');
+    expect(fixture.nativeElement.querySelectorAll('.player-row')).toHaveLength(20);
+  });
+
+  it('a sedici squadre resta a due colonne', async () => {
+    vi.useFakeTimers();
+    const sixteen: PlayerScore[] = Array.from({ length: 16 }, (_, i) => ({
+      playerName: `Squadra ${i + 1}`,
+      totalPoints: 1000 - i * 10,
+      correctAnswers: 0,
+      wrongAnswers: 0,
+      position: i + 1,
+    }));
+    create(sixteen);
+
+    await vi.advanceTimersByTimeAsync(16 * 6000 + 5000);
+    fixture.detectChanges();
+
+    expect(component.revealDone()).toBe(true);
+    expect(component.triple()).toBe(false);
+    expect(fixture.nativeElement.querySelector('.players-container').classList)
+      .not.toContain('triple');
+  });
+
   it('fino a dieci squadre resta a colonna singola', async () => {
     vi.useFakeTimers();
     const ten: PlayerScore[] = Array.from({ length: 10 }, (_, i) => ({
