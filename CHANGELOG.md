@@ -13,7 +13,8 @@
 - Speed Rush: niente checkpoint TV. Dopo un refresh le corsie si rileggono dal server (`start` è idempotente sullo stesso round), la corsa non viene riavviata e il cronometro riparte dal tempo che resta al round.
 - Quiz: i voti sono arbitrati dal server. La TV annuncia la manche, il telefono manda solo l'indice scelto e il server controlla tempo, soluzione e doppio voto, poi trasmette `QUIZ_ANSWER` con i punti; una risposta in ritardo o un doppio voto vengono rifiutati e il telefono resta aperto finché il server non conferma.
 - Quiz: le risposte restano sul server (`/quiz/answers`), quindi un refresh della TV non perde quelle arrivate nel frattempo e la TV le rilegge invece di fidarsi solo del checkpoint.
-- Verifiche: 11 test Arena, 4 test Bomba, 13 test Quiz, 5 test Speed Rush, 42 test TV, 7 RoundPause, 8 backend Speed Rush, 8 backend Quiz, 126 test frontend sui file toccati.
+- Quiz: alla ripresa la TV riannuncia la manche con i secondi rimasti, quindi anche dopo un riavvio del backend o a finestra già chiusa i telefoni possono votare; il cronometro non riparte da capo e i punti restano proporzionati al tempo vero.
+- Verifiche: 11 test Arena, 4 test Bomba, 17 test Quiz, 5 test Speed Rush, 42 test TV, 7 RoundPause, 8 backend Speed Rush, 10 backend Quiz, 109 test frontend sui file toccati.
 
 ## 15 novembre 2026 — scaletta 2.2 e cinque bonus
 
