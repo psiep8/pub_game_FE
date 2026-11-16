@@ -207,8 +207,10 @@ export class GameComponent implements OnInit, OnDestroy {
   } | null>(null);
   private recoveredPayload: any = null;
   private recoveredBlackjackState: any = null;
-  /** Tabellone Arena salvato dalla TV precedente, con la sua revisione. */
+    /** Tabellone Arena salvato dalla TV precedente, con la sua revisione. */
   private recoveredArenaCheckpoint: any = null;
+  /** Eventi Bomba già applicati dalla TV precedente. */
+  private recoveredBombaCheckpoint: any = null;
   private recoveredRoundIndex: number | null = null;
   private leaderboardFlush?: ReturnType<typeof setTimeout>;
   /** Ultima variazione locale e ultima confermata dal server. */
@@ -999,9 +1001,14 @@ export class GameComponent implements OnInit, OnDestroy {
       onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
       onRoundEnded: () => this.onArenaEnded(),
       onArenaCheckpoint: (checkpoint) => {
-        const roundIndex = this.arenaRoundIndex();
+        const roundIndex = this.tvRoundIndex();
         if (roundIndex == null) return;
         this.reliability.saveArenaCheckpoint({ ...checkpoint, roundIndex });
+      },
+      onBombaCheckpoint: (checkpoint) => {
+        const roundIndex = this.tvRoundIndex();
+        if (roundIndex == null) return;
+        this.reliability.saveBombaCheckpoint({ ...checkpoint, roundIndex });
       },
       onArenaInactivityCheck: async (players: string[]) => {
         const response = await firstValueFrom(
@@ -2216,8 +2223,8 @@ export class GameComponent implements OnInit, OnDestroy {
     this.offerRoundRecovery(snapshot);
   }
 
-  /** Indice del round corrente per il checkpoint Arena (0-based, dal server). */
-  private arenaRoundIndex(): number | null {
+  /** Indice del round corrente per i checkpoint TV (0-based, dal server). */
+  private tvRoundIndex(): number | null {
     const index = Number(this.round()?.roundIndex ?? this.recoveredRoundIndex);
     return Number.isInteger(index) && index >= 0 ? index : null;
   }
@@ -2241,6 +2248,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.recoveredRound.set(null);
       this.recoveredPayload = null;
       this.recoveredArenaCheckpoint = null;
+      this.recoveredBombaCheckpoint = null;
       this.recoveredRoundIndex = null;
       return;
     }
@@ -2250,6 +2258,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.recoveredBlackjackState = snapshot.blackjackState ?? null;
     // Solo un checkpoint del round corrente: il server lo scarta altrimenti.
     this.recoveredArenaCheckpoint = snapshot.arenaCheckpoint?.state ? snapshot.arenaCheckpoint : null;
+    this.recoveredBombaCheckpoint = snapshot.bombaCheckpoint?.state ? snapshot.bombaCheckpoint : null;
     this.recoveredRound.set({
       type: type as GameModeType,
       label: this.getModeName(type),
@@ -2264,7 +2273,8 @@ export class GameComponent implements OnInit, OnDestroy {
       // server: senza di essa il tavolo non si può riprendere.
       resumable: (type === 'TIMELINE' && !!this.recoveredPayload)
         || (type === 'BLACKJACK' && !!snapshot?.blackjackState)
-        || (type === 'ARENA' && !!this.recoveredArenaCheckpoint),
+        || (type === 'ARENA' && !!this.recoveredArenaCheckpoint)
+        || (type === 'BOMBA' && !!this.recoveredBombaCheckpoint),
       paused,
     });
   }
@@ -2287,7 +2297,8 @@ export class GameComponent implements OnInit, OnDestroy {
     const payload = this.recoveredPayload;
     const blackjack = this.recoveredBlackjackState;
     const arena = this.recoveredArenaCheckpoint;
-    if (!pending?.resumable || (!payload && !blackjack && !arena)) return;
+    const bomba = this.recoveredBombaCheckpoint;
+    if (!pending?.resumable || (!payload && !blackjack && !arena && !bomba)) return;
 
     if (pending.paused) {
       try {
@@ -2322,7 +2333,8 @@ export class GameComponent implements OnInit, OnDestroy {
     this.startRoundSuspense(mode.type);
     if (mode.restore) {
       try {
-        mode.restore(pending.secondsLeft, pending.type === 'ARENA' ? arena : this.recoveredBlackjackState);
+        mode.restore(pending.secondsLeft, pending.type === 'ARENA' ? arena
+          : pending.type === 'BOMBA' ? bomba : this.recoveredBlackjackState);
       } catch {
         // Checkpoint non valido: si torna al pannello, senza lasciare la TV
         // su un round vuoto che nessuno potrebbe più chiudere.
@@ -2333,7 +2345,7 @@ export class GameComponent implements OnInit, OnDestroy {
         this.audioService.stopClock();
         this.audioService.stopSuspense();
         this.recoveredRound.set(pending);
-        alert('Tabellone Arena non ripristinabile: chiudi il round o riprova dalla regia.');
+        alert('Round non ripristinabile: chiudi il round o riprova dalla regia.');
         return;
       }
     } else await mode.start();
@@ -2355,6 +2367,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.recoveredPayload = null;
     this.recoveredBlackjackState = null;
     this.recoveredArenaCheckpoint = null;
+    this.recoveredBombaCheckpoint = null;
     this.recoveredRoundIndex = null;
     this.reliability.saveBlackjackState(null);
     this.gameService.closeRound(this.currentGameId(), 'recovered').subscribe({

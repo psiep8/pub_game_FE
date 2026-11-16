@@ -144,6 +144,50 @@ describe('GameComponent', () => {
     expect(reliability.arenaCheckpoints).toEqual([{ revision: 2, state, roundIndex: 5 }]);
   });
 
+  it('salva il checkpoint Bomba con indice del round e sequenza eventi', () => {
+    component.round.set({ roundIndex: 7 } as any);
+    const config = (component as unknown as {
+      buildModeConfig(type: string, payload: any, players: string[]): any;
+    }).buildModeConfig('BOMBA', {}, ['Anna']);
+    config.onBombaCheckpoint({ revision: 3, state: { lastEventSeq: 9 } });
+    expect(reliability.bombaCheckpoints).toEqual([
+      { revision: 3, state: { lastEventSeq: 9 }, roundIndex: 7 },
+    ]);
+  });
+
+  it('propone di riprendere Bomba quando il server ha la sequenza eventi', () => {
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'RUNNING', roundType: 'BOMBA', roundIndex: 6, roundKey: 'g1-r6',
+      roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
+      bombaCheckpoint: { roundKey: 'g1-r6', startedAt: 1, revision: 2, state: { lastEventSeq: 5 } },
+    });
+    expect(component.recoveredRound()?.resumable).toBe(true);
+  });
+
+  it('riapre Bomba dal checkpoint senza riavviare il round', async () => {
+    const modes = TestBed.inject(GameModeService);
+    const restore = vi.fn();
+    const start = vi.fn();
+    vi.spyOn(modes, 'createMode').mockReturnValue({
+      type: 'BOMBA', restore, start, getDisplayData: () => ({}), isRevealed: () => false,
+    } as any);
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+    const checkpoint = { roundKey: 'g1-r6', startedAt: 1, revision: 2, state: { lastEventSeq: 5 } };
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'RUNNING', roundType: 'BOMBA', roundIndex: 6, roundKey: 'g1-r6',
+      roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
+      bombaCheckpoint: checkpoint,
+    });
+    const seconds = component.recoveredRound()!.secondsLeft;
+
+    await component.resumeRecoveredRound();
+
+    expect(restore).toHaveBeenCalledWith(seconds, checkpoint);
+    expect(start).not.toHaveBeenCalled();
+    expect(component.recoveredRound()).toBeNull();
+  });
+
   it('propone di riprendere Arena quando il server ha il tabellone', () => {
     const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
     const checkpoint = { roundKey: 'g1-r3', startedAt: 1, revision: 4, state: { teams: [] } };

@@ -369,6 +369,9 @@ public class GameStateService {
     /** Checkpoint della TV Arena, legato alla chiave del round corrente. */
     public static final String ARENA_TV_BLOB = "arena-tv";
 
+    /** Checkpoint della TV Bomba: la sequenza degli eventi già applicati. */
+    public static final String BOMBA_TV_BLOB = "bomba-tv";
+
     /** Chiave del blob che ricorda l'ultimo round annunciato dalla TV. */
     public static final String ROUND_ANNOUNCED_BLOB = "round-announced";
 
@@ -380,31 +383,57 @@ public class GameStateService {
      * crescere, così un invio fuori ordine non riporta indietro il tabellone.</p>
      */
     public boolean saveArenaCheckpoint(long gameId, int roundIndex, long revision, JSONObject arena) {
+        return saveTvCheckpoint(gameId, "ARENA", ARENA_TV_BLOB, roundIndex, revision, arena);
+    }
+
+    /**
+     * Bomba ha il tabellone sul server: qui si salva solo l'ultimo evento già
+     * applicato, così dopo un refresh la penalità non viene addebitata due volte.
+     */
+    public boolean saveBombaCheckpoint(long gameId, int roundIndex, long revision, JSONObject bomba) {
+        return saveTvCheckpoint(gameId, "BOMBA", BOMBA_TV_BLOB, roundIndex, revision, bomba);
+    }
+
+    /**
+     * Checkpoint di un gioco a round aperto: vale solo per quel gioco e per il
+     * round corrente, e solo se la revisione cresce.
+     */
+    private boolean saveTvCheckpoint(long gameId, String roundType, String blob,
+            int roundIndex, long revision, JSONObject state) {
         Object lock = eventLocks.computeIfAbsent(gameId, key -> new Object());
         synchronized (lock) {
             GameStateEntity current = states.findById(gameId).orElse(null);
             if (current == null || !"RUNNING".equals(current.getStatus())
-                    || !"ARENA".equals(current.getRoundType())
+                    || !roundType.equals(current.getRoundType())
                     || current.getRoundIndex() != roundIndex
                     || current.getRoundKey() == null || current.getRoundStartedAt() == null
                     || revision <= 0) return false;
-            Optional<JSONObject> previous = arenaCheckpoint(gameId);
+            Optional<JSONObject> previous = tvCheckpoint(gameId, roundType, blob);
             if (previous.isPresent() && revision <= previous.get().optLong("revision")) return false;
             JSONObject checkpoint = new JSONObject().put("roundKey", current.getRoundKey())
                     .put("startedAt", current.getRoundStartedAt()).put("revision", revision)
-                    .put("state", arena);
-            stateBlobs.save(gameId, ARENA_TV_BLOB, checkpoint.toString());
+                    .put("state", state);
+            stateBlobs.save(gameId, blob, checkpoint.toString());
             return true;
         }
     }
 
     /** Un checkpoint di un round diverso o chiuso non è ripristinabile. */
     public Optional<JSONObject> arenaCheckpoint(long gameId) {
+        return tvCheckpoint(gameId, "ARENA", ARENA_TV_BLOB);
+    }
+
+    public Optional<JSONObject> bombaCheckpoint(long gameId) {
+        return tvCheckpoint(gameId, "BOMBA", BOMBA_TV_BLOB);
+    }
+
+    private Optional<JSONObject> tvCheckpoint(long gameId, String roundType, String blob) {
         GameStateEntity current = states.findById(gameId).orElse(null);
-        if (current == null || !"RUNNING".equals(current.getStatus()) || !"ARENA".equals(current.getRoundType())) {
+        if (current == null || !"RUNNING".equals(current.getStatus())
+                || !roundType.equals(current.getRoundType())) {
             return Optional.empty();
         }
-        return stateBlobs.load(gameId, ARENA_TV_BLOB).map(JSONObject::new)
+        return stateBlobs.load(gameId, blob).map(JSONObject::new)
                 .filter(checkpoint -> checkpoint.optString("roundKey").equals(current.getRoundKey())
                         && current.getRoundStartedAt() != null
                         && checkpoint.optLong("startedAt", -1L) == current.getRoundStartedAt());
@@ -470,6 +499,7 @@ public class GameStateService {
         // Mano Blackjack salvata dalla TV: serve a riprenderla dopo un refresh.
         out.put("blackjackState", blackjackState(gameId).orElse(null));
         out.put("arenaCheckpoint", arenaCheckpoint(gameId).orElse(null));
+        out.put("bombaCheckpoint", bombaCheckpoint(gameId).orElse(null));
         return out;
     }
 
@@ -480,6 +510,7 @@ public class GameStateService {
      */
     public void reset(long gameId) {
         stateBlobs.forget(gameId, ARENA_TV_BLOB);
+        stateBlobs.forget(gameId, BOMBA_TV_BLOB);
         tx.executeWithoutResult(status -> {
             events.deleteByGameId(gameId);
             rounds.deleteByGameId(gameId);

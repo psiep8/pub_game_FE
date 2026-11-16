@@ -63,6 +63,8 @@ export interface GameModeConfig {
   onBlackjackState?: (state: unknown | null) => void;
   /** Arena: la TV salva il tabellone sul server per riprendere il round. */
   onArenaCheckpoint?: (checkpoint: { revision: number; state: unknown }) => void;
+  /** Bomba: la TV salva la sequenza di eventi già applicati. */
+  onBombaCheckpoint?: (checkpoint: { revision: number; state: unknown }) => void;
 }
 
 export interface GameModeResult {

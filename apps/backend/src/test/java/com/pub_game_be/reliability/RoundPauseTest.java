@@ -114,6 +114,36 @@ class RoundPauseTest {
     }
 
     @Test
+    void checkpointBombaSoloTvESoloPerIlRoundCorrente() {
+        long gameId = 741L;
+        gameState.startRound(gameId, "BOMBA", 1, "g741-r1", "{}");
+        var tv = sessions.register(gameId, "tv741", "TV", "", null);
+        var remote = sessions.register(gameId, "remote741", "REMOTE", "Anna", null);
+        var tvSession = sessions.authenticate(tv.sessionToken()).orElseThrow();
+        var remoteSession = sessions.authenticate(remote.sessionToken()).orElseThrow();
+        Map<String, Object> checkpoint = Map.of("roundIndex", 1, "revision", 2,
+                "state", Map.of("lastEventSeq", 4));
+        assertThat(reliabilityController.saveBombaCheckpoint(gameId, remoteSession, checkpoint).getStatusCode().value()).isEqualTo(403);
+        assertThat(reliabilityController.saveBombaCheckpoint(gameId, tvSession, checkpoint).getStatusCode().value()).isEqualTo(200);
+        JSONObject stored = restartedService().snapshot(gameId).getJSONObject("bombaCheckpoint");
+        assertThat(stored.getString("roundKey")).isEqualTo("g741-r1");
+        assertThat(stored.getJSONObject("state").getInt("lastEventSeq")).isEqualTo(4);
+        // Revisione vecchia, round diverso e checkpoint di un altro gioco: 409.
+        assertThat(reliabilityController.saveBombaCheckpoint(gameId, tvSession,
+                Map.of("roundIndex", 1, "revision", 1, "state", Map.of("lastEventSeq", 3))).getStatusCode().value()).isEqualTo(409);
+        assertThat(reliabilityController.saveBombaCheckpoint(gameId, tvSession,
+                Map.of("roundIndex", 9, "revision", 3, "state", Map.of())).getStatusCode().value()).isEqualTo(409);
+        assertThat(reliabilityController.saveArenaCheckpoint(gameId, tvSession,
+                Map.of("roundIndex", 1, "revision", 9, "state", Map.of())).getStatusCode().value()).isEqualTo(409);
+        gameState.startRound(gameId, "BOMBA", 2, "g741-r2", "{}");
+        assertThat(gameState.snapshot(gameId).isNull("bombaCheckpoint")).isTrue();
+        assertThat(gameState.snapshot(gameId).isNull("arenaCheckpoint")).isTrue();
+        gameState.reset(gameId);
+        gameState.startRound(gameId, "BOMBA", 2, "g741-r2", "{}");
+        assertThat(gameState.snapshot(gameId).isNull("bombaCheckpoint")).isTrue();
+    }
+
+    @Test
     void laPausaAllungaLaDeadlineDelRound() throws Exception {
         long gameId = 720L;
         gameState.startRound(gameId, "QUIZ", 1, "g720-r1", "{}");

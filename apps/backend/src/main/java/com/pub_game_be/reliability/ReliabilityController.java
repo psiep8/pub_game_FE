@@ -145,11 +145,30 @@ public class ReliabilityController {
         return ResponseEntity.ok(Map.of("saved", true));
     }
 
+    /** Salvatore del checkpoint di un gioco: cambia solo il tipo di round. */
+    @FunctionalInterface
+    private interface TvCheckpointSaver {
+        boolean save(long gameId, int roundIndex, long revision, JSONObject state);
+    }
+
     /** Checkpoint Arena: solo la TV autenticata può salvarlo. */
     @PostMapping("/arena-tv-state")
     public ResponseEntity<Object> saveArenaCheckpoint(@PathVariable("gameId") Long gameId,
             @RequestAttribute("pubgame.session") DeviceSessionEntity session,
             @RequestBody Map<String, Object> body) {
+        return saveTvCheckpoint(gameId, session, body, gameState::saveArenaCheckpoint);
+    }
+
+    /** Checkpoint Bomba: la TV dice quanti eventi ha già applicato. */
+    @PostMapping("/bomba-tv-state")
+    public ResponseEntity<Object> saveBombaCheckpoint(@PathVariable("gameId") Long gameId,
+            @RequestAttribute("pubgame.session") DeviceSessionEntity session,
+            @RequestBody Map<String, Object> body) {
+        return saveTvCheckpoint(gameId, session, body, gameState::saveBombaCheckpoint);
+    }
+
+    private ResponseEntity<Object> saveTvCheckpoint(Long gameId, DeviceSessionEntity session,
+            Map<String, Object> body, TvCheckpointSaver saver) {
         if (!"TV".equals(session.getRole()) || !session.getGameId().equals(gameId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "tv-required"));
         }
@@ -160,7 +179,7 @@ public class ReliabilityController {
                 || !(rawRevision instanceof Number)) {
             return ResponseEntity.badRequest().body(Map.of("error", "invalid-checkpoint"));
         }
-        boolean saved = gameState.saveArenaCheckpoint(gameId, ((Number) rawRoundIndex).intValue(),
+        boolean saved = saver.save(gameId, ((Number) rawRoundIndex).intValue(),
                 ((Number) rawRevision).longValue(), new JSONObject((Map<?, ?>) rawState));
         return saved ? ResponseEntity.ok(Map.of("saved", true))
                 : ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "stale-checkpoint"));

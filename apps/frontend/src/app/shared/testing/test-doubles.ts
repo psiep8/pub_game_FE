@@ -291,6 +291,12 @@ export class FakeReliabilityService {
     this.arenaCheckpoints.push(checkpoint);
   }
 
+  readonly bombaCheckpoints: Array<{ roundIndex: number; revision: number; state: unknown }> = [];
+
+  saveBombaCheckpoint(checkpoint: { roundIndex: number; revision: number; state: unknown }): void {
+    this.bombaCheckpoints.push(checkpoint);
+  }
+
   serverNow(): number {
     return Date.now();
   }

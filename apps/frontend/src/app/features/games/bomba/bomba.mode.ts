@@ -45,6 +45,8 @@ export class BombaMode extends GameModeBase {
   private startedOnce = false;
   private ended = false;
   private lastEventSeq = 0;
+  /** Cresce a ogni salvataggio: una scrittura vecchia non deve tornare indietro. */
+  private revision = 0;
 
   protected onInitialize(): void {
     // La factory chiama initialize() prima di setConfig(): i giocatori veri
@@ -55,6 +57,7 @@ export class BombaMode extends GameModeBase {
     this.ended = false;
     this.pollBusy = false;
     this.lastEventSeq = 0;
+    this.revision = 0;
     this.stopPolling();
     this.state.set(emptyState());
     this.timer.set(TURN_SECONDS);
@@ -75,6 +78,7 @@ export class BombaMode extends GameModeBase {
       const initial = await api.start(this.players, this.act);
       this.startedOnce = true;
       this.applyState(initial);
+      this.emitCheckpoint();
     } catch (error) {
       console.error('Bomba: impossibile avviare il round', error);
       this.state.set({
@@ -84,6 +88,54 @@ export class BombaMode extends GameModeBase {
       });
     }
     this.startPolling();
+  }
+
+  /**
+   * Riprende il round Bomba senza ripartire da zero.
+   *
+   * <p>Il tabellone, il turno e la scadenza sono già sul server: qui si adotta
+   * solo la sequenza di eventi che la TV precedente aveva applicato, così la
+   * penalità di una bomba non viene addebitata due volte. Un evento con
+   * sequenza più alta (arrivato durante il refresh) viene invece applicato.</p>
+   */
+  restore(secondsLeft: number, snapshot?: unknown): void {
+    if (!this.config.bomba) {
+      throw new Error('Stato Bomba non ripristinabile');
+    }
+    const checkpoint = snapshot as { revision?: number; state?: { lastEventSeq?: number } } | null | undefined;
+    const revision = checkpoint ? Number(checkpoint.revision) : 0;
+    const applied = checkpoint ? Number(checkpoint.state?.lastEventSeq) : 0;
+    // Senza checkpoint si riparte da zero eventi: al massimo la penalità
+    // dell'ultima bomba viene riaddebitata una volta, ma il round non si perde.
+    if (checkpoint && (!Number.isSafeInteger(revision) || revision <= 0)) {
+      throw new Error('Stato Bomba non ripristinabile');
+    }
+    if (!Number.isSafeInteger(applied) || applied < 0) {
+      throw new Error('Stato Bomba non ripristinabile');
+    }
+
+    this.players = [...(this.config.activePlayers ?? [])];
+    this.act = Number(this.payload?.act) || 1;
+    this.revision = revision;
+    this.lastEventSeq = applied;
+    this.startedOnce = true;
+    this.ended = false;
+    this.revealed.set(false);
+    this.isActive.set(true);
+    this.isPaused.set(false);
+
+    const remaining = Math.max(0, Math.round(Number(secondsLeft) || 0));
+    this.timer.set(remaining);
+    this.config.onTimerTick?.(remaining);
+    this.startPolling();
+  }
+
+  /** Salva la sequenza applicata: serve a non raddoppiare una penalità al refresh. */
+  private emitCheckpoint(): void {
+    const save = this.config.onBombaCheckpoint;
+    if (!save || this.ended) return;
+    this.revision++;
+    save({ revision: this.revision, state: { lastEventSeq: this.lastEventSeq } });
   }
 
   protected override startTimer(): void {
@@ -108,6 +160,7 @@ export class BombaMode extends GameModeBase {
     // Non resettare da qui: un reset HTTP potrebbe arrivare dopo lo start del
     // round successivo e cancellarlo. Il prossimo start rimpiazza lo stato.
     this.state.set(emptyState());
+    this.revision = 0;
   }
 
   protected onTimeout(): void {
@@ -163,6 +216,9 @@ export class BombaMode extends GameModeBase {
       if ((event?.kind === 'bomb' || event?.kind === 'eliminated') && event?.player) {
         this.applyBombPenalty(String(event.player));
       }
+      // Anche un evento senza punti avanza la sequenza: il checkpoint resta
+      // allineato e al refresh non si riapplica nulla.
+      this.emitCheckpoint();
     }
 
     if (next.active === false && !this.ended) {
