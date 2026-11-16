@@ -1,5 +1,15 @@
 # Changelog
 
+## 16 novembre 2026 — Round Biglie riprendibile (F06 chiuso)
+
+- Il round Biglie salva nel checkpoint TV le biglie assegnate, l'ordine di scelta raggiunto, le gare già chiuse con il tabellone, la classifica cumulata e la fase.
+- Al refresh la TV riprende la scelta della biglia dal giocatore giusto, l'ordine d'arrivo già pagato o la classifica finale, senza ripagare nulla: i punti delle gare chiuse sono già in classifica e non vengono rimandati.
+- La fisica di Matter.js non è serializzabile a costi ragionevoli: se la TV cade durante una gara, quella gara si rigioca da capo. I suoi punti si pagano una volta sola alla nuova fine, quindi il round resta corretto; cambia solo il risultato di quella gara, che non era ancora stato pagato.
+- Round chiuso: il checkpoint viene azzerato, così una nuova Biglie non riapre la finale della precedente.
+- Verifiche: 5 test del round e 1 test TV, suite completa frontend (368 test su 48 file).
+
+**F06 si chiude qui**: tutti i round e i bonus sono riprendibili. Restano fuori solo i punti del vincitore del round e la coda di scrittura della classifica, che non sono round.
+
 ## 16 novembre 2026 — Canzone riprendibile
 
 - Il round Canzone salva nel checkpoint TV la manche, i secondi rimasti, la pausa fra due ascolti e l'eventuale prenotazione di un tavolo.
