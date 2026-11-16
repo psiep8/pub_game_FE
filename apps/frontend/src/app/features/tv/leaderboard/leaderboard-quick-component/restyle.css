@@ -209,6 +209,9 @@
    in tre colonne restano sette righe da ~80px. */
 .kahoot-leaderboard .players-container.all-visible.dense.triple {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Oltre ventisette squadre la griglia non sta più nel riquadro: meglio
+     scorrere che tagliare le ultime righe. Fino a venti non compare nulla. */
+  overflow-y: auto !important;
   gap: clamp(5px, 1vh, 10px) !important;
   padding: clamp(4px, 1vh, 10px) clamp(10px, 1.6vw, 26px) !important;
 }
