@@ -82,8 +82,12 @@ interface Row {
 export class BlackjackBonus implements OnInit, OnDestroy {
   @Input({ required: true }) gameId = 1;
   @Input() players: string[] = [];
+  /** Mano salvata sul server: se c'è, il bonus riparte da lì. */
+  @Input() resume: any | null = null;
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
+  /** Mano corrente, da salvare sul server a ogni cambio di stato. */
+  @Output() checkpoint = new EventEmitter<any>();
 
   private readonly ws = inject(WebSocketService);
   private readonly destroyRef = inject(DestroyRef);
@@ -97,6 +101,7 @@ export class BlackjackBonus implements OnInit, OnDestroy {
   private bank: string[] = [];
   private rows: Row[] = [];
   private handPoints = 0;
+  private secondsLeft = DECIDE_SECONDS;
   private clock?: ReturnType<typeof setInterval>;
   private timers: Array<ReturnType<typeof setTimeout>> = [];
   private destroyed = false;
@@ -106,7 +111,103 @@ export class BlackjackBonus implements OnInit, OnDestroy {
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       this.onStatus(status);
     });
+    if (this.resume) {
+      this.applyResume(this.resume);
+      return;
+    }
     this.later(500, () => this.startHand());
+  }
+
+  /**
+   * Riprende la mano salvata sul server senza ridistribuire: la TV resta sullo
+   * stesso tavolo, con le carte già uscite e il tempo che avanza.
+   */
+  private applyResume(state: any): void {
+    const order = Array.isArray(state?.order)
+      ? state.order.map((name: any) => String(name).trim()).filter((name: string) => name.length > 0)
+      : [];
+    if (order.length) this.order = order;
+
+    this.index = this.clampIndex(Number(state?.index));
+    this.deck = this.cardsOf(state?.deck);
+    this.hand = this.cardsOf(state?.hand);
+    this.bank = this.cardsOf(state?.bank);
+    this.handPoints = Number(state?.handPoints) || 0;
+    this.rows = Array.isArray(state?.rows)
+      ? state.rows
+        .filter((row: any) => row && typeof row.playerName === 'string')
+        .map((row: any) => ({
+          playerName: String(row.playerName),
+          status: this.readStatus(row.status),
+          points: Number(row.points) || 0,
+        }))
+      : [];
+
+    // Una mano senza carte non è giocabile: si riparte dalla prima.
+    if (this.hand.length < 2 || this.bank.length < 2) {
+      this.index = 0;
+      this.startHand();
+      return;
+    }
+
+    // I tavoli già chiusi non sono stati pagati (il bonus paga alla fine):
+    // rimandandoli alla TV si ricostruisce il totale dopo il refresh.
+    this.rows
+      .filter((row) => row.points > 0)
+      .forEach((row) => this.result.emit({ playerName: row.playerName, score: row.points }));
+
+    const savedSeconds = Number(state?.secondsLeft);
+    const savedAt = Number(state?.savedAt);
+    const elapsed = Number.isFinite(savedAt) && savedAt > 0
+      ? Math.max(0, Math.floor((Date.now() - savedAt) / 1000))
+      : 0;
+    const seconds = Number.isFinite(savedSeconds)
+      ? Math.max(0, Math.round(savedSeconds) - elapsed)
+      : DECIDE_SECONDS;
+
+    const phase = String(state?.phase ?? 'DECIDE');
+    const choice = state?.choice === 'HIT' || state?.choice === 'STAND' ? state.choice : null;
+    const result = state?.result && typeof state.result === 'object' ? state.result : null;
+
+    this.secondsLeft = seconds;
+
+    if (phase === 'FINALE' || this.index >= this.order.length) {
+      this.index = this.order.length;
+      this.publish('FINALE');
+      this.later(seconds * 1000, () => this.finished.emit());
+      return;
+    }
+
+    if (phase === 'REVEAL' && result) {
+      // Esito già calcolato: non si rigioca la mano, si mostra e si passa.
+      this.publish('REVEAL', choice, result);
+      this.later(seconds * 1000, () => {
+        this.index += 1;
+        this.startHand();
+      });
+      return;
+    }
+
+    this.publish('DECIDE', choice);
+    this.startClock(seconds, () => this.reveal(false));
+  }
+
+  private clampIndex(value: number): number {
+    if (!Number.isFinite(value)) return 0;
+    return Math.min(Math.max(0, Math.floor(value)), Math.max(0, this.order.length));
+  }
+
+  private cardsOf(value: unknown): string[] {
+    return Array.isArray(value) ? value.map((card) => String(card)) : [];
+  }
+
+  private readStatus(value: unknown): Status {
+    const status = String(value);
+    if (status === 'ACTIVE' || status === 'WAITING' || status === 'WIN'
+      || status === 'PUSH' || status === 'BUST' || status === 'LOSE') {
+      return status;
+    }
+    return 'WAITING';
   }
 
   ngOnDestroy(): void {
@@ -137,6 +238,7 @@ export class BlackjackBonus implements OnInit, OnDestroy {
       };
     });
 
+    this.secondsLeft = DECIDE_SECONDS;
     this.publish('DECIDE');
     this.startClock(DECIDE_SECONDS, () => this.reveal(false));
   }
@@ -193,6 +295,7 @@ export class BlackjackBonus implements OnInit, OnDestroy {
 
     if (points > 0 && current) this.result.emit({ playerName: current, score: points });
 
+    this.secondsLeft = REVEAL_SECONDS;
     this.publish('REVEAL', stood ? 'STAND' : 'HIT', {
       outcome,
       points,
@@ -235,10 +338,31 @@ export class BlackjackBonus implements OnInit, OnDestroy {
       action: 'BLACKJACK_STATE',
       state: this.display(),
     });
+    this.saveCheckpoint();
+  }
+
+  /** Mano completa: carte, mazzo, tavoli, fase e tempo residuo. */
+  private saveCheckpoint(): void {
+    const display = this.display();
+    this.checkpoint.emit({
+      order: [...this.order],
+      index: this.index,
+      deck: [...this.deck],
+      hand: [...this.hand],
+      bank: [...this.bank],
+      rows: this.rows.map((row) => ({ ...row })),
+      handPoints: this.handPoints,
+      phase: display?.phase ?? 'DECIDE',
+      choice: display?.choice ?? null,
+      result: display?.result ?? null,
+      secondsLeft: this.secondsLeft,
+      savedAt: Date.now(),
+    });
   }
 
   private finale(): void {
     if (this.destroyed) return;
+    this.secondsLeft = FINALE_SECONDS;
     this.publish('FINALE');
     this.later(FINALE_SECONDS * 1000, () => this.finished.emit());
   }
@@ -249,10 +373,10 @@ export class BlackjackBonus implements OnInit, OnDestroy {
 
   private startClock(seconds: number, onEnd: () => void): void {
     this.clearClock();
-    let left = seconds;
+    this.secondsLeft = seconds;
     this.clock = setInterval(() => {
-      left -= 1;
-      if (left <= 0) {
+      this.secondsLeft = Math.max(0, this.secondsLeft - 1);
+      if (this.secondsLeft <= 0) {
         this.clearClock();
         onEnd();
       }

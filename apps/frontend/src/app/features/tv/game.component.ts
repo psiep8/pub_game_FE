@@ -1817,6 +1817,8 @@ export class GameComponent implements OnInit, OnDestroy {
       this.markBonusAct(closed, 'CLOSED');
       // Pagato: nemmeno uno snapshot vecchio deve riaprirlo.
       this.rememberClosedBonus(this.currentGameId(), this.roundManager.getCurrentAct());
+      // La mano del Blackjack bonus non deve tornare sul tavolo chiuso.
+      if (closed === 'BLACKJACK') this.reliability.saveBlackjackState(null);
     }
     this.bonusResume.set(null);
 
@@ -1859,6 +1861,12 @@ export class GameComponent implements OnInit, OnDestroy {
     }, 8000);
   }
 
+  /** La mano del Blackjack bonus vive sul server: un refresh non la perde. */
+  onBlackjackBonusCheckpoint(state: any): void {
+    if (!state) return;
+    this.reliability.saveBlackjackState(state);
+  }
+
   /** Il Casino salva voti e numero uscito: un refresh non li perde. */
   onBonusCheckpoint(type: BonusType, state: any): void {
     if (!state) return;
@@ -1886,6 +1894,8 @@ export class GameComponent implements OnInit, OnDestroy {
     const checkpoint = snapshot?.tvCheckpoint;
     const mode = String(checkpoint?.mode ?? '');
     const resume = checkpoint?.state && mode.startsWith('BONUS_') ? checkpoint.state : null;
+    // Il Blackjack bonus non usa il checkpoint TV: riprende la mano del server.
+    const blackjackHand = snapshot?.blackjackState ?? null;
 
     let type: BonusType | null = null;
     if (this.serverBonus?.status === 'STARTED'
@@ -1898,7 +1908,9 @@ export class GameComponent implements OnInit, OnDestroy {
       if (CASINO_BONUS_TYPES.includes(fromCheckpoint)) type = fromCheckpoint;
     }
     if (!type) return;
-    const state = resume && mode === `BONUS_${type}` ? resume : null;
+    const state = resume && mode === `BONUS_${type}`
+      ? resume
+      : (type === 'BLACKJACK' ? blackjackHand : null);
     void this.startBonus(type, state);
   }
 

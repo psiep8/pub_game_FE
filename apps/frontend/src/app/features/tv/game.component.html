@@ -366,6 +366,8 @@
       <app-blackjack-bonus
         [gameId]="currentGameId()"
         [players]="bonusPlayers()"
+        [resume]="bonusResume()"
+        (checkpoint)="onBlackjackBonusCheckpoint($event)"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
     }

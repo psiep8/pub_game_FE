@@ -308,7 +308,11 @@ export class FakeReliabilityService {
 
   forgetSession(): void {}
 
-  saveBlackjackState(_state: unknown | null): void {}
+  readonly blackjackStates: Array<unknown | null> = [];
+
+  saveBlackjackState(state: unknown | null): void {
+    this.blackjackStates.push(state);
+  }
 
   readonly tvCheckpoints: Array<{ mode: string; roundIndex: number; revision: number; state: unknown }> = [];
 

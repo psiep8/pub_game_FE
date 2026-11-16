@@ -97,6 +97,44 @@ describe('GameComponent', () => {
     expect(component.bonusEntrance()).toBe('CASINO_COLOR');
   });
 
+  it('riapre il Blackjack bonus dalla mano salvata sul server', () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    rounds.restoreRound(8);
+    component.currentGameId.set(1);
+    const hand = {
+      order: ['Anna', 'Bruno'],
+      index: 1,
+      hand: ['A♥', 'K♥'],
+      bank: ['9♠', '7♠'],
+      rows: [{ playerName: 'Anna', status: 'WIN', points: 150 }],
+      phase: 'DECIDE',
+      secondsLeft: 9,
+    };
+
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'CREATED', roundIndex: 8,
+      bonusAct: { act: 0, type: 'BLACKJACK', status: 'STARTED' },
+      blackjackState: hand,
+    });
+
+    expect(component.bonusResume()).toEqual(hand);
+    expect(component.bonusEntrance()).toBe('BLACKJACK');
+  });
+
+  it('salva la mano del Blackjack bonus e la cancella alla chiusura', () => {
+    const hand = { order: ['Anna'], index: 0, hand: ['A♥', 'K♥'], phase: 'DECIDE' };
+    component.onBlackjackBonusCheckpoint(hand);
+    expect(reliability.blackjackStates.at(-1)).toEqual(hand);
+
+    component.bonusEntrance.set(null);
+    component.bonusActive.set(true);
+    component.bonusType.set('BLACKJACK');
+    (component as unknown as { finishBonus(): void }).finishBonus();
+
+    expect(reliability.blackjackStates.at(-1)).toBeNull();
+  });
+
   it('non riapre un bonus che non sa riprendere', () => {
     const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
     tv.applyAuthoritativeState({
