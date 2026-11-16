@@ -2528,14 +2528,17 @@ export class RemoteComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Quiz: il server conserva le risposte della manche aperta, quindi un
-    // telefono che rientra non deve ricevere un secondo voto da mandare. Lo
-    // si chiede prima di riaprire i tasti; se il server non risponde si
-    // torna al comportamento di prima, dove il doppio voto viene comunque
+    // Quiz: i tasti si aprono subito, senza aspettare il server. Il
+    // controllo della manche già votata viaggia in parallelo e blocca il
+    // telefono solo se trova la risposta di questa squadra; se non risponde
+    // resta il comportamento di prima, dove il doppio voto viene comunque
     // rifiutato con `already-answered`.
     const payload = round?.payload ?? snapshot.payload;
     if (type === 'QUIZ' && !this.hasAnswered()) {
-      this.restoreQuizVote(roundKey, this.parsePayload(payload));
+      if (previousType !== 'QUIZ' || this.gameState() !== PlayerStatus.VOTING || newRound) {
+        this.onStartVoting('QUIZ', payload);
+      }
+      this.confirmQuizVote(roundKey, this.parsePayload(payload));
       return;
     }
 
@@ -2553,28 +2556,32 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.onStartVoting(type, payload);
   }
 
+  /** Round e manche già controllati: una sola richiesta, anche con più sync. */
+  private readonly quizVoteChecks = new Set<string>();
+
   /**
    * Quiz ripreso dopo un refresh: se la manche aperta ha già il voto di questa
-   * squadra, il telefono torna bloccato con la risposta scelta, invece di
-   * offrire un secondo voto che il server rifiuterebbe.
+   * squadra, il telefono si blocca con la risposta scelta, invece di offrire
+   * un secondo voto che il server rifiuterebbe. I tasti restano aperti mentre
+   * la risposta arriva, e un solo controllo vale per round e manche.
    */
-  private restoreQuizVote(roundKey: string, payload: any): void {
+  private confirmQuizVote(roundKey: string, payload: any): void {
     const manche = Number(payload?.manche) || 0;
+    const key = `${roundKey}|${manche}`;
+    if (this.quizVoteChecks.has(key)) return;
+    this.quizVoteChecks.add(key);
+
     const name = String(this.nickname() ?? '').trim().toLowerCase();
+    if (!name) return;
     this.gameService.quizAnswers(this.gameId()).subscribe({
       next: (summary: any) => {
         // La TV può aver cambiato round mentre la richiesta era in volo.
         if (this.lastSnapshotRoundKey !== roundKey) return;
         const answers = Array.isArray(summary?.answers) ? summary.answers : [];
-        const mine = name
-          ? answers.find((row: any) =>
-            String(row?.playerName ?? '').trim().toLowerCase() === name
-            && Number(row?.manche) === manche)
-          : null;
-        if (!mine) {
-          this.onStartVoting('QUIZ', payload);
-          return;
-        }
+        const mine = answers.find((row: any) =>
+          String(row?.playerName ?? '').trim().toLowerCase() === name
+          && Number(row?.manche) === manche);
+        if (!mine) return;
         this.quizManche.set(manche);
         this.answeredManche.set(manche);
         this.selectedAnswer.set(Number(mine.optionIndex));
@@ -2582,7 +2589,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         this.gameState.set(PlayerStatus.LOCKED);
       },
       error: () => {
-        if (this.lastSnapshotRoundKey === roundKey) this.onStartVoting('QUIZ', payload);
+        // Resta aperto: un doppio voto verrebbe rifiutato dal server.
       },
     });
   }

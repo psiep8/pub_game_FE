@@ -1042,6 +1042,46 @@ describe('RemoteComponent', () => {
     expect(component.gameState()).toBe(PlayerStatus.VOTING);
   });
 
+  /** Snapshot di un Quiz aperto alla manche 2, round g1-r4. */
+  function quizRoundSnapshot(): any {
+    return {
+      hasState: true,
+      status: 'RUNNING',
+      roundType: 'QUIZ',
+      roundKey: 'g1-r4',
+      roundDeadlineAt: Date.now() + 60_000,
+      currentRound: {
+        roundKey: 'g1-r4',
+        type: 'QUIZ',
+        payload: { manche: 2, question: 'Domanda?', options: ['A', 'B'] },
+      },
+    };
+  }
+
+  it('apre subito i tasti del Quiz e li blocca quando il server conferma il voto', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const summary = new Subject<any>();
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(summary.asObservable());
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+
+    // Il server è lento: il telefono non resta fermo ad aspettarlo.
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(component.hasAnswered()).toBe(false);
+
+    summary.next({ mancheIndex: 2, answers: [{ playerName: 'Anna', manche: 2, optionIndex: 1 }] });
+    summary.complete();
+
+    expect(component.gameState()).toBe(PlayerStatus.LOCKED);
+    expect(component.hasAnswered()).toBe(true);
+    expect(component.selectedAnswer()).toBe(1);
+  });
+
   it('dopo un refresh in Quiz non riapre il voto di una manche già votata', async () => {
     localStorage.setItem('nickname', 'Anna');
     reliability.resumedSession.set(true);
@@ -1054,23 +1094,28 @@ describe('RemoteComponent', () => {
       of({ mancheIndex: 2, answers: [{ playerName: 'Anna', manche: 2, optionIndex: 1 }] }),
     );
 
-    reliability.syncState$.next({
-      hasState: true,
-      status: 'RUNNING',
-      roundType: 'QUIZ',
-      roundKey: 'g1-r4',
-      roundDeadlineAt: Date.now() + 60_000,
-      currentRound: {
-        roundKey: 'g1-r4',
-        type: 'QUIZ',
-        payload: { manche: 2, question: 'Domanda?', options: ['A', 'B'] },
-      },
-    });
+    reliability.syncState$.next(quizRoundSnapshot());
     await fixture.whenStable();
 
     expect(component.hasAnswered()).toBe(true);
     expect(component.selectedAnswer()).toBe(1);
     expect(component.gameState()).toBe(PlayerStatus.LOCKED);
+  });
+
+  it('due snapshot della stessa manche fanno una sola richiesta al server', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const summary = new Subject<any>();
+    const answers = vi.spyOn(game, 'quizAnswers').mockReturnValue(summary.asObservable());
+
+    // Il secondo snapshot arriva mentre la prima richiesta è ancora in volo.
+    reliability.syncState$.next(quizRoundSnapshot());
+    reliability.syncState$.next(quizRoundSnapshot());
+
+    expect(answers).toHaveBeenCalledTimes(1);
   });
 
   it('con la sessione scaduta non entra da sola: nome pronto e avviso', async () => {
