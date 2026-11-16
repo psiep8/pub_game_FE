@@ -1,4 +1,6 @@
+import { vi } from 'vitest';
 import { GAME_TIMINGS } from '../../../shared/models/game-timings';
+import { REVEAL_DELAY_MS } from '../../../shared/models/scoring-rules';
 import { GameModeConfig } from '../../../shared/models/game-mode-type';
 import { QuizMode } from './quiz.mode';
 
@@ -62,5 +64,117 @@ describe('QuizMode', () => {
     const { mode } = setup(payload);
 
     expect(mode.canBuzz()).toBe(false);
+  });
+});
+
+describe('QuizMode — ripresa dopo un refresh della TV', () => {
+  const treManches = {
+    category: 'Storia',
+    questions: [
+      { question: 'Q1', options: ['A', 'B'], correctAnswer: 'A', difficulty: 'facile', maxPoints: 300 },
+      { question: 'Q2', options: ['C', 'D'], correctAnswer: 'C', difficulty: 'medio', maxPoints: 300 },
+      { question: 'Q3', options: ['E', 'F'], correctAnswer: 'E', difficulty: 'difficile', maxPoints: 400 },
+    ],
+  };
+
+  function setupConCheckpoint() {
+    const saved: any[] = [];
+    const received: any[] = [];
+    const mode = new QuizMode();
+    mode.setConfig({
+      type: 'QUIZ', payload: treManches, gameId: 1,
+      onAnswerReceived: (result) => received.push(result),
+      onTvCheckpoint: (checkpoint) => saved.push(checkpoint),
+    });
+    mode.initialize(treManches);
+    return { mode, saved, received };
+  }
+
+  it('riprende manche e tempo dal checkpoint senza tornare alla prima', async () => {
+    vi.useFakeTimers();
+    const { mode, saved, received } = setupConCheckpoint();
+
+    mode.restore(20, {
+      revision: 5,
+      state: {
+        mancheIndex: 1, secondsLeft: 7, stage: 'play',
+        answers: [{ playerName: 'Anna', points: 120, isCorrect: true, manche: 1 }],
+        answeredThisManche: ['Anna'],
+      },
+    });
+
+    const data = mode.getDisplayData();
+    expect(data.question).toBe('Q2');
+    expect(data.manche).toBe(2);
+    expect(mode.getTimerValue()).toBe(7);
+
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(mode.getTimerValue()).toBe(6);
+    expect(saved.at(-1)?.revision).toBe(6);
+
+    // Chi ha già risposto in questa manche non risponde una seconda volta.
+    mode.handleAnswer('Anna', 0, 1000);
+    expect(received).toHaveLength(0);
+    mode.handleAnswer('Bruno', 1, 1000);
+    expect(received).toHaveLength(1);
+    expect(received[0]).toMatchObject({ playerName: 'Bruno', isCorrect: false });
+
+    mode.cleanup();
+    vi.useRealTimers();
+  });
+
+  it('riprende la suspense e mostra la soluzione scaduta', async () => {
+    vi.useFakeTimers();
+    const { mode } = setupConCheckpoint();
+
+    mode.restore(10, {
+      revision: 2,
+      state: { mancheIndex: 0, secondsLeft: 0, stage: 'suspense' },
+    });
+    expect(mode.getDisplayData().revealPending).toBe(true);
+
+    await vi.advanceTimersByTimeAsync(REVEAL_DELAY_MS);
+    expect(mode.getDisplayData().mancheReveal?.question).toBe('Q1');
+
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(mode.getDisplayData().question).toBe('Q2');
+
+    mode.cleanup();
+    vi.useRealTimers();
+  });
+
+  it('riprende la soluzione mostrata e passa alla manche dopo', async () => {
+    vi.useFakeTimers();
+    const { mode } = setupConCheckpoint();
+
+    mode.restore(10, {
+      revision: 3,
+      state: { mancheIndex: 2, secondsLeft: 0, stage: 'reveal' },
+    });
+    expect(mode.getDisplayData().mancheReveal?.question).toBe('Q3');
+
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(mode.isRevealed()).toBe(true);
+
+    mode.cleanup();
+    vi.useRealTimers();
+  });
+
+  it('salva un checkpoint a ogni risposta con la modalità Quiz', () => {
+    const { mode, saved } = setupConCheckpoint();
+    mode.restore(15, { revision: 1, state: { mancheIndex: 0, secondsLeft: 10, stage: 'play' } });
+
+    mode.handleAnswer('Anna', 1, 1000);
+
+    expect(saved.at(-1)?.type).toBe('QUIZ');
+    expect(saved.at(-1)?.state.answers).toHaveLength(1);
+    expect(saved.at(-1)?.state.answeredThisManche).toEqual(['Anna']);
+    mode.cleanup();
+  });
+
+  it('rifiuta un checkpoint senza revisione', () => {
+    const { mode } = setupConCheckpoint();
+    expect(() => mode.restore(10, { revision: 0, state: { mancheIndex: 0 } }))
+      .toThrow('Stato Quiz non ripristinabile');
   });
 });

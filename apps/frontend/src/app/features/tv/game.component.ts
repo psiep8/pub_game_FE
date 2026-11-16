@@ -2253,9 +2253,12 @@ export class GameComponent implements OnInit, OnDestroy {
 
     this.recoveredPayload = snapshot.currentRound?.payload ?? snapshot.payload ?? null;
     this.recoveredBlackjackState = snapshot.blackjackState ?? null;
-    // Solo un checkpoint del round corrente: il server lo scarta altrimenti.
+    // Solo un checkpoint del round corrente e della sua modalità: il server
+    // scarta gli altri, ma uno stato estraneo non deve essere interpretato.
     const checkpoint = snapshot.tvCheckpoint?.state ? snapshot.tvCheckpoint : null;
-    this.recoveredTvCheckpoint = checkpoint ? { type: type as GameModeType, value: checkpoint } : null;
+    this.recoveredTvCheckpoint = checkpoint && String(checkpoint.mode ?? '') === type
+      ? { type: type as GameModeType, value: checkpoint }
+      : null;
     this.recoveredRound.set({
       type: type as GameModeType,
       label: this.getModeName(type),

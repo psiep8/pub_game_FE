@@ -162,7 +162,7 @@ describe('GameComponent', () => {
     tv.applyAuthoritativeState({
       hasState: true, status: 'RUNNING', roundType: 'BOMBA', roundIndex: 6, roundKey: 'g1-r6',
       roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
-      tvCheckpoint: { roundKey: 'g1-r6', startedAt: 1, revision: 2, state: { lastEventSeq: 5 } },
+      tvCheckpoint: { mode: 'BOMBA', roundKey: 'g1-r6', startedAt: 1, revision: 2, state: { lastEventSeq: 5 } },
     });
     expect(component.recoveredRound()?.resumable).toBe(true);
   });
@@ -175,7 +175,7 @@ describe('GameComponent', () => {
       type: 'BOMBA', restore, start, getDisplayData: () => ({}), isRevealed: () => false,
     } as any);
     const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
-    const checkpoint = { roundKey: 'g1-r6', startedAt: 1, revision: 2, state: { lastEventSeq: 5 } };
+    const checkpoint = { mode: 'BOMBA', roundKey: 'g1-r6', startedAt: 1, revision: 2, state: { lastEventSeq: 5 } };
     tv.applyAuthoritativeState({
       hasState: true, status: 'RUNNING', roundType: 'BOMBA', roundIndex: 6, roundKey: 'g1-r6',
       roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
@@ -190,9 +190,29 @@ describe('GameComponent', () => {
     expect(component.recoveredRound()).toBeNull();
   });
 
+  it('propone di riprendere Quiz quando il server ha il checkpoint della modalità', () => {
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'RUNNING', roundType: 'QUIZ', roundIndex: 9, roundKey: 'g1-r9',
+      roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
+      tvCheckpoint: { mode: 'QUIZ', roundKey: 'g1-r9', startedAt: 1, revision: 4, state: { mancheIndex: 1 } },
+    });
+    expect(component.recoveredRound()?.resumable).toBe(true);
+  });
+
+  it('non usa un checkpoint di un\'altra modalità', () => {
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'RUNNING', roundType: 'QUIZ', roundIndex: 9, roundKey: 'g1-r9',
+      roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
+      tvCheckpoint: { mode: 'ARENA', roundKey: 'g1-r9', startedAt: 1, revision: 4, state: { teams: [] } },
+    });
+    expect(component.recoveredRound()?.resumable).toBe(false);
+  });
+
   it('propone di riprendere Arena quando il server ha il tabellone', () => {
     const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
-    const checkpoint = { roundKey: 'g1-r3', startedAt: 1, revision: 4, state: { teams: [] } };
+    const checkpoint = { mode: 'ARENA', roundKey: 'g1-r3', startedAt: 1, revision: 4, state: { teams: [] } };
     tv.applyAuthoritativeState({
       hasState: true, status: 'RUNNING', roundType: 'ARENA', roundIndex: 3, roundKey: 'g1-r3',
       roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
@@ -208,7 +228,7 @@ describe('GameComponent', () => {
       type: 'ARENA', restore, getDisplayData: () => ({}), isRevealed: () => false,
     } as any);
     const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
-    const checkpoint = { roundKey: 'g1-r3', startedAt: 1, revision: 4, state: { teams: [] } };
+    const checkpoint = { mode: 'ARENA', roundKey: 'g1-r3', startedAt: 1, revision: 4, state: { teams: [] } };
     tv.applyAuthoritativeState({
       hasState: true, status: 'RUNNING', roundType: 'ARENA', roundIndex: 3, roundKey: 'g1-r3',
       roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },

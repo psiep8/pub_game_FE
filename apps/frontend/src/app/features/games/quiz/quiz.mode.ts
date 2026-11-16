@@ -42,6 +42,8 @@ export class QuizMode extends GameModeBase {
   private finished = signal(false);
   private secondsLeft = 0;
   private answeredThisManche = new Set<string>();
+  /** Cresce a ogni salvataggio: una scrittura vecchia non deve tornare indietro. */
+  private revision = 0;
 
   private clock?: ReturnType<typeof setInterval>;
   private advanceHandle?: ReturnType<typeof setTimeout>;
@@ -55,6 +57,7 @@ export class QuizMode extends GameModeBase {
     this.secondsLeft = MANCHE_SECONDS;
     this.timer.set(MANCHE_SECONDS);
     this.answeredThisManche.clear();
+    this.revision = 0;
     this.clearTimers();
   }
 
@@ -86,6 +89,7 @@ export class QuizMode extends GameModeBase {
     this.clearTimers();
     this.questions = [];
     this.answers.set([]);
+    this.revision = 0;
   }
 
   protected onTimeout(): void {
@@ -156,6 +160,7 @@ export class QuizMode extends GameModeBase {
     this.config.onTimerTick?.(MANCHE_SECONDS);
     this.startClock();
     void this.broadcastState();
+    this.emitCheckpoint();
   }
 
   private startClock(): void {
@@ -170,8 +175,11 @@ export class QuizMode extends GameModeBase {
       if (this.secondsLeft <= 0) {
         this.clearClock();
         this.revealPending.set(true);
+        this.emitCheckpoint();
         void this.broadcastState();
         this.revealManche();
+      } else {
+        this.emitCheckpoint();
       }
     }, 1000);
   }
@@ -190,19 +198,24 @@ export class QuizMode extends GameModeBase {
     this.advanceHandle = setTimeout(() => {
       this.revealPending.set(false);
       this.mancheReveal.set(current);
+      this.emitCheckpoint();
       this.config.onBroadcast?.({
         action: WsAction.QUIZ_STATE,
         state: this.getDisplayData(),
       });
-
-      this.advanceHandle = setTimeout(() => {
-        if (this.mancheIndex() + 1 >= this.questions.length) {
-          this.finish();
-        } else {
-          this.startManche(this.mancheIndex() + 1);
-        }
-      }, REVEAL_SECONDS * 1000);
+      this.scheduleAdvance();
     }, REVEAL_DELAY_MS);
+  }
+
+  /** Dopo la soluzione si passa alla manche successiva, o si chiude il round. */
+  private scheduleAdvance(): void {
+    this.advanceHandle = setTimeout(() => {
+      if (this.mancheIndex() + 1 >= this.questions.length) {
+        this.finish();
+      } else {
+        this.startManche(this.mancheIndex() + 1);
+      }
+    }, REVEAL_SECONDS * 1000);
   }
 
   private finish(): void {
@@ -232,6 +245,95 @@ export class QuizMode extends GameModeBase {
     if (this.advanceHandle) clearTimeout(this.advanceHandle);
     this.advanceHandle = undefined;
     this.revealPending.set(false);
+  }
+
+  /**
+   * Riprende la manche in corso dal checkpoint: la domanda arriva dal payload,
+   * quindi bastano indice, tempo residuo, risposte già date e stadio della TV
+   * (gioco, attesa del reveal, soluzione già mostrata).
+   */
+  restore(secondsLeft: number, snapshot?: unknown): void {
+    const checkpoint = snapshot as { revision?: number; state?: any } | null | undefined;
+    const revision = checkpoint ? Number(checkpoint.revision) : 0;
+    if (checkpoint && (!Number.isSafeInteger(revision) || revision <= 0)) {
+      throw new Error('Stato Quiz non ripristinabile');
+    }
+
+    this.questions = this.readQuestions();
+    if (!this.questions.length) {
+      throw new Error('Stato Quiz non ripristinabile');
+    }
+
+    const state = checkpoint?.state ?? {};
+    const rawIndex = Number(state.mancheIndex);
+    const index = Number.isInteger(rawIndex) && rawIndex >= 0 && rawIndex < this.questions.length
+      ? rawIndex
+      : 0;
+    const answers = Array.isArray(state.answers)
+      ? state.answers
+        .filter((row: any) => row && typeof row.playerName === 'string' && Number.isFinite(Number(row.points)))
+        .map((row: any) => ({
+          playerName: String(row.playerName),
+          points: Number(row.points) || 0,
+          isCorrect: !!row.isCorrect,
+          manche: Number.isInteger(Number(row.manche)) ? Number(row.manche) : index,
+        }))
+      : [];
+    const answered = Array.isArray(state.answeredThisManche)
+      ? state.answeredThisManche.filter((name: unknown) => typeof name === 'string')
+      : [];
+    const savedSeconds = Number(state.secondsLeft);
+    const seconds = Number.isFinite(savedSeconds)
+      ? Math.max(0, Math.min(MANCHE_SECONDS, Math.round(savedSeconds)))
+      : Math.max(0, Math.round(Number(secondsLeft) || 0));
+    const stage = state.stage === 'suspense' || state.stage === 'reveal' ? state.stage : 'play';
+
+    this.revision = revision;
+    this.clearTimers();
+    this.mancheIndex.set(index);
+    this.answers.set(answers);
+    this.answeredThisManche = new Set(answered);
+    this.finished.set(false);
+    this.revealed.set(false);
+    this.mancheReveal.set(null);
+    this.secondsLeft = seconds;
+    this.timer.set(seconds);
+    this.config.onTimerTick?.(seconds);
+    this.isActive.set(true);
+    this.isPaused.set(false);
+
+    if (stage === 'suspense') {
+      // Il tempo era già scaduto: manca solo la soluzione.
+      this.revealPending.set(true);
+      this.revealManche();
+    } else if (stage === 'reveal') {
+      const current = this.questions[index];
+      if (current) {
+        this.mancheReveal.set(current);
+        this.scheduleAdvance();
+      }
+    } else {
+      this.startClock();
+    }
+    void this.broadcastState();
+  }
+
+  /** Salva lo stato minimo per riaprire la stessa manche dopo un refresh. */
+  private emitCheckpoint(): void {
+    const save = this.config.onTvCheckpoint;
+    if (!save || this.finished()) return;
+    this.revision++;
+    save({
+      type: this.type,
+      revision: this.revision,
+      state: {
+        mancheIndex: this.mancheIndex(),
+        secondsLeft: Math.max(0, this.secondsLeft),
+        stage: this.mancheReveal() ? 'reveal' : this.revealPending() ? 'suspense' : 'play',
+        answers: this.answers(),
+        answeredThisManche: [...this.answeredThisManche],
+      },
+    });
   }
 
   getDisplayData(): any {
@@ -279,6 +381,7 @@ export class QuizMode extends GameModeBase {
         manche,
       },
     ]);
+    this.emitCheckpoint();
   }
 
   protected onConfirmCorrect(_result: GameModeResult): void {}
