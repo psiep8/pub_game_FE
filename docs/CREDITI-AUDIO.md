@@ -17,41 +17,41 @@ scelte da librerie con licenza compatibile con un'app pubblica.
 
 | File | Titolo | Autore | Licenza | Durata | Peso | LUFS | Picco |
 |---|---|---|---|---|---|---|---|
-| `interface/countdownTick.m4a` | Tick 001 | Kenney | CC0 | 0.0 s | 2 KB | — (vedi picco) | -3.6 dBFS |
+| `interface/countdownTick.m4a` | Tick 001 | Kenney | CC0 | 0.0 s | 2 KB | — (vedi picco) | -5.5 dBFS |
 | `interface/countdownBong.m4a` | Bong 001 | Kenney | CC0 | 0.1 s | 3 KB | — (vedi picco) | -3 dBFS |
 | `interface/join.m4a` | Select 004 | Kenney | CC0 | 0.4 s | 5 KB | — (vedi picco) | -3.2 dBFS |
-| `interface/tick.m4a` | Tick 002 | Kenney | CC0 | 0.0 s | 1 KB | — (vedi picco) | -4.2 dBFS |
-| `interface/rankReveal-1.m4a` | Magic sparkle whoosh | Mixkit | Mixkit License | 1.5 s | 19 KB | -15.9 | -4.2 dBFS |
-| `interface/rankReveal-2.m4a` | Cinematic trailer riser | Mixkit | Mixkit License | 1.5 s | 20 KB | -21.8 | -5.7 dBFS |
-| `interface/whoosh.m4a` | Fast whoosh transition | Mixkit | Mixkit License | 0.8 s | 10 KB | -16.8 | -2.5 dBFS |
-| `interface/confirm.m4a` | Confirmation 001 | Kenney | CC0 | 0.3 s | 5 KB | — (vedi picco) | -2.2 dBFS |
-| `interface/error.m4a` | Error 004 | Kenney | CC0 | 0.1 s | 3 KB | — (vedi picco) | -2.5 dBFS |
+| `interface/tick.m4a` | Tick 002 | Kenney | CC0 | 0.0 s | 1 KB | — (vedi picco) | -4.7 dBFS |
+| `interface/rankReveal-1.m4a` | Magic sparkle whoosh | Mixkit | Mixkit License | 1.5 s | 19 KB | -17 | -7 dBFS |
+| `interface/rankReveal-2.m4a` | Cinematic trailer riser | Mixkit | Mixkit License | 1.5 s | 20 KB | -17.5 | -4.4 dBFS |
+| `interface/whoosh.m4a` | Fast whoosh transition | Mixkit | Mixkit License | 0.8 s | 10 KB | -14.7 | -3.8 dBFS |
+| `interface/confirm.m4a` | Confirmation 001 | Kenney | CC0 | 0.3 s | 5 KB | — (vedi picco) | -3.8 dBFS |
+| `interface/error.m4a` | Error 004 | Kenney | CC0 | 0.1 s | 3 KB | — (vedi picco) | -2.4 dBFS |
 | `gioco/gong.m4a` | Classic clock gong | Mixkit | Mixkit License | 3.0 s | 37 KB | -16.5 | -2.2 dBFS |
 | `gioco/correct.m4a` | Alert quick chime | Mixkit | Mixkit License | 0.8 s | 11 KB | -15.8 | -2.5 dBFS |
 | `gioco/wrong.m4a` | Wrong answer bass buzzer | Mixkit | Mixkit License | 1.5 s | 19 KB | -16.1 | -2.4 dBFS |
 | `gioco/timeUp.m4a` | Basketball buzzer | Mixkit | Mixkit License | 1.7 s | 22 KB | -15.6 | -5.7 dBFS |
-| `gioco/reveal.m4a` | Epic movie trailer whoosh impact | Mixkit | Mixkit License | 3.0 s | 37 KB | -16.3 | -0.4 dBFS |
-| `gioco/elimination.m4a` | Sad game over trombone | Mixkit | Mixkit License | 2.0 s | 25 KB | -16 | -3.7 dBFS |
-| `gioco/uuuh.m4a` | Crowd disappointment long boo | Mixkit | Mixkit License | 2.0 s | 25 KB | -16 | -3 dBFS |
+| `gioco/reveal.m4a` | Epic movie trailer whoosh impact | Mixkit | Mixkit License | 3.0 s | 37 KB | -16 | -4.3 dBFS |
+| `gioco/elimination.m4a` | Sad game over trombone | Mixkit | Mixkit License | 2.0 s | 25 KB | -15.9 | -5.7 dBFS |
+| `gioco/uuuh.m4a` | Crowd disappointment long boo | Mixkit | Mixkit License | 2.0 s | 25 KB | -14.3 | -4.2 dBFS |
 | `gioco/bombSiren.m4a` | Police siren | Mixkit | Mixkit License | 4.0 s | 50 KB | -16 | -5.8 dBFS |
 | `gioco/coins.m4a` | Chips stack 2 | Kenney | CC0 | 0.2 s | 3 KB | — (vedi picco) | -2.7 dBFS |
-| `gioco/racket.m4a` | Sports ball hit | Mixkit | Mixkit License | 0.2 s | 4 KB | — (vedi picco) | -2.1 dBFS |
-| `gioco/bell.m4a` | Service bell | Mixkit | Mixkit License | 0.4 s | 6 KB | -16.4 | -2.1 dBFS |
-| `casino/rouletteTicks.m4a` | Balin in casino roulette | Mixkit | Mixkit License | 8.0 s | 99 KB | -16.8 | -2.2 dBFS |
+| `gioco/racket.m4a` | Sports ball hit | Mixkit | Mixkit License | 0.2 s | 4 KB | — (vedi picco) | -2.2 dBFS |
+| `gioco/bell.m4a` | Service bell | Mixkit | Mixkit License | 0.4 s | 6 KB | -15.5 | -2.2 dBFS |
+| `casino/rouletteTicks.m4a` | Balin in casino roulette | Mixkit | Mixkit License | 8.0 s | 100 KB | -15.2 | -3.7 dBFS |
 | `casino/rouletteLanding.m4a` | Casino Roulette ball | Mixkit | Mixkit License | 2.0 s | 26 KB | -16.5 | -2.2 dBFS |
 | `sala/applause.m4a` | Small group cheer and applause | Mixkit | Mixkit License | 5.0 s | 62 KB | -15.7 | -3.7 dBFS |
 | `sala/drumroll.m4a` | Tension and suspense drum roll | Mixkit | Mixkit License | 10.0 s | 120 KB | -16.1 | -2 dBFS |
 | `sala/podium.m4a` | Grand brass fanfare | Mixkit | Mixkit License | 4.0 s | 49 KB | -16.4 | -2 dBFS |
 | `sala/podiumReveal-3.m4a` | Successful horns fanfare | Mixkit | Mixkit License | 2.0 s | 26 KB | -16 | -2.5 dBFS |
-| `sala/podiumReveal-2.m4a` | Medieval show fanfare announcement | Mixkit | Mixkit License | 2.0 s | 25 KB | -16 | -2.3 dBFS |
+| `sala/podiumReveal-2.m4a` | Medieval show fanfare announcement | Mixkit | Mixkit License | 2.0 s | 25 KB | -15.4 | -4.4 dBFS |
 | `sala/podiumReveal-1.m4a` | Trumpet fanfare | Mixkit | Mixkit License | 2.5 s | 31 KB | -16.1 | -4 dBFS |
-| `bonus/bonusEntrance-1.m4a` | Slot machine win alert | Mixkit | Mixkit License | 1.7 s | 22 KB | -16.1 | -5.4 dBFS |
-| `bonus/bonusEntrance-2.m4a` | Card shuffle | Kenney | CC0 | 3.1 s | 38 KB | -16.9 | -1.3 dBFS |
+| `bonus/bonusEntrance-1.m4a` | Slot machine win alert | Mixkit | Mixkit License | 1.8 s | 23 KB | -16.1 | -4.4 dBFS |
+| `bonus/bonusEntrance-2.m4a` | Card shuffle | Kenney | CC0 | 3.1 s | 38 KB | -16.5 | -0.9 dBFS |
 | `bonus/bonusEntrance-3.m4a` | Dice throw 1 | Kenney | CC0 | 0.3 s | 5 KB | — (vedi picco) | -2.7 dBFS |
-| `bonus/bonusEntrance-4.m4a` | Horse fast gallop on a concrete surface | Mixkit | Mixkit License | 3.5 s | 45 KB | -18.5 | -1.2 dBFS |
+| `bonus/bonusEntrance-4.m4a` | Horse fast gallop on a concrete surface | Mixkit | Mixkit License | 3.5 s | 45 KB | -17.7 | -2.9 dBFS |
 | `bonus/bonusEntrance-5.m4a` | Casino winning reward | Mixkit | Mixkit License | 3.5 s | 43 KB | -16.1 | -6.2 dBFS |
-| `attesa/heartbeat.m4a` | Heartbeat medium speed | Mixkit | Mixkit License | 2.0 s | 25 KB | -18.3 | -2.2 dBFS |
-| `attesa/clock.m4a` | Clock ticker single | Mixkit | Mixkit License | 0.5 s | 8 KB | -24.3 | -3.2 dBFS |
+| `attesa/heartbeat.m4a` | Heartbeat medium speed | Mixkit | Mixkit License | 2.0 s | 25 KB | -17.7 | -1.5 dBFS |
+| `attesa/clock.m4a` | Clock ticker single | Mixkit | Mixkit License | 0.5 s | 8 KB | -24.5 | -3.2 dBFS |
 
 ## Sottofondi (6)
 
@@ -118,7 +118,7 @@ sotto il 8% non si sente; sopra, il giro va rifilato a orecchio.
 I suoni sotto 1,2 s sono normalizzati sul picco a −3 dBFS, non sul LUFS:
 sono troppo corti perché la misura integrata abbia senso, quindi in tabella
 mostrano «—» e vale il picco. Sui suoni con molta cresta (un riser, un galoppo)
-il bersaglio di loudness non si raggiunge senza schiacciare i transienti: il
-valore in tabella è quello misurato davvero, non quello richiesto.
+entra una compressione leggera; dove anche quella non basta, il valore in
+tabella è quello misurato davvero, non quello richiesto.
 
 Sostituire un suono = sostituire il file con lo stesso nome e rigenerare i crediti.

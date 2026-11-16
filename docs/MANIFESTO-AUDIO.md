@@ -6,9 +6,11 @@ Fase 0 della sostituzione dell'audio sintetizzato (SPEC-SUONI-REALI.md).
 sono in `docs/CREDITI-AUDIO.md`. Il codice suona ancora la sintesi: si passa ai
 campioni un evento alla volta (ordine della sezione 9).
 
-I valori misurati sono quelli veri, non quelli richiesti: alcuni effetti con
-molta cresta restano 2–6 dB sotto il bersaglio di loudness, perché alzare ancora
-significherebbe schiacciare i transienti (vedi `docs/CREDITI-AUDIO.md`).
+I valori misurati sono quelli veri, non quelli richiesti. Gli effetti stanno
+entro circa 2 dB dal bersaglio di loudness: sui suoni con molta cresta (un
+riser, un galoppo, un battito) entra una compressione leggera, e dove nemmeno
+quella basta resta il valore misurato invece di schiacciare i transienti
+(vedi `docs/CREDITI-AUDIO.md`).
 
 ## Regole dei file
 
@@ -63,8 +65,12 @@ node scripts/audio/process-audio.mjs --credits  # rigenera docs/CREDITI-AUDIO.md
 - **Normalizzazione:** il silenzio si toglie *dopo* il `loudnorm`, non prima: se
   il filtro riceve il file già tagliato, su molti campioni rinuncia al guadagno
   e il suono resta 10 dB sotto il bersaglio. Dopo il primo giro lo script misura
-  il file finito e applica una correzione (fino a due passate), perché il coda
-  tagliata cambia la loudness rispetto alla misura sul file intero.
+  il file finito e corregge (fino a tre passate), perché la coda tagliata cambia
+  la loudness rispetto alla misura sul file intero.
+- **Compressione leggera:** quando lo scarto supera i 2 dB entra un
+  `acompressor` prima del `loudnorm`; lo script confronta la versione compressa
+  con quella normale e tiene la più vicina al bersaglio, così nessun file
+  peggiora per colpa della compressione.
 - Suoni sotto 1,2 s: normalizzati sul picco a −3 dBFS, non sul LUFS (misura
   integrata senza senso su 20–300 ms).
 - Loop: stereo 44,1 kHz, AAC 128 kbps, **−23 LUFS**, massimo 120 s; il silenzio
