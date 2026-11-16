@@ -1,5 +1,13 @@
 # Changelog
 
+## 16 novembre 2026 — Catalogo audio e regia di prova
+
+- `audio-catalog.ts`: 29 eventi con id stabile, etichetta italiana, momento d'uso, fonte (Foley, sintesi, tappeto), bus (TV, telefono, entrambi), volume, distanza minima e varianti. La mappa metodo → evento tiene la compatibilità con tutti i chiamanti esistenti.
+- `AudioService.play(evento, variante)` è il punto d'ingresso unico: rispetta il muto, salta i doppioni troppo ravvicinati, applica la rifinitura di volume e dice se ha suonato. Aggiunti anche `setMasterVolume` e `masterVolume`.
+- Nuova pagina `/audio` (pulsante **AUDIO** nel pannello admin): un pulsante per evento, varianti per ingressi bonus e posti del podio, muto, volume generale, ferma tutto.
+- Inventario dei chiamanti e limiti noti in `docs/AUDIO-CATALOGO.md`.
+- Verifiche: 10 test nuovi sul catalogo e sul servizio, suite completa (450 test su 51 file), build di produzione, pagina `/audio` aperta a 1280×720 (29 schede, nessun overflow; clic su «Gong» registrato, nessun errore in console). L'**ascolto** dei suoni non è stato fatto.
+
 ## 16 novembre 2026 — Rifiniture del rientro rinominato
 
 - L'avatar segue il nuovo nome: prima la squadra rinominata perdeva la faccia in classifica fino al prossimo invio del telefono.
