@@ -8,6 +8,11 @@
 
 **F06 è completo**: tutti i round, i bonus, i punti del vincitore e la coda della classifica sopravvivono a un refresh della TV.
 
+### Corretto
+
+- Conteggio del vincitore del round: l'indice viene dalla scaletta (`currentRound - 1`), non più da `round().roundIndex`, che dopo un refresh poteva essere quello della fotografia precedente e faceva salvare o rileggere i punti sul round sbagliato.
+- Coda di classifica salvata prima di conoscere la partita: un `gameId` assente non viene più trattato come «partita 0», quindi la coda vale per la partita corrente e viene rimandata al server; una coda di un'altra partita resta in attesa invece di spostare punti su un tavolo diverso.
+
 ## 16 novembre 2026 — Round Biglie riprendibile (F06 chiuso)
 
 - Il round Biglie salva nel checkpoint TV le biglie assegnate, l'ordine di scelta raggiunto, le gare già chiuse con il tabellone, la classifica cumulata e la fase.
