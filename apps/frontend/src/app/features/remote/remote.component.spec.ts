@@ -1256,6 +1256,50 @@ describe('RemoteComponent', () => {
     }
   });
 
+  it('se la risposta Timeline arriva dopo una modifica tiene l ordine del giocatore', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const submit = vi.spyOn(game, 'submitTimeline');
+    const summary = new Subject<any>();
+    vi.spyOn(game, 'timelineAnswer').mockReturnValue(summary.asObservable());
+    vi.useFakeTimers();
+    try {
+      reliability.syncState$.next({
+        hasState: true,
+        status: 'RUNNING',
+        roundType: 'TIMELINE',
+        roundKey: 'g1-r5',
+        roundDeadlineAt: Date.now() + 60_000,
+        currentRound: {
+          roundKey: 'g1-r5',
+          type: 'TIMELINE',
+          payload: {
+            roundId: 'r5',
+            items: [{ id: 1, label: 'A' }, { id: 2, label: 'B' }, { id: 3, label: 'C' }],
+          },
+        },
+      });
+
+      // Il giocatore sposta una carta mentre il server sta ancora rispondendo.
+      component.moveCard(2, -1);
+      vi.advanceTimersByTime(400);
+      expect(submit).toHaveBeenCalledTimes(1);
+
+      summary.next({ answered: true, order: [3, 2, 1] });
+      summary.complete();
+
+      // Il server parlava dell'ordine di prima: resta quello appena scelto.
+      expect(component.orderedCards().map((card) => card.id)).toEqual([2, 1, 3]);
+      expect(submit).toHaveBeenCalledTimes(1);
+      expect(submit.mock.calls.at(-1)?.[2]).toEqual([2, 1, 3]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('due snapshot della stessa manche fanno una sola richiesta al server', async () => {
     localStorage.setItem('nickname', 'Anna');
     reliability.resumedSession.set(true);

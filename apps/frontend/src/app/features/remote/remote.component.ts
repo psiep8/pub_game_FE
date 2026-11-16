@@ -1980,19 +1980,27 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private restoreTimelineOrder(roundId: string, cards: Array<{ id: number }>): void {
     const playerName = this.nickname();
     if (!playerName) return;
+    const cardIds = cards.map((card) => card.id);
+    // Ordine mostrato quando parte la richiesta: se il giocatore sposta una
+    // carta nel frattempo, la risposta del server è già vecchia.
+    const shownOrder = [...this.timelineOrder()];
     this.gameService.timelineAnswer(this.gameId(), playerName, roundId).subscribe({
       next: (saved: any) => {
         // La TV può aver chiuso o cambiato round mentre la richiesta era in volo.
         if (this.timelineRoundId !== roundId) return;
-        const cardIds = cards.map((card) => card.id);
+        const current = this.timelineOrder();
+        const touched = current.length !== shownOrder.length
+          || current.some((id, index) => id !== shownOrder[index]);
         const order = Array.isArray(saved?.order)
           ? saved.order.map(Number).filter((id: number) => cardIds.includes(id))
           : [];
         if (saved?.answered && order.length === cardIds.length) {
-          this.timelineOrder.set(order);
+          // Chi ha già toccato ha scelto ora: l'ordine del server non vale più.
+          if (!touched) this.timelineOrder.set(order);
           return;
         }
-        this.scheduleTimelineSend();
+        // La modifica del giocatore ha già programmato il suo invio.
+        if (!touched) this.scheduleTimelineSend();
       },
       error: () => {
         // Lettura fallita: non si sa se l'ordine è già sul server, quindi non
