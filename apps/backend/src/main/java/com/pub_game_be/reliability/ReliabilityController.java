@@ -154,16 +154,14 @@ public class ReliabilityController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "tv-required"));
         }
         Object rawState = body.get("state");
-        Object rawRound = body.get("roundKey");
-        Object rawStartedAt = body.get("startedAt");
+        Object rawRoundIndex = body.get("roundIndex");
         Object rawRevision = body.get("revision");
-        Object rawSeq = body.get("eventSeq");
-        if (!(rawState instanceof Map<?, ?>) || !(rawRound instanceof String roundKey) || roundKey.isBlank()
-                || !(rawStartedAt instanceof Number) || !(rawRevision instanceof Number) || !(rawSeq instanceof Number)) {
+        if (!(rawState instanceof Map<?, ?>) || !(rawRoundIndex instanceof Number)
+                || !(rawRevision instanceof Number)) {
             return ResponseEntity.badRequest().body(Map.of("error", "invalid-checkpoint"));
         }
-        boolean saved = gameState.saveArenaCheckpoint(gameId, roundKey, ((Number) rawStartedAt).longValue(),
-                ((Number) rawRevision).longValue(), ((Number) rawSeq).longValue(), new JSONObject((Map<?, ?>) rawState));
+        boolean saved = gameState.saveArenaCheckpoint(gameId, ((Number) rawRoundIndex).intValue(),
+                ((Number) rawRevision).longValue(), new JSONObject((Map<?, ?>) rawState));
         return saved ? ResponseEntity.ok(Map.of("saved", true))
                 : ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "stale-checkpoint"));
     }

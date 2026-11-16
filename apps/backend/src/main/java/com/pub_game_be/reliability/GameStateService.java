@@ -372,19 +372,27 @@ public class GameStateService {
     /** Chiave del blob che ricorda l'ultimo round annunciato dalla TV. */
     public static final String ROUND_ANNOUNCED_BLOB = "round-announced";
 
-    /** Salva solo checkpoint più recenti del round Arena ancora aperto. */
-    public boolean saveArenaCheckpoint(long gameId, String roundKey, long startedAt, long revision, long eventSeq, JSONObject arena) {
+    /**
+     * Salva il checkpoint della TV solo per il round Arena aperto adesso.
+     *
+     * <p>L'identità del round la mette il server: la TV non deve indovinarla e
+     * non può riutilizzare uno stato di un round precedente. La revisione deve
+     * crescere, così un invio fuori ordine non riporta indietro il tabellone.</p>
+     */
+    public boolean saveArenaCheckpoint(long gameId, int roundIndex, long revision, JSONObject arena) {
         Object lock = eventLocks.computeIfAbsent(gameId, key -> new Object());
         synchronized (lock) {
             GameStateEntity current = states.findById(gameId).orElse(null);
             if (current == null || !"RUNNING".equals(current.getStatus())
-                    || !"ARENA".equals(current.getRoundType()) || !roundKey.equals(current.getRoundKey())
-                    || current.getRoundStartedAt() == null || current.getRoundStartedAt() != startedAt
-                    || revision <= 0 || eventSeq < 0 || eventSeq > current.getSeq()) return false;
+                    || !"ARENA".equals(current.getRoundType())
+                    || current.getRoundIndex() != roundIndex
+                    || current.getRoundKey() == null || current.getRoundStartedAt() == null
+                    || revision <= 0) return false;
             Optional<JSONObject> previous = arenaCheckpoint(gameId);
             if (previous.isPresent() && revision <= previous.get().optLong("revision")) return false;
-            JSONObject checkpoint = new JSONObject().put("roundKey", roundKey).put("startedAt", startedAt)
-                    .put("revision", revision).put("eventSeq", eventSeq).put("state", arena);
+            JSONObject checkpoint = new JSONObject().put("roundKey", current.getRoundKey())
+                    .put("startedAt", current.getRoundStartedAt()).put("revision", revision)
+                    .put("state", arena);
             stateBlobs.save(gameId, ARENA_TV_BLOB, checkpoint.toString());
             return true;
         }
@@ -471,6 +479,7 @@ public class GameStateService {
      * mentre il server restava al round della serata precedente.
      */
     public void reset(long gameId) {
+        stateBlobs.forget(gameId, ARENA_TV_BLOB);
         tx.executeWithoutResult(status -> {
             events.deleteByGameId(gameId);
             rounds.deleteByGameId(gameId);
