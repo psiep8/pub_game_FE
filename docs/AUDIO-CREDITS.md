@@ -5,7 +5,12 @@ Verificato il 14 novembre 2026 sul codice di `apps/frontend/src/app/core/service
 ## Sintesi: nessun file audio nel repository
 
 Tutti i suoni di gioco, della TV, del telefono e il tappeto musicale sono
-**sintetizzati al volo con la Web Audio API**:
+**sintetizzati al volo con la Web Audio API**, senza campionamenti registrati.
+Dal 16 novembre 2026 gli effetti usano risonatori modali (legno, vetro, metallo),
+campane FM, corde pizzicate Karplus-Strong, voci a formanti per il pubblico e
+una coda di stanza generata come risposta all'impulso (`audio-dsp.ts`):
+
+Gli strumenti storici restano descritti qui sotto:
 
 - `audio.service.ts` genera countdown, tick, eliminazione, podio, sirena Bomba,
   applausi, roulette, errori e conferme;

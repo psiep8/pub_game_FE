@@ -1,5 +1,14 @@
 # Changelog
 
+## 16 novembre 2026 — Tutti i suoni rifatti con materiali veri
+
+- Nuovo `audio-dsp.ts`: risonatori modali (impulso che eccita banchi di filtri) per gong, campane, gettoni, pallina della roulette, zoccoli, dadi e bicchieri; campane FM; corde pizzicate Karplus-Strong; voci a formanti con vibrato e fiato per il pubblico; pioggia di battimani deterministica; buzzer a onde quadre filtrate e tremolate; ottoni filtrati; coda di stanza generata come risposta all'impulso.
+- Rifatti: gong, tick e bong del countdown, tick di classifica, tempo scaduto (ora cicalino vero, sul bus della TV), risposta sbagliata, eliminazione, rivelazione, applauso, gettoni, «uuuh», campana, sirena della Bomba, pallina e atterraggio della roulette, rullo, fanfara e podio, i cinque ingressi bonus, whoosh, conferma ed errore del telefono, battito. **Risposta giusta e ingresso squadra restano com'erano.**
+- Il tappeto non è più un giro di pad: trio da pub con basso pizzicato che cammina, piano elettrico in levare swing, spazzole, vibrafono e bicchieri; ciclo sempre di venti minuti, nessun file audio.
+- `volume` del catalogo ora agisce davvero su tutte le voci dell'evento (bus per riproduzione, code comprese) ed è usato per bilanciare tempo scaduto, errore, eliminazione, sbagliato, fanfara, podio e battito.
+- Livelli misurati sul bus master e riportati in `docs/AUDIO-CATALOGO.md`; nessun evento satura, margine minimo 12 dB.
+- Verifiche: 450 test su 51 file, build di produzione, 32 eventi suonati sulla pagina `/audio` senza errori in console. **Nessun ascolto**: timbro e resa in sala restano da giudicare all'orecchio.
+
 ## 16 novembre 2026 — Catalogo audio e regia di prova
 
 - `audio-catalog.ts`: 29 eventi con id stabile, etichetta italiana, momento d'uso, fonte (Foley, sintesi, tappeto), bus (TV, telefono, entrambi), volume, distanza minima e varianti. La mappa metodo → evento tiene la compatibilità con tutti i chiamanti esistenti.
