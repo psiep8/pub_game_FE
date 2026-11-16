@@ -30,6 +30,47 @@ export class WheelOfFortuneMode extends GameModeBase {
     // Il mazzo si costruisce all'avvio: dipende dalla frase, non dal tempo.
     this.letterOrder = buildLetterOrder(this.payload?.proverb || '');
     this.letterIndex = 0;
+    this.saveCheckpoint();
+    this.startLetterReveal();
+  }
+
+  /**
+   * Riprende il round dalla frase nel payload: lettere già uscite e punto del
+   * mazzo arrivano dal checkpoint. L'ordine è casuale, quindi va ripristinato
+   * quello salvato, non ricostruito.
+   */
+  restore(secondsLeft: number, snapshot?: unknown): void {
+    const checkpoint = snapshot as { revision?: number; state?: any } | null | undefined;
+    const state = checkpoint?.state ?? {};
+    const phrase = String(this.payload?.proverb ?? '').toUpperCase();
+    const fromPayload = buildLetterOrder(this.payload?.proverb || '');
+
+    const savedOrder: unknown[] = Array.isArray(state.order) ? state.order : [];
+    const order = savedOrder
+      .map((raw) => String(raw ?? '').toUpperCase())
+      .filter((letter) => letter.length === 1 && isPlayableLetter(letter) && phrase.includes(letter));
+    this.letterOrder = order.length ? order : fromPayload;
+
+    // Solo lettere della frase: un checkpoint corrotto non svela altro.
+    const savedLetters: unknown[] = Array.isArray(state.letters) ? state.letters : [];
+    const letters = new Set<string>();
+    for (const raw of savedLetters) {
+      const letter = String(raw ?? '').toUpperCase();
+      if (letter.length === 1 && isPlayableLetter(letter) && phrase.includes(letter)) letters.add(letter);
+    }
+    this.revealedLetters.set(letters);
+
+    const rawIndex = Number(state.letterIndex);
+    this.letterIndex = Number.isInteger(rawIndex) && rawIndex >= 0 && rawIndex <= this.letterOrder.length
+      ? rawIndex
+      : this.letterOrder.length;
+
+    this.revealed.set(false);
+    this.buzzedPlayer.set(null);
+    this.isActive.set(true);
+    this.isPaused.set(false);
+    this.timer.set(Math.max(0, Math.round(Number(secondsLeft) || 0)));
+    this.startTimer();
     this.startLetterReveal();
   }
 
@@ -90,9 +131,24 @@ export class WheelOfFortuneMode extends GameModeBase {
         next.add(letter);
         return next;
       });
+      this.saveCheckpoint();
       return true;
     }
     return false;
+  }
+
+  /** Lettere uscite e punto del mazzo: la TV li riapre dopo un refresh. */
+  private saveCheckpoint(): void {
+    this.config.onTvCheckpoint?.({
+      type: this.type,
+      revision: Date.now(),
+      state: {
+        order: [...this.letterOrder],
+        letterIndex: this.letterIndex,
+        letters: [...this.revealedLetters()],
+        savedAt: Date.now(),
+      },
+    });
   }
 
   private revealAllLetters(): void {
