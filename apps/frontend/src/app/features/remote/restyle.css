@@ -531,6 +531,9 @@
   line-height: 1.35;
   color: color-mix(in srgb, var(--coal) 70%, transparent);
 }
+/* Scheda doppia: il telefono non risponde da qui. Timbro tomato, così non si
+   confonde con il riallineamento (che passa da solo). */
+.duplicate-notice { box-shadow: 6px 6px 0 var(--tomato); }
 .game-content.resyncing > * { pointer-events: none; opacity: 0.55; }
 .game-content.resyncing > .resync-veil { pointer-events: auto; opacity: 1; }
 /* Errori delle azioni (risposta non inviata, nome rifiutato): timbro leggibile,

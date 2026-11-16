@@ -226,8 +226,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
    * chiuso mentre lo schermo era spento non si può più rispondere.
    */
   readonly resyncing = signal(false);
-  /** Input utilizzabili adesso: serve lo stato del server e nessuna pausa. */
-  readonly inputReady = computed(() => !this.resyncing() && !this.paused());
+  /** La partita è già aperta altrove: un secondo schermo TV o un'altra scheda. */
+  private readonly duplicateTab = signal(false);
+  readonly inputBlocked = computed(() =>
+    this.reliability.duplicateDisplay() || this.duplicateTab());
+  /** Input utilizzabili adesso: serve lo stato del server, nessuna pausa e una sola scheda attiva. */
+  readonly inputReady = computed(() =>
+    !this.resyncing() && !this.paused() && !this.inputBlocked());
   manualOpen = signal(false);
   manualEntry = signal<ManualEntry | null>(null);
   readonly manualGames = MANUAL_GAMES;
@@ -379,14 +384,42 @@ export class RemoteComponent implements OnInit, OnDestroy {
    */
   @HostListener('document:visibilitychange')
   onVisibilityChange(): void {
-    if (!document.hidden) void this.realignWithServer();
+    if (document.hidden) return;
+    // Se l'altra scheda è stata chiusa il lock è libero: questo telefono può
+    // tornare a giocare senza ricaricare la pagina.
+    this.claimExclusiveTab();
+    void this.realignWithServer();
   }
 
   @HostListener('window:pageshow')
   @HostListener('window:online')
   onPageReturned(): void {
+    this.claimExclusiveTab();
     void this.realignWithServer();
   }
+
+  /**
+   * Una sola scheda per telefono risponde alle domande. Il lock del browser
+   * resta preso finché la scheda è aperta e si libera alla chiusura, così la
+   * successiva prende il turno senza ricaricare. Dove i lock non esistono si
+   * lascia giocare: meglio una scheda in più che un telefono bloccato.
+   */
+  private claimExclusiveTab(): void {
+    const locks = (navigator as any)?.locks;
+    if (!locks?.request || this.holdsTabLock) return;
+    void locks.request('pubgame-remote-tab', { mode: 'exclusive', ifAvailable: true }, (lock: unknown) => {
+      if (!lock) {
+        this.duplicateTab.set(true);
+        return;
+      }
+      this.holdsTabLock = true;
+      this.duplicateTab.set(false);
+      // La promessa non si risolve mai: il lock vive quanto la scheda.
+      return new Promise<void>(() => {});
+    }).catch(() => {});
+  }
+
+  private holdsTabLock = false;
 
   private async realignWithServer(): Promise<void> {
     if (!this.nickname()) return;
@@ -455,6 +488,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.playerAvatars.connect(this.ws);
     this.setupPWA();
     this.checkForUpdates();
+    this.claimExclusiveTab();
 
     // L'ID arriva dal QR (`/play?game=12`), poi dallo storage del telefono;
     // senza nessuno dei due si chiede al server quale serata è aperta.
@@ -487,6 +521,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
           // Se il server ha ripreso la stessa sessione, il giocatore torna
           // subito in partita senza rifare la prova dei pulsanti.
           this.showButtonTest.set(!this.reliability.resumedSession());
+        } else if (!this.reliability.lastError()) {
+          // Il server non ha riconosciuto la sessione: nome pronto, ma niente
+          // ingresso silenzioso. Senza l'avviso il giocatore non sa se è stato
+          // espulso, se la serata è chiusa o se è caduta la rete.
+          this.reliability.lastError.set('La sessione è scaduta: rientra con il tuo nome.');
         }
       });
     }
@@ -1226,6 +1265,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   sendVote(index: number) {
     if (!this.inputReady()) return;
+    // Dopo un'espulsione o un logout il nome non c'è più: senza squadra il
+    // tocco non deve arrivare al server, che registrerebbe un voto anonimo.
+    if (!this.nickname()) return;
     // Quiz: il voto va al server, che controlla tempo, soluzione e doppio voto.
     if (this.questionType() === 'QUIZ') {
       this.sendQuizVote(index);
@@ -1272,6 +1314,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   sendBuzz() {
     if (!this.inputReady()) return;
+    if (!this.nickname()) return;
     const time = Date.now() - this.startTime;
     if (!this.ws.sendAnswer(this.gameId(), this.nickname()!, -1, time)) {
       this.reliability.lastError.set('Prenotazione non inviata: attendi la riconnessione e riprova.');
@@ -2484,11 +2527,22 @@ export class RemoteComponent implements OnInit, OnDestroy {
       }
       return;
     }
+
+    // Quiz: il server conserva le risposte della manche aperta, quindi un
+    // telefono che rientra non deve ricevere un secondo voto da mandare. Lo
+    // si chiede prima di riaprire i tasti; se il server non risponde si
+    // torna al comportamento di prima, dove il doppio voto viene comunque
+    // rifiutato con `already-answered`.
+    const payload = round?.payload ?? snapshot.payload;
+    if (type === 'QUIZ' && !this.hasAnswered()) {
+      this.restoreQuizVote(roundKey, this.parsePayload(payload));
+      return;
+    }
+
     if (this.hasAnswered()) return;
 
     // Round già mostrato: un sync non deve riaprire voti o resettare il
     // tabellone (per esempio l'ordine Timeline appena trascinato).
-    const payload = round?.payload ?? snapshot.payload;
     const timelineId = type === 'TIMELINE' ? String(this.parsePayload(payload)?.roundId ?? '') : '';
     if (previousType === type && this.gameState() === PlayerStatus.VOTING
       && (type === 'TIMELINE' ? !!timelineId && timelineId === this.timelineRoundId : !newRound)) return;
@@ -2497,6 +2551,40 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // vanno riaperti dal snapshot: dopo un refresh il telefono deve ritrovare
     // il round in corso, non restare su "In attesa" fino al prossimo START_VOTING.
     this.onStartVoting(type, payload);
+  }
+
+  /**
+   * Quiz ripreso dopo un refresh: se la manche aperta ha già il voto di questa
+   * squadra, il telefono torna bloccato con la risposta scelta, invece di
+   * offrire un secondo voto che il server rifiuterebbe.
+   */
+  private restoreQuizVote(roundKey: string, payload: any): void {
+    const manche = Number(payload?.manche) || 0;
+    const name = String(this.nickname() ?? '').trim().toLowerCase();
+    this.gameService.quizAnswers(this.gameId()).subscribe({
+      next: (summary: any) => {
+        // La TV può aver cambiato round mentre la richiesta era in volo.
+        if (this.lastSnapshotRoundKey !== roundKey) return;
+        const answers = Array.isArray(summary?.answers) ? summary.answers : [];
+        const mine = name
+          ? answers.find((row: any) =>
+            String(row?.playerName ?? '').trim().toLowerCase() === name
+            && Number(row?.manche) === manche)
+          : null;
+        if (!mine) {
+          this.onStartVoting('QUIZ', payload);
+          return;
+        }
+        this.quizManche.set(manche);
+        this.answeredManche.set(manche);
+        this.selectedAnswer.set(Number(mine.optionIndex));
+        this.hasAnswered.set(true);
+        this.gameState.set(PlayerStatus.LOCKED);
+      },
+      error: () => {
+        if (this.lastSnapshotRoundKey === roundKey) this.onStartVoting('QUIZ', payload);
+      },
+    });
   }
 
   onRoundEnd() {

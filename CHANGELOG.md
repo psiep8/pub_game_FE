@@ -1,5 +1,14 @@
 # Changelog
 
+## 16 novembre 2026 — Rientro del telefono dopo un refresh (F02)
+
+- Il refresh è una nuova istanza del telefono: sette test in jsdom simulano il riavvio sullo stesso dispositivo (round aperto, Quiz già votato, sessione scaduta, espulsione, serata aperta, seconda scheda) e quattro descrivevano comportamenti che mancavano.
+- Quiz: un telefono che rientra su una manche già votata non riceve più un secondo voto da mandare. La TV rileggeva già le risposte registrate, il telefono no: ora le chiede a `/quiz/answers` e torna bloccato con la risposta scelta. Se il server non risponde si riapre il voto come prima, e il doppio voto resta comunque rifiutato con `already-answered`.
+- Sessione scaduta: se il server non riprende la sessione il nome resta pronto ma compare l'avviso. Prima il telefono restava muto e non si capiva se era un'espulsione, una serata chiusa o un problema di rete.
+- Espulsione: `sendVote` e `sendBuzz` non partono senza un nome, quindi un tocco residuo su una scheda appena espulsa non arriva più al server come voto anonimo.
+- Scheda doppia: risponde solo la prima scheda aperta sullo stesso telefono. Il blocco usa i Web Locks del browser (`ifAvailable`), che si liberano alla chiusura della scheda e vengono ritentati al ritorno in primo piano; il flag `duplicateDisplay` del server (oggi assegnato solo alla TV) alimenta lo stesso avviso. Senza l'API dei lock non si blocca nulla.
+- Verifiche: 7 test nuovi sul telefono e suite completa frontend (383 test su 48 file).
+
 ## 16 novembre 2026 — Punti del round e coda classifica al refresh (F06 completo)
 
 - Il verdetto del vincitore del round viveva in memoria: dopo un refresh il tema della TV andava a chi aveva fatto punti solo nella seconda parte. Ora il conteggio sta in storage legato alla partita e all'indice del round, si ricarica quando la TV riprende il round e si cancella quando il verdetto è assegnato (o il round è abbandonato), così non passa a un round successivo.

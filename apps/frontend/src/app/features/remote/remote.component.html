@@ -223,6 +223,12 @@
       <span class="resync-hint">Aspetta la TV: tra un attimo sappiamo se puoi ancora rispondere.</span>
     </div>
     }
+    @if (inputBlocked()) {
+    <div class="resync-veil duplicate-notice" role="alert">
+      <span class="resync-title">Partita aperta in un'altra scheda</span>
+      <span class="resync-hint">Da qui non puoi rispondere: gioca dall'altra scheda o ricarica questa.</span>
+    </div>
+    }
     @if (reliability.lastError(); as error) { <p class="remote-error" role="alert">{{ error }}</p> }
     @switch (gameState()) {
     @case ('WAITING') {

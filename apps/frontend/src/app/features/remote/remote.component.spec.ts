@@ -12,6 +12,7 @@ import { FakeReliabilityService } from '../../shared/testing/test-doubles';
 import { ReliabilityService } from '../../core/services/reliability.service';
 import { ButtonTestService } from '../../core/services/button-test.service';
 import { FakeButtonTestService } from '../../shared/testing/fake-button-test.service';
+import { PlayerStatus } from '../../shared/enums/player-status';
 
 describe('RemoteComponent', () => {
   let component: RemoteComponent;
@@ -1000,5 +1001,156 @@ describe('RemoteComponent', () => {
 
     expect(component.gameState()).toBe('WAITING');
     expect(component.hasAnswered()).toBe(false);
+  });
+
+  /**
+   * F02 — il refresh è una nuova istanza del componente sullo stesso telefono:
+   * stesso localStorage (nickname, serata) e stesso dispositivo, zero stato in
+   * memoria. Le fake restano le stesse, così si vede cosa fa il "telefono"
+   * dopo il riavvio.
+   */
+  async function reloadPhone(): Promise<void> {
+    fixture.destroy();
+    fixture = TestBed.createComponent(RemoteComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve));
+  }
+
+  it('dopo un refresh rientra nel round aperto senza tutorial', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    expect(component.nickname()).toBe('Anna');
+    expect(component.showButtonTest()).toBe(false);
+    expect(reliability.started.at(-1)?.playerName).toBe('Anna');
+
+    reliability.syncState$.next({
+      hasState: true,
+      status: 'RUNNING',
+      roundType: 'TIMELINE',
+      roundKey: 'g1-r3',
+      roundDeadlineAt: Date.now() + 60_000,
+      currentRound: { roundKey: 'g1-r3', type: 'TIMELINE', payload: { roundId: 'r3', items: [] } },
+    });
+    await fixture.whenStable();
+
+    expect(component.roundActive()).toBe(true);
+    expect(component.questionType()).toBe('TIMELINE');
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+  });
+
+  it('dopo un refresh in Quiz non riapre il voto di una manche già votata', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    // Il server sa che Anna ha già risposto alla manche 2: il telefono che
+    // rientra deve mostrarlo bloccato, non offrire un secondo voto.
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(
+      of({ mancheIndex: 2, answers: [{ playerName: 'Anna', manche: 2, optionIndex: 1 }] }),
+    );
+
+    reliability.syncState$.next({
+      hasState: true,
+      status: 'RUNNING',
+      roundType: 'QUIZ',
+      roundKey: 'g1-r4',
+      roundDeadlineAt: Date.now() + 60_000,
+      currentRound: {
+        roundKey: 'g1-r4',
+        type: 'QUIZ',
+        payload: { manche: 2, question: 'Domanda?', options: ['A', 'B'] },
+      },
+    });
+    await fixture.whenStable();
+
+    expect(component.hasAnswered()).toBe(true);
+    expect(component.selectedAnswer()).toBe(1);
+    expect(component.gameState()).toBe(PlayerStatus.LOCKED);
+  });
+
+  it('con la sessione scaduta non entra da sola: nome pronto e avviso', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(false);
+    vi.spyOn(reliability, 'start').mockResolvedValue(false);
+
+    await reloadPhone();
+
+    // Niente ingresso silenzioso: il nome resta pronto, ma il giocatore deve
+    // sapere che la sessione non è più quella di prima.
+    expect(component.tempNickname).toBe('Anna');
+    expect(component.nickname()).toBeNull();
+    expect(reliability.lastError() ?? '').toContain('sessione');
+  });
+
+  it('dopo l espulsione il telefono non invia risposte e non rientra da solo', async () => {
+    component.nickname.set('Anna');
+    component.questionType.set('QUIZ');
+    component.gameState.set(PlayerStatus.VOTING);
+    const startsBefore = reliability.started.length;
+
+    ws.status$.next({ action: 'PLAYER_REMOVED', playerName: 'Anna' });
+    fixture.detectChanges();
+
+    expect(component.removedNotice()).toBe(true);
+    expect(component.nickname()).toBeNull();
+    expect(localStorage.getItem('nickname')).toBeNull();
+    expect(reliability.started.length).toBe(startsBefore);
+
+    // Senza nome non c'è squadra: il tocco non deve finire sul server.
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    component.sendVote(1);
+    expect(game.quizAnswersSent).toEqual([]);
+  });
+
+  it('senza ?game= adotta la serata aperta dal server, non quella salvata', async () => {
+    localStorage.setItem('activeGameId', '9');
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+
+    // FakeGameService.getActiveGame() risponde 1: la serata vecchia (9) non
+    // deve trascinare la squadra sulla partita sbagliata.
+    await reloadPhone();
+
+    expect(component.gameId()).toBe(1);
+    expect(ws.subscribedGames.at(-1)).toBe(1);
+    expect(reliability.started.at(-1)?.gameId).toBe(1);
+  });
+
+  it('con il lock della scheda già preso questo telefono non risponde', async () => {
+    // Un'altra scheda tiene il lock: il browser risponde `null` subito.
+    const request = vi.fn(async (...args: any[]) => (args[2] as (lock: unknown) => void)(null));
+    Object.defineProperty(navigator, 'locks', { value: { request }, configurable: true });
+    try {
+      await reloadPhone();
+      component.nickname.set('Anna');
+      component.questionType.set('QUIZ');
+      component.gameState.set(PlayerStatus.VOTING);
+
+      expect(component.inputBlocked()).toBe(true);
+      const game = TestBed.inject(GameService) as unknown as FakeGameService;
+      component.sendVote(1);
+      expect(game.quizAnswersSent).toEqual([]);
+      expect(ws.publishedAnswers).toEqual([]);
+    } finally {
+      delete (navigator as any).locks;
+    }
+  });
+
+  it('con due schede sullo stesso telefono la seconda non invia risposte', async () => {
+    component.nickname.set('Anna');
+    component.questionType.set('QUIZ');
+    component.gameState.set(PlayerStatus.VOTING);
+    reliability.duplicateDisplay.set(true);
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    component.sendVote(0);
+
+    // La partita è una sola: la scheda doppia resta a guardare.
+    expect(game.quizAnswersSent).toEqual([]);
   });
 });
