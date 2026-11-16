@@ -127,6 +127,16 @@ prova T1 va comunque fatta, annotando il colore visto.
 | T9 | Espelli una squadra **senza punti**, poi falla rientrare dallo stesso telefono | Al rientro ritrova **lo stesso colore** di prima; la classifica non cambia per le altre squadre | | |
 | T10 | Espelli una squadra **con punti** | Resta in classifica con i suoi punti e il suo colore; una squadra nuova che entra non prende quel colore | | |
 | T11 | Partita nuova (o reset confermato) con la TV ricaricata | I colori ripartono dall'inizio: prime squadre SABBIA, ARTICO, OCEANO; nessun colore ereditato dalla partita precedente | | |
+| T12 | Un telefono rientra **con un nome diverso** (es. `Anna` → `Anna Sofia`) | Per la TV è una squadra nuova: riceve una palette libera e diversa da quella del vecchio nome, compare come riga nuova a zero punti e non eredita nulla; la riga `Anna` resta com'era (se ha punti si tiene, se ne ha zero la regia la espelle) | | |
+
+**Comportamento voluto in T12.** Il messaggio di ingresso porta solo il nome
+(`JOIN_GAME`), non un identificativo del telefono: la TV non può sapere che è lo
+stesso dispositivo, quindi non può trasferire palette, punti o memoria dal
+vecchio nome. Non è un difetto da correggere in fretta: trasferire l'identità
+di una squadra a un nome diverso richiederebbe un identificativo di device nel
+protocollo fra telefono e TV. In sala la regola è: **nome nuovo = squadra
+nuova**; chi ha punti tiene la sua riga, le righe a zero punti si espellono
+dalla regia.
 
 Per T2 non spiegare prima cosa guardare: la percezione è il dato. In T7–T10
 fotografare la TV prima e dopo: la coppia di scatti è la prova, l'occhio da solo
@@ -188,7 +198,7 @@ Note obbligatorie accanto all'esito:
 |---|---|---|---|
 | F01 | | /4 | |
 | F02 | | /13 | |
-| F12 | | /11 | |
+| F12 | | /12 | |
 | F13 | | /6 | |
 | F09 | | /7 (+1) | |
 

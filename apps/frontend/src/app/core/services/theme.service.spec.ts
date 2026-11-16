@@ -129,6 +129,15 @@ describe('ThemeService — palette di squadra', () => {
     expect(reloaded.ensureTeamTheme('Anna')).toBe(anna);
   });
 
+  it('un nome nuovo è una squadra nuova, con una palette libera e distinta', () => {
+    const anna = service.ensureTeamTheme('Anna');
+
+    const renamed = service.ensureTeamTheme('Anna Sofia');
+
+    expect(renamed).not.toBe(anna);
+    expect(service.themeForTeam('Anna')).toBe(anna);
+  });
+
   it('la nuova partita azzera palette assegnate e scelte', () => {
     service.ensureTeamTheme('Anna');
     service.setTeamTheme('Bruno', 'kpop-aesthetic');

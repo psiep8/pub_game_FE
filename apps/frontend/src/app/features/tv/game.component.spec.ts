@@ -657,6 +657,20 @@ describe('GameComponent', () => {
     expect(theme.themeForTeam('Carla')).toBe(anna);
   });
 
+  it('tratta il rientro con un nome diverso come una squadra nuova', () => {
+    const theme = component.theme;
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });
+    const anna = theme.themeForTeam('Anna');
+
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna Sofia' });
+
+    // Il messaggio di ingresso porta solo il nome: per la TV è un'altra squadra.
+    expect(theme.themeForTeam('Anna Sofia')).not.toBe(anna);
+    expect(theme.themeForTeam('Anna')).toBe(anna);
+    expect(leaderboard.getPlayerStats('Anna')?.totalPoints).toBe(0);
+    expect(leaderboard.getPlayerStats('Anna Sofia')?.totalPoints).toBe(0);
+  });
+
   it('libera e ricorda anche la palette scelta dal telefono', () => {
     const theme = component.theme;
     ws.status$.next({ action: WsAction.SELECT_THEME, theme: 'deep-ocean', playerName: 'Anna' });
