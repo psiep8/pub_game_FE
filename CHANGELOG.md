@@ -10,8 +10,8 @@
 - Un solo checkpoint TV per partita (`tvCheckpoint`, endpoint `/tv-state`), legato alla modalità del round: Arena, Bomba e Quiz usano lo stesso meccanismo invece di campi separati.
 - Quiz: la TV riprende la manche in corso con tempo residuo, risposte già date e stadio (gioco, suspense, soluzione), invece di tornare alla prima domanda.
 - Il checkpoint Quiz si scrive ai cambi di stato (manche, risposta, scadenza, soluzione, pausa) e non più a ogni secondo: il tempo trascorso si ricava da `savedAt`, e in pausa resta fermo.
-- Speed Rush: la TV salva le corsie a ogni avanzamento; dopo un refresh riapre la corsa con il tempo che resta al round e non riapre la sessione sul server, quindi gli avanzamenti dei telefoni non si perdono.
-- Verifiche: 11 test Arena, 4 test Bomba, 13 test Quiz, 5 test Speed Rush, 41 test TV, 7 RoundPause.
+- Speed Rush: niente checkpoint TV. Dopo un refresh le corsie si rileggono dal server (`start` è idempotente sullo stesso round), la corsa non viene riavviata e il cronometro riparte dal tempo che resta al round.
+- Verifiche: 11 test Arena, 4 test Bomba, 13 test Quiz, 5 test Speed Rush, 41 test TV, 7 RoundPause, 8 backend Speed Rush.
 
 ## 15 novembre 2026 — scaletta 2.2 e cinque bonus
 
