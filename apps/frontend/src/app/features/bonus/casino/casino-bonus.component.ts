@@ -655,8 +655,12 @@ export class CasinoBonus implements OnInit, OnDestroy {
   @Input() preview = false;
   /** Casino a una manche: colore, dozzina o numero secco. */
   @Input() variant: 'COLOR' | 'DOZEN' | 'NUMBER' = 'COLOR';
+  /** Stato salvato prima di un refresh della TV: la manche riprende da qui. */
+  @Input() resume: any | null = null;
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
+  /** Stato minimo per riaprire il bonus dopo un refresh (lo salva la TV). */
+  @Output() checkpoint = new EventEmitter<any>();
 
   private ws = inject(WebSocketService);
   private audio = inject(AudioService);
@@ -713,7 +717,96 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       this.onStatus(status);
     });
+    if (this.resume) {
+      // Ripresa dopo un refresh: nessuna intro, si torna dov'erano i tavoli.
+      this.applyResume(this.resume);
+      return;
+    }
     this.later(this.preview ? 300 : 2500, () => this.startManche(0));
+  }
+
+  /**
+   * Riprende la manche salvata: voti già dati, numero già estratto, punti.
+   * Se la pallina era già uscita si rigira verso quel numero (l'esito non
+   * cambia), altrimenti si riapre il voto con il tempo che resta.
+   */
+  private applyResume(state: any): void {
+    const manche = this.manches[0];
+    if (!manche) {
+      this.finale();
+      return;
+    }
+
+    this.manche.set(1);
+    this.title.set(manche.title);
+    this.rule.set(manche.rule);
+    this.options.set([...manche.options]);
+
+    const votes: any[] = Array.isArray(state?.votes) ? state.votes : [];
+    for (const row of votes) {
+      const playerName = String(row?.playerName ?? '').trim();
+      const choice = String(row?.choice ?? '').trim();
+      if (!playerName || !this.players.includes(playerName)) continue;
+      if (!manche.options.includes(choice)) continue;
+      this.votes.set(playerName, choice);
+    }
+
+    const scores: any[] = Array.isArray(state?.scores) ? state.scores : [];
+    for (const row of scores) {
+      const playerName = String(row?.playerName ?? '').trim();
+      if (!playerName) continue;
+      this.scoreMap.set(playerName, Number(row?.score) || 0);
+    }
+    this.totals.set(
+      [...this.scoreMap.entries()]
+        .map(([playerName, score]) => ({ playerName, score }))
+        .sort((a, b) => b.score - a.score),
+    );
+    this.votesView.set([...this.votes.entries()].map(([playerName, choice]) => ({ playerName, choice })));
+
+    // Attenzione: Number(null) è 0, non NaN. Il numero uscito c'è solo se salvato.
+    const savedWinner = state?.winner;
+    const winner = savedWinner == null || savedWinner === '' ? Number.NaN : Number(savedWinner);
+    if (Number.isFinite(winner) && winner >= 0) {
+      // Il numero era già uscito: si rigira verso lo stesso, senza ricalcolarlo.
+      this.phase.set(Phase.SPIN);
+      this.secondsLeft.set(0);
+      this.publish();
+      void this.spinOnce(winner, manche).then(() => this.showReveal(winner));
+      return;
+    }
+
+    const seconds = this.remainingSeconds(state);
+    if (seconds <= 0) {
+      this.phase.set(Phase.PICK);
+      this.publish();
+      void this.spinManche();
+      return;
+    }
+    this.beginVote(Phase.PICK, seconds, () => void this.spinManche(), true);
+  }
+
+  /** Il checkpoint non salva il cronometro a ogni secondo: si toglie il tempo passato. */
+  private remainingSeconds(state: any): number {
+    const saved = Number(state?.secondsLeft);
+    const savedAt = Number(state?.savedAt);
+    const elapsed = Number.isFinite(savedAt) && savedAt > 0
+      ? Math.max(0, Math.floor((Date.now() - savedAt) / 1000))
+      : 0;
+    return Number.isFinite(saved) ? Math.max(0, Math.round(saved) - elapsed) : 0;
+  }
+
+  /** Stato minimo: voti, numero uscito, punti e tempo del voto. */
+  private emitCheckpoint(): void {
+    this.checkpoint.emit({
+      manche: this.manche(),
+      phase: this.phase(),
+      secondsLeft: this.secondsLeft(),
+      savedAt: Date.now(),
+      votes: [...this.votes.entries()].map(([playerName, choice]) => ({ playerName, choice })),
+      scores: this.totals(),
+      winner: this.spinNumber(),
+    });
   }
 
   ngOnDestroy(): void {
@@ -758,6 +851,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
     this.votes.set(playerName, choice);
     this.publish();
+    this.emitCheckpoint();
     this.finishVoteEarly();
   }
 
@@ -827,6 +921,8 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.phase.set(Phase.SPIN);
     this.secondsLeft.set(0);
     this.publish();
+    // Il numero è deciso qui: salvarlo evita che un refresh lo cambi.
+    this.emitCheckpoint();
 
     const spinDurationMs = BASE_SPIN_MS + (Math.random() * SPIN_JITTER_MS * 2) - SPIN_JITTER_MS;
     this.audio.playRouletteTicks(spinDurationMs);
@@ -1129,6 +1225,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
     this.reveal.set({ heading: `MANCHE ${this.manche()} · ESCE ${number} · ${winner}`, rows });
     this.publish();
+    this.emitCheckpoint();
     this.emitRows(rows);
     this.later(this.preview ? 1500 : REVEAL_MS, () => this.startManche(this.manche()));
   }
@@ -1157,15 +1254,18 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.later(this.preview ? 4000 : 7000, () => this.finished.emit());
   }
 
-  private beginVote(phase: Phase, seconds: number, onEnd: () => void): void {
+  private beginVote(phase: Phase, seconds: number, onEnd: () => void, keepVotes = false): void {
     this.clearClock();
-    this.votes.clear();
-    this.votesView.set([]);
+    if (!keepVotes) {
+      this.votes.clear();
+      this.votesView.set([]);
+    }
     this.voteEnd = onEnd;
     this.voteClosed = false;
     this.phase.set(phase);
     this.secondsLeft.set(seconds);
     this.publish();
+    this.emitCheckpoint();
     if (this.preview) this.seedPreviewVotes(seconds);
 
     this.clock = setInterval(() => {

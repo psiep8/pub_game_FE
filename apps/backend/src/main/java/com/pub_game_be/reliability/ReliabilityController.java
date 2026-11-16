@@ -160,11 +160,18 @@ public class ReliabilityController {
         Object rawRoundIndex = body.get("roundIndex");
         Object rawRevision = body.get("revision");
         Object rawMode = body.get("mode");
-        if (!(rawState instanceof Map<?, ?>) || !(rawRoundIndex instanceof Number)
-                || !(rawRevision instanceof Number) || !(rawMode instanceof String mode) || mode.isBlank()) {
+        // Un bonus chiude il suo checkpoint mandando `state: null`.
+        if (rawState == null) {
+            gameState.forgetTvCheckpoint(gameId);
+            return ResponseEntity.ok(Map.of("saved", true));
+        }
+        if (!(rawState instanceof Map<?, ?>) || !(rawRevision instanceof Number)
+                || !(rawMode instanceof String mode) || mode.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "invalid-checkpoint"));
         }
-        boolean saved = gameState.saveTvCheckpoint(gameId, mode, ((Number) rawRoundIndex).intValue(),
+        // Il roundIndex serve solo ai round: un bonus vive fuori e manda -1.
+        int roundIndex = rawRoundIndex instanceof Number number ? number.intValue() : -1;
+        boolean saved = gameState.saveTvCheckpoint(gameId, mode, roundIndex,
                 ((Number) rawRevision).longValue(), new JSONObject((Map<?, ?>) rawState));
         return saved ? ResponseEntity.ok(Map.of("saved", true))
                 : ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "stale-checkpoint"));

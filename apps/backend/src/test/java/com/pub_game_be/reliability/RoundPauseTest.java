@@ -146,6 +146,35 @@ class RoundPauseTest {
     }
 
     @Test
+    void unCheckpointDiBonusValeAncheSenzaRoundAperto() {
+        long gameId = 743L;
+        gameState.startRound(gameId, "QUIZ", 1, "g743-r1", "{}");
+        gameState.closeRound(gameId, "test");
+        var tv = sessions.authenticate(sessions.register(gameId, "tv743", "TV", "", null).sessionToken())
+                .orElseThrow();
+
+        // Il bonus vive fuori dai round: il checkpoint non ha roundIndex né round aperto.
+        var checkpoint = Map.of("mode", "BONUS_CASINO_COLOR", "revision", 5,
+                "state", Map.of("winner", 17, "votes", List.of()));
+        assertThat(reliabilityController.saveTvCheckpoint(gameId, tv, checkpoint).getStatusCode().value())
+                .isEqualTo(200);
+
+        JSONObject stored = restartedService().snapshot(gameId).getJSONObject("tvCheckpoint");
+        assertThat(stored.getString("mode")).isEqualTo("BONUS_CASINO_COLOR");
+        assertThat(stored.getBoolean("bonus")).isTrue();
+        assertThat(stored.getJSONObject("state").getInt("winner")).isEqualTo(17);
+
+        // La TV chiude il bonus: il checkpoint sparisce e non riapre nulla.
+        Map<String, Object> clear = new java.util.HashMap<>();
+        clear.put("mode", "BONUS_CASINO_COLOR");
+        clear.put("revision", 6);
+        clear.put("state", null);
+        assertThat(reliabilityController.saveTvCheckpoint(gameId, tv, clear).getStatusCode().value())
+                .isEqualTo(200);
+        assertThat(gameState.snapshot(gameId).isNull("tvCheckpoint")).isTrue();
+    }
+
+    @Test
     void laPausaAllungaLaDeadlineDelRound() throws Exception {
         long gameId = 720L;
         gameState.startRound(gameId, "QUIZ", 1, "g720-r1", "{}");

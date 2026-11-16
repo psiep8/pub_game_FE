@@ -163,6 +163,8 @@ export class GameComponent implements OnInit, OnDestroy {
   demoScene = signal(0);
   bonusActive = signal(false);
   bonusType = signal<BonusType | null>(null);
+  /** Stato del bonus da riaprire dopo un refresh (per ora solo Casino). */
+  bonusResume = signal<any | null>(null);
   /** Ingresso scenografico in corso: il bonus vero parte alla fine. */
   bonusEntrance = signal<BonusType | null>(null);
   bonusShowResult = signal(false);
@@ -1683,9 +1685,10 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   /** Bonus: parte dalla TV a fine atto (o su comando admin) e non consuma un round. */
-  async startBonus(type: BonusType): Promise<void> {
+  async startBonus(type: BonusType, resume: any = null): Promise<void> {
     if (!BONUS_TYPES.includes(type)) return;
     if (this.bonusEntrance() || this.bonusActive() || this.isSpinning()) return;
+    this.bonusResume.set(resume);
 
     // Un bonus è fuori dal round: chiude il conteggio se era ancora aperto.
     this.settleRoundWinner();
@@ -1695,7 +1698,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.bonusEntrance.set(null);
       this.bonusEntranceTimer = undefined;
       void this.beginBonus(type);
-    }, 2600);
+    }, resume ? 600 : 2600);
   }
 
   private async beginBonus(type: BonusType): Promise<void> {
@@ -1796,6 +1799,17 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!this.bonusActive() || this.bonusAwarded) return;
     this.bonusAwarded = true;
     this.clearBonusTimer();
+    // Il bonus è chiuso: il checkpoint non deve riaprirlo al prossimo refresh.
+    const closed = this.bonusType();
+    if (closed) {
+      this.reliability.saveTvCheckpoint({
+        mode: `BONUS_${closed}`,
+        roundIndex: -1,
+        revision: Date.now(),
+        state: null,
+      });
+    }
+    this.bonusResume.set(null);
 
     const ranking = [...this.bonusScoresMap.entries()]
       .map(([playerName, score]) => ({ playerName, score }))
@@ -1834,6 +1848,31 @@ export class GameComponent implements OnInit, OnDestroy {
         this.showPendingLeaderboard();
       }
     }, 8000);
+  }
+
+  /** Il Casino salva voti e numero uscito: un refresh non li perde. */
+  onBonusCheckpoint(type: BonusType, state: any): void {
+    if (!state) return;
+    this.reliability.saveTvCheckpoint({
+      mode: `BONUS_${type}`,
+      roundIndex: -1,
+      revision: Date.now(),
+      state,
+    });
+  }
+
+  /**
+   * Bonus interrotto da un refresh: il Casino si riapre dal checkpoint (voti,
+   * numero uscito, punti). Gli altri bonus restano da giocare.
+   */
+  private offerBonusRecovery(snapshot: any): void {
+    if (this.currentMode() || this.bonusActive() || this.bonusEntrance() || this.isSpinning()) return;
+    const checkpoint = snapshot?.tvCheckpoint;
+    const mode = String(checkpoint?.mode ?? '');
+    if (!checkpoint?.state || !mode.startsWith('BONUS_')) return;
+    const type = mode.slice('BONUS_'.length) as BonusType;
+    if (!CASINO_BONUS_TYPES.includes(type)) return;
+    void this.startBonus(type, checkpoint.state);
   }
 
   /** Giocatori in classifica + telefoni presenti, usati dai bonus. */
@@ -2232,6 +2271,7 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     this.offerRoundRecovery(snapshot);
+    this.offerBonusRecovery(snapshot);
   }
 
   /** Indice del round corrente per i checkpoint TV (0-based, dal server). */

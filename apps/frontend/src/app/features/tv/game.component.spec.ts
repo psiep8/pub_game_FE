@@ -78,6 +78,36 @@ describe('GameComponent', () => {
     expect(addPoints).toHaveBeenCalledWith('Anna', 300, true);
   });
 
+  it('salva il checkpoint del bonus e lo riapre dopo un refresh', () => {
+    component.onBonusCheckpoint('CASINO_COLOR', { votes: [], scores: [], winner: null });
+
+    expect(reliability.tvCheckpoints.at(-1)).toMatchObject({
+      mode: 'BONUS_CASINO_COLOR',
+      roundIndex: -1,
+    });
+
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+    const state = { votes: [{ playerName: 'Anna', choice: 'ROSSO' }], scores: [], winner: null };
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'CREATED', roundIndex: 0,
+      tvCheckpoint: { mode: 'BONUS_CASINO_COLOR', bonus: true, revision: 5, state },
+    });
+
+    expect(component.bonusResume()).toEqual(state);
+    expect(component.bonusEntrance()).toBe('CASINO_COLOR');
+  });
+
+  it('non riapre un bonus che non sa riprendere', () => {
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'CREATED', roundIndex: 0,
+      tvCheckpoint: { mode: 'BONUS_CAVALLO', bonus: true, revision: 5, state: { phase: 'QUESTION' } },
+    });
+
+    expect(component.bonusResume()).toBeNull();
+    expect(component.bonusEntrance()).toBeNull();
+  });
+
   it('sincronizza pausa e ripresa con il server', () => {
     const pause = vi.fn();
     const resume = vi.fn();

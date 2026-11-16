@@ -337,6 +337,8 @@
         [gameId]="currentGameId()"
         [players]="bonusPlayers()"
         [variant]="'COLOR'"
+        [resume]="bonusResume()"
+        (checkpoint)="onBonusCheckpoint('CASINO_COLOR', $event)"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
     }
@@ -345,6 +347,8 @@
         [gameId]="currentGameId()"
         [players]="bonusPlayers()"
         [variant]="'DOZEN'"
+        [resume]="bonusResume()"
+        (checkpoint)="onBonusCheckpoint('CASINO_DOZEN', $event)"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
     }
@@ -353,6 +357,8 @@
         [gameId]="currentGameId()"
         [players]="bonusPlayers()"
         [variant]="'NUMBER'"
+        [resume]="bonusResume()"
+        (checkpoint)="onBonusCheckpoint('CASINO_NUMBER', $event)"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
     }

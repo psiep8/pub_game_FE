@@ -384,14 +384,28 @@ public class GameStateService {
     public boolean saveTvCheckpoint(long gameId, String mode, int roundIndex, long revision, JSONObject state) {
         Object lock = eventLocks.computeIfAbsent(gameId, key -> new Object());
         synchronized (lock) {
+            if (mode == null || revision <= 0) return false;
+            Optional<JSONObject> previous = tvCheckpoint(gameId);
+            if (previous.isPresent() && revision <= previous.get().optLong("revision")) return false;
+
+            // Un bonus non consuma un round: il suo checkpoint è legato alla
+            // modalità, non a un round aperto, e vive nello stesso blob.
+            if (mode.startsWith("BONUS_")) {
+                JSONObject bonus = new JSONObject().put("mode", mode)
+                        .put("bonus", true)
+                        .put("roundKey", "bonus-" + mode)
+                        .put("startedAt", 0L).put("revision", revision)
+                        .put("state", state);
+                stateBlobs.save(gameId, TV_CHECKPOINT_BLOB, bonus.toString());
+                return true;
+            }
+
             GameStateEntity current = states.findById(gameId).orElse(null);
             if (current == null || !"RUNNING".equals(current.getStatus())
                     || mode == null || !mode.equals(current.getRoundType())
                     || current.getRoundIndex() != roundIndex
                     || current.getRoundKey() == null || current.getRoundStartedAt() == null
                     || revision <= 0) return false;
-            Optional<JSONObject> previous = tvCheckpoint(gameId);
-            if (previous.isPresent() && revision <= previous.get().optLong("revision")) return false;
             JSONObject checkpoint = new JSONObject().put("mode", mode)
                     .put("roundKey", current.getRoundKey())
                     .put("startedAt", current.getRoundStartedAt()).put("revision", revision)
@@ -403,15 +417,24 @@ public class GameStateService {
 
     /** Checkpoint del round corrente: di un'altra modalità o round non vale. */
     public Optional<JSONObject> tvCheckpoint(long gameId) {
+        Optional<JSONObject> stored = stateBlobs.load(gameId, TV_CHECKPOINT_BLOB).map(JSONObject::new);
+        // Il checkpoint di un bonus vale anche senza un round aperto.
+        if (stored.isPresent() && stored.get().optBoolean("bonus")) return stored;
+
         GameStateEntity current = states.findById(gameId).orElse(null);
         if (current == null || !"RUNNING".equals(current.getStatus()) || current.getRoundType() == null) {
             return Optional.empty();
         }
-        return stateBlobs.load(gameId, TV_CHECKPOINT_BLOB).map(JSONObject::new)
+        return stored
                 .filter(checkpoint -> current.getRoundType().equals(checkpoint.optString("mode"))
                         && checkpoint.optString("roundKey").equals(current.getRoundKey())
                         && current.getRoundStartedAt() != null
                         && checkpoint.optLong("startedAt", -1L) == current.getRoundStartedAt());
+    }
+
+    /** Chiusura del bonus: il checkpoint non serve più e non deve riaprire nulla. */
+    public void forgetTvCheckpoint(long gameId) {
+        stateBlobs.forget(gameId, TV_CHECKPOINT_BLOB);
     }
 
     /** Salva lo snapshot della mano: la TV lo riscrive a ogni cambio di fase. */

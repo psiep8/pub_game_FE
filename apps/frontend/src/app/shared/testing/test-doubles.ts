@@ -248,6 +248,9 @@ export class FakeAudioService {
   readonly playConfirm = () => this.played.push('confirm');
   readonly playError = () => this.played.push('error');
   readonly playReveal = () => this.played.push('reveal');
+  readonly playBonusEntrance = (type: string) => this.played.push(`bonus-entrance-${type}`);
+  readonly playRouletteTicks = (_ms = 0) => this.played.push('roulette-ticks');
+  readonly playRouletteLanding = () => this.played.push('roulette-landing');
   readonly stopAll = () => this.played.push('stop-all');
 
   isEnabled(): boolean {
