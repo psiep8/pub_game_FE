@@ -31,6 +31,8 @@ export class MusicMode extends GameModeBase {
 
   /** Manche ascoltata fino in fondo: si aspetta il via dell'admin. */
   private waitingForStart = signal(false);
+  /** Istante in cui la pausa fra due manche finisce da sola. */
+  private waitingUntil = 0;
 
   protected onInitialize(): void {
     this.currentManche = 0;
@@ -57,24 +59,121 @@ export class MusicMode extends GameModeBase {
     this.revealIntro = false;
     this.fullPlayback.set(false);
     this.waitingForStart.set(false);
+    this.waitingUntil = 0;
     this.timer.set(MANCHE_SECONDS);
     this.config.onTimerTick?.(MANCHE_SECONDS);
     this.startMancheCountdown();
     this.playAudio();
+    this.saveCheckpoint();
 
     // Fine dell'ascolto: la traccia si ferma, si vede la pausa e dopo 10
     // secondi la manche successiva parte da sola (l'admin può comunque
     // anticiparla col comando "prossima manche").
-    this.mancheTimer = setTimeout(() => {
-      if (this.buzzedPlayer()) return;
+    this.mancheTimer = setTimeout(() => this.endListening(), MANCHE_SECONDS * 1000);
+  }
+
+  /** Fine dell'ascolto: pausa di dieci secondi, poi manche successiva. */
+  private endListening(): void {
+    if (this.buzzedPlayer()) return;
+    this.pauseAudio();
+    this.waitingForStart.set(true);
+    this.waitingUntil = Date.now() + 10000;
+    this.broadcast();
+    this.saveCheckpoint();
+    this.introTimer = setTimeout(() => {
+      if (this.buzzedPlayer() || this.revealed()) return;
+      this.nextManche();
+    }, 10000);
+  }
+
+  /**
+   * Riprende il round dopo un refresh della TV: manche, secondi rimasti e
+   * pausa dell'ascolto tornano come li aveva lasciati. Un brano già pagato
+   * (`revealed`) si riapre solo per mostrarlo, senza ridare i punti.
+   */
+  restore(secondsLeft: number, snapshot?: unknown): void {
+    const checkpoint = snapshot as { revision?: number; state?: any } | null | undefined;
+    const state = checkpoint?.state ?? {};
+    const manche = Math.floor(Number(state.manche));
+    // Senza manche salvata non c'è nulla da riprendere: resta l'avvio normale.
+    if (!Number.isFinite(manche) || manche < 1) return;
+
+    this.currentManche = Math.min(MANCHES, manche);
+    this.isActive.set(true);
+    this.isPaused.set(false);
+    this.revealed.set(state.revealed === true);
+    this.fullPlayback.set(state.fullPlayback === true);
+    this.revealIntro = false;
+
+    const savedSeconds = Number(state.secondsLeft);
+    const savedAt = Number(state.savedAt);
+    const elapsed = Number.isFinite(savedAt) && savedAt > 0
+      ? Math.max(0, Math.floor((Date.now() - savedAt) / 1000))
+      : 0;
+    const seconds = Number.isFinite(savedSeconds)
+      ? Math.min(MANCHE_SECONDS, Math.max(0, Math.round(savedSeconds) - elapsed))
+      : Math.min(MANCHE_SECONDS, Math.max(0, Math.round(Number(secondsLeft) || 0)));
+    this.timer.set(seconds);
+    this.config.onTimerTick?.(seconds);
+
+    const buzzed = String(state.buzzedPlayer ?? '').trim();
+    if (buzzed) this.buzzedPlayer.set(buzzed);
+
+    if (this.revealed()) {
+      this.broadcast();
+      return;
+    }
+
+    if (this.buzzedPlayer()) {
+      // Qualcuno aveva premuto: si aspetta la conferma, niente cronometro.
       this.pauseAudio();
+      this.broadcast();
+      return;
+    }
+
+    if (state.waitingForStart === true) {
       this.waitingForStart.set(true);
+      const savedWait = Number(state.waitingSeconds);
+      const wait = Number.isFinite(savedWait) ? Math.max(0, Math.round(savedWait) - elapsed) : 0;
+      if (wait <= 0) {
+        this.nextManche();
+        return;
+      }
+      this.waitingUntil = Date.now() + wait * 1000;
       this.broadcast();
       this.introTimer = setTimeout(() => {
         if (this.buzzedPlayer() || this.revealed()) return;
         this.nextManche();
-      }, 10000);
-    }, 30000);
+      }, wait * 1000);
+      return;
+    }
+
+    this.startMancheCountdown();
+    this.playAudio();
+    this.broadcast();
+    // L'audio riparte dall'inizio del brano, ma il conto è quello rimasto.
+    this.mancheTimer = setTimeout(() => this.endListening(), seconds * 1000);
+  }
+
+  /** Stato della manche: serve a riprendere senza ricominciare il round. */
+  private saveCheckpoint(): void {
+    const waiting = this.waitingForStart() && this.waitingUntil > Date.now()
+      ? Math.max(0, Math.round((this.waitingUntil - Date.now()) / 1000))
+      : 0;
+    this.config.onTvCheckpoint?.({
+      type: this.type,
+      revision: Date.now(),
+      state: {
+        manche: this.currentManche,
+        secondsLeft: this.timer(),
+        savedAt: Date.now(),
+        waitingForStart: this.waitingForStart(),
+        waitingSeconds: waiting,
+        revealed: this.revealed(),
+        fullPlayback: this.fullPlayback(),
+        buzzedPlayer: this.buzzedPlayer(),
+      },
+    });
   }
 
   /** Via alla manche successiva, su comando dell'admin. */
@@ -99,13 +198,28 @@ export class MusicMode extends GameModeBase {
   protected onPause(): void {
     this.stopAllTimers();
     this.pauseAudio();
+    this.saveCheckpoint();
   }
 
   protected onResume(): void {
     if (this.currentManche > 0) {
       this.playAudio();
       this.startMancheCountdown();
+      if (this.waitingForStart()) {
+        const wait = Math.max(0, Math.round((this.waitingUntil - Date.now()) / 1000));
+        this.waitingUntil = Date.now() + wait * 1000;
+        this.introTimer = setTimeout(() => {
+          if (this.buzzedPlayer() || this.revealed()) return;
+          this.nextManche();
+        }, wait * 1000);
+      } else {
+        this.mancheTimer = setTimeout(
+          () => this.endListening(),
+          Math.max(0, this.timer()) * 1000,
+        );
+      }
     }
+    this.saveCheckpoint();
   }
 
   protected onStop(): void {
@@ -128,6 +242,7 @@ export class MusicMode extends GameModeBase {
     this.stopAllTimers();
     this.pauseAudio();
     this.revealed.set(true);
+    this.saveCheckpoint();
     this.config.onTimerEnd?.();
   }
 
@@ -135,6 +250,7 @@ export class MusicMode extends GameModeBase {
     
     this.stopAllTimers();
     this.pauseAudio();
+    this.saveCheckpoint();
   }
 
   protected onConfirmCorrect(result: GameModeResult): void {
@@ -148,6 +264,7 @@ export class MusicMode extends GameModeBase {
     this.currentManche = MANCHES;
     this.fullPlayback.set(true);
     this.playAudio();
+    this.saveCheckpoint();
   }
 
   protected onConfirmWrong(result: GameModeResult): void {
@@ -160,6 +277,7 @@ export class MusicMode extends GameModeBase {
         this.playAudio();
       }
     }, 1000);
+    this.saveCheckpoint();
   }
 
   protected validateAnswer(answer: any, timeMs: number): any {
