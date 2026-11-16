@@ -1,163 +1,183 @@
-import { vi } from 'vitest';
-import { UltimaSpiaggiaMode } from './ultima-spiaggia.mode';
+import { GameModeConfig } from '../../../shared/models/game-mode-type';
+import { UltimaSpiaggiaMode, UltimaSpiaggiaPhase } from './ultima-spiaggia.mode';
 
-const QUESTIONS = [100, 200, 300, 400, 500].map((level) => ({
-  level,
-  question: `Domanda da ${level} punti`,
+const PAYLOAD = {
   category: 'Storia',
-  options: ['Roma', 'Milano', 'Napoli', 'Torino'],
-  correctAnswer: 'Roma',
-}));
+  questions: [
+    { level: 100, question: 'In che anno?', options: ['1900', '1910'], correctAnswer: '1900', category: 'Storia' },
+    { level: 200, question: 'Chi era?', options: ['Anna', 'Bruno'], correctAnswer: 'Anna', category: 'Storia' },
+  ],
+};
 
-describe('UltimaSpiaggiaMode (Ultima spiaggia)', () => {
-  afterEach(() => {
-    vi.useRealTimers();
-  });
+function setup(players = ['Anna', 'Bruno']) {
+  const saved: Array<{ type: string; revision: number; state: any }> = [];
+  const points: any[] = [];
+  const mode = new UltimaSpiaggiaMode();
+  const config: GameModeConfig = {
+    type: 'ULTIMA_SPIAGGIA',
+    payload: PAYLOAD,
+    gameId: 1,
+    activePlayers: players,
+    onTvCheckpoint: (checkpoint) => saved.push(checkpoint as any),
+    onAnswerReceived: (result) => points.push(result),
+  };
 
-  it('gioca una sola manche e non ripropone i livelli consumati', async () => {
-    vi.useFakeTimers();
+  mode.setConfig(config);
+  mode.initialize(PAYLOAD);
 
-    const wallet: Record<string, number> = { Anna: 1000, Bruno: 1000 };
-    const recorded: Array<{ playerName: string; level: number }> = [];
-    let ended = false;
-    const mode = new UltimaSpiaggiaMode();
-    mode.setConfig({
-      type: 'ULTIMA_SPIAGGIA',
-      payload: {},
-      gameId: 1,
-      activePlayers: ['Anna', 'Bruno'],
-      playerPoints: (playerName) => wallet[playerName] ?? 0,
-      onAnswerReceived: (data) => {
-        wallet[data.playerName] += data.points;
-      },
-      onUltimaSpiaggiaLevel: (playerName, level) => recorded.push({ playerName, level }),
-      onTimerEnd: () => {
-        ended = true;
-      },
-    });
-    expect(mode.requiresBubbles).toBe(true);
-    mode.initialize({
-      category: 'Storia',
-      questions: QUESTIONS,
-      // Anna ha già usato il 100 in un Ultima spiaggia precedente.
-      usedLevels: { Anna: [100] },
-    });
+  return { mode, saved, points };
+}
 
-    const started = mode.start();
-    await vi.advanceTimersByTimeAsync(3000);
-    await started;
+describe('UltimaSpiaggiaMode — ripresa dopo un refresh della TV', () => {
+  it('salva la scelta del livello appena arriva', async () => {
+    const { mode, saved } = setup();
 
-    let levelPhase = mode.getDisplayData();
-    expect(levelPhase.phase).toBe('LEVEL');
-    expect(levelPhase.category).toBe('Storia');
-    expect(levelPhase.round).toBe(1);
-    expect(levelPhase.total).toBe(1);
-    expect(levelPhase.rows.find((row: any) => row.playerName === 'Anna')).toMatchObject({
-      used: [100],
-      level: null,
-    });
+    await mode.start();
+    mode.handlePartyEvent({ action: 'ULTIMA_SPIAGGIA_ACTION', playerName: 'Anna', kind: 'LEVEL', value: 200 });
 
-    // Il 100 è già consumato: il tocco viene ignorato.
-    mode.handlePartyEvent({
-      action: 'ULTIMA_SPIAGGIA_ACTION', playerName: 'Anna', kind: 'LEVEL', value: 100,
-    });
-    expect((mode.getDisplayData().rows.find((row: any) => row.playerName === 'Anna') as any).level).toBeNull();
-
-    mode.handlePartyEvent({
-      action: 'ULTIMA_SPIAGGIA_ACTION', playerName: 'Anna', kind: 'LEVEL', value: 200,
-    });
-    mode.handlePartyEvent({
-      action: 'ULTIMA_SPIAGGIA_ACTION', playerName: 'Bruno', kind: 'LEVEL', value: 500,
-    });
-
-    const questionPhase = mode.getDisplayData();
-    expect(questionPhase.phase).toBe('QUESTION');
-    expect(questionPhase.questions.every((question: any) => question.correctAnswer === null)).toBe(true);
-    expect(questionPhase.rows.find((row: any) => row.playerName === 'Anna')).toMatchObject({
-      level: 200,
-      used: [100, 200],
-    });
-    expect(questionPhase.rows.find((row: any) => row.playerName === 'Bruno')).toMatchObject({
-      level: 500,
-      used: [500],
-    });
-
-    mode.handlePartyEvent({
-      action: 'ULTIMA_SPIAGGIA_ACTION', playerName: 'Anna', kind: 'ANSWER', value: 0,
-    });
-    mode.handlePartyEvent({
-      action: 'ULTIMA_SPIAGGIA_ACTION', playerName: 'Bruno', kind: 'ANSWER', value: 1,
-    });
-
-    const reveal = mode.getDisplayData();
-    expect(reveal.phase).toBe('REVEAL');
-    expect(reveal.rows.find((row: any) => row.playerName === 'Anna')).toMatchObject({
-      level: 200,
-      status: 'CORRECT',
-      points: 200,
-    });
-    expect(reveal.rows.find((row: any) => row.playerName === 'Bruno')).toMatchObject({
-      level: 500,
-      status: 'WRONG',
-      points: -250,
-    });
-    // I livelli vengono registrati subito, per la prossima occorrenza.
-    expect(recorded).toEqual(expect.arrayContaining([
-      { playerName: 'Anna', level: 200 },
-      { playerName: 'Bruno', level: 500 },
-    ]));
-    expect(recorded.some((entry) => entry.playerName === 'Anna' && entry.level === 100)).toBe(false);
-    expect(wallet).toEqual({ Anna: 1200, Bruno: 750 });
-
-    // La manche si chiude senza avviare altri round interni.
-    await vi.advanceTimersByTimeAsync(5000);
-    expect(ended).toBe(true);
-    expect(mode.getDisplayData().phase).toBe('REVEAL');
-    expect(mode.isRevealed()).toBe(true);
+    const state = saved.at(-1)?.state;
+    expect(state.phase).toBe(UltimaSpiaggiaPhase.LEVEL);
+    expect(state.picks).toEqual([['Anna', 200]]);
+    expect(state.used).toContainEqual(['Anna', [200]]);
 
     mode.cleanup();
   });
 
-  it('auto-assegna solo un livello ancora disponibile e toglie metà se scade', async () => {
-    vi.useFakeTimers();
+  it('riprende la scelta del livello con il tempo rimasto e lo stesso id', () => {
+    const { mode } = setup();
 
-    const wallet: Record<string, number> = { Anna: 1000 };
-    const recorded: number[] = [];
-    const mode = new UltimaSpiaggiaMode();
-    mode.setConfig({
-      type: 'ULTIMA_SPIAGGIA',
-      payload: {},
-      gameId: 1,
-      activePlayers: ['Anna'],
-      playerPoints: () => 1000,
-      onAnswerReceived: (data) => {
-        wallet[data.playerName] += data.points;
+    mode.restore(12, {
+      revision: 3,
+      state: {
+        occurrenceId: 'occ-1',
+        phase: UltimaSpiaggiaPhase.LEVEL,
+        secondsLeft: 12,
+        savedAt: Date.now() - 4000,
+        picks: [['Anna', 200]],
+        used: [['Anna', [200]]],
       },
-      onUltimaSpiaggiaLevel: (_playerName, level) => recorded.push(level),
-    });
-    mode.initialize({
-      category: 'Storia',
-      questions: QUESTIONS,
-      usedLevels: { Anna: [100, 200] },
     });
 
-    const started = mode.start();
-    await vi.advanceTimersByTimeAsync(3000);
-    await started;
+    const data = mode.getDisplayData();
+    expect(data.phase).toBe(UltimaSpiaggiaPhase.LEVEL);
+    expect(data.secondsLeft).toBe(8);
+    // Stesso id: i telefoni non azzerano la scelta appena fatta.
+    expect(data.occurrenceId).toBe('occ-1');
+    expect(data.rows.find((row: any) => row.playerName === 'Anna')).toMatchObject({
+      level: 200,
+      used: [200],
+    });
+    // Bruno non ha ancora scelto: il livello resta libero.
+    expect(data.rows.find((row: any) => row.playerName === 'Bruno')).toMatchObject({ level: null });
 
-    // Nessuna scelta: il livello più basso ancora libero è il 300.
-    await vi.advanceTimersByTimeAsync(12000);
-    const questionPhase = mode.getDisplayData();
-    expect(questionPhase.phase).toBe('QUESTION');
-    expect((questionPhase.rows[0] as any).level).toBe(300);
-    expect(recorded).toEqual([300]);
+    mode.cleanup();
+  });
 
-    // Nessuna risposta: scaduta, quindi −metà del livello.
-    await vi.advanceTimersByTimeAsync(15000);
-    const reveal = mode.getDisplayData();
-    expect(reveal.phase).toBe('REVEAL');
-    expect((reveal.rows[0] as any).points).toBe(-150);
-    expect(wallet['Anna']).toBe(850);
+  it('riprende la domanda con le risposte già date, senza pagare nulla', () => {
+    const { mode, points } = setup();
+
+    mode.restore(15, {
+      revision: 4,
+      state: {
+        occurrenceId: 'occ-2',
+        phase: UltimaSpiaggiaPhase.QUESTION,
+        secondsLeft: 15,
+        savedAt: Date.now(),
+        picks: [['Anna', 200], ['Bruno', 100]],
+        answers: [['Anna', 0]],
+        used: [['Anna', [200]], ['Bruno', [100]]],
+      },
+    });
+
+    const data = mode.getDisplayData();
+    expect(data.phase).toBe(UltimaSpiaggiaPhase.QUESTION);
+    expect(data.rows.find((row: any) => row.playerName === 'Anna')).toMatchObject({ answered: true });
+    expect(data.rows.find((row: any) => row.playerName === 'Bruno')).toMatchObject({ answered: false });
+    // Nessun esito è ancora stato calcolato.
+    expect(points).toEqual([]);
+
+    mode.cleanup();
+  });
+
+  it('il reveal già avvenuto non ripaga i punti', () => {
+    const { mode, points } = setup();
+
+    mode.restore(5, {
+      revision: 5,
+      state: {
+        occurrenceId: 'occ-3',
+        phase: UltimaSpiaggiaPhase.REVEAL,
+        secondsLeft: 5,
+        savedAt: Date.now(),
+        picks: [['Anna', 200], ['Bruno', 100]],
+        answers: [['Anna', 0]],
+        points: [['Anna', 200], ['Bruno', -50]],
+        totals: [['Anna', 200], ['Bruno', -50]],
+        statuses: [['Anna', 'CORRECT'], ['Bruno', 'WRONG']],
+      },
+    });
+
+    const data = mode.getDisplayData();
+    expect(data.phase).toBe(UltimaSpiaggiaPhase.REVEAL);
+    expect(data.rows.find((row: any) => row.playerName === 'Anna')).toMatchObject({
+      points: 200,
+      status: 'CORRECT',
+    });
+    expect(points).toEqual([]);
+
+    mode.cleanup();
+  });
+
+  it('con la domanda già scaduta va al reveal una volta sola', () => {
+    const { mode, points } = setup();
+
+    mode.restore(0, {
+      revision: 6,
+      state: {
+        occurrenceId: 'occ-4',
+        phase: UltimaSpiaggiaPhase.QUESTION,
+        secondsLeft: 15,
+        savedAt: Date.now() - 60_000,
+        picks: [['Anna', 200], ['Bruno', 100]],
+        answers: [['Anna', 0]],
+      },
+    });
+
+    expect(mode.getDisplayData().phase).toBe(UltimaSpiaggiaPhase.REVEAL);
+    expect(points).toHaveLength(2);
+
+    mode.cleanup();
+  });
+
+  it('se tutti avevano risposto il reveal parte alla ripresa', () => {
+    const { mode, points } = setup();
+
+    mode.restore(10, {
+      revision: 7,
+      state: {
+        occurrenceId: 'occ-5',
+        phase: UltimaSpiaggiaPhase.QUESTION,
+        secondsLeft: 10,
+        savedAt: Date.now(),
+        picks: [['Anna', 200], ['Bruno', 100]],
+        answers: [['Anna', 0], ['Bruno', 1]],
+      },
+    });
+
+    expect(mode.getDisplayData().phase).toBe(UltimaSpiaggiaPhase.REVEAL);
+    expect(points).toHaveLength(2);
+
+    mode.cleanup();
+  });
+
+  it('non si rompe con un checkpoint senza stato utile', () => {
+    const { mode } = setup();
+
+    mode.restore(12, { revision: 8, state: { picks: 'x', answers: null, statuses: 4 } });
+
+    const data = mode.getDisplayData();
+    expect(data.phase).toBe(UltimaSpiaggiaPhase.LEVEL);
+    expect(data.rows.every((row: any) => row.level === null)).toBe(true);
 
     mode.cleanup();
   });

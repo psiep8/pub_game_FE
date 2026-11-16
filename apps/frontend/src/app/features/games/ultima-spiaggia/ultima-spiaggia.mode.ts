@@ -55,8 +55,12 @@ export class UltimaSpiaggiaMode extends GameModeBase {
   readonly requiresBubbles = true;
   readonly requiresBuzz = false;
 
-  /** Identifica questa singola occorrenza, non il round interno. */
-  private readonly occurrenceId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  /**
+   * Identifica questa singola occorrenza, non il round interno. Si ripristina
+   * dal checkpoint: se cambiasse al refresh, i telefoni azzererebbero la
+   * scelta appena fatta.
+   */
+  private occurrenceId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   private players: string[] = [];
   private category = '';
   private questions: UltimaSpiaggiaQuestion[] = [];
@@ -121,6 +125,7 @@ export class UltimaSpiaggiaMode extends GameModeBase {
       this.recordLevel(playerName, level);
       this.syncRows();
       this.publish();
+      this.saveCheckpoint();
       this.closeLevelIfComplete();
       return;
     }
@@ -139,6 +144,7 @@ export class UltimaSpiaggiaMode extends GameModeBase {
       this.answers.set(playerName, index);
       this.syncRows();
       this.publish();
+      this.saveCheckpoint();
       if (this.players.every((name) => this.answers.has(name))) {
         this.revealRound();
       }
@@ -250,6 +256,7 @@ export class UltimaSpiaggiaMode extends GameModeBase {
       this.assignMissingLevels();
       this.startQuestion();
     });
+    this.saveCheckpoint();
   }
 
   private closeLevelIfComplete(): void {
@@ -280,6 +287,7 @@ export class UltimaSpiaggiaMode extends GameModeBase {
     this.syncRows();
     this.publish();
     this.startClock(QUESTION_SECONDS, () => this.revealRound());
+    this.saveCheckpoint();
   }
 
   private revealRound(): void {
@@ -311,6 +319,148 @@ export class UltimaSpiaggiaMode extends GameModeBase {
     this.syncRows();
     this.publish();
     this.startClock(REVEAL_SECONDS, () => this.finish());
+    this.saveCheckpoint();
+  }
+
+  /**
+   * Riprende il round dopo un refresh. Livello scelto, risposte, esiti e id
+   * dell'occorrenza arrivano dal checkpoint: un reveal già avvenuto non
+   * ricalcola i punti e i telefoni non perdono la scelta fatta.
+   */
+  restore(secondsLeft: number, snapshot?: unknown): void {
+    const checkpoint = snapshot as { revision?: number; state?: any } | null | undefined;
+    const state = checkpoint?.state ?? {};
+    this.players = [...(this.config.activePlayers ?? [])];
+    this.readPayload();
+    if (typeof state.occurrenceId === 'string' && state.occurrenceId) {
+      this.occurrenceId = state.occurrenceId;
+    }
+
+    // I livelli consumati nelle occorrenze precedenti arrivano dal payload;
+    // qui si aggiungono quelli giocati in questa manche.
+    if (Array.isArray(state.used)) {
+      for (const row of state.used) {
+        if (!Array.isArray(row) || typeof row[0] !== 'string' || !Array.isArray(row[1])) continue;
+        const levels = row[1]
+          .map((value: any) => Number(value))
+          .filter((level: number) => ULTIMA_SPIAGGIA_LEVELS.includes(level as any));
+        if (!levels.length) continue;
+        const target = this.usedBy(String(row[0]).trim());
+        for (const level of levels) target.add(level);
+      }
+    }
+
+    this.picks.clear();
+    for (const [playerName, level] of this.numberMapOf(state.picks)) {
+      if (!this.levels().includes(level)) continue;
+      this.picks.set(playerName, level);
+      this.usedBy(playerName).add(level);
+    }
+    this.answers = this.numberMapOf(state.answers);
+    this.points = this.numberMapOf(state.points);
+    this.totals = this.numberMapOf(state.totals);
+    this.statuses = this.readStatuses(state.statuses);
+    this.finished = state.finished === true;
+    this.revealed.set(state.revealed === true);
+
+    const savedSeconds = Number(state.secondsLeft);
+    const savedAt = Number(state.savedAt);
+    const elapsed = Number.isFinite(savedAt) && savedAt > 0
+      ? Math.max(0, Math.floor((Date.now() - savedAt) / 1000))
+      : 0;
+    const seconds = Number.isFinite(savedSeconds)
+      ? Math.max(0, Math.round(savedSeconds) - elapsed)
+      : Math.max(0, Math.round(Number(secondsLeft) || 0));
+
+    this.syncRows();
+    this.timer.set(this.timerDuration);
+    this.isActive.set(true);
+    this.isPaused.set(false);
+
+    if (this.finished || this.revealed()) {
+      this.phase.set(UltimaSpiaggiaPhase.REVEAL);
+      this.secondsLeft.set(0);
+      return;
+    }
+
+    const phase = String(state.phase);
+    if (phase === UltimaSpiaggiaPhase.REVEAL) {
+      this.phase.set(UltimaSpiaggiaPhase.REVEAL);
+      this.startClock(seconds, () => this.finish());
+      return;
+    }
+
+    if (phase === UltimaSpiaggiaPhase.QUESTION) {
+      this.phase.set(UltimaSpiaggiaPhase.QUESTION);
+      if (seconds <= 0) {
+        this.revealRound();
+        return;
+      }
+      this.startClock(seconds, () => this.revealRound());
+      // Tutti avevano già risposto: manca solo l'esito.
+      if (this.players.length && this.players.every((name) => this.answers.has(name))) {
+        this.revealRound();
+      }
+      return;
+    }
+
+    // Scelta del livello: se tutti hanno scelto o il tempo era finito, si passa.
+    this.phase.set(UltimaSpiaggiaPhase.LEVEL);
+    if (seconds <= 0 || (this.players.length && this.players.every((name) => this.picks.has(name)))) {
+      this.assignMissingLevels();
+      this.startQuestion();
+      return;
+    }
+    this.startClock(seconds, () => {
+      this.assignMissingLevels();
+      this.startQuestion();
+    });
+  }
+
+  private numberMapOf(value: unknown): Map<string, number> {
+    const map = new Map<string, number>();
+    if (!Array.isArray(value)) return map;
+    for (const row of value) {
+      if (!Array.isArray(row) || typeof row[0] !== 'string') continue;
+      const number = Number(row[1]);
+      if (Number.isFinite(number)) map.set(row[0], number);
+    }
+    return map;
+  }
+
+  private readStatuses(value: unknown): Map<string, UltimaSpiaggiaStatus> {
+    const map = new Map<string, UltimaSpiaggiaStatus>();
+    if (!Array.isArray(value)) return map;
+    for (const row of value) {
+      if (!Array.isArray(row) || typeof row[0] !== 'string') continue;
+      const status = String(row[1]);
+      if (status === 'CORRECT' || status === 'WRONG' || status === 'PENDING') {
+        map.set(row[0], status);
+      }
+    }
+    return map;
+  }
+
+  /** Stato della manche: scelte, risposte, esiti, livelli usati e fase. */
+  private saveCheckpoint(): void {
+    this.config.onTvCheckpoint?.({
+      type: this.type,
+      revision: Date.now(),
+      state: {
+        occurrenceId: this.occurrenceId,
+        phase: this.phase(),
+        secondsLeft: this.secondsLeft(),
+        savedAt: Date.now(),
+        picks: [...this.picks],
+        answers: [...this.answers],
+        points: [...this.points],
+        totals: [...this.totals],
+        statuses: [...this.statuses],
+        used: [...this.used].map(([playerName, levels]) => [playerName, [...levels]]),
+        finished: this.finished,
+        revealed: this.revealed(),
+      },
+    });
   }
 
   private finish(): void {
@@ -318,6 +468,7 @@ export class UltimaSpiaggiaMode extends GameModeBase {
     this.finished = true;
     this.clearClock();
     this.revealed.set(true);
+    this.saveCheckpoint();
     this.config.onTimerEnd?.();
   }
 
