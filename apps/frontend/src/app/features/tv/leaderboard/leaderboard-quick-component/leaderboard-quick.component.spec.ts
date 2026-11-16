@@ -89,6 +89,49 @@ describe('LeaderboardQuick', () => {
     expect(component.visiblePlayers().at(-1)?.position).toBe(1);
   });
 
+  it('con più di dieci squadre a fine reveal passa a due colonne', async () => {
+    vi.useFakeTimers();
+    const many: PlayerScore[] = Array.from({ length: 12 }, (_, i) => ({
+      playerName: `Squadra ${i + 1}`,
+      totalPoints: 1000 - i * 10,
+      correctAnswers: 0,
+      wrongAnswers: 0,
+      position: i + 1,
+    }));
+    create(many);
+
+    // Durante il reveal resta una colonna sola, che scorre.
+    const container = fixture.nativeElement.querySelector('.players-container');
+    expect(container.classList).not.toContain('dense');
+
+    await vi.advanceTimersByTimeAsync(12 * 6000 + 5000);
+    fixture.detectChanges();
+
+    expect(component.revealDone()).toBe(true);
+    expect(container.classList).toContain('dense');
+    expect(fixture.nativeElement.querySelectorAll('.player-row')).toHaveLength(12);
+  });
+
+  it('fino a dieci squadre resta a colonna singola', async () => {
+    vi.useFakeTimers();
+    const ten: PlayerScore[] = Array.from({ length: 10 }, (_, i) => ({
+      playerName: `Squadra ${i + 1}`,
+      totalPoints: 1000 - i * 10,
+      correctAnswers: 0,
+      wrongAnswers: 0,
+      position: i + 1,
+    }));
+    create(ten);
+
+    await vi.advanceTimersByTimeAsync(10 * 6000 + 5000);
+    fixture.detectChanges();
+
+    expect(component.revealDone()).toBe(true);
+    expect(component.dense()).toBe(false);
+    expect(fixture.nativeElement.querySelector('.players-container').classList)
+      .not.toContain('dense');
+  });
+
   it('a fine reveal compatta il tabellone per mostrare tutte le squadre', async () => {
     vi.useFakeTimers();
     const many: PlayerScore[] = Array.from({ length: 10 }, (_, i) => ({

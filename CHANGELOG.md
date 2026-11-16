@@ -1,5 +1,11 @@
 # Changelog
 
+## 16 novembre 2026 — Classifica rapida a due colonne oltre dieci squadre (F09)
+
+- Con più di dieci squadre su TV 720p la classifica rapida comprimeva tutto in una colonna: a 16 nomi ogni riga scendeva a ~34px mentre il testo restava a 16,6px, illeggibile dal fondo della sala.
+- A reveal concluso, oltre dieci squadre, il tabellone passa a due colonne: righe da ~94px con 12 squadre e ~69px con 16, nomi e punti a 21,6/23px. L'ordine si legge da sinistra a destra, dal peggiore in alto a sinistra al migliore in basso a destra. Fino a dieci resta la colonna singola, che prima funzionava.
+- Verifiche: 2 test nuovi (soglia a dieci e classi a reveal concluso) e misura a schermo a 1280×720 con il CSS reale: nessuna riga fuori dal riquadro, nessun nome troncato. Screenshot in `docs/screenshots/f09-classifica-rapida-12-squadre-720p.png` e `docs/screenshots/f09-classifica-rapida-16-squadre-720p.png`. Suite completa frontend (394 test su 48 file).
+
 ## 16 novembre 2026 — Rientro del telefono dopo un refresh (F02)
 
 - Il refresh è una nuova istanza del telefono: sedici test in jsdom simulano il riavvio sullo stesso dispositivo (round aperto, Quiz già votato con risposta lenta e doppio snapshot, sessione scaduta, espulsione, serata aperta, seconda scheda, Musica, Bomba, Timeline con risposta già inviata, senza risposta, con lettura fallita, con risposta arrivata dopo una modifica e con modifica annullata) e sei descrivevano comportamenti che mancavano.

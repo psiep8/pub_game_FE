@@ -1,6 +1,6 @@
 
 
-import {Component, OnInit, signal, inject, Output, EventEmitter, ChangeDetectionStrategy, ElementRef, viewChild} from '@angular/core';
+import {Component, OnInit, signal, computed, inject, Output, EventEmitter, ChangeDetectionStrategy, ElementRef, viewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {trigger, transition, style, animate} from '@angular/animations';
 import {LeaderboardService, PlayerScore} from '../../../../core/services/leaderboard.service';
@@ -51,6 +51,11 @@ export class LeaderboardQuick implements OnInit {
   totalPlayers = signal(0);
   /** Reveal finito: il tabellone si compatta e mostra tutte le squadre. */
   revealDone = signal(false);
+  /**
+   * Oltre dieci squadre il tabellone passa a due colonne: in una sola le righe
+   * scenderebbero sotto i 40px su TV 720p e i nomi diventerebbero illeggibili.
+   */
+  readonly dense = computed(() => this.revealDone() && this.allPlayers().length > 10);
 
   /** Contenitore delle righe: con molte squadre scorre da solo. */
   private readonly playersList = viewChild<ElementRef<HTMLElement>>('playersList');
