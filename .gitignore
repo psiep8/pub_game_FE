@@ -8,8 +8,12 @@ out-tsc/
 coverage/
 __screenshots__/
 
-# --- Strumenti locali (JDK scaricato senza admin) ---
+# --- Strumenti locali (JDK e ffmpeg scaricati senza admin) ---
 .tools/
+
+# --- Audio grezzo: i file scelti a mano, non vanno versionati ---
+apps/frontend/public/assets/audio/_src/
+apps/frontend/public/assets/audio/**/*.part.m4a
 
 # --- Build backend (Maven / Java) ---
 target/

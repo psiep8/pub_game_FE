@@ -25,13 +25,44 @@ il codice suona ancora la sintesi: si passa ai campioni un evento alla volta
 
 ## Come consegnare i file
 
-1. Metti i file nelle cartelle qui sotto, con il nome esatto della tabella.
+1. Metti i file grezzi in `apps/frontend/public/assets/audio/_src/<cartella>/<nome>.<ext>`,
+   con il nome esatto della tabella e l'estensione che hai scaricato (`wav`,
+   `mp3`, `ogg`, `flac`, `m4a`…). Un file messo direttamente nella cartella di
+   destinazione va bene lo stesso: dopo l'elaborazione viene spostato in `_src/`.
+   `_src/` è ignorata da git: i grezzi non finiscono nel repository.
 2. Per ogni file aggiungi una riga in `apps/frontend/public/assets/audio/FONTI.txt`
    (formato descritto nel file stesso): titolo, autore, URL della pagina di
    provenienza, licenza. Senza questi dati il file non entra nei crediti e non
    si usa.
-3. Dimmi che i file ci sono: con ffmpeg taglio il silenzio, normalizzo, converto
-   in `.m4a`, compilo `docs/CREDITI-AUDIO.md` e aggiorno `/audio`.
+3. Dimmi che i file ci sono: eseguo lo script qui sotto, compilo
+   `docs/CREDITI-AUDIO.md` e aggiorno `/audio`.
+
+## Elaborazione (già pronta)
+
+`scripts/audio/process-audio.mjs` fa tutto il lavoro meccanico. Legge la tabella
+qui sopra (è l'unica fonte dei nomi), trova i grezzi, taglia il silenzio ai due
+estremi **solo agli effetti**, normalizza a due passate con `loudnorm`, converte
+in AAC `.m4a` e misura il risultato con `ebur128`.
+
+```bash
+node scripts/audio/process-audio.mjs            # elabora quel che trova
+node scripts/audio/process-audio.mjs --check    # solo verifica: esce 1 se manca un file
+node scripts/audio/process-audio.mjs --only gong
+node scripts/audio/process-audio.mjs --force    # rifà anche gli m4a già pronti
+```
+
+- Effetti: mono 44,1 kHz, AAC 96 kbps circa, **−16 LUFS**, picco ≤ −1 dBTP,
+  durata massima della tabella.
+- Loop: stereo 44,1 kHz, AAC 128 kbps, **−23 LUFS**, massimo 120 s; il silenzio
+  non viene toccato, altrimenti si sentirebbe il buco a ogni giro.
+- `ffmpeg` è **statico e locale al progetto**, niente sudo: `.tools/ffmpeg/ffmpeg`
+  e `ffprobe` (build 7.0.2 arm64 da johnvansickle.com, ~19 MB scaricati, 102 MB
+  estratti; su x86 usa `ffmpeg-release-amd64-static.tar.xz`). `.tools/` è già in
+  `.gitignore`. `FFMPEG_PATH`/`FFPROBE_PATH` scavalcano il percorso.
+- Alla fine stampa una tabella con durata, peso, LUFS misurati e picco di ogni
+  file; i file mancanti restano elencati. La cartella temporanea viene pulita.
+- Con un file mancante l'audio non suona e lo segnala in console: non si torna
+  alla sintesi, così il buco si vede subito.
 
 ## Struttura delle cartelle
 
