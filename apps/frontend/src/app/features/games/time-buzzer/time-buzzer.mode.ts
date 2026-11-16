@@ -132,7 +132,15 @@ export class TimeBuzzerMode extends GameModeBase {
     return this.players.filter((name) => !out.has(name));
   }
 
-  private async beginManche(): Promise<void> {
+  /**
+   * Bersaglio casuale tra 5 e 20 s, al decimo. In ripresa si passa quello
+   * salvato: la manche interrotta non cambia bersaglio.
+   */
+  private randomTarget(): number {
+    return Math.round((MIN_MS + Math.random() * (MAX_MS - MIN_MS)) / 10) * 10;
+  }
+
+  private async beginManche(resumeTarget?: number): Promise<void> {
     if (this.finished()) return;
     if (this.mancheIndex() >= MANCHES) {
       this.finish();
@@ -144,8 +152,7 @@ export class TimeBuzzerMode extends GameModeBase {
     this.waitingNext.set(false);
     this.serverStartedAt = null;
     this.startedAt.set(0);
-    // Bersaglio casuale tra 5 e 20 s, al decimo.
-    this.targetMs.set(Math.round((MIN_MS + Math.random() * (MAX_MS - MIN_MS)) / 10) * 10);
+    this.targetMs.set(resumeTarget && resumeTarget > 0 ? resumeTarget : this.randomTarget());
     this.secondsLeft = this.timerDuration;
     this.timer.set(this.timerDuration);
     this.config.onTimerTick?.(this.timerDuration);
@@ -154,11 +161,13 @@ export class TimeBuzzerMode extends GameModeBase {
     this.phase.set('spin');
     this.countdown.set(0);
     this.broadcast();
+    this.saveCheckpoint();
     if (!(await this.wait(SPIN_MS))) return;
 
     // 2) Bersaglio a schermo: cinque secondi per leggerlo e respirare.
     this.phase.set('reveal');
     this.broadcast();
+    this.saveCheckpoint();
     if (!(await this.wait(REVEAL_PAUSE_MS))) return;
 
     // 3) Countdown grande 5-4-3-2-1: i telefoni sono ancora disarmati.
@@ -197,6 +206,105 @@ export class TimeBuzzerMode extends GameModeBase {
     this.startClock();
     // Via dato: la TV mostra il timbro VIA e i telefoni stanno già contando.
     this.broadcast();
+    this.saveCheckpoint();
+  }
+
+  /**
+   * Riprende il round dopo un refresh. Il via della manche è già sul server
+   * (idempotente), ma bersaglio, tempi dei telefoni ed eliminati vivono in TV:
+   * arrivano dal checkpoint. Una manche già rivelata ha già pagato i punti,
+   * quindi non si ricalcola né si ripaga.
+   */
+  restore(secondsLeft: number, snapshot?: unknown): void {
+    const checkpoint = snapshot as { revision?: number; state?: any } | null | undefined;
+    const state = checkpoint?.state ?? {};
+    this.players = [...(this.config.activePlayers ?? [])];
+    this.stopped = false;
+    this.clearTimers();
+
+    const manche = Number(state.mancheIndex);
+    this.mancheIndex.set(Number.isInteger(manche) && manche >= 0 && manche < MANCHES ? manche : 0);
+    this.eliminated.set(this.namesOf(state.eliminated));
+    this.guesses.set(this.guessesOf(state.guesses));
+    const target = Number(state.targetMs);
+    this.targetMs.set(Number.isFinite(target) && target > 0 ? target : 0);
+
+    if (state.reveal && typeof state.reveal === 'object') {
+      // Manche già pagata: si mostra il risultato e si aspetta l'admin.
+      this.revealData.set(state.reveal);
+      this.waitingNext.set(true);
+      this.phase.set('reveal');
+      this.countdown.set(0);
+      this.startedAt.set(0);
+      this.secondsLeft = 0;
+      this.timer.set(0);
+      this.isActive.set(true);
+      this.isPaused.set(false);
+      this.broadcast();
+      return;
+    }
+
+    const savedStart = Number(state.startedAt);
+    this.serverStartedAt = Number.isFinite(savedStart) && savedStart > 0 ? savedStart : null;
+    if (String(state.phase) === 'running' && this.serverStartedAt !== null) {
+      this.startedAt.set(this.serverStartedAt);
+      const fromRound = Math.round(Number(secondsLeft) || 0);
+      const fromServer = Math.round(MANCHE_SECONDS - (Date.now() - this.serverStartedAt) / 1000);
+      const seconds = fromRound > 0 ? fromRound : fromServer;
+      this.secondsLeft = Math.min(MANCHE_SECONDS, Math.max(0, seconds));
+      this.timer.set(this.secondsLeft);
+      this.phase.set('running');
+      this.countdown.set(0);
+      this.isActive.set(true);
+      this.isPaused.set(false);
+      this.startClock();
+      this.broadcast();
+      if (this.secondsLeft <= 0) this.revealManche();
+      return;
+    }
+
+    // La manche non era ancora partita: si rifà la preparazione dal bersaglio
+    // salvato. Il via al server è idempotente, quindi non si duplica.
+    this.phase.set('spin');
+    this.countdown.set(0);
+    this.startedAt.set(0);
+    this.revealData.set(null);
+    this.waitingNext.set(false);
+    this.secondsLeft = this.timerDuration;
+    this.timer.set(this.timerDuration);
+    this.isActive.set(true);
+    this.isPaused.set(false);
+    void this.beginManche(this.targetMs());
+  }
+
+  private guessesOf(value: unknown): BuzzGuess[] {
+    if (!Array.isArray(value)) return [];
+    return value
+      .filter((row: any) => row && typeof row.playerName === 'string')
+      .map((row: any) => ({ playerName: String(row.playerName), ms: Math.round(Number(row.ms) || 0) }))
+      .filter((row) => row.ms > 0 && row.ms <= 120000);
+  }
+
+  private namesOf(value: unknown): string[] {
+    return Array.isArray(value) ? value.filter((name): name is string => typeof name === 'string') : [];
+  }
+
+  /** Stato minimo per riaprire la manche: manche, fase, via, bersaglio, tempi. */
+  private saveCheckpoint(): void {
+    this.config.onTvCheckpoint?.({
+      type: this.type,
+      revision: Date.now(),
+      state: {
+        mancheIndex: this.mancheIndex(),
+        phase: this.phase(),
+        startedAt: this.serverStartedAt ?? 0,
+        targetMs: this.targetMs(),
+        guesses: this.guesses(),
+        eliminated: this.eliminated(),
+        reveal: this.revealData(),
+        savedAt: Date.now(),
+      },
+    });
   }
 
   /**
@@ -246,6 +354,7 @@ export class TimeBuzzerMode extends GameModeBase {
       ...list.filter((guess) => guess.playerName !== playerName),
       { playerName, ms: Math.round(ms) },
     ]);
+    this.saveCheckpoint();
 
     if (this.guesses().length >= this.activePlayers().length) {
       this.revealManche();
@@ -324,6 +433,8 @@ export class TimeBuzzerMode extends GameModeBase {
     this.revealData.set({ target, results: markedResults, eliminated: this.eliminated(), eliminatedNow });
     this.waitingNext.set(true);
     this.broadcast();
+    // Manche pagata: il checkpoint dice che non va ricalcolata al refresh.
+    this.saveCheckpoint();
   }
 
   /** Via alla manche successiva, su comando dell'admin. */
