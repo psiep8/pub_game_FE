@@ -66,6 +66,11 @@ import { CASINO_BONUS_TYPES } from '../../shared/models/bonus-type';
 
 type TvPhase = 'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION' | typeof GamePhase.INTRO;
 
+/** Punti del round aperto: il verdetto del vincitore deve sopravvivere al refresh. */
+const ROUND_POINTS_KEY = 'roundPoints';
+/** Scrittura di classifica in coda (debounce 250 ms) non ancora confermata. */
+const PENDING_LEADERBOARD_KEY = 'leaderboardPending';
+
 @Component({
   selector: 'app-game-component',
   standalone: true,
@@ -440,6 +445,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.leaderboardService.setPointListener((playerName, points) => {
       if (!this.roundScoring) return;
       this.roundPoints.set(playerName, (this.roundPoints.get(playerName) ?? 0) + points);
+      this.persistRoundPoints();
     });
     this.playerAvatars.connect(this.ws);
     void this.refreshLobbyPresence();
@@ -739,6 +745,60 @@ export class GameComponent implements OnInit, OnDestroy {
   private beginRoundScoring(): void {
     this.roundPoints.clear();
     this.roundScoring = true;
+    this.persistRoundPoints();
+  }
+
+  /**
+   * Il verdetto del round vive in memoria: dopo un refresh va ritrovato, o il
+   * tema della TV passerebbe a chi ha fatto punti solo nella seconda parte.
+   * Sta in storage con l'indice del round, così un conteggio di un altro round
+   * non viene applicato.
+   */
+  private persistRoundPoints(): void {
+    const gameId = this.currentGameId();
+    const roundIndex = this.tvRoundIndex();
+    if (!gameId || roundIndex == null) return;
+    try {
+      localStorage.setItem(ROUND_POINTS_KEY, JSON.stringify({
+        gameId,
+        roundIndex,
+        points: [...this.roundPoints],
+      }));
+    } catch {
+      // Quota piena: resta la memoria della sessione, che copre il caso comune.
+    }
+  }
+
+  private restoreRoundPoints(roundIndex: number | null): void {
+    const gameId = this.currentGameId();
+    if (!gameId || roundIndex == null) return;
+    let stored: any = null;
+    try {
+      stored = JSON.parse(localStorage.getItem(ROUND_POINTS_KEY) ?? 'null');
+    } catch {
+      return;
+    }
+    if (!stored || !Array.isArray(stored.points)) return;
+    if (Number(stored.gameId) !== gameId || Number(stored.roundIndex) !== roundIndex) return;
+
+    this.roundPoints.clear();
+    for (const row of stored.points) {
+      if (!Array.isArray(row)) continue;
+      const playerName = String(row[0] ?? '').trim();
+      const points = Number(row[1]);
+      if (!playerName || !Number.isFinite(points) || points <= 0) continue;
+      this.roundPoints.set(playerName, points);
+    }
+    // Il round è di nuovo aperto: i punti che arrivano ora si sommano.
+    this.roundScoring = true;
+  }
+
+  private clearPersistedRoundPoints(): void {
+    try {
+      localStorage.removeItem(ROUND_POINTS_KEY);
+    } catch {
+      // Storage non disponibile: niente da pulire.
+    }
   }
 
   /**
@@ -767,6 +827,8 @@ export class GameComponent implements OnInit, OnDestroy {
 
     this.roundWinnerTheme = winner && !tie ? this.theme.themeForTeam(winner) : null;
     this.roundPoints.clear();
+    // Verdetto assegnato: un refresh non deve riassegnarlo a un altro round.
+    this.clearPersistedRoundPoints();
   }
 
   /** La TV parte in acido e adotta il tema del round precedente, se c'è stato un vincitore. */
@@ -2316,10 +2378,13 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private queueLeaderboardSave(entries: PlayerScore[]): void {
     this.leaderboardPendingSeq++;
+    const seq = this.leaderboardPendingSeq;
+    // La coda sta in storage: un refresh prima dei 250 ms non perde i punti.
+    this.persistPendingLeaderboard(entries, seq);
     if (this.leaderboardFlush) clearTimeout(this.leaderboardFlush);
     this.leaderboardFlush = setTimeout(() => {
       this.leaderboardFlush = undefined;
-      void this.flushLeaderboard(entries, this.leaderboardPendingSeq);
+      void this.flushLeaderboard(entries, seq);
     }, 250);
   }
 
@@ -2329,6 +2394,7 @@ export class GameComponent implements OnInit, OnDestroy {
     try {
       await firstValueFrom(this.gameService.saveLeaderboard(gameId, entries.map(e => ({ playerName: e.playerName, totalPoints: e.totalPoints }))));
       this.leaderboardSavedSeq = Math.max(this.leaderboardSavedSeq, seq);
+      this.clearPendingLeaderboard(seq);
     } catch {
       if (attempt < 2) {
         this.leaderboardFlush = setTimeout(() => {
@@ -2339,12 +2405,68 @@ export class GameComponent implements OnInit, OnDestroy {
     }
   }
 
+  private persistPendingLeaderboard(entries: PlayerScore[], seq: number): void {
+    try {
+      localStorage.setItem(PENDING_LEADERBOARD_KEY, JSON.stringify({
+        gameId: this.currentGameId(),
+        seq,
+        entries: entries.map((entry) => ({
+          playerName: entry.playerName,
+          totalPoints: entry.totalPoints,
+          correctAnswers: entry.correctAnswers,
+          wrongAnswers: entry.wrongAnswers,
+          position: entry.position,
+        })),
+      }));
+    } catch {
+      // Storage pieno: resta il percorso normale con il timer.
+    }
+  }
+
+  /** La coda è partita: si cancella solo la scrittura che ha appena salvato. */
+  private clearPendingLeaderboard(seq: number): void {
+    try {
+      const raw = JSON.parse(localStorage.getItem(PENDING_LEADERBOARD_KEY) ?? 'null');
+      if (raw && Number(raw.seq) > seq) return;
+      localStorage.removeItem(PENDING_LEADERBOARD_KEY);
+    } catch {
+      // Storage illeggibile: si toglie comunque la coda.
+      try { localStorage.removeItem(PENDING_LEADERBOARD_KEY); } catch { /* niente */ }
+    }
+  }
+
+  /**
+   * Scrittura di classifica rimasta in coda da prima del refresh: si rimanda
+   * subito al server, invece di lasciare il tabellone indietro di un round.
+   */
+  private restorePendingLeaderboard(): void {
+    let pending: any = null;
+    try {
+      pending = JSON.parse(localStorage.getItem(PENDING_LEADERBOARD_KEY) ?? 'null');
+    } catch {
+      return;
+    }
+    if (!pending || !Array.isArray(pending.entries) || !pending.entries.length) return;
+    const gameId = Number(pending.gameId);
+    if (Number.isFinite(gameId) && this.currentGameId() && gameId !== this.currentGameId()) return;
+
+    const seq = Number(pending.seq) || 1;
+    const entries = pending.entries as PlayerScore[];
+    // Questi punti sono più recenti dello snapshot che sta per arrivare.
+    this.leaderboardPendingSeq = Math.max(this.leaderboardPendingSeq, seq);
+    this.leaderboardService.replaceAll(entries);
+    void this.flushLeaderboard(entries, seq);
+  }
+
   /**
    * Stato autorevole del server: classifica, avanzamento e round ancora
    * aperto. Arriva al primo collegamento e a ogni riconnessione.
    */
   private applyAuthoritativeState(snapshot: any): void {
     if (!snapshot) return;
+
+    // Prima di applicare lo snapshot si recupera la coda rimasta dal refresh.
+    this.restorePendingLeaderboard();
 
     // Una scrittura locale non ancora confermata è più recente dello snapshot:
     // applicarlo cancellerebbe i punti appena assegnati.
@@ -2474,6 +2596,10 @@ export class GameComponent implements OnInit, OnDestroy {
     this.recoveredRound.set(null);
     this.showQuestion.set(true);
     this.phase.set('QUESTION');
+    // Il verdetto del round riparte da dove era: i punti giocati prima del
+    // refresh contano ancora per il tema della TV.
+    this.roundScoring = true;
+    this.restoreRoundPoints(this.recoveredRoundIndex ?? this.tvRoundIndex());
     // Il round riprende: Arena torna capace di chiudersi e di contare i punti.
     this.arenaFinished = false;
     if (pending.type === 'ARENA') this.beginRoundScoring();

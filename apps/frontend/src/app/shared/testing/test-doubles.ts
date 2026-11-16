@@ -75,6 +75,19 @@ export class FakeGameService {
     { id: 3, name: 'FORTUNA', active: true },
   ];
 
+  readonly savedLeaderboards: Array<{
+    gameId: number;
+    entries: Array<{ playerName: string; totalPoints: number }>;
+  }> = [];
+
+  saveLeaderboard(
+    gameId: number,
+    entries: Array<{ playerName: string; totalPoints: number }>,
+  ): Observable<any> {
+    this.savedLeaderboards.push({ gameId, entries });
+    return of({ saved: true });
+  }
+
   getCategories(): Observable<any[]> {
     return of(this.categories);
   }

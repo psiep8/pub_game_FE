@@ -647,6 +647,83 @@ describe('GameComponent', () => {
     expect(theme.theme()).toBe('kpop-aesthetic');
   });
 
+  it('ritrova i punti del vincitore del round dopo un refresh', () => {
+    const theme = component.theme;
+    const tv = component as unknown as {
+      beginRoundScoring(): void;
+      restoreRoundPoints(roundIndex: number | null): void;
+      settleRoundWinner(): void;
+      applyRoundWinnerTheme(): void;
+      roundPoints: Map<string, number>;
+      roundScoring: boolean;
+    };
+    component.currentGameId.set(1);
+    component.round.set({ roundIndex: 4 } as any);
+    theme.applyFromRemote('editorial-acid');
+    theme.setTeamTheme('Anna', 'deep-ocean');
+    theme.setTeamTheme('Bruno', 'kpop-aesthetic');
+
+    tv.beginRoundScoring();
+    leaderboard.addPoints('Anna', 80, true);
+    leaderboard.addPoints('Bruno', 30, true);
+    expect(localStorage.getItem('roundPoints')).not.toBeNull();
+
+    // Refresh: la TV riparte vuota e ricarica i punti del round aperto.
+    tv.roundPoints.clear();
+    tv.roundScoring = false;
+    tv.restoreRoundPoints(4);
+
+    expect(tv.roundScoring).toBe(true);
+    expect(tv.roundPoints.get('Anna')).toBe(80);
+
+    // I punti arrivati dopo il refresh si sommano a quelli di prima.
+    leaderboard.addPoints('Anna', 20, true);
+    tv.settleRoundWinner();
+    tv.applyRoundWinnerTheme();
+
+    expect(theme.theme()).toBe('deep-ocean');
+    expect(localStorage.getItem('roundPoints')).toBeNull();
+  });
+
+  it('non applica i punti di un altro round', () => {
+    const tv = component as unknown as {
+      beginRoundScoring(): void;
+      restoreRoundPoints(roundIndex: number | null): void;
+      roundPoints: Map<string, number>;
+      roundScoring: boolean;
+    };
+    component.currentGameId.set(1);
+    component.round.set({ roundIndex: 4 } as any);
+    tv.beginRoundScoring();
+    leaderboard.addPoints('Anna', 80, true);
+
+    tv.roundPoints.clear();
+    tv.roundScoring = false;
+    tv.restoreRoundPoints(5);
+
+    expect(tv.roundScoring).toBe(false);
+    expect(tv.roundPoints.size).toBe(0);
+  });
+
+  it('rimanda al server la classifica rimasta in coda dopo un refresh', async () => {
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const tv = component as unknown as { restorePendingLeaderboard(): void };
+    component.currentGameId.set(1);
+
+    leaderboard.addPoints('Anna', 140, true);
+    expect(localStorage.getItem('leaderboardPending')).not.toBeNull();
+
+    // La coda sopravvive al refresh e la TV la rimanda subito.
+    tv.restorePendingLeaderboard();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(game.savedLeaderboards.at(-1)).toEqual({
+      gameId: 1,
+      entries: [{ playerName: 'Anna', totalPoints: 140 }],
+    });
+    expect(localStorage.getItem('leaderboardPending')).toBeNull();
+  });
+
   it('keeps the acid palette when the round is a tie', () => {
     const theme = component.theme;
     const tv = component as unknown as {
