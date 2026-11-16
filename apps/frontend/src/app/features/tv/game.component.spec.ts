@@ -122,6 +122,29 @@ describe('GameComponent', () => {
     expect(component.bonusEntrance()).toBe('BLACKJACK');
   });
 
+  it('riapre il bonus Cavallo dal checkpoint salvato', () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    rounds.restoreRound(8);
+    component.currentGameId.set(1);
+    const state = {
+      phase: 'QUESTION',
+      secondsLeft: 40,
+      chosenCategory: 'MUSICA',
+      questions: [{ question: 'Capitale del Giappone?', options: ['Pechino', 'Tokyo'], correctIndex: 1 }],
+      scores: [{ playerName: 'Anna', score: 2 }],
+    };
+
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'CREATED', roundIndex: 8,
+      bonusAct: { act: 0, type: 'CAVALLO', status: 'STARTED' },
+      tvCheckpoint: { mode: 'BONUS_CAVALLO', bonus: true, revision: 5, state },
+    });
+
+    expect(component.bonusResume()).toEqual(state);
+    expect(component.bonusEntrance()).toBe('CAVALLO');
+  });
+
   it('salva la mano del Blackjack bonus e la cancella alla chiusura', () => {
     const hand = { order: ['Anna'], index: 0, hand: ['A♥', 'K♥'], phase: 'DECIDE' };
     component.onBlackjackBonusCheckpoint(hand);

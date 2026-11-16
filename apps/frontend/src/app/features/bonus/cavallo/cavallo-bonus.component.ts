@@ -375,8 +375,12 @@ export class CavalloBonus implements OnInit, OnDestroy {
   @Input() categories: Category[] = [];
   /** Banco di prova: domande locali, voti demo e tempi ridotti. */
   @Input() preview = false;
+  /** Bonus interrotto da un refresh: si riparte dallo stato salvato. */
+  @Input() resume: any | null = null;
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
+  /** Stato della rush, da salvare sul server a ogni cambio di fase. */
+  @Output() checkpoint = new EventEmitter<any>();
 
   private ws = inject(WebSocketService);
   private gameService = inject(GameService);
@@ -419,7 +423,152 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       this.onStatus(status);
     });
+    if (this.resume) {
+      this.applyResume(this.resume);
+      return;
+    }
     this.later(this.preview ? 300 : 2500, () => this.startCategoryVote());
+  }
+
+  /**
+   * Riprende il bonus dopo un refresh: voti, domande, tabellone e fase tornano
+   * come li aveva lasciati la TV. I punti del bonus si pagano solo alla fine,
+   * quindi rimettere il tabellone non paga nulla due volte.
+   */
+  private applyResume(state: any): void {
+    const phase = String(state?.phase ?? '');
+    this.chosenCategory.set(String(state?.chosenCategory ?? ''));
+
+    this.questions = Array.isArray(state?.questions)
+      ? state.questions
+        .filter((question: any) => question && question.question && Array.isArray(question.options))
+        .map((question: any) => ({
+          question: String(question.question),
+          options: question.options.map((option: any) => String(option)),
+          correctIndex: Number(question.correctIndex) || 0,
+          category: String(question.category ?? ''),
+        }))
+      : [];
+
+    const savedTotal = Number(state?.total);
+    this.total.set(savedTotal > 0 ? Math.round(savedTotal) : (this.questions.length || FLASH_QUESTIONS));
+    const savedIndex = Number(state?.index);
+    this.index.set(Number.isFinite(savedIndex) && savedIndex >= 0 ? Math.floor(savedIndex) : 0);
+
+    this.scoreMap.clear();
+    this.players.forEach((playerName) => this.scoreMap.set(playerName, 0));
+    if (Array.isArray(state?.scores)) {
+      for (const row of state.scores) {
+        const name = String(row?.playerName ?? '').trim();
+        if (!name) continue;
+        this.scoreMap.set(name, Number(row?.score) || 0);
+      }
+    }
+    this.refreshTotals();
+
+    this.categoryPicks.clear();
+    if (Array.isArray(state?.votes)) {
+      for (const vote of state.votes) {
+        const name = String(vote?.playerName ?? '').trim();
+        const category = String(vote?.category ?? '').trim();
+        if (!name || !category || !this.categoryNames().includes(category)) continue;
+        this.categoryPicks.set(name, category);
+      }
+    }
+    this.refreshCategoryVotes();
+
+    this.answers.clear();
+    if (Array.isArray(state?.answers)) {
+      for (const answer of state.answers) {
+        const name = String(answer?.playerName ?? '').trim();
+        const index = Number(answer?.index);
+        if (!name || !Number.isInteger(index)) continue;
+        this.answers.set(name, { index, at: 0 });
+      }
+    }
+
+    this.message.set(String(state?.message ?? ''));
+    this.rushExpired = state?.rushExpired === true;
+    const current = this.questions[this.index()];
+    this.question.set(current ? { text: current.question, options: current.options } : null);
+    this.reveal.set(state?.reveal && Array.isArray(state.reveal.rows) ? state.reveal : null);
+    this.deltas.set(state?.deltas && typeof state.deltas === 'object' ? state.deltas : {});
+
+    const savedSeconds = Number(state?.secondsLeft);
+    const savedAt = Number(state?.savedAt);
+    const elapsed = Number.isFinite(savedAt) && savedAt > 0
+      ? Math.max(0, Math.floor((Date.now() - savedAt) / 1000))
+      : 0;
+    const seconds = Number.isFinite(savedSeconds) ? Math.max(0, Math.round(savedSeconds) - elapsed) : 0;
+
+    if (phase === Phase.FINALE) {
+      this.phase.set(Phase.FINALE);
+      this.secondsLeft.set(0);
+      this.question.set(null);
+      // Il podio non è ancora stato pagato: lo si ricalcola dal tabellone.
+      this.emitFinalResults();
+      this.publish();
+      this.later((seconds > 0 ? seconds : 3) * 1000, () => this.finished.emit());
+      return;
+    }
+
+    if (phase === Phase.LOADING) {
+      // Le domande non erano ancora arrivate: si richiedono per la categoria scelta.
+      const category = this.chosenCategory();
+      if (category) {
+        this.loadRushQuestions(category);
+      } else {
+        this.startCategoryVote();
+      }
+      return;
+    }
+
+    if (phase === Phase.REVEAL && this.reveal()) {
+      this.phase.set(Phase.REVEAL);
+      this.startClock(seconds, () => this.expireRush());
+      this.later(this.preview ? 700 : REVEAL_MS, () => this.afterReveal(false));
+      return;
+    }
+
+    if (phase === Phase.QUESTION && current) {
+      this.phase.set(Phase.QUESTION);
+      this.questionStartedAt = Date.now();
+      this.startClock(seconds, () => this.expireRush());
+      this.clearQuestionTimer();
+      this.questionTimer = setTimeout(
+        () => this.revealQuestion(),
+        Math.min(this.preview ? 1500 : 7000, Math.max(0, seconds) * 1000),
+      );
+      // Tutti avevano già risposto: manca solo l'esito della domanda.
+      if (this.players.length && this.answers.size >= this.players.length) {
+        this.revealQuestion();
+      }
+      return;
+    }
+
+    // Votazione della categoria: si riprendono i voti già arrivati.
+    this.phase.set(Phase.CATEGORY);
+    this.startClock(seconds > 0 ? seconds : CATEGORY_SECONDS, () => this.closeCategoryVote());
+    this.finishCategoryEarly();
+  }
+
+  private saveCheckpoint(): void {
+    this.checkpoint.emit({
+      phase: this.phase(),
+      secondsLeft: this.secondsLeft(),
+      savedAt: Date.now(),
+      chosenCategory: this.chosenCategory(),
+      questions: this.questions.map((question) => ({ ...question })),
+      index: this.index(),
+      total: this.total(),
+      scores: this.totals(),
+      votes: this.categoryVotesView(),
+      answers: [...this.answers].map(([playerName, answer]) => ({ playerName, index: answer.index })),
+      deltas: { ...this.deltas() },
+      reveal: this.reveal(),
+      message: this.message(),
+      rushExpired: this.rushExpired,
+    });
   }
 
   ngOnDestroy(): void {
@@ -523,6 +672,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
       this.categoryPicks.set(playerName, category);
       this.refreshCategoryVotes();
       this.publish();
+      this.saveCheckpoint();
       this.finishCategoryEarly();
       return;
     }
@@ -555,6 +705,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.message.set('');
     if (this.preview) this.seedPreviewCategoryVotes();
     this.startClock(this.preview ? 2 : CATEGORY_SECONDS, () => this.closeCategoryVote());
+    this.saveCheckpoint();
   }
 
   private seedPreviewCategoryVotes(): void {
@@ -606,10 +757,16 @@ export class CavalloBonus implements OnInit, OnDestroy {
       winner = names[Math.floor(Math.random() * names.length)];
     }
 
+    this.loadRushQuestions(winner);
+  }
+
+  /** Categoria decisa: carica le otto domande (o le prende dal banco di prova). */
+  private loadRushQuestions(winner: string): void {
     this.chosenCategory.set(winner);
     this.phase.set(Phase.LOADING);
     this.secondsLeft.set(0);
     this.publish();
+    this.saveCheckpoint();
 
     if (this.preview) {
       this.questions = PREVIEW_QUESTIONS.slice(0, FLASH_QUESTIONS);
@@ -659,6 +816,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.questionStartedAt = Date.now();
     if (this.preview) this.seedPreviewAnswers();
     this.publish();
+    this.saveCheckpoint();
 
     // La domanda scorre da sola: nessun countdown in TV, ma la rush non si
     // blocca se un tavolo smette di rispondere.
@@ -723,15 +881,19 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.deltas.set(gained);
     this.reveal.set({ heading: `RISPOSTA ESATTA: ${current.options[current.correctIndex]}`, rows });
     this.publish();
+    this.saveCheckpoint();
 
-    this.later(this.preview ? 700 : REVEAL_MS, () => {
-      if (this.phase() !== Phase.REVEAL) return;
-      if (final || this.rushExpired || this.index() + 1 >= this.questions.length) {
-        this.finale(false);
-      } else {
-        this.startQuestion(this.index() + 1);
-      }
-    });
+    this.later(this.preview ? 700 : REVEAL_MS, () => this.afterReveal(final));
+  }
+
+  /** Dopo il reveal: domanda successiva o chiusura del bonus. */
+  private afterReveal(final: boolean): void {
+    if (this.phase() !== Phase.REVEAL) return;
+    if (final || this.rushExpired || this.index() + 1 >= this.questions.length) {
+      this.finale(false);
+    } else {
+      this.startQuestion(this.index() + 1);
+    }
   }
 
   private finale(empty: boolean): void {
@@ -747,6 +909,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
     }
     this.emitFinalResults();
     this.publish();
+    this.saveCheckpoint();
     this.later(this.preview ? 4000 : empty ? 5000 : 7000, () => this.finished.emit());
   }
 

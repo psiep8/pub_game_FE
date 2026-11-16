@@ -376,6 +376,8 @@
         [gameId]="currentGameId()"
         [players]="bonusPlayers()"
         [categories]="allCategories()"
+        [resume]="bonusResume()"
+        (checkpoint)="onBonusCheckpoint('CAVALLO', $event)"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
     }
