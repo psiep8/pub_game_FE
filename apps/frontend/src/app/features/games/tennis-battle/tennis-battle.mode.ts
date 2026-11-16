@@ -615,11 +615,14 @@ export class TennisBattleMode extends GameModeBase {
    * domanda corrente arrivano dal checkpoint: chi ha già chiuso la sfida non
    * riprende i punti, e il tempo di battuta non riparte da capo.
    */
-  restore(secondsLeft: number, snapshot?: unknown): void {
+  async restore(secondsLeft: number, snapshot?: unknown): Promise<void> {
     const checkpoint = snapshot as { revision?: number; state?: any } | null | undefined;
     const state = checkpoint?.state ?? {};
     this.questions = this.buildQuestions();
     this.lastQuestionText = String(state.lastQuestionText ?? '');
+    // La banca va riletta: senza, dopo un refresh i tiri userebbero solo le
+    // domande di riserva scritte nel codice.
+    await this.loadBankQuestions();
 
     const savedAt = Number(state.savedAt);
     const elapsed = Number.isFinite(savedAt) && savedAt > 0
@@ -639,6 +642,8 @@ export class TennisBattleMode extends GameModeBase {
     if (!this.finished && this.courts().length) {
       this.startTimer();
       this.tickInterval = setInterval(() => this.tickServes(), 1000);
+      // Sfide già tutte decise: il round chiude subito, non al timer generale.
+      if (this.courts().every((court) => court.winner)) this.finishIfDecided();
     }
     this.broadcast();
   }

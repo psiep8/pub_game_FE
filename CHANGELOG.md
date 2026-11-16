@@ -4,6 +4,8 @@
 
 - Azzardo: fiches, puntate, salvadanaio e conversioni finiscono nel checkpoint TV. Alla ripresa il tavolo è quello di prima, il tempo non riparte da capo e un reveal già avvenuto non ricalcola i punti.
 - Tennis battle: campi, punteggi, game, killer point, domanda corrente e sfide in attesa sono nel checkpoint. Chi ha già chiuso il set non riprende i punti e il tempo di battuta scala i secondi passati durante il refresh.
+- Tennis battle: alla ripresa la banca delle domande viene riletta dal server, così i tiri non tornano alle sole domande di riserva scritte nel codice.
+- Tennis battle: se le sfide erano già tutte decise, il round si chiude subito invece di aspettare il timer generale; se restavano sfide in coda, partono loro senza ripagare quelle chiuse.
 - Entrambi riusano il `tvCheckpoint` di Arena, Bomba e Quiz, senza endpoint nuovi.
 - Verifiche: 5 test Azzardo, 5 test Tennis e suite completa frontend (333 test su 45 file).
 

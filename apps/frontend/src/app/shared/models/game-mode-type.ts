@@ -86,8 +86,11 @@ export interface IGameMode {
   initialize(payload: any): void;
   setConfig(config: GameModeConfig): void;
   start(): Promise<void> | void;
-  /** Ripresa dopo un refresh: timer dal tempo rimasto, nessun nuovo round. */
-  restore?(secondsLeft: number, snapshot?: unknown): void;
+  /**
+   * Ripresa dopo un refresh: timer dal tempo rimasto, nessun nuovo round.
+   * Può essere asincrona quando deve rileggere dati dal server (banca domande).
+   */
+  restore?(secondsLeft: number, snapshot?: unknown): void | Promise<void>;
   pause(): void;
   resume(): void;
   stop(): void;

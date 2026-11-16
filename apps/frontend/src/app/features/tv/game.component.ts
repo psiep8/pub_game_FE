@@ -2460,7 +2460,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.startRoundSuspense(mode.type);
     if (mode.restore) {
       try {
-        mode.restore(pending.secondsLeft, tvCheckpoint ?? this.recoveredBlackjackState);
+        await mode.restore(pending.secondsLeft, tvCheckpoint ?? this.recoveredBlackjackState);
       } catch {
         // Checkpoint non valido: si torna al pannello, senza lasciare la TV
         // su un round vuoto che nessuno potrebbe più chiudere.

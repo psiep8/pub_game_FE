@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { GameModeConfig } from '../../../shared/models/game-mode-type';
 import { TennisBattleMode } from './tennis-battle.mode';
 
@@ -26,7 +27,7 @@ function court(id: number, a: string, b: string, extra: any = {}) {
   };
 }
 
-function setup() {
+function setup(extra: Partial<GameModeConfig> = {}) {
   const saved: Array<{ type: string; revision: number; state: any }> = [];
   const points: any[] = [];
   const mode = new TennisBattleMode();
@@ -37,6 +38,7 @@ function setup() {
     activePlayers: PLAYERS,
     onTvCheckpoint: (checkpoint) => saved.push(checkpoint as any),
     onAnswerReceived: (result) => points.push(result),
+    ...extra,
   };
 
   mode.setConfig(config);
@@ -58,7 +60,7 @@ describe('TennisBattleMode — ripresa dopo un refresh della TV', () => {
     mode.cleanup();
   });
 
-  it('riprende i campi senza ripagare chi ha già chiuso la sfida', () => {
+  it('riprende i campi senza ripagare chi ha già chiuso la sfida', async () => {
     const { mode, points } = setup();
     const closed = court(0, 'Anna', 'Bruno', {
       winner: 'Anna',
@@ -66,7 +68,7 @@ describe('TennisBattleMode — ripresa dopo un refresh della TV', () => {
       a: side('Anna', { games: 6 }),
     });
 
-    mode.restore(200, {
+    await mode.restore(200, {
       revision: 3,
       state: { courts: [closed, court(1, 'Carla', 'Dario')], savedAt: Date.now() },
     });
@@ -82,10 +84,10 @@ describe('TennisBattleMode — ripresa dopo un refresh della TV', () => {
     mode.cleanup();
   });
 
-  it('il tempo di battuta riparte da quello rimasto', () => {
+  it('il tempo di battuta riparte da quello rimasto', async () => {
     const { mode } = setup();
 
-    mode.restore(180, {
+    await mode.restore(180, {
       revision: 4,
       state: { courts: [court(0, 'Anna', 'Bruno', { serveLeft: 8 })], savedAt: Date.now() - 5000 },
     });
@@ -97,10 +99,10 @@ describe('TennisBattleMode — ripresa dopo un refresh della TV', () => {
     mode.cleanup();
   });
 
-  it('riprende anche i killer point e le sfide in attesa', () => {
+  it('riprende anche i killer point e le sfide in attesa', async () => {
     const { mode } = setup();
 
-    mode.restore(120, {
+    await mode.restore(120, {
       revision: 5,
       state: {
         courts: [court(0, 'Anna', 'Bruno', { killerPoint: true, turn: 'b' })],
@@ -116,12 +118,79 @@ describe('TennisBattleMode — ripresa dopo un refresh della TV', () => {
     mode.cleanup();
   });
 
-  it('non si rompe con un checkpoint senza stato utile', () => {
+  it('non si rompe con un checkpoint senza stato utile', async () => {
     const { mode } = setup();
 
-    mode.restore(200, { revision: 6, state: { courts: 'x', pendingCourts: null } });
+    await mode.restore(200, { revision: 6, state: { courts: 'x', pendingCourts: null } });
 
     expect(mode.getDisplayData().courts).toEqual([]);
+
+    mode.cleanup();
+  });
+
+  it('ricarica la banca delle domande alla ripresa', async () => {
+    const bank = [
+      { text: 'Domanda dalla banca', options: ['A', 'B', 'C', 'D'], correctIndex: 0, difficulty: 'EASY' as const },
+    ];
+    const loader = vi.fn(async () => bank);
+    const { mode } = setup({ loadTennisQuestions: loader });
+
+    await mode.restore(200, {
+      revision: 7,
+      state: { courts: [court(0, 'Anna', 'Bruno')], savedAt: Date.now() },
+    });
+
+    expect(loader).toHaveBeenCalledOnce();
+    // Le domande dei prossimi tiri arrivano di nuovo dalla banca, non solo dal codice.
+    expect((mode as unknown as { questions: any[] }).questions[0].text).toBe('Domanda dalla banca');
+
+    mode.cleanup();
+  });
+
+  it('se le sfide erano già decise il round chiude subito', async () => {
+    const ended = vi.fn();
+    const { mode, points } = setup({ onTimerEnd: ended });
+    const won = (id: number, a: string, b: string) => court(id, a, b, {
+      winner: a,
+      awarded: true,
+      a: side(a, { games: 6 }),
+    });
+
+    await mode.restore(200, {
+      revision: 8,
+      state: { courts: [won(0, 'Anna', 'Bruno'), won(1, 'Carla', 'Dario')], savedAt: Date.now() },
+    });
+
+    // Non si aspetta il timer generale e non si ripagano le sfide.
+    expect(ended).toHaveBeenCalledOnce();
+    expect(mode.isRevealed()).toBe(true);
+    expect(points).toEqual([]);
+
+    mode.cleanup();
+  });
+
+  it('con le sfide decise fa partire quelle in attesa, senza ripagare', async () => {
+    const { mode, points } = setup();
+    const won = (id: number, a: string, b: string) => court(id, a, b, {
+      winner: a,
+      awarded: true,
+      a: side(a, { games: 6 }),
+    });
+
+    await mode.restore(120, {
+      revision: 9,
+      state: {
+        courts: [won(0, 'Anna', 'Bruno'), won(1, 'Carla', 'Dario')],
+        pendingCourts: [court(4, 'Elia', 'Franca')],
+        savedAt: Date.now(),
+      },
+    });
+
+    const data = mode.getDisplayData();
+    expect(data.courts).toHaveLength(1);
+    expect(data.courts[0].a.playerName).toBe('Elia');
+    expect(data.courts[0].winner).toBeNull();
+    expect(points).toEqual([]);
 
     mode.cleanup();
   });
