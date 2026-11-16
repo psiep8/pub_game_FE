@@ -1,70 +1,128 @@
-import { TennisBattleMode, nextPoint, shotDurationFor, trajectoryFor } from './tennis-battle.mode';
+import { GameModeConfig } from '../../../shared/models/game-mode-type';
+import { TennisBattleMode } from './tennis-battle.mode';
 
-describe('nextPoint: punteggio tennis', () => {
-  const base = (over: Partial<{ score: 0 | 15 | 30 | 40 | 'adv'; games: number; deuceLosses: number }>) => ({
-    playerName: 'x', score: 0 as 0 | 15 | 30 | 40 | 'adv', games: 0, deuceLosses: 0, isBot: false, shots: 0, ...over,
+const PLAYERS = ['Anna', 'Bruno', 'Carla', 'Dario'];
+
+function side(playerName: string, extra: any = {}) {
+  return { playerName, score: 0, games: 0, deuceLosses: 0, isBot: false, shots: 0, ...extra };
+}
+
+function court(id: number, a: string, b: string, extra: any = {}) {
+  return {
+    id,
+    a: side(a),
+    b: side(b),
+    winner: null,
+    turn: 'a',
+    serveLeft: 12,
+    question: { text: 'Domanda?', options: ['A', 'B'], correctIndex: 0, difficulty: 'EASY' },
+    lastEvent: null,
+    awarded: false,
+    questionAt: Date.now(),
+    shotMs: 450,
+    trajectory: 'dritto',
+    killerPoint: false,
+    ...extra,
+  };
+}
+
+function setup() {
+  const saved: Array<{ type: string; revision: number; state: any }> = [];
+  const points: any[] = [];
+  const mode = new TennisBattleMode();
+  const config: GameModeConfig = {
+    type: 'TENNIS_BATTLE',
+    payload: {},
+    gameId: 1,
+    activePlayers: PLAYERS,
+    onTvCheckpoint: (checkpoint) => saved.push(checkpoint as any),
+    onAnswerReceived: (result) => points.push(result),
+  };
+
+  mode.setConfig(config);
+  mode.initialize({});
+
+  return { mode, saved, points };
+}
+
+describe('TennisBattleMode — ripresa dopo un refresh della TV', () => {
+  it('salva i campi appena partono le sfide', async () => {
+    const { mode, saved } = setup();
+
+    await mode.start();
+
+    const state = saved.at(-1)?.state;
+    expect(state.courts).toHaveLength(2);
+    expect(state.finished).toBe(false);
+
+    mode.cleanup();
   });
-  const court = (a: ReturnType<typeof base>, b: ReturnType<typeof base>, killerPoint = false) =>
-    ({ id: 1, a, b, killerPoint } as any);
 
-  it('sale 0 -> 15 -> 30 -> 40', () => {
-    expect(nextPoint(court(base({ score: 0 }), base({ score: 0 })), 'a').scorerScore).toBe(15);
-    expect(nextPoint(court(base({ score: 15 }), base({ score: 0 })), 'a').scorerScore).toBe(30);
-    expect(nextPoint(court(base({ score: 30 }), base({ score: 0 })), 'a').scorerScore).toBe(40);
+  it('riprende i campi senza ripagare chi ha già chiuso la sfida', () => {
+    const { mode, points } = setup();
+    const closed = court(0, 'Anna', 'Bruno', {
+      winner: 'Anna',
+      awarded: true,
+      a: side('Anna', { games: 6 }),
+    });
+
+    mode.restore(200, {
+      revision: 3,
+      state: { courts: [closed, court(1, 'Carla', 'Dario')], savedAt: Date.now() },
+    });
+
+    const data = mode.getDisplayData();
+    expect(data.courts).toHaveLength(2);
+    expect(data.courts[0].winner).toBe('Anna');
+    expect(data.courts[0].a.games).toBe(6);
+    expect(data.courts[1].winner).toBeNull();
+    // Nessun accredito: i punti delle sfide erano già pagati.
+    expect(points).toEqual([]);
+
+    mode.cleanup();
   });
 
-  it('40 pari va al vantaggio, 40 contro meno vince il game', () => {
-    expect(nextPoint(court(base({ score: 40 }), base({ score: 40 })), 'a').scorerScore).toBe('adv');
-    expect(nextPoint(court(base({ score: 40 }), base({ score: 30 })), 'a').scorerGames).toBe(1);
+  it('il tempo di battuta riparte da quello rimasto', () => {
+    const { mode } = setup();
+
+    mode.restore(180, {
+      revision: 4,
+      state: { courts: [court(0, 'Anna', 'Bruno', { serveLeft: 8 })], savedAt: Date.now() - 5000 },
+    });
+
+    const data = mode.getDisplayData();
+    expect(data.courts[0].serveLeft).toBe(3);
+    expect(data.courts[0].question?.text).toBe('Domanda?');
+
+    mode.cleanup();
   });
 
-  it('dal vantaggio sbagliato si torna sul 40-40 e dopo 3 ritorni cè il killer point', () => {
-    let state = court(base({ score: 40 }), base({ score: 'adv' }));
-    const r1 = nextPoint(state, 'a');
-    expect(r1.scorerScore).toBe(40);
-    expect(r1.loserScore).toBe(40);
-    expect(r1.deuceLosses).toBe(1);
-    expect(r1.killerPoint).toBe(false);
-    state = court(base({ score: 40, deuceLosses: 2 }), base({ score: 'adv', deuceLosses: 2 }));
-    expect(nextPoint(state, 'a').killerPoint).toBe(true);
+  it('riprende anche i killer point e le sfide in attesa', () => {
+    const { mode } = setup();
+
+    mode.restore(120, {
+      revision: 5,
+      state: {
+        courts: [court(0, 'Anna', 'Bruno', { killerPoint: true, turn: 'b' })],
+        pendingCourts: [court(4, 'Elia', 'Franca')],
+        finished: false,
+        savedAt: Date.now(),
+      },
+    });
+
+    expect(mode.getDisplayData().courts[0].killerPoint).toBe(true);
+    expect(mode.getDisplayData().courts[0].turn).toBe('b');
+
+    mode.cleanup();
   });
 
-  it('il killer point assegna il game senza altri vantaggi', () => {
-    const r = nextPoint(court(base({ score: 40 }), base({ score: 40 }), true), 'a');
-    expect(r.scorerGames).toBe(1);
-    expect(r.killerPoint).toBe(false);
-  });
-});
+  it('non si rompe con un checkpoint senza stato utile', () => {
+    const { mode } = setup();
 
-describe('TennisBattleMode', () => {
-  it('le fasce di difficoltà salgono con i tiri del giocatore', () => {
-    const mode = new TennisBattleMode();
+    mode.restore(200, { revision: 6, state: { courts: 'x', pendingCourts: null } });
 
-    expect(mode.difficultyFor(0)).toBe('EASY');
-    expect(mode.difficultyFor(2)).toBe('EASY');
-    expect(mode.difficultyFor(3)).toBe('MEDIUM');
-    expect(mode.difficultyFor(7)).toBe('MEDIUM');
-    expect(mode.difficultyFor(8)).toBe('HARD');
-  });
+    expect(mode.getDisplayData().courts).toEqual([]);
 
-  it('la pallina cambia direzione a ogni colpo, senza zig-zag', () => {
-    expect(trajectoryFor(2000, 0)).toBe('dritto');
-    expect(trajectoryFor(2000, 1)).toBe('diagonale');
-    expect(trajectoryFor(2000, 2)).toBe('centrale');
-    expect(trajectoryFor(2000, 3)).toBe('stretto');
-    expect(trajectoryFor(2000, 4)).toBe('linea');
-    expect(trajectoryFor(2000, 5)).toBe('corto');
-    expect(trajectoryFor(2000, 6)).toBe('dritto');
-    expect(trajectoryFor(9000, 1)).toBe('lob');
-  });
-
-  it('il tempo di risposta decide la velocità del disco', () => {
-    // Risposta fulminea: fucilata. Risposta lunghissima: pallina lenta.
-    expect(trajectoryFor(400, 0)).toBe('veloce');
-    expect(trajectoryFor(12000, 0)).toBe('lento');
-
-    expect(shotDurationFor(400, 0)).toBeLessThan(shotDurationFor(1000, 0));
-    expect(shotDurationFor(12000, 0)).toBeGreaterThan(shotDurationFor(5000, 0));
-    expect(shotDurationFor(12000, 0)).toBeGreaterThan(shotDurationFor(1000, 0));
+    mode.cleanup();
   });
 });

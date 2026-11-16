@@ -339,6 +339,7 @@ export class TennisBattleMode extends GameModeBase {
     this.courts.set(next);
     this.tickInterval = setInterval(() => this.tickServes(), 1000);
     this.broadcast();
+    this.saveCheckpoint();
   }
 
   /** Partita successiva della sessione: serve quando la prima è tutta chiusa. */
@@ -353,6 +354,7 @@ export class TennisBattleMode extends GameModeBase {
     }));
     this.courts.set(next);
     this.broadcast();
+    this.saveCheckpoint();
   }
 
   private shufflePlayers(players: string[]): string[] {
@@ -532,6 +534,7 @@ export class TennisBattleMode extends GameModeBase {
     }));
 
     this.broadcast();
+    this.saveCheckpoint();
   }
 
   /** Punto all'avversario, poi si riparte dal giocatore che l'ha preso. */
@@ -572,6 +575,7 @@ export class TennisBattleMode extends GameModeBase {
       // Sfide tutte decise: il round chiude subito, non si aspetta il timer.
       this.finishIfDecided();
     }
+    this.saveCheckpoint();
 
     // Un attimo per vedere il punto, poi nuova palla al giocatore che l'ha subito.
     setTimeout(() => {
@@ -582,6 +586,7 @@ export class TennisBattleMode extends GameModeBase {
         ? { ...c, turn: other, question: this.nextQuestion(difficulty), serveLeft: SERVE_SECONDS, questionAt: Date.now(), shotMs: 450, trajectory: 'dritto' }
         : c));
       this.broadcast();
+      this.saveCheckpoint();
     }, 1400);
   }
 
@@ -602,6 +607,92 @@ export class TennisBattleMode extends GameModeBase {
     this.finished = true;
     this.stopTicking();
     this.handleTimeout();
+    this.saveCheckpoint();
+  }
+
+  /**
+   * Riprende il round dopo un refresh. Campi, punteggi, game, killer point e
+   * domanda corrente arrivano dal checkpoint: chi ha già chiuso la sfida non
+   * riprende i punti, e il tempo di battuta non riparte da capo.
+   */
+  restore(secondsLeft: number, snapshot?: unknown): void {
+    const checkpoint = snapshot as { revision?: number; state?: any } | null | undefined;
+    const state = checkpoint?.state ?? {};
+    this.questions = this.buildQuestions();
+    this.lastQuestionText = String(state.lastQuestionText ?? '');
+
+    const savedAt = Number(state.savedAt);
+    const elapsed = Number.isFinite(savedAt) && savedAt > 0
+      ? Math.max(0, Math.floor((Date.now() - savedAt) / 1000))
+      : 0;
+
+    this.courts.set(this.courtsOf(state.courts, elapsed));
+    this.pendingCourts = this.courtsOf(state.pendingCourts, 0);
+    this.eventCounter = Number(state.eventCounter) || 0;
+    this.finished = state.finished === true;
+    this.revealed.set(state.revealed === true);
+
+    this.timer.set(Math.max(0, Math.round(Number(secondsLeft) || 0)));
+    this.isActive.set(true);
+    this.isPaused.set(false);
+    this.stopTicking();
+    if (!this.finished && this.courts().length) {
+      this.startTimer();
+      this.tickInterval = setInterval(() => this.tickServes(), 1000);
+    }
+    this.broadcast();
+  }
+
+  /** Campi validati dal checkpoint: niente punti, niente stati inventati. */
+  private courtsOf(value: unknown, elapsedSeconds: number): Court[] {
+    if (!Array.isArray(value)) return [];
+    return value
+      .filter((row: any) => row && row.a && row.b && Number.isInteger(Number(row.id)))
+      .map((row: any) => ({
+        ...(row as Court),
+        id: Number(row.id),
+        a: this.sideOf(row.a),
+        b: this.sideOf(row.b),
+        winner: typeof row.winner === 'string' ? row.winner : null,
+        question: row.question && typeof row.question === 'object' ? row.question : null,
+        awarded: row.awarded === true,
+        killerPoint: row.killerPoint === true,
+        serveLeft: Math.max(0, (Number(row.serveLeft) || 0) - elapsedSeconds),
+        // La pausa del refresh non deve far perdere il punto a chi rispondeva.
+        questionAt: row.question ? Date.now() : Number(row.questionAt) || Date.now(),
+      }));
+  }
+
+  private sideOf(value: any): CourtSide {
+    const score = Number(value?.score);
+    const safeScore: GameScore | 'adv' = value?.score === 'adv'
+      ? 'adv'
+      : (score === 15 || score === 30 || score === 40 ? score : 0);
+    return {
+      playerName: String(value?.playerName ?? '').trim(),
+      score: safeScore,
+      games: Math.max(0, Number(value?.games) || 0),
+      isBot: value?.isBot === true,
+      shots: Math.max(0, Number(value?.shots) || 0),
+      deuceLosses: Math.max(0, Number(value?.deuceLosses) || 0),
+    };
+  }
+
+  /** Stato del round: campi, sfide in attesa e contatori degli eventi. */
+  private saveCheckpoint(): void {
+    this.config.onTvCheckpoint?.({
+      type: this.type,
+      revision: Date.now(),
+      state: {
+        courts: this.courts(),
+        pendingCourts: this.pendingCourts,
+        eventCounter: this.eventCounter,
+        lastQuestionText: this.lastQuestionText,
+        finished: this.finished,
+        revealed: this.revealed(),
+        savedAt: Date.now(),
+      },
+    });
   }
 
   private awardCourt(court: Court): void {
