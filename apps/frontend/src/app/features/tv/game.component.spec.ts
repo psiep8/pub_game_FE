@@ -673,6 +673,21 @@ describe('GameComponent', () => {
     expect(component.presencePlayers()).not.toContain('Anna');
   });
 
+  it('non porta i punti dell’espulsa se lo stesso telefono rientra con un altro nome', () => {
+    const theme = component.theme;
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna', deviceId: 'dev-1' });
+    leaderboard.addPoints('Anna', 100, true);
+    const anna = theme.themeForTeam('Anna');
+
+    ws.status$.next({ action: WsAction.PLAYER_REMOVED, playerName: 'Anna' });
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Marco', deviceId: 'dev-1' });
+
+    // La riga di Anna resta com'era (ha punti), Marco è una squadra nuova.
+    expect(leaderboard.getPlayerStats('Anna')?.totalPoints).toBe(100);
+    expect(leaderboard.getPlayerStats('Marco')?.totalPoints).toBe(0);
+    expect(theme.themeForTeam('Marco')).not.toBe(anna);
+  });
+
   it('porta con sé l’avatar quando il telefono rientra rinominato', () => {
     const avatars = TestBed.inject(PlayerAvatarService);
     const avatar = `data:image/png;base64,${'A'.repeat(120)}`;

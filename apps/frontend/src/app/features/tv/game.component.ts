@@ -568,6 +568,11 @@ export class GameComponent implements OnInit, OnDestroy {
         if (this.leaderboardService.forgetIfNoPoints(expelled)) {
           this.theme.releaseTeamTheme(expelled);
         }
+        // La squadra espulsa esce dal gioco: se lo stesso telefono rientra con
+        // un altro nome non deve portarsi dietro i punti che sono rimasti qui.
+        for (const [deviceId, playerName] of this.deviceNames) {
+          if (playerName === expelled) this.deviceNames.delete(deviceId);
+        }
       }
 
       // 🏟️ Esito Arena calcolato e trasmesso dal backend.
