@@ -1,5 +1,13 @@
 # Changelog
 
+## 16 novembre 2026 — Bonus Cavallo riprendibile
+
+- Il bonus Cavallo salva nel checkpoint TV i voti della categoria, le domande già caricate, il tabellone con le giuste, le risposte della domanda in corso, la fase e il tempo residuo.
+- Al refresh la TV riapre il bonus sulla fase salvata: votazione (con i voti già dati), domanda in corso (con la rush che riparte dal tempo rimasto) o reveal già calcolato, che non ridà i punti.
+- Se il refresh cade durante il caricamento delle domande, la categoria scelta resta e le domande si richiedono: non si rivota.
+- Il finale ricalcola il podio dal tabellone salvato, così i punti si pagano una volta sola alla chiusura del bonus.
+- Verifiche: 6 test del bonus e 1 test TV, suite completa frontend (355 test su 47 file).
+
 ## 16 novembre 2026 — Blackjack bonus riprendibile
 
 - Il bonus Blackjack salva nello stato Blackjack del server (lo stesso del round) mazzo, carte in mano, banco, tavoli, fase e tempo residuo, a ogni cambio di stato.
