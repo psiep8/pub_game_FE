@@ -306,8 +306,11 @@ describe('GameComponent', () => {
     alertSpy.mockRestore();
   });
 
-  it('salva il checkpoint Arena con l indice del round corrente', () => {
-    component.round.set({ roundIndex: 5 } as any);
+  it('salva il checkpoint Arena con l indice della scaletta, non con il round vecchio', () => {
+    // Scaletta: 6 round chiusi, quindi il round aperto è l'indice 5.
+    TestBed.inject(RoundManagerService).restoreRound(6);
+    // `round()` è ancora la fotografia del round precedente.
+    component.round.set({ roundIndex: 3 } as any);
     const config = (component as unknown as {
       buildModeConfig(type: string, payload: any, players: string[]): any;
     }).buildModeConfig('ARENA', {}, ['Anna']);
@@ -318,8 +321,30 @@ describe('GameComponent', () => {
     ]);
   });
 
+  it('salva il checkpoint col round del server quando la scaletta è avanti', () => {
+    // Avanzamento locale avanti: round aperto 8, il server è fermo al 6.
+    TestBed.inject(RoundManagerService).restoreRound(9);
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'RUNNING', roundType: 'BOMBA', roundIndex: 6, roundKey: 'g1-r6',
+      roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
+    });
+
+    const config = (component as unknown as {
+      buildModeConfig(type: string, payload: any, players: string[]): any;
+    }).buildModeConfig('BOMBA', {}, ['Anna']);
+    config.onTvCheckpoint({ type: 'BOMBA', revision: 4, state: { lastEventSeq: 2 } });
+
+    // Il server rifiuterebbe un checkpoint con indice diverso dal suo.
+    expect(reliability.tvCheckpoints.at(-1)).toMatchObject({
+      mode: 'BOMBA',
+      roundIndex: 6,
+    });
+  });
+
   it('salva il checkpoint Bomba con indice del round e sequenza eventi', () => {
-    component.round.set({ roundIndex: 7 } as any);
+    TestBed.inject(RoundManagerService).restoreRound(8);
+    component.round.set({ roundIndex: 4 } as any);
     const config = (component as unknown as {
       buildModeConfig(type: string, payload: any, players: string[]): any;
     }).buildModeConfig('BOMBA', {}, ['Anna']);

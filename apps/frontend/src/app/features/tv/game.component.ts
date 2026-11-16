@@ -219,6 +219,8 @@ export class GameComponent implements OnInit, OnDestroy {
   private recoveredRoundIndex: number | null = null;
   /** Stato del round Biglie da riprendere, letto dal checkpoint del server. */
   readonly biglieResume = signal<any | null>(null);
+  /** Indice del round aperto secondo il server: può restare dietro alla scaletta. */
+  private serverRoundIndex: number | null = null;
   private leaderboardFlush?: ReturnType<typeof setTimeout>;
   /** Ultima variazione locale e ultima confermata dal server. */
   private leaderboardPendingSeq = 0;
@@ -957,6 +959,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
       this.round.set(nextRound);
+      this.rememberServerRoundIndex(nextRound?.roundIndex);
 
       // La categoria dell'animazione a bolle deve essere quella reale del payload:
       // per Ultima spiaggia il backend sceglie la categoria dell'occorrenza.
@@ -2523,10 +2526,26 @@ export class GameComponent implements OnInit, OnDestroy {
     this.offerBonusRecovery(snapshot);
   }
 
-  /** Indice del round corrente per i checkpoint TV (0-based, dal server). */
+  /**
+   * Indice del round corrente per i checkpoint TV (0-based).
+   *
+   * La fonte è la scaletta, come per il conteggio del vincitore: `round()` può
+   * essere la fotografia di prima del refresh e spostare il checkpoint su un
+   * altro round. L'unica eccezione è quando la scaletta è avanti rispetto al
+   * server (round saltati senza riga sul server): lì il server scarta un
+   * checkpoint con un indice diverso dal suo, quindi si usa il suo.
+   */
   private tvRoundIndex(): number | null {
-    const index = Number(this.round()?.roundIndex ?? this.recoveredRoundIndex);
-    return Number.isInteger(index) && index >= 0 ? index : null;
+    const scheduleIndex = this.openRoundIndex();
+    const serverIndex = this.serverRoundIndex;
+    if (scheduleIndex == null) return serverIndex;
+    if (serverIndex != null && serverIndex !== scheduleIndex) return serverIndex;
+    return scheduleIndex;
+  }
+
+  private rememberServerRoundIndex(value: unknown): void {
+    const index = Number(value);
+    this.serverRoundIndex = Number.isInteger(index) && index >= 0 ? index : null;
   }
 
   /** Un round è ancora aperto sul server: la TV non lo dà per perso. */
@@ -2543,6 +2562,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
     const roundIndex = Number(snapshot?.roundIndex);
     this.recoveredRoundIndex = Number.isInteger(roundIndex) && roundIndex >= 0 ? roundIndex : null;
+    this.rememberServerRoundIndex(roundIndex);
 
     if (!open) {
       this.recoveredRound.set(null);
