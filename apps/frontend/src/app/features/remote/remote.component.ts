@@ -1974,7 +1974,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   /**
    * Timeline ripresa dopo un refresh: se l'ordine è già sul server si mostra
    * quello e non si rimanda; chi non ha mai risposto manda l'ordine iniziale,
-   * come all'avvio del round, così nessuno resta senza invio.
+   * come all'avvio del round, così nessuno resta senza invio. Se la lettura
+   * fallisce non si manda nulla: toccare una carta resta l'unica via.
    */
   private restoreTimelineOrder(roundId: string, cards: Array<{ id: number }>): void {
     const playerName = this.nickname();
@@ -1994,7 +1995,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
         this.scheduleTimelineSend();
       },
       error: () => {
-        if (this.timelineRoundId === roundId) this.scheduleTimelineSend();
+        // Lettura fallita: non si sa se l'ordine è già sul server, quindi non
+        // si sovrascrive. I tasti restano aperti e si invia solo al primo tocco.
       },
     });
   }

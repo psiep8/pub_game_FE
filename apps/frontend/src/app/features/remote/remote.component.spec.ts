@@ -1220,6 +1220,42 @@ describe('RemoteComponent', () => {
     }
   });
 
+  it('se la lettura dell ordine Timeline fallisce non invia nulla da solo', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const submit = vi.spyOn(game, 'submitTimeline');
+    vi.spyOn(game, 'timelineAnswer').mockReturnValue(throwError(() => ({ status: 503 })));
+    vi.useFakeTimers();
+    try {
+      reliability.syncState$.next({
+        hasState: true,
+        status: 'RUNNING',
+        roundType: 'TIMELINE',
+        roundKey: 'g1-r5',
+        roundDeadlineAt: Date.now() + 60_000,
+        currentRound: {
+          roundKey: 'g1-r5',
+          type: 'TIMELINE',
+          payload: { roundId: 'r5', items: [{ id: 1, label: 'A' }, { id: 2, label: 'B' }] },
+        },
+      });
+
+      // Non si sa se l'ordine è già sul server: sovrascriverlo sarebbe peggio.
+      vi.advanceTimersByTime(600);
+      expect(submit).not.toHaveBeenCalled();
+      expect(component.gameState()).toBe(PlayerStatus.VOTING);
+
+      component.moveCard(2, -1);
+      vi.advanceTimersByTime(400);
+      expect(submit).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('due snapshot della stessa manche fanno una sola richiesta al server', async () => {
     localStorage.setItem('nickname', 'Anna');
     reliability.resumedSession.set(true);
