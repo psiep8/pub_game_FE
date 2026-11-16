@@ -1,5 +1,14 @@
 # Changelog
 
+## 16 novembre 2026 — Canzone riprendibile
+
+- Il round Canzone salva nel checkpoint TV la manche, i secondi rimasti, la pausa fra due ascolti e l'eventuale prenotazione di un tavolo.
+- Al refresh la TV riparte dalla manche giusta con il tempo che resta; se la manche era scaduta mentre era via, l'ascolto si chiude e parte la pausa, invece di restare appesa.
+- La pausa fra due ascolti riprende dai secondi che mancavano e poi passa alla manche successiva.
+- Un brano già rivelato resta pagato: si rivede il brano pulito senza ridare i punti. L'audio riparte dall'inizio della traccia, il conteggio no.
+- Con una prenotazione aperta non riparte il cronometro: si aspetta la conferma del presentatore.
+- Verifiche: 7 test nuovi sul round e suite completa frontend (362 test su 47 file).
+
 ## 16 novembre 2026 — Bonus Cavallo riprendibile
 
 - Il bonus Cavallo salva nel checkpoint TV i voti della categoria, le domande già caricate, il tabellone con le giuste, le risposte della domanda in corso, la fase e il tempo residuo.
