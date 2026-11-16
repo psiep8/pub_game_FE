@@ -278,6 +278,8 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Telefoni presenti sul backend: i bonus li usano anche senza classifica
    *  (dopo un reset la leaderboard è vuota e i tavoli sparirebbero). */
   readonly presencePlayers = signal<string[]>([]);
+  /** Telefono (deviceId) → nome attuale: serve a riconoscere un rientro rinominato. */
+  private readonly deviceNames = new Map<string, string>();
   /** Codice di abbinamento regia, con l'ora di scadenza già formattata. */
   readonly pairingCode = signal<string | null>(null);
   readonly pairingExpiresAt = signal('');
@@ -528,6 +530,14 @@ export class GameComponent implements OnInit, OnDestroy {
       // 🤝 Nuovo giocatore si è unito
       if (status.action === WsAction.JOIN_GAME && status.playerName) {
         const normalizedName = status.playerName.trim();
+        // Il telefono si presenta con un identificativo stabile: se rientra
+        // cambiando nome è la stessa squadra, con la sua palette e i suoi punti.
+        const deviceId = String(status.deviceId ?? '').trim();
+        const previousName = deviceId ? this.deviceNames.get(deviceId) : undefined;
+        if (previousName && previousName !== normalizedName) {
+          this.renameTeam(previousName, normalizedName);
+        }
+        if (deviceId) this.deviceNames.set(deviceId, normalizedName);
         this.presencePlayers.update((names) => names.includes(normalizedName) ? names : [...names, normalizedName]);
         console.log(`🤝 Nuovo giocatore unito: ${normalizedName}`);
         this.audioService.playJoin();
@@ -665,11 +675,44 @@ export class GameComponent implements OnInit, OnDestroy {
       .filter((name: string) => name.length > 0);
     this.presencePlayers.set(Array.from(new Set<string>(names)));
     this.assignTeamThemes(this.presencePlayers());
+    this.forgetAbsentTeams();
   }
 
   /** Ogni squadra presente ha una palette sua, anche dopo un refresh della TV. */
   private assignTeamThemes(names: string[]): void {
     for (const name of names) this.theme.ensureTeamTheme(name);
+  }
+
+  /**
+   * Sposta una squadra dal vecchio nome a quello nuovo: presenze, palette,
+   * punti in classifica e punti del round restano gli stessi.
+   */
+  private renameTeam(previousName: string, nextName: string): void {
+    this.presencePlayers.update((names) => Array.from(new Set(
+      names.map((name) => (name === previousName ? nextName : name)),
+    )));
+    this.theme.renameTeam(previousName, nextName);
+    this.leaderboardService.renamePlayer(previousName, nextName);
+
+    const roundPoints = this.roundPoints.get(previousName);
+    if (roundPoints !== undefined) {
+      this.roundPoints.delete(previousName);
+      this.roundPoints.set(nextName, (this.roundPoints.get(nextName) ?? 0) + roundPoints);
+    }
+  }
+
+  /**
+   * Toglie dalla classifica le squadre a zero punti che non sono più collegate
+   * (telefono chiuso): le loro palette tornano libere.
+   */
+  private forgetAbsentTeams(): void {
+    const removed = this.leaderboardService.forgetAbsent(this.presencePlayers());
+    for (const name of removed) {
+      this.theme.releaseTeamTheme(name);
+      for (const [deviceId, playerName] of this.deviceNames) {
+        if (playerName === name) this.deviceNames.delete(deviceId);
+      }
+    }
   }
 
   /** Avanzamento della prova pulsanti, mostrato nella home. */

@@ -5,6 +5,9 @@ import { LeaderboardService } from './leaderboard.service';
 describe('LeaderboardService', () => {
   let service: LeaderboardService;
 
+  const metadataNames = (): string[] =>
+    service.getLeaderboard().map((player) => player.playerName);
+
   beforeEach(() => {
     localStorage.clear();
     service = new LeaderboardService();
@@ -70,6 +73,48 @@ describe('LeaderboardService', () => {
 
   it('non tocca una squadra mai entrata in classifica', () => {
     expect(service.forgetIfNoPoints('Sconosciuta')).toBe(false);
+  });
+
+  it('sposta la squadra sul nuovo nome, con punti e risposte', () => {
+    service.addPoints('Anna', 120, true);
+
+    expect(service.renamePlayer('Anna', 'Anna Sofia')).toBe(true);
+
+    expect(service.getPlayerStats('Anna')).toBeNull();
+    expect(service.getPlayerStats('Anna Sofia')).toMatchObject({
+      totalPoints: 120,
+      correctAnswers: 1,
+      position: 1,
+    });
+    expect(metadataNames()).toEqual(['Anna Sofia']);
+  });
+
+  it('somma i totali se il nuovo nome esisteva già', () => {
+    service.addPoints('Anna', 120, true);
+    service.addPoints('Anna Sofia', 30, true);
+
+    service.renamePlayer('Anna', 'Anna Sofia');
+
+    expect(service.getPlayerStats('Anna Sofia')?.totalPoints).toBe(150);
+    expect(service.getLeaderboard()).toHaveLength(1);
+  });
+
+  it('non rinomina un nome uguale o una squadra mai entrata', () => {
+    expect(service.renamePlayer('Anna', 'Anna')).toBe(false);
+    expect(service.renamePlayer('Nessuno', 'Nuovo')).toBe(false);
+  });
+
+  it('toglie le squadre a zero punti non più collegate', () => {
+    service.addPoints('Anna', 0, false);
+    service.addPoints('Bruno', 0, false);
+    service.addPoints('Carla', 50, true);
+
+    expect(service.forgetAbsent(['Anna'])).toEqual(['Bruno']);
+
+    expect(service.getPlayerStats('Anna')).not.toBeNull();
+    expect(service.getPlayerStats('Bruno')).toBeNull();
+    // Chi ha giocato resta in classifica anche se il telefono è staccato.
+    expect(service.getPlayerStats('Carla')?.totalPoints).toBe(50);
   });
 
   it('should clear both memory and storage on reset', () => {

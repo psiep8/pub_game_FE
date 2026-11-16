@@ -380,7 +380,10 @@ export class FakeReliabilityService {
 
   async heartbeat(): Promise<void> {}
 
+  /** Risposta da restituire a `diagnostics`; i test la impostano quando serve. */
+  diagnosticsResult: any | null = null;
+
   async diagnostics(): Promise<any | null> {
-    return null;
+    return this.diagnosticsResult;
   }
 }

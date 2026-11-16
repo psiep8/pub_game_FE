@@ -101,6 +101,64 @@ export class LeaderboardService {
     return true;
   }
 
+  /**
+   * Sposta una squadra sul nuovo nome scelto dal telefono.
+   *
+   * <p>Serve al rientro con un nome diverso: la squadra è la stessa, quindi
+   * punti e risposte la seguono invece di restare su una riga fantasma. Se il
+   * nuovo nome esisteva già, i totali si sommano.</p>
+   */
+  renamePlayer(previousName: string, nextName: string): boolean {
+    const previous = previousName.trim();
+    const next = nextName.trim();
+    if (!previous || !next || previous === next) return false;
+
+    const players = new Map(this.players());
+    const entry = players.get(previous);
+    if (!entry) return false;
+
+    const merged = players.get(next);
+    players.delete(previous);
+    players.set(next, {
+      ...entry,
+      playerName: next,
+      totalPoints: entry.totalPoints + (merged?.totalPoints ?? 0),
+      correctAnswers: entry.correctAnswers + (merged?.correctAnswers ?? 0),
+      wrongAnswers: entry.wrongAnswers + (merged?.wrongAnswers ?? 0),
+    });
+
+    this.players.set(this.withPositions(players));
+    this.saveScores();
+    this.persistence?.(this.getLeaderboard());
+    return true;
+  }
+
+  /**
+   * Toglie le squadre a zero punti che non sono più collegate.
+   *
+   * <p>Un telefono che chiude la pagina lascia una riga in classifica: se non ha
+   * ancora punti non è nessuno, e va via. Chi ha giocato resta comunque.</p>
+   *
+   * @returns i nomi tolti, così la TV può liberare le loro palette.
+   */
+  forgetAbsent(connected: string[]): string[] {
+    const present = new Set(connected.map((name) => name.trim()).filter(Boolean));
+    const players = new Map(this.players());
+    const removed: string[] = [];
+
+    for (const [name, entry] of players) {
+      if (entry.totalPoints !== 0 || present.has(name)) continue;
+      players.delete(name);
+      removed.push(name);
+    }
+    if (!removed.length) return [];
+
+    this.players.set(this.withPositions(players));
+    this.saveScores();
+    this.persistence?.(this.getLeaderboard());
+    return removed;
+  }
+
   /** Registra (o rimuove) il salvataggio server della classifica. */
   setPersistence(sink: LeaderboardPersistence | null): void {
     this.persistence = sink;

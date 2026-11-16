@@ -455,7 +455,9 @@ describe('RemoteComponent', () => {
     expect(component.nickname()).toBe('Anna');
     expect(localStorage.getItem('nickname')).toBe('Anna');
     const bodies = ws.broadcasted.map((message) => message.body);
-    expect(bodies).toContainEqual({ action: 'JOIN_GAME', playerName: 'Anna' });
+    // L'ingresso porta anche l'identificativo del telefono: la TV riconosce
+    // la stessa squadra se il giocatore rientra con un nome diverso.
+    expect(bodies).toContainEqual({ action: 'JOIN_GAME', playerName: 'Anna', deviceId: 'device-test' });
     // La palette scelta prima del tutorial parte insieme all'ingresso e si blocca.
     expect(bodies).toContainEqual({
       action: 'SELECT_THEME',

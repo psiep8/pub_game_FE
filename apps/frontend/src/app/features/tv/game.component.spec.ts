@@ -657,6 +657,56 @@ describe('GameComponent', () => {
     expect(theme.themeForTeam('Carla')).toBe(anna);
   });
 
+  it('tiene palette e punti al telefono che rientra con un nome diverso', () => {
+    const theme = component.theme;
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna', deviceId: 'dev-1' });
+    const anna = theme.themeForTeam('Anna');
+    leaderboard.addPoints('Anna', 60, true);
+
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna Sofia', deviceId: 'dev-1' });
+
+    expect(theme.themeForTeam('Anna Sofia')).toBe(anna);
+    expect(leaderboard.getPlayerStats('Anna Sofia')?.totalPoints).toBe(60);
+    expect(leaderboard.getPlayerStats('Anna')).toBeNull();
+    expect(component.presencePlayers()).toContain('Anna Sofia');
+    expect(component.presencePlayers()).not.toContain('Anna');
+  });
+
+  it('tratta come squadra nuova il nome nuovo di un altro telefono', () => {
+    const theme = component.theme;
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna', deviceId: 'dev-1' });
+    const anna = theme.themeForTeam('Anna');
+
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna Sofia', deviceId: 'dev-2' });
+
+    expect(theme.themeForTeam('Anna Sofia')).not.toBe(anna);
+    expect(theme.themeForTeam('Anna')).toBe(anna);
+  });
+
+  it('toglie dalla classifica le squadre a zero punti non più collegate', async () => {
+    const theme = component.theme;
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna', deviceId: 'dev-1' });
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Bruno', deviceId: 'dev-2' });
+    const bruno = theme.themeForTeam('Bruno');
+
+    component.currentGameId.set(1);
+    // La revisione delle presenze gira solo nella lobby, non durante un round.
+    component.phase.set('IDLE');
+    reliability.diagnosticsResult = {
+      presence: [{ connected: true, role: 'REMOTE', playerName: 'Anna' }],
+    };
+    const tv = component as unknown as { refreshLobbyPresence(): Promise<void> };
+    await tv.refreshLobbyPresence();
+
+    // Bruno non è più collegato e non ha punti: sparisce, con la sua palette.
+    expect(leaderboard.getPlayerStats('Bruno')).toBeNull();
+    expect(leaderboard.getPlayerStats('Anna')).not.toBeNull();
+    expect(theme.themeForTeam('Bruno')).toBe('editorial-acid');
+
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Carla', deviceId: 'dev-3' });
+    expect(theme.themeForTeam('Carla')).toBe(bruno);
+  });
+
   it('tratta il rientro con un nome diverso come una squadra nuova', () => {
     const theme = component.theme;
     ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });

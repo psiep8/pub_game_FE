@@ -248,6 +248,38 @@ export class ThemeService {
     this.persistTeamHistory();
   }
 
+  /**
+   * Sposta scelta, palette assegnata e memoria sul nuovo nome della stessa
+   * squadra: è il telefono che rientra cambiando nome, non una squadra nuova.
+   */
+  renameTeam(previousName: string, nextName: string): boolean {
+    const previous = previousName.trim();
+    const next = nextName.trim();
+    if (!previous || !next || previous === next) return false;
+
+    const move = (map: Partial<Record<string, AppTheme>>) => {
+      const value = map[previous];
+      if (!value) return { map, changed: false };
+      const copy = { ...map };
+      delete copy[previous];
+      copy[next] = value;
+      return { map: copy, changed: true };
+    };
+
+    const chosen = move(this.teamThemes());
+    const defaults = move(this.teamDefaults());
+    const history = move(this.teamHistory());
+    if (!chosen.changed && !defaults.changed && !history.changed) return false;
+
+    this.teamThemes.set(chosen.map);
+    this.teamDefaults.set(defaults.map);
+    this.teamHistory.set(history.map);
+    this.persistTeamChosen();
+    this.persistTeamDefaults();
+    this.persistTeamHistory();
+    return true;
+  }
+
   themeForTeam(playerName: string): AppTheme {
     const name = playerName.trim();
     return this.teamThemes()[name] ?? this.teamDefaults()[name] ?? 'editorial-acid';

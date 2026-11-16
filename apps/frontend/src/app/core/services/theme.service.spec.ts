@@ -129,6 +129,25 @@ describe('ThemeService — palette di squadra', () => {
     expect(reloaded.ensureTeamTheme('Anna')).toBe(anna);
   });
 
+  it('sposta la palette sul nuovo nome della stessa squadra', () => {
+    const anna = service.ensureTeamTheme('Anna');
+
+    expect(service.renameTeam('Anna', 'Anna Sofia')).toBe(true);
+
+    expect(service.themeForTeam('Anna')).toBe('editorial-acid');
+    expect(service.themeForTeam('Anna Sofia')).toBe(anna);
+  });
+
+  it('sposta anche la palette scelta e la sua memoria', () => {
+    service.setTeamTheme('Anna', 'kpop-aesthetic');
+
+    service.renameTeam('Anna', 'Anna Sofia');
+
+    expect(service.themeForTeam('Anna Sofia')).toBe('kpop-aesthetic');
+    // Anche dopo un refresh della TV il nuovo nome tiene la scelta.
+    expect(new ThemeService().themeForTeam('Anna Sofia')).toBe('kpop-aesthetic');
+  });
+
   it('un nome nuovo è una squadra nuova, con una palette libera e distinta', () => {
     const anna = service.ensureTeamTheme('Anna');
 

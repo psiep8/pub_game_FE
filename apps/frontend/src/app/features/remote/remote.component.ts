@@ -474,7 +474,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       const name = this.nickname();
       if (!name) return;
       if (await this.reliability.start(gameId, 'REMOTE', name)) {
-        this.ws.broadcastStatus(gameId, { action: WsAction.JOIN_GAME, playerName: name });
+        this.joinGame(name);
       }
     } catch {
       // Server non raggiungibile: resta l'ID del QR o dello storage.
@@ -544,7 +544,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.avatarPreview.set(this.playerAvatars.avatarFor(this.nickname()!));
       setTimeout(() => {
         if (this.ws.connected()) {
-          this.ws.broadcastStatus(this.gameId(), { action: WsAction.JOIN_GAME, playerName: this.nickname() });
+          this.joinGame(this.nickname()!);
           this.playerAvatars.publish(this.nickname()!, this.gameId());
         }
       }, 2000);
@@ -553,7 +553,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.ws.connectedAt$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       const name = this.nickname();
       if (name) {
-        this.ws.broadcastStatus(this.gameId(), { action: WsAction.JOIN_GAME, playerName: name });
+        this.joinGame(name);
         this.playerAvatars.publish(name, this.gameId());
       }
     });
@@ -1092,7 +1092,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.removedNotice.set(false);
     this.showButtonTest.set(true);
     localStorage.setItem('nickname', name);
-    this.ws.broadcastStatus(this.gameId(), { action: WsAction.JOIN_GAME, playerName: name });
+    this.joinGame(name);
     // Il colore si sceglie una volta sola: da qui in poi è la palette della
     // partita, la TV la adotta e il telefono non la cambia più.
     this.theme.lock();
@@ -1102,7 +1102,19 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * La socket può essere ancora in apertura subito dopo l'ingresso: la palette
+   * Ingresso con l'identificativo stabile del telefono: la TV riconosce il
+   * dispositivo anche quando il giocatore rientra con un nome diverso.
+   */
+  private joinGame(playerName: string): void {
+    this.ws.broadcastStatus(this.gameId(), {
+      action: WsAction.JOIN_GAME,
+      playerName,
+      deviceId: this.reliability.deviceId(),
+    });
+  }
+
+  /**
+   * La socket può essere ancora aperta subito dopo l'ingresso: la palette
    * parte appena la connessione è viva, una volta sola.
    */
   private announceTheme(name: string): void {
