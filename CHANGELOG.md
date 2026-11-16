@@ -1,5 +1,12 @@
 # Changelog
 
+## 16 novembre 2026 — Rifiniture del rientro rinominato
+
+- L'avatar segue il nuovo nome: prima la squadra rinominata perdeva la faccia in classifica fino al prossimo invio del telefono.
+- L'espulsione cancella la mappa telefono→nome, così lo stesso telefono che rientra con un nome nuovo non trascina i punti rimasti alla squadra espulsa.
+- La griglia a tre colonne lascia scorrere il tabellone quando non ci sta più: a 28 squadre le righe si stringono a dieci righe da 54px senza tagli, oltre il tabellone scorre invece di nascondere le ultime righe.
+- Verifiche: 6 test nuovi (3 sul servizio avatar, 3 sul componente TV) e suite completa (440 test su 50 file); misura a 1280×720 con 28 squadre sul componente vero.
+
 ## 16 novembre 2026 — Rientro con nome diverso e righe fantasma (F12)
 
 - `JOIN_GAME` porta anche il `deviceId`, lo stesso identificativo stabile già usato per la sessione: la TV riconosce il telefono che rientra con un nome nuovo e sposta la squadra invece di crearne una seconda. Palette scelta, palette assegnata, memoria del colore, presenze e punti in classifica seguono il nuovo nome; i punti del round in corso passano al nuovo nome, così il verdetto del round resta corretto.
