@@ -2,13 +2,14 @@
 
 ## 16 novembre 2026 — Rientro del telefono dopo un refresh (F02)
 
-- Il refresh è una nuova istanza del telefono: dodici test in jsdom simulano il riavvio sullo stesso dispositivo (round aperto, Quiz già votato con risposta lenta e doppio snapshot, sessione scaduta, espulsione, serata aperta, seconda scheda, Musica, Bomba, Timeline) e cinque descrivevano comportamenti che mancavano.
-- Timeline: al rientro il telefono non rimanda più l'ordine iniziale, che cancellava quello già scelto e salvato sul server. L'invio automatico resta solo all'avvio del round, dove vale come risposta anche per chi non tocca nulla; alla ripresa parte dal primo tocco. Musica e Bomba riaprono il round già bene: la prenotazione e il polling riprendono da soli, e ora hanno un test che lo tiene fermo.
+- Il refresh è una nuova istanza del telefono: tredici test in jsdom simulano il riavvio sullo stesso dispositivo (round aperto, Quiz già votato con risposta lenta e doppio snapshot, sessione scaduta, espulsione, serata aperta, seconda scheda, Musica, Bomba, Timeline con e senza risposta già inviata) e sei descrivevano comportamenti che mancavano.
+- Timeline: al rientro il telefono non rimanda più l'ordine iniziale, che cancellava quello già scelto e salvato sul server. L'invio automatico resta solo all'avvio del round, dove vale come risposta anche per chi non tocca nulla. Musica e Bomba riaprono il round già bene: la prenotazione e il polling riprendono da soli, e ora hanno un test che lo tiene fermo.
+- Timeline dopo un refresh: la risposta sul server conserva anche l'ordine inviato e `GET /games/{id}/timeline-answer` lo restituisce al telefono, che ritrova la sua risposta senza sovrascriverla. Chi non ha ancora risposto riceve `answered: false` e manda l'ordine iniziale, quindi non resta senza invio; le risposte salvate prima di questo campo restano valide, senza ordine da rileggere.
 - Quiz: al rientro i tasti si aprono subito, senza aspettare il server. In parallelo una sola richiesta per round e manche legge `/quiz/answers`: se la manche ha già il voto di questa squadra il telefono si blocca con la risposta scelta. Con un server lento si continua a giocare, e un doppio voto resta comunque rifiutato con `already-answered`.
 - Sessione scaduta: se il server non riprende la sessione il nome resta pronto ma compare l'avviso. Prima il telefono restava muto e non si capiva se era un'espulsione, una serata chiusa o un problema di rete.
 - Espulsione: `sendVote` e `sendBuzz` non partono senza un nome, quindi un tocco residuo su una scheda appena espulsa non arriva più al server come voto anonimo.
 - Scheda doppia: risponde solo la prima scheda aperta sullo stesso telefono. Il blocco usa i Web Locks del browser (`ifAvailable`), che si liberano alla chiusura della scheda e vengono ritentati al ritorno in primo piano; il flag `duplicateDisplay` del server (oggi assegnato solo alla TV) alimenta lo stesso avviso. Senza l'API dei lock non si blocca nulla.
-- Verifiche: 12 test nuovi sul telefono e suite completa frontend (388 test su 48 file).
+- Verifiche: 13 test nuovi sul telefono (suite completa frontend, 389 test su 48 file) e 3 test backend sull'ordine Timeline (suite completa backend, 133 test).
 
 ## 16 novembre 2026 — Punti del round e coda classifica al refresh (F06 completo)
 

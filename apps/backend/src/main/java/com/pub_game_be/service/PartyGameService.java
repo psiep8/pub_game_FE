@@ -41,7 +41,9 @@ public class PartyGameService {
     public record TimelineEvent(String label, int year, String category) {
     }
 
-    public record TimelineSubmission(String playerName, int correctPairs, int totalPairs, int score) {
+    /** L'ordine inviato resta con la risposta: serve al telefono dopo un refresh. */
+    public record TimelineSubmission(String playerName, int correctPairs, int totalPairs, int score,
+            List<Integer> order) {
     }
 
     /** Esito di una risposta Timeline: solo il primo invio crea l'evento. */
@@ -294,11 +296,33 @@ public class PartyGameService {
         }
         score = Math.max(-400, Math.min(1200, score));
 
-        TimelineSubmission submission = new TimelineSubmission(playerName.trim(), correctPairs, totalPairs, score);
+        TimelineSubmission submission = new TimelineSubmission(playerName.trim(), correctPairs, totalPairs, score,
+                List.copyOf(order));
         TimelineSubmission previous = timelineAnswers.computeIfAbsent(gameId, id -> new ConcurrentHashMap<>())
                 .put(submission.playerName(), submission);
         persistTimeline(gameId);
         return Optional.of(new TimelineDecision(submission, previous == null));
+    }
+
+    /**
+     * Ordine già inviato da un giocatore per il round aperto: il telefono lo
+     * rilegge dopo un refresh, così non rimanda l'ordine iniziale sopra quello
+     * scelto e chi non ha mai risposto lo sa (Optional vuoto).
+     */
+    public Optional<List<Integer>> timelineAnswerOrder(long gameId, String roundId, String playerName) {
+        hydrateTimeline(gameId);
+        TimelineRound round = timelineRounds.get(gameId);
+        if (round == null || roundId == null || !round.token().equals(roundId)
+                || playerName == null || playerName.isBlank()) {
+            return Optional.empty();
+        }
+        TimelineSubmission submission = timelineAnswers
+                .getOrDefault(gameId, Map.of())
+                .get(playerName.trim());
+        if (submission == null || submission.order().isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(submission.order());
     }
 
     public JSONObject timelineReveal(long gameId) {
@@ -385,8 +409,17 @@ public class PartyGameService {
                 if (row == null) {
                     continue;
                 }
+                // Risposte salvate prima dell'ordine: restano valide, senza
+                // ordine da rileggere.
+                JSONArray orderJson = row.optJSONArray("order");
+                List<Integer> savedOrder = new ArrayList<>();
+                if (orderJson != null) {
+                    for (int index = 0; index < orderJson.length(); index++) {
+                        savedOrder.add(orderJson.optInt(index, -1));
+                    }
+                }
                 answers.put(player, new TimelineSubmission(player, row.optInt("correctPairs", 0),
-                        row.optInt("totalPairs", 0), row.optInt("score", 0)));
+                        row.optInt("totalPairs", 0), row.optInt("score", 0), savedOrder));
             }
             timelineAnswers.put(gameId, answers);
             System.out.println("♻️ Timeline ripristinata per la partita " + gameId
@@ -419,7 +452,8 @@ public class PartyGameService {
                 answers.put(player, new JSONObject()
                         .put("correctPairs", submission.correctPairs())
                         .put("totalPairs", submission.totalPairs())
-                        .put("score", submission.score())));
+                        .put("score", submission.score())
+                        .put("order", new JSONArray(submission.order()))));
         stateBlobs.save(gameId, TIMELINE_ANSWERS_BLOB, answers.toString());
     }
 

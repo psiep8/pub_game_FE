@@ -1352,9 +1352,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
       // Si parte dall'ordine mostrato: si trascina per correggerlo.
       this.timelineOrder.set(cards.map((card: any) => card.id));
       // All'avvio anche chi non tocca nulla ha già una risposta valida:
-      // l'ordine iniziale. Alla ripresa no: l'ordine buono sta già sul server
-      // e rimandare quello mostrato lo cancellerebbe.
-      if (!options.resumed) this.scheduleTimelineSend();
+      // l'ordine iniziale. Alla ripresa si rilegge prima l'ordine già inviato,
+      // così non si sovrascrive quello scelto.
+      if (options.resumed) this.restoreTimelineOrder(this.timelineRoundId, cards);
+      else this.scheduleTimelineSend();
     } else if (type === 'TIME_BUZZER') {
       // START_VOTING esce dopo il 3-2-1, a volte dopo il via stesso: qui non si
       // tocca il tasto, se no lo riportava su ATTENDI appena armato. Ad armarlo
@@ -1968,6 +1969,34 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.timelineOrder.set(order);
     this.scheduleTimelineSend();
     this.vibrate(10);
+  }
+
+  /**
+   * Timeline ripresa dopo un refresh: se l'ordine è già sul server si mostra
+   * quello e non si rimanda; chi non ha mai risposto manda l'ordine iniziale,
+   * come all'avvio del round, così nessuno resta senza invio.
+   */
+  private restoreTimelineOrder(roundId: string, cards: Array<{ id: number }>): void {
+    const playerName = this.nickname();
+    if (!playerName) return;
+    this.gameService.timelineAnswer(this.gameId(), playerName, roundId).subscribe({
+      next: (saved: any) => {
+        // La TV può aver chiuso o cambiato round mentre la richiesta era in volo.
+        if (this.timelineRoundId !== roundId) return;
+        const cardIds = cards.map((card) => card.id);
+        const order = Array.isArray(saved?.order)
+          ? saved.order.map(Number).filter((id: number) => cardIds.includes(id))
+          : [];
+        if (saved?.answered && order.length === cardIds.length) {
+          this.timelineOrder.set(order);
+          return;
+        }
+        this.scheduleTimelineSend();
+      },
+      error: () => {
+        if (this.timelineRoundId === roundId) this.scheduleTimelineSend();
+      },
+    });
   }
 
   /** L'ordine è la risposta: si invia da solo, con un piccolo antirimbalzo. */

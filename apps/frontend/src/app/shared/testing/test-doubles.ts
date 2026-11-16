@@ -133,6 +133,20 @@ export class FakeGameService {
     return of({});
   }
 
+  readonly timelineAnswerCalls: Array<{ gameId: number; playerName: string; roundId: string }> = [];
+  /** Ordine che il server considera già inviato: la spec lo imposta per il rientro. */
+  savedTimelineOrder: number[] | null = null;
+
+  timelineAnswer(gameId: number, playerName: string, roundId: string): Observable<any> {
+    this.timelineAnswerCalls.push({ gameId, playerName, roundId });
+    return of({
+      roundId,
+      playerName,
+      answered: !!this.savedTimelineOrder,
+      order: this.savedTimelineOrder ?? [],
+    });
+  }
+
   readonly bombaStateCalls: Array<{ gameId: number; playerName: string }> = [];
 
   getBombaState(gameId: number, playerName: string): Observable<any> {

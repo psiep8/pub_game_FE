@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Risposte dei telefoni per i giochi simultanei.
@@ -155,6 +156,27 @@ public class PartyGamesController {
     @GetMapping("/{gameId}/timeline/reveal")
     public String timelineReveal(@PathVariable("gameId") Long gameId) {
         return partyGameService.timelineReveal(gameId).toString();
+    }
+
+    /**
+     * Ordine già inviato da questa squadra nel round aperto.
+     *
+     * <p>Serve al telefono dopo un refresh: ritrova la sua risposta invece di
+     * rimandare l'ordine iniziale, che sovrascriverebbe quello scelto. Se il
+     * giocatore non ha ancora risposto, `answered` è falso e il telefono usa
+     * l'ordine iniziale come risposta.</p>
+     */
+    @GetMapping("/{gameId}/timeline-answer")
+    public ResponseEntity<Object> timelineAnswer(@PathVariable("gameId") Long gameId,
+            @RequestParam(name = "playerName", required = false) String playerName,
+            @RequestParam(name = "roundId", required = false) String roundId) {
+        Optional<List<Integer>> saved = partyGameService.timelineAnswerOrder(gameId, roundId, playerName);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("roundId", roundId == null ? "" : roundId);
+        out.put("playerName", playerName == null ? "" : playerName.trim());
+        out.put("answered", saved.isPresent());
+        out.put("order", saved.orElse(List.of()));
+        return ResponseEntity.ok(out);
     }
 
     /**

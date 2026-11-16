@@ -160,6 +160,20 @@ export class GameService {
     });
   }
 
+  /**
+   * Timeline: ordine già inviato da questa squadra nel round aperto. Serve al
+   * telefono dopo un refresh per ritrovare la risposta invece di sovrascriverla.
+   */
+  timelineAnswer(
+    gameId: number,
+    playerName: string,
+    roundId: string,
+  ): Observable<{ answered: boolean; order: number[]; roundId: string; playerName: string }> {
+    return this.http.get<any>(`${this.baseUrl}/games/${gameId}/timeline-answer`, {
+      params: { playerName, roundId },
+    });
+  }
+
   /** Time Buzzer: il server dà il via alla manche e segna l'istante di partenza. */
   startTimeBuzzer(gameId: number, manche: number): Observable<{ startedAt: number; manche: number }> {
     return this.http.post<{ startedAt: number; manche: number }>(

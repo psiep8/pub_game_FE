@@ -1148,13 +1148,14 @@ describe('RemoteComponent', () => {
     expect(game.bombaStateCalls.at(-1)).toEqual({ gameId: component.gameId(), playerName: 'Anna' });
   });
 
-  it('dopo un refresh non rispedisce da solo un ordine Timeline mai toccato', async () => {
+  it('dopo un refresh ritrova l ordine Timeline già inviato senza rimandarlo', async () => {
     localStorage.setItem('nickname', 'Anna');
     reliability.resumedSession.set(true);
     await reloadPhone();
 
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     const submit = vi.spyOn(game, 'submitTimeline');
+    game.savedTimelineOrder = [2, 1];
     vi.useFakeTimers();
     try {
       reliability.syncState$.next({
@@ -1171,16 +1172,49 @@ describe('RemoteComponent', () => {
       });
 
       expect(component.gameState()).toBe(PlayerStatus.VOTING);
-      expect(component.orderedCards().map((card) => card.id)).toEqual([1, 2]);
+      // Il telefono ha riletto la sua risposta: è l'ordine scelto, non quello della TV.
+      expect(game.timelineAnswerCalls.at(-1)).toMatchObject({ playerName: 'Anna', roundId: 'r5' });
+      expect(component.orderedCards().map((card) => card.id)).toEqual([2, 1]);
 
       vi.advanceTimersByTime(600);
-      // L'ordine buono sta già sul server: rimandare quello iniziale lo
-      // sovrascriverebbe, quindi si aspetta che il giocatore tocchi una carta.
+      // L'ordine buono sta già sul server: non si rimanda nulla.
       expect(submit).not.toHaveBeenCalled();
 
-      component.moveCard(2, -1);
+      component.moveCard(2, 1);
       vi.advanceTimersByTime(400);
       expect(submit).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('dopo un refresh senza risposta Timeline invia l ordine iniziale', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const submit = vi.spyOn(game, 'submitTimeline');
+    game.savedTimelineOrder = null;
+    vi.useFakeTimers();
+    try {
+      reliability.syncState$.next({
+        hasState: true,
+        status: 'RUNNING',
+        roundType: 'TIMELINE',
+        roundKey: 'g1-r5',
+        roundDeadlineAt: Date.now() + 60_000,
+        currentRound: {
+          roundKey: 'g1-r5',
+          type: 'TIMELINE',
+          payload: { roundId: 'r5', items: [{ id: 1, label: 'A' }, { id: 2, label: 'B' }] },
+        },
+      });
+
+      vi.advanceTimersByTime(400);
+      // Chi non ha mai risposto non resta senza invio: vale l'ordine iniziale.
+      expect(submit).toHaveBeenCalledTimes(1);
+      expect(submit.mock.calls.at(-1)?.[2]).toEqual([1, 2]);
     } finally {
       vi.useRealTimers();
     }
