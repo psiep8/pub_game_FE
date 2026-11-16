@@ -1,5 +1,13 @@
 # Changelog
 
+## 16 novembre 2026 — Time Buzzer e guardia sul bonus dell'atto
+
+- Time Buzzer: la TV riprende la manche dal checkpoint (bersaglio, tempi dei telefoni, eliminati, fase) e il via resta quello già salvato sul server, che è idempotente; il cronometro riparte dal tempo che resta.
+- Una manche già rivelata non viene ricalcolata dopo un refresh: i punti sono già pagati e restano tali.
+- La preparazione interrotta (slot, bersaglio, countdown) riparte dallo stesso bersaglio salvato, senza cambiare il numero ai telefoni.
+- Bonus dell'atto: la TV ricorda per partita quali atti ha chiuso e pagato, in storage; uno snapshot ancora `STARTED` non riapre più un bonus già accreditato.
+- Verifiche: 5 test Time Buzzer, 1 test TV sulla guardia del bonus, suite completa frontend (335 test su 45 file).
+
 ## 16 novembre 2026 — Ruota, Celebrità e bonus dell'atto riprendibili
 
 - Il bonus di fine atto è sul server (`bonus-act`, endpoint `/games/{id}/bonus-state`): la TV segna quando parte e quando si chiude, così un refresh durante la classifica non lo salta più.
