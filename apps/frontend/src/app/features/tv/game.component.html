@@ -266,12 +266,14 @@
   <app-blackjack [displayData]="getSafeDisplayData()" [timer]="timer()" />
   }
   @case ('BIGLIE') {
-  <app-biglie-bonus
-    [gameId]="currentGameId() ?? 1"
-    [players]="bonusPlayers()"
-    [roundMode]="true"
-    (result)="onBiglieRoundResult($event)"
-    (finished)="finishBiglieRound()" />
+      <app-biglie-bonus
+      [gameId]="currentGameId() ?? 1"
+      [players]="bonusPlayers()"
+      [roundMode]="true"
+      [resume]="biglieResume()"
+      (checkpoint)="onBiglieCheckpoint($event)"
+      (result)="onBiglieRoundResult($event)"
+      (finished)="finishBiglieRound()" />
   }
   }
 </div>

@@ -402,8 +402,12 @@ export class BiglieBonus implements OnInit, OnDestroy {
   @Input() preview = false;
   /** Round della scaletta: i punti entrano in classifica, non in un bonus. */
   @Input() roundMode = false;
+  /** Round interrotto da un refresh: si riparte dallo stato salvato. */
+  @Input() resume: any | null = null;
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
+  /** Stato del round (biglie assegnate, gare chiuse, classifica) per il server. */
+  @Output() checkpoint = new EventEmitter<any>();
 
   @ViewChild('raceCanvas') private raceCanvas?: ElementRef<HTMLCanvasElement>;
 
@@ -459,7 +463,152 @@ export class BiglieBonus implements OnInit, OnDestroy {
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       this.onStatus(status);
     });
+    if (this.resume) {
+      this.applyResume(this.resume);
+      return;
+    }
     this.later(this.preview ? 200 : 700, () => this.startIntro());
+  }
+
+  /**
+   * Riprende il round senza rigiocare i punti: biglie assegnate, gare chiuse e
+   * classifica tornano dal checkpoint. La fisica invece non si può riprendere,
+   * quindi se la TV è caduta durante una gara quella gara si rigioca: i punti
+   * delle gare già chiuse non vengono rimandati, perché sono già in classifica.
+   */
+  private applyResume(state: any): void {
+    const savedMarbles = Array.isArray(state?.marbles)
+      ? state.marbles
+        .filter((marble: any) => marble && typeof marble.id === 'string' && typeof marble.name === 'string')
+        .map((marble: any) => ({
+          id: String(marble.id),
+          name: String(marble.name),
+          color: String(marble.color ?? '#94a3b8'),
+          emoji: String(marble.emoji ?? '⚪'),
+          speed: Number(marble.speed) || 0,
+          accel: Number(marble.accel) || 0,
+          grip: Number(marble.grip) || 0,
+        }))
+      : [];
+    this.marbleSet = savedMarbles.length
+      ? savedMarbles
+      : this.buildMarbleSet(this.players.length);
+
+    this.pickOrder = Array.isArray(state?.pickOrder)
+      ? state.pickOrder.map((name: any) => String(name)).filter((name: string) => this.players.includes(name))
+      : [...this.players];
+    if (!this.pickOrder.length) this.pickOrder = [...this.players];
+
+    const cursor = Number(state?.pickCursor);
+    this.pickCursor = Number.isFinite(cursor)
+      ? Math.min(Math.max(0, Math.floor(cursor)), this.pickOrder.length)
+      : 0;
+
+    this.assignments.clear();
+    if (Array.isArray(state?.assignments)) {
+      for (const row of state.assignments) {
+        if (!Array.isArray(row)) continue;
+        const playerName = String(row[0]).trim();
+        const marbleId = String(row[1]).trim();
+        if (!this.players.includes(playerName)) continue;
+        if (!this.marbleSet.some((marble) => marble.id === marbleId)) continue;
+        this.assignments.set(playerName, marbleId);
+      }
+    }
+    this.syncMarbles();
+
+    this.totals.clear();
+    this.players.forEach((playerName) => this.totals.set(playerName, 0));
+    if (Array.isArray(state?.totals)) {
+      for (const row of state.totals) {
+        if (!Array.isArray(row)) continue;
+        this.totals.set(String(row[0]).trim(), Number(row[1]) || 0);
+      }
+    }
+
+    const rows = (value: any): RaceRow[] => Array.isArray(value)
+      ? value
+        .filter((row: any) => row && typeof row.playerName === 'string')
+        .map((row: any) => ({
+          playerName: String(row.playerName),
+          marbleId: String(row.marbleId ?? ''),
+          position: Number(row.position) || 0,
+          points: Number(row.points) || 0,
+          total: Number(row.total) || 0,
+        }))
+      : [];
+    this.standings.set(rows(state?.standings));
+    this.raceResult.set(Array.isArray(state?.raceResult) ? rows(state.raceResult) : null);
+
+    const savedIndex = Number(state?.raceIndex);
+    this.raceIndex.set(Number.isFinite(savedIndex)
+      ? Math.min(Math.max(0, Math.floor(savedIndex)), TRACKS.length)
+      : 0);
+
+    const savedSeconds = Number(state?.secondsLeft);
+    const savedAt = Number(state?.savedAt);
+    const elapsed = Number.isFinite(savedAt) && savedAt > 0
+      ? Math.max(0, Math.floor((Date.now() - savedAt) / 1000))
+      : 0;
+    const seconds = Number.isFinite(savedSeconds) ? Math.max(0, Math.round(savedSeconds) - elapsed) : 0;
+
+    const phase = String(state?.phase ?? '');
+
+    if (phase === Phase.FINALE) {
+      this.phase.set(Phase.FINALE);
+      this.secondsLeft.set(0);
+      this.publish();
+      this.later((seconds > 0 ? seconds : FINALE_SECONDS) * 1000, () => this.finished.emit());
+      return;
+    }
+
+    if (phase === Phase.PICK) {
+      this.phase.set(Phase.PICK);
+      const player = this.pickOrder[this.pickCursor] ?? null;
+      this.currentPlayer.set(player);
+      if (!player) {
+        void this.startRace(this.raceIndex());
+        return;
+      }
+      this.startClock(seconds > 0 ? seconds : PICK_SECONDS, () => this.autoPick());
+      return;
+    }
+
+    if (phase === Phase.RACE_END) {
+      // Gara già pagata: si rivede l'ordine d'arrivo e si passa alla prossima.
+      this.phase.set(Phase.RACE_END);
+      this.publish();
+      this.startClock(
+        seconds > 0 ? seconds : BETWEEN_SECONDS,
+        () => void this.startRace(this.raceIndex() + 1),
+      );
+      return;
+    }
+
+    if (phase === Phase.RACE) {
+      // La gara interrotta si rigioca: i punti si pagano solo alla sua fine.
+      void this.startRace(this.raceIndex());
+      return;
+    }
+
+    this.startIntro();
+  }
+
+  /** Biglie, gare chiuse e classifica: tutto ciò che una gara non ricalcola. */
+  private saveCheckpoint(): void {
+    this.checkpoint.emit({
+      phase: this.phase(),
+      secondsLeft: this.secondsLeft(),
+      savedAt: Date.now(),
+      raceIndex: this.raceIndex(),
+      pickOrder: [...this.pickOrder],
+      pickCursor: this.pickCursor,
+      marbles: this.marbleSet.map((marble) => ({ ...marble })),
+      assignments: [...this.assignments],
+      totals: [...this.totals],
+      standings: this.standings(),
+      raceResult: this.raceResult(),
+    });
   }
 
   ngOnDestroy(): void {
@@ -528,6 +677,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
     this.phase.set(Phase.INTRO);
     this.secondsLeft.set(seconds);
     this.publish();
+    this.saveCheckpoint();
     this.startClock(seconds, () => this.preparePick());
   }
 
@@ -557,12 +707,14 @@ export class BiglieBonus implements OnInit, OnDestroy {
     if (this.preview) {
       this.secondsLeft.set(0);
       this.publish();
+      this.saveCheckpoint();
       this.later(220, () => this.previewPick());
       return;
     }
 
     this.secondsLeft.set(PICK_SECONDS);
     this.publish();
+    this.saveCheckpoint();
     this.startClock(PICK_SECONDS, () => this.autoPick());
   }
 
@@ -652,6 +804,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
       position: null,
     })));
     this.publish();
+    this.saveCheckpoint();
 
     try {
       const Matter = await this.ensureMatter();
@@ -1114,6 +1267,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
     this.phase.set(Phase.RACE_END);
     this.secondsLeft.set(BETWEEN_SECONDS);
     this.publish();
+    this.saveCheckpoint();
 
     this.startClock(this.preview ? 1 : BETWEEN_SECONDS, () => {
       void this.startRace(this.raceIndex() + 1);
@@ -2184,6 +2338,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
     this.phase.set(Phase.FINALE);
     this.secondsLeft.set(FINALE_SECONDS);
     this.publish();
+    this.saveCheckpoint();
     this.startClock(FINALE_SECONDS, () => this.finished.emit());
   }
 

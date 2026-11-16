@@ -382,6 +382,19 @@ describe('GameComponent', () => {
     expect(component.recoveredRound()?.resumable).toBe(true);
   });
 
+  it('propone di riprendere Biglie e passa la gara salvata al componente', () => {
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+    const state = { phase: 'RACE_END', raceIndex: 1, standings: [], raceResult: [] };
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'RUNNING', roundType: 'BIGLIE', roundIndex: 10, roundKey: 'g1-r10',
+      roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
+      tvCheckpoint: { mode: 'BIGLIE', roundKey: 'g1-r10', startedAt: 1, revision: 4, state },
+    });
+
+    expect(component.recoveredRound()?.resumable).toBe(true);
+    expect(component.biglieResume()).toEqual(state);
+  });
+
   it('non usa un checkpoint di un\'altra modalità', () => {
     const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
     tv.applyAuthoritativeState({

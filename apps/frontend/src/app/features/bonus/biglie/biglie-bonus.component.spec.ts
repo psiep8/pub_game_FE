@@ -1,0 +1,162 @@
+import { TestBed } from '@angular/core/testing';
+import { BiglieBonus } from './biglie-bonus.component';
+import { WebSocketService } from '../../../core/websocket/web-socket.service';
+import { FakeWebSocketService } from '../../../shared/testing/test-doubles';
+
+const MARBLES = [
+  { id: 'fulmine', name: 'FULMINE', color: '#facc15', emoji: '⚡', speed: 10, accel: 6, grip: 3 },
+  { id: 'scheggia', name: 'SCHEGGIA', color: '#fb7185', emoji: '🔥', speed: 8, accel: 9, grip: 3 },
+];
+
+const ROWS = [
+  { playerName: 'Anna', marbleId: 'fulmine', position: 1, points: 150, total: 150 },
+  { playerName: 'Bruno', marbleId: 'scheggia', position: 2, points: 100, total: 100 },
+];
+
+describe('BiglieBonus — ripresa dopo un refresh della TV', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [BiglieBonus],
+      providers: [{ provide: WebSocketService, useClass: FakeWebSocketService }],
+    }).compileComponents();
+  });
+
+  function mount(resume: any = null) {
+    const fixture = TestBed.createComponent(BiglieBonus);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('gameId', 1);
+    fixture.componentRef.setInput('players', ['Anna', 'Bruno']);
+    fixture.componentRef.setInput('roundMode', true);
+    if (resume) fixture.componentRef.setInput('resume', resume);
+
+    const results: any[] = [];
+    const checkpoints: any[] = [];
+    const finished: number[] = [];
+    component.result.subscribe((result) => results.push(result));
+    component.checkpoint.subscribe((checkpoint) => checkpoints.push(checkpoint));
+    component.finished.subscribe(() => finished.push(1));
+
+    fixture.detectChanges();
+    return { fixture, component, results, checkpoints, finished };
+  }
+
+  it('salva il round appena parte', () => {
+    vi.useFakeTimers();
+    const { checkpoints, fixture } = mount();
+
+    vi.advanceTimersByTime(800);
+
+    const state = checkpoints.at(-1);
+    expect(state.phase).toBe('INTRO');
+    expect(state.raceIndex).toBe(0);
+    // L'ordine di scelta si sorteggia dopo l'intro.
+    expect(state.pickOrder).toEqual([]);
+    expect(state.assignments).toEqual([]);
+
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('riprende la scelta della biglia dal giocatore giusto', () => {
+    const { component, fixture } = mount({
+      phase: 'PICK',
+      secondsLeft: 10,
+      savedAt: Date.now() - 3000,
+      raceIndex: 0,
+      pickOrder: ['Anna', 'Bruno'],
+      pickCursor: 1,
+      marbles: MARBLES,
+      assignments: [['Anna', 'fulmine']],
+      totals: [],
+      standings: [],
+      raceResult: null,
+    });
+
+    expect(component.phase()).toBe('PICK');
+    expect(component.currentPlayer()).toBe('Bruno');
+    expect(component.secondsLeft()).toBe(7);
+    // La biglia già scelta resta assegnata ad Anna.
+    expect(component.marbles().find((marble) => marble.id === 'fulmine')?.owner).toBe('Anna');
+
+    fixture.destroy();
+  });
+
+  it('una gara già pagata non viene rigiocata né ripagata', () => {
+    vi.useFakeTimers();
+    const { component, results, fixture } = mount({
+      phase: 'RACE_END',
+      secondsLeft: 4,
+      savedAt: Date.now(),
+      raceIndex: 1,
+      pickOrder: ['Anna', 'Bruno'],
+      pickCursor: 2,
+      marbles: MARBLES,
+      assignments: [['Anna', 'fulmine'], ['Bruno', 'scheggia']],
+      totals: [['Anna', 150], ['Bruno', 100]],
+      standings: ROWS,
+      raceResult: ROWS,
+    });
+
+    expect(component.phase()).toBe('RACE_END');
+    expect(component.standings()).toEqual(ROWS);
+    // I punti erano già in classifica: la ripresa non li rimanda alla TV.
+    expect(results).toEqual([]);
+
+    vi.advanceTimersByTime(4100);
+    expect(component.raceIndex()).toBe(2);
+
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('riprende la classifica finale e chiude il round', () => {
+    vi.useFakeTimers();
+    const { component, results, finished, fixture } = mount({
+      phase: 'FINALE',
+      secondsLeft: 7,
+      savedAt: Date.now(),
+      raceIndex: 4,
+      pickOrder: ['Anna', 'Bruno'],
+      pickCursor: 2,
+      marbles: MARBLES,
+      assignments: [['Anna', 'fulmine'], ['Bruno', 'scheggia']],
+      totals: [['Anna', 250], ['Bruno', 200]],
+      standings: ROWS,
+      raceResult: ROWS,
+    });
+
+    expect(component.phase()).toBe('FINALE');
+    expect(component.standings()).toEqual(ROWS);
+    expect(results).toEqual([]);
+
+    vi.advanceTimersByTime(7100);
+    expect(finished).toHaveLength(1);
+
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('la gara interrotta riparte senza perdere le gare già chiuse', () => {
+    const { component, results, fixture } = mount({
+      phase: 'RACE',
+      secondsLeft: 20,
+      savedAt: Date.now(),
+      raceIndex: 2,
+      pickOrder: ['Anna', 'Bruno'],
+      pickCursor: 2,
+      marbles: MARBLES,
+      assignments: [['Anna', 'fulmine'], ['Bruno', 'scheggia']],
+      totals: [['Anna', 150], ['Bruno', 100]],
+      standings: ROWS,
+      raceResult: null,
+    });
+
+    expect(component.phase()).toBe('RACE');
+    expect(component.raceIndex()).toBe(2);
+    // Il tabellone delle gare precedenti resta, i punti non si rimandano.
+    expect(component.standings()).toEqual(ROWS);
+    expect(results).toEqual([]);
+
+    fixture.destroy();
+  });
+});

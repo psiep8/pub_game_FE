@@ -212,6 +212,8 @@ export class GameComponent implements OnInit, OnDestroy {
     /** Checkpoint TV del round precedente: uno solo, con la modalità che lo ha scritto. */
   private recoveredTvCheckpoint: { type: GameModeType; value: any } | null = null;
   private recoveredRoundIndex: number | null = null;
+  /** Stato del round Biglie da riprendere, letto dal checkpoint del server. */
+  readonly biglieResume = signal<any | null>(null);
   private leaderboardFlush?: ReturnType<typeof setTimeout>;
   /** Ultima variazione locale e ultima confermata dal server. */
   private leaderboardPendingSeq = 0;
@@ -1302,7 +1304,21 @@ export class GameComponent implements OnInit, OnDestroy {
 
     this.ws.broadcastStatus(this.currentGameId()!, { action: WsAction.ROUND_ENDED });
     this.roundManager.completeRound('BIGLIE');
+    // Round chiuso: lo stato salvato non deve riaprire una gara già pagata.
+    this.biglieResume.set(null);
     this.checkLeaderboardDisplay();
+  }
+
+  /** Le Biglie salvano gare chiuse e classifica: un refresh non rigioca i punti. */
+  onBiglieCheckpoint(state: any): void {
+    const roundIndex = this.tvRoundIndex();
+    if (!state || roundIndex == null) return;
+    this.reliability.saveTvCheckpoint({
+      mode: 'BIGLIE',
+      revision: Date.now(),
+      state,
+      roundIndex,
+    });
   }
 
   private onModeTimeout() {
@@ -2387,6 +2403,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.recoveredPayload = null;
       this.recoveredTvCheckpoint = null;
       this.recoveredRoundIndex = null;
+      this.biglieResume.set(null);
       return;
     }
     if (this.currentMode() || this.bonusActive() || this.isSpinning() || this.showTypeReveal()) return;
@@ -2399,6 +2416,10 @@ export class GameComponent implements OnInit, OnDestroy {
     this.recoveredTvCheckpoint = checkpoint && String(checkpoint.mode ?? '') === type
       ? { type: type as GameModeType, value: checkpoint }
       : null;
+    // Le Biglie non usano `mode.restore`: il componente legge lo stato da qui.
+    this.biglieResume.set(type === 'BIGLIE' && this.recoveredTvCheckpoint
+      ? this.recoveredTvCheckpoint.value.state ?? null
+      : null);
     this.recoveredRound.set({
       type: type as GameModeType,
       label: this.getModeName(type),
@@ -2506,6 +2527,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.recoveredBlackjackState = null;
     this.recoveredTvCheckpoint = null;
     this.recoveredRoundIndex = null;
+    this.biglieResume.set(null);
     this.reliability.saveBlackjackState(null);
     this.gameService.closeRound(this.currentGameId(), 'recovered').subscribe({
       next: () => {
