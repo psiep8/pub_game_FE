@@ -104,16 +104,17 @@ describe('LeaderboardService', () => {
     expect(service.renamePlayer('Nessuno', 'Nuovo')).toBe(false);
   });
 
-  it('toglie le squadre a zero punti non più collegate', () => {
+  it('toglie solo le squadre a zero punti indicate come assenti', () => {
     service.addPoints('Anna', 0, false);
     service.addPoints('Bruno', 0, false);
     service.addPoints('Carla', 50, true);
 
-    expect(service.forgetAbsent(['Anna'])).toEqual(['Bruno']);
+    expect(service.forgetAbsent(['Bruno', 'Carla'])).toEqual(['Bruno']);
 
+    // Anna non è nell'elenco degli assenti: resta anche a zero punti.
     expect(service.getPlayerStats('Anna')).not.toBeNull();
     expect(service.getPlayerStats('Bruno')).toBeNull();
-    // Chi ha giocato resta in classifica anche se il telefono è staccato.
+    // Chi ha giocato resta in classifica anche se è assente.
     expect(service.getPlayerStats('Carla')?.totalPoints).toBe(50);
   });
 

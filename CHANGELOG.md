@@ -4,8 +4,8 @@
 
 - `JOIN_GAME` porta anche il `deviceId`, lo stesso identificativo stabile già usato per la sessione: la TV riconosce il telefono che rientra con un nome nuovo e sposta la squadra invece di crearne una seconda. Palette scelta, palette assegnata, memoria del colore, presenze e punti in classifica seguono il nuovo nome; i punti del round in corso passano al nuovo nome, così il verdetto del round resta corretto.
 - Un nome nuovo da un **altro** telefono resta una squadra nuova, con una palette libera e distinta.
-- Nella lobby la TV toglie dalla classifica le squadre a zero punti che non risultano più collegate e ne libera le palette: un telefono chiuso non lascia più righe fantasma né colori occupati. Chi ha già punti resta in tabella.
-- Verifiche: 9 test nuovi (4 sulla classifica, 2 sul servizio tema, 3 sul componente TV) e suite completa (433 test su 49 file).
+- Nella lobby la TV toglie dalla classifica le squadre a zero punti che non risultano più collegate e ne libera le palette: un telefono chiuso non lascia più righe fantasma né colori occupati. Chi ha già punti resta in tabella. La pulizia è tollerante: serve una fotografia che abbia visto la squadra e poi due assenze consecutive, quindi una rilevazione in ritardo non fa sparire chi è appena entrato.
+- Verifiche: 10 test nuovi (4 sulla classifica, 2 sul servizio tema, 4 sul componente TV) e suite completa (434 test su 49 file).
 
 ## 16 novembre 2026 — Palette di default per squadra: il tema del vincitore si vede (F12)
 

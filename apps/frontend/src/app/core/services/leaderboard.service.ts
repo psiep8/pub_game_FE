@@ -134,20 +134,22 @@ export class LeaderboardService {
   }
 
   /**
-   * Toglie le squadre a zero punti che non sono più collegate.
+   * Toglie le squadre a zero punti indicate come assenti.
    *
    * <p>Un telefono che chiude la pagina lascia una riga in classifica: se non ha
-   * ancora punti non è nessuno, e va via. Chi ha giocato resta comunque.</p>
+   * ancora punti non è nessuno, e va via. Chi ha giocato resta comunque. Decide
+   * la TV <em>quali</em> nomi sono assenti, perché una sola fotografia delle
+   * presenze può essere in ritardo e non deve far sparire chi è appena entrato.</p>
    *
    * @returns i nomi tolti, così la TV può liberare le loro palette.
    */
-  forgetAbsent(connected: string[]): string[] {
-    const present = new Set(connected.map((name) => name.trim()).filter(Boolean));
+  forgetAbsent(absent: string[]): string[] {
+    const candidates = new Set(absent.map((name) => name.trim()).filter(Boolean));
     const players = new Map(this.players());
     const removed: string[] = [];
 
     for (const [name, entry] of players) {
-      if (entry.totalPoints !== 0 || present.has(name)) continue;
+      if (entry.totalPoints !== 0 || !candidates.has(name)) continue;
       players.delete(name);
       removed.push(name);
     }

@@ -683,7 +683,7 @@ describe('GameComponent', () => {
     expect(theme.themeForTeam('Anna')).toBe(anna);
   });
 
-  it('toglie dalla classifica le squadre a zero punti non più collegate', async () => {
+  it('toglie una squadra a zero punti solo dopo due fotografie senza', async () => {
     const theme = component.theme;
     ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna', deviceId: 'dev-1' });
     ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Bruno', deviceId: 'dev-2' });
@@ -692,19 +692,51 @@ describe('GameComponent', () => {
     component.currentGameId.set(1);
     // La revisione delle presenze gira solo nella lobby, non durante un round.
     component.phase.set('IDLE');
+    const tv = component as unknown as { refreshLobbyPresence(): Promise<void> };
+
+    // Prima fotografia: Bruno c'è, ed è la prova che era collegato.
+    reliability.diagnosticsResult = {
+      presence: [
+        { connected: true, role: 'REMOTE', playerName: 'Anna' },
+        { connected: true, role: 'REMOTE', playerName: 'Bruno' },
+      ],
+    };
+    await tv.refreshLobbyPresence();
+    expect(leaderboard.getPlayerStats('Bruno')).not.toBeNull();
+
+    // Fotografia in ritardo che non lo vede: non basta, resta.
     reliability.diagnosticsResult = {
       presence: [{ connected: true, role: 'REMOTE', playerName: 'Anna' }],
     };
-    const tv = component as unknown as { refreshLobbyPresence(): Promise<void> };
     await tv.refreshLobbyPresence();
+    expect(leaderboard.getPlayerStats('Bruno')).not.toBeNull();
 
-    // Bruno non è più collegato e non ha punti: sparisce, con la sua palette.
+    // Seconda fotografia consecutiva senza: ora sparisce, con la sua palette.
+    await tv.refreshLobbyPresence();
     expect(leaderboard.getPlayerStats('Bruno')).toBeNull();
     expect(leaderboard.getPlayerStats('Anna')).not.toBeNull();
     expect(theme.themeForTeam('Bruno')).toBe('editorial-acid');
 
     ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Carla', deviceId: 'dev-3' });
     expect(theme.themeForTeam('Carla')).toBe(bruno);
+  });
+
+  it('non toglie una squadra appena entrata che la fotografia non vede ancora', async () => {
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna', deviceId: 'dev-1' });
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Bruno', deviceId: 'dev-2' });
+
+    component.currentGameId.set(1);
+    component.phase.set('IDLE');
+    // Diagnostica in ritardo: vede solo Anna, perché Bruno è appena entrato.
+    reliability.diagnosticsResult = {
+      presence: [{ connected: true, role: 'REMOTE', playerName: 'Anna' }],
+    };
+    const tv = component as unknown as { refreshLobbyPresence(): Promise<void> };
+    await tv.refreshLobbyPresence();
+    await tv.refreshLobbyPresence();
+
+    // Mai vista in una fotografia: non si può dire che sia andata via.
+    expect(leaderboard.getPlayerStats('Bruno')).not.toBeNull();
   });
 
   it('tratta il rientro con un nome diverso come una squadra nuova', () => {

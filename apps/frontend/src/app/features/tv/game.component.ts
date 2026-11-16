@@ -56,6 +56,12 @@ import { levelForOccurrence } from '../games/azzardo/azzardo-rules';
 import { Blackjack } from '../games/blackjack/blackjack.component';
 import { DemoScript, demoScriptFor } from './demo-scripts';
 import { REVEAL_DELAY_MS, scoringRuleFor } from '../../shared/models/scoring-rules';
+
+/**
+ * Quante fotografie delle presenze devono mancare prima di togliere una squadra
+ * a zero punti. Una sola può essere in ritardo: chi è appena entrato sparirebbe.
+ */
+const PRESENCE_MISSES_BEFORE_FORGET = 2;
 import { BonusType, BONUS_LABELS, BONUS_TYPES } from '../../shared/models/bonus-type';
 import { CasinoBonus } from '../bonus/casino/casino-bonus.component';
 import { CavalloBonus } from '../bonus/cavallo/cavallo-bonus.component';
@@ -280,6 +286,9 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly presencePlayers = signal<string[]>([]);
   /** Telefono (deviceId) → nome attuale: serve a riconoscere un rientro rinominato. */
   private readonly deviceNames = new Map<string, string>();
+  /** Nomi già visti in una fotografia delle presenze, e assenze consecutive. */
+  private readonly seenInPresence = new Set<string>();
+  private readonly presenceMisses = new Map<string, number>();
   /** Codice di abbinamento regia, con l'ora di scadenza già formattata. */
   readonly pairingCode = signal<string | null>(null);
   readonly pairingExpiresAt = signal('');
@@ -702,11 +711,34 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Toglie dalla classifica le squadre a zero punti che non sono più collegate
-   * (telefono chiuso): le loro palette tornano libere.
+   * Toglie dalla classifica le squadre a zero punti non più collegate, ma solo
+   * dopo due fotografie consecutive senza: una singola fotografia può essere in
+   * ritardo e non vede ancora chi è appena entrato.
    */
   private forgetAbsentTeams(): void {
-    const removed = this.leaderboardService.forgetAbsent(this.presencePlayers());
+    const present = new Set(this.presencePlayers().map((name) => name.trim()).filter(Boolean));
+    const absent: string[] = [];
+
+    for (const { playerName } of this.leaderboardService.getLeaderboard()) {
+      if (present.has(playerName)) {
+        this.seenInPresence.add(playerName);
+        this.presenceMisses.delete(playerName);
+        continue;
+      }
+      // Mai vista in una fotografia: è appena entrata, non si tocca.
+      if (!this.seenInPresence.has(playerName)) continue;
+
+      const misses = (this.presenceMisses.get(playerName) ?? 0) + 1;
+      if (misses < PRESENCE_MISSES_BEFORE_FORGET) {
+        this.presenceMisses.set(playerName, misses);
+        continue;
+      }
+      this.presenceMisses.delete(playerName);
+      this.seenInPresence.delete(playerName);
+      absent.push(playerName);
+    }
+
+    const removed = this.leaderboardService.forgetAbsent(absent);
     for (const name of removed) {
       this.theme.releaseTeamTheme(name);
       for (const [deviceId, playerName] of this.deviceNames) {
