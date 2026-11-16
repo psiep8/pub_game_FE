@@ -1093,6 +1093,8 @@ export class GameComponent implements OnInit, OnDestroy {
       );
 
       this.currentMode.set(mode);
+      // Ogni gioco porta il suo tappeto: cambia la battuta dopo, senza stacco.
+      this.audioService.setGameBed(mode.type);
 
       if (mode.requiresBubbles && categories.length > 0) {
         const bubblePool = this.bubbleCategories();
@@ -1883,6 +1885,7 @@ export class GameComponent implements OnInit, OnDestroy {
     // Un bonus è fuori dal round: chiude il conteggio se era ancora aperto.
     this.settleRoundWinner();
     this.bonusEntrance.set(type);
+    this.audioService.setGameBed(type);
     this.audioService.playBonusEntrance(type);
     this.bonusEntranceTimer = setTimeout(() => {
       this.bonusEntrance.set(null);
@@ -2028,6 +2031,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
     this.bonusActive.set(false);
     this.currentMode.set(null);
+    this.audioService.setGameBed(null);
     this.showQuestion.set(false);
     this.phase.set('QUESTION');
 
@@ -2753,6 +2757,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.buildModeConfig(pending.type, payload, this.bonusPlayers()),
     );
     this.currentMode.set(mode);
+    this.audioService.setGameBed(mode.type);
     this.timer.set(pending.secondsLeft);
     this.audioService.startClock();
     this.startRoundSuspense(mode.type);

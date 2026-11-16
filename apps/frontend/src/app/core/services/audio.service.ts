@@ -20,12 +20,13 @@ import {
   pluck,
 } from './audio-dsp';
 import {
-  PUB_BED_SECONDS_PER_BAR,
-  PUB_BED_SECONDS_PER_BEAT,
-  PUB_BED_TOTAL_BARS,
+  bedBar,
+  bedForGame,
+  bedSecondsPerBar,
+  bedSecondsPerBeat,
   midiToFrequency,
-  pubBedBar,
-} from './pub-bed';
+  type BedProfile,
+} from './bed-profiles';
 
 interface ToneOptions {
   freq: number;
@@ -79,6 +80,8 @@ export class AudioService {
   private ambientInterval?: ReturnType<typeof setInterval>;
   private ambientBar = 0;
   private ambientNextBarAt = 0;
+  /** Tappeto attivo: uno per gioco, deciso da `setGameBed`. */
+  private bedProfile: BedProfile = bedForGame(null);
   private ambientNoise?: AudioBufferSourceNode;
   private ambientNoiseGain?: GainNode;
   private master?: GainNode;
@@ -954,12 +957,14 @@ export class AudioService {
   }
 
   /**
-   * Tappeto del pub: giro di venti minuti generato a ogni battuta, senza file
-   * né tagli. Basso, spazzole e melodia entrano a sezioni, così la ripetizione
-   * non si sente e non c'è nessun mp3 da scaricare.
+   * Tappeto musicale della serata, generato a ogni battuta: nessun file, nessun
+   * taglio. `gameType` sceglie il tappeto del gioco; senza argomento resta
+   * quello del gioco in corso (o la lobby).
    */
-  startAmbient(): void {
-    if (!this.audioEnabled() || this.ambientInterval) return;
+  startAmbient(gameType?: string | null): void {
+    if (!this.audioEnabled()) return;
+    if (gameType !== undefined) this.setGameBed(gameType);
+    if (this.ambientInterval) return;
     const ctx = this.ensureContext();
     if (!ctx) return;
 
@@ -968,6 +973,24 @@ export class AudioService {
     this.startVinyl(ctx);
     this.ambientInterval = setInterval(() => this.scheduleAmbient(), 250);
     this.scheduleAmbient();
+  }
+
+  /**
+   * Cambia il tappeto: il gioco appena partito ha il suo. La battuta in corso
+   * finisce com'era, la successiva parte col nuovo tempo e i nuovi strumenti,
+   * così non si sente uno stacco.
+   */
+  setGameBed(gameType: string | null | undefined): void {
+    const next = bedForGame(gameType);
+    if (next.id === this.bedProfile.id) return;
+    this.bedProfile = next;
+    this.ambientBar = 0;
+    // Se il tappeto sta suonando, la prossima battuta usa già il nuovo giro.
+  }
+
+  /** Tappeto attivo: la regia lo mostra e i test lo controllano. */
+  currentBed(): BedProfile {
+    return this.bedProfile;
   }
 
   stopAmbient(): void {
@@ -991,19 +1014,21 @@ export class AudioService {
     const ctx = this.audioContext;
     if (!ctx || !this.ambientInterval || !this.audioEnabled()) return;
 
+    const barSeconds = bedSecondsPerBar(this.bedProfile);
+
     // Scheda in background: il timer arranca. Si salta al punto giusto invece
     // di scaricare tutte le battute arretrate in un colpo.
     if (this.ambientNextBarAt < ctx.currentTime) {
-      const skipped = Math.ceil((ctx.currentTime - this.ambientNextBarAt) / PUB_BED_SECONDS_PER_BAR);
-      this.ambientBar = (this.ambientBar + skipped) % PUB_BED_TOTAL_BARS;
-      this.ambientNextBarAt += skipped * PUB_BED_SECONDS_PER_BAR;
+      const skipped = Math.ceil((ctx.currentTime - this.ambientNextBarAt) / barSeconds);
+      this.ambientBar = (this.ambientBar + skipped) % 4096;
+      this.ambientNextBarAt += skipped * barSeconds;
     }
 
     const horizon = ctx.currentTime + 1.2;
     while (this.ambientNextBarAt < horizon) {
       this.scheduleAmbientBar(this.ambientBar, this.ambientNextBarAt);
-      this.ambientBar = (this.ambientBar + 1) % PUB_BED_TOTAL_BARS;
-      this.ambientNextBarAt += PUB_BED_SECONDS_PER_BAR;
+      this.ambientBar = (this.ambientBar + 1) % 4096;
+      this.ambientNextBarAt += barSeconds;
     }
   }
 
@@ -1011,10 +1036,11 @@ export class AudioService {
     const ctx = this.audioContext;
     if (!ctx) return;
 
-    const bar = pubBedBar(barIndex);
+    const profile = this.bedProfile;
+    const bar = bedBar(profile, barIndex);
     // Il tappeto non passa dal bus dell'evento: suona sempre al suo volume.
     const bus = this.room(ctx);
-    const beatSeconds = PUB_BED_SECONDS_PER_BEAT;
+    const beatSeconds = bedSecondsPerBeat(profile);
     // Il tappeto suona sotto gli effetti: le note del giro restano scritte
     // piano nel generatore, qui si porta il trio a volume di sala.
     const BED_GAIN = 4;
@@ -1073,43 +1099,65 @@ export class AudioService {
         case 'brush':
           noiseVoice(ctx, bus, {
             at,
-            duration: 0.09,
+            duration: 0.11,
             gain: note.gain * BED_GAIN,
-            freq: 3200,
-            q: 0.9,
-            attack: 0.006,
-            release: 0.08,
+            freq: 3400,
+            q: 0.8,
+            attack: 0.004,
+            release: 0.1,
+            pan: note.pan,
+          });
+          break;
+        case 'marimba':
+          // Legno intonato: fondamentale e ottava, coda corta.
+          modal(ctx, bus, {
+            at,
+            gain: note.gain * BED_GAIN,
+            partials: [
+              { freq, decay: Math.min(0.5, note.duration), q: 40 },
+              { freq: freq * 3.93, decay: 0.12, q: 60, gain: 0.3 },
+            ],
+            strike: { freq: 1600, q: 2, duration: 0.02, gain: note.gain * BED_GAIN * 0.8 },
+            pan: note.pan,
+          });
+          break;
+        case 'shaker':
+          noiseVoice(ctx, bus, {
+            at,
+            duration: 0.07,
+            gain: note.gain * BED_GAIN,
+            freq: 6200,
+            q: 0.7,
+            attack: 0.003,
+            release: 0.06,
+            pan: note.pan,
+          });
+          break;
+        case 'wood':
+          click(ctx, bus, { at, gain: note.gain * BED_GAIN, freq: 1200, q: 9, decay: 0.05, pan: note.pan });
+          break;
+        case 'pad':
+          // Tappeto lungo: due campane molli e detunate, attacco lento.
+          bell(ctx, bus, {
+            at,
+            freq,
+            duration: note.duration,
+            gain: note.gain * BED_GAIN,
+            ratio: 0.5,
+            index: 0.25,
+            pan: note.pan,
+          });
+          bell(ctx, bus, {
+            at: at + 0.03,
+            freq: freq * 1.006,
+            duration: note.duration,
+            gain: note.gain * BED_GAIN * 0.6,
+            ratio: 0.5,
+            index: 0.2,
             pan: note.pan,
           });
           break;
       }
-    }
-
-    for (const beat of bar.brushes) {
-      // Spazzola sul rullante: rumore breve, non un colpo di triangolo.
-      noiseVoice(ctx, bus, {
-        at: startAt + beat * beatSeconds,
-        duration: 0.11,
-        gain: 0.0045 * BED_GAIN,
-        freq: 3400,
-        q: 0.8,
-        attack: 0.004,
-        release: 0.1,
-        pan: 0.15,
-      });
-    }
-
-    if (bar.clink) {
-      // Bicchieri che si toccano al banco.
-      modal(ctx, bus, {
-        at: startAt + 3.25 * beatSeconds,
-        gain: 0.0035 * BED_GAIN,
-        partials: [
-          { freq: 2637, decay: 0.35, q: 95 },
-          { freq: 3950, decay: 0.22, q: 100, gain: 0.4 },
-        ],
-        pan: -0.35,
-      });
     }
   }
 

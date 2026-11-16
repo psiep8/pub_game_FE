@@ -8,6 +8,7 @@ import {
   type AudioEventId,
 } from '../../core/services/audio-catalog';
 import { AudioService } from '../../core/services/audio.service';
+import { BED_PROFILES, type BedProfile } from '../../core/services/bed-profiles';
 
 interface AudioCard {
   event: AudioEventDefinition;
@@ -83,6 +84,21 @@ interface AudioCard {
                 ▶ SUONA
               </button>
             </article>
+          }
+        </div>
+      </section>
+
+      <section class="lab-group">
+        <h2>TAPPETI — UNO PER GIOCO</h2>
+        <div class="lab-grid beds">
+          @for (bed of beds; track bed.id) {
+            <button class="lab-bed" [class.active]="bed.id === bedId()" (click)="playBed(bed)">
+              <span class="lab-bed-label">{{ bed.label }}</span>
+              <span class="lab-bed-meta">
+                {{ bed.bpm }} BPM · {{ bed.chords.length * 2 }} BATTUTE
+                @if (bed.id === bedId()) { · IN ONDA }
+              </span>
+            </button>
           }
         </div>
       </section>
@@ -287,6 +303,40 @@ interface AudioCard {
       .lab-play:active {
         transform: translate(2px, 2px);
       }
+      .lab-grid.beds {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      }
+      .lab-bed {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px;
+        text-align: left;
+        background: var(--paper-hi);
+        border: 3px solid var(--coal);
+        box-shadow: 4px 4px 0 var(--coal);
+        color: var(--coal);
+        cursor: pointer;
+        border-radius: 0;
+      }
+      .lab-bed.active {
+        background: var(--acid);
+      }
+      .lab-bed-label {
+        font-family: var(--font-display);
+        font-size: 0.95rem;
+        letter-spacing: 0.02em;
+      }
+      .lab-bed-meta {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        letter-spacing: 0.08em;
+        color: var(--ink-dim);
+      }
+      .lab-bed:active {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0 var(--coal);
+      }
     `,
   ],
 })
@@ -296,6 +346,8 @@ export class AudioLab {
   readonly enabled = computed(() => this.audio.isEnabled());
   readonly volume = signal(Math.round(this.audio.masterVolume() * 100));
   readonly lastPlayed = signal<string | null>(null);
+  readonly beds = Object.values(BED_PROFILES);
+  readonly bedId = signal('');
 
   private readonly variantById = signal<Record<string, number>>({});
 
@@ -315,6 +367,14 @@ export class AudioLab {
     this.audio.toggleAudio();
   }
 
+  /** Prova un tappeto: è quello che sentirà la sala durante quel gioco. */
+  playBed(bed: BedProfile): void {
+    this.audio.setGameBed(bed.id);
+    this.audio.startAmbient();
+    this.bedId.set(bed.id);
+    this.lastPlayed.set(`Tappeto: ${bed.label}`);
+  }
+
   setVolume(raw: Event): void {
     const target = raw.target as HTMLInputElement | null;
     const value = Number(target?.value ?? 100);
@@ -327,6 +387,7 @@ export class AudioLab {
     this.audio.stopAll();
     this.audio.stopAmbient();
     this.lastPlayed.set(null);
+    this.bedId.set('');
   }
 
   nextVariant(id: AudioEventId): void {
