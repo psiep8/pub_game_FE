@@ -12,6 +12,7 @@ const PAYLOAD = {
 function setup(players = ['Anna', 'Bruno']) {
   const saved: Array<{ type: string; revision: number; state: any }> = [];
   const points: any[] = [];
+  const broadcasts: any[] = [];
   const mode = new UltimaSpiaggiaMode();
   const config: GameModeConfig = {
     type: 'ULTIMA_SPIAGGIA',
@@ -20,12 +21,13 @@ function setup(players = ['Anna', 'Bruno']) {
     activePlayers: players,
     onTvCheckpoint: (checkpoint) => saved.push(checkpoint as any),
     onAnswerReceived: (result) => points.push(result),
+    onBroadcast: (event) => broadcasts.push(event),
   };
 
   mode.setConfig(config);
   mode.initialize(PAYLOAD);
 
-  return { mode, saved, points };
+  return { mode, saved, points, broadcasts };
 }
 
 describe('UltimaSpiaggiaMode — ripresa dopo un refresh della TV', () => {
@@ -100,7 +102,7 @@ describe('UltimaSpiaggiaMode — ripresa dopo un refresh della TV', () => {
   });
 
   it('il reveal già avvenuto non ripaga i punti', () => {
-    const { mode, points } = setup();
+    const { mode, points, broadcasts } = setup();
 
     mode.restore(5, {
       revision: 5,
@@ -124,6 +126,9 @@ describe('UltimaSpiaggiaMode — ripresa dopo un refresh della TV', () => {
       status: 'CORRECT',
     });
     expect(points).toEqual([]);
+    // Lo stato torna ai telefoni: senza, dopo il refresh resterebbero vuoti.
+    expect(broadcasts.at(-1)?.action).toBe('ULTIMA_SPIAGGIA_STATE');
+    expect(broadcasts.at(-1)?.state.phase).toBe(UltimaSpiaggiaPhase.REVEAL);
 
     mode.cleanup();
   });

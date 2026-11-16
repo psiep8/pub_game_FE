@@ -380,6 +380,9 @@ export class UltimaSpiaggiaMode extends GameModeBase {
     if (this.finished || this.revealed()) {
       this.phase.set(UltimaSpiaggiaPhase.REVEAL);
       this.secondsLeft.set(0);
+      this.syncRows();
+      // Senza il broadcast i telefoni resterebbero senza stato dopo il refresh.
+      this.publish();
       return;
     }
 
