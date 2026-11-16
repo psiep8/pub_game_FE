@@ -2623,7 +2623,10 @@ export class GameComponent implements OnInit, OnDestroy {
     // Il verdetto del round riparte da dove era: i punti giocati prima del
     // refresh contano ancora per il tema della TV.
     this.roundScoring = true;
-    this.restoreRoundPoints(this.recoveredRoundIndex ?? this.openRoundIndex());
+    // Stessa fonte del salvataggio: la scaletta. L'indice dello snapshot può
+    // essere indietro (round saltati con AVANTI), e cercherebbe i punti sotto
+    // un altro round.
+    this.restoreRoundPoints(this.openRoundIndex());
     // Il round riprende: Arena torna capace di chiudersi e di contare i punti.
     this.arenaFinished = false;
     if (pending.type === 'ARENA') this.beginRoundScoring();

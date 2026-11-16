@@ -758,6 +758,38 @@ describe('GameComponent', () => {
     expect(localStorage.getItem('leaderboardPending')).toBeNull();
   });
 
+  it('ritrova i punti del round con la scaletta anche se il server è indietro', async () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    const modes = TestBed.inject(GameModeService);
+    vi.spyOn(modes, 'createMode').mockReturnValue({
+      type: 'QUIZ', restore: vi.fn(), getDisplayData: () => ({}), isRevealed: () => false,
+    } as any);
+    const tv = component as unknown as {
+      beginRoundScoring(): void;
+      roundPoints: Map<string, number>;
+      roundScoring: boolean;
+    };
+    component.currentGameId.set(1);
+    // Avanzamento locale avanti: 9 round chiusi, round aperto = indice 8.
+    rounds.restoreRound(9);
+
+    tv.beginRoundScoring();
+    leaderboard.addPoints('Anna', 70, true);
+
+    // Il server è rimasto indietro (round 6): non deve spostare il conteggio.
+    (component as unknown as { applyAuthoritativeState(snapshot: any): void }).applyAuthoritativeState({
+      hasState: true, status: 'RUNNING', roundType: 'QUIZ', roundIndex: 6, roundKey: 'g1-r6',
+      roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
+      tvCheckpoint: { mode: 'QUIZ', roundKey: 'g1-r6', startedAt: 1, revision: 2, state: { mancheIndex: 1 } },
+    });
+    expect(rounds.getCurrentRound()).toBe(9);
+
+    await component.resumeRecoveredRound();
+
+    expect(tv.roundScoring).toBe(true);
+    expect(tv.roundPoints.get('Anna')).toBe(70);
+  });
+
   it('rimanda la coda di classifica salvata prima di avere la partita', async () => {
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     const tv = component as unknown as { restorePendingLeaderboard(): void };
