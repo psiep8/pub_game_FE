@@ -366,75 +366,50 @@ public class GameStateService {
     /** Chiave del blob con la mano Blackjack in corso (una per partita). */
     public static final String BLACKJACK_BLOB = "blackjack-hand";
 
-    /** Checkpoint della TV Arena, legato alla chiave del round corrente. */
-    public static final String ARENA_TV_BLOB = "arena-tv";
-
-    /** Checkpoint della TV Bomba: la sequenza degli eventi già applicati. */
-    public static final String BOMBA_TV_BLOB = "bomba-tv";
+    /** Checkpoint TV del round aperto: uno solo, con la modalità che lo ha scritto. */
+    public static final String TV_CHECKPOINT_BLOB = "tv-checkpoint";
 
     /** Chiave del blob che ricorda l'ultimo round annunciato dalla TV. */
     public static final String ROUND_ANNOUNCED_BLOB = "round-announced";
 
     /**
-     * Salva il checkpoint della TV solo per il round Arena aperto adesso.
+     * Salva il checkpoint TV del round aperto.
      *
-     * <p>L'identità del round la mette il server: la TV non deve indovinarla e
-     * non può riutilizzare uno stato di un round precedente. La revisione deve
-     * crescere, così un invio fuori ordine non riporta indietro il tabellone.</p>
+     * <p>Un solo checkpoint per partita: vale per la modalità che ha aperto il
+     * round, che deve coincidere con {@code mode}. L'identità del round la mette
+     * il server, così la TV non può riutilizzare uno stato di un round
+     * precedente; la revisione deve crescere, così un invio fuori ordine non
+     * riporta indietro il tabellone.</p>
      */
-    public boolean saveArenaCheckpoint(long gameId, int roundIndex, long revision, JSONObject arena) {
-        return saveTvCheckpoint(gameId, "ARENA", ARENA_TV_BLOB, roundIndex, revision, arena);
-    }
-
-    /**
-     * Bomba ha il tabellone sul server: qui si salva solo l'ultimo evento già
-     * applicato, così dopo un refresh la penalità non viene addebitata due volte.
-     */
-    public boolean saveBombaCheckpoint(long gameId, int roundIndex, long revision, JSONObject bomba) {
-        return saveTvCheckpoint(gameId, "BOMBA", BOMBA_TV_BLOB, roundIndex, revision, bomba);
-    }
-
-    /**
-     * Checkpoint di un gioco a round aperto: vale solo per quel gioco e per il
-     * round corrente, e solo se la revisione cresce.
-     */
-    private boolean saveTvCheckpoint(long gameId, String roundType, String blob,
-            int roundIndex, long revision, JSONObject state) {
+    public boolean saveTvCheckpoint(long gameId, String mode, int roundIndex, long revision, JSONObject state) {
         Object lock = eventLocks.computeIfAbsent(gameId, key -> new Object());
         synchronized (lock) {
             GameStateEntity current = states.findById(gameId).orElse(null);
             if (current == null || !"RUNNING".equals(current.getStatus())
-                    || !roundType.equals(current.getRoundType())
+                    || mode == null || !mode.equals(current.getRoundType())
                     || current.getRoundIndex() != roundIndex
                     || current.getRoundKey() == null || current.getRoundStartedAt() == null
                     || revision <= 0) return false;
-            Optional<JSONObject> previous = tvCheckpoint(gameId, roundType, blob);
+            Optional<JSONObject> previous = tvCheckpoint(gameId);
             if (previous.isPresent() && revision <= previous.get().optLong("revision")) return false;
-            JSONObject checkpoint = new JSONObject().put("roundKey", current.getRoundKey())
+            JSONObject checkpoint = new JSONObject().put("mode", mode)
+                    .put("roundKey", current.getRoundKey())
                     .put("startedAt", current.getRoundStartedAt()).put("revision", revision)
                     .put("state", state);
-            stateBlobs.save(gameId, blob, checkpoint.toString());
+            stateBlobs.save(gameId, TV_CHECKPOINT_BLOB, checkpoint.toString());
             return true;
         }
     }
 
-    /** Un checkpoint di un round diverso o chiuso non è ripristinabile. */
-    public Optional<JSONObject> arenaCheckpoint(long gameId) {
-        return tvCheckpoint(gameId, "ARENA", ARENA_TV_BLOB);
-    }
-
-    public Optional<JSONObject> bombaCheckpoint(long gameId) {
-        return tvCheckpoint(gameId, "BOMBA", BOMBA_TV_BLOB);
-    }
-
-    private Optional<JSONObject> tvCheckpoint(long gameId, String roundType, String blob) {
+    /** Checkpoint del round corrente: di un'altra modalità o round non vale. */
+    public Optional<JSONObject> tvCheckpoint(long gameId) {
         GameStateEntity current = states.findById(gameId).orElse(null);
-        if (current == null || !"RUNNING".equals(current.getStatus())
-                || !roundType.equals(current.getRoundType())) {
+        if (current == null || !"RUNNING".equals(current.getStatus()) || current.getRoundType() == null) {
             return Optional.empty();
         }
-        return stateBlobs.load(gameId, blob).map(JSONObject::new)
-                .filter(checkpoint -> checkpoint.optString("roundKey").equals(current.getRoundKey())
+        return stateBlobs.load(gameId, TV_CHECKPOINT_BLOB).map(JSONObject::new)
+                .filter(checkpoint -> current.getRoundType().equals(checkpoint.optString("mode"))
+                        && checkpoint.optString("roundKey").equals(current.getRoundKey())
                         && current.getRoundStartedAt() != null
                         && checkpoint.optLong("startedAt", -1L) == current.getRoundStartedAt());
     }
@@ -498,8 +473,7 @@ public class GameStateService {
         out.put("currentRound", current.map(this::roundJson).orElse(null));
         // Mano Blackjack salvata dalla TV: serve a riprenderla dopo un refresh.
         out.put("blackjackState", blackjackState(gameId).orElse(null));
-        out.put("arenaCheckpoint", arenaCheckpoint(gameId).orElse(null));
-        out.put("bombaCheckpoint", bombaCheckpoint(gameId).orElse(null));
+        out.put("tvCheckpoint", tvCheckpoint(gameId).orElse(null));
         return out;
     }
 
@@ -509,8 +483,7 @@ public class GameStateService {
      * mentre il server restava al round della serata precedente.
      */
     public void reset(long gameId) {
-        stateBlobs.forget(gameId, ARENA_TV_BLOB);
-        stateBlobs.forget(gameId, BOMBA_TV_BLOB);
+        stateBlobs.forget(gameId, TV_CHECKPOINT_BLOB);
         tx.executeWithoutResult(status -> {
             events.deleteByGameId(gameId);
             rounds.deleteByGameId(gameId);

@@ -82,65 +82,67 @@ class RoundPauseTest {
     }
 
     @Test
-    void checkpointArenaSoloTvEValidoPerIlRoundCorrente() {
+    void checkpointTvValeSoloPerIlRoundAperto() {
         long gameId = 739L;
         gameState.startRound(gameId, "ARENA", 1, "g739-r1", "{}");
         var tv = sessions.register(gameId, "tv739", "TV", "", null);
         var remote = sessions.register(gameId, "remote739", "REMOTE", "Anna", null);
         var tvSession = sessions.authenticate(tv.sessionToken()).orElseThrow();
         var remoteSession = sessions.authenticate(remote.sessionToken()).orElseThrow();
-        Map<String, Object> checkpoint = Map.of("roundIndex", 1, "revision", 2, "state",
+        Map<String, Object> checkpoint = Map.of("mode", "ARENA", "roundIndex", 1, "revision", 2, "state",
                 Map.of("teams", List.of(Map.of("playerName", "Anna", "distance", 25))));
-        assertThat(reliabilityController.saveArenaCheckpoint(gameId, remoteSession, checkpoint).getStatusCode().value()).isEqualTo(403);
-        assertThat(reliabilityController.saveArenaCheckpoint(gameId, tvSession, checkpoint).getStatusCode().value()).isEqualTo(200);
-        JSONObject stored = restartedService().snapshot(gameId).getJSONObject("arenaCheckpoint");
+        assertThat(reliabilityController.saveTvCheckpoint(gameId, remoteSession, checkpoint).getStatusCode().value()).isEqualTo(403);
+        assertThat(reliabilityController.saveTvCheckpoint(gameId, tvSession, checkpoint).getStatusCode().value()).isEqualTo(200);
+        JSONObject stored = restartedService().snapshot(gameId).getJSONObject("tvCheckpoint");
+        assertThat(stored.getString("mode")).isEqualTo("ARENA");
         assertThat(stored.getString("roundKey")).isEqualTo("g739-r1");
         assertThat(stored.getLong("startedAt")).isEqualTo(gameState.snapshot(gameId).getLong("roundStartedAt"));
         assertThat(stored.getJSONObject("state").getJSONArray("teams").getJSONObject(0).getInt("distance")).isEqualTo(25);
-        // Revisione vecchia e round diverso: il tabellone non torna indietro.
-        assertThat(reliabilityController.saveArenaCheckpoint(gameId, tvSession,
-                Map.of("roundIndex", 1, "revision", 1, "state", Map.of())).getStatusCode().value()).isEqualTo(409);
-        assertThat(reliabilityController.saveArenaCheckpoint(gameId, tvSession,
-                Map.of("roundIndex", 9, "revision", 3, "state", Map.of())).getStatusCode().value()).isEqualTo(409);
+        // Revisione vecchia, round o modalità diverse: il tabellone non torna indietro.
+        assertThat(reliabilityController.saveTvCheckpoint(gameId, tvSession,
+                Map.of("mode", "ARENA", "roundIndex", 1, "revision", 1, "state", Map.of())).getStatusCode().value()).isEqualTo(409);
+        assertThat(reliabilityController.saveTvCheckpoint(gameId, tvSession,
+                Map.of("mode", "ARENA", "roundIndex", 9, "revision", 3, "state", Map.of())).getStatusCode().value()).isEqualTo(409);
+        assertThat(reliabilityController.saveTvCheckpoint(gameId, tvSession,
+                Map.of("mode", "BOMBA", "roundIndex", 1, "revision", 3, "state", Map.of())).getStatusCode().value()).isEqualTo(409);
         gameState.startRound(gameId, "ARENA", 2, "g739-r2", "{}");
-        assertThat(gameState.snapshot(gameId).isNull("arenaCheckpoint")).isTrue();
-        assertThat(reliabilityController.saveArenaCheckpoint(gameId, tvSession,
-                Map.of("roundIndex", 2, "revision", 1, "state", Map.of())).getStatusCode().value()).isEqualTo(200);
+        assertThat(gameState.snapshot(gameId).isNull("tvCheckpoint")).isTrue();
+        assertThat(reliabilityController.saveTvCheckpoint(gameId, tvSession,
+                Map.of("mode", "ARENA", "roundIndex", 2, "revision", 1, "state", Map.of())).getStatusCode().value()).isEqualTo(200);
         gameState.closeRound(gameId, "test");
-        assertThat(gameState.snapshot(gameId).isNull("arenaCheckpoint")).isTrue();
+        assertThat(gameState.snapshot(gameId).isNull("tvCheckpoint")).isTrue();
         gameState.reset(gameId);
         gameState.startRound(gameId, "ARENA", 2, "g739-r2", "{}");
-        assertThat(gameState.snapshot(gameId).isNull("arenaCheckpoint")).isTrue();
+        assertThat(gameState.snapshot(gameId).isNull("tvCheckpoint")).isTrue();
     }
 
     @Test
-    void checkpointBombaSoloTvESoloPerIlRoundCorrente() {
+    void checkpointTvSegueLaModalitaDelRound() {
         long gameId = 741L;
         gameState.startRound(gameId, "BOMBA", 1, "g741-r1", "{}");
         var tv = sessions.register(gameId, "tv741", "TV", "", null);
         var remote = sessions.register(gameId, "remote741", "REMOTE", "Anna", null);
         var tvSession = sessions.authenticate(tv.sessionToken()).orElseThrow();
         var remoteSession = sessions.authenticate(remote.sessionToken()).orElseThrow();
-        Map<String, Object> checkpoint = Map.of("roundIndex", 1, "revision", 2,
+        Map<String, Object> checkpoint = Map.of("mode", "BOMBA", "roundIndex", 1, "revision", 2,
                 "state", Map.of("lastEventSeq", 4));
-        assertThat(reliabilityController.saveBombaCheckpoint(gameId, remoteSession, checkpoint).getStatusCode().value()).isEqualTo(403);
-        assertThat(reliabilityController.saveBombaCheckpoint(gameId, tvSession, checkpoint).getStatusCode().value()).isEqualTo(200);
-        JSONObject stored = restartedService().snapshot(gameId).getJSONObject("bombaCheckpoint");
+        assertThat(reliabilityController.saveTvCheckpoint(gameId, remoteSession, checkpoint).getStatusCode().value()).isEqualTo(403);
+        assertThat(reliabilityController.saveTvCheckpoint(gameId, tvSession, checkpoint).getStatusCode().value()).isEqualTo(200);
+        JSONObject stored = restartedService().snapshot(gameId).getJSONObject("tvCheckpoint");
+        assertThat(stored.getString("mode")).isEqualTo("BOMBA");
         assertThat(stored.getString("roundKey")).isEqualTo("g741-r1");
         assertThat(stored.getJSONObject("state").getInt("lastEventSeq")).isEqualTo(4);
-        // Revisione vecchia, round diverso e checkpoint di un altro gioco: 409.
-        assertThat(reliabilityController.saveBombaCheckpoint(gameId, tvSession,
-                Map.of("roundIndex", 1, "revision", 1, "state", Map.of("lastEventSeq", 3))).getStatusCode().value()).isEqualTo(409);
-        assertThat(reliabilityController.saveBombaCheckpoint(gameId, tvSession,
-                Map.of("roundIndex", 9, "revision", 3, "state", Map.of())).getStatusCode().value()).isEqualTo(409);
-        assertThat(reliabilityController.saveArenaCheckpoint(gameId, tvSession,
-                Map.of("roundIndex", 1, "revision", 9, "state", Map.of())).getStatusCode().value()).isEqualTo(409);
-        gameState.startRound(gameId, "BOMBA", 2, "g741-r2", "{}");
-        assertThat(gameState.snapshot(gameId).isNull("bombaCheckpoint")).isTrue();
-        assertThat(gameState.snapshot(gameId).isNull("arenaCheckpoint")).isTrue();
+        // Un checkpoint di un'altra modalità non vale durante Bomba.
+        assertThat(reliabilityController.saveTvCheckpoint(gameId, tvSession,
+                Map.of("mode", "ARENA", "roundIndex", 1, "revision", 9, "state", Map.of())).getStatusCode().value()).isEqualTo(409);
+        // Il round successivo, di un'altra modalità, riparte senza checkpoint.
+        gameState.startRound(gameId, "QUIZ", 2, "g741-r2", "{}");
+        assertThat(gameState.snapshot(gameId).isNull("tvCheckpoint")).isTrue();
+        assertThat(reliabilityController.saveTvCheckpoint(gameId, tvSession,
+                Map.of("mode", "QUIZ", "roundIndex", 2, "revision", 1, "state", Map.of())).getStatusCode().value()).isEqualTo(200);
         gameState.reset(gameId);
-        gameState.startRound(gameId, "BOMBA", 2, "g741-r2", "{}");
-        assertThat(gameState.snapshot(gameId).isNull("bombaCheckpoint")).isTrue();
+        gameState.startRound(gameId, "QUIZ", 2, "g741-r2", "{}");
+        assertThat(gameState.snapshot(gameId).isNull("tvCheckpoint")).isTrue();
     }
 
     @Test

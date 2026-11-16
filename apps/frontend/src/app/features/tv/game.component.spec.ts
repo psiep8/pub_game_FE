@@ -140,8 +140,10 @@ describe('GameComponent', () => {
       buildModeConfig(type: string, payload: any, players: string[]): any;
     }).buildModeConfig('ARENA', {}, ['Anna']);
     const state = { teams: [{ playerName: 'Anna', distance: 20 }] };
-    config.onArenaCheckpoint({ revision: 2, state });
-    expect(reliability.arenaCheckpoints).toEqual([{ revision: 2, state, roundIndex: 5 }]);
+    config.onTvCheckpoint({ type: 'ARENA', revision: 2, state });
+    expect(reliability.tvCheckpoints).toEqual([
+      { mode: 'ARENA', revision: 2, state, roundIndex: 5 },
+    ]);
   });
 
   it('salva il checkpoint Bomba con indice del round e sequenza eventi', () => {
@@ -149,9 +151,9 @@ describe('GameComponent', () => {
     const config = (component as unknown as {
       buildModeConfig(type: string, payload: any, players: string[]): any;
     }).buildModeConfig('BOMBA', {}, ['Anna']);
-    config.onBombaCheckpoint({ revision: 3, state: { lastEventSeq: 9 } });
-    expect(reliability.bombaCheckpoints).toEqual([
-      { revision: 3, state: { lastEventSeq: 9 }, roundIndex: 7 },
+    config.onTvCheckpoint({ type: 'BOMBA', revision: 3, state: { lastEventSeq: 9 } });
+    expect(reliability.tvCheckpoints).toEqual([
+      { mode: 'BOMBA', revision: 3, state: { lastEventSeq: 9 }, roundIndex: 7 },
     ]);
   });
 
@@ -160,7 +162,7 @@ describe('GameComponent', () => {
     tv.applyAuthoritativeState({
       hasState: true, status: 'RUNNING', roundType: 'BOMBA', roundIndex: 6, roundKey: 'g1-r6',
       roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
-      bombaCheckpoint: { roundKey: 'g1-r6', startedAt: 1, revision: 2, state: { lastEventSeq: 5 } },
+      tvCheckpoint: { roundKey: 'g1-r6', startedAt: 1, revision: 2, state: { lastEventSeq: 5 } },
     });
     expect(component.recoveredRound()?.resumable).toBe(true);
   });
@@ -177,7 +179,7 @@ describe('GameComponent', () => {
     tv.applyAuthoritativeState({
       hasState: true, status: 'RUNNING', roundType: 'BOMBA', roundIndex: 6, roundKey: 'g1-r6',
       roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
-      bombaCheckpoint: checkpoint,
+      tvCheckpoint: checkpoint,
     });
     const seconds = component.recoveredRound()!.secondsLeft;
 
@@ -194,7 +196,7 @@ describe('GameComponent', () => {
     tv.applyAuthoritativeState({
       hasState: true, status: 'RUNNING', roundType: 'ARENA', roundIndex: 3, roundKey: 'g1-r3',
       roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
-      arenaCheckpoint: checkpoint,
+      tvCheckpoint: checkpoint,
     });
     expect(component.recoveredRound()?.resumable).toBe(true);
   });
@@ -210,7 +212,7 @@ describe('GameComponent', () => {
     tv.applyAuthoritativeState({
       hasState: true, status: 'RUNNING', roundType: 'ARENA', roundIndex: 3, roundKey: 'g1-r3',
       roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
-      arenaCheckpoint: checkpoint,
+      tvCheckpoint: checkpoint,
     });
     const seconds = component.recoveredRound()!.secondsLeft;
 

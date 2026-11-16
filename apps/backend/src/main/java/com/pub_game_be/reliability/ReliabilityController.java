@@ -145,41 +145,26 @@ public class ReliabilityController {
         return ResponseEntity.ok(Map.of("saved", true));
     }
 
-    /** Salvatore del checkpoint di un gioco: cambia solo il tipo di round. */
-    @FunctionalInterface
-    private interface TvCheckpointSaver {
-        boolean save(long gameId, int roundIndex, long revision, JSONObject state);
-    }
-
-    /** Checkpoint Arena: solo la TV autenticata può salvarlo. */
-    @PostMapping("/arena-tv-state")
-    public ResponseEntity<Object> saveArenaCheckpoint(@PathVariable("gameId") Long gameId,
+    /**
+     * Checkpoint TV del round aperto: uno solo, con la modalità che lo scrive.
+     * Solo la TV autenticata può salvarlo.
+     */
+    @PostMapping("/tv-state")
+    public ResponseEntity<Object> saveTvCheckpoint(@PathVariable("gameId") Long gameId,
             @RequestAttribute("pubgame.session") DeviceSessionEntity session,
             @RequestBody Map<String, Object> body) {
-        return saveTvCheckpoint(gameId, session, body, gameState::saveArenaCheckpoint);
-    }
-
-    /** Checkpoint Bomba: la TV dice quanti eventi ha già applicato. */
-    @PostMapping("/bomba-tv-state")
-    public ResponseEntity<Object> saveBombaCheckpoint(@PathVariable("gameId") Long gameId,
-            @RequestAttribute("pubgame.session") DeviceSessionEntity session,
-            @RequestBody Map<String, Object> body) {
-        return saveTvCheckpoint(gameId, session, body, gameState::saveBombaCheckpoint);
-    }
-
-    private ResponseEntity<Object> saveTvCheckpoint(Long gameId, DeviceSessionEntity session,
-            Map<String, Object> body, TvCheckpointSaver saver) {
         if (!"TV".equals(session.getRole()) || !session.getGameId().equals(gameId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "tv-required"));
         }
         Object rawState = body.get("state");
         Object rawRoundIndex = body.get("roundIndex");
         Object rawRevision = body.get("revision");
+        Object rawMode = body.get("mode");
         if (!(rawState instanceof Map<?, ?>) || !(rawRoundIndex instanceof Number)
-                || !(rawRevision instanceof Number)) {
+                || !(rawRevision instanceof Number) || !(rawMode instanceof String mode) || mode.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "invalid-checkpoint"));
         }
-        boolean saved = saver.save(gameId, ((Number) rawRoundIndex).intValue(),
+        boolean saved = gameState.saveTvCheckpoint(gameId, mode, ((Number) rawRoundIndex).intValue(),
                 ((Number) rawRevision).longValue(), new JSONObject((Map<?, ?>) rawState));
         return saved ? ResponseEntity.ok(Map.of("saved", true))
                 : ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "stale-checkpoint"));

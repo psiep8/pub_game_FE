@@ -207,10 +207,8 @@ export class GameComponent implements OnInit, OnDestroy {
   } | null>(null);
   private recoveredPayload: any = null;
   private recoveredBlackjackState: any = null;
-    /** Tabellone Arena salvato dalla TV precedente, con la sua revisione. */
-  private recoveredArenaCheckpoint: any = null;
-  /** Eventi Bomba già applicati dalla TV precedente. */
-  private recoveredBombaCheckpoint: any = null;
+    /** Checkpoint TV del round precedente: uno solo, con la modalità che lo ha scritto. */
+  private recoveredTvCheckpoint: { type: GameModeType; value: any } | null = null;
   private recoveredRoundIndex: number | null = null;
   private leaderboardFlush?: ReturnType<typeof setTimeout>;
   /** Ultima variazione locale e ultima confermata dal server. */
@@ -1000,15 +998,15 @@ export class GameComponent implements OnInit, OnDestroy {
       onCountdownTick: (seconds) => this.onCountdownTick(seconds),
       onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
       onRoundEnded: () => this.onArenaEnded(),
-      onArenaCheckpoint: (checkpoint) => {
+      onTvCheckpoint: (checkpoint) => {
         const roundIndex = this.tvRoundIndex();
         if (roundIndex == null) return;
-        this.reliability.saveArenaCheckpoint({ ...checkpoint, roundIndex });
-      },
-      onBombaCheckpoint: (checkpoint) => {
-        const roundIndex = this.tvRoundIndex();
-        if (roundIndex == null) return;
-        this.reliability.saveBombaCheckpoint({ ...checkpoint, roundIndex });
+        this.reliability.saveTvCheckpoint({
+          mode: checkpoint.type,
+          revision: checkpoint.revision,
+          state: checkpoint.state,
+          roundIndex,
+        });
       },
       onArenaInactivityCheck: async (players: string[]) => {
         const response = await firstValueFrom(
@@ -2247,8 +2245,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!open) {
       this.recoveredRound.set(null);
       this.recoveredPayload = null;
-      this.recoveredArenaCheckpoint = null;
-      this.recoveredBombaCheckpoint = null;
+      this.recoveredTvCheckpoint = null;
       this.recoveredRoundIndex = null;
       return;
     }
@@ -2257,8 +2254,8 @@ export class GameComponent implements OnInit, OnDestroy {
     this.recoveredPayload = snapshot.currentRound?.payload ?? snapshot.payload ?? null;
     this.recoveredBlackjackState = snapshot.blackjackState ?? null;
     // Solo un checkpoint del round corrente: il server lo scarta altrimenti.
-    this.recoveredArenaCheckpoint = snapshot.arenaCheckpoint?.state ? snapshot.arenaCheckpoint : null;
-    this.recoveredBombaCheckpoint = snapshot.bombaCheckpoint?.state ? snapshot.bombaCheckpoint : null;
+    const checkpoint = snapshot.tvCheckpoint?.state ? snapshot.tvCheckpoint : null;
+    this.recoveredTvCheckpoint = checkpoint ? { type: type as GameModeType, value: checkpoint } : null;
     this.recoveredRound.set({
       type: type as GameModeType,
       label: this.getModeName(type),
@@ -2267,14 +2264,11 @@ export class GameComponent implements OnInit, OnDestroy {
       secondsLeft: paused && pausedAt > 0
         ? Math.max(0, Math.ceil((deadline - pausedAt) / 1000))
         : Math.max(0, Math.ceil((deadline - this.reliability.serverNow()) / 1000)),
-      // Solo Timeline ha tutto sul server: le carte nel payload e gli esiti
-      // riletti al reveal. Gli altri giochi tengono mani e fasi solo in TV.
-      // Timeline ha le carte nel payload. Blackjack ha la mano salvata sul
-      // server: senza di essa il tavolo non si può riprendere.
+      // Timeline ha le carte nel payload, Blackjack la mano sul server e gli
+      // altri giochi un checkpoint TV della stessa modalità del round.
       resumable: (type === 'TIMELINE' && !!this.recoveredPayload)
         || (type === 'BLACKJACK' && !!snapshot?.blackjackState)
-        || (type === 'ARENA' && !!this.recoveredArenaCheckpoint)
-        || (type === 'BOMBA' && !!this.recoveredBombaCheckpoint),
+        || this.recoveredTvCheckpoint?.type === type,
       paused,
     });
   }
@@ -2296,9 +2290,9 @@ export class GameComponent implements OnInit, OnDestroy {
     const pending = this.recoveredRound();
     const payload = this.recoveredPayload;
     const blackjack = this.recoveredBlackjackState;
-    const arena = this.recoveredArenaCheckpoint;
-    const bomba = this.recoveredBombaCheckpoint;
-    if (!pending?.resumable || (!payload && !blackjack && !arena && !bomba)) return;
+    const stored = this.recoveredTvCheckpoint;
+    const tvCheckpoint = stored && stored.type === pending?.type ? stored.value : null;
+    if (!pending?.resumable || (!payload && !blackjack && !tvCheckpoint)) return;
 
     if (pending.paused) {
       try {
@@ -2333,8 +2327,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.startRoundSuspense(mode.type);
     if (mode.restore) {
       try {
-        mode.restore(pending.secondsLeft, pending.type === 'ARENA' ? arena
-          : pending.type === 'BOMBA' ? bomba : this.recoveredBlackjackState);
+        mode.restore(pending.secondsLeft, tvCheckpoint ?? this.recoveredBlackjackState);
       } catch {
         // Checkpoint non valido: si torna al pannello, senza lasciare la TV
         // su un round vuoto che nessuno potrebbe più chiudere.
@@ -2366,8 +2359,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.recoveredRound.set(null);
     this.recoveredPayload = null;
     this.recoveredBlackjackState = null;
-    this.recoveredArenaCheckpoint = null;
-    this.recoveredBombaCheckpoint = null;
+    this.recoveredTvCheckpoint = null;
     this.recoveredRoundIndex = null;
     this.reliability.saveBlackjackState(null);
     this.gameService.closeRound(this.currentGameId(), 'recovered').subscribe({

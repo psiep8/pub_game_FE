@@ -199,26 +199,16 @@ export class ReliabilityService {
   }
 
   /**
-   * Checkpoint Arena della TV: posizioni, eliminazioni e penalità già applicate.
-   * Il server lo lega al round aperto e scarta revisioni vecchie. Un errore di
-   * rete non ferma il gioco: il round resta valido, si perde solo la ripresa.
+   * Checkpoint TV del round aperto: lo stato che serve a ripararlo dopo un
+   * refresh. Un solo endpoint per tutte le modalità; il server lo lega al round
+   * corrente e scarta revisioni vecchie. Un errore di rete non ferma il gioco.
    */
-  saveArenaCheckpoint(checkpoint: { roundIndex: number; revision: number; state: unknown }): void {
-    this.postTvCheckpoint('arena-tv-state', checkpoint);
-  }
-
-  /** Bomba: la TV salva la sequenza degli eventi già applicati. */
-  saveBombaCheckpoint(checkpoint: { roundIndex: number; revision: number; state: unknown }): void {
-    this.postTvCheckpoint('bomba-tv-state', checkpoint);
-  }
-
-  private postTvCheckpoint(
-    path: string,
-    checkpoint: { roundIndex: number; revision: number; state: unknown },
+  saveTvCheckpoint(
+    checkpoint: { mode: string; roundIndex: number; revision: number; state: unknown },
   ): void {
     const token = this.sessionToken();
     if (!token || this.role !== 'TV' || this.gameId == null) return;
-    this.http.post(`${this.baseUrl}/games/${this.gameId}/${path}`, checkpoint, {
+    this.http.post(`${this.baseUrl}/games/${this.gameId}/tv-state`, checkpoint, {
       headers: { 'X-Session-Token': token },
     }).subscribe({ error: () => undefined });
   }

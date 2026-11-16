@@ -132,10 +132,10 @@ export class BombaMode extends GameModeBase {
 
   /** Salva la sequenza applicata: serve a non raddoppiare una penalità al refresh. */
   private emitCheckpoint(): void {
-    const save = this.config.onBombaCheckpoint;
+    const save = this.config.onTvCheckpoint;
     if (!save || this.ended) return;
     this.revision++;
-    save({ revision: this.revision, state: { lastEventSeq: this.lastEventSeq } });
+    save({ type: this.type, revision: this.revision, state: { lastEventSeq: this.lastEventSeq } });
   }
 
   protected override startTimer(): void {

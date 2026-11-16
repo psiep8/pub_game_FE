@@ -37,12 +37,12 @@ describe('BombaMode — ripresa dopo un refresh della TV', () => {
     let current = board({ lastEvent: { seq: 4, kind: 'bomb', player: 'Anna' } });
     const api = fakeApi(() => current);
     const penalty = vi.fn();
-    const saved: Array<{ revision: number; state: any }> = [];
+    const saved: Array<{ type: string; revision: number; state: any }> = [];
     const mode = new BombaMode();
     mode.setConfig({
       type: 'BOMBA', payload: { act: 1 }, gameId: 1, activePlayers: ['Anna', 'Bruno'], bomba: api,
       onAnswerReceived: penalty,
-      onBombaCheckpoint: (checkpoint) => saved.push(checkpoint),
+      onTvCheckpoint: (checkpoint) => saved.push(checkpoint),
     });
     mode.initialize({ act: 1 });
 
@@ -115,11 +115,11 @@ describe('BombaMode — ripresa dopo un refresh della TV', () => {
   it('salva subito un checkpoint quando il round parte da zero', async () => {
     vi.useFakeTimers();
     const api = fakeApi(() => board());
-    const saved: Array<{ revision: number; state: any }> = [];
+    const saved: Array<{ type: string; revision: number; state: any }> = [];
     const mode = new BombaMode();
     mode.setConfig({
       type: 'BOMBA', payload: { act: 1 }, gameId: 1, activePlayers: ['Anna', 'Bruno'], bomba: api,
-      onBombaCheckpoint: (checkpoint) => saved.push(checkpoint),
+      onTvCheckpoint: (checkpoint) => saved.push(checkpoint),
     });
     mode.initialize({ act: 1 });
 
@@ -127,6 +127,7 @@ describe('BombaMode — ripresa dopo un refresh della TV', () => {
     await vi.advanceTimersByTimeAsync(500);
 
     expect(saved[0].revision).toBe(1);
+    expect(saved[0].type).toBe('BOMBA');
     expect(saved[0].state).toEqual({ lastEventSeq: 0 });
 
     mode.cleanup();

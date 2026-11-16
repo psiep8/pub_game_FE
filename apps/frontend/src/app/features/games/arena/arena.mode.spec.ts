@@ -214,11 +214,11 @@ describe('ArenaMode', () => {
 
   it('salva un checkpoint crescente e smette quando il round è chiuso', async () => {
     vi.useFakeTimers();
-    const saved: Array<{ revision: number; state: any }> = [];
+    const saved: Array<{ type: string; revision: number; state: any }> = [];
     const mode = new ArenaMode();
     mode.setConfig({
       type: 'ARENA', payload: {}, gameId: 1, activePlayers: ['Anna', 'Bruno'],
-      onArenaCheckpoint: (checkpoint) => saved.push(checkpoint),
+      onTvCheckpoint: (checkpoint) => saved.push(checkpoint),
     });
     mode.initialize({});
     await mode.start();
@@ -226,6 +226,7 @@ describe('ArenaMode', () => {
     mode.applyArenaAnswer('Anna', true, 10, 3);
     expect(saved).toHaveLength(2);
     expect(saved[1].revision).toBeGreaterThan(saved[0].revision);
+    expect(saved[1].type).toBe('ARENA');
     expect(saved[1].state.appliedAnswerSeqs).toEqual([3]);
     // Stesso esito: nessun nuovo salvataggio.
     mode.applyArenaAnswer('Anna', true, 10, 3);

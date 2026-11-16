@@ -61,10 +61,8 @@ export interface GameModeConfig {
   finishSpeedRush?: () => Promise<any[]>;
   /** Blackjack: la TV salva lo stato della mano sul server a ogni cambio. */
   onBlackjackState?: (state: unknown | null) => void;
-  /** Arena: la TV salva il tabellone sul server per riprendere il round. */
-  onArenaCheckpoint?: (checkpoint: { revision: number; state: unknown }) => void;
-  /** Bomba: la TV salva la sequenza di eventi già applicati. */
-  onBombaCheckpoint?: (checkpoint: { revision: number; state: unknown }) => void;
+  /** Checkpoint TV del round aperto: la modalità dichiara il proprio tipo. */
+  onTvCheckpoint?: (checkpoint: { type: GameModeType; revision: number; state: unknown }) => void;
 }
 
 export interface GameModeResult {

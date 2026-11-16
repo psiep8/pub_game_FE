@@ -285,16 +285,10 @@ export class FakeReliabilityService {
 
   saveBlackjackState(_state: unknown | null): void {}
 
-  readonly arenaCheckpoints: Array<{ roundIndex: number; revision: number; state: unknown }> = [];
+  readonly tvCheckpoints: Array<{ mode: string; roundIndex: number; revision: number; state: unknown }> = [];
 
-  saveArenaCheckpoint(checkpoint: { roundIndex: number; revision: number; state: unknown }): void {
-    this.arenaCheckpoints.push(checkpoint);
-  }
-
-  readonly bombaCheckpoints: Array<{ roundIndex: number; revision: number; state: unknown }> = [];
-
-  saveBombaCheckpoint(checkpoint: { roundIndex: number; revision: number; state: unknown }): void {
-    this.bombaCheckpoints.push(checkpoint);
+  saveTvCheckpoint(checkpoint: { mode: string; roundIndex: number; revision: number; state: unknown }): void {
+    this.tvCheckpoints.push(checkpoint);
   }
 
   serverNow(): number {
