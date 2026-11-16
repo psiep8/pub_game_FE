@@ -2,9 +2,13 @@
 
 Fase 0 della sostituzione dell'audio sintetizzato (SPEC-SUONI-REALI.md).
 
-**Stato:** manifesto e cartelle pronti. I file **non** sono ancora nel repository e
-il codice suona ancora la sintesi: si passa ai campioni un evento alla volta
-(ordine della sezione 9) dopo che i file sono stati scelti e messi nelle cartelle.
+**Stato:** i 41 file registrati sono nelle cartelle e già elaborati; i crediti
+sono in `docs/CREDITI-AUDIO.md`. Il codice suona ancora la sintesi: si passa ai
+campioni un evento alla volta (ordine della sezione 9).
+
+I valori misurati sono quelli veri, non quelli richiesti: alcuni effetti con
+molta cresta restano 2–6 dB sotto il bersaglio di loudness, perché alzare ancora
+significherebbe schiacciare i transienti (vedi `docs/CREDITI-AUDIO.md`).
 
 ## Regole dei file
 
@@ -40,21 +44,34 @@ il codice suona ancora la sintesi: si passa ai campioni un evento alla volta
 ## Elaborazione (già pronta)
 
 `scripts/audio/process-audio.mjs` fa tutto il lavoro meccanico. Legge la tabella
-qui sopra (è l'unica fonte dei nomi), trova i grezzi, taglia il silenzio ai due
-estremi **solo agli effetti**, normalizza a due passate con `loudnorm`, converte
-in AAC `.m4a` e misura il risultato con `ebur128`.
+qui sopra (è l'unica fonte dei nomi), trova i grezzi, normalizza con `loudnorm`,
+taglia il silenzio e la coda agli effetti, converte in AAC `.m4a` e misura il
+risultato con `ebur128`.
 
 ```bash
 node scripts/audio/process-audio.mjs            # elabora quel che trova
 node scripts/audio/process-audio.mjs --check    # verifica file e metadati: esce 1 se manca qualcosa
 node scripts/audio/process-audio.mjs --only gong
 node scripts/audio/process-audio.mjs --force    # rifà anche gli m4a già pronti
+node scripts/audio/process-audio.mjs --credits  # rigenera docs/CREDITI-AUDIO.md
 ```
 
 - Effetti: mono 44,1 kHz, AAC 96 kbps circa, **−16 LUFS**, picco ≤ −1 dBTP,
   durata massima della tabella.
+- **Coda tagliata:** quando il file supera la durata massima, gli ultimi 0,18 s
+  sfumano sul punto di taglio (prima si tagliava a secco e si sentiva lo scalino).
+- **Normalizzazione:** il silenzio si toglie *dopo* il `loudnorm`, non prima: se
+  il filtro riceve il file già tagliato, su molti campioni rinuncia al guadagno
+  e il suono resta 10 dB sotto il bersaglio. Dopo il primo giro lo script misura
+  il file finito e applica una correzione (fino a due passate), perché il coda
+  tagliata cambia la loudness rispetto alla misura sul file intero.
+- Suoni sotto 1,2 s: normalizzati sul picco a −3 dBFS, non sul LUFS (misura
+  integrata senza senso su 20–300 ms).
 - Loop: stereo 44,1 kHz, AAC 128 kbps, **−23 LUFS**, massimo 120 s; il silenzio
   non viene toccato, altrimenti si sentirebbe il buco a ogni giro.
+- **Loop senza salto:** gli ultimi 1,5 s vengono incrociati sulla testa (dissolvenza
+  coda→inizio), poi il file si misura e si controlla il punto di giunzione:
+  differenza fra ultimo e primo campione, media su 0,1 s, avviso sopra l'8%.
 - `ffmpeg` è **statico e locale al progetto**, niente sudo: `.tools/ffmpeg/ffmpeg`
   e `ffprobe` (build 7.0.2 arm64 da johnvansickle.com, ~19 MB scaricati, 102 MB
   estratti; su x86 usa `ffmpeg-release-amd64-static.tar.xz`). `.tools/` è già in
