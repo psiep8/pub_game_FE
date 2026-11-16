@@ -13,6 +13,7 @@ const basket = () =>
   import('./features/bonus/basket-legacy/basket-bonus.component').then((module) => module.BasketBonus);
 const bonusPreview = () =>
   import('./features/bonus/preview/bonus-preview.component').then((module) => module.BonusPreview);
+const audioLab = () => import('./features/audio/audio-lab.component').then((module) => module.AudioLab);
 
 export const routes: Routes = [
   {
@@ -32,6 +33,10 @@ export const routes: Routes = [
   {
     path: 'basket',
     loadComponent: basket
+  },
+  {
+    path: 'audio',
+    loadComponent: audioLab
   },
   {
     path: 'bonus-preview',

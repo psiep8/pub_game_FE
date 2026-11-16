@@ -1,0 +1,410 @@
+/**
+ * Catalogo degli eventi audio: un solo posto dove ogni suono della serata ha
+ * un nome, una fonte e le sue regole di riproduzione.
+ *
+ * <p>Il catalogo descrive gli eventi, non li sintetizza: `AudioService` suona
+ * ancora con la Web Audio API e Foley. Questa tabella serve a sapere cosa
+ * esiste, chi lo chiama e con che limiti, così l'audio di regia (A3) e la
+ * sostituzione dei suoni (A2) non devono cercare i metodi sparsi nei giochi.</p>
+ */
+
+/** Da dove viene il suono: interfaccia Foley, sintesi della sala, tappeto. */
+export type AudioSource = 'ui' | 'sfx' | 'bed';
+
+/** Chi lo sente: TV di sala, telefoni, o entrambi. */
+export type AudioBus = 'tv' | 'phone' | 'both';
+
+export interface AudioEventDefinition {
+  /** Nome stabile dell'evento, uguale per catalogo, regia e test. */
+  readonly id: string;
+  /** Etichetta in italiano per la regia audio. */
+  readonly label: string;
+  /** Quando suona, in una riga: serve a chi prova la sala. */
+  readonly when: string;
+  readonly source: AudioSource;
+  readonly bus: AudioBus;
+  /**
+   * Rifinitura di volume dell'evento, da 0 a 1. Oggi è 1 per tutti: la
+   * bilanciatura arriva in A2, ma il campo è già quello che userà la regia.
+   */
+  readonly volume: number;
+  /** Distanza minima fra due riproduzioni dello stesso evento. */
+  readonly minIntervalMs: number;
+  /** Quante varianti esistono (ingressi bonus, posti del podio). */
+  readonly variants: number;
+}
+
+export const AUDIO_EVENTS = {
+  gong: {
+    id: 'gong',
+    label: 'Gong del via',
+    when: 'La TV dà il via alla manche del Time Buzzer.',
+    source: 'sfx',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 400,
+    variants: 1,
+  },
+  countdownTick: {
+    id: 'countdownTick',
+    label: 'Tick del conto alla rovescia',
+    when: 'Ogni secondo del countdown in TV.',
+    source: 'sfx',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 100,
+    variants: 1,
+  },
+  countdownBong: {
+    id: 'countdownBong',
+    label: 'Bong di fine countdown',
+    when: 'Il countdown arriva a zero.',
+    source: 'sfx',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 400,
+    variants: 1,
+  },
+  join: {
+    id: 'join',
+    label: 'Ingresso di una squadra',
+    when: 'Una squadra si collega alla lobby.',
+    source: 'ui',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 150,
+    variants: 1,
+  },
+  tick: {
+    id: 'tick',
+    label: 'Tick di classifica',
+    when: 'La classifica svela una posizione.',
+    source: 'ui',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 80,
+    variants: 1,
+  },
+  rankReveal: {
+    id: 'rankReveal',
+    label: 'Richiamo quinto e quarto posto',
+    when: 'La classifica dettagliata svela il quinto o il quarto posto.',
+    source: 'ui',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 300,
+    variants: 2,
+  },
+  whoosh: {
+    id: 'whoosh',
+    label: 'Transizione di schermata',
+    when: 'La classifica rapida entra in scena.',
+    source: 'ui',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 300,
+    variants: 1,
+  },
+  elimination: {
+    id: 'elimination',
+    label: 'Eliminazione',
+    when: "Una squadra esce dall'Arena.",
+    source: 'ui',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 300,
+    variants: 1,
+  },
+  correct: {
+    id: 'correct',
+    label: 'Risposta giusta in TV',
+    when: 'Il presentatore conferma la risposta corretta.',
+    source: 'ui',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 500,
+    variants: 1,
+  },
+  wrong: {
+    id: 'wrong',
+    label: 'Risposta sbagliata in TV',
+    when: 'Il presentatore segna la risposta come sbagliata.',
+    source: 'ui',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 500,
+    variants: 1,
+  },
+  timeUp: {
+    id: 'timeUp',
+    label: 'Tempo scaduto',
+    when: 'Il round non accetta più risposte.',
+    source: 'ui',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 500,
+    variants: 1,
+  },
+  reveal: {
+    id: 'reveal',
+    label: 'Rivelazione della soluzione',
+    when: "La TV svela la risposta: rullo, poi accordo.",
+    source: 'ui',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 600,
+    variants: 1,
+  },
+  applause: {
+    id: 'applause',
+    label: 'Applauso',
+    when: 'Risposta giusta o momento di festa.',
+    source: 'sfx',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 600,
+    variants: 1,
+  },
+  coins: {
+    id: 'coins',
+    label: 'Gettoni che cadono',
+    when: 'Punti in arrivo al tavolo della serata.',
+    source: 'sfx',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 400,
+    variants: 1,
+  },
+  racket: {
+    id: 'racket',
+    label: 'Colpo di racchetta',
+    when: 'Il telefono segna il punto di tennis.',
+    source: 'sfx',
+    bus: 'phone',
+    volume: 1,
+    minIntervalMs: 200,
+    variants: 1,
+  },
+  uuuh: {
+    id: 'uuuh',
+    label: 'Uuuh del pubblico',
+    when: 'Una squadra sbaglia.',
+    source: 'sfx',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 600,
+    variants: 1,
+  },
+  bombSiren: {
+    id: 'bombSiren',
+    label: 'Sirena della Bomba',
+    when: 'La Bomba si accende, in TV e sul telefono di chi la tiene.',
+    source: 'sfx',
+    bus: 'both',
+    volume: 1,
+    minIntervalMs: 800,
+    variants: 1,
+  },
+  rouletteTicks: {
+    id: 'rouletteTicks',
+    label: 'Pallina della roulette',
+    when: 'La pallina gira e rallenta sul rotore.',
+    source: 'sfx',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 1000,
+    variants: 1,
+  },
+  rouletteLanding: {
+    id: 'rouletteLanding',
+    label: 'Atterraggio della roulette',
+    when: 'La pallina si ferma su un numero.',
+    source: 'sfx',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 500,
+    variants: 1,
+  },
+  drumroll: {
+    id: 'drumroll',
+    label: 'Rullo di tamburi',
+    when: 'Suspense prima di una rivelazione o del podio.',
+    source: 'sfx',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 0,
+    variants: 1,
+  },
+  bell: {
+    id: 'bell',
+    label: 'Campana',
+    when: 'Momento di attenzione in TV.',
+    source: 'sfx',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 200,
+    variants: 1,
+  },
+  confirm: {
+    id: 'confirm',
+    label: 'Conferma sul telefono',
+    when: "L'azione è stata registrata dal server.",
+    source: 'ui',
+    bus: 'phone',
+    volume: 1,
+    minIntervalMs: 80,
+    variants: 1,
+  },
+  error: {
+    id: 'error',
+    label: 'Errore sul telefono',
+    when: 'Risposta rifiutata o azione non valida.',
+    source: 'ui',
+    bus: 'phone',
+    volume: 1,
+    minIntervalMs: 300,
+    variants: 1,
+  },
+  podium: {
+    id: 'podium',
+    label: 'Fanfara del podio',
+    when: "La classifica arriva al podio dell'atto.",
+    source: 'sfx',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 1000,
+    variants: 1,
+  },
+  podiumReveal: {
+    id: 'podiumReveal',
+    label: 'Podio, terzo secondo e primo',
+    when: 'Il podio finale si svela posto per posto.',
+    source: 'ui',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 500,
+    variants: 3,
+  },
+  bonusEntrance: {
+    id: 'bonusEntrance',
+    label: 'Ingresso dei cinque bonus',
+    when: 'Un bonus sta per aprire la sua schermata.',
+    source: 'sfx',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 500,
+    variants: 5,
+  },
+  heartbeat: {
+    id: 'heartbeat',
+    label: 'Battito di suspense',
+    when: 'Giochi a tempo: cresce col progredire della serata.',
+    source: 'sfx',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 0,
+    variants: 1,
+  },
+  clock: {
+    id: 'clock',
+    label: 'Ticchettio del timer',
+    when: 'Un round con timer è aperto.',
+    source: 'sfx',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 0,
+    variants: 1,
+  },
+  ambient: {
+    id: 'ambient',
+    label: 'Tappeto del pub',
+    when: 'Sempre, sotto la serata: giro generato a ogni battuta.',
+    source: 'bed',
+    bus: 'tv',
+    volume: 1,
+    minIntervalMs: 0,
+    variants: 1,
+  },
+} as const satisfies Record<string, AudioEventDefinition>;
+
+export type AudioEventId = keyof typeof AUDIO_EVENTS;
+
+/**
+ * Metodo del servizio → evento del catalogo. È la mappa che tiene in piedi la
+ * compatibilità: i chiamanti continuano a usare i metodi di sempre, la regia
+ * audio suona per evento.
+ */
+export const AUDIO_EVENT_FOR_METHOD = {
+  playBell: 'bell',
+  playCorrect: 'correct',
+  playWrong: 'wrong',
+  playCoins: 'coins',
+  playApplause: 'applause',
+  playRacketHit: 'racket',
+  playUuuh: 'uuuh',
+  playBombSiren: 'bombSiren',
+  playBonusEntrance: 'bonusEntrance',
+  playConfirm: 'confirm',
+  playError: 'error',
+  playGong: 'gong',
+  playTimeUp: 'timeUp',
+  playReveal: 'reveal',
+  playRouletteTicks: 'rouletteTicks',
+  playRouletteLanding: 'rouletteLanding',
+  playJoin: 'join',
+  playTick: 'tick',
+  playCountdownTick: 'countdownTick',
+  playCountdownBong: 'countdownBong',
+  playWhoosh: 'whoosh',
+  playElimination: 'elimination',
+  playPodium: 'podium',
+  playDrumroll: 'drumroll',
+  playRankReveal: 'rankReveal',
+  playPodiumReveal: 'podiumReveal',
+  startHeartbeat: 'heartbeat',
+  startSuspense: 'heartbeat',
+  startClock: 'clock',
+  startAmbient: 'ambient',
+} as const satisfies Record<string, AudioEventId>;
+
+/** Tipi di bonus che hanno un richiamo d'ingresso proprio. */
+export const BONUS_ENTRANCE_TYPES = [
+  'CASINO_COLOR',
+  'BLACKJACK',
+  'CASINO_DOZEN',
+  'CAVALLO',
+  'CASINO_NUMBER',
+] as const;
+
+/** Ordine con cui la regia mostra gli eventi: prima la sala, poi il telefono. */
+export const AUDIO_EVENT_ORDER: AudioEventId[] = [
+  'ambient',
+  'gong',
+  'countdownTick',
+  'countdownBong',
+  'join',
+  'tick',
+  'rankReveal',
+  'whoosh',
+  'elimination',
+  'correct',
+  'wrong',
+  'timeUp',
+  'reveal',
+  'applause',
+  'coins',
+  'racket',
+  'uuuh',
+  'bell',
+  'bombSiren',
+  'rouletteTicks',
+  'rouletteLanding',
+  'drumroll',
+  'podium',
+  'podiumReveal',
+  'bonusEntrance',
+  'heartbeat',
+  'clock',
+  'confirm',
+  'error',
+];

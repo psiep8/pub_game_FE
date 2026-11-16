@@ -1,6 +1,11 @@
 import { Injectable, signal } from '@angular/core';
 import { play as playFoley, set as setFoley, unlock as unlockFoley, type CueName } from '@foleyjs/core';
 import {
+  AUDIO_EVENTS,
+  BONUS_ENTRANCE_TYPES,
+  type AudioEventId,
+} from './audio-catalog';
+import {
   PUB_BED_SECONDS_PER_BAR,
   PUB_BED_SECONDS_PER_BEAT,
   PUB_BED_TOTAL_BARS,
@@ -66,6 +71,13 @@ export class AudioService {
 
   /** Foley ha il suo contesto: si configura una volta sola. */
   private uiReady = false;
+
+  /** Volume generale della TV, 0–1. Il muto resta il suo interruttore. */
+  readonly masterVolume = signal(1);
+  /** Ultima riproduzione per evento: serve alla distanza minima del catalogo. */
+  private readonly lastEventAt = new Map<string, number>();
+  /** Rifinitura dell'evento in corso: si azzera appena il suono è stato armato. */
+  private eventTrim = 1;
 
   constructor() {
     this.armUnlock();
@@ -690,6 +702,81 @@ export class AudioService {
   }
 
   /**
+   * Suona un evento del catalogo, con la sua distanza minima e la sua
+   * rifinitura di volume. È il punto d'ingresso della regia audio: i metodi
+   * storici restano per i chiamanti esistenti.
+   *
+   * <p>Restituisce `false` quando l'evento viene saltato — muto spento o
+   * troppo ravvicinato — così la regia può dirlo invece di fingere.</p>
+   */
+  play(event: AudioEventId, variant = 0): boolean {
+    if (!this.audioEnabled()) return false;
+    const definition = AUDIO_EVENTS[event];
+    if (!definition) return false;
+
+    const now = Date.now();
+    const last = this.lastEventAt.get(event) ?? -Infinity;
+    if (now - last < definition.minIntervalMs) return false;
+    this.lastEventAt.set(event, now);
+
+    this.eventTrim = definition.volume;
+    try {
+      this.runEvent(event, variant);
+    } finally {
+      this.eventTrim = 1;
+    }
+    return true;
+  }
+
+  /** Volume generale 0–1, applicato al bus master senza click. */
+  setMasterVolume(value: number): void {
+    const clamped = Math.max(0, Math.min(1, Number.isFinite(value) ? value : 1));
+    this.masterVolume.set(clamped);
+    this.applyEnabled();
+  }
+
+  /** Un evento del catalogo per id, con etichetta e regole: lo usa la regia. */
+  event(id: AudioEventId) {
+    return AUDIO_EVENTS[id];
+  }
+
+  private runEvent(event: AudioEventId, variant: number): void {
+    switch (event) {
+      case 'gong': this.playGong(); break;
+      case 'countdownTick': this.playCountdownTick(); break;
+      case 'countdownBong': this.playCountdownBong(); break;
+      case 'join': this.playJoin(); break;
+      case 'tick': this.playTick(); break;
+      case 'rankReveal': this.playRankReveal(variant % 2 === 0 ? 5 : 4); break;
+      case 'whoosh': this.playWhoosh(); break;
+      case 'elimination': this.playElimination(); break;
+      case 'correct': this.playCorrect(); break;
+      case 'wrong': this.playWrong(); break;
+      case 'timeUp': this.playTimeUp(); break;
+      case 'reveal': this.playReveal(); break;
+      case 'applause': this.playApplause(); break;
+      case 'coins': this.playCoins(); break;
+      case 'racket': this.playRacketHit(); break;
+      case 'uuuh': this.playUuuh(); break;
+      case 'bombSiren': this.playBombSiren(); break;
+      case 'rouletteTicks': this.playRouletteTicks(); break;
+      case 'rouletteLanding': this.playRouletteLanding(); break;
+      case 'drumroll': this.playDrumroll(1.6, 0.8); break;
+      case 'bell': this.playBell(); break;
+      case 'confirm': this.playConfirm(); break;
+      case 'error': this.playError(); break;
+      case 'podium': this.playPodium(); break;
+      case 'podiumReveal': this.playPodiumReveal((variant % 3) + 1); break;
+      case 'bonusEntrance':
+        this.playBonusEntrance(BONUS_ENTRANCE_TYPES[Math.abs(variant) % BONUS_ENTRANCE_TYPES.length]);
+        break;
+      case 'heartbeat': this.startHeartbeat(0.6); break;
+      case 'clock': this.startClock(); break;
+      case 'ambient': this.startAmbient(); break;
+    }
+  }
+
+  /**
    * Contesto condiviso: anche il Quiz musicale ci appende i suoi filtri, così
    * il mute della TV spegne davvero tutto e non solo gli effetti sintetizzati.
    */
@@ -754,7 +841,7 @@ export class AudioService {
         if (!Ctx) return undefined;
         this.audioContext = new Ctx();
         this.master = this.audioContext.createGain();
-        this.master.gain.value = this.audioEnabled() ? 1 : 0;
+        this.master.gain.value = this.audioEnabled() ? this.masterVolume() : 0;
         this.master.connect(this.audioContext.destination);
       }
       if (this.audioContext.state === 'suspended') {
@@ -795,7 +882,7 @@ export class AudioService {
     const now = ctx.currentTime;
     master.gain.cancelScheduledValues(now);
     master.gain.setValueAtTime(master.gain.value, now);
-    master.gain.linearRampToValueAtTime(this.audioEnabled() ? 1 : 0, now + 0.03);
+    master.gain.linearRampToValueAtTime(this.audioEnabled() ? this.masterVolume() : 0, now + 0.03);
   }
 
   /** Rumore filtrato con inviluppo: base dell'applauso sintetico. */
@@ -844,7 +931,7 @@ export class AudioService {
     }
 
     // Nessun effetto supera il tetto del catalogo: la voce resta davanti.
-    const peak = Math.min(options.gain ?? 0.05, 0.09);
+    const peak = Math.min((options.gain ?? 0.05) * this.eventTrim, 0.09);
     const attack = Math.min(Math.max(options.attack ?? 0.015, 0.005), options.duration * 0.8);
     gain.gain.setValueAtTime(0.0001, start);
     gain.gain.exponentialRampToValueAtTime(peak, start + attack);

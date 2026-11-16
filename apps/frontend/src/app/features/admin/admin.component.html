@@ -9,6 +9,8 @@
       <div class="game-status" [class.active]="gameState() === 'ACTIVE'">
         {{ gameState() === 'WAITING' ? '⏳ In Attesa' : gameState() === 'ACTIVE' ? '🎮 Round Attivo' : '✅ Round Terminato' }}
       </div>
+      <a class="theme-btn" href="/audio" target="_blank" rel="noopener"
+        title="Regia audio: prova ogni suono della serata">🔊 <span>AUDIO</span></a>
       <button class="theme-btn" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
         🎨 <span>{{ theme.label() }}</span>
       </button>
