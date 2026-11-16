@@ -26,6 +26,15 @@ describe('PlayerAvatarService', () => {
     expect(new PlayerAvatarService().avatarFor('Anna Sofia')).toBe(AVATAR);
   });
 
+  it('dimentica l’avatar di una squadra uscita dalla classifica', () => {
+    service.setAvatar('Anna', AVATAR);
+
+    service.forget('Anna');
+
+    expect(service.avatarFor('Anna')).toBeNull();
+    expect(new PlayerAvatarService().avatarFor('Anna')).toBeNull();
+  });
+
   it('non fa nulla se il vecchio nome non ha avatar o i nomi coincidono', () => {
     service.setAvatar('Anna', AVATAR);
 

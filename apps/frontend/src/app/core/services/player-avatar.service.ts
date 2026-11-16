@@ -69,6 +69,20 @@ export class PlayerAvatarService {
     this.persist();
   }
 
+  /**
+   * Dimentica l'avatar di una squadra uscita dalla classifica: le immagini
+   * pesano fino a 30 KB l'una e in `localStorage` resterebbero per sempre.
+   */
+  forget(playerName: string): void {
+    const name = playerName.trim();
+    if (!name || !this.avatars()[name]) return;
+
+    const copy = { ...this.avatars() };
+    delete copy[name];
+    this.avatars.set(copy);
+    this.persist();
+  }
+
   /** Rimanda l'avatar alla TV: serve dopo una riconnessione o un refresh. */
   publish(playerName: string, gameId = 1): void {
     const name = playerName.trim();

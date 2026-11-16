@@ -567,6 +567,7 @@ export class GameComponent implements OnInit, OnDestroy {
         // colore a una squadra nuova.
         if (this.leaderboardService.forgetIfNoPoints(expelled)) {
           this.theme.releaseTeamTheme(expelled);
+          this.playerAvatars.forget(expelled);
         }
         // La squadra espulsa esce dal gioco: se lo stesso telefono rientra con
         // un altro nome non deve portarsi dietro i punti che sono rimasti qui.
@@ -747,6 +748,7 @@ export class GameComponent implements OnInit, OnDestroy {
     const removed = this.leaderboardService.forgetAbsent(absent);
     for (const name of removed) {
       this.theme.releaseTeamTheme(name);
+      this.playerAvatars.forget(name);
       for (const [deviceId, playerName] of this.deviceNames) {
         if (playerName === name) this.deviceNames.delete(deviceId);
       }
