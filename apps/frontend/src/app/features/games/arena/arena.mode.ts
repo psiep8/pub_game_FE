@@ -27,6 +27,12 @@ export interface ArenaSnapshot {
   appliedAnswerSeqs: number[];
 }
 
+/** Quello che la TV salva sul server: stato del tabellone e versione dello stesso. */
+export interface ArenaCheckpoint {
+  revision: number;
+  state: ArenaSnapshot;
+}
+
 const MIN_RADIUS = 14;
 /** Venti secondi di respiro: il restringimento si distribuisce sul resto del round. */
 const SHRINK_GRACE_SECONDS = 20;
@@ -51,6 +57,8 @@ export class ArenaMode extends GameModeBase {
   private deferredInactivity: Array<{ playerName: string; count: number }> = [];
   private inactivityTotals = new Map<string, number>();
   private appliedAnswerSeqs = new Set<number>();
+  /** Cresce a ogni salvataggio: una scrittura vecchia non deve tornare indietro. */
+  private revision = 0;
 
   protected onInitialize(): void {
     // Le squadre si creano in onStart, quando la configurazione è già applicata.
@@ -59,6 +67,21 @@ export class ArenaMode extends GameModeBase {
   protected async onStart(): Promise<void> {
     this.initializeTeams();
     await this.runPreGameSequence(5000);
+    // Un checkpoint esiste dal primo istante: se la TV si aggiorna subito,
+    // il round si riapre con le squadre già schierate.
+    this.emitCheckpoint();
+  }
+
+  private emitCheckpoint(): void {
+    const save = this.config.onArenaCheckpoint;
+    if (!save || this.gameEnded() || !this.isActive()) return;
+    this.revision++;
+    save({ revision: this.revision, state: this.snapshot() });
+  }
+
+  /** Solo un round Arena ancora in corso accetta nuovi esiti. */
+  acceptsArenaAnswers(): boolean {
+    return this.isActive() && !this.gameEnded();
   }
 
   /** Stato necessario a ricostruire il round, escluso il timer autorevole. */
@@ -74,25 +97,14 @@ export class ArenaMode extends GameModeBase {
 
   /** Riprende dal tempo residuo del server senza inizializzare nuove squadre. */
   restore(secondsLeft: number, snapshot?: unknown): void {
-    const state = snapshot as ArenaSnapshot;
-    if (!state || !Array.isArray(state.teams) || !Array.isArray(state.eliminatedPlayers)
-      || !Array.isArray(state.inactivityTotals) || !Array.isArray(state.deferredInactivity)
-      || !Array.isArray(state.appliedAnswerSeqs)
-      || !state.teams.every((team) => team && typeof team.playerName === 'string' && team.playerName.trim()
-        && Number.isFinite(team.distance) && team.distance >= 0 && team.distance <= 100
-        && Number.isFinite(team.score) && typeof team.eliminated === 'boolean')
-      || new Set(state.teams.map((team) => team.playerName.trim().toLowerCase())).size !== state.teams.length
-      || !state.eliminatedPlayers.every((name) => typeof name === 'string'
-        && state.teams.some((team) => team.playerName === name && team.eliminated))
-      || new Set(state.eliminatedPlayers).size !== state.eliminatedPlayers.length
-      || state.teams.filter((team) => team.eliminated).length !== state.eliminatedPlayers.length
-      || !state.inactivityTotals.every((row) => Array.isArray(row) && row.length === 2
-        && typeof row[0] === 'string' && Number.isSafeInteger(row[1]) && row[1] >= 0)
-      || !state.deferredInactivity.every((row) => row && typeof row.playerName === 'string'
-        && Number.isSafeInteger(row.count) && row.count > 0)
-      || !state.appliedAnswerSeqs.every((seq) => Number.isSafeInteger(seq) && seq > 0)) {
+    const checkpoint = snapshot as ArenaCheckpoint;
+    const revision = Number(checkpoint?.revision);
+    const state = checkpoint?.state;
+    if (!Number.isSafeInteger(revision) || revision <= 0) {
       throw new Error('Stato Arena non ripristinabile');
     }
+    this.assertSnapshot(state);
+    this.revision = revision;
     this.teams.set(new Map(state.teams.map((team) => [team.playerName, { ...team }])));
     this.eliminatedPlayers.set([...state.eliminatedPlayers]);
     this.inactivityTotals = new Map(state.inactivityTotals);
@@ -108,6 +120,28 @@ export class ArenaMode extends GameModeBase {
     this.isPaused.set(false);
     this.applyInactivityPenalties(this.deferredInactivity.splice(0));
     if (!this.gameEnded()) this.startTimer();
+  }
+
+  private assertSnapshot(state: ArenaSnapshot | undefined): asserts state is ArenaSnapshot {
+    if (!state || !Array.isArray(state.teams) || !Array.isArray(state.eliminatedPlayers)
+      || !Array.isArray(state.inactivityTotals) || !Array.isArray(state.deferredInactivity)
+      || !Array.isArray(state.appliedAnswerSeqs)
+      || !state.teams.every((team) => team && typeof team.playerName === 'string' && team.playerName.trim()
+        && Number.isFinite(team.distance) && team.distance >= 0 && team.distance <= 100
+        && Number.isFinite(team.score) && typeof team.eliminated === 'boolean')
+      || state.teams.length === 0
+      || new Set(state.teams.map((team) => team.playerName.trim().toLowerCase())).size !== state.teams.length
+      || !state.eliminatedPlayers.every((name) => typeof name === 'string'
+        && state.teams.some((team) => team.playerName === name && team.eliminated))
+      || new Set(state.eliminatedPlayers).size !== state.eliminatedPlayers.length
+      || state.teams.filter((team) => team.eliminated).length !== state.eliminatedPlayers.length
+      || !state.inactivityTotals.every((row) => Array.isArray(row) && row.length === 2
+        && typeof row[0] === 'string' && Number.isSafeInteger(row[1]) && row[1] >= 0)
+      || !state.deferredInactivity.every((row) => row && typeof row.playerName === 'string'
+        && Number.isSafeInteger(row.count) && row.count > 0)
+      || !state.appliedAnswerSeqs.every((seq) => Number.isSafeInteger(seq) && seq > 0)) {
+      throw new Error('Stato Arena non ripristinabile');
+    }
   }
 
   protected onPause(): void {
@@ -131,6 +165,7 @@ export class ArenaMode extends GameModeBase {
     this.deferredInactivity = [];
     this.inactivityTotals.clear();
     this.appliedAnswerSeqs.clear();
+    this.revision = 0;
     this.stopInactivityPoll();
     this.teams.set(new Map());
     this.circleRadius.set(100);
@@ -259,6 +294,7 @@ export class ArenaMode extends GameModeBase {
 
     this.teams.set(currentTeams);
     this.checkEliminations();
+    this.emitCheckpoint();
   }
 
   /** Il server possiede il timeout: la TV chiede e applica solo le penalità. */
@@ -328,6 +364,7 @@ export class ArenaMode extends GameModeBase {
     // poi decidiamo le eliminazioni e l'eventuale fine della partita.
     this.teams.set(currentTeams);
     this.checkEliminations();
+    this.emitCheckpoint();
   }
 
   private checkEliminations(): void {

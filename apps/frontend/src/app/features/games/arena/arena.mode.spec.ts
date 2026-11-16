@@ -179,13 +179,13 @@ describe('ArenaMode', () => {
     expect(first.applyArenaAnswer('Anna', true, 10, 9)).toBe(true);
     expect(first.applyArenaAnswer('Anna', false, -10, 7)).toBe(true);
     const before = first.getDisplayData();
-    const state = JSON.parse(JSON.stringify(first.snapshot()));
+    const checkpoint = JSON.parse(JSON.stringify({ revision: 4, state: first.snapshot() }));
     first.cleanup();
 
     const restored = new ArenaMode();
     restored.setConfig(config);
     restored.initialize({});
-    restored.restore(100, state);
+    restored.restore(100, checkpoint);
     await vi.advanceTimersByTimeAsync(0);
     expect(restored.getDisplayData().teams).toEqual(before.teams);
     expect(restored.getDisplayData().circleRadius).toBeCloseTo(before.circleRadius);
@@ -206,9 +206,36 @@ describe('ArenaMode', () => {
       teams: [{ playerName: 'Anna', distance: 20, score: 0, eliminated: false }],
       eliminatedPlayers: [], inactivityTotals: [], deferredInactivity: [],
     };
-    expect(() => mode.restore(40, invalid)).toThrow('Stato Arena non ripristinabile');
+    expect(() => mode.restore(40, { revision: 1, state: invalid })).toThrow('Stato Arena non ripristinabile');
+    expect(() => mode.restore(40, { revision: 0, state: invalid })).toThrow('Stato Arena non ripristinabile');
     expect(mode.getDisplayData().teams).toEqual([]);
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('salva un checkpoint crescente e smette quando il round è chiuso', async () => {
+    vi.useFakeTimers();
+    const saved: Array<{ revision: number; state: any }> = [];
+    const mode = new ArenaMode();
+    mode.setConfig({
+      type: 'ARENA', payload: {}, gameId: 1, activePlayers: ['Anna', 'Bruno'],
+      onArenaCheckpoint: (checkpoint) => saved.push(checkpoint),
+    });
+    mode.initialize({});
+    await mode.start();
+    expect(saved).toHaveLength(1);
+    mode.applyArenaAnswer('Anna', true, 10, 3);
+    expect(saved).toHaveLength(2);
+    expect(saved[1].revision).toBeGreaterThan(saved[0].revision);
+    expect(saved[1].state.appliedAnswerSeqs).toEqual([3]);
+    // Stesso esito: nessun nuovo salvataggio.
+    mode.applyArenaAnswer('Anna', true, 10, 3);
+    expect(saved).toHaveLength(2);
+    await vi.advanceTimersByTimeAsync(131_000);
+    const closed = saved.length;
+    mode.applyArenaAnswer('Anna', true, 10, 4);
+    expect(mode.acceptsArenaAnswers()).toBe(false);
+    expect(saved).toHaveLength(closed);
+    mode.cleanup();
   });
 
   it('non inventa penalità se il server non risponde', async () => {

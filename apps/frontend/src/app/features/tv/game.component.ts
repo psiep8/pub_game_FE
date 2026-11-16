@@ -207,6 +207,9 @@ export class GameComponent implements OnInit, OnDestroy {
   } | null>(null);
   private recoveredPayload: any = null;
   private recoveredBlackjackState: any = null;
+  /** Tabellone Arena salvato dalla TV precedente, con la sua revisione. */
+  private recoveredArenaCheckpoint: any = null;
+  private recoveredRoundIndex: number | null = null;
   private leaderboardFlush?: ReturnType<typeof setTimeout>;
   /** Ultima variazione locale e ultima confermata dal server. */
   private leaderboardPendingSeq = 0;
@@ -528,6 +531,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
       // 🏟️ Esito Arena calcolato e trasmesso dal backend.
       if (mode?.type === 'ARENA' && status.action === 'ARENA_ANSWER') {
+        // Un esito arrivato dopo la chiusura del round non assegna più punti:
+        // altrimenti una risposta in ritardo falsava la classifica.
+        if (mode.acceptsArenaAnswers && !mode.acceptsArenaAnswers()) return;
         const playerName = (status.playerName || status.name || 'Sconosciuto').trim();
         const isCorrect = !!status.isCorrect;
         // Il server ora assegna +10/-10: usiamo i suoi punti se presenti.
@@ -992,6 +998,11 @@ export class GameComponent implements OnInit, OnDestroy {
       onCountdownTick: (seconds) => this.onCountdownTick(seconds),
       onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
       onRoundEnded: () => this.onArenaEnded(),
+      onArenaCheckpoint: (checkpoint) => {
+        const roundIndex = this.arenaRoundIndex();
+        if (roundIndex == null) return;
+        this.reliability.saveArenaCheckpoint({ ...checkpoint, roundIndex });
+      },
       onArenaInactivityCheck: async (players: string[]) => {
         const response = await firstValueFrom(
           this.gameService.tickArenaInactivity(this.currentGameId()!, players),
@@ -2205,6 +2216,12 @@ export class GameComponent implements OnInit, OnDestroy {
     this.offerRoundRecovery(snapshot);
   }
 
+  /** Indice del round corrente per il checkpoint Arena (0-based, dal server). */
+  private arenaRoundIndex(): number | null {
+    const index = Number(this.round()?.roundIndex ?? this.recoveredRoundIndex);
+    return Number.isInteger(index) && index >= 0 ? index : null;
+  }
+
   /** Un round è ancora aperto sul server: la TV non lo dà per perso. */
   private offerRoundRecovery(snapshot: any): void {
     const status = String(snapshot?.status ?? '');
@@ -2217,15 +2234,22 @@ export class GameComponent implements OnInit, OnDestroy {
     const open = status === 'RUNNING' && !!type
       && (paused || (Number.isFinite(deadline) && deadline > this.reliability.serverNow()));
 
+    const roundIndex = Number(snapshot?.roundIndex);
+    this.recoveredRoundIndex = Number.isInteger(roundIndex) && roundIndex >= 0 ? roundIndex : null;
+
     if (!open) {
       this.recoveredRound.set(null);
       this.recoveredPayload = null;
+      this.recoveredArenaCheckpoint = null;
+      this.recoveredRoundIndex = null;
       return;
     }
     if (this.currentMode() || this.bonusActive() || this.isSpinning() || this.showTypeReveal()) return;
 
     this.recoveredPayload = snapshot.currentRound?.payload ?? snapshot.payload ?? null;
     this.recoveredBlackjackState = snapshot.blackjackState ?? null;
+    // Solo un checkpoint del round corrente: il server lo scarta altrimenti.
+    this.recoveredArenaCheckpoint = snapshot.arenaCheckpoint?.state ? snapshot.arenaCheckpoint : null;
     this.recoveredRound.set({
       type: type as GameModeType,
       label: this.getModeName(type),
@@ -2239,7 +2263,8 @@ export class GameComponent implements OnInit, OnDestroy {
       // Timeline ha le carte nel payload. Blackjack ha la mano salvata sul
       // server: senza di essa il tavolo non si può riprendere.
       resumable: (type === 'TIMELINE' && !!this.recoveredPayload)
-        || (type === 'BLACKJACK' && !!snapshot?.blackjackState),
+        || (type === 'BLACKJACK' && !!snapshot?.blackjackState)
+        || (type === 'ARENA' && !!this.recoveredArenaCheckpoint),
       paused,
     });
   }
@@ -2261,7 +2286,8 @@ export class GameComponent implements OnInit, OnDestroy {
     const pending = this.recoveredRound();
     const payload = this.recoveredPayload;
     const blackjack = this.recoveredBlackjackState;
-    if (!pending?.resumable || (!payload && !blackjack)) return;
+    const arena = this.recoveredArenaCheckpoint;
+    if (!pending?.resumable || (!payload && !blackjack && !arena)) return;
 
     if (pending.paused) {
       try {
@@ -2277,6 +2303,9 @@ export class GameComponent implements OnInit, OnDestroy {
     this.recoveredRound.set(null);
     this.showQuestion.set(true);
     this.phase.set('QUESTION');
+    // Il round riprende: Arena torna capace di chiudersi e di contare i punti.
+    this.arenaFinished = false;
+    if (pending.type === 'ARENA') this.beginRoundScoring();
 
     const category = String(payload?.category ?? '').trim();
     const found = this.allCategories().find(
@@ -2291,8 +2320,23 @@ export class GameComponent implements OnInit, OnDestroy {
     this.timer.set(pending.secondsLeft);
     this.audioService.startClock();
     this.startRoundSuspense(mode.type);
-    if (mode.restore) mode.restore(pending.secondsLeft, this.recoveredBlackjackState);
-    else await mode.start();
+    if (mode.restore) {
+      try {
+        mode.restore(pending.secondsLeft, pending.type === 'ARENA' ? arena : this.recoveredBlackjackState);
+      } catch {
+        // Checkpoint non valido: si torna al pannello, senza lasciare la TV
+        // su un round vuoto che nessuno potrebbe più chiudere.
+        this.gameModeService.cleanup();
+        this.currentMode.set(null);
+        this.phase.set('IDLE');
+        this.showQuestion.set(false);
+        this.audioService.stopClock();
+        this.audioService.stopSuspense();
+        this.recoveredRound.set(pending);
+        alert('Tabellone Arena non ripristinabile: chiudi il round o riprova dalla regia.');
+        return;
+      }
+    } else await mode.start();
     if (pending.paused) {
       this.ws.broadcastStatus(this.currentGameId(), { action: WsAction.GAME_RESUMED });
     }
@@ -2310,6 +2354,8 @@ export class GameComponent implements OnInit, OnDestroy {
     this.recoveredRound.set(null);
     this.recoveredPayload = null;
     this.recoveredBlackjackState = null;
+    this.recoveredArenaCheckpoint = null;
+    this.recoveredRoundIndex = null;
     this.reliability.saveBlackjackState(null);
     this.gameService.closeRound(this.currentGameId(), 'recovered').subscribe({
       next: () => {

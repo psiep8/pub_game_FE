@@ -61,6 +61,8 @@ export interface GameModeConfig {
   finishSpeedRush?: () => Promise<any[]>;
   /** Blackjack: la TV salva lo stato della mano sul server a ogni cambio. */
   onBlackjackState?: (state: unknown | null) => void;
+  /** Arena: la TV salva il tabellone sul server per riprendere il round. */
+  onArenaCheckpoint?: (checkpoint: { revision: number; state: unknown }) => void;
 }
 
 export interface GameModeResult {
@@ -106,6 +108,8 @@ export interface IGameMode {
   /** Scream Race: il giocatore ha tagliato il traguardo. */
   /** Arena: esito di una domanda a risposta rapida. */
   hasArenaAnswer?(eventSeq: number): boolean;
+  /** False quando il round è chiuso: nessun esito tardivo deve fare punti. */
+  acceptsArenaAnswers?(): boolean;
   applyArenaAnswer?(playerName: string, isCorrect: boolean, points: number, eventSeq?: number): boolean | void;
   /** Timeline, Speed Rush, Tennis: eventi dal server o dai telefoni. */
   handlePartyEvent?(event: any): void;

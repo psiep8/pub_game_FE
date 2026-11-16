@@ -285,6 +285,12 @@ export class FakeReliabilityService {
 
   saveBlackjackState(_state: unknown | null): void {}
 
+  readonly arenaCheckpoints: Array<{ roundIndex: number; revision: number; state: unknown }> = [];
+
+  saveArenaCheckpoint(checkpoint: { roundIndex: number; revision: number; state: unknown }): void {
+    this.arenaCheckpoints.push(checkpoint);
+  }
+
   serverNow(): number {
     return Date.now();
   }

@@ -29,6 +29,7 @@ describe('GameComponent', () => {
   let fixture: ComponentFixture<GameComponent>;
   let ws: FakeWebSocketService;
   let leaderboard: LeaderboardService;
+  let reliability: FakeReliabilityService;
 
   beforeEach(async () => {
     localStorage.clear();
@@ -50,6 +51,7 @@ describe('GameComponent', () => {
     component = fixture.componentInstance;
     ws = TestBed.inject(WebSocketService) as unknown as FakeWebSocketService;
     leaderboard = TestBed.inject(LeaderboardService);
+    reliability = TestBed.inject(ReliabilityService) as unknown as FakeReliabilityService;
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -130,6 +132,59 @@ describe('GameComponent', () => {
     expect(component.recoveredRound()).not.toBeNull();
     expect(ws.broadcasted.some((entry) => entry.body.action === WsAction.GAME_RESUMED)).toBe(false);
     alertSpy.mockRestore();
+  });
+
+  it('salva il checkpoint Arena con l indice del round corrente', () => {
+    component.round.set({ roundIndex: 5 } as any);
+    const config = (component as unknown as {
+      buildModeConfig(type: string, payload: any, players: string[]): any;
+    }).buildModeConfig('ARENA', {}, ['Anna']);
+    const state = { teams: [{ playerName: 'Anna', distance: 20 }] };
+    config.onArenaCheckpoint({ revision: 2, state });
+    expect(reliability.arenaCheckpoints).toEqual([{ revision: 2, state, roundIndex: 5 }]);
+  });
+
+  it('propone di riprendere Arena quando il server ha il tabellone', () => {
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+    const checkpoint = { roundKey: 'g1-r3', startedAt: 1, revision: 4, state: { teams: [] } };
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'RUNNING', roundType: 'ARENA', roundIndex: 3, roundKey: 'g1-r3',
+      roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
+      arenaCheckpoint: checkpoint,
+    });
+    expect(component.recoveredRound()?.resumable).toBe(true);
+  });
+
+  it('riapre Arena dal checkpoint con il tempo residuo', async () => {
+    const modes = TestBed.inject(GameModeService);
+    const restore = vi.fn();
+    vi.spyOn(modes, 'createMode').mockReturnValue({
+      type: 'ARENA', restore, getDisplayData: () => ({}), isRevealed: () => false,
+    } as any);
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+    const checkpoint = { roundKey: 'g1-r3', startedAt: 1, revision: 4, state: { teams: [] } };
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'RUNNING', roundType: 'ARENA', roundIndex: 3, roundKey: 'g1-r3',
+      roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
+      arenaCheckpoint: checkpoint,
+    });
+    const seconds = component.recoveredRound()!.secondsLeft;
+
+    await component.resumeRecoveredRound();
+
+    expect(restore).toHaveBeenCalledWith(seconds, checkpoint);
+    expect(component.currentMode()?.type).toBe('ARENA');
+    expect(component.recoveredRound()).toBeNull();
+  });
+
+  it('non assegna punti Arena per un esito arrivato dopo la chiusura', () => {
+    const applyArenaAnswer = vi.fn();
+    component.currentMode.set({
+      type: 'ARENA', acceptsArenaAnswers: () => false, applyArenaAnswer,
+    } as any);
+    ws.status$.next({ action: 'ARENA_ANSWER', playerName: 'Anna', isCorrect: true, points: 10, eventSeq: 9 });
+    expect(leaderboard.getPlayerStats('Anna')).toBeFalsy();
+    expect(applyArenaAnswer).not.toHaveBeenCalled();
   });
 
   it('passa al round successivo quando finisce la canzone del reveal', () => {
