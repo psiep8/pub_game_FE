@@ -1,6 +1,7 @@
 # Giro di prova su device — F02, F01, F13, F12, F09
 
-Una sola sessione con TV e due telefoni, 45–60 minuti (70 con la prova F09). Serve a chiudere ciò che
+Una sola sessione con TV e due telefoni, 45–60 minuti (75–90 con F09 e i casi
+palette di F12). Serve a chiudere ciò che
 jsdom non può dire: bfcache, storage delle PWA, rete reale, percezione in sala.
 
 **Regola**: durante il giro non si tocca il codice. Si annota, si fotografa, si
@@ -101,9 +102,17 @@ risultato non è riproducibile.
 
 ---
 
-## 5. F12 — Diagnosi del tema TV (10 minuti)
+## 5. F12 — Tema TV e palette delle squadre (15–20 minuti)
 
-Serve un round chiuso con punti a una sola squadra, poi uno con pari merito.
+Serve un round chiuso con punti a una sola squadra, poi uno con pari merito, e
+almeno tre telefoni: due restano in partita, il terzo serve alle prove di
+espulsione e rientro.
+
+**Prima di iniziare**: nessun telefono deve aver scelto il colore, tranne quello
+indicato in T8. Le palette vengono assegnate dalla TV all'ingresso, in ordine
+(SABBIA, ARTICO, OCEANO, K-POP, CYBER, SUNSET, ORO, poi l'acido all'ottava):
+se una squadra ha già scelto, i colori non sono più nell'ordine previsto e la
+prova T1 va comunque fatta, annotando il colore visto.
 
 | # | Prova | Cosa deve succedere | Esito | Note |
 |---|---|---|---|---|
@@ -113,8 +122,15 @@ Serve un round chiuso con punti a una sola squadra, poi uno con pari merito.
 | T4 | Round con pari merito | Comportamento concordato: nessun tema, o tema condiviso, ma deciso e dichiarato | | |
 | T5 | Round senza punti (nessuno vince) | Nessun tema assegnato per errore | | |
 | T6 | Foto della TV a 720p e a 1080p | Consegna: due foto dei casi T1 e T4 | | |
+| T7 | TV: **refresh** (F5) a metà serata, con almeno quattro squadre collegate | Ogni squadra riprende il colore che aveva: nessuna torna in acido, nessuno scambio di colore fra squadre | | |
+| T8 | **Refresh della TV** dopo che un telefono ha scelto la palette prima del tutorial | Il colore scelto resta dopo il reload, senza che il telefono rimandi la scelta | | |
+| T9 | Espelli una squadra **senza punti**, poi falla rientrare dallo stesso telefono | Al rientro ritrova **lo stesso colore** di prima; la classifica non cambia per le altre squadre | | |
+| T10 | Espelli una squadra **con punti** | Resta in classifica con i suoi punti e il suo colore; una squadra nuova che entra non prende quel colore | | |
+| T11 | Partita nuova (o reset confermato) con la TV ricaricata | I colori ripartono dall'inizio: prime squadre SABBIA, ARTICO, OCEANO; nessun colore ereditato dalla partita precedente | | |
 
-Per T2 non spiegare prima cosa guardare: la percezione è il dato.
+Per T2 non spiegare prima cosa guardare: la percezione è il dato. In T7–T10
+fotografare la TV prima e dopo: la coppia di scatti è la prova, l'occhio da solo
+non distingue «colore simile» da «colore identico».
 
 ---
 
@@ -172,7 +188,7 @@ Note obbligatorie accanto all'esito:
 |---|---|---|---|
 | F01 | | /4 | |
 | F02 | | /13 | |
-| F12 | | /6 | |
+| F12 | | /11 | |
 | F13 | | /6 | |
 | F09 | | /7 (+1) | |
 
