@@ -190,6 +190,16 @@ describe('GameComponent', () => {
     expect(component.recoveredRound()).toBeNull();
   });
 
+  it('propone di riprendere Speed Rush quando il server ha il checkpoint della modalità', () => {
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'RUNNING', roundType: 'SPEED_RUSH', roundIndex: 4, roundKey: 'g1-r4',
+      roundDeadlineAt: Date.now() + 45_000, currentRound: { payload: {} },
+      tvCheckpoint: { mode: 'SPEED_RUSH', roundKey: 'g1-r4', startedAt: 1, revision: 8, state: { lanes: [] } },
+    });
+    expect(component.recoveredRound()?.resumable).toBe(true);
+  });
+
   it('propone di riprendere Quiz quando il server ha il checkpoint della modalità', () => {
     const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
     tv.applyAuthoritativeState({

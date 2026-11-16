@@ -29,11 +29,14 @@ export class SpeedRushMode extends GameModeBase {
   private lanes = signal<Lane[]>([]);
   private pointsApplied = false;
   private finishing = false;
+  /** Cresce a ogni salvataggio: una scrittura vecchia non deve tornare indietro. */
+  private revision = 0;
 
   protected onInitialize(): void {
     this.lanes.set(this.emptyLanes());
     this.pointsApplied = false;
     this.finishing = false;
+    this.revision = 0;
     this.timer.set(this.timerDuration);
   }
 
@@ -53,6 +56,7 @@ export class SpeedRushMode extends GameModeBase {
 
   protected onCleanup(): void {
     this.lanes.set([]);
+    this.revision = 0;
   }
 
   protected onTimeout(): void {
@@ -64,8 +68,11 @@ export class SpeedRushMode extends GameModeBase {
       this.applyServerResults(Array.isArray(event.results) ? event.results : []);
       return;
     }
-    if (event?.action !== 'SPEED_RUSH_PROGRESS' || !event.playerName) return;
+    if (event?.action === 'SPEED_RUSH_PROGRESS') this.applyProgress(event);
+  }
 
+  private applyProgress(event: any): void {
+    if (!event?.playerName) return;
     const key = String(event.playerName).trim().toLowerCase();
     this.lanes.update((lanes) => lanes.map((lane) => {
       if (lane.playerName.trim().toLowerCase() !== key) return lane;
@@ -79,6 +86,7 @@ export class SpeedRushMode extends GameModeBase {
         finishedAt: event.finishedAt == null ? null : Number(event.finishedAt),
       };
     }));
+    this.emitCheckpoint();
   }
 
   /**
@@ -118,6 +126,77 @@ export class SpeedRushMode extends GameModeBase {
         isCorrect: points > 0,
       });
     }
+  }
+
+  /**
+   * Riprende la corsa dal checkpoint: il server ha ancora la sessione, quindi
+   * le corsie tornano come le aveva lasciate la TV e il cronometro riparte dal
+   * tempo che resta al round. La corsa sul server non viene riaperta.
+   */
+  restore(secondsLeft: number, snapshot?: unknown): void {
+    const checkpoint = snapshot as { revision?: number; state?: any } | null | undefined;
+    const revision = checkpoint ? Number(checkpoint.revision) : 0;
+    if (checkpoint && (!Number.isSafeInteger(revision) || revision <= 0)) {
+      throw new Error('Stato Speed Rush non ripristinabile');
+    }
+
+    const saved: any[] = Array.isArray(checkpoint?.state?.lanes) ? checkpoint!.state.lanes : [];
+    const lanes = saved
+      .filter((row: any) => row && typeof row.playerName === 'string' && row.playerName.trim())
+      .map((row: any): Lane => ({
+        playerName: String(row.playerName),
+        progress: Math.max(0, Math.min(100, Number(row.progress) || 0)),
+        finished: !!row.finished,
+        position: row.position == null ? null : Number(row.position),
+        streak: Math.max(0, Number(row.streak) || 0),
+        multiplier: Math.max(1, Number(row.multiplier) || 1),
+        finishedAt: row.finishedAt == null ? null : Number(row.finishedAt),
+      }));
+
+    this.revision = revision;
+    this.pointsApplied = false;
+    this.finishing = false;
+    this.lanes.set(lanes.length ? this.mergeActivePlayers(lanes) : this.emptyLanes());
+
+    const seconds = Number.isFinite(Number(secondsLeft))
+      ? Math.max(0, Math.min(this.timerDuration, Math.round(Number(secondsLeft))))
+      : this.timerDuration;
+    this.timer.set(seconds);
+    this.config.onTimerTick?.(seconds);
+    this.revealed.set(false);
+    this.isActive.set(true);
+    this.isPaused.set(false);
+    // Se il tempo è già finito il primo tick chiude la corsa chiedendo al server.
+    this.startTimer();
+  }
+
+  /** Chi si è unito durante il refresh deve comunque avere la sua corsia. */
+  private mergeActivePlayers(lanes: Lane[]): Lane[] {
+    const known = new Set(lanes.map((lane) => lane.playerName.trim().toLowerCase()));
+    const missing = (this.config.activePlayers ?? [])
+      .filter((name) => name && !known.has(name.trim().toLowerCase()))
+      .map((playerName) => ({
+        playerName,
+        progress: 0,
+        finished: false,
+        position: null,
+        streak: 0,
+        multiplier: 1,
+        finishedAt: null,
+      }));
+    return [...lanes, ...missing];
+  }
+
+  /** La TV salva le corsie ai cambi di stato: punti e arrivi arrivano dal server. */
+  private emitCheckpoint(): void {
+    const save = this.config.onTvCheckpoint;
+    if (!save || this.pointsApplied) return;
+    this.revision++;
+    save({
+      type: this.type,
+      revision: this.revision,
+      state: { lanes: this.lanes(), savedAt: Date.now() },
+    });
   }
 
   private emptyLanes(): Lane[] {
