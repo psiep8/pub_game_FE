@@ -1,5 +1,13 @@
 # Changelog
 
+## 16 novembre 2026 — Punti del round e coda classifica al refresh (F06 completo)
+
+- Il verdetto del vincitore del round viveva in memoria: dopo un refresh il tema della TV andava a chi aveva fatto punti solo nella seconda parte. Ora il conteggio sta in storage legato alla partita e all'indice del round, si ricarica quando la TV riprende il round e si cancella quando il verdetto è assegnato (o il round è abbandonato), così non passa a un round successivo.
+- La scrittura della classifica è accodata con un debounce di 250 ms: se la TV si ricaricava prima, i punti restavano solo sul dispositivo. Ora la coda viene salvata appena accodata, e al primo stato autorevole la TV la rimanda subito al server; i punti in coda non vengono sovrascritti dalla classifica vecchia dello snapshot.
+- Verifiche: 3 test TV nuovi (round recuperato con tema corretto, conteggio di un altro round ignorato, coda rimandata al server) e suite completa frontend (371 test su 48 file).
+
+**F06 è completo**: tutti i round, i bonus, i punti del vincitore e la coda della classifica sopravvivono a un refresh della TV.
+
 ## 16 novembre 2026 — Round Biglie riprendibile (F06 chiuso)
 
 - Il round Biglie salva nel checkpoint TV le biglie assegnate, l'ordine di scelta raggiunto, le gare già chiuse con il tabellone, la classifica cumulata e la fase.
