@@ -1,6 +1,6 @@
 # Changelog
 
-## 16 novembre 2026 — recupero Arena, Bomba e Quiz
+## 16 novembre 2026 — recupero Arena, Bomba, Quiz e Speed Rush
 
 - La TV salva il tabellone Arena sul server a ogni risposta e penalità, legato al round aperto e con revisione crescente; il reset dimentica il blob.
 - Una TV aggiornata durante Arena riapre il round dal checkpoint con il tempo residuo, invece di offrire solo la chiusura.
@@ -10,7 +10,8 @@
 - Un solo checkpoint TV per partita (`tvCheckpoint`, endpoint `/tv-state`), legato alla modalità del round: Arena, Bomba e Quiz usano lo stesso meccanismo invece di campi separati.
 - Quiz: la TV riprende la manche in corso con tempo residuo, risposte già date e stadio (gioco, suspense, soluzione), invece di tornare alla prima domanda.
 - Il checkpoint Quiz si scrive ai cambi di stato (manche, risposta, scadenza, soluzione, pausa) e non più a ogni secondo: il tempo trascorso si ricava da `savedAt`, e in pausa resta fermo.
-- Verifiche: 11 test Arena, 4 test Bomba, 13 test Quiz, 40 test TV, 7 RoundPause.
+- Speed Rush: la TV salva le corsie a ogni avanzamento; dopo un refresh riapre la corsa con il tempo che resta al round e non riapre la sessione sul server, quindi gli avanzamenti dei telefoni non si perdono.
+- Verifiche: 11 test Arena, 4 test Bomba, 13 test Quiz, 5 test Speed Rush, 41 test TV, 7 RoundPause.
 
 ## 15 novembre 2026 — scaletta 2.2 e cinque bonus
 
