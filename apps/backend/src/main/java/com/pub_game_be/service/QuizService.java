@@ -50,7 +50,20 @@ public class QuizService {
      * Apre la manche annunciata dalla TV. Richiamarla sulla stessa manche non
      * azzera il cronometro: la TV può ripetere l'annuncio senza falsare il tempo.
      */
+    /** Apertura piena: la manche comincia adesso, con tutti i suoi secondi. */
     public synchronized JSONObject startManche(long gameId, int manche) {
+        return startManche(gameId, manche, MANCHE_MS / 1000L);
+    }
+
+    /**
+     * Apre (o riapre) la manche con il tempo che le resta.
+     *
+     * <p>La TV dopo un refresh riannuncia la manche corrente: se il server ha
+     * ancora lo stato non cambia nulla, se l'ha perso (riavvio) o la finestra
+     * era già chiusa la manche riparte con `startedAt` spostato indietro, così
+     * i telefoni possono votare senza che i punti tornino pieni.</p>
+     */
+    public synchronized JSONObject startManche(long gameId, int manche, long remainingSeconds) {
         // Solo un round Quiz aperto può aprire una manche: un annuncio in
         // ritardo di un altro gioco non deve lasciare uno stato orfano.
         if (!gameState.isActiveRoundType(gameId, "QUIZ")) return summary(gameId);
@@ -74,11 +87,12 @@ public class QuizService {
             if (previous != null) answers = previous;
         }
 
+        long remaining = Math.max(0L, Math.min(MANCHE_MS, remainingSeconds * 1000L));
         JSONObject state = new JSONObject()
                 .put("roundKey", roundKey)
                 .put("mancheIndex", index)
-                .put("startedAt", now)
-                .put("deadlineAt", now + MANCHE_MS)
+                .put("startedAt", now - (MANCHE_MS - remaining))
+                .put("deadlineAt", now + remaining)
                 .put("answers", answers);
         save(gameId, state);
         return summary(state);

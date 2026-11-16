@@ -1063,8 +1063,8 @@ export class GameComponent implements OnInit, OnDestroy {
         const response = await firstValueFrom(this.gameService.finishSpeedRush(this.currentGameId()!));
         return Array.isArray(response?.results) ? response.results : [];
       },
-      startQuizManche: async (manche: number) => firstValueFrom(
-        this.gameService.startQuizManche(this.currentGameId()!, manche),
+      startQuizManche: async (manche: number, secondsLeft?: number) => firstValueFrom(
+        this.gameService.startQuizManche(this.currentGameId()!, manche, secondsLeft),
       ),
       loadQuizAnswers: async () => firstValueFrom(this.gameService.quizAnswers(this.currentGameId()!)),
       bomba: {

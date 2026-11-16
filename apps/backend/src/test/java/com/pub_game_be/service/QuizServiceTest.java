@@ -141,6 +141,39 @@ class QuizServiceTest {
     }
 
     @Test
+    void laRipresaRiannunciaLaMancheConIlTempoCheResta() {
+        long gameId = 910_009L;
+        apriRound(gameId, DUE_DOMANDE);
+        quiz.startManche(gameId, 0);
+        quiz.answer(gameId, "Anna", 1);
+        // Il backend è ripartito senza lo stato della manche.
+        quiz.forget(gameId);
+
+        JSONObject resumed = quiz.startManche(gameId, 0, 6);
+
+        long remaining = resumed.getLong("deadlineAt") - System.currentTimeMillis();
+        assertThat(remaining).isBetween(4_500L, 6_000L);
+        assertThat(resumed.getLong("startedAt"))
+                .isEqualTo(resumed.getLong("deadlineAt") - QuizService.MANCHE_MS);
+        // La riannuncio non regala punti pieni: il tempo consumato conta.
+        QuizService.Outcome again = quiz.answer(gameId, "Anna", 1);
+        assertThat(again.accepted()).isTrue();
+        assertThat(again.result().getInt("points")).isBetween(120, 180);
+    }
+
+    @Test
+    void laRiannuncioSullaStessaMancheNonSpostaIlCronometro() {
+        long gameId = 910_010L;
+        apriRound(gameId, DUE_DOMANDE);
+        JSONObject first = quiz.startManche(gameId, 0);
+
+        JSONObject resumed = quiz.startManche(gameId, 0, 3);
+
+        assertThat(resumed.getLong("startedAt")).isEqualTo(first.getLong("startedAt"));
+        assertThat(resumed.getLong("deadlineAt")).isEqualTo(first.getLong("deadlineAt"));
+    }
+
+    @Test
     void unRoundChiusoNonAccettaPiuVoti() {
         long gameId = 910_008L;
         apriRound(gameId, DUE_DOMANDE);

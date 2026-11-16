@@ -166,10 +166,15 @@ export class QuizMode extends GameModeBase {
     void this.announceManche(index);
   }
 
-  /** Il server deve sapere quale manche è aperta prima di accettare voti. */
-  private async announceManche(index: number): Promise<void> {
+  /**
+   * Il server deve sapere quale manche è aperta prima di accettare voti.
+   * Con `secondsLeft` la manche si riapre con il tempo che le resta: dopo un
+   * refresh i punti non ripartono pieni.
+   */
+  private async announceManche(index: number, secondsLeft?: number): Promise<void> {
     try {
-      await this.config.startQuizManche?.(index);
+      if (secondsLeft == null) await this.config.startQuizManche?.(index);
+      else await this.config.startQuizManche?.(index, secondsLeft);
     } catch {
       // Senza annuncio i voti vengono rifiutati: la TV mostra comunque la manche.
     }
@@ -330,6 +335,9 @@ export class QuizMode extends GameModeBase {
       }
     } else {
       this.startClock();
+      // La manche va riannunciata anche se il server l'ha persa (riavvio) o la
+      // sua finestra si era chiusa: dopo un refresh i telefoni devono votare.
+      void this.announceManche(index, seconds);
     }
     void this.refreshAnswers();
     void this.broadcastState();

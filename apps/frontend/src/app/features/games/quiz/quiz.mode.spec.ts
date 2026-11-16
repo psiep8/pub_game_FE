@@ -184,6 +184,31 @@ describe('QuizMode — ripresa dopo un refresh della TV', () => {
     vi.useRealTimers();
   });
 
+  it('riannuncia la manche con il tempo rimasto dopo il refresh', () => {
+    const startQuizManche = vi.fn().mockResolvedValue({ mancheIndex: 1 });
+    const mode = new QuizMode();
+    mode.setConfig({ type: 'QUIZ', payload: treManches, gameId: 1, startQuizManche });
+    mode.initialize(treManches);
+
+    mode.restore(20, { revision: 3, state: { mancheIndex: 1, secondsLeft: 6, stage: 'play' } });
+
+    // Senza il tempo rimasto il server riaprirebbe un cronometro pieno.
+    expect(startQuizManche).toHaveBeenCalledWith(1, 6);
+    mode.cleanup();
+  });
+
+  it('non riapre una manche già in suspense o in soluzione', () => {
+    const startQuizManche = vi.fn().mockResolvedValue({});
+    const mode = new QuizMode();
+    mode.setConfig({ type: 'QUIZ', payload: treManches, gameId: 1, startQuizManche });
+    mode.initialize(treManches);
+
+    mode.restore(10, { revision: 3, state: { mancheIndex: 0, secondsLeft: 0, stage: 'suspense' } });
+
+    expect(startQuizManche).not.toHaveBeenCalled();
+    mode.cleanup();
+  });
+
   it('rilegge dal server le risposte arrivate durante il refresh', async () => {
     const loadQuizAnswers = vi.fn().mockResolvedValue({
       answers: [{ playerName: 'Anna', manche: 1, isCorrect: true, points: 320 }],

@@ -59,8 +59,8 @@ export interface GameModeConfig {
   /** Speed Rush: la TV apre la sessione e chiude la corsa sul server. */
   startSpeedRush?: (players: string[]) => Promise<any>;
   finishSpeedRush?: () => Promise<any[]>;
-  /** Quiz: la TV annuncia la manche e rilegge le risposte dal server. */
-  startQuizManche?: (manche: number) => Promise<any>;
+  /** Quiz: la TV annuncia la manche (con i secondi rimasti in ripresa) e rilegge le risposte. */
+  startQuizManche?: (manche: number, secondsLeft?: number) => Promise<any>;
   loadQuizAnswers?: () => Promise<any>;
   /** Blackjack: la TV salva lo stato della mano sul server a ogni cambio. */
   onBlackjackState?: (state: unknown | null) => void;

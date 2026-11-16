@@ -200,9 +200,13 @@ export class GameService {
 
   // ------------------------------------------------------------------ Quiz
 
-  /** La TV annuncia la manche: da qui voti e punti restano sul server. */
-  startQuizManche(gameId: number, manche: number): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/quiz/manche`, { manche });
+  /**
+   * La TV annuncia la manche: da qui voti e punti restano sul server.
+   * Dopo un refresh manda anche i secondi rimasti, così la manche si riapre
+   * con il tempo che le resta invece che da capo.
+   */
+  startQuizManche(gameId: number, manche: number, secondsLeft?: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/quiz/manche`, { manche, secondsLeft });
   }
 
   /** Voto del telefono: tempo, soluzione e doppio voto li controlla il server. */

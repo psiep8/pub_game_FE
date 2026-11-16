@@ -30,7 +30,11 @@ public class QuizController {
         this.messaging = messaging;
     }
 
-    /** La TV apre la manche: senza questo annuncio i voti non vengono accettati. */
+    /**
+     * La TV apre la manche: senza questo annuncio i voti non vengono accettati.
+     * Dopo un refresh manda anche `secondsLeft`, così la manche si riapre con il
+     * tempo che le resta e i punti non tornano pieni.
+     */
     @PostMapping("/{gameId}/quiz/manche")
     public ResponseEntity<Object> startManche(@PathVariable("gameId") Long gameId,
             @RequestBody(required = false) Map<String, Object> body) {
@@ -38,7 +42,12 @@ public class QuizController {
         if (!(raw instanceof Number number)) {
             return ResponseEntity.badRequest().body(Map.of("error", "manche-mancante"));
         }
-        return ResponseEntity.ok(quizService.startManche(gameId, number.intValue()).toMap());
+        Object rawSeconds = body.get("secondsLeft");
+        long remaining = rawSeconds instanceof Number seconds ? seconds.longValue() : -1L;
+        JSONObject state = remaining < 0
+                ? quizService.startManche(gameId, number.intValue())
+                : quizService.startManche(gameId, number.intValue(), remaining);
+        return ResponseEntity.ok(state.toMap());
     }
 
     /** Voto del telefono autenticato: doppio voto e voto in ritardo vengono rifiutati. */
