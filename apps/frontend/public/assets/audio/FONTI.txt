@@ -10,15 +10,12 @@
 # attribuzione). Mai CC-BY-NC o "solo uso personale".
 # Senza questi dati il file non entra in docs/CREDITI-AUDIO.md e non si usa.
 interface/countdownTick.m4a | Tick 001 | Kenney | https://kenney.nl/assets/interface-sounds | CC0
-interface/countdownBong.m4a | Bong 001 | Kenney | https://kenney.nl/assets/interface-sounds | CC0
 interface/join.m4a | Select 004 | Kenney | https://kenney.nl/assets/interface-sounds | CC0
 interface/tick.m4a | Tick 002 | Kenney | https://kenney.nl/assets/interface-sounds | CC0
 interface/rankReveal-1.m4a | Magic sparkle whoosh | Mixkit | https://mixkit.co/free-sound-effects/whoosh/ | Mixkit License
 interface/rankReveal-2.m4a | Cinematic trailer riser | Mixkit | https://mixkit.co/free-sound-effects/riser/ | Mixkit License
-interface/whoosh.m4a | Fast whoosh transition | Mixkit | https://mixkit.co/free-sound-effects/whoosh/ | Mixkit License
 interface/confirm.m4a | Confirmation 001 | Kenney | https://kenney.nl/assets/interface-sounds | CC0
 interface/error.m4a | Error 004 | Kenney | https://kenney.nl/assets/interface-sounds | CC0
-gioco/gong.m4a | Classic clock gong | Mixkit | https://mixkit.co/free-sound-effects/gong/ | Mixkit License
 gioco/correct.m4a | Alert quick chime | Mixkit | https://mixkit.co/free-sound-effects/chime/ | Mixkit License
 gioco/wrong.m4a | Wrong answer bass buzzer | Mixkit | https://mixkit.co/free-sound-effects/buzzer/ | Mixkit License
 gioco/timeUp.m4a | Basketball buzzer | Mixkit | https://mixkit.co/free-sound-effects/buzzer/ | Mixkit License
@@ -26,8 +23,6 @@ gioco/reveal.m4a | Epic movie trailer whoosh impact | Mixkit | https://mixkit.co
 gioco/elimination.m4a | Sad game over trombone | Mixkit | https://mixkit.co/free-sound-effects/sad-trombone/ | Mixkit License
 gioco/uuuh.m4a | Crowd disappointment long boo | Mixkit | https://mixkit.co/free-sound-effects/boo/ | Mixkit License
 gioco/bombSiren.m4a | Police siren | Mixkit | https://mixkit.co/free-sound-effects/siren/ | Mixkit License
-gioco/coins.m4a | Chips stack 2 | Kenney | https://kenney.nl/assets/casino-audio | CC0
-gioco/racket.m4a | Sports ball hit | Mixkit | https://mixkit.co/free-sound-effects/ball/ | Mixkit License
 gioco/bell.m4a | Service bell | Mixkit | https://mixkit.co/free-sound-effects/bell/ | Mixkit License
 casino/rouletteTicks.m4a | Balin in casino roulette | Mixkit | https://mixkit.co/free-sound-effects/roulette/ | Mixkit License
 casino/rouletteLanding.m4a | Casino Roulette ball | Mixkit | https://mixkit.co/free-sound-effects/roulette/ | Mixkit License
@@ -50,3 +45,9 @@ loop/sport.m4a | Sports Rock — Ahjay Stelino | Ahjay Stelino | https://mixkit.
 loop/casino.m4a | Groovy Jazz — Francisco Alvear | Francisco Alvear | https://mixkit.co/free-stock-music/lounge/ | Mixkit Stock Music Free License
 loop/leggero.m4a | Comical — Ahjay Stelino | Ahjay Stelino | https://mixkit.co/free-stock-music/children/ | Mixkit Stock Music Free License
 loop/classifica.m4a | Feeling Happy — Ahjay Stelino | Ahjay Stelino | https://mixkit.co/free-stock-music/children/ | Mixkit Stock Music Free License
+gioco/gong.m4a | Gong del via | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+interface/countdownBong.m4a | Bong di fine countdown | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+interface/whoosh.m4a | Transizione di schermata | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+gioco/coins.m4a | Gettoni che cadono | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+gioco/racket.m4a | Colpo di racchetta | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+gioco/explosion.m4a | Scoppio della Bomba | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)

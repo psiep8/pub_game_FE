@@ -4,29 +4,33 @@ Generato da `node scripts/audio/process-audio.mjs --credits` il 2026-11-17.
 Non si modifica a mano: i dati vengono da `apps/frontend/public/assets/audio/FONTI.txt`
 e le misure dai file elaborati (ffmpeg, EBU R128).
 
-Nessun suono è sintetizzato: tutti gli eventi e i sottofondi sono registrazioni
-scelte da librerie con licenza compatibile con un'app pubblica.
+Quasi tutti i suoni sono registrazioni scelte da librerie con licenza
+compatibile con un'app pubblica. Fanno eccezione cinque effetti (gong del
+via, bong del countdown, transizione, gettoni, racchetta): sono la nostra
+sintesi renderizzata in file con lo stesso script, quindi compaiono con
+licenza «Nostra».
 
 ## Licenze usate
 
-- **Mixkit License** — 26 file
-- **CC0** — 9 file
+- **Mixkit License** — 23 file
+- **CC0** — 7 file
+- **Nostra (sintesi renderizzata)** — 6 file
 - **Mixkit Stock Music Free License** — 6 file
 
-## Effetti (35)
+## Effetti (36)
 
 | File | Titolo | Autore | Licenza | Durata | Peso | LUFS | Picco |
 |---|---|---|---|---|---|---|---|
 | `interface/countdownTick.m4a` | Tick 001 | Kenney | CC0 | 0.0 s | 2 KB | — (vedi picco) | -3.1 dBFS |
-| `interface/countdownBong.m4a` | Bong 001 | Kenney | CC0 | 0.1 s | 3 KB | — (vedi picco) | -3 dBFS |
+| `interface/countdownBong.m4a` | Bong di fine countdown | PubGame | Nostra (sintesi renderizzata) | 0.5 s | 7 KB | -16 | -3.9 dBFS |
 | `interface/join.m4a` | Select 004 | Kenney | CC0 | 0.4 s | 5 KB | — (vedi picco) | -3.2 dBFS |
 | `interface/tick.m4a` | Tick 002 | Kenney | CC0 | 0.0 s | 1 KB | — (vedi picco) | -3.4 dBFS |
 | `interface/rankReveal-1.m4a` | Magic sparkle whoosh | Mixkit | Mixkit License | 1.5 s | 19 KB | -15.8 | -6 dBFS |
 | `interface/rankReveal-2.m4a` | Cinematic trailer riser | Mixkit | Mixkit License | 1.5 s | 20 KB | -16.4 | -2.8 dBFS |
-| `interface/whoosh.m4a` | Fast whoosh transition | Mixkit | Mixkit License | 0.8 s | 11 KB | -16.1 | -4.9 dBFS |
+| `interface/whoosh.m4a` | Transizione di schermata | PubGame | Nostra (sintesi renderizzata) | 0.9 s | 16 KB | -18.5 | -4.2 dBFS |
 | `interface/confirm.m4a` | Confirmation 001 | Kenney | CC0 | 0.3 s | 5 KB | — (vedi picco) | -3.8 dBFS |
 | `interface/error.m4a` | Error 004 | Kenney | CC0 | 0.1 s | 3 KB | — (vedi picco) | -2.4 dBFS |
-| `gioco/gong.m4a` | Classic clock gong | Mixkit | Mixkit License | 3.0 s | 37 KB | -16.5 | -2.2 dBFS |
+| `gioco/gong.m4a` | Gong del via | PubGame | Nostra (sintesi renderizzata) | 0.3 s | 6 KB | — (vedi picco) | -4.4 dBFS |
 | `gioco/correct.m4a` | Alert quick chime | Mixkit | Mixkit License | 0.8 s | 11 KB | -15.8 | -2.5 dBFS |
 | `gioco/wrong.m4a` | Wrong answer bass buzzer | Mixkit | Mixkit License | 1.5 s | 19 KB | -16.1 | -2.4 dBFS |
 | `gioco/timeUp.m4a` | Basketball buzzer | Mixkit | Mixkit License | 1.7 s | 22 KB | -15.6 | -5.7 dBFS |
@@ -34,8 +38,9 @@ scelte da librerie con licenza compatibile con un'app pubblica.
 | `gioco/elimination.m4a` | Sad game over trombone | Mixkit | Mixkit License | 2.0 s | 25 KB | -15.9 | -5.7 dBFS |
 | `gioco/uuuh.m4a` | Crowd disappointment long boo | Mixkit | Mixkit License | 2.0 s | 25 KB | -15.9 | -5.9 dBFS |
 | `gioco/bombSiren.m4a` | Police siren | Mixkit | Mixkit License | 4.0 s | 50 KB | -16 | -5.8 dBFS |
-| `gioco/coins.m4a` | Chips stack 2 | Kenney | CC0 | 0.2 s | 3 KB | — (vedi picco) | -2.7 dBFS |
-| `gioco/racket.m4a` | Sports ball hit | Mixkit | Mixkit License | 0.2 s | 4 KB | — (vedi picco) | -2.2 dBFS |
+| `gioco/coins.m4a` | Gettoni che cadono | PubGame | Nostra (sintesi renderizzata) | 0.8 s | 10 KB | -18.8 | -2 dBFS |
+| `gioco/explosion.m4a` | Scoppio della Bomba | PubGame | Nostra (sintesi renderizzata) | 0.5 s | 9 KB | -16.9 | -4.4 dBFS |
+| `gioco/racket.m4a` | Colpo di racchetta | PubGame | Nostra (sintesi renderizzata) | 0.1 s | 3 KB | — (vedi picco) | -9.1 dBFS |
 | `gioco/bell.m4a` | Service bell | Mixkit | Mixkit License | 0.4 s | 6 KB | -15.5 | -2.2 dBFS |
 | `casino/rouletteTicks.m4a` | Balin in casino roulette | Mixkit | Mixkit License | 8.0 s | 98 KB | -15.9 | -4 dBFS |
 | `casino/rouletteLanding.m4a` | Casino Roulette ball | Mixkit | Mixkit License | 2.0 s | 26 KB | -16.5 | -2.2 dBFS |
@@ -70,15 +75,15 @@ sotto il 8% non si sente; sopra, il giro va rifilato a orecchio.
 ## Provenienza
 
 - `interface/countdownTick.m4a` — Tick 001: <https://kenney.nl/assets/interface-sounds>
-- `interface/countdownBong.m4a` — Bong 001: <https://kenney.nl/assets/interface-sounds>
+- `interface/countdownBong.m4a` — Bong di fine countdown: <https://github.com/psiep8/pub_game_FE>
 - `interface/join.m4a` — Select 004: <https://kenney.nl/assets/interface-sounds>
 - `interface/tick.m4a` — Tick 002: <https://kenney.nl/assets/interface-sounds>
 - `interface/rankReveal-1.m4a` — Magic sparkle whoosh: <https://mixkit.co/free-sound-effects/whoosh/>
 - `interface/rankReveal-2.m4a` — Cinematic trailer riser: <https://mixkit.co/free-sound-effects/riser/>
-- `interface/whoosh.m4a` — Fast whoosh transition: <https://mixkit.co/free-sound-effects/whoosh/>
+- `interface/whoosh.m4a` — Transizione di schermata: <https://github.com/psiep8/pub_game_FE>
 - `interface/confirm.m4a` — Confirmation 001: <https://kenney.nl/assets/interface-sounds>
 - `interface/error.m4a` — Error 004: <https://kenney.nl/assets/interface-sounds>
-- `gioco/gong.m4a` — Classic clock gong: <https://mixkit.co/free-sound-effects/gong/>
+- `gioco/gong.m4a` — Gong del via: <https://github.com/psiep8/pub_game_FE>
 - `gioco/correct.m4a` — Alert quick chime: <https://mixkit.co/free-sound-effects/chime/>
 - `gioco/wrong.m4a` — Wrong answer bass buzzer: <https://mixkit.co/free-sound-effects/buzzer/>
 - `gioco/timeUp.m4a` — Basketball buzzer: <https://mixkit.co/free-sound-effects/buzzer/>
@@ -86,8 +91,9 @@ sotto il 8% non si sente; sopra, il giro va rifilato a orecchio.
 - `gioco/elimination.m4a` — Sad game over trombone: <https://mixkit.co/free-sound-effects/sad-trombone/>
 - `gioco/uuuh.m4a` — Crowd disappointment long boo: <https://mixkit.co/free-sound-effects/boo/>
 - `gioco/bombSiren.m4a` — Police siren: <https://mixkit.co/free-sound-effects/siren/>
-- `gioco/coins.m4a` — Chips stack 2: <https://kenney.nl/assets/casino-audio>
-- `gioco/racket.m4a` — Sports ball hit: <https://mixkit.co/free-sound-effects/ball/>
+- `gioco/coins.m4a` — Gettoni che cadono: <https://github.com/psiep8/pub_game_FE>
+- `gioco/explosion.m4a` — Scoppio della Bomba: <https://github.com/psiep8/pub_game_FE>
+- `gioco/racket.m4a` — Colpo di racchetta: <https://github.com/psiep8/pub_game_FE>
 - `gioco/bell.m4a` — Service bell: <https://mixkit.co/free-sound-effects/bell/>
 - `casino/rouletteTicks.m4a` — Balin in casino roulette: <https://mixkit.co/free-sound-effects/roulette/>
 - `casino/rouletteLanding.m4a` — Casino Roulette ball: <https://mixkit.co/free-sound-effects/roulette/>
@@ -113,7 +119,7 @@ sotto il 8% non si sente; sopra, il giro va rifilato a orecchio.
 
 ## Totale
 
-41 file, 11.19 MB. Effetti: bersaglio -16 LUFS con picco ≤ -1 dBTP; sottofondi a -23 LUFS con picco ≤ -1.5 dBTP.
+42 file, 11.19 MB. Effetti: bersaglio -16 LUFS con picco ≤ -1 dBTP; sottofondi a -23 LUFS con picco ≤ -1.5 dBTP.
 
 I suoni sotto 1,2 s sono normalizzati sul picco a −3 dBFS, non sul LUFS:
 sono troppo corti perché la misura integrata abbia senso, quindi in tabella

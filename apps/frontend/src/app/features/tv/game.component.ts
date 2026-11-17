@@ -1145,6 +1145,8 @@ export class GameComponent implements OnInit, OnDestroy {
       this.startRoundSuspense(mode.type);
       if (mode.type === 'BOMBA') {
         this.audioService.playBombSiren();
+        // Miccia sotto la sirena: la TV fa sentire che la bomba è accesa.
+        this.audioService.playFuse();
       }
 
       await mode.start();

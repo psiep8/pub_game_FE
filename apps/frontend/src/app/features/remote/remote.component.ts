@@ -1867,7 +1867,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
         this.flashBomba(mine ? '💥 BOOM!' : `💥 ${event.player}: bomba`);
         // La sirena suona sul telefono di chi ha preso la bomba; gli altri
         // ricevono solo un avviso breve. La vibrazione resta un extra.
-        if (mine) this.audio.playBombSiren();
+        if (mine) {
+          this.audio.playBombSiren();
+          // Scoppio vero sul telefono di chi teneva la bomba.
+          this.audio.playExplosion();
+        }
         this.vibrate(mine ? [320, 120, 320, 120, 320] : [120, 60, 120]);
       } else if (event?.kind === 'safe' && mine) {
         this.vibrate(25);

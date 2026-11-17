@@ -105,7 +105,7 @@ function readManifest() {
 
   const effects = entries.filter((entry) => !entry.isLoop);
   const loops = entries.filter((entry) => entry.isLoop);
-  if (effects.length !== 35) fail(`Il manifesto elenca ${effects.length} effetti, attesi 35.`);
+  if (effects.length !== 36) fail(`Il manifesto elenca ${effects.length} effetti, attesi 36.`);
   if (loops.length !== 6) fail(`Il manifesto elenca ${loops.length} loop, attesi 6.`);
   const duplicates = entries.filter((entry, index) => entries.findIndex((other) => other.path === entry.path) !== index);
   if (duplicates.length > 0) fail(`File ripetuti nel manifesto: ${duplicates.map((entry) => entry.path).join(', ')}`);
@@ -337,7 +337,9 @@ function processEffect(entry, source, candidate, output, target, sourceSeconds) 
     if (tooShortForLoudness) {
       const peakDb = measureMaxVolume(source);
       if (peakDb === null) fail(`${entry.path} è muto: nessun campione da normalizzare.`);
-      chain.push(`volume=${Math.min(0, -3 - peakDb).toFixed(2)}dB`);
+      // Alza anche i suoni troppo bassi: il tetto a 0 dB bloccherebbe ogni
+      // correzione verso l'alto e lascerebbe il file sotto bersaglio.
+      chain.push(`volume=${Math.max(-24, Math.min(20, -3 - peakDb)).toFixed(2)}dB`);
     } else {
       // Il loudnorm lavora sul file intero: se il silenzio viene tagliato
       // prima, su molti campioni il filtro rinuncia al guadagno.
@@ -570,8 +572,11 @@ function writeCredits(entries) {
     'Non si modifica a mano: i dati vengono da `apps/frontend/public/assets/audio/FONTI.txt`',
     'e le misure dai file elaborati (ffmpeg, EBU R128).',
     '',
-    'Nessun suono è sintetizzato: tutti gli eventi e i sottofondi sono registrazioni',
-    'scelte da librerie con licenza compatibile con un\'app pubblica.',
+    'Quasi tutti i suoni sono registrazioni scelte da librerie con licenza',
+    'compatibile con un\'app pubblica. Fanno eccezione cinque effetti (gong del',
+    'via, bong del countdown, transizione, gettoni, racchetta): sono la nostra',
+    'sintesi renderizzata in file con lo stesso script, quindi compaiono con',
+    'licenza «Nostra».',
     '',
     '## Licenze usate',
     '',
@@ -650,7 +655,7 @@ if (CHECK) {
   const present = selected.filter((entry) => existsSync(join(AUDIO_ROOT, entry.path)));
   const presentWithoutFonti = present.filter((entry) => !fonti.byPath.has(entry.path));
 
-  console.log(`Manifesto: ${entries.length} file (35 effetti, 6 loop).`);
+  console.log(`Manifesto: ${entries.length} file (36 effetti, 6 loop).`);
   console.log(`ffmpeg: ${FFMPEG}`);
   console.log(`FONTI.txt: ${fonti.byPath.size} righe valide.`);
 

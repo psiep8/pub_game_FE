@@ -5,6 +5,7 @@ import {
   BONUS_ENTRANCE_TYPES,
   type AudioEventId,
 } from './audio-catalog';
+import { AUDIO_FILES } from './audio-files';
 import {
   bell,
   brass,
@@ -63,6 +64,14 @@ export const UI_SOUNDS = {
 /** Foley sta sotto la voce del presentatore: mai il suono più forte della sala. */
 const UI_VOLUME = 0.45;
 
+/** Quattro partenze dello stesso applauso: offset in secondi e velocità. */
+const APPLAUSE_VARIATIONS = [
+  { offset: 0, rate: 1 },
+  { offset: 1.15, rate: 0.97 },
+  { offset: 2.3, rate: 1.03 },
+  { offset: 3.4, rate: 0.99 },
+];
+
 /**
  * Suoni della TV.
  *
@@ -96,6 +105,10 @@ export class AudioService {
   readonly masterVolume = signal(1);
   /** Ultima riproduzione per evento: serve alla distanza minima del catalogo. */
   private readonly lastEventAt = new Map<string, number>();
+  /** File già decodificati; `null` = assente, si resta sulla sintesi. */
+  private readonly recorded = new Map<string, AudioBuffer | null>();
+  /** File in caricamento: evita doppie fetch sullo stesso evento. */
+  private readonly recording = new Set<string>();
   /** Bus dell'evento in corso: applica la rifinitura di volume del catalogo. */
   private wetBus?: GainNode;
   private dryBus?: GainNode;
@@ -237,19 +250,23 @@ export class AudioService {
     if (!ctx) return;
     const at = this.at;
     // Gettoni sul banco: metallo piccolo, ognuno con la sua coda e la sua posizione.
+    // Pioggia fitta: più gettoni, più brillanti, sparsi fino a mezzo secondo
+    // e mezzo — il tintinnio deve sembrare una manciata, non due monete.
     const pings: Array<[number, number]> = [
-      [2350, 0], [2820, 0.05], [2100, 0.11], [3200, 0.14], [2650, 0.21],
-      [2450, 0.27], [3050, 0.31], [2200, 0.38], [2900, 0.43], [2550, 0.5],
+      [2350, 0], [2820, 0.04], [2100, 0.09], [3200, 0.12], [2650, 0.17],
+      [2450, 0.21], [3050, 0.25], [2200, 0.29], [2900, 0.33], [2550, 0.37],
+      [3400, 0.41], [2000, 0.45], [2750, 0.49], [3150, 0.53], [2300, 0.57],
+      [2950, 0.61], [2520, 0.65], [3300, 0.69],
     ];
     for (const [freq, delay] of pings) {
       modal(ctx, this.out(ctx), {
         at: at + delay,
-        gain: 0.16,
+        gain: 0.2,
         partials: [
-          { freq, decay: 0.16, q: 60, gain: 1 },
-          { freq: freq * 2.41, decay: 0.09, q: 70, gain: 0.45 },
+          { freq, decay: 0.18, q: 60, gain: 1 },
+          { freq: freq * 2.41, decay: 0.1, q: 70, gain: 0.55 },
         ],
-        strike: { freq: 5200, q: 1.4, duration: 0.02, gain: 0.36 },
+        strike: { freq: 5200, q: 1.4, duration: 0.02, gain: 0.42 },
         pan: delay * 1.4 - 0.35,
       });
     }
@@ -275,24 +292,26 @@ export class AudioService {
     if (!ctx) return;
     const at = this.at;
     // Palla sulla corda: schiocco di rumore corto e corda che vibra subito dopo.
+    // «Poc» secco della palla sulle corde: attacco brevissimo, corpo basso
+    // della racchetta e corda che vibra appena. Prima era un fruscio.
     noiseVoice(ctx, this.out(ctx, false), {
       at,
-      duration: 0.07,
-      gain: 0.14,
-      freq: 2300,
-      q: 1.3,
-      attack: 0.002,
-      release: 0.06,
+      duration: 0.045,
+      gain: 0.26,
+      freq: 1650,
+      q: 0.9,
+      attack: 0.001,
+      release: 0.04,
     });
     modal(ctx, this.out(ctx, false), {
       at,
-      gain: 0.06,
+      gain: 0.12,
       partials: [
-        { freq: 430, decay: 0.16, q: 18 },
-        { freq: 690, decay: 0.12, q: 20, gain: 0.5 },
+        { freq: 175, decay: 0.1, q: 8 },
+        { freq: 330, decay: 0.07, q: 10, gain: 0.6 },
       ],
     });
-    pluck(ctx, this.out(ctx, false), { at: at + 0.006, freq: 196, duration: 0.2, gain: 0.05, brightness: 0.7 });
+    pluck(ctx, this.out(ctx, false), { at: at + 0.006, freq: 320, duration: 0.14, gain: 0.06, brightness: 0.85 });
   }
 
   /** «Uuuh» del pubblico quando una squadra sbaglia. */
@@ -516,40 +535,39 @@ export class AudioService {
     const base = 79;
     // Tam-tam: parziali inarmonici che si spengono uno dopo l'altro e
     // continuano a battere fra loro. Niente nota, solo metallo.
+    // Colpo di via, non campana: code corte e poche parziali alte, così non
+    // sembra il rintocco di una chiesa.
     modal(ctx, this.out(ctx), {
       at,
-      gain: 2.4,
+      gain: 1.3,
       partials: [
-        { freq: base, decay: 8, q: 26, gain: 1 },
-        { freq: base * 2.03, decay: 6.4, q: 32, gain: 0.62 },
-        { freq: base * 2.91, decay: 5.2, q: 36, gain: 0.48 },
-        { freq: base * 4.12, decay: 3.8, q: 42, gain: 0.32 },
-        { freq: base * 5.63, decay: 2.9, q: 48, gain: 0.22 },
-        { freq: base * 7.34, decay: 1.9, q: 52, gain: 0.13 },
-        { freq: base * 9.7, decay: 1.1, q: 56, gain: 0.07 },
+        { freq: base, decay: 1.9, q: 18, gain: 1 },
+        { freq: base * 2.03, decay: 1.5, q: 22, gain: 0.5 },
+        { freq: base * 2.91, decay: 1.1, q: 26, gain: 0.3 },
+        { freq: base * 4.12, decay: 0.7, q: 30, gain: 0.16 },
       ],
       strike: { freq: 620, q: 1, duration: 0.16, gain: 0.12 },
     });
     // Seconda campana appena scordata: il battimento tiene vivo il suono.
     modal(ctx, this.out(ctx), {
       at: at + 0.006,
-      gain: 0.8,
+      gain: 0.3,
       partials: [
-        { freq: base * 1.0045, decay: 6.2, q: 24 },
-        { freq: base * 2.046, decay: 4.8, q: 30, gain: 0.5 },
+        { freq: base * 1.0045, decay: 1.4, q: 20 },
+        { freq: base * 2.046, decay: 1.1, q: 24, gain: 0.4 },
       ],
       pan: -0.2,
     });
     noiseVoice(ctx, this.out(ctx), {
       at,
-      duration: 0.5,
-      gain: 0.3,
+      duration: 0.3,
+      gain: 0.2,
       freq: 420,
       to: 140,
       q: 0.8,
       type: 'lowpass',
       attack: 0.004,
-      release: 0.45,
+      release: 0.28,
     });
   }
 
@@ -727,6 +745,77 @@ export class AudioService {
     this.tone({ freq: 140, duration: 0.05, type: 'sine', gain: 0.1, slideTo: 96 });
   }
 
+  /**
+   * Miccia della Bomba: frizione che sfrigola con qualche scoppiettio secco.
+   * Suona in TV mentre il turno scorre, sotto la sirena.
+   */
+  playFuse(): void {
+    if (!this.audioEnabled()) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
+    noiseVoice(ctx, this.out(ctx), {
+      at,
+      duration: 1.8,
+      gain: 0.12,
+      freq: 3200,
+      to: 5200,
+      q: 0.7,
+      type: 'highpass',
+      attack: 0.02,
+      release: 1.4,
+    });
+    const crackles: Array<[number, number]> = [
+      [0.12, 0.05], [0.31, 0.04], [0.47, 0.06], [0.7, 0.05],
+      [0.95, 0.07], [1.2, 0.05], [1.45, 0.06], [1.62, 0.04],
+    ];
+    for (const [delay, duration] of crackles) {
+      noiseVoice(ctx, this.out(ctx), {
+        at: at + delay,
+        duration,
+        gain: 0.1,
+        freq: 2600,
+        q: 2.2,
+        attack: 0.001,
+        release: duration,
+      });
+    }
+  }
+
+  /**
+   * Scoppio vero della Bomba: colpo grave che si apre, schegge e coda bassa.
+   * È il suono del telefono di chi teneva la bomba.
+   */
+  playExplosion(): void {
+    if (!this.audioEnabled()) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const at = this.at;
+    noiseVoice(ctx, this.out(ctx, false), {
+      at,
+      duration: 0.9,
+      gain: 0.42,
+      freq: 320,
+      to: 60,
+      q: 0.6,
+      type: 'lowpass',
+      attack: 0.001,
+      release: 0.85,
+    });
+    this.tone({ freq: 58, duration: 0.5, type: 'sine', gain: 0.09, slideTo: 32 });
+    for (const delay of [0.06, 0.14, 0.23, 0.35]) {
+      noiseVoice(ctx, this.out(ctx, false), {
+        at: at + delay,
+        duration: 0.08,
+        gain: 0.09,
+        freq: 2400,
+        q: 1.4,
+        attack: 0.001,
+        release: 0.07,
+      });
+    }
+  }
+
   /** Bong di fine countdown: campana grave con coda breve. */
   playCountdownBong(): void {
     if (!this.audioEnabled()) return;
@@ -734,18 +823,20 @@ export class AudioService {
     if (!ctx) return;
     const at = this.at;
     // Grosso gong da studio: colpo basso, coda di metallo che si apre.
+    // Deve bucare il conteggio: più presenza, fondamentale lunga e un sub
+    // che si sente anche sui telefoni piccoli.
     modal(ctx, this.out(ctx), {
       at,
-      gain: 0.18,
+      gain: 0.45,
       partials: [
-        { freq: 172, decay: 2.1, q: 30 },
-        { freq: 348, decay: 1.6, q: 34, gain: 0.55 },
-        { freq: 517, decay: 1.2, q: 38, gain: 0.3 },
-        { freq: 903, decay: 0.8, q: 44, gain: 0.16 },
+        { freq: 172, decay: 3.4, q: 30 },
+        { freq: 348, decay: 2.6, q: 34, gain: 0.6 },
+        { freq: 517, decay: 1.9, q: 38, gain: 0.34 },
+        { freq: 903, decay: 1.2, q: 44, gain: 0.18 },
       ],
-      strike: { freq: 1100, q: 1.1, duration: 0.09, gain: 0.12 },
+      strike: { freq: 1100, q: 1.1, duration: 0.09, gain: 0.2 },
     });
-    this.tone({ freq: 96, duration: 0.3, type: 'sine', gain: 0.07, slideTo: 70 });
+    this.tone({ freq: 96, duration: 0.5, type: 'sine', gain: 0.16, slideTo: 64 });
   }
 
   /** Transizione tra schermate. */
@@ -754,15 +845,17 @@ export class AudioService {
     const ctx = this.ensureContext();
     if (!ctx) return;
     // Aria che passa: rumore con la banda che sale e si richiude.
+    // Transizione leggera: niente corpo grave, solo aria che passa e si
+    // chiude in fretta, per non pesare fra una schermata e l'altra.
     noiseVoice(ctx, this.out(ctx), {
       at: this.at,
-      duration: 0.45,
-      gain: 0.22,
-      freq: 380,
-      to: 2600,
-      q: 1.4,
-      attack: 0.09,
-      release: 0.32,
+      duration: 0.3,
+      gain: 0.15,
+      freq: 900,
+      to: 3200,
+      q: 1.1,
+      attack: 0.05,
+      release: 0.22,
     });
   }
 
@@ -1253,6 +1346,75 @@ export class AudioService {
   }
 
   private runEvent(event: AudioEventId, variant: number): void {
+    // Prima il file registrato: è il suono della serata. Se manca o non si
+    // carica, `playRecorded` lo dice e si passa alla sintesi qui sotto.
+    if (this.playRecorded(event, variant)) return;
+    this.runSynth(event, variant);
+  }
+
+  /**
+   * Riproduce il file dell'evento. Torna `false` quando non c'è nulla da
+   * caricare (evento sintetico o file già fallito), così il chiamante sa che
+   * deve suonare la sintesi; se il caricamento fallisce, la sintesi parte da
+   * sola dal `catch`.
+   */
+  private playRecorded(event: AudioEventId, variant: number): boolean {
+    const files = AUDIO_FILES[event];
+    if (!files || files.length === 0) return false;
+    const ctx = this.ensureContext();
+    if (!ctx) return false;
+    const file = files[Math.abs(variant) % files.length];
+    const style = event === 'applause'
+      ? APPLAUSE_VARIATIONS[Math.abs(variant) % APPLAUSE_VARIATIONS.length]
+      : undefined;
+    const url = `assets/audio/${file}`;
+    const cached = this.recorded.get(url);
+    if (cached === null) return false;
+    if (cached) {
+      this.startBuffer(ctx, cached, style);
+      return true;
+    }
+    if (this.recording.has(url)) return true;
+    this.recording.add(url);
+    fetch(url)
+      .then((response) => {
+        if (!response.ok) throw new Error(`${response.status} su ${url}`);
+        return response.arrayBuffer();
+      })
+      .then((data) => ctx.decodeAudioData(data))
+      .then((buffer) => {
+        this.recorded.set(url, buffer);
+        this.recording.delete(url);
+        this.startBuffer(ctx, buffer, style);
+      })
+      .catch(() => {
+        // File assente in questa build: si segna e si usa la sintesi.
+        this.recorded.set(url, null);
+        this.recording.delete(url);
+        this.runSynth(event, variant);
+      });
+    return true;
+  }
+
+  /**
+   * Riproduce un buffer sul bus dell'evento. `offset` e `rate` servono agli
+   * applausi: dalla stessa registrazione partono quattro attacchi diversi.
+   */
+  private startBuffer(
+    ctx: AudioContext,
+    buffer: AudioBuffer,
+    style?: { offset?: number; rate?: number },
+  ): void {
+    if (!this.audioEnabled()) return;
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    if (style?.rate) source.playbackRate.value = style.rate;
+    source.connect(this.out(ctx));
+    const offset = Math.max(0, Math.min(style?.offset ?? 0, Math.max(0, buffer.duration - 0.3)));
+    source.start(0, offset);
+  }
+
+  private runSynth(event: AudioEventId, variant: number): void {
     switch (event) {
       case 'gong': this.playGong(); break;
       case 'countdownTick': this.playCountdownTick(); break;
@@ -1271,6 +1433,8 @@ export class AudioService {
       case 'racket': this.playRacketHit(); break;
       case 'uuuh': this.playUuuh(); break;
       case 'bombSiren': this.playBombSiren(); break;
+      case 'fuse': this.playFuse(); break;
+      case 'explosion': this.playExplosion(); break;
       case 'rouletteTicks': this.playRouletteTicks(); break;
       case 'rouletteLanding': this.playRouletteLanding(); break;
       case 'drumroll': this.playDrumroll(1.6, 0.8); break;

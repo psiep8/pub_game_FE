@@ -8,6 +8,7 @@ import {
   type AudioEventId,
 } from '../../core/services/audio-catalog';
 import { AudioService } from '../../core/services/audio.service';
+import { AUDIO_FILES } from '../../core/services/audio-files';
 import { BED_PROFILES, type BedProfile } from '../../core/services/bed-profiles';
 
 interface AudioCard {
@@ -15,6 +16,8 @@ interface AudioCard {
   id: AudioEventId;
   variant: number;
   variantLabel: string;
+  /** True quando l'evento ha un file registrato e non solo la sintesi. */
+  hasFile: boolean;
 }
 
 /**
@@ -53,6 +56,7 @@ interface AudioCard {
             />
           </label>
           <button class="lab-btn ghost" (click)="stopAll()">■ FERMA TUTTO</button>
+          <button class="lab-btn ghost" (click)="playEveryFile()">▶ TUTTI I FILE</button>
         </div>
       </header>
 
@@ -70,7 +74,7 @@ interface AudioCard {
           @for (card of roomCards(); track card.id) {
             <article class="lab-card" [class.muted]="!enabled()">
               <div class="lab-card-head">
-                <span class="lab-source">{{ card.event.source }}</span>
+                <span class="lab-source">{{ card.hasFile ? 'file' : card.event.source }}</span>
                 <code>{{ card.id }}</code>
               </div>
               <h3>{{ card.event.label }}</h3>
@@ -109,7 +113,7 @@ interface AudioCard {
           @for (card of phoneCards(); track card.id) {
             <article class="lab-card" [class.muted]="!enabled()">
               <div class="lab-card-head">
-                <span class="lab-source">{{ card.event.source }}</span>
+                <span class="lab-source">{{ card.hasFile ? 'file' : card.event.source }}</span>
                 <code>{{ card.id }}</code>
               </div>
               <h3>{{ card.event.label }}</h3>
@@ -351,12 +355,20 @@ export class AudioLab {
 
   private readonly variantById = signal<Record<string, number>>({});
 
+  private fileQueue?: ReturnType<typeof setInterval>;
+
   readonly cards = computed<AudioCard[]>(() => {
     const variants = this.variantById();
     return AUDIO_EVENT_ORDER.map((id) => {
       const event = AUDIO_EVENTS[id];
       const variant = variants[id] ?? 0;
-      return { event, id, variant, variantLabel: this.variantLabel(id, variant) };
+      return {
+        event,
+        id,
+        variant,
+        variantLabel: this.variantLabel(id, variant),
+        hasFile: (AUDIO_FILES[id]?.length ?? 0) > 0,
+      };
     });
   });
 
@@ -384,10 +396,45 @@ export class AudioLab {
   }
 
   stopAll(): void {
+    this.stopFileQueue();
     this.audio.stopAll();
     this.audio.stopAmbient();
     this.lastPlayed.set(null);
     this.bedId.set('');
+  }
+
+  /**
+   * Ascolto in fila di tutti i file registrati, varianti comprese: serve a
+   * sentire l'intera cartella dopo una rielaborazione, senza cercare i pulsanti.
+   */
+  playEveryFile(): void {
+    this.stopFileQueue();
+    const queue: Array<{ id: AudioEventId; variant: number }> = [];
+    for (const [id, files] of Object.entries(AUDIO_FILES)) {
+      for (let variant = 0; variant < (files?.length ?? 0); variant += 1) {
+        queue.push({ id: id as AudioEventId, variant });
+      }
+    }
+    if (queue.length === 0) return;
+    let index = 0;
+    this.fileQueue = setInterval(() => {
+      const item = queue[index];
+      index += 1;
+      if (!item) {
+        this.lastPlayed.set(`File: finiti ${queue.length}`);
+        this.stopFileQueue();
+        return;
+      }
+      this.audio.play(item.id, item.variant);
+      this.lastPlayed.set(`File ${index}/${queue.length}: ${item.id}`);
+    }, 1400);
+  }
+
+  private stopFileQueue(): void {
+    if (this.fileQueue) {
+      clearInterval(this.fileQueue);
+      this.fileQueue = undefined;
+    }
   }
 
   nextVariant(id: AudioEventId): void {

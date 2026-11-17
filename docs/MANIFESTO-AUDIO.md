@@ -2,9 +2,11 @@
 
 Fase 0 della sostituzione dell'audio sintetizzato (SPEC-SUONI-REALI.md).
 
-**Stato:** i 41 file registrati sono nelle cartelle e già elaborati; i crediti
-sono in `docs/CREDITI-AUDIO.md`. Il codice suona ancora la sintesi: si passa ai
-campioni un evento alla volta (ordine della sezione 9).
+**Stato:** i 42 file sono nelle cartelle, elaborati, e sono quelli che l'app
+suona; i crediti sono in `docs/CREDITI-AUDIO.md`. Sei effetti (gong, bong del
+countdown, whoosh, gettoni, racchetta, scoppio della bomba) non sono
+registrazioni di libreria: sono la nostra sintesi renderizzata in file con lo
+stesso script, e in manifesto e crediti risultano «Nostra».
 
 I valori misurati sono quelli veri, non quelli richiesti. Gli effetti stanno
 entro circa 2 dB dal bersaglio di loudness: sui suoni con molta cresta (un
@@ -73,9 +75,9 @@ node scripts/audio/process-audio.mjs --credits  # rigenera docs/CREDITI-AUDIO.md
   con uno più deciso prima del limitatore. Ogni gradino si tiene solo se
   avvicina al bersaglio, così nessun file peggiora per colpa della compressione.
 - Suoni sotto 1,2 s: normalizzati sul picco a −3 dBFS, non sul LUFS (misura
-  integrata senza senso su 20–300 ms). Fa eccezione `interface/whoosh.m4a`:
-  a 0,8 s ha abbastanza corpo da reggere la misura integrata, quindi sta a
-  −16 LUFS come gli altri effetti.
+  integrata senza senso su 20–300 ms). Restano sul picco anche
+  `interface/whoosh.m4a` (0,9 s, quasi tutta cresta: −18,5 LUFS, picco
+  −4,2 dBFS) e `gioco/racket.m4a` (0,1 s, picco −9,1 dBFS).
 - Loop: stereo 44,1 kHz, AAC 128 kbps, **−23 LUFS**, massimo 120 s; il silenzio
   non viene toccato, altrimenti si sentirebbe il buco a ogni giro.
 - **Loop senza salto:** gli ultimi 1,5 s vengono incrociati sulla testa (dissolvenza
@@ -121,12 +123,12 @@ La durata è il **massimo** dopo il taglio; più corti vanno bene.
 | Evento | File atteso | Bus | Max | Parole di ricerca (EN) | Fonte suggerita |
 |---|---|---|---|---|---|
 | `countdownTick` | `interface/countdownTick.m4a` | TV | 0,3 s | `wood block tick`, `metronome tick`, `clock tick single` | Kenney Interface / Freesound CC0 |
-| `countdownBong` | `interface/countdownBong.m4a` | TV | 2 s | `low bell hit`, `timpani hit`, `gong low single` | Freesound CC0 |
+| `countdownBong` | `interface/countdownBong.m4a` | TV | 2 s | `low bell hit`, `timpani hit`, `gong low single` | Nostra (sintesi renderizzata) |
 | `join` | `interface/join.m4a` | TV | 1 s | `wooden knock`, `ui pop short`, `marimba ding` | Kenney UI Audio |
 | `tick` | `interface/tick.m4a` | TV | 0,25 s | `click tick single`, `ui tick`, `wooden click` | Kenney Interface |
 | `rankReveal` (5°) | `interface/rankReveal-1.m4a` | TV | 1,5 s | `whoosh short`, `paper slide`, `drum fill short` | Pixabay / Freesound CC0 |
 | `rankReveal` (4°) | `interface/rankReveal-2.m4a` | TV | 1,5 s | `cymbal swell short`, `riser short` | Pixabay |
-| `whoosh` | `interface/whoosh.m4a` | TV | 1 s | `whoosh transition`, `air swoosh short` | Pixabay / Mixkit |
+| `whoosh` | `interface/whoosh.m4a` | TV | 1 s | `whoosh transition`, `air swoosh short` | Nostra (sintesi renderizzata) |
 | `confirm` | `interface/confirm.m4a` | telefono | 0,4 s | `ui confirm beep`, `soft chime single`, `click confirm` | Kenney Interface |
 | `error` | `interface/error.m4a` | telefono | 0,6 s | `low buzz short`, `error beep`, `wooden thud` | Kenney UI Audio |
 
@@ -134,7 +136,7 @@ La durata è il **massimo** dopo il taglio; più corti vanno bene.
 
 | Evento | File atteso | Bus | Max | Parole di ricerca (EN) | Fonte suggerita |
 |---|---|---|---|---|---|
-| `gong` | `gioco/gong.m4a` | TV | 3 s | `gong`, `temple bell`, `soft mallet gong` | Freesound CC0 |
+| `gong` | `gioco/gong.m4a` | TV | 3 s | `gong`, `temple bell`, `soft mallet gong` | Nostra (sintesi renderizzata) |
 | `correct` | `gioco/correct.m4a` | TV | 1,5 s | `soft chime`, `marimba ding`, `glass tap` | Freesound CC0 |
 | `wrong` | `gioco/wrong.m4a` | TV | 1,5 s | `low buzz`, `wooden thud`, `sad trombone short` | Pixabay |
 | `timeUp` | `gioco/timeUp.m4a` | TV | 2 s | `buzzer`, `alarm beep short`, `game show timeout` | Freesound CC0 |
@@ -142,8 +144,9 @@ La durata è il **massimo** dopo il taglio; più corti vanno bene.
 | `elimination` | `gioco/elimination.m4a` | TV | 2 s | `sad trombone`, `low thud`, `game over sting` | Pixabay |
 | `uuuh` | `gioco/uuuh.m4a` | TV | 2 s | `crowd uuuh`, `crowd disappointed`, `boo short` | Freesound CC0 (folla) |
 | `bombSiren` | `gioco/bombSiren.m4a` | entrambi | 4 s | `alarm siren short`, `police siren`, `bomb siren` | Freesound CC0 |
-| `coins` | `gioco/coins.m4a` | TV | 2,5 s | `coins drop`, `casino chips stack`, `coin clink` | Kenney Casino |
-| `racket` | `gioco/racket.m4a` | telefono | 0,5 s | `ping pong hit`, `tennis ball hit`, `puck hit table` | Kenney Impact / Freesound CC0 |
+| `coins` | `gioco/coins.m4a` | TV | 2,5 s | `coins drop`, `casino chips stack`, `coin clink` | Nostra (sintesi renderizzata) |
+| `explosion` | `gioco/explosion.m4a` | telefono | 2 s | `boom`, `detonation`, `debris` | Nostra (sintesi renderizzata) |
+| `racket` | `gioco/racket.m4a` | telefono | 0,5 s | `ping pong hit`, `tennis ball hit`, `puck hit table` | Nostra (sintesi renderizzata) |
 | `bell` | `gioco/bell.m4a` | TV | 2 s | `hand bell`, `service bell ding`, `bicycle bell single` | Freesound CC0 |
 
 ### `casino/` — roulette
@@ -201,10 +204,10 @@ del presentatore. Durata 90–120 s, −23 LUFS, senza voce cantata.
 
 ## Conto dei file
 
-- 35 effetti (28 eventi con varianti: `rankReveal` ×2, `podiumReveal` ×3,
+- 36 effetti (29 eventi con varianti: `rankReveal` ×2, `podiumReveal` ×3,
   `bonusEntrance` ×5)
 - 6 loop
-- **41 file** in tutto, dentro il limite di 15 MB (effetti ~2 MB, loop ~9 MB a
+- **42 file** in tutto, dentro il limite di 15 MB (effetti ~2 MB, loop ~9 MB a
   128 kbps).
 
 ## Cosa non si tocca

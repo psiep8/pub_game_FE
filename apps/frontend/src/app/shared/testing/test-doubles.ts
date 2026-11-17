@@ -281,6 +281,8 @@ export class FakeAudioService {
   readonly playApplause = () => this.played.push('applause');
   readonly playUuuh = () => this.played.push('uuuh');
   readonly playBombSiren = () => this.played.push('bomb-siren');
+  readonly playFuse = () => this.played.push('fuse');
+  readonly playExplosion = () => this.played.push('explosion');
   readonly playConfirm = () => this.played.push('confirm');
   readonly playError = () => this.played.push('error');
   readonly playReveal = () => this.played.push('reveal');
