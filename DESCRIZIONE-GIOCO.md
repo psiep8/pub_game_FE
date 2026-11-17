@@ -59,9 +59,10 @@ Blackjack non è più un round. Arena chiude gli atti 3 e 5; Ultima spiaggia è 
 - **Azzardo** — quattro manche numeriche con fiches e quote.
 - **Ultima spiaggia** — cinque livelli 100–500, consumabili una volta per squadra.
 - **Arena** — Vero/Falso continuo dentro un cerchio che si stringe.
-- **Biglie** — quattro round da quattro gare: terra, asfalto, neve e acqua; una biglia per
-  tavolo scelta una volta sola. Ogni gara paga **150/100/60/30** e i punti entrano subito
-  in classifica.
+- **Biglie** — quattro round da **due gare** (otto gare in serata) su due delle otto piste:
+  rally (terra), F1 (asfalto), neve, acqua, **vetro**, sabbia, spazio e magma. La coppia di
+  piste la sceglie il seme del round; una biglia per tavolo, scelta una volta sola. Ogni
+  gara paga **150/100/60/30** e i punti entrano subito in classifica.
 
 I punteggi vivono in `shared/models/scoring-rules.ts`; la scaletta in
 `shared/schedule.ts` è l'unica fonte di verità per round e occorrenze.
