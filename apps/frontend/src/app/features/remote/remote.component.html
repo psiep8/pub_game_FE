@@ -493,7 +493,7 @@
     <div class="bonus-remote">
       <div class="game-head">
         <span class="game-tag buzz">🎱 BIGLIE</span>
-        <span class="game-tip">Gara {{ (biglieState()?.raceIndex ?? 0) + 1 }}/{{ biglieState()?.races ?? 4 }} · {{ biglieState()?.track?.surface || 'Scelta' }}</span>
+        <span class="game-tip">Gara {{ biglieState()?.raceNumber ?? (biglieState()?.raceIndex ?? 0) + 1 }}/{{ biglieState()?.totalRaces ?? 8 }} · {{ biglieState()?.track?.surface || 'Scelta' }}</span>
       </div>
 
       @if (biglieState()?.phase === 'PICK') {

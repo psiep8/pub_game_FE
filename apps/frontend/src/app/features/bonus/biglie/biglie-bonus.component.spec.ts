@@ -142,6 +142,16 @@ describe('BiglieBonus — ripresa dopo un refresh della TV', () => {
     // Round 22, prima gara: è la terza della serata.
     expect(component.raceNumber()).toBe(3);
 
+    // Il telefono legge lo stato pubblicato: stessa numerazione della TV.
+    const ws = TestBed.inject(WebSocketService) as unknown as FakeWebSocketService;
+    const published = ws.broadcasted
+      .map((status) => status.body)
+      .filter((body) => body?.action === 'BIGLIE_STATE')
+      .at(-1);
+    expect(published?.state.raceNumber).toBe(3);
+    expect(published?.state.totalRaces).toBe(8);
+    expect(published?.state.races).toBe(2);
+
     fixture.destroy();
   });
 

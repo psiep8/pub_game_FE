@@ -2610,6 +2610,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
         secondsLeft: this.secondsLeft(),
         raceIndex: this.raceIndex(),
         races: TRACKS_PER_ROUND,
+        totalRaces: BIGLIE_RACES,
         roundIndex: this.roundIndex,
         raceNumber: this.raceNumber(),
         trackPlan: this.roundTracks().map((track) => track.id),
