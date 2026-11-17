@@ -145,6 +145,22 @@ export class AudioService {
     this.play('racket');
   }
 
+  /**
+   * Urti delle Biglie: biglia contro biglia, contro il muro e contro la
+   * superficie. La superficie è sorda sui fondi morbidi, secca sui duri.
+   */
+  playMarbleHit(): void {
+    this.play('marbleHit');
+  }
+
+  playMarbleWall(): void {
+    this.play('marbleWall');
+  }
+
+  playMarbleSurface(soft = false): void {
+    this.play(soft ? 'marbleSurfaceSoft' : 'marbleSurfaceHard');
+  }
+
   playUuuh(): void {
     this.play('uuuh');
   }

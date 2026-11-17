@@ -37,6 +37,10 @@ export const AUDIO_FILES: Partial<Record<string, readonly string[]>> = {
   explosion: ['gioco/explosion.m4a'],
   fuse: ['gioco/fuse.m4a'],
   racket: ['gioco/racket.m4a'],
+  marbleHit: ['gioco/marbleHit.m4a'],
+  marbleWall: ['gioco/marbleWall.m4a'],
+  marbleSurfaceHard: ['gioco/marbleSurfaceHard.m4a'],
+  marbleSurfaceSoft: ['gioco/marbleSurfaceSoft.m4a'],
 
   rouletteTicks: ['casino/rouletteTicks.m4a'],
   rouletteLanding: ['casino/rouletteLanding.m4a'],

@@ -16,6 +16,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AudioService } from '../../../core/services/audio.service';
 import { WebSocketService } from '../../../core/websocket/web-socket.service';
 import {
   BIGLIE_RACES,
@@ -367,6 +368,7 @@ const FINALE_SECONDS = 7;
 })
 export class BiglieBonus implements OnInit, OnDestroy {
   private ws = inject(WebSocketService);
+  private audio = inject(AudioService);
   private destroyRef = inject(DestroyRef);
   private ngZone = inject(NgZone);
 
@@ -966,7 +968,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
         const first = this.marbleForBody(pair.bodyA);
         const second = this.marbleForBody(pair.bodyB);
 
-        // Biglia contro biglia: scintille nel punto di contatto.
+        // Biglia contro biglia: scintille e scatto secco nel punto di contatto.
         if (first && second) {
           if (!first.finished && !second.finished) {
             const support = pair.collision?.supports?.[0];
@@ -974,12 +976,27 @@ export class BiglieBonus implements OnInit, OnDestroy {
               support?.x ?? (pair.bodyA.position.x + pair.bodyB.position.x) / 2,
               support?.y ?? (pair.bodyA.position.y + pair.bodyB.position.y) / 2,
             );
+            if (this.impactSpeed(pair) > 0.55) this.audio.playMarbleHit();
           }
           continue;
         }
 
         const marble = first ?? second;
         if (!marble || marble.finished) continue;
+
+        // Muro vero: bordo della pista o isola di un bivio. Sfiorarlo non suona.
+        if (this.labelledBody(pair, 'wall-', 'split-')) {
+          if (this.impactSpeed(pair) > 0.9) this.audio.playMarbleWall();
+          continue;
+        }
+
+        // Sassi, scogli e meteoriti: la biglia sbatte su una superficie solida.
+        if (this.labelledBody(pair, 'rock-')) {
+          if (this.impactSpeed(pair) > 0.9) {
+            this.audio.playMarbleSurface(this.surfaceIsSoft());
+          }
+          continue;
+        }
 
         const hazardBody = pair.bodyA.label?.startsWith('hazard-')
           ? pair.bodyA
@@ -1037,6 +1054,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
         }
 
         this.spawnImpact(marble, hazard.kind);
+        this.audio.playMarbleSurface(this.surfaceIsSoft());
       }
     });
 
@@ -1045,6 +1063,27 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
   private marbleForBody(body: any): RaceMarble | undefined {
     return this.raceMarbles.find((marble) => marble.body === body);
+  }
+
+  private labelledBody(pair: any, ...prefixes: string[]): any | null {
+    for (const body of [pair.bodyA, pair.bodyB]) {
+      const label = typeof body?.label === 'string' ? body.label : '';
+      if (prefixes.some((prefix) => label.startsWith(prefix))) return body;
+    }
+    return null;
+  }
+
+  /** Velocità dell'urto: sotto la soglia il contatto non fa rumore. */
+  private impactSpeed(pair: any): number {
+    const speed = (body: any): number =>
+      body ? Math.hypot(body.velocity.x, body.velocity.y) : 0;
+    return Math.max(speed(pair.bodyA), speed(pair.bodyB));
+  }
+
+  /** Fondi morbidi: l'urto su una superficie suona sordo, non secco. */
+  private surfaceIsSoft(): boolean {
+    const id = this.currentTrack()?.id ?? 'rally';
+    return id !== 'f1' && id !== 'ghiaccio';
   }
 
   private spawnImpact(marble: RaceMarble, hazard?: HazardKind): void {

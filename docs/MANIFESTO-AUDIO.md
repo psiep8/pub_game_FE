@@ -2,11 +2,12 @@
 
 Fase 0 della sostituzione dell'audio sintetizzato (SPEC-SUONI-REALI.md).
 
-**Stato:** i 42 file sono nelle cartelle, elaborati, e sono quelli che l'app
-suona; i crediti sono in `docs/CREDITI-AUDIO.md`. Sei effetti (gong, bong del
-countdown, whoosh, gettoni, racchetta, scoppio della bomba) non sono
-registrazioni di libreria: sono la nostra sintesi renderizzata in file con lo
-stesso script, e in manifesto e crediti risultano «Nostra».
+**Stato:** i 47 file sono nelle cartelle, elaborati, e sono quelli che l'app
+suona; i crediti sono in `docs/CREDITI-AUDIO.md`. Gli effetti marcati «Nostra»
+(gong, bong del countdown, whoosh, gettoni, racchetta, scoppio della bomba,
+miccia e i quattro urti delle Biglie) non sono registrazioni di libreria: sono
+la nostra sintesi renderizzata in file con lo stesso script, e in manifesto e
+crediti risultano «Nostra».
 
 I valori misurati sono quelli veri, non quelli richiesti. Gli effetti stanno
 entro circa 2 dB dal bersaglio di loudness: sui suoni con molta cresta (un
@@ -148,6 +149,10 @@ La durata è il **massimo** dopo il taglio; più corti vanno bene.
 | `coins` | `gioco/coins.m4a` | TV | 2,5 s | `coins drop`, `casino chips stack`, `coin clink` | Nostra (sintesi renderizzata) |
 | `explosion` | `gioco/explosion.m4a` | telefono | 2 s | `boom`, `detonation`, `debris` | Nostra (sintesi renderizzata) |
 | `racket` | `gioco/racket.m4a` | telefono | 0,5 s | `ping pong hit`, `tennis ball hit`, `puck hit table` | Nostra (sintesi renderizzata) |
+| `marbleHit` | `gioco/marbleHit.m4a` | TV | 0,4 s | `marble hit`, `glass marble clack`, `billiard ball click` | Nostra (sintesi renderizzata) |
+| `marbleWall` | `gioco/marbleWall.m4a` | TV | 0,4 s | `wood knock short`, `marble against rail` | Nostra (sintesi renderizzata) |
+| `marbleSurfaceHard` | `gioco/marbleSurfaceHard.m4a` | TV | 0,4 s | `hard tick`, `stone pebble click` | Nostra (sintesi renderizzata) |
+| `marbleSurfaceSoft` | `gioco/marbleSurfaceSoft.m4a` | TV | 0,5 s | `soft thud`, `sand thump short` | Nostra (sintesi renderizzata) |
 | `bell` | `gioco/bell.m4a` | TV | 2 s | `hand bell`, `service bell ding`, `bicycle bell single` | Freesound CC0 |
 
 ### `casino/` — roulette
@@ -205,10 +210,10 @@ del presentatore. Durata 90–120 s, −23 LUFS, senza voce cantata.
 
 ## Conto dei file
 
-- 37 effetti (30 eventi con varianti: `rankReveal` ×2, `podiumReveal` ×3,
+- 41 effetti (34 eventi con varianti: `rankReveal` ×2, `podiumReveal` ×3,
   `bonusEntrance` ×5)
 - 6 loop
-- **43 file** in tutto, dentro il limite di 15 MB (effetti ~2 MB, loop ~9 MB a
+- **47 file** in tutto, dentro il limite di 15 MB (effetti ~2 MB, loop ~9 MB a
   128 kbps).
 
 ## Cosa non si tocca

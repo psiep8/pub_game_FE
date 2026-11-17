@@ -105,7 +105,7 @@ function readManifest() {
 
   const effects = entries.filter((entry) => !entry.isLoop);
   const loops = entries.filter((entry) => entry.isLoop);
-  if (effects.length !== 37) fail(`Il manifesto elenca ${effects.length} effetti, attesi 37.`);
+  if (effects.length !== 41) fail(`Il manifesto elenca ${effects.length} effetti, attesi 41.`);
   if (loops.length !== 6) fail(`Il manifesto elenca ${loops.length} loop, attesi 6.`);
   const duplicates = entries.filter((entry, index) => entries.findIndex((other) => other.path === entry.path) !== index);
   if (duplicates.length > 0) fail(`File ripetuti nel manifesto: ${duplicates.map((entry) => entry.path).join(', ')}`);
@@ -573,10 +573,11 @@ function writeCredits(entries) {
     'e le misure dai file elaborati (ffmpeg, EBU R128).',
     '',
     'Quasi tutti i suoni sono registrazioni scelte da librerie con licenza',
-    'compatibile con un\'app pubblica. Fanno eccezione cinque effetti (gong del',
-    'via, bong del countdown, transizione, gettoni, racchetta): sono la nostra',
-    'sintesi renderizzata in file con lo stesso script, quindi compaiono con',
-    'licenza «Nostra».',
+    'compatibile con un\'app pubblica. Fanno eccezione gli effetti marcati',
+    '«Nostra» (gong del via, bong del countdown, transizione, gettoni,',
+    'racchetta, scoppio e miccia della bomba, quattro urti delle Biglie): sono',
+    'la nostra sintesi renderizzata in file con lo stesso script, quindi',
+    'compaiono con licenza «Nostra».',
     '',
     '## Licenze usate',
     '',
@@ -655,7 +656,7 @@ if (CHECK) {
   const present = selected.filter((entry) => existsSync(join(AUDIO_ROOT, entry.path)));
   const presentWithoutFonti = present.filter((entry) => !fonti.byPath.has(entry.path));
 
-  console.log(`Manifesto: ${entries.length} file (37 effetti, 6 loop).`);
+  console.log(`Manifesto: ${entries.length} file (41 effetti, 6 loop).`);
   console.log(`ffmpeg: ${FFMPEG}`);
   console.log(`FONTI.txt: ${fonti.byPath.size} righe valide.`);
 

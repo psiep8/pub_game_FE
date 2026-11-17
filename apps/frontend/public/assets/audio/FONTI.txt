@@ -52,3 +52,7 @@ gioco/coins.m4a | Gettoni che cadono | PubGame | https://github.com/psiep8/pub_g
 gioco/racket.m4a | Colpo di racchetta | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
 gioco/explosion.m4a | Scoppio della Bomba | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
 gioco/fuse.m4a | Miccia della bomba | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+gioco/marbleHit.m4a | Urti delle Biglie — biglia contro biglia | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+gioco/marbleWall.m4a | Urti delle Biglie — biglia contro muro | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+gioco/marbleSurfaceHard.m4a | Urti delle Biglie — fondo duro | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+gioco/marbleSurfaceSoft.m4a | Urti delle Biglie — fondo morbido | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)

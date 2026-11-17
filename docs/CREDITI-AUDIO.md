@@ -5,19 +5,20 @@ Non si modifica a mano: i dati vengono da `apps/frontend/public/assets/audio/FON
 e le misure dai file elaborati (ffmpeg, EBU R128).
 
 Quasi tutti i suoni sono registrazioni scelte da librerie con licenza
-compatibile con un'app pubblica. Fanno eccezione cinque effetti (gong del
-via, bong del countdown, transizione, gettoni, racchetta): sono la nostra
-sintesi renderizzata in file con lo stesso script, quindi compaiono con
-licenza «Nostra».
+compatibile con un'app pubblica. Fanno eccezione gli effetti marcati
+«Nostra» (gong del via, bong del countdown, transizione, gettoni,
+racchetta, scoppio e miccia della bomba, quattro urti delle Biglie): sono
+la nostra sintesi renderizzata in file con lo stesso script, quindi
+compaiono con licenza «Nostra».
 
 ## Licenze usate
 
 - **Mixkit License** — 23 file
+- **Nostra (sintesi renderizzata)** — 11 file
 - **CC0** — 7 file
-- **Nostra (sintesi renderizzata)** — 7 file
 - **Mixkit Stock Music Free License** — 6 file
 
-## Effetti (37)
+## Effetti (41)
 
 | File | Titolo | Autore | Licenza | Durata | Peso | LUFS | Picco |
 |---|---|---|---|---|---|---|---|
@@ -42,6 +43,10 @@ licenza «Nostra».
 | `gioco/coins.m4a` | Gettoni che cadono | PubGame | Nostra (sintesi renderizzata) | 0.8 s | 10 KB | -18.8 | -2 dBFS |
 | `gioco/explosion.m4a` | Scoppio della Bomba | PubGame | Nostra (sintesi renderizzata) | 0.5 s | 9 KB | -16.9 | -4.4 dBFS |
 | `gioco/racket.m4a` | Colpo di racchetta | PubGame | Nostra (sintesi renderizzata) | 0.1 s | 3 KB | — (vedi picco) | -9.1 dBFS |
+| `gioco/marbleHit.m4a` | Urti delle Biglie — biglia contro biglia | PubGame | Nostra (sintesi renderizzata) | 0.2 s | 4 KB | — (vedi picco) | -3.2 dBFS |
+| `gioco/marbleWall.m4a` | Urti delle Biglie — biglia contro muro | PubGame | Nostra (sintesi renderizzata) | 0.3 s | 5 KB | — (vedi picco) | -3.3 dBFS |
+| `gioco/marbleSurfaceHard.m4a` | Urti delle Biglie — fondo duro | PubGame | Nostra (sintesi renderizzata) | 0.2 s | 3 KB | — (vedi picco) | -4.1 dBFS |
+| `gioco/marbleSurfaceSoft.m4a` | Urti delle Biglie — fondo morbido | PubGame | Nostra (sintesi renderizzata) | 0.4 s | 6 KB | — (vedi picco) | -2.7 dBFS |
 | `gioco/bell.m4a` | Service bell | Mixkit | Mixkit License | 0.4 s | 6 KB | -15.5 | -2.2 dBFS |
 | `casino/rouletteTicks.m4a` | Balin in casino roulette | Mixkit | Mixkit License | 8.0 s | 98 KB | -15.9 | -4 dBFS |
 | `casino/rouletteLanding.m4a` | Casino Roulette ball | Mixkit | Mixkit License | 2.0 s | 26 KB | -16.5 | -2.2 dBFS |
@@ -96,6 +101,10 @@ sotto il 8% non si sente; sopra, il giro va rifilato a orecchio.
 - `gioco/coins.m4a` — Gettoni che cadono: <https://github.com/psiep8/pub_game_FE>
 - `gioco/explosion.m4a` — Scoppio della Bomba: <https://github.com/psiep8/pub_game_FE>
 - `gioco/racket.m4a` — Colpo di racchetta: <https://github.com/psiep8/pub_game_FE>
+- `gioco/marbleHit.m4a` — Urti delle Biglie — biglia contro biglia: <https://github.com/psiep8/pub_game_FE>
+- `gioco/marbleWall.m4a` — Urti delle Biglie — biglia contro muro: <https://github.com/psiep8/pub_game_FE>
+- `gioco/marbleSurfaceHard.m4a` — Urti delle Biglie — fondo duro: <https://github.com/psiep8/pub_game_FE>
+- `gioco/marbleSurfaceSoft.m4a` — Urti delle Biglie — fondo morbido: <https://github.com/psiep8/pub_game_FE>
 - `gioco/bell.m4a` — Service bell: <https://mixkit.co/free-sound-effects/bell/>
 - `casino/rouletteTicks.m4a` — Balin in casino roulette: <https://mixkit.co/free-sound-effects/roulette/>
 - `casino/rouletteLanding.m4a` — Casino Roulette ball: <https://mixkit.co/free-sound-effects/roulette/>
@@ -121,7 +130,7 @@ sotto il 8% non si sente; sopra, il giro va rifilato a orecchio.
 
 ## Totale
 
-43 file, 11.22 MB. Effetti: bersaglio -16 LUFS con picco ≤ -1 dBTP; sottofondi a -23 LUFS con picco ≤ -1.5 dBTP.
+47 file, 11.24 MB. Effetti: bersaglio -16 LUFS con picco ≤ -1 dBTP; sottofondi a -23 LUFS con picco ≤ -1.5 dBTP.
 
 I suoni sotto 1,2 s sono normalizzati sul picco a −3 dBFS, non sul LUFS:
 sono troppo corti perché la misura integrata abbia senso, quindi in tabella
