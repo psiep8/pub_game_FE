@@ -65,14 +65,17 @@ node scripts/audio/process-audio.mjs --credits  # rigenera docs/CREDITI-AUDIO.md
 - **Normalizzazione:** il silenzio si toglie *dopo* il `loudnorm`, non prima: se
   il filtro riceve il file già tagliato, su molti campioni rinuncia al guadagno
   e il suono resta 10 dB sotto il bersaglio. Dopo il primo giro lo script misura
-  il file finito e corregge (fino a tre passate), perché la coda tagliata cambia
-  la loudness rispetto alla misura sul file intero.
-- **Compressione leggera:** quando lo scarto supera i 2 dB entra un
-  `acompressor` prima del `loudnorm`; lo script confronta la versione compressa
-  con quella normale e tiene la più vicina al bersaglio, così nessun file
-  peggiora per colpa della compressione.
+  il file finito e corregge il guadagno sulla misura vera, per un massimo di
+  tre passate, perché la coda tagliata cambia la loudness rispetto alla misura
+  sul file intero.
+- **Compressione a gradini:** se dopo il giro pulito lo scarto supera 0,6 dB,
+  il tentativo successivo entra con un `acompressor` leggero e, se non basta,
+  con uno più deciso prima del limitatore. Ogni gradino si tiene solo se
+  avvicina al bersaglio, così nessun file peggiora per colpa della compressione.
 - Suoni sotto 1,2 s: normalizzati sul picco a −3 dBFS, non sul LUFS (misura
-  integrata senza senso su 20–300 ms).
+  integrata senza senso su 20–300 ms). Fa eccezione `interface/whoosh.m4a`:
+  a 0,8 s ha abbastanza corpo da reggere la misura integrata, quindi sta a
+  −16 LUFS come gli altri effetti.
 - Loop: stereo 44,1 kHz, AAC 128 kbps, **−23 LUFS**, massimo 120 s; il silenzio
   non viene toccato, altrimenti si sentirebbe il buco a ogni giro.
 - **Loop senza salto:** gli ultimi 1,5 s vengono incrociati sulla testa (dissolvenza

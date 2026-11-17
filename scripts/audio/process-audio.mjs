@@ -56,7 +56,14 @@ const FADE_OUT_SECONDS = 0.18;
 const LOOP_CROSSFADE_SECONDS = 1.5;
 // Compressione leggera: solo per i suoni che, dopo la normalizzazione, restano
 // lontani dal bersaglio perché la cresta è troppo alta.
+// Sotto 1,2 s la misura integrata non è affidabile e si normalizza sul picco.
+// Questi file fanno eccezione: sono corti ma hanno corpo abbastanza da stare
+// sul LUFS come gli altri effetti.
+const LOUDNESS_ON_SHORT = new Set(['interface/whoosh.m4a']);
 const LIGHT_COMPRESSION = 'acompressor=threshold=-30dB:ratio=6:attack=5:release=250';
+// Secondo gradino: transienti che la compressione leggera non porta a
+// bersaglio (battito, colpi secchi) chiusi da un compressore più deciso.
+const STRONG_COMPRESSION = 'acompressor=threshold=-20dB:ratio=12:attack=2:release=150';
 const LIGHT_COMPRESSION_LIMITER = 'alimiter=limit=0.6:level=false:attack=5:release=50';
 
 function fail(message) {
@@ -157,6 +164,7 @@ function findTool(name) {
   const candidates = [
     process.env[`${name.toUpperCase()}_PATH`],
     join(ROOT, '.tools/ffmpeg', name),
+    join(ROOT, '.tools/ffmpeg', `${name}.exe`),
   ].filter(Boolean);
   for (const candidate of candidates) {
     if (existsSync(candidate)) return candidate;
@@ -319,13 +327,13 @@ function processEffect(entry, source, candidate, output, target, sourceSeconds) 
   const encoded = `${output}.part.m4a`;
   const limiter = LIGHT_COMPRESSION_LIMITER;
 
-  const tooShortForLoudness = sourceSeconds < 1.2;
+  const tooShortForLoudness = sourceSeconds < 1.2 && !LOUDNESS_ON_SHORT.has(entry.path);
   const willCut = sourceSeconds > entry.maxSeconds + 0.05;
 
   /** Catena base: normalizza, poi taglia e sfuma la coda vera. */
-  const buildChain = (correctionDb, compress) => {
+  const buildChain = (correctionDb, compression) => {
     const chain = [];
-    if (compress && !tooShortForLoudness) chain.push(LIGHT_COMPRESSION);
+    if (compression && !tooShortForLoudness) chain.push(compression);
     if (tooShortForLoudness) {
       const peakDb = measureMaxVolume(source);
       if (peakDb === null) fail(`${entry.path} è muto: nessun campione da normalizzare.`);
@@ -337,18 +345,18 @@ function processEffect(entry, source, candidate, output, target, sourceSeconds) 
     }
     if (Math.abs(correctionDb) > 0.05) chain.push(`volume=${correctionDb.toFixed(2)}dB`);
     chain.push('aresample=44100');
-    chain.push(compress ? limiter : 'alimiter=limit=0.75:level=false:attack=5:release=50');
+    chain.push(compression ? limiter : 'alimiter=limit=0.75:level=false:attack=5:release=50');
     if (sourceSeconds >= 0.4) chain.push(TRIM_BOTH_ENDS);
     chain.push(`atrim=start=0:end=${entry.maxSeconds}`);
     if (willCut) chain.push('areverse', `afade=t=in:st=0:d=${FADE_OUT_SECONDS}`, 'areverse');
     return chain.join(',');
   };
 
-  const encode = (correctionDb, compress, destination) => {
+  const encode = (correctionDb, compression, destination) => {
     run(FFMPEG, [
       '-hide_banner', '-nostats', '-y',
       '-i', source,
-      '-af', buildChain(correctionDb, compress),
+      '-af', buildChain(correctionDb, compression),
       '-c:a', 'aac',
       '-b:a', target.bitrate,
       '-ac', String(target.channels),
@@ -362,23 +370,27 @@ function processEffect(entry, source, candidate, output, target, sourceSeconds) 
   try {
     // Bersaglio: LUFS degli effetti, picco dei file troppo corti per la misura
     // integrata. Il loudnorm da solo non arriva sempre: si misura il file
-    // finito e si corregge. La compressione leggera entra solo quando lo scarto
-    // è grande, e si tiene solo se avvicina davvero al bersaglio.
+    // finito e si corregge il guadagno. Se lo scarto resta, si sale di un
+    // gradino di compressione e si tiene solo ciò che avvicina al bersaglio.
     const goal = tooShortForLoudness ? -3 : target.i;
     const valueOf = (measure) => (tooShortForLoudness ? measure.peak : measure.lufs) ?? goal;
     const distance = (measure) => Math.abs(goal - valueOf(measure));
-    const attempt = (gain, compress) => {
-      encode(gain, compress, encoded);
-      return { gain, compress, ...measureLoudness(encoded) };
+    const attempt = (gain, compression) => {
+      encode(gain, compression, encoded);
+      return { gain, compression, ...measureLoudness(encoded) };
     };
 
-    let best = attempt(0, false);
-    for (let round = 0; round < 3 && distance(best) > 0.6; round += 1) {
+    // Gradini di compressione: pulito, leggero, deciso. Ogni gradino corregge
+    // il guadagno sulla propria misura e si tiene solo se avvicina al
+    // bersaglio; se un gradino non aiuta si passa al successivo.
+    const ladder = [null, LIGHT_COMPRESSION, STRONG_COMPRESSION];
+    let best = attempt(0, ladder[0]);
+    for (let round = 1; round < ladder.length && distance(best) > 0.6; round += 1) {
       const gain = Math.max(-12, Math.min(20, best.gain + goal - valueOf(best)));
-      const candidate = attempt(gain, distance(best) > 2);
+      const candidate = attempt(gain, ladder[round]);
       if (distance(candidate) < distance(best)) best = candidate;
     }
-    encode(best.gain, best.compress, encoded);
+    encode(best.gain, best.compression, encoded);
 
     renameSync(encoded, output);
     return {
