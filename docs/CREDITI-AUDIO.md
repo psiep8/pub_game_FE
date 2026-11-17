@@ -14,10 +14,10 @@ licenza «Nostra».
 
 - **Mixkit License** — 23 file
 - **CC0** — 7 file
-- **Nostra (sintesi renderizzata)** — 6 file
+- **Nostra (sintesi renderizzata)** — 7 file
 - **Mixkit Stock Music Free License** — 6 file
 
-## Effetti (36)
+## Effetti (37)
 
 | File | Titolo | Autore | Licenza | Durata | Peso | LUFS | Picco |
 |---|---|---|---|---|---|---|---|
@@ -38,6 +38,7 @@ licenza «Nostra».
 | `gioco/elimination.m4a` | Sad game over trombone | Mixkit | Mixkit License | 2.0 s | 25 KB | -15.9 | -5.7 dBFS |
 | `gioco/uuuh.m4a` | Crowd disappointment long boo | Mixkit | Mixkit License | 2.0 s | 25 KB | -15.9 | -5.9 dBFS |
 | `gioco/bombSiren.m4a` | Police siren | Mixkit | Mixkit License | 4.0 s | 50 KB | -16 | -5.8 dBFS |
+| `gioco/fuse.m4a` | Miccia della bomba | PubGame | Nostra (sintesi renderizzata) | 1.7 s | 32 KB | -17.3 | -2.4 dBFS |
 | `gioco/coins.m4a` | Gettoni che cadono | PubGame | Nostra (sintesi renderizzata) | 0.8 s | 10 KB | -18.8 | -2 dBFS |
 | `gioco/explosion.m4a` | Scoppio della Bomba | PubGame | Nostra (sintesi renderizzata) | 0.5 s | 9 KB | -16.9 | -4.4 dBFS |
 | `gioco/racket.m4a` | Colpo di racchetta | PubGame | Nostra (sintesi renderizzata) | 0.1 s | 3 KB | — (vedi picco) | -9.1 dBFS |
@@ -91,6 +92,7 @@ sotto il 8% non si sente; sopra, il giro va rifilato a orecchio.
 - `gioco/elimination.m4a` — Sad game over trombone: <https://mixkit.co/free-sound-effects/sad-trombone/>
 - `gioco/uuuh.m4a` — Crowd disappointment long boo: <https://mixkit.co/free-sound-effects/boo/>
 - `gioco/bombSiren.m4a` — Police siren: <https://mixkit.co/free-sound-effects/siren/>
+- `gioco/fuse.m4a` — Miccia della bomba: <https://github.com/psiep8/pub_game_FE>
 - `gioco/coins.m4a` — Gettoni che cadono: <https://github.com/psiep8/pub_game_FE>
 - `gioco/explosion.m4a` — Scoppio della Bomba: <https://github.com/psiep8/pub_game_FE>
 - `gioco/racket.m4a` — Colpo di racchetta: <https://github.com/psiep8/pub_game_FE>
@@ -119,7 +121,7 @@ sotto il 8% non si sente; sopra, il giro va rifilato a orecchio.
 
 ## Totale
 
-42 file, 11.19 MB. Effetti: bersaglio -16 LUFS con picco ≤ -1 dBTP; sottofondi a -23 LUFS con picco ≤ -1.5 dBTP.
+43 file, 11.22 MB. Effetti: bersaglio -16 LUFS con picco ≤ -1 dBTP; sottofondi a -23 LUFS con picco ≤ -1.5 dBTP.
 
 I suoni sotto 1,2 s sono normalizzati sul picco a −3 dBFS, non sul LUFS:
 sono troppo corti perché la misura integrata abbia senso, quindi in tabella
