@@ -17,6 +17,17 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WebSocketService } from '../../../core/websocket/web-socket.service';
+import {
+  BIGLIE_RACES,
+  biglieRaceNumber,
+  biglieRoundSlot,
+  planRoundTracks,
+  type BiglieTrack,
+  type TrackId,
+  TRACKS_PER_ROUND,
+  TRACK_CATALOG,
+  trackById,
+} from './track-plan';
 
 /**
  * Fasi delle Biglie. Le fasi comuni arrivano da `GamePhase`.
@@ -42,15 +53,6 @@ interface Marble {
 
 interface MarbleView extends Marble {
   owner: string | null;
-}
-
-interface Track {
-  id: string;
-  name: string;
-  surface: string;
-  emoji: string;
-  tint: string;
-  weights: { speed: number; accel: number; grip: number };
 }
 
 interface Lane {
@@ -127,42 +129,6 @@ const MARBLES: Marble[] = [
   { id: 'lampo', name: 'LAMPO', color: '#22d3ee', emoji: '💧', speed: 7, accel: 8, grip: 6 },
 ];
 
-/** Fondi diversi: è la ragione per cui la scelta unica conta. */
-const TRACKS: Track[] = [
-  {
-    id: 'rally',
-    name: 'RALLY',
-    surface: 'TERRA',
-    emoji: '🏁',
-    tint: '#b45309',
-    weights: { speed: 0.2, accel: 0.6, grip: 0.2 },
-  },
-  {
-    id: 'f1',
-    name: 'F1',
-    surface: 'ASFALTO',
-    emoji: '🏎️',
-    tint: '#334155',
-    weights: { speed: 0.8, accel: 0.15, grip: 0.05 },
-  },
-  {
-    id: 'neve',
-    name: 'NEVE',
-    surface: 'NEVE',
-    emoji: '❄️',
-    tint: '#0ea5e9',
-    weights: { speed: 0.1, accel: 0.25, grip: 0.65 },
-  },
-  {
-    id: 'acqua',
-    name: 'ACQUA',
-    surface: 'ACQUA',
-    emoji: '🌊',
-    tint: '#0369a1',
-    weights: { speed: 0.3, accel: 0.55, grip: 0.15 },
-  },
-];
-
 const RACE_POINTS = [150, 100, 60, 30];
 const INTRO_SECONDS = 4;
 const PICK_SECONDS = 10;
@@ -208,7 +174,7 @@ const FINALE_SECONDS = 7;
  *
  * Una biglia per tavolo, tutte diverse e mai condivise. La scelta si fa una
  * volta sola, in ordine sorteggiato: chi è ultimo prende quella che resta.
- * Poi quattro gare su fondi diversi (terra, asfalto, neve, acqua) con punti
+ * Poi due gare del round, su due delle otto piste scelte dal seme, con punti
  * cumulativi: il profilo che vince una gara affonda nella successiva.
  */
 @Component({
@@ -236,7 +202,7 @@ const FINALE_SECONDS = 7;
           @case (Phase.INTRO) {
             <div class="bg-intro">
               <div class="bg-track-row">
-                @for (t of tracks; track t.id) {
+                @for (t of roundTracks(); track t.id) {
                   <span class="bg-track-chip" [style.border-color]="t.tint">
                     <b>{{ t.emoji }} {{ t.name }}</b>
                     <span>{{ t.surface }}</span>
@@ -245,7 +211,7 @@ const FINALE_SECONDS = 7;
               </div>
               <p class="bg-hint">
                 Una biglia a testa, scelta una volta sola in ordine sorteggiato.
-                Quattro gare, punti cumulativi: 150 / 100 / 60 / 30 a gara.
+                Due gare, punti cumulativi: 150 / 100 / 60 / 30 a gara.
                 {{ roundMode ? 'I punti delle gare entrano nella classifica della serata.' : '' }}
               </p>
             </div>
@@ -277,7 +243,7 @@ const FINALE_SECONDS = 7;
               <span class="bg-surface" [style.background]="currentTrack()?.tint">
                 {{ currentTrack()?.emoji }} {{ currentTrack()?.surface }}
               </span>
-              <span class="bg-hint">Punti gara: 150 · 100 · 60 · 30 · punti cumulativi su quattro gare</span>
+              <span class="bg-hint">Punti gara: 150 · 100 · 60 · 30 · due gare per round, punti cumulativi</span>
               <span class="bg-race-clock" [class.hot]="secondsLeft() <= 4">{{ secondsLeft() }}s</span>
             </div>
             <div class="bg-race-stage">
@@ -289,7 +255,7 @@ const FINALE_SECONDS = 7;
             <div class="bg-results">
               <div class="bg-result-head">
                 <span class="bg-result-kicker">LEGENDA · ORDINE D'ARRIVO</span>
-                <span class="bg-result-track">{{ currentTrack()?.emoji }} GARA {{ raceIndex() + 1 }} · {{ currentTrack()?.name }}</span>
+                <span class="bg-result-track">{{ currentTrack()?.emoji }} GARA {{ raceNumber() }} / {{ totalRaces }} · {{ currentTrack()?.name }}</span>
               </div>
               <div class="bg-result-columns">
                 <span>POS</span><span>TAVOLO</span><span>BIGLIA</span><span>PUNTI</span><span>TOTALE</span>
@@ -310,7 +276,7 @@ const FINALE_SECONDS = 7;
             <div class="bg-finale">
               <div class="bg-finale-head">
                 <span class="bg-finale-kicker">CLASSIFICA FINALE</span>
-                <span class="bg-finale-note">4 GARE · PUNTI CUMULATIVI</span>
+                <span class="bg-finale-note">2 GARE · PUNTI CUMULATIVI</span>
               </div>
               <div class="bg-results">
               @for (row of standings(); track row.playerName; let i = $index) {
@@ -342,7 +308,7 @@ const FINALE_SECONDS = 7;
     .bg-timer.hot { color: var(--tomato); animation: bg-pulse .8s infinite; }
     .bg-hint { margin: 0; font-family: var(--font-mono); font-size: clamp(.62rem, .92vw, .8rem); color: color-mix(in srgb, var(--coal) 62%, transparent); }
     .bg-intro { display: flex; flex-direction: column; gap: 14px; }
-    .bg-track-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .bg-track-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .bg-track-chip { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; background: var(--paper-hi); border: 3px solid var(--coal); font-family: var(--font-mono); }
     .bg-track-chip b { font-size: clamp(.85rem, 1.2vw, 1.05rem); }
     .bg-track-chip span { font-size: .72rem; letter-spacing: .14em; opacity: .65; }
@@ -402,6 +368,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
   @Input() preview = false;
   /** Round della scaletta: i punti entrano in classifica, non in un bonus. */
   @Input() roundMode = false;
+  /** Round di serata (0-based): decide le due piste e il numero delle gare. */
+  @Input() roundIndex = 0;
   /** Round interrotto da un refresh: si riparte dallo stato salvato. */
   @Input() resume: any | null = null;
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
@@ -411,7 +379,9 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
   @ViewChild('raceCanvas') private raceCanvas?: ElementRef<HTMLCanvasElement>;
 
-  readonly tracks = TRACKS;
+  /** Le due piste del round, decise dal seme e salvate nel checkpoint. */
+  readonly roundTracks = signal<BiglieTrack[]>([]);
+  readonly totalRaces = BIGLIE_RACES;
 
   readonly phase = signal<Phase>(Phase.INTRO);
 
@@ -455,6 +425,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
   private cameraReady = false;
   private trackSamples: Array<{ x: number; y: number }> = [];
   private trackSeed = 0;
+  /** Seme del round: decide le due piste e resta nel checkpoint. */
+  private planSeed = 0;
   /** Spinte e rimbalzi della gara: stesso seme, stessa corsa. */
   private raceRng: () => number = Math.random;
   private hazards: Hazard[] = [];
@@ -540,9 +512,26 @@ export class BiglieBonus implements OnInit, OnDestroy {
     this.standings.set(rows(state?.standings));
     this.raceResult.set(Array.isArray(state?.raceResult) ? rows(state.raceResult) : null);
 
+    // Piano delle piste: quello salvato vince, altrimenti si ricostruisce
+    // dallo stesso seme del round. Un refresh non cambia le due piste.
+    const savedPlanned = Array.isArray(state?.trackPlan)
+      ? state.trackPlan
+        .map((id: any) => String(id))
+        .filter((id: string): id is TrackId => TRACK_CATALOG.some((track) => track.id === id))
+      : [];
+    const savedSeed = Number(state?.trackSeed);
+    this.planSeed = Number.isFinite(savedSeed) && savedSeed > 0
+      ? Math.floor(savedSeed) >>> 0
+      : Math.floor(Math.random() * 0xffffffff) >>> 0;
+    this.applyPlan(
+      savedPlanned.length === TRACKS_PER_ROUND
+        ? savedPlanned
+        : planRoundTracks(this.planSeed, this.roundSlot()),
+    );
+
     const savedIndex = Number(state?.raceIndex);
     this.raceIndex.set(Number.isFinite(savedIndex)
-      ? Math.min(Math.max(0, Math.floor(savedIndex)), TRACKS.length)
+      ? Math.min(Math.max(0, Math.floor(savedIndex)), TRACKS_PER_ROUND)
       : 0);
 
     const savedSeconds = Number(state?.secondsLeft);
@@ -601,6 +590,9 @@ export class BiglieBonus implements OnInit, OnDestroy {
       secondsLeft: this.secondsLeft(),
       savedAt: Date.now(),
       raceIndex: this.raceIndex(),
+      roundIndex: this.roundIndex,
+      trackSeed: this.planSeed,
+      trackPlan: this.roundTracks().map((track) => track.id),
       pickOrder: [...this.pickOrder],
       pickCursor: this.pickCursor,
       marbles: this.marbleSet.map((marble) => ({ ...marble })),
@@ -624,11 +616,11 @@ export class BiglieBonus implements OnInit, OnDestroy {
   heading(): string {
     switch (this.phase()) {
       case Phase.INTRO:
-        return 'QUATTRO GARE, UNA BIGLIA';
+        return 'DUE GARE, UNA BIGLIA';
       case Phase.PICK:
         return 'SCELTA DELLA BIGLIA';
       case Phase.RACE:
-        return `GARA ${this.raceIndex() + 1} / ${TRACKS.length}`;
+        return `GARA ${this.raceNumber()} / ${BIGLIE_RACES}`;
       case Phase.RACE_END:
         return "ORDINE D'ARRIVO";
       default:
@@ -642,7 +634,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
     }
     const track = this.currentTrack();
     if (track && (this.phase() === Phase.RACE || this.phase() === Phase.RACE_END)) {
-      return `${track.emoji} ${track.name} · FONDO ${track.surface}`;
+      return `${track.emoji} ${track.name} · FONDO ${track.surface} · GARA ${this.raceNumber()}`;
     }
     return 'UNA BIGLIA PER TAVOLO, MAI CONDIVISA';
   }
@@ -652,8 +644,17 @@ export class BiglieBonus implements OnInit, OnDestroy {
     return `${Math.min(this.pickCursor + 1, this.pickOrder.length)} / ${this.pickOrder.length}`;
   }
 
-  currentTrack(): Track | null {
-    return TRACKS[this.raceIndex()] ?? null;
+  currentTrack(): BiglieTrack | null {
+    return this.roundTracks()[this.raceIndex()] ?? null;
+  }
+
+  /** Numero della gara nella serata: 1–8, due per round. */
+  raceNumber(): number {
+    return biglieRaceNumber(this.roundIndex, this.raceIndex());
+  }
+
+  private roundSlot(): number {
+    return biglieRoundSlot(this.roundIndex);
   }
 
   pct(value: number): number {
@@ -672,7 +673,19 @@ export class BiglieBonus implements OnInit, OnDestroy {
     return this.marbleById(id)?.name ?? '—';
   }
 
+  /** Le due piste del round: seme della serata, una sola volta per round. */
+  private ensurePlan(): void {
+    if (this.roundTracks().length) return;
+    if (!this.planSeed) this.planSeed = Math.floor(Math.random() * 0xffffffff) >>> 0;
+    this.applyPlan(planRoundTracks(this.planSeed, this.roundSlot()));
+  }
+
+  private applyPlan(ids: readonly TrackId[]): void {
+    this.roundTracks.set(ids.slice(0, TRACKS_PER_ROUND).map((id) => trackById(id)));
+  }
+
   private startIntro(): void {
+    this.ensurePlan();
     const seconds = this.preview ? 1 : INTRO_SECONDS;
     this.phase.set(Phase.INTRO);
     this.secondsLeft.set(seconds);
@@ -758,17 +771,20 @@ export class BiglieBonus implements OnInit, OnDestroy {
   private async startRace(index: number): Promise<void> {
     this.clearClock();
 
-    if (index >= TRACKS.length) {
+    if (index >= TRACKS_PER_ROUND) {
       this.finale();
       return;
     }
 
+    this.ensurePlan();
     this.raceIndex.set(index);
-    this.trackSeed = Math.floor(Math.random() * 0xffffffff);
-    // Pista, ostacoli e spinte nascono dallo stesso seme: la gara si ripete.
+    // Disegno della pista: seme del round più la gara. Le due gare hanno curve
+    // diverse, ma la stessa gara resta identica dopo un refresh.
+    this.trackSeed = (this.planSeed + index * 0x9e3779b9) >>> 0;
     this.raceRng = this.seededRandom(this.trackSeed ^ 0x9e3779b9);
     this.layoutTrack();
-    this.generateHazards(TRACKS[index]);
+    const track = this.currentTrack();
+    if (track) this.generateHazards(track);
     this.finishCount = 0;
     this.raceResult.set(null);
     this.currentPlayer.set(null);
@@ -1402,7 +1418,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
     };
   }
 
-  private generateHazards(track: Track): void {
+  private generateHazards(track: BiglieTrack): void {
     const rng = this.seededRandom(this.trackSeed ^ 0x7f4a7c15);
     const plan = HAZARD_PLANS[track.id] ?? HAZARD_PLANS['rally'];
     const hazards: Hazard[] = [];
@@ -1526,7 +1542,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
   private drawBackdrop(
     ctx: CanvasRenderingContext2D,
-    track: Track,
+    track: BiglieTrack,
     w: number,
     h: number,
     now: number,
@@ -1588,7 +1604,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
     ctx.restore();
   }
 
-  private skyPalette(track: Track): {
+  private skyPalette(track: BiglieTrack): {
     top: string;
     bottom: string;
     hill: string;
@@ -1638,7 +1654,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
   private drawTrack(
     ctx: CanvasRenderingContext2D,
-    track: Track,
+    track: BiglieTrack,
     w: number,
     h: number,
     trackWidth: number,
@@ -2430,7 +2446,10 @@ export class BiglieBonus implements OnInit, OnDestroy {
         phase: this.phase(),
         secondsLeft: this.secondsLeft(),
         raceIndex: this.raceIndex(),
-        races: TRACKS.length,
+        races: TRACKS_PER_ROUND,
+        roundIndex: this.roundIndex,
+        raceNumber: this.raceNumber(),
+        trackPlan: this.roundTracks().map((track) => track.id),
         track: this.currentTrack(),
         currentPlayer: this.currentPlayer(),
         order: this.pickOrder,

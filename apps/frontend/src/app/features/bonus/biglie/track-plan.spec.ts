@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  BIGLIE_RACES,
   BIGLIE_ROUNDS,
   TRACK_CATALOG,
   TRACKS_PER_ROUND,
+  biglieRaceNumber,
+  biglieRoundSlot,
   planRoundTracks,
   trackById,
 } from './track-plan';
@@ -41,5 +44,27 @@ describe('piano delle piste delle Biglie', () => {
     const first = Array.from({ length: BIGLIE_ROUNDS }, (_, index) => planRoundTracks(77, index));
     const second = Array.from({ length: BIGLIE_ROUNDS }, (_, index) => planRoundTracks(77, index));
     expect(second).toEqual(first);
+  });
+
+  it('riconosce i quattro round Biglie della scaletta', () => {
+    // Round 11, 22, 28 e 37 (1-based) sono gli indici 10, 21, 27, 36.
+    expect([10, 21, 27, 36].map((round) => biglieRoundSlot(round))).toEqual([0, 1, 2, 3]);
+  });
+
+  it('numera le gare da 1 a 8, due per ogni round', () => {
+    expect(BIGLIE_RACES).toBe(8);
+    expect(biglieRaceNumber(10, 0)).toBe(1);
+    expect(biglieRaceNumber(10, 1)).toBe(2);
+    expect(biglieRaceNumber(21, 0)).toBe(3);
+    expect(biglieRaceNumber(27, 1)).toBe(6);
+    expect(biglieRaceNumber(36, 1)).toBe(8);
+  });
+
+  it('assegna a ogni round di serata la sua coppia, senza ripetizioni', () => {
+    const pairs = [10, 21, 27, 36].map((round) =>
+      planRoundTracks(2026, biglieRoundSlot(round)),
+    );
+    expect(pairs.flat()).toHaveLength(BIGLIE_RACES);
+    expect(new Set(pairs.flat()).size).toBe(BIGLIE_RACES);
   });
 });

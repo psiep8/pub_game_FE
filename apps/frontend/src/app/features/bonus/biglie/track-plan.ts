@@ -11,8 +11,11 @@
  * `planRoundTracks` distribuisce le otto piste sui quattro round delle
  * Biglie: due per round, tutte diverse, con l'ordine deciso dal seme della
  * serata. Il piano è deterministico: lo stesso seme ricostruisce gli stessi
- * accoppiamenti dopo un refresh.
+ * accoppiamenti dopo un refresh. Il componente salva seme e piano nel
+ * checkpoint, così la TV che rientra rigioca le stesse due piste.
  */
+
+import { SCHEDULE } from '../../../shared/schedule';
 
 export type TrackId =
   | 'rally'
@@ -129,6 +132,8 @@ export const TRACK_IDS: readonly TrackId[] = TRACK_CATALOG.map((track) => track.
 export const TRACKS_PER_ROUND = 2;
 /** Quanti round Biglie ci sono in serata: uno per atto dal secondo al quinto. */
 export const BIGLIE_ROUNDS = 4;
+/** Le gare della serata: due per round, numerate da 1 a 8. */
+export const BIGLIE_RACES = TRACKS_PER_ROUND * BIGLIE_ROUNDS;
 
 /** Generatore deterministico identico a quello del componente. */
 function seededRandom(seed: number): () => number {
@@ -159,4 +164,21 @@ export function planRoundTracks(seed: number, roundIndex: number): TrackId[] {
 
 export function trackById(id: TrackId): BiglieTrack {
   return TRACK_CATALOG.find((track) => track.id === id) ?? TRACK_CATALOG[0];
+}
+
+/**
+ * Slot del round Biglie (0–3) a partire dal round di serata (0-based).
+ * Le quattro Biglie escono ai round 11, 22, 28 e 37: il seme sceglie la coppia
+ * dello slot, non del numero di round, così il piano resta di quattro coppie.
+ */
+export function biglieRoundSlot(roundIndex: number): number {
+  const index = Math.max(0, Math.floor(Number(roundIndex) || 0));
+  const slot = SCHEDULE.slice(0, index).filter((mode) => mode === 'BIGLIE').length;
+  return Math.min(BIGLIE_ROUNDS - 1, slot);
+}
+
+/** Numero della gara nella serata (1-based): 1–2, 3–4, 5–6, 7–8. */
+export function biglieRaceNumber(roundIndex: number, raceIndex: number): number {
+  const race = Math.max(0, Math.floor(Number(raceIndex) || 0));
+  return biglieRoundSlot(roundIndex) * TRACKS_PER_ROUND + race + 1;
 }

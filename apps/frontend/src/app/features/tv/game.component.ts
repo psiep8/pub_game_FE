@@ -1484,6 +1484,11 @@ export class GameComponent implements OnInit, OnDestroy {
     this.checkLeaderboardDisplay();
   }
 
+  /** Round di serata (0-based) del Biglie aperto: decide le due piste del round. */
+  biglieRoundIndex(): number {
+    return this.tvRoundIndex() ?? 0;
+  }
+
   /** Le Biglie salvano gare chiuse e classifica: un refresh non rigioca i punti. */
   onBiglieCheckpoint(state: any): void {
     const roundIndex = this.tvRoundIndex();

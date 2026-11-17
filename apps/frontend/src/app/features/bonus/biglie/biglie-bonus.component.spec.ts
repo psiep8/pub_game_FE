@@ -21,12 +21,13 @@ describe('BiglieBonus — ripresa dopo un refresh della TV', () => {
     }).compileComponents();
   });
 
-  function mount(resume: any = null) {
+  function mount(resume: any = null, roundIndex = 0) {
     const fixture = TestBed.createComponent(BiglieBonus);
     const component = fixture.componentInstance;
     fixture.componentRef.setInput('gameId', 1);
     fixture.componentRef.setInput('players', ['Anna', 'Bruno']);
     fixture.componentRef.setInput('roundMode', true);
+    fixture.componentRef.setInput('roundIndex', roundIndex);
     if (resume) fixture.componentRef.setInput('resume', resume);
 
     const results: any[] = [];
@@ -49,6 +50,11 @@ describe('BiglieBonus — ripresa dopo un refresh della TV', () => {
     const state = checkpoints.at(-1);
     expect(state.phase).toBe('INTRO');
     expect(state.raceIndex).toBe(0);
+    // Il piano delle piste parte con l'intro: due piste e il seme che le ha scelte.
+    expect(state.trackPlan).toHaveLength(2);
+    expect(new Set(state.trackPlan).size).toBe(2);
+    expect(state.trackSeed).toBeGreaterThan(0);
+    expect(state.roundIndex).toBe(0);
     // L'ordine di scelta si sorteggia dopo l'intro.
     expect(state.pickOrder).toEqual([]);
     expect(state.assignments).toEqual([]);
@@ -103,9 +109,39 @@ describe('BiglieBonus — ripresa dopo un refresh della TV', () => {
     expect(results).toEqual([]);
 
     vi.advanceTimersByTime(4100);
-    expect(component.raceIndex()).toBe(2);
+    // Due gare per round: quella appena chiusa era l'ultima, si va alla finale.
+    expect(component.phase()).toBe('FINALE');
+    expect(component.raceIndex()).toBe(1);
 
     vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('riprende le due piste salvate e le numera nella serata', () => {
+    const { component, fixture } = mount(
+      {
+        phase: 'PICK',
+        secondsLeft: 10,
+        savedAt: Date.now(),
+        raceIndex: 0,
+        roundIndex: 21,
+        trackSeed: 1234,
+        trackPlan: ['magma', 'neve'],
+        pickOrder: ['Anna', 'Bruno'],
+        pickCursor: 0,
+        marbles: MARBLES,
+        assignments: [],
+        totals: [],
+        standings: [],
+        raceResult: null,
+      },
+      21,
+    );
+
+    expect(component.roundTracks().map((track) => track.id)).toEqual(['magma', 'neve']);
+    // Round 22, prima gara: è la terza della serata.
+    expect(component.raceNumber()).toBe(3);
+
     fixture.destroy();
   });
 
@@ -141,7 +177,7 @@ describe('BiglieBonus — ripresa dopo un refresh della TV', () => {
       phase: 'RACE',
       secondsLeft: 20,
       savedAt: Date.now(),
-      raceIndex: 2,
+      raceIndex: 1,
       pickOrder: ['Anna', 'Bruno'],
       pickCursor: 2,
       marbles: MARBLES,
@@ -152,7 +188,8 @@ describe('BiglieBonus — ripresa dopo un refresh della TV', () => {
     });
 
     expect(component.phase()).toBe('RACE');
-    expect(component.raceIndex()).toBe(2);
+    // Seconda gara del round: si rigioca quella, non la prima già pagata.
+    expect(component.raceIndex()).toBe(1);
     // Il tabellone delle gare precedenti resta, i punti non si rimandano.
     expect(component.standings()).toEqual(ROWS);
     expect(results).toEqual([]);
