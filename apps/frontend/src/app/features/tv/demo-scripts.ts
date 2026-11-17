@@ -353,12 +353,12 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
     title: 'BIGLIE',
     icon: '🎱',
     objective: [
-      'Quattro round separati, una gara per round su quattro fondi.',
+      'Quattro round separati, due gare per round su due delle otto piste: rally, F1, neve, acqua, vetro, sabbia, spazio, magma.',
       'Ogni tavolo sceglie una biglia una volta sola per round.',
     ],
     phone: [
       'Scegli la biglia quando la TV chiama il tuo tavolo.',
-      'La biglia resta la stessa per tutte le gare del round.',
+      'La biglia resta la stessa per le due gare del round.',
       'Segui le piste in TV.',
     ],
     win: [
@@ -366,7 +366,7 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
       'I punti di ogni gara entrano nella classifica della serata.',
     ],
     lose: ['Chi arriva dopo il quarto non prende punti nella gara.', 'Nessuna penalità negativa.'],
-    example: 'Vincere tutte e quattro le gare: 150 × 4 = 600 punti in classifica.',
+    example: 'Vincere entrambe le gare: 150 + 150 = 300 punti in classifica.',
   },
 };
 

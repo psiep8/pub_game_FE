@@ -224,14 +224,14 @@ const GAME_COPY: Record<GameModeType, EntryCopy> = {
   BIGLIE: {
     name: 'BIGLIE',
     icon: '🎱',
-    summary: 'Quattro round separati, una gara per round: una biglia per tavolo e punti in classifica.',
-    objective: 'Scegliere una biglia e portarla al traguardo su quattro fondi diversi; ogni round è una gara a sé e assegna 150/100/60/30.',
+    summary: 'Quattro round separati, due gare per round: una biglia per tavolo e punti in classifica.',
+    objective: 'Scegliere una biglia e portarla al traguardo su due delle otto piste — rally, F1, neve, acqua, vetro, sabbia, spazio, magma — scelte dal seme; ogni gara assegna 150/100/60/30.',
     phone: [
       'Quando la TV chiama il tuo tavolo scegli la biglia.',
-      'La biglia resta la stessa per tutte le gare del round.',
+      'La biglia resta la stessa per le due gare del round.',
       'Segui le piste in TV: i punti arrivano all’ordine d’arrivo.',
     ],
-    tip: 'I punti di ogni gara entrano subito in classifica; il round si chiude dopo la finale.',
+    tip: 'I punti di ogni gara entrano subito in classifica; il round si chiude dopo la seconda gara.',
   },
 };
 

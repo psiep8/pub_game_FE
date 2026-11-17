@@ -15,7 +15,7 @@ describe('BiglieMode', () => {
     expect(mode.pointsFor(true, 0)).toBe(0);
   });
 
-  it('si chiude solo quando la TV ha finito le quattro gare', () => {
+  it('si chiude solo quando la TV ha finito le due gare del round', () => {
     const mode = new BiglieMode();
     mode.initialize({ type: 'BIGLIE' });
 

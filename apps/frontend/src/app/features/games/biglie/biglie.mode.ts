@@ -2,7 +2,7 @@ import { GameModeBase } from '../../../shared/models/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../../../shared/models/game-mode-type';
 
 /**
- * BIGLIE — quattro gare, quattro round separati.
+ * BIGLIE — due gare per round, quattro round separati.
  *
  * Il round non ha una domanda né un timer della classe base: la schermata TV
  * gestisce introduzione, scelta della biglia, gare e finale. La TV chiude il

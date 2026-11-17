@@ -94,7 +94,7 @@ export const SCORING_RULES: Record<GameModeType, ScoringRule> = {
     correct: '+150 / +100 / +60 / +30 a gara',
     wrong: '0: chi arriva dopo il quarto non prende punti',
     missed: '0 (nessuna penalità)',
-    note: 'Quattro round separati, una gara per round su quattro fondi. Ogni tavolo sceglie una biglia una volta sola e la porta per tutte le gare del round; i punti delle gare entrano nella classifica della serata.',
+    note: 'Quattro round separati, due gare per round su due delle otto piste (rally, F1, neve, acqua, vetro, sabbia, spazio, magma), scelte dal seme. Ogni tavolo sceglie una biglia una volta sola e la porta per le due gare del round; i punti delle gare entrano nella classifica della serata.',
   },
   ARENA: {
     correct: '+10 a risposta; +1000/+500 piazzamento',
