@@ -211,7 +211,7 @@ export const AUDIO_EVENTS = {
   marbleSurfaceHard: {
     id: 'marbleSurfaceHard',
     label: 'Biglia su fondo duro',
-    when: 'Una biglia colpisce un ostacolo su asfalto o ghiaccio.',
+    when: 'Una biglia colpisce un ostacolo su asfalto o vetro.',
     source: 'sfx',
     bus: 'tv',
     volume: 0.6,

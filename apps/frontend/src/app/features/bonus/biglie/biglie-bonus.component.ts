@@ -146,7 +146,7 @@ const HAZARD_PLANS: Record<string, HazardKind[]> = {
   neve: ['cumulo', 'ghiaccio', 'cumulo', 'ghiaccio', 'cumulo', 'ghiaccio', 'cumulo', 'ghiaccio', 'cumulo', 'ghiaccio', 'cumulo', 'ghiaccio'],
   acqua: ['onda', 'boa', 'scoglio', 'onda', 'boa', 'scoglio', 'onda', 'boa', 'scoglio', 'onda', 'boa', 'scoglio'],
   // I quattro fondi nuovi hanno ostacoli propri, non solo un colore diverso.
-  ghiaccio: ['ghiaccio', 'ghiaccio', 'sasso', 'ghiaccio', 'ghiaccio', 'ghiaccio', 'sasso', 'ghiaccio', 'ghiaccio', 'ghiaccio', 'sasso', 'ghiaccio'],
+  vetro: ['ghiaccio', 'ghiaccio', 'sasso', 'ghiaccio', 'ghiaccio', 'ghiaccio', 'sasso', 'ghiaccio', 'ghiaccio', 'ghiaccio', 'sasso', 'ghiaccio'],
   sabbia: ['sabbia', 'sasso', 'sabbia', 'sabbia', 'sasso', 'sabbia', 'sabbia', 'sabbia', 'sasso', 'sabbia', 'sabbia', 'sabbia'],
   spazio: ['meteorite', 'meteorite', 'meteorite', 'meteorite', 'meteorite', 'meteorite', 'meteorite', 'meteorite', 'meteorite', 'meteorite'],
   magma: ['magma', 'magma', 'sasso', 'magma', 'magma', 'magma', 'sasso', 'magma', 'magma', 'magma', 'sasso', 'magma'],
@@ -869,7 +869,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
     const radius = this.marbleRadius(count, trackWidth);
     const half = trackWidth / 2;
     const laneLength = TRACK_WORLD_LENGTH + 500;
-    // Il fondo decide quanto rimbalza il muro: il ghiaccio restituisce energia,
+    // Il fondo decide quanto rimbalza il muro: il vetro restituisce energia,
     // la sabbia la mangia. Prima era 0,42 per tutte le piste.
     const physics = this.currentTrack()?.physics;
     const wallBounce = Math.max(0.08, Math.min(0.92, physics?.bounce ?? 0.42));
@@ -1083,7 +1083,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
   /** Fondi morbidi: l'urto su una superficie suona sordo, non secco. */
   private surfaceIsSoft(): boolean {
     const id = this.currentTrack()?.id ?? 'rally';
-    return id !== 'f1' && id !== 'ghiaccio';
+    return id !== 'f1' && id !== 'vetro';
   }
 
   private spawnImpact(marble: RaceMarble, hazard?: HazardKind): void {
@@ -1260,7 +1260,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
           + data.accel * track.weights.accel
           + data.grip * track.weights.grip) / 10;
       // L'attrito del fondo pesa sulla velocità che la biglia può tenere:
-      // il ghiaccio quasi non frena, la sabbia toglie oltre un terzo.
+      // il vetro quasi non frena, la sabbia toglie oltre un terzo.
       const speedFactor = 1 - Math.min(0.42, physics.friction * 0.22);
       let target = (3.1 + profile * 1.15) * speedFactor;
       if (marble.slowUntil > this.raceElapsed) target *= 0.52;
@@ -1703,7 +1703,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
     glow: string;
   } {
     switch (track.id) {
-      case 'ghiaccio':
+      case 'vetro':
         return {
           top: INK,
           bottom: '#9fd8c8',
@@ -2468,7 +2468,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
         return { color: 'rgba(203, 213, 225, .65)', scale: 0.3 };
       case 'neve':
         return { color: 'rgba(248, 250, 252, .85)', scale: 0.34 };
-      case 'ghiaccio':
+      case 'vetro':
         return { color: 'rgba(255, 248, 232, .8)', scale: 0.3 };
       case 'sabbia':
         return { color: 'rgba(255, 197, 61, .7)', scale: 0.36 };
@@ -2489,7 +2489,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
         return { top: '#3b424d', bottom: '#232830', speck: 'rgba(255, 255, 255, .08)' };
       case 'neve':
         return { top: '#e2e8f0', bottom: '#b8c6d9', speck: 'rgba(255, 255, 255, .8)' };
-      case 'ghiaccio':
+      case 'vetro':
         return { top: '#e8fbf4', bottom: '#a9dccb', speck: 'rgba(47, 91, 255, .22)' };
       case 'sabbia':
         return { top: '#e0a63a', bottom: '#b07a12', speck: 'rgba(21, 21, 15, .28)' };

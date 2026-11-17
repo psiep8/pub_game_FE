@@ -3,7 +3,7 @@
  *
  * Le quattro piste storiche (terra, asfalto, neve, acqua) restano; le quattro
  * nuove aggiungono una fisica propria, non solo un colore:
- * - ghiaccio: attrito quasi nullo, la biglia scivola e frena poco;
+ * - vetro: attrito quasi nullo, la biglia scivola e frena poco;
  * - sabbia: attrito alto e dossi che fanno sobbalzare;
  * - spazio: gravità ridotta, salti lunghi e atterraggi delicati;
  * - magma: calore ai bordi e getti che spingono verso l'alto.
@@ -22,19 +22,19 @@ export type TrackId =
   | 'f1'
   | 'neve'
   | 'acqua'
-  | 'ghiaccio'
+  | 'vetro'
   | 'sabbia'
   | 'spazio'
   | 'magma';
 
 export interface SurfacePhysics {
-  /** Moltiplicatore dell'attrito: 0 = ghiaccio, 1.6 = sabbia. */
+  /** Moltiplicatore dell'attrito: 0 = vetro, 1.6 = sabbia. */
   friction: number;
   /** Moltiplicatore della gravità: 0.45 nello spazio, 1 altrove. */
   gravity: number;
-  /** Rimbalzo sui muri: il ghiaccio restituisce più energia. */
+  /** Rimbalzo sui muri: il vetro restituisce più energia. */
   bounce: number;
-  /** Aderenza in curva: più bassa sul ghiaccio, più alta sulla sabbia. */
+  /** Aderenza in curva: più bassa sul vetro, più alta sulla sabbia. */
   grip: number;
   /** Forza dei dossi/increspature: 0 dove il fondo è liscio. */
   bumps: number;
@@ -89,11 +89,11 @@ export const TRACK_CATALOG: readonly BiglieTrack[] = [
     physics: { friction: 0.45, gravity: 1, bounce: 0.35, grip: 0.75, bumps: 0.7 },
   },
   {
-    id: 'ghiaccio',
-    name: 'GHIACCIO',
-    surface: 'GHIACCIO',
-    emoji: '🧊',
-    tint: '#67e8f9',
+    id: 'vetro',
+    name: 'VETRO',
+    surface: 'VETRO',
+    emoji: '🔮',
+    tint: '#8be3c4',
     weights: { speed: 0.55, accel: 0.15, grip: 0.3 },
     physics: { friction: 0.04, gravity: 1, bounce: 0.58, grip: 0.25, bumps: 0.05 },
   },

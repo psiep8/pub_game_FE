@@ -24,7 +24,7 @@ describe('piano delle piste delle Biglie', () => {
   });
 
   it('distingue davvero i fondi nuovi', () => {
-    expect(trackById('ghiaccio').physics.friction).toBeLessThan(trackById('rally').physics.friction);
+    expect(trackById('vetro').physics.friction).toBeLessThan(trackById('rally').physics.friction);
     expect(trackById('sabbia').physics.friction).toBeGreaterThan(trackById('f1').physics.friction);
     expect(trackById('spazio').physics.gravity).toBeLessThan(0.6);
     expect(trackById('magma').physics.gravity).toBeGreaterThan(1);
