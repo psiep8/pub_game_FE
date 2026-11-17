@@ -10,7 +10,6 @@
  * La stessa linea produce:
  * - i bordi disegnati (`edgePoints`),
  * - i muri fisici di Matter (`wallSegments`),
- * - le isole dei bivi (`islandSegments`),
  * - la proiezione della biglia sulla pista (`projectOnTrack`), da cui
  *   arrivano progresso, lato e ordine di corsa.
  *
@@ -21,9 +20,9 @@
 /** Passo dei campioni della linea centrale, in unità di mondo. */
 const NODE_STEP = 6;
 /** Lunghezza dell'ultimo rettilineo, per un traguardo pulito. */
-const FINAL_STRAIGHT = 240;
+const FINAL_STRAIGHT = 360;
 /** Massima sterzata: la pista cresce solo in avanti, ma accetta tornanti. */
-const MAX_HEADING = 0.95;
+const MAX_HEADING = 1.02;
 
 export type TrackPieceKind = 'dritto' | 'curva' | 'esse' | 'chicane' | 'strettoia';
 
@@ -84,11 +83,6 @@ export interface WallSegment {
   length: number;
 }
 
-export interface IslandGeometry {
-  segments: WallSegment[];
-  caps: Array<{ x: number; y: number; radius: number }>;
-}
-
 export interface BuildTrackOptions {
   width: number;
   length?: number;
@@ -117,8 +111,8 @@ function shuffle<T>(values: T[], rng: () => number): T[] {
 }
 
 interface PieceProfile {
-  /** Scostamento desiderato dal centro, in funzione dell'avanzamento 0–1. */
-  target: (t: number) => number;
+  /** Direzione voluta, in radianti, in funzione dell'avanzamento 0–1. */
+  heading: (t: number) => number;
   /** Larghezza della corsia nella stesso tratto. */
   width: (t: number) => number;
 }
@@ -129,24 +123,25 @@ interface PieceProfile {
  */
 export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeometry {
   const rng = seededRandom((seed >>> 0) || 1);
-  const width = Math.max(160, Number(options.width) || 240);
+  const width = Math.max(120, Number(options.width) || 240);
   const totalLength = Math.max(600, Number(options.length) || 3600);
   const startX = Number(options.startX ?? 140);
-  // Fascia verticale: la corsia può usare quasi tutta l'altezza utile, così le
-  // curve hanno ampiezza e non solo un'onda accennata.
+  // Fascia verticale: il nastro sale e scende di un'ampiezza paragonabile alla
+  // corsia, come un tracciato da rally disegnato a zig-zag.
   const maxLateral = Math.max(
     40,
-    Math.min(112, options.maxLateral ?? 150 - width * 0.22),
+    Math.min(260, options.maxLateral ?? 250),
   );
-  const amplitude = maxLateral * 0.9;
-  // Raggio minimo maggiore di mezza corsia: il bordo interno non si ripiega.
-  const minRadius = Math.max(150, (width / 2) + 45);
+  const amplitude = maxLateral;
+  // Tornanti vivi: raggio piccolo, ma sempre più largo di mezza corsia più il
+  // muro, così l'interno della curva non si ripiega né intrappola la biglia.
+  const minRadius = Math.max(70, (width / 2) + 8);
   const curvatureLimit = 1 / minRadius;
 
   const nodes: TrackNode[] = [{ x: startX, y: 0, s: 0, width, angle: 0 }];
   const pieces: TrackPiece[] = [];
   const deck = shuffle(
-    ['curva', 'esse', 'chicane', 'strettoia', 'curva', 'dritto'] as TrackPieceKind[],
+    ['curva', 'esse', 'chicane', 'strettoia', 'curva', 'dritto', 'strettoia', 'esse', 'curva'] as TrackPieceKind[],
     rng,
   );
   let cursor = 0;
@@ -154,38 +149,47 @@ export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeome
   let y = 0;
   let heading = 0;
   let s = 0;
+  let lastDirection = 1;
 
-  /** Il pezzo decide bersaglio e larghezza; il controllore ci arriva senza sbandare. */
-  const profileFor = (kind: TrackPieceKind, startY: number, direction: number): PieceProfile => {
+  /**
+   * Il pezzo decide bersaglio e larghezza; il controllore lo segue con la
+   * sterzata massima. Bersagli a rampa e a V danno gambe dritte e tornanti ad
+   * angolo vivo, come un tracciato vero, invece di onde morbide.
+   */
+  const profileFor = (
+    kind: TrackPieceKind,
+    direction: number,
+    length: number,
+  ): PieceProfile => {
+    // Gamba inclinata al massimo consentito: più corta è la gamba, più il
+    // tornante è aguzzo.
+    const leg = Math.max(0.5, Math.min(MAX_HEADING, Math.atan2(amplitude, length)));
     switch (kind) {
       case 'curva':
-        // Curva ampia: mezzo giro di sinusoide, con verso sorteggiato.
-        return {
-          target: (t) => amplitude * direction * Math.sin(Math.PI * t),
-          width: () => width,
-        };
+        // Diagonale dritta verso l'alto o il basso.
+        return { heading: () => direction * leg, width: () => width };
       case 'esse':
+        // Tornante a V: dentro fino all'apice, poi fuori.
         return {
-          target: (t) => amplitude * Math.sin(Math.PI * 2 * t),
+          heading: (t) => (t < 0.5 ? direction * leg : -direction * leg),
           width: () => width,
         };
       case 'chicane':
-        // Doppia esse stretta: due cambi di verso in poco spazio.
+        // Zig-zag doppio: due cambi di verso in poche decine di pixel.
         return {
-          target: (t) => amplitude * 0.75 * Math.sin(Math.PI * 4 * t),
+          heading: (t) => {
+            const wave = t < 0.25 ? 1 : t < 0.75 ? -1 : 1;
+            return direction * leg * wave;
+          },
           width: () => width,
         };
       case 'strettoia':
         return {
-          target: () => 0,
-          width: (t) => width * (1 - 0.34 * Math.sin(Math.PI * t)),
+          heading: () => direction * leg * 0.45,
+          width: (t) => width * (1 - 0.26 * Math.sin(Math.PI * t)),
         };
       default:
-        // Rettilineo vero: mantiene lo scostamento raggiunto, senza piegare.
-        return {
-          target: () => startY,
-          width: () => width,
-        };
+        return { heading: () => 0, width: () => width };
     }
   };
 
@@ -195,9 +199,18 @@ export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeome
     const from = s;
     for (let index = 0; index < steps; index++) {
       const t = (index + 1) / steps;
-      const target = profile.target(t);
-      // Punta al bersaglio con un anticipo di 90 px, poi limita la sterzata.
-      const desired = Math.max(-MAX_HEADING, Math.min(MAX_HEADING, Math.atan2(target - y, 70)));
+      // La direzione del pezzo è un vincolo: gambe dritte e apici veri, con la
+      // sterzata limitata solo nel raccordo tra una gamba e l'altra. Quando il
+      // nastro si allontana troppo dal centro, la direzione lo riporta dentro.
+      const raw = profile.heading(t);
+      const inner = amplitude * 0.6;
+      const over = Math.max(0, Math.abs(y) - inner);
+      const weight = Math.min(1, over / Math.max(1, amplitude * 0.25));
+      const steer = Math.atan2(-y, 90) * 2.2;
+      const desired = Math.max(
+        -MAX_HEADING,
+        Math.min(MAX_HEADING, raw * (1 - weight) + steer * weight),
+      );
       const curvature = Math.max(
         -curvatureLimit,
         Math.min(curvatureLimit, (desired - heading) / 35),
@@ -213,7 +226,7 @@ export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeome
   };
 
   // Partenza dritta, con le biglie allineate sulla griglia.
-  integrate(Math.min(240, totalLength * 0.1), profileFor('dritto', 0, 1), 'dritto');
+  integrate(Math.min(200, totalLength * 0.1), profileFor('dritto', 1, 200), 'dritto');
 
   while (s < totalLength - FINAL_STRAIGHT - 80) {
     if (cursor >= deck.length) {
@@ -223,19 +236,25 @@ export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeome
     const kind = deck[cursor];
     cursor += 1;
     const remaining = totalLength - FINAL_STRAIGHT - s;
-    // Pezzi corti: più curve e cambi di verso nello stesso tracciato.
+    // Gambe corte: tante curve e tanti cambi di verso nello stesso tracciato.
     const base = kind === 'dritto'
-      ? 100 + rng() * 90
+      ? 60 + rng() * 50
       : kind === 'strettoia'
-        ? 140 + rng() * 70
+        ? 140 + rng() * 50
         : kind === 'curva'
-          ? 130 + rng() * 70
+          ? 240 + rng() * 60
           : kind === 'esse'
-            ? 160 + rng() * 90
-            : 120 + rng() * 70;
-    const length = Math.max(80, Math.min(remaining, base));
-    const direction = rng() < 0.5 ? -1 : 1;
-    integrate(length, profileFor(kind, y, direction), kind);
+            ? 260 + rng() * 60
+            : 250 + rng() * 60;
+    const length = Math.max(70, Math.min(remaining, base));
+    // Il verso riporta il nastro verso il centro quando è già lontano: il
+    // tracciato serpeggia su tutta l'altezza senza scappare via.
+    // Il verso alterna a ogni pezzo: il nastro attraversa la corsia e torna,
+    // come un vero zig-zag, senza scappare via in una direzione sola.
+    const edge = amplitude * 0.75;
+    const direction = y > edge ? -1 : y < -edge ? 1 : -lastDirection;
+    lastDirection = direction;
+    integrate(length, profileFor(kind, direction, length), kind);
   }
 
   // Traguardo: la pista torna sull'asse e punta dritta.
@@ -243,7 +262,7 @@ export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeome
   if (tail > 0.5) {
     integrate(
       tail,
-      { target: () => 0, width: () => width },
+      { heading: () => 0, width: () => width },
       'dritto',
     );
   }
@@ -428,59 +447,4 @@ export function wallSegments(
   return segments;
 }
 
-/**
- * Isola di un bivio: striscia che segue la linea tra due progressi, alla
- * distanza laterale richiesta, più due tappi arrotondati.
- */
-export function islandSegments(
-  geometry: TrackGeometry,
-  fromProgress: number,
-  toProgress: number,
-  lateral: number,
-  thickness: number,
-  stride = 3,
-): IslandGeometry {
-  const from = Math.max(0, Math.min(1, fromProgress)) * geometry.totalLength;
-  const to = Math.max(0, Math.min(1, toProgress)) * geometry.totalLength;
-  const nodes = geometry.nodes.filter((node) => node.s >= from && node.s <= to);
-  const segments: WallSegment[] = [];
-  const step = Math.max(1, Math.floor(stride));
 
-  for (let index = 0; index + step < nodes.length; index += step) {
-    const a = nodes[index];
-    const b = nodes[index + step];
-    const ax = a.x - Math.sin(a.angle) * lateral;
-    const ay = a.y + Math.cos(a.angle) * lateral;
-    const bx = b.x - Math.sin(b.angle) * lateral;
-    const by = b.y + Math.cos(b.angle) * lateral;
-    const dx = bx - ax;
-    const dy = by - ay;
-    const length = Math.hypot(dx, dy);
-    if (length < 0.5) continue;
-    segments.push({
-      x: (ax + bx) / 2,
-      y: (ay + by) / 2,
-      angle: Math.atan2(dy, dx),
-      length: length + 4,
-    });
-  }
-
-  const first = nodes[0];
-  const last = nodes[nodes.length - 1];
-  const caps = first && last
-    ? [
-      {
-        x: first.x - Math.sin(first.angle) * lateral,
-        y: first.y + Math.cos(first.angle) * lateral,
-        radius: thickness / 2,
-      },
-      {
-        x: last.x - Math.sin(last.angle) * lateral,
-        y: last.y + Math.cos(last.angle) * lateral,
-        radius: thickness / 2,
-      },
-    ]
-    : [];
-
-  return { segments, caps };
-}

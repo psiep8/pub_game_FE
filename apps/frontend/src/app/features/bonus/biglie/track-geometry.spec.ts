@@ -4,7 +4,6 @@ import {
   buildTrack,
   edgePoints,
   frameAtProgress,
-  islandSegments,
   pointAtS,
   projectOnTrack,
   wallSegments,
@@ -51,7 +50,7 @@ describe('geometria a pezzi delle Biglie', () => {
         // La pista cresce solo in avanti: niente incroci né tornanti ciechi.
         expect(node.x).toBeGreaterThan(previous.x);
         expect(Math.abs(node.angle)).toBeLessThanOrEqual(0.96);
-        expect(Math.abs(node.y)).toBeLessThanOrEqual(100);
+        expect(Math.abs(node.y)).toBeLessThanOrEqual(230);
         expect(node.s).toBeGreaterThan(previous.s);
       }
     }
@@ -86,10 +85,11 @@ describe('geometria a pezzi delle Biglie', () => {
         }
         expect(nearest).toBeLessThan(2);
 
-        // E il bordo sta a mezza larghezza dalla linea centrale.
+        // E il bordo sta verso l'esterno della corsia. Nei tornanti stretti il
+        // punto medio del muro proietta un po' più vicino al centro.
         const projection = projectOnTrack(track, wall.x, wall.y);
         expect(Math.sign(projection.lateral)).toBe(side);
-        expect(Math.abs(projection.lateral)).toBeGreaterThan(track.width * 0.3);
+        expect(Math.abs(projection.lateral)).toBeGreaterThan(track.width * 0.2);
       });
     }
   });
@@ -107,18 +107,12 @@ describe('geometria a pezzi delle Biglie', () => {
     });
   });
 
-  it('l’isola di un bivio segue la pista, alla distanza richiesta', () => {
+  it('piega davvero: i tornanti usano quasi tutta la sterzata', () => {
     const track = geometry(2026);
-    const island = islandSegments(track, 0.3, 0.405, -track.width * 0.05, track.width * 0.3);
+    const sharpest = Math.max(...track.nodes.map((node) => Math.abs(node.angle)));
 
-    expect(island.segments.length).toBeGreaterThan(10);
-    expect(island.caps).toHaveLength(2);
-    for (const segment of island.segments) {
-      const projection = projectOnTrack(track, segment.x, segment.y);
-      expect(projection.progress).toBeGreaterThan(0.27);
-      expect(projection.progress).toBeLessThan(0.44);
-      expect(Math.abs(projection.lateral)).toBeCloseTo(track.width * 0.05, -1);
-    }
+    // Onde larghe non bastano: la pista deve entrare in curva in modo deciso.
+    expect(sharpest).toBeGreaterThan(0.7);
   });
 
   it('proietta una biglia sulla linea: progresso e lato tornano', () => {
