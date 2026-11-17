@@ -1,5 +1,16 @@
 # Changelog
 
+## 17 novembre 2026 — Biglie: due gare per round, otto piste e suoni d'urto
+
+- Il round Biglie non gioca più quattro gare sulle quattro piste storiche: ogni round corre **due gare** su due delle **otto piste** del catalogo — rally (terra), F1 (asfalto), neve, acqua, **vetro**, sabbia, spazio, magma. La coppia la sceglie il seme della serata: quattro coppie, tutte e otto le piste sui quattro round, nessuna ripetizione. Il piano (seme, coppie, indice del round) è nel checkpoint TV, quindi un refresh rigioca le stesse piste.
+- Le gare sono numerate **1–8 nella serata** (1–2 all'atto 2, 3–4 all'atto 3, 5–6 all'atto 4, 7–8 all'atto 5): la TV mostra «GARA 3 / 8» e il telefono legge lo stesso numero dallo stato pubblicato, non più il solo indice di round.
+- **Fisica per fondo, non solo colore:** la restitution dei muri viene da `bounce`, l'attrito pesa sulla velocità target e sull'attrito del corpo, la gravità tira la componente verticale della pista e la tenuta la trattiene, i dossi aggiungono jitter deterministico. Prima erano 0,42 e zero gravità per tutte le piste.
+- **Ostacoli nuovi** per i quattro fondi nuovi: patche ghiacciate sul vetro, sabbia mobile che rallenta e sbanda, meteoriti solidi che deviano, getti di magma che rallentano e spingono in alto. Palette, cielo e scia seguono il fondo.
+- L'ottava pista è **VETRO** e non più ghiaccio: con la neve già in catalogo i due fondi si confondevano. Attrito quasi nullo e rimbalzo alto restano.
+- **Suoni d'urto:** quattro campioni nuovi (`marbleHit`, `marbleWall`, `marbleSurfaceHard`, `marbleSurfaceSoft`) passati dallo stesso `scripts/audio/process-audio.mjs` degli altri file; catalogo, mappa file e servizio hanno i nuovi eventi. In `collisionStart` suonano biglia-biglia, biglia-muro/bivio e biglia-superficie, col campione duro su F1 e vetro e morbido sugli altri fondi; sotto la soglia di velocità il contatto resta muto, e le distanze minime evitano le raffiche. Manifesto e crediti passano a 41 effetti e 47 file.
+- Testi allineati in `DESCRIZIONE-GIOCO.md`, nei due manuali HTML, nel manuale sul telefono, nelle demo TV, nella nota dei punteggi e nel titolo del round del backend: due gare per round, otto piste col vetro, massimo 300 punti per round di un tavolo.
+- Verifiche: build di produzione e suite completa frontend (459 test su 52 file), `process-audio.mjs --check` verde (47 file, tutti con la riga in `FONTI.txt`). **Non fatti:** l'ascolto dei quattro campioni e la prova delle piste su una TV vera a 720p.
+
 ## 16 novembre 2026 — Un tappeto musicale per ogni gioco
 
 - Nuovo `bed-profiles.ts`: sedici tappeti, uno per gioco, con tempo, swing, giro di accordi e ruoli strumentali propri — lobby 64 BPM col trio da pub, quiz 96 con marimba e shaker, Bomba 112 che pulsa, Speed Rush 132 con le ottave, Cavallo 116 a galoppo, Casino e Blackjack in shuffle, e gli altri. Generazione deterministica battuta per battuta, nessun file audio.
