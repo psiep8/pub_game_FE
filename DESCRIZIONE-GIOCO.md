@@ -13,7 +13,8 @@ browser dal QR in TV.
 ## 1. La serata in breve
 
 - **40 round**, divisi in **5 atti da 8**.
-- **13 giochi di round**, con le **Biglie** presenti quattro volte.
+- **13 giochi di round**, con le **Biglie** presenti quattro volte, una per atto dal
+  secondo al quinto (round 11, 22, 28, 37).
 - **5 bonus**, uno dopo ogni atto.
 - Classifica **rapida** dopo i round 4, 12, 20, 28 e 36; **dettagliata** dopo 8, 16, 24,
   32 e 40.
@@ -31,11 +32,11 @@ browser dal QR in TV.
 
 | Atto | Round | Giochi in ordine |
 | --- | --- | --- |
-| **1** | 1–8 | Quiz · Musica · **Biglie** · Time Buzzer · **Biglie** · Timeline · Speed Rush · Ultima spiaggia |
+| **1** | 1–8 | Quiz · Musica · Quiz · Time Buzzer · Azzardo · Timeline · Speed Rush · Ultima spiaggia |
 | **2** | 9–16 | Azzardo · Ruota · **Biglie** · Quiz · Tennis Battle · Time Buzzer · Musica · Ultima spiaggia |
 | **3** | 17–24 | Quiz · Speed Rush · Indovina chi · Tennis Battle · Time Buzzer · **Biglie** · Ultima spiaggia · **Arena** |
-| **4** | 25–32 | Indovina chi · Bomba · Musica · Quiz · Ruota · Timeline · Speed Rush · Ultima spiaggia |
-| **5** | 33–40 | Quiz · Musica · Bomba · Indovina chi · Azzardo · Timeline · Ultima spiaggia · **Arena** |
+| **4** | 25–32 | Indovina chi · Bomba · Musica · **Biglie** · Ruota · Timeline · Speed Rush · Ultima spiaggia |
+| **5** | 33–40 | Quiz · Musica · Bomba · Indovina chi · **Biglie** · Timeline · Ultima spiaggia · **Arena** |
 
 Conteggi: **5 Quiz, 4 Musica, 4 Biglie, 3 Speed Rush, 3 Time Buzzer, 3 Indovina chi,
 3 Timeline, 2 Azzardo, 2 Arena, 2 Bomba, 2 Tennis, 2 Ruota, 5 Ultima spiaggia.**

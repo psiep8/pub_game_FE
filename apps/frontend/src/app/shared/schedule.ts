@@ -14,9 +14,10 @@ export const TOTAL_ROUNDS = 40;
  * esce due volte e l'Arena chiude la serata.
  *
  * Nessun atto ripete l'apertura del precedente. Le Biglie sono quattro round
- * separati, mai consecutivi: ogni gara vive nel proprio round e assegna i
- * punti della serata. Il Black Jack non è più nella scaletta: resta come
- * bonus, fuori dai quaranta round.
+ * separati, uno per atto dal secondo al quinto (11, 22, 28, 37), mai
+ * consecutivi e mai nello stesso atto: ogni gara vive nel proprio round e
+ * assegna i punti della serata. Il Black Jack non è più nella scaletta: resta
+ * come bonus, fuori dai quaranta round.
  *
  * Conteggi concordati: 5 Quiz, 4 Musica, 2 Azzardo, 2 Arena, 2 Bomba, 3
  * Celebrità (Indovina chi), 0 Black Jack, 3 Timeline, 2 Ruota, 3 Speed Rush,
@@ -26,11 +27,11 @@ export const TOTAL_ROUNDS = 40;
  * round degli atti 3 e 5 (23, 39), subito prima dell'Arena (24, 40).
  */
 export const ACT_DECKS: readonly (readonly GameModeType[])[] = [
-  ['QUIZ', 'MUSIC', 'BIGLIE', 'TIME_BUZZER', 'BIGLIE', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA'],
+  ['QUIZ', 'MUSIC', 'QUIZ', 'TIME_BUZZER', 'AZZARDO', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA'],
   ['AZZARDO', 'WHEEL_OF_FORTUNE', 'BIGLIE', 'QUIZ', 'TENNIS_BATTLE', 'TIME_BUZZER', 'MUSIC', 'ULTIMA_SPIAGGIA'],
   ['QUIZ', 'SPEED_RUSH', 'IMAGE_BLUR', 'TENNIS_BATTLE', 'TIME_BUZZER', 'BIGLIE', 'ULTIMA_SPIAGGIA', 'ARENA'],
-  ['IMAGE_BLUR', 'BOMBA', 'MUSIC', 'QUIZ', 'WHEEL_OF_FORTUNE', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA'],
-  ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'AZZARDO', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'ARENA'],
+  ['IMAGE_BLUR', 'BOMBA', 'MUSIC', 'BIGLIE', 'WHEEL_OF_FORTUNE', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA'],
+  ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'BIGLIE', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'ARENA'],
 ];
 
 /** Tutti i round della serata, nell'ordine in cui vengono giocati. */

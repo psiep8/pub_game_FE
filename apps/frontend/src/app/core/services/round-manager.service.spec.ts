@@ -173,7 +173,7 @@ describe('RoundManagerService', () => {
       .map((type, index) => (type === 'BIGLIE' ? index + 1 : null))
       .filter((round): round is number => round !== null);
 
-    expect(races).toEqual([3, 5, 11, 22]);
+    expect(races).toEqual([11, 22, 28, 37]);
     for (let i = 1; i < races.length; i++) {
       expect(races[i] - races[i - 1]).toBeGreaterThan(1);
     }
