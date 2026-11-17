@@ -88,7 +88,10 @@ type HazardKind =
   | 'ghiaccio'
   | 'onda'
   | 'boa'
-  | 'scoglio';
+  | 'scoglio'
+  | 'sabbia'
+  | 'meteorite'
+  | 'magma';
 
 interface Hazard {
   id: string;
@@ -141,6 +144,11 @@ const HAZARD_PLANS: Record<string, HazardKind[]> = {
   f1: ['cordolo', 'cordolo', 'cordolo', 'cordolo', 'cordolo', 'cordolo', 'cordolo', 'cordolo', 'cordolo', 'cordolo', 'cordolo', 'cordolo'],
   neve: ['cumulo', 'ghiaccio', 'cumulo', 'ghiaccio', 'cumulo', 'ghiaccio', 'cumulo', 'ghiaccio', 'cumulo', 'ghiaccio', 'cumulo', 'ghiaccio'],
   acqua: ['onda', 'boa', 'scoglio', 'onda', 'boa', 'scoglio', 'onda', 'boa', 'scoglio', 'onda', 'boa', 'scoglio'],
+  // I quattro fondi nuovi hanno ostacoli propri, non solo un colore diverso.
+  ghiaccio: ['ghiaccio', 'ghiaccio', 'sasso', 'ghiaccio', 'ghiaccio', 'ghiaccio', 'sasso', 'ghiaccio', 'ghiaccio', 'ghiaccio', 'sasso', 'ghiaccio'],
+  sabbia: ['sabbia', 'sasso', 'sabbia', 'sabbia', 'sasso', 'sabbia', 'sabbia', 'sabbia', 'sasso', 'sabbia', 'sabbia', 'sabbia'],
+  spazio: ['meteorite', 'meteorite', 'meteorite', 'meteorite', 'meteorite', 'meteorite', 'meteorite', 'meteorite', 'meteorite', 'meteorite'],
+  magma: ['magma', 'magma', 'sasso', 'magma', 'magma', 'magma', 'sasso', 'magma', 'magma', 'magma', 'sasso', 'magma'],
 };
 
 /** Palette carta/inchiostro usata su tela per gli ostacoli. */
@@ -859,23 +867,28 @@ export class BiglieBonus implements OnInit, OnDestroy {
     const radius = this.marbleRadius(count, trackWidth);
     const half = trackWidth / 2;
     const laneLength = TRACK_WORLD_LENGTH + 500;
+    // Il fondo decide quanto rimbalza il muro: il ghiaccio restituisce energia,
+    // la sabbia la mangia. Prima era 0,42 per tutte le piste.
+    const physics = this.currentTrack()?.physics;
+    const wallBounce = Math.max(0.08, Math.min(0.92, physics?.bounce ?? 0.42));
+    const wallFriction = 0.02 + (physics?.friction ?? 1) * 0.03;
 
     Composite.add(world, [
       Bodies.rectangle(TRACK_START_X + TRACK_WORLD_LENGTH / 2, -half - 12, laneLength, 24, {
         isStatic: true,
-        restitution: 0.42,
-        friction: 0.02,
+        restitution: wallBounce,
+        friction: wallFriction,
         label: 'wall-up',
       }),
       Bodies.rectangle(TRACK_START_X + TRACK_WORLD_LENGTH / 2, half + 12, laneLength, 24, {
         isStatic: true,
-        restitution: 0.42,
-        friction: 0.02,
+        restitution: wallBounce,
+        friction: wallFriction,
         label: 'wall-down',
       }),
       Bodies.rectangle(TRACK_START_X - 46, 0, 42, half * 2 + 90, {
         isStatic: true,
-        restitution: 0.3,
+        restitution: wallBounce * 0.7,
         label: 'wall-back',
       }),
     ]);
@@ -892,8 +905,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
           {
             isStatic: true,
             chamfer: { radius: 26 },
-            restitution: 0.42,
-            friction: 0.02,
+            restitution: wallBounce,
+            friction: wallFriction,
             label: `split-${index}`,
           },
         ),
@@ -912,14 +925,14 @@ export class BiglieBonus implements OnInit, OnDestroy {
         }),
       );
 
-      // Sassoi e scogli sono solidi: non solo effetto, deviano davvero.
-      if (hazard.kind === 'sasso' || hazard.kind === 'scoglio') {
+      // Sassoi, scogli e meteoriti sono solidi: non solo effetto, deviano davvero.
+      if (hazard.kind === 'sasso' || hazard.kind === 'scoglio' || hazard.kind === 'meteorite') {
         Composite.add(
           world,
           Bodies.circle(x, lateral, hazard.radius * 0.82, {
             isStatic: true,
-            restitution: 0.46,
-            friction: 0.08,
+            restitution: Math.min(0.9, wallBounce * 1.1),
+            friction: 0.08 + (physics?.friction ?? 1) * 0.02,
             label: `rock-${hazard.id}`,
           }),
         );
@@ -938,8 +951,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
       const x = TRACK_START_X + 18 + row * (radius * 2 + 14) + (this.raceRng() - 0.5) * 12;
       const body = Bodies.circle(x, lateral, radius, {
         label: `marble-${index}`,
-        friction: 0.02,
-        frictionAir: 0,
+        friction: 0.02 + (physics?.friction ?? 1) * 0.02,
+        frictionAir: (physics?.friction ?? 1) * 0.0016,
         restitution: 0.52,
         density: 0.002,
       });
@@ -982,11 +995,23 @@ export class BiglieBonus implements OnInit, OnDestroy {
         marble.bumped.add(hazard.id);
         const body = marble.body;
 
-        if (hazard.kind === 'fango' || hazard.kind === 'pozzanghera') {
-          marble.slowUntil = this.raceElapsed + (hazard.kind === 'fango' ? 1.1 : 0.7);
+        if (hazard.kind === 'fango' || hazard.kind === 'pozzanghera' || hazard.kind === 'sabbia') {
+          marble.slowUntil = this.raceElapsed + (hazard.kind === 'fango' ? 1.1 : hazard.kind === 'sabbia' ? 1 : 0.7);
           Body.setVelocity(body, {
-            x: body.velocity.x * (hazard.kind === 'fango' ? 0.6 : 0.82),
-            y: Math.min(body.velocity.y, -0.7),
+            x: body.velocity.x * (hazard.kind === 'fango' ? 0.6 : hazard.kind === 'sabbia' ? 0.72 : 0.82),
+            y: Math.min(2.6, body.velocity.y + (hazard.kind === 'sabbia' ? (this.raceRng() - 0.5) * 1.6 : -0.7)),
+          });
+        } else if (hazard.kind === 'magma') {
+          // Il getto scalda e rallenta, poi spinge la biglia verso l'alto.
+          marble.slowUntil = this.raceElapsed + 0.8;
+          Body.setVelocity(body, {
+            x: body.velocity.x * 0.78,
+            y: Math.min(body.velocity.y, -2.2 - this.raceRng() * 0.6),
+          });
+        } else if (hazard.kind === 'meteorite') {
+          Body.setVelocity(body, {
+            x: body.velocity.x * 0.9,
+            y: Math.min(body.velocity.y, -1.4 - this.raceRng() * 0.5),
           });
         } else if (hazard.kind === 'ghiaccio') {
           marble.boostUntil = this.raceElapsed + 0.9;
@@ -1190,17 +1215,28 @@ export class BiglieBonus implements OnInit, OnDestroy {
       const data = this.marbleById(marble.marbleId);
       if (!data) continue;
 
+      const physics = track.physics;
       const profile =
         (data.speed * track.weights.speed
           + data.accel * track.weights.accel
           + data.grip * track.weights.grip) / 10;
-      let target = 3.1 + profile * 1.15;
+      // L'attrito del fondo pesa sulla velocità che la biglia può tenere:
+      // il ghiaccio quasi non frena, la sabbia toglie oltre un terzo.
+      const speedFactor = 1 - Math.min(0.42, physics.friction * 0.22);
+      let target = (3.1 + profile * 1.15) * speedFactor;
       if (marble.slowUntil > this.raceElapsed) target *= 0.52;
       if (marble.boostUntil > this.raceElapsed) target *= 1.12;
       const body = marble.body;
+      // Gravità sulla componente verticale della pista, trattenuta dalla
+      // tenuta del fondo; i dossi aggiungono il sobbalzo. Nello spazio la
+      // caduta è lenta (0,45) e in magma pesa di più (1,1).
+      const pull = physics.gravity * 0.018;
+      const gripDamping = 1 - Math.min(0.6, physics.grip * 0.07);
+      const bump = (this.raceRng() - 0.5) * physics.bumps * 0.32;
+      const lateral = Math.max(-3.2, Math.min(3.2, (body.velocity.y + pull + bump) * gripDamping));
       Body.setVelocity(body, {
         x: body.velocity.x + (target - body.velocity.x) * 0.1,
-        y: body.velocity.y,
+        y: lateral,
       });
     }
 
@@ -1437,7 +1473,12 @@ export class BiglieBonus implements OnInit, OnDestroy {
       }
       used.push(progress);
 
-      const patch = kind === 'fango' || kind === 'pozzanghera' || kind === 'ghiaccio';
+      const patch =
+        kind === 'fango'
+        || kind === 'pozzanghera'
+        || kind === 'ghiaccio'
+        || kind === 'sabbia'
+        || kind === 'magma';
       hazards.push({
         id: `hazard-${track.id}-${index}`,
         kind,
@@ -1449,10 +1490,14 @@ export class BiglieBonus implements OnInit, OnDestroy {
               : -0.84
             : (rng() * 2 - 1) * 0.62,
         radius: patch
-          ? kind === 'ghiaccio'
-            ? 17
-            : 15
-          : kind === 'scoglio'
+          ? kind === 'magma'
+            ? 18
+            : kind === 'ghiaccio'
+              ? 17
+              : kind === 'sabbia'
+                ? 16
+                : 15
+          : kind === 'scoglio' || kind === 'meteorite'
             ? 11
             : kind === 'cumulo'
               ? 10
@@ -1495,6 +1540,12 @@ export class BiglieBonus implements OnInit, OnDestroy {
         return { top: COBALT, bottom: '#1d3ba8', speck: MINT };
       case 'ghiaccio':
         return { top: PAPER_HI, bottom: MINT, speck: COBALT };
+      case 'sabbia':
+        return { top: MUSTARD, bottom: '#b07a12', speck: PAPER_HI };
+      case 'magma':
+        return { top: TOMATO, bottom: '#7a1a0a', speck: MUSTARD };
+      case 'meteorite':
+        return { top: '#2b2b2b', bottom: INK, speck: PAPER };
       case 'cumulo':
         return { top: PAPER_HI, bottom: '#c9d8e8', speck: COBALT };
       case 'onda':
@@ -1613,6 +1664,42 @@ export class BiglieBonus implements OnInit, OnDestroy {
     glow: string;
   } {
     switch (track.id) {
+      case 'ghiaccio':
+        return {
+          top: INK,
+          bottom: '#9fd8c8',
+          hill: '#1f3a34',
+          hillFar: '#152823',
+          ground: MINT,
+          glow: 'rgba(139, 227, 196, .3)',
+        };
+      case 'sabbia':
+        return {
+          top: '#2b1a0c',
+          bottom: '#c98b2e',
+          hill: '#4a2f14',
+          hillFar: '#331f0d',
+          ground: MUSTARD,
+          glow: 'rgba(255, 197, 61, .3)',
+        };
+      case 'spazio':
+        return {
+          top: '#08080a',
+          bottom: '#23306a',
+          hill: '#141414',
+          hillFar: '#0d0d10',
+          ground: '#141414',
+          glow: 'rgba(241, 228, 201, .22)',
+        };
+      case 'magma':
+        return {
+          top: '#1a0906',
+          bottom: '#8f2b12',
+          hill: '#3d120a',
+          hillFar: '#2a0c06',
+          ground: '#5a1d10',
+          glow: 'rgba(255, 77, 46, .34)',
+        };
       case 'neve':
         return {
           top: '#0b3049',
@@ -1871,8 +1958,29 @@ export class BiglieBonus implements OnInit, OnDestroy {
           ctx.lineTo(9, -2);
           ctx.stroke();
           break;
+        case 'sabbia':
+          this.drawPatch(ctx, 24, 10, MUSTARD, PAPER_HI, 0.6);
+          ctx.fillStyle = INK;
+          for (let grain = 0; grain < 5; grain++) {
+            ctx.fillRect(-14 + grain * 7, -2 + (grain % 2) * 3, 2, 2);
+          }
+          break;
+        case 'magma':
+          this.drawPatch(ctx, 25, 10, TOMATO, MUSTARD, 0.85);
+          ctx.strokeStyle = MUSTARD;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(-9, 1);
+          ctx.lineTo(-2, -3);
+          ctx.lineTo(4, 0);
+          ctx.lineTo(10, -2);
+          ctx.stroke();
+          break;
         case 'sasso':
           this.drawRock(ctx, 9, '#6f6652', '#3a3a2c');
+          break;
+        case 'meteorite':
+          this.drawRock(ctx, 11, '#6b6b5a', '#2b2b2b');
           break;
         case 'cordolo':
           this.drawCurb(ctx, trackWidth);
@@ -2321,6 +2429,14 @@ export class BiglieBonus implements OnInit, OnDestroy {
         return { color: 'rgba(203, 213, 225, .65)', scale: 0.3 };
       case 'neve':
         return { color: 'rgba(248, 250, 252, .85)', scale: 0.34 };
+      case 'ghiaccio':
+        return { color: 'rgba(255, 248, 232, .8)', scale: 0.3 };
+      case 'sabbia':
+        return { color: 'rgba(255, 197, 61, .7)', scale: 0.36 };
+      case 'spazio':
+        return { color: 'rgba(241, 228, 201, .45)', scale: 0.24 };
+      case 'magma':
+        return { color: 'rgba(255, 77, 46, .7)', scale: 0.34 };
       default:
         return { color: 'rgba(125, 211, 252, .7)', scale: 0.28 };
     }
@@ -2334,6 +2450,14 @@ export class BiglieBonus implements OnInit, OnDestroy {
         return { top: '#3b424d', bottom: '#232830', speck: 'rgba(255, 255, 255, .08)' };
       case 'neve':
         return { top: '#e2e8f0', bottom: '#b8c6d9', speck: 'rgba(255, 255, 255, .8)' };
+      case 'ghiaccio':
+        return { top: '#e8fbf4', bottom: '#a9dccb', speck: 'rgba(47, 91, 255, .22)' };
+      case 'sabbia':
+        return { top: '#e0a63a', bottom: '#b07a12', speck: 'rgba(21, 21, 15, .28)' };
+      case 'spazio':
+        return { top: '#1c1c22', bottom: '#101014', speck: 'rgba(241, 228, 201, .5)' };
+      case 'magma':
+        return { top: '#5a1d10', bottom: '#2b0c05', speck: 'rgba(255, 197, 61, .4)' };
       default:
         return { top: '#0b4a6f', bottom: '#06283d', speck: 'rgba(125, 211, 252, .22)' };
     }
