@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { BiglieBonus } from './biglie-bonus.component';
 import { WebSocketService } from '../../../core/websocket/web-socket.service';
 import { FakeWebSocketService } from '../../../shared/testing/test-doubles';
+import { AudioService } from '../../../core/services/audio.service';
 
 const MARBLES = [
   { id: 'fulmine', name: 'FULMINE', color: '#facc15', emoji: '⚡', speed: 10, accel: 6, grip: 3 },
@@ -20,6 +21,11 @@ describe('BiglieBonus — ripresa dopo un refresh della TV', () => {
       providers: [{ provide: WebSocketService, useClass: FakeWebSocketService }],
     }).compileComponents();
   });
+
+  /** `document.hidden` è in sola lettura: la visibilità si finge qui. */
+  function setHidden(hidden: boolean): void {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => hidden });
+  }
 
   function mount(resume: any = null, roundIndex = 0) {
     const fixture = TestBed.createComponent(BiglieBonus);
@@ -178,6 +184,46 @@ describe('BiglieBonus — ripresa dopo un refresh della TV', () => {
     vi.advanceTimersByTime(7100);
     expect(finished).toHaveLength(1);
 
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('ferma la corsa quando la TV va in secondo piano e la riprende senza salti', () => {
+    vi.useFakeTimers();
+    const { component, fixture } = mount();
+    const audio = TestBed.inject(AudioService);
+    const stopBed = vi.spyOn(audio, 'stopMarbleBed');
+    const startBed = vi.spyOn(audio, 'startMarbleBed');
+    const cancel = vi.spyOn(globalThis, 'cancelAnimationFrame');
+    const raf = vi.spyOn(globalThis, 'requestAnimationFrame').mockReturnValue(77 as any);
+
+    // Gara già partita, loop in corso e rotolamento acceso.
+    const internal = component as any;
+    internal.phase.set('RACE');
+    internal.countdownLeft = 0;
+    internal.frame = 42;
+    internal.lastFrame = 1_000_000;
+    internal.physicsAccumulator = 120;
+
+    setHidden(true);
+    document.dispatchEvent(new Event('visibilitychange'));
+
+    // TV in secondo piano: frame annullato e sottofondo spento.
+    expect(cancel).toHaveBeenCalledWith(42);
+    expect(internal.frame).toBe(0);
+    expect(stopBed).toHaveBeenCalled();
+
+    setHidden(false);
+    document.dispatchEvent(new Event('visibilitychange'));
+
+    // Al ritorno il primo frame vale dt 0: la biglia non salta avanti.
+    expect(internal.lastFrame).toBe(0);
+    expect(internal.physicsAccumulator).toBe(0);
+    expect(startBed).toHaveBeenCalled();
+    expect(internal.frame).toBe(77);
+
+    delete (document as any).hidden;
+    vi.restoreAllMocks();
     vi.useRealTimers();
     fixture.destroy();
   });

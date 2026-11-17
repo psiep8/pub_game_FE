@@ -151,6 +151,26 @@ import {
     .biglie-head { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 1rem; }
     .biglie-bar { height: 16px; background: color-mix(in srgb, var(--coal) 12%, transparent); border: 2px solid var(--coal); overflow: hidden; }
     .biglie-fill { height: 100%; transition: width .2s linear; }
+    .biglie-live { display: flex; flex-direction: column; gap: 10px; }
+    .biglie-live-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--paper-hi); border: 3px solid var(--coal); box-shadow: 5px 5px 0 var(--coal); }
+    .biglie-live-dot { display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 auto; border-radius: 50%; border: 2px solid var(--coal); font-size: 1.1rem; }
+    .biglie-live-name { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; font-family: var(--font-mono); }
+    .biglie-live-name small { font-size: .58rem; letter-spacing: .14em; color: color-mix(in srgb, var(--coal) 62%, transparent); }
+    .biglie-live-name b { font-size: .98rem; letter-spacing: .04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .biglie-live-pos { display: flex; align-items: baseline; gap: 2px; font-family: var(--font-mono); }
+    .biglie-live-pos b { font-family: var(--font-display); font-size: 2rem; line-height: 1; color: var(--tomato); }
+    .biglie-live-pos small { font-size: .72rem; opacity: .6; }
+    .biglie-live-bar { height: 18px; padding: 2px; background: var(--paper); border: 3px solid var(--coal); box-shadow: 4px 4px 0 var(--coal); }
+    .biglie-live-bar span { display: block; height: 100%; width: 0; background: var(--tomato); transition: width .2s linear; }
+    .biglie-live-meta { display: flex; justify-content: space-between; gap: 8px; font-family: var(--font-mono); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; color: color-mix(in srgb, var(--coal) 68%, transparent); }
+    .biglie-live-done { color: var(--tomato); }
+    .biglie-live-board { display: flex; flex-direction: column; gap: 4px; max-height: 38vh; overflow: auto; }
+    .biglie-live-row { display: grid; grid-template-columns: 20px 22px 1fr auto; align-items: center; gap: 7px; padding: 5px 8px; background: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: .74rem; }
+    .biglie-live-row.mine { background: var(--acid); box-shadow: 3px 3px 0 var(--coal); }
+    .biglie-live-rank { font-weight: 800; opacity: .7; }
+    .biglie-live-rdot { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--coal); font-size: .62rem; }
+    .biglie-live-rname { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .biglie-live-rpct { font-variant-numeric: tabular-nums; }
     .casino-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 6px; max-height: 62vh; overflow: auto; }
     .casino-cell { padding: 11px 6px; background: var(--paper-hi); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: .9rem; font-weight: 800; letter-spacing: .04em; }
     .casino-cell.picked { background: var(--acid); }
@@ -1480,6 +1500,45 @@ export class RemoteComponent implements OnInit, OnDestroy {
   biglieMyRow(): any {
     const player = this.nickname();
     return (this.biglieState()?.standings ?? []).find((row: any) => row.playerName === player) ?? null;
+  }
+
+  /**
+   * Gara in corso: la TV pubblica ogni biglia sedici volte al secondo, quindi
+   * il telefono mostra la corsa vera invece di un cartello d'attesa. Un solo
+   * calcolo per aggiornamento: classifica, propria biglia e posizione.
+   * Chi è arrivato vale il piazzamento, gli altri la strada fatta.
+   */
+  readonly biglieLive = computed(() => {
+    const player = this.nickname();
+    const board = [...((this.biglieState()?.lanes ?? []) as any[])]
+      .sort((a, b) => this.biglieLaneRank(a) - this.biglieLaneRank(b));
+    const index = board.findIndex((lane) => lane.playerName === player);
+    return { board, lane: board[index] ?? null, position: index < 0 ? '—' : String(index + 1) };
+  });
+
+  private biglieLaneRank(lane: any): number {
+    if (lane?.finished) return Number(lane.position ?? 99);
+    return 100 + (100 - (Number(lane?.progress) || 0));
+  }
+
+  bigliePct(value: unknown): number {
+    return Math.round(Number(value) || 0);
+  }
+
+  biglieMarble(marbleId: string): any {
+    return (this.biglieState()?.marbles ?? []).find((marble: any) => marble.id === marbleId) ?? null;
+  }
+
+  biglieMarbleName(marbleId: string): string {
+    return this.biglieMarble(marbleId)?.name ?? '—';
+  }
+
+  biglieMarbleColor(marbleId: string): string {
+    return this.biglieMarble(marbleId)?.color ?? 'var(--paper-2)';
+  }
+
+  biglieMarbleEmoji(marbleId: string): string {
+    return this.biglieMarble(marbleId)?.emoji ?? '⚪';
   }
 
   private applyUltimaSpiaggiaState(state: any): void {

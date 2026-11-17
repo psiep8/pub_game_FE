@@ -1,5 +1,12 @@
 # Changelog
 
+## 17 novembre 2026 — Biglie: telefono in gara, applausi al traguardo, TV che si ferma
+
+- **Il telefono racconta la corsa.** Durante la fase RACE non c'è più il solo cartello «Gara in corso in TV»: lo stato `BIGLIE_STATE` portava già `lanes` (sedici aggiornamenti al secondo) e il telefono ora li usa. Barra della propria biglia, frazione di percorso, **posizione live** e classifica di gara ordinata per piazzamento (chi è arrivato) e poi per strada fatta, con la propria riga evidenziata. Quando il cartello dei 70 s arriva a zero compare «volata finale»: la gara chiude all'arrivo dell'ultima biglia, non allo scadere.
+- **La gara non finisce più in silenzio.** All'arrivo suona `playApplause()` sopra la fine del rotolamento; alla classifica finale applausi più `playPodiumReveal(1)`, la fanfara del vincitore. Erano suoni già in catalogo, mai chiamati dalle Biglie.
+- **TV in secondo piano = gara ferma davvero.** `visibilitychange` chiude il loop della corsa (`cancelAnimationFrame`) e spegne il sottofondo, invece di lasciare che il rotolamento continui a suonare mentre i frame sono sospesi. Al ritorno `lastFrame` e l'accumulatore fisico tornano a zero — primo frame a dt 0, nessun salto di tempo — e il sottofondo riparte solo se il via era già stato dato.
+- Verifiche: `npm run build:frontend` e suite frontend (482 test su 55 file). **Non verificati:** la resa del telefono in gara e la pausa su una TV vera (l'anteprima con la scheda in secondo piano non avanza), e l'ascolto di applausi e fanfara in sala.
+
 ## 17 novembre 2026 — Biglie: corsia personale, rimonte e gara che cambia padrone
 
 - Nuovo sottofondo `loop/biglie.m4a` (24 s, −23 LUFS, coda cucita sulla testa): corpo che scorre, fruscio del fondo e ticchi delle biglie. Non è un campione comprato — lo rende `scripts/audio/render-marble-roll.mjs`, quindi si rifà identico. Riga in `FONTI.txt`, tabella in `docs/MANIFESTO-AUDIO.md`, crediti aggiornati (48 file: 41 effetti, 7 loop).

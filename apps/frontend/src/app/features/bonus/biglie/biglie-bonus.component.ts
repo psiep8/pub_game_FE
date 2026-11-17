@@ -6,6 +6,7 @@ import {
   DestroyRef,
   ElementRef,
   EventEmitter,
+  HostListener,
   Input,
   NgZone,
   OnDestroy,
@@ -431,6 +432,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
   private raceEnding = false;
   private frame = 0;
   private lastFrame = 0;
+  /** TV in secondo piano: la corsa è ferma, non solo invisibile. */
+  private suspended = false;
   private raceCtx: CanvasRenderingContext2D | null = null;
   private raceW = 0;
   private raceH = 0;
@@ -1231,6 +1234,46 @@ export class BiglieBonus implements OnInit, OnDestroy {
     this.cameraReady = false;
   }
 
+  /**
+   * TV in secondo piano o scheda nascosta: la fisica si ferma davvero. Senza
+   * questo il browser sospende i frame ma il rotolamento continua a suonare, e
+   * al ritorno la corsa riparte con un salto di tempo. Al ritorno si riparte
+   * dallo stesso istante: `lastFrame` a zero vale un primo frame a dt = 0.
+   */
+  @HostListener('document:visibilitychange')
+  onVisibilityChange(): void {
+    if (typeof document === 'undefined') return;
+    if (document.hidden) {
+      this.suspendRace();
+    } else {
+      this.resumeRace();
+    }
+  }
+
+  private suspendRace(): void {
+    if (this.suspended) return;
+    this.suspended = true;
+    if (this.phase() === Phase.RACE) this.audio.stopMarbleBed();
+    if (this.frame) cancelAnimationFrame(this.frame);
+    this.frame = 0;
+  }
+
+  private resumeRace(): void {
+    if (!this.suspended) return;
+    this.suspended = false;
+    this.lastFrame = 0;
+    this.physicsAccumulator = 0;
+    if (this.phase() !== Phase.RACE) return;
+    // La gara era già partita: il fondo della pista torna a suonare.
+    if (this.countdownLeft <= 0 && !this.raceEnding) {
+      this.audio.startMarbleBed(this.currentTrack()?.id);
+    }
+    // Dopo `suspendRace` il frame è sempre a zero: il loop riparte da qui.
+    this.ngZone.runOutsideAngular(() => {
+      this.frame = requestAnimationFrame(this.loop);
+    });
+  }
+
   private loop = (now: number): void => {
     const dt = this.lastFrame ? Math.min(0.05, (now - this.lastFrame) / 1000) : 0;
     this.lastFrame = now;
@@ -1469,6 +1512,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
   private endRace(): void {
     this.audio.stopMarbleBed();
+    // Traguardo: la sala applaude, come a fine di ogni gara vera.
+    this.audio.playApplause();
     const ranked = [...this.raceMarbles].sort((a, b) => {
       const positionA = a.position ?? 999;
       const positionB = b.position ?? 999;
@@ -2586,6 +2631,9 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
   private finale(): void {
     this.clearClock();
+    // Classifica finale: applausi e fanfara del vincitore, non un silenzio.
+    this.audio.playApplause();
+    this.audio.playPodiumReveal(1);
     this.phase.set(Phase.FINALE);
     this.secondsLeft.set(FINALE_SECONDS);
     this.publish();

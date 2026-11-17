@@ -51,6 +51,45 @@ describe('RemoteComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('ordina le corsie live: prima chi è arrivato, poi chi ha più strada', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+
+    ws.status$.next({
+      action: 'BIGLIE_STATE',
+      state: {
+        phase: 'RACE',
+        raceIndex: 0,
+        totalRaces: 8,
+        secondsLeft: 12,
+        marbles: [
+          { id: 'fulmine', name: 'FULMINE', color: '#ffc53d', emoji: '⚡', owner: 'Anna' },
+          { id: 'scheggia', name: 'SCHEGGIA', color: '#ff4d2e', emoji: '🔥', owner: 'Bruno' },
+          { id: 'ombra', name: 'OMBRA', color: '#2f5bff', emoji: '🌑', owner: 'Carla' },
+        ],
+        lanes: [
+          { playerName: 'Anna', marbleId: 'fulmine', progress: 12, finished: false, position: null },
+          { playerName: 'Bruno', marbleId: 'scheggia', progress: 88, finished: false, position: null },
+          { playerName: 'Carla', marbleId: 'ombra', progress: 100, finished: true, position: 1 },
+        ],
+      },
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const rows = Array.from(fixture.nativeElement.querySelectorAll('.biglie-live-row')) as HTMLElement[];
+    expect(rows.map((row) => row.querySelector('.biglie-live-rname')?.textContent?.trim()))
+      .toEqual(['Carla', 'Bruno', 'Anna']);
+    // Chi è arrivato mostra il piazzamento, gli altri la strada fatta.
+    expect(rows[0].querySelector('.biglie-live-rpct')?.textContent).toContain('1°');
+    expect(rows[2].querySelector('.biglie-live-rpct')?.textContent).toContain('12%');
+    // La propria riga è in evidenza, in terza posizione, con la sua biglia.
+    expect(rows[2].classList).toContain('mine');
+    expect(fixture.nativeElement.querySelector('.biglie-live-pos b')?.textContent).toContain('3');
+    expect(fixture.nativeElement.querySelector('.biglie-live-name b')?.textContent).toContain('FULMINE');
+  });
+
   it('non anticipa il nome del gioco nell’intestazione, nemmeno dopo il riallineamento', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();

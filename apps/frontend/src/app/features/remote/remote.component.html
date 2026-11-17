@@ -520,11 +520,52 @@
       </div>
       }
       } @else if (biglieState()?.phase === 'RACE') {
+      @if (biglieLive().lane; as lane) {
+      <div class="biglie-live">
+        <div class="biglie-live-head">
+          <span class="biglie-live-dot" [style.background]="biglieMarbleColor(lane.marbleId)">{{ biglieMarbleEmoji(lane.marbleId) }}</span>
+          <span class="biglie-live-name">
+            <small>LA TUA BIGLIA</small>
+            <b>{{ biglieMarbleName(lane.marbleId) }}</b>
+          </span>
+          <span class="biglie-live-pos">
+            <b>{{ biglieLive().position }}</b><small>/{{ biglieLive().board.length }}</small>
+          </span>
+        </div>
+        <div class="biglie-live-bar">
+          <span [style.width.%]="bigliePct(lane.progress)"></span>
+        </div>
+        <div class="biglie-live-meta">
+          @if (lane.finished) {
+          <b class="biglie-live-done">ARRIVATA · {{ lane.position }}°</b>
+          } @else {
+          <span>{{ bigliePct(lane.progress) }}% del percorso</span>
+          }
+          @if ((biglieState()?.secondsLeft ?? 0) > 0) {
+          <span>{{ biglieState()?.secondsLeft }}s al cartello</span>
+          } @else {
+          <span>volata finale</span>
+          }
+        </div>
+        <div class="biglie-live-board">
+          @for (row of biglieLive().board; track row.playerName; let i = $index) {
+          <div class="biglie-live-row" [class.mine]="row.playerName === nickname()">
+            <span class="biglie-live-rank">{{ i + 1 }}</span>
+            <span class="biglie-live-rdot" [style.background]="biglieMarbleColor(row.marbleId)">{{ biglieMarbleEmoji(row.marbleId) }}</span>
+            <span class="biglie-live-rname">{{ row.playerName }}</span>
+            <span class="biglie-live-rpct">{{ row.finished ? row.position + '°' : bigliePct(row.progress) + '%' }}</span>
+          </div>
+          }
+        </div>
+        <p class="buzz-hint">Guarda la TV: qui vedi la tua biglia e chi ti sta davanti.</p>
+      </div>
+      } @else {
       <div class="status-msg">
         <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🎱</div></div>
         <p>Gara in corso in TV</p>
         <span class="sub-text">Guarda i percorsi: la tua biglia corre per te.</span>
       </div>
+      }
       } @else {
       <div class="status-msg">
         <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🎱</div></div>
