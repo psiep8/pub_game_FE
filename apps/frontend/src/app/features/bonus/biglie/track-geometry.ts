@@ -22,8 +22,8 @@
 const NODE_STEP = 6;
 /** Lunghezza dell'ultimo rettilineo, per un traguardo pulito. */
 const FINAL_STRAIGHT = 240;
-/** Massima sterzata: la pista cresce solo in avanti. */
-const MAX_HEADING = 0.42;
+/** Massima sterzata: la pista cresce solo in avanti, ma accetta tornanti. */
+const MAX_HEADING = 0.95;
 
 export type TrackPieceKind = 'dritto' | 'curva' | 'esse' | 'chicane' | 'strettoia';
 
@@ -132,11 +132,15 @@ export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeome
   const width = Math.max(160, Number(options.width) || 240);
   const totalLength = Math.max(600, Number(options.length) || 3600);
   const startX = Number(options.startX ?? 140);
-  // Fascia verticale: le curve sono ampie ma restano dentro lo schermo anche
-  // quando la TV mostra la pista intera.
-  const maxLateral = Math.max(30, options.maxLateral ?? 44);
-  const amplitude = maxLateral * 0.55;
-  const minRadius = Math.max(180, (width / 2) + 60);
+  // Fascia verticale: la corsia può usare quasi tutta l'altezza utile, così le
+  // curve hanno ampiezza e non solo un'onda accennata.
+  const maxLateral = Math.max(
+    40,
+    Math.min(112, options.maxLateral ?? 150 - width * 0.22),
+  );
+  const amplitude = maxLateral * 0.9;
+  // Raggio minimo maggiore di mezza corsia: il bordo interno non si ripiega.
+  const minRadius = Math.max(150, (width / 2) + 45);
   const curvatureLimit = 1 / minRadius;
 
   const nodes: TrackNode[] = [{ x: startX, y: 0, s: 0, width, angle: 0 }];
@@ -155,6 +159,7 @@ export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeome
   const profileFor = (kind: TrackPieceKind, startY: number, direction: number): PieceProfile => {
     switch (kind) {
       case 'curva':
+        // Curva ampia: mezzo giro di sinusoide, con verso sorteggiato.
         return {
           target: (t) => amplitude * direction * Math.sin(Math.PI * t),
           width: () => width,
@@ -165,8 +170,9 @@ export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeome
           width: () => width,
         };
       case 'chicane':
+        // Doppia esse stretta: due cambi di verso in poco spazio.
         return {
-          target: (t) => amplitude * 0.6 * Math.sin(Math.PI * 4 * t),
+          target: (t) => amplitude * 0.75 * Math.sin(Math.PI * 4 * t),
           width: () => width,
         };
       case 'strettoia':
@@ -191,10 +197,10 @@ export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeome
       const t = (index + 1) / steps;
       const target = profile.target(t);
       // Punta al bersaglio con un anticipo di 90 px, poi limita la sterzata.
-      const desired = Math.max(-MAX_HEADING, Math.min(MAX_HEADING, Math.atan2(target - y, 90)));
+      const desired = Math.max(-MAX_HEADING, Math.min(MAX_HEADING, Math.atan2(target - y, 70)));
       const curvature = Math.max(
         -curvatureLimit,
-        Math.min(curvatureLimit, (desired - heading) / 45),
+        Math.min(curvatureLimit, (desired - heading) / 35),
       );
       const mid = heading + (curvature * ds) / 2;
       x += Math.cos(mid) * ds;
@@ -217,13 +223,16 @@ export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeome
     const kind = deck[cursor];
     cursor += 1;
     const remaining = totalLength - FINAL_STRAIGHT - s;
+    // Pezzi corti: più curve e cambi di verso nello stesso tracciato.
     const base = kind === 'dritto'
-      ? 160 + rng() * 140
+      ? 100 + rng() * 90
       : kind === 'strettoia'
-        ? 220 + rng() * 80
+        ? 140 + rng() * 70
         : kind === 'curva'
-          ? 320 + rng() * 160
-          : 380 + rng() * 160;
+          ? 130 + rng() * 70
+          : kind === 'esse'
+            ? 160 + rng() * 90
+            : 120 + rng() * 70;
     const length = Math.max(80, Math.min(remaining, base));
     const direction = rng() < 0.5 ? -1 : 1;
     integrate(length, profileFor(kind, y, direction), kind);

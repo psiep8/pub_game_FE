@@ -388,6 +388,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
   @Input() players: string[] = [];
   /** Banco di prova: intro breve, scelta automatica e gare senza attese. */
   @Input() preview = false;
+  /** Banco di prova: forza una pista per rivederla (ignorato in partita). */
+  @Input() trackOverride: TrackId | null = null;
   /** Round della scaletta: i punti entrano in classifica, non in un bonus. */
   @Input() roundMode = false;
   /** Round di serata (0-based): decide le due piste e il numero delle gare. */
@@ -701,6 +703,14 @@ export class BiglieBonus implements OnInit, OnDestroy {
   /** Le due piste del round: seme della serata, una sola volta per round. */
   private ensurePlan(): void {
     if (this.roundTracks().length) return;
+    if (
+      this.preview
+      && this.trackOverride
+      && TRACK_CATALOG.some((track) => track.id === this.trackOverride)
+    ) {
+      this.applyPlan([this.trackOverride, this.trackOverride]);
+      return;
+    }
     if (!this.planSeed) this.planSeed = Math.floor(Math.random() * 0xffffffff) >>> 0;
     this.applyPlan(planRoundTracks(this.planSeed, this.roundSlot()));
   }

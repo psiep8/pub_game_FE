@@ -50,8 +50,8 @@ describe('geometria a pezzi delle Biglie', () => {
         const node = track.nodes[index];
         // La pista cresce solo in avanti: niente incroci né tornanti ciechi.
         expect(node.x).toBeGreaterThan(previous.x);
-        expect(Math.abs(node.angle)).toBeLessThanOrEqual(0.45);
-        expect(Math.abs(node.y)).toBeLessThanOrEqual(30);
+        expect(Math.abs(node.angle)).toBeLessThanOrEqual(0.96);
+        expect(Math.abs(node.y)).toBeLessThanOrEqual(100);
         expect(node.s).toBeGreaterThan(previous.s);
       }
     }

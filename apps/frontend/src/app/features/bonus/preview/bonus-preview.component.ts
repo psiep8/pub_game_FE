@@ -5,6 +5,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { BasketBonusStage } from '../basket/basket-bonus-stage.component';
 import { BiglieBonus } from '../biglie/biglie-bonus.component';
+import { TRACK_CATALOG, type TrackId } from '../biglie/track-plan';
 import { CasinoBonus } from '../casino/casino-bonus.component';
 import { CavalloBonus } from '../cavallo/cavallo-bonus.component';
 
@@ -46,8 +47,8 @@ const PREVIEW_CARDS: PreviewCard[] = [
     id: 'biglie',
     icon: '🎱',
     title: 'BIGLIE',
-    subtitle: 'QUATTRO GARE · QUATTRO FONDI',
-    note: 'Pista fisica, corsie, bump e classifica cumulativa.',
+    subtitle: 'DUE GARE · OTTO PISTE',
+    note: 'Pista fisica a pezzi, ostacoli per fondo e classifica cumulativa.',
   },
 ];
 
@@ -116,7 +117,11 @@ const PREVIEW_CARDS: PreviewCard[] = [
           <app-cavallo-bonus [gameId]="1" [players]="players" [categories]="categories" [preview]="true" />
         }
           @case ('biglie') {
-            <app-biglie-bonus [gameId]="1" [players]="players" [preview]="true" />
+            <app-biglie-bonus
+              [gameId]="1"
+              [players]="players"
+              [preview]="true"
+              [trackOverride]="biglieTrack" />
           }
         }
       </div>
@@ -320,7 +325,22 @@ export class BonusPreview {
   private readonly route = inject(ActivatedRoute);
 
   readonly cards = PREVIEW_CARDS;
-  readonly players = ['Anna', 'Luca', 'Marco', 'Sara', 'Paolo', 'Giulia', 'Davide', 'Elena'];
+
+  /** Catture TV: `?giocatori=6` limita i tavoli del banco di prova. */
+  private readonly params: URLSearchParams | null =
+    typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+
+  readonly players = (() => {
+    const all = ['Anna', 'Luca', 'Marco', 'Sara', 'Paolo', 'Giulia', 'Davide', 'Elena'];
+    const wanted = Math.floor(Number(this.params?.get('giocatori')));
+    return Number.isFinite(wanted) && wanted > 0 ? all.slice(0, Math.min(all.length, wanted)) : all;
+  })();
+
+  /** `?traccia=rally` mostra una sola pista delle otto, per la rassegna. */
+  readonly biglieTrack: TrackId | null = (() => {
+    const id = this.params?.get('traccia');
+    return TRACK_CATALOG.some((track) => track.id === id) ? (id as TrackId) : null;
+  })();
   readonly categories = [
     { id: 1, name: 'STORIA', emoji: '🏛️', active: true },
     { id: 2, name: 'SCIENZA', emoji: '🔬', active: true },
