@@ -106,7 +106,7 @@ function readManifest() {
   const effects = entries.filter((entry) => !entry.isLoop);
   const loops = entries.filter((entry) => entry.isLoop);
   if (effects.length !== 41) fail(`Il manifesto elenca ${effects.length} effetti, attesi 41.`);
-  if (loops.length !== 6) fail(`Il manifesto elenca ${loops.length} loop, attesi 6.`);
+  if (loops.length !== 7) fail(`Il manifesto elenca ${loops.length} loop, attesi 7.`);
   const duplicates = entries.filter((entry, index) => entries.findIndex((other) => other.path === entry.path) !== index);
   if (duplicates.length > 0) fail(`File ripetuti nel manifesto: ${duplicates.map((entry) => entry.path).join(', ')}`);
   return entries;
@@ -656,7 +656,7 @@ if (CHECK) {
   const present = selected.filter((entry) => existsSync(join(AUDIO_ROOT, entry.path)));
   const presentWithoutFonti = present.filter((entry) => !fonti.byPath.has(entry.path));
 
-  console.log(`Manifesto: ${entries.length} file (41 effetti, 6 loop).`);
+  console.log(`Manifesto: ${entries.length} file (41 effetti, 7 loop).`);
   console.log(`ffmpeg: ${FFMPEG}`);
   console.log(`FONTI.txt: ${fonti.byPath.size} righe valide.`);
 

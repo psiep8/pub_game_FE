@@ -378,6 +378,16 @@ export const AUDIO_EVENTS = {
     minIntervalMs: 0,
     variants: 1,
   },
+  marbleRoll: {
+    id: 'marbleRoll',
+    label: 'Rotolamento delle Biglie',
+    when: 'Sottofondo della gara: le biglie che scivolano sul fondo della pista.',
+    source: 'sfx',
+    bus: 'tv',
+    volume: 0.8,
+    minIntervalMs: 0,
+    variants: 1,
+  },
   ambient: {
     id: 'ambient',
     label: 'Tappeto del pub',
@@ -432,6 +442,7 @@ export const AUDIO_EVENT_FOR_METHOD = {
   startHeartbeat: 'heartbeat',
   startSuspense: 'heartbeat',
   startClock: 'clock',
+  startMarbleBed: 'marbleRoll',
   startAmbient: 'ambient',
 } as const satisfies Record<string, AudioEventId>;
 
@@ -466,6 +477,7 @@ export const AUDIO_EVENT_ORDER: AudioEventId[] = [
   'marbleWall',
   'marbleSurfaceHard',
   'marbleSurfaceSoft',
+  'marbleRoll',
   'uuuh',
   'bell',
   'bombSiren',

@@ -2,7 +2,7 @@
 
 Fase 0 della sostituzione dell'audio sintetizzato (SPEC-SUONI-REALI.md).
 
-**Stato:** i 47 file sono nelle cartelle, elaborati, e sono quelli che l'app
+**Stato:** i 48 file sono nelle cartelle, elaborati, e sono quelli che l'app
 suona; i crediti sono in `docs/CREDITI-AUDIO.md`. Gli effetti marcati «Nostra»
 (gong, bong del countdown, whoosh, gettoni, racchetta, scoppio della bomba,
 miccia e i quattro urti delle Biglie) non sono registrazioni di libreria: sono
@@ -193,9 +193,9 @@ L'indice segue l'ordine del catalogo: 1 Casino Bianco e Nero, 2 Blackjack,
 | `heartbeat` | `attesa/heartbeat.m4a` | TV | 2 s, loopabile | `heartbeat loop`, `heartbeat slow`, `sub thump` | Freesound CC0 |
 | `clock` | `attesa/clock.m4a` | TV | 1 s, loopabile | `clock tick loop`, `wall clock tick`, `watch ticking` | Freesound CC0 |
 
-## Sottofondi: sei loop al posto dei sedici tappeti
+## Sottofondi: sette loop al posto dei sedici tappeti
 
-Niente più generazione a ogni battuta: **sei famiglie** registrate, con
+Niente più generazione a ogni battuta: **sette famiglie** registrate, con
 dissolvenza incrociata di 1,5 s al cambio gioco. Volume basso, sotto la voce
 del presentatore. Durata 90–120 s, −23 LUFS, senza voce cantata.
 
@@ -207,13 +207,19 @@ del presentatore. Durata 90–120 s, −23 LUFS, senza voce cantata.
 | Casino | `loop/casino.m4a` | Azzardo, Ruota, Blackjack, bonus Casino | `casino lounge loop`, `vintage lounge jazz`, `rat pack style loop` | Incompetech (CC-BY) / Pixabay |
 | Leggero e curioso | `loop/leggero.m4a` | Cavallo, flash | `quirky marimba loop`, `playful pizzicato loop`, `curious light background` | Pixabay / Mixkit |
 | Classifica e podio | `loop/classifica.m4a` | classifiche, podio, attesa dei bonus | `festive fanfare loop`, `celebration music loop`, `award ceremony loop` | Pixabay / Mixkit |
+| Rotolamento delle Biglie | `loop/biglie.m4a` | gara delle Biglie (sotto il tappeto) | `marbles rolling loop`, `glass bead roll`, `marble on concrete loop` | Nostra (sintesi renderizzata) |
+
+Il rotolamento delle Biglie è un loop breve (24 s, `scripts/audio/render-marble-roll.mjs`):
+corpo che scorre, fruscio del fondo e ticchi delle biglie. Un solo file, otto
+ascolti: `marble-roll.ts` cambia passo e taglio delle alte per ogni pista —
+la sabbia rallenta e chiude, l'asfalto corre e apre, il vetro resta brillante.
 
 ## Conto dei file
 
 - 41 effetti (34 eventi con varianti: `rankReveal` ×2, `podiumReveal` ×3,
   `bonusEntrance` ×5)
-- 6 loop
-- **47 file** in tutto, dentro il limite di 15 MB (effetti ~2 MB, loop ~9 MB a
+- 7 loop
+- **48 file** in tutto, dentro il limite di 15 MB (effetti ~2 MB, loop ~9 MB a
   128 kbps).
 
 ## Cosa non si tocca

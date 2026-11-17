@@ -1,5 +1,20 @@
 # Changelog
 
+## 17 novembre 2026 — Biglie: corsia personale, rimonte e gara che cambia padrone
+
+- Nuovo sottofondo `loop/biglie.m4a` (24 s, −23 LUFS, coda cucita sulla testa): corpo che scorre, fruscio del fondo e ticchi delle biglie. Non è un campione comprato — lo rende `scripts/audio/render-marble-roll.mjs`, quindi si rifà identico. Riga in `FONTI.txt`, tabella in `docs/MANIFESTO-AUDIO.md`, crediti aggiornati (48 file: 41 effetti, 7 loop).
+- Un solo file, otto ascolti: `marble-roll.ts` dà passo e taglio delle alte per ogni pista (la sabbia rallenta e chiude, l'asfalto corre e apre, il vetro resta brillante). `AudioService.startMarbleBed(trackId)` lo accende al VIA, `stopMarbleBed()` lo spegne all'arrivo e fra una gara e l'altra; `SoundPlayer.startLoop` accetta ora `rate` e `lowpass`.
+- **Ogni biglia ha la sua corsia**: `createLineCharacter` assegna a ognuna una fetta della pista e `lineOffset` la fa vagare con due sinusoidi di periodo diverso. I percorsi sono diversi, non più la linea della pista seguita da tutte.
+- **La velocità non si riscrive più a ogni passo**: ogni biglia ha la sua e si avvicina al bersaglio con l'accelerazione del profilo (`stepSpeed`, `resumeAccel`). A regime il valore è quello di sempre; dopo un fosso o uno scontro è scesa e risalire costa secondi, con la ripresa a metà gas.
+- **Il muro costa come un ostacolo** (`wallPenalty`): resta l'82% della velocità su una strisciata, il 60% su un urto secco, con blocco e ripresa frenata.
+- **La testa della gara è un posto scomodo.** Chi è davanti non ha scia (`HEAD_WIND`, 5% in meno), la rincorsa pesa più della frenata (`rubberBand` asimmetrica: fino a +32% a chi insegue, −12% a chi scappa) e sull'ultimo tratto (`CLOSING_FROM` 70% di pista, `CLOSING_BOOST` 1,7) il distacco si può ancora ribaltare.
+- **Ogni biglia ha spinte e crisi** (`createDrama`): una spinta di 1,2 secondi ogni 6–10, una crisi di 2 secondi ogni 8–13, più un'**onda lunga** di 16–30 secondi che le dà il suo quarto d'ora di gloria e il suo calo. È l'onda che fa cambiare il padrone della gara: nessuna biglia corre più forte in media, ma nessuna è al sicuro.
+- **Le schede contano poco sulla pista** (`fieldProfile`, `STAT_SPREAD` 0,45): lo scarto fra una biglia e la media della griglia si assottiglia, così il podio non è scritto alla partenza e anche l'ultimo può vincerla.
+- **Simulazione headless** (`race-simulation.ts` + `race-simulation.spec.ts`): stessa pista, stessi ostacoli (`hazard-plan.ts`), stesso passo, stessa rimonta. Otto piste × tre semi × otto biglie, misurate a ogni giro di taratura. Numeri finali: gara più lunga **65,8 s** (sabbia), più corta 47,4 s (vetro); **7–24 cambi di prima posizione** a gara; **92–195 sorpassi**; contatti **1,6–4,4 al secondo** e biglie in contatto per il **10–24%** del tempo — si sentono, non sono la corsa; **21 gare su 24** con una rimonta dalla metà bassa al podio, e almeno una su ogni pista.
+- La gara chiude **quando arriva l'ultima biglia**, non allo scadere del tempo: i **70 s** sono il conto alla rovescia sul cartello (misurati 47–66 s) e i **120 s** solo la rete di sicurezza se un bug fermasse una biglia. Crisi e rimonte rallentano, ma non tagliano il traguardo a nessuno.
+- Verifiche: build di produzione, suite frontend (481 test su 55 file). **Non fatto:** l'ascolto del loop, la prova in sala, il rimbalzo vero di Matter (la simulazione separa le sovrapposizioni a mano) e la visione della gara in movimento nel browser di anteprima, che con la scheda in secondo piano non avanza.
+
+
 ## 17 novembre 2026 — Biglie: due gare per round, otto piste e suoni d'urto
 
 - Il round Biglie non gioca più quattro gare sulle quattro piste storiche: ogni round corre **due gare** su due delle **otto piste** del catalogo — rally (terra), F1 (asfalto), neve, acqua, **vetro**, sabbia, spazio, magma. La coppia la sceglie il seme della serata: quattro coppie, tutte e otto le piste sui quattro round, nessuna ripetizione. Il piano (seme, coppie, indice del round) è nel checkpoint TV, quindi un refresh rigioca le stesse piste.

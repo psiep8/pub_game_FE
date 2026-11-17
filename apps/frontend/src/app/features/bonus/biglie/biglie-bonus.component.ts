@@ -38,6 +38,28 @@ import {
   wallSegments,
   type TrackGeometry,
 } from './track-geometry';
+import {
+  createDrama,
+  createLineCharacter,
+  dramaFactor,
+  fieldProfile,
+  CLOSING_BOOST,
+  CLOSING_FROM,
+  HEAD_WIND,
+  hazardPenalty,
+  marbleRadiusFor,
+  paceFor,
+  lineOffset,
+  resumeAccel,
+  rubberBand,
+  stepSpeed,
+  trackWidthFor,
+  wallPenalty,
+  type DramaProfile,
+  type LineCharacter,
+} from './race-dynamics';
+import { buildHazards, type Hazard, type HazardKind } from './hazard-plan';
+import { MARBLES, type Marble } from './marbles';
 
 /**
  * Fasi delle Biglie. Le fasi comuni arrivano da `GamePhase`.
@@ -50,16 +72,6 @@ const Phase = {
   FINALE: GamePhase.FINALE,
 } as const;
 type Phase = (typeof Phase)[keyof typeof Phase];
-
-interface Marble {
-  id: string;
-  name: string;
-  color: string;
-  emoji: string;
-  speed: number;
-  accel: number;
-  grip: number;
-}
 
 interface MarbleView extends Marble {
   owner: string | null;
@@ -89,33 +101,20 @@ interface RaceMarble {
   /** Effetti di pista attivi, misurati in secondi di gara. */
   slowUntil: number;
   boostUntil: number;
+  /** Velocità propria in px per passo: a regime è quella di sempre, dopo un
+   * colpo è più bassa e ci vuole secondi a risalire. */
+  speed: number;
+  /** Secondi di gara in cui la biglia striscia senza ripartire. */
+  stunUntil: number;
+  /** Secondi di gara in cui la ripresa è a metà gas. */
+  recoverUntil: number;
+  /** Corsia personale: la biglia non segue la linea comune. */
+  line: LineCharacter;
+  /** Spinte e crisi della sua gara: è qui che nasce il sorpasso. */
+  drama: DramaProfile;
   /** Watchdog: secondi senza avanzare e progresso migliore già raggiunto. */
   stuckFor: number;
   bestProgress: number;
-}
-
-type HazardKind =
-  | 'fango'
-  | 'pozzanghera'
-  | 'sasso'
-  | 'cordolo'
-  | 'cumulo'
-  | 'ghiaccio'
-  | 'onda'
-  | 'boa'
-  | 'scoglio'
-  | 'sabbia'
-  | 'meteorite'
-  | 'magma'
-  | 'paracarro';
-
-interface Hazard {
-  id: string;
-  kind: HazardKind;
-  progress: number;
-  offset: number;
-  radius: number;
-  patch: boolean;
 }
 
 interface ImpactParticle {
@@ -137,21 +136,22 @@ interface RaceRow {
   total: number;
 }
 
-const MARBLES: Marble[] = [
-  { id: 'fulmine', name: 'FULMINE', color: '#facc15', emoji: '⚡', speed: 10, accel: 6, grip: 3 },
-  { id: 'scheggia', name: 'SCHEGGIA', color: '#fb7185', emoji: '🔥', speed: 8, accel: 9, grip: 3 },
-  { id: 'chiodo', name: 'CHIODO', color: '#38bdf8', emoji: '🧲', speed: 4, accel: 6, grip: 10 },
-  { id: 'piuma', name: 'PIUMA', color: '#a3e635', emoji: '🪶', speed: 6, accel: 10, grip: 5 },
-  { id: 'tank', name: 'TANK', color: '#94a3b8', emoji: '🛡️', speed: 5, accel: 5, grip: 9 },
-  { id: 'vortice', name: 'VORTICE', color: '#c084fc', emoji: '🌀', speed: 9, accel: 7, grip: 5 },
-  { id: 'sasso', name: 'SASSO', color: '#f97316', emoji: '🪨', speed: 6, accel: 5, grip: 8 },
-  { id: 'lampo', name: 'LAMPO', color: '#22d3ee', emoji: '💧', speed: 7, accel: 8, grip: 6 },
-];
-
 const RACE_POINTS = [150, 100, 60, 30];
 const INTRO_SECONDS = 4;
 const PICK_SECONDS = 10;
+/**
+ * Tempo di gara sul cartello: settanta secondi. Non è il traguardo — la gara
+ * chiude quando l'ultima biglia arriva — è il conto alla rovescia che tiene
+ * su la sala. La simulazione headless tiene le otto piste fra i 47 e i 66
+ * secondi con l'ultima biglia, quindi la volata ci sta dentro.
+ */
 const RACE_SECONDS = 70;
+/**
+ * Rete di sicurezza vera, non un taglio: se per un bug una biglia restasse
+ * ferma, dopo due minuti la gara si chiude lo stesso in classifica. Nessuna
+ * gara misurata si avvicina a questo tempo.
+ */
+const RACE_HARD_STOP = 120;
 const TRACK_START_X = 140;
 /** Pista lunga: una gara dura fra i 60 e i 70 secondi anche senza ostacoli. */
 const TRACK_WORLD_LENGTH = 12000;
@@ -161,17 +161,6 @@ const COUNTDOWN_SECONDS = 3;
  * Ostacoli per fondo: tanti e piccoli, così la corsa ha interruzioni continue
  * (fango, ghiaccio, strettoie) invece di due isole grandi come i vecchi bivi.
  */
-const HAZARD_PLANS: Record<string, HazardKind[]> = {
-  rally: ['fango', 'sasso', 'pozzanghera', 'paracarro', 'fango', 'sasso', 'pozzanghera', 'paracarro', 'fango', 'sasso', 'pozzanghera', 'paracarro', 'fango', 'sasso', 'pozzanghera', 'paracarro', 'fango', 'sasso', 'pozzanghera', 'paracarro', 'fango', 'sasso', 'pozzanghera', 'paracarro'],
-  f1: ['cordolo', 'paracarro', 'sasso', 'cordolo', 'paracarro', 'ghiaccio', 'cordolo', 'paracarro', 'sasso', 'cordolo', 'paracarro', 'ghiaccio', 'cordolo', 'paracarro', 'sasso', 'cordolo', 'paracarro', 'ghiaccio', 'cordolo', 'paracarro', 'sasso', 'cordolo', 'paracarro', 'ghiaccio'],
-  neve: ['cumulo', 'ghiaccio', 'paracarro', 'cumulo', 'sasso', 'ghiaccio', 'cumulo', 'ghiaccio', 'paracarro', 'cumulo', 'sasso', 'ghiaccio', 'cumulo', 'ghiaccio', 'paracarro', 'cumulo', 'sasso', 'ghiaccio', 'cumulo', 'ghiaccio', 'paracarro', 'cumulo', 'sasso', 'ghiaccio'],
-  acqua: ['onda', 'boa', 'scoglio', 'paracarro', 'onda', 'boa', 'scoglio', 'onda', 'boa', 'paracarro', 'onda', 'boa', 'scoglio', 'onda', 'boa', 'paracarro', 'onda', 'boa', 'scoglio', 'onda', 'boa', 'paracarro', 'onda', 'boa'],
-  // I quattro fondi nuovi hanno ostacoli propri, non solo un colore diverso.
-  vetro: ['ghiaccio', 'sasso', 'paracarro', 'ghiaccio', 'ghiaccio', 'sasso', 'ghiaccio', 'sasso', 'paracarro', 'ghiaccio', 'ghiaccio', 'sasso', 'ghiaccio', 'sasso', 'paracarro', 'ghiaccio', 'ghiaccio', 'sasso', 'ghiaccio', 'sasso', 'paracarro', 'ghiaccio', 'ghiaccio', 'sasso'],
-  sabbia: ['sabbia', 'sasso', 'paracarro', 'sabbia', 'sabbia', 'sasso', 'sabbia', 'sasso', 'paracarro', 'sabbia', 'sabbia', 'sasso', 'sabbia', 'sasso', 'paracarro', 'sabbia', 'sabbia', 'sasso', 'sabbia', 'sasso', 'paracarro', 'sabbia', 'sabbia', 'sasso'],
-  spazio: ['meteorite', 'paracarro', 'meteorite', 'sasso', 'paracarro', 'meteorite', 'meteorite', 'paracarro', 'meteorite', 'sasso', 'paracarro', 'meteorite', 'meteorite', 'paracarro', 'meteorite', 'sasso', 'paracarro', 'meteorite', 'meteorite', 'paracarro', 'meteorite', 'sasso', 'paracarro', 'meteorite'],
-  magma: ['magma', 'sasso', 'paracarro', 'magma', 'magma', 'sasso', 'magma', 'sasso', 'paracarro', 'magma', 'magma', 'sasso', 'magma', 'sasso', 'paracarro', 'magma', 'magma', 'sasso', 'magma', 'sasso', 'paracarro', 'magma', 'magma', 'sasso'],
-};
 
 /** Palette carta/inchiostro usata su tela per gli ostacoli. */
 const INK = '#15150f';
@@ -635,6 +624,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyed = true;
+    this.audio.stopMarbleBed();
     this.clearClock();
     this.destroyPhysics();
     if (this.frame) cancelAnimationFrame(this.frame);
@@ -808,6 +798,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
   private async startRace(index: number): Promise<void> {
     this.clearClock();
+    // Fra una gara e l'altra il rotolamento tace: riparte col via della nuova.
+    this.audio.stopMarbleBed();
 
     if (index >= TRACKS_PER_ROUND) {
       this.finale();
@@ -826,7 +818,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
     this.finishCount = 0;
     this.raceResult.set(null);
     this.currentPlayer.set(null);
-    this.raceMarbles = this.players.map((playerName) => ({
+    this.raceMarbles = this.players.map((playerName, slot) => ({
       playerName,
       marbleId: this.assignments.get(playerName) ?? '',
       x: 0,
@@ -839,6 +831,11 @@ export class BiglieBonus implements OnInit, OnDestroy {
       bumped: new Set<string>(),
       slowUntil: 0,
       boostUntil: 0,
+      speed: 0,
+      line: createLineCharacter(this.raceRng, slot, this.players.length),
+      drama: createDrama(this.raceRng),
+      stunUntil: 0,
+      recoverUntil: 0,
       stuckFor: 0,
       bestProgress: 0,
     }));
@@ -1022,7 +1019,15 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
         // Muro vero: bordo della pista o isola di un bivio. Sfiorarlo non suona.
         if (this.labelledBody(pair, 'wall-')) {
-          if (this.impactSpeed(pair) > 0.9) this.audio.playMarbleWall();
+          // Il muro costa come un ostacolo: la biglia perde velocità, resta
+          // appoggiata un attimo e riparte a metà gas. L'urto secco pesa il
+          // doppio della strisciata.
+          const hit = this.impactSpeed(pair);
+          const wall = wallPenalty(hit > 1.6);
+          marble.speed *= wall.factor;
+          marble.stunUntil = Math.max(marble.stunUntil, this.raceElapsed + wall.stun);
+          marble.recoverUntil = Math.max(marble.recoverUntil, this.raceElapsed + wall.recover);
+          if (hit > 0.9) this.audio.playMarbleWall();
           continue;
         }
 
@@ -1047,33 +1052,35 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
         marble.bumped.add(hazard.id);
 
-        if (hazard.kind === 'paracarro') {
-          // Paracarro: urto secco, la biglia perde strada e viene deviata.
-          marble.slowUntil = this.raceElapsed + 0.4;
-          this.kickMarble(marble, 0.8, (this.raceRng() - 0.5) * 2.4);
-        } else if (hazard.kind === 'fango' || hazard.kind === 'pozzanghera' || hazard.kind === 'sabbia') {
-          marble.slowUntil = this.raceElapsed + (hazard.kind === 'fango' ? 1.5 : hazard.kind === 'sabbia' ? 1.15 : 0.9);
-          this.kickMarble(
-            marble,
-            hazard.kind === 'fango' ? 0.6 : hazard.kind === 'sabbia' ? 0.72 : 0.82,
-            hazard.kind === 'sabbia' ? (this.raceRng() - 0.5) * 1.6 : -0.7,
-          );
-        } else if (hazard.kind === 'magma') {
-          // Il getto scalda e rallenta, poi spinge la biglia verso l'alto.
-          marble.slowUntil = this.raceElapsed + 0.8;
-          this.kickMarble(marble, 0.78, -2.2 - this.raceRng() * 0.6);
-        } else if (hazard.kind === 'meteorite') {
-          this.kickMarble(marble, 0.9, -1.4 - this.raceRng() * 0.5);
-        } else if (hazard.kind === 'ghiaccio') {
-          marble.boostUntil = this.raceElapsed + 0.9;
-          this.kickMarble(marble, 1.08, 0);
-        } else if (hazard.kind === 'onda') {
-          this.kickMarble(marble, 0.94, -3.1 - this.raceRng() * 0.8);
-        } else if (hazard.kind === 'cordolo') {
-          this.kickMarble(marble, 0.96, -1.9 - this.raceRng() * 0.5);
-        } else {
-          this.kickMarble(marble, 0.985, -2.6 - this.raceRng() * 0.7);
+        // L'ostacolo mangia velocità, blocca la biglia un istante e le impone
+        // una ripartenza a metà gas: le penalità stanno in `race-dynamics`.
+        const penalty = hazardPenalty(hazard.kind);
+        marble.speed *= penalty.factor;
+        marble.stunUntil = Math.max(marble.stunUntil, this.raceElapsed + penalty.stun);
+        marble.recoverUntil = Math.max(marble.recoverUntil, this.raceElapsed + penalty.recover);
+        // Fango e sabbia restano lenti anche dopo: la biglia ci sguazza.
+        if (hazard.kind === 'fango' || hazard.kind === 'sabbia' || hazard.kind === 'pozzanghera') {
+          marble.slowUntil = this.raceElapsed + (hazard.kind === 'fango' ? 0.9 : 0.6);
         }
+        // Il ghiaccio è l'unica superficie che regala: niente penalità, spinta.
+        if (hazard.kind === 'ghiaccio') marble.boostUntil = this.raceElapsed + 0.9;
+
+        // Il colpo di lato resta quello del fondo: la sabbia sbanda, il magma
+        // spinge in alto, il cordolo rimbalza.
+        const sideways = hazard.kind === 'fango'
+          ? (this.raceRng() - 0.5) * 1.2
+          : hazard.kind === 'sabbia' || hazard.kind === 'pozzanghera'
+            ? (this.raceRng() - 0.5) * 1.9
+            : hazard.kind === 'magma'
+              ? -2.2 - this.raceRng() * 0.6
+              : hazard.kind === 'onda'
+                ? -3.1 - this.raceRng() * 0.8
+                : hazard.kind === 'meteorite' || hazard.kind === 'scoglio'
+                  ? -1.4 - this.raceRng() * 0.6
+                  : hazard.kind === 'ghiaccio'
+                    ? 0
+                    : -1.2 - this.raceRng() * 0.8;
+        this.kickMarble(marble, 0.55, sideways);
 
         this.spawnImpact(marble, hazard.kind);
         this.audio.playMarbleSurface(this.surfaceIsSoft());
@@ -1247,7 +1254,11 @@ export class BiglieBonus implements OnInit, OnDestroy {
     // della gara non parte.
     if (this.countdownLeft > 0) {
       this.countdownLeft = Math.max(0, this.countdownLeft - dt);
-      if (this.countdownLeft === 0) this.countdownFlash = 1;
+      if (this.countdownLeft === 0) {
+        this.countdownFlash = 1;
+        // Le biglie cominciano a scivolare: il fondo della pista dà il timbro.
+        this.audio.startMarbleBed(this.currentTrack()?.id);
+      }
       return;
     }
     if (this.countdownFlash > 0) this.countdownFlash = Math.max(0, this.countdownFlash - dt);
@@ -1271,7 +1282,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
       this.ngZone.run(() => this.syncRaceView());
     }
 
-    if (this.raceMarbles.every((marble) => marble.finished) || this.raceElapsed >= RACE_SECONDS) {
+    // Si chiude quando arrivano tutti: il tempo non taglia mai il traguardo.
+    if (this.raceMarbles.every((marble) => marble.finished) || this.raceElapsed >= RACE_HARD_STOP) {
       this.raceEnding = true;
       this.ngZone.run(() => this.endRace());
     }
@@ -1285,6 +1297,27 @@ export class BiglieBonus implements OnInit, OnDestroy {
     const { Engine, Body, Composite } = this.matter;
     const count = Math.max(1, this.raceMarbles.length);
     const radius = this.marbleRadius(count, geometry.width);
+    const dtSeconds = PHYSICS_STEP / 1000;
+    // Media del gruppo: serve alla rimonta, così i primi non scappano via e la
+    // volata resta aperta fino al traguardo.
+    const running = this.raceMarbles.filter((marble) => !marble.finished);
+    const fieldProgress = running.length
+      ? running.reduce((sum, marble) => sum + Math.min(1, marble.x / 100), 0) / running.length
+      : 0;
+    // Chi è davanti adesso: paga il vento in faccia.
+    const leadX = running.reduce((lead, marble) => Math.max(lead, marble.x), 0);
+    // Media delle schede in gara: sulla pista gli scarti si assottigliano.
+    const profileMean = running.length
+      ? running.reduce((sum, marble) => {
+          const stats = this.marbleById(marble.marbleId);
+          return stats
+            ? sum
+                + (stats.speed * track.weights.speed
+                  + stats.accel * track.weights.accel
+                  + stats.grip * track.weights.grip) / 10
+            : sum;
+        }, 0) / running.length
+      : 0;
 
     for (const marble of this.raceMarbles) {
       if (marble.finished || !marble.body) continue;
@@ -1300,30 +1333,70 @@ export class BiglieBonus implements OnInit, OnDestroy {
       const frame = pointAtS(geometry, projection.s);
 
       const physics = track.physics;
-      const profile =
+      const profile = fieldProfile(
         (data.speed * track.weights.speed
           + data.accel * track.weights.accel
-          + data.grip * track.weights.grip) / 10;
+          + data.grip * track.weights.grip) / 10,
+        profileMean,
+      );
       // L'attrito del fondo pesa sulla velocità che la biglia può tenere:
       // il vetro quasi non frena, la sabbia toglie oltre un terzo.
-      const speedFactor = 1 - Math.min(0.42, physics.friction * 0.22);
-      let target = (3.1 + profile * 1.15) * speedFactor;
+      // Bersaglio di velocità: lo calcola `race-dynamics`, così la simulazione
+      // headless misura esattamente la corsa della TV.
+      let target = paceFor(profile, physics.friction);
       if (marble.slowUntil > this.raceElapsed) target *= 0.45;
       if (marble.boostUntil > this.raceElapsed) target *= 1.12;
+      // Il gruppo si tiene stretto: chi è davanti paga la fuga, chi insegue
+      // tiene qualche punto in più. Mai abbastanza per annullare un distacco.
+      const progress = Math.min(1, marble.x / 100);
+      target *= rubberBand(progress, fieldProgress, progress > CLOSING_FROM ? CLOSING_BOOST : 1);
+      // Spinta e crisi: il primo può sfilare, il penultimo può rientrare.
+      target *= dramaFactor(marble.drama, this.raceElapsed);
+      // Chi è davanti non ha scia: la prima posizione costa sempre qualcosa.
+      if (marble.x >= leadX) target *= HEAD_WIND;
 
+      // La velocità non si riscrive più a ogni passo: la biglia ha la sua e ci
+      // torna con l'accelerazione del profilo. A regime il valore è esattamente
+      // il bersaglio di sempre, quindi la corsa è quella di prima; dopo un
+      // fosso, un muro o uno scontro è scesa, e risalire costa secondi.
+      const stunned = marble.stunUntil > this.raceElapsed;
+      const recovering = marble.recoverUntil > this.raceElapsed;
+      const accel = resumeAccel(data.accel, recovering);
+      marble.speed = stepSpeed(
+        marble.speed,
+        stunned ? target * 0.12 : target,
+        accel,
+        dtSeconds,
+      );
+      const along = marble.speed;
+
+      // Corsia personale: ogni biglia punta al suo lato, non alla linea della
+      // pista. Il bersaglio si sposta piano, quindi il percorso è irripetibile
+      // e due biglie vicine non disegnano la stessa curva.
+      const halfLane = Math.max(6, frame.width / 2 - radius - 6);
+      const want = lineOffset(marble.line, this.raceElapsed, halfLane * 0.9);
+      const lateralPosition =
+        (body.position.x - frame.x) * frame.nx + (body.position.y - frame.y) * frame.ny;
+      const toward = want - lateralPosition;
+      const steer = Math.max(-1.1, Math.min(1.1, toward * 0.05));
       // Gravità sulla componente verticale della pista, trattenuta dalla
       // tenuta del fondo; i dossi aggiungono il sobbalzo.
-      const pull = physics.gravity * 0.018;
+      const pull = physics.gravity * 0.012;
       const gripDamping = 1 - Math.min(0.6, physics.grip * 0.07);
       const bump = (this.raceRng() - 0.5) * physics.bumps * 0.32;
+      // Colpo di sonno: ogni tanto una biglia sbanda di lato senza motivo.
+      const shove = this.raceRng() < 0.003 ? (this.raceRng() - 0.5) * 5 : 0;
       const lateralSpeed = body.velocity.x * frame.nx + body.velocity.y * frame.ny;
-      const lateral = Math.max(-3.2, Math.min(3.2, (lateralSpeed + pull + bump) * gripDamping));
+      const lateral = Math.max(
+        -4,
+        Math.min(4, (lateralSpeed * 0.86 + steer + pull + bump + shove) * gripDamping),
+      );
 
       // Velocità lungo la tangente della pista: la biglia segue la curva e
       // sbatte sui muri veri solo quando viene spinta di lato.
       Body.setVelocity(body, {
-        x: frame.tx * target + frame.nx * lateral,
-        y: frame.ty * target + frame.ny * lateral,
+        x: frame.tx * along + frame.nx * lateral,
+        y: frame.ty * along + frame.ny * lateral,
       });
     }
 
@@ -1353,6 +1426,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
         const frame = pointAtS(geometry, resume);
         Body.setPosition(body, { x: frame.x, y: frame.y });
         Body.setVelocity(body, { x: frame.tx * 2, y: frame.ty * 2 });
+        marble.speed = 2;
         marble.spine = Math.round(resume / 6);
         marble.stuckFor = 0;
         marble.bestProgress = projection.progress;
@@ -1394,6 +1468,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
   }
 
   private endRace(): void {
+    this.audio.stopMarbleBed();
     const ranked = [...this.raceMarbles].sort((a, b) => {
       const positionA = a.position ?? 999;
       const positionB = b.position ?? 999;
@@ -1638,68 +1713,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
   }
 
   private generateHazards(track: BiglieTrack): void {
-    const rng = this.seededRandom(this.trackSeed ^ 0x7f4a7c15);
-    const base = HAZARD_PLANS[track.id] ?? HAZARD_PLANS['rally'];
-    // Più ostacoli del catalogo: uno ogni ~300 px di pista, tutti piccoli.
-    const plan: HazardKind[] = [];
-    for (let index = 0; index < 52; index++) {
-      plan.push(base[Math.floor(rng() * base.length)]);
-    }
-    const hazards: Hazard[] = [];
-    // Distanziati sulla pista intera, con un po' di jitter dal seme: niente
-    // buchi lunghi e niente mucchi, la corsa ha interruzioni continue.
-    const slot = 0.9 / plan.length;
-
-    plan.forEach((kind, index) => {
-      const progress = 0.05 + slot * (index + 0.15 + rng() * 0.7);
-
-      const patch =
-        kind === 'fango'
-        || kind === 'pozzanghera'
-        || kind === 'ghiaccio'
-        || kind === 'sabbia'
-        || kind === 'magma';
-      const solid =
-        kind === 'sasso'
-        || kind === 'scoglio'
-        || kind === 'meteorite'
-        || kind === 'paracarro';
-      hazards.push({
-        id: `hazard-${track.id}-${index}`,
-        kind,
-        progress,
-        // I corpi solidi stanno a ridosso del muro: non chiudono mai la corsia,
-        // nemmeno nelle strettoie.
-        offset: solid
-          ? (index % 2 === 0 ? 0.78 : -0.78) + (rng() - 0.5) * 0.08
-          : kind === 'cordolo'
-            ? index % 2 === 0
-              ? 0.84
-              : -0.84
-            : (rng() * 2 - 1) * 0.72,
-        // Piccoli: si vede la pista, non un monolito. Ma si sentono eccome.
-        radius: patch
-          ? kind === 'magma'
-            ? 13
-            : kind === 'ghiaccio'
-              ? 12
-              : kind === 'sabbia'
-                ? 11
-                : 12
-          : kind === 'scoglio' || kind === 'meteorite'
-            ? 9
-            : kind === 'boa'
-              ? 9
-              : kind === 'sasso'
-                ? 8
-                : kind === 'paracarro'
-                  ? 6
-                  : 8,
-        patch,
-      });
-    });
-
-    this.hazards = hazards;
+    // La lista vive in `hazard-plan.ts`: la stessa che usa la simulazione.
+    this.hazards = buildHazards(track.id, this.trackSeed);
   }
 
   private hazardLane(
@@ -1751,11 +1766,11 @@ export class BiglieBonus implements OnInit, OnDestroy {
   private raceTrackWidth(count: number): number {
     // Corsia stretta: le biglie si toccano, il tracciato serpeggia di più e a
     // 720p resta largo abbastanza per il gruppo di testa.
-    return Math.max(130, Math.min(210, count * 25));
+    return trackWidthFor(count);
   }
 
   private marbleRadius(count: number, trackWidth: number): number {
-    return Math.max(9, Math.min(15, trackWidth / Math.max(11, count * 1.7)));
+    return marbleRadiusFor(count, trackWidth);
   }
 
   private drawBackdrop(

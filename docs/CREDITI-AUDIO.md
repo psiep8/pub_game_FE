@@ -64,7 +64,7 @@ compaiono con licenza «Nostra».
 | `attesa/heartbeat.m4a` | Heartbeat medium speed | Mixkit | Mixkit License | 2.0 s | 25 KB | -16 | -2.3 dBFS |
 | `attesa/clock.m4a` | Clock ticker single | Mixkit | Mixkit License | 0.5 s | 8 KB | -24.5 | -3.2 dBFS |
 
-## Sottofondi (6)
+## Sottofondi (7)
 
 | File | Brano | Autore | Licenza | Durata | Peso | LUFS | Salto di loop |
 |---|---|---|---|---|---|---|---|
@@ -74,6 +74,7 @@ compaiono con licenza «Nostra».
 | `loop/casino.m4a` | Groovy Jazz — Francisco Alvear | Francisco Alvear | Mixkit Stock Music Free License | 117.0 s | 1.84 MB | -23 | 1.2% |
 | `loop/leggero.m4a` | Comical — Ahjay Stelino | Ahjay Stelino | Mixkit Stock Music Free License | 111.5 s | 1.78 MB | -23 | 0.2% |
 | `loop/classifica.m4a` | Feeling Happy — Ahjay Stelino | Ahjay Stelino | Mixkit Stock Music Free License | 117.0 s | 1.85 MB | -23 | 1.1% |
+| `loop/biglie.m4a` | Rotolamento delle Biglie | PubGame | Nostra (sintesi renderizzata) | 24.0 s | 0.37 MB | -23 | 0.0% |
 
 Il salto di loop è la differenza fra l'ultimo e il primo campione sul confine:
 sotto il 8% non si sente; sopra, il giro va rifilato a orecchio.
@@ -127,10 +128,11 @@ sotto il 8% non si sente; sopra, il giro va rifilato a orecchio.
 - `loop/casino.m4a` — Groovy Jazz — Francisco Alvear: <https://mixkit.co/free-stock-music/lounge/>
 - `loop/leggero.m4a` — Comical — Ahjay Stelino: <https://mixkit.co/free-stock-music/children/>
 - `loop/classifica.m4a` — Feeling Happy — Ahjay Stelino: <https://mixkit.co/free-stock-music/children/>
+- `loop/biglie.m4a` — Rotolamento delle Biglie, sintesi interna: <https://github.com/psiep8/pub_game_FE>
 
 ## Totale
 
-47 file, 11.24 MB. Effetti: bersaglio -16 LUFS con picco ≤ -1 dBTP; sottofondi a -23 LUFS con picco ≤ -1.5 dBTP.
+48 file, 11.61 MB. Effetti: bersaglio -16 LUFS con picco ≤ -1 dBTP; sottofondi a -23 LUFS con picco ≤ -1.5 dBTP.
 
 I suoni sotto 1,2 s sono normalizzati sul picco a −3 dBFS, non sul LUFS:
 sono troppo corti perché la misura integrata abbia senso, quindi in tabella

@@ -7,6 +7,7 @@ import {
 } from './audio-catalog';
 import { AudioEngine } from './audio-engine';
 import { SoundPlayer } from './sound-player';
+import { marbleRollStyle } from './marble-roll';
 import { bell, click, modal, noiseVoice, pluck } from './audio-dsp';
 import {
   bedBar,
@@ -116,6 +117,24 @@ export class AudioService {
 
   stopClock(): void {
     this.player.stopLoop('clock');
+  }
+
+  /**
+   * Sottofondo del rotolamento delle Biglie: parte col via della gara e si
+   * spegne all'arrivo. Il fondo della pista decide passo e timbro dello stesso
+   * file, così la sabbia non suona come il vetro.
+   */
+  startMarbleBed(trackId?: string | null): void {
+    if (!this.audioEnabled()) return;
+    const style = marbleRollStyle(trackId);
+    this.player.startLoop('marbleRoll', style.level, {
+      rate: style.rate,
+      lowpass: style.lowpass,
+    });
+  }
+
+  stopMarbleBed(): void {
+    this.player.stopLoop('marbleRoll');
   }
 
   playBell(): void {
@@ -321,6 +340,7 @@ export class AudioService {
     if (!this.audioEnabled()) {
       this.stopAll();
       this.stopAmbient();
+      this.stopMarbleBed();
       return;
     }
     void this.unlock();

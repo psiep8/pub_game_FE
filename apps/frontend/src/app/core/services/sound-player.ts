@@ -14,6 +14,13 @@ const APPLAUSE_VARIATIONS = [
 interface ActiveLoop {
   source: AudioBufferSourceNode;
   gain: GainNode;
+  filter?: BiquadFilterNode;
+}
+
+/** Ritocco del loop: velocità del nastro e taglio delle alte. */
+export interface LoopStyle {
+  rate?: number;
+  lowpass?: number;
 }
 
 /**
@@ -84,7 +91,7 @@ export class SoundPlayer {
   }
 
   /** Loop continuo (heartbeat, orologio), con il suo volume. */
-  startLoop(event: AudioEventId, level = 1): void {
+  startLoop(event: AudioEventId, level = 1, style: LoopStyle = {}): void {
     const files = AUDIO_FILES[event];
     if (!files || files.length === 0) return;
     const ctx = this.engine.context();
@@ -94,7 +101,7 @@ export class SoundPlayer {
     const url = `assets/audio/${files[0]}`;
     const buffered = this.buffers.get(url);
     if (buffered) {
-      this.startLoopBuffer(ctx, event, buffered, level);
+      this.startLoopBuffer(ctx, event, buffered, level, style);
       return;
     }
     if (buffered === null) {
@@ -110,7 +117,7 @@ export class SoundPlayer {
       .then((buffer) => {
         this.buffers.set(url, buffer);
         if (!this.isEnabled()) return;
-        this.startLoopBuffer(ctx, event, buffer, level);
+        this.startLoopBuffer(ctx, event, buffer, level, style);
       })
       .catch(() => {
         this.buffers.set(url, null);
@@ -124,6 +131,7 @@ export class SoundPlayer {
     try {
       active.source.stop();
       active.source.disconnect();
+      active.filter?.disconnect();
       active.gain.disconnect();
     } catch {
       // già fermo
@@ -140,15 +148,28 @@ export class SoundPlayer {
     event: AudioEventId,
     buffer: AudioBuffer,
     level: number,
+    style: LoopStyle = {},
   ): void {
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     source.loop = true;
+    if (style.rate && Number.isFinite(style.rate)) {
+      source.playbackRate.value = Math.max(0.5, Math.min(1.6, style.rate));
+    }
     const gain = ctx.createGain();
     gain.gain.value = Math.max(0, Math.min(1, level));
-    source.connect(gain).connect(this.engine.room(ctx));
+    let filter: BiquadFilterNode | undefined;
+    if (style.lowpass) {
+      filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = Math.max(400, Math.min(18000, style.lowpass));
+      source.connect(filter).connect(gain);
+    } else {
+      source.connect(gain);
+    }
+    gain.connect(this.engine.room(ctx));
     source.start();
-    this.loops.set(event, { source, gain });
+    this.loops.set(event, { source, gain, filter });
   }
 
   /**

@@ -58,6 +58,8 @@ export const AUDIO_FILES: Partial<Record<string, readonly string[]>> = {
     'bonus/bonusEntrance-5.m4a',
   ],
 
+  marbleRoll: ['loop/biglie.m4a'],
+
   heartbeat: ['attesa/heartbeat.m4a'],
   clock: ['attesa/clock.m4a'],
 };

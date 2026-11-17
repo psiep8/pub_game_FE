@@ -56,3 +56,5 @@ gioco/marbleHit.m4a | Urti delle Biglie — biglia contro biglia | PubGame | htt
 gioco/marbleWall.m4a | Urti delle Biglie — biglia contro muro | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
 gioco/marbleSurfaceHard.m4a | Urti delle Biglie — fondo duro | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
 gioco/marbleSurfaceSoft.m4a | Urti delle Biglie — fondo morbido | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+
+loop/biglie.m4a | Rotolamento delle Biglie | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
