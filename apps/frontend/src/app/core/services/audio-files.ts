@@ -35,6 +35,7 @@ export const AUDIO_FILES: Partial<Record<string, readonly string[]>> = {
   bell: ['gioco/bell.m4a'],
   coins: ['gioco/coins.m4a'],
   explosion: ['gioco/explosion.m4a'],
+  fuse: ['gioco/fuse.m4a'],
   racket: ['gioco/racket.m4a'],
 
   rouletteTicks: ['casino/rouletteTicks.m4a'],

@@ -144,6 +144,7 @@ La durata è il **massimo** dopo il taglio; più corti vanno bene.
 | `elimination` | `gioco/elimination.m4a` | TV | 2 s | `sad trombone`, `low thud`, `game over sting` | Pixabay |
 | `uuuh` | `gioco/uuuh.m4a` | TV | 2 s | `crowd uuuh`, `crowd disappointed`, `boo short` | Freesound CC0 (folla) |
 | `bombSiren` | `gioco/bombSiren.m4a` | entrambi | 4 s | `alarm siren short`, `police siren`, `bomb siren` | Freesound CC0 |
+| `fuse` | `gioco/fuse.m4a` | TV | 2 s | `fuse burning`, `sizzle`, `spark` | Nostra (sintesi renderizzata) |
 | `coins` | `gioco/coins.m4a` | TV | 2,5 s | `coins drop`, `casino chips stack`, `coin clink` | Nostra (sintesi renderizzata) |
 | `explosion` | `gioco/explosion.m4a` | telefono | 2 s | `boom`, `detonation`, `debris` | Nostra (sintesi renderizzata) |
 | `racket` | `gioco/racket.m4a` | telefono | 0,5 s | `ping pong hit`, `tennis ball hit`, `puck hit table` | Nostra (sintesi renderizzata) |
@@ -204,10 +205,10 @@ del presentatore. Durata 90–120 s, −23 LUFS, senza voce cantata.
 
 ## Conto dei file
 
-- 36 effetti (29 eventi con varianti: `rankReveal` ×2, `podiumReveal` ×3,
+- 37 effetti (30 eventi con varianti: `rankReveal` ×2, `podiumReveal` ×3,
   `bonusEntrance` ×5)
 - 6 loop
-- **42 file** in tutto, dentro il limite di 15 MB (effetti ~2 MB, loop ~9 MB a
+- **43 file** in tutto, dentro il limite di 15 MB (effetti ~2 MB, loop ~9 MB a
   128 kbps).
 
 ## Cosa non si tocca

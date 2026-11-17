@@ -365,6 +365,8 @@ export const AUDIO_EVENT_FOR_METHOD = {
   playRacketHit: 'racket',
   playUuuh: 'uuuh',
   playBombSiren: 'bombSiren',
+  playFuse: 'fuse',
+  playExplosion: 'explosion',
   playBonusEntrance: 'bonusEntrance',
   playConfirm: 'confirm',
   playError: 'error',
