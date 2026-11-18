@@ -106,17 +106,13 @@ export class AudioEngine {
     this.applyGain();
   }
 
-  /**
-   * Primo gesto utile: sblocca il contesto una volta e poi si toglie.
-   * `onUnlock` è un lavoro extra del chiamante dopo lo sblocco, se serve.
-   */
-  armUnlock(onUnlock: () => void = () => undefined): void {
+  /** Primo gesto utile: sblocca il contesto una volta e poi si toglie. */
+  armUnlock(): void {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (!(window.AudioContext || (window as any).webkitAudioContext)) return;
 
     const unlock = () => {
       void this.unlock().then(() => {
-        onUnlock();
         window.removeEventListener('pointerdown', unlock, true);
         window.removeEventListener('keydown', unlock, true);
         window.removeEventListener('touchstart', unlock, true);
@@ -128,7 +124,7 @@ export class AudioEngine {
 
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
-        void this.unlock().then(onUnlock);
+        void this.unlock();
       }
     });
   }

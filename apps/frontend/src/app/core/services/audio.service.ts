@@ -117,10 +117,6 @@ export class AudioService {
     this.play('wrong');
   }
 
-  playCoins(): void {
-    this.play('coins');
-  }
-
   playApplause(): void {
     this.play('applause');
   }
@@ -145,10 +141,6 @@ export class AudioService {
     this.play(soft ? 'marbleSurfaceSoft' : 'marbleSurfaceHard');
   }
 
-  playUuuh(): void {
-    this.play('uuuh');
-  }
-
   playBombSiren(): void {
     this.play('bombSiren');
   }
@@ -156,14 +148,6 @@ export class AudioService {
   playBonusEntrance(type: string): void {
     const index = BONUS_ENTRANCE_TYPES.indexOf(type as (typeof BONUS_ENTRANCE_TYPES)[number]);
     this.play('bonusEntrance', index < 0 ? 0 : index);
-  }
-
-  playConfirm(): void {
-    this.play('confirm');
-  }
-
-  playError(): void {
-    this.play('error');
   }
 
   playGong(): void {
@@ -270,11 +254,6 @@ export class AudioService {
     this.player.startBed(next.file, BED_LEVEL, BED_FADE_SECONDS);
   }
 
-  /** Sottofondo attivo: la regia lo mostra e i test lo controllano. */
-  currentBed(): BedLoop {
-    return this.bedLoop;
-  }
-
   stopAmbient(): void {
     this.player.stopBed(BED_STOP_SECONDS);
   }
@@ -331,11 +310,6 @@ export class AudioService {
     const clamped = Math.max(0, Math.min(1, Number.isFinite(value) ? value : 1));
     this.masterVolume.set(clamped);
     this.engine.setVolume(clamped);
-  }
-
-  /** Un evento del catalogo per id, con etichetta e regole: lo usa la regia. */
-  event(id: AudioEventId) {
-    return AUDIO_EVENTS[id];
   }
 
   /** Contesto condiviso: anche il Quiz musicale ci appende i suoi filtri. */

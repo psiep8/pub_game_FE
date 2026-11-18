@@ -25,7 +25,7 @@ interface ActiveBed {
 }
 
 /** Ritocco del loop: velocità del nastro e taglio delle alte. */
-export interface LoopStyle {
+interface LoopStyle {
   rate?: number;
   lowpass?: number;
 }
@@ -148,10 +148,6 @@ export class SoundPlayer {
       // già fermo
     }
     this.loops.delete(event);
-  }
-
-  stopAllLoops(): void {
-    for (const event of [...this.loops.keys()]) this.stopLoop(event as AudioEventId);
   }
 
   /**

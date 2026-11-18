@@ -1,5 +1,17 @@
 # Changelog
 
+## 18 novembre 2026 — armUnlock senza callback, via gli ultimi metodi morti
+
+- `armUnlock()` non accetta più `onUnlock`: nessun chiamante lo passava dopo
+  l'uscita di Foley. Il gesto che sblocca il contesto fa una cosa sola.
+- Tolti i metodi di `AudioService` che nessuno chiama: `playCoins`,
+  `playUuuh`, `playConfirm`, `playError`, `currentBed` e `event()`, con le
+  rispettive voci in `AUDIO_EVENT_FOR_METHOD` e nei doppi di test. Gli eventi
+  restano nel catalogo: sono i metodi a non servire, non i suoni.
+- `SoundPlayer.stopAllLoops()` eliminato (nessun chiamante) e `LoopStyle` non è
+  più esportato: è un tipo interno di `startLoop`.
+- Verifiche: **484 test su 55 file**, `tsc` pulito, build di produzione.
+
 ## 18 novembre 2026 — Via la sintesi: resta solo la coda di stanza
 
 - **Cancellati `bed-profiles.ts` e la sua spec** (572 righe): i sedici tappeti

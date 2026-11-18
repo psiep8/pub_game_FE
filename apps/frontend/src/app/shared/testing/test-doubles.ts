@@ -1,8 +1,6 @@
 import { signal, WritableSignal } from '@angular/core';
 import { EMPTY, Observable, of, Subject, throwError } from 'rxjs';
 
-import { bedLoopForGame } from '../../core/services/bed-loops';
-
 /**
  * Doppi di test condivisi.
  *
@@ -261,7 +259,6 @@ export class FakeAudioService {
   readonly stopAmbient = () => this.played.push('stop-ambient');
   readonly setGameBed = (type: string | null) => this.played.push(`bed-${type ?? 'lobby'}`);
   readonly setBedLoop = (id: string) => this.played.push(`bed-loop-${id}`);
-  readonly currentBed = () => bedLoopForGame(null);
   readonly playJoin = () => this.played.push('join');
   readonly playCountdownTick = () => this.played.push('countdown-tick');
   readonly playCountdownBong = () => this.played.push('countdown-bong');
@@ -280,14 +277,10 @@ export class FakeAudioService {
   readonly playBell = () => this.played.push('bell');
   readonly playCorrect = () => this.played.push('correct');
   readonly playWrong = () => this.played.push('wrong');
-  readonly playCoins = () => this.played.push('coins');
   readonly playApplause = () => this.played.push('applause');
-  readonly playUuuh = () => this.played.push('uuuh');
   readonly playBombSiren = () => this.played.push('bomb-siren');
   readonly playFuse = () => this.played.push('fuse');
   readonly playExplosion = () => this.played.push('explosion');
-  readonly playConfirm = () => this.played.push('confirm');
-  readonly playError = () => this.played.push('error');
   readonly playReveal = () => this.played.push('reveal');
   readonly playBonusEntrance = (type: string) => this.played.push(`bonus-entrance-${type}`);
   readonly playRouletteTicks = (_ms = 0) => this.played.push('roulette-ticks');
