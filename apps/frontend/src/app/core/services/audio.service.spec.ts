@@ -62,3 +62,65 @@ describe('AudioService — pausa della TV', () => {
     expect(calls).not.toContain('start-loop:marbleRoll');
   });
 });
+
+/**
+ * Musica e Time Buzzer non vogliono un tappeto sotto: il loro sottofondo è il
+ * silenzio, non il jazz della lobby abbassato.
+ */
+describe('AudioService — giochi muti', () => {
+  let audio: AudioService;
+  let calls: string[];
+
+  const started = () => calls.filter((call) => call.startsWith('start-bed'));
+
+  beforeEach(() => {
+    audio = new AudioService();
+    calls = [];
+    const player = (audio as unknown as { player: Record<string, unknown> }).player;
+    player['startBed'] = (file: string) => calls.push(`start-bed:${file}`);
+    player['stopBed'] = () => calls.push('stop-bed');
+    player['startLoop'] = (event: string) => calls.push(`start-loop:${event}`);
+    player['stopLoop'] = (event: string) => calls.push(`stop-loop:${event}`);
+    player['isLooping'] = () => false;
+  });
+
+  it('Musica spegne il sottofondo invece di suonare la lobby', () => {
+    audio.setGameBed('TIMELINE');
+    calls.length = 0;
+
+    audio.setGameBed('MUSIC');
+
+    expect(calls).toContain('stop-bed');
+    expect(started()).toEqual([]);
+  });
+
+  it('Time Buzzer tace anche se arriva dopo un gioco con il suo loop', () => {
+    audio.setGameBed('BOMBA');
+    calls.length = 0;
+
+    audio.setGameBed('TIME_BUZZER');
+
+    expect(calls).toContain('stop-bed');
+    expect(started()).toEqual([]);
+  });
+
+  it('dopo la pausa un gioco muto resta muto', () => {
+    audio.setGameBed('MUSIC');
+    calls.length = 0;
+
+    audio.pauseBeds();
+    calls.length = 0;
+    audio.resumeBeds();
+
+    expect(started()).toEqual([]);
+  });
+
+  it('uscendo dalla Musica il sottofondo torna', () => {
+    audio.setGameBed('MUSIC');
+    calls.length = 0;
+
+    audio.setGameBed('QUIZ');
+
+    expect(started()).toEqual(['start-bed:loop/lobby.m4a']);
+  });
+});

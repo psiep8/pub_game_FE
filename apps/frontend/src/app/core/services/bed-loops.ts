@@ -4,13 +4,19 @@
  * <p>I nomi sono quelli del manifesto (`docs/MANIFESTO-AUDIO.md`): sei file sono
  * già arrivati — lobby, gioco-bomba, gioco-tennis, gioco-casino, gioco-cavallo e
  * classifica — e nella prossima tappa la mappa diventerà `bed-map.ts`, con le
- * basi d'atto e un sottofondo per gioco. Fino ad allora ogni gioco suona il
- * file della sua famiglia e la lobby fa da ripiego.</p>
+ * basi d'atto. Fino ad allora ogni gioco suona il file della sua famiglia e la
+ * lobby fa da ripiego.</p>
+ *
+ * <p>La mappa è tipata su `GameModeType`: un gioco nuovo non compila finché non
+ * gli si assegna un sottofondo o non lo si dichiara muto. Musica e Time Buzzer
+ * suonano nel silenzio (`null`): il gong e le canzoni non vogliono un tappeto
+ * sotto.</p>
  *
  * <p>Classifiche e podio hanno una fanfara loro, scelta dalla TV con
- * `setBedLoop('classifica')`: non sono giochi e non passano da
- * `bedLoopForGame`.</p>
+ * `setBedLoop('classifica')`: non sono giochi e non passano da `bedForGame`.</p>
  */
+import type { GameModeType } from '../../shared/enums/game-mode-type';
+
 export type BedLoopId =
   | 'lobby'
   | 'gioco-bomba'
@@ -36,30 +42,38 @@ export const BED_LOOPS: Record<BedLoopId, BedLoop> = {
   classifica: { id: 'classifica', label: 'Classifica e podio', file: 'loop/classifica.m4a' },
 };
 
-const GAME_BEDS: Record<string, BedLoopId> = {
-  QUIZ: 'lobby',
-  MUSIC: 'lobby',
-  IMAGE_BLUR: 'lobby',
-  TIMELINE: 'lobby',
-  ULTIMA_SPIAGGIA: 'lobby',
-  BOMBA: 'gioco-bomba',
-  ARENA: 'gioco-bomba',
-  TIME_BUZZER: 'gioco-bomba',
-  SPEED_RUSH: 'gioco-bomba',
-  TENNIS_BATTLE: 'gioco-tennis',
-  BIGLIE: 'gioco-tennis',
-  AZZARDO: 'gioco-casino',
-  WHEEL_OF_FORTUNE: 'gioco-casino',
-  BLACKJACK: 'gioco-casino',
-  CASINO_COLOR: 'gioco-casino',
-  CASINO_DOZEN: 'gioco-casino',
-  CASINO_NUMBER: 'gioco-casino',
-  CAVALLO: 'gioco-cavallo',
+/**
+ * Un gioco per ogni modalità vera, `null` dove il sottofondo non ci va.
+ * Il tipo `Record<GameModeType, …>` è il guardiano: aggiungere un gioco a
+ * `GameModeType` senza una riga qui è un errore di compilazione.
+ */
+export const GAME_BEDS: Record<GameModeType, BedLoop | null> = {
+  QUIZ: BED_LOOPS.lobby,
+  MUSIC: null,
+  IMAGE_BLUR: BED_LOOPS.lobby,
+  WHEEL_OF_FORTUNE: BED_LOOPS.lobby,
+  TIMELINE: BED_LOOPS.lobby,
+  ULTIMA_SPIAGGIA: BED_LOOPS.lobby,
+  ARENA: BED_LOOPS['gioco-bomba'],
+  TIME_BUZZER: null,
+  BOMBA: BED_LOOPS['gioco-bomba'],
+  SPEED_RUSH: BED_LOOPS['gioco-bomba'],
+  TENNIS_BATTLE: BED_LOOPS['gioco-tennis'],
+  BIGLIE: BED_LOOPS['gioco-tennis'],
+  AZZARDO: BED_LOOPS['gioco-casino'],
+  BLACKJACK: BED_LOOPS['gioco-casino'],
 };
 
-/** Famiglia del sottofondo per il tipo di gioco in corso. */
-export function bedLoopForGame(type?: string | null): BedLoop {
+/** Giochi che suonano senza sottofondo: gong, canzoni e silenzio voluto. */
+export const SILENT_GAME_TYPES: readonly GameModeType[] = ['MUSIC', 'TIME_BUZZER'];
+
+/**
+ * Sottofondo del gioco in corso, `null` quando il gioco vuole silenzio.
+ * Lobby e tipi sconosciuti (nessun round aperto) riprendono il file della lobby.
+ */
+export function bedForGame(type?: string | null): BedLoop | null {
   const key = String(type ?? '').trim();
-  const id = key ? GAME_BEDS[key] ?? 'lobby' : 'lobby';
-  return BED_LOOPS[id];
+  if (!key) return BED_LOOPS.lobby;
+  if (!(key in GAME_BEDS)) return BED_LOOPS.lobby;
+  return GAME_BEDS[key as GameModeType];
 }

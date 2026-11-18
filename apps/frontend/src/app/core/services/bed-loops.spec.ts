@@ -1,8 +1,37 @@
 import { describe, expect, it } from 'vitest';
 
-import { BED_LOOPS, bedLoopForGame } from './bed-loops';
+import { GAME_MODE_TYPES } from '../../shared/enums/game-mode-type';
+import { BED_LOOPS, GAME_BEDS, SILENT_GAME_TYPES, bedForGame } from './bed-loops';
 
 describe('Sottofondi registrati', () => {
+  it('ha un sottofondo per ogni gioco vero, o il silenzio dichiarato', () => {
+    const senzaBed = GAME_MODE_TYPES.filter(
+      (type) => !GAME_BEDS[type] && !SILENT_GAME_TYPES.includes(type),
+    );
+    expect(senzaBed, `giochi senza sottofondo né silenzio: ${senzaBed.join(', ')}`).toEqual([]);
+
+    for (const type of GAME_MODE_TYPES) {
+      const bed = bedForGame(type);
+      const silent = SILENT_GAME_TYPES.includes(type);
+      if (silent) {
+        expect(bed, `${type} deve suonare nel silenzio`).toBeNull();
+      } else {
+        expect(bed, `${type} deve avere un loop`).not.toBeNull();
+        if (!bed) continue;
+        expect(BED_LOOPS[bed.id], `${type} punta a un id inesistente`).toBeTruthy();
+      }
+    }
+  });
+
+  it('non inventa tipi e non dichiara muto un gioco che ha un sottofondo', () => {
+    const veri = new Set<string>(GAME_MODE_TYPES);
+    const fantasmi = Object.keys(GAME_BEDS).filter((type) => !veri.has(type));
+    expect(fantasmi, `tipi nella mappa che il gioco non conosce: ${fantasmi.join(', ')}`).toEqual([]);
+
+    const doppi = SILENT_GAME_TYPES.filter((type) => GAME_BEDS[type]);
+    expect(doppi, `dichiarati muti ma con un loop: ${doppi.join(', ')}`).toEqual([]);
+  });
+
   it('ha sei file per intanto, ognuno con un nome del manifesto', () => {
     const loops = Object.values(BED_LOOPS);
     expect(loops).toHaveLength(6);
@@ -14,35 +43,35 @@ describe('Sottofondi registrati', () => {
   });
 
   it('manda ogni gioco nel file che gli spetta', () => {
-    expect(bedLoopForGame('QUIZ').id).toBe('lobby');
-    expect(bedLoopForGame('MUSIC').id).toBe('lobby');
-    expect(bedLoopForGame('IMAGE_BLUR').id).toBe('lobby');
-    expect(bedLoopForGame('TIMELINE').id).toBe('lobby');
-    expect(bedLoopForGame('ULTIMA_SPIAGGIA').id).toBe('lobby');
+    expect(bedForGame('QUIZ')?.id).toBe('lobby');
+    expect(bedForGame('IMAGE_BLUR')?.id).toBe('lobby');
+    expect(bedForGame('WHEEL_OF_FORTUNE')?.id).toBe('lobby');
+    expect(bedForGame('TIMELINE')?.id).toBe('lobby');
+    expect(bedForGame('ULTIMA_SPIAGGIA')?.id).toBe('lobby');
 
-    expect(bedLoopForGame('BOMBA').id).toBe('gioco-bomba');
-    expect(bedLoopForGame('ARENA').id).toBe('gioco-bomba');
-    expect(bedLoopForGame('TIME_BUZZER').id).toBe('gioco-bomba');
-    expect(bedLoopForGame('SPEED_RUSH').id).toBe('gioco-bomba');
+    expect(bedForGame('BOMBA')?.id).toBe('gioco-bomba');
+    expect(bedForGame('ARENA')?.id).toBe('gioco-bomba');
+    expect(bedForGame('SPEED_RUSH')?.id).toBe('gioco-bomba');
 
-    expect(bedLoopForGame('TENNIS_BATTLE').id).toBe('gioco-tennis');
-    expect(bedLoopForGame('BIGLIE').id).toBe('gioco-tennis');
+    expect(bedForGame('TENNIS_BATTLE')?.id).toBe('gioco-tennis');
+    expect(bedForGame('BIGLIE')?.id).toBe('gioco-tennis');
 
-    expect(bedLoopForGame('AZZARDO').id).toBe('gioco-casino');
-    expect(bedLoopForGame('WHEEL_OF_FORTUNE').id).toBe('gioco-casino');
-    expect(bedLoopForGame('BLACKJACK').id).toBe('gioco-casino');
-    expect(bedLoopForGame('CASINO_COLOR').id).toBe('gioco-casino');
-    expect(bedLoopForGame('CASINO_DOZEN').id).toBe('gioco-casino');
-    expect(bedLoopForGame('CASINO_NUMBER').id).toBe('gioco-casino');
+    expect(bedForGame('AZZARDO')?.id).toBe('gioco-casino');
+    expect(bedForGame('BLACKJACK')?.id).toBe('gioco-casino');
+  });
 
-    expect(bedLoopForGame('CAVALLO').id).toBe('gioco-cavallo');
+  it('lascia Musica e Time Buzzer in silenzio', () => {
+    expect(bedForGame('MUSIC')).toBeNull();
+    expect(bedForGame('TIME_BUZZER')).toBeNull();
+    expect(GAME_BEDS.MUSIC).toBeNull();
+    expect(GAME_BEDS.TIME_BUZZER).toBeNull();
   });
 
   it('lascia la lobby e i tipi sconosciuti sul file della lobby', () => {
-    expect(bedLoopForGame(null).id).toBe('lobby');
-    expect(bedLoopForGame(undefined).id).toBe('lobby');
-    expect(bedLoopForGame('').id).toBe('lobby');
-    expect(bedLoopForGame('LEADERBOARD').id).toBe('lobby');
-    expect(bedLoopForGame('NON_ESISTE').id).toBe('lobby');
+    expect(bedForGame(null)?.id).toBe('lobby');
+    expect(bedForGame(undefined)?.id).toBe('lobby');
+    expect(bedForGame('')?.id).toBe('lobby');
+    expect(bedForGame('LEADERBOARD')?.id).toBe('lobby');
+    expect(bedForGame('NON_ESISTE')?.id).toBe('lobby');
   });
 });

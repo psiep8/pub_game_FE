@@ -1,5 +1,24 @@
 # Changelog
 
+## 18 novembre 2026 — Ogni gioco ha il suo sottofondo, o il silenzio
+
+- La mappa dei sottofondi è tipata su `GameModeType`: aggiungere un gioco senza
+  assegnargli un loop **non compila**. Niente più id scritti a mano che possono
+  invecchiare in silenzio.
+- Un test enumera `GAME_MODE_TYPES` (i tipi veri, non una lista scritta a mano)
+  e fallisce se un gioco non ha né un loop né il silenzio dichiarato, se la mappa
+  contiene un tipo che il gioco non conosce o se un gioco è insieme mappato e
+  muto.
+- **Musica e Time Buzzer suonano nel silenzio**: `bedForGame` torna `null`,
+  `applyBed` spegne il loop in onda e `startAmbient` non ne accende un altro.
+  Prima ereditavano il jazz della lobby.
+- Quattro test nuovi in `audio.service.spec.ts` (Musica, Time Buzzer, pausa di un
+  gioco muto, ritorno del sottofondo uscendo dalla Musica) e tre in
+  `bed-loops.spec.ts`.
+- Verifiche: **495 test su 56 file**, `tsc` pulito, build di produzione.
+  **Non fatto:** la regola dei −6 dB per Quiz e Indovina chi durante la domanda
+  arriva con `bed-map.ts`; il file `gioco-cavallo` resta pronto per il bonus.
+
 ## 18 novembre 2026 — I venti sottofondi hanno un nome, e sei file ce l'hanno già
 
 - Il manifesto elenca i **20 loop** della spec: cinque basi d'atto

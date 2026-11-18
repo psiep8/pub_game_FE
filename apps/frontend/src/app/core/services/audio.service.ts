@@ -7,7 +7,7 @@ import {
 import { AudioEngine } from './audio-engine';
 import { SoundPlayer } from './sound-player';
 import { marbleRollStyle } from './marble-roll';
-import { BED_LOOPS, bedLoopForGame, type BedLoop, type BedLoopId } from './bed-loops';
+import { BED_LOOPS, bedForGame, type BedLoop, type BedLoopId } from './bed-loops';
 
 /** Volume del sottofondo: i loop sono a −23 LUFS, già sotto la voce. */
 const BED_LEVEL = 0.9;
@@ -19,8 +19,9 @@ const BED_STOP_SECONDS = 0.6;
 /**
  * Suoni della serata.
  *
- * Gli effetti e i sottofondi sono file (`assets/audio/...`): sei famiglie di
- * loop registrati, una per gioco, con dissolvenza incrociata al cambio.
+ * Gli effetti e i sottofondi sono file (`assets/audio/...`): loop registrati
+ * per famiglia, con dissolvenza incrociata al cambio. Musica e Time Buzzer
+ * stanno nel silenzio: per loro il sottofondo è `null`, non la lobby.
  * Nessun evento ricade sulla sintesi: un file mancante si sente in console.
  */
 @Injectable({ providedIn: 'root' })
@@ -28,8 +29,8 @@ export class AudioService {
   private readonly audioEnabled = signal(true);
   private readonly engine = new AudioEngine();
   private readonly player: SoundPlayer;
-  /** Sottofondo attivo: uno dei sei loop registrati, deciso da `setGameBed`. */
-  private bedLoop: BedLoop = bedLoopForGame(null);
+  /** Sottofondo attivo: un loop registrato, o `null` per i giochi muti. */
+  private bedLoop: BedLoop | null = BED_LOOPS.lobby;
   /** Ultima pista in gara: serve a riaccendere il rotolamento dopo una pausa. */
   private marbleTrack: string | null = null;
   /** Il rotolamento era in onda quando la TV è andata in pausa. */
@@ -253,17 +254,18 @@ export class AudioService {
    * gioco (`setGameBed`) o la TV va in pausa (`stopAmbient`).
    */
   startAmbient(): void {
-    if (!this.audioEnabled()) return;
+    if (!this.audioEnabled() || !this.bedLoop) return;
     this.player.startBed(this.bedLoop.file, BED_LEVEL, BED_FADE_SECONDS);
   }
 
   /**
    * Cambia il sottofondo: il gioco appena partito porta la sua famiglia di
    * loop, con dissolvenza incrociata di 1,5 s. Stessa famiglia = nessuno
-   * stacco, il file continua a girare.
+   * stacco, il file continua a girare. Musica e Time Buzzer chiedono il
+   * silenzio: il loop in onda si spegne e non ne parte un altro.
    */
   setGameBed(gameType: string | null | undefined): void {
-    this.applyBed(bedLoopForGame(gameType));
+    this.applyBed(bedForGame(gameType));
   }
 
   /**
@@ -274,10 +276,14 @@ export class AudioService {
     this.applyBed(BED_LOOPS[id]);
   }
 
-  private applyBed(next: BedLoop): void {
-    if (next.id === this.bedLoop.id) return;
+  private applyBed(next: BedLoop | null): void {
+    if ((next?.id ?? null) === (this.bedLoop?.id ?? null)) return;
     this.bedLoop = next;
     if (!this.audioEnabled()) return;
+    if (!next) {
+      this.player.stopBed(BED_STOP_SECONDS);
+      return;
+    }
     this.player.startBed(next.file, BED_LEVEL, BED_FADE_SECONDS);
   }
 
