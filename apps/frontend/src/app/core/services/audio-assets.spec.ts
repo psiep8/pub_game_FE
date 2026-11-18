@@ -23,12 +23,6 @@ const playedFiles = [
   ...new Set(Object.values(BED_LOOPS).map((loop) => loop.file)),
 ].sort();
 
-function sizeOf(relative: string): number {
-  const absolute = join(AUDIO_ROOT, relative);
-  if (!existsSync(absolute)) return 0;
-  return statSync(absolute).size;
-}
-
 /** Righe di `FONTI.txt`: percorso | titolo | autore | URL | licenza. */
 function creditedFiles(): string[] {
   return readFileSync(join(AUDIO_ROOT, 'FONTI.txt'), 'utf8')
@@ -67,7 +61,10 @@ describe('File audio della serata', () => {
   });
 
   it('resta sotto i 15 MB di audio', () => {
-    const bytes = playedFiles.reduce((total, file) => total + sizeOf(file), 0);
+    const bytes = playedFiles.reduce(
+      (total, file) => total + statSync(join(AUDIO_ROOT, file)).size,
+      0,
+    );
     expect(bytes).toBeLessThan(15 * 1024 * 1024);
   });
 

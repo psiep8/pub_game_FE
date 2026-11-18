@@ -66,6 +66,19 @@ describe('GameComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('mette il loop della classifica quando la classifica è in TV', () => {
+    const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
+
+    component.pendingLeaderboardType.set('QUICK');
+    component.showPendingLeaderboard();
+    expect(audio.played).toContain('bed-LEADERBOARD');
+
+    component.adminShowLeaderboard();
+    component.closeLeaderboard();
+    // Chiusa la classifica si torna alla lobby (nessun gioco aperto).
+    expect(audio.played).toContain('bed-lobby');
+  });
+
   it('applica una sola volta l\'esito Quiz arrivato dal server', () => {
     const applyServerAnswer = vi.fn().mockReturnValueOnce(true).mockReturnValueOnce(false);
     component.currentMode.set({ type: 'QUIZ', applyServerAnswer } as any);

@@ -1718,22 +1718,21 @@ export class GameComponent implements OnInit, OnDestroy {
     this.showLeaderboardDetailed.set(false);
     this.isShowingLeaderboard.set(false);
     this.pendingLeaderboardType.set(null);
+    // Chiusa la classifica si torna al gioco aperto, o alla lobby.
+    this.audioService.setGameBed(this.currentMode()?.type ?? null);
   }
 
   showPendingLeaderboard() {
     const type = this.pendingLeaderboardType();
-    if (type === 'QUICK') {
-
-      this.isShowingLeaderboard.set(true);
-      this.theme.applyFromRemote('editorial-acid');
-      this.showLeaderboardQuick.set(true);
-    } else if (type === 'DETAILED') {
-
-      this.isShowingLeaderboard.set(true);
-      this.theme.applyFromRemote('editorial-acid');
-      this.showLeaderboardDetailed.set(true);
-    }
     this.pendingLeaderboardType.set(null);
+    if (!type) return;
+
+    this.isShowingLeaderboard.set(true);
+    this.theme.applyFromRemote('editorial-acid');
+    // Classifica e podio cambiano disco: parte la fanfara registrata.
+    this.audioService.setGameBed('LEADERBOARD');
+    this.showLeaderboardQuick.set(type === 'QUICK');
+    this.showLeaderboardDetailed.set(type === 'DETAILED');
   }
 
   onLeaderboardComplete() {
@@ -1840,6 +1839,8 @@ export class GameComponent implements OnInit, OnDestroy {
 
     this.pendingLeaderboardType.set(null);
     this.isShowingLeaderboard.set(true);
+    // Anche la classifica forzata dalla regia ha il suo loop.
+    this.audioService.setGameBed('LEADERBOARD');
 
     if (type === 'DETAILED') {
       this.showLeaderboardQuick.set(false);

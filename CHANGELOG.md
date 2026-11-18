@@ -1,5 +1,21 @@
 # Changelog
 
+## 18 novembre 2026 — La classifica suona la sua fanfara
+
+- **Il sesto loop non resta mai muto.** La TV chiede `LEADERBOARD` quando
+  mostra la classifica rapida, quella dettagliata, il podio e la classifica
+  finale (anche forzata dalla regia): parte la famiglia `classifica` con la
+  stessa dissolvenza di 1,5 s. `closeLeaderboard()` riporta il sottofondo al
+  gioco aperto, o alla lobby se non c'è un round.
+- **Ripulito il sottofondo del giro precedente:** via il campo `games` (non lo
+  leggeva nessuno) e le tre chiavi `LEADERBOARD_QUICK`, `LEADERBOARD_DETAILED`,
+  `PODIUM`, ridotte alla sola `LEADERBOARD`; `startAmbient()` non accetta più un
+  tipo che nessun chiamante passava; `showPendingLeaderboard()` non duplica più
+  i due rami.
+- Verifiche: **1 test nuovo** (classifica → lobby) e suite frontend **493 test
+  su 57 file**, build di produzione. **Non fatto:** l'ascolto della fanfara e
+  della dissolvenza in sala.
+
 ## 18 novembre 2026 — I giochi suonano i sei loop registrati
 
 - **Via i tappeti generati dal vivo.** Il sottofondo non si costruisce più

@@ -3,9 +3,10 @@
  *
  * <p>Ogni gioco suona uno dei file di `assets/audio/loop`: jazz da pub per i
  * quiz, percussioni in salita per i giochi a tempo, rock dritto per lo sport,
- * lounge da sala giochi per il Casino, marimba per il Cavallo e una fanfara
- * festosa per classifiche e podio. Il file è lo stesso per tutta la famiglia:
- * cambiare gioco cambia disco, non musica suonata al volo.</p>
+ * lounge da sala giochi per il Casino e la marimba per il Cavallo. Classifiche
+ * e podio hanno una fanfara loro, chiesta dalla TV con la chiave `LEADERBOARD`.
+ * Il file è lo stesso per tutta la famiglia: cambiare gioco cambia disco, non
+ * musica suonata al volo.</p>
  *
  * <p>Il manifesto (`docs/MANIFESTO-AUDIO.md`) assegna ogni gioco alla sua
  * famiglia; qui c'è la stessa mappa in codice, con il pub come ripiego per la
@@ -19,47 +20,15 @@ export interface BedLoop {
   label: string;
   /** Percorso dentro `assets/audio`. */
   file: string;
-  /** Giochi serviti dalla famiglia, per la pagina `/audio`. */
-  games: readonly string[];
 }
 
 export const BED_LOOPS: Record<BedLoopId, BedLoop> = {
-  pub: {
-    id: 'pub',
-    label: 'Pub allegro',
-    file: 'loop/pub.m4a',
-    games: ['Lobby', 'Quiz', 'Canzone', 'Immagine sfocata', 'Timeline', 'Ultima spiaggia'],
-  },
-  tensione: {
-    id: 'tensione',
-    label: 'Tensione',
-    file: 'loop/tensione.m4a',
-    games: ['Bomba', 'Arena', 'Time Buzzer', 'Speed Rush'],
-  },
-  sport: {
-    id: 'sport',
-    label: 'Sport',
-    file: 'loop/sport.m4a',
-    games: ['Tennis', 'Biglie'],
-  },
-  casino: {
-    id: 'casino',
-    label: 'Casino',
-    file: 'loop/casino.m4a',
-    games: ['Azzardo', 'Ruota della fortuna', 'Blackjack', 'Bonus Casino'],
-  },
-  leggero: {
-    id: 'leggero',
-    label: 'Leggero e curioso',
-    file: 'loop/leggero.m4a',
-    games: ['Cavallo'],
-  },
-  classifica: {
-    id: 'classifica',
-    label: 'Classifica e podio',
-    file: 'loop/classifica.m4a',
-    games: ['Classifica rapida', 'Classifica dettagliata', 'Podio'],
-  },
+  pub: { id: 'pub', label: 'Pub allegro', file: 'loop/pub.m4a' },
+  tensione: { id: 'tensione', label: 'Tensione', file: 'loop/tensione.m4a' },
+  sport: { id: 'sport', label: 'Sport', file: 'loop/sport.m4a' },
+  casino: { id: 'casino', label: 'Casino', file: 'loop/casino.m4a' },
+  leggero: { id: 'leggero', label: 'Leggero e curioso', file: 'loop/leggero.m4a' },
+  classifica: { id: 'classifica', label: 'Classifica e podio', file: 'loop/classifica.m4a' },
 };
 
 const GAME_BEDS: Record<string, BedLoopId> = {
@@ -81,10 +50,8 @@ const GAME_BEDS: Record<string, BedLoopId> = {
   CASINO_DOZEN: 'casino',
   CASINO_NUMBER: 'casino',
   CAVALLO: 'leggero',
+  /** Classifica rapida, dettagliata, podio e classifica finale: la stessa fanfara. */
   LEADERBOARD: 'classifica',
-  LEADERBOARD_QUICK: 'classifica',
-  LEADERBOARD_DETAILED: 'classifica',
-  PODIUM: 'classifica',
 };
 
 /** Famiglia del sottofondo per il tipo di gioco in corso. */

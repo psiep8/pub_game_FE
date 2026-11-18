@@ -10,7 +10,6 @@ describe('Sottofondi registrati', () => {
     for (const loop of loops) {
       expect(loop.label.length, loop.id).toBeGreaterThan(3);
       expect(loop.file, loop.id).toMatch(/^loop\/[a-z]+\.m4a$/);
-      expect(loop.games.length, loop.id).toBeGreaterThan(0);
     }
   });
 
@@ -39,8 +38,6 @@ describe('Sottofondi registrati', () => {
     expect(bedLoopForGame('CAVALLO').id).toBe('leggero');
 
     expect(bedLoopForGame('LEADERBOARD').id).toBe('classifica');
-    expect(bedLoopForGame('LEADERBOARD_DETAILED').id).toBe('classifica');
-    expect(bedLoopForGame('PODIUM').id).toBe('classifica');
   });
 
   it('lascia la lobby e i tipi sconosciuti sul pub', () => {

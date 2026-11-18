@@ -278,9 +278,8 @@ export class AudioService {
    * generato battuta per battuta. Il file resta in onda finché non cambia il
    * gioco (`setGameBed`) o la TV va in pausa (`stopAmbient`).
    */
-  startAmbient(gameType?: string | null): void {
+  startAmbient(): void {
     if (!this.audioEnabled()) return;
-    if (gameType !== undefined) this.setGameBed(gameType);
     this.player.startBed(this.bedLoop.file, BED_LEVEL, BED_FADE_SECONDS);
   }
 
