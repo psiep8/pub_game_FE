@@ -261,6 +261,7 @@ export class FakeAudioService {
   readonly resumeBeds = () => this.played.push('resume-beds');
   readonly setGameBed = (type: string | null) => this.played.push(`bed-${type ?? 'lobby'}`);
   readonly setBedLoop = (id: string) => this.played.push(`bed-loop-${id}`);
+  readonly setQuestionActive = (open: boolean) => this.played.push(open ? 'question-open' : 'question-closed');
   readonly playJoin = () => this.played.push('join');
   readonly playCountdownTick = () => this.played.push('countdown-tick');
   readonly playCountdownBong = () => this.played.push('countdown-bong');

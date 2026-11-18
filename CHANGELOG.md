@@ -15,12 +15,34 @@
 - `AudioService`: arrivano `setActBed(atto)` e `setQuestionActive(aperta)`; il
   sottofondo si abbassa di 6 dB senza riavviarsi (`SoundPlayer.setBedLevel`),
   torna su alla chiusura e riparte pieno a ogni cambio gioco. `setGameBed` ora
-  conosce l'atto in corso. La TV non chiama ancora `setQuestionActive`: la
-  regola è pronta nel servizio, il gancio arriva con il resto del §4.2.
+  conosce l'atto in corso. Il gancio della TV a `setQuestionActive` non c'è
+  ancora in questo commit: arriva con la voce successiva.
 - Test: nuovo `bed-map.spec.ts` (atti, giochi, −6 dB, READY_ACTS contro il disco)
   e `audio-question-bed.spec.ts` (0,451 a domanda aperta, 0,900 alla chiusura,
   nessun abbassamento sui giochi con loop proprio, nessuna rampa doppia).
-- Verifiche: `tsc` pulito, `ng test` verde, build di produzione.
+- Verifiche: `tsc` pulito, **509 test su 58 file**, `ng build` di produzione
+  completato in 65 s. Gli avvisi sono quelli già noti, non introdotti qui:
+  `game.component.css` supera il budget di 1,15 kB (37,15 kB su 36 kB) e
+  `qrcode`/`matter-js` non sono ESM. Nessun ascolto dei loop.
+
+## 18 novembre 2026 — La TV abbassa la musica quando la domanda è aperta
+
+- **Il gancio c'è:** `GameModeConfig.onQuestionOpenChange` è collegato in
+  `buildModeConfig` a `AudioService.setQuestionActive`, quindi la regola dei
+  −6 dB adesso arriva dai momenti veri del round e non solo dai test del
+  servizio.
+- **Quiz:** la domanda si apre all'inizio di ogni manche e si chiude quando il
+  tempo scade, quando la TV riprende una manche già in suspense o in soluzione
+  e alla chiusura del round. La manche successiva la riapre.
+- **Indovina chi:** si apre con la foto, si chiude al buzz (da lì si risponde) e
+  si riapre se il presentatore dà la risposta per sbagliata, perché il round
+  riprende. Pausa, chiusura e uscita dal round la riportano su.
+- Test: `game.component.spec.ts` fa partire un Quiz vero sulla configurazione
+  della TV e vede `question-open` → `question-closed` sul doppio audio;
+  `image-blur.mode.spec.ts` segue apertura, buzz e riapertura dopo lo sbaglio.
+- Verifiche: **511 test su 58 file**, `tsc` pulito, `ng build` di produzione in
+  60 s con gli stessi avvisi già noti. **Non fatto:** nessun ascolto, quindi non
+  so se i −6 dB si sentono giusti in sala.
 
 ## 18 novembre 2026 — La pipeline dei loop rifiuta quello che non va, e dice cosa consegnare
 

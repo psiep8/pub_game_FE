@@ -66,6 +66,11 @@ export interface GameModeConfig {
   onBlackjackState?: (state: unknown | null) => void;
   /** Checkpoint TV del round aperto: la modalità dichiara il proprio tipo. */
   onTvCheckpoint?: (checkpoint: { type: GameModeType; revision: number; state: unknown }) => void;
+  /**
+   * Domanda aperta o chiusa (Quiz, Indovina chi): la TV abbassa la base d'atto
+   * di 6 dB finché si legge la domanda.
+   */
+  onQuestionOpenChange?: (open: boolean) => void;
 }
 
 export interface GameModeResult {

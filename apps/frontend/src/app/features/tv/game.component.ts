@@ -1184,6 +1184,8 @@ export class GameComponent implements OnInit, OnDestroy {
       onTimerTick: (seconds) => this.timer.set(seconds),
       onTimerEnd: () => this.onModeTimeout(),
       onBuzz: (playerName) => this.onPlayerBuzz(playerName),
+      // La domanda di Quiz e Indovina chi tiene la base d'atto 6 dB sotto.
+      onQuestionOpenChange: (open) => this.audioService.setQuestionActive(open),
       activePlayers: activePlayers,
       onCountdownTick: (seconds) => this.onCountdownTick(seconds),
       onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),

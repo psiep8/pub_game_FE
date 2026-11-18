@@ -161,3 +161,41 @@ describe('ImageBlurMode — ripresa dopo un refresh della TV', () => {
     mode.cleanup();
   });
 });
+
+describe('ImageBlurMode — la domanda apre e chiude il sottofondo', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('chiude al buzz e riapre se la risposta è sbagliata', async () => {
+    vi.useFakeTimers();
+    const changes: boolean[] = [];
+    const payload = {
+      imageUrl: 'https://image.example/sophia.jpg',
+      correctAnswer: 'Sophia Loren',
+      clues: ['attrice italiana'],
+    };
+    const mode = new ImageBlurMode();
+    mode.setConfig({
+      type: 'IMAGE_BLUR',
+      payload,
+      gameId: 1,
+      activePlayers: ['Anna'],
+      onQuestionOpenChange: (open) => changes.push(open),
+    });
+    mode.initialize(payload);
+
+    await mode.start();
+    expect(changes).toEqual([true]);
+
+    // Prenotazione: da qui si risponde, la base d'atto torna piena.
+    mode.handleBuzz('Anna');
+    expect(changes).toEqual([true, false]);
+
+    // Risposta sbagliata: il round riprende e la domanda è di nuovo aperta.
+    mode.confirmWrong('Anna');
+    expect(changes).toEqual([true, false, true]);
+
+    mode.cleanup();
+  });
+});

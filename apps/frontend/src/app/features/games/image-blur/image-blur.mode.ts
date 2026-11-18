@@ -36,6 +36,7 @@ export class ImageBlurMode extends GameModeBase {
     this.startBlurEffect();
     this.startClueEffect();
     this.saveCheckpoint();
+    this.setQuestionOpen(true);
   }
 
   /**
@@ -71,6 +72,7 @@ export class ImageBlurMode extends GameModeBase {
     this.startTimer();
     this.startBlurEffect();
     this.startClueEffect();
+    this.setQuestionOpen(true);
   }
 
   /** Sfocatura per secondi trascorsi: curva non lineare, 40 → 0. */
@@ -100,17 +102,21 @@ export class ImageBlurMode extends GameModeBase {
   protected onResume(): void {
     this.startBlurEffect();
     this.startClueEffect();
+    // Risposta sbagliata o pausa finita: si torna a guardare la foto.
+    if (!this.buzzedPlayer() && !this.revealed()) this.setQuestionOpen(true);
   }
 
   protected onStop(): void {
     this.stopBlurEffect();
     this.stopClueEffect();
     this.currentBlur.set(0); 
+    this.setQuestionOpen(false);
   }
 
   protected onCleanup(): void {
     this.stopBlurEffect();
     this.stopClueEffect();
+    this.setQuestionOpen(false);
   }
 
   protected onTimeout(): void {
@@ -120,6 +126,8 @@ export class ImageBlurMode extends GameModeBase {
   protected onBuzz(_playerName: string): void {
     // Chi si prenota ha già la foto: gli indizi si fermano sul punto raggiunto.
     this.stopClueEffect();
+    // Da qui si risponde: la base d'atto torna piena.
+    this.setQuestionOpen(false);
     this.saveCheckpoint();
   }
 
@@ -156,6 +164,11 @@ export class ImageBlurMode extends GameModeBase {
   }
 
   
+
+  /** Apre o chiude la domanda: la TV abbassa o rialza la base d'atto. */
+  private setQuestionOpen(open: boolean): void {
+    this.config.onQuestionOpenChange?.(open);
+  }
 
   private startBlurEffect(): void {
     if (this.blurInterval) clearInterval(this.blurInterval);

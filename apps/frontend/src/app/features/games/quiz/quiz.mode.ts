@@ -87,10 +87,12 @@ export class QuizMode extends GameModeBase {
 
   protected onStop(): void {
     this.clearTimers();
+    this.setQuestionOpen(false);
   }
 
   protected onCleanup(): void {
     this.clearTimers();
+    this.setQuestionOpen(false);
     this.questions = [];
     this.answers.set([]);
     this.revision = 0;
@@ -164,6 +166,7 @@ export class QuizMode extends GameModeBase {
     void this.broadcastState();
     this.emitCheckpoint();
     void this.announceManche(index);
+    this.setQuestionOpen(true);
   }
 
   /**
@@ -201,6 +204,8 @@ export class QuizMode extends GameModeBase {
 
   private revealManche(): void {
     if (this.finished() || this.mancheReveal()) return;
+    // Il tempo è scaduto: da qui si legge la soluzione, non la domanda.
+    this.setQuestionOpen(false);
     this.clearClock();
 
     const current = this.questions[this.mancheIndex()];
@@ -236,6 +241,7 @@ export class QuizMode extends GameModeBase {
   private finish(): void {
     if (this.finished()) return;
     this.finished.set(true);
+    this.setQuestionOpen(false);
     this.clearTimers();
     this.revealed.set(true);
     this.timer.set(0);
@@ -328,6 +334,7 @@ export class QuizMode extends GameModeBase {
       this.revealPending.set(true);
       this.revealManche();
     } else if (stage === 'reveal') {
+      this.setQuestionOpen(false);
       const current = this.questions[index];
       if (current) {
         this.mancheReveal.set(current);
@@ -335,6 +342,7 @@ export class QuizMode extends GameModeBase {
       }
     } else {
       this.startClock();
+      this.setQuestionOpen(true);
       // La manche va riannunciata anche se il server l'ha persa (riavvio) o la
       // sua finestra si era chiusa: dopo un refresh i telefoni devono votare.
       void this.announceManche(index, seconds);
@@ -423,6 +431,11 @@ export class QuizMode extends GameModeBase {
       correctAnswer: this.revealed() ? (current?.correctAnswer ?? null) : null,
       isReading: this.isReading(),
     };
+  }
+
+  /** Apre o chiude la domanda: la TV abbassa o rialza la base d'atto. */
+  private setQuestionOpen(open: boolean): void {
+    this.config.onQuestionOpenChange?.(open);
   }
 
   protected onBuzz(_playerName: string): void {}

@@ -24,6 +24,8 @@ import { ButtonTestService } from '../../core/services/button-test.service';
 import { FakeButtonTestService } from '../../shared/testing/fake-button-test.service';
 import { GamePhase } from '../../shared/enums/game-phase';
 import { WsAction } from '../../shared/enums/ws-action';
+import { GAME_TIMINGS } from '../../shared/models/game-timings';
+import { QuizMode } from '../games/quiz/quiz.mode';
 
 describe('GameComponent', () => {
   let component: GameComponent;
@@ -1330,5 +1332,35 @@ describe('GameComponent', () => {
   it('should not expose a pre-round countdown any more', () => {
     expect((component as any).preStartCountdown).toBeUndefined();
     expect((component as any).getPrestartPreview).toBeUndefined();
+  });
+
+  it('la domanda di Quiz abbassa il sottofondo e la soluzione lo riporta su', async () => {
+    const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
+    const config = (component as unknown as {
+      buildModeConfig(type: string, payload: any, players: string[]): any;
+    }).buildModeConfig('QUIZ', {}, ['Anna']);
+    const mode = new QuizMode();
+    mode.setConfig(config);
+    mode.initialize({
+      questions: [{
+        question: 'Qual è la capitale d’Italia?',
+        options: ['Milano', 'Roma'],
+        correctAnswer: 'Roma',
+        difficulty: 'facile',
+      }],
+    });
+
+    vi.useFakeTimers();
+    try {
+      await mode.start();
+      expect(audio.played).toContain('question-open');
+
+      // Scaduto il tempo la TV legge la soluzione: la base d'atto torna piena.
+      await vi.advanceTimersByTimeAsync(GAME_TIMINGS.QUIZ.mancheSeconds * 1000);
+      expect(audio.played).toContain('question-closed');
+    } finally {
+      mode.cleanup();
+      vi.useRealTimers();
+    }
   });
 });
