@@ -1,5 +1,25 @@
 # Changelog
 
+## 18 novembre 2026 — La regia audio mostra i sottofondi con il loro peso
+
+- **§4.5 — `/audio` legge il catalogo:** due sezioni nuove. «SOTTOFONDI PER
+  ATTO» mostra per ogni atto la base e i giochi che la scaletta ci mette, con il
+  file, il peso e il totale dell'atto (più quanti file mancano alla consegna).
+  «SOTTOFONDI PER GIOCO» elenca le quattordici modalità con il loop che le
+  tocca, la base d'atto o il silenzio. I tappeti restano in fondo, ora con il
+  peso accanto al file.
+- **Peso vero, non una tabella a mano:** `bed-weights.ts` chiede una `HEAD` a
+  ogni file e legge `Content-Length` — MB e KB con la virgola, «manca» per un
+  404, «n/d» se la rete cade. La pagina non scarica un byte di audio per pesare
+  i file.
+- Test: `bed-weights.spec.ts` (formato, 404, rete caduta) e
+  `audio-lab.component.spec.ts` (atti, giochi, base mancante, totale dell'atto
+  contato sui soli file presenti).
+- Verifiche: **528 test su 62 file**, `tsc` pulito, `ng build` verde in 30 s.
+  **Non fatto:** la pagina non è stata aperta in un browser vero, quindi il peso
+  non è stato visto arrivare da un server: le `HEAD` le prova solo la rete
+  finta dei test.
+
 ## 18 novembre 2026 — Solo un 404 resta assente, e gli effetti tornano sotto un tetto
 
 - **Il precaricamento distingue i guasti:** `warmBed()` segna come assente solo

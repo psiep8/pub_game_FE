@@ -288,5 +288,6 @@ la sabbia rallenta e chiude, l'asfalto corre e apre, il vetro resta brillante.
 
 Ducking sotto la voce, volumi di regia, logica dei giochi, catalogo degli
 eventi e pagina `/audio` restano quelli di oggi: cambia solo da dove arriva il
-suono. La sintesi è stata rimossa il 18 novembre 2026: niente `bed-profiles.ts`,
+suono. La regia guadagna la sezione dei sottofondi per atto e per gioco con il
+peso di ognuno (§4.5): è una lettura, non un cambio di suono. La sintesi è stata rimossa il 18 novembre 2026: niente `bed-profiles.ts`,
 niente Foley, e di `audio-dsp.ts` resta solo la coda di stanza (`createRoom`).

@@ -10,6 +10,45 @@ import {
 import { AudioService } from '../../core/services/audio.service';
 import { AUDIO_FILES } from '../../core/services/audio-files';
 import { BED_LOOPS, type BedLoop } from '../../core/services/bed-loops';
+import {
+  ACT_BASE,
+  ACT_BEDS,
+  ACT_NUMBERS,
+  GAME_BEDS,
+  allBedFiles,
+  bedsForAct,
+} from '../../core/services/bed-map';
+import { formatWeight, measureBeds, type BedWeight } from '../../core/services/bed-weights';
+import { ACT_DECKS } from '../../shared/schedule';
+import { GAME_MODE_TYPES, type GameModeType } from '../../shared/enums/game-mode-type';
+
+/**
+ * Nome breve delle modalità per la regia: qui si legge in fretta, senza il
+ * trattino da scheda del manuale.
+ */
+const GAME_NAMES: Record<GameModeType, string> = {
+  QUIZ: 'Quiz',
+  IMAGE_BLUR: 'Indovina chi',
+  MUSIC: 'Musica',
+  WHEEL_OF_FORTUNE: 'Ruota',
+  ARENA: 'Arena',
+  TIMELINE: 'Timeline',
+  TIME_BUZZER: 'Time Buzzer',
+  BOMBA: 'Bomba',
+  SPEED_RUSH: 'Speed Rush',
+  TENNIS_BATTLE: 'Tennis',
+  ULTIMA_SPIAGGIA: 'Ultima spiaggia',
+  AZZARDO: 'Azzardo',
+  BLACKJACK: 'Blackjack',
+  BIGLIE: 'Biglie',
+};
+
+interface BedRow {
+  /** Chiave di tracciamento: 'base' o il tipo di gioco. */
+  key: string;
+  name: string;
+  meta: string;
+}
 
 interface AudioCard {
   event: AudioEventDefinition;
@@ -93,13 +132,46 @@ interface AudioCard {
       </section>
 
       <section class="lab-group">
-        <h2>TAPPETI — UNO PER GIOCO</h2>
+        <h2>SOTTOFONDI PER ATTO</h2>
+        <div class="lab-grid beds">
+          @for (group of actGroups(); track group.act) {
+            <article class="lab-bed static">
+              <span class="lab-bed-label">{{ group.title }}</span>
+              <span class="lab-bed-meta">TOTALE {{ group.total }}</span>
+              <ul class="lab-bed-rows">
+                @for (row of group.rows; track row.key) {
+                  <li>
+                    <span>{{ row.name }}</span>
+                    <span class="lab-bed-meta">{{ row.meta }}</span>
+                  </li>
+                }
+              </ul>
+            </article>
+          }
+        </div>
+      </section>
+
+      <section class="lab-group">
+        <h2>SOTTOFONDI PER GIOCO</h2>
+        <div class="lab-grid beds">
+          @for (card of gameCards(); track card.type) {
+            <article class="lab-bed static">
+              <span class="lab-bed-label">{{ card.name }}</span>
+              <span class="lab-bed-meta">{{ card.bed }}</span>
+              <span class="lab-bed-meta">{{ card.meta }}</span>
+            </article>
+          }
+        </div>
+      </section>
+
+      <section class="lab-group">
+        <h2>TAPPETI — ASCOLTO</h2>
         <div class="lab-grid beds">
           @for (bed of beds; track bed.id) {
             <button class="lab-bed" [class.active]="bed.id === bedId()" (click)="playBed(bed)">
               <span class="lab-bed-label">{{ bed.label }}</span>
               <span class="lab-bed-meta">
-                {{ bed.file }}
+                {{ bed.file }} · {{ weightOf(bed.file) }}
                 @if (bed.id === bedId()) { · IN ONDA }
               </span>
             </button>
@@ -337,6 +409,29 @@ interface AudioCard {
         letter-spacing: 0.08em;
         color: var(--ink-dim);
       }
+      .lab-bed.static {
+        cursor: default;
+      }
+      .lab-bed.static:active {
+        transform: none;
+        box-shadow: 4px 4px 0 var(--coal);
+      }
+      .lab-bed-rows {
+        margin: 4px 0 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .lab-bed-rows li {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        letter-spacing: 0.04em;
+      }
       .lab-bed:active {
         transform: translate(2px, 2px);
         box-shadow: 2px 2px 0 var(--coal);
@@ -352,6 +447,12 @@ export class AudioLab {
   readonly lastPlayed = signal<string | null>(null);
   readonly beds = Object.values(BED_LOOPS);
   readonly bedId = signal('');
+  /** Peso reale di ogni sottofondo, chiesto al server con una HEAD. */
+  private readonly weights = signal<Record<string, BedWeight>>({});
+
+  constructor() {
+    void measureBeds(allBedFiles()).then((weights) => this.weights.set(weights));
+  }
 
   private readonly variantById = signal<Record<string, number>>({});
 
@@ -374,6 +475,69 @@ export class AudioLab {
 
   readonly roomCards = computed(() => this.cards().filter((card) => card.event.bus !== 'phone'));
   readonly phoneCards = computed(() => this.cards().filter((card) => card.event.bus === 'phone'));
+
+  /**
+   * Il catalogo per atto: la base e i giochi che la scaletta mette in quell'atto,
+   * ognuno con il file e il peso. Il totale somma i file dell'atto una volta
+   * sola — i giochi condivisi non si contano due volte — e dice quanti
+   * sottofondi mancano ancora alla consegna.
+   */
+  readonly actGroups = computed(() => {
+    const weights = this.weights();
+    return ACT_NUMBERS.map((act) => {
+      const base = ACT_BEDS[act];
+      const rows: BedRow[] = [
+        { key: 'base', name: 'Base d’atto', meta: this.bedMeta(base.file, weights) },
+      ];
+      for (const type of new Set(ACT_DECKS[act - 1])) {
+        const bed = GAME_BEDS[type];
+        if (bed === null) {
+          rows.push({ key: type, name: GAME_NAMES[type], meta: 'silenzio' });
+        } else if (bed === ACT_BASE) {
+          rows.push({ key: type, name: GAME_NAMES[type], meta: 'base dell’atto' });
+        } else {
+          rows.push({ key: type, name: GAME_NAMES[type], meta: this.bedMeta(bed.file, weights) });
+        }
+      }
+
+      let bytes = 0;
+      let missing = 0;
+      for (const bed of bedsForAct(act)) {
+        const weight = weights[bed.file];
+        if (typeof weight === 'number') bytes += weight;
+        else missing += 1;
+      }
+      const total = `${bytes > 0 ? formatWeight(bytes) : '—'}${missing > 0 ? ` · ${missing} da consegnare` : ''}`;
+      return { act, title: base.label, rows, total };
+    });
+  });
+
+  /** Ogni modalità con il sottofondo che le tocca davvero. */
+  readonly gameCards = computed(() => {
+    const weights = this.weights();
+    return GAME_MODE_TYPES.map((type) => {
+      const bed = GAME_BEDS[type];
+      if (bed === null) return { type, name: GAME_NAMES[type], bed: 'Silenzio', meta: 'nessun file' };
+      if (bed === ACT_BASE) {
+        return { type, name: GAME_NAMES[type], bed: 'Base dell’atto', meta: 'loop/atto-N.m4a' };
+      }
+      return {
+        type,
+        name: GAME_NAMES[type],
+        bed: bed.label,
+        meta: this.bedMeta(bed.file, weights),
+      };
+    });
+  });
+
+  /** Peso di un file per la lista dei tappeti. */
+  weightOf(file: string): string {
+    return formatWeight(this.weights()[file]);
+  }
+
+  private bedMeta(file: string, weights: Record<string, BedWeight>): string {
+    return `${file} · ${formatWeight(weights[file])}`;
+  }
 
   toggleMute(): void {
     this.audio.toggleAudio();

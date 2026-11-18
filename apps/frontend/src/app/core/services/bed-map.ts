@@ -122,6 +122,21 @@ export function bedsForAct(act?: number | null): BedTrack[] {
 }
 
 /**
+ * Ogni file di sottofondo una volta sola: basi d'atto, loop in casa e loop dei
+ * giochi. Serve alla regia audio per chiedere il peso di tutti, e ai test per
+ * contare il catalogo senza duplicati.
+ */
+export function allBedFiles(): string[] {
+  const files = new Set<string>();
+  for (const bed of Object.values(ACT_BEDS)) files.add(bed.file);
+  for (const bed of Object.values(BED_LOOPS)) files.add(bed.file);
+  for (const bed of Object.values(GAME_BEDS)) {
+    if (bed && bed !== ACT_BASE) files.add(bed.file);
+  }
+  return [...files];
+}
+
+/**
  * I giochi che, con la domanda aperta, tengono la base d'atto molto bassa per
  * lasciar leggere le risposte: 6 dB sotto il livello normale, non il silenzio.
  */
