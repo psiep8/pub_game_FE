@@ -1,5 +1,19 @@
 # Changelog
 
+## 18 novembre 2026 — In pausa la TV tace davvero
+
+- `togglePause()` ferma anche il sottofondo oltre a clock e suspense: durante la
+  pausa non resta la musica del gioco a girare a sala ferma. Alla ripresa
+  `startAmbient()` rimette in onda la famiglia del round in corso.
+- **1 test nuovo** in `game.component.spec.ts`: pausa → `stop-ambient`,
+  ripresa → `ambient`, con `pause()`/`resume()` del modo chiamati.
+- `docs/ROADMAP-POST-PRIMA-SERATA.md` allineato alle Biglie di oggi: otto piste,
+  due gare per round, 12.000 px di pista, chiusura all'arrivo dell'ultima biglia
+  (47–66 s), 70 s di conto alla rovescia e 120 s di rete di sicurezza. Via i
+  riferimenti a quattro fondi, quattro gare, bivi e taglio a 38/45 s.
+- Verifiche: **485 test su 55 file**, `tsc` pulito, build di produzione. **Non
+  fatto:** la pausa non è stata provata su una TV vera né ascoltata.
+
 ## 18 novembre 2026 — armUnlock senza callback, via gli ultimi metodi morti
 
 - `armUnlock()` non accetta più `onUnlock`: nessun chiamante lo passava dopo

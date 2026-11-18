@@ -87,6 +87,24 @@ describe('GameComponent', () => {
     expect(audio.played.at(-1)).toBe('bed-lobby');
   });
 
+  it('in pausa tace anche il sottofondo e riparte al ritorno', () => {
+    const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
+    const pause = vi.fn();
+    const resume = vi.fn();
+    component.currentMode.set({ type: 'QUIZ', pause, resume } as any);
+    component.currentGameId.set(1);
+
+    component.togglePause();
+    expect(pause).toHaveBeenCalled();
+    expect(component.isPaused()).toBe(true);
+    expect(audio.played).toContain('stop-ambient');
+
+    component.togglePause();
+    expect(resume).toHaveBeenCalled();
+    expect(component.isPaused()).toBe(false);
+    expect(audio.played).toContain('ambient');
+  });
+
   it('applica una sola volta l\'esito Quiz arrivato dal server', () => {
     const applyServerAnswer = vi.fn().mockReturnValueOnce(true).mockReturnValueOnce(false);
     component.currentMode.set({ type: 'QUIZ', applyServerAnswer } as any);
