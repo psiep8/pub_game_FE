@@ -1,5 +1,28 @@
 # Changelog
 
+## 18 novembre 2026 — La pipeline dei loop rifiuta quello che non va, e dice cosa consegnare
+
+- **Incrocio garantito:** i 1,5 s di dissolvenza coda→testa non si accorciano più
+  quando il brano è corto. Lo script verifica che il giro misuri quanto il grezzo
+  meno 1,5 s e, se il conto non torna, scarta il file invece di pubblicarlo con
+  il buco.
+- **60–120 s obbligatori:** sotto i 60 s il file viene cancellato e la consegna
+  segnalata come errore (prima era un avviso e il giro corto passava). Sopra i
+  120 s il taglio resta automatico. Eccezione dichiarata: il rotolamento
+  `loop/biglie.m4a`, 24 s perché non è musica.
+- **AAC 112 kbps** per i sottofondi, dentro la forbice 96–112 della spec (era
+  128). Effetti invariati a 96 kbps.
+- **Soglia sul salto di loop:** 8%, e non è più un avviso. Il file che supera la
+  soglia viene scartato sia in lavorazione sia in `--check`, che ora misura
+  durata e giunzione anche dei loop già pubblicati.
+- **Nuovo report `--check --pending`** (da solo: `--pending`): i 13 file mancanti
+  con carattere, BPM, parole di ricerca — letti dalle tabelle del manifesto, non
+  ricopiati — la cartella `_src` dove posarli e la riga di `FONTI.txt` già
+  composta, con solo titolo, autore e URL da riempire.
+- Verifiche: `--check --pending` elenca i 13 file e i 7 loop in casa passano
+  durata e salto; `node --check` pulito. **Non fatto:** nessun file nuovo
+  elaborato, perché i 13 grezzi non ci sono ancora.
+
 ## 18 novembre 2026 — Ogni gioco ha il suo sottofondo, o il silenzio
 
 - La mappa dei sottofondi è tipata su `GameModeType`: aggiungere un gioco senza

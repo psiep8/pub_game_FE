@@ -21,7 +21,7 @@ quella basta resta il valore misurato invece di schiacciare i transienti
   Mai MP3 per i loop: il piccolo silenzio in fondo fa scattare la ripetizione.
 - **Effetti:** mono, 44,1 kHz, AAC 96–128 kbps, normalizzati a **−16 LUFS**
   (picco massimo −1 dBTP), coda breve tagliata.
-- **Sottofondi:** stereo, 44,1 kHz, AAC 128 kbps, **−23 LUFS**, 90–120 secondi,
+- **Sottofondi:** stereo, 44,1 kHz, AAC 112 kbps, **−23 LUFS**, 60–120 secondi,
   senza voce cantata, inizio e fine che si incrociano in loop.
 - **Nome del file:** esattamente quello della tabella. Sostituire un suono =
   sostituire il file con lo stesso nome, senza toccare il codice.
@@ -58,8 +58,15 @@ node scripts/audio/process-audio.mjs            # elabora quel che trova
 node scripts/audio/process-audio.mjs --check    # verifica file e metadati: esce 1 se manca qualcosa
 node scripts/audio/process-audio.mjs --only gong
 node scripts/audio/process-audio.mjs --force    # rifà anche gli m4a già pronti
+node scripts/audio/process-audio.mjs --pending  # cosa consegnare, senza verifica
 node scripts/audio/process-audio.mjs --credits  # rigenera docs/CREDITI-AUDIO.md
 ```
+
+- **`--check --pending`** dice cosa consegnare e come: per ogni file in attesa
+  riporta carattere, BPM e parole di ricerca (presi dalle tabelle di questo
+  documento, non ricopiati a mano) e la riga di `FONTI.txt` già composta. Fra
+  parentesi angolari restano solo i campi che sa chi scarica il brano: titolo,
+  autore, URL e — quando la fonte suggerita lo dice — la licenza.
 
 - Effetti: mono 44,1 kHz, AAC 96 kbps circa, **−16 LUFS**, picco ≤ −1 dBTP,
   durata massima della tabella.
@@ -79,11 +86,20 @@ node scripts/audio/process-audio.mjs --credits  # rigenera docs/CREDITI-AUDIO.md
   integrata senza senso su 20–300 ms). Restano sul picco anche
   `interface/whoosh.m4a` (0,9 s, quasi tutta cresta: −18,5 LUFS, picco
   −4,2 dBFS) e `gioco/racket.m4a` (0,1 s, picco −9,1 dBFS).
-- Loop: stereo 44,1 kHz, AAC 128 kbps, **−23 LUFS**, massimo 120 s; il silenzio
-  non viene toccato, altrimenti si sentirebbe il buco a ogni giro.
-- **Loop senza salto:** gli ultimi 1,5 s vengono incrociati sulla testa (dissolvenza
-  coda→inizio), poi il file si misura e si controlla il punto di giunzione:
-  differenza fra ultimo e primo campione, media su 0,1 s, avviso sopra l'8%.
+- **Loop:** stereo 44,1 kHz, AAC 112 kbps, **−23 LUFS**, 60–120 s
+  **obbligatori**; il massimo si taglia da solo, il minimo no: sotto i 60 s il
+  file viene scartato e cancellato, non pubblicato «corto ma va bene». Il
+  silenzio non si tocca, altrimenti si sentirebbe il buco a ogni giro.
+- **Loop senza salto:** gli ultimi 1,5 s vengono incrociati sulla testa
+  (dissolvenza coda→inizio) e l'incrocio è **garantito**, non un'abbreviazione
+  facoltativa: lo script controlla che il giro sia più corto del grezzo
+  esattamente di 1,5 s e, se non lo è, scarta il file. Poi misura il punto di
+  giunzione (differenza fra ultimo e primo campione): sopra l'**8%** il file si
+  scarta, perché il click si sentirebbe a ogni giro.
+- **`--check` misura anche i loop già in casa:** durata nella finestra 60–120 s e
+  salto sotto l'8% valgono per i file nuovi come per quelli già pubblicati. Il
+  rotolamento `loop/biglie.m4a` è l'unica eccezione alla durata: non è musica,
+  sono 24 s di biglie che scorrono.
 - `ffmpeg` è **statico e locale al progetto**, niente sudo: `.tools/ffmpeg/ffmpeg`
   e `ffprobe` (build 7.0.2 arm64 da johnvansickle.com, ~19 MB scaricati, 102 MB
   estratti; su x86 usa `ffmpeg-release-amd64-static.tar.xz`). `.tools/` è già in

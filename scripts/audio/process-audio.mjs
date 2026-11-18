@@ -7,6 +7,8 @@
  * Uso:
  *   node scripts/audio/process-audio.mjs            # elabora quello che trova
  *   node scripts/audio/process-audio.mjs --check    # solo verifica (esce 1 se manca un file)
+ *   node scripts/audio/process-audio.mjs --check --pending   # verifica + cosa consegnare
+ *   node scripts/audio/process-audio.mjs --pending  # solo il report dei file in attesa (esce 0)
  *   node scripts/audio/process-audio.mjs --credits  # rigenera docs/CREDITI-AUDIO.md
  *   node scripts/audio/process-audio.mjs --only gong
  *   node scripts/audio/process-audio.mjs --force    # rielabora anche gli m4a già pronti
@@ -35,9 +37,19 @@ const MANIFEST = join(ROOT, 'docs/MANIFESTO-AUDIO.md');
 const CREDITS_PATH = join(ROOT, 'docs/CREDITI-AUDIO.md');
 
 const EFFECT_LOUDNESS = { i: -16, tp: -1, lra: 11, bitrate: '96k', channels: 1 };
-const LOOP_LOUDNESS = { i: -23, tp: -1.5, lra: 11, bitrate: '128k', channels: 2 };
+const LOOP_LOUDNESS = { i: -23, tp: -1.5, lra: 11, bitrate: '112k', channels: 2 };
 const LOOP_MAX_SECONDS = 120;
 const LOOP_MIN_SECONDS = 60;
+// La finestra del manifesto è 60–120 s: il taglio a 120 è automatico, quindi il
+// minimo è l'unico che può far fallire una consegna. Tolleranza solo per il
+// codificatore, che può spostare la durata di qualche frame.
+const LOOP_SECONDS_TOLERANCE = 0.5;
+// Il salto fra ultimo e primo campione: con l'incrocio di 1,5 s deve essere
+// zero per costruzione, quindi la soglia è una rete di sicurezza, non una
+// tolleranza. Sopra l'8% si sente il click a ogni giro e il file non si usa.
+const LOOP_SEAM_MAX_PERCENT = 8;
+// Il rotolamento delle Biglie non è musica: 24 s bastano e non si allunga.
+const LOOP_MIN_SECONDS_EXEMPT = new Set(['loop/biglie.m4a']);
 const SILENCE = 'silenceremove=start_periods=1:start_duration=0:start_threshold=-45dB:start_silence=0.02';
 const TRIM_BOTH_ENDS = `${SILENCE},areverse,${SILENCE},areverse`;
 const RAW_EXTENSIONS = ['.wav', '.mp3', '.ogg', '.oga', '.flac', '.aif', '.aiff', '.m4a', '.aac', '.opus', '.webm', '.wma'];
@@ -53,6 +65,7 @@ const ONLY = valueOf('only');
 const FORCE = option('force');
 const CHECK = option('check');
 const CREDITS = option('credits');
+const PENDING = option('pending');
 const FADE_OUT_SECONDS = 0.18;
 const LOOP_CROSSFADE_SECONDS = 1.5;
 // Compressione leggera: solo per i suoni che, dopo la normalizzazione, restano
@@ -86,6 +99,18 @@ function readManifest() {
     const [folder, filename] = path.split('/');
     const name = basename(filename, '.m4a');
     const isLoop = folder === 'loop';
+    // Nelle tabelle dei sottofondi, subito dopo il file: carattere, BPM, parole
+    // di ricerca e fonte suggerita. Servono al report dei file ancora da
+    // consegnare, che così non ricopia a mano quello che dice il manifesto.
+    const pathIndex = cells.indexOf(pathCell);
+    const delivery = isLoop
+      ? {
+          carattere: cells[pathIndex + 1] ?? '',
+          bpm: cells[pathIndex + 2] ?? '',
+          search: cells[pathIndex + 3] ?? '',
+          fonte: cells[pathIndex + 4] ?? '',
+        }
+      : null;
     let maxSeconds = LOOP_MAX_SECONDS;
     if (!isLoop) {
       const durationCell = cells[3] ?? '';
@@ -99,6 +124,7 @@ function readManifest() {
       name,
       isLoop,
       maxSeconds,
+      delivery,
       bus: cells[2] ?? '',
       source: cells[cells.length - 1] ?? '',
     });
@@ -251,7 +277,10 @@ function checkLoopSeam(file) {
   );
   return {
     jumpPercent: Number((jump * 100).toFixed(1)),
-    problems: jump > 0.08 ? [`salto del ${Math.round(jump * 100)}% sul confine`] : [],
+    problems:
+      jump * 100 > LOOP_SEAM_MAX_PERCENT
+        ? [`salto del ${Math.round(jump * 100)}% sul confine (soglia ${LOOP_SEAM_MAX_PERCENT}%)`]
+        : [],
   };
 }
 
@@ -407,6 +436,23 @@ function processEffect(entry, source, candidate, output, target, sourceSeconds) 
   }
 }
 
+/** Un loop fuori regola non resta in cartella: si cancella e si ferma il file. */
+function rejectLoop(output, message) {
+  rmSync(output, { force: true });
+  throw new Error(message);
+}
+
+/** Un loop si pubblica solo fra 60 e 120 s: il resto è un errore, non un avviso. */
+function assertLoopSeconds(entry, seconds, output) {
+  if (LOOP_MIN_SECONDS_EXEMPT.has(entry.path)) return;
+  if (seconds > LOOP_MAX_SECONDS + LOOP_SECONDS_TOLERANCE) {
+    rejectLoop(output, `${entry.path}: ${formatDuration(seconds)} dopo il taglio, sopra il massimo di ${LOOP_MAX_SECONDS} s.`);
+  }
+  if (seconds < LOOP_MIN_SECONDS - LOOP_SECONDS_TOLERANCE) {
+    rejectLoop(output, `${entry.path}: ${formatDuration(seconds)}, sotto il minimo di ${LOOP_MIN_SECONDS} s.`);
+  }
+}
+
 function processLoop(entry, source, candidate, output, target) {
   mkdirSync(TMP, { recursive: true });
   mkdirSync(dirname(output), { recursive: true });
@@ -427,8 +473,12 @@ function processLoop(entry, source, candidate, output, target) {
     ]);
 
     const cleanedSeconds = probeSeconds(cleaned);
-    if (cleanedSeconds < LOOP_MIN_SECONDS) {
-      console.warn(`  ! ${entry.path}: ${cleanedSeconds.toFixed(1)} s, sotto il minimo di ${LOOP_MIN_SECONDS} s; va bene ma il giro è corto.`);
+    if (cleanedSeconds < LOOP_MIN_SECONDS && !LOOP_MIN_SECONDS_EXEMPT.has(entry.path)) {
+      rejectLoop(
+        output,
+        `${entry.path}: ${cleanedSeconds.toFixed(1)} s, sotto il minimo di ${LOOP_MIN_SECONDS} s. ` +
+          'Un giro corto si sente girare: serve un brano più lungo.',
+      );
     }
 
     // 2. Taglio al massimo, poi incrocio coda/testa di 1,5 s: il giro non ha
@@ -439,7 +489,15 @@ function processLoop(entry, source, candidate, output, target) {
       base = trimmedFile;
     }
     const baseSeconds = probeSeconds(base);
-    const fadeSeconds = Math.min(LOOP_CROSSFADE_SECONDS, baseSeconds / 4);
+    // L'incrocio non si accorcia mai per far stare il file: o ci sta tutto, o
+    // il file non entra.
+    const fadeSeconds = LOOP_CROSSFADE_SECONDS;
+    if (baseSeconds < fadeSeconds * 3) {
+      rejectLoop(
+        output,
+        `${entry.path}: ${baseSeconds.toFixed(1)} s, troppo corto per l'incrocio di ${fadeSeconds} s a ogni giro.`,
+      );
+    }
     const bodyEnd = (baseSeconds - fadeSeconds).toFixed(3);
     run(FFMPEG, [
       '-hide_banner', '-nostats', '-y',
@@ -453,6 +511,17 @@ function processLoop(entry, source, candidate, output, target) {
       '-map', '[out]',
       '-c:a', 'pcm_s16le', loopFile,
     ]);
+
+    // L'incrocio è garantito solo se il giro è più corto del grezzo esattamente
+    // della dissolvenza: se non torna, il filtro non ha fatto il suo lavoro.
+    const loopSeconds = probeSeconds(loopFile);
+    const expectedSeconds = baseSeconds - fadeSeconds;
+    if (Math.abs(loopSeconds - expectedSeconds) > 0.1) {
+      rejectLoop(
+        output,
+        `${entry.path}: incrocio non applicato (${loopSeconds.toFixed(2)} s invece di ${expectedSeconds.toFixed(2)} s).`,
+      );
+    }
 
     // 3. Musica densa: due passate lineari, il guadagno unico non pompa.
     const measured = measureNormalization(loopFile, target);
@@ -481,8 +550,9 @@ function processLoop(entry, source, candidate, output, target) {
     renameSync(encoded, output);
     const seam = checkLoopSeam(output);
     if (seam.problems.length > 0) {
-      console.warn(`  ! ${entry.path}: punto di loop da rivedere — ${seam.problems.join('; ')}.`);
+      rejectLoop(output, `${entry.path}: punto di loop fuori soglia — ${seam.problems.join('; ')}.`);
     }
+    assertLoopSeconds(entry, probeSeconds(output), output);
     return {
       status: 'done',
       source: relative(ROOT, source),
@@ -641,12 +711,82 @@ function writeCredits(entries) {
   }
 }
 
+/** Licenza tipica della fonte suggerita: un suggerimento, non un dato. */
+const LICENCE_HINTS = [
+  ['mixkit', 'Mixkit Stock Music Free License'],
+  ['pixabay', 'Pixabay Content License'],
+  ['incompetech', 'CC-BY 4.0 (attribuzione nei crediti)'],
+];
+
+/** Vince la fonte citata per prima: «Incompetech (CC-BY) / Pixabay» è CC-BY. */
+function licenceHint(fonte) {
+  const lower = fonte.toLowerCase();
+  let best = null;
+  for (const [needle, licence] of LICENCE_HINTS) {
+    const at = lower.indexOf(needle);
+    if (at < 0) continue;
+    if (!best || at < best.at) best = { at, licence };
+  }
+  return best?.licence ?? null;
+}
+
+/**
+ * Report dei file ancora da consegnare. Per ogni loop mancante dice carattere,
+ * BPM e parole di ricerca presi dal manifesto, e compone la riga di FONTI.txt:
+ * restano da riempire solo i campi che sa chi scarica il brano.
+ */
+function writePending(missing) {
+  if (missing.length === 0) {
+    console.log('\nNiente in attesa: il manifesto è completo.');
+    return;
+  }
+
+  console.log(`\nDa consegnare: ${missing.length} file, grezzi in apps/frontend/public/assets/audio/_src/<cartella>/.`);
+  console.log('Regole: 60–120 s, AAC 96–112 kbps, −23 LUFS; incrocio di 1,5 s garantito dallo script.');
+  console.log('Chi non rispetta durata, salto di loop o formato viene scartato, non pubblicato.\n');
+
+  const groups = [
+    ["Base d'atto", (entry) => entry.name.startsWith('atto-')],
+    ['Giochi e bonus', (entry) => entry.name.startsWith('gioco-')],
+    ['Rotolamento e altri file', () => true],
+  ];
+  const printed = new Set();
+  for (const [title, matches] of groups) {
+    const rows = missing.filter((entry) => !printed.has(entry.path) && matches(entry));
+    for (const row of rows) printed.add(row.path);
+    if (rows.length === 0) continue;
+    console.log(`— ${title} (${rows.length}) —`);
+    for (const row of rows) {
+      console.log(`• ${row.path}`);
+      if (row.delivery) {
+        console.log(`    carattere:  ${row.delivery.carattere}`);
+        console.log(`    BPM:        ${row.delivery.bpm || '—'}   durata 60–120 s   AAC 96–112 kbps   −23 LUFS`);
+        console.log(`    cerca (EN): ${row.delivery.search}`);
+        if (row.delivery.fonte) console.log(`    fonte:      ${row.delivery.fonte}`);
+      }
+      console.log(`    grezzo in:  apps/frontend/public/assets/audio/_src/${row.folder}/${row.name}.<ext>`);
+      const licence = licenceHint(row.delivery?.fonte ?? '');
+      console.log(
+        `    FONTI.txt:  ${row.path} | <titolo> — <autore> | <autore> | <URL del brano> | ` +
+          `${licence ? `<licenza: ${licence}>` : '<licenza>'}`,
+      );
+    }
+    console.log('');
+  }
+}
+
 const entries = readManifest();
 const selected = ONLY ? entries.filter((entry) => entry.name === ONLY || entry.path === ONLY) : entries;
 if (selected.length === 0) fail(`Nessun file nel manifesto corrisponde a "${ONLY}".`);
 
 if (CREDITS) {
   writeCredits(entries);
+  process.exit(0);
+}
+
+// Solo il report, senza verifica: non è un errore che i file non ci siano.
+if (PENDING && !CHECK) {
+  writePending(selected.filter((entry) => !existsSync(join(AUDIO_ROOT, entry.path))));
   process.exit(0);
 }
 
@@ -672,6 +812,7 @@ if (CHECK) {
     console.log(`\nMancano ${missing.length} file:`);
     for (const entry of missing) console.log(`  - ${entry.path}`);
   }
+  if (PENDING) writePending(missing);
   if (presentWithoutFonti.length > 0) {
     problems = true;
     console.log(`\nFile presenti senza riga in FONTI.txt (${presentWithoutFonti.length}), i crediti sarebbero incompleti:`);
@@ -692,6 +833,32 @@ if (CHECK) {
     console.log(`\nRighe di FONTI.txt non valide (${fonti.errors.length}):`);
     for (const message of fonti.errors) console.log(`  - ${message}`);
   }
+  // I loop già in casa devono stare nelle stesse regole dei nuovi: un file
+  // fuori finestra o con il confine che scatta si sente, e --check lo dice.
+  const offRules = [];
+  for (const entry of present.filter((item) => item.isLoop)) {
+    const file = join(AUDIO_ROOT, entry.path);
+    const seconds = probeSeconds(file);
+    if (!LOOP_MIN_SECONDS_EXEMPT.has(entry.path)) {
+      if (seconds < LOOP_MIN_SECONDS - LOOP_SECONDS_TOLERANCE || seconds > LOOP_MAX_SECONDS + LOOP_SECONDS_TOLERANCE) {
+        offRules.push(
+          `${entry.path}: ${formatDuration(seconds)} fuori dalla finestra ${LOOP_MIN_SECONDS}–${LOOP_MAX_SECONDS} s`,
+        );
+      }
+    }
+    const seam = checkLoopSeam(file);
+    if (seam.jumpPercent !== null && seam.jumpPercent > LOOP_SEAM_MAX_PERCENT) {
+      offRules.push(
+        `${entry.path}: ${seam.jumpPercent}% di salto sul confine (soglia ${LOOP_SEAM_MAX_PERCENT}%)`,
+      );
+    }
+  }
+  if (offRules.length > 0) {
+    problems = true;
+    console.log(`\nLoop fuori regola (${offRules.length}):`);
+    for (const message of offRules) console.log(`  - ${message}`);
+  }
+
   if (problems) process.exit(1);
   console.log('\nTutti i file attesi ci sono e ogni file ha la sua riga in FONTI.txt.');
   process.exit(0);
