@@ -1,18 +1,23 @@
 /**
- * Sottofondi registrati: sei famiglie di loop, non più sedici tappeti generati.
+ * Sottofondi registrati: la mappa dei file di `assets/audio/loop`.
  *
- * <p>Ogni gioco suona uno dei file di `assets/audio/loop`: jazz da pub per i
- * quiz, percussioni in salita per i giochi a tempo, rock dritto per lo sport,
- * lounge da sala giochi per il Casino e la marimba per il Cavallo. Classifiche
- * e podio hanno una fanfara loro, scelta dalla TV con `setBedLoop('classifica')`:
- * non sono giochi e non passano da `bedLoopForGame`. Il file è lo stesso per
- * tutta la famiglia: cambiare gioco cambia disco, non musica suonata al volo.</p>
+ * <p>I nomi sono quelli del manifesto (`docs/MANIFESTO-AUDIO.md`): sei file sono
+ * già arrivati — lobby, gioco-bomba, gioco-tennis, gioco-casino, gioco-cavallo e
+ * classifica — e nella prossima tappa la mappa diventerà `bed-map.ts`, con le
+ * basi d'atto e un sottofondo per gioco. Fino ad allora ogni gioco suona il
+ * file della sua famiglia e la lobby fa da ripiego.</p>
  *
- * <p>Il manifesto (`docs/MANIFESTO-AUDIO.md`) assegna ogni gioco alla sua
- * famiglia; qui c'è la stessa mappa in codice, con il pub come ripiego per la
- * lobby e per un tipo che non conosciamo.</p>
+ * <p>Classifiche e podio hanno una fanfara loro, scelta dalla TV con
+ * `setBedLoop('classifica')`: non sono giochi e non passano da
+ * `bedLoopForGame`.</p>
  */
-export type BedLoopId = 'pub' | 'tensione' | 'sport' | 'casino' | 'leggero' | 'classifica';
+export type BedLoopId =
+  | 'lobby'
+  | 'gioco-bomba'
+  | 'gioco-tennis'
+  | 'gioco-casino'
+  | 'gioco-cavallo'
+  | 'classifica';
 
 export interface BedLoop {
   id: BedLoopId;
@@ -23,38 +28,38 @@ export interface BedLoop {
 }
 
 export const BED_LOOPS: Record<BedLoopId, BedLoop> = {
-  pub: { id: 'pub', label: 'Pub allegro', file: 'loop/pub.m4a' },
-  tensione: { id: 'tensione', label: 'Tensione', file: 'loop/tensione.m4a' },
-  sport: { id: 'sport', label: 'Sport', file: 'loop/sport.m4a' },
-  casino: { id: 'casino', label: 'Casino', file: 'loop/casino.m4a' },
-  leggero: { id: 'leggero', label: 'Leggero e curioso', file: 'loop/leggero.m4a' },
+  lobby: { id: 'lobby', label: 'Lobby', file: 'loop/lobby.m4a' },
+  'gioco-bomba': { id: 'gioco-bomba', label: 'Bomba', file: 'loop/gioco-bomba.m4a' },
+  'gioco-tennis': { id: 'gioco-tennis', label: 'Tennis', file: 'loop/gioco-tennis.m4a' },
+  'gioco-casino': { id: 'gioco-casino', label: 'Casino', file: 'loop/gioco-casino.m4a' },
+  'gioco-cavallo': { id: 'gioco-cavallo', label: 'Cavallo', file: 'loop/gioco-cavallo.m4a' },
   classifica: { id: 'classifica', label: 'Classifica e podio', file: 'loop/classifica.m4a' },
 };
 
 const GAME_BEDS: Record<string, BedLoopId> = {
-  QUIZ: 'pub',
-  MUSIC: 'pub',
-  IMAGE_BLUR: 'pub',
-  TIMELINE: 'pub',
-  ULTIMA_SPIAGGIA: 'pub',
-  BOMBA: 'tensione',
-  ARENA: 'tensione',
-  TIME_BUZZER: 'tensione',
-  SPEED_RUSH: 'tensione',
-  TENNIS_BATTLE: 'sport',
-  BIGLIE: 'sport',
-  AZZARDO: 'casino',
-  WHEEL_OF_FORTUNE: 'casino',
-  BLACKJACK: 'casino',
-  CASINO_COLOR: 'casino',
-  CASINO_DOZEN: 'casino',
-  CASINO_NUMBER: 'casino',
-  CAVALLO: 'leggero',
+  QUIZ: 'lobby',
+  MUSIC: 'lobby',
+  IMAGE_BLUR: 'lobby',
+  TIMELINE: 'lobby',
+  ULTIMA_SPIAGGIA: 'lobby',
+  BOMBA: 'gioco-bomba',
+  ARENA: 'gioco-bomba',
+  TIME_BUZZER: 'gioco-bomba',
+  SPEED_RUSH: 'gioco-bomba',
+  TENNIS_BATTLE: 'gioco-tennis',
+  BIGLIE: 'gioco-tennis',
+  AZZARDO: 'gioco-casino',
+  WHEEL_OF_FORTUNE: 'gioco-casino',
+  BLACKJACK: 'gioco-casino',
+  CASINO_COLOR: 'gioco-casino',
+  CASINO_DOZEN: 'gioco-casino',
+  CASINO_NUMBER: 'gioco-casino',
+  CAVALLO: 'gioco-cavallo',
 };
 
 /** Famiglia del sottofondo per il tipo di gioco in corso. */
 export function bedLoopForGame(type?: string | null): BedLoop {
   const key = String(type ?? '').trim();
-  const id = key ? GAME_BEDS[key] ?? 'pub' : 'pub';
+  const id = key ? GAME_BEDS[key] ?? 'lobby' : 'lobby';
   return BED_LOOPS[id];
 }

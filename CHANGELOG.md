@@ -1,5 +1,30 @@
 # Changelog
 
+## 18 novembre 2026 — I venti sottofondi hanno un nome, e sei file ce l'hanno già
+
+- Il manifesto elenca i **20 loop** della spec: cinque basi d'atto
+  (`atto-1…atto-5`), quattordici giochi e bonus (`gioco-casino`,
+  `gioco-bomba`, `gioco-tennis`, `gioco-cavallo`, `lobby`, `classifica`,
+  `gioco-arena`, `gioco-speed-rush`, `gioco-biglie`, `gioco-timeline`,
+  `gioco-ultima-spiaggia`, `gioco-azzardo`, `gioco-blackjack`,
+  `gioco-casino-finale`) e il rotolamento `biglie`. C'è anche la regola di
+  riproduzione: base d'atto, sottofondo di gioco al suo posto, Musica e Time
+  Buzzer in silenzio, Quiz e Indovina chi abbassati di 6 dB.
+- I **sei file già in casa** hanno preso il nome nuovo: `pub` → `lobby`,
+  `tensione` → `gioco-bomba`, `sport` → `gioco-tennis`, `leggero` →
+  `gioco-cavallo`, `casino` → `gioco-casino`; `classifica` resta com'era.
+  Rinomina con `git mv`, `FONTI.txt` e `CREDITI-AUDIO.md` rigenerati: 48 file,
+  11,61 MB.
+- `process-audio.mjs`: attesi 20 loop, i conteggi in `--check` sono calcolati
+  dal manifesto e `--credits` salta i file non ancora consegnati invece di
+  fermarsi.
+- `--check` dice oggi **13 file mancanti**: i 5 atti e gli 8 giochi nuovi.
+- `bed-loops.ts` usa gli id nuovi con le stesse famiglie; prossimo passo
+  `bed-map.ts` con le basi d'atto.
+- Verifiche: **488 test su 56 file**, `tsc` pulito, build di produzione.
+  **Non fatto:** nessun ascolto dei sei file rinominati (sono gli stessi di
+  prima) e i 13 file nuovi non ci sono ancora.
+
 ## 18 novembre 2026 — In pausa tace anche il rotolamento delle Biglie
 
 - `AudioService.pauseBeds()` ferma musica **e** rotolamento: ricorda se il loop

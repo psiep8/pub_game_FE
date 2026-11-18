@@ -39,11 +39,11 @@ bonus/bonusEntrance-4.m4a | Horse fast gallop on a concrete surface | Mixkit | h
 bonus/bonusEntrance-5.m4a | Casino winning reward | Mixkit | https://mixkit.co/free-sound-effects/casino/ | Mixkit License
 attesa/heartbeat.m4a | Heartbeat medium speed | Mixkit | https://mixkit.co/free-sound-effects/heartbeat/ | Mixkit License
 attesa/clock.m4a | Clock ticker single | Mixkit | https://mixkit.co/free-sound-effects/clock/ | Mixkit License
-loop/pub.m4a | Upbeat Jazz — Francisco Alvear | Francisco Alvear | https://mixkit.co/free-stock-music/jazz/ | Mixkit Stock Music Free License
-loop/tensione.m4a | Epical Drums 01 — Grigoriy Nuzhny | Grigoriy Nuzhny | https://mixkit.co/free-stock-music/percussion-trailer/ | Mixkit Stock Music Free License
-loop/sport.m4a | Sports Rock — Ahjay Stelino | Ahjay Stelino | https://mixkit.co/free-stock-music/rock/ | Mixkit Stock Music Free License
-loop/casino.m4a | Groovy Jazz — Francisco Alvear | Francisco Alvear | https://mixkit.co/free-stock-music/lounge/ | Mixkit Stock Music Free License
-loop/leggero.m4a | Comical — Ahjay Stelino | Ahjay Stelino | https://mixkit.co/free-stock-music/children/ | Mixkit Stock Music Free License
+loop/lobby.m4a | Upbeat Jazz — Francisco Alvear | Francisco Alvear | https://mixkit.co/free-stock-music/jazz/ | Mixkit Stock Music Free License
+loop/gioco-bomba.m4a | Epical Drums 01 — Grigoriy Nuzhny | Grigoriy Nuzhny | https://mixkit.co/free-stock-music/percussion-trailer/ | Mixkit Stock Music Free License
+loop/gioco-tennis.m4a | Sports Rock — Ahjay Stelino | Ahjay Stelino | https://mixkit.co/free-stock-music/rock/ | Mixkit Stock Music Free License
+loop/gioco-casino.m4a | Groovy Jazz — Francisco Alvear | Francisco Alvear | https://mixkit.co/free-stock-music/lounge/ | Mixkit Stock Music Free License
+loop/gioco-cavallo.m4a | Comical — Ahjay Stelino | Ahjay Stelino | https://mixkit.co/free-stock-music/children/ | Mixkit Stock Music Free License
 loop/classifica.m4a | Feeling Happy — Ahjay Stelino | Ahjay Stelino | https://mixkit.co/free-stock-music/children/ | Mixkit Stock Music Free License
 gioco/gong.m4a | Gong del via | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
 interface/countdownBong.m4a | Bong di fine countdown | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)

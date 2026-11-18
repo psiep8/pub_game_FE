@@ -7,6 +7,7 @@
  * Uso:
  *   node scripts/audio/process-audio.mjs            # elabora quello che trova
  *   node scripts/audio/process-audio.mjs --check    # solo verifica (esce 1 se manca un file)
+ *   node scripts/audio/process-audio.mjs --credits  # rigenera docs/CREDITI-AUDIO.md
  *   node scripts/audio/process-audio.mjs --only gong
  *   node scripts/audio/process-audio.mjs --force    # rielabora anche gli m4a già pronti
  *
@@ -106,7 +107,7 @@ function readManifest() {
   const effects = entries.filter((entry) => !entry.isLoop);
   const loops = entries.filter((entry) => entry.isLoop);
   if (effects.length !== 41) fail(`Il manifesto elenca ${effects.length} effetti, attesi 41.`);
-  if (loops.length !== 7) fail(`Il manifesto elenca ${loops.length} loop, attesi 7.`);
+  if (loops.length !== 20) fail(`Il manifesto elenca ${loops.length} loop, attesi 20.`);
   const duplicates = entries.filter((entry, index) => entries.findIndex((other) => other.path === entry.path) !== index);
   if (duplicates.length > 0) fail(`File ripetuti nel manifesto: ${duplicates.map((entry) => entry.path).join(', ')}`);
   return entries;
@@ -532,8 +533,10 @@ function writeCredits(entries) {
   const fonti = readFonti(new Set(entries.map((entry) => entry.path)));
   const missing = entries.filter((entry) => !existsSync(join(AUDIO_ROOT, entry.path)));
   if (missing.length > 0) {
-    for (const entry of missing) console.log(`  manca ${entry.path}`);
-    fail(`Mancano ${missing.length} file elaborati: esegui prima lo script senza --credits.`);
+    // I file non ancora consegnati restano fuori dai crediti: il manifesto li
+    // elenca lo stesso, così --check dice sempre quanti ne mancano.
+    console.log(`In arrivo, fuori dai crediti: ${missing.length}`);
+    for (const entry of missing) console.log(`  - ${entry.path}`);
   }
 
   const cell = (text) => String(text).replace(/\|/g, '\\|');
@@ -541,6 +544,7 @@ function writeCredits(entries) {
   let total = 0;
   for (const entry of entries) {
     const file = join(AUDIO_ROOT, entry.path);
+    if (!existsSync(file)) continue;
     const meta = fonti.byPath.get(entry.path);
     if (!meta) fail(`Manca la riga in FONTI.txt per ${entry.path}.`);
     const seconds = probeSeconds(file);
@@ -656,7 +660,9 @@ if (CHECK) {
   const present = selected.filter((entry) => existsSync(join(AUDIO_ROOT, entry.path)));
   const presentWithoutFonti = present.filter((entry) => !fonti.byPath.has(entry.path));
 
-  console.log(`Manifesto: ${entries.length} file (41 effetti, 7 loop).`);
+  const effectsCount = entries.filter((entry) => !entry.isLoop).length;
+  const loopsCount = entries.length - effectsCount;
+  console.log(`Manifesto: ${entries.length} file (${effectsCount} effetti, ${loopsCount} loop).`);
   console.log(`ffmpeg: ${FFMPEG}`);
   console.log(`FONTI.txt: ${fonti.byPath.size} righe valide.`);
 

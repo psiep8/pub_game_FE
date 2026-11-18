@@ -111,7 +111,7 @@ apps/frontend/public/assets/audio/
 ├── sala/              # applausi, rullo, fanfara, podio
 ├── bonus/             # i cinque ingressi bonus
 ├── attesa/            # battito, ticchettio (loop brevi)
-└── loop/              # i sei sottofondi (loop lunghi)
+└── loop/              # i venti sottofondi (5 atti + 14 giochi + rotolamento)
 ```
 
 ## Effetti: tabella evento → ricerca → file atteso
@@ -193,21 +193,63 @@ L'indice segue l'ordine del catalogo: 1 Casino Bianco e Nero, 2 Blackjack,
 | `heartbeat` | `attesa/heartbeat.m4a` | TV | 2 s, loopabile | `heartbeat loop`, `heartbeat slow`, `sub thump` | Freesound CC0 |
 | `clock` | `attesa/clock.m4a` | TV | 1 s, loopabile | `clock tick loop`, `wall clock tick`, `watch ticking` | Freesound CC0 |
 
-## Sottofondi: sette loop al posto dei sedici tappeti
+## Sottofondi: venti loop, per atto e per gioco
 
-Niente più generazione a ogni battuta: **sette famiglie** registrate, con
-dissolvenza incrociata di 1,5 s al cambio gioco. Volume basso, sotto la voce
-del presentatore. Durata 90–120 s, −23 LUFS, senza voce cantata.
+Niente più generazione a ogni battuta: **venti file registrati**, con
+dissolvenza incrociata di 1,5 s a ogni cambio. Volume basso, sotto la voce del
+presentatore. Strumentali, loop pulito senza finale, nessuna voce cantata,
+60–120 s, −23 LUFS.
 
-| Famiglia | File atteso | Giochi | Parole di ricerca (EN) | Fonte suggerita |
-|---|---|---|---|---|
-| Pub allegro | `loop/pub.m4a` | Quiz, Canzone, Immagine sfocata, Timeline, Ultima Spiaggia, lobby | `upbeat pub jazz loop`, `swing small band loop`, `light jazz trio` | Incompetech (CC-BY) / Pixabay |
-| Tensione | `loop/tensione.m4a` | Bomba, Arena, Time Buzzer, Speed Rush | `tension percussion loop`, `suspense pulse loop`, `rising tension bed` | Mixkit / Pixabay |
-| Sport | `loop/sport.m4a` | Tennis, Biglie | `energetic sport loop`, `driving rock loop no vocals`, `uptempo drums bass` | Mixkit / Pixabay |
-| Casino | `loop/casino.m4a` | Azzardo, Ruota, Blackjack, bonus Casino | `casino lounge loop`, `vintage lounge jazz`, `rat pack style loop` | Incompetech (CC-BY) / Pixabay |
-| Leggero e curioso | `loop/leggero.m4a` | Cavallo, flash | `quirky marimba loop`, `playful pizzicato loop`, `curious light background` | Pixabay / Mixkit |
-| Classifica e podio | `loop/classifica.m4a` | classifiche, podio, attesa dei bonus | `festive fanfare loop`, `celebration music loop`, `award ceremony loop` | Pixabay / Mixkit |
-| Rotolamento delle Biglie | `loop/biglie.m4a` | gara delle Biglie (sotto il tappeto) | `marbles rolling loop`, `glass bead roll`, `marble on concrete loop` | Nostra (sintesi renderizzata) |
+Regola di riproduzione (solo TV; il telefono non suona sottofondi):
+
+1. **Base d'atto**: ogni atto ha il suo file e suona di default fra un round e
+   l'altro, nella classifica e nei giochi senza sottofondo proprio.
+2. **Sottofondo del gioco**: se il gioco ne ha uno, sostituisce la base d'atto
+   con la dissolvenza; a fine gioco si torna alla base d'atto. Mai due brani
+   insieme, mai uno stacco secco.
+3. **Senza sottofondo proprio**: Musica e Time Buzzer suonano nel silenzio; i
+   flash hanno sirene ed effetti loro; Quiz e Indovina chi tengono la base
+   d'atto abbassata di altri 6 dB mentre c'è la domanda.
+4. Il ducking sotto la voce resta com'è.
+
+### Base d'atto (5 file)
+
+| Atto | File atteso | Carattere | BPM | Parole di ricerca (EN) | Fonte suggerita |
+|---|---|---|---|---|---|
+| 1 | `loop/atto-1.m4a` | Aperitivo: caldo, leggero, accogliente | 95-110 | `light jazz`, `bossa nova`, `happy acoustic` | Mixkit / Pixabay |
+| 2 | `loop/atto-2.m4a` | Si scalda: groove | 100-115 | `funky groove`, `soul instrumental`, `groovy` | Mixkit / Pixabay |
+| 3 | `loop/atto-3.m4a` | Notte di sala: lounge elettronico | 105-120 | `chill electronic`, `deep lounge`, `nu-jazz` | Mixkit / Pixabay |
+| 4 | `loop/atto-4.m4a` | Sale l'energia: pop-rock/disco | 118-128 | `upbeat indie`, `disco instrumental`, `feel good rock` | Mixkit / Pixabay |
+| 5 | `loop/atto-5.m4a` | Finale: festoso e importante | 120-135 | `epic upbeat`, `big band energetic`, `celebration` | Mixkit / Pixabay |
+
+### Giochi e bonus (14 file)
+
+I sei file già arrivati hanno preso il nome nuovo: `casino.m4a` è
+`gioco-casino`, `tensione.m4a` è `gioco-bomba`, `sport.m4a` è
+`gioco-tennis`, `leggero.m4a` è `gioco-cavallo`, `pub.m4a` è `lobby`.
+
+| Dove suona | File atteso | Carattere | BPM | Parole di ricerca (EN) | Fonte suggerita |
+|---|---|---|---|---|---|
+| Casinò (Ruota, Bianco e Nero, Dozzina) | `loop/gioco-casino.m4a` | casinò, ritmo medio | 100-115 | `vegas lounge`, `crime jazz`, `poker night` | Incompetech (CC-BY) / Pixabay |
+| Bomba | `loop/gioco-bomba.m4a` | tensione che sale | 100-120 | `tension percussion loop`, `suspense pulse loop`, `rising tension bed` | Mixkit / Pixabay |
+| Tennis | `loop/gioco-tennis.m4a` | scontro sportivo | 120-135 | `energetic sport loop`, `driving rock loop no vocals`, `uptempo drums bass` | Mixkit / Pixabay |
+| Cavallo | `loop/gioco-cavallo.m4a` | leggero e curioso | 100-115 | `quirky marimba loop`, `playful pizzicato loop`, `curious light background` | Pixabay / Mixkit |
+| Lobby e attesa fra i round | `loop/lobby.m4a` | allegro da pub | 95-110 | `upbeat pub jazz loop`, `swing small band loop`, `light jazz trio` | Mixkit / Pixabay |
+| Classifiche, podio, attesa dei bonus | `loop/classifica.m4a` | festoso, cerimonia | 110-125 | `festive fanfare loop`, `celebration music loop`, `award ceremony loop` | Pixabay / Mixkit |
+| Arena | `loop/gioco-arena.m4a` | scontro, percussioni cattive | 130-145 | `battle drums`, `aggressive electronic`, `fight` | Mixkit / Pixabay |
+| Speed Rush | `loop/gioco-speed-rush.m4a` | corsa, sintetizzatori incalzanti | 135-150 | `fast arcade`, `chiptune race`, `drive electronic` | Mixkit / Pixabay |
+| Biglie | `loop/gioco-biglie.m4a` | corsa allegra, cartoon | 120-135 | `fun racing`, `quirky playful`, `kids adventure` | Mixkit / Pixabay |
+| Timeline | `loop/gioco-timeline.m4a` | concentrazione leggera, orologeria | 90-105 | `thinking music`, `light puzzle`, `quirky pizzicato` | Mixkit / Pixabay |
+| Ultima Spiaggia | `loop/gioco-ultima-spiaggia.m4a` | ultima occasione, tensione che sale | 100-120 | `suspense light`, `heist`, `countdown tension` | Mixkit / Pixabay |
+| Azzardo | `loop/gioco-azzardo.m4a` | casinò, ritmo medio | 100-115 | `vegas lounge`, `crime jazz`, `poker night` | Incompetech (CC-BY) / Pixabay |
+| Blackjack | `loop/gioco-blackjack.m4a` | jazz lento da tavolo | 80-95 | `smoky jazz`, `late night piano`, `noir` | Incompetech (CC-BY) / Pixabay |
+| Casino Finale | `loop/gioco-casino-finale.m4a` | l'ultimo giro: drammatico, solenne | 70-90 | `cinematic tension`, `high stakes`, `dramatic strings` | Mixkit / Pixabay |
+
+### Rotolamento delle Biglie (nostro)
+
+| Dove suona | File atteso | Carattere | BPM | Parole di ricerca (EN) | Fonte suggerita |
+|---|---|---|---|---|---|
+| Gara delle Biglie, sotto il tappeto | `loop/biglie.m4a` | biglie che rotolano, non è musica | — | `marbles rolling loop`, `glass bead roll`, `marble on concrete loop` | Nostra (sintesi renderizzata) |
 
 Il rotolamento delle Biglie è un loop breve (24 s, `scripts/audio/render-marble-roll.mjs`):
 corpo che scorre, fruscio del fondo e ticchi delle biglie. Un solo file, otto
@@ -218,9 +260,10 @@ la sabbia rallenta e chiude, l'asfalto corre e apre, il vetro resta brillante.
 
 - 41 effetti (34 eventi con varianti: `rankReveal` ×2, `podiumReveal` ×3,
   `bonusEntrance` ×5)
-- 7 loop
-- **48 file** in tutto, dentro il limite di 15 MB (effetti ~2 MB, loop ~9 MB a
-  128 kbps).
+- 20 loop: 5 basi d'atto, 14 giochi e bonus, il rotolamento delle Biglie
+- **61 file** previsti. Al 18 novembre 2026 sono arrivati 7 loop su 20: la
+  cartella pesa 11,61 MB e passa ancora il test dei 15 MB, ma i 13 file mancanti
+  lo sfonderanno — il tetto si rivede quando arrivano.
 
 ## Cosa non si tocca
 

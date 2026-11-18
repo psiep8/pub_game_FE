@@ -1,6 +1,6 @@
 # Crediti audio
 
-Generato da `node scripts/audio/process-audio.mjs --credits` il 2026-11-17.
+Generato da `node scripts/audio/process-audio.mjs --credits` il 2026-11-18.
 Non si modifica a mano: i dati vengono da `apps/frontend/public/assets/audio/FONTI.txt`
 e le misure dai file elaborati (ffmpeg, EBU R128).
 
@@ -14,7 +14,7 @@ compaiono con licenza «Nostra».
 ## Licenze usate
 
 - **Mixkit License** — 23 file
-- **Nostra (sintesi renderizzata)** — 11 file
+- **Nostra (sintesi renderizzata)** — 12 file
 - **CC0** — 7 file
 - **Mixkit Stock Music Free License** — 6 file
 
@@ -68,13 +68,13 @@ compaiono con licenza «Nostra».
 
 | File | Brano | Autore | Licenza | Durata | Peso | LUFS | Salto di loop |
 |---|---|---|---|---|---|---|---|
-| `loop/pub.m4a` | Upbeat Jazz — Francisco Alvear | Francisco Alvear | Mixkit Stock Music Free License | 107.2 s | 1.65 MB | -23 | 0.1% |
-| `loop/tensione.m4a` | Epical Drums 01 — Grigoriy Nuzhny | Grigoriy Nuzhny | Mixkit Stock Music Free License | 102.9 s | 1.60 MB | -23 | 0.2% |
-| `loop/sport.m4a` | Sports Rock — Ahjay Stelino | Ahjay Stelino | Mixkit Stock Music Free License | 98.8 s | 1.57 MB | -23 | 0.2% |
-| `loop/casino.m4a` | Groovy Jazz — Francisco Alvear | Francisco Alvear | Mixkit Stock Music Free License | 117.0 s | 1.84 MB | -23 | 1.2% |
-| `loop/leggero.m4a` | Comical — Ahjay Stelino | Ahjay Stelino | Mixkit Stock Music Free License | 111.5 s | 1.78 MB | -23 | 0.2% |
+| `loop/gioco-casino.m4a` | Groovy Jazz — Francisco Alvear | Francisco Alvear | Mixkit Stock Music Free License | 117.0 s | 1.84 MB | -23 | 1.2% |
+| `loop/gioco-bomba.m4a` | Epical Drums 01 — Grigoriy Nuzhny | Grigoriy Nuzhny | Mixkit Stock Music Free License | 102.9 s | 1.60 MB | -23 | 0.2% |
+| `loop/gioco-tennis.m4a` | Sports Rock — Ahjay Stelino | Ahjay Stelino | Mixkit Stock Music Free License | 98.8 s | 1.57 MB | -23 | 0.2% |
+| `loop/gioco-cavallo.m4a` | Comical — Ahjay Stelino | Ahjay Stelino | Mixkit Stock Music Free License | 111.5 s | 1.78 MB | -23 | 0.2% |
+| `loop/lobby.m4a` | Upbeat Jazz — Francisco Alvear | Francisco Alvear | Mixkit Stock Music Free License | 107.2 s | 1.65 MB | -23 | 0.1% |
 | `loop/classifica.m4a` | Feeling Happy — Ahjay Stelino | Ahjay Stelino | Mixkit Stock Music Free License | 117.0 s | 1.85 MB | -23 | 1.1% |
-| `loop/biglie.m4a` | Rotolamento delle Biglie | PubGame | Nostra (sintesi renderizzata) | 24.0 s | 0.37 MB | -23 | 0.0% |
+| `loop/biglie.m4a` | Rotolamento delle Biglie | PubGame | Nostra (sintesi renderizzata) | 24.0 s | 381 KB | -23.2 | 2.8% |
 
 Il salto di loop è la differenza fra l'ultimo e il primo campione sul confine:
 sotto il 8% non si sente; sopra, il giro va rifilato a orecchio.
@@ -122,13 +122,13 @@ sotto il 8% non si sente; sopra, il giro va rifilato a orecchio.
 - `bonus/bonusEntrance-5.m4a` — Casino winning reward: <https://mixkit.co/free-sound-effects/casino/>
 - `attesa/heartbeat.m4a` — Heartbeat medium speed: <https://mixkit.co/free-sound-effects/heartbeat/>
 - `attesa/clock.m4a` — Clock ticker single: <https://mixkit.co/free-sound-effects/clock/>
-- `loop/pub.m4a` — Upbeat Jazz — Francisco Alvear: <https://mixkit.co/free-stock-music/jazz/>
-- `loop/tensione.m4a` — Epical Drums 01 — Grigoriy Nuzhny: <https://mixkit.co/free-stock-music/percussion-trailer/>
-- `loop/sport.m4a` — Sports Rock — Ahjay Stelino: <https://mixkit.co/free-stock-music/rock/>
-- `loop/casino.m4a` — Groovy Jazz — Francisco Alvear: <https://mixkit.co/free-stock-music/lounge/>
-- `loop/leggero.m4a` — Comical — Ahjay Stelino: <https://mixkit.co/free-stock-music/children/>
+- `loop/gioco-casino.m4a` — Groovy Jazz — Francisco Alvear: <https://mixkit.co/free-stock-music/lounge/>
+- `loop/gioco-bomba.m4a` — Epical Drums 01 — Grigoriy Nuzhny: <https://mixkit.co/free-stock-music/percussion-trailer/>
+- `loop/gioco-tennis.m4a` — Sports Rock — Ahjay Stelino: <https://mixkit.co/free-stock-music/rock/>
+- `loop/gioco-cavallo.m4a` — Comical — Ahjay Stelino: <https://mixkit.co/free-stock-music/children/>
+- `loop/lobby.m4a` — Upbeat Jazz — Francisco Alvear: <https://mixkit.co/free-stock-music/jazz/>
 - `loop/classifica.m4a` — Feeling Happy — Ahjay Stelino: <https://mixkit.co/free-stock-music/children/>
-- `loop/biglie.m4a` — Rotolamento delle Biglie, sintesi interna: <https://github.com/psiep8/pub_game_FE>
+- `loop/biglie.m4a` — Rotolamento delle Biglie: <https://github.com/psiep8/pub_game_FE>
 
 ## Totale
 

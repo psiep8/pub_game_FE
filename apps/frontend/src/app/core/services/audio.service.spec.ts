@@ -46,7 +46,7 @@ describe('AudioService — pausa della TV', () => {
 
     audio.resumeBeds();
 
-    expect(calls).toContain('start-bed:loop/sport.m4a');
+    expect(calls).toContain('start-bed:loop/gioco-tennis.m4a');
     expect(calls).toContain('start-loop:marbleRoll');
   });
 
@@ -58,7 +58,7 @@ describe('AudioService — pausa della TV', () => {
     calls.length = 0;
     audio.resumeBeds();
 
-    expect(calls).toContain('start-bed:loop/pub.m4a');
+    expect(calls).toContain('start-bed:loop/lobby.m4a');
     expect(calls).not.toContain('start-loop:marbleRoll');
   });
 });
