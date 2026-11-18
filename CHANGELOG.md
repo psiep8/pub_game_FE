@@ -1,5 +1,27 @@
 # Changelog
 
+## 18 novembre 2026 — La base d'atto ha la sua mappa, e la domanda abbassa la musica
+
+- **`bed-map.ts`** è il file unico dei sottofondi: la base dei cinque atti
+  (`loop/atto-1…5.m4a`), il brano di ogni gioco, i giochi muti e la regola dei
+  −6 dB. `bed-loops.ts` resta il registro dei file già arrivati; la mappa gioco →
+  sottofondo non vive più in due posti.
+- I giochi senza brano proprio (Quiz, Indovina chi, Ruota, Timeline, Ultima
+  Spiaggia) ora chiedono `ACT_BASE`: è la base d'atto, non la lobby. I cinque file
+  d'atto non sono ancora in cartella, quindi `READY_ACTS` è vuoto e la base
+  resta la lobby: **un test confronta `READY_ACTS` con i file su disco**, così
+  scordarsi di dichiarare un atto arrivato fa fallire la suite invece di lasciare
+  la serata sul jazz della lobby.
+- `AudioService`: arrivano `setActBed(atto)` e `setQuestionActive(aperta)`; il
+  sottofondo si abbassa di 6 dB senza riavviarsi (`SoundPlayer.setBedLevel`),
+  torna su alla chiusura e riparte pieno a ogni cambio gioco. `setGameBed` ora
+  conosce l'atto in corso. La TV non chiama ancora `setQuestionActive`: la
+  regola è pronta nel servizio, il gancio arriva con il resto del §4.2.
+- Test: nuovo `bed-map.spec.ts` (atti, giochi, −6 dB, READY_ACTS contro il disco)
+  e `audio-question-bed.spec.ts` (0,451 a domanda aperta, 0,900 alla chiusura,
+  nessun abbassamento sui giochi con loop proprio, nessuna rampa doppia).
+- Verifiche: `tsc` pulito, `ng test` verde, build di produzione.
+
 ## 18 novembre 2026 — La pipeline dei loop rifiuta quello che non va, e dice cosa consegnare
 
 - **Incrocio garantito:** i 1,5 s di dissolvenza coda→testa non si accorciano più

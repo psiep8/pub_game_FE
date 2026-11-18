@@ -7,7 +7,8 @@ import {
 import { AudioEngine } from './audio-engine';
 import { SoundPlayer } from './sound-player';
 import { marbleRollStyle } from './marble-roll';
-import { BED_LOOPS, bedForGame, type BedLoop, type BedLoopId } from './bed-loops';
+import { BED_LOOPS, type BedLoopId } from './bed-loops';
+import { bedDuckGain, bedForGame, type BedTrack } from './bed-map';
 
 /** Volume del sottofondo: i loop sono a −23 LUFS, già sotto la voce. */
 const BED_LEVEL = 0.9;
@@ -15,14 +16,18 @@ const BED_LEVEL = 0.9;
 const BED_FADE_SECONDS = 1.5;
 /** Spegnimento (pausa, muto): più rapido, ma senza taglio secco. */
 const BED_STOP_SECONDS = 0.6;
+/** Durata dell'abbassamento per la domanda: breve, si sente appena. */
+const BED_DUCK_SECONDS = 0.5;
 
 /**
  * Suoni della serata.
  *
  * Gli effetti e i sottofondi sono file (`assets/audio/...`): loop registrati
- * per famiglia, con dissolvenza incrociata al cambio. Musica e Time Buzzer
- * stanno nel silenzio: per loro il sottofondo è `null`, non la lobby.
- * Nessun evento ricade sulla sintesi: un file mancante si sente in console.
+ * per famiglia, con dissolvenza incrociata al cambio. Cosa suona lo decide
+ * `bed-map.ts`: base d'atto, brano del gioco o silenzio. Musica e Time Buzzer
+ * stanno nel silenzio (`null`); Quiz e Indovina chi tengono la base 6 dB sotto
+ * finché la domanda è aperta. Nessun evento ricade sulla sintesi: un file
+ * mancante si sente in console.
  */
 @Injectable({ providedIn: 'root' })
 export class AudioService {
@@ -30,7 +35,15 @@ export class AudioService {
   private readonly engine = new AudioEngine();
   private readonly player: SoundPlayer;
   /** Sottofondo attivo: un loop registrato, o `null` per i giochi muti. */
-  private bedLoop: BedLoop | null = BED_LOOPS.lobby;
+  private bedLoop: BedTrack | null = BED_LOOPS.lobby;
+  /** Atto in corso: decide la base dei giochi che non hanno un brano loro. */
+  private act: number | null = null;
+  /** Tipo di gioco in onda: serve alla regola dei −6 dB della domanda. */
+  private gameType: string | null = null;
+  /** Domanda aperta: Quiz e Indovina chi abbassano la base finché è aperta. */
+  private questionOpen = false;
+  /** Livello già dato al sottofondo: evita una rampa a ogni domanda inutile. */
+  private appliedBedLevel = BED_LEVEL;
   /** Ultima pista in gara: serve a riaccendere il rotolamento dopo una pausa. */
   private marbleTrack: string | null = null;
   /** Il rotolamento era in onda quando la TV è andata in pausa. */
@@ -255,7 +268,8 @@ export class AudioService {
    */
   startAmbient(): void {
     if (!this.audioEnabled() || !this.bedLoop) return;
-    this.player.startBed(this.bedLoop.file, BED_LEVEL, BED_FADE_SECONDS);
+    this.appliedBedLevel = this.bedGain();
+    this.player.startBed(this.bedLoop.file, this.appliedBedLevel, BED_FADE_SECONDS);
   }
 
   /**
@@ -265,7 +279,30 @@ export class AudioService {
    * silenzio: il loop in onda si spegne e non ne parte un altro.
    */
   setGameBed(gameType: string | null | undefined): void {
-    this.applyBed(bedForGame(gameType));
+    this.gameType = gameType ?? null;
+    // Un gioco nuovo apre senza domanda: la regola dei −6 dB riparte da zero.
+    this.questionOpen = false;
+    this.applyBed(bedForGame(gameType, this.act));
+  }
+
+  /**
+   * Cambia la base d'atto: i giochi senza brano proprio (Quiz, Indovina chi,
+   * Ruota, Timeline, Ultima Spiaggia) passano al file dell'atto con la solita
+   * dissolvenza. Un gioco con il suo loop non si muove.
+   */
+  setActBed(act: number | null | undefined): void {
+    this.act = act ?? null;
+    this.applyBed(bedForGame(this.gameType, this.act));
+  }
+
+  /**
+   * Domanda aperta o chiusa: con Quiz e Indovina chi la base d'atto scende di
+   * altri 6 dB, per leggere le risposte senza alzare la voce. Negli altri
+   * giochi non cambia nulla.
+   */
+  setQuestionActive(open: boolean): void {
+    this.questionOpen = open;
+    this.applyBedLevel();
   }
 
   /**
@@ -276,15 +313,33 @@ export class AudioService {
     this.applyBed(BED_LOOPS[id]);
   }
 
-  private applyBed(next: BedLoop | null): void {
-    if ((next?.id ?? null) === (this.bedLoop?.id ?? null)) return;
+  private applyBed(next: BedTrack | null): void {
+    if ((next?.id ?? null) === (this.bedLoop?.id ?? null)) {
+      // Stesso file: non riparte da capo, ma il livello può essere cambiato.
+      this.applyBedLevel();
+      return;
+    }
     this.bedLoop = next;
     if (!this.audioEnabled()) return;
     if (!next) {
       this.player.stopBed(BED_STOP_SECONDS);
       return;
     }
-    this.player.startBed(next.file, BED_LEVEL, BED_FADE_SECONDS);
+    this.appliedBedLevel = this.bedGain();
+    this.player.startBed(next.file, this.appliedBedLevel, BED_FADE_SECONDS);
+  }
+
+  /** Volume del sottofondo: pieno, o 6 dB sotto con la domanda aperta. */
+  private bedGain(): number {
+    return BED_LEVEL * bedDuckGain(this.gameType, this.questionOpen);
+  }
+
+  private applyBedLevel(): void {
+    if (!this.bedLoop || !this.audioEnabled()) return;
+    const level = this.bedGain();
+    if (Math.abs(level - this.appliedBedLevel) < 0.001) return;
+    this.appliedBedLevel = level;
+    this.player.setBedLevel(level, BED_DUCK_SECONDS);
   }
 
   stopAmbient(): void {

@@ -205,6 +205,22 @@ export class SoundPlayer {
     this.fadeOutBed(ctx, fade);
   }
 
+  /**
+   * Volume del sottofondo in onda, senza riavviarlo: la domanda di Quiz e
+   * Indovina chi lo abbassa di 6 dB e alla chiusura lo riporta su.
+   */
+  setBedLevel(level: number, fade = 0.4): void {
+    const ctx = this.engine.context();
+    const active = this.bed;
+    if (!ctx || !active || !this.isEnabled()) return;
+    const now = ctx.currentTime;
+    const seconds = Math.max(0.05, fade);
+    const gain = active.gain.gain;
+    gain.cancelScheduledValues(now);
+    gain.setValueAtTime(gain.value, now);
+    gain.linearRampToValueAtTime(Math.max(0, Math.min(1, level)), now + seconds);
+  }
+
   private fadeOutBed(ctx: AudioContext, fade: number): void {
     const active = this.bed;
     if (!active) return;
