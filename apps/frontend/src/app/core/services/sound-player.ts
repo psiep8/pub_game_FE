@@ -197,6 +197,35 @@ export class SoundPlayer {
       });
   }
 
+  /**
+   * Mette in memoria un sottofondo prima che serva: il file parte già
+   * decodificato al primo round dell'atto, senza il vuoto della prima fetch.
+   * È best-effort: un file non ancora in cartella non ferma nulla e non sporca
+   * la console — lo segnala chi prova a suonarlo davvero.
+   */
+  warmBed(file: string): void {
+    const url = `assets/audio/${file}`;
+    const ctx = this.engine.context();
+    if (!ctx || !this.isEnabled()) return;
+    if (this.buffers.has(url) || this.loading.has(url)) return;
+
+    this.loading.add(url);
+    fetch(url)
+      .then((response) => {
+        if (!response.ok) throw new Error(`${response.status} su ${url}`);
+        return response.arrayBuffer();
+      })
+      .then((data) => ctx.decodeAudioData(data))
+      .then((buffer) => {
+        this.buffers.set(url, buffer);
+        this.loading.delete(url);
+      })
+      .catch(() => {
+        // Non si segna come assente: quando il sottofondo servirà si riprova.
+        this.loading.delete(url);
+      });
+  }
+
   /** Spegne il sottofondo con una dissolvenza breve. */
   stopBed(fade = 0.6): void {
     const ctx = this.engine.context();

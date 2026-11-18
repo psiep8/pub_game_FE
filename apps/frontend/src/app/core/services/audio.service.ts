@@ -8,7 +8,7 @@ import { AudioEngine } from './audio-engine';
 import { SoundPlayer } from './sound-player';
 import { marbleRollStyle } from './marble-roll';
 import { BED_LOOPS, type BedLoopId } from './bed-loops';
-import { bedDuckGain, bedForGame, type BedTrack } from './bed-map';
+import { bedDuckGain, bedForGame, bedsForAct, type BedTrack } from './bed-map';
 
 /** Volume del sottofondo: i loop sono a −23 LUFS, già sotto la voce. */
 const BED_LEVEL = 0.9;
@@ -293,6 +293,17 @@ export class AudioService {
   setActBed(act: number | null | undefined): void {
     this.act = act ?? null;
     this.applyBed(bedForGame(this.gameType, this.act));
+    // Un atto nuovo porta i suoi file: base e giochi in memoria prima che servano.
+    this.preloadAct(this.act);
+  }
+
+  /**
+   * Carica i sottofondi di un atto: la base e i loop dei giochi della
+   * scaletta. I file finiscono nella cache del player (e in quella del service
+   * worker), così il primo Quiz dell'atto non aspetta la fetch.
+   */
+  preloadAct(act: number | null | undefined): void {
+    for (const bed of bedsForAct(act)) this.player.warmBed(bed.file);
   }
 
   /**

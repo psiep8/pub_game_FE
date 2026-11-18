@@ -40,6 +40,15 @@
         "maxAge": "1h",
         "timeout": "5s"
       }
+    },
+    {
+      "name": "audio-loop",
+      "urls": ["/assets/audio/loop/*"],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 40,
+        "maxAge": "30d"
+      }
     }
   ]
 }

@@ -54,6 +54,7 @@ import { levelForOccurrence } from '../games/azzardo/azzardo-rules';
 import { Blackjack } from '../games/blackjack/blackjack.component';
 import { DemoScript, demoScriptFor } from './demo-scripts';
 import { REVEAL_DELAY_MS, scoringRuleFor } from '../../shared/models/scoring-rules';
+import { ROUNDS_PER_ACT } from '../../shared/schedule';
 
 /**
  * Quante fotografie delle presenze devono mancare prima di togliere una squadra
@@ -900,6 +901,14 @@ export class GameComponent implements OnInit, OnDestroy {
     return index >= 0 ? index : null;
   }
 
+  /**
+   * Atto della serata (1–5) del round aperto: decide la base d'atto e i file
+   * da caricare. Prima del primo round si resta sull'atto 1, come la lobby.
+   */
+  private currentActNumber(): number {
+    return Math.floor((this.openRoundIndex() ?? 0) / ROUNDS_PER_ACT) + 1;
+  }
+
   private clearPersistedRoundPoints(): void {
     try {
       localStorage.removeItem(ROUND_POINTS_KEY);
@@ -1093,7 +1102,9 @@ export class GameComponent implements OnInit, OnDestroy {
       );
 
       this.currentMode.set(mode);
-      // Ogni gioco porta il suo tappeto: cambia la battuta dopo, senza stacco.
+      // L'atto decide la base e i file da tenere in memoria; il gioco, se ha
+      // un loop suo, prende il posto della base.
+      this.audioService.setActBed(this.currentActNumber());
       this.audioService.setGameBed(mode.type);
 
       if (mode.requiresBubbles && categories.length > 0) {
@@ -2771,6 +2782,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.buildModeConfig(pending.type, payload, this.bonusPlayers()),
     );
     this.currentMode.set(mode);
+    this.audioService.setActBed(this.currentActNumber());
     this.audioService.setGameBed(mode.type);
     this.timer.set(pending.secondsLeft);
     this.audioService.startClock();

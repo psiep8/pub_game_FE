@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { GAME_MODE_TYPES } from '../../shared/enums/game-mode-type';
+import { ACT_DECKS } from '../../shared/schedule';
 import { BED_LOOPS } from './bed-loops';
 import {
   ACT_BASE,
@@ -17,7 +18,9 @@ import {
   actBed,
   bedDuckGain,
   bedForGame,
+  bedsForAct,
   ducksDuringQuestion,
+  type BedTrack,
 } from './bed-map';
 
 /** La cartella si cerca dalla radice del progetto: il runner parte da lì. */
@@ -129,6 +132,38 @@ describe('Mappa dei sottofondi — giochi', () => {
     expect(bedForGame('')?.id).toBe('lobby');
     expect(bedForGame('LEADERBOARD')?.id).toBe('lobby');
     expect(bedForGame('NON_ESISTE')?.id).toBe('lobby');
+  });
+});
+
+describe('Mappa dei sottofondi — caricamento per atto', () => {
+  it('un atto porta la sua base e i loop dei giochi della scaletta', () => {
+    for (const act of ACT_NUMBERS) {
+      const beds = bedsForAct(act);
+      // La base c'è anche se il file non è ancora in cartella: è proprio quello
+      // che si vuole mettere in memoria appena l'atto arriva.
+      expect(beds[0], `atto ${act}`).toMatchObject({
+        id: `atto-${act}`,
+        file: `loop/atto-${act}.m4a`,
+      });
+
+      const attesi = ACT_DECKS[act - 1]
+        .map((type) => GAME_BEDS[type])
+        .filter((bed): bed is BedTrack => !!bed && bed !== ACT_BASE)
+        .map((bed) => bed.file);
+      expect(beds.slice(1).map((bed) => bed.file), `atto ${act}`)
+        .toEqual([...new Set(attesi)]);
+
+      // Una volta ciascuno, niente muti e solo file che si possono suonare.
+      expect(new Set(beds.map((bed) => bed.id)).size, `atto ${act}`).toBe(beds.length);
+      expect(beds.every((bed) => bed.file.endsWith('.m4a')), `atto ${act}`).toBe(true);
+    }
+  });
+
+  it('senza atto aperto carica la base di ripiego', () => {
+    expect(bedsForAct(null).map((bed) => bed.id)).toEqual(['lobby']);
+    expect(bedsForAct(undefined).map((bed) => bed.id)).toEqual(['lobby']);
+    expect(bedsForAct(0).map((bed) => bed.id)).toEqual(['lobby']);
+    expect(bedsForAct(99).map((bed) => bed.id)).toEqual(['lobby']);
   });
 });
 

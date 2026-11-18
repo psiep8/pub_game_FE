@@ -1,5 +1,30 @@
 # Changelog
 
+## 18 novembre 2026 — I sottofondi arrivano con l'atto, e il service worker li tiene
+
+- **Caricamento per atto:** `bedsForAct(atto)` dice cosa serve in memoria — la
+  base d'atto e i loop dei giochi che la scaletta mette in quell'atto, una volta
+  ciascuno, senza i giochi muti. `AudioService.setActBed()` chiama
+  `preloadAct()`, che passa i file a `SoundPlayer.warmBed()`; la TV apre l'atto
+  a ogni round (`setActBed(currentActNumber())`, anche alla ripresa), così i
+  file sono già decodificati al primo Quiz, senza il vuoto della prima fetch.
+- `warmBed` è best-effort: un file non ancora in cartella non ferma niente,
+  non sporca la console e non viene segnato come assente, così quando servirà
+  si riprova.
+- **Cache del service worker:** nuova data group `audio-loop`
+  (`/assets/audio/loop/*`, strategia `performance`, 40 voci, 30 giorni). Prima
+  i loop non cadevano sotto nessun gruppo — quello degli asset copre solo icone
+  e immagini — quindi il browser li riscaricava a ogni cambio gioco.
+- Test: `bed-map.spec.ts` controlla che ogni atto chieda la sua base e i loop
+  della propria scaletta; `audio-act-load.spec.ts` segue l'atto 3 fino ai tre
+  file chiesti al player e ripete su tutti e cinque gli atti, senza doppioni;
+  `audio-assets.spec.ts` controlla che ogni sottofondo cada sotto una regola di
+  cache di `ngsw-config.json`.
+- Verifiche: **517 test su 59 file**, `tsc` pulito, `ng build` di produzione in
+  42 s (la build valida anche `ngsw-config.json`). **Non fatto:** i cinque file
+  d'atto non ci sono ancora, quindi il precaricamento della base oggi prende un
+  404 silenzioso finché non arrivano; nessun ascolto.
+
 ## 18 novembre 2026 — La base d'atto ha la sua mappa, e la domanda abbassa la musica
 
 - **`bed-map.ts`** è il file unico dei sottofondi: la base dei cinque atti

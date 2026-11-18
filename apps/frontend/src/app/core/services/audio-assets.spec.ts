@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { AUDIO_EVENTS, type AudioEventId } from './audio-catalog';
 import { AUDIO_FILES } from './audio-files';
 import { BED_LOOPS } from './bed-loops';
+import { ACT_BEDS } from './bed-map';
 
 /**
  * Controlli del §7 della spec dei suoni veri: ogni evento ha il suo file, ogni
@@ -22,6 +23,36 @@ const playedFiles = [
   ...new Set(Object.values(AUDIO_FILES).flatMap((files) => files ?? [])),
   ...new Set(Object.values(BED_LOOPS).map((loop) => loop.file)),
 ].sort();
+
+/**
+ * Regole di cache del service worker: i glob di `ngsw-config.json`. Il file sta
+ * nella radice di `apps/frontend`, quindi si cerca da entrambe le cwd.
+ */
+function cachePatterns(): string[] {
+  const configPath = [
+    join(process.cwd(), 'ngsw-config.json'),
+    join(process.cwd(), 'apps/frontend/ngsw-config.json'),
+  ].find((file) => existsSync(file));
+  if (!configPath) return [];
+
+  const config = JSON.parse(readFileSync(configPath, 'utf8'));
+  const assetGroups = Array.isArray(config.assetGroups) ? config.assetGroups : [];
+  const dataGroups = Array.isArray(config.dataGroups) ? config.dataGroups : [];
+  return [
+    ...assetGroups.flatMap((group: any) => group?.resources?.urls ?? group?.resources?.files ?? []),
+    ...dataGroups.flatMap((group: any) => group?.urls ?? []),
+  ].map((pattern: unknown) => String(pattern));
+}
+
+/** Glob di ngsw: `**` attraversa le cartelle, `*` no. */
+function matchesPattern(pattern: string, url: string): boolean {
+  const regex = pattern
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    .replace(/\*\*/g, '\u0000')
+    .replace(/\*/g, '[^/]*')
+    .replace(/\u0000/g, '.*');
+  return new RegExp(`^${regex}$`).test(url);
+}
 
 /** Righe di `FONTI.txt`: percorso | titolo | autore | URL | licenza. */
 function creditedFiles(): string[] {
@@ -66,6 +97,23 @@ describe('File audio della serata', () => {
       0,
     );
     expect(bytes).toBeLessThan(15 * 1024 * 1024);
+  });
+
+  it('i sottofondi restano in cache nel service worker', () => {
+    const patterns = cachePatterns();
+    expect(patterns.length, 'ngsw-config.json non trovato').toBeGreaterThan(0);
+
+    const beds = [
+      ...Object.values(BED_LOOPS).map((bed) => bed.file),
+      ...Object.values(ACT_BEDS).map((bed) => bed.file),
+    ];
+    for (const file of new Set(beds)) {
+      const url = `/assets/audio/${file}`;
+      expect(
+        patterns.some((pattern) => matchesPattern(pattern, url)),
+        `${url} non è in cache: senza la regola il servizio lo riscarica ogni volta`,
+      ).toBe(true);
+    }
   });
 
   it('usa solo formati che Safari legge', () => {

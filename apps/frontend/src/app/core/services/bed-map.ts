@@ -13,6 +13,7 @@
  * scordarselo qui fa fallire la suite.</p>
  */
 import { BED_LOOPS } from './bed-loops';
+import { ACT_DECKS } from '../../shared/schedule';
 import type { GameModeType } from '../../shared/enums/game-mode-type';
 
 /** Un sottofondo in onda: id stabile per i confronti, etichetta e file. */
@@ -99,6 +100,25 @@ export function bedForGame(type?: string | null, act?: number | null): BedTrack 
   if (bed === null) return null;
   if (bed === ACT_BASE) return actBed(act);
   return bed;
+}
+
+/**
+ * Cosa si tiene in memoria quando un atto si apre: la sua base e i loop dei
+ * giochi che la scaletta mette in quell'atto, una volta ciascuno. Musica e Time
+ * Buzzer non compaiono perché il loro silenzio non è un file. Senza atto (o con
+ * un numero fuori scala) si carica la lobby, che è la base di ripiego.
+ */
+export function bedsForAct(act?: number | null): BedTrack[] {
+  const number = actNumber(act);
+  if (number === null) return [BED_LOOPS.lobby];
+
+  const beds: BedTrack[] = [ACT_BEDS[number]];
+  for (const type of ACT_DECKS[number - 1]) {
+    const bed = GAME_BEDS[type];
+    if (!bed || bed === ACT_BASE) continue;
+    if (!beds.some((row) => row.id === bed.id)) beds.push(bed);
+  }
+  return beds;
 }
 
 /**
