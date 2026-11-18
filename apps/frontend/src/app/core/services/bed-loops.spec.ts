@@ -36,14 +36,14 @@ describe('Sottofondi registrati', () => {
     expect(bedLoopForGame('CASINO_NUMBER').id).toBe('casino');
 
     expect(bedLoopForGame('CAVALLO').id).toBe('leggero');
-
-    expect(bedLoopForGame('LEADERBOARD').id).toBe('classifica');
   });
 
   it('lascia la lobby e i tipi sconosciuti sul pub', () => {
     expect(bedLoopForGame(null).id).toBe('pub');
     expect(bedLoopForGame(undefined).id).toBe('pub');
     expect(bedLoopForGame('').id).toBe('pub');
+    // Classifica e podio non sono giochi: hanno un ingresso dedicato.
+    expect(bedLoopForGame('LEADERBOARD').id).toBe('pub');
     expect(bedLoopForGame('NON_ESISTE').id).toBe('pub');
   });
 });

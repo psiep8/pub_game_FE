@@ -8,7 +8,7 @@ import {
 import { AudioEngine } from './audio-engine';
 import { SoundPlayer } from './sound-player';
 import { marbleRollStyle } from './marble-roll';
-import { bedLoopForGame, type BedLoop } from './bed-loops';
+import { BED_LOOPS, bedLoopForGame, type BedLoop, type BedLoopId } from './bed-loops';
 
 /**
  * Tabella evento → suono di interfaccia, in un solo posto.
@@ -289,7 +289,18 @@ export class AudioService {
    * stacco, il file continua a girare.
    */
   setGameBed(gameType: string | null | undefined): void {
-    const next = bedLoopForGame(gameType);
+    this.applyBed(bedLoopForGame(gameType));
+  }
+
+  /**
+   * Sottofondo scelto per famiglia: classifica e podio non sono giochi, quindi
+   * non passano dalla mappa dei tipi. Stessa famiglia = il file continua.
+   */
+  setBedLoop(id: BedLoopId): void {
+    this.applyBed(BED_LOOPS[id]);
+  }
+
+  private applyBed(next: BedLoop): void {
     if (next.id === this.bedLoop.id) return;
     this.bedLoop = next;
     if (!this.audioEnabled()) return;

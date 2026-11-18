@@ -74,16 +74,15 @@ describe('GameComponent', () => {
     // Classifica di metà serata: fanfara, poi di nuovo la musica del gioco.
     component.pendingLeaderboardType.set('QUICK');
     component.showPendingLeaderboard();
-    expect(audio.played.at(-1)).toBe('bed-LEADERBOARD');
+    expect(audio.played.at(-1)).toBe('bed-loop-classifica');
     component.closeLeaderboard();
     expect(audio.played.at(-1)).toBe('bed-QUIZ');
 
     // Classifica finale, con l'ultimo gioco ancora in memoria: si va in lobby.
     rounds.restoreRound(40);
-    component.currentMode.set({ type: 'QUIZ' } as any);
     component.pendingLeaderboardType.set('DETAILED');
     component.showPendingLeaderboard();
-    expect(audio.played.at(-1)).toBe('bed-LEADERBOARD');
+    expect(audio.played.at(-1)).toBe('bed-loop-classifica');
     component.closeLeaderboard();
     expect(audio.played.at(-1)).toBe('bed-lobby');
   });

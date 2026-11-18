@@ -4,9 +4,9 @@
  * <p>Ogni gioco suona uno dei file di `assets/audio/loop`: jazz da pub per i
  * quiz, percussioni in salita per i giochi a tempo, rock dritto per lo sport,
  * lounge da sala giochi per il Casino e la marimba per il Cavallo. Classifiche
- * e podio hanno una fanfara loro, chiesta dalla TV con la chiave `LEADERBOARD`.
- * Il file è lo stesso per tutta la famiglia: cambiare gioco cambia disco, non
- * musica suonata al volo.</p>
+ * e podio hanno una fanfara loro, scelta dalla TV con `setBedLoop('classifica')`:
+ * non sono giochi e non passano da `bedLoopForGame`. Il file è lo stesso per
+ * tutta la famiglia: cambiare gioco cambia disco, non musica suonata al volo.</p>
  *
  * <p>Il manifesto (`docs/MANIFESTO-AUDIO.md`) assegna ogni gioco alla sua
  * famiglia; qui c'è la stessa mappa in codice, con il pub come ripiego per la
@@ -50,8 +50,6 @@ const GAME_BEDS: Record<string, BedLoopId> = {
   CASINO_DOZEN: 'casino',
   CASINO_NUMBER: 'casino',
   CAVALLO: 'leggero',
-  /** Classifica rapida, dettagliata, podio e classifica finale: la stessa fanfara. */
-  LEADERBOARD: 'classifica',
 };
 
 /** Famiglia del sottofondo per il tipo di gioco in corso. */

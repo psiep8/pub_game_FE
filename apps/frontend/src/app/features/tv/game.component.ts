@@ -1718,10 +1718,10 @@ export class GameComponent implements OnInit, OnDestroy {
     this.showLeaderboardDetailed.set(false);
     this.isShowingLeaderboard.set(false);
     this.pendingLeaderboardType.set(null);
-    // Chiusa la classifica si torna al gioco aperto; se la serata è finita
-    // (classifica finale) si torna alla lobby, non alla musica dell'ultimo gioco.
-    const backToLobby = this.roundManager.isGameOver();
-    this.audioService.setGameBed(backToLobby ? null : this.currentMode()?.type ?? null);
+    // Serata finita: il sottofondo torna al pub, non alla musica dell'ultimo gioco.
+    this.audioService.setGameBed(
+      this.roundManager.isGameOver() ? null : this.currentMode()?.type ?? null,
+    );
   }
 
   showPendingLeaderboard() {
@@ -1732,7 +1732,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.isShowingLeaderboard.set(true);
     this.theme.applyFromRemote('editorial-acid');
     // Classifica e podio cambiano disco: parte la fanfara registrata.
-    this.audioService.setGameBed('LEADERBOARD');
+    this.audioService.setBedLoop('classifica');
     this.showLeaderboardQuick.set(type === 'QUICK');
     this.showLeaderboardDetailed.set(type === 'DETAILED');
   }
@@ -1842,7 +1842,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.pendingLeaderboardType.set(null);
     this.isShowingLeaderboard.set(true);
     // Anche la classifica forzata dalla regia ha il suo loop.
-    this.audioService.setGameBed('LEADERBOARD');
+    this.audioService.setBedLoop('classifica');
 
     if (type === 'DETAILED') {
       this.showLeaderboardQuick.set(false);

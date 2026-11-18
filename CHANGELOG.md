@@ -1,5 +1,21 @@
 # Changelog
 
+## 18 novembre 2026 — La classifica ha il suo ingresso, non un finto gioco
+
+- **`AudioService.setBedLoop(id)`**: classifica e podio non sono giochi, quindi
+  non passano più da `setGameBed('LEADERBOARD')`. La TV chiama
+  `setBedLoop('classifica')` e `GAME_BEDS` torna a contenere solo tipi che
+  esistono davvero; `setGameBed` delega a un unico `applyBed`, così la
+  dissolvenza sta in un posto solo.
+- **Corretto un bug della regia audio:** la pagina `/audio` passava l'id della
+  famiglia a `setGameBed`, che lo trattava come tipo di gioco e ripiegava
+  sempre sul pub. Ora usa `setBedLoop`, quindi il pulsante fa sentire davvero
+  il loop scelto.
+- `closeLeaderboard()` perde la variabile temporanea: una riga sola con
+  `isGameOver()` che sceglie fra lobby e musica del round.
+- Verifiche: suite frontend **493 test su 57 file**, build di produzione,
+  `tsc` pulito. **Non fatto:** ascolto reale.
+
 ## 18 novembre 2026 — La classifica suona la sua fanfara
 
 - **Il sesto loop non resta mai muto.** La TV chiede `LEADERBOARD` quando

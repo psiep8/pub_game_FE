@@ -381,7 +381,7 @@ export class AudioLab {
 
   /** Prova un tappeto: è quello che sentirà la sala durante quel gioco. */
   playBed(bed: BedLoop): void {
-    this.audio.setGameBed(bed.id);
+    this.audio.setBedLoop(bed.id);
     this.audio.startAmbient();
     this.bedId.set(bed.id);
     this.lastPlayed.set(`Tappeto: ${bed.label}`);
