@@ -136,6 +136,11 @@ export class SoundPlayer {
       });
   }
 
+  /** True se il loop dell'evento è in onda: serve alla pausa della TV. */
+  isLooping(event: AudioEventId): boolean {
+    return this.loops.has(event);
+  }
+
   stopLoop(event: AudioEventId): void {
     const active = this.loops.get(event);
     if (!active) return;

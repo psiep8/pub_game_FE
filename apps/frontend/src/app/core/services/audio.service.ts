@@ -30,6 +30,10 @@ export class AudioService {
   private readonly player: SoundPlayer;
   /** Sottofondo attivo: uno dei sei loop registrati, deciso da `setGameBed`. */
   private bedLoop: BedLoop = bedLoopForGame(null);
+  /** Ultima pista in gara: serve a riaccendere il rotolamento dopo una pausa. */
+  private marbleTrack: string | null = null;
+  /** Il rotolamento era in onda quando la TV è andata in pausa. */
+  private marbleSilenced = false;
 
   /** Volume generale della TV, 0–1. Il muto resta il suo interruttore. */
   readonly masterVolume = signal(1);
@@ -93,6 +97,8 @@ export class AudioService {
    */
   startMarbleBed(trackId?: string | null): void {
     if (!this.audioEnabled()) return;
+    this.marbleTrack = trackId ?? null;
+    this.marbleSilenced = false;
     const style = marbleRollStyle(trackId);
     this.player.startLoop('marbleRoll', style.level, {
       rate: style.rate,
@@ -102,6 +108,27 @@ export class AudioService {
 
   stopMarbleBed(): void {
     this.player.stopLoop('marbleRoll');
+  }
+
+  /**
+   * Pausa della TV: tacciono musica e rotolamento. Non tocca la corsa, che ha
+   * il suo ciclo: qui si spegne solo quello che si sente.
+   */
+  pauseBeds(): void {
+    this.stopAmbient();
+    this.marbleSilenced = this.player.isLooping('marbleRoll');
+    if (this.marbleSilenced) this.stopMarbleBed();
+  }
+
+  /**
+   * Ripresa: torna la musica, e il rotolamento solo se una gara era in corso
+   * quando è arrivata la pausa. La pista è quella dell'ultima gara accesa.
+   */
+  resumeBeds(): void {
+    this.startAmbient();
+    if (!this.marbleSilenced) return;
+    this.marbleSilenced = false;
+    this.startMarbleBed(this.marbleTrack);
   }
 
   playBell(): void {

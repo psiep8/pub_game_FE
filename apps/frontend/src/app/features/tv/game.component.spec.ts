@@ -97,12 +97,12 @@ describe('GameComponent', () => {
     component.togglePause();
     expect(pause).toHaveBeenCalled();
     expect(component.isPaused()).toBe(true);
-    expect(audio.played).toContain('stop-ambient');
+    expect(audio.played).toContain('pause-beds');
 
     component.togglePause();
     expect(resume).toHaveBeenCalled();
     expect(component.isPaused()).toBe(false);
-    expect(audio.played).toContain('ambient');
+    expect(audio.played).toContain('resume-beds');
   });
 
   it('applica una sola volta l\'esito Quiz arrivato dal server', () => {

@@ -1,5 +1,19 @@
 # Changelog
 
+## 18 novembre 2026 — In pausa tace anche il rotolamento delle Biglie
+
+- `AudioService.pauseBeds()` ferma musica **e** rotolamento: ricorda se il loop
+  `marbleRoll` era in onda (`SoundPlayer.isLooping`) e `resumeBeds()` lo
+  riaccende con la pista dell'ultima gara, ma solo in quel caso. La corsa non
+  viene toccata: si spegne soltanto quello che si sente.
+- `togglePause()` usa i due nuovi ingressi al posto di `stopAmbient()` e
+  `startAmbient()`, così pausa e ripresa restano una riga per stato.
+- **3 test nuovi** in `audio.service.spec.ts` (pausa con gara in corso, ripresa
+  con gara, ripresa senza gara) e il test della TV aggiornato a
+  `pause-beds`/`resume-beds`.
+- Verifiche: **488 test su 56 file**, `tsc` pulito, build di produzione. **Non
+  fatto:** la pausa non è stata ascoltata su una TV vera.
+
 ## 18 novembre 2026 — In pausa la TV tace davvero
 
 - `togglePause()` ferma anche il sottofondo oltre a clock e suspense: durante la
