@@ -1718,8 +1718,10 @@ export class GameComponent implements OnInit, OnDestroy {
     this.showLeaderboardDetailed.set(false);
     this.isShowingLeaderboard.set(false);
     this.pendingLeaderboardType.set(null);
-    // Chiusa la classifica si torna al gioco aperto, o alla lobby.
-    this.audioService.setGameBed(this.currentMode()?.type ?? null);
+    // Chiusa la classifica si torna al gioco aperto; se la serata è finita
+    // (classifica finale) si torna alla lobby, non alla musica dell'ultimo gioco.
+    const backToLobby = this.roundManager.isGameOver();
+    this.audioService.setGameBed(backToLobby ? null : this.currentMode()?.type ?? null);
   }
 
   showPendingLeaderboard() {

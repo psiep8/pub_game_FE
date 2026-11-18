@@ -66,17 +66,26 @@ describe('GameComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('mette il loop della classifica quando la classifica è in TV', () => {
+  it('mette il loop della classifica e chiude sul gioco, o sulla lobby a serata finita', () => {
     const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
+    const rounds = TestBed.inject(RoundManagerService);
+    component.currentMode.set({ type: 'QUIZ' } as any);
 
+    // Classifica di metà serata: fanfara, poi di nuovo la musica del gioco.
     component.pendingLeaderboardType.set('QUICK');
     component.showPendingLeaderboard();
-    expect(audio.played).toContain('bed-LEADERBOARD');
-
-    component.adminShowLeaderboard();
+    expect(audio.played.at(-1)).toBe('bed-LEADERBOARD');
     component.closeLeaderboard();
-    // Chiusa la classifica si torna alla lobby (nessun gioco aperto).
-    expect(audio.played).toContain('bed-lobby');
+    expect(audio.played.at(-1)).toBe('bed-QUIZ');
+
+    // Classifica finale, con l'ultimo gioco ancora in memoria: si va in lobby.
+    rounds.restoreRound(40);
+    component.currentMode.set({ type: 'QUIZ' } as any);
+    component.pendingLeaderboardType.set('DETAILED');
+    component.showPendingLeaderboard();
+    expect(audio.played.at(-1)).toBe('bed-LEADERBOARD');
+    component.closeLeaderboard();
+    expect(audio.played.at(-1)).toBe('bed-lobby');
   });
 
   it('applica una sola volta l\'esito Quiz arrivato dal server', () => {

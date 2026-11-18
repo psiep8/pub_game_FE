@@ -6,14 +6,17 @@
   mostra la classifica rapida, quella dettagliata, il podio e la classifica
   finale (anche forzata dalla regia): parte la famiglia `classifica` con la
   stessa dissolvenza di 1,5 s. `closeLeaderboard()` riporta il sottofondo al
-  gioco aperto, o alla lobby se non c'è un round.
+  gioco aperto; a serata finita, cioè alla classifica finale, va in lobby e non
+  sulla musica dell'ultimo gioco.
 - **Ripulito il sottofondo del giro precedente:** via il campo `games` (non lo
   leggeva nessuno) e le tre chiavi `LEADERBOARD_QUICK`, `LEADERBOARD_DETAILED`,
   `PODIUM`, ridotte alla sola `LEADERBOARD`; `startAmbient()` non accetta più un
   tipo che nessun chiamante passava; `showPendingLeaderboard()` non duplica più
   i due rami.
-- Verifiche: **1 test nuovo** (classifica → lobby) e suite frontend **493 test
-  su 57 file**, build di produzione. **Non fatto:** l'ascolto della fanfara e
+- Verifiche: **1 test nuovo** che segue l'ordine delle chiamate (classifica →
+  gioco, classifica finale → lobby) e suite frontend **493 test su 57 file**,
+  build di produzione. Il test è stato eseguito anche contro il codice vecchio:
+  fallisce, quindi copre davvero il ritorno in lobby. **Non fatto:** l'ascolto della fanfara e
   della dissolvenza in sala.
 
 ## 18 novembre 2026 — I giochi suonano i sei loop registrati
