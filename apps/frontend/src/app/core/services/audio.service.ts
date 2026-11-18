@@ -8,15 +8,7 @@ import {
 import { AudioEngine } from './audio-engine';
 import { SoundPlayer } from './sound-player';
 import { marbleRollStyle } from './marble-roll';
-import { bell, click, modal, noiseVoice, pluck } from './audio-dsp';
-import {
-  bedBar,
-  bedForGame,
-  bedSecondsPerBar,
-  bedSecondsPerBeat,
-  midiToFrequency,
-  type BedProfile,
-} from './bed-profiles';
+import { bedLoopForGame, type BedLoop } from './bed-loops';
 
 /**
  * Tabella evento → suono di interfaccia, in un solo posto.
@@ -41,25 +33,27 @@ export const UI_SOUNDS = {
 /** Foley sta sotto la voce del presentatore: mai il suono più forte della sala. */
 const UI_VOLUME = 0.45;
 
+/** Volume del sottofondo: i loop sono a −23 LUFS, già sotto la voce. */
+const BED_LEVEL = 0.9;
+/** Dissolvenza incrociata al cambio gioco. */
+const BED_FADE_SECONDS = 1.5;
+/** Spegnimento (pausa, muto): più rapido, ma senza taglio secco. */
+const BED_STOP_SECONDS = 0.6;
+
 /**
  * Suoni della serata.
  *
- * Gli effetti sono file (`assets/audio/...`), i tappeti sono ancora generati
- * da `bed-profiles.ts` finché la spec dei bed non li porta su file. Nessun
- * evento ricade sulla sintesi: un file mancante si sente in console.
+ * Gli effetti e i sottofondi sono file (`assets/audio/...`): sei famiglie di
+ * loop registrati, una per gioco, con dissolvenza incrociata al cambio.
+ * Nessun evento ricade sulla sintesi: un file mancante si sente in console.
  */
 @Injectable({ providedIn: 'root' })
 export class AudioService {
   private readonly audioEnabled = signal(true);
   private readonly engine = new AudioEngine();
   private readonly player: SoundPlayer;
-  private ambientInterval?: ReturnType<typeof setInterval>;
-  private ambientBar = 0;
-  private ambientNextBarAt = 0;
-  /** Tappeto attivo: uno per gioco, deciso da `setGameBed`. */
-  private bedProfile: BedProfile = bedForGame(null);
-  private ambientNoise?: AudioBufferSourceNode;
-  private ambientNoiseGain?: GainNode;
+  /** Sottofondo attivo: uno dei sei loop registrati, deciso da `setGameBed`. */
+  private bedLoop: BedLoop = bedLoopForGame(null);
 
   /** Foley ha il suo contesto: si configura una volta sola. */
   private uiReady = false;
@@ -279,52 +273,37 @@ export class AudioService {
     this.play('podiumReveal', Math.max(0, Math.min(2, position - 1)));
   }
 
-  /** Tappeto del pub: parte in lobby e resta sotto classifiche e bonus. */
+  /**
+   * Accende il sottofondo del gioco: è un loop registrato, non più un tappeto
+   * generato battuta per battuta. Il file resta in onda finché non cambia il
+   * gioco (`setGameBed`) o la TV va in pausa (`stopAmbient`).
+   */
   startAmbient(gameType?: string | null): void {
     if (!this.audioEnabled()) return;
     if (gameType !== undefined) this.setGameBed(gameType);
-    if (this.ambientInterval) return;
-    const ctx = this.engine.context();
-    if (!ctx) return;
-
-    this.ambientBar = 0;
-    this.ambientNextBarAt = ctx.currentTime + 0.12;
-    this.startVinyl(ctx);
-    this.ambientInterval = setInterval(() => this.scheduleAmbient(), 250);
-    this.scheduleAmbient();
+    this.player.startBed(this.bedLoop.file, BED_LEVEL, BED_FADE_SECONDS);
   }
 
   /**
-   * Cambia il tappeto: il gioco appena partito ha il suo. La battuta in corso
-   * finisce com'era, la successiva parte col nuovo tempo e i nuovi strumenti,
-   * così non si sente uno stacco.
+   * Cambia il sottofondo: il gioco appena partito porta la sua famiglia di
+   * loop, con dissolvenza incrociata di 1,5 s. Stessa famiglia = nessuno
+   * stacco, il file continua a girare.
    */
   setGameBed(gameType: string | null | undefined): void {
-    const next = bedForGame(gameType);
-    if (next.id === this.bedProfile.id) return;
-    this.bedProfile = next;
-    this.ambientBar = 0;
+    const next = bedLoopForGame(gameType);
+    if (next.id === this.bedLoop.id) return;
+    this.bedLoop = next;
+    if (!this.audioEnabled()) return;
+    this.player.startBed(next.file, BED_LEVEL, BED_FADE_SECONDS);
   }
 
-  /** Tappeto attivo: la regia lo mostra e i test lo controllano. */
-  currentBed(): BedProfile {
-    return this.bedProfile;
+  /** Sottofondo attivo: la regia lo mostra e i test lo controllano. */
+  currentBed(): BedLoop {
+    return this.bedLoop;
   }
 
   stopAmbient(): void {
-    if (this.ambientInterval) {
-      clearInterval(this.ambientInterval);
-      this.ambientInterval = undefined;
-    }
-    try {
-      this.ambientNoise?.stop();
-      this.ambientNoise?.disconnect();
-    } catch {
-      // già fermo
-    }
-    this.ambientNoise = undefined;
-    this.ambientNoiseGain?.disconnect();
-    this.ambientNoiseGain = undefined;
+    this.player.stopBed(BED_STOP_SECONDS);
   }
 
   stopAll(): void {
@@ -435,184 +414,4 @@ export class AudioService {
     }
   }
 
-  /** Programma le battute con un piccolo anticipo, come un vero sequencer. */
-  private scheduleAmbient(): void {
-    const ctx = this.engine.context();
-    if (!ctx || !this.ambientInterval || !this.audioEnabled()) return;
-
-    const barSeconds = bedSecondsPerBar(this.bedProfile);
-
-    // Scheda in background: il timer arranca. Si salta al punto giusto invece
-    // di scaricare tutte le battute arretrate in un colpo.
-    if (this.ambientNextBarAt < ctx.currentTime) {
-      const skipped = Math.ceil((ctx.currentTime - this.ambientNextBarAt) / barSeconds);
-      this.ambientBar = (this.ambientBar + skipped) % 4096;
-      this.ambientNextBarAt += skipped * barSeconds;
-    }
-
-    const horizon = ctx.currentTime + 1.2;
-    while (this.ambientNextBarAt < horizon) {
-      this.scheduleAmbientBar(this.ambientBar, this.ambientNextBarAt);
-      this.ambientBar = (this.ambientBar + 1) % 4096;
-      this.ambientNextBarAt += barSeconds;
-    }
-  }
-
-  private scheduleAmbientBar(barIndex: number, startAt: number): void {
-    const ctx = this.engine.context();
-    if (!ctx) return;
-
-    const profile = this.bedProfile;
-    const bar = bedBar(profile, barIndex);
-    // Il tappeto non passa dal bus dell'evento: suona sempre al suo volume.
-    const bus = this.engine.room(ctx);
-    const beatSeconds = bedSecondsPerBeat(profile);
-    // Il tappeto suona sotto gli effetti: le note del giro restano scritte
-    // piano nel generatore, qui si porta il trio a volume di sala.
-    const BED_GAIN = 4;
-
-    for (const note of bar.notes) {
-      const at = startAt + note.beat * beatSeconds;
-      const freq = midiToFrequency(note.midi);
-      switch (note.voice) {
-        case 'bass':
-          pluck(ctx, bus, {
-            at,
-            freq,
-            duration: note.duration,
-            gain: note.gain * BED_GAIN,
-            brightness: 0.28,
-            pan: note.pan,
-          });
-          break;
-        case 'epiano':
-          // Campana FM con rapporto quasi 1: corpo tondo, attacco morbido.
-          bell(ctx, bus, {
-            at,
-            freq,
-            duration: note.duration,
-            gain: note.gain * BED_GAIN,
-            ratio: 1.01,
-            index: 0.7,
-            pan: note.pan,
-          });
-          break;
-        case 'vibes':
-          bell(ctx, bus, {
-            at,
-            freq,
-            duration: note.duration,
-            gain: note.gain * BED_GAIN,
-            ratio: 4,
-            index: 1.1,
-            pan: note.pan,
-          });
-          break;
-        case 'glass':
-          modal(ctx, bus, {
-            at,
-            gain: note.gain * BED_GAIN,
-            partials: [
-              { freq, decay: note.duration, q: 90 },
-              { freq: freq * 2.76, decay: note.duration * 0.6, q: 95, gain: 0.45 },
-            ],
-            pan: note.pan,
-          });
-          break;
-        case 'rim':
-          click(ctx, bus, { at, gain: note.gain * BED_GAIN, freq: 1800, q: 5, decay: 0.05, pan: note.pan });
-          break;
-        case 'brush':
-          noiseVoice(ctx, bus, {
-            at,
-            duration: 0.11,
-            gain: note.gain * BED_GAIN,
-            freq: 3400,
-            q: 0.8,
-            attack: 0.004,
-            release: 0.1,
-            pan: note.pan,
-          });
-          break;
-        case 'marimba':
-          // Legno intonato: fondamentale e ottava, coda corta.
-          modal(ctx, bus, {
-            at,
-            gain: note.gain * BED_GAIN,
-            partials: [
-              { freq, decay: Math.min(0.5, note.duration), q: 40 },
-              { freq: freq * 3.93, decay: 0.12, q: 60, gain: 0.3 },
-            ],
-            strike: { freq: 1600, q: 2, duration: 0.02, gain: note.gain * BED_GAIN * 0.8 },
-            pan: note.pan,
-          });
-          break;
-        case 'shaker':
-          noiseVoice(ctx, bus, {
-            at,
-            duration: 0.07,
-            gain: note.gain * BED_GAIN,
-            freq: 6200,
-            q: 0.7,
-            attack: 0.003,
-            release: 0.06,
-            pan: note.pan,
-          });
-          break;
-        case 'wood':
-          click(ctx, bus, { at, gain: note.gain * BED_GAIN, freq: 1200, q: 9, decay: 0.05, pan: note.pan });
-          break;
-        case 'pad':
-          // Tappeto lungo: due campane molli e detunate, attacco lento.
-          bell(ctx, bus, {
-            at,
-            freq,
-            duration: note.duration,
-            gain: note.gain * BED_GAIN,
-            ratio: 0.5,
-            index: 0.25,
-            pan: note.pan,
-          });
-          bell(ctx, bus, {
-            at: at + 0.03,
-            freq: freq * 1.006,
-            duration: note.duration,
-            gain: note.gain * BED_GAIN * 0.6,
-            ratio: 0.5,
-            index: 0.2,
-            pan: note.pan,
-          });
-          break;
-      }
-    }
-  }
-
-  /** Fruscio da vinile: un filo costante sotto gli strumenti. */
-  private startVinyl(ctx: AudioContext): void {
-    if (this.ambientNoise) return;
-
-    const frames = Math.floor(ctx.sampleRate * 2);
-    const buffer = ctx.createBuffer(1, frames, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < frames; i++) {
-      data[i] = (Math.random() * 2 - 1) * 0.35;
-    }
-
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
-
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.value = 1800;
-    filter.Q.value = 0.6;
-
-    const gain = ctx.createGain();
-    gain.gain.value = 0.003;
-
-    source.connect(filter).connect(gain).connect(this.engine.output() ?? ctx.destination);
-    source.start();
-    this.ambientNoise = source;
-    this.ambientNoiseGain = gain;
-  }
 }

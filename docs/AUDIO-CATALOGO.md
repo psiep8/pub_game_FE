@@ -14,7 +14,7 @@ Ogni evento del catalogo ha:
 | `id` | Nome stabile: catalogo, regia audio e test usano questo |
 | `label` | Etichetta in italiano, quella che si legge in regia |
 | `when` | In una riga, quando suona |
-| `source` | `ui` (Foley), `sfx` (sintesi Web Audio), `bed` (tappeto musicale del gioco) |
+| `source` | `ui` (Foley), `sfx` (file registrato), `bed` (sottofondo registrato) |
 | `bus` | `tv`, `phone` o `both` |
 | `volume` | Rifinitura dell'evento, 0–1. Oggi 1 per tutti: la bilanciatura è A2 |
 | `minIntervalMs` | Distanza minima fra due riproduzioni dello stesso evento |
@@ -43,6 +43,14 @@ stessi suoni: nessun chiamante è stato toccato in A1.
 | Coda di stanza (risposta all'impulso generata) | tutti i suoni della TV, non quelli del telefono |
 
 ## Un tappeto per gioco (16 novembre 2026)
+
+**Aggiornamento 18 novembre 2026:** i tappeti generati non sono più in uso. I
+sottofondi sono i **sei loop registrati** di `assets/audio/loop`, scelti da
+`core/services/bed-loops.ts` (pub, tensione, sport, casino, leggero,
+classifica); `AudioService.setGameBed()` fa la dissolvenza incrociata di 1,5 s e
+`SoundPlayer.startBed()` tiene il file in onda. `bed-profiles.ts` resta nel
+repository solo finché non si chiude il passo 4 della spec dei suoni veri; la
+tabella che segue è il registro storico di come suonavano prima.
 
 Non c'è un solo sottofondo: **ogni gioco ha il suo tappeto**, così la sala cambia
 aria a ogni round invece di sentire lo stesso giro per tutta la serata. I tappeti

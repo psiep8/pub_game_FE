@@ -1,5 +1,28 @@
 # Changelog
 
+## 18 novembre 2026 — I giochi suonano i sei loop registrati
+
+- **Via i tappeti generati dal vivo.** Il sottofondo non si costruisce più
+  battuta per battuta: `bed-loops.ts` mappa ogni gioco su una delle sei
+  famiglie registrate (pub, tensione, sport, casino, leggero, classifica) e
+  `SoundPlayer.startBed()` mette in onda il file `.m4a` con **dissolvenza
+  incrociata di 1,5 s** al cambio gioco. Due round della stessa famiglia non
+  staccano: il file continua a girare.
+- Il sottofondo si spegne in 0,6 s quando la TV va in pausa o si mette muto. Il
+  rotolamento delle Biglie resta un loop a parte, sopra il tappeto sport.
+- `/audio` elenca le sei famiglie con il file usato al posto dei sedici profili
+  con BPM; il catalogo descrive `ambient` come loop registrato.
+- **Test del §7 della spec dei suoni veri** (`audio-assets.spec.ts`): ogni evento
+  del catalogo ha almeno un file, ogni file suonato esiste su disco e ha la riga
+  in `FONTI.txt`, il peso resta sotto i 15 MB (misurato **11,6 MB** su 48 file) e
+  nessun file è in un formato che Safari non legge. Un secondo spec copre la
+  mappa gioco → famiglia.
+- Verifiche: build di produzione verde, suite frontend **492 test su 57 file**.
+  **Non fatto:** l'ascolto dei sei loop a volume di sala, la prova della
+  dissolvenza su una TV vera e la verifica su Safari iOS/Chrome Android.
+  `bed-profiles.ts` e `audio-dsp.ts` restano in repository: si tolgono al passo
+  4 della spec, insieme a Foley.
+
 ## 17 novembre 2026 — Biglie: telefono in gara, applausi al traguardo, TV che si ferma
 
 - **Il telefono racconta la corsa.** Durante la fase RACE non c'è più il solo cartello «Gara in corso in TV»: lo stato `BIGLIE_STATE` portava già `lanes` (sedici aggiornamenti al secondo) e il telefono ora li usa. Barra della propria biglia, frazione di percorso, **posizione live** e classifica di gara ordinata per piazzamento (chi è arrivato) e poi per strada fatta, con la propria riga evidenziata. Quando il cartello dei 70 s arriva a zero compare «volata finale»: la gara chiude all'arrivo dell'ultima biglia, non allo scadere.

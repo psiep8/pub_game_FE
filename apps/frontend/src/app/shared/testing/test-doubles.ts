@@ -1,6 +1,8 @@
 import { signal, WritableSignal } from '@angular/core';
 import { EMPTY, Observable, of, Subject, throwError } from 'rxjs';
 
+import { bedLoopForGame } from '../../core/services/bed-loops';
+
 /**
  * Doppi di test condivisi.
  *
@@ -258,7 +260,7 @@ export class FakeAudioService {
   readonly startAmbient = () => this.played.push('ambient');
   readonly stopAmbient = () => this.played.push('stop-ambient');
   readonly setGameBed = (type: string | null) => this.played.push(`bed-${type ?? 'lobby'}`);
-  readonly currentBed = () => ({ id: 'lobby' });
+  readonly currentBed = () => bedLoopForGame(null);
   readonly playJoin = () => this.played.push('join');
   readonly playCountdownTick = () => this.played.push('countdown-tick');
   readonly playCountdownBong = () => this.played.push('countdown-bong');

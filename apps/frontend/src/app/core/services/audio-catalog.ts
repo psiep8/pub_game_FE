@@ -391,7 +391,7 @@ export const AUDIO_EVENTS = {
   ambient: {
     id: 'ambient',
     label: 'Tappeto del pub',
-    when: 'Sempre, sotto la serata: giro generato a ogni battuta.',
+    when: 'Sempre, sotto la serata: sei loop registrati, uno per famiglia di giochi.',
     source: 'bed',
     bus: 'tv',
     volume: 1,

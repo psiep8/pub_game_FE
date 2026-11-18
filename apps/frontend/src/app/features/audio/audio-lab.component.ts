@@ -9,7 +9,7 @@ import {
 } from '../../core/services/audio-catalog';
 import { AudioService } from '../../core/services/audio.service';
 import { AUDIO_FILES } from '../../core/services/audio-files';
-import { BED_PROFILES, type BedProfile } from '../../core/services/bed-profiles';
+import { BED_LOOPS, type BedLoop } from '../../core/services/bed-loops';
 
 interface AudioCard {
   event: AudioEventDefinition;
@@ -99,7 +99,7 @@ interface AudioCard {
             <button class="lab-bed" [class.active]="bed.id === bedId()" (click)="playBed(bed)">
               <span class="lab-bed-label">{{ bed.label }}</span>
               <span class="lab-bed-meta">
-                {{ bed.bpm }} BPM · {{ bed.chords.length * 2 }} BATTUTE
+                {{ bed.file }}
                 @if (bed.id === bedId()) { · IN ONDA }
               </span>
             </button>
@@ -350,7 +350,7 @@ export class AudioLab {
   readonly enabled = computed(() => this.audio.isEnabled());
   readonly volume = signal(Math.round(this.audio.masterVolume() * 100));
   readonly lastPlayed = signal<string | null>(null);
-  readonly beds = Object.values(BED_PROFILES);
+  readonly beds = Object.values(BED_LOOPS);
   readonly bedId = signal('');
 
   private readonly variantById = signal<Record<string, number>>({});
@@ -380,7 +380,7 @@ export class AudioLab {
   }
 
   /** Prova un tappeto: è quello che sentirà la sala durante quel gioco. */
-  playBed(bed: BedProfile): void {
+  playBed(bed: BedLoop): void {
     this.audio.setGameBed(bed.id);
     this.audio.startAmbient();
     this.bedId.set(bed.id);

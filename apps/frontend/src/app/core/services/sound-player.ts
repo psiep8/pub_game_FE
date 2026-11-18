@@ -17,6 +17,13 @@ interface ActiveLoop {
   filter?: BiquadFilterNode;
 }
 
+/** Sottofondo in onda: file, sorgente e guadagno su cui si fa la dissolvenza. */
+interface ActiveBed {
+  url: string;
+  source: AudioBufferSourceNode;
+  gain: GainNode;
+}
+
 /** Ritocco del loop: velocità del nastro e taglio delle alte. */
 export interface LoopStyle {
   rate?: number;
@@ -36,6 +43,10 @@ export class SoundPlayer {
   /** File in caricamento: evita doppie fetch sullo stesso evento. */
   private readonly loading = new Set<string>();
   private readonly loops = new Map<string, ActiveLoop>();
+  /** Sottofondo musicale: un solo loop acceso alla volta. */
+  private bed?: ActiveBed;
+  /** Richiesta in corso: una risposta lenta non deve sovrascrivere la nuova. */
+  private bedRequest = 0;
 
   constructor(
     private readonly engine: AudioEngine,
@@ -141,6 +152,93 @@ export class SoundPlayer {
 
   stopAllLoops(): void {
     for (const event of [...this.loops.keys()]) this.stopLoop(event as AudioEventId);
+  }
+
+  /**
+   * Sottofondo registrato, con dissolvenza incrociata: il loop che esce scende
+   * in `fade` secondi, quello che entra sale nello stesso tempo. Chiedere il
+   * file già in onda non fa nulla, così il cambio di round nella stessa
+   * famiglia non riparte da capo.
+   */
+  startBed(file: string, level: number, fade = 1.5): void {
+    const url = `assets/audio/${file}`;
+    if (this.bed?.url === url) return;
+    const ctx = this.engine.context();
+    if (!ctx || !this.isEnabled()) return;
+
+    this.bedRequest += 1;
+    const request = this.bedRequest;
+    this.fadeOutBed(ctx, fade);
+
+    const cached = this.buffers.get(url);
+    if (cached) {
+      this.startBedBuffer(ctx, url, cached, level, fade);
+      return;
+    }
+    if (cached === null) {
+      this.onMissing(url);
+      return;
+    }
+    fetch(url)
+      .then((response) => {
+        if (!response.ok) throw new Error(`${response.status} su ${url}`);
+        return response.arrayBuffer();
+      })
+      .then((data) => ctx.decodeAudioData(data))
+      .then((buffer) => {
+        this.buffers.set(url, buffer);
+        if (request !== this.bedRequest || !this.isEnabled()) return;
+        this.startBedBuffer(ctx, url, buffer, level, fade);
+      })
+      .catch(() => {
+        this.buffers.set(url, null);
+        this.onMissing(url);
+      });
+  }
+
+  /** Spegne il sottofondo con una dissolvenza breve. */
+  stopBed(fade = 0.6): void {
+    const ctx = this.engine.context();
+    if (!ctx) return;
+    this.bedRequest += 1;
+    this.fadeOutBed(ctx, fade);
+  }
+
+  private fadeOutBed(ctx: AudioContext, fade: number): void {
+    const active = this.bed;
+    if (!active) return;
+    this.bed = undefined;
+    const now = ctx.currentTime;
+    const seconds = Math.max(0.05, fade);
+    const gain = active.gain.gain;
+    gain.cancelScheduledValues(now);
+    gain.setValueAtTime(gain.value, now);
+    gain.linearRampToValueAtTime(0, now + seconds);
+    try {
+      active.source.stop(now + seconds + 0.05);
+    } catch {
+      // già fermo
+    }
+  }
+
+  private startBedBuffer(
+    ctx: AudioContext,
+    url: string,
+    buffer: AudioBuffer,
+    level: number,
+    fade: number,
+  ): void {
+    const now = ctx.currentTime;
+    const seconds = Math.max(0.05, fade);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(Math.max(0, Math.min(1, level)), now + seconds);
+    source.connect(gain).connect(this.engine.room(ctx));
+    source.start();
+    this.bed = { url, source, gain };
   }
 
   private startLoopBuffer(
