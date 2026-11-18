@@ -14,7 +14,7 @@ Ogni evento del catalogo ha:
 | `id` | Nome stabile: catalogo, regia audio e test usano questo |
 | `label` | Etichetta in italiano, quella che si legge in regia |
 | `when` | In una riga, quando suona |
-| `source` | `ui` (Foley), `sfx` (file registrato), `bed` (sottofondo registrato) |
+| `source` | `ui` (interfaccia), `sfx` (gioco), `bed` (sottofondo): tutti file registrati |
 | `bus` | `tv`, `phone` o `both` |
 | `volume` | Rifinitura dell'evento, 0–1. Oggi 1 per tutti: la bilanciatura è A2 |
 | `minIntervalMs` | Distanza minima fra due riproduzioni dello stesso evento |
@@ -48,9 +48,10 @@ stessi suoni: nessun chiamante è stato toccato in A1.
 sottofondi sono i **sei loop registrati** di `assets/audio/loop`, scelti da
 `core/services/bed-loops.ts` (pub, tensione, sport, casino, leggero,
 classifica); `AudioService.setGameBed()` fa la dissolvenza incrociata di 1,5 s e
-`SoundPlayer.startBed()` tiene il file in onda. `bed-profiles.ts` resta nel
-repository solo finché non si chiude il passo 4 della spec dei suoni veri; la
-tabella che segue è il registro storico di come suonavano prima.
+`SoundPlayer.startBed()` tiene il file in onda. Il 18 novembre 2026 sono stati
+rimossi `bed-profiles.ts`, Foley e la sintesi degli eventi: di `audio-dsp.ts`
+resta solo la coda di stanza. La tabella che segue è il registro storico di come
+suonavano prima.
 
 Non c'è un solo sottofondo: **ogni gioco ha il suo tappeto**, così la sala cambia
 aria a ogni round invece di sentire lo stesso giro per tutta la serata. I tappeti
@@ -93,7 +94,8 @@ un pulsante per profilo, per provarli a volume di sala.
 ## Livelli misurati dopo la rifattura (picco, dBFS)
 
 Misurati il 16 novembre 2026 sulla pagina `/audio`, uscita master al 100%,
-con un analizzatore collegato al bus master. Il bus Foley non è incluso.
+con un analizzatore collegato al bus master. Sono misure di prima del passaggio
+ai file.
 
 | Evento | Picco | Evento | Picco |
 |---|---|---|---|
@@ -168,9 +170,8 @@ raggiungibile anche dal pulsante **AUDIO** in testa al pannello admin.
 
 - La bilanciatura vera fra interfaccia, effetti, tappeto e voce: oggi `volume`
   è 1 per tutti e il volume generale parte al 100%.
-- Sostituzione e varietà dei suoni e ducking. I sottofondi diversi per gioco
-  ci sono dal 16 novembre 2026 (`bed-profiles.ts`), provabili dalla sezione
-  **TAPPETI** di `/audio`.
+- Sostituzione e varietà dei suoni e ducking. I sei sottofondi registrati sono
+  provabili dalla sezione **TAPPETI** di `/audio`.
 - Silenzio in pausa e da admin secondo la specifica: `stopAll()` non ferma il
   tappeto, che è una scelta della prima serata da rivedere in A2.
 - Ascolto reale in sala: nessun volume è stato giudicato all'orecchio, solo

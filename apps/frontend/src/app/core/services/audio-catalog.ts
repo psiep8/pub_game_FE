@@ -2,13 +2,13 @@
  * Catalogo degli eventi audio: un solo posto dove ogni suono della serata ha
  * un nome, una fonte e le sue regole di riproduzione.
  *
- * <p>Il catalogo descrive gli eventi, non li sintetizza: `AudioService` suona
- * ancora con la Web Audio API e Foley. Questa tabella serve a sapere cosa
+ * <p>Il catalogo descrive gli eventi, non li suona: ogni evento punta a un file
+ * in `assets/audio` (`audio-files.ts`). Questa tabella serve a sapere cosa
  * esiste, chi lo chiama e con che limiti, così l'audio di regia (A3) e la
  * sostituzione dei suoni (A2) non devono cercare i metodi sparsi nei giochi.</p>
  */
 
-/** Da dove viene il suono: interfaccia Foley, sintesi della sala, tappeto. */
+/** Da dove viene il suono: interfaccia, gioco, sottofondo. */
 export type AudioSource = 'ui' | 'sfx' | 'bed';
 
 /** Chi lo sente: TV di sala, telefoni, o entrambi. */

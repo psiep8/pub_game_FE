@@ -1,5 +1,4 @@
 import { Injectable, signal } from '@angular/core';
-import { play as playFoley, set as setFoley, unlock as unlockFoley, type CueName } from '@foleyjs/core';
 import {
   AUDIO_EVENTS,
   BONUS_ENTRANCE_TYPES,
@@ -9,29 +8,6 @@ import { AudioEngine } from './audio-engine';
 import { SoundPlayer } from './sound-player';
 import { marbleRollStyle } from './marble-roll';
 import { BED_LOOPS, bedLoopForGame, type BedLoop, type BedLoopId } from './bed-loops';
-
-/**
- * Tabella evento → suono di interfaccia, in un solo posto.
- *
- * I suoni di Foley sono sintetizzati al volo (nessun file audio) e coprono
- * tocchi, conferme ed errori. La sala e i giochi suonano i file della
- * libreria: qui resta solo l'interfaccia.
- */
-export const UI_SOUNDS = {
-  tocco: 'tick',
-  rispostaInviata: 'complete',
-  giusto: 'success',
-  sbagliato: 'error',
-  tempoScaduto: 'warning',
-  prenotazione: 'press',
-  ingresso: 'chime',
-  eliminazione: 'denied',
-  rivelazione: 'rise',
-  vittoria: 'sparkle',
-} as const satisfies Record<string, CueName>;
-
-/** Foley sta sotto la voce del presentatore: mai il suono più forte della sala. */
-const UI_VOLUME = 0.45;
 
 /** Volume del sottofondo: i loop sono a −23 LUFS, già sotto la voce. */
 const BED_LEVEL = 0.9;
@@ -55,9 +31,6 @@ export class AudioService {
   /** Sottofondo attivo: uno dei sei loop registrati, deciso da `setGameBed`. */
   private bedLoop: BedLoop = bedLoopForGame(null);
 
-  /** Foley ha il suo contesto: si configura una volta sola. */
-  private uiReady = false;
-
   /** Volume generale della TV, 0–1. Il muto resta il suo interruttore. */
   readonly masterVolume = signal(1);
   /** Ultima riproduzione per evento: serve alla distanza minima del catalogo. */
@@ -70,7 +43,7 @@ export class AudioService {
       (url) => console.warn(`[audio] file mancante: ${url}`),
     );
     this.engine.setVolume(1);
-    this.engine.armUnlock(() => this.unlockFoley());
+    this.engine.armUnlock();
   }
 
   /**
@@ -137,12 +110,10 @@ export class AudioService {
 
   playCorrect(): void {
     this.stopClock();
-    this.playUi('giusto');
     this.play('correct');
   }
 
   playWrong(): void {
-    this.playUi('sbagliato');
     this.play('wrong');
   }
 
@@ -188,12 +159,10 @@ export class AudioService {
   }
 
   playConfirm(): void {
-    this.playUi('prenotazione');
     this.play('confirm');
   }
 
   playError(): void {
-    this.playUi('sbagliato');
     this.play('error');
   }
 
@@ -207,7 +176,6 @@ export class AudioService {
 
   playReveal(): void {
     this.stopClock();
-    this.playUi('rivelazione');
     this.play('reveal');
   }
 
@@ -220,13 +188,11 @@ export class AudioService {
   }
 
   playJoin(): void {
-    this.playUi('ingresso');
     this.play('join');
   }
 
   playTick(): void {
     if (!this.audioEnabled()) return;
-    this.playUi('tocco');
     this.play('tick');
   }
 
@@ -251,7 +217,6 @@ export class AudioService {
   }
 
   playElimination(): void {
-    this.playUi('eliminazione');
     this.play('elimination');
   }
 
@@ -264,12 +229,10 @@ export class AudioService {
   }
 
   playRankReveal(position: number): void {
-    this.playUi('tocco');
     this.play('rankReveal', position === 5 ? 0 : 1);
   }
 
   playPodiumReveal(position: number): void {
-    this.playUi('vittoria');
     this.play('podiumReveal', Math.max(0, Math.min(2, position - 1)));
   }
 
@@ -325,7 +288,6 @@ export class AudioService {
     this.audioEnabled.update((enabled) => !enabled);
     this.engine.setEnabled(this.audioEnabled());
     this.engine.applyGain();
-    this.muteUi(!this.audioEnabled());
     if (!this.audioEnabled()) {
       this.stopAll();
       this.stopAmbient();
@@ -389,39 +351,5 @@ export class AudioService {
   /** Riprende il contesto dopo un gesto utente o al ritorno sulla scheda. */
   async unlock(): Promise<void> {
     await this.engine.unlock();
-    this.unlockFoley();
   }
-
-  /** Suono di interfaccia (Foley): tabella unica, volume discreto, muto rispettato. */
-  private playUi(event: keyof typeof UI_SOUNDS): void {
-    if (!this.audioEnabled()) return;
-    try {
-      if (!this.uiReady) {
-        setFoley({ volume: UI_VOLUME, muted: false });
-        this.uiReady = true;
-      }
-      playFoley(UI_SOUNDS[event]);
-    } catch {
-      // Un browser senza Web Audio non deve fermare il gioco.
-    }
-  }
-
-  private unlockFoley(): void {
-    try {
-      unlockFoley();
-      setFoley({ volume: UI_VOLUME, muted: !this.audioEnabled() });
-      this.uiReady = true;
-    } catch {
-      // Nessun Web Audio (browser vecchio o test): la serata resta silenziosa.
-    }
-  }
-
-  private muteUi(muted: boolean): void {
-    try {
-      setFoley({ muted });
-    } catch {
-      // Il muto principale resta comunque attivo.
-    }
-  }
-
 }

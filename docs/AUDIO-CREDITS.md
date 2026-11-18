@@ -2,34 +2,22 @@
 
 Verificato il 14 novembre 2026 sul codice di `apps/frontend/src/app/core/services/`.
 
-## Sintesi: nessun file audio nel repository
+## File registrati
 
-Tutti i suoni di gioco, della TV, del telefono e il tappeto musicale sono
-**sintetizzati al volo con la Web Audio API**, senza campionamenti registrati.
-Dal 16 novembre 2026 gli effetti usano risonatori modali (legno, vetro, metallo),
-campane FM, corde pizzicate Karplus-Strong, voci a formanti per il pubblico e
-una coda di stanza generata come risposta all'impulso (`audio-dsp.ts`):
+Dal 17 novembre 2026 gli effetti sono **file registrati** in
+`apps/frontend/public/assets/audio`; dal 18 novembre lo sono anche i sei
+sottofondi di `loop/` (48 file `.m4a`, circa 11,6 MB). Fonte, autore, licenza e
+URL di ogni file stanno in `FONTI.txt`, accanto agli asset, e sono riassunti in
+`docs/CREDITI-AUDIO.md`; la pagina `/audio` suona esattamente quei file.
 
-Gli strumenti storici restano descritti qui sotto:
+Restano nostri undici effetti, marcati «Nostra (sintesi renderizzata)»: gong,
+bong del countdown, whoosh, gettoni, racchetta, scoppio e miccia della Bomba e i
+quattro urti delle Biglie, più il rotolamento `loop/biglie.m4a`. Vanno
+sostituiti con registrazioni scelte da una libreria prima della serata.
 
-- `audio.service.ts` genera countdown, tick, eliminazione, podio, sirena Bomba,
-  applausi, roulette, errori e conferme;
-- `bed-profiles.ts` genera i tappeti musicali, uno per gioco: sedici profili
-  con tempo, giro di accordi e strumenti propri (dal trio da pub a 64 BPM del
-  quiz al galoppo del Cavallo), generati battuta per battuta senza file.
-
-Non ci sono mp3, wav o campionamenti nel repository: la licenza di questi suoni
-è del progetto, che li produce a runtime. L'uso resta subordinato allo sblocco
-del contesto audio da parte del browser (un tocco dell'utente).
-
-## Libreria di interfaccia
-
-- **@foleyjs/core 2.9.0** — MIT License, Copyright (c) 2026 eakbulut e
-  contributor di Foley. Repository: <https://github.com/eakbulut/foley>.
-  Usata per i cue di interfaccia elencati in `UI_SOUNDS` (tocco, conferma,
-  errore, tempo scaduto, prenotazione, ingresso, eliminazione, rivelazione,
-  vittoria). I cue sono sintetizzati dalla libreria: nessun file incluso.
-  Il volume è tenuto sotto quello della voce (0.45).
+Nel codice non resta sintesi di eventi né librerie di cue: `audio-dsp.ts`
+contiene solo la coda di stanza (`createRoom`), cioè un effetto di ambiente sul
+bus della TV. `@foleyjs/core` è stato rimosso dalle dipendenze.
 
 ## Cosa non è stato verificato
 

@@ -108,9 +108,9 @@ export class AudioEngine {
 
   /**
    * Primo gesto utile: sblocca il contesto una volta e poi si toglie.
-   * `onUnlock` serve al chiamante per sbloccare anche il Foley.
+   * `onUnlock` è un lavoro extra del chiamante dopo lo sblocco, se serve.
    */
-  armUnlock(onUnlock: () => void): void {
+  armUnlock(onUnlock: () => void = () => undefined): void {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (!(window.AudioContext || (window as any).webkitAudioContext)) return;
 

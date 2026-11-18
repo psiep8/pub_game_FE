@@ -160,11 +160,11 @@ Il frontend ha **40 file di spec**; il backend **18 classi di test**. Le verific
 
 ## 10. Audio
 
-Tutta la colonna sonora della TV è **sintetizzata con la Web Audio API** (`core/services/audio.service.ts`): nessun file audio è versionato, quindi non ci sono licenze di terzi da gestire.
+La colonna sonora della TV suona **file registrati** in `apps/frontend/public/assets/audio` (41 effetti, 7 loop, ~11,6 MB); fonte e licenza di ogni file stanno in `FONTI.txt` e in `docs/CREDITI-AUDIO.md`. Nel codice non resta sintesi di eventi: `audio-dsp.ts` contiene solo la coda di stanza.
 
 | Suono | Dove nasce | Regola |
 |---|---|---|
-| Tappeto musicale | `core/services/bed-profiles.ts`, battuta per battuta | **un tappeto diverso per ogni gioco** (lobby, quiz, Bomba, Speed Rush, Cavallo, Casino…): sedici profili con tempo, accordi e strumenti propri, scelti da `setGameBed(tipo)`; parte al primo tocco, cambia al confine di battuta e resta sotto classifiche e bonus |
+| Tappeto musicale | sei loop registrati in `public/assets/audio/loop`, scelti da `core/services/bed-loops.ts` | **una famiglia per gioco** (pub, tensione, sport, casino, leggero, classifica): `setGameBed(tipo)` cambia disco con dissolvenza di 1,5 s, classifica e podio usano `setBedLoop('classifica')` |
 | Battito | `startHeartbeat()` | in lobby lento, dal round 20 cresce con la serata |
 | Tick del clock | `startClock()` | un tick al secondo, mai due intervalli: ogni avvio spegne il precedente |
 | Suspense | `startSuspense(round)` | solo nei giochi a countdown e dal round 20; muore con il round e con la pausa |

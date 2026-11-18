@@ -50,17 +50,8 @@ describe('Catalogo audio', () => {
   });
 
   it('non lascia fuori nessun metodo play*/start* del servizio', () => {
-    // Aiutanti privati: compongono un evento del catalogo, non sono eventi
-    // a sé. Se ne nasce un altro, va aggiunto qui con il suo motivo.
-    const internal = new Set([
-      'startVinyl',        // fruscio del tappeto, dentro startAmbient()
-      'playCelebration',   // accordo del podio, dentro playPodiumReveal()
-      'playFireworks',     // botti del podio, dentro playPodiumReveal()
-      'playSuspenseSting', // richiamo del battito, dentro startSuspense()
-      'playUi',            // cue Foley della tabella UI_SOUNDS
-    ]);
     const methods = Object.getOwnPropertyNames(AudioService.prototype).filter(
-      (name) => /^(play|start)[A-Z]/.test(name) && !internal.has(name),
+      (name) => /^(play|start)[A-Z]/.test(name),
     );
     expect(methods.length).toBeGreaterThan(20);
     for (const method of methods) {

@@ -1,5 +1,24 @@
 # Changelog
 
+## 18 novembre 2026 — Via la sintesi: resta solo la coda di stanza
+
+- **Cancellati `bed-profiles.ts` e la sua spec** (572 righe): i sedici tappeti
+  generati non esistono più, al loro posto ci sono i sei loop registrati.
+- **Foley fuori**: via `UI_SOUNDS`, `playUi`, `unlockFoley` e `muteUi` da
+  `audio.service.ts`, via la dipendenza `@foleyjs/core` da `package.json` e dal
+  lock. Gli eventi di interfaccia suonano già i file del catalogo (`tick`,
+  `confirm`, `error`, `join`, `rankReveal`, …).
+- **`audio-dsp.ts` ridotto a `createRoom`** (615 → 55 righe): la coda di stanza
+  è l'unico effetto di sintesi che serve ancora, perché dà spazio ai file sul bus
+  della TV. Via i generatori di campane, corde, voci, ottoni, rulli e buzz.
+- **Test:** eliminata la spec dei cue Foley; `audio-catalog.spec.ts` non esenta
+  più metodi che non esistono. Documentazione e crediti aggiornati
+  (`docs/AUDIO-CREDITS.md` descriveva ancora un repository senza file audio):
+  ora dice quali file ci sono e quali undici sono ancora nostri.
+- Verifiche: **484 test su 55 file**, `tsc` pulito, build di produzione.
+  **Non fatto:** ascolto reale; gli undici effetti marcati «Nostra (sintesi
+  renderizzata)» restano da sostituire con registrazioni.
+
 ## 18 novembre 2026 — La classifica ha il suo ingresso, non un finto gioco
 
 - **`AudioService.setBedLoop(id)`**: classifica e podio non sono giochi, quindi

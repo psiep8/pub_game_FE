@@ -226,5 +226,5 @@ la sabbia rallenta e chiude, l'asfalto corre e apre, il vetro resta brillante.
 
 Ducking sotto la voce, volumi di regia, logica dei giochi, catalogo degli
 eventi e pagina `/audio` restano quelli di oggi: cambia solo da dove arriva il
-suono. La sintesi (`audio-dsp.ts`, `bed-profiles.ts`, Foley) si rimuove alla
-fine, dopo che tutti gli eventi suonano da file.
+suono. La sintesi è stata rimossa il 18 novembre 2026: niente `bed-profiles.ts`,
+niente Foley, e di `audio-dsp.ts` resta solo la coda di stanza (`createRoom`).
