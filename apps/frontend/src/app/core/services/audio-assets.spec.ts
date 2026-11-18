@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { AUDIO_EVENTS, type AudioEventId } from './audio-catalog';
 import { AUDIO_FILES } from './audio-files';
 import { BED_LOOPS } from './bed-loops';
-import { ACT_BEDS } from './bed-map';
+import { ACT_BEDS, ACT_NUMBERS, bedsForAct } from './bed-map';
 
 /**
  * Controlli del §7 della spec dei suoni veri: ogni evento ha il suo file, ogni
@@ -54,6 +54,25 @@ function matchesPattern(pattern: string, url: string): boolean {
   return new RegExp(`^${regex}$`).test(url);
 }
 
+/**
+ * Tetti del §4.4: i venti sottofondi (5 basi d'atto, 14 giochi e bonus, il
+ * rotolamento delle Biglie) stanno sotto i 22 MB e nessun atto da solo sfonda i
+ * 6 MB fra la sua base e i loop dei giochi che la scaletta gli assegna. Un
+ * file che non è ancora in cartella non pesa: il conto è su quelli veri.
+ */
+const SOTTOFONDI_BUDGET_BYTES = 22 * 1024 * 1024;
+const ACT_BUDGET_BYTES = 6 * 1024 * 1024;
+
+/** Peso dei file che esistono davvero: i sottofondi mancanti non contano. */
+function weightOf(files: readonly string[]): number {
+  return files.reduce(
+    (total, file) => (existsSync(join(AUDIO_ROOT, file))
+      ? total + statSync(join(AUDIO_ROOT, file)).size
+      : total),
+    0,
+  );
+}
+
 /** Righe di `FONTI.txt`: percorso | titolo | autore | URL | licenza. */
 function creditedFiles(): string[] {
   return readFileSync(join(AUDIO_ROOT, 'FONTI.txt'), 'utf8')
@@ -91,12 +110,21 @@ describe('File audio della serata', () => {
     }
   });
 
-  it('resta sotto i 15 MB di audio', () => {
-    const bytes = playedFiles.reduce(
-      (total, file) => total + statSync(join(AUDIO_ROOT, file)).size,
-      0,
-    );
-    expect(bytes).toBeLessThan(15 * 1024 * 1024);
+  it('i venti sottofondi stanno sotto i 22 MB', () => {
+    const beds = [
+      ...Object.values(BED_LOOPS).map((bed) => bed.file),
+      ...Object.values(ACT_BEDS).map((bed) => bed.file),
+    ];
+    expect(weightOf(beds), 'tetto del §4.4: 22 MB per i venti loop')
+      .toBeLessThan(SOTTOFONDI_BUDGET_BYTES);
+  });
+
+  it('nessun atto sfonda il budget dei suoi sottofondi', () => {
+    for (const act of ACT_NUMBERS) {
+      const files = bedsForAct(act).map((bed) => bed.file);
+      expect(weightOf(files), `atto ${act}: base più i giochi dell'atto`)
+        .toBeLessThanOrEqual(ACT_BUDGET_BYTES);
+    }
   });
 
   it('i sottofondi restano in cache nel service worker', () => {

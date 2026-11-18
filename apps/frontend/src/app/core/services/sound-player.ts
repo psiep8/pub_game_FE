@@ -200,8 +200,10 @@ export class SoundPlayer {
   /**
    * Mette in memoria un sottofondo prima che serva: il file parte già
    * decodificato al primo round dell'atto, senza il vuoto della prima fetch.
-   * È best-effort: un file non ancora in cartella non ferma nulla e non sporca
-   * la console — lo segnala chi prova a suonarlo davvero.
+   * È best-effort e si ricorda i fallimenti: un file non ancora in cartella
+   * resta segnato come assente e non si riprova a ogni round, senza sporcare la
+   * console — il 404 lo segnala chi prova a suonarlo davvero. Un ricaricamento
+   * della pagina riapre i tentativi, così il file arriva con il nuovo deploy.
    */
   warmBed(file: string): void {
     const url = `assets/audio/${file}`;
@@ -221,7 +223,9 @@ export class SoundPlayer {
         this.loading.delete(url);
       })
       .catch(() => {
-        // Non si segna come assente: quando il sottofondo servirà si riprova.
+        // Un 404 si ricorda: senza questo il file dell'atto non ancora
+        // consegnato tornava a bussare a ogni round di tutta la serata.
+        this.buffers.set(url, null);
         this.loading.delete(url);
       });
   }

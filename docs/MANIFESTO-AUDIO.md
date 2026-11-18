@@ -28,7 +28,9 @@ quella basta resta il valore misurato invece di schiacciare i transienti
 - **Licenze ammesse:** CC0, Pixabay, Mixkit, royalty-free Sonniss, CC-BY **solo**
   con attribuzione scritta nei crediti. Mai CC-BY-NC, «solo uso personale»,
   estratti da film o da giochi.
-- **Peso:** tutto `public/assets/audio/` sotto **15 MB**.
+- **Peso:** i venti sottofondi sotto **22 MB** e nessun atto oltre **6 MB** fra
+  la sua base e i loop dei suoi giochi; gli effetti (3,01 MB) restano fuori da
+  questo conto.
 - **Se un file manca:** nessun suono e un avviso in console. Non si torna alla
   sintesi: così si vede subito cosa manca.
 
@@ -277,9 +279,10 @@ la sabbia rallenta e chiude, l'asfalto corre e apre, il vetro resta brillante.
 - 41 effetti (34 eventi con varianti: `rankReveal` ×2, `podiumReveal` ×3,
   `bonusEntrance` ×5)
 - 20 loop: 5 basi d'atto, 14 giochi e bonus, il rotolamento delle Biglie
-- **61 file** previsti. Al 18 novembre 2026 sono arrivati 7 loop su 20: la
-  cartella pesa 11,61 MB e passa ancora il test dei 15 MB, ma i 13 file mancanti
-  lo sfonderanno — il tetto si rivede quando arrivano.
+- **61 file** previsti. Al 18 novembre 2026 sono arrivati 7 loop su 20: i
+  sottofondi pesano 10,66 MB sui 22 MB del tetto e nessun atto supera i 6 MB con
+  i file che ha oggi. I 13 mancanti devono stare nel margine che resta: se lo
+  sfondano si allunga il taglio dei brani, non il tetto.
 
 ## Cosa non si tocca
 

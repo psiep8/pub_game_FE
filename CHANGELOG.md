@@ -1,5 +1,24 @@
 # Changelog
 
+## 18 novembre 2026 — Un 404 si ricorda, e i sottofondi hanno il loro tetto di peso
+
+- **Il precaricamento non bussa due volte:** `SoundPlayer.warmBed()` segna il
+  file fallito come assente, quindi l'atto non ancora consegnato prende un solo
+  404 invece di uno a ogni round. Un ricaricamento della pagina riapre i
+  tentativi, così il file arriva con il nuovo deploy; quando il sottofondo
+  servirà davvero, `startBed` lo segnala in console senza riscaricarlo.
+- **§4.4 — tetto di peso:** i venti sottofondi stanno sotto **22 MB** (oggi
+  10,66 MB con 7 file su 20) e nessun atto sfonda i **6 MB** fra la sua base e i
+  loop dei giochi della scaletta. I file non ancora in cartella non pesano
+  finché non arrivano: il conto è su quelli veri, e il manifesto ora dice la
+  stessa cosa.
+- Test: `sound-player.spec.ts` (due `warmBed` sullo stesso 404 → una sola
+  fetch), in `audio-assets.spec.ts` il tetto dei 22 MB e il budget per atto al
+  posto del vecchio limite di 15 MB.
+- Verifiche: **520 test su 60 file**, `tsc` pulito. **Non fatto:** nessun
+  ascolto; `ng build` non rifatta, perché questa volta non tocca il service
+  worker né la configurazione di build.
+
 ## 18 novembre 2026 — I sottofondi arrivano con l'atto, e il service worker li tiene
 
 - **Caricamento per atto:** `bedsForAct(atto)` dice cosa serve in memoria — la
