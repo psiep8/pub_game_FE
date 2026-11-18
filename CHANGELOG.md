@@ -1,5 +1,24 @@
 # Changelog
 
+## 18 novembre 2026 — Solo un 404 resta assente, e gli effetti tornano sotto un tetto
+
+- **Il precaricamento distingue i guasti:** `warmBed()` segna come assente solo
+  un **404 vero**, cioè il file non ancora in cartella che non deve tornare a
+  bussare a ogni round. Un errore di rete, un 5xx o una decodifica fallita non
+  sono una risposta «questo file non c'è»: si lascia il file da riprovare al
+  giro dopo, perché un Wi-Fi che cade per un istante non deve zittire quel loop
+  per tutta la serata.
+- **Tetto degli effetti:** il vecchio test dei 15 MB copriva anche gli effetti,
+  quello del §4.4 no. Nuovo tetto esplicito: gli effetti sotto **4 MB** (oggi
+  3,01 MB), separato dai 22 MB dei sottofondi e dai 6 MB dell'atto. Manifesto
+  aggiornato.
+- Test: `sound-player.spec.ts` prova che un 404 viene chiesto una volta sola,
+  che un errore di rete viene ritentato al giro dopo e che un 500 non vale come
+  file assente; `audio-assets.spec.ts` misura gli effetti sotto il tetto.
+- Verifiche: **523 test su 60 file**, `tsc` pulito. **Non fatto:** nessun
+  ascolto; `ng build` non rifatta, perché non tocca service worker né
+  configurazione di build.
+
 ## 18 novembre 2026 — Un 404 si ricorda, e i sottofondi hanno il loro tetto di peso
 
 - **Il precaricamento non bussa due volte:** `SoundPlayer.warmBed()` segna il

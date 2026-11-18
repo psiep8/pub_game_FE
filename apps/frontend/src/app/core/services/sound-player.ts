@@ -200,10 +200,11 @@ export class SoundPlayer {
   /**
    * Mette in memoria un sottofondo prima che serva: il file parte già
    * decodificato al primo round dell'atto, senza il vuoto della prima fetch.
-   * È best-effort e si ricorda i fallimenti: un file non ancora in cartella
-   * resta segnato come assente e non si riprova a ogni round, senza sporcare la
-   * console — il 404 lo segnala chi prova a suonarlo davvero. Un ricaricamento
-   * della pagina riapre i tentativi, così il file arriva con il nuovo deploy.
+   * È best-effort: un file non ancora in cartella (404) resta segnato come
+   * assente e non si riprova a ogni round, senza sporcare la console — il 404
+   * lo segnala chi prova a suonarlo davvero. Un errore di rete invece non è una
+   * risposta e si ritenta al giro dopo: un Wi-Fi che cade un istante non deve
+   * zittire quel loop per tutta la serata.
    */
   warmBed(file: string): void {
     const url = `assets/audio/${file}`;
@@ -212,22 +213,26 @@ export class SoundPlayer {
     if (this.buffers.has(url) || this.loading.has(url)) return;
 
     this.loading.add(url);
-    fetch(url)
-      .then((response) => {
-        if (!response.ok) throw new Error(`${response.status} su ${url}`);
-        return response.arrayBuffer();
-      })
-      .then((data) => ctx.decodeAudioData(data))
-      .then((buffer) => {
-        this.buffers.set(url, buffer);
-        this.loading.delete(url);
-      })
-      .catch(() => {
-        // Un 404 si ricorda: senza questo il file dell'atto non ancora
-        // consegnato tornava a bussare a ogni round di tutta la serata.
+    void this.loadBed(ctx, url);
+  }
+
+  /** Fetch e decodifica del precaricamento, con i fallimenti trattati a parte. */
+  private async loadBed(ctx: AudioContext, url: string): Promise<void> {
+    try {
+      const response = await fetch(url);
+      if (response.status === 404) {
+        // Il file non c'è: si ricorda, così un 404 non torna a ogni round.
         this.buffers.set(url, null);
-        this.loading.delete(url);
-      });
+        return;
+      }
+      if (!response.ok) throw new Error(`${response.status} su ${url}`);
+      const buffer = await ctx.decodeAudioData(await response.arrayBuffer());
+      this.buffers.set(url, buffer);
+    } catch {
+      // Rete o decodifica: non è un file assente, quando servirà si riprova.
+    } finally {
+      this.loading.delete(url);
+    }
   }
 
   /** Spegne il sottofondo con una dissolvenza breve. */

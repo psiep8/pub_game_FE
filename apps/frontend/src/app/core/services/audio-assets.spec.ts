@@ -62,6 +62,8 @@ function matchesPattern(pattern: string, url: string): boolean {
  */
 const SOTTOFONDI_BUDGET_BYTES = 22 * 1024 * 1024;
 const ACT_BUDGET_BYTES = 6 * 1024 * 1024;
+/** Gli effetti restano fuori dai conti degli atti ma non senza tetto. */
+const EFFECTS_BUDGET_BYTES = 4 * 1024 * 1024;
 
 /** Peso dei file che esistono davvero: i sottofondi mancanti non contano. */
 function weightOf(files: readonly string[]): number {
@@ -108,6 +110,12 @@ describe('File audio della serata', () => {
     for (const file of credits) {
       expect(existsSync(join(AUDIO_ROOT, file)), file).toBe(true);
     }
+  });
+
+  it('gli effetti audio stanno sotto i 4 MB', () => {
+    const effects = [...new Set(Object.values(AUDIO_FILES).flatMap((files) => files ?? []))];
+    expect(weightOf(effects), 'il vecchio tetto dei 15 MB copriva anche gli effetti')
+      .toBeLessThan(EFFECTS_BUDGET_BYTES);
   });
 
   it('i venti sottofondi stanno sotto i 22 MB', () => {

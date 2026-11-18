@@ -29,8 +29,8 @@ quella basta resta il valore misurato invece di schiacciare i transienti
   con attribuzione scritta nei crediti. Mai CC-BY-NC, «solo uso personale»,
   estratti da film o da giochi.
 - **Peso:** i venti sottofondi sotto **22 MB** e nessun atto oltre **6 MB** fra
-  la sua base e i loop dei suoi giochi; gli effetti (3,01 MB) restano fuori da
-  questo conto.
+  la sua base e i loop dei suoi giochi; gli effetti hanno un tetto loro,
+  **4 MB** (oggi 3,01 MB), e restano fuori dai conti degli atti.
 - **Se un file manca:** nessun suono e un avviso in console. Non si torna alla
   sintesi: così si vede subito cosa manca.
 
