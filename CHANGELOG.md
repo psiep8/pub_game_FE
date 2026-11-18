@@ -1,5 +1,26 @@
 # Changelog
 
+## 18 novembre 2026 — La seconda manche della Canzone va al contrario
+
+- **Manche 2 al contrario:** quando la Canzone entra nella seconda manche, la TV
+  smette il file e suona la preview rovesciata, un filo più lenta
+  (`REVERSE_RATE` 0,94) e dentro la stessa catena di filtri della manche
+  (banda stretta, drive e fruscio radio). Il buffer rovesciato si scarica e si
+  decodifica già nella manche 1: all'ascolto non c'è attesa. Se il CDN non
+  concede il CORS o la rete cade, resta il brano filtrato e il round va avanti.
+- **Il file torna al suo posto:** appena la manche 2 finisce il reverse si ferma
+  e riparte l'elemento audio; il reveal a tutto volume, la prenotazione e la
+  pausa fra due ascolti spengono comunque il buffer. Un brano nuovo azzera il
+  reverse del precedente.
+- Test: `reverse-track.spec.ts` (canali rovesciati, velocità sotto 1) e in
+  `song.component.spec.ts` la manche 2 che suona il buffer senza il file, e il
+  ritorno al file quando la manche finisce.
+- Documentazione: i due manuali della serata e `SERATA-PROVA.md` dicono della
+  manche 2 al contrario.
+- Verifiche: **532 test su 63 file**, `tsc` pulito, `ng build` verde.
+  **Non fatto:** nessun ascolto reale: la preview rovesciata non è stata
+  sentita, né provata contro un CDN vero.
+
 ## 18 novembre 2026 — La regia audio mostra i sottofondi con il loro peso
 
 - **§4.5 — `/audio` legge il catalogo:** due sezioni nuove. «SOTTOFONDI PER

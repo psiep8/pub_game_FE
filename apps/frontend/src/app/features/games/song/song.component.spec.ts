@@ -99,6 +99,76 @@ describe('Song', () => {
     }
   });
 
+  it('nella seconda manche suona la preview al contrario, senza il file', async () => {
+    const song = component as any;
+    const source = {
+      buffer: null as any,
+      loop: false,
+      playbackRate: { value: 1 },
+      connect: vi.fn(),
+      start: vi.fn(),
+      stop: vi.fn(),
+      disconnect: vi.fn(),
+    };
+    song.audioContext = {
+      currentTime: 0,
+      state: 'running',
+      resume: vi.fn(),
+      createBufferSource: () => source,
+    };
+    song.bandpassFilter = { connect: vi.fn(), disconnect: vi.fn() };
+    song.audio = { loop: true, play: vi.fn(), pause: vi.fn() };
+    song.audioUnlocked = true;
+    song.startVinylAnimation = vi.fn();
+    song.setInterference = vi.fn();
+    song.displayData = { previewUrl: 'preview.mp3' };
+    const buffer = { numberOfChannels: 1, getChannelData: () => Float32Array.from([1, 2, 3]) };
+    song.reversed = { url: 'preview.mp3', buffer };
+
+    song.currentPhase.set(2);
+    await song.playAudio();
+
+    expect(source.start).toHaveBeenCalled();
+    expect(source.buffer).toBe(buffer);
+    expect(source.loop).toBe(true);
+    expect(source.playbackRate.value).toBeCloseTo(0.94);
+    // L'elemento resta fermo: il brano non si sente due volte.
+    expect(song.audio.play).not.toHaveBeenCalled();
+    expect(song.audio.pause).toHaveBeenCalled();
+    expect(song.isPlaying()).toBe(true);
+  });
+
+  it('quando la manche 2 finisce il file torna a suonare', () => {
+    const song = component as any;
+    song.stopReversePlayback = vi.fn();
+    song.playAudio = vi.fn();
+    song.applyFilters = vi.fn();
+    song.applyBlur = vi.fn();
+    song.reversed = { url: 'preview.mp3', buffer: {} };
+    song.isPlaying.set(true);
+    song.currentPhase.set(2);
+    song.lastPhase = 2;
+    song.displayData = {
+      previewUrl: 'preview.mp3',
+      audioPlaying: true,
+      buzzedPlayer: null,
+      fullPlayback: false,
+      currentPhase: 3,
+    };
+
+    song.ngOnChanges({
+      displayData: new SimpleChange(
+        { ...song.displayData, currentPhase: 2 },
+        song.displayData,
+        false,
+      ),
+    });
+
+    expect(song.stopReversePlayback).toHaveBeenCalled();
+    expect(song.isPlaying()).toBe(false);
+    expect(song.playAudio).toHaveBeenCalled();
+  });
+
   it('should stop the preview as soon as a player buzzes', () => {
     const song = component as any;
     let pauses = 0;
