@@ -1387,16 +1387,22 @@ describe('GameComponent', () => {
       expect(start).toHaveBeenCalledWith('BLACKJACK');
     });
 
-    it('non ripete il bonus già avviato nella stessa serata', () => {
-      const rounds = TestBed.inject(RoundManagerService);
-      component.currentGameId.set(1);
-      const start = vi.spyOn(component, 'startBonus').mockResolvedValue(undefined);
-      vi.spyOn(rounds, 'bonusAfterRound').mockReturnValue('CAVALLO');
-      vi.spyOn(rounds, 'bonusActIndex').mockReturnValue(0);
+    it('non avvia due volte lo stesso bonus', () => {
+      vi.useFakeTimers();
+      try {
+        const rounds = TestBed.inject(RoundManagerService);
+        component.currentGameId.set(1);
+        vi.spyOn(rounds, 'bonusAfterRound').mockReturnValue('CAVALLO');
+        vi.spyOn(rounds, 'bonusActIndex').mockReturnValue(0);
 
-      expect(scheduled(component).startScheduledBonus()).toBe(true);
-      expect(scheduled(component).startScheduledBonus()).toBe(false);
-      expect(start).toHaveBeenCalledTimes(1);
+        expect(scheduled(component).startScheduledBonus()).toBe(true);
+        expect(component.bonusEntrance()).toBe('CAVALLO');
+        // Il bonus è già in scena e il server lo sa: niente secondo ingresso.
+        expect(scheduled(component).startScheduledBonus()).toBe(false);
+        expect(reliability.bonusActs.filter((act) => act.status === 'STARTED')).toHaveLength(1);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('dopo un refresh non riapre un bonus già chiuso', () => {
@@ -1425,6 +1431,31 @@ describe('GameComponent', () => {
       expect(start).not.toHaveBeenCalled();
 
       fresh.destroy();
+    });
+
+    it('chiuso un bonus di metà atto, la scaletta riparte dal round successivo', async () => {
+      vi.useFakeTimers();
+      try {
+        const rounds = TestBed.inject(RoundManagerService);
+        rounds.restoreRound(3);
+        component.currentGameId.set(1);
+        component.autoAdvanceEnabled.set(true);
+        component.bonusEntrance.set(null);
+        component.bonusActive.set(true);
+        component.bonusType.set('BLACKJACK');
+
+        (component as unknown as { finishBonus(): void }).finishBonus();
+        expect(component.bonusActive()).toBe(false);
+        expect(rounds.getCurrentRound()).toBe(3);
+
+        // Otto secondi di riepilogo, poi i dieci dell'avanzamento automatico.
+        await vi.advanceTimersByTimeAsync(8_000);
+        await vi.advanceTimersByTimeAsync(10_000);
+
+        expect(rounds.getCurrentRound()).toBe(4);
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 });

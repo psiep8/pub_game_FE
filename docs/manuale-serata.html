@@ -180,7 +180,7 @@
 <section class="page cover">
   <div class="cover-top">
     <span class="stamp">PubGame / documento operativo</span>
-    <span class="stamp tomato">15.11.2026 · v3.1</span>
+    <span class="stamp tomato">19.11.2026 · v3.2</span>
   </div>
 
   <div class="kicker">Manuale per presentatore, regia e staff</div>
@@ -191,7 +191,7 @@
   <div class="cover-grid">
     <div><b>40</b><span>round in scaletta</span></div>
     <div><b>5</b><span>atti da 8 round</span></div>
-    <div><b>5</b><span>bonus, uno per atto</span></div>
+    <div><b>5</b><span>bonus sparsi nei round</span></div>
     <div><b>13</b><span>tipi di gioco</span></div>
   </div>
 
@@ -202,7 +202,7 @@
       <li><b>Bomba</b>: tabellone a turni, una bomba ogni tre squadre. Casella vera 0, bomba −200.</li>
       <li><b>Azzardo</b>: 4 manche su CELEBRITÀ, CANZONI, PAESI, STORIA; puntate 100/200/300 e quota ×2/×3/×4.</li>
       <li><b>Ultima spiaggia</b>: una manche per occorrenza; i livelli si consumano tra le apparizioni.</li>
-      <li><b>Cinque bonus</b>: Casino bianco/rosso, Blackjack, Casino dozzina, Cavallo e Casino numero secco, uno dopo ogni atto.</li>
+      <li><b>Cinque bonus</b>: Casino bianco/rosso, Blackjack, Casino dozzina, Cavallo e Casino numero secco, uno per atto in un round interno scelto dal seme.</li>
       <li><b>Time Buzzer</b>: cinque fasce per posizione, tagli dopo la manche 1 e la manche 2.</li>
       <li><b>Ruota</b>: una lettera ogni 8 secondi, la prima dopo 1 secondo.</li>
       <li><b>Tennis Battle e Arena</b>: punteggi e tempi allineati al regolamento attuale.</li>
@@ -265,7 +265,7 @@
     <div><span class="n">2</span><b>Round</b><span>L'admin preme PROSSIMO ROUND. La TV annuncia il gioco e parte il timer.</span></div>
     <div><span class="n">3</span><b>Esito</b><span>La TV rivela soluzione e punti. Il presentatore commenta solo dopo il reveal.</span></div>
     <div><span class="n">4</span><b>Classifica</b><span>Ai traguardi previsti si apre la classifica; resta finché l'admin non avanza.</span></div>
-    <div><span class="n">5</span><b>Bonus</b><span>Dopo ognuno dei cinque atti c'è un bonus diverso; dopo l'atto 5 si chiude con la classifica finale.</span></div>
+    <div><span class="n">5</span><b>Bonus</b><span>Un bonus per atto, in un round interno (2, 3, 5, 6 o 7) scelto dal seme: non occupa un round e non sposta il contatore.</span></div>
   </div>
 
   <div class="grid-2" style="margin-top:3mm">
@@ -590,8 +590,8 @@
       <div class="where"><b>TV</b> pista e due gare · <b>TEL</b> scelta della biglia · <b>PUNTI</b> in classifica a ogni arrivo</div>
       <p>Quattro round separati (11, 22, 28, 37), uno per atto dal secondo al quinto. Ogni tavolo sceglie <b>una biglia</b> in ordine sorteggiato: la scelta vale per le due gare del round e non si cambia.</p>
       <p>Le piste sono <b>otto</b>: rally (terra), F1 (asfalto), neve, acqua, <b>vetro</b>, sabbia, spazio e magma. Ogni round ne gioca <b>due</b>, scelte dal seme della serata: ogni fondo premia una qualità diversa della biglia e cambia davvero la fisica (attrito, rimbalzo, gravità, dossi). La TV segue il gruppo con la camera laterale.</p>
-      <p><b>Punteggio.</b> Ogni gara paga subito <b>150 / 100 / 60 / 30</b> ai primi quattro; i punti entrano nella classifica della serata appena la gara finisce. Dopo la seconda gara il round si chiude.</p>
-      <div class="scoreline">Gara <b>150 / 100 / 60 / 30</b> · Due gare · Massimo <b>300</b> per round</div>
+      <p><b>Punteggio.</b> Ogni gara paga subito <b>150 / 100 / 60 / 30</b> ai primi quattro e toglie <b>−30 / −60 / −100 / −150</b> dal quinto all'ottavo; i punti entrano nella classifica della serata appena la gara finisce. Dopo la seconda gara il round si chiude.</p>
+      <div class="scoreline">Gara <b>150 / 100 / 60 / 30</b> ai primi quattro · <b>−30 / −60 / −100 / −150</b> dal quinto all'ottavo · Due gare</div>
     </article>
 
   </div>
@@ -673,15 +673,15 @@
 <section class="page">
   <div class="topline"><span><b class="tag">06</b> / Bonus e punteggi</span><span class="folio">07 / 07</span></div>
   <h2>CINQUE BONUS,<br>UNA TABELLA UNICA</h2>
-  <p class="lede" style="font-size:9.2pt;margin-bottom:2.4mm">I bonus non sono round: non spostano il contatore 1–40. Dopo ogni atto parte un bonus diverso; i punti entrano in classifica una volta sola, alla chiusura.</p>
+  <p class="lede" style="font-size:9.2pt;margin-bottom:2.4mm">I bonus non sono round: non spostano il contatore 1–40. Ogni atto ne ospita uno in un round interno (2, 3, 5, 6 o 7) scelto dal seme della serata; i punti entrano in classifica una volta sola, alla chiusura, e la scaletta riparte dal round successivo.</p>
   <div class="grid-2">
-    <article class="card bonus-card"><div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.3mm"><h3>CASINO BIANCO/ROSSO</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">DOPO ATTO 1</span></div><p><b>Una sola manche.</b> Ogni tavolo sceglie bianco o rosso; la roulette europea gira una volta e paga solo il colore giusto.</p><div class="scoreline">Colore giusto <b>+100</b> · Zero: il banco incassa</div></article>
-    <article class="card bonus-card"><div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.3mm"><h3>BLACKJACK</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">DOPO ATTO 2</span></div><p><b>Un turno per tavolo</b>, dal fondo della classifica: 15 secondi, CARTA o STAI. Il banco si ferma a 17.</p><div class="scoreline">Vittoria <b>+150</b> · Pari <b>+75</b> · Sconfitta <b>0</b></div></article>
-    <article class="card bonus-card"><div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.3mm"><h3>CASINO DOZZINA</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">DOPO ATTO 3</span></div><p><b>Una sola manche.</b> Tre caselle: 1–12, 13–24, 25–36. La pallina esce una volta.</p><div class="scoreline">Dozzina giusta <b>+120</b> · Zero: nessuno vince</div></article>
-    <article class="card bonus-card"><div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.3mm"><h3>CAVALLO DI BATTAGLIA</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">DOPO ATTO 4</span></div><p><b>La categoria la vota il telefono.</b> Otto domande difficili: il podio prende i punti.</p><div class="scoreline">Podio <b>+200 / +100 / +50</b></div></article>
-    <article class="card bonus-card"><div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.3mm"><h3>CASINO NUMERO SECCO</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">DOPO ATTO 5</span></div><p><b>La finale.</b> Una sola puntata su un numero da 0 a 36; la ruota rigira finché almeno un tavolo lo ha puntato.</p><div class="scoreline">Numero esatto <b>+300</b> · Poi classifica finale</div></article>
+    <article class="card bonus-card"><div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.3mm"><h3>CASINO BIANCO/ROSSO</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">ATTO 1</span></div><p><b>Una sola manche.</b> Ogni tavolo sceglie bianco o rosso; la roulette europea gira una volta e paga solo il colore giusto.</p><div class="scoreline">Colore giusto <b>+100</b> · Zero: il banco incassa</div></article>
+    <article class="card bonus-card"><div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.3mm"><h3>BLACKJACK</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">ATTO 2</span></div><p><b>Un turno per tavolo</b>, dal fondo della classifica: 15 secondi, CARTA o STAI. Il banco si ferma a 17.</p><div class="scoreline">Vittoria <b>+150</b> · Pari <b>+75</b> · Sconfitta <b>0</b></div></article>
+    <article class="card bonus-card"><div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.3mm"><h3>CASINO DOZZINA</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">ATTO 3</span></div><p><b>Una sola manche.</b> Tre caselle: 1–12, 13–24, 25–36. La pallina esce una volta.</p><div class="scoreline">Dozzina giusta <b>+120</b> · Zero: nessuno vince</div></article>
+    <article class="card bonus-card"><div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.3mm"><h3>CAVALLO DI BATTAGLIA</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">ATTO 4</span></div><p><b>La categoria la vota il telefono.</b> Otto domande difficili: il podio prende i punti.</p><div class="scoreline">Podio <b>+200 / +100 / +50</b></div></article>
+    <article class="card bonus-card"><div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.3mm"><h3>CASINO NUMERO SECCO</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">ATTO 5</span></div><p><b>La finale.</b> Una sola puntata su un numero da 0 a 36; la ruota rigira finché almeno un tavolo lo ha puntato.</p><div class="scoreline">Numero esatto <b>+300</b> · Poi classifica finale</div></article>
   </div>
-  <div class="note warn" style="margin-top:2mm;padding:1.8mm 2.6mm"><span class="note-title">Punti e chiusura</span> I punti del bonus vengono accreditati <b>una sola volta</b> alla chiusura. Dopo il bonus dell'atto 5 la TV mostra la <b>classifica finale aggiornata</b>.</div>
+  <div class="note warn" style="margin-top:2mm;padding:1.8mm 2.6mm"><span class="note-title">Punti e chiusura</span> I punti del bonus vengono accreditati <b>una sola volta</b> alla chiusura. Dopo il round 40 la TV mostra la <b>classifica finale aggiornata</b>, con i bonus già dentro.</div>
 
   <h3 style="font-size:10.8pt;margin:2.4mm 0 1.5mm">PUNTEGGI UFFICIALI IN UNA TAVOLA</h3>
   <table class="score-table">
@@ -695,7 +695,7 @@
       <tr><td>TIME BUZZER</td><td>500 / 400 / 300 al primo, poi a scalare per posizione</td><td>−250 (M1) o −100 (M2) agli eliminati</td><td>5 fasce per manche; +150 ai finalisti; 9 manche in serata.</td></tr>
       <tr><td>BOMBA</td><td>Nessun punto: solo malus</td><td>Bomba scelta −200 e squadra fuori</td><td>Tabellone a turni; 20 s per turno; casella vera 0.</td></tr>
       <tr><td>SPEED RUSH</td><td>500 al primo; 500 × t1/ti nella metà alta</td><td>0 fuori dalla metà alta</td><td>90 s; minimo 100 per chi resta nella metà alta.</td></tr>
-      <tr><td>BIGLIE</td><td>150 / 100 / 60 / 30 a gara</td><td>0 dal quinto posto</td><td>Due gare per round; punti in classifica a ogni arrivo.</td></tr>
+      <tr><td>BIGLIE</td><td>150 / 100 / 60 / 30 a gara</td><td>−30 / −60 / −100 / −150 dal 5° all'8°</td><td>Due gare per round; punti in classifica a ogni arrivo.</td></tr>
       <tr><td>BLACKJACK (bonus)</td><td>+150 vittoria; +75 pari</td><td>0 sconfitta</td><td>Un turno per tavolo; il banco si ferma a 17.</td></tr>
       <tr><td>AZZARDO</td><td>Puntata × quota (×2 / ×3 / ×4)</td><td>100% / 80% / 60% / 40% della puntata</td><td>4 manche: CELEBRITÀ, CANZONI, PAESI, STORIA; puntate 100/200/300.</td></tr>
       <tr><td>ULTIMA SPIAGGIA</td><td>+livello scelto (100–500)</td><td>−metà del livello (−50…−250)</td><td>5 apparizioni, una manche ciascuna; ogni livello una volta per squadra.</td></tr>
@@ -705,7 +705,7 @@
   </table>
 
   <div class="closing">
-    <p><b>Chiusura della serata.</b> Dopo il round 40 parte il <b>Casino numero secco</b>; alla chiusura del bonus la TV mostra la classifica finale aggiornata, il presentatore annuncia il podio e ringrazia i tavoli.</p>
+    <p><b>Chiusura della serata.</b> Il bonus dell'atto 5 cade in un round interno (34, 35, 37, 38 o 39); chiuso il riepilogo la scaletta riparte dal round successivo. Dopo il round 40 la TV mostra la <b>classifica finale aggiornata</b>, il presentatore annuncia il podio e ringrazia i tavoli.</p>
     <p><b>Prima di spegnere.</b> Controlla che l'ultimo bonus sia chiuso e che la classifica finale includa i suoi punti; salva una foto del podio, poi si può chiudere.</p>
   </div>
 

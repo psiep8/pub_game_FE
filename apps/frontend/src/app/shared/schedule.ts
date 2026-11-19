@@ -84,12 +84,8 @@ export function planBonusSlots(seed: number): BonusSlot[] {
   const next = seededRandom(seed);
   return BONUS_AFTER_ACT.flatMap((type, act) => {
     if (!type) return [];
-    const slots = [...BONUS_ROUND_SLOTS];
-    for (let index = slots.length - 1; index > 0; index--) {
-      const swap = Math.floor(next() * (index + 1));
-      [slots[index], slots[swap]] = [slots[swap], slots[index]];
-    }
-    return [{ act, type, round: act * ROUNDS_PER_ACT + slots[0] }];
+    const local = BONUS_ROUND_SLOTS[Math.floor(next() * BONUS_ROUND_SLOTS.length)];
+    return [{ act, type, round: act * ROUNDS_PER_ACT + local }];
   });
 }
 

@@ -298,7 +298,6 @@ export class GameComponent implements OnInit, OnDestroy {
   private presenceTimer?: ReturnType<typeof setInterval>;
   private buttonTestTimer?: ReturnType<typeof setInterval>;
   private lastButtonTestPing = 0;
-  private readonly bonusActsStarted = new Set<number>();
   /** Bonus dell'atto salvato sul server: avviato o già chiuso. */
   private serverBonus: { act: number; type: string; status: string } | null = null;
   private bonusScoresMap = new Map<string, number>();
@@ -1766,18 +1765,16 @@ export class GameComponent implements OnInit, OnDestroy {
    * refresh. Il server sa se quel bonus è già stato chiuso e pagato.
    */
   private startScheduledBonus(): boolean {
-    if (this.bonusActive() || this.bonusEntrance() || this.isSpinning()) return false;
     const bonus = this.roundManager.bonusAfterRound();
-    if (!bonus) return false;
+    if (!bonus || !this.canStartBonus()) return false;
 
     const act = this.roundManager.bonusActIndex();
-    if (act < 0 || this.bonusActsStarted.has(act)) return false;
+    if (act < 0) return false;
     if (this.closedBonusActsOf(this.currentGameId()).has(act)) return false;
-    // Un bonus già segnato sul server (avviato prima di un refresh o chiuso)
-    // non riparte da capo: la ripresa la gestisce `offerBonusRecovery`.
+    // Un bonus già segnato sul server (avviato in questa schermata o prima di
+    // un refresh) non riparte da capo: la ripresa la gestisce `offerBonusRecovery`.
     if (this.serverBonus?.act === act) return false;
 
-    this.bonusActsStarted.add(act);
     void this.startBonus(bonus);
     return true;
   }
@@ -1912,9 +1909,13 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   /** Bonus: parte dalla TV dopo il round dello slot (o su comando admin) e non consuma un round. */
+  /** Un bonus può partire solo se non ce n'è già uno in scena. */
+  private canStartBonus(): boolean {
+    return !this.bonusEntrance() && !this.bonusActive() && !this.isSpinning();
+  }
+
   async startBonus(type: BonusType, resume: any = null): Promise<void> {
-    if (!BONUS_TYPES.includes(type)) return;
-    if (this.bonusEntrance() || this.bonusActive() || this.isSpinning()) return;
+    if (!BONUS_TYPES.includes(type) || !this.canStartBonus()) return;
     this.bonusResume.set(resume);
     // Il bonus dell'atto resta sul server: un refresh non lo salta.
     this.markBonusAct(type, 'STARTED');
@@ -2073,10 +2074,13 @@ export class GameComponent implements OnInit, OnDestroy {
     this.phase.set('QUESTION');
 
     // Il tipo resta per il riepilogo; non azzerarlo se nel frattempo parte un altro bonus.
+    const closedAtRound = this.roundManager.getCurrentRound();
     setTimeout(() => {
       if (this.bonusActive()) return;
       this.bonusShowResult.set(false);
       this.bonusType.set(null);
+      // La regia ha già avanzato: il round è cambiato, niente secondo salto.
+      if (this.roundManager.getCurrentRound() !== closedAtRound) return;
       // Il bonus vive dentro l'atto: chiuso il riepilogo si riprende la
       // scaletta dal round successivo, senza una seconda classifica.
       if (!this.currentMode() && !this.isShowingLeaderboard() && !this.roundManager.isGameOver()) {

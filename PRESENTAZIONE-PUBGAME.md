@@ -43,7 +43,7 @@ conoscere il codice. Le parti in *corsivo* sono suggerimenti, non obblighi.
 - Ogni round è **un gioco diverso**: quiz, musica, immagini, timeline, bomba, arena…
 - Le squadre rispondono **dal telefono**; la TV mostra domanda, tempo e classifica.
 - La scaletta mescola i giochi: ogni atto ha un ritmo suo e l'**Arena** chiude l'atto 3 e la serata.
-- Alla fine di ogni atto c'è una **classifica** e un **bonus diverso**.
+- Dentro ogni atto c'è un **bonus diverso**, in un round scelto all'inizio della serata; la **classifica** dettagliata chiude l'atto.
 - L'ultimo round del quinto atto è l'**Arena**: tutti insieme, e chi resta in piedi vince.
 
 I punti non sono tutti uguali: più si risponde presto, più si guadagna. Sbagliare costa
@@ -72,20 +72,20 @@ propria memoria.
 
 | Atto | Round | Giochi in ordine |
 | --- | --- | --- |
-| **1** | 1–8 | Quiz · Musica · **Biglie** · Time Buzzer · **Biglie** · Timeline · Speed Rush · Ultima spiaggia |
+| **1** | 1–8 | Quiz · Musica · Quiz · Time Buzzer · Azzardo · Timeline · Speed Rush · Ultima spiaggia |
 | **2** | 9–16 | Azzardo · Ruota · **Biglie** · Quiz · Tennis Battle · Time Buzzer · Musica · Ultima spiaggia |
 | **3** | 17–24 | Quiz · Speed Rush · Indovina chi · Tennis Battle · Time Buzzer · **Biglie** · Ultima spiaggia · **Arena** |
-| **4** | 25–32 | Indovina chi · Bomba · Musica · Quiz · Ruota · Timeline · Speed Rush · Ultima spiaggia |
-| **5** | 33–40 | Quiz · Musica · Bomba · Indovina chi · Azzardo · Timeline · Ultima spiaggia · **Arena** |
+| **4** | 25–32 | Indovina chi · Bomba · Musica · **Biglie** · Ruota · Timeline · Speed Rush · Ultima spiaggia |
+| **5** | 33–40 | Quiz · Musica · Bomba · Indovina chi · **Biglie** · Timeline · Ultima spiaggia · **Arena** |
 
 Classifiche:
 
 - **rapida** dopo i round 4, 12, 20, 28, 36 (metà atto);
 - **dettagliata** dopo i round 8, 16, 24, 32, 40 (fine atto, con podio e festeggiamento).
 
-Bonus, uno dopo ognuno dei cinque atti:
+Bonus, uno dentro ognuno dei cinque atti:
 
-| Dopo l'atto | Bonus | Punti |
+| Atto | Bonus | Punti |
 | --- | --- | --- |
 | 1 | 🎰 Casino bianco/rosso | +100 |
 | 2 | 🃏 Blackjack | +150 vittoria / +75 pari |
@@ -93,7 +93,7 @@ Bonus, uno dopo ognuno dei cinque atti:
 | 4 | 🐎 Cavallo di Battaglia | +200 / +100 / +50 |
 | 5 | 🎯 Casino numero secco | +300 |
 
-Dopo il quinto bonus si chiude con la classifica finale aggiornata.
+Chiuso il riepilogo di un bonus, la scaletta riparte dal round successivo; dopo il round 40 si chiude con la classifica finale aggiornata.
 
 ---
 
@@ -193,7 +193,7 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 
 ## 6. I bonus dentro gli atti
 
-Non consumano un round: la TV li apre da sola in **un round interno dell'atto** (mai il primo, mai l'ultimo, scelto all'inizio della serata), e la regia può lanciarli anche a mano. I punti entrano in classifica **una sola volta, alla chiusura del bonus**; nessun bonus toglie punti.
+Non consumano un round: la TV li apre da sola in **un round interno dell'atto**, scelto all'inizio della serata tra il secondo, il terzo, il quinto, il sesto e il settimo (mai l'apertura, mai il quarto con la classifica rapida, mai l'ultimo); la regia può lanciarli anche a mano. I punti entrano in classifica **una sola volta, alla chiusura del bonus**; nessun bonus toglie punti.
 
 ### 🎰 Casino bianco/rosso — nell'atto 1
 - Una sola manche: ogni tavolo sceglie **bianco o rosso**.
@@ -229,7 +229,7 @@ Non consumano un round: la TV li apre da sola in **un round interno dell'atto** 
   il primo posto, poi la classifica completa.
 - La classifica **resta in TV** finché non premi **PARTI**: nessuna chiusura
   automatica, così avete tutto il tempo per commentare.
-- **I punti dei bonus entrano in classifica alla chiusura del bonus**: dopo l’ultimo, la TV mostra la classifica finale aggiornata.
+- **I punti dei bonus entrano in classifica alla chiusura del bonus**: dopo il round 40 la TV mostra la classifica finale aggiornata.
 
 > *Da dire al podio:* «Terzo posto… secondo… e primi, stasera, sono…» (lasciate un secondo
 > di silenzio prima del nome: il rullo è già partito.)
