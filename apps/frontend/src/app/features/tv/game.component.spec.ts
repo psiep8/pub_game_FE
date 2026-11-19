@@ -1457,4 +1457,108 @@ describe('GameComponent', () => {
       }
     });
   });
+
+  describe('striscia di ripartenza dopo il bonus', () => {
+    /** Porta la TV al riepilogo chiuso, quando parte il conto alla rovescia. */
+    function closeBonus(round = 3): void {
+      const rounds = TestBed.inject(RoundManagerService);
+      rounds.restoreRound(round);
+      component.currentGameId.set(1);
+      component.bonusEntrance.set(null);
+      component.bonusActive.set(true);
+      component.bonusType.set('BLACKJACK');
+      (component as unknown as { finishBonus(): void }).finishBonus();
+    }
+
+    function strip(): HTMLElement | null {
+      return fixture.nativeElement.querySelector('.auto-advance');
+    }
+
+    async function waitForCountdown(): Promise<void> {
+      await vi.advanceTimersByTimeAsync(8_000);
+      fixture.detectChanges();
+    }
+
+    it('compare a 10 quando si chiude il riepilogo e scende ogni secondo', async () => {
+      vi.useFakeTimers();
+      try {
+        closeBonus();
+        fixture.detectChanges();
+
+        // Negli otto secondi di riepilogo la TV mostra la card, non la striscia.
+        expect(component.bonusShowResult()).toBe(true);
+        expect(strip()).toBeNull();
+
+        await waitForCountdown();
+
+        expect(component.bonusShowResult()).toBe(false);
+        expect(component.autoAdvanceSeconds()).toBe(10);
+        expect(strip()?.textContent).toContain('RIPARTENZA · PROSSIMO ROUND');
+        expect(strip()?.textContent).toContain('10');
+
+        await vi.advanceTimersByTimeAsync(1_000);
+        fixture.detectChanges();
+        expect(strip()?.textContent).toContain('9');
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('sparisce con la pausa e non fa ripartire il round', async () => {
+      vi.useFakeTimers();
+      try {
+        const rounds = TestBed.inject(RoundManagerService);
+        closeBonus();
+        await waitForCountdown();
+        expect(strip()).not.toBeNull();
+
+        component.togglePause();
+        fixture.detectChanges();
+
+        expect(component.autoAdvanceSeconds()).toBe(0);
+        expect(strip()).toBeNull();
+
+        // Il timer è stato chiuso: passati gli altri dieci secondi si resta fermi.
+        await vi.advanceTimersByTimeAsync(10_000);
+        expect(rounds.getCurrentRound()).toBe(3);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('sparisce quando la regia apre la classifica', async () => {
+      vi.useFakeTimers();
+      try {
+        closeBonus();
+        await waitForCountdown();
+        expect(strip()).not.toBeNull();
+
+        component.adminShowLeaderboard();
+        fixture.detectChanges();
+
+        expect(component.autoAdvanceSeconds()).toBe(0);
+        expect(component.isShowingLeaderboard()).toBe(true);
+        expect(strip()).toBeNull();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('sparisce con l’avanzamento manuale', async () => {
+      vi.useFakeTimers();
+      try {
+        closeBonus();
+        await waitForCountdown();
+        expect(strip()).not.toBeNull();
+
+        component.adminNextRound();
+        fixture.detectChanges();
+
+        expect(component.autoAdvanceSeconds()).toBe(0);
+        expect(strip()).toBeNull();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
 });
