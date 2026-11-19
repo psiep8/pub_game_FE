@@ -65,6 +65,21 @@ const ACT_BUDGET_BYTES = 6 * 1024 * 1024;
 /** Gli effetti restano fuori dai conti degli atti ma non senza tetto. */
 const EFFECTS_BUDGET_BYTES = 4 * 1024 * 1024;
 
+/**
+ * Il catalogo del §4.7 una volta per file: le basi d'atto, i loop dei giochi e
+ * il rotolamento delle Biglie, che non passa da `BED_LOOPS` perché lo suona
+ * `marble-roll.ts` con `AUDIO_FILES.marbleRoll`.
+ */
+function bedFiles(): string[] {
+  return [
+    ...new Set([
+      ...Object.values(ACT_BEDS).map((bed) => bed.file),
+      ...Object.values(BED_LOOPS).map((bed) => bed.file),
+      ...(AUDIO_FILES.marbleRoll ?? []),
+    ]),
+  ];
+}
+
 /** Peso dei file che esistono davvero: i sottofondi mancanti non contano. */
 function weightOf(files: readonly string[]): number {
   return files.reduce(
@@ -119,11 +134,7 @@ describe('File audio della serata', () => {
   });
 
   it('i venti sottofondi stanno sotto i 22 MB', () => {
-    const beds = [
-      ...Object.values(BED_LOOPS).map((bed) => bed.file),
-      ...Object.values(ACT_BEDS).map((bed) => bed.file),
-    ];
-    expect(weightOf(beds), 'tetto del §4.4: 22 MB per i venti loop')
+    expect(weightOf(bedFiles()), 'tetto del §4.4: 22 MB per i venti loop')
       .toBeLessThan(SOTTOFONDI_BUDGET_BYTES);
   });
 
@@ -139,11 +150,7 @@ describe('File audio della serata', () => {
     const patterns = cachePatterns();
     expect(patterns.length, 'ngsw-config.json non trovato').toBeGreaterThan(0);
 
-    const beds = [
-      ...Object.values(BED_LOOPS).map((bed) => bed.file),
-      ...Object.values(ACT_BEDS).map((bed) => bed.file),
-    ];
-    for (const file of new Set(beds)) {
+    for (const file of bedFiles()) {
       const url = `/assets/audio/${file}`;
       expect(
         patterns.some((pattern) => matchesPattern(pattern, url)),

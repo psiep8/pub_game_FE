@@ -84,15 +84,20 @@ function slotOf(type: GameModeType): string | null {
 }
 
 /**
- * Gli slot di un atto: la base e un file per gioco, non per round. Un gioco che
- * esce due volte nell'atto (come il Quiz nell'atto 1) occupa un solo slot: il
- * suo loop è lo stesso file, e contarlo due volte non è un alias.
+ * Gli slot di una scaletta: la base e un file per gioco, non per round. Un gioco
+ * che esce due volte (come il Quiz nell'atto 1) occupa un solo slot: il suo loop
+ * è lo stesso file, e contarlo due volte non è un alias.
  */
-function slotsOf(act: ActNumber): string[] {
-  const games = [...new Set(ACT_DECKS[act - 1])]
+function slotsFor(base: string, deck: readonly GameModeType[]): string[] {
+  const games = [...new Set(deck)]
     .map(slotOf)
     .filter((file): file is string => file !== null);
-  return [ACT_BEDS[act].file, ...games];
+  return [base, ...games];
+}
+
+/** Gli slot di un atto vero, con la sua base. */
+function slotsOf(act: ActNumber): string[] {
+  return slotsFor(ACT_BEDS[act].file, ACT_DECKS[act - 1]);
 }
 
 /** Peso di un elenco di file, ognuno contato una volta. */
@@ -134,6 +139,21 @@ describe('Peso dei sottofondi per atto', () => {
       'loop/gioco-speed-rush.m4a',
       'loop/gioco-ultima-spiaggia.m4a',
     ]));
+  });
+
+  it('un gioco ripetuto nell’atto resta un solo slot', () => {
+    // Scaletta finta: la Bomba esce tre volte, la Musica suona nel silenzio.
+    // Senza il raggruppamento per tipo i tre round darebbero tre slot sullo
+    // stesso file e il controllo qui sopra li leggerebbe come un alias.
+    const deck: readonly GameModeType[] = ['BOMBA', 'BOMBA', 'MUSIC', 'TENNIS_BATTLE', 'BOMBA'];
+    const slots = slotsFor('loop/atto-1.m4a', deck);
+
+    expect(slots).toEqual([
+      'loop/atto-1.m4a',
+      'loop/gioco-bomba.m4a',
+      'loop/gioco-tennis.m4a',
+    ]);
+    expect(new Set(slots).size).toBe(slots.length);
   });
 
   it('con ogni gioco sul suo loop nessun atto sfonda i 6 MB', () => {
