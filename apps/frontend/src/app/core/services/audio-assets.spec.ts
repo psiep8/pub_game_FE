@@ -75,7 +75,7 @@ function bedFiles(): string[] {
     ...new Set([
       ...Object.values(ACT_BEDS).map((bed) => bed.file),
       ...Object.values(BED_LOOPS).map((bed) => bed.file),
-      ...(AUDIO_FILES.marbleRoll ?? []),
+      ...(AUDIO_FILES['marbleRoll'] ?? []),
     ]),
   ];
 }
