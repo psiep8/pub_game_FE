@@ -36,14 +36,11 @@ import {
 import { buildTrack, frameAtProgress, pointAtS, type TrackGeometry } from './track-geometry';
 import { trackById, type TrackId } from './track-plan';
 import {
-  alongFactor,
+  applyInteractions,
   buildFeatures,
-  lateralPush,
-  movingAt,
-  movingObstacleHit,
-  MOVING_FACTOR,
-  oneShotAt,
-  PERNI_FACTOR,
+  type InteractionState,
+  type InteractionTarget,
+  type TrackFeature,
 } from './track-features';
 
 const STEP = 1 / 60;
@@ -82,6 +79,19 @@ export interface SimResult {
   comeback: boolean;
 }
 
+/**
+ * Il passo di interazioni della corsa headless. `simulateRace` chiama questo e
+ * nient'altro: il test lo confronta, passo per passo, con quello della TV.
+ */
+export function simulationInteractions(
+  features: readonly TrackFeature[],
+  state: InteractionState,
+  target: number,
+  marble: InteractionTarget,
+): ReturnType<typeof applyInteractions> {
+  return applyInteractions(features, state, target, marble);
+}
+
 export interface SimOptions {
   trackId: TrackId;
   seed: number;
@@ -91,13 +101,13 @@ export interface SimOptions {
 
 interface SimMarble {
   name: string;
-  speed: number;
+  statSpeed: number;
   accel: number;
   grip: number;
   s: number;
   lateral: number;
   lateralSpeed: number;
-  speedNow: number;
+  speed: number;
   line: LineCharacter;
   drama: DramaProfile;
   bumped: Set<string>;
@@ -153,13 +163,13 @@ export function simulateRace(options: SimOptions): SimResult {
     const along = 30 + row * (radius * 2 + 14) + (rng() - 0.5) * 12;
     return {
       name: data.name,
-      speed: data.speed,
+      statSpeed: data.speed,
       accel: data.accel,
       grip: data.grip,
       s: along,
       lateral,
       lateralSpeed: 0,
-      speedNow: 0,
+      speed: 0,
       line: createLineCharacter(rng, index, count),
       drama: createDrama(rng),
       bumped: new Set<string>(),
@@ -181,7 +191,7 @@ export function simulateRace(options: SimOptions): SimResult {
     marbles.reduce(
       (sum, marble) =>
         sum
-        + (marble.speed * track.weights.speed
+        + (marble.statSpeed * track.weights.speed
           + marble.accel * track.weights.accel
           + marble.grip * track.weights.grip) / 10,
       0,
@@ -223,8 +233,9 @@ export function simulateRace(options: SimOptions): SimResult {
       if (marble.finish !== null) continue;
 
       const frame = pointAtS(geometry, marble.s);
+      const halfLane = Math.max(6, frame.width / 2 - radius - 6);
       const profile = fieldProfile(
-        (marble.speed * track.weights.speed
+        (marble.statSpeed * track.weights.speed
           + marble.accel * track.weights.accel
           + marble.grip * track.weights.grip) / 10,
         profileMean,
@@ -237,20 +248,29 @@ export function simulateRace(options: SimOptions): SimResult {
       target *= rubberBand(progress, fieldProgress, progress > CLOSING_FROM ? CLOSING_BOOST : 1);
       target *= dramaFactor(marble.drama, elapsed);
       if (marble.s >= leadS) target *= HEAD_WIND;
-      target *= alongFactor(features, progress);
+      // Interazioni della pista: un passo solo, lo stesso della TV — prima
+      // attrito e correnti, poi rampa e perni, poi gli ostacoli mobili.
+      const interactions = simulationInteractions(
+        features,
+        { progress, elapsed, lateral: marble.lateral, halfLane },
+        target,
+        marble,
+      );
+      target = interactions.target;
 
       const stunned = marble.stunUntil > elapsed;
       const recovering = marble.recoverUntil > elapsed;
-      marble.speedNow = stepSpeed(
-        marble.speedNow,
+      marble.speed = stepSpeed(
+        marble.speed,
         stunned ? target * 0.12 : target,
         resumeAccel(marble.accel, recovering),
         STEP,
       );
-      marble.s += marble.speedNow;
+      // Perni e ostacoli mobili colpiscono la velocità appena calcolata.
+      marble.speed *= interactions.along;
+      marble.s += marble.speed;
 
       // Corsia personale, come in TV.
-      const halfLane = Math.max(6, frame.width / 2 - radius - 6);
       const want = lineOffset(marble.line, elapsed, halfLane * 0.9);
       const steer = Math.max(-1.1, Math.min(1.1, (want - marble.lateral) * 0.07));
       const pull = physics.gravity * 0.012;
@@ -262,7 +282,7 @@ export function simulateRace(options: SimOptions): SimResult {
         Math.min(
           4,
           (marble.lateralSpeed * 0.86 + steer + pull + bump + shove
-            + lateralPush(features, progress)) * gripDamping,
+            + interactions.lateral + interactions.lateralKick) * gripDamping,
         ),
       );
       marble.lateral += marble.lateralSpeed;
@@ -271,27 +291,13 @@ export function simulateRace(options: SimOptions): SimResult {
       const wallLimit = frame.width / 2 + WALL_INSET - radius;
       if (Math.abs(marble.lateral) > wallLimit) {
         marble.lateral = Math.sign(marble.lateral) * wallLimit;
-        const hard = marble.speedNow > 1.6;
+        const hard = marble.speed > 1.6;
         const wall = wallPenalty(hard);
-        marble.speedNow *= wall.factor;
+        marble.speed *= wall.factor;
         marble.stunUntil = Math.max(marble.stunUntil, elapsed + wall.stun);
         marble.recoverUntil = Math.max(marble.recoverUntil, elapsed + wall.recover);
         marble.lateralSpeed *= -0.5;
         marble.wallHits += 1;
-      }
-
-      // Ostacoli mobili: barra, porta e altalena si muovono a tempo di gara.
-      const lateralFraction = marble.lateral / Math.max(1, frame.width / 2);
-      for (const obstacle of movingAt(features, progress)) {
-        if (!movingObstacleHit(obstacle, elapsed, lateralFraction)) continue;
-        // Un colpo ogni due secondi per ostacolo, non a ogni passo.
-        const key = `${obstacle.id}@${Math.floor(elapsed / 2)}`;
-        if (marble.bumped.has(key)) continue;
-        marble.bumped.add(key);
-        marble.speedNow *= MOVING_FACTOR;
-        marble.stunUntil = Math.max(marble.stunUntil, elapsed + 0.12);
-        marble.recoverUntil = Math.max(marble.recoverUntil, elapsed + 0.5);
-        marble.lateralSpeed *= -0.4;
       }
 
       // Ostacoli: cerchi sul fondo, una volta sola per biglia.
@@ -308,26 +314,13 @@ export function simulateRace(options: SimOptions): SimResult {
         marble.bumped.add(hazard.id);
         marble.hits += 1;
         const penalty = hazardPenalty(hazard.kind);
-        marble.speedNow *= penalty.factor;
+        marble.speed *= penalty.factor;
         marble.stunUntil = Math.max(marble.stunUntil, elapsed + penalty.stun);
         marble.recoverUntil = Math.max(marble.recoverUntil, elapsed + penalty.recover);
         if (hazard.kind === 'fango' || hazard.kind === 'sabbia' || hazard.kind === 'pozzanghera') {
           marble.slowUntil = elapsed + (hazard.kind === 'fango' ? 0.9 : 0.6);
         }
         if (hazard.kind === 'ghiaccio') marble.boostUntil = elapsed + 0.9;
-      }
-
-      // Rampe e perni si sentono una volta sola per biglia.
-      const feature = oneShotAt(features, progress, marble.bumped);
-      if (feature) {
-        marble.bumped.add(feature.id);
-        if (feature.kind === 'rampa') {
-          marble.boostUntil = elapsed + 0.9;
-        } else {
-          marble.speedNow *= PERNI_FACTOR;
-          marble.stunUntil = Math.max(marble.stunUntil, elapsed + 0.2);
-          marble.recoverUntil = Math.max(marble.recoverUntil, elapsed + 0.6);
-        }
       }
 
       // Watchdog: se resta ferma, riparte più avanti (come in TV).
@@ -339,7 +332,7 @@ export function simulateRace(options: SimOptions): SimResult {
       }
       if (marble.stuckFor > 2) {
         marble.s = Math.min(finishS, marble.s + 70);
-        marble.speedNow = 2;
+        marble.speed = 2;
         marble.stuckFor = 0;
         marble.bestS = marble.s;
       }

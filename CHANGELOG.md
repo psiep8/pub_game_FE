@@ -1,5 +1,42 @@
 # Changelog
 
+## 19 novembre 2026 — Un passo solo per le interazioni (Biglie B3)
+
+- **Una funzione, due corse:** `stepInteractions` decide tutto e in un ordine
+  fissato — attrito e correnti, poi rampa e perni, poi barra, porta e altalena.
+  `applyInteractions` è l'unico punto che tocca velocità e timer, e TV e
+  simulazione lo chiamano nello stesso momento: il colpo si sente dopo il passo
+  di accelerazione, non prima. La corsa headless espone `simulationInteractions`
+  come suo ingresso, così il confronto nei test guarda il codice che gira.
+- **Test di confronto:** 480 passi (8 secondi di gara) sul passaggio di perni e
+  barra, con la biglia che punta sempre al centro dell'ostacolo: bersaglio,
+  spinta di lato, colpo, ostacolo preso, velocità, timer e insieme delle
+  interazioni prese devono coincidere fra TV e simulazione a ogni passo.
+- **Taratura ritarata per il nuovo ordine:** perni a 0,15 s di blocco e 0,55 s
+  di ripresa, ostacoli a 0,9. Le 24 gare fisse stanno in **48,2–69,5 s**, con
+  **21/24 rimonte**.
+- **Fragilità misurata su 100 semi per pista** (stessi semi per tutte le piste):
+
+  | pista | media | max | gare ≥70 s | contatti max | cambi min | rimonte |
+  |---|---|---|---|---|---|---|
+  | rally | 63,0 s | 69,6 s | 0/100 | 5,4/s | 4 | 88% |
+  | f1 | 50,8 s | 54,8 s | 0/100 | 5,2/s | 4 | 74% |
+  | neve | 54,8 s | 59,9 s | 0/100 | 5,6/s | 2 | 86% |
+  | acqua | 58,3 s | 63,0 s | 0/100 | 5,4/s | 4 | 86% |
+  | vetro | 48,5 s | 51,7 s | 0/100 | 6,3/s | 4 | 81% |
+  | sabbia | 67,7 s | 72,7 s | 17/100 | 5,2/s | 3 | 83% |
+  | spazio | 55,7 s | 59,4 s | 0/100 | 4,9/s | 5 | 54% |
+  | magma | 64,8 s | 69,9 s | 0/100 | 5,0/s | 3 | 86% |
+
+  Lettura: la taratura è solida sulla durata tranne che sulla **sabbia**, che è
+  il fondo più lento e sfora i 70 s in circa un sesto dei semi; **magma** resta
+  sul filo (69,9 s). I contatti al secondo superano i 5 su rally, neve e vetro
+  nei semi peggiori, e **spazio** rimonta solo nel 54% delle gare contro l'80%
+  richiesto dal test fisso: sono i tre punti da guardare prima di allargare i
+  margini.
+- Verifiche: suite Biglie **58 test su 7 file**, suite completa **562 test su 64
+  file**, tutti passati.
+
 ## 19 novembre 2026 — Barra, porta e altalena: la pista si muove (Biglie B3)
 
 - **Ostacoli mobili deterministici:** uno per pista, sempre allo stesso punto

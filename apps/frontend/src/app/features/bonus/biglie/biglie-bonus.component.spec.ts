@@ -3,7 +3,8 @@ import { BiglieBonus } from './biglie-bonus.component';
 import { WebSocketService } from '../../../core/websocket/web-socket.service';
 import { FakeWebSocketService } from '../../../shared/testing/test-doubles';
 import { AudioService } from '../../../core/services/audio.service';
-import { PERNI_FACTOR, type TrackFeature } from './track-features';
+import { simulationInteractions } from './race-simulation';
+import { movingObstacle, PERNI_FACTOR, type TrackFeature } from './track-features';
 
 const MARBLES = [
   { id: 'fulmine', name: 'FULMINE', color: '#facc15', emoji: '⚡', speed: 10, accel: 6, grip: 3 },
@@ -89,23 +90,98 @@ describe('BiglieBonus — ripresa dopo un refresh della TV', () => {
     } as any;
 
     // Corrente e attrito: spinta di lato e bersaglio abbassato.
-    const inCurrent = component['applyFeatures'](marble, 0.5, 4);
+    const inCurrent = component['applyFeatures'](marble, 0.5, 4, 0, 80);
     expect(inCurrent.target).toBeLessThan(4);
     expect(inCurrent.lateral).toBeGreaterThan(0);
     expect(inCurrent.hit).toBeNull();
 
     // Rampa: bersaglio più alto e momento di gloria, una volta sola.
-    const onRamp = component['applyFeatures'](marble, 0.6, 4);
+    const onRamp = component['applyFeatures'](marble, 0.6, 4, 0, 80);
     expect(onRamp.hit?.kind).toBe('rampa');
     expect(onRamp.target).toBeGreaterThan(4);
     expect(marble.boostUntil).toBeCloseTo(10.9, 5);
 
     // Perni: la biglia perde velocità e li passa una volta sola.
-    const onPins = component['applyFeatures'](marble, 0.7, 4);
+    const onPins = component['applyFeatures'](marble, 0.7, 4, 0, 80);
     expect(onPins.hit?.kind).toBe('perni');
-    expect(marble.speed).toBeCloseTo(4 * PERNI_FACTOR, 6);
+    expect(onPins.along).toBeCloseTo(PERNI_FACTOR, 6);
     expect(marble.bumped.has('perni')).toBe(true);
-    expect(component['applyFeatures'](marble, 0.7, 4).hit).toBeNull();
+    expect(component['applyFeatures'](marble, 0.7, 4, 0, 80).hit).toBeNull();
+
+    fixture.destroy();
+  });
+
+  it('TV e simulazione passano dallo stesso passo di interazioni, nello stesso ordine', () => {
+    const { component, fixture } = mount();
+    const barra: TrackFeature = {
+      id: 'barra-prova',
+      kind: 'barra',
+      progress: 0.52,
+      span: 0.012,
+      side: 1,
+      strength: 1,
+      phase: 0,
+    };
+    const perni: TrackFeature = {
+      id: 'perni',
+      kind: 'perni',
+      progress: 0.52,
+      span: 0.02,
+      side: 1,
+      strength: 1,
+      phase: 0,
+    };
+    const features = [perni, barra];
+    component['features'] = features;
+
+    const start = () => ({
+      bumped: new Set<string>(),
+      speed: 4,
+      boostUntil: 0,
+      stunUntil: 0,
+      recoverUntil: 0,
+    });
+    const tv = start();
+    const sim = start();
+
+    // Otto secondi di corsa sul passaggio dell'ostacolo: la biglia punta al
+    // centro della barra, quindi la prende appena è lì.
+    for (let step = 0; step < 480; step++) {
+      const elapsed = 10 + step / 60;
+      const pose = movingObstacle(barra, elapsed);
+      const lateral = pose.blocking ? pose.center * 80 : 40;
+      component['raceElapsed'] = elapsed;
+
+      const fromTv = component['applyFeatures'](tv as any, 0.52, 4, lateral, 80);
+      const fromSim = simulationInteractions(
+        features,
+        { progress: 0.52, elapsed, lateral, halfLane: 80 },
+        4,
+        sim,
+      );
+
+      // Stesso passo: bersaglio, spinta, colpo e ostacolo preso coincidono.
+      expect(fromSim.target).toBe(fromTv.target);
+      expect(fromSim.lateral).toBe(fromTv.lateral);
+      expect(fromSim.lateralKick).toBe(fromTv.lateralKick);
+      expect(fromSim.hit?.id).toBe(fromTv.hit?.id);
+      expect(fromSim.obstacles.map((obstacle) => obstacle.id)).toEqual(
+        fromTv.obstacles.map((obstacle) => obstacle.id),
+      );
+
+      // E lo applicano nello stesso punto: dopo il passo di accelerazione.
+      tv.speed *= fromTv.along;
+      sim.speed *= fromSim.along;
+      expect(sim.speed).toBe(tv.speed);
+      expect(sim.boostUntil).toBe(tv.boostUntil);
+      expect(sim.stunUntil).toBe(tv.stunUntil);
+      expect(sim.recoverUntil).toBe(tv.recoverUntil);
+      expect([...sim.bumped]).toEqual([...tv.bumped]);
+    }
+
+    // L'ordine è quello fissato: prima i perni, poi la barra, mai il contrario.
+    expect(tv.bumped.has('perni')).toBe(true);
+    expect(tv.bumped.has('barra-prova@5')).toBe(true);
 
     fixture.destroy();
   });

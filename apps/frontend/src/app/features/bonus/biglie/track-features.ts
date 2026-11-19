@@ -195,6 +195,142 @@ export function oneShotAt(
   return null;
 }
 
+/** Quel che serve per fare un passo di interazioni, uguale per TV e corsa. */
+export interface InteractionState {
+  /** Progresso 0–1 sulla pista. */
+  progress: number;
+  /** Secondi di gara. */
+  elapsed: number;
+  /** Posizione di lato, in px dal centro. */
+  lateral: number;
+  /** Semicorsia utile, in px. */
+  halfLane: number;
+}
+
+/** Effetti di un passo di interazioni, prima di toccare la biglia. */
+export interface InteractionResult {
+  /** Fattore sul bersaglio di velocità (attrito e rampa). */
+  targetFactor: number;
+  /** Fattore sulla velocità già in corso (perni e ostacoli mobili). */
+  alongFactor: number;
+  /** Spinta di lato della corrente, px per passo. */
+  lateralPush: number;
+  /** Rinculo di lato dell'ostacolo mobile, px per passo. */
+  lateralKick: number;
+  /** Secondi di blocco, ripresa e spinta da aggiungere ai timer. */
+  stun: number;
+  recover: number;
+  boost: number;
+  /** Rampa o perni presi in questo passo (uno al massimo). */
+  hit: TrackFeature | null;
+  /** Ostacoli mobili presi in questo passo. */
+  obstacles: TrackFeature[];
+}
+
+/**
+ * Un passo di interazioni, in un ordine solo: prima attrito, correnti e rampe
+ * (continue), poi le cose che si sentono una volta sola (rampa e perni), poi
+ * gli ostacoli mobili. La TV e la simulazione chiamano questa e nient'altro,
+ * così perni e barra arrivano sempre nello stesso ordine.
+ */
+export function stepInteractions(
+  features: readonly TrackFeature[],
+  state: InteractionState,
+  taken: Set<string>,
+): InteractionResult {
+  const result: InteractionResult = {
+    targetFactor: alongFactor(features, state.progress),
+    alongFactor: 1,
+    lateralPush: lateralPush(features, state.progress),
+    lateralKick: 0,
+    stun: 0,
+    recover: 0,
+    boost: 0,
+    hit: null,
+    obstacles: [],
+  };
+
+  // 1. Rampa e perni: uno per volta, e una volta sola per biglia.
+  const hit = oneShotAt(features, state.progress, taken);
+  if (hit) {
+    taken.add(hit.id);
+    result.hit = hit;
+    if (hit.kind === 'rampa') {
+      result.boost = 0.9;
+    } else {
+      result.alongFactor *= PERNI_FACTOR;
+      result.stun = 0.15;
+      result.recover = 0.55;
+    }
+  }
+
+  // 2. Ostacoli mobili: dopo i fissi, con la stessa chiave temporale in TV e
+  // in simulazione (un colpo ogni due secondi per ostacolo).
+  const lateralFraction = state.lateral / Math.max(1, state.halfLane);
+  for (const obstacle of movingAt(features, state.progress)) {
+    if (!movingObstacleHit(obstacle, state.elapsed, lateralFraction)) continue;
+    const key = `${obstacle.id}@${Math.floor(state.elapsed / 2)}`;
+    if (taken.has(key)) continue;
+    taken.add(key);
+    result.obstacles.push(obstacle);
+    result.alongFactor *= MOVING_FACTOR;
+    result.lateralKick -= Math.sign(lateralFraction || 1) * 0.5;
+    result.stun = Math.max(result.stun, 0.12);
+    result.recover = Math.max(result.recover, 0.5);
+  }
+
+  return result;
+}
+
+/** Il minimo che una biglia deve avere perché le interazioni la tocchino. */
+export interface InteractionTarget {
+  bumped: Set<string>;
+  boostUntil: number;
+  stunUntil: number;
+  recoverUntil: number;
+}
+
+/**
+ * Applica il passo di interazioni a una biglia: è l'unico punto in cui la TV e
+ * la corsa headless cambiano velocità e timer. Restituisce il bersaglio
+ * corretto e la spinta di lato da dare alla velocità della biglia.
+ */
+export function applyInteractions(
+  features: readonly TrackFeature[],
+  state: InteractionState,
+  target: number,
+  marble: InteractionTarget,
+): {
+  target: number;
+  along: number;
+  lateral: number;
+  lateralKick: number;
+  hit: TrackFeature | null;
+  obstacles: TrackFeature[];
+} {
+  const result = stepInteractions(features, state, marble.bumped);
+  if (result.boost > 0) {
+    marble.boostUntil = Math.max(marble.boostUntil, state.elapsed + result.boost);
+  }
+  if (result.stun > 0) {
+    marble.stunUntil = Math.max(marble.stunUntil, state.elapsed + result.stun);
+  }
+  if (result.recover > 0) {
+    marble.recoverUntil = Math.max(marble.recoverUntil, state.elapsed + result.recover);
+  }
+
+  // I colpi sulla velocità li applica chi chiama, subito dopo il proprio passo
+  // di accelerazione: lì la penalità non viene riscritta dal bersaglio.
+  return {
+    target: target * result.targetFactor,
+    along: result.alongFactor,
+    lateral: result.lateralPush,
+    lateralKick: result.lateralKick,
+    hit: result.hit,
+    obstacles: result.obstacles,
+  };
+}
+
 /** Posizione di un ostacolo mobile, in frazioni di semicorsia. */
 export interface ObstaclePose {
   /** Centro dell'ostacolo: −1 il muro basso, +1 quello alto. */

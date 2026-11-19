@@ -40,15 +40,11 @@ import {
   type TrackGeometry,
 } from './track-geometry';
 import {
-  alongFactor,
+  applyInteractions,
   buildFeatures,
   featureFrame,
-  lateralPush,
-  movingAt,
   movingObstacle,
-  movingObstacleHit,
   MOVING_FACTOR,
-  oneShotAt,
   PERNI_FACTOR,
   type TrackFeature,
 } from './track-features';
@@ -1140,33 +1136,30 @@ export class BiglieBonus implements OnInit, OnDestroy {
     });
   }
   /**
-   * Le interazioni della pista in un posto solo: attrito e rampe sul bersaglio,
-   * correnti di lato, rampe e perni una volta sola per biglia. È il pezzo che
-   * la TV esegue davvero, e il test lo guarda da qui.
+   * Il passo di interazioni della TV. La decisione e l'ordine stanno in
+   * `applyInteractions`, lo stesso usato dalla corsa headless: qui non c'è
+   * nessuna regola in più.
    */
   private applyFeatures(
     marble: RaceMarble,
     progress: number,
     target: number,
-  ): { target: number; lateral: number; hit: TrackFeature | null } {
-    const hit = this.features.length
-      ? oneShotAt(this.features, progress, marble.bumped)
-      : null;
-    if (hit) {
-      marble.bumped.add(hit.id);
-      if (hit.kind === 'rampa') {
-        marble.boostUntil = this.raceElapsed + 0.9;
-      } else if (hit.kind === 'perni') {
-        marble.speed *= PERNI_FACTOR;
-        marble.stunUntil = Math.max(marble.stunUntil, this.raceElapsed + 0.2);
-        marble.recoverUntil = Math.max(marble.recoverUntil, this.raceElapsed + 0.6);
-      }
-    }
-    return {
-      target: target * alongFactor(this.features, progress),
-      lateral: lateralPush(this.features, progress),
-      hit,
-    };
+    lateral: number,
+    halfLane: number,
+  ): {
+    target: number;
+    along: number;
+    lateral: number;
+    lateralKick: number;
+    hit: TrackFeature | null;
+    obstacles: TrackFeature[];
+  } {
+    return applyInteractions(
+      this.features,
+      { progress, elapsed: this.raceElapsed, lateral, halfLane },
+      target,
+      marble,
+    );
   }
 
   private marbleForBody(body: any): RaceMarble | undefined {
@@ -1452,9 +1445,14 @@ export class BiglieBonus implements OnInit, OnDestroy {
       target *= dramaFactor(marble.drama, this.raceElapsed);
       // Chi è davanti non ha scia: la prima posizione costa sempre qualcosa.
       if (marble.x >= leadX) target *= HEAD_WIND;
-      // Attrito, rampe e perni: le interazioni della pista, le stesse in
-      // simulazione. Gli effetti sulle grandezze li applica `applyFeatures`.
-      const forces = this.applyFeatures(marble, progress, target);
+      // Corsia personale e lato attuale: servono alle interazioni, che devono
+      // sapere dove passa la biglia.
+      const halfLane = Math.max(6, frame.width / 2 - radius - 6);
+      const lateralPosition =
+        (body.position.x - frame.x) * frame.nx + (body.position.y - frame.y) * frame.ny;
+      // Interazioni della pista: un passo solo, lo stesso della simulazione —
+      // prima attrito e correnti, poi rampa e perni, poi gli ostacoli mobili.
+      const forces = this.applyFeatures(marble, progress, target, lateralPosition, halfLane);
       target = forces.target;
 
       // La velocità non si riscrive più a ogni passo: la biglia ha la sua e ci
@@ -1470,15 +1468,15 @@ export class BiglieBonus implements OnInit, OnDestroy {
         accel,
         dtSeconds,
       );
+      // I colpi di perni e ostacoli mobili si sentono sulla velocità appena
+      // calcolata, non sul bersaglio.
+      marble.speed *= forces.along;
       const along = marble.speed;
 
       // Corsia personale: ogni biglia punta al suo lato, non alla linea della
       // pista. Il bersaglio si sposta piano, quindi il percorso è irripetibile
       // e due biglie vicine non disegnano la stessa curva.
-      const halfLane = Math.max(6, frame.width / 2 - radius - 6);
       const want = lineOffset(marble.line, this.raceElapsed, halfLane * 0.9);
-      const lateralPosition =
-        (body.position.x - frame.x) * frame.nx + (body.position.y - frame.y) * frame.ny;
       const toward = want - lateralPosition;
       const steer = Math.max(-1.1, Math.min(1.1, toward * 0.05));
       // Gravità sulla componente verticale della pista, trattenuta dalla
@@ -1493,7 +1491,11 @@ export class BiglieBonus implements OnInit, OnDestroy {
       const current = forces.lateral;
       const lateral = Math.max(
         -4,
-        Math.min(4, (lateralSpeed * 0.86 + steer + pull + bump + shove + current) * gripDamping),
+        Math.min(
+          4,
+          (lateralSpeed * 0.86 + steer + pull + bump + shove + current + forces.lateralKick)
+            * gripDamping,
+        ),
       );
 
       // Velocità lungo la tangente della pista: la biglia segue la curva e
@@ -1512,21 +1514,11 @@ export class BiglieBonus implements OnInit, OnDestroy {
         this.audio.playMarbleSurface(this.surfaceIsSoft());
       }
 
-      // Ostacoli mobili: barra, porta e altalena girano a tempo di gara, con la
-      // stessa formula della corsa headless.
-      const lateralFraction = lateral / Math.max(1, frame.width / 2);
-      for (const obstacle of movingAt(this.features, progress)) {
-        if (!movingObstacleHit(obstacle, this.raceElapsed, lateralFraction)) continue;
-        // La porta si chiude e si riapre: lo stesso ostacolo conta una volta
-        // ogni due secondi, non a ogni fotogramma.
-        const key = `${obstacle.id}@${Math.floor(this.raceElapsed / 2)}`;
-        if (marble.bumped.has(key)) continue;
-        marble.bumped.add(key);
-        marble.speed *= MOVING_FACTOR;
-        marble.stunUntil = Math.max(marble.stunUntil, this.raceElapsed + 0.12);
-        marble.recoverUntil = Math.max(marble.recoverUntil, this.raceElapsed + 0.5);
-        this.kickMarble(marble, MOVING_FACTOR, -Math.sign(lateralFraction || 1) * 1);
+      // Ostacoli mobili: il colpo si sente dopo che la velocità è stata scritta.
+      if (forces.obstacles.length) {
+        this.kickMarble(marble, MOVING_FACTOR, forces.lateralKick);
         this.spawnImpact(marble);
+        this.audio.playMarbleSurface(this.surfaceIsSoft());
       }
     }
 
