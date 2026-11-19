@@ -37,8 +37,10 @@
   soglia toccata: **34/40** gare con rimonta, **8/8** sugli otto semi del test
   largo, contatti 4,24/s, ultima 51,3 s, prima mai sotto i 43,7 s, sei cambi di
   testa.
-- **Controllo visivo a 720p** (1280×720, anteprima `/bonus-preview/biglie` con
-  otto biglie sull'orbita): le biglie da 12 px restano leggibili col loro emoji
+- **Controllo visivo a 720p** (1280×720, banco di prova delle Biglie con otto
+  biglie sull'orbita; allora si apriva da `/bonus-preview/biglie`, oggi non più
+  esistente perché le Biglie sono un round e si guardano in TV): le biglie da
+  12 px restano leggibili col loro emoji
   e la scia; i meteoriti cadono dentro le righe della corsia e non più
   appoggiati al muro; l'ostacolo mobile resta visibile. Nessun problema di
   impaginazione né di gerarchia nella classifica a sinistra.
