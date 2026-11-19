@@ -8,6 +8,7 @@ import {
   projectOnTrack,
   wallSegments,
 } from './track-geometry';
+import { TRACK_CATALOG } from './track-plan';
 
 const WIDTH = 300;
 
@@ -150,5 +151,79 @@ describe('geometria a pezzi delle Biglie', () => {
       // Tre diametri della biglia più larga (15 px di raggio) restano comodi.
       expect(narrowest).toBeGreaterThanOrEqual(96);
     }
+  });
+});
+
+/**
+ * Ogni fondo ha il suo profilo: gli stessi muri, la stessa proiezione, ma
+ * pezzi, ampiezze e lunghezze diverse. Se un fondo non avesse carattere
+ * proprio, la serata avrebbe otto volte la stessa pista.
+ */
+describe('geometria per fondo', () => {
+  const build = (trackId: (typeof TRACK_CATALOG)[number]['id']) => {
+    const track = TRACK_CATALOG.find((entry) => entry.id === trackId)!;
+    return buildTrack(2026, {
+      width: 220,
+      length: 12000,
+      startX: 140,
+      profile: track.geometry,
+    });
+  };
+
+  it('dà a ogni fondo un tracciato valido e solo con i suoi pezzi', () => {
+    for (const track of TRACK_CATALOG) {
+      const geometry = build(track.id);
+
+      expect(geometry.totalLength, track.id).toBeCloseTo(12000, 0);
+      for (let index = 1; index < geometry.nodes.length; index++) {
+        const previous = geometry.nodes[index - 1];
+        const node = geometry.nodes[index];
+        // Cresce solo in avanti e resta nella fascia del fondo.
+        expect(node.x, track.id).toBeGreaterThan(previous.x);
+        expect(Math.abs(node.angle), track.id).toBeLessThanOrEqual(1.03);
+        expect(Math.abs(node.y), track.id).toBeLessThanOrEqual(track.geometry.amplitude + 60);
+        expect(node.s).toBeGreaterThan(previous.s);
+      }
+
+      // Partenza e arrivo sono dritti, il resto è del profilo.
+      const body = geometry.pieces.slice(1, -1);
+      for (const piece of body) {
+        expect(track.geometry.deck, `${track.id}: ${piece.kind}`).toContain(piece.kind);
+      }
+
+      const narrowest = Math.min(...geometry.nodes.map((node) => node.width));
+      expect(narrowest, track.id).toBeGreaterThanOrEqual(96);
+    }
+  });
+
+  it('otto profili diversi danno otto piste diverse', () => {
+    const signatures = new Set(
+      TRACK_CATALOG.map((track) =>
+        [track.geometry.deck.join(','), track.geometry.amplitude, track.geometry.narrow].join('|'),
+      ),
+    );
+    expect(signatures.size).toBe(TRACK_CATALOG.length);
+
+    const rally = build('rally');
+    const spazio = build('spazio');
+    expect(spazio.nodes).not.toEqual(rally.nodes);
+    expect(spazio.pieces).not.toEqual(rally.pieces);
+  });
+
+  it('lo stesso fondo con lo stesso seme ridà la stessa pista', () => {
+    const first = build('magma');
+    const second = build('magma');
+
+    expect(second.nodes).toEqual(first.nodes);
+    expect(second.pieces).toEqual(first.pieces);
+  });
+
+  it('la corsia resta fissa: le strettoie stringono, il resto no', () => {
+    const track = build('sabbia');
+    const nominal = track.width;
+    const widths = track.nodes.map((node) => node.width);
+
+    expect(Math.min(...widths)).toBeLessThan(nominal);
+    expect(Math.max(...widths)).toBeCloseTo(nominal, 6);
   });
 });

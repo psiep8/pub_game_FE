@@ -122,10 +122,12 @@ export function simulateRace(options: SimOptions): SimResult {
   const rng = seededRandom(options.seed);
   const width = trackWidthFor(count);
   const radius = marbleRadiusFor(count, width);
+  // Stessa pista della TV: il profilo del fondo viene dal catalogo.
   const geometry: TrackGeometry = buildTrack(options.seed, {
     width,
     length: TRACK_WORLD_LENGTH,
     startX: TRACK_START_X,
+    profile: track.geometry,
   });
   const hazards = buildHazards(track.id, options.seed);
   const physics = track.physics;

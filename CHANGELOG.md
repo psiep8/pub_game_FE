@@ -1,5 +1,27 @@
 # Changelog
 
+## 19 novembre 2026 — Ogni fondo ha la sua pista
+
+- **B2 — profili di geometria per le otto piste:** `track-plan.ts` porta ora, accanto
+  a fisica e pesi, un profilo di tracciato (quali pezzi escono, ampiezza della
+  fascia, quanto stringono le strettoie) e `buildTrack` lo legge. Terra con
+  tornanti e due strettoie, asfalto di curvoni e dritti, neve morbida, acqua di
+  esse, vetro di chicane, deserto tecnico, orbita con dritti lunghi e fucina di
+  tornanti secchi: stesso seme, otto piste diverse. Senza profilo il generatore
+  resta quello di prima, così il comportamento vecchio resta verificabile.
+- **Una sola linea per disegno e fisica:** bordi disegnati (`edgePoints`), muri
+  Matter (`wallSegments`, con lo stesso `inset` di −6) e proiezione della biglia
+  (`projectOnTrack`) nascono dai nodi del profilo, quindi la pista che si vede è
+  quella su cui rotolano le biglie. La corsia resta larga quanto il numero di
+  concorrenti e non scende mai sotto i tre diametri (`MIN_LANE` 96), nemmeno
+  nelle strettoie.
+- **Taratura con la simulazione, non a occhio:** la bozza dei profili faceva
+  scendere le rimonte sotto la soglia dei test (17/24) e allungava il deserto
+  oltre i 70 s. Ho misurato i profili uno per uno sulla corsa headless e tenuto
+  quelli che rispettano i vincoli già promessi: ora **20/24 rimonte**, gare fra
+  48,1 s e 66,4 s, nessuna biglia fuori dal traguardo.
+- Verifiche: `ng test` sui sei file delle Biglie, **47 test passati**.
+
 ## 19 novembre 2026 — La bilanciatura della sala e il silenzio della regia
 
 - **A2 — bilanciatura:** ogni evento del catalogo ha un livello pensato per il

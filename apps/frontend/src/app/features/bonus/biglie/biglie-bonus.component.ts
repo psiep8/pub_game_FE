@@ -1683,6 +1683,9 @@ export class BiglieBonus implements OnInit, OnDestroy {
       width: this.raceTrackWidth(count),
       length: TRACK_WORLD_LENGTH,
       startX: TRACK_START_X,
+      // La pista viene dal fondo: la stessa linea dà bordi, muri Matter e
+      // proiezione della biglia, quindi quello che si vede è quello che pesa.
+      profile: this.currentTrack()?.geometry,
     });
   }
 

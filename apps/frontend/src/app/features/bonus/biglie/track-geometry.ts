@@ -19,6 +19,20 @@
 
 /** Passo dei campioni della linea centrale, in unità di mondo. */
 const NODE_STEP = 6;
+/** Pezzi di una pista senza profilo proprio: il serpente di sempre. */
+const DEFAULT_DECK: readonly TrackPieceKind[] = [
+  'curva',
+  'esse',
+  'chicane',
+  'strettoia',
+  'curva',
+  'dritto',
+  'strettoia',
+  'esse',
+  'curva',
+];
+/** Larghezza minima della corsia: tre diametri della biglia più larga. */
+const MIN_LANE = 96;
 /** Lunghezza dell'ultimo rettilineo, per un traguardo pulito. */
 const FINAL_STRAIGHT = 360;
 /** Massima sterzata: la pista cresce solo in avanti, ma accetta tornanti. */
@@ -83,12 +97,29 @@ export interface WallSegment {
   length: number;
 }
 
+/**
+ * Carattere di un fondo, letto dal generatore: quali pezzi escono, quanto sono
+ * lunghi e quanto stringe la corsia. Le otto piste hanno profili diversi e
+ * quindi tracciati diversi a parità di seme; senza profilo la linea è quella
+ * di sempre, così il comportamento resta verificabile a parte.
+ */
+export interface TrackProfile {
+  /** Pezzi della pista, mescolati col seme. */
+  deck: readonly TrackPieceKind[];
+  /** Ampiezza massima della fascia verticale, in unità di mondo. */
+  amplitude: number;
+  /** Quanto stringe la corsia nelle strettoie, da 0 a 1. */
+  narrow: number;
+}
+
 export interface BuildTrackOptions {
   width: number;
   length?: number;
   startX?: number;
   maxLateral?: number;
   seed?: number;
+  /** Profilo del fondo: senza, vale la pista di sempre. */
+  profile?: TrackProfile;
 }
 
 function seededRandom(seed: number): () => number {
@@ -123,6 +154,7 @@ interface PieceProfile {
  */
 export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeometry {
   const rng = seededRandom((seed >>> 0) || 1);
+  const profile = options.profile;
   const width = Math.max(120, Number(options.width) || 240);
   const totalLength = Math.max(600, Number(options.length) || 3600);
   const startX = Number(options.startX ?? 140);
@@ -132,7 +164,10 @@ export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeome
     40,
     Math.min(260, options.maxLateral ?? 250),
   );
-  const amplitude = maxLateral;
+  // Il profilo del fondo decide l'ampiezza della fascia; senza, quella di sempre.
+  const amplitude = profile ? Math.max(120, Math.min(300, profile.amplitude)) : maxLateral;
+  // Nelle strettoie la corsia non scende mai sotto i tre diametri della biglia.
+  const narrow = profile ? Math.max(0, Math.min(profile.narrow, 1 - MIN_LANE / width)) : 0.26;
   // Tornanti vivi: raggio piccolo, ma sempre più largo di mezza corsia più il
   // muro, così l'interno della curva non si ripiega né intrappola la biglia.
   const minRadius = Math.max(70, (width / 2) + 8);
@@ -141,7 +176,7 @@ export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeome
   const nodes: TrackNode[] = [{ x: startX, y: 0, s: 0, width, angle: 0 }];
   const pieces: TrackPiece[] = [];
   const deck = shuffle(
-    ['curva', 'esse', 'chicane', 'strettoia', 'curva', 'dritto', 'strettoia', 'esse', 'curva'] as TrackPieceKind[],
+    [...(profile?.deck?.length ? profile.deck : DEFAULT_DECK)] as TrackPieceKind[],
     rng,
   );
   let cursor = 0;
@@ -186,7 +221,7 @@ export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeome
       case 'strettoia':
         return {
           heading: () => direction * leg * 0.45,
-          width: (t) => width * (1 - 0.26 * Math.sin(Math.PI * t)),
+          width: (t) => width * (1 - narrow * Math.sin(Math.PI * t)),
         };
       default:
         return { heading: () => 0, width: () => width };
@@ -237,15 +272,17 @@ export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeome
     cursor += 1;
     const remaining = totalLength - FINAL_STRAIGHT - s;
     // Gambe corte: tante curve e tanti cambi di verso nello stesso tracciato.
+    // La lunghezza resta quella del pezzo: il fondo cambia la ricetta dei
+    // pezzi e quanto stringe la corsia, non il passo del tracciato.
     const base = kind === 'dritto'
-      ? 60 + rng() * 50
-      : kind === 'strettoia'
-        ? 140 + rng() * 50
-        : kind === 'curva'
-          ? 240 + rng() * 60
-          : kind === 'esse'
-            ? 260 + rng() * 60
-            : 250 + rng() * 60;
+        ? 60 + rng() * 50
+        : kind === 'strettoia'
+          ? 140 + rng() * 50
+          : kind === 'curva'
+            ? 240 + rng() * 60
+            : kind === 'esse'
+              ? 260 + rng() * 60
+              : 250 + rng() * 60;
     const length = Math.max(70, Math.min(remaining, base));
     // Il verso riporta il nastro verso il centro quando è già lontano: il
     // tracciato serpeggia su tutta l'altezza senza scappare via.
