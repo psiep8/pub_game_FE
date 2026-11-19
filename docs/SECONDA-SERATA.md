@@ -1,5 +1,11 @@
 # Seconda serata — le decisioni
 
+> **Superato dal registro F45–F55 di `docs/ROADMAP-POST-PRIMA-SERATA.md`.**
+> Questo documento raccoglie le proposte del 14 novembre; molte sono state
+> decise e implementate in modo diverso (i bonus sono cinque, con punti, non
+> «momenti senza punteggio»; il Basket è fuori; la costellazione non esiste).
+> Si tiene come memoria delle opzioni, non come specifica: vale il registro.
+
 La prima serata con telefoni veri è andata in porto. Questo documento raccoglie
 le decisioni prese il **14 novembre**, guardando quello che la sala ha chiesto:
 non è un piano di sviluppo, è il contratto con cui si tocca il codice prima

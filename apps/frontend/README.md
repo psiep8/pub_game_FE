@@ -1,56 +1,53 @@
 # PubGame FE — Frontend Angular
 
-> **VERSIONE 1.0.0 — 9 novembre 2026.**
-> Descrive il frontend alla prima major. Vince il codice.
+> **VERSIONE 2.1.0 — 19 novembre 2026.** Vince il codice; per il quadro completo
+> del gioco e della scaletta vale il [`README.md`](../../README.md) della radice.
 
-Frontend Angular 22 per il gioco da pub multigiocatore con supporto AI, WebSocket e tunnel Cloudflare.
+Frontend Angular 22 per TV, telefoni e regia. Vive in `apps/frontend` del
+monorepo: `npm install` e gli script si lanciano dalla **radice** del repo.
 
-> Vive in `apps/frontend` del monorepo PubGame. `npm install` e gli script (`npm run dev`, `npm run build`) si lanciano dalla **radice** del repo.
-
-## Accessi
+## Schermate
 
 | Route | Dispositivo | Descrizione |
 |---|---|---|
-| `/tv` | Desktop | Schermata principale del gioco |
-| `/play` | Mobile | Telefono concorrenti (rispondono alle domande) |
-| `/admin` | Mobile | Pannello admin / votante (conferma risposte) |
+| `/tv` | Desktop / TV | Tabellone, domande, Biglie, classifiche |
+| `/play` | Telefono | Ingresso squadra, risposte, manuale dei giochi |
+| `/admin` | Regia | Avvio e chiusura dei round, bonus, demo, diagnostica |
+| `/audio` | Desktop | Banco di prova del catalogo audio |
+| `/bonus-preview` | Desktop | Anteprima TV dei bonus con dati demo |
 
 ## Configurazione
 
-Nessun IP e nessuna porta nel codice. `src/app/environment/environment.ts` deriva API e WebSocket dall'origine della pagina, e il dev-server inoltra `/games`, `/categories`, `/questions` e `/ws-pubgame` al backend indicato da `BE_PORT` in `.env` (vedi `proxy.conf.mjs`).
+Nessun IP e nessuna porta nel codice: `src/app/core/environment/` deriva API e
+WebSocket dall'origine della pagina, e il dev server inoltra `/games`,
+`/categories`, `/questions` e `/ws-pubgame` al backend indicato da `BE_PORT` in
+`.env` (vedi `proxy.conf.mjs`).
 
-## Avvio
+## Avvio e build
 
-```bash
-# dalla radice del repo
-npm run dev            # frontend + backend
-npm run dev:frontend   # solo frontend
-```
-
-## Build
+Dalla radice del repository:
 
 ```bash
-npm run build:frontend                              # produzione
-npm run build --workspace pubgame-fe -- --configuration pwa
+npm run dev              # frontend + backend
+npm run dev:frontend     # solo frontend
+npm run test:frontend    # Vitest + jsdom
+npm run build:frontend   # ng build (produzione)
+npm run build:test-night # build con environment.test-night
 ```
 
-## Tunnel Cloudflare
-
-```bash
-./start-tunnel.sh          # Linux/WSL
-.\start-tunnel.ps1         # Windows PowerShell
-```
-
-Apre i tunnel per frontend e backend e stampa gli URL `.trycloudflare.com`. Non serve aggiornare file di configurazione: il frontend continua a usare la propria origine.
+I caratteri Anton, Space Mono e Bricolage Grotesque sono serviti localmente da
+`public/assets/fonts` e dichiarati in `src/styles.css`: la build e la serata non
+dipendono da Google Fonts.
 
 ## Struttura
 
-```
+```text
 src/app/
-├── components/   admin, game-component (+ games/*), leaderboard, remote-component
-├── services/     WebSocket, Game, AI, Audio, RoundManager, Leaderboard
-├── guard/        mobile/desktop
-└── environment/  configurazione runtime
-proxy.conf.mjs    proxy del dev-server verso il backend
-start-tunnel.sh / start-tunnel.ps1
+├── core/       environment, WebSocket, servizi condivisi, guardie
+├── features/   tv/, remote/, admin/, games/, bonus/, audio/
+└── shared/     modelli, enum, scaletta, manuale, doppi di test
+public/assets/  audio registrato, font, icone, demo
 ```
+
+Lo stile grafico è descritto in [`AGENTS.md`](../../AGENTS.md): prima di toccare
+CSS o markup si leggono i token in `src/styles.css`.

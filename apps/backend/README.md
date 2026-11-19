@@ -1,98 +1,62 @@
 # PubGame BE — Backend Spring Boot
 
-> **VERSIONE 1.0.0 — 9 novembre 2026.**
-> Descrive il backend alla prima major. Vince il codice.
+> **VERSIONE 2.1.0 — 19 novembre 2026.** Vince il codice; per il quadro completo
+> del gioco e della scaletta vale il [`README.md`](../../README.md) della radice.
 
-Backend Spring Boot 4.1 (Java 25) per il gioco da pub multigiocatore.
-Gestisce REST API, WebSocket (STOMP/SockJS), generazione domande AI via Groq, e integrazione con TMDB e iTunes.
+Backend **Spring Boot 4.1.2** su **Java 25**: REST e WebSocket STOMP nello stesso
+processo, persistenza JPA, sessioni per dispositivo e checkpoint della TV.
+Vive in `apps/backend` del monorepo.
 
 ## Requisiti
 
-- JDK 25+
-- Maven 3.9+ (incluso `./mvnw`)
-- MySQL 8+ (solo per profilo `mysql`)
+- JDK 25
+- Maven 3.9+ (c'è `./mvnw`, e dalla radice `node scripts/mvn.mjs`)
+- MySQL 8+ solo per il profilo `mysql`
 
-## Avvio rapido (H2 embedded — nessun database esterno)
+## Avvio
 
 ```bash
-# Compila
-./mvnw compile
+# dalla radice
+npm run dev:backend        # compile + spring-boot:run
+npm run test:backend       # JUnit / Spring Boot Test
+npm run build:backend      # package del jar
 
-# Avvia con H2 (database in memoria, nessuna installazione richiesta)
+# oppure da apps/backend
 ./mvnw spring-boot:run
 ```
 
-Il server parte su `http://0.0.0.0:8080`.
-Console H2: `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:mem:pub_game`)
+Il server parte su `http://0.0.0.0:8080`. In locale il database H2 vive su file
+in `apps/backend/data/`; i profili `test-night` e `prod` usano file separati.
 
-## Avvio con MySQL
+## Configurazione
 
-```bash
-# Avvia con MySQL (richiede MySQL in esecuzione su localhost:3306)
-./mvnw spring-boot:run -Dspring-boot.run.profiles=mysql
-```
+Le variabili arrivano da `.env` (vedi `.env.example`) o dall'ambiente:
 
-## Variabili d'ambiente (opzionali)
-
-```bash
-export GROQ_API_KEY="gsk_..."    # Per generazione domande AI
-export TMDB_API_KEY="..."         # Per immagini celebrity
-```
-
-Se non impostate, l'AI e TMDB vengono saltati e si usano i fallback locali (versione free).
-La configurazione vive in `src/main/resources/application.yml` (e `application-mysql.yml` per il profilo `mysql`), così finisce anche nel jar.
-
-## API principali
-
-| Metodo | Endpoint | Descrizione |
-|---|---|---|
-| `POST` | `/games` | Crea una nuova partita |
-| `GET` | `/games` | Elenca tutte le partite |
-| `GET` | `/games/{id}/current-round` | Round corrente |
-| `GET` | `/games/{id}/generate-ai-round?category=X&type=Y&difficulty=Z` | Genera round AI via Groq |
-| `POST` | `/games/{id}/round` | Round da database (fallback free) |
-| `GET` | `/categories` | Elenca categorie |
-| `GET` | `/questions` | Elenca domande |
-
-## WebSocket (STOMP)
-
-| Endpoint | Descrizione |
+| Variabile | A cosa serve |
 |---|---|
-| `ws-pubgame` | Endpoint SockJS |
-| `/app/game/{id}/answer` | Invia risposta giocatore |
-| `/app/game/{id}/status` | Aggiornamenti stato gioco |
-| `/app/scream` | Scream Race (volume microfono) |
-| `/app/scream/reset` | Reset gara |
+| `CONTROL_SECRET` | Apre le sessioni TV e regia (almeno 32 caratteri) |
+| `ALLOWED_ORIGINS` | Origini esatte ammesse su REST e WebSocket |
+| `GROQ_API_KEY` | Solo per rigenerare la banca domande |
+| `TMDB_API_KEY` | Foto di “Indovina chi” quando la banca locale non c'è |
 
-Broadcast su `/topic/game/{id}`, `/topic/game/{id}/responses`, `/topic/game/{id}/status`.
-
-## Game Types supportati
-
-| Tipo | Descrizione | AI |
-|---|---|---|
-| `QUIZ` | 4 opzioni, una corretta | Groq |
-| `IMAGE_BLUR` | Riconosci il celebrity | Groq + TMDB |
-| `MUSIC` | Indovina la canzone | iTunes API |
-| `WHEEL_OF_FORTUNE` | Proverbio casuale | Lista locale |
-| `ULTIMA_SPIAGGIA` | Ultima spiaggia: scegli un livello 100-500 e rispondi | Banca QUIZ (5 livelli) |
-| `AZZARDO` | Quattro domande numeriche con fasce e gettoni | Banca numerica |
-
-Se l'AI non risponde o il JSON non è valido, viene usato un fallback locale (funziona anche senza chiave Groq).
+Senza `GROQ_API_KEY` e `TMDB_API_KEY` il gioco funziona con la banca JSON
+pre-generata. La configurazione sta in `src/main/resources/application*.yml`.
 
 ## Struttura
 
-```
+```text
 src/main/java/com/pub_game_be/
-├── config/          # WebSocket, RestTemplate (+ CORS rimosso, gestito da SecurityConfig)
-├── controller/      # REST + WebSocket controllers
-├── domain/          # Entity JPA (Game, GameRound, Question, Category, QuestionOption)
-│   ├── category/
-│   ├── enums/       # GameStatus, GameType, QuestionType, RoundStatus
-│   ├── game/
-│   ├── game_round/
-│   └── question/
-├── dto/             # MusicTrackDto, ScreamDto, AppleMusic DTOs
-├── repository/      # JPA repositories
-├── security/        # SecurityConfig (permitAll + CORS)
-└── service/         # QuestionGenerator (AI), TMDBImage, AppleMusic, Game, SimpleRound
+├── config/        WebSocket (STOMP + SockJS), forward delle route SPA
+├── controller/    REST e STOMP
+├── domain/        entità e enum
+├── dto/           payload
+├── reliability/   sessioni, stato, sync, checkpoint, prova pulsanti
+├── repository/    JPA
+├── security/      filtro sessioni e CORS
+└── service/       logica di gioco e domande
+src/main/resources/questions/   banca domande pre-generata (991 + 360 + 113)
 ```
+
+L'autorità su punteggi e avanzamento è del server; la TV conserva la
+presentazione. La matrice di ripresa dopo un refresh è in
+[`docs/ROADMAP-POST-PRIMA-SERATA.md`](../../docs/ROADMAP-POST-PRIMA-SERATA.md).

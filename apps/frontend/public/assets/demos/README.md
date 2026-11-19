@@ -1,22 +1,14 @@
 # Demo TV
 
-Le demo sono **animate direttamente in TV**: `game-component` mostra tre scene
-(interfaccia TV, interfaccia remote, punteggio) per ognuno dei 10 giochi e per
-i bonus Roulette/Basket. Non serve caricare mp4: il presentatore commenta dal
-vivo.
+Le demo sono **animate direttamente in TV**: `demo-scripts.ts` compone le scene e
+il componente TV le disegna. Non si carica nessun video e non c'è nessun mp4 in
+questa cartella.
 
-Gli mp4 restano opzionali. Se in futuro si vogliono usare, i nomi sono:
+Le voci sono **19**: l'introduzione della serata, i **13 giochi** della scaletta
+e i **5 bonus** di fine atto (Casino bianco/rosso, Blackjack, Casino dozzina,
+Cavallo, Casino numero secco). Ognuna ha **cinque scene** — obiettivo, telefono,
+punteggio, tabellone e chiusura — e la tabella dei punti arriva da
+`SCORING_RULES`, quindi demo e manuale non possono divergere dal codice.
 
-- quiz.mp4
-- music.mp4
-- image_blur.mp4
-- timeline.mp4
-- roulette.mp4
-- arena.mp4
-- speed_rush.mp4
-- time_buzzer.mp4
-- tennis_battle.mp4
-- wheel_of_fortune.mp4
-
-Il tag `<video>` non è attivo in questa versione: l'overlay usa le scene
-animate definite in `demo-scripts.ts`.
+L'ordine in regia è `DEMO_ORDER`: introduzione, giochi nell'ordine della prima
+uscita in scaletta, bonus.

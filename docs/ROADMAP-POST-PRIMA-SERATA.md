@@ -4,11 +4,22 @@
 
 Questa è la lista di lavoro nata dalla prima serata completa, con **6 partecipanti**, dalle valutazioni raccolte in sala e dalla specifica allegata `SPEC-BIGLIE-E-AUDIO.md`. Il file della specifica è stato fornito in chat: **non è presente nella radice del repository**. I suoi requisiti sono riepilogati qui per non perdere il lavoro.
 
-La versione dichiarata nel progetto è **2.1.0**; riferimento del codice esaminato: commit `7bb9c6f`. La successiva versione **non è ancora fissata**: una minor, ad esempio 2.2.0, è una possibilità se si aggiungono funzionalità compatibili; scegliere major/minor/patch solo in base ai cambiamenti effettivi e alla compatibilità. Non modificare `VERSION`, changelog o tag prima di definire la release.
+La versione dichiarata nel progetto è **2.1.0**; riferimento del codice esaminato: commit `4a89b26` del **19 novembre 2026**. La successiva versione **non è ancora fissata**: una minor, ad esempio 2.2.0, è una possibilità se si aggiungono funzionalità compatibili; scegliere major/minor/patch solo in base ai cambiamenti effettivi e alla compatibilità. Non modificare `VERSION`, changelog o tag prima di definire la release.
 
 **Regola concordata:** prima si concordano la lista e l'ordine; poi **un intervento alla volta**, senza fix collaterali. Una voce può comprendere codice, test e documentazione strettamente necessari alla stessa correzione. Verifica mirata e, quando richiesto dalla specifica o dal progetto, build e test pertinenti; un commit per intervento/blocco dopo le verifiche, su richiesta già concordata, senza push o tag automatici. I controlli visivi richiedono TV e telefoni anche a 720p e rispetto dello stile `AGENTS.md`. Nessuna voce va segnata chiusa finché non è verificata; segnalare esplicitamente ciò che richiede una prova reale.
 
 **Legenda**: P0 = rischio che impedisce di entrare, proseguire o salva risultati errati; P1 = importante per la prossima serata; P2 = miglioria da pianificare. L'ordine entro ogni gruppo è proposto, non una priorità imposta. Stato iniziale: **da verificare / da fare** per tutte le voci, salvo indicazione diversa.
+
+### Stato al 19 novembre 2026
+
+| Gruppo | ID | Stato |
+|---|---|---|
+| Verificati in locale (test, 720p o 320×568) | F04, F05, F08, F09, F10, F12, F17, F20, F21, F22, F24, F25, F29, F30, F32, F34, F35, F37, F41, F43, F44, F45–F55 | Manca la prova in sala |
+| Parziali: codice corretto o contenuti toccati, resta una prova reale o una revisione a mano | F01, F02, F03, F06, F11, F13, F15, F16, F18, F19, F23, F26, F27, F31, F33, F36, F38, F39, F42 | Vedi la riga del registro |
+| In attesa di decisione | F07, F14, F28, F40 | Nessun cambio concordato |
+
+Il registro sotto resta l'archivio: le righe sono in ordine di esecuzione, non di
+priorità.
 
 ### Correzioni ai documenti e alle conclusioni precedenti
 
@@ -148,32 +159,37 @@ La versione dichiarata nel progetto è **2.1.0**; riferimento del codice esamina
 
 **Tensioni da risolvere prima di B4:** oggi la gara chiude all'arrivo dell'ultima biglia (47–66 s misurati) e i 70 s sono un conto alla rovescia, non un taglio. Validare in anticipo e poi riprodurre il risultato richiede determinismo degli input e gestione dei ritardi, non basta salvare un seme; una validazione che scarta chi non arriva cambierebbe il risultato. Nessuna prova di equità o prestazione discende dal solo test di geometria.
 
-## Audio — specifica da implementare in blocchi isolati
+## Audio — stato al 19 novembre 2026
 
-**Feedback:** sottofondo inquietante da sostituire; musica/atmosfera diversa per gioco; migliorare ovunque click, tick, countdown, bombe, successo, errore e suoni dedicati. Ascolto a volume reale indispensabile.
+**Feedback della prima serata:** sottofondo inquietante da sostituire; musica e
+atmosfera diversa per gioco; migliorare click, tick, countdown, bombe, successo,
+errore. L'ascolto a volume reale resta indispensabile.
 
-### Diagnosi confrontata con il codice
+**Cosa c'è oggi.** La sintesi Web Audio è stata sostituita da file registrati:
+**41 effetti e 7 loop** `.m4a` in `apps/frontend/public/assets/audio`, circa
+11,6 MB. `audio.service.ts` suona il catalogo di `audio-catalog.ts`; del vecchio
+motore resta solo la coda di stanza in `audio-dsp.ts`. La pagina `/audio` fa
+ascoltare ogni evento, i sottofondi per atto e per gioco e i pesi.
+`docs/MANIFESTO-AUDIO.md` è la fonte dei nomi dei file;
+`node scripts/audio/process-audio.mjs` normalizza (effetti −16 LUFS, loop
+−23 LUFS), taglia e converte i grezzi in `_src/`, e `--credits` rigenera
+`docs/CREDITI-AUDIO.md`.
 
-- `@foleyjs/core` è già una dipendenza. `audio.service.ts` usa Foley per `UI_SOUNDS`, ma lo combina con sintesi Web Audio per diversi eventi; battito, clock, roulette, applausi, rullo e i tappeti `bed-profiles.ts` sono sintetizzati.
-- La diagnosi «solo l'anteprima delle canzoni usa `new Audio(url)`» è incompleta: anche `features/games/azzardo/azzardo.component.ts` usa `new Audio(url)`. L'eventuale motore unico va progettato verificando anche questi percorsi e il mute.
-- Non risultano file audio tra `apps/frontend/src` e `apps/frontend/public` nell'ispezione fatta; il backend contiene invece file musicali locali e un indice media. Non confondere musica delle domande con campioni degli effetti. Il commento in `audio.service.ts` sugli MP3 del countdown non prova che esistano.
-- `startClock()` arresta il clock precedente, ma battito e clock sono gestiti separatamente: la regola «mai sovrapposti» non è automaticamente garantita. `stopAll()` non ferma il tappeto; la specifica richiede silenzio in pausa, in contrasto col comportamento attuale. `ensureContext()` tenta anche `resume()` quando sospeso: il requisito «solo dopo gesto» va verificato, non dato per acquisito.
-- La specifica consiglia Foley per interfaccia e campioni per gli effetti non coperti, ma la compatibilità, le licenze e il bilanciamento vanno verificati caso per caso.
+**Sottofondi.** Il piano è di **20 loop**: 5 basi d'atto, 14 giochi e bonus e il
+rotolamento delle Biglie. Ne sono arrivati **7** (lobby, classifica, casino,
+bomba, tennis, cavallo, biglie); gli altri 13 sono da consegnare e, finché
+mancano, `bed-map.ts` manda il gioco sul loop più vicino o sulla base dell'atto.
+Il tetto è 22 MB per i venti loop, 60 s per brano con incrocio di 1,5 s; la mappa
+completa è in `docs/SOTTOFONDI.md`.
 
-### Blocchi nell'ordine richiesto
+**Aperti.** Ascolto reale in sala (F18/F19 e F44: nessun suono è stato ascoltato a
+volume vero), consegna dei 13 loop mancanti, verifica del silenzio in pausa e
+della resa sui telefoni reali.
 
-- **A1 — catalogo e servizio unico, comportamento attuale invariato:** inventario delle chiamate e degli eventi (UI, risposta, prenotazione, giusto/sbagliato, timeout, rullo, reveal, applauso/uuuh, monete, esplosione/sirena, roulette, biglie, racchetta, classifica/podio, ingresso, avvio/chiusura, attesa, tensione, ambiente). Catalogo con fonte, bus, volume, varianti, intervallo minimo e possibile variazione d'intonazione; test copertura e muto/sblocco. Prima garantire compatibilità dei chiamanti e riproduzione precedente; la migrazione dai vecchi metodi si chiude in un blocco successivo, non rompere i chiamanti a metà.
-- **A2 — sostituzione e varietà:** nuova identità coerente pub, sottofondi differenziati per gioco, bilanciamento UI/SFX/musica/ambiente, ducking per voce, un solo clock, niente sovrapposizione col battito; audio TV e conferme discrete telefono. Usare Foley dove appropriato e campioni con licenze verificate per gli altri effetti; decidere Web Audio o Howler dopo verifica necessità, senza installare librerie per automatismo. Silenzio totale da admin e in pausa, secondo specifica; verificare anche effetti già programmati e audio delle canzoni. Sbloccare rispettando le limitazioni del browser.
-- **A3 — prova audio regia:** sezione con pulsante per ogni evento e controlli dei volumi per ascolto di sala, coerente con lo stile del progetto. Test di catalogo, presenza risorse ed eventi; ascolto reale di almeno 10 minuti a volume di sala.
-- **A4 / B6 — urti Biglie e roulette:** collegamento alle collisioni una volta disponibili catalogo ed eventi fisici; volume dipendente dall'urto, limiti e prevenzione sovrapposizioni.
-
-**Aggiornamento 16 novembre 2026 (commit `b636c71`):** i suoni sono stati rifatti da zero con materiali veri — risonatori modali, campane FM, corde Karplus-Strong, voci a formanti, battimani, ottoni e coda di stanza (`audio-dsp.ts`) — e il tappeto è diventato un trio da pub. Il `volume` del catalogo ora agisce su tutte le voci dell'evento. Restano aperti: ascolto reale in sala (nessun suono è stato ascoltato), silenzio in pausa come chiede la specifica.
-
-**Aggiornamento 16 novembre 2026 (commit `67fd491`, sottofondi per gioco):** ogni gioco ha il suo tappeto musicale. `bed-profiles.ts` contiene sedici profili — lobby, quiz, canzone, immagine sfocata, timeline, ruota, Time Buzzer, Bomba, Speed Rush, Tennis, Arena, Ultima Spiaggia, Azzardo, Blackjack, Biglie, Cavallo — con tempo, swing, giro di accordi e ruoli strumentali diversi; la TV cambia tappeto all'avvio del round e all'ingresso di un bonus (`setGameBed(tipo)`), torna al tappeto della lobby fra i round (`setGameBed(null)`), e il cambio avviene al confine di battuta. La pagina `/audio` ha la sezione **TAPPETI** con un pulsante per profilo. I tappeti misurano RMS fra −42,7 e −47,2 dBFS, con picchi da −12,8 (quiz, marimba) a −28,4 (spiaggia): nessuna saturazione. `pub-bed.ts` è stato eliminato. L'ascolto resta da fare.
-
-**Stato al 16 novembre 2026 (commit `18d2b9d`):** A1 fatto — il catalogo è `apps/frontend/src/app/core/services/audio-catalog.ts` (29 eventi con id, etichetta, fonte, bus, volume, distanza minima, varianti), `AudioService.play(evento, variante)` suona per evento rispettando muto e intervallo, e `docs/AUDIO-CATALOGO.md` riporta l'inventario dei chiamanti. A3 prima parte — la pagina `/audio` ha un pulsante per ogni evento, le varianti, il muto, il volume generale e «ferma tutto», raggiungibile dal pulsante AUDIO del pannello admin. I metodi storici sono intatti: nessun chiamante è cambiato. A2 (bilanciatura, sottofondi per gioco, ducking, silenzio in pausa) e l'ascolto reale in sala restano aperti.
-
-**Fonti e licenze:** il catalogo è in `docs/AUDIO-CREDITS.md` (creato il 14 novembre 2026). Verificato che non ci sono file audio nel repository: effetti e tappeto sono sintetizzati con Web Audio; `@foleyjs/core 2.9.0` è MIT. Nessun nuovo suono registrato è stato selezionato: per ogni futuro file registrare fonte, autore, licenza e obblighi nello stesso documento, verificando uso commerciale e attribuzione. Preferire campioni brevi, mono per effetti, formati compatibili con iOS e peso complessivo indicativo 3–4 MB, misurato. Evitare affermazioni su licenze non verificate.
+**Fonti e licenze.** Fonte, autore, URL e licenza di ogni file stanno in
+`FONTI.txt` accanto agli asset e in `docs/CREDITI-AUDIO.md`, generato dallo
+script. Gli undici effetti di sintesi renderizzata sono marcati «Nostra». Nessun
+file va aggiunto senza registrare la licenza e verificare l'uso commerciale.
 
 ## Matrice di ripresa dopo un refresh (F06)
 
@@ -214,7 +230,7 @@ La ripresa del Casino usa lo stesso `tvCheckpoint` dei round, con `mode` che ini
 
 ## Registro esecuzione
 
-**Aggiornamento 15 novembre 2026 — F45/F46:** la scaletta è passata a 4 Biglie come round separati (3, 5, 11, 22), Blackjack fuori dai round, Bomba 2, Tennis 2 e Speed Rush 3; Arena resta 24/40 e Ultima spiaggia 8/16/23/32/39. I cinque bonus sono Casino bianco/rosso, Blackjack, Casino dozzina, Cavallo e Casino numero secco, uno dopo ogni atto, con ingressi scenografici distinti e punti in classifica alla chiusura. Verifiche: **250 test frontend (39 file)** e **117 test backend**, tutti passati. Restano da provare in sala ingressi, tempi e resa della ruota/Blackjack su TV e telefoni reali.
+**Aggiornamento 15 novembre 2026 — F45/F46:** la scaletta è passata a 4 Biglie come round separati (allora 3, 5, 11, 22; dalla 2.1.0 sono 11, 22, 28, 37), Blackjack fuori dai round, Bomba 2, Tennis 2 e Speed Rush 3; Arena resta 24/40 e Ultima spiaggia 8/16/23/32/39. I cinque bonus sono Casino bianco/rosso, Blackjack, Casino dozzina, Cavallo e Casino numero secco, uno dopo ogni atto, con ingressi scenografici distinti e punti in classifica alla chiusura. Verifiche: **250 test frontend (39 file)** e **117 test backend**, tutti passati. Restano da provare in sala ingressi, tempi e resa della ruota/Blackjack su TV e telefoni reali.
 
 | ID | Stato | Verifica | Commit | Note |
 |---|---|---|---|---|
