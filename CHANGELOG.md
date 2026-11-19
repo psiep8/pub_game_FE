@@ -1,5 +1,34 @@
 # Changelog
 
+## 19 novembre 2026 — I venti sottofondi hanno il loro documento
+
+- **§4.7 — `docs/SOTTOFONDI.md`:** i venti loop uno per uno, con carattere,
+  BPM, durata e peso misurati e il ruolo di ognuno: dove suona oggi e cosa gli
+  tocca quando il file arriva. Una tabella per le cinque basi d'atto, una per i
+  quattordici giochi e bonus, il rotolamento delle Biglie a parte, più «chi
+  suona cosa» letto da `GAME_BEDS` e la lista di cosa fare appena un file entra
+  in cartella.
+- **Il conto del peso alla luce del sole:** 7 loop su 20 in casa per 10,67 MB
+  sui 22 del tetto; i 13 mancanti hanno 0,87 MB a testa, cioè ~63 s a 112 kbps.
+  Il documento segnala il nodo dell'atto 1: con tutti i file a 60 s arriva a
+  **6,64 MB** e sfonda di 0,64 il tetto dei 6 MB per atto. Va deciso prima della
+  consegna: o loop da ~46 s, o accorciare `gioco-casino` e `gioco-bomba`.
+- Il manifesto punta al nuovo file dalla sezione dei sottofondi (§4.7). Nel
+  suono non cambia niente: è una lettura, non una regola nuova.
+- **La manche 2 al contrario, provata su una preview vera:** dev server del
+  frontend e backend vero con la banca locale, preview
+  `/media/music/abba-dancing-queen.m4a` (1,1 MB, `audio/mp4`,
+  `Access-Control-Allow-Origin` riflesso alla propria origine, quindi il
+  `fetch` in `mode: cors` passa). In Chromium il componente ha decodificato la
+  preview e rovesciato i due canali: il buffer rovesciato combacia campione per
+  campione con il file vero letto al contrario, la manche 2 ha suonato il buffer
+  a 0,94 dentro la catena di filtri (RMS 0,06 misurato all'analizzatore,
+  elemento audio in pausa a 0 s) e la manche 4 è tornata al file (elemento in
+  riproduzione, guadagno 1, reverse spento). **Nessun fallback.**
+- Verifiche: `tsc` pulito, **532 test su 63 file**. Il banco di prova della
+  preview era temporaneo (rotta `/dev-song` e componente) ed è stato rimosso:
+  nel commit restano il documento, il manifesto e questa voce.
+
 ## 18 novembre 2026 — La seconda manche della Canzone va al contrario
 
 - **Manche 2 al contrario:** quando la Canzone entra nella seconda manche, la TV

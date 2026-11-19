@@ -274,6 +274,10 @@ corpo che scorre, fruscio del fondo e ticchi delle biglie. Un solo file, otto
 ascolti: `marble-roll.ts` cambia passo e taglio delle alte per ogni pista —
 la sabbia rallenta e chiude, l'asfalto corre e apre, il vetro resta brillante.
 
+Ogni loop, con carattere, durata, peso e ruolo (dove suona oggi e cosa
+gli tocca quando il file arriva), sta in `docs/SOTTOFONDI.md` (§4.7): è la
+lettura dei file che ci sono, non un secondo elenco di desideri.
+
 ## Conto dei file
 
 - 41 effetti (34 eventi con varianti: `rankReveal` ×2, `podiumReveal` ×3,
