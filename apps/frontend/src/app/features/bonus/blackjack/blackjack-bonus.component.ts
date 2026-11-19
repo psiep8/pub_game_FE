@@ -20,7 +20,6 @@ const DECIDE_SECONDS = 15;
 const REVEAL_SECONDS = 4;
 const FINALE_SECONDS = 6;
 /** Banco di prova: mano corta e tavolo che gioca da solo. */
-const PREVIEW_DECIDE_SECONDS = 4;
 const PREVIEW_REVEAL_SECONDS = 2;
 const PREVIEW_FINALE_SECONDS = 3;
 const PREVIEW_HIT_MS = 450;
@@ -247,8 +246,13 @@ export class BlackjackBonus implements OnInit, OnDestroy {
 
     this.secondsLeft = DECIDE_SECONDS;
     this.publish('DECIDE');
-    this.startClock(this.preview ? PREVIEW_DECIDE_SECONDS : DECIDE_SECONDS, () => this.reveal(false));
-    if (this.preview) this.later(400, () => this.previewChoice());
+    if (this.preview) {
+      // Banco di prova: la mano la chiude il tavolo demo, senza conto alla
+      // rovescia che possa tagliare la sequenza delle carte.
+      this.later(400, () => this.previewChoice());
+      return;
+    }
+    this.startClock(DECIDE_SECONDS, () => this.reveal(false));
   }
 
   private onStatus(status: any): void {

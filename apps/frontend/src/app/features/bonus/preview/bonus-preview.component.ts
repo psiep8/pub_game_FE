@@ -159,7 +159,8 @@ const CASINO_VARIANTS = [
       font-family: var(--font);
     }
     .bp-index {
-      min-height: 100dvh;
+      height: 100dvh;
+      overflow-y: auto;
       padding: clamp(20px, 4vw, 56px);
       background-color: var(--bg-0);
       background-image:

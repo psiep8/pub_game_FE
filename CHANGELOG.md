@@ -1,5 +1,20 @@
 # Changelog
 
+## 19 novembre 2026 — Banco di prova: il timer demo e la verifica a 720p
+
+- **Il timer non taglia le scelte demo:** nel blackjack del banco di prova non
+  parte più il conto alla rovescia dei 15 secondi. La mano la chiude il tavolo
+  demo (carta finché è sotto 17, poi stai) e l'esito resta 2 secondi.
+- **Due test nuovi:** la modalità preview gioca i due tavoli da sola senza input
+  dai telefoni, senza `clock` di decisione e con un solo `finished`; il secondo
+  controlla che l'esito duri 2 secondi e non 4.
+- **720p:** guardata `/bonus-preview` a 1280×720. L'indice non era scorrevole
+  (il body globale è `overflow: hidden`): le schede 4 e 5 restavano sotto il
+  bordo. Ora `.bp-index` è alto 100dvh con scroll interno. Il blackjack demo era
+  coperto dalla barra: `.bjb-shell` è ancorato a `.bp-live` come casino e
+  cavallo, quindi la kicker resta leggibile.
+- Verifiche: suite completa **581 test su 65 file**, build di produzione.
+
 ## 19 novembre 2026 — Il banco di prova copre tutti i bonus
 
 - **Cinque schede:** `/bonus-preview` elenca casino bianco/rosso, blackjack,

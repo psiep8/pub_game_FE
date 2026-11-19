@@ -432,7 +432,8 @@ app-bonus-preview .bp-live {
   position: relative;
 }
 app-bonus-preview .bp-live .casino-overlay,
-app-bonus-preview .bp-live .cav-overlay {
+app-bonus-preview .bp-live .cav-overlay,
+app-bonus-preview .bp-live .bjb-shell {
   position: absolute !important;
   inset: 0 !important;
 }

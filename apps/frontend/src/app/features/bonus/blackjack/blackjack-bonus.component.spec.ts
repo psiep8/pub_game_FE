@@ -11,20 +11,23 @@ describe('BlackjackBonus — ripresa dopo un refresh della TV', () => {
     }).compileComponents();
   });
 
-  function mount(resume: any = null) {
+  function mount(resume: any = null, preview = false) {
     const fixture = TestBed.createComponent(BlackjackBonus);
     const component = fixture.componentInstance;
     fixture.componentRef.setInput('gameId', 1);
     fixture.componentRef.setInput('players', ['Anna', 'Bruno']);
     if (resume) fixture.componentRef.setInput('resume', resume);
+    if (preview) fixture.componentRef.setInput('preview', true);
 
     const results: any[] = [];
     const checkpoints: any[] = [];
+    const finished: number[] = [];
     component.result.subscribe((result) => results.push(result));
     component.checkpoint.subscribe((checkpoint) => checkpoints.push(checkpoint));
+    component.finished.subscribe(() => finished.push(finished.length));
 
     fixture.detectChanges();
-    return { fixture, component, results, checkpoints };
+    return { fixture, component, results, checkpoints, finished };
   }
 
   it('riprende la mano in corso con le stesse carte e il tempo che resta', () => {
@@ -120,6 +123,41 @@ describe('BlackjackBonus — ripresa dopo un refresh della TV', () => {
     expect(component.display().cards).toHaveLength(2);
     expect(component.display().index).toBe(1);
 
+    fixture.destroy();
+  });
+
+  it('nel banco di prova gioca le mani da solo, senza il conto alla rovescia', () => {
+    vi.useFakeTimers();
+    const { component, checkpoints, results, finished, fixture } = mount(null, true);
+
+    // Distribuzione (500 ms) e prima scelta demo (400 ms).
+    vi.advanceTimersByTime(1000);
+    expect(['DECIDE', 'REVEAL']).toContain(component.display()?.phase);
+    // Nessun intervallo di decisione: le carte le pesca il tavolo demo, quindi
+    // i 15 secondi non possono chiudere la mano a metà.
+    expect((component as any).clock).toBeUndefined();
+
+    vi.advanceTimersByTime(6000);
+    expect(checkpoints.some((state) => state.phase === 'REVEAL')).toBe(true);
+
+    vi.advanceTimersByTime(40000);
+    expect(finished).toHaveLength(1);
+    expect(results.every((row) => row.score === 75 || row.score === 150)).toBe(true);
+
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('nel banco di prova l’esito resta due secondi, non quattro', () => {
+    vi.useFakeTimers();
+    const { component, checkpoints, fixture } = mount(null, true);
+
+    vi.advanceTimersByTime(12000);
+    const reveals = checkpoints.filter((state) => state.phase === 'REVEAL');
+    expect(reveals.length).toBeGreaterThan(1);
+    expect(reveals[0].secondsLeft).toBe(2);
+
+    vi.useRealTimers();
     fixture.destroy();
   });
 
