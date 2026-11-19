@@ -197,7 +197,7 @@ const FINALE_SECONDS = 7;
  * primi quattro, −30/−60/−100/−150 agli ultimi quattro.
  */
 @Component({
-  selector: 'app-biglie-bonus',
+  selector: 'app-biglie',
   standalone: true,
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -207,7 +207,7 @@ const FINALE_SECONDS = 7;
         @if (phase() !== Phase.RACE) {
         <header class="bg-head">
           <div>
-            <div class="bg-kicker">{{ roundMode ? '🎱 BIGLIE · ROUND' : '🎱 BIGLIE · BONUS DELL\'ATTO' }}</div>
+            <div class="bg-kicker">{{ roundMode ? '🎱 BIGLIE · ROUND' : '🎱 BIGLIE · BANCO DI PROVA' }}</div>
             <h1>{{ heading() }}</h1>
             <p class="bg-sub">{{ subtitle() }}</p>
           </div>
@@ -377,7 +377,7 @@ const FINALE_SECONDS = 7;
     @keyframes bg-pulse { 50% { transform: scale(1.08); opacity: .7; } }
   `],
 })
-export class BiglieBonus implements OnInit, OnDestroy {
+export class Biglie implements OnInit, OnDestroy {
   private ws = inject(WebSocketService);
   private audio = inject(AudioService);
   private destroyRef = inject(DestroyRef);

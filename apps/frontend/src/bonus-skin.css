@@ -447,8 +447,8 @@ app-bonus-preview .bp-live .bg-overlay {
   app-casino-bonus .casino-wheel { width: min(100%, 44vh) !important; }
   app-casino-bonus .casino-manches { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 
-  app-biglie-bonus .bg-card { max-height: none !important; overflow: visible !important; }
-  app-biglie-bonus .bg-race-stage { min-height: min(58vh, 430px) !important; }
+  app-biglie .bg-card { max-height: none !important; overflow: visible !important; }
+  app-biglie .bg-race-stage { min-height: min(58vh, 430px) !important; }
 
 
   app-cavallo-bonus .cav-overlay { align-items: flex-start !important; }

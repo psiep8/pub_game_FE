@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { TestBed } from '@angular/core/testing';
-import { BiglieBonus } from './biglie-bonus.component';
+import { Biglie } from './biglie.component';
 import { WebSocketService } from '../../../core/websocket/web-socket.service';
 import { FakeWebSocketService } from '../../../shared/testing/test-doubles';
 import { AudioService } from '../../../core/services/audio.service';
@@ -19,7 +19,7 @@ import {
  */
 const sourceOf = (file: string): string =>
   readFileSync(new URL(file, import.meta.url), 'utf8');
-const componentSource = sourceOf('./biglie-bonus.component.ts');
+const componentSource = sourceOf('./biglie.component.ts');
 const simulationSource = sourceOf('./race-simulation.ts');
 
 const MARBLES = [
@@ -32,10 +32,10 @@ const ROWS = [
   { playerName: 'Bruno', marbleId: 'scheggia', position: 2, points: 100, total: 100 },
 ];
 
-describe('BiglieBonus — ripresa dopo un refresh della TV', () => {
+describe('Biglie — ripresa dopo un refresh della TV', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [BiglieBonus],
+      imports: [Biglie],
       providers: [{ provide: WebSocketService, useClass: FakeWebSocketService }],
     }).compileComponents();
   });
@@ -46,7 +46,7 @@ describe('BiglieBonus — ripresa dopo un refresh della TV', () => {
   }
 
   function mount(resume: any = null, roundIndex = 0) {
-    const fixture = TestBed.createComponent(BiglieBonus);
+    const fixture = TestBed.createComponent(Biglie);
     const component = fixture.componentInstance;
     fixture.componentRef.setInput('gameId', 1);
     fixture.componentRef.setInput('players', ['Anna', 'Bruno']);

@@ -3,8 +3,8 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
-import { BiglieBonus } from '../biglie/biglie-bonus.component';
-import { TRACK_CATALOG, type TrackId } from '../biglie/track-plan';
+import { Biglie } from '../../games/biglie/biglie.component';
+import { TRACK_CATALOG, type TrackId } from '../../games/biglie/track-plan';
 import { CasinoBonus } from '../casino/casino-bonus.component';
 import { CavalloBonus } from '../cavallo/cavallo-bonus.component';
 
@@ -39,7 +39,7 @@ const PREVIEW_CARDS: PreviewCard[] = [
     id: 'biglie',
     icon: '🎱',
     title: 'BIGLIE',
-    subtitle: 'DUE GARE · OTTO PISTE',
+    subtitle: 'GIOCO DI ROUND · OTTO PISTE',
     note: 'Pista fisica a pezzi, ostacoli per fondo e classifica cumulativa.',
   },
 ];
@@ -47,14 +47,14 @@ const PREVIEW_CARDS: PreviewCard[] = [
 @Component({
   selector: 'app-bonus-preview',
   standalone: true,
-  imports: [CommonModule, RouterLink, CasinoBonus, CavalloBonus, BiglieBonus],
+  imports: [CommonModule, RouterLink, CasinoBonus, CavalloBonus, Biglie],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (!kind()) {
       <main class="bp-index">
         <header class="bp-head">
-          <span class="bp-stamp">BONUS PREVIEW</span>
-          <h1>TRE BONUS, UN SOLO BANCO DI PROVA</h1>
+          <span class="bp-stamp">ANTEPRIMA TV</span>
+          <h1>DUE BONUS E UN GIOCO, UN SOLO BANCO DI PROVA</h1>
           <p>
             Anteprima TV con dati demo. Ogni scheda apre la stessa esperienza che vede il
             pubblico, senza aspettare la fine di un atto.
@@ -82,8 +82,8 @@ const PREVIEW_CARDS: PreviewCard[] = [
       </main>
     } @else {
       @if (!capture) {
-      <nav class="bp-bar" aria-label="Selettore bonus preview">
-        <span class="bp-bar-tag">BONUS PREVIEW</span>
+      <nav class="bp-bar" aria-label="Selettore anteprima TV">
+        <span class="bp-bar-tag">ANTEPRIMA TV</span>
         @for (card of cards; track card.id) {
           <a
             [routerLink]="['/bonus-preview', card.id]"
@@ -104,7 +104,7 @@ const PREVIEW_CARDS: PreviewCard[] = [
           <app-cavallo-bonus [gameId]="1" [players]="players" [categories]="categories" [preview]="true" />
         }
           @case ('biglie') {
-            <app-biglie-bonus
+            <app-biglie
               [gameId]="1"
               [players]="players"
               [preview]="true"

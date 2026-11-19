@@ -266,7 +266,7 @@
   <app-blackjack [displayData]="getSafeDisplayData()" [timer]="timer()" />
   }
   @case ('BIGLIE') {
-      <app-biglie-bonus
+      <app-biglie
       [gameId]="currentGameId() ?? 1"
       [players]="bonusPlayers()"
       [roundMode]="true"

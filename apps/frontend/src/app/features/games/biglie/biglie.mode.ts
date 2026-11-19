@@ -20,7 +20,7 @@ export class BiglieMode extends GameModeBase {
   }
 
   protected onStart(): void {
-    // Il flusso è dentro `app-biglie-bonus`: nessun timer da avviare qui.
+    // Il flusso è dentro `app-biglie`: nessun timer da avviare qui.
   }
 
   protected override startTimer(): void {

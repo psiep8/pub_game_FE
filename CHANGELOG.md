@@ -1,5 +1,19 @@
 # Changelog
 
+## 19 novembre 2026 — Le Biglie escono dal reparto bonus
+
+- **Cartella e nome giusti:** il componente passa da `features/bonus/biglie/` a
+  `features/games/biglie/biglie.component.ts`, con classe `Biglie` e selettore
+  `app-biglie`; gli altri file della pista lo seguono accanto a `biglie.mode.ts`.
+  Le Biglie sono un gioco di round (`GameModeType.BIGLIE`, quattro round in
+  scaletta), non uno dei cinque bonus (`BonusType`): il nome non le confonde più.
+- **Anteprima sincera:** `/bonus-preview` porta il timbro «ANTEPRIMA TV» e il
+  titolo «DUE BONUS E UN GIOCO, UN SOLO BANCO DI PROVA», la scheda Biglie dice
+  «GIOCO DI ROUND · OTTO PISTE» e la kicker nel banco di prova «BANCO DI PROVA»
+  invece di «BONUS DELL'ATTO».
+- Verifiche: suite Biglie + TV **152 test su 9 file**, build di produzione, tutti
+  passati.
+
 ## 19 novembre 2026 — F1 rimonta, e la TV guardata a 720p (Biglie B3)
 
 - **F1 all'85% di rimonte** (era 65%, la pista più indietro della tabella qui

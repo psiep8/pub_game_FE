@@ -64,7 +64,7 @@ const PRESENCE_MISSES_BEFORE_FORGET = 2;
 import { BonusType, BONUS_LABELS, BONUS_TYPES } from '../../shared/models/bonus-type';
 import { CasinoBonus } from '../bonus/casino/casino-bonus.component';
 import { CavalloBonus } from '../bonus/cavallo/cavallo-bonus.component';
-import { BiglieBonus } from '../bonus/biglie/biglie-bonus.component';
+import { Biglie } from '../games/biglie/biglie.component';
 import { BlackjackBonus } from '../bonus/blackjack/blackjack-bonus.component';
 import { BonusEntrance } from '../bonus/bonus-entrance/bonus-entrance.component';
 import { CASINO_BONUS_TYPES } from '../../shared/models/bonus-type';
@@ -99,7 +99,7 @@ const PENDING_LEADERBOARD_KEY = 'leaderboardPending';
     Blackjack,
     CasinoBonus,
     CavalloBonus,
-    BiglieBonus,
+    Biglie,
     BlackjackBonus,
     BonusEntrance
   ],
