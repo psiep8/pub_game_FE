@@ -1831,15 +1831,16 @@
 /* Ripartenza dopo il riepilogo del bonus: striscia stampata, non un badge. */
 .auto-advance {
   position: fixed;
-  left: 50%;
+  left: 0;
+  right: 0;
   bottom: clamp(18px, 4vh, 40px);
-  transform: translateX(-50%);
+  margin-inline: auto;
   z-index: 80;
   display: grid;
   grid-template-columns: 1fr auto auto;
   align-items: center;
   gap: 4px clamp(10px, 1.4vw, 16px);
-  width: min(620px, 92vw);
+  width: min(560px, 92vw);
   padding: clamp(10px, 1.6vh, 14px) clamp(14px, 1.8vw, 20px);
   border: 3px solid var(--coal);
   border-radius: 0;
@@ -1851,14 +1852,15 @@
 }
 
 .auto-advance-label {
+  text-align: left;
   font-size: clamp(.58rem, 1.5vh, .78rem);
   font-weight: 800;
   letter-spacing: .16em;
 }
 
 .auto-advance-count {
-  font-size: clamp(1.4rem, 4vh, 2rem);
-  line-height: .9;
+  font-size: clamp(1.8rem, 5.5vh, 2.6rem);
+  line-height: .85;
   font-variant-numeric: tabular-nums;
 }
 

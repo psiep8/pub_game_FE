@@ -1023,7 +1023,6 @@ app-game-component .result-popup .result-points { animation: m-bump var(--motion
 app-game-component .result-popup.wrong { animation: m-pop var(--motion-fast) var(--ease-spring) backwards, m-shake var(--motion-base) var(--ease-in-out) 160ms backwards; }
 
 app-game-component .recent-item { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
-app-game-component .auto-advance { animation: m-drop var(--motion-base) var(--ease-out) backwards; }
 
 app-game-component .bonus-overlay,
 app-game-component .modal-overlay,
