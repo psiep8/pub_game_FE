@@ -189,7 +189,7 @@ export function dramaFactor(drama: DramaProfile, elapsed: number): number {
  * aperta fino all'ultimo tratto.
  */
 /** Velocità di punta in px/passo: costante di gara più profilo della biglia. */
-export const PACE_BASE = 3.98;
+export const PACE_BASE = 4.02;
 export const PACE_PROFILE = 1.15;
 
 /**
@@ -207,9 +207,9 @@ export function trackWidthFor(count: number): number {
   return Math.max(130, Math.min(260, Math.max(1, count) * 32));
 }
 
-/** Raggio della biglia: cresce con la corsia, mai sopra i 15 px. */
+/** Raggio della biglia: cresce con la corsia, mai sopra i 12 px. */
 export function marbleRadiusFor(count: number, trackWidth: number): number {
-  return Math.max(9, Math.min(14, trackWidth / Math.max(11, Math.max(1, count) * 1.9)));
+  return Math.max(9, Math.min(12, trackWidth / Math.max(11, Math.max(1, count) * 1.9)));
 }
 
 /**
@@ -217,7 +217,7 @@ export function marbleRadiusFor(count: number, trackWidth: number): number {
  * unici in cui un distacco si può ancora ribaltare, ed è lì che nasce il
  * sorpasso che fa urlare la sala.
  */
-export const CLOSING_BOOST = 1.7;
+export const CLOSING_BOOST = 2.1;
 export const CLOSING_FROM = 0.7;
 
 /**

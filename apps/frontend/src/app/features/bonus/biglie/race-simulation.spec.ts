@@ -1,5 +1,5 @@
 import { simulateRace, type SimResult } from './race-simulation';
-import { TRACK_IDS } from './track-plan';
+import { TRACK_IDS, type TrackId } from './track-plan';
 
 /**
  * Taratura della corsa, con i numeri invece che a occhio.
@@ -87,6 +87,86 @@ describe('Biglie — corsa simulata su tutte le piste', () => {
       // Contatti radi: si sentono, non sono la corsa.
       expect(run.contactsPerSecond, run.trackId).toBeLessThan(5);
       expect(run.contactShare, run.trackId).toBeLessThan(0.3);
+    }
+  });
+});
+
+/**
+ * Gli otto semi per pista della misura di fragilità (`1000003 + i · 7919`),
+ * gli stessi per tutte le piste e non scelti a mano.
+ */
+const WIDE_SEEDS = Array.from({ length: 8 }, (_, index) => 1000003 + index * 7919);
+
+interface WideRun {
+  trackId: TrackId;
+  seed: number;
+  run: SimResult;
+}
+
+/**
+ * Le stesse soglie della gara vera, ma su otto semi per pista invece di tre.
+ * I tre semi fissi dicono che la taratura regge quella sera; questo dice che
+ * regge anche le altre, e quando salta fuori il nome della pista e del seme.
+ */
+describe('Biglie — le soglie vere su più semi per pista', () => {
+  const runs: WideRun[] = [];
+
+  beforeAll(() => {
+    for (const seed of WIDE_SEEDS) {
+      for (const trackId of TRACK_IDS) {
+        runs.push({ trackId, seed, run: simulateRace({ trackId, seed }) });
+      }
+    }
+  }, 60000);
+
+  const label = (entry: WideRun): string => `${entry.trackId} (seme ${entry.seed})`;
+
+  it('stampa il quadro per pista', () => {
+    for (const trackId of TRACK_IDS) {
+      const of = runs.filter((entry) => entry.trackId === trackId);
+      console.log(
+        `${trackId.padEnd(7)} ultima max ${Math.max(...of.map((entry) => entry.run.lastTime))
+          .toFixed(1)}s contatti max ${Math.max(...of.map((entry) => entry.run.contactsPerSecond))
+          .toFixed(2)}/s rimonte ${of.filter((entry) => entry.run.comeback).length}/${of.length}`,
+      );
+    }
+    expect(runs.length).toBe(WIDE_SEEDS.length * TRACK_IDS.length);
+  });
+
+  it('ogni gara finisce sotto i 70 secondi e non si chiude prima dei 40', () => {
+    for (const entry of runs) {
+      expect(entry.run.leaderTime, label(entry)).toBeGreaterThan(40);
+      expect(entry.run.lastTime, label(entry)).toBeLessThan(70);
+      // Nessuno resta per strada quando scade il tempo.
+      expect(entry.run.marbles.every((marble) => marble.finish !== null), label(entry)).toBe(true);
+    }
+  });
+
+  it('la testa cambia padrone e il gruppo si sorpassa', () => {
+    for (const entry of runs) {
+      expect(entry.run.leadChanges, label(entry)).toBeGreaterThanOrEqual(3);
+      expect(entry.run.overtakes, label(entry)).toBeGreaterThanOrEqual(12);
+    }
+  });
+
+  it('il gruppo resta compatto e i contatti radi', () => {
+    for (const entry of runs) {
+      expect(entry.run.lastTime - entry.run.leaderTime, label(entry)).toBeLessThan(25);
+      expect(entry.run.contactsPerSecond, label(entry)).toBeLessThan(5);
+      expect(entry.run.contactShare, label(entry)).toBeLessThan(0.3);
+    }
+  });
+
+  it('la rimonta tiene l 80% delle gare e non manca su nessuna pista', () => {
+    const rimonte = runs.filter((entry) => entry.run.comeback).length;
+    expect(rimonte, `rimonte ${rimonte}/${runs.length}`).toBeGreaterThanOrEqual(
+      Math.ceil(runs.length * 0.8),
+    );
+    for (const trackId of TRACK_IDS) {
+      expect(
+        runs.filter((entry) => entry.trackId === trackId).some((entry) => entry.run.comeback),
+        `${trackId} senza rimonte su ${WIDE_SEEDS.length} semi`,
+      ).toBe(true);
     }
   });
 });

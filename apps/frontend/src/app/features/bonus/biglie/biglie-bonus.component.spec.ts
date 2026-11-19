@@ -1,10 +1,26 @@
+import { readFileSync } from 'node:fs';
 import { TestBed } from '@angular/core/testing';
 import { BiglieBonus } from './biglie-bonus.component';
 import { WebSocketService } from '../../../core/websocket/web-socket.service';
 import { FakeWebSocketService } from '../../../shared/testing/test-doubles';
 import { AudioService } from '../../../core/services/audio.service';
-import { simulationInteractions } from './race-simulation';
-import { movingObstacle, PERNI_FACTOR, type TrackFeature } from './track-features';
+import { simulateRace, simulationInteractions } from './race-simulation';
+import {
+  interactionStepCount,
+  movingObstacle,
+  PERNI_FACTOR,
+  resetInteractionStepCount,
+  type TrackFeature,
+} from './track-features';
+
+/**
+ * Il sorgente dei due file da controllare, letto dal disco: il test guarda i
+ * punti di chiamata, non solo le funzioni che chiama direttamente.
+ */
+const sourceOf = (file: string): string =>
+  readFileSync(new URL(file, import.meta.url), 'utf8');
+const componentSource = sourceOf('./biglie-bonus.component.ts');
+const simulationSource = sourceOf('./race-simulation.ts');
 
 const MARBLES = [
   { id: 'fulmine', name: 'FULMINE', color: '#facc15', emoji: '⚡', speed: 10, accel: 6, grip: 3 },
@@ -182,6 +198,53 @@ describe('BiglieBonus — ripresa dopo un refresh della TV', () => {
     // L'ordine è quello fissato: prima i perni, poi la barra, mai il contrario.
     expect(tv.bumped.has('perni')).toBe(true);
     expect(tv.bumped.has('barra-prova@5')).toBe(true);
+
+    fixture.destroy();
+  });
+
+  it('nessuna delle due corse può girare senza il passo condiviso', () => {
+    const { component, fixture } = mount();
+
+    // La TV entra nel passo da un punto solo: `applyFeatures`, che a sua volta
+    // è `applyInteractions`. Il contatore lo dimostra sul codice che gira.
+    component['features'] = [];
+    component['raceElapsed'] = 0;
+    resetInteractionStepCount();
+    component['applyFeatures'](
+      { bumped: new Set<string>(), boostUntil: 0, stunUntil: 0, recoverUntil: 0 } as any,
+      0.5,
+      4,
+      0,
+      80,
+    );
+    expect(interactionStepCount()).toBe(1);
+
+    // La corsa headless, intera, passa dallo stesso punto migliaia di volte.
+    resetInteractionStepCount();
+    simulateRace({ trackId: 'sabbia', seed: 1000003 });
+    expect(interactionStepCount()).toBeGreaterThan(1000);
+
+    // Il contatore non dice chi chiama, quindi si guarda il punto di chiamata:
+    // se TV o simulazione tornassero a farsi i conti in casa, il test muore qui.
+    const stripComments = (source: string): string =>
+      source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+    const body = (source: string, from: string): string => {
+      const start = source.indexOf(from);
+      expect(start, `manca "${from}"`).toBeGreaterThanOrEqual(0);
+      const next = source.indexOf('\n  private ', start + from.length);
+      return source.slice(start, next > start ? next : source.length);
+    };
+
+    // La TV applica il passo dentro il giro di fisica, una volta per biglia.
+    const tvStep = body(stripComments(componentSource), 'private stepPhysics(');
+    expect(tvStep.match(/this\.applyFeatures\(/g)?.length).toBe(1);
+    expect(tvStep).not.toContain('applyInteractions(');
+
+    // La simulazione lo applica nel suo ciclo, e solo attraverso il suo ingresso.
+    const simulation = stripComments(simulationSource);
+    const simLoop = simulation.slice(simulation.indexOf('while (elapsed < maxSeconds'));
+    expect(simLoop.match(/simulationInteractions\(/g)?.length).toBe(1);
+    expect(simLoop).not.toContain('applyInteractions(');
 
     fixture.destroy();
   });

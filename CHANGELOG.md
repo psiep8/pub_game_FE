@@ -1,5 +1,56 @@
 # Changelog
 
+## 19 novembre 2026 — La taratura regge su più semi (Biglie B3)
+
+- **Le soglie vere su più semi:** oltre ai 24 semi fissi (tre per pista) c'è ora
+  un gate da **otto semi per pista, 64 gare**, con le stesse soglie della gara
+  vera: ultima sotto 70 s, prima sopra 40 s, almeno 3 cambi di testa e 12
+  sorpassi, distacco sotto 25 s, contatti sotto 5 al secondo e 30% di tempo in
+  contatto, rimonte all'80% complessivo e almeno una per pista. Gli otto semi
+  vengono dalla misura di fragilità (`1000003 + i · 7919`), gli stessi per tutte
+  le piste e non scelti a mano: quando una pista scivola, il test dice pista e
+  seme. Il gate da 24 resta come prova rapida.
+- **Sabbia sistemata:** il piano del deserto aveva **12 macchie di sabbia su 24
+  ostacoli** (il rally ne ha 6 di fango), e la pista più lenta del catalogo
+  sforava i 70 s in 17 gare su 100. Ora sono **5 su 24**, con più sassi e
+  paracarri: la sabbia resta il fondo più lento (**61,6 s di media**) ma la coda
+  sta sotto i 66 s.
+- **Spazio sistemata:** i meteoriti erano trattati come i paracarri, tutti a
+  ridosso del muro; sulla pista larga e liscia non cambiava mai niente e nello
+  spazio rimontava solo il **54%** delle gare. Ora cadono in corsia (posizione
+  libera, come le macchie): **93% di rimonte**, e la pista resta la più veloce
+  dopo F1 e vetro.
+- **Contatti sotto la soglia:** con il gruppo da otto la corsia era satura,
+  fino a 6,3 contatti al secondo nei semi peggiori contro i 5 ammessi. Il
+  raggio massimo scende da 14 a 12 px, la velocità di punta sale dell'1%
+  (`PACE_BASE` 3,98 → 4,02) e la chiusura finale passa da 1,7 a 2,1: **massimo
+  4,8 contatti/s** su 320 gare, tutte sotto i 68,6 s e **85% di rimonte**.
+- **Il test di confronto non si può più aggirare:** il passo condiviso tiene un
+  contatore (`interactionStepCount`) che il test azzera e poi fa salire
+  facendo passare la TV da `applyFeatures` e la simulazione da una gara intera:
+  se una delle due smette di passare di lì, resta a zero. In più controlla i
+  punti di chiamata nel sorgente — il giro di fisica della TV deve usare
+  `applyFeatures`, il ciclo della simulazione `simulationInteractions`, mai
+  `applyInteractions` per conto proprio — così una corsa che si rifà i conti in
+  casa fa fallire il test invece di confrontare due funzioni che nessuno usa.
+- **Fragilità rimisurata su 40 semi per pista** (320 gare):
+
+  | pista | media | max | contatti max | rimonte |
+  |---|---|---|---|---|
+  | rally | 61,6 s | 67,3 s | 4,6/s | 93% |
+  | f1 | 49,4 s | 52,4 s | 3,3/s | 65% |
+  | neve | 53,4 s | 56,8 s | 4,6/s | 88% |
+  | acqua | 56,4 s | 59,5 s | 3,6/s | 88% |
+  | vetro | 47,7 s | 50,9 s | 4,8/s | 85% |
+  | sabbia | 61,6 s | 65,8 s | 4,0/s | 88% |
+  | spazio | 57,0 s | 60,2 s | 4,2/s | 93% |
+  | magma | 63,1 s | 68,6 s | 4,3/s | 85% |
+
+  Le 24 gare fisse stanno in **46,6–67,3 s** con **22/24 rimonte**. Resta F1 la
+  pista che rimonta meno (65%): è la più corta e la più liscia, e il margine
+  d'arrivo è di sei secondi.
+- Verifiche: suite Biglie **64 test su 7 file**, tutti passati.
+
 ## 19 novembre 2026 — Un passo solo per le interazioni (Biglie B3)
 
 - **Una funzione, due corse:** `stepInteractions` decide tutto e in un ordine

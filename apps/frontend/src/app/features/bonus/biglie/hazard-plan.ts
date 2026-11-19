@@ -35,7 +35,7 @@ export const HAZARD_PLANS: Record<string, HazardKind[]> = {
   acqua: ['onda', 'boa', 'scoglio', 'paracarro', 'onda', 'boa', 'scoglio', 'onda', 'boa', 'paracarro', 'onda', 'boa', 'scoglio', 'onda', 'boa', 'paracarro', 'onda', 'boa', 'scoglio', 'onda', 'boa', 'paracarro', 'onda', 'boa'],
   // I quattro fondi nuovi hanno ostacoli propri, non solo un colore diverso.
   vetro: ['ghiaccio', 'sasso', 'paracarro', 'ghiaccio', 'ghiaccio', 'sasso', 'ghiaccio', 'sasso', 'paracarro', 'ghiaccio', 'ghiaccio', 'sasso', 'ghiaccio', 'sasso', 'paracarro', 'ghiaccio', 'ghiaccio', 'sasso', 'ghiaccio', 'sasso', 'paracarro', 'ghiaccio', 'ghiaccio', 'sasso'],
-  sabbia: ['sabbia', 'sasso', 'paracarro', 'sabbia', 'sabbia', 'sasso', 'sabbia', 'sasso', 'paracarro', 'sabbia', 'sabbia', 'sasso', 'sabbia', 'sasso', 'paracarro', 'sabbia', 'sabbia', 'sasso', 'sabbia', 'sasso', 'paracarro', 'sabbia', 'sabbia', 'sasso'],
+  sabbia: ['sabbia', 'sasso', 'paracarro', 'sabbia', 'sasso', 'sasso', 'paracarro', 'sasso', 'sabbia', 'sasso', 'paracarro', 'sasso', 'sabbia', 'sasso', 'sasso', 'paracarro', 'sabbia', 'sasso', 'paracarro', 'sasso', 'sasso', 'paracarro', 'sasso', 'paracarro'],
   spazio: ['meteorite', 'paracarro', 'meteorite', 'sasso', 'paracarro', 'meteorite', 'meteorite', 'paracarro', 'meteorite', 'sasso', 'paracarro', 'meteorite', 'meteorite', 'paracarro', 'meteorite', 'sasso', 'paracarro', 'meteorite', 'meteorite', 'paracarro', 'meteorite', 'sasso', 'paracarro', 'meteorite'],
   magma: ['magma', 'sasso', 'paracarro', 'magma', 'magma', 'sasso', 'magma', 'sasso', 'paracarro', 'magma', 'magma', 'sasso', 'magma', 'sasso', 'paracarro', 'magma', 'magma', 'sasso', 'magma', 'sasso', 'paracarro', 'magma', 'magma', 'sasso'],
 };
@@ -77,14 +77,15 @@ export function buildHazards(trackId: string, seed: number): Hazard[] {
     const solid =
       kind === 'sasso'
       || kind === 'scoglio'
-      || kind === 'meteorite'
       || kind === 'paracarro';
     hazards.push({
       id: `hazard-${trackId}-${index}`,
       kind,
       progress,
       // I corpi solidi stanno a ridosso del muro: non chiudono mai la corsia,
-      // nemmeno nelle strettoie.
+      // nemmeno nelle strettoie. I meteoriti sono l'eccezione: cadono dove
+      // capita, anche in mezzo alla pista, altrimenti nello spazio non succede
+      // mai niente e nessuno rimonta.
       offset: solid
         ? (index % 2 === 0 ? 0.78 : -0.78) + (rng() - 0.5) * 0.08
         : kind === 'cordolo'

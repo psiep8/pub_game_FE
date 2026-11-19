@@ -291,6 +291,22 @@ export interface InteractionTarget {
 }
 
 /**
+ * Quante volte il passo condiviso è stato applicato davvero. Il gioco non lo
+ * legge: serve al test di confronto, che azzera il contatore e fa correre una
+ * gara vera. Se una delle due corse smette di passare di qui, il numero non
+ * sale e il test fallisce invece di confrontare due funzioni che nessuno usa.
+ */
+let interactionSteps = 0;
+
+export function interactionStepCount(): number {
+  return interactionSteps;
+}
+
+export function resetInteractionStepCount(): void {
+  interactionSteps = 0;
+}
+
+/**
  * Applica il passo di interazioni a una biglia: è l'unico punto in cui la TV e
  * la corsa headless cambiano velocità e timer. Restituisce il bersaglio
  * corretto e la spinta di lato da dare alla velocità della biglia.
@@ -309,6 +325,7 @@ export function applyInteractions(
   obstacles: TrackFeature[];
 } {
   const result = stepInteractions(features, state, marble.bumped);
+  interactionSteps += 1;
   if (result.boost > 0) {
     marble.boostUntil = Math.max(marble.boostUntil, state.elapsed + result.boost);
   }
