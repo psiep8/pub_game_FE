@@ -8,11 +8,14 @@
   l'atto 1 pesa **4,00 MB**; il più carico è l'atto 3, **4,78 MB**. Il vincolo
   vero è il totale: i venti loop a 60 s fanno **21,07 MB** sui 22 del manifesto.
 - **Il test che lo tiene fermo:** `bed-act-budget.spec.ts` rifà il conto da
-  `ACT_DECKS` e `bed-map.ts`. Per ogni atto prende la base e un file per gioco —
-  quello che il manifesto gli riserva, altrimenti l'alias che suona oggi — pesa
-  i file veri e dà 60 s a 112 kbps ai mancanti. Controlla i 6 MB per atto, i
-  22 MB dei venti loop, che l'atto 1 non contenga più `gioco-casino` e
-  `gioco-bomba`, e che ogni atto suoni solo file del manifesto.
+  `ACT_DECKS` e `bed-map.ts`. Per ogni atto prende la base e **uno slot per
+  gioco** — il loop che il manifesto gli riserva, altrimenti quello che suona
+  oggi: così l'alias e il file futuro non possono finire nello stesso conto.
+  Un file in cartella pesa i suoi byte, uno che manca pesa il minimo di 60 s a
+  112 kbps, quindi il giorno della consegna non si aggiorna un numero a mano.
+  Controlla i 6 MB per atto, i venti loop sotto i 22 MB, che nessun `.m4a` di
+  `loop/` resti fuori dal conto e che un loop arrivato sia quello che la mappa
+  fa suonare. Gli alias non si nominano più per nome.
 - Verifiche: `tsc` pulito, **537 test su 64 file**.
 
 ## 19 novembre 2026 — I venti sottofondi hanno il loro documento

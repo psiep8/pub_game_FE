@@ -122,7 +122,8 @@ Il vincolo vero è il **totale**: i venti loop a 60 s fanno **21,07 MB** sui 22 
 manifesto, 0,93 MB di margine. È quel numero da guardare quando arrivano i file:
 se uno è più lungo, meglio rifilarlo che allungare il tetto. Il test
 `bed-act-budget.spec.ts` rifà questi conti da `ACT_DECKS` e `bed-map.ts` a ogni
-giro, così l'errore non ripassa.
+giro: un file in cartella pesa i suoi byte, uno che manca il minimo di 60 s,
+così il giorno della consegna nessun numero va aggiornato a mano.
 
 ## Quando arriva un file
 
