@@ -1828,20 +1828,58 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Ripartenza dopo il riepilogo del bonus: striscia stampata, non un badge. */
 .auto-advance {
   position: fixed;
-  right: 24px;
-  bottom: 84px;
-  z-index: 55;
-  padding: 8px 14px;
-  border: 2px solid var(--coal);
+  left: 50%;
+  bottom: clamp(18px, 4vh, 40px);
+  transform: translateX(-50%);
+  z-index: 80;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 4px clamp(10px, 1.4vw, 16px);
+  width: min(620px, 92vw);
+  padding: clamp(10px, 1.6vh, 14px) clamp(14px, 1.8vw, 20px);
+  border: 3px solid var(--coal);
+  border-radius: 0;
   background: var(--paper-hi);
   color: var(--coal);
+  box-shadow: 8px 8px 0 var(--acid);
   font-family: var(--font-mono);
-  font-size: .72rem;
+  text-transform: uppercase;
+}
+
+.auto-advance-label {
+  font-size: clamp(.58rem, 1.5vh, .78rem);
   font-weight: 800;
-  letter-spacing: .1em;
-  box-shadow: 4px 4px 0 var(--coal);
+  letter-spacing: .16em;
+}
+
+.auto-advance-count {
+  font-size: clamp(1.4rem, 4vh, 2rem);
+  line-height: .9;
+  font-variant-numeric: tabular-nums;
+}
+
+.auto-advance-unit {
+  font-size: clamp(.52rem, 1.3vh, .7rem);
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.auto-advance-bar {
+  grid-column: 1 / -1;
+  height: 10px;
+  background: var(--paper-2);
+  border: 2px solid var(--coal);
+}
+
+.auto-advance-bar span {
+  display: block;
+  height: 100%;
+  background: var(--acid);
+  transition: width 1s linear;
 }
 
 .bonus-live-tag {

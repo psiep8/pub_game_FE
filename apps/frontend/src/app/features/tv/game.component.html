@@ -313,6 +313,15 @@
   </div>
 </div>
 
+@if (autoAdvanceSeconds() > 0) {
+<div class="auto-advance" role="status">
+  <span class="auto-advance-label">RIPARTENZA · PROSSIMO ROUND</span>
+  <b class="auto-advance-count">{{ autoAdvanceSeconds() }}</b>
+  <span class="auto-advance-unit">SEC</span>
+  <span class="auto-advance-bar" aria-hidden="true"><span [style.width.%]="autoAdvanceSeconds() * 10"></span></span>
+</div>
+}
+
 
 @if (getRecentResponsesWithScores().length && !quizSummaryVisible()) {
 <div class="recent-responses">
