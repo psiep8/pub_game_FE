@@ -181,7 +181,7 @@ describe('geometria per fondo', () => {
         // Cresce solo in avanti e resta nella fascia del fondo.
         expect(node.x, track.id).toBeGreaterThan(previous.x);
         expect(Math.abs(node.angle), track.id).toBeLessThanOrEqual(1.03);
-        expect(Math.abs(node.y), track.id).toBeLessThanOrEqual(track.geometry.amplitude + 60);
+        expect(Math.abs(node.y), track.id).toBeLessThanOrEqual(310);
         expect(node.s).toBeGreaterThan(previous.s);
       }
 
@@ -199,7 +199,7 @@ describe('geometria per fondo', () => {
   it('otto profili diversi danno otto piste diverse', () => {
     const signatures = new Set(
       TRACK_CATALOG.map((track) =>
-        [track.geometry.deck.join(','), track.geometry.amplitude, track.geometry.narrow].join('|'),
+        [track.geometry.deck.join(','), track.geometry.narrow].join('|'),
       ),
     );
     expect(signatures.size).toBe(TRACK_CATALOG.length);

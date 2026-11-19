@@ -35,6 +35,13 @@ import {
 } from './race-dynamics';
 import { buildTrack, frameAtProgress, pointAtS, type TrackGeometry } from './track-geometry';
 import { trackById, type TrackId } from './track-plan';
+import {
+  alongFactor,
+  buildFeatures,
+  lateralPush,
+  oneShotAt,
+  PERNI_FACTOR,
+} from './track-features';
 
 const STEP = 1 / 60;
 const TRACK_WORLD_LENGTH = 12000;
@@ -130,6 +137,8 @@ export function simulateRace(options: SimOptions): SimResult {
     profile: track.geometry,
   });
   const hazards = buildHazards(track.id, options.seed);
+  // Le stesse interazioni che applica la TV: attrito, correnti, rampe, perni.
+  const features = buildFeatures(track.id, options.seed, geometry);
   const physics = track.physics;
 
   const marbles: SimMarble[] = MARBLES.slice(0, count).map((data, index) => {
@@ -225,6 +234,7 @@ export function simulateRace(options: SimOptions): SimResult {
       target *= rubberBand(progress, fieldProgress, progress > CLOSING_FROM ? CLOSING_BOOST : 1);
       target *= dramaFactor(marble.drama, elapsed);
       if (marble.s >= leadS) target *= HEAD_WIND;
+      target *= alongFactor(features, progress);
 
       const stunned = marble.stunUntil > elapsed;
       const recovering = marble.recoverUntil > elapsed;
@@ -246,7 +256,11 @@ export function simulateRace(options: SimOptions): SimResult {
       const shove = rng() < 0.003 ? (rng() - 0.5) * 5 : 0;
       marble.lateralSpeed = Math.max(
         -4,
-        Math.min(4, (marble.lateralSpeed * 0.86 + steer + pull + bump + shove) * gripDamping),
+        Math.min(
+          4,
+          (marble.lateralSpeed * 0.86 + steer + pull + bump + shove
+            + lateralPush(features, progress)) * gripDamping,
+        ),
       );
       marble.lateral += marble.lateralSpeed;
 
@@ -284,6 +298,19 @@ export function simulateRace(options: SimOptions): SimResult {
           marble.slowUntil = elapsed + (hazard.kind === 'fango' ? 0.9 : 0.6);
         }
         if (hazard.kind === 'ghiaccio') marble.boostUntil = elapsed + 0.9;
+      }
+
+      // Rampe e perni si sentono una volta sola per biglia.
+      const feature = oneShotAt(features, progress, marble.bumped);
+      if (feature) {
+        marble.bumped.add(feature.id);
+        if (feature.kind === 'rampa') {
+          marble.boostUntil = elapsed + 0.9;
+        } else {
+          marble.speedNow *= PERNI_FACTOR;
+          marble.stunUntil = Math.max(marble.stunUntil, elapsed + 0.2);
+          marble.recoverUntil = Math.max(marble.recoverUntil, elapsed + 0.6);
+        }
       }
 
       // Watchdog: se resta ferma, riparte più avanti (come in TV).

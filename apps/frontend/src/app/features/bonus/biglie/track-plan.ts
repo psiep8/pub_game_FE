@@ -42,15 +42,14 @@ export interface SurfacePhysics {
 }
 
 /**
- * Geometria del fondo: quali pezzi escono, l'ampiezza della fascia e quanto
- * stringono le strettoie. È il profilo che `buildTrack` legge, così la stessa
- * fisica dà un rally di tornanti e una F1 di curvoni invece di otto piste
- * identiche. La lunghezza dei pezzi resta quella del catalogo, uguale per
- * tutti: se cambia, cambia la durata della gara e la taratura dei test.
+ * Geometria del fondo: quali pezzi escono e quanto stringono le strettoie. È il
+ * profilo che `buildTrack` legge, così la stessa fisica dà un rally di tornanti
+ * e una F1 di curvoni invece di otto piste identiche. Ampiezza della fascia e
+ * lunghezza dei pezzi restano quelle di sempre, uguali per tutti: sono tarate
+ * insieme alla durata della gara e ai test della corsa.
  */
 export interface TrackGeometryProfile {
   deck: readonly TrackPieceKind[];
-  amplitude: number;
   narrow: number;
 }
 
@@ -75,10 +74,9 @@ export const TRACK_CATALOG: readonly BiglieTrack[] = [
     tint: '#b45309',
     weights: { speed: 0.2, accel: 0.6, grip: 0.2 },
     physics: { friction: 0.55, gravity: 1, bounce: 0.42, grip: 0.85, bumps: 0.5 },
-    // Terra: tornanti vivi e qualche strettoia, pezzi corti.
+    // Terra: tornanti vivi, qualche strettoia e un imbuto nel fango.
     geometry: {
-      deck: ['curva', 'esse', 'chicane', 'strettoia', 'curva', 'dritto', 'strettoia', 'esse'],
-      amplitude: 250,
+      deck: ['curva', 'esse', 'chicane', 'imbuto', 'curva', 'dritto', 'strettoia', 'esse'],
       narrow: 0.26,
     },
   },
@@ -90,10 +88,9 @@ export const TRACK_CATALOG: readonly BiglieTrack[] = [
     tint: '#334155',
     weights: { speed: 0.8, accel: 0.15, grip: 0.05 },
     physics: { friction: 0.25, gravity: 1, bounce: 0.5, grip: 1, bumps: 0.05 },
-    // Asfalto: curvoni lunghi e dritti, la pista più veloce della serata.
+    // Asfalto: curvoni lunghi, dritti e la rampa che stacca la testa.
     geometry: {
-      deck: ['curva', 'dritto', 'curva', 'dritto', 'chicane'],
-      amplitude: 250,
+      deck: ['curva', 'dritto', 'rampa', 'curva', 'dritto', 'chicane'],
       narrow: 0.18,
     },
   },
@@ -108,7 +105,6 @@ export const TRACK_CATALOG: readonly BiglieTrack[] = [
     // Neve: curve morbide e larghe, niente tornanti secchi.
     geometry: {
       deck: ['curva', 'esse', 'dritto', 'curva', 'esse'],
-      amplitude: 250,
       narrow: 0.2,
     },
   },
@@ -122,8 +118,7 @@ export const TRACK_CATALOG: readonly BiglieTrack[] = [
     physics: { friction: 0.45, gravity: 1, bounce: 0.35, grip: 0.75, bumps: 0.7 },
     // Acqua: esse fluide, la pista che scorre.
     geometry: {
-      deck: ['esse', 'curva', 'esse', 'dritto'],
-      amplitude: 250,
+      deck: ['esse', 'curva', 'imbuto', 'esse', 'dritto'],
       narrow: 0.22,
     },
   },
@@ -138,7 +133,6 @@ export const TRACK_CATALOG: readonly BiglieTrack[] = [
     // Vetro: chicane secche, dove la biglia che scivola paga ogni cambio.
     geometry: {
       deck: ['esse', 'curva', 'chicane', 'esse', 'dritto'],
-      amplitude: 250,
       narrow: 0.22,
     },
   },
@@ -153,8 +147,7 @@ export const TRACK_CATALOG: readonly BiglieTrack[] = [
     // Deserto: tecnica e lenta, strettoie che mordono. I pezzi restano
     // abbastanza lunghi da non incollare il gruppo ai muri a ogni curva.
     geometry: {
-      deck: ['strettoia', 'curva', 'esse', 'strettoia', 'chicane'],
-      amplitude: 250,
+      deck: ['strettoia', 'curva', 'perni', 'esse', 'imbuto', 'chicane'],
       narrow: 0.26,
     },
   },
@@ -169,9 +162,8 @@ export const TRACK_CATALOG: readonly BiglieTrack[] = [
     // Orbita: dritti lunghi e curvoni larghi, ma abbastanza curve e cambi
     // d'appoggio da non far scappare il primo: la rimonta resta possibile.
     geometry: {
-      deck: ['dritto', 'esse', 'curva', 'dritto', 'chicane', 'curva'],
-      amplitude: 250,
-      narrow: 0.16,
+      deck: ['dritto', 'esse', 'imbuto', 'curva', 'dritto', 'chicane', 'curva'],
+      narrow: 0.18,
     },
   },
   {
@@ -184,8 +176,7 @@ export const TRACK_CATALOG: readonly BiglieTrack[] = [
     physics: { friction: 0.6, gravity: 1.1, bounce: 0.45, grip: 0.8, bumps: 0.6 },
     // Fucina: tornanti secchi uno dietro l'altro.
     geometry: {
-      deck: ['esse', 'strettoia', 'chicane', 'curva', 'esse'],
-      amplitude: 250,
+      deck: ['esse', 'strettoia', 'perni', 'chicane', 'curva', 'esse'],
       narrow: 0.28,
     },
   },

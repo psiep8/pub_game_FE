@@ -1,5 +1,26 @@
 # Changelog
 
+## 19 novembre 2026 — La pista spinge, frena e lancia (Biglie B3)
+
+- **Pezzi nuovi:** imbuto (la corsia si chiude a una gola e si riapre), rampa
+  (dritto che lancia) e perni (dritto con i birilli in mezzo). Ogni fondo li usa
+  a modo suo: imbuto su terra, acqua e sabbia; rampa su asfalto; perni su deserto
+  e fucina. La gola dell'imbuto resta dentro il limite dei tre diametri.
+- **`track-features.ts`, le interazioni condivise:** dal seme e dai pezzi nascono
+  zone d'attrito (sulle strettoie e negli imbuti), due correnti per gara che
+  spingono verso un muro, rampe e perni. `alongFactor`, `lateralPush` e
+  `oneShotAt` sono le stesse funzioni per Matter (TV) e per la corsa headless:
+  quello che si vede è quello che pesa.
+- **Disegnate dove agiscono:** rampe a galloni, correnti a frecce, perni come
+  birilli, attrito a tratteggio, lette dallo stesso elenco della fisica.
+- **Ampiezza fuori dal profilo:** era 250 su tutte e otto le piste, quindi non
+  diceva nulla; `buildTrack` torna a usare la fascia di sempre.
+- **Taratura:** con le prime intensità (attrito 18%, corrente 0,42) le gare
+  sforavano i 70 s e le rimonte scendevano a 16/24. Ora attrito 6%, corrente
+  0,22, rampa 1,06, perni 0,72: **21/24 rimonte**, gare fra **48,9 s e 68,8 s**.
+- Verifiche: suite Biglie **53 test su 7 file**, suite completa **557 test su 64
+  file**, tutti passati.
+
 ## 19 novembre 2026 — Ogni fondo ha la sua pista
 
 - **B2 — profili di geometria per le otto piste:** `track-plan.ts` porta ora, accanto

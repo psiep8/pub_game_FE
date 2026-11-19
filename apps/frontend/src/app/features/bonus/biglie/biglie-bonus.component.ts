@@ -39,6 +39,15 @@ import {
   wallSegments,
   type TrackGeometry,
 } from './track-geometry';
+import {
+  alongFactor,
+  buildFeatures,
+  featureFrame,
+  lateralPush,
+  oneShotAt,
+  PERNI_FACTOR,
+  type TrackFeature,
+} from './track-features';
 import { drawCountdown } from './race-overlay';
 import { ACID, COBALT, INK, MINT, MUSTARD, PAPER, PAPER_HI, TOMATO } from './race-theme';
 import {
@@ -445,6 +454,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
   private cameraReady = false;
   /** Linea centrale della gara: uguale per disegno, muri e proiezione. */
   private geometry: TrackGeometry | null = null;
+  /** Interazioni della pista: attrito, correnti, rampe e perni. */
+  private features: TrackFeature[] = [];
   /** Scala uniforme mondo→schermo (la pista resta quella della fisica). */
   private drawScale = 1;
   private trackSeed = 0;
@@ -826,6 +837,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
     this.geometry = this.buildGeometry();
     const track = this.currentTrack();
     if (track) this.generateHazards(track);
+    // Le stesse interazioni della simulazione: dalla pista e dal seme.
+    this.features = track && this.geometry ? buildFeatures(track.id, this.trackSeed, this.geometry) : [];
     this.finishCount = 0;
     this.raceResult.set(null);
     this.currentPlayer.set(null);
@@ -1405,6 +1418,8 @@ export class BiglieBonus implements OnInit, OnDestroy {
       target *= dramaFactor(marble.drama, this.raceElapsed);
       // Chi è davanti non ha scia: la prima posizione costa sempre qualcosa.
       if (marble.x >= leadX) target *= HEAD_WIND;
+      // Attrito e rampe: le interazioni della pista, le stesse in simulazione.
+      target *= alongFactor(this.features, progress);
 
       // La velocità non si riscrive più a ogni passo: la biglia ha la sua e ci
       // torna con l'accelerazione del profilo. A regime il valore è esattamente
@@ -1438,9 +1453,11 @@ export class BiglieBonus implements OnInit, OnDestroy {
       // Colpo di sonno: ogni tanto una biglia sbanda di lato senza motivo.
       const shove = this.raceRng() < 0.003 ? (this.raceRng() - 0.5) * 5 : 0;
       const lateralSpeed = body.velocity.x * frame.nx + body.velocity.y * frame.ny;
+      // La corrente spinge di lato: qui come nella corsa headless.
+      const current = lateralPush(this.features, progress);
       const lateral = Math.max(
         -4,
-        Math.min(4, (lateralSpeed * 0.86 + steer + pull + bump + shove) * gripDamping),
+        Math.min(4, (lateralSpeed * 0.86 + steer + pull + bump + shove + current) * gripDamping),
       );
 
       // Velocità lungo la tangente della pista: la biglia segue la curva e
@@ -1449,6 +1466,25 @@ export class BiglieBonus implements OnInit, OnDestroy {
         x: frame.tx * along + frame.nx * lateral,
         y: frame.ty * along + frame.ny * lateral,
       });
+
+      // Rampe e perni si sentono una volta sola per biglia.
+      const feature = this.features.length
+        ? oneShotAt(this.features, progress, marble.bumped)
+        : null;
+      if (feature) {
+        marble.bumped.add(feature.id);
+        if (feature.kind === 'rampa') {
+          marble.boostUntil = this.raceElapsed + 0.9;
+          this.kickMarble(marble, 1.08, (this.raceRng() - 0.5) * 1.2);
+        } else {
+          marble.speed *= PERNI_FACTOR;
+          marble.stunUntil = Math.max(marble.stunUntil, this.raceElapsed + 0.2);
+          marble.recoverUntil = Math.max(marble.recoverUntil, this.raceElapsed + 0.6);
+          this.kickMarble(marble, PERNI_FACTOR, (this.raceRng() - 0.5) * 1.6);
+          this.spawnImpact(marble);
+          this.audio.playMarbleSurface(this.surfaceIsSoft());
+        }
+      }
     }
 
     Engine.update(this.engine, PHYSICS_STEP);
@@ -2013,6 +2049,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
     if (track.id === 'neve') this.drawSnowbanks(ctx, trackWidth);
 
     this.drawHazards(ctx, trackWidth, now);
+    this.drawFeatures(ctx, trackWidth, now);
 
     this.drawGate(ctx, 0, 'START', trackWidth);
     this.drawGate(ctx, 1, 'TRAGUARDO', trackWidth);
@@ -2306,6 +2343,91 @@ export class BiglieBonus implements OnInit, OnDestroy {
     ctx.beginPath();
     ctx.arc(0, 3, 3, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  /**
+   * Interazioni disegnate a terra, dove la fisica le applica: rampe a
+   * galloni, correnti a frecce, perni come birilli, zone d'attrito a
+   * tratteggio. Leggono lo stesso elenco che suona e spinge.
+   */
+  private drawFeatures(ctx: CanvasRenderingContext2D, trackWidth: number, now: number): void {
+    const geometry = this.geometry;
+    if (!geometry || !this.features.length) return;
+    const left = this.cameraX - 60 / this.drawScale;
+    const right = this.cameraX + this.raceW / this.drawScale + 60;
+
+    for (const feature of this.features) {
+      const frame = featureFrame(geometry, feature);
+      if (frame.x < left || frame.x > right) continue;
+
+      ctx.save();
+      ctx.translate(frame.x, frame.y);
+      ctx.rotate(frame.angle);
+
+      switch (feature.kind) {
+        case 'attrito': {
+          ctx.strokeStyle = INK;
+          ctx.lineWidth = 2;
+          ctx.globalAlpha = 0.55;
+          for (let line = -1; line <= 1; line++) {
+            ctx.beginPath();
+            ctx.moveTo(-14, line * 6);
+            ctx.lineTo(14, line * 6);
+            ctx.stroke();
+          }
+          ctx.globalAlpha = 1;
+          break;
+        }
+        case 'corrente': {
+          ctx.fillStyle = COBALT;
+          ctx.strokeStyle = INK;
+          ctx.lineWidth = 1.4;
+          for (let arrow = -1; arrow <= 1; arrow++) {
+            const y = arrow * 9;
+            const tip = feature.side * 12;
+            ctx.beginPath();
+            ctx.moveTo(-tip, y - 4);
+            ctx.lineTo(0, y);
+            ctx.lineTo(-tip, y + 4);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+          }
+          break;
+        }
+        case 'rampa': {
+          ctx.fillStyle = ACID;
+          ctx.strokeStyle = INK;
+          ctx.lineWidth = 2;
+          for (let step = 0; step < 3; step++) {
+            const x = -12 + step * 10;
+            ctx.beginPath();
+            ctx.moveTo(x, -10);
+            ctx.lineTo(x + 6, 0);
+            ctx.lineTo(x, 10);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+          }
+          break;
+        }
+        case 'perni': {
+          ctx.fillStyle = MUSTARD;
+          ctx.strokeStyle = INK;
+          ctx.lineWidth = 2;
+          for (let pin = -1; pin <= 1; pin++) {
+            const x = pin * 11;
+            ctx.beginPath();
+            ctx.arc(x, Math.sin(now / 320 + pin) * 2, 4.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          }
+          break;
+        }
+      }
+
+      ctx.restore();
+    }
   }
 
   private drawCurbs(ctx: CanvasRenderingContext2D, trackWidth: number): void {

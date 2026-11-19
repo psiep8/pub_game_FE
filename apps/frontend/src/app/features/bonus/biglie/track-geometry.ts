@@ -38,7 +38,18 @@ const FINAL_STRAIGHT = 360;
 /** Massima sterzata: la pista cresce solo in avanti, ma accetta tornanti. */
 const MAX_HEADING = 1.02;
 
-export type TrackPieceKind = 'dritto' | 'curva' | 'esse' | 'chicane' | 'strettoia';
+export type TrackPieceKind =
+  | 'dritto'
+  | 'curva'
+  | 'esse'
+  | 'chicane'
+  | 'strettoia'
+  /** Imbuto: la corsia si chiude a una gola e si riapre. */
+  | 'imbuto'
+  /** Rampa: pezzo dritto che lancia la biglia, segnato per le interazioni. */
+  | 'rampa'
+  /** Perni: dritto con i birilli in mezzo alla corsia. */
+  | 'perni';
 
 export interface TrackPiece {
   kind: TrackPieceKind;
@@ -106,8 +117,6 @@ export interface WallSegment {
 export interface TrackProfile {
   /** Pezzi della pista, mescolati col seme. */
   deck: readonly TrackPieceKind[];
-  /** Ampiezza massima della fascia verticale, in unità di mondo. */
-  amplitude: number;
   /** Quanto stringe la corsia nelle strettoie, da 0 a 1. */
   narrow: number;
 }
@@ -164,8 +173,7 @@ export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeome
     40,
     Math.min(260, options.maxLateral ?? 250),
   );
-  // Il profilo del fondo decide l'ampiezza della fascia; senza, quella di sempre.
-  const amplitude = profile ? Math.max(120, Math.min(300, profile.amplitude)) : maxLateral;
+  const amplitude = maxLateral;
   // Nelle strettoie la corsia non scende mai sotto i tre diametri della biglia.
   const narrow = profile ? Math.max(0, Math.min(profile.narrow, 1 - MIN_LANE / width)) : 0.26;
   // Tornanti vivi: raggio piccolo, ma sempre più largo di mezza corsia più il
@@ -223,6 +231,19 @@ export function buildTrack(seed: number, options: BuildTrackOptions): TrackGeome
           heading: () => direction * leg * 0.45,
           width: (t) => width * (1 - narrow * Math.sin(Math.PI * t)),
         };
+      case 'imbuto':
+        // Gola vera: la corsia si chiude in fretta e si riapre in fretta. La
+        // profondità resta dentro il limite che tiene tre diametri di corsia.
+        return {
+          heading: () => direction * leg * 0.3,
+          width: (t) => width * (1 - Math.min(0.6, narrow * 1.6) * Math.sin(Math.PI * t)),
+        };
+      case 'rampa':
+        // Dritto pieno: il salto lo danno le interazioni, non la larghezza.
+        return { heading: () => direction * leg * 0.12, width: () => width };
+      case 'perni':
+        // Corsia larga: i birilli stanno in mezzo e si passa ai lati.
+        return { heading: () => direction * leg * 0.25, width: () => width };
       default:
         return { heading: () => 0, width: () => width };
     }
