@@ -30,7 +30,9 @@ export interface Hazard {
 
 export const HAZARD_PLANS: Record<string, HazardKind[]> = {
   rally: ['fango', 'sasso', 'pozzanghera', 'paracarro', 'fango', 'sasso', 'pozzanghera', 'paracarro', 'fango', 'sasso', 'pozzanghera', 'paracarro', 'fango', 'sasso', 'pozzanghera', 'paracarro', 'fango', 'sasso', 'pozzanghera', 'paracarro', 'fango', 'sasso', 'pozzanghera', 'paracarro'],
-  f1: ['cordolo', 'paracarro', 'sasso', 'cordolo', 'paracarro', 'ghiaccio', 'cordolo', 'paracarro', 'sasso', 'cordolo', 'paracarro', 'ghiaccio', 'cordolo', 'paracarro', 'sasso', 'cordolo', 'paracarro', 'ghiaccio', 'cordolo', 'paracarro', 'sasso', 'cordolo', 'paracarro', 'ghiaccio'],
+  // Asfalto: più chiazze di ghiaccio che paracarri. Sul dritto lisciava troppo
+  // e chi era davanti restava davanti: il ghiaccio dà il guizzo che rimescola.
+  f1: ['cordolo', 'ghiaccio', 'paracarro', 'sasso', 'ghiaccio', 'cordolo', 'cordolo', 'ghiaccio', 'paracarro', 'sasso', 'ghiaccio', 'cordolo', 'cordolo', 'ghiaccio', 'paracarro', 'sasso', 'ghiaccio', 'cordolo', 'cordolo', 'ghiaccio', 'paracarro', 'sasso', 'ghiaccio', 'cordolo'],
   neve: ['cumulo', 'ghiaccio', 'paracarro', 'cumulo', 'sasso', 'ghiaccio', 'cumulo', 'ghiaccio', 'paracarro', 'cumulo', 'sasso', 'ghiaccio', 'cumulo', 'ghiaccio', 'paracarro', 'cumulo', 'sasso', 'ghiaccio', 'cumulo', 'ghiaccio', 'paracarro', 'cumulo', 'sasso', 'ghiaccio'],
   acqua: ['onda', 'boa', 'scoglio', 'paracarro', 'onda', 'boa', 'scoglio', 'onda', 'boa', 'paracarro', 'onda', 'boa', 'scoglio', 'onda', 'boa', 'paracarro', 'onda', 'boa', 'scoglio', 'onda', 'boa', 'paracarro', 'onda', 'boa'],
   // I quattro fondi nuovi hanno ostacoli propri, non solo un colore diverso.

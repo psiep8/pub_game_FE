@@ -88,9 +88,10 @@ export const TRACK_CATALOG: readonly BiglieTrack[] = [
     tint: '#334155',
     weights: { speed: 0.8, accel: 0.15, grip: 0.05 },
     physics: { friction: 0.25, gravity: 1, bounce: 0.5, grip: 1, bumps: 0.05 },
-    // Asfalto: curvoni lunghi, dritti e la rampa che stacca la testa.
+    // Asfalto: curvoni, un esse che stringe il gruppo e la rampa che stacca la
+    // testa. L'esse serve alla rimonta: sui soli dritti il primo scappava.
     geometry: {
-      deck: ['curva', 'dritto', 'rampa', 'curva', 'dritto', 'chicane'],
+      deck: ['curva', 'esse', 'rampa', 'curva', 'dritto', 'chicane'],
       narrow: 0.18,
     },
   },

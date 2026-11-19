@@ -1,5 +1,25 @@
 # Changelog
 
+## 19 novembre 2026 — F1 rimonta, e la TV guardata a 720p (Biglie B3)
+
+- **F1 all'85% di rimonte** (era 65%, la pista più indietro della tabella qui
+  sotto): il tracciato guadagna un esse al posto di un dritto e il piano
+  dell'asfalto passa da 4 a 8 chiazze di ghiaccio, con meno paracarri. Nessuna
+  soglia toccata: **34/40** gare con rimonta, **8/8** sugli otto semi del test
+  largo, contatti 4,24/s, ultima 51,3 s, prima mai sotto i 43,7 s, sei cambi di
+  testa.
+- **Controllo visivo a 720p** (1280×720, anteprima `/bonus-preview/biglie` con
+  otto biglie sull'orbita): le biglie da 12 px restano leggibili col loro emoji
+  e la scia; i meteoriti cadono dentro le righe della corsia e non più
+  appoggiati al muro; l'ostacolo mobile resta visibile. Nessun problema di
+  impaginazione né di gerarchia nella classifica a sinistra.
+  La scheda del browser era in secondo piano (la TV sospende la corsa), quindi
+  la gara è stata avanzata a passi da 1/60 chiamando il passo della TV e
+  ridisegnata: i fotogrammi sono render veri del componente, non una
+  registrazione in tempo reale.
+- Verifiche: suite Biglie **64 test su 7 file**, suite completa **568 test su 64
+  file**, tutti passati.
+
 ## 19 novembre 2026 — La taratura regge su più semi (Biglie B3)
 
 - **Le soglie vere su più semi:** oltre ai 24 semi fissi (tre per pista) c'è ora
