@@ -146,12 +146,14 @@ squadra protesta.
 
 ---
 
-## 7. Fine atto e bonus
+## 7. Bonus dentro gli atti
 
-1. Dopo l'ultimo round dell'atto la TV mostra la classifica rapida (o dettagliata a fine atto).
-2. Premi **🏆 MOSTRA CLASSIFICA** solo se vuoi anticiparla.
-3. Dopo ogni atto usa il bonus previsto: **CASINO BIANCO/ROSSO**, **BLACKJACK**, **CASINO DOZZINA**, **CAVALLO**, **CASINO NUMERO SECCO**.
-4. A bonus concluso premi **✖️ CHIUDI BONUS**, poi **▶️ PARTI** per il round successivo.
+1. Un bonus per atto parte **da solo in un round interno** (2, 3, 5, 6 o 7), mai in apertura né in chiusura: non consuma un round.
+2. Chiuso il bonus, la TV mostra il riepilogo per otto secondi e riparte da sola dal round successivo.
+3. **🎰 BONUS CASINO**, **🃏 BONUS BLACKJACK** e **🐎 BONUS CAVALLO** servono solo a lanciarlo a mano; **✖️ CHIUDI BONUS** chiude prima quello in corso e porta allo stesso riepilogo.
+4. Classifica **rapida** dopo i round 4, 12, 20, 28 e 36; **dettagliata** dopo 8, 16, 24, 32 e 40. Premi **🏆 MOSTRA CLASSIFICA** solo per anticiparla.
+
+Fra un round e l'altro l'avanzamento resta manuale: **▶️ PARTI** (o **AVANTI** in TV).
 
 ---
 

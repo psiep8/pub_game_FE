@@ -1439,7 +1439,6 @@ describe('GameComponent', () => {
         const rounds = TestBed.inject(RoundManagerService);
         rounds.restoreRound(3);
         component.currentGameId.set(1);
-        component.autoAdvanceEnabled.set(true);
         component.bonusEntrance.set(null);
         component.bonusActive.set(true);
         component.bonusType.set('BLACKJACK');
@@ -1448,7 +1447,7 @@ describe('GameComponent', () => {
         expect(component.bonusActive()).toBe(false);
         expect(rounds.getCurrentRound()).toBe(3);
 
-        // Otto secondi di riepilogo, poi i dieci dell'avanzamento automatico.
+        // Otto secondi di riepilogo, poi i dieci del conto alla rovescia.
         await vi.advanceTimersByTimeAsync(8_000);
         await vi.advanceTimersByTimeAsync(10_000);
 

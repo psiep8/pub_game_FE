@@ -1,6 +1,6 @@
 # PubGame — descrizione del gioco
 
-> **VERSIONE 2.2 — 15 novembre 2026.**
+> **VERSIONE 2.3 — 19 novembre 2026.**
 > Se una regola non combacia col codice, vince il codice. Per la serata fanno fede
 > `README.md` e `docs/manuale-serata.html/PDF`.
 
@@ -72,10 +72,12 @@ I punteggi vivono in `shared/models/scoring-rules.ts`; la scaletta in
 
 ## 4. I cinque bonus
 
-I bonus non consumano round. Si lanciano dopo la classifica dell'atto; i punti vengono
+I bonus non consumano round. Partono da soli in **un round interno dell'atto** (mai il
+primo, mai l'ultimo: slot 2, 3, 5, 6 o 7), scelto dal seme all'inizio della serata;
+chiuso il riepilogo la scaletta riprende dal round successivo. I punti vengono
 accreditati **una sola volta, alla chiusura**.
 
-| Dopo l'atto | Bonus | Come funziona | Punti |
+| Atto | Bonus | Come funziona | Punti |
 | --- | --- | --- | --- |
 | 1 | **Casino bianco/rosso** | Una manche sul colore, un giro di roulette | +100 |
 | 2 | **Blackjack** | Un turno per tavolo, 15 s, banco a 17 | +150 vittoria / +75 pari |
@@ -104,10 +106,13 @@ la classifica finale.
 - **PROSSIMO ROUND**, **MOSTRA CLASSIFICA**, **PAUSA / RIPRENDI**.
 - **DEMO** per spiegare un gioco, **CHIUDI DEMO** per tornare alla partita.
 - Bonus dell'atto: **Casino**, **Blackjack**, **Cavallo**, **Casino dozzina**,
-  **Casino numero secco**; **CHIUDI BONUS** per uscire.
+  **Casino numero secco**; partono da soli nel round dello slot, **CHIUDI BONUS** per
+  uscire prima.
 - **PARTITA #** per comandare la TV da un altro dispositivo.
-- Dopo un round parte l'avanzamento automatico di 10 secondi, annullato da pausa,
-  classifica, demo o comando manuale.
+- Fra un round e l'altro si avanza con **▶️ PARTI** (o **AVANTI** in TV). Chiuso il
+  riepilogo di un bonus, invece, la TV riparte da sola dal round successivo dopo il
+  conto alla rovescia di 10 secondi, annullato da pausa, classifica, demo o comando
+  manuale.
 
 ---
 

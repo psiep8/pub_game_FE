@@ -66,7 +66,7 @@ const PREVIEW_QUESTIONS = [
 ];
 
 /**
- * CAVALLO DI BATTAGLIA — bonus di fine atto.
+ * CAVALLO DI BATTAGLIA — bonus dell'atto.
  *
  * La TV è solo cronometro e tabellone: il testo e le opzioni delle domande
  * vivono sul telefono. Il tabellone resta in scena dall'inizio alla fine e si
@@ -82,7 +82,7 @@ const PREVIEW_QUESTIONS = [
       <div class="cav-card">
         <header class="cav-head">
           <div class="cav-title">
-            <div class="cav-kicker">🐎 BONUS DI FINE ATTO</div>
+            <div class="cav-kicker">🐎 BONUS DELL'ATTO</div>
             <h1>CAVALLO DI BATTAGLIA</h1>
             <p class="cav-sub">{{ subtitle() }}</p>
           </div>

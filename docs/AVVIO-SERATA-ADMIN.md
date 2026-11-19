@@ -105,7 +105,8 @@ rispondere `{"status":"ok"}`.
 - Nei giochi con prenotazione decidi **✅ CORRETTO** o **❌ SBAGLIATO** dopo aver
   ascoltato la risposta. Negli altri giochi il server calcola da solo.
 - Pausa per imprevisti: **⏸️ PAUSA / RIPRENDI**.
-- Fine atto (round 8, 16, 24, 32, 40): classifica, poi bonus.
+- Bonus: uno dentro ogni atto, in un round interno (2, 3, 5, 6 o 7). Parte da solo in
+  TV; chiuso il riepilogo, la scaletta riparte dal round successivo.
 
 Il dettaglio dei pulsanti è in [`PANNELLO-ADMIN.md`](PANNELLO-ADMIN.md) e il percorso
 passo per passo in [`PRESENTATORE.md`](PRESENTATORE.md).

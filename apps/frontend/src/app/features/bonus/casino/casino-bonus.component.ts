@@ -172,7 +172,7 @@ const DEFLECTOR_R = 222;
 const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
 
 /**
- * CASINO — bonus di fine atto 1, quattro manche e una roulette vera in TV.
+ * CASINO — bonus dell'atto 1, quattro manche e una roulette vera in TV.
  *
  * Ogni manche si chiude con un giro della ruota europea (37 caselle): la
  * pallina parte sul bordo, orbita, scende, rimbalza sui vani e si ferma.
@@ -198,7 +198,7 @@ const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
       <div class="casino-card">
         <header class="casino-head">
           <div>
-            <div class="casino-kicker">🎰 CASINO · BONUS DI FINE ATTO</div>
+            <div class="casino-kicker">🎰 CASINO · BONUS DELL'ATTO</div>
             <h1>{{ title() }}</h1>
             <p class="casino-rule">{{ rule() }}</p>
           </div>

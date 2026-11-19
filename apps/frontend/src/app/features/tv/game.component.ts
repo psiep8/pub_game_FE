@@ -180,7 +180,6 @@ export class GameComponent implements OnInit, OnDestroy {
   bonusShowResult = signal(false);
   bonusResult = signal<Array<{ playerName: string; score: number }>>([]);
   autoAdvanceSeconds = signal(0);
-  autoAdvanceEnabled = signal(false);
   animatedCategoryId = signal<number | null>(null);
   /** Roll da slot machine: nomi che scorrono prima di svelare la categoria. */
   readonly slotRolling = signal(false);
@@ -1725,7 +1724,8 @@ export class GameComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.startAutoAdvance();
+    // Fra un round e l'altro si avanza a mano: il conto alla rovescia esiste
+    // solo per ripartire dopo il riepilogo di un bonus.
   }
 
   /** Chiude subito la classifica a schermo: la X in TV o un avanzamento admin. */
@@ -2198,10 +2198,10 @@ export class GameComponent implements OnInit, OnDestroy {
     this.recordBonusResult(event?.playerName, Number(event?.score) || 0);
   }
 
+  /** Chiuso il riepilogo di un bonus, la scaletta riparte da sola dal round dopo. */
   private startAutoAdvance(): void {
-    // Musica ha il suo timer: il brano del reveal dura 30 s e poi passa da
-    // solo. L'avanzamento automatico generico lo taglierebbe a 10 s.
-    if (!this.autoAdvanceEnabled() || this.bonusActive() || this.currentMode()?.type === 'MUSIC') return;
+    // Un altro bonus può essere entrato in scena durante il riepilogo.
+    if (this.bonusActive()) return;
 
     this.cancelAutoAdvance();
     this.autoAdvanceSeconds.set(10);

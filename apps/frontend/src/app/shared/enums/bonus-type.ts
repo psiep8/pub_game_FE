@@ -1,7 +1,7 @@
 /**
- * I cinque bonus di fine atto. Non consumano round della scaletta.
+ * I cinque bonus, uno dentro ogni atto. Non consumano round della scaletta.
  *
- * L'ordine è quello della serata: dopo ogni atto parte un bonus diverso.
+ * L'ordine è quello della serata: ogni atto ha il suo bonus, in un round interno.
  * Le tre varianti Casino usano la stessa ruota europea, ma una sola manche:
  * colore, dozzina o numero secco. Il Blackjack e il Cavallo hanno gare
  * dedicate.

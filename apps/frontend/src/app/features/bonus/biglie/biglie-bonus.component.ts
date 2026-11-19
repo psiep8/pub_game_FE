@@ -205,7 +205,7 @@ const FINALE_SECONDS = 7;
         @if (phase() !== Phase.RACE) {
         <header class="bg-head">
           <div>
-            <div class="bg-kicker">{{ roundMode ? '🎱 BIGLIE · ROUND' : '🎱 BIGLIE · BONUS DI FINE ATTO' }}</div>
+            <div class="bg-kicker">{{ roundMode ? '🎱 BIGLIE · ROUND' : '🎱 BIGLIE · BONUS DELL\'ATTO' }}</div>
             <h1>{{ heading() }}</h1>
             <p class="bg-sub">{{ subtitle() }}</p>
           </div>
