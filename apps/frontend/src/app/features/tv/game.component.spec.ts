@@ -1363,4 +1363,68 @@ describe('GameComponent', () => {
       vi.useRealTimers();
     }
   });
+
+  describe('bonus sparsi negli atti', () => {
+    /** `startScheduledBonus` è privato: qui interessa la decisione, non il DOM. */
+    function scheduled(component: GameComponent): { startScheduledBonus(): boolean } {
+      return component as unknown as { startScheduledBonus(): boolean };
+    }
+
+    it('apre il bonus solo nel round che lo ospita', () => {
+      const rounds = TestBed.inject(RoundManagerService);
+      component.currentGameId.set(1);
+      const start = vi.spyOn(component, 'startBonus').mockResolvedValue(undefined);
+      vi.spyOn(rounds, 'bonusAfterRound').mockReturnValue(null);
+      vi.spyOn(rounds, 'bonusActIndex').mockReturnValue(0);
+
+      // Round normale: nessun bonus, la scaletta va avanti.
+      expect(scheduled(component).startScheduledBonus()).toBe(false);
+      expect(start).not.toHaveBeenCalled();
+
+      // Round dello slot: il bonus parte da solo.
+      vi.mocked(rounds.bonusAfterRound).mockReturnValue('BLACKJACK');
+      expect(scheduled(component).startScheduledBonus()).toBe(true);
+      expect(start).toHaveBeenCalledWith('BLACKJACK');
+    });
+
+    it('non ripete il bonus già avviato nella stessa serata', () => {
+      const rounds = TestBed.inject(RoundManagerService);
+      component.currentGameId.set(1);
+      const start = vi.spyOn(component, 'startBonus').mockResolvedValue(undefined);
+      vi.spyOn(rounds, 'bonusAfterRound').mockReturnValue('CAVALLO');
+      vi.spyOn(rounds, 'bonusActIndex').mockReturnValue(0);
+
+      expect(scheduled(component).startScheduledBonus()).toBe(true);
+      expect(scheduled(component).startScheduledBonus()).toBe(false);
+      expect(start).toHaveBeenCalledTimes(1);
+    });
+
+    it('dopo un refresh non riapre un bonus già chiuso', () => {
+      const rounds = TestBed.inject(RoundManagerService);
+      vi.spyOn(rounds, 'bonusAfterRound').mockReturnValue('BLACKJACK');
+      vi.spyOn(rounds, 'bonusActIndex').mockReturnValue(0);
+      // La TV ricorda su disco i bonus pagati: è questa memoria che un refresh ritrova.
+      localStorage.setItem('bonusClosed:1', JSON.stringify([0]));
+
+      const fresh = TestBed.createComponent(GameComponent);
+      fresh.componentInstance.currentGameId.set(1);
+      fresh.detectChanges();
+      const start = vi.spyOn(fresh.componentInstance, 'startBonus').mockResolvedValue(undefined);
+
+      expect(scheduled(fresh.componentInstance).startScheduledBonus()).toBe(false);
+      expect(start).not.toHaveBeenCalled();
+
+      // E se il server dice già chiuso, non serve nemmeno la memoria locale.
+      localStorage.removeItem('bonusClosed:1');
+      (fresh.componentInstance as unknown as { serverBonus: unknown }).serverBonus = {
+        act: 0,
+        type: 'BLACKJACK',
+        status: 'CLOSED',
+      };
+      expect(scheduled(fresh.componentInstance).startScheduledBonus()).toBe(false);
+      expect(start).not.toHaveBeenCalled();
+
+      fresh.destroy();
+    });
+  });
 });

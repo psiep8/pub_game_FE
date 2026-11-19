@@ -252,4 +252,61 @@ describe('BiglieBonus — ripresa dopo un refresh della TV', () => {
 
     fixture.destroy();
   });
+
+  it('paga i primi quattro e toglie agli ultimi quattro', () => {
+    vi.useFakeTimers();
+    const { component, results, fixture } = mount();
+    const audio = TestBed.inject(AudioService);
+    vi.spyOn(audio, 'stopMarbleBed').mockImplementation(() => {});
+    vi.spyOn(audio, 'playApplause').mockImplementation(() => {});
+
+    const names = ['Anna', 'Bruno', 'Carla', 'Dario', 'Elena', 'Fabio', 'Gina', 'Ugo'];
+    const internal = component as any;
+    internal.raceMarbles = names.map((playerName, index) => ({
+      playerName,
+      marbleId: MARBLES[index % MARBLES.length].id,
+      x: 100 - index,
+      v: 0,
+      body: null,
+      finished: true,
+      position: index + 1,
+      trail: [],
+      spine: 0,
+      bumped: new Set<string>(),
+      slowUntil: 0,
+      boostUntil: 0,
+      speed: 0,
+      stunUntil: 0,
+      recoverUntil: 0,
+      stuckFor: 0,
+      bestProgress: 0,
+      line: {},
+      drama: {},
+    }));
+
+    internal.endRace();
+
+    const rows = component.raceResult() ?? [];
+    expect(rows.map((row) => row.position)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(rows.map((row) => row.points)).toEqual([150, 100, 60, 30, -30, -60, -100, -150]);
+    // I punti negativi arrivano davvero alla TV: senza l'emit resterebbero a zero.
+    expect(results).toContainEqual({ playerName: 'Elena', score: -30 });
+    expect(results).toContainEqual({ playerName: 'Ugo', score: -150 });
+    expect(results).toHaveLength(8);
+    // Anche la classifica del round somma i piazzamenti negativi.
+    expect(component.standings().at(-1)?.total).toBe(-150);
+
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('scrive i punti col segno, anche quando tolgono', () => {
+    const { component, fixture } = mount();
+
+    expect(component.signedPoints(150)).toBe('+150');
+    expect(component.signedPoints(-30)).toBe('−30');
+    expect(component.signedPoints(0)).toBe('0');
+
+    fixture.destroy();
+  });
 });
