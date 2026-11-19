@@ -110,9 +110,9 @@ la classifica finale.
   uscire prima.
 - **PARTITA #** per comandare la TV da un altro dispositivo.
 - Fra un round e l'altro si avanza con **▶️ PARTI** (o **AVANTI** in TV). Chiuso il
-  riepilogo di un bonus, invece, la TV riparte da sola dal round successivo dopo il
-  conto alla rovescia di 10 secondi, annullato da pausa, classifica, demo o comando
-  manuale.
+  bonus, invece, la TV mostra il riepilogo per **8 secondi** e poi dieci di conto alla
+  rovescia: in tutto 18 secondi prima di ripartire da sola dal round successivo. Pausa,
+  classifica, demo o comando manuale annullano il conto alla rovescia.
 
 ---
 

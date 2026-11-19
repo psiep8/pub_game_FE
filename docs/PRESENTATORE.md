@@ -149,7 +149,7 @@ niente.
    dopo **8, 16, 24, 32, 40** quella **dettagliata**, con podio e festeggiamento.
    La classifica resta in TV finché non premi **▶️ PARTI**.
 2. I bonus previsti sono **CASINO BIANCO/ROSSO** nell’atto 1, **BLACKJACK** nel 2, **CASINO DOZZINA** nel 3, **CAVALLO** nel 4 e **CASINO NUMERO SECCO** nel 5. Ognuno parte da solo in un round interno dell’atto (mai il primo, mai l’ultimo).
-3. Chiuso il bonus, la TV mostra il riepilogo per otto secondi e riparte da sola dal round successivo. **✖️ CHIUDI BONUS** serve solo a chiuderlo prima.
+3. Chiuso il bonus, la TV mostra il riepilogo per **otto secondi**, poi dieci di conto alla rovescia: in tutto diciotto secondi prima di ripartire da sola dal round successivo. **✖️ CHIUDI BONUS** serve solo a chiuderlo prima.
 4. **I punti dei bonus entrano in classifica alla chiusura del bonus**, una sola volta; dopo l’ultimo si vede la classifica finale aggiornata. Dillo tu: evita le proteste.
 
 ---

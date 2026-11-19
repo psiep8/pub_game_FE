@@ -149,7 +149,7 @@ squadra protesta.
 ## 7. Bonus dentro gli atti
 
 1. Un bonus per atto parte **da solo in un round interno** (2, 3, 5, 6 o 7), mai in apertura né in chiusura: non consuma un round.
-2. Chiuso il bonus, la TV mostra il riepilogo per otto secondi e riparte da sola dal round successivo.
+2. Chiuso il bonus, la TV mostra il riepilogo per **otto secondi**, poi dieci di conto alla rovescia: in tutto diciotto secondi prima di ripartire da sola dal round successivo.
 3. **🎰 BONUS CASINO**, **🃏 BONUS BLACKJACK** e **🐎 BONUS CAVALLO** servono solo a lanciarlo a mano; **✖️ CHIUDI BONUS** chiude prima quello in corso e porta allo stesso riepilogo.
 4. Classifica **rapida** dopo i round 4, 12, 20, 28 e 36; **dettagliata** dopo 8, 16, 24, 32 e 40. Premi **🏆 MOSTRA CLASSIFICA** solo per anticiparla.
 
