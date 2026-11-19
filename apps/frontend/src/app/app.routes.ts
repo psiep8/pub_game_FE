@@ -9,8 +9,6 @@ import { MobileOnlyGuard } from './core/guards/mobile-only.guard';
 const tv = () => import('./features/tv/game.component').then((module) => module.GameComponent);
 const remote = () => import('./features/remote/remote.component').then((module) => module.RemoteComponent);
 const admin = () => import('./features/admin/admin.component').then((module) => module.Admin);
-const basket = () =>
-  import('./features/bonus/basket-legacy/basket-bonus.component').then((module) => module.BasketBonus);
 const bonusPreview = () =>
   import('./features/bonus/preview/bonus-preview.component').then((module) => module.BonusPreview);
 const audioLab = () => import('./features/audio/audio-lab.component').then((module) => module.AudioLab);
@@ -29,10 +27,6 @@ export const routes: Routes = [
   {
     path: 'admin',
     loadComponent: admin
-  },
-  {
-    path: 'basket',
-    loadComponent: basket
   },
   {
     path: 'audio',

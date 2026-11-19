@@ -450,103 +450,12 @@ app-bonus-preview .bp-live .bg-overlay {
   app-biglie-bonus .bg-card { max-height: none !important; overflow: visible !important; }
   app-biglie-bonus .bg-race-stage { min-height: min(58vh, 430px) !important; }
 
-  app-basket-bonus-stage .bbs-overlay { align-items: flex-start !important; overflow-y: auto !important; }
-  app-basket-bonus-stage .bbs-card { max-height: none !important; overflow: visible !important; }
-  app-basket-bonus-stage .bbs-manches { grid-template-columns: 1fr !important; }
 
   app-cavallo-bonus .cav-overlay { align-items: flex-start !important; }
   app-cavallo-bonus .cav-card { max-height: none !important; }
   app-cavallo-bonus .cav-body { grid-template-columns: minmax(0, 1fr) !important; }
   app-cavallo-bonus .cav-clock { width: min(36vh, 240px) !important; }
 }
-
-/* ------------------------------------------------------------ BASKET TV */
-app-basket-bonus-stage .bbs-overlay {
-  background-color: var(--bg-0) !important;
-  background-image:
-    radial-gradient(color-mix(in srgb, var(--ink) 9%, transparent) 1px, transparent 1px),
-    linear-gradient(115deg, transparent 0 62%, color-mix(in srgb, var(--tomato) 8%, transparent) 62% 63%, transparent 63%) !important;
-  background-size: 16px 16px, 100% 100% !important;
-  color: var(--paper) !important;
-}
-app-basket-bonus-stage .bbs-card {
-  background: var(--paper) !important;
-  color: var(--coal) !important;
-  border: 4px solid var(--coal) !important;
-  border-radius: 0 !important;
-  box-shadow: 14px 14px 0 var(--tomato) !important;
-}
-app-basket-bonus-stage .bbs-kicker {
-  display: inline-block;
-  padding: 3px 10px;
-  background: var(--tomato);
-  color: var(--on-tomato) !important;
-  border: 2px solid var(--coal);
-  font-family: var(--font-mono) !important;
-  font-size: clamp(0.6rem, 0.9vw, 0.78rem);
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  transform: rotate(-1.4deg);
-}
-app-basket-bonus-stage .bbs-card h1 {
-  color: var(--coal) !important;
-  font-family: var(--font-display) !important;
-  font-weight: 400 !important;
-}
-app-basket-bonus-stage .bbs-sub {
-  color: color-mix(in srgb, var(--coal) 62%, transparent) !important;
-  font-family: var(--font-mono);
-}
-app-basket-bonus-stage .bbs-manche {
-  background: var(--paper-hi) !important;
-  border: 2px solid var(--coal) !important;
-  border-radius: 0 !important;
-  box-shadow: 4px 4px 0 color-mix(in srgb, var(--coal) 65%, transparent);
-}
-app-basket-bonus-stage .bbs-manche b {
-  color: var(--tomato-ink) !important;
-  font-family: var(--font-mono) !important;
-}
-app-basket-bonus-stage .bbs-manche span:not(.bbs-hoop) {
-  color: var(--coal) !important;
-}
-app-basket-bonus-stage .bbs-manche em {
-  color: color-mix(in srgb, var(--coal) 60%, transparent) !important;
-  font-family: var(--font-mono);
-}
-app-basket-bonus-stage .bbs-hoop {
-  border-color: var(--tomato-ink) !important;
-  background: transparent !important;
-}
-app-basket-bonus-stage .bbs-timer {
-  background: var(--acid) !important;
-  color: var(--coal) !important;
-  border: 3px solid var(--coal) !important;
-  border-radius: 0 !important;
-  box-shadow: 6px 6px 0 var(--tomato);
-  font-family: var(--font-mono) !important;
-}
-app-basket-bonus-stage .bbs-hint {
-  color: color-mix(in srgb, var(--coal) 62%, transparent) !important;
-  font-family: var(--font-mono);
-}
-app-basket-bonus-stage .bbs-row {
-  background: var(--paper-hi) !important;
-  border: 2px solid var(--coal) !important;
-  border-radius: 0 !important;
-}
-app-basket-bonus-stage .bbs-row.top {
-  background: var(--acid) !important;
-  border-color: var(--coal) !important;
-  box-shadow: 5px 5px 0 var(--tomato);
-}
-app-basket-bonus-stage .bbs-row b {
-  color: var(--tomato-ink) !important;
-  font-family: var(--font-mono) !important;
-}
-
-/* ------------------------------------------------------- BASKET /BASKET */
-/* La skin del telefono vive in basket-bonus.component.css. */
 
 /* --------------------------------------------------- RESIDUI LEGACY */
 app-arena .team-label {

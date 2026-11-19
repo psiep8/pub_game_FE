@@ -3,13 +3,12 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
-import { BasketBonusStage } from '../basket/basket-bonus-stage.component';
 import { BiglieBonus } from '../biglie/biglie-bonus.component';
 import { TRACK_CATALOG, type TrackId } from '../biglie/track-plan';
 import { CasinoBonus } from '../casino/casino-bonus.component';
 import { CavalloBonus } from '../cavallo/cavallo-bonus.component';
 
-type PreviewKind = 'casino' | 'basket' | 'cavallo' | 'biglie';
+type PreviewKind = 'casino' | 'cavallo' | 'biglie';
 
 interface PreviewCard {
   id: PreviewKind;
@@ -19,7 +18,7 @@ interface PreviewCard {
   note: string;
 }
 
-const PREVIEW_TYPES: PreviewKind[] = ['casino', 'basket', 'cavallo', 'biglie'];
+const PREVIEW_TYPES: PreviewKind[] = ['casino', 'cavallo', 'biglie'];
 
 const PREVIEW_CARDS: PreviewCard[] = [
   {
@@ -28,13 +27,6 @@ const PREVIEW_CARDS: PreviewCard[] = [
     title: 'CASINO',
     subtitle: 'QUATTRO MANCHE · ROULETTE',
     note: 'Colore, dozzina, sestina e numero secco. La ruota resta in TV.',
-  },
-  {
-    id: 'basket',
-    icon: '🏀',
-    title: 'BASKET',
-    subtitle: 'TRE MANCHE AL CANESTRO',
-    note: 'La TV mostra ferro, timer e classifica; si tira dal telefono.',
   },
   {
     id: 'cavallo',
@@ -55,14 +47,14 @@ const PREVIEW_CARDS: PreviewCard[] = [
 @Component({
   selector: 'app-bonus-preview',
   standalone: true,
-  imports: [CommonModule, RouterLink, CasinoBonus, BasketBonusStage, CavalloBonus, BiglieBonus],
+  imports: [CommonModule, RouterLink, CasinoBonus, CavalloBonus, BiglieBonus],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (!kind()) {
       <main class="bp-index">
         <header class="bp-head">
           <span class="bp-stamp">BONUS PREVIEW</span>
-          <h1>QUATTRO BONUS, UN SOLO BANCO DI PROVA</h1>
+          <h1>TRE BONUS, UN SOLO BANCO DI PROVA</h1>
           <p>
             Anteprima TV con dati demo. Ogni scheda apre la stessa esperienza che vede il
             pubblico, senza aspettare la fine di un atto.
@@ -86,7 +78,6 @@ const PREVIEW_CARDS: PreviewCard[] = [
           <span>USCITA RAPIDA</span>
           <a routerLink="/tv">TV</a>
           <a routerLink="/admin">ADMIN</a>
-          <a href="/basket" target="_blank" rel="noreferrer">PHONE /basket</a>
         </footer>
       </main>
     } @else {
@@ -101,7 +92,6 @@ const PREVIEW_CARDS: PreviewCard[] = [
             {{ card.icon }} {{ card.title }}
           </a>
         }
-        <a class="bp-phone" href="/basket" target="_blank" rel="noreferrer">📱 /basket</a>
       </nav>
       }
 
@@ -109,9 +99,6 @@ const PREVIEW_CARDS: PreviewCard[] = [
         @switch (kind()) {
           @case ('casino') {
           <app-casino-bonus [gameId]="1" [players]="players" [preview]="true" />
-        }
-        @case ('basket') {
-          <app-basket-bonus-stage [secondsLeft]="72" [scores]="scores" [players]="players" />
         }
         @case ('cavallo') {
           <app-cavallo-bonus [gameId]="1" [players]="players" [categories]="categories" [preview]="true" />
@@ -181,7 +168,7 @@ const PREVIEW_CARDS: PreviewCard[] = [
     }
     .bp-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: clamp(10px, 1.8vw, 22px);
       max-width: 1250px;
       margin: 0 auto;
@@ -346,14 +333,6 @@ export class BonusPreview {
     { id: 2, name: 'SCIENZA', emoji: '🔬', active: true },
     { id: 3, name: 'CINEMA', emoji: '🎬', active: true },
     { id: 4, name: 'SPORT', emoji: '🏅', active: true },
-  ];
-  readonly scores = [
-    { playerName: 'Anna', score: 18, baskets: 5 },
-    { playerName: 'Luca', score: 14, baskets: 4 },
-    { playerName: 'Marco', score: 11, baskets: 3 },
-    { playerName: 'Sara', score: 7, baskets: 2 },
-    { playerName: 'Paolo', score: 6, baskets: 2 },
-    { playerName: 'Giulia', score: 3, baskets: 1 },
   ];
 
   /** Le catture TV nascondono la toolbar e usano tutto il viewport. */
