@@ -187,7 +187,7 @@ const BETWEEN_SECONDS = 4;
 const FINALE_SECONDS = 7;
 
 /**
- * BIGLIE — round di serata (e banco di prova).
+ * BIGLIE — round di serata.
  *
  * Una biglia per tavolo, tutte diverse e mai condivise. La scelta si fa una
  * volta sola, in ordine sorteggiato: chi è ultimo prende quella che resta.
@@ -232,7 +232,7 @@ const FINALE_SECONDS = 7;
                 Una biglia a testa, scelta una volta sola in ordine sorteggiato.
                 Due gare, punti cumulativi: 150 / 100 / 60 / 30 ai primi,
                 −30 / −60 / −100 / −150 agli ultimi.
-                {{ roundMode ? 'I punti delle gare entrano nella classifica della serata.' : '' }}
+                I punti delle gare entrano nella classifica della serata.
               </p>
             </div>
           }
@@ -385,8 +385,6 @@ export class Biglie implements OnInit, OnDestroy {
 
   @Input({ required: true }) gameId = 1;
   @Input() players: string[] = [];
-  /** Round della scaletta: i punti entrano in classifica, non in un bonus. */
-  @Input() roundMode = false;
   /** Round di serata (0-based): decide le due piste e il numero delle gare. */
   @Input() roundIndex = 0;
   /** Round interrotto da un refresh: si riparte dallo stato salvato. */

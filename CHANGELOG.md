@@ -1,5 +1,17 @@
 # Changelog
 
+## 19 novembre 2026 — I residui del banco di prova Biglie
+
+- **Foglio globale:** spariscono `app-bonus-preview .bp-live .bg-overlay` (la
+  scheda Biglie non esiste più) e `.bbs-overlay`, che puntava a una scena basket
+  non presente nel codice.
+- **Anteprima:** via le ombre per la terza e quarta scheda, lo stile `.bp-phone`
+  senza elementi e la colonna ridondante nella media query dei 900 px.
+- **`roundMode` eliminato:** il componente delle Biglie non ha più il ramo
+  «bonus»: la kicker è sempre `BIGLIE · ROUND`, la frase sulla classifica resta
+  in pagina e la TV non passa più l'input.
+- Verifiche: suite Biglie + TV **152 test su 9 file**, build di produzione.
+
 ## 19 novembre 2026 — Le Biglie escono dal reparto bonus
 
 - **Cartella e nome giusti:** il componente passa da `features/bonus/biglie/` a

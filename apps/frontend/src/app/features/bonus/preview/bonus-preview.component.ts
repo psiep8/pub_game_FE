@@ -171,8 +171,6 @@ const PREVIEW_CARDS: PreviewCard[] = [
       transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
     }
     .bp-card:nth-child(2) { box-shadow: 8px 8px 0 var(--mustard); }
-    .bp-card:nth-child(3) { box-shadow: 8px 8px 0 var(--mint); }
-    .bp-card:nth-child(4) { box-shadow: 8px 8px 0 var(--acid); }
     .bp-card:hover {
       transform: translate(-2px, -2px);
       box-shadow: 12px 12px 0 var(--coal);
@@ -278,9 +276,7 @@ const PREVIEW_CARDS: PreviewCard[] = [
       background: var(--acid);
       border-color: var(--paper);
     }
-    .bp-phone { color: var(--mint) !important; }
     @media (max-width: 900px) {
-      .bp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .bp-card { min-height: 250px; }
     }
     @media (max-width: 700px) {

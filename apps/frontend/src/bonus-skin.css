@@ -432,9 +432,7 @@ app-bonus-preview .bp-live {
   position: relative;
 }
 app-bonus-preview .bp-live .casino-overlay,
-app-bonus-preview .bp-live .bbs-overlay,
-app-bonus-preview .bp-live .cav-overlay,
-app-bonus-preview .bp-live .bg-overlay {
+app-bonus-preview .bp-live .cav-overlay {
   position: absolute !important;
   inset: 0 !important;
 }

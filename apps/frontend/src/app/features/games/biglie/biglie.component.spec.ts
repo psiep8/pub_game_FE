@@ -50,7 +50,6 @@ describe('Biglie — ripresa dopo un refresh della TV', () => {
     const component = fixture.componentInstance;
     fixture.componentRef.setInput('gameId', 1);
     fixture.componentRef.setInput('players', ['Anna', 'Bruno']);
-    fixture.componentRef.setInput('roundMode', true);
     fixture.componentRef.setInput('roundIndex', roundIndex);
     if (resume) fixture.componentRef.setInput('resume', resume);
 
