@@ -88,7 +88,7 @@ ha ancora il suo file.
 | Blackjack | `gioco-casino` | `gioco-blackjack` |
 
 Fuori dalla mappa: nessun round aperto e tipi sconosciuti prendono la base
-d'atto; classifiche e podio chiamano `gioco-classifica` dalla regia. Con la
+d'atto; classifiche e podio chiamano `classifica` dalla regia. Con la
 domanda aperta, Quiz e Indovina chi tengono la base 6 dB sotto il livello
 normale (`bedDuckGain`) — è ducking, non un secondo file.
 
@@ -117,7 +117,7 @@ l'uno) l'atto arriva a **6,64 MB** e sfonda il tetto di 6 MB di 0,64. Per starci
 i quattro nuovi devono stare a **~46 s** — sotto il minimo di 60 s delle regole
 dei file — oppure si accorciano `gioco-casino` e `gioco-bomba`, che da soli
 pesano 3,44 MB. È una decisione da prendere **prima** della consegna, non dopo:
-il tetto di 6 MB per atto è nostro, il 22 MB totale è della specifica.
+il manifesto tiene i 6 MB per atto accanto ai 22 MB totali, fra le regole dei file: nessuno dei due si allunga per farci stare un loop in più.
 
 ## Quando arriva un file
 
