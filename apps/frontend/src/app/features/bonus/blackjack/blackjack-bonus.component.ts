@@ -19,6 +19,11 @@ import { Blackjack } from '../../games/blackjack/blackjack.component';
 const DECIDE_SECONDS = 15;
 const REVEAL_SECONDS = 4;
 const FINALE_SECONDS = 6;
+/** Banco di prova: mano corta e tavolo che gioca da solo. */
+const PREVIEW_DECIDE_SECONDS = 4;
+const PREVIEW_REVEAL_SECONDS = 2;
+const PREVIEW_FINALE_SECONDS = 3;
+const PREVIEW_HIT_MS = 450;
 const WIN_POINTS = 150;
 const PUSH_POINTS = 75;
 
@@ -82,6 +87,8 @@ interface Row {
 export class BlackjackBonus implements OnInit, OnDestroy {
   @Input({ required: true }) gameId = 1;
   @Input() players: string[] = [];
+  /** Banco di prova: mano da 4 secondi e scelte automatiche dei tavoli. */
+  @Input() preview = false;
   /** Mano salvata sul server: se c'è, il bonus riparte da lì. */
   @Input() resume: any | null = null;
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
@@ -240,7 +247,8 @@ export class BlackjackBonus implements OnInit, OnDestroy {
 
     this.secondsLeft = DECIDE_SECONDS;
     this.publish('DECIDE');
-    this.startClock(DECIDE_SECONDS, () => this.reveal(false));
+    this.startClock(this.preview ? PREVIEW_DECIDE_SECONDS : DECIDE_SECONDS, () => this.reveal(false));
+    if (this.preview) this.later(400, () => this.previewChoice());
   }
 
   private onStatus(status: any): void {
@@ -259,9 +267,26 @@ export class BlackjackBonus implements OnInit, OnDestroy {
     }
     if (kind !== 'HIT') return;
 
+    this.hit();
+  }
+
+  /** Una carta in più: la stessa mossa del telefono e del banco di prova. */
+  private hit(): void {
     this.hand = [...this.hand, this.draw()];
     this.publish('DECIDE', 'HIT');
-    if (handTotal(this.hand) >= 21) this.reveal(false);
+    if (handTotal(this.hand) >= 21) {
+      this.reveal(false);
+      return;
+    }
+    if (this.preview) this.later(PREVIEW_HIT_MS, () => this.previewChoice());
+  }
+
+  /** Banco di prova: il tavolo gioca da solo, con la regola del banco a 17. */
+  private previewChoice(): void {
+    if (this.destroyed || !this.preview) return;
+    if (this.display()?.phase !== 'DECIDE') return;
+    if (handTotal(this.hand) < 17) this.hit();
+    else this.reveal(true);
   }
 
   private reveal(stood: boolean): void {
@@ -295,7 +320,7 @@ export class BlackjackBonus implements OnInit, OnDestroy {
 
     if (points > 0 && current) this.result.emit({ playerName: current, score: points });
 
-    this.secondsLeft = REVEAL_SECONDS;
+    this.secondsLeft = this.preview ? PREVIEW_REVEAL_SECONDS : REVEAL_SECONDS;
     this.publish('REVEAL', stood ? 'STAND' : 'HIT', {
       outcome,
       points,
@@ -304,7 +329,7 @@ export class BlackjackBonus implements OnInit, OnDestroy {
       bankTotal,
     });
 
-    this.later(REVEAL_SECONDS * 1000, () => {
+    this.later(this.secondsLeft * 1000, () => {
       this.index += 1;
       this.startHand();
     });
@@ -362,9 +387,9 @@ export class BlackjackBonus implements OnInit, OnDestroy {
 
   private finale(): void {
     if (this.destroyed) return;
-    this.secondsLeft = FINALE_SECONDS;
+    this.secondsLeft = this.preview ? PREVIEW_FINALE_SECONDS : FINALE_SECONDS;
     this.publish('FINALE');
-    this.later(FINALE_SECONDS * 1000, () => this.finished.emit());
+    this.later(this.secondsLeft * 1000, () => this.finished.emit());
   }
 
   private currentPlayer(): string {

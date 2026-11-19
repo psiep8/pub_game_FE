@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
+import { BlackjackBonus } from '../blackjack/blackjack-bonus.component';
 import { CasinoBonus } from '../casino/casino-bonus.component';
 import { CavalloBonus } from '../cavallo/cavallo-bonus.component';
 
-type PreviewKind = 'casino' | 'cavallo';
+type PreviewKind = 'casino' | 'blackjack' | 'dozzina' | 'cavallo' | 'numero';
 
 interface PreviewCard {
   id: PreviewKind;
@@ -16,15 +17,28 @@ interface PreviewCard {
   note: string;
 }
 
-const PREVIEW_TYPES: PreviewKind[] = ['casino', 'cavallo'];
-
+/** Le cinque schede seguono l'ordine degli atti, come i bonus in scaletta. */
 const PREVIEW_CARDS: PreviewCard[] = [
   {
     id: 'casino',
-    icon: '🎰',
+    icon: '🔴',
     title: 'CASINO',
-    subtitle: 'QUATTRO MANCHE · ROULETTE',
-    note: 'Colore, dozzina, sestina e numero secco. La ruota resta in TV.',
+    subtitle: 'BIANCO/ROSSO · UNA MANCHE',
+    note: 'Una sola puntata sul colore: bianco o rosso, poi la ruota decide.',
+  },
+  {
+    id: 'blackjack',
+    icon: '🃏',
+    title: 'BLACKJACK',
+    subtitle: 'UN TURNO PER TAVOLO',
+    note: 'La TV fa il banco, i tavoli scelgono carta o stai. Vittoria 150, pari 75.',
+  },
+  {
+    id: 'dozzina',
+    icon: '🎰',
+    title: 'CASINO DOZZINA',
+    subtitle: 'TRE CASELLE · UNA MANCHE',
+    note: '1–12, 13–24 o 25–36: una sola puntata, la pallina esce una volta.',
   },
   {
     id: 'cavallo',
@@ -33,19 +47,35 @@ const PREVIEW_CARDS: PreviewCard[] = [
     subtitle: 'OTTO DOMANDE FLASH',
     note: 'Categoria scelta dai tavoli e tabellone che si riordina.',
   },
+  {
+    id: 'numero',
+    icon: '🎯',
+    title: 'CASINO NUMERO SECCO',
+    subtitle: 'LA FINALE · 0–36',
+    note: 'Una puntata sul numero: la ruota rigira finché qualcuno lo ha scelto.',
+  },
 ];
+
+const PREVIEW_TYPES: readonly PreviewKind[] = PREVIEW_CARDS.map((card) => card.id);
+
+/** Le tre varianti del casino: il componente è lo stesso, cambia la manche. */
+const CASINO_VARIANTS = [
+  { id: 'casino', label: 'BIANCO/ROSSO' },
+  { id: 'dozzina', label: 'DOZZINA' },
+  { id: 'numero', label: 'NUMERO SECCO' },
+] as const satisfies readonly { id: PreviewKind; label: string }[];
 
 @Component({
   selector: 'app-bonus-preview',
   standalone: true,
-  imports: [CommonModule, RouterLink, CasinoBonus, CavalloBonus],
+  imports: [CommonModule, RouterLink, BlackjackBonus, CasinoBonus, CavalloBonus],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (!kind()) {
       <main class="bp-index">
         <header class="bp-head">
           <span class="bp-stamp">BONUS PREVIEW</span>
-          <h1>DUE BONUS, UN SOLO BANCO DI PROVA</h1>
+          <h1>CINQUE BONUS, UN SOLO BANCO DI PROVA</h1>
           <p>
             Anteprima TV con dati demo. Ogni scheda apre la stessa esperienza che vede il
             pubblico, senza aspettare la fine di un atto.
@@ -83,13 +113,36 @@ const PREVIEW_CARDS: PreviewCard[] = [
             {{ card.icon }} {{ card.title }}
           </a>
         }
+        @if (casinoVariant()) {
+          <span class="bp-variants" aria-label="Variante del casino">
+            <span class="bp-bar-sep"></span>
+            <span class="bp-bar-tag">VARIANTE</span>
+            @for (variant of casinoVariants; track variant.id) {
+              <a
+                [routerLink]="['/bonus-preview', variant.id]"
+                [class.on]="kind() === variant.id"
+                [attr.aria-current]="kind() === variant.id ? 'page' : null">
+                {{ variant.label }}
+              </a>
+            }
+          </span>
+        }
       </nav>
       }
 
       <div class="bp-live" [class.capture]="capture">
         @switch (kind()) {
           @case ('casino') {
-          <app-casino-bonus [gameId]="1" [players]="players" [preview]="true" />
+          <app-casino-bonus [gameId]="1" [players]="players" [preview]="true" [variant]="'COLOR'" />
+        }
+        @case ('dozzina') {
+          <app-casino-bonus [gameId]="1" [players]="players" [preview]="true" [variant]="'DOZEN'" />
+        }
+        @case ('numero') {
+          <app-casino-bonus [gameId]="1" [players]="players" [preview]="true" [variant]="'NUMBER'" />
+        }
+        @case ('blackjack') {
+          <app-blackjack-bonus [gameId]="1" [players]="players" [preview]="true" />
         }
         @case ('cavallo') {
           <app-cavallo-bonus [gameId]="1" [players]="players" [categories]="categories" [preview]="true" />
@@ -152,9 +205,9 @@ const PREVIEW_CARDS: PreviewCard[] = [
     }
     .bp-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: clamp(10px, 1.8vw, 22px);
-      max-width: 920px;
+      max-width: 1250px;
       margin: 0 auto;
     }
     .bp-card {
@@ -171,6 +224,9 @@ const PREVIEW_CARDS: PreviewCard[] = [
       transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
     }
     .bp-card:nth-child(2) { box-shadow: 8px 8px 0 var(--mustard); }
+    .bp-card:nth-child(3) { box-shadow: 8px 8px 0 var(--mint); }
+    .bp-card:nth-child(4) { box-shadow: 8px 8px 0 var(--acid); }
+    .bp-card:nth-child(5) { box-shadow: 8px 8px 0 var(--cobalt); }
     .bp-card:hover {
       transform: translate(-2px, -2px);
       box-shadow: 12px 12px 0 var(--coal);
@@ -276,7 +332,15 @@ const PREVIEW_CARDS: PreviewCard[] = [
       background: var(--acid);
       border-color: var(--paper);
     }
+    .bp-variants { display: inline-flex; align-items: center; gap: 4px; }
+    .bp-bar-sep {
+      align-self: stretch;
+      width: 1px;
+      margin: 0 2px;
+      background: color-mix(in srgb, var(--paper) 28%, transparent);
+    }
     @media (max-width: 900px) {
+      .bp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .bp-card { min-height: 250px; }
     }
     @media (max-width: 700px) {
@@ -322,6 +386,13 @@ export class BonusPreview {
       }),
     ),
     { initialValue: this.currentKind() },
+  );
+
+  readonly casinoVariants = CASINO_VARIANTS;
+
+  /** Colore, dozzina e numero secco sono lo stesso componente: la barra le gira. */
+  readonly casinoVariant = computed(() =>
+    CASINO_VARIANTS.some((variant) => variant.id === this.kind()),
   );
 
   private currentKind(): PreviewKind | null {

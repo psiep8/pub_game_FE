@@ -1,5 +1,23 @@
 # Changelog
 
+## 19 novembre 2026 — Il banco di prova copre tutti i bonus
+
+- **Cinque schede:** `/bonus-preview` elenca casino bianco/rosso, blackjack,
+  casino dozzina, cavallo e casino numero secco, nell'ordine degli atti. Le tre
+  varianti del casino sono lo stesso componente con `variant` COLOR/DOZEN/NUMBER:
+  nella barra c'è il selettore `BIANCO/ROSSO · DOZZINA · NUMERO SECCO` che le
+  gira senza tornare all'indice.
+- **Blackjack giocabile:** il bonus non aveva una modalità demo e restava 15
+  secondi per tavolo in attesa dei telefoni. Ora un input `preview` accorcia la
+  mano (4 s per decidere, 2 s di esito, 3 s di finale) e fa giocare il tavolo da
+  solo con la regola del banco a 17; la TV non passa l'input, quindi la serata
+  resta identica.
+- **Spec nuovo:** `bonus-preview.component.spec.ts` copre l'ordine delle cinque
+  schede, i link dell'indice, la route sconosciuta che torna all'indice, la
+  variante passata al componente per casino/dozzina/numero, blackjack e cavallo,
+  il selettore delle varianti, `?giocatori` e `?capture`.
+- Verifiche: suite completa **579 test su 65 file**, build di produzione.
+
 ## 19 novembre 2026 — I residui del banco di prova Biglie
 
 - **Foglio globale:** spariscono `app-bonus-preview .bp-live .bg-overlay` (la
