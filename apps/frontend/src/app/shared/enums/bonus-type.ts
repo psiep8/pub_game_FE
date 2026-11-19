@@ -17,7 +17,7 @@ export const BonusType = {
 export type BonusType = (typeof BonusType)[keyof typeof BonusType];
 
 export const BONUS_LABELS: Record<BonusType, string> = {
-  CASINO_COLOR: 'CASINO BIANCO/ROSSO',
+  CASINO_COLOR: 'CASINO NERO/ROSSO',
   BLACKJACK: 'BLACKJACK',
   CASINO_DOZEN: 'CASINO DOZZINA',
   CAVALLO: 'CAVALLO DI BATTAGLIA',

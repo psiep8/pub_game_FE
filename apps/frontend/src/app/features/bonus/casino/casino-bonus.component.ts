@@ -53,7 +53,6 @@ interface Manche {
 interface Pocket {
   number: number;
   fill: string;
-  light: boolean;
   path: string;
   labelX: number;
   labelY: number;
@@ -65,7 +64,7 @@ const CX = 300;
 const CY = 300;
 const OUTER_R = 240;
 const INNER_R = 148;
-const LABEL_R = 214;
+const LABEL_R = (OUTER_R + INNER_R) / 2;
 const ORBIT_R = 256;
 const POCKET_R = 184;
 const SEG = 360 / 37;
@@ -77,10 +76,10 @@ const WHEEL_ORDER = [
 ];
 const RED_NUMBERS = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
 
-/** Etichetta del colore: lo zero è del banco, gli altri numeri sono rossi o bianchi. */
-export function rouletteColorLabel(number: number): 'ROSSO' | 'BIANCO' | 'BANCO' {
+/** Etichetta del colore: lo zero è del banco, gli altri numeri sono rossi o neri. */
+export function rouletteColorLabel(number: number): 'ROSSO' | 'NERO' | 'BANCO' {
   if (number === 0) return 'BANCO';
-  return RED_NUMBERS.has(number) ? 'ROSSO' : 'BIANCO';
+  return RED_NUMBERS.has(number) ? 'ROSSO' : 'NERO';
 }
 
 function polar(radius: number, angleDeg: number): [number, number] {
@@ -90,7 +89,7 @@ function polar(radius: number, angleDeg: number): [number, number] {
 
 function pocketFill(number: number): string {
   if (number === 0) return 'url(#pocketGreen)';
-  return RED_NUMBERS.has(number) ? 'url(#pocketRed)' : 'url(#pocketWhite)';
+  return RED_NUMBERS.has(number) ? 'url(#pocketRed)' : 'url(#pocketBlack)';
 }
 
 const POCKETS: Pocket[] = WHEEL_ORDER.map((number, index) => {
@@ -113,7 +112,6 @@ const POCKETS: Pocket[] = WHEEL_ORDER.map((number, index) => {
   return {
     number,
     fill: pocketFill(number),
-    light: number !== 0 && !RED_NUMBERS.has(number),
     path,
     labelX: lx,
     labelY: ly,
@@ -125,8 +123,8 @@ const MANCHES: Manche[] = [
   {
     id: 'COLOR',
     title: 'COLORE',
-    rule: 'Bianco o rosso: 100 punti.',
-    options: ['BIANCO', 'ROSSO'],
+    rule: 'Nero o rosso: 100 punti.',
+    options: ['NERO', 'ROSSO'],
     seconds: 10,
     points: 100,
   },
@@ -238,10 +236,10 @@ const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
                   <stop offset="45%" stop-color="#b91c1c" />
                   <stop offset="100%" stop-color="#671414" />
                 </linearGradient>
-                <linearGradient id="pocketWhite" x1="0" y1="0" x2="0.35" y2="1">
-                  <stop offset="0%" stop-color="#fff8e8" />
-                  <stop offset="55%" stop-color="#f1e4c9" />
-                  <stop offset="100%" stop-color="#cbbd9e" />
+                <linearGradient id="pocketBlack" x1="0" y1="0" x2="0.35" y2="1">
+                  <stop offset="0%" stop-color="#35352a" />
+                  <stop offset="55%" stop-color="#23231a" />
+                  <stop offset="100%" stop-color="#0c0c08" />
                 </linearGradient>
                 <linearGradient id="pocketGreen" x1="0" y1="0" x2="0.35" y2="1">
                   <stop offset="0%" stop-color="#22c55e" />
@@ -285,7 +283,6 @@ const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
                     stroke-width="1" />
                   <text
                     class="pocket-label"
-                    [class.pocket-label-light]="pocket.light"
                     [attr.x]="pocket.labelX"
                     [attr.y]="pocket.labelY"
                     [attr.transform]="pocket.labelTransform">{{ pocket.number }}</text>
@@ -512,10 +509,6 @@ const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
       stroke: #15150f;
       stroke-width: 1.4px;
       paint-order: stroke fill;
-    }
-    .pocket-label.pocket-label-light {
-      fill: #15150f;
-      stroke: transparent;
       font-family: var(--font-mono, monospace);
       font-size: 15.5px;
       font-weight: 800;
@@ -709,7 +702,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.manches = MANCHES.filter((manche) => manche.id === this.variant);
-    const label = this.variant === 'NUMBER' ? 'NUMERO SECCO' : this.variant === 'DOZEN' ? 'DOZZINA' : 'BIANCO/ROSSO';
+    const label = this.variant === 'NUMBER' ? 'NUMERO SECCO' : this.variant === 'DOZEN' ? 'DOZZINA' : 'NERO/ROSSO';
     this.title.set(`CASINO · ${label}`);
     this.rule.set(this.manches[0]?.rule ?? 'Una sola puntata.');
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
@@ -831,7 +824,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
       case 'NUMBER':
         return 'La finale: una sola puntata sul numero secco. Se nessuno prende il numero uscito, la ruota rigira.';
       default:
-        return 'Una sola puntata sul colore: bianco o rosso. La pallina esce una volta sola e il colore giusto vale 100 punti.';
+        return 'Una sola puntata sul colore: nero o rosso. La pallina esce una volta sola e il colore giusto vale 100 punti.';
     }
   }
 

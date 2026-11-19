@@ -87,7 +87,7 @@ Bonus, uno dentro ognuno dei cinque atti:
 
 | Atto | Bonus | Punti |
 | --- | --- | --- |
-| 1 | 🎰 Casino bianco/rosso | +100 |
+| 1 | 🎰 Casino nero/rosso | +100 |
 | 2 | 🃏 Blackjack | +150 vittoria / +75 pari |
 | 3 | 🎰 Casino dozzina | +120 |
 | 4 | 🐎 Cavallo di Battaglia | +200 / +100 / +50 |
@@ -195,8 +195,8 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 
 Non consumano un round: la TV li apre da sola in **un round interno dell'atto**, scelto all'inizio della serata tra il secondo, il terzo, il quinto, il sesto e il settimo (mai l'apertura, mai il quarto con la classifica rapida, mai l'ultimo); la regia può lanciarli anche a mano. I punti entrano in classifica **una sola volta, alla chiusura del bonus**; nessun bonus toglie punti.
 
-### 🎰 Casino bianco/rosso — nell'atto 1
-- Una sola manche: ogni tavolo sceglie **bianco o rosso**.
+### 🎰 Casino nero/rosso — nell'atto 1
+- Una sola manche: ogni tavolo sceglie **nero o rosso**.
 - La roulette europea gira una volta; il colore giusto vale **+100**, lo zero incassa per il banco.
 - *Da dire:* «Una puntata, un colore, un giro: qui conta il fegato.»
 

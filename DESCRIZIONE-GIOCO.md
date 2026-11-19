@@ -79,7 +79,7 @@ accreditati **una sola volta, alla chiusura**.
 
 | Atto | Bonus | Come funziona | Punti |
 | --- | --- | --- | --- |
-| 1 | **Casino bianco/rosso** | Una manche sul colore, un giro di roulette | +100 |
+| 1 | **Casino nero/rosso** | Una manche sul colore, un giro di roulette | +100 |
 | 2 | **Blackjack** | Un turno per tavolo, 15 s, banco a 17 | +150 vittoria / +75 pari |
 | 3 | **Casino dozzina** | Una manche su 1–12, 13–24 o 25–36 | +120 |
 | 4 | **Cavallo di battaglia** | Categoria votata, otto domande flash | podio +200 / +100 / +50 |

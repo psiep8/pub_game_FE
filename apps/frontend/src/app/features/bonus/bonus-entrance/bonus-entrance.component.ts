@@ -182,7 +182,7 @@ export class BonusEntrance {
       case 'CASINO_DOZEN': return 'DODICI PER VOLTA';
       case 'CAVALLO': return 'CAVALLO DI BATTAGLIA';
       case 'CASINO_NUMBER': return 'UN NUMERO, TUTTO';
-      default: return 'BIANCO O ROSSO';
+      default: return 'NERO O ROSSO';
     }
   }
 

@@ -134,7 +134,7 @@ export class RoundManagerService {
   /**
    * Bonus previsto dopo il round appena concluso, se quel round è uno slot.
    *
-   * I cinque bonus (Casino bianco/rosso, Blackjack, Casino dozzina, Cavallo di
+   * I cinque bonus (Casino nero/rosso, Blackjack, Casino dozzina, Cavallo di
    * Battaglia e Casino numero secco) sono sparsi dentro gli atti, uno per atto:
    * il seme sceglie in quale round interno cade, e la scelta resta per tutta la
    * serata. I punti entrano in classifica alla chiusura del bonus stesso.

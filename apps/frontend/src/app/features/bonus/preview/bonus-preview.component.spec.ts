@@ -102,7 +102,7 @@ describe('BonusPreview — il banco di prova dei cinque bonus', () => {
     expect(fixture.nativeElement.querySelector('.bp-live')).toBeFalsy();
   });
 
-  it('apre il casino bianco/rosso', () => {
+  it('apre il casino nero/rosso', () => {
     const fixture = mount('casino');
 
     expect(casino(fixture)?.variant).toBe('COLOR');
@@ -147,7 +147,7 @@ describe('BonusPreview — il banco di prova dei cinque bonus', () => {
     );
 
     expect(variants.map((link) => link.textContent?.trim())).toEqual([
-      'BIANCO/ROSSO',
+      'NERO/ROSSO',
       'DOZZINA',
       'NUMERO SECCO',
     ]);

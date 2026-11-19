@@ -36,7 +36,7 @@ describe('CasinoBonus — ripresa dopo un refresh della TV', () => {
 
     expect(component.phase()).toBe(component.Phase.PICK);
     expect(component.secondsLeft()).toBe(5);
-    expect(component.options()).toEqual(['BIANCO', 'ROSSO']);
+    expect(component.options()).toEqual(['NERO', 'ROSSO']);
     expect(component.votesView()).toEqual([{ playerName: 'Anna', choice: 'ROSSO' }]);
     expect(component.totals()).toEqual([{ playerName: 'Anna', score: 100 }]);
 
@@ -67,7 +67,7 @@ describe('CasinoBonus — ripresa dopo un refresh della TV', () => {
     fixture.componentRef.setInput('players', ['Anna', 'Bruno']);
     fixture.componentRef.setInput('variant', 'COLOR');
     fixture.componentRef.setInput('resume', {
-      votes: [{ playerName: 'Anna', choice: 'BIANCO' }],
+      votes: [{ playerName: 'Anna', choice: 'NERO' }],
       scores: [],
       secondsLeft: 2,
       savedAt: Date.now() - 60_000,
@@ -79,7 +79,7 @@ describe('CasinoBonus — ripresa dopo un refresh della TV', () => {
 
     // Il voto non si riapre: la manche era già scaduta, la ruota riparte.
     expect(spin).toHaveBeenCalled();
-    expect(component.votesView()).toEqual([{ playerName: 'Anna', choice: 'BIANCO' }]);
+    expect(component.votesView()).toEqual([{ playerName: 'Anna', choice: 'NERO' }]);
     fixture.destroy();
   });
 });

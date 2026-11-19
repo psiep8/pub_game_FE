@@ -1,5 +1,20 @@
 # Changelog
 
+## 19 novembre 2026 — La roulette torna nera e i numeri tornano al centro
+
+- **Vani neri:** i numeri non rossi erano dipinti con il gradiente `pocketWhite`
+  e la puntata si chiamava BIANCO. Ora il gradiente è `pocketBlack` (con i toni
+  del foglio globale), la puntata è NERO e `rouletteColorLabel` restituisce
+  NERO: aggiornati l'etichetta del bonus, il manuale, la demo TV, l'ingresso
+  scenografico, l'admin, la nota dei punteggi, il README e i manuali HTML.
+- **Numeri centrati:** `text-anchor`, `dominant-baseline` e il font stavano solo
+  nella regola `.pocket-label-light`, quindi sui vani rossi il numero partiva
+  dal bordo del vano. Ora sono nella regola base e l'etichetta sta a metà del
+  vano (`LABEL_R` = (240 + 148) / 2 = 194): scarto misurato fra ancora e centro
+  del testo **0,38 px** su tutte e 37 le caselle.
+- Verifiche: suite completa **581 test su 65 file**, build di produzione; ruota
+  guardata a 720p.
+
 ## 19 novembre 2026 — Banco di prova: il timer demo e la verifica a 720p
 
 - **Il timer non taglia le scelte demo:** nel blackjack del banco di prova non

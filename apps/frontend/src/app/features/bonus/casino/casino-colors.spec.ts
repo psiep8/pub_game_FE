@@ -11,9 +11,9 @@ describe('rouletteColorLabel', () => {
     }
   });
 
-  it('chiama bianchi tutti gli altri numeri', () => {
+  it('chiama neri tutti gli altri numeri', () => {
     for (const number of [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35]) {
-      expect(rouletteColorLabel(number), `numero ${number}`).toBe('BIANCO');
+      expect(rouletteColorLabel(number), `numero ${number}`).toBe('NERO');
     }
   });
 });

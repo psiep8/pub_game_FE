@@ -149,11 +149,6 @@ app-casino-bonus .pocket-label {
   paint-order: stroke fill;
   font-family: var(--font-mono) !important;
 }
-app-casino-bonus .pocket-label.pocket-label-light {
-  fill: var(--coal) !important;
-  stroke: transparent !important;
-  stroke-width: 0 !important;
-}
 app-casino-bonus .pocket-win {
   stroke: var(--acid) !important;
   stroke-width: 5 !important;

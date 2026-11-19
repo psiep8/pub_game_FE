@@ -23,8 +23,8 @@ const PREVIEW_CARDS: PreviewCard[] = [
     id: 'casino',
     icon: '🔴',
     title: 'CASINO',
-    subtitle: 'BIANCO/ROSSO · UNA MANCHE',
-    note: 'Una sola puntata sul colore: bianco o rosso, poi la ruota decide.',
+    subtitle: 'NERO/ROSSO · UNA MANCHE',
+    note: 'Una sola puntata sul colore: nero o rosso, poi la ruota decide.',
   },
   {
     id: 'blackjack',
@@ -60,7 +60,7 @@ const PREVIEW_TYPES: readonly PreviewKind[] = PREVIEW_CARDS.map((card) => card.i
 
 /** Le tre varianti del casino: il componente è lo stesso, cambia la manche. */
 const CASINO_VARIANTS = [
-  { id: 'casino', label: 'BIANCO/ROSSO' },
+  { id: 'casino', label: 'NERO/ROSSO' },
   { id: 'dozzina', label: 'DOZZINA' },
   { id: 'numero', label: 'NUMERO SECCO' },
 ] as const satisfies readonly { id: PreviewKind; label: string }[];
