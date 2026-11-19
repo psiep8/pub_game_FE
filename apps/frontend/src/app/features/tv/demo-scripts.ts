@@ -448,7 +448,7 @@ const introScenes: DemoScene[] = [
     lines: [
       `${TOTAL_ROUNDS} round divisi in ${ACT_DECKS.length} atti da ${ROUNDS_PER_ACT}.`,
       'Classifica rapida a metà atto, dettagliata a fine atto.',
-      `Bonus previsti: ${BONUS_AFTER_ACT.map((type, index) => type ? `atto ${index + 1} ${BONUS_LABELS[type]}` : null).filter(Boolean).join(', ')}. Dopo l’atto 5 si chiude con la classifica finale.`,
+      `Un bonus per atto, in un round interno scelto dal seme: ${BONUS_AFTER_ACT.map((type, index) => type ? `atto ${index + 1} ${BONUS_LABELS[type]}` : null).filter(Boolean).join(', ')}. Dopo l’atto 5 si chiude con la classifica finale.`,
     ],
   },
   {
@@ -486,7 +486,7 @@ const introScript: DemoScript = {
   kind: 'INTRO',
   scenes: introScenes,
   scoring: [],
-  note: 'Quaranta round, cinque atti, tre bonus programmati. Il presentatore avvia ogni round dalla regia o dalla TV.',
+  note: 'Quaranta round, cinque atti, cinque bonus sparsi nei round degli atti. Il presentatore avvia ogni round dalla regia o dalla TV.',
 };
 
 function makeGameScript(type: GameModeType, copy: DemoCopy): DemoScript {

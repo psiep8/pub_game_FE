@@ -225,13 +225,13 @@ const GAME_COPY: Record<GameModeType, EntryCopy> = {
     name: 'BIGLIE',
     icon: '🎱',
     summary: 'Quattro round separati, due gare per round: una biglia per tavolo e punti in classifica.',
-    objective: 'Scegliere una biglia e portarla al traguardo su due delle otto piste — rally, F1, neve, acqua, vetro, sabbia, spazio, magma — scelte dal seme; ogni gara assegna 150/100/60/30.',
+    objective: 'Scegliere una biglia e portarla al traguardo su due delle otto piste — rally, F1, neve, acqua, vetro, sabbia, spazio, magma — scelte dal seme; ogni gara assegna 150/100/60/30 ai primi quattro e −30/−60/−100/−150 agli ultimi quattro.',
     phone: [
       'Quando la TV chiama il tuo tavolo scegli la biglia.',
       'La biglia resta la stessa per le due gare del round.',
       'Segui le piste in TV: i punti arrivano all’ordine d’arrivo.',
     ],
-    tip: 'I punti di ogni gara entrano subito in classifica; il round si chiude dopo la seconda gara.',
+    tip: 'I punti di ogni gara entrano subito in classifica: vincere paga, arrivare in fondo costa.',
   },
 };
 
@@ -340,7 +340,7 @@ export const MANUAL_SECTIONS: readonly ManualSection[] = [
     lines: [
       `${TOTAL_ROUNDS} round divisi in ${ACT_DECKS.length} atti da ${ROUNDS_PER_ACT}.`,
       `Classifica rapida dopo i round ${QUICK_LEADERBOARD_ROUNDS.join(', ')}; dettagliata dopo ${DETAILED_LEADERBOARD_ROUNDS.join(', ')}.`,
-      `Bonus previsti: ${bonusActs.join(', ')}. Dopo l’atto 5 si chiude con la classifica finale.`,
+      `Un bonus per atto, in un round interno scelto all’inizio della serata: ${bonusActs.join(', ')}. Dopo l’atto 5 si chiude con la classifica finale.`,
     ],
   },
   {

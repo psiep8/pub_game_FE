@@ -138,7 +138,7 @@ priorità.
 
 ## Biglie — specifica da implementare in blocchi isolati
 
-**Feedback:** bellissimo. Non cambiare scelta unica delle biglie, regole dei punti o risultato senza una decisione separata. **Stato al 18 novembre 2026:** otto piste (rally, F1, neve, acqua, vetro, sabbia, spazio, magma), **due gare per round** scelte dal seme e numerate 1–8 nella serata, punti per gara **150/100/60/30**, pista da **12.000 px** con corsia stretta e tornanti. La gara **chiude all'arrivo dell'ultima biglia** (misurata 47–66 s), con **70 s** di conto alla rovescia in TV e **120 s** di sola rete di sicurezza: il vecchio taglio a 38 s non esiste più. Resta valido il resto: un limite a 45 s o una validazione che scarta chi non arriva sarebbero un requisito distinto da concordare, non un cambio nascosto.
+**Feedback:** bellissimo. Non cambiare scelta unica delle biglie, regole dei punti o risultato senza una decisione separata. **Stato al 18 novembre 2026:** otto piste (rally, F1, neve, acqua, vetro, sabbia, spazio, magma), **due gare per round** scelte dal seme e numerate 1–8 nella serata, punti per gara **150/100/60/30** ai primi quattro e **−30/−60/−100/−150** agli ultimi quattro (penalità introdotta con la 2.1.0), pista da **12.000 px** con corsia stretta e tornanti. La gara **chiude all'arrivo dell'ultima biglia** (misurata 47–66 s), con **70 s** di conto alla rovescia in TV e **120 s** di sola rete di sicurezza: il vecchio taglio a 38 s non esiste più. Resta valido il resto: un limite a 45 s o una validazione che scarta chi non arriva sarebbero un requisito distinto da concordare, non un cambio nascosto.
 
 ### Diagnosi confrontata con il codice
 

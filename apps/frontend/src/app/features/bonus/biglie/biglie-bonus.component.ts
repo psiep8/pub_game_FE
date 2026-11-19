@@ -137,7 +137,12 @@ interface RaceRow {
   total: number;
 }
 
-const RACE_POINTS = [150, 100, 60, 30];
+/**
+ * Punti per gara, nell'ordine d'arrivo: i primi quattro guadagnano, gli ultimi
+ * quattro pagano il piazzamento. Le Biglie sono un round, quindi anche la coda
+ * della classifica pesa.
+ */
+const RACE_POINTS = [150, 100, 60, 30, -30, -60, -100, -150];
 const INTRO_SECONDS = 4;
 const PICK_SECONDS = 10;
 /**
@@ -180,12 +185,14 @@ const BETWEEN_SECONDS = 4;
 const FINALE_SECONDS = 7;
 
 /**
- * BIGLIE — bonus di fine atto 4.
+ * BIGLIE — round di serata (e banco di prova).
  *
  * Una biglia per tavolo, tutte diverse e mai condivise. La scelta si fa una
  * volta sola, in ordine sorteggiato: chi è ultimo prende quella che resta.
  * Poi due gare del round, su due delle otto piste scelte dal seme, con punti
- * cumulativi: il profilo che vince una gara affonda nella successiva.
+ * cumulativi: il profilo che vince una gara affonda nella successiva. I punti
+ * seguono l'ordine d'arrivo in entrambe le direzioni: +150/+100/+60/+30 ai
+ * primi quattro, −30/−60/−100/−150 agli ultimi quattro.
  */
 @Component({
   selector: 'app-biglie-bonus',
@@ -221,7 +228,8 @@ const FINALE_SECONDS = 7;
               </div>
               <p class="bg-hint">
                 Una biglia a testa, scelta una volta sola in ordine sorteggiato.
-                Due gare, punti cumulativi: 150 / 100 / 60 / 30 a gara.
+                Due gare, punti cumulativi: 150 / 100 / 60 / 30 ai primi,
+                −30 / −60 / −100 / −150 agli ultimi.
                 {{ roundMode ? 'I punti delle gare entrano nella classifica della serata.' : '' }}
               </p>
             </div>
@@ -253,7 +261,7 @@ const FINALE_SECONDS = 7;
               <span class="bg-surface" [style.background]="currentTrack()?.tint">
                 {{ currentTrack()?.emoji }} {{ currentTrack()?.surface }}
               </span>
-              <span class="bg-hint">Punti gara: 150 · 100 · 60 · 30 · due gare per round, punti cumulativi</span>
+              <span class="bg-hint">Punti gara: 150 · 100 · 60 · 30 · −30 · −60 · −100 · −150 · due gare per round</span>
               <span class="bg-race-clock" [class.hot]="secondsLeft() <= 4">{{ secondsLeft() }}s</span>
             </div>
             <div class="bg-race-stage">
@@ -275,7 +283,7 @@ const FINALE_SECONDS = 7;
                   <span class="bg-row-pos">{{ i + 1 }}</span>
                   <span class="bg-row-name">{{ row.playerName }}</span>
                   <span class="bg-row-marble">{{ marbleEmoji(row.marbleId) }} {{ marbleName(row.marbleId) }}</span>
-                  <b class="bg-row-points">{{ row.points > 0 ? '+' + row.points : '0' }}</b>
+                  <b class="bg-row-points">{{ signedPoints(row.points) }}</b>
                   <span class="bg-row-total">{{ row.total }}</span>
                 </div>
               }
@@ -682,6 +690,13 @@ export class BiglieBonus implements OnInit, OnDestroy {
 
   pct(value: number): number {
     return Math.round(Number(value) || 0);
+  }
+
+  /** Punti con il segno: le Biglie pagano e tolgono. */
+  signedPoints(value: number): string {
+    const points = Number(value) || 0;
+    if (points === 0) return '0';
+    return points > 0 ? `+${points}` : `−${Math.abs(points)}`;
   }
 
   marbleColor(id: string): string {
@@ -1526,7 +1541,9 @@ export class BiglieBonus implements OnInit, OnDestroy {
       const total = (this.totals.get(marble.playerName) ?? 0) + points;
       this.totals.set(marble.playerName, total);
 
-      if (points > 0) {
+      // Anche i piazzamenti negativi entrano in classifica: senza l'emit il
+      // quinto resterebbe a zero invece di pagare la sua gara.
+      if (points !== 0) {
         this.result.emit({ playerName: marble.playerName, score: points });
       }
 

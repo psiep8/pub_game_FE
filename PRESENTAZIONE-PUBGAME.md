@@ -191,31 +191,31 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 
 ---
 
-## 6. I bonus di fine atto
+## 6. I bonus dentro gli atti
 
-Non consumano un round: si lanciano dal pannello admin dopo la classifica dell'atto. I punti entrano in classifica **una sola volta, alla chiusura del bonus**.
+Non consumano un round: la TV li apre da sola in **un round interno dell'atto** (mai il primo, mai l'ultimo, scelto all'inizio della serata), e la regia può lanciarli anche a mano. I punti entrano in classifica **una sola volta, alla chiusura del bonus**; nessun bonus toglie punti.
 
-### 🎰 Casino bianco/rosso — dopo l'atto 1
+### 🎰 Casino bianco/rosso — nell'atto 1
 - Una sola manche: ogni tavolo sceglie **bianco o rosso**.
 - La roulette europea gira una volta; il colore giusto vale **+100**, lo zero incassa per il banco.
 - *Da dire:* «Una puntata, un colore, un giro: qui conta il fegato.»
 
-### 🃏 Blackjack — dopo l'atto 2
+### 🃏 Blackjack — nell'atto 2
 - Un turno per tavolo, dal fondo della classifica: **15 secondi**, CARTA o STAI.
 - Il banco si ferma a **17**. Vittoria **+150**, pari **+75**, sconfitta **0**.
 - *Da dire:* «Il banco non aspetta: fermatevi prima di sballare.»
 
-### 🎰 Casino dozzina — dopo l'atto 3
+### 🎰 Casino dozzina — nell'atto 3
 - Una sola manche su **1–12, 13–24 o 25–36**.
 - La pallina esce una volta; la dozzina giusta vale **+120**, lo zero non paga nessuno.
 - *Da dire:* «Dodici numeri per volta: scegliete la fetta giusta.»
 
-### 🐎 Cavallo di Battaglia — dopo l'atto 4
+### 🐎 Cavallo di Battaglia — nell'atto 4
 - La categoria la votano i telefoni; poi **otto domande difficili**, una dietro l'altra.
 - La TV mostra countdown e tabellone; il podio vale **+200 / +100 / +50**.
 - *Da dire:* «La domanda è sul telefono: guardate il tabellone e correte.»
 
-### 🎯 Casino numero secco — dopo l'atto 5
+### 🎯 Casino numero secco — nell'atto 5
 - Una sola puntata su un numero da **0 a 36**; la ruota rigira finché almeno un tavolo ha puntato il numero uscito.
 - Numero esatto **+300**. Poi la TV mostra la **classifica finale aggiornata**.
 - *Da dire:* «Un numero, tutto: l'ultima carta della serata.»

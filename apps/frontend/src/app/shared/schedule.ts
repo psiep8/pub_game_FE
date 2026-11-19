@@ -41,7 +41,7 @@ export const SCHEDULE: readonly GameModeType[] = ACT_DECKS.flat();
 export const QUICK_LEADERBOARD_ROUNDS = [4, 12, 20, 28, 36] as const;
 export const DETAILED_LEADERBOARD_ROUNDS = [8, 16, 24, 32, 40] as const;
 
-/** Un bonus diverso dopo ognuno dei cinque atti. */
+/** Un bonus diverso per ognuno dei cinque atti. */
 export const BONUS_AFTER_ACT: readonly (BonusType | null)[] = [
   'CASINO_COLOR',
   'BLACKJACK',
@@ -49,6 +49,57 @@ export const BONUS_AFTER_ACT: readonly (BonusType | null)[] = [
   'CAVALLO',
   'CASINO_NUMBER',
 ];
+
+/**
+ * Round di un atto in cui può cadere il bonus: mai l'apertura, mai l'ultimo
+ * round (che ha la classifica dettagliata) e mai il quarto (classifica rapida).
+ */
+export const BONUS_ROUND_SLOTS = [2, 3, 5, 6, 7] as const;
+
+/** Un bonus e il round dopo il quale si gioca (1-based). */
+export interface BonusSlot {
+  act: number;
+  type: BonusType;
+  round: number;
+}
+
+/** PRNG piccolo e deterministico: lo stesso seme dà sempre la stessa serata. */
+function seededRandom(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let value = state;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * Sparpaglia i cinque bonus dentro gli atti: uno per atto, in un round interno
+ * scelto dal seme. La posizione resta la stessa per tutta la serata, anche
+ * dopo un refresh, perché il seme vive nello stato del round manager.
+ */
+export function planBonusSlots(seed: number): BonusSlot[] {
+  const next = seededRandom(seed);
+  return BONUS_AFTER_ACT.flatMap((type, act) => {
+    if (!type) return [];
+    const slots = [...BONUS_ROUND_SLOTS];
+    for (let index = slots.length - 1; index > 0; index--) {
+      const swap = Math.floor(next() * (index + 1));
+      [slots[index], slots[swap]] = [slots[swap], slots[index]];
+    }
+    return [{ act, type, round: act * ROUNDS_PER_ACT + slots[0] }];
+  });
+}
+
+/** Il bonus che cade dopo il round indicato (1-based), se c'è. */
+export function bonusForRound(
+  slots: readonly BonusSlot[],
+  round: number,
+): BonusSlot | null {
+  return slots.find((slot) => slot.round === round) ?? null;
+}
 
 /** Le modalità della scaletta senza doppioni, nell'ordine della prima uscita. */
 export function scheduledModes(): GameModeType[] {

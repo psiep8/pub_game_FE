@@ -23,7 +23,7 @@ La versione è **2.1.0**. Il codice è la fonte di verità: se una frase di ques
 - **Telefoni (`/play`)**: ogni squadra entra con un nickname e gioca dal browser. In attesa può aprire il **Manuale dei giochi**; durante un round il manuale si chiude e il pulsante sparisce.
 - **Regia (`/admin`)**: il presentatore avvia e chiude i round, mette in pausa, mostra le classifiche, lancia i bonus e apre le demo. Non è un pannello di voto: le risposte arrivano dai telefoni.
 
-La serata è una scaletta fissa di **40 round divisi in 5 atti da 8** (`shared/schedule.ts`). Dopo i round **4, 12, 20, 28 e 36** compare la classifica rapida; dopo **8, 16, 24, 32 e 40** quella dettagliata. Le **Biglie sono quattro round separati** (11, 22, 28, 37), ognuno con due gare su due delle otto piste (rally, F1, neve, acqua, vetro, sabbia, spazio, magma); il **Blackjack non è più in scaletta** e resta solo come bonus. Dopo **ognuno** dei cinque atti parte un bonus diverso: Casino bianco/rosso, Blackjack, Casino dozzina, Cavallo e Casino numero secco. I punti del bonus entrano in classifica alla chiusura; dopo l'ultimo si chiude con la classifica finale.
+La serata è una scaletta fissa di **40 round divisi in 5 atti da 8** (`shared/schedule.ts`). Dopo i round **4, 12, 20, 28 e 36** compare la classifica rapida; dopo **8, 16, 24, 32 e 40** quella dettagliata. Le **Biglie sono quattro round separati** (11, 22, 28, 37), ognuno con due gare su due delle otto piste (rally, F1, neve, acqua, vetro, sabbia, spazio, magma); il **Blackjack non è più in scaletta** e resta solo come bonus. In **un round interno di ognuno** dei cinque atti (mai il primo, mai l'ultimo, scelto dal seme all'inizio della serata) parte un bonus diverso: Casino bianco/rosso, Blackjack, Casino dozzina, Cavallo e Casino numero secco. I punti del bonus entrano in classifica alla chiusura; solo i punti sono in gioco, nessun bonus toglie punti.
 
 Una serata completa dura indicativamente **3–4 ore**: è una stima, non un dato misurato, e dipende da quanto il presentatore allunga i tempi tra un round e l'altro. Il numero di telefoni consigliato è **4–10 squadre**; il codice non impone un limite rigido.
 
@@ -42,20 +42,20 @@ I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring
 | **Bomba** | Rischio | Un tabellone, un turno per squadra; quasi tutte le caselle sono vere, una ogni tre squadre è falsa. | Casella vera: **0** e si passa il turno; falsa scelta: **−200** e fuori dal round; chi non sceglie in tempo è **eliminato** (**−200**) e salta le ondate successive. Durante l'ondata le caselle restano coperte: bombe, eliminati e penalità si scoprono solo alla fine. |
 | **Speed Rush** | Riflessi | 90 secondi di risposte lampo; la corsia avanza a ogni risposta giusta. | **500** al primo, poi a scalare; minimo **100**; prendono punti solo i primi **n/2**. Progressi, arrivi e punti arrivano dal server; le prove non si ripetono e salgono di difficoltà. |
 | **Tennis Battle** | Riflessi | Duello a coppie: ogni risposta rimanda la palla; punteggio da tennis (15, 30, 40, vantaggio) e killer point dopo tre ritorni dal vantaggio. Le domande salgono da facili a difficili e il disco arriva dritto, a zig-zag, a giro o a salto. | **+1000** al vincitore, **+200** di consolazione al perdente; ogni gol subito è un gol per l'avversario. |
-| **Biglie** | Fortuna / spettacolo | Corsa di biglie su una pista con curve e ostacoli, disegnata e simulata dalla TV con la stessa geometria. Ogni tavolo sceglie una biglia una sola volta e la porta nelle due gare del round; non si gioca dal telefono durante la corsa. | **+150 / +100 / +60 / +30** a gara (primi quattro); chi arriva dopo prende **0**. |
+| **Biglie** | Fortuna / spettacolo | Corsa di biglie su una pista con curve e ostacoli, disegnata e simulata dalla TV con la stessa geometria. Ogni tavolo sceglie una biglia una sola volta e la porta nelle due gare del round; non si gioca dal telefono durante la corsa. | **+150 / +100 / +60 / +30** ai primi quattro di ogni gara; **−30 / −60 / −100 / −150** agli ultimi quattro, in base all'arrivo. |
 | **Azzardo** | Rischio | Quattro manche numeriche; dieci fiches da 20 punti da distribuire sulle quattro risposte. | Fiche giusta: **+20 × quota** (×2 facile, ×3 media, ×4 difficile); fiche sbagliate: **−20 × fiche × 100/80/60/40%**; mai sotto zero. La puntata parte solo con **CONFERMA PUNTATA** e almeno una fiche; le fiches avanzate si sommano alle dieci nuove e alzano il tetto di una fiche ogni due risparmiate (max **15**, quindi al massimo **+1000** in una manche). |
 | **Ultima spiaggia** | Rischio / sapere | Cinque livelli da 100 a 500, una volta per squadra in tutta la serata; una categoria per occorrenza. | **+100 / +200 / +300 / +400 / +500**; errore **−50 / −100 / −150 / −200 / −250**; chi non risponde perde metà del livello scelto. |
 | **Arena Battle Royale** | Sapere + riflessi | Battle royale a domande rapide dentro un cerchio che si chiude. | **+10 / −10** per risposta; piazzamento **+1000 / +500 / −300**. |
 
 ### I bonus della serata
 
-| Bonus | Dopo | Come funziona | Punti |
+| Bonus | Quando | Come funziona | Punti |
 |---|---|---|---|
-| **Casino bianco/rosso** | atto 1 | Una sola manche sul colore; la ruota europea gira una volta. | Colore giusto **+100**; zero: banco. |
-| **Blackjack** | atto 2 | Un turno per tavolo, 15 s, carta o stai; il banco si ferma a 17. | Vittoria **+150**, pari **+75**, sconfitta **0**. |
-| **Casino dozzina** | atto 3 | Una sola manche su 1–12, 13–24 o 25–36. | Dozzina giusta **+120**. |
-| **Cavallo di battaglia** | atto 4 | Categoria votata dai telefoni, otto domande flash. | Podio **+200 / +100 / +50**. |
-| **Casino numero secco** | atto 5 | Una puntata su un numero da 0 a 36; la ruota rigira finché qualcuno lo ha puntato. | Numero esatto **+300**. |
+| **Casino bianco/rosso** | in un round dell'atto 1 | Una sola manche sul colore; la ruota europea gira una volta. | Colore giusto **+100**; zero: banco. |
+| **Blackjack** | in un round dell'atto 2 | Un turno per tavolo, 15 s, carta o stai; il banco si ferma a 17. | Vittoria **+150**, pari **+75**, sconfitta **0**. |
+| **Casino dozzina** | in un round dell'atto 3 | Una sola manche su 1–12, 13–24 o 25–36. | Dozzina giusta **+120**. |
+| **Cavallo di battaglia** | in un round dell'atto 4 | Categoria votata dai telefoni, otto domande flash. | Podio **+200 / +100 / +50**. |
+| **Casino numero secco** | in un round dell'atto 5 | Una puntata su un numero da 0 a 36; la ruota rigira finché qualcuno lo ha puntato. | Numero esatto **+300**. |
 
 **I punti dei bonus entrano nella classifica della serata una sola volta, alla chiusura del bonus.** Dopo il bonus dell’atto 5 la TV mostra la classifica finale aggiornata.
 
@@ -157,7 +157,7 @@ npm run build:frontend   # ng build
 npm run build:backend    # Maven package
 ```
 
-Il frontend ha **62 file di spec (525 test al 19 novembre 2026)**; il backend **30 file di test**. Le verifiche coprono, tra l'altro: regole di punteggio e scaletta, contenuti del manuale, copertura delle demo, round manager, apertura/chiusura del manuale sul telefono, modalità TV, sessioni e riconnessione, prova dei pulsanti, API e servizi del backend.
+Il frontend ha **62 file di spec (528 test al 19 novembre 2026)**; il backend **30 file di test**. Le verifiche coprono, tra l'altro: regole di punteggio e scaletta, contenuti del manuale, copertura delle demo, round manager, apertura/chiusura del manuale sul telefono, modalità TV, sessioni e riconnessione, prova dei pulsanti, API e servizi del backend.
 
 **Limiti noti dei test**: la suite frontend deve compilare per intero (un solo errore TypeScript in una spec ferma tutti i test);  non esiste ancora una prova end-to-end multi-dispositivo in rete; i controlli visivi sono manuali (TV e telefono); i timer dichiarati dal client non sono interamente verificabili dal server.
 
@@ -192,7 +192,7 @@ Il registro completo dei difetti emersi nella prima serata (F01–F55), con stat
 
 **Pronto**
 
-- Scaletta di 40 round in 5 atti, 13 modalità e 5 bonus a fine atto.
+- Scaletta di 40 round in 5 atti, 13 modalità e 5 bonus sparsi nei round degli atti.
 - Ingresso con QR, squadre con token, ripresa dopo refresh o cambio dispositivo; la TV e la regia riprendono la maggior parte dei giochi e dei bonus dopo un refresh (matrice in `docs/ROADMAP-POST-PRIMA-SERATA.md`).
 - Manuale dei giochi sul telefono, apribile solo fuori dai round.
 - Sezione Demo nell'admin (introduzione, 13 giochi, 5 bonus) con tabella punti generata da `SCORING_RULES`.

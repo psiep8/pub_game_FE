@@ -78,7 +78,7 @@ giusta o sbagliata, e quando la serata avanza.
 | **⏸️ PAUSA / RIPRENDI** | Copre TV e telefoni e ferma i timer. | Imprevisto, telefono da sistemare. |
 | **↺ RIVEDI INTRO** | Rimette la presentazione iniziale in TV. | Per ripetere le regole. |
 | **🎄 NATALE ON/OFF** | Tema natalizio su TV e telefoni. | Solo estetica, non cambia i punti. |
-| **🎰 🃏 🐎 BONUS** | Apre il bonus dell’atto. | Dopo la classifica di fine atto. |
+| **🎰 🃏 🐎 BONUS** | Apre il bonus dell’atto. | La TV lo apre da sola in un round interno dell’atto; qui serve solo per lanciarlo a mano. |
 | **✖️ CHIUDI BONUS** | Chiude il bonus in TV. | A bonus concluso. |
 | **🎬 APRI IN TV / ✖️ CHIUDI DEMO** | Apre o chiude la demo scelta. | Per spiegare un gioco. |
 

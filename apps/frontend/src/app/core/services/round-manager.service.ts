@@ -3,11 +3,13 @@ import { GameModeType } from '../../shared/models/game-mode-type';
 import { BonusType } from '../../shared/models/bonus-type';
 import {
   ACT_DECKS,
-  BONUS_AFTER_ACT,
+  bonusForRound,
   DETAILED_LEADERBOARD_ROUNDS,
+  planBonusSlots,
   QUICK_LEADERBOARD_ROUNDS,
   ROUNDS_PER_ACT,
   TOTAL_ROUNDS,
+  type BonusSlot,
 } from '../../shared/schedule';
 
 export interface RoundConfig {
@@ -15,6 +17,10 @@ export interface RoundConfig {
   currentRound: number;
   completedRounds: GameModeType[];
   nextRoundType: GameModeType | null;
+  /** Dove cadono i cinque bonus in questa serata: round e tipo, atto per atto. */
+  bonusSlots: BonusSlot[];
+  /** Seme che ha scelto gli slot: un refresh non li sposta. */
+  bonusSeed: number;
 }
 
 const STORAGE_KEY = 'roundProgress';
@@ -53,10 +59,27 @@ export class RoundManagerService {
     currentRound: 0,
     completedRounds: [],
     nextRoundType: null,
+    bonusSlots: [],
+    bonusSeed: 0,
   });
 
   constructor() {
     this.loadProgress();
+    if (!this.roundConfig().bonusSlots.length && !this.simulation) this.rollBonusSlots();
+  }
+
+  /**
+   * Nuova disposizione dei bonus: un seme nuovo per ogni serata. Il reset non
+   * scrive subito: il progresso torna al primo salvataggio del round.
+   */
+  private rollBonusSlots(persist = true): void {
+    const bonusSeed = Math.floor(Math.random() * 0xffffffff) >>> 0;
+    this.roundConfig.update((config) => ({
+      ...config,
+      bonusSeed,
+      bonusSlots: planBonusSlots(bonusSeed),
+    }));
+    if (persist) this.saveProgress();
   }
 
   /** Attiva la scaletta ridotta della simulazione (`?sim=1`). */
@@ -67,6 +90,8 @@ export class RoundManagerService {
       currentRound: 0,
       completedRounds: [],
       nextRoundType: null,
+      bonusSlots: [],
+      bonusSeed: 0,
     });
     this.saveProgress();
   }
@@ -107,15 +132,27 @@ export class RoundManagerService {
   }
 
   /**
-   * Bonus previsto dopo l'atto appena concluso, se esiste.
+   * Bonus previsto dopo il round appena concluso, se quel round è uno slot.
    *
-   * Dopo ogni atto c'è un bonus diverso: Casino bianco/rosso, Blackjack,
-   * Casino dozzina, Cavallo di Battaglia e Casino numero secco. I punti dei
-   * bonus entrano in classifica alla chiusura del bonus stesso.
+   * I cinque bonus (Casino bianco/rosso, Blackjack, Casino dozzina, Cavallo di
+   * Battaglia e Casino numero secco) sono sparsi dentro gli atti, uno per atto:
+   * il seme sceglie in quale round interno cade, e la scelta resta per tutta la
+   * serata. I punti entrano in classifica alla chiusura del bonus stesso.
    */
-  bonusAfterAct(): BonusType | null {
-    const act = this.getCurrentAct();
-    return act >= 0 ? BONUS_AFTER_ACT[act] ?? null : null;
+  bonusAfterRound(): BonusType | null {
+    if (this.simulation) return null;
+    const config = this.roundConfig();
+    return bonusForRound(config.bonusSlots, config.currentRound)?.type ?? null;
+  }
+
+  /**
+   * Atto del round appena concluso (0-based): il bonus vive dentro quell'atto,
+   * quindi vale anche quando il round non è l'ultimo dei suoi otto.
+   */
+  bonusActIndex(): number {
+    const round = this.roundConfig().currentRound;
+    if (round <= 0) return -1;
+    return Math.min(ACT_DECKS.length - 1, Math.floor((round - 1) / ROUNDS_PER_ACT));
   }
 
   completeRound(gameType: GameModeType): void {
@@ -165,6 +202,8 @@ export class RoundManagerService {
         currentRound: target,
         completedRounds: SIMULATION_DECK.slice(0, target),
         nextRoundType: null,
+        bonusSlots: [],
+        bonusSeed: 0,
       });
       this.saveProgress();
       return;
@@ -183,6 +222,9 @@ export class RoundManagerService {
       currentRound: target,
       completedRounds,
       nextRoundType: null,
+      // Un refresh o una TV nuova non spostano i bonus già sorteggiati.
+      bonusSlots: this.roundConfig().bonusSlots,
+      bonusSeed: this.roundConfig().bonusSeed,
     });
     this.saveProgress();
   }
@@ -193,9 +235,12 @@ export class RoundManagerService {
       currentRound: 0,
       completedRounds: [],
       nextRoundType: null,
+      bonusSlots: [],
+      bonusSeed: 0,
     });
     if (!this.simulation) localStorage.removeItem(STORAGE_KEY);
     else this.saveProgress();
+    if (!this.simulation) this.rollBonusSlots(false);
   }
 
   getRoundStats() {
@@ -245,7 +290,11 @@ export class RoundManagerService {
       // Una scaletta vecchia (es. 24 round) non deve trascinarsi dietro indici
       // fuori range: in quel caso si riparte puliti.
       if (parsed?.totalRounds !== TOTAL_ROUNDS) return;
-      this.roundConfig.set(parsed);
+      this.roundConfig.set({
+        ...parsed,
+        bonusSlots: Array.isArray(parsed.bonusSlots) ? parsed.bonusSlots : [],
+        bonusSeed: Number(parsed.bonusSeed) || 0,
+      });
     } catch {
       console.error('❌ Errore caricamento progresso');
     }

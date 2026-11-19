@@ -109,28 +109,46 @@ describe('RoundManagerService', () => {
     expect(service.isActEnd()).toBe(true);
   });
 
-  it('should schedule only the selected bonuses across the acts', () => {
-    const expected: Array<string | null> = [
+  it('plays each bonus inside its act, at the round drawn for that act', () => {
+    const expected: string[] = [
       'CASINO_COLOR',
       'BLACKJACK',
       'CASINO_DOZEN',
       'CAVALLO',
       'CASINO_NUMBER',
     ];
+    // Tre round dentro l'atto: né l'apertura, né la classifica di fine atto.
+    const slots = expected.map((type, act) => ({ act, type, round: act * 8 + 3 }));
 
     expected.forEach((bonus, act) => {
       localStorage.setItem(
         'roundProgress',
         JSON.stringify({
           totalRounds: 40,
-          currentRound: (act + 1) * 8,
+          currentRound: act * 8 + 3,
           completedRounds: [],
           nextRoundType: null,
+          bonusSlots: slots,
+          bonusSeed: 1,
         })
       );
       const restarted = new RoundManagerService();
-      expect(restarted.bonusAfterAct()).toBe(bonus);
+      expect(restarted.bonusAfterRound()).toBe(bonus);
+      expect(restarted.bonusActIndex()).toBe(act);
     });
+
+    localStorage.setItem(
+      'roundProgress',
+      JSON.stringify({
+        totalRounds: 40,
+        currentRound: 4,
+        completedRounds: [],
+        nextRoundType: null,
+        bonusSlots: slots,
+        bonusSeed: 1,
+      })
+    );
+    expect(new RoundManagerService().bonusAfterRound()).toBeNull();
   });
 
   it('should keep the horse out of the round deck and play it as a bonus', () => {

@@ -1249,7 +1249,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   manualMeta(entry: ManualEntry): string {
     if (entry.kind === 'BONUS') {
       const afterAct = (entry as ManualBonus).afterAct;
-      return afterAct ? `BONUS · DOPO L'ATTO ${afterAct}` : 'BONUS';
+      return afterAct ? `BONUS · NELL'ATTO ${afterAct}` : 'BONUS';
     }
     const occurrences = (entry as ManualGame).occurrences;
     return `${occurrences} ${occurrences === 1 ? 'ROUND' : 'ROUND'} IN SCALETTA`;

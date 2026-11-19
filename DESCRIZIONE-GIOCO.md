@@ -15,7 +15,7 @@ browser dal QR in TV.
 - **40 round**, divisi in **5 atti da 8**.
 - **13 giochi di round**, con le **Biglie** presenti quattro volte, una per atto dal
   secondo al quinto (round 11, 22, 28, 37).
-- **5 bonus**, uno dopo ogni atto.
+- **5 bonus**, uno dentro ogni atto (in un round interno scelto dal seme).
 - Classifica **rapida** dopo i round 4, 12, 20, 28 e 36; **dettagliata** dopo 8, 16, 24,
   32 e 40.
 - Dopo l'ultimo bonus dell'atto 5 la TV mostra la **classifica finale aggiornata**.
@@ -62,7 +62,8 @@ Blackjack non è più un round. Arena chiude gli atti 3 e 5; Ultima spiaggia è 
 - **Biglie** — quattro round da **due gare** (otto gare in serata) su due delle otto piste:
   rally (terra), F1 (asfalto), neve, acqua, **vetro**, sabbia, spazio e magma. La coppia di
   piste la sceglie il seme del round; una biglia per tavolo, scelta una volta sola. Ogni
-  gara paga **150/100/60/30** e i punti entrano subito in classifica.
+  gara paga **150/100/60/30** ai primi quattro e **−30/−60/−100/−150** agli ultimi
+  quattro; i punti entrano subito in classifica.
 
 I punteggi vivono in `shared/models/scoring-rules.ts`; la scaletta in
 `shared/schedule.ts` è l'unica fonte di verità per round e occorrenze.

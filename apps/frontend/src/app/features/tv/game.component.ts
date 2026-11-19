@@ -1714,6 +1714,10 @@ export class GameComponent implements OnInit, OnDestroy {
     this.settleRoundWinner();
     this.audioService.stopAll();
 
+    // Bonus sparso: se questo round è uno dei cinque slot della serata, il
+    // bonus parte subito, senza aspettare la classifica di fine atto.
+    if (this.startScheduledBonus()) return;
+
     const leaderboardType = this.roundManager.shouldShowLeaderboard();
 
     if (leaderboardType) {
@@ -1751,23 +1755,31 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   onLeaderboardComplete() {
-    // Fine atto: la classifica dettagliata lancia il bonus unico dell'atto.
-    const bonus = this.showLeaderboardDetailed() ? this.roundManager.bonusAfterAct() : null;
-    if (bonus) {
-      const act = this.roundManager.getCurrentAct();
-      // Un bonus già chiuso (per esempio prima di un refresh) non si ripete.
-      const settled = this.serverBonus?.act === act && this.serverBonus.status === 'CLOSED';
-      if (!this.bonusActsStarted.has(act) && !settled && !this.bonusActive()) {
-        this.bonusActsStarted.add(act);
-        void this.startBonus(bonus);
-        return;
-      }
-    }
-
     // Manuale: la classifica resta in TV finché l'admin non avanza.
     if (this.phase() === 'IDLE') {
       this.audioService.startHeartbeat();
     }
+  }
+
+  /**
+   * Bonus del round appena chiuso: parte una volta sola per atto, anche dopo un
+   * refresh. Il server sa se quel bonus è già stato chiuso e pagato.
+   */
+  private startScheduledBonus(): boolean {
+    if (this.bonusActive() || this.bonusEntrance() || this.isSpinning()) return false;
+    const bonus = this.roundManager.bonusAfterRound();
+    if (!bonus) return false;
+
+    const act = this.roundManager.bonusActIndex();
+    if (act < 0 || this.bonusActsStarted.has(act)) return false;
+    if (this.closedBonusActsOf(this.currentGameId()).has(act)) return false;
+    // Un bonus già segnato sul server (avviato prima di un refresh o chiuso)
+    // non riparte da capo: la ripresa la gestisce `offerBonusRecovery`.
+    if (this.serverBonus?.act === act) return false;
+
+    this.bonusActsStarted.add(act);
+    void this.startBonus(bonus);
+    return true;
   }
 
   private closingRound = false;
@@ -1899,7 +1911,7 @@ export class GameComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Bonus: parte dalla TV a fine atto (o su comando admin) e non consuma un round. */
+  /** Bonus: parte dalla TV dopo il round dello slot (o su comando admin) e non consuma un round. */
   async startBonus(type: BonusType, resume: any = null): Promise<void> {
     if (!BONUS_TYPES.includes(type)) return;
     if (this.bonusEntrance() || this.bonusActive() || this.isSpinning()) return;
@@ -2029,7 +2041,7 @@ export class GameComponent implements OnInit, OnDestroy {
       });
       this.markBonusAct(closed, 'CLOSED');
       // Pagato: nemmeno uno snapshot vecchio deve riaprirlo.
-      this.rememberClosedBonus(this.currentGameId(), this.roundManager.getCurrentAct());
+      this.rememberClosedBonus(this.currentGameId(), this.roundManager.bonusActIndex());
       // La mano del Blackjack bonus non deve tornare sul tavolo chiuso.
       if (closed === 'BLACKJACK') this.reliability.saveBlackjackState(null);
     }
@@ -2061,16 +2073,14 @@ export class GameComponent implements OnInit, OnDestroy {
     this.phase.set('QUESTION');
 
     // Il tipo resta per il riepilogo; non azzerarlo se nel frattempo parte un altro bonus.
-    const finalBonus = this.roundManager.isGameOver();
     setTimeout(() => {
       if (this.bonusActive()) return;
       this.bonusShowResult.set(false);
       this.bonusType.set(null);
-      if (finalBonus) {
-        // Il bonus dell'atto 5 chiude la serata: la classifica finale si vede
-        // con i punti appena incassati, non con la fotografia precedente.
-        this.pendingLeaderboardType.set('DETAILED');
-        this.showPendingLeaderboard();
+      // Il bonus vive dentro l'atto: chiuso il riepilogo si riprende la
+      // scaletta dal round successivo, senza una seconda classifica.
+      if (!this.currentMode() && !this.isShowingLeaderboard() && !this.roundManager.isGameOver()) {
+        this.startAutoAdvance();
       }
     }, 8000);
   }
@@ -2103,7 +2113,7 @@ export class GameComponent implements OnInit, OnDestroy {
     // Un round ancora aperto ha la precedenza: il bonus viene dopo.
     if (this.recoveredRound()) return;
     // Un bonus già chiuso e pagato non torna, anche se il server dice STARTED.
-    if (this.closedBonusActsOf(this.currentGameId()).has(this.roundManager.getCurrentAct())) return;
+    if (this.closedBonusActsOf(this.currentGameId()).has(this.roundManager.bonusActIndex())) return;
 
     const checkpoint = snapshot?.tvCheckpoint;
     const mode = String(checkpoint?.mode ?? '');
@@ -2113,7 +2123,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
     let type: BonusType | null = null;
     if (this.serverBonus?.status === 'STARTED'
-      && this.serverBonus.act === this.roundManager.getCurrentAct()
+      && this.serverBonus.act === this.roundManager.bonusActIndex()
       && (BONUS_TYPES as readonly string[]).includes(this.serverBonus.type)) {
       type = this.serverBonus.type as BonusType;
     } else if (resume) {
@@ -2161,9 +2171,9 @@ export class GameComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Segna sul server il bonus dell'atto corrente, se c'è un atto. */
+  /** Segna sul server il bonus dell'atto del round appena chiuso. */
   private markBonusAct(type: BonusType, status: 'STARTED' | 'CLOSED'): void {
-    const act = this.roundManager.getCurrentAct();
+    const act = this.roundManager.bonusActIndex();
     if (act < 0) return;
     this.serverBonus = { act, type, status };
     this.reliability.saveBonusAct({ act, type, status });

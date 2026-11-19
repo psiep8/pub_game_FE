@@ -57,7 +57,7 @@ pannello admin e in TV, nei momenti previsti dal gioco.
 | **⏸️ PAUSA / RIPRENDI** | Ferma il gioco: la TV copre tutto e i timer si fermano. | Per un imprevisto. Riprendi quando è tutto pronto. |
 | **↺ RIVEDI INTRO** | Riporta in TV la presentazione iniziale. | Per ripetere le regole all'inizio della serata. |
 | **🎄 NATALE ON / OFF** | Attiva o spegne il tema natalizio. | Solo per scelta estetica. Non cambia i punti. |
-| **🎰 BONUS CASINO** · **🃏 BONUS BLACKJACK** · **🐎 BONUS CAVALLO** | Avvia il bonus dell’atto: colore, Blackjack, dozzina, Cavallo o numero secco. | Dopo la classifica di fine atto. |
+| **🎰 BONUS CASINO** · **🃏 BONUS BLACKJACK** · **🐎 BONUS CAVALLO** | Avvia il bonus dell’atto: colore, Blackjack, dozzina, Cavallo o numero secco. | La TV lo apre da sola in un round interno dell’atto; qui serve solo per lanciarlo a mano. |
 | **✖️ CHIUDI BONUS** | Chiude il bonus in corso. | Per uscire da un bonus. |
 
 > Avanzamento manuale: usa **PARTI** oppure il tasto **AVANTI** in TV. Entrambi fanno
