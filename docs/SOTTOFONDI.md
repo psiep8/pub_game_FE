@@ -110,14 +110,19 @@ Per atto, contando solo quello che suona davvero oggi (le basi mancano tutte):
 | 4 | bomba, tennis | 3,17 MB | 3,97 MB |
 | 5 | bomba, tennis | 3,17 MB | 3,97 MB |
 
-**Il nodo dell'atto 1.** Quando tutti i file ci sono, l'atto 1 mette insieme sei
-loop: base, `gioco-casino` (1,84), `gioco-bomba` (1,60), `gioco-speed-rush`,
-`gioco-timeline`, `gioco-ultima-spiaggia`. Con i quattro nuovi a 60 s (0,80 MB
-l'uno) l'atto arriva a **6,64 MB** e sfonda il tetto di 6 MB di 0,64. Per starci
-i quattro nuovi devono stare a **~46 s** — sotto il minimo di 60 s delle regole
-dei file — oppure si accorciano `gioco-casino` e `gioco-bomba`, che da soli
-pesano 3,44 MB. È una decisione da prendere **prima** della consegna, non dopo:
-il manifesto tiene i 6 MB per atto accanto ai 22 MB totali, fra le regole dei file: nessuno dei due si allunga per farci stare un loop in più.
+**L'atto 1, con i conti giusti.** Quando ogni gioco ha il suo loop, l'atto 1
+mette insieme cinque file: base `atto-1`, `gioco-azzardo`, `gioco-timeline`,
+`gioco-speed-rush`, `gioco-ultima-spiaggia`. A 60 s l'uno (0,80 MB) fa
+**4,00 MB**, con quasi 2 MB di margine sul tetto dei 6: `gioco-casino` e
+`gioco-bomba` escono dall'atto appena Azzardo e Speed Rush hanno il file loro, e
+contarli insieme ai nuovi sarebbe un doppio conteggio dello stesso gioco.
+L'atto più carico è il 3 (base, speed-rush, tennis, biglie, arena), **4,78 MB**.
+
+Il vincolo vero è il **totale**: i venti loop a 60 s fanno **21,07 MB** sui 22 del
+manifesto, 0,93 MB di margine. È quel numero da guardare quando arrivano i file:
+se uno è più lungo, meglio rifilarlo che allungare il tetto. Il test
+`bed-act-budget.spec.ts` rifà questi conti da `ACT_DECKS` e `bed-map.ts` a ogni
+giro, così l'errore non ripassa.
 
 ## Quando arriva un file
 
