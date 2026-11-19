@@ -193,7 +193,7 @@ La durata è il **massimo** dopo il taglio; più corti vanno bene.
 
 ### `bonus/` — i cinque ingressi
 
-L'indice segue l'ordine del catalogo: 1 Casino Bianco e Nero, 2 Blackjack,
+L'indice segue l'ordine del catalogo: 1 Casino Nero e Rosso, 2 Blackjack,
 3 Casino Dozzina, 4 Cavallo, 5 Casino Finale.
 
 | Evento | File atteso | Bus | Max | Parole di ricerca (EN) | Fonte suggerita |
@@ -248,7 +248,7 @@ I sei file già arrivati hanno preso il nome nuovo: `casino.m4a` è
 
 | Dove suona | File atteso | Carattere | BPM | Parole di ricerca (EN) | Fonte suggerita |
 |---|---|---|---|---|---|
-| Casinò (Ruota, Bianco e Nero, Dozzina) | `loop/gioco-casino.m4a` | casinò, ritmo medio | 100-115 | `vegas lounge`, `crime jazz`, `poker night` | Incompetech (CC-BY) / Pixabay |
+| Casinò (Ruota, Nero e Rosso, Dozzina) | `loop/gioco-casino.m4a` | casinò, ritmo medio | 100-115 | `vegas lounge`, `crime jazz`, `poker night` | Incompetech (CC-BY) / Pixabay |
 | Bomba | `loop/gioco-bomba.m4a` | tensione che sale | 100-120 | `tension percussion loop`, `suspense pulse loop`, `rising tension bed` | Mixkit / Pixabay |
 | Tennis | `loop/gioco-tennis.m4a` | scontro sportivo | 120-135 | `energetic sport loop`, `driving rock loop no vocals`, `uptempo drums bass` | Mixkit / Pixabay |
 | Cavallo | `loop/gioco-cavallo.m4a` | leggero e curioso | 100-115 | `quirky marimba loop`, `playful pizzicato loop`, `curious light background` | Pixabay / Mixkit |
