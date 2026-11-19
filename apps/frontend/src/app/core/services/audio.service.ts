@@ -72,7 +72,8 @@ export class AudioService {
    */
   startHeartbeat(intensity = 0): void {
     if (!this.audioEnabled() || this.paused) return;
-    const level = 0.55 + Math.max(0, Math.min(1, intensity)) * 0.45;
+    const level =
+      (0.55 + Math.max(0, Math.min(1, intensity)) * 0.45) * AUDIO_EVENTS.heartbeat.volume;
     this.player.startLoop('heartbeat', level);
   }
 
@@ -99,7 +100,8 @@ export class AudioService {
 
   startClock(): void {
     if (!this.audioEnabled() || this.paused) return;
-    this.player.startLoop('clock', 1);
+    // Il livello viene dalla bilanciatura: un ticchettio continuo sta sotto.
+    this.player.startLoop('clock', AUDIO_EVENTS.clock.volume);
   }
 
   stopClock(): void {
@@ -363,9 +365,18 @@ export class AudioService {
     this.player.stopBed(BED_STOP_SECONDS);
   }
 
+  /**
+   * Silenzio della regia: ferma quello che sta girando — battito, ticchettio,
+   * rotolamento, sottofondo — e gli effetti già partiti, così «FERMA TUTTO» è
+   * davvero tutto fermo. La pausa della TV resta un'altra cosa: quella zittisce
+   * anche gli eventi nuovi e si toglie da sola alla ripresa.
+   */
   stopAll(): void {
     this.stopSuspense();
     this.stopClock();
+    this.stopMarbleBed();
+    this.stopAmbient();
+    this.player.stopOneShots();
   }
 
   toggleAudio(): void {

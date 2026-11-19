@@ -91,6 +91,17 @@ describe('AudioService — eventi del catalogo', () => {
     expect(audio.isEnabled()).toBe(true);
   });
 
+  it('tiene sotto il pieno i suoni ripetuti e i loop continui', () => {
+    // La bilanciatura di A2: chi arriva ogni secondo non deve pareggiare un
+    // momento forte della serata.
+    for (const id of ['tick', 'countdownTick', 'join', 'clock', 'rouletteTicks'] as const) {
+      expect(AUDIO_EVENTS[id].volume, id).toBeLessThan(0.8);
+    }
+    for (const id of ['gong', 'reveal', 'correct'] as const) {
+      expect(AUDIO_EVENTS[id].volume, id).toBeGreaterThanOrEqual(0.8);
+    }
+  });
+
   it('tiene il volume generale fra 0 e 1', () => {
     audio.setMasterVolume(0.4);
     expect(audio.masterVolume()).toBe(0.4);

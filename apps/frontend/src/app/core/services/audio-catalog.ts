@@ -4,8 +4,8 @@
  *
  * <p>Il catalogo descrive gli eventi, non li suona: ogni evento punta a un file
  * in `assets/audio` (`audio-files.ts`). Questa tabella serve a sapere cosa
- * esiste, chi lo chiama e con che limiti, così l'audio di regia (A3) e la
- * sostituzione dei suoni (A2) non devono cercare i metodi sparsi nei giochi.</p>
+ * esiste, chi lo chiama e con che limiti, così la bilanciatura (A2) e la
+ * regia audio (A3) non devono cercare i metodi sparsi nei giochi.</p>
  */
 
 /** Da dove viene il suono: interfaccia, gioco, sottofondo. */
@@ -24,8 +24,12 @@ export interface AudioEventDefinition {
   readonly source: AudioSource;
   readonly bus: AudioBus;
   /**
-   * Rifinitura di volume dell'evento, da 0 a 1. Oggi è 1 per tutti: la
-   * bilanciatura arriva in A2, ma il campo è già quello che userà la regia.
+   * Rifinitura di volume dell'evento, da 0 a 1: è la bilanciatura di sala
+   * (blocco A2). I file arrivano tutti normalizzati (−16 LUFS gli effetti,
+   * −23 LUFS i loop), quindi il numero non corregge la registrazione ma il
+   * ruolo: un suono ripetuto ogni secondo o un loop continuo sta sotto, un
+   * momento forte della serata sta vicino al pieno. La regia lo mostra e lo
+   * applica a ogni riproduzione.
    */
   readonly volume: number;
   /** Distanza minima fra due riproduzioni dello stesso evento. */
@@ -41,7 +45,7 @@ export const AUDIO_EVENTS = {
     when: 'La TV dà il via alla manche del Time Buzzer.',
     source: 'sfx',
     bus: 'tv',
-    volume: 1,
+    volume: 0.9,
     minIntervalMs: 400,
     variants: 1,
   },
@@ -51,7 +55,7 @@ export const AUDIO_EVENTS = {
     when: 'Ogni secondo del countdown in TV.',
     source: 'sfx',
     bus: 'tv',
-    volume: 1,
+    volume: 0.7,
     minIntervalMs: 100,
     variants: 1,
   },
@@ -61,7 +65,7 @@ export const AUDIO_EVENTS = {
     when: 'Il countdown arriva a zero.',
     source: 'sfx',
     bus: 'tv',
-    volume: 1,
+    volume: 0.9,
     minIntervalMs: 400,
     variants: 1,
   },
@@ -71,7 +75,7 @@ export const AUDIO_EVENTS = {
     when: 'Una squadra si collega alla lobby.',
     source: 'ui',
     bus: 'tv',
-    volume: 1,
+    volume: 0.55,
     minIntervalMs: 150,
     variants: 1,
   },
@@ -81,7 +85,7 @@ export const AUDIO_EVENTS = {
     when: 'La classifica svela una posizione.',
     source: 'ui',
     bus: 'tv',
-    volume: 1,
+    volume: 0.5,
     minIntervalMs: 80,
     variants: 1,
   },
@@ -91,7 +95,7 @@ export const AUDIO_EVENTS = {
     when: 'La classifica dettagliata svela il quinto o il quarto posto.',
     source: 'ui',
     bus: 'tv',
-    volume: 1,
+    volume: 0.85,
     minIntervalMs: 300,
     variants: 2,
   },
@@ -101,7 +105,7 @@ export const AUDIO_EVENTS = {
     when: 'La classifica rapida entra in scena.',
     source: 'ui',
     bus: 'tv',
-    volume: 1,
+    volume: 0.65,
     minIntervalMs: 300,
     variants: 1,
   },
@@ -121,7 +125,7 @@ export const AUDIO_EVENTS = {
     when: 'Il presentatore conferma la risposta corretta.',
     source: 'ui',
     bus: 'tv',
-    volume: 1,
+    volume: 0.85,
     minIntervalMs: 500,
     variants: 1,
   },
@@ -151,7 +155,7 @@ export const AUDIO_EVENTS = {
     when: "La TV svela la risposta: rullo, poi accordo.",
     source: 'ui',
     bus: 'tv',
-    volume: 1,
+    volume: 0.85,
     minIntervalMs: 600,
     variants: 1,
   },
@@ -161,7 +165,7 @@ export const AUDIO_EVENTS = {
     when: 'Risposta giusta o momento di festa.',
     source: 'sfx',
     bus: 'tv',
-    volume: 1,
+    volume: 0.7,
     minIntervalMs: 600,
     // Quattro partenze diverse dallo stesso applauso: la sala non sente
     // sempre identico lo stesso pezzo.
@@ -173,7 +177,7 @@ export const AUDIO_EVENTS = {
     when: 'Punti in arrivo al tavolo della serata.',
     source: 'sfx',
     bus: 'tv',
-    volume: 1,
+    volume: 0.7,
     minIntervalMs: 400,
     variants: 1,
   },
@@ -183,7 +187,7 @@ export const AUDIO_EVENTS = {
     when: 'Il telefono segna il punto di tennis.',
     source: 'sfx',
     bus: 'phone',
-    volume: 1,
+    volume: 0.7,
     minIntervalMs: 200,
     variants: 1,
   },
@@ -234,7 +238,7 @@ export const AUDIO_EVENTS = {
     when: 'Una squadra sbaglia.',
     source: 'sfx',
     bus: 'tv',
-    volume: 1,
+    volume: 0.65,
     minIntervalMs: 600,
     variants: 1,
   },
@@ -274,7 +278,7 @@ export const AUDIO_EVENTS = {
     when: 'La pallina gira e rallenta sul rotore.',
     source: 'sfx',
     bus: 'tv',
-    volume: 1,
+    volume: 0.6,
     minIntervalMs: 1000,
     variants: 1,
   },
@@ -294,7 +298,7 @@ export const AUDIO_EVENTS = {
     when: 'Suspense prima di una rivelazione o del podio.',
     source: 'sfx',
     bus: 'tv',
-    volume: 1,
+    volume: 0.7,
     minIntervalMs: 0,
     variants: 1,
   },
@@ -304,7 +308,7 @@ export const AUDIO_EVENTS = {
     when: 'Momento di attenzione in TV.',
     source: 'sfx',
     bus: 'tv',
-    volume: 1,
+    volume: 0.75,
     minIntervalMs: 200,
     variants: 1,
   },
@@ -314,7 +318,7 @@ export const AUDIO_EVENTS = {
     when: "L'azione è stata registrata dal server.",
     source: 'ui',
     bus: 'phone',
-    volume: 1,
+    volume: 0.6,
     minIntervalMs: 80,
     variants: 1,
   },
@@ -354,7 +358,7 @@ export const AUDIO_EVENTS = {
     when: 'Un bonus sta per aprire la sua schermata.',
     source: 'sfx',
     bus: 'tv',
-    volume: 1,
+    volume: 0.9,
     minIntervalMs: 500,
     variants: 5,
   },
@@ -374,7 +378,7 @@ export const AUDIO_EVENTS = {
     when: 'Un round con timer è aperto.',
     source: 'sfx',
     bus: 'tv',
-    volume: 1,
+    volume: 0.35,
     minIntervalMs: 0,
     variants: 1,
   },

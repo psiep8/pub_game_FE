@@ -1,5 +1,25 @@
 # Changelog
 
+## 19 novembre 2026 — La bilanciatura della sala e il silenzio della regia
+
+- **A2 — bilanciatura:** ogni evento del catalogo ha un livello pensato per il
+  suo ruolo, non per correggere la registrazione (i file sono già normalizzati:
+  −16 LUFS gli effetti, −23 LUFS i loop). Tick e ingressi ripetuti stanno a
+  0,5–0,7, i momenti forti a 0,85–0,9, il ticchettio continuo del timer a 0,35;
+  il battito di suspense moltiplica per 0,85 il proprio crescendo. Prima erano
+  a 1 il gong, il countdown, il tick di classifica, gli applausi, i gettoni, la
+  pallina, il rullo, la campana, le conferme del telefono e gli ingressi bonus.
+- **La cifra si legge in regia:** ogni scheda di `/audio` porta `VOL …`, così il
+  numero che si ascolta è quello che si vede.
+- **A3 — «FERMA TUTTO» è un silenzio:** `AudioService.stopAll()` fermava solo
+  battito e orologio, lasciando acceso sottofondo, rotolamento e gli applausi
+  lunghi che finivano da soli. Ora ferma loop, tappeto e anche gli effetti già
+  partiti, con `SoundPlayer.stopOneShots()`.
+- Verifiche: **24 test** su tre file (`audio.service.spec.ts` 12,
+  `audio-catalog.spec.ts` 10, `audio-lab.component.spec.ts` 2), tutti passati.
+  **Non fatto:** l'ascolto in sala — la bilanciatura è per ruolo sonoro, non
+  giudicata all'orecchio.
+
 ## 19 novembre 2026 — Il peso di un atto si conta una volta sola
 
 - **§4.7, l'atto 1 corretto:** il documento diceva 6,64 MB perché sommava

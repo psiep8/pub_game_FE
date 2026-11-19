@@ -114,6 +114,7 @@ interface AudioCard {
             <article class="lab-card" [class.muted]="!enabled()">
               <div class="lab-card-head">
                 <span class="lab-source">{{ card.hasFile ? 'file' : card.event.source }}</span>
+                <span class="lab-mix">VOL {{ card.event.volume }}</span>
                 <code>{{ card.id }}</code>
               </div>
               <h3>{{ card.event.label }}</h3>
@@ -186,6 +187,7 @@ interface AudioCard {
             <article class="lab-card" [class.muted]="!enabled()">
               <div class="lab-card-head">
                 <span class="lab-source">{{ card.hasFile ? 'file' : card.event.source }}</span>
+                <span class="lab-mix">VOL {{ card.event.volume }}</span>
                 <code>{{ card.id }}</code>
               </div>
               <h3>{{ card.event.label }}</h3>
@@ -336,6 +338,15 @@ interface AudioCard {
         padding: 2px 6px;
         border: 2px solid var(--coal);
         background: var(--paper-2);
+      }
+      /* La bilanciatura si legge dove si ascolta: senza, la regia non sa a
+         che livello sta suonando l’evento che ha davanti. */
+      .lab-mix {
+        padding: 2px 6px;
+        border: 2px solid var(--coal);
+        background: var(--acid);
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
       }
       code {
         font-size: 0.62rem;

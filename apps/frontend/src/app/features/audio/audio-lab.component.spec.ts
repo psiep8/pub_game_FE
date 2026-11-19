@@ -58,6 +58,8 @@ describe('Regia audio — sottofondi', () => {
     // Un gioco che vive sulla base d'atto e uno muto.
     expect(text).toContain('base dell’atto');
     expect(text).toContain('silenzio');
+    // La bilanciatura si legge dove si ascolta: ogni scheda porta il suo livello.
+    expect(text).toContain('VOL 0.7');
   });
 
   it("conta nel totale solo i file che l'atto ha davvero", async () => {

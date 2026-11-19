@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { AUDIO_EVENTS } from './audio-catalog';
 import { AudioService } from './audio.service';
 
 /**
@@ -103,6 +104,54 @@ describe('AudioService — pausa della TV', () => {
     audio.startHeartbeat(0.8);
 
     expect(calls.filter((call) => call.startsWith('start-loop'))).toEqual([]);
+  });
+});
+
+/**
+ * «FERMA TUTTO» dalla regia deve zittire la sala per davvero: prima fermava
+ * solo battito e orologio, e il sottofondo continuava a girare. Il player è un
+ * finto anche qui: si guarda l'ordine delle chiamate, non l'audio.
+ */
+describe('AudioService — silenzio dalla regia', () => {
+  let audio: AudioService;
+  let calls: string[];
+
+  beforeEach(() => {
+    audio = new AudioService();
+    calls = [];
+    const player = (audio as unknown as { player: Record<string, unknown> }).player;
+    player['startBed'] = (file: string) => calls.push(`start-bed:${file}`);
+    player['stopBed'] = () => calls.push('stop-bed');
+    player['startLoop'] = (event: string, level: number) =>
+      calls.push(`start-loop:${event}:${level}`);
+    player['stopLoop'] = (event: string) => calls.push(`stop-loop:${event}`);
+    player['stopOneShots'] = () => calls.push('stop-one-shots');
+    player['isLooping'] = () => false;
+  });
+
+  it('ferma sottofondo, rotolamento, orologio, battito ed effetti', () => {
+    audio.setGameBed('BIGLIE');
+    audio.startMarbleBed('neve');
+    audio.startClock();
+    audio.startHeartbeat(0.5);
+    calls.length = 0;
+
+    audio.stopAll();
+
+    expect(calls).toEqual([
+      'stop-loop:heartbeat',
+      'stop-loop:clock',
+      'stop-loop:marbleRoll',
+      'stop-bed',
+      'stop-one-shots',
+    ]);
+  });
+
+  it('l’orologio suona al livello della bilanciatura', () => {
+    audio.startClock();
+
+    expect(calls).toContain(`start-loop:clock:${AUDIO_EVENTS.clock.volume}`);
+    expect(AUDIO_EVENTS.clock.volume).toBeLessThan(1);
   });
 });
 

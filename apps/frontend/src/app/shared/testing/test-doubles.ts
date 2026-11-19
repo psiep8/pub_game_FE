@@ -263,7 +263,26 @@ export class FakeAudioService {
   readonly setBedLoop = (id: string) => this.played.push(`bed-loop-${id}`);
   readonly setQuestionActive = (open: boolean) => this.played.push(open ? 'question-open' : 'question-closed');
   readonly setActBed = (act: number | null) => this.played.push(`act-${act ?? 'none'}`);
+  readonly masterVolume = signal(1);
+  readonly play = (id: string) => {
+    this.played.push(`play-${id}`);
+    return true;
+  };
   readonly playJoin = () => this.played.push('join');
+  readonly playGong = () => this.played.push('gong');
+  readonly playTimeUp = () => this.played.push('time-up');
+  readonly playRankReveal = (position: number) => this.played.push(`rank-reveal-${position}`);
+  readonly playRacketHit = () => this.played.push('racket');
+  readonly playMarbleHit = () => this.played.push('marble-hit');
+  readonly playMarbleWall = () => this.played.push('marble-wall');
+  readonly playMarbleSurface = (soft = false) =>
+    this.played.push(soft ? 'marble-surface-soft' : 'marble-surface-hard');
+  readonly startMarbleBed = (trackId?: string | null) =>
+    this.played.push(`marble-bed-${trackId ?? 'none'}`);
+  readonly stopMarbleBed = () => this.played.push('stop-marble-bed');
+  readonly setMasterVolume = (value: number) => this.masterVolume.set(value);
+  readonly preloadAct = (_act: number | null) => this.played.push('preload-act');
+  readonly warmBed = (_file: string) => undefined;
   readonly playCountdownTick = () => this.played.push('countdown-tick');
   readonly playCountdownBong = () => this.played.push('countdown-bong');
   readonly playElimination = () => this.played.push('elimination');

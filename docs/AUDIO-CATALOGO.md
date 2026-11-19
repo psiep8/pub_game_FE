@@ -16,7 +16,7 @@ Ogni evento del catalogo ha:
 | `when` | In una riga, quando suona |
 | `source` | `ui` (interfaccia), `sfx` (gioco), `bed` (sottofondo): tutti file registrati |
 | `bus` | `tv`, `phone` o `both` |
-| `volume` | Rifinitura dell'evento, 0–1. Oggi 1 per tutti: la bilanciatura è A2 |
+| `volume` | Rifinitura dell'evento, 0–1: è la bilanciatura di A2, spiegata sotto |
 | `minIntervalMs` | Distanza minima fra due riproduzioni dello stesso evento |
 | `variants` | Quante varianti esistono (ingressi bonus, posti del podio) |
 
@@ -167,19 +167,46 @@ quelli effettivamente presenti nel codice al 16 novembre 2026.
 | `clock` | `startClock()` | `features/tv/game.component.ts`, modalità a timer |
 | `ambient` | `startAmbient()` | `features/tv/game.component.ts` |
 
+## Bilanciatura (A2)
+
+I file arrivano già normalizzati: gli effetti a −16 LUFS, i loop a −23 LUFS. La
+bilanciatura quindi non corregge la registrazione, decide il **ruolo** del
+suono nella serata, e vive in un solo posto: il campo `volume` di
+`audio-catalog.ts`.
+
+- **Vicino al pieno (0,85–0,9):** i momenti forti e irripetibili — gong del
+  via, bong di fine countdown, conferma giusta, rivelazione, ingresso dei
+  bonus, podio finale.
+- **Metà scala (0,6–0,75):** suoni che si sovrappongono o arrivano in fila —
+  tick e ingressi, applausi, gettoni, uuuh, rullo, pallina della roulette,
+  campana, colpi sul telefono.
+- **Sotto (0,35–0,55):** ciò che accompagna senza chiedere attenzione —
+  transizioni, tick di classifica, ticchettio del timer (0,35), sirena e
+  miccia della Bomba. Il battito di suspense moltiplica per 0,85 il proprio
+  crescendo, che va da 0,55 a 1.
+- **Il sottofondo:** `BED_LEVEL` 0,9, meno 6 dB con la domanda aperta
+  (`bedDuckGain`).
+
+Un valore rimasto a 1 non è una svista: quegli eventi non vengono sovrapposti
+ad altri e non hanno ancora bisogno di stare sotto. La cifra si legge in regia
+su ogni scheda (`VOL …`), così il numero che si ascolta è quello che si vede.
+
 ## Regia audio (A3)
 
 `/audio` è la pagina di prova: un pulsante per ogni evento, la variante
 selezionabile dove esiste, il muto, il volume generale e «ferma tutto». È
 raggiungibile anche dal pulsante **AUDIO** in testa al pannello admin.
 
+`FERMA TUTTO` è un silenzio vero: `AudioService.stopAll()` ferma battito,
+ticchettio, rotolamento, sottofondo e anche gli effetti già partiti
+(`SoundPlayer.stopOneShots`). Prima il tappeto restava acceso e un applauso
+lungo finiva da solo.
+
 ## Cosa manca (A2 e oltre)
 
-- La bilanciatura vera fra interfaccia, effetti, tappeto e voce: oggi `volume`
-  è 1 per tutti e il volume generale parte al 100%.
-- Sostituzione e varietà dei suoni e ducking. I sei sottofondi registrati sono
-  provabili dalla sezione **TAPPETI** di `/audio`.
-- Silenzio in pausa e da admin secondo la specifica: `stopAll()` non ferma il
-  tappeto, che è una scelta della prima serata da rivedere in A2.
-- Ascolto reale in sala: nessun volume è stato giudicato all'orecchio, solo
-  misurato nel codice.
+- Sostituzione e varietà dei suoni e ducking sotto la voce. I sottofondi
+  registrati si provano dalla sezione **TAPPETI** di `/audio`; i tredici loop
+  ancora da consegnare sono in `docs/SOTTOFONDI.md`.
+- Ascolto reale in sala: la bilanciatura qui sopra è per ruolo sonoro, non è
+  stata giudicata all'orecchio. Il confronto con la voce del presentatore si fa
+  in sala, con `/audio` aperto.

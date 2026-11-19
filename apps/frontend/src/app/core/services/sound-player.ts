@@ -43,6 +43,8 @@ export class SoundPlayer {
   /** File in caricamento: evita doppie fetch sullo stesso evento. */
   private readonly loading = new Set<string>();
   private readonly loops = new Map<string, ActiveLoop>();
+  /** Effetti già partiti: «FERMA TUTTO» deve poterli zittire a metà. */
+  private readonly oneShots = new Set<AudioBufferSourceNode>();
   /** Sottofondo musicale: un solo loop acceso alla volta. */
   private bed?: ActiveBed;
   /** Richiesta in corso: una risposta lenta non deve sovrascrivere la nuova. */
@@ -134,6 +136,22 @@ export class SoundPlayer {
         this.buffers.set(url, null);
         this.onMissing(url);
       });
+  }
+
+  /**
+   * Ferma gli effetti già partiti, compresi quelli lunghi (applausi, rulli):
+   * è il silenzio della regia, non un semplice smettere di suonarne di nuovi.
+   */
+  stopOneShots(): void {
+    for (const source of this.oneShots) {
+      try {
+        source.stop();
+        source.disconnect();
+      } catch {
+        // già finito
+      }
+    }
+    this.oneShots.clear();
   }
 
   /** True se il loop dell'evento è in onda: serve alla pausa della TV. */
@@ -339,6 +357,11 @@ export class SoundPlayer {
     source.buffer = buffer;
     if (style?.rate) source.playbackRate.value = style.rate;
     source.connect(this.engine.out(ctx));
+    this.oneShots.add(source);
+    source.onended = () => {
+      this.oneShots.delete(source);
+      source.disconnect();
+    };
     const offset = Math.max(0, Math.min(style?.offset ?? 0, Math.max(0, buffer.duration - 0.3)));
     source.start(0, offset);
   }
