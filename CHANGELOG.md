@@ -1,5 +1,28 @@
 # Changelog
 
+## 19 novembre 2026 — Barra, porta e altalena: la pista si muove (Biglie B3)
+
+- **Ostacoli mobili deterministici:** uno per pista, sempre allo stesso punto
+  (progresso 0,52), tipo scelto dal nome del fondo e sfasamento dal seme. La
+  barra spazza la corsia, l'altalena oscilla più larga e lenta, la porta si
+  chiude al centro e si riapre. `movingObstacle` / `movingObstacleHit` sono le
+  stesse funzioni per Matter (TV) e per la corsa headless.
+- **Effetti:** chi prende l'ostacolo perde il 10% di velocità con 0,12 s di
+  blocco; il colpo conta una volta ogni due secondi per ostacolo, non a ogni
+  fotogramma. Sono disegnati con barra e tacche e si muovono col tempo di gara,
+  quindi si vede dove stanno prima di arrivarci.
+- **Il test che mancava sulla TV:** il componente ha ora `applyFeatures`, il
+  punto in cui applica davvero attrito, correnti, rampe e perni, e un test lo
+  verifica direttamente: bersaglio abbassato dalla corrente, spinta di lato,
+  rampa che alza il bersaglio e dà il momento di gloria, perni che tolgono
+  velocità una volta sola.
+- **Birilli:** tolta l'oscillazione decorativa, restano fermi dove la fisica li
+  mette.
+- **Taratura:** fattore 0,9 con coperture 0,20 / 0,26 / 0,40 tiene i contatti
+  sotto 5 al secondo e le gare sotto i 70 s: **21/24 rimonte**, **48,8–68,8 s**.
+- Verifiche: suite Biglie **57 test su 7 file**, suite completa **561 test su 64
+  file**, tutti passati.
+
 ## 19 novembre 2026 — La pista spinge, frena e lancia (Biglie B3)
 
 - **Pezzi nuovi:** imbuto (la corsia si chiude a una gola e si riapre), rampa

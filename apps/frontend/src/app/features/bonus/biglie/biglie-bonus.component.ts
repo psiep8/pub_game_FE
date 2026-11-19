@@ -44,6 +44,10 @@ import {
   buildFeatures,
   featureFrame,
   lateralPush,
+  movingAt,
+  movingObstacle,
+  movingObstacleHit,
+  MOVING_FACTOR,
   oneShotAt,
   PERNI_FACTOR,
   type TrackFeature,
@@ -1135,6 +1139,36 @@ export class BiglieBonus implements OnInit, OnDestroy {
       y: frame.ty * nextAlong + frame.ny * nextLateral,
     });
   }
+  /**
+   * Le interazioni della pista in un posto solo: attrito e rampe sul bersaglio,
+   * correnti di lato, rampe e perni una volta sola per biglia. È il pezzo che
+   * la TV esegue davvero, e il test lo guarda da qui.
+   */
+  private applyFeatures(
+    marble: RaceMarble,
+    progress: number,
+    target: number,
+  ): { target: number; lateral: number; hit: TrackFeature | null } {
+    const hit = this.features.length
+      ? oneShotAt(this.features, progress, marble.bumped)
+      : null;
+    if (hit) {
+      marble.bumped.add(hit.id);
+      if (hit.kind === 'rampa') {
+        marble.boostUntil = this.raceElapsed + 0.9;
+      } else if (hit.kind === 'perni') {
+        marble.speed *= PERNI_FACTOR;
+        marble.stunUntil = Math.max(marble.stunUntil, this.raceElapsed + 0.2);
+        marble.recoverUntil = Math.max(marble.recoverUntil, this.raceElapsed + 0.6);
+      }
+    }
+    return {
+      target: target * alongFactor(this.features, progress),
+      lateral: lateralPush(this.features, progress),
+      hit,
+    };
+  }
+
   private marbleForBody(body: any): RaceMarble | undefined {
     return this.raceMarbles.find((marble) => marble.body === body);
   }
@@ -1418,8 +1452,10 @@ export class BiglieBonus implements OnInit, OnDestroy {
       target *= dramaFactor(marble.drama, this.raceElapsed);
       // Chi è davanti non ha scia: la prima posizione costa sempre qualcosa.
       if (marble.x >= leadX) target *= HEAD_WIND;
-      // Attrito e rampe: le interazioni della pista, le stesse in simulazione.
-      target *= alongFactor(this.features, progress);
+      // Attrito, rampe e perni: le interazioni della pista, le stesse in
+      // simulazione. Gli effetti sulle grandezze li applica `applyFeatures`.
+      const forces = this.applyFeatures(marble, progress, target);
+      target = forces.target;
 
       // La velocità non si riscrive più a ogni passo: la biglia ha la sua e ci
       // torna con l'accelerazione del profilo. A regime il valore è esattamente
@@ -1454,7 +1490,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
       const shove = this.raceRng() < 0.003 ? (this.raceRng() - 0.5) * 5 : 0;
       const lateralSpeed = body.velocity.x * frame.nx + body.velocity.y * frame.ny;
       // La corrente spinge di lato: qui come nella corsa headless.
-      const current = lateralPush(this.features, progress);
+      const current = forces.lateral;
       const lateral = Math.max(
         -4,
         Math.min(4, (lateralSpeed * 0.86 + steer + pull + bump + shove + current) * gripDamping),
@@ -1467,23 +1503,30 @@ export class BiglieBonus implements OnInit, OnDestroy {
         y: frame.ty * along + frame.ny * lateral,
       });
 
-      // Rampe e perni si sentono una volta sola per biglia.
-      const feature = this.features.length
-        ? oneShotAt(this.features, progress, marble.bumped)
-        : null;
-      if (feature) {
-        marble.bumped.add(feature.id);
-        if (feature.kind === 'rampa') {
-          marble.boostUntil = this.raceElapsed + 0.9;
-          this.kickMarble(marble, 1.08, (this.raceRng() - 0.5) * 1.2);
-        } else {
-          marble.speed *= PERNI_FACTOR;
-          marble.stunUntil = Math.max(marble.stunUntil, this.raceElapsed + 0.2);
-          marble.recoverUntil = Math.max(marble.recoverUntil, this.raceElapsed + 0.6);
-          this.kickMarble(marble, PERNI_FACTOR, (this.raceRng() - 0.5) * 1.6);
-          this.spawnImpact(marble);
-          this.audio.playMarbleSurface(this.surfaceIsSoft());
-        }
+      // Rampe e perni: il colpo si dà dopo che la velocità è stata scritta.
+      if (forces.hit?.kind === 'rampa') {
+        this.kickMarble(marble, 1.08, (this.raceRng() - 0.5) * 1.2);
+      } else if (forces.hit?.kind === 'perni') {
+        this.kickMarble(marble, PERNI_FACTOR, (this.raceRng() - 0.5) * 1.6);
+        this.spawnImpact(marble);
+        this.audio.playMarbleSurface(this.surfaceIsSoft());
+      }
+
+      // Ostacoli mobili: barra, porta e altalena girano a tempo di gara, con la
+      // stessa formula della corsa headless.
+      const lateralFraction = lateral / Math.max(1, frame.width / 2);
+      for (const obstacle of movingAt(this.features, progress)) {
+        if (!movingObstacleHit(obstacle, this.raceElapsed, lateralFraction)) continue;
+        // La porta si chiude e si riapre: lo stesso ostacolo conta una volta
+        // ogni due secondi, non a ogni fotogramma.
+        const key = `${obstacle.id}@${Math.floor(this.raceElapsed / 2)}`;
+        if (marble.bumped.has(key)) continue;
+        marble.bumped.add(key);
+        marble.speed *= MOVING_FACTOR;
+        marble.stunUntil = Math.max(marble.stunUntil, this.raceElapsed + 0.12);
+        marble.recoverUntil = Math.max(marble.recoverUntil, this.raceElapsed + 0.5);
+        this.kickMarble(marble, MOVING_FACTOR, -Math.sign(lateralFraction || 1) * 1);
+        this.spawnImpact(marble);
       }
     }
 
@@ -2411,6 +2454,31 @@ export class BiglieBonus implements OnInit, OnDestroy {
           }
           break;
         }
+        case 'barra':
+        case 'porta':
+        case 'altalena': {
+          const pose = movingObstacle(feature, this.raceElapsed);
+          const lane = Math.max(12, frame.width / 2 - 8);
+          const center = pose.center * lane;
+          const half = Math.max(10, pose.half * lane);
+          ctx.globalAlpha = pose.blocking ? 1 : 0.35;
+          ctx.fillStyle = feature.kind === 'porta' ? PAPER_HI : TOMATO;
+          ctx.strokeStyle = INK;
+          ctx.lineWidth = 2.5;
+          ctx.fillRect(-7, center - half, 14, half * 2);
+          ctx.strokeRect(-7, center - half, 14, half * 2);
+          // Le tacche danno il senso del movimento anche da lontano.
+          ctx.strokeStyle = INK;
+          ctx.lineWidth = 1.6;
+          for (let tick = -1; tick <= 1; tick++) {
+            ctx.beginPath();
+            ctx.moveTo(-9, center + tick * (half * 0.6));
+            ctx.lineTo(9, center + tick * (half * 0.6));
+            ctx.stroke();
+          }
+          ctx.globalAlpha = 1;
+          break;
+        }
         case 'perni': {
           ctx.fillStyle = MUSTARD;
           ctx.strokeStyle = INK;
@@ -2418,7 +2486,7 @@ export class BiglieBonus implements OnInit, OnDestroy {
           for (let pin = -1; pin <= 1; pin++) {
             const x = pin * 11;
             ctx.beginPath();
-            ctx.arc(x, Math.sin(now / 320 + pin) * 2, 4.5, 0, Math.PI * 2);
+            ctx.arc(x, 0, 4.5, 0, Math.PI * 2);
             ctx.fill();
             ctx.stroke();
           }

@@ -39,6 +39,9 @@ import {
   alongFactor,
   buildFeatures,
   lateralPush,
+  movingAt,
+  movingObstacleHit,
+  MOVING_FACTOR,
   oneShotAt,
   PERNI_FACTOR,
 } from './track-features';
@@ -275,6 +278,20 @@ export function simulateRace(options: SimOptions): SimResult {
         marble.recoverUntil = Math.max(marble.recoverUntil, elapsed + wall.recover);
         marble.lateralSpeed *= -0.5;
         marble.wallHits += 1;
+      }
+
+      // Ostacoli mobili: barra, porta e altalena si muovono a tempo di gara.
+      const lateralFraction = marble.lateral / Math.max(1, frame.width / 2);
+      for (const obstacle of movingAt(features, progress)) {
+        if (!movingObstacleHit(obstacle, elapsed, lateralFraction)) continue;
+        // Un colpo ogni due secondi per ostacolo, non a ogni passo.
+        const key = `${obstacle.id}@${Math.floor(elapsed / 2)}`;
+        if (marble.bumped.has(key)) continue;
+        marble.bumped.add(key);
+        marble.speedNow *= MOVING_FACTOR;
+        marble.stunUntil = Math.max(marble.stunUntil, elapsed + 0.12);
+        marble.recoverUntil = Math.max(marble.recoverUntil, elapsed + 0.5);
+        marble.lateralSpeed *= -0.4;
       }
 
       // Ostacoli: cerchi sul fondo, una volta sola per biglia.

@@ -5,6 +5,11 @@ import {
   buildFeatures,
   featuresAt,
   lateralPush,
+  movingAt,
+  movingObstacle,
+  movingObstacleHit,
+  MOVING_FACTOR,
+  MOVING_KINDS,
   oneShotAt,
   PERNI_FACTOR,
 } from './track-features';
@@ -95,6 +100,63 @@ describe('interazioni della pista', () => {
     expect(Math.abs(push)).toBeLessThanOrEqual(0.42);
   });
 
+  it('ogni pista ha un ostacolo mobile, sempre lo stesso', () => {
+    for (const track of TRACK_CATALOG) {
+      const { geometry } = geometryFor(track.id);
+      const first = buildFeatures(track.id, SEED, geometry).filter((feature) =>
+        MOVING_KINDS.includes(feature.kind),
+      );
+      const second = buildFeatures(track.id, SEED, geometry).filter((feature) =>
+        MOVING_KINDS.includes(feature.kind),
+      );
+
+      expect(first).toHaveLength(1);
+      expect(first[0].kind).toBe(second[0].kind);
+      expect(first[0].phase).toBe(second[0].phase);
+      expect(first[0].progress).toBeCloseTo(0.52, 6);
+    }
+  });
+
+  it('gli ostacoli mobili si muovono dentro la corsia', () => {
+    const { geometry } = geometryFor('rally');
+    const features = buildFeatures('rally', SEED, geometry);
+    const moving = features.find((feature) => MOVING_KINDS.includes(feature.kind))!;
+
+    for (let second = 0; second < 30; second += 0.25) {
+      const pose = movingObstacle(moving, second);
+      expect(pose.center).toBeGreaterThanOrEqual(-1);
+      expect(pose.center).toBeLessThanOrEqual(1);
+      expect(pose.half).toBeGreaterThan(0);
+      expect(pose.half).toBeLessThanOrEqual(0.6);
+    }
+
+    // Chi passa sul centro dell'ostacolo lo prende, chi sta dal lato opposto no.
+    const pose = movingObstacle(moving, 7);
+    expect(movingObstacleHit(moving, 7, pose.center)).toBe(true);
+    const far = pose.center > 0 ? pose.center - 1.5 : pose.center + 1.5;
+    expect(movingObstacleHit(moving, 7, far)).toBe(false);
+  });
+
+  it('la porta si chiude e si riapre, e da aperta non ferma nessuno', () => {
+    const porta = {
+      id: 'porta-test',
+      kind: 'porta' as const,
+      progress: 0.5,
+      span: 0.01,
+      side: 1 as const,
+      strength: 1,
+      phase: 0,
+    };
+    const states = new Set<boolean>();
+    for (let second = 0; second < 20; second += 0.2) {
+      const pose = movingObstacle(porta, second);
+      states.add(pose.blocking);
+      if (!pose.blocking) expect(movingObstacleHit(porta, second, 0)).toBe(false);
+    }
+    expect(states).toEqual(new Set([true, false]));
+    expect(MOVING_FACTOR).toBeLessThan(1);
+  });
+
   it('rampe e perni si sentono una volta sola per biglia', () => {
     const { geometry } = geometryFor('f1');
     const features = buildFeatures('f1', SEED, geometry);
@@ -111,5 +173,7 @@ describe('interazioni della pista', () => {
     // I perni costano come un ostacolo piccolo, non come un muro.
     expect(PERNI_FACTOR).toBeLessThan(1);
     expect(featuresAt(features, ramp.progress).length).toBeGreaterThan(0);
+    // Gli ostacoli mobili non si confondono con le rampe.
+    expect(movingAt(features, ramp.progress)).toEqual([]);
   });
 });

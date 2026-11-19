@@ -20,7 +20,16 @@ export type FeatureKind =
   /** Rampa: un colpo di velocità e un sobbalzo, una volta per biglia. */
   | 'rampa'
   /** Perni: birilli in mezzo alla corsia, si passa ai lati. */
-  | 'perni';
+  | 'perni'
+  /** Barra: braccio che spazza la corsia da un muro all'altro. */
+  | 'barra'
+  /** Porta: cancello che si chiude e si apre a tempo. */
+  | 'porta'
+  /** Altalena: trave che oscilla larga, più lenta della barra. */
+  | 'altalena';
+
+/** Gli ostacoli mobili: uno per pista, scelto in modo deterministico. */
+export const MOVING_KINDS: readonly FeatureKind[] = ['barra', 'porta', 'altalena'];
 
 export interface TrackFeature {
   id: string;
@@ -33,6 +42,8 @@ export interface TrackFeature {
   side: -1 | 1;
   /** Intensità 0–1: le correnti forti piegano, quelle deboli si sentono appena. */
   strength: number;
+  /** Sfasamento dell'oscillazione degli ostacoli mobili, in secondi. */
+  phase: number;
 }
 
 /** Quanto stringe una zona d'attrito: un quinto della velocità, non di più. */
@@ -43,6 +54,17 @@ const CORRENTE_PUSH = 0.22;
 const RAMPA_BOOST = 1.06;
 /** Il perno costa come un ostacolo piccolo. */
 export const PERNI_FACTOR = 0.72;
+/** Prendere la barra, la porta o l'altalena costa meno di un paracarro. */
+export const MOVING_FACTOR = 0.9;
+
+/** Numero stabile dal nome del fondo: decide il tipo di ostacolo mobile. */
+function hashId(id: string): number {
+  let hash = 0;
+  for (let index = 0; index < id.length; index++) {
+    hash = (hash * 31 + id.charCodeAt(index)) >>> 0;
+  }
+  return hash;
+}
 
 function seededRandom(seed: number): () => number {
   let state = seed >>> 0 || 1;
@@ -87,6 +109,7 @@ export function buildFeatures(
       span: Math.max(0.002, Math.min(0.02, (piece.to - piece.from) / total / 2)),
       side: 1,
       strength: kind === 'attrito' ? 0.7 : 1,
+      phase: 0,
     });
   }
 
@@ -101,8 +124,23 @@ export function buildFeatures(
       span: 0.03,
       side: index % 2 === 0 ? 1 : -1,
       strength: 0.55 + rng() * 0.45,
+      phase: 0,
     });
   }
+
+  // Un ostacolo mobile per pista, sempre allo stesso punto: il tipo lo decide
+  // il nome del fondo, lo sfasamento il seme. Niente `Math.random`: la TV e la
+  // simulazione lo vedono muoversi allo stesso modo.
+  const moving = MOVING_KINDS[hashId(trackId) % MOVING_KINDS.length];
+  features.push({
+    id: `feature-${trackId}-${moving}`,
+    kind: moving,
+    progress: 0.52,
+    span: 0.012,
+    side: 1,
+    strength: 1,
+    phase: rng() * Math.PI * 2,
+  });
 
   return features.sort((a, b) => a.progress - b.progress);
 }
@@ -155,6 +193,58 @@ export function oneShotAt(
     return feature;
   }
   return null;
+}
+
+/** Posizione di un ostacolo mobile, in frazioni di semicorsia. */
+export interface ObstaclePose {
+  /** Centro dell'ostacolo: −1 il muro basso, +1 quello alto. */
+  center: number;
+  /** Mezza larghezza occupata, stessa unità. */
+  half: number;
+  /** La porta aperta non blocca il passaggio. */
+  blocking: boolean;
+}
+
+/**
+ * Dove sta l'ostacolo mobile al secondo `elapsed` di gara. Tutto periodico e
+ * deterministico: stesso istante, stessa posizione in TV e in simulazione.
+ */
+export function movingObstacle(feature: TrackFeature, elapsed: number): ObstaclePose {
+  const t = elapsed + feature.phase;
+  switch (feature.kind) {
+    case 'barra':
+      // Spazza la corsia in poco più di tre secondi per lato.
+      return { center: Math.sin(t * 1.05) * 0.82, half: 0.2, blocking: true };
+    case 'altalena':
+      // Più lenta e più larga: si passa quando è dall'altra parte.
+      return { center: Math.sin(t * 0.55) * 0.9, half: 0.26, blocking: true };
+    case 'porta':
+      // Si chiude al centro per poco più di un secondo, poi si apre.
+      return { center: 0, half: 0.4, blocking: Math.sin(t * 0.75) > -0.15 };
+    default:
+      return { center: 0, half: 0, blocking: false };
+  }
+}
+
+/** Gli ostacoli mobili in un punto della pista. */
+export function movingAt(features: readonly TrackFeature[], progress: number): TrackFeature[] {
+  return featuresAt(features, progress).filter(
+    (feature) => feature.kind === 'barra' || feature.kind === 'porta' || feature.kind === 'altalena',
+  );
+}
+
+/**
+ * True se la biglia prende l'ostacolo: `lateralFraction` va da −1 (muro basso)
+ * a +1 (muro alto), come la posizione dell'ostacolo.
+ */
+export function movingObstacleHit(
+  feature: TrackFeature,
+  elapsed: number,
+  lateralFraction: number,
+): boolean {
+  const pose = movingObstacle(feature, elapsed);
+  if (!pose.blocking) return false;
+  return Math.abs(lateralFraction - pose.center) <= pose.half;
 }
 
 /**

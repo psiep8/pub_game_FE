@@ -3,6 +3,7 @@ import { BiglieBonus } from './biglie-bonus.component';
 import { WebSocketService } from '../../../core/websocket/web-socket.service';
 import { FakeWebSocketService } from '../../../shared/testing/test-doubles';
 import { AudioService } from '../../../core/services/audio.service';
+import { PERNI_FACTOR, type TrackFeature } from './track-features';
 
 const MARBLES = [
   { id: 'fulmine', name: 'FULMINE', color: '#facc15', emoji: '⚡', speed: 10, accel: 6, grip: 3 },
@@ -66,6 +67,46 @@ describe('BiglieBonus — ripresa dopo un refresh della TV', () => {
     expect(state.assignments).toEqual([]);
 
     vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('applica correnti, rampe e perni: è la TV a farlo, non solo la simulazione', () => {
+    const { component, fixture } = mount();
+    const features: TrackFeature[] = [
+      { id: 'corrente', kind: 'corrente', progress: 0.5, span: 0.05, side: 1, strength: 1, phase: 0 },
+      { id: 'attrito', kind: 'attrito', progress: 0.5, span: 0.05, side: 1, strength: 1, phase: 0 },
+      { id: 'rampa', kind: 'rampa', progress: 0.6, span: 0.05, side: 1, strength: 1, phase: 0 },
+      { id: 'perni', kind: 'perni', progress: 0.7, span: 0.05, side: 1, strength: 1, phase: 0 },
+    ];
+    component['features'] = features;
+    component['raceElapsed'] = 10;
+    const marble = {
+      bumped: new Set<string>(),
+      speed: 4,
+      boostUntil: 0,
+      stunUntil: 0,
+      recoverUntil: 0,
+    } as any;
+
+    // Corrente e attrito: spinta di lato e bersaglio abbassato.
+    const inCurrent = component['applyFeatures'](marble, 0.5, 4);
+    expect(inCurrent.target).toBeLessThan(4);
+    expect(inCurrent.lateral).toBeGreaterThan(0);
+    expect(inCurrent.hit).toBeNull();
+
+    // Rampa: bersaglio più alto e momento di gloria, una volta sola.
+    const onRamp = component['applyFeatures'](marble, 0.6, 4);
+    expect(onRamp.hit?.kind).toBe('rampa');
+    expect(onRamp.target).toBeGreaterThan(4);
+    expect(marble.boostUntil).toBeCloseTo(10.9, 5);
+
+    // Perni: la biglia perde velocità e li passa una volta sola.
+    const onPins = component['applyFeatures'](marble, 0.7, 4);
+    expect(onPins.hit?.kind).toBe('perni');
+    expect(marble.speed).toBeCloseTo(4 * PERNI_FACTOR, 6);
+    expect(marble.bumped.has('perni')).toBe(true);
+    expect(component['applyFeatures'](marble, 0.7, 4).hit).toBeNull();
+
     fixture.destroy();
   });
 
