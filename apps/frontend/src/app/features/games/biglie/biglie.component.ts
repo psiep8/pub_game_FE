@@ -207,7 +207,7 @@ const FINALE_SECONDS = 7;
         @if (phase() !== Phase.RACE) {
         <header class="bg-head">
           <div>
-            <div class="bg-kicker">{{ roundMode ? '🎱 BIGLIE · ROUND' : '🎱 BIGLIE · BANCO DI PROVA' }}</div>
+            <div class="bg-kicker">🎱 BIGLIE · ROUND</div>
             <h1>{{ heading() }}</h1>
             <p class="bg-sub">{{ subtitle() }}</p>
           </div>
@@ -385,10 +385,6 @@ export class Biglie implements OnInit, OnDestroy {
 
   @Input({ required: true }) gameId = 1;
   @Input() players: string[] = [];
-  /** Banco di prova: intro breve, scelta automatica e gare senza attese. */
-  @Input() preview = false;
-  /** Banco di prova: forza una pista per rivederla (ignorato in partita). */
-  @Input() trackOverride: TrackId | null = null;
   /** Round della scaletta: i punti entrano in classifica, non in un bonus. */
   @Input() roundMode = false;
   /** Round di serata (0-based): decide le due piste e il numero delle gare. */
@@ -473,7 +469,7 @@ export class Biglie implements OnInit, OnDestroy {
       this.applyResume(this.resume);
       return;
     }
-    this.later(this.preview ? 200 : 700, () => this.startIntro());
+    this.later(700, () => this.startIntro());
   }
 
   /**
@@ -718,14 +714,6 @@ export class Biglie implements OnInit, OnDestroy {
   /** Le due piste del round: seme della serata, una sola volta per round. */
   private ensurePlan(): void {
     if (this.roundTracks().length) return;
-    if (
-      this.preview
-      && this.trackOverride
-      && TRACK_CATALOG.some((track) => track.id === this.trackOverride)
-    ) {
-      this.applyPlan([this.trackOverride, this.trackOverride]);
-      return;
-    }
     if (!this.planSeed) this.planSeed = Math.floor(Math.random() * 0xffffffff) >>> 0;
     this.applyPlan(planRoundTracks(this.planSeed, this.roundSlot()));
   }
@@ -736,12 +724,11 @@ export class Biglie implements OnInit, OnDestroy {
 
   private startIntro(): void {
     this.ensurePlan();
-    const seconds = this.preview ? 1 : INTRO_SECONDS;
     this.phase.set(Phase.INTRO);
-    this.secondsLeft.set(seconds);
+    this.secondsLeft.set(INTRO_SECONDS);
     this.publish();
     this.saveCheckpoint();
-    this.startClock(seconds, () => this.preparePick());
+    this.startClock(INTRO_SECONDS, () => this.preparePick());
   }
 
   private preparePick(): void {
@@ -767,34 +754,10 @@ export class Biglie implements OnInit, OnDestroy {
     this.phase.set(Phase.PICK);
     this.currentPlayer.set(this.pickOrder[this.pickCursor]);
 
-    if (this.preview) {
-      this.secondsLeft.set(0);
-      this.publish();
-      this.saveCheckpoint();
-      this.later(220, () => this.previewPick());
-      return;
-    }
-
     this.secondsLeft.set(PICK_SECONDS);
     this.publish();
     this.saveCheckpoint();
     this.startClock(PICK_SECONDS, () => this.autoPick());
-  }
-
-  /** Scelta demo: biglia libera a caso, così la preview mostra subito la gara. */
-  private previewPick(): void {
-    const player = this.currentPlayer();
-    if (!player || this.phase() !== Phase.PICK) return;
-
-    const taken = new Set(this.assignments.values());
-    const free = this.marbleSet.filter((marble) => !taken.has(marble.id));
-    if (!free.length) {
-      this.pickCursor += 1;
-      this.startPick();
-      return;
-    }
-
-    this.assignMarble(player, free[Math.floor(Math.random() * free.length)].id);
   }
 
   private autoPick(): void {
@@ -1627,7 +1590,7 @@ export class Biglie implements OnInit, OnDestroy {
     this.publish();
     this.saveCheckpoint();
 
-    this.startClock(this.preview ? 1 : BETWEEN_SECONDS, () => {
+    this.startClock(BETWEEN_SECONDS, () => {
       void this.startRace(this.raceIndex() + 1);
     });
   }

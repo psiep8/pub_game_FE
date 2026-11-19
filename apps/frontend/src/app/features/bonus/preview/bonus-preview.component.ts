@@ -3,12 +3,10 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
-import { Biglie } from '../../games/biglie/biglie.component';
-import { TRACK_CATALOG, type TrackId } from '../../games/biglie/track-plan';
 import { CasinoBonus } from '../casino/casino-bonus.component';
 import { CavalloBonus } from '../cavallo/cavallo-bonus.component';
 
-type PreviewKind = 'casino' | 'cavallo' | 'biglie';
+type PreviewKind = 'casino' | 'cavallo';
 
 interface PreviewCard {
   id: PreviewKind;
@@ -18,7 +16,7 @@ interface PreviewCard {
   note: string;
 }
 
-const PREVIEW_TYPES: PreviewKind[] = ['casino', 'cavallo', 'biglie'];
+const PREVIEW_TYPES: PreviewKind[] = ['casino', 'cavallo'];
 
 const PREVIEW_CARDS: PreviewCard[] = [
   {
@@ -35,26 +33,19 @@ const PREVIEW_CARDS: PreviewCard[] = [
     subtitle: 'OTTO DOMANDE FLASH',
     note: 'Categoria scelta dai tavoli e tabellone che si riordina.',
   },
-  {
-    id: 'biglie',
-    icon: '🎱',
-    title: 'BIGLIE',
-    subtitle: 'GIOCO DI ROUND · OTTO PISTE',
-    note: 'Pista fisica a pezzi, ostacoli per fondo e classifica cumulativa.',
-  },
 ];
 
 @Component({
   selector: 'app-bonus-preview',
   standalone: true,
-  imports: [CommonModule, RouterLink, CasinoBonus, CavalloBonus, Biglie],
+  imports: [CommonModule, RouterLink, CasinoBonus, CavalloBonus],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (!kind()) {
       <main class="bp-index">
         <header class="bp-head">
-          <span class="bp-stamp">ANTEPRIMA TV</span>
-          <h1>DUE BONUS E UN GIOCO, UN SOLO BANCO DI PROVA</h1>
+          <span class="bp-stamp">BONUS PREVIEW</span>
+          <h1>DUE BONUS, UN SOLO BANCO DI PROVA</h1>
           <p>
             Anteprima TV con dati demo. Ogni scheda apre la stessa esperienza che vede il
             pubblico, senza aspettare la fine di un atto.
@@ -82,8 +73,8 @@ const PREVIEW_CARDS: PreviewCard[] = [
       </main>
     } @else {
       @if (!capture) {
-      <nav class="bp-bar" aria-label="Selettore anteprima TV">
-        <span class="bp-bar-tag">ANTEPRIMA TV</span>
+      <nav class="bp-bar" aria-label="Selettore bonus preview">
+        <span class="bp-bar-tag">BONUS PREVIEW</span>
         @for (card of cards; track card.id) {
           <a
             [routerLink]="['/bonus-preview', card.id]"
@@ -103,13 +94,6 @@ const PREVIEW_CARDS: PreviewCard[] = [
         @case ('cavallo') {
           <app-cavallo-bonus [gameId]="1" [players]="players" [categories]="categories" [preview]="true" />
         }
-          @case ('biglie') {
-            <app-biglie
-              [gameId]="1"
-              [players]="players"
-              [preview]="true"
-              [trackOverride]="biglieTrack" />
-          }
         }
       </div>
     }
@@ -168,9 +152,9 @@ const PREVIEW_CARDS: PreviewCard[] = [
     }
     .bp-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: clamp(10px, 1.8vw, 22px);
-      max-width: 1250px;
+      max-width: 920px;
       margin: 0 auto;
     }
     .bp-card {
@@ -323,11 +307,6 @@ export class BonusPreview {
     return Number.isFinite(wanted) && wanted > 0 ? all.slice(0, Math.min(all.length, wanted)) : all;
   })();
 
-  /** `?traccia=rally` mostra una sola pista delle otto, per la rassegna. */
-  readonly biglieTrack: TrackId | null = (() => {
-    const id = this.params?.get('traccia');
-    return TRACK_CATALOG.some((track) => track.id === id) ? (id as TrackId) : null;
-  })();
   readonly categories = [
     { id: 1, name: 'STORIA', emoji: '🏛️', active: true },
     { id: 2, name: 'SCIENZA', emoji: '🔬', active: true },

@@ -7,12 +7,15 @@
   `app-biglie`; gli altri file della pista lo seguono accanto a `biglie.mode.ts`.
   Le Biglie sono un gioco di round (`GameModeType.BIGLIE`, quattro round in
   scaletta), non uno dei cinque bonus (`BonusType`): il nome non le confonde più.
-- **Anteprima sincera:** `/bonus-preview` porta il timbro «ANTEPRIMA TV» e il
-  titolo «DUE BONUS E UN GIOCO, UN SOLO BANCO DI PROVA», la scheda Biglie dice
-  «GIOCO DI ROUND · OTTO PISTE» e la kicker nel banco di prova «BANCO DI PROVA»
-  invece di «BONUS DELL'ATTO».
-- Verifiche: suite Biglie + TV **152 test su 9 file**, build di produzione, tutti
-  passati.
+- **Niente URL dedicato:** le Biglie non hanno più una scheda in
+  `/bonus-preview` né un caso nella route dell'anteprima. Sono un round come gli
+  altri: si vedono in TV quando la scaletta le chiama. Spariscono con la scheda
+  anche `?traccia=` e gli input `preview`/`trackOverride` del componente, che
+  esistevano solo per quel banco di prova (intro da 1 s, scelta automatica,
+  pista forzata).
+- **Anteprima tornata a due bonus:** timbro «BONUS PREVIEW», titolo «DUE BONUS,
+  UN SOLO BANCO DI PROVA» e griglia a due schede, larga 920 px.
+- Verifiche: suite Biglie + TV, build di produzione, tutti passati.
 
 ## 19 novembre 2026 — F1 rimonta, e la TV guardata a 720p (Biglie B3)
 
