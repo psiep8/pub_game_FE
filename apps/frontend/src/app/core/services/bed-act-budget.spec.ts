@@ -83,9 +83,13 @@ function slotOf(type: GameModeType): string | null {
   return bed.file;
 }
 
-/** Gli slot di un atto: la base e un file per ogni gioco della scaletta. */
+/**
+ * Gli slot di un atto: la base e un file per gioco, non per round. Un gioco che
+ * esce due volte nell'atto (come il Quiz nell'atto 1) occupa un solo slot: il
+ * suo loop è lo stesso file, e contarlo due volte non è un alias.
+ */
 function slotsOf(act: ActNumber): string[] {
-  const games = ACT_DECKS[act - 1]
+  const games = [...new Set(ACT_DECKS[act - 1])]
     .map(slotOf)
     .filter((file): file is string => file !== null);
   return [ACT_BEDS[act].file, ...games];
