@@ -48,6 +48,8 @@ export class AudioService {
   private marbleTrack: string | null = null;
   /** Il rotolamento era in onda quando la TV è andata in pausa. */
   private marbleSilenced = false;
+  /** Pausa della TV: tace tutto, effetti compresi, finché non si riprende. */
+  private paused = false;
 
   /** Volume generale della TV, 0–1. Il muto resta il suo interruttore. */
   readonly masterVolume = signal(1);
@@ -69,7 +71,7 @@ export class AudioService {
    * più si alza, più il battito è presente.
    */
   startHeartbeat(intensity = 0): void {
-    if (!this.audioEnabled()) return;
+    if (!this.audioEnabled() || this.paused) return;
     const level = 0.55 + Math.max(0, Math.min(1, intensity)) * 0.45;
     this.player.startLoop('heartbeat', level);
   }
@@ -96,7 +98,7 @@ export class AudioService {
   }
 
   startClock(): void {
-    if (!this.audioEnabled()) return;
+    if (!this.audioEnabled() || this.paused) return;
     this.player.startLoop('clock', 1);
   }
 
@@ -110,7 +112,7 @@ export class AudioService {
    * file, così la sabbia non suona come il vetro.
    */
   startMarbleBed(trackId?: string | null): void {
-    if (!this.audioEnabled()) return;
+    if (!this.audioEnabled() || this.paused) return;
     this.marbleTrack = trackId ?? null;
     this.marbleSilenced = false;
     const style = marbleRollStyle(trackId);
@@ -125,10 +127,12 @@ export class AudioService {
   }
 
   /**
-   * Pausa della TV: tacciono musica e rotolamento. Non tocca la corsa, che ha
-   * il suo ciclo: qui si spegne solo quello che si sente.
+   * Pausa della TV: tacciono musica e rotolamento, e finché dura nessun
+   * effetto parte (tick, reveal, urti). Non tocca la corsa, che ha il suo
+   * ciclo: qui si spegne solo quello che si sente.
    */
   pauseBeds(): void {
+    this.paused = true;
     this.stopAmbient();
     this.marbleSilenced = this.player.isLooping('marbleRoll');
     if (this.marbleSilenced) this.stopMarbleBed();
@@ -139,6 +143,7 @@ export class AudioService {
    * quando è arrivata la pausa. La pista è quella dell'ultima gara accesa.
    */
   resumeBeds(): void {
+    this.paused = false;
     this.startAmbient();
     if (!this.marbleSilenced) return;
     this.marbleSilenced = false;
@@ -267,7 +272,7 @@ export class AudioService {
    * gioco (`setGameBed`) o la TV va in pausa (`stopAmbient`).
    */
   startAmbient(): void {
-    if (!this.audioEnabled() || !this.bedLoop) return;
+    if (!this.audioEnabled() || this.paused || !this.bedLoop) return;
     this.appliedBedLevel = this.bedGain();
     this.player.startBed(this.bedLoop.file, this.appliedBedLevel, BED_FADE_SECONDS);
   }
@@ -331,7 +336,8 @@ export class AudioService {
       return;
     }
     this.bedLoop = next;
-    if (!this.audioEnabled()) return;
+    // In pausa il file si ricorda ma non parte: riparte alla ripresa.
+    if (!this.audioEnabled() || this.paused) return;
     if (!next) {
       this.player.stopBed(BED_STOP_SECONDS);
       return;
@@ -346,7 +352,7 @@ export class AudioService {
   }
 
   private applyBedLevel(): void {
-    if (!this.bedLoop || !this.audioEnabled()) return;
+    if (!this.bedLoop || !this.audioEnabled() || this.paused) return;
     const level = this.bedGain();
     if (Math.abs(level - this.appliedBedLevel) < 0.001) return;
     this.appliedBedLevel = level;
@@ -387,7 +393,7 @@ export class AudioService {
    * storici restano per i chiamanti esistenti.
    */
   play(event: AudioEventId, variant = 0): boolean {
-    if (!this.audioEnabled()) return false;
+    if (!this.audioEnabled() || this.paused) return false;
     const definition = AUDIO_EVENTS[event];
     if (!definition) return false;
 

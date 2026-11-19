@@ -25,6 +25,13 @@ salta l'evento troppo ravvicinato e restituisce `false` quando lo salta. I
 metodi storici (`playCorrect()`, `startClock()`, …) restano e fanno capo agli
 stessi suoni: nessun chiamante è stato toccato in A1.
 
+**Pausa della TV.** `pauseBeds()` non ferma solo il sottofondo: da lì in poi
+nessun evento del catalogo parte (`play()` risponde `false`), clock e battito
+restano fermi e un cambio di gioco non avvia il nuovo loop, che si ricorda e
+riparte alla ripresa. `resumeBeds()` ridà la musica e il rotolamento delle
+Biglie solo se una gara era in onda; gli effetti tornano disponibili subito.
+La copertura sta in `audio.service.spec.ts`, sezione «pausa della TV».
+
 ## Come sono fatti i suoni (16 novembre 2026)
 
 `core/services/audio-dsp.ts` è la cassetta degli strumenti; il catalogo dice

@@ -22,6 +22,10 @@ describe('AudioService — pausa della TV', () => {
     player['startLoop'] = (event: string) => calls.push(`start-loop:${event}`);
     player['stopLoop'] = (event: string) => calls.push(`stop-loop:${event}`);
     player['isLooping'] = (event: string) => event === 'marbleRoll' && marbleInOnda;
+    player['play'] = (event: string) => {
+      calls.push(`play:${event}`);
+      return true;
+    };
   });
 
   it('in pausa ferma musica e rotolamento', () => {
@@ -60,6 +64,45 @@ describe('AudioService — pausa della TV', () => {
 
     expect(calls).toContain('start-bed:loop/lobby.m4a');
     expect(calls).not.toContain('start-loop:marbleRoll');
+  });
+
+  it('in pausa nessun effetto parte, e alla ripresa ripartono', () => {
+    calls.length = 0;
+    audio.pauseBeds();
+
+    expect(audio.play('gong')).toBe(false);
+    expect(calls).not.toContain('play:gong');
+
+    audio.resumeBeds();
+    calls.length = 0;
+
+    expect(audio.play('gong')).toBe(true);
+    expect(calls).toContain('play:gong');
+  });
+
+  it('in pausa il cambio di sottofondo non fa partire il nuovo file', () => {
+    audio.setGameBed('QUIZ');
+    audio.pauseBeds();
+    calls.length = 0;
+
+    audio.setGameBed('BOMBA');
+
+    expect(calls.filter((call) => call.startsWith('start-bed'))).toEqual([]);
+
+    calls.length = 0;
+    audio.resumeBeds();
+
+    expect(calls).toContain('start-bed:loop/gioco-bomba.m4a');
+  });
+
+  it('in pausa clock e battito restano fermi', () => {
+    audio.pauseBeds();
+    calls.length = 0;
+
+    audio.startClock();
+    audio.startHeartbeat(0.8);
+
+    expect(calls.filter((call) => call.startsWith('start-loop'))).toEqual([]);
   });
 });
 
