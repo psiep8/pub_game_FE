@@ -72,6 +72,7 @@ import {
 } from './race-dynamics';
 import { buildHazards, type Hazard, type HazardKind } from './hazard-plan';
 import { MARBLES, type Marble } from './marbles';
+import { TvPause } from '../../../shared/tv-pause';
 
 /**
  * Fasi delle Biglie. Le fasi comuni arrivano da `GamePhase`.
@@ -396,21 +397,10 @@ export class Biglie implements OnInit, OnDestroy {
    */
   @Input()
   set paused(value: boolean) {
-    const next = value === true;
-    if (next === this.pausedByTv) return;
-    this.pausedByTv = next;
-    if (next) {
-      this.suspendRace();
-      this.pauseClock();
-      this.pauseTimers();
-    } else {
-      this.resumeClock();
-      this.resumeTimers();
-      this.resumeRace();
-    }
+    this.pause.setPaused(value);
   }
   get paused(): boolean {
-    return this.pausedByTv;
+    return this.pause.isPaused;
   }
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
@@ -441,16 +431,11 @@ export class Biglie implements OnInit, OnDestroy {
   private marbleSet: Marble[] = [];
   private totals = new Map<string, number>();
   private finishCount = 0;
-  private clock?: ReturnType<typeof setInterval>;
-  /** Azione del cronometro: resta qui anche mentre la pausa lo tiene fermo. */
-  private clockEnd?: () => void;
-  /** Attese brevi (intro, chiusura finale) che la pausa deve poter fermare. */
-  private timers: Array<{
-    id?: ReturnType<typeof setTimeout>;
-    action: () => void;
-    remaining: number;
-    startedAt: number;
-  }> = [];
+  /** Pausa, cronometro e attese: un solo posto per fermarli e riarmarli. */
+  private readonly pause = new TvPause({
+    suspend: () => this.suspendRace(),
+    resume: () => this.resumeRace(),
+  });
 
   private raceMarbles: RaceMarble[] = [];
   private matter?: any;
@@ -469,8 +454,6 @@ export class Biglie implements OnInit, OnDestroy {
   private lastFrame = 0;
   /** TV in secondo piano: la corsa è ferma, non solo invisibile. */
   private suspended = false;
-  /** Pausa del presentatore: ferma la gara anche a scheda visibile. */
-  private pausedByTv = false;
   private raceCtx: CanvasRenderingContext2D | null = null;
   private raceW = 0;
   private raceH = 0;
@@ -667,14 +650,10 @@ export class Biglie implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroyed = true;
     this.audio.stopMarbleBed();
-    this.clearClock();
+    this.pause.dispose();
     this.destroyPhysics();
     if (this.frame) cancelAnimationFrame(this.frame);
     this.raceResize?.disconnect();
-    for (const timer of this.timers) {
-      if (timer.id) clearTimeout(timer.id);
-    }
-    this.timers = [];
   }
 
   heading(): string {
@@ -765,7 +744,7 @@ export class Biglie implements OnInit, OnDestroy {
   }
 
   private preparePick(): void {
-    this.clearClock();
+    this.pause.clearClock();
     this.marbleSet = this.buildMarbleSet(this.players.length);
     this.assignments.clear();
     this.totals.clear();
@@ -815,7 +794,7 @@ export class Biglie implements OnInit, OnDestroy {
   }
 
   private async startRace(index: number): Promise<void> {
-    this.clearClock();
+    this.pause.clearClock();
     // Fra una gara e l'altra il rotolamento tace: riparte col via della nuova.
     this.audio.stopMarbleBed();
 
@@ -1255,7 +1234,7 @@ export class Biglie implements OnInit, OnDestroy {
     this.raceResize.observe(canvas);
     this.resizeRaceCanvas();
 
-    if (!this.frame && !this.pausedByTv) {
+    if (!this.frame && !this.pause.isPaused) {
       this.ngZone.runOutsideAngular(() => {
         this.frame = requestAnimationFrame(this.loop);
       });
@@ -1305,7 +1284,7 @@ export class Biglie implements OnInit, OnDestroy {
   private resumeRace(): void {
     if (!this.suspended) return;
     // La pausa del presentatore e una scheda nascosta vincono sulla ripresa.
-    if (this.pausedByTv) return;
+    if (this.pause.isPaused) return;
     if (typeof document !== 'undefined' && document.hidden) return;
     this.suspended = false;
     this.lastFrame = 0;
@@ -2766,7 +2745,7 @@ export class Biglie implements OnInit, OnDestroy {
   }
 
   private finale(): void {
-    this.clearClock();
+    this.pause.clearClock();
     // Classifica finale: applausi e fanfara del vincitore, non un silenzio.
     this.audio.playApplause();
     this.audio.playPodiumReveal(1);
@@ -2833,74 +2812,21 @@ export class Biglie implements OnInit, OnDestroy {
   }
 
   private startClock(seconds: number, onEnd: () => void): void {
-    this.clearClock();
+    this.pause.clearClock();
     this.secondsLeft.set(seconds);
     this.publish();
-    this.clockEnd = onEnd;
-    // In pausa il conto si ricorda ma non parte: riparte alla ripresa.
-    if (this.pausedByTv) return;
-    this.armClock();
-  }
-
-  private armClock(): void {
-    const onEnd = this.clockEnd;
-    if (!onEnd) return;
-    this.clock = setInterval(() => {
+    this.pause.startClock(() => {
       const next = Math.max(0, this.secondsLeft() - 1);
       this.secondsLeft.set(next);
       this.publish();
-
-      if (next <= 0) {
-        this.clearClock();
-        onEnd();
-      }
-    }, 1000);
-  }
-
-  private pauseClock(): void {
-    if (this.clock) clearInterval(this.clock);
-    this.clock = undefined;
-  }
-
-  private resumeClock(): void {
-    if (!this.clockEnd || this.clock) return;
-    this.armClock();
-  }
-
-  private clearClock(): void {
-    this.pauseClock();
-    this.clockEnd = undefined;
+      if (next > 0) return true;
+      onEnd();
+      return false;
+    });
   }
 
   private later(ms: number, action: () => void): void {
-    const timer = { action, remaining: ms, startedAt: 0 } as (typeof this.timers)[number];
-    this.timers.push(timer);
-    // Se la TV è già in pausa l'attesa non parte: la arma la ripresa.
-    if (!this.pausedByTv) this.armTimer(timer);
-  }
-
-  private armTimer(timer: (typeof this.timers)[number]): void {
-    timer.startedAt = Date.now();
-    timer.id = setTimeout(() => {
-      this.timers = this.timers.filter((entry) => entry !== timer);
-      timer.action();
-    }, timer.remaining);
-  }
-
-  private pauseTimers(): void {
-    const now = Date.now();
-    for (const timer of this.timers) {
-      if (!timer.id) continue;
-      clearTimeout(timer.id);
-      timer.id = undefined;
-      timer.remaining = Math.max(0, timer.remaining - (now - timer.startedAt));
-    }
-  }
-
-  private resumeTimers(): void {
-    for (const timer of this.timers) {
-      if (!timer.id) this.armTimer(timer);
-    }
+    this.pause.later(ms, action);
   }
 
   private publish(): void {

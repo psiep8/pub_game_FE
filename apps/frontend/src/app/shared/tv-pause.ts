@@ -1,9 +1,9 @@
 /**
  * Orologio e attese che si fermano con la pausa della TV.
  *
- * I bonus hanno ognuno il proprio conto alla rovescia e le proprie attese:
- * senza un punto solo, ciascuno doveva ricordarsi di fermare intervalli,
- * timeout e animazioni. Qui la pausa è una cosa sola: `setPaused` ferma il
+ * Bonus e Biglie hanno ognuno il proprio conto alla rovescia e le proprie
+ * attese: senza un punto solo, ciascuno doveva ricordarsi di fermare
+ * intervalli, timeout e animazioni. Qui la pausa è una cosa sola: `setPaused` ferma il
  * cronometro e le attese, e alla ripresa li riarma da dove erano, senza
  * cambiare tempi, regole o esiti. Gli agganci `suspend`/`resume` servono alle
  * animazioni proprie (la ruota del Casino), che non sono né un intervallo né
