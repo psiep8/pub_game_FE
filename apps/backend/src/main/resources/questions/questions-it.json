@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "language": "it",
   "generatedAt": "2026-11-05T16:23:59.507026+00:00",
   "source": "curated-16-categories",
@@ -13,8 +13,8 @@
       "correctAnswer": "1789",
       "options": [
         "1848",
-        "1789",
         "1815",
+        "1789",
         "1776"
       ],
       "theme": null,
@@ -44,8 +44,8 @@
       "question": "Quale muro è caduto nel 1989, segnando la fine della Guerra Fredda?",
       "correctAnswer": "Il Muro di Berlino",
       "options": [
-        "Il Muro di Adriano",
         "Il Muro di Berlino",
+        "Il Muro di Adriano",
         "La Muraglia cinese",
         "Il Vallo Antonino"
       ],
@@ -60,8 +60,8 @@
       "question": "Quale condottiero francese fu sconfitto nella battaglia di Waterloo?",
       "correctAnswer": "Napoleone Bonaparte",
       "options": [
-        "Napoleone Bonaparte",
         "Luigi XIV",
+        "Napoleone Bonaparte",
         "Carlo Magno",
         "Robespierre"
       ],
@@ -92,10 +92,10 @@
       "question": "Chi fu il primo imperatore romano?",
       "correctAnswer": "Augusto",
       "options": [
-        "Augusto",
+        "Nerone",
         "Traiano",
         "Giulio Cesare",
-        "Nerone"
+        "Augusto"
       ],
       "theme": null,
       "explanation": null
@@ -108,10 +108,10 @@
       "question": "Quale trattato pose fine alla Prima guerra mondiale con la Germania?",
       "correctAnswer": "Il trattato di Versailles",
       "options": [
-        "Il trattato di Tordesillas",
+        "Il trattato di Versailles",
         "La pace di Westfalia",
         "Il trattato di Vienna",
-        "Il trattato di Versailles"
+        "Il trattato di Tordesillas"
       ],
       "theme": null,
       "explanation": null
@@ -158,8 +158,8 @@
       "options": [
         "Giustiniano",
         "Teodosio",
-        "Diocleziano",
-        "Costantino"
+        "Costantino",
+        "Diocleziano"
       ],
       "theme": null,
       "explanation": null
@@ -174,8 +174,8 @@
       "options": [
         "1975",
         "1961",
-        "1989",
-        "1991"
+        "1991",
+        "1989"
       ],
       "theme": null,
       "explanation": null
@@ -188,10 +188,10 @@
       "question": "Chi fu il primo uomo a mettere piede sulla Luna?",
       "correctAnswer": "Neil Armstrong",
       "options": [
-        "Michael Collins",
+        "Neil Armstrong",
         "Yuri Gagarin",
         "Buzz Aldrin",
-        "Neil Armstrong"
+        "Michael Collins"
       ],
       "theme": null,
       "explanation": null
@@ -204,8 +204,8 @@
       "question": "Quale regina britannica regnò per 63 anni nell'Ottocento?",
       "correctAnswer": "Vittoria",
       "options": [
-        "Vittoria",
         "Elisabetta I",
+        "Vittoria",
         "Anna",
         "Maria Stuarda"
       ],
@@ -222,8 +222,8 @@
       "options": [
         "Trafalgar",
         "Borodino",
-        "Waterloo",
-        "Austerlitz"
+        "Austerlitz",
+        "Waterloo"
       ],
       "theme": null,
       "explanation": null
@@ -236,9 +236,9 @@
       "question": "Chi guidò la spedizione dei Mille nel 1860?",
       "correctAnswer": "Giuseppe Garibaldi",
       "options": [
-        "Vittorio Emanuele II",
-        "Giuseppe Mazzini",
         "Giuseppe Garibaldi",
+        "Giuseppe Mazzini",
+        "Vittorio Emanuele II",
         "Camillo Benso di Cavour"
       ],
       "theme": null,
@@ -268,9 +268,9 @@
       "question": "In che anno l'Italia entrò nella Prima guerra mondiale?",
       "correctAnswer": "1915",
       "options": [
-        "1915",
-        "1916",
         "1914",
+        "1916",
+        "1915",
         "1917"
       ],
       "theme": null,
@@ -316,8 +316,8 @@
       "question": "Quale trattato del 1648 chiuse la Guerra dei Trent'anni?",
       "correctAnswer": "La pace di Westfalia",
       "options": [
-        "La pace di Westfalia",
         "Il trattato di Utrecht",
+        "La pace di Westfalia",
         "Il trattato di Rastatt",
         "La pace di Cateau-Cambrésis"
       ],
@@ -333,8 +333,8 @@
       "correctAnswer": "Enrico VII",
       "options": [
         "Riccardo III",
-        "Enrico VII",
         "Enrico VIII",
+        "Enrico VII",
         "Edoardo IV"
       ],
       "theme": null,
@@ -350,8 +350,8 @@
       "options": [
         "Antiochia",
         "Trebisonda",
-        "Costantinopoli",
-        "Nicea"
+        "Nicea",
+        "Costantinopoli"
       ],
       "theme": null,
       "explanation": null
@@ -364,9 +364,9 @@
       "question": "Quale rivolta contadina scosse l'Inghilterra nel 1381?",
       "correctAnswer": "La rivolta di Wat Tyler",
       "options": [
-        "La rivolta di Jack Cade",
-        "La guerra delle Due Rose",
         "La rivolta di Wat Tyler",
+        "La guerra delle Due Rose",
+        "La rivolta di Jack Cade",
         "La rivolta dei Lollardi"
       ],
       "theme": null,
@@ -381,8 +381,8 @@
       "correctAnswer": "Guglielmo I",
       "options": [
         "Federico III",
-        "Guglielmo II",
         "Guglielmo I",
+        "Guglielmo II",
         "Ottone von Bismarck"
       ],
       "theme": null,
@@ -397,8 +397,8 @@
       "correctAnswer": "Gli Inca",
       "options": [
         "I Maya",
-        "Gli Inca",
         "Gli Aztechi",
+        "Gli Inca",
         "Gli Olmechi"
       ],
       "theme": null,
@@ -693,8 +693,8 @@
       "correctAnswer": "Canberra",
       "options": [
         "Melbourne",
-        "Canberra",
         "Sydney",
+        "Canberra",
         "Perth"
       ],
       "theme": "Geografia",
@@ -724,10 +724,10 @@
       "question": "Qual è la montagna più alta del mondo?",
       "correctAnswer": "L'Everest",
       "options": [
-        "Il Cervino",
+        "L'Everest",
         "Il K2",
         "Il Monte Bianco",
-        "L'Everest"
+        "Il Cervino"
       ],
       "theme": "Geografia",
       "explanation": null
@@ -741,9 +741,9 @@
       "correctAnswer": "Il Pacifico",
       "options": [
         "L'Artico",
-        "L'Indiano",
+        "Il Pacifico",
         "L'Atlantico",
-        "Il Pacifico"
+        "L'Indiano"
       ],
       "theme": "Geografia",
       "explanation": null
@@ -756,9 +756,9 @@
       "question": "Qual è la capitale del Giappone?",
       "correctAnswer": "Tokyo",
       "options": [
-        "Tokyo",
-        "Kyoto",
         "Osaka",
+        "Kyoto",
+        "Tokyo",
         "Seul"
       ],
       "theme": "Geografia",
@@ -788,8 +788,8 @@
       "question": "Quale stretto separa l'Europa dall'Africa?",
       "correctAnswer": "Lo stretto di Gibilterra",
       "options": [
-        "Il Bosforo",
         "Lo stretto di Gibilterra",
+        "Il Bosforo",
         "Lo stretto di Messina",
         "Lo stretto di Bering"
       ],
@@ -805,9 +805,9 @@
       "correctAnswer": "Budapest",
       "options": [
         "Vienna",
-        "Belgrado",
+        "Budapest",
         "Bratislava",
-        "Budapest"
+        "Belgrado"
       ],
       "theme": "Geografia",
       "explanation": null
@@ -821,8 +821,8 @@
       "correctAnswer": "La fossa delle Marianne",
       "options": [
         "La dorsale medio-atlantica",
-        "La fossa delle Tonga",
         "La fossa delle Marianne",
+        "La fossa delle Tonga",
         "La fossa di Porto Rico"
       ],
       "theme": "Geografia",
@@ -836,9 +836,9 @@
       "question": "Quale Stato è il più piccolo del mondo?",
       "correctAnswer": "La Città del Vaticano",
       "options": [
-        "La Città del Vaticano",
-        "Monaco",
         "Il Liechtenstein",
+        "Monaco",
+        "La Città del Vaticano",
         "San Marino"
       ],
       "theme": "Geografia",
@@ -852,10 +852,10 @@
       "question": "Qual è la capitale della Spagna?",
       "correctAnswer": "Madrid",
       "options": [
-        "Madrid",
+        "Valencia",
         "Siviglia",
         "Barcellona",
-        "Valencia"
+        "Madrid"
       ],
       "theme": "Geografia",
       "explanation": null
@@ -884,8 +884,8 @@
       "question": "In quale continente si trova il deserto del Sahara?",
       "correctAnswer": "Africa",
       "options": [
-        "Africa",
         "Oceania",
+        "Africa",
         "America meridionale",
         "Asia"
       ],
@@ -902,8 +902,8 @@
       "options": [
         "Porto",
         "Coimbra",
-        "Faro",
-        "Lisbona"
+        "Lisbona",
+        "Faro"
       ],
       "theme": "Geografia",
       "explanation": null
@@ -916,10 +916,10 @@
       "question": "Quale mare bagna la costa di Napoli?",
       "correctAnswer": "Il mar Tirreno",
       "options": [
-        "Il mar Tirreno",
+        "Il mar Adriatico",
         "Il mar Ionio",
         "Il mar Ligure",
-        "Il mar Adriatico"
+        "Il mar Tirreno"
       ],
       "theme": "Geografia",
       "explanation": null
@@ -949,8 +949,8 @@
       "correctAnswer": "L'Algeria",
       "options": [
         "La Libia",
-        "La Repubblica Democratica del Congo",
         "L'Algeria",
+        "La Repubblica Democratica del Congo",
         "Il Sudan"
       ],
       "theme": "Geografia",
@@ -964,9 +964,9 @@
       "question": "Quale catena montuosa separa l'Italia dalla Francia a ovest?",
       "correctAnswer": "Le Alpi",
       "options": [
-        "Le Alpi",
-        "Gli Appennini",
         "I Carpazi",
+        "Gli Appennini",
+        "Le Alpi",
         "I Pirenei"
       ],
       "theme": "Geografia",
@@ -981,9 +981,9 @@
       "correctAnswer": "Astana",
       "options": [
         "Almaty",
-        "Astana",
+        "Bishkek",
         "Tashkent",
-        "Bishkek"
+        "Astana"
       ],
       "theme": "Geografia",
       "explanation": null
@@ -996,10 +996,10 @@
       "question": "Quale fiume attraversa Baghdad?",
       "correctAnswer": "Il Tigri",
       "options": [
-        "Il Giordano",
+        "Il Tigri",
         "Il Karun",
         "L'Eufrate",
-        "Il Tigri"
+        "Il Giordano"
       ],
       "theme": "Geografia",
       "explanation": null
@@ -1030,8 +1030,8 @@
       "options": [
         "Il Mar d'Aral",
         "Il Mar Caspio",
-        "Il lago Titicaca",
-        "Il Mar Morto"
+        "Il Mar Morto",
+        "Il lago Titicaca"
       ],
       "theme": "Geografia",
       "explanation": null
@@ -1046,8 +1046,8 @@
       "options": [
         "Christchurch",
         "Dunedin",
-        "Wellington",
-        "Auckland"
+        "Auckland",
+        "Wellington"
       ],
       "theme": "Geografia",
       "explanation": null
@@ -1060,10 +1060,10 @@
       "question": "Quale stretto separa l'Asia dall'America?",
       "correctAnswer": "Lo stretto di Bering",
       "options": [
-        "Lo stretto di Hormuz",
+        "Lo stretto di Bering",
         "Lo stretto di Malacca",
         "Lo stretto di Magellano",
-        "Lo stretto di Bering"
+        "Lo stretto di Hormuz"
       ],
       "theme": "Geografia",
       "explanation": null
@@ -1077,8 +1077,8 @@
       "correctAnswer": "L'Atacama",
       "options": [
         "Il Namib",
-        "Il Thar",
         "L'Atacama",
+        "Il Thar",
         "Il Mojave"
       ],
       "theme": "Geografia",
@@ -1372,10 +1372,10 @@
       "question": "Qual è l'elemento chimico con simbolo Fe?",
       "correctAnswer": "Ferro",
       "options": [
-        "Ferro",
+        "Fosforo",
         "Francio",
         "Fluoro",
-        "Fosforo"
+        "Ferro"
       ],
       "theme": "Scienza",
       "explanation": null
@@ -1404,8 +1404,8 @@
       "question": "Quale elemento chimico ha come simbolo O?",
       "correctAnswer": "Ossigeno",
       "options": [
-        "Ossigeno",
         "Ozono",
+        "Ossigeno",
         "Oro",
         "Osmio"
       ],
@@ -1436,10 +1436,10 @@
       "question": "Quale gas assorbono le piante durante la fotosintesi?",
       "correctAnswer": "L'anidride carbonica",
       "options": [
-        "L'anidride carbonica",
+        "L'ossigeno",
         "L'azoto",
         "L'idrogeno",
-        "L'ossigeno"
+        "L'anidride carbonica"
       ],
       "theme": "Scienza",
       "explanation": null
@@ -1452,9 +1452,9 @@
       "question": "Quale metallo è liquido a temperatura ambiente?",
       "correctAnswer": "Il mercurio",
       "options": [
-        "Lo stagno",
-        "Il piombo",
         "Il mercurio",
+        "Il piombo",
+        "Lo stagno",
         "L'alluminio"
       ],
       "theme": "Spazio",
@@ -1469,9 +1469,9 @@
       "correctAnswer": "Il cuore",
       "options": [
         "I reni",
-        "Il fegato",
+        "Il cuore",
         "I polmoni",
-        "Il cuore"
+        "Il fegato"
       ],
       "theme": "Scienza",
       "explanation": null
@@ -1485,9 +1485,9 @@
       "correctAnswer": "Albert Einstein",
       "options": [
         "Niels Bohr",
-        "Albert Einstein",
+        "Isaac Newton",
         "Max Planck",
-        "Isaac Newton"
+        "Albert Einstein"
       ],
       "theme": "Scienza",
       "explanation": null
@@ -1516,10 +1516,10 @@
       "question": "Quale particella è stata confermata sperimentalmente al CERN nel 2012?",
       "correctAnswer": "Il bosone di Higgs",
       "options": [
-        "Il bosone di Higgs",
+        "Il gravitone",
         "Il quark top",
         "Il neutrino tau",
-        "Il gravitone"
+        "Il bosone di Higgs"
       ],
       "theme": "Scienza",
       "explanation": null
@@ -1549,9 +1549,9 @@
       "correctAnswer": "L'ossigeno",
       "options": [
         "L'elio",
-        "L'ossigeno",
+        "L'idrogeno",
         "L'azoto",
-        "L'idrogeno"
+        "L'ossigeno"
       ],
       "theme": "Scienza",
       "explanation": null
@@ -1565,8 +1565,8 @@
       "correctAnswer": "Il newton",
       "options": [
         "Il joule",
-        "Il pascal",
         "Il newton",
+        "Il pascal",
         "Il watt"
       ],
       "theme": "Scienza",
@@ -1596,10 +1596,10 @@
       "question": "Qual è il simbolo chimico dell'oro?",
       "correctAnswer": "Au",
       "options": [
-        "Au",
+        "Ag",
         "Cu",
         "Fe",
-        "Ag"
+        "Au"
       ],
       "theme": "Scienza",
       "explanation": null
@@ -1612,10 +1612,10 @@
       "question": "Quante camere ha il cuore umano?",
       "correctAnswer": "Quattro",
       "options": [
-        "Tre",
+        "Quattro",
         "Due",
         "Cinque",
-        "Quattro"
+        "Tre"
       ],
       "theme": "Scienza",
       "explanation": null
@@ -1629,9 +1629,9 @@
       "correctAnswer": "Isaac Newton",
       "options": [
         "Albert Einstein",
-        "Galileo Galilei",
+        "Isaac Newton",
         "Giovanni Keplero",
-        "Isaac Newton"
+        "Galileo Galilei"
       ],
       "theme": "Scienza",
       "explanation": null
@@ -1644,9 +1644,9 @@
       "question": "Quale organulo cellulare produce energia?",
       "correctAnswer": "Il mitocondrio",
       "options": [
-        "Il mitocondrio",
-        "Il ribosoma",
         "Il lisosoma",
+        "Il ribosoma",
+        "Il mitocondrio",
         "Il nucleo"
       ],
       "theme": "Scienza",
@@ -1660,10 +1660,10 @@
       "question": "Qual è l'elemento più abbondante nell'universo?",
       "correctAnswer": "L'idrogeno",
       "options": [
-        "L'elio",
+        "L'idrogeno",
         "Il carbonio",
         "L'ossigeno",
-        "L'idrogeno"
+        "L'elio"
       ],
       "theme": "Spazio",
       "explanation": null
@@ -1677,8 +1677,8 @@
       "correctAnswer": "La distanza media tra Terra e Sole",
       "options": [
         "Il diametro del Sole",
-        "La distanza percorsa dalla luce in un anno",
         "La distanza media tra Terra e Sole",
+        "La distanza percorsa dalla luce in un anno",
         "La distanza tra Terra e Luna"
       ],
       "theme": "Spazio",
@@ -1694,8 +1694,8 @@
       "options": [
         "Robert Koch",
         "Louis Pasteur",
-        "Jonas Salk",
-        "Alexander Fleming"
+        "Alexander Fleming",
+        "Jonas Salk"
       ],
       "theme": "Scienza",
       "explanation": null
@@ -1724,9 +1724,9 @@
       "question": "Quale pianeta ha la rotazione più lenta del sistema solare?",
       "correctAnswer": "Venere",
       "options": [
-        "Marte",
-        "Mercurio",
         "Venere",
+        "Mercurio",
+        "Marte",
         "Giove"
       ],
       "theme": "Spazio",
@@ -1757,8 +1757,8 @@
       "correctAnswer": "L'elettrone",
       "options": [
         "Il positrone",
-        "L'elettrone",
         "Il neutrone",
+        "L'elettrone",
         "Il protone"
       ],
       "theme": "Scienza",
@@ -1772,10 +1772,10 @@
       "question": "Chi propose il modello eliocentrico nel Cinquecento?",
       "correctAnswer": "Niccolò Copernico",
       "options": [
-        "Niccolò Copernico",
+        "Giordano Bruno",
         "Tolomeo",
         "Tycho Brahe",
-        "Giordano Bruno"
+        "Niccolò Copernico"
       ],
       "theme": "Spazio",
       "explanation": null
@@ -2041,8 +2041,8 @@
       "correctAnswer": "L'elefante africano",
       "options": [
         "L'ippopotamo",
-        "L'elefante africano",
         "Il rinoceronte bianco",
+        "L'elefante africano",
         "La giraffa"
       ],
       "theme": "Animali",
@@ -2057,9 +2057,9 @@
       "correctAnswer": "Il camaleonte",
       "options": [
         "La tigre",
-        "Il camaleonte",
+        "Il koala",
         "Il panda",
-        "Il koala"
+        "Il camaleonte"
       ],
       "theme": "Animali",
       "explanation": null
@@ -2072,10 +2072,10 @@
       "question": "Quale organo permette ai pesci di respirare sott'acqua?",
       "correctAnswer": "Le branchie",
       "options": [
-        "Le pinne",
+        "Le branchie",
         "Le squame",
         "I polmoni",
-        "Le branchie"
+        "Le pinne"
       ],
       "theme": "Animali",
       "explanation": null
@@ -2089,9 +2089,9 @@
       "correctAnswer": "La quercia",
       "options": [
         "Il pino",
-        "Il faggio",
+        "La quercia",
         "La betulla",
-        "La quercia"
+        "Il faggio"
       ],
       "theme": "Natura",
       "explanation": null
@@ -2104,8 +2104,8 @@
       "question": "Qual è il gruppo animale più numeroso sulla Terra?",
       "correctAnswer": "Gli insetti",
       "options": [
-        "I mammiferi",
         "Gli insetti",
+        "I mammiferi",
         "Gli uccelli",
         "I rettili"
       ],
@@ -2137,9 +2137,9 @@
       "correctAnswer": "Il delfino",
       "options": [
         "Il tonno",
-        "Il delfino",
+        "Il polpo",
         "Lo squalo",
-        "Il polpo"
+        "Il delfino"
       ],
       "theme": "Animali",
       "explanation": null
@@ -2153,9 +2153,9 @@
       "correctAnswer": "Il Sahara",
       "options": [
         "L'Atacama",
-        "Il Kalahari",
+        "Il Sahara",
         "Il Gobi",
-        "Il Sahara"
+        "Il Kalahari"
       ],
       "theme": "Natura",
       "explanation": null
@@ -2168,8 +2168,8 @@
       "question": "Quale parte della pianta assorbe acqua e sali minerali?",
       "correctAnswer": "Le radici",
       "options": [
-        "Le foglie",
         "Le radici",
+        "Le foglie",
         "Il fiore",
         "Il fusto"
       ],
@@ -2186,8 +2186,8 @@
       "options": [
         "Il tonno rosso",
         "Il capodoglio",
-        "Lo squalo balena",
-        "Lo squalo bianco"
+        "Lo squalo bianco",
+        "Lo squalo balena"
       ],
       "theme": "Animali",
       "explanation": null
@@ -2201,9 +2201,9 @@
       "correctAnswer": "Otto",
       "options": [
         "Sei",
-        "Quattro",
+        "Otto",
         "Dieci",
-        "Otto"
+        "Quattro"
       ],
       "theme": "Animali",
       "explanation": null
@@ -2217,8 +2217,8 @@
       "correctAnswer": "Lo struzzo",
       "options": [
         "Il condor",
-        "Lo struzzo",
         "L'emu",
+        "Lo struzzo",
         "L'albatros"
       ],
       "theme": "Animali",
@@ -2234,8 +2234,8 @@
       "options": [
         "Il gregge",
         "Lo stormo",
-        "Il branco",
-        "La muta"
+        "La muta",
+        "Il branco"
       ],
       "theme": "Animali",
       "explanation": null
@@ -2280,9 +2280,9 @@
       "question": "Qual è il mammifero più piccolo del mondo?",
       "correctAnswer": "Il pipistrello calabrone",
       "options": [
-        "Il toporagno etrusco",
-        "Il topolino delle risaie",
         "Il pipistrello calabrone",
+        "Il topolino delle risaie",
+        "Il toporagno etrusco",
         "Il criceto nano"
       ],
       "theme": "Animali",
@@ -2344,8 +2344,8 @@
       "question": "Quali organismi costruiscono le barriere coralline?",
       "correctAnswer": "I polipi del corallo",
       "options": [
-        "I molluschi bivalvi",
         "I polipi del corallo",
+        "I molluschi bivalvi",
         "I ricci di mare",
         "Le spugne"
       ],
@@ -2360,8 +2360,8 @@
       "question": "Quale uccello è capace di volare all'indietro?",
       "correctAnswer": "Il colibrì",
       "options": [
-        "Il colibrì",
         "Il martin pescatore",
+        "Il colibrì",
         "Il picchio",
         "Il rondone"
       ],
@@ -2377,8 +2377,8 @@
       "correctAnswer": "Il girino",
       "options": [
         "La ninfa",
-        "Il girino",
         "La crisalide",
+        "Il girino",
         "Il bruco"
       ],
       "theme": "Animali",
@@ -2393,9 +2393,9 @@
       "correctAnswer": "Il leopardo delle nevi",
       "options": [
         "Il puma",
-        "Il leopardo delle nevi",
+        "Il giaguaro",
         "Il leopardo africano",
-        "Il giaguaro"
+        "Il leopardo delle nevi"
       ],
       "theme": "Animali",
       "explanation": null
@@ -2408,10 +2408,10 @@
       "question": "Quale organo permette ai serpenti di percepire il calore?",
       "correctAnswer": "Le fossette termorecettrici",
       "options": [
-        "La lingua biforcuta",
+        "Le fossette termorecettrici",
         "I polmoni",
         "Le squame ventrali",
-        "Le fossette termorecettrici"
+        "La lingua biforcuta"
       ],
       "theme": "Animali",
       "explanation": null
@@ -2718,10 +2718,10 @@
       "question": "Quanti giocatori per squadra scendono in campo nel calcio?",
       "correctAnswer": "11",
       "options": [
-        "9",
+        "11",
         "10",
         "12",
-        "11"
+        "9"
       ],
       "theme": null,
       "explanation": null
@@ -2735,9 +2735,9 @@
       "correctAnswer": "Il tennis",
       "options": [
         "Lo squash",
-        "Il badminton",
+        "Il tennis",
         "Il padel",
-        "Il tennis"
+        "Il badminton"
       ],
       "theme": null,
       "explanation": null
@@ -2752,8 +2752,8 @@
       "options": [
         "La Germania",
         "L'Italia",
-        "L'Argentina",
-        "Il Brasile"
+        "Il Brasile",
+        "L'Argentina"
       ],
       "theme": null,
       "explanation": null
@@ -2767,9 +2767,9 @@
       "correctAnswer": "42,195 chilometri",
       "options": [
         "50 chilometri",
-        "42,195 chilometri",
+        "21,097 chilometri",
         "30 chilometri",
-        "21,097 chilometri"
+        "42,195 chilometri"
       ],
       "theme": null,
       "explanation": null
@@ -2782,9 +2782,9 @@
       "question": "Di che colore è la maglia del leader del Tour de France?",
       "correctAnswer": "Gialla",
       "options": [
-        "Verde",
-        "Bianca",
         "Gialla",
+        "Bianca",
+        "Verde",
         "Rosa"
       ],
       "theme": null,
@@ -2798,8 +2798,8 @@
       "question": "Quante volte l'Italia ha vinto i Mondiali di calcio?",
       "correctAnswer": "Quattro",
       "options": [
-        "Cinque",
         "Quattro",
+        "Cinque",
         "Due",
         "Tre"
       ],
@@ -2815,9 +2815,9 @@
       "correctAnswer": "L'Uruguay",
       "options": [
         "L'Argentina",
-        "Il Brasile",
+        "L'Uruguay",
         "L'Italia",
-        "L'Uruguay"
+        "Il Brasile"
       ],
       "theme": null,
       "explanation": null
@@ -2864,8 +2864,8 @@
       "options": [
         "Mike Tyson",
         "Rocky Marciano",
-        "Muhammad Ali",
-        "Joe Frazier"
+        "Joe Frazier",
+        "Muhammad Ali"
       ],
       "theme": null,
       "explanation": null
@@ -2878,8 +2878,8 @@
       "question": "Quanti set deve vincere una squadra per aggiudicarsi una partita di pallavolo?",
       "correctAnswer": "Tre",
       "options": [
-        "Tre",
         "Cinque",
+        "Tre",
         "Quattro",
         "Due"
       ],
@@ -2926,8 +2926,8 @@
       "question": "In quale Paese si sono svolte le prime Olimpiadi moderne nel 1896?",
       "correctAnswer": "In Grecia",
       "options": [
-        "In Italia",
         "In Grecia",
+        "In Italia",
         "In Inghilterra",
         "In Francia"
       ],
@@ -2943,9 +2943,9 @@
       "correctAnswer": "Cinque",
       "options": [
         "Sei",
-        "Sette",
+        "Cinque",
         "Quattro",
-        "Cinque"
+        "Sette"
       ],
       "theme": null,
       "explanation": null
@@ -2974,10 +2974,10 @@
       "question": "In quale autodromo si corre il Gran Premio d'Italia di Formula 1?",
       "correctAnswer": "A Monza",
       "options": [
-        "A Monza",
+        "Al Mugello",
         "A Misano",
         "A Imola",
-        "Al Mugello"
+        "A Monza"
       ],
       "theme": null,
       "explanation": null
@@ -2990,9 +2990,9 @@
       "question": "Quale nazionale ha vinto gli Europei di calcio del 2021?",
       "correctAnswer": "L'Italia",
       "options": [
-        "L'Inghilterra",
-        "La Francia",
         "L'Italia",
+        "La Francia",
+        "L'Inghilterra",
         "La Spagna"
       ],
       "theme": null,
@@ -3023,9 +3023,9 @@
       "correctAnswer": "Quindici",
       "options": [
         "Undici",
-        "Tredici",
+        "Quindici",
         "Sedici",
-        "Quindici"
+        "Tredici"
       ],
       "theme": null,
       "explanation": null
@@ -3040,8 +3040,8 @@
       "options": [
         "L'Australia",
         "L'Inghilterra",
-        "Il Sudafrica",
-        "La Nuova Zelanda"
+        "La Nuova Zelanda",
+        "Il Sudafrica"
       ],
       "theme": null,
       "explanation": null
@@ -3054,10 +3054,10 @@
       "question": "In quale sport si assegna la Coppa Davis?",
       "correctAnswer": "Nel tennis",
       "options": [
-        "Nel tennis",
+        "Nel rugby",
         "Nel golf",
         "Nella pallamano",
-        "Nel rugby"
+        "Nel tennis"
       ],
       "theme": null,
       "explanation": null
@@ -3070,9 +3070,9 @@
       "question": "Quale città ha ospitato i Giochi olimpici estivi del 1992?",
       "correctAnswer": "Barcellona",
       "options": [
-        "Seul",
-        "Atlanta",
         "Barcellona",
+        "Atlanta",
+        "Seul",
         "Sydney"
       ],
       "theme": null,
@@ -3103,8 +3103,8 @@
       "correctAnswer": "Max Verstappen",
       "options": [
         "Sebastian Vettel",
-        "Max Verstappen",
         "Charles Leclerc",
+        "Max Verstappen",
         "Lewis Hamilton"
       ],
       "theme": null,
@@ -3419,9 +3419,9 @@
       "correctAnswer": "James Cameron",
       "options": [
         "Ridley Scott",
-        "James Cameron",
+        "Martin Scorsese",
         "Steven Spielberg",
-        "Martin Scorsese"
+        "James Cameron"
       ],
       "theme": "Cinema",
       "explanation": null
@@ -3451,8 +3451,8 @@
       "correctAnswer": "Simba",
       "options": [
         "Scar",
-        "Timon",
         "Simba",
+        "Timon",
         "Mufasa"
       ],
       "theme": "Cinema",
@@ -3468,8 +3468,8 @@
       "options": [
         "Il postino",
         "Malèna",
-        "Nuovo Cinema Paradiso",
-        "La vita è bella"
+        "La vita è bella",
+        "Nuovo Cinema Paradiso"
       ],
       "theme": "Cinema",
       "explanation": null
@@ -3483,8 +3483,8 @@
       "correctAnswer": "Quentin Tarantino",
       "options": [
         "Joel Coen",
-        "Guy Ritchie",
         "Quentin Tarantino",
+        "Guy Ritchie",
         "David Fincher"
       ],
       "theme": "Cinema",
@@ -3499,8 +3499,8 @@
       "correctAnswer": "Shining",
       "options": [
         "Arancia meccanica",
-        "Shining",
         "Full Metal Jacket",
+        "Shining",
         "Eyes Wide Shut"
       ],
       "theme": "Cinema",
@@ -3516,8 +3516,8 @@
       "options": [
         "Vikings",
         "Roma",
-        "Il Trono di Spade",
-        "The Witcher"
+        "The Witcher",
+        "Il Trono di Spade"
       ],
       "theme": "Serie TV",
       "explanation": null
@@ -3530,8 +3530,8 @@
       "question": "Quale film di Orson Welles del 1941 è celebre per l'uso della profondità di campo?",
       "correctAnswer": "Quarto potere",
       "options": [
-        "Quarto potere",
         "Via col vento",
+        "Quarto potere",
         "Il grande sonno",
         "Il monello"
       ],
@@ -3546,10 +3546,10 @@
       "question": "Quale attrice ha vinto l'Oscar per Il silenzio degli innocenti?",
       "correctAnswer": "Jodie Foster",
       "options": [
-        "Jodie Foster",
+        "Susan Sarandon",
         "Meryl Streep",
         "Glenn Close",
-        "Susan Sarandon"
+        "Jodie Foster"
       ],
       "theme": "Cinema",
       "explanation": null
@@ -3562,8 +3562,8 @@
       "question": "Chi interpreta Harry Potter nei film della saga?",
       "correctAnswer": "Daniel Radcliffe",
       "options": [
-        "Elijah Wood",
         "Daniel Radcliffe",
+        "Elijah Wood",
         "Rupert Grint",
         "Tom Felton"
       ],
@@ -3595,8 +3595,8 @@
       "correctAnswer": "Friends",
       "options": [
         "The Big Bang Theory",
-        "Friends",
         "How I Met Your Mother",
+        "Friends",
         "Seinfeld"
       ],
       "theme": "Serie TV",
@@ -3642,8 +3642,8 @@
       "question": "In quale città immaginaria è ambientata Stranger Things?",
       "correctAnswer": "Hawkins",
       "options": [
-        "Hawkins",
         "Silent Hill",
+        "Hawkins",
         "Riverdale",
         "Derry"
       ],
@@ -3658,8 +3658,8 @@
       "question": "Quale film ha vinto l'Oscar come miglior film nel 2020?",
       "correctAnswer": "Parasite",
       "options": [
-        "1917",
         "Parasite",
+        "1917",
         "Joker",
         "Once Upon a Time in Hollywood"
       ],
@@ -3691,8 +3691,8 @@
       "correctAnswer": "Breaking Bad",
       "options": [
         "Better Call Saul",
-        "Breaking Bad",
         "Narcos",
+        "Breaking Bad",
         "Ozark"
       ],
       "theme": "Serie TV",
@@ -3771,8 +3771,8 @@
       "correctAnswer": "Ennio Morricone",
       "options": [
         "Nino Rota",
-        "Ennio Morricone",
         "Piero Piccioni",
+        "Ennio Morricone",
         "Luis Bacalov"
       ],
       "theme": "Cinema",
@@ -3787,9 +3787,9 @@
       "correctAnswer": "Succession",
       "options": [
         "The Newsroom",
-        "Succession",
+        "Billions",
         "Mad Men",
-        "Billions"
+        "Succession"
       ],
       "theme": "Serie TV",
       "explanation": null
@@ -3802,9 +3802,9 @@
       "question": "Quale film di Kubrick è tratto da un romanzo di Anthony Burgess?",
       "correctAnswer": "Arancia meccanica",
       "options": [
-        "Lolita",
-        "Full Metal Jacket",
         "Arancia meccanica",
+        "Full Metal Jacket",
+        "Lolita",
         "Shining"
       ],
       "theme": "Cinema",
@@ -3835,8 +3835,8 @@
       "correctAnswer": "The Wire",
       "options": [
         "I Soprano",
-        "The Wire",
         "Oz",
+        "The Wire",
         "Boardwalk Empire"
       ],
       "theme": "Serie TV",
@@ -3852,8 +3852,8 @@
       "options": [
         "Il padrino - Parte II",
         "Quei bravi ragazzi",
-        "Il Padrino",
-        "C'era una volta in America"
+        "C'era una volta in America",
+        "Il Padrino"
       ],
       "theme": "Cinema",
       "explanation": null
@@ -3866,8 +3866,8 @@
       "question": "Quale regista ha girato Inception e Interstellar?",
       "correctAnswer": "Christopher Nolan",
       "options": [
-        "Denis Villeneuve",
         "Christopher Nolan",
+        "Denis Villeneuve",
         "J. J. Abrams",
         "Ridley Scott"
       ],
@@ -3883,9 +3883,9 @@
       "correctAnswer": "The Handmaid's Tale",
       "options": [
         "Black Mirror",
-        "3%",
+        "The Handmaid's Tale",
         "Altered Carbon",
-        "The Handmaid's Tale"
+        "3%"
       ],
       "theme": "Serie TV",
       "explanation": null
@@ -3898,9 +3898,9 @@
       "question": "Quale film dello Studio Ghibli ha vinto l'Oscar nel 2003?",
       "correctAnswer": "La città incantata",
       "options": [
-        "La città incantata",
-        "Il mio vicino Totoro",
         "Ponyo",
+        "Il mio vicino Totoro",
+        "La città incantata",
         "Principessa Mononoke"
       ],
       "theme": "Cinema",
@@ -3914,10 +3914,10 @@
       "question": "Quale attore ha interpretato il protagonista di Il gladiatore?",
       "correctAnswer": "Russell Crowe",
       "options": [
-        "Russell Crowe",
+        "Gerard Butler",
         "Brad Pitt",
         "Mel Gibson",
-        "Gerard Butler"
+        "Russell Crowe"
       ],
       "theme": "Cinema",
       "explanation": null
@@ -4296,8 +4296,8 @@
       "options": [
         "Rischiatutto",
         "Telemike",
-        "Lascia o raddoppia?",
-        "Il gioco dei pacchi"
+        "Il gioco dei pacchi",
+        "Lascia o raddoppia?"
       ],
       "theme": "TV",
       "explanation": null
@@ -4310,9 +4310,9 @@
       "question": "Che tipo di programma è il TG1?",
       "correctAnswer": "Un telegiornale",
       "options": [
-        "Un reality",
-        "Una fiction",
         "Un telegiornale",
+        "Una fiction",
+        "Un reality",
         "Un talk show"
       ],
       "theme": "TV",
@@ -4326,8 +4326,8 @@
       "question": "Quale rete italiana trasmette il TG3?",
       "correctAnswer": "Rai 3",
       "options": [
-        "Rai 3",
         "Rai 2",
+        "Rai 3",
         "Rai 1",
         "Rete 4"
       ],
@@ -4342,9 +4342,9 @@
       "question": "Quale programma mette in gara cuochi dilettanti e professionisti?",
       "correctAnswer": "MasterChef",
       "options": [
-        "MasterChef",
-        "Cucine da incubo",
         "4 Ristoranti",
+        "Cucine da incubo",
+        "MasterChef",
         "Bake Off"
       ],
       "theme": "TV",
@@ -4358,10 +4358,10 @@
       "question": "Come si chiama il festival musicale che si tiene ogni anno a Sanremo?",
       "correctAnswer": "Il Festival di Sanremo",
       "options": [
-        "Il Festival di Sanremo",
+        "Il Festivalbar",
         "Umbria Jazz",
         "Il Concerto del Primo Maggio",
-        "Il Festivalbar"
+        "Il Festival di Sanremo"
       ],
       "theme": "Spettacolo",
       "explanation": null
@@ -4390,9 +4390,9 @@
       "question": "Quale programma politico conduce Bruno Vespa?",
       "correctAnswer": "Porta a Porta",
       "options": [
-        "Porta a Porta",
-        "Otto e mezzo",
         "Piazzapulita",
+        "Otto e mezzo",
+        "Porta a Porta",
         "Report"
       ],
       "theme": "TV",
@@ -4407,9 +4407,9 @@
       "correctAnswer": "Report",
       "options": [
         "Striscia la notizia",
-        "Report",
+        "Presadiretta",
         "Le Iene",
-        "Presadiretta"
+        "Report"
       ],
       "theme": "TV",
       "explanation": null
@@ -4422,10 +4422,10 @@
       "question": "In quale programma i concorrenti scelgono un pacco per vincere un premio?",
       "correctAnswer": "Affari tuoi",
       "options": [
-        "Caduta libera",
+        "Affari tuoi",
         "L'eredità",
         "Reazione a catena",
-        "Affari tuoi"
+        "Caduta libera"
       ],
       "theme": "Spettacolo",
       "explanation": null
@@ -4438,10 +4438,10 @@
       "question": "Chi conduce il programma Uomini e donne?",
       "correctAnswer": "Maria De Filippi",
       "options": [
-        "Maria De Filippi",
+        "Mara Venier",
         "Milly Carlucci",
         "Barbara D'Urso",
-        "Mara Venier"
+        "Maria De Filippi"
       ],
       "theme": "TV",
       "explanation": null
@@ -4454,9 +4454,9 @@
       "question": "Quale conduttore ha presentato il Festival di Sanremo nel 2021 e nel 2022?",
       "correctAnswer": "Amadeus",
       "options": [
-        "Pippo Baudo",
-        "Fabio Fazio",
         "Amadeus",
+        "Fabio Fazio",
+        "Pippo Baudo",
         "Carlo Conti"
       ],
       "theme": "Spettacolo",
@@ -4471,8 +4471,8 @@
       "correctAnswer": "In Liguria",
       "options": [
         "In Piemonte",
-        "In Campania",
         "In Liguria",
+        "In Campania",
         "In Emilia-Romagna"
       ],
       "theme": "Spettacolo",
@@ -4503,9 +4503,9 @@
       "correctAnswer": "Bruno Vespa",
       "options": [
         "Gianni Letta",
-        "Enrico Mentana",
+        "Bruno Vespa",
         "Maurizio Costanzo",
-        "Bruno Vespa"
+        "Enrico Mentana"
       ],
       "theme": "TV",
       "explanation": null
@@ -4518,9 +4518,9 @@
       "question": "Quale reality show rinchiude i concorrenti in una casa isolata?",
       "correctAnswer": "Il Grande Fratello",
       "options": [
-        "Il Grande Fratello",
-        "Pechino Express",
         "L'isola dei famosi",
+        "Pechino Express",
+        "Il Grande Fratello",
         "Ciao Darwin"
       ],
       "theme": "TV",
@@ -4536,8 +4536,8 @@
       "options": [
         "Romanzo criminale",
         "Il commissario Montalbano",
-        "Gomorra",
-        "Suburra"
+        "Suburra",
+        "Gomorra"
       ],
       "theme": "TV",
       "explanation": null
@@ -4567,8 +4567,8 @@
       "correctAnswer": "Federica Sciarelli",
       "options": [
         "Milena Gabanelli",
-        "Bianca Berlinguer",
         "Federica Sciarelli",
+        "Bianca Berlinguer",
         "Lilli Gruber"
       ],
       "theme": "TV",
@@ -4582,10 +4582,10 @@
       "question": "Quale serie televisiva è ambientata a Westeros?",
       "correctAnswer": "Il Trono di Spade",
       "options": [
-        "Vikings",
+        "Il Trono di Spade",
         "The Witcher",
         "Rome",
-        "Il Trono di Spade"
+        "Vikings"
       ],
       "theme": "TV",
       "explanation": null
@@ -4599,8 +4599,8 @@
       "correctAnswer": "1990",
       "options": [
         "1985",
-        "1995",
         "1990",
+        "1995",
         "2000"
       ],
       "theme": "TV",
@@ -4616,8 +4616,8 @@
       "options": [
         "Michael Sheen",
         "Hugh Grant",
-        "Benedict Cumberbatch",
-        "Hugh Laurie"
+        "Hugh Laurie",
+        "Benedict Cumberbatch"
       ],
       "theme": "Spettacolo",
       "explanation": null
@@ -4630,10 +4630,10 @@
       "question": "Quale serie italiana ha come protagonista un commissario interpretato da Luca Zingaretti?",
       "correctAnswer": "Il commissario Montalbano",
       "options": [
-        "Il commissario Montalbano",
+        "Il capo dei capi",
         "La piovra",
         "Gomorra",
-        "Il capo dei capi"
+        "Il commissario Montalbano"
       ],
       "theme": "TV",
       "explanation": null
@@ -4978,10 +4978,10 @@
       "question": "Quale gruppo ha inciso Bohemian Rhapsody?",
       "correctAnswer": "I Queen",
       "options": [
-        "I Queen",
+        "I Beatles",
         "I Pink Floyd",
         "I Led Zeppelin",
-        "I Beatles"
+        "I Queen"
       ],
       "theme": null,
       "explanation": null
@@ -5011,8 +5011,8 @@
       "correctAnswer": "Domenico Modugno",
       "options": [
         "Adriano Celentano",
-        "Gino Paoli",
         "Domenico Modugno",
+        "Gino Paoli",
         "Lucio Battisti"
       ],
       "theme": null,
@@ -5043,9 +5043,9 @@
       "correctAnswer": "I Måneskin",
       "options": [
         "I Negramaro",
-        "I Måneskin",
+        "Il Volo",
         "Gli Eurythmics",
-        "Il Volo"
+        "I Måneskin"
       ],
       "theme": null,
       "explanation": null
@@ -5091,9 +5091,9 @@
       "correctAnswer": "The Dark Side of the Moon",
       "options": [
         "Wish You Were Here",
-        "The Wall",
+        "The Dark Side of the Moon",
         "Animals",
-        "The Dark Side of the Moon"
+        "The Wall"
       ],
       "theme": null,
       "explanation": null
@@ -5108,8 +5108,8 @@
       "options": [
         "Richard Strauss",
         "Gustav Mahler",
-        "Giuseppe Verdi",
-        "Richard Wagner"
+        "Richard Wagner",
+        "Giuseppe Verdi"
       ],
       "theme": null,
       "explanation": null
@@ -5139,8 +5139,8 @@
       "correctAnswer": "I Pink Floyd",
       "options": [
         "Gli Who",
-        "I Pink Floyd",
         "I Led Zeppelin",
+        "I Pink Floyd",
         "I Queen"
       ],
       "theme": null,
@@ -5154,10 +5154,10 @@
       "question": "Chi ha composto la Nona sinfonia con l'Inno alla gioia?",
       "correctAnswer": "Ludwig van Beethoven",
       "options": [
-        "Ludwig van Beethoven",
+        "Johann Sebastian Bach",
         "Wolfgang Amadeus Mozart",
         "Franz Schubert",
-        "Johann Sebastian Bach"
+        "Ludwig van Beethoven"
       ],
       "theme": null,
       "explanation": null
@@ -5170,9 +5170,9 @@
       "question": "Quale strumento a fiato è il più acuto dell'orchestra?",
       "correctAnswer": "L'ottavino",
       "options": [
-        "Il flauto traverso",
-        "L'oboe",
         "L'ottavino",
+        "L'oboe",
+        "Il flauto traverso",
         "Il clarinetto"
       ],
       "theme": null,
@@ -5186,8 +5186,8 @@
       "question": "Chi era il cantante dei Queen?",
       "correctAnswer": "Freddie Mercury",
       "options": [
-        "Freddie Mercury",
         "Mick Jagger",
+        "Freddie Mercury",
         "David Bowie",
         "Robert Plant"
       ],
@@ -5204,8 +5204,8 @@
       "options": [
         "Arcangelo Corelli",
         "Johann Pachelbel",
-        "Antonio Vivaldi",
-        "Georg Friedrich Händel"
+        "Georg Friedrich Händel",
+        "Antonio Vivaldi"
       ],
       "theme": null,
       "explanation": null
@@ -5218,8 +5218,8 @@
       "question": "In quale città è nato il jazz?",
       "correctAnswer": "New Orleans",
       "options": [
-        "Chicago",
         "New Orleans",
+        "Chicago",
         "New York",
         "Memphis"
       ],
@@ -5235,9 +5235,9 @@
       "correctAnswer": "Maurice Ravel",
       "options": [
         "Claude Debussy",
-        "Camille Saint-Saëns",
+        "Maurice Ravel",
         "Erik Satie",
-        "Maurice Ravel"
+        "Camille Saint-Saëns"
       ],
       "theme": null,
       "explanation": null
@@ -5251,8 +5251,8 @@
       "correctAnswer": "La scala diatonica",
       "options": [
         "La scala cromatica",
-        "La scala diatonica",
         "La scala pentatonica",
+        "La scala diatonica",
         "La scala blues"
       ],
       "theme": null,
@@ -5267,9 +5267,9 @@
       "correctAnswer": "La Parlophone",
       "options": [
         "La EMI America",
-        "La Parlophone",
+        "La Decca",
         "La Columbia",
-        "La Decca"
+        "La Parlophone"
       ],
       "theme": null,
       "explanation": null
@@ -5282,8 +5282,8 @@
       "question": "Chi ha scritto Il barbiere di Siviglia?",
       "correctAnswer": "Gioachino Rossini",
       "options": [
-        "Gaetano Donizetti",
         "Gioachino Rossini",
+        "Gaetano Donizetti",
         "Giuseppe Verdi",
         "Wolfgang Amadeus Mozart"
       ],
@@ -5299,8 +5299,8 @@
       "correctAnswer": "Il corno inglese",
       "options": [
         "Il fagotto",
-        "Il controfagotto",
         "Il corno inglese",
+        "Il controfagotto",
         "Il sassofono"
       ],
       "theme": null,
@@ -5316,8 +5316,8 @@
       "options": [
         "Sol minore",
         "Re minore",
-        "Do maggiore",
-        "La maggiore"
+        "La maggiore",
+        "Do maggiore"
       ],
       "theme": null,
       "explanation": null
@@ -5347,8 +5347,8 @@
       "correctAnswer": "Il Portogallo",
       "options": [
         "La Spagna",
-        "Il Portogallo",
         "La Grecia",
+        "Il Portogallo",
         "Il Brasile"
       ],
       "theme": null,
@@ -5642,8 +5642,8 @@
       "question": "Chi ha dipinto la Gioconda?",
       "correctAnswer": "Leonardo da Vinci",
       "options": [
-        "Caravaggio",
         "Leonardo da Vinci",
+        "Caravaggio",
         "Michelangelo",
         "Raffaello"
       ],
@@ -5691,9 +5691,9 @@
       "correctAnswer": "Vincent van Gogh",
       "options": [
         "Paul Cézanne",
-        "Vincent van Gogh",
+        "Claude Monet",
         "Paul Gauguin",
-        "Claude Monet"
+        "Vincent van Gogh"
       ],
       "theme": "Arte",
       "explanation": null
@@ -5706,10 +5706,10 @@
       "question": "Chi ha affrescato la volta della Cappella Sistina?",
       "correctAnswer": "Michelangelo",
       "options": [
-        "Raffaello",
+        "Michelangelo",
         "Perugino",
         "Botticelli",
-        "Michelangelo"
+        "Raffaello"
       ],
       "theme": "Arte",
       "explanation": null
@@ -5755,9 +5755,9 @@
       "correctAnswer": "Filippo Brunelleschi",
       "options": [
         "Giotto",
-        "Filippo Brunelleschi",
+        "Andrea Palladio",
         "Leon Battista Alberti",
-        "Andrea Palladio"
+        "Filippo Brunelleschi"
       ],
       "theme": "Architettura",
       "explanation": null
@@ -5770,10 +5770,10 @@
       "question": "Chi ha dipinto Guernica?",
       "correctAnswer": "Pablo Picasso",
       "options": [
-        "Joan Miró",
+        "Pablo Picasso",
         "Georges Braque",
         "Salvador Dalí",
-        "Pablo Picasso"
+        "Joan Miró"
       ],
       "theme": "Arte",
       "explanation": null
@@ -5787,9 +5787,9 @@
       "correctAnswer": "Il futurismo",
       "options": [
         "Il surrealismo",
-        "Il futurismo",
+        "Il dadaismo",
         "Il simbolismo",
-        "Il dadaismo"
+        "Il futurismo"
       ],
       "theme": "Arte",
       "explanation": null
@@ -5803,8 +5803,8 @@
       "correctAnswer": "A Roma",
       "options": [
         "A Napoli",
-        "A Verona",
         "A Roma",
+        "A Verona",
         "Ad Atene"
       ],
       "theme": "Architettura",
@@ -5819,8 +5819,8 @@
       "correctAnswer": "Michelangelo",
       "options": [
         "Donatello",
-        "Gian Lorenzo Bernini",
         "Michelangelo",
+        "Gian Lorenzo Bernini",
         "Benvenuto Cellini"
       ],
       "theme": "Arte",
@@ -5836,8 +5836,8 @@
       "options": [
         "Il barocco",
         "Il surrealismo",
-        "Il cubismo",
-        "L'impressionismo"
+        "L'impressionismo",
+        "Il cubismo"
       ],
       "theme": "Arte",
       "explanation": null
@@ -5850,10 +5850,10 @@
       "question": "Chi ha progettato la cupola di Santa Maria del Fiore?",
       "correctAnswer": "Filippo Brunelleschi",
       "options": [
-        "Filippo Brunelleschi",
+        "Donatello",
         "Giotto",
         "Leon Battista Alberti",
-        "Donatello"
+        "Filippo Brunelleschi"
       ],
       "theme": "Architettura",
       "explanation": null
@@ -5866,8 +5866,8 @@
       "question": "Quale museo parigino ospita la Gioconda?",
       "correctAnswer": "Il Louvre",
       "options": [
-        "Il Museo Rodin",
         "Il Louvre",
+        "Il Museo Rodin",
         "Il Musée d'Orsay",
         "Il Centre Pompidou"
       ],
@@ -5898,8 +5898,8 @@
       "question": "Quale stile architettonico caratterizza il Duomo di Milano?",
       "correctAnswer": "Il gotico",
       "options": [
-        "Il romanico",
         "Il gotico",
+        "Il romanico",
         "Il neoclassico",
         "Il barocco"
       ],
@@ -5915,9 +5915,9 @@
       "correctAnswer": "Giotto",
       "options": [
         "Masaccio",
-        "Piero della Francesca",
+        "Giotto",
         "Cimabue",
-        "Giotto"
+        "Piero della Francesca"
       ],
       "theme": "Arte",
       "explanation": null
@@ -5962,10 +5962,10 @@
       "question": "Chi scolpì la Pietà di San Pietro?",
       "correctAnswer": "Michelangelo",
       "options": [
-        "Andrea del Verrocchio",
+        "Michelangelo",
         "Jacopo Sansovino",
         "Gian Lorenzo Bernini",
-        "Michelangelo"
+        "Andrea del Verrocchio"
       ],
       "theme": "Arte",
       "explanation": null
@@ -5979,8 +5979,8 @@
       "correctAnswer": "Las Meninas",
       "options": [
         "La nascita di Venere",
-        "La ronda di notte",
         "Las Meninas",
+        "La ronda di notte",
         "Il Giardino delle delizie"
       ],
       "theme": "Arte",
@@ -5996,8 +5996,8 @@
       "options": [
         "L'affresco a secco",
         "La tempera su tela",
-        "Il chiaroscuro a olio",
-        "La prospettiva geometrica"
+        "La prospettiva geometrica",
+        "Il chiaroscuro a olio"
       ],
       "theme": "Arte",
       "explanation": null
@@ -6011,9 +6011,9 @@
       "correctAnswer": "La Basilica Palladiana",
       "options": [
         "Palazzo Grassi",
-        "La Basilica Palladiana",
+        "Palazzo Ducale",
         "Ca' d'Oro",
-        "Palazzo Ducale"
+        "La Basilica Palladiana"
       ],
       "theme": "Architettura",
       "explanation": null
@@ -6026,8 +6026,8 @@
       "question": "Chi ha dipinto Il carro del fieno?",
       "correctAnswer": "Hieronymus Bosch",
       "options": [
-        "Jan van Eyck",
         "Hieronymus Bosch",
+        "Jan van Eyck",
         "Rogier van der Weyden",
         "Pieter Bruegel il Vecchio"
       ],
@@ -6297,8 +6297,8 @@
       "correctAnswer": "La repubblica parlamentare",
       "options": [
         "Lo stato federale",
-        "La repubblica parlamentare",
         "La monarchia costituzionale",
+        "La repubblica parlamentare",
         "La repubblica presidenziale"
       ],
       "theme": "Attualità",
@@ -6313,9 +6313,9 @@
       "correctAnswer": "Il Presidente della Repubblica",
       "options": [
         "Il Presidente della Camera",
-        "Il Presidente della Repubblica",
+        "Il Presidente del Consiglio",
         "Il Presidente della Corte costituzionale",
-        "Il Presidente del Consiglio"
+        "Il Presidente della Repubblica"
       ],
       "theme": "Politica",
       "explanation": null
@@ -6328,8 +6328,8 @@
       "question": "Quanti Stati fanno parte dell'Unione Europea?",
       "correctAnswer": "27",
       "options": [
-        "25",
         "27",
+        "25",
         "28",
         "30"
       ],
@@ -6344,8 +6344,8 @@
       "question": "Quale organizzazione militare ha sede a Bruxelles e comprende gli Stati Uniti?",
       "correctAnswer": "La NATO",
       "options": [
-        "La NATO",
         "L'Eurocorps",
+        "La NATO",
         "L'OSCE",
         "L'ONU"
       ],
@@ -6376,10 +6376,10 @@
       "question": "Quale trattato ha istituito l'Unione Europea nel 1992?",
       "correctAnswer": "Il trattato di Maastricht",
       "options": [
-        "Il trattato di Maastricht",
+        "Il trattato di Amsterdam",
         "Il trattato di Lisbona",
         "Il trattato di Roma",
-        "Il trattato di Amsterdam"
+        "Il trattato di Maastricht"
       ],
       "theme": "Politica",
       "explanation": null
@@ -6409,9 +6409,9 @@
       "correctAnswer": "Il Consiglio di sicurezza",
       "options": [
         "Il Segretariato",
-        "La Corte internazionale di giustizia",
+        "Il Consiglio di sicurezza",
         "L'Assemblea generale",
-        "Il Consiglio di sicurezza"
+        "La Corte internazionale di giustizia"
       ],
       "theme": "Politica",
       "explanation": null
@@ -6424,9 +6424,9 @@
       "question": "Quanti giudici compongono la Corte costituzionale italiana?",
       "correctAnswer": "Quindici",
       "options": [
-        "Dodici",
-        "Nove",
         "Quindici",
+        "Nove",
+        "Dodici",
         "Ventuno"
       ],
       "theme": "Politica",
@@ -6441,8 +6441,8 @@
       "correctAnswer": "A New York",
       "options": [
         "A Bruxelles",
-        "A New York",
         "A Parigi",
+        "A New York",
         "A Ginevra"
       ],
       "theme": "Politica",
@@ -6472,10 +6472,10 @@
       "question": "Quale moneta è in uso in Italia?",
       "correctAnswer": "L'euro",
       "options": [
-        "Il franco",
+        "L'euro",
         "La lira",
         "La corona",
-        "L'euro"
+        "Il franco"
       ],
       "theme": "Politica",
       "explanation": null
@@ -6489,8 +6489,8 @@
       "correctAnswer": "1948",
       "options": [
         "1946",
-        "1948",
         "1947",
+        "1948",
         "1950"
       ],
       "theme": "Politica",
@@ -6520,10 +6520,10 @@
       "question": "Chi nomina il Presidente del Consiglio in Italia?",
       "correctAnswer": "Il Presidente della Repubblica",
       "options": [
-        "Il corpo elettorale",
+        "Il Presidente della Repubblica",
         "La Corte costituzionale",
         "Il Parlamento con voto diretto",
-        "Il Presidente della Repubblica"
+        "Il corpo elettorale"
       ],
       "theme": "Politica",
       "explanation": null
@@ -6537,8 +6537,8 @@
       "correctAnswer": "L'ONU",
       "options": [
         "L'Unione europea",
-        "La NATO",
         "L'ONU",
+        "La NATO",
         "Il Consiglio d'Europa"
       ],
       "theme": "Politica",
@@ -6569,8 +6569,8 @@
       "correctAnswer": "Il trattato di Maastricht",
       "options": [
         "Il trattato di Lisbona",
-        "Il trattato di Maastricht",
         "L'Atto unico europeo",
+        "Il trattato di Maastricht",
         "Il trattato di Roma"
       ],
       "theme": "Politica",
@@ -6616,8 +6616,8 @@
       "question": "Quale Paese ha lasciato l'Unione europea nel 2020?",
       "correctAnswer": "Il Regno Unito",
       "options": [
-        "Il Regno Unito",
         "L'Islanda",
+        "Il Regno Unito",
         "La Norvegia",
         "La Svizzera"
       ],
@@ -6633,8 +6633,8 @@
       "correctAnswer": "139",
       "options": [
         "150",
-        "139",
         "100",
+        "139",
         "120"
       ],
       "theme": "Politica",
@@ -6650,8 +6650,8 @@
       "options": [
         "L'accordo di Shanghai",
         "La convenzione di Pechino",
-        "La dichiarazione congiunta sino-britannica",
-        "Il trattato di Nanchino"
+        "Il trattato di Nanchino",
+        "La dichiarazione congiunta sino-britannica"
       ],
       "theme": "Politica",
       "explanation": null
@@ -6664,8 +6664,8 @@
       "question": "Quale organo italiano può dichiarare illegittima una legge?",
       "correctAnswer": "La Corte costituzionale",
       "options": [
-        "Il Consiglio superiore della magistratura",
         "La Corte costituzionale",
+        "Il Consiglio superiore della magistratura",
         "La Cassazione",
         "Il Consiglio di Stato"
       ],
@@ -6948,8 +6948,8 @@
       "options": [
         "Peugeot",
         "Fiat",
-        "Renault",
-        "Volkswagen"
+        "Volkswagen",
+        "Renault"
       ],
       "theme": null,
       "explanation": null
@@ -6963,9 +6963,9 @@
       "correctAnswer": "La Ferrari",
       "options": [
         "La Maserati",
-        "La Ferrari",
+        "La Lamborghini",
         "La Porsche",
-        "La Lamborghini"
+        "La Ferrari"
       ],
       "theme": null,
       "explanation": null
@@ -7026,10 +7026,10 @@
       "question": "Quale scuderia ha vinto più titoli costruttori nella storia della Formula 1?",
       "correctAnswer": "La Ferrari",
       "options": [
-        "La Ferrari",
+        "La McLaren",
         "La Mercedes",
         "La Williams",
-        "La McLaren"
+        "La Ferrari"
       ],
       "theme": null,
       "explanation": null
@@ -7042,8 +7042,8 @@
       "question": "Quale pilota è soprannominato il Kaiser?",
       "correctAnswer": "Michael Schumacher",
       "options": [
-        "Niki Lauda",
         "Michael Schumacher",
+        "Niki Lauda",
         "Alain Prost",
         "Sebastian Vettel"
       ],
@@ -7058,8 +7058,8 @@
       "question": "Quanti cilindri ha tradizionalmente il motore boxer della Porsche 911?",
       "correctAnswer": "Sei",
       "options": [
-        "Sei",
         "Otto",
+        "Sei",
         "Quattro",
         "Dieci"
       ],
@@ -7092,8 +7092,8 @@
       "options": [
         "Valtteri Bottas",
         "Charles Leclerc",
-        "Lewis Hamilton",
-        "Max Verstappen"
+        "Max Verstappen",
+        "Lewis Hamilton"
       ],
       "theme": null,
       "explanation": null
@@ -7108,8 +7108,8 @@
       "options": [
         "La Maserati",
         "La Lamborghini",
-        "La Porsche",
-        "La Ferrari"
+        "La Ferrari",
+        "La Porsche"
       ],
       "theme": null,
       "explanation": null
@@ -7122,10 +7122,10 @@
       "question": "In quale Paese è nata la Ferrari?",
       "correctAnswer": "In Italia",
       "options": [
-        "In Italia",
+        "In Germania",
         "In Inghilterra",
         "In Francia",
-        "In Germania"
+        "In Italia"
       ],
       "theme": null,
       "explanation": null
@@ -7138,10 +7138,10 @@
       "question": "Quale scuderia ha vinto più titoli costruttori in Formula 1?",
       "correctAnswer": "La Ferrari",
       "options": [
-        "La McLaren",
+        "La Ferrari",
         "La Williams",
         "La Mercedes",
-        "La Ferrari"
+        "La McLaren"
       ],
       "theme": null,
       "explanation": null
@@ -7154,8 +7154,8 @@
       "question": "Come si chiama la gara di durata più celebre in Francia?",
       "correctAnswer": "La 24 Ore di Le Mans",
       "options": [
-        "La 24 Ore di Le Mans",
         "Il Gran Premio di Francia",
+        "La 24 Ore di Le Mans",
         "La Parigi-Dakar",
         "Il Rally di Monte Carlo"
       ],
@@ -7187,9 +7187,9 @@
       "correctAnswer": "Otto",
       "options": [
         "Dieci",
-        "Otto",
+        "Quattro",
         "Sei",
-        "Quattro"
+        "Otto"
       ],
       "theme": null,
       "explanation": null
@@ -7202,9 +7202,9 @@
       "question": "Quale pilota è soprannominato Il Dottore nel motomondiale?",
       "correctAnswer": "Valentino Rossi",
       "options": [
-        "Giacomo Agostini",
-        "Casey Stoner",
         "Valentino Rossi",
+        "Casey Stoner",
+        "Giacomo Agostini",
         "Jorge Lorenzo"
       ],
       "theme": null,
@@ -7218,8 +7218,8 @@
       "question": "Chi ha progettato la Fiat 500 del 1957?",
       "correctAnswer": "Dante Giacosa",
       "options": [
-        "Dante Giacosa",
         "Marcello Gandini",
+        "Dante Giacosa",
         "Giorgetto Giugiaro",
         "Battista Pininfarina"
       ],
@@ -7234,10 +7234,10 @@
       "question": "In quale anno si è corso il primo Campionato del mondo di Formula 1?",
       "correctAnswer": "1950",
       "options": [
-        "1950",
+        "1946",
         "1955",
         "1961",
-        "1946"
+        "1950"
       ],
       "theme": null,
       "explanation": null
@@ -7267,9 +7267,9 @@
       "correctAnswer": "TSI",
       "options": [
         "TSFI",
-        "MDE",
+        "TSI",
         "TDI",
-        "TSI"
+        "MDE"
       ],
       "theme": null,
       "explanation": null
@@ -7283,8 +7283,8 @@
       "correctAnswer": "Joan Mir",
       "options": [
         "Andrea Dovizioso",
-        "Joan Mir",
         "Franco Morbidelli",
+        "Joan Mir",
         "Álex Márquez"
       ],
       "theme": null,
@@ -7300,8 +7300,8 @@
       "options": [
         "La Ferrari F40",
         "La Bugatti EB110",
-        "La McLaren F1",
-        "La Jaguar XJ220"
+        "La Jaguar XJ220",
+        "La McLaren F1"
       ],
       "theme": null,
       "explanation": null
@@ -7314,10 +7314,10 @@
       "question": "Quale moto ha vinto il titolo MotoGP 2004 con Valentino Rossi?",
       "correctAnswer": "La Yamaha",
       "options": [
-        "La Ducati",
+        "La Yamaha",
         "La Honda",
         "L'Aprilia",
-        "La Yamaha"
+        "La Ducati"
       ],
       "theme": null,
       "explanation": null
@@ -7331,8 +7331,8 @@
       "correctAnswer": "Sébastien Loeb",
       "options": [
         "Walter Röhrl",
-        "Carlos Sainz",
         "Sébastien Loeb",
+        "Carlos Sainz",
         "Sébastien Ogier"
       ],
       "theme": null,
@@ -7642,10 +7642,10 @@
       "question": "Da quale cereale si ricava il pane tradizionale italiano?",
       "correctAnswer": "Dal grano",
       "options": [
-        "Dal riso",
+        "Dal grano",
         "Dall'orzo",
         "Dal mais",
-        "Dal grano"
+        "Dal riso"
       ],
       "theme": "Cibo",
       "explanation": null
@@ -7659,9 +7659,9 @@
       "correctAnswer": "Il pecorino",
       "options": [
         "La mozzarella",
-        "Il parmigiano",
+        "Il pecorino",
         "Il gorgonzola",
-        "Il pecorino"
+        "Il parmigiano"
       ],
       "theme": "Gastronomia",
       "explanation": null
@@ -7692,8 +7692,8 @@
       "options": [
         "Dal melograno",
         "Dal fico",
-        "Dall'uva",
-        "Dalla pera"
+        "Dalla pera",
+        "Dall'uva"
       ],
       "theme": "Cibo",
       "explanation": null
@@ -7708,8 +7708,8 @@
       "options": [
         "Lo speck",
         "La salsiccia",
-        "Il guanciale",
-        "La pancetta"
+        "La pancetta",
+        "Il guanciale"
       ],
       "theme": "Cibo",
       "explanation": null
@@ -7722,10 +7722,10 @@
       "question": "Quale vino piemontese si produce con uve Nebbiolo?",
       "correctAnswer": "Il Barolo",
       "options": [
-        "Il Nero d'Avola",
+        "Il Barolo",
         "Il Chianti",
         "Il Prosecco",
-        "Il Barolo"
+        "Il Nero d'Avola"
       ],
       "theme": "Cibo",
       "explanation": null
@@ -7756,8 +7756,8 @@
       "options": [
         "Lo stracchino",
         "La ricotta",
-        "Il philadelphia",
-        "Il mascarpone"
+        "Il mascarpone",
+        "Il philadelphia"
       ],
       "theme": "Cibo",
       "explanation": null
@@ -7771,9 +7771,9 @@
       "correctAnswer": "Il tartufo bianco",
       "options": [
         "Il porcino",
-        "Il tartufo bianco",
+        "Il finferlo",
         "Il chiodino",
-        "Il finferlo"
+        "Il tartufo bianco"
       ],
       "theme": "Cibo",
       "explanation": null
@@ -7786,9 +7786,9 @@
       "question": "Quali sono gli ingredienti principali della carbonara romana?",
       "correctAnswer": "Uova e guanciale",
       "options": [
-        "Pomodoro e pancetta",
-        "Uova e pancetta affumicata",
         "Uova e guanciale",
+        "Uova e pancetta affumicata",
+        "Pomodoro e pancetta",
         "Panna e prosciutto"
       ],
       "theme": "Cibo",
@@ -7802,8 +7802,8 @@
       "question": "Quale frutto produce il vino?",
       "correctAnswer": "L'uva",
       "options": [
-        "L'uva",
         "Il fico",
+        "L'uva",
         "La mela",
         "La pera"
       ],
@@ -7818,9 +7818,9 @@
       "question": "Da quale cereale si ricava la farina per il pane più diffuso in Italia?",
       "correctAnswer": "Il grano",
       "options": [
-        "Il grano",
-        "Il mais",
         "L'orzo",
+        "Il mais",
+        "Il grano",
         "Il riso"
       ],
       "theme": "Cibo",
@@ -7836,8 +7836,8 @@
       "options": [
         "Il pecorino romano",
         "Il gorgonzola",
-        "Il fior di latte",
-        "Il taleggio"
+        "Il taleggio",
+        "Il fior di latte"
       ],
       "theme": "Cibo",
       "explanation": null
@@ -7867,9 +7867,9 @@
       "correctAnswer": "Il pesto",
       "options": [
         "Il ragù bianco",
-        "La salsa aurora",
+        "Il pesto",
         "La salsa verde",
-        "Il pesto"
+        "La salsa aurora"
       ],
       "theme": "Cibo",
       "explanation": null
@@ -7883,8 +7883,8 @@
       "correctAnswer": "L'espresso lungo",
       "options": [
         "Il ristretto",
-        "L'espresso lungo",
         "Il macchiato",
+        "L'espresso lungo",
         "Il caffè corretto"
       ],
       "theme": "Cibo",
@@ -7898,10 +7898,10 @@
       "question": "Quale dolce napoletano è fatto di pasta sfoglia e ricotta?",
       "correctAnswer": "La sfogliatella",
       "options": [
-        "La sfogliatella",
+        "Il tiramisù",
         "Il cannolo siciliano",
         "Il panettone",
-        "Il tiramisù"
+        "La sfogliatella"
       ],
       "theme": "Cibo",
       "explanation": null
@@ -7914,9 +7914,9 @@
       "question": "Quale salsa fredda provenzale si prepara con aglio, olio e tuorlo?",
       "correctAnswer": "L'aioli",
       "options": [
-        "La salsa verde",
-        "La salsa tartara",
         "L'aioli",
+        "La salsa tartara",
+        "La salsa verde",
         "La maionese"
       ],
       "theme": "Cibo",
@@ -7931,8 +7931,8 @@
       "correctAnswer": "Il nebbiolo",
       "options": [
         "Il sangiovese",
-        "Il dolcetto",
         "Il nebbiolo",
+        "Il dolcetto",
         "Il barbera"
       ],
       "theme": "Cibo",
@@ -7978,10 +7978,10 @@
       "question": "Quale formaggio a pasta filata è tipico della Campania?",
       "correctAnswer": "La mozzarella di bufala",
       "options": [
-        "Il caciocavallo",
+        "La mozzarella di bufala",
         "La scamorza",
         "Il provolone",
-        "La mozzarella di bufala"
+        "Il caciocavallo"
       ],
       "theme": "Cibo",
       "explanation": null
@@ -7994,8 +7994,8 @@
       "question": "In quale regione spagnola si produce il vino Rioja?",
       "correctAnswer": "Nei Paesi Baschi e nella Rioja",
       "options": [
-        "Nei Paesi Baschi e nella Rioja",
         "In Galizia",
+        "Nei Paesi Baschi e nella Rioja",
         "In Andalusia",
         "In Catalogna"
       ],
@@ -8011,8 +8011,8 @@
       "correctAnswer": "Il saccarosio",
       "options": [
         "Il lattosio",
-        "Il saccarosio",
         "Il glucosio",
+        "Il saccarosio",
         "Il fruttosio"
       ],
       "theme": "Cibo",
@@ -8292,8 +8292,8 @@
       "question": "Quale articolo determinativo maschile singolare si usa davanti a una parola che inizia per vocale?",
       "correctAnswer": "L'",
       "options": [
-        "L'",
         "Lo",
+        "L'",
         "La",
         "Il"
       ],
@@ -8324,9 +8324,9 @@
       "question": "Quale modo e tempo verbale è cantassi?",
       "correctAnswer": "Congiuntivo imperfetto",
       "options": [
-        "Condizionale presente",
-        "Indicativo imperfetto",
         "Congiuntivo imperfetto",
+        "Indicativo imperfetto",
+        "Condizionale presente",
         "Congiuntivo presente"
       ],
       "theme": "Lingua",
@@ -8341,9 +8341,9 @@
       "correctAnswer": "Anna",
       "options": [
         "Luna",
-        "Sole",
+        "Anna",
         "Casa",
-        "Anna"
+        "Sole"
       ],
       "theme": "Letteratura",
       "explanation": null
@@ -8357,8 +8357,8 @@
       "correctAnswer": "La sintassi",
       "options": [
         "La semantica",
-        "La sintassi",
         "La morfologia",
+        "La sintassi",
         "La fonetica"
       ],
       "theme": "Lingua",
@@ -8390,8 +8390,8 @@
       "options": [
         "Pinocchio",
         "Il Gattopardo",
-        "I promessi sposi",
-        "I Malavoglia"
+        "I Malavoglia",
+        "I promessi sposi"
       ],
       "theme": "Letteratura",
       "explanation": null
@@ -8404,9 +8404,9 @@
       "question": "Chi ha scritto 1984?",
       "correctAnswer": "George Orwell",
       "options": [
-        "Franz Kafka",
-        "Aldous Huxley",
         "George Orwell",
+        "Aldous Huxley",
+        "Franz Kafka",
         "Ray Bradbury"
       ],
       "theme": "Letteratura",
@@ -8436,10 +8436,10 @@
       "question": "Chi ha scritto Cent'anni di solitudine?",
       "correctAnswer": "Gabriel García Márquez",
       "options": [
-        "Pablo Neruda",
+        "Gabriel García Márquez",
         "Jorge Luis Borges",
         "Julio Cortázar",
-        "Gabriel García Márquez"
+        "Pablo Neruda"
       ],
       "theme": "Letteratura",
       "explanation": null
@@ -8453,9 +8453,9 @@
       "correctAnswer": "Cinque",
       "options": [
         "Sei",
-        "Cinque",
+        "Sette",
         "Quattro",
-        "Sette"
+        "Cinque"
       ],
       "theme": "Lingua",
       "explanation": null
@@ -8468,10 +8468,10 @@
       "question": "Chi ha scritto Pinocchio?",
       "correctAnswer": "Carlo Collodi",
       "options": [
-        "Gianni Rodari",
+        "Carlo Collodi",
         "Edmondo De Amicis",
         "Emilio Salgari",
-        "Carlo Collodi"
+        "Gianni Rodari"
       ],
       "theme": "Letteratura",
       "explanation": null
@@ -8484,8 +8484,8 @@
       "question": "Quale segno di punteggiatura chiude una domanda?",
       "correctAnswer": "Il punto interrogativo",
       "options": [
-        "Il punto interrogativo",
         "La virgola",
+        "Il punto interrogativo",
         "I due punti",
         "Il punto esclamativo"
       ],
@@ -8500,9 +8500,9 @@
       "question": "Chi ha scritto I promessi sposi?",
       "correctAnswer": "Alessandro Manzoni",
       "options": [
-        "Alessandro Manzoni",
-        "Italo Svevo",
         "Giacomo Leopardi",
+        "Italo Svevo",
+        "Alessandro Manzoni",
         "Ugo Foscolo"
       ],
       "theme": "Letteratura",
@@ -8518,8 +8518,8 @@
       "options": [
         "La litote",
         "La metafora",
-        "L'iperbole",
-        "L'anafora"
+        "L'anafora",
+        "L'iperbole"
       ],
       "theme": "Lingua",
       "explanation": null
@@ -8549,9 +8549,9 @@
       "correctAnswer": "Primo Levi",
       "options": [
         "Carlo Levi",
-        "Italo Calvino",
+        "Primo Levi",
         "Elie Wiesel",
-        "Primo Levi"
+        "Italo Calvino"
       ],
       "theme": "Letteratura",
       "explanation": null
@@ -8566,8 +8566,8 @@
       "options": [
         "Marcovaldo",
         "Il visconte dimezzato",
-        "Le città invisibili",
-        "Il barone rampante"
+        "Il barone rampante",
+        "Le città invisibili"
       ],
       "theme": "Letteratura",
       "explanation": null
@@ -8580,10 +8580,10 @@
       "question": "Quale movimento letterario italiano lanciò il primo manifesto nel 1909?",
       "correctAnswer": "Il futurismo",
       "options": [
-        "Il futurismo",
+        "Il verismo",
         "L'ermetismo",
         "Il crepuscolarismo",
-        "Il verismo"
+        "Il futurismo"
       ],
       "theme": "Letteratura",
       "explanation": null
@@ -8596,8 +8596,8 @@
       "question": "Chi ha scritto Il Gattopardo?",
       "correctAnswer": "Giuseppe Tomasi di Lampedusa",
       "options": [
-        "Elsa Morante",
         "Giuseppe Tomasi di Lampedusa",
+        "Elsa Morante",
         "Natalia Ginzburg",
         "Leonardo Sciascia"
       ],
@@ -8612,8 +8612,8 @@
       "question": "Quale figura retorica sostituisce una parola con un'altra simile?",
       "correctAnswer": "La metafora",
       "options": [
-        "La metafora",
         "L'ossimoro",
+        "La metafora",
         "La metonimia",
         "La sineddoche"
       ],
@@ -8629,8 +8629,8 @@
       "correctAnswer": "Ugo Foscolo",
       "options": [
         "Alessandro Manzoni",
-        "Ugo Foscolo",
         "Vittorio Alfieri",
+        "Ugo Foscolo",
         "Giacomo Leopardi"
       ],
       "theme": "Letteratura",
@@ -8646,8 +8646,8 @@
       "options": [
         "Anton Čechov",
         "Lev Tolstoj",
-        "Fëdor Dostoevskij",
-        "Ivan Turgenev"
+        "Ivan Turgenev",
+        "Fëdor Dostoevskij"
       ],
       "theme": "Letteratura",
       "explanation": null
@@ -8660,9 +8660,9 @@
       "question": "Quale poema di Ludovico Ariosto racconta le avventure di Orlando?",
       "correctAnswer": "L'Orlando furioso",
       "options": [
-        "La Gerusalemme liberata",
-        "L'Orlando innamorato",
         "L'Orlando furioso",
+        "L'Orlando innamorato",
+        "La Gerusalemme liberata",
         "Il Morgante"
       ],
       "theme": "Letteratura",
@@ -8916,8 +8916,8 @@
       "options": [
         "Naoko Takeuchi",
         "Eiichiro Oda",
-        "Akira Toriyama",
-        "Masashi Kishimoto"
+        "Masashi Kishimoto",
+        "Akira Toriyama"
       ],
       "theme": "Anime",
       "explanation": null
@@ -8930,8 +8930,8 @@
       "question": "Come si chiama il protagonista di Naruto?",
       "correctAnswer": "Naruto Uzumaki",
       "options": [
-        "Naruto Uzumaki",
         "Kakashi Hatake",
+        "Naruto Uzumaki",
         "Itachi Uchiha",
         "Sasuke Uchiha"
       ],
@@ -8946,9 +8946,9 @@
       "question": "Quale manga racconta le avventure dei Pirati di Cappello di Paglia?",
       "correctAnswer": "One Piece",
       "options": [
-        "One Piece",
-        "Bleach",
         "Fairy Tail",
+        "Bleach",
+        "One Piece",
         "Tokyo Ghoul"
       ],
       "theme": "Manga",
@@ -8962,10 +8962,10 @@
       "question": "In Attack on Titan, chi è il protagonista?",
       "correctAnswer": "Eren Jaeger",
       "options": [
-        "Levi Ackerman",
+        "Eren Jaeger",
         "Mikasa Ackerman",
         "Armin Arlert",
-        "Eren Jaeger"
+        "Levi Ackerman"
       ],
       "theme": "Anime",
       "explanation": null
@@ -8994,9 +8994,9 @@
       "question": "Chi ha creato Sailor Moon?",
       "correctAnswer": "Naoko Takeuchi",
       "options": [
-        "CLAMP",
-        "Ai Yazawa",
         "Naoko Takeuchi",
+        "Ai Yazawa",
+        "CLAMP",
         "Rumiko Takahashi"
       ],
       "theme": "Anime",
@@ -9011,8 +9011,8 @@
       "correctAnswer": "Fullmetal Alchemist",
       "options": [
         "Death Note",
-        "Fullmetal Alchemist",
         "Sword Art Online",
+        "Fullmetal Alchemist",
         "Demon Slayer"
       ],
       "theme": "Anime",
@@ -9027,9 +9027,9 @@
       "correctAnswer": "Death Note",
       "options": [
         "Monster",
-        "Death Note",
+        "Tokyo Ghoul",
         "Parasyte",
-        "Tokyo Ghoul"
+        "Death Note"
       ],
       "theme": "Manga",
       "explanation": null
@@ -9044,8 +9044,8 @@
       "options": [
         "Howl's Moving Castle",
         "Ponyo",
-        "Il mio vicino Totoro",
-        "La città incantata"
+        "La città incantata",
+        "Il mio vicino Totoro"
       ],
       "theme": "Anime",
       "explanation": null
@@ -9058,9 +9058,9 @@
       "question": "Come si chiama il compagno elettrico di Ash Ketchum?",
       "correctAnswer": "Pikachu",
       "options": [
-        "Bulbasaur",
-        "Charizard",
         "Pikachu",
+        "Charizard",
+        "Bulbasaur",
         "Squirtle"
       ],
       "theme": "Anime",
@@ -9075,9 +9075,9 @@
       "correctAnswer": "Akira Toriyama",
       "options": [
         "Eiichiro Oda",
-        "Rumiko Takahashi",
+        "Akira Toriyama",
         "Masashi Kishimoto",
-        "Akira Toriyama"
+        "Rumiko Takahashi"
       ],
       "theme": "Anime",
       "explanation": null
@@ -9092,8 +9092,8 @@
       "options": [
         "Toei Animation",
         "Kyoto Animation",
-        "Madhouse",
-        "Studio Ghibli"
+        "Studio Ghibli",
+        "Madhouse"
       ],
       "theme": "Anime",
       "explanation": null
@@ -9123,9 +9123,9 @@
       "correctAnswer": "Monkey D. Luffy",
       "options": [
         "Roronoa Zoro",
-        "Sanji",
+        "Monkey D. Luffy",
         "Nami",
-        "Monkey D. Luffy"
+        "Sanji"
       ],
       "theme": "Anime",
       "explanation": null
@@ -9154,8 +9154,8 @@
       "question": "Quale manga di Naoki Urasawa è ispirato ad Astro Boy?",
       "correctAnswer": "Pluto",
       "options": [
-        "Pluto",
         "20th Century Boys",
+        "Pluto",
         "Billy Bat",
         "Monster"
       ],
@@ -9170,9 +9170,9 @@
       "question": "In quale anno uscì il primo capitolo di Dragon Ball?",
       "correctAnswer": "1984",
       "options": [
-        "1984",
-        "1979",
         "1995",
+        "1979",
+        "1984",
         "1990"
       ],
       "theme": "Manga",
@@ -9202,10 +9202,10 @@
       "question": "Chi ha creato il manga Ghost in the Shell?",
       "correctAnswer": "Masamune Shirow",
       "options": [
-        "Katsuhiro Otomo",
+        "Masamune Shirow",
         "Mamoru Oshii",
         "Rumiko Takahashi",
-        "Masamune Shirow"
+        "Katsuhiro Otomo"
       ],
       "theme": "Manga",
       "explanation": null
@@ -9219,9 +9219,9 @@
       "correctAnswer": "Slam Dunk",
       "options": [
         "Haikyuu!!",
-        "Captain Tsubasa",
+        "Slam Dunk",
         "Kuroko no Basket",
-        "Slam Dunk"
+        "Captain Tsubasa"
       ],
       "theme": "Manga",
       "explanation": null
@@ -9235,8 +9235,8 @@
       "correctAnswer": "Kentaro Miura",
       "options": [
         "Tite Kubo",
-        "Kentaro Miura",
         "Yoshihiro Togashi",
+        "Kentaro Miura",
         "Hajime Isayama"
       ],
       "theme": "Manga",
@@ -9252,8 +9252,8 @@
       "options": [
         "5 centimetri al secondo",
         "La ragazza che saltava nel tempo",
-        "Your Name",
-        "Weathering with You"
+        "Weathering with You",
+        "Your Name"
       ],
       "theme": "Anime",
       "explanation": null
@@ -9266,8 +9266,8 @@
       "question": "Quale anime ha come protagonisti Edward e Alphonse Elric?",
       "correctAnswer": "Fullmetal Alchemist",
       "options": [
-        "Claymore",
         "Fullmetal Alchemist",
+        "Claymore",
         "Fate/stay night",
         "Sword Art Online"
       ],
@@ -9282,8 +9282,8 @@
       "question": "Quale manga di Takehiko Inoue è dedicato al basket?",
       "correctAnswer": "Real",
       "options": [
-        "Real",
         "Vagabond",
+        "Real",
         "Slam Dunk",
         "Buzzer Beater"
       ],
@@ -9578,9 +9578,9 @@
       "question": "Quale azienda ha creato Mario?",
       "correctAnswer": "Nintendo",
       "options": [
-        "Sony",
-        "Microsoft",
         "Nintendo",
+        "Microsoft",
+        "Sony",
         "Sega"
       ],
       "theme": "Gaming",
@@ -9595,8 +9595,8 @@
       "correctAnswer": "Switch",
       "options": [
         "GameCube",
-        "Wii U",
         "Switch",
+        "Wii U",
         "3DS"
       ],
       "theme": "Gaming",
@@ -9612,8 +9612,8 @@
       "options": [
         "Symbian",
         "iOS",
-        "Windows Phone",
-        "Android"
+        "Android",
+        "Windows Phone"
       ],
       "theme": "Tecnologia",
       "explanation": null
@@ -9628,8 +9628,8 @@
       "options": [
         "Mark Zuckerberg",
         "Steve Jobs",
-        "Bill Gates",
-        "Steve Wozniak"
+        "Steve Wozniak",
+        "Bill Gates"
       ],
       "theme": "Gaming",
       "explanation": null
@@ -9674,8 +9674,8 @@
       "question": "Quale social network era noto per l'uccellino azzurro?",
       "correctAnswer": "Twitter",
       "options": [
-        "Twitter",
         "Instagram",
+        "Twitter",
         "TikTok",
         "Facebook"
       ],
@@ -9690,9 +9690,9 @@
       "question": "Quale videogioco battle royale è sviluppato da Epic Games?",
       "correctAnswer": "Fortnite",
       "options": [
-        "PUBG",
-        "Warzone",
         "Fortnite",
+        "Warzone",
+        "PUBG",
         "Apex Legends"
       ],
       "theme": "Gaming",
@@ -9707,8 +9707,8 @@
       "correctAnswer": "Sony",
       "options": [
         "Sega",
-        "Nintendo",
         "Sony",
+        "Nintendo",
         "Microsoft"
       ],
       "theme": "Gaming",
@@ -9739,8 +9739,8 @@
       "correctAnswer": "Sony",
       "options": [
         "Sega",
-        "Sony",
         "Nintendo",
+        "Sony",
         "Microsoft"
       ],
       "theme": "Gaming",
@@ -9756,8 +9756,8 @@
       "options": [
         "Instagram",
         "TikTok",
-        "Twitter",
-        "LinkedIn"
+        "LinkedIn",
+        "Twitter"
       ],
       "theme": "Gaming",
       "explanation": null
@@ -9786,10 +9786,10 @@
       "question": "Come si chiama il protagonista della serie The Legend of Zelda?",
       "correctAnswer": "Link",
       "options": [
-        "Link",
+        "Ganondorf",
         "Zelda",
         "Navi",
-        "Ganondorf"
+        "Link"
       ],
       "theme": "Gaming",
       "explanation": null
@@ -9819,27 +9819,11 @@
       "correctAnswer": "L'hertz",
       "options": [
         "Il watt",
-        "Il byte",
         "L'hertz",
+        "Il byte",
         "Il pixel"
       ],
       "theme": "Tecnologia",
-      "explanation": null
-    },
-    {
-      "id": "quiz-gaming-17",
-      "category": "Gaming e Tecnologia",
-      "type": "QUIZ",
-      "difficulty": "medio",
-      "question": "Quale console Nintendo è uscita nel 2017?",
-      "correctAnswer": "Nintendo Switch",
-      "options": [
-        "Nintendo 3DS",
-        "Nintendo Switch",
-        "Wii U",
-        "GameCube"
-      ],
-      "theme": "Gaming",
       "explanation": null
     },
     {
@@ -9850,10 +9834,10 @@
       "question": "Quale linguaggio di programmazione è nato nel 1995 per la JVM?",
       "correctAnswer": "Java",
       "options": [
-        "Java",
+        "C#",
         "Python",
         "Ruby",
-        "C#"
+        "Java"
       ],
       "theme": "Tecnologia",
       "explanation": null
@@ -9866,9 +9850,9 @@
       "question": "Quale azienda ha creato il motore grafico Unreal Engine?",
       "correctAnswer": "Epic Games",
       "options": [
-        "id Software",
-        "Unity Technologies",
         "Epic Games",
+        "Unity Technologies",
+        "id Software",
         "Valve"
       ],
       "theme": "Gaming",
@@ -9899,8 +9883,8 @@
       "correctAnswer": "Otto",
       "options": [
         "Sedici",
-        "Otto",
         "Quattro",
+        "Otto",
         "Due"
       ],
       "theme": "Tecnologia",
@@ -9914,10 +9898,10 @@
       "question": "Quale gioco di Epic Games ha reso popolare la costruzione durante una battle royale?",
       "correctAnswer": "Fortnite",
       "options": [
-        "Fortnite",
+        "PUBG",
         "Apex Legends",
         "Warzone",
-        "PUBG"
+        "Fortnite"
       ],
       "theme": "Gaming",
       "explanation": null
@@ -9930,8 +9914,8 @@
       "question": "Quale rete sociale ha superato per prima il miliardo di utenti attivi?",
       "correctAnswer": "Facebook",
       "options": [
-        "Instagram",
         "Facebook",
+        "Instagram",
         "YouTube",
         "TikTok"
       ],
@@ -9963,8 +9947,8 @@
       "correctAnswer": "NVIDIA",
       "options": [
         "AMD",
-        "NVIDIA",
         "Intel",
+        "NVIDIA",
         "Qualcomm"
       ],
       "theme": "Gaming",
@@ -9979,9 +9963,9 @@
       "correctAnswer": "GPT",
       "options": [
         "ResNet",
-        "GPT",
+        "AlphaGo",
         "BERT",
-        "AlphaGo"
+        "GPT"
       ],
       "theme": "Gaming",
       "explanation": null
@@ -10262,10 +10246,10 @@
       "question": "Qual è l'animale più veloce in volo?",
       "correctAnswer": "Il falco pellegrino",
       "options": [
-        "La rondine",
+        "Il falco pellegrino",
         "L'albatro",
         "L'aquila reale",
-        "Il falco pellegrino"
+        "La rondine"
       ],
       "theme": null,
       "explanation": null
@@ -10278,8 +10262,8 @@
       "question": "Quale pianeta è il più caldo del sistema solare?",
       "correctAnswer": "Venere",
       "options": [
-        "Venere",
         "Mercurio",
+        "Venere",
         "Marte",
         "Giove"
       ],
@@ -10311,8 +10295,8 @@
       "correctAnswer": "L'ornitorinco",
       "options": [
         "Il canguro",
-        "L'ornitorinco",
         "Il delfino",
+        "L'ornitorinco",
         "Il pipistrello"
       ],
       "theme": null,
@@ -10328,8 +10312,8 @@
       "options": [
         "Il cuore",
         "Il rene",
-        "Il fegato",
-        "La cornea"
+        "La cornea",
+        "Il fegato"
       ],
       "theme": null,
       "explanation": null
@@ -10342,8 +10326,8 @@
       "question": "Quale cibo può conservarsi a lungo senza deteriorarsi?",
       "correctAnswer": "Il miele",
       "options": [
-        "Il pane",
         "Il miele",
+        "Il pane",
         "La carne cruda",
         "Il latte"
       ],
@@ -10358,10 +10342,10 @@
       "question": "Quale animale ha tre cuori?",
       "correctAnswer": "Il polpo",
       "options": [
-        "Il polpo",
+        "Il delfino",
         "Lo squalo",
         "La tartaruga",
-        "Il delfino"
+        "Il polpo"
       ],
       "theme": null,
       "explanation": null
@@ -10374,10 +10358,10 @@
       "question": "Quale paese ha il maggior numero di fusi orari?",
       "correctAnswer": "La Francia",
       "options": [
-        "La Francia",
+        "Gli Stati Uniti",
         "La Russia",
         "La Cina",
-        "Gli Stati Uniti"
+        "La Francia"
       ],
       "theme": null,
       "explanation": null
@@ -10391,9 +10375,9 @@
       "correctAnswer": "Il bambù",
       "options": [
         "La quercia",
-        "L'ulivo",
+        "Il bambù",
         "Il cactus",
-        "Il bambù"
+        "L'ulivo"
       ],
       "theme": null,
       "explanation": null
@@ -10406,9 +10390,9 @@
       "question": "Quale insetto può sollevare molte volte il proprio peso?",
       "correctAnswer": "La formica",
       "options": [
-        "La formica",
-        "La coccinella",
         "La farfalla",
+        "La coccinella",
+        "La formica",
         "La libellula"
       ],
       "theme": null,
@@ -10438,8 +10422,8 @@
       "question": "Quanti giorni ha un anno bisestile?",
       "correctAnswer": "366",
       "options": [
-        "367",
         "366",
+        "367",
         "364",
         "365"
       ],
@@ -10487,9 +10471,9 @@
       "correctAnswer": "Cinque",
       "options": [
         "Sei",
-        "Quattro",
+        "Cinque",
         "Tre",
-        "Cinque"
+        "Quattro"
       ],
       "theme": null,
       "explanation": null
@@ -10504,8 +10488,8 @@
       "options": [
         "La giraffa",
         "Il serpente",
-        "Il formichiere",
-        "Il camaleonte"
+        "Il camaleonte",
+        "Il formichiere"
       ],
       "theme": null,
       "explanation": null
@@ -10518,10 +10502,10 @@
       "question": "Quanto pesa approssimativamente un litro d'acqua?",
       "correctAnswer": "Un chilogrammo",
       "options": [
-        "Un chilogrammo",
+        "Due chilogrammi",
         "Dieci grammi",
         "Mezzo chilogrammo",
-        "Due chilogrammi"
+        "Un chilogrammo"
       ],
       "theme": null,
       "explanation": null
@@ -10534,8 +10518,8 @@
       "question": "Qual è l'edificio più alto del mondo?",
       "correctAnswer": "Il Burj Khalifa",
       "options": [
-        "Il One World Trade Center",
         "Il Burj Khalifa",
+        "Il One World Trade Center",
         "La Torre di Shanghai",
         "Il Taipei 101"
       ],
@@ -10567,8 +10551,8 @@
       "correctAnswer": "Il rodio",
       "options": [
         "L'argento",
-        "Il rodio",
         "Il platino",
+        "Il rodio",
         "Il palladio"
       ],
       "theme": null,
@@ -10583,9 +10567,9 @@
       "correctAnswer": "Il Pacifico",
       "options": [
         "L'Indiano",
-        "Il Pacifico",
+        "L'Atlantico",
         "L'Artico",
-        "L'Atlantico"
+        "Il Pacifico"
       ],
       "theme": null,
       "explanation": null
@@ -10598,10 +10582,10 @@
       "question": "Quanti cromosomi ha una cellula umana?",
       "correctAnswer": "46",
       "options": [
-        "23",
+        "46",
         "52",
         "48",
-        "46"
+        "23"
       ],
       "theme": null,
       "explanation": null
@@ -10615,8 +10599,8 @@
       "correctAnswer": "La Svezia",
       "options": [
         "Il Canada",
-        "Le Filippine",
         "La Svezia",
+        "Le Filippine",
         "L'Indonesia"
       ],
       "theme": null,
@@ -10632,8 +10616,8 @@
       "options": [
         "EST",
         "GMT+1",
-        "CET",
-        "UTC"
+        "UTC",
+        "CET"
       ],
       "theme": null,
       "explanation": null
@@ -10662,8 +10646,8 @@
       "question": "Quante ossa ha in media lo scheletro di un adulto?",
       "correctAnswer": "206",
       "options": [
-        "246",
         "206",
+        "246",
         "186",
         "226"
       ],
@@ -10676,20 +10660,6 @@
       "type": "TRUE_FALSE",
       "difficulty": "facile",
       "question": "Il miele può durare molto a lungo senza deteriorarsi.",
-      "correctAnswer": "VERO",
-      "options": [
-        "VERO",
-        "FALSO"
-      ],
-      "theme": null,
-      "explanation": null
-    },
-    {
-      "id": "tf-curiosita-02",
-      "category": "Curiosità",
-      "type": "TRUE_FALSE",
-      "difficulty": "medio",
-      "question": "Il polpo ha tre cuori.",
       "correctAnswer": "VERO",
       "options": [
         "VERO",
@@ -10946,8 +10916,8 @@
       "options": [
         "Mike Bongiorno",
         "Enzo Tortora",
-        "Corrado",
-        "Pippo Baudo"
+        "Pippo Baudo",
+        "Corrado"
       ],
       "theme": "TV",
       "explanation": null
@@ -10962,8 +10932,8 @@
       "options": [
         "Il marmo",
         "Il legno",
-        "Il gesso",
-        "Il ferro"
+        "Il ferro",
+        "Il gesso"
       ],
       "theme": "Architettura",
       "explanation": null
@@ -10994,8 +10964,8 @@
       "options": [
         "Il Pantheon",
         "Le Terme di Caracalla",
-        "Il Colosseo",
-        "Il Foro Romano"
+        "Il Foro Romano",
+        "Il Colosseo"
       ],
       "theme": "Architettura",
       "explanation": null
@@ -11008,10 +10978,10 @@
       "question": "Come si chiama la cupola di Brunelleschi a Firenze?",
       "correctAnswer": "La cupola di Santa Maria del Fiore",
       "options": [
-        "La cupola di San Marco",
+        "La cupola di Santa Maria del Fiore",
         "La cupola di San Pietro",
         "La cupola del Pantheon",
-        "La cupola di Santa Maria del Fiore"
+        "La cupola di San Marco"
       ],
       "theme": "Architettura",
       "explanation": null
@@ -11026,8 +10996,8 @@
       "options": [
         "Il barocco",
         "Il liberty",
-        "Il romanico",
-        "Il gotico"
+        "Il gotico",
+        "Il romanico"
       ],
       "theme": "Architettura",
       "explanation": null
@@ -11089,8 +11059,8 @@
       "correctAnswer": "Le Corbusier",
       "options": [
         "Walter Gropius",
-        "Mies van der Rohe",
         "Le Corbusier",
+        "Mies van der Rohe",
         "Alvar Aalto"
       ],
       "theme": "Architettura",
@@ -11106,8 +11076,8 @@
       "options": [
         "Il ponte di Rialto",
         "Il ponte degli Scalzi",
-        "Il ponte della Costituzione",
-        "Il ponte dell'Accademia"
+        "Il ponte dell'Accademia",
+        "Il ponte della Costituzione"
       ],
       "theme": "Architettura",
       "explanation": null
@@ -11122,8 +11092,8 @@
       "options": [
         "Renzo Piano",
         "Ieoh Ming Pei",
-        "Frank Lloyd Wright",
-        "Frank Gehry"
+        "Frank Gehry",
+        "Frank Lloyd Wright"
       ],
       "theme": "Architettura",
       "explanation": null
@@ -11170,8 +11140,8 @@
       "options": [
         "Ludovico Ariosto",
         "Dante Alighieri",
-        "Francesco Petrarca",
-        "Giovanni Boccaccio"
+        "Giovanni Boccaccio",
+        "Francesco Petrarca"
       ],
       "theme": "Letteratura",
       "explanation": null
@@ -11184,9 +11154,9 @@
       "question": "Quale parola è un articolo determinativo?",
       "correctAnswer": "Il",
       "options": [
-        "Alcuni",
-        "Uno",
         "Il",
+        "Uno",
+        "Alcuni",
         "Un"
       ],
       "theme": "Lingua",
@@ -11200,8 +11170,8 @@
       "question": "Quale articolo indeterminativo maschile si usa davanti a 'amico'?",
       "correctAnswer": "Un",
       "options": [
-        "Un",
         "Il",
+        "Un",
         "Lo",
         "Uno"
       ],
@@ -11216,9 +11186,9 @@
       "question": "Quale parte della frase indica l'azione?",
       "correctAnswer": "Il verbo",
       "options": [
-        "Il verbo",
-        "L'aggettivo",
         "Il nome",
+        "L'aggettivo",
+        "Il verbo",
         "L'avverbio"
       ],
       "theme": "Lingua",
@@ -11234,8 +11204,8 @@
       "options": [
         "Il futuro semplice",
         "Il presente",
-        "L'imperfetto",
-        "Il passato prossimo"
+        "Il passato prossimo",
+        "L'imperfetto"
       ],
       "theme": "Lingua",
       "explanation": null
@@ -11249,9 +11219,9 @@
       "correctAnswer": "Il complemento di termine",
       "options": [
         "Il complemento di mezzo",
-        "Il complemento di termine",
+        "Il complemento oggetto",
         "Il complemento di luogo",
-        "Il complemento oggetto"
+        "Il complemento di termine"
       ],
       "theme": "Lingua",
       "explanation": null
@@ -11264,8 +11234,8 @@
       "question": "Quale parola è un pronome personale?",
       "correctAnswer": "Lui",
       "options": [
-        "Correre",
         "Lui",
+        "Correre",
         "Velocemente",
         "Bello"
       ],
@@ -11281,9 +11251,9 @@
       "correctAnswer": "L'anafora",
       "options": [
         "L'epifora",
-        "L'antitesi",
+        "L'anafora",
         "Il chiasmo",
-        "L'anafora"
+        "L'antitesi"
       ],
       "theme": "Lingua",
       "explanation": null
@@ -11297,8 +11267,8 @@
       "correctAnswer": "L'accusativo",
       "options": [
         "Il genitivo",
-        "L'accusativo",
         "Il dativo",
+        "L'accusativo",
         "Il nominativo"
       ],
       "theme": "Lingua",
@@ -11312,10 +11282,10 @@
       "question": "Quale tempo verbale indica un'azione futura rispetto al passato?",
       "correctAnswer": "Il futuro anteriore",
       "options": [
-        "Il futuro anteriore",
+        "Il condizionale passato",
         "Il congiuntivo imperfetto",
         "Il trapassato prossimo",
-        "Il condizionale passato"
+        "Il futuro anteriore"
       ],
       "theme": "Lingua",
       "explanation": null
@@ -11328,10 +11298,10 @@
       "question": "Quale tipo di proposizione è introdotta da 'benché'?",
       "correctAnswer": "Una subordinata concessiva",
       "options": [
-        "Una coordinata avversativa",
+        "Una subordinata concessiva",
         "Una subordinata causale",
         "Una subordinata finale",
-        "Una subordinata concessiva"
+        "Una coordinata avversativa"
       ],
       "theme": "Lingua",
       "explanation": null
@@ -11344,9 +11314,9 @@
       "question": "Quale monumento simbolo di Parigi è una torre di ferro?",
       "correctAnswer": "La Torre Eiffel",
       "options": [
-        "La Torre Eiffel",
-        "Il Sacro Cuore",
         "Notre-Dame",
+        "Il Sacro Cuore",
+        "La Torre Eiffel",
         "L'Arco di Trionfo"
       ],
       "theme": "Viaggi",
@@ -11361,9 +11331,9 @@
       "correctAnswer": "La Torre di Pisa",
       "options": [
         "Il Ponte Vecchio",
-        "La Torre di Pisa",
+        "Il Duomo di Milano",
         "Castel del Monte",
-        "Il Duomo di Milano"
+        "La Torre di Pisa"
       ],
       "theme": "Viaggi",
       "explanation": null
@@ -11376,26 +11346,10 @@
       "question": "Quale città è famosa per i canali e le gondole?",
       "correctAnswer": "Venezia",
       "options": [
-        "Bari",
+        "Venezia",
         "Genova",
         "Trieste",
-        "Venezia"
-      ],
-      "theme": "Viaggi",
-      "explanation": null
-    },
-    {
-      "id": "quiz-geografia-viaggi-04",
-      "category": "Geografia e Viaggi",
-      "type": "QUIZ",
-      "difficulty": "facile",
-      "question": "In quale città si trova il Colosseo?",
-      "correctAnswer": "Roma",
-      "options": [
-        "Roma",
-        "Istanbul",
-        "Siviglia",
-        "Atene"
+        "Bari"
       ],
       "theme": "Viaggi",
       "explanation": null
@@ -11408,8 +11362,8 @@
       "question": "Quale struttura turistica offre pernottamento e colazione?",
       "correctAnswer": "Il bed and breakfast",
       "options": [
-        "Il bed and breakfast",
         "L'ostello della gioventù",
+        "Il bed and breakfast",
         "Il campeggio",
         "Il resort"
       ],
@@ -11426,8 +11380,8 @@
       "options": [
         "Valencia",
         "Siviglia",
-        "Barcellona",
-        "Madrid"
+        "Madrid",
+        "Barcellona"
       ],
       "theme": "Viaggi",
       "explanation": null
@@ -11440,10 +11394,10 @@
       "question": "Quale monumento di Agra è patrimonio UNESCO e mausoleo?",
       "correctAnswer": "Il Taj Mahal",
       "options": [
-        "Il Qutb Minar",
+        "Il Taj Mahal",
         "Il palazzo di Jaipur",
         "Il Forte Rosso",
-        "Il Taj Mahal"
+        "Il Qutb Minar"
       ],
       "theme": "Viaggi",
       "explanation": null
@@ -11457,8 +11411,8 @@
       "correctAnswer": "Praga",
       "options": [
         "Cracovia",
-        "Budapest",
         "Praga",
+        "Budapest",
         "Vienna"
       ],
       "theme": "Viaggi",
@@ -11489,9 +11443,9 @@
       "correctAnswer": "Kyoto",
       "options": [
         "Osaka",
-        "Kyoto",
+        "Sapporo",
         "Nagoya",
-        "Sapporo"
+        "Kyoto"
       ],
       "theme": "Viaggi",
       "explanation": null
@@ -11504,9 +11458,9 @@
       "question": "Quale sito turco è famoso per le rocce a cono della Cappadocia?",
       "correctAnswer": "Göreme",
       "options": [
-        "Göreme",
-        "Pamukkale",
         "Efeso",
+        "Pamukkale",
+        "Göreme",
         "Troia"
       ],
       "theme": "Viaggi",
@@ -11553,9 +11507,9 @@
       "correctAnswer": "Il Bernina Express",
       "options": [
         "Il Glacier Express",
-        "L'Orient Express",
+        "Il Bernina Express",
         "Il Treno Rosso",
-        "Il Bernina Express"
+        "L'Orient Express"
       ],
       "theme": "Viaggi",
       "explanation": null
@@ -11570,8 +11524,8 @@
       "options": [
         "Le Ebridi",
         "Le Orcadi",
-        "Le Shetland",
-        "Le Lofoten"
+        "Le Lofoten",
+        "Le Shetland"
       ],
       "theme": "Viaggi",
       "explanation": null
@@ -11584,8 +11538,8 @@
       "question": "Quale strumento misura la temperatura?",
       "correctAnswer": "Il termometro",
       "options": [
-        "L'igrometro",
         "Il termometro",
+        "L'igrometro",
         "L'anemometro",
         "Il barometro"
       ],
@@ -11601,8 +11555,8 @@
       "correctAnswer": "La Luna",
       "options": [
         "Europa",
-        "Titano",
         "La Luna",
+        "Titano",
         "Marte"
       ],
       "theme": "Spazio",
@@ -11634,8 +11588,8 @@
       "options": [
         "Roscosmos",
         "JAXA",
-        "La NASA",
-        "L'ESA"
+        "L'ESA",
+        "La NASA"
       ],
       "theme": "Spazio",
       "explanation": null
@@ -11648,8 +11602,8 @@
       "question": "Qual è la stella più vicina alla Terra dopo il Sole?",
       "correctAnswer": "Proxima Centauri",
       "options": [
-        "Sirio",
         "Proxima Centauri",
+        "Sirio",
         "Alpha Centauri A",
         "Betelgeuse"
       ],
@@ -11665,9 +11619,9 @@
       "correctAnswer": "Nettuno",
       "options": [
         "Urano",
-        "Saturno",
+        "Nettuno",
         "Giove",
-        "Nettuno"
+        "Saturno"
       ],
       "theme": "Spazio",
       "explanation": null
@@ -11682,8 +11636,8 @@
       "options": [
         "La galassia del Sombrero",
         "Andromeda",
-        "Il Triangolo",
-        "La Via Lattea"
+        "La Via Lattea",
+        "Il Triangolo"
       ],
       "theme": "Spazio",
       "explanation": null
@@ -11696,8 +11650,8 @@
       "question": "Quale missione portò per la prima volta un rover su Marte nel 1997?",
       "correctAnswer": "Pathfinder",
       "options": [
-        "Spirit",
         "Pathfinder",
+        "Spirit",
         "Curiosity",
         "Opportunity"
       ],
@@ -11713,9 +11667,9 @@
       "correctAnswer": "James Webb",
       "options": [
         "Keplero",
-        "Hubble",
+        "James Webb",
         "Spitzer",
-        "James Webb"
+        "Hubble"
       ],
       "theme": "Spazio",
       "explanation": null
@@ -11730,8 +11684,8 @@
       "options": [
         "Circa 500 °C",
         "Circa 150 °C",
-        "Circa 55.000 °C",
-        "Circa 5.500 °C"
+        "Circa 5.500 °C",
+        "Circa 55.000 °C"
       ],
       "theme": "Spazio",
       "explanation": null
@@ -11745,8 +11699,8 @@
       "correctAnswer": "Il fiore",
       "options": [
         "La foglia",
-        "Il fiore",
         "Il fusto",
+        "Il fiore",
         "La radice"
       ],
       "theme": "Natura",
@@ -11761,9 +11715,9 @@
       "correctAnswer": "L'ossigeno",
       "options": [
         "Il metano",
-        "L'ossigeno",
+        "L'azoto",
         "L'anidride carbonica",
-        "L'azoto"
+        "L'ossigeno"
       ],
       "theme": "Natura",
       "explanation": null
@@ -11792,10 +11746,10 @@
       "question": "Quale fenomeno atmosferico è legato ai gas serra?",
       "correctAnswer": "L'effetto serra",
       "options": [
-        "L'effetto serra",
+        "L'aurora boreale",
         "Il vento solare",
         "La marea",
-        "L'aurora boreale"
+        "L'effetto serra"
       ],
       "theme": "Natura",
       "explanation": null
@@ -11809,8 +11763,8 @@
       "correctAnswer": "La fissazione dell'azoto",
       "options": [
         "La respirazione",
-        "La fotosintesi",
         "La fissazione dell'azoto",
+        "La fotosintesi",
         "La traspirazione"
       ],
       "theme": "Natura",
@@ -11825,8 +11779,8 @@
       "correctAnswer": "La tundra",
       "options": [
         "La steppa",
-        "La tundra",
         "La savana",
+        "La tundra",
         "La taiga"
       ],
       "theme": "Natura",
@@ -11856,9 +11810,9 @@
       "question": "Quale gruppo di organismi ricava energia decomponendo materia organica morta?",
       "correctAnswer": "I decompositori",
       "options": [
-        "I produttori",
-        "I consumatori secondari",
         "I decompositori",
+        "I consumatori secondari",
+        "I produttori",
         "I consumatori primari"
       ],
       "theme": "Natura",
@@ -11872,8 +11826,8 @@
       "question": "Quale accordo internazionale del 1997 riguarda la riduzione dei gas serra?",
       "correctAnswer": "Il protocollo di Kyoto",
       "options": [
-        "Il protocollo di Kyoto",
         "Il protocollo di Montreal",
+        "Il protocollo di Kyoto",
         "L'accordo di Parigi",
         "La convenzione di Ramsar"
       ],
@@ -11889,9 +11843,9 @@
       "correctAnswer": "Il mestolo",
       "options": [
         "Lo schiacciapatate",
-        "Il mestolo",
+        "Il mattarello",
         "Il tagliere",
-        "Il mattarello"
+        "Il mestolo"
       ],
       "theme": "Gastronomia",
       "explanation": null
@@ -11904,9 +11858,9 @@
       "question": "Quale piatto si prepara con uova sbattute e formaggio in padella?",
       "correctAnswer": "La frittata",
       "options": [
-        "Il risotto",
-        "La carbonara",
         "La frittata",
+        "La carbonara",
+        "Il risotto",
         "La polenta"
       ],
       "theme": "Gastronomia",
@@ -11921,8 +11875,8 @@
       "correctAnswer": "Il lievito",
       "options": [
         "L'aceto",
-        "Lo zucchero a velo",
         "Il lievito",
+        "Lo zucchero a velo",
         "Il sale"
       ],
       "theme": "Gastronomia",
@@ -11937,8 +11891,8 @@
       "correctAnswer": "Il coltello seghettato",
       "options": [
         "Lo spelucchino",
-        "Il coltello seghettato",
         "Il coltello da burro",
+        "Il coltello seghettato",
         "Il trinciante"
       ],
       "theme": "Gastronomia",
@@ -11952,10 +11906,10 @@
       "question": "Quale tecnica rosola la carne e poi la cuoce lentamente con liquidi?",
       "correctAnswer": "La brasatura",
       "options": [
-        "La marinatura",
+        "La brasatura",
         "La frittura",
         "La scottatura",
-        "La brasatura"
+        "La marinatura"
       ],
       "theme": "Gastronomia",
       "explanation": null
@@ -11984,9 +11938,9 @@
       "question": "Quale metodo conserva i cibi sottaceto?",
       "correctAnswer": "La conservazione in aceto",
       "options": [
-        "La conservazione in aceto",
-        "La liofilizzazione",
         "L'affumicatura",
+        "La liofilizzazione",
+        "La conservazione in aceto",
         "La surgelazione"
       ],
       "theme": "Gastronomia",
@@ -12001,9 +11955,9 @@
       "correctAnswer": "Il termometro da cucina",
       "options": [
         "La schiumarola",
-        "Il termometro da cucina",
+        "Il mestolo",
         "Il timer",
-        "Il mestolo"
+        "Il termometro da cucina"
       ],
       "theme": "Gastronomia",
       "explanation": null
@@ -12016,10 +11970,10 @@
       "question": "Quale tecnica cuoce gli alimenti sfruttando il vapore?",
       "correctAnswer": "La cottura a vapore",
       "options": [
-        "La gratinatura",
+        "La cottura a vapore",
         "La frittura",
         "La brasatura",
-        "La cottura a vapore"
+        "La gratinatura"
       ],
       "theme": "Gastronomia",
       "explanation": null
@@ -12034,8 +11988,8 @@
       "options": [
         "La fermentazione",
         "La caramellizzazione",
-        "La reazione di Maillard",
-        "La saponificazione"
+        "La saponificazione",
+        "La reazione di Maillard"
       ],
       "theme": "Gastronomia",
       "explanation": null
@@ -12048,10 +12002,10 @@
       "question": "Quale tecnica separa i grassi solidi per ottenere il burro chiarificato?",
       "correctAnswer": "La chiarificazione",
       "options": [
-        "La decantazione",
+        "La chiarificazione",
         "La riduzione",
         "L'emulsione",
-        "La chiarificazione"
+        "La decantazione"
       ],
       "theme": "Gastronomia",
       "explanation": null
@@ -12065,8 +12019,8 @@
       "correctAnswer": "I lattobacilli",
       "options": [
         "Gli acetobatteri",
-        "Gli stafilococchi",
         "I lattobacilli",
+        "Gli stafilococchi",
         "I lieviti"
       ],
       "theme": "Gastronomia",
@@ -12114,8 +12068,8 @@
       "options": [
         "Netflix",
         "Spotify",
-        "Steam",
-        "Zoom"
+        "Zoom",
+        "Steam"
       ],
       "theme": "Attualità",
       "explanation": null
@@ -12144,9 +12098,9 @@
       "question": "Che cosa misura l'inflazione?",
       "correctAnswer": "L'aumento dei prezzi",
       "options": [
-        "Il prodotto interno lordo",
-        "La disoccupazione",
         "L'aumento dei prezzi",
+        "La disoccupazione",
+        "Il prodotto interno lordo",
         "Il debito pubblico"
       ],
       "theme": "Attualità",
@@ -12162,8 +12116,8 @@
       "options": [
         "Il protocollo di Kyoto",
         "Il trattato di Maastricht",
-        "La convenzione dell'Aia",
-        "L'accordo di Parigi"
+        "L'accordo di Parigi",
+        "La convenzione dell'Aia"
       ],
       "theme": "Attualità",
       "explanation": null
@@ -12192,10 +12146,10 @@
       "question": "Quale materia prima ha visto forti rincari dopo il 2021?",
       "correctAnswer": "Il gas naturale",
       "options": [
-        "Il sale",
+        "Il gas naturale",
         "L'acqua potabile",
         "La carta",
-        "Il gas naturale"
+        "Il sale"
       ],
       "theme": "Attualità",
       "explanation": null
@@ -12241,8 +12195,8 @@
       "correctAnswer": "L'indice dei prezzi al consumo",
       "options": [
         "Lo spread",
-        "Il tasso di cambio",
         "L'indice dei prezzi al consumo",
+        "Il tasso di cambio",
         "Il PIL pro capite"
       ],
       "theme": "Attualità",
@@ -12256,9 +12210,9 @@
       "question": "Quale strumento di politica monetaria alza il costo del credito?",
       "correctAnswer": "L'aumento dei tassi di interesse",
       "options": [
-        "L'aumento dei tassi di interesse",
-        "L'aumento delle imposte",
         "La riduzione della spesa pubblica",
+        "L'aumento delle imposte",
+        "L'aumento dei tassi di interesse",
         "La svalutazione della moneta"
       ],
       "theme": "Attualità",
@@ -12272,10 +12226,10 @@
       "question": "Quale patto europeo disciplina la stabilità dei bilanci nazionali?",
       "correctAnswer": "Il patto di stabilità",
       "options": [
-        "Il patto di stabilità",
+        "Il trattato di Schengen",
         "Il regolamento Dublino",
         "La convenzione di Lomé",
-        "Il trattato di Schengen"
+        "Il patto di stabilità"
       ],
       "theme": "Attualità",
       "explanation": null
@@ -12305,8 +12259,8 @@
       "correctAnswer": "Horizon Europe",
       "options": [
         "LIFE",
-        "Erasmus+",
         "Horizon Europe",
+        "Erasmus+",
         "Europa Creativa"
       ],
       "theme": "Attualità",
@@ -12336,10 +12290,10 @@
       "question": "Quale serie animata racconta le vicende della famiglia Simpson?",
       "correctAnswer": "I Simpson",
       "options": [
-        "I Simpson",
+        "I Griffin",
         "South Park",
         "Beavis and Butt-Head",
-        "I Griffin"
+        "I Simpson"
       ],
       "theme": "Serie TV",
       "explanation": null
@@ -12353,9 +12307,9 @@
       "correctAnswer": "Stranger Things",
       "options": [
         "The OA",
-        "Stranger Things",
+        "Locke & Key",
         "Dark",
-        "Locke & Key"
+        "Stranger Things"
       ],
       "theme": "Serie TV",
       "explanation": null
@@ -12368,10 +12322,10 @@
       "question": "Quale serie britannica racconta le indagini di Holmes e Watson nella Londra moderna?",
       "correctAnswer": "Sherlock",
       "options": [
-        "Broadchurch",
+        "Sherlock",
         "Elementary",
         "Luther",
-        "Sherlock"
+        "Broadchurch"
       ],
       "theme": "Serie TV",
       "explanation": null
@@ -12385,8 +12339,8 @@
       "correctAnswer": "The Crown",
       "options": [
         "The Tudors",
-        "Downton Abbey",
         "The Crown",
+        "Downton Abbey",
         "Victoria"
       ],
       "theme": "Serie TV",
@@ -12400,8 +12354,8 @@
       "question": "Quale serie è ambientata in una grande tenuta inglese all'inizio del Novecento?",
       "correctAnswer": "Downton Abbey",
       "options": [
-        "Belgravia",
         "Downton Abbey",
+        "Belgravia",
         "Poldark",
         "The Crown"
       ],
@@ -12432,9 +12386,9 @@
       "question": "Quale serie antologica racconta storie distopiche autonome?",
       "correctAnswer": "Black Mirror",
       "options": [
-        "Black Mirror",
-        "The Twilight Zone",
         "American Horror Story",
+        "The Twilight Zone",
+        "Black Mirror",
         "Fargo"
       ],
       "theme": "Serie TV",
@@ -12449,9 +12403,9 @@
       "correctAnswer": "Il teatro",
       "options": [
         "La pittura",
-        "Il teatro",
+        "La scultura",
         "La fotografia",
-        "La scultura"
+        "Il teatro"
       ],
       "theme": "Spettacolo",
       "explanation": null
@@ -12464,10 +12418,10 @@
       "question": "Come si chiama lo spettacolo con musica e canto in un teatro?",
       "correctAnswer": "L'opera lirica",
       "options": [
-        "Il concerto rock",
+        "L'opera lirica",
         "La maratona",
         "Il reading",
-        "L'opera lirica"
+        "Il concerto rock"
       ],
       "theme": "Spettacolo",
       "explanation": null
@@ -12512,8 +12466,8 @@
       "question": "Chi ha scritto la commedia Sei personaggi in cerca d'autore?",
       "correctAnswer": "Luigi Pirandello",
       "options": [
-        "Eduardo De Filippo",
         "Luigi Pirandello",
+        "Eduardo De Filippo",
         "Dario Fo",
         "Carlo Goldoni"
       ],
@@ -12529,8 +12483,8 @@
       "correctAnswer": "Eduardo De Filippo",
       "options": [
         "Luigi Pirandello",
-        "Carlo Goldoni",
         "Eduardo De Filippo",
+        "Carlo Goldoni",
         "Dario Fo"
       ],
       "theme": "Spettacolo",
@@ -12544,9 +12498,9 @@
       "question": "Quale regista ha fondato il Piccolo Teatro di Milano?",
       "correctAnswer": "Giorgio Strehler",
       "options": [
-        "Giorgio Strehler",
-        "Luca Ronconi",
         "Eduardo De Filippo",
+        "Luca Ronconi",
+        "Giorgio Strehler",
         "Carmelo Bene"
       ],
       "theme": "Spettacolo",
@@ -12560,9 +12514,9 @@
       "question": "Quale anime del 1995 è stato diretto da Hideaki Anno?",
       "correctAnswer": "Neon Genesis Evangelion",
       "options": [
-        "Neon Genesis Evangelion",
-        "Cowboy Bebop",
         "Akira",
+        "Cowboy Bebop",
+        "Neon Genesis Evangelion",
         "Ghost in the Shell"
       ],
       "theme": "Anime",
@@ -12624,8 +12578,8 @@
       "question": "Quale manga ha come protagonista Son Goku?",
       "correctAnswer": "Dragon Ball",
       "options": [
-        "Dragon Ball",
         "Yu-Gi-Oh!",
+        "Dragon Ball",
         "Bleach",
         "Naruto"
       ],
@@ -12641,8 +12595,8 @@
       "correctAnswer": "Weekly Shonen Jump",
       "options": [
         "Nakayoshi",
-        "Weekly Shonen Jump",
         "Weekly Young Jump",
+        "Weekly Shonen Jump",
         "Ribon"
       ],
       "theme": "Manga",
@@ -12657,9 +12611,9 @@
       "correctAnswer": "Tite Kubo",
       "options": [
         "Masashi Kishimoto",
-        "Tite Kubo",
+        "Yoshihiro Togashi",
         "Eiichiro Oda",
-        "Yoshihiro Togashi"
+        "Tite Kubo"
       ],
       "theme": "Manga",
       "explanation": null
@@ -12672,9 +12626,9 @@
       "question": "Quale manga racconta le vicende di un ragazzo che diventa uno shinigami?",
       "correctAnswer": "Bleach",
       "options": [
-        "Naruto",
-        "Fairy Tail",
         "Bleach",
+        "Fairy Tail",
+        "Naruto",
         "One Piece"
       ],
       "theme": "Manga",
@@ -12688,8 +12642,8 @@
       "question": "Quale rivista pubblica manga per ragazze ed è nota come shōjo?",
       "correctAnswer": "Ribon",
       "options": [
-        "Ribon",
         "Afternoon",
+        "Ribon",
         "Weekly Shonen Jump",
         "Big Comic"
       ],
@@ -12720,9 +12674,9 @@
       "question": "Quale autore ha creato il manga 20th Century Boys?",
       "correctAnswer": "Naoki Urasawa",
       "options": [
-        "Tsugumi Ohba",
-        "Takehiko Inoue",
         "Naoki Urasawa",
+        "Takehiko Inoue",
+        "Tsugumi Ohba",
         "Hajime Isayama"
       ],
       "theme": "Manga",
@@ -12737,8 +12691,8 @@
       "correctAnswer": "The Legend of Zelda",
       "options": [
         "Star Fox",
-        "The Legend of Zelda",
         "Metroid",
+        "The Legend of Zelda",
         "Kirby"
       ],
       "theme": "Gaming",
@@ -12769,8 +12723,8 @@
       "correctAnswer": "FromSoftware",
       "options": [
         "CD Projekt",
-        "FromSoftware",
         "BioWare",
+        "FromSoftware",
         "Bethesda"
       ],
       "theme": "Gaming",
@@ -12784,9 +12738,9 @@
       "question": "Quale dispositivo stampa documenti su carta?",
       "correctAnswer": "La stampante",
       "options": [
-        "Il monitor",
-        "Il router",
         "La stampante",
+        "Il router",
+        "Il monitor",
         "La tastiera"
       ],
       "theme": "Tecnologia",
@@ -12818,8 +12772,8 @@
       "options": [
         "Il registro",
         "La cache",
-        "La RAM",
-        "La memoria di massa"
+        "La memoria di massa",
+        "La RAM"
       ],
       "theme": "Tecnologia",
       "explanation": null
@@ -12832,10 +12786,10 @@
       "question": "Quale formato di immagine supporta la trasparenza?",
       "correctAnswer": "PNG",
       "options": [
-        "PNG",
+        "TXT",
         "BMP",
         "JPG",
-        "TXT"
+        "PNG"
       ],
       "theme": "Tecnologia",
       "explanation": null
@@ -12848,10 +12802,10 @@
       "question": "Quale rete sociale è usata per i contenuti professionali?",
       "correctAnswer": "LinkedIn",
       "options": [
-        "Snapchat",
+        "LinkedIn",
         "TikTok",
         "Discord",
-        "LinkedIn"
+        "Snapchat"
       ],
       "theme": "Tecnologia",
       "explanation": null
@@ -12864,10 +12818,10 @@
       "question": "Quale algoritmo di crittografia asimmetrica usa una coppia di chiavi?",
       "correctAnswer": "RSA",
       "options": [
-        "RSA",
+        "MD5",
         "AES",
         "DES",
-        "MD5"
+        "RSA"
       ],
       "theme": "Tecnologia",
       "explanation": null
@@ -14444,14 +14398,14 @@
       "id": "ah-easy-01",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "EASY",
+      "difficulty": "facile",
       "question": "Qual è la capitale d'Italia?",
       "correctAnswer": "Roma",
       "options": [
-        "Roma",
+        "Torino",
         "Milano",
         "Napoli",
-        "Torino"
+        "Roma"
       ],
       "explanation": null
     },
@@ -14459,7 +14413,7 @@
       "id": "ah-easy-02",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "EASY",
+      "difficulty": "facile",
       "question": "Quanti giorni ha una settimana?",
       "correctAnswer": "7",
       "options": [
@@ -14474,12 +14428,12 @@
       "id": "ah-easy-03",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "EASY",
+      "difficulty": "facile",
       "question": "Di che colore è il cielo in una giornata serena?",
       "correctAnswer": "Azzurro",
       "options": [
-        "Azzurro",
         "Verde",
+        "Azzurro",
         "Rosso",
         "Nero"
       ],
@@ -14489,29 +14443,14 @@
       "id": "ah-easy-04",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "EASY",
+      "difficulty": "facile",
       "question": "Quanto fa 2 + 2?",
       "correctAnswer": "4",
       "options": [
-        "4",
-        "5",
         "3",
-        "6"
-      ],
-      "explanation": null
-    },
-    {
-      "id": "ah-easy-05",
-      "category": "Curiosità",
-      "type": "TENNIS_BATTLE",
-      "difficulty": "EASY",
-      "question": "Quante zampe ha un ragno?",
-      "correctAnswer": "8",
-      "options": [
-        "8",
-        "6",
+        "5",
         "4",
-        "10"
+        "6"
       ],
       "explanation": null
     },
@@ -14519,14 +14458,14 @@
       "id": "ah-easy-06",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "EASY",
+      "difficulty": "facile",
       "question": "Su quale pianeta viviamo?",
       "correctAnswer": "Terra",
       "options": [
-        "Terra",
+        "Venere",
         "Marte",
         "Luna",
-        "Venere"
+        "Terra"
       ],
       "explanation": null
     },
@@ -14534,7 +14473,7 @@
       "id": "ah-easy-07",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "EASY",
+      "difficulty": "facile",
       "question": "Qual è il giorno dopo lunedì?",
       "correctAnswer": "Martedì",
       "options": [
@@ -14549,12 +14488,12 @@
       "id": "ah-easy-08",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "EASY",
+      "difficulty": "facile",
       "question": "Quanti mesi ha un anno?",
       "correctAnswer": "12",
       "options": [
-        "12",
         "10",
+        "12",
         "11",
         "13"
       ],
@@ -14564,13 +14503,13 @@
       "id": "ah-easy-09",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "EASY",
+      "difficulty": "facile",
       "question": "Qual è il colore del latte?",
       "correctAnswer": "Bianco",
       "options": [
-        "Bianco",
-        "Nero",
         "Rosso",
+        "Nero",
+        "Bianco",
         "Blu"
       ],
       "explanation": null
@@ -14579,44 +14518,14 @@
       "id": "ah-easy-10",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "EASY",
+      "difficulty": "facile",
       "question": "In quale stagione di solito nevica?",
       "correctAnswer": "Inverno",
       "options": [
-        "Inverno",
+        "Autunno",
         "Estate",
         "Primavera",
-        "Autunno"
-      ],
-      "explanation": null
-    },
-    {
-      "id": "ah-medium-11",
-      "category": "Curiosità",
-      "type": "TENNIS_BATTLE",
-      "difficulty": "MEDIUM",
-      "question": "Qual è la capitale della Francia?",
-      "correctAnswer": "Parigi",
-      "options": [
-        "Parigi",
-        "Lione",
-        "Marsiglia",
-        "Nizza"
-      ],
-      "explanation": null
-    },
-    {
-      "id": "ah-medium-12",
-      "category": "Curiosità",
-      "type": "TENNIS_BATTLE",
-      "difficulty": "MEDIUM",
-      "question": "Chi ha dipinto la Gioconda?",
-      "correctAnswer": "Leonardo da Vinci",
-      "options": [
-        "Leonardo da Vinci",
-        "Michelangelo",
-        "Raffaello",
-        "Caravaggio"
+        "Inverno"
       ],
       "explanation": null
     },
@@ -14624,29 +14533,14 @@
       "id": "ah-medium-13",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "MEDIUM",
+      "difficulty": "medio",
       "question": "Quante corde ha un violino?",
       "correctAnswer": "4",
       "options": [
-        "4",
         "5",
+        "4",
         "6",
         "3"
-      ],
-      "explanation": null
-    },
-    {
-      "id": "ah-medium-14",
-      "category": "Curiosità",
-      "type": "TENNIS_BATTLE",
-      "difficulty": "MEDIUM",
-      "question": "Qual è il fiume più lungo d'Italia?",
-      "correctAnswer": "Po",
-      "options": [
-        "Po",
-        "Tevere",
-        "Adige",
-        "Arno"
       ],
       "explanation": null
     },
@@ -14654,29 +14548,14 @@
       "id": "ah-medium-15",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "MEDIUM",
+      "difficulty": "medio",
       "question": "Quale pianeta è il più vicino al Sole?",
       "correctAnswer": "Mercurio",
       "options": [
-        "Mercurio",
-        "Venere",
         "Marte",
+        "Venere",
+        "Mercurio",
         "Terra"
-      ],
-      "explanation": null
-    },
-    {
-      "id": "ah-medium-16",
-      "category": "Curiosità",
-      "type": "TENNIS_BATTLE",
-      "difficulty": "MEDIUM",
-      "question": "Chi ha scritto la Divina Commedia?",
-      "correctAnswer": "Dante Alighieri",
-      "options": [
-        "Dante Alighieri",
-        "Petrarca",
-        "Boccaccio",
-        "Manzoni"
       ],
       "explanation": null
     },
@@ -14684,14 +14563,14 @@
       "id": "ah-medium-17",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "MEDIUM",
+      "difficulty": "medio",
       "question": "Quale elemento chimico ha simbolo Au?",
       "correctAnswer": "Oro",
       "options": [
-        "Oro",
+        "Alluminio",
         "Argento",
         "Rame",
-        "Alluminio"
+        "Oro"
       ],
       "explanation": null
     },
@@ -14699,7 +14578,7 @@
       "id": "ah-medium-18",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "MEDIUM",
+      "difficulty": "medio",
       "question": "Qual è la moneta del Giappone?",
       "correctAnswer": "Yen",
       "options": [
@@ -14714,44 +14593,14 @@
       "id": "ah-medium-19",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "MEDIUM",
+      "difficulty": "medio",
       "question": "Quante sono le regioni italiane?",
       "correctAnswer": "20",
       "options": [
-        "20",
         "19",
+        "20",
         "21",
         "18"
-      ],
-      "explanation": null
-    },
-    {
-      "id": "ah-medium-20",
-      "category": "Curiosità",
-      "type": "TENNIS_BATTLE",
-      "difficulty": "MEDIUM",
-      "question": "In che anno è caduto il Muro di Berlino?",
-      "correctAnswer": "1989",
-      "options": [
-        "1989",
-        "1991",
-        "1987",
-        "1985"
-      ],
-      "explanation": null
-    },
-    {
-      "id": "ah-hard-21",
-      "category": "Curiosità",
-      "type": "TENNIS_BATTLE",
-      "difficulty": "HARD",
-      "question": "Qual è la capitale dell'Australia?",
-      "correctAnswer": "Canberra",
-      "options": [
-        "Canberra",
-        "Sydney",
-        "Melbourne",
-        "Perth"
       ],
       "explanation": null
     },
@@ -14759,14 +14608,14 @@
       "id": "ah-hard-22",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "HARD",
+      "difficulty": "difficile",
       "question": "Chi ha composto la Nona Sinfonia?",
       "correctAnswer": "Beethoven",
       "options": [
-        "Beethoven",
+        "Chopin",
         "Mozart",
         "Bach",
-        "Chopin"
+        "Beethoven"
       ],
       "explanation": null
     },
@@ -14774,7 +14623,7 @@
       "id": "ah-hard-23",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "HARD",
+      "difficulty": "difficile",
       "question": "Qual è il mare più salato?",
       "correctAnswer": "Mar Morto",
       "options": [
@@ -14789,29 +14638,14 @@
       "id": "ah-hard-24",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "HARD",
+      "difficulty": "difficile",
       "question": "Quanti giocatori ha una squadra di rugby in campo?",
       "correctAnswer": "15",
       "options": [
-        "15",
         "11",
+        "15",
         "13",
         "7"
-      ],
-      "explanation": null
-    },
-    {
-      "id": "ah-hard-25",
-      "category": "Curiosità",
-      "type": "TENNIS_BATTLE",
-      "difficulty": "HARD",
-      "question": "Chi ha scritto 1984?",
-      "correctAnswer": "George Orwell",
-      "options": [
-        "George Orwell",
-        "Aldous Huxley",
-        "Ray Bradbury",
-        "Franz Kafka"
       ],
       "explanation": null
     },
@@ -14819,13 +14653,13 @@
       "id": "ah-hard-26",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "HARD",
+      "difficulty": "difficile",
       "question": "Qual è la capitale del Canada?",
       "correctAnswer": "Ottawa",
       "options": [
-        "Ottawa",
-        "Toronto",
         "Montreal",
+        "Toronto",
+        "Ottawa",
         "Vancouver"
       ],
       "explanation": null
@@ -14834,14 +14668,14 @@
       "id": "ah-hard-27",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "HARD",
+      "difficulty": "difficile",
       "question": "Quante ossa ha il corpo umano adulto?",
       "correctAnswer": "206",
       "options": [
-        "206",
+        "246",
         "186",
         "226",
-        "246"
+        "206"
       ],
       "explanation": null
     },
@@ -14849,7 +14683,7 @@
       "id": "ah-hard-28",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "HARD",
+      "difficulty": "difficile",
       "question": "Qual è l'unità di misura della forza?",
       "correctAnswer": "Newton",
       "options": [
@@ -14864,12 +14698,12 @@
       "id": "ah-hard-29",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "HARD",
+      "difficulty": "difficile",
       "question": "Qual è l'elemento chimico con simbolo W?",
       "correctAnswer": "Tungsteno",
       "options": [
-        "Tungsteno",
         "Titanio",
+        "Tungsteno",
         "Tallio",
         "Tennesso"
       ],
@@ -14879,13 +14713,13 @@
       "id": "ah-hard-30",
       "category": "Curiosità",
       "type": "TENNIS_BATTLE",
-      "difficulty": "HARD",
+      "difficulty": "difficile",
       "question": "Qual è il deserto più grande del mondo?",
       "correctAnswer": "Antartico",
       "options": [
-        "Antartico",
-        "Sahara",
         "Gobi",
+        "Sahara",
+        "Antartico",
         "Kalahari"
       ],
       "explanation": null
@@ -14950,5 +14784,6 @@
       "options": null,
       "explanation": null
     }
-  ]
+  ],
+  "normalizedAt": "2026-11-20T20:01:05.277Z"
 }

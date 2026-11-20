@@ -8,52 +8,42 @@ elenca ciò che va corretto a mano e i buchi di copertura.
 | Tipo | Domande |
 | --- | --- |
 | IMAGE_BLUR | 6 |
-| QUIZ | 533 |
-| TENNIS_BATTLE | 30 |
-| TRUE_FALSE | 422 |
+| QUIZ | 531 |
+| TENNIS_BATTLE | 22 |
+| TRUE_FALSE | 421 |
 
 | Difficoltà | Domande |
 | --- | --- |
-| difficile | 332 |
-| facile | 329 |
-| medio | 330 |
+| difficile | 330 |
+| facile | 327 |
+| medio | 323 |
 
 ### Posizione della risposta corretta
 
 | Categoria | A | B | C | D |
 | --- | --- | --- | --- | --- |
-| Storia | 6 | 6 | 8 | 5 |
-| Geografia e Viaggi | 13 | 6 | 7 | 14 |
-| Scienza e Spazio | 9 | 7 | 10 | 10 |
-| Natura e Animali | 4 | 14 | 8 | 7 |
-| Sport | 4 | 6 | 7 | 10 |
-| Cinema, Serie TV | 11 | 17 | 8 | 5 |
-| TV e Spettacolo | 11 | 5 | 10 | 8 |
-| Musica | 6 | 8 | 6 | 5 |
-| Arte e Architettura | 2 | 12 | 12 | 10 |
-| Politica e Attualità | 8 | 12 | 8 | 11 |
-| Motori | 8 | 6 | 5 | 6 |
-| Cibo e Gastronomia | 6 | 8 | 13 | 11 |
-| Lingua e Letteratura | 9 | 9 | 10 | 9 |
-| Anime e manga | 10 | 7 | 9 | 9 |
-| Gaming e Tecnologia | 9 | 12 | 11 | 4 |
-| Curiosità | 36 | 9 | 2 | 9 |
+| Storia | 6 | 6 | 7 | 6 |
+| Geografia e Viaggi | 9 | 10 | 10 | 10 |
+| Scienza e Spazio | 9 | 9 | 9 | 9 |
+| Natura e Animali | 8 | 8 | 8 | 9 |
+| Sport | 7 | 7 | 6 | 7 |
+| Cinema, Serie TV | 10 | 11 | 10 | 10 |
+| TV e Spettacolo | 9 | 8 | 8 | 9 |
+| Musica | 6 | 6 | 7 | 6 |
+| Arte e Architettura | 9 | 9 | 9 | 9 |
+| Politica e Attualità | 10 | 10 | 10 | 9 |
+| Motori | 6 | 7 | 6 | 6 |
+| Cibo e Gastronomia | 10 | 9 | 9 | 10 |
+| Lingua e Letteratura | 10 | 9 | 9 | 9 |
+| Anime e manga | 9 | 9 | 9 | 8 |
+| Gaming e Tecnologia | 9 | 8 | 9 | 9 |
+| Curiosità | 12 | 12 | 12 | 12 |
 
-### Doppioni (9)
+### Doppioni (0)
 
-| Tipo | Domanda | Prima occorrenza |
-| --- | --- | --- |
-| testo | `quiz-gaming-17` Quale console Nintendo è uscita nel 2017? | quiz-gaming-02 |
-| testo+risposta | `tf-curiosita-02` Il polpo ha tre cuori. | tf-natura-16 |
-| testo | `quiz-geografia-viaggi-04` In quale città si trova il Colosseo? | quiz-arte-12 |
-| testo+risposta | `ah-medium-11` Qual è la capitale della Francia? | quiz-geografia-02 |
-| testo+risposta | `ah-medium-12` Chi ha dipinto la Gioconda? | quiz-arte-01 |
-| testo+risposta | `ah-medium-16` Chi ha scritto la Divina Commedia? | quiz-lingua-06 |
-| testo+risposta | `ah-medium-20` In che anno è caduto il Muro di Berlino? | quiz-storia-11 |
-| testo+risposta | `ah-hard-21` Qual è la capitale dell'Australia? | quiz-geografia-01 |
-| testo+risposta | `ah-hard-25` Chi ha scritto 1984? | quiz-lingua-08 |
+Nessuno.
 
-### Segnalazioni (51)
+### Segnalazioni (49)
 
 | Controllo | Domanda | Dettaglio |
 | --- | --- | --- |
@@ -92,7 +82,6 @@ elenca ciò che va corretto a mano e i buchi di copertura.
 | indizio di forma: risposta più lunga | `quiz-anime-15` | Come si chiama il protagonista di One Piece? |
 | indizio di forma: risposta più lunga | `quiz-anime-24` | Quale anime ha come protagonisti Edward e Alphonse Elric? |
 | indizio di forma: risposta più lunga | `quiz-gaming-13` | Quale azienda ha sviluppato Windows? |
-| indizio di forma: risposta più lunga | `quiz-gaming-17` | Quale console Nintendo è uscita nel 2017? |
 | distrattore troppo corto | `quiz-gaming-18` | C# |
 | indizio di forma: risposta più lunga | `quiz-curiosita-01` | Qual è l'animale più veloce in volo? |
 | indizio di forma: risposta più lunga | `quiz-scienza-spazio-04` | Qual è la stella più vicina alla Terra dopo il Sole? |
@@ -105,7 +94,6 @@ elenca ciò che va corretto a mano e i buchi di copertura.
 | indizio di forma: risposta più lunga | `quiz-anime-manga-04` | Su quale rivista giapponese viene pubblicato One Piece? |
 | indizio di forma: risposta più lunga | `quiz-gaming-gaming-01` | Quale gioco è ambientato nel regno di Hyrule? |
 | indizio di forma: risposta più lunga | `quiz-gaming-tecnologia-03` | Quale memoria conserva i dati anche senza alimentazione? |
-| indizio di forma: risposta più lunga | `ah-medium-16` | Chi ha scritto la Divina Commedia? |
 | indizio di forma: risposta più lunga | `ah-hard-22` | Chi ha composto la Nona Sinfonia? |
 | indizio di forma: risposta più lunga | `ah-hard-30` | Qual è il deserto più grande del mondo? |
 
@@ -297,7 +285,7 @@ Eventi: **113** (servono almeno 24 per tre round da 8).
 | Cinema, Serie TV | 6 | 6 | 7 | 7 | 14 |
 | Curiosità | 4 | 4 | 4 | 4 | 9 |
 | Gaming e Tecnologia | 5 | 5 | 5 | 5 | 14 |
-| Geografia e Viaggi | 6 | 6 | 7 | 7 | 14 |
+| Geografia e Viaggi | 5 | 5 | 7 | 7 | 14 |
 | Lingua e Letteratura | 5 | 5 | 7 | 7 | 13 |
 | Motori | 4 | 4 | 4 | 4 | 9 |
 | Musica | 4 | 4 | 4 | 4 | 9 |
@@ -337,8 +325,8 @@ Buchi: **69**.
 | Gaming e Tecnologia | 2 | facile | 5 |
 | Gaming e Tecnologia | 3 | medio | 5 |
 | Gaming e Tecnologia | 4 | medio | 5 |
-| Geografia e Viaggi | 1 | facile | 6 |
-| Geografia e Viaggi | 2 | facile | 6 |
+| Geografia e Viaggi | 1 | facile | 5 |
+| Geografia e Viaggi | 2 | facile | 5 |
 | Geografia e Viaggi | 3 | medio | 7 |
 | Geografia e Viaggi | 4 | medio | 7 |
 | Lingua e Letteratura | 1 | facile | 5 |
