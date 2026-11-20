@@ -461,7 +461,7 @@
       <p class="party-instruction">{{ casinoState()?.rule }}</p>
       <div class="casino-grid">
         @for (option of casinoState()?.options ?? []; track option) {
-        <button class="casino-cell" [class.picked]="casinoChoice() === option" [disabled]="casinoChoice() !== null" (click)="casinoAct(option)">{{ option }}</button>
+        <button class="casino-cell" [class.picked]="casinoChoice() === option" [disabled]="casinoChoice() !== null || !inputReady()" (click)="casinoAct(option)">{{ option }}</button>
         }
       </div>
       } @else if (casinoState()?.phase === 'SPIN') {
@@ -502,7 +502,7 @@
       <div class="cavallo-categories">
         @for (marble of biglieState()?.marbles ?? []; track marble.id) {
         @if (!marble.owner) {
-        <button class="biglie-card" [class.picked]="biglieChoice() === marble.id" [disabled]="biglieChoice() !== null" (click)="bigliePick(marble.id)">
+        <button class="biglie-card" [class.picked]="biglieChoice() === marble.id" [disabled]="biglieChoice() !== null || !inputReady()" (click)="bigliePick(marble.id)">
           <span class="biglie-dot" [style.background]="marble.color">{{ marble.emoji }}</span>
           <b>{{ marble.name }}</b>
           <span class="biglie-prof">V{{ marble.speed }} · A{{ marble.accel }} · T{{ marble.grip }}</span>
@@ -586,14 +586,14 @@
       <p class="party-instruction">Scegli la categoria della sfida</p>
       <div class="cavallo-categories">
         @for (category of cavalloState()?.categories ?? []; track category) {
-        <button class="cavallo-category" [class.picked]="cavalloCategory() === category" [disabled]="cavalloCategory() !== null" (click)="cavalloPickCategory(category)">{{ category }}</button>
+        <button class="cavallo-category" [class.picked]="cavalloCategory() === category" [disabled]="cavalloCategory() !== null || !inputReady()" (click)="cavalloPickCategory(category)">{{ category }}</button>
         }
       </div>
       } @else if (cavalloState()?.phase === 'QUESTION') {
       <p class="cavallo-question">{{ cavalloState()?.question?.text }}</p>
       <div class="cavallo-options">
         @for (option of cavalloState()?.question?.options ?? []; track $index; let i = $index) {
-        <button class="cavallo-option" [disabled]="cavalloChoice() !== null" (click)="cavalloAnswer(i)">
+        <button class="cavallo-option" [disabled]="cavalloChoice() !== null || !inputReady()" (click)="cavalloAnswer(i)">
           <span class="cavallo-letter">{{ letter(i) }}</span><span>{{ option }}</span>
         </button>
         }
@@ -638,9 +638,9 @@
         <b class="casino-hand-total" [class.bust]="(blackjackState()?.handTotal ?? 0) > 21">{{ blackjackState()?.handTotal ?? 0 }}</b>
       </div>
       <div class="casino-bj-actions">
-        <button class="casino-hit" [disabled]="blackjackStand() || (blackjackState()?.handTotal ?? 0) >= 21"
+        <button class="casino-hit" [disabled]="blackjackStand() || (blackjackState()?.handTotal ?? 0) >= 21 || !inputReady()"
           (click)="blackjackAct('HIT')">CARTA</button>
-        <button class="casino-stand" [disabled]="blackjackStand()" (click)="blackjackAct('STAND')">STAI</button>
+        <button class="casino-stand" [disabled]="blackjackStand() || !inputReady()" (click)="blackjackAct('STAND')">STAI</button>
       </div>
       } @else {
       <div class="status-msg">

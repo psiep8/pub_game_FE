@@ -274,6 +274,8 @@ export class BlackjackBonus implements OnInit, OnDestroy {
 
   private onStatus(status: any): void {
     if (status?.action !== 'BLACKJACK_ACTION') return;
+    // Pausa della TV: la mossa arrivata dal telefono nel frattempo non conta.
+    if (this.pause.isSuspended) return;
     const state = this.display();
     if (!state || state.phase !== 'DECIDE') return;
 

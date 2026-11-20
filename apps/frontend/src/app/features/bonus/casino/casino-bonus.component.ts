@@ -854,6 +854,8 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
   private onStatus(status: any): void {
     if (status?.action !== 'CASINO_ACTION') return;
+    // Pausa della TV: una puntata arrivata dal telefono nel frattempo non conta.
+    if (this.pause.isSuspended) return;
     if (this.phase() !== Phase.PICK) return;
 
     const playerName = String(status.playerName ?? '').trim();

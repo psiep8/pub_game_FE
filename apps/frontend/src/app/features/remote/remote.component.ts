@@ -1479,6 +1479,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   bigliePick(marbleId: string): void {
+    if (!this.inputReady()) return;
     const player = this.nickname();
     const state = this.biglieState();
     if (!player || !state || this.biglieChoice() !== null) return;
@@ -1764,6 +1765,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
 
   casinoAct(choice: string): void {
+    if (!this.inputReady()) return;
     const state = this.casinoState();
     const player = this.nickname();
     if (!state || !player || this.casinoChoice() !== null) return;
@@ -1788,6 +1790,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
    * è chiusa: la TV ignora comunque qualsiasi altra azione.
    */
   blackjackAct(kind: 'HIT' | 'STAND'): void {
+    if (!this.inputReady()) return;
     const state = this.blackjackState();
     const player = this.nickname();
     if (!state || !player) return;
@@ -1831,6 +1834,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   cavalloPickCategory(category: string): void {
+    if (!this.inputReady()) return;
     const state = this.cavalloState();
     const player = this.nickname();
     if (!state || state.phase !== 'CATEGORY' || !player || this.cavalloCategory() !== null) return;
@@ -1852,6 +1856,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   cavalloAnswer(index: number): void {
+    if (!this.inputReady()) return;
     const state = this.cavalloState();
     const player = this.nickname();
     if (!state || state.phase !== 'QUESTION' || !player || this.cavalloChoice() !== null) return;

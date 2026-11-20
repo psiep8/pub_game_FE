@@ -92,6 +92,31 @@ describe('CasinoBonus — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
+  it('la pausa respinge la puntata arrivata dal telefono', () => {
+    vi.useFakeTimers();
+    const { component, fixture } = mount(null);
+    vi.advanceTimersByTime(2600);
+    expect(component.phase()).toBe(component.Phase.PICK);
+    const ws = TestBed.inject(WebSocketService) as unknown as FakeWebSocketService;
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    ws.status$.next({ action: 'CASINO_ACTION', playerName: 'Anna', manche: 1, choice: 'ROSSO' });
+    fixture.detectChanges();
+    // A sala ferma la puntata non entra nel tabellone.
+    expect(component.votesView()).toEqual([]);
+
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    ws.status$.next({ action: 'CASINO_ACTION', playerName: 'Anna', manche: 1, choice: 'ROSSO' });
+    fixture.detectChanges();
+    // Alla ripresa la stessa puntata vale come sempre.
+    expect(component.votesView()).toEqual([{ playerName: 'Anna', choice: 'ROSSO' }]);
+
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
   it('la pausa durante la finale non chiude il bonus a schermo fermo', () => {
     vi.useFakeTimers();
     const { component, finished, fixture } = mount(null);

@@ -254,6 +254,41 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
+  it('la pausa respinge la scelta della categoria arrivata dal telefono', () => {
+    const ws = TestBed.inject(WebSocketService) as unknown as FakeWebSocketService;
+    const { component, fixture } = mount({
+      phase: 'CATEGORY',
+      secondsLeft: 15,
+      savedAt: Date.now(),
+      chosenCategory: '',
+      questions: [],
+      index: 0,
+      total: 8,
+      scores: [{ playerName: 'Anna', score: 0 }, { playerName: 'Bruno', score: 0 }],
+      votes: [],
+      answers: [],
+    });
+    expect(component.phase()).toBe(component.Phase.CATEGORY);
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    ws.status$.next({ action: 'CAVALLO_ACTION', playerName: 'Anna', kind: 'CATEGORY', value: 'MUSICA' });
+    fixture.detectChanges();
+
+    // A sala ferma la scelta non entra nelle votazioni della categoria.
+    expect(component.categoryVoteCounts()['MUSICA'] ?? 0).toBe(0);
+
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    ws.status$.next({ action: 'CAVALLO_ACTION', playerName: 'Anna', kind: 'CATEGORY', value: 'MUSICA' });
+    fixture.detectChanges();
+
+    // Alla ripresa la stessa scelta vale come sempre.
+    expect(component.categoryVoteCounts()['MUSICA']).toBe(1);
+
+    fixture.destroy();
+  });
+
   it('salva il checkpoint quando parte la votazione', () => {
     vi.useFakeTimers();
     const { checkpoints, fixture } = mount();

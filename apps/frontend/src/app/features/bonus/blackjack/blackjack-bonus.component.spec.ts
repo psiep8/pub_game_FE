@@ -265,6 +265,48 @@ describe('BlackjackBonus — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
+  it('la pausa respinge la mossa arrivata dal telefono', () => {
+    const ws = TestBed.inject(WebSocketService) as unknown as FakeWebSocketService;
+    const { component, fixture } = mount({
+      order: ['Bruno', 'Anna'],
+      index: 0,
+      deck: ['2♠', '3♠'],
+      hand: ['J♥', '8♥'],
+      bank: ['10♠', '9♠'],
+      rows: [
+        { playerName: 'Bruno', status: 'ACTIVE', points: 0 },
+        { playerName: 'Anna', status: 'WAITING', points: 0 },
+      ],
+      handPoints: 0,
+      phase: 'DECIDE',
+      choice: null,
+      result: null,
+      secondsLeft: 12,
+      savedAt: Date.now(),
+    });
+    expect(component.display()?.currentTable).toBe('Bruno');
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    ws.status$.next({ action: 'BLACKJACK_ACTION', playerName: 'Bruno', kind: 'STAND' });
+    fixture.detectChanges();
+
+    // A tavolo fermo la mossa non chiude la mano.
+    expect(component.display()?.phase).toBe('DECIDE');
+    expect(component.display()?.bank.hidden).toBe(true);
+
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    ws.status$.next({ action: 'BLACKJACK_ACTION', playerName: 'Bruno', kind: 'STAND' });
+    fixture.detectChanges();
+
+    // Alla ripresa la stessa mossa vale come sempre.
+    expect(component.display()?.phase).toBe('REVEAL');
+    expect(component.display()?.bank.hidden).toBe(false);
+
+    fixture.destroy();
+  });
+
   it('rimanda lo stato ai telefoni alla ripresa', () => {
     const ws = TestBed.inject(WebSocketService) as unknown as FakeWebSocketService;
     const { fixture } = mount({

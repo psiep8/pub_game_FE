@@ -416,6 +416,25 @@ describe('RemoteComponent', () => {
     expect(component.arenaQuestion()?.questionId).toBe('q1');
   });
 
+  it('in pausa un tap sul bonus non resta come scelta inviata', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.onStartVoting('BONUS_CASINO');
+    component.casinoState.set({ phase: 'PICK', manche: 1, options: ['NERO', 'ROSSO'] });
+
+    component.paused.set(true);
+    component.casinoAct('ROSSO');
+
+    // Il tap non diventa una scelta inviata: alla ripresa si può ancora puntare.
+    expect(component.casinoChoice()).toBeNull();
+    expect(ws.broadcasted.some((entry) => entry.body.action === 'CASINO_ACTION')).toBe(false);
+
+    component.paused.set(false);
+    component.casinoAct('ROSSO');
+    expect(component.casinoChoice()).toBe('ROSSO');
+    expect(ws.broadcasted.filter((entry) => entry.body.action === 'CASINO_ACTION')).toHaveLength(1);
+  });
+
   it('mantiene la domanda Arena se la risposta arriva al server durante la pausa', () => {
     component.nickname.set('Anna');
     component.arenaQuestion.set({ text: 'Domanda', options: ['A', 'B'], isTrueFalse: false, questionId: 'q1' });

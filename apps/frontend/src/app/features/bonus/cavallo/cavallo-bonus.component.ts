@@ -677,6 +677,8 @@ export class CavalloBonus implements OnInit, OnDestroy {
 
   private onStatus(status: any): void {
     if (status?.action !== 'CAVALLO_ACTION') return;
+    // Pausa della TV: scelta e risposta arrivate dal telefono non contano.
+    if (this.pause.isSuspended) return;
 
     const playerName = String(status.playerName ?? '').trim();
     if (!playerName || !this.players.includes(playerName)) return;
