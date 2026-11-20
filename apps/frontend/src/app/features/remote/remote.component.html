@@ -353,7 +353,7 @@
         @for (level of ultimaSpiaggiaState()?.levels ?? []; track level) {
         <button class="azzardo-stake" [class.selected]="ultimaSpiaggiaLevel() === level"
           [class.used]="ultimaSpiaggiaUsed(level)"
-          [disabled]="ultimaSpiaggiaLevel() !== null || ultimaSpiaggiaUsed(level)" (click)="ultimaSpiaggiaPickLevel(level)">
+          [disabled]="ultimaSpiaggiaLevel() !== null || ultimaSpiaggiaUsed(level) || !inputReady()" (click)="ultimaSpiaggiaPickLevel(level)">
           {{ level }}
         </button>
         }
@@ -366,7 +366,7 @@
       </p>
       <div class="cavallo-options">
         @for (option of ultimaSpiaggiaMyQuestion()?.options ?? []; track $index; let i = $index) {
-        <button class="cavallo-option" [disabled]="ultimaSpiaggiaChoice() !== null" (click)="ultimaSpiaggiaAnswer(i)">
+        <button class="cavallo-option" [disabled]="ultimaSpiaggiaChoice() !== null || !inputReady()" (click)="ultimaSpiaggiaAnswer(i)">
           <span class="cavallo-letter">{{ letter(i) }}</span><span>{{ option }}</span>
         </button>
         }
@@ -425,7 +425,7 @@
       </div>
       <p class="azzardo-convert">{{ azzardoConvertHint() }}</p>
       <button type="button" class="confirm-btn"
-        [disabled]="azzardoChipTotal() === 0 || azzardoSent() || !azzardoCanBet()"
+        [disabled]="azzardoChipTotal() === 0 || azzardoSent() || !azzardoCanBet() || !inputReady()"
         (click)="azzardoConfirmBet()">
         {{ azzardoSent() ? 'PUNTATA CONFERMATA' : 'CONFERMA PUNTATA' }}
       </button>

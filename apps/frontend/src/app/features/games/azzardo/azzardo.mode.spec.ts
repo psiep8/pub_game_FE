@@ -46,6 +46,26 @@ describe('AzzardoMode — ripresa dopo un refresh della TV', () => {
     mode.cleanup();
   });
 
+  it('la pausa respinge la puntata arrivata dal telefono', async () => {
+    const { mode, saved } = setup();
+    await mode.start();
+    const before = saved.length;
+
+    mode.pause();
+    mode.handlePartyEvent({ action: 'AZZARDO_ACTION', playerName: 'Anna', value: { chips: [0, 0, 3, 0] } });
+
+    // A sala ferma la puntata non entra nel tavolo né nel checkpoint.
+    expect(saved.length).toBe(before);
+
+    mode.resume();
+    mode.handlePartyEvent({ action: 'AZZARDO_ACTION', playerName: 'Anna', value: { chips: [0, 0, 3, 0] } });
+
+    // Alla ripresa la stessa puntata vale come sempre.
+    expect(saved.at(-1)?.state.stakes).toEqual([{ playerName: 'Anna', chips: [0, 0, 3, 0] }]);
+
+    mode.cleanup();
+  });
+
   it('riprende il reveal già avvenuto senza ripagare i punti', () => {
     const { mode, points } = setup();
     const stakes = [{ playerName: 'Anna', chips: [0, 0, 3, 0] }];

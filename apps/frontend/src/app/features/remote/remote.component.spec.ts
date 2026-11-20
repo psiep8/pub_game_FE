@@ -435,6 +435,53 @@ describe('RemoteComponent', () => {
     expect(ws.broadcasted.filter((entry) => entry.body.action === 'CASINO_ACTION')).toHaveLength(1);
   });
 
+  it('in pausa la conferma della puntata Azzardo non resta inviata', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.azzardoState.set({
+      phase: 'BET',
+      manche: 1,
+      options: [10, 20, 30],
+      ready: [{ playerName: 'Anna', points: 100, maxBet: 100 }],
+    });
+    component.azzardoChips.set([1, 0, 0]);
+
+    component.paused.set(true);
+    component.azzardoConfirmBet();
+
+    // La puntata non parte e il telefono non la segna come inviata.
+    expect(component.azzardoSent()).toBe(false);
+    expect(ws.broadcasted.some((entry) => entry.body.action === 'AZZARDO_ACTION')).toBe(false);
+
+    component.paused.set(false);
+    component.azzardoConfirmBet();
+    expect(component.azzardoSent()).toBe(true);
+    expect(ws.broadcasted.filter((entry) => entry.body.action === 'AZZARDO_ACTION')).toHaveLength(1);
+  });
+
+  it('in pausa il livello di Ultima Spiaggia non resta inviato', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.onStartVoting('ULTIMA_SPIAGGIA');
+    component.ultimaSpiaggiaState.set({
+      phase: 'LEVEL',
+      levels: [100, 200],
+      rows: [{ playerName: 'Anna', used: [] }],
+    });
+
+    component.paused.set(true);
+    component.ultimaSpiaggiaPickLevel(200);
+
+    // Il tap non diventa una scelta inviata: alla ripresa i livelli sono ancora liberi.
+    expect(component.ultimaSpiaggiaLevel()).toBeNull();
+    expect(ws.broadcasted.some((entry) => entry.body.action === 'ULTIMA_SPIAGGIA_ACTION')).toBe(false);
+
+    component.paused.set(false);
+    component.ultimaSpiaggiaPickLevel(200);
+    expect(component.ultimaSpiaggiaLevel()).toBe(200);
+    expect(ws.broadcasted.filter((entry) => entry.body.action === 'ULTIMA_SPIAGGIA_ACTION')).toHaveLength(1);
+  });
+
   it('mantiene la domanda Arena se la risposta arriva al server durante la pausa', () => {
     component.nickname.set('Anna');
     component.arenaQuestion.set({ text: 'Domanda', options: ['A', 'B'], isTrueFalse: false, questionId: 'q1' });

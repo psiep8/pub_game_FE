@@ -111,6 +111,8 @@ export class UltimaSpiaggiaMode extends GameModeBase {
   /** Scelta del livello e risposta della manche: una sola per squadra. */
   handlePartyEvent(event: any): void {
     if (event?.action !== 'ULTIMA_SPIAGGIA_ACTION') return;
+    // Pausa della TV: scelta e risposta arrivate dal telefono non contano.
+    if (this.isPaused()) return;
 
     const playerName = String(event.playerName ?? '').trim();
     if (!playerName || !this.players.includes(playerName)) return;

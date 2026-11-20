@@ -159,6 +159,8 @@ export class AzzardoMode extends GameModeBase {
   /** Puntata e risposta della manche: una sola per squadra. */
   handlePartyEvent(event: any): void {
     if (event?.action !== 'AZZARDO_ACTION') return;
+    // Pausa della TV: la puntata arrivata dal telefono nel frattempo non conta.
+    if (this.isPaused()) return;
 
     const playerName = String(event.playerName ?? '').trim();
     if (!playerName || !this.players.includes(playerName)) return;

@@ -45,6 +45,26 @@ describe('UltimaSpiaggiaMode — ripresa dopo un refresh della TV', () => {
     mode.cleanup();
   });
 
+  it('la pausa respinge la scelta del livello arrivata dal telefono', async () => {
+    const { mode, saved } = setup();
+    await mode.start();
+    const before = saved.length;
+
+    mode.pause();
+    mode.handlePartyEvent({ action: 'ULTIMA_SPIAGGIA_ACTION', playerName: 'Anna', kind: 'LEVEL', value: 200 });
+
+    // A sala ferma la scelta non entra nel tabellone né nel checkpoint.
+    expect(saved.length).toBe(before);
+
+    mode.resume();
+    mode.handlePartyEvent({ action: 'ULTIMA_SPIAGGIA_ACTION', playerName: 'Anna', kind: 'LEVEL', value: 200 });
+
+    // Alla ripresa la stessa scelta vale come sempre.
+    expect(saved.at(-1)?.state.picks).toEqual([['Anna', 200]]);
+
+    mode.cleanup();
+  });
+
   it('riprende la scelta del livello con il tempo rimasto e lo stesso id', () => {
     const { mode } = setup();
 

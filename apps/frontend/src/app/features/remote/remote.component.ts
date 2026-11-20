@@ -1581,6 +1581,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   ultimaSpiaggiaPickLevel(level: number): void {
+    if (!this.inputReady()) return;
     const player = this.nickname();
     const state = this.ultimaSpiaggiaState();
     if (!player || state?.phase !== 'LEVEL' || this.ultimaSpiaggiaLevel() !== null) return;
@@ -1597,6 +1598,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   ultimaSpiaggiaAnswer(index: number): void {
+    if (!this.inputReady()) return;
     const player = this.nickname();
     if (!player || this.ultimaSpiaggiaChoice() !== null) return;
 
@@ -1730,6 +1732,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
    * non parte mai con una puntata inventata dal telefono.
    */
   azzardoConfirmBet(): void {
+    if (!this.inputReady()) return;
     const player = this.nickname();
     const state = this.azzardoState();
     if (!player || state?.phase !== 'BET' || !this.azzardoCanBet() || this.azzardoSent()) return;
