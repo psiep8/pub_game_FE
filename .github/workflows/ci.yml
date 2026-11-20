@@ -74,6 +74,7 @@ jobs:
           WS_URL: ws://127.0.0.1:8090/ws-pubgame
           CONTROL_SECRET: ci-secret-ci-secret-ci-secret-32
           PLAYERS: '8'
+          ROUNDS_LIMIT: '3'
           STATE_PATH: ${{ github.workspace }}/sim-state.json
           ACTIONS_PATH: ${{ github.workspace }}/sim-actions.jsonl
           SUMMARY_PATH: ${{ github.workspace }}/sim-summary.json

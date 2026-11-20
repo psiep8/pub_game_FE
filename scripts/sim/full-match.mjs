@@ -27,7 +27,10 @@ const TEAMS = PLAYER_NAMES.slice(0, PLAYER_COUNT);
 const STATE_PATH = process.env.STATE_PATH || fileURLToPath(new URL(`./.state${PLAYER_COUNT}.json`, import.meta.url));
 const ACTIONS_PATH = process.env.ACTIONS_PATH || `${REPORT_DIR}game-actions.jsonl`;
 const SUMMARY_PATH = process.env.SUMMARY_PATH || `${REPORT_DIR}game-actions-summary.json`;
-const ROUNDS = simRounds();
+// La CI usa una partita corta: ROUNDS_LIMIT taglia la scaletta senza
+// cambiare i tempi dei round che restano.
+const ROUND_LIMIT = Math.max(0, Number(process.env.ROUNDS_LIMIT || 0));
+const ROUNDS = ROUND_LIMIT ? simRounds().slice(0, ROUND_LIMIT) : simRounds();
 const BONUSES = ['CASINO', 'BASKET', 'CAVALLO', 'BIGLIE'];
 const ROUND_MS = Number(process.env.ROUND_MS || 38000);
 const BONUS_MS = Number(process.env.BONUS_MS || 22000);
