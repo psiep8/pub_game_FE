@@ -10,7 +10,7 @@ non stimati. Chi decide cosa suona è il codice, non questo documento:
 `core/services/bed-loops.ts` è il registro dei file e `core/services/bed-map.ts`
 la mappa dei giochi. Se un numero qui non torna, ha ragione il codice.
 
-**Stato al 20 novembre 2026:** 20 loop su 20 in cartella, 21,69 MB sui 22 MB del
+**Stato al 20 novembre 2026:** 20 loop su 20 in cartella, 21,70 MB sui 22 MB del
 tetto. I tredici arrivati — cinque basi d'atto e otto loop di gioco — sono resi
 in casa da `scripts/audio/generate-loops.mjs` e nei crediti compaiono come
 «Nostra (sintesi renderizzata)». Un brano registrato che li sostituisce prende lo
@@ -48,7 +48,7 @@ l'elenco con i file su disco — scordarsi la riga fa fallire la suite.
 | `loop/gioco-speed-rush.m4a` | corsa, sintetizzatori incalzanti | 135–150 | Speed Rush | 60,0 s | 0,88 MB |
 | `loop/gioco-biglie.m4a` | corsa allegra, cartoon | 120–135 | Biglie | 60,0 s | 0,84 MB |
 | `loop/gioco-timeline.m4a` | concentrazione leggera, orologeria | 90–105 | Timeline | 60,0 s | 0,85 MB |
-| `loop/gioco-ultima-spiaggia.m4a` | ultima occasione, tensione che sale | 100–120 | Ultima Spiaggia | 60,0 s | 0,84 MB |
+| `loop/gioco-ultima-spiaggia.m4a` | ultima occasione, tensione che sale | 100–120 | Ultima Spiaggia | 60,0 s | 0,85 MB |
 | `loop/gioco-azzardo.m4a` | casinò, ritmo medio | 100–115 | Azzardo | 60,0 s | 0,81 MB |
 | `loop/gioco-blackjack.m4a` | jazz lento da tavolo | 80–95 | Blackjack | 60,0 s | 0,83 MB |
 | `loop/gioco-casino-finale.m4a` | l'ultimo giro: drammatico, solenne | 70–90 | nessun round della scaletta: è per il finale di serata, non ancora agganciato | 60,0 s | 0,83 MB |
@@ -94,7 +94,7 @@ normale (`bedDuckGain`) — è ducking, non un secondo file.
 
 | Voce | Oggi | Tetto |
 |---|---|---|
-| Venti loop in casa | 21,69 MB | 22 MB |
+| Venti loop in casa | 21,70 MB | 22 MB |
 | Effetti (fuori dal conto degli atti) | 0,95 MB | 4 MB |
 
 Per atto, contando la base e un file per gioco della scaletta:
@@ -112,12 +112,18 @@ arrivati con la finestra 60–120 s restano al loro tetto: `lobby`, `classifica`
 `gioco-casino`, `gioco-bomba`, `gioco-tennis` e `gioco-cavallo` pesano più dei
 nuovi perché durano ancora 99–117 s.
 
-Il vincolo vero è il **totale**: i venti loop fanno **21,69 MB** sui 22 del
-manifesto, **0,31 MB di margine**. È quel numero da guardare quando si rifà un
+Il vincolo vero è il **totale**: i venti loop fanno **21,70 MB** sui 22 del
+manifesto, **0,30 MB di margine**. È quel numero da guardare quando si rifà un
 file: se uno è più lungo, meglio rifilarlo che allungare il tetto. Il test
 `bed-act-budget.spec.ts` rifà questi conti da `ACT_DECKS` e `bed-map.ts` a ogni
 giro, e controlla anche che nessun loop superi i 60 s (i sei storici e il
 rotolamento delle Biglie sono dichiarati come eccezioni).
+
+Sul volume percepito, tutti e venti stanno a **−23,0/−23,2 LUFS** misurati. Il
+RMS dei campioni non è la loudness, ma dice quanto è denso un brano: i sottofondi
+stanno fra −19,7 e −25,5 dB, e `gioco-ultima-spiaggia` era a **−16,6 dB** perché
+l'ostinato era un sub a 27 Hz che sui diffusori della TV non si sente. Ora il sub
+sta a 55 Hz con un basso in banda media al suo posto: **−21,7 dB**, in famiglia.
 
 ## Quando arriva un file
 

@@ -592,10 +592,13 @@ const TRACKS = [
       for (let b = 0; b < s.bars; b += 1) {
         const t = b * s.bar;
         const chord = chords[b % 4];
-        // Ostinato grave in ottavi, ticchettio, fiati corti in levare.
+        // Ostinato in ottavi, ticchettio, fiati corti in levare. Il sub
+        // resta a 55 Hz: a 27 Hz non si sente sui diffusori della TV e alza
+        // solo l'RMS, lasciando il brano più denso degli altri a parità di LUFS.
         for (let i = 0; i < 8; i += 1) {
-          subBass(s.tr, t + s.beat * i * 0.5, chord[0] - 24 + (i === 7 ? 1 : 0), 0.22, 0.2);
-          hat(s.tr, t + s.beat * i * 0.5, 0.035);
+          subBass(s.tr, t + s.beat * i * 0.5, chord[0] - 12, 0.22, 0.12);
+          if (i % 2 === 0) bass(s.tr, t + s.beat * i * 0.5, chord[0] + 12, 0.16, 0.06);
+          hat(s.tr, t + s.beat * i * 0.5, 0.03);
         }
         kick(s.tr, t, 0.32);
         snare(s.tr, t + s.beat * 2, 0.1);

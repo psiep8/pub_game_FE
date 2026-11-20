@@ -284,7 +284,7 @@ lettura dei file che ci sono, non un secondo elenco di desideri.
 - 41 effetti (34 eventi con varianti: `rankReveal` ×2, `podiumReveal` ×3,
   `bonusEntrance` ×5)
 - 20 loop: 5 basi d'atto, 14 giochi e bonus, il rotolamento delle Biglie
-- **61 file** previsti, tutti in casa. I venti loop pesano **21,69 MB** sui
+- **61 file** previsti, tutti in casa. I venti loop pesano **21,70 MB** sui
   22 MB del tetto; l'atto più carico (il 4) sta a 5,86 MB sui 6. Sette loop sono
   registrazioni scelte da librerie, tredici sono resi in casa da
   `scripts/audio/generate-loops.mjs` e nei crediti compaiono come «Nostra

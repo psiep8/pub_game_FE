@@ -84,7 +84,7 @@ compaiono con licenza «Nostra».
 | `loop/gioco-speed-rush.m4a` | Speed Rush — Corsa — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 897 KB | -23 | 0% |
 | `loop/gioco-biglie.m4a` | Biglie — Corsa allegra — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 856 KB | -23 | 0.8% |
 | `loop/gioco-timeline.m4a` | Timeline — Orologeria — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 868 KB | -23.1 | 2.8% |
-| `loop/gioco-ultima-spiaggia.m4a` | Ultima spiaggia — Tensione — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 863 KB | -23 | 1.8% |
+| `loop/gioco-ultima-spiaggia.m4a` | Ultima spiaggia — Tensione — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 866 KB | -23 | 2.1% |
 | `loop/gioco-azzardo.m4a` | Azzardo — Lounge da tavolo — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 834 KB | -23.1 | 0.3% |
 | `loop/gioco-blackjack.m4a` | Blackjack — Jazz lento — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 847 KB | -23 | 1.1% |
 | `loop/gioco-casino-finale.m4a` | Casino — Finale — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 845 KB | -23 | 0.9% |
