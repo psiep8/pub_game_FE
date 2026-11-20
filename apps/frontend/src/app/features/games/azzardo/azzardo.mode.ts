@@ -122,6 +122,8 @@ export class AzzardoMode extends GameModeBase {
   private breakdowns = new Map<string, AzzardoChipsBreakdown>();
   private finished = false;
   private clock?: ReturnType<typeof setInterval>;
+  /** Istante in cui la sala si è fermata; null quando il tempo scorre. */
+  private pausedAt: number | null = null;
 
   protected onInitialize(): void {
     this.players = [...(this.config.activePlayers ?? [])];
@@ -140,9 +142,18 @@ export class AzzardoMode extends GameModeBase {
   /** Le fasi hanno un countdown proprio: il timer base resta fermo. */
   protected override startTimer(): void {}
 
-  protected onPause(): void {}
+  protected onPause(): void {
+    // Il checkpoint segna l'istante di fermo: dopo un refresh durante la pausa
+    // il tempo trascorso a sala ferma non viene scalato dal countdown.
+    this.pausedAt = Date.now();
+    this.saveCheckpoint();
+  }
 
-  protected onResume(): void {}
+  protected onResume(): void {
+    // Il tempo torna a scorrere: il prossimo ripristino lo conta da qui.
+    this.pausedAt = null;
+    this.saveCheckpoint();
+  }
 
   protected onStop(): void {
     this.clearClock();
@@ -374,11 +385,15 @@ export class AzzardoMode extends GameModeBase {
     this.chipBank = this.entriesOf(state.chipBank, true);
     this.breakdowns = this.entriesOf(state.breakdowns) as Map<string, AzzardoChipsBreakdown>;
 
-    // Il tempo non riparte da capo: si toglie quello passato dal salvataggio.
+    // Il tempo non riparte da capo: si toglie quello passato dal salvataggio
+    // fermandosi all'istante della pausa. I secondi di sala ferma non contano:
+    // altrimenti un refresh durante la pausa accorcerebbe il countdown.
     const savedSeconds = Number(state.secondsLeft);
     const savedAt = Number(state.savedAt);
+    const pausedAt = Number(state.pausedAt);
+    const stoppedAt = Number.isFinite(pausedAt) && pausedAt > 0 ? pausedAt : Date.now();
     const elapsed = Number.isFinite(savedAt) && savedAt > 0
-      ? Math.max(0, Math.floor((Date.now() - savedAt) / 1000))
+      ? Math.max(0, Math.floor((stoppedAt - savedAt) / 1000))
       : 0;
     const seconds = Number.isFinite(savedSeconds)
       ? Math.max(0, Math.round(savedSeconds) - elapsed)
@@ -388,16 +403,20 @@ export class AzzardoMode extends GameModeBase {
     this.timer.set(this.timerDuration);
     this.isActive.set(true);
     this.isPaused.set(false);
+    this.pausedAt = null;
 
     const phase = String(state.phase);
     if (phase === AzzardoPhase.REVEAL) {
       this.phase.set(AzzardoPhase.REVEAL);
       this.startClock(seconds, () => this.advanceAfterReveal());
+      // Il checkpoint riparte da qui: un altro refresh conta il tempo nuovo.
+      this.saveCheckpoint();
       return;
     }
     if (phase === AzzardoPhase.FINALE) {
       this.phase.set(AzzardoPhase.FINALE);
       this.startClock(seconds, () => this.finish());
+      this.saveCheckpoint();
       return;
     }
 
@@ -408,6 +427,7 @@ export class AzzardoMode extends GameModeBase {
       return;
     }
     this.startClock(seconds, () => this.revealManche());
+    this.saveCheckpoint();
   }
 
   /** Coppie `[nome, valore]` del checkpoint: le mappe non passano in JSON. */
@@ -432,6 +452,7 @@ export class AzzardoMode extends GameModeBase {
         phase: this.phase(),
         secondsLeft: this.secondsLeft(),
         savedAt: Date.now(),
+        pausedAt: this.pausedAt,
         stakes: [...this.stakes].map(([playerName, stake]) => ({ playerName, chips: stake.chips })),
         points: [...this.points],
         totals: [...this.totals],

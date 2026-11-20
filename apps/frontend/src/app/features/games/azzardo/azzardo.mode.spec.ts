@@ -49,21 +49,47 @@ describe('AzzardoMode — ripresa dopo un refresh della TV', () => {
   it('la pausa respinge la puntata arrivata dal telefono', async () => {
     const { mode, saved } = setup();
     await mode.start();
-    const before = saved.length;
 
     mode.pause();
+    // La pausa stessa salva il tempo congelato, senza la puntata rifiutata.
+    const frozen = saved.at(-1);
+    expect(frozen?.state.stakes).toEqual([]);
+    expect(frozen?.state.pausedAt).toBeGreaterThan(0);
+
     mode.handlePartyEvent({ action: 'AZZARDO_ACTION', playerName: 'Anna', value: { chips: [0, 0, 3, 0] } });
 
-    // A sala ferma la puntata non entra nel tavolo né nel checkpoint.
-    expect(saved.length).toBe(before);
+    // A sala ferma la puntata non entra nel tavolo né in un nuovo checkpoint.
+    expect(saved.at(-1)).toBe(frozen);
 
     mode.resume();
+    // Alla ripresa il tempo torna a scorrere e la stessa puntata vale come sempre.
+    expect(saved.at(-1)?.state.pausedAt).toBeNull();
     mode.handlePartyEvent({ action: 'AZZARDO_ACTION', playerName: 'Anna', value: { chips: [0, 0, 3, 0] } });
-
-    // Alla ripresa la stessa puntata vale come sempre.
     expect(saved.at(-1)?.state.stakes).toEqual([{ playerName: 'Anna', chips: [0, 0, 3, 0] }]);
 
     mode.cleanup();
+  });
+
+  it('il refresh durante la pausa non scala il tempo fermo', async () => {
+    const first = setup();
+    await first.mode.start();
+    first.mode.pause();
+
+    const checkpoint = first.saved.at(-1)!;
+    const frozen = checkpoint.state.secondsLeft;
+    // La TV resta ferma trenta secondi prima del refresh.
+    checkpoint.state.savedAt = Date.now() - 30_000;
+    checkpoint.state.pausedAt = checkpoint.state.savedAt;
+    first.mode.cleanup();
+
+    const second = setup();
+    second.mode.restore(15, checkpoint);
+
+    // Il countdown riparte dai secondi congelati, non da quelli trascorsi.
+    expect(second.mode.getDisplayData().secondsLeft).toBe(frozen);
+    expect(second.mode.getDisplayData().phase).toBe(AzzardoPhase.BET);
+
+    second.mode.cleanup();
   });
 
   it('riprende il reveal già avvenuto senza ripagare i punti', () => {

@@ -75,6 +75,8 @@ export class UltimaSpiaggiaMode extends GameModeBase {
   private statuses = new Map<string, UltimaSpiaggiaStatus>();
   private finished = false;
   private clock?: ReturnType<typeof setInterval>;
+  /** Istante in cui la sala si è fermata; null quando il tempo scorre. */
+  private pausedAt: number | null = null;
 
   protected onInitialize(): void {
     this.readPayload();
@@ -92,9 +94,18 @@ export class UltimaSpiaggiaMode extends GameModeBase {
   /** Le fasi hanno un countdown proprio: il timer base resta fermo. */
   protected override startTimer(): void {}
 
-  protected onPause(): void {}
+  protected onPause(): void {
+    // Il checkpoint segna l'istante di fermo: dopo un refresh durante la pausa
+    // il tempo trascorso a sala ferma non viene scalato dal countdown.
+    this.pausedAt = Date.now();
+    this.saveCheckpoint();
+  }
 
-  protected onResume(): void {}
+  protected onResume(): void {
+    // Il tempo torna a scorrere: il prossimo ripristino lo conta da qui.
+    this.pausedAt = null;
+    this.saveCheckpoint();
+  }
 
   protected onStop(): void {
     this.clearClock();
@@ -365,10 +376,14 @@ export class UltimaSpiaggiaMode extends GameModeBase {
     this.finished = state.finished === true;
     this.revealed.set(state.revealed === true);
 
+    // Il tempo si conta fino all'istante della pausa: i secondi di sala ferma
+    // non si scalano, altrimenti un refresh durante la pausa li perderebbe.
     const savedSeconds = Number(state.secondsLeft);
     const savedAt = Number(state.savedAt);
+    const pausedAt = Number(state.pausedAt);
+    const stoppedAt = Number.isFinite(pausedAt) && pausedAt > 0 ? pausedAt : Date.now();
     const elapsed = Number.isFinite(savedAt) && savedAt > 0
-      ? Math.max(0, Math.floor((Date.now() - savedAt) / 1000))
+      ? Math.max(0, Math.floor((stoppedAt - savedAt) / 1000))
       : 0;
     const seconds = Number.isFinite(savedSeconds)
       ? Math.max(0, Math.round(savedSeconds) - elapsed)
@@ -378,6 +393,7 @@ export class UltimaSpiaggiaMode extends GameModeBase {
     this.timer.set(this.timerDuration);
     this.isActive.set(true);
     this.isPaused.set(false);
+    this.pausedAt = null;
 
     if (this.finished || this.revealed()) {
       this.phase.set(UltimaSpiaggiaPhase.REVEAL);
@@ -392,6 +408,8 @@ export class UltimaSpiaggiaMode extends GameModeBase {
     if (phase === UltimaSpiaggiaPhase.REVEAL) {
       this.phase.set(UltimaSpiaggiaPhase.REVEAL);
       this.startClock(seconds, () => this.finish());
+      // Il checkpoint riparte da qui: un altro refresh conta il tempo nuovo.
+      this.saveCheckpoint();
       return;
     }
 
@@ -402,6 +420,7 @@ export class UltimaSpiaggiaMode extends GameModeBase {
         return;
       }
       this.startClock(seconds, () => this.revealRound());
+      this.saveCheckpoint();
       // Tutti avevano già risposto: manca solo l'esito.
       if (this.players.length && this.players.every((name) => this.answers.has(name))) {
         this.revealRound();
@@ -420,6 +439,7 @@ export class UltimaSpiaggiaMode extends GameModeBase {
       this.assignMissingLevels();
       this.startQuestion();
     });
+    this.saveCheckpoint();
   }
 
   private numberMapOf(value: unknown): Map<string, number> {
@@ -456,6 +476,7 @@ export class UltimaSpiaggiaMode extends GameModeBase {
         phase: this.phase(),
         secondsLeft: this.secondsLeft(),
         savedAt: Date.now(),
+        pausedAt: this.pausedAt,
         picks: [...this.picks],
         answers: [...this.answers],
         points: [...this.points],
