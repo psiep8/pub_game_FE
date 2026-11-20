@@ -42,8 +42,12 @@ public class QuestionBankService {
             String correctAnswer, String kind) {
     }
 
-    /** Tabellone Bomba: elementi veri della categoria e intrusi da bomba. */
+    /** Tabellone Bomba: affermazioni vere salva-vita e affermazioni false (bombe). */
     public record ScossaBoard(String prompt, List<String> safe, List<String> intruders) {
+    }
+
+    /** Riga della banca Bomba: un'affermazione che è vera o falsa, con la fonte. */
+    public record BombaStatement(String id, String category, String statement, boolean truth, String source) {
     }
 
     /** Riga della banca domande. */
@@ -152,6 +156,9 @@ public class QuestionBankService {
     /** Banca caricata da questions/azzardo-it.json. */
     private final List<AzzardoQuestion> azzardoQuestions;
 
+    /** Banca caricata da questions/bomba-it.json. */
+    private final List<BombaStatement> bombaStatements;
+
     public QuestionBankService(TMDBImageService tmdbImageService,
             AppleMusicCuratorService appleMusicCuratorService,
             CelebrityImageService celebrityImageService,
@@ -164,6 +171,7 @@ public class QuestionBankService {
         this.localMedia = localMedia;
         this.bank = loadBank();
         this.azzardoQuestions = loadAzzardo();
+        this.bombaStatements = loadBombaStatements();
 
         logBankSummary();
     }
@@ -615,9 +623,9 @@ public class QuestionBankService {
     }
 
     /**
-     * Tabellone della Bomba: elementi veri di una categoria e intrusi da
-     * piazzare come bombe. Non c'è una risposta corretta da nascondere: conta
-     * solo se la casella appartiene alla categoria.
+     * Tabellone della Bomba: affermazioni vere e false. Ogni casella è una
+     * frase che si può verificare; le false cambiano un solo dettaglio e sono
+     * le bombe. Non si chiede più "quale non appartiene".
      */
     public ScossaBoard scossaBoard(int cells, int bombs) {
         return scossaBoard(cells, bombs, 5);
@@ -627,97 +635,106 @@ public class QuestionBankService {
         int safeNeeded = Math.max(1, cells - bombs);
         int bombsNeeded = Math.max(1, bombs);
 
-        // Bomba è il gioco dei dettagli: si parte dalle risposte difficili,
-        // poi si allarga a media+difficile e solo alla fine a tutta la banca.
-        Map<String, List<String>> byCategory = scossaItems(act >= 4 ? 3 : 2);
-        if (!hasPlayableCategory(byCategory, safeNeeded)) {
-            byCategory = scossaItems(2);
+        List<String> trueStatements = new ArrayList<>();
+        List<String> falseStatements = new ArrayList<>();
+        Map<String, List<String>> trueByCategory = new LinkedHashMap<>();
+        for (BombaStatement row : bombaStatements) {
+            if (row.truth()) {
+                trueStatements.add(row.statement());
+                trueByCategory.computeIfAbsent(row.category(), key -> new ArrayList<>()).add(row.statement());
+            } else {
+                falseStatements.add(row.statement());
+            }
         }
-        if (!hasPlayableCategory(byCategory, safeNeeded)) {
-            byCategory = scossaItems(0);
-        }
-        List<String> categories = new ArrayList<>(byCategory.keySet());
+
+        // Una categoria sola se ha abbastanza affermazioni vere, altrimenti
+        // categorie miste: il tabellone deve restare giocabile con ogni N.
+        List<String> categories = new ArrayList<>(trueByCategory.keySet());
         Collections.shuffle(categories, random);
-
         for (String category : categories) {
-            List<String> members = byCategory.get(category);
-            if (members.size() < safeNeeded) {
+            List<String> members = trueByCategory.get(category);
+            if (members.size() < safeNeeded || falseStatements.size() < bombsNeeded) {
                 continue;
             }
-
-            Set<String> used = new HashSet<>();
-            for (String value : members) {
-                used.add(value.toLowerCase(Locale.ROOT));
-            }
-
-            List<String> intruders = new ArrayList<>();
-            List<String> others = new ArrayList<>(categories);
-            others.remove(category);
-            Collections.shuffle(others, random);
-            for (String other : others) {
-                for (String value : byCategory.get(other)) {
-                    if (intruders.size() >= bombsNeeded) {
-                        break;
-                    }
-                    if (used.add(value.toLowerCase(Locale.ROOT))) {
-                        intruders.add(value);
-                    }
-                }
-                if (intruders.size() >= bombsNeeded) {
-                    break;
-                }
-            }
-            if (intruders.size() < bombsNeeded) {
-                continue;
-            }
-
             List<String> safe = new ArrayList<>(members);
             Collections.shuffle(safe, random);
-            return new ScossaBoard(
-                    "Tabellone «" + category + "»: scegli una casella della categoria, evita le bombe.",
+            List<String> intruders = new ArrayList<>(falseStatements);
+            Collections.shuffle(intruders, random);
+            return new ScossaBoard(boardPrompt(category),
                     List.copyOf(safe.subList(0, safeNeeded)),
-                    List.copyOf(intruders));
+                    List.copyOf(intruders.subList(0, bombsNeeded)));
         }
 
-        // Banca vuota o troppo povera: tabellone di riserva, sempre giocabile.
+        if (trueStatements.size() >= safeNeeded && falseStatements.size() >= bombsNeeded) {
+            Collections.shuffle(trueStatements, random);
+            Collections.shuffle(falseStatements, random);
+            return new ScossaBoard(boardPrompt("Fatti misti"),
+                    List.copyOf(trueStatements.subList(0, safeNeeded)),
+                    List.copyOf(falseStatements.subList(0, bombsNeeded)));
+        }
+
+        // Banca assente o troppo povera: tabellone di riserva, sempre giocabile.
         List<String> safe = new ArrayList<>(List.of(
-                "Roma", "Milano", "Napoli", "Firenze", "Torino", "Bologna",
-                "Venezia", "Palermo", "Genova", "Verona", "Bari", "Catania",
-                "Trieste", "Padova", "Parma", "Cagliari", "Perugia", "Ancona"));
+                "Roma è la capitale d'Italia.",
+                "Il Po è il fiume più lungo d'Italia.",
+                "L'acqua bolle a 100 gradi al livello del mare.",
+                "Il polpo ha tre cuori.",
+                "La Gioconda è di Leonardo da Vinci.",
+                "L'Italia ha vinto quattro Mondiali di calcio.",
+                "La Terra gira intorno al Sole in circa 365 giorni.",
+                "Il Trono di Spade è ambientato a Westeros.",
+                "La pizza Margherita è nata a Napoli.",
+                "I Beatles erano di Liverpool.",
+                "La Divina Commedia è di Dante Alighieri.",
+                "Il simbolo chimico dell'oro è Au.",
+                "Giove è il pianeta più grande del sistema solare.",
+                "Il pianoforte ha 88 tasti.",
+                "La Sicilia è la più grande isola del Mediterraneo.",
+                "Il primo iPhone fu presentato nel 2007.",
+                "L'Everest è la montagna più alta del mondo.",
+                "La casa di carta è una serie spagnola.",
+                "Il pesto alla genovese è tipico della Liguria.",
+                "Il Tour de France è una corsa ciclistica.",
+                "La balenottera azzurra è il più grande animale esistente.",
+                "Il Muro di Berlino cadde nel 1989."));
         Collections.shuffle(safe, random);
-        List<String> intruders = new ArrayList<>(List.of("Parigi", "Madrid", "Berlino", "Lisbona"));
+        List<String> intruders = new ArrayList<>(List.of(
+                "La capitale dell'Australia è Sydney.",
+                "Il Tevere è il fiume più lungo d'Italia.",
+                "L'acqua bolle a 90 gradi al livello del mare.",
+                "Il polpo ha due cuori.",
+                "La Gioconda è di Raffaello.",
+                "L'Italia ha vinto tre Mondiali di calcio.",
+                "La Terra gira intorno al Sole in circa 24 ore.",
+                "Il Trono di Spade è ambientato a Narnia.",
+                "La pizza Margherita è nata a Roma.",
+                "I Beatles erano di Manchester.",
+                "La Divina Commedia è di Petrarca.",
+                "Il simbolo chimico dell'argento è Au.",
+                "Marte è il pianeta più grande del sistema solare.",
+                "Il violino ha cinque corde.",
+                "La Sardegna è la più grande isola del Mediterraneo.",
+                "Il primo iPhone fu presentato nel 2010.",
+                "Il K2 è la montagna più alta del mondo.",
+                "La casa di carta è una serie italiana.",
+                "Il pesto alla genovese è tipico della Toscana.",
+                "Il Tour de France è una corsa automobilistica.",
+                "Lo squalo balena è il più grande animale esistente.",
+                "Il Muro di Berlino cadde nel 1991."));
         Collections.shuffle(intruders, random);
-        return new ScossaBoard(
-                "Tabellone «Città italiane»: scegli una casella della categoria, evita le bombe.",
+        return new ScossaBoard(boardPrompt("Fatti misti"),
                 safe.subList(0, Math.min(safeNeeded, safe.size())),
                 intruders.subList(0, Math.min(bombsNeeded, intruders.size())));
     }
 
-    private boolean hasPlayableCategory(Map<String, List<String>> byCategory, int needed) {
-        return byCategory.values().stream().anyMatch(items -> items.size() >= needed);
+    private String boardPrompt(String category) {
+        return "Tabellone «" + category + "»: ogni casella è un'affermazione. "
+                + "Se è vera resti in vita, se è falsa è una bomba.";
     }
 
-    /** Elementi brevi per categoria: risposte corrette delle domande quiz. */
-    private Map<String, List<String>> scossaItems(int minDifficultyRank) {
-        Map<String, List<String>> byCategory = new LinkedHashMap<>();
-        for (BankQuestion question : allQuestions()) {
-            if (!"QUIZ".equals(question.type())) {
-                continue;
-            }
-            if (difficultyRank(question.difficulty()) < minDifficultyRank) {
-                continue;
-            }
-            String answer = question.correctAnswer();
-            if (answer == null || answer.isBlank() || answer.length() > 34
-                    || !question.options().contains(answer)) {
-                continue;
-            }
-            List<String> items = byCategory.computeIfAbsent(question.category(), key -> new ArrayList<>());
-            if (items.stream().noneMatch(existing -> existing.equalsIgnoreCase(answer))) {
-                items.add(answer);
-            }
-        }
-        return byCategory;
+    /** Banca Bomba caricata: serve ai test per controllare vere e false. */
+    List<BombaStatement> bombaBank() {
+        return bombaStatements;
     }
 
     public int bankSize() {
@@ -1353,6 +1370,44 @@ public class QuestionBankService {
             return List.copyOf(loaded);
         } catch (Exception error) {
             System.out.println("⚠️ Banca domande illeggibile (" + error.getMessage() + "): uso le domande di emergenza.");
+            return List.of();
+        }
+    }
+
+    /**
+     * Banca Bomba: affermazioni vere e false su fatti verificabili. Le false
+     * cambiano un dettaglio solo (anno, luogo, nome), mai un fatto assurdo.
+     */
+    private List<BombaStatement> loadBombaStatements() {
+        ClassPathResource resource = new ClassPathResource("questions/bomba-it.json");
+        if (!resource.exists()) {
+            System.out.println("⚠️ Banca Bomba assente: il tabellone usa le affermazioni di riserva.");
+            return List.of();
+        }
+        try (InputStream stream = resource.getInputStream()) {
+            String json = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+            JSONArray rows = new JSONObject(json).optJSONArray("statements");
+            List<BombaStatement> loaded = new ArrayList<>();
+            for (int index = 0; rows != null && index < rows.length(); index++) {
+                JSONObject row = rows.optJSONObject(index);
+                if (row == null) {
+                    continue;
+                }
+                String statement = row.optString("statement", "");
+                if (statement.isBlank() || !row.has("true")) {
+                    continue;
+                }
+                loaded.add(new BombaStatement(
+                        row.optString("id", "bomba-" + index),
+                        row.optString("category", "Fatti"),
+                        statement,
+                        row.optBoolean("true", false),
+                        row.optString("source", "")));
+            }
+            System.out.println("Banca Bomba caricata: " + loaded.size() + " affermazioni.");
+            return List.copyOf(loaded);
+        } catch (Exception error) {
+            System.out.println("⚠️ Banca Bomba illeggibile (" + error.getMessage() + "): uso le affermazioni di riserva.");
             return List.of();
         }
     }

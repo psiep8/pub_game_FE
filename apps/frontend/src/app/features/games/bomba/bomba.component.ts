@@ -95,14 +95,14 @@ import { CommonModule } from '@angular/common';
     .bb-disarmed { padding: 6px 14px; background: var(--mint); color: var(--coal); border: 3px solid var(--coal); box-shadow: 4px 4px 0 var(--coal); font-family: var(--font-mono); font-size: clamp(.66rem, 1vw, .84rem); font-weight: 700; letter-spacing: .06em; }
 
     .bb-board { width: min(1320px, 96vw); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(6px, 1vw, 12px); }
-    .bb-cell { display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; min-height: clamp(58px, 9vh, 92px); background: var(--paper); color: var(--coal); border: 3px solid var(--coal); box-shadow: 4px 4px 0 var(--coal); overflow: hidden; }
+    .bb-cell { display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; min-height: clamp(72px, 11vh, 108px); background: var(--paper); color: var(--coal); border: 3px solid var(--coal); box-shadow: 4px 4px 0 var(--coal); overflow: hidden; }
     .bb-cell.picked { box-shadow: 5px 5px 0 var(--mustard); }
     .bb-cell.safe { background: var(--mint); }
     .bb-cell.bomb { background: var(--tomato); color: var(--paper-hi); animation: bb-shake .35s ease-in-out; }
     .bb-cell-top { display: flex; align-items: center; justify-content: space-between; }
     .bb-cell-id { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; border: 2px solid currentColor; font-family: var(--font-mono); font-size: .6rem; font-weight: 700; }
     .bb-cell-mark { font-family: var(--font-mono); font-size: .72rem; font-weight: 700; }
-    .bb-cell-label { font-family: var(--font-mono); font-size: clamp(.66rem, .95vw, .84rem); font-weight: 700; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .bb-cell-label { font-family: var(--font-mono); font-size: clamp(.6rem, .85vw, .78rem); font-weight: 700; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
     .bb-cell-names { font-family: var(--font-mono); font-size: .58rem; letter-spacing: .06em; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .bb-empty { grid-column: 1 / -1; padding: 20px; text-align: center; font-family: var(--font-mono); font-size: .8rem; color: var(--ink-dim); }
 
