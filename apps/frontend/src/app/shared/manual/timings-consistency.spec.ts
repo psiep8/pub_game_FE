@@ -1,6 +1,7 @@
 import { DEMO_SCRIPTS } from '../../features/tv/demo-scripts';
 import { BONUS_TYPES } from '../enums/bonus-type';
 import { GAME_TIMINGS } from '../models/game-timings';
+import { BONUS_CHOICE_SECONDS, CASINO_SPINS } from '../models/scoring-rules';
 import { MANUAL_ENTRIES } from './manual-content';
 
 /**
@@ -29,17 +30,19 @@ const SECONDS_CITED: Record<string, readonly number[]> = {
   BLACKJACK: [15],
   ULTIMA_SPIAGGIA: [15],
   BIGLIE: [],
-  BONUS_CASINO_COLOR: [],
+  BONUS_CASINO_COLOR: [BONUS_CHOICE_SECONDS],
   BONUS_BLACKJACK: [],
-  BONUS_CASINO_DOZEN: [],
+  BONUS_CASINO_DOZEN: [BONUS_CHOICE_SECONDS],
   BONUS_CAVALLO: [],
-  BONUS_CASINO_NUMBER: [],
+  BONUS_CASINO_NUMBER: [BONUS_CHOICE_SECONDS],
 };
 
 const MANCHES_CITED: Record<string, readonly number[]> = {
   QUIZ: [GAME_TIMINGS.QUIZ.manches],
   MUSIC: [GAME_TIMINGS.MUSIC.manches],
   TIME_BUZZER: [GAME_TIMINGS.TIME_BUZZER.manches],
+  BONUS_CASINO_COLOR: [CASINO_SPINS],
+  BONUS_CASINO_DOZEN: [CASINO_SPINS],
 };
 
 function numbers(text: string, unit: RegExp): number[] {
