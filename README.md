@@ -3,11 +3,11 @@
 **La serata di quiz da pub, con la TV come tabellone e il telefono come pulsantiera.**
 PubGame è un gioco multigiocatore per locali e feste: la TV mostra domande, tabelloni e classifiche, ogni squadra risponde dal proprio telefono e il presentatore conduce la serata da `/admin`. Frontend Angular e backend Spring Boot vivono in questo monorepo.
 
-![TV: un round Biglie](docs/screenshots/biglie-tv-720p-01-partenza.png)
+![TV: la classifica rapida con 18 squadre](docs/screenshots/f09-classifica-rapida-18-squadre-720p.png)
 
-![Animazione: quattro momenti di una gara di Biglie](docs/screenshots/biglie-tv-720p.gif)
+![TV: la pista rally delle Biglie](docs/screenshots/biglie-tracciato-rally-720p.png)
 
-![Telefono: il manuale dei giochi, aperto tra un round e l'altro](docs/screenshots/phone-manuale-390.png)
+![Telefono: scelta del tema di squadra](docs/screenshots/phone-tema-pagina2b-390.png)
 
 > **Indice:** [Cos'è](#1-cosè) · [Come si gioca](#2-come-si-gioca) · [I giochi](#3-i-giochi) · [Tecnologie](#4-tecnologie) · [Architettura](#5-architettura) · [Avvio rapido](#6-avvio-rapido) · [Cartelle](#7-struttura-delle-cartelle) · [Aggiungere un gioco](#8-come-aggiungere-un-gioco) · [Test](#9-test-e-qualità) · [Audio](#10-audio) · [Serata di prova](#11-serata-di-prova) · [Stato e roadmap](#12-stato-e-roadmap) · [Contenuti e licenze](#13-contenuti-e-licenze) · [Licenza e contatti](#14-licenza-e-contatti) · [Documentazione](#15-mappa-della-documentazione)
 
@@ -63,12 +63,12 @@ I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring
 
 | Area | Scelta | Perché |
 |---|---|---|
-| Frontend | **Angular 22.2** standalone, signal, router lazy, service worker PWA | Un'unica codebase per TV, telefono e regia; le signal rendono esplicito lo stato che arriva dalla socket. |
-| Backend | **Spring Boot 4.1.2**, Java **25** | REST + WebSocket nello stesso processo, persistenza JPA e test di integrazione. |
+| Frontend | **Angular 22.3** standalone, signal, router lazy, service worker PWA | Un'unica codebase per TV, telefono e regia; le signal rendono esplicito lo stato che arriva dalla socket. |
+| Backend | **Spring Boot 4.2.0**, Java **25 LTS** | REST + WebSocket nello stesso processo, persistenza JPA e test di integrazione. |
 | Realtime | **STOMP su WebSocket nativo** (`@stomp/stompjs`) | Una sola socket per dispositivo, senza il fallback XHR di SockJS; riconnessione con backoff e jitter. L'endpoint SockJS resta disponibile sul backend, ma il frontend usa il WebSocket nativo. |
 | Dati | **H2** su file in locale, profilo **MySQL** per il servizio | Zero installazioni per la serata; MySQL quando serve un database gestito. |
 | Fisica | **Matter.js** per roulette e Biglie | La roulette e le biglie sono corpi rigidi con collisioni reali; disegno e muri usano la stessa geometria. |
-| Qualità | **Vitest 5.1 + jsdom** e **JUnit / Spring Boot Test** | Test veloci sul frontend e test di integrazione sul backend. |
+| Qualità | **Vitest 5.1.1 + jsdom** e **JUnit / Spring Boot Test** | Test veloci sul frontend e test di integrazione sul backend. |
 | Consegna | **Docker** fullstack | Un solo container serve TV, telefoni, API e WebSocket. |
 
 ## 5. Architettura
@@ -103,7 +103,7 @@ Poi apri `http://localhost:8080/tv` sul PC e inquadra il QR con i telefoni. La r
 
 ### Sviluppo con npm
 
-Servono **Node.js 22.22+** (o 24.15+), **npm 11** e **JDK 25**.
+Servono **Node.js 26.13+ (LTS)**, **npm 11.20+** e **JDK 25 LTS**. La versione Node è fissata in `.nvmrc` e usata anche dalla CI.
 
 ```bash
 npm install
@@ -157,15 +157,15 @@ npm run build:frontend   # ng build
 npm run build:backend    # Maven package
 ```
 
-Il frontend ha **62 file di spec (537 test al 19 novembre 2026)**; il backend **30 file di test**. Le verifiche coprono, tra l'altro: regole di punteggio e scaletta, contenuti del manuale, copertura delle demo, round manager, apertura/chiusura del manuale sul telefono, modalità TV, sessioni e riconnessione, prova dei pulsanti, API e servizi del backend.
+Il frontend ha **70 file di spec (643 test al 20 novembre 2026)**; il backend ha **154 test**. Le verifiche coprono, tra l'altro: regole di punteggio e scaletta, contenuti del manuale, copertura delle demo, round manager, apertura/chiusura del manuale sul telefono, modalità TV, sessioni e riconnessione, prova dei pulsanti, API e servizi del backend.
 
 **Limiti noti dei test**: la suite frontend deve compilare per intero (un solo errore TypeScript in una spec ferma tutti i test);  non esiste ancora una prova end-to-end multi-dispositivo in rete; i controlli visivi sono manuali (TV e telefono); i timer dichiarati dal client non sono interamente verificabili dal server.
 
 ## 10. Audio
 
-La colonna sonora della TV suona **file registrati** in `apps/frontend/public/assets/audio` (41 effetti e 7 loop in AAC `.m4a`, ~12 MB). Fonte e licenza di ogni file stanno in `FONTI.txt` e in `docs/CREDITI-AUDIO.md`. Nel codice non c'è più sintesi di eventi (Foley e i tappeti generati sono stati rimossi): resta solo la coda di stanza in `audio-dsp.ts`. Se un file manca, non suona nulla e compare un avviso in console.
+La colonna sonora della TV suona **file registrati** in `apps/frontend/public/assets/audio` (41 effetti e 20 loop in AAC `.m4a`, ~23 MB). Fonte e licenza di ogni file stanno in `FONTI.txt` e in `docs/CREDITI-AUDIO.md`. Nel codice non c'è più sintesi di eventi (Foley e i tappeti generati sono stati rimossi): resta solo la coda di stanza in `audio-dsp.ts`. Se un file manca, non suona nulla e compare un avviso in console.
 
-- **Sottofondi.** Piano a **20 loop**: una base per ciascun atto (5, tutte diverse) più un loop per i giochi e i bonus che ne reggono uno. **Oggi sono in cartella 7 su 20**; gli altri 13 sono da consegnare e, finché mancano, il gioco suona il loop più vicino o la base d'atto. La mappa gioco → loop è in `core/services/bed-map.ts`, il registro dei file in `bed-loops.ts`; il documento di riferimento è [`docs/SOTTOFONDI.md`](docs/SOTTOFONDI.md).
+- **Sottofondi.** Piano a **20 loop**: una base per ciascun atto (5, tutte diverse) più un loop per i giochi e i bonus che ne reggono uno. **Oggi sono in cartella 20 su 20**, tutti consegnati e resi in casa; la mappa gioco → loop è in `core/services/bed-map.ts`, il registro dei file in `bed-loops.ts`; il documento di riferimento è [`docs/SOTTOFONDI.md`](docs/SOTTOFONDI.md).
 - **Regola di riproduzione.** La base d'atto suona di default; il loop del gioco la sostituisce con una dissolvenza di 1,5 s e a fine gioco si torna alla base. Musica e Time Buzzer restano in silenzio; durante la domanda di Quiz e Indovina chi la musica scende di 6 dB. I loop si caricano con l'atto e il service worker li tiene in cache.
 - **Effetti e segnali.** Battito (dal round 20 cresce con la serata), tick del clock, suspense nei giochi a countdown, reveal, fanfara e podio. Mute con dissolvenza; la pausa ferma clock e battito.
 - **Regia audio.** La pagina `/audio` permette di ascoltare ogni evento, i sottofondi per atto e per gioco e il loro peso.
@@ -198,13 +198,13 @@ Il registro completo dei difetti emersi nella prima serata (F01–F55), con stat
 - Sezione Demo nell'admin (introduzione, 13 giochi, 5 bonus) con tabella punti generata da `SCORING_RULES`.
 - Classifiche rapide e dettagliate, pausa, ripresa, diagnostica di regia, espulsione di una squadra dalla regia.
 - Audio a file registrati con regia audio in `/audio`.
-- Banca domande pre-generata: 991 domande, 360 domande Azzardo, 113 eventi Timeline.
+- Banca domande pre-generata: 983 domande, 360 domande Azzardo, 95 affermazioni Bomba e 211 eventi Timeline.
 
 **Da provare con telefoni e TV veri** (corrette nel codice, non verificate in sala): rientro su iPhone e Safari, Time Buzzer, Arena (cerchio, movimento, inattività), Speed Rush a 90 secondi, Tennis dopo la migrazione del database, Bomba con esplosione immediata, vibrazione e suono sui telefoni.
 
 **Limitato o aperto**
 
-- **Sottofondi:** 13 loop su 20 ancora da consegnare.
+- **Sottofondi:** 20 loop su 20 consegnati; resta la prova d'ascolto in sala a volume vero.
 - **Font:** i caratteri (Anton, Space Mono, Bricolage Grotesque) sono serviti dal repository in `apps/frontend/public/assets/fonts`, quindi la serata regge anche senza internet.
 - **Tempi dichiarati dal client:** alcune modalità usano tempi o stato del telefono; i punteggi non sono tutti verificabili lato server.
 - **Sicurezza:** mancano rate limiting e recupero assistito del nome; un partecipante può prenotare per primo il nickname di un'altra squadra. Le sessioni non vengono revocate cambiando `CONTROL_SECRET`.
@@ -213,14 +213,13 @@ Il registro completo dei difetti emersi nella prima serata (F01–F55), con stat
 
 **In programma**
 
-- Consegna dei 13 sottofondi mancanti.
 - Minigiochi lampo a sorpresa fra un round e l'altro (idea documentata, **non ancora implementata**).
 - Rate limiting sulle sessioni e recupero assistito dei nomi.
 - Test end-to-end con più browser e dispositivi reali.
 
 ## 13. Contenuti e licenze
 
-- **Domande**: `apps/backend/src/main/resources/questions/questions-it.json` (991 domande, 16 categorie; Tennis Battle è un tipo di domanda, non una categoria), `azzardo-it.json` (360) e `timeline-it.json` (113 eventi). Il backend le carica all'avvio e non chiama alcun modello AI a runtime.
+- **Domande**: `apps/backend/src/main/resources/questions/questions-it.json` (983 domande, 16 categorie; Tennis Battle è un tipo di domanda, non una categoria), `azzardo-it.json` (360), `bomba-it.json` (95 affermazioni) e `timeline-it.json` (211 eventi). Il backend le carica all'avvio e non chiama alcun modello AI a runtime.
 - **Generazione**: `scripts/generate-questions/generate.py` può usare Groq, ma solo quando si rigenera la banca. `GROQ_API_KEY` non serve per giocare.
 - **Immagini**: “Indovina chi” può usare TMDB se `TMDB_API_KEY` è impostata; senza chiave la domanda resta senza foto. Se la banca media locale è presente, le immagini vengono servite dal backend.
 - **Musica**: senza banca locale il backend usa le anteprime pubbliche di 30 secondi dell'iTunes Search API; con la banca locale i file sono serviti da `/media/...`.

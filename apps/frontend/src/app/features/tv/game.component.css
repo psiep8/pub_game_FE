@@ -1738,14 +1738,6 @@
   text-transform: uppercase;
 }
 
-.bonus-hint {
-  margin: 6px 0 0;
-  color: color-mix(in srgb, var(--coal) 62%, transparent);
-  font-family: var(--font-mono);
-  font-size: clamp(.6rem, .9vw, .78rem);
-  letter-spacing: .06em;
-}
-
 .bonus-scores-head {
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr) auto;

@@ -3,7 +3,7 @@
 > **VERSIONE 2.1.0 — 19 novembre 2026.** Vince il codice; per il quadro completo
 > del gioco e della scaletta vale il [`README.md`](../../README.md) della radice.
 
-Backend **Spring Boot 4.1.2** su **Java 25**: REST e WebSocket STOMP nello stesso
+Backend **Spring Boot 4.2.0** su **Java 25 LTS**: REST e WebSocket STOMP nello stesso
 processo, persistenza JPA, sessioni per dispositivo e checkpoint della TV.
 Vive in `apps/backend` del monorepo.
 
@@ -54,7 +54,7 @@ src/main/java/com/pub_game_be/
 ├── repository/    JPA
 ├── security/      filtro sessioni e CORS
 └── service/       logica di gioco e domande
-src/main/resources/questions/   banca domande pre-generata (991 + 360 + 113)
+src/main/resources/questions/   banche pre-generate (983 quiz + 360 azzardo + 95 bomba + 211 timeline)
 ```
 
 L'autorità su punteggi e avanzamento è del server; la TV conserva la

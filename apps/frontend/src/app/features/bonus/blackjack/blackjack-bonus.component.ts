@@ -105,7 +105,6 @@ export class BlackjackBonus implements OnInit, OnDestroy {
   get paused(): boolean {
     return this.pause.isPaused;
   }
-  @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
   /** Mano corrente, da salvare sul server a ogni cambio di stato. */
   @Output() checkpoint = new EventEmitter<any>();

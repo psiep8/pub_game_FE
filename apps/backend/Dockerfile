@@ -1,7 +1,7 @@
 # ── Build ───────────────────────────────────────────────────────────────
 # Il backend richiede JDK 25 (maven-enforcer), quindi l'immagine di build
 # include già la toolchain giusta: nessuna dipendenza dal JDK della macchina.
-FROM maven:3.9-eclipse-temurin-25 AS build
+FROM maven:3.9.12-eclipse-temurin-25 AS build
 
 WORKDIR /workspace
 

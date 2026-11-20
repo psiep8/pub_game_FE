@@ -384,7 +384,6 @@
         [resume]="bonusResume()"
         [paused]="isPaused()"
         (checkpoint)="onBlackjackBonusCheckpoint($event)"
-        (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
     }
     @case ('CAVALLO') {
@@ -395,13 +394,12 @@
         [resume]="bonusResume()"
         [paused]="isPaused()"
         (checkpoint)="onBonusCheckpoint('CAVALLO', $event)"
-        (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
     }
   }
 }
 
-@if (bonusShowResult()) {
+@if (bonusShowResult() && bonusResult().length) {
 <div class="bonus-overlay">
   <div class="bonus-card">
     <header class="bonus-head">
@@ -414,22 +412,18 @@
         <b>{{ bonusResult().length }} TAVOLI</b>
       </div>
     </header>
-    @if (bonusResult().length) {
-      @if (bonusResult().length <= 8) {
-        <div class="bonus-scores-head"><span>POS</span><span>TAVOLO</span><span>PUNTI</span></div>
-      }
-      <div class="bonus-scores" [class.dense]="bonusResult().length > 8">
-        @for (row of bonusResult(); track row.playerName; let i = $index) {
-          <div class="bonus-row" [class.win]="i === 0">
-            <span class="bonus-pos">{{ i + 1 }}</span>
-            <span class="bonus-name">{{ row.playerName }}</span>
-            <b class="bonus-points">{{ row.score }}</b>
-          </div>
-        }
-      </div>
-    } @else {
-      <p class="bonus-hint">Nessun punto registrato.</p>
+    @if (bonusResult().length <= 8) {
+      <div class="bonus-scores-head"><span>POS</span><span>TAVOLO</span><span>PUNTI</span></div>
     }
+    <div class="bonus-scores" [class.dense]="bonusResult().length > 8">
+      @for (row of bonusResult(); track row.playerName; let i = $index) {
+        <div class="bonus-row" [class.win]="i === 0">
+          <span class="bonus-pos">{{ i + 1 }}</span>
+          <span class="bonus-name">{{ row.playerName }}</span>
+          <b class="bonus-points">{{ row.score }}</b>
+        </div>
+      }
+    </div>
   </div>
 </div>
 }

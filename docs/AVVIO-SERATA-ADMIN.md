@@ -16,7 +16,7 @@
 | **Il tuo telefono o un tablet** | Per la regia `/admin`. |
 | **Telefoni degli amici** | Browser normale (Safari o Chrome). Niente app. |
 | **Wi-Fi unico** | PC, TV, telefoni e regia sulla stessa rete. |
-| **Docker** *(consigliato)* **oppure** Node.js 22.22+, npm 11, JDK 25 | Scegli una delle due strade in `SETUP-LOCALE.md`, §3 o §4. |
+| **Docker** *(consigliato)* **oppure** Node.js 26.13+, npm 11.20, JDK 25 | Scegli una delle due strade in `SETUP-LOCALE.md`, §3 o §4. |
 | **Un segreto di regia** | Stringa casuale di almeno 32 caratteri (`CONTROL_SECRET`). Generala una volta e tienila: serve per aprire la regia. |
 
 Prima di questa sera, se non l'hai ancora fatto, leggi `SETUP-LOCALE.md` §3 o §4:

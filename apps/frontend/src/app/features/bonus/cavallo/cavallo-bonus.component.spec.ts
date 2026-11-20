@@ -31,15 +31,13 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
     ]);
     if (resume) fixture.componentRef.setInput('resume', resume);
 
-    const results: any[] = [];
     const checkpoints: any[] = [];
     const finished: number[] = [];
-    component.result.subscribe((result) => results.push(result));
     component.checkpoint.subscribe((checkpoint) => checkpoints.push(checkpoint));
     component.finished.subscribe(() => finished.push(1));
 
     fixture.detectChanges();
-    return { fixture, component, results, checkpoints, finished };
+    return { fixture, component, checkpoints, finished };
   }
 
   it('riprende la votazione della categoria con i voti già dati', () => {
@@ -146,7 +144,7 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
 
   it('riprende il finale senza assegnare punti o premi in app', () => {
     vi.useFakeTimers();
-    const { component, results, finished, fixture } = mount({
+    const { component, finished, fixture } = mount({
       phase: 'FINALE',
       secondsLeft: 4,
       savedAt: Date.now(),
@@ -159,7 +157,6 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
     });
 
     expect(component.phase()).toBe(component.Phase.FINALE);
-    expect(results).toEqual([]);
 
     vi.advanceTimersByTime(4100);
     expect(finished).toHaveLength(1);

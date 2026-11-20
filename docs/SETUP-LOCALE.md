@@ -91,7 +91,7 @@ Usa l'indirizzo con **il browser della TV aperto sull'IP e non su `localhost`**,
 
 ## 4. Modo B: sviluppo con npm
 
-Requisiti: **Node.js 22.22 o superiore** (o 24.15+) con **npm 11**, e **JDK 25**.
+Requisiti: **Node.js 26.13+ (LTS)** con **npm 11.20+**, e **JDK 25 LTS**.
 
 ```bash
 npm install

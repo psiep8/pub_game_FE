@@ -5,12 +5,12 @@
 # container serve TV, telefoni, API e WebSocket sulla stessa origine.
 #
 # Build:
-#   docker build -t pubgame:1.0.0 .
+#   docker build -t pubgame:2.2.0 .
 #   docker build --build-arg NG_CONFIG=test-night -t pubgame:test .
 #
 # NG_CONFIG: production (pub/dominio) oppure test-night (serata di prova).
 
-FROM node:24-bookworm-slim AS frontend
+FROM node:26.13.1-bookworm-slim AS frontend
 
 WORKDIR /workspace
 ARG NG_CONFIG=production
@@ -23,7 +23,7 @@ RUN npm ci
 COPY apps/frontend apps/frontend
 RUN cd apps/frontend && npx ng build --configuration "${NG_CONFIG}"
 
-FROM maven:3.9-eclipse-temurin-25 AS backend
+FROM maven:3.9.12-eclipse-temurin-25 AS backend
 
 WORKDIR /workspace
 

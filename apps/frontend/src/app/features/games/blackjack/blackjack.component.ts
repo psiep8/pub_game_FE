@@ -25,10 +25,14 @@ import { CommonModule } from '@angular/common';
           <div class="bj-final-title">TAVOLI CHIUSI</div>
           <div class="bj-final-rows">
             @for (row of displayData?.rows ?? []; track row.playerName) {
-              <div class="bj-final-row" [class.paid]="row.points > 0" [class.lost]="row.points < 0">
+              <div class="bj-final-row" [class.won]="isWinner(row.status)" [class.lost]="isLoss(row.status)">
                 <span>{{ row.playerName }}</span>
                 <span class="bj-final-status">{{ statusLabel(row.status) }}</span>
-                <b>{{ pointsLabel(row.points) }}</b>
+                @if ((row.points ?? 0) !== 0) {
+                  <b>{{ pointsLabel(row.points) }}</b>
+                } @else {
+                  <b class="bj-final-prize" [class.quiet]="!isWinner(row.status)">{{ isWinner(row.status) ? 'PREMIO AL BAR' : '—' }}</b>
+                }
               </div>
             }
           </div>
@@ -53,11 +57,13 @@ import { CommonModule } from '@angular/common';
 
           <section
             class="bj-side table"
-            [class.won]="(displayData?.result?.points ?? 0) > 0"
-            [class.lost]="(displayData?.result?.points ?? 0) < 0">
+            [class.won]="isWinner(displayData?.result?.outcome)"
+            [class.lost]="isLoss(displayData?.result?.outcome)">
             <div class="bj-side-head">
               <span class="bj-label">{{ displayData?.currentTable || 'IN ATTESA' }}</span>
-              <span class="bj-token">GETTONI {{ displayData?.stake ?? 250 }}</span>
+              @if ((displayData?.stake ?? 250) > 0) {
+                <span class="bj-token">GETTONI {{ displayData?.stake ?? 250 }}</span>
+              }
             </div>
             <div class="bj-cards">
               @for (card of displayData?.cards ?? []; track $index) {
@@ -88,21 +94,23 @@ import { CommonModule } from '@angular/common';
             @if (displayData?.choice === 'STAND') {
               <span class="bj-stamp quiet">LASCIA!</span>
             }
-            <span class="bj-outcome" [class.good]="result.points > 0" [class.bad]="result.points < 0">
+            <span class="bj-outcome" [class.good]="isWinner(result.outcome)" [class.bad]="isLoss(result.outcome)">
               {{ outcomeLabel(result.outcome) }}
             </span>
             <span class="bj-bank-total">BANCO {{ result.bankTotal }}</span>
-            <span class="bj-points" [class.neg]="result.points < 0">{{ pointsLabel(result.points) }}</span>
+            @if ((result.points ?? 0) !== 0) {
+              <span class="bj-points" [class.neg]="result.points < 0">{{ pointsLabel(result.points) }}</span>
+            }
           }
         </div>
 
         <div class="bj-strip">
           @for (row of displayData?.rows ?? []; track row.playerName) {
-            <div class="bj-chip" [class.active]="row.status === 'ACTIVE'" [class.paid]="row.points > 0"
-              [class.lost]="row.points < 0">
+            <div class="bj-chip" [class.active]="row.status === 'ACTIVE'" [class.won]="isWinner(row.status)"
+              [class.lost]="isLoss(row.status)">
               <span class="bj-chip-name">{{ row.playerName }}</span>
               <span class="bj-chip-status">{{ statusLabel(row.status) }}</span>
-              @if (row.points !== 0) {
+              @if ((row.points ?? 0) !== 0) {
                 <span class="bj-chip-points">{{ pointsLabel(row.points) }}</span>
               }
             </div>
@@ -151,7 +159,7 @@ import { CommonModule } from '@angular/common';
     .bj-strip { display: flex; flex-wrap: wrap; gap: clamp(4px, .7vw, 10px); justify-content: center; width: min(1180px, 96vw); }
     .bj-chip { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: clamp(76px, 8vw, 120px); padding: 4px 8px; background: rgba(255, 255, 255, .08); border: 2px solid rgba(255, 255, 255, .16); }
     .bj-chip.active { background: var(--paper-hi); border-color: var(--coal); color: var(--coal); }
-    .bj-chip.paid { background: var(--acid); border-color: var(--coal); color: var(--coal); }
+    .bj-chip.won { background: var(--acid); border-color: var(--coal); color: var(--coal); }
     .bj-chip.lost { border-color: var(--tomato); }
     .bj-chip-name { font-family: var(--font-mono); font-size: clamp(.58rem, .8vw, .72rem); font-weight: 700; letter-spacing: .06em; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .bj-chip-status { font-family: var(--font-mono); font-size: clamp(.5rem, .7vw, .62rem); letter-spacing: .12em; opacity: .8; }
@@ -160,9 +168,11 @@ import { CommonModule } from '@angular/common';
     .bj-final-title { font-family: var(--font-display); font-size: clamp(1.4rem, 2.6vw, 2.2rem); letter-spacing: .08em; }
     .bj-final-rows { display: flex; flex-direction: column; gap: 5px; width: min(760px, 92vw); }
     .bj-final-row { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: center; padding: 6px 14px; background: var(--paper-hi); color: var(--coal); border: 2px solid var(--coal); font-size: clamp(.8rem, 1.1vw, 1rem); }
-    .bj-final-row.paid { background: var(--acid); }
+    .bj-final-row.won { background: var(--acid); }
     .bj-final-row.lost { background: var(--paper); box-shadow: inset 4px 0 0 var(--tomato); }
     .bj-final-status { font-family: var(--font-mono); font-size: .72em; letter-spacing: .1em; opacity: .7; }
+    .bj-final-prize { font-family: var(--font-mono); font-size: .66em; font-weight: 800; letter-spacing: .1em; white-space: nowrap; }
+    .bj-final-prize.quiet { opacity: .35; }
     @keyframes bj-pulse { 50% { transform: scale(1.08); opacity: .7; } }
   `],
 })
@@ -184,6 +194,15 @@ export class Blackjack {
   isRed(card: string): boolean {
     const value = String(card ?? '');
     return value.includes('♥') || value.includes('♦');
+  }
+
+  /** Il bonus non assegna punti: l'esito decide chi va evidenziato. */
+  isWinner(outcome: string | null | undefined): boolean {
+    return outcome === 'WIN' || outcome === 'BLACKJACK';
+  }
+
+  isLoss(outcome: string | null | undefined): boolean {
+    return outcome === 'LOSE' || outcome === 'BUST';
   }
 
   pointsLabel(points: number | null | undefined): string {

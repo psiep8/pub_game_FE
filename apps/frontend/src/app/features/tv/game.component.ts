@@ -2089,7 +2089,7 @@ export class GameComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** I bonus sommano i punti delle manche: la classifica li incassa alla chiusura. */
+  /** I bonus a punti (Casino) sommano le manche: la classifica li incassa alla chiusura. */
   private recordBonusResult(playerName: string, score: number): void {
     const name = String(playerName || '').trim();
     if (!name) return;
@@ -2130,6 +2130,9 @@ export class GameComponent implements OnInit, OnDestroy {
       .map(([playerName, score]) => ({ playerName, score }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 6);
+    // Blackjack e Cavallo non assegnano punti: la loro schermata finale è già
+    // stata mostrata, quindi non serve una classifica vuota dopo la chiusura.
+    const hasRanking = ranking.length > 0;
 
     // I punti del bonus entrano in classifica una sola volta, alla chiusura:
     // così un risultato arrivato in ritardo non può pagare due volte.
@@ -2138,7 +2141,7 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     this.bonusResult.set(ranking);
-    this.bonusShowResult.set(true);
+    this.bonusShowResult.set(hasRanking);
 
     this.ws.broadcastStatus(this.currentGameId(), {
       action: WsAction.BONUS_ENDED,
@@ -2153,6 +2156,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
     // Il tipo resta per il riepilogo; non azzerarlo se nel frattempo parte un altro bonus.
     const closedAtRound = this.roundManager.getCurrentRound();
+    const summaryMs = hasRanking ? 8000 : 0;
     setTimeout(() => {
       if (this.bonusActive()) return;
       this.bonusShowResult.set(false);
@@ -2164,7 +2168,7 @@ export class GameComponent implements OnInit, OnDestroy {
       if (!this.currentMode() && !this.isShowingLeaderboard() && !this.roundManager.isGameOver()) {
         this.startAutoAdvance();
       }
-    }, 8000);
+    }, summaryMs);
   }
 
   /** La mano del Blackjack bonus vive sul server: un refresh non la perde. */

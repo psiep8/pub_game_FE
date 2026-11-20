@@ -393,7 +393,6 @@ export class CavalloBonus implements OnInit, OnDestroy {
   get paused(): boolean {
     return this.pause.isPaused;
   }
-  @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
   /** Stato della rush, da salvare sul server a ogni cambio di fase. */
   @Output() checkpoint = new EventEmitter<any>();

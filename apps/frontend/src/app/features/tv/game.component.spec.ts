@@ -1697,10 +1697,11 @@ describe('GameComponent', () => {
 
         (component as unknown as { finishBonus(): void }).finishBonus();
         expect(component.bonusActive()).toBe(false);
+        expect(component.bonusShowResult()).toBe(false);
         expect(rounds.getCurrentRound()).toBe(3);
 
-        // Otto secondi di riepilogo, poi i dieci del conto alla rovescia.
-        await vi.advanceTimersByTimeAsync(8_000);
+        // Il Blackjack non ha una classifica da mostrare: il conto alla rovescia
+        // parte subito, senza gli otto secondi di riepilogo del Casino.
         await vi.advanceTimersByTimeAsync(10_000);
 
         expect(rounds.getCurrentRound()).toBe(4);
@@ -1712,12 +1713,14 @@ describe('GameComponent', () => {
 
   describe('striscia di ripartenza dopo il bonus', () => {
     /** Porta la TV al riepilogo chiuso, quando parte il conto alla rovescia. */
-    function closeBonus(): void {
+    function closeBonus(type: 'CASINO_COLOR' | 'BLACKJACK' | 'CAVALLO' = 'CASINO_COLOR'): void {
       TestBed.inject(RoundManagerService).restoreRound(3);
       component.currentGameId.set(1);
       component.bonusEntrance.set(null);
       component.bonusActive.set(true);
-      component.bonusType.set('BLACKJACK');
+      component.bonusType.set(type);
+      // Il Casino ha una classifica da mostrare; Blackjack e Cavallo no.
+      if (type === 'CASINO_COLOR') component.onBonusResult({ playerName: 'Anna', score: 2 });
       (component as unknown as { finishBonus(): void }).finishBonus();
     }
 
@@ -1757,6 +1760,29 @@ describe('GameComponent', () => {
         vi.useRealTimers();
       }
     });
+
+    it.each(['BLACKJACK', 'CAVALLO'] as const)(
+      'chiude %s senza classifica vuota e riparte subito',
+      async (type) => {
+        vi.useFakeTimers();
+        try {
+          closeBonus(type);
+          fixture.detectChanges();
+
+          expect(component.bonusShowResult()).toBe(false);
+          expect(component.bonusResult()).toEqual([]);
+          expect(fixture.nativeElement.querySelector('.bonus-overlay')).toBeNull();
+          expect(fixture.nativeElement.textContent).not.toContain('Nessun punto registrato');
+
+          await vi.advanceTimersByTimeAsync(0);
+          fixture.detectChanges();
+          expect(strip()).not.toBeNull();
+          expect(countdownValue()).toBe('10');
+        } finally {
+          vi.useRealTimers();
+        }
+      },
+    );
 
     it.each([
       { caso: 'la pausa', interrompi: () => component.togglePause(), roundDopo: 3 },

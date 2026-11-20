@@ -24,15 +24,13 @@ describe('BlackjackBonus — ripresa dopo un refresh della TV', () => {
     if (resume) fixture.componentRef.setInput('resume', resume);
     if (preview) fixture.componentRef.setInput('preview', true);
 
-    const results: any[] = [];
     const checkpoints: any[] = [];
     const finished: number[] = [];
-    component.result.subscribe((result) => results.push(result));
     component.checkpoint.subscribe((checkpoint) => checkpoints.push(checkpoint));
     component.finished.subscribe(() => finished.push(finished.length));
 
     fixture.detectChanges();
-    return { fixture, component, results, checkpoints, finished };
+    return { fixture, component, checkpoints, finished };
   }
 
   it('riprende la mano in corso con le stesse carte e il tempo che resta', () => {
@@ -68,7 +66,7 @@ describe('BlackjackBonus — ripresa dopo un refresh della TV', () => {
   });
 
   it('un esito già calcolato non si rigioca', () => {
-    const { component, results, fixture } = mount({
+    const { component, fixture } = mount({
       order: ['Bruno', 'Anna'],
       index: 0,
       deck: ['2♠', '3♠'],
@@ -90,7 +88,6 @@ describe('BlackjackBonus — ripresa dopo un refresh della TV', () => {
     expect(display.phase).toBe('REVEAL');
     expect(display.bank.hidden).toBe(false);
     expect(display.result).toMatchObject({ outcome: 'WIN' });
-    expect(results).toEqual([]);
 
     fixture.destroy();
   });
