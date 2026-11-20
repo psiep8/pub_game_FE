@@ -18,6 +18,9 @@ con `npm run audit:banche`.
 | Numero secco del Casino | una sola girata: se nessuno becca il numero, nessuno prende punti | conferma con il gestore |
 | Finestra di scelta dei bonus | 10 secondi, si chiude prima se tutti hanno scelto | conferma della durata |
 | Buono bevande del Blackjack | massimo 3 squadre premiate per serata | decidere il tetto con il gestore |
+| Consegna dei buoni | la TV mostra il premio, ma il buono non ha ancora un codice, uno stato consegnato/non consegnato né una schermata sul telefono | definire flusso e persistenza prima della serata |
+| Distrattori delle banche | 47 risposte corrette sono più lunghe dei distrattori e 1 distrattore è molto corto (elenco in `docs/BANCHE-AUDIT.md`) | riscrivere a mano, senza cambiare i fatti |
+| Copertura di Ultima spiaggia | 69 combinazioni categoria/livello senza domande dedicate | decidere se riempirle o dichiarare il ripiego |
 | Versione | 2.2.0 | conferma prima del rilascio |
 
 ## Domande da guardare a mano

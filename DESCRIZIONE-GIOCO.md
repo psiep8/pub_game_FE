@@ -62,8 +62,8 @@ Blackjack non è più un round. Arena chiude gli atti 3 e 5; Ultima spiaggia è 
 - **Biglie** — quattro round da **due gare** (otto gare in serata) su due delle otto piste:
   rally (terra), F1 (asfalto), neve, acqua, **vetro**, sabbia, spazio e magma. La coppia di
   piste la sceglie il seme del round; una biglia per tavolo, scelta una volta sola. Ogni
-  gara paga **150/100/60/30** ai primi quattro e **−30/−60/−100/−150** agli ultimi
-  quattro; i punti entrano subito in classifica.
+  gara paga **+500** al primo e **−400** all'ultimo, con zero a metà se le squadre
+  sono dispari; i punti delle due gare si sommano fra loro e fra i quattro round.
 
 I punteggi vivono in `shared/models/scoring-rules.ts`; la scaletta in
 `shared/schedule.ts` è l'unica fonte di verità per round e occorrenze.
@@ -79,11 +79,11 @@ accreditati **una sola volta, alla chiusura**.
 
 | Atto | Bonus | Come funziona | Punti |
 | --- | --- | --- | --- |
-| 1 | **Casino nero/rosso** | Una manche sul colore, un giro di roulette | +100 |
-| 2 | **Blackjack** | Un turno per tavolo, 15 s, banco a 17 | +150 vittoria / +75 pari |
-| 3 | **Casino dozzina** | Una manche su 1–12, 13–24 o 25–36 | +120 |
-| 4 | **Cavallo di battaglia** | Categoria votata, otto domande flash | podio +200 / +100 / +50 |
-| 5 | **Casino numero secco** | Una puntata su un numero da 0 a 36 | +300 |
+| 1 | **Casino nero/rosso** | Tre girate sul colore, scelta in 10 s | +100 a girata (max +300) |
+| 2 | **Blackjack** | Un turno per tavolo, 15 s, banco a 17 | buono 3 consumazioni, max 3 a serata |
+| 3 | **Casino dozzina** | Tre girate su 1–12, 13–24 o 25–36 | +200 a girata (max +600) |
+| 4 | **Cavallo di battaglia** | Categoria votata, otto domande flash | buono 1 consumazione di cibo |
+| 5 | **Casino numero secco** | Una sola girata su un numero da 0 a 36 | +500 |
 
 Ogni bonus ha un ingresso TV scenografico distinto. Dopo quello dell'atto 5 si chiude con
 la classifica finale.

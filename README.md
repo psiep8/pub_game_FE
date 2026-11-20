@@ -15,7 +15,7 @@ PubGame è un gioco multigiocatore per locali e feste: la TV mostra domande, tab
 
 PubGame porta in sala un quiz a squadre in stile pub: nessuna app da installare, nessun account, un QR code sulla TV e il browser del telefono. La regia decide quando parte un round e quando si passa al successivo; il backend tiene sessioni, stato e recupero dopo un refresh.
 
-La versione è **2.1.0**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
+La versione è **2.2.0**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
 
 ## 2. Come si gioca
 
@@ -23,7 +23,7 @@ La versione è **2.1.0**. Il codice è la fonte di verità: se una frase di ques
 - **Telefoni (`/play`)**: ogni squadra entra con un nickname e gioca dal browser. In attesa può aprire il **Manuale dei giochi**; durante un round il manuale si chiude e il pulsante sparisce.
 - **Regia (`/admin`)**: il presentatore avvia e chiude i round, mette in pausa, mostra le classifiche, lancia i bonus e apre le demo. Non è un pannello di voto: le risposte arrivano dai telefoni.
 
-La serata è una scaletta fissa di **40 round divisi in 5 atti da 8** (`shared/schedule.ts`). Dopo i round **4, 12, 20, 28 e 36** compare la classifica rapida; dopo **8, 16, 24, 32 e 40** quella dettagliata. Le **Biglie sono quattro round separati** (11, 22, 28, 37), ognuno con due gare su due delle otto piste (rally, F1, neve, acqua, vetro, sabbia, spazio, magma); il **Blackjack non è più in scaletta** e resta solo come bonus. In **un round interno di ognuno** dei cinque atti (mai il primo, mai l'ultimo, scelto dal seme all'inizio della serata) parte un bonus diverso: Casino nero/rosso, Blackjack, Casino dozzina, Cavallo e Casino numero secco. I punti del bonus entrano in classifica alla chiusura; solo i punti sono in gioco, nessun bonus toglie punti.
+La serata è una scaletta fissa di **40 round divisi in 5 atti da 8** (`shared/schedule.ts`). Dopo i round **4, 12, 20, 28 e 36** compare la classifica rapida; dopo **8, 16, 24, 32 e 40** quella dettagliata. Le **Biglie sono quattro round separati** (11, 22, 28, 37), ognuno con due gare su due delle otto piste (rally, F1, neve, acqua, vetro, sabbia, spazio, magma); il **Blackjack non è più in scaletta** e resta solo come bonus. In **un round interno di ognuno** dei cinque atti (mai il primo, mai l'ultimo, scelto dal seme all'inizio della serata) parte un bonus diverso: Casino nero/rosso, Blackjack, Casino dozzina, Cavallo e Casino numero secco. I punti del bonus entrano in classifica alla chiusura e nessun bonus toglie punti; Blackjack e Cavallo pagano buoni al bar, non punti.
 
 Una serata completa dura indicativamente **3–4 ore**: è una stima, non un dato misurato, e dipende da quanto il presentatore allunga i tempi tra un round e l'altro. Il numero di telefoni consigliato è **4–10 squadre**; il codice non impone un limite rigido.
 
@@ -34,15 +34,15 @@ I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring
 | Gioco | Tipo | Come funziona | Punti |
 |---|---|---|---|
 | **Quiz** | Sapere | Tre manche a scelta multipla; il tempo decide quanto vale una risposta. | Fino a **+1000** in 3 manches; errore = −quota della domanda; nessun malus se non si risponde. |
-| **Indovina la canzone** | Sapere | Quattro ascolti da 30 secondi; ci si prenota e si sceglie titolo o artista. | **+1000 × secondi rimasti** (minimo **+250**), **−1000** sbagliata. |
+| **Indovina la canzone** | Sapere | Quattro ascolti da 30 secondi; ci si prenota e si sceglie titolo o artista. | **+1000 / +750 / +500 / +250** secondo la manche; sbagliata lo stesso valore in negativo. |
 | **Indovina chi** | Sapere | La foto si schiarisce con il tempo; ci si prenota e si risponde a voce. | **+1000 × tempo rimasto**; errore **−1000 × tempo rimasto**. |
 | **Ruota della fortuna** | Sapere | Una frase a lettere coperte, timer lungo, prenotazione e risposta. | **+1000 × tempo rimasto**; errore **−1000 × tempo rimasto**. |
-| **Timeline** | Sapere | Sei date da ordinare dal passato al presente, tutti sulla stessa scala. | Fino a **+1200** in base alle posizioni esatte su n; sotto **n/2 − 1** si perde, fino a **−400**. |
-| **Time Buzzer** | Riflessi | Tre manche da 30 secondi per fermare il cronometro su un bersaglio di 5–20 secondi; i tagli eliminano progressivamente. | **+300 / +220 / +150 / +90 / +50** a fascia, manche dopo manche; tagliato **−250** o **−100**; finalisti **+150**. |
-| **Bomba** | Rischio | Un tabellone, un turno per squadra; quasi tutte le caselle sono vere, una ogni tre squadre è falsa. | Casella vera: **0** e si passa il turno; falsa scelta: **−200** e fuori dal round; chi non sceglie in tempo è **eliminato** (**−200**) e salta le ondate successive. Durante l'ondata le caselle restano coperte: bombe, eliminati e penalità si scoprono solo alla fine. |
-| **Speed Rush** | Riflessi | 90 secondi di risposte lampo; la corsia avanza a ogni risposta giusta. | **500** al primo, poi a scalare; minimo **100**; prendono punti solo i primi **n/2**. Progressi, arrivi e punti arrivano dal server; le prove non si ripetono e salgono di difficoltà. |
-| **Tennis Battle** | Riflessi | Duello a coppie: ogni risposta rimanda la palla; punteggio da tennis (15, 30, 40, vantaggio) e killer point dopo tre ritorni dal vantaggio. Le domande salgono da facili a difficili e il disco arriva dritto, a zig-zag, a giro o a salto. | **+1000** al vincitore, **+200** di consolazione al perdente; ogni gol subito è un gol per l'avversario. |
-| **Biglie** | Fortuna / spettacolo | Corsa di biglie su una pista con curve e ostacoli, disegnata e simulata dalla TV con la stessa geometria. Ogni tavolo sceglie una biglia una sola volta e la porta nelle due gare del round; non si gioca dal telefono durante la corsa. | **+150 / +100 / +60 / +30** ai primi quattro di ogni gara; **−30 / −60 / −100 / −150** agli ultimi quattro, in base all'arrivo. |
+| **Timeline** | Sapere | Otto date da ordinare dal passato al presente, tutti sulla stessa scala. | Posti giusti: 8 **+400**, 7 **+300**, 6 **+200**, 5 **+100**, 4 **0**, 3 **−50**, 2 **−100**, 1 o 0 **−200**. |
+| **Time Buzzer** | Riflessi | Tre manche da 30 secondi per fermare il cronometro su un bersaglio di 5–20 secondi; tutte le squadre giocano sempre. | **+300** al primo, **−200** all'ultimo, 0 a metà se N è dispari; **+600** a chi centra il bersaglio entro 50 ms. I punti si sommano fra le manche. |
+| **Bomba** | Rischio | Un tabellone, un turno per squadra; quasi tutte le caselle sono vere, una ogni tre squadre è falsa. | Casella vera: **0** e si passa il turno; falsa scelta: fuori dal round con malus **−500** × bombe rimaste / bombe iniziali (−500, −400, −300, −200, −100). Chi non sceglie in tempo è fuori come se avesse preso una bomba. Durante l'ondata le caselle restano coperte. |
+| **Speed Rush** | Riflessi | 90 secondi di risposte lampo; la corsia avanza a ogni risposta giusta. | **+800** al primo, **−400** all'ultimo, 0 a metà se N è dispari; chi non arriva è ultimo a pari merito. Punti calcolati dal server; le prove non si ripetono e salgono di difficoltà. |
+| **Tennis Battle** | Riflessi | Duello a coppie: ogni risposta rimanda la palla; punteggio da tennis (15, 30, 40, vantaggio) e killer point dopo tre ritorni dal vantaggio. Le domande salgono da facili a difficili e il disco arriva dritto, a zig-zag, a giro o a salto. | **+500** a chi vince la partita, **0** a chi perde; ogni gol subito è un gol per l'avversario. |
+| **Biglie** | Fortuna / spettacolo | Corsa di biglie su una pista con curve e ostacoli, disegnata e simulata dalla TV con la stessa geometria. Ogni tavolo sceglie una biglia una sola volta e la porta nelle due gare del round; non si gioca dal telefono durante la corsa. | **+500** al primo di ogni gara, **−400** all'ultimo, 0 a metà se N è dispari; i punti si sommano fra le due gare e fra i quattro round. |
 | **Azzardo** | Rischio | Quattro manche numeriche; dieci fiches da 20 punti da distribuire sulle quattro risposte. | Fiche giusta: **+20 × quota** (×2 facile, ×3 media, ×4 difficile); fiche sbagliate: **−20 × fiche × 100/80/60/40%**; mai sotto zero. La puntata parte solo con **CONFERMA PUNTATA** e almeno una fiche; le fiches avanzate si sommano alle dieci nuove e alzano il tetto di una fiche ogni due risparmiate (max **15**, quindi al massimo **+1000** in una manche). |
 | **Ultima spiaggia** | Rischio / sapere | Cinque livelli da 100 a 500, una volta per squadra in tutta la serata; una categoria per occorrenza. | **+100 / +200 / +300 / +400 / +500**; errore **−50 / −100 / −150 / −200 / −250**; chi non risponde perde metà del livello scelto. |
 | **Arena Battle Royale** | Sapere + riflessi | Battle royale a domande rapide dentro un cerchio che si chiude. | **+10 / −10** per risposta; piazzamento **+1000 / +500 / −300**. |
@@ -51,13 +51,13 @@ I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring
 
 | Bonus | Quando | Come funziona | Punti |
 |---|---|---|---|
-| **Casino nero/rosso** | in un round dell'atto 1 | Una sola manche sul colore; la ruota europea gira una volta. | Colore giusto **+100**; zero: banco. |
-| **Blackjack** | in un round dell'atto 2 | Un turno per tavolo, 15 s, carta o stai; il banco si ferma a 17. | Vittoria **+150**, pari **+75**, sconfitta **0**. |
-| **Casino dozzina** | in un round dell'atto 3 | Una sola manche su 1–12, 13–24 o 25–36. | Dozzina giusta **+120**. |
-| **Cavallo di battaglia** | in un round dell'atto 4 | Categoria votata dai telefoni, otto domande flash. | Podio **+200 / +100 / +50**. |
-| **Casino numero secco** | in un round dell'atto 5 | Una puntata su un numero da 0 a 36; la ruota rigira finché qualcuno lo ha puntato. | Numero esatto **+300**. |
+| **Casino nero/rosso** | in un round dell'atto 1 | Tre girate sul colore; la scelta si fa in dieci secondi a ogni girata. | Colore giusto **+100** a girata, massimo **+300**; zero: banco. |
+| **Blackjack** | in un round dell'atto 2 | Un turno per tavolo, 15 s, carta o stai; il banco si ferma a 17. | Chi batte il banco riceve un **buono per 3 consumazioni al tavolo**, non punti; massimo tre buoni a serata. |
+| **Casino dozzina** | in un round dell'atto 3 | Tre girate su 1–12, 13–24 o 25–36, scelta in dieci secondi. | Dozzina giusta **+200** a girata, massimo **+600**. |
+| **Cavallo di battaglia** | in un round dell'atto 4 | Categoria votata dai telefoni, otto domande flash. | Il vincitore riceve un **buono per una consumazione di cibo**; a pari merito vince chi ha finito prima. |
+| **Casino numero secco** | in un round dell'atto 5 | Una sola girata su un numero da 0 a 36, scelta in dieci secondi. | Numero esatto **+500**; se nessuno lo becca, nessuno prende punti. |
 
-**I punti dei bonus entrano nella classifica della serata una sola volta, alla chiusura del bonus.** Dopo il bonus dell’atto 5 la TV mostra la classifica finale aggiornata.
+**Casino paga punti, che entrano nella classifica della serata una sola volta, alla chiusura del bonus; Blackjack e Cavallo danno buoni, non punti.** Dopo il bonus dell’atto 5 la TV mostra la classifica finale aggiornata.
 
 ## 4. Tecnologie
 
@@ -180,7 +180,7 @@ Prima di una serata con telefoni veri:
 1. `cp .env.test-night.example .env` e compila `CONTROL_SECRET` (≥ 32 caratteri) e `ALLOWED_ORIGINS` con IP LAN del PC.
 2. `npm run db:backup` (copia in `backups/`, fuori dal repository).
 3. `npm run dev`, poi `curl http://localhost:8080/health` deve rispondere `{"status":"ok"}`.
-   Con Docker: `PUBGAME_TAG=2.1.0 docker compose up -d` fissa la versione, così un
+   Con Docker: `PUBGAME_TAG=2.2.0 docker compose up -d` fissa la versione, così un
    aggiornamento sbagliato si annulla cambiando tag.
 4. Giro a vuoto con un iPhone e un Android: ingresso, un round, refresh della TV, blocco schermo di 60 secondi.
 

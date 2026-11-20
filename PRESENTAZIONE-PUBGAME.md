@@ -87,11 +87,11 @@ Bonus, uno dentro ognuno dei cinque atti:
 
 | Atto | Bonus | Punti |
 | --- | --- | --- |
-| 1 | 🎰 Casino nero/rosso | +100 |
-| 2 | 🃏 Blackjack | +150 vittoria / +75 pari |
-| 3 | 🎰 Casino dozzina | +120 |
-| 4 | 🐎 Cavallo di Battaglia | +200 / +100 / +50 |
-| 5 | 🎯 Casino numero secco | +300 |
+| 1 | 🎰 Casino nero/rosso | +100 a girata, tre girate (max +300) |
+| 2 | 🃏 Blackjack | buono 3 consumazioni, max 3 a serata |
+| 3 | 🎰 Casino dozzina | +200 a girata, tre girate (max +600) |
+| 4 | 🐎 Cavallo di Battaglia | buono 1 consumazione di cibo |
+| 5 | 🎯 Casino numero secco | +500 |
 
 Chiuso il riepilogo di un bonus, la scaletta riparte dal round successivo; dopo il round 40 si chiude con la classifica finale aggiornata.
 
@@ -122,19 +122,18 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 
 - **TV**: parte il brano, senza titolo né artista.
 - **Telefoni**: prenotazione e risposta a voce.
-- **Punti**: **+1000** se è giusta, **−1000** se è sbagliata; chi non risponde 0. Il brano
-  vale sempre uguale, manche dopo manche.
+- **Punti**: **+1000** alla prima manche, poi **+750**, **+500**, **+250**; sbagliata lo
+  stesso valore in negativo, chi non risponde 0.
 - *Da dire:* «La prima manche vale il doppio dell'ultima. Se conoscete la canzone, è il
   momento di rischiare.»
 
 ### TIMELINE — metti in ordine la storia
 
-- **TV**: quattro o cinque eventi mescolati.
+- **TV**: **otto eventi** mescolati a ogni round.
 - **Telefoni**: si trascinano le carte nell'ordine cronologico e si invia.
-- **Punti**: **1200 × posizioni esatte / n** (massimo 1200); sotto **n/2 − 1** si perde,
-  fino a **−400**; chi non risponde prende 0.
-- *Da dire:* «Non serve essere perfetti: ogni coppia nell'ordine giusto vale mille. Ma il
-  bonus da duecento lo prende solo chi azzecca tutto.»
+- **Punti**: 8 posti giusti **+400**, 7 **+300**, 6 **+200**, 5 **+100**, 4 **0**, 3 **−50**,
+  2 **−100**, 1 o 0 **−200**; chi non risponde prende 0.
+- *Da dire:* «Otto eventi, un solo ordine giusto: ogni posto esatto conta.»
 
 ### RUOTA DELLA FORTUNA — il proverbio a lettere
 
@@ -146,24 +145,21 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 - *Da dire:* «Le lettere arrivano nell'ordine meno utile: le consonanti rare per prime.
   Chi lo sa già, rischi.»
 
-### BOMBA — la catena che passa di mano
+### BOMBA — restare in vita
 
-- **TV**: la miccia che scorre e la domanda del momento.
-- **Telefoni**: la squadra di turno risponde; se non sa, **passa** la bomba a un'altra
-  squadra.
-- **Punti**: casella vera **0** e si passa il turno; casella falsa **−200** e fuori dal
-  round; chi non risponde salta il turno. Le bombe false mai scelte si disarmano.
-- *Da dire:* «Passare la bomba fa guadagnare, tenerla troppo a lungo fa esplodere. Non è
-  un gioco di conoscenza, è un gioco di nervi.»
+- **TV**: il tabellone coperto e il turno che passa da una squadra all'altra.
+- **Telefoni**: la squadra di turno sceglie una casella: è un'affermazione vera o falsa.
+- **Punti**: casella vera **0**, si resta in vita; casella falsa **fuori dal round** con un
+  malus che parte da **−500** e scende con le bombe rimaste (−500, −400, −300, −200, −100).
+  Chi non sceglie in tempo è fuori come se avesse preso una bomba.
+- *Da dire:* «Qui non si guadagna: si resta vivi. La prima bomba è quella che costa di più.»
 
 ### SPEED RUSH — la corsa a ostacoli di minigiochi
 
 - **TV**: le corsie delle squadre che avanzano.
 - **Telefoni**: minigiochi rapidi (tocca il diverso, ordina, calcola, memoria, colori…).
-- **Punti**: **500** al primo, poi a scalare con minimo **100**; prendono punti solo i
-  primi **n/2** arrivati. Un errore fa arretrare la corsia, chi resta sotto la metà prende 0.
-- **In serata reale il round è bloccato** (vedi README §12): si gioca solo in simulazione,
-  perché il punteggio non è ancora verificato dal server.
+- **Punti**: **+800** al primo, **−400** all'ultimo, zero a metà se N è dispari; chi non
+  arriva è ultimo a pari merito. Il punteggio lo calcola il server.
 - *Da dire:* «Non conta sapere, conta non sbagliare: la corsia non aspetta nessuno.»
 
 ### TENNIS BATTLE — a coppie
@@ -171,8 +167,7 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 - **TV**: il tavolo, i portieri laser e il disco.
 - **Telefoni**: due squadre si sfidano a domande rapide; ogni risposta sbagliata o lenta
   allunga il tempo dell'avversario e rende il tiro più difficile.
-- **Punti**: il set si chiude a **7 game**; il vincitore prende **+1000**, il perdente
-  **+200** di consolazione.
+- **Punti**: chi vince la partita prende **+500**, chi perde **0**.
 - *Da dire:* «Rispondere velocemente non vi fa solo vincere il punto: toglie tempo e
   precisione a chi vi sta davanti.»
 
@@ -196,28 +191,28 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 Non consumano un round: la TV li apre da sola in **un round interno dell'atto**, scelto all'inizio della serata tra il secondo, il terzo, il quinto, il sesto e il settimo (mai l'apertura, mai il quarto con la classifica rapida, mai l'ultimo); la regia può lanciarli anche a mano. I punti entrano in classifica **una sola volta, alla chiusura del bonus**; nessun bonus toglie punti.
 
 ### 🎰 Casino nero/rosso — nell'atto 1
-- Una sola manche: ogni tavolo sceglie **nero o rosso**.
-- La roulette europea gira una volta; il colore giusto vale **+100**, lo zero incassa per il banco.
-- *Da dire:* «Una puntata, un colore, un giro: qui conta il fegato.»
+- **Tre girate**: ogni tavolo sceglie **nero o rosso** entro dieci secondi.
+- Ogni colore giusto vale **+100** (massimo +300); lo zero incassa per il banco.
+- *Da dire:* «Tre giri, un colore: qui conta il fegato.»
 
 ### 🃏 Blackjack — nell'atto 2
 - Un turno per tavolo, dal fondo della classifica: **15 secondi**, CARTA o STAI.
-- Il banco si ferma a **17**. Vittoria **+150**, pari **+75**, sconfitta **0**.
+- Il banco si ferma a **17**. Chi lo batte riceve un **buono per 3 consumazioni al tavolo**, non punti; massimo tre buoni a serata.
 - *Da dire:* «Il banco non aspetta: fermatevi prima di sballare.»
 
 ### 🎰 Casino dozzina — nell'atto 3
-- Una sola manche su **1–12, 13–24 o 25–36**.
-- La pallina esce una volta; la dozzina giusta vale **+120**, lo zero non paga nessuno.
+- **Tre girate** su **1–12, 13–24 o 25–36**, scelta in dieci secondi.
+- Ogni dozzina giusta vale **+200** (massimo +600); lo zero non paga nessuno.
 - *Da dire:* «Dodici numeri per volta: scegliete la fetta giusta.»
 
 ### 🐎 Cavallo di Battaglia — nell'atto 4
 - La categoria la votano i telefoni; poi **otto domande difficili**, una dietro l'altra.
-- La TV mostra countdown e tabellone; il podio vale **+200 / +100 / +50**.
+- Vince chi ha più risposte giuste, a pari merito chi ha finito prima: premio un **buono per una consumazione di cibo**.
 - *Da dire:* «La domanda è sul telefono: guardate il tabellone e correte.»
 
 ### 🎯 Casino numero secco — nell'atto 5
-- Una sola puntata su un numero da **0 a 36**; la ruota rigira finché almeno un tavolo ha puntato il numero uscito.
-- Numero esatto **+300**. Poi la TV mostra la **classifica finale aggiornata**.
+- **Una sola girata** su un numero da **0 a 36**, scelta in dieci secondi.
+- Numero esatto **+500**; se nessuno lo becca, nessuno prende punti. Poi la TV mostra la **classifica finale aggiornata**.
 - *Da dire:* «Un numero, tutto: l'ultima carta della serata.»
 
 ---

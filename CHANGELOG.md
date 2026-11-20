@@ -1,5 +1,32 @@
 # Changelog
 
+## 20 novembre 2026 — Punteggi nuovi, banche riviste, bonus con i buoni
+
+- **Banche dati:** audit riproducibile (`scripts/audit-banche.mjs`), 30
+  difficoltà normalizzate in italiano, 11 doppioni tolti e risposte bilanciate
+  (134/132/133/132); Timeline portata a **211 eventi** con difficoltà 1–5 e
+  fonte; la Bomba usa una banca di **affermazioni vere e false** con fonte al
+  posto del «quale non appartiene»; ripristinata la copertura minima delle
+  categorie con tre domande verificate.
+- **Una sola tabella:** `rankPoints` (frontend e backend, stessi esempi) e
+  `SCORING_RULES`/`BONUS_SCORING` con costanti numeriche lette da motori,
+  manuale, demo e README; un test controlla la coerenza.
+- **Giochi:** Musica paga 1000/750/500/250 secondo la manche; Timeline sempre
+  8 eventi con +400…−200; Time Buzzer senza eliminazioni, +300/−200 e +600
+  col tempo perfetto; Speed Rush +800/−400; Biglie +500/−400; Tennis +500/0;
+  Bomba solo malus decrescente da −500.
+- **Bonus:** Casino colore e dozzina tre girate (100/200 a girata), numero
+  secco una girata da 500, scelta in dieci secondi; Blackjack e Cavallo danno
+  buoni (3 consumazioni / 1 consumazione di cibo) invece di punti.
+- **Rimosso:** generatore Bomba a quiz senza chiamanti, voce `BLACKJACK` dei
+  punteggi di gioco, vecchie tabelle (Musica a secondi, Timeline a 6 carte,
+  Biglie 150/100, Tennis 1000/200, Time Buzzer a tagli, Bomba −200),
+  `SECONDA-SERATA.md` (superato dal registro).
+- **Da provare in sala:** tempi della finestra bonus, buono consegnato al bar,
+  equilibrio dei nuovi massimi/minimi, distrattori delle banche rimasti da
+  approvare a mano.
+- Verifiche: suite frontend e backend mirate; versione 2.2.0.
+
 ## 20 novembre 2026 — Sottofondi in casa, finale con il suo tappeto, 2.2.0
 
 - **Tredici sottofondi nuovi:** cinque basi d'atto, i quattordici tappeti dei
