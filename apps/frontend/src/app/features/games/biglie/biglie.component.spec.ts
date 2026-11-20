@@ -625,6 +625,78 @@ describe('Biglie — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
+  it('la pausa non cambia l’ordine d’arrivo né i punti della gara', async () => {
+    vi.useFakeTimers();
+    const audio = TestBed.inject(AudioService);
+    vi.spyOn(audio, 'stopMarbleBed').mockImplementation(() => {});
+    vi.spyOn(audio, 'playApplause').mockImplementation(() => {});
+    // I timer finti fanno partire anche il rAF di `attachCanvas`, che in jsdom
+    // non ha ResizeObserver: qui la corsa si guida a mano, frame per frame.
+    vi.spyOn(globalThis, 'requestAnimationFrame').mockReturnValue(777 as any);
+
+    /** Stessa fotografia al traguardo: positions e distacchi identici nei due casi. */
+    const atTheLine = (component: any): void => {
+      const internal = component as any;
+      internal.countdownLeft = 0;
+      internal.raceMarbles.forEach((marble: any, index: number) => {
+        marble.finished = true;
+        marble.position = index + 1;
+        marble.x = 100 - index;
+        marble.marbleId = index === 0 ? 'fulmine' : 'scheggia';
+      });
+    };
+
+    // Gara di riferimento: arriva al traguardo senza interruzioni.
+    const straight = mount();
+    await (straight.component as any).startRace(0);
+    atTheLine(straight.component);
+    (straight.component as any).advanceRace(0.016);
+    // I timer finti sono condivisi: spento il cronometro, il ramo di riferimento
+    // resta fermo sul tabellone appena pagato mentre l'altro aspetta in pausa.
+    straight.fixture.componentRef.setInput('paused', true);
+    straight.fixture.detectChanges();
+    const straightRows = straight.component.raceResult();
+    expect(straightRows).toHaveLength(2);
+
+    // Stessa gara, ma con la sala ferma prima dell'ultimo passo.
+    const paused = mount();
+    await (paused.component as any).startRace(0);
+    atTheLine(paused.component);
+    const internal = paused.component as any;
+    const snapshot = () => internal.raceMarbles.map((marble: any) => ({
+      x: marble.x,
+      position: marble.position,
+      finished: marble.finished,
+    }));
+    const before = snapshot();
+    const elapsed = internal.raceElapsed;
+
+    paused.fixture.componentRef.setInput('paused', true);
+    paused.fixture.detectChanges();
+    vi.advanceTimersByTime(30000);
+
+    // La pausa non tocca la corsa: stesse biglie, stesso istante, nessun punto.
+    expect(snapshot()).toEqual(before);
+    expect(internal.raceElapsed).toBe(elapsed);
+    expect(internal.phase()).toBe('RACE');
+    expect(paused.results).toEqual([]);
+
+    paused.fixture.componentRef.setInput('paused', false);
+    paused.fixture.detectChanges();
+    internal.advanceRace(0.016);
+
+    // Stesso ordine d'arrivo, stessi punti e stessi totali del passaggio diretto.
+    expect(paused.results).toEqual(straight.results);
+    expect(paused.component.raceResult()).toEqual(straightRows);
+    expect(paused.component.raceResult()?.map((row: any) => row.position)).toEqual([1, 2]);
+    expect(paused.component.raceResult()?.map((row: any) => row.points)).toEqual([150, 100]);
+
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+    straight.fixture.destroy();
+    paused.fixture.destroy();
+  });
+
   it('la corsa non riparte se resta la pausa o la scheda è nascosta', () => {
     vi.useFakeTimers();
     const { component, fixture } = mount();
