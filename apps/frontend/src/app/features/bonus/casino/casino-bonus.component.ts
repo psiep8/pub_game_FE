@@ -655,7 +655,11 @@ export class CasinoBonus implements OnInit, OnDestroy {
    */
   @Input()
   set paused(value: boolean) {
+    const was = this.pause.isPaused;
     this.pause.setPaused(value);
+    // La pausa è uno stato del bonus: senza checkpoint, un refresh della TV
+    // riaprirebbe la manche già in corsa.
+    if (this.pausedReady && was !== this.pause.isPaused) this.emitCheckpoint();
   }
   get paused(): boolean {
     return this.pause.isPaused;
@@ -706,6 +710,8 @@ export class CasinoBonus implements OnInit, OnDestroy {
   private readonly votes = new Map<string, string>();
   private readonly scoreMap = new Map<string, number>();
   /** Pausa, cronometro e attese: ferma anche il giro della ruota. */
+  /** Input iniziale applicato: da lì in poi ogni cambio di pausa va nel checkpoint. */
+  private pausedReady = false;
   private readonly pause = new TvPause({
     suspend: () => this.freezeSpin(),
     resume: () => this.spinResume?.(),
@@ -718,6 +724,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
   private destroyed = false;
 
   ngOnInit(): void {
+    this.pausedReady = true;
     this.manches = MANCHES.filter((manche) => manche.id === this.variant);
     const label = this.variant === 'NUMBER' ? 'NUMERO SECCO' : this.variant === 'DOZEN' ? 'DOZZINA' : 'NERO/ROSSO';
     this.title.set(`CASINO · ${label}`);
@@ -810,6 +817,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
       manche: this.manche(),
       phase: this.phase(),
       secondsLeft: this.secondsLeft(),
+      paused: this.paused,
       savedAt: Date.now(),
       votes: [...this.votes.entries()].map(([playerName, choice]) => ({ playerName, choice })),
       scores: this.totals(),

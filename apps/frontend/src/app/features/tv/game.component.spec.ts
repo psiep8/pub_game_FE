@@ -117,6 +117,53 @@ describe('GameComponent', () => {
     expect(component.isPaused()).toBe(false);
   });
 
+  it('riapre un bonus in pausa dopo un refresh della TV', () => {
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+    component.currentGameId.set(1);
+
+    tv.applyAuthoritativeState({
+      hasState: true,
+      status: 'CREATED',
+      roundIndex: 0,
+      tvCheckpoint: {
+        mode: 'BONUS_CASINO_COLOR',
+        roundIndex: -1,
+        revision: Date.now(),
+        state: { phase: 'PICK', manche: 1, secondsLeft: 9, savedAt: Date.now(), paused: true },
+      },
+    });
+
+    // La sala era ferma quando la TV si è ricaricata: si torna in pausa.
+    expect(component.isPaused()).toBe(true);
+    expect(component.bonusResume()?.paused).toBe(true);
+  });
+
+  it('la pausa non si spegne quando il bonus riparte dopo il refresh', async () => {
+    const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
+    component.currentGameId.set(1);
+    component.isPaused.set(true);
+
+    const tv = component as unknown as { beginBonus(type: string): Promise<void> };
+    await tv.beginBonus('CASINO_COLOR');
+
+    // Il reset del bonus non deve riaccendere la sala: pausa e silenzio restano.
+    expect(component.isPaused()).toBe(true);
+    expect(audio.played.at(-1)).toBe('pause-beds');
+  });
+
+  it('annuncia la pausa al telefono che rientra', () => {
+    component.currentGameId.set(1);
+    component.bonusActive.set(true);
+    component.togglePause();
+    ws.broadcasted.length = 0;
+
+    // Il telefono rimanda JOIN_GAME a ogni riconnessione: la TV gli ridice
+    // che la sala è ferma, anche se l'annuncio originale è andato perso.
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Bruno' });
+
+    expect(ws.broadcasted.at(-1)?.body.action).toBe('GAME_PAUSED');
+  });
+
   it('mette il loop della classifica e chiude sul gioco, o sulla lobby a serata finita', () => {
     const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
     const rounds = TestBed.inject(RoundManagerService);

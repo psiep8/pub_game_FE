@@ -545,6 +545,15 @@ export class GameComponent implements OnInit, OnDestroy {
         // nell'acido uguale a tutti e il tema del round vinto si vede.
         this.theme.ensureTeamTheme(normalizedName);
         this.leaderboardService.addPoints(normalizedName, 0, false);
+        // Chi rientra (reload o riconnessione) deve ritrovare la pausa attiva:
+        // il telefono la conosce solo dagli annunci della TV.
+        const joinedGameId = this.currentGameId();
+        if (joinedGameId && this.isPaused()) {
+          this.ws.broadcastStatus(joinedGameId, {
+            action: WsAction.GAME_PAUSED,
+            secondsLeft: this.timer(),
+          });
+        }
 
       }
 
@@ -1967,7 +1976,13 @@ export class GameComponent implements OnInit, OnDestroy {
     this.showLeaderboardDetailed.set(false);
     this.isShowingLeaderboard.set(false);
     this.pendingLeaderboardType.set(null);
+    // La pausa letta dal checkpoint deve sopravvivere al reset del bonus.
+    const paused = this.isPaused();
     this.reset();
+    if (paused) {
+      this.isPaused.set(true);
+      this.audioService.pauseBeds();
+    }
 
     this.bonusActive.set(true);
     this.bonusType.set(type);
@@ -2149,6 +2164,8 @@ export class GameComponent implements OnInit, OnDestroy {
     const state = resume && mode === `BONUS_${type}`
       ? resume
       : (type === 'BLACKJACK' ? blackjackHand : null);
+    // La pausa era nella sala al momento del refresh: si torna con la sala ferma.
+    if (snapshot?.paused === true || state?.paused === true) this.isPaused.set(true);
     void this.startBonus(type, state);
   }
 

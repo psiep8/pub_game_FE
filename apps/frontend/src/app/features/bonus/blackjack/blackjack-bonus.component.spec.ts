@@ -190,6 +190,20 @@ describe('BlackjackBonus — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
+  it('salva la pausa nel checkpoint per il refresh della TV', () => {
+    const { checkpoints, fixture } = mount();
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    expect(checkpoints.at(-1)?.paused).toBe(true);
+
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    expect(checkpoints.at(-1)?.paused).toBe(false);
+
+    fixture.destroy();
+  });
+
   it('la scheda nascosta ferma anche la decisione del tavolo', () => {
     vi.useFakeTimers();
     const { component, fixture } = mount();

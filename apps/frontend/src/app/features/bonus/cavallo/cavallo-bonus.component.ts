@@ -384,7 +384,11 @@ export class CavalloBonus implements OnInit, OnDestroy {
    */
   @Input()
   set paused(value: boolean) {
+    const was = this.pause.isPaused;
     this.pause.setPaused(value);
+    // La pausa è uno stato del bonus: senza checkpoint, un refresh della TV
+    // riaprirebbe la votazione già in corsa.
+    if (this.pausedReady && was !== this.pause.isPaused) this.saveCheckpoint();
   }
   get paused(): boolean {
     return this.pause.isPaused;
@@ -419,6 +423,8 @@ export class CavalloBonus implements OnInit, OnDestroy {
   private questions: Array<{ question: string; options: string[]; correctIndex: number; category: string }> = [];
   private questionStartedAt = 0;
   /** Pausa, cronometro e attese: un solo posto per fermarli e riarmarli. */
+  /** Input iniziale applicato: da lì in poi ogni cambio di pausa va nel checkpoint. */
+  private pausedReady = false;
   private readonly pause = new TvPause();
   /** Annulla il reveal automatico della domanda in corso. */
   private cancelQuestionReveal?: () => void;
@@ -428,6 +434,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
   readonly categoryVoteCounts = signal<Record<string, number>>({});
 
   ngOnInit(): void {
+    this.pausedReady = true;
     this.players.forEach((playerName) => {
       if (!this.scoreMap.has(playerName)) this.scoreMap.set(playerName, 0);
     });
@@ -568,6 +575,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.checkpoint.emit({
       phase: this.phase(),
       secondsLeft: this.secondsLeft(),
+      paused: this.paused,
       savedAt: Date.now(),
       chosenCategory: this.chosenCategory(),
       questions: this.questions.map((question) => ({ ...question })),

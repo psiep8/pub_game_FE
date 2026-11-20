@@ -97,7 +97,11 @@ export class BlackjackBonus implements OnInit, OnDestroy {
    */
   @Input()
   set paused(value: boolean) {
+    const was = this.pause.isPaused;
     this.pause.setPaused(value);
+    // La pausa è uno stato del bonus: senza checkpoint, un refresh della TV
+    // riaprirebbe la mano già in corsa.
+    if (this.pausedReady && was !== this.pause.isPaused) this.saveCheckpoint();
   }
   get paused(): boolean {
     return this.pause.isPaused;
@@ -121,10 +125,13 @@ export class BlackjackBonus implements OnInit, OnDestroy {
   private handPoints = 0;
   private secondsLeft = DECIDE_SECONDS;
   /** Pausa, cronometro e attese: un solo posto per fermarli e riarmarli. */
+  /** Input iniziale applicato: da lì in poi ogni cambio di pausa va nel checkpoint. */
+  private pausedReady = false;
   private readonly pause = new TvPause();
   private destroyed = false;
 
   ngOnInit(): void {
+    this.pausedReady = true;
     this.order = [...this.players].reverse();
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       this.onStatus(status);
@@ -395,6 +402,7 @@ export class BlackjackBonus implements OnInit, OnDestroy {
       choice: display?.choice ?? null,
       result: display?.result ?? null,
       secondsLeft: this.secondsLeft,
+      paused: this.paused,
       savedAt: Date.now(),
     });
   }
