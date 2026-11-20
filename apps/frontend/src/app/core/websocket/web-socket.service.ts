@@ -142,11 +142,9 @@ export class WebSocketService {
   broadcastStatus(gameId: number, payload: any): boolean {
     const action = typeof payload?.action === 'string' ? payload.action : '';
     // Gli stati sono l'ultima fotografia del gioco: si ricordano anche a socket
-    // chiusa, così alla ripresa c'è qualcosa da ripetere ai telefoni.
-    if (action.endsWith('_STATE')) {
-      this.stateMemory().set(action, { gameId, payload });
-      this.persistStateMemory();
-    }
+    // chiusa, così alla ripresa c'è qualcosa da ripetere ai telefoni. Restano
+    // in RAM: lo storage si tocca solo alla pausa, non a ogni tick.
+    if (action.endsWith('_STATE')) this.stateMemory().set(action, { gameId, payload });
     return this.publish(`/app/game/${gameId}/status`, payload);
   }
 
@@ -170,6 +168,14 @@ export class WebSocketService {
     }
     this.lastStates = states;
     return states;
+  }
+
+  /**
+   * Salva la fotografia della scheda. La chiama la TV quando la sala va in
+   * pausa: è lì che serve, non a ogni tick (le Biglie ne mandano uno al secondo).
+   */
+  persistLastStates(): void {
+    this.persistStateMemory();
   }
 
   private persistStateMemory(): void {

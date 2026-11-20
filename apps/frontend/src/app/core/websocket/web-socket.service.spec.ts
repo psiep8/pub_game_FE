@@ -28,26 +28,29 @@ describe('WebSocketService — memoria degli stati', () => {
     ws.disconnect();
   });
 
-  it('ritrova lo stato dopo un refresh della TV, poi lo dimentica al round nuovo', () => {
+  it('scrive nello storage solo alla pausa, non a ogni tick', () => {
     const before = new WebSocketService();
-    before.broadcastStatus(1, {
-      action: 'ULTIMA_SPIAGGIA_STATE',
-      state: { phase: 'LEVEL', secondsLeft: 6 },
-    });
+    // Un secondo di tick delle Biglie: la fotografia resta in RAM.
+    before.broadcastStatus(1, { action: 'BIGLIE_STATE', state: { secondsLeft: 3 } });
+    before.broadcastStatus(1, { action: 'BIGLIE_STATE', state: { secondsLeft: 2 } });
+    expect(sessionStorage.getItem('pubgame.tv.last-states')).toBeNull();
+
+    // La TV salva quando la sala va in pausa.
+    before.persistLastStates();
     before.disconnect();
 
-    // Il refresh ricrea il servizio: la fotografia vive nella scheda.
+    // Il refresh ricrea il servizio e ritrova l’ultimo tick, non il primo.
     const refreshed = new WebSocketService();
-    expect(refreshed.lastStateFor(1, 'ULTIMA_SPIAGGIA_STATE')).toEqual({
-      action: 'ULTIMA_SPIAGGIA_STATE',
-      state: { phase: 'LEVEL', secondsLeft: 6 },
+    expect(refreshed.lastStateFor(1, 'BIGLIE_STATE')).toEqual({
+      action: 'BIGLIE_STATE',
+      state: { secondsLeft: 2 },
     });
 
     refreshed.clearLastStates();
     refreshed.disconnect();
 
     const nextRound = new WebSocketService();
-    expect(nextRound.lastStateFor(1, 'ULTIMA_SPIAGGIA_STATE')).toBeNull();
+    expect(nextRound.lastStateFor(1, 'BIGLIE_STATE')).toBeNull();
     nextRound.disconnect();
   });
 });

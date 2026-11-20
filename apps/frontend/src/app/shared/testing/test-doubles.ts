@@ -61,6 +61,13 @@ export class FakeWebSocketService {
     return entry && entry.gameId === gameId ? entry.payload : null;
   }
 
+  /** La TV salva la fotografia alla pausa: qui basta contare le chiamate. */
+  persistCalls = 0;
+
+  persistLastStates(): void {
+    this.persistCalls++;
+  }
+
   clearLastStates(): void {
     this.lastStates.clear();
   }

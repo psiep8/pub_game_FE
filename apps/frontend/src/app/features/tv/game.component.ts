@@ -1968,6 +1968,9 @@ export class GameComponent implements OnInit, OnDestroy {
         mode.pause();
       }
       this.isPaused.set(true);
+      // La fotografia si salva qui, non a ogni tick: se la TV si riavvia in
+      // pausa, il telefono che rientra deve ritrovare il gioco da questo stato.
+      this.ws.persistLastStates();
       this.ws.broadcastStatus(this.currentGameId()!, {
         action: WsAction.GAME_PAUSED,
         secondsLeft: this.timer(),

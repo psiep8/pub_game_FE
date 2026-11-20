@@ -263,6 +263,25 @@ describe('GameComponent', () => {
     expect(ws.broadcasted.some((entry) => entry.body.action === 'BIGLIE_STATE')).toBe(true);
   });
 
+  it('salva lo stato nello storage alla pausa, non a ogni tick', () => {
+    component.currentGameId.set(1);
+    component.currentMode.set({ type: 'BIGLIE', pause: vi.fn(), resume: vi.fn() } as any);
+    component.showQuestion.set(true);
+    // Due tick di fila come nelle Biglie: nessuno deve toccare lo storage.
+    ws.broadcastStatus(1, { action: 'BIGLIE_STATE', state: { phase: 'RACE', secondsLeft: 3 } });
+    ws.broadcastStatus(1, { action: 'BIGLIE_STATE', state: { phase: 'RACE', secondsLeft: 2 } });
+    expect(ws.persistCalls).toBe(0);
+
+    component.togglePause();
+
+    // Alla pausa si salva l'ultimo tick, quello che i telefoni devono vedere.
+    expect(ws.persistCalls).toBe(1);
+    expect(ws.lastStateFor(1, 'BIGLIE_STATE')).toEqual({
+      action: 'BIGLIE_STATE',
+      state: { phase: 'RACE', secondsLeft: 2 },
+    });
+  });
+
   it('dopo un refresh in pausa ripete lo stato del round non ancora a schermo', () => {
     component.currentGameId.set(1);
     component.isPaused.set(true);
