@@ -99,117 +99,82 @@ Nessuno.
 
 ## Timeline
 
-Eventi: **113** (servono almeno 24 per tre round da 8).
+Eventi: **211** (servono almeno 24 per tre round da 8).
 
 | Categoria | Eventi | Round coperti |
 | --- | --- | --- |
-| Anime e manga | 8 | 1 |
-| Arte e Architettura | 8 | 1 |
-| Cibo e Gastronomia | 8 | 1 |
-| Cinema, Serie TV | 8 | 1 |
-| Gaming e Tecnologia | 8 | 1 |
-| Geografia e Viaggi | 8 | 1 |
-| Lingua e Letteratura | 8 | 1 |
-| Motori | 8 | 1 |
-| Musica | 8 | 1 |
-| Politica e Attualità | 8 | 1 |
-| Scienza e Spazio | 9 | 1.1 |
-| Sport | 8 | 1 |
-| Storia | 8 | 1 |
-| TV e Spettacolo | 8 | 1 |
+| Anime e manga | 15 | 1.9 |
+| Arte e Architettura | 15 | 1.9 |
+| Cibo e Gastronomia | 15 | 1.9 |
+| Cinema, Serie TV | 15 | 1.9 |
+| Gaming e Tecnologia | 15 | 1.9 |
+| Geografia e Viaggi | 15 | 1.9 |
+| Lingua e Letteratura | 15 | 1.9 |
+| Motori | 15 | 1.9 |
+| Musica | 15 | 1.9 |
+| Politica e Attualità | 15 | 1.9 |
+| Scienza e Spazio | 16 | 2 |
+| Sport | 15 | 1.9 |
+| Storia | 15 | 1.9 |
+| TV e Spettacolo | 15 | 1.9 |
 
 | Difficoltà | Eventi |
 | --- | --- |
-| (assente) | 113 |
+| 1 | 48 |
+| 2 | 75 |
+| 3 | 61 |
+| 4 | 24 |
+| 5 | 3 |
 
-### Campi mancanti (226)
+### Campi mancanti (0)
 
-| Evento | Campo |
-| --- | --- |
-| Caduta dell'Impero romano d'Occidente | difficulty |
-| Caduta dell'Impero romano d'Occidente | source |
-| Incoronazione di Carlo Magno | difficulty |
-| Incoronazione di Carlo Magno | source |
-| Battaglia di Hastings | difficulty |
-| Battaglia di Hastings | source |
-| Scoperta dell'America | difficulty |
-| Scoperta dell'America | source |
-| Rivoluzione francese | difficulty |
-| Rivoluzione francese | source |
-| Congresso di Vienna | difficulty |
-| Congresso di Vienna | source |
-| Inizio della Prima guerra mondiale | difficulty |
-| Inizio della Prima guerra mondiale | source |
-| Caduta del Muro di Berlino | difficulty |
-| Caduta del Muro di Berlino | source |
-| Vasco da Gama arriva in India | difficulty |
-| Vasco da Gama arriva in India | source |
-| Apertura del Canale di Suez | difficulty |
-| Apertura del Canale di Suez | source |
-| Naufragio del Titanic | difficulty |
-| Naufragio del Titanic | source |
-| Primo volo transatlantico senza scalo | difficulty |
-| Primo volo transatlantico senza scalo | source |
-| Amelia Earhart attraversa l'Atlantico in solitaria | difficulty |
-| Amelia Earhart attraversa l'Atlantico in solitaria | source |
-| Hillary e Tenzing raggiungono l'Everest | difficulty |
-| Hillary e Tenzing raggiungono l'Everest | source |
-| Apertura del Tunnel della Manica | difficulty |
-| Apertura del Tunnel della Manica | source |
-| La nave Ever Given blocca il Canale di Suez | difficulty |
-| La nave Ever Given blocca il Canale di Suez | source |
-| Copernico pubblica le rivoluzioni celesti | difficulty |
-| Copernico pubblica le rivoluzioni celesti | source |
-| Newton pubblica i Principia | difficulty |
-| Newton pubblica i Principia | source |
-| Einstein pubblica la relatività ristretta | difficulty |
-| Einstein pubblica la relatività ristretta | source |
-| Scoperta della penicillina | difficulty |
-| Scoperta della penicillina | source |
-| Scoperta della struttura del DNA | difficulty |
-| Scoperta della struttura del DNA | source |
-| Lancio dello Sputnik | difficulty |
-| Lancio dello Sputnik | source |
-| Sbarco dell'uomo sulla Luna | difficulty |
-| Sbarco dell'uomo sulla Luna | source |
-| Conferma del bosone di Higgs | difficulty |
-| Conferma del bosone di Higgs | source |
-| Inizio della pandemia di COVID-19 | difficulty |
-| Inizio della pandemia di COVID-19 | source |
-| Prime Olimpiadi moderne ad Atene | difficulty |
-| Prime Olimpiadi moderne ad Atene | source |
-| Primo Tour de France | difficulty |
-| Primo Tour de France | source |
-| Primo Mondiale di calcio in Uruguay | difficulty |
-| Primo Mondiale di calcio in Uruguay | source |
-| Jesse Owens vince quattro ori a Berlino | difficulty |
-| Jesse Owens vince quattro ori a Berlino | source |
-| Olimpiadi di Roma | difficulty |
-| Olimpiadi di Roma | source |
-
-…e altre 166 righe.
+Nessuno.
 
 ### Anni troppo vicini (< 3 anni)
 
 | Primo | Secondo | Distanza |
 | --- | --- | --- |
 | Rivoluzione francese | Dichiarazione dei diritti dell'uomo e del cittadino | 0 |
+| Prima della Nona sinfonia di Beethoven | Apre la National Gallery di Londra | 0 |
+| Darwin pubblica L'origine delle specie | Proclamazione del Regno d'Italia | 2 |
+| Apertura del Canale di Suez | Presa di Roma | 1 |
+| Presa di Roma | Spedizione oceanografica dello Challenger | 2 |
 | Karl Benz brevetta la prima automobile a motore | Nasce la Coca-Cola | 0 |
 | Inaugurazione della Torre Eiffel | La pizza Margherita viene servita a Napoli | 0 |
-| Prima proiezione cinematografica dei fratelli Lumière | Prime Olimpiadi moderne ad Atene | 1 |
-| Primo Tour de France | Einstein pubblica la relatività ristretta | 2 |
+| Prima proiezione cinematografica dei fratelli Lumière | Röntgen scopre i raggi X | 0 |
+| Röntgen scopre i raggi X | Prime Olimpiadi moderne ad Atene | 1 |
+| Primo Tour de France | Primo volo dei fratelli Wright | 0 |
+| Primo volo dei fratelli Wright | Nasce Harley-Davidson | 0 |
+| Nasce Harley-Davidson | Einstein pubblica la relatività ristretta | 2 |
 | Einstein pubblica la relatività ristretta | Nasce il cubismo con Les Demoiselles d'Avignon | 2 |
 | Nasce il cubismo con Les Demoiselles d'Avignon | Ford lancia il Model T | 1 |
-| Naufragio del Titanic | Pubblicato La strada di Swann di Proust | 1 |
+| Amundsen raggiunge il Polo Sud | Naufragio del Titanic | 1 |
+| Naufragio del Titanic | Nascono i biscotti Oreo | 0 |
+| Nascono i biscotti Oreo | Pubblicato La strada di Swann di Proust | 1 |
 | Pubblicato La strada di Swann di Proust | Inizio della Prima guerra mondiale | 1 |
+| Inizio della Prima guerra mondiale | Einstein pubblica la relatività generale | 1 |
+| Scoperta della tomba di Tutankhamon | Prima 24 Ore di Le Mans | 1 |
+| Prima 24 Ore di Le Mans | Primi Giochi olimpici invernali a Chamonix | 1 |
 | Esce Il cantante di jazz, primo film sonoro | Scoperta della penicillina | 1 |
 | Scoperta della penicillina | Apre il Museum of Modern Art di New York | 1 |
-| Apre il Museum of Modern Art di New York | Primo Mondiale di calcio in Uruguay | 1 |
-| Primo Mondiale di calcio in Uruguay | Amelia Earhart attraversa l'Atlantico in solitaria | 2 |
+| Apre il Museum of Modern Art di New York | Patti Lateranensi | 0 |
+| Patti Lateranensi | Primo Mondiale di calcio in Uruguay | 1 |
+| Primo Mondiale di calcio in Uruguay | Inaugurazione dell'Empire State Building | 1 |
+| Inaugurazione dell'Empire State Building | Amelia Earhart attraversa l'Atlantico in solitaria | 1 |
 | Jesse Owens vince quattro ori a Berlino | Biancaneve e i sette nani, primo lungometraggio animato Disney | 1 |
 | Biancaneve e i sette nani, primo lungometraggio animato Disney | Picasso dipinge Guernica | 0 |
-| Fondazione delle Nazioni Unite | ENIAC, primo computer elettronico general-purpose | 1 |
-| ENIAC, primo computer elettronico general-purpose | Entrata in vigore della Costituzione italiana | 2 |
+| Picasso dipinge Guernica | Inaugurazione del Golden Gate Bridge | 0 |
+| Inaugurazione del Golden Gate Bridge | Nasce la carne in scatola Spam | 0 |
+| Nasce la carne in scatola Spam | Scoperta della fissione nucleare | 1 |
+| Scoperta della fissione nucleare | Esce Via col vento | 1 |
+| Esce Via col vento | Apre il primo McDonald's | 1 |
+| Apre il primo McDonald's | Esce Quarto potere di Orson Welles | 1 |
+| Esce Quarto potere di Orson Welles | Esce Il piccolo principe | 2 |
+| Esce Il piccolo principe | Fondazione delle Nazioni Unite | 2 |
+| Fondazione delle Nazioni Unite | Fine della Seconda guerra mondiale in Europa | 0 |
+| Fine della Seconda guerra mondiale in Europa | ENIAC, primo computer elettronico general-purpose | 1 |
+| ENIAC, primo computer elettronico general-purpose | Referendum per la Repubblica in Italia | 0 |
+| Referendum per la Repubblica in Italia | Entrata in vigore della Costituzione italiana | 2 |
 | Entrata in vigore della Costituzione italiana | Pubblicato 1984 di Orwell | 1 |
 | Pubblicato 1984 di Orwell | Primo campionato mondiale di Formula 1 | 1 |
 | Primo campionato mondiale di Formula 1 | Prima edizione del Festival di Sanremo | 1 |
@@ -218,49 +183,123 @@ Eventi: **113** (servono almeno 24 per tre round da 8).
 | Hillary e Tenzing raggiungono l'Everest | Scoperta della struttura del DNA | 0 |
 | Scoperta della struttura del DNA | Inizio delle trasmissioni Rai | 1 |
 | Inizio delle trasmissioni Rai | Elvis Presley incide That's All Right | 0 |
-| Elvis Presley incide That's All Right | Pubblicato Lolita di Nabokov | 1 |
+| Elvis Presley incide That's All Right | Esce Il Signore degli Anelli | 0 |
+| Esce Il Signore degli Anelli | Pubblicato Lolita di Nabokov | 1 |
 | Pubblicato Lolita di Nabokov | Lancio dello Sputnik | 2 |
-| Lancio dello Sputnik | Momofuku Ando inventa i noodles istantanei | 1 |
+| Lancio dello Sputnik | Trattato di Roma, nasce la CEE | 0 |
+| Trattato di Roma, nasce la CEE | Momofuku Ando inventa i noodles istantanei | 1 |
 | Momofuku Ando inventa i noodles istantanei | Tennis for Two, primo videogioco | 0 |
-| Tennis for Two, primo videogioco | Olimpiadi di Roma | 2 |
-| Olimpiadi di Roma | I Beatles pubblicano Love Me Do | 2 |
+| Tennis for Two, primo videogioco | Apre il Guggenheim Museum di New York | 1 |
+| Apre il Guggenheim Museum di New York | Debutta la Mini | 0 |
+| Debutta la Mini | Olimpiadi di Roma | 1 |
+| Olimpiadi di Roma | Il batiscafo Trieste raggiunge il fondo delle Marianne | 0 |
+| Il batiscafo Trieste raggiunge il fondo delle Marianne | Esce La dolce vita | 0 |
+| Esce La dolce vita | Costruzione del Muro di Berlino | 1 |
+| Costruzione del Muro di Berlino | Gagarin, primo uomo nello spazio | 0 |
+| Gagarin, primo uomo nello spazio | I Beatles pubblicano Love Me Do | 1 |
 | I Beatles pubblicano Love Me Do | Debutta l'anime Astro Boy | 1 |
+| Debutta l'anime Astro Boy | Nasce la Nutella | 1 |
+| Nasce la Nutella | Debutta la Lamborghini Miura | 2 |
+| Debutta la Lamborghini Miura | Esce Sgt. Pepper's Lonely Hearts Club Band | 1 |
 | Esce Sgt. Pepper's Lonely Hearts Club Band | Sbarco dell'uomo sulla Luna | 2 |
 | Sbarco dell'uomo sulla Luna | Inizia il manga Doraemon | 0 |
 | Inizia il manga Doraemon | Primo collegamento ARPANET | 0 |
-| Primo collegamento ARPANET | Apre il primo Starbucks a Seattle | 2 |
+| Primo collegamento ARPANET | Festival di Woodstock | 0 |
+| Festival di Woodstock | Italia-Germania 4-3 ai Mondiali del Messico | 1 |
+| Italia-Germania 4-3 ai Mondiali del Messico | Apre il primo Starbucks a Seattle | 1 |
 | Apre il primo Starbucks a Seattle | Atari lancia Pong | 1 |
-| Atari lancia Pong | Inaugura la Sydney Opera House | 1 |
+| Atari lancia Pong | Esce Il padrino | 0 |
+| Esce Il padrino | Inaugura la Sydney Opera House | 1 |
 | Inaugura la Sydney Opera House | Debutta la Volkswagen Golf | 1 |
-| Nasce CNN | Nasce MTV | 1 |
-| Nasce MTV | Nintendo pubblica Mario Bros. | 2 |
+| Debutta la Volkswagen Golf | Debutta l'anime Heidi | 0 |
+| Debutta l'anime Heidi | Esce Bohemian Rhapsody dei Queen | 1 |
+| Esce Bohemian Rhapsody dei Queen | Accordi di Helsinki | 0 |
+| Accordi di Helsinki | Nadia Comăneci ottiene il primo 10 alle Olimpiadi | 1 |
+| Nadia Comăneci ottiene il primo 10 alle Olimpiadi | L'incidente di Niki Lauda al Nürburgring | 0 |
+| L'incidente di Niki Lauda al Nürburgring | Esce Guerre stellari | 1 |
+| Esce Guerre stellari | Atari lancia la console 2600 | 0 |
+| Atari lancia la console 2600 | Debutta Mobile Suit Gundam | 2 |
+| Debutta Mobile Suit Gundam | Nasce CNN | 1 |
+| Nasce CNN | Eruzione del Monte Sant'Elena | 0 |
+| Eruzione del Monte Sant'Elena | Esce Il nome della rosa | 0 |
+| Esce Il nome della rosa | Esce Pac-Man | 0 |
+| Esce Pac-Man | Nasce MTV | 1 |
+| Nasce MTV | L'Italia vince i Mondiali di calcio in Spagna | 1 |
+| L'Italia vince i Mondiali di calcio in Spagna | Esce Thriller di Michael Jackson | 0 |
+| Esce Thriller di Michael Jackson | Nasce la Diet Coke | 0 |
+| Nasce la Diet Coke | Nintendo pubblica Mario Bros. | 1 |
 | Nintendo pubblica Mario Bros. | Inizia il manga Dragon Ball | 1 |
 | Inizia il manga Dragon Ball | Live Aid | 1 |
 | Live Aid | Fondazione dello Studio Ghibli | 0 |
-| Fondazione dello Studio Ghibli | Nasce il movimento Slow Food a Bra | 1 |
+| Fondazione dello Studio Ghibli | Esce Super Mario Bros. per NES | 0 |
+| Esce Super Mario Bros. per NES | Nasce il movimento Slow Food a Bra | 1 |
+| Nasce il movimento Slow Food a Bra | Debutta la Ferrari F40 | 1 |
+| Debutta la Ferrari F40 | Nasce la Red Bull | 0 |
+| Nasce la Red Bull | Esce il film Akira | 1 |
+| Esce il film Akira | Caduta del Muro di Berlino | 1 |
 | Caduta del Muro di Berlino | Debutta I Simpson | 0 |
-| Debutta I Simpson | Tim Berners-Lee presenta il World Wide Web | 2 |
-| Tim Berners-Lee presenta il World Wide Web | Il Dream Team vince l'oro olimpico | 1 |
+| Debutta I Simpson | Nintendo lancia il Game Boy | 0 |
+| Nintendo lancia il Game Boy | Lancio del telescopio Hubble | 1 |
+| Lancio del telescopio Hubble | L'Italia ospita i Mondiali di calcio | 0 |
+| L'Italia ospita i Mondiali di calcio | Debutta Twin Peaks | 0 |
+| Debutta Twin Peaks | Tim Berners-Lee presenta il World Wide Web | 1 |
+| Tim Berners-Lee presenta il World Wide Web | Dissoluzione dell'Unione Sovietica | 0 |
+| Dissoluzione dell'Unione Sovietica | Esce Nevermind dei Nirvana | 0 |
+| Esce Nevermind dei Nirvana | Il Dream Team vince l'oro olimpico | 1 |
 | Il Dream Team vince l'oro olimpico | Trattato di Maastricht | 0 |
-| Trattato di Maastricht | Apertura del Tunnel della Manica | 2 |
+| Trattato di Maastricht | Debutta Sailor Moon | 0 |
+| Debutta Sailor Moon | Apertura del Tunnel della Manica | 2 |
+| Apertura del Tunnel della Manica | Esce Pulp Fiction | 0 |
+| Esce Pulp Fiction | Debutta Friends | 0 |
+| Debutta Friends | Muore Ayrton Senna a Imola | 0 |
+| Muore Ayrton Senna a Imola | Escono i primi giochi Pokémon | 2 |
+| Escono i primi giochi Pokémon | Toyota lancia la Prius | 1 |
 | Toyota lancia la Prius | Pubblicato Harry Potter e la pietra filosofale | 0 |
 | Pubblicato Harry Potter e la pietra filosofale | Inizia il manga One Piece | 0 |
-| Inizia il manga One Piece | Esce Matrix | 2 |
+| Inizia il manga One Piece | Esce Titanic | 0 |
+| Esce Titanic | Apre il museo Guggenheim di Bilbao | 0 |
+| Apre il museo Guggenheim di Bilbao | Esce Princess Mononoke | 0 |
+| Esce Princess Mononoke | Esce Matrix | 2 |
 | Esce Matrix | Inizia il manga Naruto | 0 |
-| Inizia il manga Naruto | Apple lancia l'iTunes Store | 2 |
+| Inizia il manga Naruto | Debutta Chi vuol essere miliardario? in Italia | 1 |
+| Debutta Chi vuol essere miliardario? in Italia | Escono i Coldplay con Parachutes | 0 |
+| Escono i Coldplay con Parachutes | Apple lancia l'iTunes Store | 1 |
 | Apple lancia l'iTunes Store | Attentato alle Torri Gemelle | 0 |
 | Attentato alle Torri Gemelle | La città incantata vince l'Orso d'oro | 0 |
-| La città incantata vince l'Orso d'oro | Nasce Sky Italia | 2 |
+| La città incantata vince l'Orso d'oro | Esce Il Signore degli Anelli: La Compagnia dell'Anello | 0 |
+| Esce Il Signore degli Anelli: La Compagnia dell'Anello | L'euro entra in circolazione | 1 |
+| L'euro entra in circolazione | Nasce Sky Italia | 1 |
+| Nasce Sky Italia | Esce World of Warcraft | 1 |
+| Esce World of Warcraft | Nasce YouTube | 1 |
+| Nasce YouTube | L'Italia vince i Mondiali di calcio in Germania | 1 |
+| L'Italia vince i Mondiali di calcio in Germania | Nasce Twitter | 0 |
+| Nasce Twitter | Netflix lancia lo streaming | 1 |
 | Netflix lancia lo streaming | Apple presenta il primo iPhone | 0 |
-| Apple presenta il primo iPhone | Usain Bolt stabilisce il record dei 100 metri | 1 |
-| Usain Bolt stabilisce il record dei 100 metri | Esce Avatar | 1 |
-| Esce Avatar | La dieta mediterranea entra nel patrimonio UNESCO | 1 |
-| La dieta mediterranea entra nel patrimonio UNESCO | Conferma del bosone di Higgs | 2 |
+| Apple presenta il primo iPhone | Apre Eataly a Torino | 0 |
+| Apre Eataly a Torino | Usain Bolt stabilisce il record dei 100 metri | 1 |
+| Usain Bolt stabilisce il record dei 100 metri | Esce Viva la Vida dei Coldplay | 0 |
+| Esce Viva la Vida dei Coldplay | Esce Avatar | 1 |
+| Esce Avatar | Trattato di Lisbona | 0 |
+| Trattato di Lisbona | La dieta mediterranea entra nel patrimonio UNESCO | 1 |
+| La dieta mediterranea entra nel patrimonio UNESCO | L'eruzione dell'Eyjafjallajökull blocca i voli | 0 |
+| L'eruzione dell'Eyjafjallajökull blocca i voli | Esce Inception | 0 |
+| Esce Inception | Debutta Game of Thrones | 1 |
+| Debutta Game of Thrones | Esce Minecraft | 0 |
+| Esce Minecraft | Conferma del bosone di Higgs | 1 |
 | Conferma del bosone di Higgs | Tesla lancia il Model S | 0 |
 | Tesla lancia il Model S | House of Cards, prima serie originale Netflix | 1 |
+| House of Cards, prima serie originale Netflix | Debutta L'attacco dei giganti | 0 |
+| Debutta L'attacco dei giganti | Nasce la Formula E | 1 |
+| Nasce la Formula E | Il Portogallo vince il Campionato europeo | 2 |
+| Il Portogallo vince il Campionato europeo | Debutta Stranger Things | 0 |
+| Debutta Stranger Things | Bob Dylan riceve il Nobel per la letteratura | 0 |
+| Bob Dylan riceve il Nobel per la letteratura | Referendum sulla Brexit | 0 |
+| Referendum sulla Brexit | L'arte del pizzaiolo napoletano entra nel patrimonio UNESCO | 1 |
 | L'arte del pizzaiolo napoletano entra nel patrimonio UNESCO | Nintendo lancia Switch | 0 |
 | Nintendo lancia Switch | Parasite vince la Palma d'Oro | 2 |
-| Parasite vince la Palma d'Oro | Inizio della pandemia di COVID-19 | 1 |
+| Parasite vince la Palma d'Oro | Incendio di Notre-Dame a Parigi | 0 |
+| Incendio di Notre-Dame a Parigi | Debutta Demon Slayer | 0 |
+| Debutta Demon Slayer | Inizio della pandemia di COVID-19 | 1 |
 | Inizio della pandemia di COVID-19 | Uscita del Regno Unito dall'Unione Europea | 0 |
 | Uscita del Regno Unito dall'Unione Europea | La nave Ever Given blocca il Canale di Suez | 1 |
 | La nave Ever Given blocca il Canale di Suez | L'Italia vince il Campionato europeo di calcio | 0 |
