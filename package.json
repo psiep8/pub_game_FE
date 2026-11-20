@@ -18,7 +18,8 @@
     "test": "npm run test:frontend",
     "test:frontend": "npm run test --workspace pubgame-fe",
     "test:backend": "node scripts/mvn.mjs test",
-    "db:backup": "node scripts/backup-db.mjs"
+    "db:backup": "node scripts/backup-db.mjs",
+    "audit:banche": "node scripts/audit-banche.mjs --write"
   },
   "devDependencies": {
     "vitest": "^5.1.0"
