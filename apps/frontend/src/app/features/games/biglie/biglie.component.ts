@@ -1,4 +1,5 @@
 import { GamePhase } from '../../../shared/enums/game-phase';
+import { rankPoints } from '../../../shared/models/rank-points';
 import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -149,11 +150,12 @@ interface RaceRow {
 }
 
 /**
- * Punti per gara, nell'ordine d'arrivo: i primi quattro guadagnano, gli ultimi
- * quattro pagano il piazzamento. Le Biglie sono un round, quindi anche la coda
- * della classifica pesa.
+ * Punti per gara, nell'ordine d'arrivo: +500 al primo, −400 all'ultimo, con la
+ * stessa formula dei piazzamenti usata dagli altri giochi. Le Biglie sono un
+ * round, quindi anche la coda della classifica pesa.
  */
-const RACE_POINTS = [150, 100, 60, 30, -30, -60, -100, -150];
+const RACE_FIRST = 500;
+const RACE_LAST = -400;
 const INTRO_SECONDS = 4;
 const PICK_SECONDS = 10;
 /**
@@ -1564,7 +1566,7 @@ export class Biglie implements OnInit, OnDestroy {
     });
 
     const rows: RaceRow[] = ranked.map((marble, index) => {
-      const points = RACE_POINTS[index] ?? 0;
+      const points = rankPoints(index + 1, ranked.length, RACE_FIRST, RACE_LAST);
       const total = (this.totals.get(marble.playerName) ?? 0) + points;
       this.totals.set(marble.playerName, total);
 

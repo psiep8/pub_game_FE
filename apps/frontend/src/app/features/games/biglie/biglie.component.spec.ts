@@ -689,7 +689,7 @@ describe('Biglie — ripresa dopo un refresh della TV', () => {
     expect(paused.results).toEqual(straight.results);
     expect(paused.component.raceResult()).toEqual(straightRows);
     expect(paused.component.raceResult()?.map((row: any) => row.position)).toEqual([1, 2]);
-    expect(paused.component.raceResult()?.map((row: any) => row.points)).toEqual([150, 100]);
+    expect(paused.component.raceResult()?.map((row: any) => row.points)).toEqual([500, -400]);
 
     vi.restoreAllMocks();
     vi.useRealTimers();
@@ -852,13 +852,13 @@ describe('Biglie — ripresa dopo un refresh della TV', () => {
 
     const rows = component.raceResult() ?? [];
     expect(rows.map((row) => row.position)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
-    expect(rows.map((row) => row.points)).toEqual([150, 100, 60, 30, -30, -60, -100, -150]);
+    expect(rows.map((row) => row.points)).toEqual([500, 380, 250, 130, -100, -200, -300, -400]);
     // I punti negativi arrivano davvero alla TV: senza l'emit resterebbero a zero.
-    expect(results).toContainEqual({ playerName: 'Elena', score: -30 });
-    expect(results).toContainEqual({ playerName: 'Ugo', score: -150 });
+    expect(results).toContainEqual({ playerName: 'Elena', score: -100 });
+    expect(results).toContainEqual({ playerName: 'Ugo', score: -400 });
     expect(results).toHaveLength(8);
     // Anche la classifica del round somma i piazzamenti negativi.
-    expect(component.standings().at(-1)?.total).toBe(-150);
+    expect(component.standings().at(-1)?.total).toBe(-400);
 
     vi.useRealTimers();
     fixture.destroy();

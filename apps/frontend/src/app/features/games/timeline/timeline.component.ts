@@ -53,7 +53,7 @@ import { formatPoints } from '../../../shared/models/points-format';
 
         <div class="tl-explain">
           <span>Posizioni esatte</span>
-          <span>Ogni carta nel posto giusto vale un punto · massimo 1200, sotto soglia fino a −400</span>
+          <span>Otto posti giusti = 400 · sette 300 · sei 200 · cinque 100 · quattro 0 · tre −50 · due −100 · uno o zero −200</span>
         </div>
 
         <div class="tl-results">

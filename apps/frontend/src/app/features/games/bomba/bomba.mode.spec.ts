@@ -59,7 +59,7 @@ describe('BombaMode — ripresa dopo un refresh della TV', () => {
     await vi.advanceTimersByTimeAsync(500);
 
     expect(penalty).toHaveBeenCalledTimes(1);
-    expect(penalty).toHaveBeenCalledWith({ playerName: 'Bruno', points: -200, isCorrect: false });
+    expect(penalty).toHaveBeenCalledWith({ playerName: 'Bruno', points: -500, isCorrect: false });
     expect(saved).toHaveLength(1);
     expect(saved[0].revision).toBe(4);
     expect(saved[0].state).toEqual({ lastEventSeq: 5 });

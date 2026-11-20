@@ -2,6 +2,7 @@ import { WsAction } from '../../../shared/enums/ws-action';
 import { signal } from '@angular/core';
 import { GameModeBase } from '../../../shared/models/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../../../shared/models/game-mode-type';
+import { TENNIS_WIN } from '../../../shared/models/scoring-rules';
 
 type Side = 'a' | 'b';
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
@@ -700,28 +701,26 @@ export class TennisBattleMode extends GameModeBase {
     });
   }
 
+  /** Chi vince la partita prende 500, chi perde zero. Se il tempo scade in
+   *  parità non c'è vincitore e non prende punti nessuno. */
   private awardCourt(court: Court): void {
     if (court.awarded) return;
     court.awarded = true;
 
-    if (court.b.isBot) {
-      this.config.onAnswerReceived?.({ playerName: court.a.playerName, points: 700, isCorrect: true });
-      return;
-    }
-
-    const winnerSide: Side = court.winner === court.a.playerName ? 'a' : 'b';
-    const loserSide: Side = winnerSide === 'a' ? 'b' : 'a';
+    const winnerName = court.winner ?? this.leaderOf(court);
+    if (!winnerName) return;
 
     this.config.onAnswerReceived?.({
-      playerName: court[winnerSide].playerName,
-      points: 1000,
+      playerName: winnerName,
+      points: TENNIS_WIN,
       isCorrect: true,
     });
-    this.config.onAnswerReceived?.({
-      playerName: court[loserSide].playerName,
-      points: 200,
-      isCorrect: false,
-    });
+  }
+
+  private leaderOf(court: Court): string | null {
+    const value = (side: Side) => Number(court[side].games) * 1000 + Number(court[side].score);
+    if (value('a') === value('b')) return null;
+    return value('a') > value('b') ? court.a.playerName : court.b.playerName;
   }
 
   private broadcast(): void {
@@ -770,19 +769,10 @@ export class TennisBattleMode extends GameModeBase {
 
   protected onTimeout(): void {
     this.stopTicking();
+    // Allo scadere del tempo vince chi è avanti nel punteggio; in parità non
+    // c'è vincitore e nessuno prende i 500.
     for (const court of this.courts()) {
-      if (!court.winner) {
-        if (court.a.score === court.b.score) {
-          this.config.onAnswerReceived?.({ playerName: court.a.playerName, points: 500, isCorrect: true });
-          this.config.onAnswerReceived?.({ playerName: court.b.playerName, points: 500, isCorrect: true });
-        } else {
-          const winnerSide: Side = court.a.score > court.b.score ? 'a' : 'b';
-          const loserSide: Side = winnerSide === 'a' ? 'b' : 'a';
-          this.config.onAnswerReceived?.({ playerName: court[winnerSide].playerName, points: 1000, isCorrect: true });
-          this.config.onAnswerReceived?.({ playerName: court[loserSide].playerName, points: 200, isCorrect: false });
-        }
-        court.awarded = true;
-      }
+      this.awardCourt(court);
     }
     this.revealed.set(true);
   }

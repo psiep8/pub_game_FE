@@ -55,11 +55,16 @@ class BombaTimeoutTest {
 
         assertThat(ended).as("il round deve chiudersi quando tutti restano senza tempo").isNotNull();
         assertThat(ended.getJSONArray("eliminated").length()).isEqualTo(2);
-        assertThat(ended.getJSONObject("penalties").getInt("Anna")).isEqualTo(-BombaService.BOMB_PENALTY);
-        assertThat(ended.getJSONObject("penalties").getInt("Bruno")).isEqualTo(-BombaService.BOMB_PENALTY);
 
         // A fine ondata il tabellone si scopre tutto.
         JSONArray finalCells = ended.getJSONArray("cells");
+        int bombs = 0;
+        for (int index = 0; index < finalCells.length(); index++) {
+            if (finalCells.getJSONObject(index).getBoolean("bomb")) bombs++;
+        }
+        int malus = BombaService.bombPenalty(bombs, 0);
+        assertThat(ended.getJSONObject("penalties").getInt("Anna")).isEqualTo(-malus);
+        assertThat(ended.getJSONObject("penalties").getInt("Bruno")).isEqualTo(-malus);
         for (int index = 0; index < finalCells.length(); index++) {
             assertThat(finalCells.getJSONObject(index).has("bomb")).isTrue();
         }

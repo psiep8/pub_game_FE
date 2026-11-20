@@ -29,6 +29,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class SpeedRushService {
 
+    /** Piazzamento puro: +800 al primo, −400 all'ultimo. */
+    private static final int SPEED_RUSH_FIRST = 800;
+    private static final int SPEED_RUSH_LAST = -400;
+
     private static final String BLOB = "speed-rush";
     private static final long DURATION_MS = 90_000L;
     /**
@@ -308,24 +312,16 @@ public class SpeedRushService {
                 .thenComparingInt(player -> player.finished ? player.position : 0)
                 .thenComparing(Comparator.comparingInt((PlayerState player) -> player.progress).reversed()));
 
-        int qualifiers = Math.max(1, (int) Math.ceil(ranked.size() / 2.0));
-        long firstTime = ranked.stream()
-                .filter(player -> player.finished && player.finishedAt >= 0)
-                .mapToLong(player -> player.finishedAt)
-                .min().orElse(0L);
+        int finishers = (int) ranked.stream().filter(player -> player.finished).count();
+        int total = ranked.size();
 
         JSONArray results = new JSONArray();
         for (int index = 0; index < ranked.size(); index++) {
             PlayerState player = ranked.get(index);
-            int points = 0;
-            if (player.finished && index < qualifiers) {
-                if (index == 0) {
-                    points = 500;
-                } else {
-                    points = Math.max(100, (int) Math.round(500.0 * firstTime
-                            / Math.max(1L, player.finishedAt)));
-                }
-            }
+            // I non arrivati sono tutti ultimi a pari merito: prendono il malus
+            // dell'ultimo posto, non zero.
+            int rank = player.finished ? index + 1 : Math.max(1, finishers + 1);
+            int points = RankPoints.points(rank, total, SPEED_RUSH_FIRST, SPEED_RUSH_LAST);
             results.put(new JSONObject()
                     .put("playerName", player.name)
                     .put("points", points)

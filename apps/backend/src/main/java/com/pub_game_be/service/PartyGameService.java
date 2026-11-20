@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class PartyGameService {
 
-    public record TimelineEvent(String label, int year, String category) {
+    public record TimelineEvent(String label, int year, String category, int difficulty) {
     }
 
     /** L'ordine inviato resta con la risposta: serve al telefono dopo un refresh. */
@@ -53,8 +53,12 @@ public class PartyGameService {
     private record TimelineRound(String token, List<TimelineEvent> ordered, Map<Integer, Integer> ranks) {
     }
 
-    private static final int TIMELINE_CARDS = 6;
-    private static final int TIMELINE_CARDS_FINAL = 8;
+    /** Ogni round Timeline ha sempre otto eventi, finale compresa. */
+    private static final int TIMELINE_CARDS = 8;
+    /** Mix del round: due facili, quattro medi, due difficili. */
+    private static final int[] TIMELINE_EASY = { 1, 2 };
+    private static final int[] TIMELINE_MEDIUM = { 3 };
+    private static final int[] TIMELINE_HARD = { 4, 5 };
 
     private static final String TIMELINE_BLOB = "timeline-round";
     private static final String TIMELINE_ANSWERS_BLOB = "timeline-answers";
@@ -66,7 +70,6 @@ public class PartyGameService {
 
     private final Map<Long, TimelineRound> timelineRounds = new ConcurrentHashMap<>();
     private final Map<Long, Map<String, TimelineSubmission>> timelineAnswers = new ConcurrentHashMap<>();
-    private final Map<Long, Boolean> lastTimelineRounds = new ConcurrentHashMap<>();
     private final Random random = new Random();
 
     public PartyGameService(StateBlobService stateBlobs, QuestionUsageService questionUsage) {
@@ -116,7 +119,7 @@ public class PartyGameService {
     // ---------------------------------------------------------------- Timeline
 
     private String startTimeline(long gameId, String category) {
-        int size = Boolean.TRUE.equals(lastTimelineRounds.get(gameId)) ? TIMELINE_CARDS_FINAL : TIMELINE_CARDS;
+        int size = TIMELINE_CARDS;
         List<TimelineEvent> pool = timelinePool(category);
 
         // Anti-ripetizione: prima le carte mai uscite in questa partita.
@@ -127,11 +130,11 @@ public class PartyGameService {
             }
         }
 
-        List<TimelineEvent> ordered = sampleTimeline(available, size);
+        List<TimelineEvent> ordered = sampleTimeline(available, size, category);
         boolean repeatedContent = false;
         if (ordered.size() < size) {
             // Pool esaurito: non si finge che sia tutto nuovo, lo dichiara la TV.
-            ordered = sampleTimeline(pool, size);
+            ordered = sampleTimeline(pool, size, category);
             repeatedContent = true;
         }
         for (TimelineEvent event : ordered) {
@@ -165,8 +168,8 @@ public class PartyGameService {
         payload.put("items", cards);
         payload.put("count", ordered.size());
         payload.put("explain", "Conta la posizione: ogni carta nel posto giusto vale un punto. "
-                + "Da meta classifica in su il punteggio e positivo (fino a 1200), sotto si perde "
-                + "al massimo 400 punti.");
+                + "Otto posti giusti valgono 400 punti, sette 300, sei 200, cinque 100, quattro zero, "
+                + "tre −50, due −100, uno o nessuno −200.");
         if (repeatedContent) {
             payload.put("poolWarning", "Pool Timeline esaurito: alcune carte sono già uscite in questa partita.");
         }
@@ -174,7 +177,6 @@ public class PartyGameService {
         timelineRounds.put(gameId, new TimelineRound(payload.getString("roundId"), ordered, ranks));
         timelineAnswers.put(gameId, new ConcurrentHashMap<>());
         persistTimeline(gameId);
-        lastTimelineRounds.put(gameId, !Boolean.TRUE.equals(lastTimelineRounds.get(gameId)) && size == TIMELINE_CARDS);
         return payload.toString();
     }
 
@@ -192,40 +194,92 @@ public class PartyGameService {
     }
 
     /**
-     * Mescola e sceglie le carte evitando anni troppo vicini. Se il mazzo non
-     * basta restituisce quello che c'è: meglio un round più corto che uno vuoto.
+     * Sceglie il round: due facili, quattro medi, due difficili, con eventi a
+     * almeno tre anni di distanza e categorie diverse. Se la categoria scelta
+     * non basta, il resto arriva dalle altre: meglio un round misto che uno
+     * senza il mix dichiarato. Solo alla fine si rilassano i vincoli, così il
+     * round resta comunque di otto carte.
      */
-    private List<TimelineEvent> sampleTimeline(List<TimelineEvent> pool, int count) {
+    private List<TimelineEvent> sampleTimeline(List<TimelineEvent> pool, int count, String category) {
         List<TimelineEvent> source = new ArrayList<>(pool);
         Collections.shuffle(source, random);
 
         List<TimelineEvent> picked = new ArrayList<>();
-        for (TimelineEvent candidate : source) {
-            boolean tooClose = picked.stream()
-                    .anyMatch(event -> Math.abs(event.year() - candidate.year()) < 3);
-            if (!tooClose) {
-                picked.add(candidate);
-            }
-            if (picked.size() >= count) {
-                break;
-            }
+        int[][] bands = {
+                TIMELINE_EASY, TIMELINE_EASY,
+                TIMELINE_MEDIUM, TIMELINE_MEDIUM, TIMELINE_MEDIUM, TIMELINE_MEDIUM,
+                TIMELINE_HARD, TIMELINE_HARD,
+        };
+
+        for (int[] band : bands) {
+            if (picked.size() >= count) break;
+            TimelineEvent candidate = bestCandidate(source, picked, band, true, true, category);
+            if (candidate == null) candidate = bestCandidate(source, picked, band, false, true, category);
+            if (candidate == null) candidate = bestCandidate(source, picked, band, false, false, category);
+            if (candidate != null) picked.add(candidate);
         }
 
-        // Le date ravvicinate possono ridurre il mazzo: completa con gli
-        // eventi rimasti invece di consegnare un round più corto del previsto.
+        // Eventi in meno rispetto alle bande (banca corta o date ravvicinate):
+        // si completa con il primo evento non ancora scelto.
         if (picked.size() < count) {
             for (TimelineEvent candidate : source) {
-                if (!picked.contains(candidate)) {
-                    picked.add(candidate);
-                }
-                if (picked.size() >= count) {
-                    break;
-                }
+                if (picked.contains(candidate)) continue;
+                picked.add(candidate);
+                if (picked.size() >= count) break;
             }
         }
 
         picked.sort(Comparator.comparingInt(TimelineEvent::year));
         return picked;
+    }
+
+    /**
+     * Primo evento della banda che rispetta i vincoli richiesti. `keepCategory`
+     * preferisce la categoria del round, `gap` impone i tre anni di distanza e
+     * `distinctCategory` evita due eventi della stessa categoria nello stesso mazzo.
+     */
+    private TimelineEvent bestCandidate(List<TimelineEvent> source, List<TimelineEvent> picked, int[] band,
+            boolean gap, boolean distinctCategory, String category) {
+        for (TimelineEvent candidate : source) {
+            if (picked.contains(candidate)) continue;
+            boolean inBand = false;
+            for (int value : band) {
+                inBand = inBand || candidate.difficulty() == value;
+            }
+            if (!inBand) continue;
+            if (gap && picked.stream().anyMatch(event -> Math.abs(event.year() - candidate.year()) < 3)) {
+                continue;
+            }
+            if (distinctCategory && picked.stream()
+                    .anyMatch(event -> event.category().equalsIgnoreCase(candidate.category()))) {
+                continue;
+            }
+            // La categoria richiesta non è obbligatoria (il round deve essere
+            // misto), ma a parità di banda la si preferisce.
+            if (category != null && !category.isBlank()
+                    && candidate.category().equalsIgnoreCase(category)) {
+                return candidate;
+            }
+        }
+        // Secondo passaggio: nessun evento della categoria richiesta, si prende
+        // il primo che rispetta gli altri vincoli.
+        for (TimelineEvent candidate : source) {
+            if (picked.contains(candidate)) continue;
+            boolean inBand = false;
+            for (int value : band) {
+                inBand = inBand || candidate.difficulty() == value;
+            }
+            if (!inBand) continue;
+            if (gap && picked.stream().anyMatch(event -> Math.abs(event.year() - candidate.year()) < 3)) {
+                continue;
+            }
+            if (distinctCategory && picked.stream()
+                    .anyMatch(event -> event.category().equalsIgnoreCase(candidate.category()))) {
+                continue;
+            }
+            return candidate;
+        }
+        return null;
     }
 
     public boolean isTimelineRound(long gameId, String roundId) {
@@ -283,18 +337,7 @@ public class PartyGameService {
         }
         int totalPairs = size;
 
-        // Soglia: da n/2 - 1 posizioni giuste in su il round e positivo.
-        // Sotto soglia si perde, ma mai piu di 400 punti; sopra, il massimo e
-        // 1200 per un ordine perfetto.
-        int threshold = Math.max(0, size / 2 - 1);
-        int score;
-        if (correctPairs >= threshold) {
-            score = (int) Math.round(1200.0 * correctPairs / Math.max(1, size));
-        } else {
-            score = threshold == 0 ? 0
-                    : -(int) Math.round(400.0 * (threshold - correctPairs) / threshold);
-        }
-        score = Math.max(-400, Math.min(1200, score));
+        int score = timelineScore(correctPairs, size);
 
         TimelineSubmission submission = new TimelineSubmission(playerName.trim(), correctPairs, totalPairs, score,
                 List.copyOf(order));
@@ -358,10 +401,26 @@ public class PartyGameService {
         return result;
     }
 
+    /**
+     * Punti della Timeline, per posti giusti su otto carte: 8→400, 7→300,
+     * 6→200, 5→100, 4→0, 3→−50, 2→−100, 1 o 0→−200. Con un mazzo ridotto la
+     * tabella resta quella, rapportata agli otto posti dichiarati.
+     */
+    static int timelineScore(int correctPairs, int size) {
+        int[] table = { -200, -200, -100, -50, 0, 100, 200, 300, 400 };
+        int index = Math.max(0, Math.min(8, correctPairs));
+        if (size == 8) {
+            return table[index];
+        }
+        // Mazzo più corto (banca in emergenza): si usano i valori proporzionali
+        // agli otto posti, senza mai uscire da +400 / −200.
+        int scaled = (int) Math.round(index * 8.0 / Math.max(1, size));
+        return table[Math.max(0, Math.min(8, scaled))];
+    }
+
     public void forget(long gameId) {
         timelineRounds.remove(gameId);
         timelineAnswers.remove(gameId);
-        lastTimelineRounds.remove(gameId);
         stateBlobs.forget(gameId, TIMELINE_BLOB);
         stateBlobs.forget(gameId, TIMELINE_ANSWERS_BLOB);
     }
@@ -390,7 +449,7 @@ public class PartyGameService {
                     continue;
                 }
                 ordered.add(new TimelineEvent(row.optString("label", ""), row.optInt("year", 0),
-                        row.optString("category", "Storia")));
+                        row.optString("category", "Storia"), row.optInt("difficulty", 3)));
             }
             Map<Integer, Integer> ranks = new HashMap<>();
             JSONObject ranksJson = json.optJSONObject("ranks");
@@ -436,7 +495,7 @@ public class PartyGameService {
             JSONArray ordered = new JSONArray();
             for (TimelineEvent event : round.ordered()) {
                 ordered.put(new JSONObject().put("label", event.label()).put("year", event.year())
-                        .put("category", event.category()));
+                        .put("category", event.category()).put("difficulty", event.difficulty()));
             }
             JSONObject ranks = new JSONObject();
             round.ranks().forEach((id, rank) -> ranks.put(String.valueOf(id), rank));
@@ -491,7 +550,8 @@ public class PartyGameService {
             if (label.isBlank() || year <= 0) {
                 continue;
             }
-            loaded.add(new TimelineEvent(label, year, row.optString("category", "Storia")));
+            int difficulty = Math.max(1, Math.min(5, row.optInt("difficulty", 3)));
+            loaded.add(new TimelineEvent(label, year, row.optString("category", "Storia"), difficulty));
         }
         return List.copyOf(loaded);
     }

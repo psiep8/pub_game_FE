@@ -2,6 +2,13 @@ import { WsAction } from '../../../shared/enums/ws-action';
 import { signal } from '@angular/core';
 import { GameModeBase } from '../../../shared/models/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../../../shared/models/game-mode-type';
+import { rankPoints } from '../../../shared/models/rank-points';
+import {
+  TIME_BUZZER_FIRST,
+  TIME_BUZZER_LAST,
+  TIME_BUZZER_PERFECT,
+  TIME_BUZZER_PERFECT_MS,
+} from '../../../shared/models/scoring-rules';
 
 interface BuzzGuess {
   playerName: string;
@@ -26,26 +33,16 @@ const REVEAL_PAUSE_MS = 5000;
 const COUNTDOWN_FROM = 5;
 const COUNTDOWN_STEP_MS = 1000;
 
-/** Bonus per posizione: la forbice si allarga manche dopo manche. */
-const BANDS = [
-  [300, 220, 150, 90, 50],
-  [400, 300, 200, 120, 70],
-  [500, 380, 260, 160, 100],
-];
-
-const ELIMINATION_PENALTY = [-250, -100];
-const FINALIST_BONUS = 150;
-
 /**
- * Time Buzzer — tre manche a tempo, con tagli nelle prime due.
+ * Time Buzzer — tre manche a tempo, senza eliminazioni.
  *
  * La TV mostra un tempo bersaglio casuale (5–20 s, al decimo). Dopo il 3-2-1
  * ini­zia la manche e il server manda il via a tutti i telefoni: da quel momento
  * ogni telefono misura il tempo con `performance.now()` e lo ferma con STOP. Il
  * tempo torna al server, che lo confronta con quello davvero trascorso e scarta
- * i valori impossibili. Dopo la prima manche esce il terzo più lento (chi non
- * preme è ultimo), dopo la seconda gli ultimi due: gli altri giocano la terza
- * e prendono un bonus finale.
+ * i valori impossibili. Ogni manche paga il piazzamento (+300 al più preciso,
+ * −200 all'ultimo, zero a metà se N è dispari) e +600 a chi centra il bersaglio
+ * entro 50 ms. Tutti giocano sempre le tre manche e i punti si sommano.
  */
 export class TimeBuzzerMode extends GameModeBase {
   readonly type: GameModeType = 'TIME_BUZZER';
@@ -58,6 +55,7 @@ export class TimeBuzzerMode extends GameModeBase {
   private guesses = signal<BuzzGuess[]>([]);
   private targetMs = signal(0);
   private revealData = signal<any | null>(null);
+  /** Resta vuoto: il gioco non elimina più nessuno, la TV mostra solo lo stato. */
   private eliminated = signal<string[]>([]);
   private finished = signal(false);
   /** Manche chiusa: si aspetta il via dell'admin per la successiva. */
@@ -372,8 +370,7 @@ export class TimeBuzzerMode extends GameModeBase {
       (name) => !this.guesses().some((guess) => guess.playerName === name),
     );
 
-    // Chi non preme è ultimo: entra nella coda delle eliminazioni e non prende
-    // punti per la manche.
+    // Chi non preme è ultimo della manche e paga il malus dell'ultimo posto.
     const results: BuzzResult[] = [
       ...this.guesses().map((guess) => ({
         ...guess,
@@ -387,10 +384,13 @@ export class TimeBuzzerMode extends GameModeBase {
       })),
     ].sort((a, b) => a.error - b.error);
 
-    const bands = BANDS[this.mancheIndex()] ?? BANDS[BANDS.length - 1];
     results.forEach((result, position) => {
-      if (result.missed) return;
-      const points = bands[Math.min(position, bands.length - 1)];
+      // Tempo perfetto: 600 al primo che centra il bersaglio entro 50 ms, al
+      // posto dei 300 del primo posto.
+      const perfect = position === 0 && result.error <= TIME_BUZZER_PERFECT_MS;
+      const points = perfect
+        ? TIME_BUZZER_PERFECT
+        : rankPoints(position + 1, results.length, TIME_BUZZER_FIRST, TIME_BUZZER_LAST);
       this.config.onAnswerReceived?.({
         playerName: result.playerName,
         points,
@@ -398,37 +398,8 @@ export class TimeBuzzerMode extends GameModeBase {
       });
     });
 
-    let eliminatedNow: string[] = [];
-    if (this.mancheIndex() < 2) {
-      const cuts = this.mancheIndex() === 0
-        ? Math.max(1, Math.ceil(active.length / 3))
-        : Math.min(2, Math.max(0, active.length - 1));
-      eliminatedNow = results.slice(-cuts).map((result) => result.playerName).filter(Boolean);
-
-      const penalty = ELIMINATION_PENALTY[this.mancheIndex()] ?? -100;
-      for (const playerName of eliminatedNow) {
-        this.config.onAnswerReceived?.({
-          playerName,
-          points: penalty,
-          isCorrect: false,
-        });
-      }
-      this.eliminated.update((list) => [...new Set([...list, ...eliminatedNow])]);
-    } else if (this.mancheIndex() === MANCHES - 1) {
-      // Chi arriva all'ultima manche ha già pagato i tagli: bonus finale.
-      for (const playerName of active) {
-        this.config.onAnswerReceived?.({
-          playerName,
-          points: FINALIST_BONUS,
-          isCorrect: true,
-        });
-      }
-    }
-
-    const markedResults = results.map((result) => ({
-      ...result,
-      eliminated: eliminatedNow.includes(result.playerName),
-    }));
+    const eliminatedNow: string[] = [];
+    const markedResults = results.map((result) => ({ ...result, eliminated: false }));
     this.revealData.set({ target, results: markedResults, eliminated: this.eliminated(), eliminatedNow });
     this.waitingNext.set(true);
     this.broadcast();

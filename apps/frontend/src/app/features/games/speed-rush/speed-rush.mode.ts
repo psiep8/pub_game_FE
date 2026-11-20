@@ -114,7 +114,8 @@ export class SpeedRushMode extends GameModeBase {
     for (const result of results) {
       const playerName = String(result?.playerName ?? '').trim();
       if (!playerName) continue;
-      const points = Math.max(0, Number(result.points) || 0);
+      // I punti negativi dell'ultimo posto sono punti veri: non si azzerano.
+      const points = Number(result.points) || 0;
       this.config.onAnswerReceived?.({
         playerName,
         points,

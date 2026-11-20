@@ -2,14 +2,13 @@ import {GameModeBase} from '../../../shared/models/game-mode-base.class';
 import {GameModeResult, GameModeType} from '../../../shared/models/game-mode-type';
 import {GAME_TIMINGS} from '../../../shared/models/game-timings';
 import {signal} from '@angular/core';
+import { MUSIC_MANCHE_POINTS } from '../../../shared/models/scoring-rules';
 
 /** Quattro manche da trenta secondi: il timer è della manche, non del round. */
 const MANCHES = GAME_TIMINGS.MUSIC.manches;
 const MANCHE_SECONDS = GAME_TIMINGS.MUSIC.mancheSeconds;
-/** Punti del brano: valore pieno con tutta la manche davanti. */
-const FULL_POINTS = 1000;
-/** Anche all'ultimo secondo una risposta giusta paga: non si resta a zero. */
-const MIN_CORRECT_POINTS = 250;
+/** Punti del brano per manche: 1000, 750, 500, 250. */
+const MANCHE_POINTS = MUSIC_MANCHE_POINTS;
 
 export class MusicMode extends GameModeBase {
   protected override onAnswer(_playerName: string, _answer: any, _result: any): void {
@@ -284,14 +283,14 @@ export class MusicMode extends GameModeBase {
     return {isCorrect: false, points: 0, timeMs};
   }
 
-  /** Il brano vale in proporzione ai secondi rimasti: minimo garantito 250. */
+  /**
+   * Il brano vale secondo la manche in cui si risponde: 1000, 750, 500, 250.
+   * Chi sbaglia paga lo stesso valore in negativo.
+   */
   protected calculatePoints(isCorrect: boolean, _elapsedMs: number): number {
-    if (!isCorrect) return -FULL_POINTS;
-    const secondsLeft = Math.max(0, Math.min(MANCHE_SECONDS, this.timer()));
-    return Math.max(
-      MIN_CORRECT_POINTS,
-      Math.round((FULL_POINTS / MANCHE_SECONDS) * secondsLeft)
-    );
+    const index = Math.min(MANCHE_POINTS.length, Math.max(1, this.currentManche)) - 1;
+    const value = MANCHE_POINTS[index];
+    return isCorrect ? value : -value;
   }
 
   private startMancheCountdown(): void {

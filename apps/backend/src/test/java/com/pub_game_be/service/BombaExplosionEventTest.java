@@ -89,7 +89,8 @@ class BombaExplosionEventTest {
         // Chi ha scelto la bomba vede subito di essere fuori e la penalità.
         JSONObject mine = bomba.state(gameId, bombPlayer);
         assertThat(mine.getJSONObject("you").getBoolean("out")).isTrue();
-        assertThat(mine.getJSONObject("you").getInt("penalty")).isEqualTo(-BombaService.BOMB_PENALTY);
+        assertThat(mine.getJSONObject("you").getInt("penalty")).isEqualTo(-BombaService.BOMBA_PEAK);
+        assertThat(eventoPenalty(exploded)).isEqualTo(BombaService.BOMBA_PEAK);
 
         // L'altra squadra non riceve la penalita al posto suo.
         JSONObject theirs = bomba.state(gameId, other);
@@ -97,6 +98,10 @@ class BombaExplosionEventTest {
         assertThat(theirs.getJSONObject("you").getInt("penalty")).isZero();
 
         bomba.reset(gameId);
+    }
+
+    private static int eventoPenalty(JSONObject state) {
+        return state.getJSONObject("lastEvent").getInt("penalty");
     }
 
     private static Integer firstFreeCell(JSONArray cells) {

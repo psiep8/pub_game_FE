@@ -30,8 +30,9 @@ import java.util.concurrent.TimeUnit;
  * turni, una squadra alla volta: la squadra di turno dice un'opzione, poi passa
  * alla successiva sia se la casella è vera sia se è una bomba.
  *
- * <p>Una casella vera non cambia i punti; una bomba costa 200 punti alla
- * squadra che l'ha scelta e la toglie dal round. Il round finisce quando
+ * <p>Una casella vera non cambia i punti; una bomba elimina la squadra dal
+ * round e le costa un malus che parte da −500 per la prima e scende man mano
+ * che le bombe si esauriscono. Il round finisce quando
  * esauriscono le caselle o quando tutte le squadre sono fuori. Le bombe mai
  * scelte vengono mostrate e disarmate senza conseguenze.
  *
@@ -45,7 +46,8 @@ import java.util.concurrent.TimeUnit;
 public class BombaService {
 
     public static final int TURN_SECONDS = 20;
-    public static final int BOMB_PENALTY = 200;
+    /** Malus della prima bomba: poi scende con le bombe ancora sul tabellone. */
+    public static final int BOMBA_PEAK = 500;
 
     /** Secondi di scelta per turno: configurabili per le prove rapide. */
     private final int turnSeconds;
@@ -59,6 +61,7 @@ public class BombaService {
         private final List<String> players;
         private final String prompt;
         private final List<Cell> cells;
+        private final int bombCount;
         private final Map<Integer, String> pickedBy = new LinkedHashMap<>();
         private final List<String> eliminated = new ArrayList<>();
         private final Map<String, Integer> penalties = new LinkedHashMap<>();
@@ -79,6 +82,7 @@ public class BombaService {
             this.players = players;
             this.prompt = prompt;
             this.cells = cells;
+            this.bombCount = (int) cells.stream().filter(Cell::bomb).count();
             for (String player : players) {
                 penalties.put(player, 0);
             }
@@ -163,17 +167,21 @@ public class BombaService {
             }
 
             long now = System.currentTimeMillis();
+            int bombsTakenBefore = bombsTaken(round, cellId);
             round.pickedBy.put(cellId, player);
             // Nessun esito durante l'ondata: si sa solo chi ha scelto cosa.
-            pushEvent(round, "pick", player, cell.label());
+            pushEvent(round, "pick", player, cell.label(), 0);
 
             if (cell.bomb()) {
-                round.penalties.merge(player, -BOMB_PENALTY, Integer::sum);
-                round.eliminated.add(player);
+                int malus = bombPenalty(round.bombCount, bombsTakenBefore);
+                round.penalties.merge(player, -malus, Integer::sum);
+                if (!round.eliminated.contains(player)) {
+                    round.eliminated.add(player);
+                }
                 // L'esplosione non aspetta la fine dell'ondata: la TV applica la
                 // penalità e il telefono di chi ha scelto lo dice subito. La
                 // casella resta coperta, quindi il resto del tabellone non si rivela.
-                pushEvent(round, "bomb", player, cell.label());
+                pushEvent(round, "bomb", player, cell.label(), malus);
             }
 
             advance(round, now);
@@ -307,11 +315,12 @@ public class BombaService {
                 // penalità di una bomba, e non gioca le ondate successive.
                 String player = round.currentPlayer();
                 if (player != null) {
-                    round.penalties.merge(player, -BOMB_PENALTY, Integer::sum);
+                    int malus = bombPenalty(round.bombCount, bombsTaken(round, -1));
+                    round.penalties.merge(player, -malus, Integer::sum);
                     if (!round.eliminated.contains(player)) {
                         round.eliminated.add(player);
                     }
-                    pushEvent(round, "eliminated", player, "");
+                    pushEvent(round, "eliminated", player, "", malus);
                 }
                 advance(round, System.currentTimeMillis());
                 persist(round);
@@ -319,12 +328,35 @@ public class BombaService {
         }, delay, TimeUnit.MILLISECONDS);
     }
 
-    private void pushEvent(Round round, String kind, String player, String label) {
+    private void pushEvent(Round round, String kind, String player, String label, int penalty) {
         round.lastEvent = new JSONObject()
                 .put("seq", ++round.eventSeq)
                 .put("kind", kind)
                 .put("player", player)
-                .put("label", label);
+                .put("label", label)
+                .put("penalty", penalty);
+    }
+
+    /** Bombe già scoperte, esclusa l'eventuale casella appena scelta. */
+    private int bombsTaken(Round round, int exceptCellId) {
+        int taken = 0;
+        for (Map.Entry<Integer, String> row : round.pickedBy.entrySet()) {
+            if (row.getKey() == exceptCellId) continue;
+            Cell cell = findCell(round, row.getKey());
+            if (cell != null && cell.bomb()) taken++;
+        }
+        return taken;
+    }
+
+    /**
+     * Malus della bomba: −500 × bombe ancora sul tabellone / bombe iniziali,
+     * arrotondato alla decina. Chi la prende prima paga di più.
+     */
+    static int bombPenalty(int totalBombs, int bombsTakenBefore) {
+        int total = Math.max(1, totalBombs);
+        int remaining = Math.max(1, total - Math.max(0, bombsTakenBefore));
+        double raw = BOMBA_PEAK * (double) remaining / total;
+        return Math.max(0, (int) Math.round(raw / 10.0) * 10);
     }
 
     // Il blob rimane privato: contiene anche la posizione delle bombe non scoperte.

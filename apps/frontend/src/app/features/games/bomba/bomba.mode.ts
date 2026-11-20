@@ -3,7 +3,8 @@ import { GameModeBase } from '../../../shared/models/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../../../shared/models/game-mode-type';
 
 const TURN_SECONDS = 20;
-const BOMB_PENALTY = 200;
+/** Malus della prima bomba: il server manda quello vero con l'evento. */
+const BOMB_PENALTY_FALLBACK = 500;
 
 /** Stato iniziale: la TV ha qualcosa da mostrare già prima del primo poll. */
 function emptyState(): any {
@@ -214,7 +215,7 @@ export class BombaMode extends GameModeBase {
       // Bomba scelta o turno scaduto: la penalità arriva subito con l'evento,
       // non a fine ondata. Gli esiti di gioco restano comunque nascosti.
       if ((event?.kind === 'bomb' || event?.kind === 'eliminated') && event?.player) {
-        this.applyBombPenalty(String(event.player));
+        this.applyBombPenalty(String(event.player), Number(event.penalty) || BOMB_PENALTY_FALLBACK);
       }
       // Anche un evento senza punti avanza la sequenza: il checkpoint resta
       // allineato e al refresh non si riapplica nulla.
@@ -230,14 +231,15 @@ export class BombaMode extends GameModeBase {
   }
 
   /**
-   * Una bomba costa 200 punti alla squadra, ma il totale non scende sotto
-   * zero: la penalità si ferma ai punti che la squadra ha davvero.
+   * Una bomba costa il malus decrescente deciso dal server (−500 alla prima),
+   * ma il totale non scende sotto zero: la penalità si ferma ai punti che la
+   * squadra ha davvero.
    */
-  private applyBombPenalty(playerName: string): void {
+  private applyBombPenalty(playerName: string, malus: number): void {
     const available = Math.max(0, Number(this.config.playerPoints?.(playerName)) || 0);
     const points = this.config.playerPoints
-      ? -Math.min(BOMB_PENALTY, available)
-      : -BOMB_PENALTY;
+      ? -Math.min(malus, available)
+      : -malus;
     if (points === 0) return;
 
     this.config.onAnswerReceived?.({

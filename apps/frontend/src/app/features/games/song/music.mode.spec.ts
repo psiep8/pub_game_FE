@@ -58,22 +58,26 @@ describe('MusicMode', () => {
     mode.cleanup();
   });
 
-  it('paga in proporzione ai secondi rimasti e non scende sotto 250', async () => {
+  it('vale 1000, 750, 500, 250 secondo la manche e paga il negativo', async () => {
     vi.useFakeTimers();
     const mode = createMode();
 
     await mode.start();
-    // Con tutta la manche davanti il brano vale il massimo.
+    // Il tempo dentro la manche non cambia più il valore: conta la manche.
     expect(mode.pointsFor(true, 0)).toBe(1000);
-
-    await vi.advanceTimersByTimeAsync(15_000);
-    expect(mode.pointsFor(true, 15_000)).toBe(500);
-
-    // All'ultimo secondo resta il minimo garantito.
-    await vi.advanceTimersByTimeAsync(14_000);
-    expect(mode.pointsFor(true, 29_000)).toBe(250);
-
+    expect(mode.pointsFor(true, 25_000)).toBe(1000);
     expect(mode.pointsFor(false, 15_000)).toBe(-1000);
+
+    mode.nextManche();
+    expect(mode.pointsFor(true, 0)).toBe(750);
+    expect(mode.pointsFor(false, 0)).toBe(-750);
+
+    mode.nextManche();
+    expect(mode.pointsFor(true, 0)).toBe(500);
+
+    mode.nextManche();
+    expect(mode.pointsFor(true, 0)).toBe(250);
+    expect(mode.pointsFor(false, 0)).toBe(-250);
 
     mode.cleanup();
   });
