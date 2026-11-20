@@ -58,10 +58,10 @@
       "type": "QUIZ",
       "difficulty": "facile",
       "question": "Quale condottiero francese fu sconfitto nella battaglia di Waterloo?",
-      "correctAnswer": "Napoleone Bonaparte",
+      "correctAnswer": "Napoleone",
       "options": [
         "Luigi XIV",
-        "Napoleone Bonaparte",
+        "Napoleone",
         "Carlo Magno",
         "Robespierre"
       ],
@@ -141,7 +141,7 @@
       "correctAnswer": "Vittorio Emanuele II",
       "options": [
         "Carlo Alberto",
-        "Umberto I",
+        "Re Umberto I",
         "Vittorio Emanuele II",
         "Napoleone III"
       ],
@@ -350,7 +350,7 @@
       "options": [
         "Antiochia",
         "Trebisonda",
-        "Nicea",
+        "Nicea in Bitinia",
         "Costantinopoli"
       ],
       "theme": null,
@@ -786,9 +786,9 @@
       "type": "QUIZ",
       "difficulty": "medio",
       "question": "Quale stretto separa l'Europa dall'Africa?",
-      "correctAnswer": "Lo stretto di Gibilterra",
+      "correctAnswer": "Gibilterra",
       "options": [
-        "Lo stretto di Gibilterra",
+        "Gibilterra",
         "Il Bosforo",
         "Lo stretto di Messina",
         "Lo stretto di Bering"
@@ -834,11 +834,11 @@
       "type": "QUIZ",
       "difficulty": "difficile",
       "question": "Quale Stato è il più piccolo del mondo?",
-      "correctAnswer": "La Città del Vaticano",
+      "correctAnswer": "Città del Vaticano",
       "options": [
         "Il Liechtenstein",
-        "Monaco",
-        "La Città del Vaticano",
+        "Il Principato di Monaco",
+        "Città del Vaticano",
         "San Marino"
       ],
       "theme": "Geografia",
@@ -1437,7 +1437,7 @@
       "correctAnswer": "L'anidride carbonica",
       "options": [
         "L'ossigeno",
-        "L'azoto",
+        "L'azoto atmosferico",
         "L'idrogeno",
         "L'anidride carbonica"
       ],
@@ -1773,7 +1773,7 @@
       "correctAnswer": "Niccolò Copernico",
       "options": [
         "Giordano Bruno",
-        "Tolomeo",
+        "Claudio Tolomeo",
         "Tycho Brahe",
         "Niccolò Copernico"
       ],
@@ -2250,7 +2250,7 @@
       "options": [
         "La quercia da sughero",
         "Il pino marittimo",
-        "Il faggio",
+        "Il faggio comune",
         "Il castagno"
       ],
       "theme": "Natura",
@@ -2347,7 +2347,7 @@
         "I polipi del corallo",
         "I molluschi bivalvi",
         "I ricci di mare",
-        "Le spugne"
+        "Le spugne marine"
       ],
       "theme": "Animali",
       "explanation": null
@@ -2392,7 +2392,7 @@
       "question": "Quale felino vive ad alta quota sull'Himalaya?",
       "correctAnswer": "Il leopardo delle nevi",
       "options": [
-        "Il puma",
+        "Il puma americano",
         "Il giaguaro",
         "Il leopardo africano",
         "Il leopardo delle nevi"
@@ -2409,7 +2409,7 @@
       "correctAnswer": "Le fossette termorecettrici",
       "options": [
         "Le fossette termorecettrici",
-        "I polmoni",
+        "I polmoni rudimentali",
         "Le squame ventrali",
         "La lingua biforcuta"
       ],
@@ -3072,7 +3072,7 @@
       "options": [
         "Barcellona",
         "Atlanta",
-        "Seul",
+        "Seoul",
         "Sydney"
       ],
       "theme": null,
@@ -3514,8 +3514,8 @@
       "question": "Quale serie è ambientata nel continente di Westeros?",
       "correctAnswer": "Il Trono di Spade",
       "options": [
-        "Vikings",
-        "Roma",
+        "Vikings: Valhalla",
+        "Roma antica",
         "The Witcher",
         "Il Trono di Spade"
       ],
@@ -3576,10 +3576,10 @@
       "type": "QUIZ",
       "difficulty": "facile",
       "question": "Quale film Pixar racconta la storia di un pesce pagliaccio?",
-      "correctAnswer": "Alla ricerca di Nemo",
+      "correctAnswer": "Nemo",
       "options": [
         "Up",
-        "Alla ricerca di Nemo",
+        "Nemo",
         "Cars",
         "Toy Story"
       ],
@@ -3804,8 +3804,8 @@
       "options": [
         "Arancia meccanica",
         "Full Metal Jacket",
-        "Lolita",
-        "Shining"
+        "Lolita di Kubrick",
+        "The Shining"
       ],
       "theme": "Cinema",
       "explanation": null
@@ -3885,7 +3885,7 @@
         "Black Mirror",
         "The Handmaid's Tale",
         "Altered Carbon",
-        "3%"
+        "3% (serie)"
       ],
       "theme": "Serie TV",
       "explanation": null
@@ -4295,7 +4295,7 @@
       "correctAnswer": "Lascia o raddoppia?",
       "options": [
         "Rischiatutto",
-        "Telemike",
+        "Il Telemike",
         "Il gioco dei pacchi",
         "Lascia o raddoppia?"
       ],
@@ -4393,7 +4393,7 @@
         "Piazzapulita",
         "Otto e mezzo",
         "Porta a Porta",
-        "Report"
+        "Report Rai 3"
       ],
       "theme": "TV",
       "explanation": null
@@ -4584,8 +4584,8 @@
       "options": [
         "Il Trono di Spade",
         "The Witcher",
-        "Rome",
-        "Vikings"
+        "Rome (serie)",
+        "Vikings: Valhalla"
       ],
       "theme": "TV",
       "explanation": null
@@ -4631,8 +4631,8 @@
       "correctAnswer": "Il commissario Montalbano",
       "options": [
         "Il capo dei capi",
-        "La piovra",
-        "Gomorra",
+        "La piovra (serie)",
+        "Gomorra - La serie",
         "Il commissario Montalbano"
       ],
       "theme": "TV",
@@ -4649,7 +4649,7 @@
         "Ballando con le stelle",
         "Tu si que vales",
         "Tale e quale show",
-        "Amici"
+        "Amici di Maria"
       ],
       "theme": "TV",
       "explanation": null
@@ -4662,10 +4662,10 @@
       "question": "Quale serie spagnola di Netflix racconta una rapina alla Zecca?",
       "correctAnswer": "La casa di carta",
       "options": [
-        "Élite",
+        "Élite (serie)",
         "La casa di carta",
         "Vis a vis",
-        "Narcos"
+        "Narcos: Messico"
       ],
       "theme": "TV",
       "explanation": null
@@ -5092,8 +5092,8 @@
       "options": [
         "Wish You Were Here",
         "The Dark Side of the Moon",
-        "Animals",
-        "The Wall"
+        "Animals (album)",
+        "The Wall (album)"
       ],
       "theme": null,
       "explanation": null
@@ -6012,7 +6012,7 @@
       "options": [
         "Palazzo Grassi",
         "Palazzo Ducale",
-        "Ca' d'Oro",
+        "Ca' d'Oro a Venezia",
         "La Basilica Palladiana"
       ],
       "theme": "Architettura",
@@ -6947,7 +6947,7 @@
       "correctAnswer": "Volkswagen",
       "options": [
         "Peugeot",
-        "Fiat",
+        "Fiat Auto",
         "Volkswagen",
         "Renault"
       ],
@@ -7979,7 +7979,7 @@
       "correctAnswer": "La mozzarella di bufala",
       "options": [
         "La mozzarella di bufala",
-        "La scamorza",
+        "La scamorza affumicata",
         "Il provolone",
         "Il caciocavallo"
       ],
@@ -7992,10 +7992,10 @@
       "type": "QUIZ",
       "difficulty": "difficile",
       "question": "In quale regione spagnola si produce il vino Rioja?",
-      "correctAnswer": "Nei Paesi Baschi e nella Rioja",
+      "correctAnswer": "Nella Rioja",
       "options": [
         "In Galizia",
-        "Nei Paesi Baschi e nella Rioja",
+        "Nella Rioja",
         "In Andalusia",
         "In Catalogna"
       ],
@@ -8309,7 +8309,7 @@
       "correctAnswer": "La personificazione",
       "options": [
         "L'ossimoro",
-        "L'anafora",
+        "L'anafora retorica",
         "La metafora",
         "La personificazione"
       ],
@@ -8484,7 +8484,7 @@
       "question": "Quale segno di punteggiatura chiude una domanda?",
       "correctAnswer": "Il punto interrogativo",
       "options": [
-        "La virgola",
+        "La virgola semplice",
         "Il punto interrogativo",
         "I due punti",
         "Il punto esclamativo"
@@ -8594,9 +8594,9 @@
       "type": "QUIZ",
       "difficulty": "difficile",
       "question": "Chi ha scritto Il Gattopardo?",
-      "correctAnswer": "Giuseppe Tomasi di Lampedusa",
+      "correctAnswer": "Tomasi di Lampedusa",
       "options": [
-        "Giuseppe Tomasi di Lampedusa",
+        "Tomasi di Lampedusa",
         "Elsa Morante",
         "Natalia Ginzburg",
         "Leonardo Sciascia"
@@ -9043,7 +9043,7 @@
       "correctAnswer": "Il mio vicino Totoro",
       "options": [
         "Howl's Moving Castle",
-        "Ponyo",
+        "Ponyo sulla scogliera",
         "La città incantata",
         "Il mio vicino Totoro"
       ],
@@ -9124,8 +9124,8 @@
       "options": [
         "Roronoa Zoro",
         "Monkey D. Luffy",
-        "Nami",
-        "Sanji"
+        "Nami la navigatrice",
+        "Sanji il cuoco"
       ],
       "theme": "Anime",
       "explanation": null
@@ -9267,7 +9267,7 @@
       "correctAnswer": "Fullmetal Alchemist",
       "options": [
         "Fullmetal Alchemist",
-        "Claymore",
+        "Claymore (manga)",
         "Fate/stay night",
         "Sword Art Online"
       ],
@@ -9771,7 +9771,7 @@
       "correctAnswer": "Microsoft",
       "options": [
         "Apple",
-        "IBM",
+        "IBM Corporation",
         "Microsoft",
         "Google"
       ],
@@ -10247,7 +10247,7 @@
       "correctAnswer": "Il falco pellegrino",
       "options": [
         "Il falco pellegrino",
-        "L'albatro",
+        "L'albatro urlatore",
         "L'aquila reale",
         "La rondine"
       ],
@@ -11603,7 +11603,7 @@
       "correctAnswer": "Proxima Centauri",
       "options": [
         "Proxima Centauri",
-        "Sirio",
+        "Sirio (stella)",
         "Alpha Centauri A",
         "Betelgeuse"
       ],
@@ -11955,8 +11955,8 @@
       "correctAnswer": "Il termometro da cucina",
       "options": [
         "La schiumarola",
-        "Il mestolo",
-        "Il timer",
+        "Il mestolo da cucina",
+        "Il timer da cucina",
         "Il termometro da cucina"
       ],
       "theme": "Gastronomia",
@@ -12194,7 +12194,7 @@
       "question": "Quale indice diffuso dall'ISTAT misura il costo della vita?",
       "correctAnswer": "L'indice dei prezzi al consumo",
       "options": [
-        "Lo spread",
+        "Lo spread sui titoli",
         "L'indice dei prezzi al consumo",
         "Il tasso di cambio",
         "Il PIL pro capite"
@@ -12306,9 +12306,9 @@
       "question": "Quale serie racconta un gruppo di ragazzi in una cittadina con un mondo parallelo?",
       "correctAnswer": "Stranger Things",
       "options": [
-        "The OA",
+        "The OA (serie)",
         "Locke & Key",
-        "Dark",
+        "Dark (serie)",
         "Stranger Things"
       ],
       "theme": "Serie TV",
@@ -12370,9 +12370,9 @@
       "question": "Quale serie spagnola racconta una banda con le maschere di Dalí?",
       "correctAnswer": "La casa di carta",
       "options": [
-        "Narcos",
+        "Narcos: Messico",
         "La casa di carta",
-        "Élite",
+        "Élite (serie)",
         "Vis a vis"
       ],
       "theme": "Serie TV",
@@ -12485,7 +12485,7 @@
         "Luigi Pirandello",
         "Eduardo De Filippo",
         "Carlo Goldoni",
-        "Dario Fo"
+        "Dario Fo drammaturgo"
       ],
       "theme": "Spettacolo",
       "explanation": null
@@ -12514,7 +12514,7 @@
       "question": "Quale anime del 1995 è stato diretto da Hideaki Anno?",
       "correctAnswer": "Neon Genesis Evangelion",
       "options": [
-        "Akira",
+        "Akira (anime)",
         "Cowboy Bebop",
         "Neon Genesis Evangelion",
         "Ghost in the Shell"
@@ -12597,7 +12597,7 @@
         "Nakayoshi",
         "Weekly Young Jump",
         "Weekly Shonen Jump",
-        "Ribon"
+        "Ribon (rivista)"
       ],
       "theme": "Manga",
       "explanation": null
@@ -12690,10 +12690,10 @@
       "question": "Quale gioco è ambientato nel regno di Hyrule?",
       "correctAnswer": "The Legend of Zelda",
       "options": [
-        "Star Fox",
-        "Metroid",
+        "Star Fox 64",
+        "Metroid Prime",
         "The Legend of Zelda",
-        "Kirby"
+        "Kirby's Dream Land"
       ],
       "theme": "Gaming",
       "explanation": null
@@ -12771,7 +12771,7 @@
       "correctAnswer": "La memoria di massa",
       "options": [
         "Il registro",
-        "La cache",
+        "La cache del processore",
         "La memoria di massa",
         "La RAM"
       ],
@@ -14614,7 +14614,7 @@
       "options": [
         "Chopin",
         "Mozart",
-        "Bach",
+        "J.S. Bach",
         "Beethoven"
       ],
       "explanation": null
@@ -14717,7 +14717,7 @@
       "question": "Qual è il deserto più grande del mondo?",
       "correctAnswer": "Antartico",
       "options": [
-        "Gobi",
+        "Deserto del Gobi",
         "Sahara",
         "Antartico",
         "Kalahari"
@@ -14821,13 +14821,13 @@
       "category": "Geografia e Viaggi",
       "type": "QUIZ",
       "difficulty": "facile",
-      "question": "Qual è la capitale del Portogallo?",
-      "correctAnswer": "Lisbona",
+      "question": "Qual è la capitale dell'Austria?",
+      "correctAnswer": "Vienna",
       "options": [
-        "Porto",
-        "Lisbona",
-        "Madrid",
-        "Siviglia"
+        "Graz",
+        "Vienna",
+        "Salisburgo",
+        "Innsbruck"
       ],
       "theme": "Viaggi",
       "explanation": null

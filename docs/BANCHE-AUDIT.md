@@ -8,14 +8,14 @@ elenca ciò che va corretto a mano e i buchi di copertura.
 | Tipo | Domande |
 | --- | --- |
 | IMAGE_BLUR | 6 |
-| QUIZ | 533 |
+| QUIZ | 534 |
 | TENNIS_BATTLE | 22 |
 | TRUE_FALSE | 421 |
 
 | Difficoltà | Domande |
 | --- | --- |
 | difficile | 330 |
-| facile | 327 |
+| facile | 328 |
 | medio | 325 |
 
 ### Posizione della risposta corretta
@@ -23,7 +23,7 @@ elenca ciò che va corretto a mano e i buchi di copertura.
 | Categoria | A | B | C | D |
 | --- | --- | --- | --- | --- |
 | Storia | 6 | 6 | 7 | 6 |
-| Geografia e Viaggi | 9 | 10 | 10 | 10 |
+| Geografia e Viaggi | 9 | 11 | 10 | 10 |
 | Scienza e Spazio | 9 | 9 | 9 | 9 |
 | Natura e Animali | 8 | 8 | 8 | 9 |
 | Sport | 7 | 7 | 6 | 7 |
@@ -43,59 +43,9 @@ elenca ciò che va corretto a mano e i buchi di copertura.
 
 Nessuno.
 
-### Segnalazioni (49)
+### Segnalazioni (0)
 
-| Controllo | Domanda | Dettaglio |
-| --- | --- | --- |
-| indizio di forma: risposta più lunga | `quiz-storia-04` | Quale condottiero francese fu sconfitto nella battaglia di Waterloo? |
-| indizio di forma: risposta più lunga | `quiz-storia-09` | Chi fu il primo re dell'Italia unita nel 1861? |
-| indizio di forma: risposta più lunga | `quiz-storia-22` | Quale città fu capitale dell'Impero bizantino? |
-| indizio di forma: risposta più lunga | `quiz-geografia-07` | Quale stretto separa l'Europa dall'Africa? |
-| indizio di forma: risposta più lunga | `quiz-geografia-10` | Quale Stato è il più piccolo del mondo? |
-| indizio di forma: risposta più lunga | `quiz-scienza-05` | Quale gas assorbono le piante durante la fotosintesi? |
-| indizio di forma: risposta più lunga | `quiz-scienza-26` | Chi propose il modello eliocentrico nel Cinquecento? |
-| indizio di forma: risposta più lunga | `quiz-natura-14` | Quale albero produce il sughero? |
-| indizio di forma: risposta più lunga | `quiz-natura-20` | Quali organismi costruiscono le barriere coralline? |
-| indizio di forma: risposta più lunga | `quiz-natura-23` | Quale felino vive ad alta quota sull'Himalaya? |
-| indizio di forma: risposta più lunga | `quiz-natura-24` | Quale organo permette ai serpenti di percepire il calore? |
-| indizio di forma: risposta più lunga | `quiz-sport-23` | Quale città ha ospitato i Giochi olimpici estivi del 1992? |
-| indizio di forma: risposta più lunga | `quiz-cinema-08` | Quale serie è ambientata nel continente di Westeros? |
-| indizio di forma: risposta più lunga | `quiz-cinema-12` | Quale film Pixar racconta la storia di un pesce pagliaccio? |
-| indizio di forma: risposta più lunga | `quiz-cinema-27` | Quale film di Kubrick è tratto da un romanzo di Anthony Burgess? |
-| indizio di forma: risposta più lunga | `quiz-cinema-32` | Quale serie distopica è tratta da un romanzo di Margaret Atwood? |
-| indizio di forma: risposta più lunga | `quiz-tv-01` | Quale quiz storico conduceva Mike Bongiorno chiedendo di lasciare o raddoppiare? |
-| indizio di forma: risposta più lunga | `quiz-tv-07` | Quale programma politico conduce Bruno Vespa? |
-| indizio di forma: risposta più lunga | `quiz-tv-19` | Quale serie televisiva è ambientata a Westeros? |
-| indizio di forma: risposta più lunga | `quiz-tv-22` | Quale serie italiana ha come protagonista un commissario interpretato da Luca Zingaretti? |
-| indizio di forma: risposta più lunga | `quiz-tv-23` | Quale show di Rai 1 mette in gara personaggi famosi nel ballo? |
-| indizio di forma: risposta più lunga | `quiz-tv-24` | Quale serie spagnola di Netflix racconta una rapina alla Zecca? |
-| indizio di forma: risposta più lunga | `quiz-musica-09` | Quale album dei Pink Floyd ha in copertina un prisma che scompone la luce? |
-| indizio di forma: risposta più lunga | `quiz-arte-25` | Quale palazzo di Vicenza è opera di Andrea Palladio? |
-| indizio di forma: risposta più lunga | `quiz-motori-01` | Quale casa automobilistica produce la Golf? |
-| indizio di forma: risposta più lunga | `quiz-cibo-23` | Quale formaggio a pasta filata è tipico della Campania? |
-| indizio di forma: risposta più lunga | `quiz-cibo-24` | In quale regione spagnola si produce il vino Rioja? |
-| la domanda contiene la risposta | `quiz-lingua-01` | Quale articolo determinativo maschile singolare si usa davanti a una parola che inizia per vocale? |
-| indizio di forma: risposta più lunga | `quiz-lingua-02` | Quale figura retorica è contenuta nell'espressione il mare ride? |
-| indizio di forma: risposta più lunga | `quiz-lingua-14` | Quale segno di punteggiatura chiude una domanda? |
-| indizio di forma: risposta più lunga | `quiz-lingua-22` | Chi ha scritto Il Gattopardo? |
-| indizio di forma: risposta più lunga | `quiz-anime-09` | Quale film Ghibli racconta la storia di Totoro? |
-| indizio di forma: risposta più lunga | `quiz-anime-15` | Come si chiama il protagonista di One Piece? |
-| indizio di forma: risposta più lunga | `quiz-anime-24` | Quale anime ha come protagonisti Edward e Alphonse Elric? |
-| indizio di forma: risposta più lunga | `quiz-gaming-13` | Quale azienda ha sviluppato Windows? |
-| distrattore troppo corto | `quiz-gaming-18` | C# |
-| indizio di forma: risposta più lunga | `quiz-curiosita-01` | Qual è l'animale più veloce in volo? |
-| indizio di forma: risposta più lunga | `quiz-scienza-spazio-04` | Qual è la stella più vicina alla Terra dopo il Sole? |
-| indizio di forma: risposta più lunga | `quiz-cibo-gastronomia-08` | Quale strumento controlla la temperatura interna degli alimenti in cottura? |
-| indizio di forma: risposta più lunga | `quiz-politica-attualità-10` | Quale indice diffuso dall'ISTAT misura il costo della vita? |
-| indizio di forma: risposta più lunga | `quiz-cinema-serie-tv-03` | Quale serie racconta un gruppo di ragazzi in una cittadina con un mondo parallelo? |
-| indizio di forma: risposta più lunga | `quiz-cinema-serie-tv-07` | Quale serie spagnola racconta una banda con le maschere di Dalí? |
-| indizio di forma: risposta più lunga | `quiz-tv-spettacolo-06` | Quale drammaturgo napoletano è autore di Filumena Marturano? |
-| indizio di forma: risposta più lunga | `quiz-anime-anime-01` | Quale anime del 1995 è stato diretto da Hideaki Anno? |
-| indizio di forma: risposta più lunga | `quiz-anime-manga-04` | Su quale rivista giapponese viene pubblicato One Piece? |
-| indizio di forma: risposta più lunga | `quiz-gaming-gaming-01` | Quale gioco è ambientato nel regno di Hyrule? |
-| indizio di forma: risposta più lunga | `quiz-gaming-tecnologia-03` | Quale memoria conserva i dati anche senza alimentazione? |
-| indizio di forma: risposta più lunga | `ah-hard-22` | Chi ha composto la Nona Sinfonia? |
-| indizio di forma: risposta più lunga | `ah-hard-30` | Qual è il deserto più grande del mondo? |
+Nessuna.
 
 ## Timeline
 
@@ -324,7 +274,7 @@ Nessuno.
 | Cinema, Serie TV | 6 | 6 | 7 | 7 | 14 |
 | Curiosità | 4 | 4 | 5 | 5 | 9 |
 | Gaming e Tecnologia | 5 | 5 | 5 | 5 | 14 |
-| Geografia e Viaggi | 5 | 5 | 7 | 7 | 14 |
+| Geografia e Viaggi | 6 | 6 | 7 | 7 | 14 |
 | Lingua e Letteratura | 5 | 5 | 7 | 7 | 13 |
 | Motori | 4 | 4 | 4 | 4 | 9 |
 | Musica | 4 | 4 | 4 | 4 | 9 |
@@ -364,8 +314,8 @@ Buchi: **69**.
 | Gaming e Tecnologia | 2 | facile | 5 |
 | Gaming e Tecnologia | 3 | medio | 5 |
 | Gaming e Tecnologia | 4 | medio | 5 |
-| Geografia e Viaggi | 1 | facile | 5 |
-| Geografia e Viaggi | 2 | facile | 5 |
+| Geografia e Viaggi | 1 | facile | 6 |
+| Geografia e Viaggi | 2 | facile | 6 |
 | Geografia e Viaggi | 3 | medio | 7 |
 | Geografia e Viaggi | 4 | medio | 7 |
 | Lingua e Letteratura | 1 | facile | 5 |

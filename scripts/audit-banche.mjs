@@ -141,14 +141,19 @@ function auditQuestions(bank) {
       if (wrong.length !== new Set(wrong).size) {
         issues.push({ type: 'distrattori ripetuti', id: q.id, detail: q.question });
       }
-      const tooShort = wrong.filter((option) => !isNumeric(option) && normalizeText(option).length < 2);
+      // Un'opzione come "C#" ha due caratteri reali: conta la lunghezza
+      // scritta, non quella normalizzata che perderebbe il cancelletto.
+      const tooShort = wrong.filter((option) => !isNumeric(option) && String(option).trim().length < 2);
       if (tooShort.length > 0) {
         issues.push({ type: 'distrattore troppo corto', id: q.id, detail: tooShort.join(', ') });
       }
       if (forbidden.test(q.question) || q.options.some((option) => forbidden.test(option))) {
         issues.push({ type: 'opzione vietata o opinione', id: q.id, detail: q.question });
       }
-      if (normalizeText(q.question).includes(normalizeText(q.correctAnswer))) {
+      // Una risposta di un solo carattere (per esempio l'articolo "L'")
+      // comparirebbe dentro qualunque testo italiano: non è un indizio.
+      const answerText = normalizeText(q.correctAnswer);
+      if (answerText.length >= 2 && normalizeText(q.question).includes(answerText)) {
         issues.push({ type: 'la domanda contiene la risposta', id: q.id, detail: q.question });
       }
       const lengths = [q.correctAnswer, ...wrong].map((option) => String(option).length);

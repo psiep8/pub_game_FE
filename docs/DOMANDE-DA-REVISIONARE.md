@@ -18,22 +18,28 @@ con `npm run audit:banche`.
 | Numero secco del Casino | una sola girata: se nessuno becca il numero, nessuno prende punti | conferma con il gestore |
 | Finestra di scelta dei bonus | 10 secondi, si chiude prima se tutti hanno scelto | conferma della durata |
 | Buono bevande del Blackjack | massimo 3 squadre premiate per serata | decidere il tetto con il gestore |
-| Consegna dei buoni | la TV mostra il premio, ma il buono non ha ancora un codice, uno stato consegnato/non consegnato né una schermata sul telefono | definire flusso e persistenza prima della serata |
-| Distrattori delle banche | 47 risposte corrette sono più lunghe dei distrattori e 1 distrattore è molto corto (elenco in `docs/BANCHE-AUDIT.md`) | riscrivere a mano, senza cambiare i fatti |
-| Copertura di Ultima spiaggia | 69 combinazioni categoria/livello senza domande dedicate | decidere se riempirle o dichiarare il ripiego |
+| Consegna dei buoni | fatta: il codice nasce sul server, il telefono mostra «HAI VINTO» e la regia segna CONSEGNATO | provare il giro completo in sala |
+| Distrattori delle banche | corretti: l'audit non segnala più risposte più lunghe né distrattori troppo corti | rileggere le 47 opzioni riscritte con il pubblico davanti |
+| Copertura di Ultima spiaggia | **ripiego dichiarato**: se una fascia è esaurita, `QuestionBankService` pesca una domanda nuova della stessa categoria e ne mostra la difficoltà reale; restano 69 combinazioni sotto le 12 domande dedicate | riempirle solo con domande verificate, non inventate |
 | Versione | 2.2.0 | conferma prima del rilascio |
 
 ## Domande da guardare a mano
 
-Le domande qui sotto sono state segnalate dall'audit perché la risposta corretta
-è più lunga o più dettagliata dei distrattori: è un indizio di forma, non un
-errore di fatto. Vanno resi i distrattori dello stesso formato, oppure la
-domanda va riscritta.
+Le 47 risposte più lunghe dei distrattori sono state riallineate cambiando la
+forma delle opzioni o accorciando la risposta, senza cambiare i fatti. L'audit
+ora restituisce **0 segnalazioni** e **0 doppioni**. Restano da rileggere in
+sala le nuove formulazioni, in particolare i nomi completati con il ruolo
+(`Re Umberto I`, `Claudio Tolomeo`) e i titoli con la precisazione tra parentesi
+(`Élite (serie)`, `The Wall (album)`).
+
+Due controlli dell'audit sono stati corretti perché producevano falsi positivi:
+`C#` è un'opzione valida di due caratteri e una risposta di un solo carattere
+come l'articolo `L'` comparirebbe dentro qualunque testo italiano.
 
 <!-- Le righe vengono rigenerate dall'audit: vedi docs/BANCHE-AUDIT.md, sezione
      "Segnalazioni". Non aggiungere qui fatti nuovi senza la fonte. -->
 
-_(nessuna voce ancora registrata a mano)_
+_(nessuna nuova voce registrata a mano)_
 
 ## Fatti da verificare
 
