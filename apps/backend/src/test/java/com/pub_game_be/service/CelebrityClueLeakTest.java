@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Un indizio che cita il nome o il cognome della celebrità regala la risposta.
@@ -73,7 +74,12 @@ class CelebrityClueLeakTest {
         ObjectMapper mapper = new ObjectMapper();
         int checked = 0;
 
-        try (InputStream stream = new ClassPathResource("questions/media-it.json").getInputStream()) {
+        // La banca media è opzionale e non sta nel repository: senza il file
+        // (per esempio in CI) il test non ha nulla da controllare, non fallisce.
+        ClassPathResource bank = new ClassPathResource("questions/media-it.json");
+        assumeTrue(bank.exists(), "banca media locale assente: media-it.json non è nel repository");
+
+        try (InputStream stream = bank.getInputStream()) {
             JsonNode people = mapper.readTree(stream).path("people");
             for (JsonNode person : people) {
                 String name = person.path("name").asText("");
