@@ -298,13 +298,15 @@ const CASINO_VARIANTS = [
     .bp-bar {
       position: fixed;
       top: 8px;
-      left: 8px;
+      /* L'angolo alto-sinistra è dei comandi del browser: la barra parte dopo,
+         così il timbro BONUS PREVIEW non finisce coperto a metà. */
+      left: 68px;
       z-index: 120;
       display: flex;
       flex-wrap: nowrap;
       align-items: center;
       gap: 4px;
-      max-width: calc(100vw - 16px);
+      max-width: calc(100vw - 76px);
       overflow-x: auto;
       padding: 5px;
       background: color-mix(in srgb, var(--coal) 92%, transparent);
@@ -345,6 +347,7 @@ const CASINO_VARIANTS = [
       .bp-card { min-height: 250px; }
     }
     @media (max-width: 700px) {
+      .bp-bar { left: 8px; max-width: calc(100vw - 16px); }
       .bp-bar-tag { display: none; }
       .bp-bar a { padding: 4px 6px; font-size: 0.56rem; }
     }
