@@ -92,6 +92,31 @@ describe('GameComponent', () => {
     expect(component.isPaused()).toBe(false);
   });
 
+  it('si riprende anche se il bonus si chiude mentre la TV è in pausa', () => {
+    const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    component.currentGameId.set(1);
+    component.currentMode.set(null);
+    component.bonusActive.set(true);
+
+    component.togglePause();
+    expect(component.isPaused()).toBe(true);
+
+    // Il bonus finisce per un'altra strada (regia, reset) mentre la sala è ferma.
+    component.bonusActive.set(false);
+    component.togglePause();
+
+    // L'overlay si chiude e il sottofondo torna: la pausa non resta appesa.
+    expect(component.isPaused()).toBe(false);
+    expect(audio.played).toContain('resume-beds');
+    // Non c'era un round aperto: il server non viene toccato.
+    expect(game.resumeCalls).toEqual([]);
+
+    // E il tasto torna al suo mestiere: fuori da round e bonus non apre una pausa.
+    component.togglePause();
+    expect(component.isPaused()).toBe(false);
+  });
+
   it('mette il loop della classifica e chiude sul gioco, o sulla lobby a serata finita', () => {
     const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
     const rounds = TestBed.inject(RoundManagerService);

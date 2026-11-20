@@ -1880,11 +1880,10 @@ export class GameComponent implements OnInit, OnDestroy {
   togglePause() {
     this.cancelAutoAdvance();
     const mode = this.currentMode();
-    // Anche un bonus è un momento della serata: la pausa vale pure lì, dove
-    // non esiste una modalità di round da fermare sul server.
-    if (!mode && !this.bonusActive()) return;
 
     if (this.isPaused()) {
+      // La ripresa vale anche senza round né bonus: se il bonus si chiude
+      // mentre la sala è ferma, l'overlay non deve restare appeso.
       if (mode) {
         this.syncPauseToServer(false);
         mode.resume();
@@ -1899,6 +1898,9 @@ export class GameComponent implements OnInit, OnDestroy {
       this.audioService.resumeBeds();
       this.ws.broadcastStatus(this.currentGameId()!, { action: WsAction.GAME_RESUMED });
     } else {
+      // Anche un bonus è un momento della serata: la pausa vale pure lì, dove
+      // non esiste una modalità di round da fermare sul server.
+      if (!mode && !this.bonusActive()) return;
       // Pausa vera anche per l'audio: niente tick, battito né sottofondo
       // mentre la sala aspetta, altrimenti la musica va avanti a gioco fermo.
       this.audioService.stopClock();
