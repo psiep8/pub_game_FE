@@ -1,6 +1,25 @@
 import { BONUS_LABELS, BONUS_TYPES, BonusType } from '../../shared/enums/bonus-type';
 import { GameModeType } from '../../shared/enums/game-mode-type';
-import { ScoringRule, scoringRuleFor } from '../../shared/models/scoring-rules';
+import {
+  BIGLIE_FIRST,
+  BIGLIE_LAST,
+  BONUS_CASINO_COLOR_POINTS,
+  BONUS_CASINO_DOZEN_POINTS,
+  BONUS_CASINO_NUMBER_POINTS,
+  BOMBA_PEAK,
+  CASINO_SPINS,
+  MUSIC_MANCHE_POINTS,
+  ScoringRule,
+  SPEED_RUSH_FIRST,
+  SPEED_RUSH_LAST,
+  TENNIS_WIN,
+  TIMELINE_POSITION_POINTS,
+  TIME_BUZZER_FIRST,
+  TIME_BUZZER_LAST,
+  TIME_BUZZER_PERFECT,
+  TIME_BUZZER_PERFECT_MS,
+  scoringRuleFor,
+} from '../../shared/models/scoring-rules';
 import {
   ACT_DECKS,
   BONUS_AFTER_ACT,
@@ -97,7 +116,7 @@ function scenesFor(copy: DemoCopy, rule: ScoringRule): DemoScene[] {
   ];
 }
 
-const GAME_COPY: Record<GameModeType, DemoCopy> = {
+const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
   QUIZ: {
     title: 'QUIZ',
     icon: '🧠',
@@ -151,9 +170,9 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
       'Dì titolo e artista al presentatore.',
       'Dopo la prenotazione il brano riparte intero.',
     ],
-    win: ['Risposta corretta: fino a +1000 con tutta la manche davanti, minimo 250.'],
-    lose: ['Risposta sbagliata: −1000.', 'Chi non prenota resta a 0.'],
-    example: 'Prenoti a metà della manche da 30 secondi: restano 15, quindi la risposta vale circa +500.',
+    win: [`Prima manche +${MUSIC_MANCHE_POINTS[0]}, seconda +${MUSIC_MANCHE_POINTS[1]}, terza +${MUSIC_MANCHE_POINTS[2]}, quarta +${MUSIC_MANCHE_POINTS[3]}.`],
+    lose: [`Risposta sbagliata: lo stesso valore, in negativo.`, 'Chi non prenota resta a 0.'],
+    example: `Indovini alla prima manche: +${MUSIC_MANCHE_POINTS[0]}. Alla quarta: +${MUSIC_MANCHE_POINTS[3]}.`,
   },
   WHEEL_OF_FORTUNE: {
     title: 'RUOTA DELLA FORTUNA',
@@ -182,37 +201,31 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
       'Trascina le carte per cambiare l’ordine.',
       'L’invio è automatico; puoi correggere fino allo scadere.',
     ],
-    win: [
-      'Ogni carta nella posizione esatta vale 1200 / numero di carte.',
-      'Un ordine perfetto vale +1200.',
-    ],
-    lose: [
-      'Sotto la soglia di n/2 − 1 posizioni esatte si perde, fino a −400.',
-      'Chi non invia resta all’ordine iniziale.',
-    ],
-    example: 'Con 6 carte ogni posizione esatta vale 200: 6 esatte +1200, 3 esatte +600, 1 esatta −200.',
+    win: [`8 posti giusti: +${TIMELINE_POSITION_POINTS[8]}; 7: +${TIMELINE_POSITION_POINTS[7]}; 6: +${TIMELINE_POSITION_POINTS[6]}; 5: +${TIMELINE_POSITION_POINTS[5]}.`],
+    lose: [`4 posti giusti: 0; 3: ${TIMELINE_POSITION_POINTS[3]}; 2: ${TIMELINE_POSITION_POINTS[2]}; 1 o 0: ${TIMELINE_POSITION_POINTS[1]}.`, 'Chi non invia resta all’ordine iniziale.'],
+    example: 'Otto eventi ogni round: conta la posizione esatta, non l’ordine approssimativo.',
   },
   TIME_BUZZER: {
     title: 'TIME BUZZER',
     icon: '⏱️',
     objective: [
       'Ferma il cronometro il più vicino possibile al bersaglio segreto (5–20 s).',
-      'Tre manche con tagli progressivi.',
+      'Tre manche, tutte le squadre in gioco.',
     ],
     phone: [
       'Il cronometro parte da solo al segnale: tocca STOP.',
       'Non c’è un cronometro sul telefono: vai a sensazione.',
-      'Chi non preme è ultimo ed esce.',
+      'Chi non preme è ultimo della manche.',
     ],
     win: [
-      'Il più vicino prende il bonus più alto della manche: 300, poi 400, poi 500.',
-      'Chi arriva alla terza manche prende altri +150.',
+      `Il piazzamento paga +${TIME_BUZZER_FIRST} al primo e ${TIME_BUZZER_LAST} all’ultimo, 0 a metà se N è dispari.`,
+      `Chi centra il bersaglio entro ${TIME_BUZZER_PERFECT_MS} ms prende +${TIME_BUZZER_PERFECT} al posto dei ${TIME_BUZZER_FIRST}.`,
     ],
     lose: [
-      'Chi esce dopo la prima manche paga −250; dopo la seconda −100.',
-      'Gli altri piazzamenti prendono comunque i bonus della fascia.',
+      'Non ci sono tagli: nessuno esce.',
+      'I punti si sommano fra le tre manche e fra i round.',
     ],
-    example: 'Manche 1: 300 al più vicino, 220 al secondo, 150 al terzo, 90 al quarto, 50 al quinto. Chi esce paga −250.',
+    example: `Con 4 squadre: +${TIME_BUZZER_FIRST}, +150, −100, ${TIME_BUZZER_LAST}. Tutti giocano anche la manche dopo.`,
   },
   BOMBA: {
     title: 'BOMBA',
@@ -224,7 +237,7 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
     phone: [
       'Tocca una casella solo quando è il tuo turno.',
       'Casella vera: 0 punti e il turno passa.',
-      'Bomba: −200 e fuori dal round.',
+      `Bomba: fuori dal round con un malus da ${BOMBA_PEAK} che scende con le bombe rimaste.`,
       'Le caselle restano coperte per tutta l’ondata: gli esiti arrivano alla fine.',
     ],
     win: [
@@ -232,8 +245,8 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
       'Le bombe mai scelte si disarmano a fine round.',
     ],
     lose: [
-      'Una bomba costa −200 e l’uscita dal round.',
-      'Chi non sceglie in tempo è eliminato: −200 e fuori dal round.',
+      `La prima bomba costa ${BOMBA_PEAK}, poi il malus scende: −500, −400, −300, −200, −100.`,
+      'Chi non sceglie in tempo è fuori come se avesse preso una bomba.',
     ],
     example: 'Con 6 tavoli il tabellone ha 15 caselle (2n + n/2) e due bombe: una ogni tre tavoli.',
   },
@@ -250,15 +263,12 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
       'Le prove non si ripetono e salgono di difficoltà con l’avanzamento.',
       'Le domande arrivano solo sul telefono.',
     ],
-    win: [
-      'Prendono punti i primi n/2 arrivati.',
-      'Il primo vale 500; gli altri 500 × tempo del primo / proprio tempo, minimo 100.',
-    ],
+    win: [`Piazzamento puro: +${SPEED_RUSH_FIRST} al primo, poi a scalare fino a 0 a metà.`],
     lose: [
-      'Chi resta sotto la metà non prende punti.',
+      `Gli ultimi pagano fino a ${SPEED_RUSH_LAST}; chi non arriva è ultimo a pari merito.`,
       'Le risposte sbagliate non danno punti e rallentano.',
     ],
-    example: 'Se il primo arriva a metà del tuo tempo, prendi 250 (500 × 1/2). Il minimo è 100.',
+    example: `Con 8 squadre: +${SPEED_RUSH_FIRST}, +600, +400, +200, −100, −200, −300, ${SPEED_RUSH_LAST}.`,
   },
   TENNIS_BATTLE: {
     title: 'TENNIS BATTLE',
@@ -274,9 +284,9 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
       'Dal vantaggio sul 40 pari, dopo tre ritorni arriva il killer point: il punto decide il game.',
       'Più veloce è la tua risposta, più rapido è il colpo che torna.',
     ],
-    win: ['Chi vince il game prende un punto della partita; il primo a vincere il set prende +1000.'],
+    win: [`Chi vince la partita prende +${TENNIS_WIN}.`],
     lose: [
-      'Il perdente prende +200 di consolazione.',
+      'Chi perde prende 0.',
       'Ogni risposta sbagliata o non data è un punto subito.',
     ],
     example: 'Game vinto dal 40 con vantaggio: il punto è tuo. Le domande sulla TV non compaiono.',
@@ -333,22 +343,6 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
     lose: ['La perdita scende manche dopo manche: 100%, 80%, 60%, 40%.', 'Mai sotto zero.'],
     example: '10 fiches = 200 punti. Tutte giuste a ×4: +800. Tutte sbagliate alla prima manche: −200; alla quarta: −80.',
   },
-  BLACKJACK: {
-    title: 'BLACKJACK',
-    icon: '🃏',
-    objective: [
-      'Tre mani contro il banco della TV, un tavolo alla volta.',
-      'Il banco si ferma a 17.',
-    ],
-    phone: [
-      'Quando la TV chiama il tuo tavolo scegli CARTA o STAI.',
-      'Il telefono mostra la tua mano e il totale.',
-      'La TV mostra il banco alla fine.',
-    ],
-    win: ['Mano vinta +250; blackjack naturale +500.'],
-    lose: ['Mano persa −250, senza cumulare le perdite.', 'Pareggio 0; mai sotto zero.'],
-    example: 'Due mani vinte: 250 + 250 = +500. Un naturale: +500. Una sconfitta: −250.',
-  },
   BIGLIE: {
     title: 'BIGLIE',
     icon: '🎱',
@@ -362,11 +356,11 @@ const GAME_COPY: Record<GameModeType, DemoCopy> = {
       'Segui le piste in TV.',
     ],
     win: [
-      'Primo 150, secondo 100, terzo 60, quarto 30 a gara.',
-      'I punti di ogni gara entrano nella classifica della serata.',
+      `Primo +${BIGLIE_FIRST}, ultimo ${BIGLIE_LAST}, zero a metà se N è dispari.`,
+      'I punti delle due gare si sommano fra loro e fra i quattro round.',
     ],
-    lose: ['Chi arriva dopo il quarto non prende punti nella gara.', 'Nessuna penalità negativa.'],
-    example: 'Vincere entrambe le gare: 150 + 150 = 300 punti in classifica.',
+    lose: ['Anche gli ultimi piazzamenti entrano in classifica, in negativo.'],
+    example: `Con 8 squadre: +${BIGLIE_FIRST}, +380, +250, +130, −100, −200, −300, ${BIGLIE_LAST}.`,
   },
 };
 
@@ -375,13 +369,13 @@ const BONUS_COPY: Record<BonusType, DemoCopy> = {
     title: 'CASINO NERO/ROSSO',
     icon: '🔴',
     objective: [
-      'Una sola puntata sul colore: nero o rosso.',
-      'La ruota europea gira una volta sola.',
+      `Tre girate sul colore: nero o rosso.`,
+      `La ruota europea gira ${CASINO_SPINS} volte.`,
     ],
-    phone: ['Tocca NERO o ROSSO.', 'La pallina esce una volta sola.', 'Sullo zero il banco incassa.'],
-    win: ['Colore giusto: +100 in classifica.'],
+    phone: ['Tocca NERO o ROSSO a ogni girata, entro dieci secondi.', `La pallina esce ${CASINO_SPINS} volte.`, 'Sullo zero il banco incassa.'],
+    win: [`Colore giusto: +${BONUS_CASINO_COLOR_POINTS} a girata, massimo +${CASINO_SPINS * BONUS_CASINO_COLOR_POINTS}.`],
     lose: ['Colore sbagliato o zero: 0 punti.', 'Nessuna penalità.'],
-    example: 'Punti sul rosso ed esce 32: +100. Esce 15 (nero): 0.',
+    example: `Tre rossi azzeccati: +${CASINO_SPINS * BONUS_CASINO_COLOR_POINTS}.`,
   },
   BLACKJACK: {
     title: 'BLACKJACK',
@@ -391,45 +385,45 @@ const BONUS_COPY: Record<BonusType, DemoCopy> = {
       'Il banco si ferma a 17; il naturale batte tutto.',
     ],
     phone: ['Quando la TV chiama il tuo tavolo scegli CARTA o STAI.', 'La TV apre il banco alla fine.'],
-    win: ['Mano vinta +150 in classifica.', 'Pari +75.'],
-    lose: ['Mano persa 0: il bonus non toglie punti.', 'Sballare non costa nulla in classifica.'],
-    example: 'Due tavoli vincono: +150 a testa; un pari: +75.',
+    win: ['Chi batte il banco riceve un buono per 3 consumazioni al tavolo, non punti.', 'Massimo tre buoni a serata.'],
+    lose: ['Pari e sconfitte non tolgono nulla.', 'Sballare non costa nulla in classifica.'],
+    example: 'Due tavoli battono il banco: due buoni da tre consumazioni.',
   },
   CASINO_DOZEN: {
     title: 'CASINO DOZZINA',
     icon: '🎰',
     objective: [
-      'Una sola puntata sulla dozzina: 1-12, 13-24 o 25-36.',
-      'La ruota gira una volta sola.',
+      'Tre girate sulla dozzina: 1-12, 13-24 o 25-36.',
+      `La ruota gira ${CASINO_SPINS} volte.`,
     ],
-    phone: ['Tocca la dozzina.', 'La pallina esce una volta sola.'],
-    win: ['Dozzina giusta: +120 in classifica.'],
+    phone: ['Tocca la dozzina a ogni girata, entro dieci secondi.', `La pallina esce ${CASINO_SPINS} volte.`],
+    win: [`Dozzina giusta: +${BONUS_CASINO_DOZEN_POINTS} a girata, massimo +${CASINO_SPINS * BONUS_CASINO_DOZEN_POINTS}.`],
     lose: ['Dozzina sbagliata o zero: 0 punti.', 'Nessuna penalità.'],
-    example: 'Punti sul 13-24 ed esce 21: +120. Esce 7: 0.',
+    example: `Tre dozzine azzeccate: +${CASINO_SPINS * BONUS_CASINO_DOZEN_POINTS}.`,
   },
   CAVALLO: {
     title: 'CAVALLO DI BATTAGLIA',
     icon: '🐎',
     objective: [
       'Otto domande flash sulla categoria votata dai tavoli.',
-      'Il podio delle risposte esatte prende i punti.',
+      'Vince chi ha più risposte giuste; a pari merito chi ha finito prima.',
     ],
     phone: ['Vota la categoria.', 'Tocca la risposta giusta: ogni esatta sale nel tabellone.'],
-    win: ['Primo +200, secondo +100, terzo +50 in classifica.'],
-    lose: ['Dal quarto posto in giù: 0 punti.', 'Risposta sbagliata o non data: nessun punto.'],
-    example: 'Podio: +200, +100, +50. Gli altri tavoli restano a zero.',
+    win: ['Il vincitore riceve un buono per una consumazione di cibo, non punti.'],
+    lose: ['Gli altri tavoli non ricevono nulla.', 'Risposta sbagliata o non data: nessun punto.'],
+    example: 'Il tavolo con più esatte vince il buono cibo.',
   },
   CASINO_NUMBER: {
     title: 'CASINO NUMERO SECCO',
     icon: '🎯',
     objective: [
-      'La finale: una sola puntata su un numero da 0 a 36.',
-      'La ruota rigira finché almeno un tavolo ha puntato il numero uscito.',
+      'Una sola puntata su un numero da 0 a 36.',
+      'Se nessuno becca il numero, nessuno prende punti.',
     ],
-    phone: ['Scegli un numero.', 'La pallina esce con un ultimo giro di suspense.'],
-    win: ['Numero esatto: +300 in classifica.'],
+    phone: ['Scegli un numero entro dieci secondi.', 'La pallina esce con un ultimo giro di suspense.'],
+    win: [`Numero esatto: +${BONUS_CASINO_NUMBER_POINTS} punti.`],
     lose: ['Numero sbagliato: 0 punti.', 'Nessuna penalità.'],
-    example: 'Punti sul 17 ed esce 17: +300. Esce 18: 0.',
+    example: `Punti sul 17 ed esce 17: +${BONUS_CASINO_NUMBER_POINTS}. Esce 18: 0.`,
   },
 };
 
@@ -465,7 +459,7 @@ const introScenes: DemoScene[] = [
     title: 'COME SI VINCE',
     lines: [
       'I punti dei giochi entrano nella classifica della serata.',
-      'I bonus mostrano una classifica separata: i loro punti non entrano ancora in classifica.',
+      'I bonus pagano solo punti positivi; Blackjack e Cavallo danno buoni, non punti.',
       'Vince la squadra con più punti dopo la classifica finale dell’atto 5.',
     ],
   },
@@ -521,7 +515,7 @@ const scripts: Record<string, DemoScript> = {
 };
 
 for (const type of scheduledModes()) {
-  scripts[type] = makeGameScript(type, GAME_COPY[type]);
+  scripts[type] = makeGameScript(type, GAME_COPY[type as Exclude<GameModeType, 'BLACKJACK'>]);
 }
 
 for (const type of BONUS_TYPES) {

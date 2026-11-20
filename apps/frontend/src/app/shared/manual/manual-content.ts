@@ -1,6 +1,24 @@
 import { BONUS_LABELS, BONUS_TYPES, BonusType } from '../enums/bonus-type';
 import { GameModeType } from '../enums/game-mode-type';
-import { ScoringRule, scoringRuleFor } from '../models/scoring-rules';
+import {
+  BIGLIE_FIRST,
+  BIGLIE_LAST,
+  BONUS_CASINO_COLOR_POINTS,
+  BONUS_CASINO_DOZEN_POINTS,
+  BONUS_CASINO_NUMBER_POINTS,
+  BOMBA_PEAK,
+  CASINO_SPINS,
+  MUSIC_MANCHE_POINTS,
+  ScoringRule,
+  SPEED_RUSH_FIRST,
+  SPEED_RUSH_LAST,
+  TENNIS_WIN,
+  TIMELINE_POSITION_POINTS,
+  TIME_BUZZER_LAST,
+  TIME_BUZZER_PERFECT,
+  TIME_BUZZER_PERFECT_MS,
+  scoringRuleFor,
+} from '../models/scoring-rules';
 import {
   ACT_DECKS,
   BONUS_AFTER_ACT,
@@ -55,7 +73,7 @@ interface EntryCopy {
   tip: string;
 }
 
-const GAME_COPY: Record<GameModeType, EntryCopy> = {
+const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, EntryCopy> = {
   QUIZ: {
     name: 'QUIZ',
     icon: '🧠',
@@ -91,7 +109,7 @@ const GAME_COPY: Record<GameModeType, EntryCopy> = {
       'Dì titolo e artista al presentatore.',
       'Dopo la prenotazione il brano riparte intero a volume pieno.',
     ],
-    tip: 'Più prenoti presto, più vale: 1000 con tutta la manche davanti, minimo 250 anche all’ultimo secondo.',
+    tip: `La manche decide il valore: ${MUSIC_MANCHE_POINTS[0]} alla prima, poi ${MUSIC_MANCHE_POINTS.slice(1).join(', ')}. Prima la riconosci, più vale.`,
   },
   WHEEL_OF_FORTUNE: {
     name: 'RUOTA DELLA FORTUNA',
@@ -108,26 +126,27 @@ const GAME_COPY: Record<GameModeType, EntryCopy> = {
   TIMELINE: {
     name: 'TIMELINE',
     icon: '🕰️',
-    summary: 'Sei date da ordinare dal passato al presente, tutti sulla stessa scala.',
+    summary: 'Otto date da ordinare dal passato al presente, tutti sulla stessa scala.',
     objective: 'Ordinare le carte in TV dal più antico al più recente; l’ordine iniziale è già una risposta valida.',
     phone: [
       'Trascina le carte per correggere l’ordine.',
       'L’ordine viene inviato da solo: puoi sistemarlo fino allo scadere.',
       'La soluzione e i punti arrivano al reveal.',
     ],
-    tip: 'Conta la posizione esatta: ogni carta nel posto giusto vale; sotto metà classifica si perde.',
+    tip: `Conta la posizione esatta: 8 posti giusti valgono ${TIMELINE_POSITION_POINTS[8]}, 4 valgono 0, con 1 o 0 si paga ${TIMELINE_POSITION_POINTS[1]}.`,
   },
   TIME_BUZZER: {
     name: 'TIME BUZZER',
     icon: '⏱️',
-    summary: 'Ferma il cronometro al momento giusto: tre manche con tagli progressivi.',
+    summary: 'Ferma il cronometro al momento giusto: tre manche, tutte le squadre in gioco.',
     objective: 'Fermare il tempo il più vicino possibile al bersaglio segreto, tra 5 e 20 secondi.',
     phone: [
       'Il cronometro parte da solo al segnale: tocca STOP quando pensi sia giusto.',
       'Non c’è un cronometro sul telefono: vai a sensazione.',
-      'Dopo la prima manche esce circa un terzo dei tavoli; dopo la seconda gli ultimi due.',
+      'Tutti giocano tutte e tre le manche: non si esce mai.',
+      'Chi non preme è ultimo della manche e prende il malus dell’ultimo posto.',
     ],
-    tip: 'Non restare fermo: chi non preme è ultimo ed esce. Chi arriva alla terza manche prende +150.',
+    tip: `Il primo prende +300, l’ultimo ${TIME_BUZZER_LAST}, il posto di mezzo 0. Chi centra il bersaglio entro ${TIME_BUZZER_PERFECT_MS} ms prende +${TIME_BUZZER_PERFECT} al posto dei 300.`,
   },
   BOMBA: {
     name: 'BOMBA',
@@ -137,11 +156,11 @@ const GAME_COPY: Record<GameModeType, EntryCopy> = {
     phone: [
       'Tocca una casella solo quando la TV indica il tuo turno.',
       'Casella vera: 0 punti e il turno passa.',
-      'Bomba: −200 e fuori dal round.',
-      'Se scade il tempo senza scegliere sei eliminato: −200 e non giochi le ondate successive.',
+      `Bomba: fuori dal round, con un malus che parte da ${BOMBA_PEAK} e scende con le bombe rimaste.`,
+      'Se scade il tempo senza scegliere sei fuori come se avessi preso una bomba.',
       'Durante l’ondata le caselle restano coperte: bombe, eliminati e penalità si scoprono solo alla fine.',
     ],
-    tip: 'Il turno passa anche con una casella vera: non rallentare, ma guarda quante bombe restano.',
+    tip: 'Le caselle vere non danno punti: servono solo a restare in vita. La prima bomba costa più delle ultime.',
   },
   SPEED_RUSH: {
     name: 'SPEED RUSH',
@@ -155,7 +174,7 @@ const GAME_COPY: Record<GameModeType, EntryCopy> = {
       'Le prove non si ripetono e diventano più difficili man mano che avanzi.',
       'La TV mostra solo le corsie: le domande sono sul telefono.',
     ],
-    tip: 'Meglio tante risposte giuste di una sola velocissima: contano la costanza e la posizione.',
+    tip: `Conta il piazzamento: ${SPEED_RUSH_FIRST} al primo, ${SPEED_RUSH_LAST} all’ultimo, zero a metà se le squadre sono dispari.`,
   },
   TENNIS_BATTLE: {
     name: 'TENNIS BATTLE',
@@ -169,7 +188,7 @@ const GAME_COPY: Record<GameModeType, EntryCopy> = {
       'Hai 12 secondi per rispondere a ogni servizio.',
       'Le domande passano da facili a difficili con i tiri; la pallina arriva dritta, in diagonale, stretta, corta o a pallonetto.',
     ],
-    tip: 'Rispondere in fretta accorcia il tempo dell’avversario. Anche il perdente prende +200.',
+    tip: `Rispondere in fretta accorcia il tempo dell’avversario. Chi vince la partita prende +${TENNIS_WIN}, chi perde zero.`,
   },
   ARENA: {
     name: 'ARENA BATTLE ROYALE',
@@ -209,29 +228,17 @@ const GAME_COPY: Record<GameModeType, EntryCopy> = {
     ],
     tip: 'La perdita scende manche dopo manche: nella prima si rischia più che nella quarta. Mai sotto zero.',
   },
-  BLACKJACK: {
-    name: 'BLACKJACK',
-    icon: '🃏',
-    summary: 'Tre mani contro il banco della TV: carta o stai.',
-    objective: 'Battere il banco senza sballare; la TV fa il banco una volta per ogni tavolo.',
-    phone: [
-      'Quando la TV chiama il tuo tavolo scegli CARTA o STAI.',
-      'Il banco si ferma a 17.',
-      'Vittoria +250, naturale +500, sconfitta −250 (mai sotto zero).',
-    ],
-    tip: 'Con 17 o più conviene spesso stare; il naturale paga il doppio.',
-  },
   BIGLIE: {
     name: 'BIGLIE',
     icon: '🎱',
     summary: 'Quattro round separati, due gare per round: una biglia per tavolo e punti in classifica.',
-    objective: 'Scegliere una biglia e portarla al traguardo su due delle otto piste — rally, F1, neve, acqua, vetro, sabbia, spazio, magma — scelte dal seme; ogni gara assegna 150/100/60/30 ai primi quattro e −30/−60/−100/−150 agli ultimi quattro.',
+    objective: `Scegliere una biglia e portarla al traguardo su due delle otto piste — rally, F1, neve, acqua, vetro, sabbia, spazio, magma — scelte dal seme; ogni gara assegna ${BIGLIE_FIRST} al primo e ${BIGLIE_LAST} all’ultimo, con zero a metà se le squadre sono dispari.`,
     phone: [
       'Quando la TV chiama il tuo tavolo scegli la biglia.',
       'La biglia resta la stessa per le due gare del round.',
       'Segui le piste in TV: i punti arrivano all’ordine d’arrivo.',
     ],
-    tip: 'I punti di ogni gara entrano subito in classifica: vincere paga, arrivare in fondo costa.',
+    tip: 'I punti delle due gare si sommano fra loro e fra i quattro round: vincere paga, arrivare in fondo costa.',
   },
 };
 
@@ -239,14 +246,14 @@ const BONUS_COPY: Record<BonusType, EntryCopy> = {
   CASINO_COLOR: {
     name: 'CASINO NERO/ROSSO',
     icon: '🔴',
-    summary: 'Una sola puntata sul colore: nero o rosso, poi la ruota decide.',
-    objective: 'Scegliere il colore e sperare che la pallina si fermi sulla stessa famiglia; lo zero è del banco.',
+    summary: `Tre girate sul colore: nero o rosso, poi la ruota decide.`,
+    objective: `Scegliere il colore a ogni girata e sperare che la pallina si fermi sulla stessa famiglia; lo zero è del banco.`,
     phone: [
-      'Tocca NERO o ROSSO quando la TV apre le puntate.',
-      'La pallina esce una volta sola: niente recuperi.',
+      'Tocca NERO o ROSSO a ogni girata, entro dieci secondi.',
+      `La pallina esce ${CASINO_SPINS} volte: ogni colore giusto vale ${BONUS_CASINO_COLOR_POINTS}.`,
       'La TV mostra il numero, il colore e i punti.',
     ],
-    tip: 'Il colore giusto vale +100 in classifica; lo zero non paga nessuno.',
+    tip: `Massimo ${CASINO_SPINS * BONUS_CASINO_COLOR_POINTS} punti se azzecchi tutte e tre le girate; lo zero non paga nessuno.`,
   },
   BLACKJACK: {
     name: 'BLACKJACK',
@@ -256,43 +263,44 @@ const BONUS_COPY: Record<BonusType, EntryCopy> = {
     phone: [
       'Quando la TV chiama il tuo tavolo scegli CARTA o STAI.',
       'La TV apre il banco alla fine della mano.',
-      'Vittoria +150, pari +75, sconfitta 0: il bonus non toglie punti.',
+      'Chi batte il banco vince un buono per 3 consumazioni al tavolo, non punti.',
+      'Pari e sconfitte non tolgono nulla.',
     ],
-    tip: 'Con 17 o più conviene spesso stare; il naturale paga come una vittoria piena.',
+    tip: 'Con 17 o più conviene spesso stare. I buoni sono al massimo tre a serata.',
   },
   CASINO_DOZEN: {
     name: 'CASINO DOZZINA',
     icon: '🎰',
-    summary: 'Una sola puntata sulla dozzina: 1-12, 13-24 o 25-36.',
-    objective: 'Indovinare in quale dozzina cade il numero; lo zero è del banco.',
+    summary: 'Tre girate sulla dozzina: 1-12, 13-24 o 25-36.',
+    objective: 'Indovinare in quale dozzina cade il numero a ogni girata; lo zero è del banco.',
     phone: [
-      'Tocca la dozzina quando la TV apre le puntate.',
-      'La ruota gira una volta sola.',
-      'La dozzina giusta vale +120 in classifica.',
+      'Tocca la dozzina a ogni girata, entro dieci secondi.',
+      `La ruota gira ${CASINO_SPINS} volte.`,
+      `La dozzina giusta vale ${BONUS_CASINO_DOZEN_POINTS} punti a girata.`,
     ],
-    tip: 'Tre caselle, una sola vincita: meglio scegliere subito che aspettare l’ultimo secondo.',
+    tip: `Massimo ${CASINO_SPINS * BONUS_CASINO_DOZEN_POINTS} punti: meglio scegliere subito che aspettare l’ultimo secondo.`,
   },
   CAVALLO: {
     name: 'CAVALLO DI BATTAGLIA',
     icon: '🐎',
-    summary: 'Otto domande flash sulla categoria scelta dai tavoli, podio a punti.',
-    objective: 'Votare la categoria e rispondere a otto domande rapide; il podio delle risposte esatte prende i punti.',
+    summary: 'Otto domande flash sulla categoria scelta dai tavoli: vince un buono cibo.',
+    objective: 'Votare la categoria e rispondere a otto domande rapide; vince chi ha più risposte giuste, a pari merito chi ha finito prima.',
     phone: [
       'Vota la categoria della sfida.',
       'Tocca la risposta giusta: ogni esatta sale nel tabellone.',
-      'La TV mostra tabellone e podio del bonus.',
+      'La TV mostra tabellone e vincitore del bonus.',
     ],
-    tip: 'Primo +200, secondo +100, terzo +50 in classifica. Gli altri restano a zero.',
+    tip: 'Il vincitore prende un buono per una consumazione di cibo, non punti. A pari merito vince chi ha finito prima.',
   },
   CASINO_NUMBER: {
     name: 'CASINO NUMERO SECCO',
     icon: '🎯',
-    summary: 'La finale: una sola puntata su un numero da 0 a 36.',
-    objective: 'Indovinare il numero esatto dell’ultimo giro; la ruota rigira finché almeno un tavolo vince.',
+    summary: 'Una sola girata su un numero da 0 a 36.',
+    objective: 'Indovinare il numero esatto dell’unico giro; se nessuno lo becca, nessuno prende punti.',
     phone: [
-      'Scegli un numero quando la TV apre le puntate.',
+      'Scegli un numero entro dieci secondi.',
       'La pallina esce una volta sola, con un ultimo giro di suspense.',
-      'Il numero esatto vale +300 in classifica.',
+      `Il numero esatto vale ${BONUS_CASINO_NUMBER_POINTS} punti.`,
     ],
     tip: 'Trentasette caselle, una sola paga: è il bonus più alto della serata.',
   },
@@ -309,7 +317,7 @@ export const MANUAL_GAMES: readonly ManualGame[] = scheduledModes().map((type) =
   key: type,
   occurrences: occurrencesOf(type),
   scoring: ruleFor(type),
-  ...GAME_COPY[type],
+  ...GAME_COPY[type as Exclude<GameModeType, 'BLACKJACK'>],
 }));
 
 export const MANUAL_BONUSES: readonly ManualBonus[] = BONUS_TYPES.map((type) => {
