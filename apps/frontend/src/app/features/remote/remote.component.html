@@ -217,6 +217,16 @@
     </div>
   </div>
   <div class="game-content" [class.resyncing]="resyncing()">
+    @if (voucherWin(); as voucher) {
+    <section class="voucher-win" role="dialog" aria-live="assertive" aria-label="Buono vinto">
+      <div class="voucher-win-kicker">PREMIO AL TAVOLO</div>
+      <h2>HAI VINTO</h2>
+      <p class="voucher-win-prize">{{ voucher.label }}</p>
+      <div class="voucher-win-code">{{ voucherCode(voucher.code) }}</div>
+      <p class="voucher-win-hint">Mostra il codice al bancone per ritirarlo.</p>
+      <button type="button" class="voucher-win-close" (click)="voucherWin.set(null)">HO CAPITO</button>
+    </section>
+    }
     @if (resyncing()) {
     <div class="resync-veil" role="status" aria-live="polite">
       <span class="resync-title">Riallineamento…</span>

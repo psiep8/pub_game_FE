@@ -434,12 +434,12 @@
     }
     @if (bonusVouchers().length) {
       <div class="bonus-vouchers">
-        <div class="bonus-scores-head"><span>TAVOLO</span><span>PREMIO</span><span></span></div>
-        @for (row of bonusVouchers(); track row.playerName) {
+        <div class="bonus-scores-head"><span>TAVOLO</span><span>PREMIO</span><span>CODICE</span></div>
+        @for (row of bonusVouchers(); track row.id) {
           <div class="bonus-row win">
-            <span class="bonus-pos">★</span>
             <span class="bonus-name">{{ row.playerName }}</span>
-            <b class="bonus-points">{{ row.label }}</b>
+            <span class="bonus-prize">{{ row.label }}</span>
+            <b class="voucher-code">{{ voucherCode(row.code) }}</b>
           </div>
         }
       </div>

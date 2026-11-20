@@ -1782,4 +1782,18 @@ describe('GameComponent', () => {
       }
     });
   });
+
+  it('mostra il buono emesso dal server con il codice a quattro cifre', () => {
+    component.bonusVouchers.set([]);
+    component.bonusShowResult.set(true);
+    component.onBonusVoucher({ playerName: 'Anna', label: '3 consumazioni al tavolo' });
+    fixture.detectChanges();
+
+    expect(component.bonusVouchers()).toHaveLength(1);
+    expect(component.bonusVouchers()[0].code).toMatch(/^\d{4}$/);
+    expect(fixture.nativeElement.querySelector('.voucher-code')?.textContent?.trim())
+      .toBe(component.bonusVouchers()[0].code);
+    expect(fixture.nativeElement.querySelector('.bonus-prize')?.textContent)
+      .toContain('3 consumazioni al tavolo');
+  });
 });

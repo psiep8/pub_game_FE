@@ -790,6 +790,61 @@
 .diag-device.offline { background: var(--paper-2); }
 .diag-name { font-family: var(--font-mono); font-size: .68rem; }
 .diag-state { color: var(--tomato); }
+/* Buoni: tabella stampata, codice mono, stato netto. */
+.voucher-panel { display: flex; flex-direction: column; gap: 10px; }
+.voucher-head,
+.voucher-row {
+  display: grid;
+  grid-template-columns: minmax(90px, .8fr) minmax(160px, 1.6fr) auto auto;
+  align-items: center;
+  gap: 12px;
+}
+.voucher-head {
+  padding: 0 4px;
+  font-family: var(--font-mono);
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  color: color-mix(in srgb, var(--paper) 62%, transparent);
+}
+.voucher-row {
+  padding: 10px 12px;
+  background: var(--paper);
+  color: var(--coal);
+  border: 3px solid var(--coal);
+  box-shadow: 4px 4px 0 var(--tomato);
+}
+.voucher-row.delivered { background: var(--paper-2); box-shadow: 4px 4px 0 var(--coal); opacity: .82; }
+.voucher-name { font-family: var(--font-mono); font-size: .88rem; overflow-wrap: anywhere; }
+.voucher-prize { font-size: .8rem; line-height: 1.3; }
+.voucher-code {
+  padding: 2px 8px;
+  border: 2px solid var(--coal);
+  background: var(--paper-hi);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-align: center;
+}
+.voucher-deliver,
+.voucher-state {
+  justify-self: end;
+  padding: 7px 10px;
+  border: 2px solid var(--coal);
+  border-radius: 0;
+  box-shadow: 3px 3px 0 var(--coal);
+  font-family: var(--font-mono);
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+}
+.voucher-deliver { background: var(--acid); color: var(--coal); }
+.voucher-deliver:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--coal); }
+.voucher-deliver:disabled { opacity: .6; }
+.voucher-state.done { background: var(--coal); color: var(--paper-hi); box-shadow: none; }
+.voucher-notice { margin: 0; font-family: var(--font-mono); font-size: .74rem; color: var(--acid); }
+
 .diag-expel {
   border: 2px solid var(--coal);
   border-radius: 0;

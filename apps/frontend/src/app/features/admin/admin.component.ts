@@ -13,6 +13,7 @@ import { ReliabilityService } from '../../core/services/reliability.service';
 import { ConnectionBadge } from '../../shared/components/connection-badge/connection-badge.component';
 import { ButtonTestService, ButtonTestSnapshot } from '../../core/services/button-test.service';
 import { DEMO_ORDER, DEMO_SCRIPTS } from '../tv/demo-scripts';
+import { BonusVoucher, voucherCode } from '../../shared/models/voucher';
 
 @Component({
   selector: 'app-admin-component',
@@ -69,6 +70,12 @@ export class Admin implements OnInit, OnDestroy {
   /** Squadra in corso di espulsione e messaggio per il presentatore. */
   readonly expelBusy = signal<string | null>(null);
   readonly expelNotice = signal<string | null>(null);
+  /** Buoni della serata: la regia li consegna e segna il ritiro. */
+  readonly vouchers = signal<BonusVoucher[]>([]);
+  readonly voucherBusy = signal<number | null>(null);
+  readonly voucherNotice = signal<string | null>(null);
+  readonly voucherCode = voucherCode;
+  private voucherTimer?: ReturnType<typeof setInterval>;
 
   
   colorMap: { [key: string]: string } = {
@@ -101,8 +108,10 @@ export class Admin implements OnInit, OnDestroy {
     void this.refreshDiagnostics();
     void this.loadCategories();
     void this.refreshButtonTest();
+    if (paired) void this.refreshVouchers();
     this.diagTimer = setInterval(() => void this.refreshDiagnostics(), 5000);
     this.buttonTestTimer = setInterval(() => void this.refreshButtonTest(), 2500);
+    this.voucherTimer = setInterval(() => void this.refreshVouchers(), 5000);
 
     
 
@@ -157,6 +166,11 @@ export class Admin implements OnInit, OnDestroy {
           case 'BLOCKED_ERROR':
             
             this.buzzedPlayer.set(null);
+            break;
+
+          case 'VOUCHER_ISSUED':
+          case 'VOUCHER_DELIVERED':
+            void this.refreshVouchers();
             break;
 
           default:
@@ -439,6 +453,34 @@ export class Admin implements OnInit, OnDestroy {
 
   
 
+  /** Buoni emessi: codice, tavolo, premio e stato di consegna. */
+  async refreshVouchers(): Promise<void> {
+    if (this.pairingNeeded()) return;
+    try {
+      this.vouchers.set(await firstValueFrom(this.reliability.listVouchers()));
+    } catch {
+      // Senza sessione di regia la lista resta vuota; il prossimo poll riprova.
+    }
+  }
+
+  /** Segna il buono come consegnato: lo stato resta sul server. */
+  deliverVoucher(voucher: BonusVoucher): void {
+    if (!voucher || voucher.delivered || this.voucherBusy() !== null) return;
+    this.voucherBusy.set(voucher.id);
+    this.reliability.deliverVoucher(voucher.id).subscribe({
+      next: (updated) => {
+        this.vouchers.update((list) => list.map((row) => (row.id === updated.id ? updated : row)));
+        this.voucherBusy.set(null);
+        this.voucherNotice.set(`Buono ${voucherCode(updated.code)} consegnato a ${updated.playerName}.`);
+        this.vibrate(30);
+      },
+      error: () => {
+        this.voucherBusy.set(null);
+        this.voucherNotice.set('Consegna non registrata: controlla l’abbinamento della regia.');
+      },
+    });
+  }
+
   /** Foto delle connessioni e dell'ultimo salvataggio: serve al presentatore. */
   async refreshDiagnostics(): Promise<void> {
     const data = await this.reliability.diagnostics(this.activeGameId());
@@ -576,6 +618,7 @@ export class Admin implements OnInit, OnDestroy {
     this.requestCurrentState();
     void this.refreshDiagnostics();
     void this.refreshButtonTest();
+    void this.refreshVouchers();
   }
 
   /**
@@ -726,6 +769,7 @@ export class Admin implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.diagTimer) clearInterval(this.diagTimer);
+    if (this.voucherTimer) clearInterval(this.voucherTimer);
     if (this.buttonTestTimer) clearInterval(this.buttonTestTimer);
     if (this.stateRetry) clearTimeout(this.stateRetry);
     

@@ -55,6 +55,7 @@ import { Blackjack } from '../games/blackjack/blackjack.component';
 import { DemoScript, demoScriptFor } from './demo-scripts';
 import { REVEAL_DELAY_MS, scoringRuleFor } from '../../shared/models/scoring-rules';
 import { ROUNDS_PER_ACT } from '../../shared/schedule';
+import { BonusVoucher, voucherCode } from '../../shared/models/voucher';
 
 /**
  * Quante fotografie delle presenze devono mancare prima di togliere una squadra
@@ -200,7 +201,9 @@ export class GameComponent implements OnInit, OnDestroy {
   bonusShowResult = signal(false);
   bonusResult = signal<Array<{ playerName: string; score: number }>>([]);
   /** Buoni bevande/cibo: premi fisici consegnati dalla regia, non punti. */
-  bonusVouchers = signal<Array<{ playerName: string; label: string }>>([]);
+  bonusVouchers = signal<BonusVoucher[]>([]);
+  /** Codice sempre a quattro cifre, anche quando inizia per zero. */
+  readonly voucherCode = voucherCode;
   autoAdvanceSeconds = signal(0);
   animatedCategoryId = signal<number | null>(null);
   /** Roll da slot machine: nomi che scorrono prima di svelare la categoria. */
@@ -2281,12 +2284,28 @@ export class GameComponent implements OnInit, OnDestroy {
     this.recordBonusResult(event?.playerName, Number(event?.score) || 0);
   }
 
-  /** Un buono si consegna in sala: la TV lo mostra, la classifica non cambia. */
+  /**
+   * Un buono si consegna in sala: il codice lo genera il server, che lo salva.
+   * La TV lo mostra e la regia lo ritrova nella sua lista; la classifica non
+   * cambia. Un doppio evento sullo stesso tavolo non crea un secondo buono.
+   */
   onBonusVoucher(event: { playerName: string; label: string }): void {
     const playerName = String(event?.playerName ?? '').trim();
     const label = String(event?.label ?? '').trim();
     if (!playerName || !label) return;
-    this.bonusVouchers.update((list) => [...list, { playerName, label }]);
+    this.reliability.issueVoucher(playerName, label).subscribe({
+      next: (voucher) => {
+        this.bonusVouchers.update((list) => list.some((row) => row.id === voucher.id)
+          ? list
+          : [...list, voucher]);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        // Senza server il codice non esiste: meglio non mostrare un buono
+        // impossibile da riscattare. La regia vede l'errore in console.
+        console.error(`Buono non emesso per ${playerName}: server non disponibile`);
+      },
+    });
   }
 
   /** Chiuso il riepilogo di un bonus, la scaletta riparte da sola dal round dopo. */

@@ -1828,6 +1828,32 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Buoni: tre colonne stampate, con il codice in evidenza per la consegna. */
+.bonus-vouchers {
+  margin-top: clamp(8px, 1.4vh, 14px);
+}
+.bonus-vouchers .bonus-scores-head,
+.bonus-vouchers div.bonus-row {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) auto;
+}
+.bonus-prize {
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  line-height: 1.3;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.voucher-code {
+  padding: 2px 8px;
+  background: var(--paper-hi);
+  border: 2px solid var(--coal);
+  box-shadow: 3px 3px 0 var(--tomato);
+  font-family: var(--font-mono);
+  font-size: 1.1em;
+  letter-spacing: 0.16em;
+  text-align: center;
+}
+
 /* Ripartenza dopo il riepilogo del bonus: striscia stampata, non un badge. */
 .auto-advance {
   position: fixed;
