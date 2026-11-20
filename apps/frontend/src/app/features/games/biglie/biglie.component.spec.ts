@@ -527,6 +527,104 @@ describe('Biglie — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
+  it('la pausa ferma il 3·2·1 e la gara riparte dallo stesso secondo', async () => {
+    vi.useFakeTimers();
+    const { component, fixture } = mount();
+    const audio = TestBed.inject(AudioService);
+    vi.spyOn(audio, 'stopMarbleBed').mockImplementation(() => {});
+    const startBed = vi.spyOn(audio, 'startMarbleBed').mockImplementation(() => {});
+    const cancel = vi.spyOn(globalThis, 'cancelAnimationFrame');
+    vi.spyOn(globalThis, 'requestAnimationFrame').mockReturnValue(555 as any);
+    const internal = component as any;
+
+    // Gara appena partita: pista pronta, biglie ferme e 3 · 2 · 1 in corso.
+    await internal.startRace(0);
+    internal.frame = 42;
+    expect(component.phase()).toBe('RACE');
+    expect(internal.countdownLeft).toBe(3);
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+
+    expect(internal.suspended).toBe(true);
+    expect(cancel).toHaveBeenCalledWith(42);
+    expect(internal.frame).toBe(0);
+    vi.advanceTimersByTime(10000);
+    // Il via non scorre mentre la sala è ferma: nessun rombo di pista.
+    expect(internal.countdownLeft).toBe(3);
+    expect(startBed).not.toHaveBeenCalled();
+
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    expect(internal.lastFrame).toBe(0);
+    expect(internal.physicsAccumulator).toBe(0);
+
+    // Il primo passo dopo la ripresa consuma il via da dove era, non da capo.
+    internal.advanceRace(1);
+    expect(internal.countdownLeft).toBe(2);
+    expect(startBed).not.toHaveBeenCalled();
+    internal.advanceRace(2);
+    expect(internal.countdownLeft).toBe(0);
+    expect(startBed).toHaveBeenCalledTimes(1);
+
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('alla chiusura della gara la pausa non paga punti né applausi', async () => {
+    vi.useFakeTimers();
+    const { component, results, fixture } = mount();
+    const audio = TestBed.inject(AudioService);
+    vi.spyOn(audio, 'stopMarbleBed').mockImplementation(() => {});
+    const applause = vi.spyOn(audio, 'playApplause').mockImplementation(() => {});
+    const cancel = vi.spyOn(globalThis, 'cancelAnimationFrame');
+    vi.spyOn(globalThis, 'requestAnimationFrame').mockReturnValue(999 as any);
+    const internal = component as any;
+
+    await internal.startRace(0);
+    internal.countdownLeft = 0;
+    internal.frame = 42;
+    // Tutte le biglie sono arrivate: manca solo il passo che chiude la gara.
+    internal.raceMarbles.forEach((marble: any, index: number) => {
+      marble.finished = true;
+      marble.position = index + 1;
+      marble.x = 100 - index;
+    });
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+
+    expect(internal.suspended).toBe(true);
+    expect(cancel).toHaveBeenCalledWith(42);
+    vi.advanceTimersByTime(10000);
+    // Nessuno guarda: niente applausi e nessun punto pagato.
+    expect(results).toEqual([]);
+    expect(applause).not.toHaveBeenCalled();
+    expect(component.phase()).toBe('RACE');
+
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    // Il primo passo dopo la ripresa chiude la gara una volta sola.
+    internal.advanceRace(0.016);
+    expect(results).toHaveLength(2);
+    expect(applause).toHaveBeenCalledTimes(1);
+    expect(component.phase()).toBe('RACE_END');
+
+    // Chiusa la gara, la pausa ferma anche l'attesa della prossima.
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(10000);
+    expect(component.phase()).toBe('RACE_END');
+    expect(internal.raceIndex()).toBe(0);
+    // Anche il conto alla prossima gara è fermo al suo secondo.
+    expect(component.secondsLeft()).toBe(4);
+
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
   it('la corsa non riparte se resta la pausa o la scheda è nascosta', () => {
     vi.useFakeTimers();
     const { component, fixture } = mount();
