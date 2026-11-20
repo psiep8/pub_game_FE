@@ -16,7 +16,6 @@ import { WebSocketService } from '../../../core/websocket/web-socket.service';
 import { handTotal } from '../../games/blackjack/blackjack-rules';
 import { Blackjack } from '../../games/blackjack/blackjack.component';
 import { TvPause } from '../../../shared/tv-pause';
-import { BLACKJACK_MAX_VOUCHERS, BLACKJACK_VOUCHER_LABEL } from '../../../shared/models/scoring-rules';
 
 const DECIDE_SECONDS = 15;
 const REVEAL_SECONDS = 4;
@@ -42,9 +41,9 @@ interface Row {
  * BLACKJACK BONUS — un turno per tavolo, dal fondo della classifica.
  *
  * La TV fa il banco una volta per ogni squadra. Il tavolo decide CARTA o STAI
- * dal telefono; il banco si ferma a 17. Chi batte il banco riceve un buono per
- * tre consumazioni al tavolo, non punti: massimo tre buoni a serata. Pari e
- * sconfitte non tolgono nulla.
+ * dal telefono; il banco si ferma a 17. Il premio del bar lo consegnano
+ * presentatore e barista: l'app mostra solo l'esito della mano e non assegna
+ * punti. Pari e sconfitte non tolgono nulla.
  */
 @Component({
   selector: 'app-blackjack-bonus',
@@ -107,8 +106,6 @@ export class BlackjackBonus implements OnInit, OnDestroy {
     return this.pause.isPaused;
   }
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
-  /** Buono bevande: lo consegna la regia, non è un punto in classifica. */
-  @Output() voucher = new EventEmitter<{ playerName: string; label: string }>();
   @Output() finished = new EventEmitter<void>();
   /** Mano corrente, da salvare sul server a ogni cambio di stato. */
   @Output() checkpoint = new EventEmitter<any>();
@@ -176,13 +173,6 @@ export class BlackjackBonus implements OnInit, OnDestroy {
       this.startHand();
       return;
     }
-
-    // I tavoli già chiusi non sono stati pagati (il bonus paga alla fine):
-    // rimandandoli alla TV si ricostruisce il totale dopo il refresh.
-    this.rows
-      .filter((row) => row.points > 0)
-      .slice(0, BLACKJACK_MAX_VOUCHERS)
-      .forEach((row) => this.voucher.emit({ playerName: row.playerName, label: BLACKJACK_VOUCHER_LABEL }));
 
     const savedSeconds = Number(state?.secondsLeft);
     const savedAt = Number(state?.savedAt);
@@ -324,13 +314,11 @@ export class BlackjackBonus implements OnInit, OnDestroy {
     const playerTotal = handTotal(this.hand);
     const bankTotal = handTotal(this.bank);
     let outcome: Outcome;
-    let voucherWon = false;
 
     if (playerTotal > 21) {
       outcome = 'BUST';
     } else if (bankTotal > 21 || playerTotal > bankTotal) {
       outcome = 'WIN';
-      voucherWon = true;
     } else if (playerTotal === bankTotal) {
       outcome = 'PUSH';
     } else {
@@ -338,21 +326,14 @@ export class BlackjackBonus implements OnInit, OnDestroy {
     }
 
     const current = this.currentPlayer();
-    const alreadyWon = this.rows.filter((row) => row.status === 'WIN').length;
-    const getsVoucher = voucherWon && alreadyWon < BLACKJACK_MAX_VOUCHERS;
-    this.handPoints = getsVoucher ? 1 : 0;
+    this.handPoints = 0;
     this.rows = this.rows.map((row) => row.playerName === current
-      ? { ...row, status: outcome, points: getsVoucher ? 1 : 0 }
+      ? { ...row, status: outcome, points: 0 }
       : row);
-
-    if (getsVoucher && current) {
-      this.voucher.emit({ playerName: current, label: BLACKJACK_VOUCHER_LABEL });
-    }
 
     this.secondsLeft = this.preview ? PREVIEW_REVEAL_SECONDS : REVEAL_SECONDS;
     this.publish('REVEAL', stood ? 'STAND' : 'HIT', {
       outcome,
-      voucher: getsVoucher ? BLACKJACK_VOUCHER_LABEL : null,
       round: this.index + 1,
       handTotal: playerTotal,
       bankTotal,

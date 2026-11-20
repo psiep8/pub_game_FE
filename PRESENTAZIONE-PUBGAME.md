@@ -88,9 +88,9 @@ Bonus, uno dentro ognuno dei cinque atti:
 | Atto | Bonus | Punti |
 | --- | --- | --- |
 | 1 | 🎰 Casino nero/rosso | +100 a girata, tre girate (max +300) |
-| 2 | 🃏 Blackjack | buono 3 consumazioni, max 3 a serata |
+| 2 | 🃏 Blackjack | premio del bar, non punti |
 | 3 | 🎰 Casino dozzina | +200 a girata, tre girate (max +600) |
-| 4 | 🐎 Cavallo di Battaglia | buono 1 consumazione di cibo |
+| 4 | 🐎 Cavallo di Battaglia | premio del bar, non punti |
 | 5 | 🎯 Casino numero secco | +500 |
 
 Chiuso il riepilogo di un bonus, la scaletta riparte dal round successivo; dopo il round 40 si chiude con la classifica finale aggiornata.
@@ -197,7 +197,7 @@ Non consumano un round: la TV li apre da sola in **un round interno dell'atto**,
 
 ### 🃏 Blackjack — nell'atto 2
 - Un turno per tavolo, dal fondo della classifica: **15 secondi**, CARTA o STAI.
-- Il banco si ferma a **17**. Chi lo batte riceve un **buono per 3 consumazioni al tavolo**, non punti; massimo tre buoni a serata.
+- Il banco si ferma a **17**. Chi lo batte riceve il **premio concordato con il bar**, non punti; premio e consegna li gestiscono barista e presentatore.
 - *Da dire:* «Il banco non aspetta: fermatevi prima di sballare.»
 
 ### 🎰 Casino dozzina — nell'atto 3
@@ -207,7 +207,7 @@ Non consumano un round: la TV li apre da sola in **un round interno dell'atto**,
 
 ### 🐎 Cavallo di Battaglia — nell'atto 4
 - La categoria la votano i telefoni; poi **otto domande difficili**, una dietro l'altra.
-- Vince chi ha più risposte giuste, a pari merito chi ha finito prima: premio un **buono per una consumazione di cibo**.
+- Vince chi ha più risposte giuste, a pari merito chi ha finito prima: premio concordato con il bar, consegnato da barista e presentatore.
 - *Da dire:* «La domanda è sul telefono: guardate il tabellone e correte.»
 
 ### 🎯 Casino numero secco — nell'atto 5

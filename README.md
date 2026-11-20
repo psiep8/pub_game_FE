@@ -23,7 +23,7 @@ La versione è **2.2.0**. Il codice è la fonte di verità: se una frase di ques
 - **Telefoni (`/play`)**: ogni squadra entra con un nickname e gioca dal browser. In attesa può aprire il **Manuale dei giochi**; durante un round il manuale si chiude e il pulsante sparisce.
 - **Regia (`/admin`)**: il presentatore avvia e chiude i round, mette in pausa, mostra le classifiche, lancia i bonus e apre le demo. Non è un pannello di voto: le risposte arrivano dai telefoni.
 
-La serata è una scaletta fissa di **40 round divisi in 5 atti da 8** (`shared/schedule.ts`). Dopo i round **4, 12, 20, 28 e 36** compare la classifica rapida; dopo **8, 16, 24, 32 e 40** quella dettagliata. Le **Biglie sono quattro round separati** (11, 22, 28, 37), ognuno con due gare su due delle otto piste (rally, F1, neve, acqua, vetro, sabbia, spazio, magma); il **Blackjack non è più in scaletta** e resta solo come bonus. In **un round interno di ognuno** dei cinque atti (mai il primo, mai l'ultimo, scelto dal seme all'inizio della serata) parte un bonus diverso: Casino nero/rosso, Blackjack, Casino dozzina, Cavallo e Casino numero secco. I punti del bonus entrano in classifica alla chiusura e nessun bonus toglie punti; Blackjack e Cavallo pagano buoni al bar, non punti.
+La serata è una scaletta fissa di **40 round divisi in 5 atti da 8** (`shared/schedule.ts`). Dopo i round **4, 12, 20, 28 e 36** compare la classifica rapida; dopo **8, 16, 24, 32 e 40** quella dettagliata. Le **Biglie sono quattro round separati** (11, 22, 28, 37), ognuno con due gare su due delle otto piste (rally, F1, neve, acqua, vetro, sabbia, spazio, magma); il **Blackjack non è più in scaletta** e resta solo come bonus. In **un round interno di ognuno** dei cinque atti (mai il primo, mai l'ultimo, scelto dal seme all'inizio della serata) parte un bonus diverso: Casino nero/rosso, Blackjack, Casino dozzina, Cavallo e Casino numero secco. I punti del bonus entrano in classifica alla chiusura e nessun bonus toglie punti; i premi di Blackjack e Cavallo li consegnano barista e presentatore, fuori dall'app.
 
 Una serata completa dura indicativamente **3–4 ore**: è una stima, non un dato misurato, e dipende da quanto il presentatore allunga i tempi tra un round e l'altro. Il numero di telefoni consigliato è **4–10 squadre**; il codice non impone un limite rigido.
 
@@ -52,12 +52,12 @@ I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring
 | Bonus | Quando | Come funziona | Punti |
 |---|---|---|---|
 | **Casino nero/rosso** | in un round dell'atto 1 | Tre girate sul colore; la scelta si fa in dieci secondi a ogni girata. | Colore giusto **+100** a girata, massimo **+300**; zero: banco. |
-| **Blackjack** | in un round dell'atto 2 | Un turno per tavolo, 15 s, carta o stai; il banco si ferma a 17. | Chi batte il banco riceve un **buono per 3 consumazioni al tavolo**, non punti; massimo tre buoni a serata. |
+| **Blackjack** | in un round dell'atto 2 | Un turno per tavolo, 15 s, carta o stai; il banco si ferma a 17. | Chi batte il banco riceve il **premio concordato con il bar**, non punti; premio e consegna li gestiscono barista e presentatore. |
 | **Casino dozzina** | in un round dell'atto 3 | Tre girate su 1–12, 13–24 o 25–36, scelta in dieci secondi. | Dozzina giusta **+200** a girata, massimo **+600**. |
-| **Cavallo di battaglia** | in un round dell'atto 4 | Categoria votata dai telefoni, otto domande flash. | Il vincitore riceve un **buono per una consumazione di cibo**; a pari merito vince chi ha finito prima. |
+| **Cavallo di battaglia** | in un round dell'atto 4 | Categoria votata dai telefoni, otto domande flash. | Il vincitore riceve il **premio concordato con il bar**; a pari merito vince chi ha finito prima. Premio e consegna li gestiscono barista e presentatore. |
 | **Casino numero secco** | in un round dell'atto 5 | Una sola girata su un numero da 0 a 36, scelta in dieci secondi. | Numero esatto **+500**; se nessuno lo becca, nessuno prende punti. |
 
-**Casino paga punti, che entrano nella classifica della serata una sola volta, alla chiusura del bonus; Blackjack e Cavallo danno buoni, non punti.** Dopo il bonus dell’atto 5 la TV mostra la classifica finale aggiornata.
+**Casino paga punti, che entrano nella classifica della serata una sola volta, alla chiusura del bonus; i premi di Blackjack e Cavallo li gestiscono barista e presentatore, non l'app.** Dopo il bonus dell’atto 5 la TV mostra la classifica finale aggiornata.
 
 ## 4. Tecnologie
 

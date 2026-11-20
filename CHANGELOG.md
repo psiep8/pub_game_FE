@@ -1,6 +1,6 @@
 # Changelog
 
-## 20 novembre 2026 — Punteggi nuovi, banche riviste, bonus con i buoni
+## 20 novembre 2026 — Punteggi nuovi, banche riviste, niente buoni in app
 
 - **Banche dati:** audit riproducibile (`scripts/audit-banche.mjs`), 30
   difficoltà normalizzate in italiano, 11 doppioni tolti e risposte bilanciate
@@ -16,12 +16,11 @@
   col tempo perfetto; Speed Rush +800/−400; Biglie +500/−400; Tennis +500/0;
   Bomba solo malus decrescente da −500.
 - **Bonus:** Casino colore e dozzina tre girate (100/200 a girata), numero
-  secco una girata da 500, scelta in dieci secondi; Blackjack e Cavallo danno
-  buoni (3 consumazioni / 1 consumazione di cibo) invece di punti.
-- **Buoni persistenti:** codice di quattro cifre generato dal server e salvato
-  nella partita; niente doppioni se la TV riprende. Il telefono mostra «HAI
-  VINTO», la TV espone codice e premio, la regia elenca i buoni e segna
-  CONSEGNATO (stato salvato e annunciato via WebSocket).
+  secco una girata da 500, scelta in dieci secondi; Blackjack e Cavallo
+  assegnano solo il premio concordato con il bar, non punti.
+- **Niente buoni in app:** il premio di Blackjack e Cavallo lo consegnano
+  barista e presentatore. Rimossi codice, schermata «HAI VINTO», elenco della
+  regia, endpoint e stato persistente: l'app mostra solo l'esito del bonus.
 - **Banche:** 47 risposte più lunghe dei distrattori riallineate, doppione
   `quiz-viaggi-40` sostituito, `C#` e l'articolo `L'` non sono più falsi
   positivi dell'audit; segnalazioni e doppioni a **0**. Ultima spiaggia dichiara
@@ -32,9 +31,9 @@
   punteggi di gioco, vecchie tabelle (Musica a secondi, Timeline a 6 carte,
   Biglie 150/100, Tennis 1000/200, Time Buzzer a tagli, Bomba −200),
   `SECONDA-SERATA.md` (superato dal registro).
-- **Da provare in sala:** tempi della finestra bonus, giro completo del buono
-  fino al bar, equilibrio dei nuovi massimi/minimi.
-- Verifiche: suite frontend 643/643 e backend completa; versione 2.2.0.
+- **Da provare in sala:** tempi della finestra bonus, premio gestito da
+  barista e presentatore, equilibrio dei nuovi massimi/minimi.
+- Verifiche: suite frontend 639/639 e backend 154/154; versione 2.2.0.
 
 ## 20 novembre 2026 — Sottofondi in casa, finale con il suo tappeto, 2.2.0
 

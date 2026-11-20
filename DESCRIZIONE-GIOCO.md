@@ -80,9 +80,9 @@ accreditati **una sola volta, alla chiusura**.
 | Atto | Bonus | Come funziona | Punti |
 | --- | --- | --- | --- |
 | 1 | **Casino nero/rosso** | Tre girate sul colore, scelta in 10 s | +100 a girata (max +300) |
-| 2 | **Blackjack** | Un turno per tavolo, 15 s, banco a 17 | buono 3 consumazioni, max 3 a serata |
+| 2 | **Blackjack** | Un turno per tavolo, 15 s, banco a 17 | premio del bar, non punti |
 | 3 | **Casino dozzina** | Tre girate su 1–12, 13–24 o 25–36 | +200 a girata (max +600) |
-| 4 | **Cavallo di battaglia** | Categoria votata, otto domande flash | buono 1 consumazione di cibo |
+| 4 | **Cavallo di battaglia** | Categoria votata, otto domande flash | premio del bar, non punti |
 | 5 | **Casino numero secco** | Una sola girata su un numero da 0 a 36 | +500 |
 
 Ogni bonus ha un ingresso TV scenografico distinto. Dopo quello dell'atto 5 si chiude con

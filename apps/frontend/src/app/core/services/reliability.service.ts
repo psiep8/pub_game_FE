@@ -3,7 +3,6 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, Subject, firstValueFrom, throwError } from 'rxjs';
 import { environment } from '../environment/environment';
 import { WebSocketService } from '../websocket/web-socket.service';
-import { BonusVoucher } from '../../shared/models/voucher';
 
 export type DeviceRole = 'TV' | 'REMOTE' | 'ADMIN';
 
@@ -209,53 +208,6 @@ export class ReliabilityService {
     this.http.post(`${this.baseUrl}/games/${this.gameId}/bonus-state`, bonus, {
       headers: { 'X-Session-Token': token },
     }).subscribe({ error: () => undefined });
-  }
-
-  /**
-   * Emette un buono: il codice a quattro cifre lo genera il server e resta
-   * salvato, così la regia può consegnarlo anche dopo un refresh.
-   */
-  issueVoucher(playerName: string, label: string): Observable<BonusVoucher> {
-    const token = this.sessionToken();
-    if (!token || this.role !== 'TV' || this.gameId == null) {
-      return throwError(() => new Error('Sessione TV non disponibile'));
-    }
-    return this.http.post<BonusVoucher>(
-      `${this.baseUrl}/games/${this.gameId}/vouchers`, { playerName, label },
-      { headers: { 'X-Session-Token': token } });
-  }
-
-  /** Elenco dei buoni per la regia (TV o admin). */
-  listVouchers(): Observable<BonusVoucher[]> {
-    const token = this.sessionToken();
-    if (!token || (this.role !== 'TV' && this.role !== 'ADMIN') || this.gameId == null) {
-      return throwError(() => new Error('Sessione di regia non disponibile'));
-    }
-    return this.http.get<BonusVoucher[]>(
-      `${this.baseUrl}/games/${this.gameId}/vouchers`,
-      { headers: { 'X-Session-Token': token } });
-  }
-
-  /** I buoni del tavolo: il telefono li ritrova anche dopo un refresh. */
-  myVouchers(): Observable<BonusVoucher[]> {
-    const token = this.sessionToken();
-    if (!token || this.role !== 'REMOTE' || this.gameId == null) {
-      return throwError(() => new Error('Sessione telefono non disponibile'));
-    }
-    return this.http.get<BonusVoucher[]>(
-      `${this.baseUrl}/games/${this.gameId}/vouchers/mine`,
-      { headers: { 'X-Session-Token': token } });
-  }
-
-  /** Consegna in sala: il buono resta salvato e non si può consegnare due volte. */
-  deliverVoucher(id: number): Observable<BonusVoucher> {
-    const token = this.sessionToken();
-    if (!token || (this.role !== 'TV' && this.role !== 'ADMIN') || this.gameId == null) {
-      return throwError(() => new Error('Sessione di regia non disponibile'));
-    }
-    return this.http.post<BonusVoucher>(
-      `${this.baseUrl}/games/${this.gameId}/vouchers/${id}/delivered`, {},
-      { headers: { 'X-Session-Token': token } });
   }
 
   /**

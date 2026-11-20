@@ -44,7 +44,6 @@ public class ReliabilityController {
     private final ReliabilityProperties props;
     private final ScoreboardService scoreboard;
     private final PairingCodeService pairing;
-    private final VoucherService vouchers;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Value("${game.security.control-secret:}")
@@ -53,9 +52,8 @@ public class ReliabilityController {
     public ReliabilityController(DeviceSessionService sessions, GameStateService gameState,
             QuestionHistoryService questionHistory, QuestionUsageService questionUsage,
             ReliabilityProperties props, ScoreboardService scoreboard, PairingCodeService pairing,
-            VoucherService vouchers, SimpMessagingTemplate messagingTemplate) {
+            SimpMessagingTemplate messagingTemplate) {
         this.pairing = pairing;
-        this.vouchers = vouchers;
         this.sessions = sessions;
         this.gameState = gameState;
         this.questionHistory = questionHistory;
@@ -205,87 +203,6 @@ public class ReliabilityController {
                 .put("status", String.valueOf(rawStatus))
                 .put("updatedAt", System.currentTimeMillis()));
         return ResponseEntity.ok(Map.of("saved", true));
-    }
-
-    /**
-     * Emette un buono per un tavolo: solo la TV può farlo. Il codice a quattro
-     * cifre nasce qui, viene salvato e annunciato ai telefoni; un doppio invio
-     * dello stesso premio restituisce il buono già aperto.
-     */
-    @PostMapping("/vouchers")
-    public ResponseEntity<Object> issueVoucher(@PathVariable("gameId") Long gameId,
-            @RequestAttribute("pubgame.session") DeviceSessionEntity session,
-            @RequestBody(required = false) Map<String, Object> body) {
-        if (!"TV".equals(session.getRole()) || !session.getGameId().equals(gameId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "tv-required"));
-        }
-        Map<String, Object> payload = body == null ? Map.of() : body;
-        String playerName = string(payload.get("playerName"));
-        String label = string(payload.get("label"));
-        playerName = playerName == null ? "" : playerName.trim();
-        label = label == null ? "" : label.trim();
-        if (playerName.isEmpty() || playerName.length() > 40
-                || label.isEmpty() || label.length() > 80) {
-            return ResponseEntity.badRequest().body(Map.of("error", "invalid-voucher"));
-        }
-        JSONObject voucher = vouchers.issue(gameId, playerName, label);
-        broadcastVoucher(gameId, "VOUCHER_ISSUED", voucher);
-        return ResponseEntity.ok(JsonSupport.toMap(voucher));
-    }
-
-    /** Elenco dei buoni per la regia: codice, tavolo, premio e stato consegna. */
-    @GetMapping("/vouchers")
-    public ResponseEntity<Object> listVouchers(@PathVariable("gameId") Long gameId,
-            @RequestAttribute("pubgame.session") DeviceSessionEntity session) {
-        if (!session.getGameId().equals(gameId)
-                || !("TV".equals(session.getRole()) || "ADMIN".equals(session.getRole()))) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "control-required"));
-        }
-        return ResponseEntity.ok(JsonSupport.toList(vouchers.list(gameId)));
-    }
-
-    /** I buoni del tavolo: il telefono li mostra anche dopo un refresh. */
-    @GetMapping("/vouchers/mine")
-    public ResponseEntity<Object> myVouchers(@PathVariable("gameId") Long gameId,
-            @RequestAttribute("pubgame.session") DeviceSessionEntity session) {
-        if (!session.getGameId().equals(gameId) || !"REMOTE".equals(session.getRole())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "remote-required"));
-        }
-        String playerName = session.getPlayerName() == null ? "" : session.getPlayerName().trim();
-        return ResponseEntity.ok(JsonSupport.toList(vouchers.forPlayer(gameId, playerName)));
-    }
-
-    /** Consegna in sala: la regia o la TV segnano il buono come ritirato. */
-    @PostMapping("/vouchers/{voucherId}/delivered")
-    public ResponseEntity<Object> deliverVoucher(@PathVariable("gameId") Long gameId,
-            @PathVariable("voucherId") int voucherId,
-            @RequestAttribute("pubgame.session") DeviceSessionEntity session) {
-        if (!session.getGameId().equals(gameId)
-                || !("TV".equals(session.getRole()) || "ADMIN".equals(session.getRole()))) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "control-required"));
-        }
-        Optional<JSONObject> delivered = vouchers.markDelivered(gameId, voucherId);
-        if (delivered.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "voucher-not-found"));
-        }
-        broadcastVoucher(gameId, "VOUCHER_DELIVERED", delivered.get());
-        return ResponseEntity.ok(JsonSupport.toMap(delivered.get()));
-    }
-
-    private void broadcastVoucher(Long gameId, String action, JSONObject voucher) {
-        try {
-            messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", (Object) new JSONObject()
-                    .put("action", action)
-                    .put("id", voucher.optInt("id"))
-                    .put("code", voucher.optString("code"))
-                    .put("playerName", voucher.optString("playerName"))
-                    .put("label", voucher.optString("label"))
-                    .put("delivered", voucher.optBoolean("delivered")));
-        } catch (RuntimeException ignored) {
-            // Il buono è già salvato: se la socket è giù, la lista della regia
-            // e il telefono al refresh lo ritrovano dal server.
-        }
     }
 
     private boolean secretMatches(String supplied) {

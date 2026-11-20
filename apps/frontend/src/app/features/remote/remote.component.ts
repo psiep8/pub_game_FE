@@ -29,7 +29,6 @@ import {
 } from '../games/speed-rush/speed-rush-deck';
 import { AZZARDO_MAX_WIN_PER_MANCHE } from '../games/azzardo/azzardo-rules';
 import { ConnectionBadge } from '../../shared/components/connection-badge/connection-badge.component';
-import { BonusVoucher, voucherCode } from '../../shared/models/voucher';
 import { SentStateComponent } from '../../shared/components/sent-state/sent-state.component';
 import { ButtonTestComponent } from './button-test/button-test.component';
 import {
@@ -287,9 +286,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
 
   playerName = signal<string>(localStorage.getItem('playerName') || '');
-  /** Buono vinto al bonus: resta a schermo finché il tavolo non l'ha letto. */
-  readonly voucherWin = signal<BonusVoucher | null>(null);
-  readonly voucherCode = voucherCode;
   gameId = signal<number>(1);
 
   // ARENA STATE
@@ -542,7 +538,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
         if (ok) {
           this.nickname.set(storedName);
           this.loadArenaAfterSession();
-          this.loadMyVouchers();
           // Se il server ha ripreso la stessa sessione, il giocatore torna
           // subito in partita senza rifare la prova dei pulsanti.
           this.showButtonTest.set(!this.reliability.resumedSession());
@@ -695,23 +690,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'CAVALLO_STATE':
           this.applyCavalloState(status.state);
-          break;
-
-        case 'VOUCHER_ISSUED':
-          if (status.playerName === this.nickname()) {
-            this.voucherWin.set({
-              id: Number(status.id) || 0,
-              code: String(status.code ?? ''),
-              playerName: String(status.playerName ?? ''),
-              label: String(status.label ?? ''),
-              delivered: false,
-            });
-            this.vibrate([120, 70, 120, 70, 220]);
-          }
-          break;
-
-        case 'VOUCHER_DELIVERED':
-          if (this.voucherWin()?.id === Number(status.id)) this.voucherWin.set(null);
           break;
 
         case 'ULTIMA_SPIAGGIA_STATE':
@@ -1126,7 +1104,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (!await this.reliability.start(this.gameId(), 'REMOTE', name)) return;
     this.nickname.set(name);
     this.loadArenaAfterSession();
-    this.loadMyVouchers();
     this.removedNotice.set(false);
     this.showButtonTest.set(true);
     localStorage.setItem('nickname', name);
@@ -1148,22 +1125,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
       action: WsAction.JOIN_GAME,
       playerName,
       deviceId: this.reliability.deviceId(),
-    });
-  }
-
-  /**
-   * I buoni del tavolo arrivano dal server: un refresh del telefono non perde
-   * il codice. Si mostra il più recente ancora da consegnare.
-   */
-  private loadMyVouchers(): void {
-    this.reliability.myVouchers().subscribe({
-      next: (vouchers) => {
-        const open = vouchers
-          .filter((voucher) => !voucher.delivered)
-          .sort((a, b) => Number(b.issuedAt ?? 0) - Number(a.issuedAt ?? 0))[0];
-        if (open) this.voucherWin.set(open);
-      },
-      error: () => undefined,
     });
   }
 

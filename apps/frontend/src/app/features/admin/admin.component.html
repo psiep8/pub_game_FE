@@ -95,36 +95,6 @@
     }
   </div>
 
-  <div class="flow-panel voucher-panel">
-    <div class="flow-title">🎟️ BUONI DA CONSEGNARE</div>
-    <p class="flow-note">
-      Blackjack e Cavallo pagano premi fisici, non punti. Il codice nasce sul server:
-      segna <b>CONSEGNATO</b> quando il tavolo ritira il buono, così non viene dato due volte.
-    </p>
-    @if (vouchers().length) {
-      <div class="voucher-head"><span>TAVOLO</span><span>PREMIO</span><span>CODICE</span><span>STATO</span></div>
-      @for (voucher of vouchers(); track voucher.id) {
-        <div class="voucher-row" [class.delivered]="voucher.delivered">
-          <b class="voucher-name">{{ voucher.playerName }}</b>
-          <span class="voucher-prize">{{ voucher.label }}</span>
-          <span class="voucher-code">{{ voucherCode(voucher.code) }}</span>
-          @if (voucher.delivered) {
-            <span class="voucher-state done">CONSEGNATO</span>
-          } @else {
-            <button type="button" class="voucher-deliver"
-              [disabled]="voucherBusy() === voucher.id"
-              (click)="deliverVoucher(voucher)">
-              {{ voucherBusy() === voucher.id ? 'SALVO…' : 'CONSEGNATO' }}
-            </button>
-          }
-        </div>
-      }
-      @if (voucherNotice(); as notice) { <p class="voucher-notice" role="status">{{ notice }}</p> }
-    } @else {
-      <div class="flow-note">Nessun buono emesso: arrivano qui appena Blackjack o Cavallo chiudono un premio.</div>
-    }
-  </div>
-
   <div class="flow-panel button-test-panel">
     <div class="flow-title">🧪 PROVA DEI PULSANTI</div>
     <p class="flow-note">

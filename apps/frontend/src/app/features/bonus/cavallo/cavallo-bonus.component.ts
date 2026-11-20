@@ -16,7 +16,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GameService } from '../../../core/services/game.service';
 import { WebSocketService } from '../../../core/websocket/web-socket.service';
 import { TvPause } from '../../../shared/tv-pause';
-import { CAVALLO_VOUCHER_LABEL } from '../../../shared/models/scoring-rules';
 
 /**
  * Fasi del Cavallo di Battaglia. Le fasi comuni arrivano da `GamePhase`.
@@ -395,8 +394,6 @@ export class CavalloBonus implements OnInit, OnDestroy {
     return this.pause.isPaused;
   }
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
-  /** Buono cibo per il vincitore: lo consegna la regia, non è un punto. */
-  @Output() voucher = new EventEmitter<{ playerName: string; label: string }>();
   @Output() finished = new EventEmitter<void>();
   /** Stato della rush, da salvare sul server a ogni cambio di fase. */
   @Output() checkpoint = new EventEmitter<any>();
@@ -432,7 +429,6 @@ export class CavalloBonus implements OnInit, OnDestroy {
   /** Annulla il reveal automatico della domanda in corso. */
   private cancelQuestionReveal?: () => void;
   private rushExpired = false;
-  private resultsEmitted = false;
 
   readonly categoryVoteCounts = signal<Record<string, number>>({});
 
@@ -528,8 +524,6 @@ export class CavalloBonus implements OnInit, OnDestroy {
       this.phase.set(Phase.FINALE);
       this.secondsLeft.set(0);
       this.question.set(null);
-      // Il podio non è ancora stato pagato: lo si ricalcola dal tabellone.
-      this.emitFinalResults();
       this.publish();
       this.later((seconds > 0 ? seconds : 3) * 1000, () => this.finished.emit());
       return;
@@ -720,7 +714,6 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.categoryPicks.clear();
     this.answers.clear();
     this.rushExpired = false;
-    this.resultsEmitted = false;
     this.scoreMap.forEach((_, name) => this.scoreMap.set(name, 0));
     this.refreshTotals();
     this.refreshCategoryVotes();
@@ -927,7 +920,6 @@ export class CavalloBonus implements OnInit, OnDestroy {
     if (empty) {
       this.total.set(0);
     }
-    this.emitFinalResults();
     this.publish();
     this.saveCheckpoint();
     this.later(this.preview ? 4000 : empty ? 5000 : 7000, () => this.finished.emit());
@@ -959,20 +951,6 @@ export class CavalloBonus implements OnInit, OnDestroy {
         .map(([playerName, score]) => ({ playerName, score }))
         .sort((a, b) => a.score - b.score),
     );
-  }
-
-  /**
-   * Il tabellone conta le risposte esatte, ma il premio è un buono per una
-   * consumazione di cibo: lo prende solo il primo, una volta sola. A pari
-   * merito vince chi è arrivato prima in classifica (ordine stabile).
-   */
-  private emitFinalResults(): void {
-    if (this.resultsEmitted) return;
-    this.resultsEmitted = true;
-    const winner = [...this.totals()].sort((a, b) => b.score - a.score)[0];
-    if (winner && winner.score > 0) {
-      this.voucher.emit({ playerName: winner.playerName, label: CAVALLO_VOUCHER_LABEL });
-    }
   }
 
   private publish(): void {

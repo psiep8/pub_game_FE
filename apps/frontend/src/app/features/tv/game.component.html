@@ -385,7 +385,6 @@
         [paused]="isPaused()"
         (checkpoint)="onBlackjackBonusCheckpoint($event)"
         (result)="onBonusResult($event)"
-        (voucher)="onBonusVoucher($event)"
         (finished)="finishBonus()" />
     }
     @case ('CAVALLO') {
@@ -397,7 +396,6 @@
         [paused]="isPaused()"
         (checkpoint)="onBonusCheckpoint('CAVALLO', $event)"
         (result)="onBonusResult($event)"
-        (voucher)="onBonusVoucher($event)"
         (finished)="finishBonus()" />
     }
   }
@@ -431,18 +429,6 @@
       </div>
     } @else {
       <p class="bonus-hint">Nessun punto registrato.</p>
-    }
-    @if (bonusVouchers().length) {
-      <div class="bonus-vouchers">
-        <div class="bonus-scores-head"><span>TAVOLO</span><span>PREMIO</span><span>CODICE</span></div>
-        @for (row of bonusVouchers(); track row.id) {
-          <div class="bonus-row win">
-            <span class="bonus-name">{{ row.playerName }}</span>
-            <span class="bonus-prize">{{ row.label }}</span>
-            <b class="voucher-code">{{ voucherCode(row.code) }}</b>
-          </div>
-        }
-      </div>
     }
   </div>
 </div>

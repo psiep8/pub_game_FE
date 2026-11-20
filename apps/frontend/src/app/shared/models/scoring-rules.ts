@@ -52,9 +52,6 @@ export const BONUS_CASINO_DOZEN_POINTS = 200;
 export const BONUS_CASINO_NUMBER_POINTS = 500;
 /** Finestra di scelta dei bonus, in secondi. */
 export const BONUS_CHOICE_SECONDS = 10;
-export const BLACKJACK_VOUCHER_LABEL = '3 consumazioni al tavolo';
-export const CAVALLO_VOUCHER_LABEL = '1 consumazione di cibo';
-export const BLACKJACK_MAX_VOUCHERS = 3;
 
 export const SCORING_RULES: Record<Exclude<GameModeType, 'BLACKJACK'>, ScoringRule> = {
   QUIZ: {
@@ -146,10 +143,10 @@ export const BONUS_SCORING: Record<string, ScoringRule> = {
     note: `Tre girate: rosso o nero scelto a inizio manche in ${BONUS_CHOICE_SECONDS} secondi. Sullo zero nessuno prende punti.`,
   },
   BONUS_BLACKJACK: {
-    correct: `${BLACKJACK_VOUCHER_LABEL} a chi batte il banco`,
+    correct: 'premio del bar a chi batte il banco, nessun punto',
     wrong: '0: la sconfitta non toglie nulla',
     missed: '0; il pari non vale',
-    note: `Una sola manche, un turno per squadra: chi batte il banco riceve un buono, non punti. Massimo ${BLACKJACK_MAX_VOUCHERS} buoni a serata.`,
+    note: 'Una sola manche, un turno per squadra: il premio lo consegnano barista e presentatore; l’app non assegna punti.',
   },
   BONUS_CASINO_DOZEN: {
     correct: `${signedPoints(BONUS_CASINO_DOZEN_POINTS)} a girata indovinata (massimo ${CASINO_SPINS * BONUS_CASINO_DOZEN_POINTS})`,
@@ -158,10 +155,10 @@ export const BONUS_SCORING: Record<string, ScoringRule> = {
     note: `Tre girate: 1-12, 13-24 o 25-36 scelta a inizio manche in ${BONUS_CHOICE_SECONDS} secondi. Sullo zero il banco incassa.`,
   },
   BONUS_CAVALLO: {
-    correct: `${CAVALLO_VOUCHER_LABEL} al vincitore`,
+    correct: 'premio del bar al vincitore, nessun punto',
     wrong: '0',
     missed: '0',
-    note: 'Otto domande flash sulla categoria votata: vince chi ha più risposte giuste, a pari merito chi ha finito prima. Premio: un buono per una consumazione di cibo.',
+    note: 'Otto domande flash sulla categoria votata: vince chi ha più risposte giuste, a pari merito chi ha finito prima. Il premio lo gestiscono barista e presentatore; l’app non assegna punti.',
   },
   BONUS_CASINO_NUMBER: {
     correct: `${signedPoints(BONUS_CASINO_NUMBER_POINTS)} al numero secco`,

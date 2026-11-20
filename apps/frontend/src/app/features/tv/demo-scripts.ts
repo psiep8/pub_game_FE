@@ -385,9 +385,9 @@ const BONUS_COPY: Record<BonusType, DemoCopy> = {
       'Il banco si ferma a 17; il naturale batte tutto.',
     ],
     phone: ['Quando la TV chiama il tuo tavolo scegli CARTA o STAI.', 'La TV apre il banco alla fine.'],
-    win: ['Chi batte il banco riceve un buono per 3 consumazioni al tavolo, non punti.', 'Massimo tre buoni a serata.'],
+    win: ['Chi batte il banco riceve il premio concordato con il bar, non punti.', 'Premio e consegna li gestiscono barista e presentatore.'],
     lose: ['Pari e sconfitte non tolgono nulla.', 'Sballare non costa nulla in classifica.'],
-    example: 'Due tavoli battono il banco: due buoni da tre consumazioni.',
+    example: 'Due tavoli battono il banco: il premio lo consegnano barista e presentatore.',
   },
   CASINO_DOZEN: {
     title: 'CASINO DOZZINA',
@@ -409,9 +409,9 @@ const BONUS_COPY: Record<BonusType, DemoCopy> = {
       'Vince chi ha più risposte giuste; a pari merito chi ha finito prima.',
     ],
     phone: ['Vota la categoria.', 'Tocca la risposta giusta: ogni esatta sale nel tabellone.'],
-    win: ['Il vincitore riceve un buono per una consumazione di cibo, non punti.'],
+    win: ['Il vincitore riceve il premio concordato con il bar, non punti: lo consegnano barista e presentatore.'],
     lose: ['Gli altri tavoli non ricevono nulla.', 'Risposta sbagliata o non data: nessun punto.'],
-    example: 'Il tavolo con più esatte vince il buono cibo.',
+    example: 'Il tavolo con più risposte esatte vince il premio del bar.',
   },
   CASINO_NUMBER: {
     title: 'CASINO NUMERO SECCO',
@@ -459,7 +459,7 @@ const introScenes: DemoScene[] = [
     title: 'COME SI VINCE',
     lines: [
       'I punti dei giochi entrano nella classifica della serata.',
-      'I bonus pagano solo punti positivi; Blackjack e Cavallo danno buoni, non punti.',
+      'I bonus pagano solo punti positivi; i premi di Blackjack e Cavallo li gestiscono barista e presentatore.',
       'Vince la squadra con più punti dopo la classifica finale dell’atto 5.',
     ],
   },

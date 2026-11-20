@@ -57,8 +57,8 @@ describe('regole dei punteggi', () => {
     expect(BONUS_CASINO_COLOR_POINTS * CASINO_SPINS).toBe(300);
     expect(BONUS_CASINO_DOZEN_POINTS * CASINO_SPINS).toBe(600);
     expect(BONUS_CASINO_NUMBER_POINTS).toBe(500);
-    expect(BONUS_SCORING['BONUS_BLACKJACK'].correct).toContain('3 consumazioni');
-    expect(BONUS_SCORING['BONUS_CAVALLO'].correct).toContain('1 consumazione');
+    expect(BONUS_SCORING['BONUS_BLACKJACK'].correct).toContain('premio del bar');
+    expect(BONUS_SCORING['BONUS_CAVALLO'].correct).toContain('premio del bar');
     for (const rule of Object.values(BONUS_SCORING)) {
       expect(rule.wrong.startsWith('0')).toBe(true);
     }
@@ -66,6 +66,6 @@ describe('regole dei punteggi', () => {
 
   it('il Blackjack non ha più una voce nei punteggi di gioco', () => {
     expect('BLACKJACK' in SCORING_RULES).toBe(false);
-    expect(scoringRuleFor('BONUS_BLACKJACK')?.correct).toContain('3 consumazioni');
+    expect(scoringRuleFor('BONUS_BLACKJACK')?.correct).toContain('premio del bar');
   });
 });

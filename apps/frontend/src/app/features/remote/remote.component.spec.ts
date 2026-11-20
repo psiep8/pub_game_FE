@@ -1547,40 +1547,4 @@ describe('RemoteComponent', () => {
     // La partita è una sola: la scheda doppia resta a guardare.
     expect(game.quizAnswersSent).toEqual([]);
   });
-
-  it('mostra HAI VINTO e il codice quando il server emette il buono', async () => {
-    component.tempNickname = 'Anna';
-    await component.setNickname();
-    component.closeButtonTest();
-
-    ws.status$.next({
-      action: 'VOUCHER_ISSUED',
-      id: 7,
-      code: '0123',
-      playerName: 'Anna',
-      label: '3 consumazioni al tavolo',
-    });
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    const card = fixture.nativeElement.querySelector('.voucher-win') as HTMLElement | null;
-    expect(card?.textContent).toContain('HAI VINTO');
-    expect(card?.querySelector('.voucher-win-code')?.textContent?.trim()).toBe('0123');
-    expect(card?.querySelector('.voucher-win-prize')?.textContent).toContain('3 consumazioni al tavolo');
-  });
-
-  it('ignora il buono di un altro tavolo e lo chiude alla consegna', async () => {
-    component.nickname.set('Anna');
-    ws.status$.next({ action: 'VOUCHER_ISSUED', id: 8, code: '0456', playerName: 'Bruno', label: '1 consumazione di cibo' });
-    await fixture.whenStable();
-    expect(component.voucherWin()).toBeNull();
-
-    ws.status$.next({ action: 'VOUCHER_ISSUED', id: 9, code: '0789', playerName: 'Anna', label: '1 consumazione di cibo' });
-    await fixture.whenStable();
-    expect(component.voucherWin()?.code).toBe('0789');
-
-    ws.status$.next({ action: 'VOUCHER_DELIVERED', id: 9, delivered: true });
-    await fixture.whenStable();
-    expect(component.voucherWin()).toBeNull();
-  });
 });

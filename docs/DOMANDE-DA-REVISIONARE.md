@@ -17,8 +17,7 @@ con `npm run audit:banche`.
 | Time Buzzer "tempo perfetto" | errore ≤ 50 ms vale +600 | provare la soglia sul telefono, in sala |
 | Numero secco del Casino | una sola girata: se nessuno becca il numero, nessuno prende punti | conferma con il gestore |
 | Finestra di scelta dei bonus | 10 secondi, si chiude prima se tutti hanno scelto | conferma della durata |
-| Buono bevande del Blackjack | massimo 3 squadre premiate per serata | decidere il tetto con il gestore |
-| Consegna dei buoni | fatta: il codice nasce sul server, il telefono mostra «HAI VINTO» e la regia segna CONSEGNATO | provare il giro completo in sala |
+| Premi di Blackjack e Cavallo | gestiti da barista e presentatore, fuori dall'app | concordare premi e consegna in sala |
 | Distrattori delle banche | corretti: l'audit non segnala più risposte più lunghe né distrattori troppo corti | rileggere le 47 opzioni riscritte con il pubblico davanti |
 | Copertura di Ultima spiaggia | **ripiego dichiarato**: se una fascia è esaurita, `QuestionBankService` pesca una domanda nuova della stessa categoria e ne mostra la difficoltà reale; restano 69 combinazioni sotto le 12 domande dedicate | riempirle solo con domande verificate, non inventate |
 | Versione | 2.2.0 | conferma prima del rilascio |

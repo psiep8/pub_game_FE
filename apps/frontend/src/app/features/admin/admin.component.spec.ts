@@ -124,25 +124,4 @@ describe('Admin', () => {
     expect(component.buzzedPlayer()).toBeNull();
     expect(component.correctAnswer()).toBeNull();
   });
-
-  it('elenca i buoni e registra la consegna', async () => {
-    const reliability = TestBed.inject(ReliabilityService) as unknown as FakeReliabilityService;
-    reliability.voucherRows.push({
-      id: 4, code: '0042', playerName: 'Anna', label: '3 consumazioni al tavolo',
-      delivered: false, issuedAt: Date.now(),
-    });
-
-    await component.refreshVouchers();
-    fixture.detectChanges();
-
-    expect(component.vouchers()).toHaveLength(1);
-    expect(fixture.nativeElement.querySelector('.voucher-code')?.textContent?.trim()).toBe('0042');
-
-    component.deliverVoucher(component.vouchers()[0]);
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    expect(component.vouchers()[0].delivered).toBe(true);
-    expect(fixture.nativeElement.querySelector('.voucher-state')?.textContent).toContain('CONSEGNATO');
-  });
 });

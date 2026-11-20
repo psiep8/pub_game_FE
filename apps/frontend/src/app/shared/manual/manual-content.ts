@@ -263,10 +263,10 @@ const BONUS_COPY: Record<BonusType, EntryCopy> = {
     phone: [
       'Quando la TV chiama il tuo tavolo scegli CARTA o STAI.',
       'La TV apre il banco alla fine della mano.',
-      'Chi batte il banco vince un buono per 3 consumazioni al tavolo, non punti.',
+      'Chi batte il banco riceve il premio concordato con il bar, non punti.',
       'Pari e sconfitte non tolgono nulla.',
     ],
-    tip: 'Con 17 o più conviene spesso stare. I buoni sono al massimo tre a serata.',
+    tip: 'Con 17 o più conviene spesso stare. Il premio lo consegnano barista e presentatore.',
   },
   CASINO_DOZEN: {
     name: 'CASINO DOZZINA',
@@ -283,14 +283,14 @@ const BONUS_COPY: Record<BonusType, EntryCopy> = {
   CAVALLO: {
     name: 'CAVALLO DI BATTAGLIA',
     icon: '🐎',
-    summary: 'Otto domande flash sulla categoria scelta dai tavoli: vince un buono cibo.',
+    summary: 'Otto domande flash sulla categoria scelta dai tavoli: il vincitore riceve il premio del bar.',
     objective: 'Votare la categoria e rispondere a otto domande rapide; vince chi ha più risposte giuste, a pari merito chi ha finito prima.',
     phone: [
       'Vota la categoria della sfida.',
       'Tocca la risposta giusta: ogni esatta sale nel tabellone.',
       'La TV mostra tabellone e vincitore del bonus.',
     ],
-    tip: 'Il vincitore prende un buono per una consumazione di cibo, non punti. A pari merito vince chi ha finito prima.',
+    tip: 'Il vincitore riceve il premio concordato con il bar, non punti: lo consegnano barista e presentatore. A pari merito vince chi ha finito prima.',
   },
   CASINO_NUMBER: {
     name: 'CASINO NUMERO SECCO',

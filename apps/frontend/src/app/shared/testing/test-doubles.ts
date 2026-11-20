@@ -1,6 +1,5 @@
 import { signal, WritableSignal } from '@angular/core';
 import { EMPTY, Observable, of, Subject, throwError } from 'rxjs';
-import { BonusVoucher } from '../models/voucher';
 
 /**
  * Doppi di test condivisi.
@@ -401,37 +400,6 @@ export class FakeReliabilityService {
 
   saveBonusAct(bonus: { act: number; type: string; status: string }): void {
     this.bonusActs.push(bonus);
-  }
-
-  readonly voucherRows: BonusVoucher[] = [];
-  private nextVoucherId = 1;
-
-  issueVoucher(playerName: string, label: string): Observable<BonusVoucher> {
-    const voucher: BonusVoucher = {
-      id: this.nextVoucherId++,
-      code: String(1000 + this.voucherRows.length).slice(0, 4),
-      playerName,
-      label,
-      delivered: false,
-      issuedAt: Date.now(),
-    };
-    this.voucherRows.push(voucher);
-    return of(voucher);
-  }
-
-  listVouchers(): Observable<BonusVoucher[]> {
-    return of([...this.voucherRows]);
-  }
-
-  myVouchers(): Observable<BonusVoucher[]> {
-    return of(this.voucherRows.filter((row) => row.playerName === 'Anna'));
-  }
-
-  deliverVoucher(id: number): Observable<BonusVoucher> {
-    const row = this.voucherRows.find((voucher) => voucher.id === id);
-    if (!row) return throwError(() => new Error('voucher-not-found'));
-    row.delivered = true;
-    return of({ ...row });
   }
 
   serverNow(): number {
