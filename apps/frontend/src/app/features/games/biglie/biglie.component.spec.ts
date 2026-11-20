@@ -499,6 +499,71 @@ describe('Biglie — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
+  it('la corsa non riparte se resta la pausa o la scheda è nascosta', () => {
+    vi.useFakeTimers();
+    const { component, fixture } = mount();
+    const audio = TestBed.inject(AudioService);
+    vi.spyOn(audio, 'stopMarbleBed').mockImplementation(() => {});
+    const startBed = vi.spyOn(audio, 'startMarbleBed').mockImplementation(() => {});
+    const cancel = vi.spyOn(globalThis, 'cancelAnimationFrame');
+    vi.spyOn(globalThis, 'requestAnimationFrame').mockReturnValue(321 as any);
+
+    const internal = component as any;
+    internal.phase.set('RACE');
+    internal.countdownLeft = 0;
+    internal.frame = 42;
+
+    // Scheda nascosta con la gara in corso: il loop si ferma.
+    setHidden(true);
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(cancel).toHaveBeenCalledWith(42);
+    expect(internal.frame).toBe(0);
+
+    // La pausa arriva mentre la scheda è nascosta e poi finisce: la scheda
+    // nascosta da sola basta a tenere la corsa ferma.
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    expect(internal.suspended).toBe(true);
+    expect(internal.frame).toBe(0);
+    expect(startBed).not.toHaveBeenCalled();
+
+    // Tornano visibili scheda e pausa: solo ora la corsa riparte, da dt 0.
+    setHidden(false);
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(internal.suspended).toBe(false);
+    expect(internal.lastFrame).toBe(0);
+    expect(internal.physicsAccumulator).toBe(0);
+    expect(startBed).toHaveBeenCalled();
+    expect(internal.frame).toBe(321);
+
+    // Ora è la pausa a restare: la scheda torna visibile ma la gara non riparte.
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    setHidden(true);
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(internal.suspended).toBe(true);
+    expect(internal.frame).toBe(0);
+    setHidden(false);
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(internal.suspended).toBe(true);
+    expect(internal.frame).toBe(0);
+    expect(startBed).toHaveBeenCalledTimes(1);
+
+    // Finita la pausa, con la scheda visibile, la corsa riparte.
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    expect(internal.suspended).toBe(false);
+    expect(internal.frame).toBe(321);
+    expect(startBed).toHaveBeenCalledTimes(2);
+
+    delete (document as any).hidden;
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
   it('la pausa durante la finale non chiude il round a schermo fermo', () => {
     vi.useFakeTimers();
     const { finished, fixture } = mount({
