@@ -232,6 +232,68 @@ describe('GameComponent', () => {
     expect(ws.broadcasted.at(-1)?.body.action).toBe('GAME_PAUSED');
   });
 
+  it('alla ripresa ripubblica lo stato del round per chi si è ricollegato', () => {
+    component.currentGameId.set(1);
+    component.currentMode.set({ type: 'AZZARDO', pause: vi.fn(), resume: vi.fn() } as any);
+    component.showQuestion.set(true);
+    ws.broadcastStatus(1, { action: 'AZZARDO_STATE', state: { phase: 'BET', secondsLeft: 9 } });
+
+    component.togglePause();
+    ws.broadcasted.length = 0;
+    component.togglePause();
+
+    const actions = ws.broadcasted.map((entry) => entry.body.action);
+    expect(actions).toContain('GAME_RESUMED');
+    expect(actions).toContain('AZZARDO_STATE');
+    // Lo stato segue il via: il telefono lo applica a sala già aperta.
+    expect(actions.indexOf('GAME_RESUMED')).toBeLessThan(actions.indexOf('AZZARDO_STATE'));
+    expect(ws.broadcasted.find((entry) => entry.body.action === 'AZZARDO_STATE')?.body.state)
+      .toEqual({ phase: 'BET', secondsLeft: 9 });
+  });
+
+  it('al rientro di un telefono ripubblica lo stato del round', () => {
+    component.currentGameId.set(1);
+    component.currentMode.set({ type: 'BIGLIE' } as any);
+    component.showQuestion.set(true);
+    ws.broadcastStatus(1, { action: 'BIGLIE_STATE', state: { phase: 'RACE', secondsLeft: 4 } });
+    ws.broadcasted.length = 0;
+
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Bruno' });
+
+    expect(ws.broadcasted.some((entry) => entry.body.action === 'BIGLIE_STATE')).toBe(true);
+  });
+
+  it('dopo un refresh in pausa ripete lo stato del round non ancora a schermo', () => {
+    component.currentGameId.set(1);
+    component.isPaused.set(true);
+    // La TV è appena ripartita: il round è solo nel pannello di ripristino.
+    component.recoveredRound.set({
+      type: 'AZZARDO', label: 'Azzardo', secondsLeft: 12, resumable: true, paused: true,
+    });
+    ws.broadcastStatus(1, { action: 'AZZARDO_STATE', state: { phase: 'BET', secondsLeft: 12 } });
+    ws.broadcasted.length = 0;
+
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Carla' });
+
+    expect(ws.broadcasted.find((entry) => entry.body.action === 'AZZARDO_STATE')?.body.state)
+      .toEqual({ phase: 'BET', secondsLeft: 12 });
+  });
+
+  it('al rientro di un telefono in pausa ripubblica lo stato del bonus', () => {
+    component.currentGameId.set(1);
+    component.bonusActive.set(true);
+    component.bonusType.set('CAVALLO');
+    ws.broadcastStatus(1, { action: 'CAVALLO_STATE', state: { phase: 'PICK', secondsLeft: 7 } });
+
+    component.togglePause();
+    ws.broadcasted.length = 0;
+    ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });
+
+    const actions = ws.broadcasted.map((entry) => entry.body.action);
+    expect(actions).toContain('GAME_PAUSED');
+    expect(actions).toContain('CAVALLO_STATE');
+  });
+
   it('mette il loop della classifica e chiude sul gioco, o sulla lobby a serata finita', () => {
     const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
     const rounds = TestBed.inject(RoundManagerService);

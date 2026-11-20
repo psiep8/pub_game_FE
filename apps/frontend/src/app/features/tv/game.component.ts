@@ -62,6 +62,26 @@ import { ROUNDS_PER_ACT } from '../../shared/schedule';
  */
 const PRESENCE_MISSES_BEFORE_FORGET = 2;
 import { BonusType, BONUS_LABELS, BONUS_TYPES } from '../../shared/models/bonus-type';
+
+/** Stato che il telefono sa applicare, per ogni round con eventi in diretta. */
+const ROUND_STATE_ACTIONS: Partial<Record<GameModeType, WsAction>> = {
+  QUIZ: WsAction.QUIZ_STATE,
+  TIME_BUZZER: WsAction.TIME_BUZZER_STATE,
+  TENNIS_BATTLE: WsAction.TENNIS_BATTLE_STATE,
+  ULTIMA_SPIAGGIA: WsAction.ULTIMA_SPIAGGIA_STATE,
+  AZZARDO: WsAction.AZZARDO_STATE,
+  BLACKJACK: WsAction.BLACKJACK_STATE,
+  BIGLIE: WsAction.BIGLIE_STATE,
+};
+
+/** Stato del bonus: le tre varianti Casino condividono la stessa ruota. */
+const BONUS_STATE_ACTIONS: Record<BonusType, WsAction> = {
+  CASINO_COLOR: WsAction.CASINO_STATE,
+  CASINO_DOZEN: WsAction.CASINO_STATE,
+  CASINO_NUMBER: WsAction.CASINO_STATE,
+  BLACKJACK: WsAction.BLACKJACK_STATE,
+  CAVALLO: WsAction.CAVALLO_STATE,
+};
 import { CasinoBonus } from '../bonus/casino/casino-bonus.component';
 import { CavalloBonus } from '../bonus/cavallo/cavallo-bonus.component';
 import { Biglie } from '../games/biglie/biglie.component';
@@ -576,6 +596,9 @@ export class GameComponent implements OnInit, OnDestroy {
             secondsLeft: this.timer(),
           });
         }
+        // Chi rientra deve ritrovare il round o il bonus già disegnato, non
+        // solo il cartello di pausa: si ripete l'ultimo stato pubblicato.
+        this.republishLiveState();
 
       }
 
@@ -1928,6 +1951,9 @@ export class GameComponent implements OnInit, OnDestroy {
       }
       this.audioService.resumeBeds();
       this.ws.broadcastStatus(this.currentGameId()!, { action: WsAction.GAME_RESUMED });
+      // A sala ferma i telefoni non ricevono tick: lo stato va ripetuto subito
+      // dopo il via, così chi si era ricollegato ritrova il gioco.
+      this.republishLiveState();
     } else {
       // Anche un bonus è un momento della serata: la pausa vale pure lì, dove
       // non esiste una modalità di round da fermare sul server.
@@ -2286,6 +2312,8 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   private reset() {
+    // Round o bonus nuovo: lo stato del precedente non si ripete più.
+    this.ws.clearLastStates();
     this.arenaFinished = false;
     if (this.bonusEntranceTimer) clearTimeout(this.bonusEntranceTimer);
     this.bonusEntranceTimer = undefined;
@@ -2806,6 +2834,36 @@ export class GameComponent implements OnInit, OnDestroy {
     call.subscribe({ error: () => { /* Senza rete la pausa locale resta. */ } });
   }
 
+  /**
+   * Ripete l'ultimo stato del round o del bonus in scena. Lo usano la ripresa e
+   * il rientro di un telefono: chi non ha visto gli annunci ritrova subito
+   * gioco e fase, senza aspettare il prossimo tick.
+   */
+  private republishLiveState(): void {
+    const gameId = this.currentGameId();
+    if (!gameId) return;
+
+    if (this.bonusActive()) {
+      const bonus = this.bonusType();
+      const action = bonus ? BONUS_STATE_ACTIONS[bonus] : null;
+      const state = action ? this.ws.lastStateFor(gameId, action) : null;
+      if (state) this.ws.broadcastStatus(gameId, state);
+      return;
+    }
+
+    // Dopo un refresh in pausa il round non è ancora a schermo, ma lo stato
+    // salvato basta a far ritrovare il gioco a chi rientra.
+    const pending = this.recoveredRound();
+    const mode = this.currentMode();
+    const type = mode
+      ? (this.showQuestion() ? mode.type : null)
+      : (this.isPaused() && pending?.paused ? pending.type : null);
+    if (!type) return;
+    const action = ROUND_STATE_ACTIONS[type];
+    const state = action ? this.ws.lastStateFor(gameId, action) : null;
+    if (state) this.ws.broadcastStatus(gameId, state);
+  }
+
   async resumeRecoveredRound(): Promise<void> {
     const pending = this.recoveredRound();
     const payload = this.recoveredPayload;
@@ -2873,6 +2931,8 @@ export class GameComponent implements OnInit, OnDestroy {
     if (pending.paused) {
       this.ws.broadcastStatus(this.currentGameId(), { action: WsAction.GAME_RESUMED });
     }
+    // Il round è appena stato ricostruito: lo stato torna ai telefoni.
+    this.republishLiveState();
     this.cdr.detectChanges();
   }
 

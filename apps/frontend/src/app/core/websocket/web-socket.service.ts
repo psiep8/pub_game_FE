@@ -46,6 +46,10 @@ export class WebSocketService {
   private subscriptions: StompSubscription[] = [];
   private retryTimer?: ReturnType<typeof setTimeout>;
   private attempts = 0;
+  /** Ultimo stato pubblicato per azione: la TV lo ripete a chi rientra. */
+  private lastStates?: Map<string, { gameId: number; payload: any }>;
+  /** La memoria vive nella scheda: un refresh della TV non deve perderla. */
+  private static readonly LAST_STATES_KEY = 'pubgame.tv.last-states';
 
   constructor() {
     this.client = new Client({
@@ -136,7 +140,52 @@ export class WebSocketService {
   }
 
   broadcastStatus(gameId: number, payload: any): boolean {
+    const action = typeof payload?.action === 'string' ? payload.action : '';
+    // Gli stati sono l'ultima fotografia del gioco: si ricordano anche a socket
+    // chiusa, così alla ripresa c'è qualcosa da ripetere ai telefoni.
+    if (action.endsWith('_STATE')) {
+      this.stateMemory().set(action, { gameId, payload });
+      this.persistStateMemory();
+    }
     return this.publish(`/app/game/${gameId}/status`, payload);
+  }
+
+  /** Ultimo stato pubblicato per quell'azione, se appartiene a questa partita. */
+  lastStateFor(gameId: number, action: string): any | null {
+    const entry = this.stateMemory().get(action);
+    return entry && entry.gameId === gameId ? entry.payload : null;
+  }
+
+  /** Memoria degli stati, riletta dallo storage dopo un refresh della TV. */
+  private stateMemory(): Map<string, { gameId: number; payload: any }> {
+    if (this.lastStates) return this.lastStates;
+    const states = new Map<string, { gameId: number; payload: any }>();
+    try {
+      const stored = JSON.parse(sessionStorage.getItem(WebSocketService.LAST_STATES_KEY) ?? '{}');
+      Object.entries<any>(stored ?? {}).forEach(([action, entry]) => {
+        if (Number.isInteger(entry?.gameId) && entry?.payload) states.set(action, entry);
+      });
+    } catch {
+      // Senza storage resta la memoria della pagina corrente.
+    }
+    this.lastStates = states;
+    return states;
+  }
+
+  private persistStateMemory(): void {
+    try {
+      const stored: Record<string, unknown> = {};
+      this.stateMemory().forEach((entry, action) => { stored[action] = entry; });
+      sessionStorage.setItem(WebSocketService.LAST_STATES_KEY, JSON.stringify(stored));
+    } catch {
+      // Storage pieno o assente: la memoria in RAM basta alla pagina.
+    }
+  }
+
+  /** Round o bonus nuovo: gli stati del precedente non vanno più ripetuti. */
+  clearLastStates(): void {
+    this.stateMemory().clear();
+    this.persistStateMemory();
   }
 
   connect(): void {

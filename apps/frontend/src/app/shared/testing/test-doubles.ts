@@ -26,6 +26,7 @@ export class FakeWebSocketService {
   readonly responses$ = new Subject<any>();
 
   readonly broadcasted: BroadcastedStatus[] = [];
+  private readonly lastStates = new Map<string, { gameId: number; payload: any }>();
   readonly publishedAnswers: Array<{
     gameId: number;
     playerName: string;
@@ -49,8 +50,19 @@ export class FakeWebSocketService {
   }
 
   broadcastStatus(gameId: number, payload: any): boolean {
+    const action = typeof payload?.action === 'string' ? payload.action : '';
+    if (action.endsWith('_STATE')) this.lastStates.set(action, { gameId, payload });
     this.broadcasted.push({ destination: `/app/game/${gameId}/status`, body: payload });
     return true;
+  }
+
+  lastStateFor(gameId: number, action: string): any | null {
+    const entry = this.lastStates.get(action);
+    return entry && entry.gameId === gameId ? entry.payload : null;
+  }
+
+  clearLastStates(): void {
+    this.lastStates.clear();
   }
 
   setSessionToken(_token: string): void {}
