@@ -18,14 +18,23 @@
 - **Bonus:** Casino colore e dozzina tre girate (100/200 a girata), numero
   secco una girata da 500, scelta in dieci secondi; Blackjack e Cavallo danno
   buoni (3 consumazioni / 1 consumazione di cibo) invece di punti.
+- **Buoni persistenti:** codice di quattro cifre generato dal server e salvato
+  nella partita; niente doppioni se la TV riprende. Il telefono mostra «HAI
+  VINTO», la TV espone codice e premio, la regia elenca i buoni e segna
+  CONSEGNATO (stato salvato e annunciato via WebSocket).
+- **Banche:** 47 risposte più lunghe dei distrattori riallineate, doppione
+  `quiz-viaggi-40` sostituito, `C#` e l'articolo `L'` non sono più falsi
+  positivi dell'audit; segnalazioni e doppioni a **0**. Ultima spiaggia dichiara
+  il ripiego di fascia quando le domande dedicate finiscono.
+- **Manuale:** HTML color e B/N riallineati ai nuovi punteggi; PDF rigenerati
+  con Edge headless.
 - **Rimosso:** generatore Bomba a quiz senza chiamanti, voce `BLACKJACK` dei
   punteggi di gioco, vecchie tabelle (Musica a secondi, Timeline a 6 carte,
   Biglie 150/100, Tennis 1000/200, Time Buzzer a tagli, Bomba −200),
   `SECONDA-SERATA.md` (superato dal registro).
-- **Da provare in sala:** tempi della finestra bonus, buono consegnato al bar,
-  equilibrio dei nuovi massimi/minimi, distrattori delle banche rimasti da
-  approvare a mano.
-- Verifiche: suite frontend e backend mirate; versione 2.2.0.
+- **Da provare in sala:** tempi della finestra bonus, giro completo del buono
+  fino al bar, equilibrio dei nuovi massimi/minimi.
+- Verifiche: suite frontend 643/643 e backend completa; versione 2.2.0.
 
 ## 20 novembre 2026 — Sottofondi in casa, finale con il suo tappeto, 2.2.0
 
