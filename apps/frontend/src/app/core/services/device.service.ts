@@ -38,16 +38,4 @@ export class DeviceService {
   isDesktop(): boolean {
     return !this.isMobile();
   }
-
-  getDeviceType(): 'mobile' | 'tablet' | 'desktop' {
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isIPad = /ipad/.test(userAgent) ||
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-    if (isIPad) return 'tablet';
-
-    if (this.isMobile()) return 'mobile';
-
-    return 'desktop';
-  }
 }

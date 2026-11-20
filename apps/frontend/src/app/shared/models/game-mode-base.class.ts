@@ -1,4 +1,4 @@
-import { signal, Signal } from '@angular/core';
+import { signal } from '@angular/core';
 import { GameModeConfig, GameModeResult, GameModeType, IGameMode } from './game-mode-type';
 
 /**
@@ -181,10 +181,6 @@ export abstract class GameModeBase implements IGameMode {
 
   isRevealed(): boolean {
     return this.revealed();
-  }
-
-  protected timerSignal(): Signal<number> {
-    return this.timer;
   }
 
   abstract getDisplayData(): any;

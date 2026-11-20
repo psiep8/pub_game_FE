@@ -96,10 +96,6 @@ export class RoundManagerService {
     this.saveProgress();
   }
 
-  isSimulation(): boolean {
-    return this.simulation;
-  }
-
   /** Tipo previsto dalla scaletta per il round corrente (indice 0-based). */
   extractGameType(): GameModeType {
     const round = this.roundConfig().currentRound;
@@ -124,11 +120,6 @@ export class RoundManagerService {
     this.saveProgress();
 
     return gameType;
-  }
-
-  /** Atto appena concluso (0-based). */
-  getCurrentAct(): number {
-    return Math.floor(this.roundConfig().currentRound / ROUNDS_PER_ACT) - 1;
   }
 
   /**

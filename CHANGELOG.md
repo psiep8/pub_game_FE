@@ -1,5 +1,26 @@
 # Changelog
 
+## 20 novembre 2026 — Sottofondi in casa, finale con il suo tappeto, 2.2.0
+
+- **Tredici sottofondi nuovi:** cinque basi d'atto, i quattordici tappeti dei
+giochi e i file già presenti rigenerati dalla pipeline di casa: 60 s, −23
+LUFS, seam controllato. `bed-map` e `bed-loops` li conoscono, i crediti sono
+rigenerati e i venti loop stanno in 21,70 MB sui 22 del manifesto.
+- **Ultima spiaggia a volume:** l'ostinato era un sub a 27 Hz, che non si sente
+ma riempie la forma d'onda: RMS a −16,6 dB contro i −23…−25 degli altri. Ora il
+sub sta a 55 Hz con il basso in banda media: −21,7 dB, sempre −23 LUFS.
+- **Test di loudness:** `loop-loudness.spec.ts` misura i venti file con ffmpeg e
+ferma chi esce da −23 LUFS ±0,5, da un RMS ≤ −19 dB o da un picco vero
+≤ −1,5 dBTP; dove ffmpeg manca il blocco si salta dichiaratamente.
+- **Finale di serata:** l'ultima classifica, automatica o forzata dalla regia,
+passa al loop `gioco-casino-finale`; le classifiche di metà serata restano su
+`classifica`.
+- **Pulizia:** rimosso il modello `game-round.model.ts` (doppione di quello in
+`game.service`), i metodi mai chiamati (`getDeviceType`, `getCurrentMode`,
+`getTimelineReveal`, `resetPartyGames`, `isSimulation`, `getCurrentAct`,
+`marbleColor`, `timerSignal`).
+- Verifiche: suite completa, build di produzione; versione 2.2.0.
+
 ## 19 novembre 2026 — La roulette torna nera e i numeri tornano al centro
 
 - **Vani neri:** i numeri non rossi erano dipinti con il gradiente `pocketWhite`

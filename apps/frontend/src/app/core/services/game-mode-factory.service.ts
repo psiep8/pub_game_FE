@@ -59,10 +59,6 @@ export class GameModeService {
     return mode;
   }
 
-  getCurrentMode(): IGameMode | null {
-    return this.currentMode;
-  }
-
   cleanup(): void {
     if (!this.currentMode) return;
 

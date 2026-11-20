@@ -710,10 +710,6 @@ export class Biglie implements OnInit, OnDestroy {
     return points > 0 ? `+${points}` : `−${Math.abs(points)}`;
   }
 
-  marbleColor(id: string): string {
-    return this.marbleById(id)?.color ?? '#94a3b8';
-  }
-
   marbleEmoji(id: string): string {
     return this.marbleById(id)?.emoji ?? '⚪';
   }
