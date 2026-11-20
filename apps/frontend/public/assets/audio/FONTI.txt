@@ -58,3 +58,17 @@ gioco/marbleSurfaceHard.m4a | Urti delle Biglie — fondo duro | PubGame | https
 gioco/marbleSurfaceSoft.m4a | Urti delle Biglie — fondo morbido | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
 
 loop/biglie.m4a | Rotolamento delle Biglie | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+
+loop/atto-1.m4a | Aperitivo — PubGame | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+loop/atto-2.m4a | Si scalda — PubGame | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+loop/atto-3.m4a | Notte di sala — PubGame | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+loop/atto-4.m4a | Sale l’energia — PubGame | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+loop/atto-5.m4a | Finale — PubGame | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+loop/gioco-arena.m4a | Arena — Scontro — PubGame | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+loop/gioco-speed-rush.m4a | Speed Rush — Corsa — PubGame | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+loop/gioco-biglie.m4a | Biglie — Corsa allegra — PubGame | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+loop/gioco-timeline.m4a | Timeline — Orologeria — PubGame | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+loop/gioco-ultima-spiaggia.m4a | Ultima spiaggia — Tensione — PubGame | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+loop/gioco-azzardo.m4a | Azzardo — Lounge da tavolo — PubGame | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+loop/gioco-blackjack.m4a | Blackjack — Jazz lento — PubGame | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)
+loop/gioco-casino-finale.m4a | Casino — Finale — PubGame | PubGame | https://github.com/psiep8/pub_game_FE | Nostra (sintesi renderizzata)

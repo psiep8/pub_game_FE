@@ -42,7 +42,7 @@ export const ACT_BEDS: Record<ActNumber, BedTrack> = {
  * Si allunga di un numero appena il file arriva, e la base dell'atto prende il
  * posto della lobby.
  */
-export const READY_ACTS: readonly ActNumber[] = [];
+export const READY_ACTS: readonly ActNumber[] = [1, 2, 3, 4, 5];
 
 /** Atto valido, `null` per «nessun atto aperto» o un numero fuori scala. */
 export function actNumber(value?: number | null): ActNumber | null {
@@ -75,16 +75,16 @@ export const GAME_BEDS: Record<GameModeType, GameBed> = {
   MUSIC: null,
   IMAGE_BLUR: ACT_BASE,
   WHEEL_OF_FORTUNE: ACT_BASE,
-  TIMELINE: ACT_BASE,
-  ULTIMA_SPIAGGIA: ACT_BASE,
-  ARENA: BED_LOOPS['gioco-bomba'],
+  TIMELINE: BED_LOOPS['gioco-timeline'],
+  ULTIMA_SPIAGGIA: BED_LOOPS['gioco-ultima-spiaggia'],
+  ARENA: BED_LOOPS['gioco-arena'],
   TIME_BUZZER: null,
   BOMBA: BED_LOOPS['gioco-bomba'],
-  SPEED_RUSH: BED_LOOPS['gioco-bomba'],
+  SPEED_RUSH: BED_LOOPS['gioco-speed-rush'],
   TENNIS_BATTLE: BED_LOOPS['gioco-tennis'],
-  BIGLIE: BED_LOOPS['gioco-tennis'],
-  AZZARDO: BED_LOOPS['gioco-casino'],
-  BLACKJACK: BED_LOOPS['gioco-casino'],
+  BIGLIE: BED_LOOPS['gioco-biglie'],
+  AZZARDO: BED_LOOPS['gioco-azzardo'],
+  BLACKJACK: BED_LOOPS['gioco-blackjack'],
 };
 
 /** Giochi che suonano senza sottofondo: gong, canzoni e silenzio voluto. */

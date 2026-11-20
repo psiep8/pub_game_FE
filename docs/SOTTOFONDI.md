@@ -10,30 +10,29 @@ non stimati. Chi decide cosa suona è il codice, non questo documento:
 `core/services/bed-loops.ts` è il registro dei file e `core/services/bed-map.ts`
 la mappa dei giochi. Se un numero qui non torna, ha ragione il codice.
 
-**Stato al 19 novembre 2026:** 7 loop su 20 in cartella, 10,67 MB sui 22 MB del
-tetto. I 13 mancanti sono le cinque basi d'atto e otto loop di gioco; finché non
-arrivano, i giochi che li aspettano suonano il loop del vicino o la base d'atto,
-come dice la colonna «ruolo».
+**Stato al 20 novembre 2026:** 20 loop su 20 in cartella, 21,69 MB sui 22 MB del
+tetto. I tredici arrivati — cinque basi d'atto e otto loop di gioco — sono resi
+in casa da `scripts/audio/generate-loops.mjs` e nei crediti compaiono come
+«Nostra (sintesi renderizzata)». Un brano registrato che li sostituisce prende lo
+stesso nome e passa dalla stessa pipeline.
 
 ## Basi d'atto (5 file)
 
 La base suona nei giochi che non hanno un brano proprio (Quiz, Indovina chi,
-Ruota, Timeline, Ultima Spiaggia) e in lobby, quando un atto è aperto. Senza
-atto, o con il file non ancora in cartella, si torna alla lobby: la serata non
-resta muta.
+Ruota) e in lobby, quando un atto è aperto. Senza atto si torna alla lobby: la
+serata non resta muta.
 
 | Atto | File | Carattere | BPM | Ruolo | Durata | Peso |
 |---|---|---|---|---|---|---|
-| 1 | `loop/atto-1.m4a` | Aperitivo: caldo, leggero, accogliente | 95–110 | base dell'atto 1 | — | da consegnare |
-| 2 | `loop/atto-2.m4a` | Si scalda: groove | 100–115 | base dell'atto 2 | — | da consegnare |
-| 3 | `loop/atto-3.m4a` | Notte di sala: lounge elettronico | 105–120 | base dell'atto 3 | — | da consegnare |
-| 4 | `loop/atto-4.m4a` | Sale l'energia: pop-rock/disco | 118–128 | base dell'atto 4 | — | da consegnare |
-| 5 | `loop/atto-5.m4a` | Finale: festoso e importante | 120–135 | base dell'atto 5 | — | da consegnare |
+| 1 | `loop/atto-1.m4a` | Aperitivo: caldo, leggero, accogliente | 95–110 | base dell'atto 1 | 60,0 s | 0,86 MB |
+| 2 | `loop/atto-2.m4a` | Si scalda: groove | 100–115 | base dell'atto 2 | 60,0 s | 0,96 MB |
+| 3 | `loop/atto-3.m4a` | Notte di sala: lounge elettronico | 105–120 | base dell'atto 3 | 60,0 s | 0,83 MB |
+| 4 | `loop/atto-4.m4a` | Sale l'energia: pop-rock/disco | 118–128 | base dell'atto 4 | 60,0 s | 0,86 MB |
+| 5 | `loop/atto-5.m4a` | Finale: festoso e importante | 120–135 | base dell'atto 5 | 60,0 s | 0,85 MB |
 
 Il file da solo non basta: un atto entra in gioco quando il suo numero compare in
-`READY_ACTS` (`bed-map.ts`). Finché l'elenco è vuoto la base di ogni atto è
-`lobby`, e un test confronta `READY_ACTS` con i file su disco — scordarsi la riga
-fa fallire la suite.
+`READY_ACTS` (`bed-map.ts`). Oggi ci sono tutti e cinque, e un test confronta
+l'elenco con i file su disco — scordarsi la riga fa fallire la suite.
 
 ## Giochi e bonus (14 file)
 
@@ -41,18 +40,18 @@ fa fallire la suite.
 |---|---|---|---|---|---|
 | `loop/lobby.m4a` | allegro da pub | 95–110 | lobby, attesa fra i round e **base di ripiego** di ogni atto senza file | 107,2 s | 1,65 MB |
 | `loop/classifica.m4a` | festoso, cerimonia | 110–125 | classifiche, podio, attesa dei bonus (`setBedLoop('classifica')`) | 117,0 s | 1,85 MB |
-| `loop/gioco-casino.m4a` | casinò, ritmo medio | 100–115 | Azzardo e Blackjack | 117,0 s | 1,84 MB |
-| `loop/gioco-bomba.m4a` | tensione che sale | 100–120 | Bomba, Arena, Speed Rush | 102,9 s | 1,60 MB |
-| `loop/gioco-tennis.m4a` | scontro sportivo | 120–135 | Tennis, Biglie | 98,8 s | 1,57 MB |
+| `loop/gioco-casino.m4a` | casinò, ritmo medio | 100–115 | in casa, non assegnato: Azzardo e Blackjack hanno il file loro | 117,0 s | 1,84 MB |
+| `loop/gioco-bomba.m4a` | tensione che sale | 100–120 | Bomba | 102,9 s | 1,60 MB |
+| `loop/gioco-tennis.m4a` | scontro sportivo | 120–135 | Tennis | 98,8 s | 1,57 MB |
 | `loop/gioco-cavallo.m4a` | leggero e curioso | 100–115 | in casa ma non assegnato: il bonus Cavallo non passa da `bedForGame` | 111,5 s | 1,78 MB |
-| `loop/gioco-arena.m4a` | scontro, percussioni cattive | 130–145 | Arena — oggi suona `gioco-bomba` | — | da consegnare |
-| `loop/gioco-speed-rush.m4a` | corsa, sintetizzatori incalzanti | 135–150 | Speed Rush — oggi `gioco-bomba` | — | da consegnare |
-| `loop/gioco-biglie.m4a` | corsa allegra, cartoon | 120–135 | Biglie — oggi `gioco-tennis` | — | da consegnare |
-| `loop/gioco-timeline.m4a` | concentrazione leggera, orologeria | 90–105 | Timeline — oggi base d'atto | — | da consegnare |
-| `loop/gioco-ultima-spiaggia.m4a` | ultima occasione, tensione che sale | 100–120 | Ultima Spiaggia — oggi base d'atto | — | da consegnare |
-| `loop/gioco-azzardo.m4a` | casinò, ritmo medio | 100–115 | Azzardo — oggi `gioco-casino` | — | da consegnare |
-| `loop/gioco-blackjack.m4a` | jazz lento da tavolo | 80–95 | Blackjack — oggi `gioco-casino` | — | da consegnare |
-| `loop/gioco-casino-finale.m4a` | l'ultimo giro: drammatico, solenne | 70–90 | nessun round della scaletta: è per il finale di serata, e non è ancora agganciato | — | da consegnare |
+| `loop/gioco-arena.m4a` | scontro, percussioni cattive | 130–145 | Arena | 60,0 s | 0,81 MB |
+| `loop/gioco-speed-rush.m4a` | corsa, sintetizzatori incalzanti | 135–150 | Speed Rush | 60,0 s | 0,88 MB |
+| `loop/gioco-biglie.m4a` | corsa allegra, cartoon | 120–135 | Biglie | 60,0 s | 0,84 MB |
+| `loop/gioco-timeline.m4a` | concentrazione leggera, orologeria | 90–105 | Timeline | 60,0 s | 0,85 MB |
+| `loop/gioco-ultima-spiaggia.m4a` | ultima occasione, tensione che sale | 100–120 | Ultima Spiaggia | 60,0 s | 0,84 MB |
+| `loop/gioco-azzardo.m4a` | casinò, ritmo medio | 100–115 | Azzardo | 60,0 s | 0,81 MB |
+| `loop/gioco-blackjack.m4a` | jazz lento da tavolo | 80–95 | Blackjack | 60,0 s | 0,83 MB |
+| `loop/gioco-casino-finale.m4a` | l'ultimo giro: drammatico, solenne | 70–90 | nessun round della scaletta: è per il finale di serata, non ancora agganciato | 60,0 s | 0,83 MB |
 
 Sei nomi sono già quelli nuovi: `casino.m4a` è `gioco-casino`, `tensione.m4a` è
 `gioco-bomba`, `sport.m4a` è `gioco-tennis`, `leggero.m4a` è `gioco-cavallo`,
@@ -67,25 +66,24 @@ Sei nomi sono già quelli nuovi: `casino.m4a` è `gioco-casino`, `tensione.m4a` 
 ## Chi suona cosa
 
 La tabella del §4.2 letta dal codice: `GAME_BEDS` in `bed-map.ts`. «Base
-d'atto» significa la base dell'atto aperto — oggi la lobby, perché nessun atto
-ha ancora il suo file.
+d'atto» significa la base dell'atto aperto — oggi il suo file, non più la lobby.
 
-| Modalità | Sottofondo | Quando arriva il file suo |
-|---|---|---|
-| Quiz | base d'atto | — |
-| Musica | **silenzio** | il brano è la canzone, non un tappeto |
-| Indovina chi (immagine) | base d'atto | — |
-| Ruota della fortuna | base d'atto | — |
-| Timeline | base d'atto | `gioco-timeline` |
-| Ultima Spiaggia | base d'atto | `gioco-ultima-spiaggia` |
-| Arena | `gioco-bomba` | `gioco-arena` |
-| Tempo scaduto (Time Buzzer) | **silenzio** | il bong del countdown è un effetto |
-| Bomba | `gioco-bomba` | — |
-| Speed Rush | `gioco-bomba` | `gioco-speed-rush` |
-| Tennis | `gioco-tennis` | — |
-| Biglie | `gioco-tennis` | `gioco-biglie` |
-| Azzardo | `gioco-casino` | `gioco-azzardo` |
-| Blackjack | `gioco-casino` | `gioco-blackjack` |
+| Modalità | Sottofondo |
+|---|---|
+| Quiz | base d'atto |
+| Musica | **silenzio**: il brano è la canzone, non un tappeto |
+| Indovina chi (immagine) | base d'atto |
+| Ruota della fortuna | base d'atto |
+| Timeline | `gioco-timeline` |
+| Ultima Spiaggia | `gioco-ultima-spiaggia` |
+| Arena | `gioco-arena` |
+| Tempo scaduto (Time Buzzer) | **silenzio**: il bong del countdown è un effetto |
+| Bomba | `gioco-bomba` |
+| Speed Rush | `gioco-speed-rush` |
+| Tennis | `gioco-tennis` |
+| Biglie | `gioco-biglie` |
+| Azzardo | `gioco-azzardo` |
+| Blackjack | `gioco-blackjack` |
 
 Fuori dalla mappa: nessun round aperto e tipi sconosciuti prendono la base
 d'atto; classifiche e podio chiamano `classifica` dalla regia. Con la
@@ -96,42 +94,38 @@ normale (`bedDuckGain`) — è ducking, non un secondo file.
 
 | Voce | Oggi | Tetto |
 |---|---|---|
-| Sette loop in casa | 10,67 MB | 22 MB per i venti |
-| Tredici loop mancanti | — | 11,33 MB, cioè **0,87 MB a testa** (≈ 63 s a 112 kbps) |
-| Effetti (fuori dal conto degli atti) | 3,01 MB | 4 MB |
+| Venti loop in casa | 21,69 MB | 22 MB |
+| Effetti (fuori dal conto degli atti) | 0,95 MB | 4 MB |
 
-Per atto, contando solo quello che suona davvero oggi (le basi mancano tutte):
+Per atto, contando la base e un file per gioco della scaletta:
 
-| Atto | Loop | Peso oggi | Con la base a 60 s |
-|---|---|---|---|
-| 1 | casino, bomba | 3,44 MB | 4,24 MB |
-| 2 | casino, tennis | 3,41 MB | 4,21 MB |
-| 3 | bomba, tennis | 3,17 MB | 3,97 MB |
-| 4 | bomba, tennis | 3,17 MB | 3,97 MB |
-| 5 | bomba, tennis | 3,17 MB | 3,97 MB |
+| Atto | Loop | Peso |
+|---|---|---|
+| 1 | atto-1, azzardo, timeline, speed-rush, ultima | 4,24 MB |
+| 2 | atto-2, azzardo, biglie, tennis, ultima | 5,03 MB |
+| 3 | atto-3, speed-rush, tennis, biglie, ultima, arena | 5,77 MB |
+| 4 | atto-4, bomba, biglie, timeline, speed-rush, ultima | 5,86 MB |
+| 5 | atto-5, bomba, biglie, timeline, ultima, arena | 5,79 MB |
 
-**L'atto 1, con i conti giusti.** Quando ogni gioco ha il suo loop, l'atto 1
-mette insieme cinque file: base `atto-1`, `gioco-azzardo`, `gioco-timeline`,
-`gioco-speed-rush`, `gioco-ultima-spiaggia`. A 60 s l'uno (0,80 MB) fa
-**4,00 MB**, con quasi 2 MB di margine sul tetto dei 6: `gioco-casino` e
-`gioco-bomba` escono dall'atto appena Azzardo e Speed Rush hanno il file loro, e
-contarli insieme ai nuovi sarebbe un doppio conteggio dello stesso gioco.
-L'atto più carico è il 3 (base, speed-rush, tennis, biglie, arena), **4,78 MB**.
+L'atto più carico è il 4, **5,86 MB**, sotto il tetto dei 6. I sei brani
+arrivati con la finestra 60–120 s restano al loro tetto: `lobby`, `classifica`,
+`gioco-casino`, `gioco-bomba`, `gioco-tennis` e `gioco-cavallo` pesano più dei
+nuovi perché durano ancora 99–117 s.
 
-Il vincolo vero è il **totale**: i venti loop a 60 s fanno **21,07 MB** sui 22 del
-manifesto, 0,93 MB di margine. È quel numero da guardare quando arrivano i file:
-se uno è più lungo, meglio rifilarlo che allungare il tetto. Il test
+Il vincolo vero è il **totale**: i venti loop fanno **21,69 MB** sui 22 del
+manifesto, **0,31 MB di margine**. È quel numero da guardare quando si rifà un
+file: se uno è più lungo, meglio rifilarlo che allungare il tetto. Il test
 `bed-act-budget.spec.ts` rifà questi conti da `ACT_DECKS` e `bed-map.ts` a ogni
-giro: un file in cartella pesa i suoi byte, uno che manca il minimo di 60 s,
-così il giorno della consegna nessun numero va aggiornato a mano.
+giro, e controlla anche che nessun loop superi i 60 s (i sei storici e il
+rotolamento delle Biglie sono dichiarati come eccezioni).
 
 ## Quando arriva un file
 
 1. Il grezzo in `apps/frontend/public/assets/audio/_src/loop/`, con il nome esatto
    di questo elenco, e la riga in `FONTI.txt` (titolo, autore, URL, licenza).
 2. `node scripts/audio/process-audio.mjs`, poi `--credits` per i crediti.
-3. Base d'atto: il numero in `READY_ACTS`. Loop di gioco: la riga in `GAME_BEDS`
-   al posto dell'alias, più il file in `BED_LOOPS`.
+3. I file sono già agganciati: base d'atto in `READY_ACTS`, loop in `BED_LOOPS`
+   e in `GAME_BEDS`. Per sostituirne uno basta il file con lo stesso nome.
 4. `node scripts/audio/process-audio.mjs --check` deve uscire 0, e
    `npx tsc -p tsconfig.app.json --noEmit` più `npx ng test --watch=false`
    devono restare verdi: `audio-assets.spec.ts` controlla i tetti di peso e

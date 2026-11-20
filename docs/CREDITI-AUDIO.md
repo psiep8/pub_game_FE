@@ -1,20 +1,21 @@
 # Crediti audio
 
-Generato da `node scripts/audio/process-audio.mjs --credits` il 2026-11-18.
+Generato da `node scripts/audio/process-audio.mjs --credits` il 2026-11-20.
 Non si modifica a mano: i dati vengono da `apps/frontend/public/assets/audio/FONTI.txt`
 e le misure dai file elaborati (ffmpeg, EBU R128).
 
 Quasi tutti i suoni sono registrazioni scelte da librerie con licenza
 compatibile con un'app pubblica. Fanno eccezione gli effetti marcati
 «Nostra» (gong del via, bong del countdown, transizione, gettoni,
-racchetta, scoppio e miccia della bomba, quattro urti delle Biglie): sono
-la nostra sintesi renderizzata in file con lo stesso script, quindi
+racchetta, scoppio e miccia della bomba, quattro urti delle Biglie) e i
+tredici sottofondi resi da `scripts/audio/generate-loops.mjs`: sono la
+nostra sintesi renderizzata in file con la stessa pipeline, quindi
 compaiono con licenza «Nostra».
 
 ## Licenze usate
 
+- **Nostra (sintesi renderizzata)** — 25 file
 - **Mixkit License** — 23 file
-- **Nostra (sintesi renderizzata)** — 12 file
 - **CC0** — 7 file
 - **Mixkit Stock Music Free License** — 6 file
 
@@ -64,16 +65,29 @@ compaiono con licenza «Nostra».
 | `attesa/heartbeat.m4a` | Heartbeat medium speed | Mixkit | Mixkit License | 2.0 s | 25 KB | -16 | -2.3 dBFS |
 | `attesa/clock.m4a` | Clock ticker single | Mixkit | Mixkit License | 0.5 s | 8 KB | -24.5 | -3.2 dBFS |
 
-## Sottofondi (7)
+## Sottofondi (20)
 
 | File | Brano | Autore | Licenza | Durata | Peso | LUFS | Salto di loop |
 |---|---|---|---|---|---|---|---|
+| `loop/atto-1.m4a` | Aperitivo — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 880 KB | -23 | 0.6% |
+| `loop/atto-2.m4a` | Si scalda — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 985 KB | -23.1 | 0.1% |
+| `loop/atto-3.m4a` | Notte di sala — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 850 KB | -23.1 | 2.2% |
+| `loop/atto-4.m4a` | Sale l’energia — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 878 KB | -23.2 | 0.6% |
+| `loop/atto-5.m4a` | Finale — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 867 KB | -23 | 0.3% |
 | `loop/gioco-casino.m4a` | Groovy Jazz — Francisco Alvear | Francisco Alvear | Mixkit Stock Music Free License | 117.0 s | 1.84 MB | -23 | 1.2% |
 | `loop/gioco-bomba.m4a` | Epical Drums 01 — Grigoriy Nuzhny | Grigoriy Nuzhny | Mixkit Stock Music Free License | 102.9 s | 1.60 MB | -23 | 0.2% |
 | `loop/gioco-tennis.m4a` | Sports Rock — Ahjay Stelino | Ahjay Stelino | Mixkit Stock Music Free License | 98.8 s | 1.57 MB | -23 | 0.2% |
 | `loop/gioco-cavallo.m4a` | Comical — Ahjay Stelino | Ahjay Stelino | Mixkit Stock Music Free License | 111.5 s | 1.78 MB | -23 | 0.2% |
 | `loop/lobby.m4a` | Upbeat Jazz — Francisco Alvear | Francisco Alvear | Mixkit Stock Music Free License | 107.2 s | 1.65 MB | -23 | 0.1% |
 | `loop/classifica.m4a` | Feeling Happy — Ahjay Stelino | Ahjay Stelino | Mixkit Stock Music Free License | 117.0 s | 1.85 MB | -23 | 1.1% |
+| `loop/gioco-arena.m4a` | Arena — Scontro — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 832 KB | -23 | 0.2% |
+| `loop/gioco-speed-rush.m4a` | Speed Rush — Corsa — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 897 KB | -23 | 0% |
+| `loop/gioco-biglie.m4a` | Biglie — Corsa allegra — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 856 KB | -23 | 0.8% |
+| `loop/gioco-timeline.m4a` | Timeline — Orologeria — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 868 KB | -23.1 | 2.8% |
+| `loop/gioco-ultima-spiaggia.m4a` | Ultima spiaggia — Tensione — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 863 KB | -23 | 1.8% |
+| `loop/gioco-azzardo.m4a` | Azzardo — Lounge da tavolo — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 834 KB | -23.1 | 0.3% |
+| `loop/gioco-blackjack.m4a` | Blackjack — Jazz lento — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 847 KB | -23 | 1.1% |
+| `loop/gioco-casino-finale.m4a` | Casino — Finale — PubGame | PubGame | Nostra (sintesi renderizzata) | 60.0 s | 845 KB | -23 | 0.9% |
 | `loop/biglie.m4a` | Rotolamento delle Biglie | PubGame | Nostra (sintesi renderizzata) | 24.0 s | 381 KB | -23.2 | 2.8% |
 
 Il salto di loop è la differenza fra l'ultimo e il primo campione sul confine:
@@ -122,17 +136,30 @@ sotto il 8% non si sente; sopra, il giro va rifilato a orecchio.
 - `bonus/bonusEntrance-5.m4a` — Casino winning reward: <https://mixkit.co/free-sound-effects/casino/>
 - `attesa/heartbeat.m4a` — Heartbeat medium speed: <https://mixkit.co/free-sound-effects/heartbeat/>
 - `attesa/clock.m4a` — Clock ticker single: <https://mixkit.co/free-sound-effects/clock/>
+- `loop/atto-1.m4a` — Aperitivo — PubGame: <https://github.com/psiep8/pub_game_FE>
+- `loop/atto-2.m4a` — Si scalda — PubGame: <https://github.com/psiep8/pub_game_FE>
+- `loop/atto-3.m4a` — Notte di sala — PubGame: <https://github.com/psiep8/pub_game_FE>
+- `loop/atto-4.m4a` — Sale l’energia — PubGame: <https://github.com/psiep8/pub_game_FE>
+- `loop/atto-5.m4a` — Finale — PubGame: <https://github.com/psiep8/pub_game_FE>
 - `loop/gioco-casino.m4a` — Groovy Jazz — Francisco Alvear: <https://mixkit.co/free-stock-music/lounge/>
 - `loop/gioco-bomba.m4a` — Epical Drums 01 — Grigoriy Nuzhny: <https://mixkit.co/free-stock-music/percussion-trailer/>
 - `loop/gioco-tennis.m4a` — Sports Rock — Ahjay Stelino: <https://mixkit.co/free-stock-music/rock/>
 - `loop/gioco-cavallo.m4a` — Comical — Ahjay Stelino: <https://mixkit.co/free-stock-music/children/>
 - `loop/lobby.m4a` — Upbeat Jazz — Francisco Alvear: <https://mixkit.co/free-stock-music/jazz/>
 - `loop/classifica.m4a` — Feeling Happy — Ahjay Stelino: <https://mixkit.co/free-stock-music/children/>
+- `loop/gioco-arena.m4a` — Arena — Scontro — PubGame: <https://github.com/psiep8/pub_game_FE>
+- `loop/gioco-speed-rush.m4a` — Speed Rush — Corsa — PubGame: <https://github.com/psiep8/pub_game_FE>
+- `loop/gioco-biglie.m4a` — Biglie — Corsa allegra — PubGame: <https://github.com/psiep8/pub_game_FE>
+- `loop/gioco-timeline.m4a` — Timeline — Orologeria — PubGame: <https://github.com/psiep8/pub_game_FE>
+- `loop/gioco-ultima-spiaggia.m4a` — Ultima spiaggia — Tensione — PubGame: <https://github.com/psiep8/pub_game_FE>
+- `loop/gioco-azzardo.m4a` — Azzardo — Lounge da tavolo — PubGame: <https://github.com/psiep8/pub_game_FE>
+- `loop/gioco-blackjack.m4a` — Blackjack — Jazz lento — PubGame: <https://github.com/psiep8/pub_game_FE>
+- `loop/gioco-casino-finale.m4a` — Casino — Finale — PubGame: <https://github.com/psiep8/pub_game_FE>
 - `loop/biglie.m4a` — Rotolamento delle Biglie: <https://github.com/psiep8/pub_game_FE>
 
 ## Totale
 
-48 file, 11.61 MB. Effetti: bersaglio -16 LUFS con picco ≤ -1 dBTP; sottofondi a -23 LUFS con picco ≤ -1.5 dBTP.
+61 file, 22.65 MB. Effetti: bersaglio -16 LUFS con picco ≤ -1 dBTP; sottofondi a -23 LUFS con picco ≤ -1.5 dBTP.
 
 I suoni sotto 1,2 s sono normalizzati sul picco a −3 dBFS, non sul LUFS:
 sono troppo corti perché la misura integrata abbia senso, quindi in tabella

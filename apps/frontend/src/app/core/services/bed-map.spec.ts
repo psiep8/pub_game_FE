@@ -104,19 +104,22 @@ describe('Mappa dei sottofondi — giochi', () => {
 
   it('manda ogni gioco nel file che gli spetta', () => {
     // Giochi senza brano proprio: suonano la base d'atto.
-    for (const type of ['QUIZ', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE', 'TIMELINE', 'ULTIMA_SPIAGGIA'] as const) {
+    for (const type of ['QUIZ', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE'] as const) {
       expect(GAME_BEDS[type], type).toBe(ACT_BASE);
     }
 
     expect(bedForGame('BOMBA')?.id).toBe('gioco-bomba');
-    expect(bedForGame('ARENA')?.id).toBe('gioco-bomba');
-    expect(bedForGame('SPEED_RUSH')?.id).toBe('gioco-bomba');
+    expect(bedForGame('ARENA')?.id).toBe('gioco-arena');
+    expect(bedForGame('SPEED_RUSH')?.id).toBe('gioco-speed-rush');
 
     expect(bedForGame('TENNIS_BATTLE')?.id).toBe('gioco-tennis');
-    expect(bedForGame('BIGLIE')?.id).toBe('gioco-tennis');
+    expect(bedForGame('BIGLIE')?.id).toBe('gioco-biglie');
 
-    expect(bedForGame('AZZARDO')?.id).toBe('gioco-casino');
-    expect(bedForGame('BLACKJACK')?.id).toBe('gioco-casino');
+    expect(bedForGame('AZZARDO')?.id).toBe('gioco-azzardo');
+    expect(bedForGame('BLACKJACK')?.id).toBe('gioco-blackjack');
+
+    expect(bedForGame('TIMELINE')?.id).toBe('gioco-timeline');
+    expect(bedForGame('ULTIMA_SPIAGGIA')?.id).toBe('gioco-ultima-spiaggia');
   });
 
   it('lascia Musica e Time Buzzer in silenzio', () => {

@@ -213,10 +213,11 @@ L'indice segue l'ordine del catalogo: 1 Casino Nero e Rosso, 2 Blackjack,
 
 ## Sottofondi: venti loop, per atto e per gioco
 
-Niente più generazione a ogni battuta: **venti file registrati**, con
-dissolvenza incrociata di 1,5 s a ogni cambio. Volume basso, sotto la voce del
-presentatore. Strumentali, loop pulito senza finale, nessuna voce cantata,
-60–120 s, −23 LUFS.
+Niente più generazione a ogni battuta: **venti file in cartella**, con
+dissolvenza incrociata di 1,5 s a ogni cambio. Sette sono registrazioni scelte
+dalle librerie, tredici sono resi in casa da `scripts/audio/generate-loops.mjs`.
+Volume basso, sotto la voce del presentatore. Strumentali, loop pulito senza
+finale, nessuna voce cantata, 60–120 s, −23 LUFS.
 
 Regola di riproduzione (solo TV; il telefono non suona sottofondi):
 
@@ -283,10 +284,12 @@ lettura dei file che ci sono, non un secondo elenco di desideri.
 - 41 effetti (34 eventi con varianti: `rankReveal` ×2, `podiumReveal` ×3,
   `bonusEntrance` ×5)
 - 20 loop: 5 basi d'atto, 14 giochi e bonus, il rotolamento delle Biglie
-- **61 file** previsti. Al 18 novembre 2026 sono arrivati 7 loop su 20: i
-  sottofondi pesano 10,66 MB sui 22 MB del tetto e nessun atto supera i 6 MB con
-  i file che ha oggi. I 13 mancanti devono stare nel margine che resta: se lo
-  sfondano si allunga il taglio dei brani, non il tetto.
+- **61 file** previsti, tutti in casa. I venti loop pesano **21,69 MB** sui
+  22 MB del tetto; l'atto più carico (il 4) sta a 5,86 MB sui 6. Sette loop sono
+  registrazioni scelte da librerie, tredici sono resi in casa da
+  `scripts/audio/generate-loops.mjs` e nei crediti compaiono come «Nostra
+  (sintesi renderizzata)». Se un file va rifatto, meglio accorciarlo che alzare
+  il tetto.
 
 ## Cosa non si tocca
 

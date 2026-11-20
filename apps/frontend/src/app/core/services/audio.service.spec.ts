@@ -51,7 +51,7 @@ describe('AudioService — pausa della TV', () => {
 
     audio.resumeBeds();
 
-    expect(calls).toContain('start-bed:loop/gioco-tennis.m4a');
+    expect(calls).toContain('start-bed:loop/gioco-biglie.m4a');
     expect(calls).toContain('start-loop:marbleRoll');
   });
 

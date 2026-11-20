@@ -40,8 +40,11 @@ describe('AudioService — caricamento dei sottofondi per atto', () => {
 
     expect(warm).toEqual([
       'loop/atto-3.m4a',
-      'loop/gioco-bomba.m4a',
+      'loop/gioco-speed-rush.m4a',
       'loop/gioco-tennis.m4a',
+      'loop/gioco-biglie.m4a',
+      'loop/gioco-ultima-spiaggia.m4a',
+      'loop/gioco-arena.m4a',
     ]);
   });
 

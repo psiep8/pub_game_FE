@@ -71,7 +71,7 @@ describe('Regia audio — sottofondi', () => {
     });
 
     const text: string = fixture.nativeElement.textContent;
-    // Atto 1: casino e bomba misurati (2 MB), la sua base ancora da consegnare.
-    expect(text).toContain('2,00 MB · 1 da consegnare');
+    // Atto 1: quattro loop di gioco misurati (4 MB), la base ancora da consegnare.
+    expect(text).toContain('4,00 MB · 1 da consegnare');
   });
 });
