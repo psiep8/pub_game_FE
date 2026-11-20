@@ -25,14 +25,16 @@ describe('BlackjackBonus — ripresa dopo un refresh della TV', () => {
     if (preview) fixture.componentRef.setInput('preview', true);
 
     const results: any[] = [];
+    const vouchers: any[] = [];
     const checkpoints: any[] = [];
     const finished: number[] = [];
     component.result.subscribe((result) => results.push(result));
+    component.voucher.subscribe((voucher) => vouchers.push(voucher));
     component.checkpoint.subscribe((checkpoint) => checkpoints.push(checkpoint));
     component.finished.subscribe(() => finished.push(finished.length));
 
     fixture.detectChanges();
-    return { fixture, component, results, checkpoints, finished };
+    return { fixture, component, results, vouchers, checkpoints, finished };
   }
 
   it('riprende la mano in corso con le stesse carte e il tempo che resta', () => {
@@ -67,8 +69,8 @@ describe('BlackjackBonus — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
-  it('un esito già calcolato non si rigioca e i punti tornano alla TV', () => {
-    const { component, results, fixture } = mount({
+  it('un esito già calcolato non si rigioca e il buono torna alla TV', () => {
+    const { component, results, vouchers, fixture } = mount({
       order: ['Bruno', 'Anna'],
       index: 0,
       deck: ['2♠', '3♠'],
@@ -89,9 +91,10 @@ describe('BlackjackBonus — ripresa dopo un refresh della TV', () => {
     const display = component.display();
     expect(display.phase).toBe('REVEAL');
     expect(display.bank.hidden).toBe(false);
-    expect(display.result).toMatchObject({ outcome: 'WIN', points: 150 });
-    // I punti dei tavoli chiusi non sono mai stati pagati: si ricostruiscono.
-    expect(results).toEqual([{ playerName: 'Bruno', score: 150 }]);
+    expect(display.result).toMatchObject({ outcome: 'WIN' });
+    // I buoni dei tavoli chiusi non sono mai stati consegnati: si ricostruiscono.
+    expect(vouchers).toEqual([{ playerName: 'Bruno', label: '3 consumazioni al tavolo' }]);
+    expect(results).toEqual([]);
 
     fixture.destroy();
   });
@@ -133,7 +136,7 @@ describe('BlackjackBonus — ripresa dopo un refresh della TV', () => {
 
   it('nel banco di prova gioca le mani da solo, senza il conto alla rovescia', () => {
     vi.useFakeTimers();
-    const { component, checkpoints, results, finished, fixture } = mount(null, true);
+    const { component, checkpoints, vouchers, finished, fixture } = mount(null, true);
 
     // Distribuzione (500 ms) e prima scelta demo (400 ms).
     vi.advanceTimersByTime(1000);
@@ -147,7 +150,7 @@ describe('BlackjackBonus — ripresa dopo un refresh della TV', () => {
 
     vi.advanceTimersByTime(40000);
     expect(finished).toHaveLength(1);
-    expect(results.every((row) => row.score === 75 || row.score === 150)).toBe(true);
+    expect(vouchers.every((row) => row.label === '3 consumazioni al tavolo')).toBe(true);
 
     vi.useRealTimers();
     fixture.destroy();

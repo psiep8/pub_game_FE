@@ -199,6 +199,8 @@ export class GameComponent implements OnInit, OnDestroy {
   bonusEntrance = signal<BonusType | null>(null);
   bonusShowResult = signal(false);
   bonusResult = signal<Array<{ playerName: string; score: number }>>([]);
+  /** Buoni bevande/cibo: premi fisici consegnati dalla regia, non punti. */
+  bonusVouchers = signal<Array<{ playerName: string; label: string }>>([]);
   autoAdvanceSeconds = signal(0);
   animatedCategoryId = signal<number | null>(null);
   /** Roll da slot machine: nomi che scorrono prima di svelare la categoria. */
@@ -2042,6 +2044,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.bonusAwarded = false;
     this.bonusScoresMap.clear();
     this.bonusResult.set([]);
+    this.bonusVouchers.set([]);
     this.bonusShowResult.set(false);
 
     if (!this.currentGameId()) {
@@ -2278,6 +2281,14 @@ export class GameComponent implements OnInit, OnDestroy {
     this.recordBonusResult(event?.playerName, Number(event?.score) || 0);
   }
 
+  /** Un buono si consegna in sala: la TV lo mostra, la classifica non cambia. */
+  onBonusVoucher(event: { playerName: string; label: string }): void {
+    const playerName = String(event?.playerName ?? '').trim();
+    const label = String(event?.label ?? '').trim();
+    if (!playerName || !label) return;
+    this.bonusVouchers.update((list) => [...list, { playerName, label }]);
+  }
+
   /** Chiuso il riepilogo di un bonus, la scaletta riparte da sola dal round dopo. */
   private startAutoAdvance(): void {
     // Un altro bonus può essere entrato in scena durante il riepilogo.
@@ -2329,6 +2340,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.bonusActive.set(false);
     this.bonusType.set(null);
     this.bonusResult.set([]);
+    this.bonusVouchers.set([]);
     this.bonusShowResult.set(false);
     this.bonusScoresMap.clear();
     this.bonusAwarded = false;

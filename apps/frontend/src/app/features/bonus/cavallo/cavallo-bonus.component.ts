@@ -16,6 +16,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GameService } from '../../../core/services/game.service';
 import { WebSocketService } from '../../../core/websocket/web-socket.service';
 import { TvPause } from '../../../shared/tv-pause';
+import { CAVALLO_VOUCHER_LABEL } from '../../../shared/models/scoring-rules';
 
 /**
  * Fasi del Cavallo di Battaglia. Le fasi comuni arrivano da `GamePhase`.
@@ -394,6 +395,8 @@ export class CavalloBonus implements OnInit, OnDestroy {
     return this.pause.isPaused;
   }
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
+  /** Buono cibo per il vincitore: lo consegna la regia, non è un punto. */
+  @Output() voucher = new EventEmitter<{ playerName: string; label: string }>();
   @Output() finished = new EventEmitter<void>();
   /** Stato della rush, da salvare sul server a ogni cambio di fase. */
   @Output() checkpoint = new EventEmitter<any>();
@@ -959,18 +962,17 @@ export class CavalloBonus implements OnInit, OnDestroy {
   }
 
   /**
-   * Il tabellone conta le risposte esatte, ma il bonus paga il podio: solo i
-   * primi tre prendono punti, una volta sola, nell'ordine della classifica.
+   * Il tabellone conta le risposte esatte, ma il premio è un buono per una
+   * consumazione di cibo: lo prende solo il primo, una volta sola. A pari
+   * merito vince chi è arrivato prima in classifica (ordine stabile).
    */
   private emitFinalResults(): void {
     if (this.resultsEmitted) return;
     this.resultsEmitted = true;
-    const podium = [200, 100, 50];
-    const ranked = [...this.totals()].sort((a, b) => b.score - a.score);
-    ranked.forEach((row, index) => {
-      const points = row.score > 0 ? podium[index] ?? 0 : 0;
-      if (points > 0) this.result.emit({ playerName: row.playerName, score: points });
-    });
+    const winner = [...this.totals()].sort((a, b) => b.score - a.score)[0];
+    if (winner && winner.score > 0) {
+      this.voucher.emit({ playerName: winner.playerName, label: CAVALLO_VOUCHER_LABEL });
+    }
   }
 
   private publish(): void {

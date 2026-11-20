@@ -43,12 +43,14 @@ interface Reveal {
 }
 
 interface Manche {
-  id: 'COLOR' | 'DOZEN' | 'SIXLINE' | 'NUMBER';
+  id: 'COLOR' | 'DOZEN' | 'NUMBER';
   title: string;
   rule: string;
   options: string[];
   seconds: number;
   points: number;
+  /** Girate della stessa puntata: tre su colore e dozzina, una sul numero. */
+  spins: number;
 }
 
 interface Pocket {
@@ -124,34 +126,29 @@ const MANCHES: Manche[] = [
   {
     id: 'COLOR',
     title: 'COLORE',
-    rule: 'Nero o rosso: 100 punti.',
+    rule: 'Tre girate: nero o rosso vale 100 punti a girata.',
     options: ['NERO', 'ROSSO'],
     seconds: 10,
     points: 100,
+    spins: 3,
   },
   {
     id: 'DOZEN',
     title: 'DOZZINA',
-    rule: 'Indovina la dozzina: 120 punti.',
+    rule: 'Tre girate: la dozzina giusta vale 200 punti a girata.',
     options: ['1-12', '13-24', '25-36'],
-    seconds: 12,
-    points: 120,
-  },
-  {
-    id: 'SIXLINE',
-    title: 'SESTINA',
-    rule: 'Indovina la sestina: 200 punti.',
-    options: ['1-6', '7-12', '13-18', '19-24', '25-30', '31-36'],
-    seconds: 12,
+    seconds: 10,
     points: 200,
+    spins: 3,
   },
   {
     id: 'NUMBER',
     title: 'NUMERO SECCO',
-    rule: 'Il numero esatto vale 300 punti.',
+    rule: 'Una sola girata: il numero esatto vale 500 punti.',
     options: Array.from({ length: 37 }, (_, index) => String(index)),
-    seconds: 15,
-    points: 300,
+    seconds: 10,
+    points: 500,
+    spins: 1,
   },
 ];
 
@@ -206,10 +203,10 @@ const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
           }
         </header>
 
-        <div class="casino-manches" [style.grid-template-columns]="'repeat(' + manches.length + ', 1fr)'">
-          @for (item of manches; track item.id; let i = $index) {
+        <div class="casino-manches" [style.grid-template-columns]="'repeat(' + rounds.length + ', 1fr)'">
+          @for (item of rounds; track $index; let i = $index) {
             <div class="casino-manche" [class.on]="manche() === i + 1" [class.done]="manche() > i + 1">
-              <span>{{ item.title }}</span>
+              <span>{{ item.label }}</span>
               <b>{{ item.points }}</b>
             </div>
           }
@@ -645,7 +642,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
   @Input() players: string[] = [];
   /** Banco di prova: manche da 2 secondi, voti demo e reveal accorciato. */
   @Input() preview = false;
-  /** Casino a una manche: colore, dozzina o numero secco. */
+  /** Casino a una puntata: colore (tre girate), dozzina (tre) o numero (una). */
   @Input() variant: 'COLOR' | 'DOZEN' | 'NUMBER' = 'COLOR';
   /** Stato salvato prima di un refresh della TV: la manche riprende da qui. */
   @Input() resume: any | null = null;
@@ -674,7 +671,17 @@ export class CasinoBonus implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
 
   manches: Manche[] = MANCHES.slice(0, 1);
+  readonly spins = signal(1);
   readonly pockets = POCKETS;
+
+  /** Le girate della puntata scelta, per la striscia in alto. */
+  get rounds(): Array<{ label: string; points: number }> {
+    const manche = this.manches[0];
+    return Array.from({ length: this.spins() }, (_, index) => ({
+      label: `GIRATA ${index + 1}`,
+      points: manche?.points ?? 0,
+    }));
+  }
   readonly phase = signal<Phase>(Phase.INTRO);
 
   /** Fasi del gioco, disponibili anche nel template. */
@@ -726,6 +733,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.pausedReady = true;
     this.manches = MANCHES.filter((manche) => manche.id === this.variant);
+    this.spins.set(this.manches[0]?.spins ?? 1);
     const label = this.variant === 'NUMBER' ? 'NUMERO SECCO' : this.variant === 'DOZEN' ? 'DOZZINA' : 'NERO/ROSSO';
     this.title.set(`CASINO · ${label}`);
     this.rule.set(this.manches[0]?.rule ?? 'Una sola puntata.');
@@ -752,7 +760,11 @@ export class CasinoBonus implements OnInit, OnDestroy {
       return;
     }
 
-    this.manche.set(1);
+    this.spins.set(manche.spins);
+    const savedManche = Number(state?.manche);
+    this.manche.set(Number.isFinite(savedManche) && savedManche > 0
+      ? Math.min(manche.spins, Math.round(savedManche))
+      : 1);
     this.title.set(manche.title);
     this.rule.set(manche.rule);
     this.options.set([...manche.options]);
@@ -838,17 +850,17 @@ export class CasinoBonus implements OnInit, OnDestroy {
   }
 
   isNumberManche(): boolean {
-    return this.manches[this.manche() - 1]?.id === 'NUMBER';
+    return this.manches[0]?.id === 'NUMBER';
   }
 
   introText(): string {
     switch (this.variant) {
       case 'DOZEN':
-        return 'Una sola puntata: scegli la dozzina, poi la ruota gira. La casella giusta vale 120 punti.';
+        return 'Tre girate: scegli la dozzina, poi la ruota gira. La casella giusta vale 200 punti a girata.';
       case 'NUMBER':
-        return 'La finale: una sola puntata sul numero secco. Se nessuno prende il numero uscito, la ruota rigira.';
+        return 'Una sola girata sul numero secco: se nessuno prende il numero uscito, la ruota rigira. Vale 500 punti.';
       default:
-        return 'Una sola puntata sul colore: nero o rosso. La pallina esce una volta sola e il colore giusto vale 100 punti.';
+        return 'Tre girate sul colore: nero o rosso. Ogni colore giusto vale 100 punti.';
     }
   }
 
@@ -873,12 +885,12 @@ export class CasinoBonus implements OnInit, OnDestroy {
   }
 
   private startManche(index: number): void {
-    if (index >= this.manches.length) {
+    if (index >= this.spins()) {
       this.finale();
       return;
     }
 
-    const manche = this.manches[index];
+    const manche = this.manches[0];
     this.manche.set(index + 1);
     this.title.set(manche.title);
     this.rule.set(manche.rule);
@@ -900,7 +912,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
   private async spinManche(): Promise<void> {
     if (this.destroyed) return;
 
-    const manche = this.manches[this.manche() - 1];
+    const manche = this.manches[0];
     const chosen = new Set([...this.votes.values()]);
     const mustWin = !this.preview && manche.id === 'NUMBER' && chosen.size > 0;
     const labels = [...chosen];
@@ -1243,7 +1255,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
   }
 
   private showReveal(number: number): void {
-    const manche = this.manches[this.manche() - 1];
+    const manche = this.manches[0];
     const winner = this.labelFor(manche.id, number);
     this.winner.set(winner);
     this.phase.set(Phase.REVEAL);
@@ -1255,7 +1267,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
       return { playerName, label: pick || '—', points };
     });
 
-    this.reveal.set({ heading: `MANCHE ${this.manche()} · ESCE ${number} · ${winner}`, rows });
+    this.reveal.set({ heading: `GIRATA ${this.manche()} · ESCE ${number} · ${winner}`, rows });
     this.publish();
     this.emitCheckpoint();
     this.emitRows(rows);
@@ -1268,13 +1280,8 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
     if (manche === 'COLOR') return rouletteColorLabel(number);
 
-    if (manche === 'DOZEN') {
-      const start = Math.floor((number - 1) / 12) * 12 + 1;
-      return `${start}-${start + 11}`;
-    }
-
-    const start = Math.floor((number - 1) / 6) * 6 + 1;
-    return `${start}-${start + 5}`;
+    const start = Math.floor((number - 1) / 12) * 12 + 1;
+    return `${start}-${start + 11}`;
   }
 
   private finale(): void {
@@ -1355,7 +1362,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
       state: {
         phase: this.phase(),
         manche: this.manche(),
-        totalManches: this.manches.length,
+        totalManches: this.spins(),
         title: this.title(),
         rule: this.rule(),
         secondsLeft: this.secondsLeft(),

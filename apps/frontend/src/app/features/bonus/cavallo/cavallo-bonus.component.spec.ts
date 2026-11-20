@@ -32,14 +32,16 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
     if (resume) fixture.componentRef.setInput('resume', resume);
 
     const results: any[] = [];
+    const vouchers: any[] = [];
     const checkpoints: any[] = [];
     const finished: number[] = [];
     component.result.subscribe((result) => results.push(result));
+    component.voucher.subscribe((voucher) => vouchers.push(voucher));
     component.checkpoint.subscribe((checkpoint) => checkpoints.push(checkpoint));
     component.finished.subscribe(() => finished.push(1));
 
     fixture.detectChanges();
-    return { fixture, component, results, checkpoints, finished };
+    return { fixture, component, results, vouchers, checkpoints, finished };
   }
 
   it('riprende la votazione della categoria con i voti già dati', () => {
@@ -144,9 +146,9 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
-  it('riprende il finale e paga il podio una volta sola', () => {
+  it('riprende il finale e consegna un solo buono', () => {
     vi.useFakeTimers();
-    const { component, results, finished, fixture } = mount({
+    const { component, results, vouchers, finished, fixture } = mount({
       phase: 'FINALE',
       secondsLeft: 4,
       savedAt: Date.now(),
@@ -159,10 +161,10 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
     });
 
     expect(component.phase()).toBe(component.Phase.FINALE);
-    expect(results).toEqual([
-      { playerName: 'Anna', score: 200 },
-      { playerName: 'Bruno', score: 100 },
+    expect(vouchers).toEqual([
+      { playerName: 'Anna', label: '1 consumazione di cibo' },
     ]);
+    expect(results).toEqual([]);
 
     vi.advanceTimersByTime(4100);
     expect(finished).toHaveLength(1);
