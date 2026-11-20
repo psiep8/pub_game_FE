@@ -1,7 +1,7 @@
 package com.pub_game_be.service;
 
 import com.pub_game_be.service.QuestionBankService.ArenaQuestion;
-import com.pub_game_be.service.QuestionBankService.BombaQuestion;
+import com.pub_game_be.service.QuestionBankService.ScossaBoard;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -156,17 +156,17 @@ class QuestionBankCoverageTest {
         }
     }
 
-    /** Bomba: tutti e cinque gli atti hanno domande a sufficienza. */
+    /** Bomba: tutti e cinque gli atti hanno un tabellone completo. */
     @Test
-    void laBombaHaDomandePerOgniAtto() {
+    void laBombaHaUnTabellonePerOgniAtto() {
         for (int act = 1; act <= 5; act++) {
-            List<BombaQuestion> questions = bank.bombaQuestions(act, 12);
-            assertThat(questions).as("bomba atto %d", act).hasSize(12);
-            for (BombaQuestion question : questions) {
-                assertThat(question.options())
-                        .as("opzioni bomba atto %d", act)
-                        .contains(question.correctAnswer());
-            }
+            ScossaBoard board = bank.scossaBoard(12, 4, act);
+            assertThat(board.safe().size() + board.intruders().size())
+                    .as("caselle bomba atto %d", act)
+                    .isEqualTo(12);
+            assertThat(board.intruders()).as("bombe atto %d", act).hasSize(4);
+            assertThat(board.safe()).allSatisfy(cell -> assertThat(cell).isNotBlank());
+            assertThat(board.intruders()).allSatisfy(cell -> assertThat(cell).isNotBlank());
         }
     }
 

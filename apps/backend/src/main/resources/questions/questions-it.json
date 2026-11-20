@@ -14783,6 +14783,54 @@
       "correctAnswer": "Taylor Swift",
       "options": null,
       "explanation": null
+    },
+    {
+      "id": "quiz-gaming-28",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "In quale anno è uscito Super Mario Bros. per NES in Giappone?",
+      "correctAnswer": "1985",
+      "options": [
+        "1981",
+        "1985",
+        "1989",
+        "1992"
+      ],
+      "theme": "Gaming",
+      "explanation": null
+    },
+    {
+      "id": "quiz-curiosita-40",
+      "category": "Curiosità",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "question": "In quale anno è entrata in servizio la prima linea della metropolitana di Roma?",
+      "correctAnswer": "1955",
+      "options": [
+        "1937",
+        "1955",
+        "1968",
+        "1980"
+      ],
+      "theme": null,
+      "explanation": null
+    },
+    {
+      "id": "quiz-viaggi-40",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "question": "Qual è la capitale del Portogallo?",
+      "correctAnswer": "Lisbona",
+      "options": [
+        "Porto",
+        "Lisbona",
+        "Madrid",
+        "Siviglia"
+      ],
+      "theme": "Viaggi",
+      "explanation": null
     }
   ],
   "normalizedAt": "2026-11-20T20:01:05.277Z"

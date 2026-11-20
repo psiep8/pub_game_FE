@@ -8,7 +8,7 @@ elenca ciò che va corretto a mano e i buchi di copertura.
 | Tipo | Domande |
 | --- | --- |
 | IMAGE_BLUR | 6 |
-| QUIZ | 531 |
+| QUIZ | 533 |
 | TENNIS_BATTLE | 22 |
 | TRUE_FALSE | 421 |
 
@@ -16,7 +16,7 @@ elenca ciò che va corretto a mano e i buchi di copertura.
 | --- | --- |
 | difficile | 330 |
 | facile | 327 |
-| medio | 323 |
+| medio | 325 |
 
 ### Posizione della risposta corretta
 
@@ -36,8 +36,8 @@ elenca ciò che va corretto a mano e i buchi di copertura.
 | Cibo e Gastronomia | 10 | 9 | 9 | 10 |
 | Lingua e Letteratura | 10 | 9 | 9 | 9 |
 | Anime e manga | 9 | 9 | 9 | 8 |
-| Gaming e Tecnologia | 9 | 8 | 9 | 9 |
-| Curiosità | 12 | 12 | 12 | 12 |
+| Gaming e Tecnologia | 9 | 9 | 9 | 9 |
+| Curiosità | 12 | 13 | 12 | 12 |
 
 ### Doppioni (0)
 
@@ -322,7 +322,7 @@ Nessuno.
 | Arte e Architettura | 4 | 4 | 7 | 7 | 13 |
 | Cibo e Gastronomia | 6 | 6 | 7 | 7 | 12 |
 | Cinema, Serie TV | 6 | 6 | 7 | 7 | 14 |
-| Curiosità | 4 | 4 | 4 | 4 | 9 |
+| Curiosità | 4 | 4 | 5 | 5 | 9 |
 | Gaming e Tecnologia | 5 | 5 | 5 | 5 | 14 |
 | Geografia e Viaggi | 5 | 5 | 7 | 7 | 14 |
 | Lingua e Letteratura | 5 | 5 | 7 | 7 | 13 |
@@ -357,8 +357,8 @@ Buchi: **69**.
 | Cinema, Serie TV | 4 | medio | 7 |
 | Curiosità | 1 | facile | 4 |
 | Curiosità | 2 | facile | 4 |
-| Curiosità | 3 | medio | 4 |
-| Curiosità | 4 | medio | 4 |
+| Curiosità | 3 | medio | 5 |
+| Curiosità | 4 | medio | 5 |
 | Curiosità | 5 | difficile | 9 |
 | Gaming e Tecnologia | 1 | facile | 5 |
 | Gaming e Tecnologia | 2 | facile | 5 |
