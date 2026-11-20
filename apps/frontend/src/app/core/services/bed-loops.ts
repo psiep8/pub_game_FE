@@ -7,7 +7,8 @@
  * `bed-map.ts`, che sceglie fra loop del gioco, base d'atto e silenzio.</p>
  *
  * <p>Classifiche e podio hanno una fanfara loro, scelta dalla TV con
- * `setBedLoop('classifica')`: non sono giochi e non passano da `bedForGame`.</p>
+ * `setBedLoop('classifica')`; l'ultima classifica della serata passa a
+ * `gioco-casino-finale`. Non sono giochi e non passano da `bedForGame`.</p>
  */
 export type BedLoopId =
   | 'lobby'

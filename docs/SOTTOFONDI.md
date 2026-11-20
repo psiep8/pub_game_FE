@@ -51,7 +51,7 @@ l'elenco con i file su disco — scordarsi la riga fa fallire la suite.
 | `loop/gioco-ultima-spiaggia.m4a` | ultima occasione, tensione che sale | 100–120 | Ultima Spiaggia | 60,0 s | 0,85 MB |
 | `loop/gioco-azzardo.m4a` | casinò, ritmo medio | 100–115 | Azzardo | 60,0 s | 0,81 MB |
 | `loop/gioco-blackjack.m4a` | jazz lento da tavolo | 80–95 | Blackjack | 60,0 s | 0,83 MB |
-| `loop/gioco-casino-finale.m4a` | l'ultimo giro: drammatico, solenne | 70–90 | nessun round della scaletta: è per il finale di serata, non ancora agganciato | 60,0 s | 0,83 MB |
+| `loop/gioco-casino-finale.m4a` | l'ultimo giro: drammatico, solenne | 70–90 | l'ultima classifica della serata (`setBedLoop('gioco-casino-finale')`), forzata o automatica | 60,0 s | 0,83 MB |
 
 Sei nomi sono già quelli nuovi: `casino.m4a` è `gioco-casino`, `tensione.m4a` è
 `gioco-bomba`, `sport.m4a` è `gioco-tennis`, `leggero.m4a` è `gioco-cavallo`,
@@ -86,9 +86,10 @@ d'atto» significa la base dell'atto aperto — oggi il suo file, non più la lo
 | Blackjack | `gioco-blackjack` |
 
 Fuori dalla mappa: nessun round aperto e tipi sconosciuti prendono la base
-d'atto; classifiche e podio chiamano `classifica` dalla regia. Con la
-domanda aperta, Quiz e Indovina chi tengono la base 6 dB sotto il livello
-normale (`bedDuckGain`) — è ducking, non un secondo file.
+d'atto; classifiche e podio chiamano `classifica` dalla regia, tranne l'ultima
+della serata che chiama `gioco-casino-finale`. Con la domanda aperta, Quiz e
+Indovina chi tengono la base 6 dB sotto il livello normale (`bedDuckGain`) — è
+ducking, non un secondo file.
 
 ## Peso e margine
 

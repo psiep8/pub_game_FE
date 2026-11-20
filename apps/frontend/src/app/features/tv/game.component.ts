@@ -1801,8 +1801,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
     this.isShowingLeaderboard.set(true);
     this.theme.applyFromRemote('editorial-acid');
-    // Classifica e podio cambiano disco: parte la fanfara registrata.
-    this.audioService.setBedLoop('classifica');
+    // Classifica e podio cambiano disco: l'ultima della serata ha il suo loop,
+    // le altre la fanfara della classifica.
+    this.audioService.setBedLoop(this.roundManager.isGameOver() ? 'gioco-casino-finale' : 'classifica');
     this.showLeaderboardQuick.set(type === 'QUICK');
     this.showLeaderboardDetailed.set(type === 'DETAILED');
   }
@@ -1917,8 +1918,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
     this.pendingLeaderboardType.set(null);
     this.isShowingLeaderboard.set(true);
-    // Anche la classifica forzata dalla regia ha il suo loop.
-    this.audioService.setBedLoop('classifica');
+    // Anche la classifica forzata dalla regia ha il suo loop; a serata finita
+    // è quello del finale.
+    this.audioService.setBedLoop(this.roundManager.isGameOver() ? 'gioco-casino-finale' : 'classifica');
 
     if (type === 'DETAILED') {
       this.showLeaderboardQuick.set(false);

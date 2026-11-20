@@ -325,13 +325,20 @@ describe('GameComponent', () => {
     component.closeLeaderboard();
     expect(audio.played.at(-1)).toBe('bed-QUIZ');
 
-    // Classifica finale, con l'ultimo gioco ancora in memoria: si va in lobby.
+    // Classifica finale, con l'ultimo gioco ancora in memoria: il finale ha il
+    // suo loop, e alla chiusura si va in lobby.
     rounds.restoreRound(40);
     component.pendingLeaderboardType.set('DETAILED');
     component.showPendingLeaderboard();
-    expect(audio.played.at(-1)).toBe('bed-loop-classifica');
+    expect(audio.played.at(-1)).toBe('bed-loop-gioco-casino-finale');
     component.closeLeaderboard();
     expect(audio.played.at(-1)).toBe('bed-lobby');
+
+    // Anche forzata dalla regia, l'ultima classifica suona il finale.
+    rounds.restoreRound(40);
+    audio.played.length = 0;
+    component.adminShowLeaderboard();
+    expect(audio.played).toContain('bed-loop-gioco-casino-finale');
   });
 
   it('in pausa tace anche il sottofondo e riparte al ritorno', () => {
