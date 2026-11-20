@@ -290,9 +290,31 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly buttonTestSnapshot = signal<ButtonTestSnapshot | null>(null);
   readonly pageVisible = signal(!document.hidden);
 
+  /** Pausa aperta dalla scheda nascosta: al ritorno si chiude da sola. */
+  private hiddenPause = false;
+
+  /**
+   * Scheda nascosta: si ferma anche il round normale, non solo bonus e Biglie.
+   * La pausa passa dal server, così la deadline non scade mentre nessuno
+   * guarda; al ritorno si riprende solo ciò che ha fermato la scheda, mai una
+   * pausa voluta dal presentatore.
+   */
   @HostListener('document:visibilitychange')
   onVisibilityChange(): void {
     this.pageVisible.set(!document.hidden);
+
+    if (document.hidden) {
+      const gameId = this.currentGameId();
+      if (gameId && !this.isPaused() && (this.currentMode() || this.bonusActive())) {
+        this.hiddenPause = true;
+        this.togglePause();
+      }
+      return;
+    }
+
+    if (!this.hiddenPause) return;
+    this.hiddenPause = false;
+    if (this.isPaused()) this.togglePause();
   }
   private presenceTimer?: ReturnType<typeof setInterval>;
   private buttonTestTimer?: ReturnType<typeof setInterval>;

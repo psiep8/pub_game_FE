@@ -68,6 +68,74 @@ describe('GameComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  /** `document.hidden` è in sola lettura: la visibilità si finge qui. */
+  function setHidden(hidden: boolean): void {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => hidden });
+  }
+
+  it('la scheda nascosta ferma anche un round normale, e al ritorno lo riprende', () => {
+    const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const pause = vi.fn();
+    const resume = vi.fn();
+    component.currentMode.set({ type: 'QUIZ', pause, resume } as any);
+    component.currentGameId.set(1);
+
+    setHidden(true);
+    document.dispatchEvent(new Event('visibilitychange'));
+
+    // Nessuno guarda: il round si ferma anche sul server, non solo in TV.
+    expect(component.isPaused()).toBe(true);
+    expect(pause).toHaveBeenCalledTimes(1);
+    expect(game.pauseCalls).toEqual([1]);
+    expect(audio.played).toContain('pause-beds');
+
+    setHidden(false);
+    document.dispatchEvent(new Event('visibilitychange'));
+
+    // La pausa l'ha aperta la scheda nascosta: al ritorno si chiude da sola.
+    expect(component.isPaused()).toBe(false);
+    expect(resume).toHaveBeenCalledTimes(1);
+    expect(game.resumeCalls).toEqual([1]);
+    expect(audio.played).toContain('resume-beds');
+
+    delete (document as any).hidden;
+  });
+
+  it('senza round né bonus la scheda nascosta non apre una pausa', () => {
+    component.currentGameId.set(1);
+    component.currentMode.set(null);
+    component.bonusActive.set(false);
+
+    setHidden(true);
+    document.dispatchEvent(new Event('visibilitychange'));
+
+    // In lobby non c'è niente da fermare: nessun cartello a sorpresa.
+    expect(component.isPaused()).toBe(false);
+
+    delete (document as any).hidden;
+  });
+
+  it('la pausa del presentatore resta quando la scheda torna visibile', () => {
+    const pause = vi.fn();
+    const resume = vi.fn();
+    component.currentMode.set({ type: 'QUIZ', pause, resume } as any);
+    component.currentGameId.set(1);
+    component.togglePause();
+    expect(component.isPaused()).toBe(true);
+
+    setHidden(true);
+    document.dispatchEvent(new Event('visibilitychange'));
+    setHidden(false);
+    document.dispatchEvent(new Event('visibilitychange'));
+
+    // Senza una pausa nata dalla scheda, al ritorno non si riprende da soli.
+    expect(component.isPaused()).toBe(true);
+    expect(resume).not.toHaveBeenCalled();
+
+    delete (document as any).hidden;
+  });
+
   it('la pausa funziona anche durante un bonus, che non ha una modalità di round', () => {
     const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
