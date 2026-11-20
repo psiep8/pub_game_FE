@@ -350,6 +350,7 @@
         [players]="bonusPlayers()"
         [variant]="'COLOR'"
         [resume]="bonusResume()"
+        [paused]="isPaused()"
         (checkpoint)="onBonusCheckpoint('CASINO_COLOR', $event)"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
@@ -360,6 +361,7 @@
         [players]="bonusPlayers()"
         [variant]="'DOZEN'"
         [resume]="bonusResume()"
+        [paused]="isPaused()"
         (checkpoint)="onBonusCheckpoint('CASINO_DOZEN', $event)"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
@@ -370,6 +372,7 @@
         [players]="bonusPlayers()"
         [variant]="'NUMBER'"
         [resume]="bonusResume()"
+        [paused]="isPaused()"
         (checkpoint)="onBonusCheckpoint('CASINO_NUMBER', $event)"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
@@ -379,6 +382,7 @@
         [gameId]="currentGameId()"
         [players]="bonusPlayers()"
         [resume]="bonusResume()"
+        [paused]="isPaused()"
         (checkpoint)="onBlackjackBonusCheckpoint($event)"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
@@ -389,6 +393,7 @@
         [players]="bonusPlayers()"
         [categories]="allCategories()"
         [resume]="bonusResume()"
+        [paused]="isPaused()"
         (checkpoint)="onBonusCheckpoint('CAVALLO', $event)"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />

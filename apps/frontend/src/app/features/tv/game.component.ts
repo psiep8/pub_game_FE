@@ -1880,17 +1880,23 @@ export class GameComponent implements OnInit, OnDestroy {
   togglePause() {
     this.cancelAutoAdvance();
     const mode = this.currentMode();
-    if (!mode) return;
+    // Anche un bonus è un momento della serata: la pausa vale pure lì, dove
+    // non esiste una modalità di round da fermare sul server.
+    if (!mode && !this.bonusActive()) return;
 
     if (this.isPaused()) {
-      this.syncPauseToServer(false);
-      mode.resume();
+      if (mode) {
+        this.syncPauseToServer(false);
+        mode.resume();
+      }
       this.isPaused.set(false);
       // Il clock era stato fermato alla pausa: si riapre solo se il round ha
       // ancora un conto alla rovescia da suonare, e il sottofondo riparte.
-      this.audioService.startClock();
+      if (mode) {
+        this.audioService.startClock();
+        this.resumeRoundSuspense();
+      }
       this.audioService.resumeBeds();
-      this.resumeRoundSuspense();
       this.ws.broadcastStatus(this.currentGameId()!, { action: WsAction.GAME_RESUMED });
     } else {
       // Pausa vera anche per l'audio: niente tick, battito né sottofondo
@@ -1898,8 +1904,10 @@ export class GameComponent implements OnInit, OnDestroy {
       this.audioService.stopClock();
       this.audioService.stopSuspense();
       this.audioService.pauseBeds();
-      this.syncPauseToServer(true);
-      mode.pause();
+      if (mode) {
+        this.syncPauseToServer(true);
+        mode.pause();
+      }
       this.isPaused.set(true);
       this.ws.broadcastStatus(this.currentGameId()!, {
         action: WsAction.GAME_PAUSED,
@@ -2255,6 +2263,9 @@ export class GameComponent implements OnInit, OnDestroy {
     this.round.set(null);
     this.selectedCategoryId.set(null);
     this.timer.set(0);
+    // Se si parte con un bonus mentre la TV è in pausa, l'audio non deve
+    // restare muto: la pausa finisce insieme al round che l'aveva aperta.
+    if (this.isPaused()) this.audioService.resumeBeds();
     this.isPaused.set(false);
     this.showResultPopup.set(false);
     this.currentMode.set(null);

@@ -15,6 +15,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GameService } from '../../../core/services/game.service';
 import { WebSocketService } from '../../../core/websocket/web-socket.service';
+import { TvPause } from '../../../shared/tv-pause';
 
 /**
  * Fasi del Cavallo di Battaglia. Le fasi comuni arrivano da `GamePhase`.
@@ -377,6 +378,17 @@ export class CavalloBonus implements OnInit, OnDestroy {
   @Input() preview = false;
   /** Bonus interrotto da un refresh: si riparte dallo stato salvato. */
   @Input() resume: any | null = null;
+  /**
+   * Pausa della TV: ferma votazione, domanda e podio senza toccare punti e
+   * regole. Lo stato arriva dalla TV, come per le Biglie.
+   */
+  @Input()
+  set paused(value: boolean) {
+    this.pause.setPaused(value);
+  }
+  get paused(): boolean {
+    return this.pause.isPaused;
+  }
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
   /** Stato della rush, da salvare sul server a ogni cambio di fase. */
@@ -406,9 +418,10 @@ export class CavalloBonus implements OnInit, OnDestroy {
   private readonly scoreMap = new Map<string, number>();
   private questions: Array<{ question: string; options: string[]; correctIndex: number; category: string }> = [];
   private questionStartedAt = 0;
-  private clock?: ReturnType<typeof setInterval>;
-  private questionTimer?: ReturnType<typeof setTimeout>;
-  private timers: Array<ReturnType<typeof setTimeout>> = [];
+  /** Pausa, cronometro e attese: un solo posto per fermarli e riarmarli. */
+  private readonly pause = new TvPause();
+  /** Annulla il reveal automatico della domanda in corso. */
+  private cancelQuestionReveal?: () => void;
   private rushExpired = false;
   private resultsEmitted = false;
 
@@ -535,8 +548,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
       this.questionStartedAt = Date.now();
       this.startClock(seconds, () => this.expireRush());
       this.clearQuestionTimer();
-      this.questionTimer = setTimeout(
-        () => this.revealQuestion(),
+      this.scheduleQuestionReveal(
         Math.min(this.preview ? 1500 : 7000, Math.max(0, seconds) * 1000),
       );
       // Tutti avevano già risposto: manca solo l'esito della domanda.
@@ -572,10 +584,8 @@ export class CavalloBonus implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.clearClock();
     this.clearQuestionTimer();
-    this.timers.forEach((timer) => clearTimeout(timer));
-    this.timers = [];
+    this.pause.dispose();
   }
 
   letter(index: number): string {
@@ -736,7 +746,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
     if (this.phase() !== Phase.CATEGORY) return;
     if (this.players.length === 0) return;
     if (!this.players.every((playerName) => this.categoryPicks.has(playerName))) return;
-    this.clearClock();
+    this.pause.clearClock();
     this.closeCategoryVote();
   }
 
@@ -795,7 +805,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
 
   /** Un solo cronometro per tutta la rush, non uno per domanda. */
   private startRush(): void {
-    this.clearClock();
+    this.pause.clearClock();
     this.startClock(this.preview ? 8 : RUSH_SECONDS, () => this.expireRush());
     this.startQuestion(0);
   }
@@ -821,10 +831,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
     // La domanda scorre da sola: nessun countdown in TV, ma la rush non si
     // blocca se un tavolo smette di rispondere.
     this.clearQuestionTimer();
-    this.questionTimer = setTimeout(
-      () => this.revealQuestion(),
-      this.preview ? 1500 : 7000,
-    );
+    this.scheduleQuestionReveal(this.preview ? 1500 : 7000);
   }
 
   private expireRush(): void {
@@ -898,7 +905,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
 
   private finale(empty: boolean): void {
     if (this.phase() === Phase.FINALE) return;
-    this.clearClock();
+    this.pause.clearClock();
     this.clearQuestionTimer();
     this.phase.set(Phase.FINALE);
     this.secondsLeft.set(0);
@@ -914,19 +921,17 @@ export class CavalloBonus implements OnInit, OnDestroy {
   }
 
   private startClock(seconds: number, onEnd: () => void): void {
-    this.clearClock();
+    this.pause.clearClock();
     this.secondsLeft.set(seconds);
     this.publish();
-
-    this.clock = setInterval(() => {
+    this.pause.startClock(() => {
       const next = Math.max(0, this.secondsLeft() - 1);
       this.secondsLeft.set(next);
       this.publish();
-      if (next <= 0) {
-        this.clearClock();
-        onEnd();
-      }
-    }, 1000);
+      if (next > 0) return true;
+      onEnd();
+      return false;
+    });
   }
 
   private addCorrect(playerName: string): void {
@@ -985,16 +990,19 @@ export class CavalloBonus implements OnInit, OnDestroy {
   }
 
   private later(ms: number, action: () => void): void {
-    this.timers.push(setTimeout(action, ms));
+    this.pause.later(ms, action);
   }
 
-  private clearClock(): void {
-    if (this.clock) clearInterval(this.clock);
-    this.clock = undefined;
+  private scheduleQuestionReveal(ms: number): void {
+    this.clearQuestionTimer();
+    this.cancelQuestionReveal = this.pause.later(ms, () => {
+      this.cancelQuestionReveal = undefined;
+      this.revealQuestion();
+    });
   }
 
   private clearQuestionTimer(): void {
-    if (this.questionTimer) clearTimeout(this.questionTimer);
-    this.questionTimer = undefined;
+    this.cancelQuestionReveal?.();
+    this.cancelQuestionReveal = undefined;
   }
 }

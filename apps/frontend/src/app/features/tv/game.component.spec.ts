@@ -68,6 +68,30 @@ describe('GameComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('la pausa funziona anche durante un bonus, che non ha una modalità di round', () => {
+    const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    component.currentGameId.set(1);
+    component.currentMode.set(null);
+    component.bonusActive.set(true);
+
+    component.togglePause();
+    expect(component.isPaused()).toBe(true);
+    expect(audio.played).toContain('pause-beds');
+    // Nessun round aperto: il server non viene toccato.
+    expect(game.pauseCalls).toEqual([]);
+
+    component.togglePause();
+    expect(component.isPaused()).toBe(false);
+    expect(audio.played).toContain('resume-beds');
+    expect(game.resumeCalls).toEqual([]);
+
+    // Fuori da round e bonus la pausa resta spenta.
+    component.bonusActive.set(false);
+    component.togglePause();
+    expect(component.isPaused()).toBe(false);
+  });
+
   it('mette il loop della classifica e chiude sul gioco, o sulla lobby a serata finita', () => {
     const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
     const rounds = TestBed.inject(RoundManagerService);

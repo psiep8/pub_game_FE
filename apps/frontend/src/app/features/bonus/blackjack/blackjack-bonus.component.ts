@@ -15,6 +15,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WebSocketService } from '../../../core/websocket/web-socket.service';
 import { handTotal } from '../../games/blackjack/blackjack-rules';
 import { Blackjack } from '../../games/blackjack/blackjack.component';
+import { TvPause } from '../../../shared/tv-pause';
 
 const DECIDE_SECONDS = 15;
 const REVEAL_SECONDS = 4;
@@ -90,6 +91,17 @@ export class BlackjackBonus implements OnInit, OnDestroy {
   @Input() preview = false;
   /** Mano salvata sul server: se c'è, il bonus riparte da lì. */
   @Input() resume: any | null = null;
+  /**
+   * Pausa della TV: ferma la decisione e il passaggio di mano senza toccare
+   * regole e punti. Lo stato arriva dalla TV, come per le Biglie.
+   */
+  @Input()
+  set paused(value: boolean) {
+    this.pause.setPaused(value);
+  }
+  get paused(): boolean {
+    return this.pause.isPaused;
+  }
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
   /** Mano corrente, da salvare sul server a ogni cambio di stato. */
@@ -108,8 +120,8 @@ export class BlackjackBonus implements OnInit, OnDestroy {
   private rows: Row[] = [];
   private handPoints = 0;
   private secondsLeft = DECIDE_SECONDS;
-  private clock?: ReturnType<typeof setInterval>;
-  private timers: Array<ReturnType<typeof setTimeout>> = [];
+  /** Pausa, cronometro e attese: un solo posto per fermarli e riarmarli. */
+  private readonly pause = new TvPause();
   private destroyed = false;
 
   ngOnInit(): void {
@@ -218,9 +230,7 @@ export class BlackjackBonus implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyed = true;
-    this.clearClock();
-    this.timers.forEach((timer) => clearTimeout(timer));
-    this.timers = [];
+    this.pause.dispose();
   }
 
   private startHand(): void {
@@ -295,7 +305,7 @@ export class BlackjackBonus implements OnInit, OnDestroy {
 
   private reveal(stood: boolean): void {
     if (!this.display() || this.display().phase !== 'DECIDE') return;
-    this.clearClock();
+    this.pause.clearClock();
 
     while (handTotal(this.bank) < 17) this.bank = [...this.bank, this.draw()];
 
@@ -401,26 +411,20 @@ export class BlackjackBonus implements OnInit, OnDestroy {
   }
 
   private startClock(seconds: number, onEnd: () => void): void {
-    this.clearClock();
+    this.pause.clearClock();
     this.secondsLeft = seconds;
-    this.clock = setInterval(() => {
+    this.pause.startClock(() => {
       this.secondsLeft = Math.max(0, this.secondsLeft - 1);
-      if (this.secondsLeft <= 0) {
-        this.clearClock();
-        onEnd();
-      }
-    }, 1000);
-  }
-
-  private clearClock(): void {
-    if (this.clock) clearInterval(this.clock);
-    this.clock = undefined;
+      if (this.secondsLeft > 0) return true;
+      onEnd();
+      return false;
+    });
   }
 
   private later(ms: number, action: () => void): void {
-    this.timers.push(setTimeout(() => {
+    this.pause.later(ms, () => {
       if (!this.destroyed) action();
-    }, ms));
+    });
   }
 
   private buildDeck(): string[] {

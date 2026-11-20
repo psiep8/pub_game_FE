@@ -17,12 +17,19 @@ describe('CasinoBonus — ripresa dopo un refresh della TV', () => {
 
   function mount(resume: any) {
     const fixture = TestBed.createComponent(CasinoBonus);
+    const component = fixture.componentInstance;
     fixture.componentRef.setInput('gameId', 1);
     fixture.componentRef.setInput('players', ['Anna', 'Bruno']);
     fixture.componentRef.setInput('variant', 'COLOR');
     fixture.componentRef.setInput('resume', resume);
+
+    const results: any[] = [];
+    const finished: number[] = [];
+    component.result.subscribe((result) => results.push(result));
+    component.finished.subscribe(() => finished.push(1));
+
     fixture.detectChanges();
-    return { fixture, component: fixture.componentInstance };
+    return { fixture, component, results, finished };
   }
 
   it('riapre il voto con i voti già dati e il tempo che resta', () => {
@@ -56,6 +63,72 @@ describe('CasinoBonus — ripresa dopo un refresh della TV', () => {
     });
 
     expect(component.votesView()).toEqual([]);
+    fixture.destroy();
+  });
+
+  it('la pausa della TV ferma il voto e non chiude la manche', () => {
+    vi.useFakeTimers();
+    const { component, fixture } = mount(null);
+    vi.advanceTimersByTime(2600);
+    expect(component.phase()).toBe(component.Phase.PICK);
+    const before = component.secondsLeft();
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(5000);
+
+    // La sala aspetta: il voto non scende e la ruota non parte.
+    expect(component.secondsLeft()).toBe(before);
+    expect(component.phase()).toBe(component.Phase.PICK);
+
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(1000);
+
+    // Alla ripresa riparte da dove era, un secondo alla volta.
+    expect(component.secondsLeft()).toBe(before - 1);
+
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('la pausa durante la finale non chiude il bonus a schermo fermo', () => {
+    vi.useFakeTimers();
+    const { component, finished, fixture } = mount(null);
+
+    (component as any).finale();
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(10000);
+    expect(finished).toEqual([]);
+
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(7100);
+    expect(finished).toHaveLength(1);
+
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('la pausa congela il giro della ruota e lo riarma alla ripresa', () => {
+    const { component, fixture } = mount(null);
+    const cancel = vi.spyOn(globalThis, 'cancelAnimationFrame');
+    const resumeSpin = vi.fn();
+    const internal = component as any;
+    internal.frame = 42;
+    internal.spinResume = resumeSpin;
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    expect(cancel).toHaveBeenCalledWith(42);
+    expect(internal.frame).toBeUndefined();
+
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    expect(resumeSpin).toHaveBeenCalledTimes(1);
+
+    cancel.mockRestore();
     fixture.destroy();
   });
 

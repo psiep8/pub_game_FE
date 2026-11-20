@@ -171,6 +171,89 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
+  it('la pausa della TV ferma la votazione della categoria', () => {
+    vi.useFakeTimers();
+    const { component, fixture } = mount();
+    vi.advanceTimersByTime(2600);
+    expect(component.phase()).toBe(component.Phase.CATEGORY);
+    const before = component.secondsLeft();
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(5000);
+
+    expect(component.secondsLeft()).toBe(before);
+    expect(component.phase()).toBe(component.Phase.CATEGORY);
+
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(1000);
+    expect(component.secondsLeft()).toBe(before - 1);
+
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('in pausa la domanda non si rivela da sola', () => {
+    vi.useFakeTimers();
+    const { component, fixture } = mount({
+      phase: 'QUESTION',
+      secondsLeft: 42,
+      savedAt: Date.now(),
+      chosenCategory: 'MUSICA',
+      questions: QUESTIONS,
+      index: 0,
+      total: 2,
+      scores: [{ playerName: 'Anna', score: 1 }, { playerName: 'Bruno', score: 0 }],
+      votes: [],
+      answers: [{ playerName: 'Anna', index: 1 }],
+    });
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(8000);
+
+    // La domanda resta aperta: l'attesa del reveal è ferma con la pausa.
+    expect(component.phase()).toBe(component.Phase.QUESTION);
+    expect(component.secondsLeft()).toBe(42);
+
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(7000);
+    expect(component.phase()).toBe(component.Phase.REVEAL);
+
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('la pausa durante il finale non chiude il bonus a schermo fermo', () => {
+    vi.useFakeTimers();
+    const { finished, fixture } = mount({
+      phase: 'FINALE',
+      secondsLeft: 4,
+      savedAt: Date.now(),
+      chosenCategory: 'MUSICA',
+      questions: QUESTIONS,
+      index: 1,
+      total: 2,
+      scores: [{ playerName: 'Bruno', score: 1 }, { playerName: 'Anna', score: 3 }],
+      answers: [],
+    });
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(10000);
+    expect(finished).toEqual([]);
+
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(4100);
+    expect(finished).toHaveLength(1);
+
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
   it('salva il checkpoint quando parte la votazione', () => {
     vi.useFakeTimers();
     const { checkpoints, fixture } = mount();

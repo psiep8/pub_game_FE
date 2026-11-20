@@ -16,6 +16,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WebSocketService } from '../../../core/websocket/web-socket.service';
 import { AudioService } from '../../../core/services/audio.service';
+import { TvPause } from '../../../shared/tv-pause';
 
 /**
  * Fasi del Casino. Le fasi comuni arrivano da `GamePhase`.
@@ -648,6 +649,17 @@ export class CasinoBonus implements OnInit, OnDestroy {
   @Input() variant: 'COLOR' | 'DOZEN' | 'NUMBER' = 'COLOR';
   /** Stato salvato prima di un refresh della TV: la manche riprende da qui. */
   @Input() resume: any | null = null;
+  /**
+   * Pausa della TV: ferma voto, ruota e chiusura senza toccare regole e punti.
+   * Come per le Biglie, lo stato arriva dalla TV e non da un timer interno.
+   */
+  @Input()
+  set paused(value: boolean) {
+    this.pause.setPaused(value);
+  }
+  get paused(): boolean {
+    return this.pause.isPaused;
+  }
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
   /** Stato minimo per riaprire il bonus dopo un refresh (lo salva la TV). */
@@ -693,11 +705,16 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
   private readonly votes = new Map<string, string>();
   private readonly scoreMap = new Map<string, number>();
-  private clock?: ReturnType<typeof setInterval>;
-  private timers: Array<ReturnType<typeof setTimeout>> = [];
+  /** Pausa, cronometro e attese: ferma anche il giro della ruota. */
+  private readonly pause = new TvPause({
+    suspend: () => this.freezeSpin(),
+    resume: () => this.spinResume?.(),
+  });
   private voteEnd: (() => void) | null = null;
   private voteClosed = true;
   private frame?: number;
+  /** Ripresa del giro della ruota: la pausa lo congela e lo riarma. */
+  private spinResume?: () => void;
   private destroyed = false;
 
   ngOnInit(): void {
@@ -802,11 +819,10 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyed = true;
-    this.clearClock();
+    this.pause.dispose();
     this.destroyPhysics();
-    if (this.frame) cancelAnimationFrame(this.frame);
-    this.timers.forEach((timer) => clearTimeout(timer));
-    this.timers = [];
+    this.freezeSpin();
+    this.spinResume = undefined;
   }
 
   votesFor(choice: string): number {
@@ -892,7 +908,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
       this.phase.set(Phase.RESPIN);
       this.rule.set(`Esce ${number}: nessun tavolo lo ha puntato. Si rigira.`);
       this.publish();
-      await this.pause(1600);
+      await this.wait(1600);
       if (this.destroyed) return;
 
       // Dopo quindici giri senza fortuna si punta su un numero sicuramente
@@ -921,10 +937,8 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.audio.playRouletteLanding();
   }
 
-  private pause(ms: number): Promise<void> {
-    return new Promise((resolve) => {
-      this.timers.push(setTimeout(resolve, ms));
-    });
+  private wait(ms: number): Promise<void> {
+    return new Promise((resolve) => this.pause.later(ms, () => resolve()));
   }
 
   /**
@@ -1014,7 +1028,18 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
       const step = (now: number): void => {
         if (this.destroyed) {
+          this.frame = undefined;
+          this.spinResume = undefined;
           resolve();
+          return;
+        }
+        if (this.pause.isPaused) {
+          // Pausa della TV: il giro resta dov'è e riparte da qui.
+          this.frame = undefined;
+          this.spinResume = () => {
+            last = performance.now();
+            this.frame = requestAnimationFrame(step);
+          };
           return;
         }
 
@@ -1095,9 +1120,15 @@ export class CasinoBonus implements OnInit, OnDestroy {
         sync();
         this.slowMotion.set(false);
         this.settled.set(true);
+        this.frame = undefined;
+        this.spinResume = undefined;
         resolve();
       };
 
+      this.spinResume = () => {
+        last = performance.now();
+        this.frame = requestAnimationFrame(step);
+      };
       this.frame = requestAnimationFrame(step);
     });
   }
@@ -1246,7 +1277,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
   }
 
   private beginVote(phase: Phase, seconds: number, onEnd: () => void, keepVotes = false): void {
-    this.clearClock();
+    this.pause.clearClock();
     if (!keepVotes) {
       this.votes.clear();
       this.votesView.set([]);
@@ -1259,15 +1290,14 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.emitCheckpoint();
     if (this.preview) this.seedPreviewVotes(seconds);
 
-    this.clock = setInterval(() => {
+    this.pause.startClock(() => {
       const next = Math.max(0, this.secondsLeft() - 1);
       this.secondsLeft.set(next);
       this.publish();
-      if (next <= 0) {
-        this.clearClock();
-        this.closeVote();
-      }
-    }, 1000);
+      if (next > 0) return true;
+      this.closeVote();
+      return false;
+    });
   }
 
   /** Nel banco di prova i voti arrivano da soli: la ruota deve girare subito. */
@@ -1290,7 +1320,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
     if (this.voteClosed) return;
     if (this.players.length === 0) return;
     if (!this.players.every((playerName) => this.votes.has(playerName))) return;
-    this.clearClock();
+    this.pause.clearClock();
     this.closeVote();
   }
 
@@ -1345,11 +1375,11 @@ export class CasinoBonus implements OnInit, OnDestroy {
   }
 
   private later(ms: number, action: () => void): void {
-    this.timers.push(setTimeout(action, ms));
+    this.pause.later(ms, action);
   }
 
-  private clearClock(): void {
-    if (this.clock) clearInterval(this.clock);
-    this.clock = undefined;
+  private freezeSpin(): void {
+    if (this.frame) cancelAnimationFrame(this.frame);
+    this.frame = undefined;
   }
 }

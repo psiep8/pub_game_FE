@@ -161,6 +161,65 @@ describe('BlackjackBonus — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
+  it('la pausa della TV ferma la decisione del tavolo', () => {
+    vi.useFakeTimers();
+    const { component, fixture } = mount();
+    vi.advanceTimersByTime(600);
+    expect(component.display()?.phase).toBe('DECIDE');
+    const internal = component as any;
+    const before = internal.secondsLeft;
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(5000);
+
+    expect(internal.secondsLeft).toBe(before);
+    expect(component.display()?.phase).toBe('DECIDE');
+
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(1000);
+    expect(internal.secondsLeft).toBe(before - 1);
+
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('in pausa il tavolo non passa alla mano successiva', () => {
+    vi.useFakeTimers();
+    const { component, fixture } = mount({
+      order: ['Bruno', 'Anna'],
+      index: 0,
+      deck: ['2♠', '3♠'],
+      hand: ['J♥', '8♥'],
+      bank: ['10♠', '9♠'],
+      rows: [
+        { playerName: 'Bruno', status: 'WIN', points: 150 },
+        { playerName: 'Anna', status: 'WAITING', points: 0 },
+      ],
+      handPoints: 150,
+      phase: 'REVEAL',
+      choice: 'STAND',
+      result: { outcome: 'WIN', points: 150, round: 1, handTotal: 18, bankTotal: 18 },
+      secondsLeft: 4,
+      savedAt: Date.now(),
+    });
+
+    expect(component.display()?.currentTable).toBe('Bruno');
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(10000);
+    expect(component.display()?.currentTable).toBe('Bruno');
+
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(4100);
+    expect(component.display()?.currentTable).toBe('Anna');
+
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
   it('rimanda lo stato ai telefoni alla ripresa', () => {
     const ws = TestBed.inject(WebSocketService) as unknown as FakeWebSocketService;
     const { fixture } = mount({
