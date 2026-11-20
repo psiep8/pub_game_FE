@@ -271,6 +271,7 @@
       [players]="bonusPlayers()"
       [roundIndex]="biglieRoundIndex()"
       [resume]="biglieResume()"
+      [paused]="isPaused()"
       (checkpoint)="onBiglieCheckpoint($event)"
       (result)="onBiglieRoundResult($event)"
       (finished)="finishBiglieRound()" />

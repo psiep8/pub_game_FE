@@ -389,6 +389,29 @@ export class Biglie implements OnInit, OnDestroy {
   @Input() roundIndex = 0;
   /** Round interrotto da un refresh: si riparte dallo stato salvato. */
   @Input() resume: any | null = null;
+  /**
+   * Pausa della TV: la sala aspetta, quindi si fermano anche corsa e
+   * cronometro. Senza questo, l'overlay copriva una gara che continuava a
+   * correre e i punti potevano essere pagati a schermo fermo.
+   */
+  @Input()
+  set paused(value: boolean) {
+    const next = value === true;
+    if (next === this.pausedByTv) return;
+    this.pausedByTv = next;
+    if (next) {
+      this.suspendRace();
+      this.pauseClock();
+      this.pauseTimers();
+    } else {
+      this.resumeClock();
+      this.resumeTimers();
+      this.resumeRace();
+    }
+  }
+  get paused(): boolean {
+    return this.pausedByTv;
+  }
   @Output() result = new EventEmitter<{ playerName: string; score: number }>();
   @Output() finished = new EventEmitter<void>();
   /** Stato del round (biglie assegnate, gare chiuse, classifica) per il server. */
@@ -419,7 +442,15 @@ export class Biglie implements OnInit, OnDestroy {
   private totals = new Map<string, number>();
   private finishCount = 0;
   private clock?: ReturnType<typeof setInterval>;
-  private timers: Array<ReturnType<typeof setTimeout>> = [];
+  /** Azione del cronometro: resta qui anche mentre la pausa lo tiene fermo. */
+  private clockEnd?: () => void;
+  /** Attese brevi (intro, chiusura finale) che la pausa deve poter fermare. */
+  private timers: Array<{
+    id?: ReturnType<typeof setTimeout>;
+    action: () => void;
+    remaining: number;
+    startedAt: number;
+  }> = [];
 
   private raceMarbles: RaceMarble[] = [];
   private matter?: any;
@@ -438,6 +469,8 @@ export class Biglie implements OnInit, OnDestroy {
   private lastFrame = 0;
   /** TV in secondo piano: la corsa è ferma, non solo invisibile. */
   private suspended = false;
+  /** Pausa del presentatore: ferma la gara anche a scheda visibile. */
+  private pausedByTv = false;
   private raceCtx: CanvasRenderingContext2D | null = null;
   private raceW = 0;
   private raceH = 0;
@@ -638,7 +671,9 @@ export class Biglie implements OnInit, OnDestroy {
     this.destroyPhysics();
     if (this.frame) cancelAnimationFrame(this.frame);
     this.raceResize?.disconnect();
-    this.timers.forEach((timer) => clearTimeout(timer));
+    for (const timer of this.timers) {
+      if (timer.id) clearTimeout(timer.id);
+    }
     this.timers = [];
   }
 
@@ -1220,7 +1255,7 @@ export class Biglie implements OnInit, OnDestroy {
     this.raceResize.observe(canvas);
     this.resizeRaceCanvas();
 
-    if (!this.frame) {
+    if (!this.frame && !this.pausedByTv) {
       this.ngZone.runOutsideAngular(() => {
         this.frame = requestAnimationFrame(this.loop);
       });
@@ -1269,6 +1304,9 @@ export class Biglie implements OnInit, OnDestroy {
 
   private resumeRace(): void {
     if (!this.suspended) return;
+    // La pausa del presentatore e una scheda nascosta vincono sulla ripresa.
+    if (this.pausedByTv) return;
+    if (typeof document !== 'undefined' && document.hidden) return;
     this.suspended = false;
     this.lastFrame = 0;
     this.physicsAccumulator = 0;
@@ -2798,7 +2836,15 @@ export class Biglie implements OnInit, OnDestroy {
     this.clearClock();
     this.secondsLeft.set(seconds);
     this.publish();
+    this.clockEnd = onEnd;
+    // In pausa il conto si ricorda ma non parte: riparte alla ripresa.
+    if (this.pausedByTv) return;
+    this.armClock();
+  }
 
+  private armClock(): void {
+    const onEnd = this.clockEnd;
+    if (!onEnd) return;
     this.clock = setInterval(() => {
       const next = Math.max(0, this.secondsLeft() - 1);
       this.secondsLeft.set(next);
@@ -2811,13 +2857,50 @@ export class Biglie implements OnInit, OnDestroy {
     }, 1000);
   }
 
-  private clearClock(): void {
+  private pauseClock(): void {
     if (this.clock) clearInterval(this.clock);
     this.clock = undefined;
   }
 
+  private resumeClock(): void {
+    if (!this.clockEnd || this.clock) return;
+    this.armClock();
+  }
+
+  private clearClock(): void {
+    this.pauseClock();
+    this.clockEnd = undefined;
+  }
+
   private later(ms: number, action: () => void): void {
-    this.timers.push(setTimeout(action, ms));
+    const timer = { action, remaining: ms, startedAt: 0 } as (typeof this.timers)[number];
+    this.timers.push(timer);
+    // Se la TV è già in pausa l'attesa non parte: la arma la ripresa.
+    if (!this.pausedByTv) this.armTimer(timer);
+  }
+
+  private armTimer(timer: (typeof this.timers)[number]): void {
+    timer.startedAt = Date.now();
+    timer.id = setTimeout(() => {
+      this.timers = this.timers.filter((entry) => entry !== timer);
+      timer.action();
+    }, timer.remaining);
+  }
+
+  private pauseTimers(): void {
+    const now = Date.now();
+    for (const timer of this.timers) {
+      if (!timer.id) continue;
+      clearTimeout(timer.id);
+      timer.id = undefined;
+      timer.remaining = Math.max(0, timer.remaining - (now - timer.startedAt));
+    }
+  }
+
+  private resumeTimers(): void {
+    for (const timer of this.timers) {
+      if (!timer.id) this.armTimer(timer);
+    }
   }
 
   private publish(): void {

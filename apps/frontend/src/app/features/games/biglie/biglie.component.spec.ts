@@ -407,6 +407,128 @@ describe('Biglie — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
+  it('la pausa della TV ferma il cronometro delle fasi', () => {
+    vi.useFakeTimers();
+    const { component, fixture } = mount();
+    vi.advanceTimersByTime(800);
+    const before = component.secondsLeft();
+    expect(component.phase()).toBe('INTRO');
+    expect(before).toBeGreaterThan(0);
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(5000);
+
+    // La sala aspetta: il conto alla rovescia dell'intro non scende.
+    expect(component.secondsLeft()).toBe(before);
+    expect(component.phase()).toBe('INTRO');
+
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(1000);
+
+    // Alla ripresa riparte da dove era, un secondo alla volta.
+    expect(component.secondsLeft()).toBe(before - 1);
+
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('la pausa della TV ferma la corsa e non paga i punti a schermo fermo', () => {
+    vi.useFakeTimers();
+    const { component, results, fixture } = mount();
+    const audio = TestBed.inject(AudioService);
+    const stopBed = vi.spyOn(audio, 'stopMarbleBed').mockImplementation(() => {});
+    const applause = vi.spyOn(audio, 'playApplause').mockImplementation(() => {});
+    const cancel = vi.spyOn(globalThis, 'cancelAnimationFrame');
+    vi.spyOn(globalThis, 'requestAnimationFrame').mockReturnValue(99 as any);
+
+    const internal = component as any;
+    internal.phase.set('RACE');
+    internal.countdownLeft = 0;
+    internal.frame = 42;
+    internal.lastFrame = 1_000_000;
+    internal.physicsAccumulator = 120;
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+
+    // Loop annullato e rotolamento spento: la fisica non avanza più.
+    expect(cancel).toHaveBeenCalledWith(42);
+    expect(internal.frame).toBe(0);
+    expect(stopBed).toHaveBeenCalled();
+
+    // Mezzo minuto di pausa non fa arrivare nessuno: niente applausi, niente punti.
+    vi.advanceTimersByTime(30000);
+    expect(applause).not.toHaveBeenCalled();
+    expect(results).toEqual([]);
+    expect(component.phase()).toBe('RACE');
+
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('alla ripresa la corsa riparte dallo stesso istante', () => {
+    vi.useFakeTimers();
+    const { component, fixture } = mount();
+    const audio = TestBed.inject(AudioService);
+    vi.spyOn(audio, 'stopMarbleBed').mockImplementation(() => {});
+    const startBed = vi.spyOn(audio, 'startMarbleBed').mockImplementation(() => {});
+    const raf = vi.spyOn(globalThis, 'requestAnimationFrame').mockReturnValue(123 as any);
+
+    const internal = component as any;
+    internal.phase.set('RACE');
+    internal.countdownLeft = 0;
+    internal.frame = 42;
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+
+    // Primo frame a dt 0: nessun salto di tempo al ritorno.
+    expect(internal.lastFrame).toBe(0);
+    expect(internal.physicsAccumulator).toBe(0);
+    expect(startBed).toHaveBeenCalled();
+    expect(raf).toHaveBeenCalled();
+    expect(internal.frame).toBe(123);
+
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('la pausa durante la finale non chiude il round a schermo fermo', () => {
+    vi.useFakeTimers();
+    const { finished, fixture } = mount({
+      phase: 'FINALE',
+      secondsLeft: 7,
+      savedAt: Date.now(),
+      raceIndex: 4,
+      pickOrder: ['Anna', 'Bruno'],
+      pickCursor: 2,
+      marbles: MARBLES,
+      assignments: [['Anna', 'fulmine'], ['Bruno', 'scheggia']],
+      totals: [['Anna', 250], ['Bruno', 200]],
+      standings: ROWS,
+      raceResult: ROWS,
+    });
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(10000);
+    expect(finished).toEqual([]);
+
+    fixture.componentRef.setInput('paused', false);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(7100);
+    expect(finished).toHaveLength(1);
+
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
   it('la gara interrotta riparte senza perdere le gare già chiuse', () => {
     const { component, results, fixture } = mount({
       phase: 'RACE',
