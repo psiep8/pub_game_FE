@@ -6,7 +6,6 @@ import {
   DestroyRef,
   ElementRef,
   EventEmitter,
-  HostListener,
   Input,
   NgZone,
   OnDestroy,
@@ -1234,7 +1233,7 @@ export class Biglie implements OnInit, OnDestroy {
     this.raceResize.observe(canvas);
     this.resizeRaceCanvas();
 
-    if (!this.frame && !this.pause.isPaused) {
+    if (!this.frame && !this.pause.isSuspended) {
       this.ngZone.runOutsideAngular(() => {
         this.frame = requestAnimationFrame(this.loop);
       });
@@ -1258,21 +1257,12 @@ export class Biglie implements OnInit, OnDestroy {
   }
 
   /**
-   * TV in secondo piano o scheda nascosta: la fisica si ferma davvero. Senza
-   * questo il browser sospende i frame ma il rotolamento continua a suonare, e
-   * al ritorno la corsa riparte con un salto di tempo. Al ritorno si riparte
-   * dallo stesso istante: `lastFrame` a zero vale un primo frame a dt = 0.
+   * Scheda nascosta o pausa: la fisica si ferma davvero. Senza questo il
+   * browser sospende i frame ma il rotolamento continua a suonare, e al ritorno
+   * la corsa riparte con un salto di tempo. Al ritorno si riparte dallo stesso
+   * istante: `lastFrame` a zero vale un primo frame a dt = 0. Ci pensa
+   * `TvPause`, che ferma anche il cronometro delle fasi.
    */
-  @HostListener('document:visibilitychange')
-  onVisibilityChange(): void {
-    if (typeof document === 'undefined') return;
-    if (document.hidden) {
-      this.suspendRace();
-    } else {
-      this.resumeRace();
-    }
-  }
-
   private suspendRace(): void {
     if (this.suspended) return;
     this.suspended = true;
@@ -1284,8 +1274,7 @@ export class Biglie implements OnInit, OnDestroy {
   private resumeRace(): void {
     if (!this.suspended) return;
     // La pausa del presentatore e una scheda nascosta vincono sulla ripresa.
-    if (this.pause.isPaused) return;
-    if (typeof document !== 'undefined' && document.hidden) return;
+    if (this.pause.isSuspended) return;
     this.suspended = false;
     this.lastFrame = 0;
     this.physicsAccumulator = 0;

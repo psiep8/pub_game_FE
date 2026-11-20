@@ -3,11 +3,13 @@
  *
  * Bonus e Biglie hanno ognuno il proprio conto alla rovescia e le proprie
  * attese: senza un punto solo, ciascuno doveva ricordarsi di fermare
- * intervalli, timeout e animazioni. Qui la pausa è una cosa sola: `setPaused` ferma il
- * cronometro e le attese, e alla ripresa li riarma da dove erano, senza
- * cambiare tempi, regole o esiti. Gli agganci `suspend`/`resume` servono alle
- * animazioni proprie (la ruota del Casino), che non sono né un intervallo né
- * un timeout.
+ * intervalli, timeout e animazioni. Qui la pausa è una cosa sola: `setPaused`
+ * ferma il cronometro e le attese, e alla ripresa li riarma da dove erano,
+ * senza cambiare tempi, regole o esiti. La scheda nascosta vale come una
+ * pausa senza cartello: ferma le stesse cose, così un bonus o una fase non
+ * finiscono mentre nessuno guarda la TV. Gli agganci `suspend`/`resume`
+ * servono alle animazioni proprie (la ruota del Casino, il loop della corsa),
+ * che non sono né un intervallo né un timeout.
  */
 
 /** Attesa in corso: il tempo residuo si conserva attraverso la pausa. */
@@ -27,29 +29,35 @@ export interface TvPauseHooks {
 
 export class TvPause {
   private paused = false;
+  /** Scheda nascosta: ferma come la pausa, ma la TV non mostra il cartello. */
+  private hidden = false;
+  /** Stato effettivo già applicato: gli agganci scattano solo sul cambio. */
+  private stopped = false;
   private clock?: ReturnType<typeof setInterval>;
   private tick?: () => boolean;
   private timers: PausableTimer[] = [];
 
-  constructor(private readonly hooks: TvPauseHooks = {}) {}
+  constructor(private readonly hooks: TvPauseHooks = {}) {
+    if (typeof document === 'undefined') return;
+    this.hidden = document.hidden === true;
+    this.stopped = this.hidden;
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
+  }
 
   get isPaused(): boolean {
     return this.paused;
+  }
+
+  /** Pausa del presentatore o scheda nascosta: in entrambi i casi è fermo. */
+  get isSuspended(): boolean {
+    return this.paused || this.hidden;
   }
 
   setPaused(value: boolean): void {
     const next = value === true;
     if (next === this.paused) return;
     this.paused = next;
-    if (next) {
-      this.hooks.suspend?.();
-      this.stopClock();
-      this.pauseTimers();
-      return;
-    }
-    this.armClock();
-    this.resumeTimers();
-    this.hooks.resume?.();
+    this.sync();
   }
 
   /**
@@ -59,7 +67,7 @@ export class TvPause {
   startClock(tick: () => boolean): void {
     this.clearClock();
     this.tick = tick;
-    if (!this.paused) this.armClock();
+    if (!this.isSuspended) this.armClock();
   }
 
   clearClock(): void {
@@ -71,17 +79,43 @@ export class TvPause {
   later(ms: number, action: () => void): () => void {
     const timer: PausableTimer = { action, remaining: ms, startedAt: 0 };
     this.timers.push(timer);
-    if (!this.paused) this.armTimer(timer);
+    if (!this.isSuspended) this.armTimer(timer);
     return () => this.cancelTimer(timer);
   }
 
-  /** Chiusura del componente: niente più tick né attese. */
+  /** Chiusura del componente: niente più tick, attese né ascolto della scheda. */
   dispose(): void {
     this.clearClock();
     for (const timer of this.timers) {
       if (timer.id) clearTimeout(timer.id);
     }
     this.timers = [];
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    }
+  }
+
+  private readonly onVisibilityChange = (): void => {
+    const hidden = typeof document !== 'undefined' && document.hidden === true;
+    if (hidden === this.hidden) return;
+    this.hidden = hidden;
+    this.sync();
+  };
+
+  /** Applica lo stato effettivo una volta sola, anche se pausa e scheda si sommano. */
+  private sync(): void {
+    const stopped = this.isSuspended;
+    if (stopped === this.stopped) return;
+    this.stopped = stopped;
+    if (stopped) {
+      this.hooks.suspend?.();
+      this.stopClock();
+      this.pauseTimers();
+      return;
+    }
+    this.armClock();
+    this.resumeTimers();
+    this.hooks.resume?.();
   }
 
   private armClock(): void {

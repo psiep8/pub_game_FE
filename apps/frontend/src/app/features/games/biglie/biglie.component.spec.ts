@@ -499,6 +499,34 @@ describe('Biglie — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
+  it('la scheda nascosta ferma anche il cronometro delle fasi', () => {
+    vi.useFakeTimers();
+    const { component, fixture } = mount();
+    vi.advanceTimersByTime(800);
+    const before = component.secondsLeft();
+    expect(component.phase()).toBe('INTRO');
+    expect(before).toBeGreaterThan(0);
+
+    setHidden(true);
+    document.dispatchEvent(new Event('visibilitychange'));
+    vi.advanceTimersByTime(5000);
+
+    // Nessuno guarda la TV: l'intro resta ferma invece di scadere in secondo piano.
+    expect(component.secondsLeft()).toBe(before);
+    expect(component.phase()).toBe('INTRO');
+
+    setHidden(false);
+    document.dispatchEvent(new Event('visibilitychange'));
+    vi.advanceTimersByTime(1000);
+
+    // Al ritorno il conto riparte da dove era, un secondo alla volta.
+    expect(component.secondsLeft()).toBe(before - 1);
+
+    delete (document as any).hidden;
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
   it('la corsa non riparte se resta la pausa o la scheda è nascosta', () => {
     vi.useFakeTimers();
     const { component, fixture } = mount();

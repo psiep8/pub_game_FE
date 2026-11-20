@@ -11,6 +11,11 @@ describe('BlackjackBonus — ripresa dopo un refresh della TV', () => {
     }).compileComponents();
   });
 
+  /** `document.hidden` è in sola lettura: la visibilità si finge qui. */
+  function setHidden(hidden: boolean): void {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => hidden });
+  }
+
   function mount(resume: any = null, preview = false) {
     const fixture = TestBed.createComponent(BlackjackBonus);
     const component = fixture.componentInstance;
@@ -181,6 +186,32 @@ describe('BlackjackBonus — ripresa dopo un refresh della TV', () => {
     vi.advanceTimersByTime(1000);
     expect(internal.secondsLeft).toBe(before - 1);
 
+    vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('la scheda nascosta ferma anche la decisione del tavolo', () => {
+    vi.useFakeTimers();
+    const { component, fixture } = mount();
+    vi.advanceTimersByTime(600);
+    expect(component.display()?.phase).toBe('DECIDE');
+    const internal = component as any;
+    const before = internal.secondsLeft;
+
+    setHidden(true);
+    document.dispatchEvent(new Event('visibilitychange'));
+    vi.advanceTimersByTime(5000);
+
+    // Con la scheda nascosta il tavolo non decide e non passa la mano.
+    expect(internal.secondsLeft).toBe(before);
+    expect(component.display()?.phase).toBe('DECIDE');
+
+    setHidden(false);
+    document.dispatchEvent(new Event('visibilitychange'));
+    vi.advanceTimersByTime(1000);
+    expect(internal.secondsLeft).toBe(before - 1);
+
+    delete (document as any).hidden;
     vi.useRealTimers();
     fixture.destroy();
   });
