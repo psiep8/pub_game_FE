@@ -502,12 +502,27 @@ class ReliabilityIntegrationTest {
         String secondId = gameState.currentRoundStartId(gameId).orElseThrow();
         assertThat(request("POST", base + "/quiz/manche", tv, null, mancheQuiz(0, secondId)).statusCode()).isEqualTo(409);
         assertThat(stateBlobService.load(gameId, "quiz")).contains(legacy);
-        // Una chiave diversa può aprire il nuovo round normalmente.
+        // Finché resta la stessa chiave il legacy occupa ancora il blob attivo.
+        assertThat(stateBlobService.exists(gameId, "quiz-legacy-archive")).isFalse();
+        // Una chiave diversa può aprire il nuovo round normalmente, ma prima
+        // archivia il legacy: il nuovo stato non lo cancella.
         gameState.startRound(gameId, "QUIZ", 2, "new-key", payload);
         String thirdId = gameState.currentRoundStartId(gameId).orElseThrow();
         assertThat(request("POST", base + "/quiz/manche", tv, null, mancheQuiz(0, thirdId)).statusCode()).isEqualTo(200);
+        JsonNode archive = json.readTree(stateBlobService.load(gameId, "quiz-legacy-archive").orElseThrow());
+        assertThat(archive.path("replacedByRoundKey").asText()).isEqualTo("new-key");
+        assertThat(archive.path("legacy").path("roundKey").asText()).isEqualTo("legacy-key");
+        assertThat(archive.path("legacy").path("answers").get(0).path("points").asInt()).isEqualTo(200);
         assertThat(request("POST", base + "/quiz/answer", bruno, null,
                 "{\"optionIndex\":0,\"manche\":0,\"roundStartId\":\"" + thirdId + "\"}").statusCode()).isEqualTo(200);
+        // Un secondo legacy non sostituisce l'archivio già scritto.
+        stateBlobService.save(gameId, "quiz", legacy.replace("legacy-key", "new-key"));
+        gameState.startRound(gameId, "QUIZ", 3, "later-key", payload);
+        String fourthId = gameState.currentRoundStartId(gameId).orElseThrow();
+        assertThat(request("POST", base + "/quiz/manche", tv, null, mancheQuiz(0, fourthId)).statusCode()).isEqualTo(200);
+        JsonNode unchanged = json.readTree(stateBlobService.load(gameId, "quiz-legacy-archive").orElseThrow());
+        assertThat(unchanged.path("legacy").path("roundKey").asText()).isEqualTo("legacy-key");
+        assertThat(unchanged.path("legacy").path("answers").get(0).path("playerName").asText()).isEqualTo("Anna");
     }
 
     @Test

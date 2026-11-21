@@ -1,6 +1,8 @@
 package com.pub_game_be.service;
 
 import com.pub_game_be.reliability.GameStateService;
+import com.pub_game_be.reliability.StateBlobService;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,9 @@ class QuizServiceTest {
 
     @Autowired
     private QuizService quiz;
+
+    @Autowired
+    private StateBlobService stateBlobs;
 
     private static final String DUE_DOMANDE = """
             {"type":"QUIZ","category":"Storia",
@@ -180,6 +185,47 @@ class QuizServiceTest {
 
         assertThat(resumed.getLong("startedAt")).isEqualTo(first.getLong("startedAt"));
         assertThat(resumed.getLong("deadlineAt")).isEqualTo(first.getLong("deadlineAt"));
+    }
+
+    @Test
+    void unNuovoQuizArchiviaIVotiLegacySenzaSovrascriverli() {
+        long gameId = 910_011L;
+        apriRound(gameId, DUE_DOMANDE);
+        String firstKey = gameState.snapshot(gameId).getString("roundKey");
+        JSONObject firstLegacy = legacyBlob(firstKey, "Anna", 200);
+        stateBlobs.save(gameId, "quiz", firstLegacy.toString());
+
+        // Un cambio round non può cancellare i voti legacy: li archivia.
+        gameState.startRound(gameId, "QUIZ", 2, "g910011-r2", DUE_DOMANDE);
+        JSONObject opened = quiz.startManche(gameId, 0, roundId(gameId));
+        assertThat(opened.getJSONArray("answers")).isEmpty();
+        JSONObject archive = new JSONObject(stateBlobs.load(gameId, QuizService.LEGACY_ARCHIVE_BLOB)
+                .orElseThrow());
+        assertThat(archive.getString("replacedByRoundKey")).isEqualTo("g910011-r2");
+        assertThat(archive.getJSONObject("legacy").getString("roundKey")).isEqualTo(firstKey);
+        assertThat(archive.getJSONObject("legacy").getJSONArray("answers")
+                .getJSONObject(0).getInt("points")).isEqualTo(200);
+
+        // Un secondo legacy non sostituisce il primo archivio.
+        stateBlobs.save(gameId, "quiz", legacyBlob("g910011-r2", "Bruno", 300).toString());
+        gameState.startRound(gameId, "QUIZ", 3, "g910011-r3", DUE_DOMANDE);
+        JSONObject reopened = quiz.startManche(gameId, 0, roundId(gameId));
+        assertThat(reopened.getJSONArray("answers")).isEmpty();
+        JSONObject stillFirst = new JSONObject(stateBlobs.load(gameId, QuizService.LEGACY_ARCHIVE_BLOB)
+                .orElseThrow());
+        assertThat(stillFirst.getJSONObject("legacy").getJSONArray("answers")
+                .getJSONObject(0).getString("playerName")).isEqualTo("Anna");
+    }
+
+    private JSONObject legacyBlob(String roundKey, String playerName, int points) {
+        return new JSONObject()
+                .put("roundKey", roundKey)
+                .put("mancheIndex", 0)
+                .put("deadlineAt", System.currentTimeMillis() + 15_000)
+                .put("answers", new JSONArray().put(new JSONObject()
+                        .put("playerName", playerName)
+                        .put("manche", 0)
+                        .put("points", points)));
     }
 
     @Test

@@ -24,6 +24,8 @@ public class QuizService {
 
     /** Chiave del blob con la manche aperta e le risposte del round. */
     private static final String BLOB = "quiz";
+    /** Archivio dei voti legacy privi di identità di apertura. */
+    static final String LEGACY_ARCHIVE_BLOB = "quiz-legacy-archive";
     /** Durata della manche: la stessa che mostra la TV. */
     static final long MANCHE_MS = 15_000L;
     /** Penalità di una risposta sbagliata, come nel regolamento del round. */
@@ -81,10 +83,14 @@ public class QuizService {
 
         JSONObject stored = load(gameId);
         // Dopo un aggiornamento a partita in corso un vecchio blob non prova
-        // a quale apertura appartiene: conservarlo e non riaprire voti è più
-        // sicuro che perdere le risposte registrate nella stessa chiave.
-        if (stored != null && stored.optString("roundStartId").isBlank()
-                && roundKey.equals(stored.optString("roundKey"))) return legacyBlockedSummary();
+        // a quale apertura appartiene: finché è il round corrente non si
+        // riaprono voti; quando arriva un Quiz nuovo lo si archivia prima di
+        // sovrascrivere il blob attivo, così le risposte non verificabili
+        // restano conservate.
+        if (stored != null && stored.optString("roundStartId").isBlank()) {
+            if (roundKey.equals(stored.optString("roundKey"))) return legacyBlockedSummary();
+            archiveLegacy(gameId, stored, roundKey);
+        }
         if (stored != null && roundStartId.equals(stored.optString("roundStartId"))
                 && stored.optInt("mancheIndex", -1) > index) return summary(stored);
         if (stored != null
@@ -192,6 +198,19 @@ public class QuizService {
 
     private JSONObject legacyBlockedSummary() {
         return emptySummary().put("recoveryBlocked", "legacy-quiz-state");
+    }
+
+    /**
+     * Conserva il primo blob legacy non verificabile prima che un nuovo Quiz
+     * scriva sul blob attivo. L'archivio non viene mai sovrascritto: i voti
+     * senza identità di apertura restano consultabili anche dopo più round.
+     */
+    private void archiveLegacy(long gameId, JSONObject legacy, String nextRoundKey) {
+        JSONObject archive = new JSONObject()
+                .put("archivedAt", System.currentTimeMillis())
+                .put("replacedByRoundKey", nextRoundKey)
+                .put("legacy", legacy);
+        stateBlobs.compareAndSet(gameId, LEGACY_ARCHIVE_BLOB, null, archive.toString());
     }
 
     private JSONObject emptySummary() {
