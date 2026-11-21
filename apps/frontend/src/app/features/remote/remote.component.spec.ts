@@ -227,6 +227,38 @@ describe('RemoteComponent', () => {
     expect(component.quizManche()).toBe(1);
   });
 
+  it.each([false, true])('il primo Quiz non eredita il voto del gioco precedente (annuncio: %s)', async (announced) => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    component.questionType.set('BOMBA');
+    component.hasAnswered.set(true);
+    component.answeredManche.set(1);
+    component.selectedAnswer.set(2);
+    if (announced) ws.status$.next({ action: 'SHOW_QUESTION', type: 'QUIZ' });
+
+    ws.status$.next({ action: 'QUIZ_STATE', state: { manche: 1, mancheReveal: false } });
+
+    expect(component.questionType()).toBe('QUIZ');
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(component.hasAnswered()).toBe(false);
+    expect(component.selectedAnswer()).toBeNull();
+  });
+
+  it('la ripetizione dello stato della stessa manche Quiz non riapre un voto già dato', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.questionType.set('QUIZ');
+    component.hasAnswered.set(true);
+    component.answeredManche.set(1);
+    component.selectedAnswer.set(2);
+
+    ws.status$.next({ action: 'QUIZ_STATE', state: { manche: 1, mancheReveal: false } });
+
+    expect(component.gameState()).toBe(PlayerStatus.LOCKED);
+    expect(component.selectedAnswer()).toBe(2);
+  });
+
   it('dice subito che la squadra è fuori quando prende una bomba', async () => {
     const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
     component.tempNickname = 'Anna';

@@ -578,6 +578,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
         case 'SHOW_QUESTION':
           this.roundActive.set(true);
           this.closeManual();
+          // Il voto del gioco precedente non appartiene al nuovo Quiz, anche
+          // se il suo numero di manche coincide con quello appena annunciato.
+          if (status.type === 'QUIZ' && this.questionType() !== 'QUIZ') {
+            this.hasAnswered.set(false);
+            this.answeredManche.set(0);
+            this.selectedAnswer.set(null);
+          }
           this.questionType.set(status.type);
           if (status.round) this.roundNumber.set(Number(status.round));
           if (status.roundTotal) this.roundTotal.set(Number(status.roundTotal));
@@ -617,7 +624,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.quizManche.set(manche);
           if (status.state?.mancheReveal || status.state?.revealed) {
             this.gameState.set(PlayerStatus.WAITING);
-          } else if (manche > 0 && this.hasAnswered() && this.answeredManche() === manche) {
+          } else if (this.questionType() === 'QUIZ' && manche > 0
+              && this.hasAnswered() && this.answeredManche() === manche) {
             // La TV ha solo ripubblicato la stessa manche (sblocco del telefono,
             // riconnessione): chi ha già votato resta bloccato, non rivota.
             this.gameState.set(PlayerStatus.LOCKED);
