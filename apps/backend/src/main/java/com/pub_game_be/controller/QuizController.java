@@ -81,7 +81,22 @@ public class QuizController {
 
     /** Risposte già registrate: la TV le rilegge dopo un refresh. */
     @GetMapping("/{gameId}/quiz/answers")
-    public ResponseEntity<Object> answers(@PathVariable("gameId") Long gameId) {
-        return ResponseEntity.ok(quizService.summary(gameId).toMap());
+    public ResponseEntity<Object> answers(@PathVariable("gameId") Long gameId,
+            @RequestAttribute("pubgame.session") DeviceSessionEntity session) {
+        JSONObject summary = quizService.summary(gameId);
+        if ("REMOTE".equals(session.getRole())) {
+            var mine = new org.json.JSONArray();
+            var answers = summary.optJSONArray("answers");
+            if (answers != null) {
+                for (int i = 0; i < answers.length(); i++) {
+                    JSONObject row = answers.optJSONObject(i);
+                    if (row != null && session.getPlayerName().equalsIgnoreCase(row.optString("playerName"))) {
+                        mine.put(row);
+                    }
+                }
+            }
+            summary.put("answers", mine);
+        }
+        return ResponseEntity.ok(summary.toMap());
     }
 }

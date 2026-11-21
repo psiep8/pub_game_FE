@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 public class SessionAuthenticationFilter extends OncePerRequestFilter {
     private static final Pattern GAME_PATH = Pattern.compile("^/games/(\\d+)(?:/(.*))?$");
     private static final Set<String> PLAYER_GET = Set.of("sync", "arena-question", "bomba/state",
-            "speed-rush/task", "basket/state", "button-test/me");
+            "speed-rush/task", "basket/state", "button-test/me", "quiz/answers");
     /**
      * Letture che servono anche alla regia non ancora abbinata: la diagnostica
      * arriva senza eventi (il controller toglie i payload con le soluzioni),
@@ -26,7 +26,7 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
     private static final Set<String> GUEST_GET = Set.of("diagnostics");
     private static final Set<String> PLAYER_POST = Set.of("session/heartbeat", "session/disconnect",
             "arena-answer", "timeline-answer", "time-buzzer/stop", "bomba/pick",
-            "speed-rush/answer", "basket/shot", "button-test/step", "button-test/ping");
+            "speed-rush/answer", "basket/shot", "button-test/step", "button-test/ping", "quiz/answer");
     /**
      * Il rinnovo della sessione deve arrivare al controller anche con un token
      * scaduto: lì diventa un 410 "ri-registra", non un 401 che il client non

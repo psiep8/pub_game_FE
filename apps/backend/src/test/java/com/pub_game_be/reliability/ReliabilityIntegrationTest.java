@@ -386,6 +386,40 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void dueTelefoniVotanoIlQuizERitrovanoSoloLaPropriaRisposta() throws Exception {
+        long gameId = 8101L;
+        String base = "/games/" + gameId;
+        String tv = sessions.register(gameId, "quiz-tv", "TV", null, null).sessionToken();
+        String anna = sessions.register(gameId, "quiz-a", "REMOTE", "Anna", null).sessionToken();
+        String bruno = sessions.register(gameId, "quiz-b", "REMOTE", "Bruno", null).sessionToken();
+        gameState.startRound(gameId, "QUIZ", 1, "quiz-8101", """
+                {"type":"QUIZ","questions":[{"question":"Prova?","options":["A","B"],"correctAnswer":"A"}]}
+                """);
+        assertThat(request("POST", base + "/quiz/manche", tv, null, "{\"manche\":0}").statusCode()).isEqualTo(200);
+        ExecutorService clients = Executors.newFixedThreadPool(2);
+        try {
+            Future<HttpResponse<String>> first = clients.submit(() -> request("POST", base + "/quiz/answer", anna, null, "{\"optionIndex\":0}"));
+            Future<HttpResponse<String>> second = clients.submit(() -> request("POST", base + "/quiz/answer", bruno, null, "{\"optionIndex\":1}"));
+            assertThat(first.get(10, TimeUnit.SECONDS).statusCode()).isEqualTo(200);
+            assertThat(second.get(10, TimeUnit.SECONDS).statusCode()).isEqualTo(200);
+        } finally {
+            clients.shutdownNow();
+        }
+        assertThat(request("POST", base + "/quiz/answer", anna, null, "{\"optionIndex\":0}").statusCode()).isEqualTo(409);
+        var a = request("GET", base + "/quiz/answers", anna, null, null);
+        var b = request("GET", base + "/quiz/answers", bruno, null, null);
+        var all = request("GET", base + "/quiz/answers", tv, null, null);
+        assertThat(a.statusCode()).isEqualTo(200);
+        assertThat(b.statusCode()).isEqualTo(200);
+        assertThat(json.readTree(a.body()).path("answers")).hasSize(1);
+        assertThat(json.readTree(a.body()).path("answers").get(0).path("playerName").asText()).isEqualTo("Anna");
+        assertThat(json.readTree(b.body()).path("answers")).hasSize(1);
+        assertThat(json.readTree(b.body()).path("answers").get(0).path("playerName").asText()).isEqualTo("Bruno");
+        assertThat(json.readTree(all.body()).path("answers")).hasSize(2);
+        assertThat(request("POST", base + "/quiz/manche", anna, null, "{\"manche\":0}").statusCode()).isEqualTo(403);
+    }
+
+    @Test
     void syncTelefonoNonEsponeLeSoluzioni() throws Exception {
         long id = 517L;
         var remote = sessions.register(id, "r", "REMOTE", "Anna", null);
