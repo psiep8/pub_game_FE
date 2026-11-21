@@ -237,6 +237,7 @@ export class GameComponent implements OnInit, OnDestroy {
     paused: boolean;
   } | null>(null);
   private recoveredPayload: any = null;
+  private recoveredQuizRoundStartId = '';
   private recoveredBlackjackState: any = null;
     /** Checkpoint TV del round precedente: uno solo, con la modalità che lo ha scritto. */
   private recoveredTvCheckpoint: { type: GameModeType; value: any } | null = null;
@@ -2793,6 +2794,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!open) {
       this.recoveredRound.set(null);
       this.recoveredPayload = null;
+      this.recoveredQuizRoundStartId = '';
       this.recoveredTvCheckpoint = null;
       this.biglieResume.set(null);
       return;
@@ -2800,6 +2802,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.currentMode() || this.bonusActive() || this.isSpinning() || this.showTypeReveal()) return;
 
     this.recoveredPayload = snapshot.currentRound?.payload ?? snapshot.payload ?? null;
+    this.recoveredQuizRoundStartId = type === 'QUIZ' ? String(snapshot.roundStartId ?? '') : '';
     this.recoveredBlackjackState = snapshot.blackjackState ?? null;
     // Solo un checkpoint del round corrente e della sua modalità: il server
     // scarta gli altri, ma uno stato estraneo non deve essere interpretato.
@@ -2911,9 +2914,10 @@ export class GameComponent implements OnInit, OnDestroy {
     );
     if (found) this.selectedCategoryId.set(found.id);
 
-    const mode = this.gameModeService.createMode(
-      this.buildModeConfig(pending.type, payload, this.bonusPlayers()),
-    );
+    const mode = this.gameModeService.createMode({
+      ...this.buildModeConfig(pending.type, payload, this.bonusPlayers()),
+      quizRoundStartId: this.recoveredQuizRoundStartId,
+    });
     this.currentMode.set(mode);
     this.audioService.setActBed(this.currentActNumber());
     this.audioService.setGameBed(mode.type);

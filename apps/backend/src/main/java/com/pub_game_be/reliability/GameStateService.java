@@ -515,6 +515,10 @@ public class GameStateService {
 
     /** Snapshot completo: è ciò che un client chiede quando torna online. */
     public JSONObject snapshot(long gameId) {
+        return withRoundLock(gameId, () -> snapshotLocked(gameId));
+    }
+
+    private JSONObject snapshotLocked(long gameId) {
         JSONObject out = new JSONObject();
         GameStateEntity state = states.findById(gameId).orElse(null);
 
@@ -534,6 +538,9 @@ public class GameStateService {
             out.put("roundIndex", state.getRoundIndex());
             out.put("roundType", state.getRoundType());
             out.put("roundKey", state.getRoundKey());
+            if ("RUNNING".equals(state.getStatus())) {
+                currentRoundStartId(gameId).ifPresent(id -> out.put("roundStartId", id));
+            }
             out.put("roundStartedAt", state.getRoundStartedAt() == null ? JSONObject.NULL : state.getRoundStartedAt());
             out.put("roundDeadlineAt", state.getRoundDeadlineAt() == null ? JSONObject.NULL : state.getRoundDeadlineAt());
             out.put("updatedAt", state.getUpdatedAt() == null ? JSONObject.NULL : state.getUpdatedAt());

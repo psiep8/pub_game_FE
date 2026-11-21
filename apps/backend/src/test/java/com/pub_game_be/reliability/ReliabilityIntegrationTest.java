@@ -458,6 +458,11 @@ class ReliabilityIntegrationTest {
         assertThat(request("POST", base + "/quiz/answer", bruno, null, currentVote).statusCode()).isEqualTo(200);
         assertThat(json.readTree(request("GET", base + "/quiz/answers", tv, null, null).body()).path("answers")).hasSize(2);
         gameState.startRound(gameId, "QUIZ", 1, "quiz-8106", payload);
+        var beforeManche = json.readTree(request("GET", base + "/quiz/answers", anna, null, null).body());
+        assertThat(beforeManche.path("answers")).isEmpty();
+        assertThat(beforeManche.path("mancheIndex").asInt()).isEqualTo(-1);
+        assertThat(json.readTree(request("GET", base + "/sync", anna, null, null).body())
+                .path("snapshot").path("roundStartId").asText()).isEqualTo(gameState.currentRoundStartId(gameId).orElseThrow());
         assertThat(request("POST", base + "/quiz/manche", tv, null, "{\"manche\":0}").statusCode()).isEqualTo(200);
         assertThat(request("POST", base + "/quiz/answer", bruno, null, oldVote).statusCode()).isEqualTo(409);
         assertThat(json.readTree(request("GET", base + "/quiz/answers", tv, null, null).body()).path("answers")).isEmpty();

@@ -62,6 +62,8 @@ export interface GameModeConfig {
   /** Quiz: la TV annuncia la manche (con i secondi rimasti in ripresa) e rilegge le risposte. */
   startQuizManche?: (manche: number, secondsLeft?: number) => Promise<any>;
   loadQuizAnswers?: () => Promise<any>;
+  /** Identità dell'apertura Quiz recuperata dallo snapshot. */
+  quizRoundStartId?: string;
   /** Blackjack: la TV salva lo stato della mano sul server a ogni cambio. */
   onBlackjackState?: (state: unknown | null) => void;
   /** Checkpoint TV del round aperto: la modalità dichiara il proprio tipo. */

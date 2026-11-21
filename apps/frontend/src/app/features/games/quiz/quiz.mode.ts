@@ -44,11 +44,13 @@ export class QuizMode extends GameModeBase {
   private answeredThisManche = new Set<string>();
   /** Cresce a ogni salvataggio: una scrittura vecchia non deve tornare indietro. */
   private revision = 0;
+  private answersGeneration = 0;
 
   private clock?: ReturnType<typeof setInterval>;
   private advanceHandle?: ReturnType<typeof setTimeout>;
 
   protected onInitialize(): void {
+    this.answersGeneration++;
     this.questions = this.readQuestions();
     this.mancheIndex.set(0);
     this.mancheReveal.set(null);
@@ -62,6 +64,7 @@ export class QuizMode extends GameModeBase {
   }
 
   override async onStart(): Promise<void> {
+    this.answersGeneration++;
     this.questions = this.readQuestions();
     this.mancheIndex.set(0);
     this.mancheReveal.set(null);
@@ -86,11 +89,13 @@ export class QuizMode extends GameModeBase {
   }
 
   protected onStop(): void {
+    this.answersGeneration++;
     this.clearTimers();
     this.setQuestionOpen(false);
   }
 
   protected onCleanup(): void {
+    this.answersGeneration++;
     this.clearTimers();
     this.setQuestionOpen(false);
     this.questions = [];
@@ -274,6 +279,7 @@ export class QuizMode extends GameModeBase {
    * (gioco, attesa del reveal, soluzione già mostrata).
    */
   restore(secondsLeft: number, snapshot?: unknown): void {
+    this.answersGeneration++;
     const checkpoint = snapshot as { revision?: number; state?: any } | null | undefined;
     const revision = checkpoint ? Number(checkpoint.revision) : 0;
     if (checkpoint && (!Number.isSafeInteger(revision) || revision <= 0)) {
@@ -357,8 +363,11 @@ export class QuizMode extends GameModeBase {
    * quelle del checkpoint.
    */
   private async refreshAnswers(): Promise<void> {
+    const generation = this.answersGeneration;
     try {
       const state = await this.config.loadQuizAnswers?.();
+      if (generation !== this.answersGeneration) return;
+      if (this.config.quizRoundStartId && state?.roundStartId !== this.config.quizRoundStartId) return;
       const rows: any[] = Array.isArray(state?.answers) ? state.answers : [];
       if (!rows.length) return;
       const answers = rows
@@ -369,10 +378,17 @@ export class QuizMode extends GameModeBase {
           isCorrect: !!row.isCorrect,
           manche: Number(row.manche),
         }));
-      this.answers.set(answers);
+      // I voti WebSocket arrivati dopo la richiesta sono più recenti della
+      // fotografia HTTP: non vanno cancellati né sostituiti dal riepilogo.
+      const merged = [...this.answers()];
+      for (const row of answers) {
+        if (!merged.some((current) => current.manche === row.manche
+          && current.playerName.trim().toLowerCase() === row.playerName.trim().toLowerCase())) merged.push(row);
+      }
+      this.answers.set(merged);
       const manche = this.mancheIndex();
       this.answeredThisManche = new Set(
-        answers.filter((row) => row.manche === manche).map((row) => row.playerName),
+        merged.filter((row) => row.manche === manche).map((row) => row.playerName),
       );
     } catch {
       // Rete assente: la TV tiene le risposte del checkpoint.

@@ -227,6 +227,45 @@ describe('QuizMode — ripresa dopo un refresh della TV', () => {
     mode.cleanup();
   });
 
+  it('un riepilogo lento non cancella i voti arrivati dopo il refresh', async () => {
+    let deliver!: (value: any) => void;
+    const loadQuizAnswers = vi.fn().mockReturnValue(new Promise((resolve) => { deliver = resolve; }));
+    const mode = new QuizMode();
+    mode.setConfig({ type: 'QUIZ', payload: treManches, gameId: 1, loadQuizAnswers });
+    mode.initialize(treManches);
+    mode.restore(10, { revision: 2, state: { mancheIndex: 1, secondsLeft: 5, stage: 'play' } });
+    mode.applyServerAnswer({ playerName: 'Bruno', manche: 1, isCorrect: true, points: 200 });
+    deliver({ answers: [{ playerName: 'Anna', manche: 1, isCorrect: true, points: 320 }] });
+    await vi.waitFor(() => expect(mode.getDisplayData().answers).toHaveLength(2));
+    expect(mode.getDisplayData().answers.map((row: any) => row.playerName)).toEqual(expect.arrayContaining(['Anna', 'Bruno']));
+    mode.cleanup();
+  });
+
+  it('un riepilogo arrivato dopo la chiusura non ripristina i voti', async () => {
+    let deliver!: (value: any) => void;
+    const mode = new QuizMode();
+    mode.setConfig({ type: 'QUIZ', payload: treManches, gameId: 1,
+      loadQuizAnswers: () => new Promise((resolve) => { deliver = resolve; }) });
+    mode.initialize(treManches);
+    mode.restore(10, { revision: 2, state: { mancheIndex: 1, secondsLeft: 5, stage: 'play' } });
+    mode.cleanup();
+    deliver({ answers: [{ playerName: 'Anna', manche: 1, isCorrect: true, points: 320 }] });
+    await Promise.resolve();
+    expect(mode.getDisplayData().answers).toEqual([]);
+  });
+
+  it('ignora un riepilogo di un round Quiz diverso dopo il recupero', async () => {
+    const mode = new QuizMode();
+    mode.setConfig({ type: 'QUIZ', payload: treManches, gameId: 1, quizRoundStartId: 'round-corrente',
+      loadQuizAnswers: async () => ({ roundStartId: 'round-vecchio',
+        answers: [{ playerName: 'Anna', manche: 1, isCorrect: true, points: 320 }] }) });
+    mode.initialize(treManches);
+    mode.restore(10, { revision: 2, state: { mancheIndex: 1, secondsLeft: 5, stage: 'play' } });
+    await Promise.resolve();
+    expect(mode.getDisplayData().answers).toEqual([]);
+    mode.cleanup();
+  });
+
   it('toglie dal tempo residuo i secondi passati dall\'ultimo checkpoint', () => {
     const { mode } = setupConCheckpoint();
 

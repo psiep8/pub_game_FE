@@ -235,6 +235,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   answeredManche = signal(0);
   private quizRoundStartId = '';
   private quizVoteGeneration = 0;
+  private quizSummaryGeneration = 0;
+  private quizSummaryPending: { roundKey: string; generation: number } | null = null;
   /** Ultima risposta toccata: solo promemoria visivo, l'esito lo decide il server. */
   selectedAnswer = signal<number | null>(null);
   isBlocked = signal(false);
@@ -446,6 +448,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private async realignWithServer(): Promise<void> {
     if (!this.nickname()) return;
     this.quizVoteGeneration++;
+    this.invalidateQuizSummary();
     this.resyncing.set(true);
     // Una richiesta partita prima del rientro non è una fotografia affidabile:
     // il servizio la scarta e ne avvia una nuova appena possibile.
@@ -536,6 +539,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
         if (ok) {
           this.nickname.set(storedName);
           this.loadArenaAfterSession();
+          if (this.roundActive() && this.questionType() === 'QUIZ' && this.lastSnapshotRoundKey) {
+            this.confirmQuizVote(this.lastSnapshotRoundKey);
+          }
           // Se il server ha ripreso la stessa sessione, il giocatore torna
           // subito in partita senza rifare la prova dei pulsanti.
           this.showButtonTest.set(!this.reliability.resumedSession());
@@ -587,6 +593,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       switch (status.action) {
         case 'SHOW_QUESTION':
           if (status.type === 'QUIZ') {
+            this.invalidateQuizSummary();
             this.quizVoteGeneration++;
             this.quizRoundStartId = typeof status.roundStartId === 'string' ? status.roundStartId : '';
             this.quizManche.set(0);
@@ -646,8 +653,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
           }
           // Una manche nuova riapre i voti; il reveal invece blocca i telefoni.
           const manche = Number(status.state?.manche) || 0;
+          if (this.quizManche() !== manche || status.state?.mancheReveal || status.state?.revealed || status.state?.revealPending) {
+            this.invalidateQuizSummary();
+          }
           this.quizManche.set(manche);
-          if (status.state?.mancheReveal || status.state?.revealed) {
+          if (status.state?.mancheReveal || status.state?.revealed || status.state?.revealPending) {
             this.gameState.set(PlayerStatus.WAITING);
           } else if (this.questionType() === 'QUIZ' && manche > 0
               && this.hasAnswered() && this.answeredManche() === manche) {
@@ -756,6 +766,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'ROUND_ENDED':
         case 'REVEAL':
+          this.invalidateQuizSummary();
           this.quizVoteGeneration++;
           this.quizRoundStartId = '';
           this.roundActive.set(false);
@@ -1367,6 +1378,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.gameService.submitQuizAnswer(gameId, index, manche - 1, roundStartId).subscribe({
       next: (result) => {
         if (!stillCurrent() || result?.manche !== manche - 1) return;
+        this.invalidateQuizSummary();
         this.reliability.lastError.set(null);
         this.selectedAnswer.set(index);
         this.hasAnswered.set(true);
@@ -1377,6 +1389,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       error: (err) => {
         if (!stillCurrent()) return;
         if (err?.error?.error === 'already-answered') {
+          this.invalidateQuizSummary();
           this.hasAnswered.set(true);
           this.answeredManche.set(manche);
           this.gameState.set(PlayerStatus.LOCKED);
@@ -2620,6 +2633,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (!snapshot) return;
     this.resyncing.set(false);
     if (snapshot.hasState === false) {
+      this.invalidateQuizSummary();
       this.quizVoteGeneration++;
       this.quizRoundStartId = '';
       this.invalidateArenaQuestion();
@@ -2671,8 +2685,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // guardia dei bonus: un nuovo round deve comunque chiudere il bonus.
     const roundKey = String(snapshot.roundKey ?? round?.roundKey
       ?? `${type}:${snapshot.roundIndex ?? ''}`);
-    const newRound = roundKey !== this.lastSnapshotRoundKey;
+    const snapshotRoundStartId = typeof snapshot.roundStartId === 'string' ? snapshot.roundStartId : '';
+    const newRound = roundKey !== this.lastSnapshotRoundKey
+      || (!!snapshotRoundStartId && !!this.quizRoundStartId && snapshotRoundStartId !== this.quizRoundStartId);
     if (newRound) {
+      this.invalidateQuizSummary();
       this.quizVoteGeneration++;
       this.quizRoundStartId = '';
       this.quizManche.set(0);
@@ -2686,6 +2703,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.isBlocked.set(false);
       this.answeredManche.set(0);
     }
+
+    if (type === 'QUIZ' && snapshotRoundStartId) this.quizRoundStartId = snapshotRoundStartId;
 
     // I bonus non sono round backend: uno snapshot del round precedente già
     // chiuso non deve spegnere la loro schermata mentre sono in corso.
@@ -2705,6 +2724,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // restava sulla schermata del gioco precedente (o su "In attesa" con lo
     // stato di risposta ancora bloccato) finché non arrivava un START_VOTING.
     if (!open || !type) {
+      this.invalidateQuizSummary();
       this.quizVoteGeneration++;
       this.quizRoundStartId = '';
       this.invalidateArenaQuestion();
@@ -2724,6 +2744,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // mostrarlo adesso rivelerebbe il gioco prima dell'annuncio. Si aspetta
     // START_VOTING, che arriva alla fine dell'animazione.
     if (snapshot.announced === false) {
+      this.invalidateQuizSummary();
       this.roundActive.set(true);
       this.gameState.set(PlayerStatus.WAITING);
       return;
@@ -2753,6 +2774,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // resta il comportamento di prima, dove il doppio voto viene comunque
     // rifiutato con `already-answered`.
     const payload = snapshot.payload ?? round?.payload;
+    const quizCheckpoint = snapshot.tvCheckpoint?.mode === 'QUIZ' ? snapshot.tvCheckpoint?.state : null;
+    if (type === 'QUIZ' && (quizCheckpoint?.stage === 'suspense' || quizCheckpoint?.stage === 'reveal')) {
+      this.invalidateQuizSummary();
+      this.gameState.set(PlayerStatus.WAITING);
+      return;
+    }
     if (type === 'QUIZ' && !this.hasAnswered()) {
       if (previousType !== 'QUIZ' || this.gameState() !== PlayerStatus.VOTING || newRound) {
         this.onStartVoting('QUIZ', payload);
@@ -2775,8 +2802,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.onStartVoting(type, payload, { resumed: true });
   }
 
-  /** Una sola richiesta di riepilogo in volo per round. */
-  private readonly quizVoteChecks = new Set<string>();
+  private invalidateQuizSummary(): void {
+    this.quizSummaryGeneration++;
+    this.quizSummaryPending = null;
+  }
 
   /**
    * Quiz ripreso dopo un refresh: se la manche aperta ha già il voto di questa
@@ -2785,29 +2814,34 @@ export class RemoteComponent implements OnInit, OnDestroy {
    * la risposta arriva; richieste successive possono ritentare dopo un errore.
    */
   private confirmQuizVote(roundKey: string): void {
-    if (this.quizVoteChecks.has(roundKey)) return;
+    if (this.quizSummaryPending?.roundKey === roundKey) return;
     const name = String(this.nickname() ?? '').trim().toLowerCase();
     if (!name) return;
     const gameId = this.gameId();
+    const token = this.reliability.sessionToken();
+    const roundStartId = this.quizRoundStartId;
     const displayedManche = this.quizManche();
-    this.quizVoteChecks.add(roundKey);
+    const pending = { roundKey, generation: this.quizSummaryGeneration };
+    this.quizSummaryPending = pending;
     this.gameService.quizAnswers(gameId).subscribe({
       next: (summary: any) => {
-        this.quizVoteChecks.delete(roundKey);
+        if (this.quizSummaryPending === pending) this.quizSummaryPending = null;
         // Non applicare un riepilogo se nel frattempo è cambiata la manche,
         // la squadra, la partita o il round è stato chiuso.
-        if (this.gameId() !== gameId || this.lastSnapshotRoundKey !== roundKey
+        if (this.quizSummaryGeneration !== pending.generation || this.resyncing()
+          || this.gameId() !== gameId || this.reliability.sessionToken() !== token
+          || this.lastSnapshotRoundKey !== roundKey || this.quizRoundStartId !== roundStartId
           || String(this.nickname() ?? '').trim().toLowerCase() !== name
           || this.questionType() !== 'QUIZ' || !this.roundActive()
+          || this.gameState() !== PlayerStatus.VOTING || this.hasAnswered()
           || this.quizManche() !== displayedManche) return;
+        if (!roundStartId || summary?.roundStartId !== roundStartId) return;
         // Il server numera da zero, la TV da uno; il payload del round non
         // contiene necessariamente la manche attuale, quindi fa fede il riepilogo.
         const index = summary?.mancheIndex;
         if (!Number.isInteger(index) || index < 0) return;
         const manche = index + 1;
-        if (typeof summary?.roundStartId === 'string' && summary.roundStartId) {
-          this.quizRoundStartId = summary.roundStartId;
-        }
+        if (displayedManche > 0 && displayedManche > manche) return;
         const answers = Array.isArray(summary?.answers) ? summary.answers : [];
         const mine = answers.find((row: any) =>
           String(row?.playerName ?? '').trim().toLowerCase() === name
@@ -2820,7 +2854,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         this.gameState.set(PlayerStatus.LOCKED);
       },
       error: () => {
-        this.quizVoteChecks.delete(roundKey);
+        if (this.quizSummaryPending === pending) this.quizSummaryPending = null;
         // Resta aperto: un doppio voto verrebbe rifiutato dal server.
       },
     });
@@ -2850,6 +2884,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
    * nome resta libero sul server, quindi il rientro è possibile con un tocco.
    */
   private handleRemoved(): void {
+    this.invalidateQuizSummary();
     this.reliability.forgetSession();
     this.closeManual();
     this.stopMicrophoneListening();
@@ -2878,6 +2913,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.invalidateQuizSummary();
     this.cancelTimelineSend();
     this.ws.disconnect();
     this.stopMicrophoneListening();

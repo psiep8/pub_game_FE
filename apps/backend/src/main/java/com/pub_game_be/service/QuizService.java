@@ -175,16 +175,24 @@ public class QuizService {
 
     /** Manche aperta e risposte registrate: è ciò che la TV rilegge al ritorno. */
     public synchronized JSONObject summary(long gameId) {
-        JSONObject stored = load(gameId);
-        if (stored == null) {
-            return new JSONObject()
-                    .put("mancheIndex", 0)
-                    .put("startedAt", 0L)
-                    .put("deadlineAt", 0L)
-                    .put("serverTime", System.currentTimeMillis())
-                    .put("answers", new JSONArray());
-        }
-        return summary(stored);
+        return gameState.withRoundLock(gameId, () -> {
+            JSONObject stored = load(gameId);
+            if (stored == null || !gameState.isCurrentRoundType(gameId, "QUIZ")
+                    || !gameState.currentRoundStartId(gameId).filter(id -> id.equals(stored.optString("roundStartId"))).isPresent()) {
+                return emptySummary();
+            }
+            return summary(stored);
+        });
+    }
+
+    private JSONObject emptySummary() {
+        return new JSONObject()
+                .put("roundStartId", "")
+                .put("mancheIndex", -1)
+                .put("startedAt", 0L)
+                .put("deadlineAt", 0L)
+                .put("serverTime", System.currentTimeMillis())
+                .put("answers", new JSONArray());
     }
 
     public void forget(long gameId) {

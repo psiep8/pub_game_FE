@@ -1284,6 +1284,7 @@ describe('RemoteComponent', () => {
       status: 'RUNNING',
       roundType: 'QUIZ',
       roundKey: 'g1-r4',
+      roundStartId: 'round-1',
       roundDeadlineAt: Date.now() + 60_000,
       currentRound: {
         roundKey: 'g1-r4',
@@ -1309,7 +1310,7 @@ describe('RemoteComponent', () => {
     expect(component.gameState()).toBe(PlayerStatus.VOTING);
     expect(component.hasAnswered()).toBe(false);
 
-    summary.next({ mancheIndex: 1, answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }] });
+    summary.next({ roundStartId: 'round-1', mancheIndex: 1, answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }] });
     summary.complete();
 
     expect(component.gameState()).toBe(PlayerStatus.LOCKED);
@@ -1326,7 +1327,7 @@ describe('RemoteComponent', () => {
     // rientra deve mostrarlo bloccato, non offrire un secondo voto.
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     vi.spyOn(game, 'quizAnswers').mockReturnValue(
-      of({ mancheIndex: 1, answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }] }),
+      of({ roundStartId: 'round-1', mancheIndex: 1, answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }] }),
     );
 
     reliability.syncState$.next(quizRoundSnapshot());
@@ -1343,7 +1344,7 @@ describe('RemoteComponent', () => {
     await reloadPhone();
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     vi.spyOn(game, 'quizAnswers').mockReturnValue(of({
-      mancheIndex: 1, answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }],
+      roundStartId: 'round-1', mancheIndex: 1, answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }],
     }));
     const snapshot = quizRoundSnapshot();
     snapshot.currentRound.payload = { questions: [{ question: 'A' }, { question: 'B' }] };
@@ -1363,10 +1364,120 @@ describe('RemoteComponent', () => {
     vi.spyOn(game, 'quizAnswers').mockReturnValue(summary.asObservable());
     reliability.syncState$.next(quizRoundSnapshot());
     ws.status$.next({ action: 'QUIZ_STATE', state: { manche: 3, mancheReveal: false } });
-    summary.next({ mancheIndex: 1, answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }] });
+    summary.next({ roundStartId: 'round-1', mancheIndex: 1, answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }] });
     expect(component.quizManche()).toBe(3);
     expect(component.gameState()).toBe(PlayerStatus.VOTING);
     expect(component.hasAnswered()).toBe(false);
+  });
+
+  it('ignora un riepilogo partito prima del rientro e ne richiede uno nuovo', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const oldSummary = new Subject<any>();
+    const freshSummary = new Subject<any>();
+    const answers = vi.spyOn(game, 'quizAnswers')
+      .mockReturnValueOnce(oldSummary.asObservable()).mockReturnValueOnce(freshSummary.asObservable());
+    reliability.syncState$.next(quizRoundSnapshot());
+    (component as any).realignWithServer();
+    reliability.syncState$.next(quizRoundSnapshot());
+    oldSummary.next({ roundStartId: 'round-1', mancheIndex: 1, answers: [{ playerName: 'Anna', manche: 1, optionIndex: 0 }] });
+    expect(component.hasAnswered()).toBe(false);
+    expect(answers).toHaveBeenCalledTimes(2);
+    freshSummary.next({ roundStartId: 'round-1', mancheIndex: 1, answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }] });
+    expect(component.selectedAnswer()).toBe(1);
+    expect(component.gameState()).toBe(PlayerStatus.LOCKED);
+  });
+
+  it('scarta il riepilogo del vecchio round anche se la chiave viene riutilizzata', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const oldSummary = new Subject<any>();
+    const freshSummary = new Subject<any>();
+    vi.spyOn(game, 'quizAnswers').mockReturnValueOnce(oldSummary.asObservable())
+      .mockReturnValueOnce(freshSummary.asObservable());
+    reliability.syncState$.next(quizRoundSnapshot());
+    reliability.syncState$.next({ ...quizRoundSnapshot(), roundStartId: 'round-2' });
+    oldSummary.next({ roundStartId: 'round-1', mancheIndex: 1,
+      answers: [{ playerName: 'Anna', manche: 1, optionIndex: 0 }] });
+    expect(component.hasAnswered()).toBe(false);
+    freshSummary.next({ roundStartId: 'round-2', mancheIndex: 1,
+      answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }] });
+    expect(component.selectedAnswer()).toBe(1);
+  });
+
+  it('recupera la manche successiva anche senza il suo evento WebSocket', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(of({ roundStartId: 'round-1', mancheIndex: 2,
+      answers: [{ playerName: 'Anna', manche: 2, optionIndex: 1 }] }));
+    reliability.syncState$.next(quizRoundSnapshot());
+    expect(component.quizManche()).toBe(3);
+    expect(component.selectedAnswer()).toBe(1);
+    expect(component.gameState()).toBe(PlayerStatus.LOCKED);
+  });
+
+  it('un riepilogo tardivo non sblocca né sovrascrive il voto confermato', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const summary = new Subject<any>();
+    const initial = new Subject<any>();
+    const requests = vi.spyOn(game, 'quizAnswers').mockReturnValueOnce(initial.asObservable())
+      .mockReturnValueOnce(summary.asObservable());
+    reliability.syncState$.next(quizRoundSnapshot());
+    ws.status$.next({ action: 'QUIZ_STATE', roundStartId: 'round-1', state: { manche: 2 } });
+    reliability.syncState$.next(quizRoundSnapshot());
+    expect(requests).toHaveBeenCalledTimes(2);
+    component.sendVote(1);
+    summary.next({ roundStartId: 'round-1', mancheIndex: 1,
+      answers: [{ playerName: 'Anna', manche: 1, optionIndex: 0 }] });
+    expect(component.selectedAnswer()).toBe(1);
+    expect(component.gameState()).toBe(PlayerStatus.LOCKED);
+  });
+
+  it('due telefoni recuperano indipendentemente i propri voti Quiz', async () => {
+    const other = TestBed.createComponent(RemoteComponent);
+    other.detectChanges();
+    await other.whenStable();
+    component.nickname.set('Anna');
+    other.componentInstance.nickname.set('Bruno');
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const anna = new Subject<any>();
+    const bruno = new Subject<any>();
+    vi.spyOn(game, 'quizAnswers').mockReturnValueOnce(anna.asObservable()).mockReturnValueOnce(bruno.asObservable());
+    try {
+      reliability.syncState$.next(quizRoundSnapshot());
+      bruno.next({ roundStartId: 'round-1', mancheIndex: 1,
+        answers: [{ playerName: 'Bruno', manche: 1, optionIndex: 0 }] });
+      expect(other.componentInstance.selectedAnswer()).toBe(0);
+      expect(component.hasAnswered()).toBe(false);
+      anna.next({ roundStartId: 'round-1', mancheIndex: 1,
+        answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }] });
+      expect(component.selectedAnswer()).toBe(1);
+      expect(other.componentInstance.selectedAnswer()).toBe(0);
+    } finally {
+      other.destroy();
+    }
+  });
+
+  it('un riepilogo arrivato dopo il reveal non riapre il Quiz', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const summary = new Subject<any>();
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(summary.asObservable());
+    reliability.syncState$.next(quizRoundSnapshot());
+    ws.status$.next({ action: 'QUIZ_STATE', state: { manche: 2, mancheReveal: true } });
+    summary.next({ roundStartId: 'round-1', mancheIndex: 1, answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }] });
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
   });
 
   it('dopo un refresh in Musica il telefono prenota il brano in corso', async () => {
