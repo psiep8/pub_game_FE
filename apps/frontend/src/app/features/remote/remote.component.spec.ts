@@ -757,6 +757,18 @@ describe('RemoteComponent', () => {
     reliability.syncState$.next({ hasState: false });
     expect(component.resyncing()).toBe(false);
     expect(component.inputReady()).toBe(true);
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+    expect(component.roundActive()).toBe(false);
+  });
+
+  it('un evento di chiusura durante lo snapshot richiede una fotografia successiva', () => {
+    component.nickname.set('Anna');
+    reliability.syncing.set(true);
+    const sync = vi.spyOn(reliability, 'sync');
+    ws.status$.next({ action: 'ROUND_ENDED' });
+    expect(component.resyncing()).toBe(true);
+    expect(component.inputReady()).toBe(false);
+    expect(sync).toHaveBeenCalledWith(true);
   });
 
   it('dopo il riallineamento a round chiuso torna in attesa, senza pulsanti attivi', async () => {
@@ -776,6 +788,29 @@ describe('RemoteComponent', () => {
     expect(component.gameState()).toBe('WAITING');
     expect(component.roundActive()).toBe(false);
     expect(component.hasAnswered()).toBe(false);
+  });
+
+  it('usa lo stato corrente invece dell ultima riga di un round diverso', () => {
+    component.nickname.set('Anna');
+    reliability.syncState$.next({
+      hasState: true, status: 'RUNNING', roundType: 'TIMELINE', roundIndex: 2, roundKey: 'g1-r2',
+      roundDeadlineAt: Date.now() + 60_000,
+      payload: { roundId: 'nuovo', items: [{ id: 7, label: 'Nuova' }] },
+      currentRound: { type: 'QUIZ', roundIndex: 1, payload: { manche: 1 } },
+    });
+    expect(component.questionType()).toBe('TIMELINE');
+    expect(component.timelineCards().map(card => card.label)).toEqual(['Nuova']);
+  });
+
+  it('non riapre un round chiuso anche se la scadenza è ancora nel futuro', () => {
+    component.nickname.set('Anna');
+    component.onStartVoting('QUIZ');
+    reliability.syncState$.next({
+      hasState: true, status: 'WAITING', roundType: 'QUIZ', roundKey: 'g1-r1',
+      roundDeadlineAt: Date.now() + 60_000, currentRound: { type: 'QUIZ' },
+    });
+    expect(component.roundActive()).toBe(false);
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
   });
 
   it('ricostruisce un round ancora aperto alla pausa anche se la deadline è passata', () => {

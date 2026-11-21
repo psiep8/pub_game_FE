@@ -58,7 +58,7 @@ describe('sessione autenticata', () => {
     registration.flush({ sessionToken: 'token-anna' });
     expect(await started).toBe(true);
     expect(setToken).toHaveBeenCalledWith('token-anna', 'REMOTE');
-    http.expectOne('/games/1/sync?sinceSeq=0').flush({ snapshot: {}, events: [], toSeq: 0, complete: true });
+    http.expectOne('/games/1/sync?sinceSeq=0').flush({ snapshot: { gameId: 1, hasState: false, status: 'CREATED', version: 0 }, events: [], toSeq: 0, complete: true });
     await Promise.resolve();
     service.stop();
     http.verify();
@@ -83,7 +83,7 @@ describe('apertura della sessione di regia', () => {
     expect(registration.request.body.pairingCode).toBeNull();
     registration.flush({ sessionToken: 'token-tv' });
     expect(await started).toBe(true);
-    http.expectOne('/games/1/sync?sinceSeq=0').flush({ snapshot: {}, events: [], toSeq: 0, complete: true });
+    http.expectOne('/games/1/sync?sinceSeq=0').flush({ snapshot: { gameId: 1, hasState: false, status: 'CREATED', version: 0 }, events: [], toSeq: 0, complete: true });
     await Promise.resolve();
     service.stop();
     vi.restoreAllMocks();
@@ -105,7 +105,7 @@ describe('apertura della sessione di regia', () => {
     expect(registration.request.headers.get('X-Control-Secret')).toBeNull();
     registration.flush({ sessionToken: 'token-admin' });
     expect(await started).toBe(true);
-    http.expectOne('/games/1/sync?sinceSeq=0').flush({ snapshot: {}, events: [], toSeq: 0, complete: true });
+    http.expectOne('/games/1/sync?sinceSeq=0').flush({ snapshot: { gameId: 1, hasState: false, status: 'CREATED', version: 0 }, events: [], toSeq: 0, complete: true });
     await Promise.resolve();
     service.stop();
     http.verify();
@@ -113,6 +113,62 @@ describe('apertura della sessione di regia', () => {
 });
 
 describe('sync paginato', () => {
+  it('scarta lo snapshot richiesto prima del rientro e chiede una fotografia nuova', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(),
+        { provide: WebSocketService, useClass: FakeWebSocketService }],
+    });
+    const service = TestBed.inject(ReliabilityService);
+    const http = TestBed.inject(HttpTestingController);
+    service.sessionToken.set('private-token');
+    const snapshots: any[] = [];
+    service.syncState$.subscribe(snapshot => snapshots.push(snapshot));
+
+    const old = service.sync();
+    const pending = http.expectOne('/games/1/sync?sinceSeq=0');
+    await service.sync(true);
+    await service.sync(true); // pageshow e visibilitychange ravvicinati
+    pending.flush({ snapshot: { gameId: 1, hasState: true, status: 'RUNNING', version: 1 },
+      events: [{ eventId: 'old' }], toSeq: 1, complete: true });
+    await old;
+    expect(snapshots).toEqual([]);
+    expect(service.seq()).toBe(0);
+    expect(service.lastSyncAt()).toBeNull();
+    http.expectOne('/games/1/sync?sinceSeq=0').flush({
+      snapshot: { gameId: 1, hasState: true, status: 'WAITING', version: 2 },
+      events: [], toSeq: 2, complete: true,
+    });
+    await vi.waitFor(() => expect(snapshots).toHaveLength(1));
+    expect(snapshots[0].status).toBe('WAITING');
+    http.verify();
+  });
+
+  it('scarta snapshot errati, di un altra partita o più vecchi della versione nota', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(),
+        { provide: WebSocketService, useClass: FakeWebSocketService }],
+    });
+    const service = TestBed.inject(ReliabilityService);
+    const http = TestBed.inject(HttpTestingController);
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    service.sessionToken.set('private-token');
+    service.stateVersion.set(5);
+    const snapshots: any[] = [];
+    service.syncState$.subscribe(snapshot => snapshots.push(snapshot));
+    for (const snapshot of [null, { gameId: 2, hasState: true, status: 'RUNNING', version: 5 },
+      { gameId: 1, hasState: true, status: 'RUNNING', version: 4 }]) {
+      const sync = service.sync();
+      http.expectOne('/games/1/sync?sinceSeq=0').flush({ snapshot, events: [], toSeq: 0, complete: true });
+      await sync;
+      expect(service.lastSyncAt()).toBeNull();
+      expect(snapshots).toEqual([]);
+    }
+    errors.mockRestore();
+    http.verify();
+  });
+
   it('applica tutte le pagine prima di dichiarare il riallineamento', async () => {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting(),
@@ -126,12 +182,12 @@ describe('sync paginato', () => {
     const sync = service.sync();
     const first = http.expectOne((req) => req.urlWithParams.endsWith('/games/1/sync?sinceSeq=0'));
     expect(first.request.headers.get('X-Session-Token')).toBe('private-token');
-    first.flush({ snapshot: { version: 3 }, events: [{ eventId: 'a' }, { eventId: 'b' }], toSeq: 2, complete: false });
+    first.flush({ snapshot: { gameId: 1, hasState: true, status: 'RUNNING', version: 3 }, events: [{ eventId: 'a' }, { eventId: 'b' }], toSeq: 2, complete: false });
     await Promise.resolve();
     expect(service.syncing()).toBe(true);
     const second = http.expectOne((req) => req.urlWithParams.endsWith('/games/1/sync?sinceSeq=2'));
     expect(second.request.headers.get('X-Session-Token')).toBe('private-token');
-    second.flush({ snapshot: { version: 3 }, events: [{ eventId: 'c' }], toSeq: 3, complete: true });
+    second.flush({ snapshot: { gameId: 1, hasState: true, status: 'RUNNING', version: 3 }, events: [{ eventId: 'c' }], toSeq: 3, complete: true });
     await sync;
     expect(events).toEqual(['a', 'b', 'c']);
     expect(service.seq()).toBe(3);
@@ -185,7 +241,7 @@ describe('errori di rete', () => {
     http.expectOne('/games/1/session/heartbeat').flush({ stateVersion: 1, seq: 0, needsSync: false });
     await Promise.resolve();
     http.expectOne('/games/1/sync?sinceSeq=0')
-      .flush({ snapshot: { version: 1 }, events: [], toSeq: 0, complete: true });
+      .flush({ snapshot: { gameId: 1, hasState: true, status: 'RUNNING', version: 1 }, events: [], toSeq: 0, complete: true });
     await heartbeat;
     expect(service.lastSyncAt()).not.toBeNull();
     vi.restoreAllMocks();
@@ -206,7 +262,7 @@ describe('errori di rete', () => {
     http.expectOne('/games/1/session/heartbeat').flush({ stateVersion: 1, seq: 0 });
     await Promise.resolve();
     const sync = http.expectOne((req) => req.urlWithParams.endsWith('/games/1/sync?sinceSeq=0'));
-    sync.flush({ snapshot: { version: 1 }, events: [], toSeq: 0, complete: true });
+    sync.flush({ snapshot: { gameId: 1, hasState: true, status: 'RUNNING', version: 1 }, events: [], toSeq: 0, complete: true });
     await heartbeat;
 
     expect(service.lastSyncAt()).not.toBeNull();

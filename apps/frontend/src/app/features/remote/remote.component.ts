@@ -444,9 +444,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private async realignWithServer(): Promise<void> {
     if (!this.nickname()) return;
     this.resyncing.set(true);
-    // sync() può fallire o essere già in corso: soltanto uno snapshot
-    // effettivamente ricevuto riabilita gli input (in applyServerSnapshot).
-    await this.reliability.sync();
+    // Una richiesta partita prima del rientro non è una fotografia affidabile:
+    // il servizio la scarta e ne avvia una nuova appena possibile.
+    await this.reliability.sync(true);
   }
 
   private audioContext?: AudioContext;
@@ -573,6 +573,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
     this.ws.status$.subscribe((status: any) => {
       if (!status) return;
+      // Un cambio di fase ricevuto mentre lo snapshot è in volo può essere
+      // più recente della fotografia: chiederne una successiva, non regredire.
+      if (this.reliability.syncing() && ['SHOW_QUESTION', 'START_VOTING', 'ROUND_ENDED',
+        'REVEAL', 'BONUS_ENDED', 'GAME_PAUSED', 'GAME_RESUMED'].includes(status.action)) {
+        this.resyncing.set(true);
+        void this.reliability.sync(true);
+      }
 
       switch (status.action) {
         case 'SHOW_QUESTION':
@@ -2564,10 +2571,34 @@ export class RemoteComponent implements OnInit, OnDestroy {
    * schermata giusta senza inventare nulla. Le risposte già date restano date.
    */
   private applyServerSnapshot(snapshot: any): void {
-    // Lo stato del server è arrivato: il riallineamento è finito anche quando
-    // dice che non c'è nessun round aperto.
+    // Uno snapshot senza stato è una risposta valida: la partita non ha un
+    // round da riprendere e il vecchio schermo non deve restare giocabile.
+    if (!snapshot) return;
     this.resyncing.set(false);
-    if (!snapshot || !snapshot.hasState) return;
+    if (snapshot.hasState === false) {
+      this.invalidateArenaQuestion();
+      this.cancelTimelineSend();
+      this.stopBombaPolling();
+      this.stopMicrophoneListening();
+      this.bombaStarted = false;
+      this.bombaState.set(null);
+      this.casinoState.set(null);
+      this.cavalloState.set(null);
+      this.biglieState.set(null);
+      this.azzardoState.set(null);
+      this.blackjackState.set(null);
+      this.timelineOrder.set([]);
+      this.lastSnapshotRoundKey = '';
+      this.paused.set(false);
+      this.pauseStartedAt = 0;
+      this.roundActive.set(false);
+      this.gameState.set(PlayerStatus.WAITING);
+      this.hasAnswered.set(false);
+      this.selectedAnswer.set(null);
+      this.isBlocked.set(false);
+      return;
+    }
+    if (!snapshot.hasState) return;
 
     // Anche chi si ricollega durante la pausa deve ritrovarla attiva.
     this.paused.set(!!(snapshot.paused ?? snapshot.currentRound?.paused));
@@ -2578,16 +2609,21 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // Durante la pausa la deadline non si muove: confrontarla con l'ora
     // corrente farebbe chiudere un round che era ancora aperto allo stop.
     const referenceTime = this.paused() && pausedAt > 0 ? pausedAt : this.reliability.serverNow();
-    const open = !deadline || deadline > referenceTime;
-    const round = snapshot.currentRound;
-    const type = round?.type ?? snapshot.roundType;
+    const open = (!snapshot.status || snapshot.status === 'RUNNING')
+      && (!deadline || deadline > referenceTime);
+    // currentRound può essere la riga salvata del round precedente: fanno fede
+    // tipo, chiave e payload dello stato corrente, non l'ultima riga persistita.
+    const savedRound = snapshot.currentRound;
+    const round = savedRound && (snapshot.roundIndex == null || savedRound.roundIndex == null
+      || Number(savedRound.roundIndex) === Number(snapshot.roundIndex)) ? savedRound : null;
+    const type = snapshot.roundType ?? round?.type;
 
     // Round nuovo (chiave diversa): le risposte del round precedente non
     // valgono più. Senza questo, un telefono che aveva già risposto restava
     // in attesa anche con il round successivo aperto, perché `hasAnswered`
     // bloccava l'applicazione dello snapshot. Va calcolato prima della
     // guardia dei bonus: un nuovo round deve comunque chiudere il bonus.
-    const roundKey = String(round?.roundKey ?? snapshot.roundKey
+    const roundKey = String(snapshot.roundKey ?? round?.roundKey
       ?? `${type}:${snapshot.roundIndex ?? ''}`);
     const newRound = roundKey !== this.lastSnapshotRoundKey;
     if (newRound) {
@@ -2665,7 +2701,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // telefono solo se trova la risposta di questa squadra; se non risponde
     // resta il comportamento di prima, dove il doppio voto viene comunque
     // rifiutato con `already-answered`.
-    const payload = round?.payload ?? snapshot.payload;
+    const payload = snapshot.payload ?? round?.payload;
     if (type === 'QUIZ' && !this.hasAnswered()) {
       if (previousType !== 'QUIZ' || this.gameState() !== PlayerStatus.VOTING || newRound) {
         this.onStartVoting('QUIZ', payload);

@@ -52,6 +52,8 @@ export class ReliabilityService {
   private started = false;
   private listening = false;
   private seenEvents = new Set<string>();
+  private syncGeneration = 0;
+  private freshSyncPending = false;
   /**
    * Codice di abbinamento già inserito in questa scheda. Vale una volta sola
    * lato server: serve solo a non richiederlo a ogni riavvio della sessione.
@@ -75,6 +77,14 @@ export class ReliabilityService {
       this.ws.connect();
       return true;
     }
+    if (gameId !== this.gameId || role !== this.role || playerName.trim() !== this.playerName) {
+      this.syncGeneration++;
+      this.freshSyncPending = false;
+      this.seq.set(0);
+      this.stateVersion.set(0);
+      this.lastSyncAt.set(null);
+      this.seenEvents.clear();
+    }
     if (gameId !== this.gameId || role !== this.role) this.sessionToken.set(null);
     this.role = role;
     this.playerName = playerName.trim();
@@ -92,7 +102,7 @@ export class ReliabilityService {
     const registered = await this.ensureSession();
     if (registered) {
       this.ws.setSessionToken(this.sessionToken()!, this.role);
-      void this.sync();
+      void this.sync(true);
       this.startHeartbeat();
     } else {
       this.started = false;
@@ -119,6 +129,8 @@ export class ReliabilityService {
   }
 
   stop(): void {
+    this.syncGeneration++;
+    this.freshSyncPending = false;
     if (this.heartbeatTimer) {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = undefined;
@@ -297,23 +309,39 @@ export class ReliabilityService {
   }
 
   /** Stato autorevole + eventi mancanti dalla sequenza nota. */
-  async sync(): Promise<void> {
+  async sync(fresh = false): Promise<void> {
+    if (fresh) {
+      this.syncGeneration++;
+      this.lastSyncAt.set(null);
+      if (this.syncing()) this.freshSyncPending = true;
+    }
     if (this.syncing()) return;
     this.syncing.set(true);
+    const generation = this.syncGeneration;
+    const gameId = this.gameId;
+    const token = this.sessionToken();
     try {
-      const token = this.sessionToken();
       let snapshot: any = {};
       let complete = false;
       while (!complete) {
         const previousSeq = this.seq();
         const query = `?sinceSeq=${previousSeq}`;
         const response = await firstValueFrom(
-          this.http.get<any>(`${this.baseUrl}/games/${this.gameId}/sync${query}`, {
+          this.http.get<any>(`${this.baseUrl}/games/${gameId}/sync${query}`, {
             headers: token ? { 'X-Session-Token': token } : {},
           })
         );
+        if (generation !== this.syncGeneration || gameId !== this.gameId || token !== this.sessionToken()) return;
         this.applyTiming(response);
-        snapshot = response?.snapshot ?? {};
+        snapshot = response?.snapshot;
+        if (!snapshot || typeof snapshot.hasState !== 'boolean'
+            || Number(snapshot.gameId) !== gameId || !Number.isFinite(Number(snapshot.version))
+            || typeof snapshot.status !== 'string') {
+          throw new Error('Snapshot non valido');
+        }
+        if (Number(snapshot.version) < this.stateVersion()) {
+          throw new Error('Snapshot precedente alla versione già osservata');
+        }
         const missed = Array.isArray(response?.events) ? response.events : [];
         for (const event of missed) this.applyEvent(event);
         const nextSeq = Number(response?.toSeq ?? previousSeq);
@@ -323,12 +351,13 @@ export class ReliabilityService {
         }
         this.seq.set(nextSeq);
       }
-      this.stateVersion.set(Number(snapshot.version ?? 0));
+      this.stateVersion.set(Number(snapshot.version));
       this.online.set(true);
       this.lastSyncAt.set(Date.now());
       this.lastError.set(null);
       this.syncState$.next(snapshot);
     } catch (error) {
+      if (generation !== this.syncGeneration || gameId !== this.gameId || token !== this.sessionToken()) return;
       console.error('❌ Sincronizzazione non riuscita', error);
       this.online.set(false);
       // Anche dopo uno snapshot precedente occorre ritentare al prossimo
@@ -336,6 +365,10 @@ export class ReliabilityService {
       this.lastSyncAt.set(null);
     } finally {
       this.syncing.set(false);
+      if (this.freshSyncPending) {
+        this.freshSyncPending = false;
+        void this.sync();
+      }
     }
   }
 
@@ -367,7 +400,7 @@ export class ReliabilityService {
       // riprova a ogni heartbeat, non solo quando il server segnala eventi.
       if (response?.needsSync || this.lastSyncAt() === null) {
         await this.sync();
-      } else if (this.lastSyncAt() !== null) {
+      } else if (this.lastSyncAt() !== null && !this.syncing()) {
         // Senza un sync riuscito il seq non si allinea: altrimenti un telefono
         // appena ricaricato salterebbe gli eventi persi senza mai applicare lo
         // snapshot e resterebbe bloccato sulla schermata di attesa.
