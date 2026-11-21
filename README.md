@@ -9,7 +9,7 @@ PubGame è un gioco multigiocatore per locali e feste: la TV mostra domande, tab
 
 ![Telefono: scelta del tema di squadra](docs/screenshots/phone-tema-pagina2b-390.png)
 
-> **Indice:** [Cos'è](#1-cosè) · [Come si gioca](#2-come-si-gioca) · [I giochi](#3-i-giochi) · [Tecnologie](#4-tecnologie) · [Architettura](#5-architettura) · [Avvio rapido](#6-avvio-rapido) · [Cartelle](#7-struttura-delle-cartelle) · [Aggiungere un gioco](#8-come-aggiungere-un-gioco) · [Test](#9-test-e-qualità) · [Audio](#10-audio) · [Serata di prova](#11-serata-di-prova) · [Stato e roadmap](#12-stato-e-roadmap) · [Contenuti e licenze](#13-contenuti-e-licenze) · [Licenza e contatti](#14-licenza-e-contatti) · [Documentazione](#15-mappa-della-documentazione)
+> **Indice:** [Cos'è](#1-cosè) · [Come si gioca](#2-come-si-gioca) · [I giochi e i flussi](#3-i-giochi-e-i-flussi) · [Tecnologie](#4-tecnologie) · [Architettura](#5-architettura) · [Avvio rapido](#6-avvio-rapido) · [Cartelle](#7-struttura-delle-cartelle) · [Aggiungere un gioco](#8-come-aggiungere-un-gioco) · [Test](#9-test-e-qualità) · [Audio](#10-audio) · [Serata di prova](#11-serata-di-prova) · [Stato e roadmap](#12-stato-e-roadmap) · [Contenuti e licenze](#13-contenuti-e-licenze) · [Licenza e contatti](#14-licenza-e-contatti) · [Documentazione](#15-mappa-della-documentazione)
 
 ## 1. Cos'è
 
@@ -27,7 +27,7 @@ La serata è una scaletta fissa di **40 round divisi in 5 atti da 8** (`shared/s
 
 Una serata completa dura indicativamente **3–4 ore**: è una stima, non un dato misurato, e dipende da quanto il presentatore allunga i tempi tra un round e l'altro. Il numero di telefoni consigliato è **4–10 squadre**; il codice non impone un limite rigido.
 
-## 3. I giochi
+## 3. I giochi e i flussi
 
 I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring-rules.ts`; la scaletta e le occorrenze da `shared/schedule.ts`.
 
@@ -47,6 +47,20 @@ I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring
 | **Ultima spiaggia** | Rischio / sapere | Cinque livelli da 100 a 500, una volta per squadra in tutta la serata; una categoria per occorrenza. | **+100 / +200 / +300 / +400 / +500**; errore **−50 / −100 / −150 / −200 / −250**; chi non risponde perde metà del livello scelto. |
 | **Arena Battle Royale** | Sapere + riflessi | Battle royale a domande rapide dentro un cerchio che si chiude. | **+10 / −10** per risposta; piazzamento **+1000 / +500 / −300**. |
 
+### Galleria TV: i giochi
+
+Tutte le schermate sono catturate dalla TV vera a 1280×720. Le modalità usano la grafica carta/inchiostro del progetto; Biglie mantiene la sua pista illustrata. Blackjack compare nella galleria perché resta un bonus giocabile, anche se non fa più parte dei quaranta round.
+
+| TV | TV |
+|---|---|
+| **Quiz**<br>![TV Quiz](docs/screenshots/readme/tv-gioco-quiz-720p.png) | **Indovina la canzone**<br>![TV Indovina la canzone](docs/screenshots/readme/tv-gioco-musica-720p.png) |
+| **Indovina chi**<br>![TV Indovina chi](docs/screenshots/readme/tv-gioco-indovina-chi-720p.png) | **Ruota della fortuna**<br>![TV Ruota della fortuna](docs/screenshots/readme/tv-gioco-ruota-720p.png) |
+| **Timeline**<br>![TV Timeline](docs/screenshots/readme/tv-gioco-timeline-720p.png) | **Time Buzzer**<br>![TV Time Buzzer](docs/screenshots/readme/tv-gioco-time-buzzer-720p.png) |
+| **Bomba**<br>![TV Bomba](docs/screenshots/readme/tv-gioco-bomba-720p.png) | **Tennis Battle**<br>![TV Tennis Battle](docs/screenshots/readme/tv-gioco-tennis-720p.png) |
+| **Ultima spiaggia**<br>![TV Ultima spiaggia](docs/screenshots/readme/tv-gioco-ultima-spiaggia-720p.png) | **Azzardo**<br>![TV Azzardo](docs/screenshots/readme/tv-gioco-azzardo-720p.png) |
+| **Arena Battle Royale**<br>![TV Arena](docs/screenshots/readme/tv-gioco-arena-720p.png) | **Speed Rush**<br>![TV Speed Rush](docs/screenshots/readme/tv-gioco-speed-rush-720p.png) |
+| **Biglie**<br>![TV Biglie](docs/screenshots/readme/tv-gioco-biglie-720p.png) | **Blackjack (bonus)**<br>![TV Blackjack](docs/screenshots/readme/tv-gioco-blackjack-720p.png) |
+
 ### I bonus della serata
 
 | Bonus | Quando | Come funziona | Punti |
@@ -58,6 +72,107 @@ I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring
 | **Casino numero secco** | in un round dell'atto 5 | Una sola girata su un numero da 0 a 36, scelta in dieci secondi. | Numero esatto **+500**; se nessuno lo becca, nessuno prende punti. |
 
 **Casino paga punti, che entrano nella classifica della serata una sola volta, alla chiusura del bonus; i premi di Blackjack e Cavallo li gestiscono barista e presentatore, non l'app.** Dopo il bonus dell’atto 5 la TV mostra la classifica finale aggiornata.
+
+### Galleria TV: i bonus
+
+Le schermate di Casino, dozzina, cavallo e numero vengono dalle route reali dei componenti bonus (`/bonus-preview/{casino|dozzina|cavallo|numero}`); il Blackjack è il tavolo reale del componente mostrato in TV. Nessun mockup.
+
+| Bonus | Bonus |
+|---|---|
+| **Casino nero/rosso**<br>![Bonus Casino nero/rosso](docs/screenshots/readme/bonus-casino-720p.png) | **Blackjack**<br>![Bonus Blackjack](docs/screenshots/readme/bonus-blackjack-720p.png) |
+| **Casino dozzina**<br>![Bonus Casino dozzina](docs/screenshots/readme/bonus-dozzina-720p.png) | **Cavallo di battaglia**<br>![Bonus Cavallo](docs/screenshots/readme/bonus-cavallo-720p.png) |
+| **Casino numero secco**<br>![Bonus Casino numero secco](docs/screenshots/readme/bonus-numero-720p.png) | |
+
+### Galleria: telefoni e regia
+
+| Telefono | Telefono |
+|---|---|
+| **Ingresso: nome e foto**<br>![Telefono: ingresso](docs/screenshots/readme/phone-setup-390.png) | **Scelta del tema**<br>![Telefono: tema](docs/screenshots/readme/phone-tema-390.png) |
+| **Quiz: scelta multipla A–D**<br>![Telefono: Quiz](docs/screenshots/readme/phone-quiz-390.png) | **Azzardo: fiches sulle risposte**<br>![Telefono: Azzardo](docs/screenshots/readme/phone-azzardo-390.png) |
+
+![Regia: pannello admin a 1280×800](docs/screenshots/readme/admin-panel-1280.png)
+
+*Regia (`/admin`): stato partita, dispositivi online, prova dei pulsanti, categorie, demo di giochi e bonus e controlli di conduzione.*
+
+### Il flusso di un round
+
+```mermaid
+flowchart LR
+  A["Regia: PARTI"] --> B["TV: estrazione categoria"]
+  B --> C["TV: gioco e timer"]
+  C --> D["Telefoni: tocco, prenotazione, drag o puntata"]
+  D --> E["TV: reveal e soluzione"]
+  E --> F["Punti e classifica"]
+  F --> G{"Round 4, 12, 20, 28 o 36?"}
+  G -->|sì| H["Classifica rapida"]
+  G -->|no| I{"Round 8, 16, 24, 32 o 40?"}
+  I -->|sì| J["Classifica dettagliata"]
+  I -->|no| K["Prossimo round"]
+  F --> L{"Slot bonus dell'atto?"}
+  L -->|sì| M["Bonus"]
+  M --> N["Punti bonus alla chiusura"]
+```
+
+1. **Apertura.** La regia preme **PARTI** (o **AVANTI** in TV). Se la TV è in lobby parte il primo round; altrimenti il round corrente si chiude e parte il successivo. La slot estrae la categoria; la modalità è già fissata dalla scaletta.
+2. **Gioco.** La TV monta il componente della modalità e mostra tabellone, domanda e timer. I telefoni ricevono lo stato e cambiano pulsantiera: A–D, PRENOTA, trascinamento, scelta livello o fiches.
+3. **Chiusura.** Allo scadere del timer o alla fine delle manche la TV mostra il reveal; nei giochi a voce la regia conferma **giusto** o **sbagliato**. Le risposte non date seguono la regola della modalità, non un default unico.
+4. **Punti.** La TV calcola e salva la classifica; per Arena, Timeline, Bomba, Blackjack e per la validazione delle fiches dell’Azzardo il calcolo o il controllo è del server. Il tabellone viene salvato dopo ogni variazione.
+5. **Classifiche.** Dopo i round **4, 12, 20, 28 e 36** compare la classifica rapida; dopo **8, 16, 24, 32 e 40** quella dettagliata. La classifica finale arriva dopo l’atto 5.
+6. **Bonus.** In un round interno di ogni atto (slot **2, 3, 5, 6 o 7**, mai il primo e mai l’ultimo) la TV apre il bonus dell’atto. I suoi punti entrano una sola volta alla chiusura; il round riprende dopo.
+
+### Flusso per gioco
+
+- **Quiz** — TV: tre domande a scelta multipla, una per manche, con countdown. Telefono: un tocco su **A–D**, poi la pulsantiera si blocca. Chiusura: reveal con soluzione; fino a **+1000** in tre manches, errore **−quota** della domanda, nessuna risposta **0**.
+- **Indovina la canzone** — TV: quattro ascolti da 30 secondi, sempre più riconoscibili. Telefono: **PRENOTA E RISPONDI**; titolo e artista si dicono a voce, la regia conferma. Punti **+1000 / +750 / +500 / +250** secondo la manche; errore lo stesso valore in negativo; chi non prenota resta a 0.
+- **Indovina chi** — TV: foto sfocata che si schiarisce per 60 secondi, un indizio ogni 6 secondi. Telefono: **PRENOTATI**, poi risposta a voce. Punti **±1000 × tempo rimasto**; errore in negativo; nessuna prenotazione 0.
+- **Ruota della fortuna** — TV: frase a lettere coperte per 75 secondi, lettere aperte con estrazione guidata. Telefono: **PRENOTA E RISPONDI**, soluzione a voce. Punti **±1000 × tempo rimasto**; errore in negativo; nessuna prenotazione 0.
+- **Timeline** — TV: otto eventi da ordinare dal passato al presente. Telefono: si trascinano le carte; l’ordine iniziale è già una risposta e l’invio è automatico, si corregge fino allo scadere. Punti per posti esatti: 8 **+400**, 7 **+300**, 6 **+200**, 5 **+100**, 4 **0**, 3 **−50**, 2 **−100**, 1 o 0 **−200**.
+- **Time Buzzer** — TV: tre manche, bersaglio segreto da 5 a 20 secondi, countdown 5-4-3-2-1. Il server arma i telefoni e dà l’istante ufficiale di partenza; telefono: **STOP** il più vicino possibile. Piazzamento **+300 / … / −200**, **+600** se l’errore è entro 50 ms; nessun taglio, i punti si sommano fra le manche.
+- **Bomba** — TV: tabellone da **2n + n/2** caselle, una bomba ogni tre tavoli, un turno alla volta. Telefono: si sceglie una casella solo al proprio turno. Casella vera **0** e turno passa; bomba **fuori** con malus **−500, −400, −300, −200, −100**; chi non sceglie in tempo è fuori. Le caselle restano coperte durante l’ondata e le bombe non scelte si disarmano a fine round.
+- **Tennis Battle** — TV: duello a coppie, palla che passa, punteggio 15-30-40-vantaggio e killer point dopo tre ritorni dal vantaggio; le domande non compaiono in TV. Telefono: risposta quando arriva la palla; giusta rimanda, sbagliata o scaduta è punto per l’avversario. Vince la partita **+500**, perde **0**.
+- **Ultima spiaggia** — TV: una categoria per occorrenza e cinque livelli. Telefono: si sceglie un livello **100–500** non ancora consumato, poi si risponde. Giusta **+livello**, sbagliata o scaduta **−metà**; il livello resta consumato anche in caso di errore.
+- **Azzardo** — TV: quattro manche numeriche (celebrità, canzoni, paesi, storia), quattro risposte vicine, quota ×2/×3/×4. Telefono: dieci fiches da **20** da distribuire, almeno una, poi **CONFERMA PUNTATA**; le fiches risparmiate si sommano alle nuove e alzano il tetto di una ogni due, fino a **15**. Fiche giusta **+20 × quota**; sbagliata **−20 × fiche × 100/80/60/40%**; mai sotto zero, massimo **+1000** a manche.
+- **Arena Battle Royale** — TV: cerchio che si chiude, domande rapide, classifica in tempo reale. Telefono: vero/falso o quattro opzioni; giusta **+10**, sbagliata **−10**; chi resta fuori o inattivo è eliminato. Piazzamento **+1000 / +500 / −300**.
+- **Speed Rush** — TV: 90 secondi, solo le corsie; le domande arrivano sul telefono. Risposta giusta fa avanzare, sbagliata arretra; le prove non si ripetono e salgono di difficoltà. Piazzamento **+800 / … / −400**, calcolato dal server; chi non arriva è ultimo a pari merito.
+- **Biglie** — TV: quattro round separati, due gare per round su due delle otto piste (rally, F1, neve, acqua, vetro, sabbia, spazio, magma). Telefono: si sceglie una biglia una volta per round, quando la TV chiama il tavolo; durante la corsa non si gioca. Piazzamento **+500 / … / −400** per gara, sommato fra le due gare e fra i quattro round.
+
+### Flusso dei bonus
+
+1. **Quando.** Il seme della serata sceglie uno slot interno per ogni atto (2, 3, 5, 6 o 7). Il bonus non è un round della scaletta: si apre dopo il round scelto e non consuma un numero.
+2. **Introduzione.** La TV annuncia il bonus dell’atto; i telefoni mostrano la pulsantiera dedicata. Il presentatore può lanciarlo anche a mano dalla regia.
+3. **Gioco.** Casino e dozzina fanno tre girate con scelta entro dieci secondi; il numero secco fa una sola girata; Blackjack dà un turno per tavolo; il Cavallo fa votare la categoria e pone otto domande flash.
+4. **Chiusura.** La TV mostra il risultato. I punti Casino entrano in classifica una sola volta, alla chiusura; nessun bonus toglie punti. Blackjack e Cavallo non danno punti: il premio concordato con il bar lo consegnano barista e presentatore.
+5. **Dopo.** La serata riprende dal round successivo; dopo il bonus dell’atto 5 si chiude con la classifica finale.
+
+### Flusso per bonus
+
+- **Casino nero/rosso** — tre girate; a ogni girata il telefono sceglie **NERO** o **ROSSO** entro dieci secondi, poi la ruota gira. Colore giusto **+100** a girata, massimo **+300**; zero o colore sbagliato 0.
+- **Blackjack** — un turno per tavolo contro il banco TV; il banco si ferma a 17. Telefono: **CARTA** o **STAI** entro 15 secondi, poi la TV apre le carte. Chi batte il banco riceve il premio del bar, non punti; pari e sconfitte non tolgono nulla.
+- **Casino dozzina** — tre girate; a ogni girata si sceglie **1–12**, **13–24** o **25–36** entro dieci secondi. Dozzina giusta **+200** a girata, massimo **+600**; zero o dozzina sbagliata 0.
+- **Cavallo di battaglia** — i telefoni votano la categoria, poi otto domande flash. Vince chi ha più risposte esatte; a pari merito chi ha finito prima. Premio del bar, nessun punto in classifica.
+- **Casino numero secco** — una sola girata; ogni telefono sceglie un numero da **0 a 36** entro dieci secondi. Numero esatto **+500**; se nessuno lo becca, nessuno prende punti; nessuna penalità.
+
+### Flusso dei telefoni
+
+1. **Ingresso.** Il QR sulla TV apre `/play?game={id}`. La squadra inserisce il nome, può scattare una foto facoltativa e sceglie il tema-colore; la scelta non si cambia più.
+2. **Prova dei pulsanti.** Prima del primo round l’admin può avviare la prova: ogni telefono prova tocco, scelta, trascinamento, vibrazione e collegamento. Il round resta bloccato finché tutti non finiscono, salvo **AVVIA COMUNQUE**.
+3. **Lobby e round.** Fuori dai round il telefono mostra l’attesa e il **Manuale dei giochi**; durante un round il manuale si chiude e il pulsante sparisce. La pulsantiera cambia per modalità: A–D, PRENOTA, trascinamento, livello, fiches.
+4. **Pausa.** Se la regia mette in pausa, il telefono mostra **IN PAUSA** e blocca gli input; alla ripresa torna lo stato corrente. Anche la scheda TV nascosta mette in pausa da sola e si riprende al ritorno, senza sovrascrivere una pausa voluta dal presentatore.
+5. **Riconnessione.** Il token della squadra resta nel browser: refresh, blocco schermo o rientro dalla stessa rete riprendono la stessa squadra. Se il token è perso, il nome non basta a rientrare.
+
+### Flusso della regia
+
+1. **Apertura.** `/admin` mostra lo stato della partita, il numero di round, la versione dello stato, i dispositivi online e l’ultimo evento.
+2. **Conduzione.** **PARTI** apre il round o passa al successivo; **PROSSIMA MANCHE** serve ai giochi a manche; **PAUSA / RIPRENDI** ferma timer e input; **MOSTRA CLASSIFICA** apre la classifica in TV.
+3. **Validazione.** Nei giochi a voce (Musica, Indovina chi, Ruota) la regia conferma **giusto** o **sbagliato**; nei giochi numerici il server valida. La soluzione è disponibile nel pannello quando il round lo prevede.
+4. **Bonus e demo.** I cinque pulsanti bonus aprono il componente reale; la sezione Demo mostra introduzione, 13 giochi e 5 bonus senza cambiare lo stato della serata.
+5. **Gestione.** Categorie e flag Timeline, prova dei pulsanti, espulsione di una squadra, reset partita e tema di Natale stanno nello stesso pannello. La regia non vota al posto dei telefoni.
+
+### Recupero e riconnessione
+
+- **Token per ruolo.** TV, regia e ogni telefono hanno un token separato; la TV e la regia riprendono la serata da un altro dispositivo con lo stesso segreto, il telefono riprende la propria squadra.
+- **Sync.** Dopo una riconnessione il client chiede `/sync` e riceve snapshot + eventi mancanti; la TV salva checkpoint delle modalità e la classifica dopo ogni variazione. Un refresh non riparte da zero.
+- **Autorità.** Il server è l’autorità su sessioni, round, punteggi verificati (Arena, Timeline, Bomba, Blackjack, fiches dell’Azzardo) e prova dei pulsanti. La TV possiede la presentazione e la maggior parte dello stato della singola modalità; i telefoni possiedono input e timer locali. I limiti di questa divisione sono elencati in [§12](#12-stato-e-roadmap).
 
 ## 4. Tecnologie
 
