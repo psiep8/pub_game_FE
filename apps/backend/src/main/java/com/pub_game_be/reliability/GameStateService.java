@@ -294,9 +294,13 @@ public class GameStateService {
                 .map(GameStateEntity::getRoundKey)
                 .filter(key -> key != null && !key.isBlank())
                 .ifPresent(key -> {
-                    announcedRoundKeys.put(gameId, key);
+                    String identity = isCurrentRoundType(gameId, "QUIZ")
+                            ? currentRoundStartId(gameId).orElse("") : key;
+                    if (identity.isBlank()) return;
+                    announcedRoundKeys.put(gameId, identity);
                     stateBlobs.save(gameId, ROUND_ANNOUNCED_BLOB,
-                            new JSONObject().put("roundKey", key).put("at", System.currentTimeMillis()).toString());
+                            new JSONObject().put("roundKey", key).put("roundStartId", identity)
+                                    .put("at", System.currentTimeMillis()).toString());
                 });
     }
 
@@ -310,13 +314,17 @@ public class GameStateService {
         if (key == null || key.isBlank()) {
             return false;
         }
-        if (key.equals(announcedRoundKeys.get(gameId))) {
+        boolean quiz = "QUIZ".equals(found.get().getRoundType());
+        String identity = quiz ? currentRoundStartId(gameId).orElse("") : key;
+        if (identity.isBlank()) return false;
+        if (identity.equals(announcedRoundKeys.get(gameId))) {
             return true;
         }
         Optional<JSONObject> saved = stateBlobs.load(gameId, ROUND_ANNOUNCED_BLOB)
                 .map(JSONObject::new);
-        if (saved.isPresent() && key.equals(saved.get().optString("roundKey"))) {
-            announcedRoundKeys.put(gameId, key);
+        if (saved.isPresent() && key.equals(saved.get().optString("roundKey"))
+                && (!quiz || identity.equals(saved.get().optString("roundStartId")))) {
+            announcedRoundKeys.put(gameId, identity);
             return true;
         }
         return false;

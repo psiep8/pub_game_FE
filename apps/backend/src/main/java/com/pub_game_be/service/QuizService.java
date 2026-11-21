@@ -51,8 +51,8 @@ public class QuizService {
      * azzera il cronometro: la TV può ripetere l'annuncio senza falsare il tempo.
      */
     /** Apertura piena: la manche comincia adesso, con tutti i suoi secondi. */
-    public synchronized JSONObject startManche(long gameId, int manche) {
-        return startManche(gameId, manche, MANCHE_MS / 1000L);
+    public synchronized JSONObject startManche(long gameId, int manche, String expectedRoundStartId) {
+        return startManche(gameId, manche, MANCHE_MS / 1000L, expectedRoundStartId);
     }
 
     /**
@@ -63,19 +63,19 @@ public class QuizService {
      * era già chiusa la manche riparte con `startedAt` spostato indietro, così
      * i telefoni possono votare senza che i punti tornino pieni.</p>
      */
-    public synchronized JSONObject startManche(long gameId, int manche, long remainingSeconds) {
-        return gameState.withRoundLock(gameId, () -> startMancheLocked(gameId, manche, remainingSeconds));
+    public synchronized JSONObject startManche(long gameId, int manche, long remainingSeconds, String expectedRoundStartId) {
+        return gameState.withRoundLock(gameId, () -> startMancheLocked(gameId, manche, remainingSeconds, expectedRoundStartId));
     }
 
-    private JSONObject startMancheLocked(long gameId, int manche, long remainingSeconds) {
+    private JSONObject startMancheLocked(long gameId, int manche, long remainingSeconds, String expectedRoundStartId) {
         // Solo un round Quiz aperto può aprire una manche: un annuncio in
         // ritardo di un altro gioco non deve lasciare uno stato orfano.
-        if (!gameState.isActiveRoundType(gameId, "QUIZ")) return summary(gameId);
+        if (!gameState.isActiveRoundType(gameId, "QUIZ")) return null;
 
         JSONObject snapshot = gameState.snapshot(gameId);
         String roundKey = snapshot.optString("roundKey", "");
         String roundStartId = gameState.currentRoundStartId(gameId).orElse("");
-        if (roundStartId.isBlank()) return summary(gameId);
+        if (roundStartId.isBlank() || !roundStartId.equals(expectedRoundStartId)) return null;
         int index = Math.max(0, manche);
         long now = System.currentTimeMillis();
 
@@ -162,6 +162,7 @@ public class QuizService {
 
         JSONObject result = new JSONObject()
                 .put("playerName", name)
+                .put("roundStartId", roundStartId)
                 .put("manche", manche)
                 .put("optionIndex", optionIndex)
                 .put("isCorrect", correct)

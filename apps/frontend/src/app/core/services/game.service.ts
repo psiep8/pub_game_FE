@@ -219,8 +219,8 @@ export class GameService {
    * Dopo un refresh manda anche i secondi rimasti, così la manche si riapre
    * con il tempo che le resta invece che da capo.
    */
-  startQuizManche(gameId: number, manche: number, secondsLeft?: number): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/quiz/manche`, { manche, secondsLeft });
+  startQuizManche(gameId: number, manche: number, roundStartId: string, secondsLeft?: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/quiz/manche`, { manche, roundStartId, secondsLeft });
   }
 
   /** Voto del telefono: tempo, soluzione e doppio voto li controlla il server. */

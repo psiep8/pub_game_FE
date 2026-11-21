@@ -393,6 +393,10 @@ class ReliabilityIntegrationTest {
         assertThat(arena.has("correctIndex")).isFalse();
     }
 
+    private String mancheQuiz(int manche, String roundStartId) {
+        return "{\"manche\":" + manche + ",\"roundStartId\":\"" + roundStartId + "\"}";
+    }
+
     @Test
     void dueTelefoniVotanoIlQuizERitrovanoSoloLaPropriaRisposta() throws Exception {
         long gameId = 8101L;
@@ -403,8 +407,8 @@ class ReliabilityIntegrationTest {
         gameState.startRound(gameId, "QUIZ", 1, "quiz-8101", """
                 {"type":"QUIZ","questions":[{"question":"Prova?","options":["A","B"],"correctAnswer":"A"}]}
                 """);
-        assertThat(request("POST", base + "/quiz/manche", tv, null, "{\"manche\":0}").statusCode()).isEqualTo(200);
         String roundStartId = gameState.currentRoundStartId(gameId).orElseThrow();
+        assertThat(request("POST", base + "/quiz/manche", tv, null, mancheQuiz(0, roundStartId)).statusCode()).isEqualTo(200);
         String voteA = "{\"optionIndex\":0,\"manche\":0,\"roundStartId\":\"" + roundStartId + "\"}";
         String voteB = "{\"optionIndex\":1,\"manche\":0,\"roundStartId\":\"" + roundStartId + "\"}";
         ExecutorService clients = Executors.newFixedThreadPool(2);
@@ -444,11 +448,11 @@ class ReliabilityIntegrationTest {
                 """;
         gameState.startRound(gameId, "QUIZ", 1, "quiz-8106", payload);
         String firstRound = gameState.currentRoundStartId(gameId).orElseThrow();
-        assertThat(request("POST", base + "/quiz/manche", tv, null, "{\"manche\":0}").statusCode()).isEqualTo(200);
+        assertThat(request("POST", base + "/quiz/manche", tv, null, mancheQuiz(0, firstRound)).statusCode()).isEqualTo(200);
         String oldVote = "{\"optionIndex\":0,\"manche\":0,\"roundStartId\":\"" + firstRound + "\"}";
         assertThat(request("POST", base + "/quiz/answer", anna, null, oldVote).statusCode()).isEqualTo(200);
-        assertThat(request("POST", base + "/quiz/manche", tv, null, "{\"manche\":1}").statusCode()).isEqualTo(200);
-        assertThat(json.readTree(request("POST", base + "/quiz/manche", tv, null, "{\"manche\":0}").body())
+        assertThat(request("POST", base + "/quiz/manche", tv, null, mancheQuiz(1, firstRound)).statusCode()).isEqualTo(200);
+        assertThat(json.readTree(request("POST", base + "/quiz/manche", tv, null, mancheQuiz(0, firstRound)).body())
                 .path("mancheIndex").asInt()).isEqualTo(1);
         var late = request("POST", base + "/quiz/answer", bruno, null, oldVote);
         assertThat(late.statusCode()).isEqualTo(409);
@@ -463,7 +467,8 @@ class ReliabilityIntegrationTest {
         assertThat(beforeManche.path("mancheIndex").asInt()).isEqualTo(-1);
         assertThat(json.readTree(request("GET", base + "/sync", anna, null, null).body())
                 .path("snapshot").path("roundStartId").asText()).isEqualTo(gameState.currentRoundStartId(gameId).orElseThrow());
-        assertThat(request("POST", base + "/quiz/manche", tv, null, "{\"manche\":0}").statusCode()).isEqualTo(200);
+        assertThat(request("POST", base + "/quiz/manche", tv, null, mancheQuiz(0, firstRound)).statusCode()).isEqualTo(409);
+        assertThat(request("POST", base + "/quiz/manche", tv, null, mancheQuiz(0, gameState.currentRoundStartId(gameId).orElseThrow())).statusCode()).isEqualTo(200);
         assertThat(request("POST", base + "/quiz/answer", bruno, null, oldVote).statusCode()).isEqualTo(409);
         assertThat(json.readTree(request("GET", base + "/quiz/answers", tv, null, null).body()).path("answers")).isEmpty();
     }
@@ -852,11 +857,30 @@ class ReliabilityIntegrationTest {
             assertThat(seenA && seenB).isTrue();
             framesA.clear();
             framesB.clear();
-            screen.sendText(prefix + "{\"action\":\"START_VOTING\",\"type\":\"QUIZ\","
-                    + "\"payload\":{\"question\":\"Test?\",\"options\":[\"A\",\"B\"],\"correctAnswer\":\"SECRET\"}}\0", true).join();
             String roundStartId = gameState.currentRoundStartId(gameId).orElseThrow();
+            screen.sendText(prefix + "{\"action\":\"START_VOTING\",\"type\":\"QUIZ\",\"roundStartId\":\"" + roundStartId + "\","
+                    + "\"payload\":{\"question\":\"Test?\",\"options\":[\"A\",\"B\"],\"correctAnswer\":\"SECRET\"}}\0", true).join();
             assertThat(frameContaining(framesA, "START_VOTING")).contains("QUIZ", "options", roundStartId).doesNotContain("SECRET", "correctAnswer");
             assertThat(frameContaining(framesB, "START_VOTING")).contains("QUIZ", "options", roundStartId).doesNotContain("SECRET", "correctAnswer");
+
+            // Stessa chiave, apertura diversa: né gli annunci né il vecchio
+            // stato devono arrivare ai telefoni o sbloccare lo snapshot.
+            gameState.startRound(gameId, "QUIZ", 1, "quiz-ws-8103", "{}");
+            String nextRound = gameState.currentRoundStartId(gameId).orElseThrow();
+            assertThat(nextRound).isNotEqualTo(roundStartId);
+            assertThat(gameState.snapshot(gameId).getBoolean("announced")).isFalse();
+            for (String action : List.of("SHOW_QUESTION", "START_VOTING", "QUIZ_STATE")) {
+                screen.sendText(prefix + "{\"action\":\"" + action + "\",\"type\":\"QUIZ\",\"roundStartId\":\"" + roundStartId + "\",\"state\":{\"manche\":2}}\0", true).join();
+            }
+            screen.sendText(prefix + "{\"action\":\"START_VOTING\",\"type\":\"QUIZ\"}\0", true).join();
+            screen.sendText(prefix + "{\"action\":\"CHRISTMAS_TOGGLE\",\"enabled\":false}\0", true).join();
+            assertThat(framesA.poll(5, TimeUnit.SECONDS)).contains("CHRISTMAS_TOGGLE");
+            assertThat(framesB.poll(5, TimeUnit.SECONDS)).contains("CHRISTMAS_TOGGLE");
+            assertThat(gameState.snapshot(gameId).getBoolean("announced")).isFalse();
+            screen.sendText(prefix + "{\"action\":\"START_VOTING\",\"type\":\"QUIZ\",\"roundStartId\":\"" + nextRound + "\"}\0", true).join();
+            assertThat(frameContaining(framesA, "START_VOTING")).contains(nextRound);
+            assertThat(frameContaining(framesB, "START_VOTING")).contains(nextRound);
+            assertThat(gameState.snapshot(gameId).getBoolean("announced")).isTrue();
         } finally {
             a.abort(); b.abort(); screen.abort();
         }

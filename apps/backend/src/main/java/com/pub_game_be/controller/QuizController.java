@@ -39,14 +39,19 @@ public class QuizController {
     public ResponseEntity<Object> startManche(@PathVariable("gameId") Long gameId,
             @RequestBody(required = false) Map<String, Object> body) {
         Object raw = body == null ? null : body.get("manche");
-        if (!(raw instanceof Number number)) {
+        if (!(raw instanceof Number number) || number.doubleValue() != number.intValue() || number.intValue() < 0) {
             return ResponseEntity.badRequest().body(Map.of("error", "manche-mancante"));
+        }
+        Object rawRound = body.get("roundStartId");
+        if (!(rawRound instanceof String roundStartId) || roundStartId.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "quiz-context-required"));
         }
         Object rawSeconds = body.get("secondsLeft");
         long remaining = rawSeconds instanceof Number seconds ? seconds.longValue() : -1L;
         JSONObject state = remaining < 0
-                ? quizService.startManche(gameId, number.intValue())
-                : quizService.startManche(gameId, number.intValue(), remaining);
+                ? quizService.startManche(gameId, number.intValue(), roundStartId)
+                : quizService.startManche(gameId, number.intValue(), remaining, roundStartId);
+        if (state == null) return ResponseEntity.status(409).body(Map.of("error", "round-stale"));
         return ResponseEntity.ok(state.toMap());
     }
 
@@ -75,6 +80,7 @@ public class QuizController {
         JSONObject result = outcome.result();
         Map<String, Object> event = new LinkedHashMap<>();
         event.put("action", "QUIZ_ANSWER");
+        event.put("roundStartId", result.optString("roundStartId"));
         event.put("playerName", result.optString("playerName"));
         event.put("manche", result.optInt("manche"));
         event.put("optionIndex", result.optInt("optionIndex"));

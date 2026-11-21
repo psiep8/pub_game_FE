@@ -48,6 +48,16 @@ describe('QuizMode', () => {
     ]);
   });
 
+  it('ignora un esito di un round precedente anche se arriva dopo la riapertura', () => {
+    const mode = new QuizMode();
+    mode.setConfig({ type: 'QUIZ', payload, gameId: 1, quizRoundStartId: 'nuovo' });
+    mode.initialize(payload);
+    expect(mode.applyServerAnswer({ roundStartId: 'vecchio', playerName: 'Anna', manche: 0, points: 300 })).toBe(false);
+    expect(mode.applyServerAnswer({ playerName: 'Anna', manche: 0, points: 300 })).toBe(false);
+    expect(mode.applyServerAnswer({ roundStartId: 'nuovo', playerName: 'Anna', manche: 0, points: 300 })).toBe(true);
+    mode.cleanup();
+  });
+
   it('should hide the answer until the round is stopped', () => {
     const { mode } = setup(payload);
 

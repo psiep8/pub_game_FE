@@ -61,6 +61,16 @@ public class GameWebSocketController {
     @MessageMapping("/game/{gameId}/status")
     @SendTo("/topic/game/{gameId}/status")
     public Map<String, Object> updateStatus(@DestinationVariable("gameId") Long gameId, Map<String, Object> status) {
+        return gameStateService.withRoundLock(gameId, () -> updateStatusLocked(gameId, status));
+    }
+
+    private Map<String, Object> updateStatusLocked(Long gameId, Map<String, Object> status) {
+        boolean quizMessage = "QUIZ_STATE".equals(status.get("action"))
+                || ("QUIZ".equals(status.get("type"))
+                    && Set.of("SHOW_QUESTION", "START_VOTING").contains(status.get("action")));
+        if (quizMessage && (!gameStateService.isActiveRoundType(gameId, "QUIZ")
+                || !(status.get("roundStartId") instanceof String id) || id.isBlank()
+                || !gameStateService.currentRoundStartId(gameId).filter(id::equals).isPresent())) return null;
         // Gli esiti Arena sono prodotti solo dal controller REST, non dai client.
         if ("ARENA_ANSWER".equals(status.get("action"))) {
             throw new AccessDeniedException("Risultato Arena riservato al server");
@@ -108,13 +118,7 @@ public class GameWebSocketController {
         if ("AZZARDO_ACTION".equals(status.get("action"))) {
             return sanitizeAzzardo(status);
         }
-        Map<String, Object> clean = cleanStatus(status);
-        if (("QUIZ_STATE".equals(status.get("action"))
-                || ("QUIZ".equals(status.get("type")) && Set.of("SHOW_QUESTION", "START_VOTING").contains(status.get("action"))))
-                && gameStateService.isCurrentRoundType(gameId, "QUIZ")) {
-            gameStateService.currentRoundStartId(gameId).ifPresent(id -> clean.put("roundStartId", id));
-        }
-        return clean;
+        return cleanStatus(status);
     }
 
     /** Rimuove le soluzioni anche dagli oggetti annidati o serializzati in JSON. */

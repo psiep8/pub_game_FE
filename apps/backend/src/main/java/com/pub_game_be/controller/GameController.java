@@ -202,9 +202,10 @@ public class GameController {
 
         // Il round è aperto solo ora: domanda riservata e round salvato. La
         // scadenza è calcolata dal server e resta valida dopo un riavvio.
-        gameStateService.startRound(gameId,
+        var opening = gameStateService.startRound(gameId,
                 type == null ? "QUIZ" : type.toUpperCase(Locale.ROOT),
                 roundIndex, "g" + gameId + "-r" + roundIndex, normalizedPayload);
+        savedRound.setRoundStartId(opening.eventId());
 
         messagingTemplate.convertAndSend(
                 "/topic/game/" + gameId,
@@ -534,9 +535,10 @@ public class GameController {
 
         GameRound round = simpleRoundService.createRound(game, difficulty);
 
-        gameStateService.startRound(id,
+        var opening = gameStateService.startRound(id,
                 round.getType() == null ? "QUIZ" : round.getType().name(),
                 round.getRoundIndex(), "g" + id + "-r" + round.getRoundIndex(), round.getPayload());
+        round.setRoundStartId(opening.eventId());
 
         messagingTemplate.convertAndSend("/topic/game/" + id, round);
 

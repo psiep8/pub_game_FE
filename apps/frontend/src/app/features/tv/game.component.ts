@@ -1111,6 +1111,8 @@ export class GameComponent implements OnInit, OnDestroy {
         parsedPayload = JSON.parse(parsedPayload);
       }
 
+      const quizRoundStartId = extractedType === 'QUIZ' ? String(nextRound?.roundStartId ?? '') : '';
+      if (extractedType === 'QUIZ' && !quizRoundStartId) throw new Error('Identità del round Quiz assente');
       this.round.set(nextRound);
       this.rememberServerRoundIndex(nextRound?.roundIndex);
 
@@ -1151,7 +1153,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
 
       const mode = this.gameModeService.createMode(
-        this.buildModeConfig(parsedPayload.type || extractedType, parsedPayload, activePlayers),
+        this.buildModeConfig(parsedPayload.type || extractedType, parsedPayload, activePlayers, quizRoundStartId),
       );
 
       this.currentMode.set(mode);
@@ -1198,6 +1200,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.ws.broadcastStatus(this.currentGameId()!, {
         action: WsAction.SHOW_QUESTION,
         type: parsedPayload.type || extractedType,
+        ...(quizRoundStartId ? { roundStartId: quizRoundStartId } : {}),
         payload: payloadString,
         rawPayload: rawPayloadString,
         round: this.roundManager.getCurrentRound(),
@@ -1218,6 +1221,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.ws.broadcastStatus(this.currentGameId()!, {
         action: WsAction.START_VOTING,
         type: parsedPayload.type || extractedType,
+        ...(quizRoundStartId ? { roundStartId: quizRoundStartId } : {}),
         payload: payloadString,
         rawPayload: rawPayloadString,
         round: this.roundManager.getCurrentRound(),
@@ -1240,7 +1244,7 @@ export class GameComponent implements OnInit, OnDestroy {
    * Configurazione comune a un round: la usano sia l'apertura normale sia la
    * ripresa dopo un refresh, così i due percorsi non possono divergere.
    */
-  private buildModeConfig(type: GameModeType, payload: any, activePlayers: string[]): GameModeConfig {
+  private buildModeConfig(type: GameModeType, payload: any, activePlayers: string[], quizRoundStartId = ''): GameModeConfig {
     return {
       type,
       payload,
@@ -1270,7 +1274,9 @@ export class GameComponent implements OnInit, OnDestroy {
         );
         return Array.isArray(response?.penalties) ? response.penalties : [];
       },
-      onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!, event),
+      quizRoundStartId,
+      onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!,
+        event.action === WsAction.QUIZ_STATE ? { ...event, roundStartId: quizRoundStartId } : event),
       onBlackjackState: (state: unknown | null) => this.reliability.saveBlackjackState(state),
       onUltimaSpiaggiaLevel: (playerName: string, level: number) => {
         // Il livello è consumato per tutta la partita, non solo per la manche:
@@ -1311,7 +1317,7 @@ export class GameComponent implements OnInit, OnDestroy {
         return Array.isArray(response?.results) ? response.results : [];
       },
       startQuizManche: async (manche: number, secondsLeft?: number) => firstValueFrom(
-        this.gameService.startQuizManche(this.currentGameId()!, manche, secondsLeft),
+        this.gameService.startQuizManche(this.currentGameId()!, manche, quizRoundStartId, secondsLeft),
       ),
       loadQuizAnswers: async () => firstValueFrom(this.gameService.quizAnswers(this.currentGameId()!)),
       bomba: {
@@ -2915,8 +2921,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (found) this.selectedCategoryId.set(found.id);
 
     const mode = this.gameModeService.createMode({
-      ...this.buildModeConfig(pending.type, payload, this.bonusPlayers()),
-      quizRoundStartId: this.recoveredQuizRoundStartId,
+      ...this.buildModeConfig(pending.type, payload, this.bonusPlayers(), this.recoveredQuizRoundStartId),
     });
     this.currentMode.set(mode);
     this.audioService.setActBed(this.currentActNumber());

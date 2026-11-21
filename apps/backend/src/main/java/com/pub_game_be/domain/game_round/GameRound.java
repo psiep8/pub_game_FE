@@ -25,6 +25,10 @@ public class GameRound {
 
     private int roundIndex;
 
+    /** Identità dell'apertura restituita alla TV, non una colonna persistente. */
+    @Transient
+    private String roundStartId;
+
     @ManyToOne
     @JoinColumn(name = "question_id")
     private Question question;

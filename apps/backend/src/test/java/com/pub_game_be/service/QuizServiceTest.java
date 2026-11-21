@@ -39,6 +39,10 @@ class QuizServiceTest {
         gameState.startRound(gameId, "QUIZ", 1, "g" + gameId + "-r1", payload);
     }
 
+    private String roundId(long gameId) {
+        return gameState.currentRoundStartId(gameId).orElseThrow();
+    }
+
     private QuizService.Outcome answer(long gameId, String playerName, int option) {
         return quiz.answer(gameId, playerName, option, quiz.summary(gameId).getInt("mancheIndex"),
                 gameState.currentRoundStartId(gameId).orElseThrow());
@@ -48,7 +52,7 @@ class QuizServiceTest {
     void rispostaCorrettaValeQuasiTuttiIPuntiSubito() {
         long gameId = 910_001L;
         apriRound(gameId, DUE_DOMANDE);
-        quiz.startManche(gameId, 0);
+        quiz.startManche(gameId, 0, roundId(gameId));
 
         QuizService.Outcome outcome = answer(gameId, "Anna", 1);
 
@@ -63,7 +67,7 @@ class QuizServiceTest {
     void sbagliataSottraeMillePunti() {
         long gameId = 910_002L;
         apriRound(gameId, DUE_DOMANDE);
-        quiz.startManche(gameId, 0);
+        quiz.startManche(gameId, 0, roundId(gameId));
 
         QuizService.Outcome outcome = answer(gameId, "Anna", 0);
 
@@ -76,7 +80,7 @@ class QuizServiceTest {
     void unTelefonoNonVotaDueVolteNellaStessaManche() {
         long gameId = 910_003L;
         apriRound(gameId, DUE_DOMANDE);
-        quiz.startManche(gameId, 0);
+        quiz.startManche(gameId, 0, roundId(gameId));
 
         assertThat(answer(gameId, "Anna", 1).accepted()).isTrue();
         QuizService.Outcome again = answer(gameId, "Anna", 0);
@@ -104,7 +108,7 @@ class QuizServiceTest {
     void leRisposteRestanoPerIlRecuperoDellaTv() {
         long gameId = 910_005L;
         apriRound(gameId, DUE_DOMANDE);
-        quiz.startManche(gameId, 0);
+        quiz.startManche(gameId, 0, roundId(gameId));
         answer(gameId, "Anna", 1);
         answer(gameId, "Bruno", 0);
 
@@ -120,13 +124,13 @@ class QuizServiceTest {
     void laMancheNuovaRiapreIlVotoElAnnuncioRipetutoNonAzzeraIlTempo() {
         long gameId = 910_006L;
         apriRound(gameId, DUE_DOMANDE);
-        JSONObject first = quiz.startManche(gameId, 0);
+        JSONObject first = quiz.startManche(gameId, 0, roundId(gameId));
         assertThat(answer(gameId, "Anna", 1).accepted()).isTrue();
 
-        JSONObject repeated = quiz.startManche(gameId, 0);
+        JSONObject repeated = quiz.startManche(gameId, 0, roundId(gameId));
         assertThat(repeated.getLong("startedAt")).isEqualTo(first.getLong("startedAt"));
 
-        quiz.startManche(gameId, 1);
+        quiz.startManche(gameId, 1, roundId(gameId));
         QuizService.Outcome second = answer(gameId, "Anna", 0);
 
         assertThat(second.accepted()).isTrue();
@@ -139,7 +143,7 @@ class QuizServiceTest {
     void votoFuoriDaUnaOpzioneEsistenteVieneRifiutato() {
         long gameId = 910_007L;
         apriRound(gameId, DUE_DOMANDE);
-        quiz.startManche(gameId, 0);
+        quiz.startManche(gameId, 0, roundId(gameId));
 
         assertThat(answer(gameId, "Anna", 9).reason()).isEqualTo("invalid-option");
         assertThat(answer(gameId, "Anna", -1).reason()).isEqualTo("invalid-option");
@@ -149,12 +153,12 @@ class QuizServiceTest {
     void laRipresaRiannunciaLaMancheConIlTempoCheResta() {
         long gameId = 910_009L;
         apriRound(gameId, DUE_DOMANDE);
-        quiz.startManche(gameId, 0);
+        quiz.startManche(gameId, 0, roundId(gameId));
         answer(gameId, "Anna", 1);
         // Il backend è ripartito senza lo stato della manche.
         quiz.forget(gameId);
 
-        JSONObject resumed = quiz.startManche(gameId, 0, 6);
+        JSONObject resumed = quiz.startManche(gameId, 0, 6, roundId(gameId));
 
         long remaining = resumed.getLong("deadlineAt") - System.currentTimeMillis();
         assertThat(remaining).isBetween(4_500L, 6_000L);
@@ -170,9 +174,9 @@ class QuizServiceTest {
     void laRiannuncioSullaStessaMancheNonSpostaIlCronometro() {
         long gameId = 910_010L;
         apriRound(gameId, DUE_DOMANDE);
-        JSONObject first = quiz.startManche(gameId, 0);
+        JSONObject first = quiz.startManche(gameId, 0, roundId(gameId));
 
-        JSONObject resumed = quiz.startManche(gameId, 0, 3);
+        JSONObject resumed = quiz.startManche(gameId, 0, 3, roundId(gameId));
 
         assertThat(resumed.getLong("startedAt")).isEqualTo(first.getLong("startedAt"));
         assertThat(resumed.getLong("deadlineAt")).isEqualTo(first.getLong("deadlineAt"));
@@ -182,7 +186,7 @@ class QuizServiceTest {
     void unRoundChiusoNonAccettaPiuVoti() {
         long gameId = 910_008L;
         apriRound(gameId, DUE_DOMANDE);
-        quiz.startManche(gameId, 0);
+        quiz.startManche(gameId, 0, roundId(gameId));
         gameState.closeRound(gameId, "test");
 
         assertThat(answer(gameId, "Anna", 1).reason()).isEqualTo("round-closed");

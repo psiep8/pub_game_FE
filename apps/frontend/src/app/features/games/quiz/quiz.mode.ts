@@ -462,6 +462,7 @@ export class QuizMode extends GameModeBase {
 
   /** Esito dal server: una sola riga per giocatore e manche. */
   applyServerAnswer(result: any): boolean {
+    if (this.config.quizRoundStartId && result?.roundStartId !== this.config.quizRoundStartId) return false;
     const playerName = String(result?.playerName ?? '').trim();
     const manche = Number(result?.manche);
     if (!playerName || !Number.isInteger(manche) || manche < 0) return false;
