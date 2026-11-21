@@ -600,6 +600,42 @@ describe('GameComponent', () => {
     alertSpy.mockRestore();
   });
 
+  it('non riprende né toglie la pausa a un Quiz legacy con voti non verificabili', async () => {
+    const game = TestBed.inject(GameService);
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(of({ recoveryBlocked: 'legacy-quiz-state', answers: [] }));
+    const resume = vi.spyOn(game, 'resumeRound');
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const modes = TestBed.inject(GameModeService);
+    const create = vi.spyOn(modes, 'createMode');
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'RUNNING', roundType: 'QUIZ', roundIndex: 1, roundKey: 'g1-r1',
+      roundStartId: 'round-1', roundDeadlineAt: Date.now() + 60000, paused: true, pausedAt: Date.now(),
+      payload: { question: 'Q', options: ['A', 'B'], correctAnswer: 'A' },
+      tvCheckpoint: { mode: 'QUIZ', revision: 1, state: { mancheIndex: 0, secondsLeft: 10 } },
+    });
+    await component.resumeRecoveredRound();
+    expect(component.recoveredRound()).not.toBeNull();
+    expect(component.currentMode()).toBeNull();
+    expect(create).not.toHaveBeenCalled();
+    expect(resume).not.toHaveBeenCalled();
+    expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('voti salvati sono conservati'));
+    expect(ws.broadcasted.some((entry) => entry.body.action === WsAction.GAME_RESUMED)).toBe(false);
+    alertSpy.mockRestore();
+  });
+
+  it('non riprende un Quiz se non può verificare lo stato dei voti', async () => {
+    const game = TestBed.inject(GameService);
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(throwError(() => new Error('offline')));
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    component.recoveredRound.set({ type: 'QUIZ', label: 'Quiz', secondsLeft: 10, resumable: true, paused: false });
+    await component.resumeRecoveredRound();
+    expect(component.recoveredRound()).not.toBeNull();
+    expect(component.currentMode()).toBeNull();
+    expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('non verificata'));
+    alertSpy.mockRestore();
+  });
+
   it('salva il checkpoint Arena con l indice della scaletta, non con il round vecchio', () => {
     // Scaletta: 6 round chiusi, quindi il round aperto è l'indice 5.
     TestBed.inject(RoundManagerService).restoreRound(6);
@@ -1351,13 +1387,15 @@ describe('GameComponent', () => {
     // Il server è rimasto indietro (round 6): non deve spostare il conteggio.
     (component as unknown as { applyAuthoritativeState(snapshot: any): void }).applyAuthoritativeState({
       hasState: true, status: 'RUNNING', roundType: 'QUIZ', roundIndex: 6, roundKey: 'g1-r6',
-      roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
+      roundStartId: 'quiz-round-6', roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
       tvCheckpoint: { mode: 'QUIZ', roundKey: 'g1-r6', startedAt: 1, revision: 2, state: { mancheIndex: 1 } },
     });
     expect(rounds.getCurrentRound()).toBe(9);
 
     await component.resumeRecoveredRound();
 
+    expect(component.recoveredRound()).toBeNull();
+    expect(component.currentMode()?.type).toBe('QUIZ');
     expect(tv.roundScoring).toBe(true);
     expect(tv.roundPoints.get('Anna')).toBe(70);
   });

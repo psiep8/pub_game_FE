@@ -2889,6 +2889,24 @@ export class GameComponent implements OnInit, OnDestroy {
     const tvCheckpoint = stored && stored.type === pending?.type ? stored.value : null;
     if (!pending?.resumable) return;
 
+    if (pending.type === 'QUIZ') {
+      try {
+        const summary = await firstValueFrom(this.gameService.quizAnswers(this.currentGameId()));
+        if (summary?.recoveryBlocked === 'legacy-quiz-state') {
+          alert('Quiz precedente non verificabile: i voti salvati sono conservati, ma non è sicuro riprendere. Chiudi il round dalla regia.');
+          return;
+        }
+        if (this.recoveredRound() !== pending) return;
+        if (!summary || !this.recoveredQuizRoundStartId
+            || (summary.roundStartId && summary.roundStartId !== this.recoveredQuizRoundStartId)) {
+          throw new Error('Identità del round Quiz non verificabile');
+        }
+      } catch {
+        alert('Ripresa Quiz non verificata: controlla il server e riprova dalla regia.');
+        return;
+      }
+    }
+
     if (pending.paused) {
       try {
         // Prima si toglie la pausa sul server, poi la TV riparte: così il

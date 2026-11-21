@@ -84,7 +84,7 @@ public class QuizService {
         // a quale apertura appartiene: conservarlo e non riaprire voti è più
         // sicuro che perdere le risposte registrate nella stessa chiave.
         if (stored != null && stored.optString("roundStartId").isBlank()
-                && roundKey.equals(stored.optString("roundKey"))) return summary(stored);
+                && roundKey.equals(stored.optString("roundKey"))) return legacyBlockedSummary();
         if (stored != null && roundStartId.equals(stored.optString("roundStartId"))
                 && stored.optInt("mancheIndex", -1) > index) return summary(stored);
         if (stored != null
@@ -178,12 +178,20 @@ public class QuizService {
     public synchronized JSONObject summary(long gameId) {
         return gameState.withRoundLock(gameId, () -> {
             JSONObject stored = load(gameId);
-            if (stored == null || !gameState.isCurrentRoundType(gameId, "QUIZ")
-                    || !gameState.currentRoundStartId(gameId).filter(id -> id.equals(stored.optString("roundStartId"))).isPresent()) {
+            if (stored == null || !gameState.isCurrentRoundType(gameId, "QUIZ")) return emptySummary();
+            if (stored.optString("roundStartId").isBlank()
+                    && gameState.snapshot(gameId).optString("roundKey").equals(stored.optString("roundKey"))) {
+                return legacyBlockedSummary();
+            }
+            if (!gameState.currentRoundStartId(gameId).filter(id -> id.equals(stored.optString("roundStartId"))).isPresent()) {
                 return emptySummary();
             }
             return summary(stored);
         });
+    }
+
+    private JSONObject legacyBlockedSummary() {
+        return emptySummary().put("recoveryBlocked", "legacy-quiz-state");
     }
 
     private JSONObject emptySummary() {

@@ -474,6 +474,43 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void quizLegacyAmbiguoConservaVotiERifiutaLaRipresa() throws Exception {
+        long gameId = 8107L;
+        String base = "/games/" + gameId;
+        String tv = sessions.register(gameId, "legacy-quiz-tv", "TV", null, null).sessionToken();
+        String anna = sessions.register(gameId, "legacy-quiz-a", "REMOTE", "Anna", null).sessionToken();
+        String bruno = sessions.register(gameId, "legacy-quiz-b", "REMOTE", "Bruno", null).sessionToken();
+        String payload = "{\"type\":\"QUIZ\",\"questions\":[{\"question\":\"Q\",\"options\":[\"A\",\"B\"],\"correctAnswer\":\"A\"}]}";
+        gameState.startRound(gameId, "QUIZ", 1, "legacy-key", payload);
+        String firstId = gameState.currentRoundStartId(gameId).orElseThrow();
+        String legacy = "{\"roundKey\":\"legacy-key\",\"mancheIndex\":0,\"deadlineAt\":"
+                + (System.currentTimeMillis() + 15000) + ",\"answers\":[{\"playerName\":\"Anna\",\"manche\":0,\"points\":200}]}";
+        stateBlobService.save(gameId, "quiz", legacy);
+        for (String token : List.of(tv, anna, bruno)) {
+            var summary = json.readTree(request("GET", base + "/quiz/answers", token, null, null).body());
+            assertThat(summary.path("recoveryBlocked").asText()).isEqualTo("legacy-quiz-state");
+            assertThat(summary.path("answers")).isEmpty();
+        }
+        var opening = request("POST", base + "/quiz/manche", tv, null, mancheQuiz(0, firstId));
+        assertThat(opening.statusCode()).isEqualTo(409);
+        assertThat(json.readTree(opening.body()).path("error").asText()).isEqualTo("legacy-quiz-state");
+        String vote = "{\"optionIndex\":0,\"manche\":0,\"roundStartId\":\"" + firstId + "\"}";
+        assertThat(request("POST", base + "/quiz/answer", bruno, null, vote).statusCode()).isEqualTo(409);
+        assertThat(stateBlobService.load(gameId, "quiz")).contains(legacy);
+        // Neppure una nuova apertura con la stessa chiave prova l'origine del blob.
+        gameState.startRound(gameId, "QUIZ", 1, "legacy-key", payload);
+        String secondId = gameState.currentRoundStartId(gameId).orElseThrow();
+        assertThat(request("POST", base + "/quiz/manche", tv, null, mancheQuiz(0, secondId)).statusCode()).isEqualTo(409);
+        assertThat(stateBlobService.load(gameId, "quiz")).contains(legacy);
+        // Una chiave diversa può aprire il nuovo round normalmente.
+        gameState.startRound(gameId, "QUIZ", 2, "new-key", payload);
+        String thirdId = gameState.currentRoundStartId(gameId).orElseThrow();
+        assertThat(request("POST", base + "/quiz/manche", tv, null, mancheQuiz(0, thirdId)).statusCode()).isEqualTo(200);
+        assertThat(request("POST", base + "/quiz/answer", bruno, null,
+                "{\"optionIndex\":0,\"manche\":0,\"roundStartId\":\"" + thirdId + "\"}").statusCode()).isEqualTo(200);
+    }
+
+    @Test
     void syncTelefonoNonEsponeLeSoluzioni() throws Exception {
         long id = 517L;
         var remote = sessions.register(id, "r", "REMOTE", "Anna", null);

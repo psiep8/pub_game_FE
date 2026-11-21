@@ -52,6 +52,9 @@ public class QuizController {
                 ? quizService.startManche(gameId, number.intValue(), roundStartId)
                 : quizService.startManche(gameId, number.intValue(), remaining, roundStartId);
         if (state == null) return ResponseEntity.status(409).body(Map.of("error", "round-stale"));
+        if (state.has("recoveryBlocked")) {
+            return ResponseEntity.status(409).body(Map.of("error", state.getString("recoveryBlocked")));
+        }
         return ResponseEntity.ok(state.toMap());
     }
 
