@@ -456,6 +456,24 @@ describe('RemoteComponent', () => {
     expect(component.arenaQuestion()).toBeNull();
   });
 
+  it('sostituisce una domanda Arena non più verificabile senza fermare il round', () => {
+    component.nickname.set('Anna');
+    component.onStartVoting('ARENA');
+    component.roundActive.set(true);
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const answer = new Subject<any>();
+    vi.spyOn(game, 'answerArenaQuestion').mockReturnValue(answer.asObservable());
+    const request = vi.spyOn(game, 'getArenaQuestion');
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    component.arenaQuestion.set({ text: 'Vecchia', options: ['A', 'B'], isTrueFalse: false, questionId: 'old' });
+    component.sendArenaAnswer(0);
+    answer.error({ status: 409, error: { error: 'arena-question-stale' } });
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(component.arenaQuestion()?.questionId).toBe('q-test');
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    log.mockRestore();
+  });
+
   it('non invia risposte Arena mentre il telefono è in pausa', () => {
     component.nickname.set('Anna');
     component.arenaQuestion.set({ text: 'Domanda', options: ['A', 'B'], isTrueFalse: false, questionId: 'q1' });

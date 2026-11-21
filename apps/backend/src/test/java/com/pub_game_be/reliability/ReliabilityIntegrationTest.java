@@ -115,6 +115,12 @@ class ReliabilityIntegrationTest {
     @Autowired
     private com.pub_game_be.reliability.repository.DeviceSessionRepository sessionRepository;
 
+    private QuestionHistoryService.ArenaAssignment arenaAssignment(long gameId, String questionId,
+            String player, String question, String answer, String category) {
+        return new QuestionHistoryService.ArenaAssignment(questionId, player, question, answer, category,
+                gameState.currentRoundStartId(gameId).orElseThrow());
+    }
+
     @Test
     void rispostaRipetutaNonAssegnaDueVolteIPunti() {
         long gameId = 501L;
@@ -355,8 +361,9 @@ class ReliabilityIntegrationTest {
         var brunoResponse = request("POST", base + "/session", null, null,
                 "{\"deviceId\":\"b\",\"role\":\"REMOTE\",\"playerName\":\"Bruno\"}");
         String bruno = json.readTree(brunoResponse.body()).get("sessionToken").asText();
-        questionHistory.assign(id, new QuestionHistoryService.ArenaAssignment("anna-q", "Anna", "Q", "VERO", "S"));
-        questionHistory.assign(id, new QuestionHistoryService.ArenaAssignment("bruno-q", "Bruno", "Q", "VERO", "S"));
+        gameState.startRound(id, "ARENA", 1, "arena-511", "{}");
+        questionHistory.assign(id, arenaAssignment(id, "anna-q", "Anna", "Q", "VERO", "S"));
+        questionHistory.assign(id, arenaAssignment(id, "bruno-q", "Bruno", "Q", "VERO", "S"));
         String answerA = "{\"playerId\":\"Anna\",\"questionId\":\"anna-q\",\"answer\":\"VERO\",\"idempotencyKey\":\"shared\"}";
         String answerB = "{\"playerId\":\"Bruno\",\"questionId\":\"bruno-q\",\"answer\":\"VERO\",\"idempotencyKey\":\"shared\"}";
         assertThat(json.readTree(request("POST", base + "/arena-answer", anna, null, answerA).body()).get("playerName").asText()).isEqualTo("Anna");
@@ -377,6 +384,7 @@ class ReliabilityIntegrationTest {
         assertThat(guestDiagnostics.get("recentEvents").size()).isZero();
         assertThat(guestDiagnostics.get("recentEventsHidden").asBoolean()).isTrue();
         assertThat(guestDiagnostics.has("status")).isTrue();
+        gameState.startRound(id, "ARENA", 1, "arena-511-after-reset", "{}");
         var question = request("GET", base + "/arena-question?category=STORIA&playerId=Anna", anna, null, null);
         assertThat(question.statusCode()).isEqualTo(200);
         var arena = json.readTree(question.body());
@@ -852,8 +860,8 @@ class ReliabilityIntegrationTest {
         String anna = sessions.register(gameId, "arena-a", "REMOTE", "Anna", null).sessionToken();
         String bruno = sessions.register(gameId, "arena-b", "REMOTE", "Bruno", null).sessionToken();
         gameState.startRound(gameId, "ARENA", 1, "arena-8102", "{}");
-        questionHistory.assign(gameId, new QuestionHistoryService.ArenaAssignment("qa", "Anna", "A?", "VERO", "test"));
-        questionHistory.assign(gameId, new QuestionHistoryService.ArenaAssignment("qb", "Bruno", "B?", "FALSO", "test"));
+        questionHistory.assign(gameId, arenaAssignment(gameId, "qa", "Anna", "A?", "VERO", "test"));
+        questionHistory.assign(gameId, arenaAssignment(gameId, "qb", "Bruno", "B?", "FALSO", "test"));
         String a = "{\"playerId\":\"Anna\",\"questionId\":\"qa\",\"answer\":\"VERO\",\"idempotencyKey\":\"arena-a-8102\"}";
         String b = "{\"playerId\":\"Bruno\",\"questionId\":\"qb\",\"answer\":\"FALSO\",\"idempotencyKey\":\"arena-b-8102\"}";
         assertThat(request("POST", base + "/arena-answer", anna, null,
@@ -874,6 +882,49 @@ class ReliabilityIntegrationTest {
         assertThat(questionHistory.scores(gameId)).containsEntry("Anna", 10).containsEntry("Bruno", 10);
         gameState.closeRound(gameId, "test");
         assertThat(request("POST", base + "/arena-answer", bruno, null, b).statusCode()).isEqualTo(409);
+    }
+
+    @Test
+    void risposteArenaTardiveNonPassanoAUnAltroRound() throws Exception {
+        long gameId = 8104L;
+        String base = "/games/" + gameId;
+        String anna = sessions.register(gameId, "arena-late-a", "REMOTE", "Anna", null).sessionToken();
+        String bruno = sessions.register(gameId, "arena-late-b", "REMOTE", "Bruno", null).sessionToken();
+        gameState.startRound(gameId, "ARENA", 1, "arena-8104-r1", "{}");
+        questionHistory.assign(gameId, arenaAssignment(gameId, "qa-old", "Anna", "A?", "VERO", "test"));
+        questionHistory.assign(gameId, arenaAssignment(gameId, "qb-old", "Bruno", "B?", "VERO", "test"));
+        String a = "{\"playerId\":\"Anna\",\"questionId\":\"qa-old\",\"answer\":\"VERO\",\"idempotencyKey\":\"arena-late-a\"}";
+        String b = "{\"playerId\":\"Bruno\",\"questionId\":\"qb-old\",\"answer\":\"VERO\",\"idempotencyKey\":\"arena-late-b\"}";
+        assertThat(request("POST", base + "/arena-answer", anna, null, a).statusCode()).isEqualTo(200);
+        assertThat(json.readTree(request("POST", base + "/arena-answer", anna, null, a).body()).path("replayed").asBoolean()).isTrue();
+
+        // Il round e l'assegnazione sopravvivono al riavvio del servizio.
+        QuestionHistoryService restarted = new QuestionHistoryService(questionUsage, stateBlobService);
+        assertThat(restarted.assignment(gameId, "Bruno", "qb-old").orElseThrow().roundStartId())
+                .isEqualTo(gameState.currentRoundStartId(gameId).orElseThrow());
+        gameState.startRound(gameId, "QUIZ", 2, "quiz-8104-r2", "{}");
+        assertThat(request("GET", base + "/arena-question?category=STORIA&playerId=Bruno", bruno, null, null).statusCode()).isEqualTo(409);
+        assertThat(request("POST", base + "/arena-answer", bruno, null, b).statusCode()).isEqualTo(409);
+        assertThat(request("POST", base + "/arena-answer", anna, null, a).statusCode()).isEqualTo(409);
+        gameState.startRound(gameId, "ARENA", 3, "arena-8104-r3", "{}");
+        var stale = request("POST", base + "/arena-answer", bruno, null, b);
+        assertThat(stale.statusCode()).isEqualTo(409);
+        assertThat(json.readTree(stale.body()).path("error").asText()).isEqualTo("arena-question-stale");
+        assertThat(request("POST", base + "/arena-answer", anna, null, a).statusCode()).isEqualTo(409);
+        assertThat(questionHistory.scores(gameId)).containsEntry("Anna", 10).doesNotContainKey("Bruno");
+    }
+
+    @Test
+    void assegnazioneArenaLegacyNonVerificabileNonAssegnaPunti() throws Exception {
+        long gameId = 8105L;
+        String token = sessions.register(gameId, "arena-legacy", "REMOTE", "Anna", null).sessionToken();
+        gameState.startRound(gameId, "ARENA", 1, "arena-legacy", "{}");
+        questionHistory.assign(gameId, new QuestionHistoryService.ArenaAssignment("old", "Anna", "Q?", "VERO", "test"));
+        var response = request("POST", "/games/" + gameId + "/arena-answer", token, null,
+                "{\"playerId\":\"Anna\",\"questionId\":\"old\",\"answer\":\"VERO\",\"idempotencyKey\":\"legacy\"}");
+        assertThat(response.statusCode()).isEqualTo(409);
+        assertThat(json.readTree(response.body()).path("error").asText()).isEqualTo("arena-question-stale");
+        assertThat(questionHistory.scores(gameId)).doesNotContainKey("Anna");
     }
 
     @Test
@@ -903,8 +954,8 @@ class ReliabilityIntegrationTest {
                     + "{\"action\":\"CHRISTMAS_TOGGLE\",\"enabled\":true}\0", true).join();
             assertThat(frames.poll(5, TimeUnit.SECONDS)).contains("CHRISTMAS_TOGGLE");
 
-            questionHistory.assign(gameId,
-                    new QuestionHistoryService.ArenaAssignment("q-ws", "Anna", "Domanda", "VERO", "Storia"));
+            gameState.startRound(gameId, "ARENA", 1, "arena-ws-510", "{}");
+            questionHistory.assign(gameId, arenaAssignment(gameId, "q-ws", "Anna", "Domanda", "VERO", "Storia"));
             Map<String, Object> answer = Map.of("playerId", "Anna", "questionId", "q-ws",
                     "answer", "VERO", "idempotencyKey", "arena-ws-510");
             var accepted = gameController.answerArenaQuestion(gameId, answer);
@@ -927,8 +978,8 @@ class ReliabilityIntegrationTest {
     @Test
     void laRispostaArenaPassaDalControllerSoloUnaVolta() {
         long gameId = 505L;
-        questionHistory.assign(gameId,
-                new QuestionHistoryService.ArenaAssignment("q-2", "SquadraDue", "Domanda", "FALSO", "Storia"));
+        gameState.startRound(gameId, "ARENA", 1, "arena-505", "{}");
+        questionHistory.assign(gameId, arenaAssignment(gameId, "q-2", "SquadraDue", "Domanda", "FALSO", "Storia"));
 
         Map<String, Object> body = new HashMap<>();
         body.put("playerId", "SquadraDue");

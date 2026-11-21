@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Stato autorevole della partita, event log e snapshot.
@@ -50,6 +51,7 @@ public class GameStateService {
     private final StateBlobService stateBlobs;
     /** Un lock per partita: riduce il contention, ma il seq è deciso dal DB. */
     private final ConcurrentMap<Long, Object> eventLocks = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Long, Object> roundCommandLocks = new ConcurrentHashMap<>();
     /** Pause TV in corso: alla ripresa la scadenza viene allungata di quanto è durata. */
     private final ConcurrentMap<Long, Long> roundPauses = new ConcurrentHashMap<>();
     /** La pausa è anche su database: un riavvio non deve perdere il tempo fermo. */
@@ -74,6 +76,32 @@ public class GameStateService {
 
     // ------------------------------------------------------------------ Stato
 
+    /** Serializza i comandi del round con apertura e chiusura nella stessa istanza. */
+    public <T> T withRoundLock(long gameId, Supplier<T> action) {
+        synchronized (roundCommandLocks.computeIfAbsent(gameId, key -> new Object())) {
+            return action.get();
+        }
+    }
+
+    /** Identità univoca dell'apertura, anche quando chiave e timestamp vengono riutilizzati. */
+    public Optional<String> currentRoundStartId(long gameId) {
+        return events.findFirstByGameIdAndTypeOrderBySeqDesc(gameId, "ROUND_STARTED")
+                .map(GameEventEntity::getEventId);
+    }
+
+    /** Anche le ricevute precedenti alla protezione Arena hanno un evento verificabile. */
+    public boolean isCurrentArenaAnswer(long gameId, String eventId, String playerId, String questionId) {
+        if (!isActiveRoundType(gameId, "ARENA") || eventId == null || eventId.isBlank()) return false;
+        var start = events.findFirstByGameIdAndTypeOrderBySeqDesc(gameId, "ROUND_STARTED");
+        var answer = events.findByEventId(eventId);
+        if (start.isEmpty() || answer.isEmpty()) return false;
+        var event = answer.get();
+        if (!Long.valueOf(gameId).equals(event.getGameId()) || !"ARENA_ANSWER".equals(event.getType())
+                || event.getSeq() <= start.get().getSeq()) return false;
+        JSONObject payload = new JSONObject(event.getPayload());
+        return playerId.equals(payload.optString("playerName")) && questionId.equals(payload.optString("questionId"));
+    }
+
     public GameStateEntity state(long gameId) {
         return states.findById(gameId).orElseGet(() -> ensureState(gameId));
     }
@@ -96,6 +124,10 @@ public class GameStateService {
      * calcolata dal telefono e resta valida anche dopo un riavvio.
      */
     public Change startRound(long gameId, String type, int roundIndex, String roundKey, String payload) {
+        return withRoundLock(gameId, () -> startRoundLocked(gameId, type, roundIndex, roundKey, payload));
+    }
+
+    private Change startRoundLocked(long gameId, String type, int roundIndex, String roundKey, String payload) {
         long now = System.currentTimeMillis();
         forgetPause(gameId);
         long deadline = now + windowSecondsFor(type) * 1000L;
@@ -178,6 +210,10 @@ public class GameStateService {
      * verrà spostata in avanti di tutta la durata della pausa alla ripresa.
      */
     public boolean pauseRound(long gameId) {
+        return withRoundLock(gameId, () -> pauseRoundLocked(gameId));
+    }
+
+    private boolean pauseRoundLocked(long gameId) {
         boolean running = states.findById(gameId)
                 .map(state -> "RUNNING".equals(state.getStatus()))
                 .orElse(false);
@@ -206,6 +242,10 @@ public class GameStateService {
      * solo spostata in avanti della pausa, restando comunque passata.</p>
      */
     public long resumeRound(long gameId) {
+        return withRoundLock(gameId, () -> resumeRoundLocked(gameId));
+    }
+
+    private long resumeRoundLocked(long gameId) {
         Long pausedAt = roundPauses.remove(gameId);
         if (pausedAt == null) {
             pausedAt = savedPause(gameId).orElse(null);
@@ -284,6 +324,10 @@ public class GameStateService {
 
     /** Chiude esplicitamente il round: nessuna risposta tardiva accettata. */
     public Change closeRound(long gameId, String reason) {
+        return withRoundLock(gameId, () -> closeRoundLocked(gameId, reason));
+    }
+
+    private Change closeRoundLocked(long gameId, String reason) {
         forgetPause(gameId);
         Change change = appendEvent(gameId, "ROUND_CLOSED",
                 new JSONObject().put("reason", reason).toString(), null, null,
@@ -523,6 +567,13 @@ public class GameStateService {
      * mentre il server restava al round della serata precedente.
      */
     public void reset(long gameId) {
+        withRoundLock(gameId, () -> {
+            resetLocked(gameId);
+            return null;
+        });
+    }
+
+    private void resetLocked(long gameId) {
         stateBlobs.forget(gameId, TV_CHECKPOINT_BLOB);
         stateBlobs.forget(gameId, BONUS_ACT_BLOB);
         tx.executeWithoutResult(status -> {

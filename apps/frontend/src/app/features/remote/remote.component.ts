@@ -2553,6 +2553,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
           console.error('❌ Risposta arena rifiutata dal server:', err);
           // Durante la pausa la domanda resta valida: si potrà riprovare alla ripresa.
           if (this.arenaQuestion()?.questionId !== questionId) return;
+          // Una domanda precedente o legacy non vale nel round corrente.
+          // Scartala e chiedine un'altra, senza lasciare il telefono in attesa.
+          if (err?.status === 409 && err?.error?.error === 'arena-question-stale') {
+            this.invalidateArenaQuestion();
+            if (this.roundActive() && this.questionType() === 'ARENA' && !this.paused()) {
+              this.generateNextArenaQuestion();
+            }
+            return;
+          }
           // Round chiuso o scaduto: non si insiste, si aspetta la TV.
           if (err?.status === 409 && err?.error?.error !== 'round-paused') {
             this.invalidateArenaQuestion();

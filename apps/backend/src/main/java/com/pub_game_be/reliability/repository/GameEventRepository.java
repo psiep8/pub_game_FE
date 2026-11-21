@@ -16,6 +16,10 @@ public interface GameEventRepository extends JpaRepository<GameEventEntity, Long
 
     Optional<GameEventEntity> findFirstByGameIdOrderBySeqDesc(Long gameId);
 
+    Optional<GameEventEntity> findFirstByGameIdAndTypeOrderBySeqDesc(Long gameId, String type);
+
+    Optional<GameEventEntity> findByEventId(String eventId);
+
     long countByGameId(Long gameId);
 
     long deleteByGameId(Long gameId);

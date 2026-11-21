@@ -220,13 +220,17 @@ public class GameController {
     public ResponseEntity<String> getArenaQuestion(@PathVariable("gameId") Long gameId,
             @RequestParam("category") String category,
             @RequestParam(value = "playerId", defaultValue = "anonimo") String playerId) {
+        return gameStateService.withRoundLock(gameId, () -> getArenaQuestionLocked(gameId, category, playerId));
+    }
+
+    private ResponseEntity<String> getArenaQuestionLocked(Long gameId, String category, String playerId) {
         if (gameStateService.isRoundPaused(gameId)) {
             return ResponseEntity.status(409).body(new JSONObject()
                     .put("error", "round-paused")
                     .put("retryAfterMs", 1000)
                     .toString());
         }
-        if (!gameStateService.isRoundOpen(gameId)) {
+        if (!gameStateService.isActiveRoundType(gameId, "ARENA")) {
             // Il telefono arriva spesso un istante prima dell'apertura del
             // round: 409 con l'attesa consigliata, così ritenta invece di
             // restare senza domanda per tutta la battaglia.
@@ -278,8 +282,9 @@ public class GameController {
         questionHistory.countArenaSide(gameId, "VERO".equalsIgnoreCase(question.correctAnswer()));
 
         String questionId = questionHistory.nextQuestionId(gameId);
+        String roundStartId = gameStateService.currentRoundStartId(gameId).orElseThrow();
         questionHistory.assign(gameId, new QuestionHistoryService.ArenaAssignment(questionId, playerId,
-                question.question(), question.correctAnswer(), question.category()));
+                question.question(), question.correctAnswer(), question.category(), roundStartId));
 
         JSONObject response = new JSONObject(question.json());
         // La risposta esatta resta sul server finché il giocatore non risponde.
@@ -572,6 +577,10 @@ public class GameController {
     @PostMapping("/{gameId}/arena-answer")
     public ResponseEntity<Object> answerArenaQuestion(@PathVariable("gameId") Long gameId,
             @RequestBody Map<String, Object> body) {
+        return gameStateService.withRoundLock(gameId, () -> answerArenaQuestionLocked(gameId, body));
+    }
+
+    private ResponseEntity<Object> answerArenaQuestionLocked(Long gameId, Map<String, Object> body) {
         String playerId = String.valueOf(body.getOrDefault("playerId", "anonimo"));
         String questionId = String.valueOf(body.getOrDefault("questionId", ""));
         String answer = String.valueOf(body.getOrDefault("answer", ""));
@@ -582,11 +591,18 @@ public class GameController {
         if (gameStateService.isRoundPaused(gameId)) {
             return ResponseEntity.status(409).body(Map.of("error", "round-paused"));
         }
-        if (!gameStateService.isRoundOpen(gameId)) {
+        if (!gameStateService.isActiveRoundType(gameId, "ARENA")) {
             return ResponseEntity.status(409).body(Map.of(
                     "error", "round-closed",
                     "message", "Il round è scaduto: la risposta non è stata registrata.",
                     "deadlineAt", gameStateService.roundDeadline(gameId).orElse(0L)));
+        }
+        var assignment = questionHistory.assignment(gameId, playerId, questionId);
+        // Le assegnazioni legacy senza identità non sono verificabili: il client
+        // deve scartarle e richiedere una nuova domanda, senza assegnare punti.
+        if (assignment.isPresent() && (assignment.get().roundStartId().isBlank()
+                || !gameStateService.currentRoundStartId(gameId).filter(assignment.get().roundStartId()::equals).isPresent())) {
+            return ResponseEntity.status(409).body(Map.of("error", "arena-question-stale"));
         }
 
         // Idempotenza + ACK dopo il commit: se la transazione non conferma il
@@ -617,6 +633,12 @@ public class GameController {
         if (result == null) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "Domanda non trovata per questo giocatore"));
+        }
+        // Una ricevuta (anche legacy) vale solo se il suo evento appartiene a
+        // questa domanda e segue l'apertura del round Arena corrente.
+        if (Boolean.TRUE.equals(result.get("replayed"))
+                && !gameStateService.isCurrentArenaAnswer(gameId, String.valueOf(result.get("eventId")), playerId, questionId)) {
+            return ResponseEntity.status(409).body(Map.of("error", "round-closed"));
         }
         // Pubblica solo dopo executeOnce: un retry con la stessa chiave non
         // deve assegnare una seconda volta i punti alla classifica della TV.

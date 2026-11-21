@@ -30,7 +30,10 @@ public class QuestionHistoryService {
 
     /** Domanda servita a un dispositivo: la risposta corretta resta sul server. */
     public record ArenaAssignment(String questionId, String playerId, String question,
-            String correctAnswer, String category) {
+            String correctAnswer, String category, String roundStartId) {
+        public ArenaAssignment(String questionId, String playerId, String question, String correctAnswer, String category) {
+            this(questionId, playerId, question, correctAnswer, category, "");
+        }
     }
 
     /** Esito di una risposta dell'arena, calcolato dal server. */
@@ -349,7 +352,8 @@ public class QuestionHistoryService {
                             row.optString("playerId", ""),
                             row.optString("question", ""),
                             row.optString("correctAnswer", ""),
-                            row.optString("category", "")));
+                            row.optString("category", ""),
+                            row.optString("roundStartId", "")));
                 }
                 assignments.put(gameId, restored);
             }
@@ -418,7 +422,8 @@ public class QuestionHistoryService {
                         .put("playerId", assignment.playerId())
                         .put("question", assignment.question())
                         .put("correctAnswer", assignment.correctAnswer())
-                        .put("category", assignment.category())));
+                        .put("category", assignment.category())
+                        .put("roundStartId", assignment.roundStartId())));
         json.put("assignments", assignmentsJson);
 
         JSONObject scoresJson = new JSONObject();

@@ -261,8 +261,8 @@ class RoundPauseTest {
     void arenaNonAssegnaDomandeONuoviPuntiDuranteLaPausa() {
         long gameId = 731L;
         gameState.startRound(gameId, "ARENA", 1, "g731-r1", "{}");
-        questionHistory.assign(gameId,
-                new QuestionHistoryService.ArenaAssignment("q-pause", "Anna", "Domanda", "VERO", "Storia"));
+        questionHistory.assign(gameId, new QuestionHistoryService.ArenaAssignment(
+                "q-pause", "Anna", "Domanda", "VERO", "Storia", gameState.currentRoundStartId(gameId).orElseThrow()));
         Map<String, Object> answer = Map.of("playerId", "Anna", "questionId", "q-pause",
                 "answer", "VERO", "idempotencyKey", "q-pause-key");
         assertThat(gameState.pauseRound(gameId)).isTrue();
