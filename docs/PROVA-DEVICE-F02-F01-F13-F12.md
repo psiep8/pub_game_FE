@@ -1,6 +1,6 @@
-# Giro di prova su device — F02, F01, F13, F12, F09
+# Giro di prova su device — F02, F16, F01, F13, F12, F09
 
-Una sola sessione con TV e due telefoni, 45–60 minuti (75–90 con F09 e i casi
+Una sola sessione con TV e due telefoni, 75–90 minuti (90–105 con F09 e i casi
 palette di F12). Serve a chiudere ciò che
 jsdom non può dire: bfcache, storage delle PWA, rete reale, percezione in sala.
 
@@ -27,13 +27,30 @@ Controlli a freddo:
 - [ ] TV su `/` con la partita aperta, QR visibile.
 - [ ] Due telefoni entrati, squadre distinte, tutorial completato su entrambi.
 - [ ] Un round già chiuso con punti a una squadra (serve a F12).
+- [ ] La regia può chiudere un round e avviarne un altro Quiz (serve a F16).
 
 ---
 
-## 2. F02 — Rientro del telefono (15 minuti)
+## 2. F02 — Rientro del telefono e voti legacy (20 minuti)
 
-Per ogni prova: sul telefono interessato, ricaricare la pagina **dal browser**
+Per R1–R13: sul telefono interessato, ricaricare la pagina **dal browser**
 (⟳), non rientrare dalla Home. Aspettare 3 secondi e guardare cosa c'è a schermo.
+
+### Preparazione R14–R15 — copia di un database precedente
+
+Non usare il database della serata. Con il backend spento:
+
+1. copiare il file H2 indicato dal responsabile (per il profilo di prova
+   `apps/backend/data/pubgame-test-night.mv.db`; altrimenti il backup della
+   serata) in una posizione di prova, per esempio
+   `/tmp/pubgame-prova-legacy.mv.db`;
+2. avviare il backend sulla copia con
+   `DB_URL='jdbc:h2:file:/tmp/pubgame-prova-legacy;DB_CLOSE_DELAY=-1'`, lasciando
+   il resto dell'ambiente di prova invariato;
+3. verificare che la copia contenga un blob `quiz` **senza** `roundStartId`: è
+   la condizione lasciata da una versione precedente. Se il blob ha già
+   `roundStartId`, la copia non serve a questa prova: annotarlo e usare un
+   backup più vecchio.
 
 | # | Prova | Cosa deve succedere | Esito | Note / cosa si è visto |
 |---|---|---|---|---|
@@ -50,14 +67,39 @@ Per ogni prova: sul telefono interessato, ricaricare la pagina **dal browser**
 | R11 | Regia: espelli il telefono A mentre è aperto | Avviso «La regia ha rimosso la squadra»; un tocco residuo non manda voti; la TV toglie la squadra | | |
 | R12 | Due schede sullo stesso telefono | La seconda mostra «Partita aperta in un'altra scheda» e non risponde; chiudendo la prima, la seconda torna attiva al ritorno in primo piano | | |
 | R13 | Sessione non riconosciuta (serata diversa o token scaduto) | Form col nome pronto + «La sessione è scaduta»; nessun ingresso automatico | | |
+| R14 | Con la copia legacy avviata: entra nella partita e apri il round Quiz; ricarica **entrambi i telefoni** dal browser, poi ricarica la TV e premi RIPRENDI | Dopo i refresh i due telefoni non offrono una domanda votabile: nessun tasto di risposta attivo e nessun voto registrabile; i voti legacy non compaiono. La TV mostra l'avviso «Quiz precedente non verificabile: i voti salvati sono conservati, ma non è sicuro riprendere» e non riapre la manche | | |
+| R15 | Dalla regia chiudi il round e apri un Quiz **nuovo** (chiave di round diversa); vota da un telefono | La manche nuova parte con risposte vuote; i voti legacy non compaiono; il telefono vota regolarmente. Sulla copia, la riga `quiz-legacy-archive` è una sola e contiene il primo legacy; resta invariata dopo un secondo legacy/round | | |
 
 Da guardare in ogni prova: la TV non deve ricevere due volte la stessa risposta o
 lo stesso ordine Timeline, e la classifica non deve cambiare dopo un refresh del
 telefono.
 
+Per R15, a backend spento, controllare la copia con H2 Shell (sola lettura):
+`SELECT blob_key, payload FROM state_blob WHERE game_id = <id> AND blob_key LIKE 'quiz%'`.
+L'archivio conserva il **primo** legacy; un secondo legacy non lo sostituisce.
+
 ---
 
-## 3. F01 — Ingresso su iPhone/Safari (5 minuti)
+## 3. F16 — Annunci Quiz, cambio round e refresh (15 minuti)
+
+Servono la TV e due telefoni già in squadra (A e B) e la regia pronta a
+chiudere o avanzare il round. Il difetto da escludere è un annuncio Quiz **già
+accettato** che arriva ai telefoni dopo il cambio round, o che arriva due volte.
+Ripetere Q2–Q4 almeno tre volte: è una corsa, non un caso deterministico.
+
+| # | Prova | Cosa deve succedere | Esito | Note |
+|---|---|---|---|---|
+| Q1 | Primo round Quiz: apri la manche dalla TV | Entrambi i telefoni mostrano la domanda e i tasti; ogni telefono vota una volta; la TV mostra una sola risposta per telefono | | |
+| Q2 | Manche aperta: dalla regia chiudi il round e avviane un altro Quiz mentre i telefoni mostrano ancora la domanda | I telefoni non mostrano più la domanda vecchia; un tocco residuo non invia voti al round nuovo; nessun annuncio del round precedente riappare | | |
+| Q3 | Cambio round **subito dopo l'apertura**, prima che i telefoni mostrino la domanda (3 volte) | L'annuncio del round superato non apre i tasti e non crea voti; il round nuovo arriva una volta sola, a entrambi i telefoni | | |
+| Q4 | **Refresh TV (F5) durante l'annuncio**, entro 1–2 s dall'apertura; al ritorno premi RIPRENDI | La TV riprende il round aperto e riannuncia la manche corrente; i telefoni non ricevono un secondo annuncio né uno vecchio; i voti restano una volta sola | | |
+| Q5 | Dopo Q4 vota da entrambi i telefoni | Un voto per telefono e manche; la TV mostra entrambe le risposte; la classifica non raddoppia i punti | | |
+| Q6 | *(opzionale, rete lenta sul telefono B)* Ripeti Q3 con throttling | Il telefono scarta l'annuncio superato e accetta solo quello corrente | | |
+
+Se la TV non mostra RIPRENDI dopo il refresh, annotare il comportamento senza
+forzare la ripresa: Q4 resta non eseguita.
+
+## 4. F01 — Ingresso su iPhone/Safari (5 minuti)
 
 - [ ] Aprire il link del QR su iPhone **Safari**, da freddo (scheda nuova).
   Per 20 secondi: l'URL resta stabile, la pagina non si ricarica da sola, si
@@ -77,7 +119,7 @@ smette da solo dopo N secondi o resta bloccato.
 
 ---
 
-## 4. F13 — CORS e origini reali (10 minuti)
+## 5. F13 — CORS e origini reali (10 minuti)
 
 Serve il PC con i log del backend visibili.
 
@@ -102,7 +144,7 @@ risultato non è riproducibile.
 
 ---
 
-## 5. F12 — Tema TV e palette delle squadre (15–20 minuti)
+## 6. F12 — Tema TV e palette delle squadre (15–20 minuti)
 
 Serve un round chiuso con punti a una sola squadra, poi uno con pari merito, e
 almeno tre telefoni: due restano in partita, il terzo serve alle prove di
@@ -148,7 +190,7 @@ non distingue «colore simile» da «colore identico».
 
 ---
 
-## 6. F09 — Classifica rapida su TV vera (10–15 minuti)
+## 7. F09 — Classifica rapida su TV vera (10–15 minuti)
 
 Le misure a 720p sono già state fatte sul componente Angular vero
 (`docs/screenshots/f09-classifica-rapida-*-720p.png`): quello che manca è la
@@ -175,9 +217,9 @@ fermarsi, non improvvisare una quarta colonna in sala.
 
 ---
 
-## 7. Formato di esito per la roadmap
+## 8. Formato di esito per la roadmap
 
-Per ogni voce toccata (F01, F02, F12, F13, F09) riportare **quattro campi**, con lo
+Per ogni voce toccata (F01, F02, F16, F12, F13, F09) riportare **quattro campi**, con lo
 stesso schema delle righe esistenti:
 
 ```
@@ -201,7 +243,8 @@ Note obbligatorie accanto all'esito:
 | Voce | Esito complessivo | Prove passate | Cosa resta aperto |
 |---|---|---|---|
 | F01 | | /4 | |
-| F02 | | /13 | |
+| F02 | | /15 | |
+| F16 | | /5 (+1) | |
 | F12 | | /14 | |
 | F13 | | /6 | |
 | F09 | | /7 (+1) | |
