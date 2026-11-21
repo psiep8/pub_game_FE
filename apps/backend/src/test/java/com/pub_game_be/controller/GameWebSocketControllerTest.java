@@ -36,7 +36,7 @@ class GameWebSocketControllerTest {
     void nonRilanciaUnaPrenotazioneDopoLaScadenza() {
         when(gameState.isRoundOpen(7L)).thenReturn(false);
 
-        Map<String, Object> result = controller.updateStatus(7L, Map.of(
+        Map<String, Object> result = controller.relayStatus(7L, Map.of(
                 "action", "PLAYER_PRENOTATO", "name", "Anna", "type", "IMAGE_BLUR"));
 
         assertThat(result).isNull();
@@ -82,7 +82,7 @@ class GameWebSocketControllerTest {
                 "kind", "BET",
                 "value", Map.of("chips", List.of(2, 0, 1, 0)));
 
-        Map<String, Object> result = controller.updateStatus(1L, status);
+        Map<String, Object> result = controller.relayStatus(1L, status);
 
         assertThat(result).containsEntry("action", "AZZARDO_ACTION");
         assertThat(result).containsEntry("playerName", "Anna");
@@ -97,7 +97,7 @@ class GameWebSocketControllerTest {
                 "kind", "BET",
                 "value", Map.of("chips", List.of(6, 5, 0, 0)));
 
-        Map<String, Object> result = controller.updateStatus(1L, status);
+        Map<String, Object> result = controller.relayStatus(1L, status);
 
         assertThat(result).containsEntry("action", "AZZARDO_REJECTED");
         assertThat(result).containsEntry("reason", "invalid-chips");
@@ -105,14 +105,14 @@ class GameWebSocketControllerTest {
 
     @Test
     void rejectsNegativeOrFractionalChips() {
-        assertThat(controller.updateStatus(1L, Map.of(
+        assertThat(controller.relayStatus(1L, Map.of(
                 "action", "AZZARDO_ACTION",
                 "playerName", "Anna",
                 "kind", "BET",
                 "value", Map.of("chips", List.of(-1, 2)))))
                 .containsEntry("action", "AZZARDO_REJECTED");
 
-        assertThat(controller.updateStatus(1L, Map.of(
+        assertThat(controller.relayStatus(1L, Map.of(
                 "action", "AZZARDO_ACTION",
                 "playerName", "Anna",
                 "kind", "BET",
@@ -122,23 +122,25 @@ class GameWebSocketControllerTest {
 
     @Test
     void rifiutaEsitiArenaInviatiDaiClient() {
-        assertThatThrownBy(() -> controller.updateStatus(1L, Map.of(
+        assertThatThrownBy(() -> controller.relayStatus(1L, Map.of(
                 "action", "ARENA_ANSWER", "playerName", "Anna", "isCorrect", true, "points", 9999)))
                 .isInstanceOf(AccessDeniedException.class);
     }
 
     @Test
     void rimuoveSoluzioniAnnidateDalTopicPubblico() {
-        Map<String, Object> result = controller.updateStatus(1L, Map.of(
-                "action", "QUIZ_STATE", "state", Map.of(
+        when(gameState.isActiveRoundType(1L, "QUIZ")).thenReturn(true);
+        when(gameState.currentRoundStartId(1L)).thenReturn(Optional.of("quiz-round"));
+        Map<String, Object> result = controller.relayStatus(1L, Map.of(
+                "action", "QUIZ_STATE", "roundStartId", "quiz-round", "state", Map.of(
                         "currentManche", Map.of("question", "Q", "correctAnswer", "A"),
                         "summary", List.of(Map.of("correctAnswer", "B")))));
         assertThat(result.toString()).doesNotContain("correctAnswer");
         assertThat(result.toString()).contains("question");
-        Map<String, Object> booking = controller.updateStatus(1L, Map.of(
+        Map<String, Object> booking = controller.relayStatus(1L, Map.of(
                 "action", "PLAYER_PRENOTATO", "name", "Anna", "solution", "Segreto"));
         assertThat(booking).doesNotContainKey("solution");
-        Map<String, Object> start = controller.updateStatus(1L, Map.of(
+        Map<String, Object> start = controller.relayStatus(1L, Map.of(
                 "action", "START_VOTING", "rawPayload", "{\"correctAnswer\":\"A\"}",
                 "payload", "{\"question\":\"Q\",\"correctAnswer\":\"A\"}"));
         assertThat(start).doesNotContainKey("rawPayload");
@@ -147,7 +149,7 @@ class GameWebSocketControllerTest {
 
     @Test
     void relaysChristmasToggle() {
-        Map<String, Object> result = controller.updateStatus(1L, Map.of(
+        Map<String, Object> result = controller.relayStatus(1L, Map.of(
                 "action", "CHRISTMAS_TOGGLE",
                 "enabled", true,
                 "extra", "ignored"));

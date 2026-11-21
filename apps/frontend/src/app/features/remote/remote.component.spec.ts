@@ -227,6 +227,48 @@ describe('RemoteComponent', () => {
     expect(component.quizManche()).toBe(1);
   });
 
+  it('due telefoni scartano un annuncio Quiz recapitato dopo il round successivo', async () => {
+    const second = TestBed.createComponent(RemoteComponent);
+    const phoneB = second.componentInstance;
+    second.detectChanges();
+    await second.whenStable();
+    for (const [phone, name] of [[component, 'Anna'], [phoneB, 'Bruno']] as const) {
+      phone.tempNickname = name;
+      await phone.setNickname();
+      phone.closeButtonTest();
+    }
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const submit = vi.spyOn(game, 'submitQuizAnswer')
+      .mockReturnValue(of({ manche: 1, isCorrect: true, points: 100 }));
+    const announce = (action: string, roundStartId: string, roundStartedAt: number) => {
+      ws.status$.next(action === 'QUIZ_STATE'
+        ? { action, roundStartId, roundStartedAt, state: { manche: 2 } }
+        : { action, type: 'QUIZ', roundStartId, roundStartedAt, payload: {} });
+    };
+
+    announce('SHOW_QUESTION', 'round-2', 2000);
+    announce('START_VOTING', 'round-2', 2000);
+    announce('QUIZ_STATE', 'round-2', 2000);
+    // Accettati prima del cambio round, ma consegnati solo adesso.
+    announce('QUIZ_STATE', 'round-1', 1000);
+    announce('START_VOTING', 'round-1', 1000);
+    announce('SHOW_QUESTION', 'round-1', 1000);
+
+    for (const phone of [component, phoneB]) {
+      expect(phone.quizManche()).toBe(2);
+      expect(phone.questionType()).toBe('QUIZ');
+      expect(phone.gameState()).toBe(PlayerStatus.VOTING);
+    }
+
+    component.sendVote(0);
+    phoneB.sendVote(1);
+
+    // Entrambi votano il round corrente, non quello dell'annuncio tardivo.
+    expect(submit).toHaveBeenNthCalledWith(1, 1, 0, 1, 'round-2');
+    expect(submit).toHaveBeenNthCalledWith(2, 1, 1, 1, 'round-2');
+    second.destroy();
+  });
+
   it.each([false, true])('il primo Quiz non eredita il voto del gioco precedente (annuncio: %s)', async (announced) => {
     component.tempNickname = 'Anna';
     await component.setNickname();

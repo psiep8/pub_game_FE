@@ -234,6 +234,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   quizManche = signal(0);
   answeredManche = signal(0);
   private quizRoundStartId = '';
+  /** Istante server dell'apertura Quiz: ordina un annuncio recapitato in ritardo. */
+  private quizRoundStartedAt = 0;
   private quizVoteGeneration = 0;
   private quizSummaryGeneration = 0;
   private quizSummaryPending: { roundKey: string; generation: number } | null = null;
@@ -592,6 +594,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
       switch (status.action) {
         case 'SHOW_QUESTION':
+          if (status.type === 'QUIZ' && !this.acceptQuizAnnouncement(status)) return;
           if (status.type === 'QUIZ') {
             this.invalidateQuizSummary();
             this.quizVoteGeneration++;
@@ -630,6 +633,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
 
         case 'START_VOTING':
+          if (status.type === 'QUIZ' && !this.acceptQuizAnnouncement(status)) return;
           if (status.type === 'QUIZ' && typeof status.roundStartId === 'string' && status.roundStartId) {
             this.quizRoundStartId = status.roundStartId;
           }
@@ -648,6 +652,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
 
         case 'QUIZ_STATE': {
+          if (!this.acceptQuizAnnouncement(status)) return;
           if (typeof status.roundStartId === 'string' && status.roundStartId) {
             this.quizRoundStartId = status.roundStartId;
           }
@@ -769,6 +774,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.invalidateQuizSummary();
           this.quizVoteGeneration++;
           this.quizRoundStartId = '';
+          this.quizRoundStartedAt = 0;
           this.roundActive.set(false);
           this.cancelTimelineSend();
           this.speedLoadSeq++;
@@ -2624,6 +2630,25 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Un annuncio Quiz accettato prima del cambio round può essere recapitato
+   * dopo: se appartiene a un'apertura più vecchia di quella già vista non deve
+   * riportare il telefono alla manche precedente. Senza l'istante server (TV o
+   * backend precedenti) il messaggio resta valido come prima.
+   */
+  private acceptQuizAnnouncement(status: any): boolean {
+    const id = typeof status?.roundStartId === 'string' ? status.roundStartId.trim() : '';
+    if (!id) return true;
+    const raw = Number(status?.roundStartedAt);
+    const startedAt = Number.isFinite(raw) && raw > 0 ? raw : 0;
+    if (this.quizRoundStartId && id !== this.quizRoundStartId
+        && startedAt > 0 && this.quizRoundStartedAt > 0
+        && startedAt < this.quizRoundStartedAt) return false;
+    this.quizRoundStartId = id;
+    if (startedAt > 0) this.quizRoundStartedAt = startedAt;
+    return true;
+  }
+
+  /**
    * Stato autorevole tornato dal server dopo una riconnessione: ripristina la
    * schermata giusta senza inventare nulla. Le risposte già date restano date.
    */
@@ -2636,6 +2661,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.invalidateQuizSummary();
       this.quizVoteGeneration++;
       this.quizRoundStartId = '';
+      this.quizRoundStartedAt = 0;
       this.invalidateArenaQuestion();
       this.cancelTimelineSend();
       this.stopBombaPolling();
@@ -2692,6 +2718,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.invalidateQuizSummary();
       this.quizVoteGeneration++;
       this.quizRoundStartId = '';
+      this.quizRoundStartedAt = 0;
       this.quizManche.set(0);
       if (this.lastSnapshotRoundKey) {
         this.invalidateArenaQuestion();
@@ -2704,7 +2731,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.answeredManche.set(0);
     }
 
-    if (type === 'QUIZ' && snapshotRoundStartId) this.quizRoundStartId = snapshotRoundStartId;
+    if (type === 'QUIZ' && snapshotRoundStartId) {
+      this.quizRoundStartId = snapshotRoundStartId;
+      const startedAt = Number(snapshot?.roundStartedAt);
+      if (Number.isFinite(startedAt) && startedAt > 0) this.quizRoundStartedAt = startedAt;
+    }
 
     // I bonus non sono round backend: uno snapshot del round precedente già
     // chiuso non deve spegnere la loro schermata mentre sono in corso.
@@ -2727,6 +2758,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.invalidateQuizSummary();
       this.quizVoteGeneration++;
       this.quizRoundStartId = '';
+      this.quizRoundStartedAt = 0;
       this.invalidateArenaQuestion();
       this.cancelTimelineSend();
       this.gameState.set(PlayerStatus.WAITING);

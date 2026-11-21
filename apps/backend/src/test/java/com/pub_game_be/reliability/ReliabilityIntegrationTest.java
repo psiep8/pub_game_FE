@@ -923,6 +923,103 @@ class ReliabilityIntegrationTest {
         }
     }
 
+    /**
+     * Un annuncio accettato mentre il round cambia non deve essere consegnato
+     * ai telefoni dopo il via del round nuovo: la pubblicazione avviene nello
+     * stesso lock dell'apertura, quindi entrambi i telefoni vedono l'ordine
+     * del server.
+     */
+    @Test
+    void dueTelefoniNonRicevonoUnAnnuncioQuizDopoIlCambioRound() throws Exception {
+        long gameId = 8108L;
+        String payload = "{}";
+        String tv = sessions.register(gameId, "order-tv", "TV", null, null).sessionToken();
+        String anna = sessions.register(gameId, "order-a", "REMOTE", "Anna", null).sessionToken();
+        String bruno = sessions.register(gameId, "order-b", "REMOTE", "Bruno", null).sessionToken();
+        gameState.startRound(gameId, "QUIZ", 1, "order-r1", payload);
+        String first = gameState.currentRoundStartId(gameId).orElseThrow();
+        BlockingQueue<String> framesA = new LinkedBlockingQueue<>();
+        BlockingQueue<String> framesB = new LinkedBlockingQueue<>();
+        WebSocket a = socket(anna, framesA);
+        WebSocket b = socket(bruno, framesB);
+        WebSocket screen = socket(tv, new LinkedBlockingQueue<>());
+        String prefix = "SEND\ndestination:/app/game/" + gameId + "/status\ncontent-type:application/json\n\n";
+        try {
+            a.sendText("SUBSCRIBE\nid:a\ndestination:/topic/game/" + gameId + "/status\n\n\0", true).join();
+            b.sendText("SUBSCRIBE\nid:b\ndestination:/topic/game/" + gameId + "/status\n\n\0", true).join();
+            boolean seenA = false, seenB = false;
+            for (int attempt = 0; attempt < 10 && !(seenA && seenB); attempt++) {
+                screen.sendText(prefix + "{\"action\":\"CHRISTMAS_TOGGLE\",\"enabled\":true}\0", true).join();
+                if (framesA.poll(300, TimeUnit.MILLISECONDS) != null) seenA = true;
+                if (framesB.poll(300, TimeUnit.MILLISECONDS) != null) seenB = true;
+            }
+            assertThat(seenA && seenB).isTrue();
+            framesA.clear();
+            framesB.clear();
+
+            // L'annuncio del round 1 e il cambio round corrono insieme.
+            ExecutorService opener = Executors.newSingleThreadExecutor();
+            try {
+                Future<?> announcement = opener.submit(() -> screen.sendText(prefix
+                        + "{\"action\":\"START_VOTING\",\"type\":\"QUIZ\",\"roundStartId\":\"" + first + "\"}\0",
+                        true).join());
+                gameState.startRound(gameId, "QUIZ", 2, "order-r2", payload);
+                String second = gameState.currentRoundStartId(gameId).orElseThrow();
+                announcement.get(10, TimeUnit.SECONDS);
+                screen.sendText(prefix + "{\"action\":\"START_VOTING\",\"type\":\"QUIZ\",\"roundStartId\":\""
+                        + second + "\"}\0", true).join();
+                // Sonda con un testo unico: un CHRISTMAS della sottoscrizione
+                // poteva essere ancora in volo e chiudere la raccolta in anticipo.
+                screen.sendText(prefix + "{\"action\":\"BUTTON_TEST_PING\",\"probe\":\"order-8108\"}\0", true).join();
+
+                for (BlockingQueue<String> frames : List.of(framesA, framesB)) {
+                    List<String> ids = new ArrayList<>();
+                    List<Long> started = new ArrayList<>();
+                    for (String frame : framesUntil(frames, "order-8108")) {
+                        JsonNode body = stompBody(frame);
+                        if (body == null || !"START_VOTING".equals(body.path("action").asText())) continue;
+                        ids.add(body.path("roundStartId").asText());
+                        started.add(body.path("roundStartedAt").asLong());
+                    }
+                    assertThat(ids).isNotEmpty();
+                    // Se il primo annuncio è passato, precede il secondo; in
+                    // nessun caso un annuncio vecchio arriva dopo quello nuovo.
+                    assertThat(ids.get(ids.size() - 1)).isEqualTo(second);
+                    if (ids.contains(first)) assertThat(ids.indexOf(first)).isLessThan(ids.indexOf(second));
+                    assertThat(started).isSorted().allMatch(value -> value > 0);
+                }
+            } finally {
+                opener.shutdownNow();
+            }
+        } finally {
+            a.abort(); b.abort(); screen.abort();
+        }
+    }
+
+    private List<String> framesUntil(BlockingQueue<String> frames, String text) throws InterruptedException {
+        List<String> seen = new ArrayList<>();
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        long remaining;
+        while ((remaining = deadline - System.nanoTime()) > 0) {
+            String frame = frames.poll(remaining, TimeUnit.NANOSECONDS);
+            if (frame == null) return seen;
+            seen.add(frame);
+            if (frame.contains(text)) return seen;
+        }
+        return seen;
+    }
+
+    /** Corpo JSON di un frame STOMP, senza terminatori. */
+    private JsonNode stompBody(String frame) {
+        int body = frame.indexOf("\n\n");
+        if (body < 0) return null;
+        try {
+            return json.readTree(frame.substring(body + 2).replace("\0", "").trim());
+        } catch (Exception malformed) {
+            return null;
+        }
+    }
+
     private String frameContaining(BlockingQueue<String> frames, String text) throws InterruptedException {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
         long remaining;

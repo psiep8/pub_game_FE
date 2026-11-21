@@ -58,19 +58,33 @@ public class GameWebSocketController {
         return sanitized;
     }
 
+    /**
+     * Recapito degli annunci TV.
+     *
+     * <p>Il messaggio viene pubblicato dentro lo stesso lock con cui si apre e
+     * si chiude il round. Prima il ritorno di {@code @SendTo} usciva dal lock:
+     * un annuncio già accettato poteva quindi essere consegnato ai telefoni
+     * dopo il via del round successivo, riportandoli alla manche precedente.</p>
+     */
     @MessageMapping("/game/{gameId}/status")
-    @SendTo("/topic/game/{gameId}/status")
-    public Map<String, Object> updateStatus(@DestinationVariable("gameId") Long gameId, Map<String, Object> status) {
-        return gameStateService.withRoundLock(gameId, () -> updateStatusLocked(gameId, status));
+    public void updateStatus(@DestinationVariable("gameId") Long gameId, Map<String, Object> status) {
+        gameStateService.withRoundLock(gameId, () -> {
+            relayStatus(gameId, status);
+            return null;
+        });
     }
 
-    private Map<String, Object> updateStatusLocked(Long gameId, Map<String, Object> status) {
+    Map<String, Object> relayStatus(Long gameId, Map<String, Object> status) {
         boolean quizMessage = "QUIZ_STATE".equals(status.get("action"))
                 || ("QUIZ".equals(status.get("type"))
                     && Set.of("SHOW_QUESTION", "START_VOTING").contains(status.get("action")));
-        if (quizMessage && (!gameStateService.isActiveRoundType(gameId, "QUIZ")
-                || !(status.get("roundStartId") instanceof String id) || id.isBlank()
-                || !gameStateService.currentRoundStartId(gameId).filter(id::equals).isPresent())) return null;
+        String quizRoundStartId = "";
+        if (quizMessage) {
+            quizRoundStartId = status.get("roundStartId") instanceof String id ? id : "";
+            if (quizRoundStartId.isBlank() || !gameStateService.isActiveRoundType(gameId, "QUIZ")
+                    || !gameStateService.currentRoundStartId(gameId)
+                            .filter(quizRoundStartId::equals).isPresent()) return null;
+        }
         // Gli esiti Arena sono prodotti solo dal controller REST, non dai client.
         if ("ARENA_ANSWER".equals(status.get("action"))) {
             throw new AccessDeniedException("Risultato Arena riservato al server");
@@ -82,7 +96,7 @@ public class GameWebSocketController {
             Map<String, Object> closed = new LinkedHashMap<>();
             closed.put("action", "ROUND_ENDED");
             closed.put("reason", "round-closed");
-            messaging.convertAndSend("/topic/game/" + gameId + "/status", (Object) closed);
+            publish(gameId, closed);
             return null;
         }
         if ("ADMIN_STATE".equals(status.get("action"))) {
@@ -102,6 +116,7 @@ public class GameWebSocketController {
             Map<String, Object> clean = new LinkedHashMap<>();
             clean.put("action", "CHRISTMAS_TOGGLE");
             clean.put("enabled", Boolean.TRUE.equals(status.get("enabled")));
+            publish(gameId, clean);
             return clean;
         }
         if ("SELECT_THEME".equals(status.get("action"))) {
@@ -113,12 +128,29 @@ public class GameWebSocketController {
             Map<String, Object> clean = new LinkedHashMap<>();
             clean.put("action", "SELECT_THEME");
             clean.put("theme", theme);
+            publish(gameId, clean);
             return clean;
         }
         if ("AZZARDO_ACTION".equals(status.get("action"))) {
-            return sanitizeAzzardo(status);
+            Map<String, Object> sanitized = sanitizeAzzardo(status);
+            publish(gameId, sanitized);
+            return sanitized;
         }
-        return cleanStatus(status);
+        Map<String, Object> clean = cleanStatus(status);
+        if (quizMessage) {
+            // L'identità e l'istante sono del server: un client non può
+            // attribuire il proprio annuncio a un'altra apertura.
+            clean.put("roundStartId", quizRoundStartId);
+            clean.remove("roundStartedAt");
+            long startedAt = gameStateService.roundStartedAt(gameId);
+            if (startedAt > 0) clean.put("roundStartedAt", startedAt);
+        }
+        publish(gameId, clean);
+        return clean;
+    }
+
+    private void publish(Long gameId, Map<String, Object> message) {
+        messaging.convertAndSend("/topic/game/" + gameId + "/status", (Object) message);
     }
 
     /** Rimuove le soluzioni anche dagli oggetti annidati o serializzati in JSON. */

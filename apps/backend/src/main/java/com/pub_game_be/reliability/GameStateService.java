@@ -89,6 +89,13 @@ public class GameStateService {
                 .map(GameEventEntity::getEventId);
     }
 
+    /** Istante server dell'apertura corrente: ordina gli annunci sulla stessa linea. */
+    public long roundStartedAt(long gameId) {
+        return states.findById(gameId)
+                .map(GameStateEntity::getRoundStartedAt)
+                .orElse(0L);
+    }
+
     /** Anche le ricevute precedenti alla protezione Arena hanno un evento verificabile. */
     public boolean isCurrentArenaAnswer(long gameId, String eventId, String playerId, String questionId) {
         if (!isActiveRoundType(gameId, "ARENA") || eventId == null || eventId.isBlank()) return false;
