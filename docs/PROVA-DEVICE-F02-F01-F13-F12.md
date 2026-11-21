@@ -36,21 +36,20 @@ Controlli a freddo:
 Per R1–R13: sul telefono interessato, ricaricare la pagina **dal browser**
 (⟳), non rientrare dalla Home. Aspettare 3 secondi e guardare cosa c'è a schermo.
 
-### Preparazione R14–R15 — copia di un database precedente
+### Preparazione R14–R15 — copia legacy con lo script
 
-Non usare il database della serata. Con il backend spento:
+Non usare il database della serata. Con il backend fermo:
 
-1. copiare il file H2 indicato dal responsabile (per il profilo di prova
-   `apps/backend/data/pubgame-test-night.mv.db`; altrimenti il backup della
-   serata) in una posizione di prova, per esempio
-   `/tmp/pubgame-prova-legacy.mv.db`;
-2. avviare il backend sulla copia con
-   `DB_URL='jdbc:h2:file:/tmp/pubgame-prova-legacy;DB_CLOSE_DELAY=-1'`, lasciando
-   il resto dell'ambiente di prova invariato;
-3. verificare che la copia contenga un blob `quiz` **senza** `roundStartId`: è
-   la condizione lasciata da una versione precedente. Se il blob ha già
-   `roundStartId`, la copia non serve a questa prova: annotarlo e usare un
-   backup più vecchio.
+1. creare la copia da un backup con un Quiz aperto:
+   `npm run db:legacy-copy -- --source <backup.mv.db> --target /tmp/pubgame-prova-legacy.mv.db`
+   (aggiungere `--force` per rifarla). Lo script copia il file, sceglie l'ultimo
+   Quiz aperto (o `--game-id`), riscrive il blob `quiz` **senza** `roundStartId`
+   e allinea `round-announced`; il file sorgente viene solo letto. Se la copia
+   non ha un Quiz aperto lo script lo dice: usare un backup preso durante un
+   Quiz, non il database della serata.
+2. avviare il backend sulla copia; lo script stampa il comando:
+   `DB_URL='jdbc:h2:file:/tmp/pubgame-prova-legacy;DB_CLOSE_DELAY=-1' npm run dev:backend`
+3. aprire la partita indicata dallo script: la TV deve vedere un Quiz in corso.
 
 | # | Prova | Cosa deve succedere | Esito | Note / cosa si è visto |
 |---|---|---|---|---|
