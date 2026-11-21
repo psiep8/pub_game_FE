@@ -699,6 +699,7 @@ describe('RemoteComponent', () => {
     await component.setNickname();
     component.closeButtonTest();
     component.onStartVoting('QUIZ');
+    ws.status$.next({ action: 'QUIZ_STATE', roundStartId: 'quiz-r1', state: { manche: 1 } });
     component.sendVote(2);
     fixture.detectChanges();
 
@@ -721,6 +722,7 @@ describe('RemoteComponent', () => {
     component.tempNickname = 'Anna';
     await component.setNickname();
     component.onStartVoting('QUIZ');
+    ws.status$.next({ action: 'QUIZ_STATE', roundStartId: 'quiz-r1', state: { manche: 1 } });
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
 
     component.sendVote(1);
@@ -730,10 +732,27 @@ describe('RemoteComponent', () => {
     expect(component.gameState()).toBe('LOCKED');
   });
 
+  it('ignora la conferma di un voto Quiz arrivata dopo la manche successiva', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    ws.status$.next({ action: 'QUIZ_STATE', roundStartId: 'quiz-r1', state: { manche: 1 } });
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const pending = new Subject<any>();
+    const send = vi.spyOn(game, 'submitQuizAnswer').mockReturnValue(pending.asObservable());
+    component.sendVote(0);
+    expect(send).toHaveBeenCalledWith(1, 0, 0, 'quiz-r1');
+    ws.status$.next({ action: 'QUIZ_STATE', roundStartId: 'quiz-r1', state: { manche: 2 } });
+    pending.next({ manche: 0 });
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(component.hasAnswered()).toBe(false);
+    expect(component.quizManche()).toBe(2);
+  });
+
   it('keeps the phone unlocked when a vote or buzz cannot be sent', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();
     component.onStartVoting('QUIZ');
+    ws.status$.next({ action: 'QUIZ_STATE', roundStartId: 'quiz-r1', state: { manche: 1 } });
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     game.quizFailNext = true;
 

@@ -404,16 +404,19 @@ class ReliabilityIntegrationTest {
                 {"type":"QUIZ","questions":[{"question":"Prova?","options":["A","B"],"correctAnswer":"A"}]}
                 """);
         assertThat(request("POST", base + "/quiz/manche", tv, null, "{\"manche\":0}").statusCode()).isEqualTo(200);
+        String roundStartId = gameState.currentRoundStartId(gameId).orElseThrow();
+        String voteA = "{\"optionIndex\":0,\"manche\":0,\"roundStartId\":\"" + roundStartId + "\"}";
+        String voteB = "{\"optionIndex\":1,\"manche\":0,\"roundStartId\":\"" + roundStartId + "\"}";
         ExecutorService clients = Executors.newFixedThreadPool(2);
         try {
-            Future<HttpResponse<String>> first = clients.submit(() -> request("POST", base + "/quiz/answer", anna, null, "{\"optionIndex\":0}"));
-            Future<HttpResponse<String>> second = clients.submit(() -> request("POST", base + "/quiz/answer", bruno, null, "{\"optionIndex\":1}"));
+            Future<HttpResponse<String>> first = clients.submit(() -> request("POST", base + "/quiz/answer", anna, null, voteA));
+            Future<HttpResponse<String>> second = clients.submit(() -> request("POST", base + "/quiz/answer", bruno, null, voteB));
             assertThat(first.get(10, TimeUnit.SECONDS).statusCode()).isEqualTo(200);
             assertThat(second.get(10, TimeUnit.SECONDS).statusCode()).isEqualTo(200);
         } finally {
             clients.shutdownNow();
         }
-        assertThat(request("POST", base + "/quiz/answer", anna, null, "{\"optionIndex\":0}").statusCode()).isEqualTo(409);
+        assertThat(request("POST", base + "/quiz/answer", anna, null, voteA).statusCode()).isEqualTo(409);
         var a = request("GET", base + "/quiz/answers", anna, null, null);
         var b = request("GET", base + "/quiz/answers", bruno, null, null);
         var all = request("GET", base + "/quiz/answers", tv, null, null);
@@ -425,6 +428,39 @@ class ReliabilityIntegrationTest {
         assertThat(json.readTree(b.body()).path("answers").get(0).path("playerName").asText()).isEqualTo("Bruno");
         assertThat(json.readTree(all.body()).path("answers")).hasSize(2);
         assertThat(request("POST", base + "/quiz/manche", anna, null, "{\"manche\":0}").statusCode()).isEqualTo(403);
+    }
+
+    @Test
+    void votiQuizTardiviNonPassanoAllaMancheOAlRoundSuccessivi() throws Exception {
+        long gameId = 8106L;
+        String base = "/games/" + gameId;
+        String tv = sessions.register(gameId, "late-quiz-tv", "TV", null, null).sessionToken();
+        String anna = sessions.register(gameId, "late-quiz-a", "REMOTE", "Anna", null).sessionToken();
+        String bruno = sessions.register(gameId, "late-quiz-b", "REMOTE", "Bruno", null).sessionToken();
+        String payload = """
+                {"type":"QUIZ","questions":[
+                  {"question":"Prima?","options":["A","B"],"correctAnswer":"A"},
+                  {"question":"Seconda?","options":["A","B"],"correctAnswer":"B"}]}
+                """;
+        gameState.startRound(gameId, "QUIZ", 1, "quiz-8106", payload);
+        String firstRound = gameState.currentRoundStartId(gameId).orElseThrow();
+        assertThat(request("POST", base + "/quiz/manche", tv, null, "{\"manche\":0}").statusCode()).isEqualTo(200);
+        String oldVote = "{\"optionIndex\":0,\"manche\":0,\"roundStartId\":\"" + firstRound + "\"}";
+        assertThat(request("POST", base + "/quiz/answer", anna, null, oldVote).statusCode()).isEqualTo(200);
+        assertThat(request("POST", base + "/quiz/manche", tv, null, "{\"manche\":1}").statusCode()).isEqualTo(200);
+        assertThat(json.readTree(request("POST", base + "/quiz/manche", tv, null, "{\"manche\":0}").body())
+                .path("mancheIndex").asInt()).isEqualTo(1);
+        var late = request("POST", base + "/quiz/answer", bruno, null, oldVote);
+        assertThat(late.statusCode()).isEqualTo(409);
+        assertThat(json.readTree(late.body()).path("error").asText()).isEqualTo("manche-stale");
+        assertThat(request("POST", base + "/quiz/answer", bruno, null, "{\"optionIndex\":1}").statusCode()).isEqualTo(400);
+        String currentVote = "{\"optionIndex\":1,\"manche\":1,\"roundStartId\":\"" + firstRound + "\"}";
+        assertThat(request("POST", base + "/quiz/answer", bruno, null, currentVote).statusCode()).isEqualTo(200);
+        assertThat(json.readTree(request("GET", base + "/quiz/answers", tv, null, null).body()).path("answers")).hasSize(2);
+        gameState.startRound(gameId, "QUIZ", 1, "quiz-8106", payload);
+        assertThat(request("POST", base + "/quiz/manche", tv, null, "{\"manche\":0}").statusCode()).isEqualTo(200);
+        assertThat(request("POST", base + "/quiz/answer", bruno, null, oldVote).statusCode()).isEqualTo(409);
+        assertThat(json.readTree(request("GET", base + "/quiz/answers", tv, null, null).body()).path("answers")).isEmpty();
     }
 
     @Test
@@ -813,8 +849,9 @@ class ReliabilityIntegrationTest {
             framesB.clear();
             screen.sendText(prefix + "{\"action\":\"START_VOTING\",\"type\":\"QUIZ\","
                     + "\"payload\":{\"question\":\"Test?\",\"options\":[\"A\",\"B\"],\"correctAnswer\":\"SECRET\"}}\0", true).join();
-            assertThat(frameContaining(framesA, "START_VOTING")).contains("QUIZ", "options").doesNotContain("SECRET", "correctAnswer");
-            assertThat(frameContaining(framesB, "START_VOTING")).contains("QUIZ", "options").doesNotContain("SECRET", "correctAnswer");
+            String roundStartId = gameState.currentRoundStartId(gameId).orElseThrow();
+            assertThat(frameContaining(framesA, "START_VOTING")).contains("QUIZ", "options", roundStartId).doesNotContain("SECRET", "correctAnswer");
+            assertThat(frameContaining(framesB, "START_VOTING")).contains("QUIZ", "options", roundStartId).doesNotContain("SECRET", "correctAnswer");
         } finally {
             a.abort(); b.abort(); screen.abort();
         }

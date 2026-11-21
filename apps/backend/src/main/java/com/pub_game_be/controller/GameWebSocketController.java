@@ -108,7 +108,13 @@ public class GameWebSocketController {
         if ("AZZARDO_ACTION".equals(status.get("action"))) {
             return sanitizeAzzardo(status);
         }
-        return cleanStatus(status);
+        Map<String, Object> clean = cleanStatus(status);
+        if (("QUIZ_STATE".equals(status.get("action"))
+                || ("QUIZ".equals(status.get("type")) && Set.of("SHOW_QUESTION", "START_VOTING").contains(status.get("action"))))
+                && gameStateService.isCurrentRoundType(gameId, "QUIZ")) {
+            gameStateService.currentRoundStartId(gameId).ifPresent(id -> clean.put("roundStartId", id));
+        }
+        return clean;
     }
 
     /** Rimuove le soluzioni anche dagli oggetti annidati o serializzati in JSON. */

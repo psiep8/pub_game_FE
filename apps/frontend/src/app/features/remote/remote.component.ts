@@ -233,6 +233,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   /** Manche Quiz in corso e ultima manche già votata. */
   quizManche = signal(0);
   answeredManche = signal(0);
+  private quizRoundStartId = '';
+  private quizVoteGeneration = 0;
   /** Ultima risposta toccata: solo promemoria visivo, l'esito lo decide il server. */
   selectedAnswer = signal<number | null>(null);
   isBlocked = signal(false);
@@ -443,6 +445,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   private async realignWithServer(): Promise<void> {
     if (!this.nickname()) return;
+    this.quizVoteGeneration++;
     this.resyncing.set(true);
     // Una richiesta partita prima del rientro non è una fotografia affidabile:
     // il servizio la scarta e ne avvia una nuova appena possibile.
@@ -583,6 +586,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
       switch (status.action) {
         case 'SHOW_QUESTION':
+          if (status.type === 'QUIZ') {
+            this.quizVoteGeneration++;
+            this.quizRoundStartId = typeof status.roundStartId === 'string' ? status.roundStartId : '';
+            this.quizManche.set(0);
+          }
           this.roundActive.set(true);
           this.closeManual();
           // Il voto del gioco precedente non appartiene al nuovo Quiz, anche
@@ -615,6 +623,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
 
         case 'START_VOTING':
+          if (status.type === 'QUIZ' && typeof status.roundStartId === 'string' && status.roundStartId) {
+            this.quizRoundStartId = status.roundStartId;
+          }
           // Un annuncio ripetuto durante la stessa Arena non deve sostituire
           // la domanda che il giocatore sta leggendo o per cui attende l'esito.
           if (status.type === 'ARENA' && this.roundActive() && this.questionType() === 'ARENA'
@@ -630,6 +641,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
 
         case 'QUIZ_STATE': {
+          if (typeof status.roundStartId === 'string' && status.roundStartId) {
+            this.quizRoundStartId = status.roundStartId;
+          }
           // Una manche nuova riapre i voti; il reveal invece blocca i telefoni.
           const manche = Number(status.state?.manche) || 0;
           this.quizManche.set(manche);
@@ -742,6 +756,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'ROUND_ENDED':
         case 'REVEAL':
+          this.quizVoteGeneration++;
+          this.quizRoundStartId = '';
           this.roundActive.set(false);
           this.cancelTimelineSend();
           this.speedLoadSeq++;
@@ -1334,21 +1350,40 @@ export class RemoteComponent implements OnInit, OnDestroy {
    * stessa manche torna `already-answered` e viene trattato come conferma.
    */
   private sendQuizVote(index: number) {
-    this.gameService.submitQuizAnswer(this.gameId(), index).subscribe({
-      next: () => {
+    const gameId = this.gameId();
+    const name = this.nickname();
+    const manche = this.quizManche();
+    const roundStartId = this.quizRoundStartId;
+    const generation = this.quizVoteGeneration;
+    if (!roundStartId || manche < 1) {
+      this.reliability.lastError.set('Quiz non ancora sincronizzato: attendi la manche.');
+      void this.realignWithServer();
+      return;
+    }
+    const stillCurrent = () => this.gameId() === gameId && this.nickname() === name
+      && this.quizRoundStartId === roundStartId && this.quizVoteGeneration === generation
+      && this.quizManche() === manche && this.questionType() === 'QUIZ'
+      && this.roundActive() && this.gameState() === PlayerStatus.VOTING;
+    this.gameService.submitQuizAnswer(gameId, index, manche - 1, roundStartId).subscribe({
+      next: (result) => {
+        if (!stillCurrent() || result?.manche !== manche - 1) return;
         this.reliability.lastError.set(null);
         this.selectedAnswer.set(index);
         this.hasAnswered.set(true);
-        this.answeredManche.set(this.quizManche());
+        this.answeredManche.set(manche);
         this.gameState.set(PlayerStatus.LOCKED);
         this.vibrate(50);
       },
       error: (err) => {
+        if (!stillCurrent()) return;
         if (err?.error?.error === 'already-answered') {
           this.hasAnswered.set(true);
-          this.answeredManche.set(this.quizManche());
+          this.answeredManche.set(manche);
           this.gameState.set(PlayerStatus.LOCKED);
           return;
+        }
+        if (err?.error?.error === 'manche-stale' || err?.error?.error === 'manche-closed') {
+          void this.realignWithServer();
         }
         this.reliability.lastError.set('Risposta non registrata: riprova.');
       },
@@ -2585,6 +2620,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (!snapshot) return;
     this.resyncing.set(false);
     if (snapshot.hasState === false) {
+      this.quizVoteGeneration++;
+      this.quizRoundStartId = '';
       this.invalidateArenaQuestion();
       this.cancelTimelineSend();
       this.stopBombaPolling();
@@ -2636,6 +2673,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
       ?? `${type}:${snapshot.roundIndex ?? ''}`);
     const newRound = roundKey !== this.lastSnapshotRoundKey;
     if (newRound) {
+      this.quizVoteGeneration++;
+      this.quizRoundStartId = '';
+      this.quizManche.set(0);
       if (this.lastSnapshotRoundKey) {
         this.invalidateArenaQuestion();
         this.arenaEliminated.set(false);
@@ -2665,6 +2705,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // restava sulla schermata del gioco precedente (o su "In attesa" con lo
     // stato di risposta ancora bloccato) finché non arrivava un START_VOTING.
     if (!open || !type) {
+      this.quizVoteGeneration++;
+      this.quizRoundStartId = '';
       this.invalidateArenaQuestion();
       this.cancelTimelineSend();
       this.gameState.set(PlayerStatus.WAITING);
@@ -2763,6 +2805,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
         const index = summary?.mancheIndex;
         if (!Number.isInteger(index) || index < 0) return;
         const manche = index + 1;
+        if (typeof summary?.roundStartId === 'string' && summary.roundStartId) {
+          this.quizRoundStartId = summary.roundStartId;
+        }
         const answers = Array.isArray(summary?.answers) ? summary.answers : [];
         const mine = answers.find((row: any) =>
           String(row?.playerName ?? '').trim().toLowerCase() === name

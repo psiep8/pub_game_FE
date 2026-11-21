@@ -224,8 +224,8 @@ export class GameService {
   }
 
   /** Voto del telefono: tempo, soluzione e doppio voto li controlla il server. */
-  submitQuizAnswer(gameId: number, optionIndex: number): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/quiz/answer`, { optionIndex });
+  submitQuizAnswer(gameId: number, optionIndex: number, manche: number, roundStartId: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/games/${gameId}/quiz/answer`, { optionIndex, manche, roundStartId });
   }
 
   /** Risposte già registrate: la TV le rilegge dopo un refresh. */

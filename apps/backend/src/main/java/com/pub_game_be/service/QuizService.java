@@ -64,25 +64,38 @@ public class QuizService {
      * i telefoni possono votare senza che i punti tornino pieni.</p>
      */
     public synchronized JSONObject startManche(long gameId, int manche, long remainingSeconds) {
+        return gameState.withRoundLock(gameId, () -> startMancheLocked(gameId, manche, remainingSeconds));
+    }
+
+    private JSONObject startMancheLocked(long gameId, int manche, long remainingSeconds) {
         // Solo un round Quiz aperto può aprire una manche: un annuncio in
         // ritardo di un altro gioco non deve lasciare uno stato orfano.
         if (!gameState.isActiveRoundType(gameId, "QUIZ")) return summary(gameId);
 
         JSONObject snapshot = gameState.snapshot(gameId);
         String roundKey = snapshot.optString("roundKey", "");
+        String roundStartId = gameState.currentRoundStartId(gameId).orElse("");
+        if (roundStartId.isBlank()) return summary(gameId);
         int index = Math.max(0, manche);
         long now = System.currentTimeMillis();
 
         JSONObject stored = load(gameId);
+        // Dopo un aggiornamento a partita in corso un vecchio blob non prova
+        // a quale apertura appartiene: conservarlo e non riaprire voti è più
+        // sicuro che perdere le risposte registrate nella stessa chiave.
+        if (stored != null && stored.optString("roundStartId").isBlank()
+                && roundKey.equals(stored.optString("roundKey"))) return summary(stored);
+        if (stored != null && roundStartId.equals(stored.optString("roundStartId"))
+                && stored.optInt("mancheIndex", -1) > index) return summary(stored);
         if (stored != null
-                && roundKey.equals(stored.optString("roundKey"))
+                && roundStartId.equals(stored.optString("roundStartId"))
                 && stored.optInt("mancheIndex", -1) == index
                 && stored.optLong("deadlineAt", 0L) > now) {
             return summary(stored);
         }
 
         JSONArray answers = new JSONArray();
-        if (stored != null && roundKey.equals(stored.optString("roundKey"))) {
+        if (stored != null && roundStartId.equals(stored.optString("roundStartId"))) {
             JSONArray previous = stored.optJSONArray("answers");
             if (previous != null) answers = previous;
         }
@@ -90,6 +103,7 @@ public class QuizService {
         long remaining = Math.max(0L, Math.min(MANCHE_MS, remainingSeconds * 1000L));
         JSONObject state = new JSONObject()
                 .put("roundKey", roundKey)
+                .put("roundStartId", roundStartId)
                 .put("mancheIndex", index)
                 .put("startedAt", now - (MANCHE_MS - remaining))
                 .put("deadlineAt", now + remaining)
@@ -99,7 +113,12 @@ public class QuizService {
     }
 
     /** Registra il voto del telefono: un solo voto per giocatore e manche. */
-    public synchronized Outcome answer(long gameId, String playerName, int optionIndex) {
+    public synchronized Outcome answer(long gameId, String playerName, int optionIndex, int expectedManche, String expectedRoundStartId) {
+        return gameState.withRoundLock(gameId,
+                () -> answerLocked(gameId, playerName, optionIndex, expectedManche, expectedRoundStartId));
+    }
+
+    private Outcome answerLocked(long gameId, String playerName, int optionIndex, int expectedManche, String expectedRoundStartId) {
         String name = playerName == null ? "" : playerName.trim();
         if (name.isEmpty()) return Outcome.rejected("player-required");
         if (!gameState.isActiveRoundType(gameId, "QUIZ")) return Outcome.rejected("round-closed");
@@ -108,12 +127,16 @@ public class QuizService {
         JSONObject snapshot = gameState.snapshot(gameId);
         String roundKey = snapshot.optString("roundKey", "");
         long now = System.currentTimeMillis();
-        if (stored == null || !roundKey.equals(stored.optString("roundKey"))) {
+        String roundStartId = gameState.currentRoundStartId(gameId).orElse("");
+        if (stored == null || !roundKey.equals(stored.optString("roundKey"))
+                || roundStartId.isBlank() || !roundStartId.equals(stored.optString("roundStartId"))) {
             return Outcome.rejected("manche-closed");
         }
+        int manche = stored.optInt("mancheIndex", -1);
+        if (!roundStartId.equals(expectedRoundStartId) || manche != expectedManche) {
+            return Outcome.rejected("manche-stale");
+        }
         if (now > stored.optLong("deadlineAt", 0L)) return Outcome.rejected("manche-closed");
-
-        int manche = stored.optInt("mancheIndex", 0);
         JSONArray answers = stored.optJSONArray("answers");
         if (answers == null) answers = new JSONArray();
         for (int index = 0; index < answers.length(); index++) {
@@ -171,6 +194,7 @@ public class QuizService {
     private JSONObject summary(JSONObject state) {
         JSONArray answers = state.optJSONArray("answers");
         return new JSONObject()
+                .put("roundStartId", state.optString("roundStartId", ""))
                 .put("mancheIndex", state.optInt("mancheIndex", 0))
                 .put("startedAt", state.optLong("startedAt", 0L))
                 .put("deadlineAt", state.optLong("deadlineAt", 0L))

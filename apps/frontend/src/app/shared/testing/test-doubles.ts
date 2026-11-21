@@ -220,13 +220,13 @@ export class FakeGameService {
     return of({ mancheIndex: manche });
   }
 
-  submitQuizAnswer(_gameId: number, optionIndex: number): Observable<any> {
+  submitQuizAnswer(_gameId: number, optionIndex: number, manche: number, _roundStartId: string): Observable<any> {
     if (this.quizFailNext) {
       this.quizFailNext = false;
       return throwError(() => ({ error: { error: 'network' } }));
     }
     this.quizAnswersSent.push(optionIndex);
-    return of({ isCorrect: true, points: 500, manche: 0 });
+    return of({ isCorrect: true, points: 500, manche });
   }
 
   quizAnswers(_gameId: number): Observable<any> {

@@ -60,7 +60,14 @@ public class QuizController {
             return ResponseEntity.badRequest().body(Map.of("error", "option-required"));
         }
 
-        QuizService.Outcome outcome = quizService.answer(gameId, session.getPlayerName(), number.intValue());
+        Object rawManche = body.get("manche");
+        Object rawRound = body.get("roundStartId");
+        if (!(rawManche instanceof Number manche) || manche.doubleValue() != manche.intValue()
+                || manche.intValue() < 0 || !(rawRound instanceof String roundStartId) || roundStartId.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "quiz-context-required"));
+        }
+        QuizService.Outcome outcome = quizService.answer(gameId, session.getPlayerName(), number.intValue(),
+                manche.intValue(), roundStartId);
         if (!outcome.accepted()) {
             return ResponseEntity.status(409).body(Map.of("error", outcome.reason()));
         }

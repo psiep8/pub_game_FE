@@ -39,13 +39,18 @@ class QuizServiceTest {
         gameState.startRound(gameId, "QUIZ", 1, "g" + gameId + "-r1", payload);
     }
 
+    private QuizService.Outcome answer(long gameId, String playerName, int option) {
+        return quiz.answer(gameId, playerName, option, quiz.summary(gameId).getInt("mancheIndex"),
+                gameState.currentRoundStartId(gameId).orElseThrow());
+    }
+
     @Test
     void rispostaCorrettaValeQuasiTuttiIPuntiSubito() {
         long gameId = 910_001L;
         apriRound(gameId, DUE_DOMANDE);
         quiz.startManche(gameId, 0);
 
-        QuizService.Outcome outcome = quiz.answer(gameId, "Anna", 1);
+        QuizService.Outcome outcome = answer(gameId, "Anna", 1);
 
         assertThat(outcome.accepted()).isTrue();
         assertThat(outcome.result().getBoolean("isCorrect")).isTrue();
@@ -60,7 +65,7 @@ class QuizServiceTest {
         apriRound(gameId, DUE_DOMANDE);
         quiz.startManche(gameId, 0);
 
-        QuizService.Outcome outcome = quiz.answer(gameId, "Anna", 0);
+        QuizService.Outcome outcome = answer(gameId, "Anna", 0);
 
         assertThat(outcome.accepted()).isTrue();
         assertThat(outcome.result().getBoolean("isCorrect")).isFalse();
@@ -73,8 +78,8 @@ class QuizServiceTest {
         apriRound(gameId, DUE_DOMANDE);
         quiz.startManche(gameId, 0);
 
-        assertThat(quiz.answer(gameId, "Anna", 1).accepted()).isTrue();
-        QuizService.Outcome again = quiz.answer(gameId, "Anna", 0);
+        assertThat(answer(gameId, "Anna", 1).accepted()).isTrue();
+        QuizService.Outcome again = answer(gameId, "Anna", 0);
 
         assertThat(again.accepted()).isFalse();
         assertThat(again.reason()).isEqualTo("already-answered");
@@ -89,7 +94,7 @@ class QuizServiceTest {
         long gameId = 910_004L;
         apriRound(gameId, DUE_DOMANDE);
 
-        QuizService.Outcome outcome = quiz.answer(gameId, "Anna", 1);
+        QuizService.Outcome outcome = answer(gameId, "Anna", 1);
 
         assertThat(outcome.accepted()).isFalse();
         assertThat(outcome.reason()).isEqualTo("manche-closed");
@@ -100,8 +105,8 @@ class QuizServiceTest {
         long gameId = 910_005L;
         apriRound(gameId, DUE_DOMANDE);
         quiz.startManche(gameId, 0);
-        quiz.answer(gameId, "Anna", 1);
-        quiz.answer(gameId, "Bruno", 0);
+        answer(gameId, "Anna", 1);
+        answer(gameId, "Bruno", 0);
 
         JSONObject summary = quiz.summary(gameId);
 
@@ -116,13 +121,13 @@ class QuizServiceTest {
         long gameId = 910_006L;
         apriRound(gameId, DUE_DOMANDE);
         JSONObject first = quiz.startManche(gameId, 0);
-        assertThat(quiz.answer(gameId, "Anna", 1).accepted()).isTrue();
+        assertThat(answer(gameId, "Anna", 1).accepted()).isTrue();
 
         JSONObject repeated = quiz.startManche(gameId, 0);
         assertThat(repeated.getLong("startedAt")).isEqualTo(first.getLong("startedAt"));
 
         quiz.startManche(gameId, 1);
-        QuizService.Outcome second = quiz.answer(gameId, "Anna", 0);
+        QuizService.Outcome second = answer(gameId, "Anna", 0);
 
         assertThat(second.accepted()).isTrue();
         assertThat(second.result().getInt("manche")).isEqualTo(1);
@@ -136,8 +141,8 @@ class QuizServiceTest {
         apriRound(gameId, DUE_DOMANDE);
         quiz.startManche(gameId, 0);
 
-        assertThat(quiz.answer(gameId, "Anna", 9).reason()).isEqualTo("invalid-option");
-        assertThat(quiz.answer(gameId, "Anna", -1).reason()).isEqualTo("invalid-option");
+        assertThat(answer(gameId, "Anna", 9).reason()).isEqualTo("invalid-option");
+        assertThat(answer(gameId, "Anna", -1).reason()).isEqualTo("invalid-option");
     }
 
     @Test
@@ -145,7 +150,7 @@ class QuizServiceTest {
         long gameId = 910_009L;
         apriRound(gameId, DUE_DOMANDE);
         quiz.startManche(gameId, 0);
-        quiz.answer(gameId, "Anna", 1);
+        answer(gameId, "Anna", 1);
         // Il backend è ripartito senza lo stato della manche.
         quiz.forget(gameId);
 
@@ -156,7 +161,7 @@ class QuizServiceTest {
         assertThat(resumed.getLong("startedAt"))
                 .isEqualTo(resumed.getLong("deadlineAt") - QuizService.MANCHE_MS);
         // La riannuncio non regala punti pieni: il tempo consumato conta.
-        QuizService.Outcome again = quiz.answer(gameId, "Anna", 1);
+        QuizService.Outcome again = answer(gameId, "Anna", 1);
         assertThat(again.accepted()).isTrue();
         assertThat(again.result().getInt("points")).isBetween(120, 180);
     }
@@ -180,6 +185,6 @@ class QuizServiceTest {
         quiz.startManche(gameId, 0);
         gameState.closeRound(gameId, "test");
 
-        assertThat(quiz.answer(gameId, "Anna", 1).reason()).isEqualTo("round-closed");
+        assertThat(answer(gameId, "Anna", 1).reason()).isEqualTo("round-closed");
     }
 }
