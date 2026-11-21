@@ -778,6 +778,52 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void dueTelefoniRicevonoPrimoQuizDaTvSenzaSoluzioni() throws Exception {
+        long gameId = 8103L;
+        String tv = sessions.register(gameId, "quiz-ws-tv", "TV", null, null).sessionToken();
+        String anna = sessions.register(gameId, "quiz-ws-a", "REMOTE", "Anna", null).sessionToken();
+        String bruno = sessions.register(gameId, "quiz-ws-b", "REMOTE", "Bruno", null).sessionToken();
+        gameState.startRound(gameId, "QUIZ", 1, "quiz-ws-8103", "{}");
+        BlockingQueue<String> framesA = new LinkedBlockingQueue<>();
+        BlockingQueue<String> framesB = new LinkedBlockingQueue<>();
+        WebSocket a = socket(anna, framesA);
+        WebSocket b = socket(bruno, framesB);
+        WebSocket screen = socket(tv, new LinkedBlockingQueue<>());
+        String prefix = "SEND\ndestination:/app/game/" + gameId + "/status\ncontent-type:application/json\n\n";
+        try {
+            a.sendText("SUBSCRIBE\nid:a\ndestination:/topic/game/" + gameId + "/status\n\n\0", true).join();
+            b.sendText("SUBSCRIBE\nid:b\ndestination:/topic/game/" + gameId + "/status\n\n\0", true).join();
+            // Ripetere la sonda finché entrambi hanno realmente sottoscritto.
+            boolean seenA = false, seenB = false;
+            for (int attempt = 0; attempt < 10 && !(seenA && seenB); attempt++) {
+                screen.sendText(prefix + "{\"action\":\"CHRISTMAS_TOGGLE\",\"enabled\":true}\0", true).join();
+                if (framesA.poll(300, TimeUnit.MILLISECONDS) != null) seenA = true;
+                if (framesB.poll(300, TimeUnit.MILLISECONDS) != null) seenB = true;
+            }
+            assertThat(seenA && seenB).isTrue();
+            framesA.clear();
+            framesB.clear();
+            screen.sendText(prefix + "{\"action\":\"START_VOTING\",\"type\":\"QUIZ\","
+                    + "\"payload\":{\"question\":\"Test?\",\"options\":[\"A\",\"B\"],\"correctAnswer\":\"SECRET\"}}\0", true).join();
+            assertThat(frameContaining(framesA, "START_VOTING")).contains("QUIZ", "options").doesNotContain("SECRET", "correctAnswer");
+            assertThat(frameContaining(framesB, "START_VOTING")).contains("QUIZ", "options").doesNotContain("SECRET", "correctAnswer");
+        } finally {
+            a.abort(); b.abort(); screen.abort();
+        }
+    }
+
+    private String frameContaining(BlockingQueue<String> frames, String text) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        long remaining;
+        while ((remaining = deadline - System.nanoTime()) > 0) {
+            String frame = frames.poll(remaining, TimeUnit.NANOSECONDS);
+            if (frame == null) return null;
+            if (frame.contains(text)) return frame;
+        }
+        return null;
+    }
+
+    @Test
     void ilTelefonoPuoInviareUnAzioneLegittimaSuWebSocketReale() throws Exception {
         long game = 518L;
         var remote = sessions.register(game, "r", "REMOTE", "Anna", null);
