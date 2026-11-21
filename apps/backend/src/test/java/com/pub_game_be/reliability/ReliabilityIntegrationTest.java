@@ -800,6 +800,37 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void dueTelefoniArenaRispondonoAllaPropriaDomandaConRetryEChiusura() throws Exception {
+        long gameId = 8102L;
+        String base = "/games/" + gameId;
+        String anna = sessions.register(gameId, "arena-a", "REMOTE", "Anna", null).sessionToken();
+        String bruno = sessions.register(gameId, "arena-b", "REMOTE", "Bruno", null).sessionToken();
+        gameState.startRound(gameId, "ARENA", 1, "arena-8102", "{}");
+        questionHistory.assign(gameId, new QuestionHistoryService.ArenaAssignment("qa", "Anna", "A?", "VERO", "test"));
+        questionHistory.assign(gameId, new QuestionHistoryService.ArenaAssignment("qb", "Bruno", "B?", "FALSO", "test"));
+        String a = "{\"playerId\":\"Anna\",\"questionId\":\"qa\",\"answer\":\"VERO\",\"idempotencyKey\":\"arena-a-8102\"}";
+        String b = "{\"playerId\":\"Bruno\",\"questionId\":\"qb\",\"answer\":\"FALSO\",\"idempotencyKey\":\"arena-b-8102\"}";
+        assertThat(request("POST", base + "/arena-answer", anna, null,
+                a.replace("qa", "qb")).statusCode()).isEqualTo(400);
+        ExecutorService clients = Executors.newFixedThreadPool(2);
+        try {
+            Future<HttpResponse<String>> first = clients.submit(() -> request("POST", base + "/arena-answer", anna, null, a));
+            Future<HttpResponse<String>> second = clients.submit(() -> request("POST", base + "/arena-answer", bruno, null, b));
+            assertThat(first.get(10, TimeUnit.SECONDS).statusCode()).isEqualTo(200);
+            assertThat(second.get(10, TimeUnit.SECONDS).statusCode()).isEqualTo(200);
+        } finally {
+            clients.shutdownNow();
+        }
+        assertThat(questionHistory.scores(gameId)).containsEntry("Anna", 10).containsEntry("Bruno", 10);
+        var replay = request("POST", base + "/arena-answer", anna, null, a);
+        assertThat(replay.statusCode()).isEqualTo(200);
+        assertThat(json.readTree(replay.body()).path("replayed").asBoolean()).isTrue();
+        assertThat(questionHistory.scores(gameId)).containsEntry("Anna", 10).containsEntry("Bruno", 10);
+        gameState.closeRound(gameId, "test");
+        assertThat(request("POST", base + "/arena-answer", bruno, null, b).statusCode()).isEqualTo(409);
+    }
+
+    @Test
     void risultatoArenaPubblicatoDalServerUnaVoltaSulWebSocketReale() throws Exception {
         long gameId = 510L;
         BlockingQueue<String> frames = new LinkedBlockingQueue<>();
