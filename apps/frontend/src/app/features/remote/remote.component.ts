@@ -608,6 +608,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
 
         case 'START_VOTING':
+          // Un annuncio ripetuto durante la stessa Arena non deve sostituire
+          // la domanda che il giocatore sta leggendo o per cui attende l'esito.
+          if (status.type === 'ARENA' && this.roundActive() && this.questionType() === 'ARENA'
+              && this.gameState() === PlayerStatus.VOTING) break;
           this.roundActive.set(true);
           this.closeManual();
           this.isBlocked.set(false);

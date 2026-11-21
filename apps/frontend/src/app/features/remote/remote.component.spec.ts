@@ -374,6 +374,25 @@ describe('RemoteComponent', () => {
     expect(component.arenaQuestion()?.questionId).toBe('q1');
   });
 
+  it('un secondo START_VOTING Arena non cambia la domanda mentre il giocatore risponde', () => {
+    component.nickname.set('Anna');
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const request = vi.spyOn(game, 'getArenaQuestion');
+    const pending = new Subject<any>();
+    const answer = vi.spyOn(game, 'answerArenaQuestion').mockReturnValue(pending.asObservable());
+
+    ws.status$.next({ action: 'START_VOTING', type: 'ARENA' });
+    const questionId = component.arenaQuestion()?.questionId;
+    expect(questionId).toBe('q-test');
+    component.sendArenaAnswer(0);
+    ws.status$.next({ action: 'START_VOTING', type: 'ARENA' });
+
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(component.arenaQuestion()?.questionId).toBe(questionId);
+    expect(answer).toHaveBeenCalledTimes(1);
+    expect(answer.mock.calls[0][2]).toBe(questionId);
+  });
+
   it('ignora una domanda Arena arrivata dopo la fine del round', async () => {
     component.nickname.set('Anna');
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
