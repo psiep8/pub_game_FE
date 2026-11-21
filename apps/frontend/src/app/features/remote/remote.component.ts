@@ -2706,7 +2706,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       if (previousType !== 'QUIZ' || this.gameState() !== PlayerStatus.VOTING || newRound) {
         this.onStartVoting('QUIZ', payload);
       }
-      this.confirmQuizVote(roundKey, this.parsePayload(payload));
+      this.confirmQuizVote(roundKey);
       return;
     }
 
@@ -2724,39 +2724,49 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.onStartVoting(type, payload, { resumed: true });
   }
 
-  /** Round e manche già controllati: una sola richiesta, anche con più sync. */
+  /** Una sola richiesta di riepilogo in volo per round. */
   private readonly quizVoteChecks = new Set<string>();
 
   /**
    * Quiz ripreso dopo un refresh: se la manche aperta ha già il voto di questa
    * squadra, il telefono si blocca con la risposta scelta, invece di offrire
    * un secondo voto che il server rifiuterebbe. I tasti restano aperti mentre
-   * la risposta arriva, e un solo controllo vale per round e manche.
+   * la risposta arriva; richieste successive possono ritentare dopo un errore.
    */
-  private confirmQuizVote(roundKey: string, payload: any): void {
-    const manche = Number(payload?.manche) || 0;
-    const key = `${roundKey}|${manche}`;
-    if (this.quizVoteChecks.has(key)) return;
-    this.quizVoteChecks.add(key);
-
+  private confirmQuizVote(roundKey: string): void {
+    if (this.quizVoteChecks.has(roundKey)) return;
     const name = String(this.nickname() ?? '').trim().toLowerCase();
     if (!name) return;
-    this.gameService.quizAnswers(this.gameId()).subscribe({
+    const gameId = this.gameId();
+    const displayedManche = this.quizManche();
+    this.quizVoteChecks.add(roundKey);
+    this.gameService.quizAnswers(gameId).subscribe({
       next: (summary: any) => {
-        // La TV può aver cambiato round mentre la richiesta era in volo.
-        if (this.lastSnapshotRoundKey !== roundKey) return;
+        this.quizVoteChecks.delete(roundKey);
+        // Non applicare un riepilogo se nel frattempo è cambiata la manche,
+        // la squadra, la partita o il round è stato chiuso.
+        if (this.gameId() !== gameId || this.lastSnapshotRoundKey !== roundKey
+          || String(this.nickname() ?? '').trim().toLowerCase() !== name
+          || this.questionType() !== 'QUIZ' || !this.roundActive()
+          || this.quizManche() !== displayedManche) return;
+        // Il server numera da zero, la TV da uno; il payload del round non
+        // contiene necessariamente la manche attuale, quindi fa fede il riepilogo.
+        const index = summary?.mancheIndex;
+        if (!Number.isInteger(index) || index < 0) return;
+        const manche = index + 1;
         const answers = Array.isArray(summary?.answers) ? summary.answers : [];
         const mine = answers.find((row: any) =>
           String(row?.playerName ?? '').trim().toLowerCase() === name
-          && Number(row?.manche) === manche);
-        if (!mine) return;
+          && Number(row?.manche) === index);
         this.quizManche.set(manche);
+        if (!mine) return;
         this.answeredManche.set(manche);
         this.selectedAnswer.set(Number(mine.optionIndex));
         this.hasAnswered.set(true);
         this.gameState.set(PlayerStatus.LOCKED);
       },
       error: () => {
+        this.quizVoteChecks.delete(roundKey);
         // Resta aperto: un doppio voto verrebbe rifiutato dal server.
       },
     });

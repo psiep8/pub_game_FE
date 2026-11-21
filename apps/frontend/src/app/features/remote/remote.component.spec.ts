@@ -1272,7 +1272,7 @@ describe('RemoteComponent', () => {
     expect(component.gameState()).toBe(PlayerStatus.VOTING);
     expect(component.hasAnswered()).toBe(false);
 
-    summary.next({ mancheIndex: 2, answers: [{ playerName: 'Anna', manche: 2, optionIndex: 1 }] });
+    summary.next({ mancheIndex: 1, answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }] });
     summary.complete();
 
     expect(component.gameState()).toBe(PlayerStatus.LOCKED);
@@ -1289,7 +1289,7 @@ describe('RemoteComponent', () => {
     // rientra deve mostrarlo bloccato, non offrire un secondo voto.
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     vi.spyOn(game, 'quizAnswers').mockReturnValue(
-      of({ mancheIndex: 2, answers: [{ playerName: 'Anna', manche: 2, optionIndex: 1 }] }),
+      of({ mancheIndex: 1, answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }] }),
     );
 
     reliability.syncState$.next(quizRoundSnapshot());
@@ -1298,6 +1298,38 @@ describe('RemoteComponent', () => {
     expect(component.hasAnswered()).toBe(true);
     expect(component.selectedAnswer()).toBe(1);
     expect(component.gameState()).toBe(PlayerStatus.LOCKED);
+  });
+
+  it('al refresh trova la manche corrente dal server quando il payload non la contiene', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(of({
+      mancheIndex: 1, answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }],
+    }));
+    const snapshot = quizRoundSnapshot();
+    snapshot.currentRound.payload = { questions: [{ question: 'A' }, { question: 'B' }] };
+    reliability.syncState$.next(snapshot);
+    expect(component.quizManche()).toBe(2);
+    expect(component.answeredManche()).toBe(2);
+    expect(component.selectedAnswer()).toBe(1);
+    expect(component.gameState()).toBe(PlayerStatus.LOCKED);
+  });
+
+  it('ignora un riepilogo Quiz arrivato dopo la manche successiva', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const summary = new Subject<any>();
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(summary.asObservable());
+    reliability.syncState$.next(quizRoundSnapshot());
+    ws.status$.next({ action: 'QUIZ_STATE', state: { manche: 3, mancheReveal: false } });
+    summary.next({ mancheIndex: 1, answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }] });
+    expect(component.quizManche()).toBe(3);
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(component.hasAnswered()).toBe(false);
   });
 
   it('dopo un refresh in Musica il telefono prenota il brano in corso', async () => {
