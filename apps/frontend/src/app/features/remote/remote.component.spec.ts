@@ -697,8 +697,13 @@ describe('RemoteComponent', () => {
     component.sendVote(1);
     expect(ws.publishedAnswers).toHaveLength(0);
 
+    // Anche se sync termina senza uno snapshot (errore o richiesta già in
+    // corso), il telefono resta bloccato fino al recupero effettivo.
     finishSync();
     await realign;
+    expect(component.resyncing()).toBe(true);
+    expect(component.inputReady()).toBe(false);
+    reliability.syncState$.next({ hasState: false });
     expect(component.resyncing()).toBe(false);
     expect(component.inputReady()).toBe(true);
   });

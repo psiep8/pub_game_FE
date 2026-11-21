@@ -331,6 +331,9 @@ export class ReliabilityService {
     } catch (error) {
       console.error('❌ Sincronizzazione non riuscita', error);
       this.online.set(false);
+      // Anche dopo uno snapshot precedente occorre ritentare al prossimo
+      // heartbeat: quello vecchio non vale per il rientro appena fallito.
+      this.lastSyncAt.set(null);
     } finally {
       this.syncing.set(false);
     }

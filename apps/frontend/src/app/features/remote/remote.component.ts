@@ -444,14 +444,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private async realignWithServer(): Promise<void> {
     if (!this.nickname()) return;
     this.resyncing.set(true);
-    try {
-      await this.reliability.sync();
-      // Sync riuscito: lo stato attuale c'è, anche se è "nessun round".
-      this.resyncing.set(false);
-    } catch {
-      // Server irraggiungibile: si resta su "Riallineamento…" e non si
-      // risponde alla cieca. Il prossimo ritorno in primo piano riprova.
-    }
+    // sync() può fallire o essere già in corso: soltanto uno snapshot
+    // effettivamente ricevuto riabilita gli input (in applyServerSnapshot).
+    await this.reliability.sync();
   }
 
   private audioContext?: AudioContext;

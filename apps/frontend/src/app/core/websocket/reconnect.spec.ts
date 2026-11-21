@@ -163,6 +163,35 @@ describe('errori di rete', () => {
     http.verify();
   });
 
+  it('riprova dopo un riallineamento fallito anche se esisteva uno snapshot precedente', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(),
+        { provide: WebSocketService, useClass: FakeWebSocketService }],
+    });
+    const service = TestBed.inject(ReliabilityService);
+    const http = TestBed.inject(HttpTestingController);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    service.sessionToken.set('private-token');
+    service.lastSyncAt.set(123);
+
+    const sync = service.sync();
+    http.expectOne('/games/1/sync?sinceSeq=0')
+      .flush({}, { status: 500, statusText: 'Server Error' });
+    await sync;
+    expect(service.lastSyncAt()).toBeNull();
+
+    const heartbeat = service.heartbeat();
+    http.expectOne('/games/1/session/heartbeat').flush({ stateVersion: 1, seq: 0, needsSync: false });
+    await Promise.resolve();
+    http.expectOne('/games/1/sync?sinceSeq=0')
+      .flush({ snapshot: { version: 1 }, events: [], toSeq: 0, complete: true });
+    await heartbeat;
+    expect(service.lastSyncAt()).not.toBeNull();
+    vi.restoreAllMocks();
+    http.verify();
+  });
+
   it('riprova lo snapshot al primo heartbeat riuscito', async () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
