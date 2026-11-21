@@ -1336,7 +1336,7 @@ describe('RemoteComponent', () => {
     };
   }
 
-  it('apre subito i tasti del Quiz e li blocca quando il server conferma il voto', async () => {
+  it('mostra subito la domanda del Quiz e la blocca quando il server conferma il voto', async () => {
     localStorage.setItem('nickname', 'Anna');
     reliability.resumedSession.set(true);
     await reloadPhone();
@@ -1348,9 +1348,10 @@ describe('RemoteComponent', () => {
     reliability.syncState$.next(quizRoundSnapshot());
     await fixture.whenStable();
 
-    // Il server è lento: il telefono non resta fermo ad aspettarlo.
+    // Il server è lento: la domanda compare subito, ma i tasti restano chiusi.
     expect(component.gameState()).toBe(PlayerStatus.VOTING);
     expect(component.hasAnswered()).toBe(false);
+    expect(component.quizCheckPending()).toBe(true);
 
     summary.next({ roundStartId: 'round-1', mancheIndex: 1, answers: [{ playerName: 'Anna', manche: 1, optionIndex: 1 }] });
     summary.complete();
@@ -1358,6 +1359,53 @@ describe('RemoteComponent', () => {
     expect(component.gameState()).toBe(PlayerStatus.LOCKED);
     expect(component.hasAnswered()).toBe(true);
     expect(component.selectedAnswer()).toBe(1);
+  });
+
+  it('tiene i tasti Quiz chiusi mentre il riepilogo è in volo e li riapre senza voto', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const summary = new Subject<any>();
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(summary.asObservable());
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.quizCheckPending()).toBe(true);
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.quiz-grid button')) as HTMLButtonElement[];
+    expect(buttons.length).toBe(4);
+    expect(buttons.every((button) => button.disabled)).toBe(true);
+
+    summary.next({ roundStartId: 'round-1', mancheIndex: 1, answers: [] });
+    summary.complete();
+    fixture.detectChanges();
+
+    expect(component.quizCheckPending()).toBe(false);
+    expect(buttons.every((button) => !button.disabled)).toBe(true);
+  });
+
+  it('se il riepilogo Quiz fallisce lascia i tasti chiusi e non invia voti', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(throwError(() => new Error('offline')));
+    const submit = vi.spyOn(game, 'submitQuizAnswer');
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.quizCheckPending()).toBe(true);
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.quiz-grid button')) as HTMLButtonElement[];
+    expect(buttons.every((button) => button.disabled)).toBe(true);
+
+    component.sendVote(0);
+    expect(submit).not.toHaveBeenCalled();
   });
 
   it('dopo un refresh in Quiz non riapre il voto di una manche già votata', async () => {
@@ -1378,6 +1426,39 @@ describe('RemoteComponent', () => {
     expect(component.hasAnswered()).toBe(true);
     expect(component.selectedAnswer()).toBe(1);
     expect(component.gameState()).toBe(PlayerStatus.LOCKED);
+  });
+
+  it('con un blob Quiz legacy non lascia una domanda votabile dopo il refresh', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(of({
+      recoveryBlocked: 'legacy-quiz-state', roundStartId: '', mancheIndex: -1, answers: [],
+    }));
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+    expect(component.roundActive()).toBe(false);
+    expect(fixture.nativeElement.querySelector('.quiz-grid')).toBeNull();
+
+    // Un altro snapshot della stessa apertura non riapre i tasti.
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+    expect(fixture.nativeElement.querySelector('.quiz-grid')).toBeNull();
+
+    // Un annuncio del round successivo sblocca il telefono.
+    ws.status$.next({ action: 'START_VOTING', type: 'QUIZ', roundStartId: 'round-2',
+      roundStartedAt: Date.now(), payload: {} });
+    fixture.detectChanges();
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(fixture.nativeElement.querySelector('.quiz-grid')).not.toBeNull();
   });
 
   it('al refresh trova la manche corrente dal server quando il payload non la contiene', async () => {
@@ -1477,8 +1558,12 @@ describe('RemoteComponent', () => {
     ws.status$.next({ action: 'QUIZ_STATE', roundStartId: 'round-1', state: { manche: 2 } });
     reliability.syncState$.next(quizRoundSnapshot());
     expect(requests).toHaveBeenCalledTimes(2);
+    // La verifica più recente non trova un voto: i tasti si aprono, Anna vota,
+    // poi arriva il riepilogo della richiesta precedente.
+    summary.next({ roundStartId: 'round-1', mancheIndex: 1, answers: [] });
+    summary.complete();
     component.sendVote(1);
-    summary.next({ roundStartId: 'round-1', mancheIndex: 1,
+    initial.next({ roundStartId: 'round-1', mancheIndex: 1,
       answers: [{ playerName: 'Anna', manche: 1, optionIndex: 0 }] });
     expect(component.selectedAnswer()).toBe(1);
     expect(component.gameState()).toBe(PlayerStatus.LOCKED);

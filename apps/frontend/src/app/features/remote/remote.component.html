@@ -249,10 +249,10 @@
     } @else {
     <div class="game-head"><span class="game-tag quiz">QUIZ</span><span class="game-tip">Scegli la risposta</span></div>
     <div class="voting-grid quiz-grid">
-      <button (click)="sendVote(0)" class="vote-btn btn-a" [disabled]="!inputReady()"><span class="vote-letter">A</span><span class="vote-shape">▲</span></button>
-      <button (click)="sendVote(1)" class="vote-btn btn-b" [disabled]="!inputReady()"><span class="vote-letter">B</span><span class="vote-shape">◆</span></button>
-      <button (click)="sendVote(2)" class="vote-btn btn-c" [disabled]="!inputReady()"><span class="vote-letter">C</span><span class="vote-shape">●</span></button>
-      <button (click)="sendVote(3)" class="vote-btn btn-d" [disabled]="!inputReady()"><span class="vote-letter">D</span><span class="vote-shape">■</span></button>
+      <button (click)="sendVote(0)" class="vote-btn btn-a" [disabled]="!inputReady() || quizCheckPending()"><span class="vote-letter">A</span><span class="vote-shape">▲</span></button>
+      <button (click)="sendVote(1)" class="vote-btn btn-b" [disabled]="!inputReady() || quizCheckPending()"><span class="vote-letter">B</span><span class="vote-shape">◆</span></button>
+      <button (click)="sendVote(2)" class="vote-btn btn-c" [disabled]="!inputReady() || quizCheckPending()"><span class="vote-letter">C</span><span class="vote-shape">●</span></button>
+      <button (click)="sendVote(3)" class="vote-btn btn-d" [disabled]="!inputReady() || quizCheckPending()"><span class="vote-letter">D</span><span class="vote-shape">■</span></button>
     </div>
     }
     }

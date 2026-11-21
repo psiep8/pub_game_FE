@@ -239,6 +239,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private quizVoteGeneration = 0;
   private quizSummaryGeneration = 0;
   private quizSummaryPending: { roundKey: string; generation: number } | null = null;
+  /** Riepilogo Quiz in volo: i tasti restano bloccati finché la verifica non arriva. */
+  readonly quizCheckPending = signal(false);
+  private quizCheckRoundId = '';
   /** Ultima risposta toccata: solo promemoria visivo, l'esito lo decide il server. */
   selectedAnswer = signal<number | null>(null);
   isBlocked = signal(false);
@@ -348,6 +351,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   /** Identità dell'ultimo round applicato da uno snapshot (per non riaprire
    *  voti già dati e per riconoscere un round nuovo dopo un round chiuso). */
   private lastSnapshotRoundKey = '';
+  /** Blob Quiz legacy non verificabile: la TV non riprende, il telefono non vota. */
+  private quizRecoveryBlocked = false;
+  private quizRecoveryBlockedRoundId = '';
   private bombaEventSeq = 0;
   private bombaFlashTimer?: ReturnType<typeof setTimeout>;
 
@@ -596,6 +602,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
         case 'SHOW_QUESTION':
           if (status.type === 'QUIZ' && !this.acceptQuizAnnouncement(status)) return;
           if (status.type === 'QUIZ') {
+            this.clearQuizLegacyBlock(status.roundStartId);
+            this.clearQuizCheck(status.roundStartId);
+            if (this.quizRecoveryBlocked) {
+              this.roundActive.set(false);
+              this.gameState.set(PlayerStatus.WAITING);
+              return;
+            }
             this.invalidateQuizSummary();
             this.quizVoteGeneration++;
             this.quizRoundStartId = typeof status.roundStartId === 'string' ? status.roundStartId : '';
@@ -634,6 +647,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'START_VOTING':
           if (status.type === 'QUIZ' && !this.acceptQuizAnnouncement(status)) return;
+          if (status.type === 'QUIZ') {
+            this.clearQuizLegacyBlock(status.roundStartId);
+            this.clearQuizCheck(status.roundStartId);
+            if (this.quizRecoveryBlocked) {
+              this.roundActive.set(false);
+              this.gameState.set(PlayerStatus.WAITING);
+              return;
+            }
+          }
           if (status.type === 'QUIZ' && typeof status.roundStartId === 'string' && status.roundStartId) {
             this.quizRoundStartId = status.roundStartId;
           }
@@ -653,6 +675,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'QUIZ_STATE': {
           if (!this.acceptQuizAnnouncement(status)) return;
+          this.clearQuizLegacyBlock(status.roundStartId);
+          this.clearQuizCheck(status.roundStartId);
+          if (this.quizRecoveryBlocked) {
+            this.roundActive.set(false);
+            this.gameState.set(PlayerStatus.WAITING);
+            return;
+          }
           if (typeof status.roundStartId === 'string' && status.roundStartId) {
             this.quizRoundStartId = status.roundStartId;
           }
@@ -660,6 +689,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           const manche = Number(status.state?.manche) || 0;
           if (this.quizManche() !== manche || status.state?.mancheReveal || status.state?.revealed || status.state?.revealPending) {
             this.invalidateQuizSummary();
+            this.endQuizCheck();
           }
           this.quizManche.set(manche);
           if (status.state?.mancheReveal || status.state?.revealed || status.state?.revealPending) {
@@ -1344,6 +1374,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // Dopo un'espulsione o un logout il nome non c'è più: senza squadra il
     // tocco non deve arrivare al server, che registrerebbe un voto anonimo.
     if (!this.nickname()) return;
+    if (this.questionType() === 'QUIZ' && this.quizCheckPending()) return;
     // Quiz: il voto va al server, che controlla tempo, soluzione e doppio voto.
     if (this.questionType() === 'QUIZ') {
       this.sendQuizVote(index);
@@ -1367,6 +1398,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
    * stessa manche torna `already-answered` e viene trattato come conferma.
    */
   private sendQuizVote(index: number) {
+    if (this.quizCheckPending()) return;
     const gameId = this.gameId();
     const name = this.nickname();
     const manche = this.quizManche();
@@ -1385,6 +1417,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       next: (result) => {
         if (!stillCurrent() || result?.manche !== manche - 1) return;
         this.invalidateQuizSummary();
+        this.endQuizCheck();
         this.reliability.lastError.set(null);
         this.selectedAnswer.set(index);
         this.hasAnswered.set(true);
@@ -1396,6 +1429,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         if (!stillCurrent()) return;
         if (err?.error?.error === 'already-answered') {
           this.invalidateQuizSummary();
+          this.endQuizCheck();
           this.hasAnswered.set(true);
           this.answeredManche.set(manche);
           this.gameState.set(PlayerStatus.LOCKED);
@@ -2649,6 +2683,34 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Un blob Quiz legacy non verificabile non deve lasciare i tasti aperti:
+   * la TV non riprende la manche e il server rifiuterebbe ogni voto.
+   */
+  private blockLegacyQuiz(): void {
+    this.quizRecoveryBlocked = true;
+    this.quizRecoveryBlockedRoundId = this.quizRoundStartId;
+    this.endQuizCheck();
+    this.invalidateQuizSummary();
+    this.quizVoteGeneration++;
+    this.quizRoundStartId = '';
+    this.quizRoundStartedAt = 0;
+    this.quizManche.set(0);
+    this.roundActive.set(false);
+    this.hasAnswered.set(false);
+    this.selectedAnswer.set(null);
+    this.gameState.set(PlayerStatus.WAITING);
+  }
+
+  /** Un annuncio con un'altra apertura è un round nuovo; lo stesso legacy resta bloccato. */
+  private clearQuizLegacyBlock(roundStartId?: string): void {
+    if (!this.quizRecoveryBlocked) return;
+    const id = typeof roundStartId === 'string' ? roundStartId.trim() : '';
+    if (!id || id === this.quizRecoveryBlockedRoundId) return;
+    this.quizRecoveryBlocked = false;
+    this.quizRecoveryBlockedRoundId = '';
+  }
+
+  /**
    * Stato autorevole tornato dal server dopo una riconnessione: ripristina la
    * schermata giusta senza inventare nulla. Le risposte già date restano date.
    */
@@ -2675,6 +2737,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.blackjackState.set(null);
       this.timelineOrder.set([]);
       this.lastSnapshotRoundKey = '';
+      this.quizRecoveryBlocked = false;
+      this.quizRecoveryBlockedRoundId = '';
+      this.endQuizCheck();
       this.paused.set(false);
       this.pauseStartedAt = 0;
       this.roundActive.set(false);
@@ -2715,6 +2780,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const newRound = roundKey !== this.lastSnapshotRoundKey
       || (!!snapshotRoundStartId && !!this.quizRoundStartId && snapshotRoundStartId !== this.quizRoundStartId);
     if (newRound) {
+      this.quizRecoveryBlocked = false;
+      this.quizRecoveryBlockedRoundId = '';
+      this.endQuizCheck();
       this.invalidateQuizSummary();
       this.quizVoteGeneration++;
       this.quizRoundStartId = '';
@@ -2735,6 +2803,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.quizRoundStartId = snapshotRoundStartId;
       const startedAt = Number(snapshot?.roundStartedAt);
       if (Number.isFinite(startedAt) && startedAt > 0) this.quizRoundStartedAt = startedAt;
+    }
+
+    // Un'apertura diversa dal legacy bloccato è un round nuovo: si può votare.
+    if (this.quizRecoveryBlocked && snapshotRoundStartId
+        && snapshotRoundStartId !== this.quizRecoveryBlockedRoundId) {
+      this.quizRecoveryBlocked = false;
+      this.quizRecoveryBlockedRoundId = '';
     }
 
     // I bonus non sono round backend: uno snapshot del round precedente già
@@ -2778,6 +2853,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (snapshot.announced === false) {
       this.invalidateQuizSummary();
       this.roundActive.set(true);
+      this.gameState.set(PlayerStatus.WAITING);
+      return;
+    }
+
+    // Un blob legacy non verificabile: la TV ha rifiutato la ripresa, il
+    // telefono non deve mostrare una domanda su cui il server rifiuterebbe il voto.
+    if (type === 'QUIZ' && this.quizRecoveryBlocked) {
+      this.roundActive.set(false);
       this.gameState.set(PlayerStatus.WAITING);
       return;
     }
@@ -2839,11 +2922,29 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.quizSummaryPending = null;
   }
 
+  private beginQuizCheck(roundStartId: string): void {
+    this.quizCheckRoundId = roundStartId;
+    this.quizCheckPending.set(true);
+  }
+
+  private endQuizCheck(): void {
+    this.quizCheckPending.set(false);
+    this.quizCheckRoundId = '';
+  }
+
+  /** Un annuncio di un'altra apertura invalida l'attesa; lo stesso round la conserva. */
+  private clearQuizCheck(roundStartId?: string): void {
+    if (!this.quizCheckPending()) return;
+    const id = typeof roundStartId === 'string' ? roundStartId.trim() : '';
+    if (!id || id === this.quizCheckRoundId) return;
+    this.endQuizCheck();
+  }
+
   /**
    * Quiz ripreso dopo un refresh: se la manche aperta ha già il voto di questa
    * squadra, il telefono si blocca con la risposta scelta, invece di offrire
-   * un secondo voto che il server rifiuterebbe. I tasti restano aperti mentre
-   * la risposta arriva; richieste successive possono ritentare dopo un errore.
+   * un secondo voto che il server rifiuterebbe. I tasti restano chiusi mentre
+   * il riepilogo è in volo e non si riaprono se la verifica fallisce.
    */
   private confirmQuizVote(roundKey: string): void {
     if (this.quizSummaryPending?.roundKey === roundKey) return;
@@ -2855,6 +2956,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const displayedManche = this.quizManche();
     const pending = { roundKey, generation: this.quizSummaryGeneration };
     this.quizSummaryPending = pending;
+    this.beginQuizCheck(roundStartId);
     this.gameService.quizAnswers(gameId).subscribe({
       next: (summary: any) => {
         if (this.quizSummaryPending === pending) this.quizSummaryPending = null;
@@ -2867,6 +2969,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
           || this.questionType() !== 'QUIZ' || !this.roundActive()
           || this.gameState() !== PlayerStatus.VOTING || this.hasAnswered()
           || this.quizManche() !== displayedManche) return;
+        // Legacy senza identità di apertura: il riepilogo non ha roundStartId,
+        // quindi va bloccato prima del confronto che normalmente lo scarta.
+        if (summary?.recoveryBlocked === 'legacy-quiz-state') {
+          this.blockLegacyQuiz();
+          return;
+        }
         if (!roundStartId || summary?.roundStartId !== roundStartId) return;
         // Il server numera da zero, la TV da uno; il payload del round non
         // contiene necessariamente la manche attuale, quindi fa fede il riepilogo.
@@ -2879,26 +2987,38 @@ export class RemoteComponent implements OnInit, OnDestroy {
           String(row?.playerName ?? '').trim().toLowerCase() === name
           && Number(row?.manche) === index);
         this.quizManche.set(manche);
-        if (!mine) return;
+        if (!mine) {
+          this.endQuizCheck();
+          return;
+        }
         this.answeredManche.set(manche);
         this.selectedAnswer.set(Number(mine.optionIndex));
         this.hasAnswered.set(true);
+        this.endQuizCheck();
         this.gameState.set(PlayerStatus.LOCKED);
       },
       error: () => {
         if (this.quizSummaryPending === pending) this.quizSummaryPending = null;
-        // Resta aperto: un doppio voto verrebbe rifiutato dal server.
+        // La verifica non è arrivata: i tasti restano chiusi finché un nuovo
+        // riallineamento non la ripete. Un voto senza verifica non si invia.
+        this.reliability.lastError.set('Quiz non verificato: attendi il riallineamento.');
       },
     });
   }
 
   onRoundEnd() {
+    this.quizRecoveryBlocked = false;
+    this.quizRecoveryBlockedRoundId = '';
+    this.endQuizCheck();
     this.gameState.set(PlayerStatus.WAITING);
     this.hasAnswered.set(false);
     this.selectedAnswer.set(null);
   }
 
   setupNewRound(type: string) {
+    this.quizRecoveryBlocked = false;
+    this.quizRecoveryBlockedRoundId = '';
+    this.endQuizCheck();
     this.currentRoundType = type;
     this.hasAnswered.set(false);
     this.selectedAnswer.set(null);
@@ -2916,6 +3036,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
    * nome resta libero sul server, quindi il rientro è possibile con un tocco.
    */
   private handleRemoved(): void {
+    this.quizRecoveryBlocked = false;
+    this.quizRecoveryBlockedRoundId = '';
+    this.endQuizCheck();
     this.invalidateQuizSummary();
     this.reliability.forgetSession();
     this.closeManual();
