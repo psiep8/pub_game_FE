@@ -801,6 +801,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'ROUND_ENDED':
         case 'REVEAL':
+          this.endQuizCheck();
+          this.quizRecoveryBlocked = false;
+          this.quizRecoveryBlockedRoundId = '';
           this.invalidateQuizSummary();
           this.quizVoteGeneration++;
           this.quizRoundStartId = '';
@@ -2701,7 +2704,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.gameState.set(PlayerStatus.WAITING);
   }
 
-  /** Un annuncio con un'altra apertura è un round nuovo; lo stesso legacy resta bloccato. */
+  /**
+   * Un annuncio con un'altra apertura è un round nuovo; lo stesso legacy resta
+   * bloccato. Senza identità un reannuncio non basta: il blocco lo chiudono
+   * ROUND_ENDED/REVEAL o uno snapshot nuovo.
+   */
   private clearQuizLegacyBlock(roundStartId?: string): void {
     if (!this.quizRecoveryBlocked) return;
     const id = typeof roundStartId === 'string' ? roundStartId.trim() : '';
@@ -2830,6 +2837,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // restava sulla schermata del gioco precedente (o su "In attesa" con lo
     // stato di risposta ancora bloccato) finché non arrivava un START_VOTING.
     if (!open || !type) {
+      this.endQuizCheck();
+      this.quizRecoveryBlocked = false;
+      this.quizRecoveryBlockedRoundId = '';
       this.invalidateQuizSummary();
       this.quizVoteGeneration++;
       this.quizRoundStartId = '';
@@ -2851,6 +2861,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // mostrarlo adesso rivelerebbe il gioco prima dell'annuncio. Si aspetta
     // START_VOTING, che arriva alla fine dell'animazione.
     if (snapshot.announced === false) {
+      this.endQuizCheck();
       this.invalidateQuizSummary();
       this.roundActive.set(true);
       this.gameState.set(PlayerStatus.WAITING);
@@ -2930,9 +2941,16 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private endQuizCheck(): void {
     this.quizCheckPending.set(false);
     this.quizCheckRoundId = '';
+    if (this.reliability.lastError() === 'Quiz non verificato: attendi il riallineamento.') {
+      this.reliability.lastError.set(null);
+    }
   }
 
-  /** Un annuncio di un'altra apertura invalida l'attesa; lo stesso round la conserva. */
+  /**
+   * Un annuncio di un'altra apertura invalida l'attesa; lo stesso round la
+   * conserva. Senza identità non si può distinguere un reannuncio da un nuovo
+   * round: l'attesa resta, e la chiudono ROUND_ENDED/REVEAL o uno snapshot nuovo.
+   */
   private clearQuizCheck(roundStartId?: string): void {
     if (!this.quizCheckPending()) return;
     const id = typeof roundStartId === 'string' ? roundStartId.trim() : '';

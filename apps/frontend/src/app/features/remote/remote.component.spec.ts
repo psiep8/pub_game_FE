@@ -1408,6 +1408,81 @@ describe('RemoteComponent', () => {
     expect(submit).not.toHaveBeenCalled();
   });
 
+  it('un reannuncio senza identità non riapre i tasti dopo un errore, ma il round dopo la fine sì', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers')
+      .mockReturnValueOnce(throwError(() => new Error('offline')))
+      .mockReturnValueOnce(of({ roundStartId: 'round-1', mancheIndex: 1, answers: [] }))
+      .mockReturnValueOnce(throwError(() => new Error('offline')));
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.quiz-grid button')) as HTMLButtonElement[];
+    expect(component.quizCheckPending()).toBe(true);
+    expect(buttons.every((button) => button.disabled)).toBe(true);
+
+    // Il riallineamento ripete la verifica: stavolta risponde senza un voto.
+    (component as any).realignWithServer();
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(false);
+    expect(component.reliability.lastError()).toBeNull();
+    expect(buttons.every((button) => !button.disabled)).toBe(true);
+
+    // Una nuova verifica fallisce ancora; il round successivo non eredita il blocco.
+    (component as any).realignWithServer();
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(true);
+    expect(buttons.every((button) => button.disabled)).toBe(true);
+
+    // Reannuncio senza identità dello stesso round: non deve riaprire i tasti.
+    ws.status$.next({ action: 'START_VOTING', type: 'QUIZ', payload: {} });
+    fixture.detectChanges();
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(component.quizCheckPending()).toBe(true);
+    expect(buttons.every((button) => button.disabled)).toBe(true);
+
+    // Dopo la fine del round, invece, il nuovo annuncio senza identità riparte.
+    ws.status$.next({ action: 'ROUND_ENDED' });
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(false);
+    ws.status$.next({ action: 'START_VOTING', type: 'QUIZ', payload: {} });
+    fixture.detectChanges();
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(component.quizCheckPending()).toBe(false);
+    expect(component.reliability.lastError()).toBeNull();
+    const freshButtons = Array.from(fixture.nativeElement.querySelectorAll('.quiz-grid button')) as HTMLButtonElement[];
+    expect(freshButtons.length).toBe(4);
+    expect(freshButtons.every((button) => !button.disabled)).toBe(true);
+  });
+
+  it('la fine del round chiude l attesa del riepilogo Quiz', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(throwError(() => new Error('offline')));
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(true);
+
+    ws.status$.next({ action: 'ROUND_ENDED' });
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(false);
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+  });
+
   it('dopo un refresh in Quiz non riapre il voto di una manche già votata', async () => {
     localStorage.setItem('nickname', 'Anna');
     reliability.resumedSession.set(true);
@@ -1458,6 +1533,37 @@ describe('RemoteComponent', () => {
       roundStartedAt: Date.now(), payload: {} });
     fixture.detectChanges();
     expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(fixture.nativeElement.querySelector('.quiz-grid')).not.toBeNull();
+  });
+
+  it('un reannuncio senza identità non sblocca il legacy, ma il round dopo la fine sì', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(of({
+      recoveryBlocked: 'legacy-quiz-state', roundStartId: '', mancheIndex: -1, answers: [],
+    }));
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+
+    // Reannuncio senza identità: non si può provare che sia una nuova domanda.
+    ws.status$.next({ action: 'START_VOTING', type: 'QUIZ', payload: {} });
+    fixture.detectChanges();
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+    expect(fixture.nativeElement.querySelector('.quiz-grid')).toBeNull();
+
+    // La fine del round chiude il blocco; il nuovo annuncio può ripartire.
+    ws.status$.next({ action: 'ROUND_ENDED' });
+    fixture.detectChanges();
+    ws.status$.next({ action: 'START_VOTING', type: 'QUIZ', payload: {} });
+    fixture.detectChanges();
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(component.quizCheckPending()).toBe(false);
     expect(fixture.nativeElement.querySelector('.quiz-grid')).not.toBeNull();
   });
 
