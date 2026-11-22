@@ -1854,6 +1854,73 @@ describe('RemoteComponent', () => {
     expect(buttons.every((button) => !button.disabled)).toBe(true);
   });
 
+  it('un QUIZ_STATE della stessa manche non sblocca un riepilogo fallito', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(throwError(() => new Error('offline')));
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(true);
+
+    // La TV ripubblica la manche appena aperta: non è una verifica riuscita.
+    ws.status$.next({ action: 'QUIZ_STATE', roundStartId: 'round-1', state: { manche: 2 } });
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(true);
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.quiz-grid button')) as HTMLButtonElement[];
+    expect(buttons.length).toBe(4);
+    expect(buttons.every((button) => button.disabled)).toBe(true);
+
+    // Uno stato vecchio (manche precedente) non vale come manche nuova.
+    ws.status$.next({ action: 'QUIZ_STATE', roundStartId: 'round-1', state: { manche: 1 } });
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(true);
+
+    // Solo la manche successiva chiude l'attesa.
+    ws.status$.next({ action: 'QUIZ_STATE', roundStartId: 'round-1', state: { manche: 3 } });
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(false);
+    expect(fixture.nativeElement.querySelectorAll('.quiz-grid button').length).toBe(4);
+  });
+
+  it('uno stato vecchio non abbassa la manche: il successivo stato corrente non sblocca', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(throwError(() => new Error('offline')));
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(true);
+
+    // La TV dichiara la manche corrente: diventa nota, senza sbloccare.
+    ws.status$.next({ action: 'QUIZ_STATE', roundStartId: 'round-1', state: { manche: 2 } });
+    fixture.detectChanges();
+    expect(component.quizManche()).toBe(2);
+    expect(component.quizCheckPending()).toBe(true);
+
+    // Uno stato vecchio non deve abbassare la manche nota.
+    ws.status$.next({ action: 'QUIZ_STATE', roundStartId: 'round-1', state: { manche: 1 } });
+    fixture.detectChanges();
+    expect(component.quizManche()).toBe(2);
+    expect(component.quizCheckPending()).toBe(true);
+
+    // Lo stato corrente non è una manche nuova: i tasti restano chiusi.
+    ws.status$.next({ action: 'QUIZ_STATE', roundStartId: 'round-1', state: { manche: 2 } });
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(true);
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.quiz-grid button')) as HTMLButtonElement[];
+    expect(buttons.length).toBe(4);
+    expect(buttons.every((button) => button.disabled)).toBe(true);
+  });
+
   it('uno snapshot con la stessa chiave ma un roundStartId nuovo chiude l attesa', async () => {
     localStorage.setItem('nickname', 'Anna');
     reliability.resumedSession.set(true);

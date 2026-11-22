@@ -68,6 +68,8 @@ Non usare il database della serata. Con il backend fermo:
 | R13 | Sessione non riconosciuta (serata diversa o token scaduto) | Form col nome pronto + «La sessione è scaduta»; nessun ingresso automatico | | |
 | R14 | Con la copia legacy avviata: entra nella partita e apri il round Quiz; ricarica **entrambi i telefoni** dal browser, poi ricarica la TV e premi RIPRENDI | Dopo i refresh i due telefoni non offrono una domanda votabile: nessun tasto di risposta attivo e nessun voto registrabile; i voti legacy non compaiono. La TV mostra l'avviso «Quiz precedente non verificabile: i voti salvati sono conservati, ma non è sicuro riprendere» e non riapre la manche | | |
 | R15 | Dalla regia chiudi il round e apri un Quiz **nuovo** (chiave di round diversa); vota da un telefono | La manche nuova parte con risposte vuote; i voti legacy non compaiono; il telefono vota regolarmente. Sulla copia, la riga `quiz-legacy-archive` è una sola e contiene il primo legacy; resta invariata dopo un secondo legacy/round | | |
+| R16 | Errore di verifica **senza perdere la socket**: bloccare solo la chiamata del riepilogo Quiz del telefono (DevTools remoto su Android; su iOS non è praticabile), aprire il round e attendere «Quiz non verificato…». Con la socket attiva, ricaricare la TV (F5) e premere RIPRENDI | I tasti restano chiusi: RIPRENDI ripete lo stesso `roundStartId`. Nessun voto parte. Solo un round nuovo o un `REVEAL` li riaprono. Se il telefono si riallinea prima di RIPRENDI e i tasti si aprono, è il comportamento di R17: R16 resta **non eseguita** | | |
+| R17 | Stessa rottura di R16, ma senza RIPRENDI: lasciare che il telefono si riallinei da solo al ritorno della rete o della socket (oppure rientro dall'app, o refresh) | La verifica si ripete e i tasti tornano coerenti: aperti se non si era votato, bloccati con la risposta scelta se il voto c'era; nessun voto doppio sul server | | |
 
 Da guardare in ogni prova: la TV non deve ricevere due volte la stessa risposta o
 lo stesso ordine Timeline, e la classifica non deve cambiare dopo un refresh del
@@ -77,12 +79,18 @@ Per R15, a backend spento, controllare la copia con H2 Shell (sola lettura):
 `SELECT blob_key, payload FROM state_blob WHERE game_id = <id> AND blob_key LIKE 'quiz%'`.
 L'archivio conserva il **primo** legacy; un secondo legacy non lo sostituisce.
 
+R16 richiede che la verifica resti fallita mentre la socket è attiva: spegnere il
+backend non basta, perché al ritorno della rete il telefono si riallinea da solo
+e rifà il riepilogo (è R17). Se non si riesce a isolare la sola chiamata del
+riepilogo, segnare R16 come **non eseguita**: l'annuncio con lo stesso
+`roundStartId` è già coperto dal test automatico.
+
 ### Vie di sblocco del Quiz coperte dai test automatici
 
-La suite frontend (70 file, 689 test) copre in jsdom le uscite dal blocco del
+La suite frontend (70 file, 691 test) copre in jsdom le uscite dal blocco del
 riepilogo. Questi casi non vanno riprovati a mano per fidarsi della logica: in
 sala servono a confermare che rete, socket e refresh reali si comportino come i
-doppi di test. I test remoti sono 107
+doppi di test. I test remoti sono 109
 (`--include="**/remote.component.spec.ts"`).
 
 | Via di sblocco | Test automatico | Cosa resta ai device |
@@ -104,6 +112,8 @@ doppi di test. I test remoti sono 107
 | Snapshot a round chiuso: chiude attesa e legacy | `uno snapshot a round chiuso chiude l attesa del riepilogo e sblocca il legacy` | R14: la TV o la regia hanno già chiuso il round |
 | Snapshot non ancora annunciato (`announced: false`) | `uno snapshot non ancora annunciato chiude l attesa del riepilogo` | F16 Q4: intro TV ancora in corso al refresh |
 | `QUIZ_STATE` di manche nuova | `un QUIZ_STATE di manche nuova chiude l attesa del riepilogo` | Cambio manche reale mentre il riepilogo è in errore |
+| `QUIZ_STATE` della stessa manche (o di una precedente): non sblocca | `un QUIZ_STATE della stessa manche non sblocca un riepilogo fallito` | R16: il ripubblicato della TV non deve riaprire i tasti |
+| Stato vecchio e poi stato corrente: la manche nota non scende | `uno stato vecchio non abbassa la manche: il successivo stato corrente non sblocca` | R16: l'ordine dei `QUIZ_STATE` non deve riaprire i tasti |
 | Snapshot con **stessa `roundKey`** e `roundStartId` nuovo: attesa e legacy | `uno snapshot con la stessa chiave ma un roundStartId nuovo chiude l attesa`, `uno snapshot con la stessa chiave ma un roundStartId nuovo sblocca il legacy` | R15: nuova apertura che riusa la chiave del round |
 | Espulsione durante l'attesa o il blocco legacy | `l espulsione chiude l attesa del riepilogo Quiz`, `l espulsione sblocca il legacy: al rientro senza identità i tasti si aprono` | R11: espulsione reale dalla regia |
 
@@ -291,7 +301,7 @@ Note obbligatorie accanto all'esito:
 | Voce | Esito complessivo | Prove passate | Cosa resta aperto |
 |---|---|---|---|
 | F01 | | /4 | |
-| F02 | | /15 | |
+| F02 | | /17 | |
 | F16 | | /5 (+1) | |
 | F12 | | /14 | |
 | F13 | | /6 | |

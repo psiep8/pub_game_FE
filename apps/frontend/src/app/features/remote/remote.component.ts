@@ -687,11 +687,23 @@ export class RemoteComponent implements OnInit, OnDestroy {
           }
           // Una manche nuova riapre i voti; il reveal invece blocca i telefoni.
           const manche = Number(status.state?.manche) || 0;
-          if (this.quizManche() !== manche || status.state?.mancheReveal || status.state?.revealed || status.state?.revealPending) {
+          const knownManche = this.quizManche();
+          const reveal = !!(status.state?.mancheReveal || status.state?.revealed || status.state?.revealPending);
+          // La TV dichiara la manche: un riepilogo partito prima va rifatto,
+          // ma da solo non prova che il voto sia verificato.
+          if (manche !== knownManche || reveal) {
             this.invalidateQuizSummary();
+          }
+          // L'attesa si chiude solo se la manche avanza rispetto a una già
+          // nota (o se il reveal la chiude): con la manche sconosciuta (0) o
+          // con uno stato vecchio lo stesso QUIZ_STATE non riapre i tasti.
+          if ((knownManche > 0 && manche > knownManche) || reveal) {
             this.endQuizCheck();
           }
-          this.quizManche.set(manche);
+          // La manche nota non scende mai: uno stato vecchio non deve
+          // abbassarla, altrimenti lo stato corrente successivo sembrerebbe
+          // una manche nuova e riaprirebbe i tasti.
+          this.quizManche.set(Math.max(knownManche, manche));
           if (status.state?.mancheReveal || status.state?.revealed || status.state?.revealPending) {
             this.gameState.set(PlayerStatus.WAITING);
           } else if (this.questionType() === 'QUIZ' && manche > 0
