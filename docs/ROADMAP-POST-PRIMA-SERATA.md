@@ -290,7 +290,7 @@ La ripresa del Casino usa lo stesso `tvCheckpoint` dei round, con `mode` che ini
 
 **Aggiornamento 21 novembre 2026 — 2.2.0 e banche.** La versione corrente è la
 **2.2.0** (nessun tag creato). Banche: **983 domande** Quiz/Arena/Tennis/Cavallo,
-**360** Azzardo, **95** affermazioni Bomba e **211** eventi Timeline; l'audit dà
+**360** Azzardo, **110** affermazioni Bomba e **211** eventi Timeline; l'audit dà
 **0 doppioni**, **0 segnalazioni** e **0 campi mancanti**. Restano **69 buchi** di
 Ultima spiaggia sotto la soglia di 12 per categoria e livello (circa **447
 domande** da aggiungere) e solo **3** eventi Timeline di difficoltà 5; l'audit in
@@ -361,6 +361,7 @@ media), run CI #155 verde prima di questo job, screenshot del README rifatti.
 | A1 | Fatto | 1 test Casino (una girata sola per manche) + suite completa 70 file / 701 test; build frontend | `7f44d583` | Numero secco a tre girate, `mustWin`, ciclo di rigiro e fase `RESPIN` rimossi; demo, manuale e tabella punteggi aggiornati. |
 | A2 | Fatto | Suite completa 70 file / 701 test; build frontend | `ad9857d1` | Testo di `SCORING_RULES`, demo e manuale allineati a `QuizService`. |
 | Quiz, punteggio (23/11) | Fatto | `QuizServiceTest`, `scoring-rules.spec`, suite completa | — | Il round vale 1000 in tutto e la penalità è la quota scalata dal tempo: niente più −1000 fissi, il round va da −1000 a +1000. |
+| Banche, completamento (23/11) | Fatto | `node scripts/audit-banche.mjs --ci`: 0 doppioni, 0 campi mancanti, 0 buchi | — | Bomba da 95 a 110 affermazioni (4 coppie mancanti completate + 6 nuove), anno di «Boulevard of Broken Dreams» = 2004 nella banca locale, 8 coppie con nome lungo rivedute a mano. |
 | B3 | Fatto | `npm run audit:banche`: 0 doppioni, 0 campi mancanti sulle nuove banche | `8bfd57a8` | Audit esteso a Indovina chi (150), Musica (114), Ruota (32 frasi) e Bomba (95); dubbi in `docs/DOMANDE-DA-REVISIONARE.md`. |
 | B1 | Fatto | `UltimaSpiaggiaPayloadTest` (2 test) in H2; audit con 0 buchi | `99596d69` | Cinque fasce reali, 80 domande dedicate (16 categorie × 5), nessun ripiego di fascia. |
 | B2 | Fatto | Campione riproducibile (seed 20261123) | `745c0f38` | 30 domande per fascia con risposta e distrattori, da giudicare a mano. |

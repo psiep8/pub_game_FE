@@ -1,5 +1,19 @@
 # Changelog
 
+## 23 novembre 2026 — Banche: Bomba a 110 affermazioni, Musica con gli anni
+
+- **Bomba:** 95 → **110 affermazioni** (62 vere, 48 false). Aggiunte le vere che
+  mancavano alle quattro coppie segnalate (Torre Eiffel 1889, i ragni non sono
+  insetti, il violino ha quattro corde, Titanic di Cameron) e sei affermazioni
+  nuove per portare ogni categoria ad almeno nove righe; ogni riga ha la fonte.
+- **Musica:** completato l'anno di «Boulevard of Broken Dreams» (2004) nella
+  banca locale `media-it.json`, che non è tracciata da git.
+- **Revisione:** le otto coppie in cui il nome cambiato ha tre o più parole sono
+  state confrontate a mano e restano valide; l'elenco è in
+  `docs/DOMANDE-DA-REVISIONARE.md`, il report in `docs/BANCHE-AUDIT.md`.
+- Verifiche: `node scripts/audit-banche.mjs --ci` → 0 doppioni, 0 segnalazioni,
+  0 campi mancanti, 0 buchi di Ultima spiaggia; suite backend 163 test.
+
 ## 23 novembre 2026 — Quiz: 1000 per round, penalità scalata dal tempo
 
 - **Regola unica:** il round Quiz vale **1000 punti in tutto**, divisi fra le tre

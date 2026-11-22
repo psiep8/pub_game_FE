@@ -107,6 +107,21 @@
     { "id": "bomba-letteratura-05", "category": "Letteratura", "statement": "1984 è di George Orwell.", "true": true, "source": "https://it.wikipedia.org/w/index.php?search=1984+romanzo" },
     { "id": "bomba-letteratura-06", "category": "Letteratura", "statement": "1984 è di Aldous Huxley.", "true": false, "source": "https://it.wikipedia.org/w/index.php?search=1984+romanzo" },
     { "id": "bomba-letteratura-07", "category": "Letteratura", "statement": "Il Gattopardo è di Giuseppe Tomasi di Lampedusa.", "true": true, "source": "https://it.wikipedia.org/w/index.php?search=Il+Gattopardo" },
-    { "id": "bomba-letteratura-08", "category": "Letteratura", "statement": "Il Gattopardo è di Leonardo Sciascia.", "true": false, "source": "https://it.wikipedia.org/w/index.php?search=Il+Gattopardo" }
+    { "id": "bomba-letteratura-08", "category": "Letteratura", "statement": "Il Gattopardo è di Leonardo Sciascia.", "true": false, "source": "https://it.wikipedia.org/w/index.php?search=Il+Gattopardo" },
+    { "id": "bomba-arte-09", "category": "Arte", "statement": "La Torre Eiffel fu inaugurata nel 1889.", "true": true, "source": "https://it.wikipedia.org/w/index.php?search=Torre+Eiffel" },
+    { "id": "bomba-arte-10", "category": "Arte", "statement": "La Notte stellata è di Vincent van Gogh.", "true": true, "source": "https://it.wikipedia.org/w/index.php?search=Notte+stellata" },
+    { "id": "bomba-cucina-08", "category": "Cucina", "statement": "Il riso è un cereale.", "true": true, "source": "https://it.wikipedia.org/w/index.php?search=Riso" },
+    { "id": "bomba-cucina-09", "category": "Cucina", "statement": "Il riso è un legume.", "true": false, "source": "https://it.wikipedia.org/w/index.php?search=Riso" },
+    { "id": "bomba-cucina-10", "category": "Cucina", "statement": "Il tiramisù è un dolce italiano.", "true": true, "source": "https://it.wikipedia.org/w/index.php?search=Tiramis%C3%B9" },
+    { "id": "bomba-letteratura-09", "category": "Letteratura", "statement": "I promessi sposi sono di Alessandro Manzoni.", "true": true, "source": "https://it.wikipedia.org/w/index.php?search=I+promessi+sposi" },
+    { "id": "bomba-letteratura-10", "category": "Letteratura", "statement": "Il Gattopardo è ambientato in Sicilia.", "true": true, "source": "https://it.wikipedia.org/w/index.php?search=Il+Gattopardo" },
+    { "id": "bomba-musica-09", "category": "Musica", "statement": "Il violino ha quattro corde.", "true": true, "source": "https://it.wikipedia.org/w/index.php?search=Violino" },
+    { "id": "bomba-musica-10", "category": "Musica", "statement": "La Traviata è di Giuseppe Verdi.", "true": true, "source": "https://it.wikipedia.org/w/index.php?search=La+traviata" },
+    { "id": "bomba-natura-10", "category": "Natura", "statement": "I ragni non sono insetti.", "true": true, "source": "https://it.wikipedia.org/w/index.php?search=Ragno" },
+    { "id": "bomba-sport-09", "category": "Sport", "statement": "Il calcio si gioca in undici giocatori per squadra.", "true": true, "source": "https://it.wikipedia.org/w/index.php?search=Calcio+(sport)" },
+    { "id": "bomba-sport-10", "category": "Sport", "statement": "Il calcio si gioca in dieci giocatori per squadra.", "true": false, "source": "https://it.wikipedia.org/w/index.php?search=Calcio+(sport)" },
+    { "id": "bomba-tecnologia-09", "category": "Tecnologia", "statement": "Il Wi-Fi trasmette dati via onde radio.", "true": true, "source": "https://it.wikipedia.org/w/index.php?search=Wi-Fi" },
+    { "id": "bomba-tecnologia-10", "category": "Tecnologia", "statement": "Il Wi-Fi trasmette dati via cavo.", "true": false, "source": "https://it.wikipedia.org/w/index.php?search=Wi-Fi" },
+    { "id": "bomba-cinema-10", "category": "Cinema e TV", "statement": "Titanic è diretto da James Cameron.", "true": true, "source": "https://it.wikipedia.org/w/index.php?search=Titanic+(film+1997)" }
   ]
 }

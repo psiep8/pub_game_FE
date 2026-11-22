@@ -305,11 +305,7 @@ Doppioni: **0**. Campi mancanti o file assenti: **0**.
 
 ## Indovina la canzone (media: music)
 
-Brani: **114**, artisti distinti: **78**. Doppioni: **0**. Campi o file mancanti: **1**.
-
-| Brano | Campo | Dettaglio |
-| --- | --- | --- |
-| Boulevard of Broken Dreams | year |  |
+Brani: **114**, artisti distinti: **78**. Doppioni: **0**. Campi o file mancanti: **0**.
 
 ## Ruota della fortuna (frasi dal servizio)
 
@@ -317,34 +313,31 @@ Frasi: **32**. Doppioni: **0**. Segnalazioni: **0**.
 
 ## Bomba (affermazioni vere e false)
 
-Affermazioni: **95** (50 vere, 45 false). Doppioni: **0**. Campi mancanti: **0**.
+Affermazioni: **110** (62 vere, 48 false). Doppioni: **0**. Campi mancanti: **0**.
 
 | Categoria | Vere | False |
 | --- | --- | --- |
-| Arte | 4 | 4 |
-| Cinema e TV | 5 | 4 |
-| Cucina | 4 | 3 |
+| Arte | 6 | 4 |
+| Cinema e TV | 6 | 4 |
+| Cucina | 6 | 4 |
 | Geografia | 5 | 5 |
-| Letteratura | 4 | 4 |
-| Musica | 4 | 4 |
-| Natura | 5 | 4 |
+| Letteratura | 6 | 4 |
+| Musica | 6 | 4 |
+| Natura | 6 | 4 |
 | Scienza | 6 | 4 |
-| Sport | 4 | 4 |
+| Sport | 5 | 5 |
 | Storia | 5 | 5 |
-| Tecnologia | 4 | 4 |
+| Tecnologia | 5 | 5 |
 
-### False senza un solo dettaglio cambiato (11)
+### False senza un solo dettaglio cambiato (8)
 
 | ID | Controllo | Dettaglio |
 | --- | --- | --- |
 | bomba-natura-04 | vera più vicina distante: verificare a mano | 3 parole: La rondine è l'animale più veloce in volo. / Il falco pellegrino è l'animale più veloce in volo. |
 | bomba-natura-06 | vera più vicina distante: verificare a mano | 3 parole: Lo squalo balena è il più grande animale esistente. / La balenottera azzurra è il più grande animale esistente. |
-| bomba-natura-08 | vera più vicina distante: verificare a mano | 3 parole: I ragni sono insetti. / I ragni hanno otto zampe. |
 | bomba-cinema-04 | vera più vicina distante: verificare a mano | 3 parole: Il padrino è diretto da Martin Scorsese. / Il padrino è diretto da Francis Ford Coppola. |
 | bomba-musica-06 | vera più vicina distante: verificare a mano | 4 parole: Mozart compose La Traviata. / Mozart compose Le nozze di Figaro. |
-| bomba-musica-08 | vera più vicina distante: verificare a mano | 3 parole: Il violino ha cinque corde. / Il pianoforte ha 88 tasti. |
 | bomba-arte-02 | vera più vicina distante: verificare a mano | 3 parole: La Gioconda è di Raffaello. / La Gioconda è di Leonardo da Vinci. |
-| bomba-arte-08 | vera più vicina distante: verificare a mano | 6 parole: La Torre Eiffel fu inaugurata nel 1900. / La Gioconda è di Leonardo da Vinci. |
 | bomba-tecnologia-02 | vera più vicina distante: verificare a mano | 3 parole: Il World Wide Web fu proposto da Bill Gates. / Il World Wide Web fu proposto da Tim Berners-Lee. |
 | bomba-tecnologia-08 | vera più vicina distante: verificare a mano | 4 parole: La sigla CPU indica la memoria di massa. / La sigla CPU indica l'unità centrale di elaborazione. |
-| bomba-letteratura-08 | vera più vicina distante: verificare a mano | 4 parole: Il Gattopardo è di Leonardo Sciascia. / 1984 è di George Orwell. |
+| bomba-letteratura-08 | vera più vicina distante: verificare a mano | 3 parole: Il Gattopardo è di Leonardo Sciascia. / Il Gattopardo è ambientato in Sicilia. |

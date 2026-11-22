@@ -313,7 +313,7 @@ Il registro completo dei difetti emersi nella prima serata (F01–F55), con stat
 - Sezione Demo nell'admin (introduzione, 13 giochi, 5 bonus) con tabella punti generata da `SCORING_RULES`.
 - Classifiche rapide e dettagliate, pausa, ripresa, diagnostica di regia, espulsione di una squadra dalla regia.
 - Audio a file registrati con regia audio in `/audio`.
-- Banca domande pre-generata: 983 domande, 360 domande Azzardo, 95 affermazioni Bomba e 211 eventi Timeline.
+- Banca domande pre-generata: 983 domande, 360 domande Azzardo, 110 affermazioni Bomba e 211 eventi Timeline.
 
 **Da provare con telefoni e TV veri** (corrette nel codice, non verificate in sala): rientro su iPhone e Safari, Time Buzzer, Arena (cerchio, movimento, inattività), Speed Rush a 90 secondi, Tennis dopo la migrazione del database, Bomba con esplosione immediata, vibrazione e suono sui telefoni.
 
@@ -334,7 +334,7 @@ Il registro completo dei difetti emersi nella prima serata (F01–F55), con stat
 
 ## 13. Contenuti e licenze
 
-- **Domande**: `apps/backend/src/main/resources/questions/questions-it.json` (983 domande, 16 categorie; Tennis Battle è un tipo di domanda, non una categoria), `azzardo-it.json` (360), `bomba-it.json` (95 affermazioni) e `timeline-it.json` (211 eventi). Il backend le carica all'avvio e non chiama alcun modello AI a runtime.
+- **Domande**: `apps/backend/src/main/resources/questions/questions-it.json` (983 domande, 16 categorie; Tennis Battle è un tipo di domanda, non una categoria), `azzardo-it.json` (360), `bomba-it.json` (110 affermazioni) e `timeline-it.json` (211 eventi). Il backend le carica all'avvio e non chiama alcun modello AI a runtime.
 - **Generazione**: `scripts/generate-questions/generate.py` può usare Groq, ma solo quando si rigenera la banca. `GROQ_API_KEY` non serve per giocare.
 - **Immagini**: “Indovina chi” può usare TMDB se `TMDB_API_KEY` è impostata; senza chiave la domanda resta senza foto. Se la banca media locale è presente, le immagini vengono servite dal backend.
 - **Musica**: senza banca locale il backend usa le anteprime pubbliche di 30 secondi dell'iTunes Search API; con la banca locale i file sono serviti da `/media/...`.
