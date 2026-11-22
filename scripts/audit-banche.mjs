@@ -18,7 +18,10 @@
  * specifica. Con `--json` stampa il report in JSON; con `--write` aggiorna
  * docs/BANCHE-AUDIT.md.
  *
- * Uso: node scripts/audit-banche.mjs [--json] [--write]
+ * Con `--ci` non scrive nulla e fallisce (exit 1) solo per doppioni,
+ * segnalazioni o campi mancanti; i buchi di Ultima spiaggia restano informativi.
+ *
+ * Uso: node scripts/audit-banche.mjs [--json] [--write] [--ci]
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -421,4 +424,21 @@ if (writeReport) {
   const target = join(rootDir, 'docs', 'BANCHE-AUDIT.md');
   writeFileSync(target, renderMarkdown(report), 'utf8');
   console.log('Report scritto in docs/BANCHE-AUDIT.md');
+}
+
+if (args.has('--ci')) {
+  const duplicates = report.quiz.duplicates.length
+    + report.timeline.duplicates.length
+    + report.azzardo.duplicates.length;
+  const issues = report.quiz.issues.length;
+  const missing = report.timeline.missing.length + report.azzardo.missing.length;
+  const holes = report.ultimaSpiaggia.holes.length;
+  console.log(`CI banche: doppioni ${duplicates}, segnalazioni ${issues}, campi mancanti ${missing}`);
+  console.log(`Ultima spiaggia: ${holes} buchi noti (non bloccanti)`);
+  if (duplicates + issues + missing > 0) {
+    console.error('Audit banche: controllo fallito.');
+    process.exitCode = 1;
+  } else {
+    console.log('Audit banche: OK');
+  }
 }

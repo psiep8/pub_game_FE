@@ -26,6 +26,17 @@ jobs:
       - name: Test
         run: npm run test --workspace pubgame-fe -- --watch=false
 
+  banks:
+    name: Banche (audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Audit banche
+        run: node scripts/audit-banche.mjs --ci
+
   backend:
     name: Backend (test)
     runs-on: ubuntu-latest
