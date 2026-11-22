@@ -206,6 +206,115 @@ domanda che il pubblico trova fuori fascia si sposta cambiando `spiaggiaBand`
 | Curiosità | medio-difficile | `quiz-curiosita-07` Quale animale ha tre cuori? | Il polpo |
 | Curiosità | difficile | `quiz-curiosita-19` Qual è l'edificio più alto del mondo? | Il Burj Khalifa |
 
+## Campione di difficoltà del Quiz (B2, 23 novembre 2026)
+
+Criterio: campione estratto a caso con seed fisso **20261123** dalle domande `QUIZ` a quattro opzioni di `questions-it.json`, trenta per fascia dichiarata (`difficulty`). Il seed rende il campione riproducibile; non è una scelta di merito. Giudicare ogni domanda con il criterio delle fasce (facile: lo sa quasi ogni adulto; media: serve una conoscenza specifica ma diffusa; difficile: lo sa solo chi segue il tema) e segnare le ricollocazioni da applicare a parte.
+
+### Fascia facile (30 domande)
+
+| ID | Categoria | Domanda | Risposta | Distrattori |
+| --- | --- | --- | --- | --- |
+| `quiz-cinema-serie-tv-01` | Cinema, Serie TV | Quale serie italiana racconta le indagini di un prete di paese? | Don Matteo | Un posto al sole · La piovra · Il commissario Montalbano |
+| `quiz-lingua-letteratura-03` | Lingua e Letteratura | Quale poeta ha scritto la canzone Italia mia? | Francesco Petrarca | Ludovico Ariosto · Dante Alighieri · Giovanni Boccaccio |
+| `quiz-cinema-03` | Cinema, Serie TV | Quale attore interpreta Jack Sparrow nella saga Pirati dei Caraibi? | Johnny Depp | Brad Pitt · Orlando Bloom · Keanu Reeves |
+| `quiz-cinema-11` | Cinema, Serie TV | Chi interpreta Harry Potter nei film della saga? | Daniel Radcliffe | Elijah Wood · Rupert Grint · Tom Felton |
+| `quiz-politica-attualità-01` | Politica e Attualità | Quale strumento permette di pagare contactless in negozio? | La carta con NFC | La banconota da 500 euro · Il vaglia postale · Il libretto degli assegni |
+| `quiz-scienza-12` | Scienza e Spazio | Quale gas respirano gli esseri umani per vivere? | L'ossigeno | L'elio · L'idrogeno · L'azoto |
+| `quiz-natura-natura-02` | Natura e Animali | Quale gas rilasciano le piante durante la fotosintesi? | L'ossigeno | Il metano · L'azoto · L'anidride carbonica |
+| `quiz-lingua-06` | Lingua e Letteratura | Chi ha scritto la Divina Commedia? | Dante Alighieri | Alessandro Manzoni · Francesco Petrarca · Giovanni Boccaccio |
+| `quiz-lingua-14` | Lingua e Letteratura | Quale segno di punteggiatura chiude una domanda? | Il punto interrogativo | La virgola semplice · I due punti · Il punto esclamativo |
+| `quiz-cinema-14` | Cinema, Serie TV | Chi ha diretto Jurassic Park? | Steven Spielberg | James Cameron · George Lucas · Ridley Scott |
+| `quiz-geografia-02` | Geografia e Viaggi | Qual è la capitale della Francia? | Parigi | Marsiglia · Lione · Bordeaux |
+| `quiz-scienza-05` | Scienza e Spazio | Quale gas assorbono le piante durante la fotosintesi? | L'anidride carbonica | L'ossigeno · L'azoto atmosferico · L'idrogeno |
+| `quiz-natura-03` | Natura e Animali | Quale organo permette ai pesci di respirare sott'acqua? | Le branchie | Le squame · I polmoni · Le pinne |
+| `quiz-gaming-03` | Gaming e Tecnologia | Qual è il sistema operativo di Google per smartphone? | Android | Symbian · iOS · Windows Phone |
+| `quiz-arte-04` | Arte e Architettura | Chi ha dipinto La notte stellata? | Vincent van Gogh | Paul Cézanne · Claude Monet · Paul Gauguin |
+| `quiz-natura-07` | Natura e Animali | Quale animale marino è un mammifero? | Il delfino | Il tonno · Il polpo · Lo squalo |
+| `quiz-geografia-13` | Geografia e Viaggi | In quale continente si trova il deserto del Sahara? | Africa | Oceania · America meridionale · Asia |
+| `quiz-politica-02` | Politica e Attualità | Quale forma di governo ha oggi l'Italia? | La repubblica parlamentare | Lo stato federale · La monarchia costituzionale · La repubblica presidenziale |
+| `quiz-cibo-01` | Cibo e Gastronomia | Qual è l'ingrediente principale del pesto genovese? | Il basilico | Il prezzemolo · Il rosmarino · La salvia |
+| `quiz-curiosita-13` | Curiosità | Quanti giorni ha un anno bisestile? | 366 | 367 · 364 · 365 |
+| `quiz-motori-11` | Motori | Quale casa automobilistica ha per simbolo il cavallino rampante? | La Ferrari | La Maserati · La Lamborghini · La Porsche |
+| `quiz-geografia-11` | Geografia e Viaggi | Qual è la capitale della Spagna? | Madrid | Valencia · Siviglia · Barcellona |
+| `quiz-scienza-02` | Scienza e Spazio | Qual è il pianeta più vicino al Sole? | Mercurio | Terra · Venere · Marte |
+| `quiz-politica-attualità-02` | Politica e Attualità | Quale piattaforma è usata per riunioni di lavoro a distanza? | Zoom | Netflix · Spotify · Steam |
+| `quiz-geografia-12` | Geografia e Viaggi | Qual è il fiume più lungo d'Italia? | Il Po | L'Adige · Il Tevere · L'Arno |
+| `quiz-curiosita-14` | Curiosità | Quale colore si ottiene mescolando blu e giallo? | Il verde | L'arancione · Il viola · Il marrone |
+| `quiz-musica-04` | Musica | Chi ha cantato Nel blu dipinto di blu, conosciuta come Volare? | Domenico Modugno | Adriano Celentano · Gino Paoli · Lucio Battisti |
+| `quiz-tv-01` | TV e Spettacolo | Quale quiz storico conduceva Mike Bongiorno chiedendo di lasciare o raddoppiare? | Lascia o raddoppia? | Rischiatutto · Il Telemike · Il gioco dei pacchi |
+| `quiz-arte-architettura-02` | Arte e Architettura | Quale ingegnere ha progettato la Torre Eiffel? | Gustave Eiffel | Antoni Gaudí · Le Corbusier · Santiago Calatrava |
+| `quiz-natura-09` | Natura e Animali | Quale parte della pianta assorbe acqua e sali minerali? | Le radici | Le foglie · Il fiore · Il fusto |
+
+### Fascia medio (30 domande)
+
+| ID | Categoria | Domanda | Risposta | Distrattori |
+| --- | --- | --- | --- | --- |
+| `quiz-cibo-gastronomia-08` | Cibo e Gastronomia | Quale strumento controlla la temperatura interna degli alimenti in cottura? | Il termometro da cucina | La schiumarola · Il mestolo da cucina · Il timer da cucina |
+| `quiz-politica-08` | Politica e Attualità | Quanti anni dura il mandato del Presidente della Repubblica italiana? | Sette | Sei · Nove · Cinque |
+| `quiz-cibo-18` | Cibo e Gastronomia | Quale dolce napoletano è fatto di pasta sfoglia e ricotta? | La sfogliatella | Il tiramisù · Il cannolo siciliano · Il panettone |
+| `quiz-cibo-17` | Cibo e Gastronomia | Quale caffè si serve con una dose d'acqua più lunga? | L'espresso lungo | Il ristretto · Il macchiato · Il caffè corretto |
+| `quiz-curiosita-04` | Curiosità | Quale mammifero depone le uova? | L'ornitorinco | Il canguro · Il delfino · Il pipistrello |
+| `quiz-motori-17` | Motori | Quale pilota è soprannominato Il Dottore nel motomondiale? | Valentino Rossi | Casey Stoner · Giacomo Agostini · Jorge Lorenzo |
+| `quiz-geografia-viaggi-06` | Geografia e Viaggi | Quale città spagnola è celebre per la Sagrada Família? | Barcellona | Valencia · Siviglia · Madrid |
+| `quiz-politica-attualità-06` | Politica e Attualità | Quale organizzazione raccoglie i dati sanitari globali? | L'OMS | L'UNESCO · L'ILO · La FAO |
+| `quiz-lingua-04` | Lingua e Letteratura | Quale di queste parole è un palindromo? | Anna | Luna · Casa · Sole |
+| `quiz-cibo-14` | Cibo e Gastronomia | Quale formaggio condisce la pizza margherita? | Il fior di latte | Il pecorino romano · Il gorgonzola · Il taleggio |
+| `quiz-geografia-08` | Geografia e Viaggi | Quale capitale europea si trova sul Danubio ed è nata dall'unione di Buda e Pest? | Budapest | Vienna · Bratislava · Belgrado |
+| `quiz-curiosita-18` | Curiosità | Quanto pesa approssimativamente un litro d'acqua? | Un chilogrammo | Due chilogrammi · Dieci grammi · Mezzo chilogrammo |
+| `quiz-curiosita-02` | Curiosità | Quale pianeta è il più caldo del sistema solare? | Venere | Mercurio · Marte · Giove |
+| `quiz-curiosita-40` | Curiosità | In quale anno è entrata in servizio la prima linea della metropolitana di Roma? | 1955 | 1937 · 1968 · 1980 |
+| `quiz-gaming-gaming-01` | Gaming e Tecnologia | Quale gioco è ambientato nel regno di Hyrule? | The Legend of Zelda | Star Fox 64 · Metroid Prime · Kirby's Dream Land |
+| `quiz-musica-16` | Musica | Quale strumento a fiato è il più acuto dell'orchestra? | L'ottavino | L'oboe · Il flauto traverso · Il clarinetto |
+| `quiz-politica-01` | Politica e Attualità | In quale anno è entrata in vigore la Costituzione italiana? | 1948 | 1945 · 1946 · 1950 |
+| `quiz-arte-15` | Arte e Architettura | Chi ha progettato la cupola di Santa Maria del Fiore? | Filippo Brunelleschi | Donatello · Giotto · Leon Battista Alberti |
+| `quiz-sport-06` | Sport | Quante volte l'Italia ha vinto i Mondiali di calcio? | Quattro | Cinque · Due · Tre |
+| `quiz-geografia-15` | Geografia e Viaggi | Quale mare bagna la costa di Napoli? | Il mar Tirreno | Il mar Adriatico · Il mar Ionio · Il mar Ligure |
+| `quiz-politica-15` | Politica e Attualità | In che anno è entrata in vigore la Costituzione italiana? | 1948 | 1946 · 1947 · 1950 |
+| `quiz-cibo-15` | Cibo e Gastronomia | Quale spezia dà al curry il colore giallo? | La curcuma | Lo zafferano · Il peperoncino · Il pepe nero |
+| `quiz-gaming-13` | Gaming e Tecnologia | Quale azienda ha sviluppato Windows? | Microsoft | Apple · IBM Corporation · Google |
+| `quiz-tv-09` | TV e Spettacolo | In quale programma i concorrenti scelgono un pacco per vincere un premio? | Affari tuoi | L'eredità · Reazione a catena · Caduta libera |
+| `quiz-musica-17` | Musica | Chi era il cantante dei Queen? | Freddie Mercury | Mick Jagger · David Bowie · Robert Plant |
+| `quiz-storia-08` | Storia | Quale navigatore iniziò la prima circumnavigazione del globo? | Ferdinando Magellano | Cristoforo Colombo · Vasco da Gama · James Cook |
+| `quiz-lingua-05` | Lingua e Letteratura | Come si chiama la parte della grammatica che studia la struttura della frase? | La sintassi | La semantica · La morfologia · La fonetica |
+| `quiz-anime-08` | Anime e manga | Quale manga ha come protagonista Light Yagami? | Death Note | Monster · Tokyo Ghoul · Parasyte |
+| `quiz-gaming-15` | Gaming e Tecnologia | Quale browser è sviluppato da Google? | Chrome | Firefox · Safari · Edge |
+| `quiz-tv-tv-01` | TV e Spettacolo | Quale conduttore ha legato il suo nome al Festival di Sanremo per molti anni? | Pippo Baudo | Mike Bongiorno · Enzo Tortora · Corrado |
+
+### Fascia difficile (30 domande)
+
+| ID | Categoria | Domanda | Risposta | Distrattori |
+| --- | --- | --- | --- | --- |
+| `quiz-cibo-gastronomia-10` | Cibo e Gastronomia | Quale reazione chimica dà la crosta bruna alla carne arrostita? | La reazione di Maillard | La fermentazione · La caramellizzazione · La saponificazione |
+| `quiz-arte-18` | Arte e Architettura | Quale stile architettonico caratterizza il Duomo di Milano? | Il gotico | Il romanico · Il neoclassico · Il barocco |
+| `quiz-anime-manga-09` | Anime e manga | Quale autore ha creato il manga 20th Century Boys? | Naoki Urasawa | Takehiko Inoue · Tsugumi Ohba · Hajime Isayama |
+| `quiz-cinema-25` | Cinema, Serie TV | Chi ha composto la colonna sonora di C'era una volta il West? | Ennio Morricone | Nino Rota · Piero Piccioni · Luis Bacalov |
+| `quiz-cinema-26` | Cinema, Serie TV | Quale serie racconta le vicende della famiglia Roy nell'industria dei media? | Succession | The Newsroom · Billions · Mad Men |
+| `quiz-geografia-viaggi-15` | Geografia e Viaggi | Quale arcipelago norvegese è noto per il sole di mezzanotte e i fiordi? | Le Lofoten | Le Ebridi · Le Orcadi · Le Shetland |
+| `quiz-politica-attualità-13` | Politica e Attualità | Quale istituto italiano produce le statistiche ufficiali del Paese? | L'ISTAT | La Corte dei Conti · La Banca d'Italia · Il Ministero dell'Economia |
+| `quiz-anime-06` | Anime e manga | Chi ha creato Sailor Moon? | Naoko Takeuchi | Ai Yazawa · CLAMP · Rumiko Takahashi |
+| `quiz-lingua-21` | Lingua e Letteratura | Quale movimento letterario italiano lanciò il primo manifesto nel 1909? | Il futurismo | Il verismo · L'ermetismo · Il crepuscolarismo |
+| `quiz-curiosita-19` | Curiosità | Qual è l'edificio più alto del mondo? | Il Burj Khalifa | Il One World Trade Center · La Torre di Shanghai · Il Taipei 101 |
+| `quiz-politica-attualità-14` | Politica e Attualità | Quale programma europeo finanzia ricerca e innovazione dal 2021? | Horizon Europe | LIFE · Erasmus+ · Europa Creativa |
+| `quiz-cibo-gastronomia-13` | Cibo e Gastronomia | Quale salsa madre francese si prepara con roux scuro e brodo? | La salsa spagnola | La velouté · La salsa olandese · La salsa bernese |
+| `quiz-scienza-spazio-07` | Scienza e Spazio | Quale missione portò per la prima volta un rover su Marte nel 1997? | Pathfinder | Spirit · Curiosity · Opportunity |
+| `quiz-sport-24` | Sport | Qual è la distanza della prova olimpica di triathlon? | 1500 m nuoto, 40 km bici, 10 km corsa | 2000 m nuoto, 60 km bici, 15 km corsa · 750 m nuoto, 20 km bici, 5 km corsa · 1000 m nuoto, 30 km bici, 10 km corsa |
+| `quiz-cibo-19` | Cibo e Gastronomia | Quale salsa fredda provenzale si prepara con aglio, olio e tuorlo? | L'aioli | La salsa tartara · La salsa verde · La maionese |
+| `quiz-storia-25` | Storia | Quale civiltà precolombiana costruì Machu Picchu? | Gli Inca | I Maya · Gli Aztechi · Gli Olmechi |
+| `quiz-natura-20` | Natura e Animali | Quali organismi costruiscono le barriere coralline? | I polipi del corallo | I molluschi bivalvi · I ricci di mare · Le spugne marine |
+| `quiz-musica-10` | Musica | Chi ha composto la tetralogia L'anello del Nibelungo? | Richard Wagner | Richard Strauss · Gustav Mahler · Giuseppe Verdi |
+| `quiz-cibo-gastronomia-12` | Cibo e Gastronomia | Quale coltura batterica è usata per produrre lo yogurt? | I lattobacilli | Gli acetobatteri · Gli stafilococchi · I lieviti |
+| `quiz-natura-19` | Natura e Animali | Qual è il serpente velenoso più lungo del mondo? | Il cobra reale | Il mamba nero · Il taipan · La vipera del Gabon |
+| `quiz-cibo-24` | Cibo e Gastronomia | In quale regione spagnola si produce il vino Rioja? | Nella Rioja | In Galizia · In Andalusia · In Catalogna |
+| `quiz-gaming-22` | Gaming e Tecnologia | Quale gioco di Epic Games ha reso popolare la costruzione durante una battle royale? | Fortnite | PUBG · Apex Legends · Warzone |
+| `quiz-tv-21` | TV e Spettacolo | Quale attore interpreta il Dottor House nella serie House? | Hugh Laurie | Michael Sheen · Hugh Grant · Benedict Cumberbatch |
+| `quiz-politica-19` | Politica e Attualità | Quanti membri permanenti ha il Consiglio di sicurezza dell'ONU? | Cinque | Quindici · Dieci · Sette |
+| `quiz-sport-22` | Sport | In quale sport si assegna la Coppa Davis? | Nel tennis | Nel rugby · Nel golf · Nella pallamano |
+| `quiz-cinema-serie-tv-07` | Cinema, Serie TV | Quale serie spagnola racconta una banda con le maschere di Dalí? | La casa di carta | Narcos: Messico · Élite (serie) · Vis a vis |
+| `quiz-arte-10` | Arte e Architettura | Quale movimento artistico teorizzò Filippo Tommaso Marinetti? | Il futurismo | Il surrealismo · Il dadaismo · Il simbolismo |
+| `quiz-tv-25` | TV e Spettacolo | Quale attore ha interpretato il commissario Cattani ne La piovra? | Michele Placido | Kim Rossi Stuart · Raoul Bova · Luca Zingaretti |
+| `quiz-gaming-19` | Gaming e Tecnologia | Quale azienda ha creato il motore grafico Unreal Engine? | Epic Games | Unity Technologies · id Software · Valve |
+| `quiz-politica-10` | Politica e Attualità | Quanti giudici compongono la Corte costituzionale italiana? | Quindici | Nove · Dodici · Ventuno |
+
 ## Fatti da verificare
 
 _(nessuno: ogni evento Timeline aggiunto porta la sua fonte nel campo `source`;
