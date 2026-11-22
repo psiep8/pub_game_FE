@@ -23,12 +23,14 @@
  *
  * Uso: node scripts/audit-banche.mjs [--json] [--write] [--ci]
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..');
 const questionsDir = join(rootDir, 'apps', 'backend', 'src', 'main', 'resources', 'questions');
+const staticDir = join(rootDir, 'apps', 'backend', 'src', 'main', 'resources', 'static');
+const bankServiceFile = join(rootDir, 'apps', 'backend', 'src', 'main', 'java', 'com', 'pub_game_be', 'service', 'QuestionBankService.java');
 
 const args = new Set(process.argv.slice(2));
 const asJson = args.has('--json');
@@ -45,6 +47,12 @@ const TIMELINE_ROUNDS = 3;
 
 function readJson(name) {
   return JSON.parse(readFileSync(join(questionsDir, name), 'utf8'));
+}
+
+/** I file media sono serviti da `/media/...`: il percorso su disco parte da static. */
+function mediaFileExists(relative) {
+  if (!relative) return false;
+  return existsSync(join(staticDir, String(relative).replace(/^\//, '')));
 }
 
 function normalizeText(value) {
@@ -308,6 +316,159 @@ function auditUltimaSpiaggia(quiz) {
   };
 }
 
+/** Levenshtein sulle parole: misura quanti dettagli cambiano fra due frasi. */
+function wordDistance(a, b) {
+  const left = normalizeText(a).split(' ').filter(Boolean);
+  const right = normalizeText(b).split(' ').filter(Boolean);
+  const dp = Array.from({ length: left.length + 1 }, (_, index) =>
+    [index, ...new Array(right.length).fill(0)]);
+  for (let column = 0; column <= right.length; column += 1) dp[0][column] = column;
+  for (let row = 1; row <= left.length; row += 1) {
+    for (let column = 1; column <= right.length; column += 1) {
+      dp[row][column] = Math.min(
+        dp[row - 1][column] + 1,
+        dp[row][column - 1] + 1,
+        dp[row - 1][column - 1] + (left[row - 1] === right[column - 1] ? 0 : 1),
+      );
+    }
+  }
+  return dp[left.length][right.length];
+}
+
+/** Indovina chi: foto, indizi e categoria per ogni celebrità. */
+function auditCelebrities(media) {
+  const people = Array.isArray(media.people) ? media.people : [];
+  const seen = new Map();
+  const duplicates = [];
+  const missing = [];
+  const clues = [];
+
+  for (const person of people) {
+    const name = String(person.name ?? '').trim();
+    const key = normalizeText(name);
+    if (key && seen.has(key)) duplicates.push({ name, other: seen.get(key) });
+    if (key) seen.set(key, name);
+    if (!key) missing.push({ name: '(assente)', field: 'name' });
+    if (!person.category) missing.push({ name, field: 'category' });
+    if (!mediaFileExists(person.file)) missing.push({ name, field: 'file', detail: String(person.file ?? '') });
+    if (!person.description) missing.push({ name, field: 'description' });
+    if (!person.extract) missing.push({ name, field: 'extract' });
+
+    // L'indizio mostrato in TV toglie il nome: qui si controlla solo che la
+    // banca non sia già senza indizi. La rimozione del nome è di
+    // CelebrityImageService.cluesFromLocal.
+    const text = normalizeText(`${person.description ?? ''} ${person.extract ?? ''}`);
+    if (key && text.length < 40) clues.push({ name, detail: 'indizio troppo corto' });
+  }
+
+  const byCategory = countBy(people, (person) => person.category ?? '(assente)');
+  return {
+    total: people.length,
+    byCategory: Object.fromEntries(sortedEntries(byCategory)),
+    duplicates,
+    missing,
+    clues,
+  };
+}
+
+/** Musica: brano, artista, anno e file audio/copertina. */
+function auditMusic(media) {
+  const tracks = Array.isArray(media.music) ? media.music : [];
+  const seen = new Map();
+  const duplicates = [];
+  const missing = [];
+
+  for (const track of tracks) {
+    const title = String(track.title ?? '').trim();
+    const artist = String(track.artist ?? '').trim();
+    const key = `${normalizeText(title)}|${normalizeText(artist)}`;
+    if (seen.has(key)) duplicates.push({ title: `${title} — ${artist}`, other: seen.get(key) });
+    seen.set(key, `${title} — ${artist}`);
+    if (!title) missing.push({ title: '(assente)', field: 'title' });
+    if (!artist) missing.push({ title, field: 'artist' });
+    if (!/^\d{4}$/.test(String(track.year ?? ''))) missing.push({ title, field: 'year', detail: String(track.year ?? '') });
+    if (!mediaFileExists(track.file)) missing.push({ title, field: 'file', detail: String(track.file ?? '') });
+    if (!mediaFileExists(track.albumCover)) {
+      missing.push({ title, field: 'albumCover', detail: String(track.albumCover ?? '') });
+    }
+  }
+
+  const artists = new Set(tracks.map((track) => normalizeText(track.artist)).filter(Boolean));
+  return { total: tracks.length, artists: artists.size, duplicates, missing };
+}
+
+/** Ruota: le frasi sono un array nel codice del servizio, non un file JSON. */
+function auditWheel() {
+  const source = readFileSync(bankServiceFile, 'utf8');
+  const block = source.match(/PROVERBS\s*=\s*\{([\s\S]*?)\};/);
+  const phrases = block ? [...block[1].matchAll(/"((?:[^"\\]|\\.)*)"/g)].map((match) => match[1]) : [];
+  const seen = new Map();
+  const duplicates = [];
+  const issues = [];
+
+  for (const phrase of phrases) {
+    const key = normalizeText(phrase);
+    if (seen.has(key)) duplicates.push({ phrase, other: seen.get(key) });
+    seen.set(key, phrase);
+    const words = key.split(' ').filter(Boolean);
+    if (words.length < 3) issues.push({ phrase, detail: 'meno di tre parole' });
+    if (key.length < 12) issues.push({ phrase, detail: 'frase troppo corta' });
+    if (/[0-9]/.test(phrase)) issues.push({ phrase, detail: 'contiene numeri' });
+  }
+
+  return { total: phrases.length, duplicates, issues, phrases };
+}
+
+/** Bomba: coppie vero/falso, fonte e un solo dettaglio cambiato. */
+function auditBomba(bank) {
+  const statements = (bank.statements ?? []).map((row) => ({ ...row, truth: row.true === true }));
+  const trues = statements.filter((row) => row.truth);
+  const falses = statements.filter((row) => !row.truth);
+  const categories = [...new Set(statements.map((row) => row.category ?? '(assente)'))].sort();
+  const table = categories.map((category) => [
+    category,
+    trues.filter((row) => row.category === category).length,
+    falses.filter((row) => row.category === category).length,
+  ]);
+
+  const seen = new Map();
+  const duplicates = [];
+  const missing = [];
+  const doubts = [];
+
+  for (const row of statements) {
+    const key = normalizeText(row.statement);
+    if (seen.has(key)) duplicates.push({ id: row.id, statement: row.statement, other: seen.get(key) });
+    seen.set(key, row.id);
+    if (!row.id) missing.push({ statement: row.statement, field: 'id' });
+    if (!row.category) missing.push({ statement: row.statement, field: 'category' });
+    if (!row.source) missing.push({ statement: row.statement, field: 'source' });
+    if (typeof row.true !== 'boolean') missing.push({ statement: row.statement, field: 'true' });
+  }
+
+  // Per ogni falsa, la vera più vicina della stessa categoria: la differenza
+  // deve essere un solo dettaglio (anno, luogo, nome, cifra).
+  for (const row of falses) {
+    let best = null;
+    let bestDistance = Number.POSITIVE_INFINITY;
+    for (const candidate of trues) {
+      if (candidate.category !== row.category) continue;
+      const distance = wordDistance(row.statement, candidate.statement);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = candidate;
+      }
+    }
+    if (!best) {
+      doubts.push({ id: row.id, kind: 'nessuna vera nella stessa categoria', detail: row.statement });
+    } else if (bestDistance > 2) {
+      doubts.push({ id: row.id, kind: 'vera più vicina distante: verificare a mano', detail: `${bestDistance} parole: ${row.statement} / ${best.statement}` });
+    }
+  }
+
+  return { total: statements.length, trues: trues.length, falses: falses.length, table, duplicates, missing, doubts };
+}
+
 function renderMarkdown(report) {
   const lines = [];
   lines.push('# Audit delle banche domande');
@@ -382,6 +543,59 @@ function renderMarkdown(report) {
     lines.push(table(['Categoria', 'Livello', 'Fascia', 'Capienza'], report.ultimaSpiaggia.holes.map((row) => [row.category, row.level, row.band, row.capacity])));
   }
   lines.push('');
+  lines.push('## Indovina chi (media: people)');
+  lines.push('');
+  lines.push(`Celebrità: **${report.celebrities.total}**.`);
+  lines.push('');
+  lines.push(table(['Categoria', 'Persone'], Object.entries(report.celebrities.byCategory)));
+  lines.push('');
+  lines.push(`Doppioni: **${report.celebrities.duplicates.length}**. Campi mancanti o file assenti: **${report.celebrities.missing.length}**.`);
+  if (report.celebrities.duplicates.length) {
+    lines.push('');
+    lines.push(table(['Nome', 'Prima occorrenza'], report.celebrities.duplicates.map((row) => [row.name, row.other])));
+  }
+  if (report.celebrities.missing.length) {
+    lines.push('');
+    lines.push(table(['Nome', 'Campo', 'Dettaglio'], report.celebrities.missing.slice(0, 40).map((row) => [row.name, row.field, row.detail ?? ''])));
+    if (report.celebrities.missing.length > 40) lines.push('', `…e altre ${report.celebrities.missing.length - 40} righe.`);
+  }
+  lines.push('');
+  lines.push('## Indovina la canzone (media: music)');
+  lines.push('');
+  lines.push(`Brani: **${report.music.total}**, artisti distinti: **${report.music.artists}**. Doppioni: **${report.music.duplicates.length}**. Campi o file mancanti: **${report.music.missing.length}**.`);
+  if (report.music.duplicates.length) {
+    lines.push('');
+    lines.push(table(['Brano', 'Prima occorrenza'], report.music.duplicates.map((row) => [row.title, row.other])));
+  }
+  if (report.music.missing.length) {
+    lines.push('');
+    lines.push(table(['Brano', 'Campo', 'Dettaglio'], report.music.missing.slice(0, 40).map((row) => [row.title, row.field, row.detail ?? ''])));
+    if (report.music.missing.length > 40) lines.push('', `…e altre ${report.music.missing.length - 40} righe.`);
+  }
+  lines.push('');
+  lines.push('## Ruota della fortuna (frasi dal servizio)');
+  lines.push('');
+  lines.push(`Frasi: **${report.wheel.total}**. Doppioni: **${report.wheel.duplicates.length}**. Segnalazioni: **${report.wheel.issues.length}**.`);
+  if (report.wheel.issues.length) {
+    lines.push('');
+    lines.push(table(['Frase', 'Controllo'], report.wheel.issues.map((row) => [row.phrase, row.detail])));
+  }
+  lines.push('');
+  lines.push('## Bomba (affermazioni vere e false)');
+  lines.push('');
+  lines.push(`Affermazioni: **${report.bomba.total}** (${report.bomba.trues} vere, ${report.bomba.falses} false). Doppioni: **${report.bomba.duplicates.length}**. Campi mancanti: **${report.bomba.missing.length}**.`);
+  lines.push('');
+  lines.push(table(['Categoria', 'Vere', 'False'], report.bomba.table));
+  lines.push('');
+  lines.push(`### False senza un solo dettaglio cambiato (${report.bomba.doubts.length})`);
+  if (report.bomba.doubts.length === 0) {
+    lines.push('');
+    lines.push('Nessuna: ogni falsa ha una vera vicina con un solo dettaglio diverso.');
+  } else {
+    lines.push('');
+    lines.push(table(['ID', 'Controllo', 'Dettaglio'], report.bomba.doubts.map((row) => [row.id ?? '', row.kind, row.detail])));
+  }
+  lines.push('');
   return lines.join('\n');
 }
 
@@ -392,6 +606,8 @@ function levelsLabel(levels) {
 const quizBank = readJson('questions-it.json');
 const timelineBank = readJson('timeline-it.json');
 const azzardoBank = readJson('azzardo-it.json');
+const mediaBank = readJson('media-it.json');
+const bombaBank = readJson('bomba-it.json');
 
 const report = {
   generatedAt: new Date().toISOString(),
@@ -399,11 +615,17 @@ const report = {
     quiz: 'apps/backend/src/main/resources/questions/questions-it.json',
     timeline: 'apps/backend/src/main/resources/questions/timeline-it.json',
     azzardo: 'apps/backend/src/main/resources/questions/azzardo-it.json',
+  media: 'apps/backend/src/main/resources/questions/media-it.json',
+  bomba: 'apps/backend/src/main/resources/questions/bomba-it.json',
   },
   quiz: auditQuestions(quizBank),
   timeline: auditTimeline(timelineBank),
   azzardo: auditAzzardo(azzardoBank),
   ultimaSpiaggia: auditUltimaSpiaggia(auditQuestions(quizBank)),
+  celebrities: auditCelebrities(mediaBank),
+  music: auditMusic(mediaBank),
+  wheel: auditWheel(),
+  bomba: auditBomba(bombaBank),
 };
 
 if (asJson) {
@@ -416,6 +638,10 @@ if (asJson) {
   console.log('Timeline:', report.timeline.total, 'eventi, anni vicini:', report.timeline.closePairs.length);
   console.log('Azzardo:', report.azzardo.total, 'domande');
   console.log('Ultima spiaggia: buchi categoria x livello:', report.ultimaSpiaggia.holes.length);
+  console.log('Indovina chi:', report.celebrities.total, 'persone, doppioni:', report.celebrities.duplicates.length, 'campi/file mancanti:', report.celebrities.missing.length);
+  console.log('Musica:', report.music.total, 'brani, doppioni:', report.music.duplicates.length, 'campi/file mancanti:', report.music.missing.length);
+  console.log('Ruota:', report.wheel.total, 'frasi, doppioni:', report.wheel.duplicates.length, 'segnalazioni:', report.wheel.issues.length);
+  console.log('Bomba:', report.bomba.total, 'affermazioni, doppioni:', report.bomba.duplicates.length, 'campi mancanti:', report.bomba.missing.length, 'dubbi:', report.bomba.doubts.length);
   const byIssue = countBy(report.quiz.issues, (row) => row.type);
   for (const [type, total] of sortedEntries(byIssue)) console.log(`  ${type}: ${total}`);
 }
@@ -429,12 +655,18 @@ if (writeReport) {
 if (args.has('--ci')) {
   const duplicates = report.quiz.duplicates.length
     + report.timeline.duplicates.length
-    + report.azzardo.duplicates.length;
+    + report.azzardo.duplicates.length
+    + report.celebrities.duplicates.length
+    + report.music.duplicates.length
+    + report.wheel.duplicates.length
+    + report.bomba.duplicates.length;
   const issues = report.quiz.issues.length;
-  const missing = report.timeline.missing.length + report.azzardo.missing.length;
+  const missing = report.timeline.missing.length + report.azzardo.missing.length
+    + report.celebrities.missing.length + report.music.missing.length + report.bomba.missing.length;
   const holes = report.ultimaSpiaggia.holes.length;
   console.log(`CI banche: doppioni ${duplicates}, segnalazioni ${issues}, campi mancanti ${missing}`);
   console.log(`Ultima spiaggia: ${holes} buchi noti (non bloccanti)`);
+  console.log(`Bomba: ${report.bomba.doubts.length} false da rivedere (non bloccanti)`);
   if (duplicates + issues + missing > 0) {
     console.error('Audit banche: controllo fallito.');
     process.exitCode = 1;
