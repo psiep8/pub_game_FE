@@ -2029,6 +2029,53 @@ describe('RemoteComponent', () => {
     }
   });
 
+  it('scaduto il timeout, il retry con il voto già registrato blocca la risposta scelta', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    vi.useFakeTimers();
+    try {
+      const game = TestBed.inject(GameService) as unknown as FakeGameService;
+      const hanging = new Subject<any>();
+      vi.spyOn(game, 'quizAnswers')
+        .mockReturnValueOnce(hanging.asObservable())
+        .mockReturnValueOnce(of({
+          roundStartId: 'round-1', mancheIndex: 1,
+          answers: [{ playerName: 'Anna', manche: 1, optionIndex: 2 }],
+        }));
+      const submit = vi.spyOn(game, 'submitQuizAnswer');
+
+      reliability.syncState$.next(quizRoundSnapshot());
+      fixture.detectChanges();
+      expect(component.quizCheckPending()).toBe(true);
+
+      // Il riepilogo non risponde: dopo 8 s l'attesa scade, senza aprire i tasti.
+      vi.advanceTimersByTime(8_000);
+      fixture.detectChanges();
+      expect(component.quizCheckFailed()).toBe(true);
+      expect(component.gameState()).toBe(PlayerStatus.VOTING);
+
+      // Il retry trova il voto già registrato: blocco sulla risposta scelta,
+      // nessun secondo voto inviato.
+      (fixture.nativeElement.querySelector('.quiz-check-retry') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      expect(component.quizCheckPending()).toBe(false);
+      expect(component.quizCheckFailed()).toBe(false);
+      expect(component.hasAnswered()).toBe(true);
+      expect(component.selectedAnswer()).toBe(2);
+      expect(component.gameState()).toBe(PlayerStatus.LOCKED);
+      // Nessuna griglia votabile: resta la conferma della risposta scelta.
+      expect(fixture.nativeElement.querySelector('.quiz-grid')).toBeNull();
+      expect(fixture.nativeElement.querySelector('app-sent-state')).not.toBeNull();
+      expect(fixture.nativeElement.textContent).toContain('RISPOSTA INVIATA');
+      expect(submit).not.toHaveBeenCalled();
+      expect(game.quizAnswersSent).toEqual([]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('un altro errore non nasconde il retry della verifica Quiz', async () => {
     localStorage.setItem('nickname', 'Anna');
     reliability.resumedSession.set(true);

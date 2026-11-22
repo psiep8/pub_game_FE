@@ -88,10 +88,10 @@ riepilogo, segnare R16 come **non eseguita**: l'annuncio con lo stesso
 
 ### Vie di sblocco del Quiz coperte dai test automatici
 
-La suite frontend (70 file, 695 test) copre in jsdom le uscite dal blocco del
+La suite frontend (70 file, 696 test) copre in jsdom le uscite dal blocco del
 riepilogo. Questi casi non vanno riprovati a mano per fidarsi della logica: in
 sala servono a confermare che rete, socket e refresh reali si comportino come i
-doppi di test. I test remoti sono 113
+doppi di test. I test remoti sono 114
 (`--include="**/remote.component.spec.ts"`).
 
 | Via di sblocco | Test automatico | Cosa resta ai device |
@@ -117,6 +117,7 @@ doppi di test. I test remoti sono 113
 | Stato vecchio e poi stato corrente: la manche nota non scende | `uno stato vecchio non abbassa la manche: il successivo stato corrente non sblocca` | R16: l'ordine dei `QUIZ_STATE` non deve riaprire i tasti |
 | Dopo un errore: retry esplicito della verifica | `il retry della verifica Quiz ripete solo il riepilogo e non invia voti`, `il retry della verifica Quiz blocca la manche se il voto è già registrato` | R18: il pulsante «Riprova verifica» non deve inviare voti |
 | Riepilogo che non risponde: timeout e retry sempre visibile | `un riepilogo che non risponde scade e lascia il retry utilizzabile`, `un altro errore non nasconde il retry della verifica Quiz` | R18: oltre 8 s il pulsante deve restare utilizzabile anche con un altro errore a schermo |
+| Timeout con voto già registrato | `scaduto il timeout, il retry con il voto già registrato blocca la risposta scelta` | R18: dopo gli 8 s il retry deve bloccare la risposta scelta e non inviare un altro voto |
 | Snapshot con **stessa `roundKey`** e `roundStartId` nuovo: attesa e legacy | `uno snapshot con la stessa chiave ma un roundStartId nuovo chiude l attesa`, `uno snapshot con la stessa chiave ma un roundStartId nuovo sblocca il legacy` | R15: nuova apertura che riusa la chiave del round |
 | Espulsione durante l'attesa o il blocco legacy | `l espulsione chiude l attesa del riepilogo Quiz`, `l espulsione sblocca il legacy: al rientro senza identità i tasti si aprono` | R11: espulsione reale dalla regia |
 
