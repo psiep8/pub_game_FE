@@ -56,9 +56,9 @@ export const BONUS_CHOICE_SECONDS = 10;
 export const SCORING_RULES: Record<Exclude<GameModeType, 'BLACKJACK'>, ScoringRule> = {
   QUIZ: {
     correct: 'fino a +1000 in 3 manches',
-    wrong: '−quota della domanda, in base al tempo',
+    wrong: `−1000 a ogni manche sbagliata (fino a −3000 nel round)`,
     missed: '0 (nessun malus)',
-    note: 'Facile ×1, media ×2, difficile ×3: tre esatte a tempo zero valgono 1000.',
+    note: `Il voto lo registra il server (QuizService): la risposta esatta vale la quota della domanda scalata dal tempo (facile ×1, media ×2, difficile ×3, massimo 1000 in tre manches), quella sbagliata toglie 1000 punti fissi: tre errori costano −3000.`,
   },
   IMAGE_BLUR: {
     correct: '+1000 × tempo rimasto',

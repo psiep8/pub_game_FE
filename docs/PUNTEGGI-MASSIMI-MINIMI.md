@@ -36,9 +36,9 @@ Note alle celle:
 
 - **Quiz, −3000:** il server toglie **−1000 fissi per ogni manche sbagliata**
   (`QuizService.WRONG_PENALTY`), e la squadra può votare in tutte e tre le manches:
-  3 × −1000. Il massimo resta la somma dei `maxPoints`, 1000. Il dato **non**
-  coincide con il testo di `SCORING_RULES` («−quota della domanda, in base al
-  tempo») né con `QuizMode.calculatePoints` (che scala la quota col tempo).
+  3 × −1000. Il massimo resta la somma dei `maxPoints`, 1000. Dal 23 novembre 2026
+  `SCORING_RULES`, manuale e demo dicono questo; `QuizMode.calculatePoints` resta
+  solo per i vecchi test e non assegna punti in partita.
 - **Time Buzzer, +1800:** 3 manche × 600 del tempo perfetto (errore ≤ 50 ms, solo
   per il primo). Senza nessun tempo perfetto il massimo è +900 (3 × 300).
 - **Tennis, 0:** con N pari ogni squadra gioca una partita. Con N dispari la
@@ -130,9 +130,10 @@ N=10  B=3   malus: −500, −330, −170           totale round −1000
 
 ## 5. Coerenze da decidere (senza toccare i numeri ora)
 
-- **Quiz, penalità sbagliata:** allineare `WRONG_PENALTY` del server a
-  `QuizMode.calculatePoints` (o viceversa) e aggiornare `SCORING_RULES`, altrimenti
-  la tabella del manuale e il punteggio reale raccontano due cose diverse.
+- **Quiz, penalità sbagliata:** il testo ora descrive il server (−1000 fisso per
+  manche, fino a −3000 nel round) senza cambiare i numeri. Resta aperta la scelta
+  di regolamento: −1000 fisso o penalità proporzionale al tempo (sezione C della
+  specifica).
 - **Ultima spiaggia, chi non sceglie:** il codice assegna 0; `SCORING_RULES` dice
   «−metà del livello scelto». Senza livello scelto la metà non esiste: va scritto
   esplicitamente che l'assenza di scelta vale 0.

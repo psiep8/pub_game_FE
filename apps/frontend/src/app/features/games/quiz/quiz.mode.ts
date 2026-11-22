@@ -23,9 +23,11 @@ const REVEAL_SECONDS = 3;
  *
  * Il round vale 1000 punti in tutto, divisi tra le tre domande in base alla
  * difficolta: una facile pesa 1, una media 1,5, una difficile 2. Dentro la
- * manche il tempo taglia il valore: rispondere subito vale il tetto della
- * domanda, rispondere all'ultimo secondo vale zero. Una risposta sbagliata
- * sottrae la stessa quota.
+ * manche il tempo taglia il valore della risposta esatta: rispondere subito
+ * vale il tetto della domanda, rispondere all'ultimo secondo vale zero. Il voto
+ * lo arbitra il server (`QuizService`): una manche sbagliata toglie 1000 punti
+ * fissi, non la quota scalata dal tempo. `calculatePoints` resta solo per i
+ * vecchi test: in partita il punteggio arriva da `applyServerAnswer`.
  */
 export class QuizMode extends GameModeBase {
   readonly type: GameModeType = 'QUIZ';

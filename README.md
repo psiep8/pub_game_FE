@@ -33,7 +33,7 @@ I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring
 
 | Gioco | Tipo | Come funziona | Punti |
 |---|---|---|---|
-| **Quiz** | Sapere | Tre manche a scelta multipla; il tempo decide quanto vale una risposta. | Fino a **+1000** in 3 manches; errore = −quota della domanda; nessun malus se non si risponde. |
+| **Quiz** | Sapere | Tre manche a scelta multipla; il tempo decide quanto vale una risposta esatta. | Fino a **+1000** in 3 manches; errore = **−1000** fisso per manche (fino a **−3000** nel round); nessun malus se non si risponde. |
 | **Indovina la canzone** | Sapere | Quattro ascolti da 30 secondi; ci si prenota e si sceglie titolo o artista. | **+1000 / +750 / +500 / +250** secondo la manche; sbagliata lo stesso valore in negativo. |
 | **Indovina chi** | Sapere | La foto si schiarisce con il tempo; ci si prenota e si risponde a voce. | **+1000 × tempo rimasto**; errore **−1000 × tempo rimasto**. |
 | **Ruota della fortuna** | Sapere | Una frase a lettere coperte, timer lungo, prenotazione e risposta. | **+1000 × tempo rimasto**; errore **−1000 × tempo rimasto**. |
@@ -122,7 +122,7 @@ flowchart LR
 
 ### Flusso per gioco
 
-- **Quiz** — TV: tre domande a scelta multipla, una per manche, con countdown. Telefono: un tocco su **A–D**, poi la pulsantiera si blocca. Chiusura: reveal con soluzione; fino a **+1000** in tre manches, errore **−quota** della domanda, nessuna risposta **0**.
+- **Quiz** — TV: tre domande a scelta multipla, una per manche, con countdown. Telefono: un tocco su **A–D**, poi la pulsantiera si blocca. Chiusura: reveal con soluzione; fino a **+1000** in tre manches, errore **−1000** fisso a manche (fino a **−3000** nel round), nessuna risposta **0**. Il punteggio lo registra il server.
 - **Indovina la canzone** — TV: quattro ascolti da 30 secondi, sempre più riconoscibili. Telefono: **PRENOTA E RISPONDI**; titolo e artista si dicono a voce, la regia conferma. Punti **+1000 / +750 / +500 / +250** secondo la manche; errore lo stesso valore in negativo; chi non prenota resta a 0.
 - **Indovina chi** — TV: foto sfocata che si schiarisce per 60 secondi, un indizio ogni 6 secondi. Telefono: **PRENOTATI**, poi risposta a voce. Punti **±1000 × tempo rimasto**; errore in negativo; nessuna prenotazione 0.
 - **Ruota della fortuna** — TV: frase a lettere coperte per 75 secondi, lettere aperte con estrazione guidata. Telefono: **PRENOTA E RISPONDI**, soluzione a voce. Punti **±1000 × tempo rimasto**; errore in negativo; nessuna prenotazione 0.

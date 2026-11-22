@@ -134,10 +134,10 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
       'Il massimo complessivo delle tre manches è 1000.',
     ],
     lose: [
-      'Risposta sbagliata: perdi la stessa quota, sempre scalata dal tempo.',
-      'Chi non risponde resta a 0.',
+      'Risposta sbagliata: −1000 fissi, decisi dal server, in ogni manche.',
+      'Tre manche sbagliate costano −3000 nel round; chi non risponde resta a 0.',
     ],
-    example: 'Tre risposte esatte a tempo zero valgono 1000 in totale; a metà tempo valgono circa la metà.',
+    example: 'Tre risposte esatte a tempo zero valgono 1000 in totale; a metà tempo valgono circa la metà. Tre errori valgono −3000.',
   },
   IMAGE_BLUR: {
     title: 'INDOVINA CHI',
