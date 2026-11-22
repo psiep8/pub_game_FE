@@ -4,7 +4,7 @@
 
 Questa è la lista di lavoro nata dalla prima serata completa, con **6 partecipanti**, dalle valutazioni raccolte in sala e dalla specifica allegata `SPEC-BIGLIE-E-AUDIO.md`. Il file della specifica è stato fornito in chat: **non è presente nella radice del repository**. I suoi requisiti sono riepilogati qui per non perdere il lavoro.
 
-La versione dichiarata nel progetto è **2.2.0**; riferimento del codice esaminato: commit `5d4b76ad` del **21 novembre 2026**. La prossima versione **non è ancora fissata**: scegliere major/minor/patch solo in base ai cambiamenti effettivi e alla compatibilità. La 2.2.0 è già in `VERSION` e nel changelog; il tag `v2.2.0` non è stato creato.
+La versione dichiarata nel progetto è **2.2.0**; riferimento del codice esaminato: commit `cee9f0f` del **22 novembre 2026**, aggiornato il **23 novembre 2026** con gli interventi A, B e D di `SPEC-RIMANENTE-2026-11-23.md`. La prossima versione **non è ancora fissata**: scegliere major/minor/patch solo in base ai cambiamenti effettivi e alla compatibilità. La 2.2.0 è già in `VERSION` e nel changelog; il tag `v2.2.0` non è stato creato.
 
 **Regola concordata:** prima si concordano la lista e l'ordine; poi **un intervento alla volta**, senza fix collaterali. Una voce può comprendere codice, test e documentazione strettamente necessari alla stessa correzione. Verifica mirata e, quando richiesto dalla specifica o dal progetto, build e test pertinenti; un commit per intervento/blocco dopo le verifiche, su richiesta già concordata, senza push o tag automatici. I controlli visivi richiedono TV e telefoni anche a 720p e rispetto dello stile `AGENTS.md`. Nessuna voce va segnata chiusa finché non è verificata; segnalare esplicitamente ciò che richiede una prova reale.
 
@@ -17,6 +17,50 @@ La versione dichiarata nel progetto è **2.2.0**; riferimento del codice esamina
 | Verificati in locale (test, 720p o 320×568) | F04, F05, F08, F09, F10, F12, F17, F20, F21, F22, F24, F25, F29, F30, F32, F34, F35, F37, F41, F43, F44, F45–F60 | Manca la prova in sala |
 | Parziali: codice corretto o contenuti toccati, resta una prova reale o una revisione a mano | F01, F02, F03, F06, F11, F13, F15, F16, F18, F19, F23, F26, F27, F31, F33, F36, F38, F39, F42 | Vedi la riga del registro |
 | In attesa di decisione | F07, F14, F28, F40 | Nessun cambio concordato |
+
+### Stato al 23 novembre 2026 (2.2.0)
+
+Tabella breve: ID, stato e l'unica prova che manca. Il dettaglio è nel registro sotto.
+
+| ID / voce | Stato | Prova mancante |
+| --- | --- | --- |
+| Numero secco del Casino (A1) | **Fatto**: tre girate come colore e dozzina, nessun rigiro, nessuna fase RESPIN; 500 a girata | sala: tempi della ruota e lettura delle tre girate |
+| Testo del Quiz (A2) | **Fatto**: tabella, manuale e demo descrivono `QuizService` (−1000 fisso a manche, fino a −3000); punteggi invariati | nessuna: è documentazione |
+| Audit esteso (B3) | **Fatto**: Indovina chi, Musica, Ruota e Bomba nell'audit e in CI | 1 anno mancante in Musica e 11 false della Bomba da leggere a mano |
+| Ultima spiaggia (B1) | **Fatto**: cinque fasce reali, 0 buchi, nessun ripiego di fascia | sala: le 80 riclassificazioni |
+| Campione del Quiz (B2) | **Fatto**: 30 domande per fascia con risposta e distrattori | giudizio umano, poi ricollocazioni a parte |
+| Banca media (B4) | **Fatto**: documentata come locale, con i comandi di prova | niente da fare in CI, per scelta |
+| Residui 2.1.0 (D1v) | **Fatto**: README, presentazione, deploy, avvio serata e script a 2.2.0 | nessuna |
+| Registro e roadmap (D2v) | **Fatto**: questa sezione e il blocco del 23 novembre | nessuna |
+| Pulizia del codice (D3v) | **Fatto**: scansione in `docs/CODICE-NON-USATO.md`, nessuna rimozione senza prova | revisione periodica |
+| Manuale e PDF (D4v) | **Fatto**: manuale HTML aggiornato e PDF rigenerati | stampa di prova in sala |
+| F01, F02, F06, F13, F16, F31 | Coperti da test; restano P0 | iPhone/Safari, bfcache e storage, refresh TV, rete di sala, due telefoni, latenze |
+| F37 (pausa), F45 (Biglie), F59 (bonus) | Coperti da test | sala: pausa reale, quattro gare, ingressi dei bonus |
+| F58 (punteggi) | Coperto da test | decisioni C: Quiz, Azzardo, Bomba, Time Buzzer, finestra bonus |
+| F07, F14, F28, F40 | In attesa di decisione | nessun cambio concordato |
+
+### F45–F55: voci chiuse come registro
+
+Le voci F45–F55 erano nate per la 2.1.0 e non descrivono più lavoro aperto: il
+loro esito è nel codice su `main` e le verifiche locali sono passate. Restano
+chiuse come voci di registro; dove indicato, la prova in sala è ancora quella
+delle righe F01/F02/F06/F37 e delle prove audio.
+
+| ID | Esito | Nota |
+| --- | --- | --- |
+| F45 | Chiusa | Quattro Biglie come round separati; nessun lavoro aperto |
+| F46 | Chiusa | Cinque bonus per atto; numeri aggiornati con F58/F59 |
+| F47 | Chiusa | Audit di manuale, presentazione, README e PDF fatto |
+| F48 | Chiusa | Basket rimosso da TV, regia e telefono |
+| F49 | Chiusa | Bonus Cavallo riportato a carta/inchiostro |
+| F50 | Chiusa | Casino colore con BIANCO/ROSSO |
+| F51 | Chiusa | Numeri dei vani in inchiostro |
+| F52 | Chiusa | Tabellone Cavallo a 720p |
+| F53 | Chiusa | Numero secco verificato a 320×568; ora le girate sono tre |
+| F54 | Chiusa | Errori di rete sul badge OFFLINE |
+| F55 | Chiusa | Badge connessione in stile carta/inchiostro |
+
+
 
 ### P0 — stato dopo i commit del 21 novembre 2026
 
@@ -314,4 +358,14 @@ media), run CI #155 verde prima di questo job, screenshot del README rifatti.
 | F53 | Verificato su viewport telefono | CDP touch 320×568 + click reale | — | Casino numero secco: 37 caselle, griglia scrollabile fino a `scrollTop 332/332`; il 36 è visibile e selezionabile. Anche colore e regole entrano nella viewport. Nessun difetto di prodotto da correggere. |
 | F54 | Corretto, verificato senza backend | **2 test retry + verifica 320×568** | `075bd23` | Il telefono mostrava «Sincronizzazione non riuscita» come testo grezzo sopra il gioco. Gli errori di rete ora restano sul badge OFFLINE; il sync iniziale viene ritentato al primo heartbeat riuscito. Gli errori d'azione restano visibili nel timbro carta/inchiostro. |
 | F55 | Corretto, verificato a 320×568 e 1280×720 | **258 test frontend** | `8a25a48` + `ea54377` | Il badge connessione usava pillola, fondo scuro traslucido e colori fuori palette. Ora è un timbro carta/inchiostro con radius zero, ombra offset e stati mint/mustard/tomato; nessuna animazione decorativa. Sulla TV è stato abbassato sotto la dock, che prima lo copriva. |
+| A1 | Fatto | 1 test Casino (una girata sola per manche) + suite completa 70 file / 701 test; build frontend | `7f44d583` | Numero secco a tre girate, `mustWin`, ciclo di rigiro e fase `RESPIN` rimossi; demo, manuale e tabella punteggi aggiornati. |
+| A2 | Fatto | Suite completa 70 file / 701 test; build frontend | `ad9857d1` | Testo di `SCORING_RULES`, demo e manuale allineati a `QuizService`; punteggi invariati. |
+| B3 | Fatto | `npm run audit:banche`: 0 doppioni, 0 campi mancanti sulle nuove banche | `8bfd57a8` | Audit esteso a Indovina chi (150), Musica (114), Ruota (32 frasi) e Bomba (95); dubbi in `docs/DOMANDE-DA-REVISIONARE.md`. |
+| B1 | Fatto | `UltimaSpiaggiaPayloadTest` (2 test) in H2; audit con 0 buchi | `99596d69` | Cinque fasce reali, 80 domande dedicate (16 categorie × 5), nessun ripiego di fascia. |
+| B2 | Fatto | Campione riproducibile (seed 20261123) | `745c0f38` | 30 domande per fascia con risposta e distrattori, da giudicare a mano. |
+| B4 | Fatto | Documentazione | `e008904a` | Banca media locale: generazione, audit e test documentati. |
+| D1v | Fatto | Ricerca di «2.1.0» nei documenti di versione: 0 | `4f7865eb` | README, presentazione, deploy, avvio serata e `start-8090.cmd` a 2.2.0. |
+| D2v | Fatto | Questo blocco | — | Intestazione, tabella breve di stato e chiusura F45–F55. |
+| D3v | Fatto | Scansione con riferimenti | — | `docs/CODICE-NON-USATO.md`: nessun servizio rimosso, tutti hanno chiamanti o test. |
+| D4v | Fatto | Manuale e PDF rigenerati | — | Testo Quiz e numero secco aggiornati; PDF colore e B/N rifatti. |
 | Altre voci | Da fare o da verificare | — | — | F18/F19 sono stati ritoccati ma richiedono ascolto reale; F23 e F24 richiedono telefoni veri; F36/F38 sono contenuti e bilanciamento da provare in sala; F37 richiede una prova reale in sala; F39 una copia del database della serata; F21 una revisione manuale dei contenuti; F56 lascia 69 buchi di Ultima spiaggia e pochi eventi Timeline di difficoltà 5; F40/F42/F14 richiedono una decisione. F28 (Azzardo) resta in pausa. Nessuna prova su telefoni, audio o TV reali è stata eseguita. |
