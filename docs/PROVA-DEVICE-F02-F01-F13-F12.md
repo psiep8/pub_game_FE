@@ -70,7 +70,7 @@ Non usare il database della serata. Con il backend fermo:
 | R15 | Dalla regia chiudi il round e apri un Quiz **nuovo** (chiave di round diversa); vota da un telefono | La manche nuova parte con risposte vuote; i voti legacy non compaiono; il telefono vota regolarmente. Sulla copia, la riga `quiz-legacy-archive` è una sola e contiene il primo legacy; resta invariata dopo un secondo legacy/round | | |
 | R16 | Errore di verifica **senza perdere la socket**: bloccare solo la chiamata del riepilogo Quiz del telefono (DevTools remoto su Android; su iOS non è praticabile), aprire il round e attendere «Quiz non verificato…». Con la socket attiva, ricaricare la TV (F5) e premere RIPRENDI | I tasti restano chiusi: RIPRENDI ripete lo stesso `roundStartId`. Nessun voto parte. Solo un round nuovo o un `REVEAL` li riaprono. Se il telefono si riallinea prima di RIPRENDI e i tasti si aprono, è il comportamento di R17: R16 resta **non eseguita** | | |
 | R17 | Stessa rottura di R16, ma senza RIPRENDI: lasciare che il telefono si riallinei da solo al ritorno della rete o della socket (oppure rientro dall'app, o refresh) | La verifica si ripete e i tasti tornano coerenti: aperti se non si era votato, bloccati con la risposta scelta se il voto c'era; nessun voto doppio sul server | | |
-| R18 | Dopo l'errore di verifica di R16/R17, toccare «Riprova verifica» | Parte solo la chiamata del riepilogo: nessun voto inviato. Se il server risponde senza voto i tasti si aprono e l'avviso sparisce; se il voto c'è, il telefono resta bloccato con la risposta scelta | | |
+| R18 | Dopo l'errore di verifica di R16/R17, toccare «Riprova verifica». Ripetere lasciando la chiamata del riepilogo bloccata e senza risposta per oltre 8 s | Parte solo la chiamata del riepilogo: nessun voto inviato. Se il server risponde senza voto i tasti si aprono e l'avviso sparisce; se il voto c'è, il telefono resta bloccato con la risposta scelta. Se il riepilogo non risponde entro 8 s l'attesa scade, l'avviso invita a «Riprova verifica» e il pulsante resta utilizzabile | | |
 
 Da guardare in ogni prova: la TV non deve ricevere due volte la stessa risposta o
 lo stesso ordine Timeline, e la classifica non deve cambiare dopo un refresh del
@@ -88,10 +88,10 @@ riepilogo, segnare R16 come **non eseguita**: l'annuncio con lo stesso
 
 ### Vie di sblocco del Quiz coperte dai test automatici
 
-La suite frontend (70 file, 693 test) copre in jsdom le uscite dal blocco del
+La suite frontend (70 file, 695 test) copre in jsdom le uscite dal blocco del
 riepilogo. Questi casi non vanno riprovati a mano per fidarsi della logica: in
 sala servono a confermare che rete, socket e refresh reali si comportino come i
-doppi di test. I test remoti sono 111
+doppi di test. I test remoti sono 113
 (`--include="**/remote.component.spec.ts"`).
 
 | Via di sblocco | Test automatico | Cosa resta ai device |
@@ -116,6 +116,7 @@ doppi di test. I test remoti sono 111
 | `QUIZ_STATE` della stessa manche (o di una precedente): non sblocca | `un QUIZ_STATE della stessa manche non sblocca un riepilogo fallito` | R16: il ripubblicato della TV non deve riaprire i tasti |
 | Stato vecchio e poi stato corrente: la manche nota non scende | `uno stato vecchio non abbassa la manche: il successivo stato corrente non sblocca` | R16: l'ordine dei `QUIZ_STATE` non deve riaprire i tasti |
 | Dopo un errore: retry esplicito della verifica | `il retry della verifica Quiz ripete solo il riepilogo e non invia voti`, `il retry della verifica Quiz blocca la manche se il voto è già registrato` | R18: il pulsante «Riprova verifica» non deve inviare voti |
+| Riepilogo che non risponde: timeout e retry sempre visibile | `un riepilogo che non risponde scade e lascia il retry utilizzabile`, `un altro errore non nasconde il retry della verifica Quiz` | R18: oltre 8 s il pulsante deve restare utilizzabile anche con un altro errore a schermo |
 | Snapshot con **stessa `roundKey`** e `roundStartId` nuovo: attesa e legacy | `uno snapshot con la stessa chiave ma un roundStartId nuovo chiude l attesa`, `uno snapshot con la stessa chiave ma un roundStartId nuovo sblocca il legacy` | R15: nuova apertura che riusa la chiave del round |
 | Espulsione durante l'attesa o il blocco legacy | `l espulsione chiude l attesa del riepilogo Quiz`, `l espulsione sblocca il legacy: al rientro senza identità i tasti si aprono` | R11: espulsione reale dalla regia |
 

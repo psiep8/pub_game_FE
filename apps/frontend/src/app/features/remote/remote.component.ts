@@ -18,7 +18,7 @@ import { WebSocketService } from '../../core/websocket/web-socket.service';
 import { FormsModule } from '@angular/forms';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { firstValueFrom } from 'rxjs';
-import { filter, take } from 'rxjs/operators';
+import { filter, take, timeout } from 'rxjs/operators';
 import { GameService } from '../../core/services/game.service';
 import { AudioService } from '../../core/services/audio.service';
 import { ThemeService, THEME_OPTIONS, type AppTheme } from '../../core/services/theme.service';
@@ -42,6 +42,8 @@ import {
 } from '../../shared/manual/manual-content';
 
 const QUIZ_CHECK_ERROR = 'Quiz non verificato: tocca «Riprova verifica» o attendi il riallineamento.';
+/** Oltre questo tempo il riepilogo è dato per non arrivato: il retry si sblocca. */
+const QUIZ_CHECK_TIMEOUT_MS = 8000;
 
 @Component({
   selector: 'app-remote-component',
@@ -243,9 +245,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private quizSummaryPending: { roundKey: string; generation: number } | null = null;
   /** Riepilogo Quiz in volo: i tasti restano bloccati finché la verifica non arriva. */
   readonly quizCheckPending = signal(false);
-  /** La verifica è fallita: si può ripeterla senza inviare voti. */
-  readonly quizCheckFailed = computed(() => this.quizCheckPending()
-    && this.reliability.lastError() === QUIZ_CHECK_ERROR);
+  /** Verifica fallita o scaduta: si può ripeterla senza inviare voti. */
+  readonly quizCheckFailed = signal(false);
   private quizCheckRoundId = '';
   private quizCheckRoundKey = '';
   /** Ultima risposta toccata: solo promemoria visivo, l'esito lo decide il server. */
@@ -2954,11 +2955,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private beginQuizCheck(roundStartId: string, roundKey: string): void {
     this.quizCheckRoundId = roundStartId;
     this.quizCheckRoundKey = roundKey;
+    this.quizCheckFailed.set(false);
     this.quizCheckPending.set(true);
   }
 
   private endQuizCheck(): void {
     this.quizCheckPending.set(false);
+    this.quizCheckFailed.set(false);
     this.quizCheckRoundId = '';
     this.quizCheckRoundKey = '';
     if (this.reliability.lastError() === QUIZ_CHECK_ERROR) {
@@ -3006,7 +3009,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const pending = { roundKey, generation: this.quizSummaryGeneration };
     this.quizSummaryPending = pending;
     this.beginQuizCheck(roundStartId, roundKey);
-    this.gameService.quizAnswers(gameId).subscribe({
+    this.gameService.quizAnswers(gameId).pipe(timeout(QUIZ_CHECK_TIMEOUT_MS)).subscribe({
       next: (summary: any) => {
         if (this.quizSummaryPending === pending) this.quizSummaryPending = null;
         // Non applicare un riepilogo se nel frattempo è cambiata la manche,
@@ -3052,6 +3055,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         // ripete (Riprova verifica o riallineamento). Un voto senza verifica
         // non si invia.
         this.reliability.lastError.set(QUIZ_CHECK_ERROR);
+        this.quizCheckFailed.set(true);
       },
     });
   }
