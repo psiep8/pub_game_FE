@@ -25,7 +25,7 @@ Tabella breve: ID, stato e l'unica prova che manca. Il dettaglio è nel registro
 | ID / voce | Stato | Prova mancante |
 | --- | --- | --- |
 | Numero secco del Casino (A1) | **Fatto**: tre girate come colore e dozzina, nessun rigiro, nessuna fase RESPIN; 500 a girata | sala: tempi della ruota e lettura delle tre girate |
-| Testo del Quiz (A2) | **Fatto**: tabella, manuale e demo descrivono `QuizService` (−1000 fisso a manche, fino a −3000); punteggi invariati | nessuna: è documentazione |
+| Testo del Quiz (A2) | **Fatto e corretto il 23/11**: il round vale 1000 in tutto, la sbagliata toglie la quota scalata dal tempo (max +1000, min −1000) | nessuna: è documentazione |
 | Audit esteso (B3) | **Fatto**: Indovina chi, Musica, Ruota e Bomba nell'audit e in CI | 1 anno mancante in Musica e 11 false della Bomba da leggere a mano |
 | Ultima spiaggia (B1) | **Fatto**: cinque fasce reali, 0 buchi, nessun ripiego di fascia | sala: le 80 riclassificazioni |
 | Campione del Quiz (B2) | **Fatto**: 30 domande per fascia con risposta e distrattori | giudizio umano, poi ricollocazioni a parte |
@@ -359,7 +359,8 @@ media), run CI #155 verde prima di questo job, screenshot del README rifatti.
 | F54 | Corretto, verificato senza backend | **2 test retry + verifica 320×568** | `075bd23` | Il telefono mostrava «Sincronizzazione non riuscita» come testo grezzo sopra il gioco. Gli errori di rete ora restano sul badge OFFLINE; il sync iniziale viene ritentato al primo heartbeat riuscito. Gli errori d'azione restano visibili nel timbro carta/inchiostro. |
 | F55 | Corretto, verificato a 320×568 e 1280×720 | **258 test frontend** | `8a25a48` + `ea54377` | Il badge connessione usava pillola, fondo scuro traslucido e colori fuori palette. Ora è un timbro carta/inchiostro con radius zero, ombra offset e stati mint/mustard/tomato; nessuna animazione decorativa. Sulla TV è stato abbassato sotto la dock, che prima lo copriva. |
 | A1 | Fatto | 1 test Casino (una girata sola per manche) + suite completa 70 file / 701 test; build frontend | `7f44d583` | Numero secco a tre girate, `mustWin`, ciclo di rigiro e fase `RESPIN` rimossi; demo, manuale e tabella punteggi aggiornati. |
-| A2 | Fatto | Suite completa 70 file / 701 test; build frontend | `ad9857d1` | Testo di `SCORING_RULES`, demo e manuale allineati a `QuizService`; punteggi invariati. |
+| A2 | Fatto | Suite completa 70 file / 701 test; build frontend | `ad9857d1` | Testo di `SCORING_RULES`, demo e manuale allineati a `QuizService`. |
+| Quiz, punteggio (23/11) | Fatto | `QuizServiceTest`, `scoring-rules.spec`, suite completa | — | Il round vale 1000 in tutto e la penalità è la quota scalata dal tempo: niente più −1000 fissi, il round va da −1000 a +1000. |
 | B3 | Fatto | `npm run audit:banche`: 0 doppioni, 0 campi mancanti sulle nuove banche | `8bfd57a8` | Audit esteso a Indovina chi (150), Musica (114), Ruota (32 frasi) e Bomba (95); dubbi in `docs/DOMANDE-DA-REVISIONARE.md`. |
 | B1 | Fatto | `UltimaSpiaggiaPayloadTest` (2 test) in H2; audit con 0 buchi | `99596d69` | Cinque fasce reali, 80 domande dedicate (16 categorie × 5), nessun ripiego di fascia. |
 | B2 | Fatto | Campione riproducibile (seed 20261123) | `745c0f38` | 30 domande per fascia con risposta e distrattori, da giudicare a mano. |

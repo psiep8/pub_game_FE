@@ -27,10 +27,12 @@ describe('regole dei punteggi', () => {
     expect(SCORING_RULES.MUSIC.note).toContain('750');
   });
 
-  it('Quiz: il testo descrive la penalità fissa del server', () => {
+  it('Quiz: 1000 per round, penalità scalata dal tempo', () => {
     expect(SCORING_RULES.QUIZ.wrong).toContain('−1000');
-    expect(SCORING_RULES.QUIZ.wrong).toContain('−3000');
+    expect(SCORING_RULES.QUIZ.wrong).toContain('tempo');
+    expect(SCORING_RULES.QUIZ.note).toContain('1000 punti in tutto');
     expect(SCORING_RULES.QUIZ.note).toContain('QuizService');
+    expect(SCORING_RULES.QUIZ.note).not.toContain('−3000');
   });
 
   it('Timeline: da +400 a −200 con otto posti giusti', () => {

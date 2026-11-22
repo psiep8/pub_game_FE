@@ -106,7 +106,7 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 - **TV**: domanda e quattro risposte.
 - **Telefoni**: ognuno tocca la risposta che ritiene giusta.
 - **Punti**: fino a **+1000** in tre manches (facile ×1, media ×2, difficile ×3);
-  sbagliata **−1000 fissi per manche** (fino a −3000 nel round); chi non risponde prende 0.
+  sbagliata **la quota della manche scalata dal tempo** (minimo −1000 nel round); chi non risponde prende 0.
 - *Da dire:* «Chi risponde subito vince tanto, chi risponde tardi vince poco, chi sbaglia
   paga. Nessuno è obbligato a rispondere.»
 

@@ -18,7 +18,7 @@ cambia la distribuzione dei piazzamenti (seconda tabella) e il numero di bombe.
 
 | Gioco | Struttura del round | Max N=6 | Min N=6 | Max N=10 | Min N=10 | Punti decisi da |
 |---|---|---:|---:|---:|---:|---|
-| **Quiz** | 3 manches da 15 s | **+1000** | **−3000** | **+1000** | **−3000** | server (`QuizService`) |
+| **Quiz** | 3 manches da 15 s | **+1000** | **−1000** | **+1000** | **−1000** | server (`QuizService`) |
 | **Musica** | 4 manches, 1 canzone | +1000 | −1000 | +1000 | −1000 | TV (`calculatePoints`) |
 | **Timeline** | 8 eventi | +400 | −200 | +400 | −200 | server/TV (`TIMELINE_POSITION_POINTS`) |
 | **Time Buzzer** | 3 manches | +1800 | −600 | +1800 | −600 | TV (`rankPoints` + perfetto) |
@@ -34,11 +34,13 @@ cambia la distribuzione dei piazzamenti (seconda tabella) e il numero di bombe.
 
 Note alle celle:
 
-- **Quiz, −3000:** il server toglie **−1000 fissi per ogni manche sbagliata**
-  (`QuizService.WRONG_PENALTY`), e la squadra può votare in tutte e tre le manches:
-  3 × −1000. Il massimo resta la somma dei `maxPoints`, 1000. Dal 23 novembre 2026
-  `SCORING_RULES`, manuale e demo dicono questo; `QuizMode.calculatePoints` resta
-  solo per i vecchi test e non assegna punti in partita.
+- **Quiz, ±1000:** il round vale **1000 punti in tutto**, divisi fra le tre
+  manches dalla difficoltà (facile ×1, media ×2, difficile ×3). La quota di ogni
+  manche scala con il tempo: rispondere subito vale il tetto, all'ultimo secondo
+  zero. La sbagliata toglie **la stessa quota scalata**, quindi il round va da
+  −1000 a +1000; chi non risponde prende 0. Dal 23 novembre 2026 server
+  (`QuizService`), `QuizMode.calculatePoints`, `SCORING_RULES`, manuale e demo
+  usano tutti questa regola.
 - **Time Buzzer, +1800:** 3 manche × 600 del tempo perfetto (errore ≤ 50 ms, solo
   per il primo). Senza nessun tempo perfetto il massimo è +900 (3 × 300).
 - **Tennis, 0:** con N pari ogni squadra gioca una partita. Con N dispari la
@@ -100,11 +102,10 @@ N=10  B=3   malus: −500, −330, −170           totale round −1000
 
 ## 4. Squilibri, in ordine di valore
 
-1. **Quiz: −3000 contro +1000.** È l'unico gioco in cui il peggio possibile è il
-   triplo del meglio possibile, e nasce da un conflitto tra server e client:
-   il server applica −1000 fissi a ogni manche sbagliata, mentre la regola
-   dichiarata e il motore frontend parlano di penalità proporzionale alla quota
-   e al tempo. Un round Quiz può quindi azzerare tre round di guadagni.
+1. **Quiz: +1000 / −1000, risolto.** Il conflitto tra server (−1000 fissi a
+   manche) e regola dichiarata (penalità proporzionale alla quota e al tempo) è
+   chiuso: il server usa la stessa formula del client, quindi il round resta in
+   un intervallo simmetrico e non può più azzerare tre round di guadagni.
 2. **Azzardo: +4000 per round.** È 4× il massimo di Timeline e 2,2× quello di
    Time Buzzer; con tre occorrenze in serata il tetto teorico è +12.000. In più,
    per chi è a zero punti il minimo è 0: solo upside. Il tetto di 1000 per manche
@@ -130,10 +131,9 @@ N=10  B=3   malus: −500, −330, −170           totale round −1000
 
 ## 5. Coerenze da decidere (senza toccare i numeri ora)
 
-- **Quiz, penalità sbagliata:** il testo ora descrive il server (−1000 fisso per
-  manche, fino a −3000 nel round) senza cambiare i numeri. Resta aperta la scelta
-  di regolamento: −1000 fisso o penalità proporzionale al tempo (sezione C della
-  specifica).
+- **Quiz, penalità sbagliata:** deciso il 23 novembre 2026 — la penalità è la
+  quota della manche scalata dal tempo, come il guadagno. Massimo +1000, minimo
+  −1000 per round; nessuna risposta 0.
 - **Ultima spiaggia, chi non sceglie:** il codice assegna 0; `SCORING_RULES` dice
   «−metà del livello scelto». Senza livello scelto la metà non esiste: va scritto
   esplicitamente che l'assenza di scelta vale 0.

@@ -84,7 +84,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, EntryCopy> = {
       'Non c’è una prenotazione: rispondi e attendi la TV.',
       'Il telefono si blocca dopo la scelta.',
     ],
-    tip: 'Rispondi subito: la risposta esatta vale meno con i secondi che passano. La sbagliata costa 1000 punti fissi, fino a −3000 nel round.',
+    tip: 'Rispondi subito: la risposta esatta vale meno con i secondi che passano, e la sbagliata costa la stessa quota, sempre meno con il tempo. Il round va da −1000 a +1000.',
   },
   IMAGE_BLUR: {
     name: 'INDOVINA CHI',

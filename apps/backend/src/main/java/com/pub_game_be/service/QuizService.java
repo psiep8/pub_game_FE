@@ -28,8 +28,6 @@ public class QuizService {
     static final String LEGACY_ARCHIVE_BLOB = "quiz-legacy-archive";
     /** Durata della manche: la stessa che mostra la TV. */
     static final long MANCHE_MS = 15_000L;
-    /** Penalità di una risposta sbagliata, come nel regolamento del round. */
-    static final int WRONG_PENALTY = -1000;
     private static final int ROUND_POINTS = 1000;
     private static final int MAX_QUESTIONS = 3;
 
@@ -164,7 +162,10 @@ public class QuizService {
         boolean correct = String.valueOf(options.opt(optionIndex)).trim()
                 .equals(question.optString("correctAnswer", "").trim());
         long elapsed = Math.max(0L, now - stored.optLong("startedAt", now));
-        int points = correct ? pointsFor(question.optInt("maxPoints", 0), elapsed) : WRONG_PENALTY;
+        // La quota della domanda scala col tempo in entrambi i versi: chi
+        // risponde tardi vince meno e perde meno. Il round vale 1000 in tutto.
+        int quota = pointsFor(question.optInt("maxPoints", 0), elapsed);
+        int points = correct ? quota : -quota;
 
         JSONObject result = new JSONObject()
                 .put("playerName", name)

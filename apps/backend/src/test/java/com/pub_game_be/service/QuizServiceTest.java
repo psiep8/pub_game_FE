@@ -69,7 +69,7 @@ class QuizServiceTest {
     }
 
     @Test
-    void sbagliataSottraeMillePunti() {
+    void sbagliataToglieLaQuotaScalataDalTempo() {
         long gameId = 910_002L;
         apriRound(gameId, DUE_DOMANDE);
         quiz.startManche(gameId, 0, roundId(gameId));
@@ -78,7 +78,9 @@ class QuizServiceTest {
 
         assertThat(outcome.accepted()).isTrue();
         assertThat(outcome.result().getBoolean("isCorrect")).isFalse();
-        assertThat(outcome.result().getInt("points")).isEqualTo(QuizService.WRONG_PENALTY);
+        // La prima domanda vale 400 dei 1000 del round: subito costa 400,
+        // non mille: il round resta fra +1000 e −1000.
+        assertThat(outcome.result().getInt("points")).isBetween(-400, -380);
     }
 
     @Test

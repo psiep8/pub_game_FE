@@ -1,5 +1,20 @@
 # Changelog
 
+## 23 novembre 2026 — Quiz: 1000 per round, penalità scalata dal tempo
+
+- **Regola unica:** il round Quiz vale **1000 punti in tutto**, divisi fra le tre
+  manches dalla difficoltà (facile ×1, media ×2, difficile ×3). La quota scala
+  col tempo: rispondere subito vale il tetto, all'ultimo secondo zero. La
+  risposta sbagliata toglie **la stessa quota scalata**, non più 1000 punti
+  fissi: il round va da −1000 a +1000 e chi non risponde prende 0.
+- **Server allineato al client:** `QuizService` non usa più `WRONG_PENALTY`;
+  `QuizServiceTest` verifica che una sbagliata alla prima domanda costi la sua
+  quota (400), non mille.
+- **Testi:** `SCORING_RULES`, manuale telefono, demo TV, README, presentazione,
+  `PUNTEGGI-MASSIMI-MINIMI.md` e manuale HTML color/B/N dicono la stessa cosa;
+  PDF rigenerati.
+- Verifiche: suite frontend 701 test e backend 163 test.
+
 ## 20 novembre 2026 — Punteggi nuovi, banche riviste, niente buoni in app
 
 - **Banche dati:** audit riproducibile (`scripts/audit-banche.mjs`), 30

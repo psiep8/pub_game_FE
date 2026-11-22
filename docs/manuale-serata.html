@@ -458,9 +458,9 @@
         </div>
         <div>
           <p><b>Formula di ogni manche:</b></p>
-          <div class="scoreline" style="margin-top:0">Giusto <b>+valore × (secondi rimasti / 15)</b><br>Sbagliato <b>−1000 fissi</b><br>Nessuna risposta <b>0</b></div>
-          <div class="example"><b>Esempio.</b> Mix 2F+1M, tutte e tre corrette al secondo 0: 250 + 250 + 500 = <b>1.000</b>. Corrette a metà tempo: <b>500</b>. Una manche sbagliata: <b>−1000</b>; tre sbagliate: <b>−3000</b>. Il punteggio lo registra il server.</div>
-          <p class="small" style="margin-top:1.4mm">Il round non può superare i 1.000 punti in positivo; in negativo arriva a −3.000 (1.000 per ogni manche sbagliata).</p>
+          <div class="scoreline" style="margin-top:0">Giusto <b>+valore × (secondi rimasti / 15)</b><br>Sbagliato <b>−valore × (secondi rimasti / 15)</b><br>Nessuna risposta <b>0</b></div>
+          <div class="example"><b>Esempio.</b> Mix 2F+1M, tutte e tre corrette al secondo 0: 250 + 250 + 500 = <b>1.000</b>. Corrette a metà tempo: <b>500</b>. Una manche sbagliata subito toglie la sua quota (qui <b>−250</b>); tre sbagliate subito: <b>−1.000</b>. Il punteggio lo registra il server.</div>
+          <p class="small" style="margin-top:1.4mm">Il round vale al massimo 1.000 punti in tutto: tre manches giuste a tempo zero. Tre sbagliate subito costano −1.000, perché la penalità è la stessa quota scalata dal tempo.</p>
         </div>
       </div>
     </article>
@@ -687,7 +687,7 @@
   <table class="score-table">
     <thead><tr><th style="width:19%">Gioco</th><th style="width:33%">Risposta corretta</th><th style="width:23%">Errore / mancata</th><th style="width:25%">Note</th></tr></thead>
     <tbody>
-      <tr><td>QUIZ</td><td>3 manche; fino a 1000 per round</td><td>−1000 fissi per manche (fino a −3000)</td><td>Mix 2F+1M, 1F+2M, 1F+1M+1D, 2M+1D, 1M+2D.</td></tr>
+      <tr><td>QUIZ</td><td>3 manche; fino a 1000 per round</td><td>−quota × tempo rimasto (fino a −1000)</td><td>Mix 2F+1M, 1F+2M, 1F+1M+1D, 2M+1D, 1M+2D.</td></tr>
       <tr><td>INDOVINA CHI</td><td>+1000 × secondi rimasti / 30</td><td>−1000 × secondi rimasti / 30</td><td>Prenotazione + convalida host.</td></tr>
       <tr><td>MUSICA</td><td>+1000 / +750 / +500 / +250 secondo la manche</td><td>Lo stesso valore in negativo</td><td>4 manche della stessa canzone; massimo +1000.</td></tr>
       <tr><td>TIMELINE</td><td>8 posti giusti +400; 7 +300; 6 +200; 5 +100</td><td>4 → 0; 3 −50; 2 −100; 1 o 0 −200</td><td>Otto carte a ogni round.</td></tr>
