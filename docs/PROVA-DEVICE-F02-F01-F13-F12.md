@@ -79,10 +79,10 @@ L'archivio conserva il **primo** legacy; un secondo legacy non lo sostituisce.
 
 ### Vie di sblocco del Quiz coperte dai test automatici
 
-Al commit `15ab8cd4` la suite frontend (70 file, 680 test) copre in jsdom le
-uscite dal blocco del riepilogo. Questi casi non vanno riprovati a mano per
-fidarsi della logica: in sala servono a confermare che rete, socket e refresh
-reali si comportino come i doppi di test. I test remoti sono 98
+La suite frontend (70 file, 689 test) copre in jsdom le uscite dal blocco del
+riepilogo. Questi casi non vanno riprovati a mano per fidarsi della logica: in
+sala servono a confermare che rete, socket e refresh reali si comportino come i
+doppi di test. I test remoti sono 107
 (`--include="**/remote.component.spec.ts"`).
 
 | Via di sblocco | Test automatico | Cosa resta ai device |
@@ -98,6 +98,14 @@ reali si comportino come i doppi di test. I test remoti sono 98
 | Snapshot di un nuovo round (`roundKey`/`roundStartId` diversi): sblocca attesa e legacy | `uno snapshot di un nuovo round chiude l attesa del riepilogo Quiz`, `uno snapshot di un nuovo round sblocca il legacy` | R15: nuovo Quiz dal vero, con chiave di round diversa e voti vuoti |
 | Annuncio con `roundStartId` nuovo: sblocca il legacy | `con un blob Quiz legacy non lascia una domanda votabile dopo il refresh` | R15: il telefono vota la manche nuova e il server la accetta |
 | Snapshot ripetuto dello stesso legacy: non riapre | `con un blob Quiz legacy non lascia una domanda votabile dopo il refresh` (secondo snapshot) | R14: due refresh di fila sullo stesso telefono non aprono nulla |
+| Annuncio con lo **stesso** `roundStartId` (RIPRENDI): resta bloccato | `non riapre i tasti su un annuncio con lo stesso roundStartId, ma su uno nuovo sì` | F16 Q4: RIPRENDI reale, i tasti non devono riaprirsi |
+| Annuncio con un `roundStartId` nuovo: sblocca l'attesa | stesso test | Che l'id nuovo corrisponda a un vero `ROUND_STARTED`, non a un riannuncio |
+| Snapshot `hasState: false`: chiude attesa e legacy | `uno snapshot senza stato chiude l attesa del riepilogo e sblocca il legacy` | R14/R15: refresh quando la partita non ha stato |
+| Snapshot a round chiuso: chiude attesa e legacy | `uno snapshot a round chiuso chiude l attesa del riepilogo e sblocca il legacy` | R14: la TV o la regia hanno già chiuso il round |
+| Snapshot non ancora annunciato (`announced: false`) | `uno snapshot non ancora annunciato chiude l attesa del riepilogo` | F16 Q4: intro TV ancora in corso al refresh |
+| `QUIZ_STATE` di manche nuova | `un QUIZ_STATE di manche nuova chiude l attesa del riepilogo` | Cambio manche reale mentre il riepilogo è in errore |
+| Snapshot con **stessa `roundKey`** e `roundStartId` nuovo: attesa e legacy | `uno snapshot con la stessa chiave ma un roundStartId nuovo chiude l attesa`, `uno snapshot con la stessa chiave ma un roundStartId nuovo sblocca il legacy` | R15: nuova apertura che riusa la chiave del round |
+| Espulsione durante l'attesa o il blocco legacy | `l espulsione chiude l attesa del riepilogo Quiz`, `l espulsione sblocca il legacy: al rientro senza identità i tasti si aprono` | R11: espulsione reale dalla regia |
 
 Restano fuori dai test automatici, e vanno guardati solo in sala:
 

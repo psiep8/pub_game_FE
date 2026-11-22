@@ -1683,6 +1683,278 @@ describe('RemoteComponent', () => {
     expect(fixture.nativeElement.querySelector('.quiz-grid')).not.toBeNull();
   });
 
+  it('non riapre i tasti su un annuncio con lo stesso roundStartId, ma su uno nuovo sì', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(throwError(() => new Error('offline')));
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(true);
+
+    // RIPRENDI ripete l'annuncio della stessa apertura: non deve sbloccare.
+    ws.status$.next({ action: 'START_VOTING', type: 'QUIZ', roundStartId: 'round-1',
+      roundStartedAt: Date.now(), payload: {} });
+    fixture.detectChanges();
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(component.quizCheckPending()).toBe(true);
+    let buttons = Array.from(fixture.nativeElement.querySelectorAll('.quiz-grid button')) as HTMLButtonElement[];
+    expect(buttons.length).toBe(4);
+    expect(buttons.every((button) => button.disabled)).toBe(true);
+
+    // Una nuova apertura è un round nuovo: l'attesa del vecchio non vale più.
+    ws.status$.next({ action: 'START_VOTING', type: 'QUIZ', roundStartId: 'round-2',
+      roundStartedAt: Date.now() + 1, payload: {} });
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(false);
+    expect(component.reliability.lastError()).toBeNull();
+    buttons = Array.from(fixture.nativeElement.querySelectorAll('.quiz-grid button')) as HTMLButtonElement[];
+    expect(buttons.length).toBe(4);
+    expect(buttons.every((button) => !button.disabled)).toBe(true);
+  });
+
+  it('uno snapshot senza stato chiude l attesa del riepilogo e sblocca il legacy', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers')
+      .mockReturnValueOnce(throwError(() => new Error('offline')))
+      .mockReturnValueOnce(of({
+        recoveryBlocked: 'legacy-quiz-state', roundStartId: '', mancheIndex: -1, answers: [],
+      }));
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(true);
+
+    reliability.syncState$.next({ hasState: false });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(false);
+    expect(component.reliability.lastError()).toBeNull();
+    expect(component.roundActive()).toBe(false);
+
+    // Un secondo round trova il legacy: lo snapshot "senza stato" lo chiude.
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+
+    reliability.syncState$.next({ hasState: false });
+    await fixture.whenStable();
+    ws.status$.next({ action: 'START_VOTING', type: 'QUIZ', payload: {} });
+    fixture.detectChanges();
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(fixture.nativeElement.querySelector('.quiz-grid')).not.toBeNull();
+  });
+
+  it('uno snapshot a round chiuso chiude l attesa del riepilogo e sblocca il legacy', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers')
+      .mockReturnValueOnce(throwError(() => new Error('offline')))
+      .mockReturnValueOnce(of({
+        recoveryBlocked: 'legacy-quiz-state', roundStartId: '', mancheIndex: -1, answers: [],
+      }));
+    const closed = () => ({
+      ...quizRoundSnapshot(), status: 'WAITING', roundDeadlineAt: Date.now() - 1_000,
+    });
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(true);
+
+    reliability.syncState$.next(closed());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(false);
+    expect(component.reliability.lastError()).toBeNull();
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+
+    reliability.syncState$.next(closed());
+    await fixture.whenStable();
+    ws.status$.next({ action: 'START_VOTING', type: 'QUIZ', payload: {} });
+    fixture.detectChanges();
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(fixture.nativeElement.querySelector('.quiz-grid')).not.toBeNull();
+  });
+
+  it('uno snapshot non ancora annunciato chiude l attesa del riepilogo', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(throwError(() => new Error('offline')));
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(true);
+
+    // La TV non ha ancora finito l'intro: non c'è una domanda da verificare.
+    reliability.syncState$.next({ ...quizRoundSnapshot(), announced: false });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(false);
+    expect(component.reliability.lastError()).toBeNull();
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+    expect(fixture.nativeElement.querySelector('.quiz-grid')).toBeNull();
+  });
+
+  it('un QUIZ_STATE di manche nuova chiude l attesa del riepilogo', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers')
+      .mockReturnValueOnce(of({ roundStartId: 'round-1', mancheIndex: 1, answers: [] }))
+      .mockReturnValueOnce(throwError(() => new Error('offline')));
+
+    // La verifica della manche 2 risponde senza voto: il telefono sa a che
+    // manche è arrivato e i tasti restano aperti.
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizManche()).toBe(2);
+    expect(component.quizCheckPending()).toBe(false);
+
+    // Un riallineamento successivo non riceve il riepilogo: tasti chiusi.
+    (component as any).realignWithServer();
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(true);
+
+    // La TV passa alla manche 3: l'attesa della precedente non ha più senso.
+    ws.status$.next({ action: 'QUIZ_STATE', roundStartId: 'round-1', state: { manche: 3 } });
+    fixture.detectChanges();
+    expect(component.quizManche()).toBe(3);
+    expect(component.quizCheckPending()).toBe(false);
+    expect(component.reliability.lastError()).toBeNull();
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.quiz-grid button')) as HTMLButtonElement[];
+    expect(buttons.length).toBe(4);
+    expect(buttons.every((button) => !button.disabled)).toBe(true);
+  });
+
+  it('uno snapshot con la stessa chiave ma un roundStartId nuovo chiude l attesa', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers')
+      .mockReturnValueOnce(throwError(() => new Error('offline')))
+      .mockReturnValueOnce(of({ roundStartId: 'round-2', mancheIndex: 0, answers: [] }));
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(true);
+
+    // Stessa chiave di round (g1-r4), ma il server ha aperto una nuova
+    // identità: è un round nuovo, non un reannuncio.
+    reliability.syncState$.next({ ...quizRoundSnapshot(), roundStartId: 'round-2' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(false);
+    expect(component.reliability.lastError()).toBeNull();
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.quiz-grid button')) as HTMLButtonElement[];
+    expect(buttons.length).toBe(4);
+    expect(buttons.every((button) => !button.disabled)).toBe(true);
+  });
+
+  it('uno snapshot con la stessa chiave ma un roundStartId nuovo sblocca il legacy', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers')
+      .mockReturnValueOnce(of({
+        recoveryBlocked: 'legacy-quiz-state', roundStartId: '', mancheIndex: -1, answers: [],
+      }))
+      .mockReturnValueOnce(of({ roundStartId: 'round-2', mancheIndex: 0, answers: [] }));
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+
+    reliability.syncState$.next({ ...quizRoundSnapshot(), roundStartId: 'round-2' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(false);
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(fixture.nativeElement.querySelector('.quiz-grid')).not.toBeNull();
+  });
+
+  it('l espulsione chiude l attesa del riepilogo Quiz', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(throwError(() => new Error('offline')));
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(true);
+
+    ws.status$.next({ action: 'PLAYER_REMOVED', playerName: 'Anna' });
+    fixture.detectChanges();
+    expect(component.nickname()).toBeNull();
+    expect(component.quizCheckPending()).toBe(false);
+    expect(component.reliability.lastError()).toBeNull();
+  });
+
+  it('l espulsione sblocca il legacy: al rientro senza identità i tasti si aprono', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers').mockReturnValue(of({
+      recoveryBlocked: 'legacy-quiz-state', roundStartId: '', mancheIndex: -1, answers: [],
+    }));
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+
+    ws.status$.next({ action: 'PLAYER_REMOVED', playerName: 'Anna' });
+    fixture.detectChanges();
+    expect(component.nickname()).toBeNull();
+
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    ws.status$.next({ action: 'START_VOTING', type: 'QUIZ', payload: {} });
+    fixture.detectChanges();
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(fixture.nativeElement.querySelector('.quiz-grid')).not.toBeNull();
+  });
+
   it('al refresh trova la manche corrente dal server quando il payload non la contiene', async () => {
     localStorage.setItem('nickname', 'Anna');
     reliability.resumedSession.set(true);
