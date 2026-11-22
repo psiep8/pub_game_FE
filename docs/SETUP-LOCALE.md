@@ -103,6 +103,36 @@ In `.env` imposta anche `ALLOWED_ORIGINS` con l'origine esatta con cui apri il g
 
 All'avvio lo script stampa l'indirizzo del PC e quello del telefono. Porte predefinite: frontend 4200, backend 8080 (`FE_PORT`, `BE_PORT`, `HOST` in `.env`).
 
+### 4.1 Banca media locale (Indovina chi e Musica)
+
+`questions/media-it.json` e i file sotto `static/media/` sono **esclusi dal
+repository** (`.gitignore`): contengono foto e anteprime audio e si generano
+una volta sul computer che farà da server.
+
+```
+cd scripts/generate-questions
+python generate_media.py --count-music 40 --count-people 60
+```
+
+Lo script scrive i brani in `static/media/music`, le copertine in
+`static/media/covers`, le foto in `static/media/people` e l'indice
+`questions/media-it.json`. Senza chiave TMDB usa Wikipedia per i volti.
+
+- **Con la banca presente** l'audit (`npm run audit:banche`) controlla 150
+  persone e 114 brani, i campi e l'esistenza dei file; il test
+  `CelebrityClueLeakTest` gira e verifica che nessun indizio contenga il nome.
+- **Senza la banca** (per esempio in CI) `CelebrityClueLeakTest` viene saltato
+  con `assumeTrue` e le foto delle celebrità arrivano dai servizi remoti quando
+  sono disponibili. È una scelta deliberata: i media veri non stanno nel
+  repository, quindi il test non può girare ovunque.
+
+Per provare la banca e il test in locale:
+
+```
+cd apps/backend
+./mvnw -Dtest=CelebrityClueLeakTest test
+```
+
 ## 5. Serata tra amici: scenari
 
 **Scenario 1: PC con cavo HDMI alla TV (il più semplice)**
