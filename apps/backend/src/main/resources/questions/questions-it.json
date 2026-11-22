@@ -25,6 +25,7 @@
       "category": "Storia",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "facile",
       "question": "Chi è stato il primo presidente degli Stati Uniti?",
       "correctAnswer": "George Washington",
       "options": [
@@ -41,6 +42,7 @@
       "category": "Storia",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "medio-facile",
       "question": "Quale muro è caduto nel 1989, segnando la fine della Guerra Fredda?",
       "correctAnswer": "Il Muro di Berlino",
       "options": [
@@ -105,6 +107,7 @@
       "category": "Storia",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "medio-difficile",
       "question": "Quale trattato pose fine alla Prima guerra mondiale con la Germania?",
       "correctAnswer": "Il trattato di Versailles",
       "options": [
@@ -137,6 +140,7 @@
       "category": "Storia",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "media",
       "question": "Chi fu il primo re dell'Italia unita nel 1861?",
       "correctAnswer": "Vittorio Emanuele II",
       "options": [
@@ -313,6 +317,7 @@
       "category": "Storia",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
       "question": "Quale trattato del 1648 chiuse la Guerra dei Trent'anni?",
       "correctAnswer": "La pace di Westfalia",
       "options": [
@@ -689,6 +694,7 @@
       "category": "Geografia e Viaggi",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "media",
       "question": "Qual è la capitale dell'Australia?",
       "correctAnswer": "Canberra",
       "options": [
@@ -705,6 +711,7 @@
       "category": "Geografia e Viaggi",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "facile",
       "question": "Qual è la capitale della Francia?",
       "correctAnswer": "Parigi",
       "options": [
@@ -721,6 +728,7 @@
       "category": "Geografia e Viaggi",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "medio-facile",
       "question": "Qual è la montagna più alta del mondo?",
       "correctAnswer": "L'Everest",
       "options": [
@@ -977,6 +985,7 @@
       "category": "Geografia e Viaggi",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
       "question": "Qual è la capitale del Kazakistan?",
       "correctAnswer": "Astana",
       "options": [
@@ -1009,6 +1018,7 @@
       "category": "Geografia e Viaggi",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
       "question": "Quale Paese copre il maggior numero di fusi orari?",
       "correctAnswer": "La Francia",
       "options": [
@@ -1385,6 +1395,7 @@
       "category": "Scienza e Spazio",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "medio-facile",
       "question": "Qual è il pianeta più vicino al Sole?",
       "correctAnswer": "Mercurio",
       "options": [
@@ -1401,6 +1412,7 @@
       "category": "Scienza e Spazio",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "facile",
       "question": "Quale elemento chimico ha come simbolo O?",
       "correctAnswer": "Ossigeno",
       "options": [
@@ -1561,6 +1573,7 @@
       "category": "Scienza e Spazio",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "media",
       "question": "Qual è l'unità di misura della forza nel Sistema Internazionale?",
       "correctAnswer": "Il newton",
       "options": [
@@ -1657,6 +1670,7 @@
       "category": "Scienza e Spazio",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
       "question": "Qual è l'elemento più abbondante nell'universo?",
       "correctAnswer": "L'idrogeno",
       "options": [
@@ -1705,6 +1719,7 @@
       "category": "Scienza e Spazio",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
       "question": "Quale legge lega pressione e volume di un gas a temperatura costante?",
       "correctAnswer": "La legge di Boyle",
       "options": [
@@ -2037,6 +2052,7 @@
       "category": "Natura e Animali",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "media",
       "question": "Qual è il mammifero terrestre più grande?",
       "correctAnswer": "L'elefante africano",
       "options": [
@@ -2053,6 +2069,7 @@
       "category": "Natura e Animali",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "facile",
       "question": "Quale animale è noto per cambiare colore?",
       "correctAnswer": "Il camaleonte",
       "options": [
@@ -2085,6 +2102,7 @@
       "category": "Natura e Animali",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "medio-facile",
       "question": "Quale pianta produce le ghiande?",
       "correctAnswer": "La quercia",
       "options": [
@@ -2101,6 +2119,7 @@
       "category": "Natura e Animali",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "medio-difficile",
       "question": "Qual è il gruppo animale più numeroso sulla Terra?",
       "correctAnswer": "Gli insetti",
       "options": [
@@ -2277,6 +2296,7 @@
       "category": "Natura e Animali",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
       "question": "Qual è il mammifero più piccolo del mondo?",
       "correctAnswer": "Il pipistrello calabrone",
       "options": [
@@ -2715,6 +2735,7 @@
       "category": "Sport",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "facile",
       "question": "Quanti giocatori per squadra scendono in campo nel calcio?",
       "correctAnswer": "11",
       "options": [
@@ -2731,6 +2752,7 @@
       "category": "Sport",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "medio-facile",
       "question": "In quale sport il punteggio si conta 15, 30, 40?",
       "correctAnswer": "Il tennis",
       "options": [
@@ -2795,6 +2817,7 @@
       "category": "Sport",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "media",
       "question": "Quante volte l'Italia ha vinto i Mondiali di calcio?",
       "correctAnswer": "Quattro",
       "options": [
@@ -2811,6 +2834,7 @@
       "category": "Sport",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "medio-difficile",
       "question": "Quale nazione ha vinto il primo Mondiale di calcio nel 1930?",
       "correctAnswer": "L'Uruguay",
       "options": [
@@ -3035,6 +3059,7 @@
       "category": "Sport",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
       "question": "Quale nazione ha vinto la prima Coppa del Mondo di rugby nel 1987?",
       "correctAnswer": "La Nuova Zelanda",
       "options": [
@@ -3415,6 +3440,7 @@
       "category": "Cinema, Serie TV",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "facile",
       "question": "Chi ha diretto il film Titanic del 1997?",
       "correctAnswer": "James Cameron",
       "options": [
@@ -3431,6 +3457,7 @@
       "category": "Cinema, Serie TV",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "medio-facile",
       "question": "Quale attore interpreta Jack Sparrow nella saga Pirati dei Caraibi?",
       "correctAnswer": "Johnny Depp",
       "options": [
@@ -3495,6 +3522,7 @@
       "category": "Cinema, Serie TV",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "media",
       "question": "Quale film di Stanley Kubrick è ambientato nell'Overlook Hotel?",
       "correctAnswer": "Shining",
       "options": [
@@ -3527,6 +3555,7 @@
       "category": "Cinema, Serie TV",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
       "question": "Quale film di Orson Welles del 1941 è celebre per l'uso della profondità di campo?",
       "correctAnswer": "Quarto potere",
       "options": [
@@ -3783,6 +3812,7 @@
       "category": "Cinema, Serie TV",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
       "question": "Quale serie racconta le vicende della famiglia Roy nell'industria dei media?",
       "correctAnswer": "Succession",
       "options": [
@@ -4307,6 +4337,7 @@
       "category": "TV e Spettacolo",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "facile",
       "question": "Che tipo di programma è il TG1?",
       "correctAnswer": "Un telegiornale",
       "options": [
@@ -4339,6 +4370,7 @@
       "category": "TV e Spettacolo",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "medio-facile",
       "question": "Quale programma mette in gara cuochi dilettanti e professionisti?",
       "correctAnswer": "MasterChef",
       "options": [
@@ -4387,6 +4419,7 @@
       "category": "TV e Spettacolo",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "media",
       "question": "Quale programma politico conduce Bruno Vespa?",
       "correctAnswer": "Porta a Porta",
       "options": [
@@ -4419,6 +4452,7 @@
       "category": "TV e Spettacolo",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "medio-difficile",
       "question": "In quale programma i concorrenti scelgono un pacco per vincere un premio?",
       "correctAnswer": "Affari tuoi",
       "options": [
@@ -4595,6 +4629,7 @@
       "category": "TV e Spettacolo",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
       "question": "In quale anno è andato in onda il primo episodio di Twin Peaks?",
       "correctAnswer": "1990",
       "options": [
@@ -4975,6 +5010,7 @@
       "category": "Musica",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "facile",
       "question": "Quale gruppo ha inciso Bohemian Rhapsody?",
       "correctAnswer": "I Queen",
       "options": [
@@ -5023,6 +5059,7 @@
       "category": "Musica",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "medio-facile",
       "question": "Quale gruppo inglese ha inciso Hey Jude?",
       "correctAnswer": "I Beatles",
       "options": [
@@ -5071,6 +5108,7 @@
       "category": "Musica",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "media",
       "question": "Quale compositore, divenuto sordo, scrisse la Nona sinfonia?",
       "correctAnswer": "Ludwig van Beethoven",
       "options": [
@@ -5199,6 +5237,7 @@
       "category": "Musica",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
       "question": "Quale compositore è noto per Le quattro stagioni?",
       "correctAnswer": "Antonio Vivaldi",
       "options": [
@@ -5231,6 +5270,7 @@
       "category": "Musica",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
       "question": "Chi ha composto il Boléro?",
       "correctAnswer": "Maurice Ravel",
       "options": [
@@ -5639,6 +5679,7 @@
       "category": "Arte e Architettura",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "facile",
       "question": "Chi ha dipinto la Gioconda?",
       "correctAnswer": "Leonardo da Vinci",
       "options": [
@@ -5687,6 +5728,7 @@
       "category": "Arte e Architettura",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "medio-facile",
       "question": "Chi ha dipinto La notte stellata?",
       "correctAnswer": "Vincent van Gogh",
       "options": [
@@ -5751,6 +5793,7 @@
       "category": "Arte e Architettura",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "medio-difficile",
       "question": "Chi ha progettato la cupola del Duomo di Firenze?",
       "correctAnswer": "Filippo Brunelleschi",
       "options": [
@@ -5767,6 +5810,7 @@
       "category": "Arte e Architettura",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "media",
       "question": "Chi ha dipinto Guernica?",
       "correctAnswer": "Pablo Picasso",
       "options": [
@@ -5927,6 +5971,7 @@
       "category": "Arte e Architettura",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
       "question": "Quale architetto progettò la Sagrada Família?",
       "correctAnswer": "Antoni Gaudí",
       "options": [
@@ -6277,6 +6322,7 @@
       "category": "Politica e Attualità",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "media",
       "question": "In quale anno è entrata in vigore la Costituzione italiana?",
       "correctAnswer": "1948",
       "options": [
@@ -6309,6 +6355,7 @@
       "category": "Politica e Attualità",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "facile",
       "question": "Chi è il capo dello Stato in Italia?",
       "correctAnswer": "Il Presidente della Repubblica",
       "options": [
@@ -6325,6 +6372,7 @@
       "category": "Politica e Attualità",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "medio-facile",
       "question": "Quanti Stati fanno parte dell'Unione Europea?",
       "correctAnswer": "27",
       "options": [
@@ -6389,6 +6437,7 @@
       "category": "Politica e Attualità",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "medio-difficile",
       "question": "Quanti anni dura il mandato del Presidente della Repubblica italiana?",
       "correctAnswer": "Sette",
       "options": [
@@ -6549,6 +6598,7 @@
       "category": "Politica e Attualità",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
       "question": "Quanti membri permanenti ha il Consiglio di sicurezza dell'ONU?",
       "correctAnswer": "Cinque",
       "options": [
@@ -6943,6 +6993,7 @@
       "category": "Motori",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "facile",
       "question": "Quale casa automobilistica produce la Golf?",
       "correctAnswer": "Volkswagen",
       "options": [
@@ -6959,6 +7010,7 @@
       "category": "Motori",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "medio-facile",
       "question": "Quale marchio ha come simbolo il cavallino rampante?",
       "correctAnswer": "La Ferrari",
       "options": [
@@ -7023,6 +7075,7 @@
       "category": "Motori",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "media",
       "question": "Quale scuderia ha vinto più titoli costruttori nella storia della Formula 1?",
       "correctAnswer": "La Ferrari",
       "options": [
@@ -7055,6 +7108,7 @@
       "category": "Motori",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "medio-difficile",
       "question": "Quanti cilindri ha tradizionalmente il motore boxer della Porsche 911?",
       "correctAnswer": "Sei",
       "options": [
@@ -7071,6 +7125,7 @@
       "category": "Motori",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
       "question": "Chi ha vinto il primo campionato mondiale di Formula 1 nel 1950?",
       "correctAnswer": "Nino Farina",
       "options": [
@@ -7623,6 +7678,7 @@
       "category": "Cibo e Gastronomia",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "medio-facile",
       "question": "Qual è l'ingrediente principale del pesto genovese?",
       "correctAnswer": "Il basilico",
       "options": [
@@ -7655,6 +7711,7 @@
       "category": "Cibo e Gastronomia",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "media",
       "question": "Quale formaggio si usa nella ricetta tradizionale della carbonara?",
       "correctAnswer": "Il pecorino",
       "options": [
@@ -7671,6 +7728,7 @@
       "category": "Cibo e Gastronomia",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "facile",
       "question": "Quale città è famosa in tutto il mondo per la pizza?",
       "correctAnswer": "Napoli",
       "options": [
@@ -7719,6 +7777,7 @@
       "category": "Cibo e Gastronomia",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "medio-difficile",
       "question": "Quale vino piemontese si produce con uve Nebbiolo?",
       "correctAnswer": "Il Barolo",
       "options": [
@@ -7911,6 +7970,7 @@
       "category": "Cibo e Gastronomia",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
       "question": "Quale salsa fredda provenzale si prepara con aglio, olio e tuorlo?",
       "correctAnswer": "L'aioli",
       "options": [
@@ -8337,6 +8397,7 @@
       "category": "Lingua e Letteratura",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "media",
       "question": "Quale di queste parole è un palindromo?",
       "correctAnswer": "Anna",
       "options": [
@@ -8353,6 +8414,7 @@
       "category": "Lingua e Letteratura",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "medio-difficile",
       "question": "Come si chiama la parte della grammatica che studia la struttura della frase?",
       "correctAnswer": "La sintassi",
       "options": [
@@ -8369,6 +8431,7 @@
       "category": "Lingua e Letteratura",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "facile",
       "question": "Chi ha scritto la Divina Commedia?",
       "correctAnswer": "Dante Alighieri",
       "options": [
@@ -8465,6 +8528,7 @@
       "category": "Lingua e Letteratura",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "medio-facile",
       "question": "Chi ha scritto Pinocchio?",
       "correctAnswer": "Carlo Collodi",
       "options": [
@@ -8561,6 +8625,7 @@
       "category": "Lingua e Letteratura",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
       "question": "Quale romanzo di Italo Calvino racconta un ragazzo che vive sugli alberi?",
       "correctAnswer": "Il barone rampante",
       "options": [
@@ -8927,6 +8992,7 @@
       "category": "Anime e manga",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "facile",
       "question": "Come si chiama il protagonista di Naruto?",
       "correctAnswer": "Naruto Uzumaki",
       "options": [
@@ -8975,6 +9041,7 @@
       "category": "Anime e manga",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "media",
       "question": "Quale studio ha prodotto Spirited Away?",
       "correctAnswer": "Studio Ghibli",
       "options": [
@@ -9007,6 +9074,7 @@
       "category": "Anime e manga",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "medio-difficile",
       "question": "Quale anime ha come protagonisti i fratelli Elric?",
       "correctAnswer": "Fullmetal Alchemist",
       "options": [
@@ -9055,6 +9123,7 @@
       "category": "Anime e manga",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "medio-facile",
       "question": "Come si chiama il compagno elettrico di Ash Ketchum?",
       "correctAnswer": "Pikachu",
       "options": [
@@ -9167,6 +9236,7 @@
       "category": "Anime e manga",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
       "question": "In quale anno uscì il primo capitolo di Dragon Ball?",
       "correctAnswer": "1984",
       "options": [
@@ -9607,6 +9677,7 @@
       "category": "Gaming e Tecnologia",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "facile",
       "question": "Qual è il sistema operativo di Google per smartphone?",
       "correctAnswer": "Android",
       "options": [
@@ -9623,6 +9694,7 @@
       "category": "Gaming e Tecnologia",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "media",
       "question": "Chi è stato il cofondatore di Microsoft insieme a Paul Allen?",
       "correctAnswer": "Bill Gates",
       "options": [
@@ -9655,6 +9727,7 @@
       "category": "Gaming e Tecnologia",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "medio-facile",
       "question": "Quale componente è chiamato CPU?",
       "correctAnswer": "Il processore",
       "options": [
@@ -9767,6 +9840,7 @@
       "category": "Gaming e Tecnologia",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "medio-difficile",
       "question": "Quale azienda ha sviluppato Windows?",
       "correctAnswer": "Microsoft",
       "options": [
@@ -9863,6 +9937,7 @@
       "category": "Gaming e Tecnologia",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
       "question": "Quale protocollo assegna automaticamente gli indirizzi IP?",
       "correctAnswer": "DHCP",
       "options": [
@@ -10259,6 +10334,7 @@
       "category": "Curiosità",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "media",
       "question": "Quale pianeta è il più caldo del sistema solare?",
       "correctAnswer": "Venere",
       "options": [
@@ -10275,6 +10351,7 @@
       "category": "Curiosità",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "facile",
       "question": "Quale frutto ha i semi all'esterno?",
       "correctAnswer": "La fragola",
       "options": [
@@ -10323,6 +10400,7 @@
       "category": "Curiosità",
       "type": "QUIZ",
       "difficulty": "facile",
+      "spiaggiaBand": "medio-facile",
       "question": "Quale cibo può conservarsi a lungo senza deteriorarsi?",
       "correctAnswer": "Il miele",
       "options": [
@@ -10339,6 +10417,7 @@
       "category": "Curiosità",
       "type": "QUIZ",
       "difficulty": "medio",
+      "spiaggiaBand": "medio-difficile",
       "question": "Quale animale ha tre cuori?",
       "correctAnswer": "Il polpo",
       "options": [
@@ -10515,6 +10594,7 @@
       "category": "Curiosità",
       "type": "QUIZ",
       "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
       "question": "Qual è l'edificio più alto del mondo?",
       "correctAnswer": "Il Burj Khalifa",
       "options": [

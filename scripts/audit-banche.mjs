@@ -37,9 +37,13 @@ const asJson = args.has('--json');
 const writeReport = args.has('--write');
 
 const DIFFICULTIES = ['facile', 'medio', 'difficile'];
-/** Livelli di Ultima spiaggia: 100/200 facile, 300/400 medio, 500 difficile. */
-const ULTIMA_SPIAGGIA_BANDS = ['facile', 'facile', 'medio', 'medio', 'difficile'];
-const ULTIMA_SPIAGGIA_MIN_PER_LEVEL = 12;
+/**
+ * Cinque fasce distinte, una per livello: 100 facile, 200 medio-facile,
+ * 300 media, 400 medio-difficile, 500 difficile. Ogni livello ha bisogno di
+ * almeno una domanda dedicata nella categoria.
+ */
+const ULTIMA_SPIAGGIA_BANDS = ['facile', 'medio-facile', 'media', 'medio-difficile', 'difficile'];
+const ULTIMA_SPIAGGIA_MIN_PER_LEVEL = 1;
 /** Sotto questa differenza due eventi Timeline sono troppo vicini per un round. */
 const TIMELINE_MIN_YEAR_GAP = 3;
 const TIMELINE_CARDS_PER_ROUND = 8;
@@ -294,11 +298,9 @@ function auditUltimaSpiaggia(quiz) {
     const pool = pools.get(category) ?? [];
     const counts = levels.map((level) => {
       const band = ULTIMA_SPIAGGIA_BANDS[level - 1];
-      const count = pool.filter((q) => q.difficulty === band).length;
-      // I livelli della stessa fascia si dividono le domande: la capienza vera
-      // di un livello è il totale della fascia diviso per quanti livelli la usano.
-      const sharing = ULTIMA_SPIAGGIA_BANDS.filter((value) => value === band).length;
-      const capacity = Math.floor(count / sharing);
+      // Fascia dichiarata sulla domanda, non la difficoltà generica del Quiz:
+      // ogni livello ha la sua domanda e non ci sono fasce condivise.
+      const capacity = pool.filter((q) => q.spiaggiaBand === band).length;
       if (capacity < ULTIMA_SPIAGGIA_MIN_PER_LEVEL) {
         holes.push({ category, level, band, capacity, needed: ULTIMA_SPIAGGIA_MIN_PER_LEVEL });
       }

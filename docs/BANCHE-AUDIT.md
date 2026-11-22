@@ -264,100 +264,28 @@ Nessuno.
 | PAESI | 30 | 30 | 30 |
 | STORIA | 30 | 30 | 30 |
 
-## Ultima spiaggia (minimo 12 domande per categoria e livello)
+## Ultima spiaggia (minimo 1 domande per categoria e livello)
 
 | Categoria | Livello 1 (100) | Livello 2 (200) | Livello 3 (300) | Livello 4 (400) | Livello 5 (500) |
 | --- | --- | --- | --- | --- | --- |
-| Anime e manga | 5 | 5 | 6 | 6 | 13 |
-| Arte e Architettura | 4 | 4 | 7 | 7 | 13 |
-| Cibo e Gastronomia | 6 | 6 | 7 | 7 | 12 |
-| Cinema, Serie TV | 6 | 6 | 7 | 7 | 14 |
-| Curiosità | 4 | 4 | 5 | 5 | 9 |
-| Gaming e Tecnologia | 5 | 5 | 5 | 5 | 14 |
-| Geografia e Viaggi | 6 | 6 | 7 | 7 | 14 |
-| Lingua e Letteratura | 5 | 5 | 7 | 7 | 13 |
-| Motori | 4 | 4 | 4 | 4 | 9 |
-| Musica | 4 | 4 | 4 | 4 | 9 |
-| Natura e Animali | 5 | 5 | 4 | 4 | 15 |
-| Politica e Attualità | 5 | 5 | 7 | 7 | 14 |
-| Scienza e Spazio | 6 | 6 | 6 | 6 | 12 |
-| Sport | 4 | 4 | 5 | 5 | 9 |
-| Storia | 3 | 3 | 4 | 4 | 9 |
-| TV e Spettacolo | 5 | 5 | 6 | 6 | 12 |
+| Anime e manga | 1 | 1 | 1 | 1 | 1 |
+| Arte e Architettura | 1 | 1 | 1 | 1 | 1 |
+| Cibo e Gastronomia | 1 | 1 | 1 | 1 | 1 |
+| Cinema, Serie TV | 1 | 1 | 1 | 1 | 1 |
+| Curiosità | 1 | 1 | 1 | 1 | 1 |
+| Gaming e Tecnologia | 1 | 1 | 1 | 1 | 1 |
+| Geografia e Viaggi | 1 | 1 | 1 | 1 | 1 |
+| Lingua e Letteratura | 1 | 1 | 1 | 1 | 1 |
+| Motori | 1 | 1 | 1 | 1 | 1 |
+| Musica | 1 | 1 | 1 | 1 | 1 |
+| Natura e Animali | 1 | 1 | 1 | 1 | 1 |
+| Politica e Attualità | 1 | 1 | 1 | 1 | 1 |
+| Scienza e Spazio | 1 | 1 | 1 | 1 | 1 |
+| Sport | 1 | 1 | 1 | 1 | 1 |
+| Storia | 1 | 1 | 1 | 1 | 1 |
+| TV e Spettacolo | 1 | 1 | 1 | 1 | 1 |
 
-Buchi: **69**.
-
-| Categoria | Livello | Fascia | Capienza |
-| --- | --- | --- | --- |
-| Anime e manga | 1 | facile | 5 |
-| Anime e manga | 2 | facile | 5 |
-| Anime e manga | 3 | medio | 6 |
-| Anime e manga | 4 | medio | 6 |
-| Arte e Architettura | 1 | facile | 4 |
-| Arte e Architettura | 2 | facile | 4 |
-| Arte e Architettura | 3 | medio | 7 |
-| Arte e Architettura | 4 | medio | 7 |
-| Cibo e Gastronomia | 1 | facile | 6 |
-| Cibo e Gastronomia | 2 | facile | 6 |
-| Cibo e Gastronomia | 3 | medio | 7 |
-| Cibo e Gastronomia | 4 | medio | 7 |
-| Cinema, Serie TV | 1 | facile | 6 |
-| Cinema, Serie TV | 2 | facile | 6 |
-| Cinema, Serie TV | 3 | medio | 7 |
-| Cinema, Serie TV | 4 | medio | 7 |
-| Curiosità | 1 | facile | 4 |
-| Curiosità | 2 | facile | 4 |
-| Curiosità | 3 | medio | 5 |
-| Curiosità | 4 | medio | 5 |
-| Curiosità | 5 | difficile | 9 |
-| Gaming e Tecnologia | 1 | facile | 5 |
-| Gaming e Tecnologia | 2 | facile | 5 |
-| Gaming e Tecnologia | 3 | medio | 5 |
-| Gaming e Tecnologia | 4 | medio | 5 |
-| Geografia e Viaggi | 1 | facile | 6 |
-| Geografia e Viaggi | 2 | facile | 6 |
-| Geografia e Viaggi | 3 | medio | 7 |
-| Geografia e Viaggi | 4 | medio | 7 |
-| Lingua e Letteratura | 1 | facile | 5 |
-| Lingua e Letteratura | 2 | facile | 5 |
-| Lingua e Letteratura | 3 | medio | 7 |
-| Lingua e Letteratura | 4 | medio | 7 |
-| Motori | 1 | facile | 4 |
-| Motori | 2 | facile | 4 |
-| Motori | 3 | medio | 4 |
-| Motori | 4 | medio | 4 |
-| Motori | 5 | difficile | 9 |
-| Musica | 1 | facile | 4 |
-| Musica | 2 | facile | 4 |
-| Musica | 3 | medio | 4 |
-| Musica | 4 | medio | 4 |
-| Musica | 5 | difficile | 9 |
-| Natura e Animali | 1 | facile | 5 |
-| Natura e Animali | 2 | facile | 5 |
-| Natura e Animali | 3 | medio | 4 |
-| Natura e Animali | 4 | medio | 4 |
-| Politica e Attualità | 1 | facile | 5 |
-| Politica e Attualità | 2 | facile | 5 |
-| Politica e Attualità | 3 | medio | 7 |
-| Politica e Attualità | 4 | medio | 7 |
-| Scienza e Spazio | 1 | facile | 6 |
-| Scienza e Spazio | 2 | facile | 6 |
-| Scienza e Spazio | 3 | medio | 6 |
-| Scienza e Spazio | 4 | medio | 6 |
-| Sport | 1 | facile | 4 |
-| Sport | 2 | facile | 4 |
-| Sport | 3 | medio | 5 |
-| Sport | 4 | medio | 5 |
-| Sport | 5 | difficile | 9 |
-| Storia | 1 | facile | 3 |
-| Storia | 2 | facile | 3 |
-| Storia | 3 | medio | 4 |
-| Storia | 4 | medio | 4 |
-| Storia | 5 | difficile | 9 |
-| TV e Spettacolo | 1 | facile | 5 |
-| TV e Spettacolo | 2 | facile | 5 |
-| TV e Spettacolo | 3 | medio | 6 |
-| TV e Spettacolo | 4 | medio | 6 |
+Buchi: **0**.
 
 ## Indovina chi (media: people)
 

@@ -96,25 +96,36 @@ class UltimaSpiaggiaPayloadTest {
     }
 
     /**
-     * I livelli alti devono pescare dalla fascia giusta: 100-200 facile,
-     * 300-400 media, 500 difficile. Ripiegare su una facile per riempire il
-     * 500 è proprio il difetto osservato in sala.
+     * Ogni livello ha la sua fascia, senza condivisioni: 100 facile, 200
+     * medio-facile, 300 media, 400 medio-difficile, 500 difficile. Ripiegare
+     * su una fascia diversa per riempire il livello è il difetto da evitare.
      */
     @Test
-    void iLivelliAltiRispettanoLaFasciaDiDifficolta() {
+    void ogniLivelloHaLaSuaFascia() {
         for (String category : CATEGORIES) {
             JSONObject payload = new JSONObject(
                     bank.generateQuestionJson(category, "ULTIMA_SPIAGGIA", "medio", key -> true));
             JSONArray questions = payload.getJSONArray("rounds").getJSONObject(0).getJSONArray("questions");
 
+            Set<String> bands = new HashSet<>();
             for (int index = 0; index < questions.length(); index++) {
                 JSONObject question = questions.getJSONObject(index);
                 int level = question.getInt("level");
-                String expected = level <= 200 ? "facile" : level <= 400 ? "medio" : "difficile";
+                String expected = switch (level) {
+                    case 100 -> "facile";
+                    case 200 -> "medio-facile";
+                    case 300 -> "media";
+                    case 400 -> "medio-difficile";
+                    case 500 -> "difficile";
+                    default -> throw new IllegalStateException("livello inatteso: " + level);
+                };
                 assertThat(question.getString("difficulty"))
                         .as("livello %d di %s", level, category)
                         .isEqualTo(expected);
+                bands.add(question.getString("difficulty"));
             }
+
+            assertThat(bands).as("cinque fasce distinte %s", category).hasSize(5);
         }
     }
 }

@@ -45,9 +45,13 @@ public class QuestionBankService {
     public record BombaStatement(String id, String category, String statement, boolean truth, String source) {
     }
 
-    /** Riga della banca domande. */
+    /**
+     * Riga della banca domande. `band` è la fascia di Ultima spiaggia
+     * dichiarata nel JSON (`spiaggiaBand`): null per le domande che non la hanno.
+     */
     private record BankQuestion(String id, String category, String type, String difficulty,
-            String question, String correctAnswer, List<String> options, String explanation) {
+            String band, String question, String correctAnswer, List<String> options,
+            String explanation) {
     }
 
     private static final String[] PROVERBS = {
@@ -87,12 +91,12 @@ public class QuestionBankService {
 
     /** Tenuta di sicurezza: se la banca non è ancora stata generata, il gioco resta vivo. */
     private static final List<BankQuestion> EMERGENCY = List.of(
-            new BankQuestion("em-1", "Geografia e Viaggi", "QUIZ", "facile", "Qual è la capitale d'Italia?",
+            new BankQuestion("em-1", "Geografia e Viaggi", "QUIZ", "facile", null, "Qual è la capitale d'Italia?",
                     "Roma", List.of("Milano", "Roma", "Napoli", "Torino"), null),
-            new BankQuestion("em-2", "Scienza e Spazio", "TRUE_FALSE", "facile",
+            new BankQuestion("em-2", "Scienza e Spazio", "TRUE_FALSE", "facile", null,
                     "L'acqua bolle a 100 gradi Celsius al livello del mare.",
                     "VERO", List.of("VERO", "FALSO"), "Alla pressione atmosferica standard."),
-            new BankQuestion("em-3", "Arte e Architettura", "QUIZ", "facile", "Chi ha dipinto la Gioconda?",
+            new BankQuestion("em-3", "Arte e Architettura", "QUIZ", "facile", null, "Chi ha dipinto la Gioconda?",
                     "Leonardo da Vinci",
                     List.of("Michelangelo", "Raffaello", "Leonardo da Vinci", "Caravaggio"), null)
     );
@@ -110,9 +114,13 @@ public class QuestionBankService {
     /** Livelli di Ultima spiaggia: uno per occorrenza, usabile una volta per squadra. */
     private static final int[] ULTIMA_SPIAGGIA_LEVELS = { 100, 200, 300, 400, 500 };
 
-    /** Livello 1-2 dalla fascia facile, 3-4 dalla media, 5 dalla difficile. */
+    /**
+     * Cinque fasce distinte, una per livello: facile, medio-facile, media,
+     * medio-difficile, difficile. Ogni domanda della banca dichiara la sua in
+     * `spiaggiaBand`; una categoria senza le cinque fasce non si usa.
+     */
     private static final String[] ULTIMA_SPIAGGIA_BANDS =
-            { "facile", "facile", "medio", "medio", "difficile" };
+            { "facile", "medio-facile", "media", "medio-difficile", "difficile" };
     private static final int QUIZ_QUESTIONS = 3;
 
     /** Le cinque combinazioni di difficolta del Quiz, una per round. */
@@ -952,9 +960,9 @@ public class QuestionBankService {
             Collections.shuffle(options, random);
             questions.put(new JSONObject()
                     .put("level", ULTIMA_SPIAGGIA_LEVELS[index])
-                    // Difficoltà reale della domanda: così un livello alto non può
+                    // Fascia reale della domanda: così un livello alto non può
                     // spacciare una facile per difficile senza che si veda.
-                    .put("difficulty", picked.difficulty())
+                    .put("difficulty", picked.band() == null ? picked.difficulty() : picked.band())
                     .put("question", picked.question())
                     .put("category", picked.category())
                     .put("options", new JSONArray(options))
@@ -994,26 +1002,25 @@ public class QuestionBankService {
         return pool;
     }
 
-    /** Una domanda nuova per il livello, nella categoria del round. */
+    /**
+     * Una domanda nuova per il livello, nella categoria del round. Se la
+     * categoria non ha una domanda della fascia, il round si scarta e la
+     * chiamante prova un'altra categoria.
+     */
     private BankQuestion pickUltimaSpiaggiaQuestion(String category, String band,
             Predicate<String> isAvailable, Set<String> used) {
         List<BankQuestion> pool = ultimaSpiaggiaPool(category);
 
         List<BankQuestion> sameBand = new ArrayList<>();
         for (BankQuestion question : pool) {
-            if (question.difficulty().equalsIgnoreCase(band)) {
+            // Solo la fascia dichiarata: il ripiego su un'altra fascia era il
+            // difetto che faceva arrivare una facile sul livello 500.
+            if (question.band() != null && question.band().equalsIgnoreCase(band)) {
                 sameBand.add(question);
             }
         }
         Collections.shuffle(sameBand, random);
         for (BankQuestion question : sameBand) {
-            if (isFresh(question, isAvailable, used)) {
-                return question;
-            }
-        }
-
-        Collections.shuffle(pool, random);
-        for (BankQuestion question : pool) {
             if (isFresh(question, isAvailable, used)) {
                 return question;
             }
@@ -1250,6 +1257,7 @@ public class QuestionBankService {
                             item.optString("category", ""),
                             item.optString("type", "QUIZ").toUpperCase(Locale.ROOT),
                             item.optString("difficulty", "medio"),
+                            item.has("spiaggiaBand") ? item.optString("spiaggiaBand", "") : null,
                             item.optString("question", ""),
                             item.optString("correctAnswer", ""),
                             List.copyOf(options),
