@@ -57,6 +57,8 @@ describe('regole dei punteggi', () => {
     expect(BONUS_CASINO_COLOR_POINTS * CASINO_SPINS).toBe(300);
     expect(BONUS_CASINO_DOZEN_POINTS * CASINO_SPINS).toBe(600);
     expect(BONUS_CASINO_NUMBER_POINTS).toBe(500);
+    expect(BONUS_CASINO_NUMBER_POINTS * CASINO_SPINS).toBe(1500);
+    expect(BONUS_SCORING['BONUS_CASINO_NUMBER'].note).toContain('Tre girate');
     expect(BONUS_SCORING['BONUS_BLACKJACK'].correct).toContain('premio del bar');
     expect(BONUS_SCORING['BONUS_CAVALLO'].correct).toContain('premio del bar');
     for (const rule of Object.values(BONUS_SCORING)) {

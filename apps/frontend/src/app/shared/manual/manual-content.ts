@@ -295,14 +295,14 @@ const BONUS_COPY: Record<BonusType, EntryCopy> = {
   CASINO_NUMBER: {
     name: 'CASINO NUMERO SECCO',
     icon: '🎯',
-    summary: 'Una sola girata su un numero da 0 a 36.',
-    objective: 'Indovinare il numero esatto dell’unico giro; se nessuno lo becca, nessuno prende punti.',
+    summary: `Tre girate su un numero da 0 a 36.`,
+    objective: 'Indovinare il numero esatto a ogni girata; se nessuno lo becca, quella girata non paga nessuno.',
     phone: [
-      'Scegli un numero entro dieci secondi.',
-      'La pallina esce una volta sola, con un ultimo giro di suspense.',
-      `Il numero esatto vale ${BONUS_CASINO_NUMBER_POINTS} punti.`,
+      'Scegli un numero a ogni girata, entro dieci secondi.',
+      `La pallina esce ${CASINO_SPINS} volte, con un ultimo giro di suspense.`,
+      `Il numero esatto vale ${BONUS_CASINO_NUMBER_POINTS} punti a girata.`,
     ],
-    tip: 'Trentasette caselle, una sola paga: è il bonus più alto della serata.',
+    tip: `Trentasette caselle: massimo ${CASINO_SPINS * BONUS_CASINO_NUMBER_POINTS} punti, è il bonus più alto della serata.`,
   },
 };
 

@@ -417,13 +417,13 @@ const BONUS_COPY: Record<BonusType, DemoCopy> = {
     title: 'CASINO NUMERO SECCO',
     icon: '🎯',
     objective: [
-      'Una sola puntata su un numero da 0 a 36.',
-      'Se nessuno becca il numero, nessuno prende punti.',
+      `Tre girate su un numero da 0 a 36.`,
+      'Se nessuno becca il numero, quella girata non paga nessuno.',
     ],
-    phone: ['Scegli un numero entro dieci secondi.', 'La pallina esce con un ultimo giro di suspense.'],
-    win: [`Numero esatto: +${BONUS_CASINO_NUMBER_POINTS} punti.`],
-    lose: ['Numero sbagliato: 0 punti.', 'Nessuna penalità.'],
-    example: `Punti sul 17 ed esce 17: +${BONUS_CASINO_NUMBER_POINTS}. Esce 18: 0.`,
+    phone: ['Scegli un numero a ogni girata, entro dieci secondi.', `La pallina esce ${CASINO_SPINS} volte, con un ultimo giro di suspense.`],
+    win: [`Numero esatto: +${BONUS_CASINO_NUMBER_POINTS} a girata, massimo +${CASINO_SPINS * BONUS_CASINO_NUMBER_POINTS}.`],
+    lose: ['Numero sbagliato o nessuno sul numero: 0 punti nella girata.', 'Nessuna penalità.'],
+    example: `Punti sul 17 ed esce 17: +${BONUS_CASINO_NUMBER_POINTS}. Esce 18: 0, poi si rigira per la girata successiva.`,
   },
 };
 

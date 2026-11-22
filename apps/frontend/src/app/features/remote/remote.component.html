@@ -475,12 +475,6 @@
         <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🎰</div></div>
         <p>La pallina gira...</p>
       </div>
-      } @else if (casinoState()?.phase === 'RESPIN') {
-      <div class="status-msg">
-        <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🎰</div></div>
-        <p>Nessuno sul {{ casinoState()?.number }}</p>
-        <p class="sub-text">Si rigira...</p>
-      </div>
       } @else if (casinoState()?.phase === 'REVEAL') {
       <div class="status-msg">
         <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🎰</div></div>

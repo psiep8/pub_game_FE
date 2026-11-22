@@ -25,7 +25,6 @@ const Phase = {
   INTRO: GamePhase.INTRO,
   PICK: GamePhase.PICK,
   SPIN: 'SPIN',
-  RESPIN: 'RESPIN',
   REVEAL: GamePhase.REVEAL,
   FINALE: GamePhase.FINALE,
 } as const;
@@ -49,7 +48,7 @@ interface Manche {
   options: string[];
   seconds: number;
   points: number;
-  /** Girate della stessa puntata: tre su colore e dozzina, una sul numero. */
+  /** Girate della stessa puntata: sempre tre, numero secco compreso. */
   spins: number;
 }
 
@@ -144,11 +143,11 @@ const MANCHES: Manche[] = [
   {
     id: 'NUMBER',
     title: 'NUMERO SECCO',
-    rule: 'Una sola girata: il numero esatto vale 500 punti.',
+    rule: 'Tre girate: il numero esatto vale 500 punti a girata.',
     options: Array.from({ length: 37 }, (_, index) => String(index)),
     seconds: 10,
     points: 500,
-    spins: 1,
+    spins: 3,
   },
 ];
 
@@ -343,14 +342,6 @@ const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
                   <span class="casino-ball-icon">⚪</span>
                   <p>{{ slowMotion() ? 'Dove si ferma?' : 'Pallina in giro...' }}</p>
                   <span class="casino-hint">{{ slowMotion() ? 'La pallina sta cercando il vano...' : 'Puntate chiuse per la manche ' + manche() }}.</span>
-                </div>
-              }
-
-              @case (Phase.RESPIN) {
-                <div class="casino-spin">
-                  <span class="casino-ball-icon">🎯</span>
-                  <p>Nessun tavolo sul {{ spinNumber() }}</p>
-                  <span class="casino-hint">Si rigira: la manche deve trovare un vincitore.</span>
                 </div>
               }
 
@@ -642,7 +633,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
   @Input() players: string[] = [];
   /** Banco di prova: manche da 2 secondi, voti demo e reveal accorciato. */
   @Input() preview = false;
-  /** Casino a una puntata: colore (tre girate), dozzina (tre) o numero (una). */
+  /** Casino a una puntata: colore, dozzina o numero, sempre tre girate. */
   @Input() variant: 'COLOR' | 'DOZEN' | 'NUMBER' = 'COLOR';
   /** Stato salvato prima di un refresh della TV: la manche riprende da qui. */
   @Input() resume: any | null = null;
@@ -858,7 +849,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
       case 'DOZEN':
         return 'Tre girate: scegli la dozzina, poi la ruota gira. La casella giusta vale 200 punti a girata.';
       case 'NUMBER':
-        return 'Una sola girata sul numero secco: se nessuno prende il numero uscito, la ruota rigira. Vale 500 punti.';
+        return 'Tre girate sul numero secco: ogni numero esatto vale 500 punti. Se nessuno lo becca, nessuno prende punti.';
       default:
         return 'Tre girate sul colore: nero o rosso. Ogni colore giusto vale 100 punti.';
     }
@@ -906,39 +897,18 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
   /**
    * Il numero esce qui: è il valore che paga, non quello che l'animazione
-   * "trova". Sul numero secco la manche deve avere almeno un vincitore:
-   * finché nessun tavolo ha puntato il numero uscito, la ruota rigira.
+   * "trova". Ogni manche è una girata sola, numero secco compreso: se nessun
+   * tavolo ha puntato il numero uscito, la girata chiude senza punti e si
+   * passa alla successiva.
    */
   private async spinManche(): Promise<void> {
     if (this.destroyed) return;
 
     const manche = this.manches[0];
-    const chosen = new Set([...this.votes.values()]);
-    const mustWin = !this.preview && manche.id === 'NUMBER' && chosen.size > 0;
-    const labels = [...chosen];
+    const number = Math.floor(Math.random() * 37);
 
-    let number = Math.floor(Math.random() * 37);
-    let attempts = 0;
-
-    while (true) {
-      await this.spinOnce(number, manche);
-      if (this.destroyed) return;
-
-      if (!mustWin || chosen.has(String(number))) break;
-
-      attempts += 1;
-      this.phase.set(Phase.RESPIN);
-      this.rule.set(`Esce ${number}: nessun tavolo lo ha puntato. Si rigira.`);
-      this.publish();
-      await this.wait(1600);
-      if (this.destroyed) return;
-
-      // Dopo quindici giri senza fortuna si punta su un numero sicuramente
-      // giocato: la regola che almeno un tavolo vinca resta garantita.
-      number = attempts >= 15
-        ? Number(labels[Math.floor(Math.random() * labels.length)])
-        : Math.floor(Math.random() * 37);
-    }
+    await this.spinOnce(number, manche);
+    if (this.destroyed) return;
 
     this.showReveal(number);
   }
@@ -1355,7 +1325,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
     );
 
     const phase = this.phase();
-    const shown = phase === Phase.REVEAL || phase === Phase.RESPIN || phase === Phase.FINALE;
+    const shown = phase === Phase.REVEAL || phase === Phase.FINALE;
 
     this.ws.broadcastStatus(this.gameId, {
       action: 'CASINO_STATE',

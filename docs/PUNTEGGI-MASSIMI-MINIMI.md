@@ -94,7 +94,7 @@ N=10  B=3   malus: −500, −330, −170           totale round −1000
 |---|---:|---:|---|
 | Casino rosso/nero | +300 (3 × 100) | 0 | `BONUS_CASINO_COLOR_POINTS` |
 | Casino dozzina | +600 (3 × 200) | 0 | `BONUS_CASINO_DOZEN_POINTS` |
-| Casino numero secco | +500 | 0 | `BONUS_CASINO_NUMBER_POINTS` |
+| Casino numero secco | +1500 (3 × 500) | 0 | `BONUS_CASINO_NUMBER_POINTS` |
 | Blackjack | 0 (premio del bar) | 0 | `BONUS_SCORING` |
 | Cavallo di battaglia | 0 (premio del bar) | 0 | `BONUS_SCORING` |
 

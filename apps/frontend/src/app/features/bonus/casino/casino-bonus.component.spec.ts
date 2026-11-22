@@ -157,6 +157,53 @@ describe('CasinoBonus — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
+  it('il numero secco fa tre girate e non conosce la fase di rigiro', () => {
+    const fixture = TestBed.createComponent(CasinoBonus);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('gameId', 1);
+    fixture.componentRef.setInput('players', ['Anna']);
+    fixture.componentRef.setInput('variant', 'NUMBER');
+    fixture.componentRef.setInput('resume', {
+      votes: [],
+      scores: [],
+      secondsLeft: 10,
+      savedAt: Date.now(),
+      winner: null,
+    });
+
+    fixture.detectChanges();
+
+    expect(component.manches[0].spins).toBe(3);
+    expect(component.rounds).toHaveLength(3);
+    expect((component.Phase as any).RESPIN).toBeUndefined();
+
+    fixture.destroy();
+  });
+
+  it('la manche gira una volta sola anche se nessuno becca il numero', async () => {
+    const fixture = TestBed.createComponent(CasinoBonus);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('gameId', 1);
+    fixture.componentRef.setInput('players', ['Anna']);
+    fixture.componentRef.setInput('variant', 'NUMBER');
+    fixture.componentRef.setInput('resume', {
+      votes: [{ playerName: 'Anna', choice: '17' }],
+      scores: [],
+      secondsLeft: 10,
+      savedAt: Date.now(),
+      winner: null,
+    });
+    fixture.detectChanges();
+    const spinOnce = vi.spyOn(component as any, 'spinOnce').mockResolvedValue(undefined);
+    vi.spyOn(component as any, 'showReveal').mockImplementation(() => undefined);
+
+    await (component as any).spinManche();
+
+    expect(spinOnce).toHaveBeenCalledTimes(1);
+    expect(component.phase()).not.toBe('RESPIN');
+    fixture.destroy();
+  });
+
   it('senza tempo rimasto va diretto alla ruota', () => {
     // La ruota vera usa Matter: qui interessa solo che la manche riparta.
     const fixture = TestBed.createComponent(CasinoBonus);

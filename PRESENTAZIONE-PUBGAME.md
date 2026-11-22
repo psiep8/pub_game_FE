@@ -91,7 +91,7 @@ Bonus, uno dentro ognuno dei cinque atti:
 | 2 | 🃏 Blackjack | premio del bar, non punti |
 | 3 | 🎰 Casino dozzina | +200 a girata, tre girate (max +600) |
 | 4 | 🐎 Cavallo di Battaglia | premio del bar, non punti |
-| 5 | 🎯 Casino numero secco | +500 |
+| 5 | 🎯 Casino numero secco | +500 a girata (max +1500) |
 
 Chiuso il riepilogo di un bonus, la scaletta riparte dal round successivo; dopo il round 40 si chiude con la classifica finale aggiornata.
 
@@ -211,8 +211,8 @@ Non consumano un round: la TV li apre da sola in **un round interno dell'atto**,
 - *Da dire:* «La domanda è sul telefono: guardate il tabellone e correte.»
 
 ### 🎯 Casino numero secco — nell'atto 5
-- **Una sola girata** su un numero da **0 a 36**, scelta in dieci secondi.
-- Numero esatto **+500**; se nessuno lo becca, nessuno prende punti. Poi la TV mostra la **classifica finale aggiornata**.
+- **Tre girate** su un numero da **0 a 36**, scelta in dieci secondi a ogni girata.
+- Numero esatto **+500** a girata, massimo **+1500**; se nessuno lo becca, la girata non paga nessuno. Poi la TV mostra la **classifica finale aggiornata**.
 - *Da dire:* «Un numero, tutto: l'ultima carta della serata.»
 
 ---

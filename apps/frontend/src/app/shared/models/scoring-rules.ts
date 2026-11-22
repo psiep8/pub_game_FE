@@ -161,10 +161,10 @@ export const BONUS_SCORING: Record<string, ScoringRule> = {
     note: 'Otto domande flash sulla categoria votata: vince chi ha più risposte giuste, a pari merito chi ha finito prima. Il premio lo gestiscono barista e presentatore; l’app non assegna punti.',
   },
   BONUS_CASINO_NUMBER: {
-    correct: `${signedPoints(BONUS_CASINO_NUMBER_POINTS)} al numero secco`,
+    correct: `${signedPoints(BONUS_CASINO_NUMBER_POINTS)} a girata indovinata (massimo ${CASINO_SPINS * BONUS_CASINO_NUMBER_POINTS})`,
     wrong: '0',
     missed: '0',
-    note: `Una sola girata: ogni squadra sceglie un numero da 0 a 36 in ${BONUS_CHOICE_SECONDS} secondi. Chi lo becca prende ${BONUS_CASINO_NUMBER_POINTS}; se nessuno lo becca, nessuno prende punti.`,
+    note: `Tre girate: a ogni girata ogni squadra sceglie un numero da 0 a 36 in ${BONUS_CHOICE_SECONDS} secondi. Chi becca il numero prende ${BONUS_CASINO_NUMBER_POINTS}; se nessuno lo becca, la girata chiude senza punti e si passa alla successiva.`,
   },
 };
 

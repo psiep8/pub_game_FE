@@ -69,7 +69,7 @@ Tutte le schermate sono catturate dalla TV vera a 1280×720. Le modalità usano 
 | **Blackjack** | in un round dell'atto 2 | Un turno per tavolo, 15 s, carta o stai; il banco si ferma a 17. | Chi batte il banco riceve il **premio concordato con il bar**, non punti; premio e consegna li gestiscono barista e presentatore. |
 | **Casino dozzina** | in un round dell'atto 3 | Tre girate su 1–12, 13–24 o 25–36, scelta in dieci secondi. | Dozzina giusta **+200** a girata, massimo **+600**. |
 | **Cavallo di battaglia** | in un round dell'atto 4 | Categoria votata dai telefoni, otto domande flash. | Il vincitore riceve il **premio concordato con il bar**; a pari merito vince chi ha finito prima. Premio e consegna li gestiscono barista e presentatore. |
-| **Casino numero secco** | in un round dell'atto 5 | Una sola girata su un numero da 0 a 36, scelta in dieci secondi. | Numero esatto **+500**; se nessuno lo becca, nessuno prende punti. |
+| **Casino numero secco** | in un round dell'atto 5 | Tre girate su un numero da 0 a 36, scelta in dieci secondi a ogni girata. | Numero esatto **+500** a girata, massimo **+1500**; se nessuno lo becca, quella girata non paga nessuno. |
 
 **Casino paga punti, che entrano nella classifica della serata una sola volta, alla chiusura del bonus; i premi di Blackjack e Cavallo li gestiscono barista e presentatore, non l'app.** Dopo il bonus dell’atto 5 la TV mostra la classifica finale aggiornata.
 
@@ -140,7 +140,7 @@ flowchart LR
 
 1. **Quando.** Il seme della serata sceglie uno slot interno per ogni atto (2, 3, 5, 6 o 7). Il bonus non è un round della scaletta: si apre dopo il round scelto e non consuma un numero.
 2. **Introduzione.** La TV annuncia il bonus dell’atto; i telefoni mostrano la pulsantiera dedicata. Il presentatore può lanciarlo anche a mano dalla regia.
-3. **Gioco.** Casino e dozzina fanno tre girate con scelta entro dieci secondi; il numero secco fa una sola girata; Blackjack dà un turno per tavolo; il Cavallo fa votare la categoria e pone otto domande flash.
+3. **Gioco.** Casino, dozzina e numero secco fanno tre girate con scelta entro dieci secondi; Blackjack dà un turno per tavolo; il Cavallo fa votare la categoria e pone otto domande flash.
 4. **Chiusura.** La TV mostra il risultato. I punti Casino entrano in classifica una sola volta, alla chiusura; nessun bonus toglie punti. Blackjack e Cavallo non danno punti: il premio concordato con il bar lo consegnano barista e presentatore.
 5. **Dopo.** La serata riprende dal round successivo; dopo il bonus dell’atto 5 si chiude con la classifica finale.
 
@@ -150,7 +150,7 @@ flowchart LR
 - **Blackjack** — un turno per tavolo contro il banco TV; il banco si ferma a 17. Telefono: **CARTA** o **STAI** entro 15 secondi, poi la TV apre le carte. Chi batte il banco riceve il premio del bar, non punti; pari e sconfitte non tolgono nulla.
 - **Casino dozzina** — tre girate; a ogni girata si sceglie **1–12**, **13–24** o **25–36** entro dieci secondi. Dozzina giusta **+200** a girata, massimo **+600**; zero o dozzina sbagliata 0.
 - **Cavallo di battaglia** — i telefoni votano la categoria, poi otto domande flash. Vince chi ha più risposte esatte; a pari merito chi ha finito prima. Premio del bar, nessun punto in classifica.
-- **Casino numero secco** — una sola girata; ogni telefono sceglie un numero da **0 a 36** entro dieci secondi. Numero esatto **+500**; se nessuno lo becca, nessuno prende punti; nessuna penalità.
+- **Casino numero secco** — tre girate; a ogni girata ogni telefono sceglie un numero da **0 a 36** entro dieci secondi. Numero esatto **+500** a girata, massimo **+1500**; se nessuno lo becca, la girata non paga nessuno; nessuna penalità.
 
 ### Flusso dei telefoni
 
