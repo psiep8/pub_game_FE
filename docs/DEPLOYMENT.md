@@ -1,4 +1,4 @@
-# PubGame — ambienti e rilascio (v2.1.0)
+# PubGame — ambienti e rilascio (v2.2.0)
 
 Questa guida copre due scenari:
 
@@ -131,7 +131,7 @@ node scripts/mvn.mjs -DskipTests package
 Risultati:
 
 - frontend: `apps/frontend/dist/pubgameFE/browser`
-- backend: `apps/backend/target/pub_game_BE-2.1.0.jar`
+- backend: `apps/backend/target/pub_game_BE-2.2.0.jar`
 
 ### Avvio backend
 
@@ -141,7 +141,7 @@ CONTROL_SECRET='...' \
 ALLOWED_ORIGINS='https://play.example.it' \
 MEDIA_BASE_URL='https://play.example.it' \
 DB_URL='jdbc:h2:file:/srv/pubgame/data/pubgame;DB_CLOSE_DELAY=-1' \
-java -jar apps/backend/target/pub_game_BE-2.1.0.jar
+java -jar apps/backend/target/pub_game_BE-2.2.0.jar
 ```
 
 In produzione `ddl-auto` resta `update`: il database H2 su file conserva partite,
@@ -186,7 +186,7 @@ After=network.target
 [Service]
 WorkingDirectory=/srv/pubgame
 EnvironmentFile=/srv/pubgame/.env
-ExecStart=/usr/bin/java -jar /srv/pubgame/pub_game_BE-2.1.0.jar
+ExecStart=/usr/bin/java -jar /srv/pubgame/pub_game_BE-2.2.0.jar
 Restart=always
 User=pubgame
 
@@ -291,7 +291,7 @@ nessuno store. Non è un framework con "LTS": è uno standard web stabile.
   è spento per non nascondere gli aggiornamenti in sviluppo.
 
 Se in futuro servissero presenza negli store o push native, **Capacitor** incapsula
-la stessa app Angular senza riscrivere l'interfaccia. Non serve per la 2.1.0.
+la stessa app Angular senza riscrivere l'interfaccia. Non serve per la 2.2.0.
 
 ## 8. QR di aggancio
 
@@ -342,5 +342,5 @@ scrive può risultare incoerente: ferma il backend prima del backup.
 - Il tunnel pubblico è una porta aperta su internet: usalo per la prova, non
   lasciarlo attivo per giorni.
 - Chi perde il token di squadra non può riprendere il nome senza la regia: è una
-  limitazione nota della 2.1.0.
+  limitazione nota della 2.2.0.
 - Speed Rush resta bloccato finché il punteggio non è verificato dal server.

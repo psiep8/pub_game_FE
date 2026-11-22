@@ -35,7 +35,7 @@ for /f "usebackq eol=# tokens=1,* delims==" %%A in ("..\..\.env") do (
 
 rem javaw: nessuna console agganciata, quindi la chiusura di un terminale
 rem (o di una sessione dell'editor) non manda CTRL_CLOSE al server.
-"..\..\.tools\jdk-25.0.5+8\bin\javaw.exe" -jar target\pub_game_BE-2.1.0.jar --server.port=%PORT% >> "target\backend-8090.log" 2>&1
+"..\..\.tools\jdk-25.0.5+8\bin\javaw.exe" -jar target\pub_game_BE-2.2.0.jar --server.port=%PORT% >> "target\backend-8090.log" 2>&1
 exit /b %ERRORLEVEL%
 
 :start
