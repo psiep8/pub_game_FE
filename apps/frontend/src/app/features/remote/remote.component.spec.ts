@@ -1921,6 +1921,75 @@ describe('RemoteComponent', () => {
     expect(buttons.every((button) => button.disabled)).toBe(true);
   });
 
+  it('il retry della verifica Quiz ripete solo il riepilogo e non invia voti', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const summary = vi.spyOn(game, 'quizAnswers')
+      .mockReturnValueOnce(throwError(() => new Error('offline')))
+      .mockReturnValueOnce(throwError(() => new Error('offline')))
+      .mockReturnValueOnce(of({ roundStartId: 'round-1', mancheIndex: 1, answers: [] }));
+    const submit = vi.spyOn(game, 'submitQuizAnswer');
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(true);
+    expect(fixture.nativeElement.querySelector('.quiz-check-retry')).not.toBeNull();
+
+    // Primo retry: la rete cade ancora, i tasti restano chiusi e nessun voto parte.
+    (fixture.nativeElement.querySelector('.quiz-check-retry') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(summary).toHaveBeenCalledTimes(2);
+    expect(component.quizCheckPending()).toBe(true);
+    expect(fixture.nativeElement.querySelector('.quiz-check-retry')).not.toBeNull();
+    expect(submit).not.toHaveBeenCalled();
+    expect(game.quizAnswersSent).toEqual([]);
+
+    // Secondo retry: il riepilogo risponde senza voto, i tasti si riaprono.
+    (fixture.nativeElement.querySelector('.quiz-check-retry') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(summary).toHaveBeenCalledTimes(3);
+    expect(component.quizCheckPending()).toBe(false);
+    expect(component.reliability.lastError()).toBeNull();
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.quiz-grid button')) as HTMLButtonElement[];
+    expect(buttons.length).toBe(4);
+    expect(buttons.every((button) => !button.disabled)).toBe(true);
+    expect(submit).not.toHaveBeenCalled();
+    expect(game.quizAnswersSent).toEqual([]);
+  });
+
+  it('il retry della verifica Quiz blocca la manche se il voto è già registrato', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    vi.spyOn(game, 'quizAnswers')
+      .mockReturnValueOnce(throwError(() => new Error('offline')))
+      .mockReturnValueOnce(of({
+        roundStartId: 'round-1', mancheIndex: 1,
+        answers: [{ playerName: 'Anna', manche: 1, optionIndex: 2 }],
+      }));
+    const submit = vi.spyOn(game, 'submitQuizAnswer');
+
+    reliability.syncState$.next(quizRoundSnapshot());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(true);
+
+    (fixture.nativeElement.querySelector('.quiz-check-retry') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(component.quizCheckPending()).toBe(false);
+    expect(component.hasAnswered()).toBe(true);
+    expect(component.selectedAnswer()).toBe(2);
+    expect(component.gameState()).toBe(PlayerStatus.LOCKED);
+    expect(submit).not.toHaveBeenCalled();
+    expect(game.quizAnswersSent).toEqual([]);
+  });
+
   it('uno snapshot con la stessa chiave ma un roundStartId nuovo chiude l attesa', async () => {
     localStorage.setItem('nickname', 'Anna');
     reliability.resumedSession.set(true);

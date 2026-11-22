@@ -230,6 +230,9 @@
     </div>
     }
     @if (reliability.lastError(); as error) { <p class="remote-error" role="alert">{{ error }}</p> }
+    @if (quizCheckFailed()) {
+    <button type="button" class="quiz-check-retry" (click)="retryQuizCheck()">Riprova verifica</button>
+    }
     @switch (gameState()) {
     @case ('WAITING') {
     <div class="status-msg">

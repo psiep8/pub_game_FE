@@ -552,6 +552,24 @@
   line-height: 1.35;
   text-align: left;
 }
+/* Verifica del voto Quiz fallita: ripete il solo controllo, non il voto. */
+.quiz-check-retry {
+  display: block;
+  width: calc(100% - 24px);
+  margin: 0 12px 10px;
+  padding: 10px 12px;
+  background: var(--paper-hi);
+  color: var(--coal);
+  border: 2px solid var(--coal);
+  border-radius: 0;
+  box-shadow: 4px 4px 0 var(--acid);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.quiz-check-retry:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--acid); }
 .game-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 10px; margin-bottom: 13px; }
 .game-tag {
   padding: 5px 10px;

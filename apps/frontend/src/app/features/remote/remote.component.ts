@@ -41,6 +41,8 @@ import {
   ManualGame,
 } from '../../shared/manual/manual-content';
 
+const QUIZ_CHECK_ERROR = 'Quiz non verificato: tocca «Riprova verifica» o attendi il riallineamento.';
+
 @Component({
   selector: 'app-remote-component',
   standalone: true,
@@ -241,7 +243,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private quizSummaryPending: { roundKey: string; generation: number } | null = null;
   /** Riepilogo Quiz in volo: i tasti restano bloccati finché la verifica non arriva. */
   readonly quizCheckPending = signal(false);
+  /** La verifica è fallita: si può ripeterla senza inviare voti. */
+  readonly quizCheckFailed = computed(() => this.quizCheckPending()
+    && this.reliability.lastError() === QUIZ_CHECK_ERROR);
   private quizCheckRoundId = '';
+  private quizCheckRoundKey = '';
   /** Ultima risposta toccata: solo promemoria visivo, l'esito lo decide il server. */
   selectedAnswer = signal<number | null>(null);
   isBlocked = signal(false);
@@ -2945,17 +2951,30 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.quizSummaryPending = null;
   }
 
-  private beginQuizCheck(roundStartId: string): void {
+  private beginQuizCheck(roundStartId: string, roundKey: string): void {
     this.quizCheckRoundId = roundStartId;
+    this.quizCheckRoundKey = roundKey;
     this.quizCheckPending.set(true);
   }
 
   private endQuizCheck(): void {
     this.quizCheckPending.set(false);
     this.quizCheckRoundId = '';
-    if (this.reliability.lastError() === 'Quiz non verificato: attendi il riallineamento.') {
+    this.quizCheckRoundKey = '';
+    if (this.reliability.lastError() === QUIZ_CHECK_ERROR) {
       this.reliability.lastError.set(null);
     }
+  }
+
+  /**
+   * Ripete solo la verifica del voto Quiz, senza inviare nulla: dopo un errore
+   * di rete i tasti restano chiusi finché il riepilogo non risponde.
+   */
+  retryQuizCheck(): void {
+    if (!this.quizCheckPending() || this.quizSummaryPending || this.resyncing()) return;
+    const roundKey = this.quizCheckRoundKey || this.lastSnapshotRoundKey;
+    if (!roundKey) return;
+    this.confirmQuizVote(roundKey);
   }
 
   /**
@@ -2986,7 +3005,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const displayedManche = this.quizManche();
     const pending = { roundKey, generation: this.quizSummaryGeneration };
     this.quizSummaryPending = pending;
-    this.beginQuizCheck(roundStartId);
+    this.beginQuizCheck(roundStartId, roundKey);
     this.gameService.quizAnswers(gameId).subscribe({
       next: (summary: any) => {
         if (this.quizSummaryPending === pending) this.quizSummaryPending = null;
@@ -3029,9 +3048,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
       },
       error: () => {
         if (this.quizSummaryPending === pending) this.quizSummaryPending = null;
-        // La verifica non è arrivata: i tasti restano chiusi finché un nuovo
-        // riallineamento non la ripete. Un voto senza verifica non si invia.
-        this.reliability.lastError.set('Quiz non verificato: attendi il riallineamento.');
+        // La verifica non è arrivata: i tasti restano chiusi finché non si
+        // ripete (Riprova verifica o riallineamento). Un voto senza verifica
+        // non si invia.
+        this.reliability.lastError.set(QUIZ_CHECK_ERROR);
       },
     });
   }
