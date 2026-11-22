@@ -77,6 +77,47 @@ Per R15, a backend spento, controllare la copia con H2 Shell (sola lettura):
 `SELECT blob_key, payload FROM state_blob WHERE game_id = <id> AND blob_key LIKE 'quiz%'`.
 L'archivio conserva il **primo** legacy; un secondo legacy non lo sostituisce.
 
+### Vie di sblocco del Quiz coperte dai test automatici
+
+Al commit `15ab8cd4` la suite frontend (70 file, 680 test) copre in jsdom le
+uscite dal blocco del riepilogo. Questi casi non vanno riprovati a mano per
+fidarsi della logica: in sala servono a confermare che rete, socket e refresh
+reali si comportino come i doppi di test. I test remoti sono 98
+(`--include="**/remote.component.spec.ts"`).
+
+| Via di sblocco | Test automatico | Cosa resta ai device |
+|---|---|---|
+| Riepilogo in volo: quattro tasti disabilitati | `tiene i tasti Quiz chiusi mentre il riepilogo è in volo e li riapre senza voto` | Che i tasti sembrino spenti a schermo, non solo `disabled` nel DOM |
+| Riepilogo riuscito senza voto: tasti riaperti | stesso test | Che la risposta HTTP reale arrivi in tempi utili su Wi-Fi/4G di sala |
+| Riepilogo riuscito con voto: tasti chiusi e risposta scelta | `dopo un refresh in Quiz non riapre il voto di una manche già votata` | R1: blocco entro 1–2 s dal refresh, nessun doppio voto sul server |
+| Errore del riepilogo: tasti chiusi, nessun voto inviato | `se il riepilogo Quiz fallisce lascia i tasti chiusi e non invia voti` | R14: errore vero (rete caduta), avviso visibile e tasti non cliccabili |
+| Riallineamento riuscito: attesa chiusa e avviso rimosso | `un reannuncio senza identità non riapre i tasti dopo un errore, ma il round dopo la fine sì` | Che RIPRENDI dalla TV porti il riallineamento a entrambi i telefoni |
+| Reannuncio dello stesso round senza `roundStartId`: resta bloccato | stesso test e `un reannuncio senza identità non sblocca il legacy, ma il round dopo la fine sì` | F16 Q4: refresh TV e RIPRENDI con annuncio reale, nessuna riapertura |
+| `ROUND_ENDED`: chiude attesa e blocco legacy | `la fine del round chiude l attesa del riepilogo Quiz` e il test legacy sopra | Che l'evento arrivi a un telefono che ha appena ripreso la socket |
+| `REVEAL`: chiude attesa e sblocca il legacy | `REVEAL chiude l attesa del riepilogo Quiz e permette il round successivo`, `REVEAL sblocca il legacy e permette il round successivo` | Percezione a fine manche: nessun tasto residuo durante il reveal |
+| Snapshot di un nuovo round (`roundKey`/`roundStartId` diversi): sblocca attesa e legacy | `uno snapshot di un nuovo round chiude l attesa del riepilogo Quiz`, `uno snapshot di un nuovo round sblocca il legacy` | R15: nuovo Quiz dal vero, con chiave di round diversa e voti vuoti |
+| Annuncio con `roundStartId` nuovo: sblocca il legacy | `con un blob Quiz legacy non lascia una domanda votabile dopo il refresh` | R15: il telefono vota la manche nuova e il server la accetta |
+| Snapshot ripetuto dello stesso legacy: non riapre | `con un blob Quiz legacy non lascia una domanda votabile dopo il refresh` (secondo snapshot) | R14: due refresh di fila sullo stesso telefono non aprono nulla |
+
+Restano fuori dai test automatici, e vanno guardati solo in sala:
+
+- **R14 completo**: copia legacy vera, backend sulla copia, entrambi i telefoni
+  ricaricati dal browser, TV ricaricata e RIPRENDI. I test usano doppi dei
+  servizi: non dimostrano che il server rifiuti i voti legacy né che la TV
+  mostri l'avviso «Quiz precedente non verificabile…».
+- **R15 completo**: chiusura del round dalla regia, Quiz nuovo con chiave
+  diversa, voto accettato, riga `quiz-legacy-archive` unica. L'archivio è lato
+  backend: nessun test frontend lo copre.
+- **Tempismo reale**: latenza del riepilogo sulla rete di sala, ordine di
+  arrivo di `START_VOTING`/`ROUND_ENDED`/`REVEAL` dopo una riconnessione,
+  socket che riparte dopo il refresh.
+- **Dispositivi**: iOS Safari e PWA da Home (storage, sospensione in
+  background, bfcache) e Android Chrome; jsdom non li riproduce. Annotare
+  modello e versione per ogni rosso.
+
+Se un caso della tabella fallisce in sala è una regressione, non una prova
+mancante: si annota con il device e si riproduce.
+
 ---
 
 ## 3. F16 — Annunci Quiz, cambio round e refresh (15 minuti)
