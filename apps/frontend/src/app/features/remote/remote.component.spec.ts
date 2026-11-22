@@ -2076,6 +2076,100 @@ describe('RemoteComponent', () => {
     }
   });
 
+  it('durante il retry la verifica resta visibile finché non risponde o scade', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    vi.useFakeTimers();
+    try {
+      const game = TestBed.inject(GameService) as unknown as FakeGameService;
+      vi.spyOn(game, 'quizAnswers')
+        .mockReturnValueOnce(new Subject<any>().asObservable())
+        .mockReturnValueOnce(new Subject<any>().asObservable());
+
+      reliability.syncState$.next(quizRoundSnapshot());
+      fixture.detectChanges();
+      vi.advanceTimersByTime(8_000);
+      fixture.detectChanges();
+      expect(component.quizCheckFailed()).toBe(true);
+
+      const retry = fixture.nativeElement.querySelector('.quiz-check-retry') as HTMLButtonElement;
+      expect(retry).not.toBeNull();
+      retry.click();
+      fixture.detectChanges();
+
+      // Il pulsante sparisce, ma l'attesa non è più muta.
+      expect(fixture.nativeElement.querySelector('.quiz-check-retry')).toBeNull();
+      expect(component.quizCheckRetrying()).toBe(true);
+      const status = fixture.nativeElement.querySelector('.quiz-check-status') as HTMLElement;
+      expect(status).not.toBeNull();
+      expect(status.textContent).toContain('Verifica in corso');
+
+      // Nessuna risposta: lo stato resta per tutti gli 8 s, poi torna il retry.
+      vi.advanceTimersByTime(7_999);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.quiz-check-status')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.quiz-check-retry')).toBeNull();
+
+      vi.advanceTimersByTime(1);
+      fixture.detectChanges();
+      expect(component.quizCheckRetrying()).toBe(false);
+      expect(fixture.nativeElement.querySelector('.quiz-check-status')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.quiz-check-retry')).not.toBeNull();
+      expect(component.quizCheckFailed()).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('quando il riepilogo risponde durante il retry lo stato sparisce e i tasti si riaprono', async () => {
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    vi.useFakeTimers();
+    try {
+      const game = TestBed.inject(GameService) as unknown as FakeGameService;
+      const answer = new Subject<any>();
+      vi.spyOn(game, 'quizAnswers')
+        .mockReturnValueOnce(new Subject<any>().asObservable())
+        .mockReturnValueOnce(answer.asObservable());
+      const submit = vi.spyOn(game, 'submitQuizAnswer');
+
+      reliability.syncState$.next(quizRoundSnapshot());
+      fixture.detectChanges();
+      vi.advanceTimersByTime(8_000);
+      fixture.detectChanges();
+      expect(component.quizCheckFailed()).toBe(true);
+
+      (fixture.nativeElement.querySelector('.quiz-check-retry') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.quiz-check-status')).not.toBeNull();
+      let buttons = Array.from(fixture.nativeElement.querySelectorAll('.quiz-grid button')) as HTMLButtonElement[];
+      expect(buttons.length).toBe(4);
+      expect(buttons.every((button) => button.disabled)).toBe(true);
+
+      // Il riepilogo risponde senza voto: fine dell'attesa, tasti di nuovo aperti.
+      answer.next({ roundStartId: 'round-1', mancheIndex: 1, answers: [] });
+      answer.complete();
+      fixture.detectChanges();
+
+      expect(component.quizCheckRetrying()).toBe(false);
+      expect(component.quizCheckPending()).toBe(false);
+      expect(component.quizCheckFailed()).toBe(false);
+      expect(fixture.nativeElement.querySelector('.quiz-check-status')).toBeNull();
+      expect(component.reliability.lastError()).toBeNull();
+      buttons = Array.from(fixture.nativeElement.querySelectorAll('.quiz-grid button')) as HTMLButtonElement[];
+      expect(buttons.length).toBe(4);
+      expect(buttons.every((button) => !button.disabled)).toBe(true);
+      expect(submit).not.toHaveBeenCalled();
+      expect(game.quizAnswersSent).toEqual([]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('un altro errore non nasconde il retry della verifica Quiz', async () => {
     localStorage.setItem('nickname', 'Anna');
     reliability.resumedSession.set(true);

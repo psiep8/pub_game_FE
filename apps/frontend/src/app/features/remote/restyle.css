@@ -570,6 +570,22 @@
   text-transform: uppercase;
 }
 .quiz-check-retry:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--acid); }
+/* Retry in volo: l'attesa resta visibile fino alla risposta o al timeout. */
+.quiz-check-status {
+  margin: 0 12px 10px;
+  padding: 10px 12px;
+  background: var(--paper-hi);
+  color: var(--coal);
+  border: 2px solid var(--coal);
+  border-radius: 0;
+  box-shadow: 4px 4px 0 var(--mustard);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
 .game-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 10px; margin-bottom: 13px; }
 .game-tag {
   padding: 5px 10px;

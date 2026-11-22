@@ -233,6 +233,9 @@
     @if (quizCheckFailed()) {
     <button type="button" class="quiz-check-retry" (click)="retryQuizCheck()">Riprova verifica</button>
     }
+    @if (quizCheckRetrying()) {
+    <p class="quiz-check-status" role="status" aria-live="polite">Verifica in corso…</p>
+    }
     @switch (gameState()) {
     @case ('WAITING') {
     <div class="status-msg">

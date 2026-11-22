@@ -247,6 +247,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   readonly quizCheckPending = signal(false);
   /** Verifica fallita o scaduta: si può ripeterla senza inviare voti. */
   readonly quizCheckFailed = signal(false);
+  readonly quizCheckRetrying = signal(false);
   private quizCheckRoundId = '';
   private quizCheckRoundKey = '';
   /** Ultima risposta toccata: solo promemoria visivo, l'esito lo decide il server. */
@@ -2962,6 +2963,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private endQuizCheck(): void {
     this.quizCheckPending.set(false);
     this.quizCheckFailed.set(false);
+    this.quizCheckRetrying.set(false);
     this.quizCheckRoundId = '';
     this.quizCheckRoundKey = '';
     if (this.reliability.lastError() === QUIZ_CHECK_ERROR) {
@@ -2977,6 +2979,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (!this.quizCheckPending() || this.quizSummaryPending || this.resyncing()) return;
     const roundKey = this.quizCheckRoundKey || this.lastSnapshotRoundKey;
     if (!roundKey) return;
+    this.quizCheckRetrying.set(true);
     this.confirmQuizVote(roundKey);
   }
 
@@ -3012,6 +3015,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.gameService.quizAnswers(gameId).pipe(timeout(QUIZ_CHECK_TIMEOUT_MS)).subscribe({
       next: (summary: any) => {
         if (this.quizSummaryPending === pending) this.quizSummaryPending = null;
+        this.quizCheckRetrying.set(false);
         // Non applicare un riepilogo se nel frattempo è cambiata la manche,
         // la squadra, la partita o il round è stato chiuso.
         if (this.quizSummaryGeneration !== pending.generation || this.resyncing()
@@ -3056,6 +3060,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
         // non si invia.
         this.reliability.lastError.set(QUIZ_CHECK_ERROR);
         this.quizCheckFailed.set(true);
+        this.quizCheckRetrying.set(false);
       },
     });
   }
