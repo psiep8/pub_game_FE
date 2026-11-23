@@ -822,7 +822,7 @@
 /* ---------------------------------------------------------------- Intro */
 .intro-screen {
   /* Raggio dell'orbita delle icone: ellittica perché il logo è largo. */
-  --intro-rx: clamp(330px, 38vw, 720px);
+  --intro-rx: clamp(340px, 40vw, 720px);
   --intro-ry: clamp(210px, 31vmin, 340px);
   position: fixed;
   inset: 0;
@@ -1076,10 +1076,6 @@
 
 @media (max-height: 760px) {
   .intro-screen { padding: 16px 26px; gap: 8px; }
-  .intro-screen {
-    --intro-rx: clamp(300px, 34vw, 560px);
-    --intro-ry: clamp(180px, 26vmin, 250px);
-  }
   .intro-icon {
     left: -31px;
     top: -31px;
@@ -1095,10 +1091,6 @@
 
 @media (max-width: 900px) {
   .intro-meta { display: none; }
-  .intro-screen {
-    --intro-rx: clamp(220px, 44vw, 460px);
-    --intro-ry: clamp(170px, 27vmin, 230px);
-  }
   .intro-icon {
     left: -26px;
     top: -26px;

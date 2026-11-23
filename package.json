@@ -25,7 +25,6 @@
     "db:backup": "node scripts/backup-db.mjs",
     "db:legacy-copy": "node scripts/legacy-quiz-copy.mjs",
     "audit:design": "impeccable detect apps/frontend/src",
-    "audit:design:screen": "impeccable detect http://127.0.0.1:4200",
     "audit:banche": "node scripts/audit-banche.mjs --write",
     "stress:ws": "node scripts/stress/ws-load.mjs",
     "stress:restart": "node scripts/stress/restart-check.mjs"

@@ -53,8 +53,8 @@ installata in `.claude/skills/impeccable/` e documentata in
   `.claude/skills/impeccable/SKILL.md` e il riferimento del comando che serve
   (`critique`, `audit`, `polish`, `layout`, `typeset`…).
 - Dopo aver toccato UI, eseguire `npm run audit:design`; per contrasto e testi
-  piccoli serve una pagina renderizzata (`npm run audit:design:screen` con il dev
-  server attivo).
+  piccoli serve una pagina renderizzata (`npx impeccable detect <URL>` con il dev
+  server attivo e `IMPECCABLE_BROWSER` verso un Chromium).
 - **Precedenza:** `AGENTS.md`, `DESIGN.md` e i token di `styles.css` vincono su
   qualsiasi suggerimento della skill. Impeccable trova le mancanze, non cambia il
   linguaggio: niente gradienti, vetro, glow, radius arrotondati o palette fuori
