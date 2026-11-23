@@ -88,6 +88,11 @@
   --on-acid: var(--coal);
   --on-tomato: var(--coal);
   --on-cobalt: var(--paper-hi);
+  --on-mustard: var(--coal);
+  --on-coal: var(--paper-hi);
+  /* Nei temi a base scura paper e coal si invertono: questi due token
+     tengono il testo leggibile sul timbro e sul badge senza cambiare
+     il colore del fondo. */
 
   /* Derivati: leggono i token del tema, quindi seguono il cambio tema. */
   --ink-dim: color-mix(in srgb, var(--ink) 66%, transparent);
@@ -297,6 +302,8 @@ html[data-theme="desert-heritage"] {
   --on-tomato: var(--paper-hi);
   --on-cobalt: var(--paper-hi);
   --on-acid: var(--coal);
+  --on-mustard: var(--coal);
+  --on-coal: var(--paper-hi);
 }
 
 /* 3 — ARCTIC NOIR: notte, metallo, blu artico.
@@ -335,6 +342,8 @@ html[data-theme="arctic-noir"] {
   --on-acid: var(--bg-0);
   --on-tomato: #f3f8fc;
   --on-cobalt: var(--bg-0);
+  --on-mustard: var(--bg-0);
+  --on-coal: var(--bg-0);
 }
 
 /* 4 — DEEP OCEAN: petrolio, teal, verde acqua. */
@@ -372,6 +381,8 @@ html[data-theme="deep-ocean"] {
   --on-tomato: var(--paper-hi);
   --on-cobalt: var(--coal);
   --on-acid: var(--coal);
+  --on-mustard: var(--coal);
+  --on-coal: var(--paper-hi);
 }
 
 /* 5 — K-POP AESTHETIC: rosa, lilla, azzurro, glossy. */
@@ -409,6 +420,8 @@ html[data-theme="kpop-aesthetic"] {
   --on-tomato: var(--coal);
   --on-cobalt: var(--coal);
   --on-acid: var(--coal);
+  --on-mustard: var(--coal);
+  --on-coal: var(--paper-hi);
 }
 
 /* 6 — NEON CYBERPUNK: viola, magenta, cyan.
@@ -448,6 +461,8 @@ html[data-theme="neon-cyberpunk"] {
   --on-acid: var(--bg-0);
   --on-tomato: var(--bg-0);
   --on-cobalt: var(--bg-0);
+  --on-mustard: var(--ink);
+  --on-coal: var(--bg-0);
 }
 
 /* 7 — SUNSET POP: corallo, ambra, raspberry. */
@@ -485,6 +500,8 @@ html[data-theme="sunset-pop"] {
   --on-tomato: var(--paper-hi);
   --on-cobalt: var(--coal);
   --on-acid: var(--coal);
+  --on-mustard: var(--coal);
+  --on-coal: var(--paper-hi);
 }
 
 /* 8 — PREMIUM GOLD: nero, oro, champagne.
@@ -523,6 +540,8 @@ html[data-theme="premium-gold"] {
   --on-acid: var(--bg-0);
   --on-tomato: var(--bg-0);
   --on-cobalt: var(--bg-0);
+  --on-mustard: var(--bg-0);
+  --on-coal: var(--bg-0);
 }
 
 /* ============================================================

@@ -52,8 +52,8 @@
   display: inline-block;
   padding: 5px 12px;
   background: var(--tomato);
-  color: var(--paper-hi);
-  border: 2px solid var(--paper-hi);
+  color: var(--on-tomato);
+  border: 2px solid var(--on-tomato);
   font-family: var(--font-mono);
   font-size: clamp(0.6rem, 0.85vw, 0.78rem);
   font-weight: 700;
@@ -68,7 +68,7 @@
   line-height: 0.82;
   letter-spacing: 0.01em;
   text-transform: uppercase;
-  color: var(--paper);
+  color: var(--ink);
 }
 .lobby-title span {
   color: var(--acid);
@@ -109,7 +109,7 @@
 }
 .lobby .qr-label {
   margin-bottom: 10px;
-  color: var(--tomato);
+  color: var(--tomato-ink);
   font-family: var(--font-mono);
   font-size: clamp(0.62rem, 0.9vw, 0.82rem);
   font-weight: 700;
@@ -137,7 +137,7 @@
   display: inline-block;
   padding: 5px 12px;
   background: var(--coal);
-  color: var(--acid);
+  color: var(--on-coal);
   border: 2px solid var(--coal);
   border-radius: 0;
   font-family: var(--font-mono);
@@ -178,7 +178,7 @@
 }
 .lobby-step b {
   display: block;
-  color: var(--paper);
+  color: var(--ink);
   font-family: var(--font-display);
   font-size: clamp(1.1rem, 1.9vw, 1.75rem);
   font-weight: 400;
@@ -853,8 +853,8 @@
 .intro-stamp {
   padding: 6px 14px;
   background: var(--mustard);
-  color: var(--coal);
-  border: 2px solid var(--coal);
+  color: var(--on-mustard);
+  border: 2px solid var(--on-mustard);
   box-shadow: 5px 5px 0 var(--tomato);
   font-family: var(--font-mono);
   font-size: clamp(0.56rem, 0.8vw, 0.72rem);
@@ -963,8 +963,8 @@
   z-index: 2;
   padding: 5px 12px;
   background: var(--tomato);
-  color: var(--paper-hi);
-  border: 2px solid var(--paper-hi);
+  color: var(--on-tomato);
+  border: 2px solid var(--on-tomato);
   font-family: var(--font-mono);
   font-size: clamp(0.58rem, 0.86vw, 0.78rem);
   font-weight: 700;
@@ -976,7 +976,7 @@
   position: relative;
   z-index: 2;
   margin: 0;
-  color: var(--paper);
+  color: var(--ink);
   font-family: var(--font-display);
   font-size: clamp(5rem, 12.5vw, 10.5rem);
   font-weight: 400;
@@ -1011,7 +1011,7 @@
   margin-top: clamp(8px, 1.6vh, 18px);
   padding: clamp(11px, 1.5vh, 16px) clamp(22px, 3vw, 38px);
   background: var(--acid);
-  color: var(--coal);
+  color: var(--on-acid);
   border: 3px solid var(--paper);
   box-shadow: 8px 8px 0 var(--tomato);
   font-family: var(--font-display);
@@ -1026,6 +1026,7 @@
 .intro-start:hover,
 .intro-start:focus-visible {
   background: var(--paper);
+  color: var(--coal);
   transform: translate(3px, 3px);
   box-shadow: 5px 5px 0 var(--tomato);
 }
