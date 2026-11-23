@@ -1,4 +1,4 @@
-# PubGame — ambienti e rilascio (v2.2.0)
+# PubGame — ambienti e rilascio (v2.3.0)
 
 Questa guida copre due scenari:
 
@@ -131,7 +131,7 @@ node scripts/mvn.mjs -DskipTests package
 Risultati:
 
 - frontend: `apps/frontend/dist/pubgameFE/browser`
-- backend: `apps/backend/target/pub_game_BE-2.2.0.jar`
+- backend: `apps/backend/target/pub_game_BE-2.3.0.jar`
 
 ### Avvio backend
 
@@ -141,7 +141,7 @@ CONTROL_SECRET='...' \
 ALLOWED_ORIGINS='https://play.example.it' \
 MEDIA_BASE_URL='https://play.example.it' \
 DB_URL='jdbc:h2:file:/srv/pubgame/data/pubgame;DB_CLOSE_DELAY=-1' \
-java -jar apps/backend/target/pub_game_BE-2.2.0.jar
+java -jar apps/backend/target/pub_game_BE-2.3.0.jar
 ```
 
 In produzione `ddl-auto` resta `update`: il database H2 su file conserva partite,
@@ -186,7 +186,7 @@ After=network.target
 [Service]
 WorkingDirectory=/srv/pubgame
 EnvironmentFile=/srv/pubgame/.env
-ExecStart=/usr/bin/java -jar /srv/pubgame/pub_game_BE-2.2.0.jar
+ExecStart=/usr/bin/java -jar /srv/pubgame/pub_game_BE-2.3.0.jar
 Restart=always
 User=pubgame
 

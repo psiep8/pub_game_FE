@@ -1,6 +1,6 @@
 # PubGame FE — Frontend Angular
 
-> **VERSIONE 2.2.0 — 23 novembre 2026.** Vince il codice; per il quadro completo
+> **VERSIONE 2.3.0 — 23 novembre 2026.** Vince il codice; per il quadro completo
 > del gioco e della scaletta vale il [`README.md`](../../README.md) della radice.
 
 Frontend Angular 22 per TV, telefoni e regia. Vive in `apps/frontend` del

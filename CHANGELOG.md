@@ -1,5 +1,26 @@
 # Changelog
 
+## 23 novembre 2026 — Quiz e Bomba con le regole nuove, 2.3.0
+
+- **Versione:** 2.3.0 in `VERSION`, `package.json`, `package-lock.json`, pom del
+  backend, README, presentazione, deploy, script di avvio e Docker. La 2.2.0
+  resta nella storia dei documenti che raccontano quelle serate.
+- **Quiz:** ogni manche dura **20 secondi** (prima 15) e i 1000 punti del round
+  si dividono per mix di difficoltà invece che col peso 1/2/3: tre diverse pagano
+  **200 / 350 / 450**, due uguali più una lasciano **250** alle più facili e il
+  resto alle altre (250/375/375 oppure 250/250/500), tre uguali **333 / 333 /
+  334**. La tabella vive in un solo posto (`QuizService.manchePoints`) e la usano
+  generatore del round e voto del server.
+- **Bomba:** solo malus, a scalare per ordine di scoperta: **−500, −300, −150,
+  −50**. La prima bomba fa uscire dal round e costa più delle successive; il
+  malus non dipende più da quante bombe ha il tabellone.
+- **Documenti:** manuale sera (entrambe le versioni), `PUNTEGGI-MASSIMI-MINIMI`,
+  demo TV, README e schede `SCORING_RULES` allineati ai nuovi numeri.
+- Verifiche: build frontend `EXIT=0`; suite frontend 702/703 (l'unico rosso è il
+  controllo LUFS che si salta dove manca ffmpeg, come in CI); backend compilato
+  (81 sorgenti) con `QuizServiceTest` 11/11, `BombaScoringTest` 3/3 e
+  `QuizControllerTest` 1/1 verdi.
+
 ## 23 novembre 2026 — Ruota a 62 frasi, senza ripetizioni in serata
 
 - **Ruota della fortuna:** `QuestionBankService.PROVERBS` passa da **32 a 62

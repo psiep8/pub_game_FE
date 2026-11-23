@@ -20,7 +20,7 @@ con `npm run audit:banche`.
 | Premi di Blackjack e Cavallo | gestiti da barista e presentatore, fuori dall'app | concordare premi e consegna in sala |
 | Distrattori delle banche | corretti: l'audit non segnala più risposte più lunghe né distrattori troppo corti | rileggere le 47 opzioni riscritte con il pubblico davanti |
 | Copertura di Ultima spiaggia | **cinque fasce reali** (facile, medio-facile, media, medio-difficile, difficile), una domanda dedicata per categoria e livello: 0 combinazioni scoperte; nessun ripiego su un'altra fascia | rileggere in sala le 80 riclassificazioni elencate sotto |
-| Versione | 2.2.0 | conferma prima del rilascio |
+| Versione | 2.3.0 | fissata il 23 novembre 2026 (era 2.2.0) |
 
 ## Domande da guardare a mano
 
