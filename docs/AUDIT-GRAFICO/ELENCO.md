@@ -1,14 +1,17 @@
 # Audit grafico — inventario statico
 
-**Data:** 23 novembre 2026 · **versione:** 2.4.0 · **metodo:** conteggio sul codice
+**Data:** 23 novembre 2026 · **versione:** 2.3.2 · **metodo:** conteggio sul codice
 (`grep` su `apps/frontend/src/app`, esclusi gli asset), nessuna cattura automatica.
 
-> **Screenshot non prodotti.** Il piano chiede `scripts/checks/screens.mjs` con
-> Playwright, che **non è una dipendenza del progetto** e non è installato in
-> questo ambiente (`node_modules` senza `playwright`/`puppeteer`). Aggiungerlo
-> significa scaricare i browser e cambiare il lockfile: non è stato fatto dentro
-> un intervento grafico. Le voci sotto restano quindi un inventario da verificare
-> a schermo, non una prova visiva.
+**Screenshot prodotti.** `playwright` è ora una devDependency e `scripts/checks/screens.mjs`
+ha catturato **14 schermate** in `docs/AUDIT-GRAFICO/screens/` (TV 1920×1080 e
+1280×720; telefono 360×640, 390×844, 412×915), con il referto automatico
+`screens/report.md`. Comando:
+
+```bash
+npx playwright install chromium
+BASE_URL=http://127.0.0.1:4210 node scripts/checks/screens.mjs
+```
 
 ## 1. Numeri
 
@@ -82,4 +85,6 @@ TV 1920×1080 e 1280×720; telefono 360×640, 390×844, 412×915:
 6. Casi limite: 4/6/10/20 squadre, nome da 20 caratteri con emoji, punteggi a
    cinque cifre e negativi, 720p.
 
-Nessuna di queste è stata catturata in questo giro: vedi l'avviso in testa.
+Catturate: intro TV, lobby TV, anteprima bonus, admin, setup telefono, regia
+audio. Restano da catturare le fasi di gioco (round, bonus, classifiche,
+manuale, demo): servono una partita reale e un pilotaggio STOMP.

@@ -1,0 +1,212 @@
+[
+  {
+    "url": "http://127.0.0.1:4210/tv",
+    "viewport": "tv-1920x1080",
+    "horizontalOverflow": false,
+    "documentScrollWidth": 1920,
+    "overflow": [],
+    "smallTargets": [],
+    "tinyText": [],
+    "screen": "tv-intro",
+    "ok": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:4210/tv",
+    "viewport": "tv-1920x1080",
+    "horizontalOverflow": false,
+    "documentScrollWidth": 1920,
+    "overflow": [
+      {
+        "selector": "div.lobby-glow.glow-a",
+        "text": "",
+        "left": -365,
+        "right": 518,
+        "width": 883,
+        "scrollWidth": 883,
+        "clientWidth": 883,
+        "why": "esce a sinistra"
+      },
+      {
+        "selector": "div.lobby-glow.glow-b",
+        "text": "",
+        "left": -499,
+        "right": 2381,
+        "width": 2880,
+        "scrollWidth": 2880,
+        "clientWidth": 2880,
+        "why": "esce a destra"
+      }
+    ],
+    "smallTargets": [],
+    "tinyText": [],
+    "screen": "tv-lobby",
+    "ok": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:4210/bonus-preview",
+    "viewport": "tv-1920x1080",
+    "horizontalOverflow": false,
+    "documentScrollWidth": 1920,
+    "overflow": [],
+    "smallTargets": [],
+    "tinyText": [],
+    "screen": "bonus-preview",
+    "ok": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:4210/admin",
+    "viewport": "tv-1920x1080",
+    "horizontalOverflow": false,
+    "documentScrollWidth": 1920,
+    "overflow": [],
+    "smallTargets": [],
+    "tinyText": [],
+    "screen": "admin",
+    "ok": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:4210/tv",
+    "viewport": "tv-1280x720",
+    "horizontalOverflow": false,
+    "documentScrollWidth": 1280,
+    "overflow": [],
+    "smallTargets": [],
+    "tinyText": [],
+    "screen": "tv-intro",
+    "ok": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:4210/tv",
+    "viewport": "tv-1280x720",
+    "horizontalOverflow": false,
+    "documentScrollWidth": 1280,
+    "overflow": [
+      {
+        "selector": "div.lobby-glow.glow-a",
+        "text": "",
+        "left": -243,
+        "right": 346,
+        "width": 589,
+        "scrollWidth": 589,
+        "clientWidth": 589,
+        "why": "esce a sinistra"
+      },
+      {
+        "selector": "div.lobby-glow.glow-b",
+        "text": "",
+        "left": -333,
+        "right": 1587,
+        "width": 1920,
+        "scrollWidth": 1920,
+        "clientWidth": 1920,
+        "why": "esce a destra"
+      }
+    ],
+    "smallTargets": [],
+    "tinyText": [],
+    "screen": "tv-lobby",
+    "ok": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:4210/bonus-preview",
+    "viewport": "tv-1280x720",
+    "horizontalOverflow": false,
+    "documentScrollWidth": 1280,
+    "overflow": [],
+    "smallTargets": [],
+    "tinyText": [],
+    "screen": "bonus-preview",
+    "ok": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:4210/admin",
+    "viewport": "tv-1280x720",
+    "horizontalOverflow": false,
+    "documentScrollWidth": 1280,
+    "overflow": [],
+    "smallTargets": [],
+    "tinyText": [],
+    "screen": "admin",
+    "ok": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:4210/play?quad=1",
+    "viewport": "phone-360x640",
+    "horizontalOverflow": false,
+    "documentScrollWidth": 360,
+    "overflow": [],
+    "smallTargets": [],
+    "tinyText": [],
+    "screen": "play",
+    "ok": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:4210/audio",
+    "viewport": "phone-360x640",
+    "horizontalOverflow": false,
+    "documentScrollWidth": 360,
+    "overflow": [],
+    "smallTargets": [],
+    "tinyText": [],
+    "screen": "audio",
+    "ok": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:4210/play?quad=1",
+    "viewport": "phone-390x844",
+    "horizontalOverflow": false,
+    "documentScrollWidth": 390,
+    "overflow": [],
+    "smallTargets": [],
+    "tinyText": [],
+    "screen": "play",
+    "ok": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:4210/audio",
+    "viewport": "phone-390x844",
+    "horizontalOverflow": false,
+    "documentScrollWidth": 390,
+    "overflow": [],
+    "smallTargets": [],
+    "tinyText": [],
+    "screen": "audio",
+    "ok": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:4210/play?quad=1",
+    "viewport": "phone-412x915",
+    "horizontalOverflow": false,
+    "documentScrollWidth": 412,
+    "overflow": [],
+    "smallTargets": [],
+    "tinyText": [],
+    "screen": "play",
+    "ok": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:4210/audio",
+    "viewport": "phone-412x915",
+    "horizontalOverflow": false,
+    "documentScrollWidth": 412,
+    "overflow": [],
+    "smallTargets": [],
+    "tinyText": [],
+    "screen": "audio",
+    "ok": true,
+    "errors": []
+  }
+]
