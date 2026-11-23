@@ -45,5 +45,7 @@ tutto il resto è **non fatto** e va pianificato in interventi separati.
 
 - Frontend: **703 passati, 2 saltati** (705 dichiarati; i due skip sono loudness
   senza ffmpeg).
-- Build `ng build`: verde, 4,9 s.
-- Backend non toccato in questo intervento.
+- Backend: **168/168** dopo il rialzo versione del pom.
+- Build `ng build` con proxy verso porta chiusa (nessuna rete): verde, 9,1 s.
+- `node scripts/audit-banche.mjs --ci`: OK.
+- Nessuna cattura schermo: Playwright non è installato, vedi `ELENCO.md`.

@@ -1,5 +1,23 @@
 # Changelog
 
+## 23 novembre 2026 — Fiche dell'Azzardo e inventario grafico, 2.4.0
+
+Nessun cambio di regole, punteggi, banche, enum o azioni WebSocket.
+
+- **Azzardo (TV):** le puntate non sono più pillole di testo. Ogni fiche è un
+  cerchio con bordo a tacche, valore leggibile e ombra piena; le pile compaiono
+  sull'opzione scelta e nella colonna PUNTATA, con contatore e massimo tre fiche
+  disegnate. Nel reveal le fiche vincenti sono verdi, quelle perse rosse.
+- **Accessibilità:** l'animazione di caduta usa solo `transform`/`opacity` ed è
+  spenta con `prefers-reduced-motion`, come il battito del timer.
+- **Audit:** nuovi `docs/AUDIT-GRAFICO/ELENCO.md` (19 file con gradienti/glow,
+  498 `!important`, 79 radius larghi, 3.025 righe di `restyle.css`, 30 colori
+  fuori palette) e `docs/AUDIT-GRAFICO/RIEPILOGO.md` con lo stato della spec.
+- **Non incluso in questa versione:** le fasi 2–6 della spec (misura delle
+  animazioni, ingressi dei bonus a sorpresa, matrice audio, classifiche, demo
+  automatiche e aggiornamento dei manuali) restano da fare in interventi
+  separati; il riepilogo lo dichiara voce per voce.
+
 ## 23 novembre 2026 — Pulizia totale e stress test in laboratorio, 2.3.1
 
 Nessun cambio di regole, punteggi, banche, media o azioni WebSocket. La
