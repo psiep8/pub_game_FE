@@ -821,6 +821,9 @@
 
 /* ---------------------------------------------------------------- Intro */
 .intro-screen {
+  /* Raggio dell'orbita delle icone: ellittica perché il logo è largo. */
+  --intro-rx: clamp(330px, 38vw, 720px);
+  --intro-ry: clamp(210px, 31vmin, 340px);
   position: fixed;
   inset: 0;
   z-index: 300;
@@ -896,13 +899,15 @@
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
+/* L'orbita è un'ellisse: il logo è largo, un cerchio lascerebbe le icone
+   sopra le lettere. */
 .intro-orbit-a {
-  width: min(68vw, 980px);
-  aspect-ratio: 1;
+  width: calc(var(--intro-rx) * 2 + 120px);
+  height: calc(var(--intro-ry) * 2 + 120px);
 }
 .intro-orbit-b {
-  width: min(48vw, 690px);
-  aspect-ratio: 1;
+  width: calc(var(--intro-rx) * 1.55);
+  height: calc(var(--intro-ry) * 1.55);
   border-color: color-mix(in srgb, var(--acid) 22%, transparent);
   border-style: dashed;
   transform: translate(-50%, -50%) rotate(8deg);
@@ -932,10 +937,10 @@
   border: 3px solid var(--coal);
   border-radius: 50%;
   box-shadow: 5px 5px 0 var(--tomato);
-  transform:
-    rotate(calc(var(--i) * 45deg))
-    translateY(calc(-1 * clamp(178px, 27vmin, 318px)))
-    rotate(calc(var(--i) * -45deg));
+  transform: translate(
+    calc(cos(calc(var(--i) * 45deg)) * var(--intro-rx)),
+    calc(sin(calc(var(--i) * 45deg)) * var(--intro-ry))
+  );
   animation: introIconIn 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   animation-delay: calc(0.18s + var(--i) * 0.045s);
 }
@@ -1071,16 +1076,16 @@
 
 @media (max-height: 760px) {
   .intro-screen { padding: 16px 26px; gap: 8px; }
+  .intro-screen {
+    --intro-rx: clamp(300px, 34vw, 560px);
+    --intro-ry: clamp(180px, 26vmin, 250px);
+  }
   .intro-icon {
     left: -31px;
     top: -31px;
     width: 62px;
     height: 62px;
     box-shadow: 4px 4px 0 var(--tomato);
-    transform:
-      rotate(calc(var(--i) * 45deg))
-      translateY(calc(-1 * clamp(145px, 25vmin, 195px)))
-      rotate(calc(var(--i) * -45deg));
   }
   .intro-logo { font-size: clamp(4rem, 10vw, 7rem); }
   .intro-tagline { display: none; }
@@ -1090,17 +1095,15 @@
 
 @media (max-width: 900px) {
   .intro-meta { display: none; }
-  .intro-orbit-a { width: 92vw; }
-  .intro-orbit-b { width: 70vw; }
+  .intro-screen {
+    --intro-rx: clamp(220px, 44vw, 460px);
+    --intro-ry: clamp(170px, 27vmin, 230px);
+  }
   .intro-icon {
     left: -26px;
     top: -26px;
     width: 52px;
     height: 52px;
-    transform:
-      rotate(calc(var(--i) * 45deg))
-      translateY(calc(-1 * clamp(118px, 26vmin, 165px)))
-      rotate(calc(var(--i) * -45deg));
   }
   .intro-icon small { display: none; }
   .intro-logo { font-size: clamp(3.4rem, 15vw, 6rem); }
