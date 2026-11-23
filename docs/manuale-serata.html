@@ -566,10 +566,10 @@
         <div>
           <p><b>Composizione.</b> Il tabellone ha <b>2n + n/2 caselle</b> (8 squadre → 20 caselle). Le bombe sono <b>una ogni tre squadre</b>, arrotondata: 4 → 1, 6 → 2, 8 → 3. Le altre caselle contengono affermazioni vere.</p>
           <p><b>Turno.</b> Gioca una squadra alla volta, in ordine, con <b>20 secondi</b> per scegliere una casella. La TV mostra la domanda e le opzioni; la posizione delle bombe resta sul server.</p>
-          <p><b>Cosa succede.</b> Casella vera: nessun punto, si resta in vita e si passa la mano. Bomba: la squadra esce dal round con un malus che dipende dalle bombe ancora in gioco.</p>
+          <p><b>Cosa succede.</b> Casella vera: nessun punto, si resta in vita e si passa la mano. Bomba: la squadra esce dal round con un malus che dipende da quante bombe sono già state prese.</p>
         </div>
         <div>
-          <p><b>Punteggio.</b> Il round è <b>solo a malus</b>: non si guadagnano punti. Ogni bomba costa <b>−round10(500 × bombe rimaste / bombe iniziali)</b>: con 5 bombe −500, −400, −300, −200, −100. Chi non prende bombe non paga nulla.</p>
+          <p><b>Punteggio.</b> Il round è <b>solo a malus</b>: non si guadagnano punti e non ci sono bonus. La prima bomba costa <b>−500</b>, poi il malus scende: <b>−300, −150, −50</b>. Chi non prende bombe non paga nulla.</p>
           <p><b>Fine round.</b> Le bombe mai scelte vengono mostrate e <b>disarmate</b> senza conseguenze. Se restano caselle ma sono uscite tutte le squadre, il round chiude subito.</p>
           <p><b>Domande.</b> Affermazioni quasi tutte vere: la squadra di turno deve riconoscere l'opzione falsa. Le caselle vere non pagano, servono solo a non farsi eliminare.</p>
         </div>
@@ -693,7 +693,7 @@
       <tr><td>TIMELINE</td><td>8 posti giusti +400; 7 +300; 6 +200; 5 +100</td><td>4 → 0; 3 −50; 2 −100; 1 o 0 −200</td><td>Otto carte a ogni round.</td></tr>
       <tr><td>RUOTA</td><td>+1000 × secondi rimasti / 75</td><td>−1000 × secondi rimasti / 75</td><td>Prenotazione + convalida host.</td></tr>
       <tr><td>TIME BUZZER</td><td>+300 al primo; zero a metà se N dispari</td><td>−200 all'ultimo</td><td>Nessuna eliminazione; +600 se il bersaglio è centrato entro 50 ms.</td></tr>
-      <tr><td>BOMBA</td><td>Nessun punto: solo malus</td><td>Bomba: −500, −400, −300, −200, −100</td><td>Tabellone a turni; 20 s per turno; casella vera 0 e si resta in vita.</td></tr>
+      <tr><td>BOMBA</td><td>Nessun punto: solo malus</td><td>Bomba: −500, −300, −150, −50</td><td>Tabellone a turni; 20 s per turno; casella vera 0 e si resta in vita.</td></tr>
       <tr><td>SPEED RUSH</td><td>+800 al primo</td><td>−400 all'ultimo; 0 a metà se N dispari</td><td>90 s; chi non arriva è ultimo a pari merito.</td></tr>
       <tr><td>BIGLIE</td><td>+500 al primo di ogni gara</td><td>−400 all'ultimo; 0 a metà se N dispari</td><td>Due gare per round; punti sommati a ogni arrivo.</td></tr>
       <tr><td>BLACKJACK (bonus)</td><td>Premio del bar</td><td>Nessun punto</td><td>Premio e consegna li gestiscono barista e presentatore; il banco si ferma a 17.</td></tr>

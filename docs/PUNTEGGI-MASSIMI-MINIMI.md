@@ -47,10 +47,12 @@ Note alle celle:
   per il primo). Senza nessun tempo perfetto il massimo è +900 (3 × 300).
 - **Tennis, 0:** con N pari ogni squadra gioca una partita. Con N dispari la
   squadra senza avversario prende +500 a tavolino (`awardCourt` sul riposo).
-- **Bomba, −500:** il malus è tagliato sui punti che la squadra ha davvero
-  (`−min(500, disponibili)`), quindi chi è a zero non perde nulla. Il totale del
-  round cambia con N: N=6 → 2 bombe (−500, −250; totale −750), N=10 → 3 bombe
-  (−500, −330, −170; totale −1000).
+- **Bomba, −500:** solo malus, nessun bonus. La scala è fissa per ordine di
+  scoperta: **−500, −300, −150, −50** (oltre la quarta bomba si resta sull'ultimo
+  gradino). Il malus è tagliato sui punti che la squadra ha davvero
+  (`−min(malus, disponibili)`), quindi chi è a zero non perde nulla. Il totale del
+  round cambia con N: N=6 → 2 bombe (−500, −300; totale −800), N=10 → 3 bombe
+  (−500, −300, −150; totale −950).
 - **Azzardo, +4000:** tetto di 1000 per manche
   (`AZZARDO_MAX_WIN_PER_MANCHE`) × 4 manches. La classifica non scende mai sotto
   zero: il minimo reale è `−punti posseduti all'inizio del round` (0 per chi

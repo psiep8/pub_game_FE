@@ -237,7 +237,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
     phone: [
       'Tocca una casella solo quando è il tuo turno.',
       'Casella vera: 0 punti e il turno passa.',
-      `Bomba: fuori dal round con un malus da ${BOMBA_PEAK} che scende con le bombe rimaste.`,
+      `Bomba: fuori dal round con un malus da ${BOMBA_PEAK} che scende a ogni bomba presa dopo.`,
       'Le caselle restano coperte per tutta l’ondata: gli esiti arrivano alla fine.',
     ],
     win: [
@@ -245,7 +245,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
       'Le bombe mai scelte si disarmano a fine round.',
     ],
     lose: [
-      `La prima bomba costa ${BOMBA_PEAK}, poi il malus scende: −500, −400, −300, −200, −100.`,
+      `La prima bomba costa ${BOMBA_PEAK}, poi il malus scende: −500, −300, −150, −50.`,
       'Chi non sceglie in tempo è fuori come se avesse preso una bomba.',
     ],
     example: 'Con 6 tavoli il tabellone ha 15 caselle (2n + n/2) e due bombe: una ogni tre tavoli.',

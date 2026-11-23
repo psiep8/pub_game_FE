@@ -5,26 +5,25 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Il malus della bomba decresce con le bombe ancora sul tabellone: la prima
- * costa il picco di 500, l'ultima un decimo del picco. La somma dei malus di
- * un round non supera mai 500 × bombe.
+ * Il malus della bomba scende con l'ordine di scoperta: la prima costa il picco
+ * di 500, poi 300, 150 e 50. Nessun bonus: il round è solo a malus.
  */
 class BombaScoringTest {
 
     @Test
-    void ilMalusScendeConLeBombeRimanenti() {
+    void ilMalusScendeConLOrdineDiScoperta() {
         assertThat(BombaService.bombPenalty(5, 0)).isEqualTo(500);
-        assertThat(BombaService.bombPenalty(5, 1)).isEqualTo(400);
-        assertThat(BombaService.bombPenalty(5, 2)).isEqualTo(300);
-        assertThat(BombaService.bombPenalty(5, 3)).isEqualTo(200);
-        assertThat(BombaService.bombPenalty(5, 4)).isEqualTo(100);
+        assertThat(BombaService.bombPenalty(5, 1)).isEqualTo(300);
+        assertThat(BombaService.bombPenalty(5, 2)).isEqualTo(150);
+        assertThat(BombaService.bombPenalty(5, 3)).isEqualTo(50);
+        assertThat(BombaService.bombPenalty(5, 4)).isEqualTo(50);
     }
 
     @Test
-    void arrotondaAllaDecina() {
+    void ilNumeroDiBombeNonCambiaLaScala() {
         assertThat(BombaService.bombPenalty(3, 0)).isEqualTo(500);
-        assertThat(BombaService.bombPenalty(3, 1)).isEqualTo(330);
-        assertThat(BombaService.bombPenalty(3, 2)).isEqualTo(170);
+        assertThat(BombaService.bombPenalty(3, 1)).isEqualTo(300);
+        assertThat(BombaService.bombPenalty(3, 2)).isEqualTo(150);
     }
 
     @Test

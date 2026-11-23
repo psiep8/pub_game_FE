@@ -92,9 +92,9 @@ export const SCORING_RULES: Record<Exclude<GameModeType, 'BLACKJACK'>, ScoringRu
   },
   BOMBA: {
     correct: '0: l’affermazione vera ti tiene in vita',
-    wrong: `${signedPoints(BOMBA_PEAK)} alla prima bomba, poi a scalare`,
+    wrong: `${signedPoints(BOMBA_PEAK)} alla prima bomba, poi −300 / −150 / −50`,
     missed: 'fuori dal round: malus del suo ordine di uscita',
-    note: `Solo malus: la prima squadra fuori paga ${signedPoints(BOMBA_PEAK)}, poi ${signedPoints(BOMBA_PEAK)} × bombe rimaste / bombe iniziali, arrotondato alla decina. Chi non sceglie in tempo è fuori.`,
+    note: `Solo malus, nessun bonus: la squadra che prende la prima bomba esce dal round e paga ${signedPoints(BOMBA_PEAK)}, le successive −300, −150, −50. Chi non sceglie in tempo è fuori come se avesse preso una bomba.`,
   },
   SPEED_RUSH: {
     correct: `${signedPoints(SPEED_RUSH_FIRST)} al primo`,

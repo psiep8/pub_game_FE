@@ -349,14 +349,18 @@ public class BombaService {
     }
 
     /**
-     * Malus della bomba: −500 × bombe ancora sul tabellone / bombe iniziali,
-     * arrotondato alla decina. Chi la prende prima paga di più.
+     * Malus in ordine di scoperta: la prima bomba costa il picco, le successive
+     * scendono a scalare. Oltre la quarta vale sempre l'ultimo gradino.
+     */
+    private static final int[] BOMB_PENALTIES = { 500, 300, 150, 50 };
+
+    /**
+     * Malus della bomba: chi la prende prima paga di più, chi arriva dopo meno.
+     * Il totale non dipende da quante bombe ha il tabellone.
      */
     static int bombPenalty(int totalBombs, int bombsTakenBefore) {
-        int total = Math.max(1, totalBombs);
-        int remaining = Math.max(1, total - Math.max(0, bombsTakenBefore));
-        double raw = BOMBA_PEAK * (double) remaining / total;
-        return Math.max(0, (int) Math.round(raw / 10.0) * 10);
+        int index = Math.min(Math.max(0, bombsTakenBefore), BOMB_PENALTIES.length - 1);
+        return BOMB_PENALTIES[index];
     }
 
     // Il blob rimane privato: contiene anche la posizione delle bombe non scoperte.
