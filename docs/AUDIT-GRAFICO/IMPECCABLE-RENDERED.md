@@ -1,105 +1,148 @@
-# Impeccable sulle pagine renderizzate
+# Impeccable sulle pagine renderizzate — tutti i temi
 
-**Data:** 23 novembre 2026 · **motore:** Impeccable 4.10.0 · **browser:** Chromium
-di Playwright (`chromium-1255/chrome-linux-arm64/chrome`) · **grafica non
-modificata**.
+**Data:** 2026-11-23 · **motore:** Impeccable 4.10.0 · **browser:** Chromium di Playwright · **grafica non modificata**.
 
-## Metodo
+Generato da `scripts/checks/audit-design.mjs`. Per rifarlo:
 
-Scansione eseguita con il detector di Impeccable sulle pagine **renderizzate**,
-non sui sorgenti, a due viewport e due temi:
+```bash
+BASE_URL=http://127.0.0.1:4210 node scripts/checks/audit-design.mjs
+```
 
-| Pagina | Viewport | Tema |
-|---|---|---|
-| TV intro | 1920×1080 | Editorial Acid (chiaro) |
-| TV lobby | 1920×1080 | Editorial Acid |
-| TV intro | 1920×1080 | Arctic Noir (scuro) |
-| TV lobby | 1920×1080 | Arctic Noir |
-| Telefono setup | 390×844 | Editorial Acid |
-| Telefono setup | 390×844 | Arctic Noir |
+## Copertura
 
-Il tema è stato impostato via `localStorage` (`pubgame-theme`) prima del
-caricamento. Poiché `/tv` non raggiunge mai `networkidle` (WebSocket sempre
-aperto), il detector andava in timeout sulla pagina viva: ho salvato il DOM
-renderizzato **dopo** aver chiuso l'intro e l'ho servito come pagina statica sullo
-stesso dev server, poi l'ho scansionato con `npx impeccable detect <URL>
---viewport …`. Restano gli stili calcolati reali (fogli globali + `<style>` dei
-componenti); spariscono solo gli script.
+Scansionate per **tutti gli otto temi**:
+- **TV intro** (1920×1080)
+- **TV lobby** (1920×1080, dopo la chiusura dell'intro)
+- **Telefono setup** (390×844, `?quad=1`)
 
-I temi sono **otto**; qui ne sono stati provati due, uno chiaro e uno scuro.
+**Non** scansionate: round di gioco, bonus, classifiche, manuale, demo, regia/admin, regia audio, stati di errore/offline.
+
+## Temi
+
+| Tema | Famiglia | Superfici | Contrasti | Warning |
+|---|---|---|---|---|
+| Editorial Acid (`editorial-acid`) | chiaro | 3/3 | 4 | 8 |
+| Desert Heritage (`desert-heritage`) | chiaro | 3/3 | 3 | 5 |
+| Arctic Noir (`arctic-noir`) | scuro | 3/3 | 9 | 13 |
+| Deep Ocean (`deep-ocean`) | scuro | 3/3 | 5 | 6 |
+| Kpop Aesthetic (`kpop-aesthetic`) | scuro | 3/3 | 4 | 8 |
+| Neon Cyberpunk (`neon-cyberpunk`) | scuro | 3/3 | 6 | 9 |
+| Sunset Pop (`sunset-pop`) | scuro | 3/3 | 4 | 8 |
+| Premium Gold (`premium-gold`) | scuro | 3/3 | 7 | 11 |
+
+Scansioni riuscite: **24/24**.
 
 ## Contrasto (WCAG AA)
 
-### Editorial Acid
+### Editorial Acid (chiaro)
 
-| Pagina | Elemento | Testo su fondo | Rapporto | Esito |
-|---|---|---|---|---|
-| TV intro | `.intro-kicker` | `#fff8e8` su `#ff4d2e` | **3.1:1** | warning (serve 4.5) |
-| TV lobby | `.lobby-kicker` | `#fff8e8` su `#ff4d2e` | **3.1:1** | warning |
-| TV lobby | `.qr-label` | `#ff4d2e` su `#f1e4c9` | **2.6:1** | warning |
-| Telefono | placeholder `#team-name` | `#a19d91` su `#fff8e8` | **2.6:1** | advisory |
+| Superficie | Elemento | Testo su fondo | Esito |
+|---|---|---|---|
+| TV intro | `div.intro-kicker` | 3.1:1 (need 4.5:1) — text #fff8e8 on #ff4d2e | warning |
+| TV lobby | `div.lobby-kicker.ng-tns-c1664707305-0` | 3.1:1 (need 4.5:1) — text #fff8e8 on #ff4d2e | warning |
+| TV lobby | `div.qr-label.ng-tns-c1664707305-0` | 2.6:1 (need 4.5:1) — text #ff4d2e on #f1e4c9 | warning |
+| Telefono setup | `#team-name` | placeholder "Nome della squadra" 2.6:1 (need 4.5:1) — text #a19d91 on #fff8e8 | advisory |
+
+### Desert Heritage (chiaro)
+
+| Superficie | Elemento | Testo su fondo | Esito |
+|---|---|---|---|
+| TV lobby | `div.qr-label.ng-tns-c1664707305-0` | 4.2:1 (need 4.5:1) — text #9b4f2d on #e8d6b8 | advisory |
+| TV lobby | `p.lobby-url.ng-tns-c1664707305-0` | 4.3:1 (need 4.5:1) — text #6b6152 on #e8d6b8 | advisory |
+| Telefono setup | `#team-name` | placeholder "Nome della squadra" 2.5:1 (need 4.5:1) — text #a1998c on #f8eedc | advisory |
 
 ### Arctic Noir (scuro)
 
-| Pagina | Elemento | Testo su fondo | Rapporto | Esito |
-|---|---|---|---|---|
-| TV intro | `h1.intro-logo` («PUB») | `#111e2d` su `#080f1a` | **1.1:1** | warning: il logo chiaro scompare |
-| TV intro | `.intro-stamp` | `#dce8f2` su `#a9b9c9` | **1.6:1** | warning |
-| TV intro | `.intro-kicker` | `#1b2b3d` su `#4169a8` | **2.6:1** | warning |
-| TV intro | `button.intro-start` | `#dce8f2` su `#54bceb` | **1.7:1** | warning |
-| TV lobby | `h1.lobby-title` | `#111e2d` su `#080f1a` | **1.1:1** | warning (+3 elementi) |
-| TV lobby | `.lobby-kicker` | `#1b2b3d` su `#4169a8` | **2.6:1** | warning |
-| TV lobby | `.qr-label` | `#4169a8` su `#111e2d` | **3.1:1** | warning |
-| TV lobby | `.game-id-badge` | `#54bceb` su `#dce8f2` | **1.7:1** | warning |
-| Telefono | placeholder `#team-name` | `#687785` su `#1b2b3d` | **3.1:1** | advisory |
+| Superficie | Elemento | Testo su fondo | Esito |
+|---|---|---|---|
+| TV intro | `span.intro-stamp` | 1.6:1 (need 4.5:1) — text #dce8f2 on #a9b9c9 | warning |
+| TV intro | `div.intro-kicker` | 2.6:1 (need 4.5:1) — text #1b2b3d on #4169a8 | warning |
+| TV intro | `h1.intro-logo` | 1.1:1 (need 3:1) — text #111e2d on #080f1a | warning |
+| TV intro | `button.intro-start` | 1.7:1 (need 3:1) — text #dce8f2 on #54bceb | warning |
+| TV lobby | `div.lobby-kicker.ng-tns-c1664707305-0` | 2.6:1 (need 4.5:1) — text #1b2b3d on #4169a8 | warning |
+| TV lobby | `h1.lobby-title.ng-tns-c1664707305-0` | 1.1:1 (need 3:1) — text #111e2d on #080f1a (and 3 more) | warning |
+| TV lobby | `div.qr-label.ng-tns-c1664707305-0` | 3.1:1 (need 4.5:1) — text #4169a8 on #111e2d | warning |
+| TV lobby | `div.game-id-badge.ng-tns-c1664707305-0` | 1.7:1 (need 4.5:1) — text #54bceb on #dce8f2 | warning |
+| Telefono setup | `#team-name` | placeholder "Nome della squadra" 3.1:1 (need 4.5:1) — text #687785 on #1b2b3d | advisory |
 
-**Lettura.** Il tema scuro non è pronto per la TV: il logo perde la parola
-«PUB», il pulsante di avvio ha testo chiaro su accento chiaro e lo stamp in alto
-si scioglie nel fondo. Anche il tema chiaro ha due punti ricorrenti: le etichette
-bianche sul timbro tomato (3.1:1) e il QR label tomato su carta (2.6:1). Il
-telefono se la cava con il solo placeholder del nome.
+### Deep Ocean (scuro)
+
+| Superficie | Elemento | Testo su fondo | Esito |
+|---|---|---|---|
+| TV intro | `div.intro-kicker` | 4.49:1 (need 4.5:1) — text #f0fbf7 on #087f8c (and 1 more) | advisory |
+| TV lobby | `span.label` | 4.49:1 (need 4.5:1) — text #f0fbf7 on #087f8c (and 1 more) | advisory |
+| TV lobby | `div.qr-label.ng-tns-c1664707305-0` | 4.0:1 (need 4.5:1) — text #087f8c on #d9f0ea | warning |
+| TV lobby | `p.lobby-url.ng-tns-c1664707305-0` | 4.3:1 (need 4.5:1) — text #597274 on #d9f0ea | advisory |
+| Telefono setup | `#team-name` | placeholder "Nome della squadra" 2.4:1 (need 4.5:1) — text #94a5a5 on #f0fbf7 | advisory |
+
+### Kpop Aesthetic (scuro)
+
+| Superficie | Elemento | Testo su fondo | Esito |
+|---|---|---|---|
+| TV intro | `div.intro-kicker` | 2.6:1 (need 4.5:1) — text #fff8fc on #a98bff | warning |
+| TV lobby | `div.lobby-kicker.ng-tns-c1664707305-0` | 2.6:1 (need 4.5:1) — text #fff8fc on #a98bff | warning |
+| TV lobby | `div.qr-label.ng-tns-c1664707305-0` | 2.4:1 (need 4.5:1) — text #a98bff on #fff0f7 | warning |
+| Telefono setup | `#team-name` | placeholder "Nome della squadra" 2.5:1 (need 4.5:1) — text #a79ea9 on #fff8fc | advisory |
+
+### Neon Cyberpunk (scuro)
+
+| Superficie | Elemento | Testo su fondo | Esito |
+|---|---|---|---|
+| TV intro | `span.intro-stamp` | 4.4:1 (need 4.5:1) — text #f0eafe on #8b35ff | advisory |
+| TV intro | `h1.intro-logo` | 1.1:1 (need 3:1) — text #17112a on #090713 | warning |
+| TV lobby | `h1.lobby-title.ng-tns-c1664707305-0` | 1.1:1 (need 3:1) — text #17112a on #090713 | warning |
+| TV lobby | `div.game-id-badge.ng-tns-c1664707305-0` | 3.1:1 (need 4.5:1) — text #ff00a8 on #f0eafe | warning |
+| TV lobby | `div.lobby-step.ng-tns-c1664707305-0:nth-of-type(1) > div.ng-tns-c1664707305-0 > b.ng-tns-c1664707305-0` | 1.0:1 (need 3:1) — text #17112a on #1a0c18 (gradient on div.game-container) (and 2 more) | warning |
+| Telefono setup | `#team-name` | placeholder "Nome della squadra" 3.4:1 (need 4.5:1) — text #766c88 on #24183a | advisory |
+
+### Sunset Pop (scuro)
+
+| Superficie | Elemento | Testo su fondo | Esito |
+|---|---|---|---|
+| TV intro | `div.intro-kicker` | 4.1:1 (need 4.5:1) — text #fff9f3 on #c64c91 (and 1 more) | warning |
+| TV lobby | `span.label` | 4.1:1 (need 4.5:1) — text #fff9f3 on #c64c91 (and 1 more) | warning |
+| TV lobby | `div.qr-label.ng-tns-c1664707305-0` | 3.9:1 (need 4.5:1) — text #c64c91 on #fff0e6 | warning |
+| Telefono setup | `#team-name` | placeholder "Nome della squadra" 2.4:1 (need 4.5:1) — text #aa9fa4 on #fff9f3 | advisory |
+
+### Premium Gold (scuro)
+
+| Superficie | Elemento | Testo su fondo | Esito |
+|---|---|---|---|
+| TV intro | `span.intro-stamp` | 1.4:1 (need 4.5:1) — text #f7e7ce on #e5c76b | warning |
+| TV intro | `h1.intro-logo` | 1.0:1 (need 3:1) — text #101820 on #101820 | warning |
+| TV intro | `button.intro-start` | 1.7:1 (need 3:1) — text #f7e7ce on #d4af37 | warning |
+| TV lobby | `h1.lobby-title.ng-tns-c1664707305-0` | 1.0:1 (need 3:1) — text #101820 on #101820 | warning |
+| TV lobby | `div.game-id-badge.ng-tns-c1664707305-0` | 1.7:1 (need 4.5:1) — text #d4af37 on #f7e7ce | warning |
+| TV lobby | `div.lobby-step.ng-tns-c1664707305-0:nth-of-type(1) > div.ng-tns-c1664707305-0 > b.ng-tns-c1664707305-0` | 1.0:1 (need 3:1) — text #101820 on #101820 (gradient on div.game-container) (and 2 more) | warning |
+| Telefono setup | `#team-name` | placeholder "Nome della squadra" 3.3:1 (need 4.5:1) — text #72716d on #1a222c | advisory |
 
 ## Testi piccoli
 
-Il detector segnala una sola voce sotto la soglia funzionale di 11 px su ogni
-schermata TV:
+| Superficie | Elemento | Testo | Dimensione |
+|---|---|---|---|
+| TV intro | `span.intro-stamp` | EDIZIONE 26 | 11.52 px |
+| TV intro | `span.intro-meta` | UNA TV · SQUADRE · 40 ROUND | 11.2 px |
+| TV intro | `small` | QUIZ | 6.72 px |
+| TV intro | `span` | TOCCA O PREMI INVIO PER SALTARE | 11.2 px |
+| TV intro | `span.intro-edition` | PUB GAME / 26 | 11.2 px |
+| TV intro | `button.dock-btn.advance` | AVANTI | 9.28 px |
+| TV lobby | `div.game-id-badge.ng-tns-c1664707305-0` | PARTITA #1 | 11.2 px |
+| TV lobby | `p.lobby-url.ng-tns-c1664707305-0` | http://127.0.0.1:4211/play?game=1 | 10.88 px |
+| TV lobby | `button.dock-btn.advance` | AVANTI | 9.28 px |
 
-- `button.dock-btn.advance` — **9,28 px**, testo «AVANTI», in tutte e quattro le
-  catture TV (intro e lobby, entrambi i temi).
+Segnalazioni del detector (`undersized-ui-text`):
 
-Misura indipendente su tutti i nodi di testo visibili (soglia 12 px):
-
-| Schermata | Sotto 12 px | Dettaglio |
-|---|---|---|
-| TV intro (entrambi i temi) | **13** | le 8 etichette dentro le icone (`QUIZ`, `MUSICA`, `IMMAGINI`, `TEMPO`, `CARTE`, `AZZARDO`…) a **6,72 px**; `EDIZIONE 26` 11,5 px; `UNA TV · SQUADRE · 40 ROUND` 11,2 px; il resto sono micro-etichette del footer |
-| TV lobby (entrambi i temi) | **3** | `PARTITA #1` 11,2 px, URL del telefono 10,88 px, «AVANTI» 9,28 px |
-| Telefono setup (entrambi i temi) | **0** | — |
+- TV intro: `button.dock-btn.advance` — 9.28px functional text "AVANTI" (below 11px floor)
+- TV lobby: `button.dock-btn.advance` — 9.28px functional text "AVANTI" (below 11px floor)
 
 ## Bersagli sotto 44 px
 
-| Schermata | Elemento | Misura |
-|---|---|---|
-| TV lobby (entrambi i temi) | `button.pairing-btn` «GENERA CODICE» | 161×**38 px** |
+| Superficie | Elemento | Testo | Misura |
+|---|---|---|---|
+| TV lobby | `button.pairing-btn.ng-tns-c1664707305-0` | GENERA CODICE | 161×38 px |
 
-Sul telefono nessun bersaglio sotto 44 px nel setup, in nessuno dei due temi.
+## Note
 
-## Altro dal detector
-
-- `hard-offset-shadow`: 12 sulla intro e 7 sulla lobby, per entrambi i temi.
-  È l'ombra piena voluta dal progetto, non un difetto.
-- `hero-eyebrow-chip` (intro), `kicker-above-heading` e `nested-cards` (lobby):
-  scelte di composizione coerenti con il linguaggio stampato, da rivalutare solo
-  se si ridisegna la schermata.
-- Nessun testo a gradiente, vetro o glow nelle pagine scansionate.
-
-## Cosa resta aperto
-
-1. **Tema scuro TV**: logo, stamp, kicker e pulsante di avvio sotto AA. È il
-   punto più grave emerso.
-2. **Tema chiaro TV**: etichette bianche su tomato (3.1:1) e QR label tomato su
-   carta (2.6:1).
-3. **Testi**: «AVANTI» a 9,28 px e le etichette delle icone a 6,72 px.
-4. **Bersaglio**: «GENERA CODICE» alto 38 px.
-5. **Telefono**: solo il placeholder del nome, e solo come advisory.
-
-Nessuna correzione applicata: come richiesto, la grafica si tocca al test live.
+- Le ombre piene offset (`hard-offset-shadow`) sono il linguaggio voluto: compaiono come advisory e non vanno rimosse.
+- Le etichette mono in maiuscolo con tracking largo sono segnalate come `wide-tracking`, ma sono etichette, non body text.
+- Il tema è impostato via `localStorage` prima del caricamento; il DOM viene salvato dopo l'eventuale chiusura dell'intro e servito da un proxy locale per il detector.

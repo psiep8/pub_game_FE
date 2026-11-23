@@ -35,6 +35,9 @@ npm run audit:design                    # detector sui sorgenti frontend
 npm run audit:design -- --no-advisory   # solo i warning
 npx impeccable detect --json apps/frontend/src
 npx impeccable update                   # aggiorna skill e motore
+
+# Pagine renderizzate, tutti gli otto temi (serve il dev server attivo)
+BASE_URL=http://127.0.0.1:4200 node scripts/checks/audit-design.mjs
 ```
 
 Per la scansione di una pagina renderizzata (contrasto, testi piccoli, bersagli)
@@ -65,8 +68,9 @@ test live, come richiesto. Restano però elencate qui e sono il punto di partenz
 per la prossima passata.
 
 La scansione delle **pagine renderizzate** (contrasto, testi piccoli, bersagli) è
-in [`AUDIT-GRAFICO/IMPECCABLE-RENDERED.md`](AUDIT-GRAFICO/IMPECCABLE-RENDERED.md),
-con TV chiara e TV scura.
+in [`AUDIT-GRAFICO/IMPECCABLE-RENDERED.md`](AUDIT-GRAFICO/IMPECCABLE-RENDERED.md):
+TV intro, TV lobby e setup telefono per **tutti gli otto temi**, generata da
+`scripts/checks/audit-design.mjs`.
 
 ## Note operative
 
