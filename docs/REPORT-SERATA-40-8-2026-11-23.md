@@ -132,3 +132,5 @@ della fault injection.
   risposte casuali su indici/opzioni.
 - `scripts/sim/tv-pilot.mjs`: stati `CASINO_*`, `BLACKJACK_STATE` e
   `BIGLIE_STATE` per i round Biglie.
+- `scripts/sim/schedule.mjs`: contratto 40 round + cinque bonus verificato
+  all'import, con test dedicato `npm run test:sim`.

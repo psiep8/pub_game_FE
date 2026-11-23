@@ -22,6 +22,7 @@
     "test": "npm run test:frontend",
     "test:frontend": "npm run test --workspace pubgame-fe",
     "test:backend": "node scripts/mvn.mjs test",
+    "test:sim": "node --test scripts/sim/serata-contract.test.mjs",
     "db:backup": "node scripts/backup-db.mjs",
     "db:legacy-copy": "node scripts/legacy-quiz-copy.mjs",
     "audit:design": "impeccable detect apps/frontend/src",
