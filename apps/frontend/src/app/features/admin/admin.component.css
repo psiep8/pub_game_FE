@@ -817,7 +817,7 @@
   color: var(--coal);
   font-family: var(--font-mono);
 }
-.cat-input::placeholder { color: color-mix(in srgb, var(--coal) 42%, transparent); }
+.cat-input::placeholder { color: color-mix(in srgb, var(--coal) 65%, transparent); }
 .cat-row {
   border: 2px solid var(--coal);
   border-radius: 0;
