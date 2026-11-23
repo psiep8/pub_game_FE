@@ -480,16 +480,6 @@ public class PartyGamesController {
         return Map.of("resumed", true, "gameId", gameId, "shiftedMs", shiftedMs);
     }
 
-    /** Azzera i due giochi (nuova partita o reset dalla TV). */
-    @PostMapping("/{gameId}/party/reset")
-    public Map<String, Object> reset(@PathVariable("gameId") Long gameId) {
-        partyGameService.forget(gameId);
-        speedRushService.forget(gameId);
-        basketService.forget(gameId);
-        stateBlobs.forget(gameId, BUZZER_BLOB);
-        return Map.of("reset", true, "gameId", gameId);
-    }
-
     private double readDouble(Object raw) {
         if (raw instanceof Number number) {
             return number.doubleValue();

@@ -2,8 +2,8 @@
 # ============================================================
 # 🚇 PubGame — Tunnel Cloudflare (un solo tunnel)
 #
-# Il frontend chiama sempre la propria origine: /games, /categories,
-# /questions e /ws-pubgame vengono inoltrati dal dev-server al backend
+# Il frontend chiama sempre la propria origine: /games, /categories e
+# /ws-pubgame vengono inoltrati dal dev-server al backend
 # (proxy.conf.mjs). Un tunnel verso la porta del frontend basta quindi per
 # TV, admin e per tutti i telefoni: un URL solo, nessun tunnel backend.
 #

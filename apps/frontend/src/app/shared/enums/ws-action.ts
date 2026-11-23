@@ -18,11 +18,7 @@ export const WsAction = {
   /** La squadra sceglie il colore della serata: la TV lo adotta. */
   SELECT_THEME: 'SELECT_THEME',
   // Prova dei pulsanti
-  BUTTON_TEST_STEP: 'BUTTON_TEST_STEP',
-  BUTTON_TEST_START: 'BUTTON_TEST_START',
-  BUTTON_TEST_RESET: 'BUTTON_TEST_RESET',
-  BUTTON_TEST_SKIP: 'BUTTON_TEST_SKIP',
-  BUTTON_TEST_FINISH: 'BUTTON_TEST_FINISH',
+  /** La sequenza passa da ButtonTestService (REST): sul canale resta il ping. */
   BUTTON_TEST_PING: 'BUTTON_TEST_PING',
   // Bonus giocati dai telefoni
   CASINO_ACTION: 'CASINO_ACTION',
@@ -38,7 +34,6 @@ export const WsAction = {
   ROUND_ENDED: 'ROUND_ENDED',
   BLOCKED_ERROR: 'BLOCKED_ERROR',
   BONUS_ENDED: 'BONUS_ENDED',
-  BONUS_RESULT: 'BONUS_RESULT',
   ARENA_ELIMINATED: 'ARENA_ELIMINATED',
   ARENA_ENDED: 'ARENA_ENDED',
   /** La regia espelle una squadra: il telefono torna al setup. */

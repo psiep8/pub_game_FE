@@ -13,7 +13,7 @@ import { inject } from '@angular/core';
 import { ReliabilityService } from './core/services/reliability.service';
 
 const sessionInterceptor: HttpInterceptorFn = (request, next) => {
-  if (!request.url.startsWith('/games') && !request.url.startsWith('/categories') && !request.url.startsWith('/questions')) return next(request);
+  if (!request.url.startsWith('/games') && !request.url.startsWith('/categories')) return next(request);
   if (/\/games\/\d+\/session$/.test(request.url)) return next(request);
   const token = inject(ReliabilityService).sessionToken();
   return next(token ? request.clone({ setHeaders: { 'X-Session-Token': token } }) : request);

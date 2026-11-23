@@ -20,7 +20,7 @@ monorepo: `npm install` e gli script si lanciano dalla **radice** del repo.
 
 Nessun IP e nessuna porta nel codice: `src/app/core/environment/` deriva API e
 WebSocket dall'origine della pagina, e il dev server inoltra `/games`,
-`/categories`, `/questions` e `/ws-pubgame` al backend indicato da `BE_PORT` in
+`/categories` e `/ws-pubgame` al backend indicato da `BE_PORT` in
 `.env` (vedi `proxy.conf.mjs`).
 
 ## Avvio e build

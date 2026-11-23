@@ -122,11 +122,6 @@ public class GameController {
         return gameRepo.save(g);
     }
 
-    @GetMapping
-    public List<Game> getAllGames() {
-        return gameRepo.findAll();
-    }
-
     @GetMapping("/{gameId}/generate-ai-round")
     public GameRound generateAiRound(@PathVariable("gameId") Long gameId,
             @RequestParam("category") String category,

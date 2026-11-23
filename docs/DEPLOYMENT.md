@@ -114,7 +114,7 @@ Architettura consigliata: **una sola origine**.
 Internet / LAN
       │
    Caddy (HTTPS)  ── /            → file statici Angular
-      │            ── /games, /categories, /questions, /media
+      │            ── /games, /categories, /media
       │            ── /ws-pubgame → Spring Boot :8080
       ▼
   Spring Boot + H2 su disco
@@ -154,7 +154,7 @@ play.example.it {
     encode gzip zstd
     root * /srv/pubgame/browser
 
-    @api path /games/* /categories/* /questions/* /media/*
+    @api path /games/* /categories/* /media/*
     handle @api {
         reverse_proxy 127.0.0.1:8080
     }
@@ -171,8 +171,8 @@ play.example.it {
 }
 ```
 
-Con nginx l'equivalente richiede `location /games/`, `/categories/`, `/questions/`,
-`/media/` e `/ws-pubgame` con `proxy_pass http://127.0.0.1:8080;` e
+Con nginx l'equivalente richiede `location /games/`, `/categories/`, `/media/`
+e `/ws-pubgame` con `proxy_pass http://127.0.0.1:8080;` e
 `proxy_set_header Upgrade $http_upgrade; proxy_set_header Connection "upgrade";`
 per il WebSocket.
 

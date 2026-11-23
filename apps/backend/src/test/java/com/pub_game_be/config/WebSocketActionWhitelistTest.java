@@ -30,10 +30,8 @@ class WebSocketActionWhitelistTest {
     /** Pubblicate su /app/game/{id}/answer, dove l'interceptor non filtra per azione. */
     private static final Set<String> SOLO_ANSWER = Set.of(
             "ANSWER", "ARENA_ANSWER", "TIME_BUZZER_ANSWER", "SPEED_RUSH_PROGRESS");
-    /** Dichiarate nell'enum ma nessun client le invia ancora. */
-    private static final Set<String> NON_INVIATE = Set.of(
-            "BUTTON_TEST_STEP", "BUTTON_TEST_START", "BUTTON_TEST_RESET", "BUTTON_TEST_SKIP", "BUTTON_TEST_FINISH",
-            "BONUS_RESULT", "PLAYER_REMOVED");
+    /** Dichiara nell'enum ma nessun client la pubblica: la manda il server. */
+    private static final Set<String> NON_INVIATE = Set.of("PLAYER_REMOVED");
     /** Sotto questo numero il parse è rotto, non l'enum è corto. */
     private static final int AZIONI_ATTESE = 50;
 

@@ -55,11 +55,11 @@ dichiarate nel test (ffmpeg assente nell'ambiente), non sono un rosso.
 
 | Voce | Baseline | Finale | Delta |
 |---|---|---|---|
-| File versionati | 724 | **692** | −32 (34 screenshot `qa/`, 1 DTO, +3 file di script: due strumenti di stress e il client condiviso) |
-| Righe frontend | 60.354 | **60.330** | −24 |
-| Righe backend | 39.991 | **39.973** | −18 |
+| File versionati | 724 | **691** | −33 (34 screenshot `qa/`, `ScreamDto`, `QuestionController`, +3 file di script) |
+| Righe frontend | 60.354 | **60.325** | −29 |
+| Righe backend | 39.991 | **39.924** | −67 (DTO, rotte e azioni morte) |
 | Righe script | 7.847 | **7.996** | +149 (due strumenti nuovi e `sim/client.mjs`, meno il codice duplicato nei tre script) |
-| Righe docs | 6.240 | **6.732** | +492 (questo rapporto, `STRESS-REPORT.md`, registro roadmap) |
+| Righe docs | 6.240 | **6.795** | +555 (questo rapporto, `STRESS-REPORT.md`, registro roadmap) |
 | Bundle JS | 1.595.804 B | **1.594.990 B** | −814 B |
 | Bundle CSS | 39.125 B | **39.125 B** | 0 |
 | Build `ng build` | 7,24 s | **5,78–6,39 s** (tre misure) | invariata nei limiti della varianza |
@@ -161,10 +161,10 @@ queste.
 | `GET /games/{id}/arena/prepare`, `GET .../arena/scores`, `POST .../arena/reset` | `scripts/checks/arena_check.py`, `simulate_arena.py` |
 | `GET /games/{id}/state` | `restart-check.mjs` e i test di integrazione |
 | `GET /health` | container, script, monitoraggio |
-| `GET /games` | **nessuno**: le partite si creano con `POST /games` |
-| `POST /games/{id}/party/reset` | **nessun chiamante applicativo** |
-| `POST /games/{id}/session/disconnect` | **nessuno**: compare solo nella allowlist di `SessionAuthenticationFilter` |
-| `GET /questions`, `GET /questions/category/{c}` | **nessun chiamante applicativo**; restano i test del controller |
+| `GET /games` | **rimosso**: le partite si creano con `POST /games` |
+| `POST /games/{id}/party/reset` | **rimosso**: nessun chiamante applicativo |
+| `POST /games/{id}/session/disconnect` | **tenuto**: è nella allowlist di `SessionAuthenticationFilter` e il telefono può usarlo quando chiude la pagina |
+| `GET /questions`, `GET /questions/category/{c}` | **rimossi** con `QuestionController`: nessun chiamante applicativo né test |
 
 Falsi allarmi del primo confronto, verificati a mano: `button-test/*` passa da
 `ButtonTestService.url()`, `generate-ai-round` da `AiGeneratorService`
@@ -174,24 +174,34 @@ servizio di affidabilità.
 Sul canale STOMP, 11 valori dell'enum `WsAction` non sono in nessuna whitelist ma
 sono legittimi perché viaggiano altrove: `ANSWER`, `ARENA_ANSWER`,
 `TIME_BUZZER_ANSWER`, `SPEED_RUSH_PROGRESS` vanno su `/answer` o su endpoint
-REST; `BUTTON_TEST_STEP/START/RESET/SKIP/FINISH` sono ormai solo REST;
-`BONUS_RESULT` e `PLAYER_REMOVED` sono messaggi server → telefoni. Sei voci
-dell'enum non sono referenziate da nessun file: le cinque `BUTTON_TEST_*` qui
-sopra e `BONUS_RESULT`. Sono candidate a rimozione, ma enum, whitelist e test di
-allineamento vanno cambiati insieme: voce separata, non pulizia silenziosa.
-Nessuna azione ammessa dal server resta senza un mittente nel frontend
-(`MUSIC_PHASE` è usata in `music.mode.ts`).
+REST; `PLAYER_REMOVED` è un messaggio server → telefoni; le cinque
+`BUTTON_TEST_*` sono state **rimosse** (la prova pulsanti passa solo da
+`ButtonTestService`, sul canale resta `BUTTON_TEST_PING`). Rimossa anche
+`BONUS_RESULT`: nessun file la manda o la gestisce, il backend la rifiuta solo
+come azione sconosciuta in un test. Il test di allineamento ora elenca come non
+inviata la sola `PLAYER_REMOVED`, che il backend manda davvero. Nessuna azione
+ammessa dal server resta senza un mittente nel frontend (`MUSIC_PHASE` è usata
+in `music.mode.ts`).
 
 Limite: è un confronto statico. Non dimostra che una rotta «usata» sia
 raggiungibile in ogni stato, né copre URL costruiti a runtime da stringhe
-dinamiche.: copertura, salti, stabilità
+dinamiche.
+
+---
+
+## 7. Test: copertura, salti, stabilità
 
 - **Saltati:** 2 test in `loop-loudness.spec.ts` (ffmpeg assente), dichiarati nel
   test. Nessun `xit`, `fit`, `.only`, `.skip` o `@Disabled` nel codice.
 - **Focalizzati:** nessuno.
-- **Instabili:** nessuno osservato. La suite frontend è stata eseguita tre volte
-  (prima e dopo le modifiche) con lo stesso esito 701/2; il backend 168/168 tre
-  volte.
+- **Instabili:** la suite frontend è sempre 701/2 (tre esecuzioni). Il backend è
+  168/168 nella maggior parte delle esecuzioni, ma **una volta** la suite
+  completa ha avuto due fallimenti di timing in `ReliabilityIntegrationTest`
+  (`dueTelefoniNonRicevonoUnAnnuncioQuizDopoIlCambioRound` e
+  `risultatoArenaPubblicatoDalServerUnaVoltaSulWebSocketReale`, nessun frame
+  entro l'attesa). La classe da sola è passata 45/45 e la suite completa di
+  nuovo 168/168: è un test sensibile al carico della macchina, non un guasto
+  del codice. Da tenere d'occhio se ricompare in CI.
 - **Giochi con sola logica di modalità testata** (nessuna spec del componente TV):
   Timeline, Arena, Tennis Battle, Time Buzzer, Speed Rush, Ultima spiaggia.
   Hanno `*.mode.spec.ts` ma non uno spec del componente che disegna il round.

@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.GetMapping;
  * o {@code /play} arriverebbe al backend come rotta REST. Qui viene inoltrato
  * a {@code index.html}, che poi lascia gestire il percorso al router Angular.</p>
  *
- * <p>Le API ({@code /games}, {@code /categories}, {@code /questions},
- * {@code /media}) e il WebSocket ({@code /ws-pubgame}) hanno i loro mapping e
- * non passano da questo controller.</p>
+ * <p>Le API ({@code /games}, {@code /categories}, {@code /media}) e il
+ * WebSocket ({@code /ws-pubgame}) hanno i loro mapping e non passano da questo
+ * controller.</p>
  */
 @Controller
 public class SpaForwardController {
