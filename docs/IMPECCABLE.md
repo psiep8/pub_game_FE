@@ -64,6 +64,10 @@ Nessuna di queste è stata corretta in questo intervento: la grafica si rivede a
 test live, come richiesto. Restano però elencate qui e sono il punto di partenza
 per la prossima passata.
 
+La scansione delle **pagine renderizzate** (contrasto, testi piccoli, bersagli) è
+in [`AUDIT-GRAFICO/IMPECCABLE-RENDERED.md`](AUDIT-GRAFICO/IMPECCABLE-RENDERED.md),
+con TV chiara e TV scura.
+
 ## Note operative
 
 - Il detector sui **sorgenti** vede solo regole di pattern: contrasto, testi
