@@ -1,187 +1,146 @@
+/* Ruota: manifesto su fondo scuro, tessere di carta. Token di AGENTS.md. */
 .wheel-layout {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(10px, 2vh, 25px);
-  padding: clamp(12px, 2vh, 30px);
-  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  gap: clamp(10px, 2vh, 24px);
+  padding: clamp(14px, 2.4vh, 28px);
+  background: transparent;
+  color: var(--paper);
+  font-family: var(--font);
   z-index: 100;
 }
 
 .wheel-title {
-  font-size: clamp(1.5rem, 5vw, 3rem);
-  color: #ffd700;
-  text-shadow: 0 0 20px rgba(255, 215, 0, 0.8),
-  0 0 40px rgba(255, 215, 0, 0.5);
-  font-weight: 900;
+  display: inline-block;
   margin: 0;
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3.7vw, 3rem);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: 0.02em;
   text-align: center;
-  animation: titlePulse 2s ease-in-out infinite;
+  text-transform: uppercase;
+  text-shadow: 4px 4px 0 var(--tomato);
   flex-shrink: 0;
 }
 
-.wheel-hint {
-  font-size: clamp(0.9rem, 3vw, 1.5rem);
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 215, 0, 0.15);
-  padding: clamp(6px, 1.5vh, 10px) clamp(12px, 3vw, 30px);
-  border-radius: 50px;
-  border: 2px solid rgba(255, 215, 0, 0.3);
+/* Etichetta mono: dice di che cosa è fatta la banca, come un timbro. */
+.wheel-kicker {
+  margin: 0;
+  padding: 3px 10px;
+  background: var(--acid);
+  border: 2px solid var(--coal);
+  border-radius: 0;
+  box-shadow: 3px 3px 0 var(--tomato);
+  color: var(--coal);
+  font-family: var(--font-mono);
+  font-size: clamp(0.58rem, 1.5vh, 0.8rem);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transform: rotate(-1.2deg);
   flex-shrink: 0;
 }
 
+/* Prenotazione: timbro rosso, bordo carta, ombra piena. Niente pulsazioni. */
 .reservation-alert {
-  background: linear-gradient(135deg, #ff0000, #cc0000);
-  padding: clamp(10px, 2vh, 20px) clamp(20px, 4vw, 50px);
-  border-radius: clamp(12px, 2vw, 20px);
-  box-shadow: 0 10px 40px rgba(255, 0, 0, 0.8);
   display: flex;
+  align-items: baseline;
   gap: clamp(10px, 2vw, 20px);
-  animation: alertPulse 0.8s ease-in-out infinite;
+  padding: clamp(8px, 1.6vh, 16px) clamp(16px, 3vw, 36px);
+  background: var(--tomato);
+  color: var(--paper-hi);
+  border: 3px solid var(--paper-hi);
+  border-radius: 0;
+  box-shadow: 6px 6px 0 var(--coal);
   flex-shrink: 0;
 
   .alert-name {
-    font-size: clamp(1.2rem, 4vw, 2.5rem);
-    font-weight: 900;
-    color: white;
+    color: var(--paper-hi);
+    font-family: var(--font-display);
+    font-size: clamp(1.2rem, 3.6vh, 2rem);
+    font-weight: 400;
+    line-height: 1;
     text-transform: uppercase;
   }
 
   .alert-text {
-    font-size: clamp(1rem, 3.5vw, 2rem);
+    color: var(--paper-hi);
+    font-family: var(--font-mono);
+    font-size: clamp(0.72rem, 2vh, 1rem);
     font-weight: 700;
-    color: #ffd700;
+    letter-spacing: 0.1em;
   }
 }
 
 .phrase-container {
   display: flex;
   flex-wrap: wrap;
-  gap: clamp(4px, 0.8vw, 8px);
   justify-content: center;
+  gap: clamp(4px, 0.8vw, 8px);
   max-width: 95vw;
-  padding: clamp(8px, 2vh, 20px);
+  padding: clamp(8px, 1.8vh, 18px);
   overflow: auto;
 
   .word {
     display: inline-flex;
-    gap: clamp(4px, 0.8vw, 8px);
     align-items: center;
-    white-space: nowrap;
+    gap: clamp(4px, 0.8vw, 8px);
     margin: clamp(4px, 1vh, 10px);
+    white-space: nowrap;
   }
 
+  /* Tessera di carta con ombra piena: la lettera coperta resta vuota. */
   .letter-box {
-    width: clamp(30px, 5vmin, 55px);
-    height: clamp(38px, 7vmin, 70px);
-    background: rgba(255, 255, 255, 0.95);
-    border: 3px solid rgba(255, 215, 0, 0.5);
-    border-radius: clamp(6px, 1vmin, 10px);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: clamp(1rem, 4vmin, 2.2rem);
-    font-weight: 900;
+    width: clamp(32px, 5vmin, 55px);
+    height: clamp(40px, 7vmin, 70px);
+    background: var(--paper);
+    border: 3px solid var(--coal);
+    border-radius: 0;
+    box-shadow: 4px 4px 0 var(--tomato);
     color: transparent;
-    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), background-color 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), color 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), border-color 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), box-shadow 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2),
-    inset 0 2px 5px rgba(255, 255, 255, 0.5);
+    font-family: var(--font-mono);
+    font-size: clamp(1.1rem, 4vmin, 2rem);
+    font-weight: 700;
+    transition: background-color 0.18s ease, color 0.18s ease;
 
+    /* Lettera svelata: inchiostro su acido, l'unico colore che avanza. */
     &.revealed {
-      background: linear-gradient(135deg, #ffd700, #ffed4e);
-      color: #1a1a2e;
-      border-color: #ffd700;
-      transform: rotateY(360deg);
-      box-shadow: 0 5px 20px rgba(255, 215, 0, 0.5),
-      inset 0 -2px 10px rgba(0, 0, 0, 0.2);
+      background: var(--acid);
+      color: var(--coal);
     }
-  }
-
-  .word-break {
-    width: clamp(8px, 2vw, 24px);
   }
 }
 
+/* Il cerchio resta: è un orologio, non una card. */
 .timer-dot-container {
   flex-shrink: 0;
+
   .timer-circle {
-    width: clamp(48px, 8vmin, 90px);
-    height: clamp(48px, 8vmin, 90px);
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    animation: timerPulse 1s ease-in-out infinite;
+    width: clamp(52px, 8.4vmin, 86px);
+    height: clamp(52px, 8.4vmin, 86px);
+    background: var(--coal);
+    border: 2px solid var(--paper);
+    border-radius: 50%;
+    box-shadow: 4px 4px 0 var(--tomato);
 
     .timer-value {
-      font-size: clamp(1rem, 3vmin, 2rem);
-      font-weight: 900;
-      color: white;
+      color: var(--acid);
+      font-family: var(--font-mono);
+      font-size: clamp(1rem, 2.8vmin, 1.6rem);
+      font-weight: 700;
     }
-  }
-}
-
-.presenter-controls {
-  display: flex;
-  gap: 30px;
-
-  button {
-    padding: 20px 40px;
-    font-size: 1.5rem;
-    font-weight: 700;
-    border: none;
-    border-radius: 15px;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-
-    &.control-correct {
-      background: linear-gradient(135deg, #11998e, #38ef7d);
-      color: white;
-    }
-
-    &.control-wrong {
-      background: linear-gradient(135deg, #eb3349, #f45c43);
-      color: white;
-    }
-
-    &:active {
-      transform: scale(0.95);
-    }
-  }
-}
-
-@keyframes titlePulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-@keyframes alertPulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-@keyframes timerPulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
   }
 }
 
@@ -192,5 +151,5 @@
 
     .word { gap: 6px; }
     .letter-box { width: 48px; height: 62px; font-size: 2rem; }
-   }
- }
+  }
+}

@@ -296,6 +296,11 @@ con la chiave del `QuestionHistoryService`: due round della stessa serata non
 possono ripetere la frase e, a mazzo esaurito, si riparte da capo. Verifiche:
 `node scripts/audit-banche.mjs --ci` → 0 doppioni, 0 segnalazioni;
 `WheelProverbTest`; tabellone TV misurato a 1280×720 con la frase più lunga.
+La skin TV della Ruota è passata ai token carta/inchiostro (tessere di carta con
+bordo 3 px e ombra piena al pomodoro, lettere svelate in acido, timbro mono al
+posto dell'emoji, timer nero su carta); il CSS legacy che viveva in
+`tv/game.component.css` è stato rimosso. Schermata di verifica a 1280×720:
+`docs/screenshots/ruota-skin-720p.png`.
 
 **Aggiornamento 23 novembre 2026 — Bomba senza dubbi e Timeline a 222 eventi.**
 Le otto coppie della Bomba segnalate dall'audit sono state allineate accorciando

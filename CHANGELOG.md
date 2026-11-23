@@ -14,8 +14,16 @@
   prenota nel `QuestionHistoryService`. Se il mazzo si esaurisce riparte da
   capo invece di far fallire il round. Test: `WheelProverbTest`.
 - **Documenti:** audit rigenerato, tabella di revisione aggiornata.
+- **Grafica TV:** la skin della Ruota passa ai token carta/inchiostro — tessere
+  di carta con bordo 3 px e ombra piena al pomodoro, lettere svelate in acido,
+  titolo Anton con ombra piena, timbro mono «PROVERBI E MODI DI DIRE», timer
+  nero con bordo carta. Spariti gradienti blu/viola, glow, radius e l'emoji nel
+  titolo; rimosso il CSS legacy duplicato in `tv/game.component.css` (selettori
+  del componente figlio, mai applicati) e le pulsazioni decorative.
 - Verifiche: `node scripts/audit-banche.mjs --ci` → 0 doppioni, 0 segnalazioni,
-  0 campi mancanti, 0 dubbi Bomba; `WheelProverbTest` e compilazione backend.
+  0 campi mancanti, 0 dubbi Bomba; `WheelProverbTest`; build frontend e 11 test
+  Ruota; tabellone TV guardato a 1280×720 con la frase più lunga (3 righe
+  misurate, nessun taglio).
 
 ## 23 novembre 2026 — Bomba senza dubbi, Timeline a 222 eventi
 

@@ -1215,15 +1215,6 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
-@keyframes titlePulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
 @keyframes popupIn {
   from {
     opacity: 0;
@@ -1233,83 +1224,6 @@
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
   }
-}
-
-.wheel-layout {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(10px, 2vh, 30px);
-  padding: clamp(10px, 2vh, 30px);
-  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-  z-index: 100;
-}
-
-.wheel-layout .wheel-title {
-  font-size: clamp(1.5rem, 5vw, 3rem);
-  color: #ffd700;
-  text-shadow: 0 0 20px rgba(255, 215, 0, 0.8),
-  0 0 40px rgba(255, 215, 0, 0.5);
-  font-weight: 900;
-  margin: 0;
-  text-align: center;
-  animation: titlePulse 2s ease-in-out infinite;
-  flex-shrink: 0;
-}
-
-.wheel-layout .wheel-hint {
-  font-size: clamp(0.9rem, 3vw, 1.5rem);
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 215, 0, 0.15);
-  padding: clamp(6px, 1.5vh, 10px) clamp(12px, 3vw, 30px);
-  border-radius: 50px;
-  border: 2px solid rgba(255, 215, 0, 0.3);
-  flex-shrink: 0;
-}
-
-.wheel-layout .phrase-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(4px, 0.8vw, 8px);
-  justify-content: center;
-  align-items: center;
-  max-width: 95vw;
-  padding: clamp(8px, 2vh, 20px);
-}
-
-.wheel-layout .phrase-container .letter-box {
-  width: clamp(32px, 5vmin, 55px);
-  height: clamp(40px, 7vmin, 70px);
-  background: rgba(255, 255, 255, 0.1);
-  border: 3px solid rgba(255, 215, 0, 0.3);
-  border-radius: clamp(6px, 1vmin, 10px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(1.2rem, 4vmin, 2.2rem);
-  font-weight: 900;
-  color: transparent;
-  transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), background-color 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), color 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), border-color 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), box-shadow 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-.wheel-layout .phrase-container .letter-box.revealed {
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
-  color: #1a1a2e;
-  border-color: #ffd700;
-  transform: rotateY(360deg);
-  box-shadow: 0 5px 20px rgba(255, 215, 0, 0.5),
-  inset 0 -2px 10px rgba(0, 0, 0, 0.2);
-}
-
-.wheel-layout .phrase-container .word-break {
-  width: clamp(10px, 2vw, 24px);
-  height: 1px;
 }
 
 .go-popup {
