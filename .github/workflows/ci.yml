@@ -21,6 +21,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - name: Contratto simulazione (40 round + 5 bonus)
+        run: npm run test:sim
       - name: Build
         run: npm run build
       - name: Test
