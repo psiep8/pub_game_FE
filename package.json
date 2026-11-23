@@ -24,7 +24,9 @@
     "test:backend": "node scripts/mvn.mjs test",
     "db:backup": "node scripts/backup-db.mjs",
     "db:legacy-copy": "node scripts/legacy-quiz-copy.mjs",
-    "audit:banche": "node scripts/audit-banche.mjs --write"
+    "audit:banche": "node scripts/audit-banche.mjs --write",
+    "stress:ws": "node scripts/stress/ws-load.mjs",
+    "stress:restart": "node scripts/stress/restart-check.mjs"
   },
   "devDependencies": {
     "@angular/service-worker": "^22.3.0",
