@@ -1,5 +1,17 @@
 # Changelog
 
+## 23 novembre 2026 — Ruota a 62 frasi
+
+- **Ruota della fortuna:** `QuestionBankService.PROVERBS` passa da **32 a 62
+  frasi**, tutte italiane e adatte a un pub, senza doppioni (l'audit confronta
+  il testo normalizzato). Le 30 nuove sono proverbi e modi di dire di uso
+  comune — da «Acqua passata non macina più» a «Non dire gatto se non ce l'hai
+  nel sacco» — così due occorrenze a serata non ripetono la stessa frase e la
+  banca regge più serate di fila.
+- **Documenti:** audit rigenerato, tabella di revisione aggiornata.
+- Verifiche: `node scripts/audit-banche.mjs --ci` → 0 doppioni, 0 segnalazioni,
+  0 campi mancanti, 0 dubbi Bomba.
+
 ## 23 novembre 2026 — Bomba senza dubbi, Timeline a 222 eventi
 
 - **Bomba:** risolte le otto coppie segnalate dall'audit accorciando i nomi

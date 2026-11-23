@@ -321,7 +321,7 @@ Brani: **114**, artisti distinti: **78**. Doppioni: **0**. Campi o file mancanti
 
 ## Ruota della fortuna (frasi dal servizio)
 
-Frasi: **32**. Doppioni: **0**. Segnalazioni: **0**.
+Frasi: **62**. Doppioni: **0**. Segnalazioni: **0**.
 
 ## Bomba (affermazioni vere e false)
 
