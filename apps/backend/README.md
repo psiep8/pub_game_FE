@@ -54,7 +54,7 @@ src/main/java/com/pub_game_be/
 ├── repository/    JPA
 ├── security/      filtro sessioni e CORS
 └── service/       logica di gioco e domande
-src/main/resources/questions/   banche pre-generate (983 quiz + 360 azzardo + 95 bomba + 211 timeline)
+src/main/resources/questions/   banche pre-generate (983 quiz + 360 azzardo + 110 bomba + 222 timeline)
 ```
 
 L'autorità su punteggi e avanzamento è del server; la TV conserva la

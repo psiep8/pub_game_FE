@@ -49,24 +49,24 @@ Nessuna.
 
 ## Timeline
 
-Eventi: **211** (servono almeno 24 per tre round da 8).
+Eventi: **222** (servono almeno 24 per tre round da 8).
 
 | Categoria | Eventi | Round coperti |
 | --- | --- | --- |
-| Anime e manga | 15 | 1.9 |
+| Anime e manga | 16 | 2 |
 | Arte e Architettura | 15 | 1.9 |
-| Cibo e Gastronomia | 15 | 1.9 |
-| Cinema, Serie TV | 15 | 1.9 |
-| Gaming e Tecnologia | 15 | 1.9 |
-| Geografia e Viaggi | 15 | 1.9 |
+| Cibo e Gastronomia | 16 | 2 |
+| Cinema, Serie TV | 16 | 2 |
+| Gaming e Tecnologia | 16 | 2 |
+| Geografia e Viaggi | 16 | 2 |
 | Lingua e Letteratura | 15 | 1.9 |
-| Motori | 15 | 1.9 |
-| Musica | 15 | 1.9 |
-| Politica e Attualità | 15 | 1.9 |
+| Motori | 16 | 2 |
+| Musica | 16 | 2 |
+| Politica e Attualità | 16 | 2 |
 | Scienza e Spazio | 16 | 2 |
-| Sport | 15 | 1.9 |
-| Storia | 15 | 1.9 |
-| TV e Spettacolo | 15 | 1.9 |
+| Sport | 16 | 2 |
+| Storia | 16 | 2 |
+| TV e Spettacolo | 16 | 2 |
 
 | Difficoltà | Eventi |
 | --- | --- |
@@ -74,7 +74,7 @@ Eventi: **211** (servono almeno 24 per tre round da 8).
 | 2 | 75 |
 | 3 | 61 |
 | 4 | 24 |
-| 5 | 3 |
+| 5 | 14 |
 
 ### Campi mancanti (0)
 
@@ -89,10 +89,15 @@ Nessuno.
 | Darwin pubblica L'origine delle specie | Proclamazione del Regno d'Italia | 2 |
 | Apertura del Canale di Suez | Presa di Roma | 1 |
 | Presa di Roma | Spedizione oceanografica dello Challenger | 2 |
+| Spedizione oceanografica dello Challenger | Prima esecuzione del Requiem di Verdi | 2 |
+| Prima esecuzione del Requiem di Verdi | Apertura del Festival di Bayreuth | 2 |
+| Apertura del Festival di Bayreuth | Nasce la Barilla a Parma | 1 |
 | Karl Benz brevetta la prima automobile a motore | Nasce la Coca-Cola | 0 |
 | Inaugurazione della Torre Eiffel | La pizza Margherita viene servita a Napoli | 0 |
 | Prima proiezione cinematografica dei fratelli Lumière | Röntgen scopre i raggi X | 0 |
 | Röntgen scopre i raggi X | Prime Olimpiadi moderne ad Atene | 1 |
+| Prime Olimpiadi moderne ad Atene | Primo campionato italiano di calcio | 2 |
+| Primo campionato italiano di calcio | Prima guida Michelin | 2 |
 | Primo Tour de France | Primo volo dei fratelli Wright | 0 |
 | Primo volo dei fratelli Wright | Nasce Harley-Davidson | 0 |
 | Nasce Harley-Davidson | Einstein pubblica la relatività ristretta | 2 |
@@ -105,6 +110,8 @@ Nessuno.
 | Inizio della Prima guerra mondiale | Einstein pubblica la relatività generale | 1 |
 | Scoperta della tomba di Tutankhamon | Prima 24 Ore di Le Mans | 1 |
 | Prima 24 Ore di Le Mans | Primi Giochi olimpici invernali a Chamonix | 1 |
+| Primi Giochi olimpici invernali a Chamonix | Esce La corazzata Potëmkin | 1 |
+| Esce La corazzata Potëmkin | Esce Il cantante di jazz, primo film sonoro | 2 |
 | Esce Il cantante di jazz, primo film sonoro | Scoperta della penicillina | 1 |
 | Scoperta della penicillina | Apre il Museum of Modern Art di New York | 1 |
 | Apre il Museum of Modern Art di New York | Patti Lateranensi | 0 |
@@ -124,7 +131,8 @@ Nessuno.
 | Fondazione delle Nazioni Unite | Fine della Seconda guerra mondiale in Europa | 0 |
 | Fine della Seconda guerra mondiale in Europa | ENIAC, primo computer elettronico general-purpose | 1 |
 | ENIAC, primo computer elettronico general-purpose | Referendum per la Repubblica in Italia | 0 |
-| Referendum per la Repubblica in Italia | Entrata in vigore della Costituzione italiana | 2 |
+| Referendum per la Repubblica in Italia | Enzo Ferrari fonda la Ferrari | 1 |
+| Enzo Ferrari fonda la Ferrari | Entrata in vigore della Costituzione italiana | 1 |
 | Entrata in vigore della Costituzione italiana | Pubblicato 1984 di Orwell | 1 |
 | Pubblicato 1984 di Orwell | Primo campionato mondiale di Formula 1 | 1 |
 | Primo campionato mondiale di Formula 1 | Prima edizione del Festival di Sanremo | 1 |
@@ -135,7 +143,8 @@ Nessuno.
 | Inizio delle trasmissioni Rai | Elvis Presley incide That's All Right | 0 |
 | Elvis Presley incide That's All Right | Esce Il Signore degli Anelli | 0 |
 | Esce Il Signore degli Anelli | Pubblicato Lolita di Nabokov | 1 |
-| Pubblicato Lolita di Nabokov | Lancio dello Sputnik | 2 |
+| Pubblicato Lolita di Nabokov | Prima edizione dell'Eurovision Song Contest | 1 |
+| Prima edizione dell'Eurovision Song Contest | Lancio dello Sputnik | 1 |
 | Lancio dello Sputnik | Trattato di Roma, nasce la CEE | 0 |
 | Trattato di Roma, nasce la CEE | Momofuku Ando inventa i noodles istantanei | 1 |
 | Momofuku Ando inventa i noodles istantanei | Tennis for Two, primo videogioco | 0 |
@@ -168,7 +177,8 @@ Nessuno.
 | Nadia Comăneci ottiene il primo 10 alle Olimpiadi | L'incidente di Niki Lauda al Nürburgring | 0 |
 | L'incidente di Niki Lauda al Nürburgring | Esce Guerre stellari | 1 |
 | Esce Guerre stellari | Atari lancia la console 2600 | 0 |
-| Atari lancia la console 2600 | Debutta Mobile Suit Gundam | 2 |
+| Atari lancia la console 2600 | Debutta Capitan Harlock | 1 |
+| Debutta Capitan Harlock | Debutta Mobile Suit Gundam | 1 |
 | Debutta Mobile Suit Gundam | Nasce CNN | 1 |
 | Nasce CNN | Eruzione del Monte Sant'Elena | 0 |
 | Eruzione del Monte Sant'Elena | Esce Il nome della rosa | 0 |
@@ -198,7 +208,8 @@ Nessuno.
 | Esce Nevermind dei Nirvana | Il Dream Team vince l'oro olimpico | 1 |
 | Il Dream Team vince l'oro olimpico | Trattato di Maastricht | 0 |
 | Trattato di Maastricht | Debutta Sailor Moon | 0 |
-| Debutta Sailor Moon | Apertura del Tunnel della Manica | 2 |
+| Debutta Sailor Moon | Esce Doom | 1 |
+| Esce Doom | Apertura del Tunnel della Manica | 1 |
 | Apertura del Tunnel della Manica | Esce Pulp Fiction | 0 |
 | Esce Pulp Fiction | Debutta Friends | 0 |
 | Debutta Friends | Muore Ayrton Senna a Imola | 0 |
@@ -209,7 +220,8 @@ Nessuno.
 | Inizia il manga One Piece | Esce Titanic | 0 |
 | Esce Titanic | Apre il museo Guggenheim di Bilbao | 0 |
 | Apre il museo Guggenheim di Bilbao | Esce Princess Mononoke | 0 |
-| Esce Princess Mononoke | Esce Matrix | 2 |
+| Esce Princess Mononoke | Firmato lo Statuto di Roma | 1 |
+| Firmato lo Statuto di Roma | Esce Matrix | 1 |
 | Esce Matrix | Inizia il manga Naruto | 0 |
 | Inizia il manga Naruto | Debutta Chi vuol essere miliardario? in Italia | 1 |
 | Debutta Chi vuol essere miliardario? in Italia | Escono i Coldplay con Parachutes | 0 |
@@ -329,15 +341,6 @@ Affermazioni: **110** (62 vere, 48 false). Doppioni: **0**. Campi mancanti: **0*
 | Storia | 5 | 5 |
 | Tecnologia | 5 | 5 |
 
-### False senza un solo dettaglio cambiato (8)
+### False senza un solo dettaglio cambiato (0)
 
-| ID | Controllo | Dettaglio |
-| --- | --- | --- |
-| bomba-natura-04 | vera più vicina distante: verificare a mano | 3 parole: La rondine è l'animale più veloce in volo. / Il falco pellegrino è l'animale più veloce in volo. |
-| bomba-natura-06 | vera più vicina distante: verificare a mano | 3 parole: Lo squalo balena è il più grande animale esistente. / La balenottera azzurra è il più grande animale esistente. |
-| bomba-cinema-04 | vera più vicina distante: verificare a mano | 3 parole: Il padrino è diretto da Martin Scorsese. / Il padrino è diretto da Francis Ford Coppola. |
-| bomba-musica-06 | vera più vicina distante: verificare a mano | 4 parole: Mozart compose La Traviata. / Mozart compose Le nozze di Figaro. |
-| bomba-arte-02 | vera più vicina distante: verificare a mano | 3 parole: La Gioconda è di Raffaello. / La Gioconda è di Leonardo da Vinci. |
-| bomba-tecnologia-02 | vera più vicina distante: verificare a mano | 3 parole: Il World Wide Web fu proposto da Bill Gates. / Il World Wide Web fu proposto da Tim Berners-Lee. |
-| bomba-tecnologia-08 | vera più vicina distante: verificare a mano | 4 parole: La sigla CPU indica la memoria di massa. / La sigla CPU indica l'unità centrale di elaborazione. |
-| bomba-letteratura-08 | vera più vicina distante: verificare a mano | 3 parole: Il Gattopardo è di Leonardo Sciascia. / Il Gattopardo è ambientato in Sicilia. |
+Nessuna: ogni falsa ha una vera vicina con un solo dettaglio diverso.

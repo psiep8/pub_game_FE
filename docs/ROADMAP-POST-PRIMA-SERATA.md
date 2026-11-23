@@ -288,6 +288,16 @@ La ripresa del Casino usa lo stesso `tvCheckpoint` dei round, con `mode` che ini
 - `3257054e` + `07169f9d` — annunci Quiz: la consegna avveniva col valore di ritorno di un metodo `@MessageMapping`, fuori dal `withRoundLock` dell'apertura, e il framework la ripeteva anche senza `@SendTo`. Ora il controller pubblica esplicitamente dentro lo stesso lock, il metodo è `void`, e i messaggi Quiz portano `roundStartId` e `roundStartedAt` autorevoli. Il telefono scarta annunci di un'altra apertura o più vecchi. Verifiche: test WebSocket con due client reali (l'annuncio vecchio non arriva dopo il cambio round, il nuovo arriva una volta sola), 88 test remoti e 191 test frontend (remoto + TV). **Da provare in sala:** TV e due telefoni fisici, primo round, cambio round e refresh della TV durante l'annuncio.
 - `283a05e5` + `5d4b76ad` — voti legacy: la ripresa di un Quiz con blob senza `roundStartId` resta bloccata (`legacy-quiz-state`) e un Quiz successivo non può più sovrascrivere quel blob; il primo legacy viene copiato in `quiz-legacy-archive` con test-and-set e l'archivio non viene mai sostituito. Verifiche: `QuizServiceTest` (11 test) e test d'integrazione H2 su apertura nuova, archivio e secondo legacy. **Da provare in sala:** copia di un database precedente all'aggiornamento, non il database della serata.
 
+**Aggiornamento 23 novembre 2026 — Bomba senza dubbi e Timeline a 222 eventi.**
+Le otto coppie della Bomba segnalate dall'audit sono state allineate accorciando
+i nomi troppo lunghi (Coppola, Leonardo, Berners-Lee, Lampedusa) e portando la
+falsa a un solo dettaglio di distanza: **0 dubbi** su 110 affermazioni. La
+Timeline è passata da **211** a **222** eventi con **11 eventi di difficoltà 5**
+nuovi, uno per categoria: ora tutte le 14 categorie ne hanno almeno uno. Ogni
+anno scelto era libero e ogni evento ha la fonte Wikipedia. Verifiche:
+`node scripts/audit-banche.mjs --ci` → 0 doppioni, 0 segnalazioni, 0 campi
+mancanti, 0 buchi di Ultima spiaggia, 0 dubbi Bomba.
+
 **Aggiornamento 21 novembre 2026 — 2.2.0 e banche.** La versione corrente è la
 **2.2.0** (nessun tag creato). Banche: **983 domande** Quiz/Arena/Tennis/Cavallo,
 **360** Azzardo, **110** affermazioni Bomba e **211** eventi Timeline; l'audit dà

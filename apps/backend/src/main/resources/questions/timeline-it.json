@@ -845,6 +845,13 @@
       "source": "https://it.wikipedia.org/w/index.php?search=Dissoluzione%20dell'Unione%20Sovietica"
     },
     {
+      "label": "Pace di Aquisgrana",
+      "year": 1748,
+      "category": "Storia",
+      "difficulty": 5,
+      "source": "https://it.wikipedia.org/w/index.php?search=Pace%20di%20Aquisgrana%20(1748)"
+    },
+    {
       "label": "Spedizione oceanografica dello Challenger",
       "year": 1872,
       "category": "Geografia e Viaggi",
@@ -892,6 +899,13 @@
       "category": "Geografia e Viaggi",
       "difficulty": 2,
       "source": "https://it.wikipedia.org/w/index.php?search=L'eruzione%20dell'Eyjafjallaj%C3%B6kull%20blocca%20i%20voli"
+    },
+    {
+      "label": "La spedizione di Perry apre il Giappone",
+      "year": 1854,
+      "category": "Geografia e Viaggi",
+      "difficulty": 5,
+      "source": "https://it.wikipedia.org/w/index.php?search=Convenzione%20di%20Kanagawa"
     },
     {
       "label": "Darwin pubblica L'origine delle specie",
@@ -992,6 +1006,13 @@
       "source": "https://it.wikipedia.org/w/index.php?search=Il%20Portogallo%20vince%20il%20Campionato%20europeo"
     },
     {
+      "label": "Primo campionato italiano di calcio",
+      "year": 1898,
+      "category": "Sport",
+      "difficulty": 5,
+      "source": "https://it.wikipedia.org/w/index.php?search=Campionato%20Italiano%20di%20Football%201898"
+    },
+    {
       "label": "Esce Via col vento",
       "year": 1939,
       "category": "Cinema, Serie TV",
@@ -1039,6 +1060,13 @@
       "category": "Cinema, Serie TV",
       "difficulty": 3,
       "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Inception"
+    },
+    {
+      "label": "Esce La corazzata Potëmkin",
+      "year": 1925,
+      "category": "Cinema, Serie TV",
+      "difficulty": 5,
+      "source": "https://it.wikipedia.org/w/index.php?search=La%20corazzata%20Pot%C3%ABmkin"
     },
     {
       "label": "Debutta Twin Peaks",
@@ -1090,6 +1118,13 @@
       "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20Stranger%20Things"
     },
     {
+      "label": "Prima edizione dell'Eurovision Song Contest",
+      "year": 1956,
+      "category": "TV e Spettacolo",
+      "difficulty": 5,
+      "source": "https://it.wikipedia.org/w/index.php?search=Eurovision%20Song%20Contest%201956"
+    },
+    {
       "label": "Festival di Woodstock",
       "year": 1969,
       "category": "Musica",
@@ -1137,6 +1172,13 @@
       "category": "Musica",
       "difficulty": 3,
       "source": "https://it.wikipedia.org/w/index.php?search=Bob%20Dylan%20riceve%20il%20Nobel%20per%20la%20letteratura"
+    },
+    {
+      "label": "Prima esecuzione del Requiem di Verdi",
+      "year": 1874,
+      "category": "Musica",
+      "difficulty": 5,
+      "source": "https://it.wikipedia.org/w/index.php?search=Messa%20da%20requiem%20(Verdi)"
     },
     {
       "label": "Bernini completa il colonnato di San Pietro",
@@ -1237,6 +1279,13 @@
       "source": "https://it.wikipedia.org/w/index.php?search=Referendum%20sulla%20Brexit"
     },
     {
+      "label": "Firmato lo Statuto di Roma",
+      "year": 1998,
+      "category": "Politica e Attualità",
+      "difficulty": 5,
+      "source": "https://it.wikipedia.org/w/index.php?search=Statuto%20di%20Roma"
+    },
+    {
       "label": "Nasce Harley-Davidson",
       "year": 1903,
       "category": "Motori",
@@ -1286,6 +1335,13 @@
       "source": "https://it.wikipedia.org/w/index.php?search=Nasce%20la%20Formula%20E"
     },
     {
+      "label": "Enzo Ferrari fonda la Ferrari",
+      "year": 1947,
+      "category": "Motori",
+      "difficulty": 5,
+      "source": "https://it.wikipedia.org/w/index.php?search=Ferrari"
+    },
+    {
       "label": "Nascono i biscotti Oreo",
       "year": 1912,
       "category": "Cibo e Gastronomia",
@@ -1333,6 +1389,13 @@
       "category": "Cibo e Gastronomia",
       "difficulty": 3,
       "source": "https://it.wikipedia.org/w/index.php?search=Apre%20Eataly%20a%20Torino"
+    },
+    {
+      "label": "Nasce la Barilla a Parma",
+      "year": 1877,
+      "category": "Cibo e Gastronomia",
+      "difficulty": 5,
+      "source": "https://it.wikipedia.org/w/index.php?search=Barilla"
     },
     {
       "label": "Bembo pubblica le Prose della volgar lingua",
@@ -1433,6 +1496,13 @@
       "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20Demon%20Slayer"
     },
     {
+      "label": "Debutta Capitan Harlock",
+      "year": 1978,
+      "category": "Anime e manga",
+      "difficulty": 5,
+      "source": "https://it.wikipedia.org/w/index.php?search=Capitan%20Harlock"
+    },
+    {
       "label": "Atari lancia la console 2600",
       "year": 1977,
       "category": "Gaming e Tecnologia",
@@ -1480,6 +1550,13 @@
       "category": "Gaming e Tecnologia",
       "difficulty": 2,
       "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Minecraft"
+    },
+    {
+      "label": "Esce Doom",
+      "year": 1993,
+      "category": "Gaming e Tecnologia",
+      "difficulty": 5,
+      "source": "https://it.wikipedia.org/w/index.php?search=Doom%20(videogioco)"
     }
   ]
 }

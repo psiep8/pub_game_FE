@@ -52,7 +52,7 @@ segnalazioni delle domande).
 | Indovina chi (`media-it.json`, people) | 150 persone, 7 categorie | 0 | 0: tutte con categoria, foto su disco, descrizione ed estratto | nessuna voce: gli indizi sono verificati da `CelebrityClueLeakTest` |
 | Musica (`media-it.json`, music) | 114 brani, 5 occorrenze in serata | 0 | 0: ogni brano ha anno, file e copertina | nessuna |
 | Ruota (frasi in `QuestionBankService.PROVERBS`) | 32 frasi, 2 occorrenze in serata | 0 | 0: nessuna frase sotto le tre parole o con numeri | 32 frasi bastano per due occorrenze, non per ripetere la stessa serata: valutarne altre |
-| Bomba (`bomba-it.json`) | **110 affermazioni (62 vere, 48 false)**, 11 categorie da 9 a 10 | 0 | 0 campi mancanti: ogni riga ha id, categoria, booleano e fonte | 8 coppie in cui il nome cambiato ha tre o più parole: rivedute a mano, nessun fatto da correggere (elenco sotto) |
+| Bomba (`bomba-it.json`) | **110 affermazioni (62 vere, 48 false)**, 11 categorie da 9 a 10 | 0 | 0 campi mancanti: ogni riga ha id, categoria, booleano e fonte; 0 dubbi di distanza | nessuna: le 8 coppie segnalate sono state allineate (elenco sotto) |
 
 ### Musica: anno completato
 
@@ -66,27 +66,55 @@ computer del server e va rifatta se la banca si rigenera da zero con
 `generate_media.py`. Con l'anno presente l'audit dà **0 campi mancanti** su
 Musica.
 
-### Bomba: coppie rivedute a mano
+### Bomba: coppie allineate (23 novembre 2026)
 
 L'audit misura la distanza in parole dalla vera più vicina della stessa
-categoria: con un nome di tre o più parole la distanza supera 2 anche quando è
-cambiato **un solo dettaglio**. Le otto coppie rimaste sono state confrontate a
-mano: in ognuna cambia un solo elemento e non c'è nulla da correggere. Le quattro
-coppie che mancavano davvero sono state completate con una vera e la fonte
-(Torre Eiffel 1889, ragni non insetti, violino a quattro corde, Titanic di
-Cameron), più sei affermazioni nuove per portare ogni categoria ad almeno nove
-righe: 95 → **110**.
+categoria. Le otto coppie segnalate il 23 novembre sono state risolte
+**accorciando i nomi troppo lunghi** («Francis Ford Coppola» → «Francis
+Coppola», «Leonardo da Vinci» → «Leonardo», «Tim Berners-Lee» →
+«Berners-Lee», «Giuseppe Tomasi di Lampedusa» → «Lampedusa») e, dove le due
+frasi non erano la stessa affermazione, **portando la falsa a un solo dettaglio
+di distanza**. Nessun fatto è cambiato: le affermazioni restano vere o false come
+prima e ognuna tiene la sua fonte. L'audit ora dà **0 dubbi** su 110
+affermazioni (62 vere, 48 false).
 
-| ID | Frase falsa | Vera corrispondente | Esito |
+Le quattro coppie che mancavano davvero erano già state completate con una vera
+e la fonte (Torre Eiffel 1889, ragni non insetti, violino a quattro corde,
+Titanic di Cameron), più sei affermazioni nuove per portare ogni categoria ad
+almeno nove righe: 95 → **110**.
+
+| ID | Frase falsa | Vera corrispondente | Distanza |
 | --- | --- | --- | --- |
-| `bomba-natura-04` | La rondine è l'animale più veloce in volo. | Il falco pellegrino è l'animale più veloce in volo. | cambiato solo l'animale: ok |
-| `bomba-natura-06` | Lo squalo balena è il più grande animale esistente. | La balenottera azzurra è il più grande animale esistente. | cambiato solo l'animale: ok |
-| `bomba-cinema-04` | Il padrino è diretto da Martin Scorsese. | Il padrino è diretto da Francis Ford Coppola. | cambiato solo il regista: ok |
-| `bomba-musica-06` | Mozart compose La Traviata. | Mozart compose Le nozze di Figaro. | cambiata solo l'opera: ok |
-| `bomba-arte-02` | La Gioconda è di Raffaello. | La Gioconda è di Leonardo da Vinci. | cambiato solo l'autore: ok |
-| `bomba-tecnologia-02` | Il World Wide Web fu proposto da Bill Gates. | Il World Wide Web fu proposto da Tim Berners-Lee. | cambiato solo il nome: ok |
-| `bomba-tecnologia-08` | La sigla CPU indica la memoria di massa. | La sigla CPU indica l'unità centrale di elaborazione. | cambiata solo la definizione: ok |
-| `bomba-letteratura-08` | Il Gattopardo è di Leonardo Sciascia. | Il Gattopardo è di Giuseppe Tomasi di Lampedusa. | cambiato solo l'autore: ok |
+| `bomba-natura-04` | Il gabbiano è l'animale più veloce in volo. | Il falco pellegrino è l'animale più veloce in volo. | 2 |
+| `bomba-natura-06` | La balena grigia è il più grande animale esistente. | La balenottera azzurra è il più grande animale esistente. | 2 |
+| `bomba-cinema-04` | Il padrino è diretto da Martin Scorsese. | Il padrino è diretto da Francis Coppola. | 2 |
+| `bomba-musica-06` | Verdi compose Le nozze di Figaro. | Mozart compose Le nozze di Figaro. | 1 |
+| `bomba-arte-02` | La Gioconda è di Raffaello. | La Gioconda è di Leonardo. | 1 |
+| `bomba-tecnologia-02` | Il World Wide Web fu proposto da Bill Gates. | Il World Wide Web fu proposto da Berners-Lee. | 2 |
+| `bomba-tecnologia-08` | La sigla GPU indica l'unità centrale di elaborazione. | La sigla CPU indica l'unità centrale di elaborazione. | 1 |
+| `bomba-letteratura-08` | Il Gattopardo è di Sciascia. | Il Gattopardo è di Lampedusa. | 1 |
+
+### Timeline: undici eventi di difficoltà 5 (23 novembre 2026)
+
+La Timeline è passata da **211** a **222** eventi. I nuovi sono tutti di
+difficoltà 5, uno per ciascuna delle categorie che ne erano prive: ora tutte le
+14 categorie hanno almeno un evento «che la sanno in pochi». Ogni anno era
+libero (quell'anno non aveva altri eventi in banca) e la fonte è un collegamento
+di ricerca a Wikipedia, come per gli altri eventi.
+
+| Anno | Evento | Categoria | Fonte |
+| --- | --- | --- | --- |
+| 1748 | Pace di Aquisgrana | Storia | <https://it.wikipedia.org/w/index.php?search=Pace%20di%20Aquisgrana%20(1748)> |
+| 1854 | La spedizione di Perry apre il Giappone | Geografia e Viaggi | <https://it.wikipedia.org/w/index.php?search=Convenzione%20di%20Kanagawa> |
+| 1898 | Primo campionato italiano di calcio | Sport | <https://it.wikipedia.org/w/index.php?search=Campionato%20Italiano%20di%20Football%201898> |
+| 1925 | Esce La corazzata Potëmkin | Cinema, Serie TV | <https://it.wikipedia.org/w/index.php?search=La%20corazzata%20Pot%C3%ABmkin> |
+| 1956 | Prima edizione dell'Eurovision Song Contest | TV e Spettacolo | <https://it.wikipedia.org/w/index.php?search=Eurovision%20Song%20Contest%201956> |
+| 1874 | Prima esecuzione del Requiem di Verdi | Musica | <https://it.wikipedia.org/w/index.php?search=Messa%20da%20requiem%20(Verdi)> |
+| 1998 | Firmato lo Statuto di Roma | Politica e Attualità | <https://it.wikipedia.org/w/index.php?search=Statuto%20di%20Roma> |
+| 1947 | Enzo Ferrari fonda la Ferrari | Motori | <https://it.wikipedia.org/w/index.php?search=Ferrari> |
+| 1877 | Nasce la Barilla a Parma | Cibo e Gastronomia | <https://it.wikipedia.org/w/index.php?search=Barilla> |
+| 1978 | Debutta Capitan Harlock | Anime e manga | <https://it.wikipedia.org/w/index.php?search=Capitan%20Harlock> |
+| 1993 | Esce Doom | Gaming e Tecnologia | <https://it.wikipedia.org/w/index.php?search=Doom%20(videogioco)> |
 
 ## Ultima spiaggia a cinque fasce (B1, 23 novembre 2026)
 

@@ -1,5 +1,25 @@
 # Changelog
 
+## 23 novembre 2026 — Bomba senza dubbi, Timeline a 222 eventi
+
+- **Bomba:** risolte le otto coppie segnalate dall'audit accorciando i nomi
+  troppo lunghi («Francis Ford Coppola» → «Francis Coppola», «Leonardo da
+  Vinci» → «Leonardo», «Tim Berners-Lee» → «Berners-Lee», «Giuseppe Tomasi di
+  Lampedusa» → «Lampedusa») e portando la falsa a un solo dettaglio di distanza
+  dove le due frasi non erano la stessa affermazione. Restano **110
+  affermazioni** (62 vere, 48 false) e l'audit dà **0 dubbi**.
+- **Timeline:** 211 → **222 eventi**, con **11 eventi di difficoltà 5** nuovi,
+  uno per ciascuna categoria che ne era priva: Pace di Aquisgrana 1748, Perry
+  1854, primo campionato italiano di calcio 1898, La corazzata Potëmkin 1925,
+  Eurovision 1956, Requiem di Verdi 1874, Statuto di Roma 1998, Ferrari 1947,
+  Barilla 1877, Capitan Harlock 1978, Doom 1993. Anni non usati da altri eventi
+  e fonte Wikipedia per ognuno; ora tutte le 14 categorie hanno un evento
+  difficile.
+- **Documenti:** audit rigenerato, revisione aggiornata, README e roadmap
+  allineati ai nuovi conteggi.
+- Verifiche: `node scripts/audit-banche.mjs --ci` → 0 doppioni, 0 segnalazioni,
+  0 campi mancanti, 0 buchi di Ultima spiaggia, 0 dubbi Bomba.
+
 ## 23 novembre 2026 — Banche: Bomba a 110 affermazioni, Musica con gli anni
 
 - **Bomba:** 95 → **110 affermazioni** (62 vere, 48 false). Aggiunte le vere che
