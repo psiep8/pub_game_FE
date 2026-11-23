@@ -58,14 +58,24 @@ function readJson(name) {
 }
 
 /**
+ * La banca media non è versionata: in CI il file non c'è e i controlli che la
+ * riguardano si saltano invece di far fallire l'audit.
+ */
+function readJsonIfPresent(name) {
+  const path = join(questionsDir, name);
+  return existsSync(path) ? readJson(name) : null;
+}
+
+/**
  * Correzioni a mano della banca media, in un file versionato: `media-it.json`
  * non lo è, quindi senza questo passaggio l'audit controllerebbe anni diversi
  * da quelli corretti a mano.
  */
 function applyMediaPatches(media) {
-  const result = { fields: 0, unmatched: [] };
+  // Senza banca (CI) le patch non hanno voci a cui applicarsi: si salta.
+  const result = { fields: 0, unmatched: [], skipped: !media };
   const path = join(questionsDir, 'media-patches.json');
-  if (!existsSync(path)) return result;
+  if (!media || !existsSync(path)) return result;
 
   const patches = JSON.parse(readFileSync(path, 'utf8'));
   const key = (text) => normalizeText(String(text ?? ''));
@@ -384,7 +394,7 @@ function wordDistance(a, b) {
 
 /** Indovina chi: foto, indizi e categoria per ogni celebrità. */
 function auditCelebrities(media) {
-  const people = Array.isArray(media.people) ? media.people : [];
+  const people = Array.isArray(media?.people) ? media.people : [];
   const seen = new Map();
   const duplicates = [];
   const missing = [];
@@ -420,7 +430,7 @@ function auditCelebrities(media) {
 
 /** Musica: brano, artista, anno e file audio/copertina. */
 function auditMusic(media) {
-  const tracks = Array.isArray(media.music) ? media.music : [];
+  const tracks = Array.isArray(media?.music) ? media.music : [];
   const seen = new Map();
   const duplicates = [];
   const missing = [];
@@ -653,7 +663,7 @@ function levelsLabel(levels) {
 const quizBank = readJson('questions-it.json');
 const timelineBank = readJson('timeline-it.json');
 const azzardoBank = readJson('azzardo-it.json');
-const mediaBank = readJson('media-it.json');
+const mediaBank = readJsonIfPresent('media-it.json');
 const mediaPatches = applyMediaPatches(mediaBank);
 const bombaBank = readJson('bomba-it.json');
 
@@ -715,7 +725,11 @@ if (args.has('--ci')) {
   const holes = report.ultimaSpiaggia.holes.length;
   const unmatchedPatches = report.mediaPatches.unmatched.length;
   console.log(`CI banche: doppioni ${duplicates}, segnalazioni ${issues}, campi mancanti ${missing}`);
-  console.log(`Media corrette a mano: ${report.mediaPatches.fields} campi, ${unmatchedPatches} patch senza voce`);
+  if (report.mediaPatches.skipped) {
+    console.log('Banca media assente (non versionata): controlli media e patch saltati.');
+  } else {
+    console.log(`Media corrette a mano: ${report.mediaPatches.fields} campi, ${unmatchedPatches} patch senza voce`);
+  }
   for (const label of report.mediaPatches.unmatched) console.log(`  patch senza voce: ${label}`);
   console.log(`Ultima spiaggia: ${holes} celle sotto il minimo di ${report.ultimaSpiaggia.minPerLevel}`);
   console.log(`Bomba: ${report.bomba.doubts.length} false da rivedere (non bloccanti)`);
