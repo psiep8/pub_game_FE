@@ -111,6 +111,14 @@ import { CommonModule } from '@angular/common';
             <div class="az-option" [class.correct]="displayData?.phase === AzzardoPhase.REVEAL && i === displayData?.answerIndex">
               <span class="az-letter">{{ letter(i) }}</span>
               <b class="az-number">{{ option }}</b>
+              @if (displayData?.phase === AzzardoPhase.BET && chipsOnOption(i) > 0) {
+                <span class="az-bets" [attr.aria-label]="chipsOnOption(i) + ' fiche su ' + letter(i)">
+                  @for (chip of chipPile(chipsOnOption(i)); track $index) {
+                    <span class="az-fiche">{{ displayData?.chipValue ?? 20 }}</span>
+                  }
+                  <b class="az-fiche-count">×{{ chipsOnOption(i) }}</b>
+                </span>
+              }
             </div>
           }
         </div>
@@ -122,8 +130,11 @@ import { CommonModule } from '@angular/common';
           </p>
           <div class="az-ready">
             @for (row of displayData?.ready ?? []; track row.playerName) {
-              <span class="az-chip" [class.ok]="row.ready" [class.poor]="row.maxBet < 100">
-                {{ row.playerName }}@if (row.ready) {<b> ✓</b>}
+              <span class="az-ready-team" [class.ok]="row.ready" [class.poor]="row.maxBet < 100">
+                <span class="az-fiche" [class.idle]="!row.ready">{{ displayData?.chipValue ?? 20 }}</span>
+                <span class="az-ready-name">{{ row.playerName }}</span>
+                @if (row.ready) { <b class="az-ready-tick">✓</b> }
+                @if (chipsOf(row) > 0) { <span class="az-fiche-count">×{{ chipsOf(row) }}</span> }
               </span>
             }
           </div>
@@ -148,7 +159,13 @@ import { CommonModule } from '@angular/common';
                 <span class="az-pick">
                   @if (row.played) {
                     @if (chipsOf(row) > 0) {
-                      {{ chipsOf(row) }} fiche ({{ row.stake }} pt) su {{ letter(row.choice) }}
+                      <span class="az-stack az-stack-sm">
+                        @for (chip of chipPile(chipsOf(row)); track $index) {
+                          <span class="az-fiche" [class.win]="row.points > 0" [class.loss]="row.points < 0">{{ displayData?.chipValue ?? 20 }}</span>
+                        }
+                        <b class="az-fiche-count">×{{ chipsOf(row) }}</b>
+                      </span>
+                      {{ row.stake }} pt su {{ letter(row.choice) }}
                     } @else {
                       {{ row.stake }} pt su {{ letter(row.choice) }}
                     }
@@ -215,15 +232,34 @@ import { CommonModule } from '@angular/common';
     .az-play svg { width: clamp(20px, 2vw, 26px); height: clamp(20px, 2vw, 26px); fill: var(--coal); }
 
     .az-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(8px, 1.2vw, 16px); width: min(1180px, 96vw); }
-    .az-option { display: flex; align-items: center; justify-content: center; gap: 10px; padding: clamp(10px, 1.7vw, 20px); background: var(--paper-hi); color: var(--coal); border: 3px solid var(--coal); box-shadow: 5px 5px 0 var(--coal); }
+    .az-option { position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; padding: clamp(10px, 1.7vw, 20px); background: var(--paper-hi); color: var(--coal); border: 3px solid var(--coal); box-shadow: 5px 5px 0 var(--coal); }
     .az-option.correct { background: var(--acid); box-shadow: 5px 5px 0 var(--tomato); }
     .az-letter { display: inline-flex; align-items: center; justify-content: center; width: clamp(24px, 2.4vw, 34px); height: clamp(24px, 2.4vw, 34px); background: var(--coal); color: var(--paper-hi); font-family: var(--font-mono); font-size: clamp(.65rem, .9vw, .8rem); font-weight: 800; }
     .az-number { font-family: var(--font-display); font-size: clamp(1.2rem, 2.4vw, 2rem); line-height: 1; font-weight: 400; }
     .az-hint { max-width: 980px; margin: 0; color: var(--ink-dim); font-family: var(--font-mono); font-size: clamp(.65rem, .95vw, .84rem); text-align: center; }
-    .az-ready { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
-    .az-chip { padding: 3px 10px; border: 2px solid var(--coal); background: var(--paper-hi); color: var(--coal); font-family: var(--font-mono); font-size: .72rem; font-weight: 700; opacity: .5; }
-    .az-chip.ok { background: var(--acid); opacity: 1; }
-    .az-chip.poor { border-style: dashed; }
+    .az-ready { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
+    .az-ready-team { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 5px; background: var(--paper-hi); color: var(--coal); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: .72rem; font-weight: 700; opacity: .55; }
+    .az-ready-team.ok { background: var(--acid); opacity: 1; }
+    .az-ready-team.poor { border-style: dashed; }
+    .az-ready-name { white-space: nowrap; }
+    .az-ready-tick { color: var(--cobalt); }
+
+    /* Fiche: oggetti fisici (unica eccezione al radius 0), bordo a tacche e valore leggibile. */
+    .az-fiche { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: clamp(26px, 2.1vw, 34px); aspect-ratio: 1; border-radius: 50%; background: var(--mustard); color: var(--coal); border: 3px solid var(--coal); box-shadow: 3px 3px 0 var(--coal); font-family: var(--font-mono); font-size: clamp(.46rem, .58vw, .58rem); font-weight: 800; font-variant-numeric: tabular-nums; }
+    .az-fiche::after { content: ''; position: absolute; inset: 4px; border: 2px dashed var(--coal); border-radius: 50%; opacity: .55; }
+    .az-fiche.idle { background: var(--paper-2); opacity: .7; }
+    .az-fiche.win { background: var(--acid); }
+    .az-fiche.loss { background: var(--tomato); color: var(--paper-hi); }
+    .az-stack { display: inline-flex; align-items: center; }
+    .az-stack .az-fiche + .az-fiche { margin-left: -12px; }
+    .az-stack-sm .az-fiche { width: clamp(22px, 1.7vw, 28px); }
+    .az-fiche-count { margin-left: 6px; font-family: var(--font-mono); font-size: .82em; font-weight: 800; }
+    .az-bets { position: absolute; right: 8px; bottom: 6px; display: inline-flex; align-items: center; }
+    .az-bets .az-fiche { width: clamp(20px, 1.5vw, 26px); }
+    .az-bets .az-fiche + .az-fiche { margin-left: -10px; }
+    @keyframes az-chip-in { from { transform: translateY(-6px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .az-fiche { animation: az-chip-in 220ms ease-out both; }
+    @media (prefers-reduced-motion: reduce) { .az-fiche { animation: none; } .az-timer.hot { animation: none; } }
     .az-value { padding: 6px 18px; background: var(--acid); color: var(--coal); border: 3px solid var(--coal); box-shadow: 5px 5px 0 var(--coal); font-family: var(--font-mono); font-size: clamp(.9rem, 1.4vw, 1.2rem); font-weight: 800; }
     .az-best { padding: 4px 14px; background: var(--paper-hi); color: var(--coal); border: 2px dashed var(--tomato); font-family: var(--font-mono); font-size: clamp(.7rem, 1vw, .9rem); font-weight: 700; }
     .az-rows { display: flex; flex-direction: column; gap: 4px; width: min(1180px, 96vw); }
@@ -307,6 +343,19 @@ export class Azzardo implements OnChanges, OnDestroy {
 
   letter(index: number): string {
     return index < 0 ? '—' : String.fromCharCode(65 + index);
+  }
+
+  /** Fiche puntate su un'opzione nella manche in corso (pile sulla TV). */
+  chipsOnOption(index: number): number {
+    return (this.displayData?.ready ?? []).reduce((sum: number, row: any) => {
+      const chips = Array.isArray(row?.chips) ? row.chips : [];
+      return sum + (Number(chips[index]) || 0);
+    }, 0);
+  }
+
+  /** Al massimo tre fiche disegnate: il resto lo dice il contatore. */
+  chipPile(count: number): number[] {
+    return Array.from({ length: Math.min(3, Math.max(0, Math.floor(count || 0))) }, (_, index) => index);
   }
 
   /** Fiches giocate da una squadra nella manche appena chiusa. */

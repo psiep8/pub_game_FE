@@ -92,6 +92,58 @@ describe('Azzardo media locale', () => {
       .toBe('http://192.168.1.10:8080/media/people/albert-einstein.jpg');
   });
 
+  it('disegna le fiche come oggetti, con la pila sull\'opzione e il contatore', () => {
+    setBet({ kind: 'celebrity', name: 'Albert Einstein', imageUrl: '/media/a.jpg' });
+    fixture.componentRef.setInput('displayData', {
+      ...fixture.componentInstance.displayData,
+      ready: [
+        { playerName: 'Anna', ready: true, maxBet: 200, chips: [2, 0, 2, 0] },
+        { playerName: 'Bruno', ready: false, maxBet: 100, chips: [] },
+      ],
+    });
+    fixture.detectChanges();
+
+    const pileA = fixture.nativeElement.querySelectorAll('.az-option')[0]
+      .querySelector('.az-bets') as HTMLElement;
+    expect(pileA).toBeTruthy();
+    expect(pileA.querySelectorAll('.az-fiche').length).toBe(2);
+    expect(pileA.querySelector('.az-fiche-count')?.textContent).toContain('×2');
+    // Bruno non ha puntato: nessuna fiche sull'opzione, ma il suo gettone è
+    // disegnato nella riga di attesa.
+    expect(fixture.nativeElement.querySelectorAll('.az-ready-team .az-fiche').length).toBe(2);
+    expect(fixture.nativeElement.querySelectorAll('.az-option')[1].querySelector('.az-bets')).toBeNull();
+  });
+
+  it('nel reveal mostra la pila della puntata e il suo esito', () => {
+    fixture.componentRef.setInput('displayData', {
+      phase: 'REVEAL',
+      level: 2,
+      odds: 3,
+      lossMultiplier: 0.8,
+      secondsLeft: 0,
+      manche: 2,
+      total: 4,
+      question: 'In che anno?',
+      options: [1970, 1971, 1975, 1980],
+      answerIndex: 1,
+      value: 1971,
+      unit: 'anno',
+      chipValue: 20,
+      ready: [],
+      rows: [
+        { playerName: 'Anna', played: true, chips: [3, 0, 0, 0], stake: 60, choice: 0,
+          win: 0, loss: 60, points: -60, total: 140 },
+      ],
+    });
+    fixture.detectChanges();
+
+    const row = fixture.nativeElement.querySelector('.az-row') as HTMLElement;
+    expect(row.querySelectorAll('.az-stack .az-fiche').length).toBe(3);
+    expect(row.querySelector('.az-fiche-count')?.textContent).toContain('×3');
+    expect(row.querySelector('.az-fiche.loss')).toBeTruthy();
+    expect(row.textContent).toContain('60 pt su A');
+  });
+
   it('riproduce la preview e carica la copertina locale', async () => {
     setBet({
       kind: 'song',
