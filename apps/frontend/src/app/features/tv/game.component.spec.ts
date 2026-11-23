@@ -364,10 +364,13 @@ describe('GameComponent', () => {
     component.currentMode.set({ type: 'QUIZ', applyServerAnswer } as any);
     const addPoints = vi.spyOn(leaderboard, 'addPoints');
 
-    ws.status$.next({ action: 'QUIZ_ANSWER', playerName: 'Anna', manche: 0, isCorrect: true, points: 300 });
-    ws.status$.next({ action: 'QUIZ_ANSWER', playerName: 'Anna', manche: 0, isCorrect: true, points: 300 });
+    // L'evento del server porta anche l'opzione scelta: serve alla TV per
+    // accendere la risposta sbagliata in pomodoro.
+    ws.status$.next({ action: 'QUIZ_ANSWER', playerName: 'Anna', manche: 0, isCorrect: true, points: 300, optionIndex: 1 });
+    ws.status$.next({ action: 'QUIZ_ANSWER', playerName: 'Anna', manche: 0, isCorrect: true, points: 300, optionIndex: 1 });
 
     expect(applyServerAnswer).toHaveBeenCalledTimes(2);
+    expect(applyServerAnswer).toHaveBeenCalledWith(expect.objectContaining({ optionIndex: 1, manche: 0 }));
     expect(addPoints).toHaveBeenCalledTimes(1);
     expect(addPoints).toHaveBeenCalledWith('Anna', 300, true);
   });
