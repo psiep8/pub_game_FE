@@ -39,7 +39,7 @@ export class QuizMode extends GameModeBase {
   private questions: QuizManche[] = [];
   private mancheIndex = signal(0);
   private mancheReveal = signal<QuizManche | null>(null);
-  private answers = signal<Array<{ playerName: string; points: number; isCorrect: boolean; manche: number }>>([]);
+  private answers = signal<Array<{ playerName: string; points: number; isCorrect: boolean; manche: number; optionIndex?: number | null }>>([]);
   /** Scadenza del tempo, soluzione non ancora mostrata. */
   private revealPending = signal(false);
   private finished = signal(false);
@@ -307,6 +307,7 @@ export class QuizMode extends GameModeBase {
           points: Number(row.points) || 0,
           isCorrect: !!row.isCorrect,
           manche: Number.isInteger(Number(row.manche)) ? Number(row.manche) : index,
+          optionIndex: Number.isInteger(Number(row.optionIndex)) ? Number(row.optionIndex) : null,
         }))
       : [];
     const answered = Array.isArray(state.answeredThisManche)
@@ -380,6 +381,7 @@ export class QuizMode extends GameModeBase {
           points: Number(row.points) || 0,
           isCorrect: !!row.isCorrect,
           manche: Number(row.manche),
+          optionIndex: Number.isInteger(Number(row.optionIndex)) ? Number(row.optionIndex) : null,
         }));
       // I voti WebSocket arrivati dopo la richiesta sono più recenti della
       // fotografia HTTP: non vanno cancellati né sostituiti dal riepilogo.
@@ -422,6 +424,18 @@ export class QuizMode extends GameModeBase {
 
   getDisplayData(): any {
     const current = this.questions[this.mancheIndex()];
+    const options: string[] = current?.options ?? this.payload?.options ?? [];
+    // I bottoni si chiudono appena scade il tempo, ma la soluzione si accende
+    // solo quando la TV la mostra: durante l'attesa la suspense resta intera.
+    const locked = this.revealPending() || !!this.mancheReveal() || this.revealed();
+    const solved = !!this.mancheReveal() || this.revealed();
+    const answerIndex = solved ? Math.max(-1, options.indexOf(current?.correctAnswer ?? '')) : -1;
+    const pickedIndexes = solved
+      ? [...new Set(this.answers()
+        .filter((row) => row.manche === this.mancheIndex() && Number.isInteger(row.optionIndex))
+        .map((row) => Number(row.optionIndex)))]
+      : [];
+    const wrongIndexes = pickedIndexes.filter((index) => index !== answerIndex);
     return {
       type: 'QUIZ',
       category: this.payload?.category ?? '',
@@ -447,6 +461,9 @@ export class QuizMode extends GameModeBase {
         };
       }),
       answers: this.answers(),
+      answerIndex,
+      wrongIndexes,
+      answersLocked: locked,
       correctAnswer: this.revealed() ? (current?.correctAnswer ?? null) : null,
       isReading: this.isReading(),
     };
@@ -479,6 +496,8 @@ export class QuizMode extends GameModeBase {
       points: Number(result?.points) || 0,
       isCorrect: !!result?.isCorrect,
       manche,
+      // La scelta del telefono: serve alla TV per accendere la sbagliata.
+      optionIndex: Number.isInteger(Number(result?.optionIndex)) ? Number(result.optionIndex) : null,
     }]);
     if (manche === this.mancheIndex()) this.answeredThisManche.add(playerName);
     this.emitCheckpoint();

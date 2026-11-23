@@ -44,8 +44,29 @@ describe('QuizMode', () => {
     expect(applied).toBe(true);
     expect(again).toBe(false);
     expect(mode.getDisplayData().answers).toEqual([
-      { playerName: 'Anna', points: 870, isCorrect: true, manche: 0 },
+      { playerName: 'Anna', points: 870, isCorrect: true, manche: 0, optionIndex: null },
     ]);
+  });
+
+  it('accende la giusta e le sbagliate solo a manche chiusa', () => {
+    const { mode } = setup(payload);
+
+    mode.applyServerAnswer({ playerName: 'Anna', manche: 0, isCorrect: false, points: -400, optionIndex: 2 });
+    mode.applyServerAnswer({ playerName: 'Bruno', manche: 0, isCorrect: true, points: 900, optionIndex: 1 });
+
+    // Manche aperta: la TV non deve sapere dove sta la soluzione.
+    expect(mode.getDisplayData().answerIndex).toBe(-1);
+    expect(mode.getDisplayData().wrongIndexes).toEqual([]);
+    expect(mode.getDisplayData().answersLocked).toBe(false);
+
+    mode.stop();
+
+    const data = mode.getDisplayData();
+    expect(data.answerIndex).toBe(1);
+    expect(data.wrongIndexes).toEqual([2]);
+    expect(data.answersLocked).toBe(true);
+
+    mode.cleanup();
   });
 
   it('ignora un esito di un round precedente anche se arriva dopo la riapertura', () => {

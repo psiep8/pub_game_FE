@@ -35,6 +35,25 @@ describe('Quiz', () => {
     expect(element.querySelectorAll('.quiz-option-btn')).toHaveLength(2);
   });
 
+  it('accende in acido la risposta giusta e in pomodoro la sbagliata', async () => {
+    fixture.componentRef.setInput('displayData', {
+      question: 'Qual è la capitale d’Italia?',
+      isReading: false,
+      options: ['Roma', 'Milano'],
+      answerIndex: 0,
+      wrongIndexes: [1],
+      answersLocked: true,
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const buttons = fixture.nativeElement.querySelectorAll('.quiz-option-btn') as NodeListOf<HTMLButtonElement>;
+    expect(buttons[0].classList).toContain('correct');
+    expect(buttons[0].classList).not.toContain('wrong');
+    expect(buttons[1].classList).toContain('wrong');
+    expect(buttons[1].disabled).toBe(true);
+  });
+
   it('should label the options from A to D', () => {
     expect(component.getLetter(0)).toBe('A');
     expect(component.getLetter(2)).toBe('C');

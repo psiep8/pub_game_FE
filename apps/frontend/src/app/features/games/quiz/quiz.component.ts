@@ -39,4 +39,15 @@ export class Quiz implements OnChanges {
   getLetter(index: number): string {
     return ['A', 'B', 'C', 'D'][index];
   }
+
+  /** A manche chiusa la TV accende la risposta giusta in acido. */
+  isCorrectOption(index: number): boolean {
+    return this.displayData?.answerIndex === index;
+  }
+
+  /** E in pomodoro le risposte sbagliate che i telefoni hanno davvero scelto. */
+  isWrongOption(index: number): boolean {
+    const wrong = this.displayData?.wrongIndexes;
+    return Array.isArray(wrong) && wrong.includes(index);
+  }
 }

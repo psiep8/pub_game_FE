@@ -7,11 +7,14 @@
     <h2 class="quiz-question">{{ displayData.question }}</h2>
   }
 
-  @if (!displayData.isReading && !displayData.mancheReveal && !displayData.revealed) {
+  @if (!displayData.isReading && !displayData.revealed) {
     <div class="quiz-options-grid">
       @for (option of (displayData.options || safeOptions); track option; let i = $index) {
         <button
           class="quiz-option-btn"
+          [class.correct]="isCorrectOption(i)"
+          [class.wrong]="isWrongOption(i)"
+          [disabled]="!!displayData.answersLocked"
           [attr.data-letter]="getLetter(i)">
           <span class="option-letter">{{ getLetter(i) }}</span>
           <span class="option-text">{{ option | uppercase }}</span>

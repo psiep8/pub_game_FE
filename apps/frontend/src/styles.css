@@ -213,58 +213,6 @@ app-quiz .quiz-question {
 app-quiz .quiz-options-grid {
   gap: clamp(10px, 1.8vh, 18px);
 }
-app-quiz .quiz-option-btn {
-  padding: clamp(12px, 1.8vh, 20px) clamp(14px, 1.8vw, 24px);
-  background: var(--paper) !important;
-  color: var(--coal) !important;
-  border: 3px solid var(--coal) !important;
-  border-radius: 0 !important;
-  box-shadow: 6px 6px 0 var(--tomato) !important;
-  font-family: var(--font);
-  font-size: clamp(0.92rem, 1.35vw, 1.25rem);
-  font-weight: 700;
-  text-shadow: none;
-  backdrop-filter: none !important;
-}
-app-quiz .quiz-option-btn:hover:not(:disabled) {
-  background: var(--paper-hi) !important;
-  border-color: var(--coal) !important;
-  transform: translate(2px, 2px);
-  box-shadow: 4px 4px 0 var(--tomato) !important;
-}
-app-quiz .option-letter {
-  background: var(--coal) !important;
-  color: var(--acid) !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  font-family: var(--font-mono);
-  font-size: clamp(0.85rem, 1.2vw, 1.1rem);
-  font-weight: 700;
-}
-app-quiz .quiz-option-btn:nth-child(2) .option-letter { background: var(--cobalt) !important; color: var(--on-cobalt) !important; }
-app-quiz .quiz-option-btn:nth-child(3) .option-letter { background: var(--mustard) !important; color: var(--coal) !important; }
-app-quiz .quiz-option-btn:nth-child(4) .option-letter { background: var(--tomato) !important; color: var(--on-tomato) !important; }
-app-quiz .quiz-option-btn.correct {
-  background: var(--acid) !important;
-  color: var(--coal) !important;
-  border-color: var(--coal) !important;
-  box-shadow: 7px 7px 0 var(--tomato) !important;
-  animation: none !important;
-}
-app-quiz .quiz-option-btn.correct .option-letter {
-  background: var(--coal) !important;
-  color: var(--acid) !important;
-}
-app-quiz .quiz-option-btn.wrong {
-  background: var(--tomato) !important;
-  color: var(--on-tomato) !important;
-  border-color: var(--coal) !important;
-  box-shadow: 6px 6px 0 var(--coal) !important;
-}
-app-quiz .quiz-option-btn.wrong .option-letter {
-  background: var(--coal) !important;
-  color: var(--paper-hi) !important;
-}
 app-quiz .quiz-reveal {
   margin-top: 16px;
   padding: 14px 24px;
@@ -755,7 +703,6 @@ app-game-component .central-action.next-right .extract-btn { font-size: clamp(0.
 app-game-component .modal-btn { font-size: clamp(0.95rem, 1.1vw, 1.1rem) !important; }
 
 app-quiz .quiz-question { font-size: clamp(1.8rem, 3.4vw, 3.2rem) !important; }
-app-quiz .quiz-option-btn { font-size: clamp(1.05rem, 1.5vw, 1.4rem) !important; }
 
 app-arena .arena-kicker,
 app-arena .arena-chip { font-size: clamp(0.82rem, 1.05vw, 1rem) !important; }

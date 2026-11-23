@@ -111,13 +111,13 @@
 
 .quiz-option-btn {
   position: relative;
-  padding: clamp(12px, 2vh, 22px) clamp(14px, 2vw, 26px);
+  padding: clamp(12px, 1.8vh, 20px) clamp(14px, 1.8vw, 24px);
   background: var(--paper);
   border: 3px solid var(--coal);
   border-radius: 0;
   color: var(--coal);
   font-family: var(--font);
-  font-size: clamp(0.92rem, 1.35vw, 1.25rem);
+  font-size: clamp(1.05rem, 1.5vw, 1.4rem);
   font-weight: 700;
   cursor: pointer;
   display: flex;
@@ -147,9 +147,9 @@
 }
 
 
+/* Manche chiusa: i bottoni smettono di rispondere ma restano carta piena. */
 .quiz-option-btn:disabled {
   cursor: default;
-  opacity: 0.75;
 }
 
 
@@ -213,6 +213,8 @@
   background: var(--coal);
   color: var(--paper-hi);
 }
+
+
 
 
 
