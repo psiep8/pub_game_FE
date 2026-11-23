@@ -89,10 +89,9 @@
   --on-tomato: var(--coal);
   --on-cobalt: var(--paper-hi);
   --on-mustard: var(--coal);
-  --on-coal: var(--paper-hi);
-  /* Nei temi a base scura paper e coal si invertono: questi due token
-     tengono il testo leggibile sul timbro e sul badge senza cambiare
-     il colore del fondo. */
+  --on-coal: var(--acid);
+  /* Sui temi a base scura paper e coal si invertono: questi due token
+     tengono leggibili timbro e badge senza cambiare il fondo. */
 
   /* Derivati: leggono i token del tema, quindi seguono il cambio tema. */
   --ink-dim: color-mix(in srgb, var(--ink) 66%, transparent);
@@ -302,8 +301,6 @@ html[data-theme="desert-heritage"] {
   --on-tomato: var(--paper-hi);
   --on-cobalt: var(--paper-hi);
   --on-acid: var(--coal);
-  --on-mustard: var(--coal);
-  --on-coal: var(--paper-hi);
 }
 
 /* 3 — ARCTIC NOIR: notte, metallo, blu artico.
@@ -381,8 +378,6 @@ html[data-theme="deep-ocean"] {
   --on-tomato: var(--paper-hi);
   --on-cobalt: var(--coal);
   --on-acid: var(--coal);
-  --on-mustard: var(--coal);
-  --on-coal: var(--paper-hi);
 }
 
 /* 5 — K-POP AESTHETIC: rosa, lilla, azzurro, glossy. */
@@ -420,8 +415,6 @@ html[data-theme="kpop-aesthetic"] {
   --on-tomato: var(--coal);
   --on-cobalt: var(--coal);
   --on-acid: var(--coal);
-  --on-mustard: var(--coal);
-  --on-coal: var(--paper-hi);
 }
 
 /* 6 — NEON CYBERPUNK: viola, magenta, cyan.
@@ -500,8 +493,6 @@ html[data-theme="sunset-pop"] {
   --on-tomato: var(--paper-hi);
   --on-cobalt: var(--coal);
   --on-acid: var(--coal);
-  --on-mustard: var(--coal);
-  --on-coal: var(--paper-hi);
 }
 
 /* 8 — PREMIUM GOLD: nero, oro, champagne.
