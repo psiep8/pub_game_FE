@@ -23,21 +23,21 @@
       "year": 1066,
       "category": "Storia",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Battaglia%20di%20Hastings"
+      "source": "https://it.wikipedia.org/wiki/Battaglia_di_Hastings"
     },
     {
       "label": "Scoperta dell'America",
       "year": 1492,
       "category": "Storia",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Scoperta%20dell'America"
+      "source": "https://it.wikipedia.org/wiki/Primo_viaggio_di_Cristoforo_Colombo"
     },
     {
       "label": "Rivoluzione francese",
       "year": 1789,
       "category": "Storia",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Rivoluzione%20francese"
+      "source": "https://it.wikipedia.org/wiki/Rivoluzione_francese"
     },
     {
       "label": "Congresso di Vienna",
@@ -51,49 +51,49 @@
       "year": 1914,
       "category": "Storia",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Inizio%20della%20Prima%20guerra%20mondiale"
+      "source": "https://it.wikipedia.org/wiki/Prima_guerra_mondiale"
     },
     {
       "label": "Caduta del Muro di Berlino",
       "year": 1989,
       "category": "Storia",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Caduta%20del%20Muro%20di%20Berlino"
+      "source": "https://it.wikipedia.org/wiki/Muro_di_Berlino"
     },
     {
       "label": "Vasco da Gama arriva in India",
       "year": 1498,
       "category": "Geografia e Viaggi",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Vasco%20da%20Gama%20arriva%20in%20India"
+      "source": "https://it.wikipedia.org/wiki/Vasco_da_Gama"
     },
     {
       "label": "Apertura del Canale di Suez",
       "year": 1869,
       "category": "Geografia e Viaggi",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Apertura%20del%20Canale%20di%20Suez"
+      "source": "https://it.wikipedia.org/wiki/Canale_di_Suez"
     },
     {
       "label": "Naufragio del Titanic",
       "year": 1912,
       "category": "Geografia e Viaggi",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Naufragio%20del%20Titanic"
+      "source": "https://it.wikipedia.org/wiki/RMS_Titanic"
     },
     {
       "label": "Primo volo transatlantico senza scalo",
       "year": 1919,
       "category": "Geografia e Viaggi",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Primo%20volo%20transatlantico%20senza%20scalo"
+      "source": "https://it.wikipedia.org/wiki/Alcock_e_Brown"
     },
     {
       "label": "Amelia Earhart attraversa l'Atlantico in solitaria",
       "year": 1932,
       "category": "Geografia e Viaggi",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Amelia%20Earhart%20attraversa%20l'Atlantico%20in%20solitaria"
+      "source": "https://it.wikipedia.org/wiki/Amelia_Earhart"
     },
     {
       "label": "Hillary e Tenzing raggiungono l'Everest",
@@ -107,49 +107,49 @@
       "year": 1994,
       "category": "Geografia e Viaggi",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Apertura%20del%20Tunnel%20della%20Manica"
+      "source": "https://it.wikipedia.org/wiki/Tunnel_della_Manica"
     },
     {
       "label": "La nave Ever Given blocca il Canale di Suez",
       "year": 2021,
       "category": "Geografia e Viaggi",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=La%20nave%20Ever%20Given%20blocca%20il%20Canale%20di%20Suez"
+      "source": "https://it.wikipedia.org/wiki/Ever_Given"
     },
     {
       "label": "Copernico pubblica le rivoluzioni celesti",
       "year": 1543,
       "category": "Scienza e Spazio",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Copernico%20pubblica%20le%20rivoluzioni%20celesti"
+      "source": "https://it.wikipedia.org/wiki/De_revolutionibus_orbium_coelestium"
     },
     {
       "label": "Newton pubblica i Principia",
       "year": 1687,
       "category": "Scienza e Spazio",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Newton%20pubblica%20i%20Principia"
+      "source": "https://it.wikipedia.org/wiki/Philosophiae_Naturalis_Principia_Mathematica"
     },
     {
       "label": "Einstein pubblica la relatività ristretta",
       "year": 1905,
       "category": "Scienza e Spazio",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Einstein%20pubblica%20la%20relativit%C3%A0%20ristretta"
+      "source": "https://it.wikipedia.org/wiki/Relativit%C3%A0_ristretta"
     },
     {
       "label": "Scoperta della penicillina",
       "year": 1928,
       "category": "Scienza e Spazio",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Scoperta%20della%20penicillina"
+      "source": "https://it.wikipedia.org/wiki/Penicillina"
     },
     {
       "label": "Scoperta della struttura del DNA",
       "year": 1953,
       "category": "Scienza e Spazio",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Scoperta%20della%20struttura%20del%20DNA"
+      "source": "https://it.wikipedia.org/wiki/DNA"
     },
     {
       "label": "Lancio dello Sputnik",
@@ -163,56 +163,56 @@
       "year": 1969,
       "category": "Scienza e Spazio",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Sbarco%20dell'uomo%20sulla%20Luna"
+      "source": "https://it.wikipedia.org/wiki/Apollo_11"
     },
     {
       "label": "Conferma del bosone di Higgs",
       "year": 2012,
       "category": "Scienza e Spazio",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Conferma%20del%20bosone%20di%20Higgs"
+      "source": "https://it.wikipedia.org/wiki/Bosone_di_Higgs"
     },
     {
       "label": "Inizio della pandemia di COVID-19",
       "year": 2020,
       "category": "Scienza e Spazio",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Inizio%20della%20pandemia%20di%20COVID-19"
+      "source": "https://it.wikipedia.org/wiki/Pandemia_di_COVID-19"
     },
     {
       "label": "Prime Olimpiadi moderne ad Atene",
       "year": 1896,
       "category": "Sport",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Prime%20Olimpiadi%20moderne%20ad%20Atene"
+      "source": "https://it.wikipedia.org/wiki/Giochi_della_I_Olimpiade"
     },
     {
       "label": "Primo Tour de France",
       "year": 1903,
       "category": "Sport",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Primo%20Tour%20de%20France"
+      "source": "https://it.wikipedia.org/wiki/Tour_de_France_1903"
     },
     {
       "label": "Primo Mondiale di calcio in Uruguay",
       "year": 1930,
       "category": "Sport",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Primo%20Mondiale%20di%20calcio%20in%20Uruguay"
+      "source": "https://it.wikipedia.org/wiki/Campionato_mondiale_di_calcio_1930"
     },
     {
       "label": "Jesse Owens vince quattro ori a Berlino",
       "year": 1936,
       "category": "Sport",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Jesse%20Owens%20vince%20quattro%20ori%20a%20Berlino"
+      "source": "https://it.wikipedia.org/wiki/Jesse_Owens"
     },
     {
       "label": "Olimpiadi di Roma",
       "year": 1960,
       "category": "Sport",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Olimpiadi%20di%20Roma"
+      "source": "https://it.wikipedia.org/wiki/Giochi_della_XVII_Olimpiade"
     },
     {
       "label": "Il Dream Team vince l'oro olimpico",
@@ -226,49 +226,49 @@
       "year": 2008,
       "category": "Sport",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Usain%20Bolt%20stabilisce%20il%20record%20dei%20100%20metri"
+      "source": "https://it.wikipedia.org/wiki/Usain_Bolt"
     },
     {
       "label": "L'Italia vince il Campionato europeo di calcio",
       "year": 2021,
       "category": "Sport",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=L'Italia%20vince%20il%20Campionato%20europeo%20di%20calcio"
+      "source": "https://it.wikipedia.org/wiki/Campionato_europeo_maschile_di_calcio_2020"
     },
     {
       "label": "Prima proiezione cinematografica dei fratelli Lumière",
       "year": 1895,
       "category": "Cinema, Serie TV",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Prima%20proiezione%20cinematografica%20dei%20fratelli%20Lumi%C3%A8re"
+      "source": "https://it.wikipedia.org/wiki/Auguste_e_Louis_Lumi%C3%A8re"
     },
     {
       "label": "Esce Il cantante di jazz, primo film sonoro",
       "year": 1927,
       "category": "Cinema, Serie TV",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Il%20cantante%20di%20jazz%2C%20primo%20film%20sonoro"
+      "source": "https://it.wikipedia.org/wiki/Il_cantante_di_jazz_(film_1927)"
     },
     {
       "label": "Biancaneve e i sette nani, primo lungometraggio animato Disney",
       "year": 1937,
       "category": "Cinema, Serie TV",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Biancaneve%20e%20i%20sette%20nani%2C%20primo%20lungometraggio%20animato%20Disney"
+      "source": "https://it.wikipedia.org/wiki/Biancaneve_e_i_sette_nani_(film_1937)"
     },
     {
       "label": "Esce Quarto potere di Orson Welles",
       "year": 1941,
       "category": "Cinema, Serie TV",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Quarto%20potere%20di%20Orson%20Welles"
+      "source": "https://it.wikipedia.org/wiki/Quarto_potere"
     },
     {
       "label": "Esce Guerre stellari",
       "year": 1977,
       "category": "Cinema, Serie TV",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Guerre%20stellari"
+      "source": "https://it.wikipedia.org/wiki/Guerre_stellari_(film)"
     },
     {
       "label": "Esce Matrix",
@@ -282,49 +282,49 @@
       "year": 2009,
       "category": "Cinema, Serie TV",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Avatar"
+      "source": "https://it.wikipedia.org/wiki/Avatar_(film_2009)"
     },
     {
       "label": "Parasite vince la Palma d'Oro",
       "year": 2019,
       "category": "Cinema, Serie TV",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Parasite%20vince%20la%20Palma%20d'Oro"
+      "source": "https://it.wikipedia.org/wiki/Parasite_(film_2019)"
     },
     {
       "label": "Prima edizione del Festival di Sanremo",
       "year": 1951,
       "category": "TV e Spettacolo",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Prima%20edizione%20del%20Festival%20di%20Sanremo"
+      "source": "https://it.wikipedia.org/wiki/Festival_di_Sanremo_1951"
     },
     {
       "label": "Inizio delle trasmissioni Rai",
       "year": 1954,
       "category": "TV e Spettacolo",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Inizio%20delle%20trasmissioni%20Rai"
+      "source": "https://it.wikipedia.org/wiki/Rai"
     },
     {
       "label": "Nasce CNN",
       "year": 1980,
       "category": "TV e Spettacolo",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nasce%20CNN"
+      "source": "https://it.wikipedia.org/wiki/CNN"
     },
     {
       "label": "Nasce MTV",
       "year": 1981,
       "category": "TV e Spettacolo",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nasce%20MTV"
+      "source": "https://it.wikipedia.org/wiki/MTV"
     },
     {
       "label": "Debutta I Simpson",
       "year": 1989,
       "category": "TV e Spettacolo",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20I%20Simpson"
+      "source": "https://it.wikipedia.org/wiki/I_Simpson"
     },
     {
       "label": "Nasce Sky Italia",
@@ -338,49 +338,49 @@
       "year": 2007,
       "category": "TV e Spettacolo",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Netflix%20lancia%20lo%20streaming"
+      "source": "https://it.wikipedia.org/wiki/Netflix"
     },
     {
       "label": "House of Cards, prima serie originale Netflix",
       "year": 2013,
       "category": "TV e Spettacolo",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=House%20of%20Cards%2C%20prima%20serie%20originale%20Netflix"
+      "source": "https://it.wikipedia.org/wiki/House_of_Cards_-_Gli_intrighi_del_potere"
     },
     {
       "label": "Prima de Le nozze di Figaro di Mozart",
       "year": 1786,
       "category": "Musica",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Prima%20de%20Le%20nozze%20di%20Figaro%20di%20Mozart"
+      "source": "https://it.wikipedia.org/wiki/Le_nozze_di_Figaro"
     },
     {
       "label": "Prima della Nona sinfonia di Beethoven",
       "year": 1824,
       "category": "Musica",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Prima%20della%20Nona%20sinfonia%20di%20Beethoven"
+      "source": "https://it.wikipedia.org/wiki/Sinfonia_n._9_(Beethoven)"
     },
     {
       "label": "Apertura del Festival di Bayreuth",
       "year": 1876,
       "category": "Musica",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Apertura%20del%20Festival%20di%20Bayreuth"
+      "source": "https://it.wikipedia.org/wiki/Festival_di_Bayreuth"
     },
     {
       "label": "Elvis Presley incide That's All Right",
       "year": 1954,
       "category": "Musica",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Elvis%20Presley%20incide%20That's%20All%20Right"
+      "source": "https://it.wikipedia.org/wiki/That's_All_Right%2C_Mama"
     },
     {
       "label": "I Beatles pubblicano Love Me Do",
       "year": 1962,
       "category": "Musica",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=I%20Beatles%20pubblicano%20Love%20Me%20Do"
+      "source": "https://it.wikipedia.org/wiki/Love_Me_Do"
     },
     {
       "label": "Esce Sgt. Pepper's Lonely Hearts Club Band",
@@ -394,7 +394,7 @@
       "year": 1985,
       "category": "Musica",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Live%20Aid"
+      "source": "https://it.wikipedia.org/wiki/Live_Aid"
     },
     {
       "label": "Apple lancia l'iTunes Store",
@@ -408,28 +408,28 @@
       "year": 1436,
       "category": "Arte e Architettura",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Completa%20la%20cupola%20del%20Duomo%20di%20Firenze"
+      "source": "https://it.wikipedia.org/wiki/Cupola_del_Brunelleschi"
     },
     {
       "label": "Viene inaugurato il David di Michelangelo",
       "year": 1504,
       "category": "Arte e Architettura",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Viene%20inaugurato%20il%20David%20di%20Michelangelo"
+      "source": "https://it.wikipedia.org/wiki/David_(Michelangelo)"
     },
     {
       "label": "Michelangelo completa la volta della Cappella Sistina",
       "year": 1512,
       "category": "Arte e Architettura",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Michelangelo%20completa%20la%20volta%20della%20Cappella%20Sistina"
+      "source": "https://it.wikipedia.org/wiki/Cappella_Sistina"
     },
     {
       "label": "Inaugurazione della Torre Eiffel",
       "year": 1889,
       "category": "Arte e Architettura",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Inaugurazione%20della%20Torre%20Eiffel"
+      "source": "https://it.wikipedia.org/wiki/Torre_Eiffel"
     },
     {
       "label": "Nasce il cubismo con Les Demoiselles d'Avignon",
@@ -443,56 +443,56 @@
       "year": 1929,
       "category": "Arte e Architettura",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Apre%20il%20Museum%20of%20Modern%20Art%20di%20New%20York"
+      "source": "https://it.wikipedia.org/wiki/Museum_of_Modern_Art"
     },
     {
       "label": "Picasso dipinge Guernica",
       "year": 1937,
       "category": "Arte e Architettura",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Picasso%20dipinge%20Guernica"
+      "source": "https://it.wikipedia.org/wiki/Guernica_(Picasso)"
     },
     {
       "label": "Inaugura la Sydney Opera House",
       "year": 1973,
       "category": "Arte e Architettura",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Inaugura%20la%20Sydney%20Opera%20House"
+      "source": "https://it.wikipedia.org/wiki/Teatro_dell'Opera_di_Sydney"
     },
     {
       "label": "Magna Carta in Inghilterra",
       "year": 1215,
       "category": "Politica e Attualità",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Magna%20Carta%20in%20Inghilterra"
+      "source": "https://it.wikipedia.org/wiki/Magna_Carta"
     },
     {
       "label": "Dichiarazione d'indipendenza degli Stati Uniti",
       "year": 1776,
       "category": "Politica e Attualità",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Dichiarazione%20d'indipendenza%20degli%20Stati%20Uniti"
+      "source": "https://it.wikipedia.org/wiki/Dichiarazione_d'indipendenza_degli_Stati_Uniti_d'America"
     },
     {
       "label": "Dichiarazione dei diritti dell'uomo e del cittadino",
       "year": 1789,
       "category": "Politica e Attualità",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Dichiarazione%20dei%20diritti%20dell'uomo%20e%20del%20cittadino"
+      "source": "https://it.wikipedia.org/wiki/Dichiarazione_dei_diritti_dell'uomo_e_del_cittadino"
     },
     {
       "label": "Fondazione delle Nazioni Unite",
       "year": 1945,
       "category": "Politica e Attualità",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Fondazione%20delle%20Nazioni%20Unite"
+      "source": "https://it.wikipedia.org/wiki/Organizzazione_delle_Nazioni_Unite"
     },
     {
       "label": "Entrata in vigore della Costituzione italiana",
       "year": 1948,
       "category": "Politica e Attualità",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Entrata%20in%20vigore%20della%20Costituzione%20italiana"
+      "source": "https://it.wikipedia.org/wiki/Costituzione_della_Repubblica_Italiana"
     },
     {
       "label": "Trattato di Maastricht",
@@ -506,49 +506,49 @@
       "year": 2001,
       "category": "Politica e Attualità",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Attentato%20alle%20Torri%20Gemelle"
+      "source": "https://it.wikipedia.org/wiki/Attentati_dell'11_settembre_2001"
     },
     {
       "label": "Uscita del Regno Unito dall'Unione Europea",
       "year": 2020,
       "category": "Politica e Attualità",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Uscita%20del%20Regno%20Unito%20dall'Unione%20Europea"
+      "source": "https://it.wikipedia.org/wiki/Uscita_del_Regno_Unito_dall'Unione_europea"
     },
     {
       "label": "Karl Benz brevetta la prima automobile a motore",
       "year": 1886,
       "category": "Motori",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Karl%20Benz%20brevetta%20la%20prima%20automobile%20a%20motore"
+      "source": "https://it.wikipedia.org/wiki/Benz_Patent_Motorwagen"
     },
     {
       "label": "Ford lancia il Model T",
       "year": 1908,
       "category": "Motori",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Ford%20lancia%20il%20Model%20T"
+      "source": "https://it.wikipedia.org/wiki/Ford_Model_T"
     },
     {
       "label": "Prima 24 Ore di Le Mans",
       "year": 1923,
       "category": "Motori",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Prima%2024%20Ore%20di%20Le%20Mans"
+      "source": "https://it.wikipedia.org/wiki/24_Ore_di_Le_Mans"
     },
     {
       "label": "Primo campionato mondiale di Formula 1",
       "year": 1950,
       "category": "Motori",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Primo%20campionato%20mondiale%20di%20Formula%201"
+      "source": "https://it.wikipedia.org/wiki/Campionato_mondiale_di_Formula_1_1950"
     },
     {
       "label": "Debutta la Volkswagen Golf",
       "year": 1974,
       "category": "Motori",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20la%20Volkswagen%20Golf"
+      "source": "https://it.wikipedia.org/wiki/Volkswagen_Golf"
     },
     {
       "label": "Toyota lancia la Prius",
@@ -562,49 +562,49 @@
       "year": 2012,
       "category": "Motori",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Tesla%20lancia%20il%20Model%20S"
+      "source": "https://it.wikipedia.org/wiki/Tesla_Model_S"
     },
     {
       "label": "Max Verstappen vince il mondiale di Formula 1",
       "year": 2021,
       "category": "Motori",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Max%20Verstappen%20vince%20il%20mondiale%20di%20Formula%201"
+      "source": "https://it.wikipedia.org/wiki/Max_Verstappen"
     },
     {
       "label": "Nasce la Coca-Cola",
       "year": 1886,
       "category": "Cibo e Gastronomia",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nasce%20la%20Coca-Cola"
+      "source": "https://it.wikipedia.org/wiki/Coca-Cola"
     },
     {
       "label": "La pizza Margherita viene servita a Napoli",
       "year": 1889,
       "category": "Cibo e Gastronomia",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=La%20pizza%20Margherita%20viene%20servita%20a%20Napoli"
+      "source": "https://it.wikipedia.org/wiki/Pizza_Margherita"
     },
     {
       "label": "Prima guida Michelin",
       "year": 1900,
       "category": "Cibo e Gastronomia",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Prima%20guida%20Michelin"
+      "source": "https://it.wikipedia.org/wiki/Guida_Michelin"
     },
     {
       "label": "Momofuku Ando inventa i noodles istantanei",
       "year": 1958,
       "category": "Cibo e Gastronomia",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Momofuku%20Ando%20inventa%20i%20noodles%20istantanei"
+      "source": "https://it.wikipedia.org/wiki/Momofuku_And%C5%8D"
     },
     {
       "label": "Apre il primo Starbucks a Seattle",
       "year": 1971,
       "category": "Cibo e Gastronomia",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Apre%20il%20primo%20Starbucks%20a%20Seattle"
+      "source": "https://it.wikipedia.org/wiki/Starbucks"
     },
     {
       "label": "Nasce il movimento Slow Food a Bra",
@@ -618,42 +618,42 @@
       "year": 2010,
       "category": "Cibo e Gastronomia",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=La%20dieta%20mediterranea%20entra%20nel%20patrimonio%20UNESCO"
+      "source": "https://it.wikipedia.org/wiki/Dieta_mediterranea"
     },
     {
       "label": "L'arte del pizzaiolo napoletano entra nel patrimonio UNESCO",
       "year": 2017,
       "category": "Cibo e Gastronomia",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=L'arte%20del%20pizzaiolo%20napoletano%20entra%20nel%20patrimonio%20UNESCO"
+      "source": "https://it.wikipedia.org/wiki/Pizza_napoletana"
     },
     {
       "label": "Muore Dante e circola la Divina Commedia",
       "year": 1321,
       "category": "Lingua e Letteratura",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Muore%20Dante%20e%20circola%20la%20Divina%20Commedia"
+      "source": "https://it.wikipedia.org/wiki/Divina_Commedia"
     },
     {
       "label": "Pubblicato il Vocabolario della Crusca",
       "year": 1612,
       "category": "Lingua e Letteratura",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Pubblicato%20il%20Vocabolario%20della%20Crusca"
+      "source": "https://it.wikipedia.org/wiki/Vocabolario_degli_Accademici_della_Crusca"
     },
     {
       "label": "Pubblicati I promessi sposi",
       "year": 1827,
       "category": "Lingua e Letteratura",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Pubblicati%20I%20promessi%20sposi"
+      "source": "https://it.wikipedia.org/wiki/I_promessi_sposi"
     },
     {
       "label": "Pubblicati I Malavoglia",
       "year": 1881,
       "category": "Lingua e Letteratura",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Pubblicati%20I%20Malavoglia"
+      "source": "https://it.wikipedia.org/wiki/I_Malavoglia"
     },
     {
       "label": "Pubblicato La strada di Swann di Proust",
@@ -667,56 +667,56 @@
       "year": 1949,
       "category": "Lingua e Letteratura",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Pubblicato%201984%20di%20Orwell"
+      "source": "https://it.wikipedia.org/wiki/1984_(romanzo)"
     },
     {
       "label": "Pubblicato Lolita di Nabokov",
       "year": 1955,
       "category": "Lingua e Letteratura",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Pubblicato%20Lolita%20di%20Nabokov"
+      "source": "https://it.wikipedia.org/wiki/Lolita_(romanzo)"
     },
     {
       "label": "Pubblicato Harry Potter e la pietra filosofale",
       "year": 1997,
       "category": "Lingua e Letteratura",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Pubblicato%20Harry%20Potter%20e%20la%20pietra%20filosofale"
+      "source": "https://it.wikipedia.org/wiki/Harry_Potter_e_la_pietra_filosofale"
     },
     {
       "label": "Inizia il manga Astro Boy",
       "year": 1952,
       "category": "Anime e manga",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Inizia%20il%20manga%20Astro%20Boy"
+      "source": "https://it.wikipedia.org/wiki/Astro_Boy"
     },
     {
       "label": "Debutta l'anime Astro Boy",
       "year": 1963,
       "category": "Anime e manga",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20l'anime%20Astro%20Boy"
+      "source": "https://it.wikipedia.org/wiki/Astro_Boy"
     },
     {
       "label": "Inizia il manga Doraemon",
       "year": 1969,
       "category": "Anime e manga",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Inizia%20il%20manga%20Doraemon"
+      "source": "https://it.wikipedia.org/wiki/Doraemon"
     },
     {
       "label": "Inizia il manga Dragon Ball",
       "year": 1984,
       "category": "Anime e manga",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Inizia%20il%20manga%20Dragon%20Ball"
+      "source": "https://it.wikipedia.org/wiki/Dragon_Ball"
     },
     {
       "label": "Fondazione dello Studio Ghibli",
       "year": 1985,
       "category": "Anime e manga",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Fondazione%20dello%20Studio%20Ghibli"
+      "source": "https://it.wikipedia.org/wiki/Studio_Ghibli"
     },
     {
       "label": "Inizia il manga One Piece",
@@ -730,49 +730,49 @@
       "year": 1999,
       "category": "Anime e manga",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Inizia%20il%20manga%20Naruto"
+      "source": "https://it.wikipedia.org/wiki/Naruto"
     },
     {
       "label": "La città incantata vince l'Orso d'oro",
       "year": 2001,
       "category": "Anime e manga",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=La%20citt%C3%A0%20incantata%20vince%20l'Orso%20d'oro"
+      "source": "https://it.wikipedia.org/wiki/La_citt%C3%A0_incantata"
     },
     {
       "label": "ENIAC, primo computer elettronico general-purpose",
       "year": 1946,
       "category": "Gaming e Tecnologia",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=ENIAC%2C%20primo%20computer%20elettronico%20general-purpose"
+      "source": "https://it.wikipedia.org/wiki/ENIAC"
     },
     {
       "label": "Tennis for Two, primo videogioco",
       "year": 1958,
       "category": "Gaming e Tecnologia",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Tennis%20for%20Two%2C%20primo%20videogioco"
+      "source": "https://it.wikipedia.org/wiki/Tennis_for_Two"
     },
     {
       "label": "Primo collegamento ARPANET",
       "year": 1969,
       "category": "Gaming e Tecnologia",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Primo%20collegamento%20ARPANET"
+      "source": "https://it.wikipedia.org/wiki/ARPANET"
     },
     {
       "label": "Atari lancia Pong",
       "year": 1972,
       "category": "Gaming e Tecnologia",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Atari%20lancia%20Pong"
+      "source": "https://it.wikipedia.org/wiki/Pong"
     },
     {
       "label": "Nintendo pubblica Mario Bros.",
       "year": 1983,
       "category": "Gaming e Tecnologia",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nintendo%20pubblica%20Mario%20Bros."
+      "source": "https://it.wikipedia.org/wiki/Mario_Bros."
     },
     {
       "label": "Tim Berners-Lee presenta il World Wide Web",
@@ -786,28 +786,28 @@
       "year": 2007,
       "category": "Gaming e Tecnologia",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Apple%20presenta%20il%20primo%20iPhone"
+      "source": "https://it.wikipedia.org/wiki/IPhone_(prima_generazione)"
     },
     {
       "label": "Nintendo lancia Switch",
       "year": 2017,
       "category": "Gaming e Tecnologia",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nintendo%20lancia%20Switch"
+      "source": "https://it.wikipedia.org/wiki/Nintendo_Switch"
     },
     {
       "label": "Caduta di Costantinopoli",
       "year": 1453,
       "category": "Storia",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Caduta%20di%20Costantinopoli"
+      "source": "https://it.wikipedia.org/wiki/Assedio_di_Costantinopoli_(1453)"
     },
     {
       "label": "Incoronazione di Napoleone",
       "year": 1804,
       "category": "Storia",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Incoronazione%20di%20Napoleone"
+      "source": "https://it.wikipedia.org/wiki/Incoronazione_di_Napoleone"
     },
     {
       "label": "Presa di Roma",
@@ -821,28 +821,28 @@
       "year": 1929,
       "category": "Storia",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Patti%20Lateranensi"
+      "source": "https://it.wikipedia.org/wiki/Patti_Lateranensi"
     },
     {
       "label": "Fine della Seconda guerra mondiale in Europa",
       "year": 1945,
       "category": "Storia",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Fine%20della%20Seconda%20guerra%20mondiale%20in%20Europa"
+      "source": "https://it.wikipedia.org/wiki/Giornata_della_vittoria_(Paesi_dell'Europa_occidentale)"
     },
     {
       "label": "Costruzione del Muro di Berlino",
       "year": 1961,
       "category": "Storia",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Costruzione%20del%20Muro%20di%20Berlino"
+      "source": "https://it.wikipedia.org/wiki/Muro_di_Berlino"
     },
     {
       "label": "Dissoluzione dell'Unione Sovietica",
       "year": 1991,
       "category": "Storia",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Dissoluzione%20dell'Unione%20Sovietica"
+      "source": "https://it.wikipedia.org/wiki/Dissoluzione_dell'Unione_Sovietica"
     },
     {
       "label": "Pace di Aquisgrana",
@@ -856,14 +856,14 @@
       "year": 1872,
       "category": "Geografia e Viaggi",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Spedizione%20oceanografica%20dello%20Challenger"
+      "source": "https://it.wikipedia.org/wiki/Spedizione_Challenger"
     },
     {
       "label": "Amundsen raggiunge il Polo Sud",
       "year": 1911,
       "category": "Geografia e Viaggi",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Amundsen%20raggiunge%20il%20Polo%20Sud"
+      "source": "https://it.wikipedia.org/wiki/Roald_Amundsen"
     },
     {
       "label": "Scoperta della tomba di Tutankhamon",
@@ -877,28 +877,28 @@
       "year": 1937,
       "category": "Geografia e Viaggi",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Inaugurazione%20del%20Golden%20Gate%20Bridge"
+      "source": "https://it.wikipedia.org/wiki/Golden_Gate_Bridge"
     },
     {
       "label": "Il batiscafo Trieste raggiunge il fondo delle Marianne",
       "year": 1960,
       "category": "Geografia e Viaggi",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Il%20batiscafo%20Trieste%20raggiunge%20il%20fondo%20delle%20Marianne"
+      "source": "https://it.wikipedia.org/wiki/Trieste_(batiscafo)"
     },
     {
       "label": "Eruzione del Monte Sant'Elena",
       "year": 1980,
       "category": "Geografia e Viaggi",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Eruzione%20del%20Monte%20Sant'Elena"
+      "source": "https://it.wikipedia.org/wiki/Monte_Saint_Helens"
     },
     {
       "label": "L'eruzione dell'Eyjafjallajökull blocca i voli",
       "year": 2010,
       "category": "Geografia e Viaggi",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=L'eruzione%20dell'Eyjafjallaj%C3%B6kull%20blocca%20i%20voli"
+      "source": "https://it.wikipedia.org/wiki/Eyjafjallaj%C3%B6kull"
     },
     {
       "label": "La spedizione di Perry apre il Giappone",
@@ -912,7 +912,7 @@
       "year": 1859,
       "category": "Scienza e Spazio",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Darwin%20pubblica%20L'origine%20delle%20specie"
+      "source": "https://it.wikipedia.org/wiki/L'origine_delle_specie"
     },
     {
       "label": "Röntgen scopre i raggi X",
@@ -926,14 +926,14 @@
       "year": 1903,
       "category": "Scienza e Spazio",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Primo%20volo%20dei%20fratelli%20Wright"
+      "source": "https://it.wikipedia.org/wiki/Wright_Flyer"
     },
     {
       "label": "Einstein pubblica la relatività generale",
       "year": 1915,
       "category": "Scienza e Spazio",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Einstein%20pubblica%20la%20relativit%C3%A0%20generale"
+      "source": "https://it.wikipedia.org/wiki/Relativit%C3%A0_generale"
     },
     {
       "label": "Scoperta della fissione nucleare",
@@ -947,28 +947,28 @@
       "year": 1961,
       "category": "Scienza e Spazio",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Gagarin%2C%20primo%20uomo%20nello%20spazio"
+      "source": "https://it.wikipedia.org/wiki/Jurij_Gagarin"
     },
     {
       "label": "Lancio del telescopio Hubble",
       "year": 1990,
       "category": "Scienza e Spazio",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Lancio%20del%20telescopio%20Hubble"
+      "source": "https://it.wikipedia.org/wiki/Telescopio_spaziale_Hubble"
     },
     {
       "label": "Primi Giochi olimpici invernali a Chamonix",
       "year": 1924,
       "category": "Sport",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Primi%20Giochi%20olimpici%20invernali%20a%20Chamonix"
+      "source": "https://it.wikipedia.org/wiki/I_Giochi_olimpici_invernali"
     },
     {
       "label": "Italia-Germania 4-3 ai Mondiali del Messico",
       "year": 1970,
       "category": "Sport",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Italia-Germania%204-3%20ai%20Mondiali%20del%20Messico"
+      "source": "https://it.wikipedia.org/wiki/Campionato_mondiale_di_calcio_1970"
     },
     {
       "label": "Nadia Comăneci ottiene il primo 10 alle Olimpiadi",
@@ -982,28 +982,28 @@
       "year": 1982,
       "category": "Sport",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=L'Italia%20vince%20i%20Mondiali%20di%20calcio%20in%20Spagna"
+      "source": "https://it.wikipedia.org/wiki/Campionato_mondiale_di_calcio_1982"
     },
     {
       "label": "L'Italia ospita i Mondiali di calcio",
       "year": 1990,
       "category": "Sport",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=L'Italia%20ospita%20i%20Mondiali%20di%20calcio"
+      "source": "https://it.wikipedia.org/wiki/Campionato_mondiale_di_calcio_1990"
     },
     {
       "label": "L'Italia vince i Mondiali di calcio in Germania",
       "year": 2006,
       "category": "Sport",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=L'Italia%20vince%20i%20Mondiali%20di%20calcio%20in%20Germania"
+      "source": "https://it.wikipedia.org/wiki/Campionato_mondiale_di_calcio_2006"
     },
     {
       "label": "Il Portogallo vince il Campionato europeo",
       "year": 2016,
       "category": "Sport",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Il%20Portogallo%20vince%20il%20Campionato%20europeo"
+      "source": "https://it.wikipedia.org/wiki/Campionato_europeo_maschile_di_calcio_2016"
     },
     {
       "label": "Primo campionato italiano di calcio",
@@ -1017,14 +1017,14 @@
       "year": 1939,
       "category": "Cinema, Serie TV",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Via%20col%20vento"
+      "source": "https://it.wikipedia.org/wiki/Via_col_vento"
     },
     {
       "label": "Esce La dolce vita",
       "year": 1960,
       "category": "Cinema, Serie TV",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20La%20dolce%20vita"
+      "source": "https://it.wikipedia.org/wiki/La_dolce_vita"
     },
     {
       "label": "Esce Il padrino",
@@ -1038,28 +1038,28 @@
       "year": 1994,
       "category": "Cinema, Serie TV",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Pulp%20Fiction"
+      "source": "https://it.wikipedia.org/wiki/Pulp_Fiction"
     },
     {
       "label": "Esce Titanic",
       "year": 1997,
       "category": "Cinema, Serie TV",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Titanic"
+      "source": "https://it.wikipedia.org/wiki/Titanic_(film_1997)"
     },
     {
       "label": "Esce Il Signore degli Anelli: La Compagnia dell'Anello",
       "year": 2001,
       "category": "Cinema, Serie TV",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Il%20Signore%20degli%20Anelli%3A%20La%20Compagnia%20dell'Anello"
+      "source": "https://it.wikipedia.org/wiki/Il_Signore_degli_Anelli_-_La_Compagnia_dell'Anello"
     },
     {
       "label": "Esce Inception",
       "year": 2010,
       "category": "Cinema, Serie TV",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Inception"
+      "source": "https://it.wikipedia.org/wiki/Inception"
     },
     {
       "label": "Esce La corazzata Potëmkin",
@@ -1073,14 +1073,14 @@
       "year": 1990,
       "category": "TV e Spettacolo",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20Twin%20Peaks"
+      "source": "https://it.wikipedia.org/wiki/I_segreti_di_Twin_Peaks"
     },
     {
       "label": "Debutta Friends",
       "year": 1994,
       "category": "TV e Spettacolo",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20Friends"
+      "source": "https://it.wikipedia.org/wiki/Friends"
     },
     {
       "label": "Debutta Chi vuol essere miliardario? in Italia",
@@ -1094,28 +1094,28 @@
       "year": 2005,
       "category": "TV e Spettacolo",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nasce%20YouTube"
+      "source": "https://it.wikipedia.org/wiki/YouTube"
     },
     {
       "label": "Nasce Twitter",
       "year": 2006,
       "category": "TV e Spettacolo",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nasce%20Twitter"
+      "source": "https://it.wikipedia.org/wiki/X_(social_network)"
     },
     {
       "label": "Debutta Game of Thrones",
       "year": 2011,
       "category": "TV e Spettacolo",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20Game%20of%20Thrones"
+      "source": "https://it.wikipedia.org/wiki/Il_Trono_di_Spade_(serie_televisiva)"
     },
     {
       "label": "Debutta Stranger Things",
       "year": 2016,
       "category": "TV e Spettacolo",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20Stranger%20Things"
+      "source": "https://it.wikipedia.org/wiki/Stranger_Things"
     },
     {
       "label": "Prima edizione dell'Eurovision Song Contest",
@@ -1129,14 +1129,14 @@
       "year": 1969,
       "category": "Musica",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Festival%20di%20Woodstock"
+      "source": "https://it.wikipedia.org/wiki/Festival_di_Woodstock"
     },
     {
       "label": "Esce Bohemian Rhapsody dei Queen",
       "year": 1975,
       "category": "Musica",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Bohemian%20Rhapsody%20dei%20Queen"
+      "source": "https://it.wikipedia.org/wiki/Bohemian_Rhapsody"
     },
     {
       "label": "Esce Thriller di Michael Jackson",
@@ -1150,28 +1150,28 @@
       "year": 1991,
       "category": "Musica",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Nevermind%20dei%20Nirvana"
+      "source": "https://it.wikipedia.org/wiki/Nevermind"
     },
     {
       "label": "Escono i Coldplay con Parachutes",
       "year": 2000,
       "category": "Musica",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Escono%20i%20Coldplay%20con%20Parachutes"
+      "source": "https://it.wikipedia.org/wiki/Parachutes"
     },
     {
       "label": "Esce Viva la Vida dei Coldplay",
       "year": 2008,
       "category": "Musica",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Viva%20la%20Vida%20dei%20Coldplay"
+      "source": "https://it.wikipedia.org/wiki/Viva_la_vida_or_Death_and_All_His_Friends"
     },
     {
       "label": "Bob Dylan riceve il Nobel per la letteratura",
       "year": 2016,
       "category": "Musica",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Bob%20Dylan%20riceve%20il%20Nobel%20per%20la%20letteratura"
+      "source": "https://it.wikipedia.org/wiki/Bob_Dylan"
     },
     {
       "label": "Prima esecuzione del Requiem di Verdi",
@@ -1199,49 +1199,49 @@
       "year": 1824,
       "category": "Arte e Architettura",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Apre%20la%20National%20Gallery%20di%20Londra"
+      "source": "https://it.wikipedia.org/wiki/National_Gallery_(Londra)"
     },
     {
       "label": "Inaugurazione dell'Empire State Building",
       "year": 1931,
       "category": "Arte e Architettura",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Inaugurazione%20dell'Empire%20State%20Building"
+      "source": "https://it.wikipedia.org/wiki/Empire_State_Building"
     },
     {
       "label": "Apre il Guggenheim Museum di New York",
       "year": 1959,
       "category": "Arte e Architettura",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Apre%20il%20Guggenheim%20Museum%20di%20New%20York"
+      "source": "https://it.wikipedia.org/wiki/Solomon_R._Guggenheim_Museum"
     },
     {
       "label": "Apre il museo Guggenheim di Bilbao",
       "year": 1997,
       "category": "Arte e Architettura",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Apre%20il%20museo%20Guggenheim%20di%20Bilbao"
+      "source": "https://it.wikipedia.org/wiki/Guggenheim_Museum_Bilbao"
     },
     {
       "label": "Incendio di Notre-Dame a Parigi",
       "year": 2019,
       "category": "Arte e Architettura",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Incendio%20di%20Notre-Dame%20a%20Parigi"
+      "source": "https://it.wikipedia.org/wiki/Cattedrale_di_Notre-Dame"
     },
     {
       "label": "Proclamazione del Regno d'Italia",
       "year": 1861,
       "category": "Politica e Attualità",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Proclamazione%20del%20Regno%20d'Italia"
+      "source": "https://it.wikipedia.org/wiki/Regno_d'Italia"
     },
     {
       "label": "Referendum per la Repubblica in Italia",
       "year": 1946,
       "category": "Politica e Attualità",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Referendum%20per%20la%20Repubblica%20in%20Italia"
+      "source": "https://it.wikipedia.org/wiki/Referendum_istituzionale_in_Italia_del_1946"
     },
     {
       "label": "Trattato di Roma, nasce la CEE",
@@ -1255,28 +1255,28 @@
       "year": 1975,
       "category": "Politica e Attualità",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Accordi%20di%20Helsinki"
+      "source": "https://it.wikipedia.org/wiki/Accordi_di_Helsinki"
     },
     {
       "label": "L'euro entra in circolazione",
       "year": 2002,
       "category": "Politica e Attualità",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=L'euro%20entra%20in%20circolazione"
+      "source": "https://it.wikipedia.org/wiki/Euro"
     },
     {
       "label": "Trattato di Lisbona",
       "year": 2009,
       "category": "Politica e Attualità",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Trattato%20di%20Lisbona"
+      "source": "https://it.wikipedia.org/wiki/Trattato_di_Lisbona"
     },
     {
       "label": "Referendum sulla Brexit",
       "year": 2016,
       "category": "Politica e Attualità",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Referendum%20sulla%20Brexit"
+      "source": "https://it.wikipedia.org/wiki/Uscita_del_Regno_Unito_dall'Unione_europea"
     },
     {
       "label": "Firmato lo Statuto di Roma",
@@ -1290,14 +1290,14 @@
       "year": 1903,
       "category": "Motori",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nasce%20Harley-Davidson"
+      "source": "https://it.wikipedia.org/wiki/Harley-Davidson"
     },
     {
       "label": "Debutta la Mini",
       "year": 1959,
       "category": "Motori",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20la%20Mini"
+      "source": "https://it.wikipedia.org/wiki/Mini_(1959)"
     },
     {
       "label": "Debutta la Lamborghini Miura",
@@ -1311,28 +1311,28 @@
       "year": 1976,
       "category": "Motori",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=L'incidente%20di%20Niki%20Lauda%20al%20N%C3%BCrburgring"
+      "source": "https://it.wikipedia.org/wiki/Niki_Lauda"
     },
     {
       "label": "Debutta la Ferrari F40",
       "year": 1987,
       "category": "Motori",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20la%20Ferrari%20F40"
+      "source": "https://it.wikipedia.org/wiki/Ferrari_F40"
     },
     {
       "label": "Muore Ayrton Senna a Imola",
       "year": 1994,
       "category": "Motori",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Muore%20Ayrton%20Senna%20a%20Imola"
+      "source": "https://it.wikipedia.org/wiki/Ayrton_Senna"
     },
     {
       "label": "Nasce la Formula E",
       "year": 2014,
       "category": "Motori",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nasce%20la%20Formula%20E"
+      "source": "https://it.wikipedia.org/wiki/Formula_E"
     },
     {
       "label": "Enzo Ferrari fonda la Ferrari",
@@ -1346,14 +1346,14 @@
       "year": 1912,
       "category": "Cibo e Gastronomia",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nascono%20i%20biscotti%20Oreo"
+      "source": "https://it.wikipedia.org/wiki/Oreo"
     },
     {
       "label": "Nasce la carne in scatola Spam",
       "year": 1937,
       "category": "Cibo e Gastronomia",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nasce%20la%20carne%20in%20scatola%20Spam"
+      "source": "https://it.wikipedia.org/wiki/Spam_(carne)"
     },
     {
       "label": "Apre il primo McDonald's",
@@ -1367,28 +1367,28 @@
       "year": 1964,
       "category": "Cibo e Gastronomia",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nasce%20la%20Nutella"
+      "source": "https://it.wikipedia.org/wiki/Nutella"
     },
     {
       "label": "Nasce la Diet Coke",
       "year": 1982,
       "category": "Cibo e Gastronomia",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nasce%20la%20Diet%20Coke"
+      "source": "https://it.wikipedia.org/wiki/The_Coca-Cola_Company"
     },
     {
       "label": "Nasce la Red Bull",
       "year": 1987,
       "category": "Cibo e Gastronomia",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nasce%20la%20Red%20Bull"
+      "source": "https://it.wikipedia.org/wiki/Red_Bull"
     },
     {
       "label": "Apre Eataly a Torino",
       "year": 2007,
       "category": "Cibo e Gastronomia",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Apre%20Eataly%20a%20Torino"
+      "source": "https://it.wikipedia.org/wiki/Eataly"
     },
     {
       "label": "Nasce la Barilla a Parma",
@@ -1416,49 +1416,49 @@
       "year": 1812,
       "category": "Lingua e Letteratura",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=I%20fratelli%20Grimm%20pubblicano%20le%20loro%20fiabe"
+      "source": "https://it.wikipedia.org/wiki/Fratelli_Grimm"
     },
     {
       "label": "Esce Alice nel Paese delle Meraviglie",
       "year": 1865,
       "category": "Lingua e Letteratura",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Alice%20nel%20Paese%20delle%20Meraviglie"
+      "source": "https://it.wikipedia.org/wiki/Le_avventure_di_Alice_nel_Paese_delle_Meraviglie"
     },
     {
       "label": "Esce Il piccolo principe",
       "year": 1943,
       "category": "Lingua e Letteratura",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Il%20piccolo%20principe"
+      "source": "https://it.wikipedia.org/wiki/Il_piccolo_principe"
     },
     {
       "label": "Esce Il Signore degli Anelli",
       "year": 1954,
       "category": "Lingua e Letteratura",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Il%20Signore%20degli%20Anelli"
+      "source": "https://it.wikipedia.org/wiki/Il_Signore_degli_Anelli"
     },
     {
       "label": "Esce Il nome della rosa",
       "year": 1980,
       "category": "Lingua e Letteratura",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Il%20nome%20della%20rosa"
+      "source": "https://it.wikipedia.org/wiki/Il_nome_della_rosa"
     },
     {
       "label": "Debutta l'anime Heidi",
       "year": 1974,
       "category": "Anime e manga",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20l'anime%20Heidi"
+      "source": "https://it.wikipedia.org/wiki/Heidi_(serie_animata_1974)"
     },
     {
       "label": "Debutta Mobile Suit Gundam",
       "year": 1979,
       "category": "Anime e manga",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20Mobile%20Suit%20Gundam"
+      "source": "https://it.wikipedia.org/wiki/Mobile_Suit_Gundam"
     },
     {
       "label": "Esce il film Akira",
@@ -1472,28 +1472,28 @@
       "year": 1992,
       "category": "Anime e manga",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20Sailor%20Moon"
+      "source": "https://it.wikipedia.org/wiki/Sailor_Moon"
     },
     {
       "label": "Esce Princess Mononoke",
       "year": 1997,
       "category": "Anime e manga",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Princess%20Mononoke"
+      "source": "https://it.wikipedia.org/wiki/Princess_Mononoke"
     },
     {
       "label": "Debutta L'attacco dei giganti",
       "year": 2013,
       "category": "Anime e manga",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20L'attacco%20dei%20giganti"
+      "source": "https://it.wikipedia.org/wiki/L'attacco_dei_giganti"
     },
     {
       "label": "Debutta Demon Slayer",
       "year": 2019,
       "category": "Anime e manga",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20Demon%20Slayer"
+      "source": "https://it.wikipedia.org/wiki/Demon_Slayer_-_Kimetsu_no_yaiba"
     },
     {
       "label": "Debutta Capitan Harlock",
@@ -1507,14 +1507,14 @@
       "year": 1977,
       "category": "Gaming e Tecnologia",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Atari%20lancia%20la%20console%202600"
+      "source": "https://it.wikipedia.org/wiki/Atari_2600"
     },
     {
       "label": "Esce Pac-Man",
       "year": 1980,
       "category": "Gaming e Tecnologia",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Pac-Man"
+      "source": "https://it.wikipedia.org/wiki/Pac-Man"
     },
     {
       "label": "Esce Super Mario Bros. per NES",
@@ -1528,28 +1528,28 @@
       "year": 1989,
       "category": "Gaming e Tecnologia",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nintendo%20lancia%20il%20Game%20Boy"
+      "source": "https://it.wikipedia.org/wiki/Game_Boy"
     },
     {
       "label": "Escono i primi giochi Pokémon",
       "year": 1996,
       "category": "Gaming e Tecnologia",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Escono%20i%20primi%20giochi%20Pok%C3%A9mon"
+      "source": "https://it.wikipedia.org/wiki/Pok%C3%A9mon_Rosso_e_Blu"
     },
     {
       "label": "Esce World of Warcraft",
       "year": 2004,
       "category": "Gaming e Tecnologia",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20World%20of%20Warcraft"
+      "source": "https://it.wikipedia.org/wiki/World_of_Warcraft"
     },
     {
       "label": "Esce Minecraft",
       "year": 2011,
       "category": "Gaming e Tecnologia",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Minecraft"
+      "source": "https://it.wikipedia.org/wiki/Minecraft"
     },
     {
       "label": "Esce Doom",

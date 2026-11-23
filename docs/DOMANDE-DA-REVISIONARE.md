@@ -588,3 +588,43 @@ Da guardare a occhio, benché verificate:
 - **Esce Thriller (1982)** → *Thriller (album Michael Jackson)*: le voci «Thriller (album)» e «Thriller (Michael Jackson)» sono disambiguazioni e sono state scartate.
 - **Trattato di Roma, nasce la CEE (1957)** → la voce è *Trattato che istituisce la Comunità economica europea*.
 - **Il Dream Team vince l'oro olimpico (1992)** → la voce è la nazionale statunitense, non una pagina del «Dream Team».
+
+## Timeline: fonti precise su tutti gli eventi (23 novembre 2026)
+
+Dopo i 44 del primo giro sono passati alla pagina voce anche gli altri eventi che avevano ancora
+un collegamento di ricerca. Per ognuno lo script verifica che la voce esista, che il suo testo
+contenga l'anno dell'evento, che condivida una parola con l'etichetta e che non sia una
+disambiguazione; la mappa dei titoli sta in `scripts/generate-questions/fix_timeline_sources.mjs`.
+
+Risultato: **221 eventi su 222** con la voce precisa;
+restano **1** eventi con il collegamento di ricerca (nella tabella qui sotto).
+
+### Casi dubbi
+
+| Anno | Evento | Cosa non torna |
+| --- | --- | --- |
+| 2001 | Apple lancia l'iTunes Store | iTunes (il programma) esce nel 2001, l'iTunes Store nel 2003: su it.wikipedia non c'è una voce che riporti il 2001, quindi o si corregge l'anno o si cambia l'etichetta in «Apple lancia iTunes» |
+
+### Voci generiche: persona o ente invece della pagina dell'evento
+
+Verificate come le altre (anno presente nel testo), ma la pagina è quella del protagonista:
+vanno bene come fonte del fatto, non come racconto dell'evento.
+
+| Anno | Evento | Voce |
+| --- | --- | --- |
+| 1498 | Vasco da Gama arriva in India | Vasco da Gama |
+| 1932 | Amelia Earhart attraversa l'Atlantico in solitaria | Amelia Earhart |
+| 1936 | Jesse Owens vince quattro ori a Berlino | Jesse Owens |
+| 2008 | Usain Bolt stabilisce il record dei 100 metri | Usain Bolt |
+| 1895 | Prima proiezione cinematografica dei fratelli Lumière | Auguste e Louis Lumière |
+| 1954 | Inizio delle trasmissioni Rai | Rai |
+| 1911 | Amundsen raggiunge il Polo Sud | Roald Amundsen |
+| 1961 | Gagarin, primo uomo nello spazio | Jurij Gagarin |
+| 2016 | Bob Dylan riceve il Nobel per la letteratura | Bob Dylan |
+| 1976 | L'incidente di Niki Lauda al Nürburgring | Niki Lauda |
+| 1994 | Muore Ayrton Senna a Imola | Ayrton Senna |
+| 1812 | I fratelli Grimm pubblicano le loro fiabe | Fratelli Grimm |
+
+L'audit non controlla le fonti: la verifica automatica dice che la pagina parla di quell'anno,
+non che l'anno scritto nell'evento sia giusto. La lettura umana resta quella della sezione 2.2.
+
