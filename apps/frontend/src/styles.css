@@ -178,7 +178,6 @@ button:disabled {
 }
 
 /* I titoli dei giochi seguono la voce poster anche nei componenti figli. */
-app-quiz h2,
 app-arena h2,
 app-timeline h2,
 app-price h2,
@@ -195,43 +194,6 @@ app-image-blur h2 {
    EDIZIONE 26 — skin dei giochi TV
    Carta, inchiostro, timbri. Niente vetro né gradienti viola.
    ============================================================ */
-app-quiz .quiz-container {
-  color: var(--paper);
-}
-app-quiz .quiz-question {
-  margin-bottom: clamp(14px, 2.4vh, 28px);
-  color: var(--paper);
-  font-family: var(--font-display);
-  font-size: clamp(1.5rem, 3.2vw, 3rem);
-  font-weight: 400;
-  line-height: 1.05;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  text-shadow: 3px 3px 0 var(--tomato);
-}
-app-quiz .quiz-options-grid {
-  gap: clamp(10px, 1.8vh, 18px);
-}
-app-quiz .quiz-reveal {
-  margin-top: 16px;
-  padding: 14px 24px;
-  background: var(--paper) !important;
-  border: 3px solid var(--coal) !important;
-  border-radius: 0 !important;
-  box-shadow: 7px 7px 0 var(--tomato) !important;
-}
-app-quiz .quiz-reveal .reveal-label {
-  color: var(--tomato-ink) !important;
-  font-family: var(--font-mono);
-}
-app-quiz .quiz-reveal .reveal-value {
-  color: var(--coal) !important;
-  font-family: var(--font-display);
-  font-weight: 400;
-  text-shadow: none;
-  text-transform: uppercase;
-}
-
 /* ============================================================
    SKIN DEI TABELLONI LEGACY — stessa carta, stesso inchiostro.
    ============================================================ */
@@ -582,7 +544,6 @@ app-game-component .recent-responses .r-points { font-size: 1rem !important; }
 app-game-component .central-action.next-right .extract-btn { font-size: clamp(0.9rem, 1.15vw, 1.12rem) !important; }
 app-game-component .modal-btn { font-size: clamp(0.95rem, 1.1vw, 1.1rem) !important; }
 
-app-quiz .quiz-question { font-size: clamp(1.8rem, 3.4vw, 3.2rem) !important; }
 
 app-arena .arena-kicker,
 app-arena .arena-chip { font-size: clamp(0.82rem, 1.05vw, 1rem) !important; }
@@ -808,12 +769,6 @@ app-game-component .type-reveal-overlay .mode-name { animation: m-zoom-out var(-
 
 app-game-component .question-area { animation: m-rise var(--motion-base) var(--ease-out) backwards; }
 app-game-component .question-category { animation: m-drop var(--motion-fast) var(--ease-out) backwards; }
-app-quiz .quiz-question { animation: m-rise var(--motion-base) var(--ease-out) backwards; }
-app-quiz .quiz-options-grid > * { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
-app-quiz .quiz-options-grid > *:nth-child(1) { animation-delay: 40ms; }
-app-quiz .quiz-options-grid > *:nth-child(2) { animation-delay: 90ms; }
-app-quiz .quiz-options-grid > *:nth-child(3) { animation-delay: 140ms; }
-app-quiz .quiz-options-grid > *:nth-child(4) { animation-delay: 190ms; }
 
 app-game-component .result-popup { animation: m-pop var(--motion-fast) var(--ease-spring) backwards; }
 app-game-component .result-popup .result-icon { animation: m-pop var(--motion-base) var(--ease-spring) 60ms backwards; }

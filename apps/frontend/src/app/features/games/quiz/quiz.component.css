@@ -87,12 +87,14 @@
 
 .quiz-question {
   font-family: var(--font-display);
-  font-size: clamp(1.4rem, 2.2vw, 2rem);
+  font-size: clamp(1.8rem, 3.4vw, 3.2rem);
   font-weight: 400;
   letter-spacing: .02em;
   margin-bottom: 28px;
   line-height: 1.15;
   color: var(--paper);
+  text-transform: uppercase;
+  text-shadow: 3px 3px 0 var(--tomato);
   word-wrap: break-word;
   overflow-wrap: anywhere;
 }
@@ -221,10 +223,11 @@
 .quiz-reveal {
   margin-top: 28px;
   padding: 20px 26px;
-  background: var(--mint);
+  background: var(--paper);
   color: var(--coal);
   border: 3px solid var(--coal);
-  box-shadow: 8px 8px 0 var(--coal);
+  border-radius: 0;
+  box-shadow: 7px 7px 0 var(--tomato);
   animation: slide-up 0.5s var(--ease-out);
 }
 
@@ -233,7 +236,7 @@
   font-size: 0.74rem;
   text-transform: uppercase;
   letter-spacing: 3px;
-  color: var(--coal);
+  color: var(--tomato-ink);
   margin-bottom: 8px;
   font-weight: 700;
 }
@@ -242,6 +245,7 @@
   font-family: var(--font-display);
   font-size: clamp(1.2rem, 4vw, 2rem);
   color: var(--coal);
+  text-transform: uppercase;
 }
 
 
@@ -309,3 +313,11 @@
   animation: quizSuspenseSpin 0.8s linear infinite;
 }
 @keyframes quizSuspenseSpin { to { transform: rotate(360deg); } }
+
+/* Entrata: stesso movimento degli altri tabelloni, dichiarato qui accanto alla skin. */
+.quiz-question { animation: m-rise var(--motion-base) var(--ease-out) backwards; }
+.quiz-options-grid > * { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
+.quiz-options-grid > *:nth-child(1) { animation-delay: 40ms; }
+.quiz-options-grid > *:nth-child(2) { animation-delay: 90ms; }
+.quiz-options-grid > *:nth-child(3) { animation-delay: 140ms; }
+.quiz-options-grid > *:nth-child(4) { animation-delay: 190ms; }
