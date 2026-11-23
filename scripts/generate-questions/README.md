@@ -342,3 +342,28 @@ macchina che proietta il gioco).
 Vanno bene anche LM Studio (`http://localhost:1234/v1/chat/completions`) e
 llama.cpp (`http://127.0.0.1:8080/v1/chat/completions`): cambiano solo
 `--base-url` e `--model`.
+
+---
+
+## 11. Aggiornamenti mirati, senza rigenerare la banca
+
+Rigenerare `questions-it.json` da zero non è sempre sicuro: perde le fasce di
+Ultima spiaggia e le domande aggiunte dopo. Gli aggiornamenti passano quindi da
+file versionati che si applicano sopra la banca:
+
+| Cosa | File versionati | Comando |
+| --- | --- | --- |
+| Ultima spiaggia: fascia delle 80 domande storiche e 160 domande nuove | `spiaggia_bands.json`, `bank_spiaggia.py` | `python scripts/generate-questions/apply_spiaggia.py`, poi `--check` |
+| Correzioni a mano della banca media | `questions/media-patches.json` | riapplicate da `generate_media.py` a ogni generazione e lette dall'audit |
+| Fonti della Timeline (voce invece di ricerca) | titoli in `fix_timeline_sources.mjs` | `node scripts/generate-questions/fix_timeline_sources.mjs --write` (serve la rete) |
+
+Note che evitano sorprese:
+
+- gli id delle domande di Ultima spiaggia sono **posizionali**
+  (`spiaggia-<categoria>-<fascia>-NN`): aggiungere righe in mezzo a un blocco li
+  fa scivolare, e `apply_spiaggia.py` lo segnala con «id scivolato»;
+- `apply_spiaggia.py --check` non è dentro l'audit (Python e Node non si
+  parlano): va lanciato prima del commit;
+- `fix_timeline_sources.mjs` riscrive solo gli eventi con un titolo proposto
+  nella mappa: gli altri restano con il link di ricerca, come sono ora;
+- dopo qualunque modifica alle banche: `node scripts/audit-banche.mjs --ci`.

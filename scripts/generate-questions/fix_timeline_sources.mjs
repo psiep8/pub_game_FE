@@ -13,19 +13,19 @@
  * proposto passa, l'evento resta com'è e finisce tra i dubbi da mettere a mano
  * in docs/DOMANDE-DA-REVISIONARE.md: niente fonti inventate.
  *
- * Uso:
+ * Uso (serve la rete: interroga it.wikipedia in blocchi, con attese fra le
+ * richieste; se Wikipedia risponde 429 lo script aspetta e riprova):
  *   node scripts/generate-questions/fix_timeline_sources.mjs            # prova
  *   node scripts/generate-questions/fix_timeline_sources.mjs --write    # scrive
  *   node scripts/generate-questions/fix_timeline_sources.mjs --write --json
  */
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '..', '..');
 const bankPath = join(root, 'apps', 'backend', 'src', 'main', 'resources', 'questions', 'timeline-it.json');
-const cachePath = join(here, '.timeline-cache.json');
 
 const args = new Set(process.argv.slice(2));
 const write = args.has('--write');
@@ -95,7 +95,6 @@ const STOPWORDS = new Set([
   'primo', 'primi', 'prime', 'completa', 'apre', 'fonda', 'scoperta', 'edizione', 'anno',
 ]);
 
-const cache = existsSync(cachePath) ? JSON.parse(readFileSync(cachePath, 'utf8')) : {};
 
 function tokens(text) {
   return String(text ?? '')
@@ -117,15 +116,9 @@ function sharesWord(text, words) {
 
 async function api(params) {
   const url = `${API}?${new URLSearchParams({ format: 'json', ...params })}`;
-  if (cache[url]) return cache[url];
   for (let attempt = 1; attempt <= 6; attempt += 1) {
     const response = await fetch(url, { headers: { 'User-Agent': UA } });
-    if (response.ok) {
-      const data = await response.json();
-      cache[url] = data;
-      writeFileSync(cachePath, JSON.stringify(cache), 'utf8');
-      return data;
-    }
+    if (response.ok) return response.json();
     if (response.status !== 429 && response.status < 500) throw new Error(`wikipedia ${response.status}`);
     const retryAfter = Number(response.headers.get('retry-after')) || 0;
     await new Promise((done) => setTimeout(done, Math.max(retryAfter * 1000, 2000 * attempt)));
@@ -266,7 +259,10 @@ async function main() {
   if (write) {
     bank.events = events;
     writeFileSync(bankPath, JSON.stringify(bank, null, 2) + '\n', 'utf8');
-    console.log(`Scritto ${bankPath}: ${resolved.length} fonti aggiornate.`);
+    // Con --json l'uscita resta JSON puro: la conferma va su stderr.
+    const conferma = `Scritto ${bankPath}: ${resolved.length} fonti aggiornate.`;
+    if (asJson) console.error(conferma);
+    else console.log(conferma);
   }
 }
 

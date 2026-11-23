@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Un indizio che cita il nome o il cognome della celebrità regala la risposta.
@@ -79,8 +78,10 @@ class CelebrityClueLeakTest {
             return;
         }
 
+        // La mini-banca sta in `src/test/resources`: se manca è un errore, non
+        // un motivo per saltare il controllo come per la banca vera.
         ClassPathResource fallback = new ClassPathResource("questions/media-test.json");
-        assumeTrue(fallback.exists(), "manca anche la mini-banca di prova: questions/media-test.json");
+        assertThat(fallback.exists()).as("mini-banca di prova presente").isTrue();
         assertThat(checkBank(fallback)).as("persone controllate nella mini-banca").isGreaterThanOrEqualTo(3);
     }
 

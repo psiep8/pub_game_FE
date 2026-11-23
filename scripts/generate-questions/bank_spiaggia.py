@@ -1,14 +1,17 @@
-"""Domande di Ultima spiaggia: 3 per categoria e livello (240 in tutto).
+"""Le 160 domande nuove di Ultima spiaggia, due per categoria e fascia.
 
-Le prime 80 sono le storiche della banca, già presenti in `questions-it.json`:
-qui non si riscrivono, si etichettano soltanto con la loro fascia tramite
-`spiaggia_bands.json` (id -> fascia), letto dal generatore.
+La griglia completa è 16 categorie x 5 fasce x 3 domande = 240. Le altre 80
+sono le domande che erano già in `questions-it.json`: qui non si riscrivono,
+si etichettano soltanto con la loro fascia tramite `spiaggia_bands.json`
+(id -> fascia). Le due cose le applica `apply_spiaggia.py`.
 
-Le altre 160 sono scritte qui, due per fascia, con accanto la voce di
-riferimento usata per la verifica. Non sono verificate da un test: vanno
-lette a mano, e per questo finiscono in `docs/DOMANDE-DA-REVISIONARE.md`.
+L'ultimo campo di ogni riga è la voce usata per la verifica, non un testo per
+il pubblico: finisce in `docs/DOMANDE-DA-REVISIONARE.md`, dove le domande
+vanno lette a mano (l'audit controlla la forma, non i fatti).
 
 Formato di ogni riga: (categoria, fascia, domanda, corretta, [sbagliate], fonte)
+Se aggiungi righe in mezzo a un blocco gli id scivolano: `apply_spiaggia.py`
+lo segnala, ma conviene aggiungere in fondo alla categoria e alla fascia.
 """
 
 from __future__ import annotations

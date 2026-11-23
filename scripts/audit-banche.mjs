@@ -63,38 +63,39 @@ function readJson(name) {
  * da quelli corretti a mano.
  */
 function applyMediaPatches(media) {
+  const result = { fields: 0, unmatched: [] };
   const path = join(questionsDir, 'media-patches.json');
-  const applied = { music: 0, people: 0 };
-  const unmatched = [];
-  if (!existsSync(path)) return { applied, unmatched };
+  if (!existsSync(path)) return result;
 
   const patches = JSON.parse(readFileSync(path, 'utf8'));
   const key = (text) => normalizeText(String(text ?? ''));
   const tracks = new Map((media.music ?? []).map((item) => [key(`${item.title} ${item.artist}`), item]));
   const people = new Map((media.people ?? []).map((item) => [key(item.name), item]));
 
+  const applyOne = (item, patch, label) => {
+    if (!item) {
+      result.unmatched.push(label);
+      return;
+    }
+    for (const [field, value] of Object.entries(patch.set ?? {})) {
+      if (item[field] === value) continue;
+      item[field] = value;
+      result.fields += 1;
+    }
+  };
+
   for (const patch of patches.music ?? []) {
-    const label = `${patch.artist ?? ''} - ${patch.title ?? ''}`;
-    const item = tracks.get(key(`${patch.title ?? ''} ${patch.artist ?? ''}`));
-    if (!item) {
-      unmatched.push(`musica: ${label}`);
-      continue;
-    }
-    applied.music += Object.keys(patch.set ?? {}).length;
-    Object.assign(item, patch.set ?? {});
+    applyOne(
+      tracks.get(key(`${patch.title ?? ''} ${patch.artist ?? ''}`)),
+      patch,
+      `musica: ${patch.artist ?? ''} - ${patch.title ?? ''}`,
+    );
   }
-
   for (const patch of patches.people ?? []) {
-    const item = people.get(key(patch.name));
-    if (!item) {
-      unmatched.push(`persona: ${patch.name ?? ''}`);
-      continue;
-    }
-    applied.people += Object.keys(patch.set ?? {}).length;
-    Object.assign(item, patch.set ?? {});
+    applyOne(people.get(key(patch.name)), patch, `persona: ${patch.name ?? ''}`);
   }
 
-  return { applied, unmatched };
+  return result;
 }
 
 /** I file media sono serviti da `/media/...`: il percorso su disco parte da static. */
@@ -714,7 +715,7 @@ if (args.has('--ci')) {
   const holes = report.ultimaSpiaggia.holes.length;
   const unmatchedPatches = report.mediaPatches.unmatched.length;
   console.log(`CI banche: doppioni ${duplicates}, segnalazioni ${issues}, campi mancanti ${missing}`);
-  console.log(`Media corrette a mano: ${report.mediaPatches.applied.music + report.mediaPatches.applied.people} campi, ${unmatchedPatches} patch senza voce`);
+  console.log(`Media corrette a mano: ${report.mediaPatches.fields} campi, ${unmatchedPatches} patch senza voce`);
   for (const label of report.mediaPatches.unmatched) console.log(`  patch senza voce: ${label}`);
   console.log(`Ultima spiaggia: ${holes} celle sotto il minimo di ${report.ultimaSpiaggia.minPerLevel}`);
   console.log(`Bomba: ${report.bomba.doubts.length} false da rivedere (non bloccanti)`);

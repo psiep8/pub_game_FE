@@ -96,11 +96,12 @@ def entry_for(question_id: str, category: str, band: str, question: str,
     }
 
 
-def apply(questions: list[dict], bands: dict[str, str]) -> tuple[list[str], list[str], list[str], list[str]]:
-    """Ritorna (aggiunte, etichettate, riallineate, problemi) senza toccare altro."""
+def apply(questions: list[dict], bands: dict[str, str]) -> tuple[list[str], list[str], list[str], list[str], list[str]]:
+    """Ritorna (aggiunte, etichettate, riallineate, id scivolati, problemi)."""
     added: list[str] = []
     labelled: list[str] = []
     refreshed: list[str] = []
+    shifted: list[str] = []
     problems: list[str] = []
 
     by_id = {item["id"]: index for index, item in enumerate(questions)}
@@ -133,6 +134,11 @@ def apply(questions: list[dict], bands: dict[str, str]) -> tuple[list[str], list
         if index is not None:
             # Riga gia' in banca: si riallinea al file tracciato, senza spostarla.
             if questions[index] != entry:
+                # L'id dipende dalla posizione nel file: se cambia la domanda
+                # dietro lo stesso id, qualcuno ha aggiunto righe in mezzo e
+                # gli id sono scivolati. Non e' un errore, ma va detto.
+                if questions[index].get("question") != question:
+                    shifted.append(question_id)
                 questions[index] = entry
                 refreshed.append(question_id)
             continue
@@ -140,7 +146,7 @@ def apply(questions: list[dict], bands: dict[str, str]) -> tuple[list[str], list
         by_id[question_id] = len(questions) - 1
         added.append(question_id)
 
-    return added, labelled, refreshed, problems
+    return added, labelled, refreshed, shifted, problems
 
 
 def main() -> None:
@@ -150,7 +156,7 @@ def main() -> None:
 
     bank, questions = reload()
     bands = json.loads(BANDS_FILE.read_text(encoding="utf-8")) if BANDS_FILE.exists() else {}
-    added, labelled, refreshed, problems = apply(questions, bands)
+    added, labelled, refreshed, shifted, problems = apply(questions, bands)
 
     tagged = sum(1 for item in questions if item.get("spiaggiaBand"))
     print(
@@ -160,6 +166,8 @@ def main() -> None:
     )
     for problem in problems:
         print(f"  problema: {problem}")
+    for question_id in shifted:
+        print(f"  id scivolato: {question_id} (domanda diversa sotto lo stesso id)")
 
     if problems:
         raise SystemExit("Errori in bank_spiaggia/spiaggia_bands: correggili prima di scrivere.")
