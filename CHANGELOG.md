@@ -1,13 +1,13 @@
 # Changelog
 
-## 23 novembre 2026 — Ruota a 52 frasi, senza ripetizioni in serata
+## 23 novembre 2026 — Ruota a 62 frasi, senza ripetizioni in serata
 
-- **Ruota della fortuna:** `QuestionBankService.PROVERBS` passa da **32 a 52
+- **Ruota della fortuna:** `QuestionBankService.PROVERBS` passa da **32 a 62
   frasi**, tutte italiane e adatte a un pub, senza doppioni (l'audit confronta
-  il testo normalizzato). Le 20 nuove — da «Chi non muore si rivede» a «Non
-  dire gatto se non ce l'hai nel sacco» — fanno sì che le due occorrenze a
-  serata non ripetano la stessa frase. Dieci candidati sono stati scartati in
-  revisione perché poco adatti al pub.
+  il testo normalizzato). Le 30 nuove vanno da «Chi non muore si rivede» a «Le
+  disgrazie non vengono mai sole» e non includono nessuno dei dieci candidati
+  scartati in revisione; così le due occorrenze a serata non ripetono la frase e
+  la banca regge più serate di fila.
 - **Niente ripetizioni nella stessa partita:** `pickRandomProverb` riceveva
   sempre il mazzo intero e ignorava la deduplica della serata; ora pesca solo
   fra i proverbi non ancora usati, con la stessa chiave che il controller

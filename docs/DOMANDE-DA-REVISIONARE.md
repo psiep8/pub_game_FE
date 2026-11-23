@@ -51,7 +51,7 @@ segnalazioni delle domande).
 | --- | --- | --- | --- | --- |
 | Indovina chi (`media-it.json`, people) | 150 persone, 7 categorie | 0 | 0: tutte con categoria, foto su disco, descrizione ed estratto | nessuna voce: gli indizi sono verificati da `CelebrityClueLeakTest` |
 | Musica (`media-it.json`, music) | 114 brani, 5 occorrenze in serata | 0 | 0: ogni brano ha anno, file e copertina | nessuna |
-| Ruota (frasi in `QuestionBankService.PROVERBS`) | **52 frasi**, 2 occorrenze in serata | 0 | 0: nessuna frase sotto le tre parole o con numeri | nessuna: la scelta salta i proverbi già usati nella partita, quindi due occorrenze a serata non ripetono la frase |
+| Ruota (frasi in `QuestionBankService.PROVERBS`) | **62 frasi**, 2 occorrenze in serata | 0 | 0: nessuna frase sotto le tre parole o con numeri | nessuna: la scelta salta i proverbi già usati nella partita, quindi due occorrenze a serata non ripetono la frase |
 | Bomba (`bomba-it.json`) | **110 affermazioni (62 vere, 48 false)**, 11 categorie da 9 a 10 | 0 | 0 campi mancanti: ogni riga ha id, categoria, booleano e fonte; 0 dubbi di distanza | nessuna: le 8 coppie segnalate sono state allineate (elenco sotto) |
 
 ### Musica: anno completato

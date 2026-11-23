@@ -106,7 +106,17 @@ public class QuestionBankService {
             "Occhio non vede cuore non duole",
             "Il fine giustifica i mezzi",
             "Batti il ferro finché è caldo",
-            "Non dire gatto se non ce l'hai nel sacco"
+            "Non dire gatto se non ce l'hai nel sacco",
+            "Una rondine non fa primavera",
+            "Occhio per occhio dente per dente",
+            "Il sangue non è acqua",
+            "Tale padre tale figlio",
+            "Chi la dura la vince",
+            "Chi cerca trova",
+            "Volere è potere",
+            "Prima il dovere poi il piacere",
+            "I muri hanno orecchie",
+            "Le disgrazie non vengono mai sole"
     };
 
     /** Tenuta di sicurezza: se la banca non è ancora stata generata, il gioco resta vivo. */
