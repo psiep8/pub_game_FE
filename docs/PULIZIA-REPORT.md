@@ -194,14 +194,16 @@ dinamiche.
 - **Saltati:** 2 test in `loop-loudness.spec.ts` (ffmpeg assente), dichiarati nel
   test. Nessun `xit`, `fit`, `.only`, `.skip` o `@Disabled` nel codice.
 - **Focalizzati:** nessuno.
-- **Instabili:** la suite frontend è sempre 701/2 (tre esecuzioni). Il backend è
-  168/168 nella maggior parte delle esecuzioni, ma **una volta** la suite
-  completa ha avuto due fallimenti di timing in `ReliabilityIntegrationTest`
-  (`dueTelefoniNonRicevonoUnAnnuncioQuizDopoIlCambioRound` e
-  `risultatoArenaPubblicatoDalServerUnaVoltaSulWebSocketReale`, nessun frame
-  entro l'attesa). La classe da sola è passata 45/45 e la suite completa di
-  nuovo 168/168: è un test sensibile al carico della macchina, non un guasto
-  del codice. Da tenere d'occhio se ricompare in CI.
+- **Instabili (corretti):** la suite frontend è sempre 701/2 (tre esecuzioni).
+  Una volta la suite backend completa ha avuto due fallimenti di timing in
+  `ReliabilityIntegrationTest` (`dueTelefoniNonRicevonoUnAnnuncioQuizDopoIlCambioRound`
+  e `risultatoArenaPubblicatoDalServerUnaVoltaSulWebSocketReale`): aspettavano
+  300–500 ms o una sonda che poteva superare gli annunci. Ora attendono la
+  condizione con una scadenza ampia (sottoscrizione attiva, secondo annuncio,
+  cornice `ARENA_ANSWER`) e si fermano appena arriva; solo il controllo «nessun
+  annuncio vecchio in ritardo» usa una finestra di quiete. Verificato con 3
+  esecuzioni della classe (45/45), una con tre processi di carico in parallelo
+  (45/45) e la suite completa (168/168).
 - **Giochi con sola logica di modalità testata** (nessuna spec del componente TV):
   Timeline, Arena, Tennis Battle, Time Buzzer, Speed Rush, Ultima spiaggia.
   Hanno `*.mode.spec.ts` ma non uno spec del componente che disegna il round.

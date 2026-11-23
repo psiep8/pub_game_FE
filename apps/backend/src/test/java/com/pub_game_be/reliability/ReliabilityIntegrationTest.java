@@ -900,13 +900,17 @@ class ReliabilityIntegrationTest {
             a.sendText("SUBSCRIBE\nid:a\ndestination:/topic/game/" + gameId + "/status\n\n\0", true).join();
             b.sendText("SUBSCRIBE\nid:b\ndestination:/topic/game/" + gameId + "/status\n\n\0", true).join();
             // Ripetere la sonda finché entrambi hanno realmente sottoscritto.
+            // Sonda finché entrambe le sottoscrizioni rispondono: il tempo per
+            // sonda è solo un limite, il ciclo esce appena la condizione è vera.
+            long subscribeDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
             boolean seenA = false, seenB = false;
-            for (int attempt = 0; attempt < 10 && !(seenA && seenB); attempt++) {
+            while ((!seenA || !seenB) && System.nanoTime() < subscribeDeadline) {
                 screen.sendText(prefix + "{\"action\":\"CHRISTMAS_TOGGLE\",\"enabled\":true}\0", true).join();
-                if (framesA.poll(300, TimeUnit.MILLISECONDS) != null) seenA = true;
-                if (framesB.poll(300, TimeUnit.MILLISECONDS) != null) seenB = true;
+                if (!seenA) seenA = frameContaining(framesA, "CHRISTMAS_TOGGLE", 1) != null;
+                if (!seenB) seenB = frameContaining(framesB, "CHRISTMAS_TOGGLE", 1) != null;
             }
-            assertThat(seenA && seenB).isTrue();
+            assertThat(seenA).as("sottoscrizione A attiva").isTrue();
+            assertThat(seenB).as("sottoscrizione B attiva").isTrue();
             framesA.clear();
             framesB.clear();
             String roundStartId = gameState.currentRoundStartId(gameId).orElseThrow();
@@ -962,13 +966,17 @@ class ReliabilityIntegrationTest {
         try {
             a.sendText("SUBSCRIBE\nid:a\ndestination:/topic/game/" + gameId + "/status\n\n\0", true).join();
             b.sendText("SUBSCRIBE\nid:b\ndestination:/topic/game/" + gameId + "/status\n\n\0", true).join();
+            // Sonda finché entrambe le sottoscrizioni rispondono: il tempo per
+            // sonda è solo un limite, il ciclo esce appena la condizione è vera.
+            long subscribeDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
             boolean seenA = false, seenB = false;
-            for (int attempt = 0; attempt < 10 && !(seenA && seenB); attempt++) {
+            while ((!seenA || !seenB) && System.nanoTime() < subscribeDeadline) {
                 screen.sendText(prefix + "{\"action\":\"CHRISTMAS_TOGGLE\",\"enabled\":true}\0", true).join();
-                if (framesA.poll(300, TimeUnit.MILLISECONDS) != null) seenA = true;
-                if (framesB.poll(300, TimeUnit.MILLISECONDS) != null) seenB = true;
+                if (!seenA) seenA = frameContaining(framesA, "CHRISTMAS_TOGGLE", 1) != null;
+                if (!seenB) seenB = frameContaining(framesB, "CHRISTMAS_TOGGLE", 1) != null;
             }
-            assertThat(seenA && seenB).isTrue();
+            assertThat(seenA).as("sottoscrizione A attiva").isTrue();
+            assertThat(seenB).as("sottoscrizione B attiva").isTrue();
             framesA.clear();
             framesB.clear();
 
@@ -983,14 +991,29 @@ class ReliabilityIntegrationTest {
                 announcement.get(10, TimeUnit.SECONDS);
                 screen.sendText(prefix + "{\"action\":\"START_VOTING\",\"type\":\"QUIZ\",\"roundStartId\":\""
                         + second + "\"}\0", true).join();
-                // Sonda con un testo unico: un CHRISTMAS della sottoscrizione
-                // poteva essere ancora in volo e chiudere la raccolta in anticipo.
-                screen.sendText(prefix + "{\"action\":\"BUTTON_TEST_PING\",\"probe\":\"order-8108\"}\0", true).join();
-
                 for (BlockingQueue<String> frames : List.of(framesA, framesB)) {
                     List<String> ids = new ArrayList<>();
                     List<Long> started = new ArrayList<>();
-                    for (String frame : framesUntil(frames, "order-8108")) {
+                    // Condizione, non tempo fisso: si attende il secondo
+                    // annuncio con una scadenza ampia, che si interrompe appena
+                    // arriva. Una sonda come barriera poteva superarlo.
+                    long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
+                    long remaining;
+                    while (!ids.contains(second) && (remaining = deadline - System.nanoTime()) > 0) {
+                        String frame = frames.poll(remaining, TimeUnit.NANOSECONDS);
+                        if (frame == null) break;
+                        JsonNode body = stompBody(frame);
+                        if (body == null || !"START_VOTING".equals(body.path("action").asText())) continue;
+                        ids.add(body.path("roundStartId").asText());
+                        started.add(body.path("roundStartedAt").asLong());
+                    }
+                    // Un annuncio vecchio che arriva DOPO il nuovo è il guasto
+                    // che questo test cerca: si svuota la coda finché tace.
+                    long quietUntil = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(500);
+                    while ((remaining = quietUntil - System.nanoTime()) > 0) {
+                        String frame = frames.poll(remaining, TimeUnit.NANOSECONDS);
+                        if (frame == null) break;
+                        quietUntil = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(500);
                         JsonNode body = stompBody(frame);
                         if (body == null || !"START_VOTING".equals(body.path("action").asText())) continue;
                         ids.add(body.path("roundStartId").asText());
@@ -1011,19 +1034,6 @@ class ReliabilityIntegrationTest {
         }
     }
 
-    private List<String> framesUntil(BlockingQueue<String> frames, String text) throws InterruptedException {
-        List<String> seen = new ArrayList<>();
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
-        long remaining;
-        while ((remaining = deadline - System.nanoTime()) > 0) {
-            String frame = frames.poll(remaining, TimeUnit.NANOSECONDS);
-            if (frame == null) return seen;
-            seen.add(frame);
-            if (frame.contains(text)) return seen;
-        }
-        return seen;
-    }
-
     /** Corpo JSON di un frame STOMP, senza terminatori. */
     private JsonNode stompBody(String frame) {
         int body = frame.indexOf("\n\n");
@@ -1036,7 +1046,13 @@ class ReliabilityIntegrationTest {
     }
 
     private String frameContaining(BlockingQueue<String> frames, String text) throws InterruptedException {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        return frameContaining(frames, text, 15);
+    }
+
+    /** Attende la prima cornice che contiene `text`, scartando le altre. */
+    private String frameContaining(BlockingQueue<String> frames, String text, long seconds)
+            throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(seconds);
         long remaining;
         while ((remaining = deadline - System.nanoTime()) > 0) {
             String frame = frames.poll(remaining, TimeUnit.NANOSECONDS);
@@ -1162,12 +1178,12 @@ class ReliabilityIntegrationTest {
                 }).join();
         try {
             socket.sendText("CONNECT\naccept-version:1.2\nX-Session-Token:" + tv.sessionToken() + "\n\n\0", true).join();
-            assertThat(frames.poll(5, TimeUnit.SECONDS)).startsWith("CONNECTED");
+            assertThat(frameContaining(frames, "CONNECTED")).startsWith("CONNECTED");
             socket.sendText("SUBSCRIBE\nid:status\ndestination:/topic/game/" + gameId + "/status\n\n\0", true).join();
             // Il messaggio di controllo conferma che la sottoscrizione è attiva.
             socket.sendText("SEND\ndestination:/app/game/" + gameId + "/status\ncontent-type:application/json\n\n"
                     + "{\"action\":\"CHRISTMAS_TOGGLE\",\"enabled\":true}\0", true).join();
-            assertThat(frames.poll(5, TimeUnit.SECONDS)).contains("CHRISTMAS_TOGGLE");
+            assertThat(frameContaining(frames, "CHRISTMAS_TOGGLE")).contains("CHRISTMAS_TOGGLE");
 
             gameState.startRound(gameId, "ARENA", 1, "arena-ws-510", "{}");
             questionHistory.assign(gameId, arenaAssignment(gameId, "q-ws", "Anna", "Domanda", "VERO", "Storia"));
@@ -1176,7 +1192,7 @@ class ReliabilityIntegrationTest {
             var accepted = gameController.answerArenaQuestion(gameId, answer);
             assertThat(accepted.getStatusCode().value()).isEqualTo(200);
             Map<?, ?> result = (Map<?, ?>) accepted.getBody();
-            String event = frames.poll(5, TimeUnit.SECONDS);
+            String event = frameContaining(frames, "ARENA_ANSWER");
             assertThat(event).contains("ARENA_ANSWER", "Anna", "isCorrect", "points",
                     String.valueOf(result.get("eventId")), "\"eventSeq\":" + result.get("eventSeq"));
             var stored = gameState.eventsSince(gameId, 0);
