@@ -1,22 +1,16 @@
-# Serata completa 40 round + 4 bonus — 23/11/2026
-
-> **Correzione 23/11/2026:** la serata ha **cinque** bonus, non quattro.
-> L'harness è stato corretto per eseguire anche `CASINO_NUMBER`; il run
-> end-to-end registrato sotto resta la prova a quattro bonus perché il rerun
-> a cinque non è partito per un blocco della distro WSL. I dati sui 40 round,
-> sugli 8 telefoni e sulle banche restano validi.
+# Serata completa 40 round + 5 bonus — 23/11/2026
 
 ## Esito
 
-**PASS** sulla simulazione funzionale: 40 round della scaletta reale e 4 bonus
+**PASS** sulla simulazione funzionale: 40 round della scaletta reale e **5 bonus**
 portati a termine con 8 partecipanti e 8 telefoni STOMP, senza errori 5xx e
 senza handler in errore.
 
-- Partita di prova: **gameId 4** sul backend Docker `127.0.0.1:8080`.
+- Partita di prova: **gameId 6** sul backend Docker `127.0.0.1:8080`.
 - Tavoli: **8** (Anna, Bruno, Carla, Dario, Elena, Fabio, Giulia, Luca).
 - Round: **40/40**, nell'ordine di `apps/frontend/src/app/shared/schedule.ts`.
-- Bonus: **4** — `CASINO_COLOR`, `BLACKJACK`, `CASINO_DOZEN`, `CAVALLO`.
-- Azioni registrate: **1039**; HTTP 200: **519**; invii STOMP: **501**.
+- Bonus: **5** — `CASINO_COLOR`, `BLACKJACK`, `CASINO_DOZEN`, `CAVALLO`, `CASINO_NUMBER`.
+- Azioni registrate: **1047**; HTTP 200: **519**; invii STOMP: **509**.
 - Errori applicativi del backend (`ERROR`, `Exception`, `500`): **0**.
 
 Il backend non è stato aperto a video: la regia TV è stata sostituita dal
@@ -62,8 +56,8 @@ scaduto e Timeline tardiva sono stati rifiutati come previsto.
 
 ## Bonus
 
-Il run registrato sotto ha eseguito quattro bonus; il quinto è stato aggiunto
-all'harness ma non è stato eseguito end-to-end per il blocco WSL:
+Sono partiti tutti e cinque i bonus; per ognuno il pilota ha pubblicato lo
+stato e gli 8 telefoni hanno inviato l'azione:
 
 | Bonus | Stato TV | Azioni telefoni |
 |---|---|---:|
@@ -71,23 +65,22 @@ all'harness ma non è stato eseguito end-to-end per il blocco WSL:
 | BLACKJACK | `BLACKJACK_STATE` | 8 |
 | CASINO_DOZEN | `CASINO_STATE` | 8 |
 | CAVALLO | `CAVALLO_STATE` | 16 (8 categoria + 8 risposta) |
-| CASINO_NUMBER | `CASINO_STATE` | configurato, rerun non eseguito |
+| CASINO_NUMBER | `CASINO_STATE` | 8 |
 
-La serata reale prevede **cinque** bonus (`BONUS_AFTER_ACT`), tutti supportati
-dal pilota e dall'handler `CASINO_*`. Biglie non è un bonus: sono i quattro
-round 11, 22, 28 e 37, tutti eseguiti.
+La serata reale prevede **cinque** bonus (`BONUS_AFTER_ACT`), tutti eseguiti.
+Biglie non è un bonus: sono i quattro round 11, 22, 28 e 37, tutti eseguiti.
 
 ## Stato finale autorevole
 
-`GET /games/4/diagnostics`:
+`GET /games/6/diagnostics`:
 
 - `roundType=ARENA`, `roundIndex=39` (quarantesimo round), `roundOpen=false`.
-- `lastEventType=ROUND_CLOSED`, `seq=124`.
-- `questionsUsed=48`.
+- `lastEventType=ROUND_CLOSED`, `seq=125`.
+- `questionsUsed=50`.
 - `devices`: 10 registrati (TV, admin, 8 telefoni); a fine prova 0 connessi
   perché l'harness chiude tutte le socket.
 
-La partita si ferma dopo il quarantesimo round e i quattro bonus registrati; la schermata
+La partita si ferma dopo il quarantesimo round e i cinque bonus; la schermata
 finale/classifica della TV non è stata renderizzata perché non c'era una TV
 grafica. Il backend non ha round aperti né handler bloccati.
 
@@ -119,14 +112,14 @@ della fault injection.
   di Elena: la socket è stata chiusa e riaperta, il `JOIN_GAME` è riuscito
   (log `elena-rejoin`), ma il contatore del backend non è incrementato.
 - I tempi sono stati compressi per il laboratorio: `ROUND_MS=9000`,
-  `BONUS_MS=7000`. Il numero di round e partecipanti è quello reale; il
-  rerun a cinque bonus è bloccato dal mancato avvio di nuove shell WSL.
-- Il quinto bonus è coperto dal codice e dallo stesso percorso `CASINO_STATE`
-  degli altri due Casino, ma non ha ancora un'esecuzione end-to-end registrata.
+  `BONUS_MS=7000`. Il numero di round, bonus e partecipanti è quello reale.
+- La distro WSL è stata riavviata per sbloccare le nuove shell; lo script
+  `.freebuff/restore-after-wsl.sh` ha ripristinato `pubgame-backend` e il
+  backend Stoppa sulla 8081.
 
 ## Artefatti locali (non versionati)
 
-- Log completo: `.freebuff/full-night-4.log`
+- Log completo: `.freebuff/full-night-5.log`
 - Azioni: `scripts/sim/reports/game-actions.jsonl`
 - Riepilogo: `scripts/sim/reports/game-actions-summary.json`
 - Audit: `.freebuff/audit-banche.log`
