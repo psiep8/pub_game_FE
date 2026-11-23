@@ -6,7 +6,7 @@
   max-width: 100%;
   padding: clamp(10px, 2vh, 20px);
   text-align: center;
-  color: var(--paper);
+  color: var(--ink);
   overflow: hidden;
 }
 
@@ -25,9 +25,9 @@
   letter-spacing: .12em;
   text-transform: uppercase;
   padding: 6px 10px;
-  border: 2px solid var(--coal);
+  border: 2px solid var(--on-mustard);
   background: var(--mustard);
-  color: var(--coal);
+  color: var(--on-mustard);
   box-shadow: 4px 4px 0 var(--coal);
 }
 
@@ -94,7 +94,7 @@
   line-height: 1.15;
   color: var(--ink);
   text-transform: uppercase;
-  text-shadow: 3px 3px 0 var(--tomato);
+  text-shadow: 3px 3px 0 var(--title-shadow);
   word-wrap: break-word;
   overflow-wrap: anywhere;
 }
@@ -273,7 +273,7 @@
 /* Riepilogo completo: ogni manche con la risposta giusta e le squadre. */
 .quiz-summary-head {
   margin-bottom: 10px;
-  color: var(--paper);
+  color: var(--ink);
   font-family: var(--font-display);
   font-size: clamp(1.2rem, 2vw, 1.8rem);
   letter-spacing: 0.04em;
@@ -299,7 +299,7 @@
   justify-content: center;
   gap: 14px;
   margin-top: 18px;
-  color: var(--paper);
+  color: var(--ink);
   font-family: var(--font-mono);
   font-size: clamp(0.8rem, 1.2vw, 1rem);
   letter-spacing: 0.14em;

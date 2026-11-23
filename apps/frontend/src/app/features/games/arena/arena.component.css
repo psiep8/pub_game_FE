@@ -11,7 +11,7 @@
   align-items: center;
   justify-content: center;
   font-family: var(--font);
-  color: var(--paper);
+  color: var(--ink);
 }
 
 .arena-kicker { font-size: clamp(.6rem, 1vw, .85rem); letter-spacing: .35em; color: #67e8f9; font-weight: 800; }
@@ -33,7 +33,7 @@
   font-weight: 400;
   color: var(--ink);
   font-family: var(--font-display);
-  text-shadow: 4px 4px 0 var(--tomato);
+  text-shadow: 4px 4px 0 var(--title-shadow);
   margin: 0;
   letter-spacing: 0.03em;
   text-transform: uppercase;

@@ -65,6 +65,9 @@
 
   --acid: #d9ff43;
   --tomato: #ff4d2e;
+  /* Oro e i temi invertiti possono avere tomato uguale all'inchiostro:
+     le ombre dei titoli usano questo token, non il colore del testo. */
+  --title-shadow: var(--tomato);
   --cobalt: #2f5bff;
   --mustard: #ffc53d;
   --mint: #8be3c4;
@@ -210,7 +213,7 @@ app-image-blur .blur-title{
   color: var(--ink) !important;
   font-family: var(--font-display) !important;
   font-weight: 400 !important;
-  text-shadow: 4px 4px 0 var(--tomato) !important;
+  text-shadow: 4px 4px 0 var(--title-shadow) !important;
   letter-spacing: 0.02em !important;
   text-transform: uppercase;
 }
@@ -222,7 +225,7 @@ app-image-blur .reservation-alert {
   box-shadow: 6px 6px 0 var(--coal) !important;
 }
 app-image-blur .alert-name,
-app-image-blur .alert-text { color: var(--paper-hi) !important; }
+app-image-blur .alert-text { color: var(--on-tomato) !important; }
 app-image-blur .timer-circle {
   background: var(--coal) !important;
   border: 2px solid var(--paper) !important;
@@ -511,6 +514,9 @@ html[data-theme="premium-gold"] {
 
   --acid: #d4af37;
   --tomato: #f7e7ce;
+  /* Su Oro tomato coincide con l'inchiostro: l'ombra del titolo sarebbe
+     invisibile. L'oro pieno resta un accento leggibile sul carbone. */
+  --title-shadow: var(--acid);
   --cobalt: #b08d57;
   --mustard: #e5c76b;
   --mint: #f7e7ce;
@@ -566,7 +572,7 @@ app-arena .arena-kicker,
 app-arena .arena-chip { font-size: clamp(0.82rem, 1.05vw, 1rem) !important; }
 app-arena .arena-instruction { font-size: clamp(0.95rem, 1.35vw, 1.25rem) !important; }
 app-arena .team-label { font-size: clamp(0.82rem, 1vw, 1rem) !important; }
-app-arena .arena-title { font-size: clamp(2rem, 4.2vw, 3.8rem) !important; color: var(--ink) !important; text-shadow: 4px 4px 0 var(--tomato) !important; }
+app-arena .arena-title { font-size: clamp(2rem, 4.2vw, 3.8rem) !important; color: var(--ink) !important; text-shadow: 4px 4px 0 var(--title-shadow) !important; }
 app-arena .arena-kicker { color: var(--acid) !important; }
 app-arena .arena-chip { background: var(--paper) !important; color: var(--coal) !important; border-color: var(--coal) !important; }
 app-arena .arena-chip.alive { color: var(--coal) !important; }
@@ -891,3 +897,82 @@ app-remote-component .speed-big,
 app-remote-component .confirm-btn,
 app-remote-component .tl-move,
 app-remote-component .tennis-side { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
+
+/* ============================================================
+   LEGGIBILITÀ TV — TV lontane, tavoli in fondo alla sala.
+   Una sola scala per tutte le schermate: etichette, corpo,
+   opzioni e titoli crescono insieme, anche a 720p. Le regole
+   dei componenti che rimpicciolivano i testi vengono superate
+   qui, senza cambiare carta, inchiostro o accenti.
+   ============================================================ */
+app-game-component {
+  --tv-label: clamp(1.05rem, 1.45vw, 1.35rem);
+  --tv-body: clamp(1.2rem, 1.8vw, 1.7rem);
+  --tv-option: clamp(1.35rem, 2.1vw, 1.9rem);
+  --tv-title: clamp(2.5rem, 4.4vw, 4.3rem);
+  --tv-category: clamp(2.1rem, 3.1vw, 3.2rem);
+}
+
+app-game-component .round-text,
+app-game-component .question-category,
+app-game-component .timer-wrapper .timer-text { font-size: var(--tv-label) !important; }
+app-game-component .question-category { font-size: var(--tv-category) !important; }
+
+app-game-component .tv-dock .dock-btn {
+  width: 50px;
+  height: 50px;
+  font-size: 1.15rem;
+}
+app-game-component .tv-dock .dock-btn.advance {
+  min-width: 92px;
+  padding: 0 14px;
+  font-size: var(--tv-label) !important;
+}
+
+/* Quiz: badge manche, domanda, opzioni e lettere. */
+app-game-component app-quiz .quiz-manche-tag {
+  color: var(--on-mustard) !important;
+  border-color: var(--on-mustard) !important;
+  font-size: var(--tv-label) !important;
+  padding: 8px 14px !important;
+}
+app-game-component app-quiz .quiz-question {
+  font-size: var(--tv-title) !important;
+  line-height: 1.06;
+}
+app-game-component app-quiz .quiz-option-btn {
+  padding: 16px 20px !important;
+  gap: 18px !important;
+  font-size: var(--tv-option) !important;
+}
+app-game-component app-quiz .option-letter {
+  min-width: clamp(40px, 6vmin, 52px);
+  height: clamp(40px, 6vmin, 52px);
+  font-size: clamp(1rem, 1.35vw, 1.3rem) !important;
+}
+
+/* Musica: titolo e stato di riproduzione. */
+app-game-component app-song .song-title {
+  font-size: var(--tv-title) !important;
+  line-height: 1.08;
+}
+app-game-component app-song .current-phase-label,
+app-game-component app-song .audio-status p { font-size: var(--tv-body) !important; }
+app-game-component app-song .phase-label { font-size: clamp(1rem, 1.4vw, 1.2rem) !important; }
+
+/* Immagini: titolo, avviso, indizio e timer. */
+app-game-component app-image-blur .blur-title { font-size: clamp(2.5rem, 4.2vw, 4rem) !important; }
+app-game-component app-image-blur .reservation-alert .alert-name { font-size: var(--tv-body) !important; }
+app-game-component app-image-blur .reservation-alert .alert-text { font-size: clamp(1rem, 1.3vw, 1.25rem) !important; }
+app-game-component app-image-blur .clue-label { font-size: var(--tv-label) !important; }
+app-game-component app-image-blur .clue-text { font-size: var(--tv-body) !important; line-height: 1.25; }
+app-game-component app-image-blur .timer-dot-container .timer-value { font-size: clamp(1rem, 1.8vw, 1.5rem) !important; }
+
+/* Arena: testata, istruzioni, chip e nomi dei tavoli. */
+app-game-component app-arena .arena-title { font-size: clamp(2.4rem, 4.4vw, 4rem) !important; }
+app-game-component app-arena .arena-kicker { font-size: var(--tv-label) !important; }
+app-game-component app-arena .arena-chip { font-size: var(--tv-label) !important; padding: 6px 14px !important; }
+app-game-component app-arena .arena-instruction { font-size: clamp(1.1rem, 1.6vw, 1.5rem) !important; }
+app-game-component app-arena .team-label { font-size: clamp(0.95rem, 1.15vw, 1.1rem) !important; }
+app-game-component app-arena .team-out { font-size: 0.8rem !important; }
+app-game-component app-arena .team-rank { font-size: 0.75rem !important; }

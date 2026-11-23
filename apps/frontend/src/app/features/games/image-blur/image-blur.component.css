@@ -10,7 +10,7 @@
   background-color: var(--bg-0);
   background-image: radial-gradient(color-mix(in srgb, var(--ink) 9%, transparent) 1px, transparent 1px);
   background-size: 18px 18px;
-  color: var(--paper);
+  color: var(--ink);
   z-index: 100;
 }
 
@@ -118,6 +118,7 @@
 .clue-label {
   display: block;
   margin-bottom: 3px;
+  color: var(--coal);
   font-family: var(--font-mono);
   font-size: clamp(0.55rem, 0.8vw, 0.66rem);
   font-weight: 700;
