@@ -55,11 +55,11 @@ dichiarate nel test (ffmpeg assente nell'ambiente), non sono un rosso.
 
 | Voce | Baseline | Finale | Delta |
 |---|---|---|---|
-| File versionati | 724 | **691** | −33 (34 screenshot `qa/`, 1 DTO, +2 script di stress) |
+| File versionati | 724 | **692** | −32 (34 screenshot `qa/`, 1 DTO, +3 file di script: due strumenti di stress e il client condiviso) |
 | Righe frontend | 60.354 | **60.330** | −24 |
 | Righe backend | 39.991 | **39.973** | −18 |
-| Righe script | 7.847 | **8.246** | +399 (due strumenti di stress nuovi) |
-| Righe docs | 6.240 | +questo rapporto e `STRESS-REPORT.md` | documentazione |
+| Righe script | 7.847 | **7.996** | +149 (due strumenti nuovi e `sim/client.mjs`, meno il codice duplicato nei tre script) |
+| Righe docs | 6.240 | **6.732** | +492 (questo rapporto, `STRESS-REPORT.md`, registro roadmap) |
 | Bundle JS | 1.595.804 B | **1.594.990 B** | −814 B |
 | Bundle CSS | 39.125 B | **39.125 B** | 0 |
 | Build `ng build` | 7,24 s | **5,78–6,39 s** (tre misure) | invariata nei limiti della varianza |
@@ -92,7 +92,10 @@ file di `qa/`.
 ### Aggiunte (non pulizia, strumenti richiesti dalla fase 7)
 
 `scripts/stress/ws-load.mjs` e `scripts/stress/restart-check.mjs`, con
-`npm run stress:ws` e `npm run stress:restart`. Sono dichiarati nel CHANGELOG e
+`npm run stress:ws` e `npm run stress:restart`, più il modulo condiviso
+`scripts/sim/client.mjs` (HTTP, setup delle sessioni e client STOMP). Dopo la
+revisione `full-match.mjs` e i due script di stress importano lo stesso client:
+non ci sono più tre copie del protocollo. Sono dichiarati nel CHANGELOG e
 descritti in `docs/STRESS-REPORT.md`.
 
 ---
@@ -138,15 +141,50 @@ descritti in `docs/STRESS-REPORT.md`.
 
 | ID | Gravità | Cosa | Dove |
 |---|---|---|---|
-| P1 | **P1** | Dopo un `kill -9` una volta su sei il token admin è stato rifiutato (`401`, heartbeat `410 session-unknown`) e lo stato è ripartito da `CREATED`, `stateVersion 0`: round e sessioni persi. Non riprodotto in 5 tentativi successivi (0–6 s di attesa, anche `SIGTERM`). Dettagli e riproduzione in `docs/STRESS-REPORT.md`. | `GameStateService`, `DeviceSessionService`, H2 |
+| P1 | ~~P1~~ **chiuso** | Falso positivo: il `401` con stato `CREATED` è comparso una volta nella prima stesura. Riprodotto **2/2 solo azzerando il database** tra crash e riavvio; **8/8 identico** con database intatto, 4 voti e classifica già scritti, kill a 0 ms. Il vecchio test non registrava voti (socket admin su `/answer`, vietata) e non è quindi una prova di perdita. Dettagli in `docs/STRESS-REPORT.md` §3.1. | strumento di prova, non il backend |
 | P2 | P2 | `GET /games/{id}/diagnostics` su una partita `CREATED` riporta `roundOpen: true` mentre `status` è `CREATED` e `roundType` è `null`: la diagnostica può far credere che un round sia aperto. | `ReliabilityController.diagnostics` |
 | P3 | P3 | La suite frontend dichiara 703 test ma ne esegue 701: i due controlli di loudness si saltano senza ffmpeg, e in CI non c'è ffmpeg. Non è un rosso, ma il numero «703» non è mai tutto eseguito. | `loop-loudness.spec.ts` |
 
-Nessuno è stato corretto: il giro è di misura e pulizia.
+P2 e P3 restano aperti; P1 è chiusa come falso positivo. Nessuno è stato
+corretto nel codice: il giro è di misura e pulizia.
 
----
+### 6.1 Superficie REST e STOMP: cosa usa davvero il frontend
 
-## 7. Test: copertura, salti, stabilità
+Confronto statico (annotazioni dei controller, chiamate `HttpClient`, whitelist
+`WebSocketConfig.REMOTE/ADMIN/TV_ACTIONS`) più verifica a mano dei percorsi
+costruiti con variabili. **72 rotte REST**, **61 chiamate** dal frontend: ogni
+chiamata ha una rotta corrispondente; le rotte **senza chiamante frontend** sono
+queste.
+
+| Rotta | Chi la usa |
+|---|---|
+| `GET /games/{id}/arena/prepare`, `GET .../arena/scores`, `POST .../arena/reset` | `scripts/checks/arena_check.py`, `simulate_arena.py` |
+| `GET /games/{id}/state` | `restart-check.mjs` e i test di integrazione |
+| `GET /health` | container, script, monitoraggio |
+| `GET /games` | **nessuno**: le partite si creano con `POST /games` |
+| `POST /games/{id}/party/reset` | **nessun chiamante applicativo** |
+| `POST /games/{id}/session/disconnect` | **nessuno**: compare solo nella allowlist di `SessionAuthenticationFilter` |
+| `GET /questions`, `GET /questions/category/{c}` | **nessun chiamante applicativo**; restano i test del controller |
+
+Falsi allarmi del primo confronto, verificati a mano: `button-test/*` passa da
+`ButtonTestService.url()`, `generate-ai-round` da `AiGeneratorService`
+(`baseUrl` composto), `timeline/reveal` da un `fetch` diretto e `sync` dal
+servizio di affidabilità.
+
+Sul canale STOMP, 11 valori dell'enum `WsAction` non sono in nessuna whitelist ma
+sono legittimi perché viaggiano altrove: `ANSWER`, `ARENA_ANSWER`,
+`TIME_BUZZER_ANSWER`, `SPEED_RUSH_PROGRESS` vanno su `/answer` o su endpoint
+REST; `BUTTON_TEST_STEP/START/RESET/SKIP/FINISH` sono ormai solo REST;
+`BONUS_RESULT` e `PLAYER_REMOVED` sono messaggi server → telefoni. Sei voci
+dell'enum non sono referenziate da nessun file: le cinque `BUTTON_TEST_*` qui
+sopra e `BONUS_RESULT`. Sono candidate a rimozione, ma enum, whitelist e test di
+allineamento vanno cambiati insieme: voce separata, non pulizia silenziosa.
+Nessuna azione ammessa dal server resta senza un mittente nel frontend
+(`MUSIC_PHASE` è usata in `music.mode.ts`).
+
+Limite: è un confronto statico. Non dimostra che una rotta «usata» sia
+raggiungibile in ogni stato, né copre URL costruiti a runtime da stringhe
+dinamiche.: copertura, salti, stabilità
 
 - **Saltati:** 2 test in `loop-loudness.spec.ts` (ffmpeg assente), dichiarati nel
   test. Nessun `xit`, `fit`, `.only`, `.skip` o `@Disabled` nel codice.

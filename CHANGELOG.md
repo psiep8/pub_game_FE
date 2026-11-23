@@ -15,7 +15,8 @@ versione resta **2.3.1**.
   prima riga di una copia in `.env`.
 - **Strumenti:** `npm run stress:ws` (4–48 telefoni, latenza risposta → eco) e
   `npm run stress:restart` (stato a metà round prima/dopo un riavvio), in
-  `scripts/stress/`. Usano un backend, una porta e un database separati.
+  `scripts/stress/`, con il client STOMP e il setup condivisi con `scripts/sim`
+  in `scripts/sim/client.mjs`. Usano un backend, una porta e un database separati.
 - **Numeri:** 701 test frontend eseguiti + 2 saltati (manca ffmpeg), 168 test
   backend, `ng build` 7,2 s, bundle JS 1,52 MiB, audit banche e `npm audit` a
   zero. I dettagli, le prove di ogni rimozione e le voci «da decidere» sono in

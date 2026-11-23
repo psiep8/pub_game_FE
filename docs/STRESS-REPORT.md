@@ -6,6 +6,17 @@ Questo giro **trova e misura**, non corregge. L'unico codice nuovo sono i due
 strumenti di carico (`scripts/stress/`), richiesti dal piano; i difetti trovati
 restano aperti e sono elencati anche in `docs/ROADMAP-POST-PRIMA-SERATA.md`.
 
+> **Revisione del 23 novembre 2026 (dopo la prima stesura).** Due errori di
+> metodo sono stati corretti e le misure rifatte. `restart-check` rispondeva con
+> la socket dell'admin, ma il server accetta `/answer` solo dal ruolo REMOTE e
+> solo per il proprio giocatore: nessun voto veniva registrato e lo stato
+> fotografato non conteneva punteggi. `ws-load` mandava `ROUND_ENDED`
+> dall'admin (è un'azione TV), producendo un frame `ACCESS_DENIED` per round che
+> la colonna «Errori» non contava. Ora entrambi usano il client STOMP e il setup
+> condivisi di `scripts/sim/client.mjs`, e il crash test passa dalla sequenza
+> vera `quiz/manche` → `quiz/answer` → `PUT leaderboard`. La P1 è stata
+> declassata: vedi §3.1.
+
 ---
 
 ## 1. Ambiente
@@ -19,9 +30,9 @@ restano aperti e sono elencati anche in `docs/ROADMAP-POST-PRIMA-SERATA.md`.
 | Backend | jar `pub_game_BE-2.3.1.jar`, porta **8091** |
 | Database | H2 su file **separato** (`/home/peppa/stress-db`), mai quello della serata |
 | Rete | loopback; `CONTROL_SECRET` di prova (34 caratteri); `ALLOWED_ORIGINS` solo loopback |
-| Client | STOMP nativo su WebSocket, stessi frame di `scripts/sim` |
+| Client | STOMP nativo su WebSocket, **codice condiviso** con `scripts/sim/client.mjs` |
 | Simulatore | `scripts/sim/full-match.mjs` (20 telefonate max, scaletta vera `serata`) |
-| Strumenti nuovi | `scripts/stress/ws-load.mjs`, `scripts/stress/restart-check.mjs` |
+| Strumenti nuovi | `scripts/stress/ws-load.mjs`, `scripts/stress/restart-check.mjs` + modulo `scripts/sim/client.mjs` |
 
 **Non disponibili in questo ambiente:** `tc netem` e `toxiproxy` (richiedono
 privilegi di rete che non sono stati chiesti), Docker e la ricreazione di un
@@ -64,6 +75,14 @@ server) consegnato due volte sulla stessa socket; il fan-out su socket diverse �
 il comportamento atteso e non viene contato. Una prima versione dello strumento
 lo contava per errore: i numeri qui sopra sono quelli corretti.
 
+Rimisura dopo la revisione, con il client condiviso: **4 telefoni** 2 round,
+p95 **29,17 ms**, 0 perse, 0 doppioni; **20 telefoni** 2 round, p95 **61,77 e
+65,89 ms**, 0 perse, 0 doppioni, `errorFrames` 0 e `serverErrors` vuoto. La
+colonna «Errori» della tabella sopra contava solo i frame con `action: ERROR`:
+prima della correzione ogni round produceva anche un `ACCESS_DENIED`
+(`ROUND_ENDED` inviato dall'admin), che non era un errore di carico ed è sparito
+mandando l'azione dalla TV.
+
 ### 2.2 Raffiche, messaggi anomali, doppi invii
 
 - **Doppio invio** dello stesso giocatore a raffica: nessun errore, nessun
@@ -102,28 +121,29 @@ Crescita contenuta; i thread salgono con le connessioni e restano stabili.
 
 ### 3.1 Riavvio del backend (`kill -9` / `SIGTERM`)
 
-`npm run stress:restart start` apre un round Quiz, fa rispondere 4 telefoni,
-fotografa `version`, `status`, `roundIndex`, `paused`, `hasState`, `scores`,
-`leaderboard` e `seq`; poi il backend viene ucciso e riavviato sullo stesso
-database.
+Metodo rivisto: `npm run stress:restart start` crea la partita, apre un round
+Quiz, annuncia la manche (`POST /quiz/manche`), fa votare i 4 telefoni via REST
+(`POST /quiz/answer`: **4/4 accettati**) e salva la classifica come la TV
+(`PUT /leaderboard`: **4 righe**). Poi fotografa `version`, `status`,
+`roundIndex`, `paused`, `hasState`, `scores`, `leaderboard` e `seq`. Il backend
+viene ucciso con `kill -9` **subito dopo** la fotografia (0 ms di attesa) e
+riavviato sullo stesso database; `verify` rilegge gli stessi campi.
 
-| Prova | Segnale | Attesa prima del kill | Esito | Recupero |
-|---|---|---|---|---|
-| 1 | `kill -9` | ~1,5 s | **fallita**: `401` sul token admin, `410 session-unknown`, stato `CREATED`, `stateVersion 0` | — |
-| 2 | `SIGTERM` | 6 s | identico (`version 3`, `RUNNING`, `roundIndex 1`, `seq 1`) | 38 ms |
-| 3 | `kill -9` | 6 s | identico | 42 ms |
-| 4 | `kill -9` | 0 s | identico | 36 ms |
-| 5 | `kill -9` | 1 s | identico | 45 ms |
-| 6 | `kill -9` | 2 s | identico | 55 ms |
-| 7 | `kill -9` | ~1,5 s (ripetizione dello scenario 1) | identico | 39 ms |
+| Prova | Segnale | Attesa prima del kill | Esito |
+|---|---|---|---|
+| **8 prove, revisione** | `kill -9` | **0 ms** | **8/8 identiche**: classifica 4 righe, 4 voti accettati, `RUNNING`, `roundIndex 1`, `seq 1`; recupero 5,0–5,7 s |
+| Controprova 1–2, **database azzerato** | `kill -9` | 0 ms | **2/2 fallite**: `GET /state` → `401`, lo stesso sintomo di P1 |
+| 7 prove, prima stesura | `kill -9` / `SIGTERM` | 0–6 s | 6 identiche, 1 con `401` |
 
-**Difetto P1 (aperto):** la prova 1 ha perso round e sessioni; non è stato
-riprodotto in 6 tentativi (compreso lo stesso scenario). Sintomi esatti:
-`GET /state` → `401`, `POST /session/heartbeat` → `410 session-unknown`,
-`GET /diagnostics` → `status CREATED`, `stateVersion 0`, `roundIndex 0`, mentre
-la riga `game` esisteva ancora. Ipotesi da verificare: la finestra di commit di
-H2 (write delay) o l'ordine di inizializzazione di sessioni/stato dopo un crash
-durante una scrittura. **Non corretto**, come da mandato.
+**P1 declassata (falso positivo).** Il sintomo (token `401`, heartbeat
+`410 session-unknown`, `CREATED`, `stateVersion 0`) si riproduce **solo** quando
+tra il crash e il riavvio il database di prova viene azzerato: la partita non
+esiste più, quindi il token non è valido e lo stato riparte da zero. Con il
+database intatto non è mai comparso: 14 prove su 14, comprese 8 con kill
+immediato e 4 voti già scritti. La prova 1 della prima stesura è quindi
+coerente con un database ricreato o perso dall'ambiente di prova, non con una
+perdita del backend. Resta un rischio teorico non misurato (la finestra di
+flush di H2), ma non ha prove a favore: **non è un difetto P1**.
 
 ### 3.2 Disconnessione e rientro
 
@@ -173,7 +193,7 @@ non ci sia perdita: la prova dura sei minuti, non una serata.
 | Zero risposte perse | 0 su 14 raffiche (4–40 telefoni) | **rispettata** |
 | Zero doppi punteggi | nessun doppio accredito osservato | rispettata nelle prove possibili |
 | Disconnessione 30 s: ripresa entro 5 s | non misurata (serve il client dedicato) | **da fare** |
-| Riavvio backend: stato recuperato al 100% | 6/7 prove identiche; 1 perdita | **non rispettata una volta** (P1) |
+| Riavvio backend: stato recuperato al 100% | **8/8** crash identici con classifica e voti; 2/2 falliscono solo azzerando il database | **rispettata** (P1 declassata) |
 | Memoria stabile per tutta la partita | 394 → 481 MB in 6 min, plateau finale | parziale: serve una prova più lunga |
 | Nessun errore non gestito nei log | 0 errori handler, 0 frame `ERROR` | **rispettata** |
 
@@ -198,9 +218,12 @@ non ci sia perdita: la prova dura sei minuti, non una serata.
    da `scripts/backup-db.mjs`, disco pieno, database bloccato, due backend sullo
    stesso database, scrittura interrotta a metà.
 7. **Tempo di gioco perso nel caso peggiore:** con H2 il write delay predefinito
-   è 0,5 s; le prove di crash non hanno perso nulla tranne la prova 1. Serve una
-   misura dedicata che uccida il processo durante scritture continue: per ora il
-   dato onesto è «**≤ 1 s**, con un caso non riprodotto di perdita maggiore».
+   è 0,5 s. Dopo la revisione nessuna delle 8 prove con kill immediato ha perso
+   nulla, nemmeno con 4 voti e una classifica appena scritti; il caso della
+   prima stesura è risultato un database azzerato. Serve comunque una misura
+   dedicata che uccida il processo **durante scritture continue** (non a fine
+   sequenza): per ora il dato onesto è «nessuna perdita osservata su 8 crash»,
+   non «persistenza garantita».
 
 **Da provare in sala** (nessuno script può farlo; passi e risultato atteso in
 `docs/PROVA-DEVICE-F02-F01-F13-F12.md`)
@@ -221,11 +244,11 @@ non ci sia perdita: la prova dura sei minuti, non una serata.
 
 | ID | Gravità | Difetto | Riproduzione | File coinvolti |
 |---|---|---|---|---|
-| P1 | **P1** | Dopo `kill -9` una volta su sette il backend è tornato con token admin `401`, heartbeat `410 session-unknown` e stato `CREATED` (`stateVersion 0`): round e sessioni persi. | Avviare il backend, creare una partita, aprire un round, far rispondere 4 telefoni, `kill -9` dopo ~1,5 s, riavviare, `GET /games/{id}/state` con il token admin. Non riprodotto in 6 tentativi. | `GameStateService`, `DeviceSessionService`, configurazione H2 |
+| P1 | ~~P1~~ **chiuso** | Falso positivo: il `401` con stato `CREATED` è comparso una volta nella prima stesura. Riprodotto **2/2 solo azzerando il database** tra crash e riavvio; **8/8 identico** con database intatto (4 voti e classifica già scritti, kill a 0 ms). | Controprova: `crash-loop.sh` con `WIPE_AFTER_KILL=1`; 401 immediato su `/state`. | `crash-loop.sh` (strumento di prova), non il backend |
 | P2 | P2 | `GET /games/{id}/diagnostics` su una partita `CREATED` riporta `roundOpen: true` con `roundType: null`. | Creare una partita e chiamare `/diagnostics` prima di aprire un round. | `ReliabilityController.diagnostics` |
 | P3 | P3 | Due test di loudness si saltano senza ffmpeg: la suite dichiara 703 test ma ne esegue 701 (anche in CI). | `npm run test:frontend` su una macchina senza `ffmpeg`. | `loop-loudness.spec.ts` |
 
-Estratto della prova 1:
+Estratto della controprova con database azzerato (non un difetto del backend):
 
 ```text
 GET /games/35/state           -> 401 Unauthorized
@@ -234,8 +257,9 @@ POST /games/35/session/heartbeat -> 410 {"action":"re-register","error":"session
 GET /games/35/diagnostics     -> 200 {"stateVersion":0,"seq":0,"status":"CREATED","roundIndex":0,"roundType":null}
 ```
 
-Nessuno di questi difetti è stato corretto in questo giro. Le righe di registro
-sono in `docs/ROADMAP-POST-PRIMA-SERATA.md`.
+P2 e P3 restano aperti e non corretti, come da mandato. P1 è chiusa come falso
+positivo con la prova sopra. Le righe di registro sono in
+`docs/ROADMAP-POST-PRIMA-SERATA.md`.
 
 ---
 
