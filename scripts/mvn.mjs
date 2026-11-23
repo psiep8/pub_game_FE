@@ -2,35 +2,14 @@
 // funzionano sia da bash (./mvnw) sia da PowerShell/cmd (mvnw.cmd).
 // Passa SERVER_PORT da .env, così il backend ascolta sulla porta configurata.
 import { spawn } from 'node:child_process';
-import { existsSync, readdirSync } from 'node:fs';
 import { delimiter, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadEnv, rootDir } from './env.mjs';
+import { loadEnv } from './env.mjs';
+import { resolveJavaHome } from './java-home.mjs';
 
 const backendDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'apps', 'backend');
 const isWindows = process.platform === 'win32';
 const { bePort } = loadEnv();
-
-/**
- * JAVA_HOME può mancare, o puntare a una cartella che non esiste più: in quei
- * casi si usa il JDK dentro `.tools`, dove lo mette il setup senza admin. Così
- * `npm run dev` e `npm run test:backend` funzionano da qualsiasi terminale.
- */
-function resolveJavaHome() {
-  const java = process.platform === 'win32' ? 'java.exe' : 'java';
-  const candidates = [process.env.JAVA_HOME].filter(Boolean);
-  const tools = join(rootDir, '.tools');
-
-  if (existsSync(tools)) {
-    const jdks = readdirSync(tools)
-      .filter((entry) => entry.toLowerCase().startsWith('jdk'))
-      .sort()
-      .reverse();
-    for (const entry of jdks) candidates.push(join(tools, entry));
-  }
-
-  return candidates.find((dir) => existsSync(join(dir, 'bin', java))) ?? null;
-}
 
 const javaHome = resolveJavaHome();
 if (javaHome) {
