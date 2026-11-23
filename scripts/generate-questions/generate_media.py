@@ -320,6 +320,54 @@ def store_track(item: dict, music_dir: str, covers_dir: str,
     }
 
 
+def _patch_key(text: str) -> str:
+    """Confronto tollerante: maiuscole, accenti e spazi non devono contare."""
+    flat = unicodedata.normalize("NFD", str(text or "").lower())
+    flat = "".join(ch for ch in flat if unicodedata.category(ch) != "Mn")
+    return " ".join(flat.split())
+
+
+def load_patches(path: str) -> dict:
+    """Correzioni a mano, tenute fuori da media-it.json che non e' versionato."""
+    if not path or not os.path.exists(path):
+        return {"music": [], "people": []}
+    with open(path, encoding="utf-8") as handle:
+        patches = json.load(handle)
+    return {"music": patches.get("music") or [], "people": patches.get("people") or []}
+
+
+def apply_patches(bank: dict, patches: dict) -> tuple[dict, int, list[str]]:
+    """Applica i campi corretti a mano e dice quali voci non hanno trovato posto."""
+    tracks = {_patch_key(f"{item.get('title', '')} {item.get('artist', '')}"): item
+              for item in bank.get("music") or []}
+    people = {_patch_key(item.get("name", "")): item for item in bank.get("people") or []}
+
+    applied = 0
+    unmatched: list[str] = []
+    for patch in patches.get("music") or []:
+        key = _patch_key(f"{patch.get('title', '')} {patch.get('artist', '')}")
+        item = tracks.get(key)
+        if item is None:
+            unmatched.append(f"music: {patch.get('artist', '')} - {patch.get('title', '')}")
+            continue
+        for field, value in (patch.get("set") or {}).items():
+            if item.get(field) != value:
+                item[field] = value
+                applied += 1
+
+    for patch in patches.get("people") or []:
+        item = people.get(_patch_key(patch.get("name", "")))
+        if item is None:
+            unmatched.append(f"persona: {patch.get('name', '')}")
+            continue
+        for field, value in (patch.get("set") or {}).items():
+            if item.get(field) != value:
+                item[field] = value
+                applied += 1
+
+    return bank, applied, unmatched
+
+
 def grab_music(static_dir: str, count: int,
                extra_songs: list[tuple[str, str]] | None = None) -> list[dict]:
     music_dir = os.path.join(static_dir, "media", "music")
@@ -596,6 +644,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Scarica canzoni e volti per giocare offline.")
     parser.add_argument("--static-dir", default="apps/backend/src/main/resources/static")
     parser.add_argument("--out", default="apps/backend/src/main/resources/questions/media-it.json")
+    parser.add_argument("--patches",
+                        default="apps/backend/src/main/resources/questions/media-patches.json",
+                        help="correzioni a mano da riapplicare dopo la generazione")
     parser.add_argument("--count-music", type=int, default=24)
     parser.add_argument("--count-people", type=int, default=None)
     parser.add_argument("--music-only", action="store_true")
@@ -648,6 +699,12 @@ def main() -> int:
         "music": music,
         "people": people,
     }
+
+    # Le correzioni a mano vivono in un file versionato: senza questo passaggio
+    # una rigenerazione riporterebbe gli anni sbagliati di iTunes.
+    bank, patched, unmatched = apply_patches(bank, load_patches(args.patches))
+    for missing in unmatched:
+        print(f"  patch senza voce in banca: {missing}")
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     with open(args.out, "w", encoding="utf-8") as handle:
         json.dump(bank, handle, ensure_ascii=False, indent=2)
@@ -655,6 +712,7 @@ def main() -> int:
     print("\n=== RIEPILOGO ===")
     print(f"brani: {len(music)}")
     print(f"volti: {len(people)}")
+    print(f"campi corretti a mano: {patched}")
     print(f"indice: {args.out}")
     print("File media in:", os.path.join(args.static_dir, "media"))
     return 0

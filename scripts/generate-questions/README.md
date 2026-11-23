@@ -237,6 +237,11 @@ Dettagli utili:
   `.mp4` nell'indice (è lo stesso contenitore MP4);
 - i file media e l'indice sono in `.gitignore`: si copiano sulla macchina che
   proietta il gioco, non nel repository.
+- le correzioni fatte a mano all'indice (per esempio un anno sbagliato da
+  iTunes) vanno in `questions/media-patches.json`, che invece è versionato:
+  `generate_media.py` le riapplica dopo la generazione e anche l'audit le legge
+  prima dei controlli, così rigenerare la banca non le perde. Si scrivono solo
+  i campi da correggere (`set`), mai i file.
 
 ---
 
