@@ -10,7 +10,7 @@ BASE_URL=http://127.0.0.1:4210 node scripts/checks/audit-design.mjs
 
 ## Copertura
 
-Scansionate per **tutti gli otto temi**:
+Scansionate per **tutti gli 8 temi** dichiarati in `theme.service.ts`:
 - **TV intro** (1920×1080)
 - **TV lobby** (1920×1080, dopo la chiusura dell'intro)
 - **Telefono setup** (390×844, `?quad=1`)
@@ -19,22 +19,22 @@ Scansionate per **tutti gli otto temi**:
 
 ## Temi
 
-| Tema | Famiglia | Superfici | Contrasti | Warning |
-|---|---|---|---|---|
-| Editorial Acid (`editorial-acid`) | chiaro | 3/3 | 4 | 8 |
-| Desert Heritage (`desert-heritage`) | chiaro | 3/3 | 3 | 5 |
-| Arctic Noir (`arctic-noir`) | scuro | 3/3 | 9 | 13 |
-| Deep Ocean (`deep-ocean`) | scuro | 3/3 | 5 | 6 |
-| Kpop Aesthetic (`kpop-aesthetic`) | scuro | 3/3 | 4 | 8 |
-| Neon Cyberpunk (`neon-cyberpunk`) | scuro | 3/3 | 6 | 9 |
-| Sunset Pop (`sunset-pop`) | scuro | 3/3 | 4 | 8 |
-| Premium Gold (`premium-gold`) | scuro | 3/3 | 7 | 11 |
+| Tema | Superfici | Contrasti | Warning |
+|---|---|---|---|
+| ACIDO (`editorial-acid`) | 3/3 | 4 | 8 |
+| SABBIA (`desert-heritage`) | 3/3 | 3 | 5 |
+| ARTICO (`arctic-noir`) | 3/3 | 9 | 13 |
+| OCEANO (`deep-ocean`) | 3/3 | 5 | 6 |
+| K-POP (`kpop-aesthetic`) | 3/3 | 4 | 8 |
+| CYBER (`neon-cyberpunk`) | 3/3 | 6 | 9 |
+| SUNSET (`sunset-pop`) | 3/3 | 4 | 8 |
+| ORO (`premium-gold`) | 3/3 | 7 | 11 |
 
 Scansioni riuscite: **24/24**.
 
 ## Contrasto (WCAG AA)
 
-### Editorial Acid (chiaro)
+### ACIDO (`editorial-acid`)
 
 | Superficie | Elemento | Testo su fondo | Esito |
 |---|---|---|---|
@@ -43,7 +43,7 @@ Scansioni riuscite: **24/24**.
 | TV lobby | `div.qr-label.ng-tns-c1664707305-0` | 2.6:1 (need 4.5:1) — text #ff4d2e on #f1e4c9 | warning |
 | Telefono setup | `#team-name` | placeholder "Nome della squadra" 2.6:1 (need 4.5:1) — text #a19d91 on #fff8e8 | advisory |
 
-### Desert Heritage (chiaro)
+### SABBIA (`desert-heritage`)
 
 | Superficie | Elemento | Testo su fondo | Esito |
 |---|---|---|---|
@@ -51,7 +51,7 @@ Scansioni riuscite: **24/24**.
 | TV lobby | `p.lobby-url.ng-tns-c1664707305-0` | 4.3:1 (need 4.5:1) — text #6b6152 on #e8d6b8 | advisory |
 | Telefono setup | `#team-name` | placeholder "Nome della squadra" 2.5:1 (need 4.5:1) — text #a1998c on #f8eedc | advisory |
 
-### Arctic Noir (scuro)
+### ARTICO (`arctic-noir`)
 
 | Superficie | Elemento | Testo su fondo | Esito |
 |---|---|---|---|
@@ -65,7 +65,7 @@ Scansioni riuscite: **24/24**.
 | TV lobby | `div.game-id-badge.ng-tns-c1664707305-0` | 1.7:1 (need 4.5:1) — text #54bceb on #dce8f2 | warning |
 | Telefono setup | `#team-name` | placeholder "Nome della squadra" 3.1:1 (need 4.5:1) — text #687785 on #1b2b3d | advisory |
 
-### Deep Ocean (scuro)
+### OCEANO (`deep-ocean`)
 
 | Superficie | Elemento | Testo su fondo | Esito |
 |---|---|---|---|
@@ -75,7 +75,7 @@ Scansioni riuscite: **24/24**.
 | TV lobby | `p.lobby-url.ng-tns-c1664707305-0` | 4.3:1 (need 4.5:1) — text #597274 on #d9f0ea | advisory |
 | Telefono setup | `#team-name` | placeholder "Nome della squadra" 2.4:1 (need 4.5:1) — text #94a5a5 on #f0fbf7 | advisory |
 
-### Kpop Aesthetic (scuro)
+### K-POP (`kpop-aesthetic`)
 
 | Superficie | Elemento | Testo su fondo | Esito |
 |---|---|---|---|
@@ -84,7 +84,7 @@ Scansioni riuscite: **24/24**.
 | TV lobby | `div.qr-label.ng-tns-c1664707305-0` | 2.4:1 (need 4.5:1) — text #a98bff on #fff0f7 | warning |
 | Telefono setup | `#team-name` | placeholder "Nome della squadra" 2.5:1 (need 4.5:1) — text #a79ea9 on #fff8fc | advisory |
 
-### Neon Cyberpunk (scuro)
+### CYBER (`neon-cyberpunk`)
 
 | Superficie | Elemento | Testo su fondo | Esito |
 |---|---|---|---|
@@ -95,7 +95,7 @@ Scansioni riuscite: **24/24**.
 | TV lobby | `div.lobby-step.ng-tns-c1664707305-0:nth-of-type(1) > div.ng-tns-c1664707305-0 > b.ng-tns-c1664707305-0` | 1.0:1 (need 3:1) — text #17112a on #1a0c18 (gradient on div.game-container) (and 2 more) | warning |
 | Telefono setup | `#team-name` | placeholder "Nome della squadra" 3.4:1 (need 4.5:1) — text #766c88 on #24183a | advisory |
 
-### Sunset Pop (scuro)
+### SUNSET (`sunset-pop`)
 
 | Superficie | Elemento | Testo su fondo | Esito |
 |---|---|---|---|
@@ -104,7 +104,7 @@ Scansioni riuscite: **24/24**.
 | TV lobby | `div.qr-label.ng-tns-c1664707305-0` | 3.9:1 (need 4.5:1) — text #c64c91 on #fff0e6 | warning |
 | Telefono setup | `#team-name` | placeholder "Nome della squadra" 2.4:1 (need 4.5:1) — text #aa9fa4 on #fff9f3 | advisory |
 
-### Premium Gold (scuro)
+### ORO (`premium-gold`)
 
 | Superficie | Elemento | Testo su fondo | Esito |
 |---|---|---|---|

@@ -18,7 +18,7 @@
  */
 import { chromium } from 'playwright';
 import { createServer } from 'node:http';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
@@ -29,16 +29,24 @@ const IMPECCABLE = existsSync('node_modules/.bin/impeccable')
   ? path.resolve('node_modules/.bin/impeccable')
   : 'npx';
 
-const THEMES = [
-  { id: 'editorial-acid', label: 'Editorial Acid', kind: 'chiaro' },
-  { id: 'desert-heritage', label: 'Desert Heritage', kind: 'chiaro' },
-  { id: 'arctic-noir', label: 'Arctic Noir', kind: 'scuro' },
-  { id: 'deep-ocean', label: 'Deep Ocean', kind: 'scuro' },
-  { id: 'kpop-aesthetic', label: 'Kpop Aesthetic', kind: 'scuro' },
-  { id: 'neon-cyberpunk', label: 'Neon Cyberpunk', kind: 'scuro' },
-  { id: 'sunset-pop', label: 'Sunset Pop', kind: 'scuro' },
-  { id: 'premium-gold', label: 'Premium Gold', kind: 'scuro' },
-];
+/** L'elenco vive in theme.service.ts: qui lo si legge, senza duplicarlo. */
+async function loadThemes() {
+  const source = await readFile(
+    path.resolve('apps/frontend/src/app/core/services/theme.service.ts'),
+    'utf8',
+  );
+  const themesBlock = source.match(/export const THEMES = \[([\s\S]*?)\] as const/);
+  const labelsBlock = source.match(/export const LABELS:[\s\S]*?= \{([\s\S]*?)\};/);
+  if (!themesBlock) throw new Error('THEMES non trovato in theme.service.ts');
+  const ids = [...themesBlock[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
+  const labels = Object.fromEntries(
+    [...(labelsBlock?.[1] || '').matchAll(/'([^']+)':\s*'([^']+)'/g)].map((m) => [m[1], m[2]]),
+  );
+  if (ids.length === 0) throw new Error('Elenco temi vuoto in theme.service.ts');
+  return ids.map((id) => ({ id, label: labels[id] || id }));
+}
+
+const THEMES = await loadThemes();
 
 const SURFACES = [
   { id: 'tv-intro', label: 'TV intro', path: '/tv', width: 1920, height: 1080 },
@@ -212,7 +220,7 @@ const themeRows = THEMES.map((theme) => {
   const rows = results.filter((r) => r.theme === theme.id);
   const missing = rows.filter((r) => r.error).length;
   const warnings = rows.reduce((sum, r) => sum + r.findings.filter((f) => f.severity === 'warning').length, 0);
-  return `| ${theme.label} (\`${theme.id}\`) | ${theme.kind} | ${rows.length - missing}/${SURFACES.length} | ${contrast.filter((c) => c.result.theme === theme.id).length} | ${warnings} |`;
+  return `| ${theme.label} (\`${theme.id}\`) | ${rows.length - missing}/${SURFACES.length} | ${contrast.filter((c) => c.result.theme === theme.id).length} | ${warnings} |`;
 });
 
 const lines = [
@@ -228,7 +236,7 @@ const lines = [
   '',
   '## Copertura',
   '',
-  'Scansionate per **tutti gli otto temi**:',
+  `Scansionate per **tutti gli ${THEMES.length} temi** dichiarati in \`theme.service.ts\`:`,
   '- **TV intro** (1920×1080)',
   '- **TV lobby** (1920×1080, dopo la chiusura dell\'intro)',
   '- **Telefono setup** (390×844, `?quad=1`)',
@@ -237,8 +245,8 @@ const lines = [
   '',
   '## Temi',
   '',
-  '| Tema | Famiglia | Superfici | Contrasti | Warning |',
-  '|---|---|---|---|---|',
+  '| Tema | Superfici | Contrasti | Warning |',
+  '|---|---|---|---|',
   ...themeRows,
   '',
   `Scansioni riuscite: **${results.length - failed.length}/${results.length}**.`,
@@ -253,7 +261,7 @@ if (failed.length) {
 lines.push('## Contrasto (WCAG AA)', '');
 for (const theme of THEMES) {
   const rows = contrast.filter((c) => c.result.theme === theme.id);
-  lines.push(`### ${theme.label} (${theme.kind})`, '');
+  lines.push(`### ${theme.label} (\`${theme.id}\`)`, '');
   if (!rows.length) {
     lines.push('Nessun contrasto sotto soglia.', '');
     continue;
