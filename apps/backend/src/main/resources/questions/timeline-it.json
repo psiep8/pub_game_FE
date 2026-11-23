@@ -9,14 +9,14 @@
       "year": 476,
       "category": "Storia",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Caduta%20dell'Impero%20romano%20d'Occidente"
+      "source": "https://it.wikipedia.org/wiki/Caduta_dell'Impero_romano_d'Occidente"
     },
     {
       "label": "Incoronazione di Carlo Magno",
       "year": 800,
       "category": "Storia",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Incoronazione%20di%20Carlo%20Magno"
+      "source": "https://it.wikipedia.org/wiki/Incoronazione_di_Carlo_Magno"
     },
     {
       "label": "Battaglia di Hastings",
@@ -44,7 +44,7 @@
       "year": 1815,
       "category": "Storia",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Congresso%20di%20Vienna"
+      "source": "https://it.wikipedia.org/wiki/Congresso_di_Vienna"
     },
     {
       "label": "Inizio della Prima guerra mondiale",
@@ -100,7 +100,7 @@
       "year": 1953,
       "category": "Geografia e Viaggi",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Hillary%20e%20Tenzing%20raggiungono%20l'Everest"
+      "source": "https://it.wikipedia.org/wiki/Everest"
     },
     {
       "label": "Apertura del Tunnel della Manica",
@@ -156,7 +156,7 @@
       "year": 1957,
       "category": "Scienza e Spazio",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Lancio%20dello%20Sputnik"
+      "source": "https://it.wikipedia.org/wiki/Sputnik_1"
     },
     {
       "label": "Sbarco dell'uomo sulla Luna",
@@ -219,7 +219,7 @@
       "year": 1992,
       "category": "Sport",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Il%20Dream%20Team%20vince%20l'oro%20olimpico"
+      "source": "https://it.wikipedia.org/wiki/Nazionale_maschile_di_pallacanestro_degli_Stati_Uniti_d'America"
     },
     {
       "label": "Usain Bolt stabilisce il record dei 100 metri",
@@ -275,7 +275,7 @@
       "year": 1999,
       "category": "Cinema, Serie TV",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Matrix"
+      "source": "https://it.wikipedia.org/wiki/Matrix"
     },
     {
       "label": "Esce Avatar",
@@ -331,7 +331,7 @@
       "year": 2003,
       "category": "TV e Spettacolo",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nasce%20Sky%20Italia"
+      "source": "https://it.wikipedia.org/wiki/Sky_Italia"
     },
     {
       "label": "Netflix lancia lo streaming",
@@ -387,7 +387,7 @@
       "year": 1967,
       "category": "Musica",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Sgt.%20Pepper's%20Lonely%20Hearts%20Club%20Band"
+      "source": "https://it.wikipedia.org/wiki/Sgt._Pepper's_Lonely_Hearts_Club_Band"
     },
     {
       "label": "Live Aid",
@@ -436,7 +436,7 @@
       "year": 1907,
       "category": "Arte e Architettura",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nasce%20il%20cubismo%20con%20Les%20Demoiselles%20d'Avignon"
+      "source": "https://it.wikipedia.org/wiki/Les_demoiselles_d'Avignon"
     },
     {
       "label": "Apre il Museum of Modern Art di New York",
@@ -499,7 +499,7 @@
       "year": 1992,
       "category": "Politica e Attualità",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Trattato%20di%20Maastricht"
+      "source": "https://it.wikipedia.org/wiki/Trattato_di_Maastricht"
     },
     {
       "label": "Attentato alle Torri Gemelle",
@@ -555,7 +555,7 @@
       "year": 1997,
       "category": "Motori",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Toyota%20lancia%20la%20Prius"
+      "source": "https://it.wikipedia.org/wiki/Toyota_Prius"
     },
     {
       "label": "Tesla lancia il Model S",
@@ -611,7 +611,7 @@
       "year": 1986,
       "category": "Cibo e Gastronomia",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nasce%20il%20movimento%20Slow%20Food%20a%20Bra"
+      "source": "https://it.wikipedia.org/wiki/Slow_Food"
     },
     {
       "label": "La dieta mediterranea entra nel patrimonio UNESCO",
@@ -660,7 +660,7 @@
       "year": 1913,
       "category": "Lingua e Letteratura",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Pubblicato%20La%20strada%20di%20Swann%20di%20Proust"
+      "source": "https://it.wikipedia.org/wiki/Dalla_parte_di_Swann"
     },
     {
       "label": "Pubblicato 1984 di Orwell",
@@ -723,7 +723,7 @@
       "year": 1997,
       "category": "Anime e manga",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Inizia%20il%20manga%20One%20Piece"
+      "source": "https://it.wikipedia.org/wiki/One_Piece"
     },
     {
       "label": "Inizia il manga Naruto",
@@ -779,7 +779,7 @@
       "year": 1991,
       "category": "Gaming e Tecnologia",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Tim%20Berners-Lee%20presenta%20il%20World%20Wide%20Web"
+      "source": "https://it.wikipedia.org/wiki/World_Wide_Web"
     },
     {
       "label": "Apple presenta il primo iPhone",
@@ -814,7 +814,7 @@
       "year": 1870,
       "category": "Storia",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Presa%20di%20Roma"
+      "source": "https://it.wikipedia.org/wiki/Presa_di_Roma"
     },
     {
       "label": "Patti Lateranensi",
@@ -849,7 +849,7 @@
       "year": 1748,
       "category": "Storia",
       "difficulty": 5,
-      "source": "https://it.wikipedia.org/w/index.php?search=Pace%20di%20Aquisgrana%20(1748)"
+      "source": "https://it.wikipedia.org/wiki/Trattato_di_Aquisgrana_(1748)"
     },
     {
       "label": "Spedizione oceanografica dello Challenger",
@@ -870,7 +870,7 @@
       "year": 1922,
       "category": "Geografia e Viaggi",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Scoperta%20della%20tomba%20di%20Tutankhamon"
+      "source": "https://it.wikipedia.org/wiki/Tutankhamon"
     },
     {
       "label": "Inaugurazione del Golden Gate Bridge",
@@ -905,7 +905,7 @@
       "year": 1854,
       "category": "Geografia e Viaggi",
       "difficulty": 5,
-      "source": "https://it.wikipedia.org/w/index.php?search=Convenzione%20di%20Kanagawa"
+      "source": "https://it.wikipedia.org/wiki/Convenzione_di_Kanagawa"
     },
     {
       "label": "Darwin pubblica L'origine delle specie",
@@ -919,7 +919,7 @@
       "year": 1895,
       "category": "Scienza e Spazio",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=R%C3%B6ntgen%20scopre%20i%20raggi%20X"
+      "source": "https://it.wikipedia.org/wiki/Raggi_X"
     },
     {
       "label": "Primo volo dei fratelli Wright",
@@ -940,7 +940,7 @@
       "year": 1938,
       "category": "Scienza e Spazio",
       "difficulty": 5,
-      "source": "https://it.wikipedia.org/w/index.php?search=Scoperta%20della%20fissione%20nucleare"
+      "source": "https://it.wikipedia.org/wiki/Fissione_nucleare"
     },
     {
       "label": "Gagarin, primo uomo nello spazio",
@@ -975,7 +975,7 @@
       "year": 1976,
       "category": "Sport",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Nadia%20Com%C4%83neci%20ottiene%20il%20primo%2010%20alle%20Olimpiadi"
+      "source": "https://it.wikipedia.org/wiki/Nadia_Com%C4%83neci"
     },
     {
       "label": "L'Italia vince i Mondiali di calcio in Spagna",
@@ -1010,7 +1010,7 @@
       "year": 1898,
       "category": "Sport",
       "difficulty": 5,
-      "source": "https://it.wikipedia.org/w/index.php?search=Campionato%20Italiano%20di%20Football%201898"
+      "source": "https://it.wikipedia.org/wiki/Campionato_Italiano_di_Football_1898"
     },
     {
       "label": "Esce Via col vento",
@@ -1031,7 +1031,7 @@
       "year": 1972,
       "category": "Cinema, Serie TV",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Il%20padrino"
+      "source": "https://it.wikipedia.org/wiki/Il_padrino_(film)"
     },
     {
       "label": "Esce Pulp Fiction",
@@ -1066,7 +1066,7 @@
       "year": 1925,
       "category": "Cinema, Serie TV",
       "difficulty": 5,
-      "source": "https://it.wikipedia.org/w/index.php?search=La%20corazzata%20Pot%C3%ABmkin"
+      "source": "https://it.wikipedia.org/wiki/La_corazzata_Pot%C3%ABmkin"
     },
     {
       "label": "Debutta Twin Peaks",
@@ -1087,7 +1087,7 @@
       "year": 2000,
       "category": "TV e Spettacolo",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20Chi%20vuol%20essere%20miliardario%3F%20in%20Italia"
+      "source": "https://it.wikipedia.org/wiki/Chi_vuol_essere_milionario%3F"
     },
     {
       "label": "Nasce YouTube",
@@ -1122,7 +1122,7 @@
       "year": 1956,
       "category": "TV e Spettacolo",
       "difficulty": 5,
-      "source": "https://it.wikipedia.org/w/index.php?search=Eurovision%20Song%20Contest%201956"
+      "source": "https://it.wikipedia.org/wiki/Eurovision_Song_Contest_1956"
     },
     {
       "label": "Festival di Woodstock",
@@ -1143,7 +1143,7 @@
       "year": 1982,
       "category": "Musica",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Thriller%20di%20Michael%20Jackson"
+      "source": "https://it.wikipedia.org/wiki/Thriller_(album_Michael_Jackson)"
     },
     {
       "label": "Esce Nevermind dei Nirvana",
@@ -1178,21 +1178,21 @@
       "year": 1874,
       "category": "Musica",
       "difficulty": 5,
-      "source": "https://it.wikipedia.org/w/index.php?search=Messa%20da%20requiem%20(Verdi)"
+      "source": "https://it.wikipedia.org/wiki/Requiem_(Verdi)"
     },
     {
       "label": "Bernini completa il colonnato di San Pietro",
       "year": 1667,
       "category": "Arte e Architettura",
       "difficulty": 5,
-      "source": "https://it.wikipedia.org/w/index.php?search=Bernini%20completa%20il%20colonnato%20di%20San%20Pietro"
+      "source": "https://it.wikipedia.org/wiki/Basilica_di_San_Pietro_in_Vaticano"
     },
     {
       "label": "Il Louvre diventa museo pubblico",
       "year": 1793,
       "category": "Arte e Architettura",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Il%20Louvre%20diventa%20museo%20pubblico"
+      "source": "https://it.wikipedia.org/wiki/Museo_del_Louvre"
     },
     {
       "label": "Apre la National Gallery di Londra",
@@ -1248,7 +1248,7 @@
       "year": 1957,
       "category": "Politica e Attualità",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Trattato%20di%20Roma%2C%20nasce%20la%20CEE"
+      "source": "https://it.wikipedia.org/wiki/Trattato_che_istituisce_la_Comunit%C3%A0_economica_europea"
     },
     {
       "label": "Accordi di Helsinki",
@@ -1283,7 +1283,7 @@
       "year": 1998,
       "category": "Politica e Attualità",
       "difficulty": 5,
-      "source": "https://it.wikipedia.org/w/index.php?search=Statuto%20di%20Roma"
+      "source": "https://it.wikipedia.org/wiki/Statuto_di_Roma"
     },
     {
       "label": "Nasce Harley-Davidson",
@@ -1304,7 +1304,7 @@
       "year": 1966,
       "category": "Motori",
       "difficulty": 4,
-      "source": "https://it.wikipedia.org/w/index.php?search=Debutta%20la%20Lamborghini%20Miura"
+      "source": "https://it.wikipedia.org/wiki/Lamborghini_Miura"
     },
     {
       "label": "L'incidente di Niki Lauda al Nürburgring",
@@ -1339,7 +1339,7 @@
       "year": 1947,
       "category": "Motori",
       "difficulty": 5,
-      "source": "https://it.wikipedia.org/w/index.php?search=Ferrari"
+      "source": "https://it.wikipedia.org/wiki/Ferrari"
     },
     {
       "label": "Nascono i biscotti Oreo",
@@ -1360,7 +1360,7 @@
       "year": 1940,
       "category": "Cibo e Gastronomia",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Apre%20il%20primo%20McDonald's"
+      "source": "https://it.wikipedia.org/wiki/McDonald's"
     },
     {
       "label": "Nasce la Nutella",
@@ -1395,21 +1395,21 @@
       "year": 1877,
       "category": "Cibo e Gastronomia",
       "difficulty": 5,
-      "source": "https://it.wikipedia.org/w/index.php?search=Barilla"
+      "source": "https://it.wikipedia.org/wiki/Barilla"
     },
     {
       "label": "Bembo pubblica le Prose della volgar lingua",
       "year": 1525,
       "category": "Lingua e Letteratura",
       "difficulty": 5,
-      "source": "https://it.wikipedia.org/w/index.php?search=Bembo%20pubblica%20le%20Prose%20della%20volgar%20lingua"
+      "source": "https://it.wikipedia.org/wiki/Prose_nelle_quali_si_ragiona_della_volgar_lingua"
     },
     {
       "label": "Prima di Amleto di Shakespeare",
       "year": 1600,
       "category": "Lingua e Letteratura",
       "difficulty": 2,
-      "source": "https://it.wikipedia.org/w/index.php?search=Prima%20di%20Amleto%20di%20Shakespeare"
+      "source": "https://it.wikipedia.org/wiki/Amleto"
     },
     {
       "label": "I fratelli Grimm pubblicano le loro fiabe",
@@ -1465,7 +1465,7 @@
       "year": 1988,
       "category": "Anime e manga",
       "difficulty": 3,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20il%20film%20Akira"
+      "source": "https://it.wikipedia.org/wiki/Akira_(film)"
     },
     {
       "label": "Debutta Sailor Moon",
@@ -1500,7 +1500,7 @@
       "year": 1978,
       "category": "Anime e manga",
       "difficulty": 5,
-      "source": "https://it.wikipedia.org/w/index.php?search=Capitan%20Harlock"
+      "source": "https://it.wikipedia.org/wiki/Capitan_Harlock"
     },
     {
       "label": "Atari lancia la console 2600",
@@ -1521,7 +1521,7 @@
       "year": 1985,
       "category": "Gaming e Tecnologia",
       "difficulty": 1,
-      "source": "https://it.wikipedia.org/w/index.php?search=Esce%20Super%20Mario%20Bros.%20per%20NES"
+      "source": "https://it.wikipedia.org/wiki/Super_Mario_Bros."
     },
     {
       "label": "Nintendo lancia il Game Boy",
@@ -1556,7 +1556,7 @@
       "year": 1993,
       "category": "Gaming e Tecnologia",
       "difficulty": 5,
-      "source": "https://it.wikipedia.org/w/index.php?search=Doom%20(videogioco)"
+      "source": "https://it.wikipedia.org/wiki/Doom"
     }
   ]
 }

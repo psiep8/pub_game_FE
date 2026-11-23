@@ -523,3 +523,68 @@ Ogni riga ha la voce usata per la verifica: vanno lette a mano, come le altre.
 | `spiaggia-tv-mediodifficile-02` | TV e Spettacolo | medio-difficile | In quale anno è iniziata in Italia la prima edizione del Grande Fratello? | 2000 | 1998 · 2002 · 2004 | Wikipedia it: Grande Fratello (programma televisivo) |
 | `spiaggia-tv-difficile-01` | TV e Spettacolo | difficile | In quale anno è andata in onda la prima edizione italiana di X Factor? | 2008 | 2006 · 2010 · 2012 | Wikipedia it: X Factor (Italia) |
 | `spiaggia-tv-difficile-02` | TV e Spettacolo | difficile | Quale attrice interpreta Daenerys Targaryen ne Il Trono di Spade? | Emilia Clarke | Sophie Turner · Lena Headey · Maisie Williams | Wikipedia it: Il Trono di Spade |
+
+## Timeline: fonti sostituite (23 novembre 2026)
+
+I 222 eventi avevano tutti un collegamento di ricerca di Wikipedia, non una voce.
+Qui sotto i 44 eventi passati alla pagina precisa (tutti quelli di difficoltà 5 più un
+campione di 30: due per categoria e i primi due del file). Lo script li ha verificati su
+it.wikipedia: la voce esiste, il suo testo contiene l'anno dell'evento e almeno una parola
+dell'etichetta. Le pagine di disambiguazione sono rifiutate.
+
+Restano 178 eventi con il collegamento di ricerca: non sono fonti precise.
+
+| Anno | Evento | Voce |
+| --- | --- | --- |
+| 1748 | Pace di Aquisgrana | Trattato di Aquisgrana (1748) |
+| 1854 | La spedizione di Perry apre il Giappone | Convenzione di Kanagawa |
+| 1938 | Scoperta della fissione nucleare | Fissione nucleare |
+| 1898 | Primo campionato italiano di calcio | Campionato Italiano di Football 1898 |
+| 1925 | Esce La corazzata Potëmkin | La corazzata Potëmkin |
+| 1956 | Prima edizione dell'Eurovision Song Contest | Eurovision Song Contest 1956 |
+| 1874 | Prima esecuzione del Requiem di Verdi | Requiem (Verdi) |
+| 1667 | Bernini completa il colonnato di San Pietro | Basilica di San Pietro in Vaticano |
+| 1998 | Firmato lo Statuto di Roma | Statuto di Roma |
+| 1947 | Enzo Ferrari fonda la Ferrari | Ferrari |
+| 1877 | Nasce la Barilla a Parma | Barilla |
+| 1525 | Bembo pubblica le Prose della volgar lingua | Prose nelle quali si ragiona della volgar lingua |
+| 1978 | Debutta Capitan Harlock | Capitan Harlock |
+| 1993 | Esce Doom | Doom |
+| 476 | Caduta dell'Impero romano d'Occidente | Caduta dell'Impero romano d'Occidente |
+| 800 | Incoronazione di Carlo Magno | Incoronazione di Carlo Magno |
+| 1815 | Congresso di Vienna | Congresso di Vienna |
+| 1953 | Hillary e Tenzing raggiungono l'Everest | Everest |
+| 1957 | Lancio dello Sputnik | Sputnik 1 |
+| 1992 | Il Dream Team vince l'oro olimpico | Nazionale maschile di pallacanestro degli Stati Uniti d'America |
+| 1999 | Esce Matrix | Matrix |
+| 2003 | Nasce Sky Italia | Sky Italia |
+| 1967 | Esce Sgt. Pepper's Lonely Hearts Club Band | Sgt. Pepper's Lonely Hearts Club Band |
+| 1907 | Nasce il cubismo con Les Demoiselles d'Avignon | Les demoiselles d'Avignon |
+| 1992 | Trattato di Maastricht | Trattato di Maastricht |
+| 1997 | Toyota lancia la Prius | Toyota Prius |
+| 1986 | Nasce il movimento Slow Food a Bra | Slow Food |
+| 1913 | Pubblicato La strada di Swann di Proust | Dalla parte di Swann |
+| 1997 | Inizia il manga One Piece | One Piece |
+| 1991 | Tim Berners-Lee presenta il World Wide Web | World Wide Web |
+| 1870 | Presa di Roma | Presa di Roma |
+| 1922 | Scoperta della tomba di Tutankhamon | Tutankhamon |
+| 1895 | Röntgen scopre i raggi X | Raggi X |
+| 1976 | Nadia Comăneci ottiene il primo 10 alle Olimpiadi | Nadia Comăneci |
+| 1972 | Esce Il padrino | Il padrino (film) |
+| 2000 | Debutta Chi vuol essere miliardario? in Italia | Chi vuol essere milionario? |
+| 1982 | Esce Thriller di Michael Jackson | Thriller (album Michael Jackson) |
+| 1793 | Il Louvre diventa museo pubblico | Museo del Louvre |
+| 1957 | Trattato di Roma, nasce la CEE | Trattato che istituisce la Comunità economica europea |
+| 1966 | Debutta la Lamborghini Miura | Lamborghini Miura |
+| 1940 | Apre il primo McDonald's | McDonald's |
+| 1600 | Prima di Amleto di Shakespeare | Amleto |
+| 1988 | Esce il film Akira | Akira (film) |
+| 1985 | Esce Super Mario Bros. per NES | Super Mario Bros. |
+
+Da guardare a occhio, benché verificate:
+- **Bernini completa il colonnato di San Pietro (1667)** → la voce è *Basilica di San Pietro in Vaticano*: contiene il 1667, ma non è la pagina del solo colonnato.
+- **Pace di Aquisgrana (1748)** → la voce si chiama *Trattato di Aquisgrana*: se in TV il pubblico si aspetta «pace», l'etichetta può restare com'è.
+- **Primo campionato italiano di calcio (1898)** → *Campionato Italiano di Football 1898*, il nome dell'epoca.
+- **Esce Thriller (1982)** → *Thriller (album Michael Jackson)*: le voci «Thriller (album)» e «Thriller (Michael Jackson)» sono disambiguazioni e sono state scartate.
+- **Trattato di Roma, nasce la CEE (1957)** → la voce è *Trattato che istituisce la Comunità economica europea*.
+- **Il Dream Team vince l'oro olimpico (1992)** → la voce è la nazionale statunitense, non una pagina del «Dream Team».
