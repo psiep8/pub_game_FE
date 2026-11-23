@@ -81,10 +81,15 @@ async function openRound(type) {
  * lavora via REST (basket-start/state/shot): un BASKET_STATE non è nella
  * whitelist TV_ACTIONS, l'interceptor lo rifiuta e chiude la sessione (1002).
  */
-const BONUS_CON_STATO_SUL_TELEFONO = new Set(['CASINO', 'CAVALLO', 'BIGLIE']);
+const BONUS_CON_STATO_SUL_TELEFONO = new Set([
+  'CASINO_COLOR', 'CASINO_DOZEN', 'CASINO_NUMBER', 'BLACKJACK', 'CAVALLO', 'BIGLIE',
+]);
 
 function bonusState(type) {
-  if (type === 'CASINO') return { manche: 1, phase: 'BET', options: ['ROSSO', 'NERO'] };
+  if (type === 'CASINO_COLOR') return { manche: 1, phase: 'BET', options: ['ROSSO', 'NERO'] };
+  if (type === 'CASINO_DOZEN') return { manche: 1, phase: 'BET', options: ['1-12', '13-24', '25-36'] };
+  if (type === 'CASINO_NUMBER') return { manche: 1, phase: 'BET', options: Array.from({ length: 37 }, (_, index) => String(index)) };
+  if (type === 'BLACKJACK') return { phase: 'BET' };
   if (type === 'CAVALLO') return { phase: 'CATEGORY', categories: ['Cinema'], question: null };
   if (type === 'BIGLIE') {
     return { marbles: Array.from({ length: PLAYER_COUNT }, (_, index) => ({ id: `m${index + 1}`, owner: null })) };
@@ -137,12 +142,18 @@ async function onStatus(message) {
       round: roundIndex,
       roundTotal: ROUNDS.length,
     });
+    if (type === 'BIGLIE') {
+      broadcast({ action: 'BIGLIE_STATE', round: roundIndex, state: bonusState('BIGLIE') });
+    }
   } else if (message.action === 'ADMIN_START_BONUS') {
     const type = String(message.type || 'BASKET');
     await closeRound();
     log(`bonus: ${type}`);
     if (BONUS_CON_STATO_SUL_TELEFONO.has(type)) {
-      broadcast({ action: `${type}_STATE`, state: bonusState(type) });
+      const action = type === 'BLACKJACK' ? 'BLACKJACK_STATE'
+        : type.startsWith('CASINO') ? 'CASINO_STATE'
+        : `${type}_STATE`;
+      broadcast({ action, state: bonusState(type) });
     }
   }
 }

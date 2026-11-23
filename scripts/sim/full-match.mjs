@@ -30,12 +30,13 @@ const SUMMARY_PATH = process.env.SUMMARY_PATH || `${REPORT_DIR}game-actions-summ
 // cambiare i tempi dei round che restano.
 const ROUND_LIMIT = Math.max(0, Number(process.env.ROUNDS_LIMIT || 0));
 const ROUNDS = ROUND_LIMIT ? simRounds().slice(0, ROUND_LIMIT) : simRounds();
-const BONUSES = ['CASINO', 'BASKET', 'CAVALLO', 'BIGLIE'];
+const BONUSES = ['CASINO_COLOR', 'BLACKJACK', 'CASINO_DOZEN', 'CAVALLO'];
 const ROUND_MS = Number(process.env.ROUND_MS || 38000);
 const BONUS_MS = Number(process.env.BONUS_MS || 22000);
 const RUN_DELAY_MS = Number(process.env.RUN_DELAY_MS || 18000);
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const randomIndex = (size = 4) => Math.floor(Math.random() * Math.max(1, size));
 const log = (...args) => console.log(`[full ${new Date().toISOString().slice(11, 19)}]`, ...args);
 let actions = [];
 
@@ -104,7 +105,7 @@ async function setupScenario(state, clients) {
 async function roundQuiz(state, clients) {
   // Tutti i telefoni rispondono insieme: è il caso che stressa il seq/evento.
   await Promise.all(TEAMS.map((name, index) =>
-    answerAction('quiz-answer', clients[name], name, index % 4)));
+    answerAction('quiz-answer', clients[name], name, randomIndex(4))));
   // risposta duplicata: deve essere gestita senza doppio punteggio
   await answerAction('quiz-duplicate-Anna', clients.Anna, 'Anna', 0, 'duplicate');
   // giocatore sbagliato sulla sessione di Anna: deve essere rifiutato
@@ -125,7 +126,7 @@ async function roundBooking(state, clients, roundType) {
     stompAction(`${roundType}-book`, clients[name], { action: 'JOIN_GAME', playerName: name }, 'booking')));
   await sleep(1200);
   await Promise.all(TEAMS.map((name, index) =>
-    answerAction(`${roundType}-answer`, clients[name], name, index % 4)));
+    answerAction(`${roundType}-answer`, clients[name], name, randomIndex(4))));
 }
 
 async function roundTimeline(state, clients) {
@@ -206,7 +207,7 @@ async function roundTennis(state, clients) {
       stompAction('tennis-answer', clients[name], {
         action: 'TENNIS_BATTLE_ANSWER',
         playerName: name,
-        answerIndex: (index + wave) % 4,
+        answerIndex: randomIndex(4),
       })));
     await sleep(1400);
   }
@@ -220,7 +221,7 @@ async function roundUltima(state, clients) {
   await sleep(1200);
   await Promise.all(TEAMS.map((name, index) =>
     stompAction('ultima-answer', clients[name], {
-      action: 'ULTIMA_SPIAGGIA_ACTION', playerName: name, kind: 'ANSWER', value: index % 4,
+      action: 'ULTIMA_SPIAGGIA_ACTION', playerName: name, kind: 'ANSWER', value: randomIndex(4),
     })));
 }
 
@@ -242,6 +243,26 @@ async function roundBlackjack(state, clients) {
       })));
     await sleep(1800);
   }
+}
+
+async function roundBiglie(state, clients) {
+  // Il componente Biglie vero genera le biglie sul client TV; il pilota
+  // headless ne pubblica otto, una per tavolo, così i telefoni possono
+  // scegliere come nella serata reale.
+  let status = clients.admin.statuses.BIGLIE_STATE;
+  let marbles = status?.state?.marbles ?? status?.marbles ?? [];
+  for (let attempt = 0; attempt < 15 && marbles.length === 0; attempt += 1) {
+    await sleep(400);
+    status = clients.admin.statuses.BIGLIE_STATE;
+    marbles = status?.state?.marbles ?? status?.marbles ?? [];
+  }
+  await Promise.all(TEAMS.map(async (name, index) => {
+    const marble = marbles[index] ?? marbles.find((entry) => !entry.owner);
+    if (!marble?.id) return;
+    await stompAction('biglie-round-pick', clients[name], {
+      action: 'BIGLIE_ACTION', playerName: name, kind: 'PICK', value: marble.id,
+    });
+  }));
 }
 
 async function roundArena(state, clients) {
@@ -293,7 +314,9 @@ async function roundSpeedRush(state, clients) {
       let answer = 0;
       const options = t.options ?? t.values ?? t.choices;
       if (Array.isArray(options) && options.length) {
-        answer = t.kind === 'colors' ? options.slice(0, 2) : options[0];
+        answer = t.kind === 'colors'
+          ? [...options].sort(() => Math.random() - 0.5).slice(0, 2)
+          : options[randomIndex(options.length)];
       } else if (t.answer !== undefined) {
         answer = t.answer;
       } else if (t.kind === 'math') {
@@ -313,10 +336,18 @@ async function roundSpeedRush(state, clients) {
 
 async function bonusCasino(state, clients) {
   const status = clients.admin.statuses.CASINO_STATE;
-  const options = status?.options ?? ['ROSSO', 'NERO'];
+  const view = status?.state ?? status ?? {};
+  const options = view.options ?? ['ROSSO', 'NERO'];
   await Promise.all(TEAMS.map((name) =>
     stompAction('casino-action', clients[name], {
-      action: 'CASINO_ACTION', playerName: name, manche: status?.manche ?? 1, choice: options[0],
+      action: 'CASINO_ACTION', playerName: name, manche: view.manche ?? 1, choice: options[randomIndex(options.length)],
+    })));
+}
+
+async function bonusBlackjack(state, clients) {
+  await Promise.all(TEAMS.map((name) =>
+    stompAction('blackjack-bonus', clients[name], {
+      action: 'BLACKJACK_ACTION', playerName: name, kind: Math.random() < 0.5 ? 'HIT' : 'STAND',
     })));
 }
 
@@ -350,7 +381,7 @@ async function bonusCavallo(state, clients) {
   await sleep(1200);
   await Promise.all(TEAMS.map((name, index) =>
     stompAction('cavallo-answer', clients[name], {
-      action: 'CAVALLO_ACTION', playerName: name, kind: 'ANSWER', value: index % 4,
+      action: 'CAVALLO_ACTION', playerName: name, kind: 'ANSWER', value: randomIndex(4),
     })));
 }
 
@@ -405,6 +436,7 @@ async function run() {
     ULTIMA_SPIAGGIA: () => roundUltima(state, clients),
     AZZARDO: () => roundAzzardo(state, clients),
     BLACKJACK: () => roundBlackjack(state, clients),
+    BIGLIE: () => roundBiglie(state, clients),
     ARENA: () => roundArena(state, clients),
     SPEED_RUSH: () => roundSpeedRush(state, clients),
   };
@@ -450,7 +482,8 @@ async function run() {
     admin.status({ action: 'ADMIN_START_BONUS', type });
     await sleep(3000);
     try {
-      if (type === 'CASINO') await bonusCasino(state, clients);
+      if (type === 'CASINO_COLOR' || type === 'CASINO_DOZEN' || type === 'CASINO_NUMBER') await bonusCasino(state, clients);
+      if (type === 'BLACKJACK') await bonusBlackjack(state, clients);
       if (type === 'BASKET') await bonusBasket(state, clients);
       if (type === 'CAVALLO') await bonusCavallo(state, clients);
       if (type === 'BIGLIE') await bonusBiglie(state, clients);
