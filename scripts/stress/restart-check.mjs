@@ -10,10 +10,15 @@
  * `start` scrive un file di stato con i token di prova (mai usare contro il
  * database della serata). Il confronto ignora presenza, orologi e sessioni:
  * sono volatili per definizione.
+ *
+ * Risposte via STOMP con la socket di ogni telefono, non con quella dell'admin:
+ * il server accetta `/answer` solo dal ruolo REMOTE e solo per il proprio
+ * giocatore, quindi un token admin non registrerebbe alcun punteggio.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { apiClient, setupGame, sleep, StompClient } from '../sim/client.mjs';
 
 const API = process.env.API || 'http://127.0.0.1:8091';
 const WS = process.env.WS_URL || 'ws://127.0.0.1:8091/ws-pubgame';
@@ -21,33 +26,10 @@ const SECRET = process.env.CONTROL_SECRET || '';
 const PLAYERS = Math.max(1, Math.min(20, Number(process.env.PLAYERS || 4)));
 const STATE_PATH = process.env.STRESS_STATE || join(tmpdir(), 'pubgame-stress-state.json');
 const WAIT_MS = Number(process.env.WAIT_MS || 60000);
+const SETTLE_MS = Math.max(0, Number(process.env.SETTLE_MS || 1500));
 const KEYS = ['version', 'status', 'roundIndex', 'paused', 'hasState', 'scores', 'leaderboard', 'seq'];
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-async function api(path, method = 'GET', body, headers = {}) {
-  const response = await fetch(API + path, {
-    method,
-    headers: {
-      ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
-      ...headers,
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-    signal: AbortSignal.timeout(8000),
-  });
-  const text = await response.text();
-  let json = null;
-  try { json = text ? JSON.parse(text) : null; } catch { /* non JSON */ }
-  return { status: response.status, text, json };
-}
-
-async function register(gameId, role, playerName, deviceId) {
-  const headers = role === 'REMOTE' ? {} : { 'X-Control-Secret': SECRET };
-  const result = await api(`/games/${gameId}/session`, 'POST',
-    { deviceId, role, playerName: playerName || null, sessionToken: null }, headers);
-  if (!result.json?.sessionToken) throw new Error(`sessione ${role}: ${result.status}`);
-  return result.json.sessionToken;
-}
+const api = apiClient(API);
 
 async function facts(adminToken) {
   const headers = { 'X-Session-Token': adminToken };
@@ -76,53 +58,66 @@ function firstDifference(before, after, path = '') {
 
 async function start() {
   if (SECRET.length < 32) throw new Error('CONTROL_SECRET mancante');
-  const active = await api('/games/active');
-  const bootstrap = await register(Number(active.json?.gameId || 1), 'TV', '', `restart-boot-${Date.now()}`);
-  const created = await api('/games', 'POST', {}, { 'X-Session-Token': bootstrap });
-  const gameId = Number(created.json?.id);
-  if (!gameId) throw new Error(`creazione partita fallita: ${created.status}`);
-  const admin = await register(gameId, 'ADMIN', '', `restart-admin-${Date.now()}`);
-  await api(`/games/${gameId}/reset`, 'POST', {}, { 'X-Session-Token': admin });
   const names = Array.from({ length: PLAYERS }, (_, i) => `Crash${i + 1}`);
-  const phones = [];
-  for (const name of names) {
-    phones.push({ name, token: await register(gameId, 'REMOTE', name, `restart-${name}-${Date.now()}`) });
-  }
-  STATE = { gameId, admin };
-  // Apre un round e fa rispondere i telefoni via STOMP, come il gioco vero.
-  const ws = new WebSocket(WS, ['v12.stomp', 'v11.stomp', 'v10.stomp']);
-  await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('timeout STOMP')), 12000);
-    let buffer = '';
-    ws.addEventListener('open', () => ws.send(
-      `CONNECT\naccept-version:1.2\nheart-beat:0,0\nhost:localhost\nX-Session-Token:${admin}\n\n\0`));
-    ws.addEventListener('message', (event) => {
-      buffer += String(event.data);
-      let end;
-      while ((end = buffer.indexOf('\0')) >= 0) {
-        const frame = buffer.slice(0, end);
-        buffer = buffer.slice(end + 1);
-        if (frame.startsWith('CONNECTED')) { clearTimeout(timer); resolve(); }
-      }
-    });
+  const { gameId, tv, admin, phones } = await setupGame({
+    players: names,
+    devicePrefix: 'restart',
+    secret: SECRET,
+    call: api,
   });
-  const send = (destination, payload) => {
-    const body = JSON.stringify(payload);
-    ws.send(`SEND\ndestination:${destination}\ncontent-type:application/json\ncontent-length:${Buffer.byteLength(body)}\n\n${body}\0`);
-  };
+  STATE = { gameId, admin };
+
+  const sockets = [];
+  for (const name of names) {
+    const socket = new StompClient(phones[name], name, gameId, { url: WS });
+    await socket.connect();
+    sockets.push(socket);
+  }
+
   const opened = await api(`/games/${gameId}/round`, 'POST', undefined, { 'X-Session-Token': admin });
   if (opened.status >= 400) throw new Error(`apertura round ${opened.status}`);
-  await sleep(2500);
-  for (const [index, phone] of phones.entries()) {
-    send(`/app/game/${gameId}/answer`, { playerName: phone.name, answerIndex: index % 4, responseTimeMs: 800 });
-  }
   await sleep(1500);
+  for (const [index, socket] of sockets.entries()) socket.answer(socket.label, index % 4, 800);
+  // Le risposte STOMP finiscono su /responses (eco alla TV), non nello stato.
+  // I punti veri passano dal voto REST autenticato, come fa il telefono.
+  const roundStartId = opened.json?.roundStartId || '';
+  // Senza l'annuncio della manche la TV non accetta voti: è il primo passo
+  // della sequenza vera (quiz/manche → quiz/answer).
+  const manche = await api(`/games/${gameId}/quiz/manche`, 'POST', { manche: 0, roundStartId },
+    { 'X-Session-Token': tv });
+  let accepted = 0;
+  const voteErrors = [];
+  for (const [index, name] of names.entries()) {
+    const vote = await api(`/games/${gameId}/quiz/answer`, 'POST', {
+      optionIndex: index % 2,
+      manche: 0,
+      roundStartId,
+    }, { 'X-Session-Token': phones[name] });
+    if (vote.status === 200) accepted++;
+    else if (voteErrors.length < 2) voteErrors.push(`${vote.status}: ${vote.text.slice(0, 120)}`);
+  }
+  // La TV salva l'istantanea della classifica dopo ogni variazione di punti.
+  const entries = names.map((name, index) => ({
+    playerName: name,
+    totalPoints: (names.length - index) * 100,
+    correctAnswers: 1,
+    wrongAnswers: 0,
+    position: index + 1,
+  }));
+  const saved = await api(`/games/${gameId}/leaderboard`, 'PUT', { entries }, { 'X-Session-Token': tv });
+  if (saved.status >= 400) throw new Error(`classifica ${saved.status}: ${saved.text.slice(0, 160)}`);
+  await sleep(SETTLE_MS);
 
   const before = await facts(admin);
-  STATE = { gameId, admin, phones: phones.map((p) => p.name), before, dumpedAt: new Date().toISOString() };
+  const scored = Object.keys(before.facts.scores || {}).length;
+  const ranked = (before.facts.leaderboard || []).length;
+  if (!scored && !ranked) {
+    throw new Error(`stato di prova vuoto (manche ${manche.status}${voteErrors.length ? `, voto ${voteErrors[0]}` : ''})`);
+  }
+  STATE = { gameId, admin, phones: names, before, accepted, scored, ranked, dumpedAt: new Date().toISOString() };
   writeFileSync(STATE_PATH, JSON.stringify(STATE, null, 2), { mode: 0o600 });
-  ws.close();
-  console.log(JSON.stringify({ gameId, players: names.length, statePath: STATE_PATH, before }, null, 2));
+  sockets.forEach((socket) => socket.close());
+  console.log(JSON.stringify({ gameId, players: names.length, accepted, scored, ranked, statePath: STATE_PATH, before }, null, 2));
 }
 
 async function waitHealthy() {
@@ -144,6 +139,9 @@ async function verify() {
   const diff = firstDifference(STATE.before.facts, after.facts, 'snapshot');
   const report = {
     gameId: STATE.gameId,
+    scoredBeforeCrash: STATE.scored ?? null,
+    rankedBeforeCrash: STATE.ranked ?? null,
+    acceptedVotes: STATE.accepted ?? null,
     recoveryMs,
     seqBefore: STATE.before.toSeq,
     seqAfter: after.toSeq,
@@ -155,8 +153,8 @@ async function verify() {
 }
 
 const mode = process.argv[2];
-if (mode === 'start') start().catch((error) => { console.error(error.message); process.exitCode = 1; });
-else if (mode === 'verify') verify().catch((error) => { console.error(error.message); process.exitCode = 1; });
+if (mode === 'start') start().catch((error) => { console.error(error.message); process.exit(1); });
+else if (mode === 'verify') verify().catch((error) => { console.error(error.message); process.exit(1); });
 else {
   console.error('Uso: restart-check.mjs start|verify');
   process.exitCode = 2;

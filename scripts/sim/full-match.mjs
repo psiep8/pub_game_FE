@@ -12,9 +12,8 @@
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { simRounds } from './schedule.mjs';
+import { api, parseJson, setupGame, StompClient } from './client.mjs';
 
-const API = process.env.API || 'http://127.0.0.1:8080';
-const WS = process.env.WS_URL || 'ws://127.0.0.1:8080/ws-pubgame';
 const REPORT_DIR = fileURLToPath(new URL('./reports/', import.meta.url));
 const PLAYER_NAMES = [
   'Anna', 'Bruno', 'Carla', 'Dario', 'Elena', 'Fabio', 'Giulia', 'Luca',
@@ -45,161 +44,12 @@ function action(entry) {
   appendFileSync(ACTIONS_PATH, `${JSON.stringify(entry)}\n`);
 }
 
-function controlSecret() {
-  if (process.env.CONTROL_SECRET) return process.env.CONTROL_SECRET;
-  const env = readFileSync(new URL('../../deploy/.env', import.meta.url), 'utf8');
-  const line = env.split(/\r?\n/).find((row) => row.startsWith('CONTROL_SECRET='));
-  return line ? line.slice('CONTROL_SECRET='.length) : '';
-}
-
-async function api(path, method = 'GET', body, headers = {}) {
-  const response = await fetch(API + path, {
-    method,
-    headers: {
-      ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
-      ...headers,
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-    signal: AbortSignal.timeout(8000),
-  });
-  const text = await response.text();
-  let json = null;
-  try { json = text ? JSON.parse(text) : null; } catch { /* testo non JSON */ }
-  return { status: response.status, text, json };
-}
-
-async function register(gameId, role, playerName, deviceId, secret) {
-  const headers = role === 'REMOTE' ? {} : { 'X-Control-Secret': secret };
-  const published = await api(`/games/${gameId}/session`, 'POST', {
-    deviceId,
-    role,
-    playerName: playerName || null,
-    sessionToken: null,
-  }, headers);
-  if (!published.json?.sessionToken) throw new Error(`sessione ${role}/${playerName} senza token: ${published.status} ${published.text}`);
-  return published.json.sessionToken;
-}
-
 async function setup() {
-  const secret = controlSecret();
-  if (secret.length < 32) throw new Error('CONTROL_SECRET assente in deploy/.env');
-  const active = await api('/games/active');
-  const activeId = Number(active.json?.gameId || 1);
-  const bootstrap = await register(activeId, 'TV', '', 'full-bootstrap-tv', secret);
-  const created = await api('/games', 'POST', {}, { 'X-Session-Token': bootstrap });
-  const gameId = Number(created.json?.id);
-  if (!gameId) throw new Error(`creazione partita fallita: ${created.status} ${created.text}`);
-  const tv = await register(gameId, 'TV', '', 'full-tv', secret);
-  const admin = await register(gameId, 'ADMIN', '', 'full-admin', secret);
-  await api(`/games/${gameId}/reset`, 'POST', {}, { 'X-Session-Token': admin });
-  const phones = {};
-  for (const name of TEAMS) {
-    phones[name] = await register(gameId, 'REMOTE', name, `full-${name.toLowerCase()}`, secret);
-  }
-  const state = { gameId, tv, admin, phones, players: TEAMS, createdAt: new Date().toISOString() };
-  writeFileSync(STATE_PATH, JSON.stringify(state, null, 2), { mode: 0o600 });
-  log(`setup: partita ${gameId} con ${TEAMS.length} telefoni`);
-  console.log(`FULL_GAME=${gameId}`);
-}
-
-class StompClient {
-  constructor(token, label, gameId) {
-    this.token = token;
-    this.label = label;
-    this.gameId = gameId;
-    this.ws = null;
-    this.connected = false;
-    this.buffer = '';
-    this.statuses = {};
-  }
-
-  connect() {
-    return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error(`timeout STOMP ${this.label}`)), 15000);
-      this.ws = new WebSocket(WS, ['v12.stomp', 'v11.stomp', 'v10.stomp']);
-      this.ws.addEventListener('open', () => {
-        this.ws.send(
-          `CONNECT\naccept-version:1.2\nheart-beat:0,0\nhost:localhost\n` +
-          `X-Session-Token:${this.token}\n\n\0`,
-        );
-      });
-      this.ws.addEventListener('message', (event) => {
-        this.buffer += String(event.data);
-        let end;
-        while ((end = this.buffer.indexOf('\0')) >= 0) {
-          const frame = this.buffer.slice(0, end);
-          this.buffer = this.buffer.slice(end + 1);
-          this.handleFrame(frame, timer, resolve, reject);
-        }
-      });
-      this.ws.addEventListener('error', () => log(`errore WebSocket ${this.label}`));
-      this.ws.addEventListener('close', (event) => {
-        this.connected = false;
-        if (this.closing) return;
-        log(`socket ${this.label} chiusa (${event.code})`);
-      });
-    });
-  }
-
-  handleFrame(frame, timer, resolve, reject) {
-    if (frame.startsWith('CONNECTED')) {
-      clearTimeout(timer);
-      this.connected = true;
-      log(`STOMP ${this.label} connesso`);
-      resolve();
-      return;
-    }
-    if (frame.startsWith('ERROR')) {
-      clearTimeout(timer);
-      const message = frame.replace(/\n/g, ' | ').slice(0, 500);
-      log(`STOMP ${this.label} ERROR: ${message}`);
-      reject(new Error(message));
-      return;
-    }
-    if (!frame.startsWith('MESSAGE')) return;
-    const split = frame.indexOf('\n\n');
-    if (split < 0) return;
-    const body = frame.slice(split + 2);
-    try {
-      const json = JSON.parse(body);
-      if (json?.action) this.statuses[json.action] = json;
-      if (json?.action && json.action.endsWith('_STATE')) {
-        log(`${this.label} stato ${json.action}`);
-      }
-    } catch { /* frame non JSON */ }
-  }
-
-  subscribeStatus() {
-    this.ws.send(
-      `SUBSCRIBE\nid:sub-status\ndestination:/topic/game/${this.gameId}/status\n\n\0`,
-    );
-  }
-
-  send(destination, payload) {
-    if (!this.connected) throw new Error(`${this.label} non connesso`);
-    const body = JSON.stringify(payload);
-    this.ws.send(
-      `SEND\ndestination:${destination}\ncontent-type:application/json\n` +
-      `content-length:${Buffer.byteLength(body, 'utf8')}\n\n${body}\0`,
-    );
-  }
-
-  status(payload) {
-    this.send(`/app/game/${this.gameId}/status`, payload);
-  }
-
-  answer(playerName, index, responseTimeMs = 1000) {
-    this.send(`/app/game/${this.gameId}/answer`, { playerName, answerIndex: index, responseTimeMs });
-  }
-
-  close() {
-    this.closing = true;
-    try { this.ws?.close(); } catch { /* già chiusa */ }
-  }
-}
-
-function parseJson(value, fallback = null) {
-  try { return value ? JSON.parse(value) : fallback; } catch { return fallback; }
+  const state = await setupGame({ players: TEAMS, devicePrefix: 'full' });
+  const saved = { ...state, createdAt: new Date().toISOString() };
+  writeFileSync(STATE_PATH, JSON.stringify(saved, null, 2), { mode: 0o600 });
+  log(`setup: partita ${state.gameId} con ${TEAMS.length} telefoni`);
+  console.log(`FULL_GAME=${state.gameId}`);
 }
 
 async function currentRound(gameId, token) {
@@ -258,7 +108,7 @@ async function roundQuiz(state, clients) {
   // risposta duplicata: deve essere gestita senza doppio punteggio
   await answerAction('quiz-duplicate-Anna', clients.Anna, 'Anna', 0, 'duplicate');
   // giocatore sbagliato sulla sessione di Anna: deve essere rifiutato
-  const fault = new StompClient(state.phones.Anna, 'fault-Anna-come-Bruno', state.gameId);
+  const fault = new StompClient(state.phones.Anna, 'fault-Anna-come-Bruno', state.gameId, { log, logState: true });
   try {
     await fault.connect();
     await stompAction('quiz-wrong-player', fault, { action: 'JOIN_GAME', playerName: 'Bruno' }, '403');
@@ -528,14 +378,14 @@ async function run() {
   const state = JSON.parse(readFileSync(STATE_PATH, 'utf8'));
   const { gameId } = state;
   writeFileSync(ACTIONS_PATH, '');
-  const admin = new StompClient(state.admin, 'admin', gameId);
+  const admin = new StompClient(state.admin, 'admin', gameId, { log, logState: true });
   await admin.connect();
   admin.subscribeStatus();
   await sleep(500);
 
   const clients = { admin };
   for (const name of TEAMS) {
-    clients[name] = new StompClient(state.phones[name], name, gameId);
+    clients[name] = new StompClient(state.phones[name], name, gameId, { log, logState: true });
   }
 
   await sleep(RUN_DELAY_MS);
@@ -586,7 +436,7 @@ async function run() {
       log('fault injection: disconnessione e riconnessione di Elena');
       clients.Elena.close();
       await sleep(1200);
-      clients.Elena = new StompClient(state.phones.Elena, 'Elena', gameId);
+      clients.Elena = new StompClient(state.phones.Elena, 'Elena', gameId, { log, logState: true });
       await clients.Elena.connect();
       await stompAction('elena-rejoin', clients.Elena, { action: 'JOIN_GAME', playerName: 'Elena' }, 'ok');
     }
