@@ -140,7 +140,10 @@ const CANDIDATES = {
   'Elvis Presley incide That\'s All Right': ['That\'s All Right, Mama'],
   'I Beatles pubblicano Love Me Do': ['Love Me Do'],
   'Live Aid': ['Live Aid'],
-  'Apple lancia l\'iTunes Store': ['ITunes', 'ITunes Store'],
+  // iTunes esce il 9 gennaio 2001 (lo Store arriverà nel 2003). La voce
+  // it.wikipedia è quella giusta ma non riporta il 2001 nel testo: è l'unico
+  // caso scelto a mano e segnalato in docs/DOMANDE-DA-REVISIONARE.md.
+  'Apple lancia iTunes': ['ITunes'],
   'Festival di Woodstock': ['Festival di Woodstock'],
   'Esce Bohemian Rhapsody dei Queen': ['Bohemian Rhapsody'],
   'Esce Nevermind dei Nirvana': ['Nevermind'],

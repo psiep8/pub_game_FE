@@ -532,7 +532,8 @@ campione di 30: due per categoria e i primi due del file). Lo script li ha verif
 it.wikipedia: la voce esiste, il suo testo contiene l'anno dell'evento e almeno una parola
 dell'etichetta. Le pagine di disambiguazione sono rifiutate.
 
-Restano 178 eventi con il collegamento di ricerca: non sono fonti precise.
+All'epoca restavano 178 eventi con il collegamento di ricerca, non fonti precise: sono stati
+chiusi nell'intervento successivo (sezione «fonti precise su tutti gli eventi»).
 
 | Anno | Evento | Voce |
 | --- | --- | --- |
@@ -596,14 +597,13 @@ un collegamento di ricerca. Per ognuno lo script verifica che la voce esista, ch
 contenga l'anno dell'evento, che condivida una parola con l'etichetta e che non sia una
 disambiguazione; la mappa dei titoli sta in `scripts/generate-questions/fix_timeline_sources.mjs`.
 
-Risultato: **221 eventi su 222** con la voce precisa;
-restano **1** eventi con il collegamento di ricerca (nella tabella qui sotto).
+Risultato: **222 eventi su 222** con la voce precisa; **0** eventi con il collegamento di ricerca.
 
-### Casi dubbi
+### L'unico caso chiuso a mano
 
-| Anno | Evento | Cosa non torna |
+| Anno | Evento | Cosa è stato fatto |
 | --- | --- | --- |
-| 2001 | Apple lancia l'iTunes Store | iTunes (il programma) esce nel 2001, l'iTunes Store nel 2003: su it.wikipedia non c'è una voce che riporti il 2001, quindi o si corregge l'anno o si cambia l'etichetta in «Apple lancia iTunes» |
+| 2001 | Apple lancia iTunes | L'etichetta era «Apple lancia l'iTunes Store», ma lo Store è del 2003: corretta in «Apple lancia iTunes». La voce collegata è *iTunes*, che è il soggetto giusto; non riporta però il 2001 nel testo, quindi è l'unica fonte Timeline che non passa il controllo automatico sull'anno ed è stata scelta a mano. La mappa in `fix_timeline_sources.mjs` lo dice accanto alla voce. |
 
 ### Voci generiche: persona o ente invece della pagina dell'evento
 
