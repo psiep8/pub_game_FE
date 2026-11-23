@@ -30,7 +30,7 @@ const SUMMARY_PATH = process.env.SUMMARY_PATH || `${REPORT_DIR}game-actions-summ
 // cambiare i tempi dei round che restano.
 const ROUND_LIMIT = Math.max(0, Number(process.env.ROUNDS_LIMIT || 0));
 const ROUNDS = ROUND_LIMIT ? simRounds().slice(0, ROUND_LIMIT) : simRounds();
-const BONUSES = ['CASINO_COLOR', 'BLACKJACK', 'CASINO_DOZEN', 'CAVALLO'];
+const BONUSES = ['CASINO_COLOR', 'BLACKJACK', 'CASINO_DOZEN', 'CAVALLO', 'CASINO_NUMBER'];
 const ROUND_MS = Number(process.env.ROUND_MS || 38000);
 const BONUS_MS = Number(process.env.BONUS_MS || 22000);
 const RUN_DELAY_MS = Number(process.env.RUN_DELAY_MS || 18000);

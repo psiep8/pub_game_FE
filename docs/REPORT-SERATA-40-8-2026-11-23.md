@@ -1,5 +1,11 @@
 # Serata completa 40 round + 4 bonus — 23/11/2026
 
+> **Correzione 23/11/2026:** la serata ha **cinque** bonus, non quattro.
+> L'harness è stato corretto per eseguire anche `CASINO_NUMBER`; il run
+> end-to-end registrato sotto resta la prova a quattro bonus perché il rerun
+> a cinque non è partito per un blocco della distro WSL. I dati sui 40 round,
+> sugli 8 telefoni e sulle banche restano validi.
+
 ## Esito
 
 **PASS** sulla simulazione funzionale: 40 round della scaletta reale e 4 bonus
@@ -56,8 +62,8 @@ scaduto e Timeline tardiva sono stati rifiutati come previsto.
 
 ## Bonus
 
-Sono partiti tutti e quattro i bonus richiesti; per ognuno il pilota ha
-pubblicato lo stato e gli 8 telefoni hanno inviato l'azione:
+Il run registrato sotto ha eseguito quattro bonus; il quinto è stato aggiunto
+all'harness ma non è stato eseguito end-to-end per il blocco WSL:
 
 | Bonus | Stato TV | Azioni telefoni |
 |---|---|---:|
@@ -65,11 +71,11 @@ pubblicato lo stato e gli 8 telefoni hanno inviato l'azione:
 | BLACKJACK | `BLACKJACK_STATE` | 8 |
 | CASINO_DOZEN | `CASINO_STATE` | 8 |
 | CAVALLO | `CAVALLO_STATE` | 16 (8 categoria + 8 risposta) |
+| CASINO_NUMBER | `CASINO_STATE` | configurato, rerun non eseguito |
 
-La serata reale prevede **cinque** bonus (`BONUS_AFTER_ACT`); per rispettare il
-vincolo di questa prova ne sono stati eseguiti quattro, escludendo
-`CASINO_NUMBER`. Biglie non è un bonus: sono i quattro round 11, 22, 28 e 37,
-tutti eseguiti.
+La serata reale prevede **cinque** bonus (`BONUS_AFTER_ACT`), tutti supportati
+dal pilota e dall'handler `CASINO_*`. Biglie non è un bonus: sono i quattro
+round 11, 22, 28 e 37, tutti eseguiti.
 
 ## Stato finale autorevole
 
@@ -81,7 +87,7 @@ tutti eseguiti.
 - `devices`: 10 registrati (TV, admin, 8 telefoni); a fine prova 0 connessi
   perché l'harness chiude tutte le socket.
 
-La partita si ferma dopo il quarantesimo round e i quattro bonus; la schermata
+La partita si ferma dopo il quarantesimo round e i quattro bonus registrati; la schermata
 finale/classifica della TV non è stata renderizzata perché non c'era una TV
 grafica. Il backend non ha round aperti né handler bloccati.
 
@@ -113,7 +119,10 @@ della fault injection.
   di Elena: la socket è stata chiusa e riaperta, il `JOIN_GAME` è riuscito
   (log `elena-rejoin`), ma il contatore del backend non è incrementato.
 - I tempi sono stati compressi per il laboratorio: `ROUND_MS=9000`,
-  `BONUS_MS=7000`. Il numero di round, bonus e partecipanti è quello reale.
+  `BONUS_MS=7000`. Il numero di round e partecipanti è quello reale; il
+  rerun a cinque bonus è bloccato dal mancato avvio di nuove shell WSL.
+- Il quinto bonus è coperto dal codice e dallo stesso percorso `CASINO_STATE`
+  degli altri due Casino, ma non ha ancora un'esecuzione end-to-end registrata.
 
 ## Artefatti locali (non versionati)
 
@@ -126,7 +135,7 @@ della fault injection.
 
 - `scripts/sim/schedule.mjs`: `ROUNDS_SERATA` ora è la scaletta reale a 40
   round (Biglie incluse, Blackjack fuori dai round).
-- `scripts/sim/full-match.mjs`: handler `BIGLIE`, bonus attuali, risposte
-  casuali su indici/opzioni.
+- `scripts/sim/full-match.mjs`: handler `BIGLIE`, cinque bonus attuali,
+  risposte casuali su indici/opzioni.
 - `scripts/sim/tv-pilot.mjs`: stati `CASINO_*`, `BLACKJACK_STATE` e
   `BIGLIE_STATE` per i round Biglie.
