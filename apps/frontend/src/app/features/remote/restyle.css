@@ -74,8 +74,12 @@
 .setup-screen input::placeholder { color: color-mix(in srgb, var(--coal) 65%, transparent); }
 .setup-screen input:focus {
   background: var(--acid);
+  color: var(--on-acid);
   border-color: var(--coal);
   box-shadow: 6px 6px 0 var(--tomato);
+}
+.setup-screen input:focus::placeholder {
+  color: color-mix(in srgb, var(--on-acid) 85%, transparent);
 }
 .join-btn {
   width: min(100%, 380px);
