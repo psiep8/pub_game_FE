@@ -68,16 +68,26 @@ class CelebrityClueLeakTest {
     /**
      * La banca locale contiene 150 persone: un test su due nomi non basta.
      * Ogni indizio generato dalla banca non deve contenere nome o cognome.
+     * La banca vera non è versionata: quando manca (in CI) si controlla la
+     * mini-banca di prova in `src/test/resources`, così il test gira sempre.
      */
     @Test
     void tuttaLaBancaCelebritaNonEsponeIlNome() throws Exception {
+        ClassPathResource bank = new ClassPathResource("questions/media-it.json");
+        if (bank.exists()) {
+            assertThat(checkBank(bank)).as("persone controllate").isGreaterThanOrEqualTo(100);
+            return;
+        }
+
+        ClassPathResource fallback = new ClassPathResource("questions/media-test.json");
+        assumeTrue(fallback.exists(), "manca anche la mini-banca di prova: questions/media-test.json");
+        assertThat(checkBank(fallback)).as("persone controllate nella mini-banca").isGreaterThanOrEqualTo(3);
+    }
+
+    /** Controlla una banca persone e ritorna quante ne ha esaminate. */
+    private int checkBank(ClassPathResource bank) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         int checked = 0;
-
-        // La banca media è opzionale e non sta nel repository: senza il file
-        // (per esempio in CI) il test non ha nulla da controllare, non fallisce.
-        ClassPathResource bank = new ClassPathResource("questions/media-it.json");
-        assumeTrue(bank.exists(), "banca media locale assente: media-it.json non è nel repository");
 
         try (InputStream stream = bank.getInputStream()) {
             JsonNode people = mapper.readTree(stream).path("people");
@@ -98,7 +108,7 @@ class CelebrityClueLeakTest {
             }
         }
 
-        assertThat(checked).as("persone controllate").isGreaterThanOrEqualTo(100);
+        return checked;
     }
 
     private static final Set<String> PARTICLES = Set.of(

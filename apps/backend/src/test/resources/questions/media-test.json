@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "note": "Mini-banca di prova per CelebrityClueLeakTest: tre persone inventate, nessun media. La banca vera (media-it.json) non e' versionata, quindi in CI il test userebbe questa e non salterebbe piu'.",
+  "music": [],
+  "people": [
+    {
+      "type": "IMAGE_BLUR",
+      "name": "Lorenzo Marchetti",
+      "category": "Musica",
+      "description": "cantautore italiano (1970-)",
+      "extract": "Lorenzo Marchetti e' un cantautore italiano. Ha pubblicato otto album in trent'anni di carriera. Nel 1998 ha vinto il premio della critica al festival di Sanremo."
+    },
+    {
+      "type": "IMAGE_BLUR",
+      "name": "Beatrice Croce",
+      "category": "Cinema, Serie TV",
+      "description": "attrice italiana (1982-)",
+      "extract": "Beatrice Croce e' un'attrice italiana. Croce ha recitato in sei lungometraggi di produzione europea. Ha vinto due volte il premio come migliore interprete al festival di Locarno."
+    },
+    {
+      "type": "IMAGE_BLUR",
+      "name": "Ambrogio Ferri",
+      "category": "Sport",
+      "description": "ex velocista italiano (1955-)",
+      "extract": "Ambrogio Ferri e' un ex velocista italiano. Ha corso i quattrocento metri piani per dodici stagioni. Nel 1981 ha stabilito il record nazionale della staffetta quattro per quattrocento."
+    }
+  ]
+}
