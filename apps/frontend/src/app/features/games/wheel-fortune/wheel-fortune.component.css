@@ -29,6 +29,11 @@
   flex-shrink: 0;
 }
 
+/* Entrata: stesso movimento degli altri tabelloni, dichiarato qui accanto alla skin. */
+.wheel-title {
+  animation: m-drop var(--motion-cinema) var(--ease-out) backwards;
+}
+
 /* Etichetta mono: dice di che cosa è fatta la banca, come un timbro. */
 .wheel-kicker {
   margin: 0;
@@ -110,7 +115,11 @@
     font-family: var(--font-mono);
     font-size: clamp(1.1rem, 4vmin, 2rem);
     font-weight: 700;
+    animation: m-appear var(--motion-fast) var(--ease-out) backwards;
     transition: background-color 0.18s ease, color 0.18s ease;
+
+    &:nth-child(2n) { animation-delay: 60ms; }
+    &:nth-child(3n) { animation-delay: 110ms; }
 
     /* Lettera svelata: inchiostro su acido, l'unico colore che avanza. */
     &.revealed {

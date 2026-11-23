@@ -179,7 +179,6 @@ button:disabled {
 
 /* I titoli dei giochi seguono la voce poster anche nei componenti figli. */
 app-quiz h2,
-app-wheel-fortune h2,
 app-song h2,
 app-arena h2,
 app-timeline h2,
@@ -408,13 +407,11 @@ app-song .timer-value {
 /* ============================================================
    SKIN DEI TABELLONI LEGACY — stessa carta, stesso inchiostro.
    ============================================================ */
-app-wheel-fortune .wheel-layout,
 app-image-blur .image-blur-layout{
   background: transparent !important;
   color: var(--paper) !important;
   font-family: var(--font) !important;
 }
-app-wheel-fortune .wheel-title,
 app-image-blur .blur-title{
   color: var(--paper) !important;
   font-family: var(--font-display) !important;
@@ -423,26 +420,6 @@ app-image-blur .blur-title{
   letter-spacing: 0.02em !important;
   text-transform: uppercase;
 }
-app-wheel-fortune .wheel-hint{
-  background: transparent !important;
-  color: var(--acid) !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  font-family: var(--font-mono) !important;
-}
-app-wheel-fortune .letter-box {
-  background: var(--paper) !important;
-  color: transparent !important;
-  border: 3px solid var(--coal) !important;
-  border-radius: 0 !important;
-  box-shadow: 4px 4px 0 var(--tomato) !important;
-  font-family: var(--font-mono) !important;
-}
-app-wheel-fortune .letter-box.revealed {
-  background: var(--acid) !important;
-  color: var(--coal) !important;
-}
-app-wheel-fortune .reservation-alert,
 app-image-blur .reservation-alert {
   background: var(--tomato) !important;
   color: var(--on-tomato) !important;
@@ -450,18 +427,14 @@ app-image-blur .reservation-alert {
   border-radius: 0 !important;
   box-shadow: 6px 6px 0 var(--coal) !important;
 }
-app-wheel-fortune .alert-name,
-app-wheel-fortune .alert-text,
 app-image-blur .alert-name,
 app-image-blur .alert-text { color: var(--paper-hi) !important; }
-app-wheel-fortune .timer-circle,
 app-image-blur .timer-circle {
   background: var(--coal) !important;
   border: 2px solid var(--paper) !important;
   box-shadow: 4px 4px 0 var(--tomato) !important;
   border-radius: 50% !important;
 }
-app-wheel-fortune .timer-value,
 app-image-blur .timer-value {
   color: var(--acid) !important;
   font-family: var(--font-mono) !important;
@@ -1101,11 +1074,7 @@ app-song .phase-dot:nth-child(2) { animation-delay: 130ms; }
 app-song .phase-dot:nth-child(3) { animation-delay: 200ms; }
 app-song .current-phase-label { animation: m-fade var(--motion-fast) var(--ease-out) backwards; }
 
-app-wheel-fortune .wheel-title,
 app-image-blur .blur-title{ animation: m-drop var(--motion-cinema) var(--ease-out) backwards; }
-app-wheel-fortune .letter-box { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
-app-wheel-fortune .letter-box:nth-child(2n) { animation-delay: 60ms; }
-app-wheel-fortune .letter-box:nth-child(3n) { animation-delay: 110ms; }
 app-image-blur .blur-main-container { animation: m-zoom-in var(--motion-cinema) var(--ease-out) backwards; }
 
 app-tennis-battle .tb-title { animation: m-drop var(--motion-cinema) var(--ease-out) backwards; }
