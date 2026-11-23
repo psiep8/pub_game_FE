@@ -354,3 +354,172 @@ Criterio: campione estratto a caso con seed fisso **20261123** dalle domande `QU
 
 _(nessuno: ogni evento Timeline aggiunto porta la sua fonte nel campo `source`;
 le voci senza fonte sicura non sono state inserite)_
+
+## Ultima spiaggia — 160 domande nuove (23 novembre 2026)
+
+Aggiunte per portare la banca a **3 domande per categoria e livello** (240 in tutto).
+La banca non poteva superare l'audit con una sola domanda per cella: la soglia era 1.
+Ogni riga ha la voce usata per la verifica: vanno lette a mano, come le altre.
+
+| id | categoria | fascia | domanda | corretta | sbagliate | fonte |
+| --- | --- | --- | --- | --- | --- | --- |
+| `spiaggia-anime-facile-01` | Anime e manga | facile | Chi è il protagonista di One Piece? | Monkey D. Luffy | Roronoa Zoro · Naruto Uzumaki · Son Goku | Wikipedia it: Monkey D. Luffy |
+| `spiaggia-anime-facile-02` | Anime e manga | facile | In quale manga il protagonista è Son Goku? | Dragon Ball | Naruto · Bleach · One Piece | Wikipedia it: Dragon Ball |
+| `spiaggia-anime-mediofacile-01` | Anime e manga | medio-facile | In quale manga un quaderno uccide chi ne legge il nome? | Death Note | Il Libro dei Morti · Il Grimorio · Il Diario Nero | Wikipedia it: Death Note |
+| `spiaggia-anime-mediofacile-02` | Anime e manga | medio-facile | Quale manga di basket ha come protagonista Hanamichi Sakuragi? | Slam Dunk | Kuroko no Basket · Captain Tsubasa · Haikyu!! | Wikipedia it: Slam Dunk |
+| `spiaggia-anime-media-01` | Anime e manga | media | Chi ha creato il manga L'attacco dei giganti? | Hajime Isayama | Eiichiro Oda · Masashi Kishimoto · Tite Kubo | Wikipedia it: L'attacco dei giganti |
+| `spiaggia-anime-media-02` | Anime e manga | media | Come si chiama la volpe a nove code sigillata dentro Naruto? | Kurama | Shukaku · Matatabi · Gyuki | Wikipedia it: Kurama (Naruto) |
+| `spiaggia-anime-mediodifficile-01` | Anime e manga | medio-difficile | In quale anno è iniziata la serializzazione di One Piece? | 1997 | 1995 · 1999 · 2001 | Wikipedia it: One Piece |
+| `spiaggia-anime-mediodifficile-02` | Anime e manga | medio-difficile | Chi ha scritto il manga Death Note? | Tsugumi Ohba | Takeshi Obata · Hajime Isayama · Naoki Urasawa | Wikipedia it: Death Note |
+| `spiaggia-anime-difficile-01` | Anime e manga | difficile | Quale studio ha animato il film Akira del 1988? | TMS Entertainment | Studio Ghibli · Production I.G · Toei Animation | Wikipedia it: Akira (film) |
+| `spiaggia-anime-difficile-02` | Anime e manga | difficile | Chi ha diretto il film animato Your Name? | Makoto Shinkai | Hayao Miyazaki · Mamoru Hosoda · Satoshi Kon | Wikipedia it: Your Name |
+| `spiaggia-arte-facile-01` | Arte e Architettura | facile | Chi ha scolpito il David di Firenze? | Michelangelo | Donatello · Bernini · Cellini | Wikipedia it: David (Michelangelo) |
+| `spiaggia-arte-facile-02` | Arte e Architettura | facile | In quale città si trova la Torre Eiffel? | Parigi | Lione · Marsiglia · Bordeaux | Wikipedia it: Torre Eiffel |
+| `spiaggia-arte-mediofacile-01` | Arte e Architettura | medio-facile | Chi ha dipinto La nascita di Venere? | Botticelli | Raffaello · Giorgione · Mantegna | Wikipedia it: La nascita di Venere |
+| `spiaggia-arte-mediofacile-02` | Arte e Architettura | medio-facile | Chi ha dipinto La scuola di Atene? | Raffaello | Michelangelo · Tiziano · Il Perugino | Wikipedia it: La scuola di Atene |
+| `spiaggia-arte-media-01` | Arte e Architettura | media | Quale corrente artistica ha in Claude Monet il suo esponente più noto? | L'impressionismo | Il cubismo · Il romanticismo · Il barocco | Wikipedia it: Impressionismo |
+| `spiaggia-arte-media-02` | Arte e Architettura | media | Chi ha dipinto L'urlo? | Edvard Munch | Gustav Klimt · Egon Schiele · Paul Klee | Wikipedia it: L'urlo |
+| `spiaggia-arte-mediodifficile-01` | Arte e Architettura | medio-difficile | Chi ha progettato il museo Guggenheim di Bilbao? | Frank Gehry | Norman Foster · Renzo Piano · Zaha Hadid | Wikipedia it: Museo Guggenheim Bilbao |
+| `spiaggia-arte-mediodifficile-02` | Arte e Architettura | medio-difficile | Chi ha dipinto Las Meninas? | Diego Velázquez | Francisco Goya · El Greco · Bartolomé Murillo | Wikipedia it: Las Meninas |
+| `spiaggia-arte-difficile-01` | Arte e Architettura | difficile | Quale artista ha introdotto il ready-made con l'opera Fontana? | Marcel Duchamp | Man Ray · Pablo Picasso · Salvador Dalí | Wikipedia it: Fontana (Duchamp) |
+| `spiaggia-arte-difficile-02` | Arte e Architettura | difficile | Quale architetto ha progettato la cupola di San Pietro a Roma? | Michelangelo | Brunelleschi · Bramante · Bernini | Wikipedia it: Cupola di San Pietro |
+| `spiaggia-cibo-facile-01` | Cibo e Gastronomia | facile | Quale piatto milanese si prepara con riso e zafferano? | Risotto alla milanese | La paella valenciana · Il riso al salto · La panissa vercellese | Wikipedia it: Risotto alla milanese |
+| `spiaggia-cibo-facile-02` | Cibo e Gastronomia | facile | Da quale pianta si ricava la bevanda del caffè? | Dal caffè | Dal cacao · Dal tè · Dal mate | Wikipedia it: Caffè |
+| `spiaggia-cibo-mediofacile-01` | Cibo e Gastronomia | medio-facile | Quale dolce siciliano si riempie di ricotta dolce? | Il cannolo | La sfogliatella · Il babà · La cassata | Wikipedia it: Cannolo siciliano |
+| `spiaggia-cibo-mediofacile-02` | Cibo e Gastronomia | medio-facile | Quale dolce napoletano si prepara con ricotta e grano cotto? | La pastiera | La sfogliatella · Il babà · La delizia al limone | Wikipedia it: Pastiera |
+| `spiaggia-cibo-media-01` | Cibo e Gastronomia | media | Quale spezia si ricava dagli stimmi del croco? | Lo zafferano | La curcuma · Il pepe · La paprica | Wikipedia it: Zafferano |
+| `spiaggia-cibo-media-02` | Cibo e Gastronomia | media | Da quale cereale si ricava la farina per il pane più comune in Italia? | Dal grano tenero | Dal riso · Dal mais · Dall'orzo | Wikipedia it: Farina di grano tenero |
+| `spiaggia-cibo-mediodifficile-01` | Cibo e Gastronomia | medio-difficile | Quale formaggio campano è prodotto con latte di bufala? | La mozzarella di bufala | Il provolone del Monaco · Il caciocavallo · La scamorza affumicata | Wikipedia it: Mozzarella di bufala campana |
+| `spiaggia-cibo-mediodifficile-02` | Cibo e Gastronomia | medio-difficile | Quale salsa madre francese si prepara con burro, farina e latte? | La besciamella | La maionese · La vellutata · L'olandese | Wikipedia it: Besciamella |
+| `spiaggia-cibo-difficile-01` | Cibo e Gastronomia | difficile | Quale vino rosso piemontese si produce con uve Nebbiolo e invecchia almeno 38 mesi? | Il Barolo | Il Barbaresco · Il Gattinara · Il Dolcetto | Wikipedia it: Barolo (vino) |
+| `spiaggia-cibo-difficile-02` | Cibo e Gastronomia | difficile | Quale tecnica di cottura sottovuoto a bassa temperatura prende il nome dal suo inventore? | La sous-vide | La confit · La brasatura · La frittura a vuoto | Wikipedia it: Sous-vide |
+| `spiaggia-cinema-facile-01` | Cinema, Serie TV | facile | Chi ha diretto E.T. l'extra-terrestre? | Steven Spielberg | George Lucas · Ridley Scott · Robert Zemeckis | Wikipedia it: E.T. l'extra-terrestre |
+| `spiaggia-cinema-facile-02` | Cinema, Serie TV | facile | Quale film del 1993 porta sullo schermo i dinosauri di Hammond? | Jurassic Park | Il mondo perduto · Parco giochi · Dinosauri | Wikipedia it: Jurassic Park (film) |
+| `spiaggia-cinema-mediofacile-01` | Cinema, Serie TV | medio-facile | Chi interpreta Neo nella saga di Matrix? | Keanu Reeves | Laurence Fishburne · Brad Pitt · Tom Cruise | Wikipedia it: Matrix (film) |
+| `spiaggia-cinema-mediofacile-02` | Cinema, Serie TV | medio-facile | Quale film Pixar del 1995 è il primo lungometraggio interamente in CGI? | Toy Story | A Bug's Life · Monsters & Co. · Shrek | Wikipedia it: Toy Story - Il mondo dei giocattoli |
+| `spiaggia-cinema-media-01` | Cinema, Serie TV | media | Chi ha diretto Inception? | Christopher Nolan | David Fincher · Ridley Scott · Michael Bay | Wikipedia it: Inception |
+| `spiaggia-cinema-media-02` | Cinema, Serie TV | media | In quale città è ambientata la serie Stranger Things? | Hawkins | Derry · Riverdale · Twin Peaks | Wikipedia it: Stranger Things |
+| `spiaggia-cinema-mediodifficile-01` | Cinema, Serie TV | medio-difficile | Chi ha diretto 8½? | Federico Fellini | Michelangelo Antonioni · Vittorio De Sica · Luchino Visconti | Wikipedia it: 8½ |
+| `spiaggia-cinema-mediodifficile-02` | Cinema, Serie TV | medio-difficile | Chi ha interpretato il Joker in Il cavaliere oscuro? | Heath Ledger | Jack Nicholson · Joaquin Phoenix · Jared Leto | Wikipedia it: Il cavaliere oscuro |
+| `spiaggia-cinema-difficile-01` | Cinema, Serie TV | difficile | Quale film ha vinto la Palma d'oro a Cannes nel 2019? | Parasite | Joker · Dolor y gloria · Once Upon a Time in Hollywood | Wikipedia it: Parasite (film 2019) |
+| `spiaggia-cinema-difficile-02` | Cinema, Serie TV | difficile | Chi ha composto la colonna sonora di Blade Runner del 1982? | Vangelis | Ennio Morricone · Hans Zimmer · John Williams | Wikipedia it: Blade Runner |
+| `spiaggia-curiosita-facile-01` | Curiosità | facile | Quanti colori ha l'arcobaleno secondo la tradizione? | Sette | Cinque · Sei · Otto | Wikipedia it: Arcobaleno |
+| `spiaggia-curiosita-facile-02` | Curiosità | facile | Quale metallo liquido è usato nei termometri tradizionali? | Il mercurio | Il piombo · Lo stagno · Il sodio | Wikipedia it: Mercurio (elemento) |
+| `spiaggia-curiosita-mediofacile-01` | Curiosità | medio-facile | Quante corde ha una chitarra classica? | Sei | Quattro · Cinque · Sette | Wikipedia it: Chitarra classica |
+| `spiaggia-curiosita-mediofacile-02` | Curiosità | medio-facile | Quante carte ci sono in un mazzo da poker senza jolly? | 52 | 48 · 54 · 56 | Wikipedia it: Carte da gioco |
+| `spiaggia-curiosita-media-01` | Curiosità | media | Quale organo filtra il sangue e produce l'urina? | I reni | Il fegato · La milza · Il pancreas | Wikipedia it: Rene |
+| `spiaggia-curiosita-media-02` | Curiosità | media | Quale metallo è il miglior conduttore di elettricità? | L'argento | Il rame · L'oro · L'alluminio | Wikipedia it: Conduttività elettrica |
+| `spiaggia-curiosita-mediodifficile-01` | Curiosità | medio-difficile | Qual è l'unità di misura della pressione nel Sistema Internazionale? | Il pascal | Il bar · L'atmosfera · Il torr | Wikipedia it: Pascal (unità di misura) |
+| `spiaggia-curiosita-mediodifficile-02` | Curiosità | medio-difficile | Quante ossa compongono una mano umana? | 27 | 21 · 24 · 30 | Wikipedia it: Mano |
+| `spiaggia-curiosita-difficile-01` | Curiosità | difficile | Quale pianeta ha il campo magnetico più intenso del sistema solare? | Giove | Saturno · Terra · Nettuno | Wikipedia it: Giove (astronomia) |
+| `spiaggia-curiosita-difficile-02` | Curiosità | difficile | Quale metallo ha il punto di fusione più alto? | Il tungsteno | Il platino · Il titanio · Il molibdeno | Wikipedia it: Tungsteno |
+| `spiaggia-gaming-facile-01` | Gaming e Tecnologia | facile | Quale console Nintendo del 2006 usava un telecomando a movimento? | Wii | GameCube · Switch · N64 | Wikipedia it: Wii |
+| `spiaggia-gaming-facile-02` | Gaming e Tecnologia | facile | Quale azienda produce la PlayStation? | Sony | Nintendo · Microsoft · Sega | Wikipedia it: PlayStation |
+| `spiaggia-gaming-mediofacile-01` | Gaming e Tecnologia | medio-facile | Quale formato immagine supporta la trasparenza ed è diffuso sul web? | PNG | JPEG · BMP · TIFF | Wikipedia it: PNG |
+| `spiaggia-gaming-mediofacile-02` | Gaming e Tecnologia | medio-facile | Quale gioco a blocchi è il più venduto di sempre? | Minecraft | Tetris · Roblox · Fortnite | Wikipedia it: Minecraft |
+| `spiaggia-gaming-media-01` | Gaming e Tecnologia | media | Quale protocollo rende cifrata la navigazione sul web? | HTTPS | FTP · SMTP · HTTP | Wikipedia it: HTTPS |
+| `spiaggia-gaming-media-02` | Gaming e Tecnologia | media | Quale linguaggio definisce lo stile delle pagine web? | CSS | HTML · SQL · Python | Wikipedia it: CSS |
+| `spiaggia-gaming-mediodifficile-01` | Gaming e Tecnologia | medio-difficile | Quale console Sony è uscita nel 2020? | PlayStation 5 | PlayStation 4 · PlayStation 4 Pro · PSP | Wikipedia it: PlayStation 5 |
+| `spiaggia-gaming-mediodifficile-02` | Gaming e Tecnologia | medio-difficile | Quale azienda ha progettato il chip M1 dei Mac? | Apple | Intel · AMD · Qualcomm | Wikipedia it: Apple M1 |
+| `spiaggia-gaming-difficile-01` | Gaming e Tecnologia | difficile | Quale standard corrisponde al Wi-Fi 6? | 802.11ax | 802.11ac · 802.11n · 802.11g | Wikipedia it: IEEE 802.11ax |
+| `spiaggia-gaming-difficile-02` | Gaming e Tecnologia | difficile | Quale algoritmo asimmetrico è alla base della maggior parte dei certificati HTTPS? | RSA | MD5 · SHA-1 · AES | Wikipedia it: RSA (crittografia) |
+| `spiaggia-geografia-facile-01` | Geografia e Viaggi | facile | Qual è la capitale della Germania? | Berlino | Monaco di Baviera · Amburgo · Francoforte | Wikipedia it: Berlino |
+| `spiaggia-geografia-facile-02` | Geografia e Viaggi | facile | Qual è l'oceano più esteso della Terra? | L'oceano Pacifico | L'oceano Atlantico · L'oceano Indiano · L'oceano Artico | Wikipedia it: Oceano Pacifico |
+| `spiaggia-geografia-mediofacile-01` | Geografia e Viaggi | medio-facile | Quale nazione ha per capitale Oslo? | La Norvegia | La Svezia · La Danimarca · La Finlandia | Wikipedia it: Oslo |
+| `spiaggia-geografia-mediofacile-02` | Geografia e Viaggi | medio-facile | Qual è l'isola più grande del Mediterraneo? | La Sicilia | La Sardegna · Cipro · Corsica | Wikipedia it: Sicilia |
+| `spiaggia-geografia-media-01` | Geografia e Viaggi | media | Qual è il fiume più lungo dell'Africa? | Il Nilo | Il Congo · Il Niger · Lo Zambesi | Wikipedia it: Nilo |
+| `spiaggia-geografia-media-02` | Geografia e Viaggi | media | Qual è la capitale dell'Argentina? | Buenos Aires | Córdoba · Rosario · Mendoza | Wikipedia it: Buenos Aires |
+| `spiaggia-geografia-mediodifficile-01` | Geografia e Viaggi | medio-difficile | Quale catena montuosa segna il confine tra Europa e Asia in Russia? | Gli Urali | Il Caucaso · I Monti Altaj · I Carpazi | Wikipedia it: Urali |
+| `spiaggia-geografia-mediodifficile-02` | Geografia e Viaggi | medio-difficile | Quale deserto si estende tra Cile e Perù? | L'Atacama | Il Namib · Il Gobi · Il Kalahari | Wikipedia it: Deserto di Atacama |
+| `spiaggia-geografia-difficile-01` | Geografia e Viaggi | difficile | Qual è la capitale del Kirghizistan? | Biškek | Almaty · Dušanbe · Taškent | Wikipedia it: Biškek |
+| `spiaggia-geografia-difficile-02` | Geografia e Viaggi | difficile | Qual è la vetta più alta dell'Africa? | Il Kilimangiaro | Il monte Kenya · Il Ruwenzori · Il Toubkal | Wikipedia it: Kilimangiaro |
+| `spiaggia-lingua-facile-01` | Lingua e Letteratura | facile | Quante lettere ha l'alfabeto italiano? | 21 | 23 · 26 · 19 | Wikipedia it: Alfabeto italiano |
+| `spiaggia-lingua-facile-02` | Lingua e Letteratura | facile | Qual è il plurale di «camicia»? | Camicie | Camice · Camicii · Camicia | Wikipedia it: Plurale italiano |
+| `spiaggia-lingua-mediofacile-01` | Lingua e Letteratura | medio-facile | Chi ha scritto Il piacere? | Gabriele D’Annunzio | Italo Calvino · Primo Levi · Leonardo Sciascia | Wikipedia it: Il piacere (romanzo) |
+| `spiaggia-lingua-mediofacile-02` | Lingua e Letteratura | medio-facile | Chi ha scritto la poesia L'infinito? | Giacomo Leopardi | Ugo Foscolo · Giovanni Pascoli · Gabriele D'Annunzio | Wikipedia it: L'infinito |
+| `spiaggia-lingua-media-01` | Lingua e Letteratura | media | Chi ha scritto Il vecchio e il mare? | Ernest Hemingway | John Steinbeck · Francis Scott Fitzgerald · William Faulkner | Wikipedia it: Il vecchio e il mare |
+| `spiaggia-lingua-media-02` | Lingua e Letteratura | media | Quale romanzo di Orwell racconta il regime del Grande Fratello? | 1984 | La fattoria degli animali · Fahrenheit 451 · Il mondo nuovo | Wikipedia it: 1984 (romanzo) |
+| `spiaggia-lingua-mediodifficile-01` | Lingua e Letteratura | medio-difficile | Chi ha scritto La coscienza di Zeno? | Italo Svevo | Luigi Pirandello · Federico Tozzi · Alberto Moravia | Wikipedia it: La coscienza di Zeno |
+| `spiaggia-lingua-mediodifficile-02` | Lingua e Letteratura | medio-difficile | Come si chiama la figura retorica che accosta due termini opposti? | Ossimoro | Metafora · Sinestesia · Anafora | Wikipedia it: Ossimoro |
+| `spiaggia-lingua-difficile-01` | Lingua e Letteratura | difficile | Chi ha scritto Il sentiero dei nidi di ragno? | Italo Calvino | Cesare Pavese · Beppe Fenoglio · Elio Vittorini | Wikipedia it: Il sentiero dei nidi di ragno |
+| `spiaggia-lingua-difficile-02` | Lingua e Letteratura | difficile | Quale poeta latino ha scritto l'Eneide? | Virgilio | Ovidio · Orazio · Lucano | Wikipedia it: Eneide |
+| `spiaggia-motori-facile-01` | Motori | facile | Quale casa ha prodotto la 500, simbolo del boom italiano? | Fiat | Renault · Volkswagen · Opel | Wikipedia it: Fiat 500 |
+| `spiaggia-motori-facile-02` | Motori | facile | Quale azienda italiana produce la Vespa? | Piaggio | Ducati · Aprilia · Benelli | Wikipedia it: Vespa |
+| `spiaggia-motori-mediofacile-01` | Motori | medio-facile | Quale casa giapponese produce la Corolla? | Toyota | Honda · Nissan · Mazda | Wikipedia it: Toyota Corolla |
+| `spiaggia-motori-mediofacile-02` | Motori | medio-facile | Chi ha vinto sette titoli mondiali di Formula 1 con la Ferrari? | Michael Schumacher | Lewis Hamilton · Sebastian Vettel · Niki Lauda | Wikipedia it: Michael Schumacher |
+| `spiaggia-motori-media-01` | Motori | media | Quale gara di durata si corre a Le Mans? | La 24 Ore | La 12 Ore · La 1000 Miglia · La 6 Ore | Wikipedia it: 24 Ore di Le Mans |
+| `spiaggia-motori-media-02` | Motori | media | Quale modello Tesla è una berlina compatta? | La Model 3 | La Model X · La Model S · Il Cybertruck | Wikipedia it: Tesla Model 3 |
+| `spiaggia-motori-mediodifficile-01` | Motori | medio-difficile | Quale costruttore vinse il primo titolo mondiale costruttori di Formula 1, nel 1958? | La Vanwall | La Ferrari · La Maserati · La Cooper | Wikipedia it: Campionato mondiale costruttori di Formula 1 |
+| `spiaggia-motori-mediodifficile-02` | Motori | medio-difficile | Chi ha vinto il titolo mondiale di Formula 1 nel 2021? | Max Verstappen | Lewis Hamilton · Charles Leclerc · Valtteri Bottas | Wikipedia it: Campionato mondiale di Formula 1 2021 |
+| `spiaggia-motori-difficile-01` | Motori | difficile | In quale anno la Formula 1 ha introdotto l'ala mobile DRS? | 2011 | 2009 · 2013 · 2015 | Wikipedia it: Drag Reduction System |
+| `spiaggia-motori-difficile-02` | Motori | difficile | Quale casa ha sviluppato il primo motore rotativo Wankel di serie? | NSU | Mazda · Citroën · BMW | Wikipedia it: Motore Wankel |
+| `spiaggia-musica-facile-01` | Musica | facile | Quanti tasti ha un pianoforte standard? | 88 | 76 · 96 · 61 | Wikipedia it: Pianoforte |
+| `spiaggia-musica-facile-02` | Musica | facile | Quale strumento a fiato è fatto di ottone con tre pistoni? | La tromba | Il flauto traverso · Il clarinetto · Il sassofono | Wikipedia it: Tromba |
+| `spiaggia-musica-mediofacile-01` | Musica | medio-facile | Chi ha scritto La donna cannone? | Francesco De Gregori | Fabrizio De André · Lucio Dalla · Francesco Guccini | Wikipedia it: La donna cannone |
+| `spiaggia-musica-mediofacile-02` | Musica | medio-facile | Quale gruppo britannico ha inciso Yesterday? | I Beatles | I Rolling Stones · I Queen · Gli Who | Wikipedia it: Yesterday (brano musicale) |
+| `spiaggia-musica-media-01` | Musica | media | Chi ha composto La bohème? | Giacomo Puccini | Giuseppe Verdi · Gioachino Rossini · Vincenzo Bellini | Wikipedia it: La bohème |
+| `spiaggia-musica-media-02` | Musica | media | Quale album dei Pink Floyd del 1973 contiene Money? | The Dark Side of the Moon | Wish You Were Here · Atom Heart Mother · The Division Bell | Wikipedia it: The Dark Side of the Moon |
+| `spiaggia-musica-mediodifficile-01` | Musica | medio-difficile | Quale trombettista jazz era soprannominato Satchmo? | Louis Armstrong | Miles Davis · Dizzy Gillespie · Chet Baker | Wikipedia it: Louis Armstrong |
+| `spiaggia-musica-mediodifficile-02` | Musica | medio-difficile | Chi ha composto l'oratorio Il Messia? | Georg Friedrich Händel | Johann Sebastian Bach · Antonio Vivaldi · Joseph Haydn | Wikipedia it: Il Messia |
+| `spiaggia-musica-difficile-01` | Musica | difficile | Chi ha composto il balletto L'uccello di fuoco? | Igor Stravinskij | Sergej Prokof'ev · Claude Debussy · Maurice Ravel | Wikipedia it: L'uccello di fuoco |
+| `spiaggia-musica-difficile-02` | Musica | difficile | Quale gruppo tedesco pubblicò l'album Autobahn nel 1974? | I Kraftwerk | I Can · I Neu! · I Tangerine Dream | Wikipedia it: Autobahn (album) |
+| `spiaggia-natura-facile-01` | Natura e Animali | facile | Quale animale è il più veloce sulla terraferma? | Il ghepardo | Il leone · Il cavallo · L'antilope | Wikipedia it: Ghepardo |
+| `spiaggia-natura-facile-02` | Natura e Animali | facile | Qual è l'animale più alto del mondo? | La giraffa | L'elefante · Il cammello · Il cavallo | Wikipedia it: Giraffa |
+| `spiaggia-natura-mediofacile-01` | Natura e Animali | medio-facile | Qual è l'uccello più grande che non sa volare? | Lo struzzo | L'emù · Il pinguino imperatore · Il casuario | Wikipedia it: Struzzo |
+| `spiaggia-natura-mediofacile-02` | Natura e Animali | medio-facile | Quale insetto produce il filo di seta? | Il baco da seta | La falena notturna · Il bruco peloso · La coccinella | Wikipedia it: Bombyx mori |
+| `spiaggia-natura-media-01` | Natura e Animali | media | Qual è il rettile più grande del mondo? | Il coccodrillo marino | Il pitone reticolato · La tartaruga liuto · Il varano di Komodo | Wikipedia it: Coccodrillo marino |
+| `spiaggia-natura-media-02` | Natura e Animali | media | Quale felino è il più grande del mondo? | La tigre | Il leone · Il giaguaro · Il leopardo | Wikipedia it: Tigre |
+| `spiaggia-natura-mediodifficile-01` | Natura e Animali | medio-difficile | Quale animale ha la gestazione più lunga? | L'elefante | La balenottera azzurra · La giraffa · Il rinoceronte | Wikipedia it: Elefante |
+| `spiaggia-natura-mediodifficile-02` | Natura e Animali | medio-difficile | Quale serpente è il più lungo del mondo? | Il pitone reticolato | Il cobra reale · L'anaconda verde · Il pitone birmano | Wikipedia it: Pitone reticolato |
+| `spiaggia-natura-difficile-01` | Natura e Animali | difficile | Quale uccello compie la migrazione più lunga? | La sterna artica | La rondine · L'airone cenerino · Il falco pellegrino | Wikipedia it: Sterna artica |
+| `spiaggia-natura-difficile-02` | Natura e Animali | difficile | Quale albero può vivere più a lungo? | Il bristlecone | La quercia · Il baobab · Il faggio | Wikipedia it: Pinus longaeva |
+| `spiaggia-politica-facile-01` | Politica e Attualità | facile | In quale città ha sede il Parlamento italiano? | Roma | Milano · Torino · Firenze | Wikipedia it: Parlamento italiano |
+| `spiaggia-politica-facile-02` | Politica e Attualità | facile | Quanti Paesi fanno parte del G7? | Sette | Cinque · Otto · Dieci | Wikipedia it: G7 |
+| `spiaggia-politica-mediofacile-01` | Politica e Attualità | medio-facile | In quale città ha sede principale l'ONU? | New York | Ginevra · Parigi · Vienna | Wikipedia it: Organizzazione delle Nazioni Unite |
+| `spiaggia-politica-mediofacile-02` | Politica e Attualità | medio-facile | Quanti deputati ha la Camera italiana dopo la riforma del 2020? | 400 | 630 · 315 · 500 | Wikipedia it: Camera dei deputati |
+| `spiaggia-politica-media-01` | Politica e Attualità | media | In quale anno l'euro è entrato in circolazione come moneta contante? | 2002 | 1999 · 2000 · 2004 | Wikipedia it: Euro |
+| `spiaggia-politica-media-02` | Politica e Attualità | media | Quale istituzione europea ha sede a Francoforte? | La Banca centrale europea | Il Parlamento europeo · La Commissione europea · La Corte di giustizia | Wikipedia it: Banca centrale europea |
+| `spiaggia-politica-mediodifficile-01` | Politica e Attualità | medio-difficile | Quale trattato del 1992 ha istituito l'Unione europea? | Il trattato di Maastricht | Il trattato di Roma · Il trattato di Lisbona · L'Atto unico europeo | Wikipedia it: Trattato di Maastricht |
+| `spiaggia-politica-mediodifficile-02` | Politica e Attualità | medio-difficile | Quanti Paesi dell'UE usano l'euro? | 20 | 17 · 22 · 27 | Wikipedia it: Eurozona |
+| `spiaggia-politica-difficile-01` | Politica e Attualità | difficile | In quale anno è entrato in vigore il trattato di Lisbona? | 2009 | 2007 · 2005 · 2011 | Wikipedia it: Trattato di Lisbona |
+| `spiaggia-politica-difficile-02` | Politica e Attualità | difficile | Quanti seggi ha il Parlamento europeo nella legislatura iniziata nel 2024? | 720 | 705 · 751 · 736 | Wikipedia it: Parlamento europeo |
+| `spiaggia-scienza-facile-01` | Scienza e Spazio | facile | Quante ossa ha il corpo di un adulto? | 206 | 186 · 226 · 246 | Wikipedia it: Scheletro umano |
+| `spiaggia-scienza-facile-02` | Scienza e Spazio | facile | Quanti pianeti compongono il sistema solare? | Otto | Nove · Sette · Dieci | Wikipedia it: Sistema solare |
+| `spiaggia-scienza-mediofacile-01` | Scienza e Spazio | medio-facile | Qual è il simbolo chimico del sodio? | Na | Cl · Br · Ca | Wikipedia it: Sodio |
+| `spiaggia-scienza-mediofacile-02` | Scienza e Spazio | medio-facile | Quale organo produce l'insulina? | Il pancreas | Il fegato · La tiroide · I reni | Wikipedia it: Insulina |
+| `spiaggia-scienza-media-01` | Scienza e Spazio | media | Qual è l'unità di misura della potenza nel Sistema Internazionale? | Il watt | Il joule · Il pascal · Il newton | Wikipedia it: Watt |
+| `spiaggia-scienza-media-02` | Scienza e Spazio | media | Qual è la velocità approssimativa della luce nel vuoto? | 300.000 km al secondo | 30.000 km al secondo · 3.000 km al secondo · 3.000.000 km al secondo | Wikipedia it: Velocità della luce |
+| `spiaggia-scienza-mediodifficile-01` | Scienza e Spazio | medio-difficile | Quale pianeta impiega più tempo a ruotare su sé stesso che a completare un anno? | Venere | Mercurio · Marte · Giove | Wikipedia it: Venere (astronomia) |
+| `spiaggia-scienza-mediodifficile-02` | Scienza e Spazio | medio-difficile | Chi pubblicò la prima tavola periodica degli elementi nel 1869? | Dmitrij Mendeleev | Antoine Lavoisier · John Dalton · Robert Boyle | Wikipedia it: Tavola periodica degli elementi |
+| `spiaggia-scienza-difficile-01` | Scienza e Spazio | difficile | Quale particella è associata al campo che dà massa alle altre? | Il bosone di Higgs | Il fotone · Il gluone · Il neutrino | Wikipedia it: Bosone di Higgs |
+| `spiaggia-scienza-difficile-02` | Scienza e Spazio | difficile | Qual è la luna più grande del sistema solare? | Ganimede | Titano · Callisto · La Luna | Wikipedia it: Ganimede (astronomia) |
+| `spiaggia-sport-facile-01` | Sport | facile | In quale sport si gioca su 18 buche? | Il golf | Il tennis · Il bowling · Il croquet | Wikipedia it: Golf |
+| `spiaggia-sport-facile-02` | Sport | facile | Quanti giocatori per squadra sono in campo nel basket? | Cinque | Sei · Sette · Quattro | Wikipedia it: Pallacanestro |
+| `spiaggia-sport-mediofacile-01` | Sport | medio-facile | Ogni quanti anni si disputano i Giochi olimpici estivi? | Quattro | Due · Tre · Cinque | Wikipedia it: Giochi olimpici |
+| `spiaggia-sport-mediofacile-02` | Sport | medio-facile | Quale nazione ha vinto più Mondiali di calcio? | Il Brasile | La Germania · L'Italia · L'Argentina | Wikipedia it: Campionato mondiale di calcio |
+| `spiaggia-sport-media-01` | Sport | media | In quale sport si parla di «strike» e di «spare»? | Il bowling | Il curling · Il biliardo · Il golf | Wikipedia it: Bowling |
+| `spiaggia-sport-media-02` | Sport | media | Quale sport unisce nuoto, ciclismo e corsa? | Il triathlon | Il pentathlon · Il decathlon · Il duathlon | Wikipedia it: Triathlon |
+| `spiaggia-sport-mediodifficile-01` | Sport | medio-difficile | In quale anno si tennero le Olimpiadi di Roma? | 1960 | 1956 · 1964 · 1948 | Wikipedia it: Giochi della XVII Olimpiade |
+| `spiaggia-sport-mediodifficile-02` | Sport | medio-difficile | Quale club vinse la prima Champions League con questa denominazione, nel 1993? | Il Marsiglia | Il Milan · L'Ajax · Il Barcellona | Wikipedia it: UEFA Champions League 1992-1993 |
+| `spiaggia-sport-difficile-01` | Sport | difficile | Chi detiene il record mondiale dei 100 metri piani maschili? | Usain Bolt | Tyson Gay · Asafa Powell · Yohan Blake | Wikipedia it: Record mondiali di atletica leggera |
+| `spiaggia-sport-difficile-02` | Sport | difficile | In quale edizione dei Giochi è debuttato il rugby a sette? | Rio 2016 | Londra 2012 · Pechino 2008 · Tokyo 2020 | Wikipedia it: Rugby a sette ai Giochi olimpici |
+| `spiaggia-storia-facile-01` | Storia | facile | In che anno è iniziata la Prima guerra mondiale? | 1914 | 1912 · 1916 · 1918 | Wikipedia it: Prima guerra mondiale |
+| `spiaggia-storia-facile-02` | Storia | facile | Chi guidò il regime fascista italiano dal 1922? | Benito Mussolini | Vittorio Emanuele III · Pietro Badoglio · Giovanni Giolitti | Wikipedia it: Benito Mussolini |
+| `spiaggia-storia-mediofacile-01` | Storia | medio-facile | In che anno Roma divenne capitale d'Italia? | 1871 | 1861 · 1866 · 1876 | Wikipedia it: Roma capitale |
+| `spiaggia-storia-mediofacile-02` | Storia | medio-facile | Quale battaglia del 1571 vide la Lega Santa battere la flotta ottomana? | Lepanto | Prevesa · Navarino · Trafalgar | Wikipedia it: Battaglia di Lepanto |
+| `spiaggia-storia-media-01` | Storia | media | Sotto quale imperatore romano iniziò la costruzione del Colosseo? | Vespasiano | Traiano · Adriano · Nerone | Wikipedia it: Colosseo |
+| `spiaggia-storia-media-02` | Storia | media | In che anno Cristoforo Colombo arrivò per la prima volta in America? | 1492 | 1498 · 1487 · 1503 | Wikipedia it: Cristoforo Colombo |
+| `spiaggia-storia-mediodifficile-01` | Storia | medio-difficile | Chi fu il primo imperatore di Roma? | Augusto | Giulio Cesare · Tiberio · Caligola | Wikipedia it: Augusto |
+| `spiaggia-storia-mediodifficile-02` | Storia | medio-difficile | Quale trattato del 1920 chiuse la pace con l'Ungheria dopo la Grande guerra? | Il trattato del Trianon | Il trattato di Saint-Germain · Il trattato di Sèvres · Il trattato di Losanna | Wikipedia it: Trattato del Trianon |
+| `spiaggia-storia-difficile-01` | Storia | difficile | Quale dinastia regnò in Russia dal 1613 al 1917? | I Romanov | I Rurik · Gli Orlov · I Godunov | Wikipedia it: Romanov |
+| `spiaggia-storia-difficile-02` | Storia | difficile | Quale città fu capitale dell'Impero bizantino fino al 1453? | Costantinopoli | Gerusalemme · Trebisonda · Antiochia | Wikipedia it: Costantinopoli |
+| `spiaggia-tv-facile-01` | TV e Spettacolo | facile | Quale rete trasmette il TG1? | Rai 1 | Rai 2 · Rete 4 · Italia 1 | Wikipedia it: TG1 |
+| `spiaggia-tv-facile-02` | TV e Spettacolo | facile | In quale città si tiene il Festival della canzone italiana? | Sanremo | Roma · Torino · Napoli | Wikipedia it: Festival di Sanremo |
+| `spiaggia-tv-mediofacile-01` | TV e Spettacolo | medio-facile | Quale rete trasmette Striscia la notizia? | Canale 5 | Rai 1 · La7 · Italia 1 | Wikipedia it: Striscia la notizia |
+| `spiaggia-tv-mediofacile-02` | TV e Spettacolo | medio-facile | Quale programma di Maria De Filippi cerca nuovi talenti canori? | Amici | X Factor · The Voice · Ti lascio una canzone | Wikipedia it: Amici di Maria De Filippi |
+| `spiaggia-tv-media-01` | TV e Spettacolo | media | Quale serie racconta le indagini del commissario di Vigata? | Il commissario Montalbano | Che Dio ci aiuti · Il Commissario Rex · Napoli Centrale | Wikipedia it: Il commissario Montalbano |
+| `spiaggia-tv-media-02` | TV e Spettacolo | media | Quale conduttore ha guidato il Festival di Sanremo 2024? | Amadeus | Carlo Conti · Paolo Bonolis · Gerry Scotti | Wikipedia it: Festival di Sanremo 2024 |
+| `spiaggia-tv-mediodifficile-01` | TV e Spettacolo | medio-difficile | Quale attore interpreta il dottor Gregory House? | Hugh Laurie | Benedict Cumberbatch · Hugh Grant · Kiefer Sutherland | Wikipedia it: Dr. House - Medical Division |
+| `spiaggia-tv-mediodifficile-02` | TV e Spettacolo | medio-difficile | In quale anno è iniziata in Italia la prima edizione del Grande Fratello? | 2000 | 1998 · 2002 · 2004 | Wikipedia it: Grande Fratello (programma televisivo) |
+| `spiaggia-tv-difficile-01` | TV e Spettacolo | difficile | In quale anno è andata in onda la prima edizione italiana di X Factor? | 2008 | 2006 · 2010 · 2012 | Wikipedia it: X Factor (Italia) |
+| `spiaggia-tv-difficile-02` | TV e Spettacolo | difficile | Quale attrice interpreta Daenerys Targaryen ne Il Trono di Spade? | Emilia Clarke | Sophie Turner · Lena Headey · Maisie Williams | Wikipedia it: Il Trono di Spade |

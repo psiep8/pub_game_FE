@@ -8,36 +8,36 @@ elenca ciò che va corretto a mano e i buchi di copertura.
 | Tipo | Domande |
 | --- | --- |
 | IMAGE_BLUR | 6 |
-| QUIZ | 534 |
+| QUIZ | 694 |
 | TENNIS_BATTLE | 22 |
 | TRUE_FALSE | 421 |
 
 | Difficoltà | Domande |
 | --- | --- |
-| difficile | 330 |
-| facile | 328 |
-| medio | 325 |
+| difficile | 394 |
+| facile | 360 |
+| medio | 389 |
 
 ### Posizione della risposta corretta
 
 | Categoria | A | B | C | D |
 | --- | --- | --- | --- | --- |
-| Storia | 6 | 6 | 7 | 6 |
-| Geografia e Viaggi | 9 | 11 | 10 | 10 |
-| Scienza e Spazio | 9 | 9 | 9 | 9 |
-| Natura e Animali | 8 | 8 | 8 | 9 |
-| Sport | 7 | 7 | 6 | 7 |
-| Cinema, Serie TV | 10 | 11 | 10 | 10 |
-| TV e Spettacolo | 9 | 8 | 8 | 9 |
-| Musica | 6 | 6 | 7 | 6 |
-| Arte e Architettura | 9 | 9 | 9 | 9 |
-| Politica e Attualità | 10 | 10 | 10 | 9 |
-| Motori | 6 | 7 | 6 | 6 |
-| Cibo e Gastronomia | 10 | 9 | 9 | 10 |
-| Lingua e Letteratura | 10 | 9 | 9 | 9 |
-| Anime e manga | 9 | 9 | 9 | 8 |
-| Gaming e Tecnologia | 9 | 9 | 9 | 9 |
-| Curiosità | 12 | 13 | 12 | 12 |
+| Storia | 16 | 6 | 7 | 6 |
+| Geografia e Viaggi | 19 | 11 | 10 | 10 |
+| Scienza e Spazio | 19 | 9 | 9 | 9 |
+| Natura e Animali | 18 | 8 | 8 | 9 |
+| Sport | 17 | 7 | 6 | 7 |
+| Cinema, Serie TV | 20 | 11 | 10 | 10 |
+| TV e Spettacolo | 19 | 8 | 8 | 9 |
+| Musica | 16 | 6 | 7 | 6 |
+| Arte e Architettura | 19 | 9 | 9 | 9 |
+| Politica e Attualità | 20 | 10 | 10 | 9 |
+| Motori | 16 | 7 | 6 | 6 |
+| Cibo e Gastronomia | 20 | 9 | 9 | 10 |
+| Lingua e Letteratura | 20 | 9 | 9 | 9 |
+| Anime e manga | 19 | 9 | 9 | 8 |
+| Gaming e Tecnologia | 19 | 9 | 9 | 9 |
+| Curiosità | 22 | 13 | 12 | 12 |
 
 ### Doppioni (0)
 
@@ -276,26 +276,26 @@ Nessuno.
 | PAESI | 30 | 30 | 30 |
 | STORIA | 30 | 30 | 30 |
 
-## Ultima spiaggia (minimo 1 domande per categoria e livello)
+## Ultima spiaggia (minimo 3 domande per categoria e livello)
 
 | Categoria | Livello 1 (100) | Livello 2 (200) | Livello 3 (300) | Livello 4 (400) | Livello 5 (500) |
 | --- | --- | --- | --- | --- | --- |
-| Anime e manga | 1 | 1 | 1 | 1 | 1 |
-| Arte e Architettura | 1 | 1 | 1 | 1 | 1 |
-| Cibo e Gastronomia | 1 | 1 | 1 | 1 | 1 |
-| Cinema, Serie TV | 1 | 1 | 1 | 1 | 1 |
-| Curiosità | 1 | 1 | 1 | 1 | 1 |
-| Gaming e Tecnologia | 1 | 1 | 1 | 1 | 1 |
-| Geografia e Viaggi | 1 | 1 | 1 | 1 | 1 |
-| Lingua e Letteratura | 1 | 1 | 1 | 1 | 1 |
-| Motori | 1 | 1 | 1 | 1 | 1 |
-| Musica | 1 | 1 | 1 | 1 | 1 |
-| Natura e Animali | 1 | 1 | 1 | 1 | 1 |
-| Politica e Attualità | 1 | 1 | 1 | 1 | 1 |
-| Scienza e Spazio | 1 | 1 | 1 | 1 | 1 |
-| Sport | 1 | 1 | 1 | 1 | 1 |
-| Storia | 1 | 1 | 1 | 1 | 1 |
-| TV e Spettacolo | 1 | 1 | 1 | 1 | 1 |
+| Anime e manga | 3 | 3 | 3 | 3 | 3 |
+| Arte e Architettura | 3 | 3 | 3 | 3 | 3 |
+| Cibo e Gastronomia | 3 | 3 | 3 | 3 | 3 |
+| Cinema, Serie TV | 3 | 3 | 3 | 3 | 3 |
+| Curiosità | 3 | 3 | 3 | 3 | 3 |
+| Gaming e Tecnologia | 3 | 3 | 3 | 3 | 3 |
+| Geografia e Viaggi | 3 | 3 | 3 | 3 | 3 |
+| Lingua e Letteratura | 3 | 3 | 3 | 3 | 3 |
+| Motori | 3 | 3 | 3 | 3 | 3 |
+| Musica | 3 | 3 | 3 | 3 | 3 |
+| Natura e Animali | 3 | 3 | 3 | 3 | 3 |
+| Politica e Attualità | 3 | 3 | 3 | 3 | 3 |
+| Scienza e Spazio | 3 | 3 | 3 | 3 | 3 |
+| Sport | 3 | 3 | 3 | 3 | 3 |
+| Storia | 3 | 3 | 3 | 3 | 3 |
+| TV e Spettacolo | 3 | 3 | 3 | 3 | 3 |
 
 Buchi: **0**.
 

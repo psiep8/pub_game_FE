@@ -14911,6 +14911,2726 @@
       ],
       "theme": "Viaggi",
       "explanation": null
+    },
+    {
+      "id": "spiaggia-storia-facile-01",
+      "category": "Storia",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "In che anno è iniziata la Prima guerra mondiale?",
+      "correctAnswer": "1914",
+      "options": [
+        "1914",
+        "1912",
+        "1916",
+        "1918"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Prima guerra mondiale"
+    },
+    {
+      "id": "spiaggia-storia-facile-02",
+      "category": "Storia",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Chi guidò il regime fascista italiano dal 1922?",
+      "correctAnswer": "Benito Mussolini",
+      "options": [
+        "Benito Mussolini",
+        "Vittorio Emanuele III",
+        "Pietro Badoglio",
+        "Giovanni Giolitti"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Benito Mussolini"
+    },
+    {
+      "id": "spiaggia-storia-mediofacile-01",
+      "category": "Storia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "In che anno Roma divenne capitale d'Italia?",
+      "correctAnswer": "1871",
+      "options": [
+        "1871",
+        "1861",
+        "1866",
+        "1876"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Roma capitale"
+    },
+    {
+      "id": "spiaggia-storia-mediofacile-02",
+      "category": "Storia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quale battaglia del 1571 vide la Lega Santa battere la flotta ottomana?",
+      "correctAnswer": "Lepanto",
+      "options": [
+        "Lepanto",
+        "Prevesa",
+        "Navarino",
+        "Trafalgar"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Battaglia di Lepanto"
+    },
+    {
+      "id": "spiaggia-storia-media-01",
+      "category": "Storia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Sotto quale imperatore romano iniziò la costruzione del Colosseo?",
+      "correctAnswer": "Vespasiano",
+      "options": [
+        "Vespasiano",
+        "Traiano",
+        "Adriano",
+        "Nerone"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Colosseo"
+    },
+    {
+      "id": "spiaggia-storia-media-02",
+      "category": "Storia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "In che anno Cristoforo Colombo arrivò per la prima volta in America?",
+      "correctAnswer": "1492",
+      "options": [
+        "1492",
+        "1498",
+        "1487",
+        "1503"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Cristoforo Colombo"
+    },
+    {
+      "id": "spiaggia-storia-mediodifficile-01",
+      "category": "Storia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Chi fu il primo imperatore di Roma?",
+      "correctAnswer": "Augusto",
+      "options": [
+        "Augusto",
+        "Giulio Cesare",
+        "Tiberio",
+        "Caligola"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Augusto"
+    },
+    {
+      "id": "spiaggia-storia-mediodifficile-02",
+      "category": "Storia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quale trattato del 1920 chiuse la pace con l'Ungheria dopo la Grande guerra?",
+      "correctAnswer": "Il trattato del Trianon",
+      "options": [
+        "Il trattato del Trianon",
+        "Il trattato di Saint-Germain",
+        "Il trattato di Sèvres",
+        "Il trattato di Losanna"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Trattato del Trianon"
+    },
+    {
+      "id": "spiaggia-storia-difficile-01",
+      "category": "Storia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale dinastia regnò in Russia dal 1613 al 1917?",
+      "correctAnswer": "I Romanov",
+      "options": [
+        "I Romanov",
+        "I Rurik",
+        "Gli Orlov",
+        "I Godunov"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Romanov"
+    },
+    {
+      "id": "spiaggia-storia-difficile-02",
+      "category": "Storia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale città fu capitale dell'Impero bizantino fino al 1453?",
+      "correctAnswer": "Costantinopoli",
+      "options": [
+        "Costantinopoli",
+        "Gerusalemme",
+        "Trebisonda",
+        "Antiochia"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Costantinopoli"
+    },
+    {
+      "id": "spiaggia-geografia-facile-01",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Qual è la capitale della Germania?",
+      "correctAnswer": "Berlino",
+      "options": [
+        "Berlino",
+        "Monaco di Baviera",
+        "Amburgo",
+        "Francoforte"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Berlino"
+    },
+    {
+      "id": "spiaggia-geografia-facile-02",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Qual è l'oceano più esteso della Terra?",
+      "correctAnswer": "L'oceano Pacifico",
+      "options": [
+        "L'oceano Pacifico",
+        "L'oceano Atlantico",
+        "L'oceano Indiano",
+        "L'oceano Artico"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Oceano Pacifico"
+    },
+    {
+      "id": "spiaggia-geografia-mediofacile-01",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quale nazione ha per capitale Oslo?",
+      "correctAnswer": "La Norvegia",
+      "options": [
+        "La Norvegia",
+        "La Svezia",
+        "La Danimarca",
+        "La Finlandia"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Oslo"
+    },
+    {
+      "id": "spiaggia-geografia-mediofacile-02",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Qual è l'isola più grande del Mediterraneo?",
+      "correctAnswer": "La Sicilia",
+      "options": [
+        "La Sicilia",
+        "La Sardegna",
+        "Cipro",
+        "Corsica"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Sicilia"
+    },
+    {
+      "id": "spiaggia-geografia-media-01",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Qual è il fiume più lungo dell'Africa?",
+      "correctAnswer": "Il Nilo",
+      "options": [
+        "Il Nilo",
+        "Il Congo",
+        "Il Niger",
+        "Lo Zambesi"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Nilo"
+    },
+    {
+      "id": "spiaggia-geografia-media-02",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Qual è la capitale dell'Argentina?",
+      "correctAnswer": "Buenos Aires",
+      "options": [
+        "Buenos Aires",
+        "Córdoba",
+        "Rosario",
+        "Mendoza"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Buenos Aires"
+    },
+    {
+      "id": "spiaggia-geografia-mediodifficile-01",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quale catena montuosa segna il confine tra Europa e Asia in Russia?",
+      "correctAnswer": "Gli Urali",
+      "options": [
+        "Gli Urali",
+        "Il Caucaso",
+        "I Monti Altaj",
+        "I Carpazi"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Urali"
+    },
+    {
+      "id": "spiaggia-geografia-mediodifficile-02",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quale deserto si estende tra Cile e Perù?",
+      "correctAnswer": "L'Atacama",
+      "options": [
+        "L'Atacama",
+        "Il Namib",
+        "Il Gobi",
+        "Il Kalahari"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Deserto di Atacama"
+    },
+    {
+      "id": "spiaggia-geografia-difficile-01",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Qual è la capitale del Kirghizistan?",
+      "correctAnswer": "Biškek",
+      "options": [
+        "Biškek",
+        "Almaty",
+        "Dušanbe",
+        "Taškent"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Biškek"
+    },
+    {
+      "id": "spiaggia-geografia-difficile-02",
+      "category": "Geografia e Viaggi",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Qual è la vetta più alta dell'Africa?",
+      "correctAnswer": "Il Kilimangiaro",
+      "options": [
+        "Il Kilimangiaro",
+        "Il monte Kenya",
+        "Il Ruwenzori",
+        "Il Toubkal"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Kilimangiaro"
+    },
+    {
+      "id": "spiaggia-scienza-facile-01",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quante ossa ha il corpo di un adulto?",
+      "correctAnswer": "206",
+      "options": [
+        "206",
+        "186",
+        "226",
+        "246"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Scheletro umano"
+    },
+    {
+      "id": "spiaggia-scienza-facile-02",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quanti pianeti compongono il sistema solare?",
+      "correctAnswer": "Otto",
+      "options": [
+        "Otto",
+        "Nove",
+        "Sette",
+        "Dieci"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Sistema solare"
+    },
+    {
+      "id": "spiaggia-scienza-mediofacile-01",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Qual è il simbolo chimico del sodio?",
+      "correctAnswer": "Na",
+      "options": [
+        "Na",
+        "Cl",
+        "Br",
+        "Ca"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Sodio"
+    },
+    {
+      "id": "spiaggia-scienza-mediofacile-02",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quale organo produce l'insulina?",
+      "correctAnswer": "Il pancreas",
+      "options": [
+        "Il pancreas",
+        "Il fegato",
+        "La tiroide",
+        "I reni"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Insulina"
+    },
+    {
+      "id": "spiaggia-scienza-media-01",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Qual è l'unità di misura della potenza nel Sistema Internazionale?",
+      "correctAnswer": "Il watt",
+      "options": [
+        "Il watt",
+        "Il joule",
+        "Il pascal",
+        "Il newton"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Watt"
+    },
+    {
+      "id": "spiaggia-scienza-media-02",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Qual è la velocità approssimativa della luce nel vuoto?",
+      "correctAnswer": "300.000 km al secondo",
+      "options": [
+        "300.000 km al secondo",
+        "30.000 km al secondo",
+        "3.000 km al secondo",
+        "3.000.000 km al secondo"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Velocità della luce"
+    },
+    {
+      "id": "spiaggia-scienza-mediodifficile-01",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quale pianeta impiega più tempo a ruotare su sé stesso che a completare un anno?",
+      "correctAnswer": "Venere",
+      "options": [
+        "Venere",
+        "Mercurio",
+        "Marte",
+        "Giove"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Venere (astronomia)"
+    },
+    {
+      "id": "spiaggia-scienza-mediodifficile-02",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Chi pubblicò la prima tavola periodica degli elementi nel 1869?",
+      "correctAnswer": "Dmitrij Mendeleev",
+      "options": [
+        "Dmitrij Mendeleev",
+        "Antoine Lavoisier",
+        "John Dalton",
+        "Robert Boyle"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Tavola periodica degli elementi"
+    },
+    {
+      "id": "spiaggia-scienza-difficile-01",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale particella è associata al campo che dà massa alle altre?",
+      "correctAnswer": "Il bosone di Higgs",
+      "options": [
+        "Il bosone di Higgs",
+        "Il fotone",
+        "Il gluone",
+        "Il neutrino"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Bosone di Higgs"
+    },
+    {
+      "id": "spiaggia-scienza-difficile-02",
+      "category": "Scienza e Spazio",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Qual è la luna più grande del sistema solare?",
+      "correctAnswer": "Ganimede",
+      "options": [
+        "Ganimede",
+        "Titano",
+        "Callisto",
+        "La Luna"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Ganimede (astronomia)"
+    },
+    {
+      "id": "spiaggia-natura-facile-01",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quale animale è il più veloce sulla terraferma?",
+      "correctAnswer": "Il ghepardo",
+      "options": [
+        "Il ghepardo",
+        "Il leone",
+        "Il cavallo",
+        "L'antilope"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Ghepardo"
+    },
+    {
+      "id": "spiaggia-natura-facile-02",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Qual è l'animale più alto del mondo?",
+      "correctAnswer": "La giraffa",
+      "options": [
+        "La giraffa",
+        "L'elefante",
+        "Il cammello",
+        "Il cavallo"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Giraffa"
+    },
+    {
+      "id": "spiaggia-natura-mediofacile-01",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Qual è l'uccello più grande che non sa volare?",
+      "correctAnswer": "Lo struzzo",
+      "options": [
+        "Lo struzzo",
+        "L'emù",
+        "Il pinguino imperatore",
+        "Il casuario"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Struzzo"
+    },
+    {
+      "id": "spiaggia-natura-mediofacile-02",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quale insetto produce il filo di seta?",
+      "correctAnswer": "Il baco da seta",
+      "options": [
+        "Il baco da seta",
+        "La falena notturna",
+        "Il bruco peloso",
+        "La coccinella"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Bombyx mori"
+    },
+    {
+      "id": "spiaggia-natura-media-01",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Qual è il rettile più grande del mondo?",
+      "correctAnswer": "Il coccodrillo marino",
+      "options": [
+        "Il coccodrillo marino",
+        "Il pitone reticolato",
+        "La tartaruga liuto",
+        "Il varano di Komodo"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Coccodrillo marino"
+    },
+    {
+      "id": "spiaggia-natura-media-02",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Quale felino è il più grande del mondo?",
+      "correctAnswer": "La tigre",
+      "options": [
+        "La tigre",
+        "Il leone",
+        "Il giaguaro",
+        "Il leopardo"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Tigre"
+    },
+    {
+      "id": "spiaggia-natura-mediodifficile-01",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quale animale ha la gestazione più lunga?",
+      "correctAnswer": "L'elefante",
+      "options": [
+        "L'elefante",
+        "La balenottera azzurra",
+        "La giraffa",
+        "Il rinoceronte"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Elefante"
+    },
+    {
+      "id": "spiaggia-natura-mediodifficile-02",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quale serpente è il più lungo del mondo?",
+      "correctAnswer": "Il pitone reticolato",
+      "options": [
+        "Il pitone reticolato",
+        "Il cobra reale",
+        "L'anaconda verde",
+        "Il pitone birmano"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Pitone reticolato"
+    },
+    {
+      "id": "spiaggia-natura-difficile-01",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale uccello compie la migrazione più lunga?",
+      "correctAnswer": "La sterna artica",
+      "options": [
+        "La sterna artica",
+        "La rondine",
+        "L'airone cenerino",
+        "Il falco pellegrino"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Sterna artica"
+    },
+    {
+      "id": "spiaggia-natura-difficile-02",
+      "category": "Natura e Animali",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale albero può vivere più a lungo?",
+      "correctAnswer": "Il bristlecone",
+      "options": [
+        "Il bristlecone",
+        "La quercia",
+        "Il baobab",
+        "Il faggio"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Pinus longaeva"
+    },
+    {
+      "id": "spiaggia-sport-facile-01",
+      "category": "Sport",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "In quale sport si gioca su 18 buche?",
+      "correctAnswer": "Il golf",
+      "options": [
+        "Il golf",
+        "Il tennis",
+        "Il bowling",
+        "Il croquet"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Golf"
+    },
+    {
+      "id": "spiaggia-sport-facile-02",
+      "category": "Sport",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quanti giocatori per squadra sono in campo nel basket?",
+      "correctAnswer": "Cinque",
+      "options": [
+        "Cinque",
+        "Sei",
+        "Sette",
+        "Quattro"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Pallacanestro"
+    },
+    {
+      "id": "spiaggia-sport-mediofacile-01",
+      "category": "Sport",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Ogni quanti anni si disputano i Giochi olimpici estivi?",
+      "correctAnswer": "Quattro",
+      "options": [
+        "Quattro",
+        "Due",
+        "Tre",
+        "Cinque"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Giochi olimpici"
+    },
+    {
+      "id": "spiaggia-sport-mediofacile-02",
+      "category": "Sport",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quale nazione ha vinto più Mondiali di calcio?",
+      "correctAnswer": "Il Brasile",
+      "options": [
+        "Il Brasile",
+        "La Germania",
+        "L'Italia",
+        "L'Argentina"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Campionato mondiale di calcio"
+    },
+    {
+      "id": "spiaggia-sport-media-01",
+      "category": "Sport",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "In quale sport si parla di «strike» e di «spare»?",
+      "correctAnswer": "Il bowling",
+      "options": [
+        "Il bowling",
+        "Il curling",
+        "Il biliardo",
+        "Il golf"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Bowling"
+    },
+    {
+      "id": "spiaggia-sport-media-02",
+      "category": "Sport",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Quale sport unisce nuoto, ciclismo e corsa?",
+      "correctAnswer": "Il triathlon",
+      "options": [
+        "Il triathlon",
+        "Il pentathlon",
+        "Il decathlon",
+        "Il duathlon"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Triathlon"
+    },
+    {
+      "id": "spiaggia-sport-mediodifficile-01",
+      "category": "Sport",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "In quale anno si tennero le Olimpiadi di Roma?",
+      "correctAnswer": "1960",
+      "options": [
+        "1960",
+        "1956",
+        "1964",
+        "1948"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Giochi della XVII Olimpiade"
+    },
+    {
+      "id": "spiaggia-sport-mediodifficile-02",
+      "category": "Sport",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quale club vinse la prima Champions League con questa denominazione, nel 1993?",
+      "correctAnswer": "Il Marsiglia",
+      "options": [
+        "Il Marsiglia",
+        "Il Milan",
+        "L'Ajax",
+        "Il Barcellona"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: UEFA Champions League 1992-1993"
+    },
+    {
+      "id": "spiaggia-sport-difficile-01",
+      "category": "Sport",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Chi detiene il record mondiale dei 100 metri piani maschili?",
+      "correctAnswer": "Usain Bolt",
+      "options": [
+        "Usain Bolt",
+        "Tyson Gay",
+        "Asafa Powell",
+        "Yohan Blake"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Record mondiali di atletica leggera"
+    },
+    {
+      "id": "spiaggia-sport-difficile-02",
+      "category": "Sport",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "In quale edizione dei Giochi è debuttato il rugby a sette?",
+      "correctAnswer": "Rio 2016",
+      "options": [
+        "Rio 2016",
+        "Londra 2012",
+        "Pechino 2008",
+        "Tokyo 2020"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Rugby a sette ai Giochi olimpici"
+    },
+    {
+      "id": "spiaggia-cinema-facile-01",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Chi ha diretto E.T. l'extra-terrestre?",
+      "correctAnswer": "Steven Spielberg",
+      "options": [
+        "Steven Spielberg",
+        "George Lucas",
+        "Ridley Scott",
+        "Robert Zemeckis"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: E.T. l'extra-terrestre"
+    },
+    {
+      "id": "spiaggia-cinema-facile-02",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quale film del 1993 porta sullo schermo i dinosauri di Hammond?",
+      "correctAnswer": "Jurassic Park",
+      "options": [
+        "Jurassic Park",
+        "Il mondo perduto",
+        "Parco giochi",
+        "Dinosauri"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Jurassic Park (film)"
+    },
+    {
+      "id": "spiaggia-cinema-mediofacile-01",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Chi interpreta Neo nella saga di Matrix?",
+      "correctAnswer": "Keanu Reeves",
+      "options": [
+        "Keanu Reeves",
+        "Laurence Fishburne",
+        "Brad Pitt",
+        "Tom Cruise"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Matrix (film)"
+    },
+    {
+      "id": "spiaggia-cinema-mediofacile-02",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quale film Pixar del 1995 è il primo lungometraggio interamente in CGI?",
+      "correctAnswer": "Toy Story",
+      "options": [
+        "Toy Story",
+        "A Bug's Life",
+        "Monsters & Co.",
+        "Shrek"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Toy Story - Il mondo dei giocattoli"
+    },
+    {
+      "id": "spiaggia-cinema-media-01",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Chi ha diretto Inception?",
+      "correctAnswer": "Christopher Nolan",
+      "options": [
+        "Christopher Nolan",
+        "David Fincher",
+        "Ridley Scott",
+        "Michael Bay"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Inception"
+    },
+    {
+      "id": "spiaggia-cinema-media-02",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "In quale città è ambientata la serie Stranger Things?",
+      "correctAnswer": "Hawkins",
+      "options": [
+        "Hawkins",
+        "Derry",
+        "Riverdale",
+        "Twin Peaks"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Stranger Things"
+    },
+    {
+      "id": "spiaggia-cinema-mediodifficile-01",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Chi ha diretto 8½?",
+      "correctAnswer": "Federico Fellini",
+      "options": [
+        "Federico Fellini",
+        "Michelangelo Antonioni",
+        "Vittorio De Sica",
+        "Luchino Visconti"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: 8½"
+    },
+    {
+      "id": "spiaggia-cinema-mediodifficile-02",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Chi ha interpretato il Joker in Il cavaliere oscuro?",
+      "correctAnswer": "Heath Ledger",
+      "options": [
+        "Heath Ledger",
+        "Jack Nicholson",
+        "Joaquin Phoenix",
+        "Jared Leto"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Il cavaliere oscuro"
+    },
+    {
+      "id": "spiaggia-cinema-difficile-01",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale film ha vinto la Palma d'oro a Cannes nel 2019?",
+      "correctAnswer": "Parasite",
+      "options": [
+        "Parasite",
+        "Joker",
+        "Dolor y gloria",
+        "Once Upon a Time in Hollywood"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Parasite (film 2019)"
+    },
+    {
+      "id": "spiaggia-cinema-difficile-02",
+      "category": "Cinema, Serie TV",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Chi ha composto la colonna sonora di Blade Runner del 1982?",
+      "correctAnswer": "Vangelis",
+      "options": [
+        "Vangelis",
+        "Ennio Morricone",
+        "Hans Zimmer",
+        "John Williams"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Blade Runner"
+    },
+    {
+      "id": "spiaggia-tv-facile-01",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quale rete trasmette il TG1?",
+      "correctAnswer": "Rai 1",
+      "options": [
+        "Rai 1",
+        "Rai 2",
+        "Rete 4",
+        "Italia 1"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: TG1"
+    },
+    {
+      "id": "spiaggia-tv-facile-02",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "In quale città si tiene il Festival della canzone italiana?",
+      "correctAnswer": "Sanremo",
+      "options": [
+        "Sanremo",
+        "Roma",
+        "Torino",
+        "Napoli"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Festival di Sanremo"
+    },
+    {
+      "id": "spiaggia-tv-mediofacile-01",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quale rete trasmette Striscia la notizia?",
+      "correctAnswer": "Canale 5",
+      "options": [
+        "Canale 5",
+        "Rai 1",
+        "La7",
+        "Italia 1"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Striscia la notizia"
+    },
+    {
+      "id": "spiaggia-tv-mediofacile-02",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quale programma di Maria De Filippi cerca nuovi talenti canori?",
+      "correctAnswer": "Amici",
+      "options": [
+        "Amici",
+        "X Factor",
+        "The Voice",
+        "Ti lascio una canzone"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Amici di Maria De Filippi"
+    },
+    {
+      "id": "spiaggia-tv-media-01",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Quale serie racconta le indagini del commissario di Vigata?",
+      "correctAnswer": "Il commissario Montalbano",
+      "options": [
+        "Il commissario Montalbano",
+        "Che Dio ci aiuti",
+        "Il Commissario Rex",
+        "Napoli Centrale"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Il commissario Montalbano"
+    },
+    {
+      "id": "spiaggia-tv-media-02",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Quale conduttore ha guidato il Festival di Sanremo 2024?",
+      "correctAnswer": "Amadeus",
+      "options": [
+        "Amadeus",
+        "Carlo Conti",
+        "Paolo Bonolis",
+        "Gerry Scotti"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Festival di Sanremo 2024"
+    },
+    {
+      "id": "spiaggia-tv-mediodifficile-01",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quale attore interpreta il dottor Gregory House?",
+      "correctAnswer": "Hugh Laurie",
+      "options": [
+        "Hugh Laurie",
+        "Benedict Cumberbatch",
+        "Hugh Grant",
+        "Kiefer Sutherland"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Dr. House - Medical Division"
+    },
+    {
+      "id": "spiaggia-tv-mediodifficile-02",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "In quale anno è iniziata in Italia la prima edizione del Grande Fratello?",
+      "correctAnswer": "2000",
+      "options": [
+        "2000",
+        "1998",
+        "2002",
+        "2004"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Grande Fratello (programma televisivo)"
+    },
+    {
+      "id": "spiaggia-tv-difficile-01",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "In quale anno è andata in onda la prima edizione italiana di X Factor?",
+      "correctAnswer": "2008",
+      "options": [
+        "2008",
+        "2006",
+        "2010",
+        "2012"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: X Factor (Italia)"
+    },
+    {
+      "id": "spiaggia-tv-difficile-02",
+      "category": "TV e Spettacolo",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale attrice interpreta Daenerys Targaryen ne Il Trono di Spade?",
+      "correctAnswer": "Emilia Clarke",
+      "options": [
+        "Emilia Clarke",
+        "Sophie Turner",
+        "Lena Headey",
+        "Maisie Williams"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Il Trono di Spade"
+    },
+    {
+      "id": "spiaggia-musica-facile-01",
+      "category": "Musica",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quanti tasti ha un pianoforte standard?",
+      "correctAnswer": "88",
+      "options": [
+        "88",
+        "76",
+        "96",
+        "61"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Pianoforte"
+    },
+    {
+      "id": "spiaggia-musica-facile-02",
+      "category": "Musica",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quale strumento a fiato è fatto di ottone con tre pistoni?",
+      "correctAnswer": "La tromba",
+      "options": [
+        "La tromba",
+        "Il flauto traverso",
+        "Il clarinetto",
+        "Il sassofono"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Tromba"
+    },
+    {
+      "id": "spiaggia-musica-mediofacile-01",
+      "category": "Musica",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Chi ha scritto La donna cannone?",
+      "correctAnswer": "Francesco De Gregori",
+      "options": [
+        "Francesco De Gregori",
+        "Fabrizio De André",
+        "Lucio Dalla",
+        "Francesco Guccini"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: La donna cannone"
+    },
+    {
+      "id": "spiaggia-musica-mediofacile-02",
+      "category": "Musica",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quale gruppo britannico ha inciso Yesterday?",
+      "correctAnswer": "I Beatles",
+      "options": [
+        "I Beatles",
+        "I Rolling Stones",
+        "I Queen",
+        "Gli Who"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Yesterday (brano musicale)"
+    },
+    {
+      "id": "spiaggia-musica-media-01",
+      "category": "Musica",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Chi ha composto La bohème?",
+      "correctAnswer": "Giacomo Puccini",
+      "options": [
+        "Giacomo Puccini",
+        "Giuseppe Verdi",
+        "Gioachino Rossini",
+        "Vincenzo Bellini"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: La bohème"
+    },
+    {
+      "id": "spiaggia-musica-media-02",
+      "category": "Musica",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Quale album dei Pink Floyd del 1973 contiene Money?",
+      "correctAnswer": "The Dark Side of the Moon",
+      "options": [
+        "The Dark Side of the Moon",
+        "Wish You Were Here",
+        "Atom Heart Mother",
+        "The Division Bell"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: The Dark Side of the Moon"
+    },
+    {
+      "id": "spiaggia-musica-mediodifficile-01",
+      "category": "Musica",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quale trombettista jazz era soprannominato Satchmo?",
+      "correctAnswer": "Louis Armstrong",
+      "options": [
+        "Louis Armstrong",
+        "Miles Davis",
+        "Dizzy Gillespie",
+        "Chet Baker"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Louis Armstrong"
+    },
+    {
+      "id": "spiaggia-musica-mediodifficile-02",
+      "category": "Musica",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Chi ha composto l'oratorio Il Messia?",
+      "correctAnswer": "Georg Friedrich Händel",
+      "options": [
+        "Georg Friedrich Händel",
+        "Johann Sebastian Bach",
+        "Antonio Vivaldi",
+        "Joseph Haydn"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Il Messia"
+    },
+    {
+      "id": "spiaggia-musica-difficile-01",
+      "category": "Musica",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Chi ha composto il balletto L'uccello di fuoco?",
+      "correctAnswer": "Igor Stravinskij",
+      "options": [
+        "Igor Stravinskij",
+        "Sergej Prokof'ev",
+        "Claude Debussy",
+        "Maurice Ravel"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: L'uccello di fuoco"
+    },
+    {
+      "id": "spiaggia-musica-difficile-02",
+      "category": "Musica",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale gruppo tedesco pubblicò l'album Autobahn nel 1974?",
+      "correctAnswer": "I Kraftwerk",
+      "options": [
+        "I Kraftwerk",
+        "I Can",
+        "I Neu!",
+        "I Tangerine Dream"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Autobahn (album)"
+    },
+    {
+      "id": "spiaggia-arte-facile-01",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Chi ha scolpito il David di Firenze?",
+      "correctAnswer": "Michelangelo",
+      "options": [
+        "Michelangelo",
+        "Donatello",
+        "Bernini",
+        "Cellini"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: David (Michelangelo)"
+    },
+    {
+      "id": "spiaggia-arte-facile-02",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "In quale città si trova la Torre Eiffel?",
+      "correctAnswer": "Parigi",
+      "options": [
+        "Parigi",
+        "Lione",
+        "Marsiglia",
+        "Bordeaux"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Torre Eiffel"
+    },
+    {
+      "id": "spiaggia-arte-mediofacile-01",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Chi ha dipinto La nascita di Venere?",
+      "correctAnswer": "Botticelli",
+      "options": [
+        "Botticelli",
+        "Raffaello",
+        "Giorgione",
+        "Mantegna"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: La nascita di Venere"
+    },
+    {
+      "id": "spiaggia-arte-mediofacile-02",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Chi ha dipinto La scuola di Atene?",
+      "correctAnswer": "Raffaello",
+      "options": [
+        "Raffaello",
+        "Michelangelo",
+        "Tiziano",
+        "Il Perugino"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: La scuola di Atene"
+    },
+    {
+      "id": "spiaggia-arte-media-01",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Quale corrente artistica ha in Claude Monet il suo esponente più noto?",
+      "correctAnswer": "L'impressionismo",
+      "options": [
+        "L'impressionismo",
+        "Il cubismo",
+        "Il romanticismo",
+        "Il barocco"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Impressionismo"
+    },
+    {
+      "id": "spiaggia-arte-media-02",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Chi ha dipinto L'urlo?",
+      "correctAnswer": "Edvard Munch",
+      "options": [
+        "Edvard Munch",
+        "Gustav Klimt",
+        "Egon Schiele",
+        "Paul Klee"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: L'urlo"
+    },
+    {
+      "id": "spiaggia-arte-mediodifficile-01",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Chi ha progettato il museo Guggenheim di Bilbao?",
+      "correctAnswer": "Frank Gehry",
+      "options": [
+        "Frank Gehry",
+        "Norman Foster",
+        "Renzo Piano",
+        "Zaha Hadid"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Museo Guggenheim Bilbao"
+    },
+    {
+      "id": "spiaggia-arte-mediodifficile-02",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Chi ha dipinto Las Meninas?",
+      "correctAnswer": "Diego Velázquez",
+      "options": [
+        "Diego Velázquez",
+        "Francisco Goya",
+        "El Greco",
+        "Bartolomé Murillo"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Las Meninas"
+    },
+    {
+      "id": "spiaggia-arte-difficile-01",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale artista ha introdotto il ready-made con l'opera Fontana?",
+      "correctAnswer": "Marcel Duchamp",
+      "options": [
+        "Marcel Duchamp",
+        "Man Ray",
+        "Pablo Picasso",
+        "Salvador Dalí"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Fontana (Duchamp)"
+    },
+    {
+      "id": "spiaggia-arte-difficile-02",
+      "category": "Arte e Architettura",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale architetto ha progettato la cupola di San Pietro a Roma?",
+      "correctAnswer": "Michelangelo",
+      "options": [
+        "Michelangelo",
+        "Brunelleschi",
+        "Bramante",
+        "Bernini"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Cupola di San Pietro"
+    },
+    {
+      "id": "spiaggia-politica-facile-01",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "In quale città ha sede il Parlamento italiano?",
+      "correctAnswer": "Roma",
+      "options": [
+        "Roma",
+        "Milano",
+        "Torino",
+        "Firenze"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Parlamento italiano"
+    },
+    {
+      "id": "spiaggia-politica-facile-02",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quanti Paesi fanno parte del G7?",
+      "correctAnswer": "Sette",
+      "options": [
+        "Sette",
+        "Cinque",
+        "Otto",
+        "Dieci"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: G7"
+    },
+    {
+      "id": "spiaggia-politica-mediofacile-01",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "In quale città ha sede principale l'ONU?",
+      "correctAnswer": "New York",
+      "options": [
+        "New York",
+        "Ginevra",
+        "Parigi",
+        "Vienna"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Organizzazione delle Nazioni Unite"
+    },
+    {
+      "id": "spiaggia-politica-mediofacile-02",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quanti deputati ha la Camera italiana dopo la riforma del 2020?",
+      "correctAnswer": "400",
+      "options": [
+        "400",
+        "630",
+        "315",
+        "500"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Camera dei deputati"
+    },
+    {
+      "id": "spiaggia-politica-media-01",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "In quale anno l'euro è entrato in circolazione come moneta contante?",
+      "correctAnswer": "2002",
+      "options": [
+        "2002",
+        "1999",
+        "2000",
+        "2004"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Euro"
+    },
+    {
+      "id": "spiaggia-politica-media-02",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Quale istituzione europea ha sede a Francoforte?",
+      "correctAnswer": "La Banca centrale europea",
+      "options": [
+        "La Banca centrale europea",
+        "Il Parlamento europeo",
+        "La Commissione europea",
+        "La Corte di giustizia"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Banca centrale europea"
+    },
+    {
+      "id": "spiaggia-politica-mediodifficile-01",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quale trattato del 1992 ha istituito l'Unione europea?",
+      "correctAnswer": "Il trattato di Maastricht",
+      "options": [
+        "Il trattato di Maastricht",
+        "Il trattato di Roma",
+        "Il trattato di Lisbona",
+        "L'Atto unico europeo"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Trattato di Maastricht"
+    },
+    {
+      "id": "spiaggia-politica-mediodifficile-02",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quanti Paesi dell'UE usano l'euro?",
+      "correctAnswer": "20",
+      "options": [
+        "20",
+        "17",
+        "22",
+        "27"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Eurozona"
+    },
+    {
+      "id": "spiaggia-politica-difficile-01",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "In quale anno è entrato in vigore il trattato di Lisbona?",
+      "correctAnswer": "2009",
+      "options": [
+        "2009",
+        "2007",
+        "2005",
+        "2011"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Trattato di Lisbona"
+    },
+    {
+      "id": "spiaggia-politica-difficile-02",
+      "category": "Politica e Attualità",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quanti seggi ha il Parlamento europeo nella legislatura iniziata nel 2024?",
+      "correctAnswer": "720",
+      "options": [
+        "720",
+        "705",
+        "751",
+        "736"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Parlamento europeo"
+    },
+    {
+      "id": "spiaggia-motori-facile-01",
+      "category": "Motori",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quale casa ha prodotto la 500, simbolo del boom italiano?",
+      "correctAnswer": "Fiat",
+      "options": [
+        "Fiat",
+        "Renault",
+        "Volkswagen",
+        "Opel"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Fiat 500"
+    },
+    {
+      "id": "spiaggia-motori-facile-02",
+      "category": "Motori",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quale azienda italiana produce la Vespa?",
+      "correctAnswer": "Piaggio",
+      "options": [
+        "Piaggio",
+        "Ducati",
+        "Aprilia",
+        "Benelli"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Vespa"
+    },
+    {
+      "id": "spiaggia-motori-mediofacile-01",
+      "category": "Motori",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quale casa giapponese produce la Corolla?",
+      "correctAnswer": "Toyota",
+      "options": [
+        "Toyota",
+        "Honda",
+        "Nissan",
+        "Mazda"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Toyota Corolla"
+    },
+    {
+      "id": "spiaggia-motori-mediofacile-02",
+      "category": "Motori",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Chi ha vinto sette titoli mondiali di Formula 1 con la Ferrari?",
+      "correctAnswer": "Michael Schumacher",
+      "options": [
+        "Michael Schumacher",
+        "Lewis Hamilton",
+        "Sebastian Vettel",
+        "Niki Lauda"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Michael Schumacher"
+    },
+    {
+      "id": "spiaggia-motori-media-01",
+      "category": "Motori",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Quale gara di durata si corre a Le Mans?",
+      "correctAnswer": "La 24 Ore",
+      "options": [
+        "La 24 Ore",
+        "La 12 Ore",
+        "La 1000 Miglia",
+        "La 6 Ore"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: 24 Ore di Le Mans"
+    },
+    {
+      "id": "spiaggia-motori-media-02",
+      "category": "Motori",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Quale modello Tesla è una berlina compatta?",
+      "correctAnswer": "La Model 3",
+      "options": [
+        "La Model 3",
+        "La Model X",
+        "La Model S",
+        "Il Cybertruck"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Tesla Model 3"
+    },
+    {
+      "id": "spiaggia-motori-mediodifficile-01",
+      "category": "Motori",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quale costruttore vinse il primo titolo mondiale costruttori di Formula 1, nel 1958?",
+      "correctAnswer": "La Vanwall",
+      "options": [
+        "La Vanwall",
+        "La Ferrari",
+        "La Maserati",
+        "La Cooper"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Campionato mondiale costruttori di Formula 1"
+    },
+    {
+      "id": "spiaggia-motori-mediodifficile-02",
+      "category": "Motori",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Chi ha vinto il titolo mondiale di Formula 1 nel 2021?",
+      "correctAnswer": "Max Verstappen",
+      "options": [
+        "Max Verstappen",
+        "Lewis Hamilton",
+        "Charles Leclerc",
+        "Valtteri Bottas"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Campionato mondiale di Formula 1 2021"
+    },
+    {
+      "id": "spiaggia-motori-difficile-01",
+      "category": "Motori",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "In quale anno la Formula 1 ha introdotto l'ala mobile DRS?",
+      "correctAnswer": "2011",
+      "options": [
+        "2011",
+        "2009",
+        "2013",
+        "2015"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Drag Reduction System"
+    },
+    {
+      "id": "spiaggia-motori-difficile-02",
+      "category": "Motori",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale casa ha sviluppato il primo motore rotativo Wankel di serie?",
+      "correctAnswer": "NSU",
+      "options": [
+        "NSU",
+        "Mazda",
+        "Citroën",
+        "BMW"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Motore Wankel"
+    },
+    {
+      "id": "spiaggia-cibo-facile-01",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quale piatto milanese si prepara con riso e zafferano?",
+      "correctAnswer": "Risotto alla milanese",
+      "options": [
+        "Risotto alla milanese",
+        "La paella valenciana",
+        "Il riso al salto",
+        "La panissa vercellese"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Risotto alla milanese"
+    },
+    {
+      "id": "spiaggia-cibo-facile-02",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Da quale pianta si ricava la bevanda del caffè?",
+      "correctAnswer": "Dal caffè",
+      "options": [
+        "Dal caffè",
+        "Dal cacao",
+        "Dal tè",
+        "Dal mate"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Caffè"
+    },
+    {
+      "id": "spiaggia-cibo-mediofacile-01",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quale dolce siciliano si riempie di ricotta dolce?",
+      "correctAnswer": "Il cannolo",
+      "options": [
+        "Il cannolo",
+        "La sfogliatella",
+        "Il babà",
+        "La cassata"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Cannolo siciliano"
+    },
+    {
+      "id": "spiaggia-cibo-mediofacile-02",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quale dolce napoletano si prepara con ricotta e grano cotto?",
+      "correctAnswer": "La pastiera",
+      "options": [
+        "La pastiera",
+        "La sfogliatella",
+        "Il babà",
+        "La delizia al limone"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Pastiera"
+    },
+    {
+      "id": "spiaggia-cibo-media-01",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Quale spezia si ricava dagli stimmi del croco?",
+      "correctAnswer": "Lo zafferano",
+      "options": [
+        "Lo zafferano",
+        "La curcuma",
+        "Il pepe",
+        "La paprica"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Zafferano"
+    },
+    {
+      "id": "spiaggia-cibo-media-02",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Da quale cereale si ricava la farina per il pane più comune in Italia?",
+      "correctAnswer": "Dal grano tenero",
+      "options": [
+        "Dal grano tenero",
+        "Dal riso",
+        "Dal mais",
+        "Dall'orzo"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Farina di grano tenero"
+    },
+    {
+      "id": "spiaggia-cibo-mediodifficile-01",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quale formaggio campano è prodotto con latte di bufala?",
+      "correctAnswer": "La mozzarella di bufala",
+      "options": [
+        "La mozzarella di bufala",
+        "Il provolone del Monaco",
+        "Il caciocavallo",
+        "La scamorza affumicata"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Mozzarella di bufala campana"
+    },
+    {
+      "id": "spiaggia-cibo-mediodifficile-02",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quale salsa madre francese si prepara con burro, farina e latte?",
+      "correctAnswer": "La besciamella",
+      "options": [
+        "La besciamella",
+        "La maionese",
+        "La vellutata",
+        "L'olandese"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Besciamella"
+    },
+    {
+      "id": "spiaggia-cibo-difficile-01",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale vino rosso piemontese si produce con uve Nebbiolo e invecchia almeno 38 mesi?",
+      "correctAnswer": "Il Barolo",
+      "options": [
+        "Il Barolo",
+        "Il Barbaresco",
+        "Il Gattinara",
+        "Il Dolcetto"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Barolo (vino)"
+    },
+    {
+      "id": "spiaggia-cibo-difficile-02",
+      "category": "Cibo e Gastronomia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale tecnica di cottura sottovuoto a bassa temperatura prende il nome dal suo inventore?",
+      "correctAnswer": "La sous-vide",
+      "options": [
+        "La sous-vide",
+        "La confit",
+        "La brasatura",
+        "La frittura a vuoto"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Sous-vide"
+    },
+    {
+      "id": "spiaggia-lingua-facile-01",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quante lettere ha l'alfabeto italiano?",
+      "correctAnswer": "21",
+      "options": [
+        "21",
+        "23",
+        "26",
+        "19"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Alfabeto italiano"
+    },
+    {
+      "id": "spiaggia-lingua-facile-02",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Qual è il plurale di «camicia»?",
+      "correctAnswer": "Camicie",
+      "options": [
+        "Camicie",
+        "Camice",
+        "Camicii",
+        "Camicia"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Plurale italiano"
+    },
+    {
+      "id": "spiaggia-lingua-mediofacile-01",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Chi ha scritto Il piacere?",
+      "correctAnswer": "Gabriele D’Annunzio",
+      "options": [
+        "Gabriele D’Annunzio",
+        "Italo Calvino",
+        "Primo Levi",
+        "Leonardo Sciascia"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Il piacere (romanzo)"
+    },
+    {
+      "id": "spiaggia-lingua-mediofacile-02",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Chi ha scritto la poesia L'infinito?",
+      "correctAnswer": "Giacomo Leopardi",
+      "options": [
+        "Giacomo Leopardi",
+        "Ugo Foscolo",
+        "Giovanni Pascoli",
+        "Gabriele D'Annunzio"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: L'infinito"
+    },
+    {
+      "id": "spiaggia-lingua-media-01",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Chi ha scritto Il vecchio e il mare?",
+      "correctAnswer": "Ernest Hemingway",
+      "options": [
+        "Ernest Hemingway",
+        "John Steinbeck",
+        "Francis Scott Fitzgerald",
+        "William Faulkner"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Il vecchio e il mare"
+    },
+    {
+      "id": "spiaggia-lingua-media-02",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Quale romanzo di Orwell racconta il regime del Grande Fratello?",
+      "correctAnswer": "1984",
+      "options": [
+        "1984",
+        "La fattoria degli animali",
+        "Fahrenheit 451",
+        "Il mondo nuovo"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: 1984 (romanzo)"
+    },
+    {
+      "id": "spiaggia-lingua-mediodifficile-01",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Chi ha scritto La coscienza di Zeno?",
+      "correctAnswer": "Italo Svevo",
+      "options": [
+        "Italo Svevo",
+        "Luigi Pirandello",
+        "Federico Tozzi",
+        "Alberto Moravia"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: La coscienza di Zeno"
+    },
+    {
+      "id": "spiaggia-lingua-mediodifficile-02",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Come si chiama la figura retorica che accosta due termini opposti?",
+      "correctAnswer": "Ossimoro",
+      "options": [
+        "Ossimoro",
+        "Metafora",
+        "Sinestesia",
+        "Anafora"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Ossimoro"
+    },
+    {
+      "id": "spiaggia-lingua-difficile-01",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Chi ha scritto Il sentiero dei nidi di ragno?",
+      "correctAnswer": "Italo Calvino",
+      "options": [
+        "Italo Calvino",
+        "Cesare Pavese",
+        "Beppe Fenoglio",
+        "Elio Vittorini"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Il sentiero dei nidi di ragno"
+    },
+    {
+      "id": "spiaggia-lingua-difficile-02",
+      "category": "Lingua e Letteratura",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale poeta latino ha scritto l'Eneide?",
+      "correctAnswer": "Virgilio",
+      "options": [
+        "Virgilio",
+        "Ovidio",
+        "Orazio",
+        "Lucano"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Eneide"
+    },
+    {
+      "id": "spiaggia-anime-facile-01",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Chi è il protagonista di One Piece?",
+      "correctAnswer": "Monkey D. Luffy",
+      "options": [
+        "Monkey D. Luffy",
+        "Roronoa Zoro",
+        "Naruto Uzumaki",
+        "Son Goku"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Monkey D. Luffy"
+    },
+    {
+      "id": "spiaggia-anime-facile-02",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "In quale manga il protagonista è Son Goku?",
+      "correctAnswer": "Dragon Ball",
+      "options": [
+        "Dragon Ball",
+        "Naruto",
+        "Bleach",
+        "One Piece"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Dragon Ball"
+    },
+    {
+      "id": "spiaggia-anime-mediofacile-01",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "In quale manga un quaderno uccide chi ne legge il nome?",
+      "correctAnswer": "Death Note",
+      "options": [
+        "Death Note",
+        "Il Libro dei Morti",
+        "Il Grimorio",
+        "Il Diario Nero"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Death Note"
+    },
+    {
+      "id": "spiaggia-anime-mediofacile-02",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quale manga di basket ha come protagonista Hanamichi Sakuragi?",
+      "correctAnswer": "Slam Dunk",
+      "options": [
+        "Slam Dunk",
+        "Kuroko no Basket",
+        "Captain Tsubasa",
+        "Haikyu!!"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Slam Dunk"
+    },
+    {
+      "id": "spiaggia-anime-media-01",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Chi ha creato il manga L'attacco dei giganti?",
+      "correctAnswer": "Hajime Isayama",
+      "options": [
+        "Hajime Isayama",
+        "Eiichiro Oda",
+        "Masashi Kishimoto",
+        "Tite Kubo"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: L'attacco dei giganti"
+    },
+    {
+      "id": "spiaggia-anime-media-02",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Come si chiama la volpe a nove code sigillata dentro Naruto?",
+      "correctAnswer": "Kurama",
+      "options": [
+        "Kurama",
+        "Shukaku",
+        "Matatabi",
+        "Gyuki"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Kurama (Naruto)"
+    },
+    {
+      "id": "spiaggia-anime-mediodifficile-01",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "In quale anno è iniziata la serializzazione di One Piece?",
+      "correctAnswer": "1997",
+      "options": [
+        "1997",
+        "1995",
+        "1999",
+        "2001"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: One Piece"
+    },
+    {
+      "id": "spiaggia-anime-mediodifficile-02",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Chi ha scritto il manga Death Note?",
+      "correctAnswer": "Tsugumi Ohba",
+      "options": [
+        "Tsugumi Ohba",
+        "Takeshi Obata",
+        "Hajime Isayama",
+        "Naoki Urasawa"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Death Note"
+    },
+    {
+      "id": "spiaggia-anime-difficile-01",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale studio ha animato il film Akira del 1988?",
+      "correctAnswer": "TMS Entertainment",
+      "options": [
+        "TMS Entertainment",
+        "Studio Ghibli",
+        "Production I.G",
+        "Toei Animation"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Akira (film)"
+    },
+    {
+      "id": "spiaggia-anime-difficile-02",
+      "category": "Anime e manga",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Chi ha diretto il film animato Your Name?",
+      "correctAnswer": "Makoto Shinkai",
+      "options": [
+        "Makoto Shinkai",
+        "Hayao Miyazaki",
+        "Mamoru Hosoda",
+        "Satoshi Kon"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Your Name"
+    },
+    {
+      "id": "spiaggia-gaming-facile-01",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quale console Nintendo del 2006 usava un telecomando a movimento?",
+      "correctAnswer": "Wii",
+      "options": [
+        "Wii",
+        "GameCube",
+        "Switch",
+        "N64"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Wii"
+    },
+    {
+      "id": "spiaggia-gaming-facile-02",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quale azienda produce la PlayStation?",
+      "correctAnswer": "Sony",
+      "options": [
+        "Sony",
+        "Nintendo",
+        "Microsoft",
+        "Sega"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: PlayStation"
+    },
+    {
+      "id": "spiaggia-gaming-mediofacile-01",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quale formato immagine supporta la trasparenza ed è diffuso sul web?",
+      "correctAnswer": "PNG",
+      "options": [
+        "PNG",
+        "JPEG",
+        "BMP",
+        "TIFF"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: PNG"
+    },
+    {
+      "id": "spiaggia-gaming-mediofacile-02",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quale gioco a blocchi è il più venduto di sempre?",
+      "correctAnswer": "Minecraft",
+      "options": [
+        "Minecraft",
+        "Tetris",
+        "Roblox",
+        "Fortnite"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Minecraft"
+    },
+    {
+      "id": "spiaggia-gaming-media-01",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Quale protocollo rende cifrata la navigazione sul web?",
+      "correctAnswer": "HTTPS",
+      "options": [
+        "HTTPS",
+        "FTP",
+        "SMTP",
+        "HTTP"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: HTTPS"
+    },
+    {
+      "id": "spiaggia-gaming-media-02",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Quale linguaggio definisce lo stile delle pagine web?",
+      "correctAnswer": "CSS",
+      "options": [
+        "CSS",
+        "HTML",
+        "SQL",
+        "Python"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: CSS"
+    },
+    {
+      "id": "spiaggia-gaming-mediodifficile-01",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quale console Sony è uscita nel 2020?",
+      "correctAnswer": "PlayStation 5",
+      "options": [
+        "PlayStation 5",
+        "PlayStation 4",
+        "PlayStation 4 Pro",
+        "PSP"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: PlayStation 5"
+    },
+    {
+      "id": "spiaggia-gaming-mediodifficile-02",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quale azienda ha progettato il chip M1 dei Mac?",
+      "correctAnswer": "Apple",
+      "options": [
+        "Apple",
+        "Intel",
+        "AMD",
+        "Qualcomm"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Apple M1"
+    },
+    {
+      "id": "spiaggia-gaming-difficile-01",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale standard corrisponde al Wi-Fi 6?",
+      "correctAnswer": "802.11ax",
+      "options": [
+        "802.11ax",
+        "802.11ac",
+        "802.11n",
+        "802.11g"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: IEEE 802.11ax"
+    },
+    {
+      "id": "spiaggia-gaming-difficile-02",
+      "category": "Gaming e Tecnologia",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale algoritmo asimmetrico è alla base della maggior parte dei certificati HTTPS?",
+      "correctAnswer": "RSA",
+      "options": [
+        "RSA",
+        "MD5",
+        "SHA-1",
+        "AES"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: RSA (crittografia)"
+    },
+    {
+      "id": "spiaggia-curiosita-facile-01",
+      "category": "Curiosità",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quanti colori ha l'arcobaleno secondo la tradizione?",
+      "correctAnswer": "Sette",
+      "options": [
+        "Sette",
+        "Cinque",
+        "Sei",
+        "Otto"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Arcobaleno"
+    },
+    {
+      "id": "spiaggia-curiosita-facile-02",
+      "category": "Curiosità",
+      "type": "QUIZ",
+      "difficulty": "facile",
+      "spiaggiaBand": "facile",
+      "question": "Quale metallo liquido è usato nei termometri tradizionali?",
+      "correctAnswer": "Il mercurio",
+      "options": [
+        "Il mercurio",
+        "Il piombo",
+        "Lo stagno",
+        "Il sodio"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Mercurio (elemento)"
+    },
+    {
+      "id": "spiaggia-curiosita-mediofacile-01",
+      "category": "Curiosità",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quante corde ha una chitarra classica?",
+      "correctAnswer": "Sei",
+      "options": [
+        "Sei",
+        "Quattro",
+        "Cinque",
+        "Sette"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Chitarra classica"
+    },
+    {
+      "id": "spiaggia-curiosita-mediofacile-02",
+      "category": "Curiosità",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "medio-facile",
+      "question": "Quante carte ci sono in un mazzo da poker senza jolly?",
+      "correctAnswer": "52",
+      "options": [
+        "52",
+        "48",
+        "54",
+        "56"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Carte da gioco"
+    },
+    {
+      "id": "spiaggia-curiosita-media-01",
+      "category": "Curiosità",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Quale organo filtra il sangue e produce l'urina?",
+      "correctAnswer": "I reni",
+      "options": [
+        "I reni",
+        "Il fegato",
+        "La milza",
+        "Il pancreas"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Rene"
+    },
+    {
+      "id": "spiaggia-curiosita-media-02",
+      "category": "Curiosità",
+      "type": "QUIZ",
+      "difficulty": "medio",
+      "spiaggiaBand": "media",
+      "question": "Quale metallo è il miglior conduttore di elettricità?",
+      "correctAnswer": "L'argento",
+      "options": [
+        "L'argento",
+        "Il rame",
+        "L'oro",
+        "L'alluminio"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Conduttività elettrica"
+    },
+    {
+      "id": "spiaggia-curiosita-mediodifficile-01",
+      "category": "Curiosità",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Qual è l'unità di misura della pressione nel Sistema Internazionale?",
+      "correctAnswer": "Il pascal",
+      "options": [
+        "Il pascal",
+        "Il bar",
+        "L'atmosfera",
+        "Il torr"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Pascal (unità di misura)"
+    },
+    {
+      "id": "spiaggia-curiosita-mediodifficile-02",
+      "category": "Curiosità",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "medio-difficile",
+      "question": "Quante ossa compongono una mano umana?",
+      "correctAnswer": "27",
+      "options": [
+        "27",
+        "21",
+        "24",
+        "30"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Mano"
+    },
+    {
+      "id": "spiaggia-curiosita-difficile-01",
+      "category": "Curiosità",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale pianeta ha il campo magnetico più intenso del sistema solare?",
+      "correctAnswer": "Giove",
+      "options": [
+        "Giove",
+        "Saturno",
+        "Terra",
+        "Nettuno"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Giove (astronomia)"
+    },
+    {
+      "id": "spiaggia-curiosita-difficile-02",
+      "category": "Curiosità",
+      "type": "QUIZ",
+      "difficulty": "difficile",
+      "spiaggiaBand": "difficile",
+      "question": "Quale metallo ha il punto di fusione più alto?",
+      "correctAnswer": "Il tungsteno",
+      "options": [
+        "Il tungsteno",
+        "Il platino",
+        "Il titanio",
+        "Il molibdeno"
+      ],
+      "theme": null,
+      "explanation": "Wikipedia it: Tungsteno"
     }
   ],
   "normalizedAt": "2026-11-20T20:01:05.277Z"

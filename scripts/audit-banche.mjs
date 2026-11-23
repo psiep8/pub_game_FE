@@ -43,7 +43,11 @@ const DIFFICULTIES = ['facile', 'medio', 'difficile'];
  * almeno una domanda dedicata nella categoria.
  */
 const ULTIMA_SPIAGGIA_BANDS = ['facile', 'medio-facile', 'media', 'medio-difficile', 'difficile'];
-const ULTIMA_SPIAGGIA_MIN_PER_LEVEL = 1;
+// Tre domande per categoria e livello: una serata ne consuma cinque (una per
+// livello) e ogni categoria torna in scena dopo circa tre serate, quindi con
+// una sola domanda per cella il pubblico la rivedeva subito. Il conto e' in
+// docs/BANCHE-AUDIT.md; sotto questa soglia l'audit deve fallire.
+const ULTIMA_SPIAGGIA_MIN_PER_LEVEL = 3;
 /** Sotto questa differenza due eventi Timeline sono troppo vicini per un round. */
 const TIMELINE_MIN_YEAR_GAP = 3;
 const TIMELINE_CARDS_PER_ROUND = 8;
@@ -667,9 +671,11 @@ if (args.has('--ci')) {
     + report.celebrities.missing.length + report.music.missing.length + report.bomba.missing.length;
   const holes = report.ultimaSpiaggia.holes.length;
   console.log(`CI banche: doppioni ${duplicates}, segnalazioni ${issues}, campi mancanti ${missing}`);
-  console.log(`Ultima spiaggia: ${holes} buchi noti (non bloccanti)`);
+  console.log(`Ultima spiaggia: ${holes} celle sotto il minimo di ${report.ultimaSpiaggia.minPerLevel}`);
   console.log(`Bomba: ${report.bomba.doubts.length} false da rivedere (non bloccanti)`);
-  if (duplicates + issues + missing > 0) {
+  // I buchi di Ultima spiaggia bloccano: la soglia per cella e' il motivo per
+  // cui esiste la banca (una domanda sola per livello tornava ogni tre serate).
+  if (duplicates + issues + missing + holes > 0) {
     console.error('Audit banche: controllo fallito.');
     process.exitCode = 1;
   } else {
