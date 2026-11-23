@@ -1,5 +1,20 @@
 # Changelog
 
+## 23 novembre 2026 — Strumenti e CI, 2.3.1
+
+- **Versione:** 2.3.1 in `VERSION`, `package.json`, `package-lock.json`, pom del
+  backend, README, presentazione, deploy, avvio e Docker.
+- **Maven:** la scelta del JDK non guarda più solo se `bin/java` esiste: ogni
+  candidato viene avviato con `-version` e si prende il primo che risponde, così
+  un pacchetto per un'altra architettura in `.tools` non blocca più i comandi.
+- **Test Quiz:** nuovo `QuizManchePointsTest` sui cinque mix di difficoltà e
+  sulla somma a 1000 del round.
+- **CI:** l'audit salta i controlli media quando la banca non è versionata; se i
+  test backend falliscono il job stampa i report di surefire invece del solo
+  `BUILD FAILURE`.
+- Verifiche: suite backend 168/168 su clone pulito (Linux, JDK 25), test Quiz
+  2/2, build frontend e audit verdi; CI #205 con i quattro job a successo.
+
 ## 23 novembre 2026 — Quiz e Bomba con le regole nuove, 2.3.0
 
 - **Versione:** 2.3.0 in `VERSION`, `package.json`, `package-lock.json`, pom del

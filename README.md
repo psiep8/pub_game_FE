@@ -15,7 +15,7 @@ PubGame è un gioco multigiocatore per locali e feste: la TV mostra domande, tab
 
 PubGame porta in sala un quiz a squadre in stile pub: nessuna app da installare, nessun account, un QR code sulla TV e il browser del telefono. La regia decide quando parte un round e quando si passa al successivo; il backend tiene sessioni, stato e recupero dopo un refresh.
 
-La versione è **2.3.0**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
+La versione è **2.3.1**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
 
 ## 2. Come si gioca
 
@@ -295,7 +295,7 @@ Prima di una serata con telefoni veri:
 1. `cp .env.test-night.example .env` e compila `CONTROL_SECRET` (≥ 32 caratteri) e `ALLOWED_ORIGINS` con IP LAN del PC.
 2. `npm run db:backup` (copia in `backups/`, fuori dal repository).
 3. `npm run dev`, poi `curl http://localhost:8080/health` deve rispondere `{"status":"ok"}`.
-   Con Docker: `PUBGAME_TAG=2.3.0 docker compose up -d` fissa la versione, così un
+   Con Docker: `PUBGAME_TAG=2.3.1 docker compose up -d` fissa la versione, così un
    aggiornamento sbagliato si annulla cambiando tag.
 4. Giro a vuoto con un iPhone e un Android: ingresso, un round, refresh della TV, blocco schermo di 60 secondi.
 

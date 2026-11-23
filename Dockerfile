@@ -5,7 +5,7 @@
 # container serve TV, telefoni, API e WebSocket sulla stessa origine.
 #
 # Build:
-#   docker build -t pubgame:2.3.0 .
+#   docker build -t pubgame:2.3.1 .
 #   docker build --build-arg NG_CONFIG=test-night -t pubgame:test .
 #
 # NG_CONFIG: production (pub/dominio) oppure test-night (serata di prova).
