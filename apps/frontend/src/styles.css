@@ -540,7 +540,6 @@ html[data-theme="premium-gold"] {
    sotto una dimensione da salotto. I titoli restano poster.
    ============================================================ */
 app-game-component .round-text { font-size: clamp(0.78rem, 0.95vw, 0.95rem) !important; }
-app-game-component .question-category { font-size: clamp(0.78rem, 0.95vw, 0.92rem) !important; }
 app-game-component .lobby-kicker,
 app-game-component .lobby-sub { font-size: clamp(0.78rem, 1vw, 1rem) !important; }
 /* Oro: il cerchio chiaro passa dietro «PUB»; il contorno scuro tiene il logo
