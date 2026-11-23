@@ -64,8 +64,8 @@ class QuizServiceTest {
         assertThat(outcome.accepted()).isTrue();
         assertThat(outcome.result().getBoolean("isCorrect")).isTrue();
         assertThat(outcome.result().getInt("manche")).isZero();
-        // Due domande medio (2) e difficile (3): la prima vale 400 dei 1000 del round.
-        assertThat(outcome.result().getInt("points")).isBetween(380, 400);
+        // Round corto da due domande: 500 a testa dei 1000 del round.
+        assertThat(outcome.result().getInt("points")).isBetween(480, 500);
     }
 
     @Test
@@ -78,9 +78,9 @@ class QuizServiceTest {
 
         assertThat(outcome.accepted()).isTrue();
         assertThat(outcome.result().getBoolean("isCorrect")).isFalse();
-        // La prima domanda vale 400 dei 1000 del round: subito costa 400,
+        // La prima domanda vale 500 dei 1000 del round: subito costa 500,
         // non mille: il round resta fra +1000 e −1000.
-        assertThat(outcome.result().getInt("points")).isBetween(-400, -380);
+        assertThat(outcome.result().getInt("points")).isBetween(-500, -480);
     }
 
     @Test

@@ -19,10 +19,12 @@ const MANCHE_SECONDS = GAME_TIMINGS.QUIZ.mancheSeconds;
 const REVEAL_SECONDS = 3;
 
 /**
- * Quiz — tre manches da quindici secondi.
+ * Quiz — tre manches da venti secondi.
  *
- * Il round vale 1000 punti in tutto, divisi tra le tre domande in base alla
- * difficolta: una facile pesa 1, una media 1,5, una difficile 2. Dentro la
+ * Il round vale 1000 punti in tutto, divisi tra le tre domande in base al mix
+ * di difficolta: tre diverse valgono 200 / 350 / 450, due uguali piu una
+ * lasciano 250 alle piu facili e il resto alle altre, tre uguali 333 / 333 /
+ * 334. Dentro la
  * manche il tempo taglia il valore della risposta esatta: rispondere subito
  * vale il tetto della domanda, rispondere all'ultimo secondo vale zero. Il voto
  * lo arbitra il server (`QuizService`) con la stessa regola: la sbagliata toglie

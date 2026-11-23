@@ -1072,8 +1072,8 @@ public class QuestionBankService {
     /**
      * Quiz a tre manches: tre domande della stessa categoria con la
      * combinazione di difficolta del round. Ogni domanda porta con se il tetto
-     * punti, calcolato sul peso della difficolta, cosi tre risposte esatte a
-     * tempo zero valgono esattamente 1000 punti.
+     * punti del mix (vedi {@link QuizService#manchePoints}), cosi tre risposte
+     * esatte a tempo zero valgono esattamente 1000 punti.
      */
     private String quizPayload(String category, Predicate<String> isAvailable) {
         String[] pattern = QUIZ_PATTERNS[random.nextInt(QUIZ_PATTERNS.length)];
@@ -1104,19 +1104,16 @@ public class QuestionBankService {
             return emergencyPayload("QUIZ", category);
         }
 
-        double totalWeight = 0;
+        List<String> difficulties = new ArrayList<>();
         for (BankQuestion question : picked) {
-            totalWeight += quizWeight(question.difficulty());
+            difficulties.add(question.difficulty());
         }
+        int[] manchePoints = QuizService.manchePoints(difficulties);
 
         JSONArray questions = new JSONArray();
-        int assigned = 0;
         for (int index = 0; index < picked.size(); index++) {
             BankQuestion question = picked.get(index);
-            int maxPoints = index == picked.size() - 1
-                    ? Math.max(0, 1000 - assigned)
-                    : (int) Math.round(1000.0 * quizWeight(question.difficulty()) / totalWeight);
-            assigned += maxPoints;
+            int maxPoints = manchePoints[index];
 
             List<String> options = new ArrayList<>(question.options());
             Collections.shuffle(options, random);
@@ -1172,15 +1169,6 @@ public class QuestionBankService {
             return null;
         }
         return candidates.get(random.nextInt(candidates.size()));
-    }
-
-    private double quizWeight(String difficulty) {
-        String value = difficulty == null ? "" : difficulty.toLowerCase(Locale.ROOT);
-        return switch (value) {
-            case "facile", "easy" -> 1.0;
-            case "difficile", "hard" -> 3.0;
-            default -> 2.0;
-        };
     }
 
     private String normalizeQuizDifficulty(String difficulty) {

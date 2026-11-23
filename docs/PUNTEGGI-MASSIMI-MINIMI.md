@@ -18,7 +18,7 @@ cambia la distribuzione dei piazzamenti (seconda tabella) e il numero di bombe.
 
 | Gioco | Struttura del round | Max N=6 | Min N=6 | Max N=10 | Min N=10 | Punti decisi da |
 |---|---|---:|---:|---:|---:|---|
-| **Quiz** | 3 manches da 15 s | **+1000** | **−1000** | **+1000** | **−1000** | server (`QuizService`) |
+| **Quiz** | 3 manches da 20 s | **+1000** | **−1000** | **+1000** | **−1000** | server (`QuizService`) |
 | **Musica** | 4 manches, 1 canzone | +1000 | −1000 | +1000 | −1000 | TV (`calculatePoints`) |
 | **Timeline** | 8 eventi | +400 | −200 | +400 | −200 | server/TV (`TIMELINE_POSITION_POINTS`) |
 | **Time Buzzer** | 3 manches | +1800 | −600 | +1800 | −600 | TV (`rankPoints` + perfetto) |
@@ -35,12 +35,14 @@ cambia la distribuzione dei piazzamenti (seconda tabella) e il numero di bombe.
 Note alle celle:
 
 - **Quiz, ±1000:** il round vale **1000 punti in tutto**, divisi fra le tre
-  manches dalla difficoltà (facile ×1, media ×2, difficile ×3). La quota di ogni
-  manche scala con il tempo: rispondere subito vale il tetto, all'ultimo secondo
-  zero. La sbagliata toglie **la stessa quota scalata**, quindi il round va da
-  −1000 a +1000; chi non risponde prende 0. Dal 23 novembre 2026 server
-  (`QuizService`), `QuizMode.calculatePoints`, `SCORING_RULES`, manuale e demo
-  usano tutti questa regola.
+  manches dal mix di difficoltà: tre diverse pagano **200 / 350 / 450**, due
+  uguali più una lasciano **250** alle più facili e il resto alle altre
+  (250 / 375 / 375 oppure 250 / 250 / 500), tre uguali **333 / 333 / 334**. Ogni
+  manche dura **20 secondi** e la quota scala con il tempo: rispondere subito
+  vale il tetto, all'ultimo secondo zero. La sbagliata toglie **la stessa quota
+  scalata**, quindi il round va da −1000 a +1000; chi non risponde prende 0. Dal
+  23 novembre 2026 server (`QuizService.manchePoints`), `SCORING_RULES`,
+  manuale e demo usano tutti questa tabella.
 - **Time Buzzer, +1800:** 3 manche × 600 del tempo perfetto (errore ≤ 50 ms, solo
   per il primo). Senza nessun tempo perfetto il massimo è +900 (3 × 300).
 - **Tennis, 0:** con N pari ogni squadra gioca una partita. Con N dispari la

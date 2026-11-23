@@ -27,7 +27,7 @@ public class QuizService {
     /** Archivio dei voti legacy privi di identità di apertura. */
     static final String LEGACY_ARCHIVE_BLOB = "quiz-legacy-archive";
     /** Durata della manche: la stessa che mostra la TV. */
-    static final long MANCHE_MS = 15_000L;
+    static final long MANCHE_MS = 20_000L;
     private static final int ROUND_POINTS = 1000;
     private static final int MAX_QUESTIONS = 3;
 
@@ -260,19 +260,12 @@ public class QuizService {
         if (rows.size() > MAX_QUESTIONS) rows = new ArrayList<>(rows.subList(0, MAX_QUESTIONS));
         if (rows.isEmpty()) return rows;
 
-        int totalWeight = 0;
-        for (JSONObject row : rows) totalWeight += weight(row.optString("difficulty"));
-        int assigned = 0;
+        List<String> difficulties = new ArrayList<>();
+        for (JSONObject row : rows) difficulties.add(row.optString("difficulty"));
+        int[] computed = manchePoints(difficulties);
         for (int index = 0; index < rows.size(); index++) {
             JSONObject row = rows.get(index);
-            int maxPoints = row.optInt("maxPoints", 0);
-            if (maxPoints <= 0) {
-                maxPoints = index == rows.size() - 1
-                        ? Math.max(0, ROUND_POINTS - assigned)
-                        : (int) Math.round((ROUND_POINTS * weight(row.optString("difficulty"))) / (double) totalWeight);
-                row.put("maxPoints", maxPoints);
-            }
-            assigned += maxPoints;
+            if (row.optInt("maxPoints", 0) <= 0) row.put("maxPoints", computed[index]);
         }
         return rows;
     }
@@ -283,11 +276,75 @@ public class QuizService {
         return (int) Math.round(maxPoints * Math.max(0.0, ratio));
     }
 
-    private int weight(String difficulty) {
+    /** Valore a tempo zero di una manche per difficoltà: facile, media, difficile. */
+    private static final int[] QUIZ_RANK_POINTS = { 200, 350, 450 };
+
+    /**
+     * Valore massimo di ogni manche del round, nell'ordine delle manches.
+     *
+     * <p>Tre difficoltà diverse pagano 200 / 350 / 450. Con due uguali e una
+     * diversa le manche della difficoltà più bassa valgono 250 e il resto va
+     * alle altre (due manche → 375, una sola → 500). Tre uguali valgono
+     * 333 / 333 / 334. La somma è sempre {@link #ROUND_POINTS}, così il round
+     * resta da −1000 a +1000 qualunque sia il mix.</p>
+     */
+    public static int[] manchePoints(List<String> difficulties) {
+        int size = difficulties == null ? 0 : difficulties.size();
+        int[] points = new int[size];
+        if (size == 0) return points;
+        if (size == 1) {
+            points[0] = ROUND_POINTS;
+            return points;
+        }
+        if (size == 2) {
+            points[0] = ROUND_POINTS / 2;
+            points[1] = ROUND_POINTS - points[0];
+            return points;
+        }
+
+        int[] ranks = new int[size];
+        int[] count = new int[3];
+        for (int index = 0; index < size; index++) {
+            ranks[index] = quizRank(difficulties.get(index));
+            count[ranks[index]]++;
+        }
+
+        if (count[0] == size || count[1] == size || count[2] == size) {
+            for (int index = 0; index < size; index++) {
+                points[index] = index == size - 1 ? ROUND_POINTS - 333 * (size - 1) : 333;
+            }
+            return points;
+        }
+
+        if (count[0] > 0 && count[1] > 0 && count[2] > 0) {
+            for (int index = 0; index < size; index++) points[index] = QUIZ_RANK_POINTS[ranks[index]];
+            return points;
+        }
+
+        int lower = 0;
+        while (count[lower] == 0) lower++;
+        int lowerCount = count[lower];
+        int higherCount = size - lowerCount;
+        int higherValue = (ROUND_POINTS - 250 * lowerCount) / higherCount;
+        int sum = 0;
+        for (int index = 0; index < size; index++) {
+            points[index] = ranks[index] == lower ? 250 : higherValue;
+            sum += points[index];
+        }
+        for (int index = size - 1; index >= 0 && sum < ROUND_POINTS; index--) {
+            if (ranks[index] != lower) {
+                points[index] += ROUND_POINTS - sum;
+                sum = ROUND_POINTS;
+            }
+        }
+        return points;
+    }
+
+    private static int quizRank(String difficulty) {
         String text = difficulty == null ? "" : difficulty.toLowerCase(Locale.ROOT);
-        if (text.equals("facile") || text.equals("easy")) return 1;
-        if (text.equals("difficile") || text.equals("hard")) return 3;
-        return 2;
+        if (text.equals("facile") || text.equals("easy")) return 0;
+        if (text.equals("difficile") || text.equals("hard")) return 2;
+        return 1;
     }
 
     private JSONObject payloadOf(JSONObject snapshot) {

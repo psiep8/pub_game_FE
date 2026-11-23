@@ -58,7 +58,7 @@ export const SCORING_RULES: Record<Exclude<GameModeType, 'BLACKJACK'>, ScoringRu
     correct: 'fino a +1000 in 3 manches',
     wrong: `−quota × tempo rimasto (fino a −1000 nel round)`,
     missed: '0 (nessun malus)',
-    note: `Il round vale 1000 punti in tutto, divisi fra le tre manches dalla difficoltà (facile ×1, media ×2, difficile ×3). La quota scala col tempo: rispondere subito vale il tetto, all'ultimo secondo zero. La sbagliata toglie la stessa quota scalata, quindi il round va da −1000 a +1000; chi non risponde prende 0. Il voto lo registra il server (QuizService).`,
+    note: `Il round vale 1000 punti in tutto, divisi fra le tre manches dal mix di difficoltà: tre diverse pagano 200 / 350 / 450, due uguali più una lasciano 250 alle più facili e il resto alle altre, tre uguali valgono 333 / 333 / 334. Ogni manche dura 20 secondi e la quota scala col tempo: rispondere subito vale il tetto, all'ultimo secondo zero. La sbagliata toglie la stessa quota scalata, quindi il round va da −1000 a +1000; chi non risponde prende 0. Il voto lo registra il server (QuizService).`,
   },
   IMAGE_BLUR: {
     correct: '+1000 × tempo rimasto',

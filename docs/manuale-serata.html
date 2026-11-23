@@ -441,24 +441,24 @@
 
   <div class="game-grid">
     <article class="game-card wide">
-      <div class="game-top"><h3>QUIZ</h3><span class="time">3 MANCHE · 15 SEC CIASCUNA</span></div>
+      <div class="game-top"><h3>QUIZ</h3><span class="time">3 MANCHE · 20 SEC CIASCUNA</span></div>
       <div class="where"><b>TV</b> domanda + 4 opzioni · <b>TEL</b> un tocco · <b>HOST</b> legge e non suggerisce</div>
       <div class="split">
         <div>
           <p>Ogni round Quiz ha <b>3 domande (manche)</b>. La composizione per difficoltà è una di queste cinque, decisa dal server:</p>
           <table class="mini-table">
             <tr><th>Mix</th><th>Facile</th><th>Media</th><th>Difficile</th><th>Punti a 0 s</th></tr>
-            <tr><td>2F + 1M</td><td>250</td><td>500</td><td>—</td><td>250 / 500</td></tr>
-            <tr><td>1F + 2M</td><td>200</td><td>400</td><td>—</td><td>200 / 400 / 400</td></tr>
-            <tr><td>1F + 1M + 1D</td><td>167</td><td>333</td><td>500</td><td>167 / 333 / 500</td></tr>
-            <tr><td>0F + 2M + 1D</td><td>—</td><td>286</td><td>429</td><td>286 / 286 / 429</td></tr>
+            <tr><td>2F + 1M</td><td>250</td><td>500</td><td>—</td><td>250 / 250 / 500</td></tr>
+            <tr><td>1F + 2M</td><td>250</td><td>375</td><td>—</td><td>250 / 375 / 375</td></tr>
+            <tr><td>1F + 1M + 1D</td><td>200</td><td>350</td><td>450</td><td>200 / 350 / 450</td></tr>
+            <tr><td>0F + 2M + 1D</td><td>—</td><td>250</td><td>500</td><td>250 / 250 / 500</td></tr>
             <tr><td>0F + 1M + 2D</td><td>—</td><td>250</td><td>375</td><td>250 / 375 / 375</td></tr>
           </table>
-          <p class="small" style="margin-top:1mm">Valori arrotondati: la somma delle tre manche è 1.000.</p>
+          <p class="small" style="margin-top:1mm">Ogni riga somma 1.000. Le manche della stessa difficoltà prendono lo stesso valore; con tre manche uguali l'ultima prende il punto che avanza (333 / 333 / 334).</p>
         </div>
         <div>
           <p><b>Formula di ogni manche:</b></p>
-          <div class="scoreline" style="margin-top:0">Giusto <b>+valore × (secondi rimasti / 15)</b><br>Sbagliato <b>−valore × (secondi rimasti / 15)</b><br>Nessuna risposta <b>0</b></div>
+          <div class="scoreline" style="margin-top:0">Giusto <b>+valore × (secondi rimasti / 20)</b><br>Sbagliato <b>−valore × (secondi rimasti / 20)</b><br>Nessuna risposta <b>0</b></div>
           <div class="example"><b>Esempio.</b> Mix 2F+1M, tutte e tre corrette al secondo 0: 250 + 250 + 500 = <b>1.000</b>. Corrette a metà tempo: <b>500</b>. Una manche sbagliata subito toglie la sua quota (qui <b>−250</b>); tre sbagliate subito: <b>−1.000</b>. Il punteggio lo registra il server.</div>
           <p class="small" style="margin-top:1.4mm">Il round vale al massimo 1.000 punti in tutto: tre manches giuste a tempo zero. Tre sbagliate subito costano −1.000, perché la penalità è la stessa quota scalata dal tempo.</p>
         </div>
