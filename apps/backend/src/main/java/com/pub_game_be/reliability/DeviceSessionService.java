@@ -172,6 +172,31 @@ public class DeviceSessionService {
         return revoked;
     }
 
+    /**
+     * Reset della partita: revoca tutte le squadre, lasciando intatte le
+     * sessioni di regia (TV e admin). I nomi tornano liberi per la nuova
+     * partita e i telefoni devono rientrare dal setup.
+     */
+    public synchronized List<String> clearRemotes(long gameId) {
+        List<String> cleared = new ArrayList<>();
+        for (DeviceSessionEntity session : sessions.findByGameIdOrderByLastHeartbeatAtDesc(gameId)) {
+            if (!"REMOTE".equals(session.getRole())
+                    || !Integer.valueOf(1).equals(session.getSecurityVersion())) {
+                continue;
+            }
+            String name = session.getPlayerName();
+            if (name != null && !name.isBlank()
+                    && cleared.stream().noneMatch(name::equalsIgnoreCase)) {
+                cleared.add(name);
+            }
+            session.setSecurityVersion(0);
+            session.setTeamKey(null);
+            session.setActive(false);
+            sessions.save(session);
+        }
+        return cleared;
+    }
+
     public void disconnect(String token) {
         if (token == null || token.isBlank()) {
             return;

@@ -227,6 +227,56 @@ describe('RemoteComponent', () => {
     expect(component.quizManche()).toBe(1);
   });
 
+  it('uno snapshot in ritardo non richiude la prima manche Quiz', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+
+    ws.status$.next({
+      action: 'QUIZ_STATE',
+      roundStartId: 'round-1',
+      state: { manche: 1, mancheReveal: false },
+    });
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+
+    reliability.syncState$.next({
+      hasState: true,
+      status: 'RUNNING',
+      roundType: 'QUIZ',
+      roundKey: 'g1-r0',
+      roundStartId: 'round-1',
+      roundIndex: 0,
+      roundDeadlineAt: Date.now() + 60_000,
+      announced: false,
+      currentRound: { type: 'QUIZ', roundKey: 'g1-r0', payload: '{}' },
+    });
+    await fixture.whenStable();
+
+    expect(component.questionType()).toBe('QUIZ');
+    expect(component.quizManche()).toBe(1);
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+  });
+
+  it('dopo un refresh usa il round del server per il contatore', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+
+    reliability.syncState$.next({
+      hasState: true,
+      status: 'RUNNING',
+      roundType: 'QUIZ',
+      roundKey: 'g1-r2',
+      roundStartId: 'round-3',
+      roundIndex: 2,
+      roundDeadlineAt: Date.now() + 60_000,
+      currentRound: { type: 'QUIZ', roundKey: 'g1-r2', payload: '{}' },
+    });
+    await fixture.whenStable();
+
+    expect(component.roundNumber()).toBe(3);
+  });
+
   it('due telefoni scartano un annuncio Quiz recapitato dopo il round successivo', async () => {
     const second = TestBed.createComponent(RemoteComponent);
     const phoneB = second.componentInstance;
@@ -356,6 +406,41 @@ describe('RemoteComponent', () => {
     expect(component.removedNotice()).toBe(true);
     expect(fixture.nativeElement.textContent).toContain('La regia ha rimosso');
     expect(localStorage.getItem('nickname')).toBeNull();
+  });
+
+  it('il reset TV riporta al setup e azzera il contatore del telefono', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    component.roundNumber.set(3);
+    component.gameState.set(PlayerStatus.VOTING);
+    component.roundActive.set(true);
+    component.paused.set(true);
+
+    ws.status$.next({ action: 'GAME_RESET', players: ['Anna'] });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.nickname()).toBeNull();
+    expect(component.resetNotice()).toBe(true);
+    expect(component.removedNotice()).toBe(false);
+    expect(component.roundNumber()).toBe(0);
+    expect(component.paused()).toBe(false);
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+    expect(localStorage.getItem('nickname')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('La partita è stata resettata');
+  });
+
+  it('GAME_RESET non butta fuori una squadra che non è stata resettata', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+
+    ws.status$.next({ action: 'GAME_RESET', players: ['Bruno'] });
+    fixture.detectChanges();
+
+    expect(component.nickname()).toBe('Anna');
+    expect(component.resetNotice()).toBe(false);
   });
 
   it('ascolta i topic della partita attiva adottata, non quella di default', async () => {

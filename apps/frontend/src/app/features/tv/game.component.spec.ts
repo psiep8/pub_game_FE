@@ -654,6 +654,37 @@ describe('GameComponent', () => {
     ]);
   });
 
+  it('riporta il contatore a zero quando la partita è nuova o resettata', () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+
+    rounds.restoreRound(9);
+    tv.applyAuthoritativeState({ hasState: false });
+    expect(rounds.getCurrentRound()).toBe(0);
+    expect(component.roundInfo()).toBe('0/40');
+
+    rounds.restoreRound(9);
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'CREATED', roundType: null, roundIndex: 0, roundKey: null,
+    });
+    expect(rounds.getCurrentRound()).toBe(0);
+    expect(component.roundInfo()).toBe('0/40');
+  });
+
+  it('mostra 1/40 quando il server apre il primo round', () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
+
+    rounds.restoreRound(9);
+    tv.applyAuthoritativeState({
+      hasState: true, status: 'RUNNING', roundType: 'QUIZ', roundIndex: 0,
+      roundKey: 'g1-r1', roundDeadlineAt: Date.now() + 60_000,
+    });
+
+    expect(rounds.getCurrentRound()).toBe(1);
+    expect(component.roundInfo()).toBe('1/40');
+  });
+
   it('salva il checkpoint col round del server quando la scaletta è avanti', () => {
     // Avanzamento locale avanti: round aperto 8, il server è fermo al 6.
     TestBed.inject(RoundManagerService).restoreRound(9);

@@ -374,6 +374,7 @@ export class FakeReliabilityService {
   readonly reconnectCount = signal(0);
   readonly syncState$ = new Subject<any>();
   readonly syncEvent$ = new Subject<any>();
+  readonly sessionRevoked$ = new Subject<void>();
   readonly started: Array<{ gameId: number; role: string; playerName?: string }> = [];
 
   async start(gameId: number, role: string, playerName = ""): Promise<boolean> {

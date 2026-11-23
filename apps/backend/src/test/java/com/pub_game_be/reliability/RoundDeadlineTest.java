@@ -64,6 +64,20 @@ class RoundDeadlineTest {
     }
 
     @Test
+    void unaPartitaSenzaRoundNonRisultaApertaInDiagnostica() {
+        long gameId = 703L;
+        gameState.reset(gameId);
+
+        assertThat(gameState.hasOpenRound(gameId)).isFalse();
+
+        gameState.startRound(gameId, "QUIZ", 0, "g703-r0", "{}");
+        // Nei test la finestra globale è zero: si allunga come farebbe un
+        // round reale, così la diagnostica vede un round davvero aperto.
+        gameState.extendRoundDeadline(gameId, 60_000);
+        assertThat(gameState.hasOpenRound(gameId)).isTrue();
+    }
+
+    @Test
     void unRoundApertoAccettaAncoraRisposte() {
         long gameId = 702L;
         // Nel primo test la finestra è zero; qui si verifica il contrario con la

@@ -370,11 +370,15 @@ class ReliabilityIntegrationTest {
         assertThat(json.readTree(request("POST", base + "/arena-answer", bruno, null, answerB).body()).get("playerName").asText()).isEqualTo("Bruno");
         assertThat(request("POST", base + "/arena-answer", anna, null, answerA.replace("shared", "another-key")).statusCode()).isEqualTo(400);
         assertThat(request("POST", base + "/reset", tv, null, "{}").statusCode()).isEqualTo(200);
+        var annaAfterResetResponse = request("POST", base + "/session", null, null,
+                "{\"deviceId\":\"r-after-reset\",\"role\":\"REMOTE\",\"playerName\":\"Anna\"}");
+        assertThat(annaAfterResetResponse.statusCode()).isEqualTo(200);
+        String annaAfterReset = json.readTree(annaAfterResetResponse.body()).get("sessionToken").asText();
         var adminResponse = request("POST", base + "/session", null, "0123456789abcdef0123456789abcdef",
                 "{\"deviceId\":\"admin\",\"role\":\"ADMIN\"}");
         assertThat(adminResponse.statusCode()).isEqualTo(200);
         String admin = json.readTree(adminResponse.body()).get("sessionToken").asText();
-        assertThat(request("POST", base + "/session/disconnect", anna, null,
+        assertThat(request("POST", base + "/session/disconnect", annaAfterReset, null,
                 "{\"sessionToken\":\"" + admin + "\"}").statusCode()).isEqualTo(403);
         var adminDiagnostics = json.readTree(request("GET", base + "/diagnostics", admin, null, null).body());
         assertThat(adminDiagnostics.get("recentEventsHidden").asBoolean()).isFalse();
@@ -385,7 +389,7 @@ class ReliabilityIntegrationTest {
         assertThat(guestDiagnostics.get("recentEventsHidden").asBoolean()).isTrue();
         assertThat(guestDiagnostics.has("status")).isTrue();
         gameState.startRound(id, "ARENA", 1, "arena-511-after-reset", "{}");
-        var question = request("GET", base + "/arena-question?category=STORIA&playerId=Anna", anna, null, null);
+        var question = request("GET", base + "/arena-question?category=STORIA&playerId=Anna", annaAfterReset, null, null);
         assertThat(question.statusCode()).isEqualTo(200);
         var arena = json.readTree(question.body());
         assertThat(arena.has("correctAnswer")).isFalse();
@@ -395,6 +399,26 @@ class ReliabilityIntegrationTest {
 
     private String mancheQuiz(int manche, String roundStartId) {
         return "{\"manche\":" + manche + ",\"roundStartId\":\"" + roundStartId + "\"}";
+    }
+
+    @Test
+    void ilResetDellaTvRevocaLeSquadreELasciaLaRegia() {
+        long gameId = 550L;
+        var tv = sessions.register(gameId, "reset-tv", "TV", null, null);
+        var admin = sessions.register(gameId, "reset-admin", "ADMIN", null, null);
+        var anna = sessions.register(gameId, "reset-anna", "REMOTE", "Anna", null);
+
+        gameController.resetGame(gameId);
+
+        assertThat(sessions.authenticate(anna.sessionToken())).isEmpty();
+        assertThat(sessions.authenticate(tv.sessionToken())).isPresent();
+        assertThat(sessions.authenticate(admin.sessionToken())).isPresent();
+        // Restano online solo TV e regia: la squadra non è più in presenza.
+        assertThat(sessions.presence(gameId).length()).isEqualTo(2);
+
+        // Il nome è tornato libero: la squadra può rientrare solo dal setup.
+        var rejoin = sessions.register(gameId, "reset-anna-2", "REMOTE", "Anna", null);
+        assertThat(rejoin.sessionToken()).isNotEqualTo(anna.sessionToken());
     }
 
     @Test

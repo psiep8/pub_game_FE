@@ -64,4 +64,15 @@ class ButtonTestServiceTest {
         assertThat(service.team(14L, "Anna").getInt("nextStep")).isEqualTo(1);
         assertThat(service.team(14L, "Bruno").getInt("nextStep")).isEqualTo(2);
     }
+
+    @Test
+    void ilResetDellaPartitaAzzeraLaProvaPulsanti() {
+        service.recordStep(15L, "Anna", 1, false, -1, false);
+
+        service.forget(15L);
+
+        JSONObject snapshot = service.snapshot(15L, List.of());
+        assertThat(snapshot.getJSONArray("teams").length()).isZero();
+        assertThat(snapshot.getBoolean("allReady")).isFalse();
+    }
 }

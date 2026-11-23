@@ -386,8 +386,12 @@ export class GameComponent implements OnInit, OnDestroy {
   private displayDataInterval?: ReturnType<typeof setInterval>;
   private destroyRef = inject(DestroyRef);
 
+  /** Il reset ha già la conferma dell'utente: il reload non deve richiederla di nuovo. */
+  private resetReloadInFlight = false;
+
   @HostListener('window:beforeunload', ['$event'])
   unloadNotification($event: any) {
+    if (this.resetReloadInFlight) return;
     if (this.phase() !== 'IDLE' && this.phase() !== GamePhase.INTRO) {
       $event.returnValue = "Hai una partita in corso!";
     }
@@ -484,8 +488,17 @@ export class GameComponent implements OnInit, OnDestroy {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((snapshot: any) => this.applyAuthoritativeState(snapshot));
 
-    if (!await this.reliability.start(storedGameId, 'TV')) return;
-    await this.adoptActiveGame();
+    // La serata in corso è quella del server, non quella rimasta nello storage
+    // del browser: si risolve prima di chiedere il codice, altrimenti una TV
+    // con un vecchio token si ferma sulla partita sbagliata con 401.
+    const activeGameId = await this.fetchActiveGameId();
+    if (activeGameId > 0 && activeGameId !== this.currentGameId()) {
+      this.currentGameId.set(activeGameId);
+      localStorage.setItem('activeGameId', String(activeGameId));
+      this.ws.subscribeToGame(activeGameId);
+    }
+
+    if (!await this.reliability.start(this.currentGameId(), 'TV')) return;
     this.bindLeaderboardPersistence();
 
     // Il vincitore del round si conta sui punti guadagnati a round aperto:
@@ -2356,6 +2369,10 @@ export class GameComponent implements OnInit, OnDestroy {
 
   /** Unico punto che ricarica la TV: nelle prove si sostituisce senza navigare. */
   private reloadPage(): void {
+    // Il reset è già stato confermato: il beforeunload della partita non deve
+    // annullare il reload e lasciare la TV sul round vecchio.
+    this.resetReloadInFlight = true;
+    setTimeout(() => { this.resetReloadInFlight = false; }, 2000);
     location.reload();
   }
 
@@ -2592,26 +2609,13 @@ export class GameComponent implements OnInit, OnDestroy {
     });
   }
 
-  private async adoptActiveGame(): Promise<void> {
+  /** Partita in corso sul server, senza far fallire l'avvio della TV. */
+  private async fetchActiveGameId(): Promise<number> {
     try {
       const active = await firstValueFrom(this.gameService.getActiveGame());
-      const serverGameId = Number(active?.gameId) || 0;
-      if (serverGameId <= 0 || serverGameId === this.currentGameId()) return;
-
-      const previous = this.currentGameId();
-      this.currentGameId.set(serverGameId);
-      localStorage.setItem('activeGameId', String(serverGameId));
-      this.ws.subscribeToGame(serverGameId);
-      if (await this.reliability.start(serverGameId, 'TV')) return;
-
-      // Senza sessione sulla partita trovata si torna a quella di partenza,
-      // invece di restare su un tavolo che non si ha il diritto di comandare.
-      this.currentGameId.set(previous);
-      this.ws.subscribeToGame(previous);
-      localStorage.setItem('activeGameId', String(previous));
-      await this.reliability.start(previous, 'TV');
+      return Number(active?.gameId) || 0;
     } catch {
-      // Senza rete resta la partita salvata sul dispositivo.
+      return 0;
     }
   }
 
@@ -2732,14 +2736,25 @@ export class GameComponent implements OnInit, OnDestroy {
       const status = String(snapshot.status ?? 'CREATED');
       const roundIndex = Number(snapshot.roundIndex);
       if (Number.isFinite(roundIndex) && roundIndex >= 0) {
-        const rounds = status === 'CREATED' || !snapshot.roundType ? 0 : roundIndex + 1;
         // Un round saltato con AVANTI non crea una riga sul server: il suo
         // conteggio può essere più basso della scaletta già giocata. Ripartire
         // da lì rigiocherebbe un gioco (per esempio una sesta Ultima spiaggia).
-        const safeRounds = Math.max(this.roundManager.getCurrentRound(), rounds);
+        // Partita nuova o resettata, invece, deve tornare davvero a zero.
+        const current = this.roundManager.getCurrentRound();
+        const running = status === 'RUNNING' && !!snapshot.roundType;
+        const safeRounds = running
+          ? (roundIndex === 0 ? 1 : Math.max(current, roundIndex + 1))
+          : roundIndex === 0
+            ? 0
+            : Math.max(current, roundIndex);
         this.roundManager.restoreRound(safeRounds);
         this.roundInfo.set(this.roundManager.getProgress().text);
       }
+    } else {
+      // La partita non ha ancora uno stato (appena creata): la scaletta locale
+      // della serata precedente non vale più.
+      this.roundManager.restoreRound(0);
+      this.roundInfo.set(this.roundManager.getProgress().text);
     }
 
     const bonusAct = snapshot?.bonusAct;

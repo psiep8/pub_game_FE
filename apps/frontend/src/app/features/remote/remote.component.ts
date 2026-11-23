@@ -226,6 +226,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   readonly themeStep = signal(false);
   /** La regia ha espulso questa squadra: si rientra dal setup. */
   readonly removedNotice = signal(false);
+  /** Il reset TV ha chiuso la partita: le squadre devono rientrare dal setup. */
+  readonly resetNotice = signal(false);
   tempNickname = '';
   avatarPreview = signal<string | null>(null);
   private pendingAvatar: string | null = null;
@@ -272,6 +274,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
     !this.resyncing() && !this.paused() && !this.inputBlocked());
   manualOpen = signal(false);
   manualEntry = signal<ManualEntry | null>(null);
+  /** `?manuale=` è un'anteprima: i cambi di round non devono chiuderla. */
+  private manualPreview = false;
   readonly manualGames = MANUAL_GAMES;
   readonly manualBonuses = MANUAL_BONUSES;
   readonly manualSections = MANUAL_SECTIONS;
@@ -541,6 +545,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // Anteprima del manuale per la pagina sim-duo (`?quad=1&manuale=QUIZ`):
     // mostra la scheda "come si vota" senza dover entrare in squadra.
     const manualPreview = new URLSearchParams(window.location.search).get('manuale');
+    this.manualPreview = !!manualPreview;
     if (manualPreview) setTimeout(() => this.openManualAt(manualPreview), 300);
 
     // Sessione + heartbeat: al riaggancio il telefono riprende la stessa
@@ -548,6 +553,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // Prima l'ascolto, poi l'avvio: il sync iniziale può rispondere subito e
     // senza sottoscrizione lo snapshot andrebbe perso.
     this.reliability.syncState$.subscribe((snapshot: any) => this.applyServerSnapshot(snapshot));
+    this.reliability.sessionRevoked$.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.handleGameReset());
     const storedName = this.nickname();
     if (storedName) {
       this.tempNickname = storedName;
@@ -624,7 +631,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
             this.quizManche.set(0);
           }
           this.roundActive.set(true);
-          this.closeManual();
+          this.closeManual(true, true);
           // Il voto del gioco precedente non appartiene al nuovo Quiz, anche
           // se il suo numero di manche coincide con quello appena annunciato.
           if (status.type === 'QUIZ' && this.questionType() !== 'QUIZ') {
@@ -673,7 +680,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           if (status.type === 'ARENA' && this.roundActive() && this.questionType() === 'ARENA'
               && this.gameState() === PlayerStatus.VOTING) break;
           this.roundActive.set(true);
-          this.closeManual();
+          this.closeManual(true, true);
           this.isBlocked.set(false);
           this.onStartVoting(status.type, status.payload);
           break;
@@ -873,6 +880,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
           }
           break;
 
+        case 'GAME_RESET':
+          if (this.nickname() && (!Array.isArray(status.players)
+              || status.players.length === 0
+              || status.players.some((name: unknown) =>
+                String(name).toLowerCase() === this.nickname()!.toLowerCase()))) {
+            this.handleGameReset();
+          }
+          break;
+
         case 'BLOCKED_ERROR':
           if (status.blockedPlayer === this.nickname()) {
             this.isBlocked.set(true);
@@ -897,7 +913,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
 
         case 'GAME_PAUSED':
-          this.closeManual();
+          this.closeManual(true, true);
           this.paused.set(true);
           this.pauseStartedAt = performance.now();
           break;
@@ -1195,6 +1211,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.nickname.set(name);
     this.loadArenaAfterSession();
     this.removedNotice.set(false);
+    this.resetNotice.set(false);
     this.showButtonTest.set(true);
     localStorage.setItem('nickname', name);
     this.joinGame(name);
@@ -1312,6 +1329,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   /** Nome leggibile del gioco per l'intestazione (B1). */
   openManual(): void {
     if (!this.canOpenManual() || this.manualOpen()) return;
+    this.manualPreview = false;
     this.manualEntry.set(null);
     this.manualOpen.set(true);
     history.pushState({ manual: true }, '');
@@ -1319,8 +1337,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   /** Chiude il manuale e, se richiesto, rimuove la voce di cronologia. */
-  closeManual(back = true): void {
+  closeManual(back = true, automatic = false): void {
     if (!this.manualOpen()) return;
+    if (automatic && this.manualPreview) return;
+    if (!automatic) this.manualPreview = false;
     this.manualOpen.set(false);
     this.manualEntry.set(null);
     if (back && history.state?.manual) history.back();
@@ -2815,9 +2835,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const roundKey = String(snapshot.roundKey ?? round?.roundKey
       ?? `${type}:${snapshot.roundIndex ?? ''}`);
     const snapshotRoundStartId = typeof snapshot.roundStartId === 'string' ? snapshot.roundStartId : '';
+    // Uno snapshot può arrivare dopo il primo QUIZ_STATE: se è la stessa
+    // apertura non deve azzerare la manche già mostrata e riportare il telefono
+    // su "In attesa" proprio nella manche 1.
+    const sameQuizOpening = type === 'QUIZ' && !!snapshotRoundStartId
+      && snapshotRoundStartId === this.quizRoundStartId && this.quizManche() > 0;
     const newRound = roundKey !== this.lastSnapshotRoundKey
       || (!!snapshotRoundStartId && !!this.quizRoundStartId && snapshotRoundStartId !== this.quizRoundStartId);
-    if (newRound) {
+    if (newRound && !sameQuizOpening) {
       this.quizRecoveryBlocked = false;
       this.quizRecoveryBlockedRoundId = '';
       this.endQuizCheck();
@@ -2835,12 +2860,26 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.selectedAnswer.set(null);
       this.isBlocked.set(false);
       this.answeredManche.set(0);
+    } else if (newRound) {
+      // Stessa apertura già mostrata: si allinea solo la chiave, senza
+      // cancellare la manche e i tasti appena comparsi.
+      this.lastSnapshotRoundKey = roundKey;
     }
 
     if (type === 'QUIZ' && snapshotRoundStartId) {
       this.quizRoundStartId = snapshotRoundStartId;
       const startedAt = Number(snapshot?.roundStartedAt);
       if (Number.isFinite(startedAt) && startedAt > 0) this.quizRoundStartedAt = startedAt;
+    }
+
+    // Dopo un refresh il server è l'unica fonte del numero di round: senza
+    // questo il telefono tornava a ROUND 1/40 anche a metà serata.
+    const snapshotRoundIndex = Number(snapshot.roundIndex);
+    if (open && type && Number.isInteger(snapshotRoundIndex) && snapshotRoundIndex >= 0) {
+      this.roundNumber.set(snapshotRoundIndex + 1);
+    } else if (String(snapshot.status ?? '') === 'CREATED'
+        && Number.isInteger(snapshotRoundIndex) && snapshotRoundIndex === 0) {
+      this.roundNumber.set(0);
     }
 
     // Un'apertura diversa dal legacy bloccato è un round nuovo: si può votare.
@@ -2861,7 +2900,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // una riconnessione, non solo quando arriva SHOW_QUESTION.
     if (!bonusVisible) {
       this.roundActive.set(!!type && open);
-      if (this.roundActive()) this.closeManual();
+      if (this.roundActive()) this.closeManual(true, true);
     }
 
     // Un round chiuso o azzerato deve riportare il telefono in attesa: prima
@@ -2895,7 +2934,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.endQuizCheck();
       this.invalidateQuizSummary();
       this.roundActive.set(true);
-      this.gameState.set(PlayerStatus.WAITING);
+      if (sameQuizOpening) {
+        // La manche è già stata annunciata dalla TV: lo snapshot è solo in
+        // ritardo e non deve chiudere i tasti appena aperti.
+        this.questionType.set('QUIZ');
+        this.gameState.set(this.hasAnswered() && this.answeredManche() === this.quizManche()
+          ? PlayerStatus.LOCKED : PlayerStatus.VOTING);
+      } else {
+        this.gameState.set(PlayerStatus.WAITING);
+      }
       return;
     }
 
@@ -3106,6 +3153,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
    * nome resta libero sul server, quindi il rientro è possibile con un tocco.
    */
   private handleRemoved(): void {
+    this.resetNotice.set(false);
     this.quizRecoveryBlocked = false;
     this.quizRecoveryBlockedRoundId = '';
     this.endQuizCheck();
@@ -3128,7 +3176,17 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.selectedAnswer.set(null);
     this.isBlocked.set(false);
     this.gameState.set(PlayerStatus.WAITING);
+    this.roundNumber.set(0);
+    this.paused.set(false);
+    this.pauseStartedAt = 0;
     this.removedNotice.set(true);
+  }
+
+  private handleGameReset(): void {
+    this.handleRemoved();
+    // Il messaggio dell'espulsione sarebbe fuorviante: qui la partita è nuova.
+    this.removedNotice.set(false);
+    this.resetNotice.set(true);
   }
 
   logout() {

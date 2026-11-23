@@ -9,6 +9,8 @@ import com.pub_game_be.reliability.GameStateService;
 import com.pub_game_be.reliability.IdempotencyService;
 import com.pub_game_be.reliability.ScoreboardService;
 import com.pub_game_be.reliability.StateBlobService;
+import com.pub_game_be.reliability.DeviceSessionService;
+import com.pub_game_be.reliability.ButtonTestService;
 import com.pub_game_be.repository.GameRepository;
 import com.pub_game_be.repository.GameRoundRepository;
 import com.pub_game_be.service.BombaService;
@@ -52,6 +54,8 @@ public class GameController {
     private final BombaService bombaService;
     private final StateBlobService stateBlobs;
     private final ScoreboardService scoreboard;
+    private final DeviceSessionService deviceSessions;
+    private final ButtonTestService buttonTests;
 
     public GameController(GameRepository gameRepo,
             GameRoundRepository gameRoundRepository,
@@ -65,7 +69,8 @@ public class GameController {
             GameStateService gameStateService,
             IdempotencyService idempotencyService,
             UltimaSpiaggiaLevelService ultimaSpiaggiaLevelService,
-            BombaService bombaService, StateBlobService stateBlobs, ScoreboardService scoreboard) {
+            BombaService bombaService, StateBlobService stateBlobs, ScoreboardService scoreboard,
+            DeviceSessionService deviceSessions, ButtonTestService buttonTests) {
         this.gameRepo = gameRepo;
         this.gameRoundRepository = gameRoundRepository;
         this.simpleRoundService = simpleRoundService;
@@ -81,6 +86,8 @@ public class GameController {
         this.bombaService = bombaService;
         this.stateBlobs = stateBlobs;
         this.scoreboard = scoreboard;
+        this.deviceSessions = deviceSessions;
+        this.buttonTests = buttonTests;
     }
 
     /**
@@ -91,10 +98,12 @@ public class GameController {
     @GetMapping("/active")
     public Map<String, Object> activeGame() {
         Map<String, Object> out = new LinkedHashMap<>();
-        // Prima che parta un round non esiste ancora uno stato: la partita
-        // iniziale creata all'avvio deve comunque essere raggiungibile dalla TV.
-        Long gameId = gameStateService.latestGameId()
-                .orElseGet(() -> gameRepo.findTopByOrderByIdDesc().map(Game::getId).orElse(null));
+        // La partita più recente è quella appena creata, anche prima che abbia
+        // uno stato: una TV nuova deve poter entrare subito in lobby. Se non
+        // esiste ancora una riga Game si ripiega sull'ultimo stato salvato.
+        Long gameId = gameRepo.findTopByOrderByIdDesc()
+                .map(Game::getId)
+                .orElseGet(() -> gameStateService.latestGameId().orElse(null));
         out.put("gameId", gameId);
         return out;
     }
@@ -679,6 +688,13 @@ public class GameController {
         bombaService.reset(gameId);
         scoreboard.forget(gameId);
         stateBlobs.forget(gameId, "time-buzzer-start");
+        buttonTests.forget(gameId);
+        // Il reset è una partita nuova: le squadre non restano agganciate alla
+        // serata precedente, mentre TV e regia conservano la loro sessione.
+        Map<String, Object> resetEvent = new LinkedHashMap<>();
+        resetEvent.put("action", "GAME_RESET");
+        resetEvent.put("players", deviceSessions.clearRemotes(gameId));
+        messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status", (Object) resetEvent);
         return Map.of("reset", true, "gameId", gameId);
     }
 

@@ -136,6 +136,11 @@ public class ButtonTestService {
         return snapshot(gameId, List.of());
     }
 
+    /** Reset della partita: la prova pulsanti riparte vuota, senza squadre vecchie. */
+    public synchronized void forget(long gameId) {
+        sessions.remove(gameId);
+    }
+
     private TeamState teamState(long gameId, String playerName) {
         if (playerName == null || playerName.isBlank()) {
             throw new BadButtonTestRequest("Squadra richiesta");

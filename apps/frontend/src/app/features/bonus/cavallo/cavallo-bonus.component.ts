@@ -310,7 +310,9 @@ const PREVIEW_QUESTIONS = [
       padding: 0 clamp(10px, 1.4vw, 18px);
       border: 2px solid var(--coal);
       background: var(--paper-hi);
-      transition: top .45s cubic-bezier(.22, 1, .36, 1), background .2s steps(2, end);
+      /* Il riordino cambia top: animarlo faceva incrociare due righe
+         assolute e per un frame una spariva dietro l'altra. */
+      transition: background .2s steps(2, end);
     }
     .cav-row.lead { background: var(--acid); box-shadow: 5px 5px 0 var(--coal); }
     .cav-row.gain { animation: cavGain .8s steps(3, end); }

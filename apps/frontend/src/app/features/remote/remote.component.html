@@ -179,7 +179,9 @@
       <span class="avatar-hint">Foto facoltativa, ma consigliata</span>
     </div>
 
-    @if (removedNotice()) {
+    @if (resetNotice()) {
+    <p class="setup-error" role="alert">La partita è stata resettata. Rientra con il nome della squadra.</p>
+    } @else if (removedNotice()) {
     <p class="setup-error" role="alert">La regia ha rimosso la squadra. Puoi rientrare con un nuovo nome.</p>
     }
     <label class="setup-name" for="team-name">Nome della squadra</label>

@@ -1,5 +1,28 @@
 # Changelog
 
+## 24 novembre 2026 — Reset TV, manche 1 e recupero, 2.4.0
+
+Nessun cambio di regole, punteggi, banche, enum o azioni WebSocket.
+
+- **Contatore TV:** con la partita `RUNNING` e `roundIndex 0` il tabellone
+  mostra `1/40` invece di `0/40`; `CREATED` resta a zero e i round successivi
+  non regrediscono. Il test di regressione è in `game.component.spec.ts`.
+- **Reset della partita:** `GameController.resetGame()` revoca solo le sessioni
+  `REMOTE`, lascia TV e regia autenticate, libera i nomi e azzera la prova
+  pulsanti. Pubblica `GAME_RESET`; il telefono torna al setup, cancella nome e
+  token, azzera contatore e pausa e mostra l'avviso di reset.
+- **Reset anche a socket chiusa:** un heartbeat `410`/`401` per una squadra
+  revocata non ricrea più la sessione da sola; `ReliabilityService` chiude il
+  token e riporta il telefono al setup, così la squadra non rientra in silenzio
+  dopo essere stata tolta.
+- **Manche 1 del Quiz:** lo snapshot che arriva dopo il primo `QUIZ_STATE` non
+  azzera più la manche appena mostrata; il contatore del telefono legge il
+  `roundIndex` del server anche dopo un refresh.
+- **Recupero TV:** la card di recupero è più leggibile e il Cavallo entra con
+  una transizione breve, senza toccare le regole del bonus.
+- **Verifiche:** 712 test frontend su 70 file, 171 test backend, build
+  frontend completata; reset e contatore provati anche con TV e telefono reali.
+
 ## 23 novembre 2026 — Contrasto dei titoli TV e rifiniture, 2.3.3
 
 Nessun cambio di regole, punteggi, banche, enum o azioni WebSocket.

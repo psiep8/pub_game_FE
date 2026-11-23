@@ -347,7 +347,7 @@ public class ReliabilityController {
         out.put("roundIndex", snapshot.optInt("roundIndex", 0));
         out.put("roundType", snapshot.opt("roundType"));
         out.put("roundDeadlineAt", snapshot.opt("roundDeadlineAt"));
-        out.put("roundOpen", gameState.isRoundOpen(gameId));
+        out.put("roundOpen", gameState.hasOpenRound(gameId));
         out.put("lastSnapshotAt", snapshot.opt("updatedAt"));
 
         Optional<com.pub_game_be.reliability.domain.GameEventEntity> last = gameState.lastEvent(gameId);

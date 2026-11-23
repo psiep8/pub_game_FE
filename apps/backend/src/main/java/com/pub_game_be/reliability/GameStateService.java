@@ -168,6 +168,21 @@ public class GameStateService {
     }
 
     /**
+     * C'è davvero un round in corso? A differenza di {@link #isRoundOpen},
+     * una partita appena creata o appena resettata non conta: senza tipo e
+     * senza stato RUNNING non c'è nulla da riprendere. Serve alla diagnostica,
+     * dove "round aperto: sì" con `roundType: null` era fuorviante.
+     */
+    public boolean hasOpenRound(long gameId) {
+        return states.findById(gameId)
+                .filter(state -> "RUNNING".equals(state.getStatus()))
+                .filter(state -> state.getRoundType() != null && !state.getRoundType().isBlank())
+                .filter(state -> state.getRoundDeadlineAt() == null
+                        || System.currentTimeMillis() <= state.getRoundDeadlineAt())
+                .isPresent();
+    }
+
+    /**
      * Partita aggiornata più di recente: una TV nuova la usa per riagganciarsi
      * alla serata in corso senza che l'operatore debba digitare l'ID.
      */

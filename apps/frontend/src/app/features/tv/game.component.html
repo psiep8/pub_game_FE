@@ -529,7 +529,6 @@
 
 @if (phase() === 'IDLE' && recoveredRound() && !bonusActive() && !currentMode() && !isSpinning()) {
   <div class="recovery-panel" role="region" aria-label="Recupero round">
-    <div class="recovery-panel-bg"></div>
     <div class="recovery-panel-inner">
       <div class="recovery-panel-header">
         <div class="recovery-panel-title">{{ recoveredRound()!.paused ? 'Round in pausa' : 'Round ripristinabile' }}</div>
@@ -541,7 +540,6 @@
           @else { Un round è ancora aperto sul server. Vuoi riprendere da dove si è interrotto? }
         </p>
         <div class="recovery-panel-mode">
-          <span class="recovery-panel-mode-icon">{{ getModeName(recoveredRound()!.type) }}</span>
           <span class="recovery-panel-mode-label">{{ recoveredRound()!.label }}</span>
         </div>
         <p class="recovery-panel-timer">

@@ -44,6 +44,8 @@ export class ReliabilityService {
   readonly syncState$ = new Subject<any>();
   /** Singolo evento recuperato dopo una disconnessione, in ordine di sequenza. */
   readonly syncEvent$ = new Subject<any>();
+  /** Il server ha chiuso la sessione (reset o espulsione): si torna al setup. */
+  readonly sessionRevoked$ = new Subject<void>();
 
   private gameId = 1;
   private role: DeviceRole = 'REMOTE';
@@ -291,6 +293,11 @@ export class ReliabilityService {
       if (status === 401 && (this.sessionToken() || this.storedToken())) {
         this.persistToken(null);
         this.sessionToken.set(null);
+        if (this.role === 'REMOTE') {
+          this.revokeSession();
+          this.lastError.set('La partita è stata resettata: rientra con il tuo nome.');
+          return false;
+        }
         return this.ensureSession();
       }
       if (status === 401) {
@@ -409,6 +416,13 @@ export class ReliabilityService {
     } catch (error) {
       const status = (error as HttpErrorResponse)?.status;
       if (status === 410 || status === 401) {
+        if (this.role === 'REMOTE') {
+          // Il reset revoca le squadre: non si rientra da soli con lo stesso
+          // nome, altrimenti il telefono ricreerebbe la squadra appena tolta.
+          this.revokeSession();
+          this.lastError.set('La partita è stata resettata: rientra con il tuo nome.');
+          return;
+        }
         // Il server non conosce più questa sessione: si riparte dal token nuovo.
         this.persistToken(null);
         this.sessionToken.set(null);
@@ -435,6 +449,17 @@ export class ReliabilityService {
   private async onReconnected(): Promise<void> {
     this.reconnectCount.update((value) => value + 1);
     await this.sync();
+  }
+
+  /** Sessione REMOTE revocata dal server: il componente torna al setup. */
+  private revokeSession(): void {
+    this.stop();
+    this.persistToken(null);
+    this.sessionToken.set(null);
+    this.playerName = '';
+    this.seenEvents.clear();
+    this.ws.disconnect();
+    this.sessionRevoked$.next();
   }
 
   private startHeartbeat(): void {
