@@ -526,7 +526,6 @@ export class GameComponent implements OnInit, OnDestroy {
 
     // 📨 SOTTOSCRIZIONE RESPONSES (Per azioni veloci come urla)
     this.ws.responses$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((resp: any) => {
-      console.log('%c 📥 GameComponent: Messaggio fast-track ricevuto: ', 'background: #333; color: #fff', resp);
       if (!resp) return;
 
       const mode = this.currentMode();
@@ -565,11 +564,6 @@ export class GameComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // 🎤 Debug Log per Urla su Status
-      if ((status.action === 'SCREAM_UPDATE' || status.action === 'SCREAM')) {
-        console.log('🎤 Urlo ricevuto su STATUS:', status);
-      }
-
       // 🤝 Nuovo giocatore si è unito
       if (status.action === WsAction.JOIN_GAME && status.playerName) {
         const normalizedName = status.playerName.trim();
@@ -582,7 +576,6 @@ export class GameComponent implements OnInit, OnDestroy {
         }
         if (deviceId) this.deviceNames.set(deviceId, normalizedName);
         this.presencePlayers.update((names) => names.includes(normalizedName) ? names : [...names, normalizedName]);
-        console.log(`🤝 Nuovo giocatore unito: ${normalizedName}`);
         this.audioService.playJoin();
         // Palette assegnata all'ingresso: chi non sceglie il colore non resta
         // nell'acido uguale a tutti e il tema del round vinto si vede.
@@ -631,7 +624,6 @@ export class GameComponent implements OnInit, OnDestroy {
         const isCorrect = !!status.isCorrect;
         // Il server ora assegna +10/-10: usiamo i suoi punti se presenti.
         const points = typeof status.points === 'number' ? status.points : (isCorrect ? 10 : -10);
-        console.log(`%c 🏟️ Arena TV -> Risposta rapida: ${playerName} (corretta: ${isCorrect}) `, 'background: #3f51b5; color: #fff;');
 
         // Un evento già applicato non deve assegnare due volte né movimento né punti.
         const rawSeq = Number(status.eventSeq);

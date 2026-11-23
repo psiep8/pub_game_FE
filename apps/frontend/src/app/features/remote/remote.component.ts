@@ -535,7 +535,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // questa iscrizione il telefono ascolta la partita di default e non vede
     // l'avvio del round, pur rispondendo sull'ID giusto.
     this.ws.subscribeToGame(this.gameId());
-    console.log('🎮 Remote collegato alla partita', this.gameId());
 
     // Anteprima del manuale per la pagina sim-duo (`?quad=1&manuale=QUIZ`):
     // mostra la scheda "come si vota" senza dover entrare in squadra.
@@ -1035,8 +1034,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
         return;
       }
 
-      console.log('🎤 Richiedo permesso microfono...');
-
       // 🔥 Richiedi permesso microfono con constraints ottimizzati
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -1047,8 +1044,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
           channelCount: 1
         }
       });
-
-      console.log('✅ Permesso microfono concesso!');
 
       // 🔥 Setup Web Audio API con controlli compatibilità
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -1080,8 +1075,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.microphone.connect(this.analyser);
 
       this.isListening.set(true);
-
-      console.log('🎤 Microfono attivo! Inizio rilevazione volume...');
 
       // Avvia rilevazione volume
       if (this.volumeTimer) clearInterval(this.volumeTimer);
@@ -1147,16 +1140,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (this.mediaStream) {
       this.mediaStream.getTracks().forEach(track => {
         track.stop();
-        console.log('🛑 Track microfono fermato:', track.label);
       });
       this.mediaStream = undefined;
     }
 
     // Chiudi audio context
     if (this.audioContext && this.audioContext.state !== 'closed') {
-      this.audioContext.close().then(() => {
-        console.log('🛑 AudioContext chiuso');
-      }).catch(err => {
+      this.audioContext.close().catch(err => {
         console.error('❌ Errore chiusura AudioContext:', err);
       });
       this.audioContext = undefined;
@@ -1167,8 +1157,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.isListening.set(false);
     this.currentVolume.set(0);
     this.isScreaming.set(false);
-
-    console.log('🛑 Microfono disattivato');
   }
 
   dismissUpdateBanner() {
