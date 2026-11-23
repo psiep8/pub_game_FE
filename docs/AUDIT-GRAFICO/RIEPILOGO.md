@@ -54,8 +54,10 @@ In questo giro sono state fatte la fase 1 e le fiche del telefono; il resto è
 
 - `node scripts/checks/screens.mjs`: **14/14** catture, 0 errori di console
   bloccanti; referto in `docs/AUDIT-GRAFICO/screens/report.md`.
-- Frontend: suite completa (esito nel log del turno).
-- Build `ng build` e audit banche restano da rilanciare dopo le ultime modifiche.
+- Frontend: **704 passati + 2 saltati** (706 dichiarati; i due skip sono
+  loudness senza ffmpeg).
+- Build `ng build` con proxy verso porta chiusa (nessuna rete): verde.
+- `node scripts/audit-banche.mjs --ci`: OK. Backend non toccato in questo giro.
 
 ## Come rifare le schermate
 

@@ -1,6 +1,6 @@
 # Changelog
 
-## 23 novembre 2026 — Fiche dell'Azzardo e inventario grafico, 2.4.0
+## 23 novembre 2026 — Fiche dell'Azzardo e inventario grafico, 2.3.2
 
 Nessun cambio di regole, punteggi, banche, enum o azioni WebSocket.
 
@@ -8,9 +8,18 @@ Nessun cambio di regole, punteggi, banche, enum o azioni WebSocket.
   cerchio con bordo a tacche, valore leggibile e ombra piena; le pile compaiono
   sull'opzione scelta e nella colonna PUNTATA, con contatore e massimo tre fiche
   disegnate. Nel reveal le fiche vincenti sono verdi, quelle perse rosse.
+- **Telefono:** stessa fiche circolare nella pila dell'opzione, con contatore,
+  tocco e tocco lungo (una fiche ogni 160 ms), vibrazione e tick audio; il tetto
+  della manche resta quello del server.
 - **Accessibilità:** l'animazione di caduta usa solo `transform`/`opacity` ed è
   spenta con `prefers-reduced-motion`, come il battito del timer.
-- **Audit:** nuovi `docs/AUDIT-GRAFICO/ELENCO.md` (19 file con gradienti/glow,
+- **Audit con schermate vere:** Playwright come devDependency e
+  `scripts/checks/screens.mjs` catturano 14 schermate ai cinque viewport in
+  `docs/AUDIT-GRAFICO/screens/`, con referto di overflow, bersagli e testi
+  piccoli. Corretti contrasto della regia audio, area di tocco dello slider e
+  delle varianti, suggerimenti del setup telefono, dock TV a 44 px e badge
+  OFFLINE.
+- **Inventario:** `docs/AUDIT-GRAFICO/ELENCO.md` (19 file con gradienti/glow,
   498 `!important`, 79 radius larghi, 3.025 righe di `restyle.css`, 30 colori
   fuori palette) e `docs/AUDIT-GRAFICO/RIEPILOGO.md` con lo stato della spec.
 - **Non incluso in questa versione:** le fasi 2–6 della spec (misura delle
