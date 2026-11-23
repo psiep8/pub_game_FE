@@ -411,8 +411,14 @@
           <span class="azzardo-option-text">{{ option }} {{ azzardoState()?.unit }}</span>
           <button type="button" class="azzardo-chip-stack"
             [disabled]="!azzardoCanBet() || azzardoChipsLeft() === 0"
-            [attr.aria-label]="'Metti una fiche su ' + letter(i)"
-            (click)="azzardoAddChip(i, 1)">
+            [attr.aria-label]="'Metti una fiche su ' + letter(i) + ': tocco o tocco lungo'"
+            (pointerdown)="azzardoPressStart(i, $event)"
+            (pointerup)="azzardoPressEnd()"
+            (pointercancel)="azzardoPressEnd()"
+            (pointerleave)="azzardoPressEnd()"
+            (contextmenu)="$event.preventDefault()"
+            (keydown.enter)="azzardoAddChip(i, 1)"
+            (keydown.space)="azzardoAddChip(i, 1); $event.preventDefault()">
             @if ((azzardoChips()[i] ?? 0) > 0) {
             @for (fiche of azzardoChipFiches(i); track $index) {
             <span class="fiche">{{ azzardoState()?.chipValue ?? 20 }}</span>

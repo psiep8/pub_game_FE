@@ -351,8 +351,8 @@
   gap: 5px;
 }
 .dock-btn {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   background: var(--coal-2);

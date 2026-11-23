@@ -216,7 +216,7 @@ interface AudioCard {
         overflow-y: auto;
         overscroll-behavior: contain;
         touch-action: pan-y;
-        background: var(--bg-0);
+        background: var(--paper-2);
         color: var(--coal);
         padding: clamp(16px, 2vw, 32px);
         padding-bottom: 56px;
@@ -227,7 +227,7 @@ interface AudioCard {
         position: sticky;
         top: 0;
         z-index: 2;
-        background: var(--bg-0);
+        background: var(--paper-2);
         padding-top: 8px;
         display: flex;
         flex-wrap: wrap;
@@ -248,7 +248,8 @@ interface AudioCard {
         font-family: var(--font-mono);
         font-size: 0.8rem;
         letter-spacing: 0.08em;
-        color: var(--ink-dim);
+        color: var(--coal);
+        opacity: 0.8;
       }
       .lab-controls {
         display: flex;
@@ -289,13 +290,18 @@ interface AudioCard {
       }
       .lab-slider input {
         width: 180px;
+        height: 44px;
         accent-color: var(--tomato);
+      }
+      .lab-slider span {
+        font-size: 0.75rem;
       }
       .lab-status {
         margin: 14px 0 0;
         font-family: var(--font-mono);
         font-size: 0.8rem;
-        color: var(--ink-dim);
+        color: var(--coal);
+        opacity: 0.8;
       }
       .lab-group {
         margin-top: 24px;
@@ -331,7 +337,7 @@ interface AudioCard {
         justify-content: space-between;
         gap: 8px;
         font-family: var(--font-mono);
-        font-size: 0.62rem;
+        font-size: 0.75rem;
         letter-spacing: 0.1em;
       }
       .lab-source {
@@ -345,12 +351,13 @@ interface AudioCard {
         padding: 2px 6px;
         border: 2px solid var(--coal);
         background: var(--acid);
-        font-size: 0.62rem;
+        font-size: 0.75rem;
         letter-spacing: 0.1em;
       }
       code {
-        font-size: 0.62rem;
-        color: var(--ink-dim);
+        font-size: 0.75rem;
+        color: var(--coal);
+        opacity: 0.85;
       }
       h3 {
         margin: 0;
@@ -360,17 +367,19 @@ interface AudioCard {
       }
       .lab-when {
         margin: 0;
-        font-size: 0.78rem;
-        color: var(--ink-dim);
+        font-size: 0.8rem;
+        color: var(--coal);
+        opacity: 0.85;
         min-height: 2.4em;
       }
       .lab-variant {
+        min-height: 44px;
         padding: 6px 8px;
         border: 2px dashed var(--coal);
         background: var(--paper-2);
         color: var(--coal);
         font-family: var(--font-mono);
-        font-size: 0.66rem;
+        font-size: 0.75rem;
         letter-spacing: 0.06em;
         cursor: pointer;
         text-align: left;
@@ -416,9 +425,10 @@ interface AudioCard {
       }
       .lab-bed-meta {
         font-family: var(--font-mono);
-        font-size: 0.62rem;
+        font-size: 0.75rem;
         letter-spacing: 0.08em;
-        color: var(--ink-dim);
+        color: var(--coal);
+        opacity: 0.8;
       }
       .lab-bed.static {
         cursor: default;
@@ -440,7 +450,7 @@ interface AudioCard {
         flex-direction: column;
         gap: 1px;
         font-family: var(--font-mono);
-        font-size: 0.68rem;
+        font-size: 0.75rem;
         letter-spacing: 0.04em;
       }
       .lab-bed:active {

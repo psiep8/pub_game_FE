@@ -2787,4 +2787,50 @@ describe('RemoteComponent', () => {
     // La partita è una sola: la scheda doppia resta a guardare.
     expect(game.quizAnswersSent).toEqual([]);
   });
+
+  it('fiche sul telefono: pila con contatore e tocco lungo', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    component.gameState.set(PlayerStatus.VOTING);
+    component.questionType.set('AZZARDO');
+    component.azzardoState.set({
+      phase: 'BET',
+      options: [1970, 1971, 1975, 1980],
+      unit: 'anno',
+      chipValue: 20,
+      odds: 3,
+      lossMultiplier: 0.8,
+      manche: 1,
+      total: 4,
+      ready: [{
+        playerName: 'Anna',
+        chips: [2, 0, 0, 0],
+        maxBet: 200,
+        chipsBank: 10,
+        chipsCap: 10,
+        points: 200,
+      }],
+      rows: [],
+    });
+    component.azzardoChips.set([2, 0, 0, 0]);
+    fixture.detectChanges();
+
+    const stack = fixture.nativeElement.querySelectorAll('.azzardo-chip-stack')[0] as HTMLElement;
+    expect(stack.querySelectorAll('.fiche').length).toBe(2);
+    expect(stack.querySelector('.fiche-count')?.textContent).toContain('×2');
+    // Il tocco semplice e la pressione lunga finiscono sullo stesso stato locale.
+    expect(stack.getAttribute('aria-label')).toContain('tocco lungo');
+
+    vi.useFakeTimers();
+    component.azzardoPressStart(0, new Event('pointerdown'));
+    expect(component.azzardoChips()[0]).toBe(3);
+    vi.advanceTimersByTime(700);
+    expect(component.azzardoChips()[0]).toBeGreaterThan(3);
+    component.azzardoPressEnd();
+    const afterRelease = component.azzardoChips()[0];
+    vi.advanceTimersByTime(400);
+    expect(component.azzardoChips()[0]).toBe(afterRelease);
+    vi.useRealTimers();
+  });
 });

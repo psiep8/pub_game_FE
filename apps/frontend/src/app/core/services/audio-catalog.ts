@@ -430,6 +430,7 @@ export const AUDIO_EVENT_FOR_METHOD = {
   playRouletteTicks: 'rouletteTicks',
   playRouletteLanding: 'rouletteLanding',
   playJoin: 'join',
+  playChip: 'coins',
   playTick: 'tick',
   playCountdownTick: 'countdownTick',
   playCountdownBong: 'countdownBong',

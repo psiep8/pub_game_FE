@@ -288,6 +288,7 @@ export class FakeAudioService {
     return true;
   };
   readonly playJoin = () => this.played.push('join');
+  readonly playChip = () => this.played.push('chip');
   readonly playGong = () => this.played.push('gong');
   readonly playTimeUp = () => this.played.push('time-up');
   readonly playRankReveal = (position: number) => this.played.push(`rank-reveal-${position}`);

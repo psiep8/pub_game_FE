@@ -344,6 +344,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   azzardoChips = signal<number[]>([]);
   azzardoSent = signal(false);
   private azzardoKey = '';
+  private azzardoPressDelay?: any;
+  private azzardoPressRepeat?: any;
   cavalloState = signal<any>(null);
   cavalloChoice = signal<string | null>(null);
   cavalloCategory = signal<string | null>(null);
@@ -1804,9 +1806,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
     ));
   }
 
-  /** Gettone disegnati nell'impiastro dell'opzione: massimo cinque. */
+  /** Fiche disegnate nella pila: al massimo tre, poi conta il totale. */
   azzardoChipFiches(index: number): number[] {
-    const count = Math.min(5, this.azzardoChips()[index] ?? 0);
+    const count = Math.min(3, this.azzardoChips()[index] ?? 0);
     return Array.from({ length: count }, (_, i) => i);
   }
 
@@ -1838,6 +1840,27 @@ export class RemoteComponent implements OnInit, OnDestroy {
     chips[index] = Math.max(0, (chips[index] ?? 0) + delta);
     this.azzardoChips.set(chips);
     this.vibrate(10);
+    if (delta > 0) this.audio.playChip();
+  }
+
+  /**
+   * Tocco lungo: una fiche subito, poi altre ogni 160 ms finché il dito resta
+   * giù. Il rilascio ferma tutto; il tetto della manche resta quello del server.
+   */
+  azzardoPressStart(index: number, event: Event): void {
+    event.preventDefault();
+    if (this.azzardoPressDelay || this.azzardoPressRepeat) return;
+    this.azzardoAddChip(index, 1);
+    this.azzardoPressDelay = setTimeout(() => {
+      this.azzardoPressRepeat = setInterval(() => this.azzardoAddChip(index, 1), 160);
+    }, 400);
+  }
+
+  azzardoPressEnd(): void {
+    if (this.azzardoPressDelay) clearTimeout(this.azzardoPressDelay);
+    if (this.azzardoPressRepeat) clearInterval(this.azzardoPressRepeat);
+    this.azzardoPressDelay = undefined;
+    this.azzardoPressRepeat = undefined;
   }
 
   /**
@@ -3115,6 +3138,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.azzardoPressEnd();
     this.invalidateQuizSummary();
     this.cancelTimelineSend();
     this.ws.disconnect();

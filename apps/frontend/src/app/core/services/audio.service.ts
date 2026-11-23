@@ -152,6 +152,11 @@ export class AudioService {
     this.startMarbleBed(this.marbleTrack);
   }
 
+  /** Fiche appoggiata sul tavolo: un tick breve, non una fanfara. */
+  playChip(): void {
+    this.play('coins');
+  }
+
   playBell(): void {
     this.play('bell');
   }
