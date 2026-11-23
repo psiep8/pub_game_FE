@@ -92,7 +92,7 @@
   letter-spacing: .02em;
   margin-bottom: 28px;
   line-height: 1.15;
-  color: var(--paper);
+  color: var(--ink);
   text-transform: uppercase;
   text-shadow: 3px 3px 0 var(--tomato);
   word-wrap: break-word;

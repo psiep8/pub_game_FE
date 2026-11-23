@@ -31,7 +31,7 @@
 .arena-title {
   font-size: clamp(2rem, 4.2vw, 3.8rem);
   font-weight: 400;
-  color: var(--paper);
+  color: var(--ink);
   font-family: var(--font-display);
   text-shadow: 4px 4px 0 var(--tomato);
   margin: 0;

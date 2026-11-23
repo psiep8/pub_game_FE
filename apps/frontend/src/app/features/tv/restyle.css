@@ -811,7 +811,7 @@
   background: transparent;
   border: 0;
   box-shadow: none;
-  color: var(--paper);
+  color: var(--ink);
   font-family: var(--font-display);
   font-size: clamp(1.6rem, 2.6vw, 2.4rem);
   line-height: 1.1;

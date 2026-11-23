@@ -207,7 +207,7 @@ app-image-blur .image-blur-layout{
   font-family: var(--font) !important;
 }
 app-image-blur .blur-title{
-  color: var(--paper) !important;
+  color: var(--ink) !important;
   font-family: var(--font-display) !important;
   font-weight: 400 !important;
   text-shadow: 4px 4px 0 var(--tomato) !important;
@@ -566,7 +566,7 @@ app-arena .arena-kicker,
 app-arena .arena-chip { font-size: clamp(0.82rem, 1.05vw, 1rem) !important; }
 app-arena .arena-instruction { font-size: clamp(0.95rem, 1.35vw, 1.25rem) !important; }
 app-arena .team-label { font-size: clamp(0.82rem, 1vw, 1rem) !important; }
-app-arena .arena-title { font-size: clamp(2rem, 4.2vw, 3.8rem) !important; color: var(--paper) !important; text-shadow: 4px 4px 0 var(--tomato) !important; }
+app-arena .arena-title { font-size: clamp(2rem, 4.2vw, 3.8rem) !important; color: var(--ink) !important; text-shadow: 4px 4px 0 var(--tomato) !important; }
 app-arena .arena-kicker { color: var(--acid) !important; }
 app-arena .arena-chip { background: var(--paper) !important; color: var(--coal) !important; border-color: var(--coal) !important; }
 app-arena .arena-chip.alive { color: var(--coal) !important; }

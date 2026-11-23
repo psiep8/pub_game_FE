@@ -1,5 +1,18 @@
 # Changelog
 
+## 23 novembre 2026 — Contrasto dei titoli TV e rifiniture, 2.3.3
+
+Nessun cambio di regole, punteggi, banche, enum o azioni WebSocket.
+
+- **Titoli TV:** Quiz, Musica, Immagini, Arena e la categoria del Quiz usano
+  `--ink`, il token del testo sul fondo. Su Artico, Cyber e Oro `--paper` è una
+  superficie scura: i titoli scendevano a 1,00–1,14:1. Ora stanno tra 14,7:1 e
+  19,1:1; K-Pop resta invariato perché lì `--ink` e `--paper` coincidono.
+- **Categoria Quiz:** rimosso l'override globale che la riduceva a 12,48 px;
+  torna al clamp del restyle TV (33,28 px a 1280).
+- **Admin:** il placeholder del campo categorie passa dal 42% al 65%, come il
+  campo nome del telefono (4,95–8,0:1 sui temi).
+
 ## 23 novembre 2026 — Fiche dell'Azzardo e inventario grafico, 2.3.2
 
 Nessun cambio di regole, punteggi, banche, enum o azioni WebSocket.
