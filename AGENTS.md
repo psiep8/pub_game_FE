@@ -42,3 +42,24 @@ Nessuna eccezione: prima di scrivere CSS o markup, leggere i token in
 - Se un componente legacy usa ancora il linguaggio vecchio, non copiarlo:
   aggiungere una skin con i token, come già fatto per Quiz, Canzone, Arena e
   classifiche.
+
+## Design review con Impeccable
+
+La skill di design [Impeccable](https://github.com/pbakaus/impeccable) è
+installata in `.claude/skills/impeccable/` e documentata in
+`docs/IMPECCABLE.md`, con il contesto in `PRODUCT.md` e `DESIGN.md`.
+
+- Prima di un intervento grafico non banale, leggere
+  `.claude/skills/impeccable/SKILL.md` e il riferimento del comando che serve
+  (`critique`, `audit`, `polish`, `layout`, `typeset`…).
+- Dopo aver toccato UI, eseguire `npm run audit:design`; per contrasto e testi
+  piccoli serve una pagina renderizzata (`npm run audit:design:screen` con il dev
+  server attivo).
+- **Precedenza:** `AGENTS.md`, `DESIGN.md` e i token di `styles.css` vincono su
+  qualsiasi suggerimento della skill. Impeccable trova le mancanze, non cambia il
+  linguaggio: niente gradienti, vetro, glow, radius arrotondati o palette fuori
+  tema, nemmeno se il detector li propone.
+- Gli avvisi `bounce-easing` sono advisory: valutarli caso per caso, non
+  applicarli a oggetti fisici (fiche, palline) che devono rimbalzare.
+- Non aggiungere `PRODUCT.md`/`DESIGN.md` alternativi dentro le app: il contesto
+  condiviso sta nella radice del repository.

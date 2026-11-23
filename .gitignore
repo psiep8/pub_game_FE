@@ -14,6 +14,9 @@ __screenshots__/
 # --- Scratch locale delle verifiche (screenshot, note): non è codice ---
 .basket-verify/
 
+# --- Impeccable: cache e stato locale (PRODUCT.md e DESIGN.md restano versionati) ---
+.impeccable/
+
 # --- Audio grezzo: i file scelti a mano, non vanno versionati ---
 apps/frontend/public/assets/audio/_src/
 apps/frontend/public/assets/audio/**/*.part.m4a
