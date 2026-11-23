@@ -1,6 +1,6 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, Subject, firstValueFrom, throwError } from 'rxjs';
+import { Subject, firstValueFrom } from 'rxjs';
 import { environment } from '../environment/environment';
 import { WebSocketService } from '../websocket/web-socket.service';
 

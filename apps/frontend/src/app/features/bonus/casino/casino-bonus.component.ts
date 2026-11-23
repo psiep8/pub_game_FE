@@ -929,10 +929,6 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.audio.playRouletteLanding();
   }
 
-  private wait(ms: number): Promise<void> {
-    return new Promise((resolve) => this.pause.later(ms, () => resolve()));
-  }
-
   /**
    * Giro fisico: la pallina vive in un mondo Matter nel sistema della ruota
    * (muro, deflettori e separatori dei vani sono corpi statici) e in scena

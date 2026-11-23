@@ -220,7 +220,7 @@ export function simulateRace(options: SimOptions): SimResult {
       : 0;
 
     // Posizioni del passo precedente, per capire chi si tocca.
-    const before = marbles.map((marble) => ({ x: 0, y: 0 }));
+    const before = marbles.map(() => ({ x: 0, y: 0 }));
     marbles.forEach((marble, index) => {
       const frame = pointAtS(geometry, marble.s);
       before[index] = {

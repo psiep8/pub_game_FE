@@ -888,7 +888,7 @@ export class Biglie implements OnInit, OnDestroy {
     const geometry = this.geometry;
     if (!geometry) return;
 
-    const { Engine, Bodies, Body, Composite, Events } = Matter;
+    const { Engine, Bodies, Composite, Events } = Matter;
     const engine = Engine.create({ enableSleeping: false });
     engine.gravity.x = 0;
     engine.gravity.y = 0;
@@ -2045,11 +2045,11 @@ export class Biglie implements OnInit, OnDestroy {
       }
     }
 
-    if (track.id === 'f1') this.drawCurbs(ctx, trackWidth);
-    if (track.id === 'neve') this.drawSnowbanks(ctx, trackWidth);
+    if (track.id === 'f1') this.drawCurbs(ctx);
+    if (track.id === 'neve') this.drawSnowbanks(ctx);
 
     this.drawHazards(ctx, trackWidth, now);
-    this.drawFeatures(ctx, trackWidth, now);
+    this.drawFeatures(ctx);
 
     this.drawGate(ctx, 0, 'START', trackWidth);
     this.drawGate(ctx, 1, 'TRAGUARDO', trackWidth);
@@ -2350,7 +2350,7 @@ export class Biglie implements OnInit, OnDestroy {
    * galloni, correnti a frecce, perni come birilli, zone d'attrito a
    * tratteggio. Leggono lo stesso elenco che suona e spinge.
    */
-  private drawFeatures(ctx: CanvasRenderingContext2D, trackWidth: number, now: number): void {
+  private drawFeatures(ctx: CanvasRenderingContext2D): void {
     const geometry = this.geometry;
     if (!geometry || !this.features.length) return;
     const left = this.cameraX - 60 / this.drawScale;
@@ -2455,7 +2455,7 @@ export class Biglie implements OnInit, OnDestroy {
     }
   }
 
-  private drawCurbs(ctx: CanvasRenderingContext2D, trackWidth: number): void {
+  private drawCurbs(ctx: CanvasRenderingContext2D): void {
     const geometry = this.geometry;
     if (!geometry) return;
 
@@ -2480,7 +2480,7 @@ export class Biglie implements OnInit, OnDestroy {
     }
   }
 
-  private drawSnowbanks(ctx: CanvasRenderingContext2D, trackWidth: number): void {
+  private drawSnowbanks(ctx: CanvasRenderingContext2D): void {
     const geometry = this.geometry;
     if (!geometry) return;
 
