@@ -1,16 +1,21 @@
 # Changelog
 
-## 23 novembre 2026 — Ruota a 62 frasi
+## 23 novembre 2026 — Ruota a 52 frasi, senza ripetizioni in serata
 
-- **Ruota della fortuna:** `QuestionBankService.PROVERBS` passa da **32 a 62
+- **Ruota della fortuna:** `QuestionBankService.PROVERBS` passa da **32 a 52
   frasi**, tutte italiane e adatte a un pub, senza doppioni (l'audit confronta
-  il testo normalizzato). Le 30 nuove sono proverbi e modi di dire di uso
-  comune — da «Acqua passata non macina più» a «Non dire gatto se non ce l'hai
-  nel sacco» — così due occorrenze a serata non ripetono la stessa frase e la
-  banca regge più serate di fila.
+  il testo normalizzato). Le 20 nuove — da «Chi non muore si rivede» a «Non
+  dire gatto se non ce l'hai nel sacco» — fanno sì che le due occorrenze a
+  serata non ripetano la stessa frase. Dieci candidati sono stati scartati in
+  revisione perché poco adatti al pub.
+- **Niente ripetizioni nella stessa partita:** `pickRandomProverb` riceveva
+  sempre il mazzo intero e ignorava la deduplica della serata; ora pesca solo
+  fra i proverbi non ancora usati, con la stessa chiave che il controller
+  prenota nel `QuestionHistoryService`. Se il mazzo si esaurisce riparte da
+  capo invece di far fallire il round. Test: `WheelProverbTest`.
 - **Documenti:** audit rigenerato, tabella di revisione aggiornata.
 - Verifiche: `node scripts/audit-banche.mjs --ci` → 0 doppioni, 0 segnalazioni,
-  0 campi mancanti, 0 dubbi Bomba.
+  0 campi mancanti, 0 dubbi Bomba; `WheelProverbTest` e compilazione backend.
 
 ## 23 novembre 2026 — Bomba senza dubbi, Timeline a 222 eventi
 

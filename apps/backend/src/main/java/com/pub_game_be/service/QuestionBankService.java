@@ -77,8 +77,6 @@ public class QuestionBankService {
             "Quando il gatto non c'è i topi ballano",
             "Chi ben comincia è a metà dell'opera",
             "L'erba del vicino è sempre più verde",
-            "Non rimandare a domani quello che puoi fare oggi",
-            "Chi ha tempo non aspetti tempo",
             "Chi va con lo zoppo impara a zoppicare",
             "Chi non risica non rosica",
             "Meglio prevenire che curare",
@@ -87,35 +85,27 @@ public class QuestionBankService {
             "Non tutto il male viene per nuocere",
             "Chi ha orecchie per intendere intenda",
             "A buon intenditor poche parole",
-            "Acqua passata non macina più",
             "Chi non muore si rivede",
             "A mali estremi estremi rimedi",
             "Il buon giorno si vede dal mattino",
             "Una mela al giorno toglie il medico di torno",
             "Non c'è due senza tre",
             "Tutte le strade portano a Roma",
-            "Roma non è stata costruita in un giorno",
             "Le bugie hanno le gambe corte",
             "L'occasione fa l'uomo ladro",
             "La notte porta consiglio",
             "Paese che vai usanza che trovi",
             "Ogni promessa è debito",
-            "Il silenzio è d'oro",
             "Chi tace acconsente",
             "Meglio tardi che mai",
             "Patti chiari amicizia lunga",
             "Can che abbaia non morde",
-            "Tanto tuonò che piovve",
-            "Non si finisce mai di imparare",
             "L'unione fa la forza",
-            "Una mano lava l'altra",
-            "Dopo la pioggia viene il bel tempo",
-            "Non c'è fumo senza arrosto",
+            "Tutto fumo e niente arrosto",
             "Il mattino ha l'oro in bocca",
             "Occhio non vede cuore non duole",
             "Il fine giustifica i mezzi",
             "Batti il ferro finché è caldo",
-            "Il diavolo fa le pentole ma non i coperchi",
             "Non dire gatto se non ce l'hai nel sacco"
     };
 
@@ -224,7 +214,7 @@ public class QuestionBankService {
         String requested = type == null ? "QUIZ" : type.toUpperCase(Locale.ROOT);
 
         return switch (requested) {
-            case "WHEEL_OF_FORTUNE", "WHEEL_FORTUNE", "PROVERB" -> pickRandomProverb();
+            case "WHEEL_OF_FORTUNE", "WHEEL_FORTUNE", "PROVERB" -> pickRandomProverb(isAvailable);
             case "MUSIC" -> musicPayload();
             case "ARENA" -> arenaWrapper();
             case "ULTIMA_SPIAGGIA" -> ultimaSpiaggiaPayload(category, isAvailable);
@@ -1194,6 +1184,26 @@ public class QuestionBankService {
 
     private String pickRandomProverb() {
         return PROVERBS[random.nextInt(PROVERBS.length)];
+    }
+
+    /**
+     * Proverbio non ancora uscito nella partita: la chiave passata a
+     * {@code isAvailable} è la stessa che il controller prenota con
+     * {@link #payloadDedupeKey(String)}, quindi due round della stessa serata non
+     * possono ripetere la frase. Con il mazzo esaurito si riparte da capo invece
+     * di far fallire il round.
+     */
+    private String pickRandomProverb(Predicate<String> isAvailable) {
+        List<String> unused = new ArrayList<>();
+        for (String proverb : PROVERBS) {
+            if (isAvailable.test(payloadDedupeKey(proverb))) {
+                unused.add(proverb);
+            }
+        }
+        if (unused.isEmpty()) {
+            return pickRandomProverb();
+        }
+        return unused.get(random.nextInt(unused.size()));
     }
 
     private String arenaWrapper() {

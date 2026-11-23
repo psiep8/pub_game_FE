@@ -288,11 +288,14 @@ La ripresa del Casino usa lo stesso `tvCheckpoint` dei round, con `mode` che ini
 - `3257054e` + `07169f9d` — annunci Quiz: la consegna avveniva col valore di ritorno di un metodo `@MessageMapping`, fuori dal `withRoundLock` dell'apertura, e il framework la ripeteva anche senza `@SendTo`. Ora il controller pubblica esplicitamente dentro lo stesso lock, il metodo è `void`, e i messaggi Quiz portano `roundStartId` e `roundStartedAt` autorevoli. Il telefono scarta annunci di un'altra apertura o più vecchi. Verifiche: test WebSocket con due client reali (l'annuncio vecchio non arriva dopo il cambio round, il nuovo arriva una volta sola), 88 test remoti e 191 test frontend (remoto + TV). **Da provare in sala:** TV e due telefoni fisici, primo round, cambio round e refresh della TV durante l'annuncio.
 - `283a05e5` + `5d4b76ad` — voti legacy: la ripresa di un Quiz con blob senza `roundStartId` resta bloccata (`legacy-quiz-state`) e un Quiz successivo non può più sovrascrivere quel blob; il primo legacy viene copiato in `quiz-legacy-archive` con test-and-set e l'archivio non viene mai sostituito. Verifiche: `QuizServiceTest` (11 test) e test d'integrazione H2 su apertura nuova, archivio e secondo legacy. **Da provare in sala:** copia di un database precedente all'aggiornamento, non il database della serata.
 
-**Aggiornamento 23 novembre 2026 — Ruota a 62 frasi.** La banca dei proverbi di
-`QuestionBankService.PROVERBS` passa da **32 a 62 frasi** senza doppioni: le 30
-nuove sono proverbi e modi di dire di uso comune, così le due occorrenze a
-serata non ripetono la stessa frase. Verifiche: `node scripts/audit-banche.mjs
---ci` → 0 doppioni, 0 segnalazioni.
+**Aggiornamento 23 novembre 2026 — Ruota a 52 frasi.** La banca dei proverbi di
+`QuestionBankService.PROVERBS` passa da **32 a 52 frasi** senza doppioni: le 20
+nuove sono proverbi e modi di dire di uso comune (dieci candidati sono stati
+scartati in revisione). La scelta ora salta i proverbi già usati nella partita,
+con la chiave del `QuestionHistoryService`: due round della stessa serata non
+possono ripetere la frase e, a mazzo esaurito, si riparte da capo. Verifiche:
+`node scripts/audit-banche.mjs --ci` → 0 doppioni, 0 segnalazioni;
+`WheelProverbTest`; tabellone TV misurato a 1280×720 con la frase più lunga.
 
 **Aggiornamento 23 novembre 2026 — Bomba senza dubbi e Timeline a 222 eventi.**
 Le otto coppie della Bomba segnalate dall'audit sono state allineate accorciando
