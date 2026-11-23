@@ -272,7 +272,7 @@ npm run build:frontend   # ng build
 npm run build:backend    # Maven package
 ```
 
-Il frontend ha **70 file di spec (643 test al 20 novembre 2026)**; il backend ha **154 test**. Le verifiche coprono, tra l'altro: regole di punteggio e scaletta, contenuti del manuale, copertura delle demo, round manager, apertura/chiusura del manuale sul telefono, modalità TV, sessioni e riconnessione, prova dei pulsanti, API e servizi del backend.
+Il frontend ha **70 file di spec (703 test al 23 novembre 2026: 701 eseguiti e 2 saltati quando manca ffmpeg)**; il backend ha **168 test**. Le verifiche coprono, tra l'altro: regole di punteggio e scaletta, contenuti del manuale, copertura delle demo, round manager, apertura/chiusura del manuale sul telefono, modalità TV, sessioni e riconnessione, prova dei pulsanti, API e servizi del backend.
 
 **Limiti noti dei test**: la suite frontend deve compilare per intero (un solo errore TypeScript in una spec ferma tutti i test);  non esiste ancora una prova end-to-end multi-dispositivo in rete; i controlli visivi sono manuali (TV e telefono); i timer dichiarati dal client non sono interamente verificabili dal server.
 
@@ -363,4 +363,5 @@ Per segnalazioni o proposte: apri una issue nel repository.
 | [`docs/SOTTOFONDI.md`](docs/SOTTOFONDI.md), [`docs/MANIFESTO-AUDIO.md`](docs/MANIFESTO-AUDIO.md), [`docs/AUDIO-CATALOGO.md`](docs/AUDIO-CATALOGO.md), [`docs/CREDITI-AUDIO.md`](docs/CREDITI-AUDIO.md) | Audio: loop, file, catalogo, crediti |
 | [`DESCRIZIONE-GIOCO.md`](DESCRIZIONE-GIOCO.md), [`PRESENTAZIONE-PUBGAME.md`](PRESENTAZIONE-PUBGAME.md) | Descrizione e copione di presentazione |
 | [`AGENTS.md`](AGENTS.md) | Stile grafico obbligatorio e regole per chi modifica l'interfaccia |
+| [`docs/PULIZIA-REPORT.md`](docs/PULIZIA-REPORT.md), [`docs/STRESS-REPORT.md`](docs/STRESS-REPORT.md) | Pulizia del repository (prove di ogni rimozione) e misure di carico, crash e soak |
 | [`CHANGELOG.md`](CHANGELOG.md) | Storia delle modifiche |

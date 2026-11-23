@@ -1,7 +1,7 @@
 # Codice e asset senza chiamanti (23 novembre 2026)
 
-Scansione fatta sul repository alla 2.2.0, dopo gli interventi A e B di
-`SPEC-RIMANENTE-2026-11-23.md`. Obiettivo: sapere cosa non è più usato senza
+Scansione fatta sul repository alla 2.2.0 e **ripetuta alla 2.3.1** per la
+pulizia totale. In quel giro `ScreamDto` è stato rimosso; il resto è rimasto. Obiettivo: sapere cosa non è più usato senza
 togliere niente che abbia chiamanti.
 
 ## Metodo
@@ -21,7 +21,8 @@ seleziona il runner.
 ## Esito
 
 Su 311 file, **70 classi non hanno riferimenti per nome fuori dal proprio
-file**. Nessuna è stata rimossa.
+file**. Una, `ScreamDto`, è stata rimossa nella pulizia del 23 novembre 2026;
+le altre 69 restano.
 
 | Gruppo | Quante | Perché non è codice morto |
 | --- | --- | --- |
@@ -30,18 +31,17 @@ file**. Nessuna è stata rimossa.
 | Doppi e utilità di test Angular (`FakeButtonTestService`, `BroadcastedStatus`) | 2 | Usati nei `.spec.ts` come valore, non come nome di classe |
 | Tipi e opzioni dichiarati nello stesso file del servizio che li usa (`RoundConfig`, `GameRoundPayload`, `MarbleRollStyle`, `TrackPiece`, `BlackjackRow`, `UltimaSpiaggiaRow`, `LetterDeckOptions`, `AzzardoMedia`, `DemoScoreRow`, `TvPauseHooks`, …) | 21 | Interfacce e type alias consumati strutturalmente: TypeScript non li nomina al punto d'uso |
 | `QuestionGeneratorService` | 1 | **Caso reale** (sotto) |
-| `ScreamDto` | 1 | **Caso reale** (sotto) |
+| ~~`ScreamDto`~~ | ~~1~~ | **Rimosso** il 23/11/2026: nessun altro file lo nominava |
 
 ## I due casi reali
 
-### `ScreamDto`
+### `ScreamDto` — rimosso
 
-`apps/backend/src/main/java/com/pub_game_be/dto/ScreamDto.java` è un DTO di 17
+`apps/backend/src/main/java/com/pub_game_be/dto/ScreamDto.java` era un DTO di 17
 righe senza chiamanti: il frontend manda `{gameId, playerName, intensity}` come
-oggetto semplice su `sendScream`, e il backend non lo deserializza in questa
-classe. Il campo `timestamp` non viene mai letto. È un residuo, ma toccarlo non
-cambia nulla di visibile: resta documentato qui invece di essere cancellato
-dentro un intervento di sole verifiche.
+oggetto semplice su `sendScream`, e il backend non lo deserializzava in quella
+classe. La rimozione è del 23 novembre 2026, dopo `grep` su tutto il progetto
+(nessun controller, servizio o test lo nominava) e con la suite backend verde.
 
 ### `QuestionGeneratorService`
 

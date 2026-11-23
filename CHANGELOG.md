@@ -1,5 +1,28 @@
 # Changelog
 
+## 23 novembre 2026 — Pulizia totale e stress test in laboratorio, 2.3.1
+
+Nessun cambio di regole, punteggi, banche, media o azioni WebSocket. La
+versione resta **2.3.1**.
+
+- **Rimosso (frontend):** due import rxjs mai usati in `reliability.service`, il
+  metodo privato `wait` del Casino, il parametro `Body` di Matter e i parametri
+  `trackWidth`/`now` di tre routine di disegno delle Biglie; undici
+  `console.log` di debug su TV e telefono. Nessun `warn`/`error` toccato.
+- **Rimosso (backend):** `ScreamDto`, DTO senza chiamanti.
+- **Rimosso (repo):** la cartella `qa/` con 34 screenshot mai citati (3,2 MB);
+  l'intestazione `[TEMPLATE]` da `.env.example`, che rompeva il parsing della
+  prima riga di una copia in `.env`.
+- **Strumenti:** `npm run stress:ws` (4–48 telefoni, latenza risposta → eco) e
+  `npm run stress:restart` (stato a metà round prima/dopo un riavvio), in
+  `scripts/stress/`. Usano un backend, una porta e un database separati.
+- **Numeri:** 701 test frontend eseguiti + 2 saltati (manca ffmpeg), 168 test
+  backend, `ng build` 7,2 s, bundle JS 1,52 MiB, audit banche e `npm audit` a
+  zero. I dettagli, le prove di ogni rimozione e le voci «da decidere» sono in
+  [`docs/PULIZIA-REPORT.md`](docs/PULIZIA-REPORT.md); le misure di carico, i
+  difetti trovati e le prove da fare in sala in
+  [`docs/STRESS-REPORT.md`](docs/STRESS-REPORT.md).
+
 ## 23 novembre 2026 — Strumenti e CI, 2.3.1
 
 - **Versione:** 2.3.1 in `VERSION`, `package.json`, `package-lock.json`, pom del

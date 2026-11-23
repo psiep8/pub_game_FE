@@ -395,3 +395,11 @@ media), run CI #155 verde prima di questo job, screenshot del README rifatti.
 | D3v | Fatto | Scansione con riferimenti | — | `docs/CODICE-NON-USATO.md`: nessun servizio rimosso, tutti hanno chiamanti o test. |
 | D4v | Fatto | Manuale e PDF rigenerati | — | Testo Quiz e numero secco aggiornati; PDF colore e B/N rifatti. |
 | Altre voci | Da fare o da verificare | — | — | F18/F19 sono stati ritoccati ma richiedono ascolto reale; F23 e F24 richiedono telefoni veri; F36/F38 sono contenuti e bilanciamento da provare in sala; F37 richiede una prova reale in sala; F39 una copia del database della serata; F21 una revisione manuale dei contenuti; F56 lascia 69 buchi di Ultima spiaggia e pochi eventi Timeline di difficoltà 5; F40/F42/F14 richiedono una decisione. F28 (Azzardo) resta in pausa. Nessuna prova su telefoni, audio o TV reali è stata eseguita. |
+
+### Registro stress test (23 novembre 2026)
+
+| ID | Stato | Prova | Commit | Note |
+| --- | --- | --- | --- | --- |
+| P1 (stress) | Aperto, P1 | `npm run stress:restart` + `kill -9`: 1 perdita su 7 prove | — | Dopo un crash il token admin ha risposto `401`, l'heartbeat `410 session-unknown` e lo stato è ripartito da `CREATED` (`stateVersion 0`): round e sessioni persi. Non riprodotto in 6 tentativi. Dettagli ed estratto di log in `docs/STRESS-REPORT.md` §3.1 e §7. |
+| P2 (stress) | Aperto, P2 | `GET /games/{id}/diagnostics` su partita `CREATED` | — | Riporta `roundOpen: true` con `roundType: null`: la diagnostica può far credere che un round sia aperto. `ReliabilityController.diagnostics`. |
+| P3 (stress) | Aperto, P3 | `npm run test:frontend` senza ffmpeg | — | Due test di loudness si saltano: la suite dichiara 703 test ma ne esegue 701, anche in CI. `loop-loudness.spec.ts`. |
