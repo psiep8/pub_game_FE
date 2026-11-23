@@ -21,14 +21,14 @@ Scansionate per **tutti gli 8 temi** dichiarati in `theme.service.ts`:
 
 | Tema | Superfici | Contrasti | Warning |
 |---|---|---|---|
-| ACIDO (`editorial-acid`) | 3/3 | 1 | 5 |
-| SABBIA (`desert-heritage`) | 3/3 | 2 | 5 |
-| ARTICO (`arctic-noir`) | 3/3 | 1 | 5 |
-| OCEANO (`deep-ocean`) | 3/3 | 4 | 5 |
-| K-POP (`kpop-aesthetic`) | 3/3 | 1 | 5 |
-| CYBER (`neon-cyberpunk`) | 3/3 | 1 | 5 |
-| SUNSET (`sunset-pop`) | 3/3 | 3 | 7 |
-| ORO (`premium-gold`) | 3/3 | 1 | 5 |
+| ACIDO (`editorial-acid`) | 3/3 | 0 | 5 |
+| SABBIA (`desert-heritage`) | 3/3 | 1 | 5 |
+| ARTICO (`arctic-noir`) | 3/3 | 0 | 5 |
+| OCEANO (`deep-ocean`) | 3/3 | 3 | 5 |
+| K-POP (`kpop-aesthetic`) | 3/3 | 0 | 5 |
+| CYBER (`neon-cyberpunk`) | 3/3 | 0 | 5 |
+| SUNSET (`sunset-pop`) | 3/3 | 2 | 7 |
+| ORO (`premium-gold`) | 3/3 | 0 | 5 |
 
 Scansioni riuscite: **24/24**.
 
@@ -36,22 +36,17 @@ Scansioni riuscite: **24/24**.
 
 ### ACIDO (`editorial-acid`)
 
-| Superficie | Elemento | Testo su fondo | Esito |
-|---|---|---|---|
-| Telefono setup | `#team-name` | placeholder "Nome della squadra" 2.6:1 (need 4.5:1) — text #a19d91 on #fff8e8 | advisory |
+Nessun contrasto sotto soglia.
 
 ### SABBIA (`desert-heritage`)
 
 | Superficie | Elemento | Testo su fondo | Esito |
 |---|---|---|---|
 | TV lobby | `p.lobby-url.ng-tns-c1664707305-0` | 4.3:1 (need 4.5:1) — text #6b6152 on #e8d6b8 | advisory |
-| Telefono setup | `#team-name` | placeholder "Nome della squadra" 2.5:1 (need 4.5:1) — text #a1998c on #f8eedc | advisory |
 
 ### ARTICO (`arctic-noir`)
 
-| Superficie | Elemento | Testo su fondo | Esito |
-|---|---|---|---|
-| Telefono setup | `#team-name` | placeholder "Nome della squadra" 3.1:1 (need 4.5:1) — text #687785 on #1b2b3d | advisory |
+Nessun contrasto sotto soglia.
 
 ### OCEANO (`deep-ocean`)
 
@@ -60,19 +55,14 @@ Scansioni riuscite: **24/24**.
 | TV intro | `div.intro-kicker` | 4.49:1 (need 4.5:1) — text #f0fbf7 on #087f8c (and 1 more) | advisory |
 | TV lobby | `span.label` | 4.49:1 (need 4.5:1) — text #f0fbf7 on #087f8c (and 1 more) | advisory |
 | TV lobby | `p.lobby-url.ng-tns-c1664707305-0` | 4.3:1 (need 4.5:1) — text #597274 on #d9f0ea | advisory |
-| Telefono setup | `#team-name` | placeholder "Nome della squadra" 2.4:1 (need 4.5:1) — text #94a5a5 on #f0fbf7 | advisory |
 
 ### K-POP (`kpop-aesthetic`)
 
-| Superficie | Elemento | Testo su fondo | Esito |
-|---|---|---|---|
-| Telefono setup | `#team-name` | placeholder "Nome della squadra" 2.5:1 (need 4.5:1) — text #a79ea9 on #fff8fc | advisory |
+Nessun contrasto sotto soglia.
 
 ### CYBER (`neon-cyberpunk`)
 
-| Superficie | Elemento | Testo su fondo | Esito |
-|---|---|---|---|
-| Telefono setup | `#team-name` | placeholder "Nome della squadra" 3.4:1 (need 4.5:1) — text #766c88 on #24183a | advisory |
+Nessun contrasto sotto soglia.
 
 ### SUNSET (`sunset-pop`)
 
@@ -80,13 +70,10 @@ Scansioni riuscite: **24/24**.
 |---|---|---|---|
 | TV intro | `div.intro-kicker` | 4.1:1 (need 4.5:1) — text #fff9f3 on #c64c91 (and 1 more) | warning |
 | TV lobby | `span.label` | 4.1:1 (need 4.5:1) — text #fff9f3 on #c64c91 (and 1 more) | warning |
-| Telefono setup | `#team-name` | placeholder "Nome della squadra" 2.4:1 (need 4.5:1) — text #aa9fa4 on #fff9f3 | advisory |
 
 ### ORO (`premium-gold`)
 
-| Superficie | Elemento | Testo su fondo | Esito |
-|---|---|---|---|
-| Telefono setup | `#team-name` | placeholder "Nome della squadra" 3.3:1 (need 4.5:1) — text #72716d on #1a222c | advisory |
+Nessun contrasto sotto soglia.
 
 ## Testi piccoli
 

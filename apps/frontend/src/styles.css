@@ -543,6 +543,15 @@ app-game-component .round-text { font-size: clamp(0.78rem, 0.95vw, 0.95rem) !imp
 app-game-component .question-category { font-size: clamp(0.78rem, 0.95vw, 0.92rem) !important; }
 app-game-component .lobby-kicker,
 app-game-component .lobby-sub { font-size: clamp(0.78rem, 1vw, 1rem) !important; }
+/* Oro: il cerchio chiaro passa dietro «PUB»; il contorno scuro tiene il logo
+   leggibile senza cambiare il colore del titolo. */
+html[data-theme="premium-gold"] app-game-component .lobby-title {
+  -webkit-text-stroke-width: 2px;
+  -webkit-text-stroke-color: var(--bg-0);
+}
+html[data-theme="premium-gold"] app-game-component .lobby-title span {
+  -webkit-text-stroke-width: 0;
+}
 app-game-component .lobby .qr-section p,
 app-game-component .lobby .qr-label { font-size: clamp(0.76rem, 0.9vw, 0.9rem) !important; }
 app-game-component .lobby-step small { font-size: clamp(0.76rem, 0.9vw, 0.88rem) !important; }

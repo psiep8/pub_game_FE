@@ -71,7 +71,7 @@
   text-align: left;
   outline: none;
 }
-.setup-screen input::placeholder { color: color-mix(in srgb, var(--coal) 40%, transparent); }
+.setup-screen input::placeholder { color: color-mix(in srgb, var(--coal) 65%, transparent); }
 .setup-screen input:focus {
   background: var(--acid);
   border-color: var(--coal);
