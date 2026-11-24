@@ -331,6 +331,27 @@ public class ReliabilityController {
         return Map.of("removed", removed, "playerName", playerName);
     }
 
+    /**
+     * Seme delle entrate a sorpresa dei bonus.
+     *
+     * <p>Stabile per partita: la TV ci costruisce il piano dei cinque ingressi,
+     * uno per bonus e tutti diversi. Non è un dato sensibile e non dipende dal
+     * dispositivo, quindi un refresh non cambia la scena.</p>
+     */
+    @GetMapping("/bonus-entrance")
+    public Map<String, Object> bonusEntrance(@PathVariable("gameId") Long gameId) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("seed", bonusSeed(gameId));
+        return out;
+    }
+
+    /** Seme stabile e non negativo: due TV sulla stessa partita vedono la stessa scena. */
+    static long bonusSeed(long gameId) {
+        long mixed = gameId * 0x9e3779b97f4a7c15L;
+        mixed ^= mixed >>> 29;
+        return (mixed & 0x7fffffffffffffffL) % 2_147_483_647L;
+    }
+
     @GetMapping("/diagnostics")
     public Map<String, Object> diagnostics(@PathVariable("gameId") Long gameId, HttpServletRequest request) {
         boolean paired = request.getAttribute("pubgame.session") != null;

@@ -436,6 +436,21 @@ export class ReliabilityService {
     }
   }
 
+  /**
+   * Seme delle entrate a sorpresa: lo decide il server, stabile per partita.
+   * Se non risponde, la TV ripiega sull'id della partita.
+   */
+  async bonusEntranceSeed(gameId = this.gameId): Promise<number> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ seed: number }>(`${this.baseUrl}/games/${gameId}/bonus-entrance`)
+      );
+      return Number(response?.seed) || 0;
+    } catch {
+      return 0;
+    }
+  }
+
   async diagnostics(gameId = this.gameId): Promise<any | null> {
     try {
       return await firstValueFrom(

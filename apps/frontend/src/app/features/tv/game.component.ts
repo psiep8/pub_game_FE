@@ -1,5 +1,7 @@
 import { GamePhase } from '../../shared/enums/game-phase';
 import { WsAction } from '../../shared/enums/ws-action';
+import { bonusEntranceFor, type BonusEntranceEntry } from '../../shared/bonus-entrances';
+import type { AudioEventId } from '../../core/services/audio-catalog';
 import * as QRCode from 'qrcode';
 
 
@@ -221,6 +223,8 @@ export class GameComponent implements OnInit, OnDestroy {
   });
   /** Il round è aperto ma la sua scadenza è ferma per l'introduzione. */
   private introHold = false;
+  /** Seme degli ingressi per partita: lo decide il server, la TV lo ricorda. */
+  private readonly bonusSeedByGame = new Map<number, number>();
   private countdownTimer?: ReturnType<typeof setInterval>;
   /** Canali audio attivi: pannello di sala dietro `?audiodebug=1`. */
   readonly audioDebug = signal(
@@ -233,6 +237,8 @@ export class GameComponent implements OnInit, OnDestroy {
   bonusResume = signal<any | null>(null);
   /** Ingresso scenografico in corso: il bonus vero parte alla fine. */
   bonusEntrance = signal<BonusType | null>(null);
+  /** L'ingresso a sorpresa scelto per questa partita (uno per bonus). */
+  bonusEntranceEntry = signal<BonusEntranceEntry | null>(null);
   bonusShowResult = signal(false);
   bonusResult = signal<Array<{ playerName: string; score: number }>>([]);
   autoAdvanceSeconds = signal(0);
@@ -531,6 +537,7 @@ export class GameComponent implements OnInit, OnDestroy {
     // dall'ID salvato e si chiede al server quale serata è in corso.
     const storedGameId = Number(localStorage.getItem('activeGameId')) || this.currentGameId() || 1;
     this.currentGameId.set(storedGameId);
+    void this.prefetchBonusSeed(storedGameId);
     this.ws.subscribeToGame(storedGameId);
 
     // Iscrizione prima di start(): il primo sync può concludersi mentre la
@@ -2136,14 +2143,74 @@ export class GameComponent implements OnInit, OnDestroy {
 
     // Un bonus è fuori dal round: chiude il conteggio se era ancora aperto.
     this.settleRoundWinner();
+
+    // Ingresso a sorpresa: lo sceglie il seme della partita, una volta sola.
+    // Dopo un refresh la scena non si rigioca: il bonus continua da dove era.
+    const entrance = this.entranceFor(type);
+    if (this.wasEntrancePlayed(type)) {
+      void this.beginBonus(type);
+      return;
+    }
+    this.markEntrancePlayed(type, entrance.id);
+
     this.bonusEntrance.set(type);
+    this.bonusEntranceEntry.set(entrance);
     this.audioService.setGameBed(type);
-    this.audioService.playBonusEntrance(type);
+    this.audioService.play(entrance.sound as AudioEventId, entrance.variant ?? 0);
+    this.ws.broadcastStatus(this.currentGameId(), {
+      action: WsAction.BONUS_STARTED,
+      type,
+      entrance: entrance.id,
+    });
     this.bonusEntranceTimer = setTimeout(() => {
       this.bonusEntrance.set(null);
       this.bonusEntranceTimer = undefined;
       void this.beginBonus(type);
     }, resume ? 600 : 2600);
+  }
+
+  /**
+   * L'ingresso della partita per questo bonus. Il seme arriva dal server ed è
+   * stabile: stesso bonus, stessa sorpresa, anche dopo un refresh. Se il server
+   * non risponde si ripiega sull'id della partita, mai su un sorteggio locale.
+   */
+  private entranceFor(type: BonusType): BonusEntranceEntry {
+    const gameId = this.currentGameId() ?? 0;
+    let seed = this.bonusSeedByGame.get(gameId);
+    if (seed === undefined) {
+      // Il seme arriva dal server appena la partita è nota; se il bonus
+      // arrivasse prima, si usa l'id della partita (stabile) e non un dado.
+      seed = gameId || 1;
+      this.bonusSeedByGame.set(gameId, seed);
+      void this.prefetchBonusSeed(gameId);
+    }
+    return bonusEntranceFor(type, seed);
+  }
+
+  private async prefetchBonusSeed(gameId: number): Promise<void> {
+    const fromServer = await this.reliability.bonusEntranceSeed(gameId);
+    if (fromServer) this.bonusSeedByGame.set(gameId, fromServer);
+  }
+
+  private entranceMarkKey(type: BonusType): string {
+    return `bonusEntrance:${this.currentGameId() ?? 0}:${type}`;
+  }
+
+  /** Visto in questa scheda: al refresh l'ingresso non si ripete. */
+  private wasEntrancePlayed(type: BonusType): boolean {
+    try {
+      return !!sessionStorage.getItem(this.entranceMarkKey(type));
+    } catch {
+      return false;
+    }
+  }
+
+  private markEntrancePlayed(type: BonusType, entranceId: string): void {
+    try {
+      sessionStorage.setItem(this.entranceMarkKey(type), entranceId);
+    } catch {
+      // Storage negato: si accetta il rischio di rivedere la scena.
+    }
   }
 
   private async beginBonus(type: BonusType): Promise<void> {
@@ -2472,6 +2539,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.bonusEntranceTimer) clearTimeout(this.bonusEntranceTimer);
     this.bonusEntranceTimer = undefined;
     this.bonusEntrance.set(null);
+    this.bonusEntranceEntry.set(null);
     // Reset della scena: loop, sottofondo e memoria di ripresa si azzerano.
     this.audioService.resetAudio();
     this.audioService.stopSuspense();

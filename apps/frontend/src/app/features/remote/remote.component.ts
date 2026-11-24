@@ -813,6 +813,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.handleTennisBattleState(status);
           break;
 
+        case 'BONUS_STARTED':
+          // La sorpresa arriva anche in tasca: tre colpi brevi, mai continui.
+          try {
+            navigator.vibrate?.([90, 60, 120, 60, 200]);
+          } catch {
+            // Telefono senza vibrazione: la scena resta sulla TV.
+          }
+          break;
+
         case 'BONUS_ENDED':
           this.roundActive.set(false);
           this.questionType.set('QUIZ');

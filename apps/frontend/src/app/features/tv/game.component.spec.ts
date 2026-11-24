@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { By } from '@angular/platform-browser';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { of, throwError } from 'rxjs';
@@ -24,6 +26,8 @@ import { ButtonTestService } from '../../core/services/button-test.service';
 import { FakeButtonTestService } from '../../shared/testing/fake-button-test.service';
 import { GamePhase } from '../../shared/enums/game-phase';
 import { WsAction } from '../../shared/enums/ws-action';
+import { bonusEntranceFor } from '../../shared/bonus-entrances';
+import { BonusEntrance } from '../bonus/bonus-entrance/bonus-entrance.component';
 import { GAME_TIMINGS } from '../../shared/models/game-timings';
 import { QuizMode } from '../games/quiz/quiz.mode';
 
@@ -36,6 +40,8 @@ describe('GameComponent', () => {
 
   beforeEach(async () => {
     localStorage.clear();
+    // Ogni test è una scheda nuova: l'ingresso già visto non si trascina.
+    sessionStorage.clear();
 
     await TestBed.configureTestingModule({
       imports: [GameComponent],
@@ -392,6 +398,46 @@ describe('GameComponent', () => {
 
     expect(component.bonusResume()).toEqual(state);
     expect(component.bonusEntrance()).toBe('CASINO_COLOR');
+  });
+
+  it('l’ingresso del bonus arriva dal seme della partita, non dal caso', async () => {
+    component.currentGameId.set(1);
+    (component as unknown as { bonusSeedByGame: Map<number, number> }).bonusSeedByGame.set(1, 99);
+    const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
+
+    await component.startBonus('CASINO_COLOR');
+
+    const entry = component.bonusEntranceEntry();
+    expect(entry?.type).toBe('CASINO_COLOR');
+    expect(entry?.id).toBe(bonusEntranceFor('CASINO_COLOR', 99).id);
+    expect(audio.played).toContain(`play-${entry!.sound}`);
+  });
+
+  it('un bonus ripreso dopo un refresh non rigioca l’ingresso', async () => {
+    component.currentGameId.set(1);
+    sessionStorage.setItem('bonusEntrance:1:CAVALLO', 'cavallo-cancelli');
+
+    await component.startBonus('CAVALLO', { votes: [], scores: [] });
+
+    expect(component.bonusEntrance()).toBeNull();
+    expect(component.bonusEntranceEntry()).toBeNull();
+    sessionStorage.removeItem('bonusEntrance:1:CAVALLO');
+  });
+
+  it('la pausa ferma l’ingresso a metà scena', async () => {
+    component.currentGameId.set(1);
+    await component.startBonus('BLACKJACK');
+    expect(component.bonusEntrance()).toBe('BLACKJACK');
+
+    component.isPaused.set(true);
+    fixture.detectChanges();
+
+    // La pausa arriva all'ingresso: le animazioni vanno in `animation-play-state`.
+    const entrance = fixture.debugElement.query(By.directive(BonusEntrance)).componentInstance as BonusEntrance;
+    expect(entrance.paused).toBe(true);
+    expect(entrance.entry?.type).toBe('BLACKJACK');
+    const html = readFileSync('src/app/features/tv/game.component.html', 'utf8');
+    expect(html).toContain('[paused]="isPaused()"');
   });
 
   it('riapre il Blackjack bonus dalla mano salvata sul server', () => {

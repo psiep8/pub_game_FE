@@ -434,4 +434,11 @@ export class FakeReliabilityService {
   async diagnostics(): Promise<any | null> {
     return this.diagnosticsResult;
   }
+
+  /** Seme degli ingressi a sorpresa: nei test è fisso, così la scena è nota. */
+  readonly bonusSeedRequests: number[] = [];
+  async bonusEntranceSeed(gameId = 0): Promise<number> {
+    this.bonusSeedRequests.push(gameId);
+    return 424242;
+  }
 }

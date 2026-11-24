@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { BonusType } from '../../../shared/enums/bonus-type';
+import type { BonusEntranceEntry } from '../../../shared/bonus-entrances';
 
 /**
  * Ingresso scenografico dei cinque bonus.
@@ -16,7 +17,8 @@ import { BonusType } from '../../../shared/enums/bonus-type';
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="be-overlay" [class]="'be-overlay be-' + type" role="status" aria-live="polite">
+    <div class="be-overlay" [class]="'be-overlay be-' + type + ' be-motion-' + motion()"
+      [class.be-paused]="paused" role="status" aria-live="polite">
       <div class="be-beam" aria-hidden="true"></div>
       <div class="be-alarm" aria-hidden="true"></div>
       <div class="be-shock">
@@ -51,6 +53,17 @@ import { BonusType } from '../../../shared/enums/bonus-type';
     .be-CASINO_DOZEN { --be-accent: var(--acid); }
     .be-CAVALLO { --be-accent: var(--paper-hi); }
     .be-CASINO_NUMBER { --be-accent: var(--mustard); background: #070706; }
+
+    /* La pausa ferma anche l'ingresso: la scena resta, il tempo no. */
+    .be-paused, .be-paused * { animation-play-state: paused !important; }
+
+    /* Cinque movimenti diversi, uno per tipo di sorpresa. */
+    .be-motion-alarm .be-alarm { opacity: .8; animation-duration: .8s; }
+    .be-motion-alarm .be-beam { animation-duration: 1.4s; }
+    .be-motion-drop .be-shock { animation-name: be-drop-scene; animation-duration: 1.1s; }
+    .be-motion-slam .be-shock { animation: be-slam 700ms cubic-bezier(.2, .8, .2, 1) both; }
+    .be-motion-spin .be-beam { animation-duration: 5.5s; }
+    .be-motion-spin .be-card { animation: be-card-spin 1.6s cubic-bezier(.2, .8, .2, 1) both; }
 
     .be-beam {
       position: absolute;
@@ -141,6 +154,20 @@ import { BonusType } from '../../../shared/enums/bonus-type';
       30% { transform: translate(4px, -2px) rotate(.4deg); }
       38%, 100% { transform: translate(0, 0) rotate(0); opacity: 1; }
     }
+    @keyframes be-drop-scene {
+      0% { transform: translateY(-60px); opacity: 0; }
+      70% { transform: translateY(10px); opacity: 1; }
+      100% { transform: none; }
+    }
+    @keyframes be-slam {
+      0% { transform: scale(1.5); opacity: 0; }
+      60% { transform: scale(.97); opacity: 1; }
+      100% { transform: none; }
+    }
+    @keyframes be-card-spin {
+      0% { transform: rotate(-14deg) scale(.85); opacity: 0; }
+      100% { transform: rotate(-1deg) scale(1); opacity: 1; }
+    }
     @keyframes be-drop {
       0% { transform: translateY(-40px) scale(.7) rotate(-12deg); opacity: 0; }
       60% { transform: translateY(6px) scale(1.08) rotate(4deg); opacity: 1; }
@@ -148,15 +175,24 @@ import { BonusType } from '../../../shared/enums/bonus-type';
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .be-beam, .be-alarm, .be-shock, .be-icon { animation: none; }
+      .be-beam, .be-alarm, .be-shock, .be-icon, .be-card { animation: none; }
       .be-alarm { opacity: .25; }
     }
   `],
 })
 export class BonusEntrance {
   @Input({ required: true }) type: BonusType = 'CASINO_COLOR';
+  /** L'ingresso scelto per questa partita; senza, resta la variante del tipo. */
+  @Input() entry: BonusEntranceEntry | null = null;
+  /** La pausa ferma l'ingresso a metà scena. */
+  @Input() paused = false;
+
+  motion(): string {
+    return this.entry?.motion ?? 'sweep';
+  }
 
   icon(): string {
+    if (this.entry?.icon) return this.entry.icon;
     switch (this.type) {
       case 'BLACKJACK': return '🃏';
       case 'CASINO_DOZEN': return '🎰';
@@ -167,6 +203,7 @@ export class BonusEntrance {
   }
 
   kicker(): string {
+    if (this.entry?.kicker) return this.entry.kicker;
     switch (this.type) {
       case 'BLACKJACK': return 'IL BANCO SI APRE';
       case 'CASINO_DOZEN': return 'ALLARME DOZZINA';

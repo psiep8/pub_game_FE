@@ -19,7 +19,7 @@
 }
 
   @if (bonusEntrance(); as entranceType) {
-  <app-bonus-entrance [type]="entranceType" />
+  <app-bonus-entrance [type]="entranceType" [entry]="bonusEntranceEntry()" [paused]="isPaused()" />
   }
 
   @if (introVisible()) {

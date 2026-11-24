@@ -28,6 +28,8 @@ export const WsAction = {
   AZZARDO_ACTION: 'AZZARDO_ACTION',
   BLACKJACK_ACTION: 'BLACKJACK_ACTION',
   // TV -> telefoni
+  /** Un bonus sta partendo: i telefoni vibrano con l'ingresso. */
+  BONUS_STARTED: 'BONUS_STARTED',
   SHOW_QUESTION: 'SHOW_QUESTION',
   START_VOTING: 'START_VOTING',
   PLAYER_PRENOTATO: 'PLAYER_PRENOTATO',
