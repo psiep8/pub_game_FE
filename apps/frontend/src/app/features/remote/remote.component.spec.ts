@@ -1215,6 +1215,73 @@ describe('RemoteComponent', () => {
     expect(component.questionType()).toBe('QUIZ');
   });
 
+  it('un round aperto ma non annunciato lascia il telefono in attesa neutra', async () => {
+    // Sintomo della serata di prova: header con il round nuovo e telefono
+    // ancora sul gioco precedente (Musica) mentre la TV mostrava il Quiz.
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+
+    ws.status$.next({ action: 'SHOW_QUESTION', type: 'MUSIC', payload: '{}' });
+    ws.status$.next({ action: 'START_VOTING', type: 'MUSIC', payload: '{}' });
+    await fixture.whenStable();
+    expect(component.questionType()).toBe('MUSIC');
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(fixture.nativeElement.textContent).toContain('PRENOTA E RISPONDI!');
+
+    reliability.syncState$.next({
+      hasState: true,
+      status: 'RUNNING',
+      roundType: 'AZZARDO',
+      roundIndex: 4,
+      roundKey: 'g1-r5',
+      roundDeadlineAt: Date.now() + 60_000,
+      // La TV ha aperto il round e sta facendo l'intro: nessun annuncio.
+      announced: false,
+      currentRound: { type: 'AZZARDO', roundKey: 'g1-r5', payload: { category: 'STORIA' } },
+    });
+    fixture.detectChanges();
+
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+    const text = String(fixture.nativeElement.textContent).replace(/\s+/g, ' ');
+    expect(text).toContain('In attesa della prossima sfida');
+    expect(text).not.toContain('PRENOTA E RISPONDI!');
+  });
+
+  it('un annuncio arretrato non riporta il telefono al gioco del round precedente', async () => {
+    // Il comando della regia viene replicato: se l'annuncio del round vecchio
+    // arriva dopo lo snapshot del round nuovo, il telefono non deve tornare
+    // sulla schermata precedente con il numero di round nuovo nell'header.
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+
+    reliability.syncState$.next({
+      hasState: true,
+      status: 'RUNNING',
+      roundType: 'AZZARDO',
+      roundIndex: 4,
+      roundKey: 'g1-r5',
+      roundDeadlineAt: Date.now() + 60_000,
+      announced: false,
+      currentRound: { type: 'AZZARDO', roundKey: 'g1-r5', payload: { category: 'STORIA' } },
+    });
+    fixture.detectChanges();
+    expect(component.roundNumber()).toBe(5);
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+
+    // Replica in ritardo dell'annuncio del round 4 (Musica).
+    ws.status$.next({ action: 'START_VOTING', type: 'MUSIC', round: 4 });
+    fixture.detectChanges();
+
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+    expect(component.questionType()).not.toBe('MUSIC');
+    expect(String(fixture.nativeElement.textContent)).not.toContain('PRENOTA E RISPONDI!');
+
+    // L'annuncio del round in corso, invece, apre il gioco.
+    ws.status$.next({ action: 'START_VOTING', type: 'AZZARDO', round: 5, payload: '{}' });
+    expect(component.questionType()).toBe('AZZARDO');
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+  });
+
   it('should not let a player with zero points bet in Azzardo', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();

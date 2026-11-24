@@ -624,6 +624,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
       switch (status.action) {
         case 'SHOW_QUESTION':
+          if (!this.acceptRoundAnnouncement(status)) return;
           if (status.type === 'QUIZ' && !this.acceptQuizAnnouncement(status)) return;
           if (status.type === 'QUIZ') {
             this.clearQuizLegacyBlock(status.roundStartId);
@@ -670,6 +671,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
 
         case 'START_VOTING':
+          if (!this.acceptRoundAnnouncement(status)) return;
           if (status.type === 'QUIZ' && !this.acceptQuizAnnouncement(status)) return;
           if (status.type === 'QUIZ') {
             this.clearQuizLegacyBlock(status.roundStartId);
@@ -2740,6 +2742,19 @@ export class RemoteComponent implements OnInit, OnDestroy {
    * riportare il telefono alla manche precedente. Senza l'istante server (TV o
    * backend precedenti) il messaggio resta valido come prima.
    */
+  /**
+   * Un annuncio arretrato non deve riportare il telefono al gioco precedente
+   * con il numero del round nuovo: se lo snapshot ha già aperto un round più
+   * avanti, l'annuncio si scarta. Un comando della regia replicato dopo il
+   * cambio round è proprio il caso che lasciava la schermata vecchia a video.
+   * Senza numero di round nel messaggio l'annuncio resta valido come prima.
+   */
+  private acceptRoundAnnouncement(status: any): boolean {
+    const announced = Number(status?.round);
+    if (!Number.isInteger(announced) || announced <= 0) return true;
+    return announced >= this.roundNumber();
+  }
+
   private acceptQuizAnnouncement(status: any): boolean {
     const id = typeof status?.roundStartId === 'string' ? status.roundStartId.trim() : '';
     if (!id) return true;
@@ -2959,8 +2974,20 @@ export class RemoteComponent implements OnInit, OnDestroy {
           ? PlayerStatus.LOCKED : PlayerStatus.VOTING);
       } else {
         // La TV sta ancora annunciando: si resta in attesa senza svelare il
-        // gioco nuovo. Il tipo si allinea solo con SHOW_QUESTION/START_VOTING.
+        // gioco nuovo. Il tipo si allinea solo con SHOW_QUESTION/START_VOTING,
+        // e le schermate del round precedente (fiches, Timeline, Bomba) non
+        // devono sopravvivere con il numero del round nuovo nell'header.
         this.gameState.set(PlayerStatus.WAITING);
+        this.hasAnswered.set(false);
+        this.selectedAnswer.set(null);
+        this.isBlocked.set(false);
+        this.azzardoState.set(null);
+        this.cavalloState.set(null);
+        this.casinoState.set(null);
+        this.biglieState.set(null);
+        this.timelineOrder.set([]);
+        this.stopBombaPolling();
+        this.bombaStarted = false;
       }
       return;
     }
