@@ -347,7 +347,10 @@
     <button class="dock-btn advance" (click)="adminNextRound()" aria-label="Prossimo round" title="Prossimo round">AVANTI</button>
     @if (showLeaderboardQuick() || showLeaderboardDetailed()) {
     <button class="dock-btn close" type="button" (click)="closeLeaderboard()"
-      aria-label="Chiudi la classifica" title="Chiudi la classifica">✕</button>
+      aria-label="Chiudi la classifica" title="Chiudi la classifica">
+      <span class="dock-btn-glyph" aria-hidden="true">✕</span>
+      <span class="dock-btn-label">CHIUDI CLASSIFICA</span>
+    </button>
     }
     <button class="dock-btn danger" (click)="openResetModal()" aria-label="Reset partita">🔄</button>
   </div>

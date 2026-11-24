@@ -14,6 +14,11 @@
   background-size: 16px 16px, 100% 100% !important;
   color: var(--coal) !important;
 }
+/* Con la dock della regia sopra la scena, titolo e sottotitolo scendono sotto
+   la barra invece di finirci dietro. */
+:host-context(.leaderboard-open) .kahoot-leaderboard {
+  padding-top: clamp(88px, 11vh, 104px) !important;
+}
 .kahoot-leaderboard .header {
   display: flex !important;
   flex-direction: row !important;

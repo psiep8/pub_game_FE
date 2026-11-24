@@ -389,12 +389,31 @@
   font-weight: 700;
   letter-spacing: 0.08em;
 }
-/* X della classifica dentro la dock: chiude la scena senza coprire AVANTI. */
+/* Chiusura della classifica dentro la dock: si legge, e sta nella stessa riga
+   di AVANTI invece di coprirlo. */
 .dock-btn.close {
+  width: auto;
+  min-width: 44px;
+  padding: 0 12px;
+  gap: 8px;
+  grid-auto-flow: column;
   background: var(--paper);
   color: var(--coal);
+  border-color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.dock-btn.close .dock-btn-glyph {
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+@media (max-width: 640px) {
+  .dock-btn.close .dock-btn-label { display: none; }
 }
 
 .round-info {

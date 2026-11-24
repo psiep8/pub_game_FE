@@ -806,8 +806,22 @@ describe('GameComponent', () => {
     // riceve il click su AVANTI.
     expect(dockLayer).toBeGreaterThan(overlay);
     expect(html).toContain('[class.above-leaderboard]="isShowingLeaderboard()"');
-    // Una sola X, dentro la dock: fuori resterebbe coperta o coprirebbe AVANTI.
-    expect(html).not.toContain('leaderboard-close');
+  });
+
+  it('un solo pulsante di chiusura, con la scritta, chiude la classifica', () => {
+    component.showLeaderboardDetailed.set(true);
+    component.isShowingLeaderboard.set(true);
+    fixture.detectChanges();
+
+    // Un solo comando di chiusura a schermo, e si legge: non è più una X muta
+    // in un angolo.
+    const closes = fixture.debugElement.queryAll(By.css('[aria-label="Chiudi la classifica"]'));
+    expect(closes).toHaveLength(1);
+    expect(closes[0].nativeElement.textContent).toContain('CHIUDI CLASSIFICA');
+
+    closes[0].nativeElement.click();
+    expect(component.showLeaderboardDetailed()).toBe(false);
+    expect(component.isShowingLeaderboard()).toBe(false);
   });
 
   it('riporta il contatore a zero quando la partita è nuova o resettata', () => {

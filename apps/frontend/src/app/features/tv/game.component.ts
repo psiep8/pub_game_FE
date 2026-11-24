@@ -132,6 +132,9 @@ const PENDING_LEADERBOARD_KEY = 'leaderboardPending';
   templateUrl: './game.component.html',
   styleUrls: ['./game.component.css', './restyle.css', './demo.css', './alive.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  // La classifica occupa lo schermo intero e la dock le sta sopra: la scena
+  // usa questa classe per lasciare libera la fascia in alto.
+  host: { '[class.leaderboard-open]': 'isShowingLeaderboard()' },
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [
