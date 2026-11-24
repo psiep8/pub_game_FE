@@ -4,12 +4,18 @@
  * vero: TV della serata, regia che avanza fino al round 5, telefono in squadra
  * che mette due fiches sulla prima risposta.
  *
- * Uso: BASE_URL=http://127.0.0.1:4300 node scripts/checks/azzardo-shot.mjs
+ * Le porte di default sono quelle del `.env` (FE_PORT/BE_PORT), così lo scatto
+ * usa lo stesso indirizzo che il backend accetta in ALLOWED_ORIGINS. Se il dev
+ * server gira su un'altra porta, BASE_URL deve comparire anche lì.
+ *
+ * Uso: CONTROL_SECRET=... node scripts/checks/azzardo-shot.mjs
  */
 import { chromium } from 'playwright';
+import { loadEnv } from '../env.mjs';
 
-const BASE = process.env.BASE_URL || 'http://127.0.0.1:4300';
-const API = process.env.API_URL || 'http://127.0.0.1:8090';
+const env = loadEnv();
+const BASE = process.env.BASE_URL || `http://127.0.0.1:${env.fePort}`;
+const API = process.env.API_URL || `http://127.0.0.1:${env.bePort}`;
 const OUT = process.env.OUT || 'docs/screenshots/readme/phone-azzardo-390.png';
 const NAME = process.env.TEAM || 'Anna';
 const SECRET = process.env.CONTROL_SECRET || '';
@@ -72,7 +78,9 @@ async function resumeRound(gameId, token) {
 
 /**
  * La ripresa può incrociare la pausa che la TV mette all'apertura del round:
- * si insiste finché lo snapshot del server non dice che la sala gioca.
+ * si insiste finché lo snapshot del server non dice che la sala gioca. Il
+ * server annuncia lui il GAME_RESUMED, quindi il telefono esce dalla pausa
+ * senza che l'harness gli forzi una sincronizzazione.
  */
 async function resumeUntilRunning(gameId, token, timeoutMs = 60_000) {
   const started = Date.now();
@@ -283,12 +291,9 @@ async function main() {
   for (let attempt = 0; attempt < 8 && fiches === 0; attempt += 1) {
     let clear = false;
     for (let wait = 0; wait < 25 && !clear; wait += 1) {
-      // Il telefono legge la pausa solo alla sincronizzazione: la si chiede
-      // subito, come al ritorno in primo piano, invece di aspettare 10 s.
-      await phone.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
-      await sleep(600);
       clear = !(await pause.isVisible().catch(() => false))
         && (await stack.isVisible().catch(() => false));
+      if (!clear) await sleep(400);
     }
     if (!clear) break;
 

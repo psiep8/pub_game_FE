@@ -471,12 +471,21 @@ public class PartyGamesController {
     @PostMapping("/{gameId}/round/resume")
     public synchronized Map<String, Object> resumeRound(@PathVariable("gameId") Long gameId) {
         JSONObject snapshot = gameStateService.snapshot(gameId);
-        if (snapshot.optBoolean("paused", false) && "ARENA".equals(snapshot.optString("roundType"))) {
+        boolean wasPaused = snapshot.optBoolean("paused", false);
+        if (wasPaused && "ARENA".equals(snapshot.optString("roundType"))) {
             questionHistory.resumeArenaInactivity(gameId, snapshot.optString("roundKey", ""),
                     snapshot.optLong("pausedAt", 0L), System.currentTimeMillis());
         }
         long shiftedMs = gameStateService.resumeRound(gameId);
         speedRushService.resume(gameId);
+        // La pausa la annuncia la TV che la decide; la ripresa invece arriva anche
+        // dal server (fine introduzione, ripresa della regia) e i telefoni devono
+        // uscire subito dal cartello "IN PAUSA": una sincronizzazione può non
+        // arrivare e lascerebbe il tavolo coperto per tutto il round.
+        if (wasPaused) {
+            messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status",
+                    new JSONObject().put("action", "GAME_RESUMED").toString());
+        }
         return Map.of("resumed", true, "gameId", gameId, "shiftedMs", shiftedMs);
     }
 
