@@ -1,4 +1,7 @@
-<div class="game-container">
+<div class="game-container" [class.stage-exit]="stagePhase() === 'exit'"
+  [class.stage-entrance]="stagePhase() === 'entrance'"
+  [class.stage-reading-on]="stagePhase() === 'reading'"
+  [class.stage-options-on]="stagePhase() === 'options'">
 
   @if (bonusEntrance(); as entranceType) {
   <app-bonus-entrance [type]="entranceType" />
@@ -282,6 +285,25 @@
 
 }
 
+
+@if (stageReading(); as readingText) {
+@if (stagePhase() === 'reading') {
+<div class="stage-reading" role="status" aria-live="polite">
+  <div class="stage-reading-card">
+    <div class="stage-reading-kicker">DOMANDA · IL PRESENTATORE LEGGE</div>
+    <p class="stage-reading-text">{{ readingText }}</p>
+    <div class="stage-reading-hint">LE OPZIONI ARRIVANO FRA POCO · IL TIMER NON È ANCORA PARTITO</div>
+  </div>
+</div>
+}
+}
+
+@if (stageCountdown(); as countdownNumber) {
+<div class="stage-countdown" role="status" aria-live="polite">
+  <span class="stage-countdown-kicker">SI PARTE</span>
+  <b class="stage-countdown-number">{{ countdownNumber }}</b>
+</div>
+}
 
 @if (showResultPopup()) {
 <div class="result-popup" [class.correct]="resultType() === 'correct'" [class.wrong]="resultType() === 'wrong'">

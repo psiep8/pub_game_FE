@@ -1174,3 +1174,160 @@
 .audio-debug-row { display: grid; grid-template-columns: 88px 1fr; gap: 2px 8px; }
 .audio-debug-channel { color: var(--tomato); font-weight: 700; text-transform: uppercase; }
 .audio-debug-owner { grid-column: 2; color: color-mix(in srgb, var(--coal) 60%, transparent); }
+
+/* ── Regia scenica: lettura, opzioni sfalsate, 3-2-1, entrata e uscita ────── */
+
+/* Uscita: dissolvenza e scorrimento breve (240 px), mai un taglio secco. */
+.game-container.stage-exit .question-area,
+.game-container.stage-exit .category-slot,
+.game-container.stage-exit .bubbles-area {
+  animation: stageOut 700ms ease-in forwards;
+  pointer-events: none;
+}
+
+/* Entrata scenica della scena nuova. */
+.game-container.stage-entrance .question-area,
+.game-container.stage-options-on .question-area {
+  animation: stageIn 700ms ease-out both;
+}
+
+/* In lettura la scena del gioco non è ancora in onda: parla la domanda. */
+.game-container.stage-reading-on .question-area { opacity: 0; }
+
+/* Le opzioni compaiono una alla volta: 300 ms di distanza, 320 ms di moto. */
+.game-container.stage-options-on .question-area > *,
+.game-container.stage-options-on .quiz-options-grid > * {
+  animation: stageOptionIn 320ms ease-out both;
+}
+.game-container.stage-options-on .question-area > *:nth-child(2),
+.game-container.stage-options-on .quiz-options-grid > *:nth-child(2) { animation-delay: 300ms; }
+.game-container.stage-options-on .question-area > *:nth-child(3),
+.game-container.stage-options-on .quiz-options-grid > *:nth-child(3) { animation-delay: 600ms; }
+.game-container.stage-options-on .question-area > *:nth-child(4),
+.game-container.stage-options-on .quiz-options-grid > *:nth-child(4) { animation-delay: 900ms; }
+.game-container.stage-options-on .question-area > *:nth-child(5),
+.game-container.stage-options-on .quiz-options-grid > *:nth-child(5) { animation-delay: 1200ms; }
+.game-container.stage-options-on .question-area > *:nth-child(6),
+.game-container.stage-options-on .quiz-options-grid > *:nth-child(6) { animation-delay: 1500ms; }
+
+/* La domanda a schermo durante la lettura: carta stampata, non un overlay. */
+.stage-reading {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 6vh 5vw;
+  background: color-mix(in srgb, var(--bg-0) 94%, transparent);
+}
+.stage-reading-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.4vh;
+  width: min(1100px, 86vw);
+  padding: clamp(22px, 4vh, 46px) clamp(24px, 4vw, 62px);
+  border: 4px solid var(--coal);
+  background: var(--paper);
+  color: var(--coal);
+  box-shadow: 14px 14px 0 var(--tomato);
+  text-align: center;
+  animation: stageCardIn 600ms ease-out both;
+}
+.stage-reading-kicker {
+  padding: 3px 12px;
+  border: 2px solid var(--tomato);
+  color: var(--tomato);
+  font-family: var(--font-mono);
+  font-size: clamp(0.78rem, 1.1vw, 0.95rem);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+.stage-reading-text {
+  margin: 0;
+  max-width: 26ch;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.6vw, 3.8rem);
+  line-height: 1.02;
+  text-transform: uppercase;
+}
+.stage-reading-hint {
+  font-family: var(--font-mono);
+  font-size: clamp(0.72rem, 1vw, 0.9rem);
+  letter-spacing: 0.1em;
+  color: color-mix(in srgb, var(--coal) 62%, transparent);
+}
+
+/* 3-2-1: il numero resta leggibile, si muove solo di poco. */
+.stage-countdown {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: grid;
+  place-items: center;
+  gap: 1vh;
+  pointer-events: none;
+}
+.stage-countdown-kicker {
+  position: absolute;
+  top: 18vh;
+  padding: 4px 14px;
+  border: 3px solid var(--acid);
+  background: var(--bg-0);
+  color: var(--acid);
+  font-family: var(--font-mono);
+  font-size: clamp(0.9rem, 1.3vw, 1.15rem);
+  font-weight: 800;
+  letter-spacing: 0.22em;
+}
+.stage-countdown-number {
+  font-family: var(--font-display);
+  font-size: clamp(7rem, 24vh, 20rem);
+  line-height: 0.8;
+  color: var(--acid);
+  -webkit-text-stroke: 5px var(--coal);
+  text-shadow: 10px 10px 0 var(--coal);
+  animation: stageCountPulse 1s ease-in-out infinite;
+}
+
+@keyframes stageIn {
+  from { opacity: 0; transform: translateY(26px) scale(0.992); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes stageOut {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-240px); }
+}
+@keyframes stageOptionIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes stageCardIn {
+  from { opacity: 0; transform: translateY(24px) rotate(-0.6deg); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes stageCountPulse {
+  0% { transform: scale(0.92); opacity: 0.45; }
+  45% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.02); opacity: 0.95; }
+}
+
+/* Movimento ridotto: resta la dissolvenza, sparisce la corsa. */
+@media (prefers-reduced-motion: reduce) {
+  .game-container.stage-exit .question-area,
+  .game-container.stage-exit .category-slot,
+  .game-container.stage-exit .bubbles-area,
+  .game-container.stage-entrance .question-area,
+  .game-container.stage-options-on .question-area,
+  .game-container.stage-options-on .question-area > *,
+  .game-container.stage-options-on .quiz-options-grid > *,
+  .stage-reading-card,
+  .stage-countdown-number {
+    animation: stageFade 320ms ease-out both;
+  }
+  .game-container.stage-exit .question-area { animation-direction: reverse; }
+}
+@keyframes stageFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

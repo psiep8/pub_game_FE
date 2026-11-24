@@ -53,6 +53,8 @@ import { Azzardo } from '../games/azzardo/azzardo.component';
 import { levelForOccurrence } from '../games/azzardo/azzardo-rules';
 import { Blackjack } from '../games/blackjack/blackjack.component';
 import { DemoScript, demoScriptFor } from './demo-scripts';
+import { StageRunner } from './stage-runner';
+import { TV_TIMING, countdownNumbers, stageFor, type StagePhase } from './tv-timing';
 import { REVEAL_DELAY_MS, scoringRuleFor } from '../../shared/models/scoring-rules';
 import { ROUNDS_PER_ACT } from '../../shared/schedule';
 
@@ -195,6 +197,18 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly regiaMode = signal(
     new URLSearchParams(window.location.search).get('regia') === '1',
   );
+  /** Fase della regia scenica: decide cosa il pubblico vede e cosa aspetta. */
+  readonly stagePhase = signal<StagePhase>('idle');
+  /** Numero del 3-2-1 a schermo, `null` fuori dal conto alla rovescia. */
+  readonly stageCountdown = signal<number | null>(null);
+  /** Domanda in lettura: il presentatore la legge, le opzioni non ci sono. */
+  readonly stageReading = signal<string | null>(null);
+  private readonly stage = new StageRunner({
+    onPhase: (phase) => this.onStagePhase(phase),
+  });
+  /** Il round è aperto ma la sua scadenza è ferma per l'introduzione. */
+  private introHold = false;
+  private countdownTimer?: ReturnType<typeof setInterval>;
   /** Canali audio attivi: pannello di sala dietro `?audiodebug=1`. */
   readonly audioDebug = signal(
     new URLSearchParams(window.location.search).get('audiodebug') === '1',
@@ -275,6 +289,8 @@ export class GameComponent implements OnInit, OnDestroy {
    * alla rovescia. Vale per la barra della TV e per i cerchi dei giochi.
    */
   readonly timerVisible = computed(() => {
+    // Durante la lettura, le opzioni e il 3-2-1 il timer non esiste ancora.
+    if (this.stagePhase() !== 'live') return false;
     if (this.revealPending()) return false;
     const mode = this.currentMode();
     if (mode && typeof mode.isRevealed === 'function' && mode.isRevealed()) return false;
@@ -1067,6 +1083,8 @@ export class GameComponent implements OnInit, OnDestroy {
     // Un round nuovo cancella l'apertura rimasta in attesa di una demo.
     this.pendingRoundOpen = undefined;
     this.stopDemo();
+    // Uscita scenica del gioco precedente: nessun cambio di scena a taglio.
+    await this.playExit();
 
     // Un round nuovo deve poter partire anche con la classifica a schermo:
     // altrimenti la TV resta bloccata sulla classifica e la regia non riesce
@@ -1166,6 +1184,9 @@ export class GameComponent implements OnInit, OnDestroy {
       if (extractedType === 'QUIZ' && !quizRoundStartId) throw new Error('Identità del round Quiz assente');
       this.round.set(nextRound);
       this.rememberServerRoundIndex(nextRound?.roundIndex);
+      // Il server ha aperto il round adesso: la sua scadenza non deve correre
+      // durante l'introduzione. Si tiene in pausa finché il round non parte.
+      this.holdRoundDeadline();
 
       // La categoria dell'animazione a bolle deve essere quella reale del payload:
       // per Ultima spiaggia il backend sceglie la categoria dell'occorrenza.
@@ -1239,6 +1260,24 @@ export class GameComponent implements OnInit, OnDestroy {
       // Il pannello RISPOSTE mostra il round in corso: senza azzerarlo
       // accumulava le risposte di tutta la serata e ne tagliava sei.
       this.ws.clearResponses();
+
+      // La domanda si legge senza timer: titolo, lettura, opzioni sfalsate,
+      // respiro e 3-2-1. Il timer e i telefoni partono solo alla fine.
+      const question = String(
+        parsedPayload?.question ?? this.currentRoundPayload()?.question ?? '',
+      );
+      const optionCount = Array.isArray(parsedPayload?.options)
+        ? parsedPayload.options.length
+        : (this.getSafeDisplayData().options?.length ?? 0);
+      const arrived = await this.runStage(mode.type, question, optionCount);
+      if (!arrived || this.currentMode() !== mode) {
+        // Scena cancellata: la pausa dell'introduzione non resta appesa.
+        this.releaseRoundDeadline();
+        return;
+      }
+
+      // Fine dell'introduzione: la scadenza del round riparte da qui.
+      this.releaseRoundDeadline();
       this.timer.set(mode.timerDuration);
       this.beginRoundScoring();
 
@@ -2005,6 +2044,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.isPaused()) {
       // La ripresa vale anche senza round né bonus: se il bonus si chiude
       // mentre la sala è ferma, l'overlay non deve restare appeso.
+      this.stage.setPaused(false);
       if (mode) {
         this.syncPauseToServer(false);
         mode.resume();
@@ -2030,6 +2070,8 @@ export class GameComponent implements OnInit, OnDestroy {
       this.audioService.stopClock();
       this.audioService.stopSuspense();
       this.audioService.pauseBeds();
+      // Il nastro della regia si ferma: la fase raggiunta non si perde.
+      this.stage.setPaused(true);
       if (mode) {
         this.syncPauseToServer(true);
         mode.pause();
@@ -2390,6 +2432,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private reset() {
     // Round o bonus nuovo: lo stato del precedente non si ripete più.
+    this.releaseRoundDeadline();
+    this.stage.cancel();
+    this.clearStageOverlays();
     this.ws.clearLastStates();
     this.arenaFinished = false;
     if (this.bonusEntranceTimer) clearTimeout(this.bonusEntranceTimer);
@@ -2511,6 +2556,88 @@ export class GameComponent implements OnInit, OnDestroy {
 
   getDemoScript(type: string): DemoScript | null {
     return demoScriptFor(type);
+  }
+
+  /**
+   * Introduzione in corso: il round è già aperto sul server, ma il suo tempo
+   * non deve consumarsi mentre il presentatore legge. Si tiene in pausa e si
+   * riprende alla fine della sequenza, così la scadenza parte col via.
+   */
+  private holdRoundDeadline(): void {
+    const gameId = this.currentGameId();
+    if (!gameId) return;
+    this.introHold = true;
+    this.gameService.pauseRound(gameId).subscribe({
+      error: () => { this.introHold = false; },
+    });
+  }
+
+  private releaseRoundDeadline(): void {
+    if (!this.introHold) return;
+    this.introHold = false;
+    // Una pausa vera del presentatore resta: si riprende da lì, non da qui.
+    if (this.isPaused()) return;
+    const gameId = this.currentGameId();
+    if (!gameId) return;
+    this.gameService.resumeRound(gameId).subscribe({ error: () => undefined });
+  }
+
+  /**
+   * Uscita del gioco precedente: dissolvenza e scorrimento breve, non un taglio.
+   * La pausa d'emergenza è l'unica eccezione.
+   */
+  private async playExit(): Promise<void> {
+    if (!this.showQuestion() && !this.currentMode()) return;
+    this.stage.cancel();
+    this.stagePhase.set('exit');
+    await new Promise((resolve) => setTimeout(resolve, TV_TIMING.exitMs));
+  }
+
+  /**
+   * Regia scenica del round: la sequenza di `tv-timing.ts` fino al via.
+   * Torna `false` se un'altra scena o un reset l'hanno cancellata.
+   */
+  private async runStage(
+    type: string,
+    question: string,
+    optionCount: number,
+  ): Promise<boolean> {
+    this.stage.cancel();
+    const text = question.trim();
+    this.stageReading.set(text ? text : null);
+    this.stage.setPaused(this.isPaused());
+    const arrived = await this.stage.play(stageFor(type, text, optionCount));
+    this.clearStageOverlays();
+    return arrived;
+  }
+
+  private onStagePhase(phase: StagePhase): void {
+    this.stagePhase.set(phase);
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer);
+      this.countdownTimer = undefined;
+    }
+    this.stageCountdown.set(null);
+    if (phase !== 'countdown') return;
+
+    const numbers = countdownNumbers();
+    this.stageCountdown.set(numbers[0]);
+    let index = 0;
+    this.countdownTimer = setInterval(() => {
+      index += 1;
+      if (index < numbers.length) this.stageCountdown.set(numbers[index]);
+    }, TV_TIMING.countdownStepMs);
+  }
+
+  /** Fuori dalla sequenza la TV torna alla scena normale, senza cartelli. */
+  private clearStageOverlays(): void {
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer);
+      this.countdownTimer = undefined;
+    }
+    this.stageCountdown.set(null);
+    this.stageReading.set(null);
+    this.stagePhase.set('live');
   }
 
   /** Countdown interno di una modalità (pausa tra le manche di Music). */
@@ -3054,6 +3181,10 @@ export class GameComponent implements OnInit, OnDestroy {
     this.recoveredRound.set(null);
     this.showQuestion.set(true);
     this.phase.set('QUESTION');
+    // Un round ripreso dopo un refresh non rifà l'introduzione: si rientra
+    // direttamente nella fase di gioco, con il tempo che era rimasto.
+    this.stage.cancel();
+    this.clearStageOverlays();
     // Il verdetto del round riparte da dove era: i punti giocati prima del
     // refresh contano ancora per il tema della TV.
     this.roundScoring = true;

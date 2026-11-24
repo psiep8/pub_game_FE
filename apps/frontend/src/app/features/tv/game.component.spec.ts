@@ -1658,6 +1658,55 @@ describe('GameComponent', () => {
     expect((component as any).getPrestartPreview).toBeUndefined();
   });
 
+  it('il timer resta fermo durante la lettura e il 3-2-1', () => {
+    component.currentMode.set({ type: 'QUIZ', isRevealed: () => false } as any);
+    component.round.set({ status: 'ACTIVE' } as any);
+    component.showQuestion.set(true);
+
+    // La domanda è a schermo senza opzioni e senza conto alla rovescia.
+    component.stagePhase.set('reading');
+    expect(component.timerVisible()).toBe(false);
+    component.stagePhase.set('options');
+    expect(component.timerVisible()).toBe(false);
+    component.stagePhase.set('countdown');
+    expect(component.timerVisible()).toBe(false);
+
+    // Il timer esiste solo quando il round è davvero aperto.
+    component.stagePhase.set('live');
+    expect(component.timerVisible()).toBe(true);
+  });
+
+  it('un round ripreso dopo un refresh non rifà l’introduzione', async () => {
+    const factory = TestBed.inject(GameModeService);
+    vi.spyOn(factory, 'createMode').mockReturnValue({
+      type: 'BOMBA',
+      timerDuration: 60,
+      start: vi.fn(),
+      restore: vi.fn(),
+      getDisplayData: () => ({}),
+      isRevealed: () => false,
+    } as any);
+    component.currentGameId.set(1);
+    (component as unknown as { recoveredPayload: unknown }).recoveredPayload = {
+      type: 'BOMBA',
+      category: 'CULTURA GENERALE',
+    };
+    component.recoveredRound.set({
+      type: 'BOMBA',
+      label: 'Bomba',
+      secondsLeft: 40,
+      resumable: true,
+      paused: false,
+    });
+    component.stagePhase.set('reading');
+
+    await component.resumeRecoveredRound();
+
+    // Si rientra nella fase di gioco, senza ripetere titolo e lettura.
+    expect(component.stagePhase()).toBe('live');
+    expect(component.stageReading()).toBeNull();
+  });
+
   it('la domanda di Quiz abbassa il sottofondo e la soluzione lo riporta su', async () => {
     const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
     const config = (component as unknown as {
