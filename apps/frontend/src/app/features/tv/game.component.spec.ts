@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { By } from '@angular/platform-browser';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { of, throwError } from 'rxjs';
+import { NEVER, of, Subject, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import { GameComponent } from './game.component';
@@ -690,6 +690,7 @@ describe('GameComponent', () => {
     TestBed.inject(RoundManagerService).restoreRound(6);
     // `round()` è ancora la fotografia del round precedente.
     component.round.set({ roundIndex: 3 } as any);
+    component.currentMode.set({ type: 'ARENA' } as any);
     const config = (component as unknown as {
       buildModeConfig(type: string, payload: any, players: string[]): any;
     }).buildModeConfig('ARENA', {}, ['Anna']);
@@ -698,6 +699,67 @@ describe('GameComponent', () => {
     expect(reliability.tvCheckpoints).toEqual([
       { mode: 'ARENA', revision: 2, state, roundIndex: 5 },
     ]);
+  });
+
+  it('non salva il checkpoint di una modalità che non è più quella aperta', () => {
+    TestBed.inject(RoundManagerService).restoreRound(6);
+    component.currentMode.set({ type: 'QUIZ' } as any);
+    const config = (component as unknown as {
+      buildModeConfig(type: string, payload: any, players: string[]): any;
+    }).buildModeConfig('ARENA', {}, ['Anna']);
+
+    // Il tabellone di un'Arena già chiusa non deve salvarsi sopra il round
+    // Quiz: il server risponderebbe 409 a ogni invio.
+    config.onTvCheckpoint({ type: 'ARENA', revision: 2, state: {} });
+    expect(reliability.tvCheckpoints).toEqual([]);
+
+    config.onTvCheckpoint({ type: 'QUIZ', revision: 3, state: {} });
+    expect(reliability.tvCheckpoints).toHaveLength(1);
+  });
+
+  it('libera AVANTI se il server non conferma la chiusura del round', async () => {
+    vi.useFakeTimers();
+    try {
+      const game = TestBed.inject(GameService) as unknown as FakeGameService;
+      const close = vi.spyOn(game, 'closeRound').mockReturnValue(NEVER);
+      const start = vi.spyOn(component, 'startNewRound').mockResolvedValue(undefined);
+      component.currentGameId.set(1);
+      component.currentMode.set({ type: 'QUIZ', isRevealed: () => false } as any);
+
+      component.adminNextRound();
+      expect(close).toHaveBeenCalledTimes(1);
+      expect(start).not.toHaveBeenCalled();
+
+      // Nessuna risposta: passato il tempo massimo la regia può riprovare
+      // invece di restare bloccata per tutta la serata.
+      await vi.advanceTimersByTimeAsync(8_000);
+      component.adminNextRound();
+      expect(close).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('non apre un secondo round se la chiusura risponde dopo il tempo massimo', async () => {
+    vi.useFakeTimers();
+    try {
+      const game = TestBed.inject(GameService) as unknown as FakeGameService;
+      const response = new Subject<any>();
+      vi.spyOn(game, 'closeRound').mockReturnValue(response.asObservable());
+      const start = vi.spyOn(component, 'startNewRound').mockResolvedValue(undefined);
+      component.currentGameId.set(1);
+      component.currentMode.set({ type: 'QUIZ', isRevealed: () => false } as any);
+
+      component.adminNextRound();
+      await vi.advanceTimersByTimeAsync(8_000);
+      response.next({ closed: true });
+      response.complete();
+
+      // La regia ha già ripreso il pulsante: la risposta in ritardo non avanza.
+      expect(start).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('riporta il contatore a zero quando la partita è nuova o resettata', () => {
@@ -739,6 +801,7 @@ describe('GameComponent', () => {
       hasState: true, status: 'RUNNING', roundType: 'BOMBA', roundIndex: 6, roundKey: 'g1-r6',
       roundDeadlineAt: Date.now() + 60_000, currentRound: { payload: {} },
     });
+    component.currentMode.set({ type: 'BOMBA' } as any);
 
     const config = (component as unknown as {
       buildModeConfig(type: string, payload: any, players: string[]): any;
@@ -755,6 +818,7 @@ describe('GameComponent', () => {
   it('salva il checkpoint Bomba con indice del round e sequenza eventi', () => {
     TestBed.inject(RoundManagerService).restoreRound(8);
     component.round.set({ roundIndex: 4 } as any);
+    component.currentMode.set({ type: 'BOMBA' } as any);
     const config = (component as unknown as {
       buildModeConfig(type: string, payload: any, players: string[]): any;
     }).buildModeConfig('BOMBA', {}, ['Anna']);
@@ -1667,7 +1731,8 @@ describe('GameComponent', () => {
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     const close = vi.spyOn(game, 'closeRound').mockReturnValue(throwError(() => new Error('offline')));
     const start = vi.spyOn(component, 'startNewRound');
-    const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    // L'avviso va in console, non in un alert che bloccherebbe la TV.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     component.currentGameId.set(1);
     component.currentMode.set({ isRevealed: () => false } as any);
     component.showLeaderboardDetailed.set(true);
@@ -1679,8 +1744,8 @@ describe('GameComponent', () => {
     expect(start).not.toHaveBeenCalled();
     expect(component.showLeaderboardDetailed()).toBe(true);
     expect(component.isShowingLeaderboard()).toBe(true);
-    expect(alert).toHaveBeenCalledOnce();
-    alert.mockRestore();
+    expect(warn).toHaveBeenCalledOnce();
+    warn.mockRestore();
   });
 
   it('preserves the local progress and scores when the server reset fails', () => {

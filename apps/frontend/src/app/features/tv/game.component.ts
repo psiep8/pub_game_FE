@@ -1402,8 +1402,13 @@ export class GameComponent implements OnInit, OnDestroy {
       onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
       onRoundEnded: () => this.onArenaEnded(),
       onTvCheckpoint: (checkpoint) => {
+        // Una modalità chiusa può ancora emettere il suo ultimo stato: se il
+        // round aperto è un altro, il server risponderebbe 409 (checkpoint di
+        // un gioco diverso dal suo). Si manda solo quello della modalità viva.
+        const mode = this.currentMode();
+        if (!mode || mode.type !== checkpoint.type) return;
         const roundIndex = this.tvRoundIndex();
-        if (roundIndex == null) return;
+        if (roundIndex == null || this.closingRound) return;
         this.reliability.saveTvCheckpoint({
           mode: checkpoint.type,
           revision: checkpoint.revision,
@@ -1706,8 +1711,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
   /** Le Biglie salvano gare chiuse e classifica: un refresh non rigioca i punti. */
   onBiglieCheckpoint(state: any): void {
+    if (this.currentMode()?.type !== 'BIGLIE') return;
     const roundIndex = this.tvRoundIndex();
-    if (!state || roundIndex == null) return;
+    if (!state || roundIndex == null || this.closingRound) return;
     this.reliability.saveTvCheckpoint({
       mode: 'BIGLIE',
       revision: Date.now(),
@@ -1991,6 +1997,16 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   private closingRound = false;
+  /**
+   * Attesa massima per la chiusura del round sul server. Oltre questo tempo la
+   * regia torna libera: il pulsante AVANTI non può restare morto se la risposta
+   * non arriva (visto in prova: sala ferma senza nessun avviso).
+   */
+  private static readonly CLOSE_ROUND_TIMEOUT_MS = 8000;
+  private closingRoundTimer?: ReturnType<typeof setTimeout>;
+  /** Tentativo in corso: una risposta in ritardo non ne apre un altro. */
+  private closingRoundAttempt = 0;
+  private activeClosingRoundAttempt = 0;
 
   adminNextRound(): void {
     if (this.closingRound) return;
@@ -2018,17 +2034,40 @@ export class GameComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const attempt = ++this.closingRoundAttempt;
+    this.activeClosingRoundAttempt = attempt;
     this.closingRound = true;
+    this.closingRoundTimer = setTimeout(() => {
+      if (this.activeClosingRoundAttempt !== attempt) return;
+      this.releaseClosingRound();
+      // Niente alert: un dialogo modale blocca la TV proprio quando la regia
+      // deve poter riprovare.
+      console.warn('❌ Chiusura del round non confermata: il server non ha risposto. AVANTI è di nuovo attivo.');
+    }, GameComponent.CLOSE_ROUND_TIMEOUT_MS);
+
     this.gameService.closeRound(gameId, 'skipped').subscribe({
       next: () => {
-        this.closingRound = false;
+        // Risposta dopo il tempo massimo: la regia ha già ripreso in mano il
+        // pulsante, questo tentativo non deve aprire un secondo round.
+        if (this.activeClosingRoundAttempt !== attempt) return;
+        this.releaseClosingRound();
         advance();
       },
       error: () => {
-        this.closingRound = false;
-        alert('Chiusura del round non confermata: verifica lo stato del server prima di riprovare AVANTI.');
+        if (this.activeClosingRoundAttempt !== attempt) return;
+        this.releaseClosingRound();
+        console.warn('❌ Chiusura del round non confermata: verifica lo stato del server prima di riprovare AVANTI.');
       },
     });
+  }
+
+  private releaseClosingRound(): void {
+    this.activeClosingRoundAttempt = 0;
+    this.closingRound = false;
+    if (this.closingRoundTimer) {
+      clearTimeout(this.closingRoundTimer);
+      this.closingRoundTimer = undefined;
+    }
   }
 
   /**

@@ -65,6 +65,8 @@ export class ReliabilityService {
   private promptForCode = true;
   /** Segreto di regia inserito in questa scheda: serve solo alla TV per generare codici. */
   private controlSecret: string | null = null;
+  /** Round il cui checkpoint il server ha già scartato: non si ritenta. */
+  private rejectedTvCheckpointRound: number | null = null;
 
   /** Avvia sessione e heartbeat per questo dispositivo (idempotente). */
   async start(
@@ -234,9 +236,22 @@ export class ReliabilityService {
   ): void {
     const token = this.sessionToken();
     if (!token || this.role !== 'TV' || this.gameId == null) return;
+    // Il server risponde 409 quando il round è già chiuso, è un altro o la
+    // modalità non coincide: insistere con lo stesso round produce solo una
+    // raffica di errori in console (20 in una serata di prova).
+    if (this.rejectedTvCheckpointRound === checkpoint.roundIndex) return;
     this.http.post(`${this.baseUrl}/games/${this.gameId}/tv-state`, checkpoint, {
       headers: { 'X-Session-Token': token },
-    }).subscribe({ error: () => undefined });
+    }).subscribe({
+      next: () => {
+        this.rejectedTvCheckpointRound = null;
+      },
+      error: (error: unknown) => {
+        if ((error as HttpErrorResponse)?.status === 409) {
+          this.rejectedTvCheckpointRound = checkpoint.roundIndex;
+        }
+      },
+    });
   }
 
   /** Riapre la sessione con il token salvato (o ne crea una nuova). */
