@@ -19,8 +19,17 @@ export const AZZARDO_CHIP_VALUE = 20;
 /** Tetto massimo di fiches sul tavolo, dichiarato in manuale e TV. */
 export const AZZARDO_MAX_CHIPS_PER_MANCHE = 15;
 
-/** Vincita massima di una manche, quota compresa. */
-export const AZZARDO_MAX_WIN_PER_MANCHE = 1000;
+/** Tetto di vincita di una manche, quota compresa. */
+export const AZZARDO_MAX_WIN_PER_MANCHE = 500;
+
+/** Tetto di perdita di una manche. */
+export const AZZARDO_MAX_LOSS_PER_MANCHE = 250;
+
+/** Tetto di round: quattro manche non possono superare questo saldo. */
+export const AZZARDO_MAX_WIN_PER_ROUND = 1500;
+
+/** Tetto di round in perdita. */
+export const AZZARDO_MAX_LOSS_PER_ROUND = 1000;
 
 /**
  * Tetto di fiches che cresce con il salvadanaio: una fiche in più da giocare
@@ -150,6 +159,7 @@ export function chipsBreakdown(input: AzzardoChipsInput): AzzardoChipsBreakdown 
   const win = Math.min(AZZARDO_MAX_WIN_PER_MANCHE, correctChips * AZZARDO_CHIP_VALUE * odds);
   const wrongStake = wrongChips * AZZARDO_CHIP_VALUE;
   const loss = Math.min(
+    AZZARDO_MAX_LOSS_PER_MANCHE,
     Math.round(wrongStake * lossMultiplierFor(input.manche)),
     Math.max(0, Math.floor(input.available)),
   );

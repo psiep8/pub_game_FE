@@ -7,7 +7,9 @@ import {
   AZZARDO_CHIPS,
   AZZARDO_CHIP_VALUE,
   AZZARDO_MAX_CHIPS_PER_MANCHE,
+  AZZARDO_MAX_LOSS_PER_ROUND,
   AZZARDO_MAX_WIN_PER_MANCHE,
+  AZZARDO_MAX_WIN_PER_ROUND,
   AZZARDO_MANCHES,
   AzzardoChipsBreakdown,
   AzzardoLevel,
@@ -315,10 +317,17 @@ export class AzzardoMode extends GameModeBase {
       this.chipBank.set(playerName, Math.max(0, (this.chipBank.get(playerName) ?? 0) - used));
 
       const breakdown = this.breakdownFor(stake, question, available);
-      const points = breakdown.points;
-      this.breakdowns.set(playerName, breakdown);
+      const before = this.totals.get(playerName) ?? 0;
+      // Tetti di round: quattro manche non portano oltre +1500 né sotto −1000.
+      const points = Math.max(
+        AZZARDO_MAX_LOSS_PER_ROUND - before,
+        Math.min(AZZARDO_MAX_WIN_PER_ROUND - before, breakdown.points),
+      );
+      // Se il tetto taglia la manche, anche la perdita mostrata si allinea.
+      const loss = points < breakdown.points ? breakdown.win - points : breakdown.loss;
+      this.breakdowns.set(playerName, { ...breakdown, points, loss });
       this.points.set(playerName, points);
-      this.totals.set(playerName, (this.totals.get(playerName) ?? 0) + points);
+      this.totals.set(playerName, before + points);
 
       if (points !== 0) {
         this.config.onAnswerReceived?.({ playerName, points, isCorrect: points > 0 });

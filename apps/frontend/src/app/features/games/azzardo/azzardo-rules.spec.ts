@@ -36,9 +36,24 @@ describe('tetto di fiches per manche', () => {
       available: 5000,
     });
 
-    // 15 × 20 × 4 farebbe 1200: il tetto lo taglia a 1000.
+    // 15 × 20 × 4 farebbe 1200: il tetto lo taglia a 500.
+    expect(AZZARDO_MAX_WIN_PER_MANCHE).toBe(500);
     expect(top.win).toBe(AZZARDO_MAX_WIN_PER_MANCHE);
     expect(top.points).toBe(AZZARDO_MAX_WIN_PER_MANCHE);
+  });
+
+  it('la manche non perde più del tetto di 250', () => {
+    const worst = chipsBreakdown({
+      chips: [15, 0, 0, 0],
+      answerIndex: 1,
+      level: 3,
+      manche: 0,
+      available: 5000,
+    });
+
+    // 15 × 20 × 100% farebbe 300: il tetto lo taglia a 250.
+    expect(worst.loss).toBe(250);
+    expect(worst.points).toBe(-250);
   });
 });
 

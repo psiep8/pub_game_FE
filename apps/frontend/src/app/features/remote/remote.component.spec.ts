@@ -1318,7 +1318,7 @@ describe('RemoteComponent', () => {
     expect(bets[0].body.value.chips).toEqual([1, 0, 0, 0]);
   });
 
-  it('rispetta il tetto di fiches della squadra e cita i 1000 punti di massimo', async () => {
+  it('rispetta il tetto di fiches della squadra e cita i 500 punti di massimo per manche', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();
 
@@ -1332,7 +1332,7 @@ describe('RemoteComponent', () => {
       chips: 10,
       chipValue: 20,
       chipCap: 15,
-      winCap: 1000,
+      winCap: 500,
       odds: 2,
       lossMultiplier: 0.8,
       ready: [{
@@ -1363,14 +1363,14 @@ describe('RemoteComponent', () => {
     expect(component.azzardoMaxChips()).toBe(5);
 
     // La riga di conversione dichiara il tetto di vincita della manche.
-    expect(component.azzardoConvertHint()).toContain('1000');
+    expect(component.azzardoConvertHint()).toContain('500');
     expect(component.azzardoConvertHint()).toContain('manche');
 
     // Se il server non manda il tetto, resta quello del regolamento.
     const withoutCap: any = azzardoState({});
     delete withoutCap.winCap;
     component.azzardoState.set(withoutCap);
-    expect(component.azzardoConvertHint()).toContain('1000');
+    expect(component.azzardoConvertHint()).toContain('500');
   });
 
   it('sends a pending Timeline answer only while the round is active', async () => {
