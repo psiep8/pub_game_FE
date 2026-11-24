@@ -323,9 +323,12 @@ export class AzzardoMode extends GameModeBase {
         AZZARDO_MAX_LOSS_PER_ROUND - before,
         Math.min(AZZARDO_MAX_WIN_PER_ROUND - before, breakdown.points),
       );
-      // Se il tetto taglia la manche, anche la perdita mostrata si allinea.
-      const loss = points < breakdown.points ? breakdown.win - points : breakdown.loss;
-      this.breakdowns.set(playerName, { ...breakdown, points, loss });
+      // Se il tetto di round taglia la manche, anche la riga mostrata si
+      // allinea: la vincita non supera il saldo disponibile e la perdita resta
+      // la differenza, mai negativa.
+      const win = Math.min(breakdown.win, Math.max(0, points + breakdown.loss));
+      const loss = Math.max(0, win - points);
+      this.breakdowns.set(playerName, { ...breakdown, points, win, loss });
       this.points.set(playerName, points);
       this.totals.set(playerName, before + points);
 
