@@ -22,7 +22,14 @@ punteggi. Backend e frontend locali, database di prova separato
 
 ## Problemi trovati
 
-### 1. AVANTI premuto a round aperto blocca la regia (grave)
+### 1. AVANTI premuto a round aperto blocca la regia (grave) — **risolto** (`96dda8f`)
+
+**Fix.** La chiusura del round ha ora un tempo massimo di 8 s: se il server non
+risponde il pulsante AVANTI torna attivo, e un tentativo ormai scaduto non apre
+un secondo round quando la risposta arriva in ritardo. L'avviso va in console,
+non più in un `alert` che blocca la TV. Test di regressione: «libera AVANTI se
+il server non conferma la chiusura del round» e «non apre un secondo round se la
+chiusura risponde dopo il tempo massimo» in `game.component.spec.ts`.
 
 Se AVANTI arriva mentre il round è ancora in corso (prima del riepilogo), la TV
 resta sulla schermata del round e **il pulsante non risponde più**: altri click
@@ -44,7 +51,8 @@ Il percorso è `adminNextRound()`: con il round aperto mette `closingRound =
 true`, chiama `closeRound` e solo nella callback rimette il flag a `false`. Se
 la risposta non arriva (o arriva mentre la TV ha già cambiato scena) il flag
 resta alto e ogni AVANTI successivo esce subito da `if (this.closingRound)
-return;`. Da valutare: timeout sul flag, retry, o un avviso a schermo.
+return;`. Il fix ha seguito la prima strada: tempo massimo sul flag e avviso in
+console.
 
 **Conseguenze osservate** (non problemi separati, si risolvono con questo):
 
@@ -54,7 +62,10 @@ return;`. Da valutare: timeout sul flag, retry, o un avviso a schermo.
   round diversi; da valutare anche un riallineamento allo snapshot quando arriva.
 - Se il round che si apre è il Time Buzzer, la manche non parte (vedi punto 2).
 
-### 2. Time Buzzer resta su «TEMPO IN ARRIVO… Premi START» (sintomo del punto 1)
+### 2. Time Buzzer resta su «TEMPO IN ARRIVO… Premi START» (sintomo del punto 1) — **risolto di conseguenza**
+
+Con AVANTI che non resta più bloccato, il round precedente si chiude davvero e
+il Time Buzzer parte (verificato nel giro dei 13 giochi).
 
 Visto in una partita reale, ma **non è un difetto del Time Buzzer**: succede
 quando il round si apre mentre il precedente non è ancora chiuso sul server
@@ -91,13 +102,21 @@ click di fila (7 tentativi registrati in un secondo) prima di togliere la
 classifica. Da valutare: lasciare AVANTI sempre cliccabile (chiude lui la
 classifica) o portare il focus sul pulsante di chiusura.
 
-### 6. `POST /games/{id}/tv-state` risponde 409 durante il passaggio di round (media)
+### 6. `POST /games/{id}/tv-state` risponde 409 durante il passaggio di round (media) — **risolto** (`96dda8f`)
 
 Registrato una volta nella partita reale e **20 volte** nel giro dei 13 giochi,
 sempre nei passaggi di round (per esempio Canzone → Indovina chi, e intorno alla
 chiusura di Ultima Spiaggia). La TV salva il checkpoint del round mentre il
 server lo considera già chiuso. Non blocca la partita, ma riempie la console di
 errori e può perdere lo stato di ripresa; con 40 round la frequenza cresce.
+
+**Fix.** La TV manda il checkpoint solo se appartiene alla modalità ancora aperta
+e mai mentre sta chiudendo il round; dopo un 409 non ritenta più quel round (il
+successivo torna a salvarsi normalmente, mentre errori diversi dal 409 non
+bloccano i retry). Test di regressione: «non salva il checkpoint di una modalità
+che non è più quella aperta» in `game.component.spec.ts` e «dopo un 409 non
+ritenta lo stesso round e riprende col successivo» in
+`reliability.service.spec.ts`.
 
 ### 7. Arena: il telefono continua a rispondere dopo la chiusura del round (minore)
 
