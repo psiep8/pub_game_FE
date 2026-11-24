@@ -460,6 +460,34 @@ describe('RemoteComponent', () => {
     expect(ws.subscribedGames.at(-1)).toBe(12);
   });
 
+  it('ritenta se il server non risponde al primo colpo e adotta la serata vera', async () => {
+    // Con molte schede aperte la prima richiesta può cadere: senza un nuovo
+    // tentativo il telefono restava sulla partita 1 e mostrava il gioco vecchio
+    // di quella serata mentre la TV era già su un'altra partita.
+    fixture.destroy();
+    localStorage.clear();
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const active = vi.spyOn(game, 'getActiveGame')
+      .mockReturnValueOnce(throwError(() => new Error('rete')))
+      .mockReturnValueOnce(throwError(() => new Error('rete')))
+      .mockReturnValue(of({ gameId: 12 }));
+    ws.subscribedGames.length = 0;
+
+    fixture = TestBed.createComponent(RemoteComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const deadline = Date.now() + 4000;
+    while (component.gameId() !== 12 && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+
+    expect(component.gameId()).toBe(12);
+    expect(active).toHaveBeenCalledTimes(3);
+    expect(ws.subscribedGames.at(-1)).toBe(12);
+  });
+
+
   it('rientra senza tutorial quando il server riprende la stessa sessione', async () => {
     fixture.destroy();
     localStorage.setItem('nickname', 'Anna');

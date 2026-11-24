@@ -503,22 +503,30 @@ export class RemoteComponent implements OnInit, OnDestroy {
    */
   private async adoptActiveGame(): Promise<void> {
     if (new URLSearchParams(window.location.search).get('game')) return;
-    try {
-      const active = await firstValueFrom(this.gameService.getActiveGame());
-      const gameId = Number(active?.gameId);
-      if (!Number.isFinite(gameId) || gameId <= 0 || gameId === this.gameId()) return;
-      this.gameId.set(gameId);
-      localStorage.setItem('activeGameId', String(gameId));
-      // Cambiata la partita, cambiano anche i topic: l'iscrizione segue l'ID
-      // adottato, altrimenti la serata nuova resta muta sui telefoni.
-      this.ws.subscribeToGame(gameId);
-      const name = this.nickname();
-      if (!name) return;
-      if (await this.reliability.start(gameId, 'REMOTE', name)) {
-        this.joinGame(name);
+    // Un solo colpo non basta: con molte schede aperte la prima richiesta può
+    // cadere e il telefono resterebbe sulla partita di default (la numero 1),
+    // mostrando il gioco vecchio della sera prima mentre la TV è altrove.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const active = await firstValueFrom(this.gameService.getActiveGame());
+        const gameId = Number(active?.gameId);
+        if (!Number.isFinite(gameId) || gameId <= 0 || gameId === this.gameId()) return;
+        this.gameId.set(gameId);
+        localStorage.setItem('activeGameId', String(gameId));
+        // Cambiata la partita, cambiano anche i topic: l'iscrizione segue l'ID
+        // adottato, altrimenti la serata nuova resta muta sui telefoni.
+        this.ws.subscribeToGame(gameId);
+        const name = this.nickname();
+        if (name && await this.reliability.start(gameId, 'REMOTE', name)) {
+          this.joinGame(name);
+        }
+        return;
+      } catch {
+        // Server non raggiungibile: si riprova, poi restano l'ID del QR o dello
+        // storage. Insistere sulla serata sbagliata è peggio che aspettare.
+        if (attempt === 2) return;
+        await new Promise((resolve) => setTimeout(resolve, 400));
       }
-    } catch {
-      // Server non raggiungibile: resta l'ID del QR o dello storage.
     }
   }
 
@@ -2950,6 +2958,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
         this.gameState.set(this.hasAnswered() && this.answeredManche() === this.quizManche()
           ? PlayerStatus.LOCKED : PlayerStatus.VOTING);
       } else {
+        // La TV sta ancora annunciando: si resta in attesa senza svelare il
+        // gioco nuovo. Il tipo si allinea solo con SHOW_QUESTION/START_VOTING.
         this.gameState.set(PlayerStatus.WAITING);
       }
       return;
