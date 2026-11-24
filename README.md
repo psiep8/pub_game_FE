@@ -15,7 +15,7 @@ PubGame è un gioco multigiocatore per locali e feste: la TV mostra domande, tab
 
 PubGame porta in sala un quiz a squadre in stile pub: nessuna app da installare, nessun account, un QR code sulla TV e il browser del telefono. La regia decide quando parte un round e quando si passa al successivo; il backend tiene sessioni, stato e recupero dopo un refresh.
 
-La versione è **2.4.0**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
+La versione è **2.5.0**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
 
 ## 2. Come si gioca
 
@@ -23,7 +23,9 @@ La versione è **2.4.0**. Il codice è la fonte di verità: se una frase di ques
 - **Telefoni (`/play`)**: ogni squadra entra con un nickname e gioca dal browser. In attesa può aprire il **Manuale dei giochi**; durante un round il manuale si chiude e il pulsante sparisce.
 - **Regia (`/admin`)**: il presentatore avvia e chiude i round, mette in pausa, mostra le classifiche, lancia i bonus e apre le demo. Non è un pannello di voto: le risposte arrivano dai telefoni.
 
-La serata è una scaletta fissa di **40 round divisi in 5 atti da 8** (`shared/schedule.ts`). Dopo i round **4, 12, 20, 28 e 36** compare la classifica rapida; dopo **8, 16, 24, 32 e 40** quella dettagliata. Le **Biglie sono quattro round separati** (11, 22, 28, 37), ognuno con due gare su due delle otto piste (rally, F1, neve, acqua, vetro, sabbia, spazio, magma); il **Blackjack non è più in scaletta** e resta solo come bonus. In **un round interno di ognuno** dei cinque atti (mai il primo, mai l'ultimo, scelto dal seme all'inizio della serata) parte un bonus diverso: Casino nero/rosso, Blackjack, Casino dozzina, Cavallo e Casino numero secco. I punti del bonus entrano in classifica alla chiusura e nessun bonus toglie punti; i premi di Blackjack e Cavallo li consegnano barista e presentatore, fuori dall'app.
+La serata è una scaletta fissa di **40 round divisi in 5 atti da 8** (`shared/schedule.ts`). Dopo i round **4, 12, 20, 28 e 36** compare la classifica rapida; dopo **8, 16, 24, 32 e 40** quella dettagliata. Le **Biglie sono quattro round separati** (11, 22, 28, 37), ognuno con due gare su due delle otto piste (rally, F1, neve, acqua, vetro, sabbia, spazio, magma); il **Blackjack non è più in scaletta** e resta solo come bonus. In **un round interno di ognuno** dei cinque atti (mai il primo, mai l'ultimo, scelto dal seme all'inizio della serata) parte un bonus diverso: Casino nero/rosso, Blackjack, Casino dozzina, Cavallo e Casino numero secco. I punti del bonus entrano in classifica alla chiusura e nessun bonus toglie punti; i premi di Blackjack e Cavallo li consegnano barista e presentatore, fuori dall'app. Il primo bonus di ogni tipo entra con una scena a sorpresa scelta dal seme della partita: dodici ingressi diversi, nessuno dei quali è annunciato in regia o nel manuale.
+
+**La TV detta il ritmo.** Ogni gioco entra con una dissolvenza breve ed esce con uno scorrimento, mai un taglio secco. La prima volta che un gioco compare nella serata la TV ne mostra la scheda demo — titolo, regola, esempio, tabella punti e i comandi indietro/avanti/ripeti/salta — poi va dritta al round. La domanda resta a schermo senza timer per una pausa di lettura (almeno 3 secondi, più 1 secondo ogni 8 parole), le opzioni entrano sfalsate, seguono 1–2 secondi di respiro e il 3-2-1: cronometro e telefoni partono solo dopo. La riga per il presentatore compare soltanto con `?regia=1`.
 
 Una serata completa dura indicativamente **3–4 ore**: è una stima, non un dato misurato, e dipende da quanto il presentatore allunga i tempi tra un round e l'altro. Il numero di telefoni consigliato è **4–10 squadre**; il codice non impone un limite rigido.
 
@@ -33,23 +35,23 @@ I punteggi della tabella vengono da `apps/frontend/src/app/shared/models/scoring
 
 | Gioco | Tipo | Come funziona | Punti |
 |---|---|---|---|
-| **Quiz** | Sapere | Tre manche a scelta multipla; il tempo decide quanto vale una risposta esatta. | Fino a **+1000** in 3 manches; errore = **la quota della manche scalata dal tempo** (minimo **−1000** nel round); nessun malus se non si risponde. |
+| **Quiz** | Sapere | Tre manche da **15 secondi** a scelta multipla; il tempo decide quanto vale una risposta esatta. | Fino a **+1000** in 3 manches; errore = **la quota della manche scalata dal tempo** (minimo **−1000** nel round); nessun malus se non si risponde. |
 | **Indovina la canzone** | Sapere | Quattro ascolti da 30 secondi; ci si prenota e si sceglie titolo o artista. | **+1000 / +750 / +500 / +250** secondo la manche; sbagliata lo stesso valore in negativo. |
 | **Indovina chi** | Sapere | La foto si schiarisce con il tempo; ci si prenota e si risponde a voce. | **+1000 × tempo rimasto**; errore **−1000 × tempo rimasto**. |
 | **Ruota della fortuna** | Sapere | Una frase a lettere coperte, timer lungo, prenotazione e risposta. | **+1000 × tempo rimasto**; errore **−1000 × tempo rimasto**. |
 | **Timeline** | Sapere | Otto date da ordinare dal passato al presente, tutti sulla stessa scala. | Posti giusti: 8 **+400**, 7 **+300**, 6 **+200**, 5 **+100**, 4 **0**, 3 **−50**, 2 **−100**, 1 o 0 **−200**. |
-| **Time Buzzer** | Riflessi | Tre manche da 30 secondi per fermare il cronometro su un bersaglio di 5–20 secondi; tutte le squadre giocano sempre. | **+300** al primo, **−200** all'ultimo, 0 a metà se N è dispari; **+600** a chi centra il bersaglio entro 50 ms. I punti si sommano fra le manche. |
+| **Time Buzzer** | Riflessi | Tre manche da **20 secondi** per fermare il cronometro su un bersaglio di 5–20 secondi; tutte le squadre giocano sempre. | **+300** al primo, **−200** all'ultimo, 0 a metà se N è dispari; **+600** a chi centra il bersaglio entro 50 ms. I punti si sommano fra le manche. |
 | **Bomba** | Rischio | Un tabellone, un turno per squadra; quasi tutte le caselle sono vere, una ogni tre squadre è falsa. | Casella vera: **0** e si passa il turno; falsa scelta: fuori dal round con malus a scalare **−500, −300, −150, −50** secondo quante bombe sono già state prese. Chi non sceglie in tempo è fuori come se avesse preso una bomba. Durante l'ondata le caselle restano coperte. |
 | **Speed Rush** | Riflessi | 90 secondi di risposte lampo; la corsia avanza a ogni risposta giusta. | **+800** al primo, **−400** all'ultimo, 0 a metà se N è dispari; chi non arriva è ultimo a pari merito. Punti calcolati dal server; le prove non si ripetono e salgono di difficoltà. |
-| **Tennis Battle** | Riflessi | Duello a coppie: ogni risposta rimanda la palla; punteggio da tennis (15, 30, 40, vantaggio) e killer point dopo tre ritorni dal vantaggio. Le domande salgono da facili a difficili e il disco arriva dritto, a zig-zag, a giro o a salto. | **+500** a chi vince la partita, **0** a chi perde; ogni gol subito è un gol per l'avversario. |
+| **Tennis Battle** | Riflessi | Duello a coppie su un campo con le linee regolamentari (doppio, corridoi, riquadri di servizio): ogni risposta rimanda la palla; punteggio da tennis (15, 30, 40, vantaggio) e killer point dopo tre ritorni dal vantaggio. Le domande salgono da facili a difficili e il disco arriva dritto, a zig-zag, a giro o a salto. | **+500** a chi vince la partita, **0** a chi perde; ogni gol subito è un gol per l'avversario. |
 | **Biglie** | Fortuna / spettacolo | Corsa di biglie su una pista con curve e ostacoli, disegnata e simulata dalla TV con la stessa geometria. Ogni tavolo sceglie una biglia una sola volta e la porta nelle due gare del round; non si gioca dal telefono durante la corsa. | **+500** al primo di ogni gara, **−400** all'ultimo, 0 a metà se N è dispari; i punti si sommano fra le due gare e fra i quattro round. |
-| **Azzardo** | Rischio | Quattro manche numeriche; dieci fiches da 20 punti da distribuire sulle quattro risposte. | Fiche giusta: **+20 × quota** (×2 facile, ×3 media, ×4 difficile); fiche sbagliate: **−20 × fiche × 100/80/60/40%**; mai sotto zero. La puntata parte solo con **CONFERMA PUNTATA** e almeno una fiche; le fiches avanzate si sommano alle dieci nuove e alzano il tetto di una fiche ogni due risparmiate (max **15**, quindi al massimo **+1000** in una manche). |
+| **Azzardo** | Rischio | Quattro manche numeriche; dieci **fiche da poker** da 20 punti da distribuire sulle quattro risposte. | Fiche giusta: **+20 × quota** (×2 facile, ×3 media, ×4 difficile); fiche sbagliate: **−20 × fiche × 100/80/60/40%**; mai sotto zero. La puntata parte solo con **CONFERMA PUNTATA** e almeno una fiche; le fiches avanzate si sommano alle dieci nuove e alzano il tetto di una fiche ogni due risparmiate (max **15**, quindi al massimo **+1000** in una manche). |
 | **Ultima spiaggia** | Rischio / sapere | Cinque livelli da 100 a 500, una volta per squadra in tutta la serata; una categoria per occorrenza. | **+100 / +200 / +300 / +400 / +500**; errore **−50 / −100 / −150 / −200 / −250**; chi non risponde perde metà del livello scelto. |
 | **Arena Battle Royale** | Sapere + riflessi | Battle royale a domande rapide dentro un cerchio che si chiude. | **+10 / −10** per risposta; piazzamento **+1000 / +500 / −300**. |
 
 ### Galleria TV: i giochi
 
-Tutte le schermate sono catturate dalla TV vera a 1280×720. Le modalità usano la grafica carta/inchiostro del progetto; Biglie mantiene la sua pista illustrata. Blackjack compare nella galleria perché resta un bonus giocabile, anche se non fa più parte dei quaranta round.
+Le schede qui sotto sono le demo della TV **all’ultima versione**, catturate dall’app vera a 1280×720 con `/tv?demo=<gioco>`: ogni gioco mostra regola, esempio, tabella punti e i quattro comandi (indietro, avanti, ripeti, salta). Le schermate di partita in corso restano in [`docs/AUDIT-GRAFICO/screens/`](docs/AUDIT-GRAFICO/screens/). Biglie mantiene la sua pista illustrata; Blackjack compare perché resta un bonus giocabile, anche se non fa più parte dei quaranta round.
 
 | TV | TV |
 |---|---|
@@ -122,19 +124,25 @@ flowchart LR
 
 ### Flusso per gioco
 
-- **Quiz** — TV: tre domande a scelta multipla, una per manche, con countdown. Telefono: un tocco su **A–D**, poi la pulsantiera si blocca. Chiusura: reveal con soluzione; fino a **+1000** in tre manches, errore **la quota della manche scalata dal tempo** (minimo **−1000** nel round), nessuna risposta **0**. Il punteggio lo registra il server.
+- **Quiz** — TV: tre domande a scelta multipla, una per manche da **15 secondi**, con countdown che parte dopo l’introduzione. Telefono: un tocco su **A–D**, poi la pulsantiera si blocca. Chiusura: reveal con soluzione; fino a **+1000** in tre manches, errore **la quota della manche scalata dal tempo** (minimo **−1000** nel round), nessuna risposta **0**. Il punteggio lo registra il server.
 - **Indovina la canzone** — TV: quattro ascolti da 30 secondi, sempre più riconoscibili. Telefono: **PRENOTA E RISPONDI**; titolo e artista si dicono a voce, la regia conferma. Punti **+1000 / +750 / +500 / +250** secondo la manche; errore lo stesso valore in negativo; chi non prenota resta a 0.
 - **Indovina chi** — TV: foto sfocata che si schiarisce per 60 secondi, un indizio ogni 6 secondi. Telefono: **PRENOTATI**, poi risposta a voce. Punti **±1000 × tempo rimasto**; errore in negativo; nessuna prenotazione 0.
 - **Ruota della fortuna** — TV: frase a lettere coperte per 75 secondi, lettere aperte con estrazione guidata. Telefono: **PRENOTA E RISPONDI**, soluzione a voce. Punti **±1000 × tempo rimasto**; errore in negativo; nessuna prenotazione 0.
 - **Timeline** — TV: otto eventi da ordinare dal passato al presente. Telefono: si trascinano le carte; l’ordine iniziale è già una risposta e l’invio è automatico, si corregge fino allo scadere. Punti per posti esatti: 8 **+400**, 7 **+300**, 6 **+200**, 5 **+100**, 4 **0**, 3 **−50**, 2 **−100**, 1 o 0 **−200**.
-- **Time Buzzer** — TV: tre manche, bersaglio segreto da 5 a 20 secondi, countdown 5-4-3-2-1. Il server arma i telefoni e dà l’istante ufficiale di partenza; telefono: **STOP** il più vicino possibile. Piazzamento **+300 / … / −200**, **+600** se l’errore è entro 50 ms; nessun taglio, i punti si sommano fra le manche.
+- **Time Buzzer** — TV: tre manche da **20 secondi**, bersaglio segreto da 5 a 20 secondi, countdown 5-4-3-2-1. Il server arma i telefoni e dà l’istante ufficiale di partenza; telefono: **STOP** il più vicino possibile. Piazzamento **+300 / … / −200**, **+600** se l’errore è entro 50 ms; nessun taglio, i punti si sommano fra le manche.
 - **Bomba** — TV: tabellone da **2n + n/2** caselle, una bomba ogni tre tavoli, un turno alla volta. Telefono: si sceglie una casella solo al proprio turno. Casella vera **0** e turno passa; bomba **fuori** con malus a scalare **−500, −300, −150, −50**; chi non sceglie in tempo è fuori. Le caselle restano coperte durante l’ondata e le bombe non scelte si disarmano a fine round.
 - **Tennis Battle** — TV: duello a coppie, palla che passa, punteggio 15-30-40-vantaggio e killer point dopo tre ritorni dal vantaggio; le domande non compaiono in TV. Telefono: risposta quando arriva la palla; giusta rimanda, sbagliata o scaduta è punto per l’avversario. Vince la partita **+500**, perde **0**.
 - **Ultima spiaggia** — TV: una categoria per occorrenza e cinque livelli. Telefono: si sceglie un livello **100–500** non ancora consumato, poi si risponde. Giusta **+livello**, sbagliata o scaduta **−metà**; il livello resta consumato anche in caso di errore.
-- **Azzardo** — TV: quattro manche numeriche (celebrità, canzoni, paesi, storia), quattro risposte vicine, quota ×2/×3/×4. Telefono: dieci fiches da **20** da distribuire, almeno una, poi **CONFERMA PUNTATA**; le fiches risparmiate si sommano alle nuove e alzano il tetto di una ogni due, fino a **15**. Fiche giusta **+20 × quota**; sbagliata **−20 × fiche × 100/80/60/40%**; mai sotto zero, massimo **+1000** a manche.
+- **Azzardo** — TV: quattro manche numeriche (celebrità, canzoni, paesi, storia), quattro risposte vicine, quota ×2/×3/×4. Telefono: dieci **fiche da poker** da **20** da distribuire, almeno una, poi **CONFERMA PUNTATA**; le fiches risparmiate si sommano alle nuove e alzano il tetto di una ogni due, fino a **15**. Fiche giusta **+20 × quota**; sbagliata **−20 × fiche × 100/80/60/40%**; mai sotto zero, massimo **+1000** a manche.
 - **Arena Battle Royale** — TV: cerchio che si chiude, domande rapide, classifica in tempo reale. Telefono: vero/falso o quattro opzioni; giusta **+10**, sbagliata **−10**; chi resta fuori o inattivo è eliminato. Piazzamento **+1000 / +500 / −300**.
 - **Speed Rush** — TV: 90 secondi, solo le corsie; le domande arrivano sul telefono. Risposta giusta fa avanzare, sbagliata arretra; le prove non si ripetono e salgono di difficoltà. Piazzamento **+800 / … / −400**, calcolato dal server; chi non arriva è ultimo a pari merito.
 - **Biglie** — TV: quattro round separati, due gare per round su due delle otto piste (rally, F1, neve, acqua, vetro, sabbia, spazio, magma). Telefono: si sceglie una biglia una volta per round, quando la TV chiama il tavolo; durante la corsa non si gioca. Piazzamento **+500 / … / −400** per gara, sommato fra le due gare e fra i quattro round.
+
+### Vita della scena
+
+- **Respiro e deriva.** Tutte le schermate TV hanno un micro-movimento continuo: respiro (`scale 1 → 1,012`), deriva (±4 px) e bolle di sfondo. Le fasi sono casuali ma stabili, si calcolano al montaggio e usano solo `transform`/`opacity`; la pausa rallenta il movimento invece di fermarlo. Con `?perf=1` la TV mostra gli fps e, se scendono sotto 50 per tre secondi, riduce le bolle da sola. Con `prefers-reduced-motion` resta un movimento minimo, non spento.
+- **Telefoni.** Gli stessi tasti respirano di 1,5 px con cicli sfasati; l’animazione usa `translate` e non `transform`, così il feedback alla pressione resta intatto.
+- **Ingressi a sorpresa.** I cinque bonus pescano da un pool di dodici ingressi (movimento e suono propri, dal catalogo audio). Il piano della partita nasce da un seme che decide il server (`GET /games/{id}/bonus-entrance`), quindi due TV e un refresh vedono la stessa scena; l’ingresso già visto non si rigioca nella stessa scheda, la pausa lo ferma e i telefoni vibrano quando il bonus parte.
 
 ### Flusso dei bonus
 
@@ -272,7 +280,7 @@ npm run build:frontend   # ng build
 npm run build:backend    # Maven package
 ```
 
-Il frontend ha **70 file di spec (703 test al 23 novembre 2026: 701 eseguiti e 2 saltati quando manca ffmpeg)**; il backend ha **168 test**. Le verifiche coprono, tra l'altro: regole di punteggio e scaletta, contenuti del manuale, copertura delle demo, round manager, apertura/chiusura del manuale sul telefono, modalità TV, sessioni e riconnessione, prova dei pulsanti, API e servizi del backend.
+Il frontend ha **74 file di spec (748 test al 24 novembre 2026, tutti eseguiti)**; il backend ha **168 test**. Le verifiche coprono, tra l'altro: regole di punteggio e scaletta, contenuti del manuale, copertura delle demo, round manager, apertura/chiusura del manuale sul telefono, modalità TV, sessioni e riconnessione, prova dei pulsanti, API e servizi del backend.
 
 **Limiti noti dei test**: la suite frontend deve compilare per intero (un solo errore TypeScript in una spec ferma tutti i test);  non esiste ancora una prova end-to-end multi-dispositivo in rete; i controlli visivi sono manuali (TV e telefono); i timer dichiarati dal client non sono interamente verificabili dal server.
 
@@ -283,6 +291,7 @@ La colonna sonora della TV suona **file registrati** in `apps/frontend/public/as
 - **Sottofondi.** Piano a **20 loop**: una base per ciascun atto (5, tutte diverse) più un loop per i giochi e i bonus che ne reggono uno. **Oggi sono in cartella 20 su 20**, tutti consegnati e resi in casa; la mappa gioco → loop è in `core/services/bed-map.ts`, il registro dei file in `bed-loops.ts`; il documento di riferimento è [`docs/SOTTOFONDI.md`](docs/SOTTOFONDI.md).
 - **Regola di riproduzione.** La base d'atto suona di default; il loop del gioco la sostituisce con una dissolvenza di 1,5 s e a fine gioco si torna alla base. Musica e Time Buzzer restano in silenzio; durante la domanda di Quiz e Indovina chi la musica scende di 6 dB. I loop si caricano con l'atto e il service worker li tiene in cache.
 - **Effetti e segnali.** Battito (dal round 20 cresce con la serata), tick del clock, suspense nei giochi a countdown, reveal, fanfara e podio. Mute con dissolvenza; la pausa ferma clock e battito.
+- **Canali e proprietari.** I loop passano da quattro canali — `bed`, `loop-gioco`, `effetto`, `voce` — con un proprietario per scena: al cambio di gioco, round, bonus, pausa, reset o uscita dalla TV il canale uscente si ferma con una dissolvenza di 300–600 ms, e una richiesta lenta non può riaccendere un loop già fermato. Il pannello `?audiodebug=1` mostra i canali e i proprietari in tempo reale.
 - **Regia audio.** La pagina `/audio` permette di ascoltare ogni evento, i sottofondi per atto e per gioco e il loro peso.
 - **Manifesto e script.** `docs/MANIFESTO-AUDIO.md` è la fonte dei nomi dei file; `node scripts/audio/process-audio.mjs` normalizza (effetti −16 LUFS, loop −23 LUFS), taglia e converte i file grezzi messi in `_src/`.
 
@@ -295,7 +304,7 @@ Prima di una serata con telefoni veri:
 1. `cp .env.test-night.example .env` e compila `CONTROL_SECRET` (≥ 32 caratteri) e `ALLOWED_ORIGINS` con IP LAN del PC.
 2. `npm run db:backup` (copia in `backups/`, fuori dal repository).
 3. `npm run dev`, poi `curl http://localhost:8080/health` deve rispondere `{"status":"ok"}`.
-   Con Docker: `PUBGAME_TAG=2.4.0 docker compose up -d` fissa la versione, così un
+   Con Docker: `PUBGAME_TAG=2.5.0 docker compose up -d` fissa la versione, così un
    aggiornamento sbagliato si annulla cambiando tag.
 4. Giro a vuoto con un iPhone e un Android: ingresso, un round, refresh della TV, blocco schermo di 60 secondi.
 
@@ -315,7 +324,7 @@ Il registro completo dei difetti emersi nella prima serata (F01–F55), con stat
 - Audio a file registrati con regia audio in `/audio`.
 - Banca domande pre-generata: 983 domande, 360 domande Azzardo, 110 affermazioni Bomba e 222 eventi Timeline.
 
-**Da provare con telefoni e TV veri** (corrette nel codice, non verificate in sala): rientro su iPhone e Safari, Time Buzzer, Arena (cerchio, movimento, inattività), Speed Rush a 90 secondi, Tennis dopo la migrazione del database, Bomba con esplosione immediata, vibrazione e suono sui telefoni.
+**Da provare con telefoni e TV veri** (corrette nel codice, non verificate in sala): rientro su iPhone e Safari, Time Buzzer, Arena (cerchio, movimento, inattività), Speed Rush a 90 secondi, Tennis dopo la migrazione del database (e il nuovo campo con le linee), Bomba con esplosione immediata, vibrazione e suono sui telefoni, la pausa di lettura e il 3-2-1 della regia scenica, il respiro/bolle con `?perf=1`, gli ingressi a sorpresa dei bonus e le fiche dell’Azzardo.
 
 **Limitato o aperto**
 
