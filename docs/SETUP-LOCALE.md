@@ -118,13 +118,14 @@ Lo script scrive i brani in `static/media/music`, le copertine in
 `static/media/covers`, le foto in `static/media/people` e l'indice
 `questions/media-it.json`. Senza chiave TMDB usa Wikipedia per i volti.
 
-- **Con la banca presente** l'audit (`npm run audit:banche`) controlla 150
-  persone e 114 brani, i campi e l'esistenza dei file; il test
-  `CelebrityClueLeakTest` gira e verifica che nessun indizio contenga il nome.
-- **Senza la banca** (per esempio in CI) `CelebrityClueLeakTest` viene saltato
-  con `assumeTrue` e le foto delle celebrità arrivano dai servizi remoti quando
-  sono disponibili. È una scelta deliberata: i media veri non stanno nel
-  repository, quindi il test non può girare ovunque.
+- **Con la banca presente** l'audit (`npm run audit:banche`) controlla le
+  persone e i brani dell'indice, i campi e l'esistenza dei file; il test
+  `CelebrityClueLeakTest` gira su tutte le persone e verifica che nessun indizio
+  contenga il nome o il cognome.
+- **Senza la banca** (per esempio in CI) `CelebrityClueLeakTest` usa la
+  mini-banca di prova in `src/test/resources/questions/media-test.json`, così il
+  controllo gira comunque. È una scelta deliberata: i media veri non stanno nel
+  repository.
 
 Per provare la banca e il test in locale:
 
@@ -152,6 +153,37 @@ cd apps/backend
 **Scenario 3: solo un portatile**
 
 Il portatile fa server, TV (con HDMI) e admin; i telefoni sul tuo Wi-Fi.
+
+### Seconda serata con TV via HDMI
+
+Checklist per la seconda serata, quando il PC è già configurato ma la TV
+cambia e i telefoni sono quelli degli amici.
+
+1. **Porta la banca media.** `questions/media-it.json` e `static/media/` sono
+   fuori da git: senza, Indovina chi e Musica partono senza foto e senza brani.
+   Copia `apps/backend/src/main/resources/questions/media-it.json` e la cartella
+   `apps/backend/src/main/resources/static/media/` dal PC che li ha generati
+   (vedi §4.1), poi verifica con `npm run audit:banche`.
+2. **IP fisso del PC server.** Imposta un IP statico o una prenotazione DHCP nel
+   router (`192.168.1.20` nell'esempio) e scriviti l'indirizzo. La TV apre
+   `http://<IP>:4200/tv` in sviluppo o `http://<IP>:8080/tv` in Docker; i
+   telefoni usano lo stesso IP. Se l'IP cambia, `ALLOWED_ORIGINS` in `.env` non
+   corrisponde più e i telefoni vengono rifiutati.
+3. **Isolamento client.** Se i telefoni non aprono la pagina, il router sta
+   isolando i client (AP isolation) o sono su un'altra rete/banda: mettili sullo
+   stesso Wi-Fi del PC, oppure usa un router tuo o l'hotspot del PC. Prova da un
+   telefono prima di far entrare tutti.
+4. **Audio HDMI.** Imposta la TV come uscita audio del PC (Windows → Audio →
+   uscita TV), alza il volume della TV e disattiva il muto del browser. I browser
+   bloccano i suoni finché non c'è un gesto: all'avvio premi **ATTIVA AUDIO**
+   nell'intro e verifica che il pulsante diventi **AUDIO ATTIVO**.
+5. **Overscan.** Se QR, contatore o dock sono tagliati ai bordi, metti la TV su
+   `Just Scan` / `Screen Fit` / `1:1` (o disattiva l'overscan nel menu immagine).
+   In alternativa riduci lo zoom del browser all'80–90%.
+6. **Reset prima dell'inizio.** Apri `/admin` e premi **RESET** con almeno un
+   telefono collegato; conferma e controlla che la TV torni alla lobby con il
+   contatore `0/40` e che i telefoni rientrino dal setup. Solo dopo fai entrare
+   gli amici: un reset a metà serata cancella la partita.
 
 ## 6. Prima della serata: prova di 10 minuti
 
