@@ -81,7 +81,7 @@
   color: #e9ecef;
   border-radius: 0;
   box-shadow: none;
-  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+  font-family: var(--font);
   text-align: center;
   position: relative;
   width: 100vw;

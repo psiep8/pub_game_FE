@@ -89,25 +89,13 @@
   line-height: 1;
 }
 
-.position-massive.gold .position-number {
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 40px rgba(255, 215, 0, 0.8));
-}
-
-.position-massive.silver .position-number {
-  background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 40px rgba(192, 192, 192, 0.8));
-}
-
+/* Podio in inchiostro pieno: niente testo a gradiente né alone attorno al numero. */
+.position-massive.gold .position-number,
+.position-massive.silver .position-number,
 .position-massive.bronze .position-number {
-  background: linear-gradient(135deg, #cd7f32, #e8a76f);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 40px rgba(205, 127, 50, 0.8));
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  filter: none;
 }
 
 .position-massive.top5 .position-number {
@@ -162,10 +150,10 @@
 .points-value {
   font-size: 120px;
   font-weight: 900;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 4px 30px rgba(102, 126, 234, 0.5);
+  background: none;
+  color: var(--paper);
+  -webkit-text-fill-color: var(--paper);
+  text-shadow: none;
   line-height: 1;
 }
 
