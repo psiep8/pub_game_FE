@@ -191,6 +191,10 @@ export class GameComponent implements OnInit, OnDestroy {
   revealPending = signal(false);
   demoType = signal<string | null>(null);
   demoScene = signal(0);
+  /** Modalità regia: mostra il copione del presentatore accanto alla demo. */
+  readonly regiaMode = signal(
+    new URLSearchParams(window.location.search).get('regia') === '1',
+  );
   /** Canali audio attivi: pannello di sala dietro `?audiodebug=1`. */
   readonly audioDebug = signal(
     new URLSearchParams(window.location.search).get('audiodebug') === '1',
@@ -353,6 +357,11 @@ export class GameComponent implements OnInit, OnDestroy {
   private bonusEntranceTimer?: ReturnType<typeof setTimeout>;
   private autoAdvanceTimer?: ReturnType<typeof setInterval>;
   private demoTimer?: ReturnType<typeof setInterval>;
+  private demoCloseTimer?: ReturnType<typeof setTimeout>;
+  /** Round in attesa che la demo della prima apparizione finisca. */
+  private pendingRoundOpen?: () => void;
+  /** Giochi già spiegati in questa partita: la demo non si ripete. */
+  private demoSeen?: Set<string>;
   private lastTimerTick = -1;
   private lastAutoTick = -1;
   private lastMusicTick = -1;
@@ -1055,6 +1064,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
   async startNewRound() {
     if (this.phase() === GamePhase.INTRO) this.dismissIntro();
+    // Un round nuovo cancella l'apertura rimasta in attesa di una demo.
+    this.pendingRoundOpen = undefined;
+    this.stopDemo();
 
     // Un round nuovo deve poter partire anche con la classifica a schermo:
     // altrimenti la TV resta bloccata sulla classifica e la regia non riesce
@@ -1108,6 +1120,20 @@ export class GameComponent implements OnInit, OnDestroy {
     await new Promise(r => setTimeout(r, 3000));
     this.showTypeReveal.set(null);
 
+    // Prima apparizione del gioco nella serata: parla la demo, poi il round apre.
+    if (this.firstAppearance(extractedType)) {
+      this.pendingRoundOpen = () => void this.openRound(extractedType);
+      this.startDemo(extractedType);
+      return;
+    }
+    await this.openRound(extractedType);
+  }
+
+  /**
+   * Apertura vera del round. Sta separata da `startNewRound` perché la demo
+   * della prima apparizione può mettersi in mezzo e chiudersi con SALTA.
+   */
+  private async openRound(extractedType: GameModeType): Promise<void> {
     this.isSpinning.set(true);
 
     try {
@@ -2437,15 +2463,37 @@ export class GameComponent implements OnInit, OnDestroy {
     this.stopDemoTimer();
     this.demoType.set(type);
     this.demoScene.set(0);
+    this.markDemoSeen(type);
     this.demoTimer = setInterval(() => {
       if (!this.demoType()) return;
-      this.demoScene.update((scene) => (scene + 1) % script.scenes.length);
+      // L'ultima scena resta a schermo: la demo non torna all'inizio da sola.
+      this.demoScene.update((scene) => Math.min(scene + 1, script.scenes.length - 1));
     }, 5000);
+    // Demo che apre un round: se il presentatore non salta, si chiude da sola.
+    if (this.pendingRoundOpen) {
+      this.demoCloseTimer = setTimeout(
+        () => this.skipDemo(),
+        script.scenes.length * 5000,
+      );
+    }
   }
 
   stopDemo(): void {
     this.stopDemoTimer();
     this.demoType.set(null);
+  }
+
+  /** Ripeti demo: torna alla prima scena senza chiudere la scena. */
+  repeatDemo(): void {
+    this.goDemoScene(0);
+  }
+
+  /** Salta: chiude la demo e, se aspettava un round, lo apre subito. */
+  skipDemo(): void {
+    const pending = this.pendingRoundOpen;
+    this.pendingRoundOpen = undefined;
+    this.stopDemo();
+    pending?.();
   }
 
   goDemoScene(scene: number): void {
@@ -2496,6 +2544,52 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.demoTimer) {
       clearInterval(this.demoTimer);
       this.demoTimer = undefined;
+    }
+    if (this.demoCloseTimer) {
+      clearTimeout(this.demoCloseTimer);
+      this.demoCloseTimer = undefined;
+    }
+  }
+
+  /**
+   * Demo della prima apparizione: un gioco si spiega quando compare la prima
+   * volta nella serata, non a ogni round. La memoria vive con la partita, così
+   * un refresh della TV non ripete la spiegazione al pubblico.
+   */
+  private firstAppearance(type: string): boolean {
+    if (!demoScriptFor(type)) return false;
+    return !this.demoSeenForGame().has(type);
+  }
+
+  private demoSeenForGame(): Set<string> {
+    if (this.demoSeen) return this.demoSeen;
+    const seen = new Set<string>();
+    const gameId = this.currentGameId();
+    if (gameId) {
+      try {
+        const raw = JSON.parse(localStorage.getItem(`demoSeen:${gameId}`) ?? '[]');
+        if (Array.isArray(raw)) {
+          for (const value of raw) {
+            if (typeof value === 'string') seen.add(value);
+          }
+        }
+      } catch {
+        // Storage illeggibile: si riparte dalla memoria della sessione.
+      }
+    }
+    this.demoSeen = seen;
+    return seen;
+  }
+
+  private markDemoSeen(type: string): void {
+    const seen = this.demoSeenForGame();
+    seen.add(type);
+    const gameId = this.currentGameId();
+    if (!gameId) return;
+    try {
+      localStorage.setItem(`demoSeen:${gameId}`, JSON.stringify([...seen]));
+    } catch {
+      // Quota piena: resta la memoria della sessione.
     }
   }
 

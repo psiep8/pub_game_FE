@@ -56,9 +56,16 @@ export interface DemoScript {
   title: string;
   icon: string;
   kind: 'INTRO' | 'GAME' | 'BONUS';
+  /** La regola in una frase: sta sopra l'esempio animato, in TV. */
+  ruleLine: string;
   scenes: DemoScene[];
   scoring: DemoScoreRow[];
   note: string;
+  /**
+   * Cosa dice e cosa fa il presentatore. Compare solo con `?regia=1`: il
+   * pubblico in sala non deve leggere il copione.
+   */
+  presenter: string;
 }
 
 interface DemoCopy {
@@ -478,9 +485,11 @@ const introScript: DemoScript = {
   title: 'LA SERATA',
   icon: '🎬',
   kind: 'INTRO',
+  ruleLine: 'Una TV, una regia, un telefono per tavolo: quaranta round in cinque atti.',
   scenes: introScenes,
   scoring: [],
   note: 'Quaranta round, cinque atti, cinque bonus sparsi nei round degli atti. Il presentatore avvia ogni round dalla regia o dalla TV.',
+  presenter: 'Presenta la serata in trenta secondi, poi premi AVANTI.',
 };
 
 function makeGameScript(type: GameModeType, copy: DemoCopy): DemoScript {
@@ -490,9 +499,11 @@ function makeGameScript(type: GameModeType, copy: DemoCopy): DemoScript {
     title: copy.title,
     icon: copy.icon,
     kind: 'GAME',
+    ruleLine: copy.objective[0],
     scenes: scenesFor(copy, rule),
     scoring: scoringRows(rule),
     note: rule.note,
+    presenter: `Leggi la regola, aspetta tre secondi, poi premi AVANTI. Punti: ${rule.correct}.`,
   };
 }
 
@@ -504,9 +515,12 @@ function makeBonusScript(type: BonusType, copy: DemoCopy): DemoScript {
     title: copy.title,
     icon: copy.icon,
     kind: 'BONUS',
+    ruleLine: copy.objective[0],
     scenes: scenesFor(copy, rule),
     scoring: scoringRows(rule),
     note: rule.note,
+    // L'ingresso a sorpresa non si annuncia: il presentatore sa solo che arriva.
+    presenter: `Annuncia il bonus senza descrivere l'entrata, poi premi AVANTI. Punti: ${rule.correct}.`,
   };
 }
 
