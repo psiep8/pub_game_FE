@@ -313,6 +313,21 @@
   </div>
 </div>
 
+@if (audioDebug()) {
+<div class="audio-debug" role="status" aria-label="Canali audio attivi">
+  <div class="audio-debug-head">CANALI AUDIO · {{ audioDebugRows().length }}</div>
+  @for (row of audioDebugRows(); track row.channel + row.label + row.owner) {
+  <div class="audio-debug-row">
+    <span class="audio-debug-channel">{{ row.channel }}</span>
+    <b>{{ row.label }}</b>
+    <span class="audio-debug-owner">{{ row.owner }}</span>
+  </div>
+  } @empty {
+  <div class="audio-debug-row"><b>NESSUN LOOP ATTIVO</b></div>
+  }
+</div>
+}
+
 @if (autoAdvanceSeconds() > 0) {
 <div class="auto-advance" role="status">
   <span class="auto-advance-label">RIPARTENZA · PROSSIMO ROUND</span>

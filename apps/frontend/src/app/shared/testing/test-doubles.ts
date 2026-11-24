@@ -329,6 +329,10 @@ export class FakeAudioService {
   readonly playRouletteTicks = (_ms = 0) => this.played.push('roulette-ticks');
   readonly playRouletteLanding = () => this.played.push('roulette-landing');
   readonly stopAll = () => this.played.push('stop-all');
+  readonly setOwner = (owner: string) => this.played.push(`owner-${owner}`);
+  readonly resetAudio = () => this.played.push('reset-audio');
+  readonly endSession = () => this.played.push('end-session');
+  readonly channelSnapshot = () => [];
 
   isEnabled(): boolean {
     return true;

@@ -191,6 +191,11 @@ export class GameComponent implements OnInit, OnDestroy {
   revealPending = signal(false);
   demoType = signal<string | null>(null);
   demoScene = signal(0);
+  /** Canali audio attivi: pannello di sala dietro `?audiodebug=1`. */
+  readonly audioDebug = signal(
+    new URLSearchParams(window.location.search).get('audiodebug') === '1',
+  );
+  readonly audioDebugRows = signal<Array<{ channel: string; label: string; owner: string }>>([]);
   bonusActive = signal(false);
   bonusType = signal<BonusType | null>(null);
   /** Stato del bonus da riaprire dopo un refresh (per ora solo Casino). */
@@ -391,6 +396,8 @@ export class GameComponent implements OnInit, OnDestroy {
 
   @HostListener('window:beforeunload', ['$event'])
   unloadNotification($event: any) {
+    // La pagina sta per andare via: nessun loop deve restare acceso.
+    this.audioService.endSession();
     if (this.resetReloadInFlight) return;
     if (this.phase() !== 'IDLE' && this.phase() !== GamePhase.INTRO) {
       $event.returnValue = "Hai una partita in corso!";
@@ -445,6 +452,10 @@ export class GameComponent implements OnInit, OnDestroy {
       } else if (auto !== this.lastAutoTick) {
         this.lastAutoTick = auto;
         this.audioService.playCountdownTick();
+      }
+
+      if (this.audioDebug()) {
+        this.audioDebugRows.set(this.audioService.channelSnapshot());
       }
     });
   }
@@ -726,7 +737,8 @@ export class GameComponent implements OnInit, OnDestroy {
     }
     this.stopDemoTimer();
 
-    this.audioService.stopAll();
+    // Uscita dalla TV: i loop del round in corso non sopravvivono alla rotta.
+    this.audioService.endSession();
     this.audioService.stopAmbient();
   }
 
@@ -882,6 +894,8 @@ export class GameComponent implements OnInit, OnDestroy {
   async openLobby(): Promise<void> {
     if (this.currentGameId()) return;
 
+    // Lobby: il proprietario dei loop torna alla sala d'attesa.
+    this.audioService.setOwner('lobby');
     // Partita nuova, palette nuove: le assegnazioni della precedente non valgono più.
     this.theme.resetTeamThemes();
     const newGame = await firstValueFrom(this.gameService.createGame());
@@ -1071,6 +1085,12 @@ export class GameComponent implements OnInit, OnDestroy {
 
 
     const extractedType = this.roundManager.startNewRound();
+
+    // Il round appena aperto è il proprietario dei loop che stanno per partire:
+    // il round precedente ha già lasciato la scena.
+    this.audioService.setOwner(
+      `round:${this.roundManager.getCurrentRound()}:${extractedType}`,
+    );
 
 
     // La TV mantiene viva la propria sessione: se il Wi-Fi cade torna
@@ -1801,6 +1821,11 @@ export class GameComponent implements OnInit, OnDestroy {
     this.isShowingLeaderboard.set(false);
     this.pendingLeaderboardType.set(null);
     // Serata finita: il sottofondo torna al pub, non alla musica dell'ultimo gioco.
+    this.audioService.setOwner(
+      this.roundManager.isGameOver()
+        ? 'lobby'
+        : `round:${this.roundManager.getCurrentRound()}:${this.currentMode()?.type ?? 'IDLE'}`,
+    );
     this.audioService.setGameBed(
       this.roundManager.isGameOver() ? null : this.currentMode()?.type ?? null,
     );
@@ -1815,6 +1840,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.theme.applyFromRemote('editorial-acid');
     // Classifica e podio cambiano disco: l'ultima della serata ha il suo loop,
     // le altre la fanfara della classifica.
+    this.audioService.setOwner('classifica');
     this.audioService.setBedLoop(this.roundManager.isGameOver() ? 'gioco-casino-finale' : 'classifica');
     this.showLeaderboardQuick.set(type === 'QUICK');
     this.showLeaderboardDetailed.set(type === 'DETAILED');
@@ -1932,6 +1958,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.isShowingLeaderboard.set(true);
     // Anche la classifica forzata dalla regia ha il suo loop; a serata finita
     // è quello del finale.
+    this.audioService.setOwner('classifica');
     this.audioService.setBedLoop(this.roundManager.isGameOver() ? 'gioco-casino-finale' : 'classifica');
 
     if (type === 'DETAILED') {
@@ -2003,6 +2030,9 @@ export class GameComponent implements OnInit, OnDestroy {
     this.bonusResume.set(resume);
     // Il bonus dell'atto resta sul server: un refresh non lo salta.
     this.markBonusAct(type, 'STARTED');
+
+    // Il bonus è il nuovo proprietario dei loop: il round uscente tace subito.
+    this.audioService.setOwner(`bonus:${type}`);
 
     // Un bonus è fuori dal round: chiude il conteggio se era ancora aperto.
     this.settleRoundWinner();
@@ -2339,6 +2369,8 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.bonusEntranceTimer) clearTimeout(this.bonusEntranceTimer);
     this.bonusEntranceTimer = undefined;
     this.bonusEntrance.set(null);
+    // Reset della scena: loop, sottofondo e memoria di ripresa si azzerano.
+    this.audioService.resetAudio();
     this.audioService.stopSuspense();
     this.cancelAutoAdvance();
     this.clearBonusTimer();

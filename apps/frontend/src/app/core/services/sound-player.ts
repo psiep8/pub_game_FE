@@ -15,6 +15,10 @@ interface ActiveLoop {
   source: AudioBufferSourceNode;
   gain: GainNode;
   filter?: BiquadFilterNode;
+  /** Istante del contesto in cui il nastro è partito (meno l'offset iniziale). */
+  startedAt: number;
+  /** Durata del file: serve a ripartire dal punto dopo una pausa. */
+  duration: number;
 }
 
 /** Sottofondo in onda: file, sorgente e guadagno su cui si fa la dissolvenza. */
@@ -43,6 +47,12 @@ export class SoundPlayer {
   /** File in caricamento: evita doppie fetch sullo stesso evento. */
   private readonly loading = new Set<string>();
   private readonly loops = new Map<string, ActiveLoop>();
+  /**
+   * Generazione per evento: uno stop (o un nuovo avvio) la alza, così la fetch
+   * partita prima non fa suonare dopo un loop già fermato. È l'anti-corsa del
+   * livello più basso: senza, un file lento riaccendeva il gioco precedente.
+   */
+  private readonly loopTokens = new Map<string, number>();
   /** Effetti già partiti: «FERMA TUTTO» deve poterli zittire a metà. */
   private readonly oneShots = new Set<AudioBufferSourceNode>();
   /** Sottofondo musicale: un solo loop acceso alla volta. */
@@ -103,18 +113,19 @@ export class SoundPlayer {
     return true;
   }
 
-  /** Loop continuo (heartbeat, orologio), con il suo volume. */
-  startLoop(event: AudioEventId, level = 1, style: LoopStyle = {}): void {
+  /** Loop continuo (heartbeat, orologio), con il suo volume e il punto di ripresa. */
+  startLoop(event: AudioEventId, level = 1, style: LoopStyle = {}, offsetSeconds = 0): void {
     const files = AUDIO_FILES[event];
     if (!files || files.length === 0) return;
     const ctx = this.engine.context();
     if (!ctx || !this.isEnabled()) return;
     this.stopLoop(event);
+    const token = this.bumpLoopToken(event);
 
     const url = `assets/audio/${files[0]}`;
     const buffered = this.buffers.get(url);
     if (buffered) {
-      this.startLoopBuffer(ctx, event, buffered, level, style);
+      this.startLoopBuffer(ctx, event, buffered, level, style, offsetSeconds);
       return;
     }
     if (buffered === null) {
@@ -130,7 +141,9 @@ export class SoundPlayer {
       .then((buffer) => {
         this.buffers.set(url, buffer);
         if (!this.isEnabled()) return;
-        this.startLoopBuffer(ctx, event, buffer, level, style);
+        // Anti-corsa: nel frattempo qualcuno può aver fermato questo loop.
+        if (this.loopTokens.get(event) !== token) return;
+        this.startLoopBuffer(ctx, event, buffer, level, style, offsetSeconds);
       })
       .catch(() => {
         this.buffers.set(url, null);
@@ -159,18 +172,64 @@ export class SoundPlayer {
     return this.loops.has(event);
   }
 
-  stopLoop(event: AudioEventId): void {
+  /** Posizione del loop in secondi: la ripresa dopo la pausa parte da qui. */
+  loopPosition(event: AudioEventId): number {
+    const active = this.loops.get(event);
+    const ctx = this.engine.context();
+    if (!active || !ctx || active.duration <= 0) return 0;
+    const elapsed = Math.max(0, ctx.currentTime - active.startedAt);
+    return elapsed % active.duration;
+  }
+
+  /**
+   * Ferma un loop, con dissolvenza se richiesta (300–600 ms al cambio scena).
+   * La sorgente esce subito dalla mappa: `isLooping` è già falso, e la fetch
+   * eventualmente in volo viene invalidata dal token.
+   */
+  stopLoop(event: AudioEventId, fadeSeconds = 0): void {
+    this.bumpLoopToken(event);
     const active = this.loops.get(event);
     if (!active) return;
+    this.loops.delete(event);
+    const ctx = this.engine.context();
+    if (!ctx || fadeSeconds <= 0) {
+      try {
+        active.source.stop();
+      } catch {
+        // già fermo
+      }
+      this.releaseLoop(active);
+      return;
+    }
+
+    const now = ctx.currentTime;
+    const seconds = Math.max(0.05, fadeSeconds);
+    const gain = active.gain.gain;
+    gain.cancelScheduledValues(now);
+    gain.setValueAtTime(gain.value, now);
+    gain.linearRampToValueAtTime(0, now + seconds);
     try {
-      active.source.stop();
+      active.source.stop(now + seconds + 0.05);
+    } catch {
+      // già fermo
+    }
+    active.source.onended = () => this.releaseLoop(active);
+  }
+
+  private releaseLoop(active: ActiveLoop): void {
+    try {
       active.source.disconnect();
       active.filter?.disconnect();
       active.gain.disconnect();
     } catch {
-      // già fermo
+      // già scollegato
     }
-    this.loops.delete(event);
+  }
+
+  private bumpLoopToken(event: AudioEventId): number {
+    const token = (this.loopTokens.get(event) ?? 0) + 1;
+    this.loopTokens.set(event, token);
+    return token;
   }
 
   /**
@@ -320,6 +379,7 @@ export class SoundPlayer {
     buffer: AudioBuffer,
     level: number,
     style: LoopStyle = {},
+    offsetSeconds = 0,
   ): void {
     const source = ctx.createBufferSource();
     source.buffer = buffer;
@@ -339,8 +399,15 @@ export class SoundPlayer {
       source.connect(gain);
     }
     gain.connect(this.engine.room(ctx));
-    source.start();
-    this.loops.set(event, { source, gain, filter });
+    const offset = Math.max(0, Math.min(offsetSeconds, Math.max(0, buffer.duration - 0.05)));
+    source.start(0, offset);
+    this.loops.set(event, {
+      source,
+      gain,
+      filter,
+      startedAt: ctx.currentTime - offset,
+      duration: buffer.duration,
+    });
   }
 
   /**

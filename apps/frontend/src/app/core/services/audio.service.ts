@@ -9,6 +9,7 @@ import { SoundPlayer } from './sound-player';
 import { marbleRollStyle } from './marble-roll';
 import { BED_LOOPS, type BedLoopId } from './bed-loops';
 import { bedDuckGain, bedForGame, bedsForAct, type BedTrack } from './bed-map';
+import { AudioChannels, type AudioChannelEntry } from './audio-channels';
 
 /** Volume del sottofondo: i loop sono a −23 LUFS, già sotto la voce. */
 const BED_LEVEL = 0.9;
@@ -44,10 +45,8 @@ export class AudioService {
   private questionOpen = false;
   /** Livello già dato al sottofondo: evita una rampa a ogni domanda inutile. */
   private appliedBedLevel = BED_LEVEL;
-  /** Ultima pista in gara: serve a riaccendere il rotolamento dopo una pausa. */
-  private marbleTrack: string | null = null;
-  /** Il rotolamento era in onda quando la TV è andata in pausa. */
-  private marbleSilenced = false;
+  /** Canali e proprietari dei loop: un solo posto decide chi suona e chi tace. */
+  private channels!: AudioChannels;
   /** Pausa della TV: tace tutto, effetti compresi, finché non si riprende. */
   private paused = false;
 
@@ -62,8 +61,48 @@ export class AudioService {
       () => this.audioEnabled(),
       (url) => console.warn(`[audio] file mancante: ${url}`),
     );
+    this.channels = new AudioChannels({
+      startLoop: (event, level, style, offsetSeconds) =>
+        this.player.startLoop(event, level, style, offsetSeconds),
+      stopLoop: (event, fadeSeconds) => this.player.stopLoop(event, fadeSeconds),
+      isLooping: (event) => this.player.isLooping(event),
+      loopPosition: (event) => this.player.loopPosition(event),
+    });
     this.engine.setVolume(1);
     this.engine.armUnlock();
+  }
+
+  /**
+   * Proprietario attivo dei loop: lo dice la regia TV al cambio di gioco, round,
+   * bonus, pausa, reset e uscita dalla TV. Tutto ciò che appartiene al
+   * proprietario uscente si spegne con una dissolvenza, e un avvio in ritardo
+   * del vecchio proprietario viene rifiutato.
+   */
+  setOwner(owner: string): void {
+    this.channels.setOwner(owner);
+  }
+
+  /** Canali attivi, per il pannello `?audiodebug=1` in sala. */
+  channelSnapshot(): AudioChannelEntry[] {
+    return this.channels.snapshot();
+  }
+
+  /** Reset della serata: azzera loop, sottofondo e memoria di ripresa. */
+  resetAudio(): void {
+    this.paused = false;
+    this.channels.reset();
+    this.player.stopBed(0.2);
+    this.player.stopOneShots();
+  }
+
+  /**
+   * Uscita dalla TV (`ngOnDestroy`, cambio rotta, `beforeunload`): nessun loop
+   * resta acceso oltre la scena che lo ha chiesto.
+   */
+  endSession(): void {
+    this.channels.release();
+    this.player.stopBed(0.4);
+    this.player.stopOneShots();
   }
 
   /**
@@ -74,11 +113,16 @@ export class AudioService {
     if (!this.audioEnabled() || this.paused) return;
     const level =
       (0.55 + Math.max(0, Math.min(1, intensity)) * 0.45) * AUDIO_EVENTS.heartbeat.volume;
-    this.player.startLoop('heartbeat', level);
+    this.channels.start('heartbeat', {
+      channel: 'loop-gioco',
+      owner: this.channels.currentOwner,
+      label: 'Battito di suspense',
+      level,
+    });
   }
 
-  stopHeartbeat(): void {
-    this.player.stopLoop('heartbeat');
+  stopHeartbeat(fadeSeconds = 0): void {
+    this.channels.stop('heartbeat', fadeSeconds);
   }
 
   /**
@@ -94,18 +138,23 @@ export class AudioService {
     this.startHeartbeat(level);
   }
 
-  stopSuspense(): void {
-    this.stopHeartbeat();
+  stopSuspense(fadeSeconds = 0): void {
+    this.stopHeartbeat(fadeSeconds);
   }
 
   startClock(): void {
     if (!this.audioEnabled() || this.paused) return;
     // Il livello viene dalla bilanciatura: un ticchettio continuo sta sotto.
-    this.player.startLoop('clock', AUDIO_EVENTS.clock.volume);
+    this.channels.start('clock', {
+      channel: 'loop-gioco',
+      owner: this.channels.currentOwner,
+      label: 'Ticchettio del timer',
+      level: AUDIO_EVENTS.clock.volume,
+    });
   }
 
-  stopClock(): void {
-    this.player.stopLoop('clock');
+  stopClock(fadeSeconds = 0): void {
+    this.channels.stop('clock', fadeSeconds);
   }
 
   /**
@@ -115,17 +164,18 @@ export class AudioService {
    */
   startMarbleBed(trackId?: string | null): void {
     if (!this.audioEnabled() || this.paused) return;
-    this.marbleTrack = trackId ?? null;
-    this.marbleSilenced = false;
     const style = marbleRollStyle(trackId);
-    this.player.startLoop('marbleRoll', style.level, {
-      rate: style.rate,
-      lowpass: style.lowpass,
+    this.channels.start('marbleRoll', {
+      channel: 'loop-gioco',
+      owner: this.channels.currentOwner,
+      label: 'Rotolamento delle Biglie',
+      level: style.level,
+      style: { rate: style.rate, lowpass: style.lowpass },
     });
   }
 
-  stopMarbleBed(): void {
-    this.player.stopLoop('marbleRoll');
+  stopMarbleBed(fadeSeconds = 0): void {
+    this.channels.stop('marbleRoll', fadeSeconds);
   }
 
   /**
@@ -136,8 +186,9 @@ export class AudioService {
   pauseBeds(): void {
     this.paused = true;
     this.stopAmbient();
-    this.marbleSilenced = this.player.isLooping('marbleRoll');
-    if (this.marbleSilenced) this.stopMarbleBed();
+    // La pausa sospende ogni loop del proprietario attivo e ne ricorda il punto.
+    this.channels.suspend();
+    this.channels.clearBed();
   }
 
   /**
@@ -147,9 +198,8 @@ export class AudioService {
   resumeBeds(): void {
     this.paused = false;
     this.startAmbient();
-    if (!this.marbleSilenced) return;
-    this.marbleSilenced = false;
-    this.startMarbleBed(this.marbleTrack);
+    // Riparte solo ciò che era in onda: battito, ticchettio, rotolamento.
+    this.channels.resume();
   }
 
   /** Fiche appoggiata sul tavolo: un tick breve, non una fanfara. */
@@ -281,6 +331,7 @@ export class AudioService {
   startAmbient(): void {
     if (!this.audioEnabled() || this.paused || !this.bedLoop) return;
     this.appliedBedLevel = this.bedGain();
+    this.channels.setBed(this.channels.currentOwner, this.bedLoop.label, this.bedLoop.file);
     this.player.startBed(this.bedLoop.file, this.appliedBedLevel, BED_FADE_SECONDS);
   }
 
@@ -367,6 +418,7 @@ export class AudioService {
   }
 
   stopAmbient(): void {
+    this.channels.clearBed();
     this.player.stopBed(BED_STOP_SECONDS);
   }
 
@@ -377,9 +429,9 @@ export class AudioService {
    * anche gli eventi nuovi e si toglie da sola alla ripresa.
    */
   stopAll(): void {
-    this.stopSuspense();
-    this.stopClock();
-    this.stopMarbleBed();
+    this.stopSuspense(0.3);
+    this.stopClock(0.3);
+    this.stopMarbleBed(0.3);
     this.stopAmbient();
     this.player.stopOneShots();
   }
