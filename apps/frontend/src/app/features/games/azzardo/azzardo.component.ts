@@ -245,11 +245,11 @@ import { CommonModule } from '@angular/common';
     .az-ready-tick { color: var(--cobalt); }
 
     /* Fiche: oggetti fisici (unica eccezione al radius 0), bordo a tacche e valore leggibile. */
-    .az-fiche { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: clamp(26px, 2.1vw, 34px); aspect-ratio: 1; border-radius: 50%; background: var(--mustard); color: var(--coal); border: 3px solid var(--coal); box-shadow: 3px 3px 0 var(--coal); font-family: var(--font-mono); font-size: clamp(.46rem, .58vw, .58rem); font-weight: 800; font-variant-numeric: tabular-nums; }
+    .az-fiche { --chip-face: var(--mustard); position: relative; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: clamp(26px, 2.1vw, 34px); aspect-ratio: 1; border-radius: 50%; background-color: var(--chip-face); background-image: radial-gradient(circle at 50% 50%, var(--chip-face) 0 50%, transparent 51%), repeating-conic-gradient(from 0deg, var(--paper-hi) 0 10deg, transparent 10deg 30deg); color: var(--coal); border: 3px solid var(--coal); box-shadow: 3px 3px 0 var(--coal); font-family: var(--font-mono); font-size: clamp(.46rem, .58vw, .58rem); font-weight: 800; font-variant-numeric: tabular-nums; }
     .az-fiche::after { content: ''; position: absolute; inset: 4px; border: 2px dashed var(--coal); border-radius: 50%; opacity: .55; }
-    .az-fiche.idle { background: var(--paper-2); opacity: .7; }
-    .az-fiche.win { background: var(--acid); }
-    .az-fiche.loss { background: var(--tomato); color: var(--paper-hi); }
+    .az-fiche.idle { --chip-face: var(--paper-2); opacity: .7; }
+    .az-fiche.win { --chip-face: var(--acid); }
+    .az-fiche.loss { --chip-face: var(--tomato); color: var(--paper-hi); }
     .az-stack { display: inline-flex; align-items: center; }
     .az-stack .az-fiche + .az-fiche { margin-left: -12px; }
     .az-stack-sm .az-fiche { width: clamp(22px, 1.7vw, 28px); }

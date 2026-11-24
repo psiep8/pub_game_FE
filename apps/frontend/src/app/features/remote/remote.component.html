@@ -423,13 +423,15 @@
             (keydown.space)="azzardoAddChip(i, 1); $event.preventDefault()">
             @if ((azzardoChips()[i] ?? 0) > 0) {
             @for (fiche of azzardoChipFiches(i); track $index) {
-            <span class="fiche">{{ azzardoState()?.chipValue ?? 20 }}</span>
+            <span class="fiche" [attr.data-chip]="azzardoState()?.chipValue ?? 20">
+              <span class="fiche-value">{{ azzardoState()?.chipValue ?? 20 }}</span>
+            </span>
             }
             @if ((azzardoChips()[i] ?? 0) > 1) {
             <span class="fiche-count">×{{ azzardoChips()[i] }}</span>
             }
             } @else {
-            <span class="fiche empty">+</span>
+            <span class="fiche fiche-empty">+</span>
             }
           </button>
           <button type="button" class="azzardo-chip-remove" [disabled]="(azzardoChips()[i] ?? 0) === 0"

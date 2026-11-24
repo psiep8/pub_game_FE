@@ -1294,18 +1294,26 @@
 .speed-remote .speed-color { font-size: clamp(1rem, 4.6vw, 1.3rem); }
 
 /* Azzardo a fiches: i gettoni si impilano sull'opzione, uno sopra l'altro. */
-.azzardo-chip-row { display: flex; align-items: center; gap: 8px; }
+.azzardo-chip-row {
+  /* Riga a griglia: lettera, testo, pila di fiches, meno. A 360 px il testo
+     si stringe e le fiche restano intere, senza uscire dal bordo. */
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+}
 .azzardo-chip-row.filled { box-shadow: inset 4px 0 0 var(--acid); }
-.azzardo-option-text { flex: 1; min-width: 0; }
+.azzardo-option-text { min-width: 0; overflow-wrap: anywhere; line-height: 1.15; }
 
 .azzardo-chip-stack {
   flex: 0 0 auto;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: flex-end;
-  min-width: 52px;
-  min-height: 52px;
+  justify-content: center;
+  min-width: 64px;
+  min-height: 48px;
   padding: 0;
   background: none;
   border: 0;
@@ -1314,33 +1322,41 @@
   -webkit-user-select: none;
   user-select: none;
 }
+/* Fiche da poker: gettone fisico in palette, con le tacche sul bordo.
+   Le tacche sono un repeating-conic-gradient, non un gradiente decorativo:
+   servono a far leggere il gettone come un oggetto, non come un bottone. */
 .azzardo-chip-stack .fiche {
+  --chip-face: var(--mustard);
+  --chip-edge: var(--paper-hi);
   position: relative;
-  width: 44px;
-  height: 44px;
-  margin-top: -30px;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border-radius: 50%; /* fiche = oggetto fisico, come la pallina in Arena */
-  background: var(--mustard);
-  color: var(--coal);
+  border-radius: 50%;
   border: 2px solid var(--coal);
+  background-color: var(--chip-face);
+  background-image:
+    radial-gradient(circle at 50% 50%, var(--chip-face) 0 52%, transparent 53%),
+    repeating-conic-gradient(from 0deg, var(--chip-edge) 0 10deg, transparent 10deg 30deg);
+  color: var(--coal);
   box-shadow: 3px 3px 0 var(--coal);
+  outline: 2px dashed color-mix(in srgb, var(--coal) 42%, transparent);
+  outline-offset: -7px;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 800;
   letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
   animation: azzardo-chip-in 120ms ease-out;
 }
-.azzardo-chip-stack .fiche::after {
-  content: '';
-  position: absolute;
-  inset: 4px;
-  border: 1px dashed color-mix(in srgb, var(--coal) 45%, transparent);
-  border-radius: 50%;
-  pointer-events: none;
-}
-.azzardo-chip-stack .fiche:first-child { margin-top: 0; }
+.azzardo-chip-stack .fiche + .fiche { margin-left: -20px; }
+.azzardo-chip-stack .fiche-value { position: relative; z-index: 1; }
+/* Il taglio si legge dal colore: 20 sabbia, 50 blu, 100 rosso, 500 acido. */
+.azzardo-chip-stack .fiche[data-chip="50"] { --chip-face: var(--cobalt); color: var(--paper-hi); }
+.azzardo-chip-stack .fiche[data-chip="100"] { --chip-face: var(--tomato); color: var(--paper-hi); }
+.azzardo-chip-stack .fiche[data-chip="500"] { --chip-face: var(--acid); --chip-edge: var(--coal); }
 @keyframes azzardo-chip-in {
   from { transform: translateY(-8px) scale(.9); opacity: 0; }
   to { transform: none; opacity: 1; }
@@ -1348,11 +1364,15 @@
 @media (prefers-reduced-motion: reduce) {
   .azzardo-chip-stack .fiche { animation: none; }
 }
-.azzardo-chip-stack .fiche.empty {
-  height: 34px;
+.azzardo-chip-stack .fiche.fiche-empty {
+  width: 38px;
+  height: 38px;
   background: var(--paper-hi);
+  background-image: none;
   border-style: dashed;
-  font-size: 1.1rem;
+  outline: none;
+  font-size: 1.15rem;
+  box-shadow: none;
 }
 .azzardo-chip-stack .fiche-count {
   margin-top: 2px;
@@ -1498,4 +1518,40 @@
 @media (max-width: 340px) {
   .theme-step .theme-pick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .theme-step-sub { font-size: 11px; }
+}
+
+/* ── Vita millimetrica sul telefono ────────────────────────────────────────
+   Lo stesso respiro della TV, portato sui tasti: 1,5 px, cicli lunghi e
+   sfasati, così la schermata non sembra un modulo fermo. Si anima `translate`
+   e non `transform`: il feedback :active (che usa transform) resta intatto. */
+.remote-container button:not(:disabled),
+.remote-container .remote-pause-card,
+.remote-container .status-msg,
+.remote-container .game-head,
+.remote-container .buzz-hint {
+  animation: mobileAlive 9s ease-in-out infinite;
+}
+.remote-container button:not(:disabled):nth-of-type(2n) { animation-delay: -2.6s; animation-duration: 11s; }
+.remote-container button:not(:disabled):nth-of-type(3n) { animation-delay: -5.1s; animation-duration: 7.5s; }
+.remote-container .remote-pause-card { animation-delay: -3.4s; animation-duration: 12s; }
+.remote-container .status-msg { animation-delay: -1.2s; animation-duration: 10s; }
+
+@keyframes mobileAlive {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -1.5px; }
+}
+
+/* Movimento ridotto: non si spegne, si fa più lento e più corto. */
+@media (prefers-reduced-motion: reduce) {
+  .remote-container button:not(:disabled),
+  .remote-container .remote-pause-card,
+  .remote-container .status-msg,
+  .remote-container .game-head,
+  .remote-container .buzz-hint {
+    animation: mobileAliveCalm 14s ease-in-out infinite;
+  }
+}
+@keyframes mobileAliveCalm {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -1px; }
 }
