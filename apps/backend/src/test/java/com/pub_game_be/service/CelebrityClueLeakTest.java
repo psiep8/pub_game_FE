@@ -65,16 +65,18 @@ class CelebrityClueLeakTest {
     }
 
     /**
-     * La banca locale contiene 150 persone: un test su due nomi non basta.
-     * Ogni indizio generato dalla banca non deve contenere nome o cognome.
-     * La banca vera non è versionata: quando manca (in CI) si controlla la
-     * mini-banca di prova in `src/test/resources`, così il test gira sempre.
+     * La banca locale contiene fino a 83 persone (il generatore ne ha 83, la
+     * banca si crea anche parziale con `--count-people`): un test su due nomi
+     * non basta. Ogni indizio generato dalla banca non deve contenere nome o
+     * cognome. La banca vera non è versionata: quando manca (in CI) si
+     * controlla la mini-banca di prova in `src/test/resources`, così il test
+     * gira sempre.
      */
     @Test
     void tuttaLaBancaCelebritaNonEsponeIlNome() throws Exception {
         ClassPathResource bank = new ClassPathResource("questions/media-it.json");
         if (bank.exists()) {
-            assertThat(checkBank(bank)).as("persone controllate").isGreaterThanOrEqualTo(100);
+            assertThat(checkBank(bank)).as("persone controllate").isGreaterThanOrEqualTo(60);
             return;
         }
 

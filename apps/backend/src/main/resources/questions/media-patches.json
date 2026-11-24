@@ -11,5 +11,14 @@
       "why": "iTunes risponde con la ristampa/compilation e l'anno sbagliato; il brano e' del 2004 (album American Idiot)."
     }
   ],
-  "people": []
+  "people": [
+    {
+      "name": "Sophia Loren",
+      "set": {
+        "description": "attrice italiana",
+        "extract": "Sophia Loren è un'attrice italiana, nata a Roma nel 1934. Ha vinto l'Oscar per La ciociara ed è stata la prima italiana a riceverlo."
+      },
+      "why": "la voce scaricata non aveva biografia: il round restava senza indizi."
+    }
+  ]
 }
