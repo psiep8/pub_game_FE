@@ -143,10 +143,10 @@ const MANCHES: Manche[] = [
   {
     id: 'NUMBER',
     title: 'NUMERO SECCO',
-    rule: 'Tre girate: il numero esatto vale 500 punti a girata.',
+    rule: 'Numero scelto una volta: se esce in una delle tre girate vale 1000 punti, una volta sola.',
     options: Array.from({ length: 37 }, (_, index) => String(index)),
     seconds: 10,
-    points: 500,
+    points: 1000,
     spins: 3,
   },
 ];
@@ -206,7 +206,7 @@ const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
           @for (item of rounds; track $index; let i = $index) {
             <div class="casino-manche" [class.on]="manche() === i + 1" [class.done]="manche() > i + 1">
               <span>{{ item.label }}</span>
-              <b>{{ item.points }}</b>
+              <b>{{ item.points || '—' }}</b>
             </div>
           }
         </div>
@@ -668,9 +668,11 @@ export class CasinoBonus implements OnInit, OnDestroy {
   /** Le girate della puntata scelta, per la striscia in alto. */
   get rounds(): Array<{ label: string; points: number }> {
     const manche = this.manches[0];
+    const number = manche?.id === 'NUMBER';
     return Array.from({ length: this.spins() }, (_, index) => ({
       label: `GIRATA ${index + 1}`,
-      points: manche?.points ?? 0,
+      // Il numero secco paga una volta sola: la striscia non promette 1000 a girata.
+      points: number && index > 0 ? 0 : (manche?.points ?? 0),
     }));
   }
   readonly phase = signal<Phase>(Phase.INTRO);
@@ -707,6 +709,8 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
   private readonly votes = new Map<string, string>();
   private readonly scoreMap = new Map<string, number>();
+  /** Numero secco: il premio è già stato pagato in una girata precedente. */
+  private numberAwarded = false;
   /** Pausa, cronometro e attese: ferma anche il giro della ruota. */
   /** Input iniziale applicato: da lì in poi ogni cambio di pausa va nel checkpoint. */
   private pausedReady = false;
@@ -759,6 +763,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.title.set(manche.title);
     this.rule.set(manche.rule);
     this.options.set([...manche.options]);
+    this.numberAwarded = state?.awarded === true;
 
     const votes: any[] = Array.isArray(state?.votes) ? state.votes : [];
     for (const row of votes) {
@@ -825,6 +830,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
       votes: [...this.votes.entries()].map(([playerName, choice]) => ({ playerName, choice })),
       scores: this.totals(),
       winner: this.spinNumber(),
+      awarded: this.numberAwarded,
     });
   }
 
@@ -849,7 +855,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
       case 'DOZEN':
         return 'Tre girate: scegli la dozzina, poi la ruota gira. La casella giusta vale 200 punti a girata.';
       case 'NUMBER':
-        return 'Tre girate sul numero secco: ogni numero esatto vale 500 punti. Se nessuno lo becca, nessuno prende punti.';
+        return 'Scegli un numero una volta, prima delle tre girate: se esce vale 1000 punti, una volta sola.';
       default:
         return 'Tre girate sul colore: nero o rosso. Ogni colore giusto vale 100 punti.';
     }
@@ -864,6 +870,8 @@ export class CasinoBonus implements OnInit, OnDestroy {
     const playerName = String(status.playerName ?? '').trim();
     if (!playerName || !this.players.includes(playerName)) return;
     if (Number(status.manche) !== this.manche()) return;
+    // Numero secco: il numero si sceglie nella prima girata, poi resta quello.
+    if (this.isNumberManche() && this.manche() > 1) return;
 
     const choice = String(status.choice ?? '').trim();
     if (!this.options().includes(choice)) return;
@@ -890,6 +898,15 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.reveal.set(null);
     this.settled.set(false);
     this.spinNumber.set(null);
+    if (manche.id === 'NUMBER' && index > 0) {
+      // Numero scelto una volta sola: le girate 2 e 3 non riaprono il voto.
+      this.phase.set(Phase.SPIN);
+      this.secondsLeft.set(0);
+      this.publish();
+      this.emitCheckpoint();
+      this.later(this.preview ? 400 : 900, () => void this.spinManche());
+      return;
+    }
     this.beginVote(Phase.PICK, this.preview ? 2 : manche.seconds, () => {
       void this.spinManche();
     });
@@ -1226,12 +1243,18 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.winner.set(winner);
     this.phase.set(Phase.REVEAL);
 
+    // Numero secco: il premio si prende una volta sola, anche se il numero
+    // esce in più di una delle tre girate.
+    const canAward = !(manche.id === 'NUMBER' && this.numberAwarded);
     const rows: Row[] = this.players.map((playerName) => {
       const pick = this.votes.get(playerName) ?? '';
-      const points = pick === winner ? manche.points : 0;
+      const points = pick === winner && canAward ? manche.points : 0;
       if (points) this.addPoints(playerName, points);
       return { playerName, label: pick || '—', points };
     });
+    if (manche.id === 'NUMBER' && rows.some((row) => row.points > 0)) {
+      this.numberAwarded = true;
+    }
 
     this.reveal.set({ heading: `GIRATA ${this.manche()} · ESCE ${number} · ${winner}`, rows });
     this.publish();

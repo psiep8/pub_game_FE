@@ -180,6 +180,31 @@ describe('CasinoBonus — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
+  it('il numero secco paga 1000 una volta sola anche se il numero esce due volte', () => {
+    const fixture = TestBed.createComponent(CasinoBonus);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('gameId', 1);
+    fixture.componentRef.setInput('players', ['Anna']);
+    fixture.componentRef.setInput('variant', 'NUMBER');
+    fixture.componentRef.setInput('resume', {
+      votes: [{ playerName: 'Anna', choice: '17' }],
+      scores: [],
+      secondsLeft: 10,
+      savedAt: Date.now(),
+      winner: null,
+    });
+    fixture.detectChanges();
+
+    const addPoints = vi.spyOn(component as any, 'addPoints');
+    (component as any).showReveal(17);
+    expect(addPoints).toHaveBeenCalledWith('Anna', 1000);
+
+    // Esce di nuovo in una girata successiva: non paga il doppio.
+    (component as any).showReveal(17);
+    expect(addPoints).toHaveBeenCalledTimes(1);
+    fixture.destroy();
+  });
+
   it('la manche gira una volta sola anche se nessuno becca il numero', async () => {
     const fixture = TestBed.createComponent(CasinoBonus);
     const component = fixture.componentInstance;
