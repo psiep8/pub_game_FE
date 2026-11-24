@@ -800,7 +800,7 @@ public class GameStateService {
             Map.entry("IMAGE_BLUR", 60),
             Map.entry("WHEEL_OF_FORTUNE", 75),
             Map.entry("TIMELINE", 45),
-            Map.entry("TIME_BUZZER", 3 * (30 + 5)),
+            Map.entry("TIME_BUZZER", 3 * (20 + 5)),
             Map.entry("BOMBA", 105),
             Map.entry("SPEED_RUSH", 90),
             Map.entry("TENNIS_BATTLE", 300),

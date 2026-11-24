@@ -8,7 +8,7 @@
 export const GAME_TIMINGS = {
   QUIZ: {
     manches: 3,
-    mancheSeconds: 20,
+    mancheSeconds: 15,
   },
   MUSIC: {
     manches: 4,
@@ -27,7 +27,7 @@ export const GAME_TIMINGS = {
   },
   TIME_BUZZER: {
     manches: 3,
-    mancheSeconds: 30,
+    mancheSeconds: 20,
     minTargetSeconds: 5,
     maxTargetSeconds: 20,
   },

@@ -25,7 +25,7 @@ const MANCHES = 3;
 const MIN_MS = 5000;
 /** Il bersaglio arriva al massimo a 20 s: oltre è troppo facile aspettare. */
 const MAX_MS = 20000;
-const MANCHE_SECONDS = 30;
+const MANCHE_SECONDS = 20;
 /** Slot dei numeri prima che il bersaglio si riveli. */
 const SPIN_MS = 5000;
 /** Respiro dopo il bersaglio, prima del countdown. */
