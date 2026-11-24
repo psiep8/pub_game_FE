@@ -58,13 +58,22 @@ import { CommonModule } from '@angular/common';
             </div>
 
             <div class="tb-rink">
-              <div class="tb-line tb-baseline top"></div>
-              <div class="tb-line tb-baseline bottom"></div>
-              <div class="tb-line tb-sideline left"></div>
-              <div class="tb-line tb-sideline right"></div>
-              <div class="tb-line tb-service left"></div>
-              <div class="tb-line tb-service right"></div>
-              <div class="tb-line tb-net"></div>
+              <!-- Campo regolamentare visto dall'alto: rete al centro, corridoi
+                   del doppio, riquadri di servizio e linea centrale. -->
+              <svg class="tb-court-lines" viewBox="0 0 1000 500" preserveAspectRatio="none" aria-hidden="true">
+                <rect class="tb-l" x="24" y="24" width="952" height="452"></rect>
+                <line class="tb-l" x1="24" y1="86" x2="976" y2="86"></line>
+                <line class="tb-l" x1="24" y1="414" x2="976" y2="414"></line>
+                <line class="tb-l" x1="280" y1="86" x2="280" y2="414"></line>
+                <line class="tb-l" x1="720" y1="86" x2="720" y2="414"></line>
+                <line class="tb-l" x1="280" y1="250" x2="720" y2="250"></line>
+                <line class="tb-l" x1="24" y1="250" x2="52" y2="250"></line>
+                <line class="tb-l" x1="948" y1="250" x2="976" y2="250"></line>
+              </svg>
+              <div class="tb-net-band" aria-hidden="true">
+                <span class="tb-net-post top"></span>
+                <span class="tb-net-post bottom"></span>
+              </div>
               <div class="tb-racket left" [class.active]="court.turn === 'a' && !court.winner" aria-hidden="true"><svg viewBox="0 0 24 48"><ellipse cx="12" cy="14" rx="9" ry="12" /><rect x="10.5" y="25" width="3" height="22" rx="1" /></svg></div>
               <div class="tb-racket right" [class.active]="court.turn === 'b' && !court.winner" aria-hidden="true"><svg viewBox="0 0 24 48"><ellipse cx="12" cy="14" rx="9" ry="12" /><rect x="10.5" y="25" width="3" height="22" rx="1" /></svg></div>
               <div class="tb-puck"
@@ -165,23 +174,45 @@ import { CommonModule } from '@angular/common';
     .tb-set { font-family: var(--font-mono); font-size: .58rem; letter-spacing: .18em; color: color-mix(in srgb, var(--coal) 55%, transparent); }
     .tb-vs { font-family: var(--font-mono); font-size: .72rem; font-weight: 700; letter-spacing: .12em; color: var(--tomato); }
 
-    /* Campo da tennis: il colore del campo segue il tema (--acid nel tema Acid, altrimenti --cobalt). */
+    /* Campo da tennis: il manto prende l'accento freddo del tema, così su
+       sabbia è terra battuta e su notte è cemento blu. Mai un verde fisso. */
     .tb-rink {
       position: relative; flex: 1 1 auto; min-height: clamp(120px, 18vh, 220px);
-      background: var(--tb-court, var(--cobalt));
+      background: color-mix(in srgb, var(--cobalt) 86%, var(--coal));
       border: 3px solid var(--coal); overflow: hidden;
     }
-    .tb-line { position: absolute; background: var(--paper-hi); opacity: .92; }
-    .tb-baseline { left: 4%; right: 4%; height: 3px; }
-    .tb-baseline.top { top: 6%; }
-    .tb-baseline.bottom { bottom: 6%; }
-    .tb-sideline { top: 6%; bottom: 6%; width: 3px; }
-    .tb-sideline.left { left: 4%; }
-    .tb-sideline.right { right: 4%; }
-    .tb-service { top: 22%; bottom: 22%; width: 3px; }
-    .tb-service.left { left: 26%; }
-    .tb-service.right { right: 26%; }
-    .tb-net { left: 50%; top: 0; bottom: 0; width: 4px; margin-left: -2px; background: var(--paper-hi); }
+    .tb-court-lines { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    .tb-court-lines .tb-l {
+      fill: none;
+      stroke: var(--paper-hi);
+      stroke-width: 3;
+      opacity: .94;
+      /* Lo spessore resta 3 px anche quando il campo si allarga. */
+      vector-effect: non-scaling-stroke;
+    }
+    /* La rete è una banda continua, non una linea: si vede da fondo sala. */
+    .tb-net-band {
+      position: absolute; top: 0; bottom: 0; left: 50%; width: clamp(5px, .55vw, 8px);
+      margin-left: calc(clamp(5px, .55vw, 8px) / -2);
+      background: var(--paper-hi);
+      box-shadow: 0 0 0 2px var(--coal);
+      opacity: .96;
+    }
+    .tb-net-band::after {
+      content: ''; position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        to bottom, var(--coal) 0 2px, transparent 2px 7px
+      );
+      opacity: .35;
+    }
+    .tb-net-post {
+      position: absolute; left: 50%; width: clamp(9px, 1vw, 13px); height: clamp(9px, 1vw, 13px);
+      margin-left: calc(clamp(9px, 1vw, 13px) / -2);
+      background: var(--mustard); border: 2px solid var(--coal); border-radius: 50%;
+      z-index: 2;
+    }
+    .tb-net-post.top { top: -2px; }
+    .tb-net-post.bottom { bottom: -2px; }
     .tb-racket { position: absolute; top: 50%; width: clamp(16px, 2vw, 26px); height: clamp(32px, 4.4vw, 56px); margin-top: calc(clamp(32px, 4.4vw, 56px) / -2); z-index: 3; }
     .tb-racket.left { left: 1%; animation: tbSwayLeft 2.6s ease-in-out infinite; }
     .tb-racket.right { right: 1%; animation: tbSwayRight 2.6s ease-in-out infinite; }
