@@ -77,7 +77,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, EntryCopy> = {
   QUIZ: {
     name: 'QUIZ',
     icon: '🧠',
-    summary: 'Tre manche a scelta multipla: il tempo decide quanto vale la risposta.',
+    summary: 'Tre manche da quindici secondi a scelta multipla: il tempo decide quanto vale la risposta.',
     objective: 'Rispondere correttamente a tre domande con quattro opzioni; la TV mostra domanda e countdown.',
     phone: [
       'Tocca A, B, C o D: un solo invio per manche.',
@@ -138,7 +138,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, EntryCopy> = {
   TIME_BUZZER: {
     name: 'TIME BUZZER',
     icon: '⏱️',
-    summary: 'Ferma il cronometro al momento giusto: tre manche, tutte le squadre in gioco.',
+    summary: 'Ferma il cronometro al momento giusto: tre manche da venti secondi, tutte le squadre in gioco.',
     objective: 'Fermare il tempo il più vicino possibile al bersaglio segreto, tra 5 e 20 secondi.',
     phone: [
       'Il cronometro parte da solo al segnale: tocca STOP quando pensi sia giusto.',
@@ -179,7 +179,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, EntryCopy> = {
   TENNIS_BATTLE: {
     name: 'TENNIS BATTLE',
     icon: '🎾',
-    summary: 'Duello a coppie: rispondi per rimandare la pallina, primo a 6 game.',
+    summary: 'Duello a coppie su un campo con le linee regolamentari: rispondi per rimandare la pallina, primo a 6 game.',
     objective: 'Vincere la sfida di tennis rispondendo alle domande quando la pallina è dalla tua parte.',
     phone: [
       'Rispondi quando la TV ti passa la pallina.',
@@ -217,7 +217,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, EntryCopy> = {
   AZZARDO: {
     name: 'AZZARDO',
     icon: '📊',
-    summary: 'Quattro manche di scommesse: distribuisci dieci fiches da 20 punti.',
+    summary: 'Quattro manche di scommesse: distribuisci dieci fiche da poker da 20 punti.',
     objective: 'Puntare sulle risposte numeriche più vicine al valore vero, manche dopo manche.',
     phone: [
       'Distribuisci le 10 fiches da 20 punti sulle quattro opzioni.',

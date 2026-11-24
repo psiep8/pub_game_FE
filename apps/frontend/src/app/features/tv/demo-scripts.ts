@@ -128,7 +128,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
     title: 'QUIZ',
     icon: '🧠',
     objective: [
-      'Tre domande a scelta multipla, una per manche.',
+      'Tre domande a scelta multipla, una per manche da 15 secondi.',
       'La TV mostra la domanda e il countdown: contano la risposta esatta e il tempo.',
     ],
     phone: [
@@ -217,7 +217,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
     icon: '⏱️',
     objective: [
       'Ferma il cronometro il più vicino possibile al bersaglio segreto (5–20 s).',
-      'Tre manche, tutte le squadre in gioco.',
+      'Tre manche da 20 secondi, tutte le squadre in gioco.',
     ],
     phone: [
       'Il cronometro parte da solo al segnale: tocca STOP.',
@@ -281,7 +281,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
     title: 'TENNIS BATTLE',
     icon: '🎾',
     objective: [
-      'Duello a coppie: la pallina passa da una squadra all’altra.',
+      'Duello a coppie su un campo con le linee vere: la pallina passa da una squadra all’altra.',
       'Chi riceve risponde alla domanda per rimandarla.',
     ],
     phone: [
@@ -338,7 +338,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
     icon: '📊',
     objective: [
       'Quattro manche: celebrità, canzoni, paesi, storia.',
-      'Quattro risposte numeriche vicine; si punta con dieci fiches da 20.',
+      'Quattro risposte numeriche vicine; si punta con dieci fiche da poker da 20.',
     ],
     phone: [
       'Distribuisci le fiches sulle quattro opzioni: si spostano finché non confermi.',

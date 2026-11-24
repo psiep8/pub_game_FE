@@ -38,13 +38,14 @@ Note alle celle:
   manches dal mix di difficoltà: tre diverse pagano **200 / 350 / 450**, due
   uguali più una lasciano **250** alle più facili e il resto alle altre
   (250 / 375 / 375 oppure 250 / 250 / 500), tre uguali **333 / 333 / 334**. Ogni
-  manche dura **20 secondi** e la quota scala con il tempo: rispondere subito
+  manche dura **15 secondi** e la quota scala con il tempo: rispondere subito
   vale il tetto, all'ultimo secondo zero. La sbagliata toglie **la stessa quota
   scalata**, quindi il round va da −1000 a +1000; chi non risponde prende 0. Dal
   23 novembre 2026 server (`QuizService.manchePoints`), `SCORING_RULES`,
   manuale e demo usano tutti questa tabella.
-- **Time Buzzer, +1800:** 3 manche × 600 del tempo perfetto (errore ≤ 50 ms, solo
-  per il primo). Senza nessun tempo perfetto il massimo è +900 (3 × 300).
+- **Time Buzzer, +1800:** 3 manche da **20 secondi** × 600 del tempo perfetto
+  (errore ≤ 50 ms, solo per il primo). Senza nessun tempo perfetto il massimo è
+  +900 (3 × 300).
 - **Tennis, 0:** con N pari ogni squadra gioca una partita. Con N dispari la
   squadra senza avversario prende +500 a tavolino (`awardCourt` sul riposo).
 - **Bomba, −500:** solo malus, nessun bonus. La scala è fissa per ordine di

@@ -1,5 +1,46 @@
 # Changelog
 
+## 24 novembre 2026 — Regia scenica, vita della scena e tempi nuovi, 2.5.0
+
+Nessun cambio di regole o punteggi, salvo le durate di Quiz e Time Buzzer.
+
+- **Audio a canali.** I loop passano da quattro canali (`bed`, `loop-gioco`,
+  `effetto`, `voce`) con proprietario per scena; il canale uscente si ferma con
+  una dissolvenza di 300–600 ms al cambio di gioco, round, bonus, pausa, reset o
+  uscita dalla TV. Una richiesta lenta non riaccende più un loop già fermato
+  (token di generazione). Pannello `?audiodebug=1` per canali e proprietari.
+- **Demo e regia scenica.** La scheda demo compare alla prima apparizione di un
+  gioco nella serata, con comandi indietro/avanti/ripeti/salta e riga per il
+  presentatore solo con `?regia=1`. La domanda resta a schermo per una pausa di
+  lettura (3 s + 1 s ogni 8 parole), le opzioni entrano sfalsate, seguono
+  respiro e 3-2-1: timer e telefoni partono dopo. La scadenza del round resta in
+  pausa sul server durante l’introduzione. Durate in `features/tv/tv-timing.ts`;
+  entrate e uscite con dissolvenza per tutti i giochi.
+- **Vita della scena.** Respiro, deriva e bolle su ogni schermata TV, con fasi
+  stabili calcolate al montaggio e solo `transform`/`opacity`. Pausa più lenta,
+  `prefers-reduced-motion` ridotto ma non spento; `?perf=1` misura gli fps e
+  sotto i 50 per tre secondi riduce le bolle da solo.
+- **Bonus a sorpresa.** Pool di dodici ingressi (2–3 per bonus) con movimento e
+  suono dal catalogo. Il piano della partita nasce da un seme del server
+  (`GET /games/{id}/bonus-entrance`), gli ingressi sono tutti diversi, non si
+  rigiocano al refresh, la pausa li ferma e i telefoni vibrano all’avvio.
+- **Telefono.** Micro-movimento millimetrico su tasti e pannelli (`translate`,
+  1,5 px, cicli sfasati, reduced-motion a 1 px). Azzardo remoto con fiche da
+  poker (taglie a colore, tacche, pila orizzontale) e riga dell’opzione a
+  griglia, senza overflow a 360 px.
+- **Tennis Battle TV.** Campo regolamentare: perimetro del doppio, corridoi del
+  singolo, riquadri di servizio con linea centrale, tacche di fondo e rete a
+  banda con i pali. Il manto usa l’accento freddo del tema.
+- **Tempi.** Quiz da 20 a **15 secondi** per manche; Time Buzzer da 30 a **20**,
+  con finestra del round lato server allineata e testi di manuale, demo e
+  regole aggiornati.
+- **Documentazione.** README, manuale del telefono e schede demo allineati alla
+  2.5.0; CHANGELOG, esempi Docker e tag di versione aggiornati. Versioni del
+  monorepo, del frontend e del backend a **2.5.0**.
+- **Verifiche.** 748 test frontend su 74 file, build frontend, `screens.mjs` su
+  TV e telefoni; backend compilato con test mirati su seme bonus e finestre dei
+  round.
+
 ## 24 novembre 2026 — Reset TV, manche 1 e recupero, 2.4.0
 
 Nessun cambio di regole, punteggi, banche, enum o azioni WebSocket.
