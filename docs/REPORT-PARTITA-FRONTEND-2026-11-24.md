@@ -94,13 +94,20 @@ ripiega sul seme 0: gli ingressi a sorpresa non arrivano dal server e due TV
 sulla stessa partita non sono garantite allineate, contro quanto scritto nel
 README («il piano della partita nasce da un seme che decide il server»).
 
-### 5. AVANTI non è raggiungibile con la classifica aperta (media)
+### 5. AVANTI non è raggiungibile con la classifica aperta (media) — **risolto** (`37235ba`)
 
 Con la classifica a schermo il dock è coperto: il click su AVANTI non arriva e
 serve prima CHIUDI CLASSIFICA. In più il pulsante di chiusura ha richiesto più
 click di fila (7 tentativi registrati in un secondo) prima di togliere la
-classifica. Da valutare: lasciare AVANTI sempre cliccabile (chiude lui la
-classifica) o portare il focus sul pulsante di chiusura.
+classifica.
+
+**Fix.** La classifica occupa tutto lo schermo sopra la dock: la X finiva sotto
+la scena, e la dock stessa le copriva la metà alta, quindi i click arrivavano
+solo a colpi. Ora la X è un pulsante della dock della regia e la dock sale sopra
+la classifica quando è aperta: AVANTI la chiude e passa al round dopo, la X la
+chiude al primo click. Test di regressione: «con la classifica aperta la X e
+AVANTI restano nella dock e la chiudono» e «tiene la dock sopra la classifica
+invece di nasconderle i pulsanti» in `game.component.spec.ts`.
 
 ### 6. `POST /games/{id}/tv-state` risponde 409 durante il passaggio di round (media) — **risolto** (`96dda8f`)
 
@@ -118,13 +125,19 @@ che non è più quella aperta» in `game.component.spec.ts` e «dopo un 409 non
 ritenta lo stesso round e riprende col successivo» in
 `reliability.service.spec.ts`.
 
-### 7. Arena: il telefono continua a rispondere dopo la chiusura del round (minore)
+### 7. Arena: il telefono continua a rispondere dopo la chiusura del round (minore) — **risolto** (`37235ba`)
 
 A round Arena chiuso la schermata resta attiva sul telefono e ogni tap produce
 `POST /games/{id}/arena-answer` → 409 con toast «❌ Risposta arena rifiutata dal
-server». Tre tap di fila, tre errori. Da valutare: chiudere la schermata quando
-il round finisce, o ignorare in silenzio le risposte fuori tempo come fanno gli
-altri giochi.
+server». Tre tap di fila, tre errori.
+
+**Fix.** Il 409 di round chiuso chiude la schermata come negli altri giochi:
+domanda scartata, telefono in attesa, niente errore a schermo né riga in
+console. Una domanda Arena chiesta a round chiuso non viene più ritentata a
+intervalli, quindi i 409 si fermano al primo. Test di regressione: «chiude la
+schermata Arena in silenzio se la risposta arriva a round chiuso» e «non ritenta
+la domanda Arena se il round si chiude mentre la chiede» in
+`remote.component.spec.ts`.
 
 ### 8. Prova pulsanti: chi non trascina resta «Da controllare» (minore, forse voluto)
 
