@@ -94,7 +94,7 @@ ripiega sul seme 0: gli ingressi a sorpresa non arrivano dal server e due TV
 sulla stessa partita non sono garantite allineate, contro quanto scritto nel
 README («il piano della partita nasce da un seme che decide il server»).
 
-### 5. AVANTI non è raggiungibile con la classifica aperta (media) — **risolto** (`37235ba`)
+### 5. AVANTI non è raggiungibile con la classifica aperta (media) — **risolto** (`37235ba`, `9195fb6`, `7350baa`)
 
 Con la classifica a schermo il dock è coperto: il click su AVANTI non arriva e
 serve prima CHIUDI CLASSIFICA. In più il pulsante di chiusura ha richiesto più
@@ -103,11 +103,25 @@ classifica.
 
 **Fix.** La classifica occupa tutto lo schermo sopra la dock: la X finiva sotto
 la scena, e la dock stessa le copriva la metà alta, quindi i click arrivavano
-solo a colpi. Ora la X è un pulsante della dock della regia e la dock sale sopra
-la classifica quando è aperta: AVANTI la chiude e passa al round dopo, la X la
-chiude al primo click. Test di regressione: «con la classifica aperta la X e
-AVANTI restano nella dock e la chiudono» e «tiene la dock sopra la classifica
-invece di nasconderle i pulsanti» in `game.component.spec.ts`.
+solo a colpi. Ora la chiusura è un pulsante della dock della regia, con la
+scritta leggibile «✕ CHIUDI CLASSIFICA» accanto ad AVANTI, e la dock sale sopra
+la classifica quando è aperta (`9195fb6`): AVANTI la chiude e passa al round
+dopo, la chiusura la toglie al primo click.
+
+Per non finire sotto la barra, le due classifiche riservano la fascia alta: con
+la classifica aperta la TV espone `leaderboard-open` e QUICK e DETAILED
+allungano il proprio `padding-top` (`clamp(88px, 11vh, 104px)` la veloce,
+`clamp(84px, 10vh, 100px)` la finale). Nella finale anche il chip «CLASSIFICA
+FINALE · EDIZIONE 26», che con la dock più larga restava coperto per un bordo,
+scende nella fascia libera tra dock e copertina (`7350baa`). Misure a 720p:
+dock fino a y 79, chip a y 88, copertina da y 157, con corona e podio interi.
+
+Test di regressione in `game.component.spec.ts`: «con la classifica aperta la X
+e AVANTI restano nella dock e la chiudono», «tiene la dock sopra la classifica
+invece di nasconderle i pulsanti» e «un solo pulsante di chiusura, con la
+scritta, chiude la classifica»; il controllo sul nome di classe
+`leaderboard-close` è stato sostituito da quest'ultimo, che prova il comportamento
+del pulsante.
 
 ### 6. `POST /games/{id}/tv-state` risponde 409 durante il passaggio di round (media) — **risolto** (`96dda8f`)
 
