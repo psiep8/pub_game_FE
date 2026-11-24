@@ -1032,6 +1032,35 @@
 }
 .intro-start span { font-family: var(--font-mono); }
 
+/* Audio HTML: il browser sblocca i suoni solo dopo un gesto. Un pulsante
+   visibile evita la TV muta all'inizio della serata. Carta e inchiostro,
+   nessun bagliore. */
+.intro-audio {
+  position: relative;
+  z-index: 2;
+  margin-top: 6px;
+  padding: 7px 14px;
+  background: transparent;
+  color: var(--paper);
+  border: 2px solid var(--paper);
+  font-family: var(--font-mono);
+  font-size: clamp(0.68rem, 0.9vw, 0.82rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.intro-audio:hover,
+.intro-audio:focus-visible {
+  background: var(--paper);
+  color: var(--coal);
+}
+.intro-audio.is-on {
+  background: var(--acid);
+  border-color: var(--paper);
+  color: var(--on-acid);
+}
+
 .intro-progress {
   position: absolute;
   z-index: 4;

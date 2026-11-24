@@ -174,6 +174,8 @@ export class GameComponent implements OnInit, OnDestroy {
     && !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
   );
   readonly introDurationMs = signal(7800);
+  /** I browser sbloccano l'audio solo dopo un gesto: il pulsante lo dichiara. */
+  readonly audioArmed = signal(false);
   /** Icone statiche: raccontano i giochi della serata, non sono decorazione. */
   readonly introIcons = [
     { glyph: '?', label: 'QUIZ' },
@@ -587,7 +589,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
 
     const allowAudioOnce = () => {
-      this.audioService.startAmbient();
+      this.activateAudio();
       window.removeEventListener('click', allowAudioOnce);
       window.removeEventListener('keydown', allowAudioOnce);
     };
@@ -931,6 +933,18 @@ export class GameComponent implements OnInit, OnDestroy {
       this.aliveFrame = requestAnimationFrame(loop);
     };
     this.aliveFrame = requestAnimationFrame(loop);
+  }
+
+  /**
+   * Sblocca l'audio con un gesto esplicito.
+   *
+   * <p>Senza gesto il browser tiene i suoni sospesi: il pulsante «ATTIVA
+   * AUDIO» dell'intro fa partire la base e segna l'audio come attivo.</p>
+   */
+  activateAudio(event?: Event): void {
+    event?.stopPropagation();
+    this.audioService.startAmbient();
+    this.audioArmed.set(true);
   }
 
   /** Tocco, Invio o fine del conto alla rovescia: si entra nella home. */
