@@ -1,0 +1,105 @@
+/*
+ * Vita continua in TV.
+ *
+ * Un solo keyframes per livello: il respiro (scala 1 → 1,012), la deriva
+ * (traslazione ±4 px) e la bolla di sfondo (salita lenta, fase negativa).
+ * Solo `transform` e `opacity`: niente ombre, filtri o blur animati.
+ * Le fasi arrivano da `alive.ts` come proprietà `--alive-*`, stabili per
+ * elemento.
+ */
+
+.alive-bubbles {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+.alive-bubble {
+  position: absolute;
+  bottom: -80px;
+  /* Inchiostro su carta, carta su fondo scuro: segue il tema, non lo inventa. */
+  border: 2px solid color-mix(in srgb, currentColor 55%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, currentColor 30%, transparent);
+  animation: aliveBubble var(--alive-duration, 14s) linear var(--alive-delay, 0s) infinite;
+  will-change: transform;
+}
+.alive-breath {
+  animation: aliveBreath var(--alive-duration, 5.2s) ease-in-out var(--alive-delay, 0s) infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+.alive-drift {
+  animation: aliveDrift var(--alive-duration, 8s) ease-in-out var(--alive-delay, 0s) infinite;
+  will-change: transform;
+}
+
+/* La pausa si muove, ma più lenta: la sala non deve sembrare ferma. */
+.game-container.alive-calm .alive-breath,
+.game-container.alive-calm .alive-drift {
+  animation-duration: calc(var(--alive-duration, 5s) * 2.2);
+}
+.game-container.alive-calm .alive-bubble {
+  animation-duration: calc(var(--alive-duration, 14s) * 2.4);
+}
+
+@keyframes aliveBreath {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.012); }
+}
+@keyframes aliveDrift {
+  0% { transform: translate(calc(var(--alive-drift, 2px) * -1), 1px); }
+  50% { transform: translate(var(--alive-drift, 2px), -1px); }
+  100% { transform: translate(calc(var(--alive-drift, 2px) * -1), 1px); }
+}
+@keyframes aliveBubble {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(var(--alive-drift, 0px), -45vh); }
+  100% { transform: translate(0, -105vh); }
+}
+
+/*
+ * Movimento ridotto: non si spegne, si riduce. Un pixel di respiro e una bolla
+ * ogni tanto, il minimo che tiene viva la scena.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .alive-breath {
+    animation: aliveBreathMin 10s ease-in-out infinite;
+  }
+  .alive-drift {
+    animation: aliveDriftMin 10s ease-in-out infinite;
+  }
+  .alive-bubble {
+    animation-duration: 40s;
+    opacity: 0.04 !important;
+  }
+}
+@keyframes aliveBreathMin {
+  0%, 100% { transform: none; }
+  50% { transform: translateY(-1px); }
+}
+@keyframes aliveDriftMin {
+  0%, 100% { transform: translateX(-1px); }
+  50% { transform: translateX(1px); }
+}
+
+/* Targa di misura, solo con `?perf=1`: piccola, in un angolo, sopra la scena. */
+.alive-perf {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 20000;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 6px 10px;
+  border: 2px solid var(--acid);
+  background: var(--bg-0);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  pointer-events: none;
+}
+.alive-perf b { color: var(--acid); font-size: 0.9rem; }

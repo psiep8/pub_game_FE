@@ -54,6 +54,7 @@ import { levelForOccurrence } from '../games/azzardo/azzardo-rules';
 import { Blackjack } from '../games/blackjack/blackjack.component';
 import { DemoScript, demoScriptFor } from './demo-scripts';
 import { StageRunner } from './stage-runner';
+import { ALIVE_SEED, AliveDirective, AliveRuntime, aliveBubbles } from './alive';
 import { TV_TIMING, countdownNumbers, stageFor, type StagePhase } from './tv-timing';
 import { REVEAL_DELAY_MS, scoringRuleFor } from '../../shared/models/scoring-rules';
 import { ROUNDS_PER_ACT } from '../../shared/schedule';
@@ -123,10 +124,11 @@ const PENDING_LEADERBOARD_KEY = 'leaderboardPending';
     CavalloBonus,
     Biglie,
     BlackjackBonus,
-    BonusEntrance
+    BonusEntrance,
+    AliveDirective
   ],
   templateUrl: './game.component.html',
-  styleUrls: ['./game.component.css', './restyle.css', './demo.css'],
+  styleUrls: ['./game.component.css', './restyle.css', './demo.css', './alive.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('fadeInOut', [
@@ -189,6 +191,17 @@ export class GameComponent implements OnInit, OnDestroy {
   showTypeReveal = signal<string | null>(null);
   timer = signal(0);
   isPaused = signal(false);
+
+  /** Vita continua: bolle e livelli, con la riduzione automatica sotto i 50 fps. */
+  readonly alive = new AliveRuntime();
+  readonly aliveFps = signal(60);
+  readonly aliveReduced = signal(false);
+  readonly perfMode = signal(false);
+  private readonly bubbles = aliveBubbles(ALIVE_SEED);
+  /** Sotto i 50 fps restano poche bolle: il respiro non si spegne. */
+  readonly visibleBubbles = computed(() =>
+    this.aliveReduced() ? this.bubbles.slice(0, Math.ceil(this.bubbles.length / 3)) : this.bubbles);
+  private aliveFrame?: number;
   /** Pausa di suspense fra la scadenza e il reveal. */
   revealPending = signal(false);
   demoType = signal<string | null>(null);
@@ -497,6 +510,8 @@ export class GameComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.armIntro();
+    this.perfMode.set(new URLSearchParams(window.location.search).get('perf') === '1');
+    this.startAliveMonitor();
 
     // La simulazione usa una scaletta dedicata: non tocca la serata vera.
     const params = new URLSearchParams(window.location.search);
@@ -751,6 +766,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.aliveFrame !== undefined) cancelAnimationFrame(this.aliveFrame);
     if (this.introTimer) clearTimeout(this.introTimer);
     if (this.bonusEntranceTimer) clearTimeout(this.bonusEntranceTimer);
     if (this.presenceTimer) clearInterval(this.presenceTimer);
@@ -892,6 +908,22 @@ export class GameComponent implements OnInit, OnDestroy {
     localStorage.setItem(this.introSeenKey, '1');
     if (this.introTimer) clearTimeout(this.introTimer);
     this.introTimer = setTimeout(() => this.dismissIntro(), this.introDurationMs());
+  }
+
+  /**
+   * Misura i fotogrammi senza disegnare nulla: se la serata scende sotto i
+   * 50 fps per tre secondi, le bolle si riducono da sole. Con `?perf=1` la
+   * misura si vede in un angolo.
+   */
+  private startAliveMonitor(): void {
+    if (typeof requestAnimationFrame !== 'function') return;
+    const loop = (now: number) => {
+      const sample = this.alive.tick(now);
+      if (sample.fps !== this.aliveFps()) this.aliveFps.set(sample.fps);
+      if (sample.reduced !== this.aliveReduced()) this.aliveReduced.set(sample.reduced);
+      this.aliveFrame = requestAnimationFrame(loop);
+    };
+    this.aliveFrame = requestAnimationFrame(loop);
   }
 
   /** Tocco, Invio o fine del conto alla rovescia: si entra nella home. */

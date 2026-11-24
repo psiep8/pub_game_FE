@@ -1,7 +1,22 @@
 <div class="game-container" [class.stage-exit]="stagePhase() === 'exit'"
   [class.stage-entrance]="stagePhase() === 'entrance'"
   [class.stage-reading-on]="stagePhase() === 'reading'"
-  [class.stage-options-on]="stagePhase() === 'options'">
+  [class.stage-options-on]="stagePhase() === 'options'"
+  [class.alive-calm]="isPaused()">
+
+<div class="alive-bubbles" aria-hidden="true">
+  @for (bubble of visibleBubbles(); track $index) {
+  <span class="alive-bubble" [ngStyle]="bubble.style"></span>
+  }
+</div>
+
+@if (perfMode()) {
+<div class="alive-perf" role="status">
+  <b>{{ aliveFps() }} FPS</b>
+  <span>{{ aliveReduced() ? 'RIDOTTO' : 'PIENO' }}</span>
+  <span>{{ visibleBubbles().length }} BOLLE</span>
+</div>
+}
 
   @if (bonusEntrance(); as entranceType) {
   <app-bonus-entrance [type]="entranceType" />
@@ -56,7 +71,7 @@
     <div class="lobby-glow glow-a"></div>
     <div class="lobby-glow glow-b"></div>
 
-    <header class="lobby-brand">
+    <header class="lobby-brand" alive="breath" [aliveSeed]="1">
       <div class="lobby-kicker">IL GIOCO DEL PUB</div>
       <h1 class="lobby-title">PUB <span>GAME</span></h1>
       <p class="lobby-sub">{{ presencePlayers().length }} {{ presencePlayers().length === 1 ? 'squadra collegata' : 'squadre collegate' }}</p>
@@ -132,7 +147,7 @@
   </div>
   }
   <div class="round-info">
-    <div class="round-text">Round: {{ roundInfo() }}</div>
+    <div class="round-text" alive="drift" [aliveSeed]="2">Round: {{ roundInfo() }}</div>
     <div class="round-progress" [style.width.%]="roundManager.getProgress().percentage"></div>
   </div>
 
@@ -195,7 +210,7 @@
 
 
   @if (phase() === 'SELECTED' && !showQuestion() && categoryName()) {
-  <div class="category-slot" aria-live="polite">
+  <div class="category-slot" aria-live="polite" alive="drift" [aliveSeed]="5">
     <div class="category-slot-kicker">CATEGORIA ESTRATTA</div>
     <div class="category-slot-reel">
       @for (name of slotNames(); track name; let i = $index) {
@@ -210,13 +225,13 @@
 <div class="question-area" [class.no-padding]="!mode.requiresBubbles">
 
   @if (mode.requiresBubbles && mode.type !== 'ULTIMA_SPIAGGIA' && categoryName()) {
-  <div class="question-category">🎯 {{ categoryName() }}</div>
+  <div class="question-category" alive="breath" [aliveSeed]="3">🎯 {{ categoryName() }}</div>
   }
 
 
   @if (mode.requiresBubbles && mode.type !== 'ULTIMA_SPIAGGIA' && mode.type !== 'TIMELINE' && timerVisible()) {
   <div class="timer-wrapper">
-    <div class="timer-bar" [style.width.%]="(timer() / mode.timerDuration) * 100"></div>
+    <div class="timer-bar" alive="breath" [aliveSeed]="4" [style.width.%]="(timer() / mode.timerDuration) * 100"></div>
     <span class="timer-text">{{ timer() }}s</span>
   </div>
   }
@@ -289,7 +304,7 @@
 @if (stageReading(); as readingText) {
 @if (stagePhase() === 'reading') {
 <div class="stage-reading" role="status" aria-live="polite">
-  <div class="stage-reading-card">
+  <div class="stage-reading-card" alive="breath" [aliveSeed]="11">
     <div class="stage-reading-kicker">DOMANDA · IL PRESENTATORE LEGGE</div>
     <p class="stage-reading-text">{{ readingText }}</p>
     <div class="stage-reading-hint">LE OPZIONI ARRIVANO FRA POCO · IL TIMER NON È ANCORA PARTITO</div>
@@ -351,7 +366,7 @@
 }
 
 @if (autoAdvanceSeconds() > 0) {
-<div class="auto-advance" role="status">
+<div class="auto-advance" role="status" alive="drift" [aliveSeed]="6">
   <span class="auto-advance-label">RIPARTENZA · PROSSIMO ROUND</span>
   <b class="auto-advance-count">{{ autoAdvanceSeconds() }}</b>
   <span class="auto-advance-unit">SEC</span>
@@ -365,7 +380,7 @@
   <div class="recent-header">RISPOSTE</div>
   <div class="recent-list">
     @for (r of getRecentResponsesWithScores(); track r.playerName) {
-    <div class="recent-item">
+    <div class="recent-item" alive="drift" [aliveSeed]="7">
       <div class="r-player">{{ r.playerName }}</div>
       <div class="r-time">{{ (r.responseTimeMs / 1000).toFixed(2) }}s</div>
       <div class="r-points" [class.positive]="r.lastPoints > 0" [class.negative]="r.lastPoints < 0">
@@ -438,7 +453,7 @@
 
 @if (bonusShowResult() && bonusResult().length) {
 <div class="bonus-overlay">
-  <div class="bonus-card">
+  <div class="bonus-card" alive="breath" [aliveSeed]="8">
     <header class="bonus-head">
       <div class="bonus-head-title">
         <div class="bonus-kicker">BONUS CONCLUSO</div>
@@ -468,7 +483,7 @@
 @if (demoType(); as demo) {
 @if (getDemoScript(demo); as script) {
 <div class="demo-overlay" [class.demo-regia]="regiaMode()">
-  <div class="demo-frame">
+  <div class="demo-frame" alive="breath" [aliveSeed]="9">
     <div class="demo-safe">
       <header class="demo-head">
         <span class="demo-badge">COME SI GIOCA</span>
@@ -565,7 +580,7 @@
 
 @if (isPaused()) {
 <div class="pause-overlay">
-  <div class="pause-card">
+  <div class="pause-card" alive="breath" [aliveSeed]="10">
     <h2>⏸️ GIOCO IN PAUSA</h2>
     <div class="pause-actions">
       <p class="pause-hint">Riprendi dall'admin quando il presentatore è pronto.</p>
