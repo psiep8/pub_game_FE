@@ -83,7 +83,7 @@ accreditati **una sola volta, alla chiusura**.
 | 2 | **Blackjack** | Un turno per tavolo, 15 s, banco a 17 | premio del bar, non punti |
 | 3 | **Casino dozzina** | Tre girate su 1–12, 13–24 o 25–36 | +200 a girata (max +600) |
 | 4 | **Cavallo di battaglia** | Categoria votata, otto domande flash | premio del bar, non punti |
-| 5 | **Casino numero secco** | Tre girate su un numero da 0 a 36 | +500 a girata (max +1500) |
+| 5 | **Casino numero secco** | Un numero da 0 a 36 scelto una volta, poi tre girate | +1000 se il numero esce, una volta sola (max +1000) |
 
 Ogni bonus ha un ingresso TV scenografico distinto. Dopo quello dell'atto 5 si chiude con
 la classifica finale.

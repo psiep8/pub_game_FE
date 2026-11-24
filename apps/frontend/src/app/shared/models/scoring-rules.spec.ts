@@ -48,10 +48,11 @@ describe('regole dei punteggi', () => {
     expect(SCORING_RULES.TIME_BUZZER.note).not.toContain('elimin');
   });
 
-  it('Bomba: solo malus, picco −500', () => {
+  it('Bomba: solo malus, picco −500 e malus proporzionale alle bombe rimaste', () => {
     expect(BOMBA_PEAK).toBe(-500);
     expect(SCORING_RULES.BOMBA.correct).toContain('0');
     expect(SCORING_RULES.BOMBA.note).toContain('−500');
+    expect(SCORING_RULES.BOMBA.note).toContain('bombe rimaste');
   });
 
   it('Speed Rush, Biglie e Tennis usano le nuove costanti', () => {
@@ -64,9 +65,9 @@ describe('regole dei punteggi', () => {
   it('i cinque bonus hanno i valori nuovi e nessun malus', () => {
     expect(BONUS_CASINO_COLOR_POINTS * CASINO_SPINS).toBe(300);
     expect(BONUS_CASINO_DOZEN_POINTS * CASINO_SPINS).toBe(600);
-    expect(BONUS_CASINO_NUMBER_POINTS).toBe(500);
-    expect(BONUS_CASINO_NUMBER_POINTS * CASINO_SPINS).toBe(1500);
-    expect(BONUS_SCORING['BONUS_CASINO_NUMBER'].note).toContain('Tre girate');
+    expect(BONUS_CASINO_NUMBER_POINTS).toBe(1000);
+    expect(BONUS_SCORING['BONUS_CASINO_NUMBER'].note).toContain('una volta sola');
+    expect(BONUS_SCORING['BONUS_CASINO_NUMBER'].note).toContain('tre le girate');
     expect(BONUS_SCORING['BONUS_BLACKJACK'].correct).toContain('premio del bar');
     expect(BONUS_SCORING['BONUS_CAVALLO'].correct).toContain('premio del bar');
     for (const rule of Object.values(BONUS_SCORING)) {

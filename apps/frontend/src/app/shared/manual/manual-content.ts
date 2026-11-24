@@ -151,16 +151,16 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, EntryCopy> = {
   BOMBA: {
     name: 'BOMBA',
     icon: '💣',
-    summary: 'Un tabellone, un turno a testa e una bomba ogni tre tavoli.',
+    summary: 'Un tabellone, un turno a testa e circa due bombe ogni cinque tavoli.',
     objective: 'Scegliere caselle vere ed evitare le bombe; il tabellone è sul server e la TV lo mostra.',
     phone: [
       'Tocca una casella solo quando la TV indica il tuo turno.',
       'Casella vera: 0 punti e il turno passa.',
-      `Bomba: fuori dal round, con un malus che parte da ${BOMBA_PEAK} e scende con le bombe rimaste.`,
+      `Bomba: fuori dal round, con un malus che parte da ${BOMBA_PEAK} e scende con le bombe rimaste: si scala dal totale anche sotto zero.`,
       'Se scade il tempo senza scegliere sei fuori come se avessi preso una bomba.',
       'Durante l’ondata le caselle restano coperte: bombe, eliminati e penalità si scoprono solo alla fine.',
     ],
-    tip: 'Le caselle vere non danno punti: servono solo a restare in vita. La prima bomba costa più delle ultime.',
+    tip: 'Le caselle vere non danno punti: servono solo a restare in vita. La prima bomba costa più delle ultime e chi si salva prende 0.',
   },
   SPEED_RUSH: {
     name: 'SPEED RUSH',
@@ -224,9 +224,9 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, EntryCopy> = {
       'Le fiches si spostano liberamente, ma la puntata parte solo con CONFERMA PUNTATA: senza almeno una fiche non si conferma.',
       'Fiches giuste: 20 × quota (×2, ×3, ×4). Fiches sbagliate: perdono il 100/80/60/40%.',
       'Le fiches avanzate restano nel salvadanaio: ogni manche ne arrivano dieci nuove, che si sommano.',
-      'Il tetto cresce con il salvadanaio: una fiche in più da giocare ogni due avanzate, fino a 15. Massimo 1000 punti incassati in una manche.',
+      'Il tetto cresce con il salvadanaio: una fiche in più da giocare ogni due avanzate, fino a 15. Massimo 500 punti incassati in una manche, 1500 nel round.',
     ],
-    tip: 'La perdita scende manche dopo manche: nella prima si rischia più che nella quarta. Mai sotto zero.',
+    tip: 'La perdita scende manche dopo manche: nella prima si rischia più che nella quarta, con un tetto di 250 a manche e 1000 nel round. Mai sotto zero.',
   },
   BIGLIE: {
     name: 'BIGLIE',
@@ -295,14 +295,14 @@ const BONUS_COPY: Record<BonusType, EntryCopy> = {
   CASINO_NUMBER: {
     name: 'CASINO NUMERO SECCO',
     icon: '🎯',
-    summary: `Tre girate su un numero da 0 a 36.`,
-    objective: 'Indovinare il numero esatto a ogni girata; se nessuno lo becca, quella girata non paga nessuno.',
+    summary: `Un numero da 0 a 36 scelto una volta, poi tre girate.`,
+    objective: 'Scegliere un numero prima delle tre girate: chi lo becca prende 1000 punti una volta sola.',
     phone: [
-      'Scegli un numero a ogni girata, entro dieci secondi.',
+      'Scegli un numero, una volta sola, entro dieci secondi: resta quello per tutte e tre le girate.',
       `La pallina esce ${CASINO_SPINS} volte, con un ultimo giro di suspense.`,
-      `Il numero esatto vale ${BONUS_CASINO_NUMBER_POINTS} punti a girata.`,
+      `Il numero scelto vale ${BONUS_CASINO_NUMBER_POINTS} punti, una volta sola: se esce di nuovo non paga il doppio.`,
     ],
-    tip: `Trentasette caselle: massimo ${CASINO_SPINS * BONUS_CASINO_NUMBER_POINTS} punti, è il bonus più alto della serata.`,
+    tip: `Trentasette caselle: massimo ${BONUS_CASINO_NUMBER_POINTS} punti, è il bonus più alto della serata.`,
   },
 };
 

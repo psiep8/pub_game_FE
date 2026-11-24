@@ -49,7 +49,7 @@ export const BIGLIE_LAST = -400;
 export const CASINO_SPINS = 3;
 export const BONUS_CASINO_COLOR_POINTS = 100;
 export const BONUS_CASINO_DOZEN_POINTS = 200;
-export const BONUS_CASINO_NUMBER_POINTS = 500;
+export const BONUS_CASINO_NUMBER_POINTS = 1000;
 /** Finestra di scelta dei bonus, in secondi. */
 export const BONUS_CHOICE_SECONDS = 10;
 
@@ -92,9 +92,9 @@ export const SCORING_RULES: Record<Exclude<GameModeType, 'BLACKJACK'>, ScoringRu
   },
   BOMBA: {
     correct: '0: l’affermazione vera ti tiene in vita',
-    wrong: `${signedPoints(BOMBA_PEAK)} alla prima bomba, poi −300 / −150 / −50`,
-    missed: 'fuori dal round: malus del suo ordine di uscita',
-    note: `Solo malus, nessun bonus: la squadra che prende la prima bomba esce dal round e paga ${signedPoints(BOMBA_PEAK)}, le successive −300, −150, −50. Chi non sceglie in tempo è fuori come se avesse preso una bomba.`,
+    wrong: `−round10(500 × bombe rimaste / bombe iniziali): ${signedPoints(BOMBA_PEAK)} alla prima con 4 bombe`,
+    missed: 'fuori dal round: malus come una bomba',
+    note: `Solo malus, nessun bonus: chi prende una bomba esce dal round e il malus si scala dal totale anche sotto zero. Il malus è −round10(500 × bombe rimaste / bombe iniziali), con «rimaste» che conta anche la bomba appena presa: 4 bombe → ${signedPoints(BOMBA_PEAK)}, −380, −250, −130. Chi si salva prende 0; chi non sceglie in tempo è fuori come se avesse preso una bomba.`,
   },
   SPEED_RUSH: {
     correct: `${signedPoints(SPEED_RUSH_FIRST)} al primo`,
@@ -109,10 +109,10 @@ export const SCORING_RULES: Record<Exclude<GameModeType, 'BLACKJACK'>, ScoringRu
     note: 'Chi vince la partita prende 500, chi perde zero: niente punti per il set e nessun premio di rincalzo.',
   },
   AZZARDO: {
-    correct: '+20 × quota per fiche giusta (×2 facile, ×3 media, ×4 difficile)',
-    wrong: '−20 × fiche sbagliate × 100/80/60/40%',
+    correct: '+20 × quota per fiche giusta (×2 facile, ×3 media, ×4 difficile), al massimo +500 a manche',
+    wrong: '−20 × fiche sbagliate × 100/80/60/40%, al massimo −250 a manche',
     missed: '0: chi non distribuisce fiches non punta',
-    note: 'Quattro manche numeriche (celebrità, canzoni, paesi, storia) con dieci fiches da 20 punti da distribuire sulle quattro risposte. Le avanzate si sommano alle nuove e alzano il tetto di una fiche ogni due risparmiate, fino a 15 a manche; una manche paga al massimo 1000. La perdita scende dal 100% al 40%; mai sotto zero.',
+    note: 'Quattro manche numeriche (celebrità, canzoni, paesi, storia) con dieci fiches da 20 punti da distribuire sulle quattro risposte. Le avanzate si sommano alle nuove e alzano il tetto di una fiche ogni due risparmiate, fino a 15 a manche. Il calcolo è +20 × quota per fiche giusta e −20 × fiche sbagliate × 100/80/60/40%, tagliato ai tetti: +500 e −250 a manche, +1500 e −1000 per round.',
   },
   ULTIMA_SPIAGGIA: {
     correct: '+100 / +200 / +300 / +400 / +500',
@@ -161,10 +161,10 @@ export const BONUS_SCORING: Record<string, ScoringRule> = {
     note: 'Otto domande flash sulla categoria votata: vince chi ha più risposte giuste, a pari merito chi ha finito prima. Il premio lo gestiscono barista e presentatore; l’app non assegna punti.',
   },
   BONUS_CASINO_NUMBER: {
-    correct: `${signedPoints(BONUS_CASINO_NUMBER_POINTS)} a girata indovinata (massimo ${CASINO_SPINS * BONUS_CASINO_NUMBER_POINTS})`,
+    correct: `${signedPoints(BONUS_CASINO_NUMBER_POINTS)} al numero beccato, una volta sola (massimo ${signedPoints(BONUS_CASINO_NUMBER_POINTS)})`,
     wrong: '0',
     missed: '0',
-    note: `Tre girate: a ogni girata ogni squadra sceglie un numero da 0 a 36 in ${BONUS_CHOICE_SECONDS} secondi. Chi becca il numero prende ${BONUS_CASINO_NUMBER_POINTS}; se nessuno lo becca, la girata chiude senza punti e si passa alla successiva.`,
+    note: `Un numero da 0 a 36 scelto una volta in ${BONUS_CHOICE_SECONDS} secondi e tenuto per tutte e tre le girate. Chi ha scelto il numero che esce prende ${BONUS_CASINO_NUMBER_POINTS} punti una volta sola: se esce di nuovo in una girata successiva non paga il doppio.`,
   },
 };
 

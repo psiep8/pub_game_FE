@@ -52,7 +52,7 @@ const PREVIEW_CARDS: PreviewCard[] = [
     icon: '🎯',
     title: 'CASINO NUMERO SECCO',
     subtitle: 'LA FINALE · 0–36',
-    note: 'Tre girate sul numero: chi lo becca prende 500 punti a girata.'
+    note: 'Numero scelto una volta, poi tre girate: chi lo becca prende 1000 punti, una volta sola.'
   },
 ];
 

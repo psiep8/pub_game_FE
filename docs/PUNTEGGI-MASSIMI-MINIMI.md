@@ -48,16 +48,17 @@ Note alle celle:
   +900 (3 × 300).
 - **Tennis, 0:** con N pari ogni squadra gioca una partita. Con N dispari la
   squadra senza avversario prende +500 a tavolino (`awardCourt` sul riposo).
-- **Bomba, −500:** solo malus, nessun bonus. La scala è fissa per ordine di
-  scoperta: **−500, −300, −150, −50** (oltre la quarta bomba si resta sull'ultimo
-  gradino). Il malus è tagliato sui punti che la squadra ha davvero
-  (`−min(malus, disponibili)`), quindi chi è a zero non perde nulla. Il totale del
-  round cambia con N: N=6 → 2 bombe (−500, −300; totale −800), N=10 → 3 bombe
-  (−500, −300, −150; totale −950).
-- **Azzardo, +4000:** tetto di 1000 per manche
-  (`AZZARDO_MAX_WIN_PER_MANCHE`) × 4 manches. La classifica non scende mai sotto
-  zero: il minimo reale è `−punti posseduti all'inizio del round` (0 per chi
-  parte da zero).
+- **Bomba, −500 alla prima:** solo malus, nessun bonus. Il malus è
+  `−round10(500 × bombe rimaste / bombe iniziali)`, con «rimaste» che conta anche
+  la bomba appena presa. Si scala dal totale **anche sotto zero**: chi ha pochi
+  punti finisce in negativo, chi si salva prende 0. Il totale del round cambia
+  con N: N=6 → 2 bombe (−500, −250; totale −750), N=10 → 4 bombe (−500, −380,
+  −250, −130; totale −1260).
+- **Azzardo, +1500 / −1000:** tetto di 500 per manche
+  (`AZZARDO_MAX_WIN_PER_MANCHE`) e di 250 in perdita, con tetto di round a +1500
+  e −1000 (`AZZARDO_MAX_WIN_PER_ROUND`, `AZZARDO_MAX_LOSS_PER_ROUND`). La
+  classifica non scende mai sotto zero: il minimo reale è `−punti posseduti
+  all'inizio del round` (0 per chi parte da zero).
 - **Musica/Immagine/Ruota, −1000:** una sola risposta per squadra nel round; una
   risposta sbagliata manda `BLOCKED_ERROR` e chiude il round per quella squadra.
 - **Arena:** non è limitata dalle costanti: il numero di risposte rapide in 130 s
@@ -88,11 +89,11 @@ N=6   300, 200, 100, −70, −130, −200        → round: +900 / −600 (+180
 N=10  300, 240, 180, 120, 60, −40, −80, −120, −160, −200 → round: +900 / −600
 ```
 
-**Bomba** — `bombsFor(N) = max(1, round(N/3))`:
+**Bomba** — `bombsFor(N) = max(1, round(2N/5))`:
 
 ```
 N=6   B=2   malus: −500, −250                 totale round −750
-N=10  B=3   malus: −500, −330, −170           totale round −1000
+N=10  B=4   malus: −500, −380, −250, −130     totale round −1260
 ```
 
 ## 3. Bonus (solo punti positivi)
@@ -101,7 +102,7 @@ N=10  B=3   malus: −500, −330, −170           totale round −1000
 |---|---:|---:|---|
 | Casino rosso/nero | +300 (3 × 100) | 0 | `BONUS_CASINO_COLOR_POINTS` |
 | Casino dozzina | +600 (3 × 200) | 0 | `BONUS_CASINO_DOZEN_POINTS` |
-| Casino numero secco | +1500 (3 × 500) | 0 | `BONUS_CASINO_NUMBER_POINTS` |
+| Casino numero secco | +1000 (una volta sola) | 0 | `BONUS_CASINO_NUMBER_POINTS` |
 | Blackjack | 0 (premio del bar) | 0 | `BONUS_SCORING` |
 | Cavallo di battaglia | 0 (premio del bar) | 0 | `BONUS_SCORING` |
 
@@ -111,10 +112,11 @@ N=10  B=3   malus: −500, −330, −170           totale round −1000
    manche) e regola dichiarata (penalità proporzionale alla quota e al tempo) è
    chiuso: il server usa la stessa formula del client, quindi il round resta in
    un intervallo simmetrico e non può più azzerare tre round di guadagni.
-2. **Azzardo: +4000 per round.** È 4× il massimo di Timeline e 2,2× quello di
-   Time Buzzer; con tre occorrenze in serata il tetto teorico è +12.000. In più,
-   per chi è a zero punti il minimo è 0: solo upside. Il tetto di 1000 per manche
-   è raggiungibile solo con 15 fiches e quota ×4, ma il margine c'è.
+2. **Azzardo: +1500 / −1000 per round.** Deciso il 24 novembre 2026: tetti di
+   500 e 250 a manche, round a +1500 e −1000. Con tre occorrenze il tetto
+   teorico scende a +4500; una manche intera non paga più di 500, meno di
+   Time Buzzer (+1800) e Musica (±1000 in una manche). Per chi è a zero punti il
+   minimo resta 0: solo upside.
 3. **Time Buzzer: +1800 / −600.** Escursione 2400 per round: 4,5× il massimo di
    Timeline e 3× il suo minimo. È già segnalato nel §6 della specifica.
 4. **Biglie: +1000 / −800.** Escursione 1800 e la penalità fissa più grande dopo
@@ -131,8 +133,9 @@ N=10  B=3   malus: −500, −330, −170           totale round −1000
 9. **Arena: estremi non limitati.** +10/−10 per risposta più il piazzamento:
    senza un tetto al numero di risposte, massimo e minimo non derivano dalle
    costanti e non sono confrontabili con gli altri giochi.
-10. **Bomba: solo malus e tagliato sui punti disponibili.** Chi è a zero non paga
-    (0 invece di −500): il gioco non punisce chi sta già in fondo.
+10. **Bomba: solo malus, scalato anche sotto zero.** Deciso il 24 novembre 2026:
+    non c'è più il taglio sui punti disponibili, quindi chi è a zero finisce in
+    negativo. Chi si salva prende 0, senza premi.
 
 ## 5. Coerenze da decidere (senza toccare i numeri ora)
 

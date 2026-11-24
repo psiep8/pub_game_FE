@@ -24,7 +24,7 @@ Tabella breve: ID, stato e l'unica prova che manca. Il dettaglio è nel registro
 
 | ID / voce | Stato | Prova mancante |
 | --- | --- | --- |
-| Numero secco del Casino (A1) | **Fatto**: tre girate come colore e dozzina, nessun rigiro, nessuna fase RESPIN; 500 a girata | sala: tempi della ruota e lettura delle tre girate |
+| Numero secco del Casino (A1) | **Fatto**: numero scelto una volta e tenuto per tre girate, nessun rigiro, nessuna fase RESPIN; 1000 punti una volta sola | sala: tempi della ruota e lettura delle tre girate |
 | Testo del Quiz (A2) | **Fatto e corretto il 23/11**: il round vale 1000 in tutto, la sbagliata toglie la quota scalata dal tempo (max +1000, min −1000) | nessuna: è documentazione |
 | Audit esteso (B3) | **Fatto**: Indovina chi, Musica, Ruota e Bomba nell'audit e in CI | 1 anno mancante in Musica e 11 false della Bomba da leggere a mano |
 | Ultima spiaggia (B1) | **Fatto**: cinque fasce reali, 0 buchi, nessun ripiego di fascia | sala: le 80 riclassificazioni |

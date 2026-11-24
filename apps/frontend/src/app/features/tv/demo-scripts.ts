@@ -244,7 +244,8 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
     phone: [
       'Tocca una casella solo quando è il tuo turno.',
       'Casella vera: 0 punti e il turno passa.',
-      `Bomba: fuori dal round con un malus da ${BOMBA_PEAK} che scende a ogni bomba presa dopo.`,
+      `Bomba: fuori dal round con un malus da ${BOMBA_PEAK} che scende a ogni bomba presa dopo, proporzionale alle bombe rimaste.`,
+      'Il malus si scala dal totale anche sotto zero: chi ha pochi punti finisce in negativo.',
       'Le caselle restano coperte per tutta l’ondata: gli esiti arrivano alla fine.',
     ],
     win: [
@@ -252,10 +253,10 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
       'Le bombe mai scelte si disarmano a fine round.',
     ],
     lose: [
-      `La prima bomba costa ${BOMBA_PEAK}, poi il malus scende: −500, −300, −150, −50.`,
+      `Malus −round10(500 × bombe rimaste / bombe iniziali): con 4 bombe ${BOMBA_PEAK}, −380, −250, −130.`,
       'Chi non sceglie in tempo è fuori come se avesse preso una bomba.',
     ],
-    example: 'Con 6 tavoli il tabellone ha 15 caselle (2n + n/2) e due bombe: una ogni tre tavoli.',
+    example: 'Con 6 tavoli il tabellone ha 15 caselle (2n + n/2) e due bombe: circa due ogni cinque tavoli.',
   },
   SPEED_RUSH: {
     title: 'SPEED RUSH',
@@ -344,11 +345,11 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
       'Distribuisci le fiches sulle quattro opzioni: si spostano finché non confermi.',
       'Serve almeno una fiche e il tocco su CONFERMA PUNTATA: niente puntate automatiche.',
       'Fiches giuste: 20 × quota; sbagliate: perdono 100/80/60/40%.',
-      'Le fiches avanzate si sommano alle dieci nuove e alzano il tetto: una in più ogni due risparmiate, fino a 15. Massimo 1000 punti a manche.',
+      'Le fiches avanzate si sommano alle dieci nuove e alzano il tetto: una in più ogni due risparmiate, fino a 15. Massimo 500 punti a manche, 1500 nel round.',
     ],
-    win: ['Quota ×2 (facile), ×3 (media), ×4 (difficile).', 'Tutte e dieci le fiches sulla risposta giusta a ×3: +600.'],
-    lose: ['La perdita scende manche dopo manche: 100%, 80%, 60%, 40%.', 'Mai sotto zero.'],
-    example: '10 fiches = 200 punti. Tutte giuste a ×4: +800. Tutte sbagliate alla prima manche: −200; alla quarta: −80.',
+    win: ['Quota ×2 (facile), ×3 (media), ×4 (difficile).', 'Tutte e dieci le fiches sulla risposta giusta a ×3: +600, tagliato a +500.', 'Il round si ferma a +1500.'],
+    lose: ['La perdita scende manche dopo manche: 100%, 80%, 60%, 40%.', 'Tetto di 250 a manche e 1000 nel round; mai sotto zero.'],
+    example: '10 fiches = 200 punti. Tutte giuste a ×4: +800, tagliato a +500. Tutte sbagliate alla prima manche: −200; alla quarta: −80.',
   },
   BIGLIE: {
     title: 'BIGLIE',
@@ -424,13 +425,13 @@ const BONUS_COPY: Record<BonusType, DemoCopy> = {
     title: 'CASINO NUMERO SECCO',
     icon: '🎯',
     objective: [
-      `Tre girate su un numero da 0 a 36.`,
-      'Se nessuno becca il numero, quella girata non paga nessuno.',
+      `Un numero da 0 a 36 scelto una volta, poi tre girate.`,
+      'Se nessuno becca il numero, nessuno prende punti.',
     ],
-    phone: ['Scegli un numero a ogni girata, entro dieci secondi.', `La pallina esce ${CASINO_SPINS} volte, con un ultimo giro di suspense.`],
-    win: [`Numero esatto: +${BONUS_CASINO_NUMBER_POINTS} a girata, massimo +${CASINO_SPINS * BONUS_CASINO_NUMBER_POINTS}.`],
-    lose: ['Numero sbagliato o nessuno sul numero: 0 punti nella girata.', 'Nessuna penalità.'],
-    example: `Punti sul 17 ed esce 17: +${BONUS_CASINO_NUMBER_POINTS}. Esce 18: 0, poi si rigira per la girata successiva.`,
+    phone: ['Scegli un numero, una volta sola, entro dieci secondi: resta quello per tutte e tre le girate.', `La pallina esce ${CASINO_SPINS} volte, con un ultimo giro di suspense.`],
+    win: [`Numero esatto: +${BONUS_CASINO_NUMBER_POINTS}, una volta sola.`],
+    lose: ['Numero sbagliato o nessuno sul numero: 0 punti.', 'Nessuna penalità.'],
+    example: `Punti sul 17 ed esce 17: +${BONUS_CASINO_NUMBER_POINTS}. Se esce di nuovo, non paga il doppio.`,
   },
 };
 

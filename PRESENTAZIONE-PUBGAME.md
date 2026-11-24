@@ -91,7 +91,7 @@ Bonus, uno dentro ognuno dei cinque atti:
 | 2 | 🃏 Blackjack | premio del bar, non punti |
 | 3 | 🎰 Casino dozzina | +200 a girata, tre girate (max +600) |
 | 4 | 🐎 Cavallo di Battaglia | premio del bar, non punti |
-| 5 | 🎯 Casino numero secco | +500 a girata (max +1500) |
+| 5 | 🎯 Casino numero secco | +1000 se il numero esce, una volta sola |
 
 Chiuso il riepilogo di un bonus, la scaletta riparte dal round successivo; dopo il round 40 si chiude con la classifica finale aggiornata.
 

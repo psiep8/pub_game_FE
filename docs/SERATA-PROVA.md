@@ -164,7 +164,7 @@ dire niente.
 | Gioco | Cosa fare | Cosa deve succedere | Cosa annotare |
 |---|---|---|---|
 | **Bomba** | Due ondate con 6–8 squadre | Il tabellone resta coperto per tutta l'ondata e mostra solo chi ha scelto cosa; alla chiusura si scoprono insieme bombe, FUORI e −200. Chi non sceglie entro il turno è eliminato con −200 e non rigioca | Secondi reali per scegliere; se 20 s sono pochi con dieci tavoli |
-| **Azzardo** | Due manche di fila | Il salvadanaio cresce (17 fiches → 13 giocabili), la puntata parte solo con CONFERMA PUNTATA e almeno una fiche, la riga «max 1000 a manche» si legge a 390px. Un tavolo prova a mettere 11 fiches e non deve poterlo fare | Se il tetto che cresce si capisce senza spiegazione |
+| **Azzardo** | Due manche di fila | Il salvadanaio cresce (17 fiches → 13 giocabili), la puntata parte solo con CONFERMA PUNTATA e almeno una fiche, la riga «max 500 a manche» si legge a 390px. Un tavolo prova a mettere 11 fiches e non deve poterlo fare | Se il tetto che cresce si capisce senza spiegazione |
 | **Speed Rush** | Novanta secondi pieni | Nessuna prova ripetuta, difficoltà che sale con l'avanzamento, badge ×2 dopo sei risposte di fila | Quante risposte fa il tavolo più veloce: sotto ~20 il traguardo da 25 è troppo alto |
 | **Tennis Battle** | Quattro o cinque campi insieme | Dal fondo si distinguono i colpi (dritto, diagonale, stretto, corto, pallonetto) e si legge la fascia FACILE/MEDIA/DIFFICILE | Se il tiro a giro sembra un glitch |
 | **Time Buzzer** | Una manche | Il bersaglio non supera mai i 20 secondi | Se qualcuno prova ad aspettare e perde |

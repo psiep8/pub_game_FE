@@ -564,12 +564,12 @@
       <div class="where"><b>TV</b> tabellone con la domanda e le opzioni · <b>TEL</b> scelta della casella · <b>SERVER</b> tiene le bombe e le penalità</div>
       <div class="split">
         <div>
-          <p><b>Composizione.</b> Il tabellone ha <b>2n + n/2 caselle</b> (8 squadre → 20 caselle). Le bombe sono <b>una ogni tre squadre</b>, arrotondata: 4 → 1, 6 → 2, 8 → 3. Le altre caselle contengono affermazioni vere.</p>
+          <p><b>Composizione.</b> Il tabellone ha <b>2n + n/2 caselle</b> (10 squadre → 25 caselle). Le bombe sono <b>circa due ogni cinque squadre</b>, arrotondate: 10 → 4, minimo 1. Le altre caselle contengono affermazioni vere.</p>
           <p><b>Turno.</b> Gioca una squadra alla volta, in ordine, con <b>20 secondi</b> per scegliere una casella. La TV mostra la domanda e le opzioni; la posizione delle bombe resta sul server.</p>
           <p><b>Cosa succede.</b> Casella vera: nessun punto, si resta in vita e si passa la mano. Bomba: la squadra esce dal round con un malus che dipende da quante bombe sono già state prese.</p>
         </div>
         <div>
-          <p><b>Punteggio.</b> Il round è <b>solo a malus</b>: non si guadagnano punti e non ci sono bonus. La prima bomba costa <b>−500</b>, poi il malus scende: <b>−300, −150, −50</b>. Chi non prende bombe non paga nulla.</p>
+          <p><b>Punteggio.</b> Il round è <b>solo a malus</b>: non si guadagnano punti e non ci sono bonus. Il malus è <b>−round10(500 × bombe rimaste / bombe iniziali)</b>: con 4 bombe <b>−500, −380, −250, −130</b>, scalato dal totale anche sotto zero. Chi si salva prende 0.</p>
           <p><b>Fine round.</b> Le bombe mai scelte vengono mostrate e <b>disarmate</b> senza conseguenze. Se restano caselle ma sono uscite tutte le squadre, il round chiude subito.</p>
           <p><b>Domande.</b> Affermazioni quasi tutte vere: la squadra di turno deve riconoscere l'opzione falsa. Le caselle vere non pagano, servono solo a non farsi eliminare.</p>
         </div>
@@ -607,20 +607,20 @@
 
   <div class="game-grid">
     <article class="game-card wide">
-      <div class="game-top"><h3>AZZARDO</h3><span class="time">4 MANCHE · PUNTATE 100/200/300</span></div>
-      <div class="where"><b>TV</b> domanda, 4 opzioni numeriche, quota ed esiti · <b>TEL</b> sceglie puntata e opzione</div>
+      <div class="game-top"><h3>AZZARDO</h3><span class="time">4 MANCHE · 10 FICHE DA 20</span></div>
+      <div class="where"><b>TV</b> domanda, 4 opzioni numeriche, quota ed esiti · <b>TEL</b> distribuisce le fiches</div>
       <div class="split">
         <div>
           <p><b>Composizione.</b> Quattro manche, una per categoria, sempre in quest'ordine: <b>CELEBRITÀ</b>, <b>CANZONI</b>, <b>PAESI</b>, <b>STORIA</b>. Ogni manche ha una domanda numerica e <b>4 opzioni molto vicine</b>: si vince solo centrando quella esatta.</p>
-          <p><b>Puntata.</b> Prima di ogni manche ci sono <b>15 secondi</b> per puntare <b>100, 200 o 300 punti veri</b> su una sola opzione. La puntata non può superare i punti che la squadra possiede. Chi non punta non gioca e non perde nulla.</p>
+          <p><b>Puntata.</b> Prima di ogni manche ci sono <b>15 secondi</b> per distribuire <b>dieci fiches da 20 punti</b> sulle quattro risposte; si conferma con <b>CONFERMA PUNTATA</b> e almeno una fiche. Le fiches avanzate si sommano alle dieci nuove e alzano il tetto di una ogni due, fino a 15. Chi non punta non gioca e non perde nulla.</p>
         </div>
         <div>
-          <p><b>Pagamento.</b> Al reveal la TV mostra il valore esatto. Opzione giusta: <b>puntata × quota</b>. Opzione sbagliata: si perde una parte della puntata, che scende manche dopo manche: <b>100%, 80%, 60%, 40%</b>.</p>
+          <p><b>Pagamento.</b> Al reveal la TV mostra il valore esatto. Fiche sull'opzione giusta: <b>20 × quota</b>. Fiche sbagliate: <b>20 × fiche × 100%, 80%, 60%, 40%</b> manche dopo manche.</p>
           <p><b>Quote.</b> Dipendono dal livello dell'occorrenza: <b>×2 facile</b>, <b>×3 media</b>, <b>×4 difficile</b>. In serata l'Azzardo esce al round 9 (×2) e al 37 (×3).</p>
-          <p><b>Tetto.</b> La perdita non porta mai la classifica sotto zero: si paga al massimo quanto si possiede. Massimo teorico di una manche: 300 × 4 = <b>1.200</b>.</p>
+          <p><b>Tetto.</b> Il calcolo si taglia ai tetti: <b>+500 e −250 a manche</b>, <b>+1500 e −1000 nel round</b>. La perdita non porta mai la classifica sotto zero: si paga al massimo quanto si possiede.</p>
         </div>
       </div>
-      <div class="scoreline">Risposta giusta <b>puntata × quota</b> (×2/×3/×4) · Sbagliata <b>−100% / 80% / 60% / 40%</b> della puntata · Mai sotto zero</div>
+      <div class="scoreline">Fiche giuste <b>20 × quota</b> (×2/×3/×4) · Sbagliate <b>−100% / 80% / 60% / 40%</b> · Tetti <b>+500/−250</b> a manche, <b>+1500/−1000</b> nel round · Mai sotto zero</div>
     </article>
 
     <article class="game-card wide">
@@ -679,7 +679,7 @@
     <article class="card bonus-card"><div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.3mm"><h3>BLACKJACK</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">ATTO 2</span></div><p><b>Un turno per tavolo</b>, dal fondo della classifica: 15 secondi, CARTA o STAI. Il banco si ferma a 17.</p><div class="scoreline">Chi batte il banco: <b>premio del bar</b>, non punti</div></article>
     <article class="card bonus-card"><div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.3mm"><h3>CASINO DOZZINA</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">ATTO 3</span></div><p><b>Tre girate.</b> Tre caselle: 1–12, 13–24, 25–36, scelta in dieci secondi.</p><div class="scoreline">Dozzina giusta <b>+200</b> a girata (max +600) · Zero: nessuno vince</div></article>
     <article class="card bonus-card"><div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.3mm"><h3>CAVALLO DI BATTAGLIA</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">ATTO 4</span></div><p><b>La categoria la vota il telefono.</b> Otto domande difficili; vince chi ha più risposte giuste, a pari merito chi finisce prima.</p><div class="scoreline">Vincitore: <b>premio del bar</b>, non punti</div></article>
-    <article class="card bonus-card"><div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.3mm"><h3>CASINO NUMERO SECCO</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">ATTO 5</span></div><p><b>La finale.</b> Tre girate su un numero da 0 a 36, scelta in dieci secondi a ogni girata.</p><div class="scoreline">Numero esatto <b>+500</b> a girata (max +1500) · Nessun numero: quella girata non paga · Poi classifica finale</div></article>
+    <article class="card bonus-card"><div class="game-top" style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--coal);padding-bottom:1mm;margin-bottom:1.3mm"><h3>CASINO NUMERO SECCO</h3><span class="time" style="font:700 7pt/1 var(--mono);color:var(--tomato)">ATTO 5</span></div><p><b>La finale.</b> Un numero da 0 a 36 scelto una volta, in dieci secondi, e tenuto per tre girate.</p><div class="scoreline">Numero beccato <b>+1000 una volta sola</b> · Se esce di nuovo non paga il doppio · Poi classifica finale</div></article>
   </div>
   <div class="note warn" style="margin-top:2mm;padding:1.8mm 2.6mm"><span class="note-title">Punti e chiusura</span> I punti del bonus vengono accreditati <b>una sola volta</b> alla chiusura. I premi di Blackjack e Cavallo li consegnano barista e presentatore e non entrano in classifica. Dopo il round 40 la TV mostra la <b>classifica finale aggiornata</b>, con i punti dei bonus già dentro.</div>
 
@@ -693,11 +693,11 @@
       <tr><td>TIMELINE</td><td>8 posti giusti +400; 7 +300; 6 +200; 5 +100</td><td>4 → 0; 3 −50; 2 −100; 1 o 0 −200</td><td>Otto carte a ogni round.</td></tr>
       <tr><td>RUOTA</td><td>+1000 × secondi rimasti / 75</td><td>−1000 × secondi rimasti / 75</td><td>Prenotazione + convalida host.</td></tr>
       <tr><td>TIME BUZZER</td><td>+300 al primo; zero a metà se N dispari</td><td>−200 all'ultimo</td><td>Nessuna eliminazione; +600 se il bersaglio è centrato entro 50 ms.</td></tr>
-      <tr><td>BOMBA</td><td>Nessun punto: solo malus</td><td>Bomba: −500, −300, −150, −50</td><td>Tabellone a turni; 20 s per turno; casella vera 0 e si resta in vita.</td></tr>
+      <tr><td>BOMBA</td><td>Nessun punto: solo malus</td><td>−round10(500 × bombe rimaste / iniziali); anche sotto zero</td><td>Tabellone a turni; 20 s per turno; casella vera 0 e si resta in vita.</td></tr>
       <tr><td>SPEED RUSH</td><td>+800 al primo</td><td>−400 all'ultimo; 0 a metà se N dispari</td><td>90 s; chi non arriva è ultimo a pari merito.</td></tr>
       <tr><td>BIGLIE</td><td>+500 al primo di ogni gara</td><td>−400 all'ultimo; 0 a metà se N dispari</td><td>Due gare per round; punti sommati a ogni arrivo.</td></tr>
       <tr><td>BLACKJACK (bonus)</td><td>Premio del bar</td><td>Nessun punto</td><td>Premio e consegna li gestiscono barista e presentatore; il banco si ferma a 17.</td></tr>
-      <tr><td>AZZARDO</td><td>Puntata × quota (×2 / ×3 / ×4)</td><td>100% / 80% / 60% / 40% della puntata</td><td>4 manche: CELEBRITÀ, CANZONI, PAESI, STORIA; puntate 100/200/300.</td></tr>
+      <tr><td>AZZARDO</td><td>20 × quota per fiche (×2 / ×3 / ×4)</td><td>20 × fiche × 100% / 80% / 60% / 40%</td><td>4 manche: CELEBRITÀ, CANZONI, PAESI, STORIA; tetti +500/−250 a manche, +1500/−1000 nel round.</td></tr>
       <tr><td>ULTIMA SPIAGGIA</td><td>+livello scelto (100–500)</td><td>−metà del livello (−50…−250)</td><td>5 apparizioni, una manche ciascuna; ogni livello una volta per squadra.</td></tr>
       <tr><td>TENNIS BATTLE</td><td>+500 vincitore; 0 perdente</td><td>Punto all'avversario</td><td>Punteggio 15/30/40/vantaggio; killer point dopo tre ritorni.</td></tr>
       <tr><td>ARENA</td><td>+10 a risposta; +1000 / +500 piazzamento</td><td>−10; −300 metà bassa</td><td>130 s; cerchio più stretto dopo 45 s.</td></tr>
