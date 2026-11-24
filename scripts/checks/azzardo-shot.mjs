@@ -57,6 +57,38 @@ async function createGame() {
   return { id, token: await openSession(id) };
 }
 
+/**
+ * La regia toglie la pausa dell'introduzione a fine scena: qui si fa lo stesso,
+ * altrimenti il telefono resta coperto da "IN PAUSA" per tutto il round.
+ */
+async function resumeRound(gameId, token) {
+  const response = await fetch(`${API}/games/${gameId}/round/resume`, {
+    method: 'POST',
+    headers: { 'X-Session-Token': token },
+  });
+  if (!response.ok) log(`ripresa del round: ${response.status}`);
+  return response.ok;
+}
+
+/**
+ * La ripresa può incrociare la pausa che la TV mette all'apertura del round:
+ * si insiste finché lo snapshot del server non dice che la sala gioca.
+ */
+async function resumeUntilRunning(gameId, token, timeoutMs = 60_000) {
+  const started = Date.now();
+  let snapshot = null;
+  while (Date.now() - started < timeoutMs) {
+    const response = await fetch(`${API}/games/${gameId}/sync?sinceSeq=0`, {
+      headers: { 'X-Session-Token': token },
+    });
+    snapshot = response.ok ? (await response.json()).snapshot : null;
+    if (snapshot && snapshot.paused !== true) return snapshot;
+    await resumeRound(gameId, token);
+    await sleep(1200);
+  }
+  return snapshot;
+}
+
 const browser = await chromium.launch();
 const tvContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 const shotGame = await createGame();
@@ -153,6 +185,23 @@ async function passButtonTest(phone) {
   log('prova pulsanti superata');
 }
 
+/**
+ * Il click sintetico di Playwright non arriva al gestore `pointerdown` della
+ * pila di fiches: un evento di puntatore vero, come quello del dito, sì.
+ */
+async function putChip(phone, index) {
+  await phone.evaluate((slot) => {
+    const stack = document.querySelectorAll('.azzardo-chip-stack')[slot];
+    if (!stack) return;
+    stack.dispatchEvent(new PointerEvent('pointerdown', {
+      bubbles: true, cancelable: true, pointerId: 1,
+    }));
+    stack.dispatchEvent(new PointerEvent('pointerup', {
+      bubbles: true, cancelable: true, pointerId: 1,
+    }));
+  }, index);
+}
+
 async function joinPhone(gameId) {
   const phoneContext = await browser.newContext({
     viewport: { width: 390, height: 844 },
@@ -180,7 +229,7 @@ async function main() {
   // Il telefono entra subito: la TV deve conoscerne la presenza prima che
   // l'Azzardo assegni le fiches alle squadre collegate.
   const phone = await joinPhone(shotGameId);
-  const gameId = shotGameId;
+  let gameId = shotGameId;
   log('telefono in squadra, si avanza fino all’Azzardo');
 
   for (let attempt = 0; attempt < 10; attempt += 1) {
@@ -217,20 +266,59 @@ async function main() {
     if (announced.roundType === 'AZZARDO') break;
   }
 
+  // L'introduzione TV tiene il round in pausa sul server e il telefono resta
+  // dietro a "IN PAUSA": la ripresa la toglie, come farebbe il presentatore.
+  const openRound = await resumeUntilRunning(shotGameId, shotToken);
+  log(`round Azzardo ${openRound?.paused === true ? 'ancora in pausa' : 'aperto'}`
+    + ` (${openRound?.roundKey ?? '-'})`);
+
   log('attesa dello schermo Azzardo sul telefono');
   const stack = phone.locator('.azzardo-chip-stack').first();
+  const pause = phone.locator('.remote-pause');
   await stack.waitFor({ state: 'visible', timeout: 120_000 });
-  await sleep(1200);
-  const meta = (await phone.locator('.azzardo-meta').first().innerText().catch(() => ''))
-    .replace(/\s+/g, ' ');
-  log(`telefono: ${meta} · pulsante disattivato ${await stack.isDisabled().catch(() => '?')}`);
 
-  log('due fiches sulla prima risposta');
-  await stack.click({ force: true });
-  await sleep(350);
-  await stack.click({ force: true });
-  await phone.locator('.azzardo-chip-row.filled').first().waitFor({ state: 'visible', timeout: 10_000 });
-  await sleep(900);
+  // Il telefono applica la pausa a ogni snapshot che la riporta: si aspetta un
+  // tavolo davvero scoperto, e se la manche scade si riprova sulla prossima.
+  let fiches = 0;
+  for (let attempt = 0; attempt < 8 && fiches === 0; attempt += 1) {
+    let clear = false;
+    for (let wait = 0; wait < 25 && !clear; wait += 1) {
+      // Il telefono legge la pausa solo alla sincronizzazione: la si chiede
+      // subito, come al ritorno in primo piano, invece di aspettare 10 s.
+      await phone.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+      await sleep(600);
+      clear = !(await pause.isVisible().catch(() => false))
+        && (await stack.isVisible().catch(() => false));
+    }
+    if (!clear) break;
+
+    const meta = (await phone.locator('.azzardo-meta').first().innerText().catch(() => ''))
+      .replace(/\s+/g, ' ');
+    log(`telefono: ${meta} · pulsante disattivato ${await stack.isDisabled().catch(() => '?')}`);
+
+    log('due fiches sulla prima risposta');
+    await putChip(phone, 0);
+    await sleep(350);
+    await putChip(phone, 0);
+    const filled = phone.locator('.azzardo-chip-row.filled').first();
+    const ok = await filled.waitFor({ state: 'visible', timeout: 4000 }).then(() => true, () => false);
+    if (!ok) {
+      await sleep(800);
+      continue;
+    }
+    fiches = await stack.locator('.fiche').count();
+
+    // Lo scatto si fa solo col tavolo scoperto: se nel frattempo è tornata la
+    // pausa o è cambiata la manche, si riprova.
+    await sleep(800);
+    if (await pause.isVisible().catch(() => false)
+      || !(await stack.isVisible().catch(() => false))) {
+      log('pausa o manche nuova: si ritenta la puntata');
+      fiches = 0;
+    }
+  }
+  if (!fiches) throw new Error('le fiches non sono entrate nel tavolo');
+  log(`riga riempita con ${fiches} fiches`);
 
   await phone.screenshot({ path: OUT });
   log(`scatto salvato: ${OUT}`);
