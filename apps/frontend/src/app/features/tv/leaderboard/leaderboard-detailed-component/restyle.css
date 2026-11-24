@@ -18,6 +18,11 @@
 :host-context(.leaderboard-open) .grand-leaderboard {
   padding-top: clamp(84px, 10vh, 100px) !important;
 }
+/* Con la dock larga (AVANTI e CHIUDI CLASSIFICA) il chip del titolo finirebbe
+   sotto i suoi pulsanti: scende nella fascia libera, sopra la copertina. */
+:host-context(.leaderboard-open) .grand-leaderboard::before {
+  top: clamp(88px, 12vh, 104px);
+}
 .grand-leaderboard::before {
   content: 'CLASSIFICA FINALE · EDIZIONE 26';
   position: absolute;
