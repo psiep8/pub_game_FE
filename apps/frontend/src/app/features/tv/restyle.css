@@ -345,6 +345,11 @@
   box-shadow: 5px 5px 0 var(--tomato);
   backdrop-filter: none;
 }
+/* Con la classifica a schermo la dock sale sopra la scena: AVANTI e la X
+   devono arrivare al primo click invece di finire sotto la classifica. */
+.tv-dock.above-leaderboard {
+  z-index: 20020;
+}
 .dock-actions {
   display: flex;
   align-items: center;
@@ -383,6 +388,13 @@
   font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 0.08em;
+}
+/* X della classifica dentro la dock: chiude la scena senza coprire AVANTI. */
+.dock-btn.close {
+  background: var(--paper);
+  color: var(--coal);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
 }
 
 .round-info {

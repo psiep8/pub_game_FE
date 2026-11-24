@@ -762,6 +762,54 @@ describe('GameComponent', () => {
     }
   });
 
+  it('con la classifica aperta la X e AVANTI restano nella dock e la chiudono', () => {
+    component.currentGameId.set(1);
+    component.currentMode.set({ type: 'QUIZ', isRevealed: () => true } as any);
+    component.showLeaderboardQuick.set(true);
+    component.isShowingLeaderboard.set(true);
+    const start = vi.spyOn(component, 'startNewRound').mockResolvedValue(undefined);
+    fixture.detectChanges();
+
+    // La X sta nella dock: un click la chiude, invece di finire sotto la scena
+    // o sopra AVANTI.
+    const close = fixture.debugElement.query(By.css('.tv-dock .dock-btn.close'));
+    expect(close).toBeTruthy();
+    close.nativeElement.click();
+    expect(component.showLeaderboardQuick()).toBe(false);
+    expect(component.isShowingLeaderboard()).toBe(false);
+    expect(start).not.toHaveBeenCalled();
+
+    // AVANTI arriva anche con la classifica a schermo e apre il round dopo.
+    component.showLeaderboardQuick.set(true);
+    component.isShowingLeaderboard.set(true);
+    fixture.detectChanges();
+    const advance = fixture.debugElement.queryAll(By.css('.tv-dock .dock-btn'))
+      .find((el) => el.nativeElement.getAttribute('aria-label') === 'Prossimo round')!;
+    advance.nativeElement.click();
+    expect(component.showLeaderboardQuick()).toBe(false);
+    expect(component.isShowingLeaderboard()).toBe(false);
+    expect(start).toHaveBeenCalledTimes(1);
+  });
+
+  it('tiene la dock sopra la classifica invece di nasconderle i pulsanti', () => {
+    const html = readFileSync('src/app/features/tv/game.component.html', 'utf8');
+    const restyle = readFileSync('src/app/features/tv/restyle.css', 'utf8');
+    const overlay = Number(readFileSync(
+      'src/app/features/tv/leaderboard/leaderboard-quick-component/restyle.css', 'utf8',
+    ).match(/z-index:\s*(\d+)/)?.[1]);
+    const dockLayer = Number(
+      restyle.slice(restyle.indexOf('.tv-dock.above-leaderboard')).match(/z-index:\s*(\d+)/)?.[1],
+    );
+
+    expect(overlay).toBeGreaterThan(0);
+    // La classifica è a schermo intero: una dock sotto il suo livello non
+    // riceve il click su AVANTI.
+    expect(dockLayer).toBeGreaterThan(overlay);
+    expect(html).toContain('[class.above-leaderboard]="isShowingLeaderboard()"');
+    // Una sola X, dentro la dock: fuori resterebbe coperta o coprirebbe AVANTI.
+    expect(html).not.toContain('leaderboard-close');
+  });
+
   it('riporta il contatore a zero quando la partita è nuova o resettata', () => {
     const rounds = TestBed.inject(RoundManagerService);
     const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };

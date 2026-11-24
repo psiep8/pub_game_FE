@@ -640,6 +640,57 @@ describe('RemoteComponent', () => {
     expect(component.arenaQuestion()?.questionId).toBe('q1');
   });
 
+  it('chiude la schermata Arena in silenzio se la risposta arriva a round chiuso', () => {
+    component.nickname.set('Anna');
+    component.roundActive.set(true);
+    component.gameState.set(PlayerStatus.VOTING);
+    component.arenaQuestion.set({ text: 'Domanda', options: ['A', 'B'], isTrueFalse: false, questionId: 'q1' });
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    const answer = vi.spyOn(game, 'answerArenaQuestion')
+      .mockReturnValue(throwError(() => ({ status: 409, error: { error: 'round-closed' } })));
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    component.sendArenaAnswer(0);
+
+    // Round finito: la schermata si chiude come negli altri giochi, senza
+    // errore a schermo e senza restare su una domanda che il server rifiuta.
+    expect(component.arenaQuestion()).toBeNull();
+    expect(component.roundActive()).toBe(false);
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+    expect(reliability.lastError()).toBeNull();
+    expect(log).not.toHaveBeenCalled();
+
+    // Il tap successivo non produce un altro 409: non c'è più domanda.
+    component.sendArenaAnswer(1);
+    expect(answer).toHaveBeenCalledTimes(1);
+    log.mockRestore();
+  });
+
+  it('non ritenta la domanda Arena se il round si chiude mentre la chiede', () => {
+    vi.useFakeTimers();
+    try {
+      component.nickname.set('Anna');
+      component.roundActive.set(true);
+      const game = TestBed.inject(GameService) as unknown as FakeGameService;
+      const request = vi.spyOn(game, 'getArenaQuestion')
+        .mockReturnValue(throwError(() => ({ status: 409, error: { error: 'round-closed' } })));
+      const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      component.onStartVoting('ARENA');
+      expect(request).toHaveBeenCalledTimes(1);
+      expect(component.roundActive()).toBe(false);
+      expect(component.gameState()).toBe(PlayerStatus.WAITING);
+
+      // Un round chiuso non si ritenta: sarebbe un 409 al secondo.
+      vi.advanceTimersByTime(2000);
+      expect(request).toHaveBeenCalledTimes(1);
+      expect(log).not.toHaveBeenCalled();
+      log.mockRestore();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('in pausa un tap sul bonus non resta come scelta inviata', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();

@@ -170,14 +170,6 @@
   </app-leaderboard-detailed>
   }
 
-  @if (showLeaderboardQuick() || showLeaderboardDetailed()) {
-  <button class="leaderboard-close" type="button" (click)="closeLeaderboard()"
-    aria-label="Chiudi la classifica">
-    <span class="leaderboard-close-x">✕</span>
-    <span class="leaderboard-close-label">CHIUDI CLASSIFICA</span>
-  </button>
-  }
-
   @if (showTypeReveal()) {
   <div class="type-reveal-overlay">
     <div class="round-badge">
@@ -341,7 +333,7 @@
   </div>
 </div>
 }
-<div class="tv-dock">
+<div class="tv-dock" [class.above-leaderboard]="isShowingLeaderboard()">
   <div class="dock-actions">
     <button class="dock-btn" (click)="audioService.toggleAudio()" [attr.aria-label]="audioService.isEnabled() ? 'Disattiva audio' : 'Attiva audio'">
       {{ audioService.isEnabled() ? '🔊' : '🔇' }}
@@ -353,6 +345,10 @@
       🎨
     </button>
     <button class="dock-btn advance" (click)="adminNextRound()" aria-label="Prossimo round" title="Prossimo round">AVANTI</button>
+    @if (showLeaderboardQuick() || showLeaderboardDetailed()) {
+    <button class="dock-btn close" type="button" (click)="closeLeaderboard()"
+      aria-label="Chiudi la classifica" title="Chiudi la classifica">✕</button>
+    }
     <button class="dock-btn danger" (click)="openResetModal()" aria-label="Reset partita">🔄</button>
   </div>
 </div>

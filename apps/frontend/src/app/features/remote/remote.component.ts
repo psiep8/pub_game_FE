@@ -2643,6 +2643,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
       },
       error: (err: any) => {
         if (seq !== this.arenaLoadSeq) return;
+        // Round chiuso mentre la domanda era in volo: la schermata si chiude in
+        // silenzio, senza ritentare. Ogni retry sarebbe un altro 409.
+        if (err?.status === 409 && err?.error?.error === 'round-closed') {
+          this.invalidateArenaQuestion();
+          this.roundActive.set(false);
+          this.gameState.set(PlayerStatus.WAITING);
+          return;
+        }
         console.error('❌ Fallito recupero domanda arena:', err);
         // Senza questionId il server non può validare la risposta: meglio
         // restare in attesa che mandare in giro un esito calcolato qui.
@@ -2653,10 +2661,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
         // senza domanda per tutto il turno: si ritenta finché il round è vivo,
         // aspettando il tempo che il server indica quando il round non è
         // ancora aperto (409 + retryAfterMs).
-        if (this.questionType() === 'ARENA' && this.gameState() === PlayerStatus.VOTING) {
+        if (this.roundActive() && this.questionType() === 'ARENA'
+            && this.gameState() === PlayerStatus.VOTING) {
           const retryAfterMs = Math.min(1000, Math.max(100, Number(err?.error?.retryAfterMs) || 150));
           setTimeout(() => {
-            if (seq === this.arenaLoadSeq && this.questionType() === 'ARENA'
+            if (seq === this.arenaLoadSeq && this.roundActive() && this.questionType() === 'ARENA'
               && this.gameState() === PlayerStatus.VOTING
               && !this.paused()
               && !this.arenaQuestion()
@@ -2711,7 +2720,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
         error: (err: any) => {
           if (answerGeneration !== this.arenaAnswerGeneration) return;
           this.arenaAnswerPending = false;
-          console.error('❌ Risposta arena rifiutata dal server:', err);
           // Durante la pausa la domanda resta valida: si potrà riprovare alla ripresa.
           if (this.arenaQuestion()?.questionId !== questionId) return;
           // Una domanda precedente o legacy non vale nel round corrente.
@@ -2723,12 +2731,16 @@ export class RemoteComponent implements OnInit, OnDestroy {
             }
             return;
           }
-          // Round chiuso o scaduto: non si insiste, si aspetta la TV.
+          // Round chiuso o scaduto: la risposta è arrivata tardi. Come negli
+          // altri giochi la si ignora in silenzio — niente errore a schermo e
+          // niente domanda successiva, altrimenti ogni tap è un altro 409.
           if (err?.status === 409 && err?.error?.error !== 'round-paused') {
             this.invalidateArenaQuestion();
+            this.roundActive.set(false);
             this.gameState.set(PlayerStatus.WAITING);
             return;
           }
+          console.error('❌ Risposta arena rifiutata dal server:', err);
           // Il server potrebbe aver già registrato la scelta: non cambiarla
           // né pescare un'altra domanda finché il retry non è confermato.
           this.reliability.lastError.set(`Risposta Arena non confermata: premi una risposta per ritentare «${answer}».`);
