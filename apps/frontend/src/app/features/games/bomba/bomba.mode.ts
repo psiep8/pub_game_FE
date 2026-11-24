@@ -212,10 +212,14 @@ export class BombaMode extends GameModeBase {
     const seq = Number(event?.seq) || 0;
     if (seq > this.lastEventSeq) {
       this.lastEventSeq = seq;
-      // Bomba scelta o turno scaduto: la penalità arriva subito con l'evento,
-      // non a fine ondata. Gli esiti di gioco restano comunque nascosti.
+      // Bomba scelta o turno scaduto: la penalità arriva subito con l'evento e
+      // si scala dal totale anche sotto zero. Gli esiti restano nascosti.
       if ((event?.kind === 'bomb' || event?.kind === 'eliminated') && event?.player) {
-        this.applyBombPenalty(String(event.player), Number(event.penalty) || BOMB_PENALTY_FALLBACK);
+        this.config.onAnswerReceived?.({
+          playerName: String(event.player),
+          points: -(Number(event.penalty) || BOMB_PENALTY_FALLBACK),
+          isCorrect: false,
+        });
       }
       // Anche un evento senza punti avanza la sequenza: il checkpoint resta
       // allineato e al refresh non si riapplica nulla.
@@ -228,25 +232,6 @@ export class BombaMode extends GameModeBase {
       this.revealed.set(true);
       this.config.onTimerEnd?.();
     }
-  }
-
-  /**
-   * Una bomba costa il malus decrescente deciso dal server (−500 alla prima),
-   * ma il totale non scende sotto zero: la penalità si ferma ai punti che la
-   * squadra ha davvero.
-   */
-  private applyBombPenalty(playerName: string, malus: number): void {
-    const available = Math.max(0, Number(this.config.playerPoints?.(playerName)) || 0);
-    const points = this.config.playerPoints
-      ? -Math.min(malus, available)
-      : -malus;
-    if (points === 0) return;
-
-    this.config.onAnswerReceived?.({
-      playerName,
-      points,
-      isCorrect: false,
-    });
   }
 
   getDisplayData(): any {

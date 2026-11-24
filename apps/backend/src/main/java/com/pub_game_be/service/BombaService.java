@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  * Bomba — tabellone a turni, solo a malus.
  *
  * <p>La TV mostra una domanda con tutte le opzioni: quasi tutte vere, tranne
- * le bombe, una ogni tre squadre (4 squadre → 1, 6 → 2, 8 → 3). Si gioca a
+ * le bombe, circa due ogni cinque squadre (10 squadre → 4 bombe). Si gioca a
  * turni, una squadra alla volta: la squadra di turno dice un'opzione, poi passa
  * alla successiva sia se la casella è vera sia se è una bomba.
  *
@@ -349,18 +349,17 @@ public class BombaService {
     }
 
     /**
-     * Malus in ordine di scoperta: la prima bomba costa il picco, le successive
-     * scendono a scalare. Oltre la quarta vale sempre l'ultimo gradino.
-     */
-    private static final int[] BOMB_PENALTIES = { 500, 300, 150, 50 };
-
-    /**
-     * Malus della bomba: chi la prende prima paga di più, chi arriva dopo meno.
-     * Il totale non dipende da quante bombe ha il tabellone.
+     * Malus della bomba: −round10(500 × bombe rimaste / bombe iniziali).
+     *
+     * <p>«Rimaste» conta anche la bomba appena presa, che è ancora sul
+     * tabellone quando la squadra la sceglie: con quattro bombe si paga 500,
+     * 380, 250, 130. Il malus non dipende da quante squadre restano in gioco.
      */
     static int bombPenalty(int totalBombs, int bombsTakenBefore) {
-        int index = Math.min(Math.max(0, bombsTakenBefore), BOMB_PENALTIES.length - 1);
-        return BOMB_PENALTIES[index];
+        int bombs = Math.max(1, totalBombs);
+        int remaining = Math.max(1, bombs - Math.max(0, bombsTakenBefore));
+        // Arrotondato alla decina: 500, 380, 250, 130 con quattro bombe.
+        return Math.round(500f * remaining / bombs / 10) * 10;
     }
 
     // Il blob rimane privato: contiene anche la posizione delle bombe non scoperte.
@@ -557,8 +556,8 @@ public class BombaService {
         return 2 * players + players / 2;
     }
 
-    /** Bombe: una ogni tre squadre, arrotondata (4 → 1, 6 → 2, 8 → 3). */
+    /** Bombe: circa 2/5 delle squadre, arrotondato (10 → 4, minimo 1). */
     static int bombsFor(int players) {
-        return Math.max(1, (int) Math.round(players / 3.0));
+        return Math.max(1, (int) Math.round(players * 2.0 / 5.0));
     }
 }
