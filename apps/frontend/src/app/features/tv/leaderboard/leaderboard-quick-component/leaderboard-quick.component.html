@@ -6,7 +6,7 @@
   </div>
 
   <div class="players-container" #playersList [class.all-visible]="revealDone()" [class.dense]="dense()" [class.triple]="triple()">
-    @for (player of visiblePlayers(); track player.playerName) {
+    @for (player of windowPlayers(); track player.playerName) {
       <div class="player-row"
            [class.top3]="player.position <= 3"
            [class.gold]="player.position === 1"
@@ -28,6 +28,11 @@
         <div class="player-points">
           <span class="points-value">{{ player.totalPoints }}</span>
           <span class="points-label">pts</span>
+          @if (movement(player) !== 0) {
+            <span class="movement" [class.up]="movement(player) > 0" [class.down]="movement(player) < 0">
+              {{ movement(player) > 0 ? '▲' : '▼' }} {{ movement(player) > 0 ? movement(player) : -movement(player) }}
+            </span>
+          }
         </div>
 
         @if (player.position === 1) {

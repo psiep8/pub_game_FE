@@ -72,6 +72,10 @@ export const WsAction = {
   ADMIN_STOP_BONUS: 'ADMIN_STOP_BONUS',
   /** Q-01: riapre il bonus corrente dopo un blocco, senza toccare i punti. */
   ADMIN_RESTART_BONUS: 'ADMIN_RESTART_BONUS',
+  /** Q-05: chiude la pausa d'atto e mostra la flash di ripresa. */
+  ADMIN_RESUME_ACT: 'ADMIN_RESUME_ACT',
+  /** Q-05: timer della pausa d'atto, 0 = nessun conto alla rovescia. */
+  ADMIN_ACT_PAUSE_SECONDS: 'ADMIN_ACT_PAUSE_SECONDS',
   CHRISTMAS_TOGGLE: 'CHRISTMAS_TOGGLE',
 } as const;
 

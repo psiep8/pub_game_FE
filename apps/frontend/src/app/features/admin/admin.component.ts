@@ -50,6 +50,8 @@ export class Admin implements OnInit, OnDestroy {
   private stateRetry?: ReturnType<typeof setTimeout>;
   /** Q-01: diagnostica del bonus dietro `?debug=1`, come sulla TV. */
   readonly debug = signal(new URLSearchParams(location.search).get('debug') === '1');
+  /** Q-05: minuti della pausa d'atto, 0 = nessun timer. */
+  readonly actPauseMinutes = signal(3);
   private destroyRef = inject(DestroyRef);
   public theme = inject(ThemeService);
 
@@ -708,6 +710,22 @@ export class Admin implements OnInit, OnDestroy {
 
   stopBonus(): void {
     this.ws.broadcastStatus(this.activeGameId(), { action: WsAction.ADMIN_STOP_BONUS });
+  }
+
+  /** Q-05: imposta il timer della pausa d'atto (0 = nessun conto alla rovescia). */
+  setActPauseMinutes(event: Event): void {
+    const value = Math.max(0, Math.min(30, Number((event.target as HTMLInputElement).value) || 0));
+    this.actPauseMinutes.set(value);
+    this.ws.broadcastStatus(this.activeGameId(), {
+      action: WsAction.ADMIN_ACT_PAUSE_SECONDS,
+      seconds: value * 60,
+    });
+  }
+
+  /** Q-05: riprende dall'attuale pausa d'atto con la flash e il primo round. */
+  resumeAct(): void {
+    this.ws.broadcastStatus(this.activeGameId(), { action: WsAction.ADMIN_RESUME_ACT });
+    this.vibrate(30);
   }
 
   /** Espelle una squadra entrata per errore: la sua vecchia sessione non vale più. */

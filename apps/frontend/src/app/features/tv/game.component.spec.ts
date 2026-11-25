@@ -324,10 +324,10 @@ describe('GameComponent', () => {
     const rounds = TestBed.inject(RoundManagerService);
     component.currentMode.set({ type: 'QUIZ' } as any);
 
-    // Classifica di metà serata: fanfara, poi di nuovo la musica del gioco.
+    // Q-05: la flash di metà serata suona la base dell'atto, poi torna il gioco.
     component.pendingLeaderboardType.set('QUICK');
     component.showPendingLeaderboard();
-    expect(audio.played.at(-1)).toBe('bed-loop-classifica');
+    expect(audio.played.at(-1)).toBe('bed-lobby');
     component.closeLeaderboard();
     expect(audio.played.at(-1)).toBe('bed-QUIZ');
 
@@ -345,6 +345,41 @@ describe('GameComponent', () => {
     audio.played.length = 0;
     component.adminShowLeaderboard();
     expect(audio.played).toContain('bed-loop-gioco-casino-finale');
+  });
+
+  it('Q-05: dopo la dettagliata di fine atto apre la pausa, poi la flash e il round nuovo', async () => {
+    vi.useFakeTimers();
+    try {
+      const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
+      const rounds = TestBed.inject(RoundManagerService);
+      component.currentGameId.set(1);
+      rounds.restoreRound(8);
+      component.showLeaderboardDetailed.set(true);
+
+      component.onLeaderboardComplete();
+
+      expect(component.actPause()).toBe(true);
+      expect(component.isPaused()).toBe(true);
+      expect(component.actPauseLeft()).toBe(180);
+      expect(audio.played).toContain('pause-beds');
+
+      // Il timer si può cambiare dalla regia anche a pausa aperta.
+      component.setActPauseSeconds(120);
+      expect(component.actPauseLeft()).toBe(120);
+
+      component.resumeAct();
+      expect(component.actPause()).toBe(false);
+      expect(component.isPaused()).toBe(false);
+      expect(component.showLeaderboardQuick()).toBe(true);
+      expect(audio.played).toContain('resume-beds');
+
+      component.onLeaderboardComplete();
+      await vi.advanceTimersByTimeAsync(10);
+      expect(component.showLeaderboardQuick()).toBe(false);
+      expect(rounds.getCurrentRound()).toBeGreaterThan(8);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('in pausa tace anche il sottofondo e riparte al ritorno', () => {

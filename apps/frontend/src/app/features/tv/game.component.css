@@ -1924,3 +1924,57 @@
 .bonus-debug-row { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
 .bonus-debug-row span { text-transform: uppercase; opacity: .7; }
 .bonus-debug-row b { text-align: right; overflow-wrap: anywhere; }
+
+/* Q-05: pausa fra due atti. Carta e inchiostro, timer mono, nessun blur. */
+.act-pause {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 5vh 5vw;
+  background:
+    repeating-linear-gradient(135deg,
+      color-mix(in srgb, var(--coal) 8%, transparent) 0 10px,
+      transparent 10px 20px),
+    var(--bg-0);
+}
+.act-pause-card {
+  width: min(900px, 90vw);
+  padding: clamp(28px, 5vw, 64px);
+  background: var(--paper-hi);
+  color: var(--coal);
+  border: 4px solid var(--coal);
+  box-shadow: 14px 14px 0 var(--tomato);
+  text-align: center;
+}
+.act-pause-kicker {
+  font-family: var(--font-mono);
+  font-size: clamp(.8rem, 1.4vw, 1.1rem);
+  font-weight: 800;
+  letter-spacing: .18em;
+  color: var(--tomato);
+}
+.act-pause-title {
+  margin: 8px 0 18px;
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 12vw, 9rem);
+  line-height: .9;
+  letter-spacing: .02em;
+}
+.act-pause-count {
+  padding: 16px 20px;
+  border: 3px solid var(--coal);
+  background: var(--acid);
+  font-family: var(--font-mono);
+  font-size: clamp(1.4rem, 3.6vw, 2.8rem);
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+.act-pause-hint {
+  margin-top: 18px;
+  font-family: var(--font-mono);
+  font-size: clamp(.75rem, 1.3vw, 1rem);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}

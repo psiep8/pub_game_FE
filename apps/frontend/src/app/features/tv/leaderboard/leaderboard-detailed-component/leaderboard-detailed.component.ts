@@ -69,6 +69,7 @@ export class LeaderboardDetailed implements OnInit {
   }
 
   private async animateReveal() {
+    const startedAt = Date.now();
     const players = this.allPlayers();
 
     for (let i = 0; i < players.length; i++) {
@@ -90,7 +91,10 @@ export class LeaderboardDetailed implements OnInit {
       await new Promise(resolve => setTimeout(resolve, delay));
     }
 
-    await new Promise(resolve => setTimeout(resolve, 8000));
+    // F-12/Q-05: almeno 30 secondi di permanenza, anche con poche squadre.
+    const remaining = Math.max(1000, 30_000 - (Date.now() - startedAt));
+    await new Promise(resolve => setTimeout(resolve, remaining));
+    this.leaderboard.rememberRanks();
     this.onComplete.emit();
   }
 

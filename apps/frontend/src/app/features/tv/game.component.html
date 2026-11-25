@@ -378,6 +378,21 @@
 </div>
 }
 
+@if (actPause()) {
+<div class="act-pause" role="status" aria-label="Pausa di atto">
+  <div class="act-pause-card">
+    <div class="act-pause-kicker">FINE ATTO</div>
+    <h2 class="act-pause-title">PAUSA</h2>
+    @if (actPauseLeft() > 0) {
+      <div class="act-pause-count">RIPRENDIAMO TRA {{ (actPauseLeft() / 60 | number: '1.0-0') }}:{{ (actPauseLeft() % 60 | number: '2.0-0') }}</div>
+    } @else {
+      <div class="act-pause-count">IN ATTESA DELLA REGIA</div>
+    }
+    <div class="act-pause-hint">La regia riprende con ▶️ RIPRENDI ATTO</div>
+  </div>
+</div>
+}
+
 @if (autoAdvanceSeconds() > 0) {
 <div class="auto-advance" role="status" alive="drift" [aliveSeed]="6">
   <span class="auto-advance-label">ATTESA · PROSSIMO ROUND</span>

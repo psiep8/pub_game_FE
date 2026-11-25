@@ -279,6 +279,13 @@ export class GameComponent implements OnInit, OnDestroy {
 
   showLeaderboardQuick = signal(false);
   showLeaderboardDetailed = signal(false);
+  /** Q-05: pausa fra un atto e il successivo, decisa dalla regia. */
+  actPause = signal(false);
+  actPauseSeconds = signal(180);
+  actPauseLeft = signal(180);
+  private actPauseTimer?: ReturnType<typeof setInterval>;
+  /** La flash aperta dopo la pausa deve far partire il primo round del nuovo atto. */
+  private flashResumePending = false;
   roundInfo = signal<string>('');
   isShowingLeaderboard = signal(false);
   pendingLeaderboardType = signal<'QUICK' | 'DETAILED' | null>(null);
@@ -779,6 +786,10 @@ export class GameComponent implements OnInit, OnDestroy {
         if (status.type) void this.startBonus(status.type);
       } else if (status.action === 'ADMIN_STOP_BONUS') {
         this.finishBonus();
+      } else if (status.action === WsAction.ADMIN_RESUME_ACT) {
+        this.resumeAct();
+      } else if (status.action === WsAction.ADMIN_ACT_PAUSE_SECONDS) {
+        this.setActPauseSeconds(Number(status.seconds));
       } else if (status.action === WsAction.ADMIN_RESTART_BONUS) {
         void this.restartBonus(
           status.type || this.bonusType() || (this.serverBonus?.type as BonusType) || 'CAVALLO',
@@ -809,6 +820,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.displayDataInterval) {
       clearInterval(this.displayDataInterval);
     }
+    this.clearActPauseTimer();
     this.stopDemoTimer();
 
     // Uscita dalla TV: i loop del round in corso non sopravvivono alla rotta.
@@ -1990,19 +2002,97 @@ export class GameComponent implements OnInit, OnDestroy {
 
     this.isShowingLeaderboard.set(true);
     this.theme.applyFromRemote('editorial-acid');
-    // Classifica e podio cambiano disco: l'ultima della serata ha il suo loop,
-    // le altre la fanfara della classifica.
+    // Q-05: la flash suona la base dell'atto in corso; solo la finale ha il
+    // loop della classifica. La dettagliata di fine atto fa lo stesso.
     this.audioService.setOwner('classifica');
-    this.audioService.setBedLoop(this.roundManager.isGameOver() ? 'gioco-casino-finale' : 'classifica');
+    if (this.roundManager.isGameOver()) {
+      this.audioService.setBedLoop('gioco-casino-finale');
+    } else {
+      this.audioService.setGameBed(null);
+    }
     this.showLeaderboardQuick.set(type === 'QUICK');
     this.showLeaderboardDetailed.set(type === 'DETAILED');
   }
 
   onLeaderboardComplete() {
+    // Dopo la flash di ripresa il primo round del nuovo atto parte da solo.
+    if (this.showLeaderboardQuick() && this.flashResumePending) {
+      this.flashResumePending = false;
+      this.showLeaderboardQuick.set(false);
+      this.isShowingLeaderboard.set(false);
+      this.adminNextRound();
+      return;
+    }
+    // Fine atto: la dettagliata ha avuto i suoi 30 s, ora c'è la pausa.
+    if (this.showLeaderboardDetailed()
+      && this.roundManager.isActEnd()
+      && !this.roundManager.isGameOver()) {
+      this.startActPause();
+      return;
+    }
     // Manuale: la classifica resta in TV finché l'admin non avanza.
     if (this.phase() === 'IDLE') {
       this.audioService.startHeartbeat();
     }
+  }
+
+  /** Q-05: pausa d'atto, con timer opzionale configurato dalla regia. */
+  private startActPause(): void {
+    this.showLeaderboardDetailed.set(false);
+    this.showLeaderboardQuick.set(false);
+    this.isShowingLeaderboard.set(false);
+    this.pendingLeaderboardType.set(null);
+    this.actPause.set(true);
+    this.isPaused.set(true);
+    this.audioService.pauseBeds();
+    this.actPauseLeft.set(this.actPauseSeconds());
+    this.runActPauseTimer();
+    this.ws.broadcastStatus(this.currentGameId()!, {
+      action: WsAction.GAME_PAUSED,
+      secondsLeft: this.actPauseLeft(),
+    });
+  }
+
+  /** Imposta il timer della pausa prima che cominci (0 = nessun timer). */
+  setActPauseSeconds(seconds: number): void {
+    const safe = Math.max(0, Math.min(1800, Math.round(Number(seconds) || 0)));
+    this.actPauseSeconds.set(safe);
+    // In pausa il nuovo valore si vede subito, senza aspettare la prossima.
+    if (this.actPause()) {
+      this.actPauseLeft.set(safe);
+      this.runActPauseTimer();
+    }
+  }
+
+  private runActPauseTimer(): void {
+    this.clearActPauseTimer();
+    if (this.actPauseSeconds() <= 0) return;
+    this.actPauseTimer = setInterval(() => {
+      const left = Math.max(0, this.actPauseLeft() - 1);
+      this.actPauseLeft.set(left);
+      if (left === 0) this.clearActPauseTimer();
+    }, 1000);
+  }
+
+  /** Ripresa della regia: chiude la pausa, mostra la flash e poi riparte. */
+  resumeAct(): void {
+    if (!this.actPause()) return;
+    this.clearActPauseTimer();
+    this.actPause.set(false);
+    this.isPaused.set(false);
+    this.audioService.resumeBeds();
+    this.ws.broadcastStatus(this.currentGameId()!, { action: WsAction.GAME_RESUMED });
+    this.flashResumePending = true;
+    this.showLeaderboardQuick.set(true);
+    this.isShowingLeaderboard.set(true);
+    this.audioService.setOwner('classifica');
+    // La flash suona la base dell'atto appena aperto, non la fanfara.
+    this.audioService.setGameBed(null);
+  }
+
+  private clearActPauseTimer(): void {
+    if (this.actPauseTimer) clearInterval(this.actPauseTimer);
+    this.actPauseTimer = undefined;
   }
 
   /**

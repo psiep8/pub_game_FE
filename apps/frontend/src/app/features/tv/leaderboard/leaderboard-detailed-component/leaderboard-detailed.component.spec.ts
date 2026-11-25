@@ -21,7 +21,14 @@ describe('LeaderboardDetailed', () => {
       imports: [LeaderboardDetailed],
       providers: [
         provideNoopAnimations(),
-        { provide: LeaderboardService, useValue: { getLeaderboard: () => [...stored] } },
+        {
+          provide: LeaderboardService,
+          useValue: {
+            getLeaderboard: () => [...stored],
+            previousRanks: () => new Map<string, number>(),
+            rememberRanks: vi.fn(),
+          },
+        },
       ],
     });
 
@@ -89,8 +96,11 @@ describe('LeaderboardDetailed', () => {
     vi.useFakeTimers();
     create(players);
 
-    await vi.advanceTimersByTimeAsync(2600 + 3000 + 3600 + 8000);
+    // Q-05: la dettagliata resta almeno 30 secondi, anche con tre squadre.
+    await vi.advanceTimersByTimeAsync(29_000);
+    expect(onComplete).not.toHaveBeenCalled();
 
+    await vi.advanceTimersByTimeAsync(1_100);
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 

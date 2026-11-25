@@ -240,6 +240,13 @@
       <button class="flow-btn" (click)="startBonus('CASINO_NUMBER')">🎯 CASINO NUMERO SECCO</button>
       <button class="flow-btn ghost" (click)="stopBonus()">✖️ CHIUDI BONUS</button>
     </div>
+    <div class="flow-row">
+      <label class="flow-id">PAUSA ATTO (MIN)
+        <input type="number" min="0" max="30" [value]="actPauseMinutes()"
+          (change)="setActPauseMinutes($event)" />
+      </label>
+      <button class="flow-btn primary" (click)="resumeAct()">▶️ RIPRENDI ATTO</button>
+    </div>
     <div class="flow-note">Avvio e avanzamento manuali: usa PARTI oppure il tasto AVANTI in TV.</div>
   </div>
 

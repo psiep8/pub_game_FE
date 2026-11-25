@@ -243,3 +243,16 @@
 .kahoot-leaderboard .players-container.all-visible.dense.triple .podium-icon {
   font-size: clamp(.9rem, 2.2vh, 1.4rem) !important;
 }
+
+/* Q-05: variazione di posizione rispetto alla classifica precedente. */
+.movement {
+  display: inline-block;
+  margin-left: 8px;
+  font-family: var(--font-mono);
+  font-size: .72em;
+  font-weight: 800;
+  letter-spacing: .04em;
+  color: color-mix(in srgb, var(--coal) 60%, transparent);
+}
+.movement.up { color: #15803d; }
+.movement.down { color: var(--tomato); }

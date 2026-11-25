@@ -51,8 +51,23 @@ export class LeaderboardService {
     this.pointsListener?.(playerName, points);
   }
 
+  /** Ultime posizioni mostrate da una classifica: servono al salto in flash. */
+  private previousPositions = new Map<string, number>();
+
   getLeaderboard(): PlayerScore[] {
     return Array.from(this.players().values()).sort((a, b) => b.totalPoints - a.totalPoints);
+  }
+
+  /** Posizioni della classifica precedente, per la variazione della flash. */
+  previousRanks(): Map<string, number> {
+    return new Map(this.previousPositions);
+  }
+
+  /** La classifica appena mostrata diventa il confronto per la prossima. */
+  rememberRanks(): void {
+    this.previousPositions = new Map(
+      this.getLeaderboard().map((player) => [player.playerName, player.position]),
+    );
   }
 
   /** Fotografia della classifica da inviare al server. */

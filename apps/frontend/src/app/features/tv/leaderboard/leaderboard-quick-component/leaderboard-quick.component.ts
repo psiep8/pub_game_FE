@@ -49,6 +49,10 @@ export class LeaderboardQuick implements OnInit {
   visiblePlayers = signal<PlayerScore[]>([]);
   progress = signal(0);
   totalPlayers = signal(0);
+  /** Posizioni dell'ultima classifica: positivo = salita, negativo = discesa. */
+  private previousRanks = new Map<string, number>();
+  /** Al massimo otto righe in scena: oltre, le nuove entrano e le vecchie escono. */
+  readonly windowPlayers = computed(() => this.visiblePlayers().slice(-8));
   /** Reveal finito: il tabellone si compatta e mostra tutte le squadre. */
   revealDone = signal(false);
   /**
@@ -76,32 +80,37 @@ export class LeaderboardQuick implements OnInit {
       return;
     }
 
+    this.previousRanks = this.leaderboard.previousRanks();
     this.allPlayers.set([...players].reverse());
     this.totalPlayers.set(players.length);
     this.audio.playWhoosh();
     this.animateReveal();
   }
 
+  /**
+   * Variazione rispetto alla classifica precedente. Il numero è positivo se la
+   * squadra è salita (la posizione è diminuita), negativo se è scesa.
+   */
+  movement(player: PlayerScore): number {
+    const before = this.previousRanks.get(player.playerName);
+    return before == null ? 0 : before - player.position;
+  }
+
   private async animateReveal() {
+    const startedAt = Date.now();
     const players = this.allPlayers();
     const total = players.length;
 
     for (let i = 0; i < total; i++) {
-      let delay = 2500;
-
-      if (players[i].position === 3) delay = 4000;
-      if (players[i].position === 2) delay = 5000;
-      if (players[i].position === 1) delay = 6000;
+      // 10–12 s in tutto: le righe normali scorrono in 300 ms, il podio si
+      // prende una pausa sola, non i 4–6 s per riga della vecchia classifica.
+      const position = players[i].position;
+      const delay = position === 1 ? 1200 : position === 2 ? 900 : position === 3 ? 900 : 300;
 
       this.visiblePlayers.update(list => [...list, players[i]]);
       this.progress.set(((i + 1) / total) * 100);
-      // La lista cresce dal peggiore al migliore: se le righe non stanno tutte
-      // nello schermo, si accompagna lo sguardo sull'ultima arrivata.
       this.scrollToNewest();
 
-      // Podio: il rullo cresce dal terzo al primo posto, con festeggiamento
-      // e botticelle/botti per i gradini alti.
-      const position = players[i].position;
       if (position <= 3) {
         this.audio.playPodiumReveal(position);
       } else {
@@ -111,10 +120,11 @@ export class LeaderboardQuick implements OnInit {
       await new Promise(resolve => setTimeout(resolve, delay));
     }
 
-    // A reveal concluso le righe si dividono lo spazio: anche con più di sei
-    // squadre il tabellone resta tutto visibile, senza scorrimento.
     this.revealDone.set(true);
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    // Fermo sul podio e chiusura entro il bersaglio di 10 s (massimo 15).
+    const remaining = Math.max(3000, 10_000 - (Date.now() - startedAt));
+    await new Promise(resolve => setTimeout(resolve, remaining));
+    this.leaderboard.rememberRanks();
     this.onComplete.emit();
   }
 
