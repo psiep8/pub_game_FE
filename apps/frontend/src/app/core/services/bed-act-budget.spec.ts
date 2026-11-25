@@ -129,12 +129,11 @@ describe('Peso dei sottofondi per atto', () => {
       ).toBe(files.length);
     }
 
-    // L'atto 1, con i conti giusti: base e quattro giochi sul loro loop. Il
-    // vecchio conto ci sommava anche `gioco-casino` e `gioco-bomba`, gli alias
-    // di Azzardo e Speed Rush, e leggeva 6,64 MB dove ce ne sono 4,00.
+    // L'atto 1 dopo Q-04: base e tre giochi sul loro loop. L'Azzardo è passato
+    // all'atto 2 e l'atto apre con Musica; il vecchio conto sommava anche gli
+    // alias di Azzardo e Speed Rush.
     expect(new Set(slotsOf(1))).toEqual(new Set([
       'loop/atto-1.m4a',
-      'loop/gioco-azzardo.m4a',
       'loop/gioco-timeline.m4a',
       'loop/gioco-speed-rush.m4a',
       'loop/gioco-ultima-spiaggia.m4a',

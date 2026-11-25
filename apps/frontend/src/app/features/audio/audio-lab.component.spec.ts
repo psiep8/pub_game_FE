@@ -71,7 +71,7 @@ describe('Regia audio — sottofondi', () => {
     });
 
     const text: string = fixture.nativeElement.textContent;
-    // Atto 1: quattro loop di gioco misurati (4 MB), la base ancora da consegnare.
-    expect(text).toContain('4,00 MB · 1 da consegnare');
+    // Atto 1 dopo Q-04: tre loop di gioco misurati (3 MB), la base ancora da consegnare.
+    expect(text).toContain('3,00 MB · 1 da consegnare');
   });
 });
