@@ -6,7 +6,7 @@ describe('ImageBlurMode', () => {
     vi.useRealTimers();
   });
 
-  it('svela un indizio ogni sei secondi', async () => {
+  it('svela un indizio ogni quindici secondi, con il contatore che avanza', async () => {
     vi.useFakeTimers();
 
     const mode = new ImageBlurMode();
@@ -29,11 +29,13 @@ describe('ImageBlurMode', () => {
     expect(first.clueIndex).toBe(1);
     expect(first.clueTotal).toBe(3);
 
-    await vi.advanceTimersByTimeAsync(6000);
+    await vi.advanceTimersByTimeAsync(15000);
     expect(mode.getDisplayData().clue).toBe('premio Oscar');
+    expect(mode.getDisplayData().clueIndex).toBe(2);
 
-    await vi.advanceTimersByTimeAsync(6000);
+    await vi.advanceTimersByTimeAsync(15000);
     expect(mode.getDisplayData().clue).toBe('nata a Roma');
+    expect(mode.getDisplayData().clueIndex).toBe(3);
 
     mode.cleanup();
   });
@@ -107,7 +109,7 @@ describe('ImageBlurMode — ripresa dopo un refresh della TV', () => {
     await mode.start();
     expect(saved.at(-1)?.state).toMatchObject({ blurElapsedSeconds: 0, clueIndex: 0 });
 
-    await vi.advanceTimersByTimeAsync(6000);
+    await vi.advanceTimersByTimeAsync(15000);
     expect(saved.at(-1)?.state).toMatchObject({ clueIndex: 1 });
     expect(saved.at(-1)?.state.blurElapsedSeconds).toBeGreaterThan(0);
 

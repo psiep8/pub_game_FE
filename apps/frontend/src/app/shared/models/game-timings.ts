@@ -16,8 +16,8 @@ export const GAME_TIMINGS = {
   },
   IMAGE_BLUR: {
     seconds: 60,
-    // Più indizi e più ravvicinati: uno ogni sei secondi, come chiesto in sala.
-    clueEverySeconds: 6,
+    // F-18: un nuovo indizio ogni quindici secondi, quattro in una manche.
+    clueEverySeconds: 15,
   },
   WHEEL_OF_FORTUNE: {
     seconds: 75,

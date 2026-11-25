@@ -102,6 +102,7 @@ class CelebrityClueLeakTest {
                         person.path("extract").asText(""));
 
                 assertThat(clues).as("indizi per %s", name).isNotEmpty();
+                assertThat(clues.size()).as("quattro indizi per %s", name).isGreaterThanOrEqualTo(4);
                 for (String clue : clues) {
                     assertThat(mentionsName(clue, name))
                             .as("«%s» svela %s", clue, name)
@@ -134,6 +135,22 @@ class CelebrityClueLeakTest {
         return Normalizer.normalize(value, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "")
                 .toLowerCase();
+    }
+
+    @Test
+    void ancheUnaSolaFraseBiograficaDaQuattroIndizi() {
+        List<String> clues = service.cluesFromLocal(
+                "Sophia Loren",
+                "attrice italiana (1934-)",
+                "Sophia Loren, pseudonimo di Sofia Costanza Brigida Villani Scicolone, "
+                        + "è un'attrice italiana con cittadinanza francese.");
+
+        assertThat(clues).hasSizeGreaterThanOrEqualTo(4);
+        assertThat(clues)
+                .as("il predicato resta, il nome di nascita no")
+                .anyMatch(clue -> clue.toLowerCase().contains("attrice italiana"))
+                .noneMatch(clue -> clue.toLowerCase().contains("scicolone"))
+                .noneMatch(clue -> clue.toLowerCase().contains("villani"));
     }
 
     @Test

@@ -221,25 +221,75 @@ public class CelebrityImageService {
 
         String extract = summary.extract();
         if (extract != null && !extract.isBlank()) {
-            String normalizedName = celebrityName.toLowerCase(Locale.ROOT);
             for (String sentence : extract.split("(?<=[.!?])\\s+")) {
-                // La prima frase contiene il nome: mostrarla svelerebbe la
-                // risposta. Si usano solo le frasi successive, e anche quelle
-                // che citano solo il cognome (o il nome) restano fuori.
-                if (sentence.toLowerCase(Locale.ROOT).contains(normalizedName)
-                        || revealsName(sentence, celebrityName)) {
-                    continue;
-                }
-                addClue(clues, sentence, celebrityName);
-                // Il round dura 60 secondi e la TV ne mostra uno ogni 6:
-                // fino a otto indizi, se la biografia li offre.
+                // F-18: la prima frase di solito è «Nome è un attore…». Si
+                // tiene il predicato dopo «è» e si butta il nome, invece di
+                // scartare tutta la frase: gli indizi arrivano a quattro.
+                addClue(clues, predicateOf(sentence, celebrityName), celebrityName);
                 if (clues.size() >= 8) {
                     break;
                 }
             }
         }
 
+        addDerivedClues(clues, celebrityName, summary.description());
         return List.copyOf(clues);
+    }
+
+    /**
+     * Se la frase nomina la celebrità, restituisce solo ciò che segue «è»:
+     * «Sophia Loren, pseudonimo di …, è un'attrice italiana» diventa
+     * «Un'attrice italiana», senza nome né nome di nascita.
+     */
+    private String predicateOf(String sentence, String celebrityName) {
+        boolean namesHerself = sentence.toLowerCase(Locale.ROOT)
+                .contains(celebrityName.toLowerCase(Locale.ROOT))
+                || revealsName(sentence, celebrityName);
+        if (!namesHerself) return sentence;
+
+        String lower = sentence.toLowerCase(Locale.ROOT);
+        int verb = lower.indexOf(" è ");
+        if (verb < 0) return sentence;
+        String predicate = sentence.substring(verb + 3).trim();
+        if (predicate.isEmpty()) return sentence;
+        return Character.toUpperCase(predicate.charAt(0)) + predicate.substring(1);
+    }
+
+    /**
+     * F-18: con una biografia di una sola frase gli indizi restano due. Si
+     * aggiungono dati già presenti nella banca (anno di nascita, iniziali,
+     * numero di parole del nome), così il contatore arriva almeno a quattro.
+     */
+    private void addDerivedClues(Set<String> clues, String celebrityName, String description) {
+        if (clues.size() >= 4) return;
+
+        if (description != null) {
+            java.util.regex.Matcher year = Pattern.compile("\\b(19|20)\\d{2}\\b").matcher(description);
+            if (year.find()) {
+                addClue(clues, "Classe " + year.group() + ".", celebrityName);
+            }
+        }
+        if (clues.size() >= 4) return;
+
+        String[] parts = celebrityName.trim().split("\\s+");
+        StringBuilder initials = new StringBuilder();
+        for (String part : parts) {
+            if (part.isBlank() || NAME_PARTICLES.contains(part.toLowerCase(Locale.ROOT))) continue;
+            if (initials.length() > 0) initials.append(". ");
+            initials.append(Character.toUpperCase(part.charAt(0)));
+        }
+        if (initials.length() > 0) {
+            addClue(clues, "Iniziali: " + initials + ".", celebrityName);
+        }
+        if (clues.size() >= 4) return;
+
+        if (!parts[0].isBlank()) {
+            addClue(clues, "Il nome inizia con la lettera "
+                    + Character.toUpperCase(parts[0].charAt(0)) + ".", celebrityName);
+        }
+        if (clues.size() >= 4) return;
+
+        addClue(clues, "Nome e cognome: " + parts.length + " parole.", celebrityName);
     }
 
     private void addClue(Set<String> clues, String raw, String celebrityName) {
