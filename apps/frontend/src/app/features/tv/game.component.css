@@ -1544,8 +1544,20 @@
 .pause-hint { max-width: 420px; margin: 0; text-align: center; color: var(--ink-dim); font-family: var(--font-mono); font-size: .9rem; }
 
 /* Demo TV in loop */
-.demo-overlay { position: fixed; inset: 0; z-index: 12500; display: flex; align-items: center; justify-content: center; padding: 4vh 4vw; background: rgba(20, 16, 12, .94); }
-.demo-frame { width: min(1400px, 92vw); height: min(760px, 82vh); display: flex; flex-direction: column; background: var(--paper); color: var(--coal); border: 4px solid var(--coal); box-shadow: 12px 12px 0 var(--tomato); }
+.demo-overlay { position: fixed; inset: 0; z-index: 12500; display: flex; align-items: center; justify-content: center; padding: 4vh 4vw; background: rgba(20, 16, 12, .94); overflow: hidden; }
+/* Q-07: un solo modello di pagina, sempre 16:9 e sempre intero. Prima l'altezza
+   era fissa a 82vh: a 1024×768 il riquadro diventava 1,49:1 e la scena veniva
+   tagliata. Ora la larghezza è il minore fra i limiti e l'altezza segue il 16:9. */
+.demo-frame {
+  width: min(1400px, 92vw, calc(82vh * 16 / 9));
+  aspect-ratio: 16 / 9;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  color: var(--coal);
+  border: 4px solid var(--coal);
+  box-shadow: 12px 12px 0 var(--tomato);
+}
 .demo-head { display: flex; align-items: center; gap: 14px; padding: 12px 18px; border-bottom: 3px solid var(--coal); }
 .demo-badge { padding: 3px 10px; background: var(--tomato); color: var(--paper-hi); font-family: var(--font-mono); font-size: .7rem; font-weight: 700; letter-spacing: .14em; }
 .demo-name { font-family: var(--font-display); font-size: clamp(1.2rem, 2vw, 2rem); text-transform: uppercase; }
