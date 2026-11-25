@@ -941,7 +941,8 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.emitCheckpoint();
 
     const spinDurationMs = BASE_SPIN_MS + (Math.random() * SPIN_JITTER_MS * 2) - SPIN_JITTER_MS;
-    this.audio.playRouletteTicks(spinDurationMs);
+    // F-34: niente clip di tac-tac a lunghezza fissa: i tick li scandisce il
+    // giro vero, così l'ultimo cade prima dell'arresto e non dopo.
     await this.animateWheel(number, spinDurationMs);
     this.audio.playRouletteLanding();
   }
@@ -1021,6 +1022,8 @@ export class CasinoBonus implements OnInit, OnDestroy {
     await new Promise<void>((resolve) => {
       let sim = 0;
       let acc = 0;
+      let lastPocket = Math.floor(plan(0) / SEG);
+      let lastTickAt = -1000;
       let last = performance.now();
 
       const sync = (): void => {
@@ -1064,6 +1067,14 @@ export class CasinoBonus implements OnInit, OnDestroy {
           // Velocità del piano + richiamo sull'errore: la traiettoria resta
           // precisa anche dopo un urto, che quindi si vede e si recupera.
           const angleNow = plan(sim);
+          // F-34: un tac per ogni separatore attraversato, con lo stesso tempo
+          // dell'animazione; rallenta da sé e tace quando la pallina è ferma.
+          const pocket = Math.floor(angleNow / SEG);
+          if (pocket !== lastPocket && sim - lastTickAt >= 45 && sim < spinDurationMs - 120) {
+            lastPocket = pocket;
+            lastTickAt = sim;
+            this.audio.playTick();
+          }
           const radiusNow = guide(sim);
           const nextAngle = plan(sim + stepMs);
           const nextRadius = guide(sim + stepMs);
