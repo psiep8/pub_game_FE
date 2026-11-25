@@ -434,10 +434,14 @@ export class TennisBattleMode extends GameModeBase {
     return { ...q, options, correctIndex: Math.max(0, options.indexOf(correct)) };
   }
 
-  /** Fasce di difficoltà: primi tiri facili, poi medie, poi solo difficili. */
+  /**
+   * Fasce di difficoltà: facile solo nei primi due scambi, poi medie e, dal
+   * quinto scambio, solo difficili. La salita è volutamente più rapida di
+   * prima (era EASY fino al terzo e HARD dall'ottavo).
+   */
   difficultyFor(shots: number): Difficulty {
-    if (shots < 3) return 'EASY';
-    if (shots < 8) return 'MEDIUM';
+    if (shots < 2) return 'EASY';
+    if (shots < 5) return 'MEDIUM';
     return 'HARD';
   }
 

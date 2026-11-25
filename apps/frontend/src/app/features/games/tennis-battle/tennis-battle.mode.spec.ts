@@ -69,6 +69,20 @@ describe('TennisBattleMode — regole di sala', () => {
 });
 
 describe('TennisBattleMode — ripresa dopo un refresh della TV', () => {
+  it('alza la difficoltà dopo due scambi e arriva al difficile dal quinto', () => {
+    // F-07: la curva vecchia teneva EASY fino al terzo scambio e HARD solo
+    // dall'ottavo: lo scambio restava facile troppo a lungo.
+    const { mode } = setup();
+
+    expect(mode.difficultyFor(0)).toBe('EASY');
+    expect(mode.difficultyFor(1)).toBe('EASY');
+    expect(mode.difficultyFor(2)).toBe('MEDIUM');
+    expect(mode.difficultyFor(4)).toBe('MEDIUM');
+    expect(mode.difficultyFor(5)).toBe('HARD');
+
+    mode.cleanup();
+  });
+
   it('salva i campi appena partono le sfide', async () => {
     const { mode, saved } = setup();
 

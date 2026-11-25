@@ -414,3 +414,4 @@ media), run CI #155 verde prima di questo job, screenshot del README rifatti.
 | F-05 — Casino in pausa: il rumore del giro non si ferma | Fatto | `_F05_` | `audio.service.spec.ts`: la pausa ferma anche gli effetti lunghi già partiti |
 | F-06 — Time Buzzer: tempi mancanti dopo la pausa | Fatto | `_F06_` | `ReliabilityIntegrationTest#timeBuzzerMantieneITempiDopoUnaPausaLunga`: pausa di 6 s, tempo accettato (200, prima 422) |
 | F-07.1 — Tennis: riposo con squadre dispari | Fatto | `_F071_` | `tennis-battle.mode.spec.ts`: riposa la prima in classifica, nessun RIPOSO e zero punti |
+| F-07.2 — Tennis: difficoltà crescente più in fretta | Fatto | `_F072_` | `tennis-battle.mode.spec.ts`: EASY 0–1, MEDIUM 2–4, HARD dal 5 (vecchia: EASY 0–2, MEDIUM 3–7, HARD dall'8) |
