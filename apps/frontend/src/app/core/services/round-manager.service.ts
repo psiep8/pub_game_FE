@@ -44,6 +44,7 @@ const SIMULATION_DECK: GameModeType[] = [
   'BLACKJACK',
   'ARENA',
   'SPEED_RUSH',
+  'BIGLIE',
 ];
 
 /**

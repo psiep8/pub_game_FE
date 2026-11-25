@@ -36,6 +36,19 @@ describe('RoundManagerService', () => {
     expect(service.isGameOver()).toBe(false);
   });
 
+  it('la scaletta ridotta della simulazione gioca ogni gioco una volta, Biglie comprese', () => {
+    // F-02: la partita a un round per gioco saltava le Biglie, che restavano
+    // fuori da ogni modalità di prova.
+    service.enableSimulation();
+    const types: GameModeType[] = [];
+    for (let i = 0; i < service.getTotalRounds(); i++) types.push(service.startNewRound());
+
+    expect(types).toContain('BIGLIE');
+    expect(types).toHaveLength(PLAYABLE_TYPES.length);
+    expect(new Set(types).size).toBe(PLAYABLE_TYPES.length);
+    for (const type of PLAYABLE_TYPES) expect(types).toContain(type);
+  });
+
   it('should always draw a playable game type', () => {
     for (let i = 0; i < 40; i++) {
       expect(PLAYABLE_TYPES).toContain(service.extractGameType());

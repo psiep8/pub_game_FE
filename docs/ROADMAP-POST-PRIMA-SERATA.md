@@ -403,3 +403,9 @@ media), run CI #155 verde prima di questo job, screenshot del README rifatti.
 | P1 (stress) | **Chiuso: falso positivo** | 8/8 crash identici con database intatto; 2/2 `401` solo azzerando il database | — | Il vecchio test rispondeva con la socket admin (`/answer` accetta solo REMOTE) e non registrava voti. Con voti REST e classifica scritti, kill a 0 ms non perde nulla; il sintomo torna solo se il database viene ricreato. Dettagli in `docs/STRESS-REPORT.md` §3.1. |
 | P2 (stress) | Aperto, P2 | `GET /games/{id}/diagnostics` su partita `CREATED` | — | Riporta `roundOpen: true` con `roundType: null`: la diagnostica può far credere che un round sia aperto. `ReliabilityController.diagnostics`. |
 | P3 (stress) | Aperto, P3 | `npm run test:frontend` senza ffmpeg | — | Due test di loudness si saltano: la suite dichiara 703 test ma ne esegue 701, anche in CI. `loop-loudness.spec.ts`. |
+
+### Registro prova serata 25 novembre 2026 (`FIX-PROVA-2026-11-26.md`)
+
+| Voce | Stato | Commit | Test |
+| --- | --- | --- | --- |
+| F-02 — Biglie assenti dalla partita a un round per gioco | Fatto | `1c3e594` | `round-manager.service.spec.ts`: la scaletta simulata copre tutti e 14 i giochi, BIGLIE comprese |
