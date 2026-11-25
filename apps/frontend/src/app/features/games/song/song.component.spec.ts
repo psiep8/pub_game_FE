@@ -127,52 +127,45 @@ describe('Song', () => {
     song.distortionNode = undefined;
   });
 
-  it('nella seconda manche suona la preview al contrario, senza il file', async () => {
+  it('F-17: la seconda manche è più calante della prima e non va al contrario', async () => {
     const song = component as any;
-    const source = {
-      buffer: null as any,
-      loop: false,
-      playbackRate: { value: 1 },
-      connect: vi.fn(),
-      start: vi.fn(),
-      stop: vi.fn(),
-      disconnect: vi.fn(),
-    };
-    song.audioContext = {
-      currentTime: 0,
-      state: 'running',
-      resume: vi.fn(),
-      createBufferSource: () => source,
-    };
-    song.bandpassFilter = { connect: vi.fn(), disconnect: vi.fn() };
-    song.audio = { loop: true, play: vi.fn(), pause: vi.fn() };
-    song.audioUnlocked = true;
-    song.startVinylAnimation = vi.fn();
+    const setValue = vi.fn();
+    const createBufferSource = vi.fn();
+    song.audio = { playbackRate: 1, pause: vi.fn(), play: vi.fn().mockResolvedValue(undefined) };
+    song.audioContext = { currentTime: 0, state: 'running', resume: vi.fn(), createBufferSource };
+    song.gainNode = { gain: { setValueAtTime: setValue, cancelScheduledValues: vi.fn() } };
+    song.bandpassFilter = { frequency: { setValueAtTime: setValue }, Q: { setValueAtTime: setValue }, disconnect: vi.fn() };
+    song.highpassFilter = { frequency: { setValueAtTime: setValue }, disconnect: vi.fn() };
+    song.lowpassFilter = { frequency: { setValueAtTime: setValue }, disconnect: vi.fn() };
+    song.distortionNode = { curve: null, disconnect: vi.fn() };
     song.setInterference = vi.fn();
+    song.startVinylAnimation = vi.fn();
+    song.audioUnlocked = true;
     song.displayData = { previewUrl: 'preview.mp3' };
-    const buffer = { numberOfChannels: 1, getChannelData: () => Float32Array.from([1, 2, 3]) };
-    song.reversed = { url: 'preview.mp3', buffer };
+
+    song.applyFilters(2);
+    expect(song.audio.playbackRate).toBeCloseTo(1.06);
 
     song.currentPhase.set(2);
     await song.playAudio();
 
-    expect(source.start).toHaveBeenCalled();
-    expect(source.buffer).toBe(buffer);
-    expect(source.loop).toBe(true);
-    expect(source.playbackRate.value).toBeCloseTo(0.94);
-    // L'elemento resta fermo: il brano non si sente due volte.
-    expect(song.audio.play).not.toHaveBeenCalled();
-    expect(song.audio.pause).toHaveBeenCalled();
-    expect(song.isPlaying()).toBe(true);
+    expect(song.audio.play).toHaveBeenCalled();
+    expect(createBufferSource).not.toHaveBeenCalled();
+
+    song.audio = undefined;
+    song.audioContext = undefined;
+    song.gainNode = undefined;
+    song.bandpassFilter = undefined;
+    song.highpassFilter = undefined;
+    song.lowpassFilter = undefined;
+    song.distortionNode = undefined;
   });
 
-  it('quando la manche 2 finisce il file torna a suonare', () => {
+  it('passando dalla manche 2 alla 3 cambia solo il filtro', () => {
     const song = component as any;
-    song.stopReversePlayback = vi.fn();
     song.playAudio = vi.fn();
     song.applyFilters = vi.fn();
     song.applyBlur = vi.fn();
-    song.reversed = { url: 'preview.mp3', buffer: {} };
     song.isPlaying.set(true);
     song.currentPhase.set(2);
     song.lastPhase = 2;
@@ -192,9 +185,9 @@ describe('Song', () => {
       ),
     });
 
-    expect(song.stopReversePlayback).toHaveBeenCalled();
-    expect(song.isPlaying()).toBe(false);
-    expect(song.playAudio).toHaveBeenCalled();
+    expect(song.isPlaying()).toBe(true);
+    expect(song.playAudio).not.toHaveBeenCalled();
+    expect(song.applyFilters).toHaveBeenCalledWith(3);
   });
 
   it('should stop the preview as soon as a player buzzes', () => {

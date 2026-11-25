@@ -11,32 +11,31 @@ import {
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import { AudioService } from '../../../core/services/audio.service';
-import { REVERSE_RATE, reverseChannels } from './reverse-track';
 
 /**
  * Parametri di ascolto, manche per manche: un solo posto da ritoccare.
  *
  * Manche 1: banda stretta ma il brano resta riconoscibile (drive al 60%
- * dell'effetto vecchio). Manche 2: fruscio filtrato e brano al contrario, un
- * filo più lento. Manche 3: quasi nitida, con una distorsione leggera (~25% del
- * massimo). Manche 4: brano intero, senza filtri.
+ * dell'effetto vecchio). Manche 2: fruscio filtrato e brano più calante della
+ * prima, senza reverse. Manche 3: quasi nitida, con una distorsione leggera
+ * (~25% del massimo). Manche 4: brano intero, senza filtri.
  */
 /** Il brano del reveal dura 30 s; gli ultimi 5 secondi sono la dissolvenza. */
 const FULL_PLAYBACK_SECONDS = 30;
 const FULL_PLAYBACK_FADE_SECONDS = 5;
 
 /**
- * F-16: la prima manche è un filo calante, così non si riconosce al volo.
- * Le altre manche restano a velocità naturale.
+ * F-16/F-17: la prima manche è un filo calante, la seconda di più. Le manche
+ * 3 e 4 restano a velocità naturale.
  */
-const MANCHE_RATE: Record<number, number> = { 1: 1.03 };
+const MANCHE_RATE: Record<number, number> = { 1: 1.03, 2: 1.06 };
 
 const MANCHE_AUDIO: Record<
   number,
   { gain: number; band: number; q: number; highpass: number; lowpass: number; drive: number; hiss: number }
 > = {
   1: { gain: 0.19, band: 900, q: 11, highpass: 380, lowpass: 1900, drive: 500, hiss: 0.024 },
-  2: { gain: 0.23, band: 980, q: 10, highpass: 450, lowpass: 2050, drive: 450, hiss: 0.02 },
+  2: { gain: 0.2, band: 820, q: 12, highpass: 540, lowpass: 1750, drive: 620, hiss: 0.03 },
   3: { gain: 0.5, band: 1500, q: 5, highpass: 200, lowpass: 5200, drive: 250, hiss: 0 },
   4: { gain: 1, band: 2000, q: 0.5, highpass: 50, lowpass: 8000, drive: 0, hiss: 0 },
 };
@@ -89,11 +88,6 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   private fullPlaybackDone = false;
   private fullPlaybackTimer?: ReturnType<typeof setTimeout>;
 
-  /** Preview rovesciata della manche 2: una per brano, caricata in anticipo. */
-  private reversed?: { url: string; buffer: AudioBuffer };
-  private reverseLoading?: string;
-  private reverseSource?: AudioBufferSourceNode;
-
   ngOnInit() {
     
 
@@ -140,17 +134,10 @@ export class Song implements OnInit, OnDestroy, OnChanges {
 
       const phase = this.displayData.currentPhase || 0;
       if (this.lastPhase !== phase && phase > 0) {
-        // La manche 2 si ascolta al contrario: quando finisce si torna al file.
-        if (this.lastPhase === 2 && phase !== 2) {
-          this.stopReversePlayback();
-          this.isPlaying.set(false);
-        }
         this.lastPhase = phase;
         this.currentPhase.set(phase);
         this.applyFilters(phase);
         this.applyBlur(phase);
-        // La manche 2 arriva dopo trenta secondi: il reverse si scarica prima.
-        if (phase >= 1) void this.loadReversed(this.displayData.previewUrl);
       }
 
       if (!fullPlayback && !nextBuzz) {
@@ -199,10 +186,6 @@ export class Song implements OnInit, OnDestroy, OnChanges {
 
   private async initAudio() {
     if (!this.displayData?.previewUrl) return;
-
-    // Un brano nuovo: il reverse del precedente non serve più.
-    this.stopReversePlayback();
-    this.reversed = undefined;
 
     try {
       if (this.audio) {
@@ -381,8 +364,6 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     if (this.fullPlaybackActive || this.fullPlaybackDone || !this.audio || !this.audioContext) return;
 
     this.fullPlaybackActive = true;
-    // Il reveal è il brano vero: il reverse della manche 2 resta fuori.
-    this.stopReversePlayback();
     this.fullPlaybackDone = false;
     if (this.fullPlaybackTimer) clearTimeout(this.fullPlaybackTimer);
 
@@ -456,19 +437,6 @@ export class Song implements OnInit, OnDestroy, OnChanges {
       await this.audioContext.resume();
     }
 
-    // Seconda manche: il brano gira al contrario, se la preview si è lasciata
-    // decodificare. Finché il buffer non c'è suona il file filtrato, e appena
-    // arriva si passa al reverse senza buchi.
-    if (this.currentPhase() === 2) {
-      void this.loadReversed(this.displayData.previewUrl);
-      if (this.startReversePlayback()) {
-        this.isPlaying.set(true);
-        this.startVinylAnimation();
-        this.setInterference(this.currentPhase());
-        return;
-      }
-    }
-
     try {
       await this.audio.play();
       this.isPlaying.set(true);
@@ -481,71 +449,12 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   }
 
   private pauseAudio() {
-    this.stopReversePlayback();
     if (!this.audio) return;
     this.audio.pause();
     this.isPlaying.set(false);
     this.stopVinylAnimation();
     this.stopInterference();
     
-  }
-
-  /**
-   * Scarica e decodifica la preview una volta sola, poi la rovescia. Un CDN
-   * senza CORS o una rete caduta non fermano la manche: resta il file filtrato.
-   */
-  private async loadReversed(url?: string): Promise<void> {
-    if (!url) return;
-    if (this.reversed?.url === url || this.reverseLoading === url) return;
-    const ctx = this.audioContext;
-    if (!ctx) return;
-
-    this.reverseLoading = url;
-    try {
-      const response = await fetch(url, { mode: 'cors' });
-      if (!response.ok) throw new Error(`${response.status} su ${url}`);
-      const buffer = reverseChannels(await ctx.decodeAudioData(await response.arrayBuffer()));
-      if (this.reverseLoading !== url) return;
-      this.reversed = { url, buffer };
-      // La manche 2 è già partita col file: appena il buffer c'è, passa lei.
-      if (this.isPlaying() && this.currentPhase() === 2 && !this.reverseSource) {
-        this.startReversePlayback();
-      }
-    } catch {
-      // Niente reverse: la manche 2 suona il brano filtrato, il round va avanti.
-    } finally {
-      if (this.reverseLoading === url) this.reverseLoading = undefined;
-    }
-  }
-
-  /** Il buffer rovesciato entra nella stessa catena di filtri del brano. */
-  private startReversePlayback(): boolean {
-    const ctx = this.audioContext;
-    const buffer = this.reversed?.buffer;
-    if (!ctx || !buffer || this.reverseSource) return false;
-
-    // L'elemento tace: la manche 2 la suona il buffer.
-    this.audio?.pause();
-
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
-    source.playbackRate.value = REVERSE_RATE;
-    source.connect(this.bandpassFilter!);
-    source.start();
-    this.reverseSource = source;
-    return true;
-  }
-
-  private stopReversePlayback(): void {
-    if (!this.reverseSource) return;
-    try {
-      this.reverseSource.stop();
-    } catch {
-      // Già fermo: non è un errore.
-    }
-    this.reverseSource.disconnect();
-    this.reverseSource = undefined;
   }
 
   private startVinylAnimation() {
@@ -618,8 +527,6 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     this.stopVinylAnimation();
     if (this.scratchTimeout) clearTimeout(this.scratchTimeout);
     this.stopInterference();
-    this.stopReversePlayback();
-    this.reversed = undefined;
     this.staticSource?.stop();
     this.staticSource?.disconnect();
     this.staticSource = undefined;
