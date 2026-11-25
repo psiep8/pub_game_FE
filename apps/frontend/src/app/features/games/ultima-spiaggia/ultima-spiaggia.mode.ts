@@ -36,7 +36,9 @@ interface UltimaSpiaggiaQuestion {
 }
 
 const LEVEL_SECONDS = 12;
-const QUESTION_SECONDS = 15;
+// F-24: venti secondi per rispondere, mentre la scelta del livello non ha
+// un conto alla rovescia a schermo (resta il tempo del round).
+const QUESTION_SECONDS = 20;
 const REVEAL_SECONDS = 5;
 
 /**

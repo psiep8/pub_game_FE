@@ -23,7 +23,9 @@ import { CommonModule } from '@angular/common';
         </h2>
         <div class="tm-meta">
           <span class="tm-round">{{ displayData?.phase === UltimaSpiaggiaPhase.REVEAL ? 'LIVELLO ED ESITO' : 'SCELTA SUL TELEFONO' }}</span>
-          <span class="tm-timer" [class.hot]="(displayData?.secondsLeft ?? 0) <= 4">{{ displayData?.secondsLeft ?? 0 }}s</span>
+          @if (displayData?.phase !== UltimaSpiaggiaPhase.LEVEL) {
+            <span class="tm-timer" [class.hot]="(displayData?.secondsLeft ?? 0) <= 4">{{ displayData?.secondsLeft ?? 0 }}s</span>
+          }
         </div>
       </header>
 

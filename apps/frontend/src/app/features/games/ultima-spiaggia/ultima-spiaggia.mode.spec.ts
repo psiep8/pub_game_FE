@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { GameModeConfig } from '../../../shared/models/game-mode-type';
 import { UltimaSpiaggiaMode, UltimaSpiaggiaPhase } from './ultima-spiaggia.mode';
 
@@ -29,6 +30,27 @@ function setup(players = ['Anna', 'Bruno']) {
 
   return { mode, saved, points, broadcasts };
 }
+
+describe('UltimaSpiaggiaMode — F-24, tempo della risposta', () => {
+  it('la domanda parte con venti secondi, la scelta resta senza conto visibile', async () => {
+    vi.useFakeTimers();
+    const { mode } = setup();
+
+    const started = mode.start();
+    await vi.advanceTimersByTimeAsync(1300);
+    await started;
+    expect(mode.getDisplayData().phase).toBe(UltimaSpiaggiaPhase.LEVEL);
+
+    await vi.advanceTimersByTimeAsync(12000);
+    const data = mode.getDisplayData();
+    expect(data.phase).toBe(UltimaSpiaggiaPhase.QUESTION);
+    // Parte da 20; l'avanzamento del timer finto può aver già consumato il primo secondo.
+    expect(data.secondsLeft).toBeGreaterThanOrEqual(19);
+
+    mode.cleanup();
+    vi.useRealTimers();
+  });
+});
 
 describe('UltimaSpiaggiaMode — ripresa dopo un refresh della TV', () => {
   it('salva la scelta del livello appena arriva', async () => {
