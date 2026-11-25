@@ -338,7 +338,11 @@
     <button class="dock-btn" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
       🎨
     </button>
-    <button class="dock-btn advance" (click)="adminNextRound()" aria-label="Prossimo round" title="Prossimo round">AVANTI</button>
+    <button class="dock-btn advance" (click)="adminNextRound()" [disabled]="autoAdvanceSeconds() > 0"
+      [attr.aria-label]="autoAdvanceSeconds() > 0 ? 'Attesa ' + autoAdvanceSeconds() + ' secondi' : 'Prossimo round'"
+      [attr.title]="autoAdvanceSeconds() > 0 ? 'Attesa minima di fine gioco' : 'Prossimo round'">
+      {{ autoAdvanceSeconds() > 0 ? autoAdvanceSeconds() + 's' : 'AVANTI' }}
+    </button>
     @if (showLeaderboardQuick() || showLeaderboardDetailed()) {
     <button class="dock-btn close" type="button" (click)="closeLeaderboard()"
       aria-label="Chiudi la classifica" title="Chiudi la classifica">
@@ -366,15 +370,14 @@
 }
 
 @if (autoAdvanceSeconds() > 0) {
-<div class="auto-advance" role="status" alive="drift" [aliveSeed]="6"
-  (click)="stopAutoAdvance()" title="Clicca (o premi ESC) per fermare la ripartenza">
-  <span class="auto-advance-label">RIPARTENZA · PROSSIMO ROUND</span>
+<div class="auto-advance" role="status" alive="drift" [aliveSeed]="6">
+  <span class="auto-advance-label">ATTESA · PROSSIMO ROUND</span>
   <b class="auto-advance-count">{{ autoAdvanceSeconds() }}</b>
   <span class="auto-advance-unit">SEC</span>
-  <span class="auto-advance-bar" aria-hidden="true"><span [style.width.%]="autoAdvanceSeconds() * 10"></span></span>
+  <span class="auto-advance-bar" aria-hidden="true"><span [style.width.%]="autoAdvanceSeconds() * (100 / 30)"></span></span>
   <button type="button" class="auto-advance-stop"
-    (click)="$event.stopPropagation(); stopAutoAdvance()"
-    aria-label="Annulla la ripartenza automatica">ANNULLA</button>
+    (click)="$event.stopPropagation(); skipAutoAdvance()"
+    aria-label="Salta l'attesa e passa al round successivo">SALTA ATTESA</button>
 </div>
 }
 
@@ -630,7 +633,7 @@
 @if (revealPending()) {
   <div class="reveal-suspense" role="status">
     <div class="reveal-suspense-ring"></div>
-    <span class="reveal-suspense-text">RULLO DI TAMBURI…</span>
+    <span class="reveal-suspense-text">IN ATTESA…</span>
   </div>
 }
 
