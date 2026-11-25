@@ -409,6 +409,27 @@ describe('RemoteComponent', () => {
     expect(fixture.nativeElement.querySelector('.buzz-target-value')?.textContent).toContain('07:34');
   });
 
+  it('F-22: lo scoppio accende lo schermo del telefono', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+
+    component.questionType.set('BOMBA');
+    component.gameState.set('VOTING' as any);
+    (component as any).applyBombaState({
+      active: true,
+      phase: 'TURN',
+      secondsLeft: 10,
+      cells: [],
+      you: { yourTurn: true },
+      lastEvent: { seq: 1, kind: 'bomb', player: 'Anna' },
+    });
+    fixture.detectChanges();
+
+    expect(component.bombaFlash()).toContain('BOOM');
+    expect(fixture.nativeElement.querySelector('.bomba-boom-flash')).toBeTruthy();
+  });
+
   it('F-21: durante la lettura il telefono mostra l’argomento e le caselle spente', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();

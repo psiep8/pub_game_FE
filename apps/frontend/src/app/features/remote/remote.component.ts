@@ -342,6 +342,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   // backend. Il telefono non calcola mai micce né punteggi.
   bombaState = signal<any>(null);
   bombaFlash = signal<string | null>(null);
+  /** F-22: la scossa dello scoppio, mezzo secondo sul telefono. */
+  bombaShake = signal(false);
   casinoState = signal<any>(null);
   casinoChoice = signal<string | null>(null);
   blackjackState = signal<any>(null);
@@ -2160,6 +2162,12 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.bombaFlash.set(null);
       this.bombaFlashTimer = undefined;
     }, 2400);
+    // F-22: lo scoppio scuote il telefono, non solo il cartello.
+    if (text.includes('BOOM')) {
+      this.bombaShake.set(false);
+      setTimeout(() => this.bombaShake.set(true), 0);
+      setTimeout(() => this.bombaShake.set(false), 520);
+    }
   }
 
 

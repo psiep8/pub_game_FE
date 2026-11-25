@@ -305,7 +305,10 @@
     </div>
     }
     @case ('BOMBA') {
-    <div class="bomba-remote">
+    <div class="bomba-remote" [class.boom-shake]="bombaShake()">
+      @if (bombaFlash()?.includes('BOOM')) {
+      <div class="bomba-boom-flash" aria-hidden="true"></div>
+      }
       @if (bombaFlash()) {
       <div class="bomba-flash" [class.boom]="bombaFlash()?.includes('BOOM')">{{ bombaFlash() }}</div>
       }
