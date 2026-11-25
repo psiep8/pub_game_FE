@@ -172,6 +172,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
     icon: '🎵',
     objective: [
       'Quattro manches da 30 secondi, una canzone per manche.',
+      'Manche 1 e 2 sono hybrid: nastro analogico instabile, poi mutazione elettronica con pitch shifter granulare; la velocità del brano non cambia mai.',
       'Si può prenotare in qualsiasi momento dell’ascolto.',
     ],
     phone: [
@@ -381,7 +382,8 @@ const BONUS_COPY: Record<BonusType, DemoCopy> = {
     icon: '🎤',
     objective: [
       `Cinque canzoni italiane, clip da ${BONUS_KARAOKE_SECONDS} secondi.`,
-      'La TV mostra il testo; la musica si ferma senza preavviso a fine riga.',
+      'La TV mostra solo la riga in corso e quella appena passata, centrate: le righe future non compaiono.',
+      'Le parole diventano nere una alla volta seguendo la voce; la musica si ferma senza preavviso a fine riga.',
     ],
     phone: [
       'Ascolta e leggi il testo in TV.',
