@@ -313,20 +313,20 @@ body {
   overflow: hidden;
 }
 .arena-remote-container .arena-question-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 2px solid #ff3366;
-  border-radius: clamp(12px, 2vw, 20px);
+  background: var(--paper-hi);
+  border: 3px solid var(--coal);
+  border-radius: 0;
   padding: clamp(10px, 2vh, 20px);
   width: 100%;
   text-align: center;
-  box-shadow: 0 0 20px rgba(255, 51, 102, 0.3);
+  box-shadow: 6px 6px 0 var(--tomato);
 }
 .arena-remote-container .arena-question-card h3 {
-  font-size: clamp(1rem, 4vw, 1.8rem);
-  font-weight: 800;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  font-size: clamp(1.05rem, 4vw, 1.8rem);
+  font-weight: 700;
+  color: var(--coal);
+  text-transform: uppercase;
+  line-height: 1.15;
 }
 .arena-remote-container .arena-grid {
   flex: 1;

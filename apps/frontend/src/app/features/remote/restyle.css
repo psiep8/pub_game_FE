@@ -929,7 +929,10 @@
 .arena-question-card h3 {
   color: var(--coal);
   font-family: var(--font);
-  font-size: 0.98rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-transform: uppercase;
 }
 .eliminated-card {
   padding: 28px 18px;
