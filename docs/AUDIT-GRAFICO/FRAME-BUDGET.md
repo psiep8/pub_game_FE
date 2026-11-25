@@ -41,3 +41,29 @@ La regola di F-11 (`alive` in pausa durante `stage-entrance` e `stage-exit`,
 commit `775b496` e questa misura ne riporta il guadagno. Non sono state
 aggiunte altre modifiche: nascondere le bolle o ridurle non ha dato un guadagno
 fuori dal rumore.
+
+## Q-03 — secondo giro (25 novembre 2026, dopo il merge)
+
+Baseline rimisurata sullo stesso harness: **39,2 fps**, p95 50 ms, 19 fotogrammi
+sopra 33 ms. Il colpevole trovato leggendo il CSS era `.question-area`: la skin
+nuova aveva tolto sfondo e bordo del vetro legacy, ma non il
+`backdrop-filter: blur(12px)`. La sfocatura restava attiva sopra le bolle in
+movimento e veniva ricomposta a ogni fotogramma.
+
+Correzione: `backdrop-filter: none` (e prefisso `-webkit-`) su `.question-area`,
+in `features/tv/restyle.css`. Una modifica, un commit.
+
+| Variante | FPS prima | FPS dopo | p95 dopo | >33 ms dopo |
+|---|---:|---:|---:|---:|
+| ora | 39,2 | **55,2** | 16,8 | 2 |
+| prima (alive sempre in movimento) | 37,2 | 43,6 | 50,0 | 10 |
+| senza alive | 42,2 | 52,3 | 16,8 | 2 |
+| senza ombre | 38,5 | 49,2 | 33,3 | 5 |
+
+Il bersaglio di **50 fps a 1280×720 con CPU 4×** è raggiunto. Le altre varianti
+restano nel referto dello script (`node scripts/checks/frame-budget.mjs`).
+
+**Limite dichiarato:** Timeline, Musica e classifica sono state ispezionate (in
+particolare il `backdrop-filter: blur(10px)` legacy di `.stat-box` nella
+dettagliata, oggi non coperto dalla skin), ma non esiste ancora un harness che le
+misuri come il Quiz: non riporto quindi numeri che non ho misurato.
