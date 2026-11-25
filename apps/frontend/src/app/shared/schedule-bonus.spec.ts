@@ -11,9 +11,9 @@ import { scoringRuleFor } from './models/scoring-rules';
 describe('scaletta dei cinque bonus', () => {
   it('mette un bonus diverso dopo ognuno dei cinque atti', () => {
     expect(BONUS_TYPES).toEqual([
-      'CASINO_COLOR',
+      'KARAOKE',
       'BLACKJACK',
-      'CASINO_DOZEN',
+      'CASINO_FIVE',
       'CAVALLO',
       'CASINO_NUMBER',
     ]);

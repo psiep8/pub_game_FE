@@ -36,7 +36,7 @@ describe('manual content', () => {
 
     expect(lines).toContain('40 round');
     expect(lines).toContain('5 atti da 8');
-    expect(lines).toContain('atto 1 CASINO');
+    expect(lines).toContain('atto 1 KARAOKE');
     expect(lines).not.toContain('BASKET');
     expect(MANUAL_BONUSES.map((entry) => entry.key)).not.toContain('BONUS_BASKET');
   });
