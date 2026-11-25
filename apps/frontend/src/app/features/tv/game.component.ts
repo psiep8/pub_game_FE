@@ -134,7 +134,11 @@ const PENDING_LEADERBOARD_KEY = 'leaderboardPending';
   changeDetection: ChangeDetectionStrategy.OnPush,
   // La classifica occupa lo schermo intero e la dock le sta sopra: la scena
   // usa questa classe per lasciare libera la fascia in alto.
-  host: { '[class.leaderboard-open]': 'isShowingLeaderboard()' },
+  host: {
+    '[class.leaderboard-open]': 'isShowingLeaderboard()',
+    // La regia ferma la ripartenza automatica anche da tastiera.
+    '(document:keydown.escape)': 'stopAutoAdvance()',
+  },
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [
@@ -2580,6 +2584,16 @@ export class GameComponent implements OnInit, OnDestroy {
         this.adminNextRound();
       }
     }, 1000);
+  }
+
+  /**
+   * Annulla la ripartenza automatica: il presentatore vuole commentare il
+   * round senza che la scena gli cambi sotto, e lo fa con un click sulla
+   * striscia, sul suo ANNULLA o con ESC.
+   */
+  stopAutoAdvance(): void {
+    if (this.autoAdvanceSeconds() <= 0) return;
+    this.cancelAutoAdvance();
   }
 
   private cancelAutoAdvance(): void {

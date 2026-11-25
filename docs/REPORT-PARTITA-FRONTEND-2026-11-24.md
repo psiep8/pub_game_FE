@@ -78,7 +78,7 @@ mostrare il cronometro che gira senza indicare l'errore. Un retry sul via e uno
 stato d'errore esplicito renderebbero il guasto riconoscibile invece che
 silenzioso.
 
-### 3. TV in lobby senza abbinamento: sembra pronta ma è offline (media)
+### 3. TV in lobby senza abbinamento: sembra pronta ma è offline (media) — **risolto** (`7f932af`)
 
 Aprendo `/tv` senza una sessione TV autorizzata la lobby si disegna comunque
 (QR, PARTITA #n, codice regia), ma il badge in alto resta **OFFLINE** e il
@@ -86,13 +86,26 @@ server non vede nessuna socket (`WebSocketSession[0 current ... 0 total]`).
 La schermata non dice che manca l'abbinamento regia: chi prepara la serata può
 credere che sia tutto pronto e accorgersene solo quando i telefoni non entrano.
 
-### 4. `GET /games/{id}/bonus-entrance` risponde 401 anche con la sessione TV (media)
+**Fix.** La lobby porta un timbro `TV NON IN LINEA` sotto la scheda del codice
+regia, con la riga «Batti il codice dal pannello regia: senza abbinamento i
+telefoni non entrano». Compare quando il token di sessione manca
+(`tvUnpaired`), quindi la schermata dice da sola se è pronta. Test: «la lobby
+dichiara la TV non abbinata invece di sembrare pronta».
+
+### 4. `GET /games/{id}/bonus-entrance` risponde 401 anche con la sessione TV (media) — **risolto** (`7f932af`)
 
 La TV chiede il seme degli ingressi bonus all'avvio; la richiesta torna 401 due
 volte su due partite (anche con token TV valido e `sync` funzionante). La TV
 ripiega sul seme 0: gli ingressi a sorpresa non arrivano dal server e due TV
 sulla stessa partita non sono garantite allineate, contro quanto scritto nel
 README («il piano della partita nasce da un seme che decide il server»).
+
+**Fix.** Non erano le credenziali, era l'ordine: `ngOnInit` chiedeva il seme
+**prima** di aprire la sessione, quindi la richiesta partiva senza
+`X-Session-Token` e `SessionAuthenticationFilter` rispondeva 401 (l'endpoint
+non è fra quelli pubblici). Ora il prefetch sta dopo
+`reliability.start(..., 'TV')`, con il token già in memoria, e il seme del
+server prende il posto del ripiego sull'id della partita.
 
 ### 5. AVANTI non è raggiungibile con la classifica aperta (media) — **risolto** (`37235ba`, `9195fb6`, `7350baa`)
 
@@ -153,26 +166,48 @@ schermata Arena in silenzio se la risposta arriva a round chiuso» e «non riten
 la domanda Arena se il round si chiude mentre la chiede» in
 `remote.component.spec.ts`.
 
-### 8. Prova pulsanti: chi non trascina resta «Da controllare» (minore, forse voluto)
+### 8. Prova pulsanti: chi non trascina resta «Da controllare» (minore) — **risolto** (`7f932af`)
 
 Nella lobby tutte e sei le squadre sono comparse con «Da controllare» perché il
 passo di trascinamento è stato superato per timeout (15 s), non col gesto. Se
 l'intenzione è segnalare chi non ha completato la prova, il messaggio è corretto
 ma nell'uso reale rischia di marchiare mezza sala.
 
-### 9. Dialogo «Partita completata! Resetta per ricominciare.» copre il palco (minore, da confermare)
+**Fix.** Il tempo scaduto non è più una colpa: il passo passa con «Passo
+superato dal tempo» e senza `flagged`, quindi la TV non stampa più «Da
+controllare» per chi non ha trascinato. Il campo resta nel contratto con il
+server per i dati già raccolti.
+
+### 9. Dialogo «Partita completata! Resetta per ricominciare.» copre il palco (minore) — **risolto** (`7f932af`)
 
 Alla fine dell'ultimo round compare un dialogo modale che copre il dock: AVANTI
 non è più raggiungibile e l'unica uscita è il reset. Per la fine serata può
 essere voluto, ma se il presentatore vuole riaprire il riepilogo o commentare
 l'ultima schermata non ha modo di farlo senza resettare la partita.
 
-### 10. Nessun avanzamento automatico a fine round (da valutare)
+**Fix.** Era un `alert` di sistema, non un modale disegnato. Ora è un pannello
+in carta e inchiostro dentro la scena, con la card fra y 286 e y 521 a 720p e il
+dock libero (finisce a y 79,2): `elementFromPoint` sul centro di AVANTI
+restituisce il pulsante, quindi la regia non resta chiusa fuori. Due uscite:
+**TORNA AL PALCO** (chiude il pannello, la scena resta) e **RESETTA PARTITA**
+(passa alla conferma di reset già esistente). Test: «a fine partita mostra il
+pannello in scena invece di un alert che blocca la TV».
+
+### 10. Nessun avanzamento automatico a fine round — **risolto** (`7f932af`)
 
 Il conto alla rovescia «RIPARTENZA · PROSSIMO ROUND» esiste ma parte solo dopo i
 bonus. A fine round la TV resta sul riepilogo a tempo indefinito: la serata vera
 richiede 40 click di AVANTI. Se è voluto (il presentatore commenta), va bene;
 se il countdown doveva valere anche per i round, non scatta.
+
+**Fix.** Il conto alla rovescia da 10 s parte anche al riepilogo di un round
+normale, non solo dopo un bonus, e resta annullabile perché il commento del
+presentatore non viene saltato: un click sulla striscia, il suo timbro
+**ANNULLA** o `ESC` fermano la ripartenza, e la scena resta sul round finché la
+regia non preme AVANTI. Pausa, classifica e demo lo annullano come prima. Test:
+«fa ripartire la serata da sola anche dopo il riepilogo di un round», «la regia
+ferma la ripartenza e il round non salta da solo», «anche ESC ferma la
+ripartenza».
 
 ## Cosa ha funzionato
 

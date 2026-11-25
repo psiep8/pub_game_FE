@@ -1762,10 +1762,33 @@
 }
 
 .auto-advance-bar {
-  grid-column: 1 / -1;
+  grid-column: 1 / 3;
   height: 10px;
   background: var(--paper-2);
   border: 2px solid var(--coal);
+}
+
+/* La regia ferma la ripartenza per commentare il round: timbro, non pillola. */
+.auto-advance-stop {
+  grid-column: 3;
+  justify-self: end;
+  min-height: 30px;
+  padding: 5px 10px;
+  background: var(--coal);
+  color: var(--paper);
+  border: 2px solid var(--coal);
+  border-radius: 0;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.auto-advance-stop:hover {
+  background: var(--acid);
+  color: var(--coal);
 }
 
 .auto-advance-bar span {

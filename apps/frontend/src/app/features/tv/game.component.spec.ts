@@ -2104,6 +2104,45 @@ describe('GameComponent', () => {
       }
     });
 
+    it('la regia ferma la ripartenza e il round non salta da solo', async () => {
+      vi.useFakeTimers();
+      try {
+        closeBonus();
+        await waitForCountdown();
+        expect(strip()).toBeTruthy();
+
+        (strip()!.querySelector('.auto-advance-stop') as HTMLButtonElement).click();
+        fixture.detectChanges();
+
+        expect(component.autoAdvanceSeconds()).toBe(0);
+        expect(strip()).toBeNull();
+
+        // Dodici secondi dopo la scena è ancora quella: il commento resta.
+        const rounds = TestBed.inject(RoundManagerService);
+        const before = rounds.getCurrentRound();
+        await vi.advanceTimersByTimeAsync(12_000);
+        expect(rounds.getCurrentRound()).toBe(before);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('anche ESC ferma la ripartenza', async () => {
+      vi.useFakeTimers();
+      try {
+        closeBonus();
+        await waitForCountdown();
+        expect(component.autoAdvanceSeconds()).toBeGreaterThan(0);
+
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        fixture.detectChanges();
+
+        expect(component.autoAdvanceSeconds()).toBe(0);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
     it.each(['BLACKJACK', 'CAVALLO'] as const)(
       'chiude %s senza classifica vuota e riparte subito',
       async (type) => {
