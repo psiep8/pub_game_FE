@@ -56,6 +56,7 @@ const NAME_PARTICLES = new Set([
 const TITOLI = new Map([
   ['madonna', 'Madonna (cantante)'],
   ['annalisa', 'Annalisa (cantante)'],
+  ['carlo conti', 'Carlo Conti (conduttore televisivo)'],
   ['adele', 'Adele (cantante)'],
   ['elisa', 'Elisa (cantante 1977)'],
   ['amadeus', 'Amadeus (conduttore televisivo)'],
@@ -148,6 +149,9 @@ function looksLikePerson(extract) {
   // Il controllo guarda solo l'inizio: «toponimo» può comparire molto più
   // avanti in una biografia buona (per Colombo parla della Colombia).
   if (/nome proprio|toponimo|disambiguazione|may refer to|può riferirsi|può indicare/i.test(text.slice(0, 300))) return false;
+  // Una pagina di elenco («Cardinale italiano – compositore italiano – …»)
+  // non è una biografia, anche senza la parola «disambigua».
+  if (text.length < 700 && (text.slice(0, 400).match(/ – /g) ?? []).length >= 2) return false;
   return /\b(1[0-9]{3}|20[0-2][0-9])\b/.test(text) || /\b\d{1,3}\s*a\.\s*C\./.test(text);
 }
 
@@ -348,7 +352,11 @@ async function resolvePage(name, sottoAmbito, page) {
     }
     return null;
   }
-  const inutile = (extract) => /nome proprio|toponimo|disambiguazione|may refer to|può riferirsi|può indicare/i.test(String(extract ?? ''));
+  const inutile = (extract) => {
+    const text = String(extract ?? '');
+    if (/nome proprio|toponimo|disambiguazione|may refer to|può riferirsi|può indicare/i.test(text.slice(0, 300))) return true;
+    return text.length < 700 && (text.slice(0, 400).match(/ – /g) ?? []).length >= 2;
+  };
   // Se il blocco ha perso questa persona (rate limit) si riprova il titolo
   // diretto: senza, la ricerca portava Colombo su «Viaggi di …».
   if (!page || String(page.extract ?? '').trim().length < 100) {
@@ -454,14 +462,13 @@ function buildPerson(name, ambito, sottoAmbito, page, descrizioneLocale) {
   // integrale sia quello senza parentesi.
   const verifica = (value) => containsLoose(extract, value) || containsLoose(verificabile, value);
 
-  // Descrizione breve: quella della banca locale se è in italiano, altrimenti
-  // il predicato della voce («è un cantautore italiano» → «cantautore italiano»).
-  // La descrizione si ricava sempre dalla voce: quella della banca volti
-  // cominciava talvolta con «stato/stata» e finiva a metà frase.
-  const inInglese = /\b(american|english|british|irish|french|italian|actor|actress|singer|born|is a|was a|musician|footballer|writer|poet)\b/i.test(descrizioneLocale ?? '');
+  // La descrizione si ricava dalla voce italiana. La banca volti può avere una
+  // descrizione inglese (arrivava da Wikipedia in inglese): non va mai usata,
+  // ci finirebbe «Italian TV presenter» in mezzo agli indizi italiani.
+  const inInglese = /\b(american|english|british|irish|french|italian|actor|actress|singer|born|is a|was a|musician|footballer|writer|poet|presenter|player|director)\b/i.test(descrizioneLocale ?? '');
   let descrizione = predicateOf(extract, name);
-  if (!descrizione || inInglese) {
-    descrizione = descrizione || clean(descrizioneLocale).replace(/\.$/, '');
+  if (!descrizione && descrizioneLocale && !inInglese) {
+    descrizione = clean(descrizioneLocale).replace(/\.$/, '');
   }
   descrizione = descrizione.replace(/^(stato|stata|stati|state)\s+/i, '');
   if (!descrizione) descrizione = `personaggio del mondo del ${sottoAmbito}`;
@@ -521,6 +528,8 @@ function buildPerson(name, ambito, sottoAmbito, page, descrizioneLocale) {
   const usati = new Set(clues.map((clue) => loose(clue.testo)));
   const fatto = frasi.find((sentence) => {
     if (sentence.testo.length < 40 || !usable(sentence.testo)) return false;
+    // «Nasce a …» ripete il terzo indizio: si cerca un fatto diverso.
+    if (/^(nasce|nacque)\b/i.test(sentence.testo)) return false;
     if (usati.has(loose(sentence.testo))) return false;
     if (ripeteDescrizione(sentence.testo, descrizione)) return false;
     return SPECIFIC.test(sentence.testo);
@@ -683,7 +692,9 @@ async function repairFiller(persone) {
         && usable(frase.testo)
         && !mentionsName(frase.testo, persona.nome)
         && !ripeteDescrizione(frase.testo, descrizione)
-        && !/^È nat[ao]\b/i.test(frase.testo)
+        // Niente nascita: la data è già il terzo indizio, e queste frasi
+        // portano anche il nome vero («Rosario nasce a Catania…»).
+        && !/(^|\s)(è nat[ao]|nasce|nacque|nacque)\b/i.test(frase.testo)
         && SPECIFIC.test(frase.testo)
       ));
       if (!candidata) continue;
