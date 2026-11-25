@@ -93,7 +93,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, EntryCopy> = {
     objective: 'Riconoscere il personaggio nella foto sfocata; prima prenoti, più punti vale la risposta.',
     phone: [
       'Tocca PRENOTATI quando riconosci il personaggio.',
-      'Un indizio ogni 6 secondi: vita, film, carriera, curiosità.',
+      'Un indizio ogni 15 secondi: vita, film, carriera, curiosità.',
       'Dì la risposta al presentatore: la conferma arriva dalla regia.',
       'Il telefono si blocca dopo la prenotazione.',
     ],
