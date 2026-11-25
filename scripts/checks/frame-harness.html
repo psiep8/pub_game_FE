@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Frame budget TV — Quiz</title>
+<link rel="stylesheet" href="/apps/frontend/src/styles.css">
+<link rel="stylesheet" href="/apps/frontend/src/app/features/tv/game.component.css">
+<link rel="stylesheet" href="/apps/frontend/src/app/features/games/quiz/quiz.component.css">
+<link rel="stylesheet" href="/apps/frontend/src/app/features/tv/restyle.css">
+<link rel="stylesheet" href="/apps/frontend/src/app/features/tv/alive.css">
+<style>
+  body { margin: 0; background: var(--bg-0); }
+  /* Il popup non ha una regola di comparsa propria: qui si accende come in TV. */
+  .result-popup { display: none; position: fixed; inset: 0; margin: auto; width: min(760px, 80vw); height: fit-content; padding: 40px; }
+  .result-popup.show { display: block; }
+</style>
+</head>
+<body>
+<div class="game-container" id="scene">
+  <div class="alive-bubbles" id="bubbles"></div>
+  <div class="category-slot alive-breath">CULTURA GENERALE</div>
+  <div class="question-area">
+    <div class="quiz-question">Qual è la capitale del Giappone?</div>
+    <div class="quiz-options-grid">
+      <button class="quiz-option-btn">Pechino</button>
+      <button class="quiz-option-btn">Tokyo</button>
+      <button class="quiz-option-btn">Seul</button>
+      <button class="quiz-option-btn">Hanoi</button>
+    </div>
+  </div>
+  <div class="result-popup correct" id="result">
+    <div class="result-icon">✅</div>
+    <div class="result-title">RISPOSTA CORRETTA!</div>
+    <div class="result-player">ANNA</div>
+    <div class="result-points">+100</div>
+  </div>
+</div>
+<script>
+  const bubbles = document.getElementById('bubbles');
+  for (let i = 0; i < 14; i++) {
+    const bubble = document.createElement('span');
+    bubble.className = 'alive-bubble';
+    bubble.style.left = `${(i * 7) % 96}%`;
+    bubble.style.width = bubble.style.height = `${28 + (i % 5) * 14}px`;
+    bubble.style.setProperty('--alive-duration', `${10 + (i % 6) * 2}s`);
+    bubble.style.setProperty('--alive-delay', `-${i * 1.3}s`);
+    bubble.style.setProperty('--alive-drift', `${(i % 4) * 3}px`);
+    bubbles.appendChild(bubble);
+  }
+
+  window.__frames = [];
+  let last = performance.now();
+  function tick(now) {
+    window.__frames.push(now - last);
+    last = now;
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  const scene = document.getElementById('scene');
+  const result = document.getElementById('result');
+  // La stessa sequenza della TV: ingresso domanda, opzioni sfalsate, esito.
+  setTimeout(() => scene.classList.add('stage-entrance'), 100);
+  setTimeout(() => {
+    scene.classList.remove('stage-entrance');
+    scene.classList.add('stage-options-on');
+  }, 900);
+  setTimeout(() => {
+    scene.classList.remove('stage-options-on');
+    scene.classList.add('stage-live');
+  }, 1900);
+  setTimeout(() => result.classList.add('show'), 2100);
+  setTimeout(() => {
+    scene.classList.remove('stage-live');
+    scene.classList.add('stage-exit');
+  }, 2900);
+</script>
+</body>
+</html>
