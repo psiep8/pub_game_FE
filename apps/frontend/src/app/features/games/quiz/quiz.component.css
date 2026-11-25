@@ -288,6 +288,12 @@
     font-size: clamp(0.92rem, 1.15vw, 1.1rem);
     line-height: 1.15;
   }
+  /* F-15: con 10 squadre il riepilogo sforava di poco l'altezza visibile
+     (402 px su 389). Chip e righe più compatti solo a 720p. */
+  .quiz-solution-row { padding: 4px 8px; gap: 8px; }
+  .quiz-summary-teams { gap: 3px; }
+  .quiz-team { padding: 2px 4px; font-size: 0.62rem; }
+  .quiz-solution-question { font-size: 0.72rem; }
 }
 
 /* Riepilogo completo: ogni manche con la risposta giusta e le squadre. */

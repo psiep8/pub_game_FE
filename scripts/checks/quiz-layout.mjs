@@ -71,6 +71,61 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 1920, height: 108
     problems.push(`${viewport.width}×${viewport.height}: la griglia finisce a ${report.gridBottom}px`);
   }
   console.log(`${viewport.width}×${viewport.height}: ${report.columns} colonne, griglia a ${report.gridBottom}px, ${report.options.length} opzioni`);
+
+  // F-15: riepilogo con 4, 8 e 10 squadre. Nessun chip oltre il bordo.
+  for (const teams of [4, 8, 10]) {
+    const summary = await page.evaluate((teamCount) => {
+      const container = document.querySelector('.quiz-container') ?? document.getElementById('scene');
+      const rows = [1, 2, 3].map((number) => `
+        <div class="quiz-solution-row">
+          <span class="quiz-solution-num">${number}</span>
+          <div class="quiz-summary-main">
+            <span class="quiz-solution-question">Domanda numero ${number} con un testo lungo quanto una domanda vera del Quiz?</span>
+            <span class="quiz-solution-answer">✔ La risposta corretta</span>
+          </div>
+          <div class="quiz-summary-teams">
+            ${Array.from({ length: teamCount }, (_, index) => `<span class="quiz-team ${index % 2 ? 'no' : 'ok'}">${index % 2 ? '❌' : '✅'} SQUADRA ${index + 1}</span>`).join('')}
+          </div>
+        </div>`).join('');
+      container.innerHTML = `<div class="quiz-solution"><div class="quiz-summary-head">RIEPILOGO · 3 MANCHES</div>${rows}</div>`;
+      const box = container.getBoundingClientRect();
+      const chips = [...document.querySelectorAll('.quiz-team')].map((chip) => {
+        const rect = chip.getBoundingClientRect();
+        return { right: Math.round(rect.right), bottom: Math.round(rect.bottom), text: chip.textContent.trim() };
+      });
+      const rowsBoxes = [...document.querySelectorAll('.quiz-solution-row')].map((row) => {
+        const rect = row.getBoundingClientRect();
+        return { right: Math.round(rect.right), left: Math.round(rect.left) };
+      });
+      const solution = document.querySelector('.quiz-solution');
+      return {
+        chips,
+        rows: rowsBoxes,
+        boxRight: Math.round(box.right),
+        wide: Math.round(solution.scrollWidth),
+        tall: Math.round(solution.scrollHeight),
+        visible: Math.round(solution.clientHeight),
+      };
+    }, teams);
+
+    for (const chip of summary.chips) {
+      if (chip.right > summary.boxRight + 1 || chip.bottom > viewport.height) {
+        problems.push(`${viewport.width}×${viewport.height} · ${teams} squadre: chip fuori «${chip.text}» (right ${chip.right}, bottom ${chip.bottom})`);
+      }
+    }
+    for (const row of summary.rows) {
+      if (row.right > viewport.width || row.left < 0) {
+        problems.push(`${viewport.width}×${viewport.height} · ${teams} squadre: riga fuori (${row.left}–${row.right})`);
+      }
+    }
+    if (summary.wide > summary.boxRight + 1) {
+      problems.push(`${viewport.width}×${viewport.height} · ${teams} squadre: il riepilogo è largo ${summary.wide}px`);
+    }
+    if (summary.tall > summary.visible + 1) {
+      problems.push(`${viewport.width}×${viewport.height} · ${teams} squadre: il riepilogo sfora (${summary.tall}px su ${summary.visible})`);
+    }
+    console.log(`  riepilogo ${teams} squadre: ${summary.chips.length} chip, ${summary.tall}px su ${summary.visible}px visibili`);
+  }
   await page.close();
 }
 
@@ -82,4 +137,4 @@ if (problems.length) {
   for (const problem of problems) console.error(` - ${problem}`);
   process.exit(1);
 }
-console.log('\nF-14 passa: nessun testo oltre il bordo.');
+console.log('\nF-14/F-15 passano: nessun testo oltre il bordo, riepilogo dentro lo schermo.');
