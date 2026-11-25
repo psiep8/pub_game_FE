@@ -401,7 +401,8 @@
   color: var(--coal);
   border-color: var(--paper);
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  /* Scala Label di DESIGN.md: 0,75–0,85rem, leggibile a 720p. */
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
