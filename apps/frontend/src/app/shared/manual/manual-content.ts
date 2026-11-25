@@ -179,12 +179,13 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, EntryCopy> = {
   TENNIS_BATTLE: {
     name: 'TENNIS BATTLE',
     icon: '🎾',
-    summary: 'Duello a coppie su un campo con le linee regolamentari: rispondi per rimandare la pallina, primo a 6 game.',
+    summary: 'Duello a coppie su un campo con le linee regolamentari: rispondi per rimandare la pallina. Partita al meglio di tre game (vince chi ne fa due); sul 40-40 si va dritti al killer point, senza vantaggi.',
     objective: 'Vincere la sfida di tennis rispondendo alle domande quando la pallina è dalla tua parte.',
     phone: [
       'Rispondi quando la TV ti passa la pallina.',
-      'Risposta giusta: rimandi la pallina; sbagliata o scaduta: punto per l’avversario (15, 30, 40, vantaggio).',
-      'Sul 40 pari si va ai vantaggi; dopo tre ritorni dal vantaggio arriva il killer point che decide il game.',
+      'Risposta giusta: rimandi la pallina; sbagliata o scaduta: punto per l’avversario (15, 30, 40).',
+      'Sul 40-40 niente vantaggi: il punto dopo è il killer point e decide il game.',
+      'La partita è al meglio di tre game: chi ne vince due chiude la sfida.',
       'Hai 12 secondi per rispondere a ogni servizio.',
       'Le domande passano da facili a difficili con i tiri; la pallina arriva dritta, in diagonale, stretta, corta o a pallonetto.',
     ],

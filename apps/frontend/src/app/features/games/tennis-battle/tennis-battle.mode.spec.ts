@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import { GameModeConfig } from '../../../shared/models/game-mode-type';
-import { TennisBattleMode, applyPoint } from './tennis-battle.mode';
+import { TennisBattleMode, applyPoint, randomServe } from './tennis-battle.mode';
 
 const PLAYERS = ['Anna', 'Bruno', 'Carla', 'Dario'];
 
@@ -68,30 +68,64 @@ describe('TennisBattleMode — regole di sala', () => {
   });
 });
 
-describe('TennisBattleMode — killer point', () => {
-  it('arriva dopo tre vantaggi e il conteggio riparte col game nuovo', () => {
-    // F-07: i vantaggi già spesi restavano addosso al lato che perdeva il
-    // game, e il 40-40 del game dopo faceva scattare subito il killer point.
+describe('TennisBattleMode — game, partita e killer point', () => {
+  it('vince chi fa due game: il primo game non chiude la partita', () => {
+    // F-07: partita al meglio di tre game, chi ne vince due chiude la sfida.
+    const primo = applyPoint(
+      court(0, 'Anna', 'Bruno', { a: side('Anna', { score: 40 }), b: side('Bruno', { score: 30 }) }),
+      'a',
+    );
+    expect(primo.a.games).toBe(1);
+    expect(primo.winner).toBeNull();
+
+    const secondo = applyPoint(
+      court(0, 'Anna', 'Bruno', { a: side('Anna', { score: 40, games: 1 }), b: side('Bruno', { score: 30 }) }),
+      'a',
+    );
+    expect(secondo.a.games).toBe(2);
+    expect(secondo.winner).toBe('Anna');
+  });
+
+  it('sul 40-40 si va dritti al killer point, senza vantaggi', () => {
     let campo: any = court(0, 'Anna', 'Bruno', {
       a: side('Anna', { score: 40 }),
       b: side('Bruno', { score: 40 }),
     });
 
-    // Tre vantaggi spesi: vantaggio e ritorno sul 40-40, per tre volte.
-    for (let i = 0; i < 3; i++) {
-      campo = applyPoint(campo, 'a');
-      expect(campo.killerPoint).toBe(false);
-      campo = applyPoint(campo, 'b');
-    }
-
+    // Il punto sul 40-40 non dà il vantaggio: arma il killer point.
+    campo = applyPoint(campo, 'a');
+    expect(campo.a.score).toBe(40);
+    expect(campo.b.score).toBe(40);
     expect(campo.killerPoint).toBe(true);
 
-    // Killer point: il punto chiude il game, non si torna al vantaggio.
+    // Il punto dopo decide il game.
     campo = applyPoint(campo, 'a');
     expect(campo.a.games).toBe(1);
     expect(campo.killerPoint).toBe(false);
     expect(campo.a.deuceLosses).toBe(0);
     expect(campo.b.deuceLosses).toBe(0);
+  });
+
+  it('i tiri nuovi non sono sempre dritti', () => {
+    // F-07: la palla di ogni punto ripartiva sempre dritta e a 450 ms.
+    expect(randomServe(() => 0).trajectory).toBe('dritto');
+    expect(randomServe(() => 0.5).trajectory).toBe('centrale');
+    expect(randomServe(() => 0.9).trajectory).toBe('lento');
+    expect(randomServe(() => 0.5).shotMs).not.toBe(randomServe(() => 0).shotMs);
+  });
+
+  it('un campo chiuso ignora le risposte successive', async () => {
+    const { mode } = setup();
+    await mode.start();
+    const campo = mode.getDisplayData().courts[0];
+    (mode as any).courts.update((courts: any[]) => courts.map((c: any) =>
+      c.id === campo.id ? { ...c, winner: c.a.playerName, question: null } : c));
+
+    const prima = JSON.stringify((mode as any).courts());
+    mode.handlePartyEvent({ action: 'TENNIS_BATTLE_ANSWER', playerName: campo.a.playerName, answerIndex: 0 });
+    expect(JSON.stringify((mode as any).courts())).toBe(prima);
+
+    mode.cleanup();
   });
 });
 

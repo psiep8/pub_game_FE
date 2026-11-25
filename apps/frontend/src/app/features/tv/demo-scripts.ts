@@ -288,8 +288,9 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
     phone: [
       'Rispondi quando la TV ti passa la palla.',
       'Risposta giusta: rimandi; sbagliata o scaduta: punto per l’avversario.',
-      'Il punteggio è da tennis: 15, 30, 40, poi vantaggio.',
-      'Dal vantaggio sul 40 pari, dopo tre ritorni arriva il killer point: il punto decide il game.',
+      'Il punteggio è da tennis: 15, 30, 40.',
+      'Sul 40 pari niente vantaggi: il punto dopo è il killer point e decide il game.',
+      'La partita è al meglio di tre game: chi ne vince due chiude il round.',
       'Più veloce è la tua risposta, più rapido è il colpo che torna.',
     ],
     win: [`Chi vince la partita prende +${TENNIS_WIN}.`],
@@ -297,7 +298,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
       'Chi perde prende 0.',
       'Ogni risposta sbagliata o non data è un punto subito.',
     ],
-    example: 'Game vinto dal 40 con vantaggio: il punto è tuo. Le domande sulla TV non compaiono.',
+    example: 'Sul 40-40 il killer point decide il game: il punto è tuo. Le domande sulla TV non compaiono.',
   },
   ARENA: {
     title: 'ARENA BATTLE ROYALE',

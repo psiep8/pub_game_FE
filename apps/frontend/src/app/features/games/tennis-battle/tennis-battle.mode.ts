@@ -22,18 +22,18 @@ export type BallTrajectory =
   | 'veloce'
   | 'lento';
 
-/** Punteggio di gioco: 0, 15, 30, 40 e poi vantaggio. */
+/** Punteggio di gioco: 0, 15, 30, 40. Il vantaggio non esiste più. */
 export type GameScore = 0 | 15 | 30 | 40;
 
 interface CourtSide {
   playerName: string;
   /** Punti del game corrente: 0, 15, 30, 40. */
-  score: GameScore | 'adv';
+  score: GameScore;
   /** Game vinti nel set (sfida). */
   games: number;
   isBot: boolean;
   shots: number;
-  /** Quante volte è tornato dal vantaggio sul 40-40. */
+  /** Contatore storico del game: il vantaggio non esiste più, resta a zero. */
   deuceLosses: number;
 }
 
@@ -69,10 +69,12 @@ interface Court {
   killerPoint: boolean;
 }
 
-/** Game da vincere nel set: primo a 6 game. */
-const GAMES_TO_WIN = 6;
-/** Dal vantaggio sul 40-40, dopo questo numero di ritorni si va al killer point. */
-const DEUCE_LOSSES_FOR_KILLER = 3;
+/**
+ * Partita al meglio di tre game: chi ne vince due chiude la sfida e le due
+ * squadre non giocano più. Sul 40-40 non esistono vantaggi: si va dritti al
+ * killer point, così la partita resta corta.
+ */
+const GAMES_TO_WIN = 2;
 const SERVE_SECONDS = 12;
 /** Sfide giocate insieme in una partita: 12 giocatori = 4 + 2 in due partite. */
 export const TENNIS_MATCH_COURTS = 4;
@@ -163,11 +165,31 @@ export function shotDurationFor(elapsedMs: number, shots: number): number {
   return Math.max(220, Math.min(3400, Math.round(base * SHOT_SPEED[trajectory])));
 }
 
+/**
+ * Il primo tiro di ogni punto: direzione e velocità pescate a caso. Senza
+ * questo, ogni palla nuova ripartiva sempre dritta e la partita sembrava
+ * sempre uguale.
+ */
+export function randomServe(
+  random: () => number = Math.random,
+): { trajectory: BallTrajectory; shotMs: number } {
+  const pool: BallTrajectory[] = [
+    'dritto', 'diagonale', 'stretto', 'corto', 'centrale', 'linea', 'lob', 'veloce', 'lento',
+  ];
+  const index = Math.min(pool.length - 1, Math.max(0, Math.floor(random() * pool.length)));
+  const trajectory = pool[index];
+  const base = 420 + random() * 900;
+  return {
+    trajectory,
+    shotMs: Math.max(220, Math.min(3400, Math.round(base * SHOT_SPEED[trajectory]))),
+  };
+}
+
 /** Esito di un punto vinto da un lato, con il punteggio tennis aggiornato. */
 export interface PointResult {
-  /** Stato del game dopo il punto: 0/15/30/40, oppure 'adv' per il vantaggio. */
-  scorerScore: GameScore | 'adv';
-  loserScore: GameScore | 'adv';
+  /** Stato del game dopo il punto: 0/15/30/40. */
+  scorerScore: GameScore;
+  loserScore: GameScore;
   scorerGames: number;
   deuceLosses: number;
   killerPoint: boolean;
@@ -176,9 +198,9 @@ export interface PointResult {
 }
 
 /**
- * Regole tennis: 0, 15, 30, 40. Sul 40 pari si va al vantaggio. Dal vantaggio
- * si torna sul 40-40 al massimo DEUCE_LOSSES_FOR_KILLER volte: il punto dopo
- * decide il game (killer point), senza vantaggi infiniti.
+ * Regole tennis: 0, 15, 30, 40. Sul 40 pari non si passa dal vantaggio: il
+ * punto dopo è il killer point e decide subito il game. Due game vinti
+ * chiudono la partita.
  */
 export function nextPoint(court: Court, scorerSide: Side): PointResult {
   const loserSide: Side = scorerSide === 'a' ? 'b' : 'a';
@@ -193,36 +215,20 @@ export function nextPoint(court: Court, scorerSide: Side): PointResult {
     setWon: scorer.games + 1 >= GAMES_TO_WIN,
   });
 
-  // Killer point: il punto decide il game, nessun altro vantaggio.
+  // Killer point: il punto decide il game, nessun vantaggio.
   if (court.killerPoint) return winGame();
-
-  // Vantaggio di chi segna: game vinto.
-  if (scorer.score === 'adv') return winGame();
-
-  // Vantaggio dell'avversario: torna sul 40-40 e conta il ritorno.
-  if (loser.score === 'adv') {
-    const deuceLosses = loser.deuceLosses + 1;
-    return {
-      scorerScore: 40,
-      loserScore: 40,
-      scorerGames: scorer.games,
-      deuceLosses,
-      killerPoint: deuceLosses >= DEUCE_LOSSES_FOR_KILLER,
-      setWon: false,
-    };
-  }
 
   // Punteggio sotto il 40: si sale di 15 in 15.
   if (scorer.score < 40) {
     const up: GameScore = scorer.score === 0 ? 15 : scorer.score === 15 ? 30 : 40;
-    return { scorerScore: up, loserScore: loser.score, scorerGames: scorer.games, deuceLosses: scorer.deuceLosses, killerPoint: false, setWon: false };
+    return { scorerScore: up, loserScore: loser.score, scorerGames: scorer.games, deuceLosses: 0, killerPoint: false, setWon: false };
   }
 
   // 40 contro meno di 40: game vinto.
   if (loser.score < 40) return winGame();
 
-  // 40 pari: si va al vantaggio.
-  return { scorerScore: 'adv', loserScore: 40, scorerGames: scorer.games, deuceLosses: scorer.deuceLosses, killerPoint: false, setWon: false };
+  // 40 pari: niente vantaggi, il prossimo punto è già il killer point.
+  return { scorerScore: 40, loserScore: 40, scorerGames: scorer.games, deuceLosses: 0, killerPoint: true, setWon: false };
 }
 
 /**
@@ -260,8 +266,8 @@ export function applyPoint(court: Court, scorerSide: Side): Court {
  *
  * La palla è sempre da un lato: chi la riceve ha SERVE_SECONDS per rispondere
  * dal telefono. Risposta giusta = palla rimandata di là (nessun punto).
- * Risposta sbagliata o tempo scaduto = punto per l'avversario (0, 15, 30, 40, vantaggio).
- * Primo a GAMES_TO_WIN game vince la sfida.
+ * Risposta sbagliata o tempo scaduto = punto per l'avversario (0, 15, 30, 40).
+ * Chi vince due game vince la sfida; sul 40-40 il punto dopo è il killer point.
  */
 export class TennisBattleMode extends GameModeBase {
   readonly type: GameModeType = 'TENNIS_BATTLE';
@@ -362,6 +368,7 @@ export class TennisBattleMode extends GameModeBase {
     if (this.pendingCourts.length === 0) return;
     const next = this.pendingCourts.splice(0, TENNIS_MATCH_COURTS).map((court, index) => ({
       ...court,
+      ...randomServe(),
       id: index,
       question: this.nextQuestion('EASY'),
       questionAt: Date.now(),
@@ -415,8 +422,7 @@ export class TennisBattleMode extends GameModeBase {
       lastEvent: null,
       awarded: false,
       questionAt: Date.now(),
-      shotMs: 450,
-      trajectory: 'dritto',
+      ...randomServe(),
       killerPoint: false,
     };
   }
@@ -567,6 +573,7 @@ export class TennisBattleMode extends GameModeBase {
 
       const updated: Court = {
         ...applyPoint(court, other),
+        ...randomServe(),
         // La pallina riparte dal lato che ha subito il punto; la domanda è di chi ha segnato.
         turn: other,
         puckSide: side,
@@ -592,7 +599,7 @@ export class TennisBattleMode extends GameModeBase {
       if (!latest || latest.winner) return;
       const difficulty = this.difficultyFor(latest[other].shots);
       this.courts.update((courts) => courts.map((c) => c.id === courtId
-        ? { ...c, turn: other, question: this.nextQuestion(difficulty), serveLeft: SERVE_SECONDS, questionAt: Date.now(), shotMs: 450, trajectory: 'dritto' }
+        ? { ...c, ...randomServe(), turn: other, question: this.nextQuestion(difficulty), serveLeft: SERVE_SECONDS, questionAt: Date.now() }
         : c));
       this.broadcast();
       this.saveCheckpoint();
@@ -679,8 +686,10 @@ export class TennisBattleMode extends GameModeBase {
 
   private sideOf(value: any): CourtSide {
     const score = Number(value?.score);
-    const safeScore: GameScore | 'adv' = value?.score === 'adv'
-      ? 'adv'
+    // Un vecchio checkpoint può avere il vantaggio: ora al 40-40 si va al
+    // killer point, quindi il vantaggio vale 40.
+    const safeScore: GameScore = value?.score === 'adv'
+      ? 40
       : (score === 15 || score === 30 || score === 40 ? score : 0);
     return {
       playerName: String(value?.playerName ?? '').trim(),

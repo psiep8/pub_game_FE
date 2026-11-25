@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
           <div class="tb-kicker">BATTAGLIA A COLPI DI RISPOSTA</div>
         </div>
         <div class="tb-head-right">
-          <span class="tb-target">PRIMO A {{ displayData?.target ?? 7 }}</span>
+          <span class="tb-target">MEGLIO DI 3 · PRIMO A 2 GAME</span>
           <span class="tb-timer" [class.hot]="timer <= 20">{{ timer }}s</span>
         </div>
       </div>
@@ -32,7 +32,7 @@ import { CommonModule } from '@angular/common';
               </div>
             }
           </div>
-          <div class="tb-end-note">VINCE CHI ARRIVA PRIMO A {{ displayData?.target ?? 7 }}</div>
+          <div class="tb-end-note">VINCE CHI ARRIVA PRIMO A 2 GAME</div>
         </div>
       } @else {
       <div class="tb-courts" [class.single]="(displayData?.courts?.length ?? 0) === 1">
@@ -358,7 +358,7 @@ export class TennisBattle {
     return courts.every((court: any) => !!court?.winner);
   }
 
-  /** Punteggio in stile tennis: 0, 15, 30, 40, ADV. */
+  /** Punteggio in stile tennis: 0, 15, 30, 40 (il vantaggio non esiste più). */
   pointLabel(score: unknown): string {
     if (score === 'adv') return 'ADV';
     return String(score ?? 0);
