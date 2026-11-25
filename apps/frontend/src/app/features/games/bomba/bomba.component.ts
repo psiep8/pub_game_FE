@@ -23,10 +23,13 @@ import { CommonModule } from '@angular/common';
           }
         </h2>
         <div class="bb-clock" [class.hot]="displayData?.active !== false && timer <= 5">{{ timer }}s</div>
+        @if (displayData?.reading) {
+          <div class="bb-reading">LEGGI L'ARGOMENTO · SI PARTE FRA {{ timer }}s</div>
+        }
       </header>
 
       @if (displayData?.prompt) {
-        <p class="bb-prompt">{{ displayData.prompt }}</p>
+        <p class="bb-prompt" [class.reading]="displayData?.reading">{{ displayData.prompt }}</p>
       }
 
       @if (lastEvent) {
@@ -90,6 +93,9 @@ import { CommonModule } from '@angular/common';
     .bb-clock { font-family: var(--font-mono); font-size: clamp(.9rem, 1.5vw, 1.3rem); font-weight: 700; color: var(--acid); }
     .bb-clock.hot { color: var(--tomato); }
     .bb-prompt { max-width: 1000px; margin: 0; padding: 8px 16px; background: var(--paper-hi); color: var(--coal); border: 3px solid var(--coal); box-shadow: 6px 6px 0 var(--tomato); font-family: var(--font-display); font-size: clamp(.95rem, 1.7vw, 1.5rem); text-align: center; text-transform: uppercase; letter-spacing: .02em; }
+    /* F-21: durante la lettura l'argomento prende la scena. */
+    .bb-prompt.reading { font-size: clamp(1.4rem, 3.2vw, 2.6rem); padding: 14px 24px; box-shadow: 10px 10px 0 var(--tomato); }
+    .bb-reading { padding: 4px 12px; background: var(--acid); color: var(--coal); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.62rem, .9vw, .8rem); font-weight: 700; letter-spacing: .14em; }
     .bb-event { padding: 5px 14px; background: var(--paper-hi); color: var(--coal); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.66rem, 1vw, .84rem); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
     .bb-event.bomb { background: var(--tomato); color: var(--paper-hi); animation: bb-shake .35s ease-in-out; }
     .bb-disarmed { padding: 6px 14px; background: var(--mint); color: var(--coal); border: 3px solid var(--coal); box-shadow: 4px 4px 0 var(--coal); font-family: var(--font-mono); font-size: clamp(.66rem, 1vw, .84rem); font-weight: 700; letter-spacing: .06em; }

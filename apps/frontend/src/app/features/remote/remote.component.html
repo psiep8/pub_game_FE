@@ -313,6 +313,7 @@
         <span class="game-tag bomba">💣 BOMBA</span>
         <span class="game-tip">
           @if (bombaState()?.active === false) { FINITO }
+          @else if (bombaState()?.phase === 'READING') { LEGGI · {{ bombaState()?.secondsLeft ?? 0 }}s }
           @else if (bombaState()?.you?.yourTurn) { TOCCA A TE · {{ bombaState()?.secondsLeft ?? 0 }}s }
           @else { TOCCA A {{ bombaState()?.turn || '—' }} · {{ bombaState()?.secondsLeft ?? 0 }}s }
         </span>
@@ -325,18 +326,26 @@
         <p class="bomba-hint">Le bombe rimaste sono state disarmate senza conseguenze.</p>
       </div>
       } @else {
+      @if (bombaState()?.phase === 'READING') {
+      <div class="bomba-reading" role="status">
+        <span class="bomba-reading-label">ARGOMENTO</span>
+        <b class="bomba-reading-text">{{ bombaState()?.prompt }}</b>
+        <span class="bomba-reading-timer">SI PARTE FRA {{ bombaState()?.secondsLeft ?? 0 }}s</span>
+      </div>
+      }
       <div class="bomba-cells">
         @for (cell of bombaState()?.cells ?? []; track cell.id) {
         <button class="bomba-cell" [class.picked]="cell.used"
           [class.safe]="cell.bomb === false" [class.bomb]="cell.bomb === true"
-          [disabled]="cell.used || !bombaState()?.you?.yourTurn"
+          [disabled]="cell.used || bombaState()?.phase !== 'TURN' || !bombaState()?.you?.yourTurn"
           (click)="pickBombaCell(cell.id)">
           <span class="bomba-cell-label">{{ cell.label }}</span>
         </button>
         }
       </div>
       <p class="bomba-hint">
-        @if (bombaState()?.you?.yourTurn) { Tocca a te: scegli una casella, poi il turno passa. }
+        @if (bombaState()?.phase === 'READING') { Leggi l'argomento: le caselle si aprono al via. }
+        @else if (bombaState()?.you?.yourTurn) { Tocca a te: scegli una casella, poi il turno passa. }
         @else { Aspetta il tuo turno: passa anche quando la casella è giusta. }
       </p>
       @if (bombaState()?.you?.out) {

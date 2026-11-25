@@ -20,7 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestPropertySource(properties = {
         "spring.datasource.url=jdbc:h2:mem:bomba-explosion;DB_CLOSE_DELAY=-1",
         "spring.jpa.hibernate.ddl-auto=create-drop",
-        "pubgame.bomba.turn-seconds=30"
+        "pubgame.bomba.turn-seconds=30",
+        "pubgame.bomba.reading-seconds=0"
 })
 class BombaExplosionEventTest {
 

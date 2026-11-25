@@ -409,6 +409,30 @@ describe('RemoteComponent', () => {
     expect(fixture.nativeElement.querySelector('.buzz-target-value')?.textContent).toContain('07:34');
   });
 
+  it('F-21: durante la lettura il telefono mostra l’argomento e le caselle spente', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+
+    component.questionType.set('BOMBA');
+    component.gameState.set('VOTING' as any);
+    component.bombaState.set({
+      active: true,
+      phase: 'READING',
+      reading: true,
+      prompt: 'Quali di queste città sono in Belgio?',
+      secondsLeft: 30,
+      cells: [{ id: 1, label: 'Bruxelles', used: false }],
+      you: { yourTurn: true },
+    });
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Quali di queste città sono in Belgio?');
+    const cell = fixture.nativeElement.querySelector('.bomba-cell') as HTMLButtonElement;
+    expect(cell.disabled).toBe(true);
+  });
+
   it('torna al setup quando la regia espelle la squadra', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();

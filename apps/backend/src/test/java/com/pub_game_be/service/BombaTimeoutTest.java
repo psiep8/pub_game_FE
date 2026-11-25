@@ -22,7 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
         "spring.datasource.url=jdbc:h2:mem:bomba-timeout;DB_CLOSE_DELAY=-1",
         "spring.jpa.hibernate.ddl-auto=create-drop",
         // Turni da un secondo: la prova non aspetta i venti veri.
-        "pubgame.bomba.turn-seconds=1"
+        "pubgame.bomba.turn-seconds=1",
+        "pubgame.bomba.reading-seconds=0"
 })
 class BombaTimeoutTest {
 

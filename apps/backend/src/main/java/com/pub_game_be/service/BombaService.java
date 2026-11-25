@@ -51,6 +51,8 @@ public class BombaService {
 
     /** Secondi di scelta per turno: configurabili per le prove rapide. */
     private final int turnSeconds;
+    /** F-21: secondi di lettura dell'argomento prima del primo turno. */
+    private final int readingSeconds;
 
     private record Cell(int id, String label, boolean bomb) {
     }
@@ -104,10 +106,12 @@ public class BombaService {
     });
 
     public BombaService(QuestionBankService questionBank, StateBlobService stateBlobs,
-                        @Value("${pubgame.bomba.turn-seconds:20}") int turnSeconds) {
+                        @Value("${pubgame.bomba.turn-seconds:20}") int turnSeconds,
+                        @Value("${pubgame.bomba.reading-seconds:30}") int readingSeconds) {
         this.questionBank = questionBank;
         this.stateBlobs = stateBlobs;
         this.turnSeconds = Math.max(1, turnSeconds);
+        this.readingSeconds = Math.max(0, readingSeconds);
     }
 
     public JSONObject start(long gameId, List<String> rawPlayers, int requestedAct) {
@@ -126,10 +130,16 @@ public class BombaService {
 
         synchronized (round) {
             round.turnIndex = 0;
-            round.turnDeadline = System.currentTimeMillis() + turnSeconds * 1000L;
+            // F-21: prima del turno c'è la lettura dell'argomento. Il conto alla
+            // rovescia usa la stessa scadenza; i telefoni mostrano le opzioni
+            // ma il server rifiuta ogni scelta finché la fase non è TURN.
+            long now = System.currentTimeMillis();
+            round.phase = readingSeconds > 0 ? "READING" : "TURN";
+            round.turnDeadline = now
+                    + (readingSeconds > 0 ? readingSeconds : turnSeconds) * 1000L;
             persist(round);
             scheduleDeadline(round);
-            return publicState(round, null, System.currentTimeMillis());
+            return publicState(round, null, now);
         }
     }
 
@@ -148,6 +158,10 @@ public class BombaService {
         Round round = requireRound(gameId);
         synchronized (round) {
             ensureActive(round);
+            // F-21: durante la lettura il tabellone è solo da guardare.
+            if (!"TURN".equals(round.phase)) {
+                return publicState(round, rawPlayer, System.currentTimeMillis());
+            }
 
             String player = canonicalPlayer(round, rawPlayer);
             String current = round.currentPlayer();
@@ -311,6 +325,14 @@ public class BombaService {
                 if (round.turnDeadline > System.currentTimeMillis()) {
                     return;
                 }
+                // Fine della lettura: parte il primo turno, senza penalità.
+                if ("READING".equals(round.phase)) {
+                    round.phase = "TURN";
+                    round.turnDeadline = System.currentTimeMillis() + turnSeconds * 1000L;
+                    persist(round);
+                    scheduleDeadline(round);
+                    return;
+                }
                 // Turno scaduto: chi non sceglie è eliminato, con la stessa
                 // penalità di una bomba, e non gioca le ondate successive.
                 String player = round.currentPlayer();
@@ -447,6 +469,7 @@ public class BombaService {
         state.put("active", round.active);
         state.put("paused", round.paused);
         state.put("phase", round.phase);
+        state.put("reading", "READING".equals(round.phase));
         state.put("prompt", round.prompt);
         state.put("cells", cells);
         state.put("players", new JSONArray(round.players));
@@ -477,6 +500,7 @@ public class BombaService {
         state.put("active", false);
         state.put("paused", false);
         state.put("phase", "END");
+        state.put("reading", false);
         state.put("prompt", "");
         state.put("cells", new JSONArray());
         state.put("players", new JSONArray());
