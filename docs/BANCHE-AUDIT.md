@@ -315,6 +315,22 @@ Celebrità: **150**.
 
 Doppioni: **0**. Campi mancanti o file assenti: **0**.
 
+### Celebrità per ambito (tre manche)
+
+Persone classificate in `questions/celebrita-ambiti.json`: **60**. La banca locale
+che c'era al momento di questa misura non ha ancora persone per Storia, Arte e
+Scienza: i tre ambiti non sono coperti e l'audit lo dice invece di far finta che
+esistano.
+
+| Ambito | Sotto-ambiti | Persone | Minimo specifica | Esito |
+| --- | --- | --- | --- | --- |
+| 1 — Storia, Arte, Scienza | — | 0 | 60 | mancano 60 |
+| 2 — Musica | musica 21 | 21 | 50 | mancano 29 |
+| 3 — Sport, Cinema, TV, Spettacolo | cinema 24, sport 9, tv 6 | 39 | 70 | mancano 31 |
+
+Nessuna persona senza ambito e nessun ambito inesistente (`node
+scripts/audit-banche.mjs --ci`).
+
 ## Indovina la canzone (media: music)
 
 Brani: **114**, artisti distinti: **78**. Doppioni: **0**. Campi o file mancanti: **0**.

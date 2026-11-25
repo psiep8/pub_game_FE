@@ -31,6 +31,7 @@ const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..');
 const questionsDir = join(rootDir, 'apps', 'backend', 'src', 'main', 'resources', 'questions');
 const staticDir = join(rootDir, 'apps', 'backend', 'src', 'main', 'resources', 'static');
 const bankServiceFile = join(rootDir, 'apps', 'backend', 'src', 'main', 'java', 'com', 'pub_game_be', 'service', 'QuestionBankService.java');
+const celebritaAmbitiFile = join(questionsDir, 'celebrita-ambiti.json');
 
 const args = new Set(process.argv.slice(2));
 const asJson = args.has('--json');
@@ -428,6 +429,86 @@ function auditCelebrities(media) {
   };
 }
 
+/**
+ * Celebrità a tre manche: ogni persona deve stare in uno dei tre ambiti e in un
+ * sotto-ambito dello stesso ambito. Il file è versionato (media-it.json no),
+ * così i conteggi si controllano anche in CI. I minimi della specifica
+ * (60 / 50 / 70) sono un avviso, non un blocco: finché la banca è più piccola
+ * l'audit lo dice invece di far finta che le persone esistano.
+ */
+const CELEBRITA_MINIMI = { 1: 60, 2: 50, 3: 70 };
+
+function auditCelebritaAmbiti(ambitiFile, media) {
+  const rows = Array.isArray(ambitiFile?.persone) ? ambitiFile.persone : [];
+  const ambiti = ambitiFile?.ambiti ?? {};
+  const problems = [];
+  const seen = new Map();
+  const byAmbito = new Map();
+  const bySottoAmbito = new Map();
+  const sottoByAmbito = new Map();
+
+  for (const row of rows) {
+    const name = String(row?.nome ?? '').trim();
+    const key = normalizeText(name);
+    if (!key) {
+      problems.push({ name: '(assente)', detail: 'nome mancante' });
+      continue;
+    }
+    if (seen.has(key)) problems.push({ name, detail: `nome ripetuto (${seen.get(key)})` });
+    seen.set(key, name);
+
+    const ambito = Number(row?.ambito);
+    const sotto = String(row?.sottoAmbito ?? '').trim();
+    const config = ambiti[String(ambito)];
+    if (!config) {
+      problems.push({ name, detail: `ambito ${row?.ambito} inesistente` });
+      continue;
+    }
+    if (!Array.isArray(config.sottoAmbiti) || !config.sottoAmbiti.includes(sotto)) {
+      problems.push({ name, detail: `sotto-ambito «${sotto}» fuori dall'ambito ${ambito}` });
+    }
+    byAmbito.set(ambito, (byAmbito.get(ambito) ?? 0) + 1);
+    bySottoAmbito.set(sotto, (bySottoAmbito.get(sotto) ?? 0) + 1);
+    const perAmbito = sottoByAmbito.get(ambito) ?? {};
+    perAmbito[sotto] = (perAmbito[sotto] ?? 0) + 1;
+    sottoByAmbito.set(ambito, perAmbito);
+  }
+
+  // Confronto con la banca locale, quando c'è: nessuna persona senza ambito e
+  // nessuna riga di classificazione senza persona.
+  const people = Array.isArray(media?.people) ? media.people : [];
+  const inBank = new Set(people.map((person) => normalizeText(person.name)));
+  if (people.length) {
+    for (const person of people) {
+      if (!seen.has(normalizeText(person.name))) {
+        problems.push({ name: person.name, detail: 'persona della banca senza ambito' });
+      }
+    }
+    for (const row of rows) {
+      if (!inBank.has(normalizeText(row?.nome))) {
+        problems.push({ name: String(row?.nome ?? ''), detail: 'ambito senza persona nella banca' });
+      }
+    }
+  }
+
+  const minimi = [1, 2, 3].map((ambito) => ({
+    ambito,
+    nome: ambiti[String(ambito)]?.nome ?? `ambito ${ambito}`,
+    presenti: byAmbito.get(ambito) ?? 0,
+    minimo: CELEBRITA_MINIMI[ambito],
+  }));
+
+  return {
+    total: rows.length,
+    byAmbito: Object.fromEntries(sortedEntries(byAmbito)),
+    bySottoAmbito: Object.fromEntries(sortedEntries(bySottoAmbito)),
+    sottoByAmbito: Object.fromEntries([...sottoByAmbito.entries()].map(([ambito, perAmbito]) => [ambito, perAmbito])),
+    minimi,
+    mancanti: minimi.filter((row) => row.presenti < row.minimo),
+    problems,
+  };
+}
+
 /** Musica: brano, artista, anno e file audio/copertina. */
 function auditMusic(media) {
   const tracks = Array.isArray(media?.music) ? media.music : [];
@@ -649,6 +730,29 @@ function renderMarkdown(report) {
     if (report.celebrities.missing.length > 40) lines.push('', `…e altre ${report.celebrities.missing.length - 40} righe.`);
   }
   lines.push('');
+  lines.push('### Celebrità per ambito (tre manche)');
+  lines.push('');
+  lines.push(`Persone classificate: **${report.celebritaAmbiti.total}**.`);
+  lines.push('');
+  lines.push(table(
+    ['Ambito', 'Sotto-ambiti', 'Persone', 'Minimo specifica', 'Esito'],
+    report.celebritaAmbiti.minimi.map((row) => [
+      `${row.ambito} — ${row.nome}`,
+      Object.entries(report.celebritaAmbiti.sottoByAmbito[row.ambito] ?? {})
+        .map(([sotto, total]) => `${sotto} ${total}`)
+        .join(', ') || '—',
+      row.presenti,
+      row.minimo,
+      row.presenti >= row.minimo ? 'ok' : `mancano ${row.minimo - row.presenti}`,
+    ]),
+  ));
+  lines.push('');
+  if (report.celebritaAmbiti.problems.length === 0) {
+    lines.push('Nessuna persona senza ambito e nessun ambito inesistente.');
+  } else {
+    lines.push(table(['Nome', 'Controllo'], report.celebritaAmbiti.problems.map((row) => [row.name, row.detail])));
+  }
+  lines.push('');
   lines.push('## Indovina la canzone (media: music)');
   lines.push('');
   lines.push(`Brani: **${report.music.total}**, artisti distinti: **${report.music.artists}**. Doppioni: **${report.music.duplicates.length}**. Campi o file mancanti: **${report.music.missing.length}**.`);
@@ -696,6 +800,7 @@ const quizBank = readJson('questions-it.json');
 const timelineBank = readJson('timeline-it.json');
 const azzardoBank = readJson('azzardo-it.json');
 const mediaBank = readJsonIfPresent('media-it.json');
+const celebritaAmbiti = readJson('celebrita-ambiti.json');
 const mediaPatches = applyMediaPatches(mediaBank);
 const bombaBank = readJson('bomba-it.json');
 
@@ -713,6 +818,7 @@ const report = {
   azzardo: auditAzzardo(azzardoBank),
   ultimaSpiaggia: auditUltimaSpiaggia(auditQuestions(quizBank)),
   celebrities: auditCelebrities(mediaBank),
+  celebritaAmbiti: auditCelebritaAmbiti(celebritaAmbiti, mediaBank),
   music: auditMusic(mediaBank),
   mediaPatches,
   wheel: auditWheel(),
@@ -730,6 +836,10 @@ if (asJson) {
   console.log('Azzardo:', report.azzardo.total, 'domande');
   console.log('Ultima spiaggia: buchi categoria x livello:', report.ultimaSpiaggia.holes.length);
   console.log('Indovina chi:', report.celebrities.total, 'persone, doppioni:', report.celebrities.duplicates.length, 'campi/file mancanti:', report.celebrities.missing.length);
+  console.log('Celebrità ambiti:', report.celebritaAmbiti.total, 'persone,',
+    'ambiti', JSON.stringify(report.celebritaAmbiti.byAmbito),
+    'problemi:', report.celebritaAmbiti.problems.length,
+    'minimi mancanti:', report.celebritaAmbiti.mancanti.map((row) => `${row.ambito} ${row.presenti}/${row.minimo}`).join(' '));
   console.log('Musica:', report.music.total, 'brani, doppioni:', report.music.duplicates.length, 'campi/file mancanti:', report.music.missing.length);
   console.log('Ruota:', report.wheel.total, 'frasi, doppioni:', report.wheel.duplicates.length, 'segnalazioni:', report.wheel.issues.length);
   console.log('Bomba:', report.bomba.total, 'affermazioni, doppioni:', report.bomba.duplicates.length, 'campi mancanti:', report.bomba.missing.length, 'dubbi:', report.bomba.doubts.length);
@@ -755,7 +865,7 @@ if (args.has('--ci')) {
   const issues = report.quiz.issues.length;
   const missing = report.timeline.missing.length + report.azzardo.missing.length
     + report.celebrities.missing.length + report.music.missing.length + report.bomba.missing.length
-    + report.bomba.topicIssues.length;
+    + report.bomba.topicIssues.length + report.celebritaAmbiti.problems.length;
   const holes = report.ultimaSpiaggia.holes.length;
   const unmatchedPatches = report.mediaPatches.unmatched.length;
   console.log(`CI banche: doppioni ${duplicates}, segnalazioni ${issues}, campi mancanti ${missing}`);
