@@ -473,8 +473,9 @@ export class KaraokeBonus implements OnInit, OnDestroy {
     const from = Math.max(0, at - 1);
     const now = this.clipTime();
     return lines.slice(from, at + 1).map((line, index) => {
-      const active = index === lines.slice(from, at + 1).length - 1;
-      const next = lines[line.indice + 1]?.inizioMs ?? line.inizioMs + 4500;
+      const position = from + index;
+      const active = position === at;
+      const next = lines[position + 1]?.inizioMs ?? line.inizioMs + 4500;
       const span = Math.max(700, next - line.inizioMs);
       const ratio = active ? Math.min(1, Math.max(0, (now - line.inizioMs) / span)) : 1;
       const words = flatWords(line.testo);

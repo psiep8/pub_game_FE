@@ -231,6 +231,24 @@ Regola di riproduzione (solo TV; il telefono non suona sottofondi):
    d'atto abbassata di altri 6 dB mentre c'è la domanda.
 4. Il ducking sotto la voce resta com'è.
 
+### Musica: catene della manche (Web Audio, non file)
+
+Il brano di Musica è l'unico audio che si trasforma in tempo reale. La TV
+applica una catena diversa per manche, sempre con dry/wet e compressore per
+non far crollare il volume:
+
+| Manche | Catena | Effetti |
+|---|---|---|
+| 1 | `HYBRID_MANCHE_1` | highpass 105 Hz, lowpass 4,6 kHz, presenza −3,5 dB, saturazione a nastro, delay modulato da wow 0,35 Hz e flutter 6,2 Hz, fruscio filtrato 2,6 kHz |
+| 2 | `HYBRID_MANCHE_2` | highpass 145 Hz, lowpass 5,2 kHz, ring modulation 32 Hz, pitch shifter granulare in `assets/audio/pitch-shift-worklet.js` (−3,5 semitoni), saturazione digitale, gate ritmico a ottavi intermittenti, tremolo 4,5 Hz |
+| 3 | pulita | highpass 200 Hz, lowpass 5,2 kHz, volume 0,75 |
+| 4 | reveal | brano senza filtri, 30 s con fade negli ultimi 5 |
+
+Regole: `playbackRate` resta **1** (l'intonazione non si cambia con la
+velocità), il brano non gira mai al contrario, il pitch shifter è l'unico
+punto che può mancare (se l'AudioWorklet non si carica la manche 2 continua
+senza e lo scrive in console).
+
 ### Base d'atto (5 file)
 
 | Atto | File atteso | Carattere | BPM | Parole di ricerca (EN) | Fonte suggerita |

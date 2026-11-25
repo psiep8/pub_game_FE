@@ -53,7 +53,7 @@ const HYBRID_MANCHE_2 = {
   highpassHz: 145,
   lowpassHz: 5200,
   ringModFrequencyHz: 32,
-  ringModDepth: 0.16,
+  ringModDepth: 0.35,
   pitchRatio: 0.817,
   tremoloRateHz: 4.5,
   tremoloDepth: 0.12,
@@ -460,7 +460,9 @@ export class Song implements OnInit, OnDestroy, OnChanges {
       ramp(this.m1Presence!.gain, 0);
       this.m1Shaper!.curve = null;
       this.m2Shaper!.curve = this.saturationCurve(HYBRID_MANCHE_2.digitalDrive);
-      ramp(this.ringDepth!.gain, HYBRID_MANCHE_2.ringModDepth / 2, 0.1);
+      // Ring vera: portante abbassata, LFO bipolare che arriva a moltiplicare.
+      ramp(this.m2Ring!.gain, 1 - HYBRID_MANCHE_2.ringModDepth, 0.1);
+      ramp(this.ringDepth!.gain, HYBRID_MANCHE_2.ringModDepth, 0.1);
       ramp(this.m2Trem!.gain, 1 - HYBRID_MANCHE_2.tremoloDepth / 2, 0.1);
       ramp(this.tremDepth!.gain, HYBRID_MANCHE_2.tremoloDepth / 2, 0.1);
       this.setCompressor(HYBRID_MANCHE_2.compressorThresholdDb, HYBRID_MANCHE_2.compressorRatio);

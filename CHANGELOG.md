@@ -1,5 +1,28 @@
 # Changelog
 
+## 25 novembre 2026 — brand in TV, Karaoke leggibile, audio hybrid Musica
+
+- **quizzOne in TV.** I titoli di intro e lobby non dicono più «PUB GAME»:
+  il nome visibile è **quizzOne**, come nel resto dell’app.
+- **Karaoke.** La TV mostra solo la **riga corrente e quella appena passata**,
+  centrate: le righe future non compaiono, così chi conosce il brano non può
+  cantarlo in anticipo. Le parole si anneriscono una alla volta seguendo la
+  voce (`clipTime`), senza gradienti CSS.
+- **Montaggio TV.** Il countdown 3-2-1 scende sotto la barra dei comandi
+  (pausa, tema, audio): non finisce più dietro i pulsanti.
+- **Musica, manche 1 e 2.** Nuova pipeline Web Audio in due catene:
+  - manche 1, *analog disguise*: highpass/lowpass, presenza, saturazione a
+    nastro, delay modulato da wow (0,35 Hz) e flutter (6,2 Hz), fruscio filtrato,
+    compressore;
+  - manche 2, *electronic mutation*: ring modulation a 32 Hz, pitch shifter
+    granulare in AudioWorklet (−3,5 semitoni, **velocità invariata**),
+    saturazione digitale, gate ritmico a ottavi intermittenti, tremolo.
+  Dry/wet e guadagno compensato tengono il volume simile fra le manche;
+  `playbackRate` resta 1 e il brano non gira mai al contrario. Se il browser
+  non carica l’AudioWorklet, la manche 2 continua senza pitch shift e lo
+  dichiara in console; dalla manche 3 si torna al brano pulito, il reveal
+  resta senza filtri.
+
 ## 25 novembre 2026 — bonus serata: Karaoke, Blackjack, Casino 5 manche, Cavallo, Numero secco
 
 Il flusso bonus della serata è nell’ordine degli atti: **KARAOKE → BLACKJACK →
@@ -17,8 +40,9 @@ round interno scelto dal seme.
   primo tavolo che prenota dal telefono prende il microfono fisico e canta le
   frasi successive; la regia risponde con `ADMIN_KARAOKE_RESULT` (CORRETTO o
   SBAGLIATO). Sbagliare non toglie punti: blocca il tavolo per la manche e riapre
-  le prenotazioni. In TV le righe si vedono **due alla volta** con font da
-  pubblico (`clamp(1.9rem, 4.4vw, 4.8rem)`, riga attiva più grande); il telefono
+  le prenotazioni. In TV si vedono **solo la riga corrente e quella appena
+  passata**, centrate, con font da pubblico (`clamp(1.9rem, 4.4vw, 4.8rem)`,
+  riga attiva più grande) e parole che si anneriscono seguendo la voce; il telefono
   prenota anche quando il gioco principale è in pausa, perché il bonus Karaoke
   vive fuori dal round. I testi sincronizzati restano fuori dal repository
   (`questions/lyrics-bonus-it.json`, ignorato): li rigenera
