@@ -59,6 +59,11 @@ __pycache__/
 apps/backend/src/main/resources/static/media/
 apps/backend/src/main/resources/questions/media-it.json
 
+# Testi del bonus «Canta la canzone»: protetti da diritto d'autore, restano
+# locali. Nel repo c'è solo la struttura e un esempio con testi finti.
+apps/backend/src/main/resources/questions/lyrics-bonus-it.json
+apps/backend/src/main/resources/questions/bonus-scelte.json
+
 # Stato token delle run di simulazione (mai versionare)
 scripts/sim/.state*.json
 

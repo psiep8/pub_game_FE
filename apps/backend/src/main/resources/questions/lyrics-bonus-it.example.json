@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "nota": "ESEMPIO CON TESTI INVENTATI: serve solo a mostrare la struttura del file locale. I testi veri non stanno nel repository. Copia questo file in bonus-scelte.json (locale, ignorato da git) con le canzoni scelte, poi lancia scripts/bonus/scarica-testi.mjs che scrive lyrics-bonus-it.json, anch'esso ignorato.",
+  "manche": [
+    {
+      "manche": 1,
+      "punti": 100,
+      "titolo": "Canzone d'esempio numero uno",
+      "artista": "Artista Inventato",
+      "file": "/media/music/artista-inventato-canzone-d-esempio.m4a",
+      "offsetMs": 0,
+      "righe": [
+        { "indice": 1, "inizioMs": 0, "testo": "Riga finta che apre la clip di esempio" },
+        { "indice": 2, "inizioMs": 4200, "testo": "Seconda riga finta, sempre inventata" },
+        { "indice": 3, "inizioMs": 8600, "testo": "Terza riga finta per far vedere i tempi" },
+        { "indice": 4, "inizioMs": 12900, "testo": "Quarta riga finta, ancora senza senso" },
+        { "indice": 5, "inizioMs": 17100, "testo": "Quinta riga finta dove si ferma la clip" },
+        { "indice": 6, "inizioMs": 20800, "testo": "Sesta riga finta: quella da cantare" },
+        { "indice": 7, "inizioMs": 24500, "testo": "Settima riga finta: la seconda da cantare" }
+      ],
+      "stop": { "indice": 5, "tempoMs": 17100 },
+      "righeCorrette": [
+        { "indice": 6, "testo": "Sesta riga finta: quella da cantare" },
+        { "indice": 7, "testo": "Settima riga finta: la seconda da cantare" }
+      ]
+    },
+    {
+      "manche": 5,
+      "punti": 300,
+      "titolo": "Canzone d'esempio numero due",
+      "artista": "Artista Inventato",
+      "file": "/media/music/artista-inventato-canzone-d-esempio-due.m4a",
+      "offsetMs": 61000,
+      "righe": [
+        { "indice": 9, "inizioMs": 1500, "testo": "Riga finta che sembra quella giusta" },
+        { "indice": 10, "inizioMs": 6000, "testo": "Ma la riga vera è un'altra, di proposito" },
+        { "indice": 11, "inizioMs": 11500, "testo": "Qui la clip si ferma, fine riga" },
+        { "indice": 12, "inizioMs": 16200, "testo": "Riga finta da indovinare" }
+      ],
+      "stop": { "indice": 11, "tempoMs": 11500 },
+      "righeCorrette": [
+        { "indice": 12, "testo": "Riga finta da indovinare" }
+      ]
+    }
+  ]
+}
