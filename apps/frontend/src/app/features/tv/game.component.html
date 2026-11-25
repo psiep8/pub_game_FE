@@ -105,6 +105,12 @@
             {{ pairingCode() ? 'NUOVO CODICE' : 'GENERA CODICE' }}
           </button>
         </section>
+        @if (tvUnpaired()) {
+        <div class="lobby-unpaired" role="status">
+          <b>TV NON IN LINEA</b>
+          <span>Batti il codice dal pannello regia: senza abbinamento i telefoni non entrano.</span>
+        </div>
+        }
         } @else {
         <button (click)="openLobby()" class="extract-btn lobby-play">
           <span class="icon">📱</span>
@@ -634,4 +640,18 @@
     <div class="reveal-suspense-ring"></div>
     <span class="reveal-suspense-text">RULLO DI TAMBURI…</span>
   </div>
+}
+
+@if (gameOverNotice()) {
+<div class="game-over-panel" role="dialog" aria-modal="true" aria-label="Partita completata">
+  <div class="game-over-card">
+    <div class="game-over-kicker">SERATA COMPLETATA · 40 ROUND</div>
+    <h2 class="game-over-title">PARTITA COMPLETATA</h2>
+    <p class="game-over-text">Il palco resta a schermo: puoi rileggere l'ultima schermata o ripartire da zero.</p>
+    <div class="game-over-actions">
+      <button type="button" class="game-over-btn" (click)="dismissGameOver()">TORNA AL PALCO</button>
+      <button type="button" class="game-over-btn game-over-btn-danger" (click)="resetAfterGameOver()">RESETTA PARTITA</button>
+    </div>
+  </div>
+</div>
 }

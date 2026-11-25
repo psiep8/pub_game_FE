@@ -824,6 +824,55 @@ describe('GameComponent', () => {
     expect(component.isShowingLeaderboard()).toBe(false);
   });
 
+  it('a fine partita mostra il pannello in scena invece di un alert che blocca la TV', async () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    vi.spyOn(rounds, 'isGameOver').mockReturnValue(true);
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+    await component.startNewRound();
+    fixture.detectChanges();
+
+    const panel = fixture.nativeElement.querySelector('.game-over-panel') as HTMLElement | null;
+    expect(panel?.textContent).toContain('PARTITA COMPLETATA');
+    expect(alertSpy).not.toHaveBeenCalled();
+
+    // Torna al palco: si chiude senza resettare la partita.
+    (panel!.querySelector('.game-over-btn') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(component.gameOverNotice()).toBe(false);
+    alertSpy.mockRestore();
+  });
+
+  it('la lobby dichiara la TV non abbinata invece di sembrare pronta', () => {
+    component.phase.set('IDLE');
+    component.currentGameId.set(1);
+    component.reliability.sessionToken.set(null);
+    fixture.detectChanges();
+
+    const stamp = fixture.nativeElement.querySelector('.lobby-unpaired') as HTMLElement | null;
+    expect(stamp?.textContent).toContain('TV NON IN LINEA');
+  });
+
+  it('fa ripartire la serata da sola anche dopo il riepilogo di un round', () => {
+    vi.useFakeTimers();
+    try {
+      const rounds = TestBed.inject(RoundManagerService);
+      rounds.restoreRound(3);
+      vi.spyOn(rounds, 'bonusAfterRound').mockReturnValue(null);
+      vi.spyOn(rounds, 'shouldShowLeaderboard').mockReturnValue(null);
+      vi.spyOn(rounds, 'isGameOver').mockReturnValue(false);
+
+      (component as unknown as { checkLeaderboardDisplay(): void }).checkLeaderboardDisplay();
+      fixture.detectChanges();
+
+      expect(component.autoAdvanceSeconds()).toBe(10);
+      expect(fixture.nativeElement.querySelector('.auto-advance')).toBeTruthy();
+    } finally {
+      (component as unknown as { cancelAutoAdvance(): void }).cancelAutoAdvance();
+      vi.useRealTimers();
+    }
+  });
+
   it('riporta il contatore a zero quando la partita è nuova o resettata', () => {
     const rounds = TestBed.inject(RoundManagerService);
     const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };

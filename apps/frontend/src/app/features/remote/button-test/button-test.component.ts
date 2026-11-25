@@ -276,8 +276,10 @@ export class ButtonTestComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
       if (left === 0) {
         this.clearStepTimer();
-        this.message.set('Da controllare');
-        this.advance(this.step(), { flagged: true });
+        // Il tempo scaduto non è una colpa: il passo passa senza marcare la
+        // squadra «Da controllare», che in sala marchiava sei squadre su sei.
+        this.message.set('Passo superato dal tempo');
+        this.advance(this.step());
       }
     }, 250);
   }

@@ -172,6 +172,9 @@ export class GameComponent implements OnInit, OnDestroy {
   private readonly introSeen = localStorage.getItem(this.introSeenKey) === '1';
   phase = signal<TvPhase>(this.introSeen ? 'IDLE' : GamePhase.INTRO);
   readonly introVisible = computed(() => this.phase() === GamePhase.INTRO);
+  /** Senza token di sessione la TV non è abbinata: la lobby lo dice invece di
+   *  sembrare pronta mentre il badge resta OFFLINE. */
+  readonly tvUnpaired = computed(() => !this.reliability.sessionToken());
   readonly introReducedMotion = signal(
     typeof window !== 'undefined'
     && !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
@@ -211,6 +214,8 @@ export class GameComponent implements OnInit, OnDestroy {
   private aliveFrame?: number;
   /** Pausa di suspense fra la scadenza e il reveal. */
   revealPending = signal(false);
+  /** Serata finita: il pannello resta in scena al posto di un alert bloccante. */
+  gameOverNotice = signal(false);
   demoType = signal<string | null>(null);
   demoScene = signal(0);
   /** Modalità regia: mostra il copione del presentatore accanto alla demo. */
@@ -542,7 +547,6 @@ export class GameComponent implements OnInit, OnDestroy {
     // dall'ID salvato e si chiede al server quale serata è in corso.
     const storedGameId = Number(localStorage.getItem('activeGameId')) || this.currentGameId() || 1;
     this.currentGameId.set(storedGameId);
-    void this.prefetchBonusSeed(storedGameId);
     this.ws.subscribeToGame(storedGameId);
 
     // Iscrizione prima di start(): il primo sync può concludersi mentre la
@@ -562,6 +566,9 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     if (!await this.reliability.start(this.currentGameId(), 'TV')) return;
+    // Il seme degli ingressi si chiede a sessione aperta: prima il server
+    // risponde 401 (l'endpoint non è pubblico) e la TV resta sul ripiego.
+    void this.prefetchBonusSeed(this.currentGameId());
     this.bindLeaderboardPersistence();
 
     // Il vincitore del round si conta sui punti guadagnati a round aperto:
@@ -1151,7 +1158,9 @@ export class GameComponent implements OnInit, OnDestroy {
     this.cancelAutoAdvance();
 
     if (this.roundManager.isGameOver()) {
-      alert('🏁 Partita completata! Resetta per ricominciare.');
+      // Un alert blocca la TV e copre la dock: a serata finita il palco resta
+      // raggiungibile, con le due uscite scritte sul pannello.
+      this.gameOverNotice.set(true);
       return;
     }
 
@@ -1937,8 +1946,10 @@ export class GameComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Fra un round e l'altro si avanza a mano: il conto alla rovescia esiste
-    // solo per ripartire dopo il riepilogo di un bonus.
+    // Riepilogo mostrato: la serata riparte da sola come dopo un bonus, così
+    // la regia non deve dare quaranta clic. AVANTI, pausa, classifica e demo
+    // annullano il conto alla rovescia (vedi startAutoAdvance).
+    if (!this.roundManager.isGameOver()) this.startAutoAdvance();
   }
 
   /** Chiude subito la classifica a schermo: la X in TV o un avanzamento admin. */
@@ -2232,15 +2243,16 @@ export class GameComponent implements OnInit, OnDestroy {
    */
   private entranceFor(type: BonusType): BonusEntranceEntry {
     const gameId = this.currentGameId() ?? 0;
-    let seed = this.bonusSeedByGame.get(gameId);
-    if (seed === undefined) {
-      // Il seme arriva dal server appena la partita è nota; se il bonus
-      // arrivasse prima, si usa l'id della partita (stabile) e non un dado.
-      seed = gameId || 1;
-      this.bonusSeedByGame.set(gameId, seed);
-      void this.prefetchBonusSeed(gameId);
-    }
-    return bonusEntranceFor(type, seed);
+    const cached = this.bonusSeedByGame.get(gameId);
+    if (cached !== undefined) return bonusEntranceFor(type, cached);
+
+    // Seme non ancora arrivato: si usa l'id della partita, stabile e uguale
+    // per ogni TV, e lo si chiede adesso. Il valore del server, quando arriva,
+    // prende il posto del ripiego per i bonus successivi.
+    const fallback = gameId || 1;
+    this.bonusSeedByGame.set(gameId, fallback);
+    void this.prefetchBonusSeed(gameId);
+    return bonusEntranceFor(type, fallback);
   }
 
   private async prefetchBonusSeed(gameId: number): Promise<void> {
@@ -2624,6 +2636,17 @@ export class GameComponent implements OnInit, OnDestroy {
 
   openResetModal() {
     this.showResetModal.set(true);
+  }
+
+  /** Chiude il pannello di fine serata e torna al palco senza toccare nulla. */
+  dismissGameOver(): void {
+    this.gameOverNotice.set(false);
+  }
+
+  /** Dal pannello di fine serata alla conferma di reset già esistente. */
+  resetAfterGameOver(): void {
+    this.gameOverNotice.set(false);
+    this.openResetModal();
   }
 
   /** Unico punto che ricarica la TV: nelle prove si sostituisce senza navigare. */
