@@ -22,6 +22,8 @@ import {
 } from '../../../shared/models/scoring-rules';
 import { KaraokeLine, KaraokeManche, KaraokeService } from './karaoke.service';
 
+const flatWords = (text: string): string[] => text.split(/\s+/).filter(Boolean);
+
 const Phase = {
   INTRO: 'INTRO',
   PLAYING: 'PLAYING',
@@ -32,11 +34,17 @@ const Phase = {
 } as const;
 type Phase = (typeof Phase)[keyof typeof Phase];
 
+interface VisibleWord {
+  text: string;
+  sung: boolean;
+}
+
 interface VisibleLine {
   line: KaraokeLine;
   active: boolean;
   past: boolean;
   answer: boolean;
+  words: VisibleWord[];
 }
 
 interface KaraokeScore {
@@ -118,7 +126,9 @@ const DEMO_MANCHES: KaraokeManche[] = Array.from({ length: 5 }, (_, index) => ({
                 [class.active]="row.active"
                 [class.past]="row.past"
                 [class.answer]="row.answer">
-                {{ row.line.testo }}
+                @for (word of row.words; track $index) {
+                  <span class="karaoke-word" [class.sung]="word.sung">{{ word.text }}</span>{{ ' ' }}
+                }
               </p>
             }
             @if (!song()?.righe?.length) {
@@ -263,14 +273,20 @@ const DEMO_MANCHES: KaraokeManche[] = Array.from({ length: 5 }, (_, index) => ({
     .karaoke-song-kicker { color: var(--tomato); font-family: var(--font-mono); font-size: clamp(.62rem, .9vw, .8rem); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
     .karaoke-song h2 { margin: 0; font-family: var(--font-display); font-size: clamp(1.8rem, 3.4vw, 3.3rem); font-weight: 400; line-height: .9; text-transform: uppercase; }
     .karaoke-stage { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr); gap: clamp(12px, 2vw, 24px); align-items: start; }
-    .karaoke-lyrics { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: clamp(10px, 2.2vh, 26px); min-height: clamp(280px, 52vh, 560px); padding: clamp(14px, 2vw, 30px); border: 4px solid var(--coal); background-color: var(--paper-hi); background-image: radial-gradient(color-mix(in srgb, var(--coal) 9%, transparent) 1px, transparent 1px); background-size: 14px 14px; box-shadow: 8px 8px 0 var(--ink); transition: background-color .15s linear; }
+    .karaoke-lyrics { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: clamp(10px, 2.2vh, 26px); min-height: clamp(280px, 52vh, 560px); padding: clamp(14px, 2vw, 30px); border: 4px solid var(--coal); background-color: var(--paper-hi); background-image: radial-gradient(color-mix(in srgb, var(--coal) 9%, transparent) 1px, transparent 1px); background-size: 14px 14px; box-shadow: 8px 8px 0 var(--ink); transition: background-color .15s linear; }
     .karaoke-lyrics.blackout { background-color: var(--coal); background-image: none; }
     /* Due righe alla volta e caratteri da leggere in fondo alla sala. */
-    .karaoke-line { margin: 0; color: color-mix(in srgb, var(--coal) 62%, transparent); font-family: var(--font); font-size: clamp(1.9rem, 4.4vw, 4.8rem); font-weight: 900; line-height: 1.04; letter-spacing: -.01em; text-transform: uppercase; transition: color .12s linear; }
-    .karaoke-line.active { color: var(--coal); font-size: clamp(2.3rem, 5.4vw, 6rem); }
-    .karaoke-line.past { color: color-mix(in srgb, var(--coal) 45%, transparent); }
+    .karaoke-line { margin: 0; max-width: 100%; color: color-mix(in srgb, var(--coal) 55%, transparent); font-family: var(--font); font-size: clamp(1.9rem, 4.4vw, 4.8rem); font-weight: 900; line-height: 1.04; letter-spacing: -.01em; text-align: center; text-transform: uppercase; text-wrap: balance; transition: color .12s linear; }
+    .karaoke-line.active { color: color-mix(in srgb, var(--coal) 55%, transparent); font-size: clamp(2.3rem, 5.4vw, 6rem); }
+    .karaoke-line.past { color: color-mix(in srgb, var(--coal) 42%, transparent); }
+    /* Il nero avanza parola per parola seguendo la voce: quello che è già
+       passato si legge pieno, il resto resta in attesa. */
+    .karaoke-word { color: color-mix(in srgb, var(--coal) 52%, transparent); transition: color .16s linear; }
+    .karaoke-word.sung { color: var(--coal); }
+    .karaoke-line.past .karaoke-word { color: color-mix(in srgb, var(--coal) 42%, transparent); }
     .karaoke-line.answer { color: var(--tomato); }
-    .karaoke-lyrics.blackout .karaoke-line { color: color-mix(in srgb, var(--paper) 82%, transparent); font-size: clamp(2.1rem, 4.8vw, 5.2rem); }
+    .karaoke-lyrics.blackout .karaoke-line,
+    .karaoke-lyrics.blackout .karaoke-word { color: color-mix(in srgb, var(--paper) 82%, transparent); font-size: clamp(2.1rem, 4.8vw, 5.2rem); }
     @media (max-height: 760px) {
       .karaoke-lyrics { min-height: 240px; }
       .karaoke-line { font-size: clamp(1.6rem, 3.6vw, 3.6rem); }
@@ -436,19 +452,41 @@ export class KaraokeBonus implements OnInit, OnDestroy {
   readonly visibleLines = computed<VisibleLine[]>(() => {
     const lines = this.song()?.righe ?? [];
     if (!lines.length) return [];
+    const plain = (line: KaraokeLine): VisibleWord[] =>
+      line.testo.split(/\s+/).filter(Boolean).map((text) => ({ text, sung: false }));
+
     if (this.phase() === Phase.REVEAL) {
       const from = Math.max(0, this.stopIndex());
-      return lines.slice(from, from + 3)
-        .map((line, index) => ({ line, active: false, past: false, answer: index > 0 }));
+      return lines.slice(from, from + 3).map((line, index) => ({
+        line, active: false, past: false, answer: index > 0, words: plain(line),
+      }));
     }
     if (this.phase() === Phase.STEAL || this.phase() === Phase.JUDGE) {
       const at = Math.max(0, this.stopIndex());
-      return lines.slice(at, at + 1)
-        .map((line) => ({ line, active: true, past: false, answer: false }));
+      return [lines[at]].filter(Boolean)
+        .map((line) => ({ line, active: true, past: false, answer: false, words: plain(line) }));
     }
+
+    // Solo la riga corrente e quella appena passata: mai quelle che vengono
+    // dopo, altrimenti chi se lo ricorda può cantarla leggendola in anticipo.
     const at = Math.max(0, this.activeLine());
-    return lines.slice(at, at + 2)
-      .map((line, index) => ({ line, active: index === 0, past: false, answer: false }));
+    const from = Math.max(0, at - 1);
+    const now = this.clipTime();
+    return lines.slice(from, at + 1).map((line, index) => {
+      const active = index === lines.slice(from, at + 1).length - 1;
+      const next = lines[line.indice + 1]?.inizioMs ?? line.inizioMs + 4500;
+      const span = Math.max(700, next - line.inizioMs);
+      const ratio = active ? Math.min(1, Math.max(0, (now - line.inizioMs) / span)) : 1;
+      const words = flatWords(line.testo);
+      const sung = Math.floor(ratio * words.length);
+      return {
+        line,
+        active,
+        past: !active,
+        answer: false,
+        words: words.map((text, wordIndex) => ({ text, sung: wordIndex < sung })),
+      };
+    });
   });
 
   judge(kind: 'CORRECT' | 'WRONG'): void {

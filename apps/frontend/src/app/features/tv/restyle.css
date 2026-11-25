@@ -1273,11 +1273,11 @@
 .game-container.stage-options-on .question-area > *:nth-child(6),
 .game-container.stage-options-on .quiz-options-grid > *:nth-child(6) { animation-delay: 1500ms; }
 
-/* 3-2-1: un riquadro in alto a destra, fuori dal centro della domanda. Il
-   numero resta grande ma non copre più il testo che il presentatore legge. */
+/* 3-2-1: sotto la barra dei comandi (pausa, tema, audio), fuori dal centro
+   della domanda: il numero resta grande ma non finisce più dietro i pulsanti. */
 .stage-countdown {
   position: fixed;
-  top: 3vh;
+  top: clamp(96px, 13vh, 150px);
   right: 3vw;
   z-index: 1300;
   display: flex;
