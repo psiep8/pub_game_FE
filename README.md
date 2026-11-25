@@ -23,7 +23,7 @@ La versione è **3.0.0**. Il codice è la fonte di verità: se una frase di ques
 - **Telefoni (`/play`)**: ogni squadra entra con un nickname e gioca dal browser. In attesa può aprire il **Manuale dei giochi**; durante un round il manuale si chiude e il pulsante sparisce.
 - **Regia (`/admin`)**: il presentatore avvia e chiude i round, mette in pausa, mostra le classifiche, lancia i bonus e apre le demo. Non è un pannello di voto: le risposte arrivano dai telefoni.
 
-La serata è una scaletta fissa di **40 round divisi in 5 atti da 8** (`shared/schedule.ts`). Dopo i round **4, 12, 20, 28 e 36** compare la classifica rapida; dopo **8, 16, 24, 32 e 40** quella dettagliata. Le **Biglie sono quattro round separati** (11, 22, 28, 38), ognuno con due gare su due delle otto piste (rally, F1, neve, acqua, vetro, sabbia, spazio, magma); il **Blackjack non è più in scaletta** e resta solo come bonus. In **un round interno di ognuno** dei cinque atti (mai il primo, mai l'ultimo, scelto dal seme all'inizio della serata) parte un bonus diverso: Casino nero/rosso, Blackjack, Casino dozzina, Cavallo e Casino numero secco. I punti del bonus entrano in classifica alla chiusura e nessun bonus toglie punti; i premi di Blackjack e Cavallo li consegnano barista e presentatore, fuori dall'app. Il primo bonus di ogni tipo entra con una scena a sorpresa scelta dal seme della partita: dodici ingressi diversi, nessuno dei quali è annunciato in regia o nel manuale.
+La serata è una scaletta fissa di **40 round divisi in 5 atti da 8** (`shared/schedule.ts`). Dopo i round **4, 12, 20, 28 e 36** compare la classifica rapida; dopo **8, 16, 24, 32 e 40** quella dettagliata. Le **Biglie sono quattro round separati** (11, 22, 28, 38), ognuno con due gare su due delle otto piste (rally, F1, neve, acqua, vetro, sabbia, spazio, magma); il **Blackjack non è più in scaletta** e resta solo come bonus. In **un round interno di ognuno** dei cinque atti (mai il primo, mai l'ultimo, scelto dal seme all'inizio della serata) parte un bonus diverso: **Karaoke**, **Blackjack**, **Casino 5 manche** (colore, dozzina, parità, alto/basso, numero), **Cavallo** e **Casino numero secco**. I punti del bonus entrano in classifica alla chiusura e nessun bonus toglie punti; i premi di Blackjack e Cavallo li consegnano barista e presentatore, fuori dall'app. Il primo bonus di ogni tipo entra con una scena a sorpresa scelta dal seme della partita: dodici ingressi diversi, nessuno dei quali è annunciato in regia o nel manuale.
 
 **La TV detta il ritmo.** Ogni gioco entra con una dissolvenza breve ed esce con uno scorrimento, mai un taglio secco. La prima volta che un gioco compare nella serata la TV ne mostra la scheda demo — titolo, regola, esempio, tabella punti e i comandi indietro/avanti/ripeti/salta — poi va dritta al round. La domanda resta a schermo senza timer per una pausa di lettura (almeno 3 secondi, più 1 secondo ogni 8 parole), le opzioni entrano sfalsate, seguono 1–2 secondi di respiro e il 3-2-1: cronometro e telefoni partono solo dopo. La riga per il presentatore compare soltanto con `?regia=1`.
 
@@ -67,17 +67,17 @@ Le schede qui sotto sono le demo della TV **all’ultima versione**, catturate d
 
 | Bonus | Quando | Come funziona | Punti |
 |---|---|---|---|
-| **Casino nero/rosso** | in un round dell'atto 1 | Tre girate sul colore; la scelta si fa in dieci secondi a ogni girata. | Colore giusto **+100** a girata, massimo **+300**; zero: banco. |
+| **Karaoke** | in un round dell'atto 1 | Clip di 30 s con testo sincronizzato; la musica si ferma a fine riga e il primo tavolo che prenota prende il microfono fisico e canta le frasi successive. La regia dice CORRETTO o SBAGLIATO. | **+100 / +150 / +200 / +250 / +300** secondo la manche (5 manche pescate senza ripetizioni da una banca di 12 canzoni). Sbagliare non toglie punti: blocca il tavolo per la manche e riapre le prenotazioni. |
 | **Blackjack** | in un round dell'atto 2 | Un turno per tavolo, 15 s, carta o stai; il banco si ferma a 17. | Chi batte il banco riceve il **premio concordato con il bar**, non punti; premio e consegna li gestiscono barista e presentatore. |
-| **Casino dozzina** | in un round dell'atto 3 | Tre girate su 1–12, 13–24 o 25–36, scelta in dieci secondi. | Dozzina giusta **+200** a girata, massimo **+600**. |
+| **Casino 5 manche** | in un round dell'atto 3 | Cinque manche, una girata ciascuna: colore, dozzina, parità, alto/basso, numero secco. | **+100** colore, **+200** dozzina, **+100** parità, **+100** alto/basso, **+1000** numero: massimo **+1500**. Sullo zero il banco incassa. |
 | **Cavallo di battaglia** | in un round dell'atto 4 | Categoria votata dai telefoni, otto domande flash. | Il vincitore riceve il **premio concordato con il bar**; a pari merito vince chi ha finito prima. Premio e consegna li gestiscono barista e presentatore. |
 | **Casino numero secco** | in un round dell'atto 5 | Un numero da 0 a 36 scelto una volta, poi tre girate con lo stesso numero. | Numero beccato **+1000 una volta sola**; se esce di nuovo non paga il doppio, e chi non lo becca prende 0. |
 
-**Casino paga punti, che entrano nella classifica della serata una sola volta, alla chiusura del bonus; i premi di Blackjack e Cavallo li gestiscono barista e presentatore, non l'app.** Dopo il bonus dell’atto 5 la TV mostra la classifica finale aggiornata.
+**Karaoke e Casino pagano punti, che entrano nella classifica della serata una sola volta, alla chiusura del bonus; i premi di Blackjack e Cavallo li gestiscono barista e presentatore, non l'app.** Dopo il bonus dell’atto 5 la TV mostra la classifica finale aggiornata.
 
 ### Galleria TV: i bonus
 
-Le schermate di Casino, dozzina, cavallo e numero vengono dalle route reali dei componenti bonus (`/bonus-preview/{casino|dozzina|cavallo|numero}`); il Blackjack è il tavolo reale del componente mostrato in TV. Nessun mockup.
+Le schermate dei bonus vengono dalle route reali dei componenti (`/bonus-preview/{karaoke|blackjack|casino5|cavallo|numero}`). Nessun mockup.
 
 | Bonus | Bonus |
 |---|---|

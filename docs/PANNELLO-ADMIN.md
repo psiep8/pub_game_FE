@@ -59,7 +59,7 @@ pannello admin e in TV, nei momenti previsti dal gioco.
 | **♻️ RIAVVIA BONUS** | Riavvia il bonus in corso senza toccare la classifica. Compare con `?debug=1`. | Per provare il Cavallo o recuperare un bonus bloccato. |
 | **↺ RIVEDI INTRO** | Riporta in TV la presentazione iniziale. | Per ripetere le regole all'inizio della serata. |
 | **🎄 NATALE ON / OFF** | Attiva o spegne il tema natalizio. | Solo per scelta estetica. Non cambia i punti. |
-| **🎰 BONUS CASINO** · **🃏 BONUS BLACKJACK** · **🐎 BONUS CAVALLO** | Avvia il bonus dell’atto: colore, Blackjack, dozzina, Cavallo o numero secco. | La TV lo apre da sola in un round interno dell’atto; qui serve solo per lanciarlo a mano. |
+| **🎤 BONUS KARAOKE** · **🎰 CASINO 5 MANCHE** · **🃏 BONUS BLACKJACK** · **🐎 BONUS CAVALLO** · **🎯 CASINO NUMERO SECCO** | Avvia il bonus dell’atto. Nel Karaoke, quando un tavolo prenota il microfono, qui compaiono i pulsanti **CORRETTO** e **SBAGLIATO** del pannello KARAOKE · VERDETTO. | La TV lo apre da sola in un round interno dell’atto; qui serve solo per lanciarlo a mano. |
 | **✖️ CHIUDI BONUS** | Chiude il bonus in corso. | Per uscire da un bonus. |
 
 > Avanzamento manuale: usa **PARTI** oppure il tasto **AVANTI** in TV. Entrambi fanno

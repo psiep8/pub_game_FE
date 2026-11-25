@@ -100,8 +100,8 @@ N=10  B=4   malus: −500, −380, −250, −130     totale round −1260
 
 | Bonus | Max per occorrenza | Min | Fonte |
 |---|---:|---:|---|
-| Casino rosso/nero | +300 (3 × 100) | 0 | `BONUS_CASINO_COLOR_POINTS` |
-| Casino dozzina | +600 (3 × 200) | 0 | `BONUS_CASINO_DOZEN_POINTS` |
+| Karaoke | +1000 (100 + 150 + 200 + 250 + 300) | 0 | `BONUS_KARAOKE_MANCHE_POINTS` |
+| Casino 5 manche | +1500 (100 + 200 + 100 + 100 + 1000) | 0 | `BONUS_CASINO_FIVE_POINTS` |
 | Casino numero secco | +1000 (una volta sola) | 0 | `BONUS_CASINO_NUMBER_POINTS` |
 | Blackjack | 0 (premio del bar) | 0 | `BONUS_SCORING` |
 | Cavallo di battaglia | 0 (premio del bar) | 0 | `BONUS_SCORING` |

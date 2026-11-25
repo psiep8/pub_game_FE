@@ -148,7 +148,8 @@ niente.
 1. Dopo i round **4, 12, 20, 28, 36** la TV mostra la classifica **rapida**;
    dopo **8, 16, 24, 32, 40** quella **dettagliata**, con podio e festeggiamento.
    La classifica resta in TV finché non premi **▶️ PARTI**.
-2. I bonus previsti sono **CASINO NERO/ROSSO** nell’atto 1, **BLACKJACK** nel 2, **CASINO DOZZINA** nel 3, **CAVALLO** nel 4 e **CASINO NUMERO SECCO** nel 5. Ognuno parte da solo in un round interno dell’atto (mai il primo, mai l’ultimo).
+2. I bonus previsti sono **KARAOKE** nell’atto 1, **BLACKJACK** nel 2, **CASINO 5 MANCHE** nel 3, **CAVALLO** nel 4 e **CASINO NUMERO SECCO** nel 5. Ognuno parte da solo in un round interno dell’atto (mai il primo, mai l’ultimo).
+   - **Karaoke:** parte la clip, il testo scorre in TV e la musica si ferma a fine riga senza preavviso. Silenzio in aula: il primo tavolo che prenota dal telefono prende il microfono fisico e canta le frasi successive. Tu dalla regia premi **CORRETTO** o **SBAGLIATO**: sbagliare non toglie punti, blocca quel tavolo per la manche e riapre le prenotazioni alle altre squadre. Cinque manche, punti 100/150/200/250/300.
 3. Chiuso il bonus, la TV mostra il riepilogo per **otto secondi**, poi dieci di conto alla rovescia: in tutto diciotto secondi prima di ripartire da sola dal round successivo. **✖️ CHIUDI BONUS** serve solo a chiuderlo prima.
 4. **I punti dei bonus entrano in classifica alla chiusura del bonus**, una sola volta; dopo l’ultimo si vede la classifica finale aggiornata. Dillo tu: evita le proteste.
 

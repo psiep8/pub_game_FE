@@ -1,5 +1,11 @@
 # Bonus «Canta la canzone» — canzoni candidate e testi
 
+> **Sostituito dal Karaoke.** Il bonus in scaletta ora è `KARAOKE`: banca di 12
+> canzoni, cinque manche estratte dal seed, clip da 30 secondi tagliate su un
+> inizio riga e verdetto della regia. Questo documento resta come storia del
+> contratto dei testi; i comandi operativi sono in `scripts/bonus/` e la banca
+> sta in `questions/karaoke-bank.json`.
+
 Stato: **fase 1**. La struttura tecnica dei testi è pronta e il bonus non è
 ancora nel codice: le cinque canzoni le sceglie chi conduce la serata, non
 l'agente. Questo documento raccoglie la proposta, la fattibilità dei testi e il

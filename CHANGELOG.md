@@ -1,5 +1,32 @@
 # Changelog
 
+## 25 novembre 2026 — bonus serata: Karaoke, Blackjack, Casino 5 manche, Cavallo, Numero secco
+
+Il flusso bonus della serata è nell’ordine degli atti: **KARAOKE → BLACKJACK →
+CASINO 5 MANCHE → CAVALLO → CASINO NUMERO SECCO**. Un bonus per atto, in un
+round interno scelto dal seme.
+
+- **Karaoke (nuovo).** Banca di **12 canzoni** con clip da 30 secondi tagliate su
+  un inizio riga del testo (Vasco Rossi, Ligabue, Cesare Cremonini, Lucio Dalla,
+  Lucio Battisti, Rino Gaetano e quattro brani 2018–2026). La partita pesca
+  **cinque manche senza ripetizioni** con il seed della partita: stessa partita,
+  stesse canzoni anche dopo un refresh. I punti **100/150/200/250/300** dipendono
+  dalla posizione della manche. La musica si ferma a fine riga senza preavviso, il
+  primo tavolo che prenota dal telefono prende il microfono fisico e canta le
+  frasi successive; la regia risponde con `ADMIN_KARAOKE_RESULT` (CORRETTO o
+  SBAGLIATO). Sbagliare non toglie punti: blocca il tavolo per la manche e riapre
+  le prenotazioni. I testi sincronizzati restano fuori dal repository
+  (`questions/lyrics-bonus-it.json`, ignorato): li rigenera
+  `node scripts/bonus/scarica-testi.mjs`, mentre
+  `node scripts/bonus/prepara-clip.mjs` rifà clip, banca e scelte locali.
+- **Casino 5 manche.** La variante FIVE sostituisce colore/dozzina: cinque
+  manche (colore, dozzina, parità, alto/basso, numero) per un massimo di +1500.
+- **Test.** La banca è coperta da `KaraokeServiceTest` (≥10 canzoni, titoli e file
+  unici, artisti richiesti, almeno tre brani recenti, cinque manche senza
+  ripetizioni, punti per posizione, testi presenti o fallback esplicito) e da
+  `KaraokeControllerTest` (seed stabile). Frontend: 4 test sul Karaoke e 9 sul
+  banco di prova.
+
 ## 25 novembre 2026 — quizzOne 3.0.0, ultimi fix di sala
 
 Versione **3.0.0** in tutto il monorepo. Nessun cambio a percorsi, volumi,
