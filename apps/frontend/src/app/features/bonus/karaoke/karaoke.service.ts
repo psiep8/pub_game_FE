@@ -26,9 +26,10 @@ export interface KaraokeManche {
 export class KaraokeService {
   private readonly http = inject(HttpClient);
 
-  getManches(): Observable<KaraokeManche[]> {
+  /** Il gameId è il seed: la stessa partita riceve sempre le stesse manche. */
+  getManches(gameId: number): Observable<KaraokeManche[]> {
     return this.http
-      .get<{ manche?: KaraokeManche[] }>(`${environment.apiUrl}/karaoke/manche`)
+      .get<{ manche?: KaraokeManche[] }>(`${environment.apiUrl}/karaoke/manche?gameId=${encodeURIComponent(gameId)}`)
       .pipe(
         map((response) => Array.isArray(response?.manche) ? response.manche : []),
         catchError(() => of([])),

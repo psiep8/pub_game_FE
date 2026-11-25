@@ -391,7 +391,7 @@ export class KaraokeBonus implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.pausedReady = true;
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => this.onStatus(status));
-    this.karaokeService.getManches().subscribe((manches) => {
+    this.karaokeService.getManches(this.gameId).subscribe((manches) => {
       if (this.preview) {
         this.songs = manches.length && manches.every((item) => item.testiPronti) ? manches : DEMO_MANCHES;
       } else {

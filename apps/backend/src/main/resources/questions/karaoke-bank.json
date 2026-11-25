@@ -1,51 +1,102 @@
 {
-  "version": 1,
-  "nota": "Metadati delle cinque manche Karaoke. I testi sincronizzati non stanno nel repository: scripts/bonus/scarica-testi.mjs li scrive in lyrics-bonus-it.json, ignorato da git. La TV usa offsetMs per portare i tempi LRCLIB sul tempo della clip da 30 secondi.",
-  "manche": [
+  "version": 2,
+  "nota": "Banca del bonus Karaoke: clip di 30 secondi tagliate su un inizio riga del testo, così la prima riga parte a zero. Le cinque manche si pescano senza ripetizioni con il seed della partita e i punti 100/150/200/250/300 dipendono dalla posizione, non dalla canzone. I testi sincronizzati restano fuori dal repository: scripts/bonus/scarica-testi.mjs li scrive in lyrics-bonus-it.json.",
+  "canzoni": [
     {
-      "manche": 1,
-      "punti": 100,
       "titolo": "La solitudine",
       "artista": "Laura Pausini",
       "anno": 1993,
       "file": "/media/music/laura-pausini-la-solitudine.m4a",
-      "offsetMs": 0
+      "offsetMs": 160770,
+      "manche": 1
     },
     {
-      "manche": 2,
-      "punti": 150,
       "titolo": "Certe notti",
       "artista": "Ligabue",
       "anno": 1995,
       "file": "/media/music/ligabue-certe-notti.m4a",
-      "offsetMs": 0
+      "offsetMs": 50620,
+      "manche": 2
     },
     {
-      "manche": 3,
-      "punti": 200,
       "titolo": "Più bella cosa",
       "artista": "Eros Ramazzotti",
       "anno": 1996,
       "file": "/media/music/eros-ramazzotti-piu-bella-cosa.m4a",
-      "offsetMs": 0
+      "offsetMs": 49750,
+      "manche": 3
     },
     {
-      "manche": 4,
-      "punti": 250,
       "titolo": "Ogni volta",
       "artista": "Vasco Rossi",
       "anno": 1982,
       "file": "/media/music/vasco-rossi-ogni-volta.m4a",
-      "offsetMs": 0
+      "offsetMs": 30110,
+      "manche": 4
     },
     {
-      "manche": 5,
-      "punti": 300,
       "titolo": "Sally",
       "artista": "Vasco Rossi",
       "anno": 1996,
       "file": "/media/music/vasco-rossi-sally.m4a",
-      "offsetMs": 0
+      "offsetMs": 38990,
+      "manche": 5
+    },
+    {
+      "titolo": "Poetica",
+      "artista": "Cesare Cremonini",
+      "anno": 2017,
+      "file": "/media/music/cesare-cremonini-poetica.m4a",
+      "offsetMs": 55020,
+      "manche": 6
+    },
+    {
+      "titolo": "L'anno che verrà",
+      "artista": "Lucio Dalla",
+      "anno": 1979,
+      "file": "/media/music/lucio-dalla-lanno-che-verra.m4a",
+      "offsetMs": 174970,
+      "manche": 7
+    },
+    {
+      "titolo": "La canzone del sole",
+      "artista": "Lucio Battisti",
+      "anno": 1971,
+      "file": "/media/music/lucio-battisti-la-canzone-del-sole.m4a",
+      "offsetMs": 63610,
+      "manche": 8
+    },
+    {
+      "titolo": "Gianna",
+      "artista": "Rino Gaetano",
+      "anno": 1978,
+      "file": "/media/music/rino-gaetano-gianna.m4a",
+      "offsetMs": 178240,
+      "manche": 9
+    },
+    {
+      "titolo": "Sinceramente",
+      "artista": "Annalisa",
+      "anno": 2024,
+      "file": "/media/music/annalisa-sinceramente.m4a",
+      "offsetMs": 91330,
+      "manche": 10
+    },
+    {
+      "titolo": "La noia",
+      "artista": "Angelina Mango",
+      "anno": 2024,
+      "file": "/media/music/angelina-mango-la-noia.m4a",
+      "offsetMs": 250,
+      "manche": 11
+    },
+    {
+      "titolo": "Soldi",
+      "artista": "Mahmood",
+      "anno": 2019,
+      "file": "/media/music/mahmood-soldi.m4a",
+      "offsetMs": 76210,
+      "manche": 12
     }
   ]
 }

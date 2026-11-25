@@ -27,21 +27,32 @@ const MANCHE: KaraokeManche = {
 };
 
 describe('KaraokeBonus — microfono conteso', () => {
+  const richieste: number[] = [];
+
   beforeEach(async () => {
+    richieste.length = 0;
     await TestBed.configureTestingModule({
       imports: [KaraokeBonus],
       providers: [
         { provide: WebSocketService, useClass: FakeWebSocketService },
         { provide: AudioService, useClass: FakeAudioService },
-        { provide: KaraokeService, useValue: { getManches: () => of([MANCHE]) } },
+        {
+          provide: KaraokeService,
+          useValue: {
+            getManches: (gameId: number) => {
+              richieste.push(gameId);
+              return of([MANCHE]);
+            },
+          },
+        },
       ],
     }).compileComponents();
   });
 
-  function mount() {
+  function mount(gameId = 1) {
     const fixture = TestBed.createComponent(KaraokeBonus);
     const component = fixture.componentInstance;
-    fixture.componentRef.setInput('gameId', 1);
+    fixture.componentRef.setInput('gameId', gameId);
     fixture.componentRef.setInput('players', ['Anna', 'Bruno']);
     fixture.componentRef.setInput('preview', true);
     fixture.componentRef.setInput('resume', {
@@ -118,6 +129,14 @@ describe('KaraokeBonus — microfono conteso', () => {
     component.judge('WRONG');
     expect(component.phase()).toBe('REVEAL');
     expect(component.reveal()?.heading).toContain('NESSUN TAVOLO');
+
+    fixture.destroy();
+  });
+
+  it('chiede le manche al server con il gameId della partita', () => {
+    const { fixture } = mount(77);
+
+    expect(richieste).toEqual([77]);
 
     fixture.destroy();
   });
