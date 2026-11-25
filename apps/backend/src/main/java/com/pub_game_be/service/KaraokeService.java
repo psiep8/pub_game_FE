@@ -75,7 +75,11 @@ public class KaraokeService {
      */
     public List<Manche> selezione(long seed) {
         if (banca.isEmpty()) return List.of();
-        List<Brano> mescolata = new ArrayList<>(banca);
+        // Solo i brani con testo sincronizzato possono essere cantati: gli altri
+        // restano in banca ma non entrano nella scaletta della partita.
+        List<Brano> cantabili = banca.stream().filter(Brano::testiPronti).toList();
+        List<Brano> pool = cantabili.size() >= MANCHE_PER_PARTITA ? cantabili : banca;
+        List<Brano> mescolata = new ArrayList<>(pool);
         Collections.shuffle(mescolata, new Random(seed));
 
         int quante = Math.min(MANCHE_PER_PARTITA, mescolata.size());

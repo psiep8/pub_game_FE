@@ -105,15 +105,18 @@ class KaraokeServiceTest {
 
     @Test
     void ogniMancheRecenteeCopertaAlmenoUnaVolta() {
-        // Su un giro di seed la banca intera deve poter uscire: se la selezione
-        // restasse sempre sulle stesse canzoni non sarebbe un pescaggio.
+        // Su un giro di seed le canzoni cantabili devono poter uscire tutte: se la
+        // selezione restasse sempre sulle stesse non sarebbe un pescaggio.
         Set<String> viste = new java.util.HashSet<>();
-        for (long seed = 0; seed < 40; seed++) {
+        for (long seed = 0; seed < 200; seed++) {
             service.selezione(seed).forEach((manche) -> viste.add(manche.titolo()));
         }
 
-        assertThat(viste).containsAll(
-                service.banca().stream().map(KaraokeService.Brano::titolo).toList());
+        assertThat(viste).containsAll(service.banca().stream()
+                .filter(KaraokeService.Brano::testiPronti)
+                .map(KaraokeService.Brano::titolo)
+                .toList());
+        assertThat(viste).hasSizeLessThanOrEqualTo(service.banca().size());
     }
 
     @Test

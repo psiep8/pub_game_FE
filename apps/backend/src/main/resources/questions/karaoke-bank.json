@@ -97,6 +97,422 @@
       "file": "/media/music/mahmood-soldi.m4a",
       "offsetMs": 76210,
       "manche": 12
+    },
+    {
+      "titolo": "Come nelle favole",
+      "artista": "Vasco Rossi",
+      "anno": 2011,
+      "file": "/media/music/vasco-rossi-come-nelle-favole.m4a",
+      "offsetMs": 17350,
+      "manche": 13
+    },
+    {
+      "titolo": "Balliamo sul mondo",
+      "artista": "Ligabue",
+      "anno": 1990,
+      "file": "/media/music/ligabue-balliamo-sul-mondo.m4a",
+      "offsetMs": 197410,
+      "manche": 14
+    },
+    {
+      "titolo": "Ho messo via",
+      "artista": "Ligabue",
+      "anno": 1993,
+      "file": "/media/music/ligabue-ho-messo-via.m4a",
+      "offsetMs": 111890,
+      "manche": 15
+    },
+    {
+      "titolo": "Eri bellissima",
+      "artista": "Ligabue",
+      "anno": 1995,
+      "file": "/media/music/ligabue-eri-bellissima.m4a",
+      "offsetMs": 127680,
+      "manche": 16
+    },
+    {
+      "titolo": "Marmellata #25",
+      "artista": "Cesare Cremonini",
+      "anno": 2003,
+      "file": "/media/music/cesare-cremonini-marmellata-25.m4a",
+      "offsetMs": 38090,
+      "manche": 17
+    },
+    {
+      "titolo": "4 marzo 1943",
+      "artista": "Lucio Dalla",
+      "anno": 1971,
+      "file": "/media/music/lucio-dalla-4-marzo-1943.m4a",
+      "offsetMs": 158790,
+      "manche": 18
+    },
+    {
+      "titolo": "Attenti al lupo",
+      "artista": "Lucio Dalla",
+      "anno": 1990,
+      "file": "/media/music/lucio-dalla-attenti-al-lupo.m4a",
+      "offsetMs": 65830,
+      "manche": 19
+    },
+    {
+      "titolo": "Piazza Grande",
+      "artista": "Lucio Dalla",
+      "anno": 1972,
+      "file": "/media/music/lucio-dalla-piazza-grande.m4a",
+      "offsetMs": 101280,
+      "manche": 20
+    },
+    {
+      "titolo": "Il mio canto libero",
+      "artista": "Lucio Battisti",
+      "anno": 1972,
+      "file": "/media/music/lucio-battisti-il-mio-canto-libero.m4a",
+      "offsetMs": 242690,
+      "manche": 21
+    },
+    {
+      "titolo": "Acqua azzurra acqua chiara",
+      "artista": "Lucio Battisti",
+      "anno": 1969,
+      "file": "/media/music/lucio-battisti-acqua-azzurra-acqua-chiara.m4a",
+      "offsetMs": 106590,
+      "manche": 22
+    },
+    {
+      "titolo": "Con il nastro rosa",
+      "artista": "Lucio Battisti",
+      "anno": 1980,
+      "file": "/media/music/lucio-battisti-con-il-nastro-rosa.m4a",
+      "offsetMs": 156060,
+      "manche": 23
+    },
+    {
+      "titolo": "A mano a mano",
+      "artista": "Rino Gaetano",
+      "anno": 1978,
+      "file": "/media/music/rino-gaetano-a-mano-a-mano.m4a",
+      "offsetMs": 138410,
+      "manche": 24
+    },
+    {
+      "titolo": "Ma il cielo è sempre più blu",
+      "artista": "Rino Gaetano",
+      "anno": 1975,
+      "file": "/media/music/rino-gaetano-ma-il-cielo-e-sempre-piu-blu.m4a",
+      "offsetMs": 184290,
+      "manche": 25
+    },
+    {
+      "titolo": "Nuntereggae più",
+      "artista": "Rino Gaetano",
+      "anno": 1978,
+      "file": "/media/music/rino-gaetano-nuntereggae-piu.m4a",
+      "offsetMs": 241670,
+      "manche": 26
+    },
+    {
+      "titolo": "E ritorno da te",
+      "artista": "Laura Pausini",
+      "anno": 2001,
+      "file": "/media/music/laura-pausini-e-ritorno-da-te.m4a",
+      "offsetMs": 147420,
+      "manche": 27
+    },
+    {
+      "titolo": "Simili",
+      "artista": "Laura Pausini",
+      "anno": 2015,
+      "file": "/media/music/laura-pausini-simili.m4a",
+      "offsetMs": 115820,
+      "manche": 28
+    },
+    {
+      "titolo": "Terra promessa",
+      "artista": "Eros Ramazzotti",
+      "anno": 1984,
+      "file": "/media/music/eros-ramazzotti-terra-promessa.m4a",
+      "offsetMs": 83950,
+      "manche": 29
+    },
+    {
+      "titolo": "Un'emozione per sempre",
+      "artista": "Eros Ramazzotti",
+      "anno": 2003,
+      "file": "/media/music/eros-ramazzotti-unemozione-per-sempre.m4a",
+      "offsetMs": 52790,
+      "manche": 30
+    },
+    {
+      "titolo": "Bellissima",
+      "artista": "Annalisa",
+      "anno": 2022,
+      "file": "/media/music/annalisa-bellissima.m4a",
+      "offsetMs": 160690,
+      "manche": 31
+    },
+    {
+      "titolo": "Mon amour",
+      "artista": "Annalisa",
+      "anno": 2023,
+      "file": "/media/music/annalisa-mon-amour.m4a",
+      "offsetMs": 19340,
+      "manche": 32
+    },
+    {
+      "titolo": "Maschio",
+      "artista": "Annalisa",
+      "anno": 2023,
+      "file": "/media/music/annalisa-maschio.m4a",
+      "offsetMs": 154380,
+      "manche": 33
+    },
+    {
+      "titolo": "L'essenziale",
+      "artista": "Marco Mengoni",
+      "anno": 2013,
+      "file": "/media/music/marco-mengoni-lessenziale.m4a",
+      "offsetMs": 24590,
+      "manche": 34
+    },
+    {
+      "titolo": "Due vite",
+      "artista": "Marco Mengoni",
+      "anno": 2023,
+      "file": "/media/music/marco-mengoni-due-vite.m4a",
+      "offsetMs": 15850,
+      "manche": 35
+    },
+    {
+      "titolo": "Cambia un uomo",
+      "artista": "Marco Mengoni",
+      "anno": 2015,
+      "file": "/media/music/marco-mengoni-cambia-un-uomo.m4a",
+      "offsetMs": 79510,
+      "manche": 36
+    },
+    {
+      "titolo": "Giornate perse",
+      "artista": "Marco Mengoni",
+      "anno": 2015,
+      "file": "/media/music/marco-mengoni-giornate-perse.m4a",
+      "offsetMs": 68460,
+      "manche": 37
+    },
+    {
+      "titolo": "Luce (tramonti a nord est)",
+      "artista": "Elisa",
+      "anno": 2001,
+      "file": "/media/music/elisa-luce-tramonti-a-nord-est.m4a",
+      "offsetMs": 237160,
+      "manche": 38
+    },
+    {
+      "titolo": "Eppure sentire (un senso di te)",
+      "artista": "Elisa",
+      "anno": 2006,
+      "file": "/media/music/elisa-eppure-sentire-un-senso-di-te.m4a",
+      "offsetMs": 137310,
+      "manche": 39
+    },
+    {
+      "titolo": "Gli ostacoli del cuore",
+      "artista": "Elisa",
+      "anno": 2006,
+      "file": "/media/music/elisa-gli-ostacoli-del-cuore.m4a",
+      "offsetMs": 55250,
+      "manche": 40
+    },
+    {
+      "titolo": "Sere nere",
+      "artista": "Tiziano Ferro",
+      "anno": 2003,
+      "file": "/media/music/tiziano-ferro-sere-nere.m4a",
+      "offsetMs": 164560,
+      "manche": 41
+    },
+    {
+      "titolo": "Ti scatterò una foto",
+      "artista": "Tiziano Ferro",
+      "anno": 2006,
+      "file": "/media/music/tiziano-ferro-ti-scattero-una-foto.m4a",
+      "offsetMs": 230620,
+      "manche": 42
+    },
+    {
+      "titolo": "Il regalo più grande",
+      "artista": "Tiziano Ferro",
+      "anno": 2008,
+      "file": "/media/music/tiziano-ferro-il-regalo-piu-grande.m4a",
+      "offsetMs": 146500,
+      "manche": 43
+    },
+    {
+      "titolo": "Alla mia età",
+      "artista": "Tiziano Ferro",
+      "anno": 2008,
+      "file": "/media/music/tiziano-ferro-alla-mia-eta.m4a",
+      "offsetMs": 167860,
+      "manche": 44
+    },
+    {
+      "titolo": "Non me lo so spiegare",
+      "artista": "Tiziano Ferro",
+      "anno": 2003,
+      "file": "/media/music/tiziano-ferro-non-me-lo-so-spiegare.m4a",
+      "offsetMs": 186840,
+      "manche": 45
+    },
+    {
+      "titolo": "Estate",
+      "artista": "Negramaro",
+      "anno": 2007,
+      "file": "/media/music/negramaro-estate.m4a",
+      "offsetMs": 151950,
+      "manche": 46
+    },
+    {
+      "titolo": "Parlami d'amore",
+      "artista": "Negramaro",
+      "anno": 2005,
+      "file": "/media/music/negramaro-parlami-damore.m4a",
+      "offsetMs": 107020,
+      "manche": 47
+    },
+    {
+      "titolo": "Mentre tutto scorre",
+      "artista": "Negramaro",
+      "anno": 2005,
+      "file": "/media/music/negramaro-mentre-tutto-scorre.m4a",
+      "offsetMs": 133240,
+      "manche": 48
+    },
+    {
+      "titolo": "Fino all'imbrunire",
+      "artista": "Negramaro",
+      "anno": 2020,
+      "file": "/media/music/negramaro-fino-allimbrunire.m4a",
+      "offsetMs": 140800,
+      "manche": 49
+    },
+    {
+      "titolo": "Occhi",
+      "artista": "Zucchero",
+      "anno": 1989,
+      "file": "/media/music/zucchero-occhi.m4a",
+      "offsetMs": 175100,
+      "manche": 50
+    },
+    {
+      "titolo": "Baila (sexy thing)",
+      "artista": "Zucchero",
+      "anno": 1990,
+      "file": "/media/music/zucchero-baila-sexy-thing.m4a",
+      "offsetMs": 35780,
+      "manche": 51
+    },
+    {
+      "titolo": "Vedo nero",
+      "artista": "Zucchero",
+      "anno": 1987,
+      "file": "/media/music/zucchero-vedo-nero.m4a",
+      "offsetMs": 134530,
+      "manche": 52
+    },
+    {
+      "titolo": "Rolling Stones",
+      "artista": "Achille Lauro",
+      "anno": 2019,
+      "file": "/media/music/achille-lauro-rolling-stones.m4a",
+      "offsetMs": 12050,
+      "manche": 53
+    },
+    {
+      "titolo": "Canto d'amore",
+      "artista": "Angelina Mango",
+      "anno": 2023,
+      "file": "/media/music/angelina-mango-canto-damore.m4a",
+      "offsetMs": 6640,
+      "manche": 54
+    },
+    {
+      "titolo": "Blu celeste",
+      "artista": "Blanco",
+      "anno": 2021,
+      "file": "/media/music/blanco-blu-celeste.m4a",
+      "offsetMs": 82770,
+      "manche": 55
+    },
+    {
+      "titolo": "Brividi",
+      "artista": "Blanco",
+      "anno": 2022,
+      "file": "/media/music/blanco-brividi.m4a",
+      "offsetMs": 136610,
+      "manche": 56
+    },
+    {
+      "titolo": "Un briciolo di allegria",
+      "artista": "Blanco",
+      "anno": 2023,
+      "file": "/media/music/blanco-un-briciolo-di-allegria.m4a",
+      "offsetMs": 115750,
+      "manche": 57
+    },
+    {
+      "titolo": "Cenere",
+      "artista": "Lazza",
+      "anno": 2023,
+      "file": "/media/music/lazza-cenere.m4a",
+      "offsetMs": 79870,
+      "manche": 58
+    },
+    {
+      "titolo": "Tango",
+      "artista": "Tananai",
+      "anno": 2023,
+      "file": "/media/music/tananai-tango.m4a",
+      "offsetMs": 122630,
+      "manche": 59
+    },
+    {
+      "titolo": "Mille",
+      "artista": "Fedez",
+      "anno": 2021,
+      "file": "/media/music/fedez-mille.m4a",
+      "offsetMs": 85490,
+      "manche": 60
+    },
+    {
+      "titolo": "La dolce vita",
+      "artista": "Fedez",
+      "anno": 2022,
+      "file": "/media/music/fedez-la-dolce-vita.m4a",
+      "offsetMs": 75480,
+      "manche": 61
+    },
+    {
+      "titolo": "Italodisco",
+      "artista": "The Kolors",
+      "anno": 2023,
+      "file": "/media/music/the-kolors-italodisco.m4a",
+      "offsetMs": 12590,
+      "manche": 62
+    },
+    {
+      "titolo": "Ciao ciao",
+      "artista": "La Rappresentante di Lista",
+      "anno": 2022,
+      "file": "/media/music/la-rappresentante-di-lista-ciao-ciao.m4a",
+      "offsetMs": 37020,
+      "manche": 63
+    },
+    {
+      "titolo": "Chiamami per nome",
+      "artista": "Francesca Michielin",
+      "anno": 2021,
+      "file": "/media/music/francesca-michielin-chiamami-per-nome.m4a",
+      "offsetMs": 94080,
+      "manche": 64
     }
   ]
 }
