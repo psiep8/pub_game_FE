@@ -165,7 +165,8 @@ const MANCHES: Manche[] = [
     options: Array.from({ length: 37 }, (_, index) => String(index)),
     seconds: 10,
     points: 1000,
-    spins: 1,
+    // Tre girate con lo stesso numero: paga una volta sola (vedi numberAwarded).
+    spins: 3,
   },
 ];
 

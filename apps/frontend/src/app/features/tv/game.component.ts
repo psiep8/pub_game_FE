@@ -2712,9 +2712,10 @@ export class GameComponent implements OnInit, OnDestroy {
       && (BONUS_TYPES as readonly string[]).includes(this.serverBonus.type)) {
       type = this.serverBonus.type as BonusType;
     } else if (resume) {
-      // Senza il segno sul server, vale ancora il checkpoint del Casino.
+      // Senza il segno sul server vale il checkpoint TV, ma solo per i bonus
+      // che sanno riprendere da lì: Casino e Karaoke. Cavallo e Blackjack no.
       const fromCheckpoint = mode.slice('BONUS_'.length) as BonusType;
-      if (CASINO_BONUS_TYPES.includes(fromCheckpoint)) type = fromCheckpoint;
+      if (fromCheckpoint === 'KARAOKE' || CASINO_BONUS_TYPES.includes(fromCheckpoint)) type = fromCheckpoint;
     }
     if (!type) return;
     const state = resume && mode === `BONUS_${type}`

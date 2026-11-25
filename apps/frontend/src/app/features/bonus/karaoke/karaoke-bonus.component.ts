@@ -32,6 +32,13 @@ const Phase = {
 } as const;
 type Phase = (typeof Phase)[keyof typeof Phase];
 
+interface VisibleLine {
+  line: KaraokeLine;
+  active: boolean;
+  past: boolean;
+  answer: boolean;
+}
+
 interface KaraokeScore {
   playerName: string;
   score: number;
@@ -105,16 +112,14 @@ const DEMO_MANCHES: KaraokeManche[] = Array.from({ length: 5 }, (_, index) => ({
 
         <div class="karaoke-stage">
           <div class="karaoke-lyrics" [class.blackout]="phase() === Phase.STEAL || phase() === Phase.JUDGE">
-            @for (line of song()?.righe ?? []; track line.indice; let i = $index) {
-              @if (showLine(i)) {
-                <p
-                  class="karaoke-line"
-                  [class.active]="i === activeLine() && phase() === Phase.PLAYING"
-                  [class.past]="i < activeLine() || phase() === Phase.REVEAL"
-                  [class.answer]="phase() === Phase.REVEAL && i > stopIndex()">
-                  {{ line.testo }}
-                </p>
-              }
+            @for (row of visibleLines(); track row.line.indice) {
+              <p
+                class="karaoke-line"
+                [class.active]="row.active"
+                [class.past]="row.past"
+                [class.answer]="row.answer">
+                {{ row.line.testo }}
+              </p>
             }
             @if (!song()?.righe?.length) {
               <p class="karaoke-empty">TESTO NON DISPONIBILE: carica il file locale dei testi e riavvia il bonus.</p>
@@ -258,14 +263,19 @@ const DEMO_MANCHES: KaraokeManche[] = Array.from({ length: 5 }, (_, index) => ({
     .karaoke-song-kicker { color: var(--tomato); font-family: var(--font-mono); font-size: clamp(.62rem, .9vw, .8rem); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
     .karaoke-song h2 { margin: 0; font-family: var(--font-display); font-size: clamp(1.8rem, 3.4vw, 3.3rem); font-weight: 400; line-height: .9; text-transform: uppercase; }
     .karaoke-stage { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr); gap: clamp(12px, 2vw, 24px); align-items: start; }
-    .karaoke-lyrics { display: flex; flex-direction: column; justify-content: center; gap: clamp(4px, .7vh, 8px); min-height: 300px; padding: clamp(12px, 2vw, 24px); border: 4px solid var(--coal); background-color: var(--paper-hi); background-image: radial-gradient(color-mix(in srgb, var(--coal) 9%, transparent) 1px, transparent 1px); background-size: 14px 14px; box-shadow: 8px 8px 0 var(--ink); transition: background-color .15s linear; }
+    .karaoke-lyrics { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: clamp(10px, 2.2vh, 26px); min-height: clamp(280px, 52vh, 560px); padding: clamp(14px, 2vw, 30px); border: 4px solid var(--coal); background-color: var(--paper-hi); background-image: radial-gradient(color-mix(in srgb, var(--coal) 9%, transparent) 1px, transparent 1px); background-size: 14px 14px; box-shadow: 8px 8px 0 var(--ink); transition: background-color .15s linear; }
     .karaoke-lyrics.blackout { background-color: var(--coal); background-image: none; }
-    .karaoke-line { margin: 0; color: color-mix(in srgb, var(--coal) 55%, transparent); font-family: var(--font); font-size: clamp(.88rem, 1.35vw, 1.2rem); font-weight: 600; line-height: 1.25; transition: color .12s linear, transform .12s linear; }
-    .karaoke-line.active { color: var(--coal); font-size: clamp(1.2rem, 2vw, 1.9rem); font-weight: 900; transform: translateX(5px); }
-    .karaoke-line.past { color: color-mix(in srgb, var(--coal) 42%, transparent); }
-    .karaoke-line.answer { color: var(--tomato); font-weight: 900; }
-    .karaoke-lyrics.blackout .karaoke-line { color: transparent; }
-    .karaoke-lyrics.blackout .karaoke-line:last-of-type, .karaoke-lyrics.blackout .karaoke-line.past:last-of-type { color: color-mix(in srgb, var(--paper) 42%, transparent); }
+    /* Due righe alla volta e caratteri da leggere in fondo alla sala. */
+    .karaoke-line { margin: 0; color: color-mix(in srgb, var(--coal) 62%, transparent); font-family: var(--font); font-size: clamp(1.9rem, 4.4vw, 4.8rem); font-weight: 900; line-height: 1.04; letter-spacing: -.01em; text-transform: uppercase; transition: color .12s linear; }
+    .karaoke-line.active { color: var(--coal); font-size: clamp(2.3rem, 5.4vw, 6rem); }
+    .karaoke-line.past { color: color-mix(in srgb, var(--coal) 45%, transparent); }
+    .karaoke-line.answer { color: var(--tomato); }
+    .karaoke-lyrics.blackout .karaoke-line { color: color-mix(in srgb, var(--paper) 82%, transparent); font-size: clamp(2.1rem, 4.8vw, 5.2rem); }
+    @media (max-height: 760px) {
+      .karaoke-lyrics { min-height: 240px; }
+      .karaoke-line { font-size: clamp(1.6rem, 3.6vw, 3.6rem); }
+      .karaoke-line.active { font-size: clamp(1.9rem, 4.2vw, 4.4rem); }
+    }
     .karaoke-empty { margin: 0; color: var(--tomato); font-family: var(--font-mono); font-size: .8rem; font-weight: 700; }
     .karaoke-side { display: flex; flex-direction: column; gap: 9px; }
     .karaoke-box { display: flex; flex-direction: column; gap: 5px; padding: 14px; border: 3px solid var(--coal); background: var(--paper-2); box-shadow: 6px 6px 0 var(--coal); }
@@ -418,11 +428,28 @@ export class KaraokeBonus implements OnInit, OnDestroy {
     void this.audioEl.play().catch(() => this.audioBlocked.set(true));
   }
 
-  showLine(index: number): boolean {
-    if (this.phase() === Phase.REVEAL) return true;
-    if (this.phase() === Phase.STEAL || this.phase() === Phase.JUDGE) return index <= this.stopIndex();
-    return true;
-  }
+  /**
+   * Due righe alla volta, grandi da leggere dal fondo del pub: quella corrente
+   * e la successiva. Al silenzio resta solo la riga su cui si è fermata la
+   * musica; al reveal si vedono le frasi da cantare.
+   */
+  readonly visibleLines = computed<VisibleLine[]>(() => {
+    const lines = this.song()?.righe ?? [];
+    if (!lines.length) return [];
+    if (this.phase() === Phase.REVEAL) {
+      const from = Math.max(0, this.stopIndex());
+      return lines.slice(from, from + 3)
+        .map((line, index) => ({ line, active: false, past: false, answer: index > 0 }));
+    }
+    if (this.phase() === Phase.STEAL || this.phase() === Phase.JUDGE) {
+      const at = Math.max(0, this.stopIndex());
+      return lines.slice(at, at + 1)
+        .map((line) => ({ line, active: true, past: false, answer: false }));
+    }
+    const at = Math.max(0, this.activeLine());
+    return lines.slice(at, at + 2)
+      .map((line, index) => ({ line, active: index === 0, past: false, answer: false }));
+  });
 
   judge(kind: 'CORRECT' | 'WRONG'): void {
     if (this.phase() !== Phase.JUDGE) return;
