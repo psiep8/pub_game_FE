@@ -99,7 +99,7 @@ describe('Song', () => {
     }
   });
 
-  it('F-16: la prima manche è un filo calante, la terza torna naturale', () => {
+  it('F-16: la manche 1 non cambia la velocità del brano (l\'effetto è nel filtro)', () => {
     const song = component as any;
     const setValue = vi.fn();
     song.audio = { playbackRate: 1, pause: vi.fn() };
@@ -112,7 +112,7 @@ describe('Song', () => {
     song.setInterference = vi.fn();
 
     song.applyFilters(1);
-    expect(song.audio.playbackRate).toBeCloseTo(1.03);
+    expect(song.audio.playbackRate).toBe(1);
 
     song.applyFilters(3);
     expect(song.audio.playbackRate).toBe(1);
@@ -127,7 +127,7 @@ describe('Song', () => {
     song.distortionNode = undefined;
   });
 
-  it('F-17: la seconda manche è più calante della prima e non va al contrario', async () => {
+  it('F-17: la manche 2 resta a velocità naturale e non va al contrario', async () => {
     const song = component as any;
     const setValue = vi.fn();
     const createBufferSource = vi.fn();
@@ -144,7 +144,7 @@ describe('Song', () => {
     song.displayData = { previewUrl: 'preview.mp3' };
 
     song.applyFilters(2);
-    expect(song.audio.playbackRate).toBeCloseTo(1.06);
+    expect(song.audio.playbackRate).toBe(1);
 
     song.currentPhase.set(2);
     await song.playAudio();
