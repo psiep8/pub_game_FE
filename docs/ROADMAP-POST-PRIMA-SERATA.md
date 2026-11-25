@@ -408,16 +408,18 @@ media), run CI #155 verde prima di questo job, screenshot del README rifatti.
 
 | Voce | Stato | Commit | Test |
 | --- | --- | --- | --- |
-| F-02 — Biglie assenti dalla partita a un round per gioco | Fatto | `1c3e594` | `round-manager.service.spec.ts`: la scaletta simulata copre tutti e 14 i giochi, BIGLIE comprese |
-| F-03 — Musica: dopo ERRATO il round si chiudeva da solo | Fatto | `3d01d0b` | `music.mode.spec.ts`: un solo tick per secondo dopo l'ERRATO, manche riaperta e round non chiuso |
-| F-04 — Demo chiusa dalla regia: il round non parte e la demo resta in memoria | Fatto | `_F04_` | `game.component.spec.ts`: CHIUDI DEMO apre il round in attesa e azzera tipo e scena |
-| F-05 — Casino in pausa: il rumore del giro non si ferma | Fatto | `_F05_` | `audio.service.spec.ts`: la pausa ferma anche gli effetti lunghi già partiti |
-| F-06 — Time Buzzer: tempi mancanti dopo la pausa | Fatto | `_F06_` | `ReliabilityIntegrationTest#timeBuzzerMantieneITempiDopoUnaPausaLunga`: pausa di 6 s, tempo accettato (200, prima 422) |
-| F-07.1 — Tennis: riposo con squadre dispari | Fatto | `_F071_` | `tennis-battle.mode.spec.ts`: riposa la prima in classifica, nessun RIPOSO e zero punti |
-| F-07.2 — Tennis: difficoltà crescente più in fretta | Fatto | `_F072_` | `tennis-battle.mode.spec.ts`: EASY 0–1, MEDIUM 2–4, HARD dal 5 (vecchia: EASY 0–2, MEDIUM 3–7, HARD dall'8) |
-| F-07.3 — Tennis: killer point dopo tre vantaggi | Fatto | `_F073_` | `tennis-battle.mode.spec.ts`: dopo 3 vantaggi scatta il killer point; il vecchio contatore si azzerava e i vantaggi erano infiniti |
-| F-07.4 — Tennis: partita al meglio di 3 game (vince chi fa 2) e 40-40 → killer point diretto | Fatto | `_F074_` | `tennis-battle.mode.spec.ts`: il primo game non chiude, il secondo sì; sul 40-40 scatta subito il killer point; campo chiuso che ignora nuove risposte |
-| F-11 — Lag nelle animazioni di entrata/uscita | Parziale | `_F11_` | Regola CSS: i livelli `alive` vanno in pausa durante `stage-entrance` e `stage-exit` (`alive.css`, test in `alive.spec.ts`). Misura dei fotogrammi a 1280×720 con CPU 4× NON eseguita. |
-| F-10 — Domanda che sparisce fra lettura e 3-2-1 | Fatto | `_F10_` | `game.component.spec.ts`: la domanda resta nel DOM in lettura, opzioni e 3-2-1; rimosso l’overlay a tutto schermo. |
-| F-08 — Banca dati: domande ripetute nella stessa serata | Fatto | `_F08_` | Misura su 40 round + 5 bonus (`scripts/sim/ripetizioni-serata.mjs`): Tennis 132 pescate, 84 ripetute prima (12+4 per ~44 punti a round), 0 dopo (60 nuove per round + storico); Cavallo 8, 0; Quiz 9, Arena 72, Ultima 15 già a 0. Test `tennisECavalloNonRipetonoLeDomandeNellaStessaSerata` (falliva: 30 invece di 60 e 0 in storico). Speed Rush: 92 microprove distinte, 80 pescate, 22 doppioni strutturali (mazzo locale, non banca). |
-| F-07.5 — Tennis: tiri della TV più vari (non solo dritti) | Fatto | `_F074_` | `tennis-battle.mode.spec.ts`: `randomServe` pesca dritto, diagonale, stretto, corto, centrale, linea, lob, veloce e lento |
+| F-02 — Biglie assenti dalla partita a un round per gioco | Fatto | `5f2aa80` | `round-manager.service.spec.ts`: la scaletta simulata copre tutti e 14 i giochi, BIGLIE comprese |
+| F-03 — Musica: dopo ERRATO il round si chiudeva da solo | Fatto | `572d96f` | `music.mode.spec.ts`: un solo tick per secondo dopo l'ERRATO, manche riaperta e round non chiuso |
+| F-04 — Demo chiusa dalla regia: il round non parte e la demo resta in memoria | Fatto | `dad4ba4` | `game.component.spec.ts`: CHIUDI DEMO apre il round in attesa e azzera tipo e scena |
+| F-05 — Casino in pausa: il rumore del giro non si ferma | Fatto | `8ebf605` | `audio.service.spec.ts`: la pausa ferma anche gli effetti lunghi già partiti |
+| F-06 — Time Buzzer: tempi mancanti dopo la pausa | Fatto | `22796f3` | `ReliabilityIntegrationTest#timeBuzzerMantieneITempiDopoUnaPausaLunga`: pausa di 6 s, tempo accettato (200, prima 422) |
+| F-07.1 — Tennis: riposo con squadre dispari | Fatto | `72a5b8c` | `tennis-battle.mode.spec.ts`: riposa la prima in classifica, nessun RIPOSO e zero punti |
+| F-07.2 — Tennis: difficoltà crescente più in fretta | Fatto | `001dfd7` | `tennis-battle.mode.spec.ts`: EASY 0–1, MEDIUM 2–4, HARD dal 5 (vecchia: EASY 0–2, MEDIUM 3–7, HARD dall'8) |
+| F-07.3 — Tennis: killer point dopo tre vantaggi | Fatto | `581461d` | `tennis-battle.mode.spec.ts`: dopo 3 vantaggi scatta il killer point; il vecchio contatore si azzerava e i vantaggi erano infiniti |
+| F-07.4 — Tennis: partita al meglio di 3 game (vince chi fa 2) e 40-40 → killer point diretto | Fatto | `555ccc9` | `tennis-battle.mode.spec.ts`: il primo game non chiude, il secondo sì; sul 40-40 scatta subito il killer point; campo chiuso che ignora nuove risposte |
+| F-13 — «Rullo di tamburi» senza suono | Fatto | `3e68d09` | `quiz.component.spec.ts`: le scritte visibili dicono «IN ATTESA…» |
+| F-12 — Fine gioco: ripartenza troppo vicina | Fatto | `add3ca1` | `game.component.spec.ts`: 30 s di attesa, AVANTI spento col conto, SALTA ATTESA/ESC portano al round dopo, pausa che ferma e ripresa che continua |
+| F-11 — Lag nelle animazioni di entrata/uscita | Parziale | `775b496` | Regola CSS: i livelli `alive` vanno in pausa durante `stage-entrance` e `stage-exit` (`alive.css`, test in `alive.spec.ts`). Misura dei fotogrammi a 1280×720 con CPU 4× NON eseguita. |
+| F-10 — Domanda che sparisce fra lettura e 3-2-1 | Fatto | `2060f6e` | `game.component.spec.ts`: la domanda resta nel DOM in lettura, opzioni e 3-2-1; rimosso l’overlay a tutto schermo. |
+| F-08 — Banca dati: domande ripetute nella stessa serata | Fatto | `1086f44` | Misura su 40 round + 5 bonus (`scripts/sim/ripetizioni-serata.mjs`): Tennis 132 pescate, 84 ripetute prima (12+4 per ~44 punti a round), 0 dopo (60 nuove per round + storico); Cavallo 8, 0; Quiz 9, Arena 72, Ultima 15 già a 0. Test `tennisECavalloNonRipetonoLeDomandeNellaStessaSerata` (falliva: 30 invece di 60 e 0 in storico). Speed Rush: 92 microprove distinte, 80 pescate, 22 doppioni strutturali (mazzo locale, non banca). |
+| F-07.5 — Tennis: tiri della TV più vari (non solo dritti) | Fatto | `555ccc9` | `tennis-battle.mode.spec.ts`: `randomServe` pesca dritto, diagonale, stretto, corto, centrale, linea, lob, veloce e lento |
