@@ -129,6 +129,14 @@ describe('alive — ogni schermata TV ha un elemento vivo', () => {
     expect(CSS).toContain('.game-container.alive-calm');
   });
 
+  it('le animazioni alive si fermano durante entrata e uscita', () => {
+    // F-11: entrate e uscite devono avere una sola animazione da seguire.
+    expect(CSS).toContain('.game-container.stage-entrance .alive-breath');
+    expect(CSS).toContain('.game-container.stage-entrance .alive-bubble');
+    expect(CSS).toContain('.game-container.stage-exit .alive-drift');
+    expect(CSS).toContain('animation-play-state: paused');
+  });
+
   it('muove solo transform e opacity, e il reduced-motion resta vivo', () => {
     const keyframes = CSS.split('@keyframes').slice(1).join('@keyframes');
     expect(keyframes).not.toContain('filter:');

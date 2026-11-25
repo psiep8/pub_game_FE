@@ -35,6 +35,18 @@
   will-change: transform;
 }
 
+/* F-11: durante un'entrata o un'uscita i livelli alive si fermano. Il
+   compositore segue una sola animazione per volta; al ritorno riprendono
+   da dove erano (play-state, non un reset). */
+.game-container.stage-entrance .alive-breath,
+.game-container.stage-entrance .alive-drift,
+.game-container.stage-entrance .alive-bubble,
+.game-container.stage-exit .alive-breath,
+.game-container.stage-exit .alive-drift,
+.game-container.stage-exit .alive-bubble {
+  animation-play-state: paused;
+}
+
 /* La pausa si muove, ma più lenta: la sala non deve sembrare ferma. */
 .game-container.alive-calm .alive-breath,
 .game-container.alive-calm .alive-drift {
