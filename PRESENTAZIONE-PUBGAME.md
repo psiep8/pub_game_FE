@@ -1,6 +1,6 @@
 # PUBGAME — Il copione del presentatore
 
-> **VERSIONE 3.0.0 — 25 novembre 2026.**
+> **VERSIONE 3.1.0 — 25 novembre 2026.**
 > Il copione descrive la serata alla seconda major. Per i pulsanti del pannello admin
 > vedi `docs/PANNELLO-ADMIN.md`; per il telefono delle squadre vedi `docs/MANUALE-TELEFONO.md`.
 > Se un gioco o un punteggio cambia, questo file va riallineato.
@@ -87,9 +87,9 @@ Bonus, uno dentro ognuno dei cinque atti:
 
 | Atto | Bonus | Punti |
 | --- | --- | --- |
-| 1 | 🎰 Casino nero/rosso | +100 a girata, tre girate (max +300) |
+| 1 | 🎤 Karaoke | +100 / +150 / +200 / +250 / +300 per manche; sbagliare non toglie punti |
 | 2 | 🃏 Blackjack | premio del bar, non punti |
-| 3 | 🎰 Casino dozzina | +200 a girata, tre girate (max +600) |
+| 3 | 🎰 Casino 5 manche | +100 / +200 / +100 / +100 / +1000; massimo +1500 |
 | 4 | 🐎 Cavallo di Battaglia | premio del bar, non punti |
 | 5 | 🎯 Casino numero secco | +1000 se il numero esce, una volta sola |
 
@@ -114,8 +114,7 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 
 - **TV**: una foto sfocata che si schiarisce lentamente.
 - **Telefoni**: si preme per prenotarsi e si dice il nome ad alta voce.
-- **Punti**: **+1000 × tempo rimasto** se il nome è giusto; **−1000 × tempo rimasto** se è
-  sbagliato; chi non si prenota prende 0.
+- **Punti**: tre manche da **45 secondi**, una per ambito; la manche vale **+333 / +333 / +334** in proporzione al tempo rimasto, l’errore lo stesso valore in negativo. Totale round da **−1000 a +1000**; chi non si prenota prende 0.
 - *Da dire:* «Prima lo riconoscete, più vale. Ma prenotarsi e sbagliare costa caro.»
 
 ### MUSICA — l'intro da riconoscere
@@ -149,9 +148,7 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 
 - **TV**: il tabellone coperto e il turno che passa da una squadra all'altra.
 - **Telefoni**: la squadra di turno sceglie una casella: è un'affermazione vera o falsa.
-- **Punti**: casella vera **0**, si resta in vita; casella falsa **fuori dal round** con un
-  malus che parte da **−500** e scende con le bombe rimaste (−500, −400, −300, −200, −100).
-  Chi non sceglie in tempo è fuori come se avesse preso una bomba.
+- **Punti**: prima del primo turno ci sono **30 secondi** per leggere l’argomento; poi ogni squadra ha **20 secondi** per scegliere. Casella vera **0**, si resta in vita; casella falsa **fuori dal round** con il malus **−round10(500 × bombe rimaste / bombe iniziali)** — con 4 bombe **−500, −380, −250, −130** — scalato anche sotto zero. Chi non sceglie in tempo è fuori con lo stesso malus di una bomba.
 - *Da dire:* «Qui non si guadagna: si resta vivi. La prima bomba è quella che costa di più.»
 
 ### SPEED RUSH — la corsa a ostacoli di minigiochi
@@ -167,7 +164,7 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 - **TV**: il tavolo, i portieri laser e il disco.
 - **Telefoni**: due squadre si sfidano a domande rapide; ogni risposta sbagliata o lenta
   allunga il tempo dell'avversario e rende il tiro più difficile.
-- **Punti**: chi vince la partita prende **+500**, chi perde **0**.
+- **Punti**: tre round in serata, una partita per squadra in ogni round; chi vince prende **+500**, chi perde **0**.
 - *Da dire:* «Rispondere velocemente non vi fa solo vincere il punto: toglie tempo e
   precisione a chi vi sta davanti.»
 
@@ -190,20 +187,21 @@ Per ogni gioco: cosa vede il pubblico in TV, cosa fanno i telefoni, come si segn
 
 Non consumano un round: la TV li apre da sola in **un round interno dell'atto**, scelto all'inizio della serata tra il secondo, il terzo, il quinto, il sesto e il settimo (mai l'apertura, mai il quarto con la classifica rapida, mai l'ultimo); la regia può lanciarli anche a mano. I punti entrano in classifica **una sola volta, alla chiusura del bonus**; nessun bonus toglie punti.
 
-### 🎰 Casino nero/rosso — nell'atto 1
-- **Tre girate**: ogni tavolo sceglie **nero o rosso** entro dieci secondi.
-- Ogni colore giusto vale **+100** (massimo +300); lo zero incassa per il banco.
-- *Da dire:* «Tre giri, un colore: qui conta il fegato.»
+### 🎤 Karaoke — nell'atto 1
+- **Cinque canzoni**: la clip si ferma a fine riga, senza preavviso; il primo tavolo che prenota prende il microfono fisico e canta le frasi successive.
+- La regia dice **CORRETTO** o **SBAGLIATO**: sbagliare non toglie punti, blocca il tavolo per la manche e riapre le prenotazioni.
+- Punti per manche: **+100 / +150 / +200 / +250 / +300**.
+- *Da dire:* «Il microfono è uno: chi prenota per primo canta, gli altri ascoltano.»
 
 ### 🃏 Blackjack — nell'atto 2
 - Un turno per tavolo, dal fondo della classifica: **15 secondi**, CARTA o STAI.
 - Il banco si ferma a **17**. Chi lo batte riceve il **premio concordato con il bar**, non punti; premio e consegna li gestiscono barista e presentatore.
 - *Da dire:* «Il banco non aspetta: fermatevi prima di sballare.»
 
-### 🎰 Casino dozzina — nell'atto 3
-- **Tre girate** su **1–12, 13–24 o 25–36**, scelta in dieci secondi.
-- Ogni dozzina giusta vale **+200** (massimo +600); lo zero non paga nessuno.
-- *Da dire:* «Dodici numeri per volta: scegliete la fetta giusta.»
+### 🎰 Casino 5 manche — nell'atto 3
+- **Cinque manche, una girata ciascuna**: colore, dozzina, parità, alto/basso e numero secco; scelta in dieci secondi.
+- Punti: **+100** colore, **+200** dozzina, **+100** parità, **+100** alto/basso, **+1000** numero; massimo **+1500**. Sullo zero incassa il banco.
+- *Da dire:* «Cinque giri, cinque scelte: il numero secco vale da solo più di tutte le altre manche.»
 
 ### 🐎 Cavallo di Battaglia — nell'atto 4
 - La categoria la votano i telefoni; poi **otto domande difficili**, una dietro l'altra.
@@ -211,8 +209,8 @@ Non consumano un round: la TV li apre da sola in **un round interno dell'atto**,
 - *Da dire:* «La domanda è sul telefono: guardate il tabellone e correte.»
 
 ### 🎯 Casino numero secco — nell'atto 5
-- **Tre girate** su un numero da **0 a 36**, scelta in dieci secondi a ogni girata.
-- Numero esatto **+500** a girata, massimo **+1500**; se nessuno lo becca, la girata non paga nessuno. Poi la TV mostra la **classifica finale aggiornata**.
+- Un numero da **0 a 36** scelto **una volta sola**, in dieci secondi, e tenuto per **tre girate**.
+- Numero esatto **+1000 una volta sola**; se esce di nuovo non paga il doppio; chi non lo becca prende **0**, senza penalità. Poi la TV mostra la **classifica finale aggiornata**.
 - *Da dire:* «Un numero, tutto: l'ultima carta della serata.»
 
 ---

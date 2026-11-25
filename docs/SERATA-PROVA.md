@@ -163,10 +163,10 @@ dire niente.
 
 | Gioco | Cosa fare | Cosa deve succedere | Cosa annotare |
 |---|---|---|---|
-| **Bomba** | Due ondate con 6–8 squadre | Il tabellone resta coperto per tutta l'ondata e mostra solo chi ha scelto cosa; alla chiusura si scoprono insieme bombe, FUORI e −200. Chi non sceglie entro il turno è eliminato con −200 e non rigioca | Secondi reali per scegliere; se 20 s sono pochi con dieci tavoli |
+| **Bomba** | Due ondate con 6–8 squadre | Prima del primo turno ci sono 30 s di lettura; il tabellone resta coperto e mostra solo chi ha scelto cosa. La bomba esplode subito, il resto degli esiti si scopre alla chiusura. Chi non sceglie entro il turno è eliminato con lo stesso malus di una bomba e non rigioca | Secondi reali di lettura e scelta; se 20 s sono pochi con dieci tavoli |
 | **Azzardo** | Due manche di fila | Il salvadanaio cresce (17 fiches → 13 giocabili), la puntata parte solo con CONFERMA PUNTATA e almeno una fiche, la riga «max 500 a manche» si legge a 390px. Un tavolo prova a mettere 11 fiches e non deve poterlo fare | Se il tetto che cresce si capisce senza spiegazione |
 | **Speed Rush** | Novanta secondi pieni | Nessuna prova ripetuta, difficoltà che sale con l'avanzamento, badge ×2 dopo sei risposte di fila | Quante risposte fa il tavolo più veloce: sotto ~20 il traguardo da 25 è troppo alto |
-| **Tennis Battle** | Quattro o cinque campi insieme | Dal fondo si distinguono i colpi (dritto, diagonale, stretto, corto, pallonetto) e si legge la fascia FACILE/MEDIA/DIFFICILE | Se il tiro a giro sembra un glitch |
+| **Tennis Battle** | Quattro campi in parallelo, poi il quinto quando i primi hanno finito | Dal fondo si distinguono i colpi (dritto, diagonale, stretto, corto, pallonetto) e si legge la fascia FACILE/MEDIA/DIFFICILE | Se il tiro a giro sembra un glitch |
 | **Time Buzzer** | Una manche | Il bersaglio non supera mai i 20 secondi | Se qualcuno prova ad aspettare e perde |
 | **Canzone** | Un round intero | Quattro manche da 30 secondi: nastro analogico instabile, poi mutazione elettronica con pitch shifter (velocità invariata), dalla terza brano pulito; punteggio proporzionale ai secondi rimasti | Se la manche 2 non è più difficile della prima, se il volume crolla fra le manche o se il pitch shifter non si carica (console) |
 
@@ -185,7 +185,7 @@ scripts/bonus/prepara-clip.mjs` e `node scripts/bonus/scarica-testi.mjs`.
 La banca ha 64 canzoni, ma entrano in partita solo quelle con il testo
 sincronizzato locale (29 su questa macchina).
 
-Cinque minuti in più, se il tempo tiene: **Indovina chi** (round da 60 s,
+Cinque minuti in più, se il tempo tiene: **Indovina chi** (round da 45 s,
 indizio ogni 15) e **Timeline** (45 s, punteggi con un solo segno: mai «+-200»).
 
 #### Due cose da non fare

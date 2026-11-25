@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs';
 
 /** Q-09: una sola versione leggibile in ogni punto del monorepo. */
-const VERSION = '3.0.0';
 const read = (path: string): string => readFileSync(path, 'utf8');
+const VERSION = read('../../VERSION').trim();
 
-describe('versione 3.0.0 coerente', () => {
+describe(`versione ${VERSION} coerente`, () => {
   it('VERSION è la fonte di verità', () => {
     expect(read('../../VERSION').trim()).toBe(VERSION);
   });
@@ -24,7 +24,7 @@ describe('versione 3.0.0 coerente', () => {
     expect(read('../backend/start-8090.cmd')).toContain(`pub_game_BE-${VERSION}.jar`);
   });
 
-  it('README e presentazione dichiarano 3.0.0', () => {
+  it(`README e presentazione dichiarano ${VERSION}`, () => {
     expect(read('../../README.md')).toContain(`**${VERSION}**`);
     expect(read('../../PRESENTAZIONE-PUBGAME.md')).toContain(`VERSIONE ${VERSION}`);
   });

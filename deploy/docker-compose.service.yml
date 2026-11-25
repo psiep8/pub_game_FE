@@ -12,7 +12,7 @@ services:
       dockerfile: Dockerfile
       args:
         NG_CONFIG: production
-    image: pubgame:${PUBGAME_TAG:-3.0.0}
+    image: pubgame:${PUBGAME_TAG:-3.1.0}
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: prod

@@ -3,8 +3,7 @@
 Tabella costruita dalle costanti reali, non da stime: `shared/models/scoring-rules.ts`,
 `shared/models/rank-points.ts`, i motori in `features/games/*`, e il server dove il
 punteggio è autorevole (`QuizService`, `SpeedRushService`, `BombaService`).
-Riferimento: `main` al commit `5b9a7d77` (22 novembre 2026). **Nessun punteggio è
-stato cambiato.**
+Riferimento: `main` al 25 novembre 2026. **Punteggi allineati al codice attuale.**
 
 Nel repository non esisteva una tabella equivalente: il §6 della specifica la
 chiedeva, ma non era mai stata scritta.
@@ -18,17 +17,17 @@ cambia la distribuzione dei piazzamenti (seconda tabella) e il numero di bombe.
 
 | Gioco | Struttura del round | Max N=6 | Min N=6 | Max N=10 | Min N=10 | Punti decisi da |
 |---|---|---:|---:|---:|---:|---|
-| **Quiz** | 3 manches da 20 s | **+1000** | **−1000** | **+1000** | **−1000** | server (`QuizService`) |
+| **Quiz** | 3 manches da 15 s | **+1000** | **−1000** | **+1000** | **−1000** | server (`QuizService`) |
 | **Musica** | 4 manches, 1 canzone | +1000 | −1000 | +1000 | −1000 | TV (`calculatePoints`) |
 | **Timeline** | 8 eventi | +400 | −200 | +400 | −200 | server/TV (`TIMELINE_POSITION_POINTS`) |
-| **Time Buzzer** | 3 manches | +1800 | −600 | +1800 | −600 | TV (`rankPoints` + perfetto) |
+| **Time Buzzer** | 3 manches, 2 occorrenze in serata | +1800 | −600 | +1800 | −600 | TV (`rankPoints` + perfetto) |
 | **Speed Rush** | 1 gara | +800 | −400 | +800 | −400 | server (`SpeedRushService`) |
-| **Tennis** | 1 partita per squadra | +500 | 0 | +500 | 0 | TV (`TENNIS_WIN`) |
-| **Bomba** | tabellone a turni | 0 | −500 | 0 | −500 | server (`BombaService`) |
-| **Biglie** | 2 gare | +1000 | −800 | +1000 | −800 | TV (`rankPoints`) |
-| **Azzardo** | 4 manches | +4000 | 0 | +4000 | 0 | TV (`chipsBreakdown`) |
-| **Ultima spiaggia** | 1 manche | +500 | −250 | +500 | −250 | TV (`level` scelto) |
-| **Immagine sfocata** | 3 manches da 60 s (333/333/334) | +1000 | −1000 | +1000 | −1000 | TV (`calculatePoints`) |
+| **Tennis** | 1 partita per round; 3 round in serata | +500 | 0 | +500 | 0 | TV (`TENNIS_WIN`) |
+| **Bomba** | tabellone a turni; 2 ondate in serata | 0 | −500 | 0 | −500 | server (`BombaService`) |
+| **Biglie** | 2 gare per round; 4 round in serata | +1000 | −800 | +1000 | −800 | TV (`rankPoints`) |
+| **Azzardo** | 4 manches; 2 occorrenze in serata | +1500 | 0 | +1500 | 0 | TV (`chipsBreakdown`) |
+| **Ultima spiaggia** | 1 manche per apparizione; 5 in serata | +500 | −250 | +500 | −250 | TV (`level` scelto) |
+| **Immagine sfocata** | 3 manches da 45 s (333/333/334) | +1000 | −1000 | +1000 | −1000 | TV (`calculatePoints`) |
 | **Ruota della fortuna** | 1 frase da 75 s | +1000 | −1000 | +1000 | −1000 | TV (`calculatePoints`) |
 | **Arena** | 1 round da 130 s | +1000 + 10×risposte giuste | −300 − 10×risposte sbagliate | +1000 + 10×risposte giuste | −300 − 10×risposte sbagliate | TV (`calculatePoints` + piazzamento) |
 
@@ -46,8 +45,7 @@ Note alle celle:
 - **Time Buzzer, +1800:** 3 manche da **20 secondi** × 600 del tempo perfetto
   (errore ≤ 50 ms, solo per il primo). Senza nessun tempo perfetto il massimo è
   +900 (3 × 300).
-- **Tennis, 0:** con N pari ogni squadra gioca una partita. Con N dispari la
-  squadra senza avversario prende +500 a tavolino (`awardCourt` sul riposo).
+- **Tennis, 0:** tre round in serata; in ogni round con N pari ogni squadra gioca una partita. Con N dispari la squadra senza avversario prende +500 a tavolino (`awardCourt` sul riposo). Il massimo per round è +500, in serata +1500.
 - **Bomba, −500 alla prima:** solo malus, nessun bonus. Il malus è
   `−round10(500 × bombe rimaste / bombe iniziali)`, con «rimaste» che conta anche
   la bomba appena presa. Si scala dal totale **anche sotto zero**: chi ha pochi
@@ -113,8 +111,8 @@ N=10  B=4   malus: −500, −380, −250, −130     totale round −1260
    chiuso: il server usa la stessa formula del client, quindi il round resta in
    un intervallo simmetrico e non può più azzerare tre round di guadagni.
 2. **Azzardo: +1500 / −1000 per round.** Deciso il 24 novembre 2026: tetti di
-   500 e 250 a manche, round a +1500 e −1000. Con tre occorrenze il tetto
-   teorico scende a +4500; una manche intera non paga più di 500, meno di
+   500 e 250 a manche, round a +1500 e −1000. Con due occorrenze il tetto
+   teorico scende a +3000; una manche intera non paga più di 500, meno di
    Time Buzzer (+1800) e Musica (±1000 in una manche). Per chi è a zero punti il
    minimo resta 0: solo upside.
 3. **Time Buzzer: +1800 / −600.** Escursione 2400 per round: 4,5× il massimo di
@@ -124,8 +122,7 @@ N=10  B=4   malus: −500, −380, −250, −130     totale round −1260
 5. **Musica: ±1000.** Escursione 2000 contro i 600 di Timeline; anche questa era
    già nel §6. Il valore scende con la manche, quindi il caso peggiore richiede
    una risposta sbagliata alla prima.
-6. **Tennis: +500 / 0.** Nessun rischio: 500 punti secchi, più del massimo di
-   Timeline, senza alcun malus. Asimmetrico rispetto a Biglie e Time Buzzer.
+6. **Tennis: +500 / 0 per round.** Nessun rischio: 500 punti secchi a partita, fino a +1500 nei tre round, senza alcun malus. Asimmetrico rispetto a Biglie e Time Buzzer.
 7. **Timeline: +400 / −200.** L'escursione più piccola (600) per il gioco con più
    passaggi (ordinare 8 eventi): sottopesata rispetto agli altri.
 8. **Bonus: 300–600.** Un bonus intero vale meno di un buon round di Musica o di

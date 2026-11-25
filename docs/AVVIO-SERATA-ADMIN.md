@@ -2,6 +2,7 @@
 
 > Per te, che ospiti la serata con gli amici. Una pagina: cosa serve, cosa fare in
 > ordine, come far entrare i telefoni e cosa controllare prima che arrivino.
+> Checklist rapida per stasera: [`SETUP-SERATA-OGGI.md`](SETUP-SERATA-OGGI.md).
 > Dettagli di rete, Docker e problemi: [`SETUP-LOCALE.md`](SETUP-LOCALE.md).
 > Durante la serata: [`PRESENTATORE.md`](PRESENTATORE.md) e [`PANNELLO-ADMIN.md`](PANNELLO-ADMIN.md).
 
@@ -50,7 +51,7 @@ Scegli una strada.
 docker compose -f deploy/docker-compose.test.yml --env-file deploy/.env up -d --build
 ```
 
-Per fissare la versione 3.0.0 aggiungi `PUBGAME_TAG=3.0.0` prima del comando.
+Per fissare la versione 3.1.0 aggiungi `PUBGAME_TAG=3.1.0` prima del comando.
 Aggiornamenti sbagliati si annullano cambiando tag.
 
 **Npm:**

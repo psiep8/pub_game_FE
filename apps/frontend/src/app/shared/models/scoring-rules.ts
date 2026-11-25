@@ -89,7 +89,7 @@ export const SCORING_RULES: Record<Exclude<GameModeType, 'BLACKJACK'>, ScoringRu
     correct: `+${IMAGE_BLUR_MANCHE_POINTS[0]} / +${IMAGE_BLUR_MANCHE_POINTS[1]} / +${IMAGE_BLUR_MANCHE_POINTS[2]} secondo la manche`,
     wrong: `−${IMAGE_BLUR_MANCHE_POINTS[0]} / −${IMAGE_BLUR_MANCHE_POINTS[1]} / −${IMAGE_BLUR_MANCHE_POINTS[2]} secondo la manche`,
     missed: '0 (nessun malus)',
-    note: `Tre manche da 60 secondi, una per ambito: ${IMAGE_BLUR_MANCHE_CATEGORIES.join(' · ')}. Ogni manche vale ${IMAGE_BLUR_MANCHE_POINTS.map(signedPoints).join(' / ')} in proporzione al tempo rimasto: prima si prenota, più punti vale. Le tre manche si sommano, da −${IMAGE_BLUR_MANCHE_POINTS.reduce((a, b) => a + b, 0)} a +${IMAGE_BLUR_MANCHE_POINTS.reduce((a, b) => a + b, 0)}.`,
+    note: `Tre manche da 45 secondi, una per ambito: ${IMAGE_BLUR_MANCHE_CATEGORIES.join(' · ')}. Ogni manche vale ${IMAGE_BLUR_MANCHE_POINTS.map(signedPoints).join(' / ')} in proporzione al tempo rimasto: prima si prenota, più punti vale. Le tre manche si sommano, da −${IMAGE_BLUR_MANCHE_POINTS.reduce((a, b) => a + b, 0)} a +${IMAGE_BLUR_MANCHE_POINTS.reduce((a, b) => a + b, 0)}.`,
   },
   MUSIC: {
     correct: `${signedPoints(MUSIC_MANCHE_POINTS[0])} alla prima manche, poi ${MUSIC_MANCHE_POINTS.slice(1).map(signedPoints).join(' / ')}`,

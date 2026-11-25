@@ -53,10 +53,10 @@ Blackjack non è più un round. Arena chiude gli atti 3 e 5; Ultima spiaggia è 
 - **Ruota della fortuna** — proverbio con lettere coperte; prenotazione.
 - **Timeline** — carte da ordinare; il server conserva la soluzione.
 - **Time Buzzer** — fermare il cronometro senza vederlo; tre manche.
-- **Bomba** — tabellone a turni con caselle vere e bombe; due apparizioni.
+- **Bomba** — tabellone a turni con caselle vere e bombe; 30 s di lettura, 20 s per turno, due apparizioni.
 - **Speed Rush** — 90 secondi di microprove, corsia e classifica per arrivo.
-- **Tennis Battle** — duello a coppie con punteggio 15/30/40 e killer point diretto sul 40-40, senza vantaggi.
-- **Azzardo** — quattro manche numeriche con fiches e quote.
+- **Tennis Battle** — duello a coppie con punteggio 15/30/40 e killer point diretto sul 40-40, senza vantaggi; tre round in serata.
+- **Azzardo** — quattro manche numeriche con fiches e quote; 30 s per la puntata e 7 s per il reveal.
 - **Ultima spiaggia** — cinque livelli 100–500, consumabili una volta per squadra.
 - **Arena** — Vero/Falso continuo dentro un cerchio che si stringe.
 - **Biglie** — quattro round da **due gare** (otto gare in serata) su due delle otto piste:
@@ -79,9 +79,9 @@ accreditati **una sola volta, alla chiusura**.
 
 | Atto | Bonus | Come funziona | Punti |
 | --- | --- | --- | --- |
-| 1 | **Casino nero/rosso** | Tre girate sul colore, scelta in 10 s | +100 a girata (max +300) |
+| 1 | **Karaoke** | Cinque canzoni, clip che si ferma a fine riga, microfono al primo tavolo che prenota | +100 / +150 / +200 / +250 / +300 per manche (max +1500); sbagliare non toglie punti |
 | 2 | **Blackjack** | Un turno per tavolo, 15 s, banco a 17 | premio del bar, non punti |
-| 3 | **Casino dozzina** | Tre girate su 1–12, 13–24 o 25–36 | +200 a girata (max +600) |
+| 3 | **Casino 5 manche** | Cinque manche, una girata ciascuna: colore, dozzina, parità, alto/basso e numero secco; scelta in 10 s | +100 / +200 / +100 / +100 / +1000 (max +1500); sullo zero incassa il banco |
 | 4 | **Cavallo di battaglia** | Categoria votata, otto domande flash | premio del bar, non punti |
 | 5 | **Casino numero secco** | Un numero da 0 a 36 scelto una volta, poi tre girate | +1000 se il numero esce, una volta sola (max +1000) |
 
@@ -105,7 +105,7 @@ la classifica finale.
 
 - **PROSSIMO ROUND**, **MOSTRA CLASSIFICA**, **PAUSA / RIPRENDI**.
 - **DEMO** per spiegare un gioco, **CHIUDI DEMO** per tornare alla partita.
-- Bonus dell'atto: **Casino**, **Blackjack**, **Cavallo**, **Casino dozzina**,
+- Bonus dell'atto: **Karaoke**, **Blackjack**, **Casino 5 manche**, **Cavallo**,
   **Casino numero secco**; partono da soli nel round dello slot, **CHIUDI BONUS** per
   uscire prima.
 - **PARTITA #** per comandare la TV da un altro dispositivo.

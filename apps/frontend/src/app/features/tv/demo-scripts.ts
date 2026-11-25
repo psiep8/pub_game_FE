@@ -153,7 +153,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
     title: 'INDOVINA CHI',
     icon: '🕵️',
     objective: [
-      'Tre manche da 60 secondi, una per ambito: Storia/Arte/Scienza/Letteratura, Musica, Sport/Cinema/TV/Spettacolo.',
+      'Tre manche da 45 secondi, una per ambito: Storia/Arte/Scienza/Letteratura, Musica, Sport/Cinema/TV/Spettacolo.',
       'In ogni manche la foto parte sfocata e si schiarisce; un indizio ogni 15 secondi.',
       'Prenota quando riconosci il personaggio: la risposta si dice a voce.',
     ],
@@ -250,11 +250,12 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
       'Un turno alla volta: la TV indica quale tavolo sceglie.',
     ],
     phone: [
+      'Prima del primo turno hai 30 secondi per leggere l’argomento: le caselle si aprono al via.',
       'Tocca una casella solo quando è il tuo turno.',
       'Casella vera: 0 punti e il turno passa.',
       `Bomba: fuori dal round con un malus da ${BOMBA_PEAK} che scende a ogni bomba presa dopo, proporzionale alle bombe rimaste.`,
       'Il malus si scala dal totale anche sotto zero: chi ha pochi punti finisce in negativo.',
-      'Le caselle restano coperte per tutta l’ondata: gli esiti arrivano alla fine.',
+      'Le caselle restano coperte per tutta l’ondata: la bomba esplode subito, il resto degli esiti arriva alla fine.',
     ],
     win: [
       'Non ci sono punti da guadagnare: si salvano le caselle vere.',

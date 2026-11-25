@@ -14,7 +14,7 @@ services:
       dockerfile: Dockerfile
       args:
         NG_CONFIG: test-night
-    image: pubgame:test
+    image: pubgame:${PUBGAME_TAG:-3.1.0}
     restart: unless-stopped
     ports:
       - "${TEST_PORT:-8080}:8080"

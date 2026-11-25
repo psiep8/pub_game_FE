@@ -1,5 +1,32 @@
 # Changelog
 
+## 25 novembre 2026 — quizzOne 3.1.0, giochi e manuali allineati
+
+Versione **3.1.0** in monorepo, Docker, README, presentazione e manuali. È una
+release di allineamento: nessun cambio a percorsi, database o variabili d’ambiente.
+
+- **Indovina chi.** Tre manche da **45 secondi**, una per ambito, con punti
+  **333 / 333 / 334** in proporzione al tempo rimasto: il round resta da −1000 a
+  +1000. Manuale, demo, README e PDF allineati.
+- **Bomba.** **30 secondi** per leggere l’argomento, **20 secondi** per turno; il
+  malus è `−round10(500 × bombe rimaste / iniziali)` — con 4 bombe
+  **−500, −380, −250, −130** — e la bomba esplode subito. Corretti i residui
+  `−500…−100` e `−200` nei documenti.
+- **Tennis Battle.** Tre round in serata, partita al meglio di 3 game, killer
+  point diretto sul 40-40 e massimo **4 campi in parallelo**. I manuali non
+  dicono più “n/2 sfide in parallelo”.
+- **Casino.** Il terzo bonus è **Casino 5 manche**: cinque manche, una girata
+  ciascuna, punti **100 / 200 / 100 / 100 / 1000** (max +1500). Il numero secco
+  dell’atto 5 resta a tre girate e paga **+1000 una volta sola**. Aggiornati i
+  manuali IT/BN, la tabella punteggi, `DESCRIZIONE-GIOCO`, `PRESENTAZIONE`,
+  `MANUALE-TELEFONO` e il README delle demo.
+- **Versione.** `VERSION`, npm, Maven, Docker, avvio locale, README,
+  presentazione, manuali e PDF dichiarano **3.1.0**; il test di versione legge
+  `VERSION` invece di duplicare il numero.
+- **Verifiche.** Frontend **803 test passati, 2 skip**; backend intero **exit 0**;
+  PDF rigenerati e controllati. Restano da provare in sala i punti già segnalati
+  nel README.
+
 ## 25 novembre 2026 — brand in TV, Karaoke leggibile, audio hybrid Musica
 
 - **quizzOne in TV.** I titoli di intro e lobby non dicono più «PUB GAME»:

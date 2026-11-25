@@ -64,8 +64,8 @@ presentatore per sapere che ogni telefono è pronto.
 | **Arena** | **VERO / FALSO** (o le quattro opzioni) una domanda dopo l'altra. |
 | **Azzardo** | Distribuisci le fiches con **−** e **+** sulle quattro risposte, poi invia. |
 | **Ultima spiaggia** | Scegli il livello (100–500), poi rispondi alla domanda. |
-| **Biglie** | Scegli la tua biglia: una scelta sola, vale per tutte e quattro le gare del round. |
-| **Bonus Casino** | Tocca la casella su cui punti: colore, dozzina o numero secco. |
+| **Biglie** | Scegli la tua biglia: una scelta sola, vale per le due gare del round. |
+| **Bonus Casino 5 manche** | Tocca la casella della manche: colore, dozzina, parità, alto/basso o numero secco. |
 | **Bonus Blackjack** | Al tuo turno: **CARTA** o **STAI** contro il banco. |
 | **Bonus Cavallo** | Scegli la categoria, poi rispondi alle otto domande flash. |
 

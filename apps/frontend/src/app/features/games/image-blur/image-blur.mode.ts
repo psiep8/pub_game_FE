@@ -20,7 +20,7 @@ interface ImageBlurManche {
 
 export class ImageBlurMode extends GameModeBase {
   readonly type: GameModeType = 'IMAGE_BLUR';
-  /** Ogni manche dura 60 secondi: un indizio ogni 15, quattro in tutto. */
+  /** Ogni manche dura 45 secondi: un indizio ogni 15. */
   readonly timerDuration = GAME_TIMINGS.IMAGE_BLUR.seconds;
   readonly requiresBubbles = false;
   readonly requiresBuzz = true;

@@ -70,10 +70,10 @@ describe('ImageBlurMode', () => {
     mode.cleanup();
   });
 
-  it('dura sessanta secondi, non trenta', () => {
+  it('dura quarantacinque secondi per manche', () => {
     const mode = new ImageBlurMode();
 
-    expect(mode.timerDuration).toBe(60);
+    expect(mode.timerDuration).toBe(45);
   });
 
   it('tre manche, una per ambito, con punti diversi e il telefono che si riarma', () => {
@@ -110,8 +110,8 @@ describe('ImageBlurMode', () => {
     mode.setConfig({ type: 'IMAGE_BLUR', payload: { manches }, gameId: 1 });
     mode.initialize({ manches });
 
-    expect(mode.pointsFor(true, 30_000)).toBe(167);
-    expect(mode.pointsFor(false, 30_000)).toBe(-167);
+    expect(mode.pointsFor(true, 22_500)).toBe(167);
+    expect(mode.pointsFor(false, 22_500)).toBe(-167);
 
     mode.cleanup();
   });
@@ -194,7 +194,7 @@ describe('ImageBlurMode — ripresa dopo un refresh della TV', () => {
   it('senza stato utile riparte dall’inizio, senza errori', () => {
     const { mode } = setup();
 
-    mode.restore(60, { revision: 9, state: { blurElapsedSeconds: 'x', clueIndex: null } });
+    mode.restore(45, { revision: 9, state: { blurElapsedSeconds: 'x', clueIndex: null } });
 
     const data = mode.getDisplayData();
     expect(data.blurAmount).toBe(40);

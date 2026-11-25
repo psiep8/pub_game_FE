@@ -16,8 +16,8 @@ export const GAME_TIMINGS = {
   },
   IMAGE_BLUR: {
     manches: 3,
-    seconds: 60,
-    // F-18: un nuovo indizio ogni quindici secondi, quattro in una manche.
+    seconds: 45,
+    // F-18: un nuovo indizio ogni quindici secondi.
     clueEverySeconds: 15,
   },
   WHEEL_OF_FORTUNE: {

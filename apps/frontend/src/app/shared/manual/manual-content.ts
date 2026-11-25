@@ -93,7 +93,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, EntryCopy> = {
   IMAGE_BLUR: {
     name: 'INDOVINA CHI',
     icon: '🕵️',
-    summary: `Tre manche da 60 secondi, una per ambito: ${IMAGE_BLUR_MANCHE_CATEGORIES.join(', ')}.`,
+    summary: `Tre manche da 45 secondi, una per ambito: ${IMAGE_BLUR_MANCHE_CATEGORIES.join(', ')}.`,
     objective: 'Riconoscere il personaggio nella foto sfocata di ogni manche; prima prenoti, più punti vale la risposta.',
     phone: [
       'Tocca PRENOTATI quando riconosci il personaggio.',
@@ -158,11 +158,12 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, EntryCopy> = {
     summary: 'Un tabellone, un turno a testa e circa due bombe ogni cinque tavoli.',
     objective: 'Scegliere caselle vere ed evitare le bombe; il tabellone è sul server e la TV lo mostra.',
     phone: [
+      'Prima del primo turno hai 30 secondi per leggere l’argomento: le caselle si aprono al via.',
       'Tocca una casella solo quando la TV indica il tuo turno.',
       'Casella vera: 0 punti e il turno passa.',
       `Bomba: fuori dal round, con un malus che parte da ${BOMBA_PEAK} e scende con le bombe rimaste: si scala dal totale anche sotto zero.`,
       'Se scade il tempo senza scegliere sei fuori come se avessi preso una bomba.',
-      'Durante l’ondata le caselle restano coperte: bombe, eliminati e penalità si scoprono solo alla fine.',
+      'Durante l’ondata le caselle restano coperte: la bomba esplode subito, il resto degli esiti si scopre alla fine.',
     ],
     tip: 'Le caselle vere non danno punti: servono solo a restare in vita. La prima bomba costa più delle ultime e chi si salva prende 0.',
   },
