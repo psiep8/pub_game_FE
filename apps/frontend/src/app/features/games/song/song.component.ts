@@ -25,6 +25,12 @@ import { REVERSE_RATE, reverseChannels } from './reverse-track';
 const FULL_PLAYBACK_SECONDS = 30;
 const FULL_PLAYBACK_FADE_SECONDS = 5;
 
+/**
+ * F-16: la prima manche è un filo calante, così non si riconosce al volo.
+ * Le altre manche restano a velocità naturale.
+ */
+const MANCHE_RATE: Record<number, number> = { 1: 1.03 };
+
 const MANCHE_AUDIO: Record<
   number,
   { gain: number; band: number; q: number; highpass: number; lowpass: number; drive: number; hiss: number }
@@ -260,6 +266,9 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     if (!this.audioContext || !this.gainNode) return;
 
     
+
+    // F-16: intonazione leggermente fuori posto nella prima manche.
+    if (this.audio) this.audio.playbackRate = MANCHE_RATE[phase] ?? 1;
 
     const settings = MANCHE_AUDIO[phase];
     if (!settings) {

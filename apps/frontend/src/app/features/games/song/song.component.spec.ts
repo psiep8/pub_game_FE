@@ -99,6 +99,34 @@ describe('Song', () => {
     }
   });
 
+  it('F-16: la prima manche è un filo calante, la terza torna naturale', () => {
+    const song = component as any;
+    const setValue = vi.fn();
+    song.audio = { playbackRate: 1, pause: vi.fn() };
+    song.audioContext = { currentTime: 0 };
+    song.gainNode = { gain: { setValueAtTime: setValue, cancelScheduledValues: vi.fn() } };
+    song.bandpassFilter = { frequency: { setValueAtTime: setValue }, Q: { setValueAtTime: setValue }, disconnect: vi.fn() };
+    song.highpassFilter = { frequency: { setValueAtTime: setValue }, disconnect: vi.fn() };
+    song.lowpassFilter = { frequency: { setValueAtTime: setValue }, disconnect: vi.fn() };
+    song.distortionNode = { curve: null, disconnect: vi.fn() };
+    song.setInterference = vi.fn();
+
+    song.applyFilters(1);
+    expect(song.audio.playbackRate).toBeCloseTo(1.03);
+
+    song.applyFilters(3);
+    expect(song.audio.playbackRate).toBe(1);
+
+    // I mock restano solo in questo test: la distruzione non deve toccarli.
+    song.audio = undefined;
+    song.audioContext = undefined;
+    song.gainNode = undefined;
+    song.bandpassFilter = undefined;
+    song.highpassFilter = undefined;
+    song.lowpassFilter = undefined;
+    song.distortionNode = undefined;
+  });
+
   it('nella seconda manche suona la preview al contrario, senza il file', async () => {
     const song = component as any;
     const source = {
