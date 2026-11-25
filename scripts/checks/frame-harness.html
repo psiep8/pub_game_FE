@@ -36,6 +36,20 @@
   </div>
 </div>
 <script>
+  if (location.search.includes('long')) {
+    document.querySelector('.quiz-question').textContent =
+      'Qual è il nome del trattato che nel 1957 istituì la Comunità Economica Europea fra Italia, Francia, Germania Ovest, Belgio, Paesi Bassi e Lussemburgo?';
+    const testi = [
+      'Trattato di Roma, firmato in Campidoglio il 25 marzo 1957',
+      'Trattato di Maastricht, firmato il 7 febbraio 1992 nei Paesi Bassi',
+      'Trattato di Lisbona, firmato il 13 dicembre 2007 in Portogallo',
+      'Trattato di Schengen, firmato il 14 giugno 1985 in Lussemburgo',
+    ];
+    document.querySelectorAll('.quiz-option-btn').forEach((button, index) => {
+      button.textContent = testi[index];
+    });
+  }
+
   const bubbles = document.getElementById('bubbles');
   for (let i = 0; i < 14; i++) {
     const bubble = document.createElement('span');

@@ -87,10 +87,12 @@
 
 .quiz-question {
   font-family: var(--font-display);
-  font-size: clamp(1.8rem, 3.4vw, 3.2rem);
+  /* F-14: la scala segue l'altezza dello schermo, non solo la larghezza:
+     a 1080p il testo largo spingeva la griglia sotto il bordo. */
+  font-size: clamp(1.6rem, 3.2vh, 2.8rem);
   font-weight: 400;
   letter-spacing: .02em;
-  margin-bottom: 28px;
+  margin-bottom: clamp(10px, 2vh, 22px);
   line-height: 1.15;
   color: var(--ink);
   text-transform: uppercase;
@@ -103,9 +105,11 @@
 
 .quiz-options-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-  gap: clamp(10px, 2vh, 18px);
-  margin: clamp(12px, 2vh, 30px) 0;
+  /* F-14: quattro opzioni in 2×2. Con `auto-fit` a 1280 px diventavano 3
+     colonne e la quarta finiva sotto il bordo dello schermo. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(8px, 1.6vh, 14px);
+  margin: clamp(8px, 1.4vh, 18px) 0;
   justify-items: stretch;
 }
 
@@ -113,13 +117,13 @@
 
 .quiz-option-btn {
   position: relative;
-  padding: clamp(12px, 1.8vh, 20px) clamp(14px, 1.8vw, 24px);
+  padding: clamp(9px, 1.6vh, 16px) clamp(14px, 1.8vw, 24px);
   background: var(--paper);
   border: 3px solid var(--coal);
   border-radius: 0;
   color: var(--coal);
   font-family: var(--font);
-  font-size: clamp(1.05rem, 1.5vw, 1.4rem);
+  font-size: clamp(0.95rem, 1.9vh, 1.3rem);
   font-weight: 700;
   cursor: pointer;
   display: flex;
@@ -269,6 +273,22 @@
   .quiz-option-btn { padding: 12px 12px; font-size: 0.95rem; }
   .quiz-question { margin-bottom: 16px; }
  }
+
+/* F-14: a 720p la scena deve stare in un solo schermo, anche con testi
+   lunghi. Meno respiro e caratteri più piccoli solo in basso. */
+@media (max-height: 760px) {
+  .quiz-question {
+    font-size: clamp(1.4rem, 2.4vw, 2rem);
+    margin-bottom: 10px;
+    line-height: 1.1;
+  }
+  .quiz-options-grid { gap: 8px; margin: 8px 0; }
+  .quiz-option-btn {
+    padding: 9px 12px;
+    font-size: clamp(0.92rem, 1.15vw, 1.1rem);
+    line-height: 1.15;
+  }
+}
 
 /* Riepilogo completo: ogni manche con la risposta giusta e le squadre. */
 .quiz-summary-head {
