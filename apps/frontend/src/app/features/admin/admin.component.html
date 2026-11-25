@@ -236,11 +236,25 @@
       <button class="flow-btn" (click)="startBonus('BLACKJACK')">🃏 BONUS BLACKJACK</button>
       <button class="flow-btn" (click)="startBonus('CASINO_DOZEN')">🎰 CASINO DOZZINA</button>
       <button class="flow-btn" (click)="startBonus('CAVALLO')">🐎 BONUS CAVALLO</button>
+      <button class="flow-btn" (click)="restartBonus()">♻️ RIAVVIA BONUS</button>
       <button class="flow-btn" (click)="startBonus('CASINO_NUMBER')">🎯 CASINO NUMERO SECCO</button>
       <button class="flow-btn ghost" (click)="stopBonus()">✖️ CHIUDI BONUS</button>
     </div>
     <div class="flow-note">Avvio e avanzamento manuali: usa PARTI oppure il tasto AVANTI in TV.</div>
   </div>
+
+  @if (debug()) {
+  <div class="flow-panel">
+    <div class="flow-title">🔎 BONUS · DEBUG</div>
+    <p class="flow-note">Stesso pannello della TV: dice fase, ultima azione e stato salvato del bonus.</p>
+    @if (diagnostics(); as d) {
+      <div class="flow-note">PARTITA #{{ activeGameId() }} · STATO {{ d.status || '—' }} · ROUND {{ roundLabel(d) }}</div>
+      <pre class="bonus-debug-json">{{ d.bonusAct | json }}</pre>
+    } @else {
+      <p class="flow-note">Diagnostica non ancora ricevuta.</p>
+    }
+  </div>
+  }
 
   
   <div class="admin-content">

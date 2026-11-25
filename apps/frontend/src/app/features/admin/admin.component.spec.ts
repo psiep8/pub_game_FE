@@ -115,6 +115,17 @@ describe('Admin', () => {
     expect(component.buzzedPlayer()).toBeNull();
   });
 
+  it('Q-01: RIAVVIA BONUS manda il tipo salvato senza toccare la partita', () => {
+    component.diagnostics.set({ bonusAct: { act: 3, type: 'CAVALLO', status: 'STARTED' } });
+
+    component.restartBonus();
+
+    expect(ws.broadcasted.at(-1)?.body).toEqual({
+      action: 'ADMIN_RESTART_BONUS',
+      type: 'CAVALLO',
+    });
+  });
+
   it('should clear the question state when the round ends', async () => {
     ws.status$.next({ action: 'PLAYER_PRENOTATO', name: 'Anna' });
     ws.status$.next({ action: 'ROUND_ENDED' });

@@ -1900,3 +1900,27 @@
 
 /* La X della classifica vive nella dock della regia (restyle.css): così non
    copre AVANTI e non finisce sotto la scena. */
+
+/* Q-01: diagnosi del bonus, solo con ?debug=1. In alto a sinistra, sotto la
+   barra della regia, per non coprire timer e domanda. */
+.bonus-debug {
+  position: fixed;
+  top: 88px;
+  left: 16px;
+  z-index: 70;
+  width: min(360px, 42vw);
+  max-height: 52vh;
+  overflow: auto;
+  padding: 10px 12px;
+  background: var(--paper-hi);
+  color: var(--coal);
+  border: 3px solid var(--coal);
+  box-shadow: 5px 5px 0 var(--tomato);
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  line-height: 1.35;
+}
+.bonus-debug-head { margin-bottom: 6px; font-weight: 800; letter-spacing: .12em; border-bottom: 2px solid var(--coal); padding-bottom: 4px; }
+.bonus-debug-row { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
+.bonus-debug-row span { text-transform: uppercase; opacity: .7; }
+.bonus-debug-row b { text-align: right; overflow-wrap: anywhere; }

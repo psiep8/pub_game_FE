@@ -1855,6 +1855,44 @@ describe('GameComponent', () => {
     }
   });
 
+  it('Q-01: RIAVVIA BONUS riapre il Cavallo senza perdere la classifica', async () => {
+    vi.useFakeTimers();
+    try {
+      component.currentGameId.set(1);
+      component.round.set({ status: 'ACTIVE' } as any);
+      leaderboard.addPoints('Anna', 500, true);
+
+      ws.status$.next({ action: WsAction.ADMIN_START_BONUS, type: 'CAVALLO' });
+      await vi.advanceTimersByTimeAsync(2_700);
+      expect(component.bonusActive()).toBe(true);
+
+      ws.status$.next({ action: WsAction.ADMIN_STOP_BONUS });
+      await vi.advanceTimersByTimeAsync(10);
+      expect(component.bonusActive()).toBe(false);
+
+      ws.status$.next({ action: WsAction.ADMIN_RESTART_BONUS, type: 'CAVALLO' });
+      await vi.advanceTimersByTimeAsync(50);
+
+      expect(component.bonusActive()).toBe(true);
+      expect(component.bonusType()).toBe('CAVALLO');
+      expect(component.bonusGuardReason()).toBe('libero');
+      expect(leaderboard.getPlayerStats('Anna')?.totalPoints).toBe(500);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('Q-01: la diagnostica dice quale guardia ha bloccato il bonus', async () => {
+    component.bonusActive.set(true);
+    component.bonusType.set('CAVALLO');
+
+    await component.startBonus('CAVALLO');
+
+    expect(component.bonusGuardReason()).toContain('bonus già attivo');
+    expect(component.bonusDebugState()['guardia']).toContain('bonus già attivo');
+    expect(component.bonusDebugState()['ultimaAzione']).toContain('bloccato');
+  });
+
   it('does not start Basket from an old admin command or directly', async () => {
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     const startBasket = vi.spyOn(game, 'startBasket');

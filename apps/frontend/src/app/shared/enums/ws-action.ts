@@ -70,6 +70,8 @@ export const WsAction = {
   ADMIN_SHOW_INTRO: 'ADMIN_SHOW_INTRO',
   ADMIN_START_BONUS: 'ADMIN_START_BONUS',
   ADMIN_STOP_BONUS: 'ADMIN_STOP_BONUS',
+  /** Q-01: riapre il bonus corrente dopo un blocco, senza toccare i punti. */
+  ADMIN_RESTART_BONUS: 'ADMIN_RESTART_BONUS',
   CHRISTMAS_TOGGLE: 'CHRISTMAS_TOGGLE',
 } as const;
 

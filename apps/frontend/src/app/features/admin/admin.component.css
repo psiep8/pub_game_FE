@@ -838,3 +838,16 @@
 .cat-toggle.on { background: var(--acid); color: var(--coal); border-color: var(--coal); }
 .cat-toggle:active { transform: translate(2px, 2px); box-shadow: none; }
 .cat-error { color: var(--tomato); font-family: var(--font-mono); font-size: .72rem; }
+
+/* Q-01: stato grezzo del bonus, dietro ?debug=1. */
+.bonus-debug-json {
+  margin: 0;
+  padding: 10px;
+  background: var(--paper-hi);
+  color: var(--coal);
+  border: 2px solid var(--coal);
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

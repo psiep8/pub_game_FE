@@ -369,6 +369,15 @@
 </div>
 }
 
+@if (bonusDebug()) {
+<div class="bonus-debug" role="status" aria-label="Diagnostica bonus">
+  <div class="bonus-debug-head">BONUS · DEBUG</div>
+  @for (row of bonusDebugState() | keyvalue; track row.key) {
+  <div class="bonus-debug-row"><span>{{ row.key }}</span><b>{{ row.value }}</b></div>
+  }
+</div>
+}
+
 @if (autoAdvanceSeconds() > 0) {
 <div class="auto-advance" role="status" alive="drift" [aliveSeed]="6">
   <span class="auto-advance-label">ATTESA · PROSSIMO ROUND</span>

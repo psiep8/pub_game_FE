@@ -245,6 +245,12 @@ export class GameComponent implements OnInit, OnDestroy {
     new URLSearchParams(window.location.search).get('audiodebug') === '1',
   );
   readonly audioDebugRows = signal<Array<{ channel: string; label: string; owner: string }>>([]);
+  /** Q-01: pannello diagnostico del bonus, nascosto dietro `?debug=1`. */
+  readonly bonusDebug = signal(
+    new URLSearchParams(window.location.search).get('debug') === '1',
+  );
+  readonly lastBonusAction = signal('—');
+  readonly bonusGuardReason = signal('libero');
   bonusActive = signal(false);
   bonusType = signal<BonusType | null>(null);
   /** Stato del bonus da riaprire dopo un refresh (per ora solo Casino). */
@@ -773,6 +779,10 @@ export class GameComponent implements OnInit, OnDestroy {
         if (status.type) void this.startBonus(status.type);
       } else if (status.action === 'ADMIN_STOP_BONUS') {
         this.finishBonus();
+      } else if (status.action === WsAction.ADMIN_RESTART_BONUS) {
+        void this.restartBonus(
+          status.type || this.bonusType() || (this.serverBonus?.type as BonusType) || 'CAVALLO',
+        );
       }
     });
 
@@ -2208,8 +2218,18 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!BONUS_TYPES.includes(type) || !this.canStartBonus()) {
       // R-01: se il pulsante di regia sembra non fare nulla, il log dice subito
       // quale guardia ha fermato il bonus.
+      const reason = !BONUS_TYPES.includes(type)
+        ? `tipo non valido: ${type}`
+        : this.bonusEntrance()
+          ? `ingresso già aperto: ${this.bonusEntrance()}`
+          : this.bonusActive()
+            ? `bonus già attivo: ${this.bonusType()}`
+            : 'rullo categorie in corso';
+      this.bonusGuardReason.set(reason);
+      this.lastBonusAction.set(`START ${type} bloccato: ${reason}`);
       console.warn('[BONUS] startBonus bloccato', {
         type,
+        motivo: reason,
         tipoValido: BONUS_TYPES.includes(type),
         ingressoAperto: !!this.bonusEntrance(),
         bonusAttivo: this.bonusActive(),
@@ -2217,6 +2237,8 @@ export class GameComponent implements OnInit, OnDestroy {
       });
       return;
     }
+    this.bonusGuardReason.set('libero');
+    this.lastBonusAction.set(`START ${type}`);
     console.info('[BONUS] startBonus', { type, gameId: this.currentGameId() });
     this.bonusResume.set(resume);
     // Il bonus dell'atto resta sul server: un refresh non lo salta.
@@ -2384,6 +2406,82 @@ export class GameComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Q-01: via di scampo della regia. Azzera solo la memoria del bonus (ingresso,
+   * stato attivo, chiusura locale e checkpoint), non la classifica, e lo riapre.
+   */
+  async restartBonus(type: BonusType): Promise<void> {
+    if (!BONUS_TYPES.includes(type)) return;
+    console.info('[BONUS] RIAVVIA richiesto', {
+      type,
+      gameId: this.currentGameId(),
+      atto: this.roundManager.bonusActIndex(),
+      attivo: this.bonusType(),
+      guardia: this.bonusGuardReason(),
+    });
+    this.lastBonusAction.set(`RIAVVIA ${type}`);
+    this.clearBonusTimer();
+    if (this.bonusEntranceTimer) {
+      clearTimeout(this.bonusEntranceTimer);
+      this.bonusEntranceTimer = undefined;
+    }
+    this.bonusEntrance.set(null);
+    this.bonusEntranceEntry.set(null);
+    this.bonusActive.set(false);
+    this.bonusType.set(null);
+    this.bonusShowResult.set(false);
+    this.bonusResult.set([]);
+    this.bonusAwarded = false;
+    this.bonusScoresMap.clear();
+    this.bonusResume.set(null);
+    this.serverBonus = null;
+    this.bonusGuardReason.set('azzerato da RIAVVIA BONUS');
+
+    // Il bonus non era chiuso e pagato: il segno locale non deve bloccare la ripresa.
+    const act = this.roundManager.bonusActIndex();
+    const gameId = this.currentGameId();
+    if (gameId && act >= 0) {
+      const closed = this.closedBonusActsOf(gameId);
+      closed.delete(act);
+      try {
+        localStorage.setItem(`bonusClosed:${gameId}`, JSON.stringify([...closed]));
+      } catch {
+        // Storage negato: la riapertura esplicita resta valida per questa schermata.
+      }
+    }
+    // Il checkpoint del bonus non deve ripresentarsi al prossimo refresh.
+    this.reliability.saveTvCheckpoint({
+      mode: `BONUS_${type}`,
+      roundIndex: -1,
+      revision: Date.now(),
+      state: null,
+    });
+    // L'ingresso è già stato visto in questa scheda: si riparte dalla schermata vera.
+    await this.startBonus(type);
+  }
+
+  /** Dati mostrati dal pannello `?debug=1`: nessun effetto sulla partita. */
+  bonusDebugState(): Record<string, string | number | boolean> {
+    return {
+      partita: this.currentGameId() ?? '—',
+      atto: this.roundManager.bonusActIndex() + 1,
+      fase: this.bonusEntrance()
+        ? `ingresso ${this.bonusEntrance()}`
+        : this.bonusActive()
+          ? `attivo ${this.bonusType()}`
+          : this.isShowingLeaderboard()
+            ? 'classifica'
+            : this.currentMode()?.type ?? 'nessuno',
+      server: this.serverBonus
+        ? `${this.serverBonus.type} ${this.serverBonus.status} (atto ${this.serverBonus.act + 1})`
+        : 'nessuno',
+      guardia: this.bonusGuardReason(),
+      ultimaAzione: this.lastBonusAction(),
+      rullo: this.isSpinning(),
+      pausa: this.isPaused(),
+    };
+  }
+
   /** I bonus a punti (Casino) sommano le manche: la classifica li incassa alla chiusura. */
   private recordBonusResult(playerName: string, score: number): void {
     const name = String(playerName || '').trim();
@@ -2395,6 +2493,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   private finishBonus(): void {
+    this.lastBonusAction.set(`STOP ${this.bonusType() ?? ''}`.trim());
     if (this.bonusEntrance()) {
       if (this.bonusEntranceTimer) clearTimeout(this.bonusEntranceTimer);
       this.bonusEntranceTimer = undefined;

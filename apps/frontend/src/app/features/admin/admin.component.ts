@@ -48,6 +48,8 @@ export class Admin implements OnInit, OnDestroy {
   readonly newCategoryEmoji = signal('');
   private diagTimer?: ReturnType<typeof setInterval>;
   private stateRetry?: ReturnType<typeof setTimeout>;
+  /** Q-01: diagnostica del bonus dietro `?debug=1`, come sulla TV. */
+  readonly debug = signal(new URLSearchParams(location.search).get('debug') === '1');
   private destroyRef = inject(DestroyRef);
   public theme = inject(ThemeService);
 
@@ -691,6 +693,17 @@ export class Admin implements OnInit, OnDestroy {
   startBonus(type: BonusType): void {
     this.ws.broadcastStatus(this.activeGameId(), { action: WsAction.ADMIN_START_BONUS, type });
     this.vibrate(30);
+  }
+
+  /**
+   * Q-01: riapre il bonus corrente (o il Cavallo) senza toccare la classifica.
+   * Serve quando una guardia della TV lo tiene chiuso a metà serata.
+   */
+  restartBonus(): void {
+    const type = (this.diagnostics()?.bonusAct?.type ?? 'CAVALLO') as BonusType;
+    this.ws.broadcastStatus(this.activeGameId(), { action: WsAction.ADMIN_RESTART_BONUS, type });
+    this.vibrate(30);
+    void this.refreshDiagnostics();
   }
 
   stopBonus(): void {
