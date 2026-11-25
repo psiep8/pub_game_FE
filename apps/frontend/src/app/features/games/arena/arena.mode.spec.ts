@@ -22,7 +22,7 @@ describe('ArenaMode', () => {
     mode.cleanup();
   });
 
-  it('avanza verso il centro più lentamente e arretra meno dopo un errore', async () => {
+  it('avanza verso il centro e arretra della metà dopo un errore', async () => {
     vi.useFakeTimers();
     const mode = new ArenaMode();
     mode.setConfig({ type: 'ARENA', payload: {}, gameId: 1, activePlayers: ['Anna', 'Bruno'] });
@@ -32,7 +32,8 @@ describe('ArenaMode', () => {
     mode.applyArenaAnswer('Anna', true);
     expect(mode.getDisplayData().teams[0].distance).toBe(25);
     mode.applyArenaAnswer('Anna', false);
-    expect(mode.getDisplayData().teams[0].distance).toBe(37);
+    // F-30: la penalità per risposta sbagliata era +12, ora è +6 (metà).
+    expect(mode.getDisplayData().teams[0].distance).toBe(31);
     mode.cleanup();
   });
 
@@ -193,7 +194,7 @@ describe('ArenaMode', () => {
     expect(restored.applyArenaAnswer('Anna', false, -10, 7)).toBe(false);
     expect(restored.getDisplayData().teams[0].distance).toBe(before.teams[0].distance);
     expect(restored.applyArenaAnswer('Anna', false, -10, 8)).toBe(true);
-    expect(restored.getDisplayData().teams[0].distance).toBe(before.teams[0].distance + 12);
+    expect(restored.getDisplayData().teams[0].distance).toBe(before.teams[0].distance + 6);
     restored.cleanup();
   });
 

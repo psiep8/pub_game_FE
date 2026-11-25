@@ -283,9 +283,10 @@ export class ArenaMode extends GameModeBase {
     const team = currentTeams.get(teamKey);
     if (!team || team.eliminated) return;
 
-    // Verso il centro si avanza più lentamente; l'errore spinge un po' meno
-    // verso il bordo. Il bilanciamento va verificato con giocatori reali.
-    const movement = isCorrect ? -5 : 12;
+    // Verso il centro si avanza più lentamente; l'errore spinge la metà di
+    // prima verso il bordo (F-30: era +12, ora +6). Chi non risponde resta
+    // con la penalità di inattività del server, invariata.
+    const movement = isCorrect ? -5 : 6;
     currentTeams.set(teamKey, {
       ...team,
       distance: Math.max(0, Math.min(100, team.distance + movement)),
