@@ -865,7 +865,7 @@ describe('GameComponent', () => {
       (component as unknown as { checkLeaderboardDisplay(): void }).checkLeaderboardDisplay();
       fixture.detectChanges();
 
-      expect(component.autoAdvanceSeconds()).toBe(10);
+      expect(component.autoAdvanceSeconds()).toBe(30);
       expect(fixture.nativeElement.querySelector('.auto-advance')).toBeTruthy();
     } finally {
       (component as unknown as { cancelAutoAdvance(): void }).cancelAutoAdvance();
@@ -2084,7 +2084,7 @@ describe('GameComponent', () => {
 
         // Il Blackjack non ha una classifica da mostrare: il conto alla rovescia
         // parte subito, senza gli otto secondi di riepilogo del Casino.
-        await vi.advanceTimersByTimeAsync(10_000);
+        await vi.advanceTimersByTimeAsync(30_000);
 
         expect(rounds.getCurrentRound()).toBe(4);
       } finally {
@@ -2119,7 +2119,7 @@ describe('GameComponent', () => {
       fixture.detectChanges();
     }
 
-    it('compare a 10 quando si chiude il riepilogo e scende ogni secondo', async () => {
+    it('compare a 30 quando si chiude il riepilogo e scende ogni secondo', async () => {
       vi.useFakeTimers();
       try {
         closeBonus();
@@ -2132,51 +2132,50 @@ describe('GameComponent', () => {
         await waitForCountdown();
 
         expect(component.bonusShowResult()).toBe(false);
-        expect(strip()?.textContent).toContain('RIPARTENZA · PROSSIMO ROUND');
-        expect(countdownValue()).toBe('10');
+        expect(strip()?.textContent).toContain('ATTESA · PROSSIMO ROUND');
+        expect(countdownValue()).toBe('30');
 
         await vi.advanceTimersByTimeAsync(1_000);
         fixture.detectChanges();
-        expect(countdownValue()).toBe('9');
+        expect(countdownValue()).toBe('29');
       } finally {
         vi.useRealTimers();
       }
     });
 
-    it('la regia ferma la ripartenza e il round non salta da solo', async () => {
+    it('SALTA ATTESA è l’unica uscita immediata e porta al round dopo', async () => {
       vi.useFakeTimers();
       try {
         closeBonus();
         await waitForCountdown();
         expect(strip()).toBeTruthy();
+        expect(component.autoAdvanceSeconds()).toBe(30);
+        const next = vi.spyOn(component, 'adminNextRound').mockImplementation(() => {});
 
         (strip()!.querySelector('.auto-advance-stop') as HTMLButtonElement).click();
         fixture.detectChanges();
 
         expect(component.autoAdvanceSeconds()).toBe(0);
         expect(strip()).toBeNull();
-
-        // Dodici secondi dopo la scena è ancora quella: il commento resta.
-        const rounds = TestBed.inject(RoundManagerService);
-        const before = rounds.getCurrentRound();
-        await vi.advanceTimersByTimeAsync(12_000);
-        expect(rounds.getCurrentRound()).toBe(before);
+        expect(next).toHaveBeenCalledOnce();
       } finally {
         vi.useRealTimers();
       }
     });
 
-    it('anche ESC ferma la ripartenza', async () => {
+    it('anche ESC salta l’attesa', async () => {
       vi.useFakeTimers();
       try {
         closeBonus();
         await waitForCountdown();
         expect(component.autoAdvanceSeconds()).toBeGreaterThan(0);
+        const next = vi.spyOn(component, 'adminNextRound').mockImplementation(() => {});
 
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
         fixture.detectChanges();
 
         expect(component.autoAdvanceSeconds()).toBe(0);
+        expect(next).toHaveBeenCalledOnce();
       } finally {
         vi.useRealTimers();
       }
@@ -2198,7 +2197,7 @@ describe('GameComponent', () => {
           await vi.advanceTimersByTimeAsync(0);
           fixture.detectChanges();
           expect(strip()).not.toBeNull();
-          expect(countdownValue()).toBe('10');
+          expect(countdownValue()).toBe('30');
         } finally {
           vi.useRealTimers();
         }
@@ -2206,7 +2205,6 @@ describe('GameComponent', () => {
     );
 
     it.each([
-      { caso: 'la pausa', interrompi: () => component.togglePause(), roundDopo: 3 },
       { caso: 'la classifica', interrompi: () => component.adminShowLeaderboard(), roundDopo: 3 },
       { caso: 'l’avanzamento manuale', interrompi: () => component.adminNextRound(), roundDopo: 4 },
     ])('sparisce con $caso e non fa ripartire da sola la scaletta', async ({ interrompi, roundDopo }) => {
@@ -2221,9 +2219,28 @@ describe('GameComponent', () => {
         fixture.detectChanges();
         expect(strip()).toBeNull();
 
-        // Passati gli altri dieci secondi, il conto chiuso non avanza più nulla.
-        await vi.advanceTimersByTimeAsync(10_000);
+        // Passati gli altri trenta secondi, il conto chiuso non avanza più nulla.
+        await vi.advanceTimersByTimeAsync(30_000);
         expect(rounds.getCurrentRound()).toBe(roundDopo);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('la pausa ferma il conto e la ripresa lo fa ripartire', async () => {
+      vi.useFakeTimers();
+      try {
+        closeBonus();
+        await waitForCountdown();
+        const before = component.autoAdvanceSeconds();
+
+        component.isPaused.set(true);
+        await vi.advanceTimersByTimeAsync(5_000);
+        expect(component.autoAdvanceSeconds()).toBe(before);
+
+        component.isPaused.set(false);
+        await vi.advanceTimersByTimeAsync(1_000);
+        expect(component.autoAdvanceSeconds()).toBe(before - 1);
       } finally {
         vi.useRealTimers();
       }

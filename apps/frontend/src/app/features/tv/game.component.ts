@@ -137,7 +137,7 @@ const PENDING_LEADERBOARD_KEY = 'leaderboardPending';
   host: {
     '[class.leaderboard-open]': 'isShowingLeaderboard()',
     // La regia ferma la ripartenza automatica anche da tastiera.
-    '(document:keydown.escape)': 'stopAutoAdvance()',
+    '(document:keydown.escape)': 'skipAutoAdvance()',
   },
   animations: [
     trigger('fadeInOut', [
@@ -2148,7 +2148,8 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   togglePause() {
-    this.cancelAutoAdvance();
+    // F-12: la pausa ferma il conto alla rovescia, non lo cancella; alla
+    // ripresa riparte da dove era (l'intervallo salta i tick in pausa).
     const mode = this.currentMode();
 
     if (this.isPaused()) {
@@ -2569,12 +2570,15 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.bonusActive()) return;
 
     this.cancelAutoAdvance();
-    this.autoAdvanceSeconds.set(10);
+    // F-12: almeno 30 secondi di riepilogo prima del gioco successivo; la
+    // pausa ferma il conto e la ripresa lo fa ripartire da dove era.
+    this.autoAdvanceSeconds.set(30);
     this.autoAdvanceTimer = setInterval(() => {
-      if (this.isPaused() || this.isShowingLeaderboard() || this.demoType()) {
+      if (this.isShowingLeaderboard() || this.demoType()) {
         this.cancelAutoAdvance();
         return;
       }
+      if (this.isPaused()) return;
 
       const next = this.autoAdvanceSeconds() - 1;
       this.autoAdvanceSeconds.set(Math.max(0, next));
@@ -2594,6 +2598,12 @@ export class GameComponent implements OnInit, OnDestroy {
   stopAutoAdvance(): void {
     if (this.autoAdvanceSeconds() <= 0) return;
     this.cancelAutoAdvance();
+  }
+
+  /** «Salta attesa»: l'uscita esplicita per le emergenze, porta subito al round dopo. */
+  skipAutoAdvance(): void {
+    this.cancelAutoAdvance();
+    this.adminNextRound();
   }
 
   private cancelAutoAdvance(): void {
