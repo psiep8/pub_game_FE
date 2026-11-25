@@ -5,7 +5,7 @@ import { TennisBattleMode, applyPoint, randomServe } from './tennis-battle.mode'
 const PLAYERS = ['Anna', 'Bruno', 'Carla', 'Dario'];
 
 function side(playerName: string, extra: any = {}) {
-  return { playerName, score: 0, games: 0, deuceLosses: 0, isBot: false, shots: 0, ...extra };
+  return { playerName, score: 0, games: 0, isBot: false, shots: 0, ...extra };
 }
 
 function court(id: number, a: string, b: string, extra: any = {}) {
@@ -102,8 +102,9 @@ describe('TennisBattleMode — game, partita e killer point', () => {
     campo = applyPoint(campo, 'a');
     expect(campo.a.games).toBe(1);
     expect(campo.killerPoint).toBe(false);
-    expect(campo.a.deuceLosses).toBe(0);
-    expect(campo.b.deuceLosses).toBe(0);
+    // Game chiuso: il game nuovo riparte da 0-0, senza contatori di vantaggi.
+    expect(campo.a.score).toBe(0);
+    expect(campo.b.score).toBe(0);
   });
 
   it('i tiri nuovi non sono sempre dritti', () => {

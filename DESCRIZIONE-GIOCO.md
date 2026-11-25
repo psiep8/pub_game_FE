@@ -55,7 +55,7 @@ Blackjack non è più un round. Arena chiude gli atti 3 e 5; Ultima spiaggia è 
 - **Time Buzzer** — fermare il cronometro senza vederlo; tre manche.
 - **Bomba** — tabellone a turni con caselle vere e bombe; due apparizioni.
 - **Speed Rush** — 90 secondi di microprove, corsia e classifica per arrivo.
-- **Tennis Battle** — duello a coppie con punteggio 15/30/40/vantaggio e killer point.
+- **Tennis Battle** — duello a coppie con punteggio 15/30/40 e killer point diretto sul 40-40, senza vantaggi.
 - **Azzardo** — quattro manche numeriche con fiches e quote.
 - **Ultima spiaggia** — cinque livelli 100–500, consumabili una volta per squadra.
 - **Arena** — Vero/Falso continuo dentro un cerchio che si stringe.

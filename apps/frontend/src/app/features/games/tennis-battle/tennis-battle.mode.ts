@@ -33,8 +33,6 @@ interface CourtSide {
   games: number;
   isBot: boolean;
   shots: number;
-  /** Contatore storico del game: il vantaggio non esiste più, resta a zero. */
-  deuceLosses: number;
 }
 
 interface TennisQuestion {
@@ -45,7 +43,7 @@ interface TennisQuestion {
 }
 
 interface CourtEvent {
-  kind: 'return' | 'goal' | 'advantage' | 'deuce';
+  kind: 'return' | 'goal';
   side: Side;
   id: number;
 }
@@ -191,7 +189,6 @@ export interface PointResult {
   scorerScore: GameScore;
   loserScore: GameScore;
   scorerGames: number;
-  deuceLosses: number;
   killerPoint: boolean;
   /** Il set è chiuso: il vincitore è il lato che ha segnato. */
   setWon: boolean;
@@ -210,7 +207,6 @@ export function nextPoint(court: Court, scorerSide: Side): PointResult {
     scorerScore: 0,
     loserScore: 0,
     scorerGames: scorer.games + 1,
-    deuceLosses: 0,
     killerPoint: false,
     setWon: scorer.games + 1 >= GAMES_TO_WIN,
   });
@@ -221,21 +217,17 @@ export function nextPoint(court: Court, scorerSide: Side): PointResult {
   // Punteggio sotto il 40: si sale di 15 in 15.
   if (scorer.score < 40) {
     const up: GameScore = scorer.score === 0 ? 15 : scorer.score === 15 ? 30 : 40;
-    return { scorerScore: up, loserScore: loser.score, scorerGames: scorer.games, deuceLosses: 0, killerPoint: false, setWon: false };
+    return { scorerScore: up, loserScore: loser.score, scorerGames: scorer.games, killerPoint: false, setWon: false };
   }
 
   // 40 contro meno di 40: game vinto.
   if (loser.score < 40) return winGame();
 
   // 40 pari: niente vantaggi, il prossimo punto è già il killer point.
-  return { scorerScore: 40, loserScore: 40, scorerGames: scorer.games, deuceLosses: 0, killerPoint: true, setWon: false };
+  return { scorerScore: 40, loserScore: 40, scorerGames: scorer.games, killerPoint: true, setWon: false };
 }
 
-/**
- * Applica il punto al campo. Il conteggio dei vantaggi è del game, non del
- * singolo lato: sta su entrambi, così un 40-40 del game dopo non eredita i
- * vantaggi già spesi e non fa scattare un killer point fuori tempo.
- */
+/** Applica il punto al campo: punteggio, game e killer point del game nuovo. */
 export function applyPoint(court: Court, scorerSide: Side): Court {
   const loserSide: Side = scorerSide === 'a' ? 'b' : 'a';
   const scorer = court[scorerSide];
@@ -247,12 +239,10 @@ export function applyPoint(court: Court, scorerSide: Side): Court {
       ...scorer,
       score: point.scorerScore,
       games: point.scorerGames,
-      deuceLosses: point.deuceLosses,
     },
     [loserSide]: {
       ...loser,
       score: point.loserScore,
-      deuceLosses: point.deuceLosses,
       shots: loser.shots + 1,
     },
     killerPoint: point.killerPoint,
@@ -420,8 +410,8 @@ export class TennisBattleMode extends GameModeBase {
   private createCourt(id: number, a: string, b: string): Court {
     return {
       id,
-      a: { playerName: a, score: 0, games: 0, deuceLosses: 0, isBot: false, shots: 0 },
-      b: { playerName: b, score: 0, games: 0, deuceLosses: 0, isBot: false, shots: 0 },
+      a: { playerName: a, score: 0, games: 0, isBot: false, shots: 0 },
+      b: { playerName: b, score: 0, games: 0, isBot: false, shots: 0 },
       winner: null,
       turn: 'a',
       serveLeft: SERVE_SECONDS,
@@ -713,7 +703,6 @@ export class TennisBattleMode extends GameModeBase {
       games: Math.max(0, Number(value?.games) || 0),
       isBot: value?.isBot === true,
       shots: Math.max(0, Number(value?.shots) || 0),
-      deuceLosses: Math.max(0, Number(value?.deuceLosses) || 0),
     };
   }
 
