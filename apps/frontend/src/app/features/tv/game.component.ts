@@ -768,7 +768,7 @@ export class GameComponent implements OnInit, OnDestroy {
       } else if (status.action === WsAction.ADMIN_SHOW_INTRO) {
         this.replayIntro();
       } else if (status.action === WsAction.ADMIN_HIDE_DEMO) {
-        this.stopDemo();
+        this.closeDemo();
       } else if (status.action === 'ADMIN_START_BONUS') {
         if (status.type) void this.startBonus(status.type);
       } else if (status.action === 'ADMIN_STOP_BONUS') {
@@ -2719,6 +2719,19 @@ export class GameComponent implements OnInit, OnDestroy {
   stopDemo(): void {
     this.stopDemoTimer();
     this.demoType.set(null);
+    this.demoScene.set(0);
+  }
+
+  /**
+   * Chiusura voluta della demo (SALTA in TV o CHIUDI DEMO in regia): la demo
+   * esce e il round che aspettava di partire parte subito. Senza questo, la
+   * chiusura dalla regia lasciava il round in attesa in memoria e la TV ferma.
+   */
+  private closeDemo(): void {
+    const pending = this.pendingRoundOpen;
+    this.pendingRoundOpen = undefined;
+    this.stopDemo();
+    pending?.();
   }
 
   /** Ripeti demo: torna alla prima scena senza chiudere la scena. */
@@ -2728,10 +2741,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
   /** Salta: chiude la demo e, se aspettava un round, lo apre subito. */
   skipDemo(): void {
-    const pending = this.pendingRoundOpen;
-    this.pendingRoundOpen = undefined;
-    this.stopDemo();
-    pending?.();
+    this.closeDemo();
   }
 
   goDemoScene(scene: number): void {

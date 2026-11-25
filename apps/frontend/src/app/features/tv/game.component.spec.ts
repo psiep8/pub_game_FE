@@ -1959,6 +1959,26 @@ describe('GameComponent', () => {
     }
   });
 
+  it('la chiusura della demo dalla regia apre il round e svuota lo stato demo', () => {
+    // F-04: CHIUDI DEMO dalla regia passava da stopDemo, che non apriva il
+    // round rimasto in attesa né azzerava la scena.
+    const c = component as unknown as {
+      pendingRoundOpen?: () => void;
+      demoType: { set(value: string | null): void };
+    };
+    const open = vi.fn();
+    c.pendingRoundOpen = open;
+    component.demoType.set('QUIZ');
+    component.demoScene.set(3);
+
+    ws.status$.next({ action: WsAction.ADMIN_HIDE_DEMO });
+
+    expect(component.demoType()).toBeNull();
+    expect(component.demoScene()).toBe(0);
+    expect(open).toHaveBeenCalledTimes(1);
+    expect(c.pendingRoundOpen).toBeUndefined();
+  });
+
   describe('bonus sparsi negli atti', () => {
     /** `startScheduledBonus` è privato: qui interessa la decisione, non il DOM. */
     function scheduled(component: GameComponent): { startScheduledBonus(): boolean } {
