@@ -15,7 +15,7 @@ quizzOne è un gioco multigiocatore per locali e feste: la TV mostra domande, ta
 
 quizzOne porta in sala un quiz a squadre in stile pub: nessuna app da installare, nessun account, un QR code sulla TV e il browser del telefono. La regia decide quando parte un round e quando si passa al successivo; il backend tiene sessioni, stato e recupero dopo un refresh.
 
-La versione è **3.1.0**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
+La versione è **3.1.1**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
 
 ## 2. Come si gioca
 
@@ -304,7 +304,7 @@ Prima di una serata con telefoni veri:
 1. `cp .env.test-night.example .env` e compila `CONTROL_SECRET` (≥ 32 caratteri) e `ALLOWED_ORIGINS` con IP LAN del PC.
 2. `npm run db:backup` (copia in `backups/`, fuori dal repository).
 3. `npm run dev`, poi `curl http://localhost:8080/health` deve rispondere `{"status":"ok"}`.
-   Con Docker: `PUBGAME_TAG=3.1.0 docker compose up -d` fissa la versione, così un
+   Con Docker: `PUBGAME_TAG=3.1.1 docker compose up -d` fissa la versione, così un
    aggiornamento sbagliato si annulla cambiando tag.
 4. Giro a vuoto con un iPhone e un Android: ingresso, un round, refresh della TV, blocco schermo di 60 secondi.
 
@@ -322,7 +322,7 @@ Il registro completo dei difetti emersi nella prima serata (F01–F55), con stat
 - Sezione Demo nell'admin (introduzione, 13 giochi, 5 bonus) con tabella punti generata da `SCORING_RULES`.
 - Classifiche rapide e dettagliate, pausa, ripresa, diagnostica di regia, espulsione di una squadra dalla regia.
 - Audio a file registrati con regia audio in `/audio`.
-- Banca domande pre-generata: 983 domande, 360 domande Azzardo, 110 affermazioni Bomba e 222 eventi Timeline.
+- Banca domande pre-generata: 1143 domande, 360 domande Azzardo, 60 argomenti Bomba con 110 affermazioni di riserva e 222 eventi Timeline.
 
 **Da provare con telefoni e TV veri** (corrette nel codice, non verificate in sala): rientro su iPhone e Safari, Time Buzzer, Arena (cerchio, movimento, inattività), Speed Rush a 90 secondi, Tennis dopo la migrazione del database (e il nuovo campo con le linee), Bomba con esplosione immediata, vibrazione e suono sui telefoni, la pausa di lettura e il 3-2-1 della regia scenica, il respiro/bolle con `?perf=1`, gli ingressi a sorpresa dei bonus e le fiche dell’Azzardo.
 
@@ -343,7 +343,7 @@ Il registro completo dei difetti emersi nella prima serata (F01–F55), con stat
 
 ## 13. Contenuti e licenze
 
-- **Domande**: `apps/backend/src/main/resources/questions/questions-it.json` (983 domande, 16 categorie; Tennis Battle è un tipo di domanda, non una categoria), `azzardo-it.json` (360), `bomba-it.json` (110 affermazioni) e `timeline-it.json` (222 eventi). Il backend le carica all'avvio e non chiama alcun modello AI a runtime.
+- **Domande**: `apps/backend/src/main/resources/questions/questions-it.json` (1143 domande, 16 categorie; Tennis Battle è un tipo di domanda, non una categoria), `azzardo-it.json` (360), `bomba-it.json` (60 argomenti e 110 affermazioni di riserva) e `timeline-it.json` (222 eventi). Il backend le carica all'avvio e non chiama alcun modello AI a runtime.
 - **Generazione**: `scripts/generate-questions/generate.py` può usare Groq, ma solo quando si rigenera la banca. `GROQ_API_KEY` non serve per giocare.
 - **Immagini**: “Indovina chi” può usare TMDB se `TMDB_API_KEY` è impostata; senza chiave la domanda resta senza foto. Se la banca media locale è presente, le immagini vengono servite dal backend.
 - **Musica**: senza banca locale il backend usa le anteprime pubbliche di 30 secondi dell'iTunes Search API; con la banca locale i file sono serviti da `/media/...`.

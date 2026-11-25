@@ -1,6 +1,6 @@
 # quizzOne BE — Backend Spring Boot
 
-> **VERSIONE 3.1.0 — 25 novembre 2026.** Vince il codice; per il quadro completo
+> **VERSIONE 3.1.1 — 25 novembre 2026.** Vince il codice; per il quadro completo
 > del gioco e della scaletta vale il [`README.md`](../../README.md) della radice.
 
 Backend **Spring Boot 4.2.0** su **Java 25 LTS**: REST e WebSocket STOMP nello stesso
@@ -54,7 +54,7 @@ src/main/java/com/pub_game_be/
 ├── repository/    JPA
 ├── security/      filtro sessioni e CORS
 └── service/       logica di gioco e domande
-src/main/resources/questions/   banche pre-generate (983 quiz + 360 azzardo + 110 bomba + 222 timeline)
+src/main/resources/questions/   banche pre-generate (1143 quiz + 360 azzardo + 60 argomenti/110 affermazioni bomba + 222 timeline)
 ```
 
 L'autorità su punteggi e avanzamento è del server; la TV conserva la

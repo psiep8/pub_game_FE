@@ -122,19 +122,29 @@ public class PartyGameService {
         int size = TIMELINE_CARDS;
         List<TimelineEvent> pool = timelinePool(category);
 
-        // Anti-ripetizione: prima le carte mai uscite in questa partita.
+        // Anti-ripetizione: prima le carte mai uscite in questa partita. Se la
+        // categoria scelta è esaurita, il round si completa con le altre
+        // categorie invece di ripescare carte già viste.
         List<TimelineEvent> available = new ArrayList<>();
         for (TimelineEvent event : pool) {
             if (!questionUsage.isUsed(gameId, timelineKey(event))) {
                 available.add(event);
             }
         }
+        if (available.size() < size) {
+            for (TimelineEvent event : events) {
+                if (available.contains(event)) continue;
+                if (!questionUsage.isUsed(gameId, timelineKey(event))) {
+                    available.add(event);
+                }
+            }
+        }
 
         List<TimelineEvent> ordered = sampleTimeline(available, size, category);
         boolean repeatedContent = false;
         if (ordered.size() < size) {
-            // Pool esaurito: non si finge che sia tutto nuovo, lo dichiara la TV.
-            ordered = sampleTimeline(pool, size, category);
+            // Banca davvero esaurita: non si finge che sia tutto nuovo, lo dichiara la TV.
+            ordered = sampleTimeline(events, size, category);
             repeatedContent = true;
         }
         for (TimelineEvent event : ordered) {

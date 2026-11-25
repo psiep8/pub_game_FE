@@ -1,16 +1,7 @@
 {
   "version": 1,
   "note": "Correzioni a mano della banca media. media-it.json non e' versionato (dipende dal computer che ha scaricato i file): qui restano solo i campi da correggere, mai i media. Le applica generate_media.py quando scrive l'indice e le applica l'audit prima dei controlli, cosi' un anno corretto a mano non si perde rigenerando la banca.",
-  "music": [
-    {
-      "title": "Boulevard of Broken Dreams",
-      "artist": "Green Day",
-      "set": {
-        "year": "2004"
-      },
-      "why": "iTunes risponde con la ristampa/compilation e l'anno sbagliato; il brano e' del 2004 (album American Idiot)."
-    }
-  ],
+  "music": [],
   "people": [
     {
       "name": "Sophia Loren",

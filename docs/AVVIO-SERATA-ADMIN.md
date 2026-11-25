@@ -51,7 +51,7 @@ Scegli una strada.
 docker compose -f deploy/docker-compose.test.yml --env-file deploy/.env up -d --build
 ```
 
-Per fissare la versione 3.1.0 aggiungi `PUBGAME_TAG=3.1.0` prima del comando.
+Per fissare la versione 3.1.1 aggiungi `PUBGAME_TAG=3.1.1` prima del comando.
 Aggiornamenti sbagliati si annullano cambiando tag.
 
 **Npm:**

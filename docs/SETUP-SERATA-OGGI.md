@@ -1,4 +1,4 @@
-# Setup serata — quizzOne 3.1.0
+# Setup serata — quizzOne 3.1.1
 
 > Checklist rapida per la serata di **oggi, 25 novembre 2026**.
 > Dettagli completi: [`SETUP-LOCALE.md`](SETUP-LOCALE.md) e
@@ -39,10 +39,10 @@ cp deploy/.env.test.example deploy/.env
 # Il compose di prova imposta ALLOWED_ORIGINS=*: va bene per la serata in casa.
 ```
 
-Avvio della versione **3.1.0**:
+Avvio della versione **3.1.1**:
 
 ```bash
-PUBGAME_TAG=3.1.0 docker compose -f deploy/docker-compose.test.yml --env-file deploy/.env up -d --build
+PUBGAME_TAG=3.1.1 docker compose -f deploy/docker-compose.test.yml --env-file deploy/.env up -d --build
 ```
 
 Verifica:

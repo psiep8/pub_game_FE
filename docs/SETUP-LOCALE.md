@@ -1,6 +1,6 @@
 # quizzOne: installazione e configurazione in locale
 
-Guida per far girare il gioco su un computer, per una serata tra amici (PC collegato alla TV con HDMI, oppure browser della TV) o per un locale. I comandi sono quelli del repository (versione 3.1.0). I numeri su hardware e telefoni sono **indicazioni prudenti**, non limiti verificati: la prova con i telefoni veri resta il controllo finale.
+Guida per far girare il gioco su un computer, per una serata tra amici (PC collegato alla TV con HDMI, oppure browser della TV) o per un locale. I comandi sono quelli del repository (versione 3.1.1). I numeri su hardware e telefoni sono **indicazioni prudenti**, non limiti verificati: la prova con i telefoni veri resta il controllo finale.
 
 ## 1. Quale modo scegliere
 

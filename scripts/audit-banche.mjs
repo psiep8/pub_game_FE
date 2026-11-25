@@ -116,6 +116,12 @@ function mediaFileExists(relative) {
   return existsSync(join(staticDir, String(relative).replace(/^\//, '')));
 }
 
+/** Le copertine possono arrivare da un CDN: un URL assoluto è già servibile. */
+function mediaOrRemoteExists(value) {
+  if (!value) return false;
+  return /^https?:\/\//i.test(String(value)) || mediaFileExists(value);
+}
+
 function normalizeText(value) {
   return String(value ?? '')
     .toLowerCase()
@@ -644,7 +650,7 @@ function auditMusic(media) {
     if (!artist) missing.push({ title, field: 'artist' });
     if (!/^\d{4}$/.test(String(track.year ?? ''))) missing.push({ title, field: 'year', detail: String(track.year ?? '') });
     if (!mediaFileExists(track.file)) missing.push({ title, field: 'file', detail: String(track.file ?? '') });
-    if (!mediaFileExists(track.albumCover)) {
+    if (!mediaOrRemoteExists(track.albumCover)) {
       missing.push({ title, field: 'albumCover', detail: String(track.albumCover ?? '') });
     }
   }

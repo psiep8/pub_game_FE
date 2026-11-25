@@ -1,5 +1,27 @@
 # Changelog
 
+## 25 novembre 2026 — quizzOne 3.1.1, Timeline corretta e tutti i giochi verificati
+
+Versione **3.1.1**: correzioni di gioco e verifiche, senza cambi a percorsi,
+database o variabili d'ambiente.
+
+- **Timeline.** Terzo round sulla stessa categoria senza carte ripetute: quando
+  la categoria scelta esaurisce le carte, il round si completa con eventi mai
+  usciti delle altre categorie; il pool viene riusato solo dopo tutti i 222
+  eventi, con `poolWarning`. Aggiunto il test con 24 carte distinte in tre round.
+- **Banche.** L'audit accetta le copertine remote `https` e rimuove una patch
+  Green Day orfana. `docs/BANCHE-AUDIT.md` rigenerato: 1143 domande, 360
+  Azzardo, 60 argomenti Bomba, 222 Timeline, 0 problemi.
+- **Smoke test BE.** `AllGamesStartupTest` apre il primo round di tutti i 14
+  `GameType` e avvia i servizi server di Bomba, Speed Rush, Basket, Karaoke,
+  Tennis e Cavallo.
+- **Allineamento.** Versione 3.1.1 in `VERSION`, npm, Maven, Docker, README,
+  presentazione, guide e manuali; README allineato a 1143 domande e 60 argomenti
+  Bomba; PDF IT e B/N rigenerati.
+- **Verifiche.** Backend mirato: **7 test passati** (5 Timeline, 2 smoke test);
+  frontend: **803 passati, 2 skip**; audit banche **OK**; PDF A4 **10 pagine**;
+  pacchetto `pub_game_BE-3.1.1.jar` rigenerato.
+
 ## 25 novembre 2026 — quizzOne 3.1.0, giochi e manuali allineati
 
 Versione **3.1.0** in monorepo, Docker, README, presentazione e manuali. È una
