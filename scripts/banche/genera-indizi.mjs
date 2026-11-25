@@ -44,6 +44,42 @@ const API = 'https://it.wikipedia.org/w/api.php';
 const USER_AGENT = 'PubGameCelebrityBank/1.0 (banca indizi per una serata privata; no crawl)';
 const BLOCCO = 20;
 
+/**
+ * Code per il primo indizio di chi su Wikipedia ha solo «Un attore italiano».
+ * Sono scritte a mano e verificate sulla voce: i tentativi automatici
+ * pescavano l'opera di un altro o frasi senza senso («tra i due nasce
+ * l'amore»), quindi qui non si indovina.
+ */
+const PRIMI_INDIZI = new Map([
+  ['frida kahlo', ', celebre per i suoi autoritratti'],
+  ['vincent van gogh', ', celebre per La notte stellata'],
+  ['jules verne', ', celebre per Ventimila leghe sotto i mari'],
+  ['adele', ', celebre per Someone like You'],
+  ['angelina mango', ', vincitrice del Festival di Sanremo 2024'],
+  ['biagio antonacci', ', celebre per Convivendo'],
+  ['billie eilish', ', celebre per Bad Guy'],
+  ['bob dylan', ", celebre per Blowin' in the Wind"],
+  ['ed sheeran', ", celebre per Shape of You"],
+  ['justin bieber', ', celebre per Baby'],
+  ['sfera ebbasta', ', celebre per Rockstar'],
+  ['achille lauro', ', celebre per Rolls Royce'],
+  ['max pezzali', ', voce degli 883'],
+  ['fabrizio de andre', ', celebre per La canzone di Marinella'],
+  ['al pacino', ', celebre per il ruolo di Michael Corleone ne Il padrino'],
+  ['alessandro borghi', ', celebre per Sulla mia pelle'],
+  ['florence pugh', ', celebre per Piccole donne'],
+  ['javier bardem', ', celebre per Non è un paese per vecchi'],
+  ['meryl streep', ', celebre per Il diavolo veste Prada'],
+  ['paul mescal', ', celebre per Normal People'],
+  ['robert pattinson', ', celebre per Twilight'],
+  ['jenna ortega', ', celebre per Mercoledì'],
+  ['roberto bolle', ', étoile del Teatro alla Scala'],
+  ['carlos alcaraz', ', numero uno del ranking ATP'],
+  ['jannik sinner', ', numero uno del ranking ATP'],
+  ['novak djokovic', ', numero uno del ranking ATP'],
+  ['serena williams', ', numero uno del ranking WTA'],
+]);
+
 const NAME_PARTICLES = new Set([
   'de', 'del', 'della', 'di', 'da', 'dos', 'du', 'la', 'le',
   'van', 'von', 'jr', 'sr', 'ii', 'iii', 'iv',
@@ -445,6 +481,9 @@ function predicateOf(extract, name) {
 }
 
 /**
+ * Opera o ruolo che rendono meno scarno il primo indizio: si cerca prima
+ * l'opera subito dopo la parola che la definisce («album «Titolo»»), poi la
+/**
  * Quattro indizi, sempre. Ordine: professione (ampio), secolo e luogo (ampio),
  * nascita con la data (specifico), un fatto con un anno o un'opera (specifico).
  */
@@ -471,16 +510,30 @@ function buildPerson(name, ambito, sottoAmbito, page, descrizioneLocale) {
     descrizione = clean(descrizioneLocale).replace(/\.$/, '');
   }
   descrizione = descrizione.replace(/^(stato|stata|stati|state)\s+/i, '');
+  // Il secondo indizio resta corto: usa la descrizione senza l'opera aggiunta.
+  let descrizioneBase = descrizione;
+  // Un primo indizio come «Un attore italiano» dice poco: per i casi noti si
+  // aggiunge un'opera o un ruolo, scritto a mano e verificato sulla voce.
+  const significative = descrizione.split(/[\s,]+/).filter((parola) => parola
+    && !/^(un|uno|una|il|lo|la|i|gli|le|di|del|della|dei|degli|delle|e|ed)$/i.test(parola));
+  const coda = PRIMI_INDIZI.get(fold(name));
+  if (descrizione && coda && significative.length < 3 && descrizione.length + coda.length <= 150) {
+    descrizione = `${descrizione}${coda}`;
+  }
   if (!descrizione) descrizione = `personaggio del mondo del ${sottoAmbito}`;
+  if (!descrizioneBase) descrizioneBase = descrizione;
   const definition = `${capitalize(descrizione)}.`;
 
   const clues = [];
   const push = (livello, testo, extra = {}) => {
     const text = clean(testo);
     if (!text || text.length < 8) return false;
+    // Niente testo tagliato con «…»: se è troppo lungo si sceglie un'altra
+    // frase (le frasi candidate sono già filtrate per lunghezza).
+    if (text.length > 180) return false;
     clues.push({
       livello,
-      testo: (text.length > 180 ? `${text.slice(0, 177).trim()}…` : text).replace(/\.{2,}$/, '.'),
+      testo: text.replace(/\.{2,}$/, '.'),
       fonte: url,
       verificato: extra.verificato !== false,
       ...(extra.nota ? { nota: extra.nota } : {}),
@@ -494,15 +547,15 @@ function buildPerson(name, ambito, sottoAmbito, page, descrizioneLocale) {
   // 2 — ampio: secolo e luogo di nascita, con la professione: resta unico.
   const secolo = secoloOf(nascita.annoNum, nascita.avantiCristo);
   if (nascita.luogo && secolo) {
-    push('ampio', `${nascita.luogo}, ${secolo}: ${descrizione}.`, {
+    push('ampio', `${nascita.luogo}, ${secolo}: ${descrizioneBase}.`, {
       verificato: verifica(nascita.luogo),
     });
   } else if (secolo) {
-    push('ampio', `${secolo}: ${descrizione}.`, {
+    push('ampio', `${secolo}: ${descrizioneBase}.`, {
       verificato: true,
     });
   } else {
-    push('ampio', `${descrizione}: il suo nome è legato al mondo del ${sottoAmbito}.`, {
+    push('ampio', `${descrizioneBase}: il suo nome è legato al mondo del ${sottoAmbito}.`, {
       verificato: true,
       nota: 'ambito di gioco',
     });
@@ -527,7 +580,7 @@ function buildPerson(name, ambito, sottoAmbito, page, descrizioneLocale) {
   // 4 — specifico: un fatto con un anno, un premio o un'opera.
   const usati = new Set(clues.map((clue) => loose(clue.testo)));
   const fatto = frasi.find((sentence) => {
-    if (sentence.testo.length < 40 || !usable(sentence.testo)) return false;
+    if (sentence.testo.length < 40 || sentence.testo.length > 178 || !usable(sentence.testo)) return false;
     // «Nasce a …» ripete il terzo indizio: si cerca un fatto diverso.
     if (/^(nasce|nacque)\b/i.test(sentence.testo)) return false;
     if (usati.has(loose(sentence.testo))) return false;
@@ -542,7 +595,7 @@ function buildPerson(name, ambito, sottoAmbito, page, descrizioneLocale) {
   // frase della voce, poi la morte, poi l'ambito di gioco.
   if (clues.length < 3) {
     const altra = frasi.find((sentence) => {
-      if (sentence.testo.length < 20 || !usable(sentence.testo)) return false;
+      if (sentence.testo.length < 20 || sentence.testo.length > 178 || !usable(sentence.testo)) return false;
       if (ripeteDescrizione(sentence.testo, descrizione)) return false;
       return !usati.has(loose(sentence.testo));
     });
@@ -552,7 +605,7 @@ function buildPerson(name, ambito, sottoAmbito, page, descrizioneLocale) {
   }
   if (clues.length < 4) {
     const ultima = frasi.find((sentence) => {
-      if (sentence.testo.length < 18 || !usable(sentence.testo)) return false;
+      if (sentence.testo.length < 18 || sentence.testo.length > 178 || !usable(sentence.testo)) return false;
       if (ripeteDescrizione(sentence.testo, descrizione)) return false;
       return !usati.has(loose(sentence.testo));
     });
@@ -688,7 +741,7 @@ async function repairFiller(persone) {
       const descrizione = persona.indizi[0].testo.replace(/\.$/, '');
       const frasi = sentencesOf(body.slice(0, 12000), persona.nome);
       const candidata = frasi.find((frase) => (
-        frase.testo.length >= 40 && frase.testo.length <= 190
+        frase.testo.length >= 40 && frase.testo.length <= 178
         && usable(frase.testo)
         && !mentionsName(frase.testo, persona.nome)
         && !ripeteDescrizione(frase.testo, descrizione)
@@ -702,7 +755,7 @@ async function repairFiller(persone) {
       const originale = candidata.originale.replace(/\.$/, '');
       persona.indizi[indice] = {
         livello: 'specifico',
-        testo: candidata.testo.length > 180 ? `${candidata.testo.slice(0, 177).trim()}…` : candidata.testo,
+        testo: candidata.testo,
         fonte: persona.pagina,
         verificato: containsLoose(body, originale) || containsLoose(senzaParentesi(body), originale),
       };
@@ -712,7 +765,65 @@ async function repairFiller(persone) {
   console.error(`Quarte righe rifatte: ${riparate}/${daRifare.length}`);
 }
 
+/**
+ * Chi resta con un primo indizio scarno riceve la coda curata, se c'è.
+ */
+function enrichThinFirstClues(persone) {
+  const thin = persone.filter((persona) => {
+    const parole = persona.indizi[0].testo.replace(/\.$/, '').split(/[\s,]+/)
+      .filter((parola) => parola && !/^(un|uno|una|il|lo|la|i|gli|le|di|del|della|dei|degli|delle|e|ed)$/i.test(parola));
+    return parole.length < 3 && !PRIMI_INDIZI.has(fold(persona.nome))
+      && !persona.indizi[0].testo.includes('celebre per');
+  });
+  let sistemati = 0;
+  for (const persona of persone) {
+    const coda = PRIMI_INDIZI.get(fold(persona.nome));
+    if (!coda || persona.indizi[0].testo.includes(coda.trim())) continue;
+    const base = persona.indizi[0].testo.replace(/\.$/, '');
+    if (base.length + coda.length > 150) continue;
+    persona.indizi[0] = { ...persona.indizi[0], testo: `${base}${coda}.` };
+    sistemati += 1;
+  }
+  console.error(`Primi indizi arricchiti: ${sistemati} (restano senza coda: ${thin.length})`);
+}
+
+/**
+ * Rifinitura senza rigenerare tutto: opera sui dati già scritti. Serve per
+ * correggere i primi indizi scarni e le quarte righe rimaste vuote, spendendo
+ * solo le richieste delle persone interessate.
+ */
+async function refine() {
+  const output = JSON.parse(readFileSync(outputPath, 'utf8'));
+  const persone = output.persone ?? [];
+  for (const persona of persone) {
+    persona._titolo = decodeURIComponent(String(persona.pagina ?? '').split('/wiki/')[1] ?? '').replace(/_/g, ' ');
+  }
+
+  // Le code aggiunte in una passata precedente si tolgono: si riparte dalla
+  // descrizione pura e si ri-arricchisce solo con frasi sicure.
+  for (const persona of persone) {
+    const primo = persona.indizi[0].testo;
+    const coda = primo.match(/, (?:celebre per|numero uno|tra (?:i|gli|le) )[^.]*\.$/i);
+    if (coda) {
+      persona.indizi[0] = { ...persona.indizi[0], testo: `${primo.slice(0, primo.length - coda[0].length)}.` };
+    }
+  }
+
+  await repairFiller(persone);
+  await enrichThinFirstClues(persone);
+
+  for (const persona of persone) delete persona._titolo;
+  writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`, 'utf8');
+  writeReview(output);
+  const rimasti = persone.filter((p) => p.indizi.some((c) => c.nota && c.nota.startsWith('indizio di riserva'))).length;
+  console.log(`Rifinitura: ${rimasti} quarte righe ancora da rivedere.`);
+}
+
 async function main() {
+  if (args.includes('--rifinisci')) {
+    await refine();
+    return;
+  }
   if (reviewOnly) {
     writeReview(JSON.parse(readFileSync(outputPath, 'utf8')));
     return;
@@ -768,6 +879,7 @@ async function main() {
   // Le quarte righe che erano un riempitivo si rifanno con un fatto preso dal
   // corpo della voce, non dalla sola introduzione.
   await repairFiller(persone);
+  await enrichThinFirstClues(persone);
 
   // Nessun indizio identico fra due persone: il secondo prende l'anno di
   // nascita (o la professione) e resta unico.
