@@ -4,221 +4,1004 @@
   "ambiti": {
     "1": {
       "nome": "Storia, Arte, Scienza, Letteratura",
-      "sottoAmbiti": ["storia", "arte", "scienza", "letteratura"]
+      "sottoAmbiti": [
+        "storia",
+        "arte",
+        "scienza",
+        "letteratura"
+      ]
     },
     "2": {
       "nome": "Musica",
-      "sottoAmbiti": ["musica"]
+      "sottoAmbiti": [
+        "musica"
+      ]
     },
     "3": {
       "nome": "Sport, Cinema, TV, Spettacolo",
-      "sottoAmbiti": ["sport", "cinema", "tv", "spettacolo"]
+      "sottoAmbiti": [
+        "sport",
+        "cinema",
+        "tv",
+        "spettacolo"
+      ]
     }
   },
   "persone": [
-    { "nome": "Sophia Loren", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Roberto Benigni", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Monica Bellucci", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Pierfrancesco Favino", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Tom Cruise", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Meryl Streep", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Leonardo DiCaprio", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Brad Pitt", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Angelina Jolie", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Robert De Niro", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Al Pacino", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Johnny Depp", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Sofia Vergara", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Penelope Cruz", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Javier Bardem", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Scarlett Johansson", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Tom Hanks", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Julia Roberts", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Cate Blanchett", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Denzel Washington", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Emma Watson", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Vin Diesel", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Margot Robbie", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Dwayne Johnson", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Vasco Rossi", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Laura Pausini", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Eros Ramazzotti", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Luciano Ligabue", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Zucchero", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Taylor Swift", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Madonna", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Michael Jackson", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Elton John", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Beyoncé", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Ed Sheeran", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Freddie Mercury", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Adele", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Shakira", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Rihanna", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Bruce Springsteen", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "David Bowie", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Lady Gaga", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Bob Dylan", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Marco Mengoni", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Elisa", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Francesco Totti", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Alessandro Del Piero", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Valentino Rossi", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Cristiano Ronaldo", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Lionel Messi", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Roger Federer", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "LeBron James", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Michael Jordan", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Diego Armando Maradona", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Gerry Scotti", "ambito": 3, "sottoAmbito": "tv" },
-    { "nome": "Maria De Filippi", "ambito": 3, "sottoAmbito": "tv" },
-    { "nome": "Paolo Bonolis", "ambito": 3, "sottoAmbito": "tv" },
-    { "nome": "Federica Sciarelli", "ambito": 3, "sottoAmbito": "tv" },
-    { "nome": "Carlo Conti", "ambito": 3, "sottoAmbito": "tv" },
-    { "nome": "Amadeus", "ambito": 3, "sottoAmbito": "tv" },
-
-    { "nome": "Annalisa", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Elodie", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Mahmood", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Blanco", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Ultimo", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Achille Lauro", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Emma Marrone", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Giorgia", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Jovanotti", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Biagio Antonacci", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Max Pezzali", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Fabrizio De André", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Lucio Dalla", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Mina", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Adriano Celentano", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Renato Zero", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Claudio Baglioni", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Gianna Nannini", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Angelina Mango", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Sfera Ebbasta", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Salmo", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Ghali", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Tananai", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Tiziano Ferro", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Fiorella Mannoia", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Andrea Bocelli", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Dua Lipa", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Billie Eilish", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Ariana Grande", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Justin Bieber", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Harry Styles", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "The Weeknd", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Olivia Rodrigo", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Sabrina Carpenter", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Rosalía", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Miley Cyrus", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Bruno Mars", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Selena Gomez", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Katy Perry", "ambito": 2, "sottoAmbito": "musica" },
-    { "nome": "Lana Del Rey", "ambito": 2, "sottoAmbito": "musica" },
-
-    { "nome": "Jannik Sinner", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Carlos Alcaraz", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Novak Djokovic", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Rafael Nadal", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Federica Pellegrini", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Marcell Jacobs", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Gianmarco Tamberi", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Kylian Mbappé", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Erling Haaland", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Neymar", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Zlatan Ibrahimović", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Gianluigi Buffon", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Andrea Pirlo", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Roberto Baggio", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Paolo Maldini", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Lewis Hamilton", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Max Verstappen", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Charles Leclerc", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Michael Schumacher", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Simone Biles", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Serena Williams", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Usain Bolt", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Sofia Goggia", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Tadej Pogačar", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Giannis Antetokounmpo", "ambito": 3, "sottoAmbito": "sport" },
-    { "nome": "Alberto Tomba", "ambito": 3, "sottoAmbito": "sport" },
-
-    { "nome": "Timothée Chalamet", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Zendaya", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Pedro Pascal", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Florence Pugh", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Sydney Sweeney", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Ana de Armas", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Jenna Ortega", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Paul Mescal", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Anya Taylor-Joy", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Millie Bobby Brown", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Tom Holland", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Emma Stone", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Ryan Gosling", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Cillian Murphy", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Robert Pattinson", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Chris Hemsworth", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Nicole Kidman", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Luca Marinelli", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Alessandro Borghi", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Paola Cortellesi", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Elio Germano", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Miriam Leone", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Toni Servillo", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Checco Zalone", "ambito": 3, "sottoAmbito": "cinema" },
-    { "nome": "Valeria Golino", "ambito": 3, "sottoAmbito": "cinema" },
-
-    { "nome": "Fiorello", "ambito": 3, "sottoAmbito": "tv" },
-    { "nome": "Milly Carlucci", "ambito": 3, "sottoAmbito": "tv" },
-    { "nome": "Alfonso Signorini", "ambito": 3, "sottoAmbito": "tv" },
-    { "nome": "Pippo Baudo", "ambito": 3, "sottoAmbito": "tv" },
-    { "nome": "Ilary Blasi", "ambito": 3, "sottoAmbito": "tv" },
-    { "nome": "Belén Rodríguez", "ambito": 3, "sottoAmbito": "tv" },
-    { "nome": "Stefano De Martino", "ambito": 3, "sottoAmbito": "tv" },
-    { "nome": "Chiara Ferragni", "ambito": 3, "sottoAmbito": "spettacolo" },
-    { "nome": "Roberto Bolle", "ambito": 3, "sottoAmbito": "spettacolo" },
-    { "nome": "Luciana Littizzetto", "ambito": 3, "sottoAmbito": "spettacolo" },
-    { "nome": "Virginia Raffaele", "ambito": 3, "sottoAmbito": "spettacolo" },
-    { "nome": "Eleonora Abbagnato", "ambito": 3, "sottoAmbito": "spettacolo" },
-
-    { "nome": "Giulio Cesare", "ambito": 1, "sottoAmbito": "storia" },
-    { "nome": "Napoleone Bonaparte", "ambito": 1, "sottoAmbito": "storia" },
-    { "nome": "Cleopatra", "ambito": 1, "sottoAmbito": "storia" },
-    { "nome": "Cristoforo Colombo", "ambito": 1, "sottoAmbito": "storia" },
-    { "nome": "Marco Polo", "ambito": 1, "sottoAmbito": "storia" },
-    { "nome": "Giovanna d'Arco", "ambito": 1, "sottoAmbito": "storia" },
-    { "nome": "Abraham Lincoln", "ambito": 1, "sottoAmbito": "storia" },
-    { "nome": "Winston Churchill", "ambito": 1, "sottoAmbito": "storia" },
-    { "nome": "Nelson Mandela", "ambito": 1, "sottoAmbito": "storia" },
-    { "nome": "Giuseppe Garibaldi", "ambito": 1, "sottoAmbito": "storia" },
-    { "nome": "Leonardo da Vinci", "ambito": 1, "sottoAmbito": "arte" },
-    { "nome": "Michelangelo Buonarroti", "ambito": 1, "sottoAmbito": "arte" },
-    { "nome": "Vincent van Gogh", "ambito": 1, "sottoAmbito": "arte" },
-    { "nome": "Pablo Picasso", "ambito": 1, "sottoAmbito": "arte" },
-    { "nome": "Caravaggio", "ambito": 1, "sottoAmbito": "arte" },
-    { "nome": "Raffaello Sanzio", "ambito": 1, "sottoAmbito": "arte" },
-    { "nome": "Claude Monet", "ambito": 1, "sottoAmbito": "arte" },
-    { "nome": "Frida Kahlo", "ambito": 1, "sottoAmbito": "arte" },
-    { "nome": "Albert Einstein", "ambito": 1, "sottoAmbito": "scienza" },
-    { "nome": "Marie Curie", "ambito": 1, "sottoAmbito": "scienza" },
-    { "nome": "Galileo Galilei", "ambito": 1, "sottoAmbito": "scienza" },
-    { "nome": "Isaac Newton", "ambito": 1, "sottoAmbito": "scienza" },
-    { "nome": "Charles Darwin", "ambito": 1, "sottoAmbito": "scienza" },
-    { "nome": "Nikola Tesla", "ambito": 1, "sottoAmbito": "scienza" },
-    { "nome": "Stephen Hawking", "ambito": 1, "sottoAmbito": "scienza" },
-    { "nome": "Rita Levi-Montalcini", "ambito": 1, "sottoAmbito": "scienza" },
-    { "nome": "Alan Turing", "ambito": 1, "sottoAmbito": "scienza" },
-    { "nome": "Dante Alighieri", "ambito": 1, "sottoAmbito": "letteratura" },
-    { "nome": "William Shakespeare", "ambito": 1, "sottoAmbito": "letteratura" },
-    { "nome": "Alessandro Manzoni", "ambito": 1, "sottoAmbito": "letteratura" },
-    { "nome": "Giacomo Leopardi", "ambito": 1, "sottoAmbito": "letteratura" },
-    { "nome": "Franz Kafka", "ambito": 1, "sottoAmbito": "letteratura" },
-    { "nome": "Italo Calvino", "ambito": 1, "sottoAmbito": "letteratura" },
-    { "nome": "Umberto Eco", "ambito": 1, "sottoAmbito": "letteratura" },
-    { "nome": "Primo Levi", "ambito": 1, "sottoAmbito": "letteratura" },
-    { "nome": "Luigi Pirandello", "ambito": 1, "sottoAmbito": "letteratura" }
+    {
+      "nome": "Andy Warhol",
+      "ambito": 1,
+      "sottoAmbito": "arte"
+    },
+    {
+      "nome": "Claude Monet",
+      "ambito": 1,
+      "sottoAmbito": "arte"
+    },
+    {
+      "nome": "Frida Kahlo",
+      "ambito": 1,
+      "sottoAmbito": "arte"
+    },
+    {
+      "nome": "Leonardo da Vinci",
+      "ambito": 1,
+      "sottoAmbito": "arte"
+    },
+    {
+      "nome": "Michelangelo Buonarroti",
+      "ambito": 1,
+      "sottoAmbito": "arte"
+    },
+    {
+      "nome": "Pablo Picasso",
+      "ambito": 1,
+      "sottoAmbito": "arte"
+    },
+    {
+      "nome": "Salvador Dalí",
+      "ambito": 1,
+      "sottoAmbito": "arte"
+    },
+    {
+      "nome": "Vincent van Gogh",
+      "ambito": 1,
+      "sottoAmbito": "arte"
+    },
+    {
+      "nome": "Alessandro Manzoni",
+      "ambito": 1,
+      "sottoAmbito": "letteratura"
+    },
+    {
+      "nome": "Dante Alighieri",
+      "ambito": 1,
+      "sottoAmbito": "letteratura"
+    },
+    {
+      "nome": "Ernest Hemingway",
+      "ambito": 1,
+      "sottoAmbito": "letteratura"
+    },
+    {
+      "nome": "Jules Verne",
+      "ambito": 1,
+      "sottoAmbito": "letteratura"
+    },
+    {
+      "nome": "William Shakespeare",
+      "ambito": 1,
+      "sottoAmbito": "letteratura"
+    },
+    {
+      "nome": "Albert Einstein",
+      "ambito": 1,
+      "sottoAmbito": "scienza"
+    },
+    {
+      "nome": "Charles Darwin",
+      "ambito": 1,
+      "sottoAmbito": "scienza"
+    },
+    {
+      "nome": "Galileo Galilei",
+      "ambito": 1,
+      "sottoAmbito": "scienza"
+    },
+    {
+      "nome": "Isaac Newton",
+      "ambito": 1,
+      "sottoAmbito": "scienza"
+    },
+    {
+      "nome": "Marie Curie",
+      "ambito": 1,
+      "sottoAmbito": "scienza"
+    },
+    {
+      "nome": "Nikola Tesla",
+      "ambito": 1,
+      "sottoAmbito": "scienza"
+    },
+    {
+      "nome": "Stephen Hawking",
+      "ambito": 1,
+      "sottoAmbito": "scienza"
+    },
+    {
+      "nome": "Thomas Edison",
+      "ambito": 1,
+      "sottoAmbito": "scienza"
+    },
+    {
+      "nome": "Abraham Lincoln",
+      "ambito": 1,
+      "sottoAmbito": "storia"
+    },
+    {
+      "nome": "Cleopatra",
+      "ambito": 1,
+      "sottoAmbito": "storia"
+    },
+    {
+      "nome": "Cristoforo Colombo",
+      "ambito": 1,
+      "sottoAmbito": "storia"
+    },
+    {
+      "nome": "Giulio Cesare",
+      "ambito": 1,
+      "sottoAmbito": "storia"
+    },
+    {
+      "nome": "Giuseppe Garibaldi",
+      "ambito": 1,
+      "sottoAmbito": "storia"
+    },
+    {
+      "nome": "John F. Kennedy",
+      "ambito": 1,
+      "sottoAmbito": "storia"
+    },
+    {
+      "nome": "Mahatma Gandhi",
+      "ambito": 1,
+      "sottoAmbito": "storia"
+    },
+    {
+      "nome": "Martin Luther King",
+      "ambito": 1,
+      "sottoAmbito": "storia"
+    },
+    {
+      "nome": "Napoleone Bonaparte",
+      "ambito": 1,
+      "sottoAmbito": "storia"
+    },
+    {
+      "nome": "Nelson Mandela",
+      "ambito": 1,
+      "sottoAmbito": "storia"
+    },
+    {
+      "nome": "Winston Churchill",
+      "ambito": 1,
+      "sottoAmbito": "storia"
+    },
+    {
+      "nome": "Achille Lauro",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Adele",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Adriano Celentano",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Andrea Bocelli",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Angelina Mango",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Annalisa",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Ariana Grande",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Beyoncé",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Biagio Antonacci",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Billie Eilish",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Blanco",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Bob Dylan",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Bruce Springsteen",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Bruno Mars",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Claudio Baglioni",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "David Bowie",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Dua Lipa",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Ed Sheeran",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Elisa",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Elodie",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Elton John",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Emma Marrone",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Eros Ramazzotti",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Fabrizio De André",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Fiorella Mannoia",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Freddie Mercury",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Ghali",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Gianna Nannini",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Giorgia",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Harry Styles",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Jovanotti",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Justin Bieber",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Katy Perry",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Lady Gaga",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Lana Del Rey",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Laura Pausini",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Luciano Ligabue",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Lucio Dalla",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Madonna",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Mahmood",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Marco Mengoni",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Max Pezzali",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Michael Jackson",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Miley Cyrus",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Mina",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Olivia Rodrigo",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Renato Zero",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Rihanna",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Rosalía",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Sabrina Carpenter",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Salmo",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Selena Gomez",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Sfera Ebbasta",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Shakira",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Tananai",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Taylor Swift",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "The Weeknd",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Tiziano Ferro",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Ultimo",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Vasco Rossi",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Zucchero",
+      "ambito": 2,
+      "sottoAmbito": "musica"
+    },
+    {
+      "nome": "Al Pacino",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Alessandro Borghi",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Ana de Armas",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Angelina Jolie",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Anya Taylor-Joy",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Brad Pitt",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Cate Blanchett",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Checco Zalone",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Chris Hemsworth",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Cillian Murphy",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Denzel Washington",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Dwayne Johnson",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Elio Germano",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Emma Stone",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Emma Watson",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Florence Pugh",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Javier Bardem",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Jenna Ortega",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Johnny Depp",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Julia Roberts",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Leonardo DiCaprio",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Luca Marinelli",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Margot Robbie",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Meryl Streep",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Millie Bobby Brown",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Miriam Leone",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Monica Bellucci",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Nicole Kidman",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Paola Cortellesi",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Paul Mescal",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Pedro Pascal",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Penelope Cruz",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Pierfrancesco Favino",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Robert De Niro",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Robert Pattinson",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Roberto Benigni",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Ryan Gosling",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Scarlett Johansson",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Sofia Vergara",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Sophia Loren",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Sydney Sweeney",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Timothée Chalamet",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Tom Cruise",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Tom Hanks",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Tom Holland",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Toni Servillo",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Valeria Golino",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Vin Diesel",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Zendaya",
+      "ambito": 3,
+      "sottoAmbito": "cinema"
+    },
+    {
+      "nome": "Chiara Ferragni",
+      "ambito": 3,
+      "sottoAmbito": "spettacolo"
+    },
+    {
+      "nome": "Eleonora Abbagnato",
+      "ambito": 3,
+      "sottoAmbito": "spettacolo"
+    },
+    {
+      "nome": "Luciana Littizzetto",
+      "ambito": 3,
+      "sottoAmbito": "spettacolo"
+    },
+    {
+      "nome": "Roberto Bolle",
+      "ambito": 3,
+      "sottoAmbito": "spettacolo"
+    },
+    {
+      "nome": "Virginia Raffaele",
+      "ambito": 3,
+      "sottoAmbito": "spettacolo"
+    },
+    {
+      "nome": "Alberto Tomba",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Alessandro Del Piero",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Andrea Pirlo",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Carlos Alcaraz",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Charles Leclerc",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Cristiano Ronaldo",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Diego Armando Maradona",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Erling Haaland",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Federica Pellegrini",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Francesco Totti",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Gianluigi Buffon",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Gianmarco Tamberi",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Giannis Antetokounmpo",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Jannik Sinner",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Kylian Mbappé",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "LeBron James",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Lewis Hamilton",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Lionel Messi",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Marcell Jacobs",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Max Verstappen",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Michael Jordan",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Michael Schumacher",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Neymar",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Novak Djokovic",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Paolo Maldini",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Rafael Nadal",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Roberto Baggio",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Roger Federer",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Serena Williams",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Simone Biles",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Sofia Goggia",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Tadej Pogačar",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Usain Bolt",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Valentino Rossi",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Zlatan Ibrahimović",
+      "ambito": 3,
+      "sottoAmbito": "sport"
+    },
+    {
+      "nome": "Alfonso Signorini",
+      "ambito": 3,
+      "sottoAmbito": "tv"
+    },
+    {
+      "nome": "Amadeus",
+      "ambito": 3,
+      "sottoAmbito": "tv"
+    },
+    {
+      "nome": "Belén Rodríguez",
+      "ambito": 3,
+      "sottoAmbito": "tv"
+    },
+    {
+      "nome": "Carlo Conti",
+      "ambito": 3,
+      "sottoAmbito": "tv"
+    },
+    {
+      "nome": "Federica Sciarelli",
+      "ambito": 3,
+      "sottoAmbito": "tv"
+    },
+    {
+      "nome": "Fiorello",
+      "ambito": 3,
+      "sottoAmbito": "tv"
+    },
+    {
+      "nome": "Gerry Scotti",
+      "ambito": 3,
+      "sottoAmbito": "tv"
+    },
+    {
+      "nome": "Ilary Blasi",
+      "ambito": 3,
+      "sottoAmbito": "tv"
+    },
+    {
+      "nome": "Maria De Filippi",
+      "ambito": 3,
+      "sottoAmbito": "tv"
+    },
+    {
+      "nome": "Milly Carlucci",
+      "ambito": 3,
+      "sottoAmbito": "tv"
+    },
+    {
+      "nome": "Paolo Bonolis",
+      "ambito": 3,
+      "sottoAmbito": "tv"
+    },
+    {
+      "nome": "Pippo Baudo",
+      "ambito": 3,
+      "sottoAmbito": "tv"
+    },
+    {
+      "nome": "Stefano De Martino",
+      "ambito": 3,
+      "sottoAmbito": "tv"
+    }
   ]
 }

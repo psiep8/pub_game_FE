@@ -68,6 +68,7 @@ const TITOLI = new Map([
   ['tom holland', 'Tom Holland (attore)'],
   ['achille lauro', 'Achille Lauro (cantante)'],
   ['cristoforo colombo', 'Cristoforo Colombo'],
+  ['alessandro borghi', 'Alessandro Borghi (attore)'],
 ]);
 
 const MESI = [

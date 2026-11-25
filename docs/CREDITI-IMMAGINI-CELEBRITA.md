@@ -205,3 +205,11 @@ Un’immagine senza credito non entra nella banca.
 | Rosalía | `rosalia.jpg` | non indicato | da verificare | — |
 | Alessandro Borghi | `alessandro-borghi.jpg` | non indicato | da verificare | — |
 | Tom Holland | `tom-holland.jpg` | non indicato | da verificare | — |
+| Andy Warhol | `andy-warhol.jpg` | non indicato | da verificare | https://commons.wikimedia.org/wiki/File:Andy_Warhol_at_the_Jewish_Museum_(by_Bernard_Gotfryd)_%E2%80%93_LOC.jpg |
+| Salvador Dalí | `salvador-dali.jpg` | non indicato | da verificare | https://commons.wikimedia.org/wiki/File:Salvador_Dali_NYWTS.jpg |
+| Ernest Hemingway | `ernest-hemingway.jpg` | non indicato | da verificare | https://commons.wikimedia.org/wiki/File:Ernest_Hemingway_Writing_at_Campsite_in_Kenya_-_NARA_-_192655.jpg |
+| Jules Verne | `jules-verne.jpg` | non indicato | da verificare | https://commons.wikimedia.org/wiki/File:Jules_Verne_by_%C3%89tienne_Carjat.jpg |
+| Thomas Edison | `thomas-edison.jpg` | non indicato | da verificare | https://commons.wikimedia.org/wiki/File:Thomas_Edison_on_the_occasion_of_his_radio_address_to_Schenectady%2C_New_York%2C_where_a_tablet_commemorating_the_first_of_his_(8fc6f2529e5643bcb05961016a673b00)_(cropped).jpg |
+| John F. Kennedy | `john-f-kennedy.jpg` | non indicato | da verificare | https://commons.wikimedia.org/wiki/File:John_F._Kennedy%2C_White_House_color_photo_portrait.jpg |
+| Mahatma Gandhi | `mahatma-gandhi.jpg` | non indicato | da verificare | https://commons.wikimedia.org/wiki/File:Mahatma-Gandhi%2C_studio%2C_1931.jpg |
+| Martin Luther King | `martin-luther-king.jpg` | non indicato | da verificare | https://commons.wikimedia.org/wiki/File:The_Rev._Dr._Martin_Luther_King_Jr._Color_Portrait_(high_quality).jpg |
