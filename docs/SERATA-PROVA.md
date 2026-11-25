@@ -170,6 +170,21 @@ dire niente.
 | **Time Buzzer** | Una manche | Il bersaglio non supera mai i 20 secondi | Se qualcuno prova ad aspettare e perde |
 | **Canzone** | Un round intero | Quattro manche da 30 secondi: nastro analogico instabile, poi mutazione elettronica con pitch shifter (velocità invariata), dalla terza brano pulito; punteggio proporzionale ai secondi rimasti | Se la manche 2 non è più difficile della prima, se il volume crolla fra le manche o se il pitch shifter non si carica (console) |
 
+**Prima di giocare il Karaoke sulla macchina della serata.** Clip e testi non
+sono nel repository (`.gitignore`): senza file la TV mostra «TESTO NON
+DISPONIBILE» e la banca non ha brani cantabili. Controllare che ci siano:
+
+```bash
+node scripts/bonus/scarica-testi.mjs --check
+ls apps/backend/src/main/resources/static/media/music/*.m4a | wc -l
+```
+
+Se mancano, copiare `static/media/music/` e `questions/lyrics-bonus-it.json`
+dalla macchina di lavoro, oppure rigenerarli con `node
+scripts/bonus/prepara-clip.mjs` e `node scripts/bonus/scarica-testi.mjs`.
+La banca ha 64 canzoni, ma entrano in partita solo quelle con il testo
+sincronizzato locale (29 su questa macchina).
+
 Cinque minuti in più, se il tempo tiene: **Indovina chi** (round da 60 s,
 indizio ogni 15) e **Timeline** (45 s, punteggi con un solo segno: mai «+-200»).
 
