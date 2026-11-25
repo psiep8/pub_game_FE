@@ -1,10 +1,10 @@
-# PubGame — descrizione del gioco
+# quizzOne — descrizione del gioco
 
 > **VERSIONE 2.3 — 19 novembre 2026.**
 > Se una regola non combacia col codice, vince il codice. Per la serata fanno fede
 > `README.md` e `docs/manuale-serata.html/PDF`.
 
-PubGame è un **gioco a squadre da pub**: una TV condivisa, un telefono per tavolo e un
+quizzOne è un **gioco a squadre da pub**: una TV condivisa, un telefono per tavolo e un
 presentatore che conduce da `/admin`. Nessuna app da installare: i telefoni aprono il
 browser dal QR in TV.
 

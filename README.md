@@ -1,7 +1,7 @@
-# PubGame
+# quizzOne
 
 **La serata di quiz da pub, con la TV come tabellone e il telefono come pulsantiera.**
-PubGame è un gioco multigiocatore per locali e feste: la TV mostra domande, tabelloni e classifiche, ogni squadra risponde dal proprio telefono e il presentatore conduce la serata da `/admin`. Frontend Angular e backend Spring Boot vivono in questo monorepo.
+quizzOne è un gioco multigiocatore per locali e feste: la TV mostra domande, tabelloni e classifiche, ogni squadra risponde dal proprio telefono e il presentatore conduce la serata da `/admin`. Frontend Angular e backend Spring Boot vivono in questo monorepo.
 
 ![TV: la classifica rapida con 18 squadre](docs/screenshots/f09-classifica-rapida-18-squadre-720p.png)
 
@@ -13,7 +13,7 @@ PubGame è un gioco multigiocatore per locali e feste: la TV mostra domande, tab
 
 ## 1. Cos'è
 
-PubGame porta in sala un quiz a squadre in stile pub: nessuna app da installare, nessun account, un QR code sulla TV e il browser del telefono. La regia decide quando parte un round e quando si passa al successivo; il backend tiene sessioni, stato e recupero dopo un refresh.
+quizzOne porta in sala un quiz a squadre in stile pub: nessuna app da installare, nessun account, un QR code sulla TV e il browser del telefono. La regia decide quando parte un round e quando si passa al successivo; il backend tiene sessioni, stato e recupero dopo un refresh.
 
 La versione è **2.5.0**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
 

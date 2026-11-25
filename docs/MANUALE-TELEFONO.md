@@ -1,4 +1,4 @@
-# PubGame — Manuale del telefono
+# quizzOne — Manuale del telefono
 
 > Per le squadre. Il telefono è il pulsante della serata: scegli, prenota, rispondi.
 > Descrive l'app così come funziona oggi; se un'etichetta cambia, questo file va

@@ -25,7 +25,7 @@
   @if (introVisible()) {
   <section class="intro-screen" [class.intro-reduced]="introReducedMotion()"
     [style.--intro-duration]="introDurationMs() + 'ms'" (click)="dismissIntro()"
-    aria-label="Intro di Pub Game">
+    aria-label="Intro di quizzOne">
     <div class="intro-paper-grid" aria-hidden="true"></div>
     <div class="intro-orbit intro-orbit-a" aria-hidden="true"></div>
     <div class="intro-orbit intro-orbit-b" aria-hidden="true"></div>
@@ -62,7 +62,7 @@
 
     <footer class="intro-bottom">
       <span>TOCCA O PREMI INVIO PER SALTARE</span>
-      <span class="intro-edition">PUB GAME / 26</span>
+      <span class="intro-edition">quizzOne / 26</span>
     </footer>
     <div class="intro-progress" aria-hidden="true"><span></span></div>
   </section>
@@ -538,7 +538,7 @@
 
             @if (demoScene() === 1) {
             <div class="demo-phone-mock">
-              <span class="demo-phone-kicker">PUB GAME · TELEFONO</span>
+              <span class="demo-phone-kicker">quizzOne · TELEFONO</span>
               <span class="demo-phone-btn">TOCCA QUI</span>
             </div>
             } @else {

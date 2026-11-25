@@ -1,4 +1,4 @@
-# PubGame — Guida del presentatore
+# quizzOne — Guida del presentatore
 
 > Per chi conduce la serata. Dice **cosa vedi**, **cosa premi** e **cosa succede**
 > prima, durante e dopo ogni round. Il copione con le frasi da dire è in
@@ -184,7 +184,7 @@ diagnostica dice sempre se il problema è il backend o un telefono.
 
 ## 11. Frasi pronte
 
-- Apertura: «Benvenuti al PubGame. Da adesso la TV è il tabellone: il telefono è
+- Apertura: «Benvenuti al quizzOne. Da adesso la TV è il tabellone: il telefono è
   il vostro pulsante.»
 - Regole: «Una risposta per round, il tempo lo decide il server, le domande non
   tornano.»

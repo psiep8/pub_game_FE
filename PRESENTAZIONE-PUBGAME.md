@@ -32,7 +32,7 @@ conoscere il codice. Le parti in *corsivo* sono suggerimenti, non obblighi.
 7. Ogni squadra può scattare o caricare una foto dal telefono: l'avatar compare in
    classifica per tutta la serata.
 
-> *Frase di apertura:* «Benvenuti al PubGame. Da adesso stasera la TV non è più una TV:
+> *Frase di apertura:* «Benvenuti al quizzOne. Da adesso stasera la TV non è più una TV:
 > è il tabellone. Ogni squadra ha un telefono: quello è il vostro pulsante.»
 
 ---

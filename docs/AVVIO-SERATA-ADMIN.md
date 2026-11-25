@@ -1,4 +1,4 @@
-# PubGame — Avvio della serata a casa (guida per l'admin)
+# quizzOne — Avvio della serata a casa (guida per l'admin)
 
 > Per te, che ospiti la serata con gli amici. Una pagina: cosa serve, cosa fare in
 > ordine, come far entrare i telefoni e cosa controllare prima che arrivino.

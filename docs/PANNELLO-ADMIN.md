@@ -1,4 +1,4 @@
-# PubGame — Guida al pannello admin
+# quizzOne — Guida al pannello admin
 
 > Per chi tiene il pannello durante la serata (telefono o tablet del presentatore).
 > Descrive i pulsanti così come appaiono oggi nell'interfaccia. Se un'etichetta cambia,

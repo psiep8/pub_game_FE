@@ -1412,7 +1412,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       BONUS_CAVALLO: '🐎 Cavallo',
       BONUS_BIGLIE: '🎱 Biglie',
     };
-    return names[this.questionType()] ?? '🎮 PubGame';
+    return names[this.questionType()] ?? '🎮 quizzOne';
   }
 
   /** Variante di attesa stabile per telefono: due telefoni diversi non coincidono. */

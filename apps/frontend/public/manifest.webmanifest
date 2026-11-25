@@ -1,7 +1,7 @@
 {
   "id": "/play",
-  "name": "PubGame — Telecomando",
-  "short_name": "PubGame",
+  "name": "quizzOne — Telecomando",
+  "short_name": "quizzOne",
   "description": "Telecomando per partecipare ai giochi del pub",
   "lang": "it",
   "dir": "ltr",
