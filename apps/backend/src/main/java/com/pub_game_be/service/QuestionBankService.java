@@ -990,6 +990,14 @@ public class QuestionBankService {
      * banca installata non si esce comunque in rete.
      */
     private List<String> cluesFor(String celebrity) {
+        // Prima la banca degli indizi versionata: quattro frasi vere, già ordinate
+        // dal più ampio al più specifico e con la fonte. Senza, restano gli
+        // indizi ricavati dalla biografia come prima.
+        List<LocalMediaBankService.Clue> curated = localMedia.clues(celebrity);
+        if (curated.size() == 4) {
+            return curated.stream().map(LocalMediaBankService.Clue::testo).toList();
+        }
+
         LocalMediaBankService.Person local = localMedia.person(celebrity).orElse(null);
         if (local != null) {
             return celebrityImageService.cluesFromLocal(

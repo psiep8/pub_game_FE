@@ -1,0 +1,830 @@
+{
+  "version": 1,
+  "generatoDa": "scripts/banche/genera-indizi.mjs",
+  "fonte": "it.wikipedia.org (API action=query, prop=extracts), licenza CC BY-SA",
+  "nota": "Quattro indizi per persona: due ampi e due specifici, mai con il nome. `verificato` dice che il testo è ricavato dalla voce citata e vi compare; la revisione umana resta a campione.",
+  "persone": [
+    {
+      "nome": "Sophia Loren",
+      "ambito": 3,
+      "sottoAmbito": "cinema",
+      "pagina": "https://it.wikipedia.org/wiki/Sophia_Loren",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Attrice italiana.",
+          "fonte": "https://it.wikipedia.org/wiki/Sophia_Loren",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Roma, Novecento: attrice italiana.",
+          "fonte": "https://it.wikipedia.org/wiki/Sophia_Loren",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Nel 1960 venne diretta da Vittorio De Sica ne La ciociara, per il quale vinse il Premio Oscar.",
+          "fonte": "https://it.wikipedia.org/wiki/Sophia_Loren",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Nel 1991 le venne assegnato l'Oscar onorario.",
+          "fonte": "https://it.wikipedia.org/wiki/Sophia_Loren",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Roberto Benigni",
+      "ambito": 3,
+      "sottoAmbito": "cinema",
+      "pagina": "https://it.wikipedia.org/wiki/Roberto_Benigni",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Attore, comico, regista e sceneggiatore italiano.",
+          "fonte": "https://it.wikipedia.org/wiki/Roberto_Benigni",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Castiglion Fiorentino, Novecento: attore, comico, regista e sceneggiatore italiano.",
+          "fonte": "https://it.wikipedia.org/wiki/Roberto_Benigni",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "È stato l'unico interprete maschile italiano a ricevere il Premio Oscar al miglior attore recitando nel ruolo principale in un film in lingua straniera .",
+          "fonte": "https://it.wikipedia.org/wiki/Roberto_Benigni",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Nel 2021 ha ricevuto alla Mostra del cinema di Venezia Il Leone d'oro alla carriera.",
+          "fonte": "https://it.wikipedia.org/wiki/Roberto_Benigni",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Monica Bellucci",
+      "ambito": 3,
+      "sottoAmbito": "cinema",
+      "pagina": "https://it.wikipedia.org/wiki/Monica_Bellucci",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Attrice e modella italiana.",
+          "fonte": "https://it.wikipedia.org/wiki/Monica_Bellucci",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Città di Castello, Novecento: attrice e modella italiana.",
+          "fonte": "https://it.wikipedia.org/wiki/Monica_Bellucci",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Nel 2003 è la prima donna italiana cui viene affidato il ruolo di madrina alla 56ª edizione del Festival di Cannes.",
+          "fonte": "https://it.wikipedia.org/wiki/Monica_Bellucci",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Nel 2004 diventa la prima personalità non francese scelta per attivare l'illuminazione degli Champs Élysees nella tradizionale cerimonia natalizia.",
+          "fonte": "https://it.wikipedia.org/wiki/Monica_Bellucci",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Tom Cruise",
+      "ambito": 3,
+      "sottoAmbito": "cinema",
+      "pagina": "https://it.wikipedia.org/wiki/Tom_Cruise",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Attore e produttore cinematografico statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/Tom_Cruise",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Syracuse, Novecento: attore e produttore cinematografico statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/Tom_Cruise",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Il suo primo successo è stato il film del 1983 Risky Business - Fuori i vecchi...",
+          "fonte": "https://it.wikipedia.org/wiki/Tom_Cruise",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Ha raggiunto la fama internazionale come attore nel 1986 per il suo ruolo in Top Gun, del quale è stato girato un sequel di grande successo dal titolo Top Gun: Maverick .",
+          "fonte": "https://it.wikipedia.org/wiki/Tom_Cruise",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Angelina Jolie",
+      "ambito": 3,
+      "sottoAmbito": "cinema",
+      "pagina": "https://it.wikipedia.org/wiki/Angelina_Jolie",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Attrice, produttrice cinematografica, regista, filantropa e sceneggiatrice statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/Angelina_Jolie",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Los Angeles, Novecento: attrice, produttrice cinematografica, regista, filantropa e sceneggiatrice statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/Angelina_Jolie",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Nel 2009 ha ricevuto una seconda candidatura agli Oscar alla miglior attrice per la sua interpretazione in Changeling.",
+          "fonte": "https://it.wikipedia.org/wiki/Angelina_Jolie",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Nel 2014, durante la cerimonia dei Governors Award le è stato conferito l'Oscar Premio umanitario Jean Hersholt.",
+          "fonte": "https://it.wikipedia.org/wiki/Angelina_Jolie",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Al Pacino",
+      "ambito": 3,
+      "sottoAmbito": "cinema",
+      "pagina": "https://it.wikipedia.org/wiki/Al_Pacino",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Attore statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/Al_Pacino",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "New York, Novecento: attore statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/Al_Pacino",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "È stato poi insignito del Life Achievement Award dall'American Film Institute nel 2007, della National Medal of Arts nel 2011 e del Kennedy Center Honors nel 2016.",
+          "fonte": "https://it.wikipedia.org/wiki/Al_Pacino",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Dagli anni sessanta rappresentò inoltre opere di Bertolt Brecht, Eugene O'Neill, Oscar Wilde e David Mamet.",
+          "fonte": "https://it.wikipedia.org/wiki/Al_Pacino",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Sofia Vergara",
+      "ambito": 3,
+      "sottoAmbito": "cinema",
+      "pagina": "https://it.wikipedia.org/wiki/Sof%C3%ADa_Vergara",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Modella e attrice colombiana.",
+          "fonte": "https://it.wikipedia.org/wiki/Sof%C3%ADa_Vergara",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Barranquilla, Novecento: modella e attrice colombiana.",
+          "fonte": "https://it.wikipedia.org/wiki/Sof%C3%ADa_Vergara",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Dal 1995 al 1999 fu co-ospite, insieme a Fernando Fiore, della trasmissione Fuera de Serie, che la portò a viaggiare in diversi posti esotici in tutto il mondo.",
+          "fonte": "https://it.wikipedia.org/wiki/Sof%C3%ADa_Vergara",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Fece calendari sexy in costume da bagno nel 1998, 2000, e 2002 che ebbero grande successo in America latina, giungendo anche sul mercato...",
+          "fonte": "https://it.wikipedia.org/wiki/Sof%C3%ADa_Vergara",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Penelope Cruz",
+      "ambito": 3,
+      "sottoAmbito": "cinema",
+      "pagina": "https://it.wikipedia.org/wiki/Pen%C3%A9lope_Cruz",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Attrice e modella spagnola.",
+          "fonte": "https://it.wikipedia.org/wiki/Pen%C3%A9lope_Cruz",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Alcobendas, Novecento: attrice e modella spagnola.",
+          "fonte": "https://it.wikipedia.org/wiki/Pen%C3%A9lope_Cruz",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Nel 2001 ha ricevuto l'attenzione internazionale per i suoi ruoli nei film Blow, Il mandolino del capitano Corelli e Vanilla Sky.",
+          "fonte": "https://it.wikipedia.org/wiki/Pen%C3%A9lope_Cruz",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Nel 2009 ha vinto il Premio Oscar per la miglior attrice non protagonista per il film Vicky Cristina Barcelona.",
+          "fonte": "https://it.wikipedia.org/wiki/Pen%C3%A9lope_Cruz",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Tom Hanks",
+      "ambito": 3,
+      "sottoAmbito": "cinema",
+      "pagina": "https://it.wikipedia.org/wiki/Tom_Hanks",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Attore, regista, sceneggiatore, produttore cinematografico e televisivo statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/Tom_Hanks",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Concord, Novecento: attore, regista, sceneggiatore, produttore cinematografico e televisivo statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/Tom_Hanks",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "La sua carriera ha avuto inizio negli anni ottanta quando, interpretando la serie Henry e Kip, cominciò a esser conosciuto.",
+          "fonte": "https://it.wikipedia.org/wiki/Tom_Hanks",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Da allora ha recitato in numerosi film ottenendo un grande successo di critica e di pubblico.",
+          "fonte": "https://it.wikipedia.org/wiki/Tom_Hanks",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Denzel Washington",
+      "ambito": 3,
+      "sottoAmbito": "cinema",
+      "pagina": "https://it.wikipedia.org/wiki/Denzel_Washington",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "È un attore, regista e produttore cinematografico statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/Denzel_Washington",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Mount Vernon, Novecento: è un attore, regista e produttore cinematografico statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/Denzel_Washington",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Il suo secondo lungometraggio è stato The Great Debaters - Il potere della parola, distribuito nel 2007.",
+          "fonte": "https://it.wikipedia.org/wiki/Denzel_Washington",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Il terzo lavoro da regista, Barriere, con sé stesso nel ruolo di protagonista e con Viola Davis, è stato distribuito nel 2016 ed è stato candidato all'Oscar al miglior film.",
+          "fonte": "https://it.wikipedia.org/wiki/Denzel_Washington",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Emma Watson",
+      "ambito": 3,
+      "sottoAmbito": "cinema",
+      "pagina": "https://it.wikipedia.org/wiki/Emma_Watson",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Ha vissuto a Maisons-Laffitte, vicino a Parigi, fino all'età di cinque anni.",
+          "fonte": "https://it.wikipedia.org/wiki/Emma_Watson",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Parigi, Novecento: ha vissuto a Maisons-Laffitte, vicino a Parigi, fino all'età di cinque anni.",
+          "fonte": "https://it.wikipedia.org/wiki/Emma_Watson",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Nel 2015 la rivista Time l'ha inserita tra le 100 persone più influenti del pianeta.",
+          "fonte": "https://it.wikipedia.org/wiki/Emma_Watson",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Dopo essersi trasferita a Oxford con la madre e il fratello, ha frequentato la Dragon School, rimanendovi fino al 2003.",
+          "fonte": "https://it.wikipedia.org/wiki/Emma_Watson",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Vin Diesel",
+      "ambito": 3,
+      "sottoAmbito": "cinema",
+      "pagina": "https://it.wikipedia.org/wiki/Vin_Diesel",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Attore, produttore cinematografico, regista e sceneggiatore statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/Vin_Diesel",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Alameda, Novecento: attore, produttore cinematografico, regista e sceneggiatore statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/Vin_Diesel",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "È inoltre il fondatore della Tigon Studios, della One Race Films e della Racetrack Records.",
+          "fonte": "https://it.wikipedia.org/wiki/Vin_Diesel",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Nell'agosto del 2013, l'attore riceve la stella sulla Hollywood Walk of Fame.",
+          "fonte": "https://it.wikipedia.org/wiki/Vin_Diesel",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Dwayne Johnson",
+      "ambito": 3,
+      "sottoAmbito": "cinema",
+      "pagina": "https://it.wikipedia.org/wiki/Dwayne_Johnson",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Attore, produttore cinematografico e wrestler statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/Dwayne_Johnson",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Hayward, Novecento: attore, produttore cinematografico e wrestler statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/Dwayne_Johnson",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Nel 2011 ha fatto il suo ritorno in WWE e ha continuato a lottare sporadicamente.",
+          "fonte": "https://it.wikipedia.org/wiki/Dwayne_Johnson",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "The Rock è anche comparso dodici volte su copertine di videogiochi: WWF Attitude, WWF WrestleMania 2000, WWF SmackDown!, WWF Royal Rumble, WWF No Mercy, WWF SmackDown!",
+          "fonte": "https://it.wikipedia.org/wiki/Dwayne_Johnson",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Vasco Rossi",
+      "ambito": 2,
+      "sottoAmbito": "musica",
+      "pagina": "https://it.wikipedia.org/wiki/Vasco_Rossi",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Cantautore italiano.",
+          "fonte": "https://it.wikipedia.org/wiki/Vasco_Rossi",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Zocca, Novecento: cantautore italiano.",
+          "fonte": "https://it.wikipedia.org/wiki/Vasco_Rossi",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Tra questi si segnalano: il premio nazionale de «Il Paroliere» per la canzone Ogni volta nel 1982.",
+          "fonte": "https://it.wikipedia.org/wiki/Vasco_Rossi",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "La Targa Tenco per il miglior album 1998 con Canzoni per me.",
+          "fonte": "https://it.wikipedia.org/wiki/Vasco_Rossi",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Luciano Ligabue",
+      "ambito": 2,
+      "sottoAmbito": "musica",
+      "pagina": "https://it.wikipedia.org/wiki/Luciano_Ligabue",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Cantautore, scrittore, politico e regista cinematografico italiano.",
+          "fonte": "https://it.wikipedia.org/wiki/Luciano_Ligabue",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Correggio, Novecento: cantautore, scrittore, politico e regista cinematografico italiano.",
+          "fonte": "https://it.wikipedia.org/wiki/Luciano_Ligabue",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Si è aggiudicato in particolare tre Targhe Tenco e un Premio Tenco.",
+          "fonte": "https://it.wikipedia.org/wiki/Luciano_Ligabue",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Per dodici anni, dal 2005 al 2017, ha anche detenuto il primato europeo di spettatori paganti al concerto di un singolo artista .",
+          "fonte": "https://it.wikipedia.org/wiki/Luciano_Ligabue",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Elton John",
+      "ambito": 2,
+      "sottoAmbito": "musica",
+      "pagina": "https://it.wikipedia.org/wiki/Elton_John",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Cantante, compositore e musicista britannico.",
+          "fonte": "https://it.wikipedia.org/wiki/Elton_John",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Pinner, Novecento: cantante, compositore e musicista britannico.",
+          "fonte": "https://it.wikipedia.org/wiki/Elton_John",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Inoltre, insieme all'autore Bernie Taupin, forma una delle coppie di compositori più famose e prolifiche della musica contemporanea, attiva pressoché ininterrottamente dal 1967.",
+          "fonte": "https://it.wikipedia.org/wiki/Elton_John",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Nel 2004 la rivista Rolling Stone lo ha inserito al 49º posto nella sua lista dei 100 migliori artisti musicali.",
+          "fonte": "https://it.wikipedia.org/wiki/Elton_John",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Francesco Totti",
+      "ambito": 3,
+      "sottoAmbito": "sport",
+      "pagina": "https://it.wikipedia.org/wiki/Francesco_Totti",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Calciatore italiano.",
+          "fonte": "https://it.wikipedia.org/wiki/Francesco_Totti",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Roma, Novecento: calciatore italiano.",
+          "fonte": "https://it.wikipedia.org/wiki/Francesco_Totti",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Con la nazionale italiana è diventato campione del mondo nel 2006 e vicecampione d'Europa nel 2000.",
+          "fonte": "https://it.wikipedia.org/wiki/Francesco_Totti",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "In precedenza, con le nazionali giovanili, aveva segnato 18 gol e conquistato l'Europeo Under-21 nel 1996 e i Giochi del Mediterraneo nel 1997.",
+          "fonte": "https://it.wikipedia.org/wiki/Francesco_Totti",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "LeBron James",
+      "ambito": 3,
+      "sottoAmbito": "sport",
+      "pagina": "https://it.wikipedia.org/wiki/LeBron_James",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Cestista statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/LeBron_James",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Akron, Novecento: cestista statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/LeBron_James",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "È stata la prima scelta assoluta al Draft NBA 2003.",
+          "fonte": "https://it.wikipedia.org/wiki/LeBron_James",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Venne nominato Rookie dell'anno nel 2004.",
+          "fonte": "https://it.wikipedia.org/wiki/LeBron_James",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Michael Jordan",
+      "ambito": 3,
+      "sottoAmbito": "sport",
+      "pagina": "https://it.wikipedia.org/wiki/Michael_Jordan",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Dirigente sportivo, imprenditore e cestista statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/Michael_Jordan",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "New York, Novecento: dirigente sportivo, imprenditore e cestista statunitense.",
+          "fonte": "https://it.wikipedia.org/wiki/Michael_Jordan",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Contribuì in maniera determinante alla diffusione della pallacanestro e della NBA a livello mondiale negli anni ottanta e novanta.",
+          "fonte": "https://it.wikipedia.org/wiki/Michael_Jordan",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Giocò a livello universitario con i North Carolina Tar Heels, dove da freshman fece parte della squadra campione NCAA nel 1982.",
+          "fonte": "https://it.wikipedia.org/wiki/Michael_Jordan",
+          "verificato": true
+        }
+      ]
+    },
+    {
+      "nome": "Paolo Bonolis",
+      "ambito": 3,
+      "sottoAmbito": "tv",
+      "pagina": "https://it.wikipedia.org/wiki/Paolo_Bonolis",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Conduttore televisivo, showman e autore televisivo italiano.",
+          "fonte": "https://it.wikipedia.org/wiki/Paolo_Bonolis",
+          "verificato": true,
+          "nota": "descrizione di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Roma, Novecento: conduttore televisivo, showman e autore televisivo italiano.",
+          "fonte": "https://it.wikipedia.org/wiki/Paolo_Bonolis",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Insieme all'amico e collega Luca Laurenti, con il quale collabora dal 1991, forma una delle coppie più longeve e apprezzate della televisione italiana.",
+          "fonte": "https://it.wikipedia.org/wiki/Paolo_Bonolis",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Da molti anni è il conduttore più pagato della televisione italiana: dal 2019 è legato a Mediaset con un contratto da dieci milioni di euro annuali.",
+          "fonte": "https://it.wikipedia.org/wiki/Paolo_Bonolis",
+          "verificato": true
+        }
+      ]
+    }
+  ],
+  "nonRisolte": [
+    {
+      "nome": "Pierfrancesco Favino",
+      "motivo": "indizi specifici insufficienti (1)"
+    },
+    {
+      "nome": "Meryl Streep",
+      "motivo": "indizi specifici insufficienti (1)"
+    },
+    {
+      "nome": "Johnny Depp",
+      "motivo": "indizi specifici insufficienti (0)"
+    },
+    {
+      "nome": "Javier Bardem",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Scarlett Johansson",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Julia Roberts",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Cate Blanchett",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Margot Robbie",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Laura Pausini",
+      "motivo": "indizi specifici insufficienti (0)"
+    },
+    {
+      "nome": "Eros Ramazzotti",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Zucchero",
+      "motivo": "luogo di nascita non ricavabile"
+    },
+    {
+      "nome": "Taylor Swift",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Madonna",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Michael Jackson",
+      "motivo": "luogo di nascita non ricavabile"
+    },
+    {
+      "nome": "Beyoncé",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Ed Sheeran",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Freddie Mercury",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Adele",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Shakira",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Rihanna",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Bruce Springsteen",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "David Bowie",
+      "motivo": "luogo di nascita non ricavabile"
+    },
+    {
+      "nome": "Lady Gaga",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Bob Dylan",
+      "motivo": "indizi specifici insufficienti (1)"
+    },
+    {
+      "nome": "Marco Mengoni",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Elisa",
+      "motivo": "indizi specifici insufficienti (0)"
+    },
+    {
+      "nome": "Alessandro Del Piero",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Valentino Rossi",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Cristiano Ronaldo",
+      "motivo": "luogo di nascita non ricavabile"
+    },
+    {
+      "nome": "Lionel Messi",
+      "motivo": "luogo di nascita non ricavabile"
+    },
+    {
+      "nome": "Roger Federer",
+      "motivo": "indizi specifici insufficienti (1)"
+    },
+    {
+      "nome": "Diego Armando Maradona",
+      "motivo": "luogo di nascita non ricavabile"
+    },
+    {
+      "nome": "Gerry Scotti",
+      "motivo": "indizi specifici insufficienti (1)"
+    },
+    {
+      "nome": "Maria De Filippi",
+      "motivo": "indizi specifici insufficienti (1)"
+    },
+    {
+      "nome": "Federica Sciarelli",
+      "motivo": "indizi specifici insufficienti (0)"
+    },
+    {
+      "nome": "Carlo Conti",
+      "motivo": "descrizione breve in inglese e voce senza definizione"
+    },
+    {
+      "nome": "Amadeus",
+      "motivo": "luogo di nascita non ricavabile"
+    },
+    {
+      "nome": "Leonardo DiCaprio",
+      "motivo": "indizio identico a quello di un’altra persona"
+    },
+    {
+      "nome": "Brad Pitt",
+      "motivo": "indizio identico a quello di un’altra persona"
+    },
+    {
+      "nome": "Robert De Niro",
+      "motivo": "indizio identico a quello di un’altra persona"
+    }
+  ]
+}

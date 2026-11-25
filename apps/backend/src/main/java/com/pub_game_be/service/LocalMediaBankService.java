@@ -33,9 +33,18 @@ public class LocalMediaBankService {
     public record Person(String name, String file, String description, String extract) {
     }
 
+    /**
+     * Indizio della banca Celebrità: testo, livello (ampio o specifico) e fonte.
+     * I quattro indizi di una persona arrivano già nell'ordine giusto, dal più
+     * ampio al più specifico, e non contengono il nome.
+     */
+    public record Clue(String livello, String testo, String fonte) {
+    }
+
     private final List<Track> tracks = new ArrayList<>();
     private final Map<String, Person> people = new LinkedHashMap<>();
     private final Map<String, Track> tracksByKey = new LinkedHashMap<>();
+    private final Map<String, List<Clue>> cluesByName = new LinkedHashMap<>();
     private final String configuredBaseUrl;
 
     public LocalMediaBankService(@Value("${game.media-base-url:}") String mediaBaseUrl) {
@@ -53,6 +62,19 @@ public class LocalMediaBankService {
 
     public List<Track> tracks() {
         return List.copyOf(tracks);
+    }
+
+    /**
+     * I quattro indizi della banca (già senza nome e con la fonte). Lista vuota
+     * quando la persona non è nella banca: in quel caso restano gli indizi
+     * ricavati dalla biografia locale.
+     */
+    public List<Clue> clues(String name) {
+        String key = QuestionHistoryService.normalize(name);
+        if (key.isBlank()) {
+            return List.of();
+        }
+        return cluesByName.getOrDefault(key, List.of());
     }
 
     public Optional<Person> person(String name) {
@@ -164,11 +186,54 @@ public class LocalMediaBankService {
                 }
             }
 
+            loadClues();
+
             System.out.println("Banca media locale: " + tracks.size() + " brani, "
-                    + people.size() + " volti.");
+                    + people.size() + " volti, " + cluesByName.size() + " persone con quattro indizi.");
         } catch (Exception error) {
             System.out.println("⚠️ Banca media locale illeggibile (" + error.getMessage()
                     + "): si torna a iTunes/TMDB quando c'è rete.");
+        }
+    }
+
+    /**
+     * Banca degli indizi, versionata: quattro indizi per persona, ognuno con il
+     * livello e la fonte. Se il file manca si continua con gli indizi ricavati
+     * dalla biografia, come prima.
+     */
+    private void loadClues() {
+        ClassPathResource resource = new ClassPathResource("questions/celebrita-indizi.json");
+        if (!resource.exists()) {
+            return;
+        }
+        try (InputStream stream = resource.getInputStream()) {
+            JSONObject root = new JSONObject(new String(stream.readAllBytes(), StandardCharsets.UTF_8));
+            JSONArray persone = root.optJSONArray("persone");
+            if (persone == null) {
+                return;
+            }
+            for (int index = 0; index < persone.length(); index++) {
+                JSONObject persona = persone.optJSONObject(index);
+                if (persona == null) continue;
+                String name = persona.optString("nome", "").trim();
+                JSONArray indizi = persona.optJSONArray("indizi");
+                if (name.isBlank() || indizi == null || indizi.length() != 4) {
+                    continue;
+                }
+                List<Clue> list = new ArrayList<>(4);
+                for (int clueIndex = 0; clueIndex < indizi.length(); clueIndex++) {
+                    JSONObject item = indizi.optJSONObject(clueIndex);
+                    if (item == null) continue;
+                    String testo = item.optString("testo", "").trim();
+                    if (testo.isBlank()) continue;
+                    list.add(new Clue(item.optString("livello", ""), testo, item.optString("fonte", "")));
+                }
+                if (list.size() == 4) {
+                    cluesByName.put(QuestionHistoryService.normalize(name), List.copyOf(list));
+                }
+            }
+        } catch (Exception error) {
+            System.out.println("⚠️ Banca indizi illeggibile (" + error.getMessage() + "): si usano gli indizi dalla biografia.");
         }
     }
 

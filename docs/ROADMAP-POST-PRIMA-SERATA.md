@@ -448,3 +448,14 @@ media), run CI #155 verde prima di questo job, screenshot del README rifatti.
 | R-04 — Speed Rush: 22 doppioni e tabella disponibilità | Fatto | `544b732` | `SpeedRushBasketServiceTest#speedRushNonRipeteDuecentoProveNellaStessaSessione`: 200 pescate, 0 doppioni (fallback matematico quando le categorie piccole si esauriscono); `ripetizioni-serata.mjs`: scaletta reale 40 round, 11 giochi, 0 ripetizioni | Avviare Speed Rush: nessuna microprova ripetuta; tabella domande disponibili per gioco e fascia |
 | F-08 — Banca dati: domande ripetute nella stessa serata | Fatto | `1086f44` + `544b732` | Misura su 40 round + 5 bonus (`scripts/sim/ripetizioni-serata.mjs`): Tennis 132 pescate, 84 ripetute prima (12+4 per ~44 punti a round), 0 dopo (60 nuove per round + storico); Cavallo 8, 0; Quiz 9, Arena 72, Ultima 15 già a 0. Test `tennisECavalloNonRipetonoLeDomandeNellaStessaSerata` (falliva: 30 invece di 60 e 0 in storico). Speed Rush ampliato con R-04: 120 pescate, 0 doppioni; 200 pescate di fila senza ripetizioni nel test server. Tabella estesa a Musica, Indovina chi, Timeline, Azzardo e Bomba. |
 | F-07.5 — Tennis: tiri della TV più vari (non solo dritti) | Fatto | `555ccc9` | `tennis-battle.mode.spec.ts`: `randomServe` pesca dritto, diagonale, stretto, corto, centrale, linea, lob, veloce e lento |
+### Registro SPEC-CELEBRITA-3-MANCHE-E-BONUS (25 novembre 2026)
+
+Lavoro a blocchi separati, un commit per intervento, nessun push. Riferimento:
+`SPEC-CELEBRITA-3-MANCHE-E-BONUS.md` (allegato in chat, non presente nella
+radice del repository).
+
+| Voce | Stato | Commit | Test | Cosa provare in sala |
+| --- | --- | --- | --- | --- |
+| P-01 — Celebrità riclassificate nei tre ambiti | Fatto; Storia, Arte e Scienza sono a **0** | `b463503` | `node scripts/audit-banche.mjs --ci`: 60 persone classificate, 0 problemi di ambito o sotto-ambito | — |
+| P-02 — Quattro indizi con fonte per persona | Fatto per **20** persone; **40** non risolte e non usate, con il motivo | in questo blocco | `CelebrityClueBankTest` (2) + `CelebrityClueLeakTest` (6); audit: 0 problemi sugli indizi | Manche Celebrità: quattro indizi, dal più ampio al più specifico, senza nome |
+| P-03 — Struttura dei testi di «Canta la canzone» | Fatto come struttura; la scelta delle 5 canzoni resta a chi conduce | in questo blocco | `node scripts/bonus/scarica-testi.mjs --check` su una canzone di prova; nessun testo nel repo | — |

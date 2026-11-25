@@ -331,6 +331,15 @@ esistano.
 Nessuna persona senza ambito e nessun ambito inesistente (`node
 scripts/audit-banche.mjs --ci`).
 
+### Indizi per persona (banca versionata)
+
+Persone con quattro indizi: **20**; non risolte: **40**. Quattro indizi per
+persona, due ampi e due specifici, fonte https su ognuno, nessun nome: **0
+problemi** (`questions/celebrita-indizi.json`, generato da
+`scripts/banche/genera-indizi.mjs`). Le persone non risolte restano senza
+indizi nuovi e continuano con quelli ricavati dalla biografia; l'elenco
+completo, con il motivo, è in `docs/DOMANDE-DA-REVISIONARE.md`.
+
 ## Indovina la canzone (media: music)
 
 Brani: **114**, artisti distinti: **78**. Doppioni: **0**. Campi o file mancanti: **0**.

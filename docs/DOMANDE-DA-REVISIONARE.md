@@ -628,3 +628,80 @@ vanno bene come fonte del fatto, non come racconto dell'evento.
 L'audit non controlla le fonti: la verifica automatica dice che la pagina parla di quell'anno,
 non che l'anno scritto nell'evento sia giusto. La lettura umana resta quella della sezione 2.2.
 
+<!-- CELEBRITA-INDIZI:INIZIO -->
+
+## Banca indizi Celebrità (revisione a campione)
+
+Generata da `scripts/banche/genera-indizi.mjs`: quattro indizi per persona,
+due ampi e due specifici, dalla voce di it.wikipedia citata su ogni riga.
+Qui si legge un campione prima della serata; le persone non risolte non si usano.
+
+| Persona | Ambito | Indizi (ampio → specifico) |
+| --- | --- | --- |
+| **Sophia Loren** | 3 · cinema | 1. Attrice italiana. _(ampio)_<br>2. Roma, Novecento: attrice italiana. _(ampio)_<br>3. Nel 1960 venne diretta da Vittorio De Sica ne La ciociara, per il quale vinse il Premio Oscar. _(specifico)_<br>4. Nel 1991 le venne assegnato l'Oscar onorario. _(specifico)_ |
+| **Roberto Benigni** | 3 · cinema | 1. Attore, comico, regista e sceneggiatore italiano. _(ampio)_<br>2. Castiglion Fiorentino, Novecento: attore, comico, regista e sceneggiatore italiano. _(ampio)_<br>3. È stato l'unico interprete maschile italiano a ricevere il Premio Oscar al miglior attore recitando nel ruolo principale in un film in lingua straniera . _(specifico)_<br>4. Nel 2021 ha ricevuto alla Mostra del cinema di Venezia Il Leone d'oro alla carriera. _(specifico)_ |
+| **Monica Bellucci** | 3 · cinema | 1. Attrice e modella italiana. _(ampio)_<br>2. Città di Castello, Novecento: attrice e modella italiana. _(ampio)_<br>3. Nel 2003 è la prima donna italiana cui viene affidato il ruolo di madrina alla 56ª edizione del Festival di Cannes. _(specifico)_<br>4. Nel 2004 diventa la prima personalità non francese scelta per attivare l'illuminazione degli Champs Élysees nella tradizionale cerimonia natalizia. _(specifico)_ |
+| **Tom Cruise** | 3 · cinema | 1. Attore e produttore cinematografico statunitense. _(ampio)_<br>2. Syracuse, Novecento: attore e produttore cinematografico statunitense. _(ampio)_<br>3. Il suo primo successo è stato il film del 1983 Risky Business - Fuori i vecchi... _(specifico)_<br>4. Ha raggiunto la fama internazionale come attore nel 1986 per il suo ruolo in Top Gun, del quale è stato girato un sequel di grande successo dal titolo Top Gun: Maverick . _(specifico)_ |
+| **Angelina Jolie** | 3 · cinema | 1. Attrice, produttrice cinematografica, regista, filantropa e sceneggiatrice statunitense. _(ampio)_<br>2. Los Angeles, Novecento: attrice, produttrice cinematografica, regista, filantropa e sceneggiatrice statunitense. _(ampio)_<br>3. Nel 2009 ha ricevuto una seconda candidatura agli Oscar alla miglior attrice per la sua interpretazione in Changeling. _(specifico)_<br>4. Nel 2014, durante la cerimonia dei Governors Award le è stato conferito l'Oscar Premio umanitario Jean Hersholt. _(specifico)_ |
+| **Al Pacino** | 3 · cinema | 1. Attore statunitense. _(ampio)_<br>2. New York, Novecento: attore statunitense. _(ampio)_<br>3. È stato poi insignito del Life Achievement Award dall'American Film Institute nel 2007, della National Medal of Arts nel 2011 e del Kennedy Center Honors nel 2016. _(specifico)_<br>4. Dagli anni sessanta rappresentò inoltre opere di Bertolt Brecht, Eugene O'Neill, Oscar Wilde e David Mamet. _(specifico)_ |
+| **Sofia Vergara** | 3 · cinema | 1. Modella e attrice colombiana. _(ampio)_<br>2. Barranquilla, Novecento: modella e attrice colombiana. _(ampio)_<br>3. Dal 1995 al 1999 fu co-ospite, insieme a Fernando Fiore, della trasmissione Fuera de Serie, che la portò a viaggiare in diversi posti esotici in tutto il mondo. _(specifico)_<br>4. Fece calendari sexy in costume da bagno nel 1998, 2000, e 2002 che ebbero grande successo in America latina, giungendo anche sul mercato... _(specifico)_ |
+| **Penelope Cruz** | 3 · cinema | 1. Attrice e modella spagnola. _(ampio)_<br>2. Alcobendas, Novecento: attrice e modella spagnola. _(ampio)_<br>3. Nel 2001 ha ricevuto l'attenzione internazionale per i suoi ruoli nei film Blow, Il mandolino del capitano Corelli e Vanilla Sky. _(specifico)_<br>4. Nel 2009 ha vinto il Premio Oscar per la miglior attrice non protagonista per il film Vicky Cristina Barcelona. _(specifico)_ |
+| **Tom Hanks** | 3 · cinema | 1. Attore, regista, sceneggiatore, produttore cinematografico e televisivo statunitense. _(ampio)_<br>2. Concord, Novecento: attore, regista, sceneggiatore, produttore cinematografico e televisivo statunitense. _(ampio)_<br>3. La sua carriera ha avuto inizio negli anni ottanta quando, interpretando la serie Henry e Kip, cominciò a esser conosciuto. _(specifico)_<br>4. Da allora ha recitato in numerosi film ottenendo un grande successo di critica e di pubblico. _(specifico)_ |
+| **Denzel Washington** | 3 · cinema | 1. È un attore, regista e produttore cinematografico statunitense. _(ampio)_<br>2. Mount Vernon, Novecento: è un attore, regista e produttore cinematografico statunitense. _(ampio)_<br>3. Il suo secondo lungometraggio è stato The Great Debaters - Il potere della parola, distribuito nel 2007. _(specifico)_<br>4. Il terzo lavoro da regista, Barriere, con sé stesso nel ruolo di protagonista e con Viola Davis, è stato distribuito nel 2016 ed è stato candidato all'Oscar al miglior film. _(specifico)_ |
+| **Emma Watson** | 3 · cinema | 1. Ha vissuto a Maisons-Laffitte, vicino a Parigi, fino all'età di cinque anni. _(ampio)_<br>2. Parigi, Novecento: ha vissuto a Maisons-Laffitte, vicino a Parigi, fino all'età di cinque anni. _(ampio)_<br>3. Nel 2015 la rivista Time l'ha inserita tra le 100 persone più influenti del pianeta. _(specifico)_<br>4. Dopo essersi trasferita a Oxford con la madre e il fratello, ha frequentato la Dragon School, rimanendovi fino al 2003. _(specifico)_ |
+| **Vin Diesel** | 3 · cinema | 1. Attore, produttore cinematografico, regista e sceneggiatore statunitense. _(ampio)_<br>2. Alameda, Novecento: attore, produttore cinematografico, regista e sceneggiatore statunitense. _(ampio)_<br>3. È inoltre il fondatore della Tigon Studios, della One Race Films e della Racetrack Records. _(specifico)_<br>4. Nell'agosto del 2013, l'attore riceve la stella sulla Hollywood Walk of Fame. _(specifico)_ |
+| **Dwayne Johnson** | 3 · cinema | 1. Attore, produttore cinematografico e wrestler statunitense. _(ampio)_<br>2. Hayward, Novecento: attore, produttore cinematografico e wrestler statunitense. _(ampio)_<br>3. Nel 2011 ha fatto il suo ritorno in WWE e ha continuato a lottare sporadicamente. _(specifico)_<br>4. The Rock è anche comparso dodici volte su copertine di videogiochi: WWF Attitude, WWF WrestleMania 2000, WWF SmackDown!, WWF Royal Rumble, WWF No Mercy, WWF SmackDown! _(specifico)_ |
+| **Vasco Rossi** | 2 · musica | 1. Cantautore italiano. _(ampio)_<br>2. Zocca, Novecento: cantautore italiano. _(ampio)_<br>3. Tra questi si segnalano: il premio nazionale de «Il Paroliere» per la canzone Ogni volta nel 1982. _(specifico)_<br>4. La Targa Tenco per il miglior album 1998 con Canzoni per me. _(specifico)_ |
+| **Luciano Ligabue** | 2 · musica | 1. Cantautore, scrittore, politico e regista cinematografico italiano. _(ampio)_<br>2. Correggio, Novecento: cantautore, scrittore, politico e regista cinematografico italiano. _(ampio)_<br>3. Si è aggiudicato in particolare tre Targhe Tenco e un Premio Tenco. _(specifico)_<br>4. Per dodici anni, dal 2005 al 2017, ha anche detenuto il primato europeo di spettatori paganti al concerto di un singolo artista . _(specifico)_ |
+| **Elton John** | 2 · musica | 1. Cantante, compositore e musicista britannico. _(ampio)_<br>2. Pinner, Novecento: cantante, compositore e musicista britannico. _(ampio)_<br>3. Inoltre, insieme all'autore Bernie Taupin, forma una delle coppie di compositori più famose e prolifiche della musica contemporanea, attiva pressoché ininterrottamente dal 1967. _(specifico)_<br>4. Nel 2004 la rivista Rolling Stone lo ha inserito al 49º posto nella sua lista dei 100 migliori artisti musicali. _(specifico)_ |
+| **Francesco Totti** | 3 · sport | 1. Calciatore italiano. _(ampio)_<br>2. Roma, Novecento: calciatore italiano. _(ampio)_<br>3. Con la nazionale italiana è diventato campione del mondo nel 2006 e vicecampione d'Europa nel 2000. _(specifico)_<br>4. In precedenza, con le nazionali giovanili, aveva segnato 18 gol e conquistato l'Europeo Under-21 nel 1996 e i Giochi del Mediterraneo nel 1997. _(specifico)_ |
+| **LeBron James** | 3 · sport | 1. Cestista statunitense. _(ampio)_<br>2. Akron, Novecento: cestista statunitense. _(ampio)_<br>3. È stata la prima scelta assoluta al Draft NBA 2003. _(specifico)_<br>4. Venne nominato Rookie dell'anno nel 2004. _(specifico)_ |
+| **Michael Jordan** | 3 · sport | 1. Dirigente sportivo, imprenditore e cestista statunitense. _(ampio)_<br>2. New York, Novecento: dirigente sportivo, imprenditore e cestista statunitense. _(ampio)_<br>3. Contribuì in maniera determinante alla diffusione della pallacanestro e della NBA a livello mondiale negli anni ottanta e novanta. _(specifico)_<br>4. Giocò a livello universitario con i North Carolina Tar Heels, dove da freshman fece parte della squadra campione NCAA nel 1982. _(specifico)_ |
+| **Paolo Bonolis** | 3 · tv | 1. Conduttore televisivo, showman e autore televisivo italiano. _(ampio)_<br>2. Roma, Novecento: conduttore televisivo, showman e autore televisivo italiano. _(ampio)_<br>3. Insieme all'amico e collega Luca Laurenti, con il quale collabora dal 1991, forma una delle coppie più longeve e apprezzate della televisione italiana. _(specifico)_<br>4. Da molti anni è il conduttore più pagato della televisione italiana: dal 2019 è legato a Mediaset con un contratto da dieci milioni di euro annuali. _(specifico)_ |
+
+### Persone non risolte (40)
+
+| Persona | Motivo |
+| --- | --- |
+| Pierfrancesco Favino | indizi specifici insufficienti (1) |
+| Meryl Streep | indizi specifici insufficienti (1) |
+| Johnny Depp | indizi specifici insufficienti (0) |
+| Javier Bardem | descrizione breve in inglese e voce senza definizione |
+| Scarlett Johansson | descrizione breve in inglese e voce senza definizione |
+| Julia Roberts | descrizione breve in inglese e voce senza definizione |
+| Cate Blanchett | descrizione breve in inglese e voce senza definizione |
+| Margot Robbie | descrizione breve in inglese e voce senza definizione |
+| Laura Pausini | indizi specifici insufficienti (0) |
+| Eros Ramazzotti | descrizione breve in inglese e voce senza definizione |
+| Zucchero | luogo di nascita non ricavabile |
+| Taylor Swift | descrizione breve in inglese e voce senza definizione |
+| Madonna | descrizione breve in inglese e voce senza definizione |
+| Michael Jackson | luogo di nascita non ricavabile |
+| Beyoncé | descrizione breve in inglese e voce senza definizione |
+| Ed Sheeran | descrizione breve in inglese e voce senza definizione |
+| Freddie Mercury | descrizione breve in inglese e voce senza definizione |
+| Adele | descrizione breve in inglese e voce senza definizione |
+| Shakira | descrizione breve in inglese e voce senza definizione |
+| Rihanna | descrizione breve in inglese e voce senza definizione |
+| Bruce Springsteen | descrizione breve in inglese e voce senza definizione |
+| David Bowie | luogo di nascita non ricavabile |
+| Lady Gaga | descrizione breve in inglese e voce senza definizione |
+| Bob Dylan | indizi specifici insufficienti (1) |
+| Marco Mengoni | descrizione breve in inglese e voce senza definizione |
+| Elisa | indizi specifici insufficienti (0) |
+| Alessandro Del Piero | descrizione breve in inglese e voce senza definizione |
+| Valentino Rossi | descrizione breve in inglese e voce senza definizione |
+| Cristiano Ronaldo | luogo di nascita non ricavabile |
+| Lionel Messi | luogo di nascita non ricavabile |
+| Roger Federer | indizi specifici insufficienti (1) |
+| Diego Armando Maradona | luogo di nascita non ricavabile |
+| Gerry Scotti | indizi specifici insufficienti (1) |
+| Maria De Filippi | indizi specifici insufficienti (1) |
+| Federica Sciarelli | indizi specifici insufficienti (0) |
+| Carlo Conti | descrizione breve in inglese e voce senza definizione |
+| Amadeus | luogo di nascita non ricavabile |
+| Leonardo DiCaprio | indizio identico a quello di un’altra persona |
+| Brad Pitt | indizio identico a quello di un’altra persona |
+| Robert De Niro | indizio identico a quello di un’altra persona |
+
+<!-- CELEBRITA-INDIZI:FINE -->

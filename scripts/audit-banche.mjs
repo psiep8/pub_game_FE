@@ -32,6 +32,7 @@ const questionsDir = join(rootDir, 'apps', 'backend', 'src', 'main', 'resources'
 const staticDir = join(rootDir, 'apps', 'backend', 'src', 'main', 'resources', 'static');
 const bankServiceFile = join(rootDir, 'apps', 'backend', 'src', 'main', 'java', 'com', 'pub_game_be', 'service', 'QuestionBankService.java');
 const celebritaAmbitiFile = join(questionsDir, 'celebrita-ambiti.json');
+const celebritaIndiziFile = join(questionsDir, 'celebrita-indizi.json');
 
 const args = new Set(process.argv.slice(2));
 const asJson = args.has('--json');
@@ -509,6 +510,120 @@ function auditCelebritaAmbiti(ambitiFile, media) {
   };
 }
 
+/**
+ * Banca indizi Celebrità: quattro indizi per persona, due ampi e due
+ * specifici, ognuno con la fonte, mai con il nome. È il controllo che la
+ * specifica chiede bloccante: se manca una fonte, l'ordine è sbagliato o un
+ * indizio contiene il nome, l'audit esce in errore.
+ */
+const CELEBRITA_LIVELLI = ['ampio', 'ampio', 'specifico', 'specifico'];
+const CELEBRITA_SOTTO_AMBITI = new Set([
+  'storia', 'arte', 'scienza', 'musica', 'sport', 'cinema', 'tv', 'spettacolo',
+]);
+const NAME_PARTICLES = new Set([
+  'de', 'del', 'della', 'di', 'da', 'dos', 'du', 'la', 'le',
+  'van', 'von', 'jr', 'sr', 'ii', 'iii', 'iv',
+]);
+
+/** Stesse regole del controllo Java: nome, cognome e nomi corti svelano. */
+function mentionsName(text, name) {
+  const haystack = normalizeText(text);
+  for (const token of normalizeText(name).split(' ').filter(Boolean)) {
+    if (token.length < 3 || NAME_PARTICLES.has(token)) continue;
+    if (new RegExp(`(^| )${token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}( |$)`).test(haystack)) return true;
+  }
+  return false;
+}
+
+function auditCelebritaIndizi(indizi, ambitiFile) {
+  const rows = Array.isArray(indizi?.persone) ? indizi.persone : [];
+  const nonRisolte = Array.isArray(indizi?.nonRisolte) ? indizi.nonRisolte : [];
+  const problemi = [];
+  const perTesto = new Map();
+  const solved = new Map();
+  const classificate = new Map(
+    (ambitiFile?.persone ?? []).map((row) => [normalizeText(row.nome), row]),
+  );
+
+  for (const persona of rows) {
+    const nome = String(persona?.nome ?? '').trim();
+    const key = normalizeText(nome);
+    if (!key) {
+      problemi.push({ nome: '(assente)', detail: 'nome mancante' });
+      continue;
+    }
+    const classe = classificate.get(key);
+    if (!classe) {
+      problemi.push({ nome, detail: 'persona non riclassificata nei tre ambiti' });
+    } else {
+      if (Number(classe.ambito) !== Number(persona.ambito)) {
+        problemi.push({ nome, detail: `ambito ${persona.ambito} diverso dalla classificazione (${classe.ambito})` });
+      }
+      if (String(classe.sottoAmbito) !== String(persona.sottoAmbito)) {
+        problemi.push({ nome, detail: `sotto-ambito «${persona.sottoAmbito}» diverso dalla classificazione («${classe.sottoAmbito}»)` });
+      }
+    }
+    if (!CELEBRITA_SOTTO_AMBITI.has(String(persona.sottoAmbito))) {
+      problemi.push({ nome, detail: `sotto-ambito inesistente «${persona.sottoAmbito}»` });
+    }
+    if (!String(persona.pagina ?? '').startsWith('https://it.wikipedia.org/')) {
+      problemi.push({ nome, detail: 'pagina Wikipedia assente' });
+    }
+
+    const indiziPersona = Array.isArray(persona.indizi) ? persona.indizi : [];
+    if (indiziPersona.length !== 4) {
+      problemi.push({ nome, detail: `indizi ${indiziPersona.length} invece di 4` });
+      continue;
+    }
+    indiziPersona.forEach((indizio, index) => {
+      const testo = String(indizio?.testo ?? '').trim();
+      const livello = String(indizio?.livello ?? '').trim();
+      const fonte = String(indizio?.fonte ?? '').trim();
+      if (livello !== CELEBRITA_LIVELLI[index]) {
+        problemi.push({ nome, detail: `indizio ${index + 1} è «${livello}», atteso «${CELEBRITA_LIVELLI[index]}»` });
+      }
+      if (testo.length < 12 || testo.length > 220) {
+        problemi.push({ nome, detail: `indizio ${index + 1} lungo ${testo.length}` });
+      }
+      if (!fonte.startsWith('https://')) {
+        problemi.push({ nome, detail: `indizio ${index + 1} senza fonte` });
+      }
+      if (mentionsName(testo, nome)) {
+        problemi.push({ nome, detail: `indizio ${index + 1} contiene il nome` });
+      }
+      if (indizio?.verificato !== true) {
+        problemi.push({ nome, detail: `indizio ${index + 1} non verificato` });
+      }
+      const testoKey = normalizeText(testo);
+      if (perTesto.has(testoKey)) {
+        problemi.push({ nome, detail: `indizio identico a quello di ${perTesto.get(testoKey)}` });
+      }
+      perTesto.set(testoKey, nome);
+    });
+    solved.set(normalizeText(persona.ambito), (solved.get(normalizeText(persona.ambito)) ?? 0) + 1);
+  }
+
+  for (const persona of nonRisolte) {
+    if (!String(persona?.nome ?? '').trim()) problemi.push({ nome: '(assente)', detail: 'non risolta senza nome' });
+    if (!String(persona?.motivo ?? '').trim()) {
+      problemi.push({ nome: String(persona?.nome ?? ''), detail: 'non risolta senza motivo' });
+    }
+  }
+  if (rows.length + nonRisolte.length !== classificate.size) {
+    problemi.push({
+      nome: '(totale)',
+      detail: `persone con indizi ${rows.length} + non risolte ${nonRisolte.length} diverse dalle classificate ${classificate.size}`,
+    });
+  }
+
+  return {
+    total: rows.length,
+    nonRisolte: nonRisolte.length,
+    byAmbito: Object.fromEntries(sortedEntries(solved)),
+    problemi,
+  };
+}
+
 /** Musica: brano, artista, anno e file audio/copertina. */
 function auditMusic(media) {
   const tracks = Array.isArray(media?.music) ? media.music : [];
@@ -753,6 +868,16 @@ function renderMarkdown(report) {
     lines.push(table(['Nome', 'Controllo'], report.celebritaAmbiti.problems.map((row) => [row.name, row.detail])));
   }
   lines.push('');
+  lines.push('### Indizi per persona (banca versionata)');
+  lines.push('');
+  lines.push(`Persone con quattro indizi: **${report.celebritaIndizi.total}**; non risolte: **${report.celebritaIndizi.nonRisolte}**.`);
+  lines.push('');
+  if (report.celebritaIndizi.problemi.length === 0) {
+    lines.push('Quattro indizi per persona, due ampi e due specifici, fonte https su ognuno, nessun nome: **0 problemi**.');
+  } else {
+    lines.push(table(['Nome', 'Controllo'], report.celebritaIndizi.problemi.map((row) => [row.nome, row.detail])));
+  }
+  lines.push('');
   lines.push('## Indovina la canzone (media: music)');
   lines.push('');
   lines.push(`Brani: **${report.music.total}**, artisti distinti: **${report.music.artists}**. Doppioni: **${report.music.duplicates.length}**. Campi o file mancanti: **${report.music.missing.length}**.`);
@@ -801,6 +926,7 @@ const timelineBank = readJson('timeline-it.json');
 const azzardoBank = readJson('azzardo-it.json');
 const mediaBank = readJsonIfPresent('media-it.json');
 const celebritaAmbiti = readJson('celebrita-ambiti.json');
+const celebritaIndizi = readJsonIfPresent('celebrita-indizi.json');
 const mediaPatches = applyMediaPatches(mediaBank);
 const bombaBank = readJson('bomba-it.json');
 
@@ -819,6 +945,7 @@ const report = {
   ultimaSpiaggia: auditUltimaSpiaggia(auditQuestions(quizBank)),
   celebrities: auditCelebrities(mediaBank),
   celebritaAmbiti: auditCelebritaAmbiti(celebritaAmbiti, mediaBank),
+  celebritaIndizi: auditCelebritaIndizi(celebritaIndizi, celebritaAmbiti),
   music: auditMusic(mediaBank),
   mediaPatches,
   wheel: auditWheel(),
@@ -836,6 +963,8 @@ if (asJson) {
   console.log('Azzardo:', report.azzardo.total, 'domande');
   console.log('Ultima spiaggia: buchi categoria x livello:', report.ultimaSpiaggia.holes.length);
   console.log('Indovina chi:', report.celebrities.total, 'persone, doppioni:', report.celebrities.duplicates.length, 'campi/file mancanti:', report.celebrities.missing.length);
+  console.log('Celebrità indizi:', report.celebritaIndizi.total, 'persone con 4 indizi,',
+    report.celebritaIndizi.nonRisolte, 'non risolte, problemi:', report.celebritaIndizi.problemi.length);
   console.log('Celebrità ambiti:', report.celebritaAmbiti.total, 'persone,',
     'ambiti', JSON.stringify(report.celebritaAmbiti.byAmbito),
     'problemi:', report.celebritaAmbiti.problems.length,
@@ -865,7 +994,8 @@ if (args.has('--ci')) {
   const issues = report.quiz.issues.length;
   const missing = report.timeline.missing.length + report.azzardo.missing.length
     + report.celebrities.missing.length + report.music.missing.length + report.bomba.missing.length
-    + report.bomba.topicIssues.length + report.celebritaAmbiti.problems.length;
+    + report.bomba.topicIssues.length + report.celebritaAmbiti.problems.length
+    + report.celebritaIndizi.problemi.length;
   const holes = report.ultimaSpiaggia.holes.length;
   const unmatchedPatches = report.mediaPatches.unmatched.length;
   console.log(`CI banche: doppioni ${duplicates}, segnalazioni ${issues}, campi mancanti ${missing}`);
