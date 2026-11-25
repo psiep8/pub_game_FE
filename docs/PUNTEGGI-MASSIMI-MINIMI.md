@@ -28,7 +28,7 @@ cambia la distribuzione dei piazzamenti (seconda tabella) e il numero di bombe.
 | **Biglie** | 2 gare | +1000 | −800 | +1000 | −800 | TV (`rankPoints`) |
 | **Azzardo** | 4 manches | +4000 | 0 | +4000 | 0 | TV (`chipsBreakdown`) |
 | **Ultima spiaggia** | 1 manche | +500 | −250 | +500 | −250 | TV (`level` scelto) |
-| **Immagine sfocata** | 1 immagine da 60 s | +1000 | −1000 | +1000 | −1000 | TV (`calculatePoints`) |
+| **Immagine sfocata** | 3 manches da 60 s (333/333/334) | +1000 | −1000 | +1000 | −1000 | TV (`calculatePoints`) |
 | **Ruota della fortuna** | 1 frase da 75 s | +1000 | −1000 | +1000 | −1000 | TV (`calculatePoints`) |
 | **Arena** | 1 round da 130 s | +1000 + 10×risposte giuste | −300 − 10×risposte sbagliate | +1000 + 10×risposte giuste | −300 − 10×risposte sbagliate | TV (`calculatePoints` + piazzamento) |
 

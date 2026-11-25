@@ -934,7 +934,8 @@ public class QuestionBankService {
             "Storia, Arte, Scienza, Letteratura",
             "Musica",
             "Sport, Cinema, TV, Spettacolo");
-    private static final int[] IMAGE_BLUR_MANCHE_POINTS = { 1000, 750, 500 };
+    // Il vecchio round da 1000 punti diviso tre manche: 333 + 333 + 334.
+    private static final int[] IMAGE_BLUR_MANCHE_POINTS = { 333, 333, 334 };
 
     /**
      * Volto da indovinare: il pool è la banca Celebrità — oltre centosettanta

@@ -25,10 +25,11 @@ export function signedPoints(value: number): string {
 export const MUSIC_MANCHE_POINTS = [1000, 750, 500, 250] as const;
 
 /**
- * Indovina chi: tre manche, una per ambito della banca Celebrità. Il tetto
- * scende perché la foto diventa più riconoscibile e la manche vale meno.
+ * Indovina chi: il vecchio round da 1000 punti diviso tre manche, una per
+ * ambito della banca Celebrità. L'ultima prende il punto che avanza, così la
+ * somma resta esattamente 1000 come prima.
  */
-export const IMAGE_BLUR_MANCHE_POINTS = [1000, 750, 500] as const;
+export const IMAGE_BLUR_MANCHE_POINTS = [333, 333, 334] as const;
 export const IMAGE_BLUR_MANCHE_CATEGORIES = [
   'Storia, Arte, Scienza, Letteratura',
   'Musica',

@@ -33,7 +33,7 @@ class ImageBlurManchePayloadTest {
         assertThat(manches.length()).as("tre manche").isEqualTo(3);
         assertThat(payload.getInt("totalManches")).isEqualTo(3);
 
-        int[] expectedPoints = { 1000, 750, 500 };
+        int[] expectedPoints = { 333, 333, 334 };
         Set<String> categories = new HashSet<>();
         Set<String> answers = new HashSet<>();
         for (int index = 0; index < manches.length(); index++) {
@@ -54,6 +54,9 @@ class ImageBlurManchePayloadTest {
 
         assertThat(categories).as("un ambito diverso per manche").hasSize(3);
         assertThat(answers).as("tre persone diverse").hasSize(3);
+        assertThat(expectedPoints[0] + expectedPoints[1] + expectedPoints[2])
+                .as("il round resta da 1000 punti")
+                .isEqualTo(1000);
     }
 
     @Test

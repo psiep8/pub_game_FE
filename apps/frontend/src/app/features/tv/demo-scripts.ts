@@ -164,13 +164,13 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
     ],
     win: [
       `Manche 1 +${IMAGE_BLUR_MANCHE_POINTS[0]}, manche 2 +${IMAGE_BLUR_MANCHE_POINTS[1]}, manche 3 +${IMAGE_BLUR_MANCHE_POINTS[2]}, sempre in proporzione al tempo rimasto.`,
-      'Le tre manche si sommano: il massimo del round è +2250.',
+      `Le tre manche si sommano: il massimo del round resta +${IMAGE_BLUR_MANCHE_POINTS.reduce((a, b) => a + b, 0)}.`,
     ],
     lose: [
       'Risposta sbagliata: la stessa quota della manche, in negativo.',
       'Se nessuno prenota, la manche resta a 0 e si passa alla successiva.',
     ],
-    example: 'Prenoti a metà tempo nella prima manche: la risposta vale circa +500.',
+    example: `Prenoti a metà tempo nella prima manche: la risposta vale circa +${Math.round(IMAGE_BLUR_MANCHE_POINTS[0] / 2)}.`,
   },
   MUSIC: {
     title: 'INDOVINA LA CANZONE',

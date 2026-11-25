@@ -217,7 +217,10 @@ export class ImageBlurMode extends GameModeBase {
 
     const maxPoints = Number(this.payload?.points ?? this.manches[this.mancheIndex()]?.points
       ?? IMAGE_BLUR_MANCHE_POINTS[this.mancheIndex()] ?? IMAGE_BLUR_MANCHE_POINTS[0]);
-    return Math.round((isCorrect ? maxPoints : -maxPoints) * decayRatio);
+    // Stesso arrotondamento in positivo e in negativo: una risposta sbagliata
+    // toglie esattamente quanto avrebbe dato quella giusta.
+    const points = Math.round(maxPoints * decayRatio);
+    return isCorrect ? points : -points;
   }
 
   

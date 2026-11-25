@@ -8,6 +8,7 @@ import {
   BONUS_SCORING,
   BOMBA_PEAK,
   CASINO_SPINS,
+  IMAGE_BLUR_MANCHE_POINTS,
   MUSIC_MANCHE_POINTS,
   SCORING_RULES,
   SPEED_RUSH_FIRST,
@@ -25,6 +26,12 @@ describe('regole dei punteggi', () => {
     expect([...MUSIC_MANCHE_POINTS]).toEqual([1000, 750, 500, 250]);
     expect(SCORING_RULES.MUSIC.correct).toContain('1000');
     expect(SCORING_RULES.MUSIC.note).toContain('750');
+  });
+
+  it('Indovina chi: il round da 1000 è diviso tre manche (333/333/334)', () => {
+    expect([...IMAGE_BLUR_MANCHE_POINTS]).toEqual([333, 333, 334]);
+    expect(IMAGE_BLUR_MANCHE_POINTS.reduce((a, b) => a + b, 0)).toBe(1000);
+    expect(SCORING_RULES.IMAGE_BLUR.note).toContain('da −1000 a +1000');
   });
 
   it('Quiz: 1000 per round, penalità scalata dal tempo', () => {

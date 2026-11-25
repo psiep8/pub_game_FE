@@ -101,7 +101,7 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, EntryCopy> = {
       'Dì la risposta al presentatore: la conferma arriva dalla regia.',
       'Il telefono si blocca dopo la prenotazione e si riarma alla manche successiva.',
     ],
-    tip: `La prima manche vale ${IMAGE_BLUR_MANCHE_POINTS[0]}, la seconda ${IMAGE_BLUR_MANCHE_POINTS[1]}, la terza ${IMAGE_BLUR_MANCHE_POINTS[2]}, sempre in proporzione al tempo rimasto. Non aspettare che la foto sia nitida: il tempo rimasto moltiplica i punti.`,
+    tip: `Il vecchio round da 1000 punti è diviso tre manche: ${IMAGE_BLUR_MANCHE_POINTS[0]}, ${IMAGE_BLUR_MANCHE_POINTS[1]} e ${IMAGE_BLUR_MANCHE_POINTS[2]}, sempre in proporzione al tempo rimasto. In tutto il round il massimo resta 1000. Non aspettare che la foto sia nitida: il tempo rimasto moltiplica i punti.`,
   },
   MUSIC: {
     name: 'INDOVINA LA CANZONE',
