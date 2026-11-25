@@ -31,7 +31,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nato Andrew Warhola Jr.",
+          "testo": "Mostrò subito il suo talento artistico, e studiò arte pubblicitaria al Carnegie Institute of Technology, l'attuale Carnegie Mellon University di Pittsburgh.",
           "fonte": "https://it.wikipedia.org/wiki/Andy_Warhol",
           "verificato": true
         }
@@ -97,10 +97,9 @@
         },
         {
           "livello": "specifico",
-          "testo": "una pittrice messicana del 1907: la voce di Wikipedia ne racconta la storia.",
+          "testo": "Le piaceva dire di essere nata nel 1910, poiché si sentiva profondamente figlia della rivoluzione messicana di quell'anno, e perciò del Messico moderno.",
           "fonte": "https://it.wikipedia.org/wiki/Frida_Kahlo",
-          "verificato": true,
-          "nota": "indizio di riserva, da rivedere a mano"
+          "verificato": true
         }
       ]
     },
@@ -224,7 +223,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Figueres il 11 maggio 1904.",
+          "testo": "Nasce a Figueres l'11 maggio 1904.",
           "fonte": "https://it.wikipedia.org/wiki/Salvador_Dal%C3%AD",
           "verificato": true
         },
@@ -389,7 +388,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Nantes il 8 febbraio 1828.",
+          "testo": "Nasce a Nantes l'8 febbraio 1828.",
           "fonte": "https://it.wikipedia.org/wiki/Jules_Verne",
           "verificato": true
         },
@@ -475,14 +474,14 @@
       "indizi": [
         {
           "livello": "ampio",
-          "testo": "Un biologo, naturalista.",
+          "testo": "Un biologo, naturalista, geologo ed esploratore britannico.",
           "fonte": "https://it.wikipedia.org/wiki/Charles_Darwin",
           "verificato": true,
           "nota": "descrizione breve di Wikipedia"
         },
         {
           "livello": "ampio",
-          "testo": "Shrewsbury, Ottocento: un biologo, naturalista.",
+          "testo": "Shrewsbury, Ottocento: un biologo, naturalista, geologo ed esploratore britannico.",
           "fonte": "https://it.wikipedia.org/wiki/Charles_Darwin",
           "verificato": true
         },
@@ -653,7 +652,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Oxford il 8 gennaio 1942.",
+          "testo": "Nasce a Oxford l'8 gennaio 1942.",
           "fonte": "https://it.wikipedia.org/wiki/Stephen_Hawking",
           "verificato": true
         },
@@ -686,7 +685,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Milan il 11 febbraio 1847.",
+          "testo": "Nasce a Milan l'11 febbraio 1847.",
           "fonte": "https://it.wikipedia.org/wiki/Thomas_Edison",
           "verificato": true
         },
@@ -871,14 +870,14 @@
       "indizi": [
         {
           "livello": "ampio",
-          "testo": "Un politico statunitense.",
+          "testo": "Un politico statunitense, 35º presidente degli Stati Uniti d'America dal 1961 al 1963.",
           "fonte": "https://it.wikipedia.org/wiki/John_Fitzgerald_Kennedy",
           "verificato": true,
           "nota": "descrizione breve di Wikipedia"
         },
         {
           "livello": "ampio",
-          "testo": "Brookline, Novecento: un politico statunitense.",
+          "testo": "Brookline, Novecento: un politico statunitense, 35º presidente degli Stati Uniti d'America dal 1961 al 1963.",
           "fonte": "https://it.wikipedia.org/wiki/John_Fitzgerald_Kennedy",
           "verificato": true
         },
@@ -890,7 +889,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nato nella influente famiglia, cattolica di origine irlandese, si laureò all'università Harvard nel 1937.",
+          "testo": "Allo scoppio della seconda guerra mondiale si arruolò, comportandosi valorosamente nel Pacifico e venendo insignito della Navy and Marine Corps Medal.",
           "fonte": "https://it.wikipedia.org/wiki/John_Fitzgerald_Kennedy",
           "verificato": true
         }
@@ -904,14 +903,14 @@
       "indizi": [
         {
           "livello": "ampio",
-          "testo": "Un attivista, politico.",
+          "testo": "Un attivista, politico, filosofo ed avvocato indiano.",
           "fonte": "https://it.wikipedia.org/wiki/Mahatma_Gandhi",
           "verificato": true,
           "nota": "descrizione breve di Wikipedia"
         },
         {
           "livello": "ampio",
-          "testo": "Porbandar, Ottocento: un attivista, politico.",
+          "testo": "Porbandar, Ottocento: un attivista, politico, filosofo ed avvocato indiano.",
           "fonte": "https://it.wikipedia.org/wiki/Mahatma_Gandhi",
           "verificato": true
         },
@@ -1082,7 +1081,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Verona il 11 luglio 1990.",
+          "testo": "Nasce a Verona l'11 luglio 1990.",
           "fonte": "https://it.wikipedia.org/wiki/Achille_Lauro_(cantante)",
           "verificato": true
         },
@@ -1135,14 +1134,14 @@
       "indizi": [
         {
           "livello": "ampio",
-          "testo": "Un cantante, showman, attore.",
+          "testo": "Un cantante, showman, attore, regista.",
           "fonte": "https://it.wikipedia.org/wiki/Adriano_Celentano",
           "verificato": true,
           "nota": "descrizione breve di Wikipedia"
         },
         {
           "livello": "ampio",
-          "testo": "Milano, Novecento: un cantante, showman, attore.",
+          "testo": "Milano, Novecento: un cantante, showman, attore, regista.",
           "fonte": "https://it.wikipedia.org/wiki/Adriano_Celentano",
           "verificato": true
         },
@@ -1352,10 +1351,9 @@
         },
         {
           "livello": "specifico",
-          "testo": "un cantautore italiano del 1963: la voce di Wikipedia ne racconta la storia.",
+          "testo": "Nel 1988 partecipa tra le Nuove Proposte al 38º Festival di Sanremo con il brano Voglio vivere in un attimo, senza accedere alla finale.",
           "fonte": "https://it.wikipedia.org/wiki/Biagio_Antonacci",
-          "verificato": true,
-          "nota": "indizio di riserva, da rivedere a mano"
+          "verificato": true
         }
       ]
     },
@@ -1512,7 +1510,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Honolulu il 8 ottobre 1985.",
+          "testo": "Nasce a Honolulu l'8 ottobre 1985.",
           "fonte": "https://it.wikipedia.org/wiki/Bruno_Mars",
           "verificato": true
         },
@@ -1947,10 +1945,9 @@
         },
         {
           "livello": "specifico",
-          "testo": "un rapper e cantautore italiano di origini tunisine del 1993: la voce di Wikipedia ne racconta la storia.",
+          "testo": "Nel 2011 ha fondato i Troupe D'Elite, gruppo nel quale erano presenti anche il rapper Er Nyah , la cantante Maite e il produttore Fonzie .",
           "fonte": "https://it.wikipedia.org/wiki/Ghali",
-          "verificato": true,
-          "nota": "indizio di riserva, da rivedere a mano"
+          "verificato": true
         }
       ]
     },
@@ -1981,10 +1978,9 @@
         },
         {
           "livello": "specifico",
-          "testo": "una cantautrice italiana del 1954: la voce di Wikipedia ne racconta la storia.",
+          "testo": "Nelle tematiche trattate si avverte una forte componente femminista , motivo per cui viene infatti invitata a molti festival organizzati dal movimento.",
           "fonte": "https://it.wikipedia.org/wiki/Gianna_Nannini",
-          "verificato": true,
-          "nota": "indizio di riserva, da rivedere a mano"
+          "verificato": true
         }
       ]
     },
@@ -2042,7 +2038,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Redditch il 1 febbraio 1994.",
+          "testo": "Nasce a Redditch l'1 febbraio 1994.",
           "fonte": "https://it.wikipedia.org/wiki/Harry_Styles",
           "verificato": true
         },
@@ -2108,7 +2104,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a London il 1 marzo 1994.",
+          "testo": "Nasce a London l'1 marzo 1994.",
           "fonte": "https://it.wikipedia.org/wiki/Justin_Bieber",
           "verificato": true
         },
@@ -2260,14 +2256,14 @@
       "indizi": [
         {
           "livello": "ampio",
-          "testo": "Un cantautore, regista, scrittore.",
+          "testo": "Un cantautore, regista, scrittore, sceneggiatore.",
           "fonte": "https://it.wikipedia.org/wiki/Luciano_Ligabue",
           "verificato": true,
           "nota": "descrizione breve di Wikipedia"
         },
         {
           "livello": "ampio",
-          "testo": "Correggio, Novecento: un cantautore, regista, scrittore.",
+          "testo": "Correggio, Novecento: un cantautore, regista, scrittore, sceneggiatore.",
           "fonte": "https://it.wikipedia.org/wiki/Luciano_Ligabue",
           "verificato": true
         },
@@ -2293,14 +2289,14 @@
       "indizi": [
         {
           "livello": "ampio",
-          "testo": "Un cantautore, compositore.",
+          "testo": "Un cantautore, compositore, polistrumentista.",
           "fonte": "https://it.wikipedia.org/wiki/Lucio_Dalla",
           "verificato": true,
           "nota": "descrizione breve di Wikipedia"
         },
         {
           "livello": "ampio",
-          "testo": "Bologna, Novecento: un cantautore, compositore.",
+          "testo": "Bologna, Novecento: un cantautore, compositore, polistrumentista.",
           "fonte": "https://it.wikipedia.org/wiki/Lucio_Dalla",
           "verificato": true
         },
@@ -2458,14 +2454,14 @@
       "indizi": [
         {
           "livello": "ampio",
-          "testo": "Un cantautore, compositore, classe 1958.",
+          "testo": "Un cantautore, compositore, ballerino.",
           "fonte": "https://it.wikipedia.org/wiki/Michael_Jackson",
           "verificato": true,
           "nota": "descrizione breve di Wikipedia"
         },
         {
           "livello": "ampio",
-          "testo": "Gary, Novecento: un cantautore, compositore.",
+          "testo": "Gary, Novecento: un cantautore, compositore, ballerino.",
           "fonte": "https://it.wikipedia.org/wiki/Michael_Jackson",
           "verificato": true
         },
@@ -2702,7 +2698,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Quakertown il 11 maggio 1999.",
+          "testo": "Nasce a Quakertown l'11 maggio 1999.",
           "fonte": "https://it.wikipedia.org/wiki/Sabrina_Carpenter",
           "verificato": true
         },
@@ -2741,10 +2737,9 @@
         },
         {
           "livello": "specifico",
-          "testo": "un rapper, cantautore e produttore discografico italiano del 1984: la voce di Wikipedia ne racconta la storia.",
+          "testo": "Nasce ad Olbia il 29 giugno 1984, dal padre Raimondo e dalla madre Anna Maria .",
           "fonte": "https://it.wikipedia.org/wiki/Salmo_(rapper)",
-          "verificato": true,
-          "nota": "indizio di riserva, da rivedere a mano"
+          "verificato": true
         }
       ]
     },
@@ -2868,7 +2863,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Milano il 8 maggio 1995.",
+          "testo": "Nasce a Milano l'8 maggio 1995.",
           "fonte": "https://it.wikipedia.org/wiki/Tananai",
           "verificato": true
         },
@@ -3112,6 +3107,39 @@
       ]
     },
     {
+      "nome": "Alessandro Borghi",
+      "ambito": 3,
+      "sottoAmbito": "cinema",
+      "pagina": "https://it.wikipedia.org/wiki/Alessandro_Borghi_(attore)",
+      "indizi": [
+        {
+          "livello": "ampio",
+          "testo": "Un attore italiano.",
+          "fonte": "https://it.wikipedia.org/wiki/Alessandro_Borghi_(attore)",
+          "verificato": true,
+          "nota": "descrizione breve di Wikipedia"
+        },
+        {
+          "livello": "ampio",
+          "testo": "Roma, Novecento: un attore italiano.",
+          "fonte": "https://it.wikipedia.org/wiki/Alessandro_Borghi_(attore)",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Nasce a Roma il 19 settembre 1986.",
+          "fonte": "https://it.wikipedia.org/wiki/Alessandro_Borghi_(attore)",
+          "verificato": true
+        },
+        {
+          "livello": "specifico",
+          "testo": "Figlio di Rossella e Silvano, incomincia a lavorare agli studi di Cinecittà come cascatore fra il 2005 e il 2007, per poi passare a piccoli ruoli in sceneggiati televisivi.",
+          "fonte": "https://it.wikipedia.org/wiki/Alessandro_Borghi_(attore)",
+          "verificato": true
+        }
+      ]
+    },
+    {
       "nome": "Ana de Armas",
       "ambito": 3,
       "sottoAmbito": "cinema",
@@ -3204,10 +3232,9 @@
         },
         {
           "livello": "specifico",
-          "testo": "un'attrice ed ex modella statunitense con cittadinanza britannica del 1996: la voce di Wikipedia ne racconta la storia.",
+          "testo": "All'età di quattordici anni ha abbandonato la scuola e si è trasferita da Londra a New York, poiché vittima di bullismo dei suoi coetanei e forte del desiderio di recitare.",
           "fonte": "https://it.wikipedia.org/wiki/Anya_Taylor-Joy",
-          "verificato": true,
-          "nota": "indizio di riserva, da rivedere a mano"
+          "verificato": true
         }
       ]
     },
@@ -3285,14 +3312,14 @@
       "indizi": [
         {
           "livello": "ampio",
-          "testo": "Un comico, sceneggiatore, attore.",
+          "testo": "Un comico, sceneggiatore, attore, imitatore e cantante italiano.",
           "fonte": "https://it.wikipedia.org/wiki/Checco_Zalone",
           "verificato": true,
           "nota": "descrizione breve di Wikipedia"
         },
         {
           "livello": "ampio",
-          "testo": "Capurso, Novecento: un comico, sceneggiatore, attore.",
+          "testo": "Capurso, Novecento: un comico, sceneggiatore, attore, imitatore e cantante italiano.",
           "fonte": "https://it.wikipedia.org/wiki/Checco_Zalone",
           "verificato": true
         },
@@ -3331,16 +3358,15 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Melbourne il 11 agosto 1983.",
+          "testo": "Nasce a Melbourne l'11 agosto 1983.",
           "fonte": "https://it.wikipedia.org/wiki/Chris_Hemsworth",
           "verificato": true
         },
         {
           "livello": "specifico",
-          "testo": "un attore australiano, noto al grande pubblico per aver interpretato il ruolo di Thor nei film del Marvel del 1983: la voce di Wikipedia ne racconta la storia.",
+          "testo": "Nel 2002 recita in due episodi della serie televisiva fantasy Ginevra Jones, interpretando il ruolo di Re Artù.",
           "fonte": "https://it.wikipedia.org/wiki/Chris_Hemsworth",
-          "verificato": true,
-          "nota": "indizio di riserva, da rivedere a mano"
+          "verificato": true
         }
       ]
     },
@@ -3451,14 +3477,14 @@
       "indizi": [
         {
           "livello": "ampio",
-          "testo": "Un attore e regista italiano.",
+          "testo": "Un attore e regista italiano, attivo in campo teatrale.",
           "fonte": "https://it.wikipedia.org/wiki/Elio_Germano",
           "verificato": true,
           "nota": "descrizione breve di Wikipedia"
         },
         {
           "livello": "ampio",
-          "testo": "Roma, Novecento: un attore e regista italiano.",
+          "testo": "Roma, Novecento: un attore e regista italiano, attivo in campo teatrale.",
           "fonte": "https://it.wikipedia.org/wiki/Elio_Germano",
           "verificato": true
         },
@@ -3596,7 +3622,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Las Palmas de Gran Canaria il 1 marzo 1969.",
+          "testo": "Nasce a Las Palmas de Gran Canaria l'1 marzo 1969.",
           "fonte": "https://it.wikipedia.org/wiki/Javier_Bardem",
           "verificato": true
         },
@@ -3728,7 +3754,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Los Angeles il 11 novembre 1974.",
+          "testo": "Nasce a Los Angeles l'11 novembre 1974.",
           "fonte": "https://it.wikipedia.org/wiki/Leonardo_DiCaprio",
           "verificato": true
         },
@@ -3767,10 +3793,9 @@
         },
         {
           "livello": "specifico",
-          "testo": "un attore italiano, vincitore di un David di Donatello del 1984: la voce di Wikipedia ne racconta la storia.",
+          "testo": "Nel 2006 entra nell'Accademia nazionale d'arte drammatica \"Silvio D'Amico\", dove consegue il diploma accademico nel 2009.",
           "fonte": "https://it.wikipedia.org/wiki/Luca_Marinelli",
-          "verificato": true,
-          "nota": "indizio di riserva, da rivedere a mano"
+          "verificato": true
         }
       ]
     },
@@ -4211,14 +4236,14 @@
       "indizi": [
         {
           "livello": "ampio",
-          "testo": "Un attore, comico, cabarettista.",
+          "testo": "Un attore, comico, cabarettista, regista.",
           "fonte": "https://it.wikipedia.org/wiki/Roberto_Benigni",
           "verificato": true,
           "nota": "descrizione breve di Wikipedia"
         },
         {
           "livello": "ampio",
-          "testo": "Castiglion Fiorentino, Novecento: un attore, comico, cabarettista.",
+          "testo": "Castiglion Fiorentino, Novecento: un attore, comico, cabarettista, regista.",
           "fonte": "https://it.wikipedia.org/wiki/Roberto_Benigni",
           "verificato": true
         },
@@ -4475,14 +4500,14 @@
       "indizi": [
         {
           "livello": "ampio",
-          "testo": "Un attore, regista, sceneggiatore.",
+          "testo": "Un attore, regista, sceneggiatore, produttore cinematografico e televisivo statunitense.",
           "fonte": "https://it.wikipedia.org/wiki/Tom_Hanks",
           "verificato": true,
           "nota": "descrizione breve di Wikipedia"
         },
         {
           "livello": "ampio",
-          "testo": "Concord, Novecento: un attore, regista, sceneggiatore.",
+          "testo": "Concord, Novecento: un attore, regista, sceneggiatore, produttore cinematografico e televisivo statunitense.",
           "fonte": "https://it.wikipedia.org/wiki/Tom_Hanks",
           "verificato": true
         },
@@ -4521,7 +4546,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Londra il 1 giugno 1996.",
+          "testo": "Nasce a Londra l'1 giugno 1996.",
           "fonte": "https://it.wikipedia.org/wiki/Tom_Holland_(attore)",
           "verificato": true
         },
@@ -4653,7 +4678,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Oakland il 1 settembre 1996.",
+          "testo": "Nasce a Oakland l'1 settembre 1996.",
           "fonte": "https://it.wikipedia.org/wiki/Zendaya",
           "verificato": true
         },
@@ -4758,10 +4783,9 @@
         },
         {
           "livello": "specifico",
-          "testo": "una comica, attrice, conduttrice radiofonica del 1964: la voce di Wikipedia ne racconta la storia.",
+          "testo": "Dopo essersi diplomata in pianoforte nel 1984 presso il Conservatorio G.",
           "fonte": "https://it.wikipedia.org/wiki/Luciana_Littizzetto",
-          "verificato": true,
-          "nota": "indizio di riserva, da rivedere a mano"
+          "verificato": true
         }
       ]
     },
@@ -5215,7 +5239,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Civitanova Marche il 1 giugno 1992.",
+          "testo": "Nasce a Civitanova Marche l'1 giugno 1992.",
           "fonte": "https://it.wikipedia.org/wiki/Gianmarco_Tamberi",
           "verificato": true
         },
@@ -5743,7 +5767,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Basilea il 8 agosto 1981.",
+          "testo": "Nasce a Basilea l'8 agosto 1981.",
           "fonte": "https://it.wikipedia.org/wiki/Roger_Federer",
           "verificato": true
         },
@@ -5829,14 +5853,14 @@
       "indizi": [
         {
           "livello": "ampio",
-          "testo": "Una sciatrice alpina italiana.",
+          "testo": "Una sciatrice alpina italiana, campionessa olimpica nella discesa libera a Pyeongchang 2018.",
           "fonte": "https://it.wikipedia.org/wiki/Sofia_Goggia",
           "verificato": true,
           "nota": "descrizione breve di Wikipedia"
         },
         {
           "livello": "ampio",
-          "testo": "Bergamo, Novecento: una sciatrice alpina italiana.",
+          "testo": "Bergamo, Novecento: una sciatrice alpina italiana, campionessa olimpica nella discesa libera a Pyeongchang 2018.",
           "fonte": "https://it.wikipedia.org/wiki/Sofia_Goggia",
           "verificato": true
         },
@@ -6079,10 +6103,9 @@
         },
         {
           "livello": "specifico",
-          "testo": "una modella, conduttrice televisiva del 1984: la voce di Wikipedia ne racconta la storia.",
+          "testo": "Nel 2004 si trasferisce in Italia prendendo la residenza a Milano, dove lavora per vari marchi, tra cui Miss Sixty, Taglia 42, Jadea, Yamamay, Imperfect, John Richmond, Pitti.",
           "fonte": "https://it.wikipedia.org/wiki/Bel%C3%A9n_Rodr%C3%ADguez",
-          "verificato": true,
-          "nota": "indizio di riserva, da rivedere a mano"
+          "verificato": true
         }
       ]
     },
@@ -6146,10 +6169,9 @@
         },
         {
           "livello": "specifico",
-          "testo": "una giornalista e conduttrice televisiva italiana del 1958: la voce di Wikipedia ne racconta la storia.",
+          "testo": "Nel 1987 inizia la carriera giornalistica al TG3, sotto la direzione di Sandro Curzi: viene assegnata alla redazione politica dove rimarrà fino all'esperienza in Rete.",
           "fonte": "https://it.wikipedia.org/wiki/Federica_Sciarelli",
-          "verificato": true,
-          "nota": "indizio di riserva, da rivedere a mano"
+          "verificato": true
         }
       ]
     },
@@ -6161,14 +6183,14 @@
       "indizi": [
         {
           "livello": "ampio",
-          "testo": "Uno showman, comico, cabarettista.",
+          "testo": "Uno showman, comico, cabarettista, imitatore.",
           "fonte": "https://it.wikipedia.org/wiki/Fiorello",
           "verificato": true,
           "nota": "descrizione breve di Wikipedia"
         },
         {
           "livello": "ampio",
-          "testo": "Catania, Novecento: uno showman, comico, cabarettista.",
+          "testo": "Catania, Novecento: uno showman, comico, cabarettista, imitatore.",
           "fonte": "https://it.wikipedia.org/wiki/Fiorello",
           "verificato": true
         },
@@ -6180,10 +6202,9 @@
         },
         {
           "livello": "specifico",
-          "testo": "uno showman, comico, cabarettista del 1960: la voce di Wikipedia ne racconta la storia.",
+          "testo": "Rosario nasce a Catania il 16 maggio 1960, figlio di Nicola, appuntato radiotelegrafista della Guardia di Finanza originario di Letojanni, e di Rosaria Galeano, originaria di Gi…",
           "fonte": "https://it.wikipedia.org/wiki/Fiorello",
-          "verificato": true,
-          "nota": "indizio di riserva, da rivedere a mano"
+          "verificato": true
         }
       ]
     },
@@ -6247,10 +6268,9 @@
         },
         {
           "livello": "specifico",
-          "testo": "una conduttrice televisiva, showgirl ed ex modella italiana del 1981: la voce di Wikipedia ne racconta la storia.",
+          "testo": "L'ingresso nello show-business avviene nel 1984, quando a soli tre anni con la sua famiglia appare nello spot dell'Olio Cuore, accanto a Mariangela Melato.",
           "fonte": "https://it.wikipedia.org/wiki/Ilary_Blasi",
-          "verificato": true,
-          "nota": "indizio di riserva, da rivedere a mano"
+          "verificato": true
         }
       ]
     },
@@ -6308,7 +6328,7 @@
         },
         {
           "livello": "specifico",
-          "testo": "Nasce a Sulmona il 1 ottobre 1954.",
+          "testo": "Nasce a Sulmona l'1 ottobre 1954.",
           "fonte": "https://it.wikipedia.org/wiki/Milly_Carlucci",
           "verificato": true
         },
@@ -6361,14 +6381,14 @@
       "indizi": [
         {
           "livello": "ampio",
-          "testo": "Un conduttore televisivo.",
+          "testo": "Un conduttore televisivo, autore televisivo e conduttore radiofonico italiano.",
           "fonte": "https://it.wikipedia.org/wiki/Pippo_Baudo",
           "verificato": true,
           "nota": "descrizione breve di Wikipedia"
         },
         {
           "livello": "ampio",
-          "testo": "Militello in Val di Catania, Novecento: un conduttore televisivo.",
+          "testo": "Militello in Val di Catania, Novecento: un conduttore televisivo, autore televisivo e conduttore radiofonico italiano.",
           "fonte": "https://it.wikipedia.org/wiki/Pippo_Baudo",
           "verificato": true
         },
@@ -6413,44 +6433,9 @@
         },
         {
           "livello": "specifico",
-          "testo": "un conduttore televisivo e ballerino italiano del 1989: la voce di Wikipedia ne racconta la storia.",
+          "testo": "Ha conseguito la maturità artistica come privatista con indirizzo fotografico e grafico presso il liceo \"Giorgio de Chirico\" di Torre Annunziata nel 2008.",
           "fonte": "https://it.wikipedia.org/wiki/Stefano_De_Martino",
-          "verificato": true,
-          "nota": "indizio di riserva, da rivedere a mano"
-        }
-      ]
-    },
-    {
-      "nome": "Alessandro Borghi",
-      "ambito": 3,
-      "sottoAmbito": "cinema",
-      "pagina": "https://it.wikipedia.org/wiki/Alessandro_Borghi_(attore)",
-      "indizi": [
-        {
-          "livello": "ampio",
-          "testo": "Un attore italiano.",
-          "fonte": "https://it.wikipedia.org/wiki/Alessandro_Borghi_(attore)",
-          "verificato": true,
-          "nota": "descrizione breve di Wikipedia"
-        },
-        {
-          "livello": "ampio",
-          "testo": "Roma, Novecento: un attore italiano.",
-          "fonte": "https://it.wikipedia.org/wiki/Alessandro_Borghi_(attore)",
           "verificato": true
-        },
-        {
-          "livello": "specifico",
-          "testo": "Nasce a Roma il 19 settembre 1986.",
-          "fonte": "https://it.wikipedia.org/wiki/Alessandro_Borghi_(attore)",
-          "verificato": true
-        },
-        {
-          "livello": "specifico",
-          "testo": "un attore italiano del 1986: la voce di Wikipedia ne racconta la storia.",
-          "fonte": "https://it.wikipedia.org/wiki/Alessandro_Borghi_(attore)",
-          "verificato": true,
-          "nota": "indizio di riserva, da rivedere a mano"
         }
       ]
     }

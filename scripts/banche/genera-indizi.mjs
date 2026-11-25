@@ -55,6 +55,7 @@ const NAME_PARTICLES = new Set([
  */
 const TITOLI = new Map([
   ['madonna', 'Madonna (cantante)'],
+  ['annalisa', 'Annalisa (cantante)'],
   ['adele', 'Adele (cantante)'],
   ['elisa', 'Elisa (cantante 1977)'],
   ['amadeus', 'Amadeus (conduttore televisivo)'],
@@ -62,6 +63,7 @@ const TITOLI = new Map([
   ['blanco', 'Blanco (cantante)'],
   ['ultimo', 'Ultimo (cantautore)'],
   ['giorgia', 'Giorgia (cantante 1971)'],
+  ['gianna nannini', 'Gianna Nannini'],
   ['mina', 'Mina (cantante)'],
   ['salmo', 'Salmo (rapper)'],
   ['rosalia', 'Rosalía (cantante)'],
@@ -292,8 +294,10 @@ function usable(sentence) {
   const text = String(sentence ?? '');
   if (/^(AFI|In (latino|greco|egizio|ebraico|arabo|inglese)|Pronuncia|Trascrizione)/i.test(text)) return false;
   if ((text.match(/[\[\]{}]/g) ?? []).length > 1) return false;
+  // «Nato Andrew Warhola Jr.» è il nome vero: un indizio che lo svela non va bene.
+  if (/^(nato|nata|nato come|al secolo)\b/i.test(text)) return false;
   if (text.replace(/[^\p{L}\s]/gu, '').trim().length < 18) return false;
-  return true;
+  return text.split(/\s+/).length >= 4;
 }
 
 function secoloOf(annoNum, avantiCristo) {
@@ -411,10 +415,10 @@ function predicateOf(extract, name) {
   if (at < 0) return '';
   const pezzi = text.slice(at + length).split(/[,;]/).map((pezzo) => clean(pezzo));
   let descrizione = '';
-  for (const pezzo of pezzi.slice(0, 4)) {
+  for (const pezzo of pezzi.slice(0, 5)) {
     if (!pezzo) continue;
     descrizione = descrizione ? `${descrizione}, ${pezzo}` : pezzo;
-    if (descrizione.length >= 28) break;
+    if (descrizione.length >= 34) break;
   }
   // Mai oltre la fine della frase: «… con cittadinanza francese. Entrò nel
   // mondo del cinema …» non è una descrizione.
@@ -498,8 +502,11 @@ function buildPerson(name, ambito, sottoAmbito, page, descrizioneLocale) {
   }
 
   // 3 — specifico: nascita con data e luogo.
+  // «l'11 maggio», «l'8 marzo», «l'1 aprile»: davanti a 1, 8 e 11 l'articolo
+  // si apostrofa, altrimenti si legge «il 11 maggio».
+  const articolo = ['1', '8', '11'].includes(String(nascita.giorno)) ? "l'" : 'il ';
   const dataNascita = nascita.giorno && nascita.luogo
-    ? `Nasce a ${nascita.luogo} il ${nascita.giorno} ${nascita.mese} ${nascita.anno}.`
+    ? `Nasce a ${nascita.luogo} ${articolo}${nascita.giorno} ${nascita.mese} ${nascita.anno}.`
     : nascita.luogo && nascita.anno
       ? `Nasce a ${nascita.luogo} nel ${nascita.anno}.`
       : nascita.anno
@@ -513,7 +520,7 @@ function buildPerson(name, ambito, sottoAmbito, page, descrizioneLocale) {
   // 4 — specifico: un fatto con un anno, un premio o un'opera.
   const usati = new Set(clues.map((clue) => loose(clue.testo)));
   const fatto = frasi.find((sentence) => {
-    if (sentence.testo.length < 25 || !usable(sentence.testo)) return false;
+    if (sentence.testo.length < 40 || !usable(sentence.testo)) return false;
     if (usati.has(loose(sentence.testo))) return false;
     if (ripeteDescrizione(sentence.testo, descrizione)) return false;
     return SPECIFIC.test(sentence.testo);
@@ -556,8 +563,9 @@ function buildPerson(name, ambito, sottoAmbito, page, descrizioneLocale) {
   return {
     persona: {
       nome: name, ambito, sottoAmbito, pagina: url, indizi: clues.slice(0, 4),
-      // Serve solo alla deduplica finale: non finisce nel file.
+      // Servono solo alle fasi finali: non finiscono nel file.
       _nascita: { luogo: nascita.luogo, anno: nascita.anno },
+      _titolo: title,
     },
   };
 }
@@ -605,6 +613,92 @@ function writeReview(output) {
     : `${current.trimEnd()}\n\n${blocco}\n`;
   writeFileSync(reviewPath, next, 'utf8');
   console.log(`Revisione scritta in ${reviewPath} (${(output.persone ?? []).length} persone).`);
+}
+
+/**
+ * Testo completo della voce: serve solo a chi ha un'introduzione di una riga,
+ * dove non c'è nessun fatto da mettere come quarto indizio.
+ */
+async function fetchBody(titles) {
+  const params = new URLSearchParams({
+    action: 'query',
+    format: 'json',
+    redirects: '1',
+    prop: 'extracts',
+    explaintext: '1',
+    exlimit: 'max',
+    titles: titles.join('|'),
+  });
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const response = await fetch(`${API}?${params}`, {
+      headers: { 'user-agent': USER_AGENT, accept: 'application/json' },
+    });
+    if (response.status === 429 || response.status >= 500) {
+      await wait(6000 * (attempt + 1));
+      continue;
+    }
+    if (!response.ok) return {};
+    const json = await response.json();
+    const pages = new Map(
+      Object.values(json?.query?.pages ?? {})
+        .filter((page) => page && page.missing === undefined)
+        .map((page) => [fold(page.title), page]),
+    );
+    const back = new Map((json?.query?.redirects ?? []).map((row) => [fold(row.from), row.to]));
+    const result = {};
+    for (const title of titles) {
+      const page = pages.get(fold(title))
+        ?? (back.has(fold(title)) ? pages.get(fold(back.get(fold(title)))) : null);
+      // I titoli di sezione («== Biografia ==») non sono testo: via dal corpo.
+      if (page && String(page.extract ?? '').trim()) {
+        result[title] = String(page.extract).replace(/={2,}[^=]*={2,}/g, ' ');
+      }
+    }
+    return result;
+  }
+  return {};
+}
+
+/**
+ * Un indizio di riserva non dice niente: si cerca nel corpo della voce una
+ * frase con un anno, un premio o un'opera e si mette al suo posto.
+ */
+async function repairFiller(persone) {
+  const daRifare = persone.filter((persona) => persona.indizi
+    .some((clue) => clue.nota && clue.nota.startsWith('indizio di riserva')));
+  console.error(`Quarte righe da rifare con un fatto vero: ${daRifare.length}`);
+  let riparate = 0;
+  // Una voce alla volta: con più titoli e senza exintro l'API restituisce il
+  // testo solo alla prima pagina del blocco (le altre arrivano vuote).
+  for (const persona of daRifare) {
+    const testi = await fetchBody([persona._titolo]);
+    await wait(700);
+    {
+      const body = testi[persona._titolo];
+      if (!body) continue;
+      const descrizione = persona.indizi[0].testo.replace(/\.$/, '');
+      const frasi = sentencesOf(body.slice(0, 12000), persona.nome);
+      const candidata = frasi.find((frase) => (
+        frase.testo.length >= 40 && frase.testo.length <= 190
+        && usable(frase.testo)
+        && !mentionsName(frase.testo, persona.nome)
+        && !ripeteDescrizione(frase.testo, descrizione)
+        && !/^È nat[ao]\b/i.test(frase.testo)
+        && SPECIFIC.test(frase.testo)
+      ));
+      if (!candidata) continue;
+      const indice = persona.indizi.findIndex((clue) => clue.nota && clue.nota.startsWith('indizio di riserva'));
+      const originale = candidata.originale.replace(/\.$/, '');
+      persona.indizi[indice] = {
+        livello: 'specifico',
+        testo: candidata.testo.length > 180 ? `${candidata.testo.slice(0, 177).trim()}…` : candidata.testo,
+        fonte: persona.pagina,
+        verificato: containsLoose(body, originale) || containsLoose(senzaParentesi(body), originale),
+      };
+      riparate += 1;
+    }
+  }
+  console.error(`Quarte righe rifatte: ${riparate}/${daRifare.length}`);
 }
 
 async function main() {
@@ -660,6 +754,10 @@ async function main() {
     }
   }
 
+  // Le quarte righe che erano un riempitivo si rifanno con un fatto preso dal
+  // corpo della voce, non dalla sola introduzione.
+  await repairFiller(persone);
+
   // Nessun indizio identico fra due persone: il secondo prende l'anno di
   // nascita (o la professione) e resta unico.
   const perTesto = new Map();
@@ -681,6 +779,7 @@ async function main() {
       return testo === clue.testo ? clue : { ...clue, testo };
     });
     delete persona._nascita;
+    delete persona._titolo;
   }
 
   const output = {
