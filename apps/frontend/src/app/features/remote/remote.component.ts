@@ -351,6 +351,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   azzardoState = signal<any>(null);
   azzardoChips = signal<number[]>([]);
   azzardoSent = signal(false);
+  private azzardoSendTimer?: ReturnType<typeof setTimeout>;
   private azzardoKey = '';
   private azzardoPressDelay?: any;
   private azzardoPressRepeat?: any;
@@ -1881,7 +1882,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   azzardoAddChip(index: number, delta: number): void {
     const player = this.nickname();
     const state = this.azzardoState();
-    if (!player || state?.phase !== 'BET' || !this.azzardoCanBet() || this.azzardoSent()) return;
+    if (!player || state?.phase !== 'BET' || !this.azzardoCanBet()) return;
     if (index < 0 || index >= (state.options?.length ?? 0)) return;
 
     const chips = Array.from({ length: state.options?.length ?? 0 }, (_, i) => this.azzardoChips()[i] ?? 0);
@@ -1892,6 +1893,16 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.azzardoChips.set(chips);
     this.vibrate(10);
     if (delta > 0) this.audio.playChip();
+    // F-26: come la Timeline, la puntata parte da sola e vince l'ultima.
+    this.scheduleAzzardoSend();
+  }
+
+  private scheduleAzzardoSend(): void {
+    if (this.azzardoSendTimer) clearTimeout(this.azzardoSendTimer);
+    this.azzardoSendTimer = setTimeout(() => {
+      this.azzardoSendTimer = undefined;
+      this.azzardoSendBet();
+    }, 300);
   }
 
   /**
@@ -1915,23 +1926,24 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Conferma esplicita: senza almeno una fiche non si puntata, e la manche
-   * non parte mai con una puntata inventata dal telefono.
+   * F-26: niente pulsante di conferma. Ogni tocco manda la puntata al server
+   * (con un piccolo respiro per i tocchi lunghi); al tempo scaduto vale
+   * l'ultima arrivata, anche zero fiches.
    */
-  azzardoConfirmBet(): void {
+  azzardoSendBet(): void {
+    if (this.azzardoSendTimer) {
+      clearTimeout(this.azzardoSendTimer);
+      this.azzardoSendTimer = undefined;
+    }
     if (!this.inputReady()) return;
     const player = this.nickname();
     const state = this.azzardoState();
-    if (!player || state?.phase !== 'BET' || !this.azzardoCanBet() || this.azzardoSent()) return;
+    if (!player || state?.phase !== 'BET' || !this.azzardoCanBet()) return;
 
     const chips = Array.from(
       { length: state.options?.length ?? 0 },
       (_, i) => this.azzardoChips()[i] ?? 0
     );
-    if (chips.reduce((sum, value) => sum + value, 0) <= 0) {
-      this.reliability.lastError.set('Metti almeno una fiche prima di confermare.');
-      return;
-    }
 
     this.azzardoSent.set(true);
     this.ws.broadcastStatus(this.gameId(), {
@@ -1940,7 +1952,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       kind: 'BET',
       value: { chips },
     });
-    this.vibrate([40, 30, 40]);
+    this.vibrate([30, 20, 30]);
   }
 
   /** Un tocco sulla risposta aggiunge una fiche all'opzione. */

@@ -77,15 +77,12 @@ interface Stake {
   chips: number[];
 }
 
-const BET_SECONDS = 15;
+// F-25: trenta secondi per puntare. Chi non punta perde 100 punti, dentro il
+// tetto di perdita del round.
+const BET_SECONDS = 30;
+const NO_BET_PENALTY = 100;
 const REVEAL_SECONDS = 7;
 const FINALE_SECONDS = 5;
-/**
- * Manche con tutti pronti: la puntata si chiude solo dopo questi secondi, così
- * chi gioca dal telefono ha il tempo di spostare le fiches anche quando tutte
- * le altre squadre hanno già puntato.
- */
-const BET_MIN_READ_SECONDS = 10;
 
 /**
  * AZZARDO — quattro manche, una per categoria.
@@ -177,7 +174,8 @@ export class AzzardoMode extends GameModeBase {
 
     const playerName = String(event.playerName ?? '').trim();
     if (!playerName || !this.players.includes(playerName)) return;
-    if (this.phase() !== AzzardoPhase.BET || this.stakes.has(playerName)) return;
+    // F-26: ogni tocco aggiorna la puntata; vale l'ultima al tempo scaduto.
+    if (this.phase() !== AzzardoPhase.BET) return;
 
     const question = this.questions[this.manche()];
     if (!question) return;
@@ -190,16 +188,19 @@ export class AzzardoMode extends GameModeBase {
     );
     const total = chips.reduce((sum, value) => sum + value, 0);
 
-    // Puntata obbligatoria, solo con le fiches del salvadanaio, entro il tetto
-    // della squadra e il credito in punti.
+    // Puntata con le fiches del salvadanaio, entro il tetto della squadra.
     const bank = this.chipBank.get(playerName) ?? 0;
-    if (total <= 0 || total > maxChipsFor(bank, this.bankPoints(playerName))) return;
+    if (total > maxChipsFor(bank, this.bankPoints(playerName))) return;
 
-    this.stakes.set(playerName, { chips });
+    // F-26: togliere tutte le fiches annulla la puntata, non lascia la vecchia.
+    if (total <= 0) {
+      this.stakes.delete(playerName);
+    } else {
+      this.stakes.set(playerName, { chips });
+    }
     this.syncRows();
     this.publish();
     this.saveCheckpoint();
-    this.closeBetIfComplete();
   }
 
   /** Punti veri in classifica: tagliano le perdite, mai sotto zero. */
@@ -280,18 +281,6 @@ export class AzzardoMode extends GameModeBase {
     this.saveCheckpoint();
   }
 
-  private closeBetIfComplete(): void {
-    if (this.phase() !== AzzardoPhase.BET) return;
-    if (!this.players.length) return;
-    if (!this.players.every((playerName) => this.stakes.has(playerName))) return;
-    // Anche con tutti pronti il telefono deve poter spostare le fiches: la
-    // manche chiude in anticipo solo a lettura fatta. Altrimenti la fa finire
-    // il cronometro della puntata.
-    if (BET_SECONDS - this.secondsLeft() < BET_MIN_READ_SECONDS) return;
-    this.clearClock();
-    this.revealManche();
-  }
-
   private revealManche(): void {
     if (this.phase() !== AzzardoPhase.BET) return;
     this.clearClock();
@@ -307,9 +296,14 @@ export class AzzardoMode extends GameModeBase {
       const available = this.availablePoints(playerName);
 
       if (!stake) {
-        // Chi non risponde non punta: la manche resta a zero.
-        this.points.set(playerName, 0);
-        this.totals.set(playerName, this.totals.get(playerName) ?? 0);
+        // F-25: chi non punta paga la manche, senza scendere sotto il tetto.
+        const before = this.totals.get(playerName) ?? 0;
+        const penalty = Math.max(-AZZARDO_MAX_LOSS_PER_ROUND - before, -NO_BET_PENALTY);
+        this.points.set(playerName, penalty);
+        this.totals.set(playerName, before + penalty);
+        if (penalty !== 0) {
+          this.config.onAnswerReceived?.({ playerName, points: penalty, isCorrect: false });
+        }
         return;
       }
 
@@ -320,7 +314,7 @@ export class AzzardoMode extends GameModeBase {
       const before = this.totals.get(playerName) ?? 0;
       // Tetti di round: quattro manche non portano oltre +1500 né sotto −1000.
       const points = Math.max(
-        AZZARDO_MAX_LOSS_PER_ROUND - before,
+        -AZZARDO_MAX_LOSS_PER_ROUND - before,
         Math.min(AZZARDO_MAX_WIN_PER_ROUND - before, breakdown.points),
       );
       // Se il tetto di round taglia la manche, anche la riga mostrata si
@@ -581,13 +575,6 @@ export class AzzardoMode extends GameModeBase {
   getDisplayData() {
     const current = this.questions[this.manche()];
     const revealed = this.phase() === AzzardoPhase.REVEAL || this.phase() === AzzardoPhase.FINALE;
-    const clues = current?.media?.clues ?? [];
-    const elapsed = this.phase() === AzzardoPhase.BET
-      ? Math.max(0, BET_SECONDS - this.secondsLeft())
-      : 0;
-    const clueIndex = clues.length
-      ? Math.min(clues.length - 1, Math.floor(elapsed / 5))
-      : -1;
 
     return {
       phase: this.phase(),
@@ -604,9 +591,10 @@ export class AzzardoMode extends GameModeBase {
       value: revealed ? current?.value ?? null : null,
       answerIndex: revealed ? current?.answerIndex ?? null : null,
       media: current?.media ?? null,
-      clue: this.phase() === AzzardoPhase.BET && clueIndex >= 0 ? clues[clueIndex] : null,
-      clueIndex: clueIndex + 1,
-      clueTotal: clues.length,
+      // F-27: l'indizio della celebrità resta solo in Indovina chi.
+      clue: null,
+      clueIndex: 0,
+      clueTotal: 0,
       chips: AZZARDO_CHIPS,
       chipValue: AZZARDO_CHIP_VALUE,
       chipCap: AZZARDO_MAX_CHIPS_PER_MANCHE,

@@ -51,12 +51,6 @@ import { CommonModule } from '@angular/common';
                     <span class="az-media-fallback">{{ media.name?.charAt(0) || '?' }}</span>
                   }
                 </div>
-                <div class="az-media-copy">
-                  @if ((displayData?.clueTotal ?? 0) > 0) {
-                    <span class="az-media-label">INDIZIO {{ displayData?.clueIndex }} / {{ displayData?.clueTotal }}</span>
-                  }
-                  <p class="az-media-text az-clue">{{ displayData?.clue || 'Guarda la foto e pensa all\\'anno.' }}</p>
-                </div>
               }
               @case ('song') {
                 <div class="az-cover">

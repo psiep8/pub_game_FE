@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { GameModeConfig } from '../../../shared/models/game-mode-type';
 import { AzzardoMode, AzzardoPhase } from './azzardo.mode';
 
@@ -30,6 +31,70 @@ function setup(players = ['Anna', 'Bruno']) {
 
   return { mode, saved, points };
 }
+
+describe('AzzardoMode — F-25, puntata e penalità', () => {
+  it('la puntata dura trenta secondi e chi non punta perde 100', async () => {
+    vi.useFakeTimers();
+    const { mode } = setup();
+
+    const started = mode.start();
+    await vi.advanceTimersByTimeAsync(1300);
+    await started;
+    expect(mode.getDisplayData().secondsLeft).toBeGreaterThanOrEqual(29);
+
+    await vi.advanceTimersByTimeAsync(30000);
+    const data = mode.getDisplayData();
+    expect(data.phase).toBe(AzzardoPhase.REVEAL);
+    const anna = data.rows.find((row: any) => row.playerName === 'Anna')!;
+    expect(anna.points).toBe(-100);
+    expect(anna.total).toBe(-100);
+
+    mode.cleanup();
+    vi.useRealTimers();
+  });
+});
+
+describe('AzzardoMode — F-27, niente indizio', () => {
+  it('la celebrità non porta indizi su TV e telefono', async () => {
+    const mode = new AzzardoMode();
+    const payload = {
+      level: 2,
+      questions: [{
+        ...PAYLOAD.questions[0],
+        media: { kind: 'celebrity', name: 'Sophia Loren', clues: ['indizio segreto'] },
+      }],
+    };
+    mode.setConfig({ type: 'AZZARDO', payload, gameId: 1, activePlayers: ['Anna'], playerPoints: () => 1000 });
+    mode.initialize(payload);
+    await mode.start();
+
+    const data = mode.getDisplayData();
+    expect(data.clue).toBeNull();
+    expect(data.clueTotal).toBe(0);
+
+    mode.cleanup();
+  });
+});
+
+describe('AzzardoMode — F-26, puntata automatica', () => {
+  it('la puntata si può cambiare e vale l’ultima', async () => {
+    vi.useFakeTimers();
+    const { mode } = setup();
+
+    const started = mode.start();
+    await vi.advanceTimersByTimeAsync(1300);
+    await started;
+
+    mode.handlePartyEvent({ action: 'AZZARDO_ACTION', playerName: 'Anna', value: { chips: [1, 0, 0, 0] } });
+    mode.handlePartyEvent({ action: 'AZZARDO_ACTION', playerName: 'Anna', value: { chips: [0, 0, 0, 3] } });
+
+    const anna = mode.getDisplayData().ready.find((row: any) => row.playerName === 'Anna')!;
+    expect(anna.chips).toEqual([0, 0, 0, 3]);
+
+    mode.cleanup();
+    vi.useRealTimers();
+  });
+});
 
 describe('AzzardoMode — ripresa dopo un refresh della TV', () => {
   it('salva la puntata appena una squadra mette le fiches', async () => {

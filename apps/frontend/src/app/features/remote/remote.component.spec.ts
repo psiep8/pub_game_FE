@@ -772,7 +772,7 @@ describe('RemoteComponent', () => {
     expect(ws.broadcasted.filter((entry) => entry.body.action === 'CASINO_ACTION')).toHaveLength(1);
   });
 
-  it('in pausa la conferma della puntata Azzardo non resta inviata', async () => {
+  it('in pausa l’invio della puntata Azzardo non resta inviato', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();
     component.azzardoState.set({
@@ -784,14 +784,14 @@ describe('RemoteComponent', () => {
     component.azzardoChips.set([1, 0, 0]);
 
     component.paused.set(true);
-    component.azzardoConfirmBet();
+    component.azzardoSendBet();
 
     // La puntata non parte e il telefono non la segna come inviata.
     expect(component.azzardoSent()).toBe(false);
     expect(ws.broadcasted.some((entry) => entry.body.action === 'AZZARDO_ACTION')).toBe(false);
 
     component.paused.set(false);
-    component.azzardoConfirmBet();
+    component.azzardoSendBet();
     expect(component.azzardoSent()).toBe(true);
     expect(ws.broadcasted.filter((entry) => entry.body.action === 'AZZARDO_ACTION')).toHaveLength(1);
   });
@@ -1413,22 +1413,20 @@ describe('RemoteComponent', () => {
     component.azzardoPick(0);
     expect(ws.broadcasted.some((entry) => entry.body.action === 'AZZARDO_ACTION')).toBe(false);
 
-    // Chi ha punti può preparare la puntata, ma non parte da sola: serve la
-    // conferma e almeno una fiche sul tavolo.
+    // F-26: chi ha punti manda la puntata da sola, senza conferma.
     component.azzardoState.set(state(100, 100));
     component.azzardoPick(0);
-    expect(ws.broadcasted.some((entry) => entry.body.action === 'AZZARDO_ACTION')).toBe(false);
-
-    component.azzardoAddChip(0, -1);
-    component.azzardoConfirmBet();
-    expect(ws.broadcasted.some((entry) => entry.body.action === 'AZZARDO_ACTION')).toBe(false);
-    expect(reliability.lastError()).toContain('almeno una fiche');
-
-    component.azzardoPick(0);
-    component.azzardoConfirmBet();
+    component.azzardoSendBet();
     const bets = ws.broadcasted.filter((entry) => entry.body.action === 'AZZARDO_ACTION');
     expect(bets).toHaveLength(1);
     expect(bets[0].body.value.chips).toEqual([1, 0, 0, 0]);
+
+    // Togliere tutte le fiches e inviare annulla la puntata: vale l'ultima.
+    component.azzardoAddChip(0, -1);
+    component.azzardoSendBet();
+    const after = ws.broadcasted.filter((entry) => entry.body.action === 'AZZARDO_ACTION');
+    expect(after).toHaveLength(2);
+    expect(after[1].body.value.chips).toEqual([0, 0, 0, 0]);
   });
 
   it('rispetta il tetto di fiches della squadra e cita i 500 punti di massimo per manche', async () => {
