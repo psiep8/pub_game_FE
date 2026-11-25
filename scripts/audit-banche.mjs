@@ -523,7 +523,39 @@ function auditBomba(bank) {
     }
   }
 
-  return { total: statements.length, trues: trues.length, falses: falses.length, table, duplicates, missing, doubts };
+  // F-23: argomenti «quali di questi…?» con 25 salvi e 10 bombe. Bloccano
+  // la CI, al contrario delle vecchie affermazioni che restano di ripiego.
+  const topics = Array.isArray(bank.topics) ? bank.topics : [];
+  const topicIssues = [];
+  const topicIds = new Set();
+  if (topics.length < 60) {
+    topicIssues.push({ id: '-', detail: `argomenti ${topics.length}, minimo 60` });
+  }
+  for (const topic of topics) {
+    const id = String(topic?.id ?? '(senza id)');
+    if (topicIds.has(id)) topicIssues.push({ id, detail: 'id ripetuto' });
+    topicIds.add(id);
+    if (!String(topic?.prompt ?? '').trim().endsWith('?')) {
+      topicIssues.push({ id, detail: 'domanda assente o senza punto interrogativo' });
+    }
+    const safe = Array.isArray(topic?.safe) ? topic.safe : [];
+    const intruders = Array.isArray(topic?.intruders) ? topic.intruders : [];
+    if (safe.length < 25) topicIssues.push({ id, detail: `salvi ${safe.length}, minimo 25` });
+    if (intruders.length < 10) topicIssues.push({ id, detail: `bombe ${intruders.length}, minimo 10` });
+    if (new Set(safe).size !== safe.length) topicIssues.push({ id, detail: 'salvi duplicati' });
+    if (new Set(intruders).size !== intruders.length) topicIssues.push({ id, detail: 'bombe duplicate' });
+    const overlap = safe.filter((value) => intruders.includes(value));
+    if (overlap.length) topicIssues.push({ id, detail: `salvo e bomba insieme: ${overlap.join(', ')}` });
+    const sources = Array.isArray(topic?.sources) ? topic.sources : [];
+    if (!sources.length || sources.some((source) => !String(source).startsWith('https://'))) {
+      topicIssues.push({ id, detail: 'fonte https mancante' });
+    }
+  }
+
+  return {
+    total: statements.length, trues: trues.length, falses: falses.length, table,
+    duplicates, missing, doubts, topics: topics.length, topicIssues,
+  };
 }
 
 function renderMarkdown(report) {
@@ -701,6 +733,7 @@ if (asJson) {
   console.log('Musica:', report.music.total, 'brani, doppioni:', report.music.duplicates.length, 'campi/file mancanti:', report.music.missing.length);
   console.log('Ruota:', report.wheel.total, 'frasi, doppioni:', report.wheel.duplicates.length, 'segnalazioni:', report.wheel.issues.length);
   console.log('Bomba:', report.bomba.total, 'affermazioni, doppioni:', report.bomba.duplicates.length, 'campi mancanti:', report.bomba.missing.length, 'dubbi:', report.bomba.doubts.length);
+  console.log('Bomba F-23:', report.bomba.topics, 'argomenti, problemi:', report.bomba.topicIssues.length);
   const byIssue = countBy(report.quiz.issues, (row) => row.type);
   for (const [type, total] of sortedEntries(byIssue)) console.log(`  ${type}: ${total}`);
 }
@@ -721,7 +754,8 @@ if (args.has('--ci')) {
     + report.bomba.duplicates.length;
   const issues = report.quiz.issues.length;
   const missing = report.timeline.missing.length + report.azzardo.missing.length
-    + report.celebrities.missing.length + report.music.missing.length + report.bomba.missing.length;
+    + report.celebrities.missing.length + report.music.missing.length + report.bomba.missing.length
+    + report.bomba.topicIssues.length;
   const holes = report.ultimaSpiaggia.holes.length;
   const unmatchedPatches = report.mediaPatches.unmatched.length;
   console.log(`CI banche: doppioni ${duplicates}, segnalazioni ${issues}, campi mancanti ${missing}`);
@@ -733,6 +767,7 @@ if (args.has('--ci')) {
   for (const label of report.mediaPatches.unmatched) console.log(`  patch senza voce: ${label}`);
   console.log(`Ultima spiaggia: ${holes} celle sotto il minimo di ${report.ultimaSpiaggia.minPerLevel}`);
   console.log(`Bomba: ${report.bomba.doubts.length} false da rivedere (non bloccanti)`);
+  for (const issue of report.bomba.topicIssues) console.log(`  argomento ${issue.id}: ${issue.detail}`);
   // I buchi di Ultima spiaggia bloccano: la soglia per cella e' il motivo per
   // cui esiste la banca (una domanda sola per livello tornava ogni tre serate).
   if (duplicates + issues + missing + holes + unmatchedPatches > 0) {

@@ -8,8 +8,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -43,6 +45,11 @@ public class QuestionBankService {
 
     /** Riga della banca Bomba: un'affermazione che è vera o falsa, con la fonte. */
     public record BombaStatement(String id, String category, String statement, boolean truth, String source) {
+    }
+
+    /** F-23: argomento «quali di questi…?» con salvi e bombe già separati. */
+    public record BombaTopic(String id, String prompt, List<String> safe, List<String> intruders,
+            List<String> sources) {
     }
 
     /**
@@ -191,6 +198,9 @@ public class QuestionBankService {
 
     /** Banca caricata da questions/bomba-it.json. */
     private final List<BombaStatement> bombaStatements;
+    /** Argomenti F-23, pescati senza ripetizioni finché la scorta dura. */
+    private final List<BombaTopic> bombaTopics;
+    private final Deque<BombaTopic> bombaTopicBag = new ArrayDeque<>();
 
     public QuestionBankService(TMDBImageService tmdbImageService,
             AppleMusicCuratorService appleMusicCuratorService,
@@ -205,6 +215,7 @@ public class QuestionBankService {
         this.bank = loadBank();
         this.azzardoQuestions = loadAzzardo();
         this.bombaStatements = loadBombaStatements();
+        this.bombaTopics = loadBombaTopics();
 
         logBankSummary();
     }
@@ -584,6 +595,11 @@ public class QuestionBankService {
         int safeNeeded = Math.max(1, cells - bombs);
         int bombsNeeded = Math.max(1, bombs);
 
+        ScossaBoard themed = themedBoard(safeNeeded, bombsNeeded);
+        if (themed != null) {
+            return themed;
+        }
+
         List<String> trueStatements = new ArrayList<>();
         List<String> falseStatements = new ArrayList<>();
         Map<String, List<String>> trueByCategory = new LinkedHashMap<>();
@@ -676,6 +692,37 @@ public class QuestionBankService {
                 intruders.subList(0, Math.min(bombsNeeded, intruders.size())));
     }
 
+    /**
+     * Tabellone F-23: un argomento mai ripetuto nella serata, con 25 salvi e
+     * 10 bombe. Se la scorta non copre la richiesta si torna alle affermazioni.
+     */
+    private synchronized ScossaBoard themedBoard(int safeNeeded, int bombsNeeded) {
+        if (bombaTopics.isEmpty()) {
+            return null;
+        }
+        if (bombaTopicBag.isEmpty()) {
+            List<BombaTopic> fit = new ArrayList<>();
+            for (BombaTopic topic : bombaTopics) {
+                if (topic.safe().size() >= safeNeeded && topic.intruders().size() >= bombsNeeded) {
+                    fit.add(topic);
+                }
+            }
+            Collections.shuffle(fit, random);
+            bombaTopicBag.addAll(fit);
+        }
+        BombaTopic topic = bombaTopicBag.poll();
+        if (topic == null) {
+            return null;
+        }
+        List<String> safe = new ArrayList<>(topic.safe());
+        List<String> intruders = new ArrayList<>(topic.intruders());
+        Collections.shuffle(safe, random);
+        Collections.shuffle(intruders, random);
+        return new ScossaBoard(topic.prompt(),
+                List.copyOf(safe.subList(0, safeNeeded)),
+                List.copyOf(intruders.subList(0, bombsNeeded)));
+    }
+
     private String boardPrompt(String category) {
         return "Tabellone «" + category + "»: ogni casella è un'affermazione. "
                 + "Se è vera resti in vita, se è falsa è una bomba.";
@@ -684,6 +731,16 @@ public class QuestionBankService {
     /** Banca Bomba caricata: serve ai test per controllare vere e false. */
     List<BombaStatement> bombaBank() {
         return bombaStatements;
+    }
+
+    /** Argomenti F-23 caricati: servono ai test e all'audit. */
+    public List<BombaTopic> bombaTopics() {
+        return bombaTopics;
+    }
+
+    /** Nuova serata: il mazzo degli argomenti riparte da tutti e 60. */
+    public synchronized void resetBombaTopics() {
+        bombaTopicBag.clear();
     }
 
     public int bankSize() {
@@ -1374,6 +1431,50 @@ public class QuestionBankService {
      * scripts/generate-questions/build_azzardo_bank.py. Se il file manca o è
      * illeggibile resta la tenuta minima, così il round parte comunque.
      */
+    /** Argomenti «quali di questi…?»: 25 salvi e 10 bombe per voce. */
+    private List<BombaTopic> loadBombaTopics() {
+        ClassPathResource resource = new ClassPathResource("questions/bomba-it.json");
+        if (!resource.exists()) {
+            return List.of();
+        }
+        try (InputStream stream = resource.getInputStream()) {
+            String json = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+            JSONArray rows = new JSONObject(json).optJSONArray("topics");
+            List<BombaTopic> loaded = new ArrayList<>();
+            for (int index = 0; rows != null && index < rows.length(); index++) {
+                JSONObject row = rows.optJSONObject(index);
+                if (row == null) {
+                    continue;
+                }
+                List<String> safe = strings(row.optJSONArray("safe"));
+                List<String> intruders = strings(row.optJSONArray("intruders"));
+                List<String> sources = strings(row.optJSONArray("sources"));
+                String prompt = row.optString("prompt", "").trim();
+                if (prompt.isEmpty() || safe.size() < 25 || intruders.size() < 10 || sources.isEmpty()) {
+                    continue;
+                }
+                loaded.add(new BombaTopic(row.optString("id", "bomba-top-" + index), prompt,
+                        List.copyOf(safe), List.copyOf(intruders), List.copyOf(sources)));
+            }
+            System.out.println("Banca Bomba F-23: " + loaded.size() + " argomenti.");
+            return List.copyOf(loaded);
+        } catch (Exception error) {
+            System.out.println("⚠️ Argomenti Bomba illeggibili (" + error.getMessage() + "): uso le affermazioni.");
+            return List.of();
+        }
+    }
+
+    private List<String> strings(JSONArray rows) {
+        List<String> values = new ArrayList<>();
+        for (int index = 0; rows != null && index < rows.length(); index++) {
+            String value = rows.optString(index, "").trim();
+            if (!value.isEmpty()) {
+                values.add(value);
+            }
+        }
+        return values;
+    }
+
     private List<AzzardoQuestion> loadAzzardo() {
         ClassPathResource resource = new ClassPathResource("questions/azzardo-it.json");
         if (!resource.exists()) {
