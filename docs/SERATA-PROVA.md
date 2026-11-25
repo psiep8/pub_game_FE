@@ -168,7 +168,7 @@ dire niente.
 | **Speed Rush** | Novanta secondi pieni | Nessuna prova ripetuta, difficoltà che sale con l'avanzamento, badge ×2 dopo sei risposte di fila | Quante risposte fa il tavolo più veloce: sotto ~20 il traguardo da 25 è troppo alto |
 | **Tennis Battle** | Quattro o cinque campi insieme | Dal fondo si distinguono i colpi (dritto, diagonale, stretto, corto, pallonetto) e si legge la fascia FACILE/MEDIA/DIFFICILE | Se il tiro a giro sembra un glitch |
 | **Time Buzzer** | Una manche | Il bersaglio non supera mai i 20 secondi | Se qualcuno prova ad aspettare e perde |
-| **Canzone** | Un round intero | Quattro manche da 30 secondi con distorsioni diverse, la seconda al contrario e un filo più lenta, punteggio proporzionale ai secondi rimasti | Se la manche 2 al contrario è riconoscibile troppo presto (o non si capisce che è al contrario) |
+| **Canzone** | Un round intero | Quattro manche da 30 secondi: nastro analogico instabile, poi mutazione elettronica con pitch shifter (velocità invariata), dalla terza brano pulito; punteggio proporzionale ai secondi rimasti | Se la manche 2 non è più difficile della prima, se il volume crolla fra le manche o se il pitch shifter non si carica (console) |
 
 Cinque minuti in più, se il tempo tiene: **Indovina chi** (round da 60 s,
 indizio ogni 15) e **Timeline** (45 s, punteggi con un solo segno: mai «+-200»).

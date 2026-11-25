@@ -388,7 +388,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   /** Carica il pitch shifter granulare; se non c'è, la manche 2 resta senza. */
   private async loadPitchWorklet(): Promise<void> {
     const ctx = this.audioContext;
-    if (!ctx || !ctx.audioWorklet || this.pitchNode || this.pitchWorkletLoading) return;
+    if (!ctx || !ctx.audioWorklet || typeof AudioWorkletNode === 'undefined' || this.pitchNode || this.pitchWorkletLoading) return;
     this.pitchWorkletLoading = true;
     try {
       await ctx.audioWorklet.addModule('assets/audio/pitch-shift-worklet.js');
