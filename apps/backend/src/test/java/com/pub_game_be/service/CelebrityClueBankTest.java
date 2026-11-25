@@ -29,7 +29,7 @@ class CelebrityClueBankTest {
 
     private static final List<String> LIVELLI = List.of("ampio", "ampio", "specifico", "specifico");
     private static final Set<String> SOTTO_AMBITI = Set.of(
-            "storia", "arte", "scienza", "musica", "sport", "cinema", "tv", "spettacolo");
+            "storia", "arte", "scienza", "letteratura", "musica", "sport", "cinema", "tv", "spettacolo");
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -38,10 +38,18 @@ class CelebrityClueBankTest {
         JsonNode root = bank();
         JsonNode persone = root.path("persone");
         assertThat(persone.isArray()).as("elenco delle persone").isTrue();
-        // La banca si completa a mano: qui basta che ci siano le persone già
-        // risolte con fonte certa. Quelle non risolte stanno nell'elenco
-        // `nonRisolte` e non si usano, come chiede la specifica.
-        assertThat(persone.size()).as("persone con indizi").isGreaterThanOrEqualTo(15);
+        // Requisito della serata con i più piccoli: almeno 120 celebrità fra
+        // Musica e Sport/Cinema/TV/Spettacolo e almeno 30 fra Storia, Arte,
+        // Scienza e Letteratura, tutte con quattro indizi.
+        assertThat(persone.size()).as("persone con indizi").isGreaterThanOrEqualTo(150);
+        int moderni = 0;
+        int culturali = 0;
+        for (JsonNode persona : persone) {
+            if (persona.path("ambito").asInt(0) == 1) culturali += 1;
+            else moderni += 1;
+        }
+        assertThat(moderni).as("celebrità Musica, Sport, Cinema, TV, Spettacolo").isGreaterThanOrEqualTo(120);
+        assertThat(culturali).as("personaggi di Storia, Arte, Scienza, Letteratura").isGreaterThanOrEqualTo(30);
 
         Set<String> testi = new HashSet<>();
         List<String> problems = new ArrayList<>();

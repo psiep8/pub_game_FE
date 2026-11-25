@@ -437,7 +437,10 @@ function auditCelebrities(media) {
  * (60 / 50 / 70) sono un avviso, non un blocco: finché la banca è più piccola
  * l'audit lo dice invece di far finta che le persone esistano.
  */
-const CELEBRITA_MINIMI = { 1: 60, 2: 50, 3: 70 };
+// Requisito della serata con i più piccoli: almeno 120 celebrità del momento
+// (Musica più Sport/Cinema/TV/Spettacolo) e almeno 30 fra Storia, Arte,
+// Scienza e Letteratura. Le soglie sommano 190 persone.
+const CELEBRITA_MINIMI = { 1: 30, 2: 60, 3: 100 };
 
 function auditCelebritaAmbiti(ambitiFile, media) {
   const rows = Array.isArray(ambitiFile?.persone) ? ambitiFile.persone : [];
@@ -518,7 +521,7 @@ function auditCelebritaAmbiti(ambitiFile, media) {
  */
 const CELEBRITA_LIVELLI = ['ampio', 'ampio', 'specifico', 'specifico'];
 const CELEBRITA_SOTTO_AMBITI = new Set([
-  'storia', 'arte', 'scienza', 'musica', 'sport', 'cinema', 'tv', 'spettacolo',
+  'storia', 'arte', 'scienza', 'letteratura', 'musica', 'sport', 'cinema', 'tv', 'spettacolo',
 ]);
 const NAME_PARTICLES = new Set([
   'de', 'del', 'della', 'di', 'da', 'dos', 'du', 'la', 'le',

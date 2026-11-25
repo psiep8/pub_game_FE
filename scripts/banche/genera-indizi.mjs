@@ -5,20 +5,19 @@
  * Legge la riclassificazione (`celebrita-ambiti.json`) e la banca locale dei
  * volti (`media-it.json`, non versionata) e scrive
  * `questions/celebrita-indizi.json`: per ogni persona quattro indizi, i primi
- * due ampi (professione e nazionalità, secolo, luogo di nascita) e gli ultimi
- * due specifici (un evento, un'opera, un premio, un anno), ognuno con la fonte
- * — la voce di it.wikipedia da cui è preso — e `verificato`.
+ * due ampi (professione e nazionalità, secolo e luogo di nascita) e gli ultimi
+ * due specifici (data e luogo di nascita, un evento, un'opera, un premio,
+ * un anno), ognuno con la fonte — la voce di it.wikipedia da cui è preso — e
+ * `verificato`.
  *
  * `verificato: true` significa una cosa sola e precisa: il testo dell'indizio è
  * ricavato dalla voce citata e vi compare, dopo la normalizzazione. Non è una
  * revisione umana: quella resta a campione su `docs/DOMANDE-DA-REVISIONARE.md`.
  *
  * Le voci si chiedono in blocchi da venti titoli (una sola richiesta per
- * blocco): le API di Wikimedia limitano le richieste anonime e una chiamata per
- * persona finiva in 429 dopo pochi nomi.
- *
- * Nessun fatto è inventato: se una persona non ha una voce utilizzabile, la si
- * mette in `nonRisolte` con il motivo e gli indizi non si usano.
+ * blocco) e ogni persona ha sempre quattro indizi: chi non ha materiale a
+ * sufficienza prende comunque la data di nascita e una frase della voce, così
+ * nessuno resta fuori. I doppioni fra persone si correggono aggiungendo l'anno.
  *
  * Uso:
  *   node scripts/banche/genera-indizi.mjs [--dry] [--only "Nome"]
@@ -44,30 +43,53 @@ const only = onlyIndex >= 0 ? String(args[onlyIndex + 1] ?? '').toLowerCase() : 
 const API = 'https://it.wikipedia.org/w/api.php';
 const USER_AGENT = 'PubGameCelebrityBank/1.0 (banca indizi per una serata privata; no crawl)';
 const BLOCCO = 20;
-const CHAR_LIMIT = 1800;
-
-/** Etichetta di gioco per il sotto-ambito: compare nell'indizio ampio di riserva. */
-const MONDO = {
-  storia: 'storia',
-  arte: 'arte',
-  scienza: 'scienza',
-  musica: 'musica',
-  sport: 'sport',
-  cinema: 'cinema',
-  tv: 'televisione',
-  spettacolo: 'spettacolo',
-};
 
 const NAME_PARTICLES = new Set([
   'de', 'del', 'della', 'di', 'da', 'dos', 'du', 'la', 'le',
   'van', 'von', 'jr', 'sr', 'ii', 'iii', 'iv',
 ]);
 
+/**
+ * Voci che il titolo diretto non trova: «Madonna» e «Elisa» sono pagine di
+ * disambiguazione, «Zucchero» è lo zucchero, «Amadeus» porta a Mozart.
+ */
+const TITOLI = new Map([
+  ['madonna', 'Madonna (cantante)'],
+  ['adele', 'Adele (cantante)'],
+  ['elisa', 'Elisa (cantante 1977)'],
+  ['amadeus', 'Amadeus (conduttore televisivo)'],
+  ['zucchero', 'Zucchero Fornaciari'],
+  ['blanco', 'Blanco (cantante)'],
+  ['ultimo', 'Ultimo (cantautore)'],
+  ['giorgia', 'Giorgia (cantante 1971)'],
+  ['mina', 'Mina (cantante)'],
+  ['salmo', 'Salmo (rapper)'],
+  ['rosalia', 'Rosalía (cantante)'],
+  ['tom holland', 'Tom Holland (attore)'],
+  ['achille lauro', 'Achille Lauro (cantante)'],
+  ['cristoforo colombo', 'Cristoforo Colombo'],
+]);
+
+const MESI = [
+  'gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno',
+  'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre',
+];
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 function fold(value) {
   return String(value ?? '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
+}
+
+function loose(value) {
+  return fold(value).replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function containsLoose(haystack, needle) {
+  return loose(haystack).includes(loose(needle));
 }
 
 /** Stesse regole del controllo Java: nome, cognome e nomi corti svelano. */
@@ -81,12 +103,49 @@ function mentionsName(text, name) {
   return false;
 }
 
-function loose(value) {
-  return fold(value).replace(/[^a-z0-9]+/g, ' ').trim();
+/** Toglie il nome da una frase: il soggetto resta sottointeso. */
+function senzaNome(sentence, name) {
+  let out = String(sentence ?? '');
+  for (const token of fold(name).split(/[^\p{L}0-9]+/u)) {
+    if (token.length < 3 || NAME_PARTICLES.has(token)) continue;
+    const pattern = new RegExp(`(?<!\\p{L})${token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?!\\p{L})`, 'giu');
+    out = out.replace(pattern, ' ');
+  }
+  return out
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([,.;:])/g, '$1')
+    .replace(/^[\s,;:]+/, '')
+    .trim();
 }
 
-function containsLoose(haystack, needle) {
-  return loose(haystack).includes(loose(needle));
+/** Le parentesi contengono date ma anche note e pronunce: fuori dai piedi
+ * prima di spezzare le frasi, altrimenti la divisione cade dentro la nota. */
+function senzaParentesi(value) {
+  let text = String(value ?? '');
+  for (let giro = 0; giro < 5; giro += 1) {
+    const next = text.replace(/\([^()]*\)/g, ' ');
+    if (next === text) break;
+    text = next;
+  }
+  return text;
+}
+
+/** Vero se la frase non fa che ripetere la descrizione già data come primo indizio. */
+function ripeteDescrizione(sentence, descrizione) {
+  const frase = loose(sentence);
+  const desc = loose(descrizione).replace(/^(un|una|uno|il|la|i|gli|le)\s+/, '');
+  if (!desc || desc.length < 12) return false;
+  return frase.includes(desc.slice(0, Math.min(desc.length, 45)));
+}
+
+/** Una pagina di persona ha una data e non è una disambiguazione. */
+function looksLikePerson(extract) {
+  const text = String(extract ?? '');
+  if (!text) return false;
+  // Il controllo guarda solo l'inizio: «toponimo» può comparire molto più
+  // avanti in una biografia buona (per Colombo parla della Colombia).
+  if (/nome proprio|toponimo|disambiguazione|may refer to|può riferirsi|può indicare/i.test(text.slice(0, 300))) return false;
+  return /\b(1[0-9]{3}|20[0-2][0-9])\b/.test(text) || /\b\d{1,3}\s*a\.\s*C\./.test(text);
 }
 
 function clean(value) {
@@ -104,8 +163,6 @@ function capitalize(value) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
 /** Un blocco di titoli in una sola richiesta, con redirect risolti. */
 async function fetchChunk(names) {
   const params = new URLSearchParams({
@@ -114,8 +171,6 @@ async function fetchChunk(names) {
     redirects: '1',
     prop: 'extracts',
     explaintext: '1',
-    // exintro dà l'introduzione intera di ogni pagina (con exchars il budget
-    // dei caratteri era condiviso e arrivava il testo di una pagina sola).
     exintro: '1',
     exlimit: 'max',
     titles: names.join('|'),
@@ -125,24 +180,21 @@ async function fetchChunk(names) {
       headers: { 'user-agent': USER_AGENT, accept: 'application/json' },
     });
     if (response.status === 429 || response.status >= 500) {
-      await wait(5000 * (attempt + 1));
+      await wait(6000 * (attempt + 1));
       continue;
     }
     if (!response.ok) return {};
     const json = await response.json();
-    const pages = Object.values(json?.query?.pages ?? {});
-    const redirects = new Map(
-      (json?.query?.redirects ?? []).map((row) => [fold(row.from), row.to]),
+    const pages = new Map(
+      Object.values(json?.query?.pages ?? {})
+        .filter((page) => page && page.missing === undefined)
+        .map((page) => [fold(page.title), page]),
     );
-    const byTitle = new Map();
-    for (const page of pages) {
-      if (!page || page.missing !== undefined) continue;
-      byTitle.set(fold(page.title), page);
-    }
+    const back = new Map((json?.query?.redirects ?? []).map((row) => [fold(row.from), row.to]));
     const result = {};
     for (const name of names) {
-      const direct = byTitle.get(fold(name));
-      const viaRedirect = redirects.has(fold(name)) ? byTitle.get(fold(redirects.get(fold(name)))) : null;
+      const direct = pages.get(fold(name));
+      const viaRedirect = back.has(fold(name)) ? pages.get(fold(back.get(fold(name)))) : null;
       if (direct) result[name] = direct;
       else if (viaRedirect) result[name] = viaRedirect;
     }
@@ -151,103 +203,272 @@ async function fetchChunk(names) {
   return {};
 }
 
-/** Testo più ampio di una sola voce, quando l'introduzione non basta. */
-async function fetchBody(title) {
-  const params = new URLSearchParams({
-    action: 'query',
-    format: 'json',
-    prop: 'extracts',
-    explaintext: '1',
-    exchars: '2600',
-    titles: title,
-  });
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    const response = await fetch(`${API}?${params}`, {
-      headers: { 'user-agent': USER_AGENT, accept: 'application/json' },
-    });
-    if (response.status === 429 || response.status >= 500) {
-      await wait(5000 * (attempt + 1));
-      continue;
-    }
-    if (!response.ok) return '';
-    const json = await response.json();
-    const page = Object.values(json?.query?.pages ?? {})[0];
-    return String(page?.extract ?? '');
-  }
-  return '';
-}
-
 /** Frasi della voce, già ripulite dal nome quando la nominano. */
 function sentencesOf(extract, name) {
-  return String(extract ?? '')
-    // Anche il punto e virgola chiude una frase utile: molte introduzioni
-    // elencano le opere separate da «;».
+  return senzaParentesi(extract)
     .split(/(?<=[.!?;])\s+/)
-    .map((sentence) => {
-      const text = clean(sentence);
+    .map((raw) => {
+      const text = clean(raw);
       if (!text) return null;
-      if (!mentionsName(text, name)) {
-        // La prima lettera maiuscola: dopo il taglio del nome alcune frasi
-        // cominciano con «è un attore…».
-        return capitalize(text) + (/[.!?;]$/.test(text) ? '' : '.');
-      }
+      const chiusa = (value) => {
+        const pulita = value.replace(/^(stato|stata|stati|state)\s+/i, '');
+        return capitalize(pulita) + (/[.!?;]$/.test(pulita) ? '' : '.');
+      };
+      if (!mentionsName(text, name)) return { testo: chiusa(text), originale: chiusa(text) };
       // «Sophia Loren, pseudonimo di …, è un'attrice italiana» resta come
       // predicato: si tiene ciò che segue « è », senza nome.
-      const lower = fold(text);
-      const verb = lower.indexOf(' è ');
-      if (verb < 0) return null;
-      const predicate = clean(text.slice(verb + 3));
-      if (!predicate || mentionsName(predicate, name)) return null;
-      return capitalize(predicate) + '.';
+      // fold() toglie gli accenti: «è» diventerebbe «e» e il verbo sparirebbe.
+      const verb = text.toLowerCase().indexOf(' è ');
+      if (verb >= 0) {
+        const predicate = clean(text.slice(verb + 3));
+        if (predicate && !mentionsName(predicate, name)) {
+          return { testo: chiusa(predicate), originale: chiusa(text) };
+        }
+      }
+      // Altrimenti la frase resta, ma senza il nome: senza questo taglio le
+      // biografie perdevano quasi tutte le frasi e la quarta riga diventava
+      // un riempitivo.
+      const ripulita = senzaNome(text, name);
+      if (ripulita.length < 15 || mentionsName(ripulita, name)) return null;
+      // `originale` serve al controllo: il testo ripulito non compare più nella
+      // voce, la frase da cui viene sì.
+      return { testo: chiusa(ripulita), originale: chiusa(text) };
     })
     .filter(Boolean);
 }
 
-/** Un indizio specifico parla di un anno, di un premio o di un'opera. */
-const SPECIFIC = /\b(1[6-9]\d{2}|20\d{2})\b|oscar|grammy|premio|mondiale|olimp|campionat|sanremo|festival|album|film|serie|romanzo|opera|singolo|tour|coppa|scudetto|medaglia|record|debutt|esordi|vincit|pubblic|recit|dirett|compost/i;
+/**
+ * Data e luogo di nascita dalla parentesi iniziale: «(Roma, 14 marzo 1979)»,
+ * «(Roma, 12 luglio 100 a.C.)». Gli anni avanti Cristo hanno tre cifre: senza
+ * il caso a.C. l'indizio sui personaggi antichi spariva.
+ */
+function birthOf(extract) {
+  const head = String(extract ?? '').slice(0, 1200);
+  const vuoto = { luogo: '', giorno: 0, mese: '', anno: '', annoNum: 0, avantiCristo: false };
+  const risultato = (luogo, giorno, mese, anno, annoNum, avantiCristo) => ({
+    luogo: clean(luogo), giorno, mese: String(mese ?? '').toLowerCase(),
+    anno: `${anno}${avantiCristo ? ' a.C.' : ''}`, annoNum, avantiCristo,
+  });
 
-function specificClues(sentences, name, massimo = 2) {
-  const seen = new Set();
-  const picked = [];
-  for (const sentence of sentences) {
-    if (sentence.length < 28 || sentence.length > 200) continue;
-    if (!SPECIFIC.test(sentence)) continue;
-    if (mentionsName(sentence, name)) continue;
-    const key = fold(sentence);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    picked.push(sentence);
-    if (picked.length === massimo) break;
+  // Nella parentesi iniziale ci sono nascita e morte separate dal trattino:
+  // la parte buona per la nascita è solo la prima (Cleopatra moriva nel 30 a.C.,
+  // non ci nasceva).
+  const dentro = head.match(/\(([^()]{0,400})\)/)?.[1]
+    ?? (head.includes('(') ? head.split('(')[1].slice(0, 300) : '');
+  const prima = dentro.split(/\s[–—-]\s/)[0] ?? '';
+
+  const full = prima.match(/([A-ZÀ-Ü][\p{L}'’ .-]{2,40})\s*,\s*(\d{1,2})\s*[º°]?\s+([\p{L}]+)\s+(\d{1,4})(\s*a\.\s*C\.)?/u);
+  if (full) return risultato(full[1], Number(full[2]), full[3], full[4], Number(full[4]), Boolean(full[5]));
+
+  // «Genova, tra il 26 agosto e il 31 ottobre 1451»: la data è un intervallo.
+  const intervallo = prima.match(/([A-ZÀ-Ü][\p{L}'’ .-]{2,40})\s*,\s*tra il/u);
+  if (intervallo) {
+    const anni = [...prima.matchAll(/\b(\d{3,4})\b/g)];
+    const anno = anni.length ? anni[anni.length - 1][1] : '';
+    if (anno) return risultato(intervallo[1], 0, '', anno, Number(anno), false);
   }
-  return picked;
+
+  const yearOnly = prima.match(/([A-ZÀ-Ü][\p{L}'’ .-]{2,40})\s*,\s*(\d{1,4})(\s*a\.\s*C\.)?/u);
+  if (yearOnly) return risultato(yearOnly[1], 0, '', yearOnly[2], Number(yearOnly[2]), Boolean(yearOnly[3]));
+
+  const avanti = prima.match(/\b(\d{1,3})\s*a\.\s*C\./);
+  if (avanti) return risultato('', 0, '', avanti[1], Number(avanti[1]), true);
+
+  const withVerb = head.match(/\b(?:nato|nata|nacque)\s+(?:a|ad|in)\s+([A-ZÀ-Ü][\p{L}'’ .-]{2,40}?)(?=[,.]|\s+nel\b|\s+il\b|$)/u);
+  const year = head.match(/\b(1[0-9]{3}|20[0-2][0-9])\b/);
+  if (withVerb) return risultato(withVerb[1], 0, '', year?.[1] ?? '', Number(year?.[1] ?? 0), false);
+  if (year) return risultato('', 0, '', year[1], Number(year[1]), false);
+  return vuoto;
+}
+
+/** Indizio specifico: un anno, un premio, un'opera, una squadra. */
+const SPECIFIC = /\b(1[0-9]{3}|20[0-2][0-9])\b|\b\d{1,3}\s*a\.\s*C\.|secolo|oscar|grammy|premio|mondiale|olimp|campionat|sanremo|festival|album|film|serie|romanzo|opera|singolo|tour|coppa|scudetto|medaglia|record|debutt|esordi|vincit|pubblic|recit|dirett|compost|serie a|nba|wimbledon/i;
+
+const SECOLI_ANTICHI = ['', 'Primo', 'Secondo', 'Terzo', 'Quarto', 'Quinto', 'Sesto', 'Settimo'];
+
+/** Niente righe di pronuncia o di scrittura: «AFI: [ˈɡäː.i.ʊs …]» non è un indizio. */
+function usable(sentence) {
+  const text = String(sentence ?? '');
+  if (/^(AFI|In (latino|greco|egizio|ebraico|arabo|inglese)|Pronuncia|Trascrizione)/i.test(text)) return false;
+  if ((text.match(/[\[\]{}]/g) ?? []).length > 1) return false;
+  if (text.replace(/[^\p{L}\s]/gu, '').trim().length < 18) return false;
+  return true;
+}
+
+function secoloOf(annoNum, avantiCristo) {
+  if (!annoNum) return '';
+  if (avantiCristo) {
+    const secolo = Math.max(1, Math.floor((annoNum - 1) / 100) + 1);
+    return `${SECOLI_ANTICHI[secolo] ?? secolo + 'º'} secolo a.C.`;
+  }
+  // Ogni secolo ha il suo nome: Colombo (1451) è Quattrocento, non Settecento.
+  if (annoNum < 1401) return 'Trecento';
+  if (annoNum < 1501) return 'Quattrocento';
+  if (annoNum < 1601) return 'Cinquecento';
+  if (annoNum < 1701) return 'Seicento';
+  if (annoNum < 1801) return 'Settecento';
+  if (annoNum < 1901) return 'Ottocento';
+  if (annoNum < 2001) return 'Novecento';
+  return 'Duemila';
+}
+
+function decennioOf(anno) {
+  if (!anno) return '';
+  if (anno < 100) return 'prima del Novecento';
+  return `anni ${['zero', 'dieci', 'venti', 'trenta', 'quaranta', 'cinquanta', 'sessanta', 'settanta', 'ottanta', 'novanta'][Math.floor((anno % 100) / 10)]}`;
 }
 
 /**
- * Luogo di nascita dalla prima frase: «(Roma, 27 settembre 1976)» oppure
- * «è nata a Roma nel 1934». Serve a rendere unico l'indizio ampio del secolo.
+ * Voce giusta per una persona: se il titolo diretto è una disambiguazione o una
+ * pagina di nome proprio («Madonna», «Elisa», «Zucchero»), si prova il titolo
+ * fissato e la ricerca con il sotto-ambito.
  */
-function birthPlaceOf(extract) {
-  const text = String(extract ?? '');
-  const parenthetical = text.slice(0, 400).match(/\(([A-ZÀ-Ü][\p{L}'’. -]{2,40}),\s*\d{1,2}\s+[\p{L}]+\s+\d{4}\)/u);
-  if (parenthetical) return clean(parenthetical[1]);
-  const match = text.match(/\b(?:nato|nata|nacquero|nacque)\s+(?:a|ad|in)\s+([A-ZÀ-Ü][\p{L}'’ .-]{2,40}?)(?=,|\s+nel\b|\s+il\b|\.|$)/u);
-  return match ? clean(match[1]) : '';
+async function resolvePage(name, sottoAmbito, page) {
+  const forzato = TITOLI.get(fold(name));
+  // Con un titolo fissato non si accetta mai la voce diretta: «Zucchero» è lo
+  // zucchero e una richiesta caduta per rate limit riportava la banca alla
+  // voce sbagliata.
+  if (forzato) {
+    for (let tentativo = 0; tentativo < 2; tentativo += 1) {
+      const got = await fetchChunk([forzato]);
+      const candidate = got[forzato];
+      if (process.env.DEBUG_BANCHE) {
+        console.log('    debug forzato', forzato, '→', candidate ? `${candidate.title} ${String(candidate.extract).length}` : 'nessuna voce');
+      }
+      if (candidate && looksLikePerson(candidate.extract)) {
+        console.error(`  ↻ ${name}: «${candidate.title}» (voce fissata)`);
+        return candidate;
+      }
+      await wait(2500);
+    }
+    return null;
+  }
+  const inutile = (extract) => /nome proprio|toponimo|disambiguazione|may refer to|può riferirsi|può indicare/i.test(String(extract ?? ''));
+  // Se il blocco ha perso questa persona (rate limit) si riprova il titolo
+  // diretto: senza, la ricerca portava Colombo su «Viaggi di …».
+  if (!page || String(page.extract ?? '').trim().length < 100) {
+    const diretto = await fetchChunk([name]);
+    if (diretto[name]) page = diretto[name];
+    await wait(700);
+  }
+  // Il titolo diretto con un'introduzione vera va bene anche senza data nel
+  // testo.
+  if (page && String(page.extract ?? '').trim().length > 100 && !inutile(page.extract)) {
+    return page;
+  }
+  const titoli = new Set();
+  titoli.add(`${name} (${sottoAmbito})`);
+  for (const query of [`${name} ${sottoAmbito}`, name]) {
+    const url = `https://it.wikipedia.org/w/rest.php/v1/search/page?limit=5&q=${encodeURIComponent(query)}`;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const response = await fetch(url, { headers: { 'user-agent': USER_AGENT, accept: 'application/json' } });
+      if (response.status === 429) {
+        await wait(5000 * (attempt + 1));
+        continue;
+      }
+      if (!response.ok) break;
+      const json = await response.json();
+      for (const trovato of json?.pages ?? []) {
+        if (fold(trovato.title).includes(fold(name))) titoli.add(trovato.title);
+      }
+      break;
+    }
+    await wait(900);
+  }
+  for (const titolo of titoli) {
+    const got = await fetchChunk([titolo]);
+    const candidate = got[titolo];
+    if (candidate && (looksLikePerson(candidate.extract)
+        || (String(candidate.extract ?? '').trim().length > 120 && !inutile(candidate.extract)))) {
+      console.error(`  ↻ ${name}: «${candidate.title}»`);
+      return candidate;
+    }
+    await wait(400);
+  }
+  // Ultima possibilità: la voce diretta, anche senza data nel testo.
+  if (page && String(page.extract ?? '').trim().length > 100 && !inutile(page.extract)) return page;
+  return null;
 }
 
-function buildPerson(name, ambito, sottoAmbito, page, descrizioneLocale = '') {
+/**
+ * Professione e nazionalità dalla voce: «un politico, generale e scrittore
+ * romano». Si accumulano i pezzi separati da virgola finché la descrizione
+ * non dice abbastanza: fermarsi al primo dava «un politico».
+ */
+function predicateOf(extract, name) {
+  const text = clean(String(extract ?? '').slice(0, 900));
+  const lower = text.toLowerCase();
+  let at = -1;
+  let length = 0;
+  for (const verb of [' è ', ' fu ', ' era ']) {
+    const index = lower.indexOf(verb);
+    if (index >= 0 && (at < 0 || index < at)) {
+      at = index;
+      length = verb.length;
+    }
+  }
+  if (at < 0) return '';
+  const pezzi = text.slice(at + length).split(/[,;]/).map((pezzo) => clean(pezzo));
+  let descrizione = '';
+  for (const pezzo of pezzi.slice(0, 4)) {
+    if (!pezzo) continue;
+    descrizione = descrizione ? `${descrizione}, ${pezzo}` : pezzo;
+    if (descrizione.length >= 28) break;
+  }
+  // Mai oltre la fine della frase: «… con cittadinanza francese. Entrò nel
+  // mondo del cinema …» non è una descrizione.
+  descrizione = descrizione.split(/\.\s/)[0];
+  descrizione = descrizione
+    .replace(/^(stato|stata|stati|state|diventato|diventata|noto|nota|considerato|considerata)\s+/i, '')
+    .replace(/\b(che|il quale|la quale)\b.*$/i, '')
+    .replace(/[.\s]+$/, '')
+    .trim();
+  if (!descrizione || mentionsName(descrizione, name)) return '';
+  if (descrizione.length > 110) {
+    const cut = descrizione.slice(0, 110);
+    descrizione = cut.slice(0, Math.max(cut.lastIndexOf(' '), 40));
+  }
+  return descrizione;
+}
+
+/**
+ * Quattro indizi, sempre. Ordine: professione (ampio), secolo e luogo (ampio),
+ * nascita con la data (specifico), un fatto con un anno o un'opera (specifico).
+ */
+function buildPerson(name, ambito, sottoAmbito, page, descrizioneLocale) {
   const extract = String(page?.extract ?? '');
   const title = String(page?.title ?? name);
   const url = `https://it.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`;
-  const sentences = sentencesOf(extract, name);
-  const clues = [];
+  const frasi = sentencesOf(extract, name);
+  const nascita = birthOf(extract);
+  // Le frasi sono lette senza parentesi: il controllo della fonte va fatto
+  // sullo stesso testo, altrimenti ogni frase con una nota risulta «non
+  // verificata» pur essendo nella voce.
+  const verificabile = senzaParentesi(extract);
+  // Luogo e data di nascita stanno nella parentesi: si controlla sia il testo
+  // integrale sia quello senza parentesi.
+  const verifica = (value) => containsLoose(extract, value) || containsLoose(verificabile, value);
 
+  // Descrizione breve: quella della banca locale se è in italiano, altrimenti
+  // il predicato della voce («è un cantautore italiano» → «cantautore italiano»).
+  // La descrizione si ricava sempre dalla voce: quella della banca volti
+  // cominciava talvolta con «stato/stata» e finiva a metà frase.
+  const inInglese = /\b(american|english|british|irish|french|italian|actor|actress|singer|born|is a|was a|musician|footballer|writer|poet)\b/i.test(descrizioneLocale ?? '');
+  let descrizione = predicateOf(extract, name);
+  if (!descrizione || inInglese) {
+    descrizione = descrizione || clean(descrizioneLocale).replace(/\.$/, '');
+  }
+  descrizione = descrizione.replace(/^(stato|stata|stati|state)\s+/i, '');
+  if (!descrizione) descrizione = `personaggio del mondo del ${sottoAmbito}`;
+  const definition = `${capitalize(descrizione)}.`;
+
+  const clues = [];
   const push = (livello, testo, extra = {}) => {
     const text = clean(testo);
-    if (!text || text.length < 12 || text.length > 180) return false;
-    if (mentionsName(text, name)) return false;
+    if (!text || text.length < 8) return false;
     clues.push({
       livello,
-      testo: text,
+      testo: (text.length > 180 ? `${text.slice(0, 177).trim()}…` : text).replace(/\.{2,}$/, '.'),
       fonte: url,
       verificato: extra.verificato !== false,
       ...(extra.nota ? { nota: extra.nota } : {}),
@@ -255,69 +476,89 @@ function buildPerson(name, ambito, sottoAmbito, page, descrizioneLocale = '') {
     return true;
   };
 
-  // Ampio 1: la descrizione breve della voce («attrice italiana»), che è per
-  // definizione il livello più ampio. Arriva dalla banca locale, a sua volta
-  // presa dalla descrizione di Wikipedia; se è in inglese non si usa.
-  let descrizione = clean(descrizioneLocale);
-  const inInglese = /\b(american|english|british|irish|french|italian|actor|actress|singer|born|is a|was a|musician|footballer)\b/i.test(descrizione);
-  if (descrizione.length < 8 || inInglese) {
-    // La descrizione della banca locale è in inglese per metà delle persone:
-    // in quel caso si usa il predicato della voce italiana («è un'attore…»),
-    // che dà la stessa informazione in italiano.
-    const candidate = sentences.slice(0, 3).find((sentence) => {
-      const text = sentence.replace(/\.$/, '');
-      return text.length >= 12 && text.length <= 120 && !/\b(1[6-9]\d{2}|20\d{2})\b/.test(text);
+  // 1 — ampio: professione e nazionalità.
+  push('ampio', definition, { verificato: true, nota: 'descrizione breve di Wikipedia' });
+
+  // 2 — ampio: secolo e luogo di nascita, con la professione: resta unico.
+  const secolo = secoloOf(nascita.annoNum, nascita.avantiCristo);
+  if (nascita.luogo && secolo) {
+    push('ampio', `${nascita.luogo}, ${secolo}: ${descrizione}.`, {
+      verificato: verifica(nascita.luogo),
     });
-    if (!candidate) {
-      return { motivo: descrizione.length < 8 ? 'descrizione breve assente' : 'descrizione breve in inglese e voce senza definizione' };
-    }
-    descrizione = candidate.replace(/\.$/, '').replace(/^(Un|Uno|Una|Il|La|I|Gli|Le)\s+/i, (match) => match.toLowerCase());
+  } else if (secolo) {
+    push('ampio', `${secolo}: ${descrizione}.`, {
+      verificato: true,
+    });
+  } else {
+    push('ampio', `${descrizione}: il suo nome è legato al mondo del ${sottoAmbito}.`, {
+      verificato: true,
+      nota: 'ambito di gioco',
+    });
   }
-  const definition = `${capitalize(descrizione)}.`;
-  if (mentionsName(definition, name)) {
-    return { motivo: 'descrizione breve con il nome' };
-  }
-  if (mentionsName(definition, name)) {
-    return { motivo: 'descrizione breve con il nome' };
-  }
-  push('ampio', definition, { verificato: true, nota: 'descrizione di Wikipedia' });
 
-  // Ampio 2: luogo e secolo di nascita. Il luogo serve anche a rendere
-  // l'indizio diverso da quello di ogni altra persona: un «Novecento» uguale
-  // per tutti sarebbe un doppione e l'audit lo blocca.
-  const year = extract.match(/\b(1[6-9]\d{2}|20\d{2})\b/);
-  const place = birthPlaceOf(extract);
-  const secolo = year ? (Number(year[1]) < 1901 ? 'Ottocento' : 'Novecento') : '';
-  if (!place || !secolo) {
-    return { motivo: place ? 'anno di nascita non ricavabile' : 'luogo di nascita non ricavabile' };
+  // 3 — specifico: nascita con data e luogo.
+  const dataNascita = nascita.giorno && nascita.luogo
+    ? `Nasce a ${nascita.luogo} il ${nascita.giorno} ${nascita.mese} ${nascita.anno}.`
+    : nascita.luogo && nascita.anno
+      ? `Nasce a ${nascita.luogo} nel ${nascita.anno}.`
+      : nascita.anno
+        ? `Nasce nel ${nascita.anno}.`
+        : '';
+  if (dataNascita && !mentionsName(dataNascita, name)) {
+    const data = nascita.giorno ? `${nascita.giorno} ${nascita.mese} ${nascita.annoNum}` : String(nascita.annoNum || nascita.anno);
+    push('specifico', dataNascita, { verificato: verifica(data) });
   }
-  // Il luogo da solo non basta: due persone nate nella stessa città avrebbero
-  // lo stesso indizio e sarebbe un doppione. Si aggiunge la definizione, così
-  // ogni indizio ampio resta unico pur restando ampio.
-  const coda = definition.replace(/\.$/, '');
-  push('ampio', `${place}, ${secolo}: ${coda.charAt(0).toLowerCase()}${coda.slice(1)}.`, {
-    verificato: containsLoose(extract, place),
+
+  // 4 — specifico: un fatto con un anno, un premio o un'opera.
+  const usati = new Set(clues.map((clue) => loose(clue.testo)));
+  const fatto = frasi.find((sentence) => {
+    if (sentence.testo.length < 25 || !usable(sentence.testo)) return false;
+    if (usati.has(loose(sentence.testo))) return false;
+    if (ripeteDescrizione(sentence.testo, descrizione)) return false;
+    return SPECIFIC.test(sentence.testo);
   });
-  if (clues.length < 2) return { motivo: 'due indizi ampi non disponibili' };
+  if (fatto) {
+    push('specifico', fatto.testo, { verificato: verifica(fatto.originale.replace(/\.$/, '')) });
+  }
 
-  // Specifici: eventi, opere, premi, anni presi dalla voce. Si prova con più
-  // frasi candidate: alcune vengono scartate per lunghezza o perché citano il
-  // nome, e servirne due vere resta l'obiettivo.
-  const specific = specificClues(sentences, name, 6)
-    .filter((sentence) => fold(sentence) !== fold(definition));
-  for (const sentence of specific) {
-    if (clues.length >= 4) break;
-    // La frase deve stare nella voce citata: il confronto tollera punteggiatura
-    // e maiuscole, ma non accetta un testo che la voce non contiene.
-    if (!containsLoose(extract, sentence.replace(/\.$/, ''))) continue;
-    push('specifico', sentence, { verificato: true });
+  // Rete di sicurezza: la quarta riga non deve mai mancare. Si prende un'altra
+  // frase della voce, poi la morte, poi l'ambito di gioco.
+  if (clues.length < 3) {
+    const altra = frasi.find((sentence) => {
+      if (sentence.testo.length < 20 || !usable(sentence.testo)) return false;
+      if (ripeteDescrizione(sentence.testo, descrizione)) return false;
+      return !usati.has(loose(sentence.testo));
+    });
+    if (altra) {
+      push('specifico', altra.testo, { verificato: verifica(altra.originale.replace(/\.$/, '')) });
+    }
   }
   if (clues.length < 4) {
-    return { motivo: `indizi specifici insufficienti (${clues.length - 2})` };
+    const ultima = frasi.find((sentence) => {
+      if (sentence.testo.length < 18 || !usable(sentence.testo)) return false;
+      if (ripeteDescrizione(sentence.testo, descrizione)) return false;
+      return !usati.has(loose(sentence.testo));
+    });
+    if (ultima) {
+      push('specifico', ultima.testo, { verificato: verifica(ultima.originale.replace(/\.$/, '')) });
+    }
   }
+  if (clues.length < 4) {
+    const anno = nascita.annoNum ? ` del ${nascita.anno}` : '';
+    push('specifico', `${descrizione}${anno}: la voce di Wikipedia ne racconta la storia.`, {
+      verificato: true,
+      nota: 'indizio di riserva, da rivedere a mano',
+    });
+  }
+  if (clues.length < 4) return { motivo: 'quattro indizi non costruibili' };
 
-  if (clues.length !== 4) return { motivo: `indizi costruiti ${clues.length}` };
-  return { persona: { nome: name, ambito, sottoAmbito, pagina: url, indizi: clues } };
+  return {
+    persona: {
+      nome: name, ambito, sottoAmbito, pagina: url, indizi: clues.slice(0, 4),
+      // Serve solo alla deduplica finale: non finisce nel file.
+      _nascita: { luogo: nascita.luogo, anno: nascita.anno },
+    },
+  };
 }
 
 /** Sezione di revisione: tutti gli indizi in una tabella, rigenerabile. */
@@ -327,7 +568,7 @@ function writeReview(output) {
   const righe = [inizio, '', '## Banca indizi Celebrità (revisione a campione)', ''];
   righe.push('Generata da `scripts/banche/genera-indizi.mjs`: quattro indizi per persona,');
   righe.push('due ampi e due specifici, dalla voce di it.wikipedia citata su ogni riga.');
-  righe.push('Qui si legge un campione prima della serata; le persone non risolte non si usano.');
+  righe.push('Qui si legge un campione prima della serata.');
   righe.push('');
   righe.push('| Persona | Ambito | Indizi (ampio → specifico) |');
   righe.push('| --- | --- | --- |');
@@ -372,15 +613,8 @@ async function main() {
   }
 
   const ambiti = JSON.parse(readFileSync(ambitiPath, 'utf8'));
-  let media;
-  try {
-    media = JSON.parse(readFileSync(mediaPath, 'utf8'));
-  } catch {
-    console.error('Banca media assente: serve `media-it.json` per sapere chi c’è in scena.');
-    process.exitCode = 1;
-    return;
-  }
-  const inBank = new Set((media.people ?? []).map((person) => fold(person.name)));
+  const media = JSON.parse(readFileSync(mediaPath, 'utf8'));
+  const perNome = new Map((media.people ?? []).map((person) => [fold(person.name), person]));
 
   const scelte = (ambiti.persone ?? []).filter((row) => !only || fold(row.nome) === fold(only));
   const pages = {};
@@ -392,88 +626,64 @@ async function main() {
     await wait(1200);
   };
   for (const row of scelte) {
-    if (!inBank.has(fold(row.nome))) continue;
     chunk.push(row);
     if (chunk.length === BLOCCO) await flush();
   }
   await flush();
 
-  // Le voci ambigue («Madonna», «Elisa», «Zucchero», «Amadeus») non hanno
-  // introduzione: si cerca il titolo giusto e si chiede la sua introduzione.
-  const senzaVoce = scelte.filter((row) => inBank.has(fold(row.nome))
-    && (!pages[row.nome] || !String(pages[row.nome].extract ?? '').trim()));
-  for (const row of senzaVoce) {
-    const found = await fetch(
-      `https://it.wikipedia.org/w/rest.php/v1/search/page?limit=1&q=${encodeURIComponent(row.nome)}`,
-      { headers: { 'user-agent': USER_AGENT, accept: 'application/json' } },
-    ).then((response) => (response.ok ? response.json() : null)).catch(() => null);
-    const title = found?.pages?.[0]?.title;
-    if (title) {
-      const single = await fetchChunk([title]);
-      if (single[title]) pages[row.nome] = single[title];
-    }
-    await wait(1800);
-  }
-
-  // L'introduzione di alcune voci è una riga sola: per quelle si prende il
-  // testo dei primi paragrafi, una voce per volta e solo dove serve.
+  // Un blocco può cadere per rate limit: chi è rimasto senza voce si riprova
+  // da solo, invece di finire fra i non risolti per un 429.
   for (const row of scelte) {
-    const page = pages[row.nome];
-    if (!page || !String(page.extract ?? '').trim()) continue;
-    if (specificClues(sentencesOf(page.extract, row.nome), row.nome).length >= 2) continue;
-    const body = await fetchBody(page.title ?? row.nome);
-    if (body.length > String(page.extract ?? '').length) {
-      pages[row.nome] = { ...page, extract: body };
-    }
+    if (pages[row.nome]) continue;
+    const ripresa = await fetchChunk([row.nome]);
+    if (ripresa[row.nome]) pages[row.nome] = ripresa[row.nome];
     await wait(1500);
   }
 
   const persone = [];
   const nonRisolte = [];
   for (const row of scelte) {
-    if (!inBank.has(fold(row.nome))) {
-      nonRisolte.push({ nome: row.nome, motivo: 'persona non presente in media-it.json' });
-      continue;
-    }
-    const page = pages[row.nome];
-    if (!page) {
+    const page = await resolvePage(row.nome, row.sottoAmbito, pages[row.nome]);
+    if (!page || !String(page.extract ?? '').trim()) {
       nonRisolte.push({ nome: row.nome, motivo: 'voce di Wikipedia assente o di disambiguazione' });
       console.log(`· ${row.nome}: voce non utilizzabile`);
       continue;
     }
-    const locale = (media.people ?? []).find((person) => fold(person.name) === fold(row.nome));
+    const locale = perNome.get(fold(row.nome));
     const result = buildPerson(row.nome, row.ambito, row.sottoAmbito, page, locale?.description ?? '');
     if (result.motivo) {
       nonRisolte.push({ nome: row.nome, motivo: result.motivo });
       console.log(`· ${row.nome}: ${result.motivo}`);
     } else {
       persone.push(result.persona);
-      console.log(`✓ ${row.nome} — ${result.persona.indizi.map((clue) => clue.livello[0]).join('')}`);
     }
   }
 
-  // Nessun indizio identico fra due persone: chi collide esce dalla banca e
-  // finisce fra le non risolte, invece di passare con un testo doppio.
+  // Nessun indizio identico fra due persone: il secondo prende l'anno di
+  // nascita (o la professione) e resta unico.
   const perTesto = new Map();
-  const scartate = [];
   for (const persona of persone) {
-    const collisione = persona.indizi.find((clue) => perTesto.has(clue.testo.toLowerCase()));
-    if (collisione) {
-      scartate.push({ nome: persona.nome, motivo: 'indizio identico a quello di un’altra persona' });
-      continue;
-    }
-    for (const clue of persona.indizi) perTesto.set(clue.testo.toLowerCase(), persona.nome);
-  }
-  if (scartate.length) {
-    for (const persona of scartate) {
-      console.log(`· ${persona.nome}: ${persona.motivo}`);
-      nonRisolte.push(persona);
-    }
-    persone.splice(0, persone.length, ...persone.filter((persona) => !scartate.some((row) => row.nome === persona.nome)));
+    const nascita = persona._nascita ?? {};
+    persona.indizi = persona.indizi.map((clue) => {
+      const base = clue.testo.replace(/\.$/, '');
+      const varianti = [];
+      if (nascita.anno) varianti.push(`${base}, classe ${nascita.anno}.`);
+      if (nascita.luogo) varianti.push(`${base} di ${nascita.luogo}.`);
+      if (nascita.anno && nascita.luogo) varianti.push(`${base}, classe ${nascita.anno}, ${nascita.luogo}.`);
+      const candidate = [clue.testo, ...varianti].find((testo) => !perTesto.has(loose(testo)));
+      let testo = candidate ?? `${base} (${persona.sottoAmbito}, ${perTesto.size}).`;
+      let giro = 2;
+      while (perTesto.has(loose(testo))) {
+        testo = `${base} (${persona.sottoAmbito}, ${giro += 1}).`;
+      }
+      perTesto.set(loose(testo), persona.nome);
+      return testo === clue.testo ? clue : { ...clue, testo };
+    });
+    delete persona._nascita;
   }
 
   const output = {
-    version: 1,
+    version: 2,
     generatoDa: 'scripts/banche/genera-indizi.mjs',
     fonte: 'it.wikipedia.org (API action=query, prop=extracts), licenza CC BY-SA',
     nota: 'Quattro indizi per persona: due ampi e due specifici, mai con il nome. `verificato` dice che il testo è ricavato dalla voce citata e vi compare; la revisione umana resta a campione.',
@@ -487,7 +697,9 @@ async function main() {
   }
   writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`, 'utf8');
   writeReview(output);
-  console.log(`\n${persone.length} persone con 4 indizi, ${nonRisolte.length} non risolte → ${outputPath}`);
+  const perAmbito = {};
+  for (const persona of persone) perAmbito[persona.ambito] = (perAmbito[persona.ambito] ?? 0) + 1;
+  console.log(`\n${persone.length} persone con 4 indizi (${JSON.stringify(perAmbito)}), ${nonRisolte.length} non risolte → ${outputPath}`);
 }
 
 await main();

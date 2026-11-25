@@ -240,6 +240,7 @@ public class QuestionBankService {
             case "ARENA" -> arenaWrapper();
             case "ULTIMA_SPIAGGIA" -> ultimaSpiaggiaPayload(category, isAvailable);
             case "AZZARDO" -> azzardoPayload(category, difficulty, isAvailable);
+            case "IMAGE_BLUR" -> celebrityPayload(category, isAvailable);
             case "QUIZ" -> quizPayload(category, isAvailable);
             default -> fromBank(category, requested, isAvailable);
         };
@@ -911,6 +912,31 @@ public class QuestionBankService {
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Volto da indovinare: il pool è la banca Celebrità — oltre centosettanta
+     * persone, ognuna con quattro indizi e la fonte — e non le sei domande
+     * fisse della banca. Chi non ha la foto scaricata resta giocabile: la TV
+     * mostra il segnaposto con l'iniziale e gli indizi restano gli stessi.
+     * Senza banca indizi si torna alle domande fisse, come prima.
+     */
+    private String celebrityPayload(String category, Predicate<String> isAvailable) {
+        List<String> people = new ArrayList<>(localMedia.namesWithClues());
+        if (people.isEmpty()) {
+            return fromBank(category, "IMAGE_BLUR", isAvailable);
+        }
+        Collections.shuffle(people, random);
+        for (String name : people) {
+            BankQuestion question = new BankQuestion(
+                    "volto:" + name, "Celebrità", "IMAGE_BLUR", "facile", "",
+                    "Chi è questa persona?", name, List.of(), null);
+            Optional<String> payload = toPayload(question);
+            if (payload.isPresent() && isAvailable.test(payloadDedupeKey(payload.get()))) {
+                return payload.get();
+            }
+        }
+        return fromBank(category, "IMAGE_BLUR", isAvailable);
     }
 
     private List<BankQuestion> candidates(String category, String type) {

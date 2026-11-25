@@ -45,6 +45,7 @@ public class LocalMediaBankService {
     private final Map<String, Person> people = new LinkedHashMap<>();
     private final Map<String, Track> tracksByKey = new LinkedHashMap<>();
     private final Map<String, List<Clue>> cluesByName = new LinkedHashMap<>();
+    private final List<String> namesWithClues = new ArrayList<>();
     private final String configuredBaseUrl;
 
     public LocalMediaBankService(@Value("${game.media-base-url:}") String mediaBaseUrl) {
@@ -75,6 +76,14 @@ public class LocalMediaBankService {
             return List.of();
         }
         return cluesByName.getOrDefault(key, List.of());
+    }
+
+    /**
+     * Tutti i nomi con quattro indizi, nell'ordine del file: è il pool dei volti
+     * per la manche IMAGE_BLUR, non solo chi ha una foto scaricata.
+     */
+    public List<String> namesWithClues() {
+        return List.copyOf(namesWithClues);
     }
 
     public Optional<Person> person(String name) {
@@ -230,6 +239,7 @@ public class LocalMediaBankService {
                 }
                 if (list.size() == 4) {
                     cluesByName.put(QuestionHistoryService.normalize(name), List.copyOf(list));
+                    namesWithClues.add(name);
                 }
             }
         } catch (Exception error) {
