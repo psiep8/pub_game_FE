@@ -47,6 +47,27 @@ function setup(extra: Partial<GameModeConfig> = {}) {
   return { mode, saved, points };
 }
 
+describe('TennisBattleMode — regole di sala', () => {
+  it('con squadre dispari riposa la prima in classifica, a zero punti', async () => {
+    // F-07: prima il giocatore lasciato fuori era casuale e vinceva la sfida
+    // a tavolino, con i 500 punti. Ora riposa chi è davanti e non gioca.
+    vi.spyOn(Math, 'random').mockReturnValue(0.99);
+    const { mode, points } = setup({ activePlayers: ['Anna', 'Bruno', 'Carlo'] });
+
+    await mode.start();
+
+    const names = mode.getDisplayData().courts
+      .flatMap((court: any) => [court.a.playerName, court.b.playerName]);
+    expect(names).not.toContain('RIPOSO');
+    expect(names).not.toContain('Anna');
+    expect([...names].sort()).toEqual(['Bruno', 'Carlo']);
+    expect(points).toEqual([]);
+
+    mode.cleanup();
+    vi.restoreAllMocks();
+  });
+});
+
 describe('TennisBattleMode — ripresa dopo un refresh della TV', () => {
   it('salva i campi appena partono le sfide', async () => {
     const { mode, saved } = setup();

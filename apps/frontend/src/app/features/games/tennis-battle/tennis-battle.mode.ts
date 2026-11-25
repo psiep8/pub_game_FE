@@ -293,7 +293,11 @@ export class TennisBattleMode extends GameModeBase {
   startMatch(): void {
     if (this.courts().length > 0) return;
 
-    const players = this.shufflePlayers(this.config.activePlayers ?? []);
+    // Squadre dispari: riposa la prima in classifica, che resta a zero punti.
+    // Non entra in campo e non vince nulla a tavolino.
+    const ranked = [...(this.config.activePlayers ?? [])];
+    const resting = ranked.length % 2 === 1 ? ranked[0] : null;
+    const players = this.shufflePlayers(resting ? ranked.slice(1) : ranked);
     this.pairsKey = `pubgame.tennis.pairs.${this.config.gameId || 0}`;
     const usedPairs = this.loadPairs();
     const next: Court[] = [];
@@ -311,26 +315,6 @@ export class TennisBattleMode extends GameModeBase {
       const opponent = waiting.splice(opponentIndex, 1)[0];
       usedPairs.add(this.pairKey(first, opponent));
       next.push(this.createCourt(next.length, first, opponent));
-    }
-
-    if (waiting.length === 1) {
-      const last = waiting[0];
-      next.push({
-        id: next.length,
-        a: { playerName: last, score: 0, games: 0, deuceLosses: 0, isBot: false, shots: 0 },
-        b: { playerName: 'RIPOSO', score: 0, games: 0, deuceLosses: 0, isBot: true, shots: 0 },
-        winner: last,
-        turn: 'a',
-        serveLeft: 0,
-        question: null,
-        lastEvent: null,
-        awarded: false,
-        questionAt: Date.now(),
-        shotMs: 450,
-        trajectory: 'dritto',
-      killerPoint: false,
-      });
-      this.awardCourt(next[next.length - 1]);
     }
 
     this.savePairs(usedPairs);
