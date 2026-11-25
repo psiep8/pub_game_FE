@@ -30,7 +30,8 @@ public class LocalMediaBankService {
     }
 
     /** Volto con foto e testo biografico per gli indizi, tutto in locale. */
-    public record Person(String name, String file, String description, String extract) {
+    public record Person(String name, String file, String description, String extract,
+            String category) {
     }
 
     /**
@@ -190,7 +191,8 @@ public class LocalMediaBankService {
                             item.optString("name", ""),
                             item.optString("file", ""),
                             item.optString("description", ""),
-                            item.optString("extract", ""));
+                            item.optString("extract", ""),
+                            item.optString("category", ""));
                     people.put(QuestionHistoryService.normalize(person.name()), person);
                 }
             }

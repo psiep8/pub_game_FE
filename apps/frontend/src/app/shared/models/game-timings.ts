@@ -15,6 +15,7 @@ export const GAME_TIMINGS = {
     mancheSeconds: 30,
   },
   IMAGE_BLUR: {
+    manches: 3,
     seconds: 60,
     // F-18: un nuovo indizio ogni quindici secondi, quattro in una manche.
     clueEverySeconds: 15,

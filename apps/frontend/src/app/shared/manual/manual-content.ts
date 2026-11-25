@@ -10,6 +10,8 @@ import {
   BONUS_KARAOKE_SECONDS,
   BOMBA_PEAK,
   CASINO_SPINS,
+  IMAGE_BLUR_MANCHE_CATEGORIES,
+  IMAGE_BLUR_MANCHE_POINTS,
   MUSIC_MANCHE_POINTS,
   ScoringRule,
   SPEED_RUSH_FIRST,
@@ -91,15 +93,15 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, EntryCopy> = {
   IMAGE_BLUR: {
     name: 'INDOVINA CHI',
     icon: '🕵️',
-    summary: 'La foto si schiarisce per 60 secondi: prenota presto e rispondi a voce.',
-    objective: 'Riconoscere il personaggio nella foto sfocata; prima prenoti, più punti vale la risposta.',
+    summary: `Tre manche da 60 secondi, una per ambito: ${IMAGE_BLUR_MANCHE_CATEGORIES.join(', ')}.`,
+    objective: 'Riconoscere il personaggio nella foto sfocata di ogni manche; prima prenoti, più punti vale la risposta.',
     phone: [
       'Tocca PRENOTATI quando riconosci il personaggio.',
       'Un indizio ogni 15 secondi: vita, film, carriera, curiosità.',
       'Dì la risposta al presentatore: la conferma arriva dalla regia.',
-      'Il telefono si blocca dopo la prenotazione.',
+      'Il telefono si blocca dopo la prenotazione e si riarma alla manche successiva.',
     ],
-    tip: 'Non aspettare che la foto sia nitida: il tempo rimasto moltiplica i punti.',
+    tip: `La prima manche vale ${IMAGE_BLUR_MANCHE_POINTS[0]}, la seconda ${IMAGE_BLUR_MANCHE_POINTS[1]}, la terza ${IMAGE_BLUR_MANCHE_POINTS[2]}, sempre in proporzione al tempo rimasto. Non aspettare che la foto sia nitida: il tempo rimasto moltiplica i punti.`,
   },
   MUSIC: {
     name: 'INDOVINA LA CANZONE',

@@ -239,6 +239,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   hasAnswered = signal(false);
   /** Manche Quiz in corso e ultima manche già votata. */
   quizManche = signal(0);
+  /** Indovina chi: manche e round a cui appartiene il pulsante PRENOTATI. */
+  imageManche = signal(0);
+  private imageRound = 0;
   answeredManche = signal(0);
   private quizRoundStartId = '';
   /** Istante server dell'apertura Quiz: ordina un annuncio recapitato in ritardo. */
@@ -660,6 +663,18 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.questionType.set(status.type);
           if (status.round) this.roundNumber.set(Number(status.round));
           if (status.roundTotal) this.roundTotal.set(Number(status.roundTotal));
+          if (status.type === 'IMAGE_BLUR') {
+            // Ogni manche riarma il pulsante: senza questo, dopo la prima
+            // prenotazione il telefono restava bloccato per tutto il round.
+            const manche = Number(status.manche) || 1;
+            const round = Number(status.round) || this.roundNumber();
+            if (round !== this.imageRound || manche !== this.imageManche()) {
+              this.imageRound = round;
+              this.imageManche.set(manche);
+              this.hasAnswered.set(false);
+              this.isBlocked.set(false);
+            }
+          }
           this.isBlocked.set(false);
           if (status.type === 'BLACKJACK') {
             this.blackjackState.set(null);

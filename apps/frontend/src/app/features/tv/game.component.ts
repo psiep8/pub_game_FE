@@ -765,8 +765,14 @@ export class GameComponent implements OnInit, OnDestroy {
       } else if (status.action === 'ADMIN_NEXT_ROUND') {
         this.adminNextRound();
       } else if (status.action === WsAction.ADMIN_NEXT_MANCHE) {
-        // Canzone: il via alla manche successiva lo decide il presentatore.
-        this.currentMode()?.nextManche?.();
+        // Canzone e Indovina chi: il via alla manche successiva lo decide il
+        // presentatore. Per Indovina chi va anche riannunciata ai telefoni.
+        const mode = this.currentMode();
+        mode?.nextManche?.();
+        if (mode?.type === 'IMAGE_BLUR') {
+          this.timer.set(mode.getTimerValue());
+          this.publishImageBlurManche(mode);
+        }
       } else if (status.action === WsAction.ADMIN_START_ROUND) {
         // Pulsante unico "Parti": apre il round se la TV è in lobby, altrimenti
         // chiude quello in corso e passa al successivo.
@@ -1388,6 +1394,7 @@ export class GameComponent implements OnInit, OnDestroy {
         rawPayload: rawPayloadString,
         round: this.roundManager.getCurrentRound(),
         roundTotal: this.roundManager.getTotalRounds(),
+        ...(safeData.manche ? { manche: safeData.manche, mancheTotal: safeData.mancheTotal, points: safeData.manchePoints, category: safeData.categoryLabel } : {}),
       });
 
 
@@ -1771,6 +1778,27 @@ export class GameComponent implements OnInit, OnDestroy {
     const mode = this.currentMode();
     if (!mode) return;
 
+    // Indovina chi: la manche scaduta non chiude tutto il round, apre la
+    // successiva. La terza scaduta chiude davvero il round.
+    if (mode.type === 'IMAGE_BLUR' && mode.hasNextManche?.()) {
+      this.audioService.stopClock();
+      this.audioService.stopSuspense();
+      this.audioService.playTimeUp();
+      this.isSpinning.set(false);
+      this.revealPending.set(true);
+      setTimeout(() => {
+        this.revealPending.set(false);
+        this.showTimeoutPopup();
+        this.audioService.playReveal();
+        mode.nextManche?.();
+        this.timer.set(mode.getTimerValue());
+        const current = this.round();
+        if (current) this.round.set({ ...current, status: GamePhase.PLAYING });
+        this.publishImageBlurManche(mode);
+      }, REVEAL_DELAY_MS);
+      return;
+    }
+
     // L'Arena chiude da sola il round quando resta un solo giocatore:
     // evitiamo di completare il round due volte, ma il timer scaduto deve
     // comunque spegnere la suspense.
@@ -1877,6 +1905,22 @@ export class GameComponent implements OnInit, OnDestroy {
     this.resultPlayerName.set(playerName);
     this.showResultPopup.set(true);
 
+    // Indovina chi: la prima e la seconda manche non chiudono il round. La
+    // TV mostra il verdetto, poi apre la foto successiva e riarma i telefoni;
+    // la classifica e la chiusura arrivano solo dopo la terza.
+    if (mode.hasNextManche?.()) {
+      setTimeout(() => {
+        this.showResultPopup.set(false);
+        mode.nextManche?.();
+        this.timer.set(mode.getTimerValue());
+        const current = this.round();
+        if (current) this.round.set({ ...current, status: GamePhase.PLAYING });
+        this.audioService.playReveal();
+        this.publishImageBlurManche(mode);
+      }, 3000);
+      return;
+    }
+
     this.ws.broadcastStatus(this.currentGameId()!, {
       action: WsAction.ROUND_ENDED,
       winner: playerName,
@@ -1895,6 +1939,22 @@ export class GameComponent implements OnInit, OnDestroy {
 
 
     this.checkLeaderboardDisplay();
+  }
+
+  /** Nuova manche di Indovina chi: la TV mostra la foto e il telefono si riarma. */
+  private publishImageBlurManche(mode: any): void {
+    const data = this.getSafeDisplayData();
+    this.ws.broadcastStatus(this.currentGameId()!, {
+      action: WsAction.SHOW_QUESTION,
+      type: 'IMAGE_BLUR',
+      payload: JSON.stringify(data),
+      round: this.roundManager.getCurrentRound(),
+      roundTotal: this.roundManager.getTotalRounds(),
+      manche: data.manche,
+      mancheTotal: data.mancheTotal,
+      points: data.manchePoints,
+      category: data.categoryLabel,
+    });
   }
 
   /**

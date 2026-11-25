@@ -4,10 +4,23 @@ import {signal} from '@angular/core';
 import {GameModeBase} from '../../../shared/models/game-mode-base.class';
 import {GAME_TIMINGS} from '../../../shared/models/game-timings';
 import {GameModeResult, GameModeType} from '../../../shared/models/game-mode-type';
+import {IMAGE_BLUR_MANCHE_POINTS} from '../../../shared/models/scoring-rules';
+
+interface ImageBlurManche {
+  manche?: number;
+  imageUrl?: string;
+  imageFallback?: boolean;
+  correctAnswer?: string;
+  clues?: string[];
+  points?: number;
+  ambito?: number;
+  ambitoNome?: string;
+  categoryLabel?: string;
+}
 
 export class ImageBlurMode extends GameModeBase {
   readonly type: GameModeType = 'IMAGE_BLUR';
-  /** Round da 60 secondi: un indizio ogni 6, fino a otto in tutto. */
+  /** Ogni manche dura 60 secondi: un indizio ogni 15, quattro in tutto. */
   readonly timerDuration = GAME_TIMINGS.IMAGE_BLUR.seconds;
   readonly requiresBubbles = false;
   readonly requiresBuzz = true;
@@ -21,13 +34,52 @@ export class ImageBlurMode extends GameModeBase {
   private clueIndex = signal(0);
   private clueInterval?: any;
 
+  private basePayload: any = {};
+  private manches: ImageBlurManche[] = [];
+  private mancheIndex = signal(0);
+
   protected onInitialize(): void {
+    this.basePayload = { ...(this.payload ?? {}) };
+    const raw = Array.isArray(this.payload?.manches) ? this.payload.manches : [];
+    this.manches = raw.length ? raw : [this.basePayload];
+    this.applyManche(0);
+  }
+
+  /** Attiva una manche: foto, indizi e tetto punti cambiano insieme. */
+  private applyManche(index: number): void {
+    const safe = Math.max(0, Math.min(this.manches.length - 1, index));
+    this.mancheIndex.set(safe);
+    const manche = this.manches[safe] ?? {};
+    this.payload = { ...this.basePayload, ...manche };
     this.currentBlur.set(40);
     this.blurElapsedSeconds = 0;
-    this.clues = Array.isArray(this.payload?.clues)
-      ? this.payload.clues.map((clue: any) => String(clue)).filter((clue: string) => clue.length > 0)
+    this.clues = Array.isArray(manche.clues)
+      ? manche.clues.map((clue: any) => String(clue)).filter((clue: string) => clue.length > 0)
       : [];
     this.clueIndex.set(0);
+  }
+
+  /** True finché ci sono altre manche dopo quella corrente. */
+  hasNextManche(): boolean {
+    return this.mancheIndex() + 1 < this.manches.length;
+  }
+
+  /** Passa alla manche successiva senza chiudere il round. */
+  nextManche(): void {
+    if (!this.hasNextManche()) return;
+    this.stopBlurEffect();
+    this.stopClueEffect();
+    this.applyManche(this.mancheIndex() + 1);
+    this.revealed.set(false);
+    this.buzzedPlayer.set(null);
+    this.isActive.set(true);
+    this.isPaused.set(false);
+    this.timer.set(this.timerDuration);
+    this.startTimer();
+    this.startBlurEffect();
+    this.startClueEffect();
+    this.setQuestionOpen(true);
+    this.saveCheckpoint();
   }
 
   protected async onStart(): Promise<void> {
@@ -64,6 +116,14 @@ export class ImageBlurMode extends GameModeBase {
     const clue = Math.max(Number.isInteger(rawClue) && rawClue >= 0 ? rawClue : 0, derived);
     this.clueIndex.set(this.clues.length ? Math.min(this.clues.length - 1, clue) : 0);
 
+    const savedManche = Number(state.mancheIndex);
+    if (Number.isInteger(savedManche) && savedManche > 0) {
+      this.applyManche(savedManche);
+      this.blurElapsedSeconds = Math.min(this.timerDuration, Math.floor(elapsed));
+      this.currentBlur.set(this.blurFor(this.blurElapsedSeconds));
+      this.clueIndex.set(this.clues.length ? Math.min(this.clues.length - 1, clue) : 0);
+    }
+
     this.revealed.set(false);
     this.buzzedPlayer.set(null);
     this.isActive.set(true);
@@ -87,6 +147,7 @@ export class ImageBlurMode extends GameModeBase {
       type: this.type,
       revision: Date.now(),
       state: {
+        mancheIndex: this.mancheIndex(),
         blurElapsedSeconds: this.blurElapsedSeconds,
         clueIndex: this.clueIndex(),
         savedAt: Date.now(),
@@ -154,13 +215,9 @@ export class ImageBlurMode extends GameModeBase {
     
     const decayRatio = Math.max(0, 1 - (elapsedMs / maxTimeMs));
 
-    if (isCorrect) {
-      
-      return Math.round(1000 * decayRatio);
-    } else {
-      
-      return Math.round(-1000 * decayRatio);
-    }
+    const maxPoints = Number(this.payload?.points ?? this.manches[this.mancheIndex()]?.points
+      ?? IMAGE_BLUR_MANCHE_POINTS[this.mancheIndex()] ?? IMAGE_BLUR_MANCHE_POINTS[0]);
+    return Math.round((isCorrect ? maxPoints : -maxPoints) * decayRatio);
   }
 
   
@@ -226,6 +283,10 @@ export class ImageBlurMode extends GameModeBase {
       clue: this.clues[this.clueIndex()] ?? null,
       clueIndex: this.clueIndex() + 1,
       clueTotal: this.clues.length,
+      manche: this.mancheIndex() + 1,
+      mancheTotal: this.manches.length,
+      categoryLabel: this.payload.categoryLabel ?? this.payload.ambitoNome ?? this.payload.category ?? '',
+      manchePoints: Number(this.payload.points ?? IMAGE_BLUR_MANCHE_POINTS[this.mancheIndex()] ?? 0),
       correctAnswer: this.revealed() ? this.payload.correctAnswer : null
     };
   }

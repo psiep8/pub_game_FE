@@ -27,6 +27,40 @@
   flex-shrink: 0;
 }
 
+.blur-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.blur-meta span {
+  padding: 4px 9px;
+  border: 2px solid var(--coal);
+  font-family: var(--font-mono);
+  font-size: clamp(0.58rem, 0.9vw, 0.74rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.blur-manche {
+  background: var(--coal);
+  color: var(--paper-hi);
+}
+
+.blur-category {
+  background: var(--paper-hi);
+  color: var(--coal);
+}
+
+.blur-points {
+  background: var(--acid);
+  color: var(--coal);
+}
+
 .reservation-alert {
   display: flex;
   align-items: center;

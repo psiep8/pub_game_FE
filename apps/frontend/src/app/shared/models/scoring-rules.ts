@@ -24,6 +24,17 @@ export function signedPoints(value: number): string {
 /** Punti del brano secondo la manche in cui si risponde (1-based). */
 export const MUSIC_MANCHE_POINTS = [1000, 750, 500, 250] as const;
 
+/**
+ * Indovina chi: tre manche, una per ambito della banca Celebrità. Il tetto
+ * scende perché la foto diventa più riconoscibile e la manche vale meno.
+ */
+export const IMAGE_BLUR_MANCHE_POINTS = [1000, 750, 500] as const;
+export const IMAGE_BLUR_MANCHE_CATEGORIES = [
+  'Storia, Arte, Scienza, Letteratura',
+  'Musica',
+  'Sport, Cinema, TV, Spettacolo',
+] as const;
+
 /** Timeline: indice = posti giusti su otto. */
 export const TIMELINE_POSITION_POINTS = [
   -200, -200, -100, -50, 0, 100, 200, 300, 400,
@@ -74,10 +85,10 @@ export const SCORING_RULES: Record<Exclude<GameModeType, 'BLACKJACK'>, ScoringRu
     note: `Il round vale 1000 punti in tutto, divisi fra le tre manches dal mix di difficoltà: tre diverse pagano 200 / 350 / 450, due uguali più una lasciano 250 alle più facili e il resto alle altre, tre uguali valgono 333 / 333 / 334. Ogni manche dura 15 secondi e la quota scala col tempo: rispondere subito vale il tetto, all'ultimo secondo zero. La sbagliata toglie la stessa quota scalata, quindi il round va da −1000 a +1000; chi non risponde prende 0. Il voto lo registra il server (QuizService).`,
   },
   IMAGE_BLUR: {
-    correct: '+1000 × tempo rimasto',
-    wrong: '−1000 × tempo rimasto',
+    correct: `+${IMAGE_BLUR_MANCHE_POINTS[0]} / +${IMAGE_BLUR_MANCHE_POINTS[1]} / +${IMAGE_BLUR_MANCHE_POINTS[2]} secondo la manche`,
+    wrong: `−${IMAGE_BLUR_MANCHE_POINTS[0]} / −${IMAGE_BLUR_MANCHE_POINTS[1]} / −${IMAGE_BLUR_MANCHE_POINTS[2]} secondo la manche`,
     missed: '0 (nessun malus)',
-    note: 'L’immagine si schiarisce con il tempo: prima si prenota, più punti vale.',
+    note: `Tre manche da 60 secondi, una per ambito: ${IMAGE_BLUR_MANCHE_CATEGORIES.join(' · ')}. Ogni manche vale ${IMAGE_BLUR_MANCHE_POINTS.map(signedPoints).join(' / ')} in proporzione al tempo rimasto: prima si prenota, più punti vale. Le tre manche si sommano, da −${IMAGE_BLUR_MANCHE_POINTS.reduce((a, b) => a + b, 0)} a +${IMAGE_BLUR_MANCHE_POINTS.reduce((a, b) => a + b, 0)}.`,
   },
   MUSIC: {
     correct: `${signedPoints(MUSIC_MANCHE_POINTS[0])} alla prima manche, poi ${MUSIC_MANCHE_POINTS.slice(1).map(signedPoints).join(' / ')}`,

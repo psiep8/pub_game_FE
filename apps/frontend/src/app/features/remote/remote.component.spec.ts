@@ -51,6 +51,24 @@ describe('RemoteComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('Indovina chi: ogni nuova manche riarma il pulsante PRENOTATI', () => {
+    ws.status$.next({
+      action: 'SHOW_QUESTION', type: 'IMAGE_BLUR', round: 7, manche: 1,
+      payload: JSON.stringify({ manche: 1, mancheTotal: 3, categoryLabel: 'Musica' }),
+    });
+    expect(component.imageManche()).toBe(1);
+    expect(component.hasAnswered()).toBe(false);
+
+    component.hasAnswered.set(true);
+    ws.status$.next({
+      action: 'SHOW_QUESTION', type: 'IMAGE_BLUR', round: 7, manche: 2,
+      payload: JSON.stringify({ manche: 2, mancheTotal: 3, categoryLabel: 'Sport, Cinema, TV, Spettacolo' }),
+    });
+
+    expect(component.imageManche()).toBe(2);
+    expect(component.hasAnswered()).toBe(false);
+  });
+
   it('ordina le corsie live: prima chi è arrivato, poi chi ha più strada', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();

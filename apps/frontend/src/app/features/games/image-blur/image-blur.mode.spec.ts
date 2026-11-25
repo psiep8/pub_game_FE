@@ -75,6 +75,46 @@ describe('ImageBlurMode', () => {
 
     expect(mode.timerDuration).toBe(60);
   });
+
+  it('tre manche, una per ambito, con punti diversi e il telefono che si riarma', () => {
+    vi.useFakeTimers();
+    const manches = [
+      { manche: 1, ambto: 1, categoryLabel: 'Storia, Arte, Scienza, Letteratura', points: 1000, correctAnswer: 'Einstein', imageUrl: '/a.jpg', clues: ['fisico tedesco'] },
+      { manche: 2, ambto: 2, categoryLabel: 'Musica', points: 750, correctAnswer: 'Mina', imageUrl: '/b.jpg', clues: ['cantante italiana'] },
+      { manche: 3, ambto: 3, categoryLabel: 'Sport, Cinema, TV, Spettacolo', points: 500, correctAnswer: 'Sophia Loren', imageUrl: '/c.jpg', clues: ['attrice italiana'] },
+    ];
+    const mode = new ImageBlurMode();
+    mode.setConfig({ type: 'IMAGE_BLUR', payload: { manches }, gameId: 1, activePlayers: ['Anna'] });
+    mode.initialize({ manches });
+
+    expect(mode.getDisplayData()).toMatchObject({
+      manche: 1, mancheTotal: 3, categoryLabel: 'Storia, Arte, Scienza, Letteratura', manchePoints: 1000,
+    });
+    expect(mode.hasNextManche()).toBe(true);
+    expect(mode.pointsFor(true, 0)).toBe(1000);
+
+    mode.nextManche();
+    expect(mode.getDisplayData()).toMatchObject({ manche: 2, categoryLabel: 'Musica', manchePoints: 750 });
+    expect(mode.pointsFor(true, 0)).toBe(750);
+
+    mode.nextManche();
+    expect(mode.getDisplayData()).toMatchObject({ manche: 3, categoryLabel: 'Sport, Cinema, TV, Spettacolo', manchePoints: 500 });
+    expect(mode.hasNextManche()).toBe(false);
+
+    mode.cleanup();
+  });
+
+  it('scala i punti della manche sul tempo rimasto', () => {
+    const mode = new ImageBlurMode();
+    const manches = [{ manche: 1, points: 1000, correctAnswer: 'Einstein', clues: ['fisico'] }];
+    mode.setConfig({ type: 'IMAGE_BLUR', payload: { manches }, gameId: 1 });
+    mode.initialize({ manches });
+
+    expect(mode.pointsFor(true, 30_000)).toBe(500);
+    expect(mode.pointsFor(false, 30_000)).toBe(-500);
+
+    mode.cleanup();
+  });
 });
 
 describe('ImageBlurMode — ripresa dopo un refresh della TV', () => {

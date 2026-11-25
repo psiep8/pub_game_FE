@@ -102,7 +102,7 @@ class AzzardoMediaServiceTest {
     void laFotoLocaleNonChiamaWikipedia() {
         LocalMediaBankService.Person person = new LocalMediaBankService.Person(
                 "Albert Einstein", "/media/people/albert-einstein.jpg",
-                "fisico tedesco", "Teoria della relatività.");
+                "fisico tedesco", "Teoria della relatività.", "Scienza");
         when(local.person("Albert Einstein")).thenReturn(Optional.of(person));
         when(local.hasPeople()).thenReturn(true);
         when(local.url("/media/people/albert-einstein.jpg"))

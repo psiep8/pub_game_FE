@@ -351,6 +351,21 @@ public class QuestionBankService {
     public static String payloadDedupeKey(String jsonPayload) {
         try {
             JSONObject obj = new JSONObject(jsonPayload);
+            JSONArray manches = obj.optJSONArray("manches");
+            if (manches != null && !manches.isEmpty()) {
+                // Indovina chi: la chiave copre tutte e tre le manches, non solo
+                // la prima foto, altrimenti due pacchetti simili collidono.
+                StringBuilder signature = new StringBuilder();
+                for (int index = 0; index < manches.length(); index++) {
+                    JSONObject manche = manches.optJSONObject(index);
+                    if (manche == null) continue;
+                    signature.append(manche.optString("manche", "")).append('|')
+                            .append(manche.optString("correctAnswer", "")).append('|')
+                            .append(manche.optString("points", "")).append('|');
+                }
+                return "manches|" + UUID.nameUUIDFromBytes(
+                        signature.toString().getBytes(StandardCharsets.UTF_8));
+            }
             JSONArray rounds = obj.optJSONArray("rounds");
             if (rounds != null && !rounds.isEmpty()) {
                 // Ultima spiaggia contiene piu domande: la chiave deve descrivere
@@ -914,6 +929,13 @@ public class QuestionBankService {
         return Optional.empty();
     }
 
+    /** I tre ambiti della banca Celebrità, nell'ordine delle manche. */
+    private static final List<String> IMAGE_BLUR_AMBIT_NAMES = List.of(
+            "Storia, Arte, Scienza, Letteratura",
+            "Musica",
+            "Sport, Cinema, TV, Spettacolo");
+    private static final int[] IMAGE_BLUR_MANCHE_POINTS = { 1000, 750, 500 };
+
     /**
      * Volto da indovinare: il pool è la banca Celebrità — oltre centosettanta
      * persone, ognuna con quattro indizi e la fonte — e non le sei domande
@@ -926,17 +948,95 @@ public class QuestionBankService {
         if (people.isEmpty()) {
             return fromBank(category, "IMAGE_BLUR", isAvailable);
         }
-        Collections.shuffle(people, random);
+
+        // Una persona per ambito: tre manche con categorie davvero diverse.
+        // Chi non ha la categoria nel file media resta nel gruppo di riserva e
+        // viene usato solo se un ambito è rimasto senza nomi.
+        Map<Integer, List<String>> byAmbit = new LinkedHashMap<>();
+        for (int ambit = 1; ambit <= 3; ambit++) {
+            byAmbit.put(ambit, new ArrayList<>());
+        }
+        List<String> spare = new ArrayList<>();
         for (String name : people) {
+            int ambit = localMedia.person(name)
+                    .map(person -> ambitForCategory(person.category()))
+                    .orElse(0);
+            if (ambit >= 1 && ambit <= 3) {
+                byAmbit.get(ambit).add(name);
+            } else {
+                spare.add(name);
+            }
+        }
+        byAmbit.values().forEach(group -> Collections.shuffle(group, random));
+        Collections.shuffle(spare, random);
+
+        List<String> chosen = new ArrayList<>(3);
+        for (int ambit = 1; ambit <= 3; ambit++) {
+            for (String name : byAmbit.get(ambit)) {
+                if (!chosen.contains(name)) {
+                    chosen.add(name);
+                    break;
+                }
+            }
+        }
+        for (String name : spare) {
+            if (chosen.size() >= 3) break;
+            if (!chosen.contains(name)) chosen.add(name);
+        }
+        for (String name : people) {
+            if (chosen.size() >= 3) break;
+            if (!chosen.contains(name)) chosen.add(name);
+        }
+        if (chosen.size() < 3) {
+            return fromBank(category, "IMAGE_BLUR", isAvailable);
+        }
+
+        JSONArray manches = new JSONArray();
+        for (int index = 0; index < 3; index++) {
+            String name = chosen.get(index);
             BankQuestion question = new BankQuestion(
                     "volto:" + name, "Celebrità", "IMAGE_BLUR", "facile", "",
                     "Chi è questa persona?", name, List.of(), null);
-            Optional<String> payload = toPayload(question);
-            if (payload.isPresent() && isAvailable.test(payloadDedupeKey(payload.get()))) {
-                return payload.get();
-            }
+            Optional<String> single = toPayload(question);
+            if (single.isEmpty()) continue;
+            JSONObject manche = new JSONObject(single.get());
+            manche.put("manche", index + 1);
+            manche.put("ambito", index + 1);
+            manche.put("ambitoNome", IMAGE_BLUR_AMBIT_NAMES.get(index));
+            manche.put("categoryLabel", IMAGE_BLUR_AMBIT_NAMES.get(index));
+            manche.put("points", IMAGE_BLUR_MANCHE_POINTS[index]);
+            manches.put(manche);
+        }
+        if (manches.length() < 3) {
+            return fromBank(category, "IMAGE_BLUR", isAvailable);
+        }
+
+        JSONObject payload = new JSONObject(manches.getJSONObject(0).toString());
+        payload.put("type", "IMAGE_BLUR");
+        payload.put("category", "Celebrità");
+        payload.put("categoryLabel", IMAGE_BLUR_AMBIT_NAMES.get(0));
+        payload.put("question", "Chi è questa persona?");
+        payload.put("manches", manches);
+        payload.put("totalManches", manches.length());
+        payload.put("manche", 1);
+        String serialized = payload.toString();
+        // Stessa deduplica delle altre modalità: se il pacchetto di tre volti è
+        // già uscito si ripiega sulla banca fissa invece di ripeterlo.
+        if (isAvailable.test(payloadDedupeKey(serialized))) {
+            return serialized;
         }
         return fromBank(category, "IMAGE_BLUR", isAvailable);
+    }
+
+    /** Categoria della banca media → uno dei tre ambiti delle manche. */
+    private static int ambitForCategory(String category) {
+        String value = category == null ? "" : category.trim().toLowerCase(Locale.ROOT);
+        return switch (value) {
+            case "musica" -> 2;
+            case "sport", "cinema", "televisione", "tv", "spettacolo" -> 3;
+            case "storia", "arte", "scienza", "letteratura" -> 1;
+            default -> 0;
+        };
     }
 
     private List<BankQuestion> candidates(String category, String type) {

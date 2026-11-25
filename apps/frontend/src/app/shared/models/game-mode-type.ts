@@ -126,8 +126,10 @@ export interface IGameMode {
   applyArenaAnswer?(playerName: string, isCorrect: boolean, points: number, eventSeq?: number): boolean | void;
   /** Timeline, Speed Rush, Tennis: eventi dal server o dai telefoni. */
   handlePartyEvent?(event: any): void;
-  /** Canzone: la manche successiva parte solo su comando dell'admin. */
+  /** Canzone e Indovina chi: la manche successiva parte solo su comando dell'admin. */
   nextManche?(): void;
+  /** Indovina chi: true se dopo questa manche ce n'è un'altra. */
+  hasNextManche?(): boolean;
   /** Quiz: applica l'esito calcolato dal server; false se era già applicato. */
   applyServerAnswer?(result: any): boolean;
 }

@@ -1,6 +1,14 @@
 <div class="image-blur-layout">
   <h1 class="blur-title">RICONOSCI LA CELEBRITÀ?</h1>
 
+  @if (displayData.manche) {
+    <div class="blur-meta">
+      <span class="blur-manche">MANCHE {{ displayData.manche }}/{{ displayData.mancheTotal }}</span>
+      <span class="blur-category">{{ displayData.categoryLabel }}</span>
+      <span class="blur-points">+{{ displayData.manchePoints }} PT</span>
+    </div>
+  }
+
   @if (displayData.buzzedPlayer) {
     <div class="reservation-alert" @fadeInOut>
       <span class="alert-name">{{ displayData.buzzedPlayer }}</span>
