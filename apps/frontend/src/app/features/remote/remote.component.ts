@@ -333,6 +333,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
   /** Manche per cui il via ha già armato il tasto: lo stato del tabellone non lo disarma. */
   private buzzArmedManche = 0;
   buzzTotal = signal(3);
+  /** F-20: il bersaglio resta sul telefono durante il 3-2-1, per memorizzarlo. */
+  buzzTargetMs = signal(0);
   buzzError = signal('');
   private buzzStartedAt = 0;
 
@@ -780,6 +782,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
             const state = status.state;
             const manche = Number(state.manche ?? 0);
             this.buzzTotal.set(Number(state.total) || 3);
+            this.buzzTargetMs.set(Number(state.targetMs) || 0);
             if (manche !== this.buzzManche()) {
               // La manche cambia l'etichetta, non il tasto: l'armo lo fa il via.
               this.buzzManche.set(manche);
@@ -2161,6 +2164,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
 
   // ------------------------------------------------- Giochi simultanei
+
+  /** F-20: tempo da memorizzare sul telefono, formato mm:ss.cc come la TV. */
+  formatBuzzTarget(): string {
+    const centiseconds = Math.max(0, Math.round(this.buzzTargetMs() / 10));
+    const seconds = Math.floor(centiseconds / 100);
+    const cs = centiseconds % 100;
+    return `${String(seconds).padStart(2, '0')}:${String(cs).padStart(2, '0')}`;
+  }
 
   private parsePayload(payload: any): any {
     if (!payload) return {};

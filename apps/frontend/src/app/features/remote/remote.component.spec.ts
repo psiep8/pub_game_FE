@@ -392,6 +392,23 @@ describe('RemoteComponent', () => {
     expect(fixture.nativeElement.querySelector('.buzz-live')?.textContent).toContain('VIA!');
   });
 
+  it('F-20: il tempo da memorizzare resta sul telefono durante il 3-2-1', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+
+    ws.status$.next({ action: 'START_VOTING', type: 'TIME_BUZZER' });
+    ws.status$.next({
+      action: 'TIME_BUZZER_STATE',
+      state: { manche: 1, total: 3, targetMs: 7340, phase: 'countdown' },
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.formatBuzzTarget()).toBe('07:34');
+    expect(fixture.nativeElement.querySelector('.buzz-target-value')?.textContent).toContain('07:34');
+  });
+
   it('torna al setup quando la regia espelle la squadra', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();

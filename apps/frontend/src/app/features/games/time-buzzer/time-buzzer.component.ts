@@ -24,13 +24,16 @@ import { AudioService } from '../../../core/services/audio.service';
         @if (phase() === 'spin') {
           <div class="tb-clock tb-clock-spin">{{ spinText() }}</div>
           <div class="tb-clock-label">TEMPO IN ARRIVO…</div>
-        } @else if (countdown() > 0) {
-          <div class="tb-clock tb-countdown">{{ countdown() }}</div>
-          <div class="tb-clock-label">BERSAGLIO {{ format(displayData?.targetMs) }}</div>
         } @else {
+          <!-- F-20: il bersaglio non sparisce mai; il 3-2-1 gli sta sotto. -->
           <div class="tb-clock">{{ format(displayData?.targetMs) }}</div>
           <div class="tb-clock-label">TEMPO BERSAGLIO</div>
-          <div class="tb-clock-note">IL CONTEGGIO PARTE AL VIA!</div>
+          @if (countdown() > 0) {
+            <div class="tb-countdown">{{ countdown() }}</div>
+            <div class="tb-clock-label">SI PARTE…</div>
+          } @else {
+            <div class="tb-clock-note">IL CONTEGGIO PARTE AL VIA!</div>
+          }
         }
       </div>
 
@@ -89,8 +92,9 @@ import { AudioService } from '../../../core/services/audio.service';
     .tb-clock-note { color: var(--coal); font-family: var(--font-mono); font-size: clamp(.55rem, .8vw, .72rem); font-weight: 700; letter-spacing: .18em; opacity: .7; }
     .tb-clock-label { color: var(--tomato); font-family: var(--font-mono); font-size: clamp(.55rem, .8vw, .72rem); font-weight: 700; letter-spacing: .2em; }
     .tb-clock-spin { color: var(--tomato); }
-    .tb-countdown { color: var(--tomato); font-size: clamp(6rem, 16vw, 13rem); }
-    .tb-go { position: absolute; top: 50%; left: 50%; z-index: 5; padding: clamp(6px, 1.2vh, 14px) clamp(28px, 6vw, 72px); background: var(--acid); color: var(--coal); border: 4px solid var(--coal); box-shadow: 14px 14px 0 var(--tomato); font-family: var(--font-display); font-size: clamp(3rem, 9vw, 7rem); font-weight: 400; line-height: 1; letter-spacing: .1em; text-transform: uppercase; transform: translate(-50%, -50%) rotate(-3deg); text-align: center; }
+    .tb-countdown { color: var(--tomato); font-size: clamp(2rem, 6vh, 3.6rem); line-height: 1; }
+    /* F-20: il timbro VIA sta sotto il cronometro, non lo copre. */
+    .tb-go { padding: clamp(4px, .8vh, 10px) clamp(20px, 4vw, 48px); background: var(--acid); color: var(--coal); border: 4px solid var(--coal); box-shadow: 8px 8px 0 var(--tomato); font-family: var(--font-display); font-size: clamp(2rem, 5vw, 4rem); font-weight: 400; line-height: 1; letter-spacing: .1em; text-transform: uppercase; transform: rotate(-2deg); text-align: center; }
     .tb-hint { max-width: 900px; margin: 0; color: var(--ink-dim); font-family: var(--font-mono); font-size: clamp(.66rem, .95vw, .86rem); text-align: center; }
 
     .tb-results { width: min(900px, 94vw); display: flex; flex-direction: column; gap: 6px; }

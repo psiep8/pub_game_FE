@@ -287,6 +287,11 @@
       <div class="game-head"><span class="game-tag buzz">TIME BUZZER</span><span class="game-tip">Manche {{ buzzManche() || 1 }}/{{ buzzTotal() }}</span></div>
       @if (buzzPhase() === 'running') {
       <span class="buzz-live" role="status">VIA! FERMA ORA</span>
+      } @else if (buzzTargetMs() > 0) {
+      <div class="buzz-target" role="status">
+        <span class="buzz-target-label">TEMPO DA MEMORIZZARE</span>
+        <b class="buzz-target-value">{{ formatBuzzTarget() }}</b>
+      </div>
       }
       <button class="buzz-btn" [class.running]="buzzPhase() === 'running'" [class.sent]="buzzPhase() === 'sent'"
         [disabled]="buzzPhase() !== 'running'" (click)="toggleBuzz()">
