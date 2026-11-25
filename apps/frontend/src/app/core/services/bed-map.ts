@@ -78,8 +78,10 @@ export const GAME_BEDS: Record<GameModeType, GameBed> = {
   TIMELINE: BED_LOOPS['gioco-timeline'],
   ULTIMA_SPIAGGIA: BED_LOOPS['gioco-ultima-spiaggia'],
   ARENA: BED_LOOPS['gioco-arena'],
-  // F-19: tappeto leggero dal catalogo, proprietà del gioco.
-  TIME_BUZZER: BED_LOOPS['gioco-timeline'],
+  // F-19: il Time Buzzer non ha un file suo e non può prendere in prestito
+  // quello della Timeline (nello stesso atto sarebbero un alias): resta sulla
+  // base d'atto, che è già in memoria.
+  TIME_BUZZER: ACT_BASE,
   BOMBA: BED_LOOPS['gioco-bomba'],
   SPEED_RUSH: BED_LOOPS['gioco-speed-rush'],
   TENNIS_BATTLE: BED_LOOPS['gioco-tennis'],

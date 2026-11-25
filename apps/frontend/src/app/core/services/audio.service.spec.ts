@@ -197,13 +197,14 @@ describe('AudioService — giochi muti', () => {
     expect(started()).toEqual([]);
   });
 
-  it('il Time Buzzer porta il suo sottofondo anche dopo un altro gioco', () => {
+  it('il Time Buzzer resta sulla base d’atto anche dopo un altro gioco', () => {
     audio.setGameBed('BOMBA');
     calls.length = 0;
 
     audio.setGameBed('TIME_BUZZER');
 
-    expect(started()).toEqual(['start-bed:loop/gioco-timeline.m4a']);
+    // Senza atto aperto la base di ripiego è la lobby, non il jazz abbassato.
+    expect(started()).toEqual(['start-bed:loop/lobby.m4a']);
   });
 
   it('dopo la pausa un gioco muto resta muto', () => {
