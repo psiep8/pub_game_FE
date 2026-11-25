@@ -417,6 +417,7 @@ media), run CI #155 verde prima di questo job, screenshot del README rifatti.
 | F-07.2 — Tennis: difficoltà crescente più in fretta | Fatto | `001dfd7` | `tennis-battle.mode.spec.ts`: EASY 0–1, MEDIUM 2–4, HARD dal 5 (vecchia: EASY 0–2, MEDIUM 3–7, HARD dall'8) |
 | F-07.3 — Tennis: killer point dopo tre vantaggi | Fatto | `581461d` | `tennis-battle.mode.spec.ts`: dopo 3 vantaggi scatta il killer point; il vecchio contatore si azzerava e i vantaggi erano infiniti |
 | F-07.4 — Tennis: partita al meglio di 3 game (vince chi fa 2) e 40-40 → killer point diretto | Fatto | `555ccc9` | `tennis-battle.mode.spec.ts`: il primo game non chiude, il secondo sì; sul 40-40 scatta subito il killer point; campo chiuso che ignora nuove risposte |
+| F-30 — Arena: salto indietro esagerato sull’errore | Fatto | `f9e7f94` | `arena.mode.spec.ts`: risposta sbagliata +6 (era +12); inattività invariata |
 | F-13 — «Rullo di tamburi» senza suono | Fatto | `3e68d09` | `quiz.component.spec.ts`: le scritte visibili dicono «IN ATTESA…» |
 | F-12 — Fine gioco: ripartenza troppo vicina | Fatto | `add3ca1` | `game.component.spec.ts`: 30 s di attesa, AVANTI spento col conto, SALTA ATTESA/ESC portano al round dopo, pausa che ferma e ripresa che continua |
 | F-11 — Lag nelle animazioni di entrata/uscita | Parziale | `775b496` | Regola CSS: i livelli `alive` vanno in pausa durante `stage-entrance` e `stage-exit` (`alive.css`, test in `alive.spec.ts`). Misura dei fotogrammi a 1280×720 con CPU 4× NON eseguita. |
