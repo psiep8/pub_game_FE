@@ -55,6 +55,8 @@ pannello admin e in TV, nei momenti previsti dal gioco.
 | **🎵 PROSSIMA MANCHE** | Passa alla manche successiva di un gioco a manche (es. Time Buzzer). | Solo dentro un gioco che ha più manche. |
 | **🏆 MOSTRA CLASSIFICA** | Mostra in TV la classifica rapida. | Per anticipare la classifica senza aspettare la fine dell'atto. |
 | **⏸️ PAUSA / RIPRENDI** | Ferma il gioco: la TV copre tutto e i timer si fermano. | Per un imprevisto. Riprendi quando è tutto pronto. |
+| **PAUSA ATTO (MIN) · ▶️ RIPRENDI ATTO** | Imposta una pausa lunga con timer facoltativo; alla ripresa la TV mostra la classifica. | Per la pausa tra un atto e l’altro. |
+| **♻️ RIAVVIA BONUS** | Riavvia il bonus in corso senza toccare la classifica. Compare con `?debug=1`. | Per provare il Cavallo o recuperare un bonus bloccato. |
 | **↺ RIVEDI INTRO** | Riporta in TV la presentazione iniziale. | Per ripetere le regole all'inizio della serata. |
 | **🎄 NATALE ON / OFF** | Attiva o spegne il tema natalizio. | Solo per scelta estetica. Non cambia i punti. |
 | **🎰 BONUS CASINO** · **🃏 BONUS BLACKJACK** · **🐎 BONUS CAVALLO** | Avvia il bonus dell’atto: colore, Blackjack, dozzina, Cavallo o numero secco. | La TV lo apre da sola in un round interno dell’atto; qui serve solo per lanciarlo a mano. |

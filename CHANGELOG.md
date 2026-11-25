@@ -6,6 +6,10 @@ Versione **3.0.0** in tutto il monorepo. Nessun cambio a percorsi, volumi,
 database, variabili d’ambiente o chiavi di archiviazione: cambia solo il nome
 visibile, che ora è **quizzOne**.
 
+Questa release assorbe anche la **2.5.0**, mai distribuita: audio a canali,
+regia scenica, vita della scena, bonus a sorpresa, telefono, Tennis TV e tempi
+nuovi. I dettagli restano nella sezione 2.5.0 qui sotto, come storia.
+
 - **Q-01 Cavallo.** `?debug=1` su TV e regia mostra i segnali del bonus
   (`bonusDebug`, `lastBonusAction`, `bonusGuardReason`) e il pulsante
   **RIAVVIA BONUS**, che azzera il bonus senza toccare la classifica.
