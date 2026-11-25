@@ -201,6 +201,10 @@ export class MusicMode extends GameModeBase {
   }
 
   protected onResume(): void {
+    // La manche ha il suo cronometro: quello della modalità base non deve
+    // girare in parallelo, altrimenti dopo un ERRATO il tempo scende doppio e
+    // il vecchio intervallo chiude il round da solo a metà manche.
+    this.stopTimer();
     if (this.currentManche > 0) {
       this.playAudio();
       this.startMancheCountdown();

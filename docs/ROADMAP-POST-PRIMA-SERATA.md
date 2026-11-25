@@ -409,3 +409,4 @@ media), run CI #155 verde prima di questo job, screenshot del README rifatti.
 | Voce | Stato | Commit | Test |
 | --- | --- | --- | --- |
 | F-02 — Biglie assenti dalla partita a un round per gioco | Fatto | `1c3e594` | `round-manager.service.spec.ts`: la scaletta simulata copre tutti e 14 i giochi, BIGLIE comprese |
+| F-03 — Musica: dopo ERRATO il round si chiudeva da solo | Fatto | `3d01d0b` | `music.mode.spec.ts`: un solo tick per secondo dopo l'ERRATO, manche riaperta e round non chiuso |

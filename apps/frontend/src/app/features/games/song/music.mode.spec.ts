@@ -82,6 +82,34 @@ describe('MusicMode', () => {
     mode.cleanup();
   });
 
+  it('dopo un ERRATO riapre la stessa manche con un solo cronometro', async () => {
+    vi.useFakeTimers();
+    const mode = createMode();
+
+    await mode.start();
+    await vi.advanceTimersByTimeAsync(5000);
+    const frozen = mode.getTimerValue();
+    mode.handleBuzz('Anna');
+    mode.confirmWrong('Anna');
+
+    // La prenotazione si riapre sulla stessa manche, senza chiudere il round.
+    expect(mode.getDisplayData().buzzedPlayer).toBeNull();
+    expect(mode.canBuzz()).toBe(true);
+    expect(mode.getDisplayData().currentPhase).toBe(1);
+
+    // Un solo secondo, un solo tick: il cronometro della modalità base non deve
+    // girare insieme a quello della manche.
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(mode.getTimerValue()).toBe(frozen - 1);
+
+    // La manche finisce, il round no: niente «canzone indovinata» a comando.
+    await vi.advanceTimersByTimeAsync((frozen - 1) * 1000);
+    expect(mode.getDisplayData().revealed).toBe(false);
+    expect(mode.getDisplayData().waitingForStart).toBe(true);
+
+    mode.cleanup();
+  });
+
   describe('ripresa dopo un refresh della TV', () => {
     it('salva la manche appena parte con i secondi pieni', async () => {
       const checkpoints: any[] = [];
