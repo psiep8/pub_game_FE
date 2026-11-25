@@ -81,8 +81,8 @@ Le schermate dei bonus vengono dalle route reali dei componenti (`/bonus-preview
 
 | Bonus | Bonus |
 |---|---|
-| **Casino nero/rosso**<br>![Bonus Casino nero/rosso](docs/screenshots/readme/bonus-casino-720p.png) | **Blackjack**<br>![Bonus Blackjack](docs/screenshots/readme/bonus-blackjack-720p.png) |
-| **Casino dozzina**<br>![Bonus Casino dozzina](docs/screenshots/readme/bonus-dozzina-720p.png) | **Cavallo di battaglia**<br>![Bonus Cavallo](docs/screenshots/readme/bonus-cavallo-720p.png) |
+| **Karaoke**<br>![Bonus Karaoke](docs/screenshots/readme/bonus-karaoke-tv-720p.png) | **Blackjack**<br>![Bonus Blackjack](docs/screenshots/readme/bonus-blackjack-720p.png) |
+| **Casino 5 manche**<br>![Bonus Casino 5 manche](docs/screenshots/readme/bonus-casino5-720p.png) | **Cavallo di battaglia**<br>![Bonus Cavallo](docs/screenshots/readme/bonus-cavallo-720p.png) |
 | **Casino numero secco**<br>![Bonus Casino numero secco](docs/screenshots/readme/bonus-numero-720p.png) | |
 
 ### Galleria: telefoni e regia
@@ -148,15 +148,15 @@ flowchart LR
 
 1. **Quando.** Il seme della serata sceglie uno slot interno per ogni atto (2, 3, 5, 6 o 7). Il bonus non è un round della scaletta: si apre dopo il round scelto e non consuma un numero.
 2. **Introduzione.** La TV annuncia il bonus dell’atto; i telefoni mostrano la pulsantiera dedicata. Il presentatore può lanciarlo anche a mano dalla regia.
-3. **Gioco.** Casino, dozzina e numero secco fanno tre girate con scelta entro dieci secondi; Blackjack dà un turno per tavolo; il Cavallo fa votare la categoria e pone otto domande flash.
+3. **Gioco.** Il Karaoke fa cantare cinque manche con la clip che si ferma a fine riga; il Casino 5 manche fa colore, dozzina, parità, alto/basso e numero (una girata ciascuno, scelta entro dieci secondi); il numero secco tiene lo stesso numero per tre girate; Blackjack dà un turno per tavolo; il Cavallo fa votare la categoria e pone otto domande flash.
 4. **Chiusura.** La TV mostra il risultato. I punti Casino entrano in classifica una sola volta, alla chiusura; nessun bonus toglie punti. Blackjack e Cavallo non danno punti: il premio concordato con il bar lo consegnano barista e presentatore.
 5. **Dopo.** La serata riprende dal round successivo; dopo il bonus dell’atto 5 si chiude con la classifica finale.
 
 ### Flusso per bonus
 
-- **Casino nero/rosso** — tre girate; a ogni girata il telefono sceglie **NERO** o **ROSSO** entro dieci secondi, poi la ruota gira. Colore giusto **+100** a girata, massimo **+300**; zero o colore sbagliato 0.
+- **Karaoke** — cinque manche da una banca di 64 canzoni (29 con testo sincronizzato su questa macchina), pescate senza ripetizioni con il seed della partita. La clip si ferma a fine riga, in TV restano la riga corrente e quella appena passata con le parole che si anneriscono seguendo la voce. Il primo tavolo che prenota prende il microfono fisico e canta le frasi successive; la regia dice **CORRETTO** o **SBAGLIATO**. Sbagliare non toglie punti, blocca il tavolo per la manche e riapre le prenotazioni.
 - **Blackjack** — un turno per tavolo contro il banco TV; il banco si ferma a 17. Telefono: **CARTA** o **STAI** entro 15 secondi, poi la TV apre le carte. Chi batte il banco riceve il premio del bar, non punti; pari e sconfitte non tolgono nulla.
-- **Casino dozzina** — tre girate; a ogni girata si sceglie **1–12**, **13–24** o **25–36** entro dieci secondi. Dozzina giusta **+200** a girata, massimo **+600**; zero o dozzina sbagliata 0.
+- **Casino 5 manche** — cinque manche, una girata ciascuna: colore, dozzina, parità, alto/basso e numero secco, con scelta entro dieci secondi. Punti **+100 / +200 / +100 / +100 / +1000**, massimo **+1500**; sullo zero il banco incassa.
 - **Cavallo di battaglia** — i telefoni votano la categoria, poi otto domande flash. Vince chi ha più risposte esatte; a pari merito chi ha finito prima. Premio del bar, nessun punto in classifica.
 - **Casino numero secco** — un numero da **0 a 36** scelto una volta, entro dieci secondi, e tenuto per tutte e tre le girate. Numero beccato **+1000 una volta sola**: se esce di nuovo in una girata successiva non paga il doppio; chi non lo becca prende 0; nessuna penalità.
 

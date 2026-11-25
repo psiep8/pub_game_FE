@@ -5,7 +5,6 @@ import {
   BONUS_CHOICE_SECONDS,
   BONUS_KARAOKE_SECONDS,
   CASINO_FIVE_MANCHES,
-  CASINO_SPINS,
 } from '../models/scoring-rules';
 import { MANUAL_ENTRIES } from './manual-content';
 
@@ -40,8 +39,6 @@ const SECONDS_CITED: Record<string, readonly number[]> = {
   BONUS_CASINO_FIVE: [BONUS_CHOICE_SECONDS],
   BONUS_CAVALLO: [],
   BONUS_CASINO_NUMBER: [BONUS_CHOICE_SECONDS],
-  BONUS_CASINO_COLOR: [BONUS_CHOICE_SECONDS],
-  BONUS_CASINO_DOZEN: [BONUS_CHOICE_SECONDS],
 };
 
 const MANCHES_CITED: Record<string, readonly number[]> = {
@@ -50,8 +47,6 @@ const MANCHES_CITED: Record<string, readonly number[]> = {
   TIME_BUZZER: [GAME_TIMINGS.TIME_BUZZER.manches],
   BONUS_KARAOKE: [5],
   BONUS_CASINO_FIVE: [CASINO_FIVE_MANCHES],
-  BONUS_CASINO_COLOR: [CASINO_SPINS],
-  BONUS_CASINO_DOZEN: [CASINO_SPINS],
 };
 
 function numbers(text: string, unit: RegExp): number[] {
