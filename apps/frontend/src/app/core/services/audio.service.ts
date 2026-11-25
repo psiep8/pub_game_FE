@@ -189,6 +189,9 @@ export class AudioService {
     // La pausa sospende ogni loop del proprietario attivo e ne ricorda il punto.
     this.channels.suspend();
     this.channels.clearBed();
+    // Anche gli effetti lunghi già in onda (il giro della roulette, un applauso)
+    // tacciono: a sala ferma non deve restare acceso nessun suono del bonus.
+    this.player.stopOneShots();
   }
 
   /**

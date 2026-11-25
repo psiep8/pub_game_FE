@@ -23,6 +23,7 @@ describe('AudioService — pausa della TV', () => {
     player['startLoop'] = (event: string) => calls.push(`start-loop:${event}`);
     player['stopLoop'] = (event: string) => calls.push(`stop-loop:${event}`);
     player['isLooping'] = (event: string) => event === 'marbleRoll' && marbleInOnda;
+    player['stopOneShots'] = () => calls.push('stop-one-shots');
     player['play'] = (event: string) => {
       calls.push(`play:${event}`);
       return true;
@@ -39,6 +40,16 @@ describe('AudioService — pausa della TV', () => {
 
     expect(calls).toContain('stop-bed');
     expect(calls).toContain('stop-loop:marbleRoll');
+  });
+
+  it('la pausa zittisce anche gli effetti lunghi già partiti, come il giro della roulette', () => {
+    // F-05: il tac-tac del Casino è un effetto lungo già in onda; la pausa
+    // fermava i loop ma non lui, e continuava a suonare a sala ferma.
+    calls.length = 0;
+
+    audio.pauseBeds();
+
+    expect(calls).toContain('stop-one-shots');
   });
 
   it('alla ripresa riaccende il rotolamento solo se una gara era in corso', () => {
