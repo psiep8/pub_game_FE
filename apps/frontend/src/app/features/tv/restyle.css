@@ -1246,14 +1246,12 @@
   pointer-events: none;
 }
 
-/* Entrata scenica della scena nuova. */
-.game-container.stage-entrance .question-area,
-.game-container.stage-options-on .question-area {
+/* Entrata scenica della scena nuova: una sola volta, poi la domanda resta
+   ferma. Prima anche la fase delle opzioni rifaceva l'entrata e la domanda
+   spariva e ricompariva a ogni passaggio. */
+.game-container.stage-entrance .question-area {
   animation: stageIn 700ms ease-out both;
 }
-
-/* In lettura la scena del gioco non è ancora in onda: parla la domanda. */
-.game-container.stage-reading-on .question-area { opacity: 0; }
 
 /* Le opzioni compaiono una alla volta: 300 ms di distanza, 320 ms di moto. */
 .game-container.stage-options-on .question-area > *,
@@ -1271,83 +1269,36 @@
 .game-container.stage-options-on .question-area > *:nth-child(6),
 .game-container.stage-options-on .quiz-options-grid > *:nth-child(6) { animation-delay: 1500ms; }
 
-/* La domanda a schermo durante la lettura: carta stampata, non un overlay. */
-.stage-reading {
+/* 3-2-1: un riquadro in alto a destra, fuori dal centro della domanda. Il
+   numero resta grande ma non copre più il testo che il presentatore legge. */
+.stage-countdown {
   position: fixed;
-  inset: 0;
-  z-index: 1200;
-  display: grid;
-  place-items: center;
-  padding: 6vh 5vw;
-  background: color-mix(in srgb, var(--bg-0) 94%, transparent);
-}
-.stage-reading-card {
+  top: 3vh;
+  right: 3vw;
+  z-index: 1300;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2.4vh;
-  width: min(1100px, 86vw);
-  padding: clamp(22px, 4vh, 46px) clamp(24px, 4vw, 62px);
-  border: 4px solid var(--coal);
-  background: var(--paper);
-  color: var(--coal);
-  box-shadow: 14px 14px 0 var(--tomato);
-  text-align: center;
-  animation: stageCardIn 600ms ease-out both;
-}
-.stage-reading-kicker {
-  padding: 3px 12px;
-  border: 2px solid var(--tomato);
-  color: var(--tomato);
-  font-family: var(--font-mono);
-  font-size: clamp(0.78rem, 1.1vw, 0.95rem);
-  font-weight: 800;
-  letter-spacing: 0.16em;
-}
-.stage-reading-text {
-  margin: 0;
-  max-width: 26ch;
-  font-family: var(--font-display);
-  font-size: clamp(1.8rem, 3.6vw, 3.8rem);
-  line-height: 1.02;
-  text-transform: uppercase;
-}
-.stage-reading-hint {
-  font-family: var(--font-mono);
-  font-size: clamp(0.72rem, 1vw, 0.9rem);
-  letter-spacing: 0.1em;
-  color: color-mix(in srgb, var(--coal) 62%, transparent);
-}
-
-/* 3-2-1: il numero resta leggibile, si muove solo di poco. */
-.stage-countdown {
-  position: fixed;
-  inset: 0;
-  z-index: 1300;
-  display: grid;
-  place-items: center;
-  gap: 1vh;
+  gap: 0.6vh;
   pointer-events: none;
 }
 .stage-countdown-kicker {
-  position: absolute;
-  top: 18vh;
   padding: 4px 14px;
   border: 3px solid var(--acid);
   background: var(--bg-0);
   color: var(--acid);
   font-family: var(--font-mono);
-  font-size: clamp(0.9rem, 1.3vw, 1.15rem);
+  font-size: clamp(0.8rem, 1.1vw, 1rem);
   font-weight: 800;
   letter-spacing: 0.22em;
 }
 .stage-countdown-number {
   font-family: var(--font-display);
-  font-size: clamp(7rem, 24vh, 20rem);
+  font-size: clamp(3.6rem, 11vh, 8rem);
   line-height: 0.8;
   color: var(--acid);
-  -webkit-text-stroke: 5px var(--coal);
-  text-shadow: 10px 10px 0 var(--coal);
+  -webkit-text-stroke: 4px var(--coal);
+  text-shadow: 6px 6px 0 var(--coal);
   animation: stageCountPulse 1s ease-in-out infinite;
 }
 

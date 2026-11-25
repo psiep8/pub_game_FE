@@ -114,7 +114,6 @@ describe('alive — ogni schermata TV ha un elemento vivo', () => {
       'bonus-card',
       'demo-frame',
       'pause-card',
-      'stage-reading-card',
     ];
     for (const screen of screens) {
       // Il rullo categoria ha una sua animazione: basta che una delle sue

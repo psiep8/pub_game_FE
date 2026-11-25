@@ -1898,6 +1898,25 @@ describe('GameComponent', () => {
     expect(component.timerVisible()).toBe(true);
   });
 
+  it('la domanda non sparisce durante la lettura e il 3-2-1', () => {
+    // F-10: l'overlay di lettura a tutto schermo copriva la domanda e la
+    // faceva sparire e ricomparire. Ora la scena resta quella del gioco.
+    component.currentMode.set({
+      type: 'QUIZ',
+      isRevealed: () => false,
+      getDisplayData: () => ({}),
+    } as any);
+    component.round.set({ status: 'ACTIVE' } as any);
+    component.showQuestion.set(true);
+
+    for (const phase of ['reading', 'options', 'countdown'] as const) {
+      component.stagePhase.set(phase);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.question-area')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('.stage-reading')).toBeNull();
+    }
+  });
+
   it('un round ripreso dopo un refresh non rifà l’introduzione', async () => {
     const factory = TestBed.inject(GameModeService);
     vi.spyOn(factory, 'createMode').mockReturnValue({

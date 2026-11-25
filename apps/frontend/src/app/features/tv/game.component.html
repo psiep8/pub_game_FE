@@ -306,18 +306,6 @@
 }
 
 
-@if (stageReading(); as readingText) {
-@if (stagePhase() === 'reading') {
-<div class="stage-reading" role="status" aria-live="polite">
-  <div class="stage-reading-card" alive="breath" [aliveSeed]="11">
-    <div class="stage-reading-kicker">DOMANDA · IL PRESENTATORE LEGGE</div>
-    <p class="stage-reading-text">{{ readingText }}</p>
-    <div class="stage-reading-hint">LE OPZIONI ARRIVANO FRA POCO · IL TIMER NON È ANCORA PARTITO</div>
-  </div>
-</div>
-}
-}
-
 @if (stageCountdown(); as countdownNumber) {
 <div class="stage-countdown" role="status" aria-live="polite">
   <span class="stage-countdown-kicker">SI PARTE</span>
