@@ -412,3 +412,4 @@ media), run CI #155 verde prima di questo job, screenshot del README rifatti.
 | F-03 — Musica: dopo ERRATO il round si chiudeva da solo | Fatto | `3d01d0b` | `music.mode.spec.ts`: un solo tick per secondo dopo l'ERRATO, manche riaperta e round non chiuso |
 | F-04 — Demo chiusa dalla regia: il round non parte e la demo resta in memoria | Fatto | `_F04_` | `game.component.spec.ts`: CHIUDI DEMO apre il round in attesa e azzera tipo e scena |
 | F-05 — Casino in pausa: il rumore del giro non si ferma | Fatto | `_F05_` | `audio.service.spec.ts`: la pausa ferma anche gli effetti lunghi già partiti |
+| F-06 — Time Buzzer: tempi mancanti dopo la pausa | Fatto | `_F06_` | `ReliabilityIntegrationTest#timeBuzzerMantieneITempiDopoUnaPausaLunga`: pausa di 6 s, tempo accettato (200, prima 422) |

@@ -477,6 +477,16 @@ public class PartyGamesController {
                     snapshot.optLong("pausedAt", 0L), System.currentTimeMillis());
         }
         long shiftedMs = gameStateService.resumeRound(gameId);
+        // Il Time Buzzer misura i tempi dal via: la pausa vale anche per lui.
+        // Senza questo spostamento, dopo una pausa oltre la tolleranza di rete
+        // ogni cronometro ripreso arrivava come «non plausibile» e la TV
+        // restava senza i tempi dei tavoli.
+        if (shiftedMs > 0) {
+            stateBlobs.load(gameId, BUZZER_BLOB).map(JSONObject::new).ifPresent(start -> {
+                start.put("startedAt", start.optLong("startedAt", 0L) + shiftedMs);
+                stateBlobs.save(gameId, BUZZER_BLOB, start.toString());
+            });
+        }
         speedRushService.resume(gameId);
         // La pausa la annuncia la TV che la decide; la ripresa invece arriva anche
         // dal server (fine introduzione, ripresa della regia) e i telefoni devono

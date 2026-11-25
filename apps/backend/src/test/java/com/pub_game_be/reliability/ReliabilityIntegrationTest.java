@@ -813,6 +813,30 @@ class ReliabilityIntegrationTest {
         assertThat(stateBlobs.load(gameId, "time-buzzer-start")).isEmpty();
     }
 
+    @Test
+    void timeBuzzerMantieneITempiDopoUnaPausaLunga() throws InterruptedException {
+        // F-06: il telefono corregge il proprio cronometro alla ripresa, il
+        // server no: dopo una pausa oltre la tolleranza di rete ogni tempo
+        // arrivato era «non plausibile» e la TV restava senza tabella.
+        long gameId = 523L;
+        gameState.startRound(gameId, "TIME_BUZZER", 1, "buzzer-pausa", "{}");
+        var party = new com.pub_game_be.controller.PartyGamesController(partyGameService, questionBank,
+                messaging, gameState, idempotency, stateBlobs,
+                new com.pub_game_be.service.SpeedRushService(stateBlobs),
+                new com.pub_game_be.service.BasketService(stateBlobs), questionHistory);
+
+        var start = party.timeBuzzerStart(gameId, Map.of("manche", 1));
+        long startedAt = ((Number) ((Map<?, ?>) start.getBody()).get("startedAt")).longValue();
+        assertThat(startedAt).isGreaterThan(0L);
+
+        assertThat(gameState.pauseRound(gameId)).isTrue();
+        Thread.sleep(6000L);
+        party.resumeRound(gameId);
+
+        var stop = party.timeBuzzerStop(gameId, Map.of("playerName", "Anna", "ms", 120));
+        assertThat(stop.getStatusCode().value()).isEqualTo(200);
+    }
+
     @Autowired private com.pub_game_be.service.PartyGameService partyGameService;
     @Autowired private com.pub_game_be.service.QuestionBankService questionBank;
     @Autowired private org.springframework.messaging.simp.SimpMessagingTemplate messaging;
