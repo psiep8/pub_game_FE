@@ -640,6 +640,7 @@
         <p>Banco chiuso: classifica in TV.</p>
       </div>
       } @else if (blackjackState()?.phase === 'REVEAL') {
+      @if (blackjackState()?.currentTable === nickname()) {
       <div class="casino-hand">
         <span class="casino-hand-label">LA TUA MANO</span>
         <div class="casino-cards">
@@ -650,6 +651,11 @@
         <b class="casino-hand-total" [class.bust]="(blackjackState()?.handTotal ?? 0) > 21">{{ blackjackState()?.handTotal ?? 0 }}</b>
       </div>
       <p class="buzz-hint">{{ signedPoints(blackjackState()?.result?.points) }}</p>
+      } @else {
+      <div class="status-msg">
+        <p>Mano di {{ blackjackState()?.currentTable }}: guarda la TV.</p>
+      </div>
+      }
       } @else if (blackjackState()?.currentTable === nickname()) {
       <div class="casino-hand">
         <span class="casino-hand-label">LA TUA MANO</span>

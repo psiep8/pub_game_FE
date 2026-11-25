@@ -3124,4 +3124,28 @@ describe('RemoteComponent', () => {
     expect(component.azzardoChips()[0]).toBe(afterRelease);
     vi.useRealTimers();
   });
+
+  it('F-28: in Blackjack ogni telefono vede solo la propria mano', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.questionType.set('BLACKJACK');
+    component.gameState.set(PlayerStatus.VOTING);
+
+    component.blackjackState.set({
+      phase: 'REVEAL', currentTable: 'Bruno', cards: ['A♠', 'K♥'], handTotal: 21,
+      result: { points: 100 },
+    });
+    fixture.detectChanges();
+    const other = String(fixture.nativeElement.textContent);
+    expect(other).not.toContain('A♠');
+    expect(other).not.toContain('21');
+    expect(other).toContain('Mano di Bruno');
+
+    component.blackjackState.set({
+      phase: 'REVEAL', currentTable: 'Anna', cards: ['A♠', 'K♥'], handTotal: 21,
+      result: { points: 100 },
+    });
+    fixture.detectChanges();
+    expect(String(fixture.nativeElement.textContent)).toContain('A♠');
+  });
 });
