@@ -15,7 +15,7 @@ quizzOne è un gioco multigiocatore per locali e feste: la TV mostra domande, ta
 
 quizzOne porta in sala un quiz a squadre in stile pub: nessuna app da installare, nessun account, un QR code sulla TV e il browser del telefono. La regia decide quando parte un round e quando si passa al successivo; il backend tiene sessioni, stato e recupero dopo un refresh.
 
-La versione è **2.5.0**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
+La versione è **3.0.0**. Il codice è la fonte di verità: se una frase di questo README non combacia con il comportamento, vale il codice.
 
 ## 2. Come si gioca
 
@@ -280,7 +280,7 @@ npm run build:frontend   # ng build
 npm run build:backend    # Maven package
 ```
 
-Il frontend ha **74 file di spec (748 test al 24 novembre 2026, tutti eseguiti)**; il backend ha **168 test**. Le verifiche coprono, tra l'altro: regole di punteggio e scaletta, contenuti del manuale, copertura delle demo, round manager, apertura/chiusura del manuale sul telefono, modalità TV, sessioni e riconnessione, prova dei pulsanti, API e servizi del backend.
+Il frontend ha **76 file di spec (799 test al 25 novembre 2026, tutti eseguiti)**; il backend ha **189 test**. Le verifiche coprono, tra l'altro: regole di punteggio e scaletta, contenuti del manuale, copertura delle demo, round manager, apertura/chiusura del manuale sul telefono, modalità TV, sessioni e riconnessione, prova dei pulsanti, API e servizi del backend.
 
 **Limiti noti dei test**: la suite frontend deve compilare per intero (un solo errore TypeScript in una spec ferma tutti i test);  non esiste ancora una prova end-to-end multi-dispositivo in rete; i controlli visivi sono manuali (TV e telefono); i timer dichiarati dal client non sono interamente verificabili dal server.
 
@@ -304,7 +304,7 @@ Prima di una serata con telefoni veri:
 1. `cp .env.test-night.example .env` e compila `CONTROL_SECRET` (≥ 32 caratteri) e `ALLOWED_ORIGINS` con IP LAN del PC.
 2. `npm run db:backup` (copia in `backups/`, fuori dal repository).
 3. `npm run dev`, poi `curl http://localhost:8080/health` deve rispondere `{"status":"ok"}`.
-   Con Docker: `PUBGAME_TAG=2.5.0 docker compose up -d` fissa la versione, così un
+   Con Docker: `PUBGAME_TAG=3.0.0 docker compose up -d` fissa la versione, così un
    aggiornamento sbagliato si annulla cambiando tag.
 4. Giro a vuoto con un iPhone e un Android: ingresso, un round, refresh della TV, blocco schermo di 60 secondi.
 

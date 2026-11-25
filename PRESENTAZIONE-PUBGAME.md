@@ -1,6 +1,6 @@
 # PUBGAME — Il copione del presentatore
 
-> **VERSIONE 2.4.0 — 24 novembre 2026.**
+> **VERSIONE 3.0.0 — 25 novembre 2026.**
 > Il copione descrive la serata alla seconda major. Per i pulsanti del pannello admin
 > vedi `docs/PANNELLO-ADMIN.md`; per il telefono delle squadre vedi `docs/MANUALE-TELEFONO.md`.
 > Se un gioco o un punteggio cambia, questo file va riallineato.

@@ -1,5 +1,41 @@
 # Changelog
 
+## 25 novembre 2026 — quizzOne 3.0.0, ultimi fix di sala
+
+Versione **3.0.0** in tutto il monorepo. Nessun cambio a percorsi, volumi,
+database, variabili d’ambiente o chiavi di archiviazione: cambia solo il nome
+visibile, che ora è **quizzOne**.
+
+- **Q-01 Cavallo.** `?debug=1` su TV e regia mostra i segnali del bonus
+  (`bonusDebug`, `lastBonusAction`, `bonusGuardReason`) e il pulsante
+  **RIAVVIA BONUS**, che azzera il bonus senza toccare la classifica.
+- **Q-02 Tennis.** Rimossi i residui dei vantaggi e del deuce: sul 40-40 si
+  gioca il killer point. Manuale, demo e regole dicono la stessa cosa.
+- **Q-03 Fotogrammi.** Tolto il `backdrop-filter` legacy rimasto su
+  `.question-area`: la scena Quiz passa da 39,2 a **55,2 fps** (p95 16,8 ms,
+  CPU 4×, 1280×720). Referto in `docs/AUDIT-GRAFICO/FRAME-BUDGET.md`.
+- **Q-04 Scaletta.** Nuova `ACT_DECKS`: Tennis 3 round e Time Buzzer 2, con le
+  aperture degli atti 1 e 5 e le Biglie ai round 11, 22, 28 e 38.
+- **Q-05 Classifiche.** Flash rapido da 10 a 12 secondi dal peggiore al
+  migliore, dopo i round 4/12/20/28/36 e a ogni ripresa; dettagliata con
+  permanenza minima di 30 secondi e delta di posizione. Pausa d’atto con timer
+  opzionale in regia (`ADMIN_ACT_PAUSE_SECONDS`, `ADMIN_RESUME_ACT`).
+- **Q-07 Demo.** Un solo modello di pagina per giochi e bonus, riquadro sempre
+  16:9 e sempre intero, catture ai cinque formati TV (95/95, zero elementi
+  fuori area sicura, zero testi sotto 20 px).
+- **Q-08 Nome.** `quizzOne` in TV, telefono, regia, demo, manifest e documenti.
+  Pacchetti, percorsi, volumi, database e chiavi tecniche restano invariati.
+- **Q-09 Versione.** `VERSION`, npm, Maven, Docker, avvio locale, README,
+  presentazione, manuali e PDF allineati a **3.0.0**, con test di coerenza.
+- **Q-06 Suono slot.** Non completato: in `assets/audio` non esiste il file
+  `.m4a` dello slot e la specifica vieta di sintetizzarlo. Resta in attesa del
+  file fornito dall’utente.
+- **Verifiche.** 799 test frontend su 76 file, 189 test backend, build
+  frontend, demo ai cinque formati, `npm run audit:design`.
+- **Audio.** Il loop Bomba è passato da 128 a 72 kbps (1,68 → 0,95 MB): con la
+  nuova scaletta l’atto 4 sarebbe arrivato a 7,00 MB contro il tetto di 6 MB per
+  atto. Ora l’atto 4 pesa 5,99 MB e l’atto 5 5,82 MB.
+
 ## 24 novembre 2026 — Regia scenica, vita della scena e tempi nuovi, 2.5.0
 
 Nessun cambio di regole o punteggi, salvo le durate di Quiz e Time Buzzer.

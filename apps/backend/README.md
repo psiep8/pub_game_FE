@@ -1,6 +1,6 @@
-# PubGame BE — Backend Spring Boot
+# quizzOne BE — Backend Spring Boot
 
-> **VERSIONE 2.5.0 — 24 novembre 2026.** Vince il codice; per il quadro completo
+> **VERSIONE 3.0.0 — 25 novembre 2026.** Vince il codice; per il quadro completo
 > del gioco e della scaletta vale il [`README.md`](../../README.md) della radice.
 
 Backend **Spring Boot 4.2.0** su **Java 25 LTS**: REST e WebSocket STOMP nello stesso
