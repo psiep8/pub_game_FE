@@ -2205,7 +2205,19 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   async startBonus(type: BonusType, resume: any = null): Promise<void> {
-    if (!BONUS_TYPES.includes(type) || !this.canStartBonus()) return;
+    if (!BONUS_TYPES.includes(type) || !this.canStartBonus()) {
+      // R-01: se il pulsante di regia sembra non fare nulla, il log dice subito
+      // quale guardia ha fermato il bonus.
+      console.warn('[BONUS] startBonus bloccato', {
+        type,
+        tipoValido: BONUS_TYPES.includes(type),
+        ingressoAperto: !!this.bonusEntrance(),
+        bonusAttivo: this.bonusActive(),
+        rulloInCorso: this.isSpinning(),
+      });
+      return;
+    }
+    console.info('[BONUS] startBonus', { type, gameId: this.currentGameId() });
     this.bonusResume.set(resume);
     // Il bonus dell'atto resta sul server: un refresh non lo salta.
     this.markBonusAct(type, 'STARTED');
@@ -2335,6 +2347,7 @@ export class GameComponent implements OnInit, OnDestroy {
     // Il Cavallo ha una schermata TV dedicata che parla direttamente con i
     // telefoni tramite CAVALLO_STATE, come il Casino.
     if (type === 'CAVALLO') {
+      console.info('[BONUS] schermata Cavallo in onda', { gameId: this.currentGameId() });
       const publicPayload = JSON.stringify({ type: 'BONUS_CAVALLO', question: BONUS_LABELS[type] });
       this.ws.broadcastStatus(this.currentGameId(), {
         action: WsAction.SHOW_QUESTION,

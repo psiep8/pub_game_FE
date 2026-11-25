@@ -1607,6 +1607,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private applyCavalloState(state: any): void {
     if (!state) return;
 
+    // R-01: in sala questo log dice se il telefono ha ricevuto il bonus e in
+    // che fase è, senza dover indovinare dal silenzio.
+    console.info('[CAVALLO][telefono] stato', {
+      phase: state.phase,
+      categoria: state.chosenCategory || null,
+      domanda: state.question?.index ?? null,
+    });
     this.cavalloState.set(state);
     this.questionType.set('BONUS_CAVALLO');
     const key = `${state.phase}:${state.question?.index ?? 0}`;

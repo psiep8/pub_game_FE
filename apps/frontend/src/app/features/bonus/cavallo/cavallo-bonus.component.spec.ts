@@ -61,6 +61,74 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
+  it('R-01: i voti dei telefoni fanno partire la domanda e chiudono la sfida', () => {
+    const { component, fixture, finished } = mount({
+      phase: 'CATEGORY',
+      secondsLeft: 15,
+      savedAt: Date.now(),
+      chosenCategory: '',
+      questions: [],
+      index: 0,
+      total: 2,
+      scores: [{ playerName: 'Anna', score: 0 }, { playerName: 'Bruno', score: 0 }],
+      votes: [],
+      answers: [],
+    });
+    const ws = TestBed.inject(WebSocketService) as unknown as FakeWebSocketService;
+
+    // I due telefoni votano la stessa categoria: la sfida parte da sola.
+    ws.status$.next({ action: 'CAVALLO_ACTION', kind: 'CATEGORY', playerName: 'Anna', value: 'MUSICA' });
+    ws.status$.next({ action: 'CAVALLO_ACTION', kind: 'CATEGORY', playerName: 'Bruno', value: 'MUSICA' });
+    fixture.detectChanges();
+
+    expect(component.chosenCategory()).toBe('MUSICA');
+    expect(component.phase()).toBe(component.Phase.QUESTION);
+    expect(component.question()?.text).toContain('MUSICA');
+
+    // Le risposte arrivano al server TV: ogni telefono ha la sua.
+    ws.status$.next({ action: 'CAVALLO_ACTION', kind: 'ANSWER', playerName: 'Anna', value: 0 });
+    ws.status$.next({ action: 'CAVALLO_ACTION', kind: 'ANSWER', playerName: 'Bruno', value: 1 });
+    fixture.detectChanges();
+    expect(component.phase()).toBe(component.Phase.REVEAL);
+    expect(finished.length).toBe(0);
+
+    fixture.destroy();
+  });
+
+  it('R-01: l’ultima domanda chiude la sfida e manda finished alla TV', () => {
+    vi.useFakeTimers();
+    try {
+      const { component, fixture, finished } = mount({
+        phase: 'QUESTION',
+        secondsLeft: 30,
+        savedAt: Date.now(),
+        chosenCategory: 'MUSICA',
+        questions: [QUESTIONS[0]],
+        index: 0,
+        total: 1,
+        scores: [{ playerName: 'Anna', score: 0 }, { playerName: 'Bruno', score: 0 }],
+        votes: [],
+        answers: [],
+      });
+      const ws = TestBed.inject(WebSocketService) as unknown as FakeWebSocketService;
+
+      ws.status$.next({ action: 'CAVALLO_ACTION', kind: 'ANSWER', playerName: 'Anna', value: 0 });
+      ws.status$.next({ action: 'CAVALLO_ACTION', kind: 'ANSWER', playerName: 'Bruno', value: 1 });
+      fixture.detectChanges();
+      expect(component.phase()).toBe(component.Phase.REVEAL);
+
+      vi.advanceTimersByTime(1_700);
+      expect(component.phase()).toBe(component.Phase.FINALE);
+
+      vi.advanceTimersByTime(8_000);
+      expect(finished.length).toBe(1);
+
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('riprende la domanda in corso con tabellone e tempo della rush', () => {
     const { component, fixture } = mount({
       phase: 'QUESTION',

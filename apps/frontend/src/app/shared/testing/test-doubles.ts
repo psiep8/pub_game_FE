@@ -173,6 +173,17 @@ export class FakeGameService {
     return of(null);
   }
 
+  getCavalloQuestions(_gameId: number, category: string, count: number): Observable<any[]> {
+    const total = Math.max(1, Math.min(20, count));
+    return of(Array.from({ length: total }, (_, index) => ({
+      question: `Domanda ${index + 1} di ${category}`,
+      options: ['A', 'B', 'C', 'D'],
+      correctIndex: 0,
+      correctAnswer: 'A',
+      category,
+    })));
+  }
+
   getArenaQuestion(_gameId: number, _category: string, playerId: string): Observable<any> {
     return of({
       question: 'Domanda di prova?',

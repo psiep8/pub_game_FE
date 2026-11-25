@@ -711,6 +711,10 @@ export class CavalloBonus implements OnInit, OnDestroy {
   }
 
   private startCategoryVote(): void {
+    console.info('[CAVALLO][TV] votazione categoria', {
+      players: this.players.length,
+      categorie: this.categoryNames().length,
+    });
     this.phase.set(Phase.CATEGORY);
     this.categoryPicks.clear();
     this.answers.clear();
@@ -759,6 +763,9 @@ export class CavalloBonus implements OnInit, OnDestroy {
 
   private closeCategoryVote(): void {
     if (this.phase() !== Phase.CATEGORY) return;
+    console.info('[CAVALLO][TV] categoria chiusa', {
+      voti: this.categoryVoteCounts(),
+    });
 
     const counts = this.categoryVoteCounts();
     let winner = '';

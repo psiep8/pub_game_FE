@@ -1826,6 +1826,35 @@ describe('GameComponent', () => {
     alert.mockRestore();
   });
 
+  it('R-01: il bonus Cavallo si apre da regia e manda le categorie ai telefoni', async () => {
+    vi.useFakeTimers();
+    try {
+      component.currentGameId.set(1);
+      component.round.set({ status: 'ACTIVE' } as any);
+      ws.status$.next({ action: WsAction.ADMIN_START_BONUS, type: 'CAVALLO' });
+
+      await vi.advanceTimersByTimeAsync(2_700);
+      fixture.detectChanges();
+
+      expect(component.bonusActive()).toBe(true);
+      expect(component.bonusType()).toBe('CAVALLO');
+      expect(fixture.nativeElement.querySelector('app-cavallo-bonus')).toBeTruthy();
+
+      // Dopo l'ingresso la TV pubblica la fase delle categorie: è il primo
+      // stato che i telefoni ricevono per poter scegliere.
+      await vi.advanceTimersByTimeAsync(2_600);
+      const states = ws.broadcasted
+        .map((entry) => entry.body)
+        .filter((body) => body?.action === 'CAVALLO_STATE');
+      expect(states.length).toBeGreaterThan(0);
+      const first = states[0]?.state;
+      expect(first?.phase).toBe('CATEGORY');
+      expect(first?.categories?.length ?? 0).toBeGreaterThan(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('does not start Basket from an old admin command or directly', async () => {
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     const startBasket = vi.spyOn(game, 'startBasket');
