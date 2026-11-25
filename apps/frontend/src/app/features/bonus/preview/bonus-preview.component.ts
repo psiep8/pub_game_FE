@@ -1,13 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { BlackjackBonus } from '../blackjack/blackjack-bonus.component';
 import { CasinoBonus } from '../casino/casino-bonus.component';
 import { CavalloBonus } from '../cavallo/cavallo-bonus.component';
+import { KaraokeBonus } from '../karaoke/karaoke-bonus.component';
 
-type PreviewKind = 'casino' | 'blackjack' | 'dozzina' | 'cavallo' | 'numero';
+type PreviewKind = 'karaoke' | 'blackjack' | 'casino5' | 'cavallo' | 'numero';
 
 interface PreviewCard {
   id: PreviewKind;
@@ -20,11 +21,11 @@ interface PreviewCard {
 /** Le cinque schede seguono l'ordine degli atti, come i bonus in scaletta. */
 const PREVIEW_CARDS: PreviewCard[] = [
   {
-    id: 'casino',
-    icon: '🔴',
-    title: 'CASINO',
-    subtitle: 'NERO/ROSSO · UNA MANCHE',
-    note: 'Una sola puntata sul colore: nero o rosso, poi la ruota decide.',
+    id: 'karaoke',
+    icon: '🎤',
+    title: 'KARAOKE',
+    subtitle: 'CINQUE CANZONI · MICROFONO CONTESO',
+    note: 'La clip si ferma senza preavviso: il primo tavolo che prenota canta le frasi successive al microfono fisico.',
   },
   {
     id: 'blackjack',
@@ -34,11 +35,11 @@ const PREVIEW_CARDS: PreviewCard[] = [
     note: 'La TV fa il banco, i tavoli scelgono carta o stai. Vittoria 150, pari 75.',
   },
   {
-    id: 'dozzina',
+    id: 'casino5',
     icon: '🎰',
-    title: 'CASINO DOZZINA',
-    subtitle: 'TRE CASELLE · UNA MANCHE',
-    note: '1–12, 13–24 o 25–36: una sola puntata, la pallina esce una volta.',
+    title: 'CASINO 5 MANCHE',
+    subtitle: 'COLORE · DOZZINA · PARITÀ · ALTO/BASSO · NUMERO',
+    note: 'Cinque manche, una girata ciascuna: 100, 200, 100, 100 e 1000 punti.',
   },
   {
     id: 'cavallo',
@@ -58,17 +59,10 @@ const PREVIEW_CARDS: PreviewCard[] = [
 
 const PREVIEW_TYPES: readonly PreviewKind[] = PREVIEW_CARDS.map((card) => card.id);
 
-/** Le tre varianti del casino: il componente è lo stesso, cambia la manche. */
-const CASINO_VARIANTS = [
-  { id: 'casino', label: 'NERO/ROSSO' },
-  { id: 'dozzina', label: 'DOZZINA' },
-  { id: 'numero', label: 'NUMERO SECCO' },
-] as const satisfies readonly { id: PreviewKind; label: string }[];
-
 @Component({
   selector: 'app-bonus-preview',
   standalone: true,
-  imports: [CommonModule, RouterLink, BlackjackBonus, CasinoBonus, CavalloBonus],
+  imports: [CommonModule, RouterLink, BlackjackBonus, CasinoBonus, CavalloBonus, KaraokeBonus],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (!kind()) {
@@ -113,30 +107,16 @@ const CASINO_VARIANTS = [
             {{ card.icon }} {{ card.title }}
           </a>
         }
-        @if (casinoVariant()) {
-          <span class="bp-variants" aria-label="Variante del casino">
-            <span class="bp-bar-sep"></span>
-            <span class="bp-bar-tag">VARIANTE</span>
-            @for (variant of casinoVariants; track variant.id) {
-              <a
-                [routerLink]="['/bonus-preview', variant.id]"
-                [class.on]="kind() === variant.id"
-                [attr.aria-current]="kind() === variant.id ? 'page' : null">
-                {{ variant.label }}
-              </a>
-            }
-          </span>
-        }
       </nav>
       }
 
       <div class="bp-live" [class.capture]="capture">
         @switch (kind()) {
-          @case ('casino') {
-          <app-casino-bonus [gameId]="1" [players]="players" [preview]="true" [variant]="'COLOR'" />
+          @case ('karaoke') {
+          <app-karaoke-bonus [gameId]="1" [players]="players" [preview]="true" [regia]="true" />
         }
-        @case ('dozzina') {
-          <app-casino-bonus [gameId]="1" [players]="players" [preview]="true" [variant]="'DOZEN'" />
+        @case ('casino5') {
+          <app-casino-bonus [gameId]="1" [players]="players" [preview]="true" [variant]="'FIVE'" />
         }
         @case ('numero') {
           <app-casino-bonus [gameId]="1" [players]="players" [preview]="true" [variant]="'NUMBER'" />
@@ -335,13 +315,6 @@ const CASINO_VARIANTS = [
       background: var(--acid);
       border-color: var(--paper);
     }
-    .bp-variants { display: inline-flex; align-items: center; gap: 4px; }
-    .bp-bar-sep {
-      align-self: stretch;
-      width: 1px;
-      margin: 0 2px;
-      background: color-mix(in srgb, var(--paper) 28%, transparent);
-    }
     @media (max-width: 900px) {
       .bp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .bp-card { min-height: 250px; }
@@ -390,13 +363,6 @@ export class BonusPreview {
       }),
     ),
     { initialValue: this.currentKind() },
-  );
-
-  readonly casinoVariants = CASINO_VARIANTS;
-
-  /** Colore, dozzina e numero secco sono lo stesso componente: la barra le gira. */
-  readonly casinoVariant = computed(() =>
-    CASINO_VARIANTS.some((variant) => variant.id === this.kind()),
   );
 
   private currentKind(): PreviewKind | null {

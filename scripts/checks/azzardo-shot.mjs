@@ -27,9 +27,9 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  * i round 2-7, e un bonus a metà strada interromperebbe la corsa all'Azzardo.
  */
 const BONUS_SLOTS = [
-  { act: 0, type: 'CASINO_COLOR', round: 6 },
+  { act: 0, type: 'KARAOKE', round: 6 },
   { act: 1, type: 'BLACKJACK', round: 12 },
-  { act: 2, type: 'CASINO_DOZEN', round: 20 },
+  { act: 2, type: 'CASINO_FIVE', round: 20 },
   { act: 3, type: 'CAVALLO', round: 28 },
   { act: 4, type: 'CASINO_NUMBER', round: 36 },
 ];

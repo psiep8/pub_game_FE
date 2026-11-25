@@ -334,6 +334,31 @@ async function roundSpeedRush(state, clients) {
   });
 }
 
+async function bonusKaraoke(state, clients) {
+  // La TV vera pubblica KARAOKE_STATE; qui la regia resta in ascolto per un
+  // istante e, se la schermata è già in prenotazione, fa toccare il primo
+  // tavolo e conferma il verdetto. Senza TV il bonus resta senza stato: il
+  // ciclo non si blocca e la simulazione prosegue.
+  let view = null;
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    view = clients.admin.statuses.KARAOKE_STATE?.state ?? clients.admin.statuses.KARAOKE_STATE ?? null;
+    if (view?.phase === 'STEAL') break;
+    await sleep(400);
+  }
+  if (!view || view.phase !== 'STEAL') {
+    action({ at: Date.now(), label: 'karaoke-no-tv', transport: 'local', status: 'info', response: 'KARAOKE_STATE non pubblicato' });
+    return;
+  }
+  const playerName = TEAMS[0];
+  await stompAction('karaoke-buzz', clients[playerName], {
+    action: 'KARAOKE_ACTION', playerName, manche: view.manche,
+  });
+  await sleep(600);
+  await stompAction('karaoke-correct', clients.admin, {
+    action: 'ADMIN_KARAOKE_RESULT', playerName, manche: view.manche, result: 'CORRECT',
+  });
+}
+
 async function bonusCasino(state, clients) {
   const status = clients.admin.statuses.CASINO_STATE;
   const view = status?.state ?? status ?? {};
@@ -482,7 +507,8 @@ async function run() {
     admin.status({ action: 'ADMIN_START_BONUS', type });
     await sleep(3000);
     try {
-      if (type === 'CASINO_COLOR' || type === 'CASINO_DOZEN' || type === 'CASINO_NUMBER') await bonusCasino(state, clients);
+      if (type === 'KARAOKE') await bonusKaraoke(state, clients);
+      if (type === 'CASINO_FIVE' || type === 'CASINO_NUMBER') await bonusCasino(state, clients);
       if (type === 'BLACKJACK') await bonusBlackjack(state, clients);
       if (type === 'BASKET') await bonusBasket(state, clients);
       if (type === 'CAVALLO') await bonusCavallo(state, clients);

@@ -8,9 +8,9 @@ import {
 } from './schedule.mjs';
 
 const FIVE_BONUSES = [
-  'CASINO_COLOR',
+  'KARAOKE',
   'BLACKJACK',
-  'CASINO_DOZEN',
+  'CASINO_FIVE',
   'CAVALLO',
   'CASINO_NUMBER',
 ];

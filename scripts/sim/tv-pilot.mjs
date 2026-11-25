@@ -82,13 +82,13 @@ async function openRound(type) {
  * whitelist TV_ACTIONS, l'interceptor lo rifiuta e chiude la sessione (1002).
  */
 const BONUS_CON_STATO_SUL_TELEFONO = new Set([
-  'CASINO_COLOR', 'CASINO_DOZEN', 'CASINO_NUMBER', 'BLACKJACK', 'CAVALLO', 'BIGLIE',
+  'KARAOKE', 'CASINO_FIVE', 'CASINO_NUMBER', 'BLACKJACK', 'CAVALLO', 'BIGLIE',
 ]);
 
 function bonusState(type) {
-  if (type === 'CASINO_COLOR') return { manche: 1, phase: 'BET', options: ['ROSSO', 'NERO'] };
-  if (type === 'CASINO_DOZEN') return { manche: 1, phase: 'BET', options: ['1-12', '13-24', '25-36'] };
-  if (type === 'CASINO_NUMBER') return { manche: 1, phase: 'BET', options: Array.from({ length: 37 }, (_, index) => String(index)) };
+  if (type === 'KARAOKE') return { manche: 1, phase: 'STEAL', secondsLeft: 30, micPlayer: null, blocked: [] };
+  if (type === 'CASINO_FIVE') return { manche: 1, phase: 'PICK', options: ['NERO', 'ROSSO'] };
+  if (type === 'CASINO_NUMBER') return { manche: 1, phase: 'PICK', options: Array.from({ length: 37 }, (_, index) => String(index)) };
   if (type === 'BLACKJACK') return { phase: 'BET' };
   if (type === 'CAVALLO') return { phase: 'CATEGORY', categories: ['Cinema'], question: null };
   if (type === 'BIGLIE') {

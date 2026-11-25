@@ -24,11 +24,11 @@ export const ROUNDS_SERATA = [
 /** Contratto della serata: se cambia la scaletta, la simulazione non parte. */
 export const EXPECTED_SERATA_ROUNDS = 40;
 export const BONUSES_SERATA = [
-  'CASINO_COLOR', 'BLACKJACK', 'CASINO_DOZEN', 'CAVALLO', 'CASINO_NUMBER',
+  'KARAOKE', 'BLACKJACK', 'CASINO_FIVE', 'CAVALLO', 'CASINO_NUMBER',
 ];
 // Elenco indipendente: se BONUSES_SERATA perde un bonus, il confronto fallisce.
 const EXPECTED_BONUSES = [
-  'CASINO_COLOR', 'BLACKJACK', 'CASINO_DOZEN', 'CAVALLO', 'CASINO_NUMBER',
+  'KARAOKE', 'BLACKJACK', 'CASINO_FIVE', 'CAVALLO', 'CASINO_NUMBER',
 ];
 
 /**
