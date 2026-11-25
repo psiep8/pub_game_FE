@@ -23,6 +23,24 @@ import { CommonModule } from '@angular/common';
         </div>
       </div>
 
+      @if (displayData?.revealed) {
+      <div class="sr-summary">
+        <div class="sr-summary-head">
+          <span class="sr-summary-kicker">TRAGUARDO</span>
+          <h3>RIEPILOGO DI CORSA</h3>
+        </div>
+        <div class="sr-summary-rows">
+          @for (row of displayData?.results; track row.playerName; let i = $index) {
+          <div class="sr-summary-row">
+            <span class="sr-summary-pos">{{ i + 1 }}</span>
+            <span class="sr-summary-name">{{ row.playerName }}</span>
+            <span class="sr-summary-progress">{{ row.finished ? 'ARRIVATO' : (row.progress + '%') }}</span>
+            <b class="sr-summary-points" [class.neg]="row.points < 0">{{ row.points > 0 ? '+' : '' }}{{ row.points }}</b>
+          </div>
+          }
+        </div>
+      </div>
+      } @else {
       <div class="sr-board">
         <div class="sr-board-head">
           <span>POS</span>
@@ -53,6 +71,7 @@ import { CommonModule } from '@angular/common';
           }
         </div>
       </div>
+      }
     </div>
   `,
   styles: [`
@@ -93,6 +112,35 @@ import { CommonModule } from '@angular/common';
       background: var(--paper); color: var(--coal);
       border: 4px solid var(--coal); box-shadow: 12px 12px 0 var(--coal);
     }
+    .sr-summary {
+      flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px;
+      padding: clamp(14px, 2vh, 24px); background: var(--paper); color: var(--coal);
+      border: 4px solid var(--coal); box-shadow: 12px 12px 0 var(--coal);
+    }
+    .sr-summary-head { display: flex; flex-direction: column; gap: 4px; }
+    .sr-summary-kicker {
+      align-self: flex-start; padding: 3px 10px; background: var(--mustard); color: var(--coal);
+      border: 2px solid var(--coal); font-family: var(--font-mono); font-size: .7rem;
+      font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+    }
+    .sr-summary-head h3 {
+      margin: 0; font-family: var(--font-display); font-weight: 400;
+      font-size: clamp(1.6rem, 2.8vw, 2.6rem); line-height: 1; text-transform: uppercase;
+    }
+    .sr-summary-rows { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+    .sr-summary-row {
+      display: grid; grid-template-columns: 42px 1fr 120px 110px; align-items: center; gap: 12px;
+      padding: 8px 12px; background: var(--paper-hi); border: 2px solid var(--coal);
+    }
+    .sr-summary-pos {
+      display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;
+      background: var(--coal); color: var(--paper-hi); font-family: var(--font-mono); font-weight: 700;
+    }
+    .sr-summary-name { font-family: var(--font); font-weight: 800; font-size: clamp(.95rem, 1.4vw, 1.3rem); }
+    .sr-summary-progress { font-family: var(--font-mono); font-size: .8rem; letter-spacing: .08em; opacity: .7; }
+    .sr-summary-points { font-family: var(--font-mono); font-size: clamp(1rem, 1.4vw, 1.25rem); text-align: right; }
+    .sr-summary-points.neg { color: var(--tomato); }
+
     .sr-board-head {
       display: grid; grid-template-columns: 52px minmax(120px, 220px) 1fr 78px; gap: clamp(10px, 1.4vw, 20px);
       padding: 0 0 6px; border-bottom: 3px solid var(--coal);

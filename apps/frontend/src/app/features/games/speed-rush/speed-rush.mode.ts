@@ -27,13 +27,17 @@ export class SpeedRushMode extends GameModeBase {
   readonly requiresBuzz = false;
 
   private lanes = signal<Lane[]>([]);
+  private results = signal<any[]>([]);
   private pointsApplied = false;
   private finishing = false;
+  private clockStarted = false;
 
   protected onInitialize(): void {
     this.lanes.set(this.emptyLanes());
+    this.results.set([]);
     this.pointsApplied = false;
     this.finishing = false;
+    this.clockStarted = false;
     this.timer.set(this.timerDuration);
   }
 
@@ -44,7 +48,10 @@ export class SpeedRushMode extends GameModeBase {
     } catch (error) {
       console.warn('Speed Rush: sessione server non aperta', error);
     }
-    await this.runPreGameSequence(3000);
+    // F-32: la corsa è aperta, ma il cronometro parte alla prima risposta.
+    this.isReading.set(false);
+    this.isActive.set(true);
+    await new Promise((resolve) => setTimeout(resolve, 3000));
   }
 
   protected onPause(): void {}
@@ -69,6 +76,11 @@ export class SpeedRushMode extends GameModeBase {
 
   private applyProgress(event: any): void {
     if (!event?.playerName) return;
+    if (!this.clockStarted) {
+      this.clockStarted = true;
+      this.timer.set(this.timerDuration);
+      this.startTimer();
+    }
     const key = String(event.playerName).trim().toLowerCase();
     this.lanes.update((lanes) => lanes.map((lane) => {
       if (lane.playerName.trim().toLowerCase() !== key) return lane;
@@ -110,6 +122,10 @@ export class SpeedRushMode extends GameModeBase {
   private applyServerResults(results: any[]): void {
     if (this.pointsApplied) return;
     this.pointsApplied = true;
+    this.results.set(results);
+    // F-31: il riepilogo sostituisce la pista appena il server chiude la corsa.
+    this.revealed.set(true);
+    this.stopTimer();
 
     for (const result of results) {
       const playerName = String(result?.playerName ?? '').trim();
@@ -132,6 +148,9 @@ export class SpeedRushMode extends GameModeBase {
   restore(secondsLeft: number, _snapshot?: unknown): void {
     this.pointsApplied = false;
     this.finishing = false;
+    this.clockStarted = true;
+    this.results.set([]);
+    this.revealed.set(false);
     this.lanes.set(this.emptyLanes());
 
     const seconds = Number.isFinite(Number(secondsLeft))
@@ -221,6 +240,7 @@ export class SpeedRushMode extends GameModeBase {
       lanes: [...this.lanes()].sort((a, b) => b.progress - a.progress),
       isReading: this.isReading(),
       revealed: this.revealed(),
+      results: this.results(),
       correctAnswer: null,
     };
   }

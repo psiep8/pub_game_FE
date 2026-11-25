@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -56,12 +57,18 @@ public class SpeedRushService {
         int position;
         long finishedAt = -1;
         Task task;
+        // F-33: variazione forzata per giocatore nelle prime otto prove.
+        int tasksGiven;
+        String lastKind;
+        final Map<String, Integer> kindCounts = new HashMap<>();
     }
 
     private static final class Session {
         String roundKey;
         long startedAt;
         long deadlineAt;
+        /** F-32: la corsa parte alla prima risposta, non all'apertura. */
+        boolean clockStarted;
         boolean finished;
         boolean paused;
         long pausedAt;
@@ -207,7 +214,8 @@ public class SpeedRushService {
         Session session = new Session();
         session.roundKey = key;
         session.startedAt = System.currentTimeMillis();
-        session.deadlineAt = session.startedAt + DURATION_MS;
+        // F-32: deadline 0 = cronometro non ancora partito.
+        session.deadlineAt = 0L;
         Set<String> seen = new LinkedHashSet<>();
         if (playerNames != null) {
             for (String raw : playerNames) {
@@ -217,7 +225,7 @@ public class SpeedRushService {
                 }
                 PlayerState player = new PlayerState();
                 player.name = name;
-                player.task = newTask(null, difficultyFor(0), session.asked);
+                player.task = newTaskFor(player, difficultyFor(0), session.asked);
                 session.players.put(name.toLowerCase(Locale.ROOT), player);
             }
         }
@@ -249,6 +257,13 @@ public class SpeedRushService {
             return Optional.empty();
         }
 
+        // F-32: il primo a rispondere fa partire il tempo per tutti.
+        if (!session.clockStarted) {
+            session.clockStarted = true;
+            session.startedAt = System.currentTimeMillis();
+            session.deadlineAt = session.startedAt + DURATION_MS;
+        }
+
         boolean correct = player.task.answer().equals(normalizeAnswer(rawAnswer));
         if (correct) {
             player.streak++;
@@ -266,7 +281,7 @@ public class SpeedRushService {
             player.finishedAt = System.currentTimeMillis() - session.startedAt;
             player.task = null;
         } else {
-            player.task = newTask(player.task.kind(), difficultyFor(player.progress), session.asked);
+            player.task = newTaskFor(player, difficultyFor(player.progress), session.asked);
         }
         persist(gameId, session);
         return Optional.of(progressJson(player));
@@ -293,7 +308,7 @@ public class SpeedRushService {
             return 0L;
         }
         long delta = Math.max(0L, System.currentTimeMillis() - session.pausedAt);
-        session.deadlineAt += delta;
+        if (session.clockStarted) session.deadlineAt += delta;
         session.paused = false;
         session.pausedAt = 0L;
         persist(gameId, session);
@@ -340,8 +355,11 @@ public class SpeedRushService {
     }
 
     private boolean accepting(Session session) {
-        return session != null && !session.finished && !session.paused
-                && System.currentTimeMillis() <= session.deadlineAt;
+        if (session == null || session.finished || session.paused) {
+            return false;
+        }
+        // F-32: prima della prima risposta non c'è un tempo da consumare.
+        return !session.clockStarted || System.currentTimeMillis() <= session.deadlineAt;
     }
 
     private PlayerState player(Session session, String name) {
@@ -420,14 +438,33 @@ public class SpeedRushService {
      * Prova nuova, mai già uscita in questo round: se il sorteggio ripete una
      * domanda si ritenta (fino a 60 volte, poi si accetta per non bloccare).
      */
+    /** Compatibilità con i test e con chi non ha uno stato giocatore. */
     Task newTask(String previousKind, String difficulty, Set<String> asked) {
+        PlayerState temp = new PlayerState();
+        temp.lastKind = previousKind;
+        return newTaskFor(temp, difficulty, asked);
+    }
+
+    Task newTaskFor(PlayerState player, String difficulty, Set<String> asked) {
         String[] kinds = kindsFor(difficulty);
+        // F-33: mai due prove di fila dello stesso tipo e, nelle prime otto,
+        // ogni tipo una volta sola finché il mazzo della difficoltà lo consente.
+        List<String> pool = new ArrayList<>();
+        for (String kind : kinds) {
+            if (kind.equals(player.lastKind)) continue;
+            if (player.tasksGiven < 8 && player.kindCounts.getOrDefault(kind, 0) > 0) continue;
+            pool.add(kind);
+        }
+        if (pool.isEmpty()) {
+            for (String kind : kinds) {
+                if (!kind.equals(player.lastKind)) pool.add(kind);
+            }
+        }
+        if (pool.isEmpty()) pool.addAll(List.of(kinds));
+
         Task task = null;
         for (int attempt = 0; attempt < 60; attempt++) {
-            String kind;
-            do {
-                kind = kinds[random.nextInt(kinds.length)];
-            } while (kind.equals(previousKind));
+            String kind = pool.get(random.nextInt(pool.size()));
             String id = "sr-" + UUID.randomUUID();
             task = switch (kind) {
                 case "math" -> mathTask(id, difficulty);
@@ -443,6 +480,9 @@ public class SpeedRushService {
                 default -> translateTask(id, difficulty);
             };
             if (asked == null || asked.add(signature(task))) {
+                player.lastKind = kind;
+                player.tasksGiven++;
+                player.kindCounts.merge(kind, 1, Integer::sum);
                 return task;
             }
         }
@@ -507,9 +547,11 @@ public class SpeedRushService {
     /** Tipi disponibili per fascia: i vecchi microgiochi tornano tra facile e difficile. */
     private String[] kindsFor(String difficulty) {
         return switch (difficulty == null ? "" : difficulty) {
-            case "EASY" -> new String[]{"math", "colors", "tap", "odd", "geo"};
-            case "HARD" -> new String[]{"translate", "proverb", "order", "odd", "geo", "reaction"};
-            default -> new String[]{"flag", "words", "proverb", "tap", "order", "geo"};
+            // F-33: almeno otto tipi per difficoltà, così le prime otto prove
+            // possono essere tutte di categorie diverse.
+            case "EASY" -> new String[]{"math", "colors", "flag", "words", "proverb", "tap", "odd", "geo"};
+            case "HARD" -> new String[]{"translate", "proverb", "order", "odd", "geo", "reaction", "math", "flag"};
+            default -> new String[]{"flag", "words", "proverb", "tap", "order", "geo", "math", "colors"};
         };
     }
 
@@ -760,6 +802,7 @@ public class SpeedRushService {
             restored.roundKey = json.optString("roundKey", "");
             restored.startedAt = json.optLong("startedAt", 0);
             restored.deadlineAt = json.optLong("deadlineAt", 0);
+            restored.clockStarted = json.optBoolean("clockStarted", restored.deadlineAt > 0);
             restored.finished = json.optBoolean("finished", false);
             restored.paused = json.optBoolean("paused", false);
             restored.pausedAt = json.optLong("pausedAt", 0);
@@ -780,6 +823,14 @@ public class SpeedRushService {
                 player.finished = row.optBoolean("finished", false);
                 player.position = row.optInt("position", 0);
                 player.finishedAt = row.optLong("finishedAt", -1);
+                player.tasksGiven = row.optInt("tasksGiven", 0);
+                player.lastKind = row.optString("lastKind", null);
+                JSONObject counts = row.optJSONObject("kindCounts");
+                if (counts != null) {
+                    for (String key : counts.keySet()) {
+                        player.kindCounts.put(key, counts.optInt(key, 0));
+                    }
+                }
                 JSONObject task = row.optJSONObject("task");
                 if (task != null) {
                     player.task = new Task(task.optString("id", ""), task.optString("kind", ""),
@@ -807,7 +858,10 @@ public class SpeedRushService {
                     .put("multiplier", player.multiplier)
                     .put("finished", player.finished)
                     .put("position", player.position)
-                    .put("finishedAt", player.finishedAt);
+                    .put("finishedAt", player.finishedAt)
+                    .put("tasksGiven", player.tasksGiven)
+                    .put("lastKind", player.lastKind == null ? JSONObject.NULL : player.lastKind)
+                    .put("kindCounts", new JSONObject(player.kindCounts));
             if (player.task != null) {
                 row.put("task", new JSONObject()
                         .put("id", player.task.id())
@@ -821,6 +875,7 @@ public class SpeedRushService {
                 .put("roundKey", session.roundKey)
                 .put("startedAt", session.startedAt)
                 .put("deadlineAt", session.deadlineAt)
+                .put("clockStarted", session.clockStarted)
                 .put("finished", session.finished)
                 .put("paused", session.paused)
                 .put("pausedAt", session.pausedAt)

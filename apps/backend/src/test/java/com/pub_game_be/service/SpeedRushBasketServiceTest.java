@@ -46,9 +46,10 @@ class SpeedRushBasketServiceTest {
     }
 
     @Test
-    void speedRushDuraNovantaSecondi() {
+    void speedRushDuraNovantaSecondiDallaPrimaRisposta() {
         JSONObject session = speedRush.start(810_003L, List.of("Anna"), "speed-test-durata");
-        assertThat(session.getLong("deadlineAt") - session.getLong("startedAt")).isEqualTo(90_000L);
+        // F-32: all'apertura non c'è ancora un tempo che scorre.
+        assertThat(session.getLong("deadlineAt")).isZero();
     }
 
     @Test
@@ -203,5 +204,34 @@ class SpeedRushBasketServiceTest {
                 .orElseThrow();
         assertThat(wide.getBoolean("made")).isFalse();
         assertThat(wide.getInt("points")).isZero();
+    }
+
+    @Test
+    void speedRushIlTempoParteAllaPrimaRisposta() {
+        long gameId = 810_201L;
+        JSONObject started = speedRush.start(gameId, List.of("Anna", "Bruno"), "clock-test-1");
+        assertThat(started.getLong("deadlineAt")).isZero();
+
+        JSONObject task = speedRush.task(gameId, "Anna").orElseThrow();
+        speedRush.answer(gameId, "Anna", task.getString("taskId"), "SBAGLIATA").orElseThrow();
+
+        JSONObject after = speedRush.start(gameId, List.of("Anna", "Bruno"), "clock-test-1");
+        assertThat(after.getLong("deadlineAt"))
+                .isGreaterThan(System.currentTimeMillis() + 80_000L);
+    }
+
+    @Test
+    void speedRushNienteDueCategorieDiFilaENellePrimeOtto() {
+        long gameId = 810_202L;
+        speedRush.start(gameId, List.of("Anna"), "order-test-1");
+
+        List<String> kinds = new java.util.ArrayList<>();
+        for (int index = 0; index < 8; index++) {
+            JSONObject task = speedRush.task(gameId, "Anna").orElseThrow();
+            kinds.add(task.getString("kind"));
+            speedRush.answer(gameId, "Anna", task.getString("taskId"), "SBAGLIATA").orElseThrow();
+        }
+
+        assertThat(kinds).doesNotHaveDuplicates();
     }
 }

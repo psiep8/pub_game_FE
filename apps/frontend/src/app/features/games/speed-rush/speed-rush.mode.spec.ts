@@ -89,3 +89,40 @@ describe('SpeedRushMode — ripresa dopo un refresh della TV', () => {
     vi.useRealTimers();
   });
 });
+
+describe('SpeedRushMode — F-31 e F-32', () => {
+  it('F-31: mostra il riepilogo quando il server chiude la corsa', () => {
+    const { mode } = setup();
+    mode.handlePartyEvent({
+      action: 'SPEED_RUSH_RESULT',
+      results: [
+        { playerName: 'Anna', points: 800, progress: 100, finished: true },
+        { playerName: 'Bruno', points: -400, progress: 40, finished: false },
+      ],
+    });
+
+    const data = mode.getDisplayData();
+    expect(data.revealed).toBe(true);
+    expect(data.results).toHaveLength(2);
+    expect(data.results[0]).toMatchObject({ playerName: 'Anna', points: 800 });
+    mode.cleanup();
+  });
+
+  it('F-32: il cronometro non scende prima della prima risposta', async () => {
+    vi.useFakeTimers();
+    const { mode } = setup();
+
+    const started = mode.start();
+    await vi.advanceTimersByTimeAsync(3000);
+    await started;
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(mode.getTimerValue()).toBe(90);
+
+    mode.handlePartyEvent({ action: 'SPEED_RUSH_PROGRESS', playerName: 'Anna', progress: 2, streak: 1, multiplier: 1 });
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(mode.getTimerValue()).toBe(88);
+
+    mode.cleanup();
+    vi.useRealTimers();
+  });
+});
