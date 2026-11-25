@@ -19,6 +19,7 @@ import { TvPause } from '../../../shared/tv-pause';
 import {
   BONUS_KARAOKE_BUZZ_SECONDS,
   BONUS_KARAOKE_MANCHE_POINTS,
+  BONUS_KARAOKE_SECONDS,
 } from '../../../shared/models/scoring-rules';
 import { KaraokeLine, KaraokeManche, KaraokeService } from './karaoke.service';
 
@@ -523,7 +524,7 @@ export class KaraokeBonus implements OnInit, OnDestroy {
       this.secondsLeft.set(0);
       this.publish();
       this.emitCheckpoint();
-      this.later(this.preview ? 1200 : 4500, () => this.startManche(this.manche()));
+      this.singAfterCorrect();
       return;
     }
 
@@ -560,6 +561,19 @@ export class KaraokeBonus implements OnInit, OnDestroy {
     this.emitCheckpoint();
     this.startJudgeClock();
     this.audio.play('bell');
+  }
+
+  /**
+   * Chi indovina canta fino alla fine dei suoi 30 secondi: la clip riparte dal
+   * punto in cui si era fermata e la manche successiva aspetta la fine del
+   * brano, senza tagliare la festa dopo il verdetto.
+   */
+  private singAfterCorrect(): void {
+    const remaining = Math.max(1200, BONUS_KARAOKE_SECONDS * 1000 - this.stopAtMs);
+    if (!this.preview && this.audioEl && !this.audioBlocked()) {
+      void this.audioEl.play().catch(() => this.audioBlocked.set(true));
+    }
+    this.later(this.preview ? 4000 : remaining + 800, () => this.startManche(this.manche()));
   }
 
   private startManche(index: number): void {
