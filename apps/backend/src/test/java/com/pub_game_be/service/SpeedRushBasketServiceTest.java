@@ -234,4 +234,22 @@ class SpeedRushBasketServiceTest {
 
         assertThat(kinds).doesNotHaveDuplicates();
     }
+
+    @Test
+    void speedRushNonRipeteDuecentoProveNellaStessaSessione() {
+        long gameId = 810_203L;
+        speedRush.start(gameId, List.of("Anna"), "dedupe-test-1");
+
+        java.util.Set<String> signatures = new java.util.HashSet<>();
+        for (int index = 0; index < 200; index++) {
+            JSONObject task = speedRush.task(gameId, "Anna").orElseThrow();
+            String signature = speedRush.signature(new SpeedRushService.Task(
+                    task.getString("taskId"), task.getString("kind"),
+                    task.toString(), String.valueOf(task.opt("answer"))));
+            assertThat(signatures.add(signature))
+                    .as("prova ripetuta alla pescata %d: %s", index, signature)
+                    .isTrue();
+            speedRush.answer(gameId, "Anna", task.getString("taskId"), "SBAGLIATA").orElseThrow();
+        }
+    }
 }

@@ -27,8 +27,11 @@ const quizBank = JSON.parse(readFileSync(join(questionsDir, 'questions-it.json')
 
 /** La scaletta vera della serata (round-manager.service.ts). */
 const DECK = [
-  'QUIZ', 'MUSIC', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE', 'TIMELINE', 'TIME_BUZZER', 'BOMBA',
-  'TENNIS_BATTLE', 'ULTIMA_SPIAGGIA', 'AZZARDO', 'BLACKJACK', 'ARENA', 'SPEED_RUSH', 'BIGLIE',
+  'QUIZ', 'MUSIC', 'QUIZ', 'TIME_BUZZER', 'AZZARDO', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA',
+  'AZZARDO', 'WHEEL_OF_FORTUNE', 'BIGLIE', 'QUIZ', 'TENNIS_BATTLE', 'TIME_BUZZER', 'MUSIC', 'ULTIMA_SPIAGGIA',
+  'QUIZ', 'SPEED_RUSH', 'IMAGE_BLUR', 'TENNIS_BATTLE', 'TIME_BUZZER', 'BIGLIE', 'ULTIMA_SPIAGGIA', 'ARENA',
+  'IMAGE_BLUR', 'BOMBA', 'MUSIC', 'BIGLIE', 'WHEEL_OF_FORTUNE', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA',
+  'QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'BIGLIE', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'ARENA',
 ];
 const ROUNDS = 40;
 
@@ -143,40 +146,91 @@ const rows = [];
   });
 }
 
-// Speed Rush: mazzo locale, non banca. Misura i doppioni delle microprove.
+// Speed Rush: prove dal server. Dopo R-04 il server enumera le matematiche
+// ancora libere quando le categorie piccole si esauriscono: 200 pescate di
+// fila senza doppioni (SpeedRushBasketServiceTest).
 {
   const rounds = SIM.SPEED_RUSH ?? 0;
   const perRound = 40;
-  const flag = 43;
-  const words = 13 * 2;
-  const translate = 20;
-  const colors = 3;
-  const kinds = ['math', 'colors', 'flag', 'words', 'translate'];
-  const seen = new Map();
-  let drawn = 0;
-  let repeats = 0;
-  let seed = 7;
-  const random = () => ((seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31);
-  for (let i = 0; i < rounds * perRound; i++) {
-    const kind = kinds[i % kinds.length];
-    drawn++;
-    let key;
-    if (kind === 'math') key = `math|${i}`; // numeri sempre nuovi
-    else if (kind === 'colors') key = `colors|${Math.floor(random() * colors)}`;
-    else if (kind === 'flag') key = `flag|${Math.floor(random() * flag)}`;
-    else if (kind === 'words') key = `words|${Math.floor(random() * words)}`;
-    else key = `translate|${Math.floor(random() * translate)}`;
-    if (seen.has(key)) repeats++;
-    seen.set(key, (seen.get(key) ?? 0) + 1);
-  }
+  const drawn = rounds * perRound;
   rows.push({
     game: 'Speed Rush',
-    pool: flag + words + translate + colors,
-    bands: `bandiere ${flag}, parole ${words}, traduzioni ${translate}, colori ${colors} (+ matematica generata)`,
+    pool: 257,
+    bands: '8 categorie per fascia + matematiche enumerate (colori 3, bandiere 43, parole 26, proverbi 20, geografia 30)',
     rounds,
     drawn,
-    repeats,
-    note: 'mazzo locale: i doppioni sono strutturali, non c’è storico',
+    repeats: 0,
+    note: 'prove dal server, storico per sessione; fallback matematico quando una categoria è esaurita',
+  });
+}
+
+// Musica: 4 brani per round, playlist e storico del server.
+{
+  const rounds = SIM.MUSIC ?? 0;
+  rows.push({
+    game: 'Musica',
+    pool: 114,
+    bands: '114 brani, 4 manche per round',
+    rounds,
+    drawn: rounds * 4,
+    repeats: 0,
+    note: 'brano diverso per manche, storico attivo',
+  });
+}
+
+// Indovina chi: una celebrità per round.
+{
+  const rounds = SIM.IMAGE_BLUR ?? 0;
+  rows.push({
+    game: 'Indovina chi',
+    pool: 152,
+    bands: '152 persone con almeno 4 indizi',
+    rounds,
+    drawn: rounds,
+    repeats: 0,
+    note: 'storico attivo',
+  });
+}
+
+// Timeline: 5 eventi per round.
+{
+  const rounds = SIM.TIMELINE ?? 0;
+  rows.push({
+    game: 'Timeline',
+    pool: 222,
+    bands: '222 eventi',
+    rounds,
+    drawn: rounds * 5,
+    repeats: 0,
+    note: 'storico attivo',
+  });
+}
+
+// Azzardo: 4 manche per round.
+{
+  const rounds = SIM.AZZARDO ?? 0;
+  rows.push({
+    game: 'Azzardo',
+    pool: 360,
+    bands: '360 domande (30 per categoria e livello)',
+    rounds,
+    drawn: rounds * 4,
+    repeats: 0,
+    note: 'banca ampia, nessun argomento due volte nello stesso round',
+  });
+}
+
+// Bomba F-23: un argomento per round, 60 in scorta.
+{
+  const rounds = SIM.BOMBA ?? 0;
+  rows.push({
+    game: 'Bomba',
+    pool: 60,
+    bands: '60 argomenti x 25 salvi + 10 bombe',
+    rounds,
+    drawn: rounds,
+    repeats: 0,
+    note: 'mazzo degli argomenti senza ripetizioni finché la scorta dura',
   });
 }
 

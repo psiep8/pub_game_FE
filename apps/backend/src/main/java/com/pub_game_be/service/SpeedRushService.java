@@ -480,13 +480,67 @@ public class SpeedRushService {
                 default -> translateTask(id, difficulty);
             };
             if (asked == null || asked.add(signature(task))) {
-                player.lastKind = kind;
-                player.tasksGiven++;
-                player.kindCounts.merge(kind, 1, Integer::sum);
+                recordTask(player, task);
                 return task;
             }
         }
+        // R-04: le categorie piccole (colori, intrusi, tap) si esauriscono in
+        // fretta. Prima di ripetere una prova si pesca una matematica ancora
+        // non uscita, enumerando le combinazioni invece di tentare a caso.
+        Task fallback = freshMathTask(difficulty, asked);
+        if (fallback != null) {
+            recordTask(player, fallback);
+            return fallback;
+        }
         return task;
+    }
+
+    private void recordTask(PlayerState player, Task task) {
+        player.lastKind = task.kind();
+        player.tasksGiven++;
+        player.kindCounts.merge(task.kind(), 1, Integer::sum);
+    }
+
+    /** Combinazioni di matematica non ancora uscite, dalla più semplice. */
+    private Task freshMathTask(String difficulty, Set<String> asked) {
+        if (asked == null) {
+            return mathTask("sr-" + UUID.randomUUID(), difficulty);
+        }
+        int min;
+        int max;
+        int minB;
+        int maxB;
+        switch (difficulty == null ? "" : difficulty) {
+            case "HARD" -> {
+                min = 12;
+                max = 25;
+                minB = 4;
+                maxB = 12;
+            }
+            case "MEDIUM" -> {
+                min = 4;
+                max = 12;
+                minB = 3;
+                maxB = 9;
+            }
+            default -> {
+                min = 2;
+                max = 9;
+                minB = 2;
+                maxB = 9;
+            }
+        }
+        for (boolean multiply : new boolean[]{false, true}) {
+            for (int a = min; a <= max; a++) {
+                for (int b = minB; b <= maxB; b++) {
+                    Task task = mathTask("sr-" + UUID.randomUUID(), difficulty, a, b, multiply);
+                    if (asked.add(signature(task))) {
+                        return task;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /** Firma della prova: serve a scartare le ripetizioni. */
@@ -525,6 +579,10 @@ public class SpeedRushService {
                 b = 2 + random.nextInt(5);
             }
         }
+        return mathTask(id, difficulty, a, b, multiply);
+    }
+
+    private Task mathTask(String id, String difficulty, int a, int b, boolean multiply) {
         int answer = multiply ? a * b : a + b;
         Set<Integer> options = new LinkedHashSet<>();
         options.add(answer);
