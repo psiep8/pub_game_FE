@@ -226,6 +226,36 @@ export function nextPoint(court: Court, scorerSide: Side): PointResult {
 }
 
 /**
+ * Applica il punto al campo. Il conteggio dei vantaggi è del game, non del
+ * singolo lato: sta su entrambi, così un 40-40 del game dopo non eredita i
+ * vantaggi già spesi e non fa scattare un killer point fuori tempo.
+ */
+export function applyPoint(court: Court, scorerSide: Side): Court {
+  const loserSide: Side = scorerSide === 'a' ? 'b' : 'a';
+  const scorer = court[scorerSide];
+  const loser = court[loserSide];
+  const point = nextPoint(court, scorerSide);
+  const updated: Court = {
+    ...court,
+    [scorerSide]: {
+      ...scorer,
+      score: point.scorerScore,
+      games: point.scorerGames,
+      deuceLosses: point.deuceLosses,
+    },
+    [loserSide]: {
+      ...loser,
+      score: point.loserScore,
+      deuceLosses: point.deuceLosses,
+      shots: loser.shots + 1,
+    },
+    killerPoint: point.killerPoint,
+  };
+  if (point.setWon) updated.winner = scorer.playerName;
+  return updated;
+}
+
+/**
  * Tennis Battle: duello a domande.
  *
  * La palla è sempre da un lato: chi la riceve ha SERVE_SECONDS per rispondere
@@ -535,14 +565,8 @@ export class TennisBattleMode extends GameModeBase {
     this.courts.update((courts) => courts.map((court) => {
       if (court.id !== courtId || court.winner) return court;
 
-      const scorer = court[other];
-      const loser = court[side];
-      const point = nextPoint(court, other);
       const updated: Court = {
-        ...court,
-        [other]: { ...scorer, score: point.scorerScore, games: point.scorerGames, deuceLosses: point.deuceLosses },
-        [side]: { ...loser, score: point.loserScore, shots: loser.shots + 1 },
-        killerPoint: point.killerPoint,
+        ...applyPoint(court, other),
         // La pallina riparte dal lato che ha subito il punto; la domanda è di chi ha segnato.
         turn: other,
         puckSide: side,
@@ -550,10 +574,6 @@ export class TennisBattleMode extends GameModeBase {
         question: null,
         lastEvent: { kind: 'goal', side: other, id: eventId },
       } as Court;
-
-      if (point.setWon) {
-        updated.winner = scorer.playerName;
-      }
       return updated;
     }));
 

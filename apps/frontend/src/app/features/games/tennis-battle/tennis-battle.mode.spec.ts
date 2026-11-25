@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import { GameModeConfig } from '../../../shared/models/game-mode-type';
-import { TennisBattleMode } from './tennis-battle.mode';
+import { TennisBattleMode, applyPoint } from './tennis-battle.mode';
 
 const PLAYERS = ['Anna', 'Bruno', 'Carla', 'Dario'];
 
@@ -65,6 +65,33 @@ describe('TennisBattleMode — regole di sala', () => {
 
     mode.cleanup();
     vi.restoreAllMocks();
+  });
+});
+
+describe('TennisBattleMode — killer point', () => {
+  it('arriva dopo tre vantaggi e il conteggio riparte col game nuovo', () => {
+    // F-07: i vantaggi già spesi restavano addosso al lato che perdeva il
+    // game, e il 40-40 del game dopo faceva scattare subito il killer point.
+    let campo: any = court(0, 'Anna', 'Bruno', {
+      a: side('Anna', { score: 40 }),
+      b: side('Bruno', { score: 40 }),
+    });
+
+    // Tre vantaggi spesi: vantaggio e ritorno sul 40-40, per tre volte.
+    for (let i = 0; i < 3; i++) {
+      campo = applyPoint(campo, 'a');
+      expect(campo.killerPoint).toBe(false);
+      campo = applyPoint(campo, 'b');
+    }
+
+    expect(campo.killerPoint).toBe(true);
+
+    // Killer point: il punto chiude il game, non si torna al vantaggio.
+    campo = applyPoint(campo, 'a');
+    expect(campo.a.games).toBe(1);
+    expect(campo.killerPoint).toBe(false);
+    expect(campo.a.deuceLosses).toBe(0);
+    expect(campo.b.deuceLosses).toBe(0);
   });
 });
 
