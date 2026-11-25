@@ -62,11 +62,14 @@ describe('RoundManagerService', () => {
 
     const acts = [0, 1, 2, 3, 4].map((act) => types.slice(act * 8, act * 8 + 8));
 
-    expect(acts[0][0]).toBe('QUIZ');
+    // Q-04: nuove aperture concordate. L'atto 1 apre con Musica per non
+    // affiancare due giochi a prenotazione (Musica e Ruota).
+    expect(acts.map((act) => act[0])).toEqual([
+      'MUSIC', 'AZZARDO', 'QUIZ', 'AZZARDO', 'QUIZ',
+    ]);
     for (let i = 1; i < acts.length; i++) {
       expect(acts[i]).not.toEqual(acts[i - 1]);
     }
-    expect(acts.every((act) => act[0] === 'QUIZ')).toBe(false);
   });
 
   it('should never schedule two realtime games back to back', () => {
@@ -170,7 +173,7 @@ describe('RoundManagerService', () => {
 
     expect(types.filter((type) => (type as string) === 'CAVALLO')).toHaveLength(0);
     expect(types.filter((type) => type === 'QUIZ')).toHaveLength(5);
-    expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(3);
+    expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(2);
     expect(types.filter((type) => type === 'ULTIMA_SPIAGGIA')).toHaveLength(5);
     expect(types.filter((type) => type === 'AZZARDO')).toHaveLength(2);
     expect(types.filter((type) => type === 'BOMBA')).toHaveLength(2);
@@ -191,8 +194,8 @@ describe('RoundManagerService', () => {
     expect(types.filter((type) => type === 'TIMELINE')).toHaveLength(3);
     expect(types.filter((type) => type === 'WHEEL_OF_FORTUNE')).toHaveLength(2);
     expect(types.filter((type) => type === 'SPEED_RUSH')).toHaveLength(3);
-    expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(3);
-    expect(types.filter((type) => type === 'TENNIS_BATTLE')).toHaveLength(2);
+    expect(types.filter((type) => type === 'TIME_BUZZER')).toHaveLength(2);
+    expect(types.filter((type) => type === 'TENNIS_BATTLE')).toHaveLength(3);
     expect(types.filter((type) => type === 'ULTIMA_SPIAGGIA')).toHaveLength(5);
   });
 
@@ -204,7 +207,7 @@ describe('RoundManagerService', () => {
       .map((type, index) => (type === 'BIGLIE' ? index + 1 : null))
       .filter((round): round is number => round !== null);
 
-    expect(races).toEqual([11, 22, 28, 37]);
+    expect(races).toEqual([11, 22, 28, 38]);
     for (let i = 1; i < races.length; i++) {
       expect(races[i] - races[i - 1]).toBeGreaterThan(1);
     }

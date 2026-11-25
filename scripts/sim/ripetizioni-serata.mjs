@@ -6,7 +6,7 @@
  * cinque bonus, e conta quante domande ogni gioco chiede e quante ne ripete.
  * I pescaggi per round sono quelli del gioco vero:
  *   - Quiz: 3 manche;
- *   - Tennis: 4 campi x ~11 punti (partita al meglio di 3 game);
+ *   - Tennis: 4 campi x ~11 punti (partita al meglio di 3 game), 3 round;
  *   - Arena: 8 giocatori x 3 ondate;
  *   - Ultima spiaggia: 5 livelli;
  *   - Cavallo: 8 domande, una volta a serata.
@@ -27,11 +27,11 @@ const quizBank = JSON.parse(readFileSync(join(questionsDir, 'questions-it.json')
 
 /** La scaletta vera della serata (round-manager.service.ts). */
 const DECK = [
-  'QUIZ', 'MUSIC', 'QUIZ', 'TIME_BUZZER', 'AZZARDO', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA',
-  'AZZARDO', 'WHEEL_OF_FORTUNE', 'BIGLIE', 'QUIZ', 'TENNIS_BATTLE', 'TIME_BUZZER', 'MUSIC', 'ULTIMA_SPIAGGIA',
+  'MUSIC', 'QUIZ', 'WHEEL_OF_FORTUNE', 'TIME_BUZZER', 'IMAGE_BLUR', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA',
+  'AZZARDO', 'WHEEL_OF_FORTUNE', 'BIGLIE', 'QUIZ', 'TENNIS_BATTLE', 'TIMELINE', 'MUSIC', 'ULTIMA_SPIAGGIA',
   'QUIZ', 'SPEED_RUSH', 'IMAGE_BLUR', 'TENNIS_BATTLE', 'TIME_BUZZER', 'BIGLIE', 'ULTIMA_SPIAGGIA', 'ARENA',
-  'IMAGE_BLUR', 'BOMBA', 'MUSIC', 'BIGLIE', 'WHEEL_OF_FORTUNE', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA',
-  'QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'BIGLIE', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'ARENA',
+  'AZZARDO', 'BOMBA', 'MUSIC', 'BIGLIE', 'QUIZ', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA',
+  'QUIZ', 'BOMBA', 'MUSIC', 'TENNIS_BATTLE', 'IMAGE_BLUR', 'BIGLIE', 'ULTIMA_SPIAGGIA', 'ARENA',
 ];
 const ROUNDS = 40;
 

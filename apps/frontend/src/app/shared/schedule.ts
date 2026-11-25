@@ -14,24 +14,29 @@ export const TOTAL_ROUNDS = 40;
  * esce due volte e l'Arena chiude la serata.
  *
  * Nessun atto ripete l'apertura del precedente. Le Biglie sono quattro round
- * separati, uno per atto dal secondo al quinto (11, 22, 28, 37), mai
+ * separati, uno per atto dal secondo al quinto (11, 22, 28, 38), mai
  * consecutivi e mai nello stesso atto: ogni gara vive nel proprio round e
  * assegna i punti della serata. Il Black Jack non è più nella scaletta: resta
  * come bonus, fuori dai quaranta round.
  *
  * Conteggi concordati: 5 Quiz, 4 Musica, 2 Azzardo, 2 Arena, 2 Bomba, 3
  * Celebrità (Indovina chi), 0 Black Jack, 3 Timeline, 2 Ruota, 3 Speed Rush,
- * 3 Time Buzzer, 2 Tennis, 4 Biglie e 5 Ultima spiaggia.
+ * 2 Time Buzzer, 3 Tennis, 4 Biglie e 5 Ultima spiaggia.
  *
  * Ultima spiaggia chiude gli atti 1, 2 e 4 (8, 16, 32) ed è al penultimo
  * round degli atti 3 e 5 (23, 39), subito prima dell'Arena (24, 40).
+ *
+ * Q-04: l'atto 1 apre con Musica e non con Quiz (altrimenti Musica e Ruota
+ * sarebbero due prenotazioni di fila); l'atto 5 mette Tennis prima di
+ * Indovina chi, così Biglie e Tennis non sono due giochi in tempo reale
+ * consecutivi. I vincoli restano protetti dai test di RoundManagerService.
  */
 export const ACT_DECKS: readonly (readonly GameModeType[])[] = [
-  ['QUIZ', 'MUSIC', 'QUIZ', 'TIME_BUZZER', 'AZZARDO', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA'],
-  ['AZZARDO', 'WHEEL_OF_FORTUNE', 'BIGLIE', 'QUIZ', 'TENNIS_BATTLE', 'TIME_BUZZER', 'MUSIC', 'ULTIMA_SPIAGGIA'],
+  ['MUSIC', 'QUIZ', 'WHEEL_OF_FORTUNE', 'TIME_BUZZER', 'IMAGE_BLUR', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA'],
+  ['AZZARDO', 'WHEEL_OF_FORTUNE', 'BIGLIE', 'QUIZ', 'TENNIS_BATTLE', 'TIMELINE', 'MUSIC', 'ULTIMA_SPIAGGIA'],
   ['QUIZ', 'SPEED_RUSH', 'IMAGE_BLUR', 'TENNIS_BATTLE', 'TIME_BUZZER', 'BIGLIE', 'ULTIMA_SPIAGGIA', 'ARENA'],
-  ['IMAGE_BLUR', 'BOMBA', 'MUSIC', 'BIGLIE', 'WHEEL_OF_FORTUNE', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA'],
-  ['QUIZ', 'MUSIC', 'BOMBA', 'IMAGE_BLUR', 'BIGLIE', 'TIMELINE', 'ULTIMA_SPIAGGIA', 'ARENA'],
+  ['AZZARDO', 'BOMBA', 'MUSIC', 'BIGLIE', 'QUIZ', 'TIMELINE', 'SPEED_RUSH', 'ULTIMA_SPIAGGIA'],
+  ['QUIZ', 'BOMBA', 'MUSIC', 'TENNIS_BATTLE', 'IMAGE_BLUR', 'BIGLIE', 'ULTIMA_SPIAGGIA', 'ARENA'],
 ];
 
 /** Tutti i round della serata, nell'ordine in cui vengono giocati. */

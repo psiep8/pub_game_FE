@@ -88,7 +88,7 @@ export const SCORING_RULES: Record<Exclude<GameModeType, 'BLACKJACK'>, ScoringRu
     correct: `${signedPoints(TIME_BUZZER_FIRST)} al primo di manche, ${signedPoints(TIME_BUZZER_PERFECT)} col tempo perfetto`,
     wrong: `${signedPoints(TIME_BUZZER_LAST)} all'ultimo di manche`,
     missed: `${signedPoints(TIME_BUZZER_LAST)}: chi non preme è ultimo della manche`,
-    note: `Tre round da tre manche, senza tagli e con tutte le squadre in gioco: punti per distanza dal bersaglio (${signedPoints(TIME_BUZZER_FIRST)} al primo, ${signedPoints(TIME_BUZZER_LAST)} all'ultimo) e ${signedPoints(TIME_BUZZER_PERFECT)} a chi centra il tempo con errore ≤ ${TIME_BUZZER_PERFECT_MS} ms. I punti si sommano fra le manche.`,
+    note: `Due round da tre manche, senza tagli e con tutte le squadre in gioco: punti per distanza dal bersaglio (${signedPoints(TIME_BUZZER_FIRST)} al primo, ${signedPoints(TIME_BUZZER_LAST)} all'ultimo) e ${signedPoints(TIME_BUZZER_PERFECT)} a chi centra il tempo con errore ≤ ${TIME_BUZZER_PERFECT_MS} ms. I punti si sommano fra le manche.`,
   },
   BOMBA: {
     correct: '0: l’affermazione vera ti tiene in vita',
@@ -106,7 +106,7 @@ export const SCORING_RULES: Record<Exclude<GameModeType, 'BLACKJACK'>, ScoringRu
     correct: `${signedPoints(TENNIS_WIN)} a chi vince la partita`,
     wrong: '0',
     missed: '0',
-    note: 'Chi vince la partita prende 500, chi perde zero: niente punti per il set e nessun premio di rincalzo.',
+    note: 'Tre round da quattro campi. Chi vince la partita prende 500, chi perde zero: niente punti per il set e nessun premio di rincalzo.',
   },
   AZZARDO: {
     correct: '+20 × quota per fiche giusta (×2 facile, ×3 media, ×4 difficile), al massimo +500 a manche',
