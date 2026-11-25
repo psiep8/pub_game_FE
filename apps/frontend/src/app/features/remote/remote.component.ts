@@ -1992,7 +1992,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
 
   karaokeBuzz(): void {
-    if (!this.inputReady()) return;
+    // Il bonus Karaoke vive fuori dal round: la pausa del gioco principale non
+    // deve bloccare la prenotazione del microfono.
     const state = this.karaokeState();
     const player = this.nickname();
     if (!state || !player || this.karaokeSent() || state.phase !== 'STEAL' || state.micPlayer) return;

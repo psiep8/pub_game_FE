@@ -516,6 +516,12 @@ export class ReliabilityService {
     }
   }
 
+  /** Token corrente o quello salvato dopo un refresh: serve alle chiamate REST
+   *  che non passano dal canale di gioco (es. banca Karaoke). */
+  token(): string | null {
+    return this.sessionToken() ?? this.storedToken();
+  }
+
   private storedToken(): string | null {
     try {
       return localStorage.getItem(sessionKey(this.gameId, this.role));
