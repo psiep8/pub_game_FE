@@ -225,8 +225,8 @@ Nessuno.
 | Esce Matrix | Inizia il manga Naruto | 0 |
 | Inizia il manga Naruto | Debutta Chi vuol essere miliardario? in Italia | 1 |
 | Debutta Chi vuol essere miliardario? in Italia | Escono i Coldplay con Parachutes | 0 |
-| Escono i Coldplay con Parachutes | Apple lancia l'iTunes Store | 1 |
-| Apple lancia l'iTunes Store | Attentato alle Torri Gemelle | 0 |
+| Escono i Coldplay con Parachutes | Apple lancia iTunes | 1 |
+| Apple lancia iTunes | Attentato alle Torri Gemelle | 0 |
 | Attentato alle Torri Gemelle | La città incantata vince l'Orso d'oro | 0 |
 | La città incantata vince l'Orso d'oro | Esce Il Signore degli Anelli: La Compagnia dell'Anello | 0 |
 | Esce Il Signore degli Anelli: La Compagnia dell'Anello | L'euro entra in circolazione | 1 |
@@ -301,48 +301,88 @@ Buchi: **0**.
 
 ## Indovina chi (media: people)
 
-Celebrità: **150**.
+Celebrità: **195**.
 
 | Categoria | Persone |
 | --- | --- |
-| Celebrità | 69 |
-| Cinema, Serie TV | 24 |
-| Motori | 6 |
-| Musica | 22 |
-| Scrittori | 1 |
-| Sport | 17 |
-| TV e Spettacolo | 11 |
+| Arte | 8 |
+| Cinema | 49 |
+| Letteratura | 5 |
+| Musica | 61 |
+| Scienza | 8 |
+| Spettacolo | 5 |
+| Sport | 35 |
+| Storia | 11 |
+| Televisione | 13 |
 
 Doppioni: **0**. Campi mancanti o file assenti: **0**.
 
 ### Celebrità per ambito (tre manche)
 
-Persone classificate in `questions/celebrita-ambiti.json`: **60**. La banca locale
-che c'era al momento di questa misura non ha ancora persone per Storia, Arte e
-Scienza: i tre ambiti non sono coperti e l'audit lo dice invece di far finta che
-esistano.
+Persone classificate: **195**.
 
 | Ambito | Sotto-ambiti | Persone | Minimo specifica | Esito |
 | --- | --- | --- | --- | --- |
-| 1 — Storia, Arte, Scienza | — | 0 | 60 | mancano 60 |
-| 2 — Musica | musica 21 | 21 | 50 | mancano 29 |
-| 3 — Sport, Cinema, TV, Spettacolo | cinema 24, sport 9, tv 6 | 39 | 70 | mancano 31 |
+| 1 — Storia, Arte, Scienza, Letteratura | arte 8, letteratura 5, scienza 8, storia 11 | 32 | 30 | ok |
+| 2 — Musica | musica 61 | 61 | 60 | ok |
+| 3 — Sport, Cinema, TV, Spettacolo | cinema 49, spettacolo 5, sport 35, tv 13 | 102 | 100 | ok |
 
-Nessuna persona senza ambito e nessun ambito inesistente (`node
-scripts/audit-banche.mjs --ci`).
+Nessuna persona senza ambito e nessun ambito inesistente.
 
 ### Indizi per persona (banca versionata)
 
-Persone con quattro indizi: **20**; non risolte: **40**. Quattro indizi per
-persona, due ampi e due specifici, fonte https su ognuno, nessun nome: **0
-problemi** (`questions/celebrita-indizi.json`, generato da
-`scripts/banche/genera-indizi.mjs`). Le persone non risolte restano senza
-indizi nuovi e continuano con quelli ricavati dalla biografia; l'elenco
-completo, con il motivo, è in `docs/DOMANDE-DA-REVISIONARE.md`.
+Persone con quattro indizi: **195**; non risolte: **0**.
+
+Quattro indizi per persona, due ampi e due specifici, fonte https su ognuno, nessun nome: **0 problemi**.
 
 ## Indovina la canzone (media: music)
 
-Brani: **114**, artisti distinti: **78**. Doppioni: **0**. Campi o file mancanti: **0**.
+Brani: **100**, artisti distinti: **28**. Doppioni: **0**. Campi o file mancanti: **100**.
+
+| Brano | Campo | Dettaglio |
+| --- | --- | --- |
+| Come nelle favole | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/ae/ec/84/aeec84cc-43e2-fc9b-416a-46c46e300579/16UMGIM72884.rgb.jpg/500x500bb.jpg |
+| Sally | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/ae/ec/84/aeec84cc-43e2-fc9b-416a-46c46e300579/16UMGIM72884.rgb.jpg/500x500bb.jpg |
+| Vita spericolata | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/c5/a2/4d/c5a24d6b-26f5-bd62-adff-e000f564afd0/8034125847761.jpg/500x500bb.jpg |
+| Senza parole | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/ae/ec/84/aeec84cc-43e2-fc9b-416a-46c46e300579/16UMGIM72884.rgb.jpg/500x500bb.jpg |
+| Ridere di te | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/a9/de/d7/a9ded7eb-1c38-f2b6-5ecf-e2092d807d27/8034125847778.jpg/500x500bb.jpg |
+| Certe Notti | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3f/f6/f3/3ff6f31a-3ca4-cfac-1a15-ed272bf500ce/mzi.iaiaanje.jpg/500x500bb.jpg |
+| Non È Tempo Per Noi | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music/fc/cb/04/mzi.bagpfisd.jpg/500x500bb.jpg |
+| Eri Bellissima | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music/1b/2a/fe/mzi.babsafpz.jpg/500x500bb.jpg |
+| Ho Messo Via | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3f/f6/f3/3ff6f31a-3ca4-cfac-1a15-ed272bf500ce/mzi.iaiaanje.jpg/500x500bb.jpg |
+| Balliamo Sul Mondo | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music/fc/cb/04/mzi.bagpfisd.jpg/500x500bb.jpg |
+| Più Bella Cosa | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music/12/89/2c/mzi.frejjcyq.jpg/500x500bb.jpg |
+| Ti Sposerò Perché | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music/28/a1/9e/mzi.fqsfkaaj.jpg/500x500bb.jpg |
+| Un'emozione Per Sempre | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music/28/a1/9e/mzi.fqsfkaaj.jpg/500x500bb.jpg |
+| Un Angelo Disteso Al Sole | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/51/c1/d5/51c1d54e-0613-0f5b-d5d0-2a16f4519a48/00602537623921.rgb.jpg/500x500bb.jpg |
+| Terra promessa | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music/v4/8b/dc/f0/8bdcf0fd-6ffb-176c-f9ff-e3e7003a5d50/886443603066.jpg/500x500bb.jpg |
+| La Solitudine | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music/y2005/m01/d28/h19/s06.qnkcfwob.jpg/500x500bb.jpg |
+| SIAMO SOLI NELL'IMMENSO VUOTO CHE C'È | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/7a/fb/ab/7afbab27-17b4-ee23-0c71-9bd0e63f2832/1200214893668.jpg/500x500bb.jpg |
+| E Ritorno Da Te | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/46/b1/37/46b13749-e5f6-016e-bb40-b363b91bdc19/dj.hmbftikr.jpg/500x500bb.jpg |
+| Simili | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/48/7b/23/487b235f-f25d-6ac6-4c3e-bca60bfd1b75/825646007844.jpg/500x500bb.jpg |
+| E.STA.A.TE | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/e0/86/0e/e0860efd-63e0-47a3-9c4c-15d9ca976460/190295681968.jpg/500x500bb.jpg |
+| Occhi | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/e8/fd/d1/e8fdd166-3541-008d-7b9f-f9f3106ce2ae/06UMGIM31088.rgb.jpg/500x500bb.jpg |
+| Baila (Sexy Thing) | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/08/1a/d4/081ad4a4-f88d-1e62-3e36-902ad3033997/06UMGIM70286.rgb.jpg/500x500bb.jpg |
+| Diamante | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/d2/57/bc/d257bcce-0921-408b-2f37-c3809639daa7/00042283953925.rgb.jpg/500x500bb.jpg |
+| Come Il Sole All'Improvviso (Remastered 2017) | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music113/v4/04/92/fe/0492fe2c-b0e1-d192-2d7c-4d03944b599e/17UM1IM30846.rgb.jpg/500x500bb.jpg |
+| Vedo Nero | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/42/90/f4/4290f4cb-2f1a-3504-6b28-87a1995ea5f3/10UMGIM26293.rgb.jpg/500x500bb.jpg |
+| Estate | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/22/db/6a/22db6a80-06fa-59aa-7080-1bb431c96ae1/20UMGIM54768.rgb.jpg/500x500bb.jpg |
+| Mentre Tutto Scorre | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/22/db/6a/22db6a80-06fa-59aa-7080-1bb431c96ae1/20UMGIM54768.rgb.jpg/500x500bb.jpg |
+| La Prima Volta | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/bd/9f/5f/bd9f5fb8-0d7f-f145-6e74-a2bcad76532b/20UMGIM54763.rgb.jpg/500x500bb.jpg |
+| Fino All'Imbrunire | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/bd/9f/5f/bd9f5fb8-0d7f-f145-6e74-a2bcad76532b/20UMGIM54763.rgb.jpg/500x500bb.jpg |
+| Parlami D'Amore | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/b7/e2/bc/b7e2bc08-039c-ec5a-354d-21f62b3fdd1a/20UMGIM54830.rgb.jpg/500x500bb.jpg |
+| Eppure Sentire (Un Senso Di Te) | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/3c/06/00/3c06009e-c78a-17eb-88bb-d1aa81f16535/20UMGIM54737.rgb.jpg/500x500bb.jpg |
+| Gli Ostacoli Del Cuore (feat. Ligabue) | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/3c/06/00/3c06009e-c78a-17eb-88bb-d1aa81f16535/20UMGIM54737.rgb.jpg/500x500bb.jpg |
+| Luce (Tramonti A Nord Est) | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/0b/79/e6/0b79e611-c79d-e3ee-e4dc-daa1e310fcc4/20UMGIM54745.rgb.jpg/500x500bb.jpg |
+| Il Regalo Più Grande | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/df/2b/ec/df2beca0-81ce-4410-21ed-cc02909b357a/13UABIM49179.rgb.jpg/500x500bb.jpg |
+| Ti scatterò una foto | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/a2/e7/41/a2e741fc-8a26-8d92-47db-888f3fedc6e0/8034125846603.jpg/500x500bb.jpg |
+| Sere nere | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/b2/00/87/b200879d-7b1c-73f6-92f1-01716956d415/8034125846597.jpg/500x500bb.jpg |
+| Non me lo so spiegare | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/b2/00/87/b200879d-7b1c-73f6-92f1-01716956d415/8034125846597.jpg/500x500bb.jpg |
+| Alla Mia Età | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/df/2b/ec/df2beca0-81ce-4410-21ed-cc02909b357a/13UABIM49179.rgb.jpg/500x500bb.jpg |
+| Giornate perse | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/31/d6/70/31d670c0-6a27-173d-0ad3-d97edd35b2da/196874847633.jpg/500x500bb.jpg |
+| Due Vite | albumCover | https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/56/08/20/56082074-c2f5-d5b7-94b8-37e66a4310d6/196589799500.jpg/500x500bb.jpg |
+
+…e altre 60 righe.
 
 ## Ruota della fortuna (frasi dal servizio)
 
