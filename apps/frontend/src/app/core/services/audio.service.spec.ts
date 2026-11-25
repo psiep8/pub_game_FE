@@ -197,14 +197,13 @@ describe('AudioService — giochi muti', () => {
     expect(started()).toEqual([]);
   });
 
-  it('Time Buzzer tace anche se arriva dopo un gioco con il suo loop', () => {
+  it('il Time Buzzer porta il suo sottofondo anche dopo un altro gioco', () => {
     audio.setGameBed('BOMBA');
     calls.length = 0;
 
     audio.setGameBed('TIME_BUZZER');
 
-    expect(calls).toContain('stop-bed');
-    expect(started()).toEqual([]);
+    expect(started()).toEqual(['start-bed:loop/gioco-timeline.m4a']);
   });
 
   it('dopo la pausa un gioco muto resta muto', () => {

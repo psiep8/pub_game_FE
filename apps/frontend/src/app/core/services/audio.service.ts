@@ -25,9 +25,9 @@ const BED_DUCK_SECONDS = 0.5;
  *
  * Gli effetti e i sottofondi sono file (`assets/audio/...`): loop registrati
  * per famiglia, con dissolvenza incrociata al cambio. Cosa suona lo decide
- * `bed-map.ts`: base d'atto, brano del gioco o silenzio. Musica e Time Buzzer
- * stanno nel silenzio (`null`); Quiz e Indovina chi tengono la base 6 dB sotto
- * finché la domanda è aperta. Nessun evento ricade sulla sintesi: un file
+ * `bed-map.ts`: base d'atto, brano del gioco o silenzio. Musica sta nel
+ * silenzio (`null`), il Time Buzzer ha il loop dell'orologeria; Quiz e Indovina
+ * chi tengono la base 6 dB sotto finché la domanda è aperta. Nessun evento ricade sulla sintesi: un file
  * mancante si sente in console.
  */
 @Injectable({ providedIn: 'root' })

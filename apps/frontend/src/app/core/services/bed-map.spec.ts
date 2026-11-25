@@ -122,11 +122,11 @@ describe('Mappa dei sottofondi — giochi', () => {
     expect(bedForGame('ULTIMA_SPIAGGIA')?.id).toBe('gioco-ultima-spiaggia');
   });
 
-  it('lascia Musica e Time Buzzer in silenzio', () => {
+  it('lascia Musica in silenzio e dà al Time Buzzer il loop dell’orologeria', () => {
     expect(bedForGame('MUSIC')).toBeNull();
-    expect(bedForGame('TIME_BUZZER')).toBeNull();
     expect(GAME_BEDS.MUSIC).toBeNull();
-    expect(GAME_BEDS.TIME_BUZZER).toBeNull();
+    // F-19: un tappeto leggero dal catalogo, che si spegne col gioco.
+    expect(bedForGame('TIME_BUZZER')?.id).toBe('gioco-timeline');
   });
 
   it('lascia la lobby e i tipi sconosciuti sulla base d’atto', () => {

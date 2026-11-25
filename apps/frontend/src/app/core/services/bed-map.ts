@@ -78,7 +78,8 @@ export const GAME_BEDS: Record<GameModeType, GameBed> = {
   TIMELINE: BED_LOOPS['gioco-timeline'],
   ULTIMA_SPIAGGIA: BED_LOOPS['gioco-ultima-spiaggia'],
   ARENA: BED_LOOPS['gioco-arena'],
-  TIME_BUZZER: null,
+  // F-19: tappeto leggero dal catalogo, proprietà del gioco.
+  TIME_BUZZER: BED_LOOPS['gioco-timeline'],
   BOMBA: BED_LOOPS['gioco-bomba'],
   SPEED_RUSH: BED_LOOPS['gioco-speed-rush'],
   TENNIS_BATTLE: BED_LOOPS['gioco-tennis'],
@@ -87,8 +88,8 @@ export const GAME_BEDS: Record<GameModeType, GameBed> = {
   BLACKJACK: BED_LOOPS['gioco-blackjack'],
 };
 
-/** Giochi che suonano senza sottofondo: gong, canzoni e silenzio voluto. */
-export const SILENT_GAME_TYPES: readonly GameModeType[] = ['MUSIC', 'TIME_BUZZER'];
+/** Giochi che suonano senza sottofondo: le canzoni hanno il loro brano. */
+export const SILENT_GAME_TYPES: readonly GameModeType[] = ['MUSIC'];
 
 /**
  * Sottofondo del gioco in corso, `null` quando il gioco vuole silenzio.
@@ -104,9 +105,9 @@ export function bedForGame(type?: string | null, act?: number | null): BedTrack 
 
 /**
  * Cosa si tiene in memoria quando un atto si apre: la sua base e i loop dei
- * giochi che la scaletta mette in quell'atto, una volta ciascuno. Musica e Time
- * Buzzer non compaiono perché il loro silenzio non è un file. Senza atto (o con
- * un numero fuori scala) si carica la lobby, che è la base di ripiego.
+ * giochi che la scaletta mette in quell'atto, una volta ciascuno. Musica non
+ * compare perché il suo silenzio non è un file. Senza atto (o con un numero
+ * fuori scala) si carica la lobby, che è la base di ripiego.
  */
 export function bedsForAct(act?: number | null): BedTrack[] {
   const number = actNumber(act);

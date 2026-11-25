@@ -226,7 +226,7 @@ Regola di riproduzione (solo TV; il telefono non suona sottofondi):
 2. **Sottofondo del gioco**: se il gioco ne ha uno, sostituisce la base d'atto
    con la dissolvenza; a fine gioco si torna alla base d'atto. Mai due brani
    insieme, mai uno stacco secco.
-3. **Senza sottofondo proprio**: Musica e Time Buzzer suonano nel silenzio; i
+3. **Senza sottofondo proprio**: Musica suona nel silenzio; il Time Buzzer usa il loop dell'orologeria; i
    flash hanno sirene ed effetti loro; Quiz e Indovina chi tengono la base
    d'atto abbassata di altri 6 dB mentre c'è la domanda.
 4. Il ducking sotto la voce resta com'è.
