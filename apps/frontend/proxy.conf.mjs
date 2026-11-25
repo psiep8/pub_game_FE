@@ -22,6 +22,7 @@ const target = `http://127.0.0.1:${backendPort}`;
 export default {
   '/categories': { target, secure: false, changeOrigin: true },
   '/games': { target, secure: false, changeOrigin: true },
+  '/karaoke': { target, secure: false, changeOrigin: true },
   // Canzoni e foto della banca locale: il payload torna percorsi relativi e il
   // client li chiede alla propria origine (telefono compreso).
   '/media': { target, secure: false, changeOrigin: true },

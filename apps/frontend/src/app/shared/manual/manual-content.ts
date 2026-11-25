@@ -3,9 +3,11 @@ import { GameModeType } from '../enums/game-mode-type';
 import {
   BIGLIE_FIRST,
   BIGLIE_LAST,
-  BONUS_CASINO_COLOR_POINTS,
-  BONUS_CASINO_DOZEN_POINTS,
+  BONUS_CASINO_FIVE_POINTS,
   BONUS_CASINO_NUMBER_POINTS,
+  BONUS_KARAOKE_BUZZ_SECONDS,
+  BONUS_KARAOKE_MANCHE_POINTS,
+  BONUS_KARAOKE_SECONDS,
   BOMBA_PEAK,
   CASINO_SPINS,
   MUSIC_MANCHE_POINTS,
@@ -244,17 +246,18 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, EntryCopy> = {
 };
 
 const BONUS_COPY: Record<BonusType, EntryCopy> = {
-  CASINO_COLOR: {
-    name: 'CASINO NERO/ROSSO',
-    icon: '🔴',
-    summary: `Tre girate sul colore: nero o rosso, poi la ruota decide.`,
-    objective: `Scegliere il colore a ogni girata e sperare che la pallina si fermi sulla stessa famiglia; lo zero è del banco.`,
+  KARAOKE: {
+    name: 'KARAOKE',
+    icon: '🎤',
+    summary: 'Cinque canzoni italiane, clip da 30 secondi e microfono conteso: la musica si ferma senza preavviso.',
+    objective: `Leggere il testo karaoke in TV e ascoltare la clip. A fine riga la musica si ferma: il primo tavolo che prenota prende il microfono fisico e canta le frasi successive. La regia dice CORRETTO o SBAGLIATO; sbagliare non toglie punti e riapre le prenotazioni.`,
     phone: [
-      'Tocca NERO o ROSSO a ogni girata, entro dieci secondi.',
-      `La pallina esce ${CASINO_SPINS} volte: ogni colore giusto vale ${BONUS_CASINO_COLOR_POINTS}.`,
-      'La TV mostra il numero, il colore e i punti.',
+      'Ascolta e leggi il testo: la clip dura 30 secondi.',
+      'Al silenzio tocca PRENOTA IL MICROFONO: vale il primo tocco.',
+      `Canta le frasi successive al microfono del presentatore. La regia ha ${BONUS_KARAOKE_BUZZ_SECONDS} secondi per il verdetto.`,
+      'Se sbagli resti fuori da quella manche; nessun malus.',
     ],
-    tip: `Massimo ${CASINO_SPINS * BONUS_CASINO_COLOR_POINTS} punti se azzecchi tutte e tre le girate; lo zero non paga nessuno.`,
+    tip: `Punti: ${BONUS_KARAOKE_MANCHE_POINTS.map((value) => `+${value}`).join(' / ')}. Massimo +${BONUS_KARAOKE_MANCHE_POINTS.reduce((a, b) => a + b, 0)}. La clip è di ${BONUS_KARAOKE_SECONDS} secondi.`,
   },
   BLACKJACK: {
     name: 'BLACKJACK',
@@ -269,17 +272,17 @@ const BONUS_COPY: Record<BonusType, EntryCopy> = {
     ],
     tip: 'Con 17 o più conviene spesso stare. Il premio lo consegnano barista e presentatore.',
   },
-  CASINO_DOZEN: {
-    name: 'CASINO DOZZINA',
+  CASINO_FIVE: {
+    name: 'CASINO 5 MANCHE',
     icon: '🎰',
-    summary: 'Tre girate sulla dozzina: 1-12, 13-24 o 25-36.',
-    objective: 'Indovinare in quale dozzina cade il numero a ogni girata; lo zero è del banco.',
+    summary: 'Cinque manche, una girata ciascuna: colore, dozzina, parità, alto/basso, numero secco.',
+    objective: `Scegliere la casella giusta a ogni manche. La ruota gira una volta per manche; lo zero è del banco.`,
     phone: [
-      'Tocca la dozzina a ogni girata, entro dieci secondi.',
-      `La ruota gira ${CASINO_SPINS} volte.`,
-      `La dozzina giusta vale ${BONUS_CASINO_DOZEN_POINTS} punti a girata.`,
+      'Scegli una casella a ogni manche, entro dieci secondi.',
+      'La TV mostra numero, casella vincente e punti.',
+      `Punti per manche: ${BONUS_CASINO_FIVE_POINTS.map((value) => `+${value}`).join(' / ')}.`,
     ],
-    tip: `Massimo ${CASINO_SPINS * BONUS_CASINO_DOZEN_POINTS} punti: meglio scegliere subito che aspettare l’ultimo secondo.`,
+    tip: `Massimo +${BONUS_CASINO_FIVE_POINTS.reduce((a, b) => a + b, 0)} se azzecchi tutte e cinque le manche; lo zero non paga nessuno.`,
   },
   CAVALLO: {
     name: 'CAVALLO DI BATTAGLIA',

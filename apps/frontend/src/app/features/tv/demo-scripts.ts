@@ -3,9 +3,11 @@ import { GameModeType } from '../../shared/enums/game-mode-type';
 import {
   BIGLIE_FIRST,
   BIGLIE_LAST,
-  BONUS_CASINO_COLOR_POINTS,
-  BONUS_CASINO_DOZEN_POINTS,
+  BONUS_CASINO_FIVE_POINTS,
   BONUS_CASINO_NUMBER_POINTS,
+  BONUS_KARAOKE_BUZZ_SECONDS,
+  BONUS_KARAOKE_MANCHE_POINTS,
+  BONUS_KARAOKE_SECONDS,
   BOMBA_PEAK,
   CASINO_SPINS,
   MUSIC_MANCHE_POINTS,
@@ -374,17 +376,22 @@ const GAME_COPY: Record<Exclude<GameModeType, 'BLACKJACK'>, DemoCopy> = {
 };
 
 const BONUS_COPY: Record<BonusType, DemoCopy> = {
-  CASINO_COLOR: {
-    title: 'CASINO NERO/ROSSO',
-    icon: '🔴',
+  KARAOKE: {
+    title: 'KARAOKE',
+    icon: '🎤',
     objective: [
-      `Tre girate sul colore: nero o rosso.`,
-      `La ruota europea gira ${CASINO_SPINS} volte.`,
+      `Cinque canzoni italiane, clip da ${BONUS_KARAOKE_SECONDS} secondi.`,
+      'La TV mostra il testo; la musica si ferma senza preavviso a fine riga.',
     ],
-    phone: ['Tocca NERO o ROSSO a ogni girata, entro dieci secondi.', `La pallina esce ${CASINO_SPINS} volte.`, 'Sullo zero il banco incassa.'],
-    win: [`Colore giusto: +${BONUS_CASINO_COLOR_POINTS} a girata, massimo +${CASINO_SPINS * BONUS_CASINO_COLOR_POINTS}.`],
-    lose: ['Colore sbagliato o zero: 0 punti.', 'Nessuna penalità.'],
-    example: `Tre rossi azzeccati: +${CASINO_SPINS * BONUS_CASINO_COLOR_POINTS}.`,
+    phone: [
+      'Ascolta e leggi il testo in TV.',
+      'Al silenzio tocca PRENOTA IL MICROFONO: vale il primo tocco.',
+      'Canta le frasi successive al microfono del presentatore.',
+      'La regia dice CORRETTO o SBAGLIATO: sbagliare non toglie punti e riapre le prenotazioni.',
+    ],
+    win: [`Punti: ${BONUS_KARAOKE_MANCHE_POINTS.map((value) => `+${value}`).join(' / ')}; massimo +${BONUS_KARAOKE_MANCHE_POINTS.reduce((a, b) => a + b, 0)}.`],
+    lose: ['Sbagliato: 0 punti e altra squadra al microfono.', 'Nessun malus.'],
+    example: `Prima canzone giusta: +${BONUS_KARAOKE_MANCHE_POINTS[0]}; ultima: +${BONUS_KARAOKE_MANCHE_POINTS[4]}. La regia ha ${BONUS_KARAOKE_BUZZ_SECONDS} secondi per il verdetto.`,
   },
   BLACKJACK: {
     title: 'BLACKJACK',
@@ -398,17 +405,17 @@ const BONUS_COPY: Record<BonusType, DemoCopy> = {
     lose: ['Pari e sconfitte non tolgono nulla.', 'Sballare non costa nulla in classifica.'],
     example: 'Due tavoli battono il banco: il premio lo consegnano barista e presentatore.',
   },
-  CASINO_DOZEN: {
-    title: 'CASINO DOZZINA',
+  CASINO_FIVE: {
+    title: 'CASINO 5 MANCHE',
     icon: '🎰',
     objective: [
-      'Tre girate sulla dozzina: 1-12, 13-24 o 25-36.',
-      `La ruota gira ${CASINO_SPINS} volte.`,
+      'Cinque manche, una girata ciascuna: colore, dozzina, parità, alto/basso, numero secco.',
+      `Punti: ${BONUS_CASINO_FIVE_POINTS.map((value) => `+${value}`).join(' / ')}.`,
     ],
-    phone: ['Tocca la dozzina a ogni girata, entro dieci secondi.', `La pallina esce ${CASINO_SPINS} volte.`],
-    win: [`Dozzina giusta: +${BONUS_CASINO_DOZEN_POINTS} a girata, massimo +${CASINO_SPINS * BONUS_CASINO_DOZEN_POINTS}.`],
-    lose: ['Dozzina sbagliata o zero: 0 punti.', 'Nessuna penalità.'],
-    example: `Tre dozzine azzeccate: +${CASINO_SPINS * BONUS_CASINO_DOZEN_POINTS}.`,
+    phone: ['Scegli la casella a ogni manche, entro dieci secondi.', 'La TV mostra numero, casella vincente e punti.'],
+    win: [`Punti per manche: ${BONUS_CASINO_FIVE_POINTS.map((value) => `+${value}`).join(' / ')}; massimo +${BONUS_CASINO_FIVE_POINTS.reduce((a, b) => a + b, 0)}.`],
+    lose: ['Casella sbagliata o zero: 0 punti.', 'Nessuna penalità.'],
+    example: `Cinque caselle azzeccate: +${BONUS_CASINO_FIVE_POINTS.reduce((a, b) => a + b, 0)}.`,
   },
   CAVALLO: {
     title: 'CAVALLO DI BATTAGLIA',

@@ -79,15 +79,16 @@ const ROUND_STATE_ACTIONS: Partial<Record<GameModeType, WsAction>> = {
   BIGLIE: WsAction.BIGLIE_STATE,
 };
 
-/** Stato del bonus: le tre varianti Casino condividono la stessa ruota. */
+/** Stato del bonus: Casino 5 manche e numero secco condividono la stessa ruota. */
 const BONUS_STATE_ACTIONS: Record<BonusType, WsAction> = {
-  CASINO_COLOR: WsAction.CASINO_STATE,
-  CASINO_DOZEN: WsAction.CASINO_STATE,
-  CASINO_NUMBER: WsAction.CASINO_STATE,
+  KARAOKE: WsAction.KARAOKE_STATE,
   BLACKJACK: WsAction.BLACKJACK_STATE,
+  CASINO_FIVE: WsAction.CASINO_STATE,
   CAVALLO: WsAction.CAVALLO_STATE,
+  CASINO_NUMBER: WsAction.CASINO_STATE,
 };
 import { CasinoBonus } from '../bonus/casino/casino-bonus.component';
+import { KaraokeBonus } from '../bonus/karaoke/karaoke-bonus.component';
 import { CavalloBonus } from '../bonus/cavallo/cavallo-bonus.component';
 import { Biglie } from '../games/biglie/biglie.component';
 import { BlackjackBonus } from '../bonus/blackjack/blackjack-bonus.component';
@@ -123,6 +124,7 @@ const PENDING_LEADERBOARD_KEY = 'leaderboardPending';
     Azzardo,
     Blackjack,
     CasinoBonus,
+    KaraokeBonus,
     CavalloBonus,
     Biglie,
     BlackjackBonus,
@@ -2456,6 +2458,19 @@ export class GameComponent implements OnInit, OnDestroy {
       this.ws.subscribeToGame(game.id);
     }
 
+    // Il Karaoke ha una schermata TV dedicata che parla ai telefoni tramite
+    // KARAOKE_STATE. Il microfono lo prenota il primo tavolo che tocca.
+    if (type === 'KARAOKE') {
+      const publicPayload = JSON.stringify({ type: 'BONUS_KARAOKE', question: BONUS_LABELS[type] });
+      this.ws.broadcastStatus(this.currentGameId(), {
+        action: WsAction.SHOW_QUESTION,
+        type: 'BONUS_KARAOKE',
+        payload: publicPayload,
+        rawPayload: publicPayload,
+      });
+      return;
+    }
+
     // Il Cavallo ha una schermata TV dedicata che parla direttamente con i
     // telefoni tramite CAVALLO_STATE, come il Casino.
     if (type === 'CAVALLO') {
@@ -2483,8 +2498,8 @@ export class GameComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Le tre varianti Casino usano la stessa ruota e una sola manche: il
-    // telefono riceve sempre BONUS_CASINO e sceglie dalla griglia giusta.
+    // Casino 5 manche e numero secco usano la stessa ruota: il telefono
+    // riceve sempre BONUS_CASINO e sceglie dalla griglia della manche.
     if (CASINO_BONUS_TYPES.includes(type)) {
       const publicPayload = JSON.stringify({ type: 'BONUS_CASINO', question: BONUS_LABELS[type] });
       this.ws.broadcastStatus(this.currentGameId(), {

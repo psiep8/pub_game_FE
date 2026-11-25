@@ -42,7 +42,7 @@ interface Reveal {
 }
 
 interface Manche {
-  id: 'COLOR' | 'DOZEN' | 'NUMBER';
+  id: 'COLOR' | 'DOZEN' | 'PARITY' | 'HIGH_LOW' | 'NUMBER';
   title: string;
   rule: string;
   options: string[];
@@ -125,29 +125,47 @@ const MANCHES: Manche[] = [
   {
     id: 'COLOR',
     title: 'COLORE',
-    rule: 'Tre girate: nero o rosso vale 100 punti a girata.',
+    rule: 'Manche 1: nero o rosso. La casella giusta vale 100 punti.',
     options: ['NERO', 'ROSSO'],
     seconds: 10,
     points: 100,
-    spins: 3,
+    spins: 1,
   },
   {
     id: 'DOZEN',
     title: 'DOZZINA',
-    rule: 'Tre girate: la dozzina giusta vale 200 punti a girata.',
+    rule: 'Manche 2: 1-12, 13-24 o 25-36. La dozzina giusta vale 200 punti.',
     options: ['1-12', '13-24', '25-36'],
     seconds: 10,
     points: 200,
-    spins: 3,
+    spins: 1,
+  },
+  {
+    id: 'PARITY',
+    title: 'PARITÀ',
+    rule: 'Manche 3: pari o dispari. La scelta giusta vale 100 punti.',
+    options: ['PARI', 'DISPARI'],
+    seconds: 10,
+    points: 100,
+    spins: 1,
+  },
+  {
+    id: 'HIGH_LOW',
+    title: 'ALTO/BASSO',
+    rule: 'Manche 4: basso 1-18 o alto 19-36. La scelta giusta vale 100 punti.',
+    options: ['BASSO', 'ALTO'],
+    seconds: 10,
+    points: 100,
+    spins: 1,
   },
   {
     id: 'NUMBER',
     title: 'NUMERO SECCO',
-    rule: 'Numero scelto una volta: se esce in una delle tre girate vale 1000 punti, una volta sola.',
+    rule: 'Manche 5: un numero da 0 a 36. Se esce vale 1000 punti.',
     options: Array.from({ length: 37 }, (_, index) => String(index)),
     seconds: 10,
     points: 1000,
-    spins: 3,
+    spins: 1,
   },
 ];
 
@@ -167,7 +185,8 @@ const DEFLECTOR_R = 222;
 const easeOutCubic = (p: number): number => 1 - Math.pow(1 - p, 3);
 
 /**
- * CASINO — bonus dell'atto 1, quattro manche e una roulette vera in TV.
+ * CASINO — bonus dell'atto 3 nella versione a cinque manche e nell'atto 5
+ * nella versione a numero secco, con una roulette vera in TV.
  *
  * Ogni manche si chiude con un giro della ruota europea (37 caselle): la
  * pallina parte sul bordo, orbita, scende, rimbalza sui vani e si ferma.
@@ -633,8 +652,8 @@ export class CasinoBonus implements OnInit, OnDestroy {
   @Input() players: string[] = [];
   /** Banco di prova: manche da 2 secondi, voti demo e reveal accorciato. */
   @Input() preview = false;
-  /** Casino a una puntata: colore, dozzina o numero, sempre tre girate. */
-  @Input() variant: 'COLOR' | 'DOZEN' | 'NUMBER' = 'COLOR';
+  /** `FIVE`: cinque manche da una girata. `NUMBER`: numero secco su tre girate. */
+  @Input() variant: 'FIVE' | 'NUMBER' | 'COLOR' | 'DOZEN' = 'FIVE';
   /** Stato salvato prima di un refresh della TV: la manche riprende da qui. */
   @Input() resume: any | null = null;
   /**
@@ -663,10 +682,21 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
   manches: Manche[] = MANCHES.slice(0, 1);
   readonly spins = signal(1);
+
+  /** Configurazione della manche in corso: nella versione FIVE cambia a ogni giro. */
+  private currentManche(): Manche {
+    if (this.variant === 'FIVE') {
+      return this.manches[Math.min(this.manches.length - 1, Math.max(0, this.manche() - 1))] ?? this.manches[0];
+    }
+    return this.manches[0];
+  }
   readonly pockets = POCKETS;
 
   /** Le girate della puntata scelta, per la striscia in alto. */
   get rounds(): Array<{ label: string; points: number }> {
+    if (this.variant === 'FIVE') {
+      return this.manches.map((manche) => ({ label: `M${this.manches.indexOf(manche) + 1} · ${manche.title}`, points: manche.points }));
+    }
     const manche = this.manches[0];
     const number = manche?.id === 'NUMBER';
     return Array.from({ length: this.spins() }, (_, index) => ({
@@ -727,11 +757,18 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.pausedReady = true;
-    this.manches = MANCHES.filter((manche) => manche.id === this.variant);
-    this.spins.set(this.manches[0]?.spins ?? 1);
-    const label = this.variant === 'NUMBER' ? 'NUMERO SECCO' : this.variant === 'DOZEN' ? 'DOZZINA' : 'NERO/ROSSO';
-    this.title.set(`CASINO · ${label}`);
-    this.rule.set(this.manches[0]?.rule ?? 'Una sola puntata.');
+    if (this.variant === 'FIVE') {
+      this.manches = MANCHES.slice();
+      this.spins.set(this.manches.length);
+      this.title.set('CASINO · 5 MANCHE');
+      this.rule.set('Cinque manche, una girata ciascuna: colore, dozzina, parità, alto/basso, numero.');
+    } else {
+      this.manches = MANCHES.filter((manche) => manche.id === this.variant);
+      this.spins.set(this.manches[0]?.spins ?? 1);
+      const label = this.variant === 'NUMBER' ? 'NUMERO SECCO' : this.variant === 'DOZEN' ? 'DOZZINA' : 'NERO/ROSSO';
+      this.title.set(`CASINO · ${label}`);
+      this.rule.set(this.manches[0]?.rule ?? 'Una sola puntata.');
+    }
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => {
       this.onStatus(status);
     });
@@ -749,17 +786,16 @@ export class CasinoBonus implements OnInit, OnDestroy {
    * cambia), altrimenti si riapre il voto con il tempo che resta.
    */
   private applyResume(state: any): void {
-    const manche = this.manches[0];
-    if (!manche) {
+    if (!this.manches.length) {
       this.finale();
       return;
     }
 
-    this.spins.set(manche.spins);
     const savedManche = Number(state?.manche);
     this.manche.set(Number.isFinite(savedManche) && savedManche > 0
-      ? Math.min(manche.spins, Math.round(savedManche))
+      ? Math.min(this.spins(), Math.round(savedManche))
       : 1);
+    const manche = this.currentManche();
     this.title.set(manche.title);
     this.rule.set(manche.rule);
     this.options.set([...manche.options]);
@@ -847,11 +883,13 @@ export class CasinoBonus implements OnInit, OnDestroy {
   }
 
   isNumberManche(): boolean {
-    return this.manches[0]?.id === 'NUMBER';
+    return this.currentManche()?.id === 'NUMBER';
   }
 
   introText(): string {
     switch (this.variant) {
+      case 'FIVE':
+        return 'Cinque manche, una girata ciascuna: colore, dozzina, parità, alto/basso, numero secco. Ogni manche paga la sua casella.';
       case 'DOZEN':
         return 'Tre girate: scegli la dozzina, poi la ruota gira. La casella giusta vale 200 punti a girata.';
       case 'NUMBER':
@@ -871,7 +909,8 @@ export class CasinoBonus implements OnInit, OnDestroy {
     if (!playerName || !this.players.includes(playerName)) return;
     if (Number(status.manche) !== this.manche()) return;
     // Numero secco: il numero si sceglie nella prima girata, poi resta quello.
-    if (this.isNumberManche() && this.manche() > 1) return;
+    // Nella versione FIVE il numero è l'ultima manche e la scelta è una sola.
+    if (this.isNumberManche() && this.manche() > 1 && this.variant !== 'FIVE') return;
 
     const choice = String(status.choice ?? '').trim();
     if (!this.options().includes(choice)) return;
@@ -889,8 +928,8 @@ export class CasinoBonus implements OnInit, OnDestroy {
       return;
     }
 
-    const manche = this.manches[0];
     this.manche.set(index + 1);
+    const manche = this.currentManche();
     this.title.set(manche.title);
     this.rule.set(manche.rule);
     this.options.set([...manche.options]);
@@ -898,7 +937,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
     this.reveal.set(null);
     this.settled.set(false);
     this.spinNumber.set(null);
-    if (manche.id === 'NUMBER' && index > 0) {
+    if (manche.id === 'NUMBER' && index > 0 && this.variant !== 'FIVE') {
       // Numero scelto una volta sola: le girate 2 e 3 non riaprono il voto.
       this.phase.set(Phase.SPIN);
       this.secondsLeft.set(0);
@@ -921,7 +960,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
   private async spinManche(): Promise<void> {
     if (this.destroyed) return;
 
-    const manche = this.manches[0];
+    const manche = this.currentManche();
     const number = Math.floor(Math.random() * 37);
 
     await this.spinOnce(number, manche);
@@ -1249,7 +1288,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
   }
 
   private showReveal(number: number): void {
-    const manche = this.manches[0];
+    const manche = this.currentManche();
     const winner = this.labelFor(manche.id, number);
     this.winner.set(winner);
     this.phase.set(Phase.REVEAL);
@@ -1279,6 +1318,8 @@ export class CasinoBonus implements OnInit, OnDestroy {
     if (number === 0) return 'BANCO';
 
     if (manche === 'COLOR') return rouletteColorLabel(number);
+    if (manche === 'PARITY') return number % 2 === 0 ? 'PARI' : 'DISPARI';
+    if (manche === 'HIGH_LOW') return number <= 18 ? 'BASSO' : 'ALTO';
 
     const start = Math.floor((number - 1) / 12) * 12 + 1;
     return `${start}-${start + 11}`;
@@ -1286,7 +1327,7 @@ export class CasinoBonus implements OnInit, OnDestroy {
 
   private finale(): void {
     this.phase.set(Phase.FINALE);
-    this.title.set('CASINO');
+    this.title.set(this.variant === 'FIVE' ? 'CASINO · 5 MANCHE' : 'CASINO');
     this.rule.set('Manche chiusa: classifica del bonus.');
     this.secondsLeft.set(0);
     this.publish();

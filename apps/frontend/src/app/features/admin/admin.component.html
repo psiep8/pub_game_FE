@@ -232,9 +232,9 @@
       <button class="flow-btn" (click)="toggleGamePause()">⏸️ PAUSA / RIPRENDI</button>
       <button class="flow-btn" (click)="showIntro()">↺ RIVEDI INTRO</button>
       <button class="flow-btn" (click)="theme.toggleXmas()">🎄 NATALE {{ theme.xmas() ? 'ON' : 'OFF' }}</button>
-      <button class="flow-btn" (click)="startBonus('CASINO_COLOR')">🔴 CASINO NERO/ROSSO</button>
+      <button class="flow-btn" (click)="startBonus('KARAOKE')">🎤 BONUS KARAOKE</button>
       <button class="flow-btn" (click)="startBonus('BLACKJACK')">🃏 BONUS BLACKJACK</button>
-      <button class="flow-btn" (click)="startBonus('CASINO_DOZEN')">🎰 CASINO DOZZINA</button>
+      <button class="flow-btn" (click)="startBonus('CASINO_FIVE')">🎰 CASINO 5 MANCHE</button>
       <button class="flow-btn" (click)="startBonus('CAVALLO')">🐎 BONUS CAVALLO</button>
       <button class="flow-btn" (click)="restartBonus()">♻️ RIAVVIA BONUS</button>
       <button class="flow-btn" (click)="startBonus('CASINO_NUMBER')">🎯 CASINO NUMERO SECCO</button>
@@ -249,6 +249,29 @@
     </div>
     <div class="flow-note">Avvio e avanzamento manuali: usa PARTI oppure il tasto AVANTI in TV.</div>
   </div>
+
+  @if (karaokeState()?.phase === 'JUDGE') {
+  <div class="flow-panel">
+    <div class="flow-title">🎤 KARAOKE · VERDETTO</div>
+    <p class="flow-note">
+      Manche {{ karaokeState()?.manche }} · {{ karaokeState()?.title }} — {{ karaokeState()?.artist }}.
+      Al microfono: <b>{{ karaokeState()?.micPlayer }}</b>.
+    </p>
+    <div class="karaoke-admin-answer">
+      <span>FRASI CHE DEVE CANTARE</span>
+      @for (line of karaokeState()?.answers ?? []; track line.indice) {
+        <p>{{ line.testo }}</p>
+      }
+      @if (!(karaokeState()?.answers ?? []).length) {
+        <p>Testo locale non caricato: controlla lyrics-bonus-it.json.</p>
+      }
+    </div>
+    <div class="flow-row">
+      <button class="flow-btn primary" (click)="judgeKaraoke('CORRECT')">✓ CORRETTO</button>
+      <button class="flow-btn" (click)="judgeKaraoke('WRONG')">✗ SBAGLIATO · RIAPRI</button>
+    </div>
+  </div>
+  }
 
   @if (debug()) {
   <div class="flow-panel">

@@ -26,31 +26,31 @@ export interface BonusEntranceEntry {
 }
 
 export const BONUS_ENTRANCE_POOL: readonly BonusEntranceEntry[] = [
-  // NERO O ROSSO
+  // KARAOKE
   {
-    id: 'color-luci',
-    type: 'CASINO_COLOR',
-    kicker: 'LUCI SUL TAVOLO',
-    icon: '🔴',
+    id: 'karaoke-spot',
+    type: 'KARAOKE',
+    kicker: 'SI ACCENDE IL PALCO',
+    icon: '🎤',
     motion: 'sweep',
     sound: 'bonusEntrance',
-    variant: 0,
+    variant: 3,
   },
   {
-    id: 'color-sirena',
-    type: 'CASINO_COLOR',
-    kicker: 'SIRENA ROSSA',
-    icon: '🚨',
-    motion: 'alarm',
-    sound: 'bombSiren',
+    id: 'karaoke-microfono',
+    type: 'KARAOKE',
+    kicker: 'MICROFONO LIBERO',
+    icon: '🎶',
+    motion: 'drop',
+    sound: 'uuuh',
   },
   {
-    id: 'color-monete',
-    type: 'CASINO_COLOR',
-    kicker: 'PUNTATE SUL VERDE',
-    icon: '🪙',
-    motion: 'spin',
-    sound: 'coins',
+    id: 'karaoke-sipario',
+    type: 'KARAOKE',
+    kicker: 'SIPARIO APERTO',
+    icon: '🎭',
+    motion: 'slam',
+    sound: 'applause',
   },
   // BLACKJACK
   {
@@ -70,23 +70,31 @@ export const BONUS_ENTRANCE_POOL: readonly BonusEntranceEntry[] = [
     motion: 'drop',
     sound: 'whoosh',
   },
-  // DODICI PER VOLTA
+  // CASINO 5 MANCHE
   {
-    id: 'dozzina-allarme',
-    type: 'CASINO_DOZEN',
-    kicker: 'ALLARME DOZZINA',
+    id: 'five-tavolo',
+    type: 'CASINO_FIVE',
+    kicker: 'CINQUE GIRI, UN TAVOLO',
     icon: '🎰',
-    motion: 'alarm',
+    motion: 'spin',
     sound: 'bonusEntrance',
-    variant: 2,
+    variant: 0,
   },
   {
-    id: 'dozzina-campanelli',
-    type: 'CASINO_DOZEN',
-    kicker: 'TRE CAMPANELLI',
+    id: 'five-campanelli',
+    type: 'CASINO_FIVE',
+    kicker: 'CINQUE CAMPANELLI',
     icon: '🔔',
-    motion: 'spin',
+    motion: 'alarm',
     sound: 'bell',
+  },
+  {
+    id: 'five-pallina',
+    type: 'CASINO_FIVE',
+    kicker: 'LA PALLINA NON SI FERMA',
+    icon: '⚪',
+    motion: 'sweep',
+    sound: 'rouletteTicks',
   },
   // CAVALLO
   {
@@ -106,7 +114,7 @@ export const BONUS_ENTRANCE_POOL: readonly BonusEntranceEntry[] = [
     motion: 'drop',
     sound: 'drumroll',
   },
-  // UN NUMERO, TUTTO
+  // CASINO NUMERO
   {
     id: 'numero-ultimo-giro',
     type: 'CASINO_NUMBER',
@@ -115,14 +123,6 @@ export const BONUS_ENTRANCE_POOL: readonly BonusEntranceEntry[] = [
     motion: 'spin',
     sound: 'bonusEntrance',
     variant: 4,
-  },
-  {
-    id: 'numero-pallina',
-    type: 'CASINO_NUMBER',
-    kicker: 'LA PALLINA IMPAZZISCE',
-    icon: '🎲',
-    motion: 'sweep',
-    sound: 'rouletteTicks',
   },
   {
     id: 'numero-silenzio',
@@ -135,9 +135,9 @@ export const BONUS_ENTRANCE_POOL: readonly BonusEntranceEntry[] = [
 ];
 
 const TYPES: readonly BonusType[] = [
-  'CASINO_COLOR',
+  'KARAOKE',
   'BLACKJACK',
-  'CASINO_DOZEN',
+  'CASINO_FIVE',
   'CAVALLO',
   'CASINO_NUMBER',
 ];

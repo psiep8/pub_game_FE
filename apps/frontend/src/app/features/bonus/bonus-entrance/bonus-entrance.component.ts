@@ -6,10 +6,10 @@ import type { BonusEntranceEntry } from '../../../shared/bonus-entrances';
 /**
  * Ingresso scenografico dei cinque bonus.
  *
- * Ogni variante ha una luce, un ritmo e una scossa diversi: il rosso/nero del
- * Casino, il tavolo del Blackjack, la dozzina acida, il cancello del Cavallo e
- * il buio del numero secco. Niente strobo: le animazioni sono lente e si
- * spengono con `prefers-reduced-motion`.
+ * Ogni variante ha una luce, un ritmo e una scossa diversi: il palco del
+ * Karaoke, il tavolo del Blackjack, le cinque manche del Casino, il cancello
+ * del Cavallo e il buio del numero secco. Niente strobo: le animazioni sono
+ * lente e si spengono con `prefers-reduced-motion`.
  */
 @Component({
   selector: 'app-bonus-entrance',
@@ -48,9 +48,9 @@ import type { BonusEntranceEntry } from '../../../shared/bonus-entrances';
       color: var(--paper);
       --be-accent: var(--paper-hi);
     }
-    .be-CASINO_COLOR { --be-accent: var(--tomato); }
+    .be-KARAOKE { --be-accent: var(--tomato); }
     .be-BLACKJACK { --be-accent: var(--mustard); }
-    .be-CASINO_DOZEN { --be-accent: var(--acid); }
+    .be-CASINO_FIVE { --be-accent: var(--acid); }
     .be-CAVALLO { --be-accent: var(--paper-hi); }
     .be-CASINO_NUMBER { --be-accent: var(--mustard); background: #070706; }
 
@@ -73,6 +73,7 @@ import type { BonusEntranceEntry } from '../../../shared/bonus-entrances';
       opacity: .8;
       pointer-events: none;
     }
+    .be-CASINO_FIVE .be-beam { animation-duration: 3.2s; }
     .be-CASINO_NUMBER .be-beam { animation-duration: 4.2s; opacity: .5; }
     .be-BLACKJACK .be-beam { animation-duration: 3.8s; }
     .be-CAVALLO .be-beam { animation-duration: 1.8s; }
@@ -89,11 +90,12 @@ import type { BonusEntranceEntry } from '../../../shared/bonus-entrances';
       animation: be-alarm 2.6s ease-in-out infinite;
       pointer-events: none;
     }
-    .be-CASINO_DOZEN .be-alarm { opacity: .7; animation-duration: 1.1s; }
+    .be-CASINO_FIVE .be-alarm { opacity: .7; animation-duration: 1.1s; }
     .be-BLACKJACK .be-alarm { opacity: .35; }
 
     .be-shock { animation: be-shock 2.6s cubic-bezier(.2, .8, .2, 1) both; }
     .be-CAVALLO .be-shock { animation-duration: 1.2s; }
+    .be-KARAOKE .be-shock { animation-duration: 1.6s; }
     .be-CASINO_NUMBER .be-shock { animation-duration: 3.4s; }
 
     .be-card {
@@ -111,7 +113,7 @@ import type { BonusEntranceEntry } from '../../../shared/bonus-entrances';
       text-align: center;
       transform: rotate(-1deg);
     }
-    .be-CASINO_DOZEN .be-card { transform: rotate(1.2deg); }
+    .be-CASINO_FIVE .be-card { transform: rotate(1.2deg); }
     .be-CASINO_NUMBER .be-card { transform: none; }
     .be-icon { font-size: clamp(2.6rem, 6vw, 5rem); line-height: 1; animation: be-drop 1.2s cubic-bezier(.2, .8, .2, 1.3) both; }
     .be-kicker {
@@ -181,7 +183,7 @@ import type { BonusEntranceEntry } from '../../../shared/bonus-entrances';
   `],
 })
 export class BonusEntrance {
-  @Input({ required: true }) type: BonusType = 'CASINO_COLOR';
+  @Input({ required: true }) type: BonusType = 'KARAOKE';
   /** L'ingresso scelto per questa partita; senza, resta la variante del tipo. */
   @Input() entry: BonusEntranceEntry | null = null;
   /** La pausa ferma l'ingresso a metà scena. */
@@ -195,10 +197,10 @@ export class BonusEntrance {
     if (this.entry?.icon) return this.entry.icon;
     switch (this.type) {
       case 'BLACKJACK': return '🃏';
-      case 'CASINO_DOZEN': return '🎰';
+      case 'CASINO_FIVE': return '🎰';
       case 'CAVALLO': return '🐎';
       case 'CASINO_NUMBER': return '🎯';
-      default: return '🔴';
+      default: return '🎤';
     }
   }
 
@@ -206,40 +208,40 @@ export class BonusEntrance {
     if (this.entry?.kicker) return this.entry.kicker;
     switch (this.type) {
       case 'BLACKJACK': return 'IL BANCO SI APRE';
-      case 'CASINO_DOZEN': return 'ALLARME DOZZINA';
+      case 'CASINO_FIVE': return 'CINQUE GIRI, UN TAVOLO';
       case 'CAVALLO': return 'AI CANCELLI';
       case 'CASINO_NUMBER': return 'ULTIMO GIRO';
-      default: return 'LUCI SUL TAVOLO';
+      default: return 'SI ACCENDE IL PALCO';
     }
   }
 
   heading(): string {
     switch (this.type) {
       case 'BLACKJACK': return 'BLACKJACK';
-      case 'CASINO_DOZEN': return 'DODICI PER VOLTA';
+      case 'CASINO_FIVE': return 'CINQUE MANCHE';
       case 'CAVALLO': return 'CAVALLO DI BATTAGLIA';
       case 'CASINO_NUMBER': return 'UN NUMERO, TUTTO';
-      default: return 'NERO O ROSSO';
+      default: return 'KARAOKE';
     }
   }
 
   sub(): string {
     switch (this.type) {
       case 'BLACKJACK': return 'Un turno per tavolo, dal fondo della classifica: il banco si ferma a 17.';
-      case 'CASINO_DOZEN': return 'Tre dozzine, una sola rotazione. La casella giusta paga 120.';
-      case 'CAVALLO': return 'Otto domande, un podio: primo 200, secondo 100, terzo 50.';
-      case 'CASINO_NUMBER': return 'La finale: una pallina, trentasette caselle, 300 punti sul numero esatto.';
-      default: return 'Una sola puntata sul colore: rosso o nero, e la ruota decide.';
+      case 'CASINO_FIVE': return 'Cinque manche, una girata ciascuna: colore, dozzina, parità, alto/basso, numero.';
+      case 'CAVALLO': return 'Otto domande, un podio: il premio lo consegnano barista e presentatore.';
+      case 'CASINO_NUMBER': return 'La finale: una pallina, trentasette caselle, 1000 punti sul numero esatto.';
+      default: return 'Cinque manche, un microfono: il primo tavolo che prenota canta e incassa il gettone.';
     }
   }
 
   rule(): string {
     switch (this.type) {
-      case 'BLACKJACK': return 'VITTORIA +150 · PARI +75 · SCONFITTA 0';
-      case 'CASINO_DOZEN': return '1-12 · 13-24 · 25-36';
-      case 'CAVALLO': return 'PODIO +200 / +100 / +50';
-      case 'CASINO_NUMBER': return 'NUMERO ESATTO +300';
-      default: return 'COLORE GIUSTO +100';
+      case 'BLACKJACK': return 'VITTORIA: PREMIO DEL BAR · SCONFITTA 0';
+      case 'CASINO_FIVE': return '100 · 200 · 100 · 100 · 1000';
+      case 'CAVALLO': return 'PREMIO DEL BAR AL VINCITORE';
+      case 'CASINO_NUMBER': return 'NUMERO ESATTO +1000';
+      default: return 'GETTONI +100 / +150 / +200 / +250 / +300';
     }
   }
 }

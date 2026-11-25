@@ -1,15 +1,17 @@
 /**
  * I cinque bonus, uno dentro ogni atto. Non consumano round della scaletta.
  *
- * L'ordine è quello della serata: ogni atto ha il suo bonus, in un round interno.
- * Le tre varianti Casino usano la stessa ruota europea, ma una sola manche:
- * colore, dozzina o numero secco. Il Blackjack e il Cavallo hanno gare
- * dedicate.
+ * L'ordine è quello della serata:
+ * 1. KARAOKE — cinque manche, microfono conteso;
+ * 2. BLACKJACK — un turno per tavolo;
+ * 3. CASINO 5 MANCHE — colore, dozzina, parità, alto/basso, numero secco;
+ * 4. CAVALLO DI BATTAGLIA — otto domande flash;
+ * 5. CASINO NUMERO — numero scelto una volta e tre girate.
  */
 export const BonusType = {
-  CASINO_COLOR: 'CASINO_COLOR',
+  KARAOKE: 'KARAOKE',
   BLACKJACK: 'BLACKJACK',
-  CASINO_DOZEN: 'CASINO_DOZEN',
+  CASINO_FIVE: 'CASINO_FIVE',
   CAVALLO: 'CAVALLO',
   CASINO_NUMBER: 'CASINO_NUMBER',
 } as const;
@@ -17,9 +19,9 @@ export const BonusType = {
 export type BonusType = (typeof BonusType)[keyof typeof BonusType];
 
 export const BONUS_LABELS: Record<BonusType, string> = {
-  CASINO_COLOR: 'CASINO NERO/ROSSO',
+  KARAOKE: 'KARAOKE',
   BLACKJACK: 'BLACKJACK',
-  CASINO_DOZEN: 'CASINO DOZZINA',
+  CASINO_FIVE: 'CASINO 5 MANCHE',
   CAVALLO: 'CAVALLO DI BATTAGLIA',
   CASINO_NUMBER: 'CASINO NUMERO SECCO',
 };
@@ -27,9 +29,8 @@ export const BONUS_LABELS: Record<BonusType, string> = {
 /** I bonus nell'ordine degli atti. */
 export const BONUS_TYPES: readonly BonusType[] = Object.values(BonusType);
 
-/** Le tre varianti che parlano la lingua della roulette. */
+/** I bonus che usano la ruota del Casino. */
 export const CASINO_BONUS_TYPES: readonly BonusType[] = [
-  'CASINO_COLOR',
-  'CASINO_DOZEN',
+  'CASINO_FIVE',
   'CASINO_NUMBER',
 ];

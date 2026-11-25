@@ -427,25 +427,25 @@
 
 @if (bonusActive()) {
   @switch (bonusType()) {
-    @case ('CASINO_COLOR') {
-      <app-casino-bonus
+    @case ('KARAOKE') {
+      <app-karaoke-bonus
         [gameId]="currentGameId()"
         [players]="bonusPlayers()"
-        [variant]="'COLOR'"
+        [regia]="regiaMode()"
         [resume]="bonusResume()"
         [paused]="isPaused()"
-        (checkpoint)="onBonusCheckpoint('CASINO_COLOR', $event)"
+        (checkpoint)="onBonusCheckpoint('KARAOKE', $event)"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
     }
-    @case ('CASINO_DOZEN') {
+    @case ('CASINO_FIVE') {
       <app-casino-bonus
         [gameId]="currentGameId()"
         [players]="bonusPlayers()"
-        [variant]="'DOZEN'"
+        [variant]="'FIVE'"
         [resume]="bonusResume()"
         [paused]="isPaused()"
-        (checkpoint)="onBonusCheckpoint('CASINO_DOZEN', $event)"
+        (checkpoint)="onBonusCheckpoint('CASINO_FIVE', $event)"
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
     }

@@ -48,9 +48,9 @@ export const DETAILED_LEADERBOARD_ROUNDS = [8, 16, 24, 32, 40] as const;
 
 /** Un bonus diverso per ognuno dei cinque atti. */
 export const BONUS_AFTER_ACT: readonly (BonusType | null)[] = [
-  'CASINO_COLOR',
+  'KARAOKE',
   'BLACKJACK',
-  'CASINO_DOZEN',
+  'CASINO_FIVE',
   'CAVALLO',
   'CASINO_NUMBER',
 ];

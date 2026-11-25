@@ -62,6 +62,7 @@ export class Admin implements OnInit, OnDestroy {
   solution = signal<string | null>(null);
   scoringRules = signal<ScoringRule | null>(null);
   currentQuestionType = signal<string>('QUIZ');
+  karaokeState = signal<any | null>(null);
   buzzedPlayer = signal<string | null>(null);
   showAdminControls = signal(false);
   readonly demoOrder = DEMO_ORDER;
@@ -127,6 +128,10 @@ export class Admin implements OnInit, OnDestroy {
 
           case 'ADMIN_STATE':
             this.applyAdminState(status);
+            break;
+
+          case 'KARAOKE_STATE':
+            this.karaokeState.set(status.state ?? null);
             break;
 
           case 'START_VOTING':
@@ -690,6 +695,18 @@ export class Admin implements OnInit, OnDestroy {
 
   hideDemo(): void {
     this.ws.broadcastStatus(this.activeGameId(), { action: WsAction.ADMIN_HIDE_DEMO });
+  }
+
+  /** Verdetto Karaoke: la TV ha già il microfono assegnato e le righe corrette. */
+  judgeKaraoke(result: 'CORRECT' | 'WRONG'): void {
+    const state = this.karaokeState();
+    if (!state?.micPlayer) return;
+    this.ws.broadcastStatus(this.activeGameId(), {
+      action: WsAction.ADMIN_KARAOKE_RESULT,
+      result,
+      manche: state.manche,
+      playerName: state.micPlayer,
+    });
   }
 
   startBonus(type: BonusType): void {

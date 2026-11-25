@@ -47,9 +47,22 @@ export const BIGLIE_FIRST = 500;
 export const BIGLIE_LAST = -400;
 
 export const CASINO_SPINS = 3;
+export const CASINO_FIVE_MANCHES = 5;
 export const BONUS_CASINO_COLOR_POINTS = 100;
 export const BONUS_CASINO_DOZEN_POINTS = 200;
+export const BONUS_CASINO_PARITY_POINTS = 100;
+export const BONUS_CASINO_HIGH_LOW_POINTS = 100;
 export const BONUS_CASINO_NUMBER_POINTS = 1000;
+export const BONUS_CASINO_FIVE_POINTS = [
+  BONUS_CASINO_COLOR_POINTS,
+  BONUS_CASINO_DOZEN_POINTS,
+  BONUS_CASINO_PARITY_POINTS,
+  BONUS_CASINO_HIGH_LOW_POINTS,
+  BONUS_CASINO_NUMBER_POINTS,
+] as const;
+export const BONUS_KARAOKE_MANCHE_POINTS = [100, 150, 200, 250, 300] as const;
+export const BONUS_KARAOKE_SECONDS = 30;
+export const BONUS_KARAOKE_BUZZ_SECONDS = 30;
 /** Finestra di scelta dei bonus, in secondi. */
 export const BONUS_CHOICE_SECONDS = 10;
 
@@ -136,6 +149,18 @@ export const SCORING_RULES: Record<Exclude<GameModeType, 'BLACKJACK'>, ScoringRu
 
 /** I bonus non sono modalità della scaletta: hanno regole proprie. */
 export const BONUS_SCORING: Record<string, ScoringRule> = {
+  BONUS_KARAOKE: {
+    correct: `+${BONUS_KARAOKE_MANCHE_POINTS[0]} alla prima manche, poi +${BONUS_KARAOKE_MANCHE_POINTS.slice(1).join(' / +')}`,
+    wrong: '0',
+    missed: '0: il microfono resta libero',
+    note: `Cinque manche da una clip di ${BONUS_KARAOKE_SECONDS} secondi: la musica si ferma a fine riga, senza preavviso. Il primo tavolo che prenota prende il microfono fisico e canta le frasi successive; la regia dice CORRETTO o SBAGLIATO. Sbagliare non toglie punti e riapre le prenotazioni. Massimo +${BONUS_KARAOKE_MANCHE_POINTS.reduce((a, b) => a + b, 0)}.`,
+  },
+  BONUS_CASINO_FIVE: {
+    correct: `+${BONUS_CASINO_FIVE_POINTS[0]} colore, +${BONUS_CASINO_FIVE_POINTS[1]} dozzina, +${BONUS_CASINO_FIVE_POINTS[2]} parità, +${BONUS_CASINO_FIVE_POINTS[3]} alto/basso, +${BONUS_CASINO_FIVE_POINTS[4]} numero (massimo +${BONUS_CASINO_FIVE_POINTS.reduce((a, b) => a + b, 0)})`,
+    wrong: '0',
+    missed: '0: chi non sceglie resta a zero',
+    note: `Cinque manche, una girata per manche: colore (${BONUS_CASINO_FIVE_POINTS[0]}), dozzina (${BONUS_CASINO_FIVE_POINTS[1]}), parità (${BONUS_CASINO_FIVE_POINTS[2]}), alto/basso (${BONUS_CASINO_FIVE_POINTS[3]}), numero secco (${BONUS_CASINO_FIVE_POINTS[4]}). Sullo zero il banco incassa.`,
+  },
   BONUS_CASINO_COLOR: {
     correct: `${signedPoints(BONUS_CASINO_COLOR_POINTS)} a girata indovinata (massimo ${CASINO_SPINS * BONUS_CASINO_COLOR_POINTS})`,
     wrong: '0',
@@ -153,6 +178,18 @@ export const BONUS_SCORING: Record<string, ScoringRule> = {
     wrong: '0',
     missed: '0',
     note: `Tre girate: 1-12, 13-24 o 25-36 scelta a inizio manche in ${BONUS_CHOICE_SECONDS} secondi. Sullo zero il banco incassa.`,
+  },
+  BONUS_CASINO_PARITY: {
+    correct: `+${BONUS_CASINO_PARITY_POINTS} sulla parità giusta`,
+    wrong: '0',
+    missed: '0',
+    note: 'Una girata: pari o dispari. Lo zero è del banco.',
+  },
+  BONUS_CASINO_HIGH_LOW: {
+    correct: `+${BONUS_CASINO_HIGH_LOW_POINTS} su alto o basso`,
+    wrong: '0',
+    missed: '0',
+    note: 'Una girata: basso 1-18, alto 19-36. Lo zero è del banco.',
   },
   BONUS_CAVALLO: {
     correct: 'premio del bar al vincitore, nessun punto',

@@ -449,9 +449,9 @@ export const AUDIO_EVENT_FOR_METHOD = {
 
 /** Tipi di bonus che hanno un richiamo d'ingresso proprio. */
 export const BONUS_ENTRANCE_TYPES = [
-  'CASINO_COLOR',
+  'KARAOKE',
   'BLACKJACK',
-  'CASINO_DOZEN',
+  'CASINO_FIVE',
   'CAVALLO',
   'CASINO_NUMBER',
 ] as const;

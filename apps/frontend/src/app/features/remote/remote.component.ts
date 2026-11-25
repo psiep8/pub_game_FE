@@ -31,6 +31,7 @@ import { AZZARDO_MAX_WIN_PER_MANCHE } from '../games/azzardo/azzardo-rules';
 import { ConnectionBadge } from '../../shared/components/connection-badge/connection-badge.component';
 import { SentStateComponent } from '../../shared/components/sent-state/sent-state.component';
 import { ButtonTestComponent } from './button-test/button-test.component';
+import { KaraokeRemote } from '../bonus/karaoke/karaoke-remote.component';
 import {
   MANUAL_BONUSES,
   MANUAL_ENTRIES,
@@ -48,7 +49,7 @@ const QUIZ_CHECK_TIMEOUT_MS = 8000;
 @Component({
   selector: 'app-remote-component',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConnectionBadge, SentStateComponent, ButtonTestComponent],
+  imports: [CommonModule, FormsModule, ConnectionBadge, SentStateComponent, ButtonTestComponent, KaraokeRemote],
   templateUrl: './remote.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./remote.component.css', './restyle.css', './manual.css'],
@@ -234,7 +235,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<PlayerStatus>(PlayerStatus.WAITING);
-  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'TENNIS_BATTLE' | 'CAVALLO' | 'ULTIMA_SPIAGGIA' | 'AZZARDO' | 'BLACKJACK' | 'BIGLIE' | 'BONUS_CASINO' | 'BONUS_CAVALLO' | 'BONUS_BIGLIE'>('QUIZ');
+  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'TENNIS_BATTLE' | 'CAVALLO' | 'ULTIMA_SPIAGGIA' | 'AZZARDO' | 'BLACKJACK' | 'BIGLIE' | 'BONUS_CASINO' | 'BONUS_KARAOKE' | 'BONUS_CAVALLO' | 'BONUS_BIGLIE'>('QUIZ');
   hasAnswered = signal(false);
   /** Manche Quiz in corso e ultima manche già votata. */
   quizManche = signal(0);
@@ -346,6 +347,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   bombaShake = signal(false);
   casinoState = signal<any>(null);
   casinoChoice = signal<string | null>(null);
+  karaokeState = signal<any>(null);
+  karaokeSent = signal(false);
+  private karaokeKey = '';
   blackjackState = signal<any>(null);
   blackjackStand = signal(false);
   azzardoState = signal<any>(null);
@@ -662,7 +666,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
             this.blackjackStand.set(false);
             this.blackjackKey = '';
           }
-          if (status.type === 'BONUS_CASINO' || status.type === 'BONUS_CAVALLO'
+          if (status.type === 'BONUS_CASINO' || status.type === 'BONUS_KARAOKE' || status.type === 'BONUS_CAVALLO'
               || status.type === 'BONUS_BIGLIE'
               || status.type === 'ULTIMA_SPIAGGIA' || status.type === 'AZZARDO' || status.type === 'CAVALLO'
               || status.type === 'BLACKJACK') {
@@ -803,6 +807,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'CASINO_STATE':
           this.applyCasinoState(status.state);
+          break;
+
+        case 'KARAOKE_STATE':
+          this.applyKaraokeState(status.state);
           break;
 
         case 'CAVALLO_STATE':
@@ -1409,6 +1417,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       ULTIMA_SPIAGGIA: '🏝️ Ultima spiaggia',
       CAVALLO: '🐎 Cavallo',
       BONUS_CASINO: '🎰 Roulette',
+      BONUS_KARAOKE: '🎤 Karaoke',
       BONUS_CAVALLO: '🐎 Cavallo',
       BONUS_BIGLIE: '🎱 Biglie',
     };
@@ -1560,6 +1569,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
     } else if (type === 'BONUS_CASINO') {
       this.casinoState.set(null);
       this.casinoChoice.set(null);
+    } else if (type === 'BONUS_KARAOKE') {
+      this.karaokeState.set(null);
+      this.karaokeSent.set(false);
+      this.karaokeKey = '';
     } else if (type === 'BONUS_BIGLIE' || type === 'BIGLIE') {
       // Il round Biglie e il vecchio bonus condividono la stessa schermata:
       // cambio subito il tipo, così il telefono non resta vuoto per i 700 ms
@@ -1608,6 +1621,18 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.casinoChoice.set(null);
     }
     this.gameState.set(state.phase === GamePhase.FINALE ? PlayerStatus.WAITING : PlayerStatus.VOTING);
+  }
+
+  private applyKaraokeState(state: any): void {
+    if (!state) return;
+    this.karaokeState.set(state);
+    this.questionType.set('BONUS_KARAOKE');
+    const key = `${state.manche}:${state.phase}:${state.buzzAttempt ?? 0}`;
+    if (key !== this.karaokeKey) {
+      this.karaokeKey = key;
+      this.karaokeSent.set(false);
+    }
+    this.gameState.set(state.phase === 'FINALE' ? PlayerStatus.WAITING : PlayerStatus.VOTING);
   }
 
   private applyCavalloState(state: any): void {
@@ -1965,6 +1990,21 @@ export class RemoteComponent implements OnInit, OnDestroy {
     return (this.azzardoState()?.rows ?? []).find((row: any) => row.playerName === player) ?? null;
   }
 
+
+  karaokeBuzz(): void {
+    if (!this.inputReady()) return;
+    const state = this.karaokeState();
+    const player = this.nickname();
+    if (!state || !player || this.karaokeSent() || state.phase !== 'STEAL' || state.micPlayer) return;
+    if ((state.blocked ?? []).includes(player)) return;
+    this.karaokeSent.set(true);
+    this.ws.broadcastStatus(this.gameId(), {
+      action: WsAction.KARAOKE_ACTION,
+      playerName: player,
+      manche: state.manche,
+    });
+    this.vibrate([40, 30, 40]);
+  }
 
   casinoAct(choice: string): void {
     if (!this.inputReady()) return;

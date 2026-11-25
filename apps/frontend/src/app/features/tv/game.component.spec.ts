@@ -200,7 +200,7 @@ describe('GameComponent', () => {
       status: 'CREATED',
       roundIndex: 0,
       tvCheckpoint: {
-        mode: 'BONUS_CASINO_COLOR',
+        mode: 'BONUS_KARAOKE',
         roundIndex: -1,
         revision: Date.now(),
         state: { phase: 'PICK', manche: 1, secondsLeft: 9, savedAt: Date.now(), paused: true },
@@ -218,7 +218,7 @@ describe('GameComponent', () => {
     component.isPaused.set(true);
 
     const tv = component as unknown as { beginBonus(type: string): Promise<void> };
-    await tv.beginBonus('CASINO_COLOR');
+    await tv.beginBonus('KARAOKE');
 
     // Il reset del bonus non deve riaccendere la sala: pausa e silenzio restano.
     expect(component.isPaused()).toBe(true);
@@ -417,10 +417,10 @@ describe('GameComponent', () => {
   });
 
   it('salva il checkpoint del bonus e lo riapre dopo un refresh', () => {
-    component.onBonusCheckpoint('CASINO_COLOR', { votes: [], scores: [], winner: null });
+    component.onBonusCheckpoint('KARAOKE', { votes: [], scores: [], winner: null });
 
     expect(reliability.tvCheckpoints.at(-1)).toMatchObject({
-      mode: 'BONUS_CASINO_COLOR',
+      mode: 'BONUS_KARAOKE',
       roundIndex: -1,
     });
 
@@ -428,11 +428,11 @@ describe('GameComponent', () => {
     const state = { votes: [{ playerName: 'Anna', choice: 'ROSSO' }], scores: [], winner: null };
     tv.applyAuthoritativeState({
       hasState: true, status: 'CREATED', roundIndex: 0,
-      tvCheckpoint: { mode: 'BONUS_CASINO_COLOR', bonus: true, revision: 5, state },
+      tvCheckpoint: { mode: 'BONUS_KARAOKE', bonus: true, revision: 5, state },
     });
 
     expect(component.bonusResume()).toEqual(state);
-    expect(component.bonusEntrance()).toBe('CASINO_COLOR');
+    expect(component.bonusEntrance()).toBe('KARAOKE');
   });
 
   it('l’ingresso del bonus arriva dal seme della partita, non dal caso', async () => {
@@ -440,11 +440,11 @@ describe('GameComponent', () => {
     (component as unknown as { bonusSeedByGame: Map<number, number> }).bonusSeedByGame.set(1, 99);
     const audio = TestBed.inject(AudioService) as unknown as FakeAudioService;
 
-    await component.startBonus('CASINO_COLOR');
+    await component.startBonus('KARAOKE');
 
     const entry = component.bonusEntranceEntry();
-    expect(entry?.type).toBe('CASINO_COLOR');
-    expect(entry?.id).toBe(bonusEntranceFor('CASINO_COLOR', 99).id);
+    expect(entry?.type).toBe('KARAOKE');
+    expect(entry?.id).toBe(bonusEntranceFor('KARAOKE', 99).id);
     expect(audio.played).toContain(`play-${entry!.sound}`);
   });
 
@@ -2197,14 +2197,14 @@ describe('GameComponent', () => {
 
   describe('striscia di ripartenza dopo il bonus', () => {
     /** Porta la TV al riepilogo chiuso, quando parte il conto alla rovescia. */
-    function closeBonus(type: 'CASINO_COLOR' | 'BLACKJACK' | 'CAVALLO' = 'CASINO_COLOR'): void {
+    function closeBonus(type: 'KARAOKE' | 'BLACKJACK' | 'CAVALLO' = 'KARAOKE'): void {
       TestBed.inject(RoundManagerService).restoreRound(3);
       component.currentGameId.set(1);
       component.bonusEntrance.set(null);
       component.bonusActive.set(true);
       component.bonusType.set(type);
       // Il Casino ha una classifica da mostrare; Blackjack e Cavallo no.
-      if (type === 'CASINO_COLOR') component.onBonusResult({ playerName: 'Anna', score: 2 });
+      if (type === 'KARAOKE') component.onBonusResult({ playerName: 'Anna', score: 2 });
       (component as unknown as { finishBonus(): void }).finishBonus();
     }
 

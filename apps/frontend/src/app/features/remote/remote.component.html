@@ -479,6 +479,14 @@
       }
     </div>
     }
+    @case ('BONUS_KARAOKE') {
+    <app-karaoke-remote
+      [state]="karaokeState()"
+      [myself]="nickname()"
+      [disabled]="!inputReady()"
+      [sent]="karaokeSent()"
+      (buzz)="karaokeBuzz()" />
+    }
     @case ('BONUS_CASINO') {
     <div class="bonus-remote">
       <div class="game-head">

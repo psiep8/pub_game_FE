@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "nota": "Metadati delle cinque manche Karaoke. I testi sincronizzati non stanno nel repository: scripts/bonus/scarica-testi.mjs li scrive in lyrics-bonus-it.json, ignorato da git. La TV usa offsetMs per portare i tempi LRCLIB sul tempo della clip da 30 secondi.",
+  "manche": [
+    {
+      "manche": 1,
+      "punti": 100,
+      "titolo": "La solitudine",
+      "artista": "Laura Pausini",
+      "anno": 1993,
+      "file": "/media/music/laura-pausini-la-solitudine.m4a",
+      "offsetMs": 0
+    },
+    {
+      "manche": 2,
+      "punti": 150,
+      "titolo": "Certe notti",
+      "artista": "Ligabue",
+      "anno": 1995,
+      "file": "/media/music/ligabue-certe-notti.m4a",
+      "offsetMs": 0
+    },
+    {
+      "manche": 3,
+      "punti": 200,
+      "titolo": "Più bella cosa",
+      "artista": "Eros Ramazzotti",
+      "anno": 1996,
+      "file": "/media/music/eros-ramazzotti-piu-bella-cosa.m4a",
+      "offsetMs": 0
+    },
+    {
+      "manche": 4,
+      "punti": 250,
+      "titolo": "Ogni volta",
+      "artista": "Vasco Rossi",
+      "anno": 1982,
+      "file": "/media/music/vasco-rossi-ogni-volta.m4a",
+      "offsetMs": 0
+    },
+    {
+      "manche": 5,
+      "punti": 300,
+      "titolo": "Sally",
+      "artista": "Vasco Rossi",
+      "anno": 1996,
+      "file": "/media/music/vasco-rossi-sally.m4a",
+      "offsetMs": 0
+    }
+  ]
+}

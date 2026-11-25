@@ -22,6 +22,7 @@ export const WsAction = {
   BUTTON_TEST_PING: 'BUTTON_TEST_PING',
   // Bonus giocati dai telefoni
   CASINO_ACTION: 'CASINO_ACTION',
+  KARAOKE_ACTION: 'KARAOKE_ACTION',
   CAVALLO_ACTION: 'CAVALLO_ACTION',
   BIGLIE_ACTION: 'BIGLIE_ACTION',
   ULTIMA_SPIAGGIA_ACTION: 'ULTIMA_SPIAGGIA_ACTION',
@@ -52,6 +53,7 @@ export const WsAction = {
   BLACKJACK_STATE: 'BLACKJACK_STATE',
   TENNIS_BATTLE_STATE: 'TENNIS_BATTLE_STATE',
   CASINO_STATE: 'CASINO_STATE',
+  KARAOKE_STATE: 'KARAOKE_STATE',
   CAVALLO_STATE: 'CAVALLO_STATE',
   BIGLIE_STATE: 'BIGLIE_STATE',
   // Comandi del pannello admin
@@ -72,6 +74,8 @@ export const WsAction = {
   ADMIN_STOP_BONUS: 'ADMIN_STOP_BONUS',
   /** Q-01: riapre il bonus corrente dopo un blocco, senza toccare i punti. */
   ADMIN_RESTART_BONUS: 'ADMIN_RESTART_BONUS',
+  /** Karaoke: il presentatore promuove o boccia le frasi cantate. */
+  ADMIN_KARAOKE_RESULT: 'ADMIN_KARAOKE_RESULT',
   /** Q-05: chiude la pausa d'atto e mostra la flash di ripresa. */
   ADMIN_RESUME_ACT: 'ADMIN_RESUME_ACT',
   /** Q-05: timer della pausa d'atto, 0 = nessun conto alla rovescia. */
