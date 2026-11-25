@@ -127,7 +127,7 @@ const DEMO_MANCHES: KaraokeManche[] = Array.from({ length: 5 }, (_, index) => ({
                 [class.past]="row.past"
                 [class.answer]="row.answer">
                 @for (word of row.words; track $index) {
-                  <span class="karaoke-word" [class.sung]="word.sung">{{ word.text }}</span>{{ ' ' }}
+                  <span class="karaoke-word" [class.sung]="word.sung">{{ word.text }}{{ ' ' }}</span>
                 }
               </p>
             }
@@ -452,8 +452,10 @@ export class KaraokeBonus implements OnInit, OnDestroy {
   readonly visibleLines = computed<VisibleLine[]>(() => {
     const lines = this.song()?.righe ?? [];
     if (!lines.length) return [];
+    // Fuori dal canto (prenotazione, giudizio, reveal) la riga è già tutta
+    // leggibile: il fill serve solo mentre la voce sta passando.
     const plain = (line: KaraokeLine): VisibleWord[] =>
-      line.testo.split(/\s+/).filter(Boolean).map((text) => ({ text, sung: false }));
+      line.testo.split(/\s+/).filter(Boolean).map((text) => ({ text, sung: true }));
 
     if (this.phase() === Phase.REVEAL) {
       const from = Math.max(0, this.stopIndex());
