@@ -1462,7 +1462,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }),
       loadTennisQuestions: async (difficulty: string) => {
         const rows = await firstValueFrom(
-          this.gameService.getTennisQuestions(this.currentGameId()!, difficulty, 12),
+          this.gameService.getTennisQuestions(this.currentGameId()!, difficulty, 60),
         );
         return rows.map((row) => ({
           text: row.question,

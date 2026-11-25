@@ -72,12 +72,22 @@ public class PartyGamesController {
         this.questionHistory = questionHistory;
     }
 
-    /** Domande dell'Tennis dalla banca, mai scritte nel codice del client. */
+    /**
+     * Domande dell'Tennis dalla banca, mai scritte nel codice del client.
+     * Passano dallo storico: un round chiede ~44 punti, quindi il blocco è da
+     * 60 e nessuna domanda torna nella stessa serata.
+     */
     @GetMapping("/{gameId}/tennis/questions")
     public List<Map<String, Object>> tennisQuestions(@PathVariable("gameId") Long gameId,
             @RequestParam(name = "difficulty", defaultValue = "MIXED") String difficulty,
             @RequestParam(name = "count", defaultValue = "12") int count) {
-        return questionBank.quizBatch(difficulty, Math.max(1, Math.min(30, count)));
+        List<Map<String, Object>> rows = questionBank.quizBatch(difficulty,
+                Math.max(1, Math.min(60, count)),
+                question -> !questionHistory.isUsed(gameId, bankKey(question)));
+        for (Map<String, Object> row : rows) {
+            questionHistory.claim(gameId, bankKey(row), null, "TENNIS");
+        }
+        return rows;
     }
 
     /** Domande del Cavallo di Battaglia: difficili, della categoria scelta. */
@@ -85,7 +95,23 @@ public class PartyGamesController {
     public List<Map<String, Object>> cavalloQuestions(@PathVariable("gameId") Long gameId,
             @RequestParam(name = "category", defaultValue = "") String category,
             @RequestParam(name = "count", defaultValue = "8") int count) {
-        return questionBank.cavalloQuestions(category, Math.max(1, Math.min(20, count)));
+        List<Map<String, Object>> rows = questionBank.cavalloQuestions(category,
+                Math.max(1, Math.min(20, count)),
+                question -> !questionHistory.isUsed(gameId, bankKey(question)));
+        for (Map<String, Object> row : rows) {
+            questionHistory.claim(gameId, bankKey(row), null, "CAVALLO");
+        }
+        return rows;
+    }
+
+    private static String bankKey(QuestionBankService.BankQuestion question) {
+        return QuestionHistoryService.key(question.question(), question.correctAnswer(), question.category());
+    }
+
+    private static String bankKey(Map<String, Object> row) {
+        return QuestionHistoryService.key(
+                String.valueOf(row.getOrDefault("question", "")),
+                String.valueOf(row.getOrDefault("correctAnswer", "")), null);
     }
 
     @PostMapping("/{gameId}/timeline-answer")

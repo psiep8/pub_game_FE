@@ -397,6 +397,50 @@ class ReliabilityIntegrationTest {
         assertThat(arena.has("correctIndex")).isFalse();
     }
 
+    @Test
+    void tennisECavalloNonRipetonoLeDomandeNellaStessaSerata() throws Exception {
+        // F-08: il Tennis chiedeva 12 domande per round ma ne servono ~44, e il
+        // Cavallo non passava dallo storico: le stesse domande tornavano anche
+        // tre o quattro volte nella serata.
+        long gameId = 8301L;
+        String tv = sessions.register(gameId, "banca-tv", "TV", null, null).sessionToken();
+
+        java.util.Set<String> viste = new java.util.HashSet<>();
+        for (int blocco = 0; blocco < 4; blocco++) {
+            var risposta = request("GET",
+                    "/games/" + gameId + "/tennis/questions?difficulty=MIXED&count=60",
+                    tv, null, null);
+            assertThat(risposta.statusCode()).isEqualTo(200);
+            JsonNode righe = json.readTree(risposta.body());
+            assertThat(righe.size()).isEqualTo(60);
+            for (JsonNode riga : righe) {
+                String domanda = riga.get("question").asText();
+                assertThat(viste.add(domanda)).as("domanda ripetuta: " + domanda).isTrue();
+            }
+        }
+        assertThat(viste).hasSize(240);
+
+        var primoCavallo = request("GET",
+                "/games/" + gameId + "/cavallo/questions?category=Storia&count=8", tv, null, null);
+        assertThat(primoCavallo.statusCode()).isEqualTo(200);
+        JsonNode righeCavallo = json.readTree(primoCavallo.body());
+        assertThat(righeCavallo.size()).isEqualTo(8);
+        java.util.Set<String> cavallo = new java.util.HashSet<>();
+        for (JsonNode riga : righeCavallo) {
+            cavallo.add(riga.get("question").asText());
+        }
+
+        var secondoCavallo = request("GET",
+                "/games/" + gameId + "/cavallo/questions?category=Storia&count=8", tv, null, null);
+        assertThat(secondoCavallo.statusCode()).isEqualTo(200);
+        for (JsonNode riga : json.readTree(secondoCavallo.body())) {
+            assertThat(cavallo).doesNotContain(riga.get("question").asText());
+        }
+
+        // Lo storico è davvero scritto: 240 domande di Tennis + 8 di Cavallo.
+        assertThat(questionUsage.count(gameId)).isGreaterThanOrEqualTo(248);
+    }
+
     private String mancheQuiz(int manche, String roundStartId) {
         return "{\"manche\":" + manche + ",\"roundStartId\":\"" + roundStartId + "\"}";
     }

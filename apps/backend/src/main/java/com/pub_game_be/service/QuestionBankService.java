@@ -49,7 +49,7 @@ public class QuestionBankService {
      * Riga della banca domande. `band` è la fascia di Ultima spiaggia
      * dichiarata nel JSON (`spiaggiaBand`): null per le domande che non la hanno.
      */
-    private record BankQuestion(String id, String category, String type, String difficulty,
+    public record BankQuestion(String id, String category, String type, String difficulty,
             String band, String question, String correctAnswer, List<String> options,
             String explanation) {
     }
@@ -407,8 +407,20 @@ public class QuestionBankService {
      * Restituisce righe pronte per il frontend (nessun payload AI a runtime).
      */
     public List<Map<String, Object>> quizBatch(String difficulty, int count) {
+        return quizBatch(difficulty, count, question -> true);
+    }
+
+    /**
+     * Variante con filtro: il chiamante esclude le domande già uscite nella
+     * partita, così l'Tennis non ripesca lo stesso fatto due volte.
+     */
+    public List<Map<String, Object>> quizBatch(String difficulty, int count,
+            Predicate<BankQuestion> isAvailable) {
         List<BankQuestion> candidates = new ArrayList<>();
         for (BankQuestion question : allQuestions()) {
+            if (!isAvailable.test(question)) {
+                continue;
+            }
             // Tennis ha una banca dedicata di domande corte: se manca
             // qualcosa si completa con i QUIZ normali, non viceversa.
             if (!"TENNIS_BATTLE".equals(question.type()) || question.options().size() != 4) {
@@ -424,6 +436,9 @@ public class QuestionBankService {
 
         if (candidates.size() < count) {
             for (BankQuestion question : allQuestions()) {
+                if (!isAvailable.test(question)) {
+                    continue;
+                }
                 if (!"QUIZ".equals(question.type()) || question.options().size() != 4) {
                     continue;
                 }
@@ -460,13 +475,19 @@ public class QuestionBankService {
      * domanda perché è la TV a validare i tocchi dei telefoni.
      */
     public List<Map<String, Object>> cavalloQuestions(String category, int count) {
+        return cavalloQuestions(category, count, question -> true);
+    }
+
+    /** Variante con filtro: il Cavallo non ripete domande già uscite. */
+    public List<Map<String, Object>> cavalloQuestions(String category, int count,
+            Predicate<BankQuestion> isAvailable) {
         int wanted = Math.max(1, Math.min(20, count));
         List<BankQuestion> hard = new ArrayList<>();
         List<BankQuestion> medium = new ArrayList<>();
         List<BankQuestion> otherCategories = new ArrayList<>();
 
         for (BankQuestion question : allQuestions()) {
-            if (!isCavalloPlayable(question)) {
+            if (!isCavalloPlayable(question) || !isAvailable.test(question)) {
                 continue;
             }
             boolean sameCategory = category == null || category.isBlank()

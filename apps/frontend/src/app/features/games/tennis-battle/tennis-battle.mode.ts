@@ -282,6 +282,8 @@ export class TennisBattleMode extends GameModeBase {
   private pairsKey = 'pubgame.tennis.pairs';
   private tickInterval?: ReturnType<typeof setInterval>;
   private questions: TennisQuestion[] = [];
+  /** Domande già uscite in questo round: nessuna deve tornare. */
+  private usedQuestions = new Set<string>();
   private lastQuestionText = '';
   /** Round già chiuso perché tutte le sfide sono decise. */
   private finished = false;
@@ -317,9 +319,14 @@ export class TennisBattleMode extends GameModeBase {
           difficulty: row.difficulty,
         }));
 
-      if (fromBank.length > 0) {
+      if (fromBank.length >= 20) {
+        // Con un blocco pieno le riserve scritte qui non servono: ripeterle
+        // ogni round rimetterebbe in scena le stesse quattro domande.
+        this.questions = fromBank;
+      } else if (fromBank.length > 0) {
         this.questions = [...fromBank, ...this.questions];
       }
+      this.usedQuestions.clear();
     } catch {
       // Banca irraggiungibile: si continua con le domande di riserva.
     }
@@ -447,14 +454,23 @@ export class TennisBattleMode extends GameModeBase {
   private nextQuestion(difficulty: Difficulty = 'EASY'): TennisQuestion {
     if (this.questions.length === 0) this.questions = this.buildQuestions();
 
-    const pool = this.questions.filter((q) => q.difficulty === difficulty);
-    const source = pool.length > 0 ? pool : this.questions;
+    // Nessuna domanda due volte nello stesso round: si pesca solo fra quelle
+    // non ancora uscite. Se il blocco è finito si riparte (banca esaurita).
+    let available = this.questions.filter((q) => !this.usedQuestions.has(q.text));
+    if (available.length === 0) {
+      this.usedQuestions.clear();
+      available = this.questions;
+    }
+
+    const pool = available.filter((q) => q.difficulty === difficulty);
+    const source = pool.length > 0 ? pool : available;
     let index = Math.floor(Math.random() * source.length);
     if (source.length > 1 && source[index].text === this.lastQuestionText) {
       index = (index + 1) % source.length;
     }
 
     const picked = source[index];
+    this.usedQuestions.add(picked.text);
     this.lastQuestionText = picked.text;
     return this.shuffleQuestion(picked);
   }
