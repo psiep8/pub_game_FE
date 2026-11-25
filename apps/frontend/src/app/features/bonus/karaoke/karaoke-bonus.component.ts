@@ -417,18 +417,31 @@ export class KaraokeBonus implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.pausedReady = true;
     this.ws.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status: any) => this.onStatus(status));
-    this.karaokeService.getManches(this.gameId).subscribe((manches) => {
-      if (this.preview) {
-        this.songs = manches.length && manches.every((item) => item.testiPronti) ? manches : DEMO_MANCHES;
-      } else {
-        this.songs = manches;
-      }
+    // Il banco di prova mostra sempre le manche finte: non dipende dai testi
+    // protetti né dal token della partita, che senza sessione risponde 401.
+    const boot = () => {
       this.loaded.set(true);
       if (this.resume) {
         this.applyResume(this.resume);
         return;
       }
       this.later(this.preview ? 200 : 1800, () => this.startManche(0));
+    };
+
+    this.karaokeService.getManches(this.gameId).subscribe({
+      next: (manches) => {
+        const list = Array.isArray(manches) ? manches : [];
+        // In preview si usano le manche vere solo se sono complete di testi;
+        // altrimenti (o senza sessione) si resta sul banco di prova finto.
+        this.songs = this.preview
+          ? (list.length && list.every((item) => item.testiPronti && item.righe?.length) ? list : DEMO_MANCHES)
+          : list;
+        boot();
+      },
+      error: () => {
+        this.songs = this.preview ? DEMO_MANCHES : [];
+        boot();
+      },
     });
   }
 
@@ -588,16 +601,21 @@ export class KaraokeBonus implements OnInit, OnDestroy {
   }
 
   private startVisualPlayback(song: KaraokeManche): void {
-    const simulationStop = Math.min(900, Math.max(500, this.stopAtMs));
-    this.stopAtMs = simulationStop;
-    this.stopIndex.set(Math.max(0, Math.min(song.righe.length - 3, 3)));
+    // Il banco di prova deve mostrare il comportamento vero: si arriva alla
+    // seconda riga e la si lascia a metà fill, non si ferma dopo mezzo secondo
+    // sulla prima. Senza righe sufficienti si ripiega su un paio di secondi.
+    const secondStart = song.righe[1]?.inizioMs ?? 4000;
+    const thirdStart = song.righe[2]?.inizioMs ?? secondStart + 4000;
+    const span = Math.max(1500, thirdStart - secondStart);
+    this.stopAtMs = Math.min(12000, Math.max(secondStart + 1200, secondStart + span * 0.55));
+    this.stopIndex.set(Math.max(0, Math.min(song.righe.length - 1, 1)));
     const started = Date.now();
     this.playbackTimer = setInterval(() => {
       if (this.phase() !== Phase.PLAYING || this.pause.isPaused) return;
       const elapsed = Date.now() - started;
       this.clipTime.set(elapsed);
       this.activeLine.set(this.lineIndexAt(elapsed));
-      if (elapsed >= simulationStop) this.stopClip();
+      if (elapsed >= this.stopAtMs) this.stopClip();
     }, 50);
   }
 
