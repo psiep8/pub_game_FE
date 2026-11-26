@@ -60,19 +60,10 @@ async function openTv(page: Page, gameId: number, options: { sim?: boolean; debu
   if (options.debug) params.set('debug', '1');
   const query = params.toString();
   const url = `/tv${query ? `?${query}` : ''}`;
-  // L'avvio della sessione può precedere il backend pronto: la TV resterebbe
-  // "NON IN LINEA" per sempre. Riapriamola, come un riavvio della postazione.
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    await page.goto(url);
-    await openLobby(page);
-    const codeVisible = await page.locator('.pairing-code')
-      .waitFor({ state: 'visible', timeout: 30_000 })
-      .then(() => true)
-      .catch(() => false);
-    if (codeVisible) return;
-    await page.waitForTimeout(1_500);
-  }
-  throw new Error('La TV non ha mostrato il codice di abbinamento');
+  // La sessione iniziale la riprova la TV da sola: nessun reload di soccorso.
+  await page.goto(url);
+  await openLobby(page);
+  await page.locator('.pairing-code').waitFor({ state: 'visible', timeout: 45_000 });
 }
 
 async function pairAdmin(page: Page, gameId: number, code: string): Promise<void> {

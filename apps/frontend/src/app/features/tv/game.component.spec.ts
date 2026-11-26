@@ -91,6 +91,62 @@ describe('GameComponent', () => {
     expect(component.pairingCountdown()).toBeGreaterThan(290);
   });
 
+  it('N-01: la TV riprova la sessione iniziale senza reload', async () => {
+    vi.useFakeTimers();
+    try {
+      reliability.startFailures = 2;
+      reliability.started.length = 0;
+
+      const opened = (component as any).startTvSession(3) as Promise<boolean>;
+      await vi.advanceTimersByTimeAsync(10_000);
+
+      await expect(opened).resolves.toBe(true);
+      expect(reliability.started.map((entry) => entry.gameId)).toEqual([3, 3, 3]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('N-01: se il backend resta giù la sessione si riapre da sola', async () => {
+    vi.useFakeTimers();
+    try {
+      reliability.startFailures = 100;
+      const opened = (component as any).startTvSession(4) as Promise<boolean>;
+      await vi.advanceTimersByTimeAsync(20_000);
+
+      await expect(opened).resolves.toBe(false);
+      expect((component as any).sessionRecovery).toBeTruthy();
+
+      const ensure = vi.spyOn(component, 'ensurePairingCode').mockResolvedValue(undefined);
+      reliability.startFailures = 0;
+      await vi.advanceTimersByTimeAsync(4_000);
+
+      // Sessione arrivata in ritardo: la lobby chiede il codice senza reload.
+      expect(ensure).toHaveBeenCalled();
+      expect((component as any).sessionRecovery).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('N-01: il segreto di regia è applicato prima di aprire la sessione', async () => {
+    localStorage.setItem('pubgame.regia', 'segreto-di-prova');
+    reliability.controlSecrets.length = 0;
+    reliability.secretAtStart.length = 0;
+    reliability.startFailures = 0;
+
+    const second = TestBed.createComponent(GameComponent);
+    second.detectChanges();
+    // La prima attesa della lobby è getActiveGame: al tick dopo la sessione parte.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(reliability.controlSecrets).toContain('segreto-di-prova');
+    // La sessione nasce già regia: il segreto non arriva dopo la prima attesa.
+    expect(reliability.secretAtStart.at(-1)).toBe('segreto-di-prova');
+
+    second.destroy();
+  });
+
   it('N-02: la barra comandi in TV non c’è senza ?debug=1', () => {
     component.phase.set('IDLE');
     fixture.detectChanges();

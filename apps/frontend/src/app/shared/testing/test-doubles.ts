@@ -393,15 +393,27 @@ export class FakeReliabilityService {
   readonly syncEvent$ = new Subject<any>();
   readonly sessionRevoked$ = new Subject<void>();
   readonly started: Array<{ gameId: number; role: string; playerName?: string }> = [];
+  /** Tentativi di avvio che i test possono far fallire, uno per chiamata. */
+  startFailures = 0;
+  readonly controlSecrets: Array<string | null> = [];
+  /** Segreto memorizzato al momento dell'apertura sessione. */
+  readonly secretAtStart: Array<string | null> = [];
 
   async start(gameId: number, role: string, playerName = ""): Promise<boolean> {
     this.started.push({ gameId, role, playerName });
+    this.secretAtStart.push(this.controlSecrets.at(-1) ?? null);
+    if (this.startFailures > 0) {
+      this.startFailures -= 1;
+      return false;
+    }
     return true;
   }
 
   stop(): void {}
 
-  setControlSecret(_secret: string | null): void {}
+  setControlSecret(secret: string | null): void {
+    this.controlSecrets.push(secret);
+  }
 
   forgetSession(): void {}
 
