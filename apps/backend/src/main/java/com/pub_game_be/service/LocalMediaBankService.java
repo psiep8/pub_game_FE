@@ -2,9 +2,9 @@ package com.pub_game_be.service;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -62,15 +62,11 @@ public class LocalMediaBankService {
     private final Map<String, List<Clue>> cluesByName = new LinkedHashMap<>();
     private final List<String> namesWithClues = new ArrayList<>();
     private final String configuredBaseUrl;
-    private final ClassPathResource mediaResource;
+    private final Resource mediaResource;
 
-    @Autowired
-    public LocalMediaBankService(@Value("${game.media-base-url:}") String mediaBaseUrl) {
-        this(mediaBaseUrl, new ClassPathResource("questions/media-it.json"));
-    }
-
-    /** Variante dei test: simula un clone pulito senza l'indice media locale. */
-    LocalMediaBankService(String mediaBaseUrl, ClassPathResource mediaResource) {
+    public LocalMediaBankService(
+            @Value("${game.media-base-url:}") String mediaBaseUrl,
+            @Value("${game.media-index:classpath:questions/media-it.json}") Resource mediaResource) {
         this.configuredBaseUrl = mediaBaseUrl == null ? "" : mediaBaseUrl.trim();
         this.mediaResource = mediaResource;
         load();
@@ -198,7 +194,7 @@ public class LocalMediaBankService {
     }
 
     private void load() {
-        ClassPathResource resource = this.mediaResource;
+        Resource resource = this.mediaResource;
         if (!resource.exists()) {
             // L'indice media è locale e non versionato: indizi e temi sono
             // versionati e devono restare disponibili anche in un clone pulito.

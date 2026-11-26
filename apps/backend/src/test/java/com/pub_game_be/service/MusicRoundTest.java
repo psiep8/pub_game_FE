@@ -5,6 +5,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +34,7 @@ class MusicRoundTest {
 
     @BeforeEach
     void setUp() {
-        media = new LocalMediaBankService("");
+        media = new LocalMediaBankService("", new ClassPathResource("questions/media-it.json"));
         blobs = mock(StateBlobService.class);
         store.clear();
 
