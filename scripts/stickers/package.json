@@ -1,0 +1,24 @@
+{
+  "name": "quizzone-stickers",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generatore degli sticker quizzOne: SVG, PNG 300 dpi, fogli A4 e PDF",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "build:all": "node build.mjs --tappa 2",
+    "test": "node build.mjs --test"
+  },
+  "dependencies": {
+    "@phosphor-icons/core": "^2.1.1",
+    "@resvg/resvg-js": "^2.6.2",
+    "opentype.js": "^1.3.4",
+    "pdf-lib": "^1.17.1",
+    "svgo": "^3.3.2",
+    "wawoff2": "^2.0.1"
+  },
+  "devDependencies": {
+    "pixelmatch": "^6.0.0",
+    "pngjs": "^7.0.0"
+  }
+}

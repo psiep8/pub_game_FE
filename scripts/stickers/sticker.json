@@ -1,0 +1,93 @@
+{
+  "stickers": [
+    {
+      "slug": "quizzone-sunset-pop",
+      "titolo": "Sunset Pop",
+      "tema": "sunset-pop",
+      "tappa": 1,
+      "marchio": true,
+      "testo": { "righe": [[["quizzOne", "marchio"]]] }
+    },
+    {
+      "slug": "quizzone-premium-gold",
+      "titolo": "Premium Gold",
+      "tema": "premium-gold",
+      "tappa": 1,
+      "marchio": true,
+      "testo": { "righe": [[["quizzOne", "marchio"]]] }
+    },
+    {
+      "slug": "quizzone-editorial-acid",
+      "titolo": "Editorial Acid",
+      "tema": "editorial-acid",
+      "tappa": 1,
+      "marchio": true,
+      "testo": { "righe": [[["quizzOne", "marchio"]]] }
+    },
+    {
+      "slug": "quizzone-neon-cyberpunk",
+      "titolo": "Neon Cyberpunk",
+      "tema": "neon-cyberpunk",
+      "tappa": 1,
+      "marchio": true,
+      "testo": { "righe": [[["quizzOne", "marchio"]]] }
+    },
+    {
+      "slug": "quizzone-kpop-aesthetic",
+      "titolo": "Kpop Aesthetic",
+      "tema": "kpop-aesthetic",
+      "tappa": 1,
+      "marchio": true,
+      "testo": { "righe": [[["quizzOne", "marchio"]]] }
+    },
+    {
+      "slug": "quizzone-arctic-noir",
+      "titolo": "Arctic Noir",
+      "tema": "arctic-noir",
+      "tappa": 1,
+      "marchio": true,
+      "testo": { "righe": [[["quizzOne", "marchio"]]] }
+    },
+    {
+      "slug": "quizzone-deep-ocean",
+      "titolo": "Deep Ocean",
+      "tema": "deep-ocean",
+      "tappa": 1,
+      "marchio": true,
+      "testo": { "righe": [[["quizzOne", "marchio"]]] }
+    },
+    {
+      "slug": "quizzone-desert-heritage",
+      "titolo": "Desert Heritage",
+      "tema": "desert-heritage",
+      "tappa": 1,
+      "marchio": true,
+      "testo": { "righe": [[["quizzOne", "marchio"]]] }
+    },
+
+    {
+      "slug": "quizzone-bomba",
+      "titolo": "Bomba",
+      "tema": "editorial-acid",
+      "tappa": 1,
+      "formato": "logo",
+      "logo": "bomba"
+    },
+    {
+      "slug": "quizzone-casino",
+      "titolo": "Casino",
+      "tema": "premium-gold",
+      "tappa": 1,
+      "formato": "logo",
+      "logo": "roulette"
+    },
+    {
+      "slug": "quizzone-karaoke",
+      "titolo": "Karaoke",
+      "tema": "kpop-aesthetic",
+      "tappa": 1,
+      "formato": "logo",
+      "logo": "microfono"
+    }
+  ]
+}
