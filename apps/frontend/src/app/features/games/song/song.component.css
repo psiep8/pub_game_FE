@@ -1,5 +1,3 @@
-
-
 :host {
   display: block;
   position: fixed;
@@ -24,54 +22,6 @@
   overflow: hidden;
 }
 
-
-
-.countdown-overlay {
-  position: absolute;
-  inset: 0;
-  background: color-mix(in srgb, var(--bg-0) 94%, transparent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  animation: fadeIn 0.3s;
-}
-
-.countdown-circle {
-  text-align: center;
-}
-
-/* Conto alla rovescia: cifra acida su inchiostro, ombra piena. */
-.countdown-number {
-  font-family: var(--font-display);
-  font-size: 180px;
-  font-weight: 400;
-  color: var(--acid);
-  text-shadow: 6px 6px 0 var(--tomato);
-  line-height: 1;
-  margin-bottom: 20px;
-}
-
-.countdown-label {
-  font-family: var(--font-mono);
-  font-size: 32px;
-  color: var(--ink);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-
-
 .song-header {
   text-align: center;
   margin-bottom: clamp(8px, 2vh, 25px);
@@ -79,9 +29,14 @@
   flex-shrink: 0;
 }
 
-.music-icon {
-  font-size: clamp(2rem, 6vw, 4rem);
-  margin-bottom: clamp(8px, 1.5vh, 15px);
+.song-kicker {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 1.4vh, 15px);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--acid);
+  margin-bottom: 6px;
 }
 
 .song-title {
@@ -89,14 +44,28 @@
   font-size: clamp(1.2rem, 4vw, 3.5rem);
   font-weight: 400;
   color: var(--ink);
-  text-shadow: 3px 3px 0 var(--title-shadow);
+  text-shadow: 3px 3px 0 var(--title-shadow, var(--tomato));
   margin: 0;
   letter-spacing: 0.02em;
   line-height: 1.2;
   text-transform: uppercase;
 }
 
-
+.song-label {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 7px 12px;
+  background: var(--paper);
+  color: var(--coal);
+  border: 3px solid var(--coal);
+  border-radius: 0;
+  box-shadow: 4px 4px 0 var(--acid);
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 1.7vh, 18px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
 
 .buzz-alert {
   position: absolute;
@@ -127,7 +96,10 @@
 }
 
 .alert-icon {
+  font-family: var(--font-display);
   font-size: 50px;
+  line-height: 1;
+  color: var(--paper-hi, var(--paper));
 }
 
 .alert-content {
@@ -136,23 +108,31 @@
   gap: 5px;
 }
 
-.alert-name {
-  font-family: var(--font-mono);
-  font-size: clamp(14px, 1.5vw, 22px);
-  font-weight: 700;
-  color: var(--paper-hi);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
+.alert-name,
 .alert-text {
   font-family: var(--font-mono);
   font-size: clamp(14px, 1.5vw, 22px);
-  color: var(--paper-hi);
   font-weight: 700;
+  color: var(--paper-hi, var(--paper));
+  letter-spacing: 0.06em;
+}
+
+.alert-name {
+  text-transform: uppercase;
+}
+
+.alert-text {
   letter-spacing: 0.08em;
 }
 
+.music-board {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 3vw, 44px);
+  width: min(1180px, 94vw);
+  flex-wrap: wrap;
+}
 
 .vinyl-stage {
   position: relative;
@@ -164,39 +144,19 @@
   flex-shrink: 0;
 }
 
+/* Il disco è un oggetto fisico: cerchio, bordo carta, ombra piena. */
 .vinyl-disc {
   width: 100%;
   height: 100%;
-  aspect-ratio: 1 / 1; 
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
-  /* Il disco è un oggetto fisico: fondo nero, bordo carta, ombra piena. */
-  background: radial-gradient(circle at 50% 50%, #201d19 0%, #121110 38%, #050505 100%);
+  background: var(--coal);
   border: 4px solid var(--paper);
   position: relative;
-  box-shadow: 10px 10px 0 var(--tomato), inset 0 0 80px rgba(255, 255, 255, 0.04);
+  box-shadow: 10px 10px 0 var(--tomato);
   overflow: hidden;
-
-  
-  will-change: transform;
   backface-visibility: hidden;
-  transform-style: flat; 
-  transform: translateZ(0); 
 }
-
-
-.vinyl-disc.spinning {
-  animation: spinFlat 3s linear infinite;
-}
-
-@keyframes spinFlat {
-  0% {
-    transform: translateZ(0) rotate(0deg);
-  }
-  100% {
-    transform: translateZ(0) rotate(360deg);
-  }
-}
-
 
 .vinyl-disc.spinning {
   animation: spin 3s linear infinite;
@@ -211,31 +171,20 @@
   }
 }
 
+/* Solchi: anelli pieni, nessuna sfumatura. */
 .vinyl-grooves {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background:
-    repeating-radial-gradient(
-      circle at 50% 50%,
-      rgba(244, 231, 210, 0.035) 0px,
-      rgba(244, 231, 210, 0.035) 1px,
-      transparent 1px,
-      transparent 4px
-    ),
-    conic-gradient(
-      from 210deg,
-      transparent 0 6%,
-      rgba(244, 231, 210, 0.14) 11%,
-      transparent 19% 44%,
-      rgba(244, 231, 210, 0.08) 50%,
-      transparent 58% 84%,
-      rgba(244, 231, 210, 0.05) 90%,
-      transparent 100%
-    );
+  background: none;
+  box-shadow:
+    inset 0 0 0 2px var(--paper),
+    inset 0 0 0 26px transparent,
+    inset 0 0 0 28px rgba(244, 231, 210, 0.22),
+    inset 0 0 0 60px transparent,
+    inset 0 0 0 62px rgba(244, 231, 210, 0.14);
   pointer-events: none;
 }
-
 
 .vinyl-label {
   position: absolute;
@@ -254,24 +203,16 @@
   overflow: hidden;
 }
 
-
-
 .album-cover {
   width: 100%;
   height: 100%;
-  aspect-ratio: 1 / 1; 
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: 50%;
   transition: filter 2s ease;
-
-  
-  -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 }
 
-
-/* Icona in alto, parola in basso: il perno centrale resta libero, invece di
-   coprire il testo. */
 .label-content {
   display: flex;
   flex-direction: column;
@@ -284,29 +225,12 @@
   color: var(--coal, #1e1914);
 }
 
-.label-icon {
-  font-size: clamp(28px, 5vmin, 56px);
-  line-height: 1;
-}
-
 .label-text {
   font-family: var(--font-mono, monospace);
   font-size: clamp(0.8rem, 2vmin, 1.4rem);
   font-weight: 700;
   letter-spacing: 0.2em;
   color: var(--coal, #1e1914);
-}
-
-.vinyl-stage.scratching {
-  animation: vinylScratch 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97);
-}
-
-@keyframes vinylScratch {
-  0% { transform: rotate(0deg); }
-  18% { transform: rotate(-9deg) translateX(-3px); }
-  42% { transform: rotate(7deg) translateX(2px); }
-  68% { transform: rotate(-4deg); }
-  100% { transform: rotate(0deg); }
 }
 
 .vinyl-center {
@@ -321,8 +245,6 @@
   border-radius: 50%;
   background: var(--coal);
 }
-
-
 
 .tonearm {
   position: absolute;
@@ -366,443 +288,6 @@
 
 .tonearm.playing {
   transform: rotate(11deg);
-}
-
-
-
-.phases-indicator {
-  margin: clamp(8px, 1.5vh, 20px) 0;
-  width: min(92vw, 900px);
-  z-index: 10;
-  flex-shrink: 0;
-}
-
-.phases-track {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: clamp(10px, 2vh, 20px);
-  position: relative;
-}
-
-.phases-track::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 10%;
-  right: 10%;
-  height: 3px;
-  background: color-mix(in srgb, var(--ink) 30%, transparent);
-  transform: translateY(-50%);
-  z-index: 0;
-}
-
-/* Le fasi sono gettoni: carta, bordo inchiostro, ombra piena; il colore
-   dell'anello arriva dal template (fase raggiunta). */
-.phase-dot {
-  width: clamp(78px, 13vmin, 118px);
-  height: clamp(78px, 13vmin, 118px);
-  border: 4px solid var(--coal);
-  border-radius: 50%;
-  background: var(--paper);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  z-index: 1;
-  transition: transform 0.25s var(--ease-out), background-color 0.25s var(--ease-out);
-  box-shadow: 4px 4px 0 var(--tomato);
-}
-
-.phase-dot.active { transform: scale(1.06); }
-
-.phase-dot.current { transform: scale(1.1); }
-
-.phase-icon {
-  font-size: clamp(26px, 3.8vmin, 42px);
-  margin-bottom: 2px;
-  filter: grayscale(1);
-}
-
-.phase-dot.active .phase-icon { filter: none; }
-
-.phase-label {
-  font-family: var(--font-mono);
-  font-size: clamp(12px, 1.15vw, 16px);
-  font-weight: 700;
-  color: var(--coal);
-  letter-spacing: 0.06em;
-}
-
-/* Barra delle fasi: sottile, carta su inchiostro, ombra piena. */
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background: color-mix(in srgb, var(--ink) 18%, transparent);
-  border: 3px solid var(--paper);
-  border-radius: 0;
-  box-shadow: 4px 4px 0 var(--coal);
-  overflow: hidden;
-  margin-bottom: 15px;
-}
-
-.progress-fill {
-  height: 100%;
-  transition: width 0.5s var(--ease-out), background-color 0.5s var(--ease-out);
-  border-radius: 0;
-}
-
-.current-phase-label {
-  text-align: center;
-  font-family: var(--font-display);
-  font-size: clamp(18px, 1.9vw, 26px);
-  font-weight: 400;
-  color: var(--ink);
-  margin-top: 10px;
-  letter-spacing: 0.02em;
-}
-
-
-
-.audio-status {
-  margin: 20px 0;
-  padding: 20px 40px;
-  background: var(--paper);
-  border: 2px solid var(--coal);
-  border-radius: 0;
-  box-shadow: 4px 4px 0 var(--tomato);
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  z-index: 10;
-}
-
-.audio-status p {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: clamp(12px, 1.2vw, 18px);
-  font-weight: 700;
-  color: var(--coal);
-  letter-spacing: 0.06em;
-}
-
-.equalizer {
-  display: flex;
-  gap: 5px;
-  align-items: flex-end;
-  height: 50px;
-}
-
-.eq-bar {
-  width: 8px;
-  height: 50px;
-  transform-origin: bottom;
-  background: var(--tomato);
-  border-radius: 0;
-  animation: equalize 0.8s infinite ease-in-out;
-}
-
-.eq-bar:nth-child(1) {
-  animation-delay: 0s;
-}
-
-.eq-bar:nth-child(2) {
-  animation-delay: 0.1s;
-}
-
-.eq-bar:nth-child(3) {
-  animation-delay: 0.2s;
-}
-
-.eq-bar:nth-child(4) {
-  animation-delay: 0.1s;
-}
-
-.eq-bar:nth-child(5) {
-  animation-delay: 0s;
-}
-
-@keyframes equalize {
-  0%, 100% {
-    transform: scaleY(0.2);
-  }
-  50% {
-    transform: scaleY(1);
-  }
-}
-
-
-
-.song-reveal {
-  position: fixed;
-  inset: 0;
-  background: var(--bg-0);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(10px, 2vh, 28px);
-  overflow: auto;
-  z-index: 500;
-  animation: revealFadeIn 0.6s var(--ease-out);
-}
-
-@keyframes revealFadeIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Reveal: carta timbrata che sta anche in 720p. */
-.reveal-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(6px, 1.2vh, 14px);
-  width: min(760px, 94vw);
-  max-height: calc(100dvh - 24px);
-  padding: clamp(16px, 2.6vh, 32px) clamp(20px, 3vw, 48px);
-  background: var(--paper);
-  color: var(--coal);
-  border: 4px solid var(--coal);
-  border-radius: 0;
-  box-shadow: 12px 12px 0 var(--tomato);
-  text-align: center;
-  overflow: auto;
-}
-
-.reveal-icon {
-  font-size: clamp(34px, 7vh, 68px);
-  margin: 0;
-}
-
-.reveal-title {
-  font-family: var(--font-display);
-  font-size: clamp(28px, 4.6vh, 48px);
-  font-weight: 400;
-  color: var(--coal);
-  line-height: 1;
-  letter-spacing: 0.02em;
-  margin: 0;
-  text-transform: uppercase;
-}
-
-.reveal-artist {
-  font-family: var(--font-mono);
-  font-size: clamp(18px, 2.8vh, 28px);
-  color: color-mix(in srgb, var(--coal) 60%, transparent);
-  margin: 0;
-}
-
-.reveal-year {
-  font-family: var(--font-mono);
-  font-size: clamp(14px, 2vh, 20px);
-  color: color-mix(in srgb, var(--coal) 60%, transparent);
-  margin: 0;
-}
-
-.reveal-cover { margin-top: clamp(4px, 1vh, 12px); }
-
-.reveal-cover img {
-  width: clamp(110px, 19vh, 190px);
-  height: clamp(110px, 19vh, 190px);
-  object-fit: cover;
-  border: 3px solid var(--coal);
-  border-radius: 0;
-  box-shadow: 6px 6px 0 var(--coal);
-}
-
-
-
-.timer-circle {
-  position: absolute;
-  top: clamp(104px, 14vh, 148px);
-  right: clamp(20px, 2.5vw, 44px);
-  z-index: 10;
-}
-
-.timer-bg {
-  fill: none;
-  stroke: color-mix(in srgb, var(--ink) 22%, transparent);
-  stroke-width: 8;
-}
-
-.timer-progress {
-  fill: none;
-  stroke: var(--tomato);
-  stroke-width: 8;
-  stroke-dasharray: 283;
-  stroke-dashoffset: 0;
-  transform: rotate(-90deg);
-  transform-origin: 50% 50%;
-  transition: stroke-dashoffset 1s linear, stroke 0.3s;
-}
-
-/* L'anello è già al pomodoro: il warning non cambia colore, solo il numero. */
-
-.timer-value {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-family: var(--font-mono);
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-
-
-@media (max-width: 1024px) {
-  .vinyl-stage {
-    width: 400px;
-    height: 400px;
-  }
-
-  .vinyl-label {
-    width: 160px;
-    height: 160px;
-  }
-
-  .phases-indicator {
-    width: 500px;
-  }
-
-  .phase-dot {
-    width: 80px;
-    height: 80px;
-  }
-}
-
-@media (max-width: 768px) {
-  .song-title {
-    font-size: 48px;
-  }
-
-  .vinyl-stage {
-    width: 300px;
-    height: 300px;
-  }
-
-  .vinyl-label {
-    width: 120px;
-    height: 120px;
-  }
-
-  .phases-indicator {
-    width: 90%;
-  }
-
-  .phase-dot {
-    width: 60px;
-    height: 60px;
-  }
-
-  .countdown-number {
-    font-size: 120px;
-  }
-
-  .countdown-label {
-    font-size: 24px;
-  }
-}
-
-.waiting-start { position: absolute; top: clamp(12px, 2vh, 24px); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 10px 18px; background: var(--paper); color: var(--coal); border: 3px solid var(--coal); box-shadow: 6px 6px 0 var(--tomato); z-index: 30; }
-.waiting-icon { font-size: 1.6rem; }
-.waiting-text { display: flex; flex-direction: column; }
-.waiting-text strong { font-family: var(--font-display); font-size: 1rem; letter-spacing: .04em; }
-.waiting-text span { font-family: var(--font-mono); font-size: .66rem; }
-
-/* Entrata: stesso movimento degli altri tabelloni, dichiarato qui accanto alla skin. */
-.song-container { animation: m-fade var(--motion-base) var(--ease-out) backwards; }
-.song-title { animation: m-drop var(--motion-cinema) var(--ease-out) backwards; }
-.phase-dot { animation: m-appear var(--motion-base) var(--ease-out) backwards; }
-.phase-dot:nth-child(1) { animation-delay: 60ms; }
-.phase-dot:nth-child(2) { animation-delay: 130ms; }
-.phase-dot:nth-child(3) { animation-delay: 200ms; }
-.current-phase-label { animation: m-fade var(--motion-fast) var(--ease-out) backwards; }
-
-/* Schermi bassi (720p): il disco si stringe e il blocco «in riproduzione»
-   resta in scena, invece di finire sotto la piega. */
-@media (max-height: 820px) {
-  .song-header { margin-bottom: clamp(4px, 1vh, 12px); }
-  .music-icon { font-size: clamp(1.4rem, 3.4vh, 2.2rem); margin-bottom: clamp(2px, 0.6vh, 8px); }
-  .song-title { font-size: clamp(1.2rem, 3.4vw, 2.6rem); }
-  .vinyl-stage { width: min(30vh, 220px); height: min(30vh, 220px); margin: clamp(4px, 1vh, 10px) 0; }
-  .phase-dot { width: clamp(56px, 9vmin, 72px); height: clamp(56px, 9vmin, 72px); }
-  .phase-icon { font-size: clamp(18px, 2.8vmin, 26px); }
-  .phases-indicator { margin: clamp(4px, 1vh, 12px) 0; }
-  .audio-status { margin: clamp(4px, 1vh, 12px) 0; padding: clamp(8px, 1.4vh, 16px) clamp(14px, 1.8vw, 26px); }
-  .equalizer { height: 34px; }
-  .eq-bar { height: 34px; }
-  /* L'avviso scende sul disco: prima copriva il titolo. */
-  .buzz-alert { top: 33%; padding: 14px 28px; gap: 14px; }
-  .alert-icon { font-size: 34px; }
-  .alert-name { font-size: clamp(15px, 1.6vw, 19px); }
-  .alert-text { font-size: clamp(11px, 1.3vw, 15px); }
-  /* Etichetta più piccola: icona e parola stanno fuori dal perno. */
-  .label-icon { font-size: 22px; }
-  .label-text { font-size: 12px; }
-}
-
-/* ------------------------------------------------------------------
-   Skin 4 round × 5 manche: carta e inchiostro, etichette mono, radius 0.
-   ------------------------------------------------------------------ */
-
-.song-kicker {
-  font-family: var(--font-mono);
-  font-size: clamp(11px, 1.4vh, 15px);
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--acid);
-  margin-bottom: 6px;
-}
-
-.song-label {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 7px 12px;
-  background: var(--paper);
-  color: var(--coal);
-  border: 3px solid var(--coal);
-  border-radius: 0;
-  box-shadow: 4px 4px 0 var(--acid);
-  font-family: var(--font-mono);
-  font-size: clamp(12px, 1.7vh, 18px);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.music-board {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(18px, 3vw, 44px);
-  width: min(1180px, 94vw);
-  flex-wrap: wrap;
-}
-
-/* Il disco è un oggetto fisico: resta un cerchio, ma senza gradienti. */
-.vinyl-disc {
-  background: var(--coal);
-  box-shadow: 10px 10px 0 var(--tomato);
-}
-
-.vinyl-grooves {
-  background: none;
-  box-shadow:
-    inset 0 0 0 2px var(--paper),
-    inset 0 0 0 26px transparent,
-    inset 0 0 0 28px rgba(244, 231, 210, 0.22),
-    inset 0 0 0 60px transparent,
-    inset 0 0 0 62px rgba(244, 231, 210, 0.14);
 }
 
 .music-ledger {
@@ -876,7 +361,7 @@
   margin-top: 4px;
   padding: 5px 9px;
   background: var(--acid);
-  color: var(--on-acid);
+  color: var(--on-acid, var(--coal));
   border: 3px solid var(--coal);
   border-radius: 0;
   font-family: var(--font-mono);
@@ -937,6 +422,114 @@
   letter-spacing: 0.12em;
 }
 
+.audio-status {
+  margin: 20px 0;
+  padding: 20px 40px;
+  background: var(--paper);
+  border: 2px solid var(--coal);
+  border-radius: 0;
+  box-shadow: 4px 4px 0 var(--tomato);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 10;
+}
+
+.audio-status p {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 1.2vw, 18px);
+  font-weight: 700;
+  color: var(--coal);
+  letter-spacing: 0.06em;
+}
+
+.equalizer {
+  display: flex;
+  gap: 5px;
+  align-items: flex-end;
+  height: 50px;
+}
+
+.eq-bar {
+  width: 8px;
+  height: 50px;
+  transform-origin: bottom;
+  background: var(--tomato);
+  border-radius: 0;
+  animation: equalize 0.8s infinite ease-in-out;
+}
+
+.eq-bar:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.eq-bar:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.eq-bar:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.eq-bar:nth-child(4) {
+  animation-delay: 0.1s;
+}
+
+.eq-bar:nth-child(5) {
+  animation-delay: 0s;
+}
+
+@keyframes equalize {
+  0%, 100% {
+    transform: scaleY(0.2);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.song-reveal {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(10px, 2vh, 28px);
+  overflow: auto;
+  z-index: 500;
+  animation: revealFadeIn 0.6s var(--ease-out);
+}
+
+@keyframes revealFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.reveal-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(6px, 1.2vh, 14px);
+  width: min(760px, 94vw);
+  max-height: calc(100dvh - 24px);
+  padding: clamp(16px, 2.6vh, 32px) clamp(20px, 3vw, 48px);
+  background: var(--paper);
+  color: var(--coal);
+  border: 4px solid var(--coal);
+  border-radius: 0;
+  box-shadow: 12px 12px 0 var(--tomato);
+  text-align: center;
+  overflow: auto;
+}
+
 .reveal-stamp {
   padding: 5px 10px;
   background: var(--mint);
@@ -950,6 +543,169 @@
   transform: rotate(-2deg);
 }
 
-.reveal-icon {
-  display: none;
+.reveal-title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4.6vh, 48px);
+  font-weight: 400;
+  color: var(--coal);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.reveal-artist {
+  font-family: var(--font-mono);
+  font-size: clamp(18px, 2.8vh, 28px);
+  color: color-mix(in srgb, var(--coal) 60%, transparent);
+  margin: 0;
+}
+
+.reveal-year {
+  font-family: var(--font-mono);
+  font-size: clamp(14px, 2vh, 20px);
+  color: color-mix(in srgb, var(--coal) 60%, transparent);
+  margin: 0;
+}
+
+.reveal-cover {
+  margin-top: clamp(4px, 1vh, 12px);
+}
+
+.reveal-cover img {
+  width: clamp(110px, 19vh, 190px);
+  height: clamp(110px, 19vh, 190px);
+  object-fit: cover;
+  border: 3px solid var(--coal);
+  border-radius: 0;
+  box-shadow: 6px 6px 0 var(--coal);
+}
+
+.timer-circle {
+  position: absolute;
+  top: clamp(104px, 14vh, 148px);
+  right: clamp(20px, 2.5vw, 44px);
+  z-index: 10;
+}
+
+.timer-bg {
+  fill: none;
+  stroke: color-mix(in srgb, var(--ink) 22%, transparent);
+  stroke-width: 8;
+}
+
+.timer-progress {
+  fill: none;
+  stroke: var(--tomato);
+  stroke-width: 8;
+  stroke-dasharray: 283;
+  stroke-dashoffset: 0;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset 1s linear, stroke 0.3s;
+}
+
+.timer-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.timer-circle.warning .timer-value {
+  color: var(--tomato);
+}
+
+@media (max-width: 1024px) {
+  .vinyl-stage {
+    width: 400px;
+    height: 400px;
+  }
+
+  .vinyl-label {
+    width: 160px;
+    height: 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .song-title {
+    font-size: 48px;
+  }
+
+  .vinyl-stage {
+    width: 300px;
+    height: 300px;
+  }
+
+  .vinyl-label {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+/* Schermi bassi (720p): il disco si stringe e lo stato audio resta in scena. */
+@media (max-height: 820px) {
+  .song-header {
+    margin-bottom: clamp(4px, 1vh, 12px);
+  }
+
+  .song-title {
+    font-size: clamp(1.2rem, 3.4vw, 2.6rem);
+  }
+
+  .vinyl-stage {
+    width: min(30vh, 220px);
+    height: min(30vh, 220px);
+    margin: clamp(4px, 1vh, 10px) 0;
+  }
+
+  .audio-status {
+    margin: clamp(4px, 1vh, 12px) 0;
+    padding: clamp(8px, 1.4vh, 16px) clamp(14px, 1.8vw, 26px);
+  }
+
+  .equalizer {
+    height: 34px;
+  }
+
+  .eq-bar {
+    height: 34px;
+  }
+
+  /* L'avviso scende sul disco: prima copriva il titolo. */
+  .buzz-alert {
+    top: 33%;
+    padding: 14px 28px;
+    gap: 14px;
+  }
+
+  .alert-icon {
+    font-size: 34px;
+  }
+
+  .alert-name {
+    font-size: clamp(15px, 1.6vw, 19px);
+  }
+
+  .alert-text {
+    font-size: clamp(11px, 1.3vw, 15px);
+  }
+
+  .label-text {
+    font-size: 12px;
+  }
+}
+
+/* Entrata: stesso movimento degli altri tabelloni. */
+.song-container {
+  animation: m-fade var(--motion-base) var(--ease-out) backwards;
+}
+
+.song-title {
+  animation: m-drop var(--motion-cinema) var(--ease-out) backwards;
 }

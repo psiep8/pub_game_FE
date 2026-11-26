@@ -22,8 +22,7 @@
 
     <div class="vinyl-stage">
       <div class="vinyl-disc"
-           [class.spinning]="isPlaying()"
-           [style.transform]="'rotate(' + vinylRotation() + 'deg)'">
+           [class.spinning]="isPlaying()">
         <div class="vinyl-grooves"></div>
         <div class="vinyl-label">
           @if (displayData?.albumCover) {

@@ -59,9 +59,7 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   audioReady = signal(false);
   isPlaying = signal(false);
   blurAmount = signal(26);
-  vinylRotation = signal(0);
 
-  private vinylAnimationFrame?: number;
   private audioUnlocked = false;
   private listenToken = '';
   private stopTimeout?: ReturnType<typeof setTimeout>;
@@ -215,7 +213,6 @@ export class Song implements OnInit, OnDestroy, OnChanges {
       }
       await this.audio.play();
       this.isPlaying.set(true);
-      this.startVinylAnimation();
     } catch (error) {
       console.error('❌ Play error:', error);
     }
@@ -225,7 +222,6 @@ export class Song implements OnInit, OnDestroy, OnChanges {
   private stopAudio(): void {
     if (!this.audio) {
       this.isPlaying.set(false);
-      this.stopVinylAnimation();
       return;
     }
     const ctx = this.audioContext;
@@ -248,7 +244,6 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     }, Math.round(FADE_SECONDS * 1000) + 10);
 
     this.isPlaying.set(false);
-    this.stopVinylAnimation();
   }
 
   private applyBlur(): void {
@@ -260,23 +255,9 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     this.blurAmount.set(listen === 1 ? 26 : 14);
   }
 
-  private startVinylAnimation() {
-    const animate = () => {
-      if (!this.isPlaying()) return;
-      this.vinylRotation.update(rotation => (rotation + 2) % 360);
-      this.vinylAnimationFrame = requestAnimationFrame(animate);
-    };
-    animate();
-  }
-
-  private stopVinylAnimation() {
-    if (this.vinylAnimationFrame) cancelAnimationFrame(this.vinylAnimationFrame);
-  }
-
   ngOnDestroy() {
     this.stopAudio();
     if (this.stopTimeout) clearTimeout(this.stopTimeout);
-    this.stopVinylAnimation();
     this.teardown();
     if (this.preloaded) this.preloaded.src = '';
     this.preloaded = undefined;
