@@ -130,11 +130,11 @@ const PREVIEW_QUESTIONS = [
               @for (row of totals(); track row.playerName; let i = $index) {
                 <div
                   class="cav-row"
-                  [class.lead]="i === 0 && row.score > 0"
+                  [class.lead]="i === totals().length - 1 && row.score > 0"
                   [class.gain]="deltaFor(row.playerName) > 0"
                   [style.top]="'calc(var(--row) * ' + i + ')'"
                 >
-                  <span class="cav-pos">{{ i + 1 }}</span>
+                  <span class="cav-pos">{{ totals().length - i }}</span>
                   <span class="cav-name">{{ row.playerName }}</span>
                   @if (deltaFor(row.playerName) > 0) {
                     <span class="cav-gain">+{{ deltaFor(row.playerName) }}</span>
@@ -991,7 +991,8 @@ export class CavalloBonus implements OnInit, OnDestroy {
   }
 
   private refreshTotals(): void {
-    // La TV parte dalla squadra peggiore: l'ordine è crescente per giuste.
+    // La TV parte dalla squadra peggiore: l'ordine è crescente per giuste e
+    // il primo posto resta in fondo, dove il tabellone lo evidenzia.
     this.totals.set(
       [...this.scoreMap.entries()]
         .map(([playerName, score]) => ({ playerName, score }))

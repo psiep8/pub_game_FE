@@ -305,6 +305,33 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
     }
   });
 
+  it('N-04: il tabellone tiene in fondo il primo posto e lo evidenzia', () => {
+    const { component, fixture } = mount({
+      phase: 'FINALE',
+      secondsLeft: 0,
+      savedAt: Date.now(),
+      chosenCategory: 'MUSICA',
+      questionsByTeam: {},
+      index: 0,
+      total: 8,
+      // Arrivano in ordine inverso: il tabellone deve riordinarli.
+      scores: [{ playerName: 'Bruno', score: 1 }, { playerName: 'Anna', score: 3 }],
+      votes: [],
+      answers: [],
+    });
+
+    // Ordine crescente: Bruno (1) in cima, Anna (3) in fondo.
+    expect(component.totals().map((row) => row.playerName)).toEqual(['Bruno', 'Anna']);
+    const rows = fixture.nativeElement.querySelectorAll('.cav-row');
+    expect(rows).toHaveLength(2);
+    expect(rows[0].classList.contains('lead')).toBe(false);
+    expect(rows[0].querySelector('.cav-pos')?.textContent?.trim()).toBe('2');
+    expect(rows[1].classList.contains('lead')).toBe(true);
+    expect(rows[1].querySelector('.cav-pos')?.textContent?.trim()).toBe('1');
+
+    fixture.destroy();
+  });
+
   it('la pausa della TV ferma la votazione della categoria', () => {
     vi.useFakeTimers();
     const { component, fixture } = mount();
