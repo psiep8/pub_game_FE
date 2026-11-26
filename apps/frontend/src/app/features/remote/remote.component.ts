@@ -54,6 +54,18 @@ const QUIZ_CHECK_TIMEOUT_MS = 8000;
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./remote.component.css', './restyle.css', './manual.css'],
   styles: [`
+    .haptic-flash {
+      position: fixed; inset: 0; z-index: 95; pointer-events: none;
+      background: var(--paper-hi); opacity: 0;
+      animation: hapticFlash .45s steps(2, end);
+    }
+    @keyframes hapticFlash {
+      0%, 100% { opacity: 0; }
+      25%, 75% { opacity: .55; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .haptic-flash { animation: none; opacity: .18; }
+    }
     .timeline-remote, .speed-remote, .tennis-remote {
       display: flex; flex-direction: column; gap: 14px; padding: 16px; height: 100%; justify-content: center;
     }
@@ -267,6 +279,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   roundDeadlineAt = signal(0);
   /** Il round è chiuso: il telefono si blocca subito, senza aspettare il turno. */
   roundClosed = signal(false);
+  /** iPhone/Safari non espongono la Vibration API: il via si vede e si sente. */
+  readonly hapticFlash = signal(false);
+  private hapticTimer?: ReturnType<typeof setTimeout>;
   private roundDeadlineWatch?: ReturnType<typeof setInterval>;
   /**
    * Riallineamento dopo il ritorno in primo piano: finché il server non ha
@@ -898,11 +913,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'BONUS_STARTED':
           // La sorpresa arriva anche in tasca: tre colpi brevi, mai continui.
-          try {
-            navigator.vibrate?.([90, 60, 120, 60, 200]);
-          } catch {
-            // Telefono senza vibrazione: la scena resta sulla TV.
-          }
+          // Su iPhone la Vibration API manca: scatta il fallback visivo.
+          this.vibrate([90, 60, 120, 60, 200]);
           break;
 
         case 'BONUS_ENDED':
@@ -3374,10 +3386,33 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.startTime = Date.now();
   }
 
+  /**
+   * Vibrazione quando c'è. Su iPhone/Safari la Vibration API manca (o è
+   * disattivata): senza fallback il «via» restava muto e immobile, quindi si
+   * accende un flash e si suona un colpo breve. Il flash è solo visivo e non
+   * intercetta tocchi.
+   */
   private vibrate(pattern: number | number[]) {
-    if ('vibrate' in navigator) {
-      navigator.vibrate(pattern);
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      try {
+        if (navigator.vibrate(pattern)) return;
+      } catch {
+        // Alcuni browser trattano vibrate come funzione ma la negano.
+      }
     }
+    this.flashHapticFallback();
+  }
+
+  private flashHapticFallback(): void {
+    if (this.hapticTimer) clearTimeout(this.hapticTimer);
+    this.hapticFlash.set(false);
+    // Riavviare l'animazione anche se il flash precedente è ancora acceso.
+    requestAnimationFrame(() => this.hapticFlash.set(true));
+    this.audio.playTick();
+    this.hapticTimer = setTimeout(() => {
+      this.hapticFlash.set(false);
+      this.hapticTimer = undefined;
+    }, 500);
   }
 
   /**
@@ -3398,8 +3433,20 @@ export class RemoteComponent implements OnInit, OnDestroy {
       clearTimeout(this.tennisGoalTimer);
       this.tennisGoalTimer = undefined;
     }
+    // N-06: dopo un reset o un'espulsione non deve restare nessuna traccia
+    // della sessione. `playerName` e `activeGameId` facevano rientrare il
+    // telefono nella partita vecchia, che il server considerava chiusa.
+    this.audio.stopAll();
+    if (this.roundDeadlineWatch) {
+      clearInterval(this.roundDeadlineWatch);
+      this.roundDeadlineWatch = undefined;
+    }
+    this.roundClosed.set(true);
     localStorage.removeItem('nickname');
+    localStorage.removeItem('playerName');
+    localStorage.removeItem('activeGameId');
     this.nickname.set(null);
+    this.playerName.set('');
     this.tempNickname = '';
     this.themeStep.set(false);
     this.showButtonTest.set(false);
@@ -3423,7 +3470,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   logout() {
     this.ws.disconnect();
+    this.audio.stopAll();
     localStorage.removeItem('nickname');
+    localStorage.removeItem('playerName');
+    localStorage.removeItem('activeGameId');
     location.reload();
   }
 
@@ -3440,6 +3490,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
       this.roundDeadlineWatch = undefined;
     }
     if (this.bombaFlashTimer) clearTimeout(this.bombaFlashTimer);
+    if (this.hapticTimer) {
+      clearTimeout(this.hapticTimer);
+      this.hapticTimer = undefined;
+    }
     if (this.tennisGoalTimer) clearTimeout(this.tennisGoalTimer);
     if (this.updateCheckInterval) {
       clearInterval(this.updateCheckInterval);

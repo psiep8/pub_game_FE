@@ -21,6 +21,10 @@
 </div>
 }
 
+@if (hapticFlash()) {
+<div class="haptic-flash" aria-hidden="true"></div>
+}
+
 @if (showIosInstallBanner()) {
 <div class="pwa-banner ios-banner">
   <div class="banner-content">

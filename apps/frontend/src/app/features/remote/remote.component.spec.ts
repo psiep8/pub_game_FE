@@ -477,6 +477,8 @@ describe('RemoteComponent', () => {
     await component.setNickname();
     component.closeButtonTest();
     component.gameState.set('VOTING' as any);
+    localStorage.setItem('playerName', 'Anna');
+    localStorage.setItem('activeGameId', '7');
 
     ws.status$.next({ action: 'PLAYER_REMOVED', playerName: 'Anna' });
     await fixture.whenStable();
@@ -486,6 +488,23 @@ describe('RemoteComponent', () => {
     expect(component.removedNotice()).toBe(true);
     expect(fixture.nativeElement.textContent).toContain('La regia ha rimosso');
     expect(localStorage.getItem('nickname')).toBeNull();
+    // N-06: nessuna traccia della partita vecchia, altrimenti il rientro
+    // riapre la sessione sbagliata.
+    expect(localStorage.getItem('playerName')).toBeNull();
+    expect(localStorage.getItem('activeGameId')).toBeNull();
+    expect(component.playerName()).toBe('');
+  });
+
+  it('su iPhone senza Vibration API il via accende il fallback visivo', async () => {
+    const original = (navigator as any).vibrate;
+    Object.defineProperty(navigator, 'vibrate', { value: undefined, configurable: true });
+
+    ws.status$.next({ action: 'BONUS_STARTED' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.hapticFlash()).toBe(true);
+    Object.defineProperty(navigator, 'vibrate', { value: original, configurable: true });
   });
 
   it('il reset TV riporta al setup e azzera il contatore del telefono', async () => {
