@@ -1,7 +1,10 @@
 import { defineConfig } from 'playwright/test';
 
-const FRONTEND_PORT = 4295;
-const BACKEND_PORT = 8095;
+// Porte dedicate ai test: si possono spostare per non collidere con un'altra
+// prova E2E aperta sulla stessa cartella. I valori predefiniti restano quelli
+// della serata di prova.
+const FRONTEND_PORT = Number(process.env.E2E_FRONTEND_PORT) || 4295;
+const BACKEND_PORT = Number(process.env.E2E_BACKEND_PORT) || 8095;
 
 export default defineConfig({
   testDir: './e2e',
@@ -27,6 +30,10 @@ export default defineConfig({
         DB_URL: 'jdbc:h2:mem:pubgame-e2e;DB_CLOSE_DELAY=-1',
         CONTROL_SECRET: 'e2e-control-secret-0000000000000000',
         ALLOWED_ORIGINS: `http://127.0.0.1:${FRONTEND_PORT},http://localhost:${FRONTEND_PORT}`,
+        // Un'altra build Maven nella stessa cartella riscrive target/classes e
+        // devtools riavvierebbe il backend a metà prova: l'H2 in memoria si
+        // svuoterebbe e i telefoni riceverebbero 410 sulla sessione.
+        SPRING_DEVTOOLS_RESTART_ENABLED: 'false',
       },
     },
     {

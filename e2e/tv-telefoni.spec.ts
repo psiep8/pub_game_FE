@@ -1,6 +1,7 @@
 import { devices, expect, test, type Browser, type Page } from 'playwright/test';
 
-const BACKEND = 'http://127.0.0.1:8095';
+// Stessa porta del webServer: si può cambiare per una prova isolata.
+const BACKEND = process.env.E2E_BACKEND_URL ?? 'http://127.0.0.1:8095';
 // Deve combaciare con CONTROL_SECRET del backend in playwright.config.ts.
 const REGIA_SECRET = 'e2e-control-secret-0000000000000000';
 
