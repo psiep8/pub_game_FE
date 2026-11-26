@@ -66,7 +66,7 @@ describe('sessione autenticata', () => {
 });
 
 describe('apertura della sessione di regia', () => {
-  it('manda il segreto nell header, non come codice TV', async () => {
+  it('la regia manda il segreto nell header, non come codice TV', async () => {
     TestBed.resetTestingModule();
     localStorage.clear();
     TestBed.configureTestingModule({
@@ -77,7 +77,9 @@ describe('apertura della sessione di regia', () => {
     const http = TestBed.inject(HttpTestingController);
     const secret = 'a'.repeat(64);
     vi.spyOn(window, 'prompt').mockReturnValue(secret);
-    const started = service.start(1, 'TV');
+    // N-01: la TV si registra come schermo, senza segreto. Il segreto resta
+    // solo per la regia, che lo manda nell'header e non come codice.
+    const started = service.start(1, 'ADMIN');
     const registration = http.expectOne('/games/1/session');
     expect(registration.request.headers.get('X-Control-Secret')).toBe(secret);
     expect(registration.request.body.pairingCode).toBeNull();
