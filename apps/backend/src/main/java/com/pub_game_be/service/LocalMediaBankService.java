@@ -2,6 +2,7 @@ package com.pub_game_be.service;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -63,6 +64,7 @@ public class LocalMediaBankService {
     private final String configuredBaseUrl;
     private final ClassPathResource mediaResource;
 
+    @Autowired
     public LocalMediaBankService(@Value("${game.media-base-url:}") String mediaBaseUrl) {
         this(mediaBaseUrl, new ClassPathResource("questions/media-it.json"));
     }
