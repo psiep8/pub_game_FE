@@ -88,6 +88,119 @@
       "tappa": 1,
       "formato": "logo",
       "logo": "microfono"
+    },
+
+    {
+      "slug": "quizzone-biglie",
+      "titolo": "Biglie",
+      "tema": "deep-ocean",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "biglia"
+    },
+    {
+      "slug": "quizzone-time-buzzer",
+      "titolo": "Time Buzzer",
+      "tema": "neon-cyberpunk",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "cronometro"
+    },
+    {
+      "slug": "quizzone-azzardo",
+      "titolo": "Azzardo",
+      "tema": "premium-gold",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "fiches"
+    },
+    {
+      "slug": "quizzone-ultima-spiaggia",
+      "titolo": "Ultima spiaggia",
+      "tema": "sunset-pop",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "salvagente"
+    },
+    {
+      "slug": "quizzone-arena",
+      "titolo": "Arena",
+      "tema": "arctic-noir",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "arena"
+    },
+    {
+      "slug": "quizzone-tennis-battle",
+      "titolo": "Tennis Battle",
+      "tema": "desert-heritage",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "tennis"
+    },
+    {
+      "slug": "quizzone-speed-rush",
+      "titolo": "Speed Rush",
+      "tema": "neon-cyberpunk",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "speedrush"
+    },
+    {
+      "slug": "quizzone-indovina-chi",
+      "titolo": "Indovina chi",
+      "tema": "editorial-acid",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "indovina"
+    },
+    {
+      "slug": "quizzone-timeline",
+      "titolo": "Timeline",
+      "tema": "arctic-noir",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "timeline"
+    },
+    {
+      "slug": "quizzone-ruota",
+      "titolo": "Ruota",
+      "tema": "sunset-pop",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "ruota"
+    },
+    {
+      "slug": "quizzone-blackjack",
+      "titolo": "Blackjack",
+      "tema": "premium-gold",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "blackjack"
+    },
+    {
+      "slug": "quizzone-cavallo-di-battaglia",
+      "titolo": "Cavallo di battaglia",
+      "tema": "desert-heritage",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "cavallo"
+    },
+    {
+      "slug": "quizzone-campioni",
+      "titolo": "Campioni",
+      "tema": "premium-gold",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "corona"
+    },
+    {
+      "slug": "quizzone-ultimi-ma-felici",
+      "titolo": "Ultimi ma felici",
+      "tema": "sunset-pop",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "cucchiaio"
     }
   ]
 }

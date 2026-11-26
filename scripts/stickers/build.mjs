@@ -22,6 +22,7 @@ import opentype from 'opentype.js';
 import { decompress } from 'wawoff2';
 import { optimize } from 'svgo';
 import { Resvg } from '@resvg/resvg-js';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { PNG } from 'pngjs';
 import pixelmatch from 'pixelmatch';
 
@@ -299,6 +300,138 @@ const LOGHI = {
       <path d="M497 256V150c32 8 46 26 46 54" fill="none" stroke="${p.paper}" stroke-width="18" stroke-linecap="square"/>
       <path d="M462 340l12 26 26 12-26 12-12 26-12-26-26-12 26-12Z" fill="${p.paper}" stroke="${p.ink}" stroke-width="10"/>`,
   },
+  biglia: {
+    box: { x0: 40, y0: 96, x1: 560, y1: 504 },
+    disegna: (p) => `<circle cx="300" cy="300" r="186" fill="${p.paper}" stroke="${p.ink}" stroke-width="16"/>
+      <path d="M208 268c30-56 100-84 158-56 46 22 66 70 52 112-12 38-52 58-88 44-32-12-44-50-24-74 18-22 52-22 68 0" fill="none" stroke="${p.accent}" stroke-width="24" stroke-linecap="round"/>
+      <circle cx="300" cy="300" r="24" fill="${p.second}"/>`,
+  },
+  cronometro: {
+    box: { x0: 120, y0: 40, x1: 470, y1: 480 },
+    disegna: (p) => `<rect x="252" y="52" width="96" height="42" rx="8" fill="${p.second}" stroke="${p.ink}" stroke-width="12"/>
+      <rect x="286" y="94" width="28" height="76" fill="${p.paper}"/>
+      <circle cx="300" cy="342" r="178" fill="${p.paper}" stroke="${p.ink}" stroke-width="18"/>
+      <circle cx="300" cy="342" r="126" fill="none" stroke="${p.accent}" stroke-width="10"/>
+      <path d="M300 342V228M300 342l76 60" fill="none" stroke="${p.ink}" stroke-width="18" stroke-linecap="square"/>
+      <circle cx="300" cy="342" r="18" fill="${p.second}" stroke="${p.ink}" stroke-width="8"/>
+      <path d="M300 184v18M444 342h18M300 500v-18M138 342h18" fill="none" stroke="${p.second}" stroke-width="12"/>`,
+  },
+  fiches: {
+    box: { x0: 120, y0: 250, x1: 480, y1: 490 },
+    disegna: (p) => `<ellipse cx="300" cy="424" rx="168" ry="52" fill="${p.second}" stroke="${p.ink}" stroke-width="14"/>
+      <ellipse cx="300" cy="372" rx="168" ry="52" fill="${p.accent}" stroke="${p.ink}" stroke-width="14"/>
+      <ellipse cx="300" cy="320" rx="168" ry="52" fill="${p.paper}" stroke="${p.ink}" stroke-width="14"/>
+      <ellipse cx="300" cy="320" rx="104" ry="30" fill="none" stroke="${p.accent}" stroke-width="12" stroke-dasharray="20 14"/>
+      <circle cx="300" cy="320" r="18" fill="${p.second}"/>`,
+  },
+  salvagente: {
+    box: { x0: 96, y0: 86, x1: 504, y1: 528 },
+    disegna: (p) => `<circle cx="300" cy="286" r="190" fill="${p.paper}"/>
+      <path d="M300 96v92M300 384v92M110 286h92M398 286h92" fill="none" stroke="${p.accent}" stroke-width="58"/>
+      <circle cx="300" cy="286" r="110" fill="${p.ink}"/>
+      <circle cx="300" cy="286" r="190" fill="none" stroke="${p.ink}" stroke-width="18"/>
+      <circle cx="300" cy="286" r="110" fill="none" stroke="${p.ink}" stroke-width="18"/>
+      <path d="M112 498q44-34 88 0t88 0 88 0" fill="none" stroke="${p.second}" stroke-width="16" stroke-linecap="round"/>`,
+  },
+  arena: {
+    box: { x0: 90, y0: 90, x1: 510, y1: 510 },
+    disegna: (p) => `<circle cx="300" cy="300" r="206" fill="${p.paper}" stroke="${p.ink}" stroke-width="18"/>
+      <circle cx="300" cy="300" r="146" fill="none" stroke="${p.accent}" stroke-width="24"/>
+      <circle cx="300" cy="300" r="86" fill="${p.second}" stroke="${p.ink}" stroke-width="12"/>
+      <circle cx="300" cy="300" r="20" fill="${p.ink}"/>`,
+  },
+  tennis: {
+    box: { x0: 140, y0: 60, x1: 540, y1: 540 },
+    disegna: (p) => `<defs><clipPath id="testa-racchetta"><ellipse cx="300" cy="225" rx="132" ry="160"/></clipPath></defs>
+      <g transform="rotate(-24 300 300)">
+      <ellipse cx="300" cy="225" rx="140" ry="168" fill="${p.paper}" stroke="${p.ink}" stroke-width="18"/>
+      <path d="M300 393v140" fill="none" stroke="${p.accent}" stroke-width="44" stroke-linecap="square"/>
+      <g clip-path="url(#testa-racchetta)" fill="none" stroke="${p.ink}" stroke-width="9">
+        <path d="M240 50v350M300 50v350M360 50v350M160 225h280M160 175h280M160 275h280"/>
+      </g>
+    </g>
+      <circle cx="466" cy="430" r="56" fill="${p.second}" stroke="${p.ink}" stroke-width="16"/>
+      <path d="M432 400a56 56 0 0 1 0 60M470 374a56 56 0 0 1 0 112" fill="none" stroke="${p.ink}" stroke-width="9"/>`,
+  },
+  speedrush: {
+    box: { x0: 150, y0: 40, x1: 600, y1: 520 },
+    disegna: (p) => `<path d="M318 48L148 344h116l-38 196 196-300H310Z" fill="${p.accent}" stroke="${p.ink}" stroke-width="18"/>
+      <path d="M436 236v264" fill="none" stroke="${p.paper}" stroke-width="22" stroke-linecap="square"/>
+      <rect x="436" y="236" width="148" height="102" fill="${p.paper}" stroke="${p.ink}" stroke-width="12"/>
+      <path d="M473 236v102M510 236v102M547 236v102M436 270h148M436 304h148" fill="none" stroke="${p.ink}" stroke-width="12"/>
+      <path d="M436 236h37v34h-37Zm74 34h37v34h-37Zm-37 34h37v34h-37Z" fill="${p.ink}"/>`,
+  },
+  indovina: {
+    box: { x0: 120, y0: 110, x1: 550, y1: 530 },
+    disegna: (p) => `<circle cx="282" cy="212" r="94" fill="${p.paper}" stroke="${p.ink}" stroke-width="16"/>
+      <path d="M106 524c0-118 80-180 176-180s176 62 176 180Z" fill="${p.paper}" stroke="${p.ink}" stroke-width="16"/>
+      <path d="M428 158c0-48 78-48 78 0 0 36-46 40-46 78" fill="none" stroke="${p.accent}" stroke-width="32" stroke-linecap="round"/>
+      <circle cx="460" cy="292" r="23" fill="${p.accent}"/>`,
+  },
+  timeline: {
+    box: { x0: 90, y0: 180, x1: 510, y1: 380 },
+    disegna: (p) => `<path d="M96 330H504" fill="none" stroke="${p.ink}" stroke-width="22" stroke-linecap="square"/>
+      <circle cx="160" cy="330" r="38" fill="${p.paper}" stroke="${p.ink}" stroke-width="14"/>
+      <circle cx="300" cy="330" r="38" fill="${p.accent}" stroke="${p.ink}" stroke-width="14"/>
+      <circle cx="440" cy="330" r="38" fill="${p.second}" stroke="${p.ink}" stroke-width="14"/>
+      <path d="M300 330V236" fill="none" stroke="${p.ink}" stroke-width="14"/>
+      <path d="M300 176l42 42-42 42-42-42Z" fill="${p.paper}" stroke="${p.ink}" stroke-width="14"/>`,
+  },
+  ruota: {
+    box: { x0: 88, y0: 60, x1: 512, y1: 520 },
+    disegna: (p) => {
+      const centro = { x: 300, y: 310 };
+      const raggio = 200;
+      const spicchi = Array.from({ length: 8 }, (_, i) => {
+        const a1 = (i * Math.PI * 2) / 8 - Math.PI / 2;
+        const a2 = ((i + 1) * Math.PI * 2) / 8 - Math.PI / 2;
+        const x1 = centro.x + Math.cos(a1) * raggio;
+        const y1 = centro.y + Math.sin(a1) * raggio;
+        const x2 = centro.x + Math.cos(a2) * raggio;
+        const y2 = centro.y + Math.sin(a2) * raggio;
+        const colore = i % 2 ? p.ink : p.accent;
+        return `<path d="M${centro.x} ${centro.y}L${x1.toFixed(1)} ${y1.toFixed(1)}A${raggio} ${raggio} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}Z" fill="${colore}"/>`;
+      }).join('\n      ');
+      return `<circle cx="300" cy="310" r="200" fill="${p.paper}"/>
+      ${spicchi}
+      <circle cx="300" cy="310" r="200" fill="none" stroke="${p.ink}" stroke-width="20"/>
+      <circle cx="300" cy="310" r="42" fill="${p.paper}" stroke="${p.ink}" stroke-width="16"/>
+      <path d="M300 52l42 74h-84Z" fill="${p.second}" stroke="${p.ink}" stroke-width="14" stroke-linejoin="miter"/>`;
+    },
+  },
+  blackjack: {
+    box: { x0: 120, y0: 110, x1: 550, y1: 500 },
+    disegna: (p) => `<g transform="rotate(-12 300 320)">
+      <rect x="126" y="150" width="204" height="292" rx="18" fill="${p.paper}" stroke="${p.ink}" stroke-width="16"/>
+      <path d="M228 246c-46 54-70 80-70 104a34 34 0 0 0 52 29l-12 33h60l-12-33a34 34 0 0 0 52-29c0-24-24-50-70-104Z" fill="${p.accent}" stroke="${p.ink}" stroke-width="10"/>
+    </g>
+      <g transform="rotate(10 400 300)">
+        <rect x="330" y="130" width="204" height="292" rx="18" fill="${p.paper}" stroke="${p.ink}" stroke-width="16"/>
+        <path d="M432 250c0-30 40-30 40 0 0 26-40 44-40 74 0-30-40-48-40-74 0-30 40-30 40 0Z" fill="${p.second}" stroke="${p.ink}" stroke-width="10"/>
+      </g>`,
+  },
+  cavallo: {
+    box: { x0: 90, y0: 90, x1: 510, y1: 510 },
+    phosphor: { nome: 'horse', peso: 'bold', x: 70, y: 86, lato: 460 },
+    disegna: (p) => `<circle cx="300" cy="300" r="214" fill="${p.accent}"/>`,
+  },
+  corona: {
+    box: { x0: 96, y0: 120, x1: 504, y1: 500 },
+    disegna: (p) => `<path d="M112 432V208l104 78 84-140 84 140 104-78v224Z" fill="${p.accent}" stroke="${p.ink}" stroke-width="18" stroke-linejoin="miter"/>
+      <path d="M112 432h376v56H112Z" fill="${p.second}" stroke="${p.ink}" stroke-width="16"/>
+      <circle cx="112" cy="208" r="20" fill="${p.paper}" stroke="${p.ink}" stroke-width="10"/>
+      <circle cx="300" cy="146" r="20" fill="${p.paper}" stroke="${p.ink}" stroke-width="10"/>
+      <circle cx="488" cy="208" r="20" fill="${p.paper}" stroke="${p.ink}" stroke-width="10"/>`,
+  },
+  cucchiaio: {
+    box: { x0: 100, y0: 90, x1: 510, y1: 530 },
+    disegna: (p) => `<path d="M126 150l34 34M474 142l-28 30M108 300h44M456 300h36" fill="none" stroke="${p.accent}" stroke-width="14" stroke-linecap="square"/>
+      <ellipse cx="300" cy="210" rx="98" ry="120" fill="${p.second}" stroke="${p.ink}" stroke-width="16"/>
+      <rect x="278" y="310" width="44" height="200" rx="20" fill="${p.second}" stroke="${p.ink}" stroke-width="16"/>
+      <circle cx="270" cy="188" r="11" fill="${p.ink}"/>
+      <circle cx="330" cy="188" r="11" fill="${p.ink}"/>
+      <path d="M266 230q34 30 68 0" fill="none" stroke="${p.ink}" stroke-width="12" stroke-linecap="round"/>`,
+  },
 };
 
 const tinteLogo = (palette) => ({
@@ -349,7 +482,7 @@ async function componi(sticker, tema, font, capRatio, discRatio) {
 }
 
 /** Sticker tondo: solo il logo del gioco, nessun testo. */
-function componiLogo(sticker, tema) {
+async function componiLogo(sticker, tema) {
   const palette = tema.palette;
   const logo = LOGHI[sticker.logo];
   if (!logo) throw new Error(`${sticker.slug}: logo "${sticker.logo}" da disegnare`);
@@ -366,13 +499,23 @@ function componiLogo(sticker, tema) {
     '    <circle id="badge" cx="600" cy="600" r="560"/>',
     '    <clipPath id="clip"><use href="#badge"/></clipPath>',
     indent(tema.texture.pattern, 4),
-  ].join('\n');
+  ];
+
+  // pittogrammi presi da Phosphor (MIT), usati come sagoma piena
+  let sagoma = '';
+  if (logo.phosphor) {
+    const { viewBox, interno } = await iconaPhosphor(logo.phosphor.nome, logo.phosphor.peso || 'bold');
+    const id = `logo-${logo.phosphor.nome}`;
+    defs.push(`    <symbol id="${id}" viewBox="${viewBox}">\n${interno}\n    </symbol>`);
+    const p = logo.phosphor;
+    sagoma = `\n    <use href="#${id}" x="${p.x}" y="${p.y}" width="${p.lato}" height="${p.lato}" fill="${palette.alone}"/>`;
+  }
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${LOGO_MM}mm" height="${LOGO_MM}mm" viewBox="0 0 ${LOGO_LATO} ${LOGO_LATO}" role="img" aria-labelledby="title desc">
   <title id="title">quizzOne - ${escapeXml(sticker.titolo)}</title>
   <desc id="desc">Adesivo tondo quizzOne «${escapeXml(sticker.titolo)}»: logo del gioco su palette ${escapeXml(tema.nome)}, texture stampata e contorno di taglio CutContour.</desc>
   <defs>
-${defs}
+${defs.join('\n')}
   </defs>
   <g id="Fondo">
     <use href="#badge" transform="translate(18 18)" fill="${palette.ombra}"/>
@@ -385,7 +528,7 @@ ${defs}
     </g>
   </g>
   <g id="Logo" transform="translate(600 600) scale(${scala}) translate(-300 -300)">
-${indent(logo.disegna(tinteLogo(palette)), 4)}
+${indent(logo.disegna(tinteLogo(palette)), 4)}${sagoma}
   </g>
   <g id="CutContour" data-spot-color="CutContour" data-tratto="0.25pt" fill="none" stroke="#FF00FF" stroke-width="0.588">
     <use href="#badge"/>
@@ -762,6 +905,252 @@ async function diffVisivo(dirOriginali, rigenerati) {
   await browser.close();
 }
 
+// --- fogli A4 e PDF -------------------------------------------------------
+const PT_MM = 2.834645669;
+const pt = (mm) => mm * PT_MM;
+const A4 = { larghezza: 210, altezza: 297 };
+
+function hexRgb(hex) {
+  const n = parseInt(hex.replace('#', ''), 16);
+  return rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255);
+}
+
+/** Crocini di taglio a 2 mm dal vivo, 3 mm di lunghezza, 0,25 pt. */
+function crocini(page, x, y, larghezza, altezza) {
+  const scarto = pt(2);
+  const lunga = pt(3);
+  const linee = [
+    [x, y - scarto, x, y - scarto - lunga],
+    [x + larghezza, y - scarto, x + larghezza, y - scarto - lunga],
+    [x, y + altezza + scarto, x, y + altezza + scarto + lunga],
+    [x + larghezza, y + altezza + scarto, x + larghezza, y + altezza + scarto + lunga],
+    [x - scarto, y, x - scarto - lunga, y],
+    [x - scarto, y + altezza, x - scarto - lunga, y + altezza],
+    [x + larghezza + scarto, y, x + larghezza + scarto + lunga, y],
+    [x + larghezza + scarto, y + altezza, x + larghezza + scarto + lunga, y + altezza],
+  ];
+  for (const [x1, y1, x2, y2] of linee) {
+    page.drawLine({
+      start: { x: x1, y: y1 },
+      end: { x: x2, y: y2 },
+      thickness: 0.25,
+      color: rgb(0.15, 0.15, 0.15),
+    });
+  }
+}
+
+/**
+ * Un foglio A4 di sticker. L'abbondanza di 2 mm è un rettangolo (o cerchio)
+ * di carta disegnato sotto l'arte: si sovrappone ai vicini, poi l'arte copre.
+ */
+async function foglio(pdf, voci, { colonne, righe, larghezza, altezza, pagina }) {
+  const carta = pdf.addPage([pt(A4.larghezza), pt(A4.altezza)]);
+  const inizioX = (A4.larghezza - colonne * larghezza) / 2;
+  const inizioY = (A4.altezza - righe * altezza) / 2;
+  const celle = voci.map((voce, i) => {
+    const x = pt(inizioX + (i % colonne) * larghezza);
+    const alto = inizioY + Math.floor(i / colonne) * altezza;
+    return { voce, x, y: carta.getHeight() - pt(alto) - pt(altezza), w: pt(larghezza), h: pt(altezza) };
+  });
+
+  for (const cella of celle) {
+    if (cella.voce.tondo) {
+      carta.drawCircle({
+        x: cella.x + cella.w / 2,
+        y: cella.y + cella.h / 2,
+        size: cella.w / 2 + pt(2),
+        color: hexRgb(cella.voce.sangue),
+      });
+    } else {
+      carta.drawRectangle({
+        x: cella.x - pt(2),
+        y: cella.y - pt(2),
+        width: cella.w + pt(4),
+        height: cella.h + pt(4),
+        color: hexRgb(cella.voce.sangue),
+      });
+    }
+  }
+  for (const cella of celle) {
+    carta.drawImage(cella.voce.immagine, { x: cella.x, y: cella.y, width: cella.w, height: cella.h });
+    crocini(carta, cella.x, cella.y, cella.w, cella.h);
+  }
+  if (pagina) {
+    carta.drawText(pagina, {
+      x: pt(12),
+      y: pt(6),
+      size: 6,
+      font: await pdf.embedFont(StandardFonts.Helvetica),
+      color: rgb(0.35, 0.35, 0.35),
+    });
+  }
+  return carta;
+}
+
+async function immagine(pdf, cache, slug) {
+  if (cache.has(slug)) return cache.get(slug);
+  const bytes = await fs.readFile(path.join(PNG_DIR, `${slug}.png`));
+  const img = await pdf.embedPng(bytes);
+  cache.set(slug, img);
+  return img;
+}
+
+/** Foglio di prova: tutti gli sticker, i nomi e le palette. */
+async function paginaProva(pdf, stickers, temi) {
+  const pagina = pdf.addPage([pt(A4.larghezza), pt(A4.altezza)]);
+  const grasso = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const normale = await pdf.embedFont(StandardFonts.Helvetica);
+  const inchiostro = rgb(0.08, 0.08, 0.08);
+  const grigio = rgb(0.4, 0.4, 0.4);
+  const cache = new Map();
+  // tutte le misure sono "dall'alto", convertite in coordinate PDF
+  const da = (mm) => pagina.getHeight() - pt(mm);
+
+  pagina.drawText('quizzOne — sticker pack', { x: pt(15), y: da(18), size: 26, font: grasso, color: inchiostro });
+  pagina.drawText('Prova colore. Stampa al 100%, senza adattamento alla pagina.', {
+    x: pt(15), y: da(26), size: 9, font: normale, color: grigio,
+  });
+
+  pagina.drawText('STICKER DEL MARCHIO — 90 × 42 mm', { x: pt(15), y: da(38), size: 7, font: grasso, color: inchiostro });
+  const marchi = stickers.filter((s) => s.marchio);
+  const larghezzaMarchio = 20;
+  const altezzaMarchio = 9.33;
+  const passoMarchio = (A4.larghezza - 30 - larghezzaMarchio) / Math.max(1, marchi.length - 1);
+  for (let i = 0; i < marchi.length; i += 1) {
+    const x = pt(15 + i * passoMarchio);
+    const y = da(43) - pt(altezzaMarchio);
+    pagina.drawImage(await immagine(pdf, cache, marchi[i].slug), {
+      x, y, width: pt(larghezzaMarchio), height: pt(altezzaMarchio),
+    });
+    pagina.drawText(marchi[i].titolo, { x, y: y - pt(3.4), size: 5, font: normale, color: grigio });
+  }
+
+  pagina.drawText('LOGHI DEI GIOCHI — Ø 84 mm', { x: pt(15), y: da(64), size: 7, font: grasso, color: inchiostro });
+  const loghi = stickers.filter((s) => s.formato === 'logo');
+  const lato = 26;
+  for (let i = 0; i < loghi.length; i += 1) {
+    const x = pt(15 + (i % 5) * 36);
+    const y = da(70 + Math.floor(i / 5) * 33) - pt(lato);
+    pagina.drawImage(await immagine(pdf, cache, loghi[i].slug), { x, y, width: pt(lato), height: pt(lato) });
+    pagina.drawText(loghi[i].titolo, { x, y: y - pt(4), size: 5, font: normale, color: grigio });
+  }
+
+  const temiUnici = [...new Set(stickers.map((s) => s.tema))];
+  pagina.drawText('PALETTE', { x: pt(15), y: da(212), size: 7, font: grasso, color: inchiostro });
+  temiUnici.forEach((chiave, i) => {
+    const tema = temi[chiave];
+    const x = pt(15 + (i % 4) * 46);
+    const y = da(228 + Math.floor(i / 4) * 12);
+    pagina.drawText(tema.nome, { x, y: y + pt(5), size: 5, font: normale, color: grigio });
+    ['fondo', 'alone', 'accento', 'secondo'].forEach((ruolo, j) => {
+      pagina.drawRectangle({
+        x: x + pt(j * 5),
+        y,
+        width: pt(4.2),
+        height: pt(4.2),
+        color: hexRgb(tema.palette[ruolo]),
+        borderColor: rgb(0.78, 0.78, 0.78),
+        borderWidth: 0.3,
+      });
+    });
+  });
+
+  pagina.drawText(
+    'Carta adesiva A4. Taglio a mano sui crocini o fustella sul livello CutContour (spot magenta, 0,25 pt).',
+    { x: pt(15), y: da(286), size: 6.5, font: normale, color: grigio },
+  );
+  return pagina;
+}
+
+async function generaPdf(stickers, temi) {
+  const cartella = path.join(DOCS, 'pdf');
+  await fs.mkdir(cartella, { recursive: true });
+  const marchi = stickers.filter((s) => s.marchio);
+  const loghi = stickers.filter((s) => s.formato === 'logo');
+
+  const nuovo = () => PDFDocument.create(); // è asincrono: va atteso
+  const salva = async (pdf, nome) => {
+    const bytes = await pdf.save();
+    await fs.writeFile(path.join(cartella, nome), bytes);
+    console.log(`  ${nome} · ${(bytes.length / 1024 / 1024).toFixed(1)} MB`);
+  };
+
+  const aggiungiBadge = async (pdf, elenco, perFoglio, larghezza, altezza, etichetta) => {
+    const cache = new Map();
+    for (let i = 0; i < elenco.length; i += perFoglio) {
+      const gruppo = elenco.slice(i, i + perFoglio);
+      const voci = [];
+      for (const s of gruppo) {
+        voci.push({ immagine: await immagine(pdf, cache, s.slug), sangue: temi[s.tema].palette.alone });
+      }
+      await foglio(pdf, voci, {
+        colonne: 1,
+        righe: gruppo.length,
+        larghezza,
+        altezza,
+        pagina: `${etichetta} · ${gruppo.map((s) => s.titolo).join(' · ')}`,
+      });
+    }
+  };
+
+  const aggiungiLoghi = async (pdf) => {
+    const cache = new Map();
+    for (let i = 0; i < loghi.length; i += 4) {
+      const gruppo = loghi.slice(i, i + 4);
+      const voci = [];
+      for (const s of gruppo) {
+        voci.push({ immagine: await immagine(pdf, cache, s.slug), sangue: temi[s.tema].palette.alone, tondo: true });
+      }
+      await foglio(pdf, voci, {
+        colonne: 2,
+        righe: 2,
+        larghezza: 90,
+        altezza: 90,
+        pagina: `Loghi Ø 84 mm · ${gruppo.map((s) => s.titolo).join(' · ')}`,
+      });
+    }
+  };
+
+  // 12 sticker da 90 × 42 su un foglio (8 soggetti + 4 ripetuti)
+  const pdfPiccoli = await nuovo();
+  const cachePiccoli = new Map();
+  const dodici = [];
+  for (let i = 0; i < 12; i += 1) {
+    const s = marchi[i % marchi.length];
+    dodici.push({ immagine: await immagine(pdfPiccoli, cachePiccoli, s.slug), sangue: temi[s.tema].palette.alone });
+  }
+  await foglio(pdfPiccoli, dodici, {
+    colonne: 2, righe: 6, larghezza: 90, altezza: 42, pagina: '12 sticker 90 × 42 mm',
+  });
+  await salva(pdfPiccoli, 'quizzone-fogli-90x42.pdf');
+
+  // 3 sticker da 180 × 84 per foglio
+  const pdfGrandi = await nuovo();
+  await aggiungiBadge(pdfGrandi, marchi, 3, 180, 84, '3 sticker 180 × 84 mm');
+  await salva(pdfGrandi, 'quizzone-fogli-180x84.pdf');
+
+  // loghi tondi, 4 per foglio
+  const pdfLoghi = await nuovo();
+  await aggiungiLoghi(pdfLoghi);
+  await salva(pdfLoghi, 'quizzone-fogli-loghi.pdf');
+
+  // pack completo: prova colore, poi tutti i fogli
+  const pdfPack = await nuovo();
+  await paginaProva(pdfPack, stickers, temi);
+  const cachePack = new Map();
+  const dodiciPack = [];
+  for (let i = 0; i < 12; i += 1) {
+    const s = marchi[i % marchi.length];
+    dodiciPack.push({ immagine: await immagine(pdfPack, cachePack, s.slug), sangue: temi[s.tema].palette.alone });
+  }
+  await foglio(pdfPack, dodiciPack, {
+    colonne: 2, righe: 6, larghezza: 90, altezza: 42, pagina: '12 sticker 90 × 42 mm',
+  });
+  await aggiungiBadge(pdfPack, marchi, 3, 180, 84, '3 sticker 180 × 84 mm');
+  await aggiungiLoghi(pdfPack);
+  await salva(pdfPack, 'quizzone-pack-completo.pdf');
+}
+
 // --- main -----------------------------------------------------------------
 async function main() {
   const argv = process.argv.slice(2);
@@ -838,6 +1227,10 @@ async function main() {
   }
   if (!soloTest) {
     console.log(`\nScritti ${stickers.length} SVG in docs/stickers e ${stickers.length} PNG ${DPI} dpi in docs/stickers/png`);
+  }
+  if (!soloTest && !solo && tappa >= 2) {
+    console.log('\nFogli A4 e PDF:');
+    await generaPdf(stickers, temi);
   }
   if (dirDiff) {
     console.log('\nDiff visivo con gli originali:');
