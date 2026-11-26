@@ -376,6 +376,8 @@ export class FakeSwUpdate {
  * La spec verifica il comportamento del componente, non la rete.
  */
 export class FakeReliabilityService {
+  /** La TV dei test nasce abilitata alla regia, come quella aperta col segreto. */
+  readonly regia = signal(true);
   readonly online = signal(true);
   readonly syncing = signal(false);
   readonly stateVersion = signal(0);
@@ -398,6 +400,8 @@ export class FakeReliabilityService {
   }
 
   stop(): void {}
+
+  setControlSecret(_secret: string | null): void {}
 
   forgetSession(): void {}
 
