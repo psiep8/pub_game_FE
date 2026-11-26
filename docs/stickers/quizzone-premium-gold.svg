@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180mm" height="84mm" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">quizzOne - Premium Gold</title>
+  <desc id="desc">Adesivo vettoriale quizzOne con righe incise e accenti oro, contorno da taglio e palette Premium Gold.</desc>
+  <style>
+    @font-face { font-family: Anton; src: url("anton-latin.woff2") format("woff2"); font-weight: 400; }
+    text { font-family: Anton, Impact, "Arial Black", sans-serif; }
+  </style>
+  <defs>
+    <path id="badge" d="M164 70H1036L1130 162L1098 255L1130 348L1036 440H164L70 348L102 255L70 162Z"/>
+    <clipPath id="clip"><path d="M164 70H1036L1130 162L1098 255L1130 348L1036 440H164L70 348L102 255L70 162Z"/></clipPath>
+    <pattern id="texture" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M0 3H20M0 8H20M0 13H20M0 18H20" fill="none" stroke="#d4af37" stroke-width="1.4"/>
+    </pattern>
+  </defs>
+  <use href="#badge" transform="translate(18 18)" fill="#b08d57"/>
+  <use href="#badge" fill="#f7e7ce" stroke="#f7e7ce" stroke-width="48" stroke-linejoin="miter"/>
+  <use href="#badge" fill="#101820" stroke="#f7e7ce" stroke-width="7" stroke-linejoin="miter"/>
+  <g clip-path="url(#clip)" opacity=".75">
+    <path d="M479 111c17-17 36-8 52-17 18-9 34 5 51 1 19-4 32 11 50 7 20-4 35 8 53 5 19-3 33 12 23 25-11 14-31 5-47 12-19 9-34-5-52 2-19 7-34-6-52-1-18 5-32-8-49-3-18 5-33-7-29-19Z" fill="url(#texture)"/>
+    <path d="M117 150l24-14 13 18 21-13 12 17m891 202l-24-14-13 18-21-13-12 17" fill="url(#texture)"/>
+    <path d="M293 116h28l-14 18 23 9m548-27h-25l11 18-21 10m-553 234l22-8 8 15m533-10l20 9-12 14" fill="none" stroke="#d4af37" stroke-width="4"/>
+    <path d="M520 408l9-7 9 7-9 7Zm160-300l7-5 7 5-7 5Z" fill="none" stroke="#b08d57" stroke-width="4"/>
+  </g>
+  <g fill="none" stroke="#d4af37" stroke-width="5" stroke-linejoin="miter">
+    <path d="M279 105H346V157H279Z M291 117l21 21 21-21m-42 26h42"/>
+    <circle cx="912" cy="407" r="26"/>
+    <path d="M898 407h28m-14-14v28m-34-1l9-5m73 5l-9-5"/>
+  </g>
+  <text x="612" y="367" text-anchor="middle" textLength="820" lengthAdjust="spacingAndGlyphs" font-size="218" fill="#b08d57">quizzOne</text>
+  <text x="600" y="355" text-anchor="middle" textLength="820" lengthAdjust="spacingAndGlyphs" font-size="218">
+    <tspan fill="#f7e7ce">quizz</tspan><tspan fill="#d4af37">One</tspan>
+  </text>
+</svg>

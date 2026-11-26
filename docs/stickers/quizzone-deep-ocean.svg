@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180mm" height="84mm" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">quizzOne - Deep Ocean</title>
+  <desc id="desc">Adesivo vettoriale quizzOne con texture a onde stampate, contorno da taglio e palette Deep Ocean.</desc>
+  <style>
+    @font-face { font-family: Anton; src: url("anton-latin.woff2") format("woff2"); font-weight: 400; }
+    text { font-family: Anton, Impact, "Arial Black", sans-serif; }
+  </style>
+  <defs>
+    <path id="badge" d="M164 70H1036L1130 162L1098 255L1130 348L1036 440H164L70 348L102 255L70 162Z"/>
+    <clipPath id="clip"><path d="M164 70H1036L1130 162L1098 255L1130 348L1036 440H164L70 348L102 255L70 162Z"/></clipPath>
+    <pattern id="texture" width="34" height="20" patternUnits="userSpaceOnUse">
+      <path d="M-2 7Q6 0 14 7T30 7M-2 17Q6 10 14 17T30 17" fill="none" stroke="#19b6a4" stroke-width="2.3"/>
+    </pattern>
+  </defs>
+  <use href="#badge" transform="translate(18 18)" fill="#087f8c"/>
+  <use href="#badge" fill="#f0fbf7" stroke="#f0fbf7" stroke-width="48" stroke-linejoin="miter"/>
+  <use href="#badge" fill="#071f26" stroke="#d9f0ea" stroke-width="7" stroke-linejoin="miter"/>
+  <g clip-path="url(#clip)" opacity=".72">
+    <path d="M469 112c17-18 38-7 54-18 18-10 36 5 52 1 20-4 32 11 52 7 20-5 37 9 55 5 20-4 35 13 24 27-12 14-33 4-49 12-20 9-35-5-54 2-21 8-35-7-55-1-19 6-33-8-51-3-19 5-34-8-27-20Z" fill="url(#texture)"/>
+    <path d="M116 154c7-13 25-10 32-22 13-8 26 1 23 12 13 8 7 20-6 22-7 13-22 7-34 12-13 0-22-10-15-17Zm929 197c9-11 26-6 31-18 14-6 25 4 18 14 10 10 3 20-10 20-8 12-24 6-35 10-13-3-17-15-4-26Z" fill="url(#texture)"/>
+    <path d="M289 118q16-10 32 0t32 0m-56 20q16-10 32 0m573-20q-16-10-32 0t-32 0m55 20q-16-10-32 0m-606 242q16-10 32 0" fill="none" stroke="#19b6a4" stroke-width="5"/>
+    <path d="M523 408l9-7 9 7-9 7Zm151-302l8-6 8 6-8 6Z" fill="#b6e36b"/>
+  </g>
+  <g fill="none" stroke="#19b6a4" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M276 116l55 36m-42-43l-18 24m42-10l-18 24"/>
+    <circle cx="911" cy="407" r="27" fill="#087f8c"/>
+    <circle cx="911" cy="407" r="12" stroke="#d9f0ea"/>
+    <path d="M879 407h10m44 0h11m-33-58v12"/>
+  </g>
+  <text x="612" y="367" text-anchor="middle" textLength="820" lengthAdjust="spacingAndGlyphs" font-size="218" fill="#087f8c">quizzOne</text>
+  <text x="600" y="355" text-anchor="middle" textLength="820" lengthAdjust="spacingAndGlyphs" font-size="218">
+    <tspan fill="#d9f0ea">quizz</tspan><tspan fill="#19b6a4">One</tspan>
+  </text>
+</svg>

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180mm" height="84mm" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">quizzOne - Sunset Pop</title>
+  <desc id="desc">Adesivo vettoriale quizzOne con raggi stampati, contorno da taglio e palette Sunset Pop.</desc>
+  <style>
+    @font-face { font-family: Anton; src: url("anton-latin.woff2") format("woff2"); font-weight: 400; }
+    text { font-family: Anton, Impact, "Arial Black", sans-serif; }
+  </style>
+  <defs>
+    <path id="badge" d="M164 70H1036L1130 162L1098 255L1130 348L1036 440H164L70 348L102 255L70 162Z"/>
+    <clipPath id="clip"><path d="M164 70H1036L1130 162L1098 255L1130 348L1036 440H164L70 348L102 255L70 162Z"/></clipPath>
+    <pattern id="texture" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M3 0L12 12M21 0L12 12M3 24L12 12M21 24L12 12" fill="none" stroke="#ff795e" stroke-width="2"/>
+      <circle cx="12" cy="12" r="2.2" fill="#c64c91"/>
+    </pattern>
+  </defs>
+  <use href="#badge" transform="translate(18 18)" fill="#c64c91"/>
+  <use href="#badge" fill="#fff9f3" stroke="#fff9f3" stroke-width="48" stroke-linejoin="miter"/>
+  <use href="#badge" fill="#25142a" stroke="#fff0e6" stroke-width="7" stroke-linejoin="miter"/>
+  <g clip-path="url(#clip)" opacity=".72">
+    <path d="M474 106c19-18 38-7 55-17 19-10 37 6 55 1 20-5 34 11 53 7 21-5 37 9 56 5 20-4 35 13 24 27-12 14-34 4-51 12-21 9-37-5-57 2-21 8-37-7-57-1-20 6-35-8-53-3-19 5-35-7-28-20Z" fill="url(#texture)"/>
+    <path d="M117 154c9-14 28-9 36-22 14-8 29 2 24 14 15 9 8 24-7 25-9 16-28 8-41 14-15-1-24-11-12-31Zm932 190c9-15 29-8 35-22 14-8 29 4 22 16 13 10 5 24-10 25-10 14-28 7-41 12-15-3-21-17-6-31Z" fill="url(#texture)"/>
+    <path d="M293 115l-4 21 20-4 11 18m568-34l8 19 18-10 8 18m-580 235l21-6 7 17m535-19l20 9-12 16" fill="none" stroke="#ff795e" stroke-width="5"/>
+    <path d="M516 407l10-8 10 8-10 8Zm165-300l8-6 8 6-8 6Z" fill="#c64c91"/>
+  </g>
+  <g fill="none" stroke="#ff795e" stroke-width="5" stroke-linejoin="miter">
+    <circle cx="290" cy="407" r="29"/>
+    <circle cx="290" cy="407" r="7" fill="#ff795e"/>
+    <path d="M290 378v22m25-8l-19 11m14 24l-17-15m-28 15l17-15m-14-24l19 11"/>
+    <path d="M891 120l14 9 16-2-9 13 2 16-13-9-15 3 7-14Z"/>
+  </g>
+  <text x="612" y="367" text-anchor="middle" textLength="820" lengthAdjust="spacingAndGlyphs" font-size="218" fill="#c64c91">quizzOne</text>
+  <text x="600" y="355" text-anchor="middle" textLength="820" lengthAdjust="spacingAndGlyphs" font-size="218">
+    <tspan fill="#fff0e6">quizz</tspan><tspan fill="#ff795e">One</tspan>
+  </text>
+</svg>

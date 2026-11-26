@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180mm" height="84mm" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">quizzOne - Desert Heritage</title>
+  <desc id="desc">Adesivo vettoriale quizzOne con trama incisa diagonale, contorno da taglio e palette Desert Heritage.</desc>
+  <style>
+    @font-face { font-family: Anton; src: url("anton-latin.woff2") format("woff2"); font-weight: 400; }
+    text { font-family: Anton, Impact, "Arial Black", sans-serif; }
+  </style>
+  <defs>
+    <path id="badge" d="M164 70H1036L1130 162L1098 255L1130 348L1036 440H164L70 348L102 255L70 162Z"/>
+    <clipPath id="clip"><path d="M164 70H1036L1130 162L1098 255L1130 348L1036 440H164L70 348L102 255L70 162Z"/></clipPath>
+    <pattern id="texture" width="18" height="18" patternUnits="userSpaceOnUse">
+      <path d="M-5 18L18-5M4 23L23 4" fill="none" stroke="#d8ad72" stroke-width="2.4"/>
+    </pattern>
+  </defs>
+  <use href="#badge" transform="translate(18 18)" fill="#9b4f2d"/>
+  <use href="#badge" fill="#f8eedc" stroke="#f8eedc" stroke-width="48" stroke-linejoin="miter"/>
+  <use href="#badge" fill="#211a14" stroke="#f4e7d2" stroke-width="7" stroke-linejoin="miter"/>
+  <g clip-path="url(#clip)" opacity=".72">
+    <path d="M465 105c17-13 36-6 49-16 17-9 34 3 49 1 20-3 34 12 52 7 21-5 34 9 54 7 19-2 34 11 25 24-10 14-31 6-47 13-18 8-36-5-53 1-19 7-34-5-53-1-18 5-33-7-50-3-18 4-34-7-26-19Z" fill="url(#texture)"/>
+    <path d="M111 325c13-12 27-4 36-18 12-9 27-1 23 10 13 9 9 23-4 26-7 15-25 10-36 17-15 2-25-8-16-18Zm946-181c9-13 29-10 35-23 14-9 29 1 24 13 14 8 9 22-6 25-8 13-26 8-38 14-14-3-22-15-9-22Z" fill="url(#texture)"/>
+    <path d="M294 105l30 8-20 13 27 9m549-22l-29 14 25 10m-572 224l21-4-10 15m540-33l26 11-15 13" fill="none" stroke="#d8ad72" stroke-width="5"/>
+    <path d="M515 406l10-7 10 7-10 7Zm164-299l8-6 8 6-8 6Z" fill="#9b4f2d"/>
+  </g>
+  <g transform="rotate(-7 912 128)" fill="none" stroke="#d8ad72" stroke-width="5" stroke-linejoin="miter">
+    <path d="M873 105H951V153H873Z M884 105V153m55-48v48m-44-31h44m-44 17h30"/>
+  </g>
+  <g fill="none" stroke="#9b4f2d" stroke-width="5" stroke-linecap="square">
+    <path d="M283 397l24-12 12 18 21-7m-57 18h28m590-314l17 11 17-11"/>
+  </g>
+  <text x="612" y="367" text-anchor="middle" textLength="820" lengthAdjust="spacingAndGlyphs" font-size="218" fill="#9b4f2d">quizzOne</text>
+  <text x="600" y="355" text-anchor="middle" textLength="820" lengthAdjust="spacingAndGlyphs" font-size="218">
+    <tspan fill="#f4e7d2">quizz</tspan><tspan fill="#d8ad72">One</tspan>
+  </text>
+</svg>

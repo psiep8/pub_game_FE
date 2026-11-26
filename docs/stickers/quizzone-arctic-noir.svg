@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180mm" height="84mm" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">quizzOne - Arctic Noir</title>
+  <desc id="desc">Adesivo vettoriale quizzOne con reticolo inciso, contorno da taglio e palette Arctic Noir.</desc>
+  <style>
+    @font-face { font-family: Anton; src: url("anton-latin.woff2") format("woff2"); font-weight: 400; }
+    text { font-family: Anton, Impact, "Arial Black", sans-serif; }
+  </style>
+  <defs>
+    <path id="badge" d="M164 70H1036L1130 162L1098 255L1130 348L1036 440H164L70 348L102 255L70 162Z"/>
+    <clipPath id="clip"><path d="M164 70H1036L1130 162L1098 255L1130 348L1036 440H164L70 348L102 255L70 162Z"/></clipPath>
+    <pattern id="texture" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M0 0L20 20M20 0L0 20M10 0V20M0 10H20" fill="none" stroke="#54bceb" stroke-width="1.5"/>
+    </pattern>
+  </defs>
+  <use href="#badge" transform="translate(18 18)" fill="#4169a8"/>
+  <use href="#badge" fill="#f3f8fc" stroke="#f3f8fc" stroke-width="48" stroke-linejoin="miter"/>
+  <use href="#badge" fill="#080f1a" stroke="#f3f8fc" stroke-width="7" stroke-linejoin="miter"/>
+  <g clip-path="url(#clip)" opacity=".7">
+    <path d="M476 107c14-14 33-6 46-15 17-8 32 4 48 1 17-3 29 10 47 7 18-5 31 7 48 5 17-2 30 10 23 22-8 12-27 5-41 11-17 8-31-4-47 2-17 6-30-4-46 0-17 4-29-7-44-3-17 4-29-5-23-17Z" fill="url(#texture)"/>
+    <path d="M116 158l24-17 14 19 21-13 13 18m898 177l-25-17-15 19-20-13-13 18" fill="url(#texture)"/>
+    <path d="M294 118l18-12 8 20 18-7m556-4l-18 15 21 5m-583 247l19-15 7 19m532-13l18 13-7 16" fill="none" stroke="#54bceb" stroke-width="5"/>
+    <path d="M505 406l10-18 10 18-10 18Zm171-300l8-14 8 14-8 14Z" fill="none" stroke="#91a9c5" stroke-width="4"/>
+  </g>
+  <g fill="none" stroke="#54bceb" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter">
+    <circle cx="909" cy="128" r="28"/>
+    <path d="M902 98v-9h14v9m-7 9v20l14 10m-43-9h7m31 0h7"/>
+    <path d="M281 402l13-21 13 21m-20-10h14m-12 18h10"/>
+  </g>
+  <text x="612" y="367" text-anchor="middle" textLength="820" lengthAdjust="spacingAndGlyphs" font-size="218" fill="#4169a8">quizzOne</text>
+  <text x="600" y="355" text-anchor="middle" textLength="820" lengthAdjust="spacingAndGlyphs" font-size="218">
+    <tspan fill="#f3f8fc">quizz</tspan><tspan fill="#54bceb">One</tspan>
+  </text>
+</svg>

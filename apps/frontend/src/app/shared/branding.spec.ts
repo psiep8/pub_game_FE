@@ -15,6 +15,16 @@ describe('nome visibile quizzOne', () => {
     expect(manifest.short_name).toBe('quizzOne');
   });
 
+  it('mantiene la capitalizzazione quizzOne nei marchi della TV', () => {
+    const template = read('src/app/features/tv/game.component.html');
+    expect(template).toContain('<h1 class="intro-logo">quizz<span>One</span></h1>');
+    expect(template).toContain('<h1 class="lobby-title">quizz<span>One</span></h1>');
+
+    const styles = read('src/app/features/tv/restyle.css');
+    expect(styles).toMatch(/\.intro-logo\s*\{[^}]*text-transform:\s*none;/);
+    expect(styles).toMatch(/\.lobby-title\s*\{[^}]*text-transform:\s*none;/);
+  });
+
   it('non lascia il vecchio nome nei testi di TV, telefono e regia', () => {
     for (const path of [
       'src/app/features/tv/game.component.html',

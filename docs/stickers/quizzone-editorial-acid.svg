@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180mm" height="84mm" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">quizzOne - Editorial Acid</title>
+  <desc id="desc">Adesivo vettoriale quizzOne con texture puntinata, contorno da taglio e palette Editorial Acid.</desc>
+  <style>
+    @font-face { font-family: Anton; src: url("anton-latin.woff2") format("woff2"); font-weight: 400; }
+    text { font-family: Anton, Impact, "Arial Black", sans-serif; }
+  </style>
+  <defs>
+    <path id="badge" d="M164 70H1036L1130 162L1098 255L1130 348L1036 440H164L70 348L102 255L70 162Z"/>
+    <clipPath id="clip"><path d="M164 70H1036L1130 162L1098 255L1130 348L1036 440H164L70 348L102 255L70 162Z"/></clipPath>
+    <pattern id="texture" width="18" height="18" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="4" r="2.6" fill="#d9ff43"/><circle cx="13" cy="13" r="1.8" fill="#ff4d2e"/>
+    </pattern>
+  </defs>
+  <use href="#badge" transform="translate(18 18)" fill="#ff4d2e"/>
+  <use href="#badge" fill="#fff8e8" stroke="#fff8e8" stroke-width="48" stroke-linejoin="miter"/>
+  <use href="#badge" fill="#111109" stroke="#f4e8ce" stroke-width="7" stroke-linejoin="miter"/>
+  <g clip-path="url(#clip)" opacity=".72">
+    <path d="M481 111c18-18 42-10 59-20 21-12 41 5 62 1 23-5 37 12 59 7 24-7 46 12 66 8 20-3 36 15 22 29-15 14-36 4-53 12-22 10-40-5-61 2-23 8-38-8-59-3-22 6-37-12-58-7-21 6-39-8-54-3-20 7-35-9-22-20 8-3 20-3 39-6Z" fill="url(#texture)"/>
+    <path d="M119 150c8-16 31-12 38-27 13-14 34-4 30 10 18 12 8 28-8 29-11 17-30 6-43 14-17 3-28-9-17-19Zm915 203c11-15 29-8 35-22 16-9 30 2 24 14 14 11 5 26-10 25-11 15-28 8-41 13-14-1-21-13-8-20Z" fill="url(#texture)"/>
+    <path d="M286 119l25-13-6 22 22-5m568-2l-21 16 24 4m-569 269 19-9 5 18m541-18 22 12-6 15" fill="none" stroke="#d9ff43" stroke-width="5"/>
+    <path d="M526 410l11-8 11 8-11 8Zm145-301l9-7 9 7-9 7Z" fill="#ff4d2e"/>
+  </g>
+  <g fill="none" stroke="#d9ff43" stroke-width="5" stroke-linejoin="miter">
+    <path d="M278 105H354V157H278Z M290 116h9v9h-9z M307 120h32 M290 136h9v9h-9z M307 140h25"/>
+    <path d="M903 392l11 12 11-12m-22 20l11-12 11 12m-34-10h12m22 0h12"/>
+  </g>
+  <path d="M914 108l7 12 13 3-10 9 2 13-12-6-12 6 2-13-10-9 13-3Z" fill="#ff4d2e"/>
+  <text x="612" y="367" text-anchor="middle" textLength="820" lengthAdjust="spacingAndGlyphs" font-size="218" fill="#ff4d2e">quizzOne</text>
+  <text x="600" y="355" text-anchor="middle" textLength="820" lengthAdjust="spacingAndGlyphs" font-size="218">
+    <tspan fill="#f4e8ce">quizz</tspan><tspan fill="#d9ff43">One</tspan>
+  </text>
+</svg>
