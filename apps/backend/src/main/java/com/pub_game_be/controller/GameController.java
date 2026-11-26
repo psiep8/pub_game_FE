@@ -218,10 +218,8 @@ public class GameController {
                 roundIndex, "g" + gameId + "-r" + roundIndex, normalizedPayload);
         savedRound.setRoundStartId(opening.eventId());
 
-        messagingTemplate.convertAndSend(
-                "/topic/game/" + gameId,
-                savedRound);
-
+        // Il round completo (payload e soluzioni) non va in broadcast: la TV lo
+        // riceve in risposta e nessun altro dispositivo deve vederlo.
         return savedRound;
     }
 
@@ -550,8 +548,6 @@ public class GameController {
                 round.getType() == null ? "QUIZ" : round.getType().name(),
                 round.getRoundIndex(), "g" + id + "-r" + round.getRoundIndex(), round.getPayload());
         round.setRoundStartId(opening.eventId());
-
-        messagingTemplate.convertAndSend("/topic/game/" + id, round);
 
         return round;
     }
