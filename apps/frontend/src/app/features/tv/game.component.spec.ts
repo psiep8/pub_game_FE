@@ -953,6 +953,51 @@ describe('GameComponent', () => {
     }
   });
 
+  it('N-03: uno snapshot senza round durante la chiusura non riparte dal Quiz', () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    rounds.enableSimulation();
+    expect(rounds.startNewRound()).toBe('QUIZ');
+    component.currentGameId.set(1);
+    component.currentMode.set({ type: 'QUIZ', isRevealed: () => false } as any);
+    const response = new Subject<any>();
+    vi.spyOn(game, 'closeRound').mockReturnValue(response.asObservable());
+    const start = vi.spyOn(component, 'startNewRound').mockResolvedValue(undefined);
+
+    component.adminNextRound();
+    // Snapshot del server scattato dopo closeRound, prima del round nuovo.
+    (component as any).applyAuthoritativeState({
+      hasState: false, gameId: 1, version: 9, status: 'CREATED',
+    });
+
+    // La scaletta resta sul round chiuso: il prossimo gioco è Musica, non Quiz.
+    expect(rounds.getCurrentRound()).toBe(1);
+    expect(rounds.extractGameType()).toBe('MUSIC');
+
+    response.next({ closed: true });
+    response.complete();
+    expect(start).toHaveBeenCalled();
+  });
+
+  it('N-03: uno snapshot senza round mentre la scena esce non riavvolge la scaletta', async () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    rounds.enableSimulation();
+    expect(rounds.startNewRound()).toBe('QUIZ');
+    component.currentGameId.set(1);
+    // Uscita di scena ancora aperta: il server non ha ancora il round nuovo.
+    vi.spyOn(component as any, 'playExit').mockReturnValue(new Promise<void>(() => undefined));
+
+    void component.startNewRound();
+    await Promise.resolve();
+
+    (component as any).applyAuthoritativeState({
+      hasState: false, gameId: 1, version: 9, status: 'CREATED',
+    });
+
+    expect(rounds.getCurrentRound()).toBe(1);
+    expect(rounds.extractGameType()).toBe('MUSIC');
+  });
+
   it('con la classifica aperta la X e AVANTI restano nella dock e la chiudono', () => {
     // La dock in serata è nascosta: qui si prova con `?debug=1`.
     component.commandsVisible.set(true);

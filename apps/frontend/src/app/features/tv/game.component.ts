@@ -1372,6 +1372,19 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   async startNewRound() {
+    // La scena sta uscendo e il server non ha ancora il round nuovo: uno
+    // snapshot "nessun round" in questa finestra non deve riavvolgere la
+    // scaletta. Il finally copre anche uscite anticipate ed errori.
+    this.openingRound = true;
+    try {
+      await this.startNewRoundNow();
+    } finally {
+      this.openingRound = false;
+    }
+  }
+
+  /** Corpo di `startNewRound`, separato per delimitare la finestra di apertura. */
+  private async startNewRoundNow() {
     if (this.phase() === GamePhase.INTRO) this.dismissIntro();
     // Un round nuovo cancella l'apertura rimasta in attesa di una demo.
     this.pendingRoundOpen = undefined;
@@ -2397,6 +2410,8 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   private closingRound = false;
+  /** La TV sta già uscendo per aprire il round dopo: non è un reset. */
+  private openingRound = false;
   /**
    * Attesa massima per la chiusura del round sul server. Oltre questo tempo la
    * regia torna libera: il pulsante AVANTI non può restare morto se la risposta
@@ -3718,6 +3733,12 @@ export class GameComponent implements OnInit, OnDestroy {
       this.leaderboardService.replaceAll(snapshot.leaderboard);
     }
 
+    // Mentre la TV chiude un round o sta già uscendo per aprire il successivo,
+    // il server può rispondere "nessun round" (closeRound appena arrivato,
+    // generate-ai-round non ancora chiamato). Non è un reset: riavvolgere la
+    // scaletta qui faceva ripartire il round dopo dal primo gioco (Quiz al
+    // posto di Musica).
+    const advancing = this.openingRound || this.closingRound;
     if (snapshot.hasState !== false) {
       const status = String(snapshot.status ?? 'CREATED');
       const roundIndex = Number(snapshot.roundIndex);
@@ -3733,10 +3754,12 @@ export class GameComponent implements OnInit, OnDestroy {
           : roundIndex === 0
             ? 0
             : Math.max(current, roundIndex);
-        this.roundManager.restoreRound(safeRounds);
-        this.roundInfo.set(this.roundManager.getProgress().text);
+        if (!advancing) {
+          this.roundManager.restoreRound(safeRounds);
+          this.roundInfo.set(this.roundManager.getProgress().text);
+        }
       }
-    } else {
+    } else if (!advancing) {
       // La partita non ha ancora uno stato (appena creata): la scaletta locale
       // della serata precedente non vale più.
       this.roundManager.restoreRound(0);
