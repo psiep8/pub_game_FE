@@ -116,3 +116,70 @@ jobs:
           done
           kill $SIM_PID 2>/dev/null || true
           test -f "$SUMMARY_PATH" || (echo "simulazione non conclusa"; exit 1)
+
+  reproducibility:
+    name: Riproducibilità (backend + 3 E2E, checkout pulito)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verifica checkout senza indice media
+        shell: bash
+        run: |
+          found=$(find apps/backend -name media-it.json -print -quit)
+          if [ -n "$found" ]; then
+            echo "::error::media-it.json presente nel checkout pulito: $found"
+            exit 1
+          fi
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      - name: Suite backend completa
+        working-directory: apps/backend
+        run: ./mvnw -B test
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Dipendenze
+        run: npm ci
+      - name: Browser E2E
+        run: npx playwright install --with-deps chromium
+      - name: Tre E2E da checkout pulito
+        env:
+          E2E_BACKEND_PORT: '8095'
+          E2E_FRONTEND_PORT: '4295'
+        run: npx playwright test e2e/tv-telefoni.spec.ts --output=test-results-ci
+      - name: Verifica che l'indice media non sia comparso
+        shell: bash
+        run: |
+          found=$(find apps/backend -name media-it.json -print -quit)
+          if [ -n "$found" ]; then
+            echo "::error::media-it.json creato durante i test: $found"
+            exit 1
+          fi
+      - name: Report dei test backend falliti
+        if: failure()
+        working-directory: apps/backend
+        shell: bash
+        run: |
+          shopt -s nullglob
+          for report in target/surefire-reports/*.txt; do
+            if grep -qE 'Failures: [1-9]|Errors: [1-9]' "$report"; then
+              echo "::group::$report"
+              cat "$report"
+              echo "::endgroup::"
+            fi
+          done
+      - name: Salva trace e report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riproducibilita-ci
+          path: |
+            test-results-ci
+            apps/backend/target/surefire-reports
+          if-no-files-found: ignore
+          retention-days: 7
