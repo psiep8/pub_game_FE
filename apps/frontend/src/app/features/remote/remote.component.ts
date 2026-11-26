@@ -692,10 +692,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           // (WS e snapshot non hanno lo stesso ordine): se il telefono è già
           // dentro questo gioco e round, non deve tornare in attesa né
           // sbloccare chi ha già prenotato.
-          const wasActiveType = this.questionType();
-          const sameActiveRound = this.roundActive()
-            && wasActiveType === status.type
-            && (!status.round || Number(status.round) === this.roundNumber());
+          const sameAnnouncedRound = this.isSameAnnouncedRound(status);
           this.questionType.set(status.type);
           if (status.round) this.roundNumber.set(Number(status.round));
           if (status.roundTotal) this.roundTotal.set(Number(status.roundTotal));
@@ -725,7 +722,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
             this.hasAnswered.set(false);
             this.selectedAnswer.set(null);
             this.startTime = Date.now();
-          } else if (!sameActiveRound) {
+          } else if (!sameAnnouncedRound) {
             this.gameState.set(PlayerStatus.WAITING);
           }
           break;
@@ -760,9 +757,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
           if (status.type === 'IMAGE_BLUR') {
             // Il via della TV conosce già la manche: salvarla qui evita che
             // un annuncio in ritardo la scambi per una nuova e riarmi il voto.
-            const payload = this.parsePayload(status.payload);
             this.imageRound = Number(status.round) || this.roundNumber();
-            this.imageManche.set(Number(status.manche ?? payload?.manche) || 1);
+            this.imageManche.set(Number(status.manche) || 1);
           }
           this.onStartVoting(status.type, status.payload);
           break;
@@ -2993,6 +2989,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const announced = Number(status?.round);
     if (!Number.isInteger(announced) || announced <= 0) return true;
     return announced >= this.roundNumber();
+  }
+
+  /**
+   * Lo stesso gioco e round già annunciato: un SHOW_QUESTION ripetuto non deve
+   * cambiare lo stato del telefono. La manche è gestita dai rami specifici.
+   */
+  private isSameAnnouncedRound(status: any): boolean {
+    return this.questionType() === status.type
+      && (!status.round || Number(status.round) === this.roundNumber());
   }
 
   private acceptQuizAnnouncement(status: any): boolean {
