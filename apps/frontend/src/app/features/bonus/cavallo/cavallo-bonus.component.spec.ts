@@ -367,6 +367,38 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
     fixture.destroy();
   });
 
+  it('N-04: un pari merito sotto il primo posto salta comunque la posizione', () => {
+    const { component, fixture } = mount(
+      {
+        phase: 'FINALE',
+        secondsLeft: 0,
+        savedAt: Date.now(),
+        chosenCategory: 'MUSICA',
+        questionsByTeam: {},
+        index: 0,
+        total: 8,
+        scores: [
+          { playerName: 'Anna', score: 5 },
+          { playerName: 'Bruno', score: 2 },
+          { playerName: 'Carla', score: 2 },
+        ],
+        votes: [],
+        answers: [],
+      },
+      ['Anna', 'Bruno', 'Carla'],
+    );
+
+    // Bruno e Carla sono seconde a pari merito: dopo di loro si salta a 4.
+    const rows = fixture.nativeElement.querySelectorAll('.cav-row') as NodeListOf<HTMLElement>;
+    expect(rows).toHaveLength(3);
+    expect(rows[0].querySelector('.cav-pos')?.textContent?.trim()).toBe('2');
+    expect(rows[1].querySelector('.cav-pos')?.textContent?.trim()).toBe('2');
+    expect(rows[2].classList.contains('lead')).toBe(true);
+    expect(rows[2].querySelector('.cav-pos')?.textContent?.trim()).toBe('1');
+
+    fixture.destroy();
+  });
+
   it('la pausa della TV ferma la votazione della categoria', () => {
     vi.useFakeTimers();
     const { component, fixture } = mount();
