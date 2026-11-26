@@ -29,7 +29,8 @@ scadenza e blocco dopo cinque errori).
 | --- | --- | --- |
 | **N-01** | Il codice di regia si generava **solo premendo GENERA CODICE** e la TV chiedeva il `CONTROL_SECRET` in un `window.prompt`. Con il database azzerato il token TV salvato non valeva più e senza segreto non si poteva generare nessun codice: stallo. Il codice non si rinnovava da solo e il pannello aveva un pulsante in più. | La TV si registra come schermo senza segreto (ADMIN resta protetto dal codice); il codice si chiede da solo appena la lobby è aperta, si rigenera alla scadenza e dopo l'uso; la TV mostra il **QR `/admin?pair=<codice>`**; il pannello ha un solo campo a 6 cifre con invio automatico e messaggi distinti per codice scaduto/bloccato. |
 | **N-02** | La TV aveva una dock di comandi in alto a destra (audio, pausa, tema, AVANTI, reset) usata anche in serata; la regia aveva molti pulsanti equivalenti e nessun comando primario unico. | Dock TV visibile **solo con `?debug=1`**. In regia una barra fissa in basso con **un solo pulsante primario** che dice cosa farà: `AVVIA ROUND N · TIPO`, `PROSSIMA MANCHE · TIPO`, `CHIUDI RIEPILOGO · ROUND N`, `RIPRENDI`. |
-| **N-03** | La finestra del round sul server per `IMAGE_BLUR` era **60 s + 30 s di tolleranza**, mentre il gioco ha **tre manche da 45 s** (135 s più i reveal). La manche 1 stava dentro, la 2 e la 3 cadevano fuori: il server considerava il round chiuso e i telefoni non potevano più prenotarsi. In più il filtro ADMIN del WebSocket scartava `PLAYER_PRENOTATO`: la regia non vedeva il buzz e non poteva confermarlo. | `ROUND_SECONDS["IMAGE_BLUR"]` portato a **3 × (45 + 15) = 180 s**; test d'integrazione che verifica una finestra maggiore di 135 s. Il gioco resta a tre manche: la modifica a quattro manche è N-21 (blocco C). |
+| **N-03** | La finestra del round sul server per `IMAGE_BLUR` era **60 s + 30 s di tolleranza**, mentre il gioco ha **tre manche da 45 s** (135 s più i reveal). La manche 1 stava dentro, la 2 e la 3 cadevano fuori: il server considerava il round chiuso e i telefoni non potevano più prenotarsi. In più il filtro ADMIN del WebSocket scartava `PLAYER_PRENOTATO`: la regia non vedeva il buzz e non poteva confermarlo. Restava un terzo difetto: la TV annunciava le manche 2 e 3 con `SHOW_QUESTION`, quindi il telefono restava in `WAITING` (pulsante PRENOTATI assente) e la regia perdeva i pulsanti di giudizio; l'E2E, inoltre, cliccava il pulsante rimasto dal gioco precedente, che il server scartava perché il round era già chiuso. | `ROUND_SECONDS["IMAGE_BLUR"]` portato a **3 × (45 + 15) = 180 s**; test d'integrazione che verifica una finestra maggiore di 135 s. Il gioco resta a tre manche: la modifica a quattro manche è N-21 (blocco C). Ogni manche ora apre `START_VOTING` con la soluzione della manche corrente (`currentSolution`); la regia tratta i giochi a prenotazione come `ACTIVE` anche su `SHOW_QUESTION`; l'E2E aspetta il pulsante `PRENOTATI!` di Indovina chi e non quello del gioco precedente. |
+| **N-04** | Il bonus Cavallo teneva **una sola domanda e un solo indice** per tutte le squadre: il tabellone era già unico, ma la sfida era la stessa per tutti. | Stato del bonus rifatto per squadra: otto domande a testa da blocchi diversi della stessa categoria, stesso passo, un solo tabellone; il telefono legge solo la propria domanda e il reveal è per squadra. La banca restituisce fino a **60 domande** (otto a testa) e un checkpoint vecchio con una domanda condivisa resta riprendibile. |
 | **N-05** | `inputReady()` verificava solo «non in pausa / non in riallineamento / una sola scheda»: **non guardava se il round era aperto né la scadenza del server**. Dopo `ROUND_ENDED` i tasti restavano vivi fino al round successivo; alla scadenza assoluta non si chiudeva nulla se la TV non mandava l'evento. | `inputReady` richiede ora `roundActive` e `!roundClosed`; un watcher sulla **scadenza assoluta del server** chiude il round anche senza `ROUND_ENDED`; compare il timbro **ROUND FINITO · GUARDA LA TV**. Le risposte REST tardive restano rifiutate dal server con `409 round-closed`, senza errore a schermo; il buzzer WebSocket viene fermato dal client, non da un nuovo controllo sul relay (limite dichiarato). La ripresa di un round ora riporta `deadlineAt` e la TV lo annuncia ai telefoni (`847f313`). |
 | **N-06** | Reset ed espulsione ripulivano solo `nickname`: `playerName` e `activeGameId` restavano nello storage e il telefono rientrava nella partita vecchia; audio e watcher della scadenza continuavano a girare. | Il ritorno al setup rimuove tutte e tre le chiavi, azzera il segnale `playerName`, ferma `AudioService`, il watcher della scadenza e riporta il round chiuso. |
 | **N-08** | Su iPhone/Safari `navigator.vibrate` non esiste (o è negata): il «via» restava senza feedback e `BONUS_STARTED` usava la chiamata diretta senza fallback. | Un solo percorso `vibrate()`: se la Vibration API non c'è, accende un flash a schermo e suona un colpo breve. `BONUS_STARTED` passa dallo stesso percorso. |
@@ -40,8 +41,8 @@ scadenza e blocco dopo cinque errori).
 | --- | --- | --- |
 | N-01 — Aggancio regia ↔ TV | **Fatto** | Codice automatico, QR regia, rinnovo, campo unico, memoria del dispositivo. |
 | N-02 — Pulsante unico e barra TV | **Fatto** | Dock TV dietro `?debug=1`; barra primaria in regia. |
-| N-03 — Indovina chi manche 2 e 3 | **Fatto (causa)** | Finestra server corretta (`26a2c77`); l'ADMIN ora riceve anche `PLAYER_PRENOTATO` (`8aa30f2`), altrimenti la regia non vedeva il buzz e non poteva confermare. Resta N-21 (quattro manche) nel blocco C. L'E2E TV + 3 telefoni arriva a Indovina chi e abilita il pulsante, ma la prenotazione non compare ancora in regia: limite del banco di prova, non dichiarato chiuso. |
-| N-04 — Cavallo per squadra | **Da fare** | Refactor dello stato del bonus: domanda per squadra, non per bonus. |
+| N-03 — Indovina chi manche 2 e 3 | **Fatto** | Finestra server corretta (`26a2c77`); l'ADMIN ora riceve anche `PLAYER_PRENOTATO` (`8aa30f2`); ogni manche riapre `START_VOTING` con la soluzione corrente e la regia resta `ACTIVE` (`2eb729b`). E2E TV + 3 telefoni superato per tutte e tre le manche. Resta N-21 (quattro manche) nel blocco C. |
+| N-04 — Cavallo per squadra | **Fatto** | `1995372`. Otto domande a testa, un tabellone unico, banca fino a 60 domande; test del TV e del telefono. |
 | N-05 — Telefoni cliccabili a round chiuso | **Fatto** | Blocco su `ROUND_ENDED` e su scadenza server; timbro a schermo. La scadenza è ora propagata anche nella ripresa del round (`deadlineAt`) e negli annunci TV; quella modifica è finita nel commit Musica `847f313`, non in un commit dedicato N-05. E2E TV + 3 telefoni superato. |
 | N-06 — Safari, reset e beep infiniti | **Fatto** | Reset ed espulsione ora rimuovono `nickname`, `playerName` e `activeGameId`, fermano audio, watcher della scadenza e riportano il round chiuso. |
 | N-07 — Tick infinito | **Da fare** | Il controllo dei proprietari audio (`AudioChannels.setOwner`) spegne già i loop della scena uscente; non è stata trovata una causa riproducibile senza la serata. |
@@ -60,11 +61,13 @@ scadenza e blocco dopo cinque errori).
 | Test mirati frontend (`admin`, `remote`, `game`) | **274 passati** |
 | `ReliabilityIntegrationTest#imageBlurRestaApertoPerTutteETreLeManche` | **1 passato** |
 | `PairingCodeServiceTest`, `RoundWindowTest`, `SessionAuthenticationFilterTest` | **9 passati** |
-| Suite frontend completa | **805 passati, 2 skip** (76 file su 77) |
+| Suite frontend completa (dopo N-03/N-04) | **815 passati, 2 skip** (76 file su 77) |
 | Test mirati `remote.component` dopo N-06/N-08 | **134 passati** |
 | `npm run build:frontend` dopo N-06/N-08 | **OK** (solo warning preesistenti) |
 | Playwright N-05 (TV + 3 telefoni) | **Passato** (1,1 min) |
-| Playwright N-03 (TV + 3 telefoni) | **Fallito**: il buzz non arriva a regia/TV dopo l'abilitazione del pulsante |
+| Playwright N-03 (TV + 3 telefoni) | **Passato** (1,7 min): tre manche, tre telefoni, buzz confermato in regia a ogni giro |
+| Test mirati `cavallo`, `remote`, `admin` | **165 passati** (14 + 137 + 14) |
+| Compilazione backend (`-DskipTests compile`) | **OK** |
 | `npm run check:karaoke` | **OK**: 64 brani, 29 con testi completi, almeno 5 manche |
 | `npm run test:sim` (40 round + 5 bonus) | **4 passati** |
 | `node scripts/audit-banche.mjs --ci` | **Fallito**: Musica 251 brani con **5 campi/file mancanti**. Il problema è nel lavoro Musica non committato presente nel working tree, non toccato da questo blocco. |
@@ -72,11 +75,12 @@ scadenza e blocco dopo cinque errori).
 **Limite dichiarato:** il test Playwright TV + 3 telefoni contro il backend
 reale esiste (`e2e/tv-telefoni.spec.ts`, backend H2 isolato sulla 8095).
 **N-05 passa**: tre telefoni, scadenza server annunciata, clock avanzato di
-10 minuti, timbro `ROUND FINITO` visibile e pulsanti spenti. **N-03 non passa**:
-il test avvia Indovina chi, abilita il pulsante PRENOTATI della manche 1, ma
-la prenotazione non compare né in regia né sulla TV; dopo il fix
-`PLAYER_PRENOTATO` il difetto resta, quindi il banco di prova non è ancora
-una prova completa per N-03. La prova in sala resta obbligatoria.
+10 minuti, timbro `ROUND FINITO` visibile e pulsanti spenti. **N-03 passa**:
+Indovina chi, tre manche, tre telefoni, buzz visibile e confermato in regia a
+ogni manche. N-04 è coperto dai test unitari di TV e telefono e dalla
+compilazione backend, ma non è stato percorso un flusso Cavallo completo in
+E2E: la prova in sala resta obbligatoria, in particolare per la scelta della
+categoria e per il ritmo delle otto domande a testa.
 
 **Nota di sicurezza su N-01.** Per far comparire il codice anche con il database
 azzerato, la sessione **TV** si apre senza segreto: la TV è uno schermo, non un
@@ -101,7 +105,8 @@ da chiudere quando si affronterà l'autorizzazione dei comandi.
 | --- | --- | --- | --- | --- | --- |
 | N-01 | Fatto | Codice solo su pulsante + segreto in prompt; nessun rinnovo automatico | `edb782a` (con N-02) | Test mirati regia/TV; build | Aprire `/tv`: il QR REGIA e il codice compaiono da soli. Inquadrare il QR col telefono: `/admin` è già abbinato. Ricaricare la regia: resta abbinata. |
 | N-02 | Fatto | Dock TV sempre visibile; nessun comando primario unico in regia | `edb782a` (con N-01) | Test `primaryAction` e dock nascosta | In TV non c'è la barra in alto a destra. In regia il pulsante in basso dice cosa farà; percorrere un round con quello. |
-| N-03 | Fatto (causa) | Finestra server `IMAGE_BLUR` di 60 s contro tre manche da 45 s; l'ADMIN veniva filtrato su `PLAYER_PRENOTATO` | `26a2c77`, `8aa30f2` | Test d'integrazione, `RoundWindowTest`; E2E parziale (vedi limite) | Indovina chi: prenotarsi nella manche 1, 2 e 3 con tre telefoni. |
+| N-03 | Fatto | Finestra server `IMAGE_BLUR` di 60 s contro tre manche da 45 s; l'ADMIN veniva filtrato su `PLAYER_PRENOTATO`; le manche 2 e 3 arrivavano come `SHOW_QUESTION` e spegnevano pulsante e regia | `26a2c77`, `8aa30f2`, `2eb729b` | Integrazione `RoundWindowTest`; E2E TV + 3 telefoni per tutte e tre le manche; 151 test mirati (14 admin + 137 remote) | Indovina chi: prenotarsi nella manche 1, 2 e 3 con tre telefoni e confermare ogni buzz dalla regia. |
+| N-04 | Fatto | Una domanda sola per tutte le squadre | `1995372` | Test `cavallo` (14), `remote` (137), `admin` (14); build frontend; compilazione backend | Cavallo: tre telefoni scelgono la categoria e ricevono domande diverse; il tabellone somma le giuste di tutti. |
 | N-05 | Fatto | `inputReady` ignorava round aperto e scadenza del server; la ripresa non annunciava `deadlineAt` | `2ccd238` (scadenza in `847f313`) | E2E TV + 3 telefoni superato; test unitari | Speed Rush/Arena/Quiz: a round chiuso i tasti si spengono subito e compare ROUND FINITO. |
 | N-06 | Fatto | Reset/espulsione lasciavano `playerName` e `activeGameId`, audio e watcher attivi | `fd0ceae` | Test `remote` (134 passati) | Espellere una squadra e resettare la TV: il telefono torna al setup senza rientrare nella partita vecchia. |
 | N-08 | Fatto | Su iPhone manca `navigator.vibrate` e il via restava muto | `fd0ceae` | Test `remote` sul fallback visivo | Aprire il telefono su iPhone: al via del bonus si vede il flash oltre alla scena in TV. |
