@@ -66,8 +66,7 @@ import { ROUNDS_PER_ACT } from '../../shared/schedule';
  * a zero punti. Una sola può essere in ritardo: chi è appena entrato sparirebbe.
  */
 const PRESENCE_MISSES_BEFORE_FORGET = 2;
-/** Tentativi di apertura sessione della TV prima del recupero periodico. */
-const TV_SESSION_ATTEMPTS = 4;
+/** Attese fra i tentativi della sessione TV: rapide all'avvio, poi stabili. */
 const TV_SESSION_RETRY_MS = 800;
 const TV_SESSION_RECOVERY_MS = 4000;
 import { BonusType, BONUS_LABELS, BONUS_TYPES } from '../../shared/models/bonus-type';
@@ -438,8 +437,6 @@ export class GameComponent implements OnInit, OnDestroy {
   private pairingPoll?: ReturnType<typeof setInterval>;
   private pairingClock?: ReturnType<typeof setInterval>;
   private pairingBusy = false;
-  /** Recupero della sessione TV quando il backend non è pronto all'avvio. */
-  private sessionRecovery?: ReturnType<typeof setInterval>;
   private destroyed = false;
   private lastAdminQrUrl = '';
   /** Comandi in TV solo con `?debug=1`: in serata decide tutto la regia. */
@@ -740,11 +737,11 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     // La TV si registra da sola; il segreto, quando c'è, la apre come regia.
-    // Se il backend non è ancora pronto la sessione si riprova: prima la TV
-    // restava "NON IN LINEA" fino al reload della postazione.
-    await this.startTvSession(this.currentGameId());
-    if (this.destroyed) return;
-    // Lobby aperta = codice in schermo. Nessun pulsante, nessuna spiegazione.
+    // La sessione si apre in parallelo alla lobby: se il backend non è ancora
+    // pronto si riprova da sola, senza lasciare la TV "NON IN LINEA" fino al
+    // reload della postazione.
+    void this.openTvSession(this.currentGameId());
+    // Lobby aperta = codice in schermo appena la sessione risponde.
     await this.bootLobby();
   }
 
@@ -755,7 +752,6 @@ export class GameComponent implements OnInit, OnDestroy {
    * TV apre la lobby lo stesso e la recupera appena il server risponde.</p>
    */
   private async bootLobby(): Promise<void> {
-    void this.ensurePairingCode();
     // Il seme degli ingressi si chiede a sessione aperta: prima il server
     // risponde 401 (l'endpoint non è pubblico) e la TV resta sul ripiego.
     void this.prefetchBonusSeed(this.currentGameId());
@@ -989,57 +985,32 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Apre la sessione della TV riprovando con attese crescenti.
+   * Apre la sessione della TV e la riprova finché il backend risponde.
    *
    * <p>Causa del blocco in sala: un solo tentativo all'avvio e, se il backend
-   * non era ancora pronto, la TV restava "NON IN LINEA" per sempre. I tentativi
-   * coprono i primi secondi; se non basta, la sessione si riapre da sola ogni
-   * pochi secondi mentre la lobby resta a schermo.</p>
+   * non era ancora pronto, la TV restava "NON IN LINEA" per sempre. Le prime
+   * attese sono brevi, poi si riprova ogni pochi secondi mentre la lobby resta
+   * a schermo. Il codice di abbinamento si chiede solo qui, quando la sessione
+   * c'è davvero: chiederlo anche all'apertura della lobby lo perdeva quando le
+   * due richieste si sovrapponevano. Presenza e pulsanti hanno già i loro giri
+   * periodici, il seme del bonus viene richiesto all'apertura del bonus.</p>
    */
-  private async startTvSession(gameId: number): Promise<boolean> {
-    for (let attempt = 1; attempt <= TV_SESSION_ATTEMPTS; attempt += 1) {
+  private async openTvSession(gameId: number): Promise<void> {
+    let attempt = 0;
+    while (!this.destroyed) {
+      attempt += 1;
       if (await this.reliability.start(gameId, 'TV', '', false)) {
-        this.stopSessionRecovery();
-        return true;
-      }
-      if (this.destroyed) return false;
-      if (attempt < TV_SESSION_ATTEMPTS) {
-        await new Promise((resolve) => setTimeout(resolve, TV_SESSION_RETRY_MS * attempt));
-      }
-    }
-    if (!this.destroyed) this.scheduleSessionRecovery(gameId);
-    return false;
-  }
-
-  /** Sessione ancora assente: si riprova senza ricaricare la TV. */
-  private scheduleSessionRecovery(gameId: number): void {
-    if (this.sessionRecovery) return;
-    this.sessionRecovery = setInterval(() => {
-      void (async () => {
-        if (this.destroyed) {
-          this.stopSessionRecovery();
-          return;
-        }
-        if (!await this.reliability.start(gameId, 'TV', '', false)) return;
-        this.stopSessionRecovery();
-        // La lobby era già a schermo: recupera ciò che richiede la sessione.
+        // La lobby può essere già a schermo: qui arriva solo il codice.
         void this.ensurePairingCode();
-        void this.prefetchBonusSeed(gameId);
-        void this.refreshLobbyPresence();
-        void this.refreshButtonTests();
-      })();
-    }, TV_SESSION_RECOVERY_MS);
-  }
-
-  private stopSessionRecovery(): void {
-    if (!this.sessionRecovery) return;
-    clearInterval(this.sessionRecovery);
-    this.sessionRecovery = undefined;
+        return;
+      }
+      const wait = attempt < 4 ? TV_SESSION_RETRY_MS * attempt : TV_SESSION_RECOVERY_MS;
+      await new Promise((resolve) => setTimeout(resolve, wait));
+    }
   }
 
   ngOnDestroy() {
     this.destroyed = true;
-    this.stopSessionRecovery();
     if (this.aliveFrame !== undefined) cancelAnimationFrame(this.aliveFrame);
     if (this.introTimer) clearTimeout(this.introTimer);
     if (this.bonusEntranceTimer) clearTimeout(this.bonusEntranceTimer);

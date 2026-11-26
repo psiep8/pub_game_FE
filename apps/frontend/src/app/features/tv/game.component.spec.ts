@@ -97,10 +97,9 @@ describe('GameComponent', () => {
       reliability.startFailures = 2;
       reliability.started.length = 0;
 
-      const opened = (component as any).startTvSession(3) as Promise<boolean>;
+      void (component as any).openTvSession(3);
       await vi.advanceTimersByTimeAsync(10_000);
 
-      await expect(opened).resolves.toBe(true);
       expect(reliability.started.map((entry) => entry.gameId)).toEqual([3, 3, 3]);
     } finally {
       vi.useRealTimers();
@@ -111,19 +110,18 @@ describe('GameComponent', () => {
     vi.useFakeTimers();
     try {
       reliability.startFailures = 100;
-      const opened = (component as any).startTvSession(4) as Promise<boolean>;
+      void (component as any).openTvSession(4);
       await vi.advanceTimersByTimeAsync(20_000);
 
-      await expect(opened).resolves.toBe(false);
-      expect((component as any).sessionRecovery).toBeTruthy();
+      // Dopo i primi tentativi rapidi il recupero continua a ogni giro.
+      expect(reliability.started.length).toBeGreaterThan(3);
 
       const ensure = vi.spyOn(component, 'ensurePairingCode').mockResolvedValue(undefined);
       reliability.startFailures = 0;
-      await vi.advanceTimersByTimeAsync(4_000);
+      await vi.advanceTimersByTimeAsync(5_000);
 
       // Sessione arrivata in ritardo: la lobby chiede il codice senza reload.
       expect(ensure).toHaveBeenCalled();
-      expect((component as any).sessionRecovery).toBeUndefined();
     } finally {
       vi.useRealTimers();
     }
