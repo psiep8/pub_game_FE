@@ -1616,6 +1616,35 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void snapshotSrotolaIlPayloadDelRoundSerializzatoDueVolte() throws Exception {
+        var game = new com.pub_game_be.domain.game.Game();
+        game.setStatus(com.pub_game_be.domain.enums.GameStatus.RUNNING);
+        long gameId = gameRepository.saveAndFlush(game).getId();
+
+        // Il round si scrive come lo scrive la regia: testo JSON in una colonna
+        // `json`. H2 la rilegge come testo JSON di un testo JSON, quindi lo
+        // snapshot consegnava ai client una stringa invece dell'oggetto.
+        var round = new com.pub_game_be.domain.game_round.GameRound();
+        round.setGame(game);
+        round.setRoundIndex(1);
+        round.setType(com.pub_game_be.domain.enums.GameType.MUSIC);
+        round.setPayload("{\"theme\":\"Pop\",\"songs\":[{\"title\":\"Uno\",\"previewUrl\":\"/uno.m4a\"}]}");
+        roundRepository.saveAndFlush(round);
+
+        gameState.startRound(gameId, "MUSIC", 1, "g-r1-music-json", "{\"theme\":\"Pop\"}");
+
+        var tv = sessions.register(gameId, "tv-music-json", "TV", null, null);
+        var response = request("GET", "/games/" + gameId + "/sync", tv.sessionToken(), null, null);
+        assertThat(response.statusCode()).isEqualTo(200);
+
+        JsonNode payload = json.readTree(response.body())
+                .path("snapshot").path("currentRound").path("payload");
+        assertThat(payload.isObject()).isTrue();
+        assertThat(payload.path("theme").asText()).isEqualTo("Pop");
+        assertThat(payload.path("songs").get(0).path("title").asText()).isEqualTo("Uno");
+    }
+
+    @Test
     void arenaSiPuoAprirePiuVolteNellaStessaPartita() {
         var game = new com.pub_game_be.domain.game.Game();
         game.setStatus(com.pub_game_be.domain.enums.GameStatus.RUNNING);
