@@ -20,11 +20,11 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
     }).compileComponents();
   });
 
-  function mount(resume: any = null) {
+  function mount(resume: any = null, players: string[] = ['Anna', 'Bruno']) {
     const fixture = TestBed.createComponent(CavalloBonus);
     const component = fixture.componentInstance;
     fixture.componentRef.setInput('gameId', 1);
-    fixture.componentRef.setInput('players', ['Anna', 'Bruno']);
+    fixture.componentRef.setInput('players', players);
     fixture.componentRef.setInput('categories', [
       { id: 1, name: 'CULTURA GENERALE', active: true },
       { id: 2, name: 'MUSICA', active: true },
@@ -328,6 +328,41 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
     expect(rows[0].querySelector('.cav-pos')?.textContent?.trim()).toBe('2');
     expect(rows[1].classList.contains('lead')).toBe(true);
     expect(rows[1].querySelector('.cav-pos')?.textContent?.trim()).toBe('1');
+
+    fixture.destroy();
+  });
+
+  it('N-04: il pari merito evidenzia tutte le prime e usa le posizioni 1, 1, 3', () => {
+    const { component, fixture } = mount(
+      {
+        phase: 'FINALE',
+        secondsLeft: 0,
+        savedAt: Date.now(),
+        chosenCategory: 'MUSICA',
+        questionsByTeam: {},
+        index: 0,
+        total: 8,
+        scores: [
+          { playerName: 'Anna', score: 3 },
+          { playerName: 'Bruno', score: 3 },
+          { playerName: 'Carla', score: 1 },
+        ],
+        votes: [],
+        answers: [],
+      },
+      ['Anna', 'Bruno', 'Carla'],
+    );
+
+    // La terza in classifica in cima, le due capoliste in fondo a pari merito.
+    expect(component.totals().map((row) => row.playerName)).toEqual(['Carla', 'Anna', 'Bruno']);
+    const rows = fixture.nativeElement.querySelectorAll('.cav-row') as NodeListOf<HTMLElement>;
+    expect(rows).toHaveLength(3);
+    expect(rows[0].classList.contains('lead')).toBe(false);
+    expect(rows[0].querySelector('.cav-pos')?.textContent?.trim()).toBe('3');
+    expect(rows[1].classList.contains('lead')).toBe(true);
+    expect(rows[1].querySelector('.cav-pos')?.textContent?.trim()).toBe('1');
+    expect(rows[2].classList.contains('lead')).toBe(true);
+    expect(rows[2].querySelector('.cav-pos')?.textContent?.trim()).toBe('1');
 
     fixture.destroy();
   });

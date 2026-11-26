@@ -9,6 +9,7 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -125,16 +126,16 @@ const PREVIEW_QUESTIONS = [
 
             <div
               class="cav-board"
-              [style.height]="'calc(var(--row) * ' + totals().length + ' - (var(--row) - var(--row-body)))'"
+              [style.height]="'calc(var(--row) * ' + boardRows().length + ' - (var(--row) - var(--row-body)))'"
             >
-              @for (row of totals(); track row.playerName; let i = $index) {
+              @for (row of boardRows(); track row.playerName; let i = $index) {
                 <div
                   class="cav-row"
-                  [class.lead]="i === totals().length - 1 && row.score > 0"
+                  [class.lead]="row.lead"
                   [class.gain]="deltaFor(row.playerName) > 0"
                   [style.top]="'calc(var(--row) * ' + i + ')'"
                 >
-                  <span class="cav-pos">{{ totals().length - i }}</span>
+                  <span class="cav-pos">{{ row.position }}</span>
                   <span class="cav-name">{{ row.playerName }}</span>
                   @if (deltaFor(row.playerName) > 0) {
                     <span class="cav-gain">+{{ deltaFor(row.playerName) }}</span>
@@ -423,6 +424,20 @@ export class CavalloBonus implements OnInit, OnDestroy {
   private readonly sequences = new Map<string, RushQuestion[]>();
   readonly reveals = signal<Record<string, Reveal>>({});
   readonly totals = signal<Array<{ playerName: string; score: number }>>([]);
+  /**
+   * Righe del tabellone in ordine crescente con la posizione di gara: chi è a
+   * pari merito condivide il posto e il successivo salta (1, 1, 3). Il primo
+   * posto resta in fondo, dove il tabellone lo evidenzia.
+   */
+  readonly boardRows = computed(() => {
+    const rows = this.totals();
+    const best = rows.reduce((max, row) => Math.max(max, row.score), 0);
+    return rows.map((row) => ({
+      ...row,
+      position: rows.filter((other) => other.score > row.score).length + 1,
+      lead: row.score > 0 && row.score === best,
+    }));
+  });
   readonly deltas = signal<Record<string, number>>({});
   readonly message = signal('');
 
