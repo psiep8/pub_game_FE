@@ -269,26 +269,27 @@ const LOGHI = {
       <path d="M520 34l19 51 51 19-51 19-19 51-19-51-51-19 51-19Z" fill="${p.paper}" stroke="${p.ink}" stroke-width="12"/>
       <path d="M420 52l30 28M392 140h44M424 208l24-22" fill="none" stroke="${p.second}" stroke-width="13" stroke-linecap="square"/>`,
   },
-  roulette: {
-    box: { x0: 88, y0: 88, x1: 512, y1: 512 },
-    disegna: (p) => `<circle cx="300" cy="300" r="206" fill="${p.paper}" stroke="${p.ink}" stroke-width="18"/>
-      ${Array.from({ length: 12 }, (_, i) => {
-        const a = (i * Math.PI * 2) / 12 - Math.PI / 2;
-        const x = (300 + Math.cos(a) * 150).toFixed(1);
-        const y = (300 + Math.sin(a) * 150).toFixed(1);
-        const riempimento = i % 2 ? p.ink : p.accent;
-        return `<circle cx="${x}" cy="${y}" r="23" fill="${riempimento}"/>`;
-      }).join('\n      ')}
-      <path d="${Array.from({ length: 12 }, (_, i) => {
-        const a = (i * Math.PI * 2) / 12 - Math.PI / 2 + Math.PI / 12;
-        const x1 = (300 + Math.cos(a) * 74).toFixed(1);
-        const y1 = (300 + Math.sin(a) * 74).toFixed(1);
-        const x2 = (300 + Math.cos(a) * 120).toFixed(1);
-        const y2 = (300 + Math.sin(a) * 120).toFixed(1);
-        return `M${x1} ${y1}L${x2} ${y2}`;
-      }).join('')}" fill="none" stroke="${p.ink}" stroke-width="9"/>
-      <circle cx="300" cy="300" r="88" fill="${p.ink}"/>
-      <circle cx="300" cy="300" r="38" fill="${p.accent}"/>`,
+  slot: {
+    box: { x0: 108, y0: 52, x1: 512, y1: 530 },
+    disegna: (p) => `<rect x="118" y="64" width="324" height="430" rx="26" fill="${p.paper}" stroke="${p.ink}" stroke-width="16"/>
+      <rect x="146" y="88" width="268" height="58" rx="10" fill="${p.accent}" stroke="${p.ink}" stroke-width="12"/>
+      <path d="M172 117h0M212 117h0M252 117h0M292 117h0M332 117h0M372 117h0" fill="none" stroke="${p.paper}" stroke-width="16" stroke-linecap="round"/>
+      <rect x="146" y="170" width="268" height="160" rx="10" fill="${p.ink}"/>
+      <rect x="158" y="182" width="76" height="136" rx="8" fill="${p.paper}"/>
+      <rect x="242" y="182" width="76" height="136" rx="8" fill="${p.paper}"/>
+      <rect x="326" y="182" width="76" height="136" rx="8" fill="${p.paper}"/>
+      <path d="M181 246c0-14 10-24 22-28M209 252c0-12-6-22-14-26" fill="none" stroke="${p.ink}" stroke-width="8"/>
+      <circle cx="182" cy="262" r="17" fill="${p.second}" stroke="${p.ink}" stroke-width="8"/>
+      <circle cx="212" cy="266" r="17" fill="${p.second}" stroke="${p.ink}" stroke-width="8"/>
+      <circle cx="280" cy="252" r="28" fill="${p.second}" stroke="${p.ink}" stroke-width="9"/>
+      <circle cx="280" cy="252" r="12" fill="${p.paper}"/>
+      <path d="M364 216l11 25 25 11-25 11-11 25-11-25-25-11 25-11Z" fill="${p.accent}" stroke="${p.ink}" stroke-width="8"/>
+      <rect x="146" y="352" width="268" height="52" rx="8" fill="${p.accent}" stroke="${p.ink}" stroke-width="12"/>
+      <path d="M168 378h224" fill="none" stroke="${p.ink}" stroke-width="8"/>
+      <path d="M446 300l22-92" fill="none" stroke="${p.paper}" stroke-width="20" stroke-linecap="round"/>
+      <circle cx="472" cy="196" r="28" fill="${p.second}" stroke="${p.ink}" stroke-width="12"/>
+      <rect x="150" y="494" width="54" height="26" fill="${p.accent}" stroke="${p.ink}" stroke-width="10"/>
+      <rect x="356" y="494" width="54" height="26" fill="${p.accent}" stroke="${p.ink}" stroke-width="10"/>`,
   },
   microfono: {
     box: { x0: 140, y0: 78, x1: 552, y1: 508 },
