@@ -607,6 +607,8 @@ export class GameComponent implements OnInit, OnDestroy {
    * anche il QR che porta la regia dentro con il codice già compilato.</p>
    */
   async ensurePairingCode(): Promise<void> {
+    // TV senza segreto: niente codice, niente polling di un 401 ogni 5 s.
+    if (!this.reliability.regia()) return;
     if (this.pairingBusy || this.phase() !== 'IDLE' || !this.currentGameId()) return;
     this.pairingBusy = true;
     try {
@@ -715,7 +717,20 @@ export class GameComponent implements OnInit, OnDestroy {
       this.ws.subscribeToGame(activeGameId);
     }
 
-    // La TV è uno schermo: si registra da sola, senza chiedere il segreto.
+    // La TV aperta col segreto di regia (`?regia=...`) può generare il codice
+    // di abbinamento e leggere le soluzioni; senza, resta una lobby. Il segreto
+    // si tiene in locale per i riavvii e si toglie dall'URL, dove finirebbe
+    // nella cronologia del browser della serata.
+    const regiaFromUrl = params.get('regia')?.trim();
+    if (regiaFromUrl) {
+      localStorage.setItem('pubgame.regia', regiaFromUrl);
+      params.delete('regia');
+      const query = params.toString();
+      history.replaceState(null, '', `${location.pathname}${query ? '?' + query : ''}${location.hash}`);
+    }
+    this.reliability.setControlSecret(regiaFromUrl || localStorage.getItem('pubgame.regia'));
+
+    // La TV si registra da sola; il segreto, quando c'è, la apre come regia.
     if (!await this.reliability.start(this.currentGameId(), 'TV', '', false)) return;
     // Lobby aperta = codice in schermo. Nessun pulsante, nessuna spiegazione.
     void this.ensurePairingCode();

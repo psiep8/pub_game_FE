@@ -112,6 +112,29 @@ describe('apertura della sessione di regia', () => {
     service.stop();
     http.verify();
   });
+
+  it('la TV col segreto si apre come regia e lo manda nell header', async () => {
+    TestBed.resetTestingModule();
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(),
+        { provide: WebSocketService, useClass: FakeWebSocketService }],
+    });
+    const service = TestBed.inject(ReliabilityService);
+    const http = TestBed.inject(HttpTestingController);
+    const secret = 'b'.repeat(64);
+    service.setControlSecret(secret);
+    const started = service.start(1, 'TV');
+    const registration = http.expectOne('/games/1/session');
+    expect(registration.request.headers.get('X-Control-Secret')).toBe(secret);
+    registration.flush({ sessionToken: 'token-tv', regia: true });
+    expect(await started).toBe(true);
+    expect(service.regia()).toBe(true);
+    http.expectOne('/games/1/sync?sinceSeq=0').flush({ snapshot: { gameId: 1, hasState: false, status: 'CREATED', version: 0 }, events: [], toSeq: 0, complete: true });
+    await Promise.resolve();
+    service.stop();
+    http.verify();
+  });
 });
 
 describe('sync paginato', () => {

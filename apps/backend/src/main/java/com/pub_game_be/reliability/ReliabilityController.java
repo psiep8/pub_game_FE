@@ -77,14 +77,19 @@ public class ReliabilityController {
         if (!java.util.Set.of("REMOTE", "TV", "ADMIN").contains(normalizedRole)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ruolo non valido");
         }
-        // La TV dello spettacolo è uno schermo, non un comando: si registra
-        // senza segreto, così il codice di regia compare da solo anche con il
-        // database appena azzerato. La regia (ADMIN) resta protetta dal codice
-        // a 6 cifre, che senza una sessione TV valida nessuno può generare.
+        boolean secretOk = secretMatches(suppliedSecret);
+        // La TV si registra anche senza segreto, così la lobby e il QR dei
+        // telefoni funzionano pure con il database azzerato. Resta però uno
+        // schermo: senza la credenziale di regia non genera codici e non legge
+        // le soluzioni (filtro + pairing-code). Un segreto sbagliato non deve
+        // sembrare una TV abilitata: si rifiuta subito.
+        if ("TV".equals(normalizedRole) && suppliedSecret != null && !suppliedSecret.isBlank() && !secretOk) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Segreto di regia non valido");
+        }
         if (!"REMOTE".equals(normalizedRole) && !"TV".equals(normalizedRole)) {
             boolean validResume = sessions.authenticate(token)
                     .filter(s -> s.getGameId().equals(gameId) && normalizedRole.equals(s.getRole())).isPresent();
-            boolean authorized = validResume || secretMatches(suppliedSecret);
+            boolean authorized = validResume || secretOk;
             if (!authorized) {
                 PairingCodeService.RedeemResult result = pairing.attempt(gameId, string(payload.get("pairingCode")));
                 if (result != PairingCodeService.RedeemResult.OK) {
@@ -105,6 +110,9 @@ public class ReliabilityController {
 
         DeviceSessionService.Registration registration = sessions.register(
                 gameId, deviceId, role, playerName, token);
+        if ("TV".equals(normalizedRole) && secretOk) {
+            sessions.grantRegia(registration.sessionToken());
+        }
 
         JSONObject state = gameState.snapshot(gameId);
         Map<String, Object> out = new LinkedHashMap<>();
@@ -116,6 +124,9 @@ public class ReliabilityController {
         out.put("playerName", registration.playerName());
         out.put("resumed", registration.resumed());
         out.put("duplicateDisplay", registration.duplicateDisplay());
+        // Solo la TV aperta col segreto (e la regia) legge le soluzioni.
+        out.put("regia", "ADMIN".equals(normalizedRole)
+                || ("TV".equals(normalizedRole) && sessions.isRegia(registration.sessionToken())));
         out.put("serverTime", System.currentTimeMillis());
         out.put("stateVersion", state.optLong("version", 0));
         out.put("seq", state.optLong("seq", 0));
@@ -125,14 +136,14 @@ public class ReliabilityController {
 
     /**
      * Codice breve per abbinare la regia: la TV lo mostra, l'admin lo digita.
-     * Richiede il segreto di regia, quindi solo un dispositivo già autorizzato
-     * (la TV) può generarlo.
+     * Solo una TV aperta col segreto di regia può generarlo: una TV registrata
+     * senza credenziale è uno schermo di lobby e non apre la regia.
      */
     @PostMapping("/pairing-code")
     public Map<String, Object> pairingCode(@PathVariable("gameId") Long gameId,
             @RequestHeader(value = "X-Control-Secret", required = false) String suppliedSecret,
             @RequestHeader(value = "X-Session-Token", required = false) String sessionToken) {
-        if (!pairedTvSession(gameId, sessionToken) && !secretMatches(suppliedSecret)) {
+        if (!regiaTvSession(gameId, sessionToken) && !secretMatches(suppliedSecret)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenziale di regia non valida");
         }
         String code = pairing.issue(gameId);
@@ -149,7 +160,7 @@ public class ReliabilityController {
     public Map<String, Object> pairingCodeStatus(@PathVariable("gameId") Long gameId,
             @RequestHeader(value = "X-Control-Secret", required = false) String suppliedSecret,
             @RequestHeader(value = "X-Session-Token", required = false) String sessionToken) {
-        if (!pairedTvSession(gameId, sessionToken) && !secretMatches(suppliedSecret)) {
+        if (!regiaTvSession(gameId, sessionToken) && !secretMatches(suppliedSecret)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenziale di regia non valida");
         }
         PairingCodeService.ActiveCode active = pairing.active(gameId);
@@ -160,10 +171,10 @@ public class ReliabilityController {
         return out;
     }
 
-    /** Solo la TV della stessa partita può leggere o rigenerare il codice. */
-    private boolean pairedTvSession(Long gameId, String token) {
+    /** Solo la TV della stessa partita, aperta col segreto, legge o rigenera il codice. */
+    private boolean regiaTvSession(Long gameId, String token) {
         return sessions.authenticate(token)
-                .filter(s -> s.getGameId().equals(gameId) && "TV".equals(s.getRole())).isPresent();
+                .filter(s -> s.getGameId().equals(gameId) && "TV".equals(s.getRole()) && s.regiaAttiva()).isPresent();
     }
 
     /**
@@ -317,7 +328,12 @@ public class ReliabilityController {
         snapshot.put("leaderboard", JsonSupport.toList(scoreboard.entries(gameId)));
         snapshot.put("presence", sessions.presence(gameId));
         Object identity = request.getAttribute("pubgame.session");
-        if (identity instanceof DeviceSessionEntity session && "REMOTE".equals(session.getRole())) {
+        // Telefono e TV senza regia ricevono lo snapshot ripulito: le soluzioni
+        // restano fuori dal payload, dagli eventi e dal round corrente.
+        boolean limited = identity instanceof DeviceSessionEntity session
+                && ("REMOTE".equals(session.getRole())
+                        || ("TV".equals(session.getRole()) && !session.regiaAttiva()));
+        if (limited) {
             boolean music = "MUSIC".equals(snapshot.optString("roundType"));
             snapshot.put("payload", sanitizePayload(snapshot.opt("payload"), music));
             JSONObject round = snapshot.optJSONObject("currentRound");
@@ -399,7 +415,10 @@ public class ReliabilityController {
 
     @GetMapping("/diagnostics")
     public Map<String, Object> diagnostics(@PathVariable("gameId") Long gameId, HttpServletRequest request) {
-        boolean paired = request.getAttribute("pubgame.session") != null;
+        Object identity = request.getAttribute("pubgame.session");
+        boolean paired = identity instanceof DeviceSessionEntity session
+                && ("ADMIN".equals(session.getRole())
+                        || ("TV".equals(session.getRole()) && session.regiaAttiva()));
         JSONObject snapshot = gameState.snapshot(gameId);
         JSONObject devices = sessions.summary(gameId);
         long now = System.currentTimeMillis();

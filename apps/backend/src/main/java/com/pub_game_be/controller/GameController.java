@@ -10,6 +10,7 @@ import com.pub_game_be.reliability.IdempotencyService;
 import com.pub_game_be.reliability.ScoreboardService;
 import com.pub_game_be.reliability.StateBlobService;
 import com.pub_game_be.reliability.DeviceSessionService;
+import com.pub_game_be.reliability.domain.DeviceSessionEntity;
 import com.pub_game_be.reliability.ButtonTestService;
 import com.pub_game_be.repository.GameRepository;
 import com.pub_game_be.repository.GameRoundRepository;
@@ -22,6 +23,7 @@ import com.pub_game_be.service.QuestionBankService;
 import com.pub_game_be.service.SimpleRoundService;
 import com.pub_game_be.service.UltimaSpiaggiaLevelService;
 import org.json.JSONObject;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -761,7 +763,16 @@ public class GameController {
      * client riceveva il gioco sbagliato (osservato su Timeline).</p>
      */
     @GetMapping("/{gameId}/current-round")
-    public ResponseEntity<Object> getCurrentRound(@PathVariable("gameId") Long gameId) {
+    public ResponseEntity<Object> getCurrentRound(@PathVariable("gameId") Long gameId,
+            @RequestAttribute("pubgame.session") DeviceSessionEntity session) {
+        // Il payload del round contiene le soluzioni: una TV senza segreto è
+        // uno schermo di lobby e non lo legge, come i telefoni.
+        boolean regia = "ADMIN".equals(session.getRole())
+                || ("TV".equals(session.getRole()) && session.regiaAttiva());
+        if (!regia) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "regia-required"));
+        }
         return gameStateService.currentRound(gameId)
                 .<ResponseEntity<Object>>map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());

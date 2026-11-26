@@ -119,6 +119,21 @@ public class DeviceSessionService {
                 .filter(session -> Integer.valueOf(1).equals(session.getSecurityVersion()));
     }
 
+    /** Promuove una TV a schermo di regia: la credenziale è già stata verificata. */
+    public void grantRegia(String token) {
+        authenticate(token).ifPresent(session -> {
+            if (!session.regiaAttiva()) {
+                session.setRegia(true);
+                sessions.save(session);
+            }
+        });
+    }
+
+    /** True se il token è una TV aperta col segreto di regia. */
+    public boolean isRegia(String token) {
+        return authenticate(token).map(DeviceSessionEntity::regiaAttiva).orElse(false);
+    }
+
     public void requirePlayer(long gameId, String token, String playerName) {
         DeviceSessionEntity session = authenticate(token)
                 .filter(s -> s.getGameId() == gameId && "REMOTE".equals(s.getRole()))

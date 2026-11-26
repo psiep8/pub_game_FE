@@ -63,8 +63,10 @@ export class ReliabilityService {
   private pairingCode: string | null = null;
   /** False per la regia: il codice si chiede nel pannello, non con window.prompt. */
   private promptForCode = true;
-  /** Segreto di regia inserito in questa scheda: serve solo alla TV per generare codici. */
+  /** Segreto di regia inserito in questa scheda: apre TV e admin come regia. */
   private controlSecret: string | null = null;
+  /** La sessione corrente può leggere le soluzioni e generare il codice TV. */
+  readonly regia = signal(false);
   /** Round il cui checkpoint il server ha già scartato: non si ritenta. */
   private rejectedTvCheckpointRound: number | null = null;
 
@@ -114,6 +116,15 @@ export class ReliabilityService {
       this.heartbeatTimer = undefined;
     }
     return registered;
+  }
+
+  /**
+   * Segreto di regia per questa scheda. La TV aperta senza segreto resta uno
+   * schermo di lobby: niente codice di abbinamento e niente soluzioni.
+   */
+  setControlSecret(secret: string | null): void {
+    const value = (secret ?? '').trim();
+    this.controlSecret = value || null;
   }
 
   /**
@@ -295,7 +306,7 @@ export class ReliabilityService {
       const typed = pairingCode ? pairingCode.trim() : '';
       const isPairingCode = /^\d{4,6}$/.test(typed);
       if (typed && !isPairingCode) this.controlSecret = typed;
-      const authHeaders = this.controlSecret && !isPairingCode
+      const authHeaders = this.controlSecret && !isPairingCode && this.role !== 'REMOTE'
         ? { headers: { 'X-Control-Secret': this.controlSecret } }
         : {};
       const response = await firstValueFrom(
@@ -313,6 +324,7 @@ export class ReliabilityService {
       this.persistToken(response?.sessionToken);
       this.resumedSession.set(!!response?.resumed);
       this.duplicateDisplay.set(!!response?.duplicateDisplay);
+      this.regia.set(!!response?.regia);
       this.stateVersion.set(Number(response?.stateVersion ?? this.stateVersion()));
       // Il server ha risposto: la sessione è viva anche se la socket STOMP è
       // ancora in riapertura. Senza questo, la badge restava su "Riconnessione"
@@ -335,6 +347,12 @@ export class ReliabilityService {
           this.lastError.set('La partita è stata resettata: rientra con il tuo nome.');
           return false;
         }
+        return this.ensureSession();
+      }
+      if (status === 401 && this.role === 'TV' && this.controlSecret) {
+        // Segreto rifiutato (ruotato o sbagliato): la TV resta una lobby invece
+        // di morire sul 401. Al prossimo avvio si riprova col segreto salvato.
+        this.controlSecret = null;
         return this.ensureSession();
       }
       if (status === 401) {

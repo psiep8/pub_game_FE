@@ -319,13 +319,21 @@ class ReliabilityIntegrationTest {
         long id = 511L;
         String base = "/games/" + id;
         String sessionBody = "{\"deviceId\":\"device\",\"role\":\"TV\"}";
-        assertThat(request("POST", base + "/session", null, null, sessionBody).statusCode()).isEqualTo(401);
+        // La TV senza segreto resta ammessa come schermo di lobby, ma non è regia:
+        // il codice di abbinamento e le soluzioni restano fuori portata.
+        var lobbyTv = request("POST", base + "/session", null, null, sessionBody);
+        assertThat(lobbyTv.statusCode()).isEqualTo(200);
+        assertThat(json.readTree(lobbyTv.body()).get("regia").asBoolean()).isFalse();
         assertThat(request("POST", base + "/session", null, "wrong", sessionBody).statusCode()).isEqualTo(401);
         var control = request("POST", base + "/session", null, "0123456789abcdef0123456789abcdef", sessionBody);
         assertThat(control.statusCode()).isEqualTo(200);
+        assertThat(json.readTree(control.body()).get("regia").asBoolean()).isTrue();
         String tv = json.readTree(control.body()).get("sessionToken").asText();
-        assertThat(request("POST", base + "/session", null, null,
-                "{\"deviceId\":\"device\",\"role\":\"TV\",\"sessionToken\":\"" + tv + "\"}").statusCode()).isEqualTo(200);
+        // Il token mantiene il privilegio anche senza rimandare il segreto.
+        var resumedTv = request("POST", base + "/session", null, null,
+                "{\"deviceId\":\"device\",\"role\":\"TV\",\"sessionToken\":\"" + tv + "\"}");
+        assertThat(resumedTv.statusCode()).isEqualTo(200);
+        assertThat(json.readTree(resumedTv.body()).get("regia").asBoolean()).isTrue();
         var remote = request("POST", base + "/session", null, null,
                 "{\"deviceId\":\"r\",\"role\":\"REMOTE\",\"playerName\":\"Anna\"}");
         assertThat(remote.statusCode()).isEqualTo(200);
@@ -404,6 +412,7 @@ class ReliabilityIntegrationTest {
         // tre o quattro volte nella serata.
         long gameId = 8301L;
         String tv = sessions.register(gameId, "banca-tv", "TV", null, null).sessionToken();
+        sessions.grantRegia(tv);
 
         java.util.Set<String> viste = new java.util.HashSet<>();
         for (int blocco = 0; blocco < 4; blocco++) {
@@ -470,6 +479,7 @@ class ReliabilityIntegrationTest {
         long gameId = 8101L;
         String base = "/games/" + gameId;
         String tv = sessions.register(gameId, "quiz-tv", "TV", null, null).sessionToken();
+        sessions.grantRegia(tv);
         String anna = sessions.register(gameId, "quiz-a", "REMOTE", "Anna", null).sessionToken();
         String bruno = sessions.register(gameId, "quiz-b", "REMOTE", "Bruno", null).sessionToken();
         gameState.startRound(gameId, "QUIZ", 1, "quiz-8101", """
@@ -507,6 +517,7 @@ class ReliabilityIntegrationTest {
         long gameId = 8106L;
         String base = "/games/" + gameId;
         String tv = sessions.register(gameId, "late-quiz-tv", "TV", null, null).sessionToken();
+        sessions.grantRegia(tv);
         String anna = sessions.register(gameId, "late-quiz-a", "REMOTE", "Anna", null).sessionToken();
         String bruno = sessions.register(gameId, "late-quiz-b", "REMOTE", "Bruno", null).sessionToken();
         String payload = """
@@ -546,6 +557,7 @@ class ReliabilityIntegrationTest {
         long gameId = 8107L;
         String base = "/games/" + gameId;
         String tv = sessions.register(gameId, "legacy-quiz-tv", "TV", null, null).sessionToken();
+        sessions.grantRegia(tv);
         String anna = sessions.register(gameId, "legacy-quiz-a", "REMOTE", "Anna", null).sessionToken();
         String bruno = sessions.register(gameId, "legacy-quiz-b", "REMOTE", "Bruno", null).sessionToken();
         String payload = "{\"type\":\"QUIZ\",\"questions\":[{\"question\":\"Q\",\"options\":[\"A\",\"B\"],\"correctAnswer\":\"A\"}]}";
@@ -693,9 +705,68 @@ class ReliabilityIntegrationTest {
                 "{\"role\":\"ADMIN\",\"pairingCode\":\"" + code + "\"}");
         assertThat(first.statusCode()).isEqualTo(200);
 
+        // Un codice già usato non apre una seconda regia: il server risponde
+        // GONE (410), la TV ne mostra subito uno nuovo.
         var reused = request("POST", "/games/700/session", null, null,
                 "{\"role\":\"ADMIN\",\"pairingCode\":\"" + code + "\"}");
-        assertThat(reused.statusCode()).isEqualTo(401);
+        assertThat(reused.statusCode()).isEqualTo(410);
+    }
+
+    @Test
+    void tvSenzaSegretoRestaInLobbyESoloLaTvRegiaApreLaRegia() throws Exception {
+        String secret = "0123456789abcdef0123456789abcdef";
+        long gameId = 702L;
+        String base = "/games/" + gameId;
+        gameState.startRound(gameId, "QUIZ", 1, "quiz-702", """
+                {"type":"QUIZ","questions":[{"question":"Capitale?","options":["Roma","Parigi"],"correctAnswer":"Roma"}]}
+                """);
+
+        // TV senza credenziale: si registra (lobby e QR dei telefoni), ma non
+        // genera codici e non legge soluzioni né round in chiaro.
+        var lobby = request("POST", base + "/session", null, null,
+                "{\"deviceId\":\"tv-lobby\",\"role\":\"TV\"}");
+        assertThat(lobby.statusCode()).isEqualTo(200);
+        var lobbyBody = json.readTree(lobby.body());
+        assertThat(lobbyBody.get("regia").asBoolean()).isFalse();
+        String lobbyTv = lobbyBody.get("sessionToken").asText();
+        assertThat(request("POST", base + "/pairing-code", lobbyTv, null, "{}").statusCode())
+                .isEqualTo(401);
+        assertThat(request("GET", base + "/current-round", lobbyTv, null, null).statusCode())
+                .isEqualTo(403);
+        assertThat(request("GET", base + "/state", lobbyTv, null, null).statusCode()).isEqualTo(403);
+        assertThat(request("POST", base + "/round", lobbyTv, null, "{}").statusCode()).isEqualTo(403);
+        var lobbySync = request("GET", base + "/sync?sinceSeq=0", lobbyTv, null, null);
+        assertThat(lobbySync.statusCode()).as(lobbySync.body()).isEqualTo(200);
+        assertThat(json.readTree(lobbySync.body()).path("snapshot").toString())
+                .doesNotContain("correctAnswer");
+
+        // TV aperta col segreto: codice di regia e payload con le soluzioni.
+        var regia = request("POST", base + "/session", null, secret,
+                "{\"deviceId\":\"tv-regia\",\"role\":\"TV\"}");
+        assertThat(regia.statusCode()).isEqualTo(200);
+        var regiaBody = json.readTree(regia.body());
+        assertThat(regiaBody.get("regia").asBoolean()).isTrue();
+        String regiaTv = regiaBody.get("sessionToken").asText();
+        var issued = request("POST", base + "/pairing-code", regiaTv, null, "{}");
+        assertThat(issued.statusCode()).as(issued.body()).isEqualTo(200);
+        String code = json.readTree(issued.body()).get("code").asText();
+        var round = request("GET", base + "/current-round", regiaTv, null, null);
+        assertThat(round.statusCode()).as(round.body()).isEqualTo(200);
+        assertThat(round.body()).contains("correctAnswer");
+
+        // Catena TV→ADMIN: il codice apre la regia, che comanda la partita.
+        var admin = request("POST", base + "/session", null, null,
+                "{\"role\":\"ADMIN\",\"pairingCode\":\"" + code + "\"}");
+        assertThat(admin.statusCode()).as(admin.body()).isEqualTo(200);
+        String adminToken = json.readTree(admin.body()).get("sessionToken").asText();
+        assertThat(request("GET", base + "/current-round", adminToken, null, null).statusCode())
+                .isEqualTo(200);
+        assertThat(request("POST", base + "/reset", adminToken, null, "{}").statusCode()).isEqualTo(200);
+
+        // Riprendere la TV col token basta: il privilegio resta sul server.
+        var resumed = request("POST", base + "/session", null, null,
+                "{\"deviceId\":\"tv-regia\",\"role\":\"TV\",\"sessionToken\":\"" + regiaTv + "\"}");
+        assertThat(json.readTree(resumed.body()).get("regia").asBoolean()).isTrue();
     }
 
     @Test
@@ -757,6 +828,7 @@ class ReliabilityIntegrationTest {
         long gameId = 532L;
         String base = "/games/" + gameId;
         var tv = sessions.register(gameId, "tv-inactivity", "TV", null, null);
+        sessions.grantRegia(tv.sessionToken());
         var remote = sessions.register(gameId, "remote-inactivity", "REMOTE", "Anna", null);
         gameState.startRound(gameId, "ARENA", 1, "g532-r1", "{}");
 
@@ -1588,6 +1660,7 @@ class ReliabilityIntegrationTest {
         gameState.startRound(gameId, "TIMELINE", 4, "g-r4-timeline", "{\"type\":\"TIMELINE\",\"count\":6}");
 
         var tv = sessions.register(gameId, "tv-current", "TV", null, null);
+        sessions.grantRegia(tv.sessionToken());
         var response = request("GET", "/games/" + gameId + "/current-round", tv.sessionToken(), null, null);
         assertThat(response.statusCode()).isEqualTo(200);
         var body = json.readTree(response.body());
@@ -1607,6 +1680,7 @@ class ReliabilityIntegrationTest {
         gameState.startRound(gameId, "TIMELINE", 1, "g-r1-senza-payload", null);
 
         var tv = sessions.register(gameId, "tv-senza-payload", "TV", null, null);
+        sessions.grantRegia(tv.sessionToken());
         var response = request("GET", "/games/" + gameId + "/current-round", tv.sessionToken(), null, null);
         assertThat(response.statusCode()).isEqualTo(200);
         var body = json.readTree(response.body());
@@ -1634,6 +1708,7 @@ class ReliabilityIntegrationTest {
         gameState.startRound(gameId, "MUSIC", 1, "g-r1-music-json", "{\"theme\":\"Pop\"}");
 
         var tv = sessions.register(gameId, "tv-music-json", "TV", null, null);
+        sessions.grantRegia(tv.sessionToken());
         var response = request("GET", "/games/" + gameId + "/sync", tv.sessionToken(), null, null);
         assertThat(response.statusCode()).isEqualTo(200);
 
@@ -1665,6 +1740,7 @@ class ReliabilityIntegrationTest {
     void arenaChiusaIndicaQuandoRiprovare() throws Exception {
         long gameId = 527L;
         var tv = sessions.register(gameId, "tv-arena-retry", "TV", null, null);
+        sessions.grantRegia(tv.sessionToken());
         gameState.startRound(gameId, "ARENA", 1, "g527-r1", "{}");
         gameState.closeRound(gameId, "skipped");
 

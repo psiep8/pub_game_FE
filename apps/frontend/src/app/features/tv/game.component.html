@@ -109,7 +109,7 @@
           </div>
           <p class="pairing-url">{{ adminPairUrl() }}</p>
           } @else {
-          <div class="pairing-expiry">CODICE IN ARRIVO…</div>
+          <div class="pairing-expiry">{{ reliability.regia() ? 'CODICE IN ARRIVO…' : 'REGIA NON SBLOCCATA: APRI LA TV CON IL SEGRETO' }}</div>
           }
         </section>
         @if (tvUnpaired()) {
