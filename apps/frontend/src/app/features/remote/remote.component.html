@@ -14,6 +14,13 @@
 </div>
 }
 
+@if (roundClosed()) {
+<div class="round-closed-stamp" role="status" aria-live="polite">
+  <b>ROUND FINITO</b>
+  <span>GUARDA LA TV</span>
+</div>
+}
+
 @if (showIosInstallBanner()) {
 <div class="pwa-banner ios-banner">
   <div class="banner-content">

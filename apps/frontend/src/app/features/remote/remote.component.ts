@@ -263,6 +263,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
   paused = signal(false);
   /** Un round è aperto: il manuale non si può aprire e si chiude se era aperto. */
   roundActive = signal(false);
+  /** Scadenza assoluta del server per il round aperto (0 = non nota). */
+  roundDeadlineAt = signal(0);
+  /** Il round è chiuso: il telefono si blocca subito, senza aspettare il turno. */
+  roundClosed = signal(false);
+  private roundDeadlineWatch?: ReturnType<typeof setInterval>;
   /**
    * Riallineamento dopo il ritorno in primo piano: finché il server non ha
    * detto in che round siamo, il telefono non riabilita nessun input. Un round
@@ -273,9 +278,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private readonly duplicateTab = signal(false);
   readonly inputBlocked = computed(() =>
     this.reliability.duplicateDisplay() || this.duplicateTab());
-  /** Input utilizzabili adesso: serve lo stato del server, nessuna pausa e una sola scheda attiva. */
+  /**
+   * Input utilizzabili adesso: serve un round aperto dal server, nessuna pausa
+   * e una sola scheda attiva. Prima bastava «non in pausa»: a round chiuso i
+   * tasti restavano vivi fino al round successivo (N-05).
+   */
   readonly inputReady = computed(() =>
-    !this.resyncing() && !this.paused() && !this.inputBlocked());
+    !this.resyncing() && !this.paused() && !this.inputBlocked()
+    && this.roundActive() && !this.roundClosed());
   manualOpen = signal(false);
   manualEntry = signal<ManualEntry | null>(null);
   /** `?manuale=` è un'anteprima: i cambi di round non devono chiuderla. */
@@ -561,6 +571,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // questa iscrizione il telefono ascolta la partita di default e non vede
     // l'avvio del round, pur rispondendo sull'ID giusto.
     this.ws.subscribeToGame(this.gameId());
+    this.startRoundDeadlineWatch();
 
     // Anteprima del manuale per la pagina sim-duo (`?quad=1&manuale=QUIZ`):
     // mostra la scheda "come si vota" senza dover entrare in squadra.
@@ -652,6 +663,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
             this.quizManche.set(0);
           }
           this.roundActive.set(true);
+          this.roundClosed.set(false);
+          this.roundDeadlineAt.set(Number((status as any).roundDeadlineAt ?? (status as any).deadlineAt ?? 0));
           this.closeManual(true, true);
           // Il voto del gioco precedente non appartiene al nuovo Quiz, anche
           // se il suo numero di manche coincide con quello appena annunciato.
@@ -714,6 +727,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
           if (status.type === 'ARENA' && this.roundActive() && this.questionType() === 'ARENA'
               && this.gameState() === PlayerStatus.VOTING) break;
           this.roundActive.set(true);
+          this.roundClosed.set(false);
+          this.roundDeadlineAt.set(Number((status as any).roundDeadlineAt ?? (status as any).deadlineAt ?? 0));
           this.closeManual(true, true);
           this.isBlocked.set(false);
           this.onStartVoting(status.type, status.payload);
@@ -767,6 +782,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
             // precedente (per esempio Bomba) sulla schermata.
             this.questionType.set('QUIZ');
             this.roundActive.set(true);
+            this.roundClosed.set(false);
             this.hasAnswered.set(false);
             this.selectedAnswer.set(null);
             this.startTime = Date.now();
@@ -863,6 +879,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'BONUS_ENDED':
           this.roundActive.set(false);
+          this.roundClosed.set(true);
+          this.roundDeadlineAt.set(0);
           this.questionType.set('QUIZ');
           this.gameState.set(PlayerStatus.WAITING);
           this.casinoState.set(null);
@@ -877,6 +895,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'ROUND_ENDED':
         case 'REVEAL':
+          this.roundClosed.set(true);
+          this.roundDeadlineAt.set(0);
           this.endQuizCheck();
           this.quizRecoveryBlocked = false;
           this.quizRecoveryBlockedRoundId = '';
@@ -1539,11 +1559,41 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Scadenza del server, non dell'orologio del telefono: quando arriva, il
+   * round si chiude subito anche se la TV non ha ancora mandato ROUND_ENDED.
+   */
+  private startRoundDeadlineWatch(): void {
+    if (this.roundDeadlineWatch) return;
+    this.roundDeadlineWatch = setInterval(() => {
+      const deadline = this.roundDeadlineAt();
+      if (!deadline || !this.roundActive() || this.paused() || this.resyncing()) return;
+      if (this.reliability.serverNow() >= deadline) this.closeRoundLocally();
+    }, 500);
+  }
+
+  /** Round chiuso dal server: niente più tap, niente errori a schermo. */
+  private closeRoundLocally(): void {
+    if (!this.roundActive() || this.roundClosed()) return;
+    this.roundClosed.set(true);
+    this.roundActive.set(false);
+    this.gameState.set(PlayerStatus.WAITING);
+    this.hasAnswered.set(false);
+    this.speedLoadSeq++;
+    this.applySpeedTask(null);
+    this.invalidateArenaQuestion();
+    this.cancelTimelineSend();
+  }
+
+  /**
    * Apre il round sul telefono. `resumed` distingue l'avvio della TV dalla
    * ripresa dopo un refresh: all'avvio l'ordine Timeline iniziale vale già
    * come risposta, alla ripresa sovrascriverebbe quello scelto dal giocatore.
    */
   onStartVoting(type: string, payload?: any, options: { resumed?: boolean } = {}) {
+    // Aprire il voto è aprire il round: la guardia di inputReady usa questo
+    // stato anche quando l'annuncio arriva da un percorso di ripresa.
+    this.roundActive.set(true);
+    this.roundClosed.set(false);
     this.gameState.set(PlayerStatus.VOTING);
     this.questionType.set(type as any);
     if (payload?.round) this.roundNumber.set(Number(payload.round));
@@ -2952,6 +3002,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (this.paused() && !this.pauseStartedAt) this.pauseStartedAt = performance.now();
 
     const deadline = Number(snapshot.roundDeadlineAt ?? 0);
+    this.roundDeadlineAt.set(deadline);
     const pausedAt = Number(snapshot.pausedAt ?? 0);
     // Durante la pausa la deadline non si muove: confrontarla con l'ora
     // corrente farebbe chiudere un round che era ancora aperto allo stop.
@@ -3038,6 +3089,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // una riconnessione, non solo quando arriva SHOW_QUESTION.
     if (!bonusVisible) {
       this.roundActive.set(!!type && open);
+      this.roundClosed.set(!!type && !open);
       if (this.roundActive()) this.closeManual(true, true);
     }
 
@@ -3355,6 +3407,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.stopMicrophoneListening();
     this.stopBombaPolling();
     this.clearSpeedReaction();
+    if (this.roundDeadlineWatch) {
+      clearInterval(this.roundDeadlineWatch);
+      this.roundDeadlineWatch = undefined;
+    }
     if (this.bombaFlashTimer) clearTimeout(this.bombaFlashTimer);
     if (this.tennisGoalTimer) clearTimeout(this.tennisGoalTimer);
     if (this.updateCheckInterval) {

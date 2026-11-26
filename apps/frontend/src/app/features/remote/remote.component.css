@@ -1110,3 +1110,29 @@ body {
   letter-spacing: .1em;
   color: var(--tomato);
 }
+.round-closed-stamp {
+  position: fixed;
+  top: calc(8px + env(safe-area-inset-top));
+  left: 8px;
+  right: 8px;
+  z-index: 90;
+  display: grid;
+  gap: 2px;
+  padding: 10px 14px;
+  color: var(--paper);
+  background: var(--coal);
+  border: 3px solid var(--coal);
+  border-radius: 0;
+  box-shadow: 6px 6px 0 var(--tomato);
+  text-align: center;
+}
+.round-closed-stamp b {
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 5vw, 1.6rem);
+  letter-spacing: .06em;
+}
+.round-closed-stamp span {
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  letter-spacing: .14em;
+}

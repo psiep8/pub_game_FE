@@ -597,6 +597,7 @@ describe('RemoteComponent', () => {
 
   it('con un doppio tocco invia una sola risposta Arena e non salta la domanda', () => {
     component.nickname.set('Anna');
+    component.roundActive.set(true);
     component.arenaQuestion.set({ text: 'Domanda', options: ['A', 'B'], isTrueFalse: false, questionId: 'q1' });
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     const pending = new Subject<any>();
@@ -670,6 +671,7 @@ describe('RemoteComponent', () => {
 
   it('una vecchia risposta Arena non blocca né sblocca il nuovo round', () => {
     component.nickname.set('Anna');
+    component.roundActive.set(true);
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     const oldAnswer = new Subject<any>();
     const newAnswer = new Subject<any>();
@@ -679,6 +681,9 @@ describe('RemoteComponent', () => {
     component.arenaQuestion.set({ text: 'Vecchia', options: ['A', 'B'], isTrueFalse: false, questionId: 'old' });
     component.sendArenaAnswer(0);
     ws.status$.next({ action: 'ROUND_ENDED' });
+    // Il round nuovo si apre come in partita: ROUND_STARTED/START_VOTING.
+    component.roundActive.set(true);
+    component.roundClosed.set(false);
     component.arenaQuestion.set({ text: 'Nuova', options: ['A', 'B'], isTrueFalse: false, questionId: 'new' });
     component.sendArenaAnswer(0);
     expect(answer).toHaveBeenCalledTimes(2);
@@ -800,6 +805,7 @@ describe('RemoteComponent', () => {
       ready: [{ playerName: 'Anna', points: 100, maxBet: 100 }],
     });
     component.azzardoChips.set([1, 0, 0]);
+    component.roundActive.set(true);
 
     component.paused.set(true);
     component.azzardoSendBet();
@@ -839,6 +845,7 @@ describe('RemoteComponent', () => {
 
   it('mantiene la domanda Arena se la risposta arriva al server durante la pausa', () => {
     component.nickname.set('Anna');
+    component.roundActive.set(true);
     component.arenaQuestion.set({ text: 'Domanda', options: ['A', 'B'], isTrueFalse: false, questionId: 'q1' });
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     const answer = vi.spyOn(game, 'answerArenaQuestion')
@@ -855,6 +862,7 @@ describe('RemoteComponent', () => {
 
   it('ritenta la stessa risposta Arena dopo una conferma persa', () => {
     component.nickname.set('Anna');
+    component.roundActive.set(true);
     component.arenaQuestion.set({ text: 'Domanda', options: ['A', 'B'], isTrueFalse: false, questionId: 'q1' });
     const game = TestBed.inject(GameService);
     const answer = vi.spyOn(game, 'answerArenaQuestion')
@@ -1079,9 +1087,45 @@ describe('RemoteComponent', () => {
     expect(component.inputReady()).toBe(false);
     reliability.syncState$.next({ hasState: false });
     expect(component.resyncing()).toBe(false);
-    expect(component.inputReady()).toBe(true);
+    // N-05: senza un round aperto il telefono non riabilita i tasti. Prima
+    // bastava «non in pausa» e si poteva rispondere a un round già chiuso.
+    expect(component.inputReady()).toBe(false);
     expect(component.gameState()).toBe(PlayerStatus.WAITING);
     expect(component.roundActive()).toBe(false);
+  });
+
+  it('N-05: a round chiuso il telefono non manda più prenotazioni', async () => {
+    component.nickname.set('Anna');
+    ws.status$.next({ action: 'START_VOTING', type: 'IMAGE_BLUR', payload: {} });
+    expect(component.roundActive()).toBe(true);
+    expect(component.inputReady()).toBe(true);
+
+    ws.status$.next({ action: 'ROUND_ENDED' });
+    expect(component.roundClosed()).toBe(true);
+    expect(component.inputReady()).toBe(false);
+
+    const before = ws.publishedAnswers.length;
+    component.sendBuzz();
+    expect(ws.publishedAnswers.length).toBe(before);
+  });
+
+  it('N-05: alla scadenza del server il round si chiude anche senza ROUND_ENDED', () => {
+    vi.useFakeTimers();
+    try {
+      component.nickname.set('Anna');
+      // Il watcher creato in ngOnInit usa i timer veri: lo si riarma qui.
+      clearInterval((component as any).roundDeadlineWatch);
+      (component as any).roundDeadlineWatch = undefined;
+      (component as any).startRoundDeadlineWatch();
+      component.onStartVoting('IMAGE_BLUR');
+      component.roundDeadlineAt.set(Date.now() - 1);
+      expect(component.inputReady()).toBe(true);
+      vi.advanceTimersByTime(600);
+      expect(component.roundClosed()).toBe(true);
+      expect(component.inputReady()).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('un evento di chiusura durante lo snapshot richiede una fotografia successiva', () => {
@@ -1427,6 +1471,7 @@ describe('RemoteComponent', () => {
       ready: [{ playerName: 'Anna', points, maxBet, ready: false }],
     });
 
+    component.roundActive.set(true);
     component.azzardoState.set(state(0, 0));
     component.azzardoPick(0);
     expect(ws.broadcasted.some((entry) => entry.body.action === 'AZZARDO_ACTION')).toBe(false);
