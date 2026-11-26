@@ -1,5 +1,33 @@
 # Changelog
 
+## 26 novembre 2026 — Blocco A della seconda serata (in corso)
+
+Primo gruppo di correzioni dopo la seconda serata. Nessuna release e nessun tag:
+il blocco A non è completo (restano N-04, N-06…N-09) e i blocchi B–E non sono
+stati aperti. D2 (Timeline e gioco che la sostituisce nell'atto 1) resta sospesa
+in attesa della scelta del committente.
+
+- **Regia (N-01, N-02).** La TV si registra come schermo senza segreto e mostra
+  da sola il codice a 6 cifre con il QR `/admin?pair=<codice>`; il codice si
+  rinnova alla scadenza e dopo l'uso. Il pannello ha un solo campo numerico con
+  invio automatico e messaggi distinti per codice scaduto, errato o bloccato;
+  la regia ricorda il dispositivo. In TV la dock dei comandi sparisce (torna con
+  `?debug=1`); in regia una barra fissa in basso ha un solo pulsante primario che
+  dice cosa farà (`AVVIA ROUND N · TIPO`, `PROSSIMA MANCHE`, `CHIUDI RIEPILOGO`,
+  `RIPRENDI`).
+- **Indovina chi (N-03).** La finestra del round sul server era di 60 s contro
+  tre manche da 45 s: la 2 e la 3 cadevano fuori e nessun telefono poteva
+  prenotarsi. La finestra ora copre tre manche più i reveal. Il gioco resta a tre
+  manche: le quattro manche sono N-21, nel blocco C.
+- **Telefono (N-05).** `inputReady` non guardava il round aperto né la scadenza
+  del server: dopo `ROUND_ENDED` i tasti restavano vivi. Ora si bloccano subito,
+  un watcher chiude il round alla scadenza assoluta e compare il timbro
+  `ROUND FINITO · GUARDA LA TV`.
+- **Verifiche.** Build frontend OK; test mirati frontend **274 passati**; test
+  backend mirati **10 passati** (`ReliabilityIntegrationTest`, `PairingCodeServiceTest`,
+  `RoundWindowTest`, `SessionAuthenticationFilterTest`). Nessun test Playwright
+  TV + telefoni è stato eseguito: la prova in sala resta necessaria.
+
 ## 25 novembre 2026 — quizzOne 3.1.1, Timeline corretta e tutti i giochi verificati
 
 Versione **3.1.1**: correzioni di gioco e verifiche, senza cambi a percorsi,
