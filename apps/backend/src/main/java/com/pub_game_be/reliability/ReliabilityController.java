@@ -349,6 +349,9 @@ public class ReliabilityController {
             JSONObject round = snapshot.optJSONObject("currentRound");
             if (round != null) round.put("payload", sanitizePayload(round.opt("payload"), "MUSIC".equals(round.optString("type"))));
             sync.put("events", sanitizePayload(sync.getJSONArray("events"), false));
+            // La mano Blackjack contiene la carta coperta e il mazzo ordinato:
+            // la TV regia la usa per riprendere il bonus, telefono e lobby no.
+            snapshot.put("blackjackState", JSONObject.NULL);
         }
 
         Map<String, Object> out = new LinkedHashMap<>();

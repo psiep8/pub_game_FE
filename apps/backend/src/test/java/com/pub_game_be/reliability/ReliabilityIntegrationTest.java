@@ -824,6 +824,39 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void ilCheckpointBlackjackNonEsceVersoTelefoniETvSenzaRegia() throws Exception {
+        long gameId = 711L;
+        var regia = sessions.register(gameId, "tv-blackjack-regia", "TV", null, null);
+        sessions.grantRegia(regia.sessionToken());
+        var phone = sessions.register(gameId, "phone-blackjack-limit", "REMOTE", "Anna", null);
+        var lobby = sessions.register(gameId, "tv-blackjack-lobby", "TV", null, null);
+
+        String body = json.writeValueAsString(Map.of(
+                "sessionToken", regia.sessionToken(),
+                "state", Map.of(
+                        "bank", List.of("9♠", "Q♥"),
+                        "deck", List.of("2♣"),
+                        "phase", "DECIDE")));
+        var saved = request("POST", "/games/" + gameId + "/blackjack-state", regia.sessionToken(), null, body);
+        assertThat(saved.statusCode()).as(saved.body()).isEqualTo(200);
+
+        var phoneSync = request("GET", "/games/" + gameId + "/sync", phone.sessionToken(), null, null);
+        assertThat(phoneSync.statusCode()).as(phoneSync.body()).isEqualTo(200);
+        assertThat(json.readTree(phoneSync.body()).path("snapshot").path("blackjackState").isNull())
+                .as("il telefono non deve leggere la carta coperta").isTrue();
+
+        var lobbySync = request("GET", "/games/" + gameId + "/sync", lobby.sessionToken(), null, null);
+        assertThat(lobbySync.statusCode()).as(lobbySync.body()).isEqualTo(200);
+        assertThat(json.readTree(lobbySync.body()).path("snapshot").path("blackjackState").isNull())
+                .as("la TV senza regia non deve leggere la carta coperta").isTrue();
+
+        // La regia continua a rileggere la mano per riprendere il bonus.
+        var regiaSync = request("GET", "/games/" + gameId + "/sync", regia.sessionToken(), null, null);
+        assertThat(json.readTree(regiaSync.body()).path("snapshot").path("blackjackState")
+                .path("bank").get(1).asText()).isEqualTo("Q♥");
+    }
+
+    @Test
     void ilCheckpointBlackjackTornaInteroAllaSincronizzazioneDellaTv() throws Exception {
         long gameId = 710L;
         var tv = sessions.register(gameId, "tv-blackjack-recovery", "TV", null, null);
