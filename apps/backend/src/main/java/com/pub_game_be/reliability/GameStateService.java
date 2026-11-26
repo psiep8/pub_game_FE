@@ -797,7 +797,10 @@ public class GameStateService {
     private static final Map<String, Integer> ROUND_SECONDS = Map.ofEntries(
             Map.entry("QUIZ", 3 * (15 + 3)),
             Map.entry("MUSIC", 200),
-            Map.entry("IMAGE_BLUR", 60),
+            // Indovina chi: tre manche da 45 s più il reveal e il respiro fra
+            // una e l'altra. Con 60 s la finestra si chiudeva a metà manche 2:
+            // i telefoni non potevano più prenotarsi per la 2 e la 3 (N-03).
+            Map.entry("IMAGE_BLUR", 3 * (45 + 15)),
             Map.entry("WHEEL_OF_FORTUNE", 75),
             Map.entry("TIMELINE", 45),
             Map.entry("TIME_BUZZER", 3 * (20 + 5)),

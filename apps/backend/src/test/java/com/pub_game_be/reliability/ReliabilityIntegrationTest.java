@@ -613,6 +613,16 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void imageBlurRestaApertoPerTutteETreLeManche() {
+        gameState.startRound(640L, "IMAGE_BLUR", 1, "blur-3-manche", "{}");
+        long deadline = gameState.roundDeadline(640L).orElseThrow();
+        long window = deadline - System.currentTimeMillis();
+        // N-03: con 60 s la finestra si chiudeva a metà manche 2 e i telefoni
+        // non potevano prenotarsi per la manche 2 e 3.
+        assertThat(window).isGreaterThan(3 * 45_000L);
+    }
+
+    @Test
     void syncTelefonoNascondeProverbioEMetadatiDellaCanzone() throws Exception {
         var wheel = sessions.register(520L, "wheel", "REMOTE", "Anna", null);
         gameState.startRound(520L, "WHEEL_OF_FORTUNE", 1, "wheel", "{\"proverb\":\"SEGRETO\",\"hint\":\"Indizio\"}");
