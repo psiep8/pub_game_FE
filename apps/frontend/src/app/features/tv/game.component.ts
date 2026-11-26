@@ -3727,15 +3727,7 @@ export class GameComponent implements OnInit, OnDestroy {
     // ricevere l'oggetto, altrimenti Musica riparte senza songs[] (round muto)
     // e Timeline senza le carte.
     const rawRecoveredPayload = snapshot.currentRound?.payload ?? snapshot.payload ?? null;
-    this.recoveredPayload = typeof rawRecoveredPayload === 'string'
-      ? (() => {
-          try {
-            return JSON.parse(rawRecoveredPayload);
-          } catch {
-            return null;
-          }
-        })()
-      : rawRecoveredPayload;
+    this.recoveredPayload = this.parseRecoveredPayload(rawRecoveredPayload);
     this.recoveredQuizRoundStartId = type === 'QUIZ' ? String(snapshot.roundStartId ?? '') : '';
     this.recoveredBlackjackState = snapshot.blackjackState ?? null;
     // Solo un checkpoint del round corrente e della sua modalità: il server
@@ -3765,6 +3757,27 @@ export class GameComponent implements OnInit, OnDestroy {
         || this.recoveredTvCheckpoint?.type === type,
       paused,
     });
+  }
+
+  /**
+   * Payload del round da riprendere. Il server lo consegna come testo JSON e,
+   * dopo il giro nella colonna `json`, come testo JSON di un testo JSON: si
+   * scarta l'involucro finché non resta l'oggetto. Con un solo parse Musica
+   * ripartiva con songs[] vuoto (audio e titolo muti) e Timeline senza carte.
+   */
+  private parseRecoveredPayload(raw: unknown): any {
+    let value: any = raw;
+    for (let depth = 0; depth < 3 && typeof value === 'string'; depth++) {
+      const text = value.trim();
+      // Un involucro in più è a sua volta un testo JSON: comincia con `"`.
+      if (!text.startsWith('{') && !text.startsWith('[') && !text.startsWith('"')) return null;
+      try {
+        value = JSON.parse(text);
+      } catch {
+        return null;
+      }
+    }
+    return typeof value === 'string' ? null : value;
   }
 
   /**

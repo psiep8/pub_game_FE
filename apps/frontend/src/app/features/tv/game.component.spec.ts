@@ -715,6 +715,43 @@ describe('GameComponent', () => {
     expect(tv.recoveredPayload?.songs?.[2]?.previewUrl).toBe('/media/music/brano-3.m4a');
   });
 
+  it('riprende un round Musica quando il payload è serializzato due volte', () => {
+    // La colonna `json` del round restituisce il testo JSON di un testo JSON:
+    // con un solo parse il mode ripartiva con songs[] vuoto, quindi niente
+    // audio né titolo dopo RIPRENDI (visto in demo a metà round).
+    const songs = [1, 2, 3, 4, 5].map((n) => ({
+      title: `Brano ${n}`,
+      artist: `Artista ${n}`,
+      year: 1990 + n,
+      previewUrl: `/media/music/brano-${n}.m4a`,
+      albumCover: `/media/covers/brano-${n}.jpg`,
+    }));
+    const payload = { type: 'MUSIC', theme: 'Pop', manches: 5, songs };
+    const tv = component as unknown as {
+      applyAuthoritativeState(snapshot: any): void;
+      recoveredPayload: any;
+    };
+
+    tv.applyAuthoritativeState({
+      hasState: true,
+      status: 'RUNNING',
+      roundType: 'MUSIC',
+      roundDeadlineAt: Date.now() + 60_000,
+      paused: true,
+      pausedAt: Date.now(),
+      currentRound: { type: 'MUSIC', payload: JSON.stringify(JSON.stringify(payload)) },
+      tvCheckpoint: {
+        mode: 'MUSIC',
+        revision: 1,
+        state: { manche: 3, listen: 1, phase: 'LISTEN', secondsLeft: 3 },
+      },
+    });
+
+    expect(component.recoveredRound()).not.toBeNull();
+    expect(tv.recoveredPayload?.songs).toHaveLength(5);
+    expect(tv.recoveredPayload?.songs?.[4]?.title).toBe('Brano 5');
+  });
+
   it('toglie la pausa sul server prima di riaprire il round recuperato', async () => {
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     const modes = TestBed.inject(GameModeService);
