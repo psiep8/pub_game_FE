@@ -107,6 +107,29 @@ describe('Admin', () => {
     expect(component.solution()).toBe('Frida Kahlo');
   });
 
+  it('N-03: una nuova manche scarta il buzz rimasto senza conferma', async () => {
+    ws.status$.next({
+      action: 'PLAYER_PRENOTATO', name: 'Anna',
+      correctPoints: 300, wrongPoints: -300, solution: 'Pablo Picasso',
+    });
+    await fixture.whenStable();
+    expect(component.buzzedPlayer()).toBe('Anna');
+    expect(component.correctPoints()).toBe(300);
+
+    // La manche successiva parte senza che la regia abbia confermato: il buzz
+    // vecchio non deve restare selezionato né pagabile.
+    ws.status$.next({
+      action: 'START_VOTING', type: 'IMAGE_BLUR', round: 7, manche: 2,
+      payload: JSON.stringify({ manche: 2, correctAnswer: null }),
+      solution: 'Frida Kahlo',
+    });
+    await fixture.whenStable();
+
+    expect(component.buzzedPlayer()).toBeNull();
+    expect(component.correctPoints()).toBeNull();
+    expect(component.wrongPoints()).toBeNull();
+  });
+
   it('N-03: anche SHOW_QUESTION di una manche buzz tiene la regia attiva', async () => {
     ws.status$.next({
       action: 'SHOW_QUESTION', type: 'IMAGE_BLUR', round: 7, manche: 3,

@@ -271,8 +271,11 @@ export class Admin implements OnInit, OnDestroy {
     
     const isBuzzMode = status.type === 'IMAGE_BLUR' || status.type === 'WHEEL_OF_FORTUNE' || status.type === 'MUSIC';
     this.showAdminControls.set(isBuzzMode);
-    
-    
+    // Indovina chi apre ogni manche con START_VOTING: un buzz rimasto senza
+    // conferma appartiene alla manche precedente e non va più giudicato.
+    this.buzzedPlayer.set(null);
+    this.correctPoints.set(null);
+    this.wrongPoints.set(null);
   }
 
   private parsePayload(payload: any): any {
