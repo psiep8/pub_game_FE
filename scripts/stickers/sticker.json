@@ -201,6 +201,71 @@
       "tappa": 2,
       "formato": "logo",
       "logo": "cucchiaio"
+    },
+
+    {
+      "slug": "quizzone-sorriso",
+      "titolo": "Sorriso",
+      "tema": "deep-ocean",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "sorriso"
+    },
+    {
+      "slug": "quizzone-occhiolino",
+      "titolo": "Occhiolino",
+      "tema": "premium-gold",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "occhiolino"
+    },
+    {
+      "slug": "quizzone-risata",
+      "titolo": "Risata",
+      "tema": "editorial-acid",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "risata"
+    },
+    {
+      "slug": "quizzone-innamorato",
+      "titolo": "Innamorato",
+      "tema": "kpop-aesthetic",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "innamorato"
+    },
+    {
+      "slug": "quizzone-stupito",
+      "titolo": "Stupito",
+      "tema": "neon-cyberpunk",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "stupito"
+    },
+    {
+      "slug": "quizzone-arrabbiato",
+      "titolo": "Arrabbiato",
+      "tema": "arctic-noir",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "arrabbiato"
+    },
+    {
+      "slug": "quizzone-assonnato",
+      "titolo": "Assonnato",
+      "tema": "desert-heritage",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "assonnato"
+    },
+    {
+      "slug": "quizzone-festa",
+      "titolo": "Festa",
+      "tema": "sunset-pop",
+      "tappa": 2,
+      "formato": "logo",
+      "logo": "festa"
     }
   ]
 }

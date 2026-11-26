@@ -259,6 +259,11 @@ const DISEGNI = {
 // --- loghi tondi dei giochi ----------------------------------------------
 // Pittogrammi tipo emoji: un soggetto solo, forme piatte, contorno scuro,
 // colori presi dalla palette del tema. Riquadro locale 600×600 centrato.
+// facce: stessa costruzione di «Ultimi ma felici», espressioni diverse
+const faccia = (p, { occhi, bocca, extra = '' }) => `<circle cx="300" cy="300" r="198" fill="${p.paper}" stroke="${p.ink}" stroke-width="18"/>
+      ${occhi}
+      ${bocca}${extra ? `\n      ${extra}` : ''}`;
+
 const LOGHI = {
   bomba: {
     box: { x0: 95, y0: 30, x1: 600, y1: 545 },
@@ -302,10 +307,14 @@ const LOGHI = {
       <path d="M462 340l12 26 26 12-26 12-12 26-12-26-26-12 26-12Z" fill="${p.paper}" stroke="${p.ink}" stroke-width="10"/>`,
   },
   biglia: {
-    box: { x0: 40, y0: 96, x1: 560, y1: 504 },
-    disegna: (p) => `<circle cx="300" cy="300" r="186" fill="${p.paper}" stroke="${p.ink}" stroke-width="16"/>
-      <path d="M208 268c30-56 100-84 158-56 46 22 66 70 52 112-12 38-52 58-88 44-32-12-44-50-24-74 18-22 52-22 68 0" fill="none" stroke="${p.accent}" stroke-width="24" stroke-linecap="round"/>
-      <circle cx="300" cy="300" r="24" fill="${p.second}"/>`,
+    box: { x0: 88, y0: 128, x1: 512, y1: 512 },
+    disegna: (p) => `<circle cx="404" cy="224" r="78" fill="${p.paper}" stroke="${p.ink}" stroke-width="14"/>
+      <path d="M348 206a78 78 0 0 1 48-46" fill="none" stroke="${p.accent}" stroke-width="13" stroke-linecap="round"/>
+      <circle cx="450" cy="396" r="66" fill="${p.second}" stroke="${p.ink}" stroke-width="14"/>
+      <ellipse cx="426" cy="370" rx="18" ry="11" transform="rotate(-32 426 370)" fill="${p.paper}"/>
+      <circle cx="254" cy="352" r="150" fill="${p.accent}" stroke="${p.ink}" stroke-width="18"/>
+      <ellipse cx="198" cy="292" rx="36" ry="21" transform="rotate(-32 198 292)" fill="${p.paper}"/>
+      <path d="M156 424c26 40 72 62 122 58" fill="none" stroke="${p.paper}" stroke-width="12" stroke-linecap="round" opacity="0.5"/>`,
   },
   cronometro: {
     box: { x0: 120, y0: 40, x1: 470, y1: 480 },
@@ -335,11 +344,17 @@ const LOGHI = {
       <path d="M112 498q44-34 88 0t88 0 88 0" fill="none" stroke="${p.second}" stroke-width="16" stroke-linecap="round"/>`,
   },
   arena: {
-    box: { x0: 90, y0: 90, x1: 510, y1: 510 },
-    disegna: (p) => `<circle cx="300" cy="300" r="206" fill="${p.paper}" stroke="${p.ink}" stroke-width="18"/>
-      <circle cx="300" cy="300" r="146" fill="none" stroke="${p.accent}" stroke-width="24"/>
-      <circle cx="300" cy="300" r="86" fill="${p.second}" stroke="${p.ink}" stroke-width="12"/>
-      <circle cx="300" cy="300" r="20" fill="${p.ink}"/>`,
+    scala: 1.4,
+    box: { x0: 100, y0: 176, x1: 500, y1: 424 },
+    disegna: (p) => {
+      const archi = (centri, larghezza, altezza, base) => centri.map((cx) => {
+        const r = larghezza / 2;
+        return `<path d="M${cx - r} ${base}v-${altezza - r}a${r} ${r} 0 0 1 ${larghezza} 0v${altezza - r}Z" fill="${p.ink}"/>`;
+      }).join('\n      ');
+      return `<path d="M100 416V270c0-52 90-88 200-88s200 36 200 88v146Z" fill="${p.accent}" stroke="${p.ink}" stroke-width="18"/>
+      ${archi([186, 258, 330, 402], 40, 54, 284)}
+      ${archi([146, 226, 306, 386, 466], 56, 86, 392)}`;
+    },
   },
   tennis: {
     box: { x0: 140, y0: 60, x1: 540, y1: 540 },
@@ -412,9 +427,13 @@ const LOGHI = {
       </g>`,
   },
   cavallo: {
-    box: { x0: 90, y0: 90, x1: 510, y1: 510 },
-    phosphor: { nome: 'horse', peso: 'bold', x: 70, y: 86, lato: 460 },
-    disegna: (p) => `<circle cx="300" cy="300" r="214" fill="${p.accent}"/>`,
+    scala: 1.5,
+    box: { x0: 160, y0: 190, x1: 440, y1: 536 },
+    disegna: (p) => `<path d="M196 476c-4-72 14-132 54-174l-36-34 48-12 22-52 34 54c36 8 66 38 74 72 8 28-8 52-40 50l-20-4 8 36c-6 30-14 48-14 64Z" fill="${p.accent}" stroke="${p.ink}" stroke-width="18" stroke-linejoin="miter"/>
+      <path d="M240 350l-24-10 8 26ZM224 400l-24-10 8 26ZM214 450l-24-10 8 26Z" fill="${p.ink}"/>
+      <circle cx="330" cy="300" r="13" fill="${p.ink}"/>
+      <path d="M330 376h30" fill="none" stroke="${p.ink}" stroke-width="9"/>
+      <rect x="168" y="470" width="264" height="58" fill="${p.second}" stroke="${p.ink}" stroke-width="16"/>`,
   },
   corona: {
     box: { x0: 96, y0: 120, x1: 504, y1: 500 },
@@ -432,6 +451,80 @@ const LOGHI = {
       <circle cx="270" cy="188" r="11" fill="${p.ink}"/>
       <circle cx="330" cy="188" r="11" fill="${p.ink}"/>
       <path d="M266 230q34 30 68 0" fill="none" stroke="${p.ink}" stroke-width="12" stroke-linecap="round"/>`,
+  },
+
+  sorriso: {
+    box: { x0: 92, y0: 92, x1: 508, y1: 508 },
+    disegna: (p) => faccia(p, {
+      occhi: `<circle cx="238" cy="264" r="26" fill="${p.ink}"/>
+      <circle cx="362" cy="264" r="26" fill="${p.ink}"/>`,
+      bocca: `<path d="M218 340q82 84 164 0" fill="none" stroke="${p.ink}" stroke-width="20" stroke-linecap="round"/>`,
+    }),
+  },
+  occhiolino: {
+    box: { x0: 92, y0: 92, x1: 508, y1: 508 },
+    disegna: (p) => faccia(p, {
+      occhi: `<circle cx="240" cy="264" r="26" fill="${p.ink}"/>
+      <path d="M334 268q26 30 52 0" fill="none" stroke="${p.ink}" stroke-width="20" stroke-linecap="round"/>`,
+      bocca: `<path d="M228 348q72 66 144 0" fill="none" stroke="${p.ink}" stroke-width="20" stroke-linecap="round"/>`,
+      extra: `<path d="M420 200l9 21 21 9-21 9-9 21-9-21-21-9 21-9Z" fill="${p.second}"/>`,
+    }),
+  },
+  risata: {
+    box: { x0: 92, y0: 190, x1: 508, y1: 508 },
+    disegna: (p) => faccia(p, {
+      occhi: `<path d="M212 278q28-38 56 0M332 278q28-38 56 0" fill="none" stroke="${p.ink}" stroke-width="20" stroke-linecap="round"/>`,
+      bocca: `<path d="M224 334q76 98 152 0Z" fill="${p.ink}"/>`,
+      extra: `<path d="M188 302c-26 34-26 54 0 54s26-20 0-54Z" fill="${p.second}" stroke="${p.ink}" stroke-width="8"/>
+      <path d="M412 302c26 34 26 54 0 54s-26-20 0-54Z" fill="${p.second}" stroke="${p.ink}" stroke-width="8"/>`,
+    }),
+  },
+  innamorato: {
+    box: { x0: 92, y0: 92, x1: 508, y1: 508 },
+    disegna: (p) => faccia(p, {
+      occhi: `<path d="M238 244c-30-20-48-4-48 12 0 20 26 36 48 52 22-16 48-32 48-52 0-16-18-32-48-12Z" fill="${p.accent}" stroke="${p.ink}" stroke-width="9"/>
+      <path d="M362 244c-30-20-48-4-48 12 0 20 26 36 48 52 22-16 48-32 48-52 0-16-18-32-48-12Z" fill="${p.accent}" stroke="${p.ink}" stroke-width="9"/>`,
+      bocca: `<path d="M232 352q68 62 136 0" fill="none" stroke="${p.ink}" stroke-width="20" stroke-linecap="round"/>`,
+    }),
+  },
+  stupito: {
+    box: { x0: 92, y0: 92, x1: 508, y1: 508 },
+    disegna: (p) => faccia(p, {
+      occhi: `<circle cx="236" cy="258" r="32" fill="${p.ink}"/>
+      <circle cx="364" cy="258" r="32" fill="${p.ink}"/>
+      <circle cx="248" cy="246" r="9" fill="${p.paper}"/>
+      <circle cx="376" cy="246" r="9" fill="${p.paper}"/>`,
+      bocca: `<ellipse cx="300" cy="384" rx="30" ry="38" fill="${p.ink}"/>`,
+    }),
+  },
+  arrabbiato: {
+    box: { x0: 92, y0: 92, x1: 508, y1: 508 },
+    disegna: (p) => faccia(p, {
+      occhi: `<path d="M198 224l54 28M402 224l-54 28" fill="none" stroke="${p.ink}" stroke-width="18" stroke-linecap="square"/>
+      <circle cx="240" cy="290" r="24" fill="${p.ink}"/>
+      <circle cx="360" cy="290" r="24" fill="${p.ink}"/>`,
+      bocca: `<path d="M240 388q60-38 120 0" fill="none" stroke="${p.ink}" stroke-width="20" stroke-linecap="round"/>`,
+    }),
+  },
+  assonnato: {
+    box: { x0: 68, y0: 64, x1: 508, y1: 508 },
+    disegna: (p) => faccia(p, {
+      occhi: `<path d="M212 284q28 26 56 0M332 284q28 26 56 0" fill="none" stroke="${p.ink}" stroke-width="20" stroke-linecap="round"/>`,
+      bocca: `<ellipse cx="300" cy="386" rx="26" ry="18" fill="${p.ink}"/>`,
+      extra: `<path d="M78 150h44l-44 44h44M152 74h28l-28 28h28" fill="none" stroke="${p.accent}" stroke-width="16" stroke-linejoin="miter"/>`,
+    }),
+  },
+  festa: {
+    box: { x0: 92, y0: 22, x1: 508, y1: 508 },
+    disegna: (p) => faccia(p, {
+      occhi: `<path d="M212 284q28-34 56 0M332 284q28-34 56 0" fill="none" stroke="${p.ink}" stroke-width="20" stroke-linecap="round"/>`,
+      bocca: `<path d="M228 338q72 86 144 0Z" fill="${p.ink}"/>`,
+      extra: `<path d="M300 40l-74 100h148Z" fill="${p.accent}" stroke="${p.ink}" stroke-width="12" stroke-linejoin="miter"/>
+      <circle cx="300" cy="40" r="17" fill="${p.second}" stroke="${p.ink}" stroke-width="10"/>
+      <circle cx="146" cy="196" r="10" fill="${p.second}"/>
+      <circle cx="452" cy="238" r="12" fill="${p.second}"/>
+      <path d="M478 96l8 18 18 8-18 8-8 18-8-18-18-8 18-8Z" fill="${p.accent}"/>`,
+    }),
   },
 };
 
@@ -1026,12 +1119,14 @@ async function paginaProva(pdf, stickers, temi) {
     pagina.drawText(marchi[i].titolo, { x, y: y - pt(3.4), size: 5, font: normale, color: grigio });
   }
 
-  pagina.drawText('LOGHI DEI GIOCHI — Ø 84 mm', { x: pt(15), y: da(64), size: 7, font: grasso, color: inchiostro });
+  pagina.drawText('LOGHI DEI GIOCHI — Ø 84 mm', { x: pt(15), y: da(60), size: 7, font: grasso, color: inchiostro });
   const loghi = stickers.filter((s) => s.formato === 'logo');
-  const lato = 26;
+  const lato = 22;
+  const perRiga = 5;
+  const passo = 27;
   for (let i = 0; i < loghi.length; i += 1) {
-    const x = pt(15 + (i % 5) * 36);
-    const y = da(70 + Math.floor(i / 5) * 33) - pt(lato);
+    const x = pt(15 + (i % perRiga) * 36);
+    const y = da(66 + Math.floor(i / perRiga) * passo) - pt(lato);
     pagina.drawImage(await immagine(pdf, cache, loghi[i].slug), { x, y, width: pt(lato), height: pt(lato) });
     pagina.drawText(loghi[i].titolo, { x, y: y - pt(4), size: 5, font: normale, color: grigio });
   }

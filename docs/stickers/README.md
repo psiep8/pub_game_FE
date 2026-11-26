@@ -5,9 +5,13 @@ texture del tema, ombra offset, alone bianco):
 
 - **8 sticker del marchio** — badge a 10 lati, 180 × 84 mm (viewBox 1200 × 560),
   wordmark `quizzOne` con parola in due colori. Sono quelli nati con il brand.
-- **17 loghi dei giochi** — tondi, Ø 84 mm su tela 90 × 90 mm (viewBox
+- **25 loghi dei giochi** — tondi, Ø 84 mm su tela 90 × 90 mm (viewBox
   1200 × 1200), un pittogramma solo tipo icona/emoji, nessun testo. Ognuno usa
   palette e texture di uno degli 8 temi.
+- **8 facce** — Sorriso, Occhiolino, Risata, Innamorato, Stupito, Arrabbiato,
+  Assonnato, Festa. Stessa costruzione di «Ultimi ma felici» (un oggetto con la
+  faccia), un'emozione per sticker, una per tema: servono a commentare la
+  partita sul tavolo e sul telefono.
 
 Tutto nasce da un solo modello: `scripts/stickers/build.mjs` legge
 `temi.json` (palette, texture, macchie, icone dei badge) e `sticker.json`
@@ -36,11 +40,11 @@ Opzioni:
 Output:
 
 ```
-docs/stickers/quizzone-*.svg          25 SVG, testo in tracciati
-docs/stickers/png/quizzone-*.png      25 PNG a 300 dpi (2126×992 badge, 1063×1063 loghi)
+docs/stickers/quizzone-*.svg          33 SVG, testo in tracciati
+docs/stickers/png/quizzone-*.png      33 PNG a 300 dpi (2126×992 badge, 1063×1063 loghi)
 docs/stickers/pdf/quizzone-fogli-90x42.pdf     foglio A4, 12 sticker
 docs/stickers/pdf/quizzone-fogli-180x84.pdf    fogli A4, 3 sticker per foglio
-docs/stickers/pdf/quizzone-fogli-loghi.pdf     fogli A4, 4 loghi tondi per foglio
+docs/stickers/pdf/quizzone-fogli-loghi.pdf     fogli A4, 4 loghi tondi per foglio (7 pagine)
 docs/stickers/pdf/quizzone-pack-completo.pdf   prova colore + tutti i fogli
 ```
 
