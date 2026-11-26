@@ -690,10 +690,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
           }
           // Un annuncio può essere recapitato dopo il via della stessa manche
           // (WS e snapshot non hanno lo stesso ordine): se il telefono è già
-          // in voto su questo gioco e round, non deve tornare in attesa.
+          // dentro questo gioco e round, non deve tornare in attesa né
+          // sbloccare chi ha già prenotato.
           const wasActiveType = this.questionType();
           const sameActiveRound = this.roundActive()
-            && this.gameState() === PlayerStatus.VOTING
             && wasActiveType === status.type
             && (!status.round || Number(status.round) === this.roundNumber());
           this.questionType.set(status.type);
@@ -757,6 +757,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
           // Il round viaggia sul messaggio, non sempre nel payload: senza
           // salvarlo, un SHOW_QUESTION in ritardo sembra di un altro round.
           if (status.round) this.roundNumber.set(Number(status.round));
+          if (status.type === 'IMAGE_BLUR') {
+            // Il via della TV conosce già la manche: salvarla qui evita che
+            // un annuncio in ritardo la scambi per una nuova e riarmi il voto.
+            const payload = this.parsePayload(status.payload);
+            this.imageRound = Number(status.round) || this.roundNumber();
+            this.imageManche.set(Number(status.manche ?? payload?.manche) || 1);
+          }
           this.onStartVoting(status.type, status.payload);
           break;
 

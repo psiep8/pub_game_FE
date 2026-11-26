@@ -138,6 +138,28 @@ describe('RemoteComponent', () => {
     expect(component.questionType()).toBe('IMAGE_BLUR');
   });
 
+  it('N-03: un annuncio in ritardo non sblocca chi ha già prenotato', () => {
+    component.hasAnswered.set(true);
+    component.gameState.set(PlayerStatus.LOCKED);
+
+    ws.status$.next({
+      action: 'START_VOTING', type: 'IMAGE_BLUR', round: 7, manche: 2,
+      payload: JSON.stringify({ manche: 2, mancheTotal: 3 }),
+    });
+    component.hasAnswered.set(true);
+    component.gameState.set(PlayerStatus.LOCKED);
+
+    // La prenotazione è già avvenuta: il ri-annuncio non deve riaprire il voto.
+    ws.status$.next({
+      action: 'SHOW_QUESTION', type: 'IMAGE_BLUR', round: 7, manche: 2,
+      payload: JSON.stringify({ manche: 2, mancheTotal: 3 }),
+    });
+
+    expect(component.gameState()).toBe(PlayerStatus.LOCKED);
+    expect(component.hasAnswered()).toBe(true);
+    expect(component.roundActive()).toBe(true);
+  });
+
   it('ordina le corsie live: prima chi è arrivato, poi chi ha più strada', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();
