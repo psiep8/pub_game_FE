@@ -2010,14 +2010,13 @@ export class GameComponent implements OnInit, OnDestroy {
     // Anteprima per il presentatore: i punti dipendono dal tempo congelato
     // dal buzz, quindi il valore mostrato è quello che verrà applicato.
     const elapsedMs = (mode.timerDuration * 1000) - (this.timer() * 1000);
-    const payload = this.currentRoundPayload();
     this.ws.broadcastStatus(this.currentGameId()!, {
       action: WsAction.PLAYER_PRENOTATO,
       name: playerName,
       type: mode.type,
       correctPoints: mode.pointsFor(true, elapsedMs),
       wrongPoints: mode.pointsFor(false, elapsedMs),
-      solution: this.solutionFor(mode.type, payload),
+      solution: this.solutionForMode(mode),
       scoring: scoringRuleFor(mode.type),
     });
   }
@@ -2097,12 +2096,18 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   /** Nuova manche di Indovina chi: la TV mostra la foto e il telefono si riarma. */
-  private publishImageBlurManche(mode: any): void {
+  private publishImageBlurManche(mode: IGameMode): void {
     const data = this.getSafeDisplayData();
+    // Una manche nuova riapre il voto. Con il solo SHOW_QUESTION il telefono
+    // restava sulla schermata d'attesa (VOTING non era mai riaperto) e la
+    // regia perdeva i pulsanti di giudizio dopo la prima manche.
     this.ws.broadcastStatus(this.currentGameId()!, {
-      action: WsAction.SHOW_QUESTION,
+      action: WsAction.START_VOTING,
       type: 'IMAGE_BLUR',
       payload: JSON.stringify(data),
+      // Soluzione della manche aperta: viaggia verso la regia, il backend la
+      // toglie dallo stato che raggiunge i telefoni.
+      solution: this.solutionForMode(mode),
       round: this.roundManager.getCurrentRound(),
       roundTotal: this.roundManager.getTotalRounds(),
       ...(this.roundDeadlineAtMs > 0 ? { roundDeadlineAt: this.roundDeadlineAtMs } : {}),
@@ -2431,7 +2436,7 @@ export class GameComponent implements OnInit, OnDestroy {
       buzzedPlayer: player,
       correctPoints: player ? mode.pointsFor(true, elapsedMs) : null,
       wrongPoints: player ? mode.pointsFor(false, elapsedMs) : null,
-      solution: this.solutionFor(mode.type, raw),
+      solution: this.solutionForMode(mode),
       scoring: scoringRuleFor(mode.type),
       paused: this.isPaused(),
     });
@@ -3386,6 +3391,15 @@ export class GameComponent implements OnInit, OnDestroy {
       }
     }
     return payload ?? {};
+  }
+
+  /**
+   * Soluzione della manche aperta. Indovina chi cambia risposta a ogni manche,
+   * mentre il payload del round resta quello della prima: senza questo, la
+   * regia giudicava la manche 2 e 3 con la soluzione sbagliata.
+   */
+  private solutionForMode(mode: IGameMode): string {
+    return mode.currentSolution?.() || this.solutionFor(mode.type, this.currentRoundPayload());
   }
 
   /** Soluzione leggibile per il presentatore, senza svelarla ai telefoni. */

@@ -211,7 +211,11 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   private handleShowQuestion(status: any) {
-    this.gameState.set('WAITING');
+    // Indovina chi apre ogni manche con SHOW_QUESTION: la regia deve restare
+    // ACTIVE con i pulsanti di giudizio, altrimenti dalla seconda manche il
+    // buzz non è più confermabile.
+    const isBuzzMode = status.type === 'IMAGE_BLUR' || status.type === 'WHEEL_OF_FORTUNE' || status.type === 'MUSIC';
+    this.gameState.set(isBuzzMode ? 'ACTIVE' : 'WAITING');
     this.currentQuestionType.set(status.type || 'QUIZ');
     this.scoringRules.set(scoringRuleFor(status.type));
 
@@ -225,8 +229,9 @@ export class Admin implements OnInit, OnDestroy {
         this.payload.set(parsed);
         this.extractCorrectAnswer(parsed, status.type);
         // Il presentatore vede la soluzione già mentre i telefoni possono
-        // prenotarsi, non solo dopo il buzz.
-        this.solution.set(this.correctAnswer());
+        // prenotarsi, non solo dopo il buzz. La TV manda quella della manche
+        // aperta: il payload del round vale solo per la prima.
+        this.solution.set(status.solution ?? this.correctAnswer());
         
       }
     } else {
@@ -234,7 +239,7 @@ export class Admin implements OnInit, OnDestroy {
     }
 
     this.buzzedPlayer.set(null);
-    this.showAdminControls.set(false);
+    this.showAdminControls.set(isBuzzMode);
     this.correctPoints.set(null);
     this.wrongPoints.set(null);
   }
@@ -256,7 +261,7 @@ export class Admin implements OnInit, OnDestroy {
         this.extractCorrectAnswer(parsed, status.type);
         // Il presentatore vede la soluzione già mentre i telefoni possono
         // prenotarsi, non solo dopo il buzz.
-        this.solution.set(this.correctAnswer());
+        this.solution.set(status.solution ?? this.correctAnswer());
         
       }
     } else {

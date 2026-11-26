@@ -59,6 +59,14 @@ export class ImageBlurMode extends GameModeBase {
     this.clueIndex.set(0);
   }
 
+  /**
+   * Soluzione della manche in corso. Il payload del round resta fermo alla
+   * prima: la TV la usa per il giudizio della regia, non per i telefoni.
+   */
+  currentSolution(): string {
+    return String(this.payload?.correctAnswer ?? '');
+  }
+
   /** True finché ci sono altre manche dopo quella corrente. */
   hasNextManche(): boolean {
     return this.mancheIndex() + 1 < this.manches.length;

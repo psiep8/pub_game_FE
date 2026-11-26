@@ -83,6 +83,43 @@ describe('Admin', () => {
     expect(component.showAdminControls()).toBe(true);
   });
 
+  it('N-03: una nuova manche di Indovina chi tiene aperti i controlli della regia', async () => {
+    ws.status$.next({
+      action: 'PLAYER_PRENOTATO', name: 'Anna',
+      correctPoints: 300, wrongPoints: -300, solution: 'Pablo Picasso',
+    });
+    await fixture.whenStable();
+    // La regia conferma il buzz della prima manche, come in serata.
+    component.confirmCorrect();
+
+    ws.status$.next({
+      action: 'START_VOTING', type: 'IMAGE_BLUR', round: 7, manche: 2,
+      payload: JSON.stringify({ manche: 2, correctAnswer: null }),
+      solution: 'Frida Kahlo',
+    });
+    await fixture.whenStable();
+
+    // Dalla seconda manche il buzz deve restare confermabile: senza ACTIVE e
+    // i controlli il presentatore non poteva più giudicare.
+    expect(component.gameState()).toBe('ACTIVE');
+    expect(component.showAdminControls()).toBe(true);
+    expect(component.buzzedPlayer()).toBeNull();
+    expect(component.solution()).toBe('Frida Kahlo');
+  });
+
+  it('N-03: anche SHOW_QUESTION di una manche buzz tiene la regia attiva', async () => {
+    ws.status$.next({
+      action: 'SHOW_QUESTION', type: 'IMAGE_BLUR', round: 7, manche: 3,
+      payload: JSON.stringify({ manche: 3, correctAnswer: null }),
+      solution: 'Vincent van Gogh',
+    });
+    await fixture.whenStable();
+
+    expect(component.gameState()).toBe('ACTIVE');
+    expect(component.showAdminControls()).toBe(true);
+    expect(component.solution()).toBe('Vincent van Gogh');
+  });
+
   it('should not show the confirm controls for a voting game', async () => {
     ws.status$.next({
       action: 'START_VOTING',
