@@ -77,13 +77,29 @@ public class ReliabilityController {
         if (!java.util.Set.of("REMOTE", "TV", "ADMIN").contains(normalizedRole)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ruolo non valido");
         }
-        if (!"REMOTE".equals(normalizedRole)) {
+        // La TV dello spettacolo è uno schermo, non un comando: si registra
+        // senza segreto, così il codice di regia compare da solo anche con il
+        // database appena azzerato. La regia (ADMIN) resta protetta dal codice
+        // a 6 cifre, che senza una sessione TV valida nessuno può generare.
+        if (!"REMOTE".equals(normalizedRole) && !"TV".equals(normalizedRole)) {
             boolean validResume = sessions.authenticate(token)
                     .filter(s -> s.getGameId().equals(gameId) && normalizedRole.equals(s.getRole())).isPresent();
-            boolean authorized = validResume || secretMatches(suppliedSecret)
-                    || pairing.redeem(gameId, string(payload.get("pairingCode")));
+            boolean authorized = validResume || secretMatches(suppliedSecret);
             if (!authorized) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenziale di regia non valida");
+                PairingCodeService.RedeemResult result = pairing.attempt(gameId, string(payload.get("pairingCode")));
+                if (result != PairingCodeService.RedeemResult.OK) {
+                    String reason = switch (result) {
+                        case EXPIRED -> "Codice scaduto: guarda la TV, ce n'è uno nuovo";
+                        case LOCKED -> "Troppi tentativi: attendi un minuto e riprova";
+                        default -> "Codice non valido: guarda la TV";
+                    };
+                    HttpStatus status = switch (result) {
+                        case EXPIRED -> HttpStatus.GONE;
+                        case LOCKED -> HttpStatus.TOO_MANY_REQUESTS;
+                        default -> HttpStatus.UNAUTHORIZED;
+                    };
+                    throw new ResponseStatusException(status, reason);
+                }
             }
         }
 
@@ -114,11 +130,40 @@ public class ReliabilityController {
      */
     @PostMapping("/pairing-code")
     public Map<String, Object> pairingCode(@PathVariable("gameId") Long gameId,
-            @RequestHeader(value = "X-Control-Secret", required = false) String suppliedSecret) {
-        if (!secretMatches(suppliedSecret)) {
+            @RequestHeader(value = "X-Control-Secret", required = false) String suppliedSecret,
+            @RequestHeader(value = "X-Session-Token", required = false) String sessionToken) {
+        if (!pairedTvSession(gameId, sessionToken) && !secretMatches(suppliedSecret)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenziale di regia non valida");
         }
-        return Map.of("code", pairing.issue(gameId), "ttlSeconds", PairingCodeService.TTL.toSeconds());
+        String code = pairing.issue(gameId);
+        PairingCodeService.ActiveCode active = pairing.active(gameId);
+        return Map.of("code", code, "ttlSeconds", PairingCodeService.TTL.toSeconds(),
+                "expiresAt", active == null ? 0L : active.expiresAt());
+    }
+
+    /**
+     * Codice attivo senza rigenerarlo: la TV lo interroga per capire quando è
+     * scaduto o è stato usato e mostrarne subito uno nuovo.
+     */
+    @GetMapping("/pairing-code")
+    public Map<String, Object> pairingCodeStatus(@PathVariable("gameId") Long gameId,
+            @RequestHeader(value = "X-Control-Secret", required = false) String suppliedSecret,
+            @RequestHeader(value = "X-Session-Token", required = false) String sessionToken) {
+        if (!pairedTvSession(gameId, sessionToken) && !secretMatches(suppliedSecret)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenziale di regia non valida");
+        }
+        PairingCodeService.ActiveCode active = pairing.active(gameId);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("code", active == null ? null : active.value());
+        out.put("expiresAt", active == null ? 0L : active.expiresAt());
+        out.put("ttlSeconds", PairingCodeService.TTL.toSeconds());
+        return out;
+    }
+
+    /** Solo la TV della stessa partita può leggere o rigenerare il codice. */
+    private boolean pairedTvSession(Long gameId, String token) {
+        return sessions.authenticate(token)
+                .filter(s -> s.getGameId().equals(gameId) && "TV".equals(s.getRole())).isPresent();
     }
 
     /**
@@ -400,7 +445,8 @@ public class ReliabilityController {
         }
         if (value instanceof JSONObject object) {
             boolean musicPayload = music || "MUSIC".equals(object.optString("type"))
-                    || "MUSIC_PHASE".equals(object.optString("action"));
+                    || "MUSIC_PHASE".equals(object.optString("action"))
+                    || object.has("songs") || object.has("previewUrl") || object.has("songTitle");
             JSONObject clean = new JSONObject();
             for (String key : object.keySet()) {
                 if (!java.util.Set.of("correctAnswer", "correctIndex", "explanation", "explain", "solution", "rawPayload", "proverb").contains(key)

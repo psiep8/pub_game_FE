@@ -180,23 +180,41 @@ export class ReliabilityService {
     return `${this.deviceId()}:${kind}:${discriminator}`;
   }
 
-  /**
-   * Codice breve per l'abbinamento della regia (solo dalla TV). Il segreto di
-   * regia viene chiesto una volta sola per scheda e poi tenuto in memoria.
+    /**
+   * Codice breve per l'abbinamento della regia (solo dalla TV). La TV ha una
+   * sessione propria: il codice arriva dal server senza chiedere il segreto,
+   * altrimenti con il database appena azzerato nessuno poteva generarlo.
    */
-  async requestPairingCode(): Promise<{ code: string; ttlSeconds: number } | null> {
+  async requestPairingCode(): Promise<{ code: string; ttlSeconds: number; expiresAt?: number } | null> {
+    const token = this.sessionToken();
+    if (!token) return null;
     try {
-      this.controlSecret ??= window.prompt('Inserisci il segreto di regia');
-      if (!this.controlSecret) return null;
       const response = await firstValueFrom(
-        this.http.post<{ code: string; ttlSeconds: number }>(
+        this.http.post<{ code: string; ttlSeconds: number; expiresAt?: number }>(
           `${this.baseUrl}/games/${this.gameId}/pairing-code`, {},
-          { headers: { 'X-Control-Secret': this.controlSecret } })
+          { headers: { 'X-Session-Token': token } }
+        )
       );
       return response;
     } catch (error) {
-      if ((error as HttpErrorResponse)?.status === 401) this.controlSecret = null;
-      this.lastError.set('Impossibile creare il codice di abbinamento');
+      if ((error as HttpErrorResponse)?.status === 401) this.lastError.set('TV non abbinata: ricarica la TV');
+      else this.lastError.set('Impossibile creare il codice di abbinamento');
+      return null;
+    }
+  }
+
+  /** Codice attivo senza rigenerarlo: la TV capisce quando è scaduto o usato. */
+  async pairingCodeStatus(): Promise<{ code: string | null; expiresAt: number; ttlSeconds: number } | null> {
+    const token = this.sessionToken();
+    if (!token) return null;
+    try {
+      return await firstValueFrom(
+        this.http.get<{ code: string | null; expiresAt: number; ttlSeconds: number }>(
+          `${this.baseUrl}/games/${this.gameId}/pairing-code`,
+          { headers: { 'X-Session-Token': token } }
+        )
+      );
+    } catch {
       return null;
     }
   }
@@ -322,10 +340,13 @@ export class ReliabilityService {
       this.online.set(false);
       // La regia che ha appena battuto un codice deve sapere che il problema è
       // il codice, non il backend: "Sessione non disponibile" sembrava un guasto.
-      const rejectedCode = status === 401 && !this.sessionToken();
+      const rejectedCode = (status === 401 || status === 410 || status === 429) && !this.sessionToken();
       this.lastError.set(status === 409
         ? 'Nome già in uso, scegline un altro'
-        : rejectedCode ? 'Codice TV non valido o scaduto' : 'Sessione non disponibile');
+        : status === 410 ? 'Codice scaduto: guarda la TV, ce n’è uno nuovo'
+        : status === 429 ? 'Troppi tentativi: attendi un minuto e riprova'
+        : rejectedCode ? 'Codice non valido: guarda la TV, ce n’è uno nuovo'
+        : 'Sessione non disponibile');
       return false;
     }
   }

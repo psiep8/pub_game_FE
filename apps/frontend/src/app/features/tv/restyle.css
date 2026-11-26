@@ -256,6 +256,17 @@
   border-radius: 0; cursor: pointer;
 }
 .pairing-btn:hover { background: var(--tomato); border-color: var(--coal); }
+.regia-card { border-width: 4px; box-shadow: 8px 8px 0 var(--coal); }
+.pairing-regia { display: flex; align-items: center; gap: 14px; }
+.pairing-qr {
+  width: clamp(84px, 12vh, 132px); height: clamp(84px, 12vh, 132px);
+  display: block; background: var(--paper-hi); border: 3px solid var(--coal); border-radius: 0;
+}
+.pairing-regia-code { display: grid; gap: 4px; }
+.pairing-url {
+  margin: 2px 0 0; font-family: var(--font-mono); font-size: clamp(.55rem, 1.1vh, .8rem);
+  overflow-wrap: anywhere; text-transform: none; color: var(--coal);
+}
 .lobby-teams { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
 .lobby-team {
   display: flex; align-items: center; gap: 8px; min-width: 0; padding: 5px 8px;

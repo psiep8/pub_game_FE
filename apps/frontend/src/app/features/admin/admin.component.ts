@@ -14,6 +14,9 @@ import { ConnectionBadge } from '../../shared/components/connection-badge/connec
 import { ButtonTestService, ButtonTestSnapshot } from '../../core/services/button-test.service';
 import { DEMO_ORDER, DEMO_SCRIPTS } from '../tv/demo-scripts';
 
+/** Giochi con più manche: il pulsante unico diventa «PROSSIMA MANCHE». */
+const MANCHE_GAMES = new Set(['QUIZ', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE', 'TIME_BUZZER', 'AZZARDO', 'MUSIC']);
+
 @Component({
   selector: 'app-admin-component',
   standalone: true,
@@ -35,6 +38,29 @@ export class Admin implements OnInit, OnDestroy {
   readonly pairingNeeded = signal(false);
   readonly pairingCode = signal('');
   readonly pairingBusy = signal(false);
+  /** Pausa globale: il pulsante unico diventa RIPRENDI. */
+  readonly paused = signal(false);
+  /**
+   * Un solo pulsante primario, in basso, che dice cosa farà davvero.
+   * In serata il presentatore non deve cercare il comando giusto fra dodici.
+   */
+  readonly primaryAction = computed<{ label: string; kind: 'none' | 'pause' | 'next' | 'manche' }>(() => {
+    if (this.pairingNeeded()) return { label: 'REGIA DA ABBINARE', kind: 'none' };
+    if (this.paused()) return { label: 'RIPRENDI', kind: 'pause' };
+    const diag = this.diagnostics();
+    const current = Number(diag?.roundIndex);
+    const played = Number.isFinite(current) ? current + 1 : 0;
+    const next = played + 1;
+    const type = this.currentQuestionType();
+    if (this.gameState() === 'ROUND_ENDED') {
+      return { label: `CHIUDI RIEPILOGO · ROUND ${played || next}`, kind: 'next' };
+    }
+    if (this.gameState() === 'ACTIVE' && MANCHE_GAMES.has(type)) {
+      return { label: `PROSSIMA MANCHE · ${type}`, kind: 'manche' };
+    }
+    return { label: `AVVIA ROUND ${next} · ${type}`, kind: 'next' };
+  });
+  private pairingAutoTimer?: ReturnType<typeof setTimeout>;
   readonly testsReady = computed(() => {
     const test = this.buttonTest();
     return !test || test.teams.length === 0 || test.allReady;
@@ -137,6 +163,14 @@ export class Admin implements OnInit, OnDestroy {
           case 'START_VOTING':
             
             this.handleStartVoting(status);
+            break;
+
+          case 'GAME_PAUSED':
+            this.paused.set(true);
+            break;
+
+          case 'GAME_RESUMED':
+            this.paused.set(false);
             break;
 
           case 'ROUND_ENDED':
@@ -567,10 +601,28 @@ export class Admin implements OnInit, OnDestroy {
     history.replaceState(null, '', location.pathname + location.hash);
   }
 
+  /**
+   * Tastiera numerica, sei cifre, invio automatico all'ultima: in serata la
+   * regia non deve premere un secondo pulsante con il codice già completo.
+   */
   setPairingCode(event: Event): void {
     const value = (event.target as HTMLInputElement).value.replace(/\D/g, '').slice(0, 6);
     this.pairingCode.set(value);
     (event.target as HTMLInputElement).value = value;
+    if (this.pairingAutoTimer) clearTimeout(this.pairingAutoTimer);
+    if (value.length === 6) {
+      this.pairingAutoTimer = setTimeout(() => void this.submitPairingCode(), 40);
+    }
+  }
+
+  /** Azione del pulsante unico: una sola strada, quella giusta per la fase. */
+  runPrimary(): void {
+    switch (this.primaryAction().kind) {
+      case 'pause': this.toggleGamePause(); break;
+      case 'manche': this.nextManche(); break;
+      case 'next': this.nextRound(); break;
+      default: break;
+    }
   }
 
   async submitPairingCode(): Promise<void> {
@@ -775,6 +827,7 @@ export class Admin implements OnInit, OnDestroy {
     if (this.diagTimer) clearInterval(this.diagTimer);
     if (this.buttonTestTimer) clearInterval(this.buttonTestTimer);
     if (this.stateRetry) clearTimeout(this.stateRetry);
+    if (this.pairingAutoTimer) clearTimeout(this.pairingAutoTimer);
     
   }
 }

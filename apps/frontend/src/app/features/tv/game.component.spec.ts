@@ -74,6 +74,31 @@ describe('GameComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('N-01: la lobby genera il codice da sola e mostra il QR della regia', async () => {
+    component.phase.set('IDLE');
+    component.currentGameId.set(7);
+    reliability.pairingStatusResult = { code: null, expiresAt: 0, ttlSeconds: 300 };
+    reliability.requestPairingCodeResult = {
+      code: '654321',
+      ttlSeconds: 300,
+      expiresAt: Date.now() + 300_000,
+    };
+
+    await component.ensurePairingCode();
+
+    expect(component.pairingCode()).toBe('654321');
+    expect(component.adminPairUrl()).toContain('/admin?pair=654321');
+    expect(component.pairingCountdown()).toBeGreaterThan(290);
+  });
+
+  it('N-02: la barra comandi in TV non c’è senza ?debug=1', () => {
+    component.phase.set('IDLE');
+    fixture.detectChanges();
+
+    expect(component.commandsVisible()).toBe(false);
+    expect(fixture.nativeElement.querySelector('.tv-dock')).toBeNull();
+  });
+
   /** `document.hidden` è in sola lettura: la visibilità si finge qui. */
   function setHidden(hidden: boolean): void {
     Object.defineProperty(document, 'hidden', { configurable: true, get: () => hidden });
@@ -798,6 +823,8 @@ describe('GameComponent', () => {
   });
 
   it('con la classifica aperta la X e AVANTI restano nella dock e la chiudono', () => {
+    // La dock in serata è nascosta: qui si prova con `?debug=1`.
+    component.commandsVisible.set(true);
     component.currentGameId.set(1);
     component.currentMode.set({ type: 'QUIZ', isRevealed: () => true } as any);
     component.showLeaderboardQuick.set(true);
@@ -844,6 +871,7 @@ describe('GameComponent', () => {
   });
 
   it('un solo pulsante di chiusura, con la scritta, chiude la classifica', () => {
+    component.commandsVisible.set(true);
     component.showLeaderboardDetailed.set(true);
     component.isShowingLeaderboard.set(true);
     fixture.detectChanges();

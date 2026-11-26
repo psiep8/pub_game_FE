@@ -18,8 +18,8 @@ conoscere il codice. Le parti in *corsivo* sono suggerimenti, non obblighi.
    serve all'admin e ai telefoni.
 3. Apri il **pannello admin** (telefono o tablet del presentatore) e inserisci quel numero
    nel campo **PARTITA #**. Al primo accesso compare **🔒 REGIA NON ABBINATA**: scrivi le
-   6 cifre del riquadro **CODICE REGIA** nella lobby (durata 5 minuti, una volta sola)
-   e premi **ABBINA REGIA**.
+   il **QR REGIA** della lobby (contiene già il codice) oppure scrivi le 6 cifre:
+   l'abbinamento parte da solo. Il codice si rinnova da solo alla scadenza e dopo l'uso.
 4. Controlla il riquadro **📡 CONNESSIONI & SALVATAGGIO**:
    - **Dispositivi online** deve salire man mano che le squadre entrano;
    - **Round aperto** deve essere *no* prima si iniziare;

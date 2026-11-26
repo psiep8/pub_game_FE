@@ -13,13 +13,15 @@ pannello admin e in TV, nei momenti previsti dal gioco.
 
 ## 1. Prima di iniziare
 
-1. Apri `/admin` dal telefono o dal tablet del presentatore. Se è la prima volta in
-   questa scheda compare il riquadro **🔒 REGIA NON ABBINATA** con il campo *Codice a
-   6 cifre* e il pulsante **ABBINA REGIA**: il codice è quello del riquadro **CODICE
-   REGIA** sulla lobby TV. Se il codice non c'è, premilo sulla TV con **GENERA CODICE**
-   (serve il segreto di regia). Vale 5 minuti e una volta sola: dopo 5 tentativi
-   sbagliati la partita blocca per un minuto. Finché la regia non è abbinata il pannello
-   mostra comunque **diagnostica** e **categorie**, ma i comandi non arrivano alla TV.
+1. Apri `/admin` dal telefono o dal tablet del presentatore. Il modo più veloce è
+   inquadrare il **QR REGIA** della lobby TV: il link contiene già il codice. Se apri
+   `/admin` a mano e la scheda non è ancora abbinata, compare **🔒 REGIA NON ABBINATA**
+   con un solo campo a 6 cifre: scrivile e l'invio parte da solo all'ultima cifra.
+   Il codice è nel riquadro **REGIA** della TV, si rinnova da solo e vale una volta
+   sola; dopo 5 tentativi sbagliati la partita blocca per un minuto. La regia ricorda
+   il dispositivo: ricaricare la pagina non richiede un nuovo codice. Finché la regia
+   non è abbinata il pannello mostra **diagnostica** e **categorie**, ma i comandi non
+   arrivano alla TV.
 2. Inserisci il numero della partita nel campo **PARTITA #** (il numero che la TV mostra
    nella lobby). Senza questo numero il pannello non sa a quale TV parlare.
 3. Controlla il riquadro **📡 CONNESSIONI & SALVATAGGIO**:

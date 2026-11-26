@@ -381,6 +381,20 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Codice di abbinamento regia, con l'ora di scadenza già formattata. */
   readonly pairingCode = signal<string | null>(null);
   readonly pairingExpiresAt = signal('');
+  /** Secondi al codice nuovo; il codice si rigenera da solo, senza pulsanti. */
+  readonly pairingCountdown = signal(0);
+  /** QR della regia: contiene /admin?pair=<codice>, una inquadratura e basta. */
+  readonly adminPairUrl = signal('');
+  readonly adminQrCodeUrl = signal('');
+  private pairingExpiresAtMs = 0;
+  private pairingPoll?: ReturnType<typeof setInterval>;
+  private pairingClock?: ReturnType<typeof setInterval>;
+  private pairingBusy = false;
+  private lastAdminQrUrl = '';
+  /** Comandi in TV solo con `?debug=1`: in serata decide tutto la regia. */
+  readonly commandsVisible = signal(
+    new URLSearchParams(window.location.search).get('debug') === '1',
+  );
   readonly buttonTestSnapshot = signal<ButtonTestSnapshot | null>(null);
   readonly pageVisible = signal(!document.hidden);
 
@@ -504,6 +518,12 @@ export class GameComponent implements OnInit, OnDestroy {
       void this.refreshQrCode();
     });
 
+    // L'intro finisce dopo qualche secondo: il codice compare appena la lobby
+    // è davvero a schermo, senza pulsanti e senza intervento della regia.
+    effect(() => {
+      if (this.phase() === 'IDLE' && this.currentGameId()) void this.ensurePairingCode();
+    });
+
     // Tick e bong dei countdown: toni brevi, così non coprono musica e voce.
     effect(() => {
       const t = this.timer();
@@ -533,14 +553,81 @@ export class GameComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Genera un codice di abbinamento per la regia e lo mostra con la scadenza. */
-  async createPairingCode(): Promise<void> {
-    const result = await this.reliability.requestPairingCode();
-    if (!result) return;
-    const expires = new Date(Date.now() + result.ttlSeconds * 1000);
+  /**
+   * Codice sempre presente nella lobby.
+   *
+   * <p>Causa del blocco in serata: il codice si generava solo premendo un
+   * pulsante e la TV chiedeva il segreto di regia in un `prompt`. Con il
+   * database azzerato nessuno poteva generarlo. Ora la TV lo chiede al server
+   * appena la lobby è aperta, lo rigenera alla scadenza e dopo l'uso, e mostra
+   * anche il QR che porta la regia dentro con il codice già compilato.</p>
+   */
+  async ensurePairingCode(): Promise<void> {
+    if (this.pairingBusy || this.phase() !== 'IDLE' || !this.currentGameId()) return;
+    this.pairingBusy = true;
+    try {
+      const status = await this.reliability.pairingCodeStatus();
+      let code = status?.code ?? null;
+      let expiresAt = Number(status?.expiresAt ?? 0);
+      if (!code || !expiresAt || expiresAt <= Date.now()) {
+        const issued = await this.reliability.requestPairingCode();
+        if (!issued) return;
+        code = issued.code;
+        expiresAt = Number(issued.expiresAt ?? 0) || Date.now() + issued.ttlSeconds * 1000;
+      }
+      this.applyPairingCode(code, expiresAt);
+    } finally {
+      this.pairingBusy = false;
+    }
+  }
+
+  /** Un solo punto aggiorna codice, scadenza, conto alla rovescia e QR regia. */
+  private applyPairingCode(code: string, expiresAt: number): void {
+    this.pairingCode.set(code);
+    this.pairingExpiresAtMs = expiresAt;
+    const expires = new Date(expiresAt);
     this.pairingExpiresAt.set(
       expires.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }));
-    this.pairingCode.set(result.code);
+    this.pairingCountdown.set(Math.max(0, Math.round((expiresAt - Date.now()) / 1000)));
+    const url = `${location.origin}/admin?pair=${code}`;
+    this.adminPairUrl.set(url);
+    void this.refreshAdminQrCode(url);
+    this.startPairingClock();
+  }
+
+  /** Il codice si controlla ogni 5 s: scaduto o usato, ne arriva subito uno nuovo. */
+  private startPairingClock(): void {
+    if (this.pairingClock) return;
+    this.pairingClock = setInterval(() => {
+      const left = Math.max(0, Math.round((this.pairingExpiresAtMs - Date.now()) / 1000));
+      this.pairingCountdown.set(left);
+      if (left <= 0) void this.ensurePairingCode();
+    }, 1000);
+    this.pairingPoll = setInterval(() => void this.ensurePairingCode(), 5000);
+  }
+
+  /** QR della regia generato in locale, come quello dei telefoni. */
+  private async refreshAdminQrCode(url: string): Promise<void> {
+    if (!url || url === this.lastAdminQrUrl) return;
+    this.lastAdminQrUrl = url;
+    try {
+      this.adminQrCodeUrl.set(await QRCode.toDataURL(url, {
+        width: 800,
+        margin: 2,
+        errorCorrectionLevel: 'M',
+        color: { dark: '#15150f', light: '#ffffff' },
+      }));
+    } catch {
+      this.adminQrCodeUrl.set('');
+    }
+  }
+
+  /** Comandi TV: in serata la barra non c'è, torna solo con `?debug=1`. */
+  pairingCountdownLabel(): string {
+    const total = this.pairingCountdown();
+    const minutes = Math.floor(total / 60);
+    const seconds = total % 60;
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
   }
 
   async ngOnInit() {
@@ -584,7 +671,10 @@ export class GameComponent implements OnInit, OnDestroy {
       this.ws.subscribeToGame(activeGameId);
     }
 
-    if (!await this.reliability.start(this.currentGameId(), 'TV')) return;
+    // La TV è uno schermo: si registra da sola, senza chiedere il segreto.
+    if (!await this.reliability.start(this.currentGameId(), 'TV', '', false)) return;
+    // Lobby aperta = codice in schermo. Nessun pulsante, nessuna spiegazione.
+    void this.ensurePairingCode();
     // Il seme degli ingressi si chiede a sessione aperta: prima il server
     // risponde 401 (l'endpoint non è pubblico) e la TV resta sul ripiego.
     void this.prefetchBonusSeed(this.currentGameId());
@@ -823,6 +913,8 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.bonusEntranceTimer) clearTimeout(this.bonusEntranceTimer);
     if (this.presenceTimer) clearInterval(this.presenceTimer);
     if (this.buttonTestTimer) clearInterval(this.buttonTestTimer);
+    if (this.pairingClock) clearInterval(this.pairingClock);
+    if (this.pairingPoll) clearInterval(this.pairingPoll);
     this.leaderboardService.setPointListener(null);
     this.gameModeService.cleanup();
     if (this.displayDataInterval) {
@@ -1024,6 +1116,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.currentGameId.set(newGame.id);
     localStorage.setItem('activeGameId', newGame.id.toString());
     this.ws.subscribeToGame(newGame.id);
+    void this.ensurePairingCode();
   }
 
   /**

@@ -27,6 +27,13 @@ public class PairingCodeService {
     private record Code(String value, long expiresAt) {
     }
 
+    /** Esito del tentativo: il pannello regia deve dire *perché* non è entrato. */
+    public enum RedeemResult { OK, WRONG, EXPIRED, LOCKED }
+
+    /** Codice attivo, letto dalla TV per mostrarlo e rigenerarlo da sola. */
+    public record ActiveCode(String value, long expiresAt) {
+    }
+
     private record Attempts(int failed, long lockedUntil) {
     }
 
@@ -41,24 +48,51 @@ public class PairingCodeService {
         return value;
     }
 
-    /** Consuma il codice se è valido. Falso per codice errato, scaduto o bloccato. */
-    public synchronized boolean redeem(long gameId, String supplied) {
+    /**
+     * Consuma il codice restituendo il motivo del rifiuto.
+     *
+     * <p>Prima un codice scaduto, uno sbagliato e un blocco producevano tutti
+     * lo stesso 401: la regia non poteva dire «guarda la TV, ce n'è uno nuovo»
+     * e il presentatore restava davanti a un errore muto. Un codice assente o
+     * scaduto non consuma un tentativo: non è un errore di digitazione.</p>
+     */
+    public synchronized RedeemResult attempt(long gameId, String supplied) {
         long now = System.currentTimeMillis();
         Attempts state = attempts.get(gameId);
         if (state != null && state.lockedUntil() > now) {
-            return false;
+            return RedeemResult.LOCKED;
         }
         Code code = codes.get(gameId);
-        if (supplied == null || code == null || code.expiresAt() < now
-                || !code.value().equals(supplied.trim())) {
+        if (code == null) {
+            return RedeemResult.EXPIRED;
+        }
+        if (code.expiresAt() < now) {
+            codes.remove(gameId);
+            return RedeemResult.EXPIRED;
+        }
+        if (supplied == null || !code.value().equals(supplied.trim())) {
             int failed = (state == null ? 0 : state.failed()) + 1;
             long lockedUntil = failed >= MAX_FAILED_ATTEMPTS ? now + LOCKOUT.toMillis() : 0;
             attempts.put(gameId, new Attempts(lockedUntil > 0 ? 0 : failed, lockedUntil));
-            return false;
+            return RedeemResult.WRONG;
         }
         codes.remove(gameId);
         attempts.remove(gameId);
-        return true;
+        return RedeemResult.OK;
+    }
+
+    /** Consuma il codice se è valido. Falso per codice errato, scaduto o bloccato. */
+    public synchronized boolean redeem(long gameId, String supplied) {
+        return attempt(gameId, supplied) == RedeemResult.OK;
+    }
+
+    /** Codice attivo della partita, o null se scaduto/già usato. */
+    public synchronized ActiveCode active(long gameId) {
+        Code code = codes.get(gameId);
+        if (code == null || code.expiresAt() <= System.currentTimeMillis()) {
+            return null;
+        }
+        return new ActiveCode(code.value(), code.expiresAt());
     }
 
     /** Elimina i codici scaduti, così la mappa non cresce per sempre. */

@@ -435,6 +435,26 @@ export class FakeReliabilityService {
     return true;
   }
 
+  /** Codice regia: nei test parte spento, così la lobby non avvia timer. */
+  requestPairingCodeResult: { code: string; ttlSeconds: number; expiresAt?: number } | null = null;
+  pairingStatusResult: { code: string | null; expiresAt: number; ttlSeconds: number } | null = null;
+
+  async requestPairingCode(): Promise<{ code: string; ttlSeconds: number; expiresAt?: number } | null> {
+    return this.requestPairingCodeResult;
+  }
+
+  async pairingCodeStatus(): Promise<{ code: string | null; expiresAt: number; ttlSeconds: number } | null> {
+    return this.pairingStatusResult;
+  }
+
+  /** Abbinamenti chiesti dal pannello: i test verificano il codice inviato. */
+  readonly paired: Array<{ gameId: number; code: string }> = [];
+
+  async pairAdmin(gameId: number, code: string): Promise<boolean> {
+    this.paired.push({ gameId, code });
+    return true;
+  }
+
   async sync(): Promise<void> {}
 
   async heartbeat(): Promise<void> {}

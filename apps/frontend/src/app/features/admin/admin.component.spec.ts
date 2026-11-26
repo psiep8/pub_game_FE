@@ -126,6 +126,34 @@ describe('Admin', () => {
     });
   });
 
+  it('N-01: il codice a sei cifre si invia da solo, senza premere ABBINA', async () => {
+    const reliability = TestBed.inject(ReliabilityService) as unknown as FakeReliabilityService;
+    const target = { value: '123' } as HTMLInputElement;
+    component.setPairingCode({ target } as unknown as Event);
+    expect(reliability.paired).toHaveLength(0);
+
+    target.value = '123456';
+    component.setPairingCode({ target } as unknown as Event);
+    await new Promise((resolve) => setTimeout(resolve, 60));
+
+    expect(reliability.paired).toEqual([{ gameId: 1, code: '123456' }]);
+  });
+
+  it('N-02: il pulsante unico dice cosa farà, fase per fase', async () => {
+    component.diagnostics.set({ roundIndex: 3, roundType: 'QUIZ' });
+    ws.status$.next({ action: 'START_VOTING', type: 'QUIZ' });
+    await fixture.whenStable();
+    expect(component.primaryAction().label).toBe('PROSSIMA MANCHE · QUIZ');
+
+    ws.status$.next({ action: 'ROUND_ENDED' });
+    await fixture.whenStable();
+    expect(component.primaryAction().label).toBe('CHIUDI RIEPILOGO · ROUND 4');
+
+    ws.status$.next({ action: 'GAME_PAUSED' });
+    await fixture.whenStable();
+    expect(component.primaryAction().label).toBe('RIPRENDI');
+  });
+
   it('should clear the question state when the round ends', async () => {
     ws.status$.next({ action: 'PLAYER_PRENOTATO', name: 'Anna' });
     ws.status$.next({ action: 'ROUND_ENDED' });
