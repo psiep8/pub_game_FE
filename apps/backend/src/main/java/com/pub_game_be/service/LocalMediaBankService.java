@@ -61,9 +61,16 @@ public class LocalMediaBankService {
     private final Map<String, List<Clue>> cluesByName = new LinkedHashMap<>();
     private final List<String> namesWithClues = new ArrayList<>();
     private final String configuredBaseUrl;
+    private final ClassPathResource mediaResource;
 
     public LocalMediaBankService(@Value("${game.media-base-url:}") String mediaBaseUrl) {
+        this(mediaBaseUrl, new ClassPathResource("questions/media-it.json"));
+    }
+
+    /** Variante dei test: simula un clone pulito senza l'indice media locale. */
+    LocalMediaBankService(String mediaBaseUrl, ClassPathResource mediaResource) {
         this.configuredBaseUrl = mediaBaseUrl == null ? "" : mediaBaseUrl.trim();
+        this.mediaResource = mediaResource;
         load();
     }
 
@@ -189,13 +196,15 @@ public class LocalMediaBankService {
     }
 
     private void load() {
-        ClassPathResource resource = new ClassPathResource("questions/media-it.json");
+        ClassPathResource resource = this.mediaResource;
         if (!resource.exists()) {
-            // L'indice media è grande e locale: senza di lui la banca Musica
-            // taggata resta comunque leggibile (copertine a parte).
+            // L'indice media è locale e non versionato: indizi e temi sono
+            // versionati e devono restare disponibili anche in un clone pulito.
             loadMusicThemes();
+            loadClues();
             return;
         }
+        boolean mediaLoaded = false;
         try (InputStream stream = resource.getInputStream()) {
             JSONObject root = new JSONObject(new String(stream.readAllBytes(), StandardCharsets.UTF_8));
 
@@ -238,15 +247,17 @@ public class LocalMediaBankService {
                 }
             }
 
-            loadMusicThemes();
-            loadClues();
-
+            mediaLoaded = true;
+        } catch (Exception error) {
+            System.out.println("⚠️ Banca media locale illeggibile (" + error.getMessage()
+                    + "): restano indizi e temi versionati.");
+        }
+        loadMusicThemes();
+        loadClues();
+        if (mediaLoaded) {
             System.out.println("Banca media locale: " + tracks.size() + " brani, "
                     + taggedTracks.size() + " taggati per la Musica, "
                     + people.size() + " volti, " + cluesByName.size() + " persone con quattro indizi.");
-        } catch (Exception error) {
-            System.out.println("⚠️ Banca media locale illeggibile (" + error.getMessage()
-                    + "): si torna a iTunes/TMDB quando c'è rete.");
         }
     }
 
