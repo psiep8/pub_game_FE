@@ -23,7 +23,8 @@ class WheelProverbTest {
                 mock(AppleMusicCuratorService.class),
                 mock(CelebrityImageService.class),
                 mock(AzzardoMediaService.class),
-                mock(LocalMediaBankService.class));
+                mock(LocalMediaBankService.class),
+                mock(MusicRoundService.class));
     }
 
     @Test

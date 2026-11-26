@@ -791,6 +791,34 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
         }
 
+        case 'MUSIC_PHASE': {
+          // Musica: il telefono ha un solo tasto, la prenotazione. La TV manda
+          // la fase della manca corrente, così il tasto si arma solo nei
+          // cinque secondi a audio fermo e si riarma a ogni nuova manca.
+          const state = (status.state ?? {}) as any;
+          const phase = String(state.phase ?? '').toUpperCase();
+          const me = (this.nickname() ?? '').trim().toLowerCase();
+          const wrong = Array.isArray(state.wrongPlayers)
+            && state.wrongPlayers.some((name: unknown) => String(name).trim().toLowerCase() === me);
+          const buzzed = String(state.buzzedPlayer ?? '').trim();
+          this.questionType.set('MUSIC');
+          this.roundActive.set(true);
+          this.roundClosed.set(false);
+          // Chi ha sbagliato rientra alla manca successiva: nella stessa manca
+          // resta fuori, come chi ha già prenotato (una per squadra).
+          const open = phase === 'BUZZ' && !wrong && !buzzed;
+          this.hasAnswered.set(!open);
+          if (open) {
+            this.startTime = Date.now();
+            this.gameState.set(PlayerStatus.VOTING);
+          } else if (buzzed || wrong) {
+            this.gameState.set(PlayerStatus.LOCKED);
+          } else {
+            this.gameState.set(PlayerStatus.WAITING);
+          }
+          break;
+        }
+
         case 'BOMBA_STATE':
           this.applyBombaState(status.state);
           break;

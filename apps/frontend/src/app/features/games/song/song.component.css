@@ -749,3 +749,207 @@
   .label-icon { font-size: 22px; }
   .label-text { font-size: 12px; }
 }
+
+/* ------------------------------------------------------------------
+   Skin 4 round × 5 manche: carta e inchiostro, etichette mono, radius 0.
+   ------------------------------------------------------------------ */
+
+.song-kicker {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 1.4vh, 15px);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--acid);
+  margin-bottom: 6px;
+}
+
+.song-label {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 7px 12px;
+  background: var(--paper);
+  color: var(--coal);
+  border: 3px solid var(--coal);
+  border-radius: 0;
+  box-shadow: 4px 4px 0 var(--acid);
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 1.7vh, 18px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.music-board {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 3vw, 44px);
+  width: min(1180px, 94vw);
+  flex-wrap: wrap;
+}
+
+/* Il disco è un oggetto fisico: resta un cerchio, ma senza gradienti. */
+.vinyl-disc {
+  background: var(--coal);
+  box-shadow: 10px 10px 0 var(--tomato);
+}
+
+.vinyl-grooves {
+  background: none;
+  box-shadow:
+    inset 0 0 0 2px var(--paper),
+    inset 0 0 0 26px transparent,
+    inset 0 0 0 28px rgba(244, 231, 210, 0.22),
+    inset 0 0 0 60px transparent,
+    inset 0 0 0 62px rgba(244, 231, 210, 0.14);
+}
+
+.music-ledger {
+  width: min(360px, 92vw);
+  background: var(--paper);
+  color: var(--coal);
+  border: 4px solid var(--coal);
+  border-radius: 0;
+  box-shadow: 8px 8px 0 var(--coal);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ledger-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 2px solid var(--coal);
+  padding-bottom: 6px;
+}
+
+.ledger-key {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--coal);
+  opacity: 0.72;
+}
+
+.ledger-value {
+  font-family: var(--font-mono);
+  font-size: clamp(16px, 2.2vh, 22px);
+  font-weight: 700;
+  color: var(--coal);
+}
+
+.ledger-row--points {
+  background: var(--mustard);
+  border: 2px solid var(--coal);
+  padding: 6px 8px;
+}
+
+.ledger-row--points .ledger-value {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3.4vh, 34px);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.ledger-row--theme {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.ledger-theme {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 2.6vh, 26px);
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--tomato);
+  text-align: right;
+  line-height: 1;
+}
+
+.ledger-stamp {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 5px 9px;
+  background: var(--acid);
+  color: var(--on-acid);
+  border: 3px solid var(--coal);
+  border-radius: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  transform: rotate(-2deg);
+}
+
+.ledger-hint {
+  margin: 2px 0 0;
+  font-family: var(--font);
+  font-size: clamp(12px, 1.6vh, 15px);
+  line-height: 1.3;
+  color: var(--coal);
+  opacity: 0.8;
+}
+
+.phase-strip {
+  display: flex;
+  gap: 10px;
+  margin-top: clamp(12px, 2vh, 22px);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.phase-cell {
+  min-width: 120px;
+  padding: 8px 12px;
+  background: var(--paper);
+  color: var(--coal);
+  border: 3px solid var(--coal);
+  border-radius: 0;
+  box-shadow: 4px 4px 0 var(--coal);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  opacity: 0.55;
+}
+
+.phase-cell.is-on {
+  background: var(--mustard);
+  opacity: 1;
+  box-shadow: 6px 6px 0 var(--coal);
+}
+
+.phase-cell-value {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.8vh, 28px);
+  line-height: 1;
+}
+
+.phase-cell-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.reveal-stamp {
+  padding: 5px 10px;
+  background: var(--mint);
+  color: var(--coal);
+  border: 3px solid var(--coal);
+  border-radius: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  transform: rotate(-2deg);
+}
+
+.reveal-icon {
+  display: none;
+}

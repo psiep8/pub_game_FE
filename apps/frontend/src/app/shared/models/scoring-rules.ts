@@ -21,8 +21,24 @@ export function signedPoints(value: number): string {
   return `${value < 0 ? '−' : '+'}${Math.abs(value)}`;
 }
 
-/** Punti del brano secondo la manche in cui si risponde (1-based). */
-export const MUSIC_MANCHE_POINTS = [1000, 750, 500, 250] as const;
+/**
+ * Musica: un round sono cinque manche (cinque brani sullo stesso tema).
+ * Il brano vale 200 al primo ascolto e 100 al secondo; chi sbaglia al secondo
+ * ascolto paga 50, chi sbaglia al primo non perde punti.
+ */
+export const MUSIC_FIRST_LISTEN_POINTS = 200;
+export const MUSIC_SECOND_LISTEN_POINTS = 100;
+export const MUSIC_SECOND_LISTEN_PENALTY = -50;
+/** Cinque manche da 200: il round vale 1000, la partita (4 round) 4000. */
+export const MUSIC_ROUND_MAX = 1000;
+export const MUSIC_ROUND_MIN = -250;
+export const MUSIC_GAME_MAX = 4000;
+export const MUSIC_GAME_MIN = -1000;
+/** Punti del brano secondo l'ascolto in cui si risponde (1-based). */
+export function musicPointsFor(listen: number, isCorrect: boolean): number {
+  if (listen <= 1) return isCorrect ? MUSIC_FIRST_LISTEN_POINTS : 0;
+  return isCorrect ? MUSIC_SECOND_LISTEN_POINTS : MUSIC_SECOND_LISTEN_PENALTY;
+}
 
 /**
  * Indovina chi: il vecchio round da 1000 punti diviso tre manche, una per
@@ -92,10 +108,10 @@ export const SCORING_RULES: Record<Exclude<GameModeType, 'BLACKJACK'>, ScoringRu
     note: `Tre manche da 45 secondi, una per ambito: ${IMAGE_BLUR_MANCHE_CATEGORIES.join(' · ')}. Ogni manche vale ${IMAGE_BLUR_MANCHE_POINTS.map(signedPoints).join(' / ')} in proporzione al tempo rimasto: prima si prenota, più punti vale. Le tre manche si sommano, da −${IMAGE_BLUR_MANCHE_POINTS.reduce((a, b) => a + b, 0)} a +${IMAGE_BLUR_MANCHE_POINTS.reduce((a, b) => a + b, 0)}.`,
   },
   MUSIC: {
-    correct: `${signedPoints(MUSIC_MANCHE_POINTS[0])} alla prima manche, poi ${MUSIC_MANCHE_POINTS.slice(1).map(signedPoints).join(' / ')}`,
-    wrong: `${signedPoints(-MUSIC_MANCHE_POINTS[0])} alla prima manche, poi ${MUSIC_MANCHE_POINTS.slice(1).map((value) => signedPoints(-value)).join(' / ')}`,
+    correct: `${signedPoints(MUSIC_FIRST_LISTEN_POINTS)} al primo ascolto, ${signedPoints(MUSIC_SECOND_LISTEN_POINTS)} al secondo`,
+    wrong: `0 al primo ascolto, ${signedPoints(MUSIC_SECOND_LISTEN_PENALTY)} al secondo`,
     missed: '0 (nessun malus)',
-    note: `Quattro manche sulla stessa canzone, sempre più riconoscibile: ${MUSIC_MANCHE_POINTS.map(signedPoints).join(' / ')} punti. Quattro round, quattro canzoni; massimo ${signedPoints(MUSIC_MANCHE_POINTS[0])}, minimo ${signedPoints(-MUSIC_MANCHE_POINTS[0])}.`,
+    note: `Quattro round da cinque manche: ogni round ha un tema e cinque brani, uno per manca. Il primo ascolto dura 4 secondi e vale ${signedPoints(MUSIC_FIRST_LISTEN_POINTS)}; dopo la finestra di prenotazione il secondo ascolto riparte da zero per 12 secondi e vale ${signedPoints(MUSIC_SECOND_LISTEN_POINTS)}. Chi sbaglia al primo ascolto non perde punti (blocca solo quell'ascolto), chi sbaglia al secondo paga ${signedPoints(MUSIC_SECOND_LISTEN_PENALTY)}. Il round vale ${signedPoints(MUSIC_ROUND_MAX)} (5 × ${MUSIC_FIRST_LISTEN_POINTS}), la partita al massimo ${signedPoints(MUSIC_GAME_MAX)} (4 round): è la più pesante della serata.`,
   },
   WHEEL_OF_FORTUNE: {
     correct: '+1000 × tempo rimasto',

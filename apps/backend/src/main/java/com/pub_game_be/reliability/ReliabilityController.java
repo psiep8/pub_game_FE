@@ -450,7 +450,7 @@ public class ReliabilityController {
             JSONObject clean = new JSONObject();
             for (String key : object.keySet()) {
                 if (!java.util.Set.of("correctAnswer", "correctIndex", "explanation", "explain", "solution", "rawPayload", "proverb").contains(key)
-                        && !(musicPayload && java.util.Set.of("songTitle", "artist", "previewUrl", "albumCover", "year").contains(key)))
+                        && !(musicPayload && java.util.Set.of("songTitle", "title", "artist", "previewUrl", "albumCover", "year").contains(key)))
                     clean.put(key, sanitizePayload(object.opt(key), musicPayload));
             }
             return clean;

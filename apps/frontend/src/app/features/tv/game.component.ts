@@ -102,6 +102,24 @@ const ROUND_POINTS_KEY = 'roundPoints';
 /** Scrittura di classifica in coda (debounce 250 ms) non ancora confermata. */
 const PENDING_LEADERBOARD_KEY = 'leaderboardPending';
 
+/**
+ * Bolle dei temi Musica: id sintetici (non sono le 16 categorie del Quiz) e
+ * posizioni fisse sul tabellone, con il colore preso dalla palette.
+ */
+const MUSIC_THEME_BASE = 9000;
+const MUSIC_THEME_LAYOUT = [
+  { top: '6%', left: '7%', color: 'var(--acid)' },
+  { top: '4%', left: '38%', color: 'var(--tomato)' },
+  { top: '9%', left: '70%', color: 'var(--cobalt)' },
+  { top: '34%', left: '20%', color: 'var(--mustard)' },
+  { top: '30%', left: '52%', color: 'var(--mint)' },
+  { top: '38%', left: '80%', color: 'var(--acid)' },
+  { top: '64%', left: '5%', color: 'var(--cobalt)' },
+  { top: '70%', left: '34%', color: 'var(--tomato)' },
+  { top: '62%', left: '63%', color: 'var(--mustard)' },
+  { top: '78%', left: '86%', color: 'var(--mint)' },
+] as const;
+
 @Component({
   selector: 'app-game-component',
   standalone: true,
@@ -326,7 +344,12 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Tema del vincitore del round chiuso; null = acido. */
   private roundWinnerTheme: AppTheme | null = null;
 
+  /** Tema del round Musica: lo decide il server, non il tabellone del Quiz. */
+  readonly musicTheme = signal<string | null>(null);
+
   categoryName = computed(() => {
+    const theme = this.musicTheme();
+    if (theme) return theme;
     const id = this.selectedCategoryId();
     return this.allCategories().find((cat) => cat.id === id)?.name ?? '';
   });
@@ -347,7 +370,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
   /** Nomi del rullo che si ferma sulla categoria estratta. */
   slotNames = computed(() => {
-    const categories = this.allCategories();
+    const categories = this.currentMode()?.type === 'MUSIC'
+      ? this.bubbleCategories()
+      : this.allCategories();
     if (!categories.length) return [];
     const selectedId = this.selectedCategoryId();
     const index = Math.max(0, categories.findIndex((category) => category.id === selectedId));
@@ -363,11 +388,28 @@ export class GameComponent implements OnInit, OnDestroy {
    * abilitate al gioco, le altre modalità usano tutto il tabellone.
    */
   bubbleCategories = computed(() => {
+    if (this.currentMode()?.type === 'MUSIC') {
+      const themes = this.roundThemes();
+      if (themes.length > 0) {
+        return themes.map((name, index) => ({
+          id: MUSIC_THEME_BASE + index,
+          name,
+          ...MUSIC_THEME_LAYOUT[index % MUSIC_THEME_LAYOUT.length],
+        }));
+      }
+    }
     const categories = this.allCategories();
     if (this.currentMode()?.type !== 'TIMELINE') return categories;
     const allowed = categories.filter((category) => category.timeline);
     return allowed.length > 0 ? allowed : categories;
   });
+
+  /** Temi del payload Musica: la TV anima quelle bolle, non le 16 del Quiz. */
+  private roundThemes(): string[] {
+    const payload = this.currentRoundPayload();
+    const themes = Array.isArray(payload?.themes) ? payload.themes : [];
+    return themes.map((name: unknown) => String(name).trim()).filter((name: string) => name.length > 0);
+  }
 
   private arenaFinished = false;
   /** Telefoni presenti sul backend: i bonus li usano anche senza classifica
@@ -1382,6 +1424,18 @@ export class GameComponent implements OnInit, OnDestroy {
 
       // La categoria dell'animazione a bolle deve essere quella reale del payload:
       // per Ultima spiaggia il backend sceglie la categoria dell'occorrenza.
+      // Per Musica il payload porta i dieci temi e quello estratto: la TV
+      // ferma il rullo su quella bolla, senza toccare il tabellone del Quiz.
+      if (parsedPayload?.type === 'MUSIC') {
+        const theme = String(parsedPayload?.theme ?? '').trim();
+        this.musicTheme.set(theme || null);
+        const themes = Array.isArray(parsedPayload?.themes) ? parsedPayload.themes : [];
+        const index = themes.findIndex((name: unknown) => String(name).trim() === theme);
+        if (index >= 0) this.selectedCategoryId.set(MUSIC_THEME_BASE + index);
+      } else {
+        this.musicTheme.set(null);
+      }
+
       const payloadCategory = String(parsedPayload?.category ?? '').trim();
       if (payloadCategory) {
         const selected = categories.find((category) =>
@@ -1661,7 +1715,9 @@ export class GameComponent implements OnInit, OnDestroy {
         // per ognuna delle 16 categorie ufficiali.
         return this.pickCategoryName();
       case 'MUSIC':
-        return 'Musica';
+        // I temi musicali non sono le categorie del Quiz: li sceglie il server
+        // e arrivano nel payload (theme/themes).
+        return '';
       case 'IMAGE_BLUR':
         // Le foto sono trasversali (cinema, musica, sport): la categoria
         // serve solo al filtro della banca, che cade sulle altre se vuota.
@@ -3018,6 +3074,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.showQuestion.set(false);
     this.round.set(null);
     this.selectedCategoryId.set(null);
+    this.musicTheme.set(null);
     this.timer.set(0);
     // Se si parte con un bonus mentre la TV è in pausa, l'audio non deve
     // restare muto: la pausa finisce insieme al round che l'aveva aperta.

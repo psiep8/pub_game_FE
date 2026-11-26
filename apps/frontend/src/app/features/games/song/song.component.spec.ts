@@ -1,18 +1,50 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { SimpleChange } from '@angular/core';
 import { vi } from 'vitest';
 
 import { Song } from './song.component';
 
-describe('Song', () => {
+function fakeNode() {
+  const node: any = {
+    connect: vi.fn((next: any) => next),
+    disconnect: vi.fn(),
+    gain: {
+      value: 1,
+      cancelScheduledValues: vi.fn(),
+      setValueAtTime: vi.fn(),
+      linearRampToValueAtTime: vi.fn(),
+    },
+    threshold: { value: 0 },
+    ratio: { value: 0 },
+    attack: { value: 0 },
+    release: { value: 0 },
+  };
+  return node;
+}
+
+class FakeAudio {
+  static created: FakeAudio[] = [];
+  loop = true;
+  preload = '';
+  crossOrigin = '';
+  currentTime = 9;
+  paused = true;
+  src = '';
+  play = vi.fn(async () => { this.paused = false; });
+  pause = vi.fn(() => { this.paused = true; });
+  load = vi.fn();
+  constructor(public url: string) {
+    FakeAudio.created.push(this);
+  }
+}
+
+describe('Song — audio pulito della partita Musica', () => {
   let component: Song;
   let fixture: ComponentFixture<Song>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [Song],
-    }).compileComponents();
-
+    FakeAudio.created = [];
+    vi.stubGlobal('Audio', FakeAudio);
+    await TestBed.configureTestingModule({ imports: [Song] }).compileComponents();
     fixture = TestBed.createComponent(Song);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -21,208 +53,125 @@ describe('Song', () => {
 
   afterEach(() => {
     fixture.destroy();
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
   });
+
+  function wire(song: any) {
+    const ctx = {
+      currentTime: 0,
+      state: 'running',
+      resume: vi.fn(),
+      destination: {},
+      createMediaElementSource: vi.fn(() => fakeNode()),
+      createGain: vi.fn(() => fakeNode()),
+      createDynamicsCompressor: vi.fn(() => fakeNode()),
+      createBiquadFilter: vi.fn(),
+      createWaveShaper: vi.fn(),
+      createOscillator: vi.fn(),
+      createBufferSource: vi.fn(),
+    };
+    song.audioContext = ctx;
+    song.audioEngine = {
+      context: () => ctx,
+      output: () => fakeNode(),
+      unlock: vi.fn(async () => undefined),
+    };
+    song.audioUnlocked = true;
+    return ctx;
+  }
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should describe every phase', () => {
-    expect(component.getPhaseLabel()).toBe('In attesa...');
-
-    component.currentPhase.set(1);
-    expect(component.getPhaseLabel()).toContain('Irriconoscibile');
-    expect(component.getPhaseColor()).toBe('var(--tomato)');
-
-    component.currentPhase.set(4);
-    expect(component.getPhaseLabel()).toContain('Chiaro');
-    expect(component.getPhaseColor()).toBe('var(--mint)');
-  });
-
-  it('should expose an icon per phase', () => {
-    component.currentPhase.set(0);
-    expect(component.getPhaseIcon()).toBe('⏳');
-
-    component.currentPhase.set(4);
-    expect(component.getPhaseIcon()).toBe('📢');
-  });
-
-  it('sfuma gli ultimi 5 secondi e avvisa quando il brano è finito', async () => {
-    vi.useFakeTimers();
-    try {
-      const song = component as any;
-      const ramp: Array<[number, number]> = [];
-      const gain = {
-        cancelScheduledValues: vi.fn(),
-        setValueAtTime: vi.fn(),
-        linearRampToValueAtTime: vi.fn((value: number, at: number) => ramp.push([value, at])),
-        disconnect: vi.fn(),
-      };
-      const filter = {
-        frequency: { setValueAtTime: vi.fn() },
-        Q: { setValueAtTime: vi.fn() },
-        disconnect: vi.fn(),
-      };
-
-      song.audio = {
-        loop: false,
-        currentTime: 0,
-        play: vi.fn().mockResolvedValue(undefined),
-        pause: vi.fn(),
-      };
-      song.audioContext = {
-        currentTime: 100,
-        state: 'running',
-        resume: vi.fn(),
-        sampleRate: 44100,
-      };
-      song.gainNode = { gain, disconnect: vi.fn() };
-      song.bandpassFilter = filter;
-      song.highpassFilter = filter;
-      song.lowpassFilter = filter;
-      song.distortionNode = { curve: null, disconnect: vi.fn() };
-      song.startVinylAnimation = vi.fn();
-
-      let ended = 0;
-      component.onFullPlaybackEnd.subscribe(() => ended++);
-
-      await song.startFullPlayback();
-
-      // 25 s a volume pieno, poi 5 s di rampa fino a zero.
-      expect(ramp).toContainEqual([0.0001, 130]);
-      expect(gain.setValueAtTime).toHaveBeenCalledWith(1, 125);
-
-      await vi.advanceTimersByTimeAsync(30_000);
-      expect(ended).toBe(1);
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it('F-16: la manche 1 non cambia la velocità del brano (l\'effetto è nel filtro)', () => {
+  it('non mette il brano in loop e non usa filtri, pitch o distorsione', () => {
     const song = component as any;
-    const setValue = vi.fn();
-    song.audio = { playbackRate: 1, pause: vi.fn() };
-    song.audioContext = { currentTime: 0 };
-    song.gainNode = { gain: { setValueAtTime: setValue, cancelScheduledValues: vi.fn() } };
-    song.bandpassFilter = { frequency: { setValueAtTime: setValue }, Q: { setValueAtTime: setValue }, disconnect: vi.fn() };
-    song.highpassFilter = { frequency: { setValueAtTime: setValue }, disconnect: vi.fn() };
-    song.lowpassFilter = { frequency: { setValueAtTime: setValue }, disconnect: vi.fn() };
-    song.distortionNode = { curve: null, disconnect: vi.fn() };
-    song.setInterference = vi.fn();
+    const ctx = wire(song);
 
-    song.applyFilters(1);
-    expect(song.audio.playbackRate).toBe(1);
+    song.initAudio('/media/music/a.m4a');
 
-    song.applyFilters(3);
-    expect(song.audio.playbackRate).toBe(1);
-
-    // I mock restano solo in questo test: la distruzione non deve toccarli.
-    song.audio = undefined;
-    song.audioContext = undefined;
-    song.gainNode = undefined;
-    song.bandpassFilter = undefined;
-    song.highpassFilter = undefined;
-    song.lowpassFilter = undefined;
-    song.distortionNode = undefined;
+    expect(song.audio.loop).toBe(false);
+    expect(song.audio.preload).toBe('auto');
+    expect(ctx.createBiquadFilter).not.toHaveBeenCalled();
+    expect(ctx.createWaveShaper).not.toHaveBeenCalled();
+    expect(ctx.createOscillator).not.toHaveBeenCalled();
+    expect(ctx.createDynamicsCompressor).toHaveBeenCalled();
   });
 
-  it('F-17: la manche 2 resta a velocità naturale e non va al contrario', async () => {
+  it('ogni ascolto riparte da zero con un fade di 60 ms in testa', async () => {
     const song = component as any;
-    const setValue = vi.fn();
-    const createBufferSource = vi.fn();
-    song.audio = { playbackRate: 1, pause: vi.fn(), play: vi.fn().mockResolvedValue(undefined) };
-    song.audioContext = { currentTime: 0, state: 'running', resume: vi.fn(), createBufferSource };
-    song.gainNode = { gain: { setValueAtTime: setValue, cancelScheduledValues: vi.fn() } };
-    song.bandpassFilter = { frequency: { setValueAtTime: setValue }, Q: { setValueAtTime: setValue }, disconnect: vi.fn() };
-    song.highpassFilter = { frequency: { setValueAtTime: setValue }, disconnect: vi.fn() };
-    song.lowpassFilter = { frequency: { setValueAtTime: setValue }, disconnect: vi.fn() };
-    song.distortionNode = { curve: null, disconnect: vi.fn() };
-    song.setInterference = vi.fn();
-    song.startVinylAnimation = vi.fn();
-    song.audioUnlocked = true;
-    song.displayData = { previewUrl: 'preview.mp3' };
+    wire(song);
+    song.initAudio('/media/music/a.m4a');
+    song.audio.currentTime = 7;
 
-    song.applyFilters(2);
-    expect(song.audio.playbackRate).toBe(1);
+    await song.playFrom(0);
 
-    song.currentPhase.set(2);
-    await song.playAudio();
-
-    expect(song.audio.play).toHaveBeenCalled();
-    expect(createBufferSource).not.toHaveBeenCalled();
-
-    song.audio = undefined;
-    song.audioContext = undefined;
-    song.gainNode = undefined;
-    song.bandpassFilter = undefined;
-    song.highpassFilter = undefined;
-    song.lowpassFilter = undefined;
-    song.distortionNode = undefined;
-  });
-
-  it('passando dalla manche 2 alla 3 cambia solo il filtro', () => {
-    const song = component as any;
-    song.playAudio = vi.fn();
-    song.applyFilters = vi.fn();
-    song.applyBlur = vi.fn();
-    song.isPlaying.set(true);
-    song.currentPhase.set(2);
-    song.lastPhase = 2;
-    song.displayData = {
-      previewUrl: 'preview.mp3',
-      audioPlaying: true,
-      buzzedPlayer: null,
-      fullPlayback: false,
-      currentPhase: 3,
-    };
-
-    song.ngOnChanges({
-      displayData: new SimpleChange(
-        { ...song.displayData, currentPhase: 2 },
-        song.displayData,
-        false,
-      ),
-    });
-
+    expect(song.audio.currentTime).toBe(0);
+    const gain = song.gainNode.gain;
+    expect(gain.linearRampToValueAtTime).toHaveBeenCalledWith(1, 0.06);
     expect(song.isPlaying()).toBe(true);
-    expect(song.playAudio).not.toHaveBeenCalled();
-    expect(song.applyFilters).toHaveBeenCalledWith(3);
   });
 
-  it('should stop the preview as soon as a player buzzes', () => {
+  it('taglia con un fade di 60 ms in coda', () => {
+    vi.useFakeTimers();
     const song = component as any;
-    let pauses = 0;
-    song.audio = {
-      pause: () => { pauses++; },
-      loop: true,
-      playbackRate: 1,
-      currentTime: 5,
-    };
+    wire(song);
+    song.initAudio('/media/music/a.m4a');
+    song.audio.paused = false;
     song.isPlaying.set(true);
-    song.displayData = {
-      previewUrl: 'preview.mp3',
-      audioPlaying: true,
-      buzzedPlayer: 'Anna',
-      fullPlayback: false,
-      currentPhase: 1,
+
+    song.stopAudio();
+
+    expect(song.gainNode.gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.0001, 0.06);
+    vi.advanceTimersByTime(80);
+    expect(song.audio.pause).toHaveBeenCalled();
+    expect(song.isPlaying()).toBe(false);
+  });
+
+  it('precarica la manca successiva e riusa l’elemento al cambio brano', () => {
+    const song = component as any;
+    wire(song);
+
+    song.preload('/media/music/b.m4a');
+    expect(FakeAudio.created).toHaveLength(1);
+    expect(FakeAudio.created[0].preload).toBe('auto');
+
+    song.initAudio('/media/music/b.m4a');
+    expect(song.audio).toBe(FakeAudio.created[0]);
+    expect(song.audio.loop).toBe(false);
+  });
+
+  it('la copertina si schiarisce dal primo al secondo ascolto e al reveal', () => {
+    const song = component as any;
+
+    song.displayData = { listen: 1, phase: 'LISTEN', revealed: false };
+    song.applyBlur();
+    expect(song.blurAmount()).toBe(26);
+
+    song.displayData = { listen: 2, phase: 'LISTEN', revealed: false };
+    song.applyBlur();
+    expect(song.blurAmount()).toBe(14);
+
+    song.displayData = { listen: 2, phase: 'REVEAL', revealed: true };
+    song.applyBlur();
+    expect(song.blurAmount()).toBe(0);
+  });
+
+  it('mostra l’etichetta mono con round, manca, ascolto e valore', () => {
+    component.displayData = {
+      round: 2,
+      manche: 3,
+      mancheTotal: 5,
+      listen: 1,
+      points: 200,
+      label: 'Round 2 · manca 3 di 5 · 1° ascolto · 200 punti',
+      phase: 'LISTEN',
+      phaseSeconds: 4,
+      revealed: false,
     };
 
-    song.ngOnChanges({
-      displayData: new SimpleChange(
-        {
-          previewUrl: 'preview.mp3',
-          audioPlaying: true,
-          buzzedPlayer: null,
-          fullPlayback: false,
-          currentPhase: 1,
-        },
-        song.displayData,
-        false,
-      ),
-    });
-
-    expect(pauses).toBeGreaterThan(0);
-    expect(song.isPlaying()).toBe(false);
+    expect(component.phaseLabel).toBe('PRIMO ASCOLTO');
+    expect(component.phaseSeconds).toBe(4);
   });
 });

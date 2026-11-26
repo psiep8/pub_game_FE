@@ -144,6 +144,7 @@ public class QuestionBankService {
     private final CelebrityImageService celebrityImageService;
     private final AzzardoMediaService azzardoMediaService;
     private final LocalMediaBankService localMedia;
+    private final MusicRoundService musicRounds;
     private final Random random = new Random();
 
     /** Sotto questo numero di domande l'arena finisce le scorte della categoria. */
@@ -206,12 +207,14 @@ public class QuestionBankService {
             AppleMusicCuratorService appleMusicCuratorService,
             CelebrityImageService celebrityImageService,
             AzzardoMediaService azzardoMediaService,
-            LocalMediaBankService localMedia) {
+            LocalMediaBankService localMedia,
+            MusicRoundService musicRounds) {
         this.tmdbImageService = tmdbImageService;
         this.appleMusicCuratorService = appleMusicCuratorService;
         this.celebrityImageService = celebrityImageService;
         this.azzardoMediaService = azzardoMediaService;
         this.localMedia = localMedia;
+        this.musicRounds = musicRounds;
         this.bank = loadBank();
         this.azzardoQuestions = loadAzzardo();
         this.bombaStatements = loadBombaStatements();
@@ -1422,6 +1425,30 @@ public class QuestionBankService {
         wrapper.put("type", "ARENA");
         wrapper.put("questions", new JSONArray());
         return wrapper.toString();
+    }
+
+    /**
+     * Round Musica della partita: tema e cinque manche decisi dal server, con il
+     * sacchetto dei temi e i brani già suonati persistiti nello stato della
+     * partita (non in campi statici né nel mode della TV).
+     */
+    public String musicPayload(long gameId) {
+        if (musicRounds != null && musicRounds.available()) {
+            String payload = musicRounds.nextRoundPayload(gameId);
+            if (payload != null) {
+                return payload;
+            }
+            System.out.println("⚠️ Musica: nessun tema con brani nuovi per la partita " + gameId
+                    + ": si ripiega sul brano singolo.");
+        }
+        return musicPayload();
+    }
+
+    /** Reset della partita: il sacchetto dei temi e i brani usati ripartono da zero. */
+    public void forgetMusicRound(long gameId) {
+        if (musicRounds != null) {
+            musicRounds.forget(gameId);
+        }
     }
 
     private String musicPayload() {

@@ -29,6 +29,14 @@ public class LocalMediaBankService {
     public record Track(String title, String artist, String year, String albumCover, String file) {
     }
 
+    /**
+     * Brano della banca Musica con i tag della serata: famiglia (`theme`) e
+     * era reale di uscita, più la difficoltà usata per il mix del round.
+     */
+    public record TaggedTrack(String title, String artist, String year, String albumCover, String file,
+            String theme, String era, String decade, String difficulty) {
+    }
+
     /** Volto con foto e testo biografico per gli indizi, tutto in locale. */
     public record Person(String name, String file, String description, String extract,
             String category) {
@@ -45,6 +53,11 @@ public class LocalMediaBankService {
     private final List<Track> tracks = new ArrayList<>();
     private final Map<String, Person> people = new LinkedHashMap<>();
     private final Map<String, Track> tracksByKey = new LinkedHashMap<>();
+    private final Map<String, Track> tracksByFile = new LinkedHashMap<>();
+    private final List<TaggedTrack> taggedTracks = new ArrayList<>();
+    private final Map<String, List<TaggedTrack>> tracksByTheme = new LinkedHashMap<>();
+    private final Map<String, List<TaggedTrack>> tracksByEra = new LinkedHashMap<>();
+    private final List<String> musicThemes = new ArrayList<>();
     private final Map<String, List<Clue>> cluesByName = new LinkedHashMap<>();
     private final List<String> namesWithClues = new ArrayList<>();
     private final String configuredBaseUrl;
@@ -64,6 +77,30 @@ public class LocalMediaBankService {
 
     public List<Track> tracks() {
         return List.copyOf(tracks);
+    }
+
+    /** Banca Musica taggata (music-themes.json): vuota se il file non c'è. */
+    public boolean hasMusicThemes() {
+        return !taggedTracks.isEmpty();
+    }
+
+    public List<TaggedTrack> taggedTracks() {
+        return List.copyOf(taggedTracks);
+    }
+
+    /** I dieci temi della serata, nell'ordine dichiarato dal file. */
+    public List<String> musicThemes() {
+        return List.copyOf(musicThemes);
+    }
+
+    /** Brani di una famiglia (Italiano, Rock, Dance & disco, …). */
+    public List<TaggedTrack> byTheme(String theme) {
+        return List.copyOf(tracksByTheme.getOrDefault(theme, List.of()));
+    }
+
+    /** Brani di un'era (Anni '70-'80, Anni '90-2000, Anni 2010-oggi). */
+    public List<TaggedTrack> byEra(String era) {
+        return List.copyOf(tracksByEra.getOrDefault(era, List.of()));
     }
 
     /**
@@ -154,6 +191,9 @@ public class LocalMediaBankService {
     private void load() {
         ClassPathResource resource = new ClassPathResource("questions/media-it.json");
         if (!resource.exists()) {
+            // L'indice media è grande e locale: senza di lui la banca Musica
+            // taggata resta comunque leggibile (copertine a parte).
+            loadMusicThemes();
             return;
         }
         try (InputStream stream = resource.getInputStream()) {
@@ -177,6 +217,7 @@ public class LocalMediaBankService {
                             QuestionHistoryService.normalize(track.title()) + "|"
                                     + QuestionHistoryService.normalize(track.artist()),
                             track);
+                    tracksByFile.put(track.file(), track);
                 }
             }
 
@@ -197,13 +238,68 @@ public class LocalMediaBankService {
                 }
             }
 
+            loadMusicThemes();
             loadClues();
 
             System.out.println("Banca media locale: " + tracks.size() + " brani, "
+                    + taggedTracks.size() + " taggati per la Musica, "
                     + people.size() + " volti, " + cluesByName.size() + " persone con quattro indizi.");
         } catch (Exception error) {
             System.out.println("⚠️ Banca media locale illeggibile (" + error.getMessage()
                     + "): si torna a iTunes/TMDB quando c'è rete.");
+        }
+    }
+
+    /**
+     * Banca Musica: i dieci temi e i brani taggati dal generatore
+     * `scripts/banche/tagga-musica.mjs`. La copertina arriva dall'indice media,
+     * così il tema non duplica i dati del download.
+     */
+    private void loadMusicThemes() {
+        ClassPathResource resource = new ClassPathResource("questions/music-themes.json");
+        if (!resource.exists()) {
+            System.out.println("Banca Musica assente (music-themes.json): si usa il ripiego a brano singolo.");
+            return;
+        }
+        try (InputStream stream = resource.getInputStream()) {
+            JSONObject root = new JSONObject(new String(stream.readAllBytes(), StandardCharsets.UTF_8));
+            JSONArray declared = root.optJSONArray("themes");
+            for (int index = 0; declared != null && index < declared.length(); index++) {
+                String theme = declared.optString(index, "").trim();
+                if (!theme.isBlank()) {
+                    musicThemes.add(theme);
+                }
+            }
+            JSONArray rows = root.optJSONArray("tracks");
+            for (int index = 0; rows != null && index < rows.length(); index++) {
+                JSONObject item = rows.optJSONObject(index);
+                if (item == null) {
+                    continue;
+                }
+                String file = item.optString("file", "").trim();
+                if (file.isBlank()) {
+                    continue;
+                }
+                Track media = tracksByFile.get(file);
+                TaggedTrack track = new TaggedTrack(
+                        item.optString("title", media == null ? "" : media.title()),
+                        item.optString("artist", media == null ? "" : media.artist()),
+                        item.optString("year", media == null ? "" : media.year()),
+                        media == null ? null : media.albumCover(),
+                        file,
+                        item.optString("theme", ""),
+                        item.optString("era", ""),
+                        item.optString("decade", ""),
+                        item.optString("difficulty", ""));
+                taggedTracks.add(track);
+                tracksByTheme.computeIfAbsent(track.theme(), key -> new ArrayList<>()).add(track);
+                if (!track.era().isBlank()) {
+                    tracksByEra.computeIfAbsent(track.era(), key -> new ArrayList<>()).add(track);
+                }
+            }
+        } catch (Exception error) {
+            System.out.println("⚠️ Banca Musica illeggibile (" + error.getMessage()
+                    + "): si usa il ripiego a brano singolo.");
         }
     }
 

@@ -17,7 +17,11 @@ import { MANUAL_ENTRIES } from './manual-content';
  */
 const SECONDS_CITED: Record<string, readonly number[]> = {
   QUIZ: [GAME_TIMINGS.QUIZ.mancheSeconds],
-  MUSIC: [GAME_TIMINGS.MUSIC.mancheSeconds],
+  MUSIC: [
+    ...GAME_TIMINGS.MUSIC.listenSeconds,
+    GAME_TIMINGS.MUSIC.buzzSeconds,
+    GAME_TIMINGS.MUSIC.revealSeconds,
+  ],
   IMAGE_BLUR: [GAME_TIMINGS.IMAGE_BLUR.seconds, GAME_TIMINGS.IMAGE_BLUR.clueEverySeconds],
   WHEEL_OF_FORTUNE: [GAME_TIMINGS.WHEEL_OF_FORTUNE.seconds],
   TIMELINE: [GAME_TIMINGS.TIMELINE.seconds],

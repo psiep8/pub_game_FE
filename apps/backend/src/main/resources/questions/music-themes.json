@@ -1,0 +1,2393 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-26T17:28:01",
+  "source": "scripts/banche/tagga-musica.mjs",
+  "themes": [
+    "Anni '70-'80",
+    "Anni '90-2000",
+    "Anni 2010-oggi",
+    "Italiano",
+    "Rock",
+    "Dance & disco",
+    "Pop",
+    "Latino & tormentoni",
+    "Rap & trap",
+    "Colonne sonore"
+  ],
+  "eraThemes": [
+    "Anni '70-'80",
+    "Anni '90-2000",
+    "Anni 2010-oggi"
+  ],
+  "familyThemes": [
+    "Italiano",
+    "Rock",
+    "Dance & disco",
+    "Pop",
+    "Latino & tormentoni",
+    "Rap & trap",
+    "Colonne sonore"
+  ],
+  "tracks": [
+    {
+      "file": "/media/music/bill-medley-jennifer-warnes-i-ve-had-the-time-of-my-life.m4a",
+      "title": "(I've Had) The Time of My Life",
+      "artist": "Bill Medley & Jennifer Warnes",
+      "year": 1987,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Colonne sonore",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/celine-dion-my-heart-will-go-on.m4a",
+      "title": "My Heart Will Go On",
+      "artist": "Céline Dion",
+      "year": 1997,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Colonne sonore",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/cristina-d-avena-kiss-me-licia.m4a",
+      "title": "Kiss Me Licia",
+      "artist": "Cristina D'Avena",
+      "year": 1985,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Colonne sonore",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/cristina-d-avena-occhi-di-gatto.m4a",
+      "title": "Occhi di gatto",
+      "artist": "Cristina D'Avena",
+      "year": 1991,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Colonne sonore",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/elton-john-circle-of-life.m4a",
+      "title": "Circle of Life",
+      "artist": "Elton John",
+      "year": 1994,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Colonne sonore",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/carolina-gaitan-la-gaita-mauro-castillo-adassa-rhenzy-feliz--we-don-t-talk-about-bruno.m4a",
+      "title": "We Don't Talk About Bruno",
+      "artist": "Encanto - Cast",
+      "year": 2021,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Colonne sonore",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/ennio-morricone-the-good-the-bad-and-the-ugly-titles.m4a",
+      "title": "The Good, the Bad and the Ugly",
+      "artist": "Ennio Morricone",
+      "year": 1966,
+      "decade": 1960,
+      "era": null,
+      "theme": "Colonne sonore",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/hans-zimmer-time.m4a",
+      "title": "Time",
+      "artist": "Hans Zimmer",
+      "year": 2010,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Colonne sonore",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/harold-faltermeyer-axel-f.m4a",
+      "title": "Axel F",
+      "artist": "Harold Faltermeyer",
+      "year": 1984,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Colonne sonore",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/idina-menzel-let-it-go.m4a",
+      "title": "Let It Go",
+      "artist": "Idina Menzel",
+      "year": 2013,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Colonne sonore",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/irene-cara-flashdance-what-a-feeling.m4a",
+      "title": "Flashdance... What a Feeling",
+      "artist": "Irene Cara",
+      "year": 1983,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Colonne sonore",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/kenny-loggins-footloose.m4a",
+      "title": "Footloose",
+      "artist": "Kenny Loggins",
+      "year": 1984,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Colonne sonore",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/ramin-djawadi-game-of-thrones-theme-armin-van-buuren-radio-edit.m4a",
+      "title": "Game of Thrones Theme",
+      "artist": "Ramin Djawadi",
+      "year": 2011,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Colonne sonore",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/randy-newman-you-ve-got-a-friend-in-me.m4a",
+      "title": "You've Got a Friend in Me",
+      "artist": "Randy Newman",
+      "year": 1995,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Colonne sonore",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/ray-parker-jr-ghostbusters.m4a",
+      "title": "Ghostbusters",
+      "artist": "Ray Parker Jr.",
+      "year": 1984,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Colonne sonore",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/survivor-eye-of-the-tiger.m4a",
+      "title": "Eye of the Tiger",
+      "artist": "Survivor",
+      "year": 1982,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Colonne sonore",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/the-rembrandts-i-ll-be-there-for-you.m4a",
+      "title": "I'll Be There for You",
+      "artist": "The Rembrandts",
+      "year": 1995,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Colonne sonore",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/whitney-houston-i-will-always-love-you.m4a",
+      "title": "I Will Always Love You",
+      "artist": "Whitney Houston",
+      "year": 1992,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Colonne sonore",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/alan-walker-faded.m4a",
+      "title": "Faded",
+      "artist": "Alan Walker",
+      "year": 2015,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Dance & disco",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/aqua-barbie-girl.m4a",
+      "title": "Barbie Girl",
+      "artist": "Aqua",
+      "year": 1997,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Dance & disco",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/avicii-wake-me-up.m4a",
+      "title": "Wake Me Up",
+      "artist": "Avicii",
+      "year": 2013,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Dance & disco",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/bee-gees-stayin-alive.m4a",
+      "title": "Stayin' Alive",
+      "artist": "Bee Gees",
+      "year": 1977,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Dance & disco",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/calvin-harris-summer.m4a",
+      "title": "Summer",
+      "artist": "Calvin Harris",
+      "year": 2014,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Dance & disco",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/chic-le-freak.m4a",
+      "title": "Le Freak",
+      "artist": "Chic",
+      "year": 1978,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Dance & disco",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/corona-the-rhythm-of-the-night.m4a",
+      "title": "The Rhythm of the Night",
+      "artist": "Corona",
+      "year": 1993,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Dance & disco",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/daft-punk-around-the-world.m4a",
+      "title": "Around the World",
+      "artist": "Daft Punk",
+      "year": 1997,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Dance & disco",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/daft-punk-pharrell-williams-nile-rodgers-get-lucky.m4a",
+      "title": "Get Lucky",
+      "artist": "Daft Punk",
+      "year": 2013,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Dance & disco",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/daft-punk-one-more-time.m4a",
+      "title": "One More Time",
+      "artist": "Daft Punk",
+      "year": 2000,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Dance & disco",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/daft-punk-veridis-quo.m4a",
+      "title": "Veridis Quo",
+      "artist": "Daft Punk",
+      "year": 2001,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Dance & disco",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/daft-punk-julian-casablancas-instant-crush.m4a",
+      "title": "Instant Crush",
+      "artist": "Daft Punk & Julian Casablancas",
+      "year": 2013,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Dance & disco",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/david-guetta-titanium-feat-sia.m4a",
+      "title": "Titanium",
+      "artist": "David Guetta",
+      "year": 2011,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Dance & disco",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/donna-summer-hot-stuff.m4a",
+      "title": "Hot Stuff",
+      "artist": "Donna Summer",
+      "year": 1979,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Dance & disco",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/earth-wind-fire-september.m4a",
+      "title": "September",
+      "artist": "Earth, Wind & Fire",
+      "year": 1978,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Dance & disco",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/eiffel-65-blue-da-ba-dee-gabry-ponte-video-edit.m4a",
+      "title": "Blue (Da Ba Dee)",
+      "artist": "Eiffel 65",
+      "year": 1999,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Dance & disco",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/gigi-d-agostino-l-amour-toujours.m4a",
+      "title": "L'amour toujours",
+      "artist": "Gigi D'Agostino",
+      "year": 1999,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Dance & disco",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/gloria-gaynor-i-will-survive.m4a",
+      "title": "I Will Survive",
+      "artist": "Gloria Gaynor",
+      "year": 1978,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Dance & disco",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/martin-garrix-animals.m4a",
+      "title": "Animals",
+      "artist": "Martin Garrix",
+      "year": 2013,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Dance & disco",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/modjo-lady-hear-me-tonight.m4a",
+      "title": "Lady (Hear Me Tonight)",
+      "artist": "Modjo",
+      "year": 2000,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Dance & disco",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/robert-miles-children.m4a",
+      "title": "Children",
+      "artist": "Robert Miles",
+      "year": 1995,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Dance & disco",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/robin-s-show-me-love.m4a",
+      "title": "Show Me Love",
+      "artist": "Robin S",
+      "year": 1993,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Dance & disco",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/sash-encore-une-fois.m4a",
+      "title": "Encore une fois",
+      "artist": "Sash!",
+      "year": 1997,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Dance & disco",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/swedish-house-mafia-don-t-you-worry-child-feat-john-martin-radio-edit.m4a",
+      "title": "Don't You Worry Child",
+      "artist": "Swedish House Mafia",
+      "year": 2012,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Dance & disco",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/vengaboys-boom-boom-boom-boom.m4a",
+      "title": "Boom, Boom, Boom, Boom!!",
+      "artist": "Vengaboys",
+      "year": 1998,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Dance & disco",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/achille-lauro-rolling-stones.m4a",
+      "title": "ROLLING STONES",
+      "artist": "Achille Lauro",
+      "year": 2022,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/angelina-mango-canto-d-amore-con-marco-mengoni.m4a",
+      "title": "Canto d'amore",
+      "artist": "Angelina Mango",
+      "year": 2026,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/angelina-mango-la-noia.m4a",
+      "title": "La noia",
+      "artist": "Angelina Mango",
+      "year": 2024,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/annalisa-bellissima.m4a",
+      "title": "Bellissima",
+      "artist": "Annalisa",
+      "year": 2022,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/annalisa-esibizionista.m4a",
+      "title": "Esibizionista",
+      "artist": "Annalisa",
+      "year": 2025,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/annalisa-maschio.m4a",
+      "title": "Maschio",
+      "artist": "Annalisa",
+      "year": 2025,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/annalisa-mon-amour.m4a",
+      "title": "Mon Amour",
+      "artist": "Annalisa",
+      "year": 2023,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/annalisa-sinceramente.m4a",
+      "title": "Sinceramente",
+      "artist": "Annalisa",
+      "year": 2024,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/blanco-blu-celeste.m4a",
+      "title": "Blu celeste",
+      "artist": "Blanco",
+      "year": 2021,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/colapesce-dimartino-musica-leggerissima.m4a",
+      "title": "Musica leggerissima",
+      "artist": "Colapesce Dimartino",
+      "year": 2021,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/coma-cose-fiamme-negli-occhi.m4a",
+      "title": "Fiamme negli occhi",
+      "artist": "Coma_Cose",
+      "year": 2021,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/elisa-eppure-sentire-un-senso-di-te.m4a",
+      "title": "Eppure sentire (un senso di te)",
+      "artist": "Elisa",
+      "year": 2006,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/elisa-gli-ostacoli-del-cuore.m4a",
+      "title": "Gli ostacoli del cuore",
+      "artist": "Elisa",
+      "year": 2006,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/elisa-luce-tramonti-a-nord-est.m4a",
+      "title": "Luce (tramonti a nord est)",
+      "artist": "Elisa",
+      "year": 2001,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/elodie-bagno-a-mezzanotte.m4a",
+      "title": "Bagno a mezzanotte",
+      "artist": "Elodie",
+      "year": 2023,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/elodie-michele-bravi-gue-nero-bali.m4a",
+      "title": "Nero Bali",
+      "artist": "Elodie",
+      "year": 2018,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/emma-latina.m4a",
+      "title": "LATINA",
+      "artist": "Emma",
+      "year": 2023,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/ernia-superclassico.m4a",
+      "title": "Superclassico",
+      "artist": "Ernia",
+      "year": 2019,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/eros-ramazzotti-piu-bella-cosa.m4a",
+      "title": "Più Bella Cosa",
+      "artist": "Eros Ramazzotti",
+      "year": 1996,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/eros-ramazzotti-terra-promessa.m4a",
+      "title": "Terra promessa",
+      "artist": "Eros Ramazzotti",
+      "year": 1984,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Italiano",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/eros-ramazzotti-ti-sposero-perche.m4a",
+      "title": "Ti Sposerò Perché",
+      "artist": "Eros Ramazzotti",
+      "year": 1988,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/eros-ramazzotti-un-angelo-disteso-al-sole.m4a",
+      "title": "Un Angelo Disteso Al Sole",
+      "artist": "Eros Ramazzotti",
+      "year": 2012,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/eros-ramazzotti-un-emozione-per-sempre.m4a",
+      "title": "Un'emozione Per Sempre",
+      "artist": "Eros Ramazzotti",
+      "year": 2003,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/irama-la-genesi-del-tuo-colore.m4a",
+      "title": "La genesi del tuo colore",
+      "artist": "Irama",
+      "year": 2021,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/laura-pausini-e-ritorno-da-te.m4a",
+      "title": "E Ritorno Da Te",
+      "artist": "Laura Pausini",
+      "year": 2001,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/laura-pausini-e-sta-a-te.m4a",
+      "title": "E.STA.A.TE",
+      "artist": "Laura Pausini",
+      "year": 2018,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/laura-pausini-la-solitudine.m4a",
+      "title": "La Solitudine",
+      "artist": "Laura Pausini",
+      "year": 1993,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/laura-pausini-siamo-soli-nell-immenso-vuoto-che-c-e.m4a",
+      "title": "Siamo soli nell'immenso vuoto che c'è",
+      "artist": "Laura Pausini",
+      "year": 2026,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/laura-pausini-simili.m4a",
+      "title": "Simili",
+      "artist": "Laura Pausini",
+      "year": 2015,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/ligabue-balliamo-sul-mondo.m4a",
+      "title": "Balliamo Sul Mondo",
+      "artist": "Ligabue",
+      "year": 1990,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/ligabue-certe-notti.m4a",
+      "title": "Certe Notti",
+      "artist": "Ligabue",
+      "year": 1995,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/ligabue-eri-bellissima.m4a",
+      "title": "Eri Bellissima",
+      "artist": "Ligabue",
+      "year": 2002,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/ligabue-ho-messo-via.m4a",
+      "title": "Ho Messo Via",
+      "artist": "Ligabue",
+      "year": 1997,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/ligabue-non-e-tempo-per-noi.m4a",
+      "title": "Non È Tempo Per Noi",
+      "artist": "Ligabue",
+      "year": 1990,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/mahmood-soldi.m4a",
+      "title": "Soldi",
+      "artist": "Mahmood",
+      "year": 2019,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/marco-mengoni-cambia-un-uomo.m4a",
+      "title": "Cambia un uomo",
+      "artist": "Marco Mengoni",
+      "year": 2021,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/marco-mengoni-due-vite.m4a",
+      "title": "Due vite",
+      "artist": "Marco Mengoni",
+      "year": 2023,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/marco-mengoni-giornate-perse.m4a",
+      "title": "Giornate perse",
+      "artist": "Marco Mengoni",
+      "year": 2026,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/marco-mengoni-l-essenziale.m4a",
+      "title": "L'essenziale",
+      "artist": "Marco Mengoni",
+      "year": 2013,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/negramaro-estate.m4a",
+      "title": "Estate",
+      "artist": "Negramaro",
+      "year": 2005,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/negramaro-fino-all-imbrunire.m4a",
+      "title": "Fino all'imbrunire",
+      "artist": "Negramaro",
+      "year": 2017,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/negramaro-la-prima-volta.m4a",
+      "title": "La prima volta",
+      "artist": "Negramaro",
+      "year": 2017,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/negramaro-mentre-tutto-scorre.m4a",
+      "title": "Mentre tutto scorre",
+      "artist": "Negramaro",
+      "year": 2005,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/negramaro-parlami-d-amore.m4a",
+      "title": "Parlami d'amore",
+      "artist": "Negramaro",
+      "year": 2007,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/pinguini-tattici-nucleari-giovani-wannabe.m4a",
+      "title": "Giovani Wannabe",
+      "artist": "Pinguini Tattici Nucleari",
+      "year": 2022,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/pinguini-tattici-nucleari-ringo-starr.m4a",
+      "title": "Ringo Starr",
+      "artist": "Pinguini Tattici Nucleari",
+      "year": 2019,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/rkomi-insuperabile.m4a",
+      "title": "Insuperabile",
+      "artist": "Rkomi",
+      "year": 2022,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/rose-villain-come-un-tuono-feat-gue.m4a",
+      "title": "Come un tuono",
+      "artist": "Rose Villain",
+      "year": 2024,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/sangiovanni-malibu.m4a",
+      "title": "Malibu",
+      "artist": "Sangiovanni",
+      "year": 2021,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/tananai-sesso-occasionale.m4a",
+      "title": "Sesso occasionale",
+      "artist": "Tananai",
+      "year": 2022,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/tananai-tango.m4a",
+      "title": "Tango",
+      "artist": "Tananai",
+      "year": 2023,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/tiziano-ferro-alla-mia-eta.m4a",
+      "title": "Alla mia età",
+      "artist": "Tiziano Ferro",
+      "year": 2008,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/tiziano-ferro-il-regalo-piu-grande.m4a",
+      "title": "Il regalo più grande",
+      "artist": "Tiziano Ferro",
+      "year": 2008,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/tiziano-ferro-non-me-lo-so-spiegare.m4a",
+      "title": "Non me lo so spiegare",
+      "artist": "Tiziano Ferro",
+      "year": 2003,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/tiziano-ferro-sere-nere.m4a",
+      "title": "Sere nere",
+      "artist": "Tiziano Ferro",
+      "year": 2003,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/tiziano-ferro-ti-scattero-una-foto.m4a",
+      "title": "Ti scatterò una foto",
+      "artist": "Tiziano Ferro",
+      "year": 2006,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/vasco-rossi-come-nelle-favole.m4a",
+      "title": "Come nelle favole",
+      "artist": "Vasco Rossi",
+      "year": 2016,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/vasco-rossi-ridere-di-te.m4a",
+      "title": "Ridere di te",
+      "artist": "Vasco Rossi",
+      "year": 1987,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/vasco-rossi-sally.m4a",
+      "title": "Sally",
+      "artist": "Vasco Rossi",
+      "year": 1996,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/vasco-rossi-senza-parole.m4a",
+      "title": "Senza parole",
+      "artist": "Vasco Rossi",
+      "year": 2016,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/vasco-rossi-vita-spericolata.m4a",
+      "title": "Vita spericolata",
+      "artist": "Vasco Rossi",
+      "year": 1982,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Italiano",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/zucchero-baila-sexy-thing.m4a",
+      "title": "Baila (Sexy Thing)",
+      "artist": "Zucchero",
+      "year": 1992,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/zucchero-come-il-sole-all-improvviso.m4a",
+      "title": "Come il sole all'improvviso",
+      "artist": "Zucchero",
+      "year": 1986,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/zucchero-diamante.m4a",
+      "title": "Diamante",
+      "artist": "Zucchero",
+      "year": 1986,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Italiano",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/zucchero-occhi.m4a",
+      "title": "Occhi",
+      "artist": "Zucchero",
+      "year": 1992,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Italiano",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/zucchero-vedo-nero.m4a",
+      "title": "Vedo nero",
+      "artist": "Zucchero",
+      "year": 2010,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Italiano",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/bad-bunny-jhayco-dakiti.m4a",
+      "title": "Dákiti",
+      "artist": "Bad Bunny",
+      "year": 2020,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Latino & tormentoni",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/bad-bunny-titi-me-pregunto.m4a",
+      "title": "Tití Me Preguntó",
+      "artist": "Bad Bunny",
+      "year": 2022,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Latino & tormentoni",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/boomdabash-per-un-milione.m4a",
+      "title": "Per un milione",
+      "artist": "Boomdabash",
+      "year": 2019,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Latino & tormentoni",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/camila-cabello-daddy-yankee-havana-remix.m4a",
+      "title": "Havana",
+      "artist": "Camila Cabello",
+      "year": 2017,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Latino & tormentoni",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/daddy-yankee-gasolina.m4a",
+      "title": "Gasolina",
+      "artist": "Daddy Yankee",
+      "year": 2004,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Latino & tormentoni",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/enrique-iglesias-bailando-feat-descemer-bueno-gente-de-zona-spanish-version.m4a",
+      "title": "Bailando",
+      "artist": "Enrique Iglesias",
+      "year": 2014,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Latino & tormentoni",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/j-balvin-willy-william-mi-gente.m4a",
+      "title": "Mi Gente",
+      "artist": "J Balvin & Willy William",
+      "year": 2017,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Latino & tormentoni",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/jovanotti-l-ombelico-del-mondo.m4a",
+      "title": "L'ombelico del mondo",
+      "artist": "Jovanotti",
+      "year": 1994,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Latino & tormentoni",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/karol-g-provenza.m4a",
+      "title": "PROVENZA",
+      "artist": "Karol G",
+      "year": 2022,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Latino & tormentoni",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/karol-g-nicki-minaj-tusa.m4a",
+      "title": "Tusa",
+      "artist": "Karol G",
+      "year": 2019,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Latino & tormentoni",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/los-del-rio-macarena.m4a",
+      "title": "Macarena",
+      "artist": "Los del Río",
+      "year": 1993,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Latino & tormentoni",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/luis-fonsi-daddy-yankee-despacito.m4a",
+      "title": "Despacito",
+      "artist": "Luis Fonsi",
+      "year": 2017,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Latino & tormentoni",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/o-zone-dragostea-din-tei.m4a",
+      "title": "Dragostea Din Tei",
+      "artist": "O-Zone",
+      "year": 2003,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Latino & tormentoni",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/pitbull-afrojack-ne-yo-give-me-everything-feat-nayer.m4a",
+      "title": "Give Me Everything",
+      "artist": "Pitbull",
+      "year": 2011,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Latino & tormentoni",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/ricky-martin-livin-la-vida-loca.m4a",
+      "title": "Livin' la Vida Loca",
+      "artist": "Ricky Martin",
+      "year": 1999,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Latino & tormentoni",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/righeira-vamos-a-la-playa.m4a",
+      "title": "Vamos a la playa",
+      "artist": "Righeira",
+      "year": 1983,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Latino & tormentoni",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/rosalia-despecha.m4a",
+      "title": "Despechá",
+      "artist": "Rosalía",
+      "year": 2022,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Latino & tormentoni",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/shakira-ed-sheeran-beele-hips-don-t-lie-anniversary-version.m4a",
+      "title": "Hips Don't Lie",
+      "artist": "Shakira",
+      "year": 2006,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Latino & tormentoni",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/shakira-waka-waka-this-time-for-africa-k-mix.m4a",
+      "title": "Waka Waka (This Time for Africa)",
+      "artist": "Shakira",
+      "year": 2010,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Latino & tormentoni",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/takagi-ketra-l-esercito-del-selfie-feat-lorenzo-fragola-arisa.m4a",
+      "title": "L'esercito del selfie",
+      "artist": "Takagi & Ketra",
+      "year": 2017,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Latino & tormentoni",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/abba-dancing-queen.m4a",
+      "title": "Dancing Queen",
+      "artist": "ABBA",
+      "year": 1976,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/abba-gimme-gimme-gimme-a-man-after-midnight.m4a",
+      "title": "Gimme! Gimme! Gimme! (A Man After Midnight)",
+      "artist": "ABBA",
+      "year": 1979,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/abba-lay-all-your-love-on-me.m4a",
+      "title": "Lay All Your Love On Me",
+      "artist": "ABBA",
+      "year": 1981,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Pop",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/abba-mamma-mia.m4a",
+      "title": "Mamma Mia",
+      "artist": "ABBA",
+      "year": 1975,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/abba-the-winner-takes-it-all.m4a",
+      "title": "The Winner Takes It All",
+      "artist": "ABBA",
+      "year": 1980,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/adele-rolling-in-the-deep.m4a",
+      "title": "Rolling in the Deep",
+      "artist": "Adele",
+      "year": 2010,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/adele-someone-like-you.m4a",
+      "title": "Someone Like You",
+      "artist": "Adele",
+      "year": 2011,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/ariana-grande-7-rings.m4a",
+      "title": "7 rings",
+      "artist": "Ariana Grande",
+      "year": 2019,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/benson-boone-beautiful-things.m4a",
+      "title": "Beautiful Things",
+      "artist": "Benson Boone",
+      "year": 2024,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/beyonce-halo.m4a",
+      "title": "Halo",
+      "artist": "Beyoncé",
+      "year": 2008,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/billie-eilish-bad-guy.m4a",
+      "title": "bad guy",
+      "artist": "Billie Eilish",
+      "year": 2019,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/billie-eilish-birds-of-a-feather.m4a",
+      "title": "Birds of a Feather",
+      "artist": "Billie Eilish",
+      "year": 2024,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/dua-lipa-don-t-start-now.m4a",
+      "title": "Don't Start Now",
+      "artist": "Dua Lipa",
+      "year": 2019,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/dua-lipa-houdini.m4a",
+      "title": "Houdini",
+      "artist": "Dua Lipa",
+      "year": 2023,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/dua-lipa-levitating.m4a",
+      "title": "Levitating",
+      "artist": "Dua Lipa",
+      "year": 2020,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/ed-sheeran-shape-of-you.m4a",
+      "title": "Shape of You",
+      "artist": "Ed Sheeran",
+      "year": 2017,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/elton-john-rocket-man-apple-music-live.m4a",
+      "title": "Rocket Man",
+      "artist": "Elton John",
+      "year": 1972,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/elton-john-your-song.m4a",
+      "title": "Your Song",
+      "artist": "Elton John",
+      "year": 1970,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/harry-styles-as-it-was.m4a",
+      "title": "As It Was",
+      "artist": "Harry Styles",
+      "year": 2022,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/harry-styles-watermelon-sugar.m4a",
+      "title": "Watermelon Sugar",
+      "artist": "Harry Styles",
+      "year": 2019,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/justin-bieber-sorry.m4a",
+      "title": "Sorry",
+      "artist": "Justin Bieber",
+      "year": 2015,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/katy-perry-roar.m4a",
+      "title": "Roar",
+      "artist": "Katy Perry",
+      "year": 2013,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/lady-gaga-bad-romance.m4a",
+      "title": "Bad Romance",
+      "artist": "Lady Gaga",
+      "year": 2009,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/lady-gaga-bradley-cooper-shallow.m4a",
+      "title": "Shallow",
+      "artist": "Lady Gaga & Bradley Cooper",
+      "year": 2018,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/madonna-4-minutes-feat-justin-timberlake-timbaland.m4a",
+      "title": "4 Minutes",
+      "artist": "Madonna",
+      "year": 2008,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/madonna-hung-up.m4a",
+      "title": "Hung Up",
+      "artist": "Madonna",
+      "year": 2005,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/madonna-la-isla-bonita.m4a",
+      "title": "La Isla Bonita",
+      "artist": "Madonna",
+      "year": 1986,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/madonna-like-a-prayer.m4a",
+      "title": "Like a Prayer",
+      "artist": "Madonna",
+      "year": 1989,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/mark-ronson-uptown-funk-feat-bruno-mars.m4a",
+      "title": "Uptown Funk",
+      "artist": "Mark Ronson feat. Bruno Mars",
+      "year": 2014,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/maroon-5-sugar-feat-nicki-minaj-remix.m4a",
+      "title": "Sugar",
+      "artist": "Maroon 5",
+      "year": 2014,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/michael-jackson-beat-it.m4a",
+      "title": "Beat It",
+      "artist": "Michael Jackson",
+      "year": 1982,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/michael-jackson-billie-jean.m4a",
+      "title": "Billie Jean",
+      "artist": "Michael Jackson",
+      "year": 1982,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/michael-jackson-don-t-stop-til-you-get-enough.m4a",
+      "title": "Don't Stop 'Til You Get Enough",
+      "artist": "Michael Jackson",
+      "year": 1979,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/michael-jackson-smooth-criminal.m4a",
+      "title": "Smooth Criminal",
+      "artist": "Michael Jackson",
+      "year": 1987,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/michael-jackson-thriller.m4a",
+      "title": "Thriller",
+      "artist": "Michael Jackson",
+      "year": 1982,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/miley-cyrus-flowers.m4a",
+      "title": "Flowers",
+      "artist": "Miley Cyrus",
+      "year": 2023,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/one-direction-what-makes-you-beautiful.m4a",
+      "title": "What Makes You Beautiful",
+      "artist": "One Direction",
+      "year": 2011,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/rihanna-diamonds.m4a",
+      "title": "Diamonds",
+      "artist": "Rihanna",
+      "year": 2012,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/rihanna-umbrella-feat-jay-z.m4a",
+      "title": "Umbrella",
+      "artist": "Rihanna",
+      "year": 2007,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/sabrina-carpenter-espresso.m4a",
+      "title": "Espresso",
+      "artist": "Sabrina Carpenter",
+      "year": 2024,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/shawn-mendes-camila-cabello-senorita.m4a",
+      "title": "Señorita",
+      "artist": "Shawn Mendes & Camila Cabello",
+      "year": 2019,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/taylor-swift-anti-hero.m4a",
+      "title": "Anti-Hero",
+      "artist": "Taylor Swift",
+      "year": 2022,
+      "decade": 2020,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/taylor-swift-cruel-summer.m4a",
+      "title": "Cruel Summer",
+      "artist": "Taylor Swift",
+      "year": 2019,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/taylor-swift-shake-it-off.m4a",
+      "title": "Shake It Off",
+      "artist": "Taylor Swift",
+      "year": 2014,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/the-weeknd-blinding-lights.m4a",
+      "title": "Blinding Lights",
+      "artist": "The Weeknd",
+      "year": 2019,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Pop",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/50-cent-in-da-club.m4a",
+      "title": "In da Club",
+      "artist": "50 Cent",
+      "year": 2003,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Rap & trap",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/capo-plaza-20.m4a",
+      "title": "20",
+      "artist": "Capo Plaza",
+      "year": 2018,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Rap & trap",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/cardi-b-bodak-yellow.m4a",
+      "title": "Bodak Yellow",
+      "artist": "Cardi B",
+      "year": 2017,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Rap & trap",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/dr-dre-still-d-r-e-instrumental.m4a",
+      "title": "Still D.R.E.",
+      "artist": "Dr. Dre",
+      "year": 1999,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Rap & trap",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/drake-god-s-plan.m4a",
+      "title": "God's Plan",
+      "artist": "Drake",
+      "year": 2018,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Rap & trap",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/eminem-lose-yourself.m4a",
+      "title": "Lose Yourself",
+      "artist": "Eminem",
+      "year": 2002,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Rap & trap",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/eminem-without-me.m4a",
+      "title": "Without Me",
+      "artist": "Eminem",
+      "year": 2002,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Rap & trap",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/fabri-fibra-tranne-te.m4a",
+      "title": "Tranne te",
+      "artist": "Fabri Fibra",
+      "year": 2016,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Rap & trap",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/ghali-cara-italia.m4a",
+      "title": "Cara Italia",
+      "artist": "Ghali",
+      "year": 2018,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Rap & trap",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/jay-z-99-problems.m4a",
+      "title": "99 Problems",
+      "artist": "JAY-Z",
+      "year": 2003,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Rap & trap",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/kanye-west-stronger.m4a",
+      "title": "Stronger",
+      "artist": "Kanye West",
+      "year": 2007,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Rap & trap",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/kendrick-lamar-humble.m4a",
+      "title": "HUMBLE.",
+      "artist": "Kendrick Lamar",
+      "year": 2017,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Rap & trap",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/marracash-badabum-cha-cha.m4a",
+      "title": "Badabum Cha Cha",
+      "artist": "Marracash",
+      "year": 2008,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Rap & trap",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/outkast-hey-ya.m4a",
+      "title": "Hey Ya!",
+      "artist": "OutKast",
+      "year": 2003,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Rap & trap",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/salmo-90min.m4a",
+      "title": "90MIN",
+      "artist": "Salmo",
+      "year": 2019,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Rap & trap",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/sfera-ebbasta-tran-tran.m4a",
+      "title": "Tran Tran",
+      "artist": "Sfera Ebbasta",
+      "year": 2017,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Rap & trap",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/travis-scott-sicko-mode.m4a",
+      "title": "SICKO MODE",
+      "artist": "Travis Scott",
+      "year": 2018,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Rap & trap",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/ac-dc-highway-to-hell.m4a",
+      "title": "Highway to Hell",
+      "artist": "AC/DC",
+      "year": 1979,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/ac-dc-thunderstruck.m4a",
+      "title": "Thunderstruck",
+      "artist": "AC/DC",
+      "year": 1990,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/blondie-call-me.m4a",
+      "title": "Call Me",
+      "artist": "Blondie",
+      "year": 1980,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/bob-marley-the-wailers-no-woman-no-cry.m4a",
+      "title": "No Woman, No Cry",
+      "artist": "Bob Marley & The Wailers",
+      "year": 1974,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/bon-jovi-livin-on-a-prayer.m4a",
+      "title": "Livin' on a Prayer",
+      "artist": "Bon Jovi",
+      "year": 1986,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/coldplay-a-sky-full-of-stars.m4a",
+      "title": "A Sky Full of Stars",
+      "artist": "Coldplay",
+      "year": 2014,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/coldplay-fix-you.m4a",
+      "title": "Fix You",
+      "artist": "Coldplay",
+      "year": 2005,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Rock",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/coldplay-the-scientist.m4a",
+      "title": "The Scientist",
+      "artist": "Coldplay",
+      "year": 2002,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Rock",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/coldplay-viva-la-vida.m4a",
+      "title": "Viva La Vida",
+      "artist": "Coldplay",
+      "year": 2008,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/coldplay-yellow.m4a",
+      "title": "Yellow",
+      "artist": "Coldplay",
+      "year": 2000,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/deep-purple-smoke-on-the-water.m4a",
+      "title": "Smoke on the Water",
+      "artist": "Deep Purple",
+      "year": 1972,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/dire-straits-money-for-nothing-single-edit-remastered-2022.m4a",
+      "title": "Money for Nothing",
+      "artist": "Dire Straits",
+      "year": 1985,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/dire-straits-sultans-of-swing.m4a",
+      "title": "Sultans of Swing",
+      "artist": "Dire Straits",
+      "year": 1978,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/eurythmics-sweet-dreams-are-made-of-this.m4a",
+      "title": "Sweet Dreams (Are Made of This)",
+      "artist": "Eurythmics",
+      "year": 1983,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/foo-fighters-everlong.m4a",
+      "title": "Everlong",
+      "artist": "Foo Fighters",
+      "year": 1997,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Rock",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/green-day-basket-case.m4a",
+      "title": "Basket Case",
+      "artist": "Green Day",
+      "year": 1994,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Rock",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/guns-n-roses-sweet-child-o-mine.m4a",
+      "title": "Sweet Child O' Mine",
+      "artist": "Guns N' Roses",
+      "year": 1987,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/led-zeppelin-stairway-to-heaven.m4a",
+      "title": "Stairway to Heaven",
+      "artist": "Led Zeppelin",
+      "year": 1971,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/linkin-park-in-the-end.m4a",
+      "title": "In the End",
+      "artist": "Linkin Park",
+      "year": 2000,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Rock",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/nirvana-smells-like-teen-spirit.m4a",
+      "title": "Smells Like Teen Spirit",
+      "artist": "Nirvana",
+      "year": 1991,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/oasis-wonderwall.m4a",
+      "title": "Wonderwall",
+      "artist": "Oasis",
+      "year": 1995,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/pink-floyd-comfortably-numb.m4a",
+      "title": "Comfortably Numb",
+      "artist": "Pink Floyd",
+      "year": 1979,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/pink-floyd-wish-you-were-here.m4a",
+      "title": "Wish You Were Here",
+      "artist": "Pink Floyd",
+      "year": 1975,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/prince-the-revolution-purple-rain.m4a",
+      "title": "Purple Rain",
+      "artist": "Prince",
+      "year": 1984,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/queen-another-one-bites-the-dust.m4a",
+      "title": "Another One Bites The Dust",
+      "artist": "Queen",
+      "year": 1980,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/queen-bohemian-rhapsody.m4a",
+      "title": "Bohemian Rhapsody",
+      "artist": "Queen",
+      "year": 1975,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/queen-don-t-stop-me-now.m4a",
+      "title": "Don't Stop Me Now",
+      "artist": "Queen",
+      "year": 1978,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/queen-david-bowie-under-pressure.m4a",
+      "title": "Under Pressure",
+      "artist": "Queen",
+      "year": 1981,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/queen-we-will-rock-you.m4a",
+      "title": "We Will Rock You",
+      "artist": "Queen",
+      "year": 1977,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/red-hot-chili-peppers-californication.m4a",
+      "title": "Californication",
+      "artist": "Red Hot Chili Peppers",
+      "year": 1999,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Rock",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/the-beatles-here-comes-the-sun.m4a",
+      "title": "Here Comes the Sun",
+      "artist": "The Beatles",
+      "year": 1969,
+      "decade": 1960,
+      "era": null,
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/the-beatles-hey-jude.m4a",
+      "title": "Hey Jude",
+      "artist": "The Beatles",
+      "year": 1968,
+      "decade": 1960,
+      "era": null,
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/the-beatles-let-it-be.m4a",
+      "title": "Let It Be",
+      "artist": "The Beatles",
+      "year": 1970,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/the-beatles-twist-and-shout.m4a",
+      "title": "Twist and Shout",
+      "artist": "The Beatles",
+      "year": 1963,
+      "decade": 1960,
+      "era": null,
+      "theme": "Rock",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/the-beatles-yesterday.m4a",
+      "title": "Yesterday",
+      "artist": "The Beatles",
+      "year": 1965,
+      "decade": 1960,
+      "era": null,
+      "theme": "Rock",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/the-clash-should-i-stay-or-should-i-go.m4a",
+      "title": "Should I Stay or Should I Go",
+      "artist": "The Clash",
+      "year": 1982,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/the-doors-riders-on-the-storm.m4a",
+      "title": "Riders on the Storm",
+      "artist": "The Doors",
+      "year": 1971,
+      "decade": 1970,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/the-police-every-breath-you-take.m4a",
+      "title": "Every Breath You Take",
+      "artist": "The Police",
+      "year": 1983,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/the-rolling-stones-sympathy-for-the-devil.m4a",
+      "title": "Sympathy For The Devil",
+      "artist": "The Rolling Stones",
+      "year": 1968,
+      "decade": 1960,
+      "era": null,
+      "theme": "Rock",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/tina-turner-the-best.m4a",
+      "title": "The Best",
+      "artist": "Tina Turner",
+      "year": 1989,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/u2-beautiful-day.m4a",
+      "title": "Beautiful Day",
+      "artist": "U2",
+      "year": 2000,
+      "decade": 2000,
+      "era": "Anni '90-2000",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/u2-every-breaking-wave.m4a",
+      "title": "Every Breaking Wave",
+      "artist": "U2",
+      "year": 2014,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Rock",
+      "difficulty": "medium"
+    },
+    {
+      "file": "/media/music/u2-one.m4a",
+      "title": "One",
+      "artist": "U2",
+      "year": 1991,
+      "decade": 1990,
+      "era": "Anni '90-2000",
+      "theme": "Rock",
+      "difficulty": "hit"
+    },
+    {
+      "file": "/media/music/u2-the-greatest-show-on-earth.m4a",
+      "title": "The Greatest Show on Earth",
+      "artist": "U2",
+      "year": 2017,
+      "decade": 2010,
+      "era": "Anni 2010-oggi",
+      "theme": "Rock",
+      "difficulty": "hard"
+    },
+    {
+      "file": "/media/music/u2-with-or-without-you.m4a",
+      "title": "With or Without You",
+      "artist": "U2",
+      "year": 1987,
+      "decade": 1980,
+      "era": "Anni '70-'80",
+      "theme": "Rock",
+      "difficulty": "hit"
+    }
+  ]
+}

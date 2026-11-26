@@ -193,4 +193,50 @@ class GameWebSocketControllerTest {
                 .isEqualTo(com.pub_game_be.config.GameStompErrorHandler.MESSAGE_NOT_DELIVERED);
     }
 
+    /**
+     * Musica: la soluzione vive in songs[] annidato. Prima della correzione il
+     * filtro svuotava solo il primo livello e i telefoni ricevevano titolo,
+     * artista e anteprima delle cinque manche.
+     */
+    @Test
+    void nonFaPassareLeSoluzioniMusicaAnnidateNelleCinqueManche() {
+        Map<String, Object> song = Map.of(
+                "title", "Sally",
+                "artist", "Vasco Rossi",
+                "year", "1996",
+                "previewUrl", "/media/music/vasco-rossi-sally.m4a",
+                "albumCover", "/media/covers/vasco-rossi-sally.jpg");
+
+        Map<String, Object> status = Map.of(
+                "action", "MUSIC_PHASE",
+                "type", "MUSIC",
+                "theme", "Italiano",
+                "state", Map.of("songs", List.of(song), "manche", 3));
+
+        String json = new org.json.JSONObject(controller.relayStatus(7L, status)).toString();
+
+        assertThat(json).doesNotContain("Sally");
+        assertThat(json).doesNotContain("Vasco Rossi");
+        assertThat(json).doesNotContain("previewUrl");
+        assertThat(json).doesNotContain("albumCover");
+        assertThat(json).contains("Italiano");
+    }
+
+    @Test
+    void riconosceLaMusicaAncheSoloDallaFormaDelPayload() {
+        // Nessun type/action MUSIC al primo livello: songs[] basta a riconoscere
+        // il payload e a togliere le soluzioni anche in profondità.
+        Map<String, Object> song = Map.of("title", "Sally", "artist", "Vasco Rossi", "previewUrl", "/x.m4a");
+        Map<String, Object> status = Map.of(
+                "action", "STATE",
+                "value", Map.of("songs", List.of(song), "theme", "Italiano"));
+
+        String json = new org.json.JSONObject(controller.relayStatus(7L, status)).toString();
+
+        assertThat(json).doesNotContain("Sally");
+        assertThat(json).doesNotContain("Vasco Rossi");
+        assertThat(json).doesNotContain("previewUrl");
+        assertThat(json).contains("Italiano");
+    }
+
 }

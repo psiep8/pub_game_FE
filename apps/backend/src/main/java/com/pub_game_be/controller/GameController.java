@@ -146,7 +146,12 @@ public class GameController {
         int act = Math.min(5, (roundIndex / 8) + 1);
 
         String aiPayload;
-        if (partyGameService.handles(type)) {
+        if ("MUSIC".equalsIgnoreCase(type)) {
+            // Un round di Musica è un tema e cinque brani: tema e brani usati
+            // vivono nello stato della partita, quindi la deduplica della banca
+            // domande non c'entra (e non deve prenotare un payload con 5 brani).
+            aiPayload = questionBank.musicPayload(gameId);
+        } else if (partyGameService.handles(type)) {
             // Timeline, Bomba, Speed Rush e Tennis Battle non usano la banca
             // domande: il payload (e lo stato del round) vive nel servizio party.
             aiPayload = partyGameService.startRound(gameId, type, category, act);
@@ -160,7 +165,7 @@ public class GameController {
             // Arena non ha una domanda nel payload: le sue domande vengono
             // prenotate una per dispositivo da /arena-question. Il wrapper è
             // identico a ogni round, quindi non va passato dalla deduplica.
-            if (!"ARENA".equalsIgnoreCase(type)) {
+            if (!"ARENA".equalsIgnoreCase(type) && !"MUSIC".equalsIgnoreCase(type)) {
                 // Prenotazione atomica: la domanda risulta uscita solo quando il
                 // database conferma. Se un'altra richiesta l'ha presa nello stesso
                 // istante si ripesca, invece di mostrarla due volte.
@@ -685,6 +690,7 @@ public class GameController {
         questionPoolService.clear(gameId);
         ultimaSpiaggiaLevelService.clear(gameId);
         partyGameService.forget(gameId);
+        questionBank.forgetMusicRound(gameId);
         bombaService.reset(gameId);
         scoreboard.forget(gameId);
         stateBlobs.forget(gameId, "time-buzzer-start");

@@ -71,3 +71,6 @@ scripts/sim/.state*.json
 # Restano su disco, entrano nel repo solo i generatori.
 scripts/sim/reports/*
 !scripts/sim/reports/*.mjs
+
+# Scratch del test audio (non deve entrare nel repo)
+tmp-audio-test/
