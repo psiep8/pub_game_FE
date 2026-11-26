@@ -861,17 +861,26 @@ class ReliabilityIntegrationTest {
         long gameId = 710L;
         var tv = sessions.register(gameId, "tv-blackjack-recovery", "TV", null, null);
         sessions.grantRegia(tv.sessionToken());
+        // Forma reale del checkpoint: in DECIDE `choice` e `result` sono
+        // esplicitamente null. Se la serializzazione li perdesse, la TV
+        // riprenderebbe la mano con un payload diverso da quello salvato.
+        Map<String, Object> state = new HashMap<>();
+        state.put("order", List.of("Anna", "Bruno"));
+        state.put("index", 0);
+        state.put("deck", List.of("2♣", "3♦"));
+        state.put("hand", List.of("A♠", "K♦"));
+        state.put("bank", List.of("9♠", "Q♥"));
+        state.put("rows", List.of(Map.of("playerName", "Anna", "status", "ACTIVE", "points", 0)));
+        state.put("handPoints", 0);
+        state.put("phase", "DECIDE");
+        state.put("choice", null);
+        state.put("result", null);
+        state.put("secondsLeft", 15);
+        state.put("paused", false);
+        state.put("savedAt", System.currentTimeMillis());
         String body = json.writeValueAsString(Map.of(
                 "sessionToken", tv.sessionToken(),
-                "state", Map.of(
-                        "order", List.of("Anna", "Bruno"),
-                        "index", 0,
-                        "deck", List.of("2♣", "3♦"),
-                        "hand", List.of("A♠", "K♦"),
-                        "bank", List.of("9♠", "Q♥"),
-                        "phase", "DECIDE",
-                        "secondsLeft", 15,
-                        "paused", false)));
+                "state", state));
 
         var saved = request("POST", "/games/" + gameId + "/blackjack-state", tv.sessionToken(), null, body);
         assertThat(saved.statusCode()).as(saved.body()).isEqualTo(200);
@@ -885,6 +894,11 @@ class ReliabilityIntegrationTest {
         // riprendere la mano dopo un refresh, non ricevere un oggetto vuoto.
         assertThat(hand.path("bank").get(1).asText()).isEqualTo("Q♥");
         assertThat(hand.path("deck").get(0).asText()).isEqualTo("2♣");
+        // org.json non conserva le chiavi con valore null nella mappa: il
+        // client le legge come null, esattamente come nel checkpoint reale.
+        assertThat(hand.path("choice").isNull() || hand.path("choice").isMissingNode()).isTrue();
+        assertThat(hand.path("result").isNull() || hand.path("result").isMissingNode()).isTrue();
+        assertThat(hand.path("rows").get(0).path("playerName").asText()).isEqualTo("Anna");
     }
 
     private HttpResponse<String> request(String method, String path, String token, String secret, String body) throws Exception {
