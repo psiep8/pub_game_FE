@@ -116,6 +116,28 @@ describe('RemoteComponent', () => {
     expect(component.roundClosed()).toBe(false);
   });
 
+  it('N-03: un annuncio in ritardo non spegne il via della stessa manche', () => {
+    component.hasAnswered.set(true);
+    component.gameState.set(PlayerStatus.LOCKED);
+
+    ws.status$.next({
+      action: 'START_VOTING', type: 'IMAGE_BLUR', round: 7, manche: 2,
+      payload: JSON.stringify({ manche: 2, mancheTotal: 3 }),
+    });
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+
+    // Il SHOW_QUESTION della stessa manche può arrivare dopo il via: il
+    // telefono deve restare sui pulsanti, non tornare in attesa.
+    ws.status$.next({
+      action: 'SHOW_QUESTION', type: 'IMAGE_BLUR', round: 7, manche: 2,
+      payload: JSON.stringify({ manche: 2, mancheTotal: 3 }),
+    });
+
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(component.roundActive()).toBe(true);
+    expect(component.questionType()).toBe('IMAGE_BLUR');
+  });
+
   it('ordina le corsie live: prima chi è arrivato, poi chi ha più strada', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();

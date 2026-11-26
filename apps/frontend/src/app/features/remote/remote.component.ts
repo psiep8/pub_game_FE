@@ -688,6 +688,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
             this.answeredManche.set(0);
             this.selectedAnswer.set(null);
           }
+          // Un annuncio può essere recapitato dopo il via della stessa manche
+          // (WS e snapshot non hanno lo stesso ordine): se il telefono è già
+          // in voto su questo gioco e round, non deve tornare in attesa.
+          const wasActiveType = this.questionType();
+          const sameActiveRound = this.roundActive()
+            && this.gameState() === PlayerStatus.VOTING
+            && wasActiveType === status.type
+            && (!status.round || Number(status.round) === this.roundNumber());
           this.questionType.set(status.type);
           if (status.round) this.roundNumber.set(Number(status.round));
           if (status.roundTotal) this.roundTotal.set(Number(status.roundTotal));
@@ -717,7 +725,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
             this.hasAnswered.set(false);
             this.selectedAnswer.set(null);
             this.startTime = Date.now();
-          } else {
+          } else if (!sameActiveRound) {
             this.gameState.set(PlayerStatus.WAITING);
           }
           break;
@@ -746,6 +754,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.roundDeadlineAt.set(Number((status as any).roundDeadlineAt ?? (status as any).deadlineAt ?? 0));
           this.closeManual(true, true);
           this.isBlocked.set(false);
+          // Il round viaggia sul messaggio, non sempre nel payload: senza
+          // salvarlo, un SHOW_QUESTION in ritardo sembra di un altro round.
+          if (status.round) this.roundNumber.set(Number(status.round));
           this.onStartVoting(status.type, status.payload);
           break;
 
