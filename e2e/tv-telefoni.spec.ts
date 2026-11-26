@@ -1,6 +1,8 @@
 import { devices, expect, test, type Browser, type Page } from 'playwright/test';
 
 const BACKEND = 'http://127.0.0.1:8095';
+// Deve combaciare con CONTROL_SECRET del backend in playwright.config.ts.
+const REGIA_SECRET = 'e2e-control-secret-0000000000000000';
 
 async function activeGameId(): Promise<number | null> {
   const response = await fetch(`${BACKEND}/games/active`);
@@ -28,6 +30,21 @@ const DEMO_TYPES = [
   'SPEED_RUSH', 'BIGLIE', 'BONUS_CAVALLO', 'BONUS_KARAOKE', 'BONUS_BIGLIE',
 ];
 
+/** Intro e "APRI LOBBY": la TV non mostra il codice finché la lobby non è aperta. */
+async function openLobby(page: Page): Promise<void> {
+  const intro = page.locator('.intro-screen');
+  await intro.waitFor({ state: 'visible', timeout: 8_000 }).catch(() => undefined);
+  if (await intro.isVisible().catch(() => false)) {
+    await intro.click({ force: true });
+    await page.keyboard.press('Enter');
+  }
+  const lobby = page.getByRole('button', { name: /APRI LOBBY/ });
+  await lobby.waitFor({ state: 'visible', timeout: 10_000 }).catch(() => undefined);
+  if (await lobby.isVisible().catch(() => false)) {
+    await lobby.click();
+  }
+}
+
 async function openTv(page: Page, gameId: number, options: { sim?: boolean; debug?: boolean } = {}): Promise<void> {
   await page.addInitScript(({ id, demos }) => {
     localStorage.setItem('activeGameId', String(id));
@@ -36,17 +53,26 @@ async function openTv(page: Page, gameId: number, options: { sim?: boolean; debu
     localStorage.setItem(`demoSeen:${id}`, JSON.stringify(demos));
   }, { id: gameId, demos: DEMO_TYPES });
   const params = new URLSearchParams();
+  // La TV di sala si apre col segreto: senza, N-01 la lascia una lobby senza
+  // codice di abbinamento e senza permessi di lettura.
+  params.set('regia', REGIA_SECRET);
   if (options.sim) params.set('sim', '1');
   if (options.debug) params.set('debug', '1');
   const query = params.toString();
-  await page.goto(`/tv${query ? `?${query}` : ''}`);
-  const intro = page.locator('.intro-screen');
-  await intro.waitFor({ state: 'visible', timeout: 5_000 }).catch(() => undefined);
-  if (await intro.isVisible().catch(() => false)) {
-    await intro.click({ force: true });
-    await page.keyboard.press('Enter');
+  const url = `/tv${query ? `?${query}` : ''}`;
+  // L'avvio della sessione può precedere il backend pronto: la TV resterebbe
+  // "NON IN LINEA" per sempre. Riapriamola, come un riavvio della postazione.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await page.goto(url);
+    await openLobby(page);
+    const codeVisible = await page.locator('.pairing-code')
+      .waitFor({ state: 'visible', timeout: 30_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (codeVisible) return;
+    await page.waitForTimeout(1_500);
   }
-  await expect(page.locator('.pairing-code')).toBeVisible({ timeout: 60_000 });
+  throw new Error('La TV non ha mostrato il codice di abbinamento');
 }
 
 async function pairAdmin(page: Page, gameId: number, code: string): Promise<void> {
@@ -116,12 +142,7 @@ test.describe.serial('TV + 3 telefoni', () => {
     test.setTimeout(240_000);
     const context = await browser.newContext();
     const page = await context.newPage();
-    await page.goto('/tv');
-    const lobby = page.getByRole('button', { name: /APRI LOBBY/ });
-    if (await lobby.isVisible().catch(() => false)) {
-      await lobby.click();
-    }
-    await expect(page.locator('.pairing-code')).toBeVisible({ timeout: 90_000 });
+    await openTv(page, 1);
     const id = await activeGameId();
     expect(id, 'nessuna partita attiva dopo APRI LOBBY').not.toBeNull();
     bootstrapToken = (await page.evaluate(
@@ -188,5 +209,72 @@ test.describe.serial('TV + 3 telefoni', () => {
     }
 
     await close();
+  });
+
+  test('N-04: Cavallo con una domanda per squadra e un tabellone unico', async ({ browser }) => {
+    const { tv, admin, phones, close } = await setup(browser, bootstrapToken, 'N04');
+
+    try {
+      // La socket della regia può essere ancora in apertura subito dopo il
+      // pairing: il primo comando può cadere nel vuoto, come in sala.
+      await admin.waitForTimeout(2500);
+      await admin.getByRole('button', { name: /BONUS CAVALLO/ }).click();
+
+      // Categoria: le tre squadre scelgono la stessa voce e la sfida parte
+      // senza aspettare i quindici secondi.
+      const firstCategory = phones[0].locator('.cavallo-category').first();
+      await expect(firstCategory).toBeVisible({ timeout: 45_000 });
+      const category = (await firstCategory.innerText()).trim();
+      for (const phone of phones) {
+        const choice = phone.locator('.cavallo-category', { hasText: category }).first();
+        await expect(choice).toBeEnabled({ timeout: 20_000 });
+        // Anche qui la pagina ha animazioni continue: senza force il click
+        // aspetta la stabilità e non parte mai.
+        await choice.click({ force: true });
+      }
+
+      // La TV mostra la categoria scelta e un solo tabellone con tutte le
+      // squadre: il totale delle giuste è sempre su otto domande.
+      await expect(tv.locator('.cav-cat')).toHaveText(category, { timeout: 30_000 });
+      const board = tv.locator('app-cavallo-bonus .cav-board');
+      await expect(board).toHaveCount(1);
+      await expect(board.locator('.cav-row')).toHaveCount(3);
+      const names = (await board.locator('.cav-name').allInnerTexts())
+        .map((name) => name.trim()).sort();
+      expect(names).toEqual(['N04-1', 'N04-2', 'N04-3']);
+
+      // Otto passi condivisi: ogni telefono legge la domanda della propria
+      // squadra, mai quella degli altri.
+      for (let step = 1; step <= 8; step += 1) {
+        const questions = await Promise.all(phones.map(async (phone) => {
+          const question = phone.locator('.cavallo-question');
+          await expect(question, `domanda ${step} sul telefono`).toBeVisible({ timeout: 30_000 });
+          return (await question.innerText()).trim();
+        }));
+        expect(new Set(questions).size, `domande uguali al passo ${step}`).toBe(3);
+
+        for (const phone of phones) {
+          const option = phone.locator('.cavallo-option').first();
+          await expect(option).toBeEnabled({ timeout: 10_000 });
+          await option.click({ force: true });
+        }
+
+        // Tutte le squadre hanno risposto: la TV mostra l'esito e il tabellone
+        // resta lo stesso. Il passo successivo riapre la domanda.
+        await Promise.all(phones.map((phone) =>
+          expect(phone.locator('.cavallo-question')).toBeHidden({ timeout: 15_000 })));
+        await expect(board.locator('.cav-row')).toHaveCount(3);
+      }
+
+      // Dopo l'ottava domanda il bonus chiude: il tabellone unico resta con il
+      // totale delle giuste di ogni squadra.
+      await expect(tv.locator('.cav-finale')).toBeVisible({ timeout: 20_000 });
+      await expect(board.locator('.cav-row')).toHaveCount(3);
+      for (const score of await board.locator('.cav-score').allInnerTexts()) {
+        expect(score.trim(), 'punteggio del tabellone').toMatch(/^[0-8]\/8$/);
+      }
+    } finally {
+      await close();
+    }
   });
 });
