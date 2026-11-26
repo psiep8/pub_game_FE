@@ -78,17 +78,21 @@ public class ReliabilityController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ruolo non valido");
         }
         boolean secretOk = secretMatches(suppliedSecret);
+        // Un token già valido vale più di un segreto vecchio rimasto in locale:
+        // se la TV si riconnette col proprio token, un segreto errato non deve
+        // farla degradare a lobby (né cancellare la sessione).
+        boolean validResume = sessions.authenticate(token)
+                .filter(s -> s.getGameId().equals(gameId) && normalizedRole.equals(s.getRole())).isPresent();
         // La TV si registra anche senza segreto, così la lobby e il QR dei
         // telefoni funzionano pure con il database azzerato. Resta però uno
         // schermo: senza la credenziale di regia non genera codici e non legge
         // le soluzioni (filtro + pairing-code). Un segreto sbagliato non deve
-        // sembrare una TV abilitata: si rifiuta subito.
-        if ("TV".equals(normalizedRole) && suppliedSecret != null && !suppliedSecret.isBlank() && !secretOk) {
+        // sembrare una TV abilitata: si rifiuta subito, salvo token valido.
+        if ("TV".equals(normalizedRole) && suppliedSecret != null && !suppliedSecret.isBlank()
+                && !secretOk && !validResume) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Segreto di regia non valido");
         }
         if (!"REMOTE".equals(normalizedRole) && !"TV".equals(normalizedRole)) {
-            boolean validResume = sessions.authenticate(token)
-                    .filter(s -> s.getGameId().equals(gameId) && normalizedRole.equals(s.getRole())).isPresent();
             boolean authorized = validResume || secretOk;
             if (!authorized) {
                 PairingCodeService.RedeemResult result = pairing.attempt(gameId, string(payload.get("pairingCode")));

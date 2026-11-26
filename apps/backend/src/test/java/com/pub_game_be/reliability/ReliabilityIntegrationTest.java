@@ -334,6 +334,12 @@ class ReliabilityIntegrationTest {
                 "{\"deviceId\":\"device\",\"role\":\"TV\",\"sessionToken\":\"" + tv + "\"}");
         assertThat(resumedTv.statusCode()).isEqualTo(200);
         assertThat(json.readTree(resumedTv.body()).get("regia").asBoolean()).isTrue();
+        // Segreto ruotato/errato ma token ancora valido: la sessione resta
+        // regia e non viene buttata con un 401 che il client legge come revoca.
+        var staleSecret = request("POST", base + "/session", null, "segreto-vecchio-non-valido",
+                "{\"deviceId\":\"device\",\"role\":\"TV\",\"sessionToken\":\"" + tv + "\"}");
+        assertThat(staleSecret.statusCode()).as(staleSecret.body()).isEqualTo(200);
+        assertThat(json.readTree(staleSecret.body()).get("regia").asBoolean()).isTrue();
         var remote = request("POST", base + "/session", null, null,
                 "{\"deviceId\":\"r\",\"role\":\"REMOTE\",\"playerName\":\"Anna\"}");
         assertThat(remote.statusCode()).isEqualTo(200);
