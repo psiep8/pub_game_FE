@@ -32,10 +32,7 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
      * sincronizzarsi (il controller toglie le soluzioni) e tenere viva la
      * sessione; ogni altra rotta — codici, round, reset, checkpoint — è chiusa.
      */
-    private static final Set<String> SCREEN_GET = Set.of("sync", "diagnostics", "pairing-code",
-            // La TV mostra le domande del Cavallo e ne conosce la soluzione per
-            // giudicare: è una lettura, non un comando di regia.
-            "cavallo/questions");
+    private static final Set<String> SCREEN_GET = Set.of("sync", "diagnostics", "pairing-code");
     private static final Set<String> SCREEN_POST = Set.of("session/heartbeat", "session/disconnect",
             "pairing-code");
     /**

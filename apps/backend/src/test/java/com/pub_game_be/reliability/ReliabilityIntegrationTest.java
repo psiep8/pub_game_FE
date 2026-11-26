@@ -770,6 +770,26 @@ class ReliabilityIntegrationTest {
     }
 
     @Test
+    void tvSenzaSegretoNonLeggeLeDomandeDelCavallo() throws Exception {
+        long gameId = 708L;
+        String base = "/games/" + gameId;
+        var lobby = request("POST", base + "/session", null, null,
+                "{\"deviceId\":\"tv-cavallo-lobby\",\"role\":\"TV\"}");
+        assertThat(lobby.statusCode()).isEqualTo(200);
+        String lobbyTv = json.readTree(lobby.body()).get("sessionToken").asText();
+        // L'endpoint restituisce anche correctAnswer: è materiale di regia.
+        assertThat(request("GET", base + "/cavallo/questions?category=Storia&count=2",
+                lobbyTv, null, null).statusCode()).isEqualTo(403);
+
+        var regia = request("POST", base + "/session", null, "0123456789abcdef0123456789abcdef",
+                "{\"deviceId\":\"tv-cavallo-regia\",\"role\":\"TV\"}");
+        assertThat(regia.statusCode()).isEqualTo(200);
+        String regiaTv = json.readTree(regia.body()).get("sessionToken").asText();
+        assertThat(request("GET", base + "/cavallo/questions?category=Storia&count=2",
+                regiaTv, null, null).statusCode()).isEqualTo(200);
+    }
+
+    @Test
     void laRegiaEspelleUnaSquadraELiberaIlNomePerIlRientro() throws Exception {
         long gameId = 531L;
         String base = "/games/" + gameId;
