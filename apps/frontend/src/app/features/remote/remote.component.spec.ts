@@ -69,6 +69,53 @@ describe('RemoteComponent', () => {
     expect(component.hasAnswered()).toBe(false);
   });
 
+  it('N-04: il telefono mostra solo la domanda della propria squadra', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+
+    ws.status$.next({
+      action: 'CAVALLO_STATE',
+      state: {
+        phase: 'QUESTION',
+        chosenCategory: 'MUSICA',
+        secondsLeft: 40,
+        categories: ['MUSICA'],
+        votes: [],
+        questions: {
+          Anna: { index: 2, total: 8, text: 'Domanda di Anna', options: ['A', 'B'] },
+          Bruno: { index: 2, total: 8, text: 'Domanda di Bruno', options: ['C', 'D'] },
+        },
+        reveals: {},
+        scores: [],
+        message: '',
+      },
+    });
+    fixture.detectChanges();
+
+    expect(component.cavalloMyQuestion()?.text).toBe('Domanda di Anna');
+    expect(fixture.nativeElement.querySelector('.cavallo-question')?.textContent).toContain('Domanda di Anna');
+    expect(fixture.nativeElement.textContent).not.toContain('Domanda di Bruno');
+  });
+
+  it('N-03: il via della manche successiva riporta il telefono al voto', () => {
+    component.hasAnswered.set(true);
+    component.gameState.set(PlayerStatus.LOCKED);
+
+    ws.status$.next({
+      action: 'START_VOTING', type: 'IMAGE_BLUR', round: 7, manche: 2,
+      payload: JSON.stringify({ manche: 2, mancheTotal: 3, categoryLabel: 'Sport, Cinema, TV, Spettacolo' }),
+    });
+
+    // La TV annuncia ogni manche con START_VOTING: il pulsante PRENOTATI deve
+    // tornare vivo, non restare bloccato sulla prenotazione precedente.
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(component.hasAnswered()).toBe(false);
+    expect(component.questionType()).toBe('IMAGE_BLUR');
+    expect(component.roundActive()).toBe(true);
+    expect(component.roundClosed()).toBe(false);
+  });
+
   it('ordina le corsie live: prima chi è arrivato, poi chi ha più strada', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();
@@ -499,12 +546,18 @@ describe('RemoteComponent', () => {
     const original = (navigator as any).vibrate;
     Object.defineProperty(navigator, 'vibrate', { value: undefined, configurable: true });
 
-    ws.status$.next({ action: 'BONUS_STARTED' });
-    await fixture.whenStable();
-    fixture.detectChanges();
+    try {
+      ws.status$.next({ action: 'BONUS_STARTED' });
+      // Il flash si accende nel frame successivo. Aspettare whenStable() qui
+      // dipendeva dal timer di spegnimento (500 ms): con due file di test in
+      // parallelo poteva scadere prima dell'assert.
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      fixture.detectChanges();
 
-    expect(component.hapticFlash()).toBe(true);
-    Object.defineProperty(navigator, 'vibrate', { value: original, configurable: true });
+      expect(component.hapticFlash()).toBe(true);
+    } finally {
+      Object.defineProperty(navigator, 'vibrate', { value: original, configurable: true });
+    }
   });
 
   it('il reset TV riporta al setup e azzera il contatore del telefono', async () => {

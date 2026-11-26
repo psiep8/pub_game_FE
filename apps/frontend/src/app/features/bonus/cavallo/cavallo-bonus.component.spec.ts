@@ -83,7 +83,7 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
 
     expect(component.chosenCategory()).toBe('MUSICA');
     expect(component.phase()).toBe(component.Phase.QUESTION);
-    expect(component.question()?.text).toContain('MUSICA');
+    expect(component.questionFor('Anna')?.text).toContain('MUSICA');
 
     // Le risposte arrivano al server TV: ogni telefono ha la sua.
     ws.status$.next({ action: 'CAVALLO_ACTION', kind: 'ANSWER', playerName: 'Anna', value: 0 });
@@ -143,7 +143,7 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
       answers: [{ playerName: 'Anna', index: 1 }],
     });
 
-    const question = component.question();
+    const question = component.questionFor('Anna');
     expect(component.phase()).toBe(component.Phase.QUESTION);
     expect(question?.text).toBe('Capitale del Giappone?');
     expect(component.secondsLeft()).toBe(42);
@@ -198,13 +198,13 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
     });
 
     expect(component.phase()).toBe(component.Phase.REVEAL);
-    expect(component.reveal()?.heading).toBe('RISPOSTA ESATTA: Tokyo');
+    expect(component.reveals()['Anna']?.heading).toBe('RISPOSTA ESATTA: Tokyo');
 
     vi.advanceTimersByTime(1700);
 
     expect(component.phase()).toBe(component.Phase.QUESTION);
     expect(component.index()).toBe(1);
-    expect(component.question()?.text).toBe('Chi ha dipinto la Gioconda?');
+    expect(component.questionFor('Anna')?.text).toBe('Chi ha dipinto la Gioconda?');
 
     vi.useRealTimers();
     fixture.destroy();
@@ -231,6 +231,78 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
 
     vi.useRealTimers();
     fixture.destroy();
+  });
+
+  it('N-04: ogni squadra riceve la propria domanda e il tabellone resta uno', () => {
+    const { component, fixture } = mount({
+      phase: 'QUESTION',
+      secondsLeft: 40,
+      savedAt: Date.now(),
+      chosenCategory: 'MUSICA',
+      questionsByTeam: {
+        Anna: [QUESTIONS[0]],
+        Bruno: [QUESTIONS[1]],
+      },
+      index: 0,
+      total: 1,
+      scores: [{ playerName: 'Anna', score: 0 }, { playerName: 'Bruno', score: 0 }],
+      votes: [],
+      answers: [],
+    });
+
+    expect(component.questionFor('Anna')?.text).toBe('Capitale del Giappone?');
+    expect(component.questionFor('Bruno')?.text).toBe('Chi ha dipinto la Gioconda?');
+    // Un solo tabellone per tutte le squadre.
+    expect(component.totals()).toHaveLength(2);
+    expect(component.questionFor('Carla')).toBeNull();
+
+    fixture.destroy();
+  });
+
+  it('N-04: ogni squadra risponde alla sua domanda e il tabellone somma le giuste', () => {
+    vi.useFakeTimers();
+    try {
+      const { component, fixture } = mount({
+        phase: 'QUESTION',
+        secondsLeft: 40,
+        savedAt: Date.now(),
+        chosenCategory: 'MUSICA',
+        questionsByTeam: {
+          Anna: [QUESTIONS[0]],
+          Bruno: [QUESTIONS[1]],
+        },
+        index: 0,
+        total: 1,
+        scores: [{ playerName: 'Anna', score: 0 }, { playerName: 'Bruno', score: 0 }],
+        votes: [],
+        answers: [],
+      });
+      const ws = TestBed.inject(WebSocketService) as unknown as FakeWebSocketService;
+
+      // Tokyo è la risposta di Anna; Leonardo quella di Bruno.
+      ws.status$.next({ action: 'CAVALLO_ACTION', kind: 'ANSWER', playerName: 'Anna', value: 1 });
+      ws.status$.next({ action: 'CAVALLO_ACTION', kind: 'ANSWER', playerName: 'Bruno', value: 0 });
+      fixture.detectChanges();
+
+      expect(component.phase()).toBe(component.Phase.REVEAL);
+      expect(component.totals()).toEqual([
+        { playerName: 'Anna', score: 1 },
+        { playerName: 'Bruno', score: 1 },
+      ]);
+      expect(component.reveals()['Anna']?.heading).toContain('Tokyo');
+      expect(component.reveals()['Bruno']?.heading).toContain('Leonardo');
+
+      const published = ws.broadcasted.at(-1)?.body?.state;
+      expect(published.questions.Anna.text).toBe('Capitale del Giappone?');
+      expect(published.questions.Bruno.text).toBe('Chi ha dipinto la Gioconda?');
+
+      vi.advanceTimersByTime(1_700);
+      expect(component.phase()).toBe(component.Phase.FINALE);
+
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('la pausa della TV ferma la votazione della categoria', () => {

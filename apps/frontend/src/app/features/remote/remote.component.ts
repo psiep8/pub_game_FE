@@ -1755,14 +1755,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
     // R-01: in sala questo log dice se il telefono ha ricevuto il bonus e in
     // che fase è, senza dover indovinare dal silenzio.
+    const myQuestion = this.nickname() ? state.questions?.[this.nickname()!] : null;
     console.info('[CAVALLO][telefono] stato', {
       phase: state.phase,
       categoria: state.chosenCategory || null,
-      domanda: state.question?.index ?? null,
+      domanda: myQuestion?.index ?? state.question?.index ?? null,
     });
     this.cavalloState.set(state);
     this.questionType.set('BONUS_CAVALLO');
-    const key = `${state.phase}:${state.question?.index ?? 0}`;
+    const key = `${state.phase}:${myQuestion?.index ?? state.question?.index ?? 0}`;
     if (key !== this.cavalloKey) {
       this.cavalloKey = key;
       this.cavalloChoice.set(null);
@@ -2208,9 +2209,24 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.vibrate(30);
   }
 
+  /** N-04: la domanda assegnata a questa squadra, non quella del bonus. */
+  cavalloMyQuestion(): any | null {
+    const player = this.nickname();
+    if (!player) return null;
+    return this.cavalloState()?.questions?.[player]
+      ?? (this.cavalloState()?.phase === 'QUESTION' ? this.cavalloState()?.question : null)
+      ?? null;
+  }
+
+  cavalloMyReveal(): any | null {
+    const player = this.nickname();
+    if (!player) return null;
+    return this.cavalloState()?.reveals?.[player] ?? this.cavalloState()?.reveal ?? null;
+  }
+
   cavalloMyRow(): any {
     const player = this.nickname();
-    return (this.cavalloState()?.reveal?.rows ?? []).find((row: any) => row.playerName === player) ?? null;
+    return (this.cavalloMyReveal()?.rows ?? []).find((row: any) => row.playerName === player) ?? null;
   }
 
   cavalloAnswer(index: number): void {
@@ -2219,7 +2235,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const player = this.nickname();
     if (!state || state.phase !== 'QUESTION' || !player || this.cavalloChoice() !== null) return;
 
-    const options: string[] = state.question?.options ?? [];
+    const options: string[] = this.cavalloMyQuestion()?.options ?? [];
     if (!Number.isInteger(index) || index < 0 || index >= options.length) return;
 
     this.cavalloChoice.set(String(index));

@@ -41,6 +41,14 @@ interface Reveal {
   rows: Row[];
 }
 
+/** Domanda della sequenza di una squadra: ognuna ha la sua. */
+interface RushQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  category: string;
+}
+
 interface Category {
   id: number;
   name: string;
@@ -411,8 +419,9 @@ export class CavalloBonus implements OnInit, OnDestroy {
   readonly chosenCategory = signal('');
   readonly index = signal(0);
   readonly total = signal(FLASH_QUESTIONS);
-  readonly question = signal<{ text: string; options: string[] } | null>(null);
-  readonly reveal = signal<Reveal | null>(null);
+  /** Una domanda per squadra: passo condiviso, sequenze separate. */
+  private readonly sequences = new Map<string, RushQuestion[]>();
+  readonly reveals = signal<Record<string, Reveal>>({});
   readonly totals = signal<Array<{ playerName: string; score: number }>>([]);
   readonly deltas = signal<Record<string, number>>({});
   readonly message = signal('');
@@ -421,7 +430,6 @@ export class CavalloBonus implements OnInit, OnDestroy {
   private readonly categoryVotesView = signal<Array<{ playerName: string; category: string }>>([]);
   private readonly answers = new Map<string, { index: number; at: number }>();
   private readonly scoreMap = new Map<string, number>();
-  private questions: Array<{ question: string; options: string[]; correctIndex: number; category: string }> = [];
   private questionStartedAt = 0;
   /** Pausa, cronometro e attese: un solo posto per fermarli e riarmarli. */
   /** Input iniziale applicato: da lì in poi ogni cambio di pausa va nel checkpoint. */
@@ -459,19 +467,23 @@ export class CavalloBonus implements OnInit, OnDestroy {
     const phase = String(state?.phase ?? '');
     this.chosenCategory.set(String(state?.chosenCategory ?? ''));
 
-    this.questions = Array.isArray(state?.questions)
-      ? state.questions
-        .filter((question: any) => question && question.question && Array.isArray(question.options))
-        .map((question: any) => ({
-          question: String(question.question),
-          options: question.options.map((option: any) => String(option)),
-          correctIndex: Number(question.correctIndex) || 0,
-          category: String(question.category ?? ''),
-        }))
-      : [];
+    this.sequences.clear();
+    const savedByTeam = state?.questionsByTeam;
+    if (savedByTeam && typeof savedByTeam === 'object') {
+      for (const playerName of this.players) {
+        this.sequences.set(playerName, this.readQuestions(savedByTeam[playerName]));
+      }
+    } else {
+      // Checkpoint precedente a N-04: una domanda per tutti. Si riusa per
+      // ogni squadra, così una TV aggiornata a metà serata non si blocca.
+      const legacy = this.readQuestions(state?.questions);
+      for (const playerName of this.players) {
+        this.sequences.set(playerName, legacy.map((question) => ({ ...question, options: [...question.options] })));
+      }
+    }
 
     const savedTotal = Number(state?.total);
-    this.total.set(savedTotal > 0 ? Math.round(savedTotal) : (this.questions.length || FLASH_QUESTIONS));
+    this.total.set(savedTotal > 0 ? Math.round(savedTotal) : FLASH_QUESTIONS);
     const savedIndex = Number(state?.index);
     this.index.set(Number.isFinite(savedIndex) && savedIndex >= 0 ? Math.floor(savedIndex) : 0);
 
@@ -509,9 +521,23 @@ export class CavalloBonus implements OnInit, OnDestroy {
 
     this.message.set(String(state?.message ?? ''));
     this.rushExpired = state?.rushExpired === true;
-    const current = this.questions[this.index()];
-    this.question.set(current ? { text: current.question, options: current.options } : null);
-    this.reveal.set(state?.reveal && Array.isArray(state.reveal.rows) ? state.reveal : null);
+    if (state?.reveals && typeof state.reveals === 'object') {
+      this.reveals.set(state.reveals);
+    } else if (state?.reveal && Array.isArray(state.reveal.rows)) {
+      // Checkpoint precedente a N-04: un solo reveal per tutte le squadre. Si
+      // spezza per squadra, così la ripresa resta leggibile.
+      const legacy: Record<string, Reveal> = {};
+      for (const playerName of this.players) {
+        const row = state.reveal.rows.find((entry: any) => entry?.playerName === playerName);
+        legacy[playerName] = {
+          heading: String(state.reveal.heading ?? ''),
+          rows: row ? [{ ...row }] : [],
+        };
+      }
+      this.reveals.set(legacy);
+    } else {
+      this.reveals.set({});
+    }
     this.deltas.set(state?.deltas && typeof state.deltas === 'object' ? state.deltas : {});
 
     const savedSeconds = Number(state?.secondsLeft);
@@ -524,7 +550,6 @@ export class CavalloBonus implements OnInit, OnDestroy {
     if (phase === Phase.FINALE) {
       this.phase.set(Phase.FINALE);
       this.secondsLeft.set(0);
-      this.question.set(null);
       this.publish();
       this.later((seconds > 0 ? seconds : 3) * 1000, () => this.finished.emit());
       return;
@@ -541,14 +566,15 @@ export class CavalloBonus implements OnInit, OnDestroy {
       return;
     }
 
-    if (phase === Phase.REVEAL && this.reveal()) {
+    if (phase === Phase.REVEAL && Object.keys(this.reveals()).length) {
       this.phase.set(Phase.REVEAL);
       this.startClock(seconds, () => this.expireRush());
       this.later(this.preview ? 700 : REVEAL_MS, () => this.afterReveal(false));
       return;
     }
 
-    if (phase === Phase.QUESTION && current) {
+    const active = this.activeTeams(this.index());
+    if (phase === Phase.QUESTION && active.length) {
       this.phase.set(Phase.QUESTION);
       this.questionStartedAt = Date.now();
       this.startClock(seconds, () => this.expireRush());
@@ -556,8 +582,8 @@ export class CavalloBonus implements OnInit, OnDestroy {
       this.scheduleQuestionReveal(
         Math.min(this.preview ? 1500 : 7000, Math.max(0, seconds) * 1000),
       );
-      // Tutti avevano già risposto: manca solo l'esito della domanda.
-      if (this.players.length && this.answers.size >= this.players.length) {
+      // Tutte le squadre avevano già risposto: manca solo l'esito.
+      if (active.every((playerName) => this.answers.has(playerName))) {
         this.revealQuestion();
       }
       return;
@@ -576,14 +602,20 @@ export class CavalloBonus implements OnInit, OnDestroy {
       paused: this.paused,
       savedAt: Date.now(),
       chosenCategory: this.chosenCategory(),
-      questions: this.questions.map((question) => ({ ...question })),
+      // Le sequenze sono per squadra: il checkpoint le conserva tutte.
+      questionsByTeam: Object.fromEntries(
+        [...this.sequences].map(([playerName, questions]) => [
+          playerName,
+          questions.map((question) => ({ ...question, options: [...question.options] })),
+        ]),
+      ),
       index: this.index(),
       total: this.total(),
       scores: this.totals(),
       votes: this.categoryVotesView(),
       answers: [...this.answers].map(([playerName, answer]) => ({ playerName, index: answer.index })),
       deltas: { ...this.deltas() },
-      reveal: this.reveal(),
+      reveals: this.reveals(),
       message: this.message(),
       rushExpired: this.rushExpired,
     });
@@ -698,12 +730,12 @@ export class CavalloBonus implements OnInit, OnDestroy {
     if (status.kind === 'ANSWER') {
       if (this.phase() !== Phase.QUESTION) return;
       const index = Number(status.value);
-      const current = this.question();
+      const current = this.stepQuestion(playerName);
       if (!current || !Number.isInteger(index) || index < 0 || index >= current.options.length) return;
       if (this.answers.has(playerName)) return;
 
       this.answers.set(playerName, { index, at: Date.now() - this.questionStartedAt });
-      if (this.answers.size >= this.players.length) {
+      if (this.activeTeams().every((name) => this.answers.has(name))) {
         // Il cronometro globale continua: qui si chiude solo la domanda.
         this.revealQuestion();
       }
@@ -793,21 +825,23 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.saveCheckpoint();
 
     if (this.preview) {
-      this.questions = PREVIEW_QUESTIONS.slice(0, FLASH_QUESTIONS);
-      this.total.set(this.questions.length);
+      this.assignSequences(this.readQuestions(PREVIEW_QUESTIONS));
       this.later(350, () => this.startRush());
       return;
     }
 
-    this.gameService.getCavalloQuestions(this.gameId, winner, FLASH_QUESTIONS).subscribe({
+    // Otto domande a testa: la banca risponde con il blocco dell'intera
+    // squadra, così ogni tavolo ha la sua sequenza nella stessa categoria.
+    const wanted = FLASH_QUESTIONS * Math.max(1, this.players.length);
+    this.gameService.getCavalloQuestions(this.gameId, winner, wanted).subscribe({
       next: (rows) => {
-        this.questions = (rows ?? []).slice(0, FLASH_QUESTIONS);
-        if (!this.questions.length) {
+        const pool = this.readQuestions(rows);
+        if (!pool.length) {
           this.message.set('Nessuna domanda disponibile per questa categoria.');
           this.finale(true);
           return;
         }
-        this.total.set(this.questions.length);
+        this.assignSequences(pool);
         this.startRush();
       },
       error: () => {
@@ -825,8 +859,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
   }
 
   private startQuestion(index: number): void {
-    const question = this.questions[index];
-    if (!question || this.rushExpired || this.secondsLeft() <= 0) {
+    if (!this.activeTeams(index).length || this.rushExpired || this.secondsLeft() <= 0) {
       this.finale(false);
       return;
     }
@@ -834,9 +867,8 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.index.set(index);
     this.phase.set(Phase.QUESTION);
     this.answers.clear();
-    this.reveal.set(null);
+    this.reveals.set({});
     this.deltas.set({});
-    this.question.set({ text: question.question, options: question.options });
     this.questionStartedAt = Date.now();
     if (this.preview) this.seedPreviewAnswers();
     this.publish();
@@ -858,12 +890,13 @@ export class CavalloBonus implements OnInit, OnDestroy {
   }
 
   private seedPreviewAnswers(): void {
-    const current = this.questions[this.index()];
-    if (!current) return;
+    if (!this.activeTeams().length) return;
     this.later(650, () => {
       if (this.phase() !== Phase.QUESTION) return;
       for (const playerName of this.players) {
         if (this.answers.has(playerName)) continue;
+        const current = this.stepQuestion(playerName);
+        if (!current) continue;
         const index =
           Math.random() < 0.45
             ? current.correctIndex
@@ -877,30 +910,36 @@ export class CavalloBonus implements OnInit, OnDestroy {
     if (this.phase() !== Phase.QUESTION) return;
     this.clearQuestionTimer();
 
-    const current = this.questions[this.index()];
-    if (!current) {
+    const active = this.activeTeams();
+    if (!active.length) {
       this.finale(false);
       return;
     }
 
     const gained: Record<string, number> = {};
-    const rows: Row[] = this.players.map((playerName) => {
+    const reveals: Record<string, Reveal> = {};
+    for (const playerName of active) {
+      const current = this.stepQuestion(playerName);
+      if (!current) continue;
       const answer = this.answers.get(playerName);
       const correct = !!answer && answer.index === current.correctIndex;
       if (correct) {
         gained[playerName] = 1;
         this.addCorrect(playerName);
       }
-      return {
-        playerName,
-        label: answer ? current.options[answer.index] ?? '—' : '—',
-        points: correct ? 1 : 0,
+      reveals[playerName] = {
+        heading: `RISPOSTA ESATTA: ${current.options[current.correctIndex] ?? '—'}`,
+        rows: [{
+          playerName,
+          label: answer ? current.options[answer.index] ?? '—' : '—',
+          points: correct ? 1 : 0,
+        }],
       };
-    });
+    }
 
     this.phase.set(Phase.REVEAL);
     this.deltas.set(gained);
-    this.reveal.set({ heading: `RISPOSTA ESATTA: ${current.options[current.correctIndex]}`, rows });
+    this.reveals.set(reveals);
     this.publish();
     this.saveCheckpoint();
 
@@ -910,7 +949,7 @@ export class CavalloBonus implements OnInit, OnDestroy {
   /** Dopo il reveal: domanda successiva o chiusura del bonus. */
   private afterReveal(final: boolean): void {
     if (this.phase() !== Phase.REVEAL) return;
-    if (final || this.rushExpired || this.index() + 1 >= this.questions.length) {
+    if (final || this.rushExpired || this.index() + 1 >= this.total()) {
       this.finale(false);
     } else {
       this.startQuestion(this.index() + 1);
@@ -923,7 +962,6 @@ export class CavalloBonus implements OnInit, OnDestroy {
     this.clearQuestionTimer();
     this.phase.set(Phase.FINALE);
     this.secondsLeft.set(0);
-    this.question.set(null);
     this.deltas.set({});
     if (empty) {
       this.total.set(0);
@@ -961,8 +999,65 @@ export class CavalloBonus implements OnInit, OnDestroy {
     );
   }
 
+  /** Domanda della squadra al passo corrente: la legge anche la TV. */
+  questionFor(playerName: string): { text: string; options: string[] } | null {
+    const current = this.stepQuestion(playerName);
+    return current ? { text: current.question, options: current.options } : null;
+  }
+
+  private stepQuestion(playerName: string): RushQuestion | undefined {
+    return this.sequences.get(playerName)?.[this.index()];
+  }
+
+  /** Squadre che hanno una domanda al passo richiesto. */
+  private activeTeams(index = this.index()): string[] {
+    return this.players.filter((playerName) => !!this.sequences.get(playerName)?.[index]);
+  }
+
+  private readQuestions(rows: any): RushQuestion[] {
+    return Array.isArray(rows)
+      ? rows
+        .filter((row: any) => row && typeof row.question === 'string'
+          && Array.isArray(row.options) && row.options.length > 0)
+        .map((row: any) => ({
+          question: String(row.question),
+          options: row.options.map((option: any) => String(option)),
+          correctIndex: Number(row.correctIndex) || 0,
+          category: String(row.category ?? ''),
+        }))
+      : [];
+  }
+
+  /** Otto domande a testa: blocchi diversi della stessa banca. */
+  private assignSequences(pool: RushQuestion[]): void {
+    this.sequences.clear();
+    this.total.set(FLASH_QUESTIONS);
+    if (!pool.length) return;
+    this.players.forEach((playerName, teamIndex) => {
+      const sequence: RushQuestion[] = [];
+      for (let step = 0; step < FLASH_QUESTIONS; step += 1) {
+        const source = pool[(teamIndex * FLASH_QUESTIONS + step) % pool.length];
+        if (!source) break;
+        sequence.push({ ...source, options: [...source.options] });
+      }
+      this.sequences.set(playerName, sequence);
+    });
+  }
+
   private publish(): void {
-    const current = this.question();
+    // Ogni telefono legge la propria domanda dalla mappa; la risposta esatta
+    // resta in TV e non esce mai nello stato.
+    const questions: Record<string, { index: number; total: number; text: string; options: string[] }> = {};
+    for (const playerName of this.players) {
+      const current = this.stepQuestion(playerName);
+      if (!current) continue;
+      questions[playerName] = {
+        index: this.index() + 1,
+        total: this.total(),
+        text: current.question,
+        options: current.options,
+      };
+    }
     this.ws.broadcastStatus(this.gameId, {
       action: 'CAVALLO_STATE',
       state: {
@@ -971,16 +1066,8 @@ export class CavalloBonus implements OnInit, OnDestroy {
         categories: this.categoryNames(),
         votes: this.categoryVotesView(),
         chosenCategory: this.chosenCategory(),
-        question: current
-          ? {
-              index: this.index() + 1,
-              total: this.total(),
-              text: current.text,
-              options: current.options,
-            }
-          : null,
-        correctIndex: this.phase() === Phase.REVEAL ? this.questions[this.index()]?.correctIndex ?? null : null,
-        reveal: this.reveal(),
+        questions,
+        reveals: this.reveals(),
         scores: this.totals(),
         message: this.message(),
       },

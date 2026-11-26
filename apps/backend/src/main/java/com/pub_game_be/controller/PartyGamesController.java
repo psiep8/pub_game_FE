@@ -95,8 +95,9 @@ public class PartyGamesController {
     public List<Map<String, Object>> cavalloQuestions(@PathVariable("gameId") Long gameId,
             @RequestParam(name = "category", defaultValue = "") String category,
             @RequestParam(name = "count", defaultValue = "8") int count) {
+        // Otto domande a testa: il blocco copre tutte le squadre della serata.
         List<Map<String, Object>> rows = questionBank.cavalloQuestions(category,
-                Math.max(1, Math.min(20, count)),
+                Math.max(1, Math.min(60, count)),
                 question -> !questionHistory.isUsed(gameId, bankKey(question)));
         for (Map<String, Object> row : rows) {
             questionHistory.claim(gameId, bankKey(row), null, "CAVALLO");

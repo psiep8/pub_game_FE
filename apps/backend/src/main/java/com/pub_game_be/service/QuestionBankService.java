@@ -511,7 +511,7 @@ public class QuestionBankService {
     /** Variante con filtro: il Cavallo non ripete domande già uscite. */
     public List<Map<String, Object>> cavalloQuestions(String category, int count,
             Predicate<BankQuestion> isAvailable) {
-        int wanted = Math.max(1, Math.min(20, count));
+        int wanted = Math.max(1, Math.min(60, count));
         List<BankQuestion> hard = new ArrayList<>();
         List<BankQuestion> medium = new ArrayList<>();
         List<BankQuestion> otherCategories = new ArrayList<>();
