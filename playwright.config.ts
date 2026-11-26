@@ -1,10 +1,5 @@
 import { defineConfig } from 'playwright/test';
-
-// Porte dedicate ai test: si possono spostare per non collidere con un'altra
-// prova E2E aperta sulla stessa cartella. I valori predefiniti restano quelli
-// della serata di prova.
-const FRONTEND_PORT = Number(process.env.E2E_FRONTEND_PORT) || 4295;
-const BACKEND_PORT = Number(process.env.E2E_BACKEND_PORT) || 8095;
+import { BACKEND_PORT, FRONTEND_PORT } from './e2e/ports';
 
 export default defineConfig({
   testDir: './e2e',
