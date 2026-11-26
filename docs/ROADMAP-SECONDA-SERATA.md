@@ -39,10 +39,10 @@ scadenza e blocco dopo cinque errori).
 
 | Voce | Stato | Note |
 | --- | --- | --- |
-| N-01 — Aggancio regia ↔ TV | **Fatto** | Codice automatico, QR regia, rinnovo, campo unico, memoria del dispositivo. La sessione d'avvio si riprova e si riapre da sola se il backend non è pronto (`183b46e`). |
+| N-01 — Aggancio regia ↔ TV | **Fatto** | Codice automatico, QR regia, rinnovo, campo unico, memoria del dispositivo. La sessione d'avvio si riprova in un unico ciclo e si riapre da sola se il backend non è pronto; il codice di regia si chiede solo a sessione aperta (`183b46e`, `77ecd59`). |
 | N-02 — Pulsante unico e barra TV | **Fatto** | Dock TV dietro `?debug=1`; barra primaria in regia. |
 | N-03 — Indovina chi manche 2 e 3 | **Fatto** | Finestra server corretta (`26a2c77`); l'ADMIN ora riceve anche `PLAYER_PRENOTATO` (`8aa30f2`); ogni manche riapre `START_VOTING` con la soluzione corrente e la regia resta `ACTIVE` (`2eb729b`); il buzz non confermato non passa alla manche dopo (`b7dbff8`). E2E TV + 3 telefoni superato per tutte e tre le manche. Resta N-21 (quattro manche) nel blocco C. |
-| N-04 — Cavallo per squadra | **Fatto** | `1995372`. Otto domande a testa, un tabellone unico, banca fino a 60 domande; tabellone corretto (`eceaf2b`), pari merito a **1, 1, 3** (`8a95bd6`) ed E2E TV + 3 telefoni (`8105ea6`). |
+| N-04 — Cavallo per squadra | **Fatto** | `1995372`. Otto domande a testa, un tabellone unico, banca fino a 60 domande; tabellone corretto (`eceaf2b`), pari merito a **1, 1, 3** (`8a95bd6`, prova 2,2,1 in `7e66227`) ed E2E TV + 3 telefoni (`8105ea6`). |
 | N-05 — Telefoni cliccabili a round chiuso | **Fatto** | Blocco su `ROUND_ENDED` e su scadenza server; timbro a schermo. La scadenza è ora propagata anche nella ripresa del round (`deadlineAt`) e negli annunci TV; quella modifica è finita nel commit Musica `847f313`, non in un commit dedicato N-05. E2E TV + 3 telefoni superato. |
 | N-06 — Safari, reset e beep infiniti | **Fatto** | Reset ed espulsione ora rimuovono `nickname`, `playerName` e `activeGameId`, fermano audio, watcher della scadenza e riportano il round chiuso. |
 | N-07 — Tick infinito | **Da fare** | Il controllo dei proprietari audio (`AudioChannels.setOwner`) spegne già i loop della scena uscente; non è stata trovata una causa riproducibile senza la serata. |
@@ -67,7 +67,10 @@ scadenza e blocco dopo cinque errori).
 | Playwright N-05 (TV + 3 telefoni) | **Passato** (1,1 min) |
 | Playwright N-03 (TV + 3 telefoni) | **Passato** (1,4 min): tre manche, tre telefoni, buzz confermato in regia a ogni giro |
 | Playwright N-04 (Cavallo, TV + 3 telefoni) | **Passato** (39,9 s): categoria, 8 passi con domande distinte per squadra, tabellone unico, finale |
-| Playwright completo (N-05 + N-03 + N-04), senza reload di soccorso | **3 passati** (3,4 min). Un primo avvio ha chiuso N-05 con la sessione del telefono resettata (401) prima del pulsante di voto; N-05 isolato e la suite completa sono poi passati. |
+| Playwright completo (N-05 + N-03 + N-04), senza reload di soccorso | **3 passati** (3,4 min). Il primo avvio aveva chiuso N-05 con la sessione del telefono resettata: alle 21:32:52 un'altra build ha riscritto `ReliabilityController.java` e alle 21:33:12 tutte le classi; DevTools ha riavviato il backend E2E e l'H2 in memoria si è svuotato, così il telefono ha ricevuto `410 session-unknown` ed è tornato al setup. Non era un difetto del client (`d67df4b`). |
+| Playwright completo su porte isolate (4297/8097) | **3 passati** (3,6 min): N-05, N-03, N-04, con DevTools fermo e cartella risultati separata |
+| Test frontend dopo la semplificazione TV | **823 passati, 2 skip** (76 file su 77) |
+| `npm run build:frontend` dopo la semplificazione TV | **OK** (solo warning preesistenti) |
 | Test frontend dopo recupero sessione TV e pari merito | **822 passati, 2 skip** (76 file su 77) |
 | `npm run build:frontend` dopo i due fix | **OK** (solo warning preesistenti) |
 | Test mirati `cavallo`, `remote`, `admin` | **167 passati** (15 + 137 + 15) |
@@ -77,8 +80,18 @@ scadenza e blocco dopo cinque errori).
 | `npm run test:sim` (40 round + 5 bonus) | **4 passati** |
 | `node scripts/audit-banche.mjs --ci` | **Fallito**: Musica 251 brani con **5 campi/file mancanti**. Il problema è nel lavoro Musica, non toccato da questo blocco. |
 
+**Perché il primo E2E perse la sessione (401).** Non era il client: durante il
+primo avvio un'altra build sulla stessa cartella ha modificato
+`ReliabilityController.java` alle 21:32:52 e ricompilato tutte le classi alle
+21:33:12. Il backend E2E girava con Spring DevTools, quindi è ripartito e l'H2
+in memoria (`jdbc:h2:mem:pubgame-e2e`) si è svuotato; l'heartbeat del telefono
+ha ricevuto `410 session-unknown` e il client è tornato al setup, come deve.
+Il banco ora spegne il restart di DevTools e usa porte e cartella risultati
+proprie (`d67df4b`), così una build esterna non può più azzerare la partita.
+
 **Limite dichiarato:** il test Playwright TV + 3 telefoni contro il backend
-reale esiste (`e2e/tv-telefoni.spec.ts`, backend H2 isolato sulla 8095).
+reale esiste (`e2e/tv-telefoni.spec.ts`, backend H2 isolato sulla 8095 o sulle
+porte scelte da `E2E_BACKEND_PORT`/`E2E_FRONTEND_PORT`).
 **N-05 passa**: tre telefoni, scadenza server annunciata, clock avanzato di
 10 minuti, timbro `ROUND FINITO` visibile e pulsanti spenti. **N-03 passa**:
 Indovina chi, tre manche, tre telefoni, buzz visibile e confermato in regia a
@@ -110,10 +123,10 @@ l'autorizzazione dei comandi.
 
 | Voce | Stato | Causa | Commit | Test | Cosa provare in sala |
 | --- | --- | --- | --- | --- | --- |
-| N-01 | Fatto | Codice solo su pulsante + segreto in prompt; nessun rinnovo automatico; sessione TV con un solo tentativo | `edb782a` (con N-02), `183b46e` | Test mirati regia/TV; test TV su retry e segreto prima della sessione; E2E senza reload di soccorso | Aprire `/tv` prima che il backend sia pronto: la lobby arriva e il codice compare da solo, senza ricaricare. Inquadrare il QR col telefono: `/admin` è già abbinato. Ricaricare la regia: resta abbinata. |
+| N-01 | Fatto | Codice solo su pulsante + segreto in prompt; nessun rinnovo automatico; sessione TV con un solo tentativo; due percorsi di recupero in corsa col codice | `edb782a` (con N-02), `183b46e`, `77ecd59`, `d67df4b` | Test mirati regia/TV; test TV su retry e segreto prima della sessione; E2E senza reload di soccorso, su porte isolate (3 passati) | Aprire `/tv` prima che il backend sia pronto: la lobby arriva e il codice compare da solo, senza ricaricare. Inquadrare il QR col telefono: `/admin` è già abbinato. Ricaricare la regia: resta abbinata. |
 | N-02 | Fatto | Dock TV sempre visibile; nessun comando primario unico in regia | `edb782a` (con N-01) | Test `primaryAction` e dock nascosta | In TV non c'è la barra in alto a destra. In regia il pulsante in basso dice cosa farà; percorrere un round con quello. |
 | N-03 | Fatto | Finestra server `IMAGE_BLUR` di 60 s contro tre manche da 45 s; l'ADMIN veniva filtrato su `PLAYER_PRENOTATO`; le manche 2 e 3 arrivavano come `SHOW_QUESTION` e spegnevano pulsante e regia; il buzz restava selezionato nella manche dopo | `26a2c77`, `8aa30f2`, `2eb729b`, `b7dbff8` | Integrazione `RoundWindowTest`; E2E TV + 3 telefoni per tutte e tre le manche; 152 test mirati (15 admin + 137 remote) | Indovina chi: prenotarsi nella manche 1, 2 e 3 con tre telefoni e confermare ogni buzz dalla regia; saltare un buzz e verificare che non resti selezionato. |
-| N-04 | Fatto | Una domanda sola per tutte le squadre; tabellone con primo posto sulla riga sbagliata e posizione presa dall'indice | `1995372`, `eceaf2b`, `8105ea6`, `8a95bd6` | Test `cavallo` (16), `remote` (137), `admin` (15); E2E Cavallo TV + 3 telefoni (39,7 s); build frontend; backend 223 | Cavallo: tre telefoni scelgono la categoria e ricevono domande diverse; il tabellone somma le giuste di tutti e mette in fondo il primo posto. Portare due squadre a pari punti: entrambe in fondo evidenziate, posizione 1 e la successiva 3. |
+| N-04 | Fatto | Una domanda sola per tutte le squadre; tabellone con primo posto sulla riga sbagliata e posizione presa dall'indice | `1995372`, `eceaf2b`, `8105ea6`, `8a95bd6`, `7e66227` | Test `cavallo` (17, incluso il pari merito 2,2,1), `remote` (137), `admin` (15); E2E Cavallo TV + 3 telefoni (39,7 s); build frontend; backend 223 | Cavallo: tre telefoni scelgono la categoria e ricevono domande diverse; il tabellone somma le giuste di tutti e mette in fondo il primo posto. Portare due squadre a pari punti: entrambe in fondo evidenziate, posizione 1 e la successiva 3. |
 | N-05 | Fatto | `inputReady` ignorava round aperto e scadenza del server; la ripresa non annunciava `deadlineAt` | `2ccd238` (scadenza in `847f313`) | E2E TV + 3 telefoni superato; test unitari | Speed Rush/Arena/Quiz: a round chiuso i tasti si spengono subito e compare ROUND FINITO. |
 | N-06 | Fatto | Reset/espulsione lasciavano `playerName` e `activeGameId`, audio e watcher attivi | `fd0ceae` | Test `remote` (134 passati) | Espellere una squadra e resettare la TV: il telefono torna al setup senza rientrare nella partita vecchia. |
 | N-08 | Fatto | Su iPhone manca `navigator.vibrate` e il via restava muto | `fd0ceae` | Test `remote` sul fallback visivo | Aprire il telefono su iPhone: al via del bonus si vede il flash oltre alla scena in TV. |
