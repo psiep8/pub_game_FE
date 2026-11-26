@@ -522,7 +522,8 @@ public class PartyGamesController {
             messagingTemplate.convertAndSend("/topic/game/" + gameId + "/status",
                     new JSONObject().put("action", "GAME_RESUMED").toString());
         }
-        return Map.of("resumed", true, "gameId", gameId, "shiftedMs", shiftedMs);
+        return Map.of("resumed", true, "gameId", gameId, "shiftedMs", shiftedMs,
+                "deadlineAt", gameStateService.roundDeadline(gameId).orElse(0L));
     }
 
     private double readDouble(Object raw) {

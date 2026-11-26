@@ -257,6 +257,8 @@ export class GameComponent implements OnInit, OnDestroy {
   });
   /** Il round è aperto ma la sua scadenza è ferma per l'introduzione. */
   private introHold = false;
+  /** Scadenza assoluta del round aperto, annunciata ai telefoni col via. */
+  private roundDeadlineAtMs = 0;
   /** Seme degli ingressi per partita: lo decide il server, la TV lo ricorda. */
   private readonly bonusSeedByGame = new Map<number, number>();
   private countdownTimer?: ReturnType<typeof setInterval>;
@@ -1522,8 +1524,10 @@ export class GameComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // Fine dell'introduzione: la scadenza del round riparte da qui.
-      this.releaseRoundDeadline();
+      // Fine dell'introduzione: la scadenza del round riparte da qui. Si
+      // attende la risposta del server perché la TV deve annunciare ai telefoni
+      // la stessa scadenza assoluta, non una calcolata sul proprio orologio.
+      await this.releaseRoundDeadline();
       this.timer.set(mode.timerDuration);
       this.beginRoundScoring();
 
@@ -1541,6 +1545,7 @@ export class GameComponent implements OnInit, OnDestroy {
         rawPayload: rawPayloadString,
         round: this.roundManager.getCurrentRound(),
         roundTotal: this.roundManager.getTotalRounds(),
+        ...(this.roundDeadlineAtMs > 0 ? { roundDeadlineAt: this.roundDeadlineAtMs } : {}),
         ...(safeData.manche ? { manche: safeData.manche, mancheTotal: safeData.mancheTotal, points: safeData.manchePoints, category: safeData.categoryLabel } : {}),
       });
 
@@ -1563,6 +1568,7 @@ export class GameComponent implements OnInit, OnDestroy {
         rawPayload: rawPayloadString,
         round: this.roundManager.getCurrentRound(),
         roundTotal: this.roundManager.getTotalRounds(),
+        ...(this.roundDeadlineAtMs > 0 ? { roundDeadlineAt: this.roundDeadlineAtMs } : {}),
       });
 
       this.isSpinning.set(false);
@@ -2099,6 +2105,7 @@ export class GameComponent implements OnInit, OnDestroy {
       payload: JSON.stringify(data),
       round: this.roundManager.getCurrentRound(),
       roundTotal: this.roundManager.getTotalRounds(),
+      ...(this.roundDeadlineAtMs > 0 ? { roundDeadlineAt: this.roundDeadlineAtMs } : {}),
       manche: data.manche,
       mancheTotal: data.mancheTotal,
       points: data.manchePoints,
@@ -3050,7 +3057,8 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private reset() {
     // Round o bonus nuovo: lo stato del precedente non si ripete più.
-    this.releaseRoundDeadline();
+    this.roundDeadlineAtMs = 0;
+    void this.releaseRoundDeadline();
     this.stage.cancel();
     this.clearStageOverlays();
     this.ws.clearLastStates();
@@ -3213,14 +3221,21 @@ export class GameComponent implements OnInit, OnDestroy {
     });
   }
 
-  private releaseRoundDeadline(): void {
+  private async releaseRoundDeadline(): Promise<void> {
     if (!this.introHold) return;
     this.introHold = false;
     // Una pausa vera del presentatore resta: si riprende da lì, non da qui.
     if (this.isPaused()) return;
     const gameId = this.currentGameId();
     if (!gameId) return;
-    this.gameService.resumeRound(gameId).subscribe({ error: () => undefined });
+    try {
+      const resumed = await firstValueFrom(this.gameService.resumeRound(gameId));
+      const deadline = Number(resumed?.deadlineAt);
+      if (Number.isFinite(deadline) && deadline > 0) this.roundDeadlineAtMs = deadline;
+    } catch {
+      // Senza rete la scadenza resta quella già nota (o assente): il watcher
+      // dei telefoni non deve ricevere un valore inventato.
+    }
   }
 
   /**
@@ -3708,7 +3723,19 @@ export class GameComponent implements OnInit, OnDestroy {
     }
     if (this.currentMode() || this.bonusActive() || this.isSpinning() || this.showTypeReveal()) return;
 
-    this.recoveredPayload = snapshot.currentRound?.payload ?? snapshot.payload ?? null;
+    // Lo snapshot del server porta il payload come testo JSON: il mode deve
+    // ricevere l'oggetto, altrimenti Musica riparte senza songs[] (round muto)
+    // e Timeline senza le carte.
+    const rawRecoveredPayload = snapshot.currentRound?.payload ?? snapshot.payload ?? null;
+    this.recoveredPayload = typeof rawRecoveredPayload === 'string'
+      ? (() => {
+          try {
+            return JSON.parse(rawRecoveredPayload);
+          } catch {
+            return null;
+          }
+        })()
+      : rawRecoveredPayload;
     this.recoveredQuizRoundStartId = type === 'QUIZ' ? String(snapshot.roundStartId ?? '') : '';
     this.recoveredBlackjackState = snapshot.blackjackState ?? null;
     // Solo un checkpoint del round corrente e della sua modalità: il server

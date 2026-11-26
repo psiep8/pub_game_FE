@@ -276,7 +276,11 @@ export class ReliabilityService {
   async ensureSession(): Promise<boolean> {
     try {
       const token = this.sessionToken() ?? this.storedToken();
-      const needsAuth = !token && this.role !== 'REMOTE';
+      // La TV è uno schermo, non un comando: il server la registra senza
+      // segreto (vedi ReliabilityController.openSession). Chiedere il codice
+      // anche a lei lasciava la lobby su "TV NON IN LINEA" a ogni partita
+      // nuova, quando il browser non aveva ancora un token salvato.
+      const needsAuth = !token && this.role === 'ADMIN';
       // Codice breve dalla TV (4-6 cifre); il segreto completo resta come ripiego.
       // Il codice già inserito nel pannello vale anche quando il prompt è spento.
       let pairingCode = needsAuth ? this.pairingCode : null;
