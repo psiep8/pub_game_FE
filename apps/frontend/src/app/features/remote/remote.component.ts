@@ -810,27 +810,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           // Musica: il telefono ha un solo tasto, la prenotazione. La TV manda
           // la fase della manca corrente, così il tasto si arma solo nei
           // cinque secondi a audio fermo e si riarma a ogni nuova manca.
-          const state = (status.state ?? {}) as any;
-          const phase = String(state.phase ?? '').toUpperCase();
-          const me = (this.nickname() ?? '').trim().toLowerCase();
-          const wrong = Array.isArray(state.wrongPlayers)
-            && state.wrongPlayers.some((name: unknown) => String(name).trim().toLowerCase() === me);
-          const buzzed = String(state.buzzedPlayer ?? '').trim();
-          this.questionType.set('MUSIC');
-          this.roundActive.set(true);
-          this.roundClosed.set(false);
-          // Chi ha sbagliato rientra alla manca successiva: nella stessa manca
-          // resta fuori, come chi ha già prenotato (una per squadra).
-          const open = phase === 'BUZZ' && !wrong && !buzzed;
-          this.hasAnswered.set(!open);
-          if (open) {
-            this.startTime = Date.now();
-            this.gameState.set(PlayerStatus.VOTING);
-          } else if (buzzed || wrong) {
-            this.gameState.set(PlayerStatus.LOCKED);
-          } else {
-            this.gameState.set(PlayerStatus.WAITING);
-          }
+          this.applyMusicState(status.state);
           break;
         }
 
@@ -1583,6 +1563,36 @@ export class RemoteComponent implements OnInit, OnDestroy {
         this.reliability.lastError.set('Risposta non registrata: riprova.');
       },
     });
+  }
+
+  /**
+   * Fase di una manca Musica: apre la prenotazione solo nella finestra a audio
+   * fermo. La usano l'annuncio MUSIC_PHASE della TV e la ripresa da snapshot:
+   * uno snapshot armava il tasto anche durante l'ascolto, senza audio da
+   * indovinare.
+   */
+  private applyMusicState(state: any): void {
+    const data = (state ?? {}) as any;
+    const phase = String(data.phase ?? '').toUpperCase();
+    const me = (this.nickname() ?? '').trim().toLowerCase();
+    const wrong = Array.isArray(data.wrongPlayers)
+      && data.wrongPlayers.some((name: unknown) => String(name).trim().toLowerCase() === me);
+    const buzzed = String(data.buzzedPlayer ?? '').trim();
+    this.questionType.set('MUSIC');
+    this.roundActive.set(true);
+    this.roundClosed.set(false);
+    // Chi ha sbagliato rientra alla manca successiva: nella stessa manca
+    // resta fuori, come chi ha già prenotato (una per squadra).
+    const open = phase === 'BUZZ' && !wrong && !buzzed;
+    this.hasAnswered.set(!open);
+    if (open) {
+      this.startTime = Date.now();
+      this.gameState.set(PlayerStatus.VOTING);
+    } else if (buzzed || wrong) {
+      this.gameState.set(PlayerStatus.LOCKED);
+    } else {
+      this.gameState.set(PlayerStatus.WAITING);
+    }
   }
 
   sendBuzz() {
@@ -3205,6 +3215,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // ricollega a partita in corso lo riceve subito dopo.
     if ((type === 'BLACKJACK' && !this.blackjackState())
       || (type === 'TENNIS_BATTLE' && !this.tennisStateReady())) return;
+
+    // Musica: la fase vive nel checkpoint della TV. Uno snapshot senza fase
+    // (o con fase di ascolto/reveal) non deve armare il tasto: il riarmo è
+    // dell'annuncio MUSIC_PHASE, non della ripresa dello stato.
+    if (type === 'MUSIC') {
+      const checkpoint = snapshot.tvCheckpoint?.mode === 'MUSIC' ? snapshot.tvCheckpoint.state : null;
+      this.applyMusicState(checkpoint);
+      return;
+    }
 
     const previousType = this.questionType();
     this.questionType.set(type);

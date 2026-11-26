@@ -2834,6 +2834,7 @@ describe('RemoteComponent', () => {
       roundKey: 'g1-r2',
       roundDeadlineAt: Date.now() + 60_000,
       currentRound: { roundKey: 'g1-r2', type: 'MUSIC', payload: { question: 'Brano?', options: [] } },
+      tvCheckpoint: { mode: 'MUSIC', state: { phase: 'BUZZ', manche: 2, listen: 2, buzzedPlayer: null, wrongPlayers: [] } },
     });
     await fixture.whenStable();
 
@@ -2842,6 +2843,30 @@ describe('RemoteComponent', () => {
 
     component.sendBuzz();
     expect(ws.publishedAnswers.at(-1)).toMatchObject({ playerName: 'Anna', answerIndex: -1 });
+  });
+
+  it('dopo un refresh in Musica durante l’ascolto il tasto resta chiuso', async () => {
+    // Lo snapshot dice solo che il round è Musica: la finestra di prenotazione
+    // la dichiara la fase (checkpoint TV). Armarlo qui offriva un tasto senza
+    // audio da indovinare.
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    reliability.syncState$.next({
+      hasState: true,
+      status: 'RUNNING',
+      roundType: 'MUSIC',
+      roundKey: 'g1-r2',
+      roundDeadlineAt: Date.now() + 60_000,
+      currentRound: { roundKey: 'g1-r2', type: 'MUSIC', payload: { question: 'Brano?', options: [] } },
+      tvCheckpoint: { mode: 'MUSIC', state: { phase: 'LISTEN', manche: 2, listen: 2, buzzedPlayer: null, wrongPlayers: [] } },
+    });
+    await fixture.whenStable();
+
+    expect(component.questionType()).toBe('MUSIC');
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+    expect(component.hasAnswered()).toBe(true);
   });
 
   it('dopo un refresh in Bomba il telefono riprende a leggere lo stato', async () => {
