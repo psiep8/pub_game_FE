@@ -823,6 +823,37 @@ class ReliabilityIntegrationTest {
         assertThat(again.sessionToken()).isNotEqualTo(anna.sessionToken());
     }
 
+    @Test
+    void ilCheckpointBlackjackTornaInteroAllaSincronizzazioneDellaTv() throws Exception {
+        long gameId = 710L;
+        var tv = sessions.register(gameId, "tv-blackjack-recovery", "TV", null, null);
+        sessions.grantRegia(tv.sessionToken());
+        String body = json.writeValueAsString(Map.of(
+                "sessionToken", tv.sessionToken(),
+                "state", Map.of(
+                        "order", List.of("Anna", "Bruno"),
+                        "index", 0,
+                        "deck", List.of("2♣", "3♦"),
+                        "hand", List.of("A♠", "K♦"),
+                        "bank", List.of("9♠", "Q♥"),
+                        "phase", "DECIDE",
+                        "secondsLeft", 15,
+                        "paused", false)));
+
+        var saved = request("POST", "/games/" + gameId + "/blackjack-state", tv.sessionToken(), null, body);
+        assertThat(saved.statusCode()).as(saved.body()).isEqualTo(200);
+
+        var sync = request("GET", "/games/" + gameId + "/sync", tv.sessionToken(), null, null);
+        assertThat(sync.statusCode()).as(sync.body()).isEqualTo(200);
+        JsonNode hand = json.readTree(sync.body()).path("snapshot").path("blackjackState");
+        assertThat(hand.isObject()).isTrue();
+        assertThat(hand.path("phase").asText()).isEqualTo("DECIDE");
+        // La seconda carta del banco è quella coperta: la TV deve rileggerla per
+        // riprendere la mano dopo un refresh, non ricevere un oggetto vuoto.
+        assertThat(hand.path("bank").get(1).asText()).isEqualTo("Q♥");
+        assertThat(hand.path("deck").get(0).asText()).isEqualTo("2♣");
+    }
+
     private HttpResponse<String> request(String method, String path, String token, String secret, String body) throws Exception {
         var builder = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path));
         if (token != null) builder.header("X-Session-Token", token);

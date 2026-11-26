@@ -199,8 +199,14 @@ public class ReliabilityController {
         Object state = payload.get("state");
         if (state == null) {
             gameState.forgetBlackjackState(gameId);
+        } else if (state instanceof Map<?, ?> map) {
+            // Jackson consegna la mappa del checkpoint. Il costruttore
+            // JSONObject(Object) la tratterebbe come un bean e salverebbe
+            // "{}": qui serve quello per Map, altrimenti la TV non può
+            // riprendere la mano dopo un refresh.
+            gameState.saveBlackjackState(gameId, new JSONObject(map).toString());
         } else {
-            gameState.saveBlackjackState(gameId, new JSONObject(state).toString());
+            return ResponseEntity.badRequest().body(Map.of("error", "invalid-blackjack-state"));
         }
         return ResponseEntity.ok(Map.of("saved", true));
     }
