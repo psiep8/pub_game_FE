@@ -442,8 +442,10 @@ quindi un retry non somma due volte; la lettura è
 `/sync` come `roundScores`. Restano salvati tipo di gioco, punti del round,
 totale dopo il round e istante di salvataggio: bastano per miglior/peggior
 round, rimonta e gioco più forte/debole. `RoundScoreServiceTest` copre
-sostituzione, ordine e reset; non è stato eseguito perché su questa macchina
-manca Java 25. Frontend: TV 151/151, build verde.
+sostituzione, ordine e reset; eseguito con JDK 25 Temurin locale: 3/3. Suite
+backend completa: 233/233 (da copia locale del repo, perché il test della
+whitelist WebSocket cerca `../frontend` rispetto alla cwd). Frontend: TV
+151/151, build verde.
 
 **Restano di N-15:** classifica «da film» dopo le Arene che usa lo storico,
 pagina statistiche in regia, colpi di scena dal 5° posto dopo il round 40,

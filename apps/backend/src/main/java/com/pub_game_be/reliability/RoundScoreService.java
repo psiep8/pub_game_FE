@@ -54,10 +54,7 @@ public class RoundScoreService {
         List<JSONObject> rows = normalize(rawEntries);
         String type = normalizeType(rawType);
         synchronized (lock(gameId)) {
-            JSONObject rounds = load(gameId).optJSONObject("rounds");
-            if (rounds == null) {
-                rounds = new JSONObject();
-            }
+            JSONObject rounds = roundMap(load(gameId));
             JSONArray entries = new JSONArray();
             for (JSONObject row : rows) {
                 entries.put(row);
@@ -82,9 +79,15 @@ public class RoundScoreService {
 
     /** Storico ordinato dal primo all'ultimo round. */
     public JSONObject history(long gameId) {
-        JSONObject stored = load(gameId);
-        JSONArray rounds = stored.optJSONArray("rounds");
-        return new JSONObject().put("rounds", rounds == null ? new JSONArray() : rounds);
+        JSONObject rounds = roundMap(load(gameId));
+        JSONArray ordered = new JSONArray();
+        for (Integer index : orderedIndexes(rounds)) {
+            JSONObject round = rounds.optJSONObject(String.valueOf(index));
+            if (round != null) {
+                ordered.put(round);
+            }
+        }
+        return new JSONObject().put("rounds", ordered);
     }
 
     public void forget(long gameId) {
@@ -99,6 +102,32 @@ public class RoundScoreService {
         return stateBlobs.load(gameId, BLOB)
                 .map(JSONObject::new)
                 .orElseGet(JSONObject::new);
+    }
+
+    /**
+     * Lo storico è salvato come array ordinato; per aggiornare un round serve
+     * una mappa per indice. Accetta anche il vecchio formato a oggetto, così
+     * una riga già scritta non viene persa al primo salvataggio successivo.
+     */
+    private JSONObject roundMap(JSONObject stored) {
+        JSONObject map = new JSONObject();
+        JSONArray array = stored.optJSONArray("rounds");
+        if (array != null) {
+            for (int index = 0; index < array.length(); index++) {
+                JSONObject round = array.optJSONObject(index);
+                if (round == null) continue;
+                int roundIndex = round.optInt("roundIndex",-1);
+                if (roundIndex >= 0) map.put(String.valueOf(roundIndex), round);
+            }
+            return map;
+        }
+        JSONObject object = stored.optJSONObject("rounds");
+        if (object == null) return map;
+        for (String key : object.keySet()) {
+            JSONObject round = object.optJSONObject(key);
+            if (round != null) map.put(key, round);
+        }
+        return map;
     }
 
     private List<Integer> orderedIndexes(JSONObject rounds) {
