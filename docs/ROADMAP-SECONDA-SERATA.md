@@ -600,7 +600,9 @@ l'AVANTI che chiude il foglio passando dalla coda del round. Controlla anche la
 variante poche righe: a quattro squadre le righe riempiono il foglio (121,3 px),
 con due o tre si fermano al tetto di 17vh (122,4 px) e con cinque stanno a 95,6;
 da otto in su la misura resta quella di sempre. A 1920×1080 controlla il foglio
-da 1680 px e le righe 183,6 / 151,4 / 90,9 / 70,7 / 96, senza scroll.
+da 1680 px e le righe 183,6 / 151,4 / 90,9 / 70,7 / 96, senza scroll. A 1100 e
+1366 controlla che il foglio resti 92vw sotto i 1280 (1012) e cresca sopra
+(1195,3).
 
 **Misura a 1280×720 (Chromium, DPR 1, banco con 4/8/10/14/20 squadre).** Il
 foglio sta in 1120×640.7 (80→1200), testata 62→127, piede a 680.4, nessuno
@@ -641,8 +643,9 @@ pagina (1280×720).
 
 **Misura a 1920×1080.** A 1080p il foglio restava 1120 px (400 px di margine per
 lato) mentre le righe crescevano in `vh`: la scena sembrava una colonna stretta.
-Ora il foglio prende `min(87.5vw, 1680px)`, cioè 1680 su 1920 (120 px per lato),
-la stessa frazione di 1280 (1120): a 1280 la misura non cambia. Testata 104→192,
+Ora il foglio prende `clamp(1120px, 87.5vw, 1680px)` con `max-width: 92vw`:
+1680 su 1920 (120 px per lato), 1120 su 1280, 92vw sotto i 1280 (a 1100 →
+1012, come prima). Testata 104→192,
 piede a 1029.1, dock 16→80, nessuno scroll (1920×1080). Matrice a 1920×1080
 (DPR 1, dock e pausa):
 
@@ -663,6 +666,14 @@ sarebbero 191,8), a cinque scendono a 151,4, a otto a 90,9, a dieci a 70,7, a
 quattordici e venti restano 96. Ombre tutte dentro: 1797 normali, 1800 il podio,
 contro il bordo del foglio a 1800; ultima ombra al massimo 1007,1 contro il piede
 a 1029,1. Nessun nome tagliato.
+
+**Sotto i 1280.** La prima stesura usava `min(87.5vw, 1680px)` e stringeva anche
+i pannelli più piccoli: a 1100 il foglio scendeva a 962,5 invece dei 1012 di
+prima. Ora il minimo è 1120 con `max-width: 92vw`: a 1100 il foglio è 1012, a
+1366 1195,3, a 1280 1120, a 1920 1680. Il banco misura 1100×768 e 1366×768 con
+4 e 10 squadre: righe 130,1 e 47,4, ombre dentro, nessun nome tagliato, nessuno
+scroll. A 1024 il `/tv` non si apre: il guard desktop manda su `/play` (≤1024 è
+mobile), quindi il caso più stretto misurabile è 1025; il banco usa 1100.
 
 **ESC, pausa e ripresa** (tastiera vera, otto secondi di pausa per caso). Il
 tempo fermo non scende, la pagina non cambia e la scena resta aperta; alla
@@ -693,8 +704,8 @@ pagina da quattro passa da 66,2 a 121,3 px per riga (il tetto di 9,2vh la
 fermava a metà foglio; da otto in su la misura resta quella di sempre). Con due
 o tre squadre il tetto di 17vh ferma le righe a 122,4 px, perché senza
 crescerebbero a 249,9 e 164,2. A 1080p il foglio restava 1120 px su 1920: ora
-`min(87.5vw, 1680px)` lo porta a 1680 (120 px di margine per lato), mentre a 1280
-resta 1120. La scena vera
+`clamp(1120px, 87.5vw, 1680px)` con `max-width: 92vw` lo porta a 1680 (120 px
+di margine per lato), mentre a 1280 resta 1120 e sotto i 1280 resta 92vw. La scena vera
 ha aggiunto tre difetti che il banco isolato non poteva vedere: dock coperta
 dallo z-index, testata sotto la dock (mancava la fascia) e nomi centrati dal
 `text-align: center` legacy di `.game-container`.

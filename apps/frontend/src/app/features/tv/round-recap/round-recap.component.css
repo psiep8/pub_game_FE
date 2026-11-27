@@ -19,9 +19,11 @@
   display: flex;
   flex-direction: column;
   gap: clamp(6px, 1.2vh, 14px);
-  /* Il foglio prende 7/8 della larghezza a ogni taglia: 1120 a 1280, 1680
-     a 1920. Con il solo tetto di 1120 a 1080p restava una colonna stretta. */
-  width: min(87.5vw, 1680px);
+  /* Sotto i 1280 il foglio resta 92vw, come prima; sopra prende 7/8 della
+     larghezza: 1120 a 1280, 1680 a 1920. Con il solo tetto di 1120 a 1080p
+     restava una colonna stretta. */
+  width: clamp(1120px, 87.5vw, 1680px);
+  max-width: 92vw;
   height: 100%;
   min-height: 0;
 }

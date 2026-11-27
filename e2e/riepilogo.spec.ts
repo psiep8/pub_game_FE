@@ -352,6 +352,55 @@ test.describe('N-11: riepilogo nella scena vera', () => {
   });
 });
 
+test.describe('N-11: foglio sotto i 1280', () => {
+  test.use({ viewport: { width: 1100, height: 768 } });
+
+  test('a 1100 resta 92vw, a 1366 cresce con lo schermo', async ({ page }) => {
+    test.setTimeout(120_000);
+    await openTv(page);
+
+    const cases = [
+      { width: 1100, height: 768, sheet: 1012.0 },
+      { width: 1366, height: 768, sheet: 1195.3 },
+    ];
+
+    for (const size of cases) {
+      await page.setViewportSize({ width: size.width, height: size.height });
+
+      for (const count of [4, 10]) {
+        await openRecap(page, count);
+        const before = await layout(page);
+
+        expect(before.sheet!.right - before.sheet!.left, `foglio a ${size.width}`).toBeCloseTo(size.sheet, 0);
+        expect(before.scroll).toEqual([size.width, size.height]);
+        expect(before.few).toBe(count === 4);
+        expect(before.rows.length).toBe(count);
+
+        for (const row of before.rows) {
+          expect(row.height, `riga fuori misura a ${size.width}/${count}`).toBeGreaterThan(30);
+          expect(row.shadowRight, `ombra oltre il foglio (${row.name})`).toBeLessThanOrEqual(before.sheet!.right + 0.5);
+          expect(row.shadowBottom, `ombra sul piede (${row.name})`).toBeLessThanOrEqual(before.footer!.top + 0.5);
+          expect(row.align, `nome non a filo (${row.name})`).toBe('left');
+          expect(row.clipped, `nome tagliato (${row.name})`).toBe(false);
+        }
+        console.log(
+          `N-11 ${size.width}x${size.height} n=${count} h=${before.rows[0]?.height} `
+          + `foglio=${(before.sheet!.right - before.sheet!.left).toFixed(1)} ultima=${before.rows.at(-1)?.bottom}`,
+        );
+
+        await page.evaluate(() => {
+          const component: any = (window as any).ng.getComponent(
+            document.querySelector('app-game-component'),
+          );
+          if (component.roundRecapOpen()) component.onRoundRecapComplete();
+          component.stopAutoAdvance();
+        });
+        await expect(page.locator('.recap-sheet')).toHaveCount(0);
+      }
+    }
+  });
+});
+
 test.describe('N-11: riepilogo a 1920×1080', () => {
   test.use({ viewport: { width: 1920, height: 1080 } });
 
