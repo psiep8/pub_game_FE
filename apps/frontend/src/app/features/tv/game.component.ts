@@ -3018,12 +3018,11 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.currentMode() || this.bonusActive() || this.bonusEntrance() || this.isSpinning()) return;
     // Un round ancora aperto ha la precedenza: il bonus viene dopo.
     if (this.recoveredRound()) return;
-    // Il bonus vive fuori dal round: avviato il bonus la scaletta torna a zero
-    // e `bonusActIndex()` è -1. L'atto vero resta nel segno del server.
-    const act = this.roundManager.bonusActIndex();
-    const serverAct = this.serverBonus?.act ?? act;
+    // Il bonus vive fuori dal round: il suo atto è quello del server, mentre la
+    // scaletta locale è già tornata a zero quando il bonus è in scena.
+    const act = this.serverBonus?.act ?? this.roundManager.bonusActIndex();
     // Un bonus già chiuso e pagato non torna, anche se il server dice STARTED.
-    if (this.closedBonusActsOf(this.currentGameId()).has(serverAct)) return;
+    if (this.closedBonusActsOf(this.currentGameId()).has(act)) return;
 
     const checkpoint = snapshot?.tvCheckpoint;
     const mode = String(checkpoint?.mode ?? '');
@@ -3033,7 +3032,6 @@ export class GameComponent implements OnInit, OnDestroy {
 
     let type: BonusType | null = null;
     if (this.serverBonus?.status === 'STARTED'
-      && (act < 0 || this.serverBonus.act === act)
       && (BONUS_TYPES as readonly string[]).includes(this.serverBonus.type)) {
       type = this.serverBonus.type as BonusType;
     } else if (resume) {
