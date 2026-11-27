@@ -1307,6 +1307,60 @@ describe('RemoteComponent', () => {
     }
   });
 
+  it('N-14: in pausa la barra Quiz si ferma e alla ripresa non lascia i tasti spenti', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(1_000_000);
+      component.nickname.set('Anna');
+      component.onStartVoting('QUIZ');
+      component.roundDeadlineAt.set(1_015_000);
+      ws.status$.next({
+        action: 'QUIZ_STATE',
+        roundStartId: 'quiz-r1',
+        state: { manche: 1, deadlineAt: 1_015_000 },
+      });
+      await vi.advanceTimersByTimeAsync(1_000);
+      const beforePause = component.quizBarPercent();
+      expect(beforePause).toBeGreaterThan(0);
+      expect(beforePause).toBeLessThan(100);
+
+      // Una pausa lunga non deve svuotare la barra né far scattare la
+      // vecchia scadenza mentre la sala è ferma.
+      ws.status$.next({ action: 'GAME_PAUSED' });
+      await vi.advanceTimersByTimeAsync(20_000);
+      expect(component.quizBarPercent()).toBe(beforePause);
+      expect(component.quizTimeUp()).toBe(false);
+      expect(component.inputReady()).toBe(false);
+
+      ws.status$.next({ action: 'GAME_RESUMED' });
+      expect(component.quizBarPercent()).toBe(beforePause);
+      expect(component.quizTimeUp()).toBe(false);
+      expect(component.inputReady()).toBe(true);
+
+      // Il watcher del round non deve chiuderlo alla vecchia scadenza: la
+      // pausa l'ha spostata, come farà il QUIZ_STATE della TV.
+      await vi.advanceTimersByTimeAsync(600);
+      expect(component.roundClosed()).toBe(false);
+      expect(component.inputReady()).toBe(true);
+      ws.status$.next({
+        action: 'QUIZ_STATE',
+        roundStartId: 'quiz-r1',
+        state: { manche: 1, deadlineAt: 1_035_000 },
+      });
+      expect(component.quizBarPercent()).toBeGreaterThan(0);
+
+      await vi.advanceTimersByTimeAsync(13_000);
+      expect(component.quizBarPercent()).toBeGreaterThan(0);
+      expect(component.inputReady()).toBe(true);
+      await vi.advanceTimersByTimeAsync(600);
+      expect(component.quizTimeUp()).toBe(true);
+      expect(component.quizBarPercent()).toBe(0);
+      expect(component.inputReady()).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('N-05: alla scadenza del server il round si chiude anche senza ROUND_ENDED', () => {
     vi.useFakeTimers();
     try {

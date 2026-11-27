@@ -378,9 +378,11 @@ arrivato. La barra va da 100 a 0 con tick a 100 ms; a zero i tasti sono spenti.
 al timer locale [N-14]»: a 200 ms dalla scadenza la barra è aperta, a 200 ms dopo
 è chiusa. `remote.component.spec.ts` → «barra e tasti Quiz seguono la scadenza
 della manche del server»: a 200 ms prima barra > 0 e tasti vivi, a 200 ms dopo
-barra 0 e tasti spenti. Verifiche: quiz 26/26, remote 142/142, TV 148/148,
-build frontend verde. **Da fare in sala:** TV + telefoni reali, manche Quiz,
-scarto d'orologio e pausa.
+barra 0 e tasti spenti. In pausa la barra si congela e la scadenza del round
+si sposta del tempo fermo; alla ripresa i tasti non restano spenti. Test:
+«in pausa la barra Quiz si ferma e alla ripresa non lascia i tasti spenti».
+Verifiche: quiz 26/26, remote 143/143, TV 148/148, build frontend verde.
+**Da fare in sala:** TV + telefoni reali, manche Quiz, scarto d'orologio e pausa.
 
 ### N-13 classifica dopo il bonus e primo round — **Fatto**
 

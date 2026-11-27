@@ -1033,14 +1033,25 @@ export class RemoteComponent implements OnInit, OnDestroy {
           this.closeManual(true, true);
           this.paused.set(true);
           this.pauseStartedAt = performance.now();
+          // N-14: la barra Quiz si ferma sulla pausa; non deve svuotarsi
+          // mentre la sala è ferma né spegnere i tasti alla vecchia scadenza.
+          this.pauseQuizBar();
           break;
 
         case 'GAME_RESUMED':
           this.paused.set(false);
           if (this.pauseStartedAt) {
+            const pausedMs = performance.now() - this.pauseStartedAt;
             // Il cronometro del Time Buzzer riprende da dove era, non dal
             // tempo trascorso in pausa.
-            this.buzzStartedAt += performance.now() - this.pauseStartedAt;
+            this.buzzStartedAt += pausedMs;
+            // La pausa sposta anche la scadenza del round: senza questo il
+            // watcher locale chiude il round alla vecchia ora e lascia i tasti
+            // spenti mentre il server lo ha già riaperto.
+            if (this.roundDeadlineAt() > 0) {
+              this.roundDeadlineAt.update((deadline) => deadline + pausedMs);
+            }
+            this.resumeQuizBar(pausedMs);
             this.pauseStartedAt = 0;
           }
           if (this.roundActive() && this.questionType() === 'ARENA'
@@ -1623,6 +1634,21 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.quizBarPercent.set(0);
     if (this.quizBarTimer) clearInterval(this.quizBarTimer);
     this.quizBarTimer = undefined;
+  }
+
+  /** La pausa congela la barra: il tempo fermo non consuma la manche. */
+  private pauseQuizBar(): void {
+    if (this.quizBarTimer) clearInterval(this.quizBarTimer);
+    this.quizBarTimer = undefined;
+  }
+
+  /** Alla ripresa la scadenza si sposta del tempo passato in pausa. */
+  private resumeQuizBar(pausedMs: number): void {
+    if (!this.quizDeadlineAt || this.quizTimeUp()) return;
+    this.quizDeadlineAt += pausedMs;
+    this.updateQuizBar();
+    if (this.quizTimeUp()) return;
+    this.quizBarTimer = setInterval(() => this.updateQuizBar(), 100);
   }
 
   /**
