@@ -207,6 +207,28 @@
   background: var(--tomato);
 }
 
+/* Poche righe (fino a cinque): il foglio non resta mezzo vuoto. Le righe
+   prendono lo spazio disponibile e il testo sale di un gradino, come su un
+   tabellone stampato. Da otto in su la misura resta quella di sempre. */
+.recap-rows.is-few .recap-row {
+  max-height: none;
+  grid-template-columns: clamp(38px, 5.4vh, 54px) minmax(0, 1fr) auto auto;
+}
+.recap-rows.is-few .recap-pos {
+  width: clamp(34px, 5.4vh, 54px);
+  height: clamp(34px, 5.4vh, 54px);
+  font-size: clamp(0.95rem, 2.8vh, 1.5rem);
+}
+.recap-rows.is-few .recap-name {
+  font-size: clamp(1.1rem, 4.2vh, 2.2rem);
+}
+.recap-rows.is-few .recap-delta {
+  font-size: clamp(1.1rem, 4.2vh, 2.2rem);
+}
+.recap-rows.is-few .recap-total {
+  font-size: clamp(0.95rem, 3.2vh, 1.5rem);
+}
+
 .recap-foot {
   display: flex;
   justify-content: flex-end;

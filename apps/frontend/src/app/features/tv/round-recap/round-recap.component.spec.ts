@@ -51,6 +51,24 @@ describe('RoundRecap (N-11)', () => {
     fixture.destroy();
   });
 
+  it('con poche righe il foglio si riempie e da otto in su resta com’era', () => {
+    const few = create(rows(4));
+    const fewRows = (few.fixture.nativeElement as HTMLElement).querySelector('.recap-rows');
+    expect(fewRows?.classList.contains('is-few')).toBe(true);
+    few.fixture.destroy();
+
+    const eight = create(rows(8));
+    const eightRows = (eight.fixture.nativeElement as HTMLElement).querySelector('.recap-rows');
+    expect(eightRows?.classList.contains('is-few')).toBe(false);
+    eight.fixture.destroy();
+
+    // Anche la pagina a sette righe di un round da dodici resta com'era.
+    const twelve = create(rows(12));
+    const twelveRows = (twelve.fixture.nativeElement as HTMLElement).querySelector('.recap-rows');
+    expect(twelveRows?.classList.contains('is-few')).toBe(false);
+    twelve.fixture.destroy();
+  });
+
   it('oltre dieci squadre pagina a sette righe e il podio arriva in fondo', () => {
     const { fixture, done } = create(rows(12));
     const element = fixture.nativeElement as HTMLElement;

@@ -17,7 +17,11 @@
 
     @for (page of pages(); track $index; let index = $index) {
       @if (index === pageIndex()) {
-        <div class="recap-rows" [class.is-podium]="index === lastPage()">
+        <div
+          class="recap-rows"
+          [class.is-podium]="index === lastPage()"
+          [class.is-few]="page.length <= 5"
+        >
           @for (row of page; track row.playerName) {
             <div
               class="recap-row"

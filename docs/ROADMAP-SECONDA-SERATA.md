@@ -585,22 +585,25 @@ sceso.
 
 **Test.** `round-recap-model.spec.ts` (8 casi: ordine, pari merito, pagine a
 4/8/10/14/20 squadre, durate, giochi esclusi), `round-recap.component.spec.ts`
-(7 casi: pagina unica, pagine da sette con podio in fondo, chiusura una volta
+(8 casi: pagina unica, pagine da sette con podio in fondo, chiusura una volta
 sola, pausa e ripresa a metà scena e sull'ultima pagina, timbro PAUSA, delta
-firmati), `game.component.spec.ts` (6 casi: il riepilogo si apre con i delta e
+firmati, variante poche righe), `game.component.spec.ts` (6 casi: il riepilogo si apre con i delta e
 l'attesa resta a zero; chiuso il riepilogo partono i 30 s; AVANTI con il foglio
 in scena lo chiude e passa dalla coda senza aprire il gioco dopo; ESC mette in
 pausa senza saltare il round e senza toccare la modalità; fuori dal riepilogo
-resta il salto; dock sopra il riepilogo e fascia della testata). 162 test verdi
+resta il salto; dock sopra il riepilogo e fascia della testata). 163 test verdi
 sui tre file, `ng build` verde (restano gli avvisi di budget CSS e i due moduli
 CommonJS già presenti). Il banco reso `e2e/riepilogo.spec.ts` misura la matrice
 4/8/10/14/20 a 1280×720 con la dock a schermo (righe, ombre, testata, nessuno
 scroll), la pausa ESC con tempo congelato e il ritorno allo stesso secondo, e
-l'AVANTI che chiude il foglio passando dalla coda del round.
+l'AVANTI che chiude il foglio passando dalla coda del round. Controlla anche la
+variante poche righe: a quattro squadre le righe riempiono il foglio (121,3 px),
+da otto in su la misura resta quella di sempre.
 
 **Misura a 1280×720 (Chromium, DPR 1, banco con 4/8/10/14/20 squadre).** Il
 foglio sta in 1120×640.7 (80→1200), testata 62→127, piede a 680.4, nessuno
-scroll di pagina (1280×720). Righe: 4 squadre 66.2 px (255→542), 8 squadre
+scroll di pagina (1280×720). Righe: 4 squadre 66.2 px (255→542, prima della
+variante poche righe), 8 squadre
 60.1 px (133→664), 10 squadre 46.7 px (133→664), 14 e 20 squadre 66.2 px a
 pagina (145→652). Ombre tutte dentro: bordo destro delle righe 1192, ombra
 normale 1196, ombra del podio 1200 (la regola di testata), ultima ombra a 672
@@ -618,16 +621,18 @@ destra. Matrice a 1280×720 (DPR 1, 4/8/10/14/20 squadre), ombre comprese:
 
 | Squadre | Pagine | Righe | Altezza | Prima riga | Ultima riga | Ombra destra | Ultima ombra | Piede |
 | --: | --: | --: | --: | --: | --: | --: | --: | --: |
-| 4 | 1 | 4 | 66.2 | 267.6 | 554.1 | 1196 | 562.1 | 680.4 |
+| 4 | 1 | 4 | 121.3 | 157.4 | 664.3 | 1200 | 668.3 | 680.4 |
 | 8 | 1 | 8 | 57.1 | 157.4 | 664.3 | 1196 | 672.3 | 680.4 |
 | 10 | 1 | 10 | 44.2 | 157.4 | 664.3 | 1196 | 672.3 | 680.4 |
 | 14 | 2 | 7 | 66.2 | 157.5 | 664.3 | 1196 | 668.3 | 680.4 |
 | 20 | 3 | 7 | 66.2 | 157.5 | 664.3 | 1196 | 668.3 | 680.4 |
 | 20, podio | 3 | 6 | 66.2 | 194.2 | 627.5 | 1200 | 635.5 | 680.4 |
 
-Nessuna ombra oltre il foglio, sotto il piede o fuori dallo schermo (l'ombra
-delle righe normali si ferma a 1196, quella del podio a 1200, il bordo del
-foglio); nessuna riga sotto i 30 px, nessun nome tagliato, nessuno scroll di
+La riga da quattro è la variante poche righe: le righe prendono lo spazio del
+foglio e il testo sale di un gradino. L'ombra del podio (1200) può cadere su una
+riga qualsiasi, non solo sull'ultima. Nessuna ombra oltre il foglio, sotto il
+piede o fuori dallo schermo (le righe normali si fermano a 1196, il podio a
+1200); nessuna riga sotto i 30 px, nessun nome tagliato, nessuno scroll di
 pagina (1280×720).
 
 **ESC, pausa e ripresa** (tastiera vera, otto secondi di pausa per caso). Il
@@ -654,8 +659,9 @@ e il contatore pagine spostava il titolo al centro: ora kicker e titolo sono
 una colonna sola (`recap-titles`) e il contatore è l'unico altro figlio. Le
 ombre erano tagliate dal `overflow: hidden` del contenitore (4 px sul bordo
 destro, 8 px sull'ultima riga): il contenitore non ritaglia più, riserva 8 px
-a destra e la fascia sotto, e le righe crescono fino a 96 px quando sono poche
-(prima restavano a 50 px e la pagina da quattro sembrava vuota). La scena vera
+a destra e la fascia sotto, e con poche righe il foglio si riempie: a 720p la
+pagina da quattro passa da 66,2 a 121,3 px per riga (il tetto di 9,2vh la
+fermava a metà foglio; da otto in su la misura resta quella di sempre). La scena vera
 ha aggiunto tre difetti che il banco isolato non poteva vedere: dock coperta
 dallo z-index, testata sotto la dock (mancava la fascia) e nomi centrati dal
 `text-align: center` legacy di `.game-container`.

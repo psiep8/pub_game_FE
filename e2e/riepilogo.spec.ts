@@ -131,6 +131,7 @@ const layout = (page: Page) =>
       recapZ: recap ? getComputedStyle(recap).zIndex : null,
       stamp: document.querySelector('.recap-paused')?.textContent?.trim() ?? null,
       counter: document.querySelector('.recap-counter')?.textContent?.trim() ?? null,
+      few: document.querySelector('.recap-rows')?.classList.contains('is-few') ?? false,
       rows: [...document.querySelectorAll('.recap-row')].map((row) => {
         const rect = row.getBoundingClientRect();
         const style = getComputedStyle(row);
@@ -190,6 +191,20 @@ test.describe('N-11: riepilogo nella scena vera', () => {
       expect(before.sheet!.top).toBeGreaterThanOrEqual(0);
       expect(before.sheet!.bottom).toBeLessThanOrEqual(VIEWPORT.height);
       expect(before.scroll).toEqual([VIEWPORT.width, VIEWPORT.height]);
+
+      // Poche righe: il foglio si riempie. Da otto in su la misura non cambia.
+      expect(before.few, `variante poche righe a ${count} squadre`).toBe(count === 4);
+      if (count === 4) {
+        expect(before.rows[0].height, 'la pagina da quattro non riempie il foglio').toBeGreaterThan(100);
+        expect(before.rows.at(-1)!.bottom, 'la pagina da quattro si ferma a metà').toBeGreaterThan(640);
+      } else {
+        expect(before.rows[0].height, `la taglia ${count} non deve cambiare`).toBeLessThan(70);
+      }
+      console.log(
+        `N-11 n=${count} righe=${before.rows.length} h=${before.rows[0]?.height} `
+        + `prima=${before.rows[0]?.top} ultima=${before.rows.at(-1)?.bottom} `
+        + `ombra=${before.rows.at(-1)?.shadowBottom} piede=${before.footer?.top} few=${before.few}`,
+      );
 
       for (const row of before.rows) {
         expect(row.height, `riga troppo schiacciata (${row.name})`).toBeGreaterThanOrEqual(30);
