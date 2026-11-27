@@ -248,8 +248,11 @@
   }
 
 
-  @if (mode.requiresBubbles && mode.type !== 'ULTIMA_SPIAGGIA' && mode.type !== 'TIMELINE' && timerVisible()) {
-  <div class="timer-wrapper">
+  <!-- La riga del tempo resta sempre nel layout: comparire e sparire a ogni
+       fase spostava la domanda di 15 px al via e al reveal. -->
+  @if (mode.requiresBubbles && mode.type !== 'ULTIMA_SPIAGGIA' && mode.type !== 'TIMELINE') {
+  <div class="timer-wrapper" [class.is-idle]="!timerVisible()"
+    [attr.aria-hidden]="timerVisible() ? null : 'true'">
     <div class="timer-bar" alive="breath" [aliveSeed]="4" [style.width.%]="(timer() / (getSafeDisplayData().phaseSeconds || mode.timerDuration)) * 100"></div>
     <span class="timer-text">{{ timer() }}s</span>
   </div>
@@ -315,7 +318,6 @@
   }
   }
 </div>
-
 
 }
 

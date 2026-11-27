@@ -461,3 +461,50 @@ Guard: `N-10: foto e card › la badge di connessione non sposta la scena`
 (Quiz, nessun nodo `conn-shell` fra i responsabili). **Aggiunto ma non ancora
 eseguito** al momento del commit: va lanciato prima di considerare chiusa la
 famiglia.
+
+### N-10 quarta famiglia: la scena che si ri-centra (entrata, opzioni, riga del tempo)
+
+**Causa 1 — l'entrata cancellava il centraggio.** `.question-area` sta in
+`top: 50%` + `transform: translateY(-50%)`. `@keyframes stageIn` scriveva
+`transform: translateY(26px) scale(...)` e finiva con `transform: none`: per
+tutta l'entrata la domanda era disegnata mezzo pannello più in basso, e al
+passaggio alla fase `title` (classe tolta) tornava al centro con uno scatto.
+Era il «salto» che si vedeva su Quiz, Indovina chi, Ruota, Timeline, Ultima
+spiaggia, Azzardo, Blackjack — tutti i giochi con la domanda, non un difetto di
+un singolo tabellone. `stageOut` aveva lo stesso problema (l'uscita partiva dal
+punto sbagliato). Ora le due animazioni usano `translate` e `scale`, proprietà
+indipendenti che convivono con il `transform` di centraggio.
+
+**Causa 2 — la fase `options` rientrava mezza scena.** La regola
+`.stage-options-on .question-area > *` colpiva **tutti** i figli diretti:
+categoria (ritardo 0), barra del tempo (300 ms) e l'intero componente del gioco
+(600 ms). A ogni passaggio in `options` il timer spariva per 300 ms e la
+domanda per 600 ms, poi rientravano sfalsate: la «domanda che si stringe e
+riappare». Le opzioni vere hanno già la loro entrata accanto alla skin del
+gioco (`quiz.component.css`); la fase `options` è un tempo di regia, non un
+secondo ingresso della scena. La regola è stata tolta, con i suoi ritardi
+e `stageOptionIn` (rimasto senza uso).
+
+**Causa 3 — la riga del tempo spostava la domanda di 15 px.** Il wrapper della
+barra era dentro `@if (… && timerVisible())` e `timerVisible()` è falso finché
+la fase non è `live`: al via comparivano 29 px (14 di barra + 15 di margine) e
+la domanda, centrata, saliva di 15 px; al reveal succedeva il contrario. Ora
+la riga resta sempre nel layout e si spegne con `.is-idle`
+(`visibility: hidden`), come il riquadro audio della Musica.
+
+**Misura a 1280×720 (Chromium, DPR 1, scena reale iniettata sui signal).**
+Quiz, top di `.question-area`: `entrance 119 · title 119 · reading 119 ·
+options 119 · live 119 · reveal 119`, altezza 482 costante, `app-quiz` a
+opacity 1 in tutte le fasi. Prima della correzione: 134 → 119 al via e
+`app-quiz` a opacity 0 per 600 ms nella fase `options`.
+
+**Test.** `apps/frontend/src/app/features/tv/stage-motion.spec.ts` (3 casi:
+`stageIn`/`stageOut` senza `transform`, nessuna regola su
+`stage-options-on … question-area > *`, riga del tempo con misura riservata).
+Suite frontend 850 passati (2 casi di `version.spec` non eseguibili solo nel
+checkout di verifica, perché mancavano `apps/backend` e `README.md`),
+`ng build` verde.
+
+**Resta aperto in N-10:** i long task d'ingresso (Quiz 615 ms, Timeline 557 ms
+misurati a CPU 4×) e il componente unico `FeedbackCard` per
+esito corretto/sbagliato: oggi ogni gioco disegna la propria card.

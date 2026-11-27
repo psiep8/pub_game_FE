@@ -605,6 +605,11 @@
   border-radius: 0 !important;
   box-shadow: none !important;
 }
+/* Fuori dal vivo la riga del tempo resta al suo posto, spenta: il via e il
+   reveal non spostano più la domanda di mezza riga. */
+.timer-wrapper.is-idle {
+  visibility: hidden;
+}
 .timer-wrapper .timer-bar {
   background: var(--acid) !important;
   border-radius: 0 !important;
@@ -1309,21 +1314,12 @@
   animation: stageIn 700ms ease-out both;
 }
 
-/* Le opzioni compaiono una alla volta: 300 ms di distanza, 320 ms di moto. */
-.game-container.stage-options-on .question-area > *,
-.game-container.stage-options-on .quiz-options-grid > * {
-  animation: stageOptionIn 320ms ease-out both;
-}
-.game-container.stage-options-on .question-area > *:nth-child(2),
-.game-container.stage-options-on .quiz-options-grid > *:nth-child(2) { animation-delay: 300ms; }
-.game-container.stage-options-on .question-area > *:nth-child(3),
-.game-container.stage-options-on .quiz-options-grid > *:nth-child(3) { animation-delay: 600ms; }
-.game-container.stage-options-on .question-area > *:nth-child(4),
-.game-container.stage-options-on .quiz-options-grid > *:nth-child(4) { animation-delay: 900ms; }
-.game-container.stage-options-on .question-area > *:nth-child(5),
-.game-container.stage-options-on .quiz-options-grid > *:nth-child(5) { animation-delay: 1200ms; }
-.game-container.stage-options-on .question-area > *:nth-child(6),
-.game-container.stage-options-on .quiz-options-grid > *:nth-child(6) { animation-delay: 1500ms; }
+/* Fase delle opzioni: qui NON si anima la scena. La regola precedente colpiva
+   `question-area > *`, cioè la categoria, la barra del tempo e l'intero gioco:
+   a ogni passaggio in `options` il timer spariva per 300 ms e la domanda per
+   600 ms, poi rientravano sfalsate (la «domanda che si stringe e riappare»).
+   Le opzioni vere hanno già la loro entrata, dichiarata accanto alla skin di
+   ogni gioco (`quiz.component.css`), che è l'unico elemento nuovo della fase. */
 
 /* 3-2-1: sotto la barra dei comandi (pausa, tema, audio), fuori dal centro
    della domanda: il numero resta grande ma non finisce più dietro i pulsanti. */
@@ -1358,17 +1354,18 @@
   animation: stageCountPulse 1s ease-in-out infinite;
 }
 
+/* `question-area` è centrata con `top: 50%` + `transform: translateY(-50%)`:
+   animare `transform` qui cancellava quel centraggio, così la scena nasceva più
+   in basso e al cambio di fase tornava a posto con un salto. Con `translate` e
+   `scale` (proprietà indipendenti) il centraggio resta intatto e si muove solo
+   quello che serve. */
 @keyframes stageIn {
-  from { opacity: 0; transform: translateY(26px) scale(0.992); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 0; translate: 0 26px; scale: 0.992; }
+  to { opacity: 1; translate: 0 0; scale: 1; }
 }
 @keyframes stageOut {
-  from { opacity: 1; transform: none; }
-  to { opacity: 0; transform: translateY(-240px); }
-}
-@keyframes stageOptionIn {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 1; translate: 0 0; }
+  to { opacity: 0; translate: 0 -240px; }
 }
 @keyframes stageCardIn {
   from { opacity: 0; transform: translateY(24px) rotate(-0.6deg); }
@@ -1386,9 +1383,6 @@
   .game-container.stage-exit .category-slot,
   .game-container.stage-exit .bubbles-area,
   .game-container.stage-entrance .question-area,
-  .game-container.stage-options-on .question-area,
-  .game-container.stage-options-on .question-area > *,
-  .game-container.stage-options-on .quiz-options-grid > *,
   .stage-reading-card,
   .stage-countdown-number {
     animation: stageFade 320ms ease-out both;
