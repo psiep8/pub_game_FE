@@ -54,6 +54,10 @@ public class KaraokeService {
     /** Quante manche gioca una partita. */
     public static final int MANCHE_PER_PARTITA = 5;
 
+    /** Stato del bonus per la lobby: quante canzoni hanno un testo completo. */
+    public record Pronostico(int canzoni, int pronte, int minimo, boolean ok) {
+    }
+
     /** Dal 2018 in poi: la banca deve avere canzoni recenti per il pubblico giovane. */
     private static final int ANNO_RECENTE = 2018;
 
@@ -66,6 +70,16 @@ public class KaraokeService {
     /** Tutta la banca, nell'ordine del file. */
     public List<Brano> banca() {
         return banca;
+    }
+
+    /**
+     * Il bonus è giocabile solo se almeno cinque canzoni hanno il testo
+     * sincronizzato: la lobby lo dichiara e la scaletta lo salta, invece di
+     * arrivare in TV con «TESTO NON DISPONIBILE» davanti al pubblico.
+     */
+    public Pronostico pronostico() {
+        int pronte = (int) banca.stream().filter(Brano::testiPronti).count();
+        return new Pronostico(banca.size(), pronte, MANCHE_PER_PARTITA, pronte >= MANCHE_PER_PARTITA);
     }
 
     /**

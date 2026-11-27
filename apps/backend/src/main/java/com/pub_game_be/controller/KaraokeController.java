@@ -29,6 +29,20 @@ public class KaraokeController {
                 "manche", karaoke.selezione(gameId));
     }
 
+    /**
+     * Quante canzoni sono cantabili: la lobby della TV mostra il conteggio e la
+     * scaletta salta il bonus quando non arrivano a cinque.
+     */
+    @GetMapping("/karaoke/pronostico")
+    public Map<String, Object> pronostico() {
+        KaraokeService.Pronostico stato = karaoke.pronostico();
+        return Map.of(
+                "canzoni", stato.canzoni(),
+                "pronte", stato.pronte(),
+                "minimo", stato.minimo(),
+                "ok", stato.ok());
+    }
+
     /** Banca intera: serve al banco di prova e ai controlli dei testi. */
     @GetMapping("/karaoke/banca")
     public Map<String, Object> banca() {

@@ -162,6 +162,13 @@
         </div>
         }
         }
+        @if (karaokeStatus(); as karaoke) {
+        <div class="lobby-karaoke" [class.is-off]="!karaoke.ok" aria-live="polite">
+          <b>KARAOKE</b>
+          <span>{{ karaoke.pronte }} canzoni pronte su {{ karaoke.minimo }}</span>
+          <em>{{ karaoke.ok ? 'BONUS IN SCALETTA' : 'BONUS SALTATO IN AUTOMATICO' }}</em>
+        </div>
+        }
       </div>
     </div>
   </div>
@@ -439,6 +446,7 @@
     @case ('KARAOKE') {
       <app-karaoke-bonus
         [gameId]="currentGameId()"
+        [preview]="karaokeDemo()"
         [players]="bonusPlayers()"
         [regia]="regiaMode()"
         [resume]="bonusResume()"

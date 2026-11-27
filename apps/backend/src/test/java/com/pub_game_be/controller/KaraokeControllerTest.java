@@ -39,6 +39,20 @@ class KaraokeControllerTest {
     }
 
     @Test
+    void ilPronosticoDiceQuanteCanzoniSonoCantabili() {
+        Map<String, Object> body = controller.pronostico();
+        List<?> canzoni = (List<?>) controller.banca().get("canzoni");
+        int pronte = (int) ((List<?>) canzoni).stream()
+                .filter((voce) -> ((KaraokeService.Brano) voce).testiPronti())
+                .count();
+
+        assertThat(body.get("canzoni")).isEqualTo(canzoni.size());
+        assertThat(body.get("pronte")).isEqualTo(pronte);
+        assertThat(body.get("minimo")).isEqualTo(KaraokeService.MANCHE_PER_PARTITA);
+        assertThat(body.get("ok")).isEqualTo(pronte >= KaraokeService.MANCHE_PER_PARTITA);
+    }
+
+    @Test
     void laBancaEsponeAlmenoDieciCanzoni() {
         List<?> canzoni = (List<?>) controller.banca().get("canzoni");
 

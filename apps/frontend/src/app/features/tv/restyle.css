@@ -338,6 +338,38 @@
   text-align: center;
 }
 
+/* Karaoke in lobby: carta, inchiostro, timbro mono. Verde = bonus pronto,
+   rosso = testi incompleti e bonus saltato dalla scaletta. */
+.lobby-karaoke {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 4px 10px;
+  margin-top: 8px;
+  padding: 7px 9px;
+  background: var(--paper-hi);
+  color: var(--coal);
+  border: 2px solid var(--coal);
+  box-shadow: 4px 4px 0 var(--acid);
+  font-family: var(--font-mono);
+}
+.lobby-karaoke b {
+  font-size: clamp(.56rem, 1.2vh, .74rem);
+  letter-spacing: .14em;
+}
+.lobby-karaoke span { font-size: clamp(.56rem, 1.25vh, .78rem); }
+.lobby-karaoke em {
+  grid-column: 1 / -1;
+  padding-top: 3px;
+  border-top: 1px dashed color-mix(in srgb, var(--coal) 25%, transparent);
+  color: var(--cobalt);
+  font-size: clamp(.5rem, 1.1vh, .68rem);
+  font-style: normal;
+  letter-spacing: .1em;
+}
+.lobby-karaoke.is-off { box-shadow: 4px 4px 0 var(--tomato); }
+.lobby-karaoke.is-off em { color: var(--tomato); }
+
 /* ------------------------------------------------------------ Comandi TV */
 .tv-dock {
   position: fixed !important;

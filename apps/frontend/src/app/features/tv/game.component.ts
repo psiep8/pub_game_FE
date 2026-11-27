@@ -91,6 +91,7 @@ const BONUS_STATE_ACTIONS: Record<BonusType, WsAction> = {
   CASINO_NUMBER: WsAction.CASINO_STATE,
 };
 import { CasinoBonus } from '../bonus/casino/casino-bonus.component';
+import { KaraokeService, type KaraokeStatus } from '../bonus/karaoke/karaoke.service';
 import { KaraokeBonus } from '../bonus/karaoke/karaoke-bonus.component';
 import { CavalloBonus } from '../bonus/cavallo/cavallo-bonus.component';
 import { Biglie } from '../games/biglie/biglie.component';
@@ -181,6 +182,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
   public roundManager = inject(RoundManagerService);
   private leaderboardService = inject(LeaderboardService);
+  private karaokeService = inject(KaraokeService);
   private buttonTests = inject(ButtonTestService);
   public audioService = inject(AudioService);
   public theme = inject(ThemeService);
@@ -245,6 +247,16 @@ export class GameComponent implements OnInit, OnDestroy {
   gameOverNotice = signal(false);
   demoType = signal<string | null>(null);
   demoScene = signal(0);
+  /**
+   * Banco di prova del Karaoke (`?karaoke-demo=1`): cinque manche con testi
+   * finti e clip muta, per percorrere stop, silenzio, prenotazione, verdetto,
+   * riapertura, pausa e ricarica senza toccare i testi protetti.
+   */
+  readonly karaokeDemo = signal(
+    new URLSearchParams(window.location.search).get('karaoke-demo') === '1',
+  );
+  /** Canzoni cantabili: la lobby le dichiara, la scaletta salta il bonus se mancano. */
+  readonly karaokeStatus = signal<KaraokeStatus | null>(null);
   /** Modalità regia: mostra il copione del presentatore accanto alla demo. */
   readonly regiaMode = signal(
     new URLSearchParams(window.location.search).get('regia') === '1',
@@ -748,6 +760,13 @@ export class GameComponent implements OnInit, OnDestroy {
     void this.openTvSession(this.currentGameId());
     // Lobby aperta = codice in schermo appena la sessione risponde.
     await this.bootLobby();
+
+    // Banco di prova del Karaoke: la TV apre il bonus con i testi finti, così
+    // tutto il flusso si percorre senza banca e senza sessione di regia.
+    if (this.karaokeDemo()) {
+      this.dismissIntro();
+      setTimeout(() => void this.startBonus('KARAOKE'), 600);
+    }
   }
 
   /**
@@ -771,6 +790,9 @@ export class GameComponent implements OnInit, OnDestroy {
     });
     this.playerAvatars.connect(this.ws);
     void this.refreshLobbyPresence();
+    // Conteggio del Karaoke: la lobby lo mostra e la scaletta lo usa per saltare
+    // il bonus quando i testi non bastano.
+    void this.refreshKaraokeStatus();
     this.presenceTimer = setInterval(() => void this.refreshLobbyPresence(), 5000);
     void this.refreshButtonTests();
     this.buttonTestTimer = setInterval(() => void this.refreshButtonTests(), 2000);
@@ -1034,6 +1056,13 @@ export class GameComponent implements OnInit, OnDestroy {
     // Uscita dalla TV: i loop del round in corso non sopravvivono alla rotta.
     this.audioService.endSession();
     this.audioService.stopAmbient();
+  }
+
+  /** Stato del Karaoke: verde se almeno cinque canzoni hanno il testo. */
+  private refreshKaraokeStatus(): void {
+    this.karaokeService.getStatus().subscribe((status) => {
+      if (status) this.karaokeStatus.set(status);
+    });
   }
 
   /** Presenze effettive: la classifica può contenere squadre non più collegate. */
@@ -2426,6 +2455,18 @@ export class GameComponent implements OnInit, OnDestroy {
 
     const act = this.roundManager.bonusActIndex();
     if (act < 0) return false;
+    // Karaoke senza testi completi: si salta in automatico, senza fermare la
+    // serata e senza arrivare in TV con «TESTO NON DISPONIBILE». Se lo stato non
+    // è ancora arrivato (rete lenta) si lascia partire: meglio un bonus che un
+    // round perso per un conteggio in ritardo.
+    const karaoke = this.karaokeStatus();
+    if (bonus === 'KARAOKE' && karaoke && !karaoke.ok) {
+      this.markBonusAct('KARAOKE', 'CLOSED');
+      this.rememberClosedBonus(this.currentGameId(), act);
+      this.lastBonusAction.set(`KARAOKE saltato: ${karaoke.pronte}/${karaoke.minimo} testi pronti`);
+      console.warn('[BONUS] Karaoke saltato: testi incompleti', karaoke);
+      return false;
+    }
     if (this.closedBonusActsOf(this.currentGameId()).has(act)) return false;
     // Un bonus già segnato sul server (avviato in questa schermata o prima di
     // un refresh) non riparte da capo: la ripresa la gestisce `offerBonusRecovery`.

@@ -24,6 +24,8 @@ import { RoundManagerService } from '../../core/services/round-manager.service';
 import { GameModeService } from '../../core/services/game-mode-factory.service';
 import { ButtonTestService } from '../../core/services/button-test.service';
 import { FakeButtonTestService } from '../../shared/testing/fake-button-test.service';
+import { FakeKaraokeService } from '../../shared/testing/fake-karaoke.service';
+import { KaraokeService } from '../bonus/karaoke/karaoke.service';
 import { GamePhase } from '../../shared/enums/game-phase';
 import { WsAction } from '../../shared/enums/ws-action';
 import { bonusEntranceFor } from '../../shared/bonus-entrances';
@@ -53,6 +55,7 @@ describe('GameComponent', () => {
         { provide: AiGeneratorService, useClass: FakeAiGeneratorService },
         { provide: AudioService, useClass: FakeAudioService },
         { provide: ButtonTestService, useClass: FakeButtonTestService },
+        { provide: KaraokeService, useClass: FakeKaraokeService },
       ],
     }).compileComponents();
 
@@ -2390,6 +2393,52 @@ describe('GameComponent', () => {
       } finally {
         vi.useRealTimers();
       }
+    });
+
+    it('salta il Karaoke quando i testi completi non bastano', () => {
+      const rounds = TestBed.inject(RoundManagerService);
+      component.currentGameId.set(1);
+      const start = vi.spyOn(component, 'startBonus').mockResolvedValue(undefined);
+      vi.spyOn(rounds, 'bonusAfterRound').mockReturnValue('KARAOKE');
+      vi.spyOn(rounds, 'bonusActIndex').mockReturnValue(0);
+
+      // Solo due canzoni cantabili: il bonus non va in scena e la serata riparte.
+      component.karaokeStatus.set({ canzoni: 64, pronte: 2, minimo: 5, ok: false });
+      expect(scheduled(component).startScheduledBonus()).toBe(false);
+      expect(start).not.toHaveBeenCalled();
+      expect(component.lastBonusAction()).toContain('KARAOKE saltato');
+    });
+
+    it('con i testi pronti il Karaoke resta in scaletta', () => {
+      const rounds = TestBed.inject(RoundManagerService);
+      component.currentGameId.set(1);
+      const start = vi.spyOn(component, 'startBonus').mockResolvedValue(undefined);
+      vi.spyOn(rounds, 'bonusAfterRound').mockReturnValue('KARAOKE');
+      vi.spyOn(rounds, 'bonusActIndex').mockReturnValue(0);
+
+      component.karaokeStatus.set({ canzoni: 64, pronte: 29, minimo: 5, ok: true });
+      expect(scheduled(component).startScheduledBonus()).toBe(true);
+      expect(start).toHaveBeenCalledWith('KARAOKE');
+    });
+
+    it('la lobby dichiara quante canzoni del Karaoke sono pronte', () => {
+      component.currentGameId.set(1);
+      component.phase.set('IDLE');
+      component.karaokeStatus.set({ canzoni: 64, pronte: 29, minimo: 5, ok: true });
+      fixture.detectChanges();
+
+      const banner = fixture.nativeElement.querySelector('.lobby-karaoke') as HTMLElement | null;
+      expect(banner).not.toBeNull();
+      expect(banner!.textContent).toContain('29 canzoni pronte su 5');
+      expect(banner!.textContent).toContain('BONUS IN SCALETTA');
+      expect(banner!.classList.contains('is-off')).toBe(false);
+
+      // Testi incompleti: il banner diventa rosso e dice che il bonus si salta.
+      component.karaokeStatus.set({ canzoni: 64, pronte: 2, minimo: 5, ok: false });
+      fixture.detectChanges();
+      const off = fixture.nativeElement.querySelector('.lobby-karaoke') as HTMLElement;
+      expect(off.classList.contains('is-off')).toBe(true);
+      expect(off.textContent).toContain('BONUS SALTATO IN AUTOMATICO');
     });
 
     it('dopo un refresh non riapre un bonus già chiuso', () => {
