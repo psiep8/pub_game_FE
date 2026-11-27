@@ -1,5 +1,29 @@
 # Changelog
 
+## 27 novembre 2026 — Musica, tic del timer e Karaoke in lobby
+
+Correzioni della seconda serata senza cambiare le regole di punteggio: la
+Musica resta quattro round da cinque manche (4 s / 12 s, +200/+100/-50).
+Nessuna release e nessun tag.
+
+- **Timer (N-07).** Il ticchettio partiva in ogni modalità con un timer, quindi
+  anche nella Musica, e la ripresa dalla pausa lo riaccendeva su un round già
+  chiuso: restava acceso per la classifica, il bonus o la pausa d'atto. Ora
+  appartiene solo a un round vivo. Misurato nel banco TV + 3 telefoni:
+  `owner: round:2:MUSIC` in quattro campioni su quattro prima, nessuno dopo.
+- **Karaoke (N-09).** La lobby mostra quante canzoni hanno il testo e la
+  scaletta salta il bonus quando non bastano, senza fermare la serata; se il
+  conteggio non è ancora arrivato il bonus parte lo stesso. Banco
+  `?karaoke-demo=1` per il giro completo.
+- **Musica (M-02, M-03, M-05).** I cinque brani del Karaoke della partita non
+  escono più nei round Musica (41 titoli condivisi, esclusione per partita);
+  titolo, artista, copertina e URL della clip non viaggiano più nel payload dei
+  telefoni; un brano può partire da un punto scelto (`startAt`) invece che
+  sempre da zero, con lo script che misura il silenzio iniziale.
+- **Verifiche.** Test backend **228 passati**, frontend **834 passati**, `test:sim`
+  e `audit-banche --ci` verdi, build frontend OK, Playwright TV + telefoni verde
+  su N-07. Restano da fare in sala le misure di `startAt` e il giro del Karaoke.
+
 ## 26 novembre 2026 — Blocco A della seconda serata (in corso)
 
 Primo gruppo di correzioni dopo la seconda serata. Nessuna release e nessun tag:
