@@ -1,4 +1,4 @@
-import { devices, expect, test, type Browser, type Page } from 'playwright/test';
+import { devices, expect, test, type Browser, type BrowserContext, type Page } from 'playwright/test';
 
 const BACKEND = 'http://127.0.0.1:8095';
 // Deve combaciare con CONTROL_SECRET del backend in playwright.config.ts.
@@ -61,6 +61,12 @@ async function pairAdmin(page: Page, gameId: number, code: string): Promise<void
   await page.addInitScript((id) => localStorage.setItem('activeGameId', String(id)), gameId);
   await page.goto(`/admin?pair=${code.replace(/\D/g, '')}`);
   await expect(page.getByRole('button', { name: /PARTI/ }).first()).toBeVisible({ timeout: 60_000 });
+  // Il comando di bonus parte dalla socket della regia: aspettare il pulsante
+  // non basta se la connessione è ancora in apertura.
+  await page.waitForFunction(() => {
+    const admin = (window as any).ng?.getComponent(document.querySelector('app-admin-component'));
+    return admin?.ws?.connected?.() === true;
+  }, null, { timeout: 30_000 });
 }
 
 async function joinPhone(page: Page, gameId: number, name: string): Promise<void> {
@@ -77,9 +83,9 @@ async function joinPhone(page: Page, gameId: number, name: string): Promise<void
 async function setup(
   browser: Browser,
   tvToken: string,
-): Promise<{ gameId: number; tv: Page; admin: Page; phone: Page; close: () => Promise<void> }> {
+): Promise<{ gameId: number; tv: Page; admin: Page; close: () => Promise<void> }> {
   const gameId = await createGame(tvToken);
-  const contexts = [];
+  const contexts: BrowserContext[] = [];
   const open = async (mobile = false) => {
     const context = await browser.newContext(mobile ? { ...devices['iPhone 14'] } : {});
     contexts.push(context);
@@ -90,31 +96,23 @@ async function setup(
   const code = (await tv.locator('.pairing-code').innerText()).replace(/\D/g, '');
   const admin = await open();
   await pairAdmin(admin, gameId, code);
-  const phone = await open(true);
-  await joinPhone(phone, gameId, 'BJ-1');
-  await expect(phone.locator('.header-round')).toBeVisible({ timeout: 30_000 });
-  // La socket della regia può essere ancora in apertura subito dopo il pairing.
-  await admin.waitForTimeout(2_500);
+  // Il Blackjack pesca il tavolo dai giocatori presenti: senza un telefono
+  // in squadra la mano non arriva sul server.
+  await joinPhone(await open(true), gameId, 'BJ-1');
   return {
     gameId,
     tv,
     admin,
-    phone,
     close: async () => {
-      await Promise.all(contexts.map((context) => context.close()));
+      for (const context of contexts) await context.close();
     },
   };
 }
 
-// Il reload della TV mentre Playwright registra trace/video lascia artefatti
-// zip troncati su Windows: questo test non ne ha bisogno.
-test.use({ trace: 'off', video: 'off' });
-
-test.describe.serial('Blackjack: refresh TV a metà mano', () => {
+test.describe('Blackjack: refresh TV a metà mano', () => {
   let bootstrapToken = '';
 
   test.beforeAll(async ({ browser }) => {
-    test.setTimeout(240_000);
     const context = await browser.newContext();
     const page = await context.newPage();
     await openTv(page, 1);
@@ -129,20 +127,16 @@ test.describe.serial('Blackjack: refresh TV a metà mano', () => {
   });
 
   test('N-06: la TV riprende le carte e la fase dopo un refresh', async ({ browser }) => {
-    test.setTimeout(240_000);
-    const { gameId, tv, admin, phone, close } = await setup(browser, bootstrapToken);
+    const { gameId, tv, admin, close } = await setup(browser, bootstrapToken);
 
     try {
-      // Un round aperto dà alla TV un atto corrente e un QUIZ da chiudere: il
-      // bonus parte fuori dal round, come a fine serata. La dock di debug apre
-      // il round senza dipendere dalla socket della regia.
+      // La dock di debug apre il primo round: la scaletta ha un atto (0) e il
+      // server ha un QUIZ da chiudere prima del bonus.
       await tv.locator('.dock-btn.advance').click();
-      const vote = phone.locator('.vote-btn').first();
-      await expect(vote).toBeEnabled({ timeout: 60_000 });
+      await expect(tv.locator('.question-area')).toBeVisible({ timeout: 60_000 });
 
-      // Il bonus parte fuori dal round, come a fine round: chiudiamo il QUIZ
-      // sul server prima di avviarlo, altrimenti al refresh la TV propone il
-      // recupero del round (che ha la precedenza) e non del Blackjack.
+      // Il bonus parte fuori dal round, come a fine serata: chiudiamo il QUIZ
+      // sul server, altrimenti al refresh la TV propone il recupero del round.
       const closed = await tv.evaluate(async (id) => {
         const token = localStorage.getItem(`pubgame.session.${id}.TV`) ?? '';
         const response = await fetch(`/games/${id}/round/close`, {
@@ -154,8 +148,8 @@ test.describe.serial('Blackjack: refresh TV a metà mano', () => {
       }, gameId);
       expect(closed, 'chiusura del round QUIZ').toBe(200);
 
-      // La socket della regia può essere ancora in apertura: il primo comando
-      // può cadere nel vuoto, come in sala.
+      // La TV può essere a metà rullo categorie: la guardia rifiuta il comando,
+      // come in sala. Si riprova finché la scena è libera.
       const blackjack = tv.locator('app-blackjack .bj-wrap');
       for (let attempt = 0; attempt < 3 && !(await blackjack.isVisible().catch(() => false)); attempt += 1) {
         await admin.getByRole('button', { name: /BONUS BLACKJACK/ }).click();
@@ -201,7 +195,7 @@ test.describe.serial('Blackjack: refresh TV a metà mano', () => {
 
       // La TV rilegge `blackjackState` da /sync e riapre il bonus con la mano
       // salvata: stesse carte, stesso tavolo, stessa fase.
-      await expect(tv.locator('app-blackjack .bj-wrap')).toBeVisible({ timeout: 45_000 });
+      await expect(blackjack).toBeVisible({ timeout: 45_000 });
       await expect(tv.locator('.bj-side.table .bj-card')).toHaveCount(2, { timeout: 20_000 });
       expect(await cards('.bj-side.table')).toEqual(tableBefore);
       expect(await cards('.bj-side.bank')).toEqual(bankBefore);
