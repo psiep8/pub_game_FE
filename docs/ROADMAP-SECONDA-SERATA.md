@@ -257,7 +257,7 @@ macchina della serata.
 - (c) Nome del prodotto: manuali, demo e PDF dicono già **quizzOne**; «PubGame»
   resta solo dove è il nome tecnico del repository (`README`, `DEPLOYMENT`).
 
-### M-03 la soluzione non è nei telefoni — **Payload fatto, banco squadre da fare**
+### M-03 la soluzione non è nei telefoni — **Fatto**
 
 **Causa.** `getSafeDisplayData()` azzerava `correctAnswer`, ma nella Musica la
 soluzione non è quel campo: titolo, artista, anno, copertina e `previewUrl`
@@ -284,10 +284,15 @@ contenuto (`grid-auto-rows: 1fr` con `min-height: 0`) e a quattordici squadre si
 accavallavano: la riga minima ora è quella del suo testo
 (`grid-auto-rows: minmax(min-content, 1fr)`).
 
-**Resta aperto.** Il banco con 4, 8, 10, 14 e 20 squadre su tutte le schermate
-che mostrano elenchi (lobby, riepilogo round, classifica rapida e dettagliata):
-va scritto come prova E2E dedicata, perché oggi i banchi esistenti usano tre
-telefoni.
+**Banco elenchi.** `e2e/liste-squadre.spec.ts` apre una partita vera con 4, 8,
+10, 14 e 20 telefoni (backend vero, telefoni a gruppi di sei) e misura lobby e
+classifica rapida a scena ferma, perché le animazioni in volo falsano i
+rettangoli: una riga per squadra, nomi veri nella lobby, varianti `dense` oltre
+dieci e `triple` oltre sedici, nessuna riga fuori dal riquadro, nessuna coppia di
+righe sovrapposta. Le cinque taglie sono verdi in 12,6 minuti (venti squadre
+3,9 minuti). Restano fuori due schermate: il riepilogo delle risposte si popola
+solo dalle risposte accettate dal server e nel banco restava vuoto, e la
+classifica dettagliata mostra una squadra alla volta, quindi non è un elenco.
 
 ### M-04 tempi per atto — **Fatto**
 
