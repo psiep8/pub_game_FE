@@ -42,6 +42,13 @@ export const TV_TIMING = {
    * solo all'inizio del round.
    */
   mancheBreathMs: 4500,
+  /**
+   * Riepilogo di fine round (N-11): ogni pagina resta ferma tre secondi, con
+   * dissolvenza. Il minimo di otto secondi vale anche con una pagina sola; le
+   * pagine in più allungano la scena di tre secondi ciascuna.
+   */
+  recapPageMs: 3000,
+  recapMinMs: 8000,
 } as const;
 
 /** Fasi della scena TV, nell'ordine in cui il pubblico le vede. */

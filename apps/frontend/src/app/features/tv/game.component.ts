@@ -44,6 +44,8 @@ import { environment } from '../../core/environment/environment';
 import { GameModeConfig, GameModeType, IGameMode } from '../../shared/models/game-mode-type';
 import { LeaderboardQuick } from './leaderboard/leaderboard-quick-component/leaderboard-quick.component';
 import { LeaderboardDetailed } from './leaderboard/leaderboard-detailed-component/leaderboard-detailed.component';
+import { RoundRecap } from './round-recap/round-recap.component';
+import { recapRows, shouldRecap, type RecapRow } from './round-recap/round-recap-model';
 import { ArenaComponent } from '../games/arena/arena.component';
 import { Timeline } from '../games/timeline/timeline.component';
 import { TimeBuzzer } from '../games/time-buzzer/time-buzzer.component';
@@ -136,6 +138,7 @@ const MUSIC_THEME_LAYOUT = [
     Song,
     LeaderboardQuick,
     LeaderboardDetailed,
+    RoundRecap,
     ArenaComponent,
     Timeline,
     TimeBuzzer,
@@ -316,6 +319,10 @@ export class GameComponent implements OnInit, OnDestroy {
 
   showLeaderboardQuick = signal(false);
   showLeaderboardDetailed = signal(false);
+  /** N-11: riepilogo con punti fatti e persi nel round, prima di bonus e classifica. */
+  readonly roundRecapOpen = signal(false);
+  readonly roundRecapRows = signal<RecapRow[]>([]);
+  readonly roundRecapLabel = signal('');
   /** Q-05: pausa fra un atto e il successivo, decisa dalla regia. */
   actPause = signal(false);
   actPauseSeconds = signal(180);
@@ -358,6 +365,10 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Punti assegnati mentre il round era aperto: solo questi fanno vincere. */
   private roundPoints = new Map<string, number>();
   private roundScoring = false;
+  /** Totali all'apertura del round: il riepilogo conta la differenza (N-11). */
+  private roundStartTotals = new Map<string, number>();
+  /** La fotografia esiste: una mappa vuota è valida (nessuno aveva punti). */
+  private roundStartKnown = false;
   /** Tema del vincitore del round chiuso; null = acido. */
   private roundWinnerTheme: AppTheme | null = null;
 
@@ -1262,6 +1273,12 @@ export class GameComponent implements OnInit, OnDestroy {
    */
   private beginRoundScoring(): void {
     this.roundPoints.clear();
+    // Fotografia dei totali: senza questa il riepilogo mostrerebbe il totale
+    // di serata come se fosse il guadagno del round.
+    this.roundStartTotals = new Map(
+      this.leaderboardService.getLeaderboard().map((player) => [player.playerName, player.totalPoints]),
+    );
+    this.roundStartKnown = true;
     this.roundScoring = true;
     this.persistRoundPoints();
   }
@@ -1281,6 +1298,8 @@ export class GameComponent implements OnInit, OnDestroy {
         gameId,
         roundIndex,
         points: [...this.roundPoints],
+        // Base del riepilogo: un refresh a metà round non deve gonfiare i delta.
+        start: [...this.roundStartTotals],
       }));
     } catch {
       // Quota piena: resta la memoria della sessione, che copre il caso comune.
@@ -1299,6 +1318,14 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!stored || !Array.isArray(stored.points)) return;
     if (Number(stored.gameId) !== gameId || Number(stored.roundIndex) !== roundIndex) return;
 
+    // Senza la base salvata il riepilogo non ha numeri credibili: meglio
+    // saltarlo che mostrare il totale di serata come guadagno del round.
+    this.roundStartKnown = Array.isArray(stored.start);
+    this.roundStartTotals = new Map(
+      (this.roundStartKnown ? stored.start : [])
+        .filter((row: unknown) => Array.isArray(row) && String(row[0] ?? '').trim())
+        .map((row: [string, unknown]) => [String(row[0]).trim(), Number(row[1]) || 0]),
+    );
     this.roundPoints.clear();
     for (const row of stored.points) {
       if (!Array.isArray(row)) continue;
@@ -2317,6 +2344,15 @@ export class GameComponent implements OnInit, OnDestroy {
     this.settleRoundWinner();
     this.audioService.stopAll();
 
+    // N-11: prima di bonus, classifica e attesa il round si racconta. Il
+    // riepilogo emette `onComplete` e solo allora la serata prosegue.
+    if (this.openRoundRecap()) return;
+
+    this.continueAfterRound();
+  }
+
+  /** Coda del round chiuso: bonus, classifica o attesa prima del gioco dopo. */
+  private continueAfterRound(): void {
     // Bonus sparso: se questo round è uno dei cinque slot della serata, il
     // bonus parte subito, senza aspettare la classifica di fine atto.
     if (this.startScheduledBonus()) return;
@@ -2333,6 +2369,34 @@ export class GameComponent implements OnInit, OnDestroy {
     // la regia non deve dare quaranta clic. AVANTI, pausa, classifica e demo
     // annullano il conto alla rovescia (vedi startAutoAdvance).
     if (!this.roundManager.isGameOver()) this.startAutoAdvance();
+  }
+
+  /**
+   * Apre il riepilogo del round appena chiuso, se c'è qualcosa da raccontare.
+   *
+   * <p>Senza la fotografia dei totali il delta non è credibile: meglio saltare
+   * il riepilogo (round ripreso da un refresh prima del salvataggio) che
+   * mostrare il totale di serata come guadagno del round.</p>
+   */
+  private openRoundRecap(): boolean {
+    const type = this.currentMode()?.type ?? '';
+    if (!this.roundStartKnown) return false;
+
+    const rows = recapRows(this.leaderboardService.getLeaderboard(), this.roundStartTotals);
+    if (!shouldRecap(type, rows)) return false;
+
+    this.roundRecapLabel.set(`ROUND ${this.roundManager.getCurrentRound()} · ${this.getModeName(type)}`);
+    this.roundRecapRows.set(rows);
+    this.roundRecapOpen.set(true);
+    return true;
+  }
+
+  /** Riepilogo finito: la serata riprende dalla coda del round. */
+  onRoundRecapComplete(): void {
+    if (!this.roundRecapOpen()) return;
+    this.roundRecapOpen.set(false);
+    this.roundRecapRows.set([]);
+    this.continueAfterRound();
   }
 
   /** Chiude subito la classifica a schermo: la X in TV o un avanzamento admin. */
@@ -3240,6 +3304,11 @@ export class GameComponent implements OnInit, OnDestroy {
     this.round.set(null);
     this.selectedCategoryId.set(null);
     this.musicTheme.set(null);
+    this.roundRecapOpen.set(false);
+    this.roundRecapRows.set([]);
+    this.roundRecapLabel.set('');
+    this.roundStartTotals.clear();
+    this.roundStartKnown = false;
     this.timer.set(0);
     // Se si parte con un bonus mentre la TV è in pausa, l'audio non deve
     // restare muto: la pausa finisce insieme al round che l'aveva aperta.

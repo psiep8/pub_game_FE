@@ -1,0 +1,207 @@
+/* EDIZIONE 26 — riepilogo del round: foglio stampato, non una card luminosa. */
+.recap {
+  position: fixed;
+  inset: 0;
+  z-index: 19000;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  padding: clamp(66px, 9vh, 96px) 0 clamp(14px, 2.4vh, 26px);
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(color-mix(in srgb, var(--coal) 14%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, transparent 0 73%, color-mix(in srgb, var(--tomato) 10%, transparent) 73% 74%, transparent 74%);
+  background-size: 16px 16px, 100% 100%;
+  color: var(--coal);
+}
+
+.recap-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.2vh, 14px);
+  width: min(1120px, 92vw);
+  height: 100%;
+  min-height: 0;
+}
+
+.recap-head {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 0 0 clamp(6px, 1.2vh, 12px);
+  border-bottom: 4px solid var(--coal);
+}
+
+.recap-kicker {
+  margin-bottom: 2px;
+  color: var(--tomato);
+  font-family: var(--font-mono);
+  font-size: clamp(0.55rem, 1.4vh, 0.78rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.recap-title {
+  margin: 0;
+  color: var(--coal);
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 5.2vh, 3.4rem);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.recap-counter {
+  margin-bottom: 4px;
+  padding: 2px 9px;
+  background: var(--coal);
+  color: var(--paper-hi);
+  font-family: var(--font-mono);
+  font-size: clamp(0.55rem, 1.4vh, 0.78rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.recap-rows {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(5px, 1vh, 10px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.recap-row {
+  display: grid;
+  grid-template-columns: clamp(30px, 4.2vh, 48px) minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: clamp(8px, 1.4vw, 22px);
+  flex: 0 1 auto;
+  min-height: clamp(32px, 4.2vh, 50px);
+  max-height: clamp(44px, 7vh, 74px);
+  padding: clamp(4px, 0.9vh, 10px) clamp(10px, 1.8vw, 22px);
+  background: var(--paper-hi);
+  border: 3px solid var(--coal);
+  box-shadow: 5px 5px 0 var(--coal);
+  animation: recap-page-in var(--motion-fast, 200ms) ease-out both;
+}
+
+.recap-pos {
+  display: grid;
+  place-items: center;
+  width: clamp(30px, 4.2vh, 46px);
+  height: clamp(30px, 4.2vh, 46px);
+  background: var(--coal);
+  color: var(--paper-hi);
+  font-family: var(--font-mono);
+  font-size: clamp(0.8rem, 2.2vh, 1.3rem);
+  font-weight: 700;
+}
+
+.recap-name {
+  overflow: hidden;
+  color: var(--coal);
+  font-family: var(--font-display);
+  font-size: clamp(0.92rem, 3vh, 1.8rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.015em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.recap-delta {
+  padding: 1px 8px;
+  font-family: var(--font-mono);
+  font-size: clamp(0.95rem, 3vh, 1.7rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  border: 2px solid transparent;
+}
+.recap-delta.up {
+  background: var(--acid);
+  border-color: var(--coal);
+  color: var(--coal);
+}
+.recap-delta.down {
+  background: var(--tomato);
+  border-color: var(--coal);
+  color: var(--paper-hi);
+}
+.recap-delta.flat {
+  color: color-mix(in srgb, var(--coal) 55%, transparent);
+}
+
+.recap-total {
+  color: var(--coal);
+  font-family: var(--font-mono);
+  font-size: clamp(0.8rem, 2.2vh, 1.25rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  text-align: right;
+}
+.recap-total small {
+  margin-left: 3px;
+  color: color-mix(in srgb, var(--coal) 55%, transparent);
+  font-size: 0.58em;
+  letter-spacing: 0.08em;
+}
+
+/* Ultima pagina: il podio prende gli accenti del tabellone. */
+.recap-rows.is-podium .recap-row.gold {
+  background: var(--acid);
+  box-shadow: 8px 8px 0 var(--tomato);
+}
+.recap-rows.is-podium .recap-row.silver {
+  background: var(--paper-2);
+}
+.recap-rows.is-podium .recap-row.bronze {
+  background: var(--mustard);
+}
+.recap-rows.is-podium .recap-row.gold .recap-pos {
+  background: var(--tomato);
+}
+
+.recap-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: clamp(2px, 0.6vh, 6px);
+  border-top: 2px dashed var(--paper-2);
+}
+
+.recap-note {
+  color: var(--tomato-ink);
+  font-family: var(--font-mono);
+  font-size: clamp(0.52rem, 1.3vh, 0.72rem);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+@keyframes recap-page-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-height: 800px) {
+  .recap { padding-top: 62px; }
+  .recap-sheet { gap: 6px; }
+  .recap-title { font-size: clamp(1.6rem, 5vh, 2.8rem); }
+  .recap-row {
+    min-height: 30px;
+    padding: 3px 12px;
+    box-shadow: 4px 4px 0 var(--coal);
+  }
+  .recap-pos { width: 28px; height: 28px; font-size: 0.85rem; }
+  .recap-name { font-size: clamp(0.88rem, 3.2vh, 1.5rem); }
+  .recap-delta { font-size: clamp(0.9rem, 3.2vh, 1.5rem); }
+  .recap-total { font-size: clamp(0.78rem, 2.4vh, 1.1rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recap-row { animation: none; }
+}

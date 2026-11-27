@@ -190,6 +190,14 @@
   </app-leaderboard-detailed>
   }
 
+  @if (roundRecapOpen()) {
+  <app-round-recap
+    [rows]="roundRecapRows()"
+    [label]="roundRecapLabel()"
+    (onComplete)="onRoundRecapComplete()">
+  </app-round-recap>
+  }
+
   @if (showTypeReveal()) {
   <div class="type-reveal-overlay">
     <div class="round-badge">

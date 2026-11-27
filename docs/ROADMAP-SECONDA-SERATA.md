@@ -540,3 +540,50 @@ sui signal, non un mock statico).
 **Resta aperto in N-10:** i long task d'ingresso (Quiz 615 ms, Timeline 557 ms
 misurati a CPU 4×) e il componente unico `FeedbackCard` per
 esito corretto/sbagliato: oggi ogni gioco disegna la propria card.
+
+### N-11 riepilogo di fine round condiviso — **Codice e test fatti, misura a 720p da fare**
+
+**Causa.** Chiuso un round, la TV passava subito al bonus, alla classifica di
+fine atto o all'attesa di trenta secondi: i punti fatti e persi in quel round
+non si vedevano mai. Il riepilogo era previsto per ogni gioco ma nessuno lo
+disegnava, e i giochi che pagano a manche (Musica, Indovina chi, Biglie,
+Arena) chiudevano senza una pagina che dicesse chi era salito e chi era
+sceso.
+
+**Intervento.** Un solo componente `RoundRecap`
+(`tv/round-recap/`), aperto da `checkLeaderboardDisplay()` per tutti i giochi:
+
+- **Cosa conta:** il delta fra i totali all'apertura del round (fotografia in
+  `beginRoundScoring`) e i totali alla chiusura. Non il totale di serata e non
+  i punti del vincitore: chi entra a metà o incassa un bonus fra due round
+  resta fuori dai conti.
+- **Ordine:** dal peggiore al migliore, pari merito sullo stesso delta rotto
+  dal totale più basso. L'ultima pagina è il podio (oro, argento, bronzo).
+- **Pagine:** una sola fino a dieci squadre; oltre, righe da sette. Ognuna
+  resta ferma tre secondi con dissolvenza (`recap-page-in`, solo opacità).
+- **Durate:** minimo 8 s, più 3 s per ogni pagina oltre la prima
+  (`TV_TIMING.recapPageMs` / `recapMinMs`): 4–20 squadre stanno fra 8 e 9 s.
+- **Ripartenza:** il riepilogo non chiude il round da solo. Solo al suo
+  `onComplete` la regia prosegue con la coda di sempre — bonus, classifica
+  d'atto, altrimenti attesa di 30 s (F-12). I trenta secondi quindi partono
+  dopo il riepilogo, mai durante.
+- **Refresh:** la base dei totali viaggia con `ROUND_POINTS_KEY` (campo
+  `start`), così un refresh a metà round non gonfia i delta. Se la base non
+  c'è (salvataggio vecchio) il riepilogo si salta invece di mostrare numeri
+  falsi. `reset()`, AVANTI e pausa lo chiudono: non resta mai appeso.
+- **Quando non c'è:** meno di due squadre o nessuna variazione di punti. Il
+  tabellone a 14 giochi (riepilogo sì/no, durata, quando riparte) sta in testa
+  a `round-recap-model.ts`.
+
+**Test.** `round-recap-model.spec.ts` (8 casi: ordine, pari merito, pagine a
+4/8/10/14/20 squadre, durate, giochi esclusi), `round-recap.component.spec.ts`
+(4 casi: pagina unica, pagine da sette con podio in fondo, chiusura una volta
+sola, delta firmati), `game.component.spec.ts` (2 casi: il riepilogo si apre
+con i delta e l'attesa resta a zero; chiuso il riepilogo partono i 30 s).
+155 test verdi sui tre file, `ng build` verde (restano gli avvisi di budget CSS
+e i due moduli CommonJS già presenti).
+
+**Resta aperto.** La misura a 1280×720 del foglio con 4/8/10/14/20 squadre
+(righe, ombre, dock della regia) non è stata fatta: il componente è verificato
+nei test, non ancora guardato in scena. Da decidere in sala se 8 s per round
+siano sostenibili su quaranta round.

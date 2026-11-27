@@ -2082,6 +2082,56 @@ describe('GameComponent', () => {
     start.mockRestore();
   });
 
+  it('N-11: il riepilogo mostra i punti fatti e persi nel round prima della classifica', () => {
+    const tv = component as unknown as {
+      beginRoundScoring(): void;
+      checkLeaderboardDisplay(): void;
+      startScheduledBonus(): boolean;
+    };
+    vi.spyOn(tv, 'startScheduledBonus').mockReturnValue(false);
+    component.currentGameId.set(1);
+    component.currentMode.set({ type: 'QUIZ' } as any);
+
+    tv.beginRoundScoring();
+    leaderboard.addPoints('Anna', 30, true);
+    leaderboard.addPoints('Bea', -10, false);
+
+    tv.checkLeaderboardDisplay();
+
+    expect(component.roundRecapOpen()).toBe(true);
+    expect(component.roundRecapLabel()).toContain('QUIZ');
+    expect(component.roundRecapRows().map((row) => [row.playerName, row.delta])).toEqual([
+      ['Bea', -10],
+      ['Anna', 30],
+    ]);
+    // Sotto il riepilogo l'attesa non parte: i trenta secondi arrivano dopo.
+    expect(component.autoAdvanceSeconds()).toBe(0);
+  });
+
+  it('N-11: chiuso il riepilogo parte l’attesa di trenta secondi', () => {
+    const tv = component as unknown as {
+      beginRoundScoring(): void;
+      checkLeaderboardDisplay(): void;
+      startScheduledBonus(): boolean;
+    };
+    vi.spyOn(tv, 'startScheduledBonus').mockReturnValue(false);
+    vi.spyOn(component.roundManager, 'shouldShowLeaderboard').mockReturnValue(null);
+    component.currentGameId.set(1);
+    component.currentMode.set({ type: 'QUIZ' } as any);
+
+    tv.beginRoundScoring();
+    leaderboard.addPoints('Anna', 40, true);
+    leaderboard.addPoints('Bea', 10, true);
+    tv.checkLeaderboardDisplay();
+
+    expect(component.roundRecapOpen()).toBe(true);
+    component.onRoundRecapComplete();
+
+    expect(component.roundRecapOpen()).toBe(false);
+    expect(component.autoAdvanceSeconds()).toBe(30);
+    component.stopAutoAdvance();
+  });
+
   it('closes the round count when a recovered round is closed after a refresh', () => {
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     vi.spyOn(game, 'closeRound').mockReturnValue(of({}));

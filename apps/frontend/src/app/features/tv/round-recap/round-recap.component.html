@@ -1,0 +1,40 @@
+<section class="recap" role="region" aria-label="Riepilogo del round">
+  <div class="recap-sheet">
+    <header class="recap-head">
+      <div class="recap-kicker">RIEPILOGO DEL ROUND</div>
+      <h1 class="recap-title">{{ label }}</h1>
+      @if (pages().length > 1) {
+        <div class="recap-counter" aria-hidden="true">{{ pageIndex() + 1 }} / {{ pages().length }}</div>
+      }
+    </header>
+
+    @for (page of pages(); track $index; let index = $index) {
+      @if (index === pageIndex()) {
+        <div class="recap-rows" [class.is-podium]="index === lastPage()">
+          @for (row of page; track row.playerName) {
+            <div
+              class="recap-row"
+              [class.gold]="index === lastPage() && row.position === 1"
+              [class.silver]="index === lastPage() && row.position === 2"
+              [class.bronze]="index === lastPage() && row.position === 3"
+            >
+              <span class="recap-pos">{{ row.position }}</span>
+              <span class="recap-name">{{ row.playerName }}</span>
+              <span
+                class="recap-delta"
+                [class.up]="row.delta > 0"
+                [class.down]="row.delta < 0"
+                [class.flat]="row.delta === 0"
+              >{{ signedDelta(row.delta) }}</span>
+              <span class="recap-total">{{ row.total }}<small>PT</small></span>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <footer class="recap-foot">
+      <span class="recap-note">{{ isPodium() ? 'PODIO DEL ROUND' : 'DAL PEGGIORE AL MIGLIORE' }}</span>
+    </footer>
+  </div>
+</section>
