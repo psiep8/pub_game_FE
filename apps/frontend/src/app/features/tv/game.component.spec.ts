@@ -2155,6 +2155,32 @@ describe('GameComponent', () => {
     component.stopAutoAdvance();
   });
 
+  it('N-11: AVANTI con il riepilogo aperto lo chiude e passa dalla coda del round', () => {
+    const tv = component as unknown as {
+      beginRoundScoring(): void;
+      checkLeaderboardDisplay(): void;
+      startScheduledBonus(): boolean;
+    };
+    const bonus = vi.spyOn(tv, 'startScheduledBonus').mockReturnValue(true);
+    const next = vi.spyOn(component, 'startNewRound').mockResolvedValue(undefined);
+    component.currentGameId.set(1);
+    component.currentMode.set({ type: 'QUIZ', isRevealed: () => true } as any);
+
+    tv.beginRoundScoring();
+    leaderboard.addPoints('Anna', 30, true);
+    leaderboard.addPoints('Bea', -10, false);
+    tv.checkLeaderboardDisplay();
+    expect(component.roundRecapOpen()).toBe(true);
+
+    // AVANTI non salta al gioco dopo: chiude il foglio e lascia partire il
+    // bonus programmato, l'unica cosa che l'avanzamento diretto perderebbe.
+    component.adminNextRound();
+
+    expect(component.roundRecapOpen()).toBe(false);
+    expect(bonus).toHaveBeenCalledTimes(1);
+    expect(next).not.toHaveBeenCalled();
+  });
+
   it('N-11: ESC sul riepilogo mette la sala in pausa e la riprende dallo stesso punto', () => {
     const tv = component as unknown as {
       beginRoundScoring(): void;

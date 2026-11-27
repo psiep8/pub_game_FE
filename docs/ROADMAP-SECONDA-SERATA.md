@@ -566,7 +566,9 @@ sceso.
 - **Ripartenza:** il riepilogo non chiude il round da solo. Solo al suo
   `onComplete` la regia prosegue con la coda di sempre — bonus, classifica
   d'atto, altrimenti attesa di 30 s (F-12). I trenta secondi quindi partono
-  dopo il riepilogo, mai durante.
+  dopo il riepilogo, mai durante. Con il foglio in scena AVANTI lo chiude e
+  imbocca la stessa coda: saltare direttamente al gioco dopo si mangerebbe il
+  bonus programmato per quel giro.
 - **Refresh:** la base dei totali viaggia con `ROUND_POINTS_KEY` (campo
   `start`), così un refresh a metà round non gonfia i delta. Se la base non
   c'è (salvataggio vecchio) il riepilogo si salta invece di mostrare numeri
@@ -585,12 +587,16 @@ sceso.
 4/8/10/14/20 squadre, durate, giochi esclusi), `round-recap.component.spec.ts`
 (7 casi: pagina unica, pagine da sette con podio in fondo, chiusura una volta
 sola, pausa e ripresa a metà scena e sull'ultima pagina, timbro PAUSA, delta
-firmati), `game.component.spec.ts` (5 casi: il riepilogo si apre con i delta e
-l'attesa resta a zero; chiuso il riepilogo partono i 30 s; ESC mette in pausa
-senza saltare il round e senza toccare la modalità; fuori dal riepilogo resta
-il salto; dock sopra il riepilogo e fascia della testata). 161 test verdi sui
-tre file, `ng build` verde (restano gli avvisi di budget CSS e i due moduli
-CommonJS già presenti).
+firmati), `game.component.spec.ts` (6 casi: il riepilogo si apre con i delta e
+l'attesa resta a zero; chiuso il riepilogo partono i 30 s; AVANTI con il foglio
+in scena lo chiude e passa dalla coda senza aprire il gioco dopo; ESC mette in
+pausa senza saltare il round e senza toccare la modalità; fuori dal riepilogo
+resta il salto; dock sopra il riepilogo e fascia della testata). 162 test verdi
+sui tre file, `ng build` verde (restano gli avvisi di budget CSS e i due moduli
+CommonJS già presenti). Il banco reso `e2e/riepilogo.spec.ts` misura la matrice
+4/8/10/14/20 a 1280×720 con la dock a schermo (righe, ombre, testata, nessuno
+scroll), la pausa ESC con tempo congelato e il ritorno allo stesso secondo, e
+l'AVANTI che chiude il foglio passando dalla coda del round.
 
 **Misura a 1280×720 (Chromium, DPR 1, banco con 4/8/10/14/20 squadre).** Il
 foglio sta in 1120×640.7 (80→1200), testata 62→127, piede a 680.4, nessuno

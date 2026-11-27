@@ -2572,6 +2572,14 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.closingRound) return;
     this.cancelAutoAdvance();
 
+    // Riepilogo in scena: AVANTI lo chiude e passa dalla coda del round
+    // (bonus, classifica d'atto, attesa), non direttamente al gioco dopo.
+    // Saltare a startNewRound perderebbe il bonus programmato per questo giro.
+    if (this.roundRecapOpen()) {
+      this.onRoundRecapComplete();
+      return;
+    }
+
     const advance = () => {
       // Anche quando il round si salta senza classifica il verdetto si chiude
       // qui: altrimenti i punti del bonus successivo entrerebbero nel conteggio.

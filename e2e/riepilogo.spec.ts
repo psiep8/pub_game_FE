@@ -1,0 +1,300 @@
+import { expect, test, type Page } from 'playwright/test';
+
+/**
+ * N-11 — banco del riepilogo di fine round.
+ *
+ * Cinque taglie (4/8/10/14/20 squadre) nella scena vera a 1280×720, con la dock
+ * della regia a schermo: righe, ombre, fascia della testata e nessuno scroll.
+ * Poi la pausa da tastiera: ESC ferma l'orologio, la ripresa torna sulla stessa
+ * pagina e allo stesso secondo.
+ *
+ * Le righe si creano dal percorso vero (`beginRoundScoring` + `checkLeaderboardDisplay`),
+ * non injectando il template: il banco misura anche l'apertura del riepilogo.
+ */
+
+const VIEWPORT = { width: 1280, height: 720 };
+
+const NAMES = [
+  'LE IENE',
+  'BAR SPORT',
+  'GLI SCAFATI',
+  'QUIZZONE',
+  'AMICI DI PEPPA',
+  'I TOSTI',
+  'LA BANDA',
+  'IL SOSIA',
+  'PICCOLI',
+  'DOPPIO MALTO',
+  'IL MURO',
+  'ZERO ALCOL',
+  'I RAGAZZI DEL PONTE',
+  'NON CI CREDO',
+  'TUTTI A CASA',
+  'MAMMA MIA',
+  'PEPERONCINO',
+  'IL SOLE',
+  'BOH',
+  'ULTIMO',
+];
+
+function names(count: number): string[] {
+  return NAMES.slice(0, count);
+}
+
+/** La TV in modalità regia: senza `?debug=1` la dock non c'è e il banco non misura nulla. */
+async function openTv(page: Page): Promise<void> {
+  await page.goto('/tv?debug=1');
+  await page.waitForSelector('app-game-component', { timeout: 45_000 });
+  await page.waitForFunction(
+    () => Boolean((window as any).ng?.getComponent),
+    null,
+    { timeout: 45_000 },
+  );
+  await page.evaluate(() => {
+    const component: any = (window as any).ng.getComponent(
+      document.querySelector('app-game-component'),
+    );
+    component.dismissIntro();
+    // La pausa usa il game id per il broadcast: senza partita il foglio non ne ha uno.
+    component.currentGameId.set(1);
+    // Il banco misura il riepilogo: la coda del round resta deterministica.
+    component.startScheduledBonus = () => false;
+    component.roundManager.shouldShowLeaderboard = () => null;
+  });
+}
+
+/** Apre il riepilogo con `count` squadre passando dal percorso vero della regia. */
+async function openRecap(page: Page, count: number): Promise<void> {
+  await page.evaluate((list: string[]) => {
+    const component: any = (window as any).ng.getComponent(
+      document.querySelector('app-game-component'),
+    );
+    // Dopo una pausa sul podio la sala resta ferma: il foglio nuovo deve partire.
+    component.isPaused.set(false);
+    component.leaderboardService.replaceAll(
+      list.map((playerName, index) => ({
+        playerName,
+        totalPoints: (list.length - index) * 80 + 40,
+      })),
+    );
+    component.currentMode.set({ type: 'QUIZ' });
+    component.beginRoundScoring();
+    list.forEach((playerName, index) => {
+      component.leaderboardService.addPoints(
+        playerName,
+        index % 5 === 0 ? -(index * 15 + 10) : index * 25 + 30,
+        true,
+      );
+    });
+    component.checkLeaderboardDisplay();
+  }, names(count));
+
+  await expect(page.locator('.recap-sheet')).toBeVisible();
+  await page.waitForTimeout(250);
+}
+
+/** Geometria del foglio e delle righe, con le ombre calcolate dai loro offset. */
+const layout = (page: Page) =>
+  page.evaluate(() => {
+    const box = (element: Element | null) => {
+      if (!element) return null;
+      const rect = element.getBoundingClientRect();
+      return {
+        top: +rect.top.toFixed(1),
+        bottom: +rect.bottom.toFixed(1),
+        right: +rect.right.toFixed(1),
+      };
+    };
+    const dock = document.querySelector('.tv-dock');
+    const recap = document.querySelector('.recap');
+    const dockBox = box(dock);
+    const sheet = box(document.querySelector('.recap-sheet'));
+    const header = box(document.querySelector('.recap-head'));
+    const footer = box(document.querySelector('.recap-foot'));
+    const pauseButton = document.querySelector('.tv-dock .dock-btn[aria-label="Pausa"]');
+
+    let pauseHit: boolean | null = null;
+    if (pauseButton) {
+      const rect = pauseButton.getBoundingClientRect();
+      const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      pauseHit = Boolean(hit?.closest('.tv-dock'));
+    }
+
+    return {
+      scroll: [document.documentElement.scrollWidth, document.documentElement.scrollHeight],
+      dock: dockBox,
+      sheet,
+      header,
+      footer,
+      pauseHit,
+      dockZ: dock ? getComputedStyle(dock).zIndex : null,
+      recapZ: recap ? getComputedStyle(recap).zIndex : null,
+      stamp: document.querySelector('.recap-paused')?.textContent?.trim() ?? null,
+      counter: document.querySelector('.recap-counter')?.textContent?.trim() ?? null,
+      rows: [...document.querySelectorAll('.recap-row')].map((row) => {
+        const rect = row.getBoundingClientRect();
+        const style = getComputedStyle(row);
+        const offsets = style.boxShadow.match(/-?\d+(?:\.\d+)?px/g)?.map((value) => parseFloat(value)) ?? [];
+        const name = row.querySelector('.recap-name') as HTMLElement | null;
+        return {
+          name: name?.textContent?.trim() ?? null,
+          top: +rect.top.toFixed(1),
+          bottom: +rect.bottom.toFixed(1),
+          height: +rect.height.toFixed(1),
+          shadowRight: +(rect.right + (offsets[0] ?? 0)).toFixed(1),
+          shadowBottom: +(rect.bottom + (offsets[1] ?? 0)).toFixed(1),
+          align: name ? getComputedStyle(name).textAlign : null,
+          clipped: name ? name.scrollWidth > name.clientWidth + 1 : false,
+        };
+      }),
+    };
+  });
+
+/** Stato del componente: la pausa congela `totalRemaining`, la ripresa usa la deadline. */
+const recapState = (page: Page) =>
+  page.evaluate(() => {
+    const element = document.querySelector('app-round-recap');
+    if (!element) return { paused: false };
+    const recap: any = (window as any).ng.getComponent(element);
+    const now = Date.now();
+    return {
+      paused: recap.paused,
+      page: recap.pageIndex(),
+      pages: recap.pages().length,
+      frozenMs: Math.round(recap.totalRemaining),
+      leftMs: recap.doneDeadline ? Math.max(0, Math.round(recap.doneDeadline - now)) : null,
+    };
+  });
+
+test.describe('N-11: riepilogo nella scena vera', () => {
+  test.use({ viewport: VIEWPORT });
+
+  test('matrice 4/8/10/14/20 con dock e pausa ESC', async ({ page }) => {
+    test.setTimeout(240_000);
+    await openTv(page);
+
+    const rowsPerPage: Record<number, number> = { 4: 4, 8: 8, 10: 10, 14: 7, 20: 7 };
+    const counters: Record<number, string | null> = { 4: null, 8: null, 10: null, 14: '1 / 2', 20: '1 / 3' };
+
+    for (const count of [4, 8, 10, 14, 20]) {
+      await openRecap(page, count);
+      const before = await layout(page);
+
+      expect(before.rows.length, `righe a ${count} squadre`).toBe(rowsPerPage[count]);
+      expect(before.counter, `contatore pagine a ${count} squadre`).toBe(counters[count]);
+      expect(before.dock, 'dock assente: il banco gira senza ?debug=1').not.toBeNull();
+      expect(before.recapZ, 'riepilogo assente').not.toBeNull();
+      expect(Number(before.dockZ), 'dock sotto il riepilogo').toBeGreaterThan(Number(before.recapZ));
+      expect(before.header!.top, 'testata sotto la dock').toBeGreaterThanOrEqual(before.dock!.bottom - 0.5);
+      expect(before.pauseHit, 'la dock è coperta dal riepilogo').toBe(true);
+      expect(before.sheet!.top).toBeGreaterThanOrEqual(0);
+      expect(before.sheet!.bottom).toBeLessThanOrEqual(VIEWPORT.height);
+      expect(before.scroll).toEqual([VIEWPORT.width, VIEWPORT.height]);
+
+      for (const row of before.rows) {
+        expect(row.height, `riga troppo schiacciata (${row.name})`).toBeGreaterThanOrEqual(30);
+        expect(row.shadowRight, `ombra oltre il foglio (${row.name})`).toBeLessThanOrEqual(before.sheet!.right + 0.5);
+        expect(row.shadowBottom, `ombra sul piede (${row.name})`).toBeLessThanOrEqual(before.footer!.top + 0.5);
+        expect(row.align, `nome non a filo (${row.name})`).toBe('left');
+        expect(row.clipped, `nome tagliato (${row.name})`).toBe(false);
+      }
+
+      // ESC: la sala si ferma e l'orologio non consuma scena.
+      await page.keyboard.press('Escape');
+      await expect.poll(async () => (await recapState(page)).paused).toBe(true);
+      const paused = await recapState(page);
+      expect(paused.frozenMs).toBeGreaterThan(0);
+      await page.waitForTimeout(1_300);
+      const stillPaused = await recapState(page);
+      expect(stillPaused.frozenMs, 'il tempo scorre in pausa').toBe(paused.frozenMs);
+      expect(stillPaused.page).toBe(paused.page);
+      expect((await layout(page)).stamp).toBe('PAUSA');
+
+      // ESC: riprende dallo stesso punto, un secondo dopo ne manca uno in meno.
+      await page.keyboard.press('Escape');
+      await expect.poll(async () => (await recapState(page)).paused).toBe(false);
+      const resumed = await recapState(page);
+      expect(Math.abs((resumed.leftMs ?? 0) - paused.frozenMs)).toBeLessThan(400);
+      const pageAtResume = resumed.page;
+      const startedAt = Date.now();
+      await page.waitForTimeout(1_100);
+      const later = await recapState(page);
+      const elapsed = Date.now() - startedAt;
+      const spent = (resumed.leftMs ?? 0) - (later.leftMs ?? 0);
+      expect(Math.abs(spent - elapsed), 'la ripresa non scala il tempo vero').toBeLessThan(400);
+      expect(later.page).toBe(pageAtResume);
+
+      // Podio: l'ultima pagina non deve appoggiare l'ombra sul piede.
+      if (later.pages > 1) {
+        await page.keyboard.press('Escape');
+        await expect.poll(async () => (await recapState(page)).paused).toBe(true);
+        await page.evaluate(() => {
+          const recap: any = (window as any).ng.getComponent(document.querySelector('app-round-recap'));
+          recap.pageIndex.set(recap.lastPage());
+        });
+        await page.waitForTimeout(250);
+        const podium = await layout(page);
+        expect(podium.rows.length).toBe(count === 20 ? 6 : 7);
+        expect(podium.counter).toBe(count === 20 ? '3 / 3' : '2 / 2');
+        for (const row of podium.rows) {
+          expect(row.shadowRight).toBeLessThanOrEqual(podium.sheet!.right + 0.5);
+          expect(row.shadowBottom).toBeLessThanOrEqual(podium.footer!.top + 0.5);
+        }
+        expect((await recapState(page)).page).toBe(later.pages - 1);
+      }
+
+      await page.evaluate(() => {
+        const component: any = (window as any).ng.getComponent(
+          document.querySelector('app-game-component'),
+        );
+        if (component.roundRecapOpen()) component.onRoundRecapComplete();
+        component.stopAutoAdvance();
+      });
+      await expect(page.locator('.recap-sheet')).toHaveCount(0);
+    }
+  });
+
+  test('AVANTI con il riepilogo aperto passa dalla coda del round', async ({ page }) => {
+    test.setTimeout(120_000);
+    await openTv(page);
+    await openRecap(page, 10);
+
+    // La coda deve partire: se AVANTI salta al gioco dopo, il bonus si perde.
+    await page.evaluate(() => {
+      const component: any = (window as any).ng.getComponent(
+        document.querySelector('app-game-component'),
+      );
+      const scope = window as any;
+      scope.__bonusTail = false;
+      scope.__newRound = false;
+      component.startScheduledBonus = () => {
+        scope.__bonusTail = true;
+        return true;
+      };
+      component.startNewRound = () => {
+        scope.__newRound = true;
+        return Promise.resolve();
+      };
+    });
+
+    const advance = page.locator('.tv-dock .dock-btn.advance');
+    await expect(advance).toBeEnabled();
+    await advance.click();
+
+    const result = await page.evaluate(() => {
+      const component: any = (window as any).ng.getComponent(
+        document.querySelector('app-game-component'),
+      );
+      return {
+        open: component.roundRecapOpen(),
+        bonusTail: (window as any).__bonusTail,
+        newRound: (window as any).__newRound,
+      };
+    });
+
+    expect(result.open, 'il riepilogo è rimasto aperto').toBe(false);
+    expect(result.bonusTail, 'la coda del round non è partita: bonus perso').toBe(true);
+    expect(result.newRound, 'AVANTI è saltato direttamente al gioco dopo').toBe(false);
+    await expect(page.locator('.recap-sheet')).toHaveCount(0);
+  });
+});
