@@ -1428,21 +1428,22 @@ export class GameComponent implements OnInit, OnDestroy {
     }));
     if (!entries.length) return;
 
-    this.queueRoundScoresSave(roundIndex, this.currentMode()?.type ?? null, entries);
+    this.queueRoundScoresSave(gameId, roundIndex, this.currentMode()?.type ?? null, entries);
   }
 
   private queueRoundScoresSave(
+    gameId: number,
     roundIndex: number,
     type: string | null,
     entries: Array<{ playerName: string; points: number; totalPoints: number }>,
     attempt = 0,
   ): void {
-    const gameId = this.currentGameId();
-    if (!gameId) return;
     void firstValueFrom(this.gameService.saveRoundScores(gameId, roundIndex, type, entries))
       .catch(() => {
         if (attempt >= 2) return;
-        setTimeout(() => this.queueRoundScoresSave(roundIndex, type, entries, attempt + 1), 1500);
+        // La partita è fissata all'inizio: un reset nel frattempo non deve
+        // spostare lo storico del vecchio round sulla nuova serata.
+        setTimeout(() => this.queueRoundScoresSave(gameId, roundIndex, type, entries, attempt + 1), 1500);
       });
   }
 
