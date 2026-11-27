@@ -48,7 +48,7 @@ scadenza e blocco dopo cinque errori).
 | N-07 — Tick infinito | **Da fare** | Il controllo dei proprietari audio (`AudioChannels.setOwner`) spegne già i loop della scena uscente; non è stata trovata una causa riproducibile senza la serata. |
 | N-08 — Vibrazione e fallback iPhone | **Fatto** | Se `navigator.vibrate` manca o è negata, il via accende un flash e un colpo breve; `BONUS_STARTED` usa lo stesso percorso. |
 | N-09 — Karaoke: controlli e demo | **Parziale** | Aggiunto `npm run check:karaoke` (banca, clip, testi e almeno 5 manche complete). Restano banner di conteggio nella lobby e prova completa con `?karaoke-demo=1`. |
-| N-10…N-15 (blocco B) | **Parziale** | N-10 misurato, N-11 e N-12 fatti. N-13: la classifica dopo il bonus non si salta più; resta il primo round sincronizzato. N-14 fatto; N-15 da fare. |
+| N-10…N-15 (blocco B) | **Parziale** | N-10 misurato, N-11 e N-12 fatti. N-13 fatto (classifica dopo il bonus e primo round), N-14 fatto; N-15 da fare. |
 | N-16…N-48 (blocco C) | **Da fare** | D2 (Timeline e gioco che la sostituisce nell'atto 1) **non toccata**: serve la scelta del committente. |
 | N-49…N-51 (blocco D) | **Da fare** | |
 | N-52…N-55 (blocco E) | **Da fare** | N-53 si ferma alla demo Quiz per approvazione. |
@@ -381,7 +381,7 @@ della manche del server». Verifiche: quiz 26/26, remote 142/142, TV 148/148,
 build frontend verde. **Da fare in sala:** TV + telefoni reali, manche Quiz,
 scarto d'orologio e pausa.
 
-### N-13 classifica rapida dopo il bonus — **Fatto (parte classifica)**
+### N-13 classifica dopo il bonus e primo round — **Fatto**
 
 **Causa.** `continueAfterRound()` dà la precedenza al bonus dello slot e torna
 senza valutare `shouldShowLeaderboard()`. Alla chiusura, `finishBonus()` chiamava
@@ -399,6 +399,18 @@ round resta in coda [N-13]»: round 4, bonus chiuso, la rapida è a schermo e la
 scaletta resta sul 4. **Da fare in sala:** TV + 3 telefoni, bonus nel round 4 e
 verifica della rapida; il banco Playwright con backend reale qui non gira (manca
 Java).
+
+**Primo round.** `startNewRoundNow()` apriva il round appena arrivava il
+comando, anche con i telefoni ancora in ingresso: chi entrava dopo perdeva
+l'annuncio e la prima domanda. Ora, solo al round 1 e solo con almeno una
+presenza, la TV aspetta che il conteggio dei telefoni collegati resti fermo per
+1,2 s (tetto 4 s) prima di uscire dalla lobby. La simulazione `?sim=1` salta
+l'attesa; i tempi delle manche restano quelli del server (N-14 per il Quiz).
+
+**Test primo round.** `game.component.spec.ts` → «N-13: il primo round aspetta
+che le presenze si stabilizzino» e «senza telefoni il primo round non aspetta».
+Verifiche: TV 150/150, build frontend verde. **Da fare in sala:** aprire il
+primo round mentre un ultimo telefono sta entrando.
 
 ### N-10 ingressi a scatti — **Misurato, correzioni da fare**
 

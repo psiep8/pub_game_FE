@@ -1439,6 +1439,30 @@ export class GameComponent implements OnInit, OnDestroy {
     this.slotRolling.set(false);
   }
 
+  /**
+   * Primo round: la lobby deve dare il tempo agli ultimi telefoni di entrare.
+   * Non si conosce il numero atteso, quindi si usa la presenza reale: appena
+   * il conteggio resta fermo per 1,2 s si parte; al massimo dopo 4 s.
+   */
+  private async waitForFirstRoundPlayers(): Promise<void> {
+    if (this.roundManager.getCurrentRound() !== 0 || this.roundManager.isSimulation()) return;
+    if (this.presencePlayers().length === 0) return;
+
+    const startedAt = Date.now();
+    let lastCount = this.presencePlayers().length;
+    let stableSince = Date.now();
+    while (Date.now() - startedAt < 4000) {
+      await new Promise((resolve) => setTimeout(resolve, 120));
+      const count = this.presencePlayers().length;
+      if (count !== lastCount) {
+        lastCount = count;
+        stableSince = Date.now();
+      } else if (Date.now() - stableSince >= 1200) {
+        return;
+      }
+    }
+  }
+
   async startNewRound() {
     // La scena sta uscendo e il server non ha ancora il round nuovo: uno
     // snapshot "nessun round" in questa finestra non deve riavvolgere la
@@ -1454,6 +1478,10 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Corpo di `startNewRound`, separato per delimitare la finestra di apertura. */
   private async startNewRoundNow() {
     if (this.phase() === GamePhase.INTRO) this.dismissIntro();
+    // N-13: il primo round non parte mentre i telefoni stanno ancora
+    // entrando. Si aspetta che la lista delle presenze si fermi, con un
+    // tetto di 4 s; senza nessuno collegato non ha senso aspettare.
+    await this.waitForFirstRoundPlayers();
     // Un round nuovo cancella l'apertura rimasta in attesa di una demo.
     this.pendingRoundOpen = undefined;
     this.stopDemo();

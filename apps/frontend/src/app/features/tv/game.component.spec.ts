@@ -1155,6 +1155,40 @@ describe('GameComponent', () => {
     alertSpy.mockRestore();
   });
 
+  it('N-13: il primo round aspetta che le presenze si stabilizzino', async () => {
+    vi.useFakeTimers();
+    try {
+      const rounds = TestBed.inject(RoundManagerService);
+      rounds.restoreRound(0);
+      component.presencePlayers.set(['Anna']);
+      const tv = component as unknown as { waitForFirstRoundPlayers(): Promise<void> };
+
+      let done = false;
+      const wait = tv.waitForFirstRoundPlayers().then(() => { done = true; });
+      await vi.advanceTimersByTimeAsync(600);
+      expect(done).toBe(false);
+
+      // Un telefono entra durante l'attesa: il conteggio riparte da capo.
+      component.presencePlayers.set(['Anna', 'Bruno']);
+      await vi.advanceTimersByTimeAsync(700);
+      expect(done).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(1300);
+      expect(done).toBe(true);
+      await wait;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('N-13: senza telefoni il primo round non aspetta', async () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    rounds.restoreRound(0);
+    component.presencePlayers.set([]);
+    const tv = component as unknown as { waitForFirstRoundPlayers(): Promise<void> };
+    await expect(tv.waitForFirstRoundPlayers()).resolves.toBeUndefined();
+  });
+
   it('la lobby dichiara la TV non abbinata invece di sembrare pronta', () => {
     component.phase.set('IDLE');
     component.currentGameId.set(1);

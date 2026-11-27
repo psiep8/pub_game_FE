@@ -83,6 +83,11 @@ export class RoundManagerService {
     if (persist) this.saveProgress();
   }
 
+  /** La scaletta ridotta (`?sim=1`) non aspetta le presenze reali. */
+  isSimulation(): boolean {
+    return this.simulation;
+  }
+
   /** Attiva la scaletta ridotta della simulazione (`?sim=1`). */
   enableSimulation(): void {
     this.simulation = true;
