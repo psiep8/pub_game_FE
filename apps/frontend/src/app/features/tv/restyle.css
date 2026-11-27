@@ -84,6 +84,30 @@
   color: var(--ink-dim);
 }
 
+/* Solo su un 4K CSS a 1×: la lobby chiede il 200%, perché la TV non scala da
+   sola. Sotto i 3200 px non esiste e sparisce con il blocco IDLE, cioè a
+   partita iniziata. */
+.lobby-4k-hint { display: none; }
+
+@media (min-width: 3200px) and (min-height: 1800px) {
+  .lobby-4k-hint {
+    display: inline-block;
+    margin: 18px 0 0;
+    padding: 10px 20px;
+    background: var(--paper-hi);
+    color: var(--tomato-ink);
+    border: 3px solid var(--tomato);
+    box-shadow: 6px 6px 0 var(--coal);
+    font-family: var(--font-mono);
+    font-size: 3rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    line-height: 1.1;
+    text-transform: uppercase;
+    transform: rotate(-1.5deg);
+  }
+}
+
 .lobby-grid {
   position: relative;
   z-index: 1;

@@ -123,6 +123,9 @@ della TV: non cambiare il codice la sera stessa.
 2. `npm run dev`, poi apri `/tv` sul proiettore e `/admin` sul PC del presentatore.
 3. Verifica i tre schermi a **1280×720** e a **1920×1080** (finestra ridotta e
    schermo intero): nessun testo tagliato, nessuna scrollbar sulla TV.
+   - **Se la TV è 4K:** porta lo zoom del browser al 200% (CSS 1920×1080).
+     La lobby mostra il timbro «TV 4K — PORTA LO ZOOM AL 200%» finché non lo
+     fai; a partita iniziata il timbro non c'è.
 4. Connetti il PC via cavo, router dedicato, telefoni sul Wi-Fi 5 GHz.
 5. Metti il PC in modalità "non sospendere" e disattiva gli aggiornamenti.
 6. Prepara il foglio delle prove di caduta (§6) e un timer.
