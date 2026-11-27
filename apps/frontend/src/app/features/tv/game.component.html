@@ -241,6 +241,14 @@
 
   @if (showQuestion() && currentMode(); as mode) {
 
+  @if (mode.type === 'MUSIC') {
+  <!-- La Musica è una scena a schermo intero: vive fuori da `.question-area`,
+       che è centrata con un transform e ritaglierebbe tabellone e registro. -->
+  <app-song [displayData]="getSafeDisplayData()" [timer]="timer()" [timerVisible]="timerVisible()"
+    (onConfirmCorrect)="confirmCorrect()" (onConfirmWrong)="confirmWrong()"
+    (onFullPlaybackEnd)="musicPlaybackEnded()" />
+  } @else {
+
 <div class="question-area" [class.no-padding]="!mode.requiresBubbles">
 
   @if (mode.requiresBubbles && mode.type !== 'ULTIMA_SPIAGGIA' && categoryName()) {
@@ -271,11 +279,6 @@
   @case ('WHEEL_OF_FORTUNE') {
   <app-wheel-fortune [displayData]="getSafeDisplayData()" [timer]="timer()" [timerVisible]="timerVisible()"
     (onConfirmCorrect)="confirmCorrect()" (onConfirmWrong)="confirmWrong()" />
-  }
-  @case ('MUSIC') {
-  <app-song [displayData]="getSafeDisplayData()" [timer]="timer()" [timerVisible]="timerVisible()"
-    (onConfirmCorrect)="confirmCorrect()" (onConfirmWrong)="confirmWrong()"
-    (onFullPlaybackEnd)="musicPlaybackEnded()" />
   }
   @case ('ARENA') {
   <app-arena [displayData]="getSafeDisplayData()" [timer]="timer()">
@@ -319,6 +322,7 @@
   }
 </div>
 
+  }
 }
 
 

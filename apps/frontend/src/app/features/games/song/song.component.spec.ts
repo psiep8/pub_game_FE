@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 
@@ -156,6 +157,26 @@ describe('Song — audio pulito della partita Musica', () => {
     song.displayData = { listen: 2, phase: 'REVEAL', revealed: true };
     song.applyBlur();
     expect(song.blurAmount()).toBe(0);
+  });
+
+  it('il riquadro audio riserva la sua misura anche a brano fermo', () => {
+    const css = readFileSync('src/app/features/games/song/song.component.css', 'utf8');
+    expect(css).toMatch(/\.audio-status\s*\{[^}]*visibility:\s*hidden/);
+    expect(css).toMatch(/\.audio-status\.playing\s*\{[^}]*visibility:\s*visible/);
+  });
+
+  it('il riquadro audio resta nel layout anche a brano fermo', () => {
+    const status = fixture.nativeElement.querySelector('.audio-status') as HTMLElement;
+    expect(status, 'riquadro audio assente dalla scena').not.toBeNull();
+    expect(status.classList.contains('playing')).toBe(false);
+
+    component.isPlaying.set(true);
+    fixture.detectChanges();
+    expect(status.classList.contains('playing')).toBe(true);
+
+    component.isPlaying.set(false);
+    fixture.detectChanges();
+    expect(status.classList.contains('playing')).toBe(false);
   });
 
   it('mostra l’etichetta mono con round, manca, ascolto e valore', () => {

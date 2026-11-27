@@ -505,6 +505,38 @@ Suite frontend 850 passati (2 casi di `version.spec` non eseguibili solo nel
 checkout di verifica, perché mancavano `apps/backend` e `README.md`),
 `ng build` verde.
 
+### N-10 quinta famiglia: la scena Musica era ritagliata dentro la domanda
+
+**Causa 1 — `position: fixed` dentro un antenato trasformato.** `app-song`
+stava dentro `.question-area`, che ha `transform: translateY(-50%)` e
+`overflow: hidden`. Un elemento `fixed` con un antenato trasformato si posiziona
+su quell'antenato, non sulla finestra: la scena Musica finiva in un riquadro
+**920×57** al centro, con tabellone, striscia delle fasi e riquadro audio
+tagliati fuori. Misura a 1280×720 prima: header a 348, tabellone 493→805,
+fasi 820→879, audio 886→944, contro un viewport di 720. Il banco E2E non lo
+vedeva perché `toBeVisible()` guarda la scatola, non il ritaglio dell'antenato.
+Ora la Musica è una scena a schermo intero, montata fuori da `.question-area`
+(ramo dedicato nel template della TV): header 58, tabellone 203→516, fasi
+530→589, audio 596→655, tutto dentro i 720 px.
+
+**Causa 2 — il riquadro «BRANO IN ASCOLTO» spostava il tabellone.** Era dentro
+`@if (isPlaying())`: comparire e sparire aggiungeva e toglieva ~90 px sotto il
+disco e, con `.song-container` centrato in verticale, il tabellone saltava su e
+giù due volte per manca, cinque manche per round. Ora il riquadro resta sempre
+nel layout (`visibility: hidden` a brano fermo, `.playing` per mostrarlo) e il
+cursore si anima solo mentre suona. Misura: tabellone fermo a 203 sia a brano
+fermo sia in ascolto.
+
+**Causa 3 — il reveal scalava tutto lo schermo.** Il velo a schermo intero
+entrava con `scale(0.5)`: si stringeva il fondo, non la card. Ora il velo fa
+solo dissolvenza e si muove la card (`m-pop`). La copertina sfocata passa da 26
+a 14 px e a 0 in 220 ms, non in due secondi di filtro su un disco che gira.
+
+**Test.** `song.component.spec.ts` → «il riquadro audio riserva la sua misura
+anche a brano fermo» e «il riquadro audio resta nel layout anche a brano
+fermo». Verifica visiva e misurata a 1280×720 su Chromium (scena reale iniettata
+sui signal, non un mock statico).
+
 **Resta aperto in N-10:** i long task d'ingresso (Quiz 615 ms, Timeline 557 ms
 misurati a CPU 4×) e il componente unico `FeedbackCard` per
 esito corretto/sbagliato: oggi ogni gioco disegna la propria card.

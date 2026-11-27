@@ -87,16 +87,17 @@
     </div>
   </div>
 
-  @if (isPlaying()) {
-    <div class="audio-status playing">
-      <div class="equalizer">
-        @for (bar of [1,2,3,4,5]; track bar) {
-          <div class="eq-bar" [style.animation-delay]="(bar * 0.1) + 's'"></div>
-        }
-      </div>
-      <p>BRANO IN ASCOLTO</p>
+  <!-- Il riquadro resta sempre nel layout: comparire e sparire a ogni fase
+       (ascolto → prenotazione) spostava in verticale tutto il tabellone. -->
+  <div class="audio-status" [class.playing]="isPlaying()"
+       [attr.aria-hidden]="isPlaying() ? null : 'true'">
+    <div class="equalizer">
+      @for (bar of [1,2,3,4,5]; track bar) {
+        <div class="eq-bar" [style.animation-delay]="(bar * 0.1) + 's'"></div>
+      }
     </div>
-  }
+    <p>BRANO IN ASCOLTO</p>
+  </div>
 
   @if (displayData?.revealed && displayData?.songTitle) {
     <div class="song-reveal">
