@@ -357,7 +357,7 @@
 </div>
 }
 @if (commandsVisible()) {
-<div class="tv-dock" [class.above-leaderboard]="isShowingLeaderboard()">
+<div class="tv-dock" [class.above-leaderboard]="isShowingLeaderboard()" [class.above-recap]="roundRecapOpen()">
   <div class="dock-actions">
     <button class="dock-btn" (click)="audioService.toggleAudio()" [attr.aria-label]="audioService.isEnabled() ? 'Disattiva audio' : 'Attiva audio'">
       {{ audioService.isEnabled() ? '🔊' : '🔇' }}

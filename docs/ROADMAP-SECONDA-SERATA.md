@@ -585,11 +585,12 @@ sceso.
 4/8/10/14/20 squadre, durate, giochi esclusi), `round-recap.component.spec.ts`
 (7 casi: pagina unica, pagine da sette con podio in fondo, chiusura una volta
 sola, pausa e ripresa a metà scena e sull'ultima pagina, timbro PAUSA, delta
-firmati), `game.component.spec.ts` (4 casi: il riepilogo si apre con i delta e
+firmati), `game.component.spec.ts` (5 casi: il riepilogo si apre con i delta e
 l'attesa resta a zero; chiuso il riepilogo partono i 30 s; ESC mette in pausa
 senza saltare il round e senza toccare la modalità; fuori dal riepilogo resta
-il salto). 160 test verdi sui tre file, `ng build` verde (restano gli avvisi di
-budget CSS e i due moduli CommonJS già presenti).
+il salto; dock sopra il riepilogo e fascia della testata). 161 test verdi sui
+tre file, `ng build` verde (restano gli avvisi di budget CSS e i due moduli
+CommonJS già presenti).
 
 **Misura a 1280×720 (Chromium, DPR 1, banco con 4/8/10/14/20 squadre).** Il
 foglio sta in 1120×640.7 (80→1200), testata 62→127, piede a 680.4, nessuno
@@ -599,13 +600,27 @@ pagina (145→652). Ombre tutte dentro: bordo destro delle righe 1192, ombra
 normale 1196, ombra del podio 1200 (la regola di testata), ultima ombra a 672
 contro il piede a 680.4. Nessuna riga sotto i 30 px, nessun nome tagliato.
 
-**Corretto dopo la misura.** La testata metteva kicker e titolo ai due estremi
+**Misura nella scena TV vera** (`/tv?debug=1`, stato iniettato sui signal, dock
+della regia a schermo). La dock va da 920.9→1264 e 16→80 con z-index 13000:
+con il riepilogo a 19000 il click su pausa finiva su `section.recap`, non sul
+pulsante. Ora la dock prende `above-recap` (z 19500), `elementFromPoint` sul
+pulsante pausa restituisce `button.dock-btn`, un click vero del mouse mette la
+sala in pausa e un secondo click la riprende. La testata scende a 86.4→151.4
+(dock sotto 80) e il foglio a 86.4→702.7: nessuna sovrapposizione. Con dieci
+squadre le righe stanno 157.4→664.3 (44.2 px); con venti, sull'ultima pagina,
+194.2→627.5 (sei righe da 66.2): nessuna ombra sul piede (680.4), nessuno
+scroll di pagina.
+
+**Corretto dopo le misure.** La testata metteva kicker e titolo ai due estremi
 e il contatore pagine spostava il titolo al centro: ora kicker e titolo sono
 una colonna sola (`recap-titles`) e il contatore è l'unico altro figlio. Le
 ombre erano tagliate dal `overflow: hidden` del contenitore (4 px sul bordo
 destro, 8 px sull'ultima riga): il contenitore non ritaglia più, riserva 8 px
 a destra e la fascia sotto, e le righe crescono fino a 96 px quando sono poche
-(prima restavano a 50 px e la pagina da quattro sembrava vuota).
+(prima restavano a 50 px e la pagina da quattro sembrava vuota). La scena vera
+ha aggiunto tre difetti che il banco isolato non poteva vedere: dock coperta
+dallo z-index, testata sotto la dock (mancava la fascia) e nomi centrati dal
+`text-align: center` legacy di `.game-container`.
 
 **Non eseguito.** `npm run audit:design` (Impeccable) non parte su questo
 computer: manca il binario verificato per windows-arm64 (`no checksum for

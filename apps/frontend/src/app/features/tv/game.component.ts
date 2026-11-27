@@ -163,6 +163,9 @@ const MUSIC_THEME_LAYOUT = [
   // usa questa classe per lasciare libera la fascia in alto.
   host: {
     '[class.leaderboard-open]': 'isShowingLeaderboard()',
+    // La dock comandi può stare a schermo (solo con `?debug=1`): le scene a
+    // tutta pagina le lasciano la fascia in alto.
+    '[class.commands-open]': 'commandsVisible()',
     // La regia ferma la ripartenza automatica anche da tastiera; sul
     // riepilogo del round ESC è la pausa, non un salto al gioco dopo.
     '(document:keydown.escape)': 'onEscapeKey()',
@@ -2701,24 +2704,24 @@ export class GameComponent implements OnInit, OnDestroy {
   togglePause() {
     // F-12: la pausa ferma il conto alla rovescia, non lo cancella; alla
     // ripresa riparte da dove era (l'intervallo salta i tick in pausa).
-    const mode = this.currentMode();
     // Sul riepilogo il round è già chiuso: modalità e server non si toccano,
     // altrimenti la ripresa farebbe ripartire il timer di un round finito.
     // Si fermano la scena e il suo clock, che riprende dai tempi rimasti.
     const recapOnly = this.roundRecapOpen();
+    const mode = recapOnly ? null : this.currentMode();
 
     if (this.isPaused()) {
       // La ripresa vale anche senza round né bonus: se il bonus si chiude
       // mentre la sala è ferma, l'overlay non deve restare appeso.
       this.stage.setPaused(false);
-      if (mode && !recapOnly) {
+      if (mode) {
         this.syncPauseToServer(false);
         mode.resume();
       }
       this.isPaused.set(false);
       // Il clock era stato fermato alla pausa: si riapre solo se il round ha
       // ancora un conto alla rovescia da suonare, e il sottofondo riparte.
-      if (mode && !recapOnly) {
+      if (mode) {
         // Solo se il round ha ancora un conto alla rovescia: dopo la scadenza
         // nessun `onTimerEnd` arriverebbe più a fermare questo tic.
         if (this.roundClockApplies(mode)) this.audioService.startClock();
@@ -2741,7 +2744,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.audioService.pauseBeds();
       // Il nastro della regia si ferma: la fase raggiunta non si perde.
       this.stage.setPaused(true);
-      if (mode && !recapOnly) {
+      if (mode) {
         this.syncPauseToServer(true);
         mode.pause();
       }

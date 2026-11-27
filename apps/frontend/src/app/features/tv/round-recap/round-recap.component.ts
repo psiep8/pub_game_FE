@@ -43,9 +43,7 @@ export class RoundRecap implements OnInit, OnDestroy {
   readonly pages = signal<RecapRow[][]>([]);
   readonly pageIndex = signal(0);
   readonly lastPage = computed(() => Math.max(0, this.pages().length - 1));
-  readonly page = computed<RecapRow[]>(() => this.pages()[this.pageIndex()] ?? []);
   readonly isPodium = computed(() => this.pages().length > 0 && this.pageIndex() === this.lastPage());
-  readonly durationMs = computed(() => recapDurationMs(this.rows));
 
   /** Pausa della sala: il riepilogo si ferma e riprende da dove era. */
   @Input()
@@ -114,12 +112,10 @@ export class RoundRecap implements OnInit, OnDestroy {
     this.doneTimer = setTimeout(() => this.onComplete.emit(), this.totalRemaining);
   }
 
+  /** Il timer esiste solo finché c'è una pagina dopo: qui si avanza sempre. */
   private nextPage(): void {
     this.pageTimer = undefined;
-    if (this.pageIndex() >= this.lastPage()) return;
-
     this.pageIndex.update((index) => Math.min(index + 1, this.lastPage()));
-    this.pageRemaining = RECAP_PAGE_MS;
     // Ultima pagina: resta in scena fino alla fine della scena.
     if (this.pageIndex() >= this.lastPage()) return;
 
@@ -132,7 +128,7 @@ export class RoundRecap implements OnInit, OnDestroy {
     this.clearTimers();
     const now = Date.now();
     this.totalRemaining = Math.max(0, this.doneDeadline - now);
-    this.pageRemaining = this.pageDeadline > 0 ? Math.max(0, this.pageDeadline - now) : RECAP_PAGE_MS;
+    this.pageRemaining = Math.max(0, this.pageDeadline - now);
   }
 
   private clearTimers(): void {

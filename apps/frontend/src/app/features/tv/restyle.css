@@ -393,6 +393,11 @@
 .tv-dock.above-leaderboard {
   z-index: 20020;
 }
+/* Stessa ragione sul riepilogo del round, che è una scena a schermo intero:
+   pausa e AVANTI devono restare cliccabili mentre la scena va. */
+.tv-dock.above-recap {
+  z-index: 19500;
+}
 .dock-actions {
   display: flex;
   align-items: center;

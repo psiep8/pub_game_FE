@@ -1096,6 +1096,29 @@ describe('GameComponent', () => {
     expect(html).toContain('[class.above-leaderboard]="isShowingLeaderboard()"');
   });
 
+  it('N-11: la dock della regia resta sopra il riepilogo e gli lascia la fascia', () => {
+    const html = readFileSync('src/app/features/tv/game.component.html', 'utf8');
+    const tv = readFileSync('src/app/features/tv/game.component.ts', 'utf8');
+    const restyle = readFileSync('src/app/features/tv/restyle.css', 'utf8');
+    const recap = readFileSync('src/app/features/tv/round-recap/round-recap.component.css', 'utf8');
+
+    const recapLayer = Number(recap.match(/z-index:\s*(\d+)/)?.[1]);
+    const dockLayer = Number(
+      restyle.slice(restyle.indexOf('.tv-dock.above-recap')).match(/z-index:\s*(\d+)/)?.[1],
+    );
+
+    // Misurato a 1280×720: senza questa soglia il foglio copre la dock e il
+    // click su pausa/AVANTI finisce sulla scena.
+    expect(recapLayer).toBeGreaterThan(0);
+    expect(dockLayer).toBeGreaterThan(recapLayer);
+    expect(html).toContain('[class.above-recap]="roundRecapOpen()"');
+    // Con la dock a schermo la testata le lascia la fascia in alto.
+    expect(tv).toContain("'[class.commands-open]': 'commandsVisible()'");
+    expect(recap).toContain(':host-context(.commands-open) .recap');
+    // `.game-container` centra il testo: il nome torna a filo del badge.
+    expect(recap).toMatch(/\.recap-name\s*\{[^}]*text-align:\s*left/);
+  });
+
   it('un solo pulsante di chiusura, con la scritta, chiude la classifica', () => {
     component.commandsVisible.set(true);
     component.showLeaderboardDetailed.set(true);
