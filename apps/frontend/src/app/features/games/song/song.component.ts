@@ -203,7 +203,10 @@ export class Song implements OnInit, OnDestroy, OnChanges {
     if (ctx?.state === 'suspended') await ctx.resume();
 
     try {
-      this.audio.currentTime = Math.max(0, Number(offsetSeconds) || 0);
+      // M-05: la clip parte dal punto scelto per il brano (intro lenta o muta),
+      // non sempre da zero. L'offset di ripresa si somma a quel punto.
+      const startAt = Math.max(0, Number(this.displayData?.startAt) || 0);
+      this.audio.currentTime = startAt + Math.max(0, Number(offsetSeconds) || 0);
       if (ctx && this.gainNode) {
         const now = ctx.currentTime;
         const gain = this.gainNode.gain;

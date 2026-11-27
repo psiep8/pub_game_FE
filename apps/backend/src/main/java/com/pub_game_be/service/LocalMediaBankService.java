@@ -35,7 +35,7 @@ public class LocalMediaBankService {
      * era reale di uscita, più la difficoltà usata per il mix del round.
      */
     public record TaggedTrack(String title, String artist, String year, String albumCover, String file,
-            String theme, String era, String decade, String difficulty) {
+            String theme, String era, String decade, String difficulty, double startAt) {
     }
 
     /** Volto con foto e testo biografico per gli indizi, tutto in locale. */
@@ -299,7 +299,10 @@ public class LocalMediaBankService {
                         item.optString("theme", ""),
                         item.optString("era", ""),
                         item.optString("decade", ""),
-                        item.optString("difficulty", ""));
+                        item.optString("difficulty", ""),
+                        // M-05: punto di partenza opzionale della clip. Zero se
+                        // il brano non ne ha bisogno; nessun effetto sull'audio.
+                        Math.max(0, item.optDouble("startAt", 0)));
                 taggedTracks.add(track);
                 tracksByTheme.computeIfAbsent(track.theme(), key -> new ArrayList<>()).add(track);
                 if (!track.era().isBlank()) {

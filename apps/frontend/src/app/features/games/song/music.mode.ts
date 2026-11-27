@@ -29,6 +29,8 @@ interface MusicSong {
   year?: string;
   previewUrl?: string;
   albumCover?: string;
+  /** Secondi da cui far partire la clip (M-05): zero se non serve. */
+  startAt?: number;
 }
 
 export class MusicMode extends GameModeBase {
@@ -452,6 +454,7 @@ export class MusicMode extends GameModeBase {
         ? Math.max(0, this.phaseSeconds - this.timer())
         : 0,
       previewUrl: song.previewUrl ?? '',
+      startAt: Math.max(0, Number(song.startAt) || 0),
       nextPreviewUrl: this.nextSong().previewUrl ?? '',
       albumCover: song.albumCover ?? '',
       songTitle: revealed ? song.title ?? '' : '',
