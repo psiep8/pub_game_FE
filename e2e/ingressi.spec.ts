@@ -178,7 +178,7 @@ const reset = (tv: Page) => tv.evaluate(() => {
 
 const readMetrics = (tv: Page) => tv.evaluate(() => {
   const w = window as any;
-  const shift = (w.__shift ?? []) as Array<{ value: number; nodes: string[] }>;
+  const shift = (w.__shift ?? []) as Array<{ value: number; t: number; nodes: string[] }>;
   const long = (w.__long ?? []) as Array<{ duration: number }>;
   const byNode = new Map<string, { value: number; count: number }>();
   for (const entry of shift) {
@@ -194,6 +194,12 @@ const readMetrics = (tv: Page) => tv.evaluate(() => {
     shifts: shift.filter((entry) => entry.value > 0.0005).length,
     longtasks: long.length,
     maxLongMs: long.length ? Math.round(Math.max(...long.map((entry) => entry.duration))) : 0,
+    // Quando è successo: un salto solo a metà scena non è la stessa cosa di
+    // trenta salti sparsi, e la correzione è diversa.
+    raw: shift
+      .filter((entry) => entry.value > 0.0005)
+      .slice(0, 40)
+      .map((entry) => ({ t: Math.round(entry.t), value: Number(entry.value.toFixed(3)), nodes: entry.nodes })),
     nodes: [...byNode]
       .sort((a, b) => b[1].value - a[1].value)
       .slice(0, 5)
@@ -230,6 +236,7 @@ interface Metrics {
   shifts: number;
   longtasks: number;
   maxLongMs: number;
+  raw: Array<{ t: number; value: number; nodes: string[] }>;
   nodes: Array<{ node: string; value: number; count: number }>;
 }
 
@@ -307,6 +314,23 @@ test.describe('N-10: ingressi', () => {
 
     const missing = rows.filter((row) => !row.scene);
     if (missing.length) console.log(`N-10 scene non aperte: ${missing.map((row) => row.game).join(', ')}`);
+  });
+});
+
+/**
+ * La cornice della foto riserva la sua area: l'immagine che arriva non deve
+ * allargare la colonna e far saltare titolo e indizio insieme.
+ */
+test.describe('N-10: foto e card', () => {
+  test('la cornice di Indovina chi non si allarga', async ({ browser }) => {
+    test.setTimeout(300_000);
+    const token = await bootstrapToken(browser);
+    const row = await measureGame(browser, token, { game: 'IMAGE_BLUR', round: 4 });
+    console.log(`N-10 cornice cls=${row.cls} shift=${row.shifts} nodi=${JSON.stringify(row.nodes)}`);
+    expect(row.scene).toBe('IMAGE_BLUR');
+    const frame = row.nodes.filter((node) => node.node.includes('blur-main-container'));
+    expect(frame.map((node) => `${node.node}=${node.value}`).join(' ')).toBe('');
+    expect(row.cls).toBeLessThan(0.01);
   });
 });
 
