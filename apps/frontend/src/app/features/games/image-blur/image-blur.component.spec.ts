@@ -38,6 +38,17 @@ describe('ImageBlur', () => {
     expect(fixture.nativeElement.querySelector('.timer-circle')).toBeNull();
   });
 
+  it('dimensiona la cornice sulla proporzione della foto, con ripiego quando manca', () => {
+    fixture.componentRef.setInput('displayData', { imageWidth: 330, imageHeight: 455 });
+    expect(component.frameRatio()).toBeCloseTo(330 / 455, 5);
+
+    fixture.componentRef.setInput('displayData', { imageWidth: 0, imageHeight: 0 });
+    expect(component.frameRatio()).toBeNull();
+
+    fixture.componentRef.setInput('displayData', { imageWidth: 4000, imageHeight: 500 });
+    expect(component.frameRatio()).toBe(2);
+  });
+
   it('should return an empty string when there is no image', () => {
     expect(component.getSafeUrl(null)).toBe('');
     expect(component.getSafeUrl(undefined)).toBe('');

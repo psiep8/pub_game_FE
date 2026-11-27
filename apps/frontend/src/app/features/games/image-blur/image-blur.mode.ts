@@ -291,6 +291,10 @@ export class ImageBlurMode extends GameModeBase {
   getDisplayData() {
     return {
       imageUrl: this.payload.imageUrl,
+      // Misure della foto dal round: la TV dimensiona la cornice prima del
+      // caricamento, così l'immagine non sposta la scena quando arriva.
+      imageWidth: Number(this.payload.imageWidth ?? 0),
+      imageHeight: Number(this.payload.imageHeight ?? 0),
       blurAmount: this.currentBlur(),
       buzzedPlayer: this.buzzedPlayer(),
       clue: this.clues[this.clueIndex()] ?? null,

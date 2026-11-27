@@ -16,7 +16,8 @@
     </div>
   }
 
-  <div class="blur-main-container" [class.portrait]="isPortrait">
+  <div class="blur-main-container" [class.portrait]="isPortrait"
+    [style.aspect-ratio]="frameRatio()">
     @if (!imgError && displayData.imageUrl) {
       <img
         [src]="getSafeUrl(displayData.imageUrl)"

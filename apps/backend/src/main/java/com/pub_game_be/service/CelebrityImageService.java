@@ -31,7 +31,8 @@ public class CelebrityImageService {
      * Riepilogo pubblico della voce: la foto e le frasi biografiche arrivano
      * dalla stessa chiamata, così non servono chiavi TMDB o Pexels.
      */
-    public record WikiSummary(String imageUrl, String description, String extract) {
+    public record WikiSummary(String imageUrl, String description, String extract,
+                              int imageWidth, int imageHeight) {
     }
 
     public CelebrityImageService(RestTemplate restTemplate) {
@@ -178,14 +179,22 @@ public class CelebrityImageService {
             }
 
             String imageUrl = null;
+            int imageWidth = 0;
+            int imageHeight = 0;
+            // Le misure arrivano con la stessa risposta della foto: sono quelle
+            // che permettono alla TV di riservare subito la cornice giusta.
             JSONObject thumbnail = json.optJSONObject("thumbnail");
             if (thumbnail != null) {
                 imageUrl = thumbnail.optString("source", null);
+                imageWidth = thumbnail.optInt("width", 0);
+                imageHeight = thumbnail.optInt("height", 0);
             }
             if (imageUrl == null || imageUrl.isBlank()) {
                 JSONObject original = json.optJSONObject("originalimage");
                 if (original != null) {
                     imageUrl = original.optString("source", null);
+                    imageWidth = original.optInt("width", 0);
+                    imageHeight = original.optInt("height", 0);
                 }
             }
 
@@ -199,7 +208,9 @@ public class CelebrityImageService {
             return Optional.of(new WikiSummary(
                     imageUrl == null ? "" : imageUrl,
                     description,
-                    extract));
+                    extract,
+                    imageWidth,
+                    imageHeight));
         } catch (Exception ignored) {
             return Optional.empty();
         }
@@ -212,7 +223,8 @@ public class CelebrityImageService {
     public List<String> cluesFromLocal(String celebrityName, String description, String extract) {
         return cluesFrom(celebrityName, new WikiSummary("",
                 description == null ? "" : description,
-                extract == null ? "" : extract));
+                extract == null ? "" : extract,
+                0, 0));
     }
 
     private List<String> cluesFrom(String celebrityName, WikiSummary summary) {

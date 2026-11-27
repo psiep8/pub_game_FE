@@ -1072,11 +1072,18 @@ public class QuestionBankService {
             payload.put("explanation", question.explanation());
         }
         if ("IMAGE_BLUR".equals(question.type())) {
-            String imageUrl = resolveCelebrityImage(question.correctAnswer());
+            CelebrityPhoto photo = resolveCelebrityPhoto(question.correctAnswer());
+            String imageUrl = photo == null ? null : photo.url();
             // La domanda resta giocabile anche senza foto: la TV mostra il
             // segnaposto con l'iniziale invece di saltare il round.
             payload.put("imageUrl", imageUrl == null ? "" : imageUrl);
             payload.put("imageFallback", imageUrl == null || imageUrl.isBlank());
+
+            // Misure della foto: la TV riserva la cornice della proporzione
+            // giusta prima che l'immagine arrivi (0 = misura sconosciuta, e la
+            // TV ripiega sul 4/3).
+            payload.put("imageWidth", photo == null ? 0 : photo.width());
+            payload.put("imageHeight", photo == null ? 0 : photo.height());
 
             // Indizi già ripuliti dal nome: la TV ne svela uno ogni pochi
             // secondi, dal più vago al più diretto.
@@ -1094,10 +1101,14 @@ public class QuestionBankService {
      * senza volto quando TMDB non è configurato. Se manca anche lì, la TV
      * mostra il segnaposto con l'iniziale.
      */
-    private String resolveCelebrityImage(String celebrity) {
+    /** Foto con le sue misure: 0×0 quando la fonte non le dichiara. */
+    private record CelebrityPhoto(String url, int width, int height) {
+    }
+
+    private CelebrityPhoto resolveCelebrityPhoto(String celebrity) {
         LocalMediaBankService.Person localPhoto = localMedia.person(celebrity).orElse(null);
         if (localPhoto != null) {
-            return localMedia.url(localPhoto.file());
+            return new CelebrityPhoto(localMedia.url(localPhoto.file()), 0, 0);
         }
         // Con la banca volti installata non si esce in rete: chi non ha la
         // foto locale resta con il segnaposto dell'iniziale.
@@ -1107,12 +1118,17 @@ public class QuestionBankService {
 
         String imageUrl = tmdbImageService.getCelebrityImageUrl(celebrity);
         if (imageUrl != null && !imageUrl.isBlank()) {
-            return imageUrl;
+            return new CelebrityPhoto(imageUrl, 0, 0);
         }
 
         // Senza chiave TMDB la foto restava vuota. Wikipedia non richiede
-        // chiavi e copre tutte le celebrità della banca.
-        return celebrityImageService.getReliableImageUrl(celebrity);
+        // chiavi e copre tutte le celebrità della banca; la stessa risposta
+        // porta anche le misure dell'immagine, senza chiamate in più.
+        return celebrityImageService.summary(celebrity)
+                .filter(found -> found.imageUrl() != null && !found.imageUrl().isBlank())
+                .map(found -> new CelebrityPhoto(
+                        found.imageUrl(), found.imageWidth(), found.imageHeight()))
+                .orElse(null);
     }
 
     /**

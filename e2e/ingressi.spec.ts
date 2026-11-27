@@ -240,11 +240,17 @@ interface Metrics {
   nodes: Array<{ node: string; value: number; count: number }>;
 }
 
+interface FrameBox {
+  frame: { w: number; h: number };
+  natural: { w: number; h: number };
+}
+
 interface Row extends Metrics {
   game: string;
   round: number;
   pressed: boolean;
   scene: string | null;
+  frame: FrameBox | null;
 }
 
 /** Apre un gioco su una pagina fresca e ne misura l'ingresso. */
@@ -284,8 +290,20 @@ async function measureGame(
   await tv.waitForTimeout(MEASURE_MS);
 
   const metrics = await readMetrics(tv);
+  // Cornice della foto contro proporzione reale: serve a verificare che la
+  // scena riservi la misura giusta e non lasci bande nere.
+  const frame = await tv.evaluate(() => {
+    const box = document.querySelector('app-image-blur .blur-main-container');
+    const img = document.querySelector('app-image-blur .blur-img') as HTMLImageElement | null;
+    if (!box || !img || !img.naturalWidth) return null;
+    const rect = box.getBoundingClientRect();
+    return {
+      frame: { w: Math.round(rect.width), h: Math.round(rect.height) },
+      natural: { w: img.naturalWidth, h: img.naturalHeight },
+    };
+  }).catch(() => null);
   await Promise.all([...phoneContexts.map((each) => each.close()), context.close()]);
-  return { game: target.game, round: target.round, pressed, scene: type, ...metrics };
+  return { game: target.game, round: target.round, pressed, scene: type, frame, ...metrics };
 }
 
 const ONLY = (process.env['N10_GAMES'] ?? '')
@@ -331,6 +349,12 @@ test.describe('N-10: foto e card', () => {
     const frame = row.nodes.filter((node) => node.node.includes('blur-main-container'));
     expect(frame.map((node) => `${node.node}=${node.value}`).join(' ')).toBe('');
     expect(row.cls).toBeLessThan(0.01);
+
+    // La cornice segue la foto: niente striscia centrale con 270 px di nero.
+    expect(row.frame, 'cornice non trovata').not.toBeNull();
+    const frameRatio = row.frame!.frame.w / row.frame!.frame.h;
+    const photoRatio = row.frame!.natural.w / row.frame!.natural.h;
+    expect(Math.abs(frameRatio - photoRatio)).toBeLessThan(0.12);
   });
 
   test('la card di Biglie non cambia altezza', async ({ browser }) => {

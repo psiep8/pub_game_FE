@@ -40,6 +40,27 @@ describe('ImageBlurMode', () => {
     mode.cleanup();
   });
 
+  it('porta le misure della foto nei dati della TV, zero se mancano', () => {
+    const mode = new ImageBlurMode();
+    mode.setConfig({ type: 'IMAGE_BLUR', payload: {}, gameId: 1, activePlayers: ['Anna'] });
+    mode.initialize({
+      imageUrl: 'https://image.example/brando.jpg',
+      correctAnswer: 'Marlon Brando',
+      imageWidth: 330,
+      imageHeight: 455,
+    });
+
+    expect(mode.getDisplayData().imageWidth).toBe(330);
+    expect(mode.getDisplayData().imageHeight).toBe(455);
+
+    const senzaMisure = new ImageBlurMode();
+    senzaMisure.setConfig({ type: 'IMAGE_BLUR', payload: {}, gameId: 1, activePlayers: ['Anna'] });
+    senzaMisure.initialize({ imageUrl: 'x', correctAnswer: 'A' });
+
+    expect(senzaMisure.getDisplayData().imageWidth).toBe(0);
+    expect(senzaMisure.getDisplayData().imageHeight).toBe(0);
+  });
+
   it('toglie più sfocatura nei primi secondi, senza svelare subito', async () => {
     vi.useFakeTimers();
 

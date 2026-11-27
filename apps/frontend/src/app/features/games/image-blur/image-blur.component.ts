@@ -28,6 +28,19 @@ export class ImageBlur {
 
   isPortrait = false;
   imgLoaded = false;
+
+  /**
+   * Proporzione della foto dai dati del round: la cornice nasce già della
+   * misura giusta, quindi l'immagine che arriva non sposta nulla. `null`
+   * quando il round non porta le misure: in quel caso vale il 4/3 del CSS.
+   */
+  frameRatio(): number | null {
+    const width = Number(this.displayData?.imageWidth ?? 0);
+    const height = Number(this.displayData?.imageHeight ?? 0);
+    if (!(width > 0) || !(height > 0)) return null;
+    // Oltre 1:2 e 2:1 la cornice diventerebbe una striscia: si ferma lì.
+    return Math.min(2, Math.max(0.5, width / height));
+  }
   imgError = false;
 
   onImgLoad(event: Event): void {

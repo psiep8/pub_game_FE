@@ -47,6 +47,11 @@ class ImageBlurManchePayloadTest {
                     .isNotBlank();
             assertThat(manche.getString("imageUrl")).as("foto manche %s", index + 1)
                     .isNotBlank();
+            // Le misure servono alla TV per riservare la cornice prima del
+            // caricamento: devono esserci sempre, zero quando non si sanno.
+            assertThat(manche.has("imageWidth")).as("misure manche %s", index + 1).isTrue();
+            assertThat(manche.getInt("imageWidth")).isGreaterThanOrEqualTo(0);
+            assertThat(manche.getInt("imageHeight")).isGreaterThanOrEqualTo(0);
 
             categories.add(manche.getString("categoryLabel"));
             answers.add(manche.getString("correctAnswer"));

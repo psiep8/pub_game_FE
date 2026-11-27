@@ -674,14 +674,18 @@ app-speed-rush .sr-lane.finished .sr-pos { background: var(--mustard) !important
  *
  * Prima la cornice seguiva la foto (`width/height: auto`): al caricamento
  * dell'immagine la colonna centrata cresceva di colpo e titolo, foto e indizio
- * saltavano insieme (0,034 di layout shift misurato su "Indovina chi"). Il
- * riquadro ora riserva sempre la stessa area e la foto ci sta dentro, come su
- * uno schermo: qualunque proporzione, nessuno spostamento.
+ * saltavano insieme (0,034 di layout shift misurato su "Indovina chi").
+ *
+ * Ora la proporzione arriva con i dati del round (`imageWidth`/`imageHeight`,
+ * misure che Wikipedia dà insieme alla foto) e la cornice nasce già giusta: la
+ * foto la riempie senza bande nere e senza aspettare il caricamento. Se il
+ * round non porta le misure, resta il 4/3 come ripiego.
  */
 app-image-blur .blur-main-container {
-  width: min(72vw, 760px) !important;
+  width: auto !important;
   height: clamp(240px, 46vh, 420px) !important;
-  aspect-ratio: auto !important;
+  aspect-ratio: 4 / 3;
+  max-width: min(76vw, 860px);
   display: flex !important;
   align-items: center;
   justify-content: center;

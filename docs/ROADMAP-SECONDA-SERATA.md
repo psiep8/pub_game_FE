@@ -398,10 +398,15 @@ la TV lo riallinea allo stato del server, che su una partita nuova è il round 0
    `blur-main-container`, un solo shift da 0,034; Biglie: `bg-card`, 0,010).
    Indovina chi: la cornice seguiva la foto (`width/height: auto`), quindi al
    caricamento dell'immagine la colonna centrata cresceva di colpo e titolo,
-   foto e indizio saltavano insieme. **Corretto** con un riquadro a misura
-   fissa (760×46vh) che contiene la foto, come uno schermo. Biglie: la card si
-   allargava passando dall'intro alla griglia delle biglie. **Corretto** con
-   un'altezza minima riservata (`clamp(420px, 64vh, 600px)`).
+   foto e indizio saltavano insieme. **Corretto** in due passate: prima con un
+   riquadro a misura fissa (760×46vh), che però a 720p lasciava 270 px di nero
+   per lato su una foto verticale (foto 219×302 dentro 760×302, verificato con
+   uno scatto). Poi, siccome il nero era troppo, **le misure arrivano dai dati
+   del round**: il backend porta `imageWidth`/`imageHeight` nel payload (le dà
+   Wikipedia insieme alla foto) e la TV lega `aspect-ratio`, così la cornice
+   nasce già 204×302 e la foto la riempie. Senza misure resta il 4/3.
+   Biglie: la card si allargava passando dall'intro alla griglia delle biglie.
+   **Corretto** con un'altezza minima riservata (`clamp(420px, 64vh, 600px)`).
 3. **`div.conn-shell`** (0,001 in tutti): lo shell di connessione che cambia
    altezza quando arriva lo stato del round.
 
@@ -435,7 +440,9 @@ CPU 4×:
 | Indovina chi | 0,031 | **0,001** | 1 | 0 | `div.conn-shell` (0,001) |
 | Biglie | 0,011 | **0,001** | 1 | 0 | `div.conn-shell` (0,001) |
 
-Né `div.blur-main-container` né `div.bg-card` compaiono più fra i nodi. Nelle prove
+Né `div.blur-main-container` né `div.bg-card` compaiono più fra i nodi, e la
+cornice di Indovina chi ha ora la proporzione della foto (204×302 su una foto
+330×488). Nelle prove
 dei due guard, misurate separatamente, Indovina chi stava a 0,004 (lobby che si
 smonta) e Biglie a 0,000; qui restano i 0,001 di `div.conn-shell` in entrambi.
 
