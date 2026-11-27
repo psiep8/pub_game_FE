@@ -269,6 +269,42 @@ test.describe('N-11: riepilogo nella scena vera', () => {
     }
   });
 
+  test('poche righe: 2, 3, 5 squadre con il tetto', async ({ page }) => {
+    test.setTimeout(120_000);
+    await openTv(page);
+
+    for (const count of [2, 3, 4, 5]) {
+      await openRecap(page, count);
+      const before = await layout(page);
+
+      expect(before.few, `variante poche righe a ${count} squadre`).toBe(true);
+      expect(before.rows.length).toBe(count);
+      for (const row of before.rows) {
+        expect(row.height, `riga enorme con ${count} squadre`).toBeLessThan(126);
+        expect(row.height, `riga schiacciata con ${count} squadre`).toBeGreaterThan(90);
+        expect(row.shadowRight).toBeLessThanOrEqual(before.sheet!.right + 0.5);
+        expect(row.shadowBottom).toBeLessThanOrEqual(before.footer!.top + 0.5);
+        expect(row.align).toBe('left');
+      }
+      if (count === 4) {
+        expect(before.rows.at(-1)!.bottom, 'la pagina da quattro non riempie').toBeGreaterThan(640);
+      }
+      console.log(
+        `N-11 few n=${count} h=${before.rows[0]?.height} prima=${before.rows[0]?.top} `
+        + `ultima=${before.rows.at(-1)?.bottom} ombra=${before.rows.at(-1)?.shadowBottom} piede=${before.footer?.top}`,
+      );
+
+      await page.evaluate(() => {
+        const component: any = (window as any).ng.getComponent(
+          document.querySelector('app-game-component'),
+        );
+        if (component.roundRecapOpen()) component.onRoundRecapComplete();
+        component.stopAutoAdvance();
+      });
+      await expect(page.locator('.recap-sheet')).toHaveCount(0);
+    }
+  });
+
   test('AVANTI con il riepilogo aperto passa dalla coda del round', async ({ page }) => {
     test.setTimeout(120_000);
     await openTv(page);

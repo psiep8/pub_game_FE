@@ -211,7 +211,9 @@
    prendono lo spazio disponibile e il testo sale di un gradino, come su un
    tabellone stampato. Da otto in su la misura resta quella di sempre. */
 .recap-rows.is-few .recap-row {
-  max-height: none;
+  /* Tetto alla misura di quattro righe piene: con due o tre squadre le righe
+     arriverebbero a 250/164 px e sembrerebbero lenzuola. */
+  max-height: 17vh;
   grid-template-columns: clamp(38px, 5.4vh, 54px) minmax(0, 1fr) auto auto;
 }
 .recap-rows.is-few .recap-pos {

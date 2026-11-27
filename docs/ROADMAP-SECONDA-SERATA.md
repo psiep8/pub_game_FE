@@ -598,6 +598,7 @@ CommonJS già presenti). Il banco reso `e2e/riepilogo.spec.ts` misura la matrice
 scroll), la pausa ESC con tempo congelato e il ritorno allo stesso secondo, e
 l'AVANTI che chiude il foglio passando dalla coda del round. Controlla anche la
 variante poche righe: a quattro squadre le righe riempiono il foglio (121,3 px),
+con due o tre si fermano al tetto di 17vh (122,4 px) e con cinque stanno a 95,6;
 da otto in su la misura resta quella di sempre.
 
 **Misura a 1280×720 (Chromium, DPR 1, banco con 4/8/10/14/20 squadre).** Il
@@ -629,8 +630,10 @@ destra. Matrice a 1280×720 (DPR 1, 4/8/10/14/20 squadre), ombre comprese:
 | 20, podio | 3 | 6 | 66.2 | 194.2 | 627.5 | 1200 | 635.5 | 680.4 |
 
 La riga da quattro è la variante poche righe: le righe prendono lo spazio del
-foglio e il testo sale di un gradino. L'ombra del podio (1200) può cadere su una
-riga qualsiasi, non solo sull'ultima. Nessuna ombra oltre il foglio, sotto il
+foglio e il testo sale di un gradino. Con due o tre squadre le righe si fermano
+al tetto di 17vh (122,4 px a 720p) invece di crescere a 249,9 e 164,2; con
+cinque righe stanno a 95,6. L'ombra del podio (1200) può cadere su una riga
+qualsiasi, non solo sull'ultima. Nessuna ombra oltre il foglio, sotto il
 piede o fuori dallo schermo (le righe normali si fermano a 1196, il podio a
 1200); nessuna riga sotto i 30 px, nessun nome tagliato, nessuno scroll di
 pagina (1280×720).
@@ -661,7 +664,9 @@ ombre erano tagliate dal `overflow: hidden` del contenitore (4 px sul bordo
 destro, 8 px sull'ultima riga): il contenitore non ritaglia più, riserva 8 px
 a destra e la fascia sotto, e con poche righe il foglio si riempie: a 720p la
 pagina da quattro passa da 66,2 a 121,3 px per riga (il tetto di 9,2vh la
-fermava a metà foglio; da otto in su la misura resta quella di sempre). La scena vera
+fermava a metà foglio; da otto in su la misura resta quella di sempre). Con due
+o tre squadre il tetto di 17vh ferma le righe a 122,4 px, perché senza
+crescerebbero a 249,9 e 164,2. La scena vera
 ha aggiunto tre difetti che il banco isolato non poteva vedere: dock coperta
 dallo z-index, testata sotto la dock (mancava la fascia) e nomi centrati dal
 `text-align: center` legacy di `.game-container`.
