@@ -102,7 +102,9 @@ const layout = (page: Page) =>
       return {
         top: +rect.top.toFixed(1),
         bottom: +rect.bottom.toFixed(1),
+        left: +rect.left.toFixed(1),
         right: +rect.right.toFixed(1),
+        width: +rect.width.toFixed(1),
       };
     };
     const dock = document.querySelector('.tv-dock');
@@ -347,5 +349,59 @@ test.describe('N-11: riepilogo nella scena vera', () => {
     expect(result.bonusTail, 'la coda del round non è partita: bonus perso').toBe(true);
     expect(result.newRound, 'AVANTI è saltato direttamente al gioco dopo').toBe(false);
     await expect(page.locator('.recap-sheet')).toHaveCount(0);
+  });
+});
+
+test.describe('N-11: riepilogo a 1920×1080', () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+
+  test('il foglio segue la larghezza e le righe restano dentro', async ({ page }) => {
+    test.setTimeout(120_000);
+    await openTv(page);
+
+    // Altezze attese a 1080p: tetto 17vh (183,6), cinque righe 151,4,
+    // otto 90,9, dieci 70,7, sette righe al massimo di 96.
+    const heights: Record<number, number> = {
+      2: 183.6, 3: 183.6, 4: 183.6, 5: 151.4, 8: 90.9, 10: 70.7, 14: 96, 20: 96,
+    };
+
+    for (const count of [2, 3, 4, 5, 8, 10, 14, 20]) {
+      await openRecap(page, count);
+      const before = await layout(page);
+
+      // Il foglio prende 7/8 della larghezza: 1680 su 1920, come 1120 su 1280.
+      expect(before.sheet!.left, `margine sinistro a ${count}`).toBeGreaterThan(119);
+      expect(before.sheet!.left, `margine sinistro a ${count}`).toBeLessThan(121);
+      expect(before.sheet!.right, `margine destro a ${count}`).toBeGreaterThan(1799);
+      expect(before.sheet!.right, `margine destro a ${count}`).toBeLessThan(1801);
+      expect(before.scroll).toEqual([1920, 1080]);
+      expect(before.header!.top).toBeGreaterThanOrEqual(before.dock!.bottom - 0.5);
+      expect(before.few, `variante poche righe a ${count}`).toBe(count <= 5);
+      expect(before.rows.length).toBe(count <= 10 ? count : 7);
+
+      for (const row of before.rows) {
+        expect(row.height, `riga fuori misura a ${count} squadre`).toBeGreaterThan(heights[count] - 2.5);
+        expect(row.height, `riga fuori misura a ${count} squadre`).toBeLessThan(heights[count] + 2.5);
+        expect(row.shadowRight, `ombra oltre il foglio (${row.name})`).toBeLessThanOrEqual(1800.5);
+        expect(row.shadowBottom, `ombra sul piede (${row.name})`).toBeLessThanOrEqual(before.footer!.top + 0.5);
+        expect(row.clipped, `nome tagliato (${row.name})`).toBe(false);
+      }
+      if (count === 4) {
+        expect(before.rows.at(-1)!.bottom, 'la pagina da quattro non riempie').toBeGreaterThan(960);
+      }
+      console.log(
+        `N-11 1080 n=${count} righe=${before.rows.length} h=${before.rows[0]?.height} `
+        + `foglio=${before.sheet!.left}→${before.sheet!.right} ultima=${before.rows.at(-1)?.bottom}`,
+      );
+
+      await page.evaluate(() => {
+        const component: any = (window as any).ng.getComponent(
+          document.querySelector('app-game-component'),
+        );
+        if (component.roundRecapOpen()) component.onRoundRecapComplete();
+        component.stopAutoAdvance();
+      });
+      await expect(page.locator('.recap-sheet')).toHaveCount(0);
+    }
   });
 });

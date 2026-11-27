@@ -599,7 +599,8 @@ scroll), la pausa ESC con tempo congelato e il ritorno allo stesso secondo, e
 l'AVANTI che chiude il foglio passando dalla coda del round. Controlla anche la
 variante poche righe: a quattro squadre le righe riempiono il foglio (121,3 px),
 con due o tre si fermano al tetto di 17vh (122,4 px) e con cinque stanno a 95,6;
-da otto in su la misura resta quella di sempre.
+da otto in su la misura resta quella di sempre. A 1920×1080 controlla il foglio
+da 1680 px e le righe 183,6 / 151,4 / 90,9 / 70,7 / 96, senza scroll.
 
 **Misura a 1280×720 (Chromium, DPR 1, banco con 4/8/10/14/20 squadre).** Il
 foglio sta in 1120×640.7 (80→1200), testata 62→127, piede a 680.4, nessuno
@@ -638,6 +639,31 @@ piede o fuori dallo schermo (le righe normali si fermano a 1196, il podio a
 1200); nessuna riga sotto i 30 px, nessun nome tagliato, nessuno scroll di
 pagina (1280×720).
 
+**Misura a 1920×1080.** A 1080p il foglio restava 1120 px (400 px di margine per
+lato) mentre le righe crescevano in `vh`: la scena sembrava una colonna stretta.
+Ora il foglio prende `min(87.5vw, 1680px)`, cioè 1680 su 1920 (120 px per lato),
+la stessa frazione di 1280 (1120): a 1280 la misura non cambia. Testata 104→192,
+piede a 1029.1, dock 16→80, nessuno scroll (1920×1080). Matrice a 1920×1080
+(DPR 1, dock e pausa):
+
+| Squadre | Righe | Altezza | Prima riga | Ultima riga | Ombra destra | Ultima ombra | Piede |
+| --: | --: | --: | --: | --: | --: | --: | --: |
+| 2 | 2 | 183.6 | 414.9 | 792.1 | 1800 | 797.1 | 1029.1 |
+| 3 | 3 | 183.6 | 318.1 | 888.9 | 1800 | 893.9 | 1029.1 |
+| 4 | 4 | 183.6 | 221.3 | 985.7 | 1800 | 990.7 | 1029.1 |
+| 5 | 5 | 151.4 | 204.9 | 1002.1 | 1800 | 1007.1 | 1029.1 |
+| 8 | 8 | 90.9 | 204.9 | 1002.1 | 1800 | 1007.1 | 1029.1 |
+| 10 | 10 | 70.7 | 204.9 | 1002.1 | 1800 | 1007.1 | 1029.1 |
+| 14 | 7 | 96 | 237.5 | 969.5 | 1797 | 974.5 | 1029.1 |
+| 20 | 7 | 96 | 237.5 | 969.5 | 1797 | 974.5 | 1029.1 |
+
+Con due o tre squadre il tetto di 17vh vale 183,6 px e il blocco resta centrato
+(carta sopra e sotto); a quattro il tetto lascia 16 px di margine (le righe
+sarebbero 191,8), a cinque scendono a 151,4, a otto a 90,9, a dieci a 70,7, a
+quattordici e venti restano 96. Ombre tutte dentro: 1797 normali, 1800 il podio,
+contro il bordo del foglio a 1800; ultima ombra al massimo 1007,1 contro il piede
+a 1029,1. Nessun nome tagliato.
+
 **ESC, pausa e ripresa** (tastiera vera, otto secondi di pausa per caso). Il
 tempo fermo non scende, la pagina non cambia e la scena resta aperta; alla
 ripresa l'orologio riparte dai millisecondi rimasti, non da capo:
@@ -666,7 +692,9 @@ a destra e la fascia sotto, e con poche righe il foglio si riempie: a 720p la
 pagina da quattro passa da 66,2 a 121,3 px per riga (il tetto di 9,2vh la
 fermava a metà foglio; da otto in su la misura resta quella di sempre). Con due
 o tre squadre il tetto di 17vh ferma le righe a 122,4 px, perché senza
-crescerebbero a 249,9 e 164,2. La scena vera
+crescerebbero a 249,9 e 164,2. A 1080p il foglio restava 1120 px su 1920: ora
+`min(87.5vw, 1680px)` lo porta a 1680 (120 px di margine per lato), mentre a 1280
+resta 1120. La scena vera
 ha aggiunto tre difetti che il banco isolato non poteva vedere: dock coperta
 dallo z-index, testata sotto la dock (mancava la fascia) e nomi centrati dal
 `text-align: center` legacy di `.game-container`.
