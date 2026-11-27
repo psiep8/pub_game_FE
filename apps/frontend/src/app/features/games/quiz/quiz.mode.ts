@@ -61,6 +61,10 @@ export class QuizMode extends GameModeBase {
   private advanceHandle?: ReturnType<typeof setTimeout>;
   /** Quanto dura ancora il respiro fra le manche, per il checkpoint. */
   private readingEndsAt = 0;
+  /** Scadenza assoluta della manche decisa dal server. */
+  private mancheDeadlineAt = 0;
+  /** Inizio della pausa: alla ripresa la scadenza si sposta dello stesso tempo. */
+  private pauseStartedAt = 0;
 
   protected onInitialize(): void {
     this.answersGeneration++;
@@ -73,6 +77,8 @@ export class QuizMode extends GameModeBase {
     this.timer.set(MANCHE_SECONDS);
     this.answeredThisManche.clear();
     this.revision = 0;
+    this.mancheDeadlineAt = 0;
+    this.pauseStartedAt = 0;
     this.clearTimers();
   }
 
@@ -85,7 +91,7 @@ export class QuizMode extends GameModeBase {
     this.finished.set(false);
     this.answeredThisManche.clear();
     await this.runPreGameSequence(10000);
-    this.startManche(0);
+    await this.startManche(0);
   }
 
   /** Le manches hanno un cronometro proprio: il timer della base resta fermo. */
@@ -93,10 +99,16 @@ export class QuizMode extends GameModeBase {
 
   /** La pausa ferma il cronometro: il checkpoint deve dire da quando è fermo. */
   protected onPause(): void {
+    this.pauseStartedAt = this.serverNow();
     this.emitCheckpoint();
   }
 
   protected onResume(): void {
+    if (this.pauseStartedAt > 0) {
+      // Il tempo di pausa non consuma la manche: la scadenza si sposta in avanti.
+      this.mancheDeadlineAt += this.serverNow() - this.pauseStartedAt;
+      this.pauseStartedAt = 0;
+    }
     this.emitCheckpoint();
     void this.broadcastState();
   }
@@ -176,7 +188,7 @@ export class QuizMode extends GameModeBase {
    * a schermo, cronometro fermo e manche non ancora aperta sul server, così chi
    * risponde durante la lettura non prende punti.
    */
-  private startManche(index: number, readingMs = 0): void {
+  private async startManche(index: number, readingMs = 0): Promise<void> {
     this.clearTimers();
     this.mancheIndex.set(index);
     this.mancheReveal.set(null);
@@ -184,20 +196,25 @@ export class QuizMode extends GameModeBase {
     this.answeredThisManche.clear();
     this.secondsLeft = MANCHE_SECONDS;
     this.timer.set(MANCHE_SECONDS);
+    this.mancheDeadlineAt = 0;
     this.config.onTimerTick?.(MANCHE_SECONDS);
 
-    const open = () => {
+    const open = async () => {
       this.isReading.set(false);
       this.readingEndsAt = 0;
+      // Il server apre la manche e restituisce la scadenza: il cronometro
+      // parte da quella, non dal momento in cui la TV ha disegnato la scena.
+      const announced = await this.announceManche(index);
+      if (this.finished() || this.mancheIndex() !== index) return;
+      this.applyServerDeadline(announced);
       this.startClock();
       void this.broadcastState();
       this.emitCheckpoint();
-      void this.announceManche(index);
       this.setQuestionOpen(true);
     };
 
     if (readingMs <= 0) {
-      open();
+      await open();
       return;
     }
 
@@ -206,7 +223,7 @@ export class QuizMode extends GameModeBase {
     this.setQuestionOpen(false);
     void this.broadcastState();
     this.emitCheckpoint();
-    this.advanceHandle = setTimeout(open, readingMs);
+    this.advanceHandle = setTimeout(() => void open(), readingMs);
   }
 
   /**
@@ -214,32 +231,55 @@ export class QuizMode extends GameModeBase {
    * Con `secondsLeft` la manche si riapre con il tempo che le resta: dopo un
    * refresh i punti non ripartono pieni.
    */
-  private async announceManche(index: number, secondsLeft?: number): Promise<void> {
+  private async announceManche(index: number, secondsLeft?: number): Promise<any> {
     try {
-      if (secondsLeft == null) await this.config.startQuizManche?.(index);
-      else await this.config.startQuizManche?.(index, secondsLeft);
+      if (secondsLeft == null) return await this.config.startQuizManche?.(index);
+      return await this.config.startQuizManche?.(index, secondsLeft);
     } catch {
       // Senza annuncio i voti vengono rifiutati: la TV mostra comunque la manche.
+      return null;
     }
+  }
+
+  private serverNow(): number {
+    return this.config.serverNow?.() ?? Date.now();
+  }
+
+  /** La scadenza arriva dal server; senza risposta si usa il tempo pieno. */
+  private applyServerDeadline(response: any, fallbackSeconds: number = MANCHE_SECONDS): void {
+    const deadline = Number(response?.deadlineAt);
+    this.mancheDeadlineAt = Number.isFinite(deadline) && deadline > 0
+      ? deadline
+      : this.serverNow() + Math.max(0, fallbackSeconds) * 1000;
   }
 
   private startClock(): void {
     if (this.clock) clearInterval(this.clock);
-    this.clock = setInterval(() => {
+    const tick = () => {
       if (this.isPaused()) return;
 
-      this.secondsLeft -= 1;
-      this.timer.set(Math.max(0, this.secondsLeft));
-      this.config.onTimerTick?.(Math.max(0, this.secondsLeft));
-
-      if (this.secondsLeft <= 0) {
-        this.clearClock();
-        this.revealPending.set(true);
-        this.emitCheckpoint();
-        void this.broadcastState();
-        this.revealManche();
+      const leftMs = Math.max(0, this.mancheDeadlineAt - this.serverNow());
+      const seconds = Math.ceil(leftMs / 1000);
+      if (seconds !== this.secondsLeft) {
+        this.secondsLeft = seconds;
+        this.timer.set(seconds);
+        this.config.onTimerTick?.(seconds);
       }
-    }, 1000);
+
+      if (leftMs > 0 || this.revealPending() || this.mancheReveal() || this.finished()) return;
+      this.clearClock();
+      this.secondsLeft = 0;
+      this.timer.set(0);
+      this.config.onTimerTick?.(0);
+      this.revealPending.set(true);
+      this.emitCheckpoint();
+      void this.broadcastState();
+      this.revealManche();
+    };
+    // Il tick è più fine del secondo: la barra deve chiudersi alla scadenza
+    // del server, non fino a un secondo dopo.
+    tick();
+    this.clock = setInterval(tick, 100);
   }
 
   private revealManche(): void {
@@ -273,7 +313,7 @@ export class QuizMode extends GameModeBase {
       if (this.mancheIndex() + 1 >= this.questions.length) {
         this.finish();
       } else {
-        this.startManche(this.mancheIndex() + 1, MANCHE_BREATH_MS);
+        void this.startManche(this.mancheIndex() + 1, MANCHE_BREATH_MS);
       }
     }, REVEAL_SECONDS * 1000);
   }
@@ -376,7 +416,7 @@ export class QuizMode extends GameModeBase {
     if (stage === 'reading') {
       // Il respiro riparte da dove era rimasto: la manche non si apre prima.
       const left = Math.max(0, Number(state.readingLeftMs) || 0) - elapsed * 1000;
-      this.startManche(index, left);
+      void this.startManche(index, left);
       return;
     }
     if (stage === 'suspense' || (stage === 'play' && seconds <= 0)) {
@@ -391,11 +431,10 @@ export class QuizMode extends GameModeBase {
         this.scheduleAdvance();
       }
     } else {
-      this.startClock();
-      this.setQuestionOpen(true);
       // La manche va riannunciata anche se il server l'ha persa (riavvio) o la
       // sua finestra si era chiusa: dopo un refresh i telefoni devono votare.
-      void this.announceManche(index, seconds);
+      // Il cronometro riparte dalla scadenza che risponde il server.
+      void this.openRestoredManche(index, seconds);
     }
     void this.refreshAnswers();
     void this.broadcastState();
@@ -510,7 +549,17 @@ export class QuizMode extends GameModeBase {
       answersLocked: locked,
       correctAnswer: this.revealed() ? (current?.correctAnswer ?? null) : null,
       isReading: this.isReading(),
+      deadlineAt: this.mancheDeadlineAt,
     };
+  }
+
+  /** Ripresa di una manche già aperta: la scadenza autorevole è quella del server. */
+  private async openRestoredManche(index: number, seconds: number): Promise<void> {
+    const announced = await this.announceManche(index, seconds);
+    if (this.finished() || this.mancheIndex() !== index) return;
+    this.applyServerDeadline(announced, seconds);
+    this.startClock();
+    this.setQuestionOpen(true);
   }
 
   /** Apre o chiude la domanda: la TV abbassa o rialza la base d'atto. */

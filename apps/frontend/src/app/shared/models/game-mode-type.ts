@@ -22,6 +22,8 @@ export interface GameModeConfig {
   type: GameModeType;
   payload: any;
   gameId: number;
+  /** Orologio del server corretto dallo scarto: i timer non usano quello locale. */
+  serverNow?: () => number;
   /** Giocatori in classifica, nell'ordine della leaderboard. */
   activePlayers?: string[];
   onTimerTick?: (seconds: number) => void;

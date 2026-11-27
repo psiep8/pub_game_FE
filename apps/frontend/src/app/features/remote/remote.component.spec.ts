@@ -1277,6 +1277,32 @@ describe('RemoteComponent', () => {
     expect(ws.publishedAnswers.length).toBe(before);
   });
 
+  it('N-14: i tasti Quiz si spengono alla scadenza della manche del server', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(1_000_000);
+      component.nickname.set('Anna');
+      component.onStartVoting('QUIZ');
+      ws.status$.next({
+        action: 'QUIZ_STATE',
+        roundStartId: 'quiz-r1',
+        state: { manche: 1, deadlineAt: 1_001_000 },
+      });
+
+      expect(component.inputReady()).toBe(true);
+      await vi.advanceTimersByTimeAsync(800);
+      expect(component.inputReady()).toBe(true);
+
+      // 200 ms dopo la scadenza del server i tasti sono spenti, anche se la
+      // TV non ha ancora mandato il reveal.
+      await vi.advanceTimersByTimeAsync(400);
+      expect(component.quizTimeUp()).toBe(true);
+      expect(component.inputReady()).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('N-05: alla scadenza del server il round si chiude anche senza ROUND_ENDED', () => {
     vi.useFakeTimers();
     try {

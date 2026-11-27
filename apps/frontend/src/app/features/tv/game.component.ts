@@ -1750,6 +1750,7 @@ export class GameComponent implements OnInit, OnDestroy {
       type,
       payload,
       gameId: this.currentGameId() ?? 1,
+      serverNow: () => this.reliability.serverNow(),
       onTimerTick: guard((seconds) => this.timer.set(seconds)),
       onTimerEnd: guard(() => this.onModeTimeout(modeToken)),
       onBuzz: guard((playerName) => this.onPlayerBuzz(playerName)),

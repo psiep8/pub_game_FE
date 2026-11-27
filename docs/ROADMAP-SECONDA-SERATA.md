@@ -48,7 +48,7 @@ scadenza e blocco dopo cinque errori).
 | N-07 — Tick infinito | **Da fare** | Il controllo dei proprietari audio (`AudioChannels.setOwner`) spegne già i loop della scena uscente; non è stata trovata una causa riproducibile senza la serata. |
 | N-08 — Vibrazione e fallback iPhone | **Fatto** | Se `navigator.vibrate` manca o è negata, il via accende un flash e un colpo breve; `BONUS_STARTED` usa lo stesso percorso. |
 | N-09 — Karaoke: controlli e demo | **Parziale** | Aggiunto `npm run check:karaoke` (banca, clip, testi e almeno 5 manche complete). Restano banner di conteggio nella lobby e prova completa con `?karaoke-demo=1`. |
-| N-10…N-15 (blocco B) | **Parziale** | N-10 misurato, N-11 e N-12 fatti. N-13: la classifica dopo il bonus non si salta più; resta il primo round sincronizzato. N-14 e N-15 da fare. |
+| N-10…N-15 (blocco B) | **Parziale** | N-10 misurato, N-11 e N-12 fatti. N-13: la classifica dopo il bonus non si salta più; resta il primo round sincronizzato. N-14 fatto; N-15 da fare. |
 | N-16…N-48 (blocco C) | **Da fare** | D2 (Timeline e gioco che la sostituisce nell'atto 1) **non toccata**: serve la scelta del committente. |
 | N-49…N-51 (blocco D) | **Da fare** | |
 | N-52…N-55 (blocco E) | **Da fare** | N-53 si ferma alla demo Quiz per approvazione. |
@@ -358,6 +358,28 @@ rifiutate, poi `BET` da 30 s. Anche `restore()` riconosce la fase di lettura.
 comandate dalla regia, quindi il presentatore ha già il tempo di leggere; la
 Ruota ha un round unico. Con questo, N-12 è chiuso per tutti i giochi con
 passaggio automatico fra le manche.
+
+### N-14 barra del tempo del Quiz — **Fatto**
+
+**Causa.** Il Quiz aveva un cronometro locale che partiva prima dell'annuncio al
+server: la barra della TV poteva finire dopo la scadenza vera della manche,
+mentre il server rifiutava già i voti. Il telefono non aveva la stessa scadenza
+e i suoi tasti restavano vivi fino al reveal.
+
+**Intervento.** `QuizMode` apre la manche prima e usa il `deadlineAt` che
+restituisce `startQuizManche`; il tick è a 100 ms e calcola il tempo da
+`serverNow()` (orologio corretto dallo scarto), non da un contatore locale. La
+pausa sposta la scadenza del tempo passato in pausa. Il `deadlineAt` viaggia nel
+`QUIZ_STATE`: il telefono spegne i tasti Quiz alla stessa scadenza, anche se il
+reveal non è ancora arrivato. Sul telefono non c'è una barra separata: la
+finestra di voto è quella.
+
+**Test.** `quiz.mode.spec.ts` → «la barra chiude alla scadenza del server, non
+al timer locale [N-14]»: a 200 ms dalla scadenza la barra è aperta, a 200 ms dopo
+è chiusa. `remote.component.spec.ts` → «i tasti Quiz si spengono alla scadenza
+della manche del server». Verifiche: quiz 26/26, remote 142/142, TV 148/148,
+build frontend verde. **Da fare in sala:** TV + telefoni reali, manche Quiz,
+scarto d'orologio e pausa.
 
 ### N-13 classifica rapida dopo il bonus — **Fatto (parte classifica)**
 

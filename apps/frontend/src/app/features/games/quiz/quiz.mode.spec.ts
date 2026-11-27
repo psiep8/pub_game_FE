@@ -413,6 +413,38 @@ describe('QuizMode — ripresa dopo un refresh della TV', () => {
     vi.useRealTimers();
   });
 
+  it('la barra chiude alla scadenza del server, non al timer locale [N-14]', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(1_000_000);
+      const startQuizManche = vi.fn().mockResolvedValue({ deadlineAt: 1_020_000 });
+      const mode = new QuizMode();
+      mode.setConfig({
+        type: 'QUIZ', payload: treManches, gameId: 1, startQuizManche,
+        serverNow: () => Date.now(),
+      });
+      mode.initialize(treManches);
+      await mode.start();
+
+      expect(startQuizManche).toHaveBeenCalledWith(0);
+      expect(mode.getDisplayData().deadlineAt).toBe(1_020_000);
+
+      // 200 ms prima della scadenza del server la barra è ancora aperta.
+      await vi.advanceTimersByTimeAsync(19_800);
+      expect(mode.getTimerValue()).toBe(1);
+      expect(mode.getDisplayData().revealPending).toBe(false);
+
+      // 200 ms dopo la scadenza la barra è chiusa e parte la suspense.
+      await vi.advanceTimersByTimeAsync(400);
+      expect(mode.getTimerValue()).toBe(0);
+      expect(mode.getDisplayData().revealPending).toBe(true);
+
+      mode.cleanup();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('un refresh durante il respiro riapre la manche solo a respiro finito', async () => {
     vi.useFakeTimers();
     const startQuizManche = vi.fn().mockResolvedValue({});

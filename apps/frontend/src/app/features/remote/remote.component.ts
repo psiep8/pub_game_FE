@@ -251,6 +251,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
   hasAnswered = signal(false);
   /** Manche Quiz in corso e ultima manche già votata. */
   quizManche = signal(0);
+  /** La manche Quiz ha raggiunto la scadenza del server: i tasti si spengono. */
+  quizTimeUp = signal(false);
+  private quizDeadlineTimer?: ReturnType<typeof setTimeout>;
   /** Indovina chi: manche e round a cui appartiene il pulsante PRENOTATI. */
   imageManche = signal(0);
   private imageRound = 0;
@@ -300,7 +303,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
    */
   readonly inputReady = computed(() =>
     !this.resyncing() && !this.paused() && !this.inputBlocked()
-    && this.roundActive() && !this.roundClosed());
+    && this.roundActive() && !this.roundClosed() && !this.quizTimeUp());
   manualOpen = signal(false);
   manualEntry = signal<ManualEntry | null>(null);
   /** `?manuale=` è un'anteprima: i cambi di round non devono chiuderla. */
@@ -676,6 +679,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
             this.quizVoteGeneration++;
             this.quizRoundStartId = typeof status.roundStartId === 'string' ? status.roundStartId : '';
             this.quizManche.set(0);
+            this.armQuizDeadline(0);
           }
           this.roundActive.set(true);
           this.roundClosed.set(false);
@@ -798,6 +802,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
           // abbassarla, altrimenti lo stato corrente successivo sembrerebbe
           // una manche nuova e riaprirebbe i tasti.
           this.quizManche.set(Math.max(knownManche, manche));
+          // La scadenza della manche arriva dalla TV insieme allo stato: la
+          // stessa che chiude la barra in TV, corretta con lo scarto d'orologio.
+          if (status.state?.mancheReveal || status.state?.revealed || status.state?.revealPending) {
+            this.armQuizDeadline(0);
+          } else {
+            this.armQuizDeadline(Number(status.state?.deadlineAt ?? 0));
+          }
           if (status.state?.mancheReveal || status.state?.revealed || status.state?.revealPending) {
             this.gameState.set(PlayerStatus.WAITING);
           } else if (this.questionType() === 'QUIZ' && manche > 0
@@ -1577,6 +1588,25 @@ export class RemoteComponent implements OnInit, OnDestroy {
         this.reliability.lastError.set('Risposta non registrata: riprova.');
       },
     });
+  }
+
+  private armQuizDeadline(deadline: number): void {
+    if (this.quizDeadlineTimer) clearTimeout(this.quizDeadlineTimer);
+    this.quizDeadlineTimer = undefined;
+    if (!Number.isFinite(deadline) || deadline <= 0) {
+      this.quizTimeUp.set(false);
+      return;
+    }
+    const left = deadline - this.reliability.serverNow();
+    if (left <= 0) {
+      this.quizTimeUp.set(true);
+      return;
+    }
+    this.quizTimeUp.set(false);
+    this.quizDeadlineTimer = setTimeout(() => {
+      this.quizDeadlineTimer = undefined;
+      this.quizTimeUp.set(true);
+    }, left);
   }
 
   /**
