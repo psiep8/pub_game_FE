@@ -472,6 +472,12 @@
         @if (azzardoSent()) { Puntata aggiornata: al tempo scaduto vale l’ultima. }
         @else { La puntata parte da sola: ogni tocco vale, senza conferma. }
       </p>
+      } @else if (azzardoState()?.phase === 'READ') {
+      <p class="cavallo-question">{{ azzardoState()?.question }}</p>
+      <p class="azzardo-meta">
+        Manche {{ azzardoState()?.manche ?? 1 }}/{{ azzardoState()?.total ?? 4 }} ·
+        {{ azzardoState()?.category }} · si punta fra pochi secondi
+      </p>
       } @else if (azzardoState()?.phase === 'REVEAL') {
       <div class="status-msg">
         <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">📊</div></div>

@@ -247,3 +247,42 @@ describe('AzzardoMode — ripresa dopo un refresh della TV', () => {
     mode.cleanup();
   });
 });
+
+describe('AzzardoMode — N-12, respiro fra le manche', () => {
+  it('dopo il reveal la domanda dopo è a schermo con la puntata chiusa', async () => {
+    vi.useFakeTimers();
+    const { mode } = setup();
+    const started = mode.start();
+    await vi.advanceTimersByTimeAsync(1300);
+    await started;
+    expect(mode.getDisplayData().phase).toBe(AzzardoPhase.BET);
+
+    // Prima manche: puntata, scadenza, reveal.
+    mode.handlePartyEvent({ action: 'AZZARDO_ACTION', playerName: 'Anna', value: { chips: [0, 0, 3, 0] } });
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(mode.getDisplayData().phase).toBe(AzzardoPhase.REVEAL);
+    await vi.advanceTimersByTimeAsync(7_000);
+
+    const reading = mode.getDisplayData();
+    expect(reading.phase).toBe(AzzardoPhase.READ);
+    expect(reading.question).toBe('Quanto è alto?');
+    expect(reading.manche).toBe(2);
+    // Il conto alla rovescia del respiro è partito: cinque secondi o meno.
+    expect(reading.secondsLeft).toBeGreaterThan(0);
+    expect(reading.secondsLeft).toBeLessThanOrEqual(5);
+
+    // La puntata è chiusa: una fiche arrivata adesso non entra sul tavolo.
+    const before = mode.getDisplayData().rows.map((row: any) => row.stake);
+    mode.handlePartyEvent({ action: 'AZZARDO_ACTION', playerName: 'Anna', value: { chips: [0, 0, 0, 4] } });
+    expect(mode.getDisplayData().rows.map((row: any) => row.stake)).toEqual(before);
+
+    // Passato il respiro si riapre la puntata da trenta secondi.
+    await vi.advanceTimersByTimeAsync(5_000);
+    const betting = mode.getDisplayData();
+    expect(betting.phase).toBe(AzzardoPhase.BET);
+    expect(betting.secondsLeft).toBeGreaterThanOrEqual(29);
+
+    mode.cleanup();
+    vi.useRealTimers();
+  });
+});

@@ -310,11 +310,11 @@ serata); il Black Jack resta fuori perché non è in scaletta.
 ricalcola dal codice: se un timer cambia e il documento no, il test fallisce.
 
 **Numeri (solo tempo di gioco dei 40 round).** Atti con otto squadre: 12'00",
-16'54", 17'11", 14'49", 19'26". Serata: 77'40" con 4 squadre, 80'20" con 8,
-81'40" con 10, 84'20" con 14, 88'20" con 20. Classifiche, bonus e pause stanno
-fuori e restano a carico della regia. I numeri sono cresciuti di 45" in tutto
-rispetto alla prima stesura perché il Quiz ora conta il respiro fra le manche
-(N-12).
+17'09", 17'11", 15'04", 19'26". Serata: 78'10" con 4 squadre, 80'50" con 8,
+82'10" con 10, 84'50" con 14, 88'50" con 20. Classifiche, bonus e pause stanno
+fuori e restano a carico della regia. I numeri sono cresciuti di 75" in tutto
+rispetto alla prima stesura perché Quiz e Azzardo ora contano il respiro fra le
+manche (N-12).
 
 ### N-12 respiro fra le manche — **Fatto per il Quiz**
 
@@ -335,7 +335,17 @@ schermo con il timer fermo»: a metà respiro `isReading` è vero, il timer è p
 e la manche non è annunciata al server; alla fine la manche parte e il cronometro
 scende. `tv-timing.spec.ts` blinda la durata 4–5 s.
 
+**Azzardo, stesso giro.** Anche lì il passaggio era automatico: finiti i 7 s di
+reveal partiva la puntata della manche dopo, con il cronometro già a 30 s. Ora
+c'è una fase `READ` di 5 s (`READ_SECONDS` da `TV_TIMING.mancheBreathMs`): la
+domanda dopo è a schermo, le fiches non si possono mettere (`handlePartyEvent`
+accetta solo in `BET`) e la TV dice «SI PUNTA FRA POCO», il telefono mostra la
+stessa domanda. Il round passa da 2'33" a 2'48" e la tabella degli atti è
+ricalcolata. Test in `azzardo.mode.spec.ts` → «dopo il reveal la domanda dopo è
+a schermo con la puntata chiusa»: fase `READ`, domanda della manche 2, fiche
+rifiutate, poi `BET` da 30 s. Anche `restore()` riconosce la fase di lettura.
+
 **Gli altri giochi.** Indovina chi, Time Buzzer e Biglie hanno le manche
 comandate dalla regia, quindi il presentatore ha già il tempo di leggere; la
-Ruota ha un round unico. Resta l'**Azzardo**, che passa da solo alla puntata
-dopo: è la prossima voce del blocco.
+Ruota ha un round unico. Con questo, N-12 è chiuso per tutti i giochi con
+passaggio automatico fra le manche.

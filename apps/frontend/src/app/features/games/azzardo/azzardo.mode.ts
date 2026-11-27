@@ -1,5 +1,6 @@
 import { GamePhase } from '../../../shared/enums/game-phase';
 import { WsAction } from '../../../shared/enums/ws-action';
+import { TV_TIMING } from '../../tv/tv-timing';
 import { signal } from '@angular/core';
 import { GameModeBase } from '../../../shared/models/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../../../shared/models/game-mode-type';
@@ -26,6 +27,8 @@ import {
 /** Fasi di Azzardo: le comuni arrivano da `GamePhase`. */
 export const AzzardoPhase = {
   BET: 'BET',
+  /** Lettura della domanda dopo, con la puntata chiusa (N-12). */
+  READ: 'READ',
   REVEAL: GamePhase.REVEAL,
   FINALE: GamePhase.FINALE,
 } as const;
@@ -83,8 +86,11 @@ const BET_SECONDS = 30;
 const NO_BET_PENALTY = 100;
 const REVEAL_SECONDS = 7;
 const FINALE_SECONDS = 5;
-/** Manche con la loro puntata, più il finale. */
-export const AZZARDO_ROUND_SECONDS = AZZARDO_MANCHES * (BET_SECONDS + REVEAL_SECONDS) + FINALE_SECONDS;
+/** Il respiro fra le manche (N-12): la domanda dopo è a schermo, puntata chiusa. */
+const READ_SECONDS = Math.round(TV_TIMING.mancheBreathMs / 1000);
+/** Manche con la loro puntata e i respiri, più il finale. */
+export const AZZARDO_ROUND_SECONDS =
+  AZZARDO_MANCHES * (BET_SECONDS + REVEAL_SECONDS) + (AZZARDO_MANCHES - 1) * READ_SECONDS + FINALE_SECONDS;
 
 /**
  * AZZARDO — quattro manche, una per categoria.
@@ -348,8 +354,21 @@ export class AzzardoMode extends GameModeBase {
       this.finale();
     } else {
       this.manche.set(this.manche() + 1);
-      this.startBet();
+      this.beginRead();
     }
+  }
+
+  /**
+   * Il respiro fra le manche (N-12): la domanda successiva è a schermo con la
+   * puntata chiusa, poi si riaprono le fiches. Niente 3-2-1.
+   */
+  private beginRead(): void {
+    this.phase.set(AzzardoPhase.READ);
+    this.secondsLeft.set(READ_SECONDS);
+    this.syncRows();
+    this.publish();
+    this.startClock(READ_SECONDS, () => this.startBet());
+    this.saveCheckpoint();
   }
 
   private finale(): void {
@@ -415,6 +434,16 @@ export class AzzardoMode extends GameModeBase {
     this.pausedAt = null;
 
     const phase = String(state.phase);
+    if (phase === AzzardoPhase.READ) {
+      this.phase.set(AzzardoPhase.READ);
+      if (seconds <= 0) {
+        this.startBet();
+        return;
+      }
+      this.startClock(seconds, () => this.startBet());
+      this.saveCheckpoint();
+      return;
+    }
     if (phase === AzzardoPhase.REVEAL) {
       this.phase.set(AzzardoPhase.REVEAL);
       this.startClock(seconds, () => this.advanceAfterReveal());

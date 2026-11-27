@@ -25,6 +25,7 @@ import { CommonModule } from '@angular/common';
         <div class="az-kicker">AZZARDO</div>
         <h2 class="az-title">
           @if (displayData?.phase === AzzardoPhase.BET) { PUNTA SULLA RISPOSTA }
+          @else if (displayData?.phase === AzzardoPhase.READ) { SI PUNTA FRA POCO }
           @else if (displayData?.phase === AzzardoPhase.REVEAL) { IL VALORE È }
           @else { CLASSIFICA DEL ROUND }
         </h2>
