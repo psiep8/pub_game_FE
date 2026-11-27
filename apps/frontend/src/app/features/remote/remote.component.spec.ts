@@ -1277,7 +1277,7 @@ describe('RemoteComponent', () => {
     expect(ws.publishedAnswers.length).toBe(before);
   });
 
-  it('N-14: i tasti Quiz si spengono alla scadenza della manche del server', async () => {
+  it('N-14: barra e tasti Quiz seguono la scadenza della manche del server', async () => {
     vi.useFakeTimers();
     try {
       vi.setSystemTime(1_000_000);
@@ -1286,17 +1286,21 @@ describe('RemoteComponent', () => {
       ws.status$.next({
         action: 'QUIZ_STATE',
         roundStartId: 'quiz-r1',
-        state: { manche: 1, deadlineAt: 1_001_000 },
+        state: { manche: 1, deadlineAt: 1_015_000 },
       });
 
       expect(component.inputReady()).toBe(true);
-      await vi.advanceTimersByTimeAsync(800);
+      expect(component.quizBarPercent()).toBe(100);
+      // 200 ms prima della scadenza del server barra e tasti sono ancora vivi,
+      // anche se la TV non ha ancora mandato il reveal.
+      await vi.advanceTimersByTimeAsync(14_800);
+      expect(component.quizBarPercent()).toBeGreaterThan(0);
       expect(component.inputReady()).toBe(true);
 
-      // 200 ms dopo la scadenza del server i tasti sono spenti, anche se la
-      // TV non ha ancora mandato il reveal.
+      // 200 ms dopo la scadenza i tasti sono spenti e la barra è a zero.
       await vi.advanceTimersByTimeAsync(400);
       expect(component.quizTimeUp()).toBe(true);
+      expect(component.quizBarPercent()).toBe(0);
       expect(component.inputReady()).toBe(false);
     } finally {
       vi.useRealTimers();

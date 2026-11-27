@@ -24,6 +24,7 @@ import { AudioService } from '../../core/services/audio.service';
 import { ThemeService, THEME_OPTIONS, type AppTheme } from '../../core/services/theme.service';
 import { ReliabilityService } from '../../core/services/reliability.service';
 import { PlayerAvatarService } from '../../core/services/player-avatar.service';
+import { GAME_TIMINGS } from '../../shared/models/game-timings';
 import {
   type SpeedTask,
 } from '../games/speed-rush/speed-rush-deck';
@@ -253,7 +254,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
   quizManche = signal(0);
   /** La manche Quiz ha raggiunto la scadenza del server: i tasti si spengono. */
   quizTimeUp = signal(false);
-  private quizDeadlineTimer?: ReturnType<typeof setTimeout>;
+  /** Barra Quiz: 100 all'apertura, 0 alla scadenza assoluta del server. */
+  quizBarPercent = signal(100);
+  private quizDeadlineAt = 0;
+  private quizBarTimer?: ReturnType<typeof setInterval>;
   /** Indovina chi: manche e round a cui appartiene il pulsante PRENOTATI. */
   imageManche = signal(0);
   private imageRound = 0;
@@ -1591,22 +1595,34 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   private armQuizDeadline(deadline: number): void {
-    if (this.quizDeadlineTimer) clearTimeout(this.quizDeadlineTimer);
-    this.quizDeadlineTimer = undefined;
+    if (this.quizBarTimer) clearInterval(this.quizBarTimer);
+    this.quizBarTimer = undefined;
+    this.quizDeadlineAt = 0;
     if (!Number.isFinite(deadline) || deadline <= 0) {
       this.quizTimeUp.set(false);
+      this.quizBarPercent.set(100);
       return;
     }
-    const left = deadline - this.reliability.serverNow();
-    if (left <= 0) {
-      this.quizTimeUp.set(true);
-      return;
-    }
+    this.quizDeadlineAt = deadline;
     this.quizTimeUp.set(false);
-    this.quizDeadlineTimer = setTimeout(() => {
-      this.quizDeadlineTimer = undefined;
-      this.quizTimeUp.set(true);
-    }, left);
+    this.updateQuizBar();
+    if (this.quizTimeUp()) return;
+    // Tick a 100 ms: la barra e i tasti leggono la stessa scadenza assoluta,
+    // corretta con lo scarto d'orologio del server (non un contatore locale).
+    this.quizBarTimer = setInterval(() => this.updateQuizBar(), 100);
+  }
+
+  private updateQuizBar(): void {
+    const deadline = this.quizDeadlineAt;
+    if (!deadline) return;
+    const left = deadline - this.reliability.serverNow();
+    const total = GAME_TIMINGS.QUIZ.mancheSeconds * 1000;
+    this.quizBarPercent.set(Math.max(0, Math.min(100, (left / total) * 100)));
+    if (left > 0) return;
+    this.quizTimeUp.set(true);
+    this.quizBarPercent.set(0);
+    if (this.quizBarTimer) clearInterval(this.quizBarTimer);
+    this.quizBarTimer = undefined;
   }
 
   /**
@@ -3585,6 +3601,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (this.roundDeadlineWatch) {
       clearInterval(this.roundDeadlineWatch);
       this.roundDeadlineWatch = undefined;
+    }
+    if (this.quizBarTimer) {
+      clearInterval(this.quizBarTimer);
+      this.quizBarTimer = undefined;
     }
     if (this.bombaFlashTimer) clearTimeout(this.bombaFlashTimer);
     if (this.hapticTimer) {

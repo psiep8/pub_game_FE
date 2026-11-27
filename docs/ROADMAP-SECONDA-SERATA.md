@@ -370,14 +370,15 @@ e i suoi tasti restavano vivi fino al reveal.
 restituisce `startQuizManche`; il tick è a 100 ms e calcola il tempo da
 `serverNow()` (orologio corretto dallo scarto), non da un contatore locale. La
 pausa sposta la scadenza del tempo passato in pausa. Il `deadlineAt` viaggia nel
-`QUIZ_STATE`: il telefono spegne i tasti Quiz alla stessa scadenza, anche se il
-reveal non è ancora arrivato. Sul telefono non c'è una barra separata: la
-finestra di voto è quella.
+`QUIZ_STATE`: il telefono disegna la sua barra Quiz e spegne i tasti sulla
+stessa scadenza assoluta, con `serverNow()`, anche se il reveal non è ancora
+arrivato. La barra va da 100 a 0 con tick a 100 ms; a zero i tasti sono spenti.
 
 **Test.** `quiz.mode.spec.ts` → «la barra chiude alla scadenza del server, non
 al timer locale [N-14]»: a 200 ms dalla scadenza la barra è aperta, a 200 ms dopo
-è chiusa. `remote.component.spec.ts` → «i tasti Quiz si spengono alla scadenza
-della manche del server». Verifiche: quiz 26/26, remote 142/142, TV 148/148,
+è chiusa. `remote.component.spec.ts` → «barra e tasti Quiz seguono la scadenza
+della manche del server»: a 200 ms prima barra > 0 e tasti vivi, a 200 ms dopo
+barra 0 e tasti spenti. Verifiche: quiz 26/26, remote 142/142, TV 148/148,
 build frontend verde. **Da fare in sala:** TV + telefoni reali, manche Quiz,
 scarto d'orologio e pausa.
 

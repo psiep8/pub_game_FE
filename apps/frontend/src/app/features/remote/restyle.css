@@ -625,6 +625,21 @@
 }
 
 /* ------------------------------------------------------- Risposte quiz */
+.quiz-clock {
+  height: 10px;
+  margin: 2px 0 8px;
+  background: var(--paper-hi);
+  border: 2px solid var(--coal);
+  border-radius: 0;
+  box-shadow: 3px 3px 0 var(--coal);
+  overflow: hidden;
+}
+.quiz-clock-fill {
+  display: block;
+  height: 100%;
+  background: var(--acid);
+  border-right: 2px solid var(--coal);
+}
 .voting-grid { gap: 10px; }
 .vote-btn {
   min-height: clamp(94px, 17vh, 148px);
