@@ -602,8 +602,9 @@ con due o tre si fermano al tetto di 17vh (122,4 px) e con cinque stanno a 95,6;
 da otto in su la misura resta quella di sempre. A 1920×1080 controlla il foglio
 da 1680 px e le righe 183,6 / 151,4 / 90,9 / 70,7 / 96, senza scroll. A 1100 e
 1366 controlla che il foglio resti 92vw sotto i 1280 (1012) e cresca sopra
-(1195,3). A 3840×2160 controlla il foglio 3360 e le righe 367,2 / 367 / 96,
-senza scroll.
+(1195,3). A 3840×2160 controlla il foglio 3360 e le righe 367,2 / 325,6 / 192 /
+152,8, senza scroll; a 4K con DPR 2 controlla che il CSS resti 1920×1080, il
+foglio 1680 CSS (3360 device) e le righe 183,6/70,7.
 
 **Misura a 1280×720 (Chromium, DPR 1, banco con 4/8/10/14/20 squadre).** Il
 foglio sta in 1120×640.7 (80→1200), testata 62→127, piede a 680.4, nessuno
@@ -676,15 +677,28 @@ prima. Ora il minimo è 1120 con `max-width: 92vw`: a 1100 il foglio è 1012, a
 scroll. A 1024 il `/tv` non si apre: il guard desktop manda su `/play` (≤1024 è
 mobile), quindi il caso più stretto misurabile è 1025; il banco usa 1100.
 
-**Misura a 3840×2160.** A 4K CSS il foglio era 1680 (43,75%, 1080→2760); con
-il tetto a 3360 è 3360 (240→3600, 87,5%). Matrice a 3840×2160 (DPR 1, dock e
-pausa): righe 367,2 per 2/3/4 squadre, 367 per 5, 96 per 8/10/14/20, piede a
-2109,1, nessuno scroll. Però righe e tipi restano quelli di 1080: 96 px, nomi
-28,8, titolo 54,4, dock 64. Il solo tetto non rende leggibile un 4K CSS: serve
-una skin 2× (righe 192, nomi 57,6, titolo 108,8) oppure il 200% di zoom, che
-riporta il CSS a 1920 e usa il tetto 1680 (1680 CSS = 3360 device, sempre
-l'87,5%). Con DPR 2 il foglio è già 1680 CSS su 1920: il tetto 3360 non cambia
-nulla.
+**Scelta: skin 4K, non 200%.** A 4K CSS il foglio era 1680 (43,75%,
+1080→2760); con il tetto a 3360 e la skin è 3360 (240→3600, 87,5%). La skin si
+attiva con `(min-width: 3200px) and (min-height: 1800px)` e raddoppia righe e
+tipi: righe 367,2 per 2/3/4 squadre, 325,6 per 5, 192 per 8/14/20, 152,8 per
+10; nomi 70,4 con poche righe e 57,6 altrimenti, titolo 108,8, totali 48/40.
+Piede a 2064, nessuno scroll, nomi mai tagliati. Con DPR 2 il CSS resta
+1920×1080: la skin non si applica, il foglio è 1680 CSS = 3360 device px
+(87,5%) e le righe restano 183,6/70,7 come a 1080. A 4K CSS la dock resta 64
+px: il riepilogo è leggibile, il resto della TV no, e quello è un intervento
+globale separato.
+
+| Squadre | Righe | Altezza | Prima riga | Ultima riga | Ombra destra | Ultima ombra | Piede |
+| --: | --: | --: | --: | --: | --: | --: | --: |
+| 2 | 2 | 367.2 | 776.8 | 1531.1 | 3600 | 1541.1 | 2064 |
+| 3 | 3 | 367.2 | 583.2 | 1724.7 | 3600 | 1734.7 | 2064 |
+| 4 | 4 | 367.2 | 389.6 | 1918.3 | 3600 | 1928.3 | 2064 |
+| 5 | 5 | 325.6 | 299.9 | 2008.0 | 3600 | 2018.0 | 2064 |
+| 8 | 8 | 192 | 316.0 | 1992.0 | 3600 | 2002.0 | 2064 |
+| 10 | 10 | 152.8 | 299.9 | 2008.0 | 3600 | 2018.0 | 2064 |
+| 14 | 7 | 192 | 422.0 | 1886.0 | 3594 | 1896.0 | 2064 |
+| 20 | 7 | 192 | 422.0 | 1886.0 | 3594 | 1896.0 | 2064 |
+| 20, podio | 6 | 192 | 528.0 | 1780.0 | 3594 | 1790.0 | 2064 |
 
 | Squadre | Righe | Altezza | Prima riga | Ultima riga | Ombra destra | Ultima ombra | Piede |
 | --: | --: | --: | --: | --: | --: | --: | --: |
@@ -729,8 +743,8 @@ o tre squadre il tetto di 17vh ferma le righe a 122,4 px, perché senza
 crescerebbero a 249,9 e 164,2. A 1080p il foglio restava 1120 px su 1920: ora
 `clamp(1120px, 87.5vw, 1680px)` con `max-width: 92vw` lo porta a 1680 (120 px
 di margine per lato), mentre a 1280 resta 1120 e sotto i 1280 resta 92vw. A 4K
-CSS il tetto sale a 3360 (87,5%), ma righe e tipi restano quelli di 1080: il
-solo tetto non basta, serve la skin 2× o il 200%. La scena vera
+CSS il tetto sale a 3360 e la skin raddoppia righe e tipi; a 4K con DPR 2 il CSS
+resta 1920 e il foglio 1680 (3360 device). La scena vera
 ha aggiunto tre difetti che il banco isolato non poteva vedere: dock coperta
 dallo z-index, testata sotto la dock (mancava la fascia) e nomi centrati dal
 `text-align: center` legacy di `.game-container`.

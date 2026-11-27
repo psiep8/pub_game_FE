@@ -277,6 +277,51 @@
   .recap-total { font-size: clamp(0.78rem, 2.4vh, 1.1rem); }
 }
 
+/* 4K CSS (3840×2160 a DPR 1): la TV non scala da sola, quindi righe e tipi
+   raddoppiano come a 1080p; il foglio usa il tetto di 3360. Con DPR 2 il CSS
+   resta 1920×1080 e questa fascia non si applica. */
+@media (min-width: 3200px) and (min-height: 1800px) {
+  .recap {
+    padding-top: clamp(132px, 9vh, 192px);
+    padding-bottom: 52px;
+  }
+  .recap-sheet { gap: 28px; }
+  .recap-head { gap: 36px; padding-bottom: 24px; }
+  .recap-kicker { font-size: clamp(1.16rem, 3.1vh, 1.6rem); }
+  .recap-title { font-size: clamp(3.4rem, 10.4vh, 6.8rem); }
+  .recap-paused, .recap-counter { font-size: clamp(1.1rem, 2.8vh, 1.56rem); }
+  .recap-rows { gap: clamp(10px, 2vh, 20px); padding: 0 16px 28px 0; }
+  .recap-row {
+    grid-template-columns: clamp(60px, 8.4vh, 92px) minmax(0, 1fr) auto auto;
+    gap: 44px;
+    min-height: clamp(64px, 8.4vh, 100px);
+    max-height: clamp(104px, 18.4vh, 192px);
+    padding: 20px 44px;
+    box-shadow: 10px 10px 0 var(--coal);
+  }
+  .recap-pos {
+    width: clamp(60px, 8.4vh, 92px);
+    height: clamp(60px, 8.4vh, 92px);
+    font-size: clamp(1.6rem, 4.4vh, 2.6rem);
+  }
+  .recap-name { font-size: clamp(1.84rem, 6vh, 3.6rem); }
+  .recap-delta { font-size: clamp(1.9rem, 6vh, 3.4rem); }
+  .recap-total { font-size: clamp(1.6rem, 4.4vh, 2.5rem); }
+  .recap-rows.is-podium .recap-row.gold { box-shadow: 16px 16px 0 var(--tomato); }
+  .recap-rows.is-few .recap-row {
+    grid-template-columns: clamp(76px, 10.8vh, 108px) minmax(0, 1fr) auto auto;
+  }
+  .recap-rows.is-few .recap-pos {
+    width: clamp(68px, 10.8vh, 108px);
+    height: clamp(68px, 10.8vh, 108px);
+    font-size: clamp(1.9rem, 5.6vh, 3rem);
+  }
+  .recap-rows.is-few .recap-name,
+  .recap-rows.is-few .recap-delta { font-size: clamp(2.2rem, 8.4vh, 4.4rem); }
+  .recap-rows.is-few .recap-total { font-size: clamp(1.9rem, 6.4vh, 3rem); }
+  .recap-note { font-size: clamp(1.1rem, 2.9vh, 1.48rem); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .recap-row { animation: none; }
 }

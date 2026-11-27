@@ -455,6 +455,47 @@ test.describe('N-11: riepilogo a 1920×1080', () => {
   });
 });
 
+test.describe('N-11: 4K con DPR 2', () => {
+  test.use({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 2 });
+
+  test('a 4K il CSS resta 1920×1080 e il foglio 1680', async ({ page }) => {
+    test.setTimeout(120_000);
+    await openTv(page);
+
+    expect(await page.evaluate(() => window.devicePixelRatio)).toBe(2);
+    expect(
+      await page.evaluate(() => window.innerWidth * window.devicePixelRatio),
+      'larghezza in pixel del pannello 4K',
+    ).toBe(3840);
+
+    await openRecap(page, 4);
+    const four = await layout(page);
+    expect(four.sheet!.right - four.sheet!.left).toBeCloseTo(1680, 0);
+    expect(four.sheet!.right).toBeGreaterThan(1799);
+    expect(four.sheet!.right).toBeLessThan(1801);
+    expect(four.few).toBe(true);
+    expect(four.rows[0].height).toBeCloseTo(183.6, 0);
+    await page.evaluate(() => {
+      const component: any = (window as any).ng.getComponent(
+        document.querySelector('app-game-component'),
+      );
+      if (component.roundRecapOpen()) component.onRoundRecapComplete();
+      component.stopAutoAdvance();
+    });
+    await expect(page.locator('.recap-sheet')).toHaveCount(0);
+
+    await openRecap(page, 10);
+    const ten = await layout(page);
+    expect(ten.sheet!.right).toBeGreaterThan(1799);
+    expect(ten.sheet!.right).toBeLessThan(1801);
+    expect(ten.rows[0].height).toBeCloseTo(70.7, 0);
+    console.log(
+      `N-11 4K DPR2 n=4 h=${four.rows[0]?.height} n=10 h=${ten.rows[0]?.height} `
+      + `foglio=${four.sheet!.right - four.sheet!.left}`,
+    );
+  });
+});
+
 test.describe('N-11: riepilogo a 3840×2160', () => {
   test.use({ viewport: { width: 3840, height: 2160 } });
 
@@ -465,7 +506,7 @@ test.describe('N-11: riepilogo a 3840×2160', () => {
     // Le righe restano quelle di 1080p: la variante poche righe cresce in vh
     // (367,2), le altre si fermano al tetto di 96 px.
     const heights: Record<number, number> = {
-      2: 367.2, 3: 367.2, 4: 367.2, 5: 367.0, 8: 96, 10: 96, 14: 96, 20: 96,
+      2: 367.2, 3: 367.2, 4: 367.2, 5: 325.6, 8: 192, 10: 152.8, 14: 192, 20: 192,
     };
 
     for (const count of [2, 3, 4, 5, 8, 10, 14, 20]) {
