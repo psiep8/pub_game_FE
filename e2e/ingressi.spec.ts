@@ -332,6 +332,17 @@ test.describe('N-10: foto e card', () => {
     expect(frame.map((node) => `${node.node}=${node.value}`).join(' ')).toBe('');
     expect(row.cls).toBeLessThan(0.01);
   });
+
+  test('la card di Biglie non cambia altezza', async ({ browser }) => {
+    test.setTimeout(300_000);
+    const token = await bootstrapToken(browser);
+    const row = await measureGame(browser, token, { game: 'BIGLIE', round: 10 });
+    console.log(`N-10 card cls=${row.cls} shift=${row.shifts} nodi=${JSON.stringify(row.nodes)}`);
+    expect(row.scene).toBe('BIGLIE');
+    const card = row.nodes.filter((node) => node.node.includes('bg-card'));
+    expect(card.map((node) => `${node.node}=${node.value}`).join(' ')).toBe('');
+    expect(row.cls).toBeLessThan(0.01);
+  });
 });
 
 /**

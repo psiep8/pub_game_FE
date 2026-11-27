@@ -394,10 +394,14 @@ la TV lo riallinea allo stato del server, che su una partita nuova è il round 0
    ogni 90 ms; il rullo, centrato, si spostava a ogni tick. **Corretto** con una
    scatola fissa (larghezza 560 px, altezza di due righe riservate): il nastro
    gira dentro un riquadro che non cambia mai misura.
-2. **Il layout della scena che si assesta** (Indovina chi: `clue-card`,
-   `blur-title`, `blur-main-container`; Biglie: `bg-card`): un solo shift da
-   0,03 con foto e card che prendono la loro altezza definitiva dopo il primo
-   disegno.
+2. **Foto e card che si assestano** (Indovina chi: `clue-card`, `blur-title`,
+   `blur-main-container`, un solo shift da 0,034; Biglie: `bg-card`, 0,010).
+   Indovina chi: la cornice seguiva la foto (`width/height: auto`), quindi al
+   caricamento dell'immagine la colonna centrata cresceva di colpo e titolo,
+   foto e indizio saltavano insieme. **Corretto** con un riquadro a misura
+   fissa (760×46vh) che contiene la foto, come uno schermo. Biglie: la card si
+   allargava passando dall'intro alla griglia delle biglie. **Corretto** con
+   un'altezza minima riservata (`clamp(420px, 64vh, 600px)`).
 3. **`div.conn-shell`** (0,001 in tutti): lo shell di connessione che cambia
    altezza quando arriva lo stato del round.
 
@@ -423,5 +427,17 @@ con tre telefoni, aspetta che il nastro parta, conta i nomi diversi visti (11 in
 5,5 s: senza questo il test potrebbe passare su un rullo mai partito) e
 pretende zero shift da `slot-row` e CLS < 0,005.
 
-**Da fare.** Le altre due famiglie: altezze riservate per foto e card (Indovina
-chi 0,031, Biglie 0,011) e `div.conn-shell` a misura fissa (0,001 su tutti).
+**Tabella (dopo foto e card).** Stesso banco, stessi due giochi a 1280×720 e
+CPU 4×:
+
+| Gioco | CLS prima | CLS dopo | shift prima | shift dopo | nodi rimasti |
+| --- | --- | --- | --- | --- | --- |
+| Indovina chi | 0,031 | **0,001** | 1 | 0 | `div.conn-shell` (0,001) |
+| Biglie | 0,011 | **0,001** | 1 | 0 | `div.conn-shell` (0,001) |
+
+Né `div.blur-main-container` né `div.bg-card` compaiono più fra i nodi. Nelle prove
+dei due guard, misurate separatamente, Indovina chi stava a 0,004 (lobby che si
+smonta) e Biglie a 0,000; qui restano i 0,001 di `div.conn-shell` in entrambi.
+
+**Da fare.** Resta `div.conn-shell` a misura fissa (0,001 su quasi tutti i giochi)
+e i long task, che nessuna delle due correzioni tocca.
