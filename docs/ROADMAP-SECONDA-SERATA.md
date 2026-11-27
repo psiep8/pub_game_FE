@@ -602,7 +602,8 @@ con due o tre si fermano al tetto di 17vh (122,4 px) e con cinque stanno a 95,6;
 da otto in su la misura resta quella di sempre. A 1920×1080 controlla il foglio
 da 1680 px e le righe 183,6 / 151,4 / 90,9 / 70,7 / 96, senza scroll. A 1100 e
 1366 controlla che il foglio resti 92vw sotto i 1280 (1012) e cresca sopra
-(1195,3).
+(1195,3). A 3840×2160 controlla il foglio 3360 e le righe 367,2 / 367 / 96,
+senza scroll.
 
 **Misura a 1280×720 (Chromium, DPR 1, banco con 4/8/10/14/20 squadre).** Il
 foglio sta in 1120×640.7 (80→1200), testata 62→127, piede a 680.4, nessuno
@@ -675,6 +676,28 @@ prima. Ora il minimo è 1120 con `max-width: 92vw`: a 1100 il foglio è 1012, a
 scroll. A 1024 il `/tv` non si apre: il guard desktop manda su `/play` (≤1024 è
 mobile), quindi il caso più stretto misurabile è 1025; il banco usa 1100.
 
+**Misura a 3840×2160.** A 4K CSS il foglio era 1680 (43,75%, 1080→2760); con
+il tetto a 3360 è 3360 (240→3600, 87,5%). Matrice a 3840×2160 (DPR 1, dock e
+pausa): righe 367,2 per 2/3/4 squadre, 367 per 5, 96 per 8/10/14/20, piede a
+2109,1, nessuno scroll. Però righe e tipi restano quelli di 1080: 96 px, nomi
+28,8, titolo 54,4, dock 64. Il solo tetto non rende leggibile un 4K CSS: serve
+una skin 2× (righe 192, nomi 57,6, titolo 108,8) oppure il 200% di zoom, che
+riporta il CSS a 1920 e usa il tetto 1680 (1680 CSS = 3360 device, sempre
+l'87,5%). Con DPR 2 il foglio è già 1680 CSS su 1920: il tetto 3360 non cambia
+nulla.
+
+| Squadre | Righe | Altezza | Prima riga | Ultima riga | Ombra destra | Ultima ombra | Piede |
+| --: | --: | --: | --: | --: | --: | --: | --: |
+| 2 | 2 | 367.2 | 771.3 | 1515.7 | 3600 | 1520.7 | 2109.1 |
+| 3 | 3 | 367.2 | 582.7 | 1704.3 | 3600 | 1709.3 | 2109.1 |
+| 4 | 4 | 367.2 | 394.1 | 1892.8 | 3600 | 1897.8 | 2109.1 |
+| 5 | 5 | 367.0 | 206.0 | 2081.0 | 3600 | 2086.0 | 2109.1 |
+| 8 | 8 | 96 | 724.5 | 1562.5 | 3600 | 1567.5 | 2109.1 |
+| 10 | 10 | 96 | 618.5 | 1668.5 | 3600 | 1673.5 | 2109.1 |
+| 14 | 7 | 96 | 777.5 | 1509.5 | 3597 | 1514.5 | 2109.1 |
+| 20 | 7 | 96 | 777.5 | 1509.5 | 3597 | 1514.5 | 2109.1 |
+| 20, podio | 6 | 96 | 830.5 | 1456.5 | 3597 | 1461.5 | 2109.1 |
+
 **ESC, pausa e ripresa** (tastiera vera, otto secondi di pausa per caso). Il
 tempo fermo non scende, la pagina non cambia e la scena resta aperta; alla
 ripresa l'orologio riparte dai millisecondi rimasti, non da capo:
@@ -705,7 +728,9 @@ fermava a metà foglio; da otto in su la misura resta quella di sempre). Con due
 o tre squadre il tetto di 17vh ferma le righe a 122,4 px, perché senza
 crescerebbero a 249,9 e 164,2. A 1080p il foglio restava 1120 px su 1920: ora
 `clamp(1120px, 87.5vw, 1680px)` con `max-width: 92vw` lo porta a 1680 (120 px
-di margine per lato), mentre a 1280 resta 1120 e sotto i 1280 resta 92vw. La scena vera
+di margine per lato), mentre a 1280 resta 1120 e sotto i 1280 resta 92vw. A 4K
+CSS il tetto sale a 3360 (87,5%), ma righe e tipi restano quelli di 1080: il
+solo tetto non basta, serve la skin 2× o il 200%. La scena vera
 ha aggiunto tre difetti che il banco isolato non poteva vedere: dock coperta
 dallo z-index, testata sotto la dock (mancava la fascia) e nomi centrati dal
 `text-align: center` legacy di `.game-container`.

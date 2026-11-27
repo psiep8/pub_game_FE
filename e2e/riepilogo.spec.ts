@@ -454,3 +454,57 @@ test.describe('N-11: riepilogo a 1920×1080', () => {
     }
   });
 });
+
+test.describe('N-11: riepilogo a 3840×2160', () => {
+  test.use({ viewport: { width: 3840, height: 2160 } });
+
+  test('a 4K il foglio prende 7/8 della larghezza', async ({ page }) => {
+    test.setTimeout(180_000);
+    await openTv(page);
+
+    // Le righe restano quelle di 1080p: la variante poche righe cresce in vh
+    // (367,2), le altre si fermano al tetto di 96 px.
+    const heights: Record<number, number> = {
+      2: 367.2, 3: 367.2, 4: 367.2, 5: 367.0, 8: 96, 10: 96, 14: 96, 20: 96,
+    };
+
+    for (const count of [2, 3, 4, 5, 8, 10, 14, 20]) {
+      await openRecap(page, count);
+      const before = await layout(page);
+
+      // 3360 su 3840: 7/8 della larghezza, come 1120 su 1280.
+      expect(before.sheet!.left, `margine sinistro a ${count}`).toBeGreaterThan(239);
+      expect(before.sheet!.left, `margine sinistro a ${count}`).toBeLessThan(241);
+      expect(before.sheet!.right, `margine destro a ${count}`).toBeGreaterThan(3599);
+      expect(before.sheet!.right, `margine destro a ${count}`).toBeLessThan(3601);
+      expect(before.scroll).toEqual([3840, 2160]);
+      expect(before.header!.top).toBeGreaterThanOrEqual(before.dock!.bottom - 0.5);
+      expect(before.few, `variante poche righe a ${count}`).toBe(count <= 5);
+      expect(before.rows.length).toBe(count <= 10 ? count : 7);
+
+      for (const row of before.rows) {
+        expect(row.height, `riga fuori misura a ${count} squadre`).toBeGreaterThan(heights[count] - 2.5);
+        expect(row.height, `riga fuori misura a ${count} squadre`).toBeLessThan(heights[count] + 2.5);
+        expect(row.shadowRight, `ombra oltre il foglio (${row.name})`).toBeLessThanOrEqual(3600.5);
+        expect(row.shadowBottom, `ombra sul piede (${row.name})`).toBeLessThanOrEqual(before.footer!.top + 0.5);
+        expect(row.clipped, `nome tagliato (${row.name})`).toBe(false);
+      }
+      if (count === 4) {
+        expect(before.rows.at(-1)!.bottom, 'la pagina da quattro non riempie').toBeGreaterThan(1800);
+      }
+      console.log(
+        `N-11 4K n=${count} righe=${before.rows.length} h=${before.rows[0]?.height} `
+        + `foglio=${before.sheet!.left}→${before.sheet!.right} ultima=${before.rows.at(-1)?.bottom}`,
+      );
+
+      await page.evaluate(() => {
+        const component: any = (window as any).ng.getComponent(
+          document.querySelector('app-game-component'),
+        );
+        if (component.roundRecapOpen()) component.onRoundRecapComplete();
+        component.stopAutoAdvance();
+      });
+      await expect(page.locator('.recap-sheet')).toHaveCount(0);
+    }
+  });
+});
