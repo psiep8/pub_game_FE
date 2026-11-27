@@ -118,7 +118,7 @@ jobs:
           test -f "$SUMMARY_PATH" || (echo "simulazione non conclusa"; exit 1)
 
   reproducibility:
-    name: Riproducibilità (backend + 3 E2E, checkout pulito)
+    name: Riproducibilità (backend + E2E, checkout pulito)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -147,11 +147,13 @@ jobs:
         run: npm ci
       - name: Browser E2E
         run: npx playwright install --with-deps chromium
-      - name: Tre E2E da checkout pulito
+      - name: E2E da checkout pulito
         env:
           E2E_BACKEND_PORT: '8095'
           E2E_FRONTEND_PORT: '4295'
-        run: npx playwright test e2e/tv-telefoni.spec.ts --output=test-results-ci
+        run: >-
+          npx playwright test e2e/tv-telefoni.spec.ts e2e/musica-5-manche.spec.ts
+          --output=test-results-ci
       - name: Verifica che l'indice media non sia comparso
         shell: bash
         run: |
