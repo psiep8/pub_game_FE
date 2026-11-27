@@ -30,11 +30,13 @@ class MusicRoundTest {
 
     private LocalMediaBankService media;
     private StateBlobService blobs;
+    private KaraokeService karaoke;
     private final Map<String, String> store = new HashMap<>();
 
     @BeforeEach
     void setUp() {
         media = new LocalMediaBankService("", new ClassPathResource("questions/media-it.json"));
+        karaoke = new KaraokeService();
         blobs = mock(StateBlobService.class);
         store.clear();
 
@@ -54,7 +56,7 @@ class MusicRoundTest {
 
     @Test
     void ogniRoundHaUnTemaEDaCinqueManche() {
-        MusicRoundService service = new MusicRoundService(media, blobs);
+        MusicRoundService service = new MusicRoundService(media, blobs, karaoke);
 
         JSONObject payload = next(service, 1L);
 
@@ -77,7 +79,7 @@ class MusicRoundTest {
 
     @Test
     void ilRoundRispettaIlMixEDistingueGliArtisti() {
-        MusicRoundService service = new MusicRoundService(media, blobs);
+        MusicRoundService service = new MusicRoundService(media, blobs, karaoke);
 
         JSONObject payload = next(service, 2L);
         Map<String, String> difficultyByTitle = new HashMap<>();
@@ -102,7 +104,7 @@ class MusicRoundTest {
 
     @Test
     void quattroRoundNonRipetonoTemaNeBrano() {
-        MusicRoundService service = new MusicRoundService(media, blobs);
+        MusicRoundService service = new MusicRoundService(media, blobs, karaoke);
 
         Set<String> themes = new HashSet<>();
         Set<String> songs = new HashSet<>();
@@ -133,23 +135,53 @@ class MusicRoundTest {
 
     @Test
     void loStatoDellaPartitaSopravviveAlRiavvio() {
-        MusicRoundService service = new MusicRoundService(media, blobs);
+        MusicRoundService service = new MusicRoundService(media, blobs, karaoke);
         Set<String> played = new HashSet<>();
         for (int round = 1; round <= 4; round++) {
             played.add(next(service, 4L).getString("theme"));
         }
 
         // Nuova istanza, stesso database: il sacchetto riparte da dove era.
-        MusicRoundService restarted = new MusicRoundService(media, blobs);
+        MusicRoundService restarted = new MusicRoundService(media, blobs, karaoke);
         JSONObject fifth = next(restarted, 4L);
 
         assertThat(played).doesNotContain(fifth.getString("theme"));
         assertThat(fifth.getInt("round")).isEqualTo(5);
     }
 
+    /**
+     * M-02: i cinque brani del bonus Karaoke di una partita non compaiono mai
+     * nei quattro round di Musica della stessa partita. La banca condivide 41
+     * titoli, quindi la garanzia è per partita, non per file.
+     */
+    @Test
+    void quarantaPartiteNonUsanoMaiIBraniDelKaraoke() {
+        for (long gameId = 1; gameId <= 40; gameId++) {
+            MusicRoundService service = new MusicRoundService(media, blobs, karaoke);
+            Set<String> reserved = new HashSet<>();
+            for (KaraokeService.Manche manche : karaoke.selezione(gameId)) {
+                reserved.add(QuestionHistoryService.normalize(manche.artista())
+                        + "|" + QuestionHistoryService.normalize(manche.titolo()));
+            }
+
+            for (int round = 1; round <= 4; round++) {
+                JSONObject payload = next(service, gameId);
+                JSONArray songs = payload.getJSONArray("songs");
+                for (int index = 0; index < songs.length(); index++) {
+                    JSONObject song = songs.getJSONObject(index);
+                    String key = QuestionHistoryService.normalize(song.getString("artist"))
+                            + "|" + QuestionHistoryService.normalize(song.getString("title"));
+                    assertThat(reserved)
+                            .as("partita " + gameId + ": brano del Karaoke in Musica: " + key)
+                            .doesNotContain(key);
+                }
+            }
+        }
+    }
+
     @Test
     void ogniTemaDellaBancaReggeUnRound() {
-        MusicRoundService service = new MusicRoundService(media, blobs);
+        MusicRoundService service = new MusicRoundService(media, blobs, karaoke);
 
         assertThat(media.hasMusicThemes()).isTrue();
         assertThat(media.musicThemes()).hasSize(10);

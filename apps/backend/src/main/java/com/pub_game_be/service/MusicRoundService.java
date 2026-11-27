@@ -41,6 +41,7 @@ public class MusicRoundService {
 
     private final LocalMediaBankService media;
     private final StateBlobService stateBlobs;
+    private final KaraokeService karaoke;
     private final Random random = new Random();
 
     /** Ultimo stato noto per partita: si rilegge dal database solo al primo uso. */
@@ -49,9 +50,27 @@ public class MusicRoundService {
     private record RoundState(List<String> themes, List<String> songs) {
     }
 
-    public MusicRoundService(LocalMediaBankService media, StateBlobService stateBlobs) {
+    public MusicRoundService(LocalMediaBankService media, StateBlobService stateBlobs,
+            KaraokeService karaoke) {
         this.media = media;
         this.stateBlobs = stateBlobs;
+        this.karaoke = karaoke;
+    }
+
+    /**
+     * Brani riservati al bonus Karaoke di questa partita: la banca condivide 41
+     * titoli con la Musica (la maggior parte delle canzoni da cantare sono hit
+     * italiane), quindi la disgiunzione non si può fare sui file ma sulle
+     * cinque manche davvero scelte. La selezione del bonus è deterministica
+     * (seed = gameId): la stessa esclusione vale anche dopo un refresh.
+     */
+    private Set<String> bonusReserved(long gameId) {
+        Set<String> keys = new HashSet<>();
+        for (KaraokeService.Manche manche : karaoke.selezione(gameId)) {
+            keys.add(QuestionHistoryService.normalize(manche.artista())
+                    + "|" + QuestionHistoryService.normalize(manche.titolo()));
+        }
+        return keys;
     }
 
     public boolean available() {
@@ -68,9 +87,10 @@ public class MusicRoundService {
             List<String> remaining = new ArrayList<>(media.musicThemes());
             remaining.removeAll(state.themes());
             Collections.shuffle(remaining, random);
+            Set<String> reserved = bonusReserved(gameId);
 
             for (String theme : remaining) {
-                List<LocalMediaBankService.TaggedTrack> picked = pickManches(theme, state.songs());
+                List<LocalMediaBankService.TaggedTrack> picked = pickManches(theme, state.songs(), reserved);
                 if (picked == null) {
                     // Tema scarso o brani già usati: si scarta e se ne pesca un altro.
                     continue;
@@ -93,7 +113,7 @@ public class MusicRoundService {
                 if (state.themes().contains(theme)) {
                     continue;
                 }
-                List<LocalMediaBankService.TaggedTrack> picked = pickManches(theme, List.of());
+                List<LocalMediaBankService.TaggedTrack> picked = pickManches(theme, List.of(), reserved);
                 if (picked == null) {
                     continue;
                 }
@@ -154,11 +174,15 @@ public class MusicRoundService {
      * Preferisce i brani mai usciti nella partita. Null se il tema non regge.
      */
     private List<LocalMediaBankService.TaggedTrack> pickManches(String theme,
-            List<String> usedSongs) {
+            List<String> usedSongs, Set<String> bonusReserved) {
         List<LocalMediaBankService.TaggedTrack> pool = ERA_THEMES.contains(theme)
                 ? media.byEra(theme)
                 : media.byTheme(theme);
         Set<String> used = new HashSet<>(usedSongs);
+        // I cinque brani del Karaoke di questa partita non entrano mai in Musica.
+        pool = pool.stream()
+                .filter(track -> !bonusReserved.contains(songKey(track)))
+                .toList();
 
         List<LocalMediaBankService.TaggedTrack> fresh = new ArrayList<>();
         for (LocalMediaBankService.TaggedTrack track : pool) {
@@ -171,6 +195,7 @@ public class MusicRoundService {
             return picked;
         }
         // Banca corta: si accetta il riuso, meglio un round misto che nessuno.
+        // Restano esclusi i brani del Karaoke: quelli non si ripetono mai.
         return pickMix(new ArrayList<>(pool));
     }
 
