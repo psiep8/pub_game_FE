@@ -6,7 +6,13 @@
   </div>
 
   <div class="players-container" #playersList [class.all-visible]="revealDone()" [class.dense]="dense()" [class.triple]="triple()">
-    @for (player of windowPlayers(); track player.playerName) {
+    <!--
+      Durante il reveal si vedono le ultime otto righe che entrano; a reveal
+      finito il tabellone compatto mostra TUTTE le squadre, altrimenti con più
+      di otto telefoni la classifica rapida perderebbe metà sala (le varianti
+      dense e triple servono proprio a farcele stare).
+    -->
+    @for (player of revealDone() ? allPlayers() : windowPlayers(); track player.playerName) {
       <div class="player-row"
            [class.top3]="player.position <= 3"
            [class.gold]="player.position === 1"

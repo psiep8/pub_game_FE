@@ -274,6 +274,16 @@ perdono né copertina né clip.
 telefoni»: nessun campo vietato, `songs[]` vuoto di titoli, nessun
 `/media/music/` nel JSON.
 
+**Classifica rapida (trovato dal banco elenchi).** Con più di otto squadre il
+tabellone mostrava solo le ultime otto righe: il template usava sempre
+`windowPlayers()`, la finestra del reveal, e le varianti `dense` e `triple` non
+entravano mai in gioco. A reveal finito ora mostra `allPlayers()`; il test del
+componente verifica la finestra di otto durante il reveal e tutte le venti righe
+alla fine. Nel layout compatto le righe erano anche schiacciate sotto il proprio
+contenuto (`grid-auto-rows: 1fr` con `min-height: 0`) e a quattordici squadre si
+accavallavano: la riga minima ora è quella del suo testo
+(`grid-auto-rows: minmax(min-content, 1fr)`).
+
 **Resta aperto.** Il banco con 4, 8, 10, 14 e 20 squadre su tutte le schermate
 che mostrano elenchi (lobby, riepilogo round, classifica rapida e dettagliata):
 va scritto come prova E2E dedicata, perché oggi i banchi esistenti usano tre

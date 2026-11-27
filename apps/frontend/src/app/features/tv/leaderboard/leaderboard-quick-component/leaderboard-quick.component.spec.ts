@@ -96,7 +96,20 @@ describe('LeaderboardQuick', () => {
     expect(rememberRanks).toHaveBeenCalledTimes(1);
   });
 
-  it('oltre otto squadre mostra solo la finestra delle ultime, senza perdere il podio', async () => {
+  it('durante il reveal mostra la finestra delle ultime otto', async () => {
+    vi.useFakeTimers();
+    create(many(20));
+
+    await vi.advanceTimersByTimeAsync(3_000);
+    fixture.detectChanges();
+
+    expect(component.revealDone()).toBe(false);
+    expect(component.windowPlayers()).toHaveLength(8);
+    expect(component.windowPlayers().at(-1)?.position).toBeGreaterThan(1);
+    expect(fixture.nativeElement.querySelectorAll('.player-row')).toHaveLength(8);
+  });
+
+  it('a reveal finito mostra tutte le squadre, non solo otto', async () => {
     vi.useFakeTimers();
     create(many(20));
 
@@ -104,9 +117,12 @@ describe('LeaderboardQuick', () => {
     fixture.detectChanges();
 
     expect(component.visiblePlayers()).toHaveLength(20);
-    expect(component.windowPlayers()).toHaveLength(8);
-    expect(component.windowPlayers().at(-1)?.position).toBe(1);
-    expect(fixture.nativeElement.querySelectorAll('.player-row')).toHaveLength(8);
+    expect(component.revealDone()).toBe(true);
+    const rows = fixture.nativeElement.querySelectorAll('.player-row');
+    expect(rows).toHaveLength(20);
+    // Il podio resta in cima alla lista compatta.
+    expect(rows[0].textContent).toContain('Squadra 20');
+    expect(rows[19].textContent).toContain('Squadra 1');
   });
 
   it('mostra di quanto è salita o scesa ogni squadra dall’ultima classifica', () => {
