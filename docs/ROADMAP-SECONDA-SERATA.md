@@ -448,3 +448,16 @@ smonta) e Biglie a 0,000; qui restano i 0,001 di `div.conn-shell` in entrambi.
 
 **Da fare.** Resta `div.conn-shell` a misura fissa (0,001 su quasi tutti i giochi)
 e i long task, che nessuna delle due correzioni tocca.
+
+### N-10 terza famiglia: `div.conn-shell`
+
+La badge di connessione era larga quanto il testo: passando da `TV` a
+`Sincronizzo` (o mostrando il chip `SYNC`) l'angolo in alto a destra si spostava
+a ogni cambio di stato — 0,001 in quasi tutti i giochi, due shift minimi da
+0,0005. Ora `.conn-badge` ha misura fissa (168 px, contenuto centrato, `nowrap`),
+così cambiare stato non cambia la scatola.
+
+Guard: `N-10: foto e card › la badge di connessione non sposta la scena`
+(Quiz, nessun nodo `conn-shell` fra i responsabili). **Aggiunto ma non ancora
+eseguito** al momento del commit: va lanciato prima di considerare chiusa la
+famiglia.

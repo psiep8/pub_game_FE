@@ -36,7 +36,16 @@ import { WebSocketService } from '../../../core/websocket/web-socket.service';
       .conn-badge {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 6px;
+        /*
+         * Misura fissa: passando da TV a Sincronizzo (o mostrando il chip SYNC)
+         * la badge non deve allargarsi, altrimenti l'angolo in alto a destra si
+         * sposta a ogni cambio di stato.
+         */
+        width: 168px;
+        box-sizing: border-box;
+        white-space: nowrap;
         padding: 4px 8px;
         border-radius: 0;
         font-family: var(--font-mono, monospace);

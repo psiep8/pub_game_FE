@@ -357,6 +357,16 @@ test.describe('N-10: foto e card', () => {
     expect(Math.abs(frameRatio - photoRatio)).toBeLessThan(0.12);
   });
 
+  test('la badge di connessione non sposta la scena', async ({ browser }) => {
+    test.setTimeout(300_000);
+    const token = await bootstrapToken(browser);
+    const row = await measureGame(browser, token, { game: 'QUIZ', round: 1 });
+    console.log(`N-10 badge cls=${row.cls} shift=${row.shifts} nodi=${JSON.stringify(row.nodes)}`);
+    expect(row.scene).toBe('QUIZ');
+    const shell = row.nodes.filter((node) => node.node.includes('conn-shell'));
+    expect(shell.map((node) => `${node.node}=${node.value}`).join(' ')).toBe('');
+  });
+
   test('la card di Biglie non cambia altezza', async ({ browser }) => {
     test.setTimeout(300_000);
     const token = await bootstrapToken(browser);
