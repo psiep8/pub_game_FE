@@ -169,7 +169,12 @@ export class QuizMode extends GameModeBase {
     return 2;
   }
 
-  private startManche(index: number): void {
+  /**
+   * Apre una manche. Con `readingMs` la domanda resta prima in lettura (N-12):
+   * a schermo, cronometro fermo e manche non ancora aperta sul server, così chi
+   * risponde durante la lettura non prende punti.
+   */
+  private startManche(index: number, readingMs = 0): void {
     this.clearTimers();
     this.mancheIndex.set(index);
     this.mancheReveal.set(null);
@@ -178,11 +183,26 @@ export class QuizMode extends GameModeBase {
     this.secondsLeft = MANCHE_SECONDS;
     this.timer.set(MANCHE_SECONDS);
     this.config.onTimerTick?.(MANCHE_SECONDS);
-    this.startClock();
+
+    const open = () => {
+      this.isReading.set(false);
+      this.startClock();
+      void this.broadcastState();
+      this.emitCheckpoint();
+      void this.announceManche(index);
+      this.setQuestionOpen(true);
+    };
+
+    if (readingMs <= 0) {
+      open();
+      return;
+    }
+
+    this.isReading.set(true);
+    this.setQuestionOpen(false);
     void this.broadcastState();
     this.emitCheckpoint();
-    void this.announceManche(index);
-    this.setQuestionOpen(true);
+    this.advanceHandle = setTimeout(open, readingMs);
   }
 
   /**
@@ -249,34 +269,9 @@ export class QuizMode extends GameModeBase {
       if (this.mancheIndex() + 1 >= this.questions.length) {
         this.finish();
       } else {
-        this.openNextManche(this.mancheIndex() + 1);
+        this.startManche(this.mancheIndex() + 1, MANCHE_BREATH_MS);
       }
     }, REVEAL_SECONDS * 1000);
-  }
-
-  /**
-   * Il respiro fra le manche (N-12): la domanda successiva compare subito dopo
-   * la soluzione e resta leggibile con il cronometro fermo, senza 3-2-1. Solo
-   * alla fine del respiro la manche si apre sul server e il tempo parte: chi
-   * risponde durante la lettura non prende punti e non trova la manche aperta.
-   */
-  private openNextManche(index: number): void {
-    this.clearClock();
-    this.mancheIndex.set(index);
-    this.mancheReveal.set(null);
-    this.revealPending.set(false);
-    this.answeredThisManche.clear();
-    this.secondsLeft = MANCHE_SECONDS;
-    this.timer.set(MANCHE_SECONDS);
-    this.isReading.set(true);
-    this.setQuestionOpen(false);
-    void this.broadcastState();
-    this.emitCheckpoint();
-
-    this.advanceHandle = setTimeout(() => {
-      this.isReading.set(false);
-      this.startManche(index);
-    }, MANCHE_BREATH_MS);
   }
 
   private finish(): void {
