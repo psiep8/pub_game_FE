@@ -26,18 +26,18 @@
     <div class="flow-panel pairing-panel" role="status">
       <div class="flow-title">🔒 REGIA NON ABBINATA</div>
       <p class="flow-note">
-        Manca il codice della TV: i comandi non arrivano alla regia e il round non parte.
-        Il codice a 6 cifre è nel riquadro <b>CODICE REGIA</b> della lobby TV (dura 5 minuti, vale una volta sola).
+        Guarda la TV: il riquadro <b>REGIA</b> mostra il QR e un codice a 6 cifre che
+        si rinnova da solo. Inquadra il QR con la fotocamera, oppure scrivi le sei cifre:
+        appena l'ultima cifra è dentro, la regia si abbina senza premere altro.
       </p>
       <div class="pairing-row">
-        <input class="cat-input pairing-input" inputmode="numeric" autocomplete="one-time-code"
-          maxlength="6" placeholder="Codice a 6 cifre" [value]="pairingCode()"
-          (input)="setPairingCode($event)" (keyup.enter)="submitPairingCode()" />
-        <button class="flow-btn primary" (click)="submitPairingCode()"
-          [disabled]="pairingBusy() || pairingCode().length < 4">
-          {{ pairingBusy() ? 'VERIFICA…' : 'ABBINA REGIA' }}
-        </button>
+        <input class="cat-input pairing-input" inputmode="numeric" pattern="[0-9]*"
+          autocomplete="one-time-code" enterkeyhint="done"
+          maxlength="6" placeholder="······" aria-label="Codice regia a 6 cifre"
+          [value]="pairingCode()" (input)="setPairingCode($event)"
+          (keyup.enter)="submitPairingCode()" />
       </div>
+      <p class="pairing-hint">{{ pairingBusy() ? 'VERIFICA…' : 'INVIO AUTOMATICO ALLA SESTA CIFRA' }}</p>
       @if (reliability.lastError(); as error) {
         <div class="cat-error">{{ error }}</div>
       }
@@ -420,6 +420,13 @@
         <span class="value">{{ buzzedPlayer() }}</span>
       </div>
     }
+  </div>
+
+  <div class="primary-bar" role="group" aria-label="Azione principale">
+    <button type="button" class="primary-action" [disabled]="pairingNeeded()" (click)="runPrimary()">
+      {{ primaryAction().label }}
+    </button>
+    <p class="primary-hint">UN SOLO PULSANTE · IL RESTO È SECONDARIO</p>
   </div>
 
 </div>

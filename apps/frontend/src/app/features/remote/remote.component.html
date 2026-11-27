@@ -14,6 +14,17 @@
 </div>
 }
 
+@if (roundClosed()) {
+<div class="round-closed-stamp" role="status" aria-live="polite">
+  <b>ROUND FINITO</b>
+  <span>GUARDA LA TV</span>
+</div>
+}
+
+@if (hapticFlash()) {
+<div class="haptic-flash" aria-hidden="true"></div>
+}
+
 @if (showIosInstallBanner()) {
 <div class="pwa-banner ios-banner">
   <div class="banner-content">
@@ -621,9 +632,9 @@
         }
       </div>
       } @else if (cavalloState()?.phase === 'QUESTION') {
-      <p class="cavallo-question">{{ cavalloState()?.question?.text }}</p>
+      <p class="cavallo-question">{{ cavalloMyQuestion()?.text }}</p>
       <div class="cavallo-options">
-        @for (option of cavalloState()?.question?.options ?? []; track $index; let i = $index) {
+        @for (option of cavalloMyQuestion()?.options ?? []; track $index; let i = $index) {
         <button class="cavallo-option" [disabled]="cavalloChoice() !== null || !inputReady()" (click)="cavalloAnswer(i)">
           <span class="cavallo-letter">{{ letter(i) }}</span><span>{{ option }}</span>
         </button>
@@ -632,7 +643,7 @@
       } @else {
       <div class="status-msg">
         <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🐎</div></div>
-        <p>{{ cavalloState()?.reveal?.heading || 'Preparazione...' }}</p>
+        <p>{{ cavalloMyReveal()?.heading || 'Preparazione...' }}</p>
         @if (cavalloMyRow(); as row) {
         <p class="sub-text">La tua risposta: {{ row.label }} · {{ row.points > 0 ? 'GIUSTA' : 'SBAGLIATA' }}</p>
         }

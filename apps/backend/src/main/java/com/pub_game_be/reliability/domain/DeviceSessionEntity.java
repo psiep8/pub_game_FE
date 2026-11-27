@@ -51,6 +51,20 @@ public class DeviceSessionEntity {
     @Column(name = "security_version")
     private Integer securityVersion;
 
+    /**
+     * TV aperta col segreto di regia: può generare il codice di abbinamento e
+     * leggere le soluzioni. Una TV registrata senza credenziale resta uno
+     * schermo di lobby e non vede i payload dei round. Wrapper (non primitivo)
+     * perché i database già in serata hanno la colonna nuova a NULL.
+     */
+    @Column(name = "regia")
+    private Boolean regia;
+
+    /** NULL, per le sessioni create prima della colonna, vale "non regia". */
+    public boolean regiaAttiva() {
+        return Boolean.TRUE.equals(regia);
+    }
+
     @Column(name = "connection_id", length = 64)
     private String connectionId;
 

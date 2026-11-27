@@ -296,7 +296,9 @@ export class WebSocketService {
       }),
       this.client.subscribe(`${topic}/status`, (message) => {
         const data = this.parse(message.body);
-        if (data && !(this.role === 'ADMIN' && ['SHOW_QUESTION', 'START_VOTING', 'PLAYER_PRENOTATO'].includes(data.action))) {
+        // La regia deve vedere chi si prenota: senza PLAYER_PRENOTATO il
+        // presentatore non può confermare e il round resta fermo sul buzz.
+        if (data && !(this.role === 'ADMIN' && ['SHOW_QUESTION', 'START_VOTING'].includes(data.action))) {
           this.status$.next(data);
         }
       }),

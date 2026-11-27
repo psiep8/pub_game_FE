@@ -95,15 +95,22 @@
         }
         <div class="game-id-badge">PARTITA #{{ currentGameId() }}</div>
         <p class="lobby-url">{{ remoteUrl() }}</p>
-        <section class="pairing-card" aria-label="Codice di abbinamento regia">
-          <div class="pairing-label">CODICE REGIA</div>
+        <section class="pairing-card regia-card" aria-label="Aggancio della regia">
+          <div class="pairing-label">REGIA · INQUADRA E SEI DENTRO</div>
           @if (pairingCode()) {
-          <div class="pairing-code" aria-live="polite">{{ pairingCode() }}</div>
-          <div class="pairing-expiry">VALIDO FINO ALLE {{ pairingExpiresAt() }} · UNA VOLTA SOLA</div>
+          <div class="pairing-regia">
+            @if (adminQrCodeUrl()) {
+            <img [src]="adminQrCodeUrl()" alt="QR per agganciare la regia" class="pairing-qr">
+            }
+            <div class="pairing-regia-code">
+              <div class="pairing-code" aria-live="polite">{{ pairingCode() }}</div>
+              <div class="pairing-expiry">NUOVO CODICE FRA {{ pairingCountdownLabel() }}</div>
+            </div>
+          </div>
+          <p class="pairing-url">{{ adminPairUrl() }}</p>
+          } @else {
+          <div class="pairing-expiry">{{ reliability.regia() ? 'CODICE IN ARRIVO…' : 'REGIA NON SBLOCCATA: APRI LA TV CON IL SEGRETO' }}</div>
           }
-          <button type="button" class="pairing-btn" (click)="createPairingCode()">
-            {{ pairingCode() ? 'NUOVO CODICE' : 'GENERA CODICE' }}
-          </button>
         </section>
         @if (tvUnpaired()) {
         <div class="lobby-unpaired" role="status">
@@ -236,7 +243,7 @@
 
   @if (mode.requiresBubbles && mode.type !== 'ULTIMA_SPIAGGIA' && mode.type !== 'TIMELINE' && timerVisible()) {
   <div class="timer-wrapper">
-    <div class="timer-bar" alive="breath" [aliveSeed]="4" [style.width.%]="(timer() / mode.timerDuration) * 100"></div>
+    <div class="timer-bar" alive="breath" [aliveSeed]="4" [style.width.%]="(timer() / (getSafeDisplayData().phaseSeconds || mode.timerDuration)) * 100"></div>
     <span class="timer-text">{{ timer() }}s</span>
   </div>
   }
@@ -327,6 +334,7 @@
   </div>
 </div>
 }
+@if (commandsVisible()) {
 <div class="tv-dock" [class.above-leaderboard]="isShowingLeaderboard()">
   <div class="dock-actions">
     <button class="dock-btn" (click)="audioService.toggleAudio()" [attr.aria-label]="audioService.isEnabled() ? 'Disattiva audio' : 'Attiva audio'">
@@ -353,6 +361,7 @@
     <button class="dock-btn danger" (click)="openResetModal()" aria-label="Reset partita">🔄</button>
   </div>
 </div>
+}
 
 @if (audioDebug()) {
 <div class="audio-debug" role="status" aria-label="Canali audio attivi">

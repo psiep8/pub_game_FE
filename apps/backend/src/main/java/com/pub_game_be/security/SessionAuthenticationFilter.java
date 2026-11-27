@@ -28,6 +28,14 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
             "arena-answer", "timeline-answer", "time-buzzer/stop", "bomba/pick",
             "speed-rush/answer", "basket/shot", "button-test/step", "button-test/ping", "quiz/answer");
     /**
+     * TV registrata senza segreto: lobby e presenza, niente regia. Può
+     * sincronizzarsi (il controller toglie le soluzioni) e tenere viva la
+     * sessione; ogni altra rotta — codici, round, reset, checkpoint — è chiusa.
+     */
+    private static final Set<String> SCREEN_GET = Set.of("sync", "diagnostics", "pairing-code");
+    private static final Set<String> SCREEN_POST = Set.of("session/heartbeat", "session/disconnect",
+            "pairing-code");
+    /**
      * Il rinnovo della sessione deve arrivare al controller anche con un token
      * scaduto: lì diventa un 410 "ri-registra", non un 401 che il client non
      * può distinguere da una credenziale di regia sbagliata.
@@ -102,6 +110,14 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
                     response.sendError(HttpServletResponse.SC_FORBIDDEN);
                     return;
                 }
+            }
+        } else if ("TV".equals(session.getRole()) && !session.regiaAttiva()) {
+            String endpoint = gameRoute ? game.group(2) : null;
+            boolean allowed = endpoint != null && (("GET".equals(method) && SCREEN_GET.contains(endpoint))
+                    || ("POST".equals(method) && SCREEN_POST.contains(endpoint)));
+            if (!allowed) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                return;
             }
         } else if (!Set.of("TV", "ADMIN").contains(session.getRole())) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);

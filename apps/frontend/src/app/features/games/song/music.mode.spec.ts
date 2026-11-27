@@ -1,242 +1,241 @@
 import { vi } from 'vitest';
 
 import { MusicMode } from './music.mode';
+import { GAME_TIMINGS } from '../../../shared/models/game-timings';
 
-function createMode(ticks: number[] = [], checkpoints: any[] = []): MusicMode {
+const SONGS = [
+  { title: 'Prima', artist: 'Artista A', year: '1990', previewUrl: '/a.m4a', albumCover: '/a.jpg' },
+  { title: 'Seconda', artist: 'Artista B', year: '1995', previewUrl: '/b.m4a', albumCover: '/b.jpg' },
+  { title: 'Terza', artist: 'Artista C', year: '2001', previewUrl: '/c.m4a', albumCover: '/c.jpg' },
+  { title: 'Quarta', artist: 'Artista D', year: '2010', previewUrl: '/d.m4a', albumCover: '/d.jpg' },
+  { title: 'Quinta', artist: 'Artista E', year: '2020', previewUrl: '/e.m4a', albumCover: '/e.jpg' },
+];
+
+const LISTEN_1 = GAME_TIMINGS.MUSIC.listenSeconds[0];
+const LISTEN_2 = GAME_TIMINGS.MUSIC.listenSeconds[1];
+const BUZZ = GAME_TIMINGS.MUSIC.buzzSeconds;
+const REVEAL = GAME_TIMINGS.MUSIC.revealSeconds;
+
+function createMode(checkpoints: any[] = [], ticks: number[] = []): MusicMode {
+  let timerEnds = 0;
   const mode = new MusicMode();
   mode.setConfig({
     type: 'MUSIC',
     payload: {},
     gameId: 1,
-    activePlayers: ['Anna'],
+    activePlayers: ['Anna', 'Bruno'],
     onTimerTick: (seconds: number) => ticks.push(seconds),
     onTvCheckpoint: (checkpoint: any) => checkpoints.push(checkpoint),
+    onTimerEnd: () => { timerEnds++; },
   });
   mode.initialize({
-    songTitle: 'Canzone',
-    artist: 'Artista',
-    previewUrl: 'https://audio.example/brano.mp3',
+    type: 'MUSIC',
+    round: 2,
+    theme: 'Rock',
+    themes: ["Anni '70-'80", 'Rock', 'Pop'],
+    songs: SONGS,
   });
+  (mode as any).timerEnds = () => timerEnds;
   return mode;
 }
 
-describe('MusicMode', () => {
+/** Porta una manca fino al reveal, un pezzo di fase per volta. */
+async function runToReveal(mode: MusicMode): Promise<void> {
+  await vi.advanceTimersByTimeAsync(LISTEN_1 * 1000);
+  await vi.advanceTimersByTimeAsync(BUZZ * 1000);
+  await vi.advanceTimersByTimeAsync(LISTEN_2 * 1000);
+  await vi.advanceTimersByTimeAsync(BUZZ * 1000);
+}
+
+describe('MusicMode — un round da cinque manche', () => {
   afterEach(() => {
     vi.useRealTimers();
   });
 
-  it('conta trenta secondi per manche, non un unico conto da duecento', async () => {
-    vi.useFakeTimers();
-    const ticks: number[] = [];
-    const mode = createMode(ticks);
-
-    await mode.start();
-
-    expect(mode.timerDuration).toBe(30);
-    expect(mode.getTimerValue()).toBe(30);
-    expect(ticks.at(-1)).toBe(30);
-
-    await vi.advanceTimersByTimeAsync(3000);
-    expect(mode.getTimerValue()).toBe(27);
-
-    mode.cleanup();
-  });
-
-  it('alla conferma corretta fa partire subito il brano pulito, senza intro filtrata', async () => {
-    const mode = createMode();
-    await mode.start();
-    mode.handleBuzz('Anna');
-
-    mode.confirmCorrect('Anna');
-
-    const data = mode.getDisplayData();
-    expect(data.revealed).toBe(true);
-    expect(data.fullPlayback).toBe(true);
-    expect(data.currentPhase).toBe(4);
-    expect(data.audioPlaying).toBe(true);
-
-    mode.cleanup();
-  });
-
-  it('vale 1000, 750, 500, 250 secondo la manche e paga il negativo', async () => {
+  it('primo ascolto da 4 secondi, poi la finestra di prenotazione a audio fermo', async () => {
     vi.useFakeTimers();
     const mode = createMode();
 
     await mode.start();
-    // Il tempo dentro la manche non cambia più il valore: conta la manche.
-    expect(mode.pointsFor(true, 0)).toBe(1000);
-    expect(mode.pointsFor(true, 25_000)).toBe(1000);
-    expect(mode.pointsFor(false, 15_000)).toBe(-1000);
+    expect(mode.timerDuration).toBe(BUZZ);
+    expect(mode.getDisplayData()).toMatchObject({
+      manche: 1,
+      mancheTotal: 5,
+      listen: 1,
+      phase: 'LISTEN',
+      phaseSeconds: 4,
+      audioPlaying: true,
+      points: 200,
+      round: 2,
+      theme: 'Rock',
+    });
+    expect(mode.getTimerValue()).toBe(4);
 
-    mode.nextManche();
-    expect(mode.pointsFor(true, 0)).toBe(750);
-    expect(mode.pointsFor(false, 0)).toBe(-750);
-
-    mode.nextManche();
-    expect(mode.pointsFor(true, 0)).toBe(500);
-
-    mode.nextManche();
-    expect(mode.pointsFor(true, 0)).toBe(250);
-    expect(mode.pointsFor(false, 0)).toBe(-250);
+    await vi.advanceTimersByTimeAsync(4000);
+    expect(mode.getDisplayData()).toMatchObject({ phase: 'BUZZ', audioPlaying: false });
+    expect(mode.getTimerValue()).toBe(5);
+    expect(mode.canBuzz()).toBe(true);
 
     mode.cleanup();
   });
 
-  it('dopo un ERRATO riapre la stessa manche con un solo cronometro', async () => {
+  it('il secondo ascolto riparte da zero e arriva a 12 secondi', async () => {
     vi.useFakeTimers();
     const mode = createMode();
 
     await mode.start();
+    await vi.advanceTimersByTimeAsync(4000);
     await vi.advanceTimersByTimeAsync(5000);
-    const frozen = mode.getTimerValue();
+
+    const second = mode.getDisplayData();
+    expect(second).toMatchObject({ listen: 2, phase: 'LISTEN', phaseSeconds: 12, audioPlaying: true });
+    expect(second.audioOffset).toBe(0);
+    expect(mode.getTimerValue()).toBe(12);
+
+    await vi.advanceTimersByTimeAsync(11_000);
+    expect(mode.getTimerValue()).toBe(1);
+    expect(mode.getDisplayData().phase).toBe('LISTEN');
+
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(mode.getDisplayData()).toMatchObject({ phase: 'BUZZ', listen: 2 });
+    expect(mode.canBuzz()).toBe(true);
+
+    mode.cleanup();
+  });
+
+  it('dopo il reveal di 8 secondi parte la manca successiva', async () => {
+    vi.useFakeTimers();
+    const mode = createMode();
+
+    await mode.start();
+    await runToReveal(mode);
+
+    expect(mode.getDisplayData()).toMatchObject({ manche: 1, phase: 'REVEAL', revealed: true });
+    expect(mode.getDisplayData().songTitle).toBe('Prima');
+    expect(mode.getDisplayData().artist).toBe('Artista A');
+
+    await vi.advanceTimersByTimeAsync(REVEAL * 1000);
+
+    expect(mode.getDisplayData()).toMatchObject({ manche: 2, phase: 'LISTEN', listen: 1, revealed: false });
+    expect(mode.getDisplayData().previewUrl).toBe('/b.m4a');
+    expect(mode.getDisplayData().songTitle).toBe('');
+
+    mode.cleanup();
+  });
+
+  it('alla fine della quinta manca il round si chiude: non parte un sesto brano', async () => {
+    vi.useFakeTimers();
+    const mode = createMode();
+    const timerEnds = (mode as any).timerEnds as () => number;
+    const seen: string[] = [];
+
+    await mode.start();
+    for (let manche = 1; manche <= 5; manche++) {
+      expect(mode.getDisplayData().manche).toBe(manche);
+      await runToReveal(mode);
+      seen.push(String(mode.getDisplayData().songTitle));
+      await vi.advanceTimersByTimeAsync(REVEAL * 1000);
+    }
+
+    expect(timerEnds()).toBe(1);
+    expect(mode.getDisplayData()).toMatchObject({ manche: 5, phase: 'IDLE', revealed: true });
+
+    // Nessuna sesta manca, nemmeno lasciando passare altro tempo.
+    await vi.advanceTimersByTimeAsync(120_000);
+    expect(mode.getDisplayData().manche).toBe(5);
+    expect(timerEnds()).toBe(1);
+
+    // Cinque soluzioni, cinque artisti diversi.
+    expect(new Set(seen).size).toBe(5);
+    expect(seen).toEqual(['Prima', 'Seconda', 'Terza', 'Quarta', 'Quinta']);
+
+    mode.cleanup();
+  });
+
+  it('sbagliare al primo ascolto non toglie punti e porta al secondo', async () => {
+    vi.useFakeTimers();
+    const mode = createMode();
+
+    await mode.start();
+    await vi.advanceTimersByTimeAsync(4000);
+
+    expect(mode.pointsFor(false, 0)).toBe(0);
+    expect(mode.pointsFor(true, 0)).toBe(200);
+
     mode.handleBuzz('Anna');
     mode.confirmWrong('Anna');
 
-    // La prenotazione si riapre sulla stessa manche, senza chiudere il round.
+    expect(mode.getDisplayData()).toMatchObject({ listen: 2, phase: 'LISTEN', buzzedPlayer: null });
+    // Chi ha sbagliato non può riprenotarsi nella stessa manca.
+    await vi.advanceTimersByTimeAsync(12_000);
+    mode.handleBuzz('Anna');
     expect(mode.getDisplayData().buzzedPlayer).toBeNull();
-    expect(mode.canBuzz()).toBe(true);
-    expect(mode.getDisplayData().currentPhase).toBe(1);
-
-    // Un solo secondo, un solo tick: il cronometro della modalità base non deve
-    // girare insieme a quello della manche.
-    await vi.advanceTimersByTimeAsync(1000);
-    expect(mode.getTimerValue()).toBe(frozen - 1);
-
-    // La manche finisce, il round no: niente «canzone indovinata» a comando.
-    await vi.advanceTimersByTimeAsync((frozen - 1) * 1000);
-    expect(mode.getDisplayData().revealed).toBe(false);
-    expect(mode.getDisplayData().waitingForStart).toBe(true);
+    expect(mode.pointsFor(false, 0)).toBe(-50);
 
     mode.cleanup();
   });
 
-  describe('ripresa dopo un refresh della TV', () => {
-    it('salva la manche appena parte con i secondi pieni', async () => {
-      const checkpoints: any[] = [];
-      const mode = createMode([], checkpoints);
+  it('la conferma corretta apre subito il reveal pulito', async () => {
+    vi.useFakeTimers();
+    const mode = createMode();
 
-      await mode.start();
+    await mode.start();
+    await vi.advanceTimersByTimeAsync(4000);
+    mode.handleBuzz('Bruno');
+    mode.confirmCorrect('Bruno');
 
-      const state = checkpoints.at(-1)?.state;
-      expect(state.manche).toBe(1);
-      expect(state.secondsLeft).toBe(30);
-      expect(state.revealed).toBe(false);
-      expect(state.waitingForStart).toBe(false);
-
-      mode.cleanup();
+    expect(mode.getDisplayData()).toMatchObject({
+      phase: 'REVEAL',
+      revealed: true,
+      audioPlaying: true,
+      songTitle: 'Prima',
+      phaseSeconds: 8,
     });
 
-    it('riprende la manche in corso con il tempo che resta', () => {
-      vi.useFakeTimers();
-      const mode = createMode();
+    mode.cleanup();
+  });
 
-      mode.restore(30, {
-        revision: 1,
-        state: { manche: 2, secondsLeft: 30, savedAt: Date.now() - 12_000 },
-      });
+  it('il checkpoint riprende round, manca e ascolto giusti', async () => {
+    vi.useFakeTimers();
+    const checkpoints: any[] = [];
+    const mode = createMode(checkpoints);
 
-      expect(mode.getTimerValue()).toBe(18);
-      expect(mode.getDisplayData().currentPhase).toBe(2);
-      expect(mode.getDisplayData().audioPlaying).toBe(true);
-      expect(mode.canBuzz()).toBe(true);
+    await mode.start();
+    await vi.advanceTimersByTimeAsync(4000);
+    await vi.advanceTimersByTimeAsync(5000);
+    await vi.advanceTimersByTimeAsync(3000);
 
-      mode.cleanup();
+    const saved = checkpoints.at(-1);
+    expect(saved.state).toMatchObject({ round: 2, theme: 'Rock', manche: 1, listen: 2, phase: 'LISTEN' });
+
+    vi.useRealTimers();
+    const restored = createMode();
+    restored.restore(0, {
+      revision: 1,
+      state: {
+        round: 2,
+        theme: 'Rock',
+        manche: 3,
+        listen: 2,
+        phase: 'LISTEN',
+        secondsLeft: 12,
+        savedAt: Date.now() - 4000,
+        wrongPlayers: ['Anna'],
+        revealed: false,
+      },
     });
 
-    it('a fine ascolto si ferma in attesa della manche successiva', async () => {
-      vi.useFakeTimers();
-      const mode = createMode();
-
-      mode.restore(30, {
-        revision: 2,
-        state: { manche: 1, secondsLeft: 20, savedAt: Date.now() },
-      });
-
-      await vi.advanceTimersByTimeAsync(20_000);
-
-      expect(mode.getDisplayData().waitingForStart).toBe(true);
-      expect(mode.getDisplayData().audioPlaying).toBe(false);
-
-      mode.cleanup();
+    expect(restored.getDisplayData()).toMatchObject({
+      round: 2,
+      theme: 'Rock',
+      manche: 3,
+      listen: 2,
+      phase: 'LISTEN',
+      previewUrl: '/c.m4a',
     });
+    expect(restored.getTimerValue()).toBe(8);
 
-    it('riprende la pausa fra due manche e poi passa alla successiva', async () => {
-      vi.useFakeTimers();
-      const mode = createMode();
-
-      mode.restore(0, {
-        revision: 3,
-        state: {
-          manche: 2,
-          secondsLeft: 0,
-          savedAt: Date.now(),
-          waitingForStart: true,
-          waitingSeconds: 4,
-        },
-      });
-
-      expect(mode.getDisplayData().waitingForStart).toBe(true);
-
-      await vi.advanceTimersByTimeAsync(4000);
-
-      expect(mode.getDisplayData().currentPhase).toBe(3);
-      expect(mode.getDisplayData().waitingForStart).toBe(false);
-
-      mode.cleanup();
-    });
-
-    it('un brano già rivelato resta pagato e mostra il brano pulito', () => {
-      const mode = createMode();
-
-      mode.restore(0, {
-        revision: 4,
-        state: {
-          manche: 4,
-          secondsLeft: 0,
-          savedAt: Date.now(),
-          revealed: true,
-          fullPlayback: true,
-        },
-      });
-
-      const data = mode.getDisplayData();
-      expect(data.revealed).toBe(true);
-      expect(data.fullPlayback).toBe(true);
-      expect(data.audioPlaying).toBe(false);
-      expect(mode.getTimerValue()).toBe(0);
-      expect(mode.canBuzz()).toBe(false);
-
-      mode.cleanup();
-    });
-
-    it('con una prenotazione in corso non riparte il cronometro', async () => {
-      vi.useFakeTimers();
-      const mode = createMode();
-
-      mode.restore(30, {
-        revision: 5,
-        state: { manche: 3, secondsLeft: 24, savedAt: Date.now(), buzzedPlayer: 'Anna' },
-      });
-
-      expect(mode.getDisplayData().buzzedPlayer).toBe('Anna');
-      expect(mode.getTimerValue()).toBe(24);
-
-      await vi.advanceTimersByTimeAsync(5000);
-
-      expect(mode.getTimerValue()).toBe(24);
-
-      mode.cleanup();
-    });
-
-    it('senza manche salvata non tocca il round', () => {
-      const mode = createMode();
-
-      mode.restore(30, { revision: 6, state: { secondsLeft: 12 } });
-
-      expect(mode.getDisplayData().currentPhase).toBe(0);
-      expect(mode.getTimerValue()).toBe(30);
-
-      mode.cleanup();
-    });
+    restored.cleanup();
+    mode.cleanup();
   });
 });

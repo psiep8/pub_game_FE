@@ -167,12 +167,15 @@ public class GameWebSocketController {
             } catch (org.json.JSONException ignored) { return text; }
         }
         if (value instanceof JSONObject object) {
+            // Il flag si propaga a tutto il sottoalbero: con le cinque manche
+            // annidate in songs[] i titoli non devono arrivare ai telefoni.
             boolean musicPayload = music || "MUSIC".equals(object.optString("type"))
-                    || "MUSIC_PHASE".equals(object.optString("action"));
+                    || "MUSIC_PHASE".equals(object.optString("action"))
+                    || object.has("songs") || object.has("previewUrl") || object.has("songTitle");
             JSONObject clean = new JSONObject();
             for (String key : object.keySet()) {
                 if (!Set.of("correctAnswer", "correctIndex", "explanation", "explain", "solution", "rawPayload", "proverb").contains(key)
-                        && !(musicPayload && Set.of("songTitle", "artist", "previewUrl", "albumCover", "year").contains(key)))
+                        && !(musicPayload && Set.of("songTitle", "title", "artist", "previewUrl", "albumCover", "year").contains(key)))
                     clean.put(key, cleanValue(object.opt(key), musicPayload));
             }
             return clean;

@@ -376,6 +376,8 @@ export class FakeSwUpdate {
  * La spec verifica il comportamento del componente, non la rete.
  */
 export class FakeReliabilityService {
+  /** La TV dei test nasce abilitata alla regia, come quella aperta col segreto. */
+  readonly regia = signal(true);
   readonly online = signal(true);
   readonly syncing = signal(false);
   readonly stateVersion = signal(0);
@@ -391,13 +393,27 @@ export class FakeReliabilityService {
   readonly syncEvent$ = new Subject<any>();
   readonly sessionRevoked$ = new Subject<void>();
   readonly started: Array<{ gameId: number; role: string; playerName?: string }> = [];
+  /** Tentativi di avvio che i test possono far fallire, uno per chiamata. */
+  startFailures = 0;
+  readonly controlSecrets: Array<string | null> = [];
+  /** Segreto memorizzato al momento dell'apertura sessione. */
+  readonly secretAtStart: Array<string | null> = [];
 
   async start(gameId: number, role: string, playerName = ""): Promise<boolean> {
     this.started.push({ gameId, role, playerName });
+    this.secretAtStart.push(this.controlSecrets.at(-1) ?? null);
+    if (this.startFailures > 0) {
+      this.startFailures -= 1;
+      return false;
+    }
     return true;
   }
 
   stop(): void {}
+
+  setControlSecret(secret: string | null): void {
+    this.controlSecrets.push(secret);
+  }
 
   forgetSession(): void {}
 
@@ -432,6 +448,26 @@ export class FakeReliabilityService {
   }
 
   async ensureSession(): Promise<boolean> {
+    return true;
+  }
+
+  /** Codice regia: nei test parte spento, così la lobby non avvia timer. */
+  requestPairingCodeResult: { code: string; ttlSeconds: number; expiresAt?: number } | null = null;
+  pairingStatusResult: { code: string | null; expiresAt: number; ttlSeconds: number } | null = null;
+
+  async requestPairingCode(): Promise<{ code: string; ttlSeconds: number; expiresAt?: number } | null> {
+    return this.requestPairingCodeResult;
+  }
+
+  async pairingCodeStatus(): Promise<{ code: string | null; expiresAt: number; ttlSeconds: number } | null> {
+    return this.pairingStatusResult;
+  }
+
+  /** Abbinamenti chiesti dal pannello: i test verificano il codice inviato. */
+  readonly paired: Array<{ gameId: number; code: string }> = [];
+
+  async pairAdmin(gameId: number, code: string): Promise<boolean> {
+    this.paired.push({ gameId, code });
     return true;
   }
 

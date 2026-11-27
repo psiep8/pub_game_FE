@@ -111,6 +111,8 @@ export interface IGameMode {
   getDisplayData(): any;
   getTimerValue(): number;
   getIsReading?(): boolean;
+  /** Soluzione della manche in corso, per la regia (mai per i telefoni). */
+  currentSolution?(): string;
   canBuzz(): boolean;
   isRevealed(): boolean;
 

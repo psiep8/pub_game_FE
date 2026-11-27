@@ -14,6 +14,10 @@ __screenshots__/
 # --- Scratch locale delle verifiche (screenshot, note): non è codice ---
 .basket-verify/
 
+# --- Playwright: tracce, video e report dei test end-to-end ---
+test-results/
+playwright-report/
+
 # --- Impeccable: cache e stato locale (PRODUCT.md e DESIGN.md restano versionati) ---
 .impeccable/
 
@@ -71,3 +75,6 @@ scripts/sim/.state*.json
 # Restano su disco, entrano nel repo solo i generatori.
 scripts/sim/reports/*
 !scripts/sim/reports/*.mjs
+
+# Scratch del test audio (non deve entrare nel repo)
+tmp-audio-test/

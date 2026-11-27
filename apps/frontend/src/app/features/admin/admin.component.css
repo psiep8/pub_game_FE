@@ -458,6 +458,25 @@
 .pairing-panel { border-color: var(--mustard); box-shadow: 6px 6px 0 var(--mustard); }
 .pairing-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .pairing-input { flex: 1 1 180px; letter-spacing: .3em; text-align: center; font-family: var(--font-mono, monospace); font-size: 1.05rem; }
+.pairing-hint { margin: 8px 0 0; font-family: var(--font-mono, monospace); font-size: .72rem; letter-spacing: .08em; }
+.primary-bar {
+  position: sticky; bottom: 0; z-index: 30; display: grid; gap: 4px; justify-items: stretch;
+  margin: 18px -14px -14px; padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+  background: var(--paper); border-top: 4px solid var(--coal);
+}
+.primary-action {
+  width: 100%; min-height: 68px; padding: 14px 18px;
+  font-family: var(--font-display, Impact, sans-serif); font-size: clamp(1.25rem, 4.6vw, 2rem);
+  letter-spacing: .04em; line-height: 1.05; text-transform: uppercase;
+  color: var(--paper); background: var(--coal); border: 3px solid var(--coal); border-radius: 0;
+  box-shadow: 6px 6px 0 var(--tomato); cursor: pointer;
+}
+.primary-action:active { transform: translate(3px, 3px); box-shadow: 3px 3px 0 var(--tomato); }
+.primary-action:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+.primary-hint {
+  margin: 0; text-align: center; font-family: var(--font-mono, monospace);
+  font-size: .68rem; letter-spacing: .1em; color: var(--coal);
+}
 .flow-note { margin-top: 10px; font-family: var(--font-mono, monospace); font-size: .68rem; opacity: .65; }
 
 /* Prova dei pulsanti: tabella stampata, non una card luminosa. */

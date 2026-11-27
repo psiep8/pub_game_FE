@@ -33,7 +33,8 @@ class RoundWindowTest {
         Map<String, Long> rounds = new LinkedHashMap<>();
         rounds.put("QUIZ", 3 * (15 + 3L));
         rounds.put("MUSIC", 200L);
-        rounds.put("IMAGE_BLUR", 60L);
+        // Indovina chi: tre manche da 45 s più reveal e respiro (N-03).
+        rounds.put("IMAGE_BLUR", 3 * (45 + 15L));
         rounds.put("WHEEL_OF_FORTUNE", 75L);
         rounds.put("TIMELINE", 45L);
         rounds.put("TIME_BUZZER", 3 * (30 + 5L));

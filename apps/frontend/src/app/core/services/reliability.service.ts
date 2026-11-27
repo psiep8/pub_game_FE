@@ -63,8 +63,10 @@ export class ReliabilityService {
   private pairingCode: string | null = null;
   /** False per la regia: il codice si chiede nel pannello, non con window.prompt. */
   private promptForCode = true;
-  /** Segreto di regia inserito in questa scheda: serve solo alla TV per generare codici. */
+  /** Segreto di regia inserito in questa scheda: apre TV e admin come regia. */
   private controlSecret: string | null = null;
+  /** La sessione corrente può leggere le soluzioni e generare il codice TV. */
+  readonly regia = signal(false);
   /** Round il cui checkpoint il server ha già scartato: non si ritenta. */
   private rejectedTvCheckpointRound: number | null = null;
 
@@ -114,6 +116,15 @@ export class ReliabilityService {
       this.heartbeatTimer = undefined;
     }
     return registered;
+  }
+
+  /**
+   * Segreto di regia per questa scheda. La TV aperta senza segreto resta uno
+   * schermo di lobby: niente codice di abbinamento e niente soluzioni.
+   */
+  setControlSecret(secret: string | null): void {
+    const value = (secret ?? '').trim();
+    this.controlSecret = value || null;
   }
 
   /**
@@ -180,23 +191,41 @@ export class ReliabilityService {
     return `${this.deviceId()}:${kind}:${discriminator}`;
   }
 
-  /**
-   * Codice breve per l'abbinamento della regia (solo dalla TV). Il segreto di
-   * regia viene chiesto una volta sola per scheda e poi tenuto in memoria.
+    /**
+   * Codice breve per l'abbinamento della regia (solo dalla TV). La TV ha una
+   * sessione propria: il codice arriva dal server senza chiedere il segreto,
+   * altrimenti con il database appena azzerato nessuno poteva generarlo.
    */
-  async requestPairingCode(): Promise<{ code: string; ttlSeconds: number } | null> {
+  async requestPairingCode(): Promise<{ code: string; ttlSeconds: number; expiresAt?: number } | null> {
+    const token = this.sessionToken();
+    if (!token) return null;
     try {
-      this.controlSecret ??= window.prompt('Inserisci il segreto di regia');
-      if (!this.controlSecret) return null;
       const response = await firstValueFrom(
-        this.http.post<{ code: string; ttlSeconds: number }>(
+        this.http.post<{ code: string; ttlSeconds: number; expiresAt?: number }>(
           `${this.baseUrl}/games/${this.gameId}/pairing-code`, {},
-          { headers: { 'X-Control-Secret': this.controlSecret } })
+          { headers: { 'X-Session-Token': token } }
+        )
       );
       return response;
     } catch (error) {
-      if ((error as HttpErrorResponse)?.status === 401) this.controlSecret = null;
-      this.lastError.set('Impossibile creare il codice di abbinamento');
+      if ((error as HttpErrorResponse)?.status === 401) this.lastError.set('TV non abbinata: ricarica la TV');
+      else this.lastError.set('Impossibile creare il codice di abbinamento');
+      return null;
+    }
+  }
+
+  /** Codice attivo senza rigenerarlo: la TV capisce quando è scaduto o usato. */
+  async pairingCodeStatus(): Promise<{ code: string | null; expiresAt: number; ttlSeconds: number } | null> {
+    const token = this.sessionToken();
+    if (!token) return null;
+    try {
+      return await firstValueFrom(
+        this.http.get<{ code: string | null; expiresAt: number; ttlSeconds: number }>(
+          `${this.baseUrl}/games/${this.gameId}/pairing-code`,
+          { headers: { 'X-Session-Token': token } }
+        )
+      );
+    } catch {
       return null;
     }
   }
@@ -258,7 +287,11 @@ export class ReliabilityService {
   async ensureSession(): Promise<boolean> {
     try {
       const token = this.sessionToken() ?? this.storedToken();
-      const needsAuth = !token && this.role !== 'REMOTE';
+      // La TV è uno schermo, non un comando: il server la registra senza
+      // segreto (vedi ReliabilityController.openSession). Chiedere il codice
+      // anche a lei lasciava la lobby su "TV NON IN LINEA" a ogni partita
+      // nuova, quando il browser non aveva ancora un token salvato.
+      const needsAuth = !token && this.role === 'ADMIN';
       // Codice breve dalla TV (4-6 cifre); il segreto completo resta come ripiego.
       // Il codice già inserito nel pannello vale anche quando il prompt è spento.
       let pairingCode = needsAuth ? this.pairingCode : null;
@@ -273,7 +306,7 @@ export class ReliabilityService {
       const typed = pairingCode ? pairingCode.trim() : '';
       const isPairingCode = /^\d{4,6}$/.test(typed);
       if (typed && !isPairingCode) this.controlSecret = typed;
-      const authHeaders = this.controlSecret && !isPairingCode
+      const authHeaders = this.controlSecret && !isPairingCode && this.role !== 'REMOTE'
         ? { headers: { 'X-Control-Secret': this.controlSecret } }
         : {};
       const response = await firstValueFrom(
@@ -291,6 +324,7 @@ export class ReliabilityService {
       this.persistToken(response?.sessionToken);
       this.resumedSession.set(!!response?.resumed);
       this.duplicateDisplay.set(!!response?.duplicateDisplay);
+      this.regia.set(!!response?.regia);
       this.stateVersion.set(Number(response?.stateVersion ?? this.stateVersion()));
       // Il server ha risposto: la sessione è viva anche se la socket STOMP è
       // ancora in riapertura. Senza questo, la badge restava su "Riconnessione"
@@ -315,6 +349,12 @@ export class ReliabilityService {
         }
         return this.ensureSession();
       }
+      if (status === 401 && this.role === 'TV' && this.controlSecret) {
+        // Segreto rifiutato (ruotato o sbagliato): la TV resta una lobby invece
+        // di morire sul 401. Al prossimo avvio si riprova col segreto salvato.
+        this.controlSecret = null;
+        return this.ensureSession();
+      }
       if (status === 401) {
         // Il codice non è valido o è scaduto: il prossimo tentativo lo richiede.
         this.pairingCode = null;
@@ -322,10 +362,13 @@ export class ReliabilityService {
       this.online.set(false);
       // La regia che ha appena battuto un codice deve sapere che il problema è
       // il codice, non il backend: "Sessione non disponibile" sembrava un guasto.
-      const rejectedCode = status === 401 && !this.sessionToken();
+      const rejectedCode = (status === 401 || status === 410 || status === 429) && !this.sessionToken();
       this.lastError.set(status === 409
         ? 'Nome già in uso, scegline un altro'
-        : rejectedCode ? 'Codice TV non valido o scaduto' : 'Sessione non disponibile');
+        : status === 410 ? 'Codice scaduto: guarda la TV, ce n’è uno nuovo'
+        : status === 429 ? 'Troppi tentativi: attendi un minuto e riprova'
+        : rejectedCode ? 'Codice non valido: guarda la TV, ce n’è uno nuovo'
+        : 'Sessione non disponibile');
       return false;
     }
   }

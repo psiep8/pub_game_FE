@@ -88,6 +88,35 @@ class WebSocketActionWhitelistTest {
         assertThat(WebSocketConfig.TV_ACTIONS).doesNotContain("BASKET_STATE");
     }
 
+    /**
+     * La TV è uno schermo non autenticato: non deve poter inviare comandi di
+     * regia. Il filtro per ruolo esiste nell'interceptor; questa guardia ferma
+     * una futura azione ADMIN aggiunta per errore alla whitelist TV.
+     */
+    @Test
+    void laTvEIlTelefonoNonHannoComandiDiRegia() {
+        // ADMIN_STATE e CHRISTMAS_TOGGLE sono condivisi (stato e tema), non
+        // comandi: la guardia copre i comandi che fanno avanzare la serata.
+        Set<String> comandiRegia = Set.of(
+                "ADMIN_REQUEST_STATE", "ADMIN_CONFIRM_CORRECT", "ADMIN_CONFIRM_WRONG",
+                "ADMIN_NEXT_ROUND", "ADMIN_START_ROUND", "ADMIN_NEXT_MANCHE",
+                "ADMIN_SHOW_LEADERBOARD", "ADMIN_TOGGLE_PAUSE", "ADMIN_SHOW_DEMO",
+                "ADMIN_HIDE_DEMO", "ADMIN_SHOW_INTRO", "ADMIN_START_BONUS",
+                "ADMIN_STOP_BONUS", "ADMIN_RESTART_BONUS", "ADMIN_RESUME_ACT",
+                "ADMIN_ACT_PAUSE_SECONDS", "ADMIN_KARAOKE_RESULT");
+        assertThat(comandiRegia)
+                .as("ogni comando di regia deve essere nella whitelist ADMIN")
+                .isSubsetOf(WebSocketConfig.ADMIN_ACTIONS);
+        assertThat(WebSocketConfig.TV_ACTIONS)
+                .as("la TV non deve poter inviare comandi di regia")
+                .doesNotContainAnyElementsOf(comandiRegia);
+        assertThat(WebSocketConfig.REMOTE_ACTIONS)
+                .as("il telefono non deve poter inviare comandi di regia")
+                .doesNotContainAnyElementsOf(comandiRegia);
+        assertThat(WebSocketConfig.ADMIN_ACTIONS).doesNotContain(
+                "SHOW_QUESTION", "START_VOTING", "PLAYER_PRENOTATO", "ROUND_ENDED");
+    }
+
     /** Legge `WsAction` tenendo la sezione del commento che precede ogni voce. */
     private static Map<String, Set<String>> leggiEnum() throws IOException {
         Map<String, Set<String>> sezioni = new LinkedHashMap<>();

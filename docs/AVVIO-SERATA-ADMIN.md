@@ -74,9 +74,10 @@ rispondere `{"status":"ok"}`.
    `localhost` sulla TV: il QR punterebbe a `localhost` e i telefoni non lo aprirebbero.
    Trovi l'IP con `ipconfig` (Windows) → *Indirizzo IPv4*.
 2. **Regia:** dal tuo telefono apri `http://<IP-del-PC>:8080/admin` (con npm `:4200/admin`).
-3. Nella lobby TV compaiono **PARTITA #N** e il riquadro **CODICE REGIA**. Se il codice
-   non c'è, premi **GENERA CODICE** sulla TV e inseriscilo nel pannello. Vale 5 minuti
-   e una volta sola.
+3. Nella lobby TV compaiono **PARTITA #N** e il riquadro **REGIA**: il codice a
+   6 cifre e il QR arrivano **da soli**, senza premere niente. Il codice si rinnova
+   da solo ogni 5 minuti e dopo ogni uso; il QR contiene già `/admin?pair=<codice>`.
+   Inquadralo con il telefono della regia: il pannello si apre già abbinato.
 
 ---
 

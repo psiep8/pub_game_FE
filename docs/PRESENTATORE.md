@@ -24,14 +24,14 @@ giusta o sbagliata, e quando la serata avanza.
 ## 2. Accendere e abbinare la regia
 
 1. Accendi il backend e apri la TV su `/tv`. Nella lobby compaiono
-   **PARTITA #N** e il riquadro **CODICE REGIA**.
-2. Se il codice non c'è, premi **GENERA CODICE** sulla TV: la TV chiede il
-   **segreto di regia** (`CONTROL_SECRET`). Il codice vale **5 minuti** e
-   **una volta sola**.
-3. Apri `/admin` sul telefono del presentatore:
-   - nel campo **PARTITA #** metti il numero della lobby (di solito è già giusto);
-   - se compare il riquadro **🔒 REGIA NON ABBINATA**, scrivi le 6 cifre e premi
-     **ABBINA REGIA**; diagnostica e categorie si vedono comunque.
+   **PARTITA #N** e il riquadro **REGIA**, con il codice a 6 cifre e il QR.
+   Il codice compare **da solo**, si rinnova alla scadenza e dopo ogni uso.
+2. Apri `/admin` sul telefono del presentatore e **inquadra il QR REGIA**: il link
+   è già `/admin?pair=<codice>` e l'abbinamento è immediato. In alternativa scrivi
+   le 6 cifre: appena entra l'ultima, il pannello si abbina senza premere altro.
+3. La regia **ricorda il dispositivo**: dopo un ricaricamento o una caduta di rete
+   non serve un nuovo codice. Se compare **🔒 REGIA NON ABBINATA**, il codice
+   vecchio è scaduto: guarda la TV, ce n'è già uno nuovo.
 4. La regia è abbinata quando il riquadro **📡 CONNESSIONI & SALVATAGGIO**
    mostra lo stato della partita.
 

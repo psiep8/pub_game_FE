@@ -10,6 +10,7 @@ import com.pub_game_be.reliability.IdempotencyService;
 import com.pub_game_be.reliability.ScoreboardService;
 import com.pub_game_be.reliability.StateBlobService;
 import com.pub_game_be.reliability.DeviceSessionService;
+import com.pub_game_be.reliability.domain.DeviceSessionEntity;
 import com.pub_game_be.reliability.ButtonTestService;
 import com.pub_game_be.repository.GameRepository;
 import com.pub_game_be.repository.GameRoundRepository;
@@ -22,6 +23,7 @@ import com.pub_game_be.service.QuestionBankService;
 import com.pub_game_be.service.SimpleRoundService;
 import com.pub_game_be.service.UltimaSpiaggiaLevelService;
 import org.json.JSONObject;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -146,7 +148,12 @@ public class GameController {
         int act = Math.min(5, (roundIndex / 8) + 1);
 
         String aiPayload;
-        if (partyGameService.handles(type)) {
+        if ("MUSIC".equalsIgnoreCase(type)) {
+            // Un round di Musica è un tema e cinque brani: tema e brani usati
+            // vivono nello stato della partita, quindi la deduplica della banca
+            // domande non c'entra (e non deve prenotare un payload con 5 brani).
+            aiPayload = questionBank.musicPayload(gameId);
+        } else if (partyGameService.handles(type)) {
             // Timeline, Bomba, Speed Rush e Tennis Battle non usano la banca
             // domande: il payload (e lo stato del round) vive nel servizio party.
             aiPayload = partyGameService.startRound(gameId, type, category, act);
@@ -160,7 +167,7 @@ public class GameController {
             // Arena non ha una domanda nel payload: le sue domande vengono
             // prenotate una per dispositivo da /arena-question. Il wrapper è
             // identico a ogni round, quindi non va passato dalla deduplica.
-            if (!"ARENA".equalsIgnoreCase(type)) {
+            if (!"ARENA".equalsIgnoreCase(type) && !"MUSIC".equalsIgnoreCase(type)) {
                 // Prenotazione atomica: la domanda risulta uscita solo quando il
                 // database conferma. Se un'altra richiesta l'ha presa nello stesso
                 // istante si ripesca, invece di mostrarla due volte.
@@ -211,10 +218,8 @@ public class GameController {
                 roundIndex, "g" + gameId + "-r" + roundIndex, normalizedPayload);
         savedRound.setRoundStartId(opening.eventId());
 
-        messagingTemplate.convertAndSend(
-                "/topic/game/" + gameId,
-                savedRound);
-
+        // Il round completo (payload e soluzioni) non va in broadcast: la TV lo
+        // riceve in risposta e nessun altro dispositivo deve vederlo.
         return savedRound;
     }
 
@@ -544,8 +549,6 @@ public class GameController {
                 round.getRoundIndex(), "g" + id + "-r" + round.getRoundIndex(), round.getPayload());
         round.setRoundStartId(opening.eventId());
 
-        messagingTemplate.convertAndSend("/topic/game/" + id, round);
-
         return round;
     }
 
@@ -685,6 +688,7 @@ public class GameController {
         questionPoolService.clear(gameId);
         ultimaSpiaggiaLevelService.clear(gameId);
         partyGameService.forget(gameId);
+        questionBank.forgetMusicRound(gameId);
         bombaService.reset(gameId);
         scoreboard.forget(gameId);
         stateBlobs.forget(gameId, "time-buzzer-start");
@@ -755,7 +759,16 @@ public class GameController {
      * client riceveva il gioco sbagliato (osservato su Timeline).</p>
      */
     @GetMapping("/{gameId}/current-round")
-    public ResponseEntity<Object> getCurrentRound(@PathVariable("gameId") Long gameId) {
+    public ResponseEntity<Object> getCurrentRound(@PathVariable("gameId") Long gameId,
+            @RequestAttribute("pubgame.session") DeviceSessionEntity session) {
+        // Il payload del round contiene le soluzioni: una TV senza segreto è
+        // uno schermo di lobby e non lo legge, come i telefoni.
+        boolean regia = "ADMIN".equals(session.getRole())
+                || ("TV".equals(session.getRole()) && session.regiaAttiva());
+        if (!regia) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "regia-required"));
+        }
         return gameStateService.currentRound(gameId)
                 .<ResponseEntity<Object>>map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());

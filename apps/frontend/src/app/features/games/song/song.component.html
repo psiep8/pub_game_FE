@@ -1,99 +1,92 @@
-
 <div class="song-container">
 
-  
-  @if (displayData?.waitingForStart) {
-    <div class="waiting-start">
-      <div class="waiting-icon">⏳</div>
-      <div class="waiting-text">
-        <strong>MANCHE IN ATTESA</strong>
-        <span>La prossima parte tra pochi secondi</span>
-      </div>
-    </div>
-  }
-
-  
-  <div class="song-header">
-    <div class="music-icon">🎤</div>
+  <header class="song-header">
+    <div class="song-kicker">INDOVINA LA CANZONE</div>
     <h1 class="song-title">{{ displayData?.question || 'Indovina la canzone!' }}</h1>
-  </div>
+    @if (displayData?.label) {
+      <div class="song-label">{{ displayData.label }}</div>
+    }
+  </header>
 
-  
   @if (displayData?.buzzedPlayer) {
     <div class="buzz-alert">
-      <div class="alert-icon">🔔</div>
+      <div class="alert-icon">!</div>
       <div class="alert-content">
         <span class="alert-name">{{ displayData.buzzedPlayer }}</span>
-        <span class="alert-text">SI È PRENOTATO!</span>
+        <span class="alert-text">SI È PRENOTATO</span>
       </div>
     </div>
   }
 
-  
-  <div class="vinyl-stage" [class.scratching]="scratching()">
-    <div class="vinyl-disc"
-         [class.spinning]="isPlaying()"
-         [style.transform]="'rotate(' + vinylRotation() + 'deg)'">
+  <div class="music-board">
 
-      <div class="vinyl-grooves"></div>
-
-      
-      <div class="vinyl-label">
-        @if (displayData?.albumCover) {
-          <img [src]="displayData.albumCover"
-               [alt]="displayData.songTitle"
-               class="album-cover"
-               [style.filter]="'blur(' + blurAmount() + 'px)'">
-        } @else {
-          <div class="label-content">
-            <div class="label-icon">🎵</div>
-            <div class="label-text">SONG</div>
-          </div>
-        }
-      </div>
-
-      <div class="vinyl-center"></div>
-    </div>
-
-    
-    <div class="tonearm" [class.playing]="isPlaying()"></div>
-  </div>
-
-  
-  <div class="phases-indicator">
-    <div class="phases-track">
-      @for (phase of [1, 2, 3, 4]; track phase) {
-        <div class="phase-dot"
-             [class.active]="currentPhase() >= phase"
-             [class.current]="currentPhase() === phase"
-             [style.border-color]="currentPhase() >= phase ? getPhaseColor() : 'var(--coal)'">
-
-          <div class="phase-icon">{{ getPhaseIcon(phase) }}</div>
-
-          <div class="phase-label">
-            @switch(phase) {
-              @case(1) { <span>25%</span> }
-              @case(2) { <span>50%</span> }
-              @case(3) { <span>75%</span> }
-              @case(4) { <span>100%</span> }
-            }
-          </div>
+    <div class="vinyl-stage">
+      <div class="vinyl-disc"
+           [class.spinning]="isPlaying()">
+        <div class="vinyl-grooves"></div>
+        <div class="vinyl-label">
+          @if (displayData?.albumCover) {
+            <img [src]="displayData.albumCover"
+                 alt="Copertina del brano"
+                 class="album-cover"
+                 [style.filter]="'blur(' + blurAmount() + 'px)'">
+          } @else {
+            <div class="label-content">
+              <div class="label-text">?</div>
+            </div>
+          }
         </div>
-      }
+        <div class="vinyl-center"></div>
+      </div>
+      <div class="tonearm" [class.playing]="isPlaying()"></div>
     </div>
 
-    <div class="progress-bar">
-      <div class="progress-fill"
-           [style.width.%]="(currentPhase() / 4) * 100"
-           [style.background]="getPhaseColor()"></div>
-    </div>
+    <aside class="music-ledger">
+      <div class="ledger-row">
+        <span class="ledger-key">ROUND</span>
+        <strong class="ledger-value">{{ displayData?.round || 1 }}/4</strong>
+      </div>
+      <div class="ledger-row">
+        <span class="ledger-key">MANCA</span>
+        <strong class="ledger-value">{{ displayData?.manche || 0 }}/{{ displayData?.mancheTotal || 5 }}</strong>
+      </div>
+      <div class="ledger-row">
+        <span class="ledger-key">ASCOLTO</span>
+        <strong class="ledger-value">{{ displayData?.listen || 1 }}°</strong>
+      </div>
+      <div class="ledger-row ledger-row--points">
+        <span class="ledger-key">VALORE</span>
+        <strong class="ledger-value">{{ displayData?.points || 0 }} PT</strong>
+      </div>
+      <div class="ledger-row ledger-row--theme">
+        <span class="ledger-key">TEMA</span>
+        <strong class="ledger-theme">{{ displayData?.theme }}</strong>
+      </div>
+      <div class="ledger-stamp">{{ phaseLabel }}</div>
+      <p class="ledger-hint">{{ phaseHint }}</p>
+    </aside>
 
-    <div class="current-phase-label">
-      {{ getPhaseLabel() }}
+  </div>
+
+  <div class="phase-strip">
+    <div class="phase-cell" [class.is-on]="displayData?.phase === 'LISTEN' && displayData?.listen === 1">
+      <span class="phase-cell-value">4 s</span>
+      <span class="phase-cell-label">PRIMO ASCOLTO</span>
+    </div>
+    <div class="phase-cell" [class.is-on]="displayData?.phase === 'BUZZ'">
+      <span class="phase-cell-value">5 s</span>
+      <span class="phase-cell-label">PRENOTA</span>
+    </div>
+    <div class="phase-cell" [class.is-on]="displayData?.phase === 'LISTEN' && displayData?.listen === 2">
+      <span class="phase-cell-value">12 s</span>
+      <span class="phase-cell-label">SECONDO ASCOLTO</span>
+    </div>
+    <div class="phase-cell" [class.is-on]="displayData?.phase === 'REVEAL'">
+      <span class="phase-cell-value">8 s</span>
+      <span class="phase-cell-label">REVEAL</span>
     </div>
   </div>
 
-  
   @if (isPlaying()) {
     <div class="audio-status playing">
       <div class="equalizer">
@@ -101,35 +94,35 @@
           <div class="eq-bar" [style.animation-delay]="(bar * 0.1) + 's'"></div>
         }
       </div>
-      <p>🎵 In riproduzione...</p>
+      <p>BRANO IN ASCOLTO</p>
     </div>
   }
 
-  
-  @if (displayData?.revealed) {
+  @if (displayData?.revealed && displayData?.songTitle) {
     <div class="song-reveal">
       <div class="reveal-card">
-        <div class="reveal-icon">🎉</div>
+        <div class="reveal-stamp">SOLUZIONE</div>
         <h2 class="reveal-title">{{ displayData.songTitle }}</h2>
         <p class="reveal-artist">{{ displayData.artist }}</p>
         @if (displayData.year) {
           <p class="reveal-year">{{ displayData.year }}</p>
         }
-        <div class="reveal-cover">
-          <img [src]="displayData.albumCover" alt="Album cover">
-        </div>
+        @if (displayData.albumCover) {
+          <div class="reveal-cover">
+            <img [src]="displayData.albumCover" alt="Copertina del brano">
+          </div>
+        }
       </div>
     </div>
   }
 
-  
   @if (timerVisible) {
-    <div class="timer-circle" [class.warning]="timer <= 30">
+    <div class="timer-circle" [class.warning]="timer <= 5">
       <svg width="100" height="100">
         <circle cx="50" cy="50" r="45" class="timer-bg"></circle>
         <circle cx="50" cy="50" r="45"
                 class="timer-progress"
-                [style.stroke-dashoffset]="283 - (283 * timer / 30)"></circle>
+                [style.stroke-dashoffset]="timerOffset"></circle>
       </svg>
       <div class="timer-value">{{ timer }}</div>
     </div>

@@ -9,7 +9,12 @@ import {
   BOMBA_PEAK,
   CASINO_SPINS,
   IMAGE_BLUR_MANCHE_POINTS,
-  MUSIC_MANCHE_POINTS,
+  MUSIC_FIRST_LISTEN_POINTS,
+  MUSIC_GAME_MAX,
+  MUSIC_ROUND_MAX,
+  MUSIC_SECOND_LISTEN_PENALTY,
+  MUSIC_SECOND_LISTEN_POINTS,
+  musicPointsFor,
   SCORING_RULES,
   SPEED_RUSH_FIRST,
   SPEED_RUSH_LAST,
@@ -22,10 +27,18 @@ import {
 } from './scoring-rules';
 
 describe('regole dei punteggi', () => {
-  it('Musica: quattro manche, 1000 / 750 / 500 / 250', () => {
-    expect([...MUSIC_MANCHE_POINTS]).toEqual([1000, 750, 500, 250]);
-    expect(SCORING_RULES.MUSIC.correct).toContain('1000');
-    expect(SCORING_RULES.MUSIC.note).toContain('750');
+  it('Musica: 4 round da 5 manche, 200 / 100 / −50', () => {
+    expect(MUSIC_FIRST_LISTEN_POINTS).toBe(200);
+    expect(MUSIC_SECOND_LISTEN_POINTS).toBe(100);
+    expect(MUSIC_SECOND_LISTEN_PENALTY).toBe(-50);
+    expect(MUSIC_ROUND_MAX).toBe(1000);
+    expect(MUSIC_GAME_MAX).toBe(4000);
+    expect(musicPointsFor(1, true)).toBe(200);
+    expect(musicPointsFor(2, true)).toBe(100);
+    expect(musicPointsFor(1, false)).toBe(0);
+    expect(musicPointsFor(2, false)).toBe(-50);
+    expect(SCORING_RULES.MUSIC.note).toContain('4000');
+    expect(SCORING_RULES.MUSIC.note).not.toContain('750');
   });
 
   it('Indovina chi: il round da 1000 è diviso tre manche (333/333/334)', () => {

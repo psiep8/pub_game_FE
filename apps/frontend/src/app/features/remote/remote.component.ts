@@ -54,6 +54,18 @@ const QUIZ_CHECK_TIMEOUT_MS = 8000;
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./remote.component.css', './restyle.css', './manual.css'],
   styles: [`
+    .haptic-flash {
+      position: fixed; inset: 0; z-index: 95; pointer-events: none;
+      background: var(--paper-hi); opacity: 0;
+      animation: hapticFlash .45s steps(2, end);
+    }
+    @keyframes hapticFlash {
+      0%, 100% { opacity: 0; }
+      25%, 75% { opacity: .55; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .haptic-flash { animation: none; opacity: .18; }
+    }
     .timeline-remote, .speed-remote, .tennis-remote {
       display: flex; flex-direction: column; gap: 14px; padding: 16px; height: 100%; justify-content: center;
     }
@@ -263,6 +275,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
   paused = signal(false);
   /** Un round è aperto: il manuale non si può aprire e si chiude se era aperto. */
   roundActive = signal(false);
+  /** Scadenza assoluta del server per il round aperto (0 = non nota). */
+  roundDeadlineAt = signal(0);
+  /** Il round è chiuso: il telefono si blocca subito, senza aspettare il turno. */
+  roundClosed = signal(false);
+  /** iPhone/Safari non espongono la Vibration API: il via si vede e si sente. */
+  readonly hapticFlash = signal(false);
+  private hapticTimer?: ReturnType<typeof setTimeout>;
+  private roundDeadlineWatch?: ReturnType<typeof setInterval>;
   /**
    * Riallineamento dopo il ritorno in primo piano: finché il server non ha
    * detto in che round siamo, il telefono non riabilita nessun input. Un round
@@ -273,9 +293,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
   private readonly duplicateTab = signal(false);
   readonly inputBlocked = computed(() =>
     this.reliability.duplicateDisplay() || this.duplicateTab());
-  /** Input utilizzabili adesso: serve lo stato del server, nessuna pausa e una sola scheda attiva. */
+  /**
+   * Input utilizzabili adesso: serve un round aperto dal server, nessuna pausa
+   * e una sola scheda attiva. Prima bastava «non in pausa»: a round chiuso i
+   * tasti restavano vivi fino al round successivo (N-05).
+   */
   readonly inputReady = computed(() =>
-    !this.resyncing() && !this.paused() && !this.inputBlocked());
+    !this.resyncing() && !this.paused() && !this.inputBlocked()
+    && this.roundActive() && !this.roundClosed());
   manualOpen = signal(false);
   manualEntry = signal<ManualEntry | null>(null);
   /** `?manuale=` è un'anteprima: i cambi di round non devono chiuderla. */
@@ -561,6 +586,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // questa iscrizione il telefono ascolta la partita di default e non vede
     // l'avvio del round, pur rispondendo sull'ID giusto.
     this.ws.subscribeToGame(this.gameId());
+    this.startRoundDeadlineWatch();
 
     // Anteprima del manuale per la pagina sim-duo (`?quad=1&manuale=QUIZ`):
     // mostra la scheda "come si vota" senza dover entrare in squadra.
@@ -652,6 +678,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
             this.quizManche.set(0);
           }
           this.roundActive.set(true);
+          this.roundClosed.set(false);
+          this.roundDeadlineAt.set(Number((status as any).roundDeadlineAt ?? (status as any).deadlineAt ?? 0));
           this.closeManual(true, true);
           // Il voto del gioco precedente non appartiene al nuovo Quiz, anche
           // se il suo numero di manche coincide con quello appena annunciato.
@@ -660,6 +688,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
             this.answeredManche.set(0);
             this.selectedAnswer.set(null);
           }
+          // Un annuncio può essere recapitato dopo il via della stessa manche
+          // (WS e snapshot non hanno lo stesso ordine): se il telefono è già
+          // dentro questo gioco e round, non deve tornare in attesa né
+          // sbloccare chi ha già prenotato.
+          const sameAnnouncedRound = this.isSameAnnouncedRound(status);
           this.questionType.set(status.type);
           if (status.round) this.roundNumber.set(Number(status.round));
           if (status.roundTotal) this.roundTotal.set(Number(status.roundTotal));
@@ -689,7 +722,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
             this.hasAnswered.set(false);
             this.selectedAnswer.set(null);
             this.startTime = Date.now();
-          } else {
+          } else if (!sameAnnouncedRound) {
             this.gameState.set(PlayerStatus.WAITING);
           }
           break;
@@ -714,8 +747,19 @@ export class RemoteComponent implements OnInit, OnDestroy {
           if (status.type === 'ARENA' && this.roundActive() && this.questionType() === 'ARENA'
               && this.gameState() === PlayerStatus.VOTING) break;
           this.roundActive.set(true);
+          this.roundClosed.set(false);
+          this.roundDeadlineAt.set(Number((status as any).roundDeadlineAt ?? (status as any).deadlineAt ?? 0));
           this.closeManual(true, true);
           this.isBlocked.set(false);
+          // Il round viaggia sul messaggio, non sempre nel payload: senza
+          // salvarlo, un SHOW_QUESTION in ritardo sembra di un altro round.
+          if (status.round) this.roundNumber.set(Number(status.round));
+          if (status.type === 'IMAGE_BLUR') {
+            // Il via della TV conosce già la manche: salvarla qui evita che
+            // un annuncio in ritardo la scambi per una nuova e riarmi il voto.
+            this.imageRound = Number(status.round) || this.roundNumber();
+            this.imageManche.set(Number(status.manche) || 1);
+          }
           this.onStartVoting(status.type, status.payload);
           break;
 
@@ -767,11 +811,20 @@ export class RemoteComponent implements OnInit, OnDestroy {
             // precedente (per esempio Bomba) sulla schermata.
             this.questionType.set('QUIZ');
             this.roundActive.set(true);
+            this.roundClosed.set(false);
             this.hasAnswered.set(false);
             this.selectedAnswer.set(null);
             this.startTime = Date.now();
             this.gameState.set(PlayerStatus.VOTING);
           }
+          break;
+        }
+
+        case 'MUSIC_PHASE': {
+          // Musica: il telefono ha un solo tasto, la prenotazione. La TV manda
+          // la fase della manca corrente, così il tasto si arma solo nei
+          // cinque secondi a audio fermo e si riarma a ogni nuova manca.
+          this.applyMusicState(status.state);
           break;
         }
 
@@ -854,15 +907,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'BONUS_STARTED':
           // La sorpresa arriva anche in tasca: tre colpi brevi, mai continui.
-          try {
-            navigator.vibrate?.([90, 60, 120, 60, 200]);
-          } catch {
-            // Telefono senza vibrazione: la scena resta sulla TV.
-          }
+          // Su iPhone la Vibration API manca: scatta il fallback visivo.
+          this.vibrate([90, 60, 120, 60, 200]);
           break;
 
         case 'BONUS_ENDED':
           this.roundActive.set(false);
+          this.roundClosed.set(true);
+          this.roundDeadlineAt.set(0);
           this.questionType.set('QUIZ');
           this.gameState.set(PlayerStatus.WAITING);
           this.casinoState.set(null);
@@ -877,6 +929,8 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
         case 'ROUND_ENDED':
         case 'REVEAL':
+          this.roundClosed.set(true);
+          this.roundDeadlineAt.set(0);
           this.endQuizCheck();
           this.quizRecoveryBlocked = false;
           this.quizRecoveryBlockedRoundId = '';
@@ -1525,6 +1579,42 @@ export class RemoteComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Fase di una manca Musica: apre la prenotazione solo nella finestra a audio
+   * fermo. La usano l'annuncio MUSIC_PHASE della TV e la ripresa da snapshot:
+   * uno snapshot armava il tasto anche durante l'ascolto, senza audio da
+   * indovinare.
+   */
+  private applyMusicState(state: any): void {
+    const data = (state ?? {}) as any;
+    const phase = String(data.phase ?? '').toUpperCase();
+    const me = (this.nickname() ?? '').trim().toLowerCase();
+    const wrong = Array.isArray(data.wrongPlayers)
+      && data.wrongPlayers.some((name: unknown) => String(name).trim().toLowerCase() === me);
+    // La prenotazione è una sola per manca e la TV manda il nome a tutte le
+    // squadre: solo chi ha premuto vede il proprio "prenotato", le altre
+    // aspettano il presentatore.
+    const buzzed = String(data.buzzedPlayer ?? '').trim();
+    const buzzedByMe = buzzed.length > 0 && buzzed.toLowerCase() === me;
+    this.questionType.set('MUSIC');
+    this.roundActive.set(true);
+    this.roundClosed.set(false);
+    // Chi ha sbagliato rientra alla manca successiva: nella stessa manca
+    // resta fuori, come chi ha già prenotato (una per squadra).
+    const open = phase === 'BUZZ' && !wrong && !buzzed;
+    this.hasAnswered.set(!open);
+    if (open) {
+      this.startTime = Date.now();
+      this.gameState.set(PlayerStatus.VOTING);
+    } else if (buzzedByMe || wrong) {
+      this.gameState.set(PlayerStatus.LOCKED);
+    } else if (buzzed) {
+      this.gameState.set(PlayerStatus.WAITING_FOR_OTHER);
+    } else {
+      this.gameState.set(PlayerStatus.WAITING);
+    }
+  }
+
   sendBuzz() {
     if (!this.inputReady()) return;
     if (!this.nickname()) return;
@@ -1539,17 +1629,50 @@ export class RemoteComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Scadenza del server, non dell'orologio del telefono: quando arriva, il
+   * round si chiude subito anche se la TV non ha ancora mandato ROUND_ENDED.
+   */
+  private startRoundDeadlineWatch(): void {
+    if (this.roundDeadlineWatch) return;
+    this.roundDeadlineWatch = setInterval(() => {
+      const deadline = this.roundDeadlineAt();
+      if (!deadline || !this.roundActive() || this.paused() || this.resyncing()) return;
+      if (this.reliability.serverNow() >= deadline) this.closeRoundLocally();
+    }, 500);
+  }
+
+  /** Round chiuso dal server: niente più tap, niente errori a schermo. */
+  private closeRoundLocally(): void {
+    if (!this.roundActive() || this.roundClosed()) return;
+    this.roundClosed.set(true);
+    this.roundActive.set(false);
+    this.gameState.set(PlayerStatus.WAITING);
+    this.hasAnswered.set(false);
+    this.speedLoadSeq++;
+    this.applySpeedTask(null);
+    this.invalidateArenaQuestion();
+    this.cancelTimelineSend();
+  }
+
+  /**
    * Apre il round sul telefono. `resumed` distingue l'avvio della TV dalla
    * ripresa dopo un refresh: all'avvio l'ordine Timeline iniziale vale già
    * come risposta, alla ripresa sovrascriverebbe quello scelto dal giocatore.
    */
   onStartVoting(type: string, payload?: any, options: { resumed?: boolean } = {}) {
+    // Aprire il voto è aprire il round: la guardia di inputReady usa questo
+    // stato anche quando l'annuncio arriva da un percorso di ripresa.
+    this.roundActive.set(true);
+    this.roundClosed.set(false);
     this.gameState.set(PlayerStatus.VOTING);
     this.questionType.set(type as any);
     if (payload?.round) this.roundNumber.set(Number(payload.round));
     if (payload?.roundTotal) this.roundTotal.set(Number(payload.roundTotal));
     this.startTime = Date.now();
-    this.hasAnswered.set(false);
+    // Musica: il tasto lo arma solo MUSIC_PHASE (fase BUZZ). START_VOTING esce
+    // prima del primo annuncio: senza questa riga si poteva prenotare durante
+    // l'ascolto, dove la modalità rifiuta la prenotazione senza dirlo.
+    this.hasAnswered.set(type === 'MUSIC');
     this.selectedAnswer.set(null);
 
 
@@ -1655,14 +1778,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
     // R-01: in sala questo log dice se il telefono ha ricevuto il bonus e in
     // che fase è, senza dover indovinare dal silenzio.
+    const myQuestion = this.nickname() ? state.questions?.[this.nickname()!] : null;
     console.info('[CAVALLO][telefono] stato', {
       phase: state.phase,
       categoria: state.chosenCategory || null,
-      domanda: state.question?.index ?? null,
+      domanda: myQuestion?.index ?? state.question?.index ?? null,
     });
     this.cavalloState.set(state);
     this.questionType.set('BONUS_CAVALLO');
-    const key = `${state.phase}:${state.question?.index ?? 0}`;
+    const key = `${state.phase}:${myQuestion?.index ?? state.question?.index ?? 0}`;
     if (key !== this.cavalloKey) {
       this.cavalloKey = key;
       this.cavalloChoice.set(null);
@@ -2108,9 +2232,24 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.vibrate(30);
   }
 
+  /** N-04: la domanda assegnata a questa squadra, non quella del bonus. */
+  cavalloMyQuestion(): any | null {
+    const player = this.nickname();
+    if (!player) return null;
+    return this.cavalloState()?.questions?.[player]
+      ?? (this.cavalloState()?.phase === 'QUESTION' ? this.cavalloState()?.question : null)
+      ?? null;
+  }
+
+  cavalloMyReveal(): any | null {
+    const player = this.nickname();
+    if (!player) return null;
+    return this.cavalloState()?.reveals?.[player] ?? this.cavalloState()?.reveal ?? null;
+  }
+
   cavalloMyRow(): any {
     const player = this.nickname();
-    return (this.cavalloState()?.reveal?.rows ?? []).find((row: any) => row.playerName === player) ?? null;
+    return (this.cavalloMyReveal()?.rows ?? []).find((row: any) => row.playerName === player) ?? null;
   }
 
   cavalloAnswer(index: number): void {
@@ -2119,7 +2258,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const player = this.nickname();
     if (!state || state.phase !== 'QUESTION' || !player || this.cavalloChoice() !== null) return;
 
-    const options: string[] = state.question?.options ?? [];
+    const options: string[] = this.cavalloMyQuestion()?.options ?? [];
     if (!Number.isInteger(index) || index < 0 || index >= options.length) return;
 
     this.cavalloChoice.set(String(index));
@@ -2861,6 +3000,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
     return announced >= this.roundNumber();
   }
 
+  /**
+   * Lo stesso gioco e round già annunciato: un SHOW_QUESTION ripetuto non deve
+   * cambiare lo stato del telefono. La manche è gestita dai rami specifici.
+   */
+  private isSameAnnouncedRound(status: any): boolean {
+    return this.questionType() === status.type
+      && (!status.round || Number(status.round) === this.roundNumber());
+  }
+
   private acceptQuizAnnouncement(status: any): boolean {
     const id = typeof status?.roundStartId === 'string' ? status.roundStartId.trim() : '';
     if (!id) return true;
@@ -2952,6 +3100,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (this.paused() && !this.pauseStartedAt) this.pauseStartedAt = performance.now();
 
     const deadline = Number(snapshot.roundDeadlineAt ?? 0);
+    this.roundDeadlineAt.set(deadline);
     const pausedAt = Number(snapshot.pausedAt ?? 0);
     // Durante la pausa la deadline non si muove: confrontarla con l'ora
     // corrente farebbe chiudere un round che era ancora aperto allo stop.
@@ -3038,6 +3187,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // una riconnessione, non solo quando arriva SHOW_QUESTION.
     if (!bonusVisible) {
       this.roundActive.set(!!type && open);
+      this.roundClosed.set(!!type && !open);
       if (this.roundActive()) this.closeManual(true, true);
     }
 
@@ -3113,6 +3263,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
     // ricollega a partita in corso lo riceve subito dopo.
     if ((type === 'BLACKJACK' && !this.blackjackState())
       || (type === 'TENNIS_BATTLE' && !this.tennisStateReady())) return;
+
+    // Musica: la fase vive nel checkpoint della TV. Uno snapshot senza fase
+    // (o con fase di ascolto/reveal) non deve armare il tasto: il riarmo è
+    // dell'annuncio MUSIC_PHASE, non della ripresa dello stato.
+    if (type === 'MUSIC') {
+      const checkpoint = snapshot.tvCheckpoint?.mode === 'MUSIC' ? snapshot.tvCheckpoint.state : null;
+      this.applyMusicState(checkpoint);
+      return;
+    }
 
     const previousType = this.questionType();
     this.questionType.set(type);
@@ -3294,10 +3453,33 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.startTime = Date.now();
   }
 
+  /**
+   * Vibrazione quando c'è. Su iPhone/Safari la Vibration API manca (o è
+   * disattivata): senza fallback il «via» restava muto e immobile, quindi si
+   * accende un flash e si suona un colpo breve. Il flash è solo visivo e non
+   * intercetta tocchi.
+   */
   private vibrate(pattern: number | number[]) {
-    if ('vibrate' in navigator) {
-      navigator.vibrate(pattern);
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      try {
+        if (navigator.vibrate(pattern)) return;
+      } catch {
+        // Alcuni browser trattano vibrate come funzione ma la negano.
+      }
     }
+    this.flashHapticFallback();
+  }
+
+  private flashHapticFallback(): void {
+    if (this.hapticTimer) clearTimeout(this.hapticTimer);
+    this.hapticFlash.set(false);
+    // Riavviare l'animazione anche se il flash precedente è ancora acceso.
+    requestAnimationFrame(() => this.hapticFlash.set(true));
+    this.audio.playTick();
+    this.hapticTimer = setTimeout(() => {
+      this.hapticFlash.set(false);
+      this.hapticTimer = undefined;
+    }, 500);
   }
 
   /**
@@ -3318,8 +3500,20 @@ export class RemoteComponent implements OnInit, OnDestroy {
       clearTimeout(this.tennisGoalTimer);
       this.tennisGoalTimer = undefined;
     }
+    // N-06: dopo un reset o un'espulsione non deve restare nessuna traccia
+    // della sessione. `playerName` e `activeGameId` facevano rientrare il
+    // telefono nella partita vecchia, che il server considerava chiusa.
+    this.audio.stopAll();
+    if (this.roundDeadlineWatch) {
+      clearInterval(this.roundDeadlineWatch);
+      this.roundDeadlineWatch = undefined;
+    }
+    this.roundClosed.set(true);
     localStorage.removeItem('nickname');
+    localStorage.removeItem('playerName');
+    localStorage.removeItem('activeGameId');
     this.nickname.set(null);
+    this.playerName.set('');
     this.tempNickname = '';
     this.themeStep.set(false);
     this.showButtonTest.set(false);
@@ -3343,7 +3537,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   logout() {
     this.ws.disconnect();
+    this.audio.stopAll();
     localStorage.removeItem('nickname');
+    localStorage.removeItem('playerName');
+    localStorage.removeItem('activeGameId');
     location.reload();
   }
 
@@ -3355,7 +3552,15 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.stopMicrophoneListening();
     this.stopBombaPolling();
     this.clearSpeedReaction();
+    if (this.roundDeadlineWatch) {
+      clearInterval(this.roundDeadlineWatch);
+      this.roundDeadlineWatch = undefined;
+    }
     if (this.bombaFlashTimer) clearTimeout(this.bombaFlashTimer);
+    if (this.hapticTimer) {
+      clearTimeout(this.hapticTimer);
+      this.hapticTimer = undefined;
+    }
     if (this.tennisGoalTimer) clearTimeout(this.tennisGoalTimer);
     if (this.updateCheckInterval) {
       clearInterval(this.updateCheckInterval);

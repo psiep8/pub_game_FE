@@ -10,6 +10,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -797,7 +798,10 @@ public class GameStateService {
     private static final Map<String, Integer> ROUND_SECONDS = Map.ofEntries(
             Map.entry("QUIZ", 3 * (15 + 3)),
             Map.entry("MUSIC", 200),
-            Map.entry("IMAGE_BLUR", 60),
+            // Indovina chi: tre manche da 45 s più il reveal e il respiro fra
+            // una e l'altra. Con 60 s la finestra si chiudeva a metà manche 2:
+            // i telefoni non potevano più prenotarsi per la 2 e la 3 (N-03).
+            Map.entry("IMAGE_BLUR", 3 * (45 + 15)),
             Map.entry("WHEEL_OF_FORTUNE", 75),
             Map.entry("TIMELINE", 45),
             Map.entry("TIME_BUZZER", 3 * (20 + 5)),
@@ -869,21 +873,29 @@ public class GameStateService {
                 .put("createdAt", event.getCreatedAt());
     }
 
+    /**
+     * Payload JSON di round, stato ed eventi. La colonna `json` restituisce a
+     * volte il testo JSON di un testo JSON (un involucro in più): si scarta
+     * finché non resta l'oggetto, altrimenti lo snapshot consegna ai client una
+     * stringa e la ripresa TV di Musica riparte con songs[] vuoto. Un payload
+     * che non è JSON resta la stringa originale.
+     */
     private Object parseOrNull(String raw) {
         if (raw == null || raw.isBlank()) {
             return JSONObject.NULL;
         }
-        try {
-            String trimmed = raw.trim();
-            if (trimmed.startsWith("{")) {
-                return new JSONObject(trimmed);
+        Object value = raw;
+        for (int depth = 0; depth < 3 && value instanceof String text; depth++) {
+            String trimmed = text.trim();
+            char first = trimmed.isEmpty() ? '\0' : trimmed.charAt(0);
+            if (first != '{' && first != '[' && first != '"') return text;
+            try {
+                value = new JSONTokener(trimmed).nextValue();
+            } catch (Exception ignored) {
+                // Payload non JSON (testo semplice): si restituisce la stringa.
+                return text;
             }
-            if (trimmed.startsWith("[")) {
-                return new JSONArray(trimmed);
-            }
-        } catch (Exception ignored) {
-            // Payload non JSON (testo semplice): si restituisce la stringa.
         }
-        return raw;
+        return value;
     }
 }

@@ -77,18 +77,46 @@ public class ReliabilityController {
         if (!java.util.Set.of("REMOTE", "TV", "ADMIN").contains(normalizedRole)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ruolo non valido");
         }
-        if (!"REMOTE".equals(normalizedRole)) {
-            boolean validResume = sessions.authenticate(token)
-                    .filter(s -> s.getGameId().equals(gameId) && normalizedRole.equals(s.getRole())).isPresent();
-            boolean authorized = validResume || secretMatches(suppliedSecret)
-                    || pairing.redeem(gameId, string(payload.get("pairingCode")));
+        boolean secretOk = secretMatches(suppliedSecret);
+        // Un token già valido vale più di un segreto vecchio rimasto in locale:
+        // se la TV si riconnette col proprio token, un segreto errato non deve
+        // farla degradare a lobby (né cancellare la sessione).
+        boolean validResume = sessions.authenticate(token)
+                .filter(s -> s.getGameId().equals(gameId) && normalizedRole.equals(s.getRole())).isPresent();
+        // La TV si registra anche senza segreto, così la lobby e il QR dei
+        // telefoni funzionano pure con il database azzerato. Resta però uno
+        // schermo: senza la credenziale di regia non genera codici e non legge
+        // le soluzioni (filtro + pairing-code). Un segreto sbagliato non deve
+        // sembrare una TV abilitata: si rifiuta subito, salvo token valido.
+        if ("TV".equals(normalizedRole) && suppliedSecret != null && !suppliedSecret.isBlank()
+                && !secretOk && !validResume) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Segreto di regia non valido");
+        }
+        if (!"REMOTE".equals(normalizedRole) && !"TV".equals(normalizedRole)) {
+            boolean authorized = validResume || secretOk;
             if (!authorized) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenziale di regia non valida");
+                PairingCodeService.RedeemResult result = pairing.attempt(gameId, string(payload.get("pairingCode")));
+                if (result != PairingCodeService.RedeemResult.OK) {
+                    String reason = switch (result) {
+                        case EXPIRED -> "Codice scaduto: guarda la TV, ce n'è uno nuovo";
+                        case LOCKED -> "Troppi tentativi: attendi un minuto e riprova";
+                        default -> "Codice non valido: guarda la TV";
+                    };
+                    HttpStatus status = switch (result) {
+                        case EXPIRED -> HttpStatus.GONE;
+                        case LOCKED -> HttpStatus.TOO_MANY_REQUESTS;
+                        default -> HttpStatus.UNAUTHORIZED;
+                    };
+                    throw new ResponseStatusException(status, reason);
+                }
             }
         }
 
         DeviceSessionService.Registration registration = sessions.register(
                 gameId, deviceId, role, playerName, token);
+        if ("TV".equals(normalizedRole) && secretOk) {
+            sessions.grantRegia(registration.sessionToken());
+        }
 
         JSONObject state = gameState.snapshot(gameId);
         Map<String, Object> out = new LinkedHashMap<>();
@@ -100,6 +128,9 @@ public class ReliabilityController {
         out.put("playerName", registration.playerName());
         out.put("resumed", registration.resumed());
         out.put("duplicateDisplay", registration.duplicateDisplay());
+        // Solo la TV aperta col segreto (e la regia) legge le soluzioni.
+        out.put("regia", "ADMIN".equals(normalizedRole)
+                || ("TV".equals(normalizedRole) && sessions.isRegia(registration.sessionToken())));
         out.put("serverTime", System.currentTimeMillis());
         out.put("stateVersion", state.optLong("version", 0));
         out.put("seq", state.optLong("seq", 0));
@@ -109,16 +140,45 @@ public class ReliabilityController {
 
     /**
      * Codice breve per abbinare la regia: la TV lo mostra, l'admin lo digita.
-     * Richiede il segreto di regia, quindi solo un dispositivo già autorizzato
-     * (la TV) può generarlo.
+     * Solo una TV aperta col segreto di regia può generarlo: una TV registrata
+     * senza credenziale è uno schermo di lobby e non apre la regia.
      */
     @PostMapping("/pairing-code")
     public Map<String, Object> pairingCode(@PathVariable("gameId") Long gameId,
-            @RequestHeader(value = "X-Control-Secret", required = false) String suppliedSecret) {
-        if (!secretMatches(suppliedSecret)) {
+            @RequestHeader(value = "X-Control-Secret", required = false) String suppliedSecret,
+            @RequestHeader(value = "X-Session-Token", required = false) String sessionToken) {
+        if (!regiaTvSession(gameId, sessionToken) && !secretMatches(suppliedSecret)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenziale di regia non valida");
         }
-        return Map.of("code", pairing.issue(gameId), "ttlSeconds", PairingCodeService.TTL.toSeconds());
+        String code = pairing.issue(gameId);
+        PairingCodeService.ActiveCode active = pairing.active(gameId);
+        return Map.of("code", code, "ttlSeconds", PairingCodeService.TTL.toSeconds(),
+                "expiresAt", active == null ? 0L : active.expiresAt());
+    }
+
+    /**
+     * Codice attivo senza rigenerarlo: la TV lo interroga per capire quando è
+     * scaduto o è stato usato e mostrarne subito uno nuovo.
+     */
+    @GetMapping("/pairing-code")
+    public Map<String, Object> pairingCodeStatus(@PathVariable("gameId") Long gameId,
+            @RequestHeader(value = "X-Control-Secret", required = false) String suppliedSecret,
+            @RequestHeader(value = "X-Session-Token", required = false) String sessionToken) {
+        if (!regiaTvSession(gameId, sessionToken) && !secretMatches(suppliedSecret)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenziale di regia non valida");
+        }
+        PairingCodeService.ActiveCode active = pairing.active(gameId);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("code", active == null ? null : active.value());
+        out.put("expiresAt", active == null ? 0L : active.expiresAt());
+        out.put("ttlSeconds", PairingCodeService.TTL.toSeconds());
+        return out;
+    }
+
+    /** Solo la TV della stessa partita, aperta col segreto, legge o rigenera il codice. */
+    private boolean regiaTvSession(Long gameId, String token) {
+        return sessions.authenticate(token)
+                .filter(s -> s.getGameId().equals(gameId) && "TV".equals(s.getRole()) && s.regiaAttiva()).isPresent();
     }
 
     /**
@@ -139,8 +199,14 @@ public class ReliabilityController {
         Object state = payload.get("state");
         if (state == null) {
             gameState.forgetBlackjackState(gameId);
+        } else if (state instanceof Map<?, ?> map) {
+            // Jackson consegna la mappa del checkpoint. Il costruttore
+            // JSONObject(Object) la tratterebbe come un bean e salverebbe
+            // "{}": qui serve quello per Map, altrimenti la TV non può
+            // riprendere la mano dopo un refresh.
+            gameState.saveBlackjackState(gameId, new JSONObject(map).toString());
         } else {
-            gameState.saveBlackjackState(gameId, new JSONObject(state).toString());
+            return ResponseEntity.badRequest().body(Map.of("error", "invalid-blackjack-state"));
         }
         return ResponseEntity.ok(Map.of("saved", true));
     }
@@ -272,12 +338,20 @@ public class ReliabilityController {
         snapshot.put("leaderboard", JsonSupport.toList(scoreboard.entries(gameId)));
         snapshot.put("presence", sessions.presence(gameId));
         Object identity = request.getAttribute("pubgame.session");
-        if (identity instanceof DeviceSessionEntity session && "REMOTE".equals(session.getRole())) {
+        // Telefono e TV senza regia ricevono lo snapshot ripulito: le soluzioni
+        // restano fuori dal payload, dagli eventi e dal round corrente.
+        boolean limited = identity instanceof DeviceSessionEntity session
+                && ("REMOTE".equals(session.getRole())
+                        || ("TV".equals(session.getRole()) && !session.regiaAttiva()));
+        if (limited) {
             boolean music = "MUSIC".equals(snapshot.optString("roundType"));
             snapshot.put("payload", sanitizePayload(snapshot.opt("payload"), music));
             JSONObject round = snapshot.optJSONObject("currentRound");
             if (round != null) round.put("payload", sanitizePayload(round.opt("payload"), "MUSIC".equals(round.optString("type"))));
             sync.put("events", sanitizePayload(sync.getJSONArray("events"), false));
+            // La mano Blackjack contiene la carta coperta e il mazzo ordinato:
+            // la TV regia la usa per riprendere il bonus, telefono e lobby no.
+            snapshot.put("blackjackState", JSONObject.NULL);
         }
 
         Map<String, Object> out = new LinkedHashMap<>();
@@ -354,7 +428,10 @@ public class ReliabilityController {
 
     @GetMapping("/diagnostics")
     public Map<String, Object> diagnostics(@PathVariable("gameId") Long gameId, HttpServletRequest request) {
-        boolean paired = request.getAttribute("pubgame.session") != null;
+        Object identity = request.getAttribute("pubgame.session");
+        boolean paired = identity instanceof DeviceSessionEntity session
+                && ("ADMIN".equals(session.getRole())
+                        || ("TV".equals(session.getRole()) && session.regiaAttiva()));
         JSONObject snapshot = gameState.snapshot(gameId);
         JSONObject devices = sessions.summary(gameId);
         long now = System.currentTimeMillis();
@@ -400,11 +477,12 @@ public class ReliabilityController {
         }
         if (value instanceof JSONObject object) {
             boolean musicPayload = music || "MUSIC".equals(object.optString("type"))
-                    || "MUSIC_PHASE".equals(object.optString("action"));
+                    || "MUSIC_PHASE".equals(object.optString("action"))
+                    || object.has("songs") || object.has("previewUrl") || object.has("songTitle");
             JSONObject clean = new JSONObject();
             for (String key : object.keySet()) {
                 if (!java.util.Set.of("correctAnswer", "correctIndex", "explanation", "explain", "solution", "rawPayload", "proverb").contains(key)
-                        && !(musicPayload && java.util.Set.of("songTitle", "artist", "previewUrl", "albumCover", "year").contains(key)))
+                        && !(musicPayload && java.util.Set.of("songTitle", "title", "artist", "previewUrl", "albumCover", "year").contains(key)))
                     clean.put(key, sanitizePayload(object.opt(key), musicPayload));
             }
             return clean;

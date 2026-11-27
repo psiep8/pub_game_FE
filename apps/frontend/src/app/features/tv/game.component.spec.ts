@@ -74,6 +74,85 @@ describe('GameComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('N-01: la lobby genera il codice da sola e mostra il QR della regia', async () => {
+    component.phase.set('IDLE');
+    component.currentGameId.set(7);
+    reliability.pairingStatusResult = { code: null, expiresAt: 0, ttlSeconds: 300 };
+    reliability.requestPairingCodeResult = {
+      code: '654321',
+      ttlSeconds: 300,
+      expiresAt: Date.now() + 300_000,
+    };
+
+    await component.ensurePairingCode();
+
+    expect(component.pairingCode()).toBe('654321');
+    expect(component.adminPairUrl()).toContain('/admin?pair=654321');
+    expect(component.pairingCountdown()).toBeGreaterThan(290);
+  });
+
+  it('N-01: la TV riprova la sessione iniziale senza reload', async () => {
+    vi.useFakeTimers();
+    try {
+      reliability.startFailures = 2;
+      reliability.started.length = 0;
+
+      void (component as any).openTvSession(3);
+      await vi.advanceTimersByTimeAsync(10_000);
+
+      expect(reliability.started.map((entry) => entry.gameId)).toEqual([3, 3, 3]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('N-01: se il backend resta giù la sessione si riapre da sola', async () => {
+    vi.useFakeTimers();
+    try {
+      reliability.startFailures = 100;
+      void (component as any).openTvSession(4);
+      await vi.advanceTimersByTimeAsync(20_000);
+
+      // Dopo i primi tentativi rapidi il recupero continua a ogni giro.
+      expect(reliability.started.length).toBeGreaterThan(3);
+
+      const ensure = vi.spyOn(component, 'ensurePairingCode').mockResolvedValue(undefined);
+      reliability.startFailures = 0;
+      await vi.advanceTimersByTimeAsync(5_000);
+
+      // Sessione arrivata in ritardo: la lobby chiede il codice senza reload.
+      expect(ensure).toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('N-01: il segreto di regia è applicato prima di aprire la sessione', async () => {
+    localStorage.setItem('pubgame.regia', 'segreto-di-prova');
+    reliability.controlSecrets.length = 0;
+    reliability.secretAtStart.length = 0;
+    reliability.startFailures = 0;
+
+    const second = TestBed.createComponent(GameComponent);
+    second.detectChanges();
+    // La prima attesa della lobby è getActiveGame: al tick dopo la sessione parte.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(reliability.controlSecrets).toContain('segreto-di-prova');
+    // La sessione nasce già regia: il segreto non arriva dopo la prima attesa.
+    expect(reliability.secretAtStart.at(-1)).toBe('segreto-di-prova');
+
+    second.destroy();
+  });
+
+  it('N-02: la barra comandi in TV non c’è senza ?debug=1', () => {
+    component.phase.set('IDLE');
+    fixture.detectChanges();
+
+    expect(component.commandsVisible()).toBe(false);
+    expect(fixture.nativeElement.querySelector('.tv-dock')).toBeNull();
+  });
+
   /** `document.hidden` è in sola lettura: la visibilità si finge qui. */
   function setHidden(hidden: boolean): void {
     Object.defineProperty(document, 'hidden', { configurable: true, get: () => hidden });
@@ -650,6 +729,83 @@ describe('GameComponent', () => {
     expect(component.recoveredRound()?.secondsLeft).toBe(12);
   });
 
+  it('riprende un round Musica anche quando il payload arriva serializzato', () => {
+    // Lo snapshot del server manda `payload` come testo JSON: senza il parse il
+    // mode ripartiva con songs[] vuoto, quindi audio e reveal muti dalla manche
+    // successiva al refresh.
+    const songs = [1, 2, 3, 4, 5].map((n) => ({
+      title: `Brano ${n}`,
+      artist: `Artista ${n}`,
+      year: 1990 + n,
+      previewUrl: `/media/music/brano-${n}.m4a`,
+      albumCover: `/media/covers/brano-${n}.jpg`,
+    }));
+    const tv = component as unknown as {
+      applyAuthoritativeState(snapshot: any): void;
+      recoveredPayload: any;
+    };
+
+    tv.applyAuthoritativeState({
+      hasState: true,
+      status: 'RUNNING',
+      roundType: 'MUSIC',
+      roundDeadlineAt: Date.now() + 60_000,
+      paused: true,
+      pausedAt: Date.now(),
+      currentRound: {
+        type: 'MUSIC',
+        payload: JSON.stringify({ type: 'MUSIC', theme: 'Pop', manches: 5, songs }),
+      },
+      tvCheckpoint: {
+        mode: 'MUSIC',
+        revision: 1,
+        state: { manche: 3, listen: 1, phase: 'LISTEN', secondsLeft: 3 },
+      },
+    });
+
+    expect(component.recoveredRound()).not.toBeNull();
+    expect(tv.recoveredPayload?.theme).toBe('Pop');
+    expect(tv.recoveredPayload?.songs).toHaveLength(5);
+    expect(tv.recoveredPayload?.songs?.[2]?.previewUrl).toBe('/media/music/brano-3.m4a');
+  });
+
+  it('riprende un round Musica quando il payload è serializzato due volte', () => {
+    // La colonna `json` del round restituisce il testo JSON di un testo JSON:
+    // con un solo parse il mode ripartiva con songs[] vuoto, quindi niente
+    // audio né titolo dopo RIPRENDI (visto in demo a metà round).
+    const songs = [1, 2, 3, 4, 5].map((n) => ({
+      title: `Brano ${n}`,
+      artist: `Artista ${n}`,
+      year: 1990 + n,
+      previewUrl: `/media/music/brano-${n}.m4a`,
+      albumCover: `/media/covers/brano-${n}.jpg`,
+    }));
+    const payload = { type: 'MUSIC', theme: 'Pop', manches: 5, songs };
+    const tv = component as unknown as {
+      applyAuthoritativeState(snapshot: any): void;
+      recoveredPayload: any;
+    };
+
+    tv.applyAuthoritativeState({
+      hasState: true,
+      status: 'RUNNING',
+      roundType: 'MUSIC',
+      roundDeadlineAt: Date.now() + 60_000,
+      paused: true,
+      pausedAt: Date.now(),
+      currentRound: { type: 'MUSIC', payload: JSON.stringify(JSON.stringify(payload)) },
+      tvCheckpoint: {
+        mode: 'MUSIC',
+        revision: 1,
+        state: { manche: 3, listen: 1, phase: 'LISTEN', secondsLeft: 3 },
+      },
+    });
+
+    expect(component.recoveredRound()).not.toBeNull();
+    expect(tv.recoveredPayload?.songs).toHaveLength(5);
+    expect(tv.recoveredPayload?.songs?.[4]?.title).toBe('Brano 5');
+  });
+
   it('toglie la pausa sul server prima di riaprire il round recuperato', async () => {
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     const modes = TestBed.inject(GameModeService);
@@ -752,6 +908,53 @@ describe('GameComponent', () => {
     expect(reliability.tvCheckpoints).toHaveLength(1);
   });
 
+  it('ignora timer, checkpoint, broadcast e chiusura della modalità precedente dopo PARTI', async () => {
+    vi.useFakeTimers();
+    try {
+      const rounds = TestBed.inject(RoundManagerService);
+      rounds.restoreRound(1);
+      component.currentGameId.set(1);
+      component.round.set({ roundIndex: 1, status: GamePhase.PLAYING } as any);
+      component.currentMode.set({ type: 'MUSIC' } as any);
+      const oldConfig = (component as unknown as {
+        buildModeConfig(type: string, payload: any, players: string[]): any;
+      }).buildModeConfig('MUSIC', {}, ['Anna']);
+
+      // La regia ha già risposto al click di PARTI: nuova modalità e nuovo token.
+      component.currentMode.set({ type: 'MUSIC' } as any);
+      component.round.set({ roundIndex: 2, status: GamePhase.PLAYING } as any);
+      const newConfig = (component as unknown as {
+        buildModeConfig(type: string, payload: any, players: string[]): any;
+      }).buildModeConfig('MUSIC', {}, ['Anna']);
+      const complete = vi.spyOn(rounds, 'completeRound');
+      const before = ws.broadcasted.length;
+
+      // La vecchia modalità si chiude in ritardo: niente deve arrivare sul nuovo round.
+      oldConfig.onTimerEnd();
+      expect(component.revealPending()).toBe(false);
+      oldConfig.onTvCheckpoint({ type: 'MUSIC', revision: 1, state: { manche: 5 } });
+      oldConfig.onBroadcast({ action: 'MUSIC_PHASE', state: { manche: 5 } });
+      oldConfig.onRoundEnded();
+
+      await vi.advanceTimersByTimeAsync(2_000);
+
+      expect(complete).not.toHaveBeenCalled();
+      expect(reliability.tvCheckpoints).toEqual([]);
+      expect(ws.broadcasted.slice(before)).toEqual([]);
+      expect(component.autoAdvanceSeconds()).toBe(0);
+      expect((component.round() as any)?.roundIndex).toBe(2);
+      expect((component.round() as any)?.status).toBe(GamePhase.PLAYING);
+
+      // La modalità nuova, invece, continua a salvare e trasmettere.
+      newConfig.onTvCheckpoint({ type: 'MUSIC', revision: 2, state: { manche: 1 } });
+      expect(reliability.tvCheckpoints).toHaveLength(1);
+      newConfig.onBroadcast({ action: 'MUSIC_PHASE', state: { manche: 1 } });
+      expect(ws.broadcasted).toHaveLength(before + 1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('libera AVANTI se il server non conferma la chiusura del round', async () => {
     vi.useFakeTimers();
     try {
@@ -797,7 +1000,54 @@ describe('GameComponent', () => {
     }
   });
 
+  it('N-03: uno snapshot senza round durante la chiusura non riparte dal Quiz', () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    rounds.enableSimulation();
+    expect(rounds.startNewRound()).toBe('QUIZ');
+    component.currentGameId.set(1);
+    component.currentMode.set({ type: 'QUIZ', isRevealed: () => false } as any);
+    const response = new Subject<any>();
+    vi.spyOn(game, 'closeRound').mockReturnValue(response.asObservable());
+    const start = vi.spyOn(component, 'startNewRound').mockResolvedValue(undefined);
+
+    component.adminNextRound();
+    // Snapshot del server scattato dopo closeRound, prima del round nuovo.
+    (component as any).applyAuthoritativeState({
+      hasState: false, gameId: 1, version: 9, status: 'CREATED',
+    });
+
+    // La scaletta resta sul round chiuso: il prossimo gioco è Musica, non Quiz.
+    expect(rounds.getCurrentRound()).toBe(1);
+    expect(rounds.extractGameType()).toBe('MUSIC');
+
+    response.next({ closed: true });
+    response.complete();
+    expect(start).toHaveBeenCalled();
+  });
+
+  it('N-03: uno snapshot senza round mentre la scena esce non riavvolge la scaletta', async () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    rounds.enableSimulation();
+    expect(rounds.startNewRound()).toBe('QUIZ');
+    component.currentGameId.set(1);
+    // Uscita di scena ancora aperta: il server non ha ancora il round nuovo.
+    vi.spyOn(component as any, 'playExit').mockReturnValue(new Promise<void>(() => undefined));
+
+    void component.startNewRound();
+    await Promise.resolve();
+
+    (component as any).applyAuthoritativeState({
+      hasState: false, gameId: 1, version: 9, status: 'CREATED',
+    });
+
+    expect(rounds.getCurrentRound()).toBe(1);
+    expect(rounds.extractGameType()).toBe('MUSIC');
+  });
+
   it('con la classifica aperta la X e AVANTI restano nella dock e la chiudono', () => {
+    // La dock in serata è nascosta: qui si prova con `?debug=1`.
+    component.commandsVisible.set(true);
     component.currentGameId.set(1);
     component.currentMode.set({ type: 'QUIZ', isRevealed: () => true } as any);
     component.showLeaderboardQuick.set(true);
@@ -844,6 +1094,7 @@ describe('GameComponent', () => {
   });
 
   it('un solo pulsante di chiusura, con la scritta, chiude la classifica', () => {
+    component.commandsVisible.set(true);
     component.showLeaderboardDetailed.set(true);
     component.isShowingLeaderboard.set(true);
     fixture.detectChanges();

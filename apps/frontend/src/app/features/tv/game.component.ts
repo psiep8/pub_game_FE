@@ -66,6 +66,9 @@ import { ROUNDS_PER_ACT } from '../../shared/schedule';
  * a zero punti. Una sola può essere in ritardo: chi è appena entrato sparirebbe.
  */
 const PRESENCE_MISSES_BEFORE_FORGET = 2;
+/** Attese fra i tentativi della sessione TV: rapide all'avvio, poi stabili. */
+const TV_SESSION_RETRY_MS = 800;
+const TV_SESSION_RECOVERY_MS = 4000;
 import { BonusType, BONUS_LABELS, BONUS_TYPES } from '../../shared/models/bonus-type';
 
 /** Stato che il telefono sa applicare, per ogni round con eventi in diretta. */
@@ -101,6 +104,24 @@ type TvPhase = 'IDLE' | 'SPINNING' | 'SELECTED' | 'QUESTION' | typeof GamePhase.
 const ROUND_POINTS_KEY = 'roundPoints';
 /** Scrittura di classifica in coda (debounce 250 ms) non ancora confermata. */
 const PENDING_LEADERBOARD_KEY = 'leaderboardPending';
+
+/**
+ * Bolle dei temi Musica: id sintetici (non sono le 16 categorie del Quiz) e
+ * posizioni fisse sul tabellone, con il colore preso dalla palette.
+ */
+const MUSIC_THEME_BASE = 9000;
+const MUSIC_THEME_LAYOUT = [
+  { top: '6%', left: '7%', color: 'var(--acid)' },
+  { top: '4%', left: '38%', color: 'var(--tomato)' },
+  { top: '9%', left: '70%', color: 'var(--cobalt)' },
+  { top: '34%', left: '20%', color: 'var(--mustard)' },
+  { top: '30%', left: '52%', color: 'var(--mint)' },
+  { top: '38%', left: '80%', color: 'var(--acid)' },
+  { top: '64%', left: '5%', color: 'var(--cobalt)' },
+  { top: '70%', left: '34%', color: 'var(--tomato)' },
+  { top: '62%', left: '63%', color: 'var(--mustard)' },
+  { top: '78%', left: '86%', color: 'var(--mint)' },
+] as const;
 
 @Component({
   selector: 'app-game-component',
@@ -239,6 +260,8 @@ export class GameComponent implements OnInit, OnDestroy {
   });
   /** Il round è aperto ma la sua scadenza è ferma per l'introduzione. */
   private introHold = false;
+  /** Scadenza assoluta del round aperto, annunciata ai telefoni col via. */
+  private roundDeadlineAtMs = 0;
   /** Seme degli ingressi per partita: lo decide il server, la TV lo ricorda. */
   private readonly bonusSeedByGame = new Map<number, number>();
   private countdownTimer?: ReturnType<typeof setInterval>;
@@ -326,7 +349,12 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Tema del vincitore del round chiuso; null = acido. */
   private roundWinnerTheme: AppTheme | null = null;
 
+  /** Tema del round Musica: lo decide il server, non il tabellone del Quiz. */
+  readonly musicTheme = signal<string | null>(null);
+
   categoryName = computed(() => {
+    const theme = this.musicTheme();
+    if (theme) return theme;
     const id = this.selectedCategoryId();
     return this.allCategories().find((cat) => cat.id === id)?.name ?? '';
   });
@@ -347,7 +375,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
   /** Nomi del rullo che si ferma sulla categoria estratta. */
   slotNames = computed(() => {
-    const categories = this.allCategories();
+    const categories = this.currentMode()?.type === 'MUSIC'
+      ? this.bubbleCategories()
+      : this.allCategories();
     if (!categories.length) return [];
     const selectedId = this.selectedCategoryId();
     const index = Math.max(0, categories.findIndex((category) => category.id === selectedId));
@@ -363,11 +393,28 @@ export class GameComponent implements OnInit, OnDestroy {
    * abilitate al gioco, le altre modalità usano tutto il tabellone.
    */
   bubbleCategories = computed(() => {
+    if (this.currentMode()?.type === 'MUSIC') {
+      const themes = this.roundThemes();
+      if (themes.length > 0) {
+        return themes.map((name, index) => ({
+          id: MUSIC_THEME_BASE + index,
+          name,
+          ...MUSIC_THEME_LAYOUT[index % MUSIC_THEME_LAYOUT.length],
+        }));
+      }
+    }
     const categories = this.allCategories();
     if (this.currentMode()?.type !== 'TIMELINE') return categories;
     const allowed = categories.filter((category) => category.timeline);
     return allowed.length > 0 ? allowed : categories;
   });
+
+  /** Temi del payload Musica: la TV anima quelle bolle, non le 16 del Quiz. */
+  private roundThemes(): string[] {
+    const payload = this.currentRoundPayload();
+    const themes = Array.isArray(payload?.themes) ? payload.themes : [];
+    return themes.map((name: unknown) => String(name).trim()).filter((name: string) => name.length > 0);
+  }
 
   private arenaFinished = false;
   /** Telefoni presenti sul backend: i bonus li usano anche senza classifica
@@ -381,6 +428,21 @@ export class GameComponent implements OnInit, OnDestroy {
   /** Codice di abbinamento regia, con l'ora di scadenza già formattata. */
   readonly pairingCode = signal<string | null>(null);
   readonly pairingExpiresAt = signal('');
+  /** Secondi al codice nuovo; il codice si rigenera da solo, senza pulsanti. */
+  readonly pairingCountdown = signal(0);
+  /** QR della regia: contiene /admin?pair=<codice>, una inquadratura e basta. */
+  readonly adminPairUrl = signal('');
+  readonly adminQrCodeUrl = signal('');
+  private pairingExpiresAtMs = 0;
+  private pairingPoll?: ReturnType<typeof setInterval>;
+  private pairingClock?: ReturnType<typeof setInterval>;
+  private pairingBusy = false;
+  private destroyed = false;
+  private lastAdminQrUrl = '';
+  /** Comandi in TV solo con `?debug=1`: in serata decide tutto la regia. */
+  readonly commandsVisible = signal(
+    new URLSearchParams(window.location.search).get('debug') === '1',
+  );
   readonly buttonTestSnapshot = signal<ButtonTestSnapshot | null>(null);
   readonly pageVisible = signal(!document.hidden);
 
@@ -420,6 +482,11 @@ export class GameComponent implements OnInit, OnDestroy {
   private bonusTimer?: ReturnType<typeof setInterval>;
   private bonusEntranceTimer?: ReturnType<typeof setTimeout>;
   private autoAdvanceTimer?: ReturnType<typeof setInterval>;
+  /**
+   * Modalità viva: un timer o checkpoint della modalità precedente non deve
+   * chiudere, far ripartire o sovrascrivere il round appena aperto dalla regia.
+   */
+  private activeModeToken: object | null = null;
   private demoTimer?: ReturnType<typeof setInterval>;
   private demoCloseTimer?: ReturnType<typeof setTimeout>;
   /** Round in attesa che la demo della prima apparizione finisca. */
@@ -504,6 +571,12 @@ export class GameComponent implements OnInit, OnDestroy {
       void this.refreshQrCode();
     });
 
+    // L'intro finisce dopo qualche secondo: il codice compare appena la lobby
+    // è davvero a schermo, senza pulsanti e senza intervento della regia.
+    effect(() => {
+      if (this.phase() === 'IDLE' && this.currentGameId()) void this.ensurePairingCode();
+    });
+
     // Tick e bong dei countdown: toni brevi, così non coprono musica e voce.
     effect(() => {
       const t = this.timer();
@@ -533,14 +606,83 @@ export class GameComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Genera un codice di abbinamento per la regia e lo mostra con la scadenza. */
-  async createPairingCode(): Promise<void> {
-    const result = await this.reliability.requestPairingCode();
-    if (!result) return;
-    const expires = new Date(Date.now() + result.ttlSeconds * 1000);
+  /**
+   * Codice sempre presente nella lobby.
+   *
+   * <p>Causa del blocco in serata: il codice si generava solo premendo un
+   * pulsante e la TV chiedeva il segreto di regia in un `prompt`. Con il
+   * database azzerato nessuno poteva generarlo. Ora la TV lo chiede al server
+   * appena la lobby è aperta, lo rigenera alla scadenza e dopo l'uso, e mostra
+   * anche il QR che porta la regia dentro con il codice già compilato.</p>
+   */
+  async ensurePairingCode(): Promise<void> {
+    // TV senza segreto: niente codice, niente polling di un 401 ogni 5 s.
+    if (!this.reliability.regia()) return;
+    if (this.pairingBusy || this.phase() !== 'IDLE' || !this.currentGameId()) return;
+    this.pairingBusy = true;
+    try {
+      const status = await this.reliability.pairingCodeStatus();
+      let code = status?.code ?? null;
+      let expiresAt = Number(status?.expiresAt ?? 0);
+      if (!code || !expiresAt || expiresAt <= Date.now()) {
+        const issued = await this.reliability.requestPairingCode();
+        if (!issued) return;
+        code = issued.code;
+        expiresAt = Number(issued.expiresAt ?? 0) || Date.now() + issued.ttlSeconds * 1000;
+      }
+      this.applyPairingCode(code, expiresAt);
+    } finally {
+      this.pairingBusy = false;
+    }
+  }
+
+  /** Un solo punto aggiorna codice, scadenza, conto alla rovescia e QR regia. */
+  private applyPairingCode(code: string, expiresAt: number): void {
+    this.pairingCode.set(code);
+    this.pairingExpiresAtMs = expiresAt;
+    const expires = new Date(expiresAt);
     this.pairingExpiresAt.set(
       expires.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }));
-    this.pairingCode.set(result.code);
+    this.pairingCountdown.set(Math.max(0, Math.round((expiresAt - Date.now()) / 1000)));
+    const url = `${location.origin}/admin?pair=${code}`;
+    this.adminPairUrl.set(url);
+    void this.refreshAdminQrCode(url);
+    this.startPairingClock();
+  }
+
+  /** Il codice si controlla ogni 5 s: scaduto o usato, ne arriva subito uno nuovo. */
+  private startPairingClock(): void {
+    if (this.pairingClock) return;
+    this.pairingClock = setInterval(() => {
+      const left = Math.max(0, Math.round((this.pairingExpiresAtMs - Date.now()) / 1000));
+      this.pairingCountdown.set(left);
+      if (left <= 0) void this.ensurePairingCode();
+    }, 1000);
+    this.pairingPoll = setInterval(() => void this.ensurePairingCode(), 5000);
+  }
+
+  /** QR della regia generato in locale, come quello dei telefoni. */
+  private async refreshAdminQrCode(url: string): Promise<void> {
+    if (!url || url === this.lastAdminQrUrl) return;
+    this.lastAdminQrUrl = url;
+    try {
+      this.adminQrCodeUrl.set(await QRCode.toDataURL(url, {
+        width: 800,
+        margin: 2,
+        errorCorrectionLevel: 'M',
+        color: { dark: '#15150f', light: '#ffffff' },
+      }));
+    } catch {
+      this.adminQrCodeUrl.set('');
+    }
+  }
+
+  /** Comandi TV: in serata la barra non c'è, torna solo con `?debug=1`. */
+  pairingCountdownLabel(): string {
+    const total = this.pairingCountdown();
+    const minutes = Math.floor(total / 60);
+    const seconds = total % 60;
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
   }
 
   async ngOnInit() {
@@ -561,6 +703,21 @@ export class GameComponent implements OnInit, OnDestroy {
       setTimeout(() => this.startDemo(demoPreview), 800);
       return;
     }
+
+    // La TV aperta col segreto di regia (`?regia=...`) può generare il codice
+    // di abbinamento e leggere le soluzioni; senza, resta una lobby. Il segreto
+    // si applica prima di ogni attesa: se la prima richiesta al server fosse
+    // lenta, la sessione partirebbe da schermo anonimo e la lobby resterebbe
+    // senza codice. Si tiene in locale per i riavvii e si toglie dall'URL, dove
+    // finirebbe nella cronologia del browser della serata.
+    const regiaFromUrl = params.get('regia')?.trim();
+    if (regiaFromUrl) {
+      localStorage.setItem('pubgame.regia', regiaFromUrl);
+      params.delete('regia');
+      const query = params.toString();
+      history.replaceState(null, '', `${location.pathname}${query ? '?' + query : ''}${location.hash}`);
+    }
+    this.reliability.setControlSecret(regiaFromUrl || localStorage.getItem('pubgame.regia'));
 
     // La partita non è più solo quella dell'ultimo browser: si riparte
     // dall'ID salvato e si chiede al server quale serata è in corso.
@@ -584,7 +741,22 @@ export class GameComponent implements OnInit, OnDestroy {
       this.ws.subscribeToGame(activeGameId);
     }
 
-    if (!await this.reliability.start(this.currentGameId(), 'TV')) return;
+    // La TV si registra da sola; il segreto, quando c'è, la apre come regia.
+    // La sessione si apre in parallelo alla lobby: se il backend non è ancora
+    // pronto si riprova da sola, senza lasciare la TV "NON IN LINEA" fino al
+    // reload della postazione.
+    void this.openTvSession(this.currentGameId());
+    // Lobby aperta = codice in schermo appena la sessione risponde.
+    await this.bootLobby();
+  }
+
+  /**
+   * Tutto ciò che serve alla lobby una volta che la sessione TV è aperta.
+   *
+   * <p>Sta fuori da `ngOnInit` perché la sessione può arrivare in ritardo: la
+   * TV apre la lobby lo stesso e la recupera appena il server risponde.</p>
+   */
+  private async bootLobby(): Promise<void> {
     // Il seme degli ingressi si chiede a sessione aperta: prima il server
     // risponde 401 (l'endpoint non è pubblico) e la TV resta sul ripiego.
     void this.prefetchBonusSeed(this.currentGameId());
@@ -817,12 +989,40 @@ export class GameComponent implements OnInit, OnDestroy {
     this.audioService.startHeartbeat();
   }
 
+  /**
+   * Apre la sessione della TV e la riprova finché il backend risponde.
+   *
+   * <p>Causa del blocco in sala: un solo tentativo all'avvio e, se il backend
+   * non era ancora pronto, la TV restava "NON IN LINEA" per sempre. Le prime
+   * attese sono brevi, poi si riprova ogni pochi secondi mentre la lobby resta
+   * a schermo. Il codice di abbinamento si chiede solo qui, quando la sessione
+   * c'è davvero: chiederlo anche all'apertura della lobby lo perdeva quando le
+   * due richieste si sovrapponevano. Presenza e pulsanti hanno già i loro giri
+   * periodici, il seme del bonus viene richiesto all'apertura del bonus.</p>
+   */
+  private async openTvSession(gameId: number): Promise<void> {
+    let attempt = 0;
+    while (!this.destroyed) {
+      attempt += 1;
+      if (await this.reliability.start(gameId, 'TV', '', false)) {
+        // La lobby può essere già a schermo: qui arriva solo il codice.
+        void this.ensurePairingCode();
+        return;
+      }
+      const wait = attempt < 4 ? TV_SESSION_RETRY_MS * attempt : TV_SESSION_RECOVERY_MS;
+      await new Promise((resolve) => setTimeout(resolve, wait));
+    }
+  }
+
   ngOnDestroy() {
+    this.destroyed = true;
     if (this.aliveFrame !== undefined) cancelAnimationFrame(this.aliveFrame);
     if (this.introTimer) clearTimeout(this.introTimer);
     if (this.bonusEntranceTimer) clearTimeout(this.bonusEntranceTimer);
     if (this.presenceTimer) clearInterval(this.presenceTimer);
     if (this.buttonTestTimer) clearInterval(this.buttonTestTimer);
+    if (this.pairingClock) clearInterval(this.pairingClock);
+    if (this.pairingPoll) clearInterval(this.pairingPoll);
     this.leaderboardService.setPointListener(null);
     this.gameModeService.cleanup();
     if (this.displayDataInterval) {
@@ -1024,6 +1224,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.currentGameId.set(newGame.id);
     localStorage.setItem('activeGameId', newGame.id.toString());
     this.ws.subscribeToGame(newGame.id);
+    void this.ensurePairingCode();
   }
 
   /**
@@ -1176,6 +1377,19 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   async startNewRound() {
+    // La scena sta uscendo e il server non ha ancora il round nuovo: uno
+    // snapshot "nessun round" in questa finestra non deve riavvolgere la
+    // scaletta. Il finally copre anche uscite anticipate ed errori.
+    this.openingRound = true;
+    try {
+      await this.startNewRoundNow();
+    } finally {
+      this.openingRound = false;
+    }
+  }
+
+  /** Corpo di `startNewRound`, separato per delimitare la finestra di apertura. */
+  private async startNewRoundNow() {
     if (this.phase() === GamePhase.INTRO) this.dismissIntro();
     // Un round nuovo cancella l'apertura rimasta in attesa di una demo.
     this.pendingRoundOpen = undefined;
@@ -1289,6 +1503,18 @@ export class GameComponent implements OnInit, OnDestroy {
 
       // La categoria dell'animazione a bolle deve essere quella reale del payload:
       // per Ultima spiaggia il backend sceglie la categoria dell'occorrenza.
+      // Per Musica il payload porta i dieci temi e quello estratto: la TV
+      // ferma il rullo su quella bolla, senza toccare il tabellone del Quiz.
+      if (parsedPayload?.type === 'MUSIC') {
+        const theme = String(parsedPayload?.theme ?? '').trim();
+        this.musicTheme.set(theme || null);
+        const themes = Array.isArray(parsedPayload?.themes) ? parsedPayload.themes : [];
+        const index = themes.findIndex((name: unknown) => String(name).trim() === theme);
+        if (index >= 0) this.selectedCategoryId.set(MUSIC_THEME_BASE + index);
+      } else {
+        this.musicTheme.set(null);
+      }
+
       const payloadCategory = String(parsedPayload?.category ?? '').trim();
       if (payloadCategory) {
         const selected = categories.find((category) =>
@@ -1375,8 +1601,10 @@ export class GameComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // Fine dell'introduzione: la scadenza del round riparte da qui.
-      this.releaseRoundDeadline();
+      // Fine dell'introduzione: la scadenza del round riparte da qui. Si
+      // attende la risposta del server perché la TV deve annunciare ai telefoni
+      // la stessa scadenza assoluta, non una calcolata sul proprio orologio.
+      await this.releaseRoundDeadline();
       this.timer.set(mode.timerDuration);
       this.beginRoundScoring();
 
@@ -1394,6 +1622,7 @@ export class GameComponent implements OnInit, OnDestroy {
         rawPayload: rawPayloadString,
         round: this.roundManager.getCurrentRound(),
         roundTotal: this.roundManager.getTotalRounds(),
+        ...(this.roundDeadlineAtMs > 0 ? { roundDeadlineAt: this.roundDeadlineAtMs } : {}),
         ...(safeData.manche ? { manche: safeData.manche, mancheTotal: safeData.mancheTotal, points: safeData.manchePoints, category: safeData.categoryLabel } : {}),
       });
 
@@ -1416,6 +1645,7 @@ export class GameComponent implements OnInit, OnDestroy {
         rawPayload: rawPayloadString,
         round: this.roundManager.getCurrentRound(),
         roundTotal: this.roundManager.getTotalRounds(),
+        ...(this.roundDeadlineAtMs > 0 ? { roundDeadlineAt: this.roundDeadlineAtMs } : {}),
       });
 
       this.isSpinning.set(false);
@@ -1435,23 +1665,37 @@ export class GameComponent implements OnInit, OnDestroy {
    * ripresa dopo un refresh, così i due percorsi non possono divergere.
    */
   private buildModeConfig(type: GameModeType, payload: any, activePlayers: string[], quizRoundStartId = ''): GameModeConfig {
+    const modeToken = {};
+    this.activeModeToken = modeToken;
+    const isCurrentMode = () => modeToken === this.activeModeToken;
+    /**
+     * Una modalità chiusa può ancora emettere callback mentre la regia ha già
+     * aperto il round dopo. Tutte quelle che toccano TV, audio o server devono
+     * restare della modalità che le ha create.
+     */
+    const guard = <T extends (...args: any[]) => any>(callback: T): T => ((...args: Parameters<T>) => {
+      if (!isCurrentMode()) return undefined as ReturnType<T>;
+      return callback(...args);
+    }) as T;
+
     return {
       type,
       payload,
       gameId: this.currentGameId() ?? 1,
-      onTimerTick: (seconds) => this.timer.set(seconds),
-      onTimerEnd: () => this.onModeTimeout(),
-      onBuzz: (playerName) => this.onPlayerBuzz(playerName),
+      onTimerTick: guard((seconds) => this.timer.set(seconds)),
+      onTimerEnd: guard(() => this.onModeTimeout(modeToken)),
+      onBuzz: guard((playerName) => this.onPlayerBuzz(playerName)),
       // La domanda di Quiz e Indovina chi tiene la base d'atto 6 dB sotto.
-      onQuestionOpenChange: (open) => this.audioService.setQuestionActive(open),
+      onQuestionOpenChange: guard((open) => this.audioService.setQuestionActive(open)),
       activePlayers: activePlayers,
-      onCountdownTick: (seconds) => this.onCountdownTick(seconds),
-      onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
-      onRoundEnded: () => this.onArenaEnded(),
-      onTvCheckpoint: (checkpoint) => {
+      onCountdownTick: guard((seconds) => this.onCountdownTick(seconds)),
+      onPlayerEliminated: guard((playerName) => this.onArenaEliminated(playerName)),
+      onRoundEnded: guard(() => this.onArenaEnded()),
+      onTvCheckpoint: guard((checkpoint) => {
         // Una modalità chiusa può ancora emettere il suo ultimo stato: se il
         // round aperto è un altro, il server risponderebbe 409 (checkpoint di
-        // un gioco diverso dal suo). Si manda solo quello della modalità viva.
+        // un gioco diverso dal suo), o salverebbe 5/5 sul round nuovo. Si manda
+        // solo quello della modalità viva.
         const mode = this.currentMode();
         if (!mode || mode.type !== checkpoint.type) return;
         const roundIndex = this.tvRoundIndex();
@@ -1462,25 +1706,26 @@ export class GameComponent implements OnInit, OnDestroy {
           state: checkpoint.state,
           roundIndex,
         });
-      },
+      }),
       onArenaInactivityCheck: async (players: string[]) => {
+        if (!isCurrentMode()) return [];
         const response = await firstValueFrom(
           this.gameService.tickArenaInactivity(this.currentGameId()!, players),
         );
         return Array.isArray(response?.penalties) ? response.penalties : [];
       },
       quizRoundStartId,
-      onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!,
-        event.action === WsAction.QUIZ_STATE ? { ...event, roundStartId: quizRoundStartId } : event),
-      onBlackjackState: (state: unknown | null) => this.reliability.saveBlackjackState(state),
-      onUltimaSpiaggiaLevel: (playerName: string, level: number) => {
+      onBroadcast: guard((event: any) => this.ws.broadcastStatus(this.currentGameId()!,
+        event.action === WsAction.QUIZ_STATE ? { ...event, roundStartId: quizRoundStartId } : event)),
+      onBlackjackState: guard((state: unknown | null) => this.reliability.saveBlackjackState(state)),
+      onUltimaSpiaggiaLevel: guard((playerName: string, level: number) => {
         // Il livello è consumato per tutta la partita, non solo per la manche:
         // la prossima occorrenza lo legge dal backend e non lo ripropone.
         this.gameService.recordUltimaSpiaggiaLevel(this.currentGameId()!, playerName, level)
           .subscribe({
             error: (err) => console.error('❌ Registrazione livello Ultima spiaggia:', err),
           });
-      },
+      }),
       playerPoints: (playerName: string) =>
         this.leaderboardService.getPlayerStats(playerName)?.totalPoints ?? 0,
       startTimeBuzzer: (manche: number) => new Promise<number | null>((resolve) => {
@@ -1529,7 +1774,7 @@ export class GameComponent implements OnInit, OnDestroy {
         resume: () => firstValueFrom(this.gameService.resumeBomba(this.currentGameId()!)),
         reset: () => firstValueFrom(this.gameService.resetBomba(this.currentGameId()!)),
       },
-      onAnswerReceived: (result: any) => {
+      onAnswerReceived: guard((result: any) => {
 
         if (result && result.playerName) {
 
@@ -1557,7 +1802,7 @@ export class GameComponent implements OnInit, OnDestroy {
             });
           });
         }
-      }
+      }),
     };
   }
 
@@ -1568,7 +1813,9 @@ export class GameComponent implements OnInit, OnDestroy {
         // per ognuna delle 16 categorie ufficiali.
         return this.pickCategoryName();
       case 'MUSIC':
-        return 'Musica';
+        // I temi musicali non sono le categorie del Quiz: li sceglie il server
+        // e arrivano nel payload (theme/themes).
+        return '';
       case 'IMAGE_BLUR':
         // Le foto sono trasversali (cinema, musica, sport): la categoria
         // serve solo al filtro della banca, che cade sulle altre se vuota.
@@ -1769,7 +2016,11 @@ export class GameComponent implements OnInit, OnDestroy {
     });
   }
 
-  private onModeTimeout() {
+  private onModeTimeout(modeToken?: object) {
+    // La modalità precedente può chiudersi dopo il click della regia: il suo
+    // timer non deve toccare il round nuovo (né avviarne l'auto-avanzamento).
+    if (modeToken && modeToken !== this.activeModeToken) return;
+
     if (this.bonusActive()) {
       this.finishBonus();
       return;
@@ -1787,6 +2038,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.isSpinning.set(false);
       this.revealPending.set(true);
       setTimeout(() => {
+        if (modeToken && modeToken !== this.activeModeToken) return;
         this.revealPending.set(false);
         this.showTimeoutPopup();
         this.audioService.playReveal();
@@ -1816,6 +2068,7 @@ export class GameComponent implements OnInit, OnDestroy {
     // di suspense, poi arriva la soluzione.
     this.revealPending.set(true);
     setTimeout(() => {
+      if (modeToken && modeToken !== this.activeModeToken) return;
       this.revealPending.set(false);
 
       const currentRound = this.round();
@@ -1855,14 +2108,13 @@ export class GameComponent implements OnInit, OnDestroy {
     // Anteprima per il presentatore: i punti dipendono dal tempo congelato
     // dal buzz, quindi il valore mostrato è quello che verrà applicato.
     const elapsedMs = (mode.timerDuration * 1000) - (this.timer() * 1000);
-    const payload = this.currentRoundPayload();
     this.ws.broadcastStatus(this.currentGameId()!, {
       action: WsAction.PLAYER_PRENOTATO,
       name: playerName,
       type: mode.type,
       correctPoints: mode.pointsFor(true, elapsedMs),
       wrongPoints: mode.pointsFor(false, elapsedMs),
-      solution: this.solutionFor(mode.type, payload),
+      solution: this.solutionForMode(mode),
       scoring: scoringRuleFor(mode.type),
     });
   }
@@ -1942,14 +2194,21 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   /** Nuova manche di Indovina chi: la TV mostra la foto e il telefono si riarma. */
-  private publishImageBlurManche(mode: any): void {
+  private publishImageBlurManche(mode: IGameMode): void {
     const data = this.getSafeDisplayData();
+    // Una manche nuova riapre il voto. Con il solo SHOW_QUESTION il telefono
+    // restava sulla schermata d'attesa (VOTING non era mai riaperto) e la
+    // regia perdeva i pulsanti di giudizio dopo la prima manche.
     this.ws.broadcastStatus(this.currentGameId()!, {
-      action: WsAction.SHOW_QUESTION,
+      action: WsAction.START_VOTING,
       type: 'IMAGE_BLUR',
       payload: JSON.stringify(data),
+      // Soluzione della manche aperta: viaggia verso la regia, il backend la
+      // toglie dallo stato che raggiunge i telefoni.
+      solution: this.solutionForMode(mode),
       round: this.roundManager.getCurrentRound(),
       roundTotal: this.roundManager.getTotalRounds(),
+      ...(this.roundDeadlineAtMs > 0 ? { roundDeadlineAt: this.roundDeadlineAtMs } : {}),
       manche: data.manche,
       mancheTotal: data.mancheTotal,
       points: data.manchePoints,
@@ -2177,6 +2436,8 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   private closingRound = false;
+  /** La TV sta già uscendo per aprire il round dopo: non è un reset. */
+  private openingRound = false;
   /**
    * Attesa massima per la chiusura del round sul server. Oltre questo tempo la
    * regia torna libera: il pulsante AVANTI non può restare morto se la risposta
@@ -2275,7 +2536,7 @@ export class GameComponent implements OnInit, OnDestroy {
       buzzedPlayer: player,
       correctPoints: player ? mode.pointsFor(true, elapsedMs) : null,
       wrongPoints: player ? mode.pointsFor(false, elapsedMs) : null,
-      solution: this.solutionFor(mode.type, raw),
+      solution: this.solutionForMode(mode),
       scoring: scoringRuleFor(mode.type),
       paused: this.isPaused(),
     });
@@ -2757,8 +3018,11 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.currentMode() || this.bonusActive() || this.bonusEntrance() || this.isSpinning()) return;
     // Un round ancora aperto ha la precedenza: il bonus viene dopo.
     if (this.recoveredRound()) return;
+    // Il bonus vive fuori dal round: il suo atto è quello del server, mentre la
+    // scaletta locale è già tornata a zero quando il bonus è in scena.
+    const act = this.serverBonus?.act ?? this.roundManager.bonusActIndex();
     // Un bonus già chiuso e pagato non torna, anche se il server dice STARTED.
-    if (this.closedBonusActsOf(this.currentGameId()).has(this.roundManager.bonusActIndex())) return;
+    if (this.closedBonusActsOf(this.currentGameId()).has(act)) return;
 
     const checkpoint = snapshot?.tvCheckpoint;
     const mode = String(checkpoint?.mode ?? '');
@@ -2768,7 +3032,6 @@ export class GameComponent implements OnInit, OnDestroy {
 
     let type: BonusType | null = null;
     if (this.serverBonus?.status === 'STARTED'
-      && this.serverBonus.act === this.roundManager.bonusActIndex()
       && (BONUS_TYPES as readonly string[]).includes(this.serverBonus.type)) {
       type = this.serverBonus.type as BonusType;
     } else if (resume) {
@@ -2901,7 +3164,8 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private reset() {
     // Round o bonus nuovo: lo stato del precedente non si ripete più.
-    this.releaseRoundDeadline();
+    this.roundDeadlineAtMs = 0;
+    void this.releaseRoundDeadline();
     this.stage.cancel();
     this.clearStageOverlays();
     this.ws.clearLastStates();
@@ -2925,6 +3189,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.showQuestion.set(false);
     this.round.set(null);
     this.selectedCategoryId.set(null);
+    this.musicTheme.set(null);
     this.timer.set(0);
     // Se si parte con un bonus mentre la TV è in pausa, l'audio non deve
     // restare muto: la pausa finisce insieme al round che l'aveva aperta.
@@ -2932,6 +3197,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.isPaused.set(false);
     this.showResultPopup.set(false);
     this.currentMode.set(null);
+    this.activeModeToken = null;
     this.stopDemo();
     this.demoScene.set(0);
   }
@@ -3063,14 +3329,21 @@ export class GameComponent implements OnInit, OnDestroy {
     });
   }
 
-  private releaseRoundDeadline(): void {
+  private async releaseRoundDeadline(): Promise<void> {
     if (!this.introHold) return;
     this.introHold = false;
     // Una pausa vera del presentatore resta: si riprende da lì, non da qui.
     if (this.isPaused()) return;
     const gameId = this.currentGameId();
     if (!gameId) return;
-    this.gameService.resumeRound(gameId).subscribe({ error: () => undefined });
+    try {
+      const resumed = await firstValueFrom(this.gameService.resumeRound(gameId));
+      const deadline = Number(resumed?.deadlineAt);
+      if (Number.isFinite(deadline) && deadline > 0) this.roundDeadlineAtMs = deadline;
+    } catch {
+      // Senza rete la scadenza resta quella già nota (o assente): il watcher
+      // dei telefoni non deve ricevere un valore inventato.
+    }
   }
 
   /**
@@ -3221,6 +3494,15 @@ export class GameComponent implements OnInit, OnDestroy {
       }
     }
     return payload ?? {};
+  }
+
+  /**
+   * Soluzione della manche aperta. Indovina chi cambia risposta a ogni manche,
+   * mentre il payload del round resta quello della prima: senza questo, la
+   * regia giudicava la manche 2 e 3 con la soluzione sbagliata.
+   */
+  private solutionForMode(mode: IGameMode): string {
+    return mode.currentSolution?.() || this.solutionFor(mode.type, this.currentRoundPayload());
   }
 
   /** Soluzione leggibile per il presentatore, senza svelarla ai telefoni. */
@@ -3476,6 +3758,12 @@ export class GameComponent implements OnInit, OnDestroy {
       this.leaderboardService.replaceAll(snapshot.leaderboard);
     }
 
+    // Mentre la TV chiude un round o sta già uscendo per aprire il successivo,
+    // il server può rispondere "nessun round" (closeRound appena arrivato,
+    // generate-ai-round non ancora chiamato). Non è un reset: riavvolgere la
+    // scaletta qui faceva ripartire il round dopo dal primo gioco (Quiz al
+    // posto di Musica).
+    const advancing = this.openingRound || this.closingRound;
     if (snapshot.hasState !== false) {
       const status = String(snapshot.status ?? 'CREATED');
       const roundIndex = Number(snapshot.roundIndex);
@@ -3491,10 +3779,12 @@ export class GameComponent implements OnInit, OnDestroy {
           : roundIndex === 0
             ? 0
             : Math.max(current, roundIndex);
-        this.roundManager.restoreRound(safeRounds);
-        this.roundInfo.set(this.roundManager.getProgress().text);
+        if (!advancing) {
+          this.roundManager.restoreRound(safeRounds);
+          this.roundInfo.set(this.roundManager.getProgress().text);
+        }
       }
-    } else {
+    } else if (!advancing) {
       // La partita non ha ancora uno stato (appena creata): la scaletta locale
       // della serata precedente non vale più.
       this.roundManager.restoreRound(0);
@@ -3558,7 +3848,11 @@ export class GameComponent implements OnInit, OnDestroy {
     }
     if (this.currentMode() || this.bonusActive() || this.isSpinning() || this.showTypeReveal()) return;
 
-    this.recoveredPayload = snapshot.currentRound?.payload ?? snapshot.payload ?? null;
+    // Lo snapshot del server porta il payload come testo JSON: il mode deve
+    // ricevere l'oggetto, altrimenti Musica riparte senza songs[] (round muto)
+    // e Timeline senza le carte.
+    const rawRecoveredPayload = snapshot.currentRound?.payload ?? snapshot.payload ?? null;
+    this.recoveredPayload = this.parseRecoveredPayload(rawRecoveredPayload);
     this.recoveredQuizRoundStartId = type === 'QUIZ' ? String(snapshot.roundStartId ?? '') : '';
     this.recoveredBlackjackState = snapshot.blackjackState ?? null;
     // Solo un checkpoint del round corrente e della sua modalità: il server
@@ -3588,6 +3882,27 @@ export class GameComponent implements OnInit, OnDestroy {
         || this.recoveredTvCheckpoint?.type === type,
       paused,
     });
+  }
+
+  /**
+   * Payload del round da riprendere. Il server lo consegna come testo JSON e,
+   * dopo il giro nella colonna `json`, come testo JSON di un testo JSON: si
+   * scarta l'involucro finché non resta l'oggetto. Con un solo parse Musica
+   * ripartiva con songs[] vuoto (audio e titolo muti) e Timeline senza carte.
+   */
+  private parseRecoveredPayload(raw: unknown): any {
+    let value: any = raw;
+    for (let depth = 0; depth < 3 && typeof value === 'string'; depth++) {
+      const text = value.trim();
+      // Un involucro in più è a sua volta un testo JSON: comincia con `"`.
+      if (!text.startsWith('{') && !text.startsWith('[') && !text.startsWith('"')) return null;
+      try {
+        value = JSON.parse(text);
+      } catch {
+        return null;
+      }
+    }
+    return typeof value === 'string' ? null : value;
   }
 
   /**

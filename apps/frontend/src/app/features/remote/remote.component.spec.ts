@@ -69,6 +69,97 @@ describe('RemoteComponent', () => {
     expect(component.hasAnswered()).toBe(false);
   });
 
+  it('N-04: il telefono mostra solo la domanda della propria squadra', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+
+    ws.status$.next({
+      action: 'CAVALLO_STATE',
+      state: {
+        phase: 'QUESTION',
+        chosenCategory: 'MUSICA',
+        secondsLeft: 40,
+        categories: ['MUSICA'],
+        votes: [],
+        questions: {
+          Anna: { index: 2, total: 8, text: 'Domanda di Anna', options: ['A', 'B'] },
+          Bruno: { index: 2, total: 8, text: 'Domanda di Bruno', options: ['C', 'D'] },
+        },
+        reveals: {},
+        scores: [],
+        message: '',
+      },
+    });
+    fixture.detectChanges();
+
+    expect(component.cavalloMyQuestion()?.text).toBe('Domanda di Anna');
+    expect(fixture.nativeElement.querySelector('.cavallo-question')?.textContent).toContain('Domanda di Anna');
+    expect(fixture.nativeElement.textContent).not.toContain('Domanda di Bruno');
+  });
+
+  it('N-03: il via della manche successiva riporta il telefono al voto', () => {
+    component.hasAnswered.set(true);
+    component.gameState.set(PlayerStatus.LOCKED);
+
+    ws.status$.next({
+      action: 'START_VOTING', type: 'IMAGE_BLUR', round: 7, manche: 2,
+      payload: JSON.stringify({ manche: 2, mancheTotal: 3, categoryLabel: 'Sport, Cinema, TV, Spettacolo' }),
+    });
+
+    // La TV annuncia ogni manche con START_VOTING: il pulsante PRENOTATI deve
+    // tornare vivo, non restare bloccato sulla prenotazione precedente.
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(component.hasAnswered()).toBe(false);
+    expect(component.questionType()).toBe('IMAGE_BLUR');
+    expect(component.roundActive()).toBe(true);
+    expect(component.roundClosed()).toBe(false);
+  });
+
+  it('N-03: un annuncio in ritardo non spegne il via della stessa manche', () => {
+    component.hasAnswered.set(true);
+    component.gameState.set(PlayerStatus.LOCKED);
+
+    ws.status$.next({
+      action: 'START_VOTING', type: 'IMAGE_BLUR', round: 7, manche: 2,
+      payload: JSON.stringify({ manche: 2, mancheTotal: 3 }),
+    });
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+
+    // Il SHOW_QUESTION della stessa manche può arrivare dopo il via: il
+    // telefono deve restare sui pulsanti, non tornare in attesa.
+    ws.status$.next({
+      action: 'SHOW_QUESTION', type: 'IMAGE_BLUR', round: 7, manche: 2,
+      payload: JSON.stringify({ manche: 2, mancheTotal: 3 }),
+    });
+
+    expect(component.gameState()).toBe(PlayerStatus.VOTING);
+    expect(component.roundActive()).toBe(true);
+    expect(component.questionType()).toBe('IMAGE_BLUR');
+  });
+
+  it('N-03: un annuncio in ritardo non sblocca chi ha già prenotato', () => {
+    component.hasAnswered.set(true);
+    component.gameState.set(PlayerStatus.LOCKED);
+
+    ws.status$.next({
+      action: 'START_VOTING', type: 'IMAGE_BLUR', round: 7, manche: 2,
+      payload: JSON.stringify({ manche: 2, mancheTotal: 3 }),
+    });
+    component.hasAnswered.set(true);
+    component.gameState.set(PlayerStatus.LOCKED);
+
+    // La prenotazione è già avvenuta: il ri-annuncio non deve riaprire il voto.
+    ws.status$.next({
+      action: 'SHOW_QUESTION', type: 'IMAGE_BLUR', round: 7, manche: 2,
+      payload: JSON.stringify({ manche: 2, mancheTotal: 3 }),
+    });
+
+    expect(component.gameState()).toBe(PlayerStatus.LOCKED);
+    expect(component.hasAnswered()).toBe(true);
+    expect(component.roundActive()).toBe(true);
+  });
+
   it('ordina le corsie live: prima chi è arrivato, poi chi ha più strada', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();
@@ -477,6 +568,8 @@ describe('RemoteComponent', () => {
     await component.setNickname();
     component.closeButtonTest();
     component.gameState.set('VOTING' as any);
+    localStorage.setItem('playerName', 'Anna');
+    localStorage.setItem('activeGameId', '7');
 
     ws.status$.next({ action: 'PLAYER_REMOVED', playerName: 'Anna' });
     await fixture.whenStable();
@@ -486,6 +579,29 @@ describe('RemoteComponent', () => {
     expect(component.removedNotice()).toBe(true);
     expect(fixture.nativeElement.textContent).toContain('La regia ha rimosso');
     expect(localStorage.getItem('nickname')).toBeNull();
+    // N-06: nessuna traccia della partita vecchia, altrimenti il rientro
+    // riapre la sessione sbagliata.
+    expect(localStorage.getItem('playerName')).toBeNull();
+    expect(localStorage.getItem('activeGameId')).toBeNull();
+    expect(component.playerName()).toBe('');
+  });
+
+  it('su iPhone senza Vibration API il via accende il fallback visivo', async () => {
+    const original = (navigator as any).vibrate;
+    Object.defineProperty(navigator, 'vibrate', { value: undefined, configurable: true });
+
+    try {
+      ws.status$.next({ action: 'BONUS_STARTED' });
+      // Il flash si accende nel frame successivo. Aspettare whenStable() qui
+      // dipendeva dal timer di spegnimento (500 ms): con due file di test in
+      // parallelo poteva scadere prima dell'assert.
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      fixture.detectChanges();
+
+      expect(component.hapticFlash()).toBe(true);
+    } finally {
+      Object.defineProperty(navigator, 'vibrate', { value: original, configurable: true });
+    }
   });
 
   it('il reset TV riporta al setup e azzera il contatore del telefono', async () => {
@@ -597,6 +713,7 @@ describe('RemoteComponent', () => {
 
   it('con un doppio tocco invia una sola risposta Arena e non salta la domanda', () => {
     component.nickname.set('Anna');
+    component.roundActive.set(true);
     component.arenaQuestion.set({ text: 'Domanda', options: ['A', 'B'], isTrueFalse: false, questionId: 'q1' });
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     const pending = new Subject<any>();
@@ -670,6 +787,7 @@ describe('RemoteComponent', () => {
 
   it('una vecchia risposta Arena non blocca né sblocca il nuovo round', () => {
     component.nickname.set('Anna');
+    component.roundActive.set(true);
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     const oldAnswer = new Subject<any>();
     const newAnswer = new Subject<any>();
@@ -679,6 +797,9 @@ describe('RemoteComponent', () => {
     component.arenaQuestion.set({ text: 'Vecchia', options: ['A', 'B'], isTrueFalse: false, questionId: 'old' });
     component.sendArenaAnswer(0);
     ws.status$.next({ action: 'ROUND_ENDED' });
+    // Il round nuovo si apre come in partita: ROUND_STARTED/START_VOTING.
+    component.roundActive.set(true);
+    component.roundClosed.set(false);
     component.arenaQuestion.set({ text: 'Nuova', options: ['A', 'B'], isTrueFalse: false, questionId: 'new' });
     component.sendArenaAnswer(0);
     expect(answer).toHaveBeenCalledTimes(2);
@@ -800,6 +921,7 @@ describe('RemoteComponent', () => {
       ready: [{ playerName: 'Anna', points: 100, maxBet: 100 }],
     });
     component.azzardoChips.set([1, 0, 0]);
+    component.roundActive.set(true);
 
     component.paused.set(true);
     component.azzardoSendBet();
@@ -839,6 +961,7 @@ describe('RemoteComponent', () => {
 
   it('mantiene la domanda Arena se la risposta arriva al server durante la pausa', () => {
     component.nickname.set('Anna');
+    component.roundActive.set(true);
     component.arenaQuestion.set({ text: 'Domanda', options: ['A', 'B'], isTrueFalse: false, questionId: 'q1' });
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     const answer = vi.spyOn(game, 'answerArenaQuestion')
@@ -855,6 +978,7 @@ describe('RemoteComponent', () => {
 
   it('ritenta la stessa risposta Arena dopo una conferma persa', () => {
     component.nickname.set('Anna');
+    component.roundActive.set(true);
     component.arenaQuestion.set({ text: 'Domanda', options: ['A', 'B'], isTrueFalse: false, questionId: 'q1' });
     const game = TestBed.inject(GameService);
     const answer = vi.spyOn(game, 'answerArenaQuestion')
@@ -1004,6 +1128,58 @@ describe('RemoteComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Sei PRENOTATO!');
   });
 
+  it("in Musica l'apertura del round non arma il tasto: lo fa l'annuncio di fase", async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    component.onStartVoting('MUSIC');
+    fixture.detectChanges();
+
+    // START_VOTING esce prima del primo annuncio di fase: se il tasto si
+    // aprisse qui, una prenotazione durante l'ascolto cadrebbe nel vuoto.
+    const armato = () => (fixture.nativeElement.querySelector('.buzz-button.music-theme') as HTMLButtonElement | null);
+    expect(component.questionType()).toBe('MUSIC');
+    expect(component.hasAnswered()).toBe(true);
+    expect(armato()?.disabled).toBe(true);
+
+    ws.status$.next({
+      action: 'MUSIC_PHASE',
+      state: { phase: 'BUZZ', manche: 1, listen: 1, buzzedPlayer: null, wrongPlayers: [] },
+    });
+    fixture.detectChanges();
+
+    expect(component.hasAnswered()).toBe(false);
+    expect(armato()?.disabled).toBe(false);
+  });
+
+  it('in Musica solo chi si è prenotato vede il proprio tasto bloccato', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    component.onStartVoting('MUSIC');
+
+    // La manca è di Bruno: Anna deve aspettare, non credere di essersi prenotata.
+    ws.status$.next({
+      action: 'MUSIC_PHASE',
+      state: { phase: 'BUZZ', manche: 1, listen: 1, buzzedPlayer: 'Bruno', wrongPlayers: [] },
+    });
+    fixture.detectChanges();
+
+    expect(component.gameState()).toBe(PlayerStatus.WAITING_FOR_OTHER);
+    expect(fixture.nativeElement.textContent).toContain('Qualcuno si è prenotato!');
+    expect(fixture.nativeElement.textContent).not.toContain('Sei PRENOTATO!');
+
+    // Chi si è prenotato, invece, vede il proprio stato definitivo.
+    ws.status$.next({
+      action: 'MUSIC_PHASE',
+      state: { phase: 'BUZZ', manche: 1, listen: 1, buzzedPlayer: 'Anna', wrongPlayers: [] },
+    });
+    fixture.detectChanges();
+
+    expect(component.gameState()).toBe(PlayerStatus.LOCKED);
+    expect(fixture.nativeElement.textContent).toContain('Sei PRENOTATO!');
+  });
+
   it('manda il voto Quiz al server, non via WebSocket', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();
@@ -1079,9 +1255,45 @@ describe('RemoteComponent', () => {
     expect(component.inputReady()).toBe(false);
     reliability.syncState$.next({ hasState: false });
     expect(component.resyncing()).toBe(false);
-    expect(component.inputReady()).toBe(true);
+    // N-05: senza un round aperto il telefono non riabilita i tasti. Prima
+    // bastava «non in pausa» e si poteva rispondere a un round già chiuso.
+    expect(component.inputReady()).toBe(false);
     expect(component.gameState()).toBe(PlayerStatus.WAITING);
     expect(component.roundActive()).toBe(false);
+  });
+
+  it('N-05: a round chiuso il telefono non manda più prenotazioni', async () => {
+    component.nickname.set('Anna');
+    ws.status$.next({ action: 'START_VOTING', type: 'IMAGE_BLUR', payload: {} });
+    expect(component.roundActive()).toBe(true);
+    expect(component.inputReady()).toBe(true);
+
+    ws.status$.next({ action: 'ROUND_ENDED' });
+    expect(component.roundClosed()).toBe(true);
+    expect(component.inputReady()).toBe(false);
+
+    const before = ws.publishedAnswers.length;
+    component.sendBuzz();
+    expect(ws.publishedAnswers.length).toBe(before);
+  });
+
+  it('N-05: alla scadenza del server il round si chiude anche senza ROUND_ENDED', () => {
+    vi.useFakeTimers();
+    try {
+      component.nickname.set('Anna');
+      // Il watcher creato in ngOnInit usa i timer veri: lo si riarma qui.
+      clearInterval((component as any).roundDeadlineWatch);
+      (component as any).roundDeadlineWatch = undefined;
+      (component as any).startRoundDeadlineWatch();
+      component.onStartVoting('IMAGE_BLUR');
+      component.roundDeadlineAt.set(Date.now() - 1);
+      expect(component.inputReady()).toBe(true);
+      vi.advanceTimersByTime(600);
+      expect(component.roundClosed()).toBe(true);
+      expect(component.inputReady()).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('un evento di chiusura durante lo snapshot richiede una fotografia successiva', () => {
@@ -1427,6 +1639,7 @@ describe('RemoteComponent', () => {
       ready: [{ playerName: 'Anna', points, maxBet, ready: false }],
     });
 
+    component.roundActive.set(true);
     component.azzardoState.set(state(0, 0));
     component.azzardoPick(0);
     expect(ws.broadcasted.some((entry) => entry.body.action === 'AZZARDO_ACTION')).toBe(false);
@@ -2770,6 +2983,7 @@ describe('RemoteComponent', () => {
       roundKey: 'g1-r2',
       roundDeadlineAt: Date.now() + 60_000,
       currentRound: { roundKey: 'g1-r2', type: 'MUSIC', payload: { question: 'Brano?', options: [] } },
+      tvCheckpoint: { mode: 'MUSIC', state: { phase: 'BUZZ', manche: 2, listen: 2, buzzedPlayer: null, wrongPlayers: [] } },
     });
     await fixture.whenStable();
 
@@ -2778,6 +2992,30 @@ describe('RemoteComponent', () => {
 
     component.sendBuzz();
     expect(ws.publishedAnswers.at(-1)).toMatchObject({ playerName: 'Anna', answerIndex: -1 });
+  });
+
+  it('dopo un refresh in Musica durante l’ascolto il tasto resta chiuso', async () => {
+    // Lo snapshot dice solo che il round è Musica: la finestra di prenotazione
+    // la dichiara la fase (checkpoint TV). Armarlo qui offriva un tasto senza
+    // audio da indovinare.
+    localStorage.setItem('nickname', 'Anna');
+    reliability.resumedSession.set(true);
+    await reloadPhone();
+
+    reliability.syncState$.next({
+      hasState: true,
+      status: 'RUNNING',
+      roundType: 'MUSIC',
+      roundKey: 'g1-r2',
+      roundDeadlineAt: Date.now() + 60_000,
+      currentRound: { roundKey: 'g1-r2', type: 'MUSIC', payload: { question: 'Brano?', options: [] } },
+      tvCheckpoint: { mode: 'MUSIC', state: { phase: 'LISTEN', manche: 2, listen: 2, buzzedPlayer: null, wrongPlayers: [] } },
+    });
+    await fixture.whenStable();
+
+    expect(component.questionType()).toBe('MUSIC');
+    expect(component.gameState()).toBe(PlayerStatus.WAITING);
+    expect(component.hasAnswered()).toBe(true);
   });
 
   it('dopo un refresh in Bomba il telefono riprende a leggere lo stato', async () => {

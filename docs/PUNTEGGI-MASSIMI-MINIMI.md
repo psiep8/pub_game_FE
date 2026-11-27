@@ -18,7 +18,7 @@ cambia la distribuzione dei piazzamenti (seconda tabella) e il numero di bombe.
 | Gioco | Struttura del round | Max N=6 | Min N=6 | Max N=10 | Min N=10 | Punti decisi da |
 |---|---|---:|---:|---:|---:|---|
 | **Quiz** | 3 manches da 15 s | **+1000** | **−1000** | **+1000** | **−1000** | server (`QuizService`) |
-| **Musica** | 4 manches, 1 canzone | +1000 | −1000 | +1000 | −1000 | TV (`calculatePoints`) |
+| **Musica** | 4 round da 5 manche, un tema per round | **+1000** | **−250** | **+1000** | **−250** | TV (`musicPointsFor`) |
 | **Timeline** | 8 eventi | +400 | −200 | +400 | −200 | server/TV (`TIMELINE_POSITION_POINTS`) |
 | **Time Buzzer** | 3 manches, 2 occorrenze in serata | +1800 | −600 | +1800 | −600 | TV (`rankPoints` + perfetto) |
 | **Speed Rush** | 1 gara | +800 | −400 | +800 | −400 | server (`SpeedRushService`) |
@@ -57,8 +57,14 @@ Note alle celle:
   e −1000 (`AZZARDO_MAX_WIN_PER_ROUND`, `AZZARDO_MAX_LOSS_PER_ROUND`). La
   classifica non scende mai sotto zero: il minimo reale è `−punti posseduti
   all'inizio del round` (0 per chi parte da zero).
-- **Musica/Immagine/Ruota, −1000:** una sola risposta per squadra nel round; una
-  risposta sbagliata manda `BLOCKED_ERROR` e chiude il round per quella squadra.
+- **Musica, +1000 / −250 per round:** un round sono **cinque manche**, un brano per manca, tutte sullo
+  stesso tema. Il primo ascolto vale **+200**, il secondo **+100**, chi non prenota prende 0.
+  Sbagliare al primo ascolto vale **0** (blocca solo quell'ascolto), sbagliare al secondo costa **−50**:
+  il minimo del round è quindi 5 × −50 = **−250**. Ogni squadra ha una sola prenotazione per manca e
+  rientra alla manca successiva. **La partita sono quattro round: massimo +4000, minimo −1000**, ed è la
+  partita più pesante della serata.
+- **Immagine/Ruota, −1000:** una sola risposta per squadra nel round;
+  una risposta sbagliata manda `BLOCKED_ERROR` e chiude il round per quella squadra.
 - **Arena:** non è limitata dalle costanti: il numero di risposte rapide in 130 s
   non è fissato. Il piazzamento finale vale +1000 / +500 / −300.
 
@@ -119,13 +125,15 @@ N=10  B=4   malus: −500, −380, −250, −130     totale round −1260
    Timeline e 3× il suo minimo. È già segnalato nel §6 della specifica.
 4. **Biglie: +1000 / −800.** Escursione 1800 e la penalità fissa più grande dopo
    il Quiz: due gare con piazzamenti negativi pesano quasi quanto il primo posto.
-5. **Musica: ±1000.** Escursione 2000 contro i 600 di Timeline; anche questa era
-   già nel §6. Il valore scende con la manche, quindi il caso peggiore richiede
-   una risposta sbagliata alla prima.
+5. **Musica: +4000 / −1000 a partita.** Il round vale 1000 (5 × 200), quindi
+   la partita di quattro round arriva a **+4000**, il doppio del Quiz. È la
+   partita più pesante della serata: il rischio però è basso (−50 al massimo per
+   manca, 0 al primo ascolto), quindi la forbice reale tra chi riconosce e chi
+   non riconosce è 5000 punti.
 6. **Tennis: +500 / 0 per round.** Nessun rischio: 500 punti secchi a partita, fino a +1500 nei tre round, senza alcun malus. Asimmetrico rispetto a Biglie e Time Buzzer.
 7. **Timeline: +400 / −200.** L'escursione più piccola (600) per il gioco con più
    passaggi (ordinare 8 eventi): sottopesata rispetto agli altri.
-8. **Bonus: 300–600.** Un bonus intero vale meno di un buon round di Musica o di
+8. **Bonus: 300–600.** Un bonus intero vale meno di un round di Musica (1000) o di
    Speed Rush; è una scelta voluta (solo positivi), ma muove poco la classifica.
 9. **Arena: estremi non limitati.** +10/−10 per risposta più il piazzamento:
    senza un tetto al numero di risposte, massimo e minimo non derivano dalle

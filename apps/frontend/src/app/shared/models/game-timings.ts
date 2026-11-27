@@ -11,8 +11,13 @@ export const GAME_TIMINGS = {
     mancheSeconds: 15,
   },
   MUSIC: {
-    manches: 4,
-    mancheSeconds: 30,
+    // Un round = cinque manche (cinque brani), tutte sullo stesso tema.
+    // La difficoltà viene da quanta musica si ascolta, non dagli effetti:
+    // 4 s al primo ascolto, 12 s cumulativi al secondo, poi il reveal pulito.
+    manches: 5,
+    listenSeconds: [4, 12],
+    buzzSeconds: 5,
+    revealSeconds: 8,
   },
   IMAGE_BLUR: {
     manches: 3,

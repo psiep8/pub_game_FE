@@ -20,11 +20,11 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
     }).compileComponents();
   });
 
-  function mount(resume: any = null) {
+  function mount(resume: any = null, players: string[] = ['Anna', 'Bruno']) {
     const fixture = TestBed.createComponent(CavalloBonus);
     const component = fixture.componentInstance;
     fixture.componentRef.setInput('gameId', 1);
-    fixture.componentRef.setInput('players', ['Anna', 'Bruno']);
+    fixture.componentRef.setInput('players', players);
     fixture.componentRef.setInput('categories', [
       { id: 1, name: 'CULTURA GENERALE', active: true },
       { id: 2, name: 'MUSICA', active: true },
@@ -83,7 +83,7 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
 
     expect(component.chosenCategory()).toBe('MUSICA');
     expect(component.phase()).toBe(component.Phase.QUESTION);
-    expect(component.question()?.text).toContain('MUSICA');
+    expect(component.questionFor('Anna')?.text).toContain('MUSICA');
 
     // Le risposte arrivano al server TV: ogni telefono ha la sua.
     ws.status$.next({ action: 'CAVALLO_ACTION', kind: 'ANSWER', playerName: 'Anna', value: 0 });
@@ -143,7 +143,7 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
       answers: [{ playerName: 'Anna', index: 1 }],
     });
 
-    const question = component.question();
+    const question = component.questionFor('Anna');
     expect(component.phase()).toBe(component.Phase.QUESTION);
     expect(question?.text).toBe('Capitale del Giappone?');
     expect(component.secondsLeft()).toBe(42);
@@ -198,13 +198,13 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
     });
 
     expect(component.phase()).toBe(component.Phase.REVEAL);
-    expect(component.reveal()?.heading).toBe('RISPOSTA ESATTA: Tokyo');
+    expect(component.reveals()['Anna']?.heading).toBe('RISPOSTA ESATTA: Tokyo');
 
     vi.advanceTimersByTime(1700);
 
     expect(component.phase()).toBe(component.Phase.QUESTION);
     expect(component.index()).toBe(1);
-    expect(component.question()?.text).toBe('Chi ha dipinto la Gioconda?');
+    expect(component.questionFor('Anna')?.text).toBe('Chi ha dipinto la Gioconda?');
 
     vi.useRealTimers();
     fixture.destroy();
@@ -230,6 +230,172 @@ describe('CavalloBonus — ripresa dopo un refresh della TV', () => {
     expect(finished).toHaveLength(1);
 
     vi.useRealTimers();
+    fixture.destroy();
+  });
+
+  it('N-04: ogni squadra riceve la propria domanda e il tabellone resta uno', () => {
+    const { component, fixture } = mount({
+      phase: 'QUESTION',
+      secondsLeft: 40,
+      savedAt: Date.now(),
+      chosenCategory: 'MUSICA',
+      questionsByTeam: {
+        Anna: [QUESTIONS[0]],
+        Bruno: [QUESTIONS[1]],
+      },
+      index: 0,
+      total: 1,
+      scores: [{ playerName: 'Anna', score: 0 }, { playerName: 'Bruno', score: 0 }],
+      votes: [],
+      answers: [],
+    });
+
+    expect(component.questionFor('Anna')?.text).toBe('Capitale del Giappone?');
+    expect(component.questionFor('Bruno')?.text).toBe('Chi ha dipinto la Gioconda?');
+    // Un solo tabellone per tutte le squadre.
+    expect(component.totals()).toHaveLength(2);
+    expect(component.questionFor('Carla')).toBeNull();
+
+    fixture.destroy();
+  });
+
+  it('N-04: ogni squadra risponde alla sua domanda e il tabellone somma le giuste', () => {
+    vi.useFakeTimers();
+    try {
+      const { component, fixture } = mount({
+        phase: 'QUESTION',
+        secondsLeft: 40,
+        savedAt: Date.now(),
+        chosenCategory: 'MUSICA',
+        questionsByTeam: {
+          Anna: [QUESTIONS[0]],
+          Bruno: [QUESTIONS[1]],
+        },
+        index: 0,
+        total: 1,
+        scores: [{ playerName: 'Anna', score: 0 }, { playerName: 'Bruno', score: 0 }],
+        votes: [],
+        answers: [],
+      });
+      const ws = TestBed.inject(WebSocketService) as unknown as FakeWebSocketService;
+
+      // Tokyo è la risposta di Anna; Leonardo quella di Bruno.
+      ws.status$.next({ action: 'CAVALLO_ACTION', kind: 'ANSWER', playerName: 'Anna', value: 1 });
+      ws.status$.next({ action: 'CAVALLO_ACTION', kind: 'ANSWER', playerName: 'Bruno', value: 0 });
+      fixture.detectChanges();
+
+      expect(component.phase()).toBe(component.Phase.REVEAL);
+      expect(component.totals()).toEqual([
+        { playerName: 'Anna', score: 1 },
+        { playerName: 'Bruno', score: 1 },
+      ]);
+      expect(component.reveals()['Anna']?.heading).toContain('Tokyo');
+      expect(component.reveals()['Bruno']?.heading).toContain('Leonardo');
+
+      const published = ws.broadcasted.at(-1)?.body?.state;
+      expect(published.questions.Anna.text).toBe('Capitale del Giappone?');
+      expect(published.questions.Bruno.text).toBe('Chi ha dipinto la Gioconda?');
+
+      vi.advanceTimersByTime(1_700);
+      expect(component.phase()).toBe(component.Phase.FINALE);
+
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('N-04: il tabellone tiene in fondo il primo posto e lo evidenzia', () => {
+    const { component, fixture } = mount({
+      phase: 'FINALE',
+      secondsLeft: 0,
+      savedAt: Date.now(),
+      chosenCategory: 'MUSICA',
+      questionsByTeam: {},
+      index: 0,
+      total: 8,
+      // Arrivano in ordine inverso: il tabellone deve riordinarli.
+      scores: [{ playerName: 'Bruno', score: 1 }, { playerName: 'Anna', score: 3 }],
+      votes: [],
+      answers: [],
+    });
+
+    // Ordine crescente: Bruno (1) in cima, Anna (3) in fondo.
+    expect(component.totals().map((row) => row.playerName)).toEqual(['Bruno', 'Anna']);
+    const rows = fixture.nativeElement.querySelectorAll('.cav-row');
+    expect(rows).toHaveLength(2);
+    expect(rows[0].classList.contains('lead')).toBe(false);
+    expect(rows[0].querySelector('.cav-pos')?.textContent?.trim()).toBe('2');
+    expect(rows[1].classList.contains('lead')).toBe(true);
+    expect(rows[1].querySelector('.cav-pos')?.textContent?.trim()).toBe('1');
+
+    fixture.destroy();
+  });
+
+  it('N-04: il pari merito evidenzia tutte le prime e usa le posizioni 1, 1, 3', () => {
+    const { component, fixture } = mount(
+      {
+        phase: 'FINALE',
+        secondsLeft: 0,
+        savedAt: Date.now(),
+        chosenCategory: 'MUSICA',
+        questionsByTeam: {},
+        index: 0,
+        total: 8,
+        scores: [
+          { playerName: 'Anna', score: 3 },
+          { playerName: 'Bruno', score: 3 },
+          { playerName: 'Carla', score: 1 },
+        ],
+        votes: [],
+        answers: [],
+      },
+      ['Anna', 'Bruno', 'Carla'],
+    );
+
+    // La terza in classifica in cima, le due capoliste in fondo a pari merito.
+    expect(component.totals().map((row) => row.playerName)).toEqual(['Carla', 'Anna', 'Bruno']);
+    const rows = fixture.nativeElement.querySelectorAll('.cav-row') as NodeListOf<HTMLElement>;
+    expect(rows).toHaveLength(3);
+    expect(rows[0].classList.contains('lead')).toBe(false);
+    expect(rows[0].querySelector('.cav-pos')?.textContent?.trim()).toBe('3');
+    expect(rows[1].classList.contains('lead')).toBe(true);
+    expect(rows[1].querySelector('.cav-pos')?.textContent?.trim()).toBe('1');
+    expect(rows[2].classList.contains('lead')).toBe(true);
+    expect(rows[2].querySelector('.cav-pos')?.textContent?.trim()).toBe('1');
+
+    fixture.destroy();
+  });
+
+  it('N-04: un pari merito sotto il primo posto salta comunque la posizione', () => {
+    const { component, fixture } = mount(
+      {
+        phase: 'FINALE',
+        secondsLeft: 0,
+        savedAt: Date.now(),
+        chosenCategory: 'MUSICA',
+        questionsByTeam: {},
+        index: 0,
+        total: 8,
+        scores: [
+          { playerName: 'Anna', score: 5 },
+          { playerName: 'Bruno', score: 2 },
+          { playerName: 'Carla', score: 2 },
+        ],
+        votes: [],
+        answers: [],
+      },
+      ['Anna', 'Bruno', 'Carla'],
+    );
+
+    // Bruno e Carla sono seconde a pari merito: dopo di loro si salta a 4.
+    const rows = fixture.nativeElement.querySelectorAll('.cav-row') as NodeListOf<HTMLElement>;
+    expect(rows).toHaveLength(3);
+    expect(rows[0].querySelector('.cav-pos')?.textContent?.trim()).toBe('2');
+    expect(rows[1].querySelector('.cav-pos')?.textContent?.trim()).toBe('2');
+    expect(rows[2].classList.contains('lead')).toBe(true);
+    expect(rows[2].querySelector('.cav-pos')?.textContent?.trim()).toBe('1');
+
     fixture.destroy();
   });
 

@@ -83,6 +83,66 @@ describe('Admin', () => {
     expect(component.showAdminControls()).toBe(true);
   });
 
+  it('N-03: una nuova manche di Indovina chi tiene aperti i controlli della regia', async () => {
+    ws.status$.next({
+      action: 'PLAYER_PRENOTATO', name: 'Anna',
+      correctPoints: 300, wrongPoints: -300, solution: 'Pablo Picasso',
+    });
+    await fixture.whenStable();
+    // La regia conferma il buzz della prima manche, come in serata.
+    component.confirmCorrect();
+
+    ws.status$.next({
+      action: 'START_VOTING', type: 'IMAGE_BLUR', round: 7, manche: 2,
+      payload: JSON.stringify({ manche: 2, correctAnswer: null }),
+      solution: 'Frida Kahlo',
+    });
+    await fixture.whenStable();
+
+    // Dalla seconda manche il buzz deve restare confermabile: senza ACTIVE e
+    // i controlli il presentatore non poteva più giudicare.
+    expect(component.gameState()).toBe('ACTIVE');
+    expect(component.showAdminControls()).toBe(true);
+    expect(component.buzzedPlayer()).toBeNull();
+    expect(component.solution()).toBe('Frida Kahlo');
+  });
+
+  it('N-03: una nuova manche scarta il buzz rimasto senza conferma', async () => {
+    ws.status$.next({
+      action: 'PLAYER_PRENOTATO', name: 'Anna',
+      correctPoints: 300, wrongPoints: -300, solution: 'Pablo Picasso',
+    });
+    await fixture.whenStable();
+    expect(component.buzzedPlayer()).toBe('Anna');
+    expect(component.correctPoints()).toBe(300);
+
+    // La manche successiva parte senza che la regia abbia confermato: il buzz
+    // vecchio non deve restare selezionato né pagabile.
+    ws.status$.next({
+      action: 'START_VOTING', type: 'IMAGE_BLUR', round: 7, manche: 2,
+      payload: JSON.stringify({ manche: 2, correctAnswer: null }),
+      solution: 'Frida Kahlo',
+    });
+    await fixture.whenStable();
+
+    expect(component.buzzedPlayer()).toBeNull();
+    expect(component.correctPoints()).toBeNull();
+    expect(component.wrongPoints()).toBeNull();
+  });
+
+  it('N-03: anche SHOW_QUESTION di una manche buzz tiene la regia attiva', async () => {
+    ws.status$.next({
+      action: 'SHOW_QUESTION', type: 'IMAGE_BLUR', round: 7, manche: 3,
+      payload: JSON.stringify({ manche: 3, correctAnswer: null }),
+      solution: 'Vincent van Gogh',
+    });
+    await fixture.whenStable();
+
+    expect(component.gameState()).toBe('ACTIVE');
+    expect(component.showAdminControls()).toBe(true);
+    expect(component.solution()).toBe('Vincent van Gogh');
+  });
+
   it('should not show the confirm controls for a voting game', async () => {
     ws.status$.next({
       action: 'START_VOTING',
@@ -124,6 +184,34 @@ describe('Admin', () => {
       action: 'ADMIN_RESTART_BONUS',
       type: 'CAVALLO',
     });
+  });
+
+  it('N-01: il codice a sei cifre si invia da solo, senza premere ABBINA', async () => {
+    const reliability = TestBed.inject(ReliabilityService) as unknown as FakeReliabilityService;
+    const target = { value: '123' } as HTMLInputElement;
+    component.setPairingCode({ target } as unknown as Event);
+    expect(reliability.paired).toHaveLength(0);
+
+    target.value = '123456';
+    component.setPairingCode({ target } as unknown as Event);
+    await new Promise((resolve) => setTimeout(resolve, 60));
+
+    expect(reliability.paired).toEqual([{ gameId: 1, code: '123456' }]);
+  });
+
+  it('N-02: il pulsante unico dice cosa farà, fase per fase', async () => {
+    component.diagnostics.set({ roundIndex: 3, roundType: 'QUIZ' });
+    ws.status$.next({ action: 'START_VOTING', type: 'QUIZ' });
+    await fixture.whenStable();
+    expect(component.primaryAction().label).toBe('PROSSIMA MANCHE · QUIZ');
+
+    ws.status$.next({ action: 'ROUND_ENDED' });
+    await fixture.whenStable();
+    expect(component.primaryAction().label).toBe('CHIUDI RIEPILOGO · ROUND 4');
+
+    ws.status$.next({ action: 'GAME_PAUSED' });
+    await fixture.whenStable();
+    expect(component.primaryAction().label).toBe('RIPRENDI');
   });
 
   it('should clear the question state when the round ends', async () => {
