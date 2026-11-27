@@ -13,7 +13,7 @@ e fallisce se questo documento non combacia più.
 
 | Gioco | Durata | Come nasce |
 | --- | --- | --- |
-| Quiz | 0'54" | 3 manche da 15 s più 3 s di reveal |
+| Quiz | 1'03" | 3 manche da 15 s più 3 s di reveal e 4,5 s di respiro fra le manche |
 | Musica | 2'50" | 5 manche: 4 s + prenotazione 5 s + 12 s + prenotazione 5 s + reveal 8 s |
 | Indovina chi | 2'15" | 3 manche da 45 s, un indizio ogni 15 s |
 | Ruota della fortuna | 1'15" | un timer per round |
@@ -33,11 +33,11 @@ Con otto squadre in sala e con venti, per vedere quanto pesa la Bomba:
 
 | Atto | Con 8 squadre | Con 20 squadre |
 | --- | --- | --- |
-| 1 | 11'51" | 11'51" |
-| 2 | 16'45" | 16'45" |
-| 3 | 17'02" | 17'02" |
-| 4 | 14'40" | 18'40" |
-| 5 | 19'17" | 23'17" |
+| 1 | 12'00" | 12'00" |
+| 2 | 16'54" | 16'54" |
+| 3 | 17'11" | 17'11" |
+| 4 | 14'49" | 18'49" |
+| 5 | 19'26" | 23'26" |
 
 L'atto 1 apre con la Musica e chiude con l'Ultima spiaggia; l'atto 5 è il più
 lungo perché ha Tennis, Biglie, Arena e la seconda Bomba.
@@ -46,11 +46,11 @@ lungo perché ha Tennis, Biglie, Arena e la seconda Bomba.
 
 | Squadre | Quaranta round |
 | --- | --- |
-| 4 | 76'55" |
-| 8 | 79'35" |
-| 10 | 80'55" |
-| 14 | 83'35" |
-| 20 | 87'35" |
+| 4 | 77'40" |
+| 8 | 80'20" |
+| 10 | 81'40" |
+| 14 | 84'20" |
+| 20 | 88'20" |
 
 Solo la Bomba dipende dalla sala: 20 s per squadra, due volte nella serata.
 Tutto il resto è uguale con quattro o con venti squadre. A questi minuti vanno
@@ -59,8 +59,10 @@ cinque classifiche rapide e le cinque dettagliate.
 
 ## Come si legge in regia
 
-- Un atto sta fra i **12 e i 19 minuti** di gioco con otto squadre: se la
+- Un atto sta fra i **12 e i 20 minuti** di gioco con otto squadre: se la
   scaletta si allunga, il tempo si perde nelle pause, non nei round.
+- Il respiro fra le manche (4,5 s) è già contato nel Quiz: la domanda dopo è a
+  schermo e leggibile, con il cronometro fermo, e il 3-2-1 non si ripete.
 - Tennis (5') e Musica (2'50") sono i due round da non aprire a fine serata se
   la sala è stanca.
 - Con venti squadre l'atto 4 e l'atto 5 crescono di quattro minuti l'uno per la

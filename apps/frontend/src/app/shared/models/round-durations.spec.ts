@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { ACT_DECKS, SCHEDULE } from '../schedule';
 import { GAME_TIMINGS } from './game-timings';
+import { TV_TIMING } from '../../features/tv/tv-timing';
 import {
   actSeconds,
   formatDuration,
@@ -28,8 +29,10 @@ describe('M-04: tempi per atto', () => {
   });
 
   it('Quiz, Musica e Indovina chi seguono i tempi ufficiali', () => {
+    // Manche, reveal e il respiro fra una manche e l'altra (N-12).
     expect(roundSeconds('QUIZ', 8)).toBe(
-      GAME_TIMINGS.QUIZ.manches * (GAME_TIMINGS.QUIZ.mancheSeconds + 3),
+      GAME_TIMINGS.QUIZ.manches * (GAME_TIMINGS.QUIZ.mancheSeconds + 3)
+        + (GAME_TIMINGS.QUIZ.manches - 1) * (TV_TIMING.mancheBreathMs / 1000),
     );
     expect(roundSeconds('MUSIC', 8)).toBe(
       GAME_TIMINGS.MUSIC.manches * (

@@ -1,6 +1,8 @@
 import { vi } from 'vitest';
 import { REVEAL_DELAY_MS } from '../../../shared/models/scoring-rules';
 import { GameModeConfig } from '../../../shared/models/game-mode-type';
+import { GAME_TIMINGS } from '../../../shared/models/game-timings';
+import { TV_TIMING } from '../../tv/tv-timing';
 import { QuizMode } from './quiz.mode';
 
 function setup(payload: any) {
@@ -352,5 +354,45 @@ describe('QuizMode — ripresa dopo un refresh della TV', () => {
     const { mode } = setupConCheckpoint();
     expect(() => mode.restore(10, { revision: 0, state: { mancheIndex: 0 } }))
       .toThrow('Stato Quiz non ripristinabile');
+  });
+
+  /**
+   * N-12: fra una manche e l'altra la domanda successiva resta a schermo per
+   * il respiro, con il cronometro fermo, e solo dopo la manche si apre.
+   */
+  it('fra una manche e l’altra la domanda dopo è a schermo con il timer fermo', async () => {
+    vi.useFakeTimers();
+    const startQuizManche = vi.fn().mockResolvedValue({});
+    const mode = new QuizMode();
+    mode.setConfig({ type: 'QUIZ', payload: treManches, gameId: 1, startQuizManche });
+    mode.initialize(treManches);
+    await mode.start();
+    expect(startQuizManche).toHaveBeenCalledWith(0);
+
+    // Prima manche: scadenza, suspense, soluzione, poi il respiro.
+    await vi.advanceTimersByTimeAsync(GAME_TIMINGS.QUIZ.mancheSeconds * 1000);
+    await vi.advanceTimersByTimeAsync(REVEAL_DELAY_MS + 3000);
+
+    const reading = mode.getDisplayData();
+    expect(reading.question).toBe('Q2');
+    expect(reading.isReading).toBe(true);
+    expect(mode.getTimerValue()).toBe(GAME_TIMINGS.QUIZ.mancheSeconds);
+    // La manche dopo non è ancora aperta sul server: chi risponde non prende punti.
+    expect(startQuizManche).not.toHaveBeenCalledWith(1);
+
+    // Metà respiro: la domanda è ancora in lettura e il tempo non scorre.
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(mode.getDisplayData().isReading).toBe(true);
+    expect(mode.getTimerValue()).toBe(GAME_TIMINGS.QUIZ.mancheSeconds);
+
+    // Fine respiro: si apre la manche nuova e il cronometro parte.
+    await vi.advanceTimersByTimeAsync(TV_TIMING.mancheBreathMs - 2000 + 200);
+    expect(mode.getDisplayData().isReading).toBe(false);
+    expect(startQuizManche).toHaveBeenCalledWith(1);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(mode.getTimerValue()).toBe(GAME_TIMINGS.QUIZ.mancheSeconds - 1);
+
+    mode.cleanup();
+    vi.useRealTimers();
   });
 });

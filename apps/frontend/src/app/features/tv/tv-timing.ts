@@ -36,6 +36,12 @@ export const TV_TIMING = {
   /** «TEMPO», pausa e rivelazione. */
   timeUpPauseMs: 1000,
   revealPauseMs: 2000,
+  /**
+   * Respiro fra una manche e l'altra (N-12): la domanda successiva è già a
+   * schermo, leggibile, con il cronometro fermo. Niente 3-2-1: quello resta
+   * solo all'inizio del round.
+   */
+  mancheBreathMs: 4500,
 } as const;
 
 /** Fasi della scena TV, nell'ordine in cui il pubblico le vede. */

@@ -13,12 +13,16 @@ interface QuizManche {
 }
 
 import { GAME_TIMINGS } from '../../../shared/models/game-timings';
+import { TV_TIMING } from '../../tv/tv-timing';
 
 const MANCHES = GAME_TIMINGS.QUIZ.manches;
 const MANCHE_SECONDS = GAME_TIMINGS.QUIZ.mancheSeconds;
 const REVEAL_SECONDS = 3;
-/** Durata di gioco di un round: manche e reveal dichiarati qui sopra. */
-export const QUIZ_ROUND_SECONDS = MANCHES * (MANCHE_SECONDS + REVEAL_SECONDS);
+/** Il respiro fra le manche: la domanda dopo è a schermo, il timer è fermo. */
+const MANCHE_BREATH_MS = TV_TIMING.mancheBreathMs;
+/** Durata di gioco di un round: manche, reveal e i respiri fra le manche. */
+export const QUIZ_ROUND_SECONDS =
+  MANCHES * (MANCHE_SECONDS + REVEAL_SECONDS) + (MANCHES - 1) * (MANCHE_BREATH_MS / 1000);
 
 /**
  * Quiz — tre manches da venti secondi.
@@ -245,9 +249,34 @@ export class QuizMode extends GameModeBase {
       if (this.mancheIndex() + 1 >= this.questions.length) {
         this.finish();
       } else {
-        this.startManche(this.mancheIndex() + 1);
+        this.openNextManche(this.mancheIndex() + 1);
       }
     }, REVEAL_SECONDS * 1000);
+  }
+
+  /**
+   * Il respiro fra le manche (N-12): la domanda successiva compare subito dopo
+   * la soluzione e resta leggibile con il cronometro fermo, senza 3-2-1. Solo
+   * alla fine del respiro la manche si apre sul server e il tempo parte: chi
+   * risponde durante la lettura non prende punti e non trova la manche aperta.
+   */
+  private openNextManche(index: number): void {
+    this.clearClock();
+    this.mancheIndex.set(index);
+    this.mancheReveal.set(null);
+    this.revealPending.set(false);
+    this.answeredThisManche.clear();
+    this.secondsLeft = MANCHE_SECONDS;
+    this.timer.set(MANCHE_SECONDS);
+    this.isReading.set(true);
+    this.setQuestionOpen(false);
+    void this.broadcastState();
+    this.emitCheckpoint();
+
+    this.advanceHandle = setTimeout(() => {
+      this.isReading.set(false);
+      this.startManche(index);
+    }, MANCHE_BREATH_MS);
   }
 
   private finish(): void {

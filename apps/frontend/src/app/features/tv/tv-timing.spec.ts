@@ -25,6 +25,11 @@ describe('TV — regia scenica', () => {
     expect(readingPauseMs('parola '.repeat(16))).toBe(5000);
   });
 
+  it('il respiro fra le manche dura 4–5 secondi, senza 3-2-1', () => {
+    expect(TV_TIMING.mancheBreathMs).toBeGreaterThanOrEqual(4000);
+    expect(TV_TIMING.mancheBreathMs).toBeLessThanOrEqual(5000);
+  });
+
   it('le opzioni compaiono una alla volta, sfalsate di 250–350 ms', () => {
     expect(optionDelays(4)).toEqual([0, 300, 600, 900]);
     expect(optionsRevealMs(4)).toBe(1220);

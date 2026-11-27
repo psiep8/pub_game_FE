@@ -309,7 +309,33 @@ serata); il Black Jack resta fuori perché non è in scaletta.
 `docs/TEMPI-SERATA.md` riporta la tabella e `round-durations.spec.ts` la
 ricalcola dal codice: se un timer cambia e il documento no, il test fallisce.
 
-**Numeri (solo tempo di gioco dei 40 round).** Atti con otto squadre: 11'51",
-16'45", 17'02", 14'40", 19'17". Serata: 76'55" con 4 squadre, 79'35" con 8,
-80'55" con 10, 83'35" con 14, 87'35" con 20. Classifiche, bonus e pause stanno
-fuori e restano a carico della regia.
+**Numeri (solo tempo di gioco dei 40 round).** Atti con otto squadre: 12'00",
+16'54", 17'11", 14'49", 19'26". Serata: 77'40" con 4 squadre, 80'20" con 8,
+81'40" con 10, 84'20" con 14, 88'20" con 20. Classifiche, bonus e pause stanno
+fuori e restano a carico della regia. I numeri sono cresciuti di 45" in tutto
+rispetto alla prima stesura perché il Quiz ora conta il respiro fra le manche
+(N-12).
+
+### N-12 respiro fra le manche — **Fatto per il Quiz**
+
+**Causa.** Nel Quiz `scheduleAdvance()` chiamava `startManche()` tre secondi
+dopo la soluzione: la domanda successiva compariva nello stesso istante in cui
+partiva il cronometro, senza respiro, e la durata dichiarata del round (54 s)
+non contava nessuna pausa.
+
+**Intervento.** `TV_TIMING.mancheBreathMs = 4500`: fra due manche il Quiz apre
+una fase di lettura (`isReading`) e la domanda successiva resta a schermo con il
+cronometro fermo; la manche si apre sul server solo alla fine del respiro,
+quindi chi risponde durante la lettura non prende punti. Nessun 3-2-1: la
+sequenza scenica resta solo all'inizio del round. `QUIZ_ROUND_SECONDS` ora
+include i due respiri (63 s) e `docs/TEMPI-SERATA.md` è stato ricalcolato.
+
+**Test.** `quiz.mode.spec.ts` → «fra una manche e l'altra la domanda dopo è a
+schermo con il timer fermo»: a metà respiro `isReading` è vero, il timer è pieno
+e la manche non è annunciata al server; alla fine la manche parte e il cronometro
+scende. `tv-timing.spec.ts` blinda la durata 4–5 s.
+
+**Gli altri giochi.** Indovina chi, Time Buzzer e Biglie hanno le manche
+comandate dalla regia, quindi il presentatore ha già il tempo di leggere; la
+Ruota ha un round unico. Resta l'**Azzardo**, che passa da solo alla puntata
+dopo: è la prossima voce del blocco.
