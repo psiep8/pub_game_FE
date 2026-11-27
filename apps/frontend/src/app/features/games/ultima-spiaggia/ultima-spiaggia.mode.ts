@@ -40,6 +40,8 @@ const LEVEL_SECONDS = 12;
 // un conto alla rovescia a schermo (resta il tempo del round).
 const QUESTION_SECONDS = 20;
 const REVEAL_SECONDS = 5;
+/** Scelta del livello, domanda e reveal. */
+export const ULTIMA_SPIAGGIA_ROUND_SECONDS = LEVEL_SECONDS + QUESTION_SECONDS + REVEAL_SECONDS;
 
 /**
  * ULTIMA SPIAGGIA — una manche per occorrenza.
@@ -53,7 +55,8 @@ const REVEAL_SECONDS = 5;
  */
 export class UltimaSpiaggiaMode extends GameModeBase {
   readonly type: GameModeType = 'ULTIMA_SPIAGGIA';
-  readonly timerDuration = LEVEL_SECONDS + QUESTION_SECONDS + REVEAL_SECONDS;
+  readonly timerDuration = ULTIMA_SPIAGGIA_ROUND_SECONDS;
+
   readonly requiresBubbles = true;
   readonly requiresBuzz = false;
 

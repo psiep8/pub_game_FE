@@ -40,9 +40,12 @@ const TICK_MS = 1000;
 /** Ogni quanto la TV chiede al server se qualcuno è rimasto inattivo. */
 const INACTIVITY_POLL_MS = 2000;
 
+/** Un round, un timer. */
+export const ARENA_ROUND_SECONDS = 130;
+
 export class ArenaMode extends GameModeBase {
   readonly type: GameModeType = 'ARENA';
-  readonly timerDuration = 130;
+  readonly timerDuration = ARENA_ROUND_SECONDS;
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
 

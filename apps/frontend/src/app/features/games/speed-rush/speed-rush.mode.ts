@@ -20,9 +20,12 @@ interface Lane {
  * `SPEED_RUSH_PROGRESS` e `SPEED_RUSH_RESULT` dal server e li applica. In questo
  * modo un telefono non può dichiarare da sé una risposta corretta o un arrivo.
  */
+/** Un round, un timer. */
+export const SPEED_RUSH_ROUND_SECONDS = 90;
+
 export class SpeedRushMode extends GameModeBase {
   readonly type: GameModeType = 'SPEED_RUSH';
-  readonly timerDuration = 90;
+  readonly timerDuration = SPEED_RUSH_ROUND_SECONDS;
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
 

@@ -3,6 +3,8 @@ import { GameModeBase } from '../../../shared/models/game-mode-base.class';
 import { GameModeResult, GameModeType } from '../../../shared/models/game-mode-type';
 
 const TURN_SECONDS = 20;
+/** Ogni squadra gioca un turno: il round dura quanto le squadre in tavola. */
+export const BOMBA_TURN_SECONDS = TURN_SECONDS;
 /** Malus della prima bomba: il server manda quello vero con l'evento. */
 const BOMB_PENALTY_FALLBACK = 500;
 

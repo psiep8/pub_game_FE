@@ -32,6 +32,13 @@ const SPIN_MS = 5000;
 const REVEAL_PAUSE_MS = 5000;
 const COUNTDOWN_FROM = 5;
 const COUNTDOWN_STEP_MS = 1000;
+/**
+ * Round intero: per ogni manche lo slot dei numeri, il bersaglio, il respiro
+ * dopo il bersaglio e il conto alla rovescia.
+ */
+export const TIME_BUZZER_ROUND_SECONDS = MANCHES * (
+  (SPIN_MS + MAX_MS + REVEAL_PAUSE_MS + COUNTDOWN_FROM * COUNTDOWN_STEP_MS) / 1000
+);
 
 /**
  * Time Buzzer — tre manche a tempo, senza eliminazioni.

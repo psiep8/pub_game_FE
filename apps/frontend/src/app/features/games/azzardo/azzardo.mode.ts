@@ -83,6 +83,8 @@ const BET_SECONDS = 30;
 const NO_BET_PENALTY = 100;
 const REVEAL_SECONDS = 7;
 const FINALE_SECONDS = 5;
+/** Manche con la loro puntata, più il finale. */
+export const AZZARDO_ROUND_SECONDS = AZZARDO_MANCHES * (BET_SECONDS + REVEAL_SECONDS) + FINALE_SECONDS;
 
 /**
  * AZZARDO — quattro manche, una per categoria.
@@ -98,7 +100,8 @@ const FINALE_SECONDS = 5;
  */
 export class AzzardoMode extends GameModeBase {
   readonly type: GameModeType = 'AZZARDO';
-  readonly timerDuration = AZZARDO_MANCHES * (BET_SECONDS + REVEAL_SECONDS) + FINALE_SECONDS;
+  readonly timerDuration = AZZARDO_ROUND_SECONDS;
+
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
 

@@ -22,6 +22,8 @@ export class ImageBlurMode extends GameModeBase {
   readonly type: GameModeType = 'IMAGE_BLUR';
   /** Ogni manche dura 45 secondi: un indizio ogni 15. */
   readonly timerDuration = GAME_TIMINGS.IMAGE_BLUR.seconds;
+  /** Tre manche da 45 s. */
+  readonly roundSeconds = GAME_TIMINGS.IMAGE_BLUR.manches * GAME_TIMINGS.IMAGE_BLUR.seconds;
   readonly requiresBubbles = false;
   readonly requiresBuzz = true;
 

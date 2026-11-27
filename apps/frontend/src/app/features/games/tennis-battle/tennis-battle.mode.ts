@@ -259,9 +259,12 @@ export function applyPoint(court: Court, scorerSide: Side): Court {
  * Risposta sbagliata o tempo scaduto = punto per l'avversario (0, 15, 30, 40).
  * Chi vince due game vince la sfida; sul 40-40 il punto dopo è il killer point.
  */
+/** Le sfide si giocano in parallelo: il round dura il timer, non la somma. */
+export const TENNIS_ROUND_SECONDS = 300;
+
 export class TennisBattleMode extends GameModeBase {
   readonly type: GameModeType = 'TENNIS_BATTLE';
-  readonly timerDuration = 300;
+  readonly timerDuration = TENNIS_ROUND_SECONDS;
   readonly requiresBubbles = false;
   readonly requiresBuzz = false;
 

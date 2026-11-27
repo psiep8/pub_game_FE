@@ -14,6 +14,8 @@ import { GAME_TIMINGS } from '../../../shared/models/game-timings';
 export class TimelineMode extends GameModeBase {
   readonly type: GameModeType = 'TIMELINE';
   readonly timerDuration = GAME_TIMINGS.TIMELINE.seconds;
+  /** Un round, un timer. */
+  readonly roundSeconds = GAME_TIMINGS.TIMELINE.seconds;
   readonly requiresBubbles = true;
   readonly requiresBuzz = false;
 

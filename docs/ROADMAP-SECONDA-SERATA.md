@@ -279,12 +279,22 @@ che mostrano elenchi (lobby, riepilogo round, classifica rapida e dettagliata):
 va scritto come prova E2E dedicata, perché oggi i banchi esistenti usano tre
 telefoni.
 
-### M-04 stima dei tempi per atto — **Aperto**
+### M-04 tempi per atto — **Fatto**
 
-Serve un numero per atto da dare al presentatore. I tempi dei round sono già in
-`apps/frontend/src/app/shared/models/game-timings.ts` per Quiz, Musica,
-Indovina chi, Ruota, Timeline e Time Buzzer; gli altri giochi li dichiarano nel
-proprio mode (`timerDuration`). Il lavoro è: una tabella unica, un test che
-fallisca se un gioco della scaletta non ha il suo tempo e la somma per atto in
-`docs/TEMPI-SERATA.md`. Non ho scritto numeri stimati a occhio: la tabella deve
-nascere dai tempi dichiarati nel codice.
+**Causa.** I tempi dei round erano sparsi: sei giochi in `game-timings.ts`, gli
+altri dentro i propri mode come costanti private. Nessuno poteva sommare gli
+atti, e il presentatore non aveva un numero da dare alla sala.
+
+**Intervento.** Ogni gioco espone la propria durata accanto ai tempi che la
+compongono (`QUIZ_ROUND_SECONDS`, `MUSIC_ROUND_SECONDS`, `AZZARDO_ROUND_SECONDS`,
+`BIGLIE_ROUND_SECONDS`, …). `shared/models/round-durations.ts` li somma:
+`roundSeconds(mode, squadre)`, `actSeconds(atto, squadre)`, `serataSeconds(squadre)`.
+La Bomba è l'unica che dipende dalla sala (20 s per squadra, due volte nella
+serata); il Black Jack resta fuori perché non è in scaletta.
+`docs/TEMPI-SERATA.md` riporta la tabella e `round-durations.spec.ts` la
+ricalcola dal codice: se un timer cambia e il documento no, il test fallisce.
+
+**Numeri (solo tempo di gioco dei 40 round).** Atti con otto squadre: 11'51",
+16'45", 17'02", 14'40", 19'17". Serata: 76'55" con 4 squadre, 79'35" con 8,
+80'55" con 10, 83'35" con 14, 87'35" con 20. Classifiche, bonus e pause stanno
+fuori e restano a carico della regia.

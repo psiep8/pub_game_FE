@@ -20,6 +20,13 @@ const MANCHES = GAME_TIMINGS.MUSIC.manches;
 const LISTEN_SECONDS = GAME_TIMINGS.MUSIC.listenSeconds;
 const BUZZ_SECONDS = GAME_TIMINGS.MUSIC.buzzSeconds;
 const REVEAL_SECONDS = GAME_TIMINGS.MUSIC.revealSeconds;
+/**
+ * Round intero: per ogni manche i due ascolti con le finestre di prenotazione
+ * e il reveal. È il tempo che la regia deve mettere in conto per un round.
+ */
+export const MUSIC_ROUND_SECONDS = MANCHES * (
+  LISTEN_SECONDS[0] + BUZZ_SECONDS + LISTEN_SECONDS[1] + BUZZ_SECONDS + REVEAL_SECONDS
+);
 
 type MusicPhase = 'IDLE' | 'LISTEN' | 'BUZZ' | 'REVEAL';
 

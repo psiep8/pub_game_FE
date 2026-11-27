@@ -187,6 +187,12 @@ const TRACK_END_PADDING = 80;
 const TRACK_VIEW_CENTER = 0.5;
 const BETWEEN_SECONDS = 4;
 const FINALE_SECONDS = 7;
+/**
+ * Round intero: intro, scelta della biglia, due gare con il loro countdown e
+ * il respiro fra le due, finale.
+ */
+export const BIGLIE_ROUND_SECONDS =
+  INTRO_SECONDS + PICK_SECONDS + 2 * (COUNTDOWN_SECONDS + RACE_SECONDS) + BETWEEN_SECONDS + FINALE_SECONDS;
 
 /**
  * BIGLIE — round di serata.

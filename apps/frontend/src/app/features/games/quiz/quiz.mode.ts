@@ -17,6 +17,8 @@ import { GAME_TIMINGS } from '../../../shared/models/game-timings';
 const MANCHES = GAME_TIMINGS.QUIZ.manches;
 const MANCHE_SECONDS = GAME_TIMINGS.QUIZ.mancheSeconds;
 const REVEAL_SECONDS = 3;
+/** Durata di gioco di un round: manche e reveal dichiarati qui sopra. */
+export const QUIZ_ROUND_SECONDS = MANCHES * (MANCHE_SECONDS + REVEAL_SECONDS);
 
 /**
  * Quiz — tre manches da venti secondi.

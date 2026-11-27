@@ -10,6 +10,8 @@ const REVEAL_EVERY_MS = 8000;
 export class WheelOfFortuneMode extends GameModeBase {
   readonly type: GameModeType = 'WHEEL_OF_FORTUNE';
   readonly timerDuration = GAME_TIMINGS.WHEEL_OF_FORTUNE.seconds;
+  /** Un round, un timer. */
+  readonly roundSeconds = GAME_TIMINGS.WHEEL_OF_FORTUNE.seconds;
   readonly requiresBubbles = false;
   readonly requiresBuzz = true;
 
