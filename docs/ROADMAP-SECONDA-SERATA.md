@@ -358,3 +358,50 @@ rifiutate, poi `BET` da 30 s. Anche `restore()` riconosce la fase di lettura.
 comandate dalla regia, quindi il presentatore ha già il tempo di leggere; la
 Ruota ha un round unico. Con questo, N-12 è chiuso per tutti i giochi con
 passaggio automatico fra le manche.
+
+### N-10 ingressi a scatti — **Misurato, correzioni da fare**
+
+**Banco.** `e2e/ingressi.spec.ts`: un gioco per caricamento, non un giro di
+scaletta. Il round manager viene portato sull'indice di quel gioco
+(`roundManager.restoreRound`), il primo AVANTI apre la scena e si misura per
+6,5 s l'ingresso con TV a **1280×720, CPU 4×** e tre telefoni veri. Si sommano i
+`layout-shift` e si contano i `longtask`, **registrando anche i nodi** che si
+spostano (`entry.sources`). Il progresso seminato in `localStorage` non basta:
+la TV lo riallinea allo stato del server, che su una partita nuova è il round 0.
+
+**Tabella (prima delle correzioni).**
+
+| Gioco | CLS | shift | long task | task più lungo | nodi che si spostano |
+| --- | --- | --- | --- | --- | --- |
+| Quiz | 0,038 | 25 | 9 | 266 ms | `div.slot-row.chosen` (0,035 ×37), `div.lobby-steps` |
+| Ruota della fortuna | 0,001 | 0 | 6 | 132 ms | `div.conn-shell` (0,001) |
+| Time Buzzer | 0,001 | 0 | 11 | 490 ms | `div.conn-shell` (0,001) |
+| Indovina chi | 0,031 | 1 | 25 | 337 ms | `div.clue-card`, `h1.blur-title`, `div.blur-main-container.portrait` (0,03) |
+| Timeline | 0,032 | 22 | 24 | **1480 ms** | `div.slot-row.chosen` (0,032 ×28) |
+| Speed Rush | 0,001 | 0 | 17 | 463 ms | `div.conn-shell` (0,001) |
+| Ultima spiaggia | 0,044 | 28 | 10 | 679 ms | `div.slot-row.chosen` (0,044 ×39), `div.conn-shell` (0,005) |
+| Azzardo | 0,004 | 1 | 15 | 165 ms | `div.lobby-steps` (0,003), `div.conn-shell` |
+| Biglie | 0,011 | 1 | 14 | 264 ms | `div.bg-card` (0,01), `div.conn-shell` |
+| Bomba | 0,001 | 0 | 13 | 342 ms | `div.conn-shell` (0,001) |
+
+**Cosa dicono i numeri.** Il criterio di N-10 è zero shift e nessun task oltre
+50 ms: **nessun gioco lo rispetta**. Gli shift veri sono tre famiglie:
+
+1. **La lobby che si smonta** (`div.slot-row.chosen`, `div.lobby-steps`): è il
+   nodo dominante di Quiz (0,035), Timeline (0,032) e Ultima spiaggia (0,044),
+   con 28–39 spostamenti nella stessa finestra. La lista delle squadre viene
+   tolta dopo che la scena nuova è già montata, quindi il contenuto sotto sale.
+2. **Il layout della scena che si assesta** (Indovina chi: `clue-card`,
+   `blur-title`, `blur-main-container`; Biglie: `bg-card`): un solo shift da
+   0,03 con foto e card che prendono la loro altezza definitiva dopo il primo
+   disegno.
+3. **`div.conn-shell`** (0,001 in tutti): lo shell di connessione che cambia
+   altezza quando arriva lo stato del round.
+
+Sui long task non c'è un gioco pulito: il peggiore è **Timeline a 1480 ms** (un
+frame e mezzo di attesa), poi Ultima spiaggia 679, Time Buzzer 490, Speed Rush
+463, Bomba 342, Indovina chi 337.
+
+**Da fare.** Correggere le tre famiglie (via la lobby prima del montaggio; altezze
+riservate per foto/card; shell a misura fissa), un commit per causa, e rilanciare
+lo stesso banco per la colonna «dopo».
