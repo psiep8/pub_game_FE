@@ -1602,6 +1602,39 @@ describe('GameComponent', () => {
     expect(theme.theme()).toBe('editorial-acid');
   });
 
+  it('N-15: salva sul server i punti del singolo round per squadra', async () => {
+    const rounds = TestBed.inject(RoundManagerService);
+    rounds.restoreRound(1);
+    component.currentGameId.set(1);
+    component.currentMode.set({ type: 'MUSIC' } as any);
+    leaderboard.replaceAll([
+      { playerName: 'Anna', totalPoints: 0 },
+      { playerName: 'Bruno', totalPoints: 0 },
+    ]);
+    const tv = component as unknown as {
+      beginRoundScoring(): void;
+      settleRoundWinner(): void;
+    };
+
+    tv.beginRoundScoring();
+    leaderboard.addPoints('Anna', 100, true);
+    tv.settleRoundWinner();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    expect(game.savedRoundScores).toHaveLength(1);
+    expect(game.savedRoundScores[0]).toEqual({
+      gameId: 1,
+      roundIndex: 0,
+      type: 'MUSIC',
+      entries: [
+        { playerName: 'Anna', points: 100, totalPoints: 100 },
+        { playerName: 'Bruno', points: 0, totalPoints: 0 },
+      ],
+    });
+  });
+
   it('libera la palette della squadra espulsa, così un rientro la riusa', () => {
     const theme = component.theme;
     ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });

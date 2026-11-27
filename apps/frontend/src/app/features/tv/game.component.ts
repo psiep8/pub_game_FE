@@ -1383,6 +1383,7 @@ export class GameComponent implements OnInit, OnDestroy {
   private settleRoundWinner(): void {
     if (!this.roundScoring) return;
     this.roundScoring = false;
+    this.persistRoundScoreHistory();
 
     let best = 0;
     let winner: string | null = null;
@@ -1403,6 +1404,46 @@ export class GameComponent implements OnInit, OnDestroy {
     this.roundPoints.clear();
     // Verdetto assegnato: un refresh non deve riassegnarlo a un altro round.
     this.clearPersistedRoundPoints();
+  }
+
+  /**
+   * N-15: la TV manda al server i punti del round prima di azzerarli. Il
+   * server tiene una riga per roundIndex, quindi un retry sostituisce la riga
+   * e non somma due volte. Include anche le squadre a zero: servono per il
+   * round peggiore nelle statistiche.
+   */
+  private persistRoundScoreHistory(): void {
+    const roundIndex = this.openRoundIndex();
+    const gameId = this.currentGameId();
+    if (roundIndex == null || !gameId) return;
+
+    const totals = new Map(
+      this.leaderboardService.getLeaderboard().map((player) => [player.playerName, player.totalPoints]),
+    );
+    const names = new Set<string>([...totals.keys(), ...this.roundPoints.keys()]);
+    const entries = [...names].map((playerName) => ({
+      playerName,
+      points: this.roundPoints.get(playerName) ?? 0,
+      totalPoints: totals.get(playerName) ?? 0,
+    }));
+    if (!entries.length) return;
+
+    this.queueRoundScoresSave(roundIndex, this.currentMode()?.type ?? null, entries);
+  }
+
+  private queueRoundScoresSave(
+    roundIndex: number,
+    type: string | null,
+    entries: Array<{ playerName: string; points: number; totalPoints: number }>,
+    attempt = 0,
+  ): void {
+    const gameId = this.currentGameId();
+    if (!gameId) return;
+    void firstValueFrom(this.gameService.saveRoundScores(gameId, roundIndex, type, entries))
+      .catch(() => {
+        if (attempt >= 2) return;
+        setTimeout(() => this.queueRoundScoresSave(roundIndex, type, entries, attempt + 1), 1500);
+      });
   }
 
   /** La TV parte in acido e adotta il tema del round precedente, se c'è stato un vincitore. */

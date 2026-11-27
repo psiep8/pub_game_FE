@@ -101,6 +101,20 @@ export class GameService {
     return this.http.put<any>(`${this.baseUrl}/games/${gameId}/leaderboard`, { entries });
   }
 
+  /** Storico server dei punti round per round: una riga per squadra. */
+  saveRoundScores(
+    gameId: number,
+    roundIndex: number,
+    type: string | null,
+    entries: Array<{ playerName: string; points: number; totalPoints: number }>,
+  ): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/games/${gameId}/round-scores/${roundIndex}`, { type, entries });
+  }
+
+  getRoundScores(gameId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/games/${gameId}/round-scores`);
+  }
+
 
   getNextRound(gameId: number): Observable<GameRound> {
     return this.http.post<any>(`${this.baseUrl}/games/${gameId}/round`, {}).pipe(

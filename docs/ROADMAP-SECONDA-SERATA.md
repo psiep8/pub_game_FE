@@ -434,9 +434,20 @@ finestra da otto con 14/20, tabellone finale a 14 righe in due colonne (tre con
 20). Verifiche: quick 9/9, remote 143/143, build frontend verde. **Da fare in
 sala:** round 4 con 14 e 20 telefoni.
 
-**Restano di N-15:** classifica «da film» dopo le Arene con statistiche dal
-server (punti per round e per squadra), pagina statistiche in regia, colpi di
-scena dal 5° posto dopo il round 40, selfie/poster (N-33).
+**Storico server.** La TV ora manda i punti del round prima di azzerarli:
+`PUT /games/{id}/round-scores/{roundIndex}` con `{type, entries:
+[{playerName, points, totalPoints}]}`. La stessa chiave sostituisce la riga,
+quindi un retry non somma due volte; la lettura è
+`GET /games/{id}/round-scores`, e lo stesso elenco arriva nello snapshot
+`/sync` come `roundScores`. Restano salvati tipo di gioco, punti del round,
+totale dopo il round e istante di salvataggio: bastano per miglior/peggior
+round, rimonta e gioco più forte/debole. `RoundScoreServiceTest` copre
+sostituzione, ordine e reset; non è stato eseguito perché su questa macchina
+manca Java 25. Frontend: TV 151/151, build verde.
+
+**Restano di N-15:** classifica «da film» dopo le Arene che usa lo storico,
+pagina statistiche in regia, colpi di scena dal 5° posto dopo il round 40,
+selfie/poster (N-33).
 
 ### N-10 ingressi a scatti — **Misurato, correzioni da fare**
 

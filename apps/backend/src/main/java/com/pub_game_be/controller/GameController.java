@@ -8,6 +8,7 @@ import com.pub_game_be.domain.game_round.GameRound;
 import com.pub_game_be.reliability.GameStateService;
 import com.pub_game_be.reliability.IdempotencyService;
 import com.pub_game_be.reliability.ScoreboardService;
+import com.pub_game_be.reliability.RoundScoreService;
 import com.pub_game_be.reliability.StateBlobService;
 import com.pub_game_be.reliability.DeviceSessionService;
 import com.pub_game_be.reliability.domain.DeviceSessionEntity;
@@ -56,6 +57,7 @@ public class GameController {
     private final BombaService bombaService;
     private final StateBlobService stateBlobs;
     private final ScoreboardService scoreboard;
+    private final RoundScoreService roundScores;
     private final DeviceSessionService deviceSessions;
     private final ButtonTestService buttonTests;
 
@@ -72,7 +74,7 @@ public class GameController {
             IdempotencyService idempotencyService,
             UltimaSpiaggiaLevelService ultimaSpiaggiaLevelService,
             BombaService bombaService, StateBlobService stateBlobs, ScoreboardService scoreboard,
-            DeviceSessionService deviceSessions, ButtonTestService buttonTests) {
+            RoundScoreService roundScores, DeviceSessionService deviceSessions, ButtonTestService buttonTests) {
         this.gameRepo = gameRepo;
         this.gameRoundRepository = gameRoundRepository;
         this.simpleRoundService = simpleRoundService;
@@ -88,6 +90,7 @@ public class GameController {
         this.bombaService = bombaService;
         this.stateBlobs = stateBlobs;
         this.scoreboard = scoreboard;
+        this.roundScores = roundScores;
         this.deviceSessions = deviceSessions;
         this.buttonTests = buttonTests;
     }
@@ -123,6 +126,38 @@ public class GameController {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("saved", saved);
         out.put("gameId", gameId);
+        return out;
+    }
+
+    /**
+     * La TV salva il dettaglio di un round: punti guadagnati da ogni squadra e
+     * totale dopo il round. È una sostituzione per roundIndex, non un delta:
+     * un retry non somma due volte.
+     */
+    @PutMapping("/{gameId}/round-scores/{roundIndex}")
+    public ResponseEntity<Object> saveRoundScores(@PathVariable("gameId") Long gameId,
+            @PathVariable("roundIndex") int roundIndex,
+            @RequestBody(required = false) Map<String, Object> body) {
+        try {
+            int saved = roundScores.save(gameId, roundIndex,
+                    body == null ? null : body.get("type"),
+                    body == null ? null : body.get("entries"));
+            return ResponseEntity.ok(Map.of(
+                    "saved", saved,
+                    "gameId", gameId,
+                    "roundIndex", roundIndex));
+        } catch (IllegalArgumentException invalid) {
+            return ResponseEntity.badRequest().body(Map.of("error", "invalid-round-index"));
+        }
+    }
+
+    /** Storico punti per round e squadra, letto dalla TV per le statistiche. */
+    @GetMapping("/{gameId}/round-scores")
+    public Map<String, Object> roundScores(@PathVariable("gameId") Long gameId) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("gameId", gameId);
+        out.put("rounds", com.pub_game_be.reliability.JsonSupport
+                .toList(roundScores.history(gameId).optJSONArray("rounds")));
         return out;
     }
 
@@ -691,6 +726,7 @@ public class GameController {
         questionBank.forgetMusicRound(gameId);
         bombaService.reset(gameId);
         scoreboard.forget(gameId);
+        roundScores.forget(gameId);
         stateBlobs.forget(gameId, "time-buzzer-start");
         buttonTests.forget(gameId);
         // Il reset è una partita nuova: le squadre non restano agganciate alla

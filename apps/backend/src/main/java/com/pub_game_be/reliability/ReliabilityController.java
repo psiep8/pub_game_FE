@@ -43,6 +43,7 @@ public class ReliabilityController {
     private final QuestionUsageService questionUsage;
     private final ReliabilityProperties props;
     private final ScoreboardService scoreboard;
+    private final RoundScoreService roundScores;
     private final PairingCodeService pairing;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -51,8 +52,8 @@ public class ReliabilityController {
 
     public ReliabilityController(DeviceSessionService sessions, GameStateService gameState,
             QuestionHistoryService questionHistory, QuestionUsageService questionUsage,
-            ReliabilityProperties props, ScoreboardService scoreboard, PairingCodeService pairing,
-            SimpMessagingTemplate messagingTemplate) {
+            ReliabilityProperties props, ScoreboardService scoreboard, RoundScoreService roundScores,
+            PairingCodeService pairing, SimpMessagingTemplate messagingTemplate) {
         this.pairing = pairing;
         this.sessions = sessions;
         this.gameState = gameState;
@@ -60,6 +61,7 @@ public class ReliabilityController {
         this.questionUsage = questionUsage;
         this.props = props;
         this.scoreboard = scoreboard;
+        this.roundScores = roundScores;
         this.messagingTemplate = messagingTemplate;
     }
 
@@ -336,6 +338,10 @@ public class ReliabilityController {
         // Classifica completa della TV: senza questa, un refresh o un altro
         // dispositivo ripartiva da una tabella vuota.
         snapshot.put("leaderboard", JsonSupport.toList(scoreboard.entries(gameId)));
+        // Dettaglio round per round: la TV lo ritrova dopo un refresh e lo usa
+        // per le statistiche della classifica «da film» e della regia.
+        snapshot.put("roundScores", JsonSupport.toList(
+                roundScores.history(gameId).optJSONArray("rounds")));
         snapshot.put("presence", sessions.presence(gameId));
         Object identity = request.getAttribute("pubgame.session");
         // Telefono e TV senza regia ricevono lo snapshot ripulito: le soluzioni
@@ -376,6 +382,10 @@ public class ReliabilityController {
         JSONObject snapshot = gameState.snapshot(gameId);
         snapshot.put("scores", new JSONObject(questionHistory.scores(gameId)));
         snapshot.put("leaderboard", JsonSupport.toList(scoreboard.entries(gameId)));
+        // Dettaglio round per round: la TV lo ritrova dopo un refresh e lo usa
+        // per le statistiche della classifica «da film» e della regia.
+        snapshot.put("roundScores", JsonSupport.toList(
+                roundScores.history(gameId).optJSONArray("rounds")));
         snapshot.put("presence", sessions.presence(gameId));
         return JsonSupport.toMap(snapshot);
     }

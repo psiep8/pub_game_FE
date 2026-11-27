@@ -107,6 +107,23 @@ export class FakeGameService {
     return of({ saved: true });
   }
 
+  readonly savedRoundScores: Array<{
+    gameId: number;
+    roundIndex: number;
+    type: string | null;
+    entries: Array<{ playerName: string; points: number; totalPoints: number }>;
+  }> = [];
+
+  saveRoundScores(
+    gameId: number,
+    roundIndex: number,
+    type: string | null,
+    entries: Array<{ playerName: string; points: number; totalPoints: number }>,
+  ): Observable<any> {
+    this.savedRoundScores.push({ gameId, roundIndex, type, entries });
+    return of({ saved: entries.length });
+  }
+
   getCategories(): Observable<any[]> {
     return of(this.categories);
   }
