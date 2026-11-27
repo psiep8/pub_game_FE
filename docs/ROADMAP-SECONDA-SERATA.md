@@ -335,6 +335,15 @@ schermo con il timer fermo»: a metà respiro `isReading` è vero, il timer è p
 e la manche non è annunciata al server; alla fine la manche parte e il cronometro
 scende. `tv-timing.spec.ts` blinda la durata 4–5 s.
 
+**Checkpoint durante il respiro.** Il checkpoint salvava la manche nuova come
+`stage: 'play'` con il tempo pieno: un refresh nei 4,5 s di lettura riapriva
+subito la manche, saltando il respiro. Ora salva `stage: 'reading'` con
+`readingLeftMs`, e `restore()` richiama `startManche(index, tempoRimasto)`: la
+manche si apre solo quando il respiro finisce. Test: «durante il respiro il
+checkpoint dice reading con il tempo che resta» e «un refresh durante il respiro
+riapre la manche solo a respiro finito» (nessun annuncio al server prima della
+fine).
+
 **Azzardo, stesso giro.** Anche lì il passaggio era automatico: finiti i 7 s di
 reveal partiva la puntata della manche dopo, con il cronometro già a 30 s. Ora
 c'è una fase `READ` di 5 s (`READ_SECONDS` da `TV_TIMING.mancheBreathMs`): la

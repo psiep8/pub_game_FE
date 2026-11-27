@@ -59,6 +59,8 @@ export class QuizMode extends GameModeBase {
 
   private clock?: ReturnType<typeof setInterval>;
   private advanceHandle?: ReturnType<typeof setTimeout>;
+  /** Quanto dura ancora il respiro fra le manche, per il checkpoint. */
+  private readingEndsAt = 0;
 
   protected onInitialize(): void {
     this.answersGeneration++;
@@ -186,6 +188,7 @@ export class QuizMode extends GameModeBase {
 
     const open = () => {
       this.isReading.set(false);
+      this.readingEndsAt = 0;
       this.startClock();
       void this.broadcastState();
       this.emitCheckpoint();
@@ -199,6 +202,7 @@ export class QuizMode extends GameModeBase {
     }
 
     this.isReading.set(true);
+    this.readingEndsAt = Date.now() + readingMs;
     this.setQuestionOpen(false);
     void this.broadcastState();
     this.emitCheckpoint();
@@ -351,7 +355,9 @@ export class QuizMode extends GameModeBase {
     const seconds = Number.isFinite(savedSeconds)
       ? Math.max(0, Math.min(MANCHE_SECONDS, Math.round(savedSeconds) - elapsed))
       : Math.max(0, Math.round(Number(secondsLeft) || 0));
-    const stage = state.stage === 'suspense' || state.stage === 'reveal' ? state.stage : 'play';
+    const stage = state.stage === 'suspense' || state.stage === 'reveal' || state.stage === 'reading'
+      ? state.stage
+      : 'play';
 
     this.revision = revision;
     this.clearTimers();
@@ -367,6 +373,12 @@ export class QuizMode extends GameModeBase {
     this.isActive.set(true);
     this.isPaused.set(false);
 
+    if (stage === 'reading') {
+      // Il respiro riparte da dove era rimasto: la manche non si apre prima.
+      const left = Math.max(0, Number(state.readingLeftMs) || 0) - elapsed * 1000;
+      this.startManche(index, left);
+      return;
+    }
     if (stage === 'suspense' || (stage === 'play' && seconds <= 0)) {
       // Il tempo era già scaduto: manca solo la soluzione.
       this.revealPending.set(true);
@@ -443,7 +455,11 @@ export class QuizMode extends GameModeBase {
         // si ricava al recupero, e in pausa il tempo è fermo.
         savedAt: Date.now(),
         paused: this.isPaused(),
-        stage: this.mancheReveal() ? 'reveal' : this.revealPending() ? 'suspense' : 'play',
+        stage: this.isReading()
+          ? 'reading'
+          : this.mancheReveal() ? 'reveal' : this.revealPending() ? 'suspense' : 'play',
+        // Respiri già in corso: al recupero si riapre la manche solo alla fine.
+        readingLeftMs: this.isReading() ? Math.max(0, this.readingEndsAt - Date.now()) : 0,
         answers: this.answers(),
         answeredThisManche: [...this.answeredThisManche],
       },
