@@ -28,8 +28,15 @@ import java.util.concurrent.ConcurrentMap;
 @Service
 public class RoundScoreService {
 
-    private static final String BLOB = "round-scores";
+    /**
+     * Un blob per quattro round: il payload resta sotto il limite TEXT di
+     * MySQL anche con 64 squadre, senza cambiare lo schema di state_blob.
+     */
+    private static final String BLOB_PREFIX = "round-scores-";
+    private static final String LEGACY_BLOB = "round-scores";
+    private static final int ROUNDS_PER_CHUNK = 4;
     private static final int MAX_ROUNDS = 128;
+    private static final int CHUNKS = (MAX_ROUNDS + ROUNDS_PER_CHUNK - 1) / ROUNDS_PER_CHUNK;
     private static final int MAX_PLAYERS = 64;
     private static final int MAX_NAME = 40;
     private static final int MAX_POINTS = 1_000_000;
@@ -53,8 +60,9 @@ public class RoundScoreService {
         }
         List<JSONObject> rows = normalize(rawEntries);
         String type = normalizeType(rawType);
+        int chunk = roundIndex / ROUNDS_PER_CHUNK;
         synchronized (lock(gameId)) {
-            JSONObject rounds = roundMap(load(gameId));
+            JSONObject rounds = roundMap(load(gameId, chunk));
             JSONArray entries = new JSONArray();
             for (JSONObject row : rows) {
                 entries.put(row);
@@ -72,14 +80,22 @@ public class RoundScoreService {
                     ordered.put(round);
                 }
             }
-            stateBlobs.save(gameId, BLOB, new JSONObject().put("rounds", ordered).toString());
+            stateBlobs.save(gameId, blobKey(chunk), new JSONObject().put("rounds", ordered).toString());
         }
         return rows.size();
     }
 
     /** Storico ordinato dal primo all'ultimo round. */
     public JSONObject history(long gameId) {
-        JSONObject rounds = roundMap(load(gameId));
+        // Il vecchio formato a blob unico resta leggibile; i blocchi nuovi
+        // hanno la precedenza se lo stesso round è stato riscritto.
+        JSONObject rounds = roundMap(loadKey(gameId, LEGACY_BLOB));
+        for (int chunk = 0; chunk < CHUNKS; chunk++) {
+            JSONObject chunkRounds = roundMap(load(gameId, chunk));
+            for (String key : chunkRounds.keySet()) {
+                rounds.put(key, chunkRounds.get(key));
+            }
+        }
         JSONArray ordered = new JSONArray();
         for (Integer index : orderedIndexes(rounds)) {
             JSONObject round = rounds.optJSONObject(String.valueOf(index));
@@ -91,15 +107,27 @@ public class RoundScoreService {
     }
 
     public void forget(long gameId) {
-        stateBlobs.forget(gameId, BLOB);
+        for (int chunk = 0; chunk < CHUNKS; chunk++) {
+            stateBlobs.forget(gameId, blobKey(chunk));
+        }
+        // Pulizia del vecchio formato unico, se questa partita lo aveva usato.
+        stateBlobs.forget(gameId, LEGACY_BLOB);
     }
 
     private Object lock(long gameId) {
         return locks.computeIfAbsent(gameId, key -> new Object());
     }
 
-    private JSONObject load(long gameId) {
-        return stateBlobs.load(gameId, BLOB)
+    private String blobKey(int chunk) {
+        return BLOB_PREFIX + chunk;
+    }
+
+    private JSONObject load(long gameId, int chunk) {
+        return loadKey(gameId, blobKey(chunk));
+    }
+
+    private JSONObject loadKey(long gameId, String key) {
+        return stateBlobs.load(gameId, key)
                 .map(JSONObject::new)
                 .orElseGet(JSONObject::new);
     }

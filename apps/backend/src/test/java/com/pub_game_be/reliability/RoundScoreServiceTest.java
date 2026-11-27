@@ -51,10 +51,14 @@ class RoundScoreServiceTest {
 
         scores.save(gameId, 1, "QUIZ", List.of(
                 Map.of("playerName", "Anna", "points", -50, "totalPoints", 300)));
+        // Il round 4 cade nel blocco successivo: lo storico li unisce.
+        scores.save(gameId, 4, "MUSIC", List.of(
+                Map.of("playerName", "Anna", "points", 20, "totalPoints", 320)));
         JSONArray ordered = scores.history(gameId).getJSONArray("rounds");
-        assertThat(ordered.length()).isEqualTo(2);
+        assertThat(ordered.length()).isEqualTo(3);
         assertThat(ordered.getJSONObject(1).getInt("roundIndex")).isEqualTo(1);
         assertThat(ordered.getJSONObject(1).getString("type")).isEqualTo("QUIZ");
+        assertThat(ordered.getJSONObject(2).getInt("roundIndex")).isEqualTo(4);
 
         scores.forget(gameId);
         assertThat(scores.history(gameId).getJSONArray("rounds").length()).isZero();

@@ -439,7 +439,9 @@ sala:** round 4 con 14 e 20 telefoni.
 [{playerName, points, totalPoints}]}`. La stessa chiave sostituisce la riga,
 quindi un retry non somma due volte; la lettura è
 `GET /games/{id}/round-scores`, e lo stesso elenco arriva nello snapshot
-`/sync` come `roundScores`. Restano salvati tipo di gioco, punti del round,
+`/sync` come `roundScores`. Lo storico è diviso in blocchi da quattro round
+(chiavi `round-scores-<chunk>`) per non superare il limite `TEXT` di MySQL
+con molte squadre; il vecchio blob unico resta leggibile. Restano salvati tipo di gioco, punti del round,
 totale dopo il round e istante di salvataggio: bastano per miglior/peggior
 round, rimonta e gioco più forte/debole. `RoundScoreServiceTest` copre
 sostituzione, ordine e reset; eseguito con JDK 25 Temurin locale: 3/3. Suite
