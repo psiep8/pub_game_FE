@@ -601,15 +601,47 @@ normale 1196, ombra del podio 1200 (la regola di testata), ultima ombra a 672
 contro il piede a 680.4. Nessuna riga sotto i 30 px, nessun nome tagliato.
 
 **Misura nella scena TV vera** (`/tv?debug=1`, stato iniettato sui signal, dock
-della regia a schermo). La dock va da 920.9→1264 e 16→80 con z-index 13000:
-con il riepilogo a 19000 il click su pausa finiva su `section.recap`, non sul
-pulsante. Ora la dock prende `above-recap` (z 19500), `elementFromPoint` sul
-pulsante pausa restituisce `button.dock-btn`, un click vero del mouse mette la
-sala in pausa e un secondo click la riprende. La testata scende a 86.4→151.4
-(dock sotto 80) e il foglio a 86.4→702.7: nessuna sovrapposizione. Con dieci
-squadre le righe stanno 157.4→664.3 (44.2 px); con venti, sull'ultima pagina,
-194.2→627.5 (sei righe da 66.2): nessuna ombra sul piede (680.4), nessuno
-scroll di pagina.
+della regia a schermo e pausa attiva). La dock va da 920.9→1264 e 16→80 con
+z-index 13000: con il riepilogo a 19000 il click su pausa finiva su
+`section.recap`, non sul pulsante. Ora la dock prende `above-recap` (z 19500),
+`elementFromPoint` sul pulsante pausa restituisce `button.dock-btn`, un click
+vero del mouse mette la sala in pausa e un secondo click la riprende. La testata
+scende a 86.4→151.4 (dock sotto 80) e il foglio a 86.4→702.7: nessuna
+sovrapposizione. I nomi sono a filo e il timbro PAUSA lascia il contatore a
+destra. Matrice a 1280×720 (DPR 1, 4/8/10/14/20 squadre), ombre comprese:
+
+| Squadre | Pagine | Righe | Altezza | Prima riga | Ultima riga | Ombra destra | Ultima ombra | Piede |
+| --: | --: | --: | --: | --: | --: | --: | --: | --: |
+| 4 | 1 | 4 | 66.2 | 267.6 | 554.1 | 1196 | 562.1 | 680.4 |
+| 8 | 1 | 8 | 57.1 | 157.4 | 664.3 | 1196 | 672.3 | 680.4 |
+| 10 | 1 | 10 | 44.2 | 157.4 | 664.3 | 1196 | 672.3 | 680.4 |
+| 14 | 2 | 7 | 66.2 | 157.5 | 664.3 | 1196 | 668.3 | 680.4 |
+| 20 | 3 | 7 | 66.2 | 157.5 | 664.3 | 1196 | 668.3 | 680.4 |
+| 20, podio | 3 | 6 | 66.2 | 194.2 | 627.5 | 1200 | 635.5 | 680.4 |
+
+Nessuna ombra oltre il foglio, sotto il piede o fuori dallo schermo (l'ombra
+delle righe normali si ferma a 1196, quella del podio a 1200, il bordo del
+foglio); nessuna riga sotto i 30 px, nessun nome tagliato, nessuno scroll di
+pagina (1280×720).
+
+**ESC, pausa e ripresa** (tastiera vera, otto secondi di pausa per caso). Il
+tempo fermo non scende, la pagina non cambia e la scena resta aperta; alla
+ripresa l'orologio riparte dai millisecondi rimasti, non da capo:
+
+| Squadre | Alla pausa | Dopo 8 s | Alla ripresa | Dopo 1 s | Pagina |
+| --: | --: | --: | --: | --: | --: |
+| 4 | 7127 | 7127 | 7002 | 5989 | 1, chiusa a fine tempo |
+| 8 | 7221 | 7221 | 7099 | 6085 | 1, chiusa a fine tempo |
+| 10 | 7252 | 7252 | 7142 | 6119 | 1, chiusa a fine tempo |
+| 14 | 7246 (pagina 2128) | 7246 | 7129 | 6112 | 0 → 1 dopo 2.1 s |
+| 20 | 8251 (pagina 2135) | 8251 | 8108 | 7093 | 0 → 1 dopo 2.1 s |
+
+Con quattordici e venti squadre il timer di pagina riparte dai 2128/2135 ms
+rimasti, quindi la pagina avanza dopo 2.1 s e non dopo 3; il totale resta
+7246/8251 e il podio (2/2 e 3/3) chiude a fine tempo, anche dopo una pausa
+sull'ultima pagina. Con una pagina sola la scena si chiude dopo il residuo
+esatto. Il secondo perso alla ripresa è quello del comando (~120 ms), poi
+l'orologio scala un secondo pieno (1013–1023 ms).
 
 **Corretto dopo le misure.** La testata metteva kicker e titolo ai due estremi
 e il contatore pagine spostava il titolo al centro: ora kicker e titolo sono
