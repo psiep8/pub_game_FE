@@ -482,6 +482,11 @@ export class GameComponent implements OnInit, OnDestroy {
   private bonusTimer?: ReturnType<typeof setInterval>;
   private bonusEntranceTimer?: ReturnType<typeof setTimeout>;
   private autoAdvanceTimer?: ReturnType<typeof setInterval>;
+  /**
+   * Modalità viva: un timer o checkpoint della modalità precedente non deve
+   * chiudere, far ripartire o sovrascrivere il round appena aperto dalla regia.
+   */
+  private activeModeToken: object | null = null;
   private demoTimer?: ReturnType<typeof setInterval>;
   private demoCloseTimer?: ReturnType<typeof setTimeout>;
   /** Round in attesa che la demo della prima apparizione finisca. */
@@ -1660,23 +1665,37 @@ export class GameComponent implements OnInit, OnDestroy {
    * ripresa dopo un refresh, così i due percorsi non possono divergere.
    */
   private buildModeConfig(type: GameModeType, payload: any, activePlayers: string[], quizRoundStartId = ''): GameModeConfig {
+    const modeToken = {};
+    this.activeModeToken = modeToken;
+    const isCurrentMode = () => modeToken === this.activeModeToken;
+    /**
+     * Una modalità chiusa può ancora emettere callback mentre la regia ha già
+     * aperto il round dopo. Tutte quelle che toccano TV, audio o server devono
+     * restare della modalità che le ha create.
+     */
+    const guard = <T extends (...args: any[]) => any>(callback: T): T => ((...args: Parameters<T>) => {
+      if (!isCurrentMode()) return undefined as ReturnType<T>;
+      return callback(...args);
+    }) as T;
+
     return {
       type,
       payload,
       gameId: this.currentGameId() ?? 1,
-      onTimerTick: (seconds) => this.timer.set(seconds),
-      onTimerEnd: () => this.onModeTimeout(),
-      onBuzz: (playerName) => this.onPlayerBuzz(playerName),
+      onTimerTick: guard((seconds) => this.timer.set(seconds)),
+      onTimerEnd: guard(() => this.onModeTimeout(modeToken)),
+      onBuzz: guard((playerName) => this.onPlayerBuzz(playerName)),
       // La domanda di Quiz e Indovina chi tiene la base d'atto 6 dB sotto.
-      onQuestionOpenChange: (open) => this.audioService.setQuestionActive(open),
+      onQuestionOpenChange: guard((open) => this.audioService.setQuestionActive(open)),
       activePlayers: activePlayers,
-      onCountdownTick: (seconds) => this.onCountdownTick(seconds),
-      onPlayerEliminated: (playerName) => this.onArenaEliminated(playerName),
-      onRoundEnded: () => this.onArenaEnded(),
-      onTvCheckpoint: (checkpoint) => {
+      onCountdownTick: guard((seconds) => this.onCountdownTick(seconds)),
+      onPlayerEliminated: guard((playerName) => this.onArenaEliminated(playerName)),
+      onRoundEnded: guard(() => this.onArenaEnded()),
+      onTvCheckpoint: guard((checkpoint) => {
         // Una modalità chiusa può ancora emettere il suo ultimo stato: se il
         // round aperto è un altro, il server risponderebbe 409 (checkpoint di
-        // un gioco diverso dal suo). Si manda solo quello della modalità viva.
+        // un gioco diverso dal suo), o salverebbe 5/5 sul round nuovo. Si manda
+        // solo quello della modalità viva.
         const mode = this.currentMode();
         if (!mode || mode.type !== checkpoint.type) return;
         const roundIndex = this.tvRoundIndex();
@@ -1687,25 +1706,26 @@ export class GameComponent implements OnInit, OnDestroy {
           state: checkpoint.state,
           roundIndex,
         });
-      },
+      }),
       onArenaInactivityCheck: async (players: string[]) => {
+        if (!isCurrentMode()) return [];
         const response = await firstValueFrom(
           this.gameService.tickArenaInactivity(this.currentGameId()!, players),
         );
         return Array.isArray(response?.penalties) ? response.penalties : [];
       },
       quizRoundStartId,
-      onBroadcast: (event: any) => this.ws.broadcastStatus(this.currentGameId()!,
-        event.action === WsAction.QUIZ_STATE ? { ...event, roundStartId: quizRoundStartId } : event),
-      onBlackjackState: (state: unknown | null) => this.reliability.saveBlackjackState(state),
-      onUltimaSpiaggiaLevel: (playerName: string, level: number) => {
+      onBroadcast: guard((event: any) => this.ws.broadcastStatus(this.currentGameId()!,
+        event.action === WsAction.QUIZ_STATE ? { ...event, roundStartId: quizRoundStartId } : event)),
+      onBlackjackState: guard((state: unknown | null) => this.reliability.saveBlackjackState(state)),
+      onUltimaSpiaggiaLevel: guard((playerName: string, level: number) => {
         // Il livello è consumato per tutta la partita, non solo per la manche:
         // la prossima occorrenza lo legge dal backend e non lo ripropone.
         this.gameService.recordUltimaSpiaggiaLevel(this.currentGameId()!, playerName, level)
           .subscribe({
             error: (err) => console.error('❌ Registrazione livello Ultima spiaggia:', err),
           });
-      },
+      }),
       playerPoints: (playerName: string) =>
         this.leaderboardService.getPlayerStats(playerName)?.totalPoints ?? 0,
       startTimeBuzzer: (manche: number) => new Promise<number | null>((resolve) => {
@@ -1754,7 +1774,7 @@ export class GameComponent implements OnInit, OnDestroy {
         resume: () => firstValueFrom(this.gameService.resumeBomba(this.currentGameId()!)),
         reset: () => firstValueFrom(this.gameService.resetBomba(this.currentGameId()!)),
       },
-      onAnswerReceived: (result: any) => {
+      onAnswerReceived: guard((result: any) => {
 
         if (result && result.playerName) {
 
@@ -1782,7 +1802,7 @@ export class GameComponent implements OnInit, OnDestroy {
             });
           });
         }
-      }
+      }),
     };
   }
 
@@ -1996,7 +2016,11 @@ export class GameComponent implements OnInit, OnDestroy {
     });
   }
 
-  private onModeTimeout() {
+  private onModeTimeout(modeToken?: object) {
+    // La modalità precedente può chiudersi dopo il click della regia: il suo
+    // timer non deve toccare il round nuovo (né avviarne l'auto-avanzamento).
+    if (modeToken && modeToken !== this.activeModeToken) return;
+
     if (this.bonusActive()) {
       this.finishBonus();
       return;
@@ -2014,6 +2038,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.isSpinning.set(false);
       this.revealPending.set(true);
       setTimeout(() => {
+        if (modeToken && modeToken !== this.activeModeToken) return;
         this.revealPending.set(false);
         this.showTimeoutPopup();
         this.audioService.playReveal();
@@ -2043,6 +2068,7 @@ export class GameComponent implements OnInit, OnDestroy {
     // di suspense, poi arriva la soluzione.
     this.revealPending.set(true);
     setTimeout(() => {
+      if (modeToken && modeToken !== this.activeModeToken) return;
       this.revealPending.set(false);
 
       const currentRound = this.round();
@@ -3173,6 +3199,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.isPaused.set(false);
     this.showResultPopup.set(false);
     this.currentMode.set(null);
+    this.activeModeToken = null;
     this.stopDemo();
     this.demoScene.set(0);
   }

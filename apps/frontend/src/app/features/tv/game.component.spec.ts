@@ -908,6 +908,53 @@ describe('GameComponent', () => {
     expect(reliability.tvCheckpoints).toHaveLength(1);
   });
 
+  it('ignora timer, checkpoint, broadcast e chiusura della modalità precedente dopo PARTI', async () => {
+    vi.useFakeTimers();
+    try {
+      const rounds = TestBed.inject(RoundManagerService);
+      rounds.restoreRound(1);
+      component.currentGameId.set(1);
+      component.round.set({ roundIndex: 1, status: GamePhase.PLAYING } as any);
+      component.currentMode.set({ type: 'MUSIC' } as any);
+      const oldConfig = (component as unknown as {
+        buildModeConfig(type: string, payload: any, players: string[]): any;
+      }).buildModeConfig('MUSIC', {}, ['Anna']);
+
+      // La regia ha già risposto al click di PARTI: nuova modalità e nuovo token.
+      component.currentMode.set({ type: 'MUSIC' } as any);
+      component.round.set({ roundIndex: 2, status: GamePhase.PLAYING } as any);
+      const newConfig = (component as unknown as {
+        buildModeConfig(type: string, payload: any, players: string[]): any;
+      }).buildModeConfig('MUSIC', {}, ['Anna']);
+      const complete = vi.spyOn(rounds, 'completeRound');
+      const before = ws.broadcasted.length;
+
+      // La vecchia modalità si chiude in ritardo: niente deve arrivare sul nuovo round.
+      oldConfig.onTimerEnd();
+      expect(component.revealPending()).toBe(false);
+      oldConfig.onTvCheckpoint({ type: 'MUSIC', revision: 1, state: { manche: 5 } });
+      oldConfig.onBroadcast({ action: 'MUSIC_PHASE', state: { manche: 5 } });
+      oldConfig.onRoundEnded();
+
+      await vi.advanceTimersByTimeAsync(2_000);
+
+      expect(complete).not.toHaveBeenCalled();
+      expect(reliability.tvCheckpoints).toEqual([]);
+      expect(ws.broadcasted.slice(before)).toEqual([]);
+      expect(component.autoAdvanceSeconds()).toBe(0);
+      expect((component.round() as any)?.roundIndex).toBe(2);
+      expect((component.round() as any)?.status).toBe(GamePhase.PLAYING);
+
+      // La modalità nuova, invece, continua a salvare e trasmettere.
+      newConfig.onTvCheckpoint({ type: 'MUSIC', revision: 2, state: { manche: 1 } });
+      expect(reliability.tvCheckpoints).toHaveLength(1);
+      newConfig.onBroadcast({ action: 'MUSIC_PHASE', state: { manche: 1 } });
+      expect(ws.broadcasted).toHaveLength(before + 1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('libera AVANTI se il server non conferma la chiusura del round', async () => {
     vi.useFakeTimers();
     try {
