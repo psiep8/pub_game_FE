@@ -4,6 +4,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { LeaderboardDetailed } from './leaderboard-detailed.component';
 import { LeaderboardService, PlayerScore } from '../../../../core/services/leaderboard.service';
 import { AudioService } from '../../../../core/services/audio.service';
+import type { RoundScoreHistory } from './leaderboard-film';
 
 const players: PlayerScore[] = [
   { playerName: 'Anna', totalPoints: 300, correctAnswers: 3, wrongAnswers: 0, position: 1 },
@@ -16,7 +17,7 @@ describe('LeaderboardDetailed', () => {
   let component: LeaderboardDetailed;
   let onComplete: ReturnType<typeof vi.fn>;
 
-  function create(stored: PlayerScore[]): void {
+  function create(stored: PlayerScore[], history?: RoundScoreHistory): void {
     TestBed.configureTestingModule({
       imports: [LeaderboardDetailed],
       providers: [
@@ -34,6 +35,7 @@ describe('LeaderboardDetailed', () => {
 
     fixture = TestBed.createComponent(LeaderboardDetailed);
     component = fixture.componentInstance;
+    component.roundScores = history ?? null;
     onComplete = vi.fn();
     component.onComplete.subscribe(onComplete);
     fixture.detectChanges();
@@ -68,6 +70,77 @@ describe('LeaderboardDetailed', () => {
 
     await vi.advanceTimersByTimeAsync(3000);
     expect(component.currentPlayer()?.playerName).toBe('Anna');
+  });
+
+  it('mostra la storia della squadra presa dallo storico server', () => {
+    vi.useFakeTimers();
+    const history: RoundScoreHistory = {
+      rounds: [
+        {
+          roundIndex: 0,
+          type: 'MUSIC',
+          entries: [
+            { playerName: 'Anna', points: 100, totalPoints: 1000 },
+            { playerName: 'Bruno', points: 0, totalPoints: 600 },
+            { playerName: 'Carla', points: 50, totalPoints: 700 },
+          ],
+        },
+        {
+          roundIndex: 1,
+          type: 'QUIZ',
+          entries: [
+            { playerName: 'Anna', points: 0, totalPoints: 1000 },
+            { playerName: 'Bruno', points: 300, totalPoints: 900 },
+            { playerName: 'Carla', points: -100, totalPoints: 600 },
+          ],
+        },
+        {
+          roundIndex: 2,
+          type: 'MUSIC',
+          entries: [
+            { playerName: 'Anna', points: 200, totalPoints: 1200 },
+            { playerName: 'Bruno', points: -50, totalPoints: 850 },
+            { playerName: 'Carla', points: 400, totalPoints: 1000 },
+          ],
+        },
+      ],
+    };
+    create(players, history);
+
+    expect(component.currentPlayer()?.playerName).toBe('Carla');
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('MIGLIOR ROUND');
+    expect(text).toContain('R3 · MUSIC · +400');
+    expect(text).toContain('R2 · QUIZ · -100');
+    expect(text).toContain('RIMONTA');
+    expect(text).toContain('+1 POSIZIONI');
+    expect(text).toContain('GIOCO FORTE');
+    expect(text).toContain('MUSIC · +450');
+  });
+
+  it('annuncia il podio prima di svelarlo', async () => {
+    vi.useFakeTimers();
+    const many: PlayerScore[] = [
+      { playerName: 'Anna', totalPoints: 600, correctAnswers: 6, wrongAnswers: 0, position: 1 },
+      { playerName: 'Bruno', totalPoints: 500, correctAnswers: 5, wrongAnswers: 1, position: 2 },
+      { playerName: 'Carla', totalPoints: 400, correctAnswers: 4, wrongAnswers: 1, position: 3 },
+      { playerName: 'Dino', totalPoints: 300, correctAnswers: 3, wrongAnswers: 2, position: 4 },
+      { playerName: 'Elena', totalPoints: 200, correctAnswers: 2, wrongAnswers: 2, position: 5 },
+      { playerName: 'Fabio', totalPoints: 100, correctAnswers: 1, wrongAnswers: 3, position: 6 },
+    ];
+    create(many);
+
+    await vi.advanceTimersByTimeAsync(1100 + 2400 + 2800);
+    fixture.detectChanges();
+    expect(component.podiumSoon()).toBe(3);
+    expect(component.currentPlayer()?.position).toBe(4);
+    expect(fixture.nativeElement.textContent).toContain('TRA POCO');
+    expect(fixture.nativeElement.textContent).toContain('IL PODIO · 3° POSTO');
+
+    await vi.advanceTimersByTimeAsync(1600);
+    fixture.detectChanges();
+    expect(component.podiumSoon()).toBeNull();
+    expect(component.currentPlayer()?.position).toBe(3);
   });
 
   it('accompagna quinto e quarto posto con un richiamo dedicato', async () => {

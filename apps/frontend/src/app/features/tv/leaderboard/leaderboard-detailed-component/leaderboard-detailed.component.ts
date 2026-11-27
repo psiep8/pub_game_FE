@@ -1,12 +1,21 @@
 
 
-import {Component, OnInit, signal, inject, Output, EventEmitter, ChangeDetectionStrategy} from '@angular/core';
+import {Component, OnInit, signal, computed, inject, Input, Output, EventEmitter, ChangeDetectionStrategy} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {trigger, transition, style, animate, keyframes} from '@angular/animations';
 import {LeaderboardService, PlayerScore} from '../../../../core/services/leaderboard.service';
 import {AudioService} from '../../../../core/services/audio.service';
 import {PlayerAvatarService} from '../../../../core/services/player-avatar.service';
 import {ThemeService} from '../../../../core/services/theme.service';
+import {
+  buildFilmStories,
+  gameMomentLabel,
+  roundMomentLabel,
+  type FilmGameMoment,
+  type FilmRoundMoment,
+  type FilmStory,
+  type RoundScoreHistory,
+} from './leaderboard-film';
 
 @Component({
   selector: 'app-leaderboard-detailed',
@@ -48,10 +57,22 @@ export class LeaderboardDetailed implements OnInit {
 
   @Output() onComplete = new EventEmitter<void>();
 
+  /** Storico server della partita: la TV lo passa quando apre la dettagliata. */
+  @Input() set roundScores(history: RoundScoreHistory | null | undefined) {
+    this.stories.set(buildFilmStories(history?.rounds));
+  }
+
   allPlayers = signal<PlayerScore[]>([]);
   currentPlayer = signal<PlayerScore | null>(null);
   revealedCount = signal(0);
   totalPlayers = signal(0);
+  readonly stories = signal<Map<string, FilmStory>>(new Map());
+  readonly currentStory = computed(() => {
+    const player = this.currentPlayer();
+    return player ? this.stories().get(player.playerName) ?? null : null;
+  });
+  /** Posizione che sta per entrare in scena: il preavviso è parte del film. */
+  readonly podiumSoon = signal<number | null>(null);
 
   ngOnInit() {
     
@@ -74,6 +95,15 @@ export class LeaderboardDetailed implements OnInit {
 
     for (let i = 0; i < players.length; i++) {
       const player = players[i];
+
+      // Dopo le Arene il podio non si svela di colpo: un cartello annuncia chi
+      // sta per entrare, poi la storia della squadra prende il suo tempo.
+      if (i > 0 && players.length > 3 && player.position <= 3) {
+        this.podiumSoon.set(player.position);
+        await new Promise(resolve => setTimeout(resolve, 1600));
+        this.podiumSoon.set(null);
+      }
+
       this.currentPlayer.set(player);
       this.revealedCount.set(i + 1);
 
@@ -96,6 +126,18 @@ export class LeaderboardDetailed implements OnInit {
     await new Promise(resolve => setTimeout(resolve, remaining));
     this.leaderboard.rememberRanks();
     this.onComplete.emit();
+  }
+
+  roundLabel(moment: FilmRoundMoment): string {
+    return roundMomentLabel(moment);
+  }
+
+  gameLabel(moment: FilmGameMoment): string {
+    return gameMomentLabel(moment);
+  }
+
+  comebackLabel(comeback: number): string {
+    return comeback > 0 ? `+${comeback}` : '—';
   }
 
   private getDelay(position: number): number {

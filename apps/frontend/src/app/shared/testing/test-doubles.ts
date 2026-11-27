@@ -124,6 +124,19 @@ export class FakeGameService {
     return of({ saved: entries.length });
   }
 
+  getRoundScores(gameId: number): Observable<any> {
+    return of({
+      gameId,
+      rounds: this.savedRoundScores
+        .filter((round) => round.gameId === gameId)
+        .map((round) => ({
+          roundIndex: round.roundIndex,
+          type: round.type,
+          entries: round.entries,
+        })),
+    });
+  }
+
   getCategories(): Observable<any[]> {
     return of(this.categories);
   }

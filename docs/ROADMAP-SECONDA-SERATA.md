@@ -48,7 +48,7 @@ scadenza e blocco dopo cinque errori).
 | N-07 — Tick infinito | **Da fare** | Il controllo dei proprietari audio (`AudioChannels.setOwner`) spegne già i loop della scena uscente; non è stata trovata una causa riproducibile senza la serata. |
 | N-08 — Vibrazione e fallback iPhone | **Fatto** | Se `navigator.vibrate` manca o è negata, il via accende un flash e un colpo breve; `BONUS_STARTED` usa lo stesso percorso. |
 | N-09 — Karaoke: controlli e demo | **Parziale** | Aggiunto `npm run check:karaoke` (banca, clip, testi e almeno 5 manche complete). Restano banner di conteggio nella lobby e prova completa con `?karaoke-demo=1`. |
-| N-10…N-15 (blocco B) | **Parziale** | N-10 misurato, N-11 e N-12 fatti. N-13 fatto (classifica dopo il bonus e primo round), N-14 fatto; N-15 parziale (flash). |
+| N-10…N-15 (blocco B) | **Parziale** | N-10 misurato, N-11 e N-12 fatti. N-13 fatto (classifica dopo il bonus e primo round), N-14 fatto; N-15 parziale (flash, storico e classifica da film). |
 | N-16…N-48 (blocco C) | **Da fare** | D2 (Timeline e gioco che la sostituisce nell'atto 1) **non toccata**: serve la scelta del committente. |
 | N-49…N-51 (blocco D) | **Da fare** | |
 | N-52…N-55 (blocco E) | **Da fare** | N-53 si ferma alla demo Quiz per approvazione. |
@@ -444,14 +444,25 @@ quindi un retry non somma due volte; la lettura è
 con molte squadre; il vecchio blob unico resta leggibile. Restano salvati tipo di gioco, punti del round,
 totale dopo il round e istante di salvataggio: bastano per miglior/peggior
 round, rimonta e gioco più forte/debole. `RoundScoreServiceTest` copre
-sostituzione, ordine e reset; eseguito con JDK 25 Temurin locale: 3/3. Suite
-backend completa: 233/233 (da copia locale del repo, perché il test della
-whitelist WebSocket cerca `../frontend` rispetto alla cwd). Frontend: TV
-151/151, build verde.
+sostituzione, ordine e reset; `RoundScoreEndpointTest` copre il contratto HTTP
+(PUT, GET, retry idempotente, 401 senza sessione e 400 sull'indice). Eseguiti
+con JDK 25 Temurin locale: 3/3 e 2/2. Suite backend completa: 235/235 (da
+copia locale del repo, perché il test della whitelist WebSocket cerca
+`../frontend` rispetto alla cwd).
 
-**Restano di N-15:** classifica «da film» dopo le Arene che usa lo storico,
-pagina statistiche in regia, colpi di scena dal 5° posto dopo il round 40,
-selfie/poster (N-33).
+**Classifica «da film».** La dettagliata riceve ora lo storico dal server
+(`GET /games/{id}/round-scores`), con le righe scritte localmente in coda come
+copertura se il PUT non è ancora tornato. Per ogni squadra mostra miglior e
+peggior round con punti, rimonta in posizioni, gioco più forte e più debole
+(aggregati per tipo). Prima del podio compare il cartello «TRA POCO»; lo
+storico resta la fonte dei numeri, la TV non li ricalcola dal vivo.
+`leaderboard-film.spec.ts` copre calcolo, formattazione e dati mancanti;
+`leaderboard-detailed.component.spec.ts` copre resa e preavviso. Verifiche:
+film 5/5, dettagliata 8/8, TV 152/152, build frontend verde. **Da fare in
+sala:** guardare il reveal con 14 e 20 squadre.
+
+**Restano di N-15:** pagina statistiche in regia, colpi di scena dal 5° posto
+dopo il round 40, selfie/poster (N-33).
 
 ### N-10 ingressi a scatti — **Misurato, correzioni da fare**
 

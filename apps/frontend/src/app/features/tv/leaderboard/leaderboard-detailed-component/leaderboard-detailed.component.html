@@ -61,6 +61,36 @@
 
       </div>
 
+      @if (currentStory(); as story) {
+        <div class="film-stats" aria-label="Statistiche della squadra">
+          <div class="film-stat film-stat-best">
+            <span class="film-stat-label">MIGLIOR ROUND</span>
+            <strong class="film-stat-value">{{ roundLabel(story.best) }}</strong>
+          </div>
+          <div class="film-stat film-stat-worst">
+            <span class="film-stat-label">PEGGIOR ROUND</span>
+            <strong class="film-stat-value">{{ roundLabel(story.worst) }}</strong>
+          </div>
+          <div class="film-stat">
+            <span class="film-stat-label">RIMONTA</span>
+            <strong class="film-stat-value">{{ comebackLabel(story.comeback) }} POSIZIONI</strong>
+          </div>
+          <div class="film-stat film-stat-strong">
+            <span class="film-stat-label">GIOCO FORTE</span>
+            <strong class="film-stat-value">{{ gameLabel(story.strongestGame) }}</strong>
+          </div>
+          <div class="film-stat film-stat-weak">
+            <span class="film-stat-label">GIOCO DEBOLE</span>
+            <strong class="film-stat-value">{{ gameLabel(story.weakestGame) }}</strong>
+          </div>
+        </div>
+      } @else {
+        <div class="film-stats film-stats-empty">
+          <span class="film-stat-label">STORICO SQUADRE</span>
+          <strong class="film-stat-value">IN ARRIVO</strong>
+        </div>
+      }
+
       @if (player.position === 1) {
         <div class="medal gold-medal">🥇</div>
       } @else if (player.position === 2) {
@@ -69,6 +99,20 @@
         <div class="medal bronze-medal">🥉</div>
       }
 
+    </div>
+  }
+
+  @if (podiumSoon(); as position) {
+    <div class="film-preannounce" [@fadeIn]>
+      <span class="film-preannounce-kicker">TRA POCO</span>
+      <strong class="film-preannounce-title">
+        @if (position === 1) {
+          IL VINCITORE
+        } @else {
+          IL PODIO · {{ position }}° POSTO
+        }
+      </strong>
+      <span class="film-preannounce-rule"></span>
     </div>
   }
 

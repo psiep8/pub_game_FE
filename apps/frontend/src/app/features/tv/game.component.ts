@@ -44,6 +44,10 @@ import { environment } from '../../core/environment/environment';
 import { GameModeConfig, GameModeType, IGameMode } from '../../shared/models/game-mode-type';
 import { LeaderboardQuick } from './leaderboard/leaderboard-quick-component/leaderboard-quick.component';
 import { LeaderboardDetailed } from './leaderboard/leaderboard-detailed-component/leaderboard-detailed.component';
+import {
+  type RoundScoreHistory,
+  type RoundScoreRound,
+} from './leaderboard/leaderboard-detailed-component/leaderboard-film';
 import { RoundRecap } from './round-recap/round-recap.component';
 import { recapRows, shouldRecap, type RecapRow } from './round-recap/round-recap-model';
 import { ArenaComponent } from '../games/arena/arena.component';
@@ -323,6 +327,11 @@ export class GameComponent implements OnInit, OnDestroy {
 
   showLeaderboardQuick = signal(false);
   showLeaderboardDetailed = signal(false);
+  /** Storico server passato alla classifica «da film» (N-15). */
+  readonly leaderboardHistory = signal<RoundScoreHistory | null>(null);
+  /** Ultimi round scritti dalla TV: coprono la finestra fra PUT e rilettura. */
+  private readonly roundHistoryCache = new Map<number, RoundScoreRound>();
+  private roundHistoryGameId = 0;
   /** N-11: riepilogo con punti fatti e persi nel round, prima di bonus e classifica. */
   readonly roundRecapOpen = signal(false);
   readonly roundRecapRows = signal<RecapRow[]>([]);
@@ -1428,7 +1437,55 @@ export class GameComponent implements OnInit, OnDestroy {
     }));
     if (!entries.length) return;
 
-    this.queueRoundScoresSave(gameId, roundIndex, this.currentMode()?.type ?? null, entries);
+    const type = this.currentMode()?.type ?? null;
+    this.rememberRoundHistory(gameId, roundIndex, type, entries);
+    this.queueRoundScoresSave(gameId, roundIndex, type, entries);
+  }
+
+  /** Copia locale dell'ultimo round: la classifica non aspetta il PUT. */
+  private rememberRoundHistory(
+    gameId: number,
+    roundIndex: number,
+    type: string | null,
+    entries: Array<{ playerName: string; points: number; totalPoints: number }>,
+  ): void {
+    if (gameId !== this.roundHistoryGameId) {
+      this.roundHistoryCache.clear();
+      this.roundHistoryGameId = gameId;
+    }
+    this.roundHistoryCache.set(roundIndex, {
+      roundIndex,
+      type,
+      savedAt: Date.now(),
+      entries: entries.map((entry) => ({ ...entry })),
+    });
+  }
+
+  private async loadLeaderboardHistory(): Promise<void> {
+    const gameId = this.currentGameId();
+    if (!gameId) return;
+    if (gameId !== this.roundHistoryGameId) {
+      this.roundHistoryCache.clear();
+      this.roundHistoryGameId = gameId;
+    }
+    // Nessuna storia vecchia resta appesa mentre arriva quella della partita.
+    this.leaderboardHistory.set(null);
+
+    let serverRounds: RoundScoreRound[] = [];
+    try {
+      const history = await firstValueFrom(this.gameService.getRoundScores(gameId));
+      serverRounds = Array.isArray(history?.rounds) ? history.rounds : [];
+    } catch {
+      // La TV resta in scena: le righe già scritte localmente bastano per il round.
+    }
+
+    const rounds = new Map<number, RoundScoreRound>();
+    for (const round of serverRounds) rounds.set(Number(round.roundIndex), round);
+    for (const [roundIndex, round] of this.roundHistoryCache) rounds.set(roundIndex, round);
+    this.leaderboardHistory.set({
+      gameId,
+      rounds: [...rounds.values()].sort((a, b) => Number(a.roundIndex) - Number(b.roundIndex)),
+    });
   }
 
   private queueRoundScoresSave(
@@ -2511,6 +2568,7 @@ export class GameComponent implements OnInit, OnDestroy {
     }
     this.showLeaderboardQuick.set(type === 'QUICK');
     this.showLeaderboardDetailed.set(type === 'DETAILED');
+    if (type === 'DETAILED') void this.loadLeaderboardHistory();
   }
 
   onLeaderboardComplete() {
@@ -2766,6 +2824,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.theme.applyFromRemote('editorial-acid');
       this.showLeaderboardQuick.set(true);
     }
+    if (type === 'DETAILED') void this.loadLeaderboardHistory();
   }
 
   /**

@@ -1635,6 +1635,37 @@ describe('GameComponent', () => {
     });
   });
 
+  it('N-15: la classifica da film riceve lo storico server', async () => {
+    component.currentGameId.set(1);
+    const game = TestBed.inject(GameService) as unknown as FakeGameService;
+    game.savedRoundScores.push({
+      gameId: 1,
+      roundIndex: 0,
+      type: 'MUSIC',
+      entries: [
+        { playerName: 'Anna', points: 100, totalPoints: 100 },
+        { playerName: 'Bruno', points: 0, totalPoints: 0 },
+      ],
+    });
+
+    component.pendingLeaderboardType.set('DETAILED');
+    component.showPendingLeaderboard();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(component.showLeaderboardDetailed()).toBe(true);
+    expect(component.leaderboardHistory()?.rounds).toEqual([
+      {
+        roundIndex: 0,
+        type: 'MUSIC',
+        entries: [
+          { playerName: 'Anna', points: 100, totalPoints: 100 },
+          { playerName: 'Bruno', points: 0, totalPoints: 0 },
+        ],
+      },
+    ]);
+  });
+
   it('libera la palette della squadra espulsa, così un rientro la riusa', () => {
     const theme = component.theme;
     ws.status$.next({ action: WsAction.JOIN_GAME, playerName: 'Anna' });

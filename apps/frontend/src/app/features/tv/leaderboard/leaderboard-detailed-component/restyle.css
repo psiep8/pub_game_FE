@@ -169,3 +169,111 @@
   background: var(--coal);
   color: var(--acid) !important;
 }
+
+/* N-15 — la storia della squadra, letta dallo storico server. */
+.grand-leaderboard .film-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 14px;
+  width: 100%;
+  margin: clamp(4px, 1vh, 10px) 0 0;
+  padding-top: clamp(6px, 1.2vh, 12px);
+  border-top: 3px solid var(--coal);
+  text-align: left;
+}
+
+.grand-leaderboard .film-stats-empty {
+  grid-template-columns: 1fr;
+  text-align: center;
+  border-top-style: dashed;
+}
+
+.grand-leaderboard .film-stat {
+  min-width: 0;
+  padding: 3px 0 3px 8px;
+  border-left: 3px solid var(--coal);
+}
+
+.grand-leaderboard .film-stat-best {
+  background: var(--acid);
+}
+
+.grand-leaderboard .film-stat-worst {
+  background: var(--tomato);
+  color: var(--paper-hi);
+  border-left-color: var(--coal);
+}
+
+.grand-leaderboard .film-stat-strong {
+  border-left-color: var(--cobalt);
+}
+
+.grand-leaderboard .film-stat-weak {
+  border-left-color: var(--mustard);
+}
+
+.grand-leaderboard .film-stat-label {
+  display: block;
+  color: currentColor;
+  font-family: var(--font-mono);
+  font-size: clamp(0.48rem, 1.05vh, 0.64rem);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  opacity: 0.72;
+}
+
+.grand-leaderboard .film-stat-value {
+  display: block;
+  overflow: hidden;
+  color: currentColor;
+  font-family: var(--font-mono);
+  font-size: clamp(0.58rem, 1.3vh, 0.8rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grand-leaderboard .film-preannounce {
+  position: fixed;
+  inset: 0;
+  z-index: 21000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2vh, 22px);
+  padding: 8vw;
+  background: var(--coal);
+  color: var(--paper-hi);
+  box-shadow: inset 0 0 0 10px var(--acid);
+  text-align: center;
+}
+
+.grand-leaderboard .film-preannounce-kicker {
+  color: var(--acid);
+  font-family: var(--font-mono);
+  font-size: clamp(0.8rem, 2.2vh, 1.2rem);
+  font-weight: 700;
+  letter-spacing: 0.34em;
+}
+
+.grand-leaderboard .film-preannounce-title {
+  color: var(--paper-hi);
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 11vh, 7rem);
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.grand-leaderboard .film-preannounce-rule {
+  width: min(480px, 52vw);
+  height: 5px;
+  background: var(--tomato);
+  border: 2px solid var(--paper-hi);
+  transform: rotate(-1deg);
+}

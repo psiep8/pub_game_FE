@@ -187,7 +187,9 @@
 
 
   @if (showLeaderboardDetailed()) {
-  <app-leaderboard-detailed (onComplete)="onLeaderboardComplete()">
+  <app-leaderboard-detailed
+    [roundScores]="leaderboardHistory()"
+    (onComplete)="onLeaderboardComplete()">
   </app-leaderboard-detailed>
   }
 
