@@ -1452,6 +1452,33 @@ describe('GameComponent', () => {
     expect(safe.options).toEqual([]);
   });
 
+  it('non manda mai la soluzione della Musica ai telefoni', () => {
+    const safe = (component as unknown as { phoneSafeState(state: any): any }).phoneSafeState({
+      type: 'MUSIC',
+      question: 'Indovina la canzone!',
+      theme: 'Rock',
+      previewUrl: '/media/music/vasco-sally.m4a',
+      nextPreviewUrl: '/media/music/ligabue-certe-notti.m4a',
+      albumCover: '/media/covers/sally.jpg',
+      songTitle: 'Sally',
+      artist: 'Vasco Rossi',
+      year: 1996,
+      songs: [{ title: 'Sally', artist: 'Vasco Rossi', previewUrl: '/media/music/vasco-sally.m4a' }],
+    });
+
+    expect(safe).not.toHaveProperty('previewUrl');
+    expect(safe).not.toHaveProperty('nextPreviewUrl');
+    expect(safe).not.toHaveProperty('albumCover');
+    expect(safe).not.toHaveProperty('songTitle');
+    expect(safe).not.toHaveProperty('artist');
+    expect(safe).not.toHaveProperty('year');
+    expect(safe.songs[0]).toEqual({});
+    expect(JSON.stringify(safe)).not.toContain('/media/music/');
+    // Il resto dello stato serve alla scena e resta intatto.
+    expect(safe.question).toBe('Indovina la canzone!');
+    expect(safe.theme).toBe('Rock');
+  });
+
   it('should award arena points when the remote reports an answer', async () => {
     const arenaMode = {
       type: 'ARENA',

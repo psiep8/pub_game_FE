@@ -1638,10 +1638,15 @@ export class GameComponent implements OnInit, OnDestroy {
       this.beginRoundScoring();
 
       const safeData = this.getSafeDisplayData();
-      const payloadString = JSON.stringify(safeData);
-      const rawPayloadString = typeof nextRound.payload === 'string'
-        ? nextRound.payload
-        : JSON.stringify(nextRound.payload);
+      // Musica: i telefoni non devono poter leggere titolo, artista né URL
+      // della clip, altrimenti la soluzione è nel payload della WebSocket.
+      const phoneData = this.phoneSafeState(safeData);
+      const payloadString = JSON.stringify(phoneData);
+      const rawPayloadString = (parsedPayload.type || extractedType) === 'MUSIC'
+        ? JSON.stringify(phoneData)
+        : (typeof nextRound.payload === 'string'
+          ? nextRound.payload
+          : JSON.stringify(nextRound.payload));
 
       this.ws.broadcastStatus(this.currentGameId()!, {
         action: WsAction.SHOW_QUESTION,
@@ -1745,7 +1750,9 @@ export class GameComponent implements OnInit, OnDestroy {
       },
       quizRoundStartId,
       onBroadcast: guard((event: any) => this.ws.broadcastStatus(this.currentGameId()!,
-        event.action === WsAction.QUIZ_STATE ? { ...event, roundStartId: quizRoundStartId } : event)),
+        this.phoneSafeState(event.action === WsAction.QUIZ_STATE
+          ? { ...event, roundStartId: quizRoundStartId }
+          : event))),
       onBlackjackState: guard((state: unknown | null) => this.reliability.saveBlackjackState(state)),
       onUltimaSpiaggiaLevel: guard((playerName: string, level: number) => {
         // Il livello è consumato per tutta la partita, non solo per la manche:
@@ -3635,6 +3642,30 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     return results;
+  }
+
+  /**
+   * Stato destinato ai telefoni: via la soluzione della Musica.
+   *
+   * <p>Titolo, artista, anno, copertina e `previewUrl` (anche in `songs[]`)
+   * permettono di riconoscere il brano senza ascoltare: il payload WebSocket dei
+   * telefoni non li contiene mai, in nessuna fase. La TV li legge dallo stato
+   * del proprio componente, non da questo payload.</p>
+   */
+  private phoneSafeState<T>(state: T): T {
+    if (!state || typeof state !== 'object') return state;
+    const copy: any = { ...(state as any) };
+    for (const field of ['previewUrl', 'nextPreviewUrl', 'albumCover', 'songTitle', 'artist', 'year']) {
+      delete copy[field];
+    }
+    if (Array.isArray(copy.songs)) {
+      copy.songs = copy.songs.map((song: any) => {
+        if (!song || typeof song !== 'object') return song;
+        const { title, artist, previewUrl, albumCover, ...rest } = song;
+        return rest;
+      });
+    }
+    return copy as T;
   }
 
   getSafeDisplayData(): any {
