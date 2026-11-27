@@ -271,3 +271,104 @@ test.describe.serial('TV + 3 telefoni', () => {
     }
   });
 });
+
+/**
+ * N-07 — il ticchettio del timer non deve sopravvivere alla scena che lo ha
+ * chiesto.
+ *
+ * Campiona ogni 5 s le sorgenti audio attive (`channelSnapshot()`, la stessa
+ * fotografia del pannello `?audiodebug=1`) in una serata simulata vera: TV +
+ * tre telefoni contro il backend reale. Un loop `clock` può stare acceso solo
+ * dentro un conto alla rovescia vivo.
+ *
+ * Causa riprodotta: la Musica tickava per tutto il round (deve stare nel
+ * silenzio) e la ripresa dalla pausa riaccendeva il tick anche su un round già
+ * chiuso, dove nessun `onTimerEnd` sarebbe più arrivato a fermarlo.
+ */
+test.describe('N-07: il tick del timer ha un proprietario', () => {
+  let token = '';
+
+  test.beforeAll(async ({ browser }) => {
+    test.setTimeout(240_000);
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await openTv(page, 1);
+    const id = await activeGameId();
+    expect(id, 'nessuna partita attiva dopo APRI LOBBY').not.toBeNull();
+    token = (await page.evaluate(
+      (gameId) => localStorage.getItem(`pubgame.session.${gameId}.TV`) ?? '',
+      id!,
+    )) || '';
+    expect(token, 'token TV assente nella lobby').not.toBe('');
+    await context.close();
+  });
+
+  /** La fotografia che in sala si legge dietro `?audiodebug=1`. */
+  const channels = (tv: Page) => tv.evaluate(() => {
+    const component: any = (window as any).ng?.getComponent(document.querySelector('app-game-component'));
+    return (component?.audioService?.channelSnapshot?.() ?? []) as Array<{
+      channel: string; label: string; owner: string; event?: string;
+    }>;
+  });
+
+  /** Campiona ogni 5 s: è la richiesta «campiona ogni 5 s le sorgenti attive». */
+  const sampleEvery = async (tv: Page, samples: number) => {
+    const out: Array<Array<{ event?: string }>> = [];
+    for (let index = 0; index < samples; index += 1) {
+      await tv.waitForTimeout(5_000);
+      out.push(await channels(tv));
+    }
+    return out;
+  };
+
+  test('nessun tic fuori dal conto alla rovescia', async ({ browser }) => {
+    test.setTimeout(360_000);
+    const { tv, phones, close } = await setup(browser, token, 'N07');
+
+    try {
+      // Scaletta simulata: QUIZ, MUSIC. La dock di debug è il percorso della regia.
+      const advance = tv.locator('.dock-btn.advance');
+      await expect(advance).toBeVisible();
+      await advance.click();
+      await expect(tv.locator('.question-area')).toBeVisible({ timeout: 90_000 });
+
+      // Prova del campionamento: nel Quiz il tic deve esserci davvero.
+      const duringQuiz = await sampleEvery(tv, 4);
+      expect(
+        duringQuiz.some((rows) => rows.some((row) => row.event === 'clock')),
+        'il Quiz non ha mai mostrato il loop clock: il campionamento non guarda la scena giusta',
+      ).toBe(true);
+
+      // Musica: silenzio per scelta, nessun tic sotto gli ascolti.
+      await advance.click();
+      await expect(tv.locator('app-song .music-board')).toBeVisible({ timeout: 90_000 });
+      const duringMusic = (await sampleEvery(tv, 5)).flat()
+        .filter((row) => row.event === 'clock');
+      expect(duringMusic, `tic durante la Musica: ${JSON.stringify(duringMusic)}`).toEqual([]);
+
+      // Pausa e ripresa a metà round: il tick non deve tornare.
+      const pause = tv.locator('.dock-btn[aria-label="Pausa"]');
+      await pause.click();
+      await tv.waitForTimeout(1_500);
+      await pause.click();
+      const afterPause = (await sampleEvery(tv, 3)).flat()
+        .filter((row) => row.event === 'clock');
+      expect(afterPause, 'tic riacceso dalla ripresa della pausa').toEqual([]);
+
+      // Ricarica della TV a metà round: la ripresa non riapre il tick.
+      await tv.reload();
+      const recovery = tv.locator('.recovery-panel');
+      await expect(recovery).toBeVisible({ timeout: 60_000 });
+      await recovery.getByRole('button', { name: 'Riprendi' }).click();
+      await expect(tv.locator('app-song .music-board')).toBeVisible({ timeout: 60_000 });
+      const afterReload = (await sampleEvery(tv, 3)).flat()
+        .filter((row) => row.event === 'clock');
+      expect(afterReload, 'tic riacceso dalla ripresa dopo la ricarica').toEqual([]);
+
+      // I telefoni sono entrati davvero: il banco è quello della serata.
+      await expect(phones[0].locator('.header-round')).toBeVisible();
+    } finally {
+      await close();
+    }
+  });
+});

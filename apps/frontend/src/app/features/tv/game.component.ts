@@ -1627,7 +1627,7 @@ export class GameComponent implements OnInit, OnDestroy {
       });
 
 
-      if (mode.timerDuration > 0) this.audioService.startClock();
+      if (this.roundClockApplies(mode)) this.audioService.startClock();
       this.startRoundSuspense(mode.type);
       if (mode.type === 'BOMBA') {
         this.audioService.playBombSiren();
@@ -2587,7 +2587,9 @@ export class GameComponent implements OnInit, OnDestroy {
       // Il clock era stato fermato alla pausa: si riapre solo se il round ha
       // ancora un conto alla rovescia da suonare, e il sottofondo riparte.
       if (mode) {
-        this.audioService.startClock();
+        // Solo se il round ha ancora un conto alla rovescia: dopo la scadenza
+        // nessun `onTimerEnd` arriverebbe più a fermare questo tic.
+        if (this.roundClockApplies(mode)) this.audioService.startClock();
         this.resumeRoundSuspense();
       }
       this.audioService.resumeBeds();
@@ -3418,6 +3420,26 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   /** Avvia il heartbeat di suspense solo nei countdown e dal round 20. */
+  /**
+   * Il ticchettio del timer appartiene al round solo se c'è un conto alla
+   * rovescia davvero vivo.
+   *
+   * <p>Causa di N-07 (tic infinito): il tick partiva con qualsiasi modalità con
+   * `timerDuration > 0` — quindi anche nella Musica, che deve stare nel
+   * silenzio — e la ripresa dalla pausa lo riaccendeva anche su un round già
+   * chiuso (timer a zero, soluzione a schermo), dove nessun `onTimerEnd` sarebbe
+   * più arrivato a fermarlo. Il loop restava acceso fino al cambio di scena
+   * successivo, cioè per tutta la classifica, il bonus o la pausa d'atto.</p>
+   */
+  private roundClockApplies(mode: IGameMode | null): boolean {
+    if (!mode || this.isPaused()) return false;
+    // La Musica ha il suo tempo nelle fasi di ascolto: il tick la coprirebbe.
+    if (mode.type === 'MUSIC') return false;
+    if (mode.timerDuration <= 0) return false;
+    if (typeof mode.isRevealed === 'function' && mode.isRevealed()) return false;
+    return this.timer() > 0;
+  }
+
   private startRoundSuspense(type: GameModeType): void {
     if (!this.countdownModes.has(type)) return;
     const round = this.roundManager.getCurrentRound();
@@ -4015,7 +4037,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.audioService.setActBed(this.currentActNumber());
     this.audioService.setGameBed(mode.type);
     this.timer.set(pending.secondsLeft);
-    this.audioService.startClock();
+    if (this.roundClockApplies(mode)) this.audioService.startClock();
     this.startRoundSuspense(mode.type);
     if (mode.restore) {
       try {
