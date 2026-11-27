@@ -133,3 +133,38 @@ l'autorizzazione dei comandi.
 | N-09 | Parziale | Mancava un controllo automatico di testi e clip; restano banner e demo completa | `68ace56` | `npm run check:karaoke` | Karaoke: verificare in lobby il conteggio delle manche pronte e provare il banco demo. |
 
 _Le voci non elencate restano da fare e non vanno considerate chiuse._
+
+## Blocco M — Musica (verifiche e rifiniture)
+
+### M-01 `audit-banche --ci` falliva sulla Musica — **Fatto**
+
+**Causa trovata.** L'audit leggeva la banca sbagliata. Controllava
+`questions/media-it.json`, che **non è versionato** e contiene l'indice media
+completo (copertine, persone, 251 brani scaricati, compresi quelli fuori
+catalogo e senza tag di tema/era). La banca che la Musica serve davvero è
+`questions/music-themes.json`, prodotta da `scripts/banche/tagga-musica.mjs`:
+236 brani con tema, era, decennio e difficoltà. Da qui i due sintomi opposti:
+sulla macchina di sala l'audit falliva con «251 brani con 5 campi/file
+mancanti»; in un checkout pulito il file non c'era e i controlli media
+venivano **saltati in silenzio** (verde falso).
+
+**Intervento.** `scripts/audit-banche.mjs` ora valida `music-themes.json` e la
+fa bloccare la CI: campi obbligatori, tema fra i 10 dichiarati, era coerente
+con l'anno (vuota solo per i brani anni '60, per scelta del generatore),
+decennio uguale all'anno arrotondato, difficoltà hit/medium/hard, percorso
+`/media/music/…` non ripetuto, nessun doppione titolo+artista, ogni tema con
+almeno 5 brani e il mix **2 hit + 2 medi + 1 difficile con artisti distinti**.
+La presenza dei file `.m4a` si controlla solo dove esiste la cartella statica
+(la macchina della serata), perché l'audio non è versionato; se c'è l'indice
+media, si verifica anche che ogni brano taggato vi sia ancora.
+
+**Brani segnalati dall'audit vecchio.** I 6 brani anni '60 (Beatles ×4,
+Rolling Stones, Morricone) non hanno era: è la regola di `tagga-musica.mjs`
+(restano raggiungibili solo dalle famiglie) e non un campo mancante. I 15
+brani di differenza fra 251 e 236 sono voci dell'indice media fuori catalogo:
+non entrano in scaletta e non vanno corretti a mano.
+
+**Test.** `scripts/checks/audit-musica.test.mjs` (7 casi: banca completa,
+tema/decennio mancanti, decennio incoerente, era incoerente, artisti ripetuti,
+tema corto, anni '60), agganciato a `npm run test:sim`. `node
+scripts/audit-banche.mjs --ci` esce **0** con 236 brani e 0 problemi.

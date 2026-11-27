@@ -633,6 +633,162 @@ function auditCelebritaIndizi(indizi, ambitiFile) {
   };
 }
 
+/**
+ * Musica: la banca che il gioco serve davvero è `music-themes.json` (versionata).
+ *
+ * L'indice media (`media-it.json`) non è versionato e contiene anche i brani
+ * scaricati fuori catalogo: validarlo era la causa del fallimento «251 brani con
+ * 5 campi/file mancanti» e, in un checkout pulito, di un controllo saltato in
+ * silenzio. Qui si controlla il file che `tagga-musica.mjs` produce: tema, era,
+ * decennio, difficoltà e mix 2 hit + 2 medi + 1 difficile per ogni tema.
+ */
+const MUSIC_ERA_THEMES = ["Anni '70-'80", "Anni '90-2000", 'Anni 2010-oggi'];
+const MUSIC_DIFFICULTIES = ['hit', 'medium', 'hard'];
+const MUSIC_MANCHES = 5;
+
+function musicEraFor(year) {
+  if (year >= 2010) return 'Anni 2010-oggi';
+  if (year >= 1990) return "Anni '90-2000";
+  if (year >= 1970) return "Anni '70-'80";
+  return null;
+}
+
+/** 2 hit + 2 medi + 1 difficile, tutti di artisti diversi. */
+function musicThemeHoldsMix(pool) {
+  const byDifficulty = (level) => pool.filter((track) => track.difficulty === level);
+  const hits = byDifficulty('hit');
+  const mediums = byDifficulty('medium');
+  const hards = byDifficulty('hard');
+  if (hits.length < 2 || mediums.length < 2 || hards.length < 1) return false;
+  for (let h1 = 0; h1 < hits.length; h1 += 1) {
+    for (let h2 = h1 + 1; h2 < hits.length; h2 += 1) {
+      for (let m1 = 0; m1 < mediums.length; m1 += 1) {
+        for (let m2 = 0; m2 < mediums.length; m2 += 1) {
+          if (m1 === m2) continue;
+          const used = new Set([hits[h1], hits[h2], mediums[m1], mediums[m2]]
+            .map((track) => normalizeText(track.artist)));
+          if (used.size < 4) continue;
+          if (hards.some((track) => !used.has(normalizeText(track.artist)))) return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+function auditMusicThemes(bank, media) {
+  const tracks = Array.isArray(bank?.tracks) ? bank.tracks : [];
+  const themes = Array.isArray(bank?.themes) ? bank.themes : [];
+  const familyThemes = Array.isArray(bank?.familyThemes) ? bank.familyThemes : [];
+  const problems = [];
+  const duplicates = [];
+  const missing = [];
+  const seen = new Map();
+  const files = new Map();
+
+  if (!tracks.length) {
+    problems.push({ theme: '(banca)', detail: 'music-themes.json vuoto: la Musica non può aprire un round' });
+  }
+  if (themes.length !== 10) {
+    problems.push({ theme: '(banca)', detail: `temi ${themes.length}, attesi 10` });
+  }
+
+  for (const track of tracks) {
+    const label = `${String(track.artist ?? '').trim()} - ${String(track.title ?? '').trim()}`;
+    const theme = String(track.theme ?? '').trim();
+    const artist = String(track.artist ?? '').trim();
+    const title = String(track.title ?? '').trim();
+    const year = Number(track.year);
+    const decade = Number(track.decade);
+    const era = String(track.era ?? '').trim();
+    const difficulty = String(track.difficulty ?? '').trim();
+    const file = String(track.file ?? '').trim();
+    const key = `${normalizeText(title)}|${normalizeText(artist)}`;
+
+    if (!title) missing.push({ track: label, field: 'title' });
+    if (!artist) missing.push({ track: label, field: 'artist' });
+    if (!Number.isInteger(year) || year < 1900 || year > 2100) {
+      missing.push({ track: label, field: 'year', detail: String(track.year ?? '') });
+    }
+    if (!theme) missing.push({ track: label, field: 'theme' });
+    else if (!themes.includes(theme)) missing.push({ track: label, field: 'theme', detail: theme });
+    // I brani anni '60 restano raggiungibili solo dalle famiglie: per loro
+    // `era` è vuota per scelta di tagga-musica.mjs, non è un campo mancante.
+    const eraExpected = Number.isInteger(year) ? musicEraFor(year) : null;
+    if (eraExpected && !era) missing.push({ track: label, field: 'era' });
+    if (!eraExpected && era) problems.push({ theme, detail: `${label}: era «${era}» su un brano fuori dalle tre ere` });
+    if (!Number.isInteger(decade) || decade <= 0) missing.push({ track: label, field: 'decade' });
+    else if (Number.isInteger(year) && decade !== Math.floor(year / 10) * 10) {
+      problems.push({ theme, detail: `${label}: decennio ${decade}, ma l'anno ${year} cade nel ${Math.floor(year / 10) * 10}` });
+    }
+    if (eraExpected && era !== eraExpected) {
+      problems.push({ theme, detail: `${label}: era «${era}», ma l'anno ${year} è «${eraExpected}»` });
+    }
+    if (!MUSIC_DIFFICULTIES.includes(difficulty)) missing.push({ track: label, field: 'difficulty', detail: difficulty });
+    if (!file) missing.push({ track: label, field: 'file' });
+    else if (!file.startsWith('/media/music/')) problems.push({ theme, detail: `${label}: file fuori da /media/music/ (${file})` });
+
+    if (seen.has(key)) duplicates.push({ track: label, other: seen.get(key) });
+    seen.set(key, label);
+    const normalizedFile = normalizeText(file);
+    if (normalizedFile) {
+      if (files.has(normalizedFile)) duplicates.push({ track: label, other: `file già usato da ${files.get(normalizedFile)}` });
+      files.set(normalizedFile, label);
+    }
+  }
+
+  // I file audio non sono versionati: la loro presenza si controlla solo dove
+  // esiste la cartella statica (la macchina della serata), non in CI.
+  const staticMediaDir = join(staticDir, 'media');
+  const checkFiles = existsSync(staticMediaDir);
+  if (checkFiles) {
+    for (const track of tracks) {
+      if (!mediaFileExists(track.file)) {
+        missing.push({ track: `${track.artist} - ${track.title}`, field: 'file', detail: String(track.file ?? '') });
+      }
+    }
+  }
+
+  const counts = {};
+  for (const theme of themes) {
+    const pool = tracks.filter((track) => (MUSIC_ERA_THEMES.includes(theme) ? track.era === theme : track.theme === theme));
+    counts[theme] = pool.length;
+    if (pool.length < MUSIC_MANCHES) {
+      problems.push({ theme, detail: `${pool.length} brani, servono almeno ${MUSIC_MANCHES}` });
+      continue;
+    }
+    if (!musicThemeHoldsMix(pool)) {
+      problems.push({ theme, detail: 'non regge il mix 2 hit + 2 medi + 1 difficile con artisti distinti' });
+    }
+  }
+  for (const theme of familyThemes) {
+    if (!themes.includes(theme)) problems.push({ theme, detail: 'famiglia dichiarata ma fuori dalla lista dei temi' });
+  }
+
+  // Se la banca locale c'è, i brani taggati devono esistere anche lì: un brano
+  // tolto dall'indice senza rigenerare i temi resta in scaletta e non suona.
+  const mediaTracks = Array.isArray(media?.music) ? media.music : [];
+  if (mediaTracks.length) {
+    const byFile = new Map(mediaTracks.map((track) => [normalizeText(track.file), track]));
+    for (const track of tracks) {
+      if (!byFile.has(normalizeText(track.file))) {
+        missing.push({ track: `${track.artist} - ${track.title}`, field: 'indice media', detail: String(track.file ?? '') });
+      }
+    }
+  }
+
+  return {
+    total: tracks.length,
+    themes: counts,
+    artists: new Set(tracks.map((track) => normalizeText(track.artist)).filter(Boolean)).size,
+    duplicates,
+    missing,
+    problems,
+    checkFiles,
+    mediaTotal: mediaTracks.length,
+  };
+}
+
 /** Musica: brano, artista, anno e file audio/copertina. */
 function auditMusic(media) {
   const tracks = Array.isArray(media?.music) ? media.music : [];
@@ -934,6 +1090,8 @@ const quizBank = readJson('questions-it.json');
 const timelineBank = readJson('timeline-it.json');
 const azzardoBank = readJson('azzardo-it.json');
 const mediaBank = readJsonIfPresent('media-it.json');
+// Banca Musica versionata: è questa che il gioco serve, non l'indice media.
+const musicThemesBank = readJson('music-themes.json');
 const celebritaAmbiti = readJson('celebrita-ambiti.json');
 const celebritaIndizi = readJsonIfPresent('celebrita-indizi.json');
 const mediaPatches = applyMediaPatches(mediaBank);
@@ -956,6 +1114,7 @@ const report = {
   celebritaAmbiti: auditCelebritaAmbiti(celebritaAmbiti, mediaBank),
   celebritaIndizi: auditCelebritaIndizi(celebritaIndizi, celebritaAmbiti),
   music: auditMusic(mediaBank),
+  musicThemes: auditMusicThemes(musicThemesBank, mediaBank),
   mediaPatches,
   wheel: auditWheel(),
   bomba: auditBomba(bombaBank),
@@ -978,7 +1137,10 @@ if (asJson) {
     'ambiti', JSON.stringify(report.celebritaAmbiti.byAmbito),
     'problemi:', report.celebritaAmbiti.problems.length,
     'minimi mancanti:', report.celebritaAmbiti.mancanti.map((row) => `${row.ambito} ${row.presenti}/${row.minimo}`).join(' '));
-  console.log('Musica:', report.music.total, 'brani, doppioni:', report.music.duplicates.length, 'campi/file mancanti:', report.music.missing.length);
+  console.log('Musica (media locale):', report.music.total, 'brani, doppioni:', report.music.duplicates.length, 'campi/file mancanti:', report.music.missing.length);
+  console.log('Musica (music-themes.json):', report.musicThemes.total, 'brani,', report.musicThemes.artists, 'artisti,',
+    'doppioni:', report.musicThemes.duplicates.length, 'campi mancanti:', report.musicThemes.missing.length,
+    'problemi:', report.musicThemes.problems.length, 'file controllati:', report.musicThemes.checkFiles ? 'sì' : 'no (non versionati)');
   console.log('Ruota:', report.wheel.total, 'frasi, doppioni:', report.wheel.duplicates.length, 'segnalazioni:', report.wheel.issues.length);
   console.log('Bomba:', report.bomba.total, 'affermazioni, doppioni:', report.bomba.duplicates.length, 'campi mancanti:', report.bomba.missing.length, 'dubbi:', report.bomba.doubts.length);
   console.log('Bomba F-23:', report.bomba.topics, 'argomenti, problemi:', report.bomba.topicIssues.length);
@@ -1000,11 +1162,14 @@ if (args.has('--ci')) {
     + report.music.duplicates.length
     + report.wheel.duplicates.length
     + report.bomba.duplicates.length;
-  const issues = report.quiz.issues.length;
+  const issues = report.quiz.issues.length + report.musicThemes.problems.length;
+  // L'indice media non è versionato: i suoi campi/file mancanti restano un
+  // avviso locale. La banca Musica versionata, invece, blocca la CI.
   const missing = report.timeline.missing.length + report.azzardo.missing.length
-    + report.celebrities.missing.length + report.music.missing.length + report.bomba.missing.length
+    + report.celebrities.missing.length + report.bomba.missing.length
     + report.bomba.topicIssues.length + report.celebritaAmbiti.problems.length
-    + report.celebritaIndizi.problemi.length;
+    + report.celebritaIndizi.problemi.length
+    + report.musicThemes.missing.length + report.musicThemes.duplicates.length;
   const holes = report.ultimaSpiaggia.holes.length;
   const unmatchedPatches = report.mediaPatches.unmatched.length;
   console.log(`CI banche: doppioni ${duplicates}, segnalazioni ${issues}, campi mancanti ${missing}`);
@@ -1014,6 +1179,11 @@ if (args.has('--ci')) {
     console.log(`Media corrette a mano: ${report.mediaPatches.fields} campi, ${unmatchedPatches} patch senza voce`);
   }
   for (const label of report.mediaPatches.unmatched) console.log(`  patch senza voce: ${label}`);
+  if (report.music.missing.length > 0) {
+    console.log(`Media locale: ${report.music.missing.length} campi/file mancanti fuori dalla banca Musica versionata (non bloccanti).`);
+  }
+  for (const problem of report.musicThemes.problems) console.log(`  tema ${problem.theme}: ${problem.detail}`);
+  for (const row of report.musicThemes.missing.slice(0, 20)) console.log(`  brano ${row.track}: ${row.field} ${row.detail ?? ''}`);
   console.log(`Ultima spiaggia: ${holes} celle sotto il minimo di ${report.ultimaSpiaggia.minPerLevel}`);
   console.log(`Bomba: ${report.bomba.doubts.length} false da rivedere (non bloccanti)`);
   for (const issue of report.bomba.topicIssues) console.log(`  argomento ${issue.id}: ${issue.detail}`);
@@ -1026,3 +1196,6 @@ if (args.has('--ci')) {
     console.log('Audit banche: OK');
   }
 }
+
+// Esportati per il test della banca Musica (`scripts/checks/audit-musica.test.mjs`).
+export { auditMusicThemes, musicThemeHoldsMix, musicEraFor };

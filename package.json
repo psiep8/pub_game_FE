@@ -22,7 +22,7 @@
     "test": "npm run test:frontend",
     "test:frontend": "npm run test --workspace pubgame-fe",
     "test:backend": "node scripts/mvn.mjs test",
-    "test:sim": "node --test scripts/sim/serata-contract.test.mjs",
+    "test:sim": "node --test scripts/sim/serata-contract.test.mjs scripts/checks/audit-musica.test.mjs",
     "test:e2e": "playwright test",
     "check:karaoke": "node scripts/checks/karaoke.mjs",
     "db:backup": "node scripts/backup-db.mjs",
