@@ -55,6 +55,8 @@ export class LeaderboardQuick implements OnInit {
   readonly windowPlayers = computed(() => this.visiblePlayers().slice(-8));
   /** Reveal finito: il tabellone si compatta e mostra tutte le squadre. */
   revealDone = signal(false);
+  /** Sospiro prima del podio: la sala sa che sta per arrivare il top 3. */
+  podiumSuspense = signal(false);
   /**
    * Oltre dieci squadre il tabellone passa a due colonne: in una sola le righe
    * scenderebbero sotto i 40px su TV 720p e i nomi diventerebbero illeggibili.
@@ -102,10 +104,16 @@ export class LeaderboardQuick implements OnInit {
     const total = players.length;
 
     for (let i = 0; i < total; i++) {
-      // 10–12 s in tutto: le righe normali scorrono in 300 ms, il podio si
-      // prende una pausa sola, non i 4–6 s per riga della vecchia classifica.
+      // N-15: il flash non è una raffica. Le righe normali respirano 450 ms;
+      // prima del podio c'è un sospiro di 1,6 s e il podio si prende i suoi
+      // tempi. Con dodici squadre si chiude intorno ai 15 s.
       const position = players[i].position;
-      const delay = position === 1 ? 1200 : position === 2 ? 900 : position === 3 ? 900 : 300;
+      if (total > 3 && position === 3 && i > 0 && players[i - 1].position > 3) {
+        this.podiumSuspense.set(true);
+        await new Promise(resolve => setTimeout(resolve, 1600));
+        this.podiumSuspense.set(false);
+      }
+      const delay = position === 1 ? 2000 : position === 2 ? 1500 : position === 3 ? 1300 : 450;
 
       this.visiblePlayers.update(list => [...list, players[i]]);
       this.progress.set(((i + 1) / total) * 100);
@@ -121,8 +129,9 @@ export class LeaderboardQuick implements OnInit {
     }
 
     this.revealDone.set(true);
-    // Fermo sul podio e chiusura entro il bersaglio di 10 s (massimo 15).
-    const remaining = Math.max(3000, 10_000 - (Date.now() - startedAt));
+    // Fermo sul podio: almeno 4 s per leggere il tabellone, con un tetto
+    // complessivo di 15 s per la flash.
+    const remaining = Math.max(4000, 15_000 - (Date.now() - startedAt));
     await new Promise(resolve => setTimeout(resolve, remaining));
     this.leaderboard.rememberRanks();
     this.onComplete.emit();

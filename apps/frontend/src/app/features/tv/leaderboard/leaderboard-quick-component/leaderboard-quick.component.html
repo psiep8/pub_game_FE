@@ -5,6 +5,10 @@
     <div class="subtitle">Dal peggiore al migliore...</div>
   </div>
 
+  @if (podiumSuspense()) {
+    <div class="podium-breath" role="status">E ORA IL PODIO</div>
+  }
+
   <div class="players-container" #playersList [class.all-visible]="revealDone()" [class.dense]="dense()" [class.triple]="triple()">
     <!--
       Durante il reveal si vedono le ultime otto righe che entrano; a reveal

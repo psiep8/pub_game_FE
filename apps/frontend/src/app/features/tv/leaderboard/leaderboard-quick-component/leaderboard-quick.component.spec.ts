@@ -71,11 +71,11 @@ describe('LeaderboardQuick', () => {
     expect(component.totalPlayers()).toBe(3);
     expect(component.visiblePlayers().map((player) => player.playerName)).toEqual(['Carla']);
 
-    // Terzo posto: pausa breve da podio (900 ms), poi entra Bruno.
-    await vi.advanceTimersByTimeAsync(1_000);
+    // Terzo posto: pausa da podio (1,3 s), poi entra Bruno.
+    await vi.advanceTimersByTimeAsync(1_400);
     expect(component.visiblePlayers().map((player) => player.playerName)).toEqual(['Carla', 'Bruno']);
 
-    await vi.advanceTimersByTimeAsync(1_000);
+    await vi.advanceTimersByTimeAsync(1_500);
     expect(component.visiblePlayers().map((player) => player.playerName)).toEqual([
       'Carla',
       'Bruno',
@@ -84,23 +84,52 @@ describe('LeaderboardQuick', () => {
     expect(component.progress()).toBe(100);
   });
 
-  it('chiude la flash entro il bersaglio di 10–12 secondi', async () => {
+  it('chiude la flash con il respiro del podio, intorno ai 15 secondi', async () => {
     vi.useFakeTimers();
     create(many(12));
 
     await vi.advanceTimersByTimeAsync(9_000);
     expect(onComplete).not.toHaveBeenCalled();
 
-    await vi.advanceTimersByTimeAsync(1_100);
+    await vi.advanceTimersByTimeAsync(6_100);
     expect(onComplete).toHaveBeenCalledTimes(1);
     expect(rememberRanks).toHaveBeenCalledTimes(1);
+  });
+
+  it('N-15: sospiro prima del podio, poi il terzo posto entra', async () => {
+    vi.useFakeTimers();
+    create(many(14));
+
+    // Undici squadre fuori dal podio a 450 ms l'una.
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(component.podiumSuspense()).toBe(true);
+    expect(component.visiblePlayers().map((player) => player.position)).not.toContain(3);
+
+    await vi.advanceTimersByTimeAsync(1_700);
+    expect(component.podiumSuspense()).toBe(false);
+    expect(component.visiblePlayers().map((player) => player.position)).toContain(3);
+  });
+
+  it('con quattordici squadre mostra la finestra durante il reveal e due colonne alla fine', async () => {
+    vi.useFakeTimers();
+    create(many(14));
+
+    await vi.advanceTimersByTimeAsync(4_000);
+    expect(component.windowPlayers()).toHaveLength(8);
+
+    await vi.advanceTimersByTimeAsync(11_000);
+    fixture.detectChanges();
+    expect(component.revealDone()).toBe(true);
+    expect(component.dense()).toBe(true);
+    expect(component.triple()).toBe(false);
+    expect(fixture.nativeElement.querySelectorAll('.player-row')).toHaveLength(14);
   });
 
   it('durante il reveal mostra la finestra delle ultime otto', async () => {
     vi.useFakeTimers();
     create(many(20));
 
-    await vi.advanceTimersByTimeAsync(3_000);
+    await vi.advanceTimersByTimeAsync(4_000);
     fixture.detectChanges();
 
     expect(component.revealDone()).toBe(false);

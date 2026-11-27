@@ -48,7 +48,7 @@ scadenza e blocco dopo cinque errori).
 | N-07 — Tick infinito | **Da fare** | Il controllo dei proprietari audio (`AudioChannels.setOwner`) spegne già i loop della scena uscente; non è stata trovata una causa riproducibile senza la serata. |
 | N-08 — Vibrazione e fallback iPhone | **Fatto** | Se `navigator.vibrate` manca o è negata, il via accende un flash e un colpo breve; `BONUS_STARTED` usa lo stesso percorso. |
 | N-09 — Karaoke: controlli e demo | **Parziale** | Aggiunto `npm run check:karaoke` (banca, clip, testi e almeno 5 manche complete). Restano banner di conteggio nella lobby e prova completa con `?karaoke-demo=1`. |
-| N-10…N-15 (blocco B) | **Parziale** | N-10 misurato, N-11 e N-12 fatti. N-13 fatto (classifica dopo il bonus e primo round), N-14 fatto; N-15 da fare. |
+| N-10…N-15 (blocco B) | **Parziale** | N-10 misurato, N-11 e N-12 fatti. N-13 fatto (classifica dopo il bonus e primo round), N-14 fatto; N-15 parziale (flash). |
 | N-16…N-48 (blocco C) | **Da fare** | D2 (Timeline e gioco che la sostituisce nell'atto 1) **non toccata**: serve la scelta del committente. |
 | N-49…N-51 (blocco D) | **Da fare** | |
 | N-52…N-55 (blocco E) | **Da fare** | N-53 si ferma alla demo Quiz per approvazione. |
@@ -414,6 +414,29 @@ l'attesa; i tempi delle manche restano quelli del server (N-14 per il Quiz).
 che le presenze si stabilizzino» e «senza telefoni il primo round non aspetta».
 Verifiche: TV 150/150, build frontend verde. **Da fare in sala:** aprire il
 primo round mentre un ultimo telefono sta entrando.
+
+### N-15 classifiche — **Parziale: flash del round**
+
+**Causa.** La classifica rapida entrava a 300 ms per riga, senza stacco prima
+del podio: con dodici squadre era finita in circa dieci secondi e il podio non
+si sentiva arrivare.
+
+**Intervento (punto 1).** Le righe normali ora respirano 450 ms; prima del terzo
+posto c'è un sospiro di 1,6 s con il timbro «E ORA IL PODIO», poi il podio si
+prende 1,3 / 1,5 / 2 s. La flash chiude intorno ai 15 s (tetto), con almeno 4 s
+di tabellone fermo. Oltre dieci squadre: durante il reveal resta la finestra
+delle ultime otto, alla fine il tabellone compatto usa due colonne fino a 16
+squadre e tre colonne oltre. Niente pagine: con 14 e 20 squadre la finestra più
+il tabellone denso mostra tutte le righe senza tagliarle.
+
+**Test.** `leaderboard-quick.component.spec.ts` → sospiro prima del podio,
+finestra da otto con 14/20, tabellone finale a 14 righe in due colonne (tre con
+20). Verifiche: quick 9/9, remote 143/143, build frontend verde. **Da fare in
+sala:** round 4 con 14 e 20 telefoni.
+
+**Restano di N-15:** classifica «da film» dopo le Arene con statistiche dal
+server (punti per round e per squadra), pagina statistiche in regia, colpi di
+scena dal 5° posto dopo il round 40, selfie/poster (N-33).
 
 ### N-10 ingressi a scatti — **Misurato, correzioni da fare**
 
