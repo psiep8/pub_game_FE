@@ -225,58 +225,156 @@ async function bootstrapToken(browser: Browser): Promise<string> {
   return token;
 }
 
+interface Metrics {
+  cls: number;
+  shifts: number;
+  longtasks: number;
+  maxLongMs: number;
+  nodes: Array<{ node: string; value: number; count: number }>;
+}
+
+interface Row extends Metrics {
+  game: string;
+  round: number;
+  pressed: boolean;
+  scene: string | null;
+}
+
+/** Apre un gioco su una pagina fresca e ne misura l'ingresso. */
+async function measureGame(
+  browser: Browser,
+  token: string,
+  target: { game: string; round: number },
+): Promise<Row> {
+  const gameId = await createGame(token);
+  const context = await browser.newContext({ viewport: VIEWPORT });
+  const tv = await context.newPage();
+  await instrumentObservers(tv);
+  await seedRound(tv, target.round);
+  await openTv(tv, gameId);
+
+  const phoneContexts = [];
+  for (let index = 1; index <= PHONES; index += 1) {
+    const phoneContext = await browser.newContext({ ...devices['iPhone 14'] });
+    phoneContexts.push(phoneContext);
+    const phone = await phoneContext.newPage();
+    await joinPhone(phone, gameId, `N10-${target.game.slice(0, 3)}${index}`);
+  }
+
+  // CPU 4× sulla TV, dopo il caricamento e prima dell'ingresso.
+  const session = await context.newCDPSession(tv);
+  await session.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+
+  await seekRound(tv, target.round);
+  await reset(tv);
+  const pressed = await pressAdvance(tv);
+  let type: string | null = null;
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    await tv.waitForTimeout(500);
+    type = await typeOf(tv);
+    if (type) break;
+  }
+  await tv.waitForTimeout(MEASURE_MS);
+
+  const metrics = await readMetrics(tv);
+  await Promise.all([...phoneContexts.map((each) => each.close()), context.close()]);
+  return { game: target.game, round: target.round, pressed, scene: type, ...metrics };
+}
+
+const ONLY = (process.env['N10_GAMES'] ?? '')
+  .split(',')
+  .map((name) => name.trim())
+  .filter(Boolean);
+const deck = ONLY.length ? GAMES.filter((target) => ONLY.includes(target.game)) : GAMES;
+
 test.describe('N-10: ingressi', () => {
-  test('layout shift e long task per ognuno dei dieci giochi', async ({ browser }) => {
+  test('layout shift e long task per i giochi della scaletta', async ({ browser }) => {
     test.setTimeout(900_000);
     const token = await bootstrapToken(browser);
-    const rows: any[] = [];
+    const rows: Row[] = [];
     writeFileSync(OUT, '');
 
-    for (const target of GAMES) {
-      const gameId = await createGame(token);
-      const context = await browser.newContext({ viewport: VIEWPORT });
-      const tv = await context.newPage();
-      await instrumentObservers(tv);
-      await seedRound(tv, target.round);
-      await openTv(tv, gameId);
-
-      const phoneContexts = [];
-      for (let index = 1; index <= PHONES; index += 1) {
-        const phoneContext = await browser.newContext({ ...devices['iPhone 14'] });
-        phoneContexts.push(phoneContext);
-        const phone = await phoneContext.newPage();
-        await joinPhone(phone, gameId, `N10-${target.game.slice(0, 3)}${index}`);
-      }
-
-      // CPU 4× sulla TV, dopo il caricamento e prima dell'ingresso.
-      const session = await context.newCDPSession(tv);
-      await session.send('Emulation.setCPUThrottlingRate', { rate: 4 });
-
-      await seekRound(tv, target.round);
-      await reset(tv);
-      const pressed = await pressAdvance(tv);
-      let type: string | null = null;
-      for (let attempt = 0; attempt < 60; attempt += 1) {
-        await tv.waitForTimeout(500);
-        type = await typeOf(tv);
-        if (type) break;
-      }
-      await tv.waitForTimeout(MEASURE_MS);
-
-      const metrics = await readMetrics(tv);
-      const row = { game: target.game, round: target.round, pressed, scene: type, ...metrics };
+    for (const target of deck) {
+      const row = await measureGame(browser, token, target);
       rows.push(row);
       writeFileSync(OUT, `${rows.map((value) => JSON.stringify(value)).join('\n')}\n`);
       console.log(
-        `N-10 ${target.game.padEnd(18)} scena=${String(type).padEnd(18)} cls=${String(row.cls).padEnd(7)} `
+        `N-10 ${row.game.padEnd(18)} scena=${String(row.scene).padEnd(18)} cls=${String(row.cls).padEnd(7)} `
         + `shift=${row.shifts} long=${row.longtasks} max=${row.maxLongMs}ms `
-        + `nodi=${row.nodes.slice(0, 3).map((n: any) => `${n.node}(${n.value})`).join(' ')}`,
+        + `nodi=${row.nodes.slice(0, 3).map((node) => `${node.node}(${node.value})`).join(' ')}`,
       );
-
-      await Promise.all([...phoneContexts.map((each) => each.close()), context.close()]);
     }
 
     const missing = rows.filter((row) => !row.scene);
     if (missing.length) console.log(`N-10 scene non aperte: ${missing.map((row) => row.game).join(', ')}`);
+  });
+});
+
+/**
+ * Il rullo delle categorie cambia nome ogni 90 ms: la sua scatola non deve
+ * cambiare misura, altrimenti ogni tick sposta il rullo (l'ingresso più
+ * rumoroso di Quiz, Timeline e Ultima spiaggia).
+ */
+test.describe('N-10: rullo categorie', () => {
+  test('il rullo non sposta la scena', async ({ browser }) => {
+    test.setTimeout(300_000);
+    const token = await bootstrapToken(browser);
+    const gameId = await createGame(token);
+    const context = await browser.newContext({ viewport: VIEWPORT });
+    const tv = await context.newPage();
+    await instrumentObservers(tv);
+    await seedRound(tv, 1);
+    await openTv(tv, gameId);
+
+    const phoneContexts = [];
+    for (let index = 1; index <= PHONES; index += 1) {
+      const phoneContext = await browser.newContext({ ...devices['iPhone 14'] });
+      phoneContexts.push(phoneContext);
+      const phone = await phoneContext.newPage();
+      await joinPhone(phone, gameId, `ROLL${index}`);
+    }
+    const session = await context.newCDPSession(tv);
+    await session.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+
+    await seekRound(tv, 1);
+    expect(await pressAdvance(tv)).toBe(true);
+
+    const reelState = () => tv.evaluate(() => {
+      const component: any = (window as any).ng?.getComponent(
+        document.querySelector('app-game-component'),
+      );
+      return {
+        rolling: Boolean(component?.slotRolling?.()),
+        name: String(component?.slotRollName?.() ?? ''),
+      };
+    });
+    let sawRoll = false;
+    for (let attempt = 0; attempt < 60; attempt += 1) {
+      if ((await reelState()).rolling) {
+        sawRoll = true;
+        break;
+      }
+      await tv.waitForTimeout(250);
+    }
+    await reset(tv);
+    // Il nastro deve girare davvero: si contano i nomi diversi visti.
+    const names = new Set<string>();
+    for (let tick = 0; tick < 22; tick += 1) {
+      names.add((await reelState()).name);
+      await tv.waitForTimeout(250);
+    }
+
+    const metrics = await readMetrics(tv);
+    await Promise.all([...phoneContexts.map((each) => each.close()), context.close()]);
+
+    const reel = metrics.nodes.filter((node) => node.node.includes('slot-row'));
+    console.log(
+      `N-10 rullo cls=${metrics.cls} shift=${metrics.shifts} nomi=${names.size} `
+      + `nodi=${JSON.stringify(metrics.nodes)}`,
+    );
+    expect(sawRoll, 'il rullo non è mai partito: misura vuota').toBe(true);
+    expect(names.size, 'il nastro non ha cambiato nome').toBeGreaterThan(4);
+    expect(reel.map((node) => `${node.node}=${node.value}`).join(' ')).toBe('');
+    expect(metrics.cls).toBeLessThan(0.005);
   });
 });

@@ -387,10 +387,13 @@ la TV lo riallinea allo stato del server, che su una partita nuova è il round 0
 **Cosa dicono i numeri.** Il criterio di N-10 è zero shift e nessun task oltre
 50 ms: **nessun gioco lo rispetta**. Gli shift veri sono tre famiglie:
 
-1. **La lobby che si smonta** (`div.slot-row.chosen`, `div.lobby-steps`): è il
-   nodo dominante di Quiz (0,035), Timeline (0,032) e Ultima spiaggia (0,044),
-   con 28–39 spostamenti nella stessa finestra. La lista delle squadre viene
-   tolta dopo che la scena nuova è già montata, quindi il contenuto sotto sale.
+1. **Il rullo delle categorie che si allarga** (`div.slot-row.chosen`): è il
+   nodo dominante di Quiz (0,035, 37 spostamenti), Timeline (0,032, 28) e
+   Ultima spiaggia (0,044, 39). Non è la lobby: è la scatola del rullo, che
+   aveva solo `min-width` e cresceva a misura del nome, mentre il nome cambia
+   ogni 90 ms; il rullo, centrato, si spostava a ogni tick. **Corretto** con una
+   scatola fissa (larghezza 560 px, altezza di due righe riservate): il nastro
+   gira dentro un riquadro che non cambia mai misura.
 2. **Il layout della scena che si assesta** (Indovina chi: `clue-card`,
    `blur-title`, `blur-main-container`; Biglie: `bg-card`): un solo shift da
    0,03 con foto e card che prendono la loro altezza definitiva dopo il primo
@@ -402,6 +405,23 @@ Sui long task non c'è un gioco pulito: il peggiore è **Timeline a 1480 ms** (u
 frame e mezzo di attesa), poi Ultima spiaggia 679, Time Buzzer 490, Speed Rush
 463, Bomba 342, Indovina chi 337.
 
-**Da fare.** Correggere le tre famiglie (via la lobby prima del montaggio; altezze
-riservate per foto/card; shell a misura fissa), un commit per causa, e rilanciare
-lo stesso banco per la colonna «dopo».
+**Tabella (dopo la correzione del rullo).** Rimisurati gli stessi tre giochi con
+lo stesso banco (`N10_GAMES=QUIZ,TIMELINE,ULTIMA_SPIAGGIA`), CPU 4×, 1280×720:
+
+| Gioco | CLS prima | CLS dopo | shift prima | shift dopo | nodi rimasti |
+| --- | --- | --- | --- | --- | --- |
+| Quiz | 0,038 | **0,002** | 25 | 1 | `div.lobby-steps` (0,001), `div.conn-shell` (0,001) |
+| Timeline | 0,032 | **0,001** | 22 | 0 | `div.conn-shell` (0,001) |
+| Ultima spiaggia | 0,044 | **0,000** | 28 | 0 | nessuno |
+
+Il rullo non compare più fra i nodi in nessuno dei tre. Restano i long task
+(Quiz 615, Timeline 557, Ultima 330 ms) e il `div.conn-shell` da 0,001, che sono
+le altre due famiglie, non ancora toccate.
+
+**Guardia.** `N-10: rullo categorie › il rullo non sposta la scena` apre il Quiz
+con tre telefoni, aspetta che il nastro parta, conta i nomi diversi visti (11 in
+5,5 s: senza questo il test potrebbe passare su un rullo mai partito) e
+pretende zero shift da `slot-row` e CLS < 0,005.
+
+**Da fare.** Le altre due famiglie: altezze riservate per foto e card (Indovina
+chi 0,031, Biglie 0,011) e `div.conn-shell` a misura fissa (0,001 su tutti).
