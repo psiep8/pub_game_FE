@@ -1591,7 +1591,11 @@ export class RemoteComponent implements OnInit, OnDestroy {
     const me = (this.nickname() ?? '').trim().toLowerCase();
     const wrong = Array.isArray(data.wrongPlayers)
       && data.wrongPlayers.some((name: unknown) => String(name).trim().toLowerCase() === me);
+    // La prenotazione è una sola per manca e la TV manda il nome a tutte le
+    // squadre: solo chi ha premuto vede il proprio "prenotato", le altre
+    // aspettano il presentatore.
     const buzzed = String(data.buzzedPlayer ?? '').trim();
+    const buzzedByMe = buzzed.length > 0 && buzzed.toLowerCase() === me;
     this.questionType.set('MUSIC');
     this.roundActive.set(true);
     this.roundClosed.set(false);
@@ -1602,8 +1606,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (open) {
       this.startTime = Date.now();
       this.gameState.set(PlayerStatus.VOTING);
-    } else if (buzzed || wrong) {
+    } else if (buzzedByMe || wrong) {
       this.gameState.set(PlayerStatus.LOCKED);
+    } else if (buzzed) {
+      this.gameState.set(PlayerStatus.WAITING_FOR_OTHER);
     } else {
       this.gameState.set(PlayerStatus.WAITING);
     }
@@ -1663,7 +1669,10 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (payload?.round) this.roundNumber.set(Number(payload.round));
     if (payload?.roundTotal) this.roundTotal.set(Number(payload.roundTotal));
     this.startTime = Date.now();
-    this.hasAnswered.set(false);
+    // Musica: il tasto lo arma solo MUSIC_PHASE (fase BUZZ). START_VOTING esce
+    // prima del primo annuncio: senza questa riga si poteva prenotare durante
+    // l'ascolto, dove la modalità rifiuta la prenotazione senza dirlo.
+    this.hasAnswered.set(type === 'MUSIC');
     this.selectedAnswer.set(null);
 
 

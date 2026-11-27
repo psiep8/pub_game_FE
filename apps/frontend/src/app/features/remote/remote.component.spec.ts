@@ -1128,6 +1128,58 @@ describe('RemoteComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Sei PRENOTATO!');
   });
 
+  it("in Musica l'apertura del round non arma il tasto: lo fa l'annuncio di fase", async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    component.onStartVoting('MUSIC');
+    fixture.detectChanges();
+
+    // START_VOTING esce prima del primo annuncio di fase: se il tasto si
+    // aprisse qui, una prenotazione durante l'ascolto cadrebbe nel vuoto.
+    const armato = () => (fixture.nativeElement.querySelector('.buzz-button.music-theme') as HTMLButtonElement | null);
+    expect(component.questionType()).toBe('MUSIC');
+    expect(component.hasAnswered()).toBe(true);
+    expect(armato()?.disabled).toBe(true);
+
+    ws.status$.next({
+      action: 'MUSIC_PHASE',
+      state: { phase: 'BUZZ', manche: 1, listen: 1, buzzedPlayer: null, wrongPlayers: [] },
+    });
+    fixture.detectChanges();
+
+    expect(component.hasAnswered()).toBe(false);
+    expect(armato()?.disabled).toBe(false);
+  });
+
+  it('in Musica solo chi si è prenotato vede il proprio tasto bloccato', async () => {
+    component.tempNickname = 'Anna';
+    await component.setNickname();
+    component.closeButtonTest();
+    component.onStartVoting('MUSIC');
+
+    // La manca è di Bruno: Anna deve aspettare, non credere di essersi prenotata.
+    ws.status$.next({
+      action: 'MUSIC_PHASE',
+      state: { phase: 'BUZZ', manche: 1, listen: 1, buzzedPlayer: 'Bruno', wrongPlayers: [] },
+    });
+    fixture.detectChanges();
+
+    expect(component.gameState()).toBe(PlayerStatus.WAITING_FOR_OTHER);
+    expect(fixture.nativeElement.textContent).toContain('Qualcuno si è prenotato!');
+    expect(fixture.nativeElement.textContent).not.toContain('Sei PRENOTATO!');
+
+    // Chi si è prenotato, invece, vede il proprio stato definitivo.
+    ws.status$.next({
+      action: 'MUSIC_PHASE',
+      state: { phase: 'BUZZ', manche: 1, listen: 1, buzzedPlayer: 'Anna', wrongPlayers: [] },
+    });
+    fixture.detectChanges();
+
+    expect(component.gameState()).toBe(PlayerStatus.LOCKED);
+    expect(fixture.nativeElement.textContent).toContain('Sei PRENOTATO!');
+  });
+
   it('manda il voto Quiz al server, non via WebSocket', async () => {
     component.tempNickname = 'Anna';
     await component.setNickname();
