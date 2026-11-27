@@ -21,7 +21,7 @@
   gap: clamp(6px, 1.2vh, 14px);
   /* Sotto i 1280 il foglio resta 92vw, come prima; sopra prende 7/8 della
      larghezza: 1120 a 1280, 1680 a 1920. A 4K si lavora a 200% (CSS 1920):
-     il tetto 1680 vale 3360 device px. */
+     1680 CSS = 3360 px del pannello. */
   width: clamp(1120px, 87.5vw, 1680px);
   max-width: 92vw;
   height: 100%;

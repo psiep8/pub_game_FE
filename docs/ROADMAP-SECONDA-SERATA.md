@@ -602,8 +602,8 @@ con due o tre si fermano al tetto di 17vh (122,4 px) e con cinque stanno a 95,6;
 da otto in su la misura resta quella di sempre. A 1920×1080 controlla il foglio
 da 1680 px e le righe 183,6 / 151,4 / 90,9 / 70,7 / 96, senza scroll. A 1100 e
 1366 controlla che il foglio resti 92vw sotto i 1280 (1012) e cresca sopra
-(1195,3). A 4K con DPR 2 controlla che il CSS resti 1920×1080, il foglio 1680
-CSS (3360 device) e le righe 183,6/70,7; a 3840 CSS il formato non è supportato.
+(1195,3). A 4K a 200% il CSS è 1920×1080: è il caso 1080, già coperto dal banco;
+a 3840 CSS il formato non è supportato.
 
 **Misura a 1280×720 (Chromium, DPR 1, banco con 4/8/10/14/20 squadre).** Il
 foglio sta in 1120×640.7 (80→1200), testata 62→127, piede a 680.4, nessuno
@@ -676,14 +676,14 @@ prima. Ora il minimo è 1120 con `max-width: 92vw`: a 1100 il foglio è 1012, a
 scroll. A 1024 il `/tv` non si apre: il guard desktop manda su `/play` (≤1024 è
 mobile), quindi il caso più stretto misurabile è 1025; il banco usa 1100.
 
-**Scelta: 200%, niente skin.** A 3840 CSS il riepilogo a 2× conviveva con una
-dock e un resto della TV a 1×: una skin locale non è coerente. A 4K il TV va
-portato al 200% (zoom del browser o scaling di sistema): il CSS torna
-1920×1080 e tutto il layout 1080 — riepilogo, dock, giochi — scala insieme. Il
-foglio è 1680 CSS = 3360 device px (87,5%), righe 183,6/70,7 e dock 128 device.
-720/1080 restano quelli di sempre. Se il TV resta a 3840 CSS, il riepilogo è
-1680 (43,75%) e tutto è a 1×: non è un formato supportato; servirebbe un
-refactor globale delle unità (vh/px), non un tetto. La skin 2× è stata rimossa.
+**Scelta: 200%.** A 3840 CSS il riepilogo sarebbe 2× contro una dock e un resto
+della TV a 1×: non è una scala coerente. A 4K il TV va portato al 200% (zoom
+del browser o scaling di sistema): il CSS torna 1920×1080 e tutto il layout
+1080 — riepilogo, dock, giochi — scala insieme. Il foglio è 1680 CSS = 3360
+device px (87,5%), righe 183,6/70,7 e dock 128 device. 720/1080 restano quelli
+di sempre. Se il TV resta a 3840 CSS, il riepilogo è 1680 (43,75%) e tutto è a
+1×: non è un formato supportato; servirebbe un refactor globale delle unità
+(vh/px), non un tetto.
 
 **ESC, pausa e ripresa** (tastiera vera, otto secondi di pausa per caso). Il
 tempo fermo non scende, la pagina non cambia e la scena resta aperta; alla
@@ -717,7 +717,7 @@ crescerebbero a 249,9 e 164,2. A 1080p il foglio restava 1120 px su 1920: ora
 `clamp(1120px, 87.5vw, 1680px)` con `max-width: 92vw` lo porta a 1680 (120 px
 di margine per lato), mentre a 1280 resta 1120 e sotto i 1280 resta 92vw. A 4K si lavora al 200%
 (CSS 1920): il foglio 1680 CSS = 3360 device e il layout 1080 scala tutto;
-a 3840 CSS niente skin 2×. La scena vera
+a 3840 CSS il formato non è supportato. La scena vera
 ha aggiunto tre difetti che il banco isolato non poteva vedere: dock coperta
 dallo z-index, testata sotto la dock (mancava la fascia) e nomi centrati dal
 `text-align: center` legacy di `.game-container`.
