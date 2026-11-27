@@ -256,3 +256,35 @@ macchina della serata.
 - (b) Riepilogo del round: N-11, ancora aperto.
 - (c) Nome del prodotto: manuali, demo e PDF dicono già **quizzOne**; «PubGame»
   resta solo dove è il nome tecnico del repository (`README`, `DEPLOYMENT`).
+
+### M-03 la soluzione non è nei telefoni — **Payload fatto, banco squadre da fare**
+
+**Causa.** `getSafeDisplayData()` azzerava `correctAnswer`, ma nella Musica la
+soluzione non è quel campo: titolo, artista, anno, copertina e `previewUrl`
+(anche dentro `songs[]` e nella banca grezza `rawPayload`) partivano verso i
+telefoni con lo stato del round. Chi apriva gli strumenti del browser
+riconosceva il brano senza ascoltarlo.
+
+**Intervento.** Un solo filtro, `phoneSafeState()`, ripulisce lo stato, gli
+eventi di fase (`MUSIC_PHASE`) e la banca grezza prima della trasmissione; la
+scene della TV continuano a leggere lo stato del componente, quindi non
+perdono né copertina né clip.
+
+**Test.** `game.component.spec.ts` → «non manda mai la soluzione della Musica ai
+telefoni»: nessun campo vietato, `songs[]` vuoto di titoli, nessun
+`/media/music/` nel JSON.
+
+**Resta aperto.** Il banco con 4, 8, 10, 14 e 20 squadre su tutte le schermate
+che mostrano elenchi (lobby, riepilogo round, classifica rapida e dettagliata):
+va scritto come prova E2E dedicata, perché oggi i banchi esistenti usano tre
+telefoni.
+
+### M-04 stima dei tempi per atto — **Aperto**
+
+Serve un numero per atto da dare al presentatore. I tempi dei round sono già in
+`apps/frontend/src/app/shared/models/game-timings.ts` per Quiz, Musica,
+Indovina chi, Ruota, Timeline e Time Buzzer; gli altri giochi li dichiarano nel
+proprio mode (`timerDuration`). Il lavoro è: una tabella unica, un test che
+fallisca se un gioco della scaletta non ha il suo tempo e la somma per atto in
+`docs/TEMPI-SERATA.md`. Non ho scritto numeri stimati a occhio: la tabella deve
+nascere dai tempi dichiarati nel codice.
