@@ -236,43 +236,49 @@
   white-space: nowrap;
 }
 
+/* Timbro dentro la copertina: annuncia il podio senza coprirlo. */
 .grand-leaderboard .film-preannounce {
-  position: fixed;
-  inset: 0;
-  z-index: 21000;
+  position: absolute;
+  top: clamp(10px, 2vh, 18px);
+  left: clamp(10px, 2vw, 18px);
+  z-index: 5;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(10px, 2vh, 22px);
-  padding: 8vw;
+  align-items: flex-start;
+  gap: 4px;
+  width: min(280px, 26vw);
+  padding: 10px 14px;
   background: var(--coal);
   color: var(--paper-hi);
-  box-shadow: inset 0 0 0 10px var(--acid);
-  text-align: center;
+  border: 3px solid var(--paper-hi);
+  box-shadow: 8px 8px 0 var(--tomato);
+  pointer-events: none;
+  text-align: left;
+  transform: rotate(1deg);
 }
 
 .grand-leaderboard .film-preannounce-kicker {
   color: var(--acid);
   font-family: var(--font-mono);
-  font-size: clamp(0.8rem, 2.2vh, 1.2rem);
+  font-size: clamp(0.58rem, 1.4vh, 0.76rem);
   font-weight: 700;
-  letter-spacing: 0.34em;
+  letter-spacing: 0.22em;
 }
 
 .grand-leaderboard .film-preannounce-title {
   color: var(--paper-hi);
   font-family: var(--font-display);
-  font-size: clamp(2.8rem, 11vh, 7rem);
+  font-size: clamp(1.2rem, 3.6vh, 2rem);
   font-weight: 400;
-  line-height: 0.92;
+  line-height: 0.95;
   letter-spacing: 0.01em;
   text-transform: uppercase;
 }
 
 .grand-leaderboard .film-preannounce-rule {
-  width: min(480px, 52vw);
-  height: 5px;
+  width: 100%;
+  height: 4px;
+  margin-top: 2px;
   background: var(--tomato);
   border: 2px solid var(--paper-hi);
   transform: rotate(-1deg);

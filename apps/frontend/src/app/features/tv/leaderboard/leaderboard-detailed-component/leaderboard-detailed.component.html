@@ -99,20 +99,20 @@
         <div class="medal bronze-medal">🥉</div>
       }
 
-    </div>
-  }
+      @if (podiumSoon(); as position) {
+        <div class="film-preannounce" [@fadeIn]>
+          <span class="film-preannounce-kicker">TRA POCO</span>
+          <strong class="film-preannounce-title">
+            @if (position === 1) {
+              IL VINCITORE
+            } @else {
+              IL PODIO · {{ position }}° POSTO
+            }
+          </strong>
+          <span class="film-preannounce-rule"></span>
+        </div>
+      }
 
-  @if (podiumSoon(); as position) {
-    <div class="film-preannounce" [@fadeIn]>
-      <span class="film-preannounce-kicker">TRA POCO</span>
-      <strong class="film-preannounce-title">
-        @if (position === 1) {
-          IL VINCITORE
-        } @else {
-          IL PODIO · {{ position }}° POSTO
-        }
-      </strong>
-      <span class="film-preannounce-rule"></span>
     </div>
   }
 
