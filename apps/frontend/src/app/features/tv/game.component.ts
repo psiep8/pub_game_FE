@@ -163,8 +163,9 @@ const MUSIC_THEME_LAYOUT = [
   // usa questa classe per lasciare libera la fascia in alto.
   host: {
     '[class.leaderboard-open]': 'isShowingLeaderboard()',
-    // La regia ferma la ripartenza automatica anche da tastiera.
-    '(document:keydown.escape)': 'skipAutoAdvance()',
+    // La regia ferma la ripartenza automatica anche da tastiera; sul
+    // riepilogo del round ESC è la pausa, non un salto al gioco dopo.
+    '(document:keydown.escape)': 'onEscapeKey()',
   },
   animations: [
     trigger('fadeInOut', [
@@ -576,6 +577,9 @@ export class GameComponent implements OnInit, OnDestroy {
       }
       return;
     }
+
+    // Riepilogo in scena: ESC è la pausa, non un verdetto sul buzz.
+    if (this.roundRecapOpen()) return;
 
     const mode = this.currentMode();
     if (!mode || !mode.requiresBuzz) return;
@@ -2682,23 +2686,39 @@ export class GameComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * ESC in regia. Sul riepilogo del round ferma la sala e la fa riprendere
+   * dallo stesso punto; fuori dal riepilogo resta il «salta attesa» di F-12.
+   */
+  onEscapeKey(): void {
+    if (this.roundRecapOpen()) {
+      this.togglePause();
+      return;
+    }
+    this.skipAutoAdvance();
+  }
+
   togglePause() {
     // F-12: la pausa ferma il conto alla rovescia, non lo cancella; alla
     // ripresa riparte da dove era (l'intervallo salta i tick in pausa).
     const mode = this.currentMode();
+    // Sul riepilogo il round è già chiuso: modalità e server non si toccano,
+    // altrimenti la ripresa farebbe ripartire il timer di un round finito.
+    // Si fermano la scena e il suo clock, che riprende dai tempi rimasti.
+    const recapOnly = this.roundRecapOpen();
 
     if (this.isPaused()) {
       // La ripresa vale anche senza round né bonus: se il bonus si chiude
       // mentre la sala è ferma, l'overlay non deve restare appeso.
       this.stage.setPaused(false);
-      if (mode) {
+      if (mode && !recapOnly) {
         this.syncPauseToServer(false);
         mode.resume();
       }
       this.isPaused.set(false);
       // Il clock era stato fermato alla pausa: si riapre solo se il round ha
       // ancora un conto alla rovescia da suonare, e il sottofondo riparte.
-      if (mode) {
+      if (mode && !recapOnly) {
         // Solo se il round ha ancora un conto alla rovescia: dopo la scadenza
         // nessun `onTimerEnd` arriverebbe più a fermare questo tic.
         if (this.roundClockApplies(mode)) this.audioService.startClock();
@@ -2711,8 +2731,9 @@ export class GameComponent implements OnInit, OnDestroy {
       this.republishLiveState();
     } else {
       // Anche un bonus è un momento della serata: la pausa vale pure lì, dove
-      // non esiste una modalità di round da fermare sul server.
-      if (!mode && !this.bonusActive()) return;
+      // non esiste una modalità di round da fermare sul server. E vale sul
+      // riepilogo, dove il round è chiuso ma la scena sta ancora andando.
+      if (!mode && !this.bonusActive() && !recapOnly) return;
       // Pausa vera anche per l'audio: niente tick, battito né sottofondo
       // mentre la sala aspetta, altrimenti la musica va avanti a gioco fermo.
       this.audioService.stopClock();
@@ -2720,7 +2741,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.audioService.pauseBeds();
       // Il nastro della regia si ferma: la fase raggiunta non si perde.
       this.stage.setPaused(true);
-      if (mode) {
+      if (mode && !recapOnly) {
         this.syncPauseToServer(true);
         mode.pause();
       }

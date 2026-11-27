@@ -541,7 +541,7 @@ sui signal, non un mock statico).
 misurati a CPU 4×) e il componente unico `FeedbackCard` per
 esito corretto/sbagliato: oggi ogni gioco disegna la propria card.
 
-### N-11 riepilogo di fine round condiviso — **Codice e test fatti, misura a 720p da fare**
+### N-11 riepilogo di fine round condiviso — **Fatto (misurato a 1280×720)**
 
 **Causa.** Chiuso un round, la TV passava subito al bonus, alla classifica di
 fine atto o all'attesa di trenta secondi: i punti fatti e persi in quel round
@@ -574,16 +574,40 @@ sceso.
 - **Quando non c'è:** meno di due squadre o nessuna variazione di punti. Il
   tabellone a 14 giochi (riepilogo sì/no, durata, quando riparte) sta in testa
   a `round-recap-model.ts`.
+- **Pausa (ESC):** il riepilogo ha un orologio suo, con tempi rimasti invece di
+  un intervallo: la pausa congela pagina e chiusura, la ripresa riparte dal
+  millisecondo in cui si era fermata. Sul riepilogo la modalità del round non
+  si tocca (è già chiusa: `resume()` farebbe ripartire il suo timer), e la
+  testata mostra il timbro **PAUSA**; fuori dal riepilogo ESC resta il «salta
+  attesa» di F-12.
 
 **Test.** `round-recap-model.spec.ts` (8 casi: ordine, pari merito, pagine a
 4/8/10/14/20 squadre, durate, giochi esclusi), `round-recap.component.spec.ts`
-(4 casi: pagina unica, pagine da sette con podio in fondo, chiusura una volta
-sola, delta firmati), `game.component.spec.ts` (2 casi: il riepilogo si apre
-con i delta e l'attesa resta a zero; chiuso il riepilogo partono i 30 s).
-155 test verdi sui tre file, `ng build` verde (restano gli avvisi di budget CSS
-e i due moduli CommonJS già presenti).
+(7 casi: pagina unica, pagine da sette con podio in fondo, chiusura una volta
+sola, pausa e ripresa a metà scena e sull'ultima pagina, timbro PAUSA, delta
+firmati), `game.component.spec.ts` (4 casi: il riepilogo si apre con i delta e
+l'attesa resta a zero; chiuso il riepilogo partono i 30 s; ESC mette in pausa
+senza saltare il round e senza toccare la modalità; fuori dal riepilogo resta
+il salto). 160 test verdi sui tre file, `ng build` verde (restano gli avvisi di
+budget CSS e i due moduli CommonJS già presenti).
 
-**Resta aperto.** La misura a 1280×720 del foglio con 4/8/10/14/20 squadre
-(righe, ombre, dock della regia) non è stata fatta: il componente è verificato
-nei test, non ancora guardato in scena. Da decidere in sala se 8 s per round
-siano sostenibili su quaranta round.
+**Misura a 1280×720 (Chromium, DPR 1, banco con 4/8/10/14/20 squadre).** Il
+foglio sta in 1120×640.7 (80→1200), testata 62→127, piede a 680.4, nessuno
+scroll di pagina (1280×720). Righe: 4 squadre 66.2 px (255→542), 8 squadre
+60.1 px (133→664), 10 squadre 46.7 px (133→664), 14 e 20 squadre 66.2 px a
+pagina (145→652). Ombre tutte dentro: bordo destro delle righe 1192, ombra
+normale 1196, ombra del podio 1200 (la regola di testata), ultima ombra a 672
+contro il piede a 680.4. Nessuna riga sotto i 30 px, nessun nome tagliato.
+
+**Corretto dopo la misura.** La testata metteva kicker e titolo ai due estremi
+e il contatore pagine spostava il titolo al centro: ora kicker e titolo sono
+una colonna sola (`recap-titles`) e il contatore è l'unico altro figlio. Le
+ombre erano tagliate dal `overflow: hidden` del contenitore (4 px sul bordo
+destro, 8 px sull'ultima riga): il contenitore non ritaglia più, riserva 8 px
+a destra e la fascia sotto, e le righe crescono fino a 96 px quando sono poche
+(prima restavano a 50 px e la pagina da quattro sembrava vuota).
+
+**Non eseguito.** `npm run audit:design` (Impeccable) non parte su questo
+computer: manca il binario verificato per windows-arm64 (`no checksum for
+engine 0.1.31`). Resta da decidere in sala se 8 s per round siano sostenibili
+su quaranta round.

@@ -34,11 +34,20 @@
   border-bottom: 4px solid var(--coal);
 }
 
+/* Kicker e titolo restano una colonna sola: il contatore pagine è l'unico
+   altro figlio della testata e non deve spostare il titolo al centro. */
+.recap-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
 .recap-kicker {
   margin-bottom: 2px;
   color: var(--tomato);
   font-family: var(--font-mono);
-  font-size: clamp(0.55rem, 1.4vh, 0.78rem);
+  font-size: clamp(0.58rem, 1.55vh, 0.8rem);
   font-weight: 700;
   letter-spacing: 0.16em;
 }
@@ -54,8 +63,28 @@
   text-transform: uppercase;
 }
 
-.recap-counter {
+.recap-flags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 4px;
+}
+
+/* Timbro della pausa: la scena resta leggibile mentre la sala è ferma. */
+.recap-paused {
+  padding: 2px 9px;
+  background: var(--tomato);
+  color: var(--paper-hi);
+  border: 2px solid var(--coal);
+  box-shadow: 3px 3px 0 var(--coal);
+  font-family: var(--font-mono);
+  font-size: clamp(0.55rem, 1.4vh, 0.78rem);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  transform: rotate(-1.5deg);
+}
+
+.recap-counter {
   padding: 2px 9px;
   background: var(--coal);
   color: var(--paper-hi);
@@ -65,6 +94,9 @@
   letter-spacing: 0.12em;
 }
 
+/* L'ombra offset esce dalla riga a destra e in basso: il contenitore non la
+   taglia (niente `overflow: hidden`) e le riserva la fascia sotto, così
+   l'ultima riga non appoggia l'ombra sulla riga del piede. */
 .recap-rows {
   display: flex;
   flex: 1 1 auto;
@@ -72,7 +104,10 @@
   justify-content: center;
   gap: clamp(5px, 1vh, 10px);
   min-height: 0;
-  overflow: hidden;
+  /* 8px a destra = l'ombra più larga (il podio): nessuna ombra supera la
+     riga di testata, e il corpo delle righe resta allineato alla regola. */
+  padding: 0 8px clamp(8px, 1.4vh, 14px) 0;
+  overflow: visible;
 }
 
 .recap-row {
@@ -80,9 +115,9 @@
   grid-template-columns: clamp(30px, 4.2vh, 48px) minmax(0, 1fr) auto auto;
   align-items: center;
   gap: clamp(8px, 1.4vw, 22px);
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-height: clamp(32px, 4.2vh, 50px);
-  max-height: clamp(44px, 7vh, 74px);
+  max-height: clamp(52px, 9.2vh, 96px);
   padding: clamp(4px, 0.9vh, 10px) clamp(10px, 1.8vw, 22px);
   background: var(--paper-hi);
   border: 3px solid var(--coal);
@@ -177,7 +212,7 @@
 .recap-note {
   color: var(--tomato-ink);
   font-family: var(--font-mono);
-  font-size: clamp(0.52rem, 1.3vh, 0.72rem);
+  font-size: clamp(0.55rem, 1.45vh, 0.74rem);
   font-weight: 700;
   letter-spacing: 0.14em;
 }

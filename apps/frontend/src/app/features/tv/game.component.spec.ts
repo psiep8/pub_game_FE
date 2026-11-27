@@ -2132,6 +2132,46 @@ describe('GameComponent', () => {
     component.stopAutoAdvance();
   });
 
+  it('N-11: ESC sul riepilogo mette la sala in pausa e la riprende dallo stesso punto', () => {
+    const tv = component as unknown as {
+      beginRoundScoring(): void;
+      checkLeaderboardDisplay(): void;
+      startScheduledBonus(): boolean;
+    };
+    vi.spyOn(tv, 'startScheduledBonus').mockReturnValue(false);
+    const next = vi.spyOn(component, 'adminNextRound').mockImplementation(() => {});
+    component.currentGameId.set(1);
+    const mode = { type: 'QUIZ', requiresBuzz: false, pause: vi.fn(), resume: vi.fn() };
+    component.currentMode.set(mode as any);
+
+    tv.beginRoundScoring();
+    leaderboard.addPoints('Anna', 20, true);
+    leaderboard.addPoints('Bea', 5, true);
+    tv.checkLeaderboardDisplay();
+    expect(component.roundRecapOpen()).toBe(true);
+
+    component.onEscapeKey();
+    expect(component.isPaused()).toBe(true);
+    // Il round è chiuso: la modalità non si riapre e non si salta al gioco dopo.
+    expect(mode.pause).not.toHaveBeenCalled();
+    expect(next).not.toHaveBeenCalled();
+
+    component.onEscapeKey();
+    expect(component.isPaused()).toBe(false);
+    expect(mode.resume).not.toHaveBeenCalled();
+    expect(next).not.toHaveBeenCalled();
+    component.stopAutoAdvance();
+  });
+
+  it('N-11: fuori dal riepilogo ESC resta il salto dell’attesa', () => {
+    const next = vi.spyOn(component, 'adminNextRound').mockImplementation(() => {});
+
+    component.onEscapeKey();
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(component.isPaused()).toBe(false);
+  });
+
   it('closes the round count when a recovered round is closed after a refresh', () => {
     const game = TestBed.inject(GameService) as unknown as FakeGameService;
     vi.spyOn(game, 'closeRound').mockReturnValue(of({}));

@@ -1,11 +1,18 @@
 <section class="recap" role="region" aria-label="Riepilogo del round">
   <div class="recap-sheet">
     <header class="recap-head">
-      <div class="recap-kicker">RIEPILOGO DEL ROUND</div>
-      <h1 class="recap-title">{{ label }}</h1>
-      @if (pages().length > 1) {
-        <div class="recap-counter" aria-hidden="true">{{ pageIndex() + 1 }} / {{ pages().length }}</div>
-      }
+      <div class="recap-titles">
+        <div class="recap-kicker">RIEPILOGO DEL ROUND</div>
+        <h1 class="recap-title">{{ label }}</h1>
+      </div>
+      <div class="recap-flags">
+        @if (paused) {
+          <div class="recap-paused" role="status">PAUSA</div>
+        }
+        @if (pages().length > 1) {
+          <div class="recap-counter" aria-hidden="true">{{ pageIndex() + 1 }} / {{ pages().length }}</div>
+        }
+      </div>
     </header>
 
     @for (page of pages(); track $index; let index = $index) {

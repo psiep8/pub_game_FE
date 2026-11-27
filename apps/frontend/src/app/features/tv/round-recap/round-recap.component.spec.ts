@@ -84,6 +84,69 @@ describe('RoundRecap (N-11)', () => {
     expect(done).toHaveBeenCalledTimes(1);
   });
 
+  it('la pausa ferma pagina e chiusura, la ripresa riparte da dove era', () => {
+    const { fixture, done } = create(rows(12));
+    const component = fixture.componentInstance;
+    const element = fixture.nativeElement as HTMLElement;
+
+    vi.advanceTimersByTime(1_000);
+    component.paused = true;
+    vi.advanceTimersByTime(20_000);
+    fixture.detectChanges();
+
+    // Fermo sulla prima pagina, senza chiudersi: il tempo non scorre in pausa.
+    expect(component.pageIndex()).toBe(0);
+    expect(element.querySelectorAll('.recap-row')).toHaveLength(7);
+    expect(done).not.toHaveBeenCalled();
+
+    component.paused = false;
+    vi.advanceTimersByTime(2_000);
+    fixture.detectChanges();
+    expect(component.pageIndex()).toBe(1);
+
+    // Restano sette secondi di scena: la chiusura non si anticipa.
+    vi.advanceTimersByTime(4_999);
+    expect(done).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(done).toHaveBeenCalledTimes(1);
+
+    fixture.destroy();
+  });
+
+  it('ferma anche l’ultima pagina e chiude col tempo che restava', () => {
+    const { fixture, done } = create(rows(12));
+    const component = fixture.componentInstance;
+
+    // A 6 s la terza pagina (la seconda, per 12 squadre) è in scena.
+    vi.advanceTimersByTime(6_000);
+    expect(component.pageIndex()).toBe(1);
+
+    component.paused = true;
+    vi.advanceTimersByTime(30_000);
+    expect(done).not.toHaveBeenCalled();
+
+    component.paused = false;
+    vi.advanceTimersByTime(1_999);
+    expect(done).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(done).toHaveBeenCalledTimes(1);
+
+    fixture.destroy();
+  });
+
+  it('mostra il timbro PAUSA quando la sala è ferma', () => {
+    const { fixture } = create(rows(4));
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('.recap-paused')).toBeNull();
+
+    fixture.componentInstance.paused = true;
+    fixture.detectChanges();
+
+    expect(element.querySelector('.recap-paused')?.textContent).toContain('PAUSA');
+    fixture.destroy();
+  });
+
   it('scrive le variazioni con il segno, zero compreso', () => {
     const { fixture } = create(rows(2));
     const component = fixture.componentInstance;
