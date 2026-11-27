@@ -2635,6 +2635,33 @@ describe('GameComponent', () => {
       fresh.destroy();
     });
 
+    it('chiuso un bonus, la classifica rapida del round resta in coda [N-13]', async () => {
+      vi.useFakeTimers();
+      try {
+        const rounds = TestBed.inject(RoundManagerService);
+        // Round 4 appena chiuso: è uno degli slot della classifica rapida.
+        rounds.restoreRound(4);
+        component.currentGameId.set(1);
+        component.bonusEntrance.set(null);
+        component.bonusActive.set(true);
+        component.bonusType.set('BLACKJACK');
+        vi.spyOn(rounds, 'bonusAfterRound').mockReturnValue('BLACKJACK');
+        vi.spyOn(rounds, 'bonusActIndex').mockReturnValue(0);
+        vi.spyOn(rounds, 'shouldShowLeaderboard').mockReturnValue('QUICK');
+
+        (component as unknown as { finishBonus(): void }).finishBonus();
+        await vi.advanceTimersByTimeAsync(0);
+
+        // Chiuso il bonus, la coda del round deve mostrare la rapida e non
+        // saltare direttamente al round 5.
+        expect(component.showLeaderboardQuick()).toBe(true);
+        expect(component.isShowingLeaderboard()).toBe(true);
+        expect(rounds.getCurrentRound()).toBe(4);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
     it('chiuso un bonus di metà atto, la scaletta riparte dal round successivo', async () => {
       vi.useFakeTimers();
       try {

@@ -3129,10 +3129,12 @@ export class GameComponent implements OnInit, OnDestroy {
       this.bonusType.set(null);
       // La regia ha già avanzato: il round è cambiato, niente secondo salto.
       if (this.roundManager.getCurrentRound() !== closedAtRound) return;
-      // Il bonus vive dentro l'atto: chiuso il riepilogo si riprende la
-      // scaletta dal round successivo, senza una seconda classifica.
+      // Il bonus vive dentro l'atto: chiuso il riepilogo si torna alla coda
+      // del round, non direttamente al successivo. Il bonus appena pagato è
+      // già in `bonusClosed`, quindi la coda non lo riapre e valuta la
+      // classifica (rapida al 4, dettagliata all'8) prima dell'attesa.
       if (!this.currentMode() && !this.isShowingLeaderboard() && !this.roundManager.isGameOver()) {
-        this.startAutoAdvance();
+        this.continueAfterRound();
       }
     }, summaryMs);
   }

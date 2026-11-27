@@ -48,7 +48,7 @@ scadenza e blocco dopo cinque errori).
 | N-07 — Tick infinito | **Da fare** | Il controllo dei proprietari audio (`AudioChannels.setOwner`) spegne già i loop della scena uscente; non è stata trovata una causa riproducibile senza la serata. |
 | N-08 — Vibrazione e fallback iPhone | **Fatto** | Se `navigator.vibrate` manca o è negata, il via accende un flash e un colpo breve; `BONUS_STARTED` usa lo stesso percorso. |
 | N-09 — Karaoke: controlli e demo | **Parziale** | Aggiunto `npm run check:karaoke` (banca, clip, testi e almeno 5 manche complete). Restano banner di conteggio nella lobby e prova completa con `?karaoke-demo=1`. |
-| N-10…N-15 (blocco B) | **Da fare** | |
+| N-10…N-15 (blocco B) | **Parziale** | N-10 misurato, N-11 e N-12 fatti. N-13: la classifica dopo il bonus non si salta più; resta il primo round sincronizzato. N-14 e N-15 da fare. |
 | N-16…N-48 (blocco C) | **Da fare** | D2 (Timeline e gioco che la sostituisce nell'atto 1) **non toccata**: serve la scelta del committente. |
 | N-49…N-51 (blocco D) | **Da fare** | |
 | N-52…N-55 (blocco E) | **Da fare** | N-53 si ferma alla demo Quiz per approvazione. |
@@ -358,6 +358,25 @@ rifiutate, poi `BET` da 30 s. Anche `restore()` riconosce la fase di lettura.
 comandate dalla regia, quindi il presentatore ha già il tempo di leggere; la
 Ruota ha un round unico. Con questo, N-12 è chiuso per tutti i giochi con
 passaggio automatico fra le manche.
+
+### N-13 classifica rapida dopo il bonus — **Fatto (parte classifica)**
+
+**Causa.** `continueAfterRound()` dà la precedenza al bonus dello slot e torna
+senza valutare `shouldShowLeaderboard()`. Alla chiusura, `finishBonus()` chiamava
+`startAutoAdvance()`: la coda del round non ripartiva e la classifica rapida del
+round 4 (e la dettagliata dell'8) non veniva mai mostrata. Il sintomo dipendeva
+dal seme dei bonus: capitava solo quando lo slot cadeva sul round 4.
+
+**Intervento.** Chiuso il riepilogo del bonus, si torna a `continueAfterRound()`:
+il bonus appena pagato è già in `bonusClosed`, quindi la coda non lo riapre e
+valuta la classifica; se il round non è uno slot, parte il conto alla rovescia
+come prima. La correzione vale anche per la dettagliata di fine atto.
+
+**Test.** `game.component.spec.ts` → «chiuso un bonus, la classifica rapida del
+round resta in coda [N-13]»: round 4, bonus chiuso, la rapida è a schermo e la
+scaletta resta sul 4. **Da fare in sala:** TV + 3 telefoni, bonus nel round 4 e
+verifica della rapida; il banco Playwright con backend reale qui non gira (manca
+Java).
 
 ### N-10 ingressi a scatti — **Misurato, correzioni da fare**
 
