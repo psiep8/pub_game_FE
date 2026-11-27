@@ -168,3 +168,91 @@ non entrano in scaletta e non vanno corretti a mano.
 tema/decennio mancanti, decennio incoerente, era incoerente, artisti ripetuti,
 tema corto, anni '60), agganciato a `npm run test:sim`. `node
 scripts/audit-banche.mjs --ci` esce **0** con 236 brani e 0 problemi.
+
+### N-07 ticchettio infinito — **Fatto**
+
+**Causa trovata (misurata, non dedotta).** Il tic del timer non aveva un
+proprietario: `openRound()` chiamava `audioService.startClock()` con *qualsiasi*
+modalità con `timerDuration > 0`, quindi anche nella Musica — che deve stare in
+silenzio — e la ripresa dalla pausa lo riaccendeva anche su un round già chiuso
+(timer a zero, soluzione a schermo), dove nessun `onTimerEnd` sarebbe più
+arrivato a fermarlo. Il canale `loop-gioco` restava acceso fino al cambio di
+scena successivo: per tutta la classifica, il bonus o la pausa d'atto.
+
+Il banco `e2e/tv-telefoni.spec.ts` (TV + 3 telefoni, backend reale) campiona
+`channelSnapshot()` ogni 5 s. Prima del fix, nella Musica:
+
+```
+owner: "round:2:MUSIC", event: "clock"   (4 campioni su 4)
+```
+
+**Intervento.** Un solo predicato, `roundClockApplies(mode)`: timer vivo, non
+MUSIC, non rivelato, non in pausa e `timer() > 0`. Lo usano i tre punti che
+accendevano il tic (apertura round, ripresa dalla pausa, restore dopo refresh).
+Dopo il fix lo stesso campione è vuoto e il Quiz continua ad avere il suo tic.
+
+**Test.** `e2e/tv-telefoni.spec.ts` → «N-07: il tick del timer ha un
+proprietario»: Quiz con clock, Musica senza, dopo pausa/ripresa senza, dopo
+reload + Riprendi senza. Rosso prima, verde dopo.
+
+### N-09 banner Karaoke in lobby — **Codice e test fatti, giro in sala da fare**
+
+**Causa.** La lobby non diceva se il Karaoke era cantabile: la regia scopriva i
+testi mancanti solo quando il bonus entrava in scena con «TESTO NON
+DISPONIBILE». La scaletta, intanto, non aveva modo di sapere che il bonus
+andava saltato, e la serata si fermava.
+
+**Intervento.** `GET /karaoke/pronostico` (pubblico, come il resto della lobby)
+restituisce `{canzoni, pronte, minimo, ok}`; la TV lo legge in `bootLobby()`,
+mostra `.lobby-karaoke` («29 canzoni pronte su 5», verde/rosso) e
+`startScheduledBonus()` salta il Karaoke quando `ok` è falso, registrando
+«KARAOKE saltato» nello stato della regia. Se il conteggio non è ancora
+arrivato si lascia partire: meglio un bonus che un round perso per una rete
+lenta. `?karaoke-demo=1` riusa `preview` e le manche finte già presenti nel
+componente Karaoke.
+
+**Test.** `KaraokeControllerTest` (pronostico con e senza testi),
+`game.component.spec.ts` (skip del bonus, avvio quando i testi ci sono, banner
+acceso/spento). **Da fare in sala:** il giro completo `?karaoke-demo=1` (stop,
+silenzio, prenotazione, CORRETTO, SBAGLIATO, riapertura, pausa, ricarica).
+
+### M-02 i brani del Karaoke non escono in Musica — **Fatto**
+
+**Causa.** Le due banche si sovrappongono: 41 dei 64 titoli del Karaoke sono
+anche in `music-themes.json`. Una serata poteva chiedere in Musica la stessa
+canzone che il Karaoke dell'atto 1 avrebbe fatto cantare. La disgiunzione
+statica non è possibile (escludendo tutti i 64 brani il tema «Italiano» resta
+con 1 hit e il mix 2+2+1 non si chiude), quindi l'esclusione è **per partita**.
+
+**Intervento.** `MusicRoundService` riceve `KaraokeService`, calcola
+`bonusReserved(gameId)` (le cinque manche deterministiche del Karaoke di quella
+partita) e le toglie dalla pesca dei quattro round Musica, in tutti i round e
+in tutte le manche. La banca non cambia: nessun brano viene scartato in
+generale, solo da quella serata.
+
+**Test.** `MusicRoundTest.quarantaPartiteNonUsanoMaiIBraniDelKaraoke`: 40
+partite × 4 round × 5 manche, nessun titolo del Karaoke, nessuna ripetizione.
+
+### M-05 `startAt` per i primi quattro secondi — **Fatto (misure da fare in sala)**
+
+**Causa.** Le clip partivano sempre da `0`: un brano con intro muta o
+strumentale lunga consumava la finestra da 4 s del primo ascolto senza far
+sentire niente, e la difficoltà diventava casuale.
+
+**Intervento.** `music-themes.json` accetta un `startAt` opzionale (secondi,
+default 0) che `TaggedTrack` porta nel payload e la TV usa come punto di
+partenza della clip; l'offset di ripresa si somma a quel punto. Lo script
+`scripts/banche/start-at-musica.mjs` misura il silenzio iniziale con
+`ffmpeg silencedetect`, propone un `startAt` e scrive la lista da ascoltare a
+mano in `docs/DOMANDE-DA-REVISIONARE.md` (`--write`). Nessun valore è stato
+inventato: i file audio non sono versionati, quindi le misure si fanno sulla
+macchina della serata.
+
+### M-06 rifiniture — **Verificato**
+
+- (a) La TV mostra già il contatore mono «MANCA n/5» e il tema del round; il
+  pacchetto completo di etichette (round, ascolto, punti) è N-06, ancora
+  aperto nel blocco B.
+- (b) Riepilogo del round: N-11, ancora aperto.
+- (c) Nome del prodotto: manuali, demo e PDF dicono già **quizzOne**; «PubGame»
+  resta solo dove è il nome tecnico del repository (`README`, `DEPLOYMENT`).
