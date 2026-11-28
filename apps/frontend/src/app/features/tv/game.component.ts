@@ -60,6 +60,7 @@ import { UltimaSpiaggia } from '../games/ultima-spiaggia/ultima-spiaggia.compone
 import { Azzardo } from '../games/azzardo/azzardo.component';
 import { levelForOccurrence } from '../games/azzardo/azzardo-rules';
 import { Blackjack } from '../games/blackjack/blackjack.component';
+import { preloadSetteCards } from '../games/sette-e-mezzo/carte-napoletane';
 import { DemoScript, demoScriptFor } from './demo-scripts';
 import { StageRunner } from './stage-runner';
 import { ALIVE_SEED, AliveDirective, AliveRuntime, aliveBubbles } from './alive';
@@ -619,6 +620,9 @@ export class GameComponent implements OnInit, OnDestroy {
     // Tick e bong dei countdown: toni brevi, così non coprono musica e voce.
     effect(() => {
       const t = this.timer();
+      // Scadenza raggiunta: il ticchettio non deve sopravvivere al timer,
+      // anche se il ramo di timeout della modalità non passa dal clock.
+      if (t === 0) this.audioService.stopClock();
       if (this.showQuestion() && !this.bonusActive() && !this.isPaused()) {
         if (t > 5) {
           this.lastTimerTick = -1;
@@ -1822,7 +1826,7 @@ export class GameComponent implements OnInit, OnDestroy {
       });
 
 
-      if (this.roundClockApplies(mode)) this.audioService.startClock();
+      if (this.roundClockApplies(mode)) this.audioService.startClock(mode.getTimerValue());
       this.startRoundSuspense(mode.type);
       if (mode.type === 'BOMBA') {
         this.audioService.playBombSiren();
@@ -2220,12 +2224,16 @@ export class GameComponent implements OnInit, OnDestroy {
     if (modeToken && modeToken !== this.activeModeToken) return;
 
     if (this.bonusActive()) {
+      this.audioService.stopClock();
       this.finishBonus();
       return;
     }
 
     const mode = this.currentMode();
-    if (!mode) return;
+    if (!mode) {
+      this.audioService.stopClock();
+      return;
+    }
 
     // Indovina chi: la manche scaduta non chiude tutto il round, apre la
     // successiva. La terza scaduta chiude davvero il round.
@@ -2253,6 +2261,7 @@ export class GameComponent implements OnInit, OnDestroy {
     // evitiamo di completare il round due volte, ma il timer scaduto deve
     // comunque spegnere la suspense.
     if (mode.type === 'ARENA') {
+      this.audioService.stopClock();
       this.audioService.stopSuspense();
       return;
     }
@@ -2862,7 +2871,7 @@ export class GameComponent implements OnInit, OnDestroy {
       if (mode) {
         // Solo se il round ha ancora un conto alla rovescia: dopo la scadenza
         // nessun `onTimerEnd` arriverebbe più a fermare questo tic.
-        if (this.roundClockApplies(mode)) this.audioService.startClock();
+        if (this.roundClockApplies(mode)) this.audioService.startClock(this.timer());
         this.resumeRoundSuspense();
       }
       this.audioService.resumeBeds();
@@ -2929,6 +2938,9 @@ export class GameComponent implements OnInit, OnDestroy {
     this.bonusGuardReason.set('libero');
     this.lastBonusAction.set(`START ${type}`);
     console.info('[BONUS] startBonus', { type, gameId: this.currentGameId() });
+    // Le 41 carte si scaricano durante l'ingresso: la prima mano non aspetta
+    // la rete e non cambia layout quando arrivano i disegni.
+    if (type === 'SETTE_E_MEZZO') preloadSetteCards();
     this.bonusResume.set(resume);
     // Il bonus dell'atto resta sul server: un refresh non lo salta.
     this.markBonusAct(type, 'STARTED');
@@ -4348,7 +4360,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.audioService.setActBed(this.currentActNumber());
     this.audioService.setGameBed(mode.type);
     this.timer.set(pending.secondsLeft);
-    if (this.roundClockApplies(mode)) this.audioService.startClock();
+    if (this.roundClockApplies(mode)) this.audioService.startClock(pending.secondsLeft);
     this.startRoundSuspense(mode.type);
     if (mode.restore) {
       try {

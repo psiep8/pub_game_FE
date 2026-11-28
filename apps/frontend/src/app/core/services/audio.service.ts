@@ -49,6 +49,13 @@ export class AudioService {
   private channels!: AudioChannels;
   /** Pausa della TV: tace tutto, effetti compresi, finché non si riprende. */
   private paused = false;
+  /**
+   * Rete di sicurezza del ticchettio: se la scena che lo ha acceso non lo
+   * spegne (timeout mancato, round cambiato, TV ripresa a metà), il loop si
+   * chiude da solo alla durata del timer più un margine. Senza questa scadenza
+   * il `clock` poteva restare acceso per sempre.
+   */
+  private clockGuardTimer?: ReturnType<typeof setTimeout>;
 
   /** Volume generale della TV, 0–1. Il muto resta il suo interruttore. */
   readonly masterVolume = signal(1);
@@ -142,8 +149,11 @@ export class AudioService {
     this.stopHeartbeat(fadeSeconds);
   }
 
-  startClock(): void {
+  startClock(seconds = 0): void {
     if (!this.audioEnabled() || this.paused) return;
+    // Ogni avvio riparte da una scadenza pulita: niente timer vecchi in giro.
+    if (this.clockGuardTimer) clearTimeout(this.clockGuardTimer);
+    this.clockGuardTimer = undefined;
     // Il livello viene dalla bilanciatura: un ticchettio continuo sta sotto.
     this.channels.start('clock', {
       channel: 'loop-gioco',
@@ -151,9 +161,17 @@ export class AudioService {
       label: 'Ticchettio del timer',
       level: AUDIO_EVENTS.clock.volume,
     });
+    if (seconds > 0) {
+      this.clockGuardTimer = setTimeout(
+        () => this.stopClock(0.4),
+        Math.max(1, Math.round(seconds)) * 1000 + 1500,
+      );
+    }
   }
 
   stopClock(fadeSeconds = 0): void {
+    if (this.clockGuardTimer) clearTimeout(this.clockGuardTimer);
+    this.clockGuardTimer = undefined;
     this.channels.stop('clock', fadeSeconds);
   }
 

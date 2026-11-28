@@ -15,6 +15,10 @@ function initialNicknameFromQuery(): string | null {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { shortRank, suitShort } from '../games/sette-e-mezzo/sette-e-mezzo-game';
+import {
+  cardAlt as napoletanaCardAlt,
+  cardImage as napoletanaCardImage,
+} from '../games/sette-e-mezzo/carte-napoletane';
 import { WebSocketService } from '../../core/websocket/web-socket.service';
 import { FormsModule } from '@angular/forms';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
@@ -153,6 +157,8 @@ const QUIZ_CHECK_TIMEOUT_MS = 8000;
       font-family: var(--font-mono); font-weight: 800;
     }
     .casino-card.red { color: var(--tomato); }
+    .casino-card.picture { display: block; padding: 0; overflow: hidden; width: 44px; min-width: 44px; height: 64px; }
+    .casino-card.picture img { display: block; width: 100%; height: 100%; object-fit: contain; }
     .casino-hand-total { font-family: var(--font-display); font-size: 2rem; line-height: 1; }
     .casino-hand-total.bust { color: var(--tomato); }
     .casino-bj-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -670,6 +676,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
       switch (status.action) {
         case 'SHOW_QUESTION':
+          // Il bonus Sette e Mezzo è autorità finché è in scena: un quiz
+          // rimasto in volo dal round precedente non deve coprirlo.
+          if (this.setteEMezzoBonusInPlay() && status.type !== 'SETTE_E_MEZZO') return;
           if (!this.acceptRoundAnnouncement(status)) return;
           if (status.type === 'QUIZ' && !this.acceptQuizAnnouncement(status)) return;
           if (status.type === 'QUIZ') {
@@ -737,6 +746,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           break;
 
         case 'START_VOTING':
+          if (this.setteEMezzoBonusInPlay() && status.type !== 'SETTE_E_MEZZO') return;
           if (!this.acceptRoundAnnouncement(status)) return;
           if (status.type === 'QUIZ' && !this.acceptQuizAnnouncement(status)) return;
           if (status.type === 'QUIZ') {
@@ -2283,6 +2293,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
     return `${shortRank(card)} ${suitShort(card)}`;
   }
 
+  setteCardImage(card: string): string {
+    return napoletanaCardImage(card);
+  }
+
+  setteCardAlt(card: string): string {
+    return napoletanaCardAlt(card);
+  }
+
   setteOutcomeLabel(state: any): string {
     switch (state?.result?.outcome) {
       case 'WIN': return 'BANCO BATTUTO · PREMIO DEL BAR';
@@ -2292,8 +2310,22 @@ export class RemoteComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Il bonus Sette e Mezzo è in scena: i quiz rimasti in volo non lo coprono. */
+  private setteEMezzoBonusInPlay(): boolean {
+    const state = this.blackjackState();
+    return !!state && state.type === 'SETTE_E_MEZZO' && state.phase !== 'FINALE';
+  }
+
   private applyBlackjackState(state: any): void {
     if (!state) return;
+
+    // Lo stato del tavolo è l'autorità del bonus: se il SHOW_QUESTION si è
+    // perso (refresh, passaggio dalla prova pulsanti, telefono in background)
+    // il telefono deve comunque uscire dalla lobby e mostrare la mano.
+    this.showButtonTest.set(false);
+    this.roundActive.set(true);
+    this.roundClosed.set(false);
+    this.roundDeadlineAt.set(0);
 
     const key = `${state.phase}:${state.index}:${state.currentTable}`;
     if (key !== this.blackjackKey) {

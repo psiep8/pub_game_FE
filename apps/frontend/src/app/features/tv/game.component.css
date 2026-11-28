@@ -448,21 +448,24 @@
 }
 
 .question-area {
-  box-sizing: border-box; 
+  box-sizing: border-box;
   width: min(920px, 96vw);
-  max-width: 100vw; 
-  overflow-x: hidden; 
-  overflow-y: hidden; 
+  max-width: 100vw;
+  overflow-x: hidden;
+  overflow-y: hidden;
   position: relative;
-  margin: 0 auto;
-  padding: 10px 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01));
-  backdrop-filter: blur(12px);
-  border-radius: 18px;
-  border: 1px solid rgba(255, 215, 0, 0.12);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  /* N-10: ancorata in alto, non ricentrata con top/transform. Quando la
+     domanda cresce il pannello cresce verso il basso invece di spostare
+     tutta la scena: la prima domanda non fa più il salto. */
+  margin: clamp(10px, 5vh, 52px) auto 0;
+  top: auto;
+  transform: none;
+  min-height: min(58vh, 560px);
+  padding: 12px 16px;
+  background: var(--coal);
+  border: 3px solid var(--paper);
+  border-radius: 0;
+  box-shadow: 6px 6px 0 var(--paper);
   max-height: 80vh;
 }
 
@@ -537,29 +540,36 @@
 .timer-wrapper {
   width: 100%;
   height: 14px;
-  background: rgba(15, 52, 96, 0.5);
-  border-radius: 8px;
+  background: var(--paper-hi);
+  border: 2px solid var(--paper);
+  border-radius: 0;
   position: relative;
   overflow: hidden;
-  margin-bottom: 15px;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 12px;
+  box-shadow: none;
 }
 
 .timer-wrapper .timer-bar {
   height: 100%;
-  background: linear-gradient(90deg, #ffd700 0%, #ffed4e 50%, #ff6b6b 100%);
+  background: var(--tomato);
   transition: width 1s linear;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  box-shadow: none;
 }
 
 .timer-wrapper .timer-text {
   position: absolute;
-  right: 15px;
-  top: -25px;
-  font-size: 1rem;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0 4px;
+  border: 1px solid var(--coal);
+  background: var(--paper);
+  color: var(--coal);
+  font-family: var(--font-mono);
+  font-size: .72rem;
   font-weight: 700;
-  color: #ffd700;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  line-height: 1.25;
+  text-shadow: none;
 }
 
 .options-grid {

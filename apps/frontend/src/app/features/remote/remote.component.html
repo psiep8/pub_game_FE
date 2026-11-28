@@ -720,7 +720,9 @@
         <span class="casino-hand-label">LA TUA MANO</span>
         <div class="casino-cards">
           @for (card of blackjackState()?.cards ?? []; track $index) {
-          <span class="casino-card" [class.red]="isRedCard(card)">{{ setteCardLabel(card) }}</span>
+          <span class="casino-card picture">
+            <img [src]="setteCardImage(card)" [alt]="setteCardAlt(card)" draggable="false">
+          </span>
           }
         </div>
         <b class="casino-hand-total" [class.bust]="(blackjackState()?.handTotal ?? 0) > 7.5">{{ blackjackState()?.handTotal ?? 0 }}</b>
@@ -736,7 +738,9 @@
         <span class="casino-hand-label">LA TUA MANO</span>
         <div class="casino-cards">
           @for (card of blackjackState()?.cards ?? []; track $index) {
-          <span class="casino-card" [class.red]="isRedCard(card)">{{ setteCardLabel(card) }}</span>
+          <span class="casino-card picture">
+            <img [src]="setteCardImage(card)" [alt]="setteCardAlt(card)" draggable="false">
+          </span>
           }
         </div>
         <b class="casino-hand-total" [class.bust]="(blackjackState()?.handTotal ?? 0) > 7.5">{{ blackjackState()?.handTotal ?? 0 }}</b>

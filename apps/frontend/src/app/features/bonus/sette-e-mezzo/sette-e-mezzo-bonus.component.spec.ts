@@ -52,7 +52,8 @@ describe('SetteEMezzoBonus — mano, telefono e ripresa TV', () => {
     expect(display.handTotal).toBe(7);
     expect(display.currentTable).toBe('Bruno');
     expect(display.bank.hidden).toBe(true);
-    expect(display.bank.cards).toEqual(['4-BASTONI']);
+    // La TV riceve solo il dorso: la prima carta del banco non viaggia.
+    expect(display.bank.cards).toEqual([]);
 
     fixture.destroy();
   });

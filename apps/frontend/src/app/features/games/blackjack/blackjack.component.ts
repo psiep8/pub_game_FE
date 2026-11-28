@@ -1,6 +1,12 @@
 import { BlackjackPhase } from './blackjack.mode';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { isBust as isSetteBust, isMatta } from '../sette-e-mezzo/sette-e-mezzo-rules';
+import {
+  CARTE_DORSO,
+  cardAlt as napoletanaCardAlt,
+  cardImage as napoletanaCardImage,
+} from '../sette-e-mezzo/carte-napoletane';
 
 /**
  * TV del round BLACK JACK: tre giri di tavoli contro il banco della TV.
@@ -13,8 +19,8 @@ import { CommonModule } from '@angular/common';
   template: `
     <div class="bj-wrap">
       <header class="bj-head">
-        <div class="bj-kicker">🃏 BLACK JACK</div>
-        <h2 class="bj-title">CONTRO IL BANCO</h2>
+        <div class="bj-kicker">{{ isSette() ? '🃏 SETTE E MEZZO · 7½' : '🃏 BLACK JACK' }}</div>
+        <h2 class="bj-title">{{ isSette() ? 'IL BANCO A 7,25' : 'CONTRO IL BANCO' }}</h2>
         <div class="bj-meta">
           <span class="bj-progress">TAVOLO {{ displayData?.index ?? 0 }} / {{ displayData?.total ?? 0 }}</span>
         </div>
@@ -22,7 +28,7 @@ import { CommonModule } from '@angular/common';
 
       @if (displayData?.phase === BlackjackPhase.FINALE) {
         <div class="bj-final">
-          <div class="bj-final-title">TAVOLI CHIUSI</div>
+          <div class="bj-final-title">{{ isSette() ? 'BONUS CHIUSO' : 'TAVOLI CHIUSI' }}</div>
           <div class="bj-final-rows">
             @for (row of displayData?.rows ?? []; track row.playerName) {
               <div class="bj-final-row" [class.won]="isWinner(row.status)" [class.lost]="isLoss(row.status)">
@@ -40,16 +46,30 @@ import { CommonModule } from '@angular/common';
       } @else {
         <div class="bj-table">
           <section class="bj-side bank">
-            <span class="bj-label">IL BANCO · TV</span>
+            <span class="bj-label">{{ isSette() ? 'IL BANCO · 7,25' : 'IL BANCO · TV' }}</span>
             <div class="bj-cards">
-              @for (card of displayData?.bank?.cards ?? []; track $index) {
-                <span class="bj-card" [class.red]="isRed(card)">
-                  <span class="bj-rank">{{ rank(card) }}</span>
-                  <span class="bj-suit">{{ suit(card) }}</span>
-                </span>
-              }
-              @if (displayData?.bank?.hidden) {
-                <span class="bj-card back">?</span>
+              @if (isSette()) {
+                @for (card of displayData?.bank?.cards ?? []; track $index) {
+                  <span class="bj-card picture" [class.matta]="matta(card)">
+                    <img [src]="setteCardImage(card)" [alt]="setteCardAlt(card)" draggable="false">
+                    @if (matta(card)) { <span class="bj-matta">MATTA</span> }
+                  </span>
+                }
+                @if (displayData?.bank?.hidden) {
+                  <span class="bj-card picture back">
+                    <img [src]="dorso()" alt="Carta coperta" draggable="false">
+                  </span>
+                }
+              } @else {
+                @for (card of displayData?.bank?.cards ?? []; track $index) {
+                  <span class="bj-card" [class.red]="isRed(card)">
+                    <span class="bj-rank">{{ rank(card) }}</span>
+                    <span class="bj-suit">{{ suit(card) }}</span>
+                  </span>
+                }
+                @if (displayData?.bank?.hidden) {
+                  <span class="bj-card back">?</span>
+                }
               }
             </div>
             <b class="bj-total">{{ displayData?.bank?.hidden ? '?' : (displayData?.bank?.total ?? '—') }}</b>
@@ -66,19 +86,46 @@ import { CommonModule } from '@angular/common';
               }
             </div>
             <div class="bj-cards">
-              @for (card of displayData?.cards ?? []; track $index) {
-                <span class="bj-card" [class.red]="isRed(card)">
-                  <span class="bj-rank">{{ rank(card) }}</span>
-                  <span class="bj-suit">{{ suit(card) }}</span>
-                </span>
-              }
-              @if (!(displayData?.cards ?? []).length) {
-                <span class="bj-card back">?</span>
-                <span class="bj-card back">?</span>
+              @if (isSette()) {
+                @for (card of displayData?.cards ?? []; track $index) {
+                  @if ($index === 0 && displayData?.phase !== BlackjackPhase.REVEAL && displayData?.phase !== BlackjackPhase.FINALE) {
+                    <!-- La prima carta della squadra è coperta: la vede solo il suo telefono. -->
+                    <span class="bj-card picture back">
+                      <img [src]="dorso()" alt="Carta coperta" draggable="false">
+                    </span>
+                  } @else {
+                    <span class="bj-card picture" [class.matta]="matta(card)">
+                      <img [src]="setteCardImage(card)" [alt]="setteCardAlt(card)" draggable="false">
+                      @if (matta(card)) { <span class="bj-matta">MATTA</span> }
+                    </span>
+                  }
+                }
+                @if (!(displayData?.cards ?? []).length) {
+                  @for (slot of [0, 1]; track slot) {
+                    <span class="bj-card picture back">
+                      <img [src]="dorso()" alt="Carta coperta" draggable="false">
+                    </span>
+                  }
+                }
+              } @else {
+                @for (card of displayData?.cards ?? []; track $index) {
+                  <span class="bj-card" [class.red]="isRed(card)">
+                    <span class="bj-rank">{{ rank(card) }}</span>
+                    <span class="bj-suit">{{ suit(card) }}</span>
+                  </span>
+                }
+                @if (!(displayData?.cards ?? []).length) {
+                  <span class="bj-card back">?</span>
+                  <span class="bj-card back">?</span>
+                }
               }
             </div>
-            <b class="bj-total" [class.bust]="(displayData?.handTotal ?? 0) > 21">
-              {{ (displayData?.cards ?? []).length ? (displayData?.handTotal ?? 0) : '—' }}
+            <b class="bj-total" [class.bust]="isBustTotal(displayData?.handTotal)">
+              @if (isSette() && displayData?.phase === BlackjackPhase.DECIDE) {
+                <span class="bj-total-hidden" aria-label="Totale nascosto">—</span>
+              } @else {
+                {{ (displayData?.cards ?? []).length ? (displayData?.handTotal ?? 0) : '—' }}
+              }
             </b>
           </section>
         </div>
@@ -92,7 +139,7 @@ import { CommonModule } from '@angular/common';
             }
           } @else if (displayData?.result; as result) {
             @if (displayData?.choice === 'STAND') {
-              <span class="bj-stamp quiet">LASCIA!</span>
+              <span class="bj-stamp quiet">{{ isSette() ? 'STAI!' : 'LASCIA!' }}</span>
             }
             <span class="bj-outcome" [class.good]="isWinner(result.outcome)" [class.bad]="isLoss(result.outcome)">
               {{ outcomeLabel(result.outcome) }}
@@ -142,6 +189,12 @@ import { CommonModule } from '@angular/common';
     .bj-card { display: inline-flex; flex-direction: column; justify-content: space-between; width: clamp(54px, 5.6vw, 82px); height: clamp(74px, 8vw, 116px); padding: clamp(4px, .5vw, 8px); background: var(--paper-hi); color: var(--coal); border: 3px solid var(--coal); border-radius: 0; font-family: var(--font-mono); font-weight: 800; }
     .bj-card.red { color: var(--tomato); }
     .bj-card.back { align-items: center; justify-content: center; background: repeating-linear-gradient(45deg, var(--coal), var(--coal) 6px, #3b3b3b 6px, #3b3b3b 12px); color: var(--paper-hi); font-size: clamp(1.2rem, 2vw, 1.8rem); }
+    .bj-card.picture { position: relative; padding: 0; overflow: hidden; }
+    .bj-card.picture img { display: block; width: 100%; height: 100%; object-fit: contain; }
+    .bj-card.picture.back { background: var(--paper-hi); }
+    .bj-card.picture.matta { border-color: var(--mustard); box-shadow: 4px 4px 0 var(--mustard); }
+    .bj-matta { position: absolute; left: 2px; bottom: 2px; padding: 0 3px; border: 1px solid var(--coal); background: var(--mustard); color: var(--coal); font-family: var(--font-mono); font-size: clamp(.4rem, .55vw, .55rem); font-weight: 800; letter-spacing: .04em; }
+    .bj-total-hidden { opacity: .35; }
     .bj-rank { font-size: clamp(1rem, 1.8vw, 1.6rem); line-height: 1; }
     .bj-suit { align-self: flex-end; font-size: clamp(1rem, 1.7vw, 1.5rem); line-height: 1; }
     .bj-total { font-family: var(--font-display); font-size: clamp(1.6rem, 3vw, 2.6rem); line-height: 1; }
@@ -183,6 +236,32 @@ export class Blackjack {
   @Input() displayData: any;
   @Input() timer = 0;
 
+  /** Il Sette e Mezzo usa i disegni napoletani al posto dei simboli francesi. */
+  isSette(): boolean {
+    return this.displayData?.type === 'SETTE_E_MEZZO';
+  }
+
+  setteCardImage(card: string): string {
+    return napoletanaCardImage(card);
+  }
+
+  setteCardAlt(card: string): string {
+    return napoletanaCardAlt(card);
+  }
+
+  dorso(): string {
+    return CARTE_DORSO;
+  }
+
+  matta(card: string): boolean {
+    return isMatta(card);
+  }
+
+  isBustTotal(total: unknown): boolean {
+    const value = Number(total) || 0;
+    return this.isSette() ? isSetteBust(value) : value > 21;
+  }
+
   rank(card: string): string {
     return String(card ?? '').slice(0, -1);
   }
@@ -198,7 +277,7 @@ export class Blackjack {
 
   /** Il bonus non assegna punti: l'esito decide chi va evidenziato. */
   isWinner(outcome: string | null | undefined): boolean {
-    return outcome === 'WIN' || outcome === 'BLACKJACK';
+    return outcome === 'WIN' || outcome === 'BLACKJACK' || outcome === 'NATURAL';
   }
 
   isLoss(outcome: string | null | undefined): boolean {
@@ -218,6 +297,8 @@ export class Blackjack {
         return 'PARI';
       case 'BLACKJACK':
         return 'BLACK JACK ×2';
+      case 'NATURAL':
+        return 'SETTE E MEZZO!';
       case 'BUST':
         return 'SBALLA';
       case 'LOSE':
@@ -237,6 +318,8 @@ export class Blackjack {
         return 'PARI';
       case 'BLACKJACK':
         return 'BLACK JACK';
+      case 'NATURAL':
+        return 'NATURALE';
       case 'BUST':
         return 'SBALLA';
       case 'LOSE':

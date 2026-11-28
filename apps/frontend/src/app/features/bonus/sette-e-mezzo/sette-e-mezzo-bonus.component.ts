@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WebSocketService } from '../../../core/websocket/web-socket.service';
-import { SetteEMezzoTable } from './sette-e-mezzo-table.component';
+import { Blackjack } from '../../games/blackjack/blackjack.component';
 import {
   BANCO_SOGLIA,
   SETTE_E_MEZZO_TARGET,
@@ -61,40 +61,10 @@ interface Row {
 @Component({
   selector: 'app-sette-e-mezzo-bonus',
   standalone: true,
-  imports: [CommonModule, SetteEMezzoTable],
+  imports: [CommonModule, Blackjack],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="semb-shell">
-      <div class="semb-kicker">🃏 BONUS SETTE E MEZZO · UN TAVOLO ALLA VOLTA</div>
-      <app-sette-e-mezzo-table [display]="display()" />
-    </div>
-  `,
-  styles: [`
-    .semb-shell {
-      position: fixed;
-      inset: 0;
-      z-index: 70;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding: clamp(10px, 1.6vw, 20px);
-      overflow: auto;
-      background: var(--coal);
-      color: var(--paper);
-    }
-    .semb-kicker {
-      align-self: center;
-      padding: 4px 12px;
-      border: 2px solid var(--paper-hi);
-      background: var(--tomato);
-      color: var(--paper-hi);
-      font-family: var(--font-mono);
-      font-size: clamp(.6rem, .9vw, .8rem);
-      font-weight: 700;
-      letter-spacing: .16em;
-      transform: rotate(-1deg);
-    }
-  `],
+  template: `<app-blackjack [displayData]="display()" />`,
+  styles: [],
 })
 export class SetteEMezzoBonus implements OnInit, OnDestroy {
   @Input({ required: true }) gameId = 1;
@@ -352,7 +322,9 @@ export class SetteEMezzoBonus implements OnInit, OnDestroy {
       cards: this.hand,
       handTotal: playerTotal,
       bank: {
-        cards: phase === 'REVEAL' || phase === 'FINALE' ? this.bank : this.bank.slice(0, 1),
+        // Fino alla rivelazione il banco è solo un dorso: nessuna carta
+        // (nemmeno la prima) viaggia verso TV e telefoni.
+        cards: phase === 'REVEAL' || phase === 'FINALE' ? this.bank : [],
         total: phase === 'REVEAL' || phase === 'FINALE' ? handTotal(this.bank) : null,
         hidden: phase !== 'REVEAL' && phase !== 'FINALE',
       },
