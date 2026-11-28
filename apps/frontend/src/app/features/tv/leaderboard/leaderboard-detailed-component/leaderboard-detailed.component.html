@@ -105,8 +105,10 @@
           <strong class="film-preannounce-title">
             @if (position === 1) {
               IL VINCITORE
-            } @else {
+            } @else if (position <= 3) {
               IL PODIO · {{ position }}° POSTO
+            } @else {
+              COLPO DI SCENA · {{ position }}° POSTO
             }
           </strong>
           <span class="film-preannounce-rule"></span>

@@ -359,6 +359,8 @@ for (const scenario of SCENARIOS) {
       // Il reveal reale produce tre preavvisi: prima del terzo, del secondo
       // e del vincitore. Il recorder li ha misurati appena sono comparsi.
       const naturalPreannouncements = [
+        { title: 'COLPO DI SCENA · 5° POSTO', label: 'naturale 5° posto' },
+        { title: 'COLPO DI SCENA · 4° POSTO', label: 'naturale 4° posto' },
         { title: 'IL PODIO · 3° POSTO', label: 'naturale 3° posto' },
         { title: 'IL PODIO · 2° POSTO', label: 'naturale 2° posto' },
         { title: 'IL VINCITORE', label: 'naturale vincitore' },

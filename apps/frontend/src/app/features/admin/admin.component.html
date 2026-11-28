@@ -97,6 +97,32 @@
     }
   </div>
 
+  <div class="flow-panel stats-panel">
+    <div class="flow-title">📊 STATISTICHE DELLA SERATA</div>
+    <p class="flow-note">
+      Round, punti e curiosità letti dallo storico server. Si aggiorna a ogni round chiuso;
+      il pulsante serve se la regia è rimasta aperta su un'altra partita.
+    </p>
+    @if (stats(); as s) {
+      <div class="stats-grid">
+        <div class="stats-kpi"><span>ROUND</span><b>{{ s.rounds }}</b></div>
+        <div class="stats-kpi"><span>SQUADRE</span><b>{{ s.teams }}</b></div>
+        <div class="stats-kpi"><span>PUNTI TOTALI</span><b>{{ s.totalPoints }}</b></div>
+        <div class="stats-kpi"><span>MEDIA ROUND</span><b>{{ s.averageRound }}</b></div>
+      </div>
+      @if (s.curiosities.length) {
+        <ul class="stats-curiosities">
+          @for (line of s.curiosities; track line) { <li>{{ line }}</li> }
+        </ul>
+      } @else {
+        <p class="flow-note">Nessun round chiuso: le statistiche compaiono dopo il primo round.</p>
+      }
+    }
+    <div class="flow-grid">
+      <button class="flow-btn" type="button" (click)="refreshStats()">↻ AGGIORNA STATISTICHE</button>
+    </div>
+  </div>
+
   <div class="flow-panel button-test-panel">
     <div class="flow-title">🧪 PROVA DEI PULSANTI</div>
     <p class="flow-note">

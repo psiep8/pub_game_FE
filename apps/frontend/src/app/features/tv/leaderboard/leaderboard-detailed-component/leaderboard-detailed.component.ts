@@ -98,7 +98,9 @@ export class LeaderboardDetailed implements OnInit {
 
       // Dopo le Arene il podio non si svela di colpo: un cartello annuncia chi
       // sta per entrare, poi la storia della squadra prende il suo tempo.
-      if (i > 0 && players.length > 3 && player.position <= 3) {
+      // N-15: dopo il quarantesimo round il film parte dal quinto posto: anche
+      // il 5° e il 4° hanno il loro timbro, non solo il podio.
+      if (i > 0 && players.length > 5 && player.position <= 5) {
         this.podiumSoon.set(player.position);
         await new Promise(resolve => setTimeout(resolve, 1600));
         this.podiumSoon.set(null);

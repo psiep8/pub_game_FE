@@ -130,7 +130,9 @@ describe('LeaderboardDetailed', () => {
     ];
     create(many);
 
-    await vi.advanceTimersByTimeAsync(1100 + 2400 + 2800);
+    // Sei squadre: sesto (1100), timbro 5° (1600), quinto (2400), timbro 4°
+    // (1600), quarto (2800), poi il timbro del terzo.
+    await vi.advanceTimersByTimeAsync(1100 + 1600 + 2400 + 1600 + 2800);
     fixture.detectChanges();
     expect(component.podiumSoon()).toBe(3);
     expect(component.currentPlayer()?.position).toBe(4);
@@ -156,11 +158,20 @@ describe('LeaderboardDetailed', () => {
     create(many);
     const reveal = vi.spyOn(TestBed.inject(AudioService), 'playRankReveal');
 
+    // Il sesto posto entra, poi il timbro del quinto anticipa la sua storia.
     await vi.advanceTimersByTimeAsync(1100);
+    expect(component.podiumSoon()).toBe(5);
+    expect(component.currentPlayer()?.position).toBe(6);
+
+    await vi.advanceTimersByTimeAsync(1600);
     expect(component.currentPlayer()?.position).toBe(5);
     expect(reveal).toHaveBeenCalledWith(5);
 
     await vi.advanceTimersByTimeAsync(2400);
+    expect(component.podiumSoon()).toBe(4);
+    expect(component.currentPlayer()?.position).toBe(5);
+
+    await vi.advanceTimersByTimeAsync(1600);
     expect(component.currentPlayer()?.position).toBe(4);
     expect(reveal).toHaveBeenCalledWith(4);
   });

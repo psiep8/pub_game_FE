@@ -13,6 +13,8 @@ import { ReliabilityService } from '../../core/services/reliability.service';
 import { ConnectionBadge } from '../../shared/components/connection-badge/connection-badge.component';
 import { ButtonTestService, ButtonTestSnapshot } from '../../core/services/button-test.service';
 import { DEMO_ORDER, DEMO_SCRIPTS } from '../tv/demo-scripts';
+import { buildAdminStats } from './admin-stats';
+import type { RoundScoreHistory } from '../tv/leaderboard/leaderboard-detailed-component/leaderboard-film';
 
 /** Giochi con più manche: il pulsante unico diventa «PROSSIMA MANCHE». */
 const MANCHE_GAMES = new Set(['QUIZ', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE', 'TIME_BUZZER', 'AZZARDO', 'MUSIC']);
@@ -87,6 +89,9 @@ export class Admin implements OnInit, OnDestroy {
   readonly reliability = inject(ReliabilityService);
   private buttonTests = inject(ButtonTestService);
   diagnostics = signal<any | null>(null);
+  /** Storico server dei round: alimenta la pagina statistiche della regia. */
+  readonly roundScores = signal<RoundScoreHistory | null>(null);
+  readonly stats = computed(() => buildAdminStats(this.roundScores()));
   buttonTest = signal<ButtonTestSnapshot | null>(null);
   forceStart = signal(false);
   /** Regia non abbinata: il codice si scrive nel pannello, non in un prompt. */
@@ -199,6 +204,7 @@ export class Admin implements OnInit, OnDestroy {
     void this.refreshDiagnostics();
     void this.loadCategories();
     void this.refreshButtonTest();
+    void this.refreshStats();
     this.diagTimer = setInterval(() => void this.refreshDiagnostics(), 5000);
     this.buttonTestTimer = setInterval(() => void this.refreshButtonTest(), 2500);
 
@@ -253,6 +259,8 @@ export class Admin implements OnInit, OnDestroy {
             this.solution.set(null);
             this.scoringRules.set(null);
             this.payload.set(null);
+            // Il round appena chiuso è la nuova riga delle statistiche.
+            void this.refreshStats();
             break;
 
           case 'PLAYER_PRENOTATO':
@@ -561,6 +569,15 @@ export class Admin implements OnInit, OnDestroy {
   async refreshDiagnostics(): Promise<void> {
     const data = await this.reliability.diagnostics(this.activeGameId());
     this.diagnostics.set(data);
+  }
+
+  /** Legge lo storico server: la pagina regia non inventa numeri. */
+  async refreshStats(): Promise<void> {
+    try {
+      this.roundScores.set(await firstValueFrom(this.games.getRoundScores(this.activeGameId())));
+    } catch {
+      this.roundScores.set(null);
+    }
   }
 
   // -------------------------------------------------------------- Categorie
